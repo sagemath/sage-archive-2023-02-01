@@ -261,7 +261,7 @@ cdef class CategoryObject(sage_object.SageObject):
 
     def _populate_generators_(self, gens=None, names=None, normalize = True, category=None):
         if category in self._generators:
-            raise ValueError, "Generators cannot be changed after object creation."
+            raise ValueError("Generators cannot be changed after object creation.")
         if category is None:
             category = self._category
         from sage.structure.sequence import Sequence
@@ -465,13 +465,13 @@ cdef class CategoryObject(sage_object.SageObject):
                     ngens = self.ngens()
             names = normalize_names(ngens, names)
         if self._names is not None and names != self._names:
-            raise ValueError, 'variable names cannot be changed after object creation.'
+            raise ValueError('variable names cannot be changed after object creation.')
         if isinstance(names, str):
             names = (names, )  # make it a tuple
         elif isinstance(names, list):
             names = tuple(names)
         elif not isinstance(names, tuple):
-            raise TypeError, "names must be a tuple of strings"
+            raise TypeError("names must be a tuple of strings")
         self._names = names
 
     def normalize_names(self, ngens, names):

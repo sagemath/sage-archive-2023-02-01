@@ -91,7 +91,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         cdef FreeAlgebra_letterplace P = A
         if check:
             if not x.is_homogeneous():
-                raise ValueError, "Free algebras based on Letterplace can currently only work with weighted homogeneous elements"
+                raise ValueError("Free algebras based on Letterplace can currently only work with weighted homogeneous elements")
             P.set_degbound(x.degree())
             x = P._current_ring(x)
         AlgebraElement.__init__(self,P)
@@ -432,7 +432,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
         """
         if self._parent is not p._parent:
-            raise TypeError, "The two arguments must be elements in the same free algebra."
+            raise TypeError("The two arguments must be elements in the same free algebra.")
         cdef FreeAlgebra_letterplace A = self._parent
         P = A._current_ring
         p_poly = p._poly = P(p._poly)
@@ -451,7 +451,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
                 return True
         return False
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef int _cmp_(self, other) except -2:
         """
         Auxiliary method for comparison.
 
@@ -470,7 +470,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
     ################################
     ## Arithmetic
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         TEST::
 
@@ -484,7 +484,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
         """
         return FreeAlgebraElement_letterplace(self._parent,-self._poly,check=False)
-    cpdef ModuleElement _add_(self, ModuleElement other):
+    cpdef _add_(self, other):
         """
         Addition, under the side condition that either one summand
         is zero, or both summands have the same degree.
@@ -510,14 +510,14 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             return other
         cdef FreeAlgebraElement_letterplace right = other
         if right._poly.degree()!=self._poly.degree():
-            raise ArithmeticError, "Can only add elements of the same weighted degree"
+            raise ArithmeticError("Can only add elements of the same weighted degree")
         # update the polynomials
         cdef FreeAlgebra_letterplace A = self._parent
         self._poly = A._current_ring(self._poly)
         right._poly = A._current_ring(right._poly)
         return FreeAlgebraElement_letterplace(self._parent,self._poly+right._poly,check=False)
 
-    cpdef ModuleElement _sub_(self, ModuleElement other):
+    cpdef _sub_(self, other):
         """
         Difference, under the side condition that either one summand
         is zero or both have the same weighted degree.
@@ -549,14 +549,14 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             return -other
         cdef FreeAlgebraElement_letterplace right = other
         if right._poly.degree()!=self._poly.degree():
-            raise ArithmeticError, "Can only subtract elements of the same degree"
+            raise ArithmeticError("Can only subtract elements of the same degree")
         # update the polynomials
         cdef FreeAlgebra_letterplace A = self._parent
         self._poly = A._current_ring(self._poly)
         right._poly = A._current_ring(right._poly)
         return FreeAlgebraElement_letterplace(self._parent,self._poly-right._poly,check=False)
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         Multiplication from the right with an element of the base ring.
 
@@ -570,7 +570,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         return FreeAlgebraElement_letterplace(self._parent,self._poly._lmul_(right),check=False)
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         Multiplication from the left with an element of the base ring.
 
@@ -584,7 +584,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         return FreeAlgebraElement_letterplace(self._parent,self._poly._rmul_(left),check=False)
 
-    cpdef RingElement _mul_(self, RingElement other):
+    cpdef _mul_(self, other):
         """
         Product of two free algebra elements in letterplace implementation.
 
@@ -617,7 +617,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         cdef FreeAlgebra_letterplace A = self._parent
         if n<0:
-            raise ValueError, "Negative exponents are not allowed"
+            raise ValueError("Negative exponents are not allowed")
         if n==0:
             return FreeAlgebraElement_letterplace(A, A._current_ring(1),
                                                   check=False)
@@ -761,6 +761,6 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
         """
         if self._parent != I.ring():
-            raise ValueError, "Can not compute normal form wrt an ideal that does not belong to %s"%self._parent
+            raise ValueError("Can not compute normal form wrt an ideal that does not belong to %s" % self._parent)
         sdeg = self._poly.degree()
         return self.reduce(self._parent._reductor_(I.groebner_basis(degbound=sdeg).gens(), sdeg))

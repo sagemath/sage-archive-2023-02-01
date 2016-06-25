@@ -1818,12 +1818,13 @@ class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
                 else:
                     widths.append(len(c))
             else:
+                c2 = len(c) // 2
                 if exp:
-                    if not len(c)/2 in widths:
-                        widths[len(c)/2] = 0
-                    widths[len(c)/2] += 1
+                    if not c2 in widths:
+                        widths[c2] = 0
+                    widths[c2] += 1
                 else:
-                    widths.append(len(c)/2)
+                    widths.append(c2)
 
         if exp:
             return widths

@@ -87,6 +87,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.all import prod
 from sage.misc.all import xmrange
@@ -404,16 +405,16 @@ def egros_get_j(S=[], proof=None, verbose=False):
     nw = 6**len(S) * 2
 
     if verbose:
-        print "Finding possible j invariants for S = ",S
-        print "Using ", nw, " twists of base curve"
+        print("Finding possible j invariants for S = ", S)
+        print("Using ", nw, " twists of base curve")
         sys.stdout.flush()
 
     for ei in xmrange([6]*len(S) + [2]):
         w = prod([p**e for p,e in zip(reversed(SS),ei)],QQ(1))
         wcount+=1
         if verbose:
-            print "Curve #",wcount, "/",nw,":";
-            print "w = ",w,"=",w.factor()
+            print("Curve #", wcount, "/", nw, ":")
+            print("w = ", w, "=", w.factor())
             sys.stdout.flush()
         a6 = -1728*w
         d2 = 0
@@ -432,17 +433,17 @@ def egros_get_j(S=[], proof=None, verbose=False):
         try:
             pts = E23.S_integral_points(S,proof=proof)
         except RuntimeError:
-            pts=[]
-            print "Failed to find S-integral points on ",E23.ainvs()
+            pts = []
+            print("Failed to find S-integral points on ", E23.ainvs())
             if proof:
                 if verbose:
-                    print "--trying again with proof=False"
+                    print("--trying again with proof=False")
                     sys.stdout.flush()
                 pts = E23.S_integral_points(S,proof=False)
                 if verbose:
-                    print "--done"
+                    print("--done")
         if verbose:
-            print len(pts), " S-integral points: ",pts
+            print(len(pts), " S-integral points: ", pts)
             sys.stdout.flush()
         for P in pts:
             P = urst(P)
@@ -453,11 +454,11 @@ def egros_get_j(S=[], proof=None, verbose=False):
             if is_possible_j(j,S):
                 if not j in jlist:
                     if verbose:
-                        print "Adding possible j = ",j
+                        print("Adding possible j = ", j)
                         sys.stdout.flush()
                     jlist += [j]
             else:
                 if True: #verbose:
-                    print "Discarding illegal j = ",j
+                    print("Discarding illegal j = ", j)
                     sys.stdout.flush()
     return sorted(jlist, key=lambda j: j.height())

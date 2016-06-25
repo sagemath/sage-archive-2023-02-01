@@ -32,8 +32,8 @@ from .log import (exp, exp_polar, log, ln, polylog, dilog, lambert_w)
 from .transcendental import (zeta, zetaderiv, zeta_symmetric, hurwitz_zeta,
                             dickman_rho, stieltjes)
 
-from sage.functions.bessel import (bessel_I, bessel_J, bessel_K, bessel_Y,
-                                   Bessel, struve_H, struve_L)
+from .bessel import (bessel_I, bessel_J, bessel_K, bessel_Y,
+                    Bessel, struve_H, struve_L)
 
 from .special import (hypergeometric_U,
                      spherical_bessel_J, spherical_bessel_Y,
@@ -82,6 +82,6 @@ from .exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li
                           log_integral_offset,
                           sin_integral, cos_integral, Si, Ci,
                           sinh_integral, cosh_integral, Shi, Chi,
-                          exponential_integral_1, Ei)
+                          exponential_integral_1, Ei, exp_integral_ei)
 
 from .hypergeometric import hypergeometric

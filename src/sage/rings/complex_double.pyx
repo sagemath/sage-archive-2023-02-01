@@ -795,7 +795,7 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return hash(complex(self))
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         We order the complex numbers in dictionary order by real parts then
         imaginary parts.
@@ -1155,7 +1155,7 @@ cdef class ComplexDoubleElement(FieldElement):
     # Arithmetic
     #######################################################################
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add ``self`` and ``right``.
 
@@ -1167,7 +1167,7 @@ cdef class ComplexDoubleElement(FieldElement):
         return self._new_c(gsl_complex_add(self._complex,
                                            (<ComplexDoubleElement>right)._complex))
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract ``self`` and ``right``.
 
@@ -1179,7 +1179,7 @@ cdef class ComplexDoubleElement(FieldElement):
         return self._new_c(gsl_complex_sub(self._complex,
                                 (<ComplexDoubleElement>right)._complex))
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply ``self`` and ``right``.
 
@@ -1191,7 +1191,7 @@ cdef class ComplexDoubleElement(FieldElement):
         return self._new_c(gsl_complex_mul(self._complex,
                        (<ComplexDoubleElement>right)._complex))
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide ``self`` by ``right``.
 
@@ -1225,7 +1225,7 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return self._new_c(gsl_complex_inverse(self._complex))
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         This function returns the negative of the complex number `z`:
 

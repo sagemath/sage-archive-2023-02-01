@@ -587,7 +587,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             name = self.parent().latex_variable_names()[0]
         return self._repr(name=name, latex=True)
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         r"""
         Returns self plus right.
 
@@ -607,7 +607,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         return x
 
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         r"""
         Return self minus right.
 
@@ -627,7 +627,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         return x
 
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         r"""
         Returns negative of self.
 
@@ -879,7 +879,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             return self._parent(rr), ss, tt
 
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         r"""
         Returns self multiplied by right.
 
@@ -927,7 +927,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         return x
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 
@@ -946,7 +946,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         return x
 
 
-    cpdef ModuleElement _rmul_(self, RingElement right):
+    cpdef _rmul_(self, RingElement right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 
@@ -998,8 +998,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: x^(1/2)
             Traceback (most recent call last):
             ...
-            ValueError: (x)^(1/2) does not lie in Univariate
-            Polynomial Ring in x over Integer Ring
+            ValueError: not a 2nd power
+
             sage: x^(2^100)
             Traceback (most recent call last):
             ...
@@ -1020,8 +1020,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: (R^2 + 3)^(1/2)
             Traceback (most recent call last):
             ...
-            ValueError: (R^2 + 3)^(1/2) does not lie in Univariate
-            Polynomial Ring in R over Integer Ring
+            ValueError: 3 is not a 2nd power
 
             Ring in R over Integer Ring
             sage: P(2)^P(2)

@@ -71,7 +71,7 @@ TESTS::
     sage: cm.common_parent(A, E)
     Growth Group QQ^x * x^QQ
     sage: for t in cm.exception_stack():  # not tested, see #19411
-    ....:     print t
+    ....:     print(t)
 
 ::
 
@@ -94,6 +94,7 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import sage
 

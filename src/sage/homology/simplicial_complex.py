@@ -1201,7 +1201,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if not isinstance(x, Simplex):
             return False
         dim = x.dimension()
-        return x in self.faces()[dim]
+        return dim in self.faces() and x in self.faces()[dim]
 
     def __call__(self, simplex):
         """
@@ -1529,9 +1529,11 @@ class SimplicialComplex(Parent, GenericCellComplex):
             ...
             ValueError: this simplex is not in this simplicial complex
         """
-        if not simplex in self.faces()[simplex.dimension()]:
+        d = simplex.dimension()
+        if d in self.faces() and simplex in self.faces()[d]:
+            return simplex.face(i)
+        else:
             raise ValueError('this simplex is not in this simplicial complex')
-        return simplex.face(i)
 
     def f_triangle(self):
         r"""
@@ -2452,7 +2454,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
     def add_face(self, face):
         """
-        Add a face to this simplicial complex
+        Add a face to this simplicial complex.
 
         :param face: a subset of the vertex set
 
@@ -2476,14 +2478,36 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: Y.add_face([1,3]); Y
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 2, 3), (0, 1)}
 
+        TESTS:
+
         Check that the bug reported at :trac:`14354` has been fixed::
 
             sage: T = SimplicialComplex([range(1,5)]).n_skeleton(1)
-            sage: T.homology()
+            sage: T.homology(algorithm='no_chomp')
             {0: 0, 1: Z x Z x Z}
             sage: T.add_face([1,2,3])
-            sage: T.homology()
+            sage: T.homology(algorithm='no_chomp')
             {0: 0, 1: Z x Z, 2: 0}
+
+        Check that the ``_faces`` cache is treated correctly
+        (:trac:`20758`)::
+
+            sage: T = SimplicialComplex([range(1,5)]).n_skeleton(1)
+            sage: _ = T.faces() # populate the _faces attribute
+            sage: _ = T.homology() # add more to _faces
+            sage: T.add_face((1,2,3))
+            sage: all(Simplex((1,2,3)) in T._faces[L][2] for L in T._faces)
+            True
+
+        Check that the ``__enlarged`` cache is treated correctly
+        (:trac:`20758`)::
+
+            sage: T = SimplicialComplex([range(1,5)]).n_skeleton(1)
+            sage: T.homology(algorithm='no_chomp') # to populate the __enlarged attribute
+            {0: 0, 1: Z x Z x Z}
+            sage: T.add_face([1,2,3])
+            sage: len(T._SimplicialComplex__enlarged) > 0
+            True
 
         Check we've fixed the bug reported at :trac:`14578`::
 
@@ -2519,14 +2543,19 @@ class SimplicialComplex(Parent, GenericCellComplex):
             # Update the vertex set
             self._vertex_set = tuple(reduce(union, [self._vertex_set, new_face]))
 
-            # update self._faces if necessary
-            if None in self._faces:
-                all_new_faces = SimplicialComplex([new_face]).faces()
-                for dim in range(0, new_face.dimension()+1):
-                    if dim in self._faces[None]:
-                        self._faces[None][dim] = self._faces[None][dim].union(all_new_faces[dim])
+            # Update self._faces.
+            all_new_faces = SimplicialComplex([new_face]).faces()
+            for L in self._faces:
+                L_complex = self._faces[L]
+                for dim in range(new_face.dimension()+1):
+                    if dim in L_complex:
+                        if L is None:
+                            new_faces = all_new_faces[dim]
+                        else:
+                            new_faces = all_new_faces[dim].difference(L.faces()[dim])
+                        L_complex[dim] = L_complex[dim].union(new_faces)
                     else:
-                        self._faces[None][dim] = all_new_faces[dim]
+                        L_complex[dim] = all_new_faces[dim]
             # update self._graph if necessary
             if self._graph is not None:
                 d = new_face.dimension()+1
@@ -2535,7 +2564,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
                         self._graph.add_edge(new_face[i], new_face[j])
             self._complex = {}
             self.__contractible = None
-            self.__enlarged = {}
 
     def remove_face(self, face):
         """
@@ -2567,6 +2595,22 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S.remove_face([0,1,2])
             sage: S
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 2), (2, 3), (0, 2), (0, 1)}
+
+        TESTS:
+
+        Check that the ``_faces`` cache is treated properly: see
+        :trac:`20758`::
+
+            sage: T = SimplicialComplex([range(1,5)]).n_skeleton(1)
+            sage: _ = T.faces() # populate the _faces attribute
+            sage: _ = T.homology(algorithm='no_chomp') # add more to _faces
+            sage: T.add_face((1,2,3))
+            sage: T.remove_face((1,2,3))
+            sage: len(T._faces)
+            2
+            sage: T.remove_face((3,4))
+            sage: len(T._faces)
+            1
         """
         if not self._is_mutable:
             raise ValueError("This simplicial complex is not mutable")
@@ -2584,23 +2628,23 @@ class SimplicialComplex(Parent, GenericCellComplex):
         # join_facets is the list of facets in the join bdry(face) * link(face)
         remaining = join_facets + [elem for elem in facets if not simplex.is_face(elem)]
 
-        # Check to see if there are any non-maximial faces
+        # Check to see if there are any non-maximal faces
         # build set of facets
         self._facets = []
         for f in remaining:
-            face = Simplex(f)
+            face2 = Simplex(f)
             face_is_maximal = True
             faces_to_be_removed = []
             for other in self._facets:
-                if other.is_face(face):
+                if other.is_face(face2):
                     faces_to_be_removed.append(other)
                 elif face_is_maximal:
-                    face_is_maximal = not face.is_face(other)
+                    face_is_maximal = not face2.is_face(other)
             for x in faces_to_be_removed:
                 self._facets.remove(x)
-            face = Simplex(sorted(face.tuple()))
+            face2 = Simplex(sorted(face2.tuple()))
             if face_is_maximal:
-                self._facets.append(face)
+                self._facets.append(face2)
         # if no maximal faces, add the empty face as a facet
         if len(remaining) == 0:
             self._facets.append(Simplex(-1))
@@ -2609,10 +2653,14 @@ class SimplicialComplex(Parent, GenericCellComplex):
         from sage.misc.misc import union
         self._vertex_set = tuple(reduce(union, self._facets))
 
-        # Update self._faces and self._graph if necessary
-        if None in self._faces:
-            self._faces = {}
-            self.faces()
+        # Update self._faces.
+        # Note: can't iterate over self._faces, because the dictionary
+        # size may change during iteration.
+        for L in self._faces.keys():
+            del self._faces[L]
+            if L is None or Simplex(face) not in L:
+                self.faces(L)
+        # Update self._graph if necessary.
         if self._graph is not None:
             # Only if removing a 1 or 2 dim face will the graph be affected
             if len(face) == 1:
@@ -3470,7 +3518,11 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: X.set_immutable()
             sage: X.n_skeleton(2)
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (1, 2, 3), (0, 1)}
+            sage: X.n_skeleton(4)
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (1, 2, 3), (0, 1)}
         """
+        if n >= self.dimension():
+            return self
         # make sure it's a list (it will be a tuple if immutable)
         facets = [f for f in self._facets if f.dimension() < n]
         facets.extend(self.faces()[n])
@@ -3821,8 +3873,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         INPUT:
 
-        - ``certify`` -- if ``True``, then output is ``(a,b)``, where ``a``
-          is a boolean and ``b`` is either a map or ``None``.
+        - ``certify`` -- if ``True``, then output is ``(a, b)``, where ``a``
+          is a boolean and ``b`` is either a map or ``None``
 
         This is done by creating two graphs and checking whether they
         are isomorphic.
@@ -3838,18 +3890,30 @@ class SimplicialComplex(Parent, GenericCellComplex):
             (True, {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f'})
             sage: Z3.is_isomorphic(Z2)
             False
+
+        We check that :trac:`20751` is fixed::
+
+            sage: C1 = SimplicialComplex([[1,2,3], [1,2,4], [1,3,4]])
+            sage: C2 = SimplicialComplex([['j','k','l'], ['j','l','m'], ['j','k','m']])
+            sage: C1.is_isomorphic(C2,certify=True)
+            (True, {1: 'j', 2: 'k', 3: 'l', 4: 'm'})
         """
+        # Check easy invariants agree
+        if (sorted(x.dimension() for x in self._facets)
+            != sorted(x.dimension() for x in other._facets)
+            or len(self._vertex_set) != len(other._vertex_set)):
+            return False
         g1 = Graph()
         g2 = Graph()
-        g1.add_edges((v, f) for f in self.facets() for v in f)
-        g2.add_edges((v, f) for f in other.facets() for v in f)
+        g1.add_edges((v, f) for f in self._facets for v in f)
+        g2.add_edges((v, f) for f in other._facets for v in f)
         g1.add_edges(("fake_vertex", v, "special_edge")
-                     for v in self.vertices())
+                     for v in self._vertex_set)
         g2.add_edges(("fake_vertex", v, "special_edge")
-                     for v in other.vertices())
+                     for v in other._vertex_set)
         if not certify:
-            return g1.is_isomorphic(g2)
-        isisom, tr = g1.is_isomorphic(g2, certify = True)
+            return g1.is_isomorphic(g2, edge_labels=True)
+        isisom, tr = g1.is_isomorphic(g2, edge_labels=True, certify=True)
 
         if isisom:
             for f in self.facets():

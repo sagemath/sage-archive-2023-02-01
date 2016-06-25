@@ -67,7 +67,7 @@ def uninstall():
 
 
 def is_installed():
-    """
+    r"""
     Test whether the Sage input hook is installed
 
     This is only for doctesting purposes

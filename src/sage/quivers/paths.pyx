@@ -261,7 +261,7 @@ cdef class QuiverPath(MonoidElement):
         """
         return self._path.length != 0
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Comparison for :class:`QuiverPaths`.
 
@@ -427,7 +427,7 @@ cdef class QuiverPath(MonoidElement):
         for i in range(0,self._path.length):
             yield E[biseq_getitem(self._path, i)]
 
-    cpdef MonoidElement _mul_(self, MonoidElement other):
+    cpdef _mul_(self, other):
         """
         Compose two paths.
 

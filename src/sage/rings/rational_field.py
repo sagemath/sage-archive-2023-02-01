@@ -873,7 +873,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         return [ self.gen() ]
 
-    def extension(self, poly, names, check=True, embedding=None):
+    def extension(self, poly, names, **kwds):
         r"""
         Create a field extension of `\QQ`.
 
@@ -894,7 +894,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             -5
         """
         from sage.rings.number_field.all import NumberField
-        return NumberField(poly, names=names, check=check, embedding=embedding)
+        return NumberField(poly, names=names, **kwds)
 
     def algebraic_closure(self):
         r"""

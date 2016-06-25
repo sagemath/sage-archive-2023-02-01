@@ -38,6 +38,7 @@ AUTHORS:
 - Niles Johnson (2010-08): ``random_element()`` should pass on ``*args`` and
   ``**kwds`` (:trac:`3893`).
 """
+from __future__ import print_function
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.ring import Field
@@ -286,8 +287,8 @@ class ContinuedFractionField(UniqueRepresentation,Field):
         if isinstance(data, FieldElement) and data.parent() is self:
             data = list(data)
         if extra_args:
-            print "data",data,type(data)
-            print "extra_args",extra_args, type(extra_args[0])
+            print("data", data, type(data))
+            print("extra_args", extra_args, type(extra_args[0]))
             data = list(extra_args[0])
         if not isinstance(data, (tuple,list)):
             from sage.rings.rational_field import QQ

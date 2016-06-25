@@ -818,13 +818,16 @@ gamma1 = Function_gamma()
 class Function_log_gamma(GinacFunction):
     def __init__(self):
         r"""
-        The principal branch of the logarithm of Gamma function.
+        The principal branch of the log gamma function. Note that for
+        `x < 0`, ``log(gamma(x))`` is not, in general, equal to
+        ``log_gamma(x)``.
+
+        It is computed by the ``log_gamma`` function for the number type,
+        or by ``lgamma`` in Ginac, failing that.
+
         Gamma is defined for complex input `z` with real part greater
         than zero, and by analytic continuation on the rest of the
         complex plane (except for negative integers, which are poles).
-
-        It is computed by the `log_gamma` function for the number type,
-        or by `lgamma` in Ginac, failing that.
 
         EXAMPLES:
 
@@ -839,54 +842,66 @@ class Function_log_gamma(GinacFunction):
             4.78749174278205
             sage: log_gamma(RealField(100)(6))
             4.7874917427820459942477009345
-            sage: log_gamma(2.4+i)
+            sage: log_gamma(2.4 + I)
             -0.0308566579348816 + 0.693427705955790*I
             sage: log_gamma(-3.1)
-            0.400311696703985
+            0.400311696703985 - 12.5663706143592*I
+            sage: log_gamma(-1.1) == log(gamma(-1.1))
+            False
 
         Symbolic input works (see :trac:`10075`)::
 
             sage: log_gamma(3*x)
             log_gamma(3*x)
-            sage: log_gamma(3+i)
+            sage: log_gamma(3 + I)
             log_gamma(I + 3)
-            sage: log_gamma(3+i+x)
+            sage: log_gamma(3 + I + x)
             log_gamma(x + I + 3)
 
-        To get evaluation of input for which gamma
-        is negative and the ceiling is even, we must
-        explicitly make the input complex.  This is
-        a known issue, see :trac:`12521`::
+        Check that :trac:`12521` is fixed::
 
             sage: log_gamma(-2.1)
-            NaN
+            1.53171380819509 - 9.42477796076938*I
             sage: log_gamma(CC(-2.1))
-            1.53171380819509 + 3.14159265358979*I
+            1.53171380819509 - 9.42477796076938*I
+            sage: log_gamma(-21/10).n()
+            1.53171380819509 - 9.42477796076938*I
+            sage: exp(log_gamma(-1.3) + log_gamma(-0.4) -
+            ....:     log_gamma(-1.3 - 0.4)).real_part()  # beta(-1.3, -0.4)
+            -4.92909641669610
 
-        In order to prevent evaluation, use the `hold` argument;
-        to evaluate a held expression, use the `n()` numerical
+        In order to prevent evaluation, use the ``hold`` argument;
+        to evaluate a held expression, use the ``n()`` numerical
         evaluation method::
 
-            sage: log_gamma(SR(5),hold=True)
+            sage: log_gamma(SR(5), hold=True)
             log_gamma(5)
-            sage: log_gamma(SR(5),hold=True).n()
+            sage: log_gamma(SR(5), hold=True).n()
             3.17805383034795
 
         TESTS::
 
-            sage: log_gamma(-2.1+i)
-            -1.90373724496982 - 0.901638463592247*I
+            sage: log_gamma(-2.1 + I)
+            -1.90373724496982 - 7.18482377077183*I
             sage: log_gamma(pari(6))
             4.78749174278205
+            sage: log_gamma(x)._sympy_()
+            loggamma(x)
             sage: log_gamma(CC(6))
             4.78749174278205
             sage: log_gamma(CC(-2.5))
-            -0.0562437164976740 + 3.14159265358979*I
-            sage: log_gamma(x)._sympy_()
-            loggamma(x)
+            -0.0562437164976740 - 9.42477796076938*I
+            sage: log_gamma(RDF(-2.5))
+            -0.0562437164976740 - 9.42477796076938*I
+            sage: log_gamma(CDF(-2.5))
+            -0.0562437164976740 - 9.42477796076938*I
+            sage: log_gamma(float(-2.5))
+            (-0.05624371649767403-9.42477796076938j)
+            sage: log_gamma(complex(-2.5))
+            (-0.05624371649767403-9.42477796076938j)
 
-        ``conjugate(log_gamma(x))==log_gamma(conjugate(x))`` unless on the branch
-        cut, which runs along the negative real axis.::
+        ``conjugate(log_gamma(x)) == log_gamma(conjugate(x))`` unless on the
+        branch cut, which runs along the negative real axis.::
 
             sage: conjugate(log_gamma(x))
             conjugate(log_gamma(x))
@@ -894,7 +909,7 @@ class Function_log_gamma(GinacFunction):
             y
             sage: conjugate(log_gamma(y))
             log_gamma(y)
-            sage: conjugate(log_gamma(y+I))
+            sage: conjugate(log_gamma(y + I))
             conjugate(log_gamma(y + I))
             sage: log_gamma(-2)
             +Infinity
@@ -1643,12 +1658,13 @@ class Function_beta(GinacFunction):
 
         .. math::
 
-            B(p,q) = \int_0^1 t^{p-1}(1-t)^{1-q} dt
+            \operatorname{B}(p,q) = \int_0^1 t^{p-1}(1-t)^{q-1} dt
 
         for complex or symbolic input `p` and `q`.
-        Note that the order of inputs does not matter:  `B(p,q)=B(q,p)`.
+        Note that the order of inputs does not matter:
+        `\operatorname{B}(p,q)=\operatorname{B}(q,p)`.
 
-        GiNaC is used to compute `B(p,q)`.  However, complex inputs
+        GiNaC is used to compute `\operatorname{B}(p,q)`.  However, complex inputs
         are not yet handled in general.  When GiNaC raises an error on
         such inputs, we raise a NotImplementedError.
 
@@ -1658,20 +1674,20 @@ class Function_beta(GinacFunction):
 
         .. math::
 
-            B(p,q) = \Gamma(p)\Gamma(q)/\Gamma(p+q)
+            \operatorname{B}(p,q) = \frac{\Gamma(p)\Gamma(q)}{\Gamma(p+q)}
 
         or
 
         .. math::
 
-            B(p,q) = (-1)^q B(1-p-q, q).
+            \operatorname{B}(p,q) = (-1)^q \operatorname{B}(1-p-q, q).
 
 
         For numerical inputs, GiNaC uses the formula
 
         .. math::
 
-            B(p,q) =  \exp[\log\Gamma(p)+\log\Gamma(q)-\log\Gamma(p+q)]
+            \operatorname{B}(p,q) =  \exp[\log\Gamma(p)+\log\Gamma(q)-\log\Gamma(p+q)]
 
 
         INPUT:

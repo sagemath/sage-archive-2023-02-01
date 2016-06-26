@@ -7,16 +7,16 @@ Symmetric Group Algebra
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.misc.cachefunc import cached_method
-from combinatorial_algebra import CombinatorialAlgebra
-from free_module import CombinatorialFreeModule
+from .combinatorial_algebra import CombinatorialAlgebra
+from .free_module import CombinatorialFreeModule
 from sage.categories.weyl_groups import WeylGroups
 from sage.combinat.permutation import (Permutation, Permutations,
      from_permutation_group_element, PermutationOptions)
-import partition
-from tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
+from . import partition
+from .tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
 from sage.interfaces.all import gap
 from sage.rings.all import QQ, PolynomialRing
 from sage.arith.all import factorial

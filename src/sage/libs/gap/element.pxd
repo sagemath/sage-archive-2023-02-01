@@ -42,10 +42,6 @@ cdef class GapElement(RingElement):
 
     cdef _initialize(self, parent, libGAP_Obj obj)
     cpdef _type_number(self)
-    cpdef ModuleElement _add_(self, ModuleElement right)
-    cpdef ModuleElement _sub_(self, ModuleElement right)
-    cpdef RingElement _mul_(self, RingElement right)
-    cpdef RingElement _div_(self, RingElement right)
     cpdef is_bool(self)
 
 

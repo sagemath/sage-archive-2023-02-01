@@ -798,7 +798,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return M
 
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         EXAMPLES::
 
@@ -808,7 +808,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         """
         return self._rmul_(right)
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         EXAMPLES::
 
@@ -856,7 +856,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return A
 
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two dense matrices over `\Z/n\Z`
 
@@ -900,7 +900,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return M
 
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         r"""
         Subtract two dense matrices over `\Z/n\Z`
 
@@ -937,7 +937,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return M
 
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         r"""
         Compare two dense matrices over `\Z/n\Z`
 
@@ -990,7 +990,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return 0
 
 
-    cdef Matrix _matrix_times_matrix_(self, Matrix right):
+    cdef _matrix_times_matrix_(self, Matrix right):
         """
         return ``self*right``
 
@@ -1191,7 +1191,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
 
         return ans
 
-    cdef Vector _vector_times_matrix_(self, Vector v):
+    cdef _vector_times_matrix_(self, Vector v):
         """
         ``v*self``
 
@@ -1248,7 +1248,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         sig_free(_c)
         return c
 
-    cdef Vector _matrix_times_vector_(self, Vector v):
+    cdef _matrix_times_vector_(self, Vector v):
         """
         ``self*v``
 

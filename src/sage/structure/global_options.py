@@ -7,6 +7,11 @@ related classes, typically for customizing the representation of their
 elements. This class will eventually also support setting options on a
 parent by parent basis.
 
+These options should be "attached" to one or more classes as an options method.
+For example, see 
+:meth:`sage.combinat.partition.Partitions.options` and
+:meth:`sage.combinat.tableau.Tableaux.options`.
+
 .. SEEALSO::
 
     For better examples of :class:`GlobalOptions` in action see
@@ -23,6 +28,8 @@ The general setup for creating a set of global options is:
 .. code-block:: python
 
     MyOptions=GlobalOptions('option name',
+        module='sage.some_module.some_file',
+        options_class='name_of_class_controlled_by_options',
         doc='Nice options',
         first_option=dict(default='default value',
                           description='Changes the functionality of _repr_',
@@ -34,6 +41,20 @@ The general setup for creating a set of global options is:
         third_option=dict(),
         end_doc='end of options documentation'
     )
+
+The options constructed by :class:`GlobalOptions` have to be explicitly
+associated to the class that they control using the following arguments:
+
+- ``name=`` -- A descriptive name for the options class
+
+- ``module`` -- The sage module containing the options class (optional)
+
+- ``option_class`` -- The name of the options class. This is optional and
+  defaults to ``name`` if not explicitly set.
+
+It is only possible to pickle an instance of a  :class:`GlobalOptions` if the
+corresponding module is specified *and* if the options are explicitly attached to
+the corresponding class as a *options* method.
 
 Each option is specified as a dictionary which describes the possible
 values for the option and its documentation. The possible entries in this
@@ -111,6 +132,10 @@ illustrated by an example::
       - entree:  soup
       - main:    pizza
       - tip:     10
+
+I all of the examples above the options are contructed with  single call to
+:class:`GlobalOptions`, however, it is also possible to construct the options
+dynnamically using the :meth:`GlobalOptions._add_to_options` methods.
 
 For more details see :class:`GlobalOptions`.
 
@@ -340,12 +365,12 @@ a :meth:`~GlobalOptions._reset()` method for doing exactly this.
 Tests
 -----
 
-TESTS:
-
 Options classes can only be pickled if they are the options for some standard
 sage class. In this case the class is specified using the arguements to
 :class:`GlobalOptions`. For example
-:meth:`~sage.combinat.partition.Partitions.options` is defined as::
+:meth:`~sage.combinat.partition.Partitions.options` is defined as:
+
+.. code-block:: python
 
      class Partitions(UniqueRepresentation, Parent):
         ....
@@ -356,7 +381,7 @@ sage class. In this case the class is specified using the arguements to
 
 
 
-pickled::
+Here is an example to test the pickling of a :class:`GlobalOptions` instance::
 
     sage: class Menu(object):
     ...       options = GlobalOptions(Menu, doc='Fancy documentation\n'+'-'*19, end_doc='The END!',
@@ -377,16 +402,6 @@ pickled::
     ...       )
     sage: TestSuite(Menu.options).run( skip = '_test_pickling' ) # not attached to a class => can't pickle
     sage: TestSuite(Partitions.options).run()
-
-== Slowest module imports (excluding / including children) ==
-exclude/ms include/ms   #parents  module name
-     3.593      3.812          1  sage.combinat.posets.hasse_diagram
-     4.394     20.471         38  sage.combinat.partition
-     4.856      4.935          1  sage.combinat.diagram_algebras
-     5.179      6.218         30  sage.combinat.permutation
-   208.358    216.462         22  sage.libs.pari.pari_instance
-Total time (sum over exclusive time): 1462.549ms
-Use sage -startuptime <module_name> to get more details about <module_name>.
 
 AUTHORS:
 

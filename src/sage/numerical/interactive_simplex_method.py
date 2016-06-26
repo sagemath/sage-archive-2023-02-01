@@ -927,7 +927,7 @@ class InteractiveLPProblem(SageObject):
         """
         return self._Abcx
 
-    def add_constraint(self, coefficients, new_b, new_constraint_type="<="):
+    def add_constraint(self, coefficients, constant_term, constraint_type="<="):
         r"""
         Return a new LP problem by adding a constraint to``self``.
 
@@ -935,9 +935,9 @@ class InteractiveLPProblem(SageObject):
 
         - ``coefficients`` -- coefficients of the new constraint
 
-        - ``new_b`` -- a constant term of the new constraint
+        - ``constant_term`` -- a constant term of the new constraint
 
-        - ``new_constraint_type`` -- (default: ``"<="``) a string indicating
+        - ``constraint_type`` -- (default: ``"<="``) a string indicating
           the constraint type of the new constraint
 
         OUTPUT:
@@ -950,7 +950,7 @@ class InteractiveLPProblem(SageObject):
             sage: b = (1000, 1500)
             sage: c = (10, 5)
             sage: P = InteractiveLPProblem(A, b, c)
-            sage: P1 = P.add_constraint(([2, 4]), 2000, new_constraint_type="<=")
+            sage: P1 = P.add_constraint(([2, 4]), 2000, "<=")
             sage: P1.Abcx()
             (
             [1 1]
@@ -966,27 +966,28 @@ class InteractiveLPProblem(SageObject):
             )
             sage: P.constraint_types()
             ('<=', '<=')
-            sage: P2 = P.add_constraint(([2, 4, 6]), 2000, new_constraint_type="<=")
+            sage: P2 = P.add_constraint(([2, 4, 6]), 2000, "<=")
             Traceback (most recent call last):
             ...
             TypeError: number of columns must be the same, not 2 and 3
-            sage: P3 = P.add_constraint(([2, 4]), 2000, new_constraint_type="<")
+            sage: P3 = P.add_constraint(([2, 4]), 2000, "<")
             Traceback (most recent call last):
             ...
             ValueError: unknown constraint type
         """
-        constraint_type = self._constraint_types + (new_constraint_type,)
         A, b, c, x = self.Abcx()
         A = A.stack(matrix(coefficients))
-        b = vector(tuple(b) + (new_b,))
+        b = tuple(b) + (constant_term,)
         if self._is_negative:
             problem_type = "-" + self.problem_type()
         else:
             problem_type = self.problem_type()
         return InteractiveLPProblem(A, b, c, x,
-                    constraint_type=constraint_type,
+                    constraint_type=self._constraint_types + (constraint_type,),
                     variable_type=self.variable_types(),
                     problem_type=problem_type,
+                    base_ring=self.base_ring(),
+                    is_primal=self._is_primal,
                     objective_constant_term=self.objective_constant_term())
 
     def base_ring(self):
@@ -2019,7 +2020,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
                 "primal objective" if is_primal else "dual objective")
         self._objective_name = SR(objective_name)
 
-    def add_constraint(self, coefficients, new_b, new_slack_variable=None):
+    def add_constraint(self, coefficients, constant_term, slack_variable=None):
         r"""
         Return a new LP problem by adding a constraint to``self``.
 
@@ -2027,9 +2028,9 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
 
         - ``coefficients`` -- coefficients of the new constraint
 
-        - ``new_b`` -- a constant term of the new constraint
+        - ``constant_term`` -- a constant term of the new constraint
 
-        - ``new_slack_variable`` -- (default: depends on :func:`style`)
+        - ``slack_variable`` -- (default: depends on :func:`style`)
           a string giving the name of the slack variable of the new constraint
 
         OUTPUT:
@@ -2042,6 +2043,13 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             sage: b = (1000, 1500)
             sage: c = (10, 5)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: P.Abcx()
+            (
+            [1 1]
+            [3 1], (1000, 1500), (10, 5), (x1, x2)
+            )
+            sage: P.slack_variables()
+            (x3, x4)
             sage: P1 = P.add_constraint(([2, 4]), 2000)
             sage: P1.Abcx()
             (
@@ -2051,15 +2059,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             )
             sage: P1.slack_variables()
             (x3, x4, x5)
-            sage: P.Abcx()
-            (
-            [1 1]
-            [3 1], (1000, 1500), (10, 5), (x1, x2)
-            )
-            sage: P.slack_variables()
-            (x3, x4)
-            sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: P2 = P.add_constraint(([2, 4]), 2000, new_slack_variable='c')
+            sage: P2 = P.add_constraint(([2, 4]), 2000, slack_variable='c')
             sage: P2.slack_variables()
             (x3, x4, c)
             sage: P3 = P.add_constraint(([2, 4, 6]), 2000)
@@ -2068,31 +2068,28 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             TypeError: number of columns must be the same, not 2 and 3
         """
         A, b, c, x = self.Abcx()
-        slack = list(self.slack_variables())
-
-        if new_slack_variable is None:
-            new_slack_variable = default_variable_name("primal slack")
-            if style() == "UAlberta":
-                index = self.n() + self.m() + 1
-            elif style() == 'Vanderbei':
-                index = self.m() + 1
-            new_slack_variable = "{}{:d}".format(new_slack_variable, index)
-        if not isinstance(new_slack_variable, str):
-            new_slack_variable = str(new_slack_variable)
-
+        A = A.stack(matrix(coefficients))
+        b = tuple(b) + (constant_term,)
         if self._is_negative:
             problem_type = "-" + self.problem_type()
         else:
             problem_type = self.problem_type()
-        
-        slack.append(new_slack_variable)
-        A = A.stack(matrix(coefficients))
-        b = vector(tuple(b) + (new_b,))
-
+        if slack_variable is None:
+            slack_variable = default_variable_name(
+                "primal slack" if self._is_primal else "dual slack")
+            if style() == "UAlberta":
+                index = self.n() + self.m() + 1
+            if style() == 'Vanderbei':
+                index = self.m() + 1
+            slack_variable = "{}{:d}".format(slack_variable, index)
         return InteractiveLPProblemStandardForm(
                     A, b, c, x,
                     problem_type=problem_type,
-                    slack_variables=slack,
+                    slack_variables=tuple(self.slack_variables()) + (slack_variable,),
+                    auxiliary_variable=self.auxiliary_variable(),
+                    base_ring=self.base_ring(),
+                    is_primal=self._is_primal,
+                    objective_name=self._objective_name,
                     objective_constant_term=self.objective_constant_term())
 
     def auxiliary_problem(self, objective_name=None):
@@ -2795,8 +2792,7 @@ class LPAbstractDictionary(SageObject):
         return "LP problem dictionary (use typeset mode to see details)"
 
     @abstract_method
-    def add_row(self, nonbasic_coefficients,
-                constant, basic_variable):
+    def add_row(self, nonbasic_coefficients, constant, basic_variable=None):
         r"""
         Return a dictionary with an additional row based on a given dictionary.
 
@@ -2805,7 +2801,7 @@ class LPAbstractDictionary(SageObject):
         - ``nonbasic_coefficients``-- a list of the coefficients for the
           new row
 
-        - ``constant``-- a number of the constant term for the new row
+        - ``constant``--  the constant term for the new row
 
         - ``basic_variable``-- (default: depends on :func:`style`)
            a string giving the name of the basic variable of the new row
@@ -2824,12 +2820,6 @@ class LPAbstractDictionary(SageObject):
             sage: D1 = D.add_row([7, 11, 19], 42, basic_variable='c')
             sage: D1.row_coefficients("c")
             (7, 11, 19)
-            sage: set(D1.constant_terms()).symmetric_difference(
-            ....: set(D.constant_terms()))
-            {42}
-            sage: set(D1.basic_variables()).symmetric_difference(
-            ....: set(D.basic_variables()))
-            {c}
         """
 
     def base_ring(self):
@@ -4049,8 +4039,7 @@ class LPDictionary(LPAbstractDictionary):
         result += latex(self).split("\n", 2)[2] # Remove array header
         return LatexExpr(result)
 
-    def add_row(self, nonbasic_coefficients,
-                constant, basic_variable=None):
+    def add_row(self, nonbasic_coefficients, constant, basic_variable=None):
         r"""
         Return a dictionary with an additional row based on a given dictionary.
 
@@ -4059,10 +4048,10 @@ class LPDictionary(LPAbstractDictionary):
         - ``nonbasic_coefficients``-- a list of the coefficients for the
           new row
 
-        - ``constant``-- a number of the constant term for the new row
+        - ``constant``--  the constant term for the new row
 
         - ``basic_variable``-- (default: depends on :func:`style`)
-            a string giving the name of the basic variable of the new row
+           a string giving the name of the basic variable of the new row
 
         OUTPUT:
 
@@ -4075,19 +4064,9 @@ class LPDictionary(LPAbstractDictionary):
             sage: c = (55/10, 21/10, 14/30)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.dictionary("x1", "x2", "x4")
-            sage: D1 = D.add_row([7, 11, 19], 42)
-            sage: D1.row_coefficients("x7")
+            sage: D1 = D.add_row([7, 11, 19], 42, basic_variable='c')
+            sage: D1.row_coefficients("c")
             (7, 11, 19)
-            sage: set(D1.constant_terms()).symmetric_difference(
-            ....: set(D.constant_terms()))
-            {42}
-            sage: set(D1.basic_variables()).symmetric_difference(
-            ....: set(D.basic_variables()))
-            {x7}
-            sage: D2 = D.add_row([17, 11, 119], 52, basic_variable="c")
-            sage: set(D2.basic_variables()).symmetric_difference(
-            ....: set(D.basic_variables()))
-            {c}
         """
         B = self.basic_variables()
         N = self.nonbasic_variables()
@@ -5024,8 +5003,8 @@ class LPRevisedDictionary(LPAbstractDictionary):
                 constant -= d[d_index] * b[slack_index]
                 d_index += 1
             slack_index += 1
-        new_problem = problem.add_constraint(coefficients, constant,
-                                             new_slack_variable=basic_variable)
+        new_problem = problem.add_constraint(
+            coefficients, constant, basic_variable)
         new_basic_var = [str(i) for i in self.basic_variables()] + [str(new_problem.slack_variables()[-1])]
         R = PolynomialRing(self.base_ring(), new_basic_var, order="neglex")
         return new_problem.revised_dictionary(*R.gens())

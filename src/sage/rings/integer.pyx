@@ -754,6 +754,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             4
             sage: v[Integer(2):Integer(4)]
             [3, 4]
+
+        See :trac:`20750`::
+
+            sage: import re
+            sage: p = re.compile('(a)b')
+            sage: m = p.match('ab')
+            sage: m.group(Integer(0))
+            'ab'
+            sage: m.group(Integer(1))
+            'a'
         """
         return mpz_get_pyintlong(self.value)
 
@@ -920,7 +930,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return rich_to_bool_sgn(op, c)
 
-    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         cdef int c
         c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
         return (c > 0) - (c < 0)
@@ -1581,7 +1591,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return coercion_model.bin_op(left, right, operator.add)
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Integer addition.
 
@@ -1599,7 +1609,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_add(x.value, self.value, (<Integer>right).value)
         return x
 
-    cdef RingElement _add_long(self, long n):
+    cdef _add_long(self, long n):
         """
         Fast path for adding a C long.
 
@@ -1668,7 +1678,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return coercion_model.bin_op(left, right, operator.sub)
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Integer subtraction.
 
@@ -1706,7 +1716,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_neg(x.value, self.value)
         return x
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         cdef Integer x = <Integer>PY_NEW(Integer)
         mpz_neg(x.value, self.value)
         return x
@@ -1726,7 +1736,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             else:
                 return s * int(self) # will raise the appropriate exception
 
-    cdef ModuleElement _mul_long(self, long n):
+    cdef _mul_long(self, long n):
         """
         Fast path for multiplying a C long.
 
@@ -1774,7 +1784,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return coercion_model.bin_op(left, right, operator.mul)
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Integer multiplication.
 
@@ -1847,7 +1857,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return coercion_model.bin_op(left, right, operator.div)
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         r"""
         Computes `\frac{a}{b}`
 
@@ -1864,7 +1874,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpq_div_zz(x.value, self.value, (<Integer>right).value)
         return x
 
-    cpdef RingElement _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, right):
         r"""
         Computes the whole part of `\frac{x}{y}`.
 
@@ -6585,6 +6595,7 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
         10
         sage: Integer('012')
         doctest:...: DeprecationWarning: use 0o as octal prefix instead of 0
+        If you do not want this number to be interpreted as octal, remove the leading zeros.
         See http://trac.sagemath.org/17413 for details.
         10
 
@@ -6651,7 +6662,7 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
         mpz_neg(z, z)
     if warnoctal and mpz_sgn(z) != 0:
         from sage.misc.superseded import deprecation
-        deprecation(17413, "use 0o as octal prefix instead of 0")
+        deprecation(17413, "use 0o as octal prefix instead of 0\nIf you do not want this number to be interpreted as octal, remove the leading zeros.")
 
 
 cpdef LCM_list(v):

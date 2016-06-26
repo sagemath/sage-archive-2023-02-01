@@ -84,6 +84,7 @@ Maxima has some flags that affect how the result gets simplified(By default, bes
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.symbolic.ring import SR
 
@@ -1126,7 +1127,7 @@ class MaximaLibElement(MaximaAbstractElement):
         # if ever want to dedent, see
         # http://mail.python.org/pipermail/python-list/2006-December/420033.html
         if onscreen:
-            print s
+            print(s)
         else:
             return s
 

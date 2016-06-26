@@ -1971,6 +1971,7 @@ class Link(object):
 
           * ``'jonesrep'`` - use the Jones representation of the braid
             representation
+
           * ``'statesum'`` - recursively computes the Kauffman bracket
 
         OUTPUT:
@@ -2200,6 +2201,152 @@ class Link(object):
                 if len(set(G.vertices()[i]).intersection(G.vertices()[j])) > 0:
                     G.add_edge(G.vertices()[i], G.vertices()[j])
         return [[list(i) for i in j] for j in G.connected_components()]
+
+    def homfly_polynomial(self, var1='L', var2='M', normalization = 'lm'):
+        r"""
+        Return the HOMFLY polynomial of ``self``.
+
+        The HOMFLY polynomial `P(K)` of a link `K` is a Laurent polynomial
+        in two variables defined using skein relations and for the unknot
+        `U`, we have `P(U) = 1`.
+
+        INPUT:
+
+        - ``var1`` -- (default: ``'L'``) the first variable
+        - ``var2`` -- (default: ``'M'``) the second variable
+        - ``normalization`` -- (default: ``lm``) the system of coordinates
+          and can be one of the following:
+
+          * ``'lm'`` -- corresponding to the Skein relation
+            `L\cdot P(K _+) + L^{-1}\cdot P(K _-) + M\cdot P(K _0) = 0`
+
+          * ``'az'`` -- corresponding to the Skein relation
+            `a\cdot P(K _+) - a^{-1}\cdot P(K _-) = z  \cdot P(K _0)`
+
+          where `P(K _+)`, `P(K _-)` and `P(K _0)` represent the HOMFLY
+          polynomials of three links that vary only in one crossing;
+          that is the positive, negative, or smoothed links respectively
+
+        OUTPUT:
+
+        A Laurent polynomial over the integers.
+
+        .. NOTE::
+
+            Use the ``'az'`` normalization to agree with the data
+            in [KnotAtlas]_ and http://www.indiana.edu/~knotinfo/.
+
+        EXAMPLES:
+
+        We give some examples::
+
+            sage: g = BraidGroup(2).gen(0)
+            sage: K = Knot(g^5)
+            sage: K.homfly_polynomial()   # optional - libhomfly
+            L^-4*M^4 - 4*L^-4*M^2 + 3*L^-4 - L^-6*M^2 + 2*L^-6
+
+        The Hopf link::
+
+            sage: L = Link([[1,3,2,4],[4,2,3,1]])
+            sage: L.homfly_polynomial('x', 'y')  # optional - libhomfly
+            -x^-1*y + x^-1*y^-1 + x^-3*y^-1
+
+        Another version of the Hopf link where the orientation
+        has been changed. Therefore we substitute `x \mapsto L^{-1}`
+        and `y \mapsto M`::
+
+            sage: L = Link([[1,4,2,3], [4,1,3,2]])
+            sage: L.homfly_polynomial()  # optional - libhomfly
+            L^3*M^-1 - L*M + L*M^-1
+            sage: L = Link([[1,4,2,3], [4,1,3,2]])
+            sage: L.homfly_polynomial('a', 'z', 'az')  # optional - libhomfly
+            a^3*z^-1 - a*z - a*z^-1
+
+        The figure-eight knot::
+
+            sage: L = Link([[2,1,4,5], [5,6,7,3], [6,4,1,9], [9,2,3,7]])
+            sage: L.homfly_polynomial()  # optional - libhomfly
+            -L^2 + M^2 - 1 - L^-2
+            sage: L.homfly_polynomial('a', 'z', 'az')  # optional - libhomfly
+            a^2 - z^2 - 1 + a^-2
+
+        The "monster" unknot::
+
+            sage: L = Link([[3,1,2,4], [8,9,1,7], [5,6,7,3], [4,18,6,5],
+            ....:           [17,19,8,18], [9,10,11,14], [10,12,13,11],
+            ....:           [12,19,15,13], [20,16,14,15], [16,20,17,2]])
+            sage: L.homfly_polynomial()  # optional - libhomfly
+            1
+
+        The knot `9_6`::
+
+            sage: B = BraidGroup(3)
+            sage: K = Knot(B([-1,-1,-1,-1,-1,-1,-2,1,-2,-2]))
+            sage: K.homfly_polynomial()  # optional - libhomfly
+            L^10*M^4 - L^8*M^6 - 3*L^10*M^2 + 4*L^8*M^4 + L^6*M^6 + L^10
+             - 3*L^8*M^2 - 5*L^6*M^4 - L^8 + 7*L^6*M^2 - 3*L^6
+            sage: K.homfly_polynomial('a', 'z', normalization='az')  # optional - libhomfly
+            -a^10*z^4 + a^8*z^6 - 3*a^10*z^2 + 4*a^8*z^4 + a^6*z^6 - a^10
+             + 3*a^8*z^2 + 5*a^6*z^4 - a^8 + 7*a^6*z^2 + 3*a^6
+
+        TESTS:
+
+        This works with isolated components::
+
+            sage: L = Link([[[1, -1], [2, -2]], [1, 1]])
+            sage: L2 = Link([[1, 3, 2, 4], [2, 3, 1, 4]])
+            sage: L2.homfly_polynomial()  # optional - libhomfly
+            -L*M^-1 - L^-1*M^-1
+            sage: L.homfly_polynomial()  # optional - libhomfly
+            -L*M^-1 - L^-1*M^-1
+            sage: L.homfly_polynomial('a', 'z', 'az')  # optional - libhomfly
+            a*z^-1 - a^-1*z^-1
+            sage: L2.homfly_polynomial('a', 'z', 'az')  # optional - libhomfly
+            a*z^-1 - a^-1*z^-1
+
+        REFERENCES:
+
+        - :wikipedia:`HOMFLY_polynomial`
+        - http://mathworld.wolfram.com/HOMFLYPolynomial.html
+        """
+        L = LaurentPolynomialRing(ZZ, [var1, var2])
+        if len(self._isolated_components()) > 1:
+            if normalization == 'lm':
+                fact = L({(1, -1):-1, (-1, -1):-1})
+            elif normalization == 'az':
+                fact = L({(1, -1):1, (-1, -1):-1})
+            else:
+                raise ValueError('normalization must be either `lm` or `az`')
+            fact = fact ** (len(self._isolated_components())-1)
+            for i in self._isolated_components():
+                fact = fact * Link(i).homfly_polynomial(var1, var2, normalization)
+            return fact
+        s = '{}'.format(self.number_of_components())
+        ogc = self.oriented_gauss_code()
+        for comp in ogc[0]:
+            s += ' {}'.format(len(comp))
+            for cr in comp:
+                s += ' {} {}'.format(abs(cr)-1, sign(cr))
+        for i, cr in enumerate(ogc[1]):
+            s += ' {} {}'.format(i, cr)
+        from sage.libs.homfly import homfly_polynomial_dict
+        dic = homfly_polynomial_dict(s)
+        if normalization == 'lm':
+            return L(dic)
+        elif normalization == 'az':
+            auxdic = {}
+            for a in dic:
+                if (a[0] + a[1]) % 4 == 0:
+                    auxdic[a] = dic[a]
+                else:
+                    auxdic[a] = -dic[a]
+            if self.number_of_components() % 2:
+                return L(auxdic)
+            else:
+                return -L(auxdic)
+        else:
+            raise ValueError('normalization must be either `lm` or `az`')
+
 
     def plot(self, gap=0.1, component_gap=0.5, solver=None, **kwargs):
         r"""

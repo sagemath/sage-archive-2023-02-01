@@ -1997,29 +1997,22 @@ class AbstractLinearCode(module.Module):
 
     def extended_code(self):
         r"""
-        If ``self`` is a linear code of length `n` defined over `F` then this
-        returns the code of length `n+1` where the last digit `c_n` satisfies
-        the check condition `c_0+...+c_n=0`. If ``self`` is an `[n,k,d]`
-        binary code then the extended code `C^{\vee}` is an `[n+1,k,d^{\vee}]`
-        code, where `d^=d` (if d is even) and `d^{\vee}=d+1` (if `d` is odd).
+        Returns `self` as an extended code.
 
+        See documentation of :class:`sage.coding.extended_code.ExtendedCode`
+        for details.
         EXAMPLES::
+
 
             sage: C = codes.HammingCode(GF(4,'a'), 3)
             sage: C
             [21, 18] Hamming Code over Finite Field in a of size 2^2
             sage: Cx = C.extended_code()
             sage: Cx
-            Linear code of length 22, dimension 18 over Finite Field in a of size 2^2
+            Extended code coming from [21, 18] Hamming Code over Finite Field in a of size 2^2
         """
-        G = self.generator_matrix()
-        F = self.base_ring()
-        k = len(G.rows())
-        MS1 = MatrixSpace(F,k,1)
-        ck_sums = [-sum(G.rows()[i]) for i in range(k)]
-        last_col = MS1(ck_sums)
-        Gx = G.augment(last_col)
-        return LinearCode(Gx)
+        from extended_code import ExtendedCode
+        return ExtendedCode(self)
 
     def galois_closure(self, F0):
         r"""
@@ -3045,9 +3038,7 @@ class AbstractLinearCode(module.Module):
 
             sage: C1 = codes.HammingCode(GF(2), 3)
             sage: C2 = C1.extended_code(); C2
-            Linear code of length 8, dimension 4 over Finite Field of size 2
-            sage: C2.is_self_dual()
-            True
+            Extended code coming from [7, 4] Hamming Code over Finite Field of size 2
             sage: C2.sd_duursma_q(1,1)
             2/5*T^2 + 2/5*T + 1/5
             sage: C2.sd_duursma_q(3,1)
@@ -3112,9 +3103,7 @@ class AbstractLinearCode(module.Module):
 
             sage: C1 = codes.HammingCode(GF(2), 3)
             sage: C2 = C1.extended_code(); C2
-            Linear code of length 8, dimension 4 over Finite Field of size 2
-            sage: C2.is_self_dual()
-            True
+            Extended code coming from [7, 4] Hamming Code over Finite Field of size 2
             sage: C2.sd_zeta_polynomial()
             2/5*T^2 + 2/5*T + 1/5
             sage: C2.zeta_polynomial()
@@ -3183,15 +3172,15 @@ class AbstractLinearCode(module.Module):
 
     def _spectrum_from_gap(self):
         r"""
-        Returns the weight distribution of the associated code. Uses the C programs 
+        Returns the weight distribution of the associated code. Uses the C programs
         available in the kernel of GAP and thus is fairly fast.
-        
-        The weight distribution of a code of length `n` is the sequence `A_0, A_1,..., A_n` 
+
+        The weight distribution of a code of length `n` is the sequence `A_0, A_1,..., A_n`
         where `A_i` is the number of codewords of weight `i` (0 <= i <= n).
-        
+
         OUTPUT:
         - a vector of integers, the weight distribution of the code
-        
+
         EXAMPLES::
             sage: from sage.interfaces.all import gap
             sage: MS = MatrixSpace(GF(2),4,7)
@@ -3199,7 +3188,7 @@ class AbstractLinearCode(module.Module):
             sage: C = LinearCode(G)
             sage: C._spectrum_from_gap()
             [1, 0, 0, 7, 7, 0, 0, 1]
-        
+
         AUTHORS:
 
         - David Joyner (2005-11)

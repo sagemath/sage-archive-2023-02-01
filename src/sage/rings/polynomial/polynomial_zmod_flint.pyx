@@ -496,7 +496,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
     _mul_short = _mul_trunc_
 
-    cpdef _mul_trunc_opposite(self, Polynomial_zmod_flint other, n):
+    cpdef Polynomial _mul_trunc_opposite(self, Polynomial_zmod_flint other, n):
         """
         Return the product of this polynomial and other ignoring the least
         significant `n` terms of the result which may be set to anything.

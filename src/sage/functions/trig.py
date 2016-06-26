@@ -95,6 +95,15 @@ class Function_sin(GinacFunction):
             sage: sin(pi*x)
             sin(pi*x)
             sage: forget()
+
+        Check that :trac:`20752` is fixed::
+
+            sage: sin(3*pi+41/42*pi)
+            -sin(1/42*pi)
+            sage: sin(-5*pi+1/42*pi)
+            -sin(1/42*pi)
+            sage: sin(pi-1/42*pi)
+            sin(1/42*pi)
         """
         GinacFunction.__init__(self, "sin", latex_name=r"\sin",
                 conversions=dict(maxima='sin',mathematica='Sin'))
@@ -135,6 +144,14 @@ class Function_cos(GinacFunction):
             sage: cos(complex(1,1))     # rel tol 1e-15
             (0.8337300251311491-0.9888977057628651j)
 
+        Check that :trac:`20752` is fixed::
+
+            sage: cos(3*pi+41/42*pi)
+            cos(1/42*pi)
+            sage: cos(-5*pi+1/42*pi)
+            -cos(1/42*pi)
+            sage: cos(pi-1/42*pi)
+            -cos(1/42*pi)
         """
         GinacFunction.__init__(self, "cos", latex_name=r"\cos",
                 conversions=dict(maxima='cos',mathematica='Cos'))

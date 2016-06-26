@@ -1448,7 +1448,7 @@ cdef class CommutativeRing(Ring):
             self.__ideal_monoid = M
             return M
 
-    def extension(self, poly, name=None, names=None, embedding=None):
+    def extension(self, poly, name=None, names=None, embedding=None, structure=None):
         """
         Algebraically extends self by taking the quotient ``self[x] / (f(x))``.
 
@@ -1494,6 +1494,8 @@ cdef class CommutativeRing(Ring):
             name = str(poly.parent().gen(0))
         if embedding is not None:
             raise NotImplementedError("ring extension with prescripted embedding is not implemented")
+        if structure is not None:
+            raise NotImplementedError("ring extension with additional structure is not implemented")
         R = self[name]
         I = R.ideal(R(poly.list()))
         return R.quotient(I, name)

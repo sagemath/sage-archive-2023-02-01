@@ -52,7 +52,7 @@ Let us define a free module of rank 2 over `\ZZ`::
     sage: M = FiniteRankFreeModule(ZZ, 2, name='M') ; M
     Rank-2 free module M over the Integer Ring
     sage: M.category()
-    Category of modules over Integer Ring
+    Category of finite dimensional modules over Integer Ring
 
 We introduce a first basis on ``M``::
 
@@ -241,7 +241,7 @@ distinguished basis, while ``FiniteRankFreeModule`` does not::
 This is also revealed by the category of each module::
 
     sage: M.category()
-    Category of modules over Integer Ring
+    Category of finite dimensional modules over Integer Ring
     sage: N.category()
     Category of finite dimensional modules with basis over
      (euclidean domains and infinite enumerated sets and metric spaces)
@@ -385,7 +385,7 @@ To create a vector space without any distinguished basis, one has to use
     sage: V = FiniteRankFreeModule(QQ, 3, name='V') ; V
     3-dimensional vector space V over the Rational Field
     sage: V.category()
-    Category of vector spaces over Rational Field
+    Category of finite dimensional vector spaces over Rational Field
     sage: V.bases()
     []
     sage: V.print_bases()
@@ -592,7 +592,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         sage: M = FiniteRankFreeModule(ZZ, 3, name='M') ; M  # declaration with a name
         Rank-3 free module M over the Integer Ring
         sage: M.category()
-        Category of modules over Integer Ring
+        Category of finite dimensional modules over Integer Ring
         sage: M.base_ring()
         Integer Ring
         sage: M.rank()
@@ -604,7 +604,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         sage: V = FiniteRankFreeModule(QQ, 3, name='V') ; V
         3-dimensional vector space V over the Rational Field
         sage: V.category()
-        Category of vector spaces over Rational Field
+        Category of finite dimensional vector spaces over Rational Field
 
     The LaTeX output is adjusted via the parameter ``latex_name``::
 
@@ -745,7 +745,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
     Element = FiniteRankFreeModuleElement
 
     def __init__(self, ring, rank, name=None, latex_name=None, start_index=0,
-                 output_formatter=None):
+                 output_formatter=None, category=None):
         r"""
         See :class:`FiniteRankFreeModule` for documentation and examples.
 
@@ -761,7 +761,8 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         """
         if ring not in Rings().Commutative():
             raise TypeError("the module base ring must be commutative")
-        Parent.__init__(self, base=ring, category=Modules(ring))
+        category = Modules(ring).FiniteDimensional().or_subcategory(category)
+        Parent.__init__(self, base=ring, category=category)
         self._ring = ring # same as self._base
         self._rank = rank
         self._name = name
@@ -890,12 +891,12 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
             sage: H = M._Hom_(N) ; H
             Set of Morphisms from Rank-3 free module M over the Integer Ring
-             to Rank-2 free module N over the Integer Ring in Category of
-             modules over Integer Ring
+             to Rank-2 free module N over the Integer Ring
+             in Category of finite dimensional modules over Integer Ring
             sage: H = Hom(M,N) ; H  # indirect doctest
             Set of Morphisms from Rank-3 free module M over the Integer Ring
-             to Rank-2 free module N over the Integer Ring in Category of
-             modules over Integer Ring
+             to Rank-2 free module N over the Integer Ring
+             in Category of finite dimensional modules over Integer Ring
 
         """
         from free_module_homset import FreeModuleHomset

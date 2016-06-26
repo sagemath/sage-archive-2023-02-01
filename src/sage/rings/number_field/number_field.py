@@ -88,7 +88,8 @@ We do some arithmetic in a tower of relative number fields::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 from sage.structure.parent_gens import localvars
 from sage.misc.cachefunc import cached_method
@@ -114,9 +115,9 @@ import sage.rings.ring
 from sage.misc.latex import latex_variable_name
 from sage.misc.misc import union
 
-from unit_group import UnitGroup
-from class_group import ClassGroup
-from class_group import SClassGroup
+from .unit_group import UnitGroup
+from .class_group import ClassGroup
+from .class_group import SClassGroup
 
 from sage.structure.element import is_Element
 from sage.structure.sequence import Sequence
@@ -125,9 +126,9 @@ from sage.structure.category_object import normalize_names
 import sage.structure.parent_gens
 
 from sage.structure.proof.proof import get_flag
-import maps
-import structure
-import number_field_morphisms
+from . import maps
+from . import structure
+from . import number_field_morphisms
 from itertools import count, izip
 
 
@@ -208,9 +209,9 @@ import sage.rings.complex_interval_field
 
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.factory import UniqueFactory
-import number_field_element
-import number_field_element_quadratic
-from number_field_ideal import is_NumberFieldIdeal, NumberFieldFractionalIdeal
+from . import number_field_element
+from . import number_field_element_quadratic
+from .number_field_ideal import is_NumberFieldIdeal, NumberFieldFractionalIdeal
 from sage.libs.pari.all import pari, pari_gen
 
 from sage.rings.rational_field import QQ
@@ -633,7 +634,11 @@ class NumberFieldFactory(UniqueFactory):
         base, polynomial, name, embedding, latex_name, maximize_at_primes, assume_disc_small, structure = key
 
         if isinstance(base, NumberField_generic):
-            return base.extension(polynomial, name, check=check, embedding=None, structure=structure) # relative number fields do not support embeddings
+            from sage.rings.number_field.number_field_rel import NumberField_relative
+            # Relative number fields do not support embeddings.
+            return NumberField_relative(base, polynomial, name[0], latex_name,
+                                        check=check, embedding=None,
+                                        structure=structure)
         if polynomial.degree() == 2:
             return NumberField_quadratic(polynomial, name, latex_name, check, embedding, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
         else:
@@ -1127,7 +1132,7 @@ def is_CyclotomicField(x):
     """
     return isinstance(x, NumberField_cyclotomic)
 
-import number_field_base
+from . import number_field_base
 
 is_NumberField = number_field_base.is_NumberField
 
@@ -1389,21 +1394,17 @@ class NumberField_generic(number_field_base.NumberField):
         """
         from sage.categories.pushout import AlgebraicExtensionFunctor
         from sage.all import QQ
-        if self.is_absolute():
-            return (AlgebraicExtensionFunctor([self.polynomial()], [self.variable_name()], [None if self.coerce_embedding() is None else self.coerce_embedding()(self.gen())]), QQ)
         names = self.variable_names()
         polys = []
         embeddings = []
+        structures = []
         K = self
-        while (1):
-            if K.is_absolute():
-                break
+        while K is not QQ:
             polys.append(K.relative_polynomial())
-            embeddings.append(None if K.coerce_embedding() is None else K.coerce_embedding()(self.gen()))
+            embeddings.append(None if K.coerce_embedding() is None else K.coerce_embedding()(K.gen()))
+            structures.append(K._structure)
             K = K.base_field()
-        polys.append(K.relative_polynomial())
-        embeddings.append(None if K.coerce_embedding() is None else K.coerce_embedding()(K.gen()))
-        return (AlgebraicExtensionFunctor(polys, names, embeddings), QQ)
+        return (AlgebraicExtensionFunctor(polys, names, embeddings, structures), QQ)
 
     def _element_constructor_(self, x, check=True):
         r"""
@@ -1608,7 +1609,7 @@ class NumberField_generic(number_field_base.NumberField):
            Set of Morphisms from Number Field in i with defining polynomial x^2 + 1 to Vector space of dimension 3 over Rational Field in Category of commutative additive groups
         """
         if is_NumberFieldHomsetCodomain(codomain):
-            import morphism
+            from . import morphism
             return morphism.NumberFieldHomset(self, codomain)
         else:
             raise TypeError
@@ -4799,7 +4800,7 @@ class NumberField_generic(number_field_base.NumberField):
         B = self.pari_bnf(proof).bnfisintnorm(n)
         return [self(x, check=False) for x in B]
 
-    def extension(self, poly, name=None, names=None, check=True, embedding=None, latex_name=None, structure=None):
+    def extension(self, poly, name=None, names=None, *args, **kwds):
         """
         Return the relative extension of this field by a given polynomial.
 
@@ -4831,20 +4832,26 @@ class NumberField_generic(number_field_base.NumberField):
             sage: R.<z> = k[]
             sage: L.<b> = NumberField(z^3 + 3 + a); L
             Number Field in b with defining polynomial z^3 + a0 + 3 over its base field
+
+        Extension fields with given defining data are unique
+        (:trac:`20791`)::
+
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: K.extension(x^2 - 2, 'b') is K.extension(x^2 - 2, 'b')
+            True
         """
         if not isinstance(poly, polynomial_element.Polynomial):
             try:
                 poly = poly.polynomial(self)
             except (AttributeError, TypeError):
                 raise TypeError("polynomial (=%s) must be a polynomial."%repr(poly))
-        if not names is None:
+        if poly.base_ring() is not self:
+            poly = poly.change_ring(self)
+        if names is not None:
             name = names
         if isinstance(name, tuple):
             name = name[0]
-        if name is None:
-            raise TypeError("the variable name must be specified.")
-        from sage.rings.number_field.number_field_rel import NumberField_relative
-        return NumberField_relative(self, poly, str(name), check=check, embedding=embedding, latex_name=latex_name, structure=structure)
+        return NumberField(poly, name, *args, **kwds)
 
     def factor(self, n):
         r"""
@@ -5108,7 +5115,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: G[2](b1)
             1/12*b1^4 + 1/2*b1
         """
-        from galois_group import GaloisGroup_v1, GaloisGroup_v2
+        from .galois_group import GaloisGroup_v1, GaloisGroup_v2
 
         if type is None:
             return GaloisGroup_v2(self, names)
@@ -9680,7 +9687,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             Automorphism group of Cyclotomic Field of order 21 and degree 12
         """
         if is_NumberFieldHomsetCodomain(codomain):
-            import morphism
+            from . import morphism
             return morphism.CyclotomicFieldHomset(self, codomain)
         else:
             raise TypeError

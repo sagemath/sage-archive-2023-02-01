@@ -515,7 +515,7 @@ cdef class Dist(ModuleElement):
                 pass
         return alpha
 
-    cpdef ModuleElement _rmul_(self, RingElement _left):
+    cpdef _rmul_(self, RingElement _left):
         """
         Scalar multiplication.
 
@@ -954,7 +954,7 @@ cdef class Dist_vector(Dist):
         ans._moments = smoments + rmoments
         return ans
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, ModuleElement _right):
         r"""
         Sum of two distributions.
 
@@ -967,7 +967,7 @@ cdef class Dist_vector(Dist):
         """
         return self._addsub(<Dist_vector>_right, False)
 
-    cpdef ModuleElement _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, ModuleElement _right):
         r"""
         Difference of two distributions.
 
@@ -980,7 +980,7 @@ cdef class Dist_vector(Dist):
         """
         return self._addsub(<Dist_vector>_right, True)
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         r"""
         Scalar product of a distribution with a ring element that coerces into the base ring.
 
@@ -1429,7 +1429,7 @@ cdef class Dist_vector(Dist):
 #                     ans._moments[i] = -right._moments[i] if negate else right._moments[i]
 #         return ans
 
-#     cpdef ModuleElement _add_(self, ModuleElement right):
+#     cpdef _add_(self, ModuleElement right):
 #         r"""
 
 
@@ -1439,7 +1439,7 @@ cdef class Dist_vector(Dist):
 #         """
 #         return self._addsub(<Dist_long?> right, False)
 
-#     cpdef ModuleElement _sub_(self, ModuleElement right):
+#     cpdef _sub_(self, ModuleElement right):
 #         r"""
 
 
@@ -1449,7 +1449,7 @@ cdef class Dist_vector(Dist):
 #         """
 #         return self._addsub(<Dist_long?> right, True)
 
-#     cpdef ModuleElement _lmul_(self, RingElement _right):
+#     cpdef _lmul_(self, RingElement _right):
 #         r"""
 
 

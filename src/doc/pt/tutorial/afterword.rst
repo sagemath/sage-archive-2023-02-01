@@ -94,7 +94,7 @@ se comporta diferentemente do Python em diversas situações.
        '3^2'
 
 -  **Divisão por inteiros:** A expressão em Python ``2/3`` não se
-   comporta da forma que um matemático esperaria. Em Python, se ``m``
+   comporta da forma que um matemático esperaria. Em Python 2, se ``m``
    e ``n`` são inteiros (int), então ``m/n`` também é um inteiro
    (int), a saber, o quociente de ``m`` dividido por ``n``. Portanto
    ``2/3=0``. Tem havido discussões na comunidade do Python para
@@ -113,7 +113,7 @@ se comporta diferentemente do Python em diversas situações.
        Rational Field
        sage: 2//3
        0
-       sage: int(2)/int(3)   # not tested, python2 only
+       sage: int(2)/int(3)   # optional - python2
        0
 
 -  **Inteiros longos:** O Python possui suporte nativo para inteiros

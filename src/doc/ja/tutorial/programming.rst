@@ -661,7 +661,7 @@ Sageにおける異種オブジェクト間の比較演算では，まず対象�
 
     sage: 1 is 2/2
     False
-    sage: int(1) is int(2)/int(2)  # not tested, python2 only
+    sage: int(1) is int(2)/int(2)  # optional - python2
     True
     sage: 1 is 1
     False

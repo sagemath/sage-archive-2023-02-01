@@ -121,7 +121,7 @@ sein, also verhält sich Sage an manchen Stellen anders als Python.
        Rational Field
        sage: 2//3
        0
-       sage: int(2)/int(3)
+       sage: int(2)/int(3)    # not tested, python2 only
        0
 
 -  **Große ganze Zahlen:** Python besitzt von Hause aus Unterstützung

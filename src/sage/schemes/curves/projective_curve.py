@@ -35,6 +35,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import division
 
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
@@ -357,7 +358,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         cmd = 'matrix c = coeffs ('+str(ft)+',t)'
         S.eval(cmd)
         N = int(S.eval('size(c)'))
-        b = ["c["+str(i)+",1]," for i in range(2,N/2-4)]
+        b = ["c["+str(i)+",1]," for i in range(2, N//2 - 4)]
         b = ''.join(b)
         b = b[:len(b)-1] #to cut off the trailing comma
         cmd = 'ideal I = '+b

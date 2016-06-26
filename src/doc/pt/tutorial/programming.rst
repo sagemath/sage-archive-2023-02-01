@@ -705,7 +705,7 @@ o int ``1`` do Python é único, mas o Inteiro ``1`` do Sage não é.
 
     sage: 1 is 2/2
     False
-    sage: int(1) is int(2)/int(2)
+    sage: int(1) is int(2)/int(2)  # not tested, python2 only
     True
     sage: 1 is 1
     False

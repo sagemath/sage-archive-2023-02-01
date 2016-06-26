@@ -3,7 +3,7 @@
 >   "Creating a Viable Open Source Alternative to
 >    Magma, Maple, Mathematica, and MATLAB"
 
->   Copyright (C) 2005-2014 The Sage Development Team
+>   Copyright (C) 2005-2016 The Sage Development Team
 
    http://www.sagemath.org
 
@@ -109,6 +109,11 @@ __3. cd into the Sage directory and type make:__
    That's it! Everything is automatic and non-interactive. The build  
    should work fine on all fully supported platforms. If it does not, we  
    want to know!  
+
+   If you'd like to contribute to Sage, be sure to read the
+   Developer's Guide:
+
+   http://doc.sagemath.org/html/en/developer/index.html
 
 
 Environment Variables

@@ -1394,21 +1394,17 @@ class NumberField_generic(number_field_base.NumberField):
         """
         from sage.categories.pushout import AlgebraicExtensionFunctor
         from sage.all import QQ
-        if self.is_absolute():
-            return (AlgebraicExtensionFunctor([self.polynomial()], [self.variable_name()], [None if self.coerce_embedding() is None else self.coerce_embedding()(self.gen())]), QQ)
         names = self.variable_names()
         polys = []
         embeddings = []
+        structures = []
         K = self
-        while (1):
-            if K.is_absolute():
-                break
+        while K is not QQ:
             polys.append(K.relative_polynomial())
-            embeddings.append(None if K.coerce_embedding() is None else K.coerce_embedding()(self.gen()))
+            embeddings.append(None if K.coerce_embedding() is None else K.coerce_embedding()(K.gen()))
+            structures.append(K._structure)
             K = K.base_field()
-        polys.append(K.relative_polynomial())
-        embeddings.append(None if K.coerce_embedding() is None else K.coerce_embedding()(K.gen()))
-        return (AlgebraicExtensionFunctor(polys, names, embeddings), QQ)
+        return (AlgebraicExtensionFunctor(polys, names, embeddings, structures), QQ)
 
     def _element_constructor_(self, x, check=True):
         r"""

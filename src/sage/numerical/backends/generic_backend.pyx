@@ -96,12 +96,12 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
-    cpdef int add_variables(self, int n, lower_bound=0, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, names=None) except -1:
+    cpdef int add_variables(self, int n, lower_bound=False, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, names=None) except -1:
         """
         Add ``n`` variables.
 
         This amounts to adding new columns to the matrix. By default,
-        the variables are both positive and real.
+        the variables are both nonnegative and real.
 
         INPUT:
 
@@ -135,8 +135,35 @@ cdef class GenericBackend:
             5
             sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b']) # optional - Nonexistent_LP_solver
             6
+
+        TESTS:
+
+        Check that arguments are used::
+
+            sage: p.col_bounds(5) # tol 1e-8, optional - Nonexistent_LP_solver
+            (-2.0, None)
+            sage: p.is_variable_integer(5)   # optional - Nonexistent_LP_solver
+            True
+            sage: p.col_name(5)              # optional - Nonexistent_LP_solver
+            'a'
+            sage: p.objective_coefficient(5) # tol 1e-8, optional - Nonexistent_LP_solver
+            42.0
         """
-        raise NotImplementedError()
+        cdef int i
+        cdef int value
+        if lower_bound is False:
+            lower_bound = self.zero()
+        if obj is None:
+            obj = self.zero()
+        for i in range(n):
+            value = self.add_variable(lower_bound = lower_bound,
+                                      upper_bound = upper_bound,
+                                      binary = binary,
+                                      continuous = continuous,
+                                      integer = integer,
+                                      obj = obj,
+                                      name = None if names is None else names[i])
+        return value
 
     @classmethod
     def _test_add_variables(cls, tester=None, **options):
@@ -155,12 +182,27 @@ cdef class GenericBackend:
         p = cls()                         # fresh instance of the backend
         if tester is None:
             tester = p._tester(**options)
-        # Test from CVXOPT interface (part 1):
+        # Test from CVXOPT interface:
         ncols_added = 5
         ncols_before = p.ncols()
         add_variables_result = p.add_variables(ncols_added)
         ncols_after = p.ncols()
         tester.assertEqual(ncols_after, ncols_before+ncols_added, "Added the wrong number of columns")
+        # Test from CVXOPT interface, continued; edited to support InteractiveLPBackend
+        ncols_before = p.ncols()
+        try:
+            col_bounds = (-2.0, None)
+            add_variables_result = p.add_variables(2, lower_bound=col_bounds[0], upper_bound=col_bounds[1],
+                                                   obj=42.0, names=['a','b'])
+        except NotImplementedError:
+            # The InteractiveLPBackend does not allow general variable bounds.
+            col_bounds = (0.0, None)
+            add_variables_result = p.add_variables(2, lower_bound=col_bounds[0], upper_bound=col_bounds[1],
+                                                   obj=42.0, names=['a','b'])
+        ncols_after = p.ncols()
+        tester.assertAlmostEqual(p.col_bounds(ncols_before), col_bounds)
+        tester.assertEqual(p.col_name(ncols_before), 'a')
+        tester.assertAlmostEqual(p.objective_coefficient(ncols_before), 42.0)
 
     cpdef  set_variable_type(self, int variable, int vtype):
         """
@@ -467,7 +509,13 @@ cdef class GenericBackend:
         p.add_variables(2)
         coeffs = ([0, vector([1, 2])], [1, vector([2, 3])])
         upper = vector([5, 5])
-        p.add_linear_constraint_vector(2, coeffs, None, upper, 'foo')
+        lower = vector([0, 0])
+        try:
+            p.add_linear_constraint_vector(2, coeffs, lower, upper, 'foo')
+        except NotImplementedError:
+            # Ranged constraints are not supported by InteractiveLPBackend
+            lower = None
+            p.add_linear_constraint_vector(2, coeffs, lower, upper, 'foo')
         # FIXME: Tests here. Careful what we expect regarding ranged constraints with some solvers.
 
     cpdef add_col(self, list indices, list coeffs):
@@ -508,7 +556,7 @@ cdef class GenericBackend:
 
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
         """
-        Add constraints.
+        Add ``'number`` linear constraints.
 
         INPUT:
 
@@ -532,7 +580,9 @@ cdef class GenericBackend:
             sage: p.row_bounds(4)                               # optional - Nonexistent_LP_solver
             (None, 2.0)
         """
-        raise NotImplementedError()
+        cdef int i
+        for 0<= i<number:
+            self.add_linear_constraint([],lower_bound, upper_bound, name = (names[i] if names else None))
 
     @classmethod
     def _test_add_linear_constraints(cls, tester=None, **options):
@@ -544,9 +594,10 @@ cdef class GenericBackend:
             sage: from sage.numerical.backends.generic_backend import GenericBackend
             sage: p = GenericBackend()
             sage: p._test_add_linear_constraints()
+            ...
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError...
         """
         p = cls()                         # fresh instance of the backend
         if tester is None:
@@ -561,8 +612,11 @@ cdef class GenericBackend:
         for i in range(nrows_before, nrows_after):
             tester.assertEqual(p.row(i), ([], []))
             tester.assertEqual(p.row_bounds(i), (None, 2.0))
-        # FIXME: Not sure if we should test that no new variables were added.
-        # Perhaps some backend may need to introduce explicit slack variables?
+        # Test from COINBackend.add_linear_constraints:
+        tester.assertIsNone(p.add_linear_constraints(2, None, 2, names=['foo', 'bar']))
+        tester.assertEqual(p.row_name(6), 'bar')
+        # Test that it did not add mysterious new variables:
+        tester.assertEqual(p.ncols(), 0)
 
     cpdef int solve(self) except -1:
         """
@@ -679,8 +733,6 @@ cdef class GenericBackend:
             2.0
             sage: pb = p.get_backend()                                 # optional - Nonexistent_LP_solver
             sage: pb.get_objective_value()                             # optional - Nonexistent_LP_solver
-            2.0
-            sage: pb.get_best_objective_value()                        # optional - Nonexistent_LP_solver
             2.0
             sage: pb.get_relative_objective_gap()                      # optional - Nonexistent_LP_solver
             0.0
@@ -1146,8 +1198,12 @@ cdef class GenericBackend:
             tester = p._tester(**options)
         # From doctest of GenericBackend.solve:
         p.add_linear_constraints(5, 0, None)
-        # p.add_col(range(5), range(5))     -- bad test because COIN sparsifies the 0s away on copy
-        p.add_col(range(5), range(1, 6))
+        try:
+            # p.add_col(range(5), range(5))     -- bad test because COIN sparsifies the 0s away on copy
+            p.add_col(range(5), range(1, 6))
+        except NotImplementedError:
+            # Gurobi does not implement add_col
+            pass
         # From doctest of GenericBackend.problem_name:
         p.problem_name("There once was a french fry")
         p._test_copy(**options)

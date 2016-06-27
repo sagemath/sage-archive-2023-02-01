@@ -203,6 +203,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     .. automethod:: _rmul_
     .. automethod:: _mul_
     .. automethod:: _mul_trunc_
+    .. automethod:: _pow_trunc_
     """
 
     def __init__(self, parent, is_gen = False, construct=False):

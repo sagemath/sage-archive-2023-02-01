@@ -87,6 +87,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
     .. automethod:: _rmul_
     .. automethod:: _mul_
     .. automethod:: _mul_trunc_
+    .. automethod:: _pow_trunc_
     """
 
     def __cinit__(self):

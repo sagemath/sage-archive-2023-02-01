@@ -669,4 +669,54 @@ ex add::lead_coeff() const {
 	}
 }
 
+ex add::combine_fractions() const
+{
+        epvector rseq;
+        exmap map;
+        for (const auto& pair : seq) {
+                const ex &e = recombine_pair_to_ex(pair);
+                if (is_exactly_a<power>(e)) {
+                        const power& p = ex_to<power>(e);
+                        const ex& eexp = p.op(1);
+                        if (eexp.info(info_flags::negative)) {
+                                auto it = map.find(p);
+                                if (it != map.end())
+                                        it->second += _ex1;
+                                else
+                                        map[p] = _ex1;
+                        }
+                        else
+                                rseq.push_back(pair);
+                }
+                else if (is_exactly_a<mul>(e)) {
+                        const mul& m = ex_to<mul>(e);
+                        epvector denseq, coseq;
+                        for (const auto& mpair : m.seq) {
+                                if (mpair.coeff.info(info_flags::negative))
+                                        denseq.push_back(mpair);
+                                else
+                                        coseq.push_back(mpair);
+                        }
+                        if (not denseq.empty()) {
+                                mul den(denseq);
+                                auto it = map.find(den);
+                                mul coeff(coseq, pair.coeff);
+                                if (it != map.end()) {
+                                        it->second += coeff;
+                                }
+                                else
+                                        map[den] = coeff;
+                        }
+                        else
+                                rseq.push_back(pair);
+                }
+                else
+                        rseq.push_back(pair);
+        }
+        for (const auto& t : map)
+                rseq.push_back(split_ex_to_pair(mul(t.first, t.second)));
+        add rex(rseq);
+        return rex;
+}
+
 } // namespace GiNaC

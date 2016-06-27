@@ -501,6 +501,14 @@ void ex::coefficients(const ex & s, expairvec & vec) const
 
 }
 
+ex ex::combine_fractions(bool deep) const
+{
+        if (is_exactly_a<add>(*this))
+                return ex_to<add>(*this).combine_fractions();
+        else
+                return *this;
+}
+
 // private
 
 /** Make this ex writable (if more than one ex handle the same basic) by 

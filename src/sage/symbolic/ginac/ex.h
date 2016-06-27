@@ -214,6 +214,7 @@ public:
 	ex numer() const;
 	ex denom() const;
 	ex numer_denom() const;
+        ex combine_fractions(bool deep=true) const;
 
 	// polynomial algorithms
 	ex unit(const ex &x) const;

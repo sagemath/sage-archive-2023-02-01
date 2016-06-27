@@ -507,6 +507,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
              sage: p = MixedIntegerLinearProgram(solver='GLPK')
              sage: p.linear_function({1:3, 4:5})
+             doctest:...: DeprecationWarning:...linear_function...deprecated...
              3*x_1 + 5*x_4
 
         This is equivalent to::
@@ -514,6 +515,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p({1:3, 4:5})
             3*x_1 + 5*x_4
         """
+        from sage.misc.superseded import deprecation
+        deprecation(20602, 'MixedIntegerLinearProgram.linear_function, __call__, and gen are deprecated. If p is a MixedIntegerLinearProgram instance, please use p[i] to get component i of the default MIP variable; use p.sum to build linear functions.')
         parent = self.linear_functions_parent()
         return parent(x)
 
@@ -855,6 +858,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: [mip.gen(i) for i in range(10)]
             [x_0, x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8, x_9]
         """
+        from sage.misc.superseded import deprecation
+        deprecation(20602, 'MixedIntegerLinearProgram.linear_function, __call__, and gen are deprecated. If p is a MixedIntegerLinearProgram instance, please use p[i] to get component i of the default MIP variable; use p.sum to build linear functions.')
         return self.linear_functions_parent().gen(i)
 
     cpdef int number_of_constraints(self):
@@ -2899,7 +2904,7 @@ cdef class MIPVariable(Element):
             integer=False,
             obj=zero,
             name=name)
-        v = self._p.linear_function({j : 1})
+        v = self._p.linear_functions_parent()({j : 1})
         self._p._variables[v] = j
         self._p._backend.set_variable_type(j, self._vtype)
         self._dict[i] = v

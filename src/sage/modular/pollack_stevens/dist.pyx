@@ -534,7 +534,7 @@ cdef class Dist(ModuleElement):
     # # def __richcmp__(left, right, int op):
     # #     return (<Element>left)._richcmp(right, op)
 
-    cpdef int _cmp_(_left, Element _right) except -2:
+    cpdef int _cmp_(_left, _right) except -2:
         r"""
         Comparison.
 
@@ -954,7 +954,7 @@ cdef class Dist_vector(Dist):
         ans._moments = smoments + rmoments
         return ans
 
-    cpdef _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         r"""
         Sum of two distributions.
 
@@ -967,7 +967,7 @@ cdef class Dist_vector(Dist):
         """
         return self._addsub(<Dist_vector>_right, False)
 
-    cpdef _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, _right):
         r"""
         Difference of two distributions.
 

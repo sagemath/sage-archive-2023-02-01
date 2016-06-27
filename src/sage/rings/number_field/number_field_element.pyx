@@ -721,7 +721,7 @@ cdef class NumberFieldElement(FieldElement):
             raise IndexError("index must be between 0 and degree minus 1.")
         return self.polynomial()[n]
 
-    cpdef _richcmp_(left, sage.structure.element.Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         r"""
         EXAMPLES::
 
@@ -930,6 +930,58 @@ cdef class NumberFieldElement(FieldElement):
         """
         return self.abs(prec=53, i=None)
 
+    def sign(self):
+        r"""
+        Return the sign of this algebraic number (if a real embedding is well
+        defined)
+
+        EXAMPLES::
+
+
+            sage: K.<a> = NumberField(x^3 - 2, embedding=AA(2)**(1/3))
+            sage: K.zero().sign()
+            0
+            sage: K.one().sign()
+            1
+            sage: (-K.one()).sign()
+            -1
+            sage: a.sign()
+            1
+            sage: (a - 234917380309015/186454048314072).sign()
+            1
+            sage: (a - 3741049304830488/2969272800976409).sign()
+            -1
+
+        If the field is not embedded in real numbers, this method will only work
+        for rational elements::
+
+            sage: L.<b> = NumberField(x^4 - x - 1)
+            sage: b.sign()
+            Traceback (most recent call last):
+            ...
+            TypeError: sign not well defined since no real embedding is
+            specified
+            sage: L(-33/125).sign()
+            -1
+            sage: L.zero().sign()
+            0
+        """
+        if ZZX_deg(self.__numerator) == -1:
+            return 0
+        if ZZX_deg(self.__numerator) == 0:
+            return ZZ_sign(ZZX_coeff(self.__numerator, 0))
+
+        if not (<number_field_base.NumberField> self._parent)._embedded_real:
+            raise TypeError("sign not well defined since no real embedding is specified")
+
+        from sage.rings.real_mpfi import RealIntervalField
+        i = 0
+        a = RealIntervalField(53)(self)
+        while a.contains_zero():
+            i += 1
+            a = RealIntervalField(53<<i)(self)
+        return a.unique_sign()
+
     def floor(self):
         r"""
         Return the floor of this number field element.
@@ -968,7 +1020,7 @@ cdef class NumberFieldElement(FieldElement):
             ...
             TypeError: floor not uniquely defined since no real embedding is specified
         """
-        if ZZX_deg(self.__numerator) == 0:
+        if ZZX_deg(self.__numerator) <= 0:
             return self._rational_().floor()
 
         if not (<number_field_base.NumberField> self._parent)._embedded_real:
@@ -1024,7 +1076,7 @@ cdef class NumberFieldElement(FieldElement):
             ...
             TypeError: ceil not uniquely defined since no real embedding is specified
         """
-        if ZZX_deg(self.__numerator) == 0:
+        if ZZX_deg(self.__numerator) <= 0:
             return self._rational_().ceil()
 
         if not (<number_field_base.NumberField> self._parent)._embedded_real:
@@ -2003,7 +2055,7 @@ cdef class NumberFieldElement(FieldElement):
         self.__numerator = t2
         self.__denominator = t1
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         r"""
         EXAMPLE::
 
@@ -2024,7 +2076,7 @@ cdef class NumberFieldElement(FieldElement):
         x._reduce_c_()
         return x
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         r"""
         EXAMPLES::
 
@@ -2043,7 +2095,7 @@ cdef class NumberFieldElement(FieldElement):
         x._reduce_c_()
         return x
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Returns the product of self and other as elements of a number
         field.
@@ -2092,7 +2144,7 @@ cdef class NumberFieldElement(FieldElement):
         # but asymptotically fast poly multiplication means it's
         # actually faster to *not* build a table!?!
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Returns the quotient of self and other as elements of a number
         field.
@@ -2168,7 +2220,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         return not IsZero_ZZX(self.__numerator)
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         r"""
         EXAMPLE::
 
@@ -4556,7 +4608,7 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
         """
         return self._number_field
 
-    cpdef RingElement _div_(self, RingElement other):
+    cpdef _div_(self, other):
         r"""
         Implement division, checking that the result has the right parent.
 
@@ -4684,7 +4736,7 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
         x.__fld_denominator = self.__fld_denominator
         return x
 
-    cpdef RingElement _div_(self, RingElement other):
+    cpdef _div_(self, other):
         r"""
         Implement division, checking that the result has the right parent.
 

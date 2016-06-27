@@ -20,6 +20,10 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 - :class:`grs.GRSKeyEquationSyndromeDecoder <sage.coding.grs.GRSKeyEquationSyndromeDecoder>`
 - :class:`guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder <sage.coding.guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder>`
 
+**Extended code decoders**
+
+- :class:`extended_code.ExtendedCodeOriginalCodeDecoder <sage.coding.extended_code.ExtendedCodeOriginalCodeDecoder>`
+
 **Punctured codes decoders**
 
 - :class:`punctured_code.PuncturedCodeOriginalCodeDecoder <sage.coding.punctured_code.PuncturedCodeOriginalCodeDecoder>`
@@ -48,6 +52,7 @@ from grs import (GRSBerlekampWelchDecoder,
                  GRSKeyEquationSyndromeDecoder,
                  GRSErrorErasureDecoder)
 from guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder
+from extended_code import ExtendedCodeOriginalCodeDecoder
 from grs import (GRSBerlekampWelchDecoder,
                  GRSGaoDecoder,
                  GRSKeyEquationSyndromeDecoder,

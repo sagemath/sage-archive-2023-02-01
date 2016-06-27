@@ -206,6 +206,9 @@ cdef class CPLEXBackend(GenericBackend):
         elif vtype != 1:
             raise ValueError("Exactly one parameter of 'binary', 'integer' and 'continuous' must be 'True'.")
 
+        cdef int numcols_before
+        numcols_before = CPXgetnumcols(self.env, self.lp)
+
         cdef int status
         status = CPXnewcols(self.env, self.lp, number, NULL, NULL, NULL, NULL, NULL)
         check(status)
@@ -216,24 +219,24 @@ cdef class CPLEXBackend(GenericBackend):
         cdef int i, j
 
         for 0<= i < number:
+            j = numcols_before + i
+
             if lower_bound != 0.0:
-                self.variable_lower_bound(n - i, lower_bound)
+                self.variable_lower_bound(j, lower_bound)
             if upper_bound is not None:
-                self.variable_upper_bound(n - i, upper_bound)
+                self.variable_upper_bound(j, upper_bound)
 
             if binary:
-                self.set_variable_type(n - i,0)
+                self.set_variable_type(j, 0)
             elif integer:
-                self.set_variable_type(n - i,1)
+                self.set_variable_type(j, 1)
 
             if names:
-                j = n - i
                 c_name = names[i]
                 status = CPXchgcolname(self.env, self.lp, 1, &j, &c_name)
                 check(status)
 
             if c_coeff:
-                j = n - i
                 status = CPXchgobj(self.env, self.lp, 1, &j, &c_coeff)
                 check(status)
 
@@ -1020,8 +1023,6 @@ cdef class CPLEXBackend(GenericBackend):
             2.0
             sage: pb = p.get_backend()                                 # optional - CPLEX
             sage: pb.get_objective_value()                             # optional - CPLEX
-            2.0
-            sage: pb.get_best_objective_value()                        # optional - CPLEX
             2.0
             sage: pb.get_relative_objective_gap()                      # optional - CPLEX
             0.0

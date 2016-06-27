@@ -30,8 +30,8 @@ from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerati
                                 ToricCode, TrivialCode, WalshCode)
 
 from grs import GeneralizedReedSolomonCode
+from extended_code import ExtendedCode
 from subfield_subcode import SubfieldSubcode
-
 from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
 _lazy_import('sage.coding.punctured_code', 'PuncturedCode')
 from hamming_code import HammingCode

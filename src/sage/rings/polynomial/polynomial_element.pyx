@@ -2129,6 +2129,83 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         return generic_power(self,right)
 
+    cpdef Polynomial _pow_trunc_(self, long n, long prec):
+        r"""
+        Truncated power
+
+        INPUT:
+
+        - ``n`` -- (non-negative integer) power to be taken
+
+        - ``prec`` -- the precision
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: p = x+1
+            sage: q = p._pow_trunc_(100, 10)
+            1902231808400*x^9 + 186087894300*x^8 + ... + 4950*x^2 + 100*x + 1
+            sage: (p^100).truncate(10) == q
+            True
+
+            sage: R.<x> = GF(3)[]
+            sage: p = x^2 - x + 1
+            sage: q = p._pow_trunc_(81, 20)
+            sage: q
+            x^19 + x^18 + ... + 2*x^4 + 2*x^3 + x + 1
+            sage: (p^81).truncate(20) == q
+            True
+        """
+        if n < 0:
+            raise ValueError("n must be non-negative")
+        cdef Polynomial a = self.truncate(prec)
+
+        if n < 4:
+            # These cases will probably be called often
+            # and don't benefit from the code below
+            if n == 0:
+                return self.parent().one()
+            if n == 1:
+                return a
+            elif n == 2:
+                return a._mul_trunc_(a, prec)
+            elif n == 3:
+                return a._mul_trunc_(a, prec)._mul_trunc_(a, prec)
+
+        # check for idempotence, and store the result otherwise
+        cdef Polynomial aa = a._mul_trunc_(a, prec)
+        if aa == a:
+            return a
+
+        # since we've computed a^2, let's start squaring there
+        # so, let's keep the least-significant bit around, just
+        # in case.
+        cdef long m = n & 1
+        n = n >> 1
+
+        # One multiplication can be saved by starting with
+        # the second-smallest power needed rather than with 1
+        # we've already squared a, so let's start there.
+        cdef Polynomial apow = aa
+        while n&1 == 0:
+            apow = apow._mul_trunc_(apow, prec)
+            n = n >> 1
+        cdef Polynomial power = apow
+        n = n >> 1
+
+        # now multiply that least-significant bit in...
+        if m:
+            power = power._mul_trunc_(a, prec)
+
+        # and this is straight from the book.
+        while n != 0:
+            apow = apow._mul_trunc_(apow, prec)
+            if n&1 != 0:
+                power = power._mul_trunc_(apow, prec)
+            n = n >> 1
+
+        return power
+
     def _pow(self, right):
         # TODO: fit __pow__ into the arithmetic structure
         if self.degree() <= 0:

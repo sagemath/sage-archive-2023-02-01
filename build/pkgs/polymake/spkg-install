@@ -2,11 +2,11 @@
 
 cd src
 ./configure --without-java \
-	        --without-javaview \
-			--prefix="$SAGE_LOCAL" \
-			--exec-prefix="$SAGE_LOCAL" \
-			--includedir="$SAGE_LOCAL"/include \
-			--bindir="$SAGE_LOCAL"/bin \
-			--libdir="$SAGE_LOCAL"/lib
+            --without-javaview \
+            --prefix="$SAGE_LOCAL" \
+            --exec-prefix="$SAGE_LOCAL" \
+            --includedir="$SAGE_LOCAL"/include \
+            --bindir="$SAGE_LOCAL"/bin \
+            --libdir="$SAGE_LOCAL"/lib
 make
 make install

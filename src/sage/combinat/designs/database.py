@@ -46,6 +46,7 @@ REFERENCES:
 Functions
 ---------
 """
+from __future__ import print_function
 
 from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_matrix,
                                                      OA_from_Vmt,
@@ -94,7 +95,7 @@ def MOLS_10_2():
         sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
         sage: from sage.combinat.designs.database import MOLS_10_2
         sage: MOLS = MOLS_10_2()
-        sage: print are_mutually_orthogonal_latin_squares(MOLS)
+        sage: print(are_mutually_orthogonal_latin_squares(MOLS))
         True
 
     The design is available from the general constructor::
@@ -136,7 +137,7 @@ def MOLS_12_5():
         sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
         sage: from sage.combinat.designs.database import MOLS_12_5
         sage: MOLS = MOLS_12_5()
-        sage: print are_mutually_orthogonal_latin_squares(MOLS)
+        sage: print(are_mutually_orthogonal_latin_squares(MOLS))
         True
     """
     M = """
@@ -168,7 +169,7 @@ def MOLS_14_4():
         sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
         sage: from sage.combinat.designs.database import MOLS_14_4
         sage: MOLS = MOLS_14_4()
-        sage: print are_mutually_orthogonal_latin_squares(MOLS)
+        sage: print(are_mutually_orthogonal_latin_squares(MOLS))
         True
 
     The design is available from the general constructor::
@@ -178,7 +179,7 @@ def MOLS_14_4():
 
     REFERENCE:
 
-    .. [Todorov12] D.T. Todorov,
+    .. [Todorov12] \D.T. Todorov,
       Four mutually orthogonal Latin squares of order 14,
       Journal of Combinatorial Designs 2012, vol.20 n.8 pp.363-367
     """
@@ -212,7 +213,7 @@ def MOLS_15_4():
         sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
         sage: from sage.combinat.designs.database import MOLS_15_4
         sage: MOLS = MOLS_15_4()
-        sage: print are_mutually_orthogonal_latin_squares(MOLS)
+        sage: print(are_mutually_orthogonal_latin_squares(MOLS))
         True
 
     The design is available from the general constructor::
@@ -251,7 +252,7 @@ def MOLS_18_3():
         sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
         sage: from sage.combinat.designs.database import MOLS_18_3
         sage: MOLS = MOLS_18_3()
-        sage: print are_mutually_orthogonal_latin_squares(MOLS)
+        sage: print(are_mutually_orthogonal_latin_squares(MOLS))
         True
 
     The design is available from the general constructor::
@@ -315,7 +316,7 @@ def OA_7_18():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_18
         sage: OA = OA_7_18()
-        sage: print is_orthogonal_array(OA,7,18,2)
+        sage: is_orthogonal_array(OA,7,18,2)
         True
 
     The design is available from the general constructor::
@@ -370,7 +371,7 @@ def OA_9_40():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_40
         sage: OA = OA_9_40()
-        sage: print is_orthogonal_array(OA,9,40,2)
+        sage: is_orthogonal_array(OA,9,40,2)
         True
 
     The design is available from the general constructor::
@@ -409,7 +410,7 @@ def OA_7_66():
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_66
         sage: OA = OA_7_66()
-        sage: print is_orthogonal_array(OA,7,66,2)
+        sage: is_orthogonal_array(OA,7,66,2)
         True
 
     The design is available from the general constructor::
@@ -449,7 +450,7 @@ def OA_7_68():
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_68
         sage: OA = OA_7_68()
-        sage: print is_orthogonal_array(OA,7,68,2)
+        sage: is_orthogonal_array(OA,7,68,2)
         True
 
     The design is available from the general constructor::
@@ -489,7 +490,7 @@ def OA_8_69():
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_8_69
         sage: OA = OA_8_69()
-        sage: print is_orthogonal_array(OA,8,69,2)
+        sage: is_orthogonal_array(OA,8,69,2)
         True
 
     The design is available from the general constructor::
@@ -562,7 +563,7 @@ def OA_7_74():
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_74
         sage: OA = OA_7_74()
-        sage: print is_orthogonal_array(OA,7,74,2)
+        sage: is_orthogonal_array(OA,7,74,2)
         True
 
     The design is available from the general constructor::
@@ -602,7 +603,7 @@ def OA_8_76():
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_8_76
         sage: OA = OA_8_76()
-        sage: print is_orthogonal_array(OA,8,76,2)
+        sage: is_orthogonal_array(OA,8,76,2)
         True
 
     The design is available from the general constructor::
@@ -670,7 +671,7 @@ def OA_11_80():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_11_80
         sage: OA = OA_11_80()
-        sage: print is_orthogonal_array(OA,11,80,2)
+        sage: is_orthogonal_array(OA,11,80,2)
         True
 
     The design is available from the general constructor::
@@ -712,7 +713,7 @@ def OA_15_112():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_15_112
         sage: OA = OA_15_112()
-        sage: print is_orthogonal_array(OA,15,112,2)
+        sage: is_orthogonal_array(OA,15,112,2)
         True
 
     The design is available from the general constructor::
@@ -762,7 +763,7 @@ def OA_9_120():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_120
         sage: OA = OA_9_120()
-        sage: print is_orthogonal_array(OA,9,120,2)
+        sage: is_orthogonal_array(OA,9,120,2)
         True
 
     The design is available from the general constructor::
@@ -811,7 +812,7 @@ def OA_9_135():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_135
         sage: OA = OA_9_135()
-        sage: print is_orthogonal_array(OA,9,135,2)
+        sage: is_orthogonal_array(OA,9,135,2)
         True
 
     The design is available from the general constructor::
@@ -891,7 +892,7 @@ def OA_11_160():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_11_160
         sage: OA = OA_11_160()
-        sage: print is_orthogonal_array(OA,11,160,2)
+        sage: is_orthogonal_array(OA,11,160,2)
         True
 
     The design is available from the general constructor::
@@ -934,7 +935,7 @@ def OA_16_176():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_16_176
         sage: OA = OA_16_176()
-        sage: print is_orthogonal_array(OA,16,176,2)
+        sage: is_orthogonal_array(OA,16,176,2)
         True
 
     The design is available from the general constructor::
@@ -993,7 +994,7 @@ def OA_11_185():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_11_185
         sage: OA = OA_11_185()
-        sage: print is_orthogonal_array(OA,11,185,2)
+        sage: is_orthogonal_array(OA,11,185,2)
         True
 
     The design is available from the general constructor::
@@ -1069,7 +1070,7 @@ def OA_10_205():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_205
         sage: OA = OA_10_205()
-        sage: print is_orthogonal_array(OA,10,205,2)
+        sage: is_orthogonal_array(OA,10,205,2)
         True
 
     The design is available from the general constructor::
@@ -1133,7 +1134,7 @@ def OA_16_208():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_16_208
         sage: OA = OA_16_208()                        # not tested -- too long
-        sage: print is_orthogonal_array(OA,16,208,2)  # not tested -- too long
+        sage: is_orthogonal_array(OA,16,208,2)  # not tested -- too long
         True
 
     The design is available from the general constructor::
@@ -1192,7 +1193,7 @@ def OA_15_224():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_15_224
         sage: OA = OA_15_224()                         # not tested -- too long
-        sage: print is_orthogonal_array(OA,15,224,2)   # not tested -- too long
+        sage: is_orthogonal_array(OA,15,224,2)   # not tested -- too long
         True
 
     The design is available from the general constructor::
@@ -1243,7 +1244,7 @@ def OA_11_254():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_11_254
         sage: OA = OA_11_254()
-        sage: print is_orthogonal_array(OA,11,254,2)
+        sage: is_orthogonal_array(OA,11,254,2)
         True
 
     The design is available from the general constructor::
@@ -1278,7 +1279,7 @@ def OA_20_352():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_20_352
         sage: OA = OA_20_352()                        # not tested (~25s)
-        sage: print is_orthogonal_array(OA,20,352,2)  # not tested (~25s)
+        sage: is_orthogonal_array(OA,20,352,2)  # not tested (~25s)
         True
 
     The design is available from the general constructor::
@@ -1337,7 +1338,7 @@ def OA_20_416():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_20_416
         sage: OA = OA_20_416()                        # not tested (~35s)
-        sage: print is_orthogonal_array(OA,20,416,2)  # not tested
+        sage: is_orthogonal_array(OA,20,416,2)  # not tested
         True
 
     The design is available from the general constructor::
@@ -1397,7 +1398,7 @@ def OA_20_544():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_20_544
         sage: OA = OA_20_544()                        # not tested (too long ~1mn)
-        sage: print is_orthogonal_array(OA,20,544,2)  # not tested
+        sage: is_orthogonal_array(OA,20,544,2)  # not tested
         True
 
     The design is available from the general constructor::
@@ -1461,7 +1462,7 @@ def OA_17_560():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_17_560
         sage: OA = OA_17_560()
-        sage: print is_orthogonal_array(OA,17,560,2)
+        sage: is_orthogonal_array(OA,17,560,2)
         True
 
     The design is available from the general constructor::
@@ -1525,7 +1526,7 @@ def OA_11_640():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_11_640
         sage: OA = OA_11_640()                        # not tested (too long)
-        sage: print is_orthogonal_array(OA,11,640,2)  # not tested (too long)
+        sage: is_orthogonal_array(OA,11,640,2)  # not tested (too long)
         True
 
     The design is available from the general constructor::
@@ -1575,7 +1576,7 @@ def OA_10_796():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_796
         sage: OA = OA_10_796()
-        sage: print is_orthogonal_array(OA,10,796,2)
+        sage: is_orthogonal_array(OA,10,796,2)
         True
 
     The design is available from the general constructor::
@@ -1653,7 +1654,7 @@ def OA_10_469():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_469
         sage: OA = OA_10_469()
-        sage: print is_orthogonal_array(OA,10,469,2)
+        sage: is_orthogonal_array(OA,10,469,2)
         True
 
     The design is available from the general constructor::
@@ -1733,7 +1734,7 @@ def OA_520_plus_x(x):
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_520_plus_x
         sage: OA = OA_520_plus_x(0)                   # not tested (already tested in OA_10_520)
-        sage: print is_orthogonal_array(OA,10,520,2)  # not tested (already tested in OA_10_520)
+        sage: is_orthogonal_array(OA,10,520,2)  # not tested (already tested in OA_10_520)
         True
 
     """
@@ -1782,7 +1783,7 @@ def OA_10_520():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_520
         sage: OA = OA_10_520()
-        sage: print is_orthogonal_array(OA,10,520,2)
+        sage: is_orthogonal_array(OA,10,520,2)
         True
 
     The design is available from the general constructor::
@@ -1804,7 +1805,7 @@ def OA_12_522():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_12_522
         sage: OA = OA_12_522()
-        sage: print is_orthogonal_array(OA,12,522,2)
+        sage: is_orthogonal_array(OA,12,522,2)
         True
 
     The design is available from the general constructor::
@@ -1826,7 +1827,7 @@ def OA_14_524():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_14_524
         sage: OA = OA_14_524()
-        sage: print is_orthogonal_array(OA,14,524,2)
+        sage: is_orthogonal_array(OA,14,524,2)
         True
 
     The design is available from the general constructor::
@@ -1852,7 +1853,7 @@ def OA_15_896():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_15_896
         sage: OA = OA_15_896()                          # not tested -- too long (~2min)
-        sage: print is_orthogonal_array(OA,15,896,2)    # not tested -- too long
+        sage: is_orthogonal_array(OA,15,896,2)    # not tested -- too long
         True
 
     The design is available from the general constructor::
@@ -1903,7 +1904,7 @@ def OA_9_1078():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_1078
         sage: OA = OA_9_1078()                       # not tested -- ~3s
-        sage: print is_orthogonal_array(OA,9,1078,2) # not tested -- ~3s
+        sage: is_orthogonal_array(OA,9,1078,2) # not tested -- ~3s
         True
 
     The design is available from the general constructor::
@@ -1929,7 +1930,7 @@ def OA_25_1262():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_25_1262
         sage: OA = OA_25_1262()                       # not tested -- too long
-        sage: print is_orthogonal_array(OA,25,1262,2) # not tested -- too long
+        sage: is_orthogonal_array(OA,25,1262,2) # not tested -- too long
         True
 
     The design is available from the general constructor::
@@ -1970,7 +1971,7 @@ def OA_9_1612():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_1612
         sage: OA = OA_9_1612()                       # not tested -- ~6s
-        sage: print is_orthogonal_array(OA,9,1612,2) # not tested -- ~6s
+        sage: is_orthogonal_array(OA,9,1612,2) # not tested -- ~6s
         True
 
     The design is available from the general constructor::
@@ -2000,7 +2001,7 @@ def OA_10_1620():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_1620
         sage: OA = OA_10_1620()                       # not tested -- ~7s
-        sage: print is_orthogonal_array(OA,10,1620,2) # not tested -- ~7s
+        sage: is_orthogonal_array(OA,10,1620,2) # not tested -- ~7s
         True
 
     The design is available from the general constructor::
@@ -4152,7 +4153,7 @@ def BIBD_45_9_8(from_code=False):
 
     REFERENCE:
 
-    .. [HT95] W. Huffman and V. Tonchev,
+    .. [HT95] \W. Huffman and V. Tonchev,
        The existence of extremal self-dual `[50, 25, 10]` codes and
        quasi-symmetric `2-(49, 9, 6)` designs,
        Designs, Codes and Cryptography
@@ -4469,7 +4470,7 @@ def HigmanSimsDesign():
 
     REFERENCE:
 
-    .. [KY04] S. Klee and L. Yates,
+    .. [KY04] \S. Klee and L. Yates,
        Tight Subdesigns of the Higman-Sims Design,
        Rose-Hulman Undergraduate Math. J 5.2 (2004).
        https://www.rose-hulman.edu/mathjournal/archives/2004/vol5-n2/paper9/v5n2-9pd.pdf

@@ -48,7 +48,7 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
 
     REFERENCES:
 
-    .. [KN94] M. Kashiwara and T. Nakashima.
+    .. [KN94] \M. Kashiwara and T. Nakashima.
        Crystal graphs for representations of the `q`-analogue of classical Lie
        algebras.
        J. Algebra **165**, no. 2, pp. 295--345, 1994.
@@ -412,7 +412,7 @@ cdef class Letter(Element):
         """
         return self.value
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Return ``True`` if ``left`` compares with ``right`` based on ``op``.
 
@@ -534,7 +534,7 @@ cdef class EmptyLetter(Element):
         """
         return hash(self.value)
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Return ``True`` if ``left`` compares with ``right`` based on ``op``.
 
@@ -1307,7 +1307,7 @@ cdef class LetterTuple(Element):
         """
         return hash(self.value)
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Check comparison between ``left`` and ``right`` based on ``op``
 

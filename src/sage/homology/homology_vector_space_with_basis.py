@@ -7,11 +7,11 @@ for computing cup products and cohomology operations.
 
 REFERENCES:
 
-.. [G-DR03] R. González-Díaz and P. Réal, *Computation of cohomology
+.. [G-DR03] \R. González-Díaz and P. Réal, *Computation of cohomology
    operations on finite simplicial complexes* in Homology,
    Homotopy and Applications 5 (2003), 83-93.
 
-.. [G-DR99] R. González-Díaz and P. Réal, *A combinatorial method for
+.. [G-DR99] \R. González-Díaz and P. Réal, *A combinatorial method for
    computing Steenrod squares* in J. Pure Appl. Algebra 139 (1999), 89-108.
 
 AUTHORS:
@@ -100,9 +100,9 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
     You can compute cup products of cohomology classes::
 
         sage: x.cup_product(y)
-        h^{2,0}
-        sage: y.cup_product(x)
         -h^{2,0}
+        sage: y.cup_product(x)
+        h^{2,0}
         sage: x.cup_product(x)
         0
 
@@ -144,7 +144,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
         sage: b.cup_product(b)
         h^{2,0}
     """
-    def __init__(self, base_ring, cell_complex, cohomology=False, cat=None):
+    def __init__(self, base_ring, cell_complex, cohomology=False, category=None):
         """
         Initialize ``self``.
 
@@ -170,7 +170,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
             # We only need the rank of M in each degree, and since
             # we're working over a field, we don't need to dualize M
             # if working with cohomology.
-        cat = Modules(base_ring).WithBasis().Graded().or_subcategory(cat)
+        category = Modules(base_ring).WithBasis().Graded().FiniteDimensional().or_subcategory(category)
         self._contraction = phi
         self._complex = cell_complex
         self._cohomology = cohomology
@@ -178,7 +178,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
                                 for deg in range(cell_complex.dimension()+1)}
         indices = [(deg, i) for deg in self._graded_indices
                    for i in self._graded_indices[deg]]
-        CombinatorialFreeModule.__init__(self, base_ring, indices, category=cat)
+        CombinatorialFreeModule.__init__(self, base_ring, indices, category=category)
 
     def basis(self, d=None):
         """
@@ -327,7 +327,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
             -(0, 1, 2) + (0, 1, 3) - (0, 2, 3) + (1, 2, 3)
 
             sage: S2.cohomology_ring(QQ)._to_cycle_on_basis((2,0))
-            \chi_(0, 1, 3)
+            \chi_(1, 2, 3)
             sage: S2.cohomology_ring(QQ)._to_cycle_on_basis((0,0))
             \chi_(0,) + \chi_(1,) + \chi_(2,) + \chi_(3,)
 
@@ -337,18 +337,16 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
             \chi_(1,) + \chi_(2,) + \chi_(3,) + \chi_(4,) + \chi_(5,) + \chi_(6,)
              + \chi_(7,) + \chi_(8,) + \chi_(9,) + \chi_(10,) + \chi_(11,)
             sage: H._to_cycle_on_basis((1,0))
-            \chi_(1, 2) + \chi_(1, 3) + \chi_(1, 4) + \chi_(1, 7)
-             + \chi_(1, 10) + \chi_(2, 4) + \chi_(2, 6) + \chi_(2, 9)
-             + \chi_(2, 10) + \chi_(2, 11) + \chi_(3, 4) + \chi_(3, 5)
-             + \chi_(3, 11) + \chi_(4, 8) + \chi_(4, 9) + \chi_(5, 9)
-             + \chi_(5, 10) + \chi_(7, 9) + \chi_(8, 10)
+            \chi_(2, 4) + \chi_(2, 5) + \chi_(2, 8) + \chi_(2, 10)
+            + \chi_(3, 4) + \chi_(3, 6) + \chi_(3, 8) + \chi_(3, 9)
+            + \chi_(4, 5) + \chi_(4, 6) + \chi_(4, 11) + \chi_(5, 7)
+            + \chi_(5, 9) + \chi_(6, 7) + \chi_(6, 10) + \chi_(7, 8)
+            + \chi_(9, 10)
             sage: H._to_cycle_on_basis((2,0))
-            \chi_(2, 3, 8) + \chi_(2, 7, 8) + \chi_(3, 4, 8) + \chi_(3, 5, 9)
-             + \chi_(3, 6, 7) + \chi_(3, 6, 8) + \chi_(3, 6, 10)
-             + \chi_(3, 8, 9) + \chi_(3, 9, 10) + \chi_(4, 5, 7)
-             + \chi_(4, 5, 9) + \chi_(5, 6, 7) + \chi_(5, 7, 8)
+            \chi_(3, 5, 9) + \chi_(3, 6, 10) + \chi_(3, 9, 10)
+            + \chi_(4, 5, 7) + \chi_(4, 5, 9) + \chi_(4, 6, 7) + \chi_(6, 7, 10)
             sage: H._to_cycle_on_basis((3,0))
-            \chi_(3, 4, 5, 9)
+            \chi_(5, 6, 7, 8)
         """
         vec = self.contraction().iota().in_degree(i[0]).column(i[1])
         chains = self.complex().n_chains(i[0], self.base_ring(),
@@ -375,7 +373,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
             simplices::
 
                 sage: S2.cohomology_ring(QQ).basis()[2,0].to_cycle()
-                \chi_(0, 1, 3)
+                \chi_(1, 2, 3)
                 sage: S2.cohomology_ring(QQ).basis()[0,0].to_cycle()
                 \chi_(0,) + \chi_(1,) + \chi_(2,) + \chi_(3,)
             """
@@ -412,9 +410,9 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
     The product structure is the cup product::
 
         sage: x.cup_product(x)
-        h^{4,0}
+        -h^{4,0}
         sage: x * x
-        h^{4,0}
+        -h^{4,0}
 
     There are mod 2 cohomology operations defined, also::
 
@@ -435,7 +433,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
             sage: H = RP2.cohomology_ring(GF(5))
             sage: TestSuite(H).run()
         """
-        cat = Algebras(base_ring).WithBasis().Graded()
+        cat = Algebras(base_ring).WithBasis().Graded().FiniteDimensional()
         HomologyVectorSpaceWithBasis.__init__(self, base_ring, cell_complex, True, cat)
 
     def _repr_(self):
@@ -491,7 +489,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
             sage: T = simplicial_complexes.Torus()
             sage: x,y = T.cohomology_ring(QQ).basis(1)
             sage: x.cup_product(y)
-            h^{2,0}
+            -h^{2,0}
             sage: x.cup_product(x)
             0
 

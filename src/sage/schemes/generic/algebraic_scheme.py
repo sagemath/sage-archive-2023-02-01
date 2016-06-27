@@ -91,9 +91,9 @@ Let us look at one affine patch, for example the one where `x_0=1` ::
       -x1^2 + x0*x2
       To:   Closed subscheme of Projective Space of dimension 3
       over Rational Field defined by:
-      -x1^2 + x0*x2,
-      -x1*x2 + x0*x3,
-      -x2^2 + x1*x3
+      x1^2 - x0*x2,
+      x1*x2 - x0*x3,
+      x2^2 - x1*x3
       Defn: Defined on coordinates by sending (x0, x1, x2) to
             (1 : x0 : x1 : x2)
 
@@ -1164,7 +1164,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             ]
 
         We verify that the irrelevant ideal isn't accidently returned
-        (see trac 6920)::
+        (see :trac:`6920`)::
 
             sage: PP.<x,y,z,w> = ProjectiveSpace(3,QQ)
             sage: f = x^3 + y^3 + z^3 + w^3
@@ -1231,9 +1231,18 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             [   y -2*x    w    0]
             [   z   -y   -x    w]
             [   0    z -2*y    x]
+            
+        This example addresses ticket :trac:`20512`::
+        
+            sage: X = P3.subscheme([])
+            sage: X.Jacobian_matrix().base_ring() == P3.coordinate_ring()
+            True
         """
         R = self.ambient_space().coordinate_ring()
-        return jacobian(self.defining_polynomials(), R.gens())
+        l = self.defining_polynomials()
+        if len(l) == 0:
+            return sage.matrix.constructor.Matrix(R, 0)
+        return jacobian(l, R.gens())
 
     def Jacobian(self):
         r"""
@@ -1272,6 +1281,12 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: twisted_cubic.defining_ideal()
             Ideal (-x^2 + w*y, -x*y + w*z, -y^2 + x*z) of Multivariate Polynomial Ring
             in w, x, y, z over Rational Field
+        
+        This example addresses ticket :trac:`20512`::
+        
+            sage: X = P3.subscheme([])
+            sage: X.Jacobian() == P3.coordinate_ring().unit_ideal()
+            True
         """
         d = self.codimension()
         minors = self.Jacobian_matrix().minors(d)
@@ -1502,7 +1517,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         """
         if F is None:
             F = self.base_ring()
-        X = self(F)
+        X = self.base_extend(F)(F)
         if F in NumberFields() or F == ZZ:
             try:
                 return X.points(bound) # checks for proper bound done in points functions
@@ -1810,6 +1825,9 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         Returns a morphism from this affine scheme into an ambient
         projective space of the same dimension.
 
+        The codomain of this morphism is the projective closure of this affine scheme in ``PP``,
+        if given, or otherwise in a new projective space that is constructed.
+
         INPUT:
 
         -  ``i`` -- integer (default: dimension of self = last
@@ -1848,6 +1866,25 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
               u0^2 - u2*u3
               Defn: Defined on coordinates by sending (x, y, z) to
                     (x : 1 : y : z)
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: X = A.subscheme([y - x^2, z - x^3])
+            sage: X.projective_embedding()
+            Scheme morphism:
+              From: Closed subscheme of Affine Space of dimension 3 over Rational
+            Field defined by:
+              -x^2 + y,
+              -x^3 + z
+              To:   Closed subscheme of Projective Space of dimension 3 over
+            Rational Field defined by:
+              x0^2 - x1*x3,
+              x0*x1 - x2*x3,
+              x1^2 - x0*x2
+              Defn: Defined on coordinates by sending (x, y, z) to
+                    (x : y : z : 1)
+
         """
         AA = self.ambient_space()
         n = AA.dimension_relative()
@@ -1875,18 +1912,62 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         elif PP.dimension_relative() != n:
             raise ValueError("Projective Space must be of dimension %s"%(n))
         PR = PP.coordinate_ring()
+        # Groebner basis w.r.t. a graded monomial order computed here to ensure
+        # after homogenization, the basis elements will generate the defining
+        # ideal of the projective closure of this affine subscheme
+        R = AA.coordinate_ring()
+        G = self.defining_ideal().groebner_basis()
         v = list(PP.gens())
         z = v.pop(i)
-        R = AA.coordinate_ring()
         phi = R.hom(v,PR)
         v.append(z)
-        polys = self.defining_polynomials()
-        X = PP.subscheme([phi(f).homogenize(i) for f in polys ])
+        X = PP.subscheme([phi(f).homogenize(i) for f in G])
         v = list(R.gens())
         v.insert(i, R(1))
         phi = self.hom(v, X)
         self.__projective_embedding[i] = phi
         return phi
+
+    def projective_closure(self, i=None, PP=None):
+        r"""
+        Return the projective closure of this affine subscheme.
+
+        INPUT:
+
+        - ``i`` -- (default: None) determines the embedding to use to compute the projective
+          closure of this affine subscheme. The embedding used is the one which has a 1 in the
+          i-th coordinate, numbered from 0.
+
+        -  ``PP`` -- (default: None) ambient projective space, i.e., ambient space
+           of codomain of morphism; this is constructed if it is not given.
+
+        OUTPUT:
+
+        - a projective subscheme.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z,w> = AffineSpace(QQ,4)
+            sage: X = A.subscheme([x^2 - y, x*y - z, y^2 - w, x*z - w, y*z - x*w, z^2 - y*w])
+            sage: X.projective_closure()
+            Closed subscheme of Projective Space of dimension 4 over Rational Field
+            defined by:
+              x0^2 - x1*x4,
+              x0*x1 - x2*x4,
+              x1^2 - x3*x4,
+              x0*x2 - x3*x4,
+              x1*x2 - x0*x3,
+              x2^2 - x1*x3
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: P.<a,b,c,d> = ProjectiveSpace(QQ, 3)
+            sage: X = A.subscheme([z - x^2 - y^2])
+            sage: X.projective_closure(1, P).ambient_space() == P
+            True
+        """
+        return self.projective_embedding(i, PP).codomain()
 
     def is_smooth(self, point=None):
         r"""
@@ -2649,17 +2730,20 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
                 newL.append(psi(G[i]))
         return(codom.subscheme(newL))
 
-    def preimage(self, f, check = True):
+    def preimage(self, f, k=1, check=True):
         r"""
-        The subscheme that maps to this scheme by the map ``f``.
+        The subscheme that maps to this scheme by the map `f^k`.
 
-        In particular, `f^{-1}(V(h_1,\ldots,h_t)) = V(h_1 \circ f, \ldots, h_t \circ f)`.
+        In particular, `f^{-k}(V(h_1,\ldots,h_t)) = V(h_1 \circ f^k, \ldots, h_t \circ f^k)`.
+        Map must be a morphism and also must be an endomorphism for `k > 1`.
 
         INPUT:
 
-        - ``f`` - a map whose codomain contains ``self``
+        - ``f`` - a map whose codomain contains this scheme
 
-        - ``check`` -- Boolean, if `False` no input checking is done
+        - ``k`` - a positive integer
+
+        - ``check`` -- Boolean, if ``False`` no input checking is done
 
         OUTPUT:
 
@@ -2690,11 +2774,11 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         ::
 
-            sage: P1.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P3.<u,v,w,t> = ProjectiveSpace(QQ,3)
+            sage: P1.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P3.<u,v,w,t> = ProjectiveSpace(QQ, 3)
             sage: H = Hom(P1, P3)
-            sage: X = P3.subscheme([u-v,2*u-w,u+t])
-            sage: f = H([x^2,y^2,x^2+y^2,x*y])
+            sage: X = P3.subscheme([u-v, 2*u-w, u+t])
+            sage: f = H([x^2,y^2, x^2+y^2, x*y])
             sage: X.preimage(f)
             Closed subscheme of Projective Space of dimension 1 over Rational Field
             defined by:
@@ -2736,6 +2820,17 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             Traceback (most recent call last):
             ...
             TypeError: subscheme must be in ambient space of codomain
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: Y = P.subscheme([x-y])
+            sage: H = End(P)
+            sage: f = H([x^2, y^2, z^2])
+            sage: Y.preimage(f, k=2)
+            Closed subscheme of Projective Space of dimension 2 over Rational Field
+            defined by:
+              x^4 - y^4
         """
         dom = f.domain()
         codom = f.codomain()
@@ -2744,8 +2839,14 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
                 raise TypeError("map must be a morphism")
             if self.ambient_space() != codom:
                 raise TypeError("subscheme must be in ambient space of codomain")
+            k = ZZ(k)
+            if k <= 0:
+                raise ValueError("k (=%s) must be a positive integer"%(k))
+            if k > 1 and not f.is_endomorphism():
+                raise TypeError("map must be an endomorphism")
         R = codom.coordinate_ring()
-        dict = {R.gen(i): f[i] for i in range(codom.dimension_relative()+1)}
+        F = f.nth_iterate_map(k)
+        dict = {R.gen(i): F[i] for i in range(codom.dimension_relative()+1)}
         return(dom.subscheme([t.subs(dict) for t in self.defining_polynomials()]))
 
     def dual(self):
@@ -3054,7 +3155,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
                 PP = X.ambient_space()
                 I = X.defining_ideal().radical()
                 #check if the irrelevant ideal of any component is in the radical
-                if any([all([t in I for t in PS.gens()]) for PS in PP]):
+                if any([all([t in I for t in PS.gens()]) for PS in PP.components()]):
                     self.__dimension = -1
                 else:
                     self.__dimension = I.dimension() - PP.num_components()

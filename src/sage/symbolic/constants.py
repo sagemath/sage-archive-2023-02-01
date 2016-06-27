@@ -65,7 +65,7 @@ can be coerced into other systems or evaluated.
     sage: gp(a)
     5.316218116357029426750873360              # 32-bit
     5.3162181163570294267508733603616328824    # 64-bit
-    sage: print mathematica(a)                     # optional - mathematica
+    sage: print(mathematica(a))                  # optional - mathematica
      4 E
      --- + Pi
       5
@@ -214,6 +214,8 @@ Check that :trac:`8237` is fixed::
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function
+
 import math
 from functools import partial
 from sage.rings.infinity import (infinity, minus_infinity,
@@ -356,6 +358,19 @@ class Constant(object):
             'positive'
         """
         return self._domain
+
+    def __lt__(self, other):
+        """
+        Perform float comparison with constant.
+
+        EXAMPLES::
+
+            sage: cmp(pi, 0)
+            1
+            sage: cmp(pi, SR(0))
+            1
+        """
+        return self.__float__() < other
 
     def expression(self):
         """
@@ -1080,8 +1095,10 @@ class Khinchin(Constant):
         sage: m = mathematica(khinchin); m             # optional - mathematica
         Khinchin
         sage: m.N(200)                                 # optional - mathematica
-        2.68545200106530644530971483548179569382038229399446295305115234555721885953715200280114117493184769799515346590528809008289767771641096305179253348325966838185231542133211949962603932852204481940961807          # 32-bit
-        2.6854520010653064453097148354817956938203822939944629530511523455572188595371520028011411749318476979951534659052880900828976777164109630517925334832596683818523154213321194996260393285220448194096181                # 64-bit
+            2.6854520010653064453097148354817956938203822939944629530511523455572
+        >    188595371520028011411749318476979951534659052880900828976777164109630517
+        >    925334832596683818523154213321194996260393285220448194096181
+
     """
     def __init__(self, name='khinchin'):
         """

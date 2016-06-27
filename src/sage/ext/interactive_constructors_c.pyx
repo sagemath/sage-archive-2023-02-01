@@ -1,8 +1,12 @@
 r"""
 Constructors that automatically inject variables into the global module scope
 """
+from __future__ import print_function
 
 import sage.rings.all
+import sage.misc.superseded
+sage.misc.superseded.deprecation(20442,
+    '''The inject_on() functionality is deprecated, use the syntax "R.<a> = PolynomialRing(QQ)" instead.''')
 
 _verbose=True
 _inject_mode_off = False
@@ -26,6 +30,8 @@ def inject_on(verbose=True):
     EXAMPLES::
 
         sage: inject_on(verbose=True)
+        doctest:...: DeprecationWarning: The inject_on() functionality is deprecated, use the syntax "R.<a> = PolynomialRing(QQ)" instead.
+        See http://trac.sagemath.org/20442 for details.
         Redefining: FiniteField Frac FractionField FreeMonoid GF LaurentSeriesRing NumberField PolynomialRing quo quotient
         sage: GF(9,'b')
         Defining b
@@ -72,18 +78,18 @@ def inject_on(verbose=True):
     import sage.ext.interactive_constructors_c
     G = globals()
     if verbose:
-        print "Redefining:",
+        print("Redefining:", end=" ")
     for X in sorted(sage.ext.interactive_constructors_c.__dict__.keys()):
         if not 'inject' in X and X[0] != '_' and X[:4] != 'sage':
             if verbose:
-                print X,
+                print(X, end=" ")
             try:
                 _original_constructors[X] =  G[X] #sage.ext.interactive_constructors_c.__dict__[X]
             except KeyError:
                 pass
             G[X] = sage.ext.interactive_constructors_c.__dict__[X]
     if verbose:
-        print ""
+        print("")
 
 def inject_off():
     global _original_constructors
@@ -247,4 +253,3 @@ def PolynomialRing(*args, **kwds):
 
 
 ###################### need to add a bunch more ############################
-

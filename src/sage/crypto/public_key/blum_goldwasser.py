@@ -9,12 +9,12 @@ on this scheme.
 
 REFERENCES:
 
-.. [BlumGoldwasser1985] M. Blum and S. Goldwasser. An Efficient
+.. [BlumGoldwasser1985] \M. Blum and S. Goldwasser. An Efficient
   Probabilistic Public-Key Encryption Scheme Which Hides All Partial
   Information. In *Proceedings of CRYPTO 84 on Advances in Cryptology*,
   pp. 289--299, Springer, 1985.
 
-.. [MenezesEtAl1996] A. J. Menezes, P. C. van Oorschot, and S. A. Vanstone.
+.. [MenezesEtAl1996] \A. J. Menezes, P. C. van Oorschot, and S. A. Vanstone.
   *Handbook of Applied Cryptography*. CRC Press, 1996.
 
 AUTHORS:

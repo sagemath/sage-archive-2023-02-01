@@ -25,10 +25,12 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition, \
   RiggedPartitionTypeB
 
@@ -311,7 +313,7 @@ class RiggedConfigurationElement(ClonableArray):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
-            sage: print RC(partition_list=[[2], [3,1], [3], [3]])._repr_vertical()
+            sage: print(RC(partition_list=[[2], [3,1], [3], [3]])._repr_vertical())
             <BLANKLINE>
             -1[ ][ ]-1
             <BLANKLINE>
@@ -322,7 +324,7 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
             -2[ ][ ][ ]-2
             <BLANKLINE>
-            sage: print RC(partition_list=[[],[],[],[]])._repr_vertical()
+            sage: print(RC(partition_list=[[],[],[],[]])._repr_vertical())
             <BLANKLINE>
             (/)
             <BLANKLINE>
@@ -345,10 +347,10 @@ class RiggedConfigurationElement(ClonableArray):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
-            sage: print RC(partition_list=[[2], [3,1], [3], [3]])._repr_horizontal()
+            sage: print(RC(partition_list=[[2], [3,1], [3], [3]])._repr_horizontal())
             -1[ ][ ]-1   2[ ][ ][ ]2   -2[ ][ ][ ]-2   -2[ ][ ][ ]-2
                          0[ ]0
-            sage: print RC(partition_list=[[],[],[],[]])._repr_horizontal()
+            sage: print(RC(partition_list=[[],[],[],[]])._repr_horizontal())
             (/)   (/)   (/)   (/)
         """
         tab_str = [repr(x).splitlines() for x in self]
@@ -682,7 +684,7 @@ class RiggedConfigurationElement(ClonableArray):
         k = None
         add_index = -1 # Index where we will add our row too
         rigging_index = None # Index which we will pull the rigging from
-        cur_rigging = 0
+        cur_rigging = ZZ.zero()
         num_rows = len(new_list)
         for i in reversed(range(num_rows)):
             # If we need to increment a row, look for when we change rows for
@@ -699,7 +701,7 @@ class RiggedConfigurationElement(ClonableArray):
         # If we've not found a valid k
         if k is None:
             new_list.append(1)
-            new_rigging.append(-1)
+            new_rigging.append(Integer(-1))
             new_vac_nums.append(None)
             k = 0
             add_index = num_rows
@@ -800,7 +802,7 @@ class RiggedConfigurationElement(ClonableArray):
         """
         a = self.parent()._rc_index.index(a)
         if not self[a]:
-            return Integer(0)
+            return ZZ.zero()
         return Integer(-min(0, min(self[a].rigging)))
 
     def phi(self, a):
@@ -2066,7 +2068,7 @@ class KRRCSimplyLacedElement(KRRiggedConfigurationElement):
                         cc += min(dim[1], i)
                 # Subtract the vacancy number
                 cc -= p.vacancy_numbers[pos]
-        return cc / 2 + rigging_sum
+        return cc // 2 + rigging_sum
 
     cc = cocharge
 
@@ -2237,7 +2239,7 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
                         cc += t_check * min(dim[1], i)
                 # Subtract the vacancy number
                 cc -= t_check * p.vacancy_numbers[pos]
-        return cc / 2 + rigging_sum
+        return cc // 2 + rigging_sum
 
     cc = cocharge
 
@@ -2339,8 +2341,8 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
         """
         #return self.to_virtual_configuration().cocharge() / self.parent()._folded_ct.gamma[0]
         vct = self.parent()._folded_ct
-        cc = 0
-        rigging_sum = 0
+        cc = ZZ.zero()
+        rigging_sum = ZZ.zero()
         #sigma = vct.folding_orbit()
         #gammatilde = list(vct.scaling_factors())
         #gammatilde[-1] = 2
@@ -2355,7 +2357,7 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
                         cc += t_check * min(dim[1], i)
                 # Subtract the vacancy number
                 cc -= t_check * p.vacancy_numbers[pos]
-        return cc / 2 + rigging_sum
+        return cc / ZZ(2) + rigging_sum
 
     cc = cocharge
 

@@ -20,6 +20,18 @@ from sage.numerical.mip import MIPSolverException
 
 cdef class CPLEXBackend(GenericBackend):
 
+    """
+    MIP Backend that uses the CPLEX solver.
+
+    TESTS:
+
+    General backend testsuite::
+
+        sage: p = MixedIntegerLinearProgram(solver="CPLEX")                 # optional - CPLEX
+        sage: TestSuite(p.get_backend()).run(skip="_test_pickling")         # optional - CPLEX
+
+    """
+
     def __cinit__(self, maximization = True):
         """
         Constructor
@@ -170,8 +182,21 @@ cdef class CPLEXBackend(GenericBackend):
             4
             sage: p.ncols()                                                # optional - CPLEX
             5
-            sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b']) # optional - CPLEX
+            sage: p.add_variables(2, lower_bound=-2.0, integer=True, obj=42.0, names=['a','b']) # optional - CPLEX
             6
+
+        TESTS:
+
+        Check that arguments are used::
+
+            sage: p.col_bounds(5) # tol 1e-8, optional - CPLEX
+            (-2.0, None)
+            sage: p.is_variable_integer(5)   # optional - CPLEX
+            True
+            sage: p.col_name(5)              # optional - CPLEX
+            'a'
+            sage: p.objective_coefficient(5) # tol 1e-8, optional - CPLEX
+            42.0
         """
         cdef char * c_name
         cdef double c_coeff = obj
@@ -180,6 +205,9 @@ cdef class CPLEXBackend(GenericBackend):
             continuous = True
         elif vtype != 1:
             raise ValueError("Exactly one parameter of 'binary', 'integer' and 'continuous' must be 'True'.")
+
+        cdef int numcols_before
+        numcols_before = CPXgetnumcols(self.env, self.lp)
 
         cdef int status
         status = CPXnewcols(self.env, self.lp, number, NULL, NULL, NULL, NULL, NULL)
@@ -191,24 +219,24 @@ cdef class CPLEXBackend(GenericBackend):
         cdef int i, j
 
         for 0<= i < number:
+            j = numcols_before + i
+
             if lower_bound != 0.0:
-                self.variable_lower_bound(n - i, lower_bound)
+                self.variable_lower_bound(j, lower_bound)
             if upper_bound is not None:
-                self.variable_upper_bound(n - i, upper_bound)
+                self.variable_upper_bound(j, upper_bound)
 
             if binary:
-                self.set_variable_type(n - i,0)
+                self.set_variable_type(j, 0)
             elif integer:
-                self.set_variable_type(n - i,1)
+                self.set_variable_type(j, 1)
 
             if names:
-                j = n - i
                 c_name = names[i]
                 status = CPXchgcolname(self.env, self.lp, 1, &j, &c_name)
                 check(status)
 
             if c_coeff:
-                j = n - i
                 status = CPXchgobj(self.env, self.lp, 1, &j, &c_coeff)
                 check(status)
 
@@ -329,7 +357,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")   # optional - CPLEX
             sage: p.problem_name("There once was a french fry") # optional - CPLEX
-            sage: print p.problem_name()                        # optional - CPLEX
+            sage: print(p.problem_name())                       # optional - CPLEX
             There once was a french fry
         """
 
@@ -861,7 +889,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.solve()                                                      # optional - CPLEX
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'CPLEX: The primal has no feasible solution'
+            MIPSolverException: CPLEX: The primal has no feasible solution
         """
         cdef int status
         cdef int ptype
@@ -995,8 +1023,6 @@ cdef class CPLEXBackend(GenericBackend):
             2.0
             sage: pb = p.get_backend()                                 # optional - CPLEX
             sage: pb.get_objective_value()                             # optional - CPLEX
-            2.0
-            sage: pb.get_best_objective_value()                        # optional - CPLEX
             2.0
             sage: pb.get_relative_objective_gap()                      # optional - CPLEX
             0.0
@@ -1424,7 +1450,7 @@ cdef class CPLEXBackend(GenericBackend):
         status = CPXwriteprob(self.env, self.lp, filename, ext)
         check(status)
 
-    cpdef CPLEXBackend copy(self):
+    cpdef __copy__(self):
         r"""
         Returns a copy of self.
 
@@ -1438,7 +1464,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: copy(p).solve()                              # optional - CPLEX
             6.0
         """
-        cdef CPLEXBackend p = CPLEXBackend()
+        cdef CPLEXBackend p = type(self)()
 
         p.lp = CPXcloneprob(p.env, self.lp, &status)
         check(status)
@@ -1509,7 +1535,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.solve()                                            # optional - CPLEX
             2.0
             sage: with open(filename,'r') as f:                        # optional - CPLEX
-            ....:     print f.read()                                   # optional - CPLEX
+            ....:     print(f.read())                                  # optional - CPLEX
             Found incumbent of value ...
             Reduced MIP has 5 rows, 5 columns, and 10 nonzeros.
             ...

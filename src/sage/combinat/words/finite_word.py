@@ -103,9 +103,9 @@ of them::
 
 ::
 
-    sage: print w.lyndon_factorization()
+    sage: print(w.lyndon_factorization())
     (ab, aabbb, a)
-    sage: print w.crochemore_factorization()
+    sage: print(w.crochemore_factorization())
     (a, b, a, ab, bb, a)
 
 ::
@@ -191,6 +191,8 @@ Left-special and bispecial factors::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from collections import defaultdict
 from itertools import islice, izip, cycle
 from sage.combinat.words.abstract_word import Word_class
@@ -230,13 +232,13 @@ class FiniteWord_class(Word_class):
 
         With the print statement::
 
-            sage: print w
+            sage: print(w)
             01234
 
         No truncation is done for finite words::
 
             sage: w = Word([i % 5 for i in range(60)])
-            sage: print w
+            sage: print(w)
             012340123401234012340123401234012340123401234012340123401234
         """
         global word_options
@@ -1309,7 +1311,8 @@ class FiniteWord_class(Word_class):
 
             sage: w = words.ThueMorseWord()[:100]
             sage: topo = w.topological_entropy
-            sage: for i in range(0, 41, 5): print i, n(topo(i), digits=5)
+            sage: for i in range(0, 41, 5):
+            ....:     print("{} {}".format(i, n(topo(i), digits=5)))
             0 1.0000
             5 0.71699
             10 0.48074
@@ -1615,7 +1618,8 @@ class FiniteWord_class(Word_class):
 
             sage: alpha, beta, x = 0.54, 0.294, 0.1415
             sage: w = words.CodingOfRotationWord(alpha, beta, x)[:40]
-            sage: for i in range(5): print i, sorted(w.left_special_factors(i))
+            sage: for i in range(5):
+            ....:     print("{} {}".format(i, sorted(w.left_special_factors(i))))
             0 [word: ]
             1 [word: 0]
             2 [word: 00, word: 01]
@@ -1679,7 +1683,8 @@ class FiniteWord_class(Word_class):
         EXAMPLES::
 
             sage: w = words.ThueMorseWord()[:30]
-            sage: for i in range(5): print i, sorted(w.right_special_factors(i))
+            sage: for i in range(5):
+            ....:     print("{} {}".format(i, sorted(w.right_special_factors(i))))
             0 [word: ]
             1 [word: 0, word: 1]
             2 [word: 01, word: 10]
@@ -1704,8 +1709,8 @@ class FiniteWord_class(Word_class):
 
             sage: w = words.ThueMorseWord()[:30]
             sage: for i in range(10):
-            ...     for u in sorted(w.bispecial_factors_iterator(i)):
-            ...         print i,u
+            ....:     for u in sorted(w.bispecial_factors_iterator(i)):
+            ....:         print("{} {}".format(i,u))
             0
             1 0
             1 1
@@ -1773,7 +1778,8 @@ class FiniteWord_class(Word_class):
         ::
 
             sage: w = words.ThueMorseWord()[:30]
-            sage: for i in range(10): print i, sorted(w.bispecial_factors(i))
+            sage: for i in range(10):
+            ....:     print("{} {}".format(i, sorted(w.bispecial_factors(i))))
             0 [word: ]
             1 [word: 0, word: 1]
             2 [word: 01, word: 10]
@@ -2963,21 +2969,21 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        .. [BBGL08] A. Blondin Massé, S. Brlek, A. Garon, and S. Labbé,
+        .. [BBGL08] \A. Blondin Massé, S. Brlek, A. Garon, and S. Labbé,
            Combinatorial properties of f -palindromes in the Thue-Morse
            sequence. Pure Math. Appl., 19(2-3):39--52, 2008.
 
-        .. [BHNR04] S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the
+        .. [BHNR04] \S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the
            Palindromic Complexity of Infinite Words, in J. Berstel, J.
            Karhumaki, D. Perrin, Eds, Combinatorics on Words with Applications,
            International Journal of Foundation of Computer Science, Vol. 15,
            No. 2 (2004) 293--306.
 
-        .. [DJP01] X. Droubay, J. Justin, G. Pirillo, Episturmian words and some
+        .. [DJP01] \X. Droubay, J. Justin, G. Pirillo, Episturmian words and some
            constructions of de Luca and Rauzy, Theoret. Comput. Sci. 255,
            (2001), no. 1--2, 539--553.
 
-        .. [Sta11] Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
+        .. [Sta11] \Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
            Sci. 412 (2011) 1111--1121
         """
         g_w = 0
@@ -3342,8 +3348,8 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1] F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
-            Ser. A 13:90–99, 1972.
+        .. [Dejean] \F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
+           Ser. A 13:90--99, 1972.
         """
         return max(map(FiniteWord_class.order, self.factor_iterator()))
 
@@ -3654,7 +3660,7 @@ class FiniteWord_class(Word_class):
             sage: for n in range(1,10):
             ....:     lw1 = [w for w in Words([1,2,3], n) if w.is_lyndon()]
             ....:     lw2 = LyndonWords(3,n)
-            ....:     if set(lw1) != set(lw2): print False
+            ....:     if set(lw1) != set(lw2): print(False)
 
         Filter all words of length 8 on the alphabet [c,a,b] for Lyndon
         words, and compare with the :class:`LyndonWords` generator after
@@ -5695,12 +5701,12 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        .. [Arn2002] P. Arnoux, Sturmian sequences, in Substitutions in Dynamics,
+        .. [Arn2002] \P. Arnoux, Sturmian sequences, in Substitutions in Dynamics,
            N. Pytheas Fogg (Ed.), Arithmetics, and Combinatorics (Lecture
            Notes in Mathematics, Vol. 1794), 2002.
-        .. [Ser1985] C. Series. The geometry of Markoff numbers. The Mathematical
-           Intelligencer, 7(3):20–29, 1985.
-        .. [SU2009] J. Smillie and C. Ulcigrai. Symbolic coding for linear
+        .. [Ser1985] \C. Series. The geometry of Markoff numbers. The Mathematical
+           Intelligencer, 7(3):20--29, 1985.
+        .. [SU2009] \J. Smillie and C. Ulcigrai. Symbolic coding for linear
            trajectories in the regular octagon, :arxiv:`0905.0871`, 2009.
 
         AUTHOR:
@@ -5760,7 +5766,7 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        .. [Mon2010] T. Monteil, The asymptotic language of smooth curves, talk
+        .. [Mon2010] \T. Monteil, The asymptotic language of smooth curves, talk
            at LaCIM2010.
 
         AUTHOR:
@@ -6868,7 +6874,7 @@ class FiniteWord_class(Word_class):
             some recent results). In S. Bozapalidis and G. Rahonis, editors,
             CAI 2007,volume 4728 of Lecture Notes in Computer Science, 
             pages 23-47. Springer-Verlag, 2007.
-        .. [2]  J. Berstel, A. Lauve, C. R., F. Saliola, Combinatorics on
+        .. [2] \J. Berstel, A. Lauve, C. R., F. Saliola, Combinatorics on
             words: Christoffel words and repetitions in words, CRM Monograph 
             Series, 27. American Mathematical Society, Providence, RI, 2009. 
             xii+147 pp. ISBN: 978-0-8218-4480-9

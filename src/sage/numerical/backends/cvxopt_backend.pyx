@@ -16,11 +16,35 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.numerical.mip import MIPSolverException
 from cvxopt import solvers
+from copy import copy
 
 cdef class CVXOPTBackend(GenericBackend):
+    """
+    MIP Backend that uses the CVXOPT solver.
+
+    There is no support for integer variables.
+
+    EXAMPLE::
+
+        sage: p = MixedIntegerLinearProgram(solver="CVXOPT")
+
+    TESTS:
+
+    :trac:`20332`::
+
+        sage: p
+        Mixed Integer Program  ( maximization, 0 variables, 0 constraints )
+
+    General backend testsuite::
+
+        sage: p = MixedIntegerLinearProgram(solver="CVXOPT")
+        sage: TestSuite(p.get_backend()).run(skip="_test_pickling")
+    """
+
     cdef list objective_function #c_matrix
     cdef list G_matrix
     cdef str prob_name
@@ -35,7 +59,6 @@ cdef class CVXOPTBackend(GenericBackend):
     cdef list col_name_var
     cdef dict answer
     cdef dict param
-    cdef str name
 
     def __cinit__(self, maximization = True):
         """
@@ -50,7 +73,7 @@ cdef class CVXOPTBackend(GenericBackend):
 
         self.objective_function = [] #c_matrix in the example for cvxopt
         self.G_matrix = []
-        self.prob_name = None
+        self.prob_name = ''
         self.obj_constant_term = 0
         self.is_maximize = 1
 
@@ -68,12 +91,49 @@ cdef class CVXOPTBackend(GenericBackend):
                       "reltol":1e-6,
                       "feastol":1e-7,
                       "refinement":0 }
-
+        self.answer = {}
         if maximization:
             self.set_sense(+1)
         else:
             self.set_sense(-1)
 
+    cpdef __copy__(self):
+        # Added a second inequality to this doctest,
+        # because otherwise CVXOPT complains: ValueError: Rank(A) < p or Rank([G; A]) < n
+        """
+        Returns a copy of self.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = MixedIntegerLinearProgram(solver = "CVXOPT")
+            sage: b = p.new_variable()
+            sage: p.add_constraint(b[1] + b[2] <= 6)
+            sage: p.add_constraint(b[2] <= 5)
+            sage: p.set_objective(b[1] + b[2])
+            sage: cp = copy(p.get_backend())
+            sage: cp.solve()
+            0
+            sage: cp.get_objective_value()
+            6.0
+        """
+        cdef CVXOPTBackend cp = type(self)()
+        cp.objective_function = self.objective_function[:]
+        cp.G_matrix = [row[:] for row in self.G_matrix]
+        cp.prob_name = self.prob_name
+        cp.obj_constant_term = self.obj_constant_term
+        cp.is_maximize = self.is_maximize
+
+        cp.row_lower_bound = self.row_lower_bound[:]
+        cp.row_upper_bound = self.row_upper_bound[:]
+        cp.col_lower_bound = self.col_lower_bound[:]
+        cp.col_upper_bound = self.col_upper_bound[:]
+
+        cp.row_name_var = self.row_name_var[:]
+        cp.col_name_var = self.col_name_var[:]
+
+        cp.param = copy(self.param)
+        return cp
 
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, name=None) except -1:
         """
@@ -138,7 +198,7 @@ cdef class CVXOPTBackend(GenericBackend):
             ...
             RuntimeError: CVXOPT only supports continuous variables
         """
-        if obj == None:
+        if obj is None:
             obj = 0.0
         if binary or integer:
             raise RuntimeError("CVXOPT only supports continuous variables")
@@ -148,52 +208,6 @@ cdef class CVXOPTBackend(GenericBackend):
         self.objective_function.append(obj)
         self.col_name_var.append(name)
         return len(self.objective_function) - 1
-
-
-    cpdef int add_variables(self, int n, lower_bound=None, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, names=None) except -1:
-        """
-        Add ``n`` variables.
-
-        This amounts to adding new columns to the matrix. By default,
-        the variables are both positive and real.
-
-        INPUT:
-
-        - ``n`` - the number of new variables (must be > 0)
-
-        - ``lower_bound`` - the lower bound of the variable (default: 0)
-
-        - ``upper_bound`` - the upper bound of the variable (default: ``None``)
-
-        - ``binary`` - ``True`` if the variable is binary (default: ``False``).
-
-        - ``continuous`` - ``True`` if the variable is binary (default: ``True``).
-
-        - ``integer`` - ``True`` if the variable is binary (default: ``False``).
-
-        - ``obj`` - (optional) coefficient of all variables in the objective function (default: 0.0)
-
-        - ``names`` - optional list of names (default: ``None``)
-
-        OUTPUT: The index of the variable created last.
-
-        EXAMPLE::
-
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "CVXOPT")
-            sage: p.ncols()
-            0
-            sage: p.add_variables(5)
-            4
-            sage: p.ncols()
-            5
-            sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b'])
-            6
-        """
-        for i in range(n):
-            self.add_variable()
-        return len(self.objective_function) - 1;
-
 
     cpdef set_variable_type(self, int variable, int vtype):
         """
@@ -391,37 +405,6 @@ cdef class CVXOPTBackend(GenericBackend):
         self.row_lower_bound.append(lower_bound)
         self.row_upper_bound.append(upper_bound)
         self.row_name_var.append(name)
-
-    cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
-        """
-        Add constraints.
-
-        INPUT:
-
-        - ``number`` (integer) -- the number of constraints to add.
-
-        - ``lower_bound`` - a lower bound, either a real value or ``None``
-
-        - ``upper_bound`` - an upper bound, either a real value or ``None``
-
-        - ``names`` - an optional list of names (default: ``None``)
-
-        EXAMPLE::
-
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "CVXOPT")
-            sage: p.add_variables(5)
-            4
-            sage: p.add_linear_constraints(5, None, 2)
-            sage: p.row(4)
-            ([], [])
-            sage: p.row_bounds(4)
-            (None, 2)
-        """
-        for i in range(number):
-            self.add_linear_constraint(zip(range(self.ncols()+1),[0]*(self.ncols()+1)), 
-                                       lower_bound, upper_bound, 
-                                       name=None if names is None else names[i])
 
     cpdef int solve(self) except -1:
         """
@@ -707,13 +690,15 @@ cdef class CVXOPTBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
+            sage: p.problem_name()
+            ''
             sage: p.problem_name("There once was a french fry")
-            sage: print p.problem_name()
+            sage: print(p.problem_name())
             There once was a french fry
         """
         if name == NULL:
-            return self.name
-        self.name = str(<bytes>name)
+            return self.prob_name
+        self.prob_name = str(<bytes>name)
 
 
     cpdef row(self, int i):
@@ -1022,7 +1007,7 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: p.solver_parameter("show_progress")
             True
         """
-        if value == None:
+        if value is None:
             return self.param[name]
         else:
             self.param[name] = value

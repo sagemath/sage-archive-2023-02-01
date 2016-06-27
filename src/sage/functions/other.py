@@ -1,6 +1,8 @@
 """
 Other functions
 """
+from __future__ import print_function
+
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.symbolic.pynac import register_symbol, symbol_table
@@ -209,7 +211,7 @@ class Function_erf(BuiltinFunction):
 
             sage: gp.set_real_precision(59)  # random
             38
-            sage: print gp.eval("1 - erfc(1)"); print erf(1).n(200);
+            sage: print(gp.eval("1 - erfc(1)")); print(erf(1).n(200));
             0.84270079294971486934122063508260925929606699796630290845994
             0.84270079294971486934122063508260925929606699796630290845994
 
@@ -427,7 +429,7 @@ class Function_ceil(BuiltinFunction):
         return r"\left \lceil %s \right \rceil"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=20000):
+    def __call__(self, x, **kwds):
         """
         Allows an object of this class to behave like a function. If
         ``ceil`` is an instance of this class, we can do ``ceil(n)`` to get
@@ -444,6 +446,7 @@ class Function_ceil(BuiltinFunction):
             sage: ceil((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -2
         """
+        maximum_bits = kwds.get('maximum_bits', 20000)
         try:
             return x.ceil()
         except AttributeError:
@@ -496,16 +499,6 @@ class Function_ceil(BuiltinFunction):
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.ceil(x)))
         return None
-
-    def _evalf_(self, x, **kwds):
-        """
-        TESTS::
-
-            sage: h(x) = ceil(x)
-            sage: h(pi)._numerical_approx()
-            4
-        """
-        return self._eval_(x)
 
 ceil = Function_ceil()
 
@@ -590,7 +583,7 @@ class Function_floor(BuiltinFunction):
         return r"\left \lfloor %s \right \rfloor"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=20000):
+    def __call__(self, x, **kwds):
         """
         Allows an object of this class to behave like a function. If
         ``floor`` is an instance of this class, we can do ``floor(n)`` to
@@ -607,6 +600,7 @@ class Function_floor(BuiltinFunction):
             sage: floor((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -3
         """
+        maximum_bits = kwds.get('maximum_bits',20000)
         try:
             return x.floor()
         except AttributeError:
@@ -657,16 +651,6 @@ class Function_floor(BuiltinFunction):
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.floor(x)))
         return None
-
-    def _evalf_(self, x, **kwds):
-        """
-        TESTS::
-
-            sage: h(x) = floor(x)
-            sage: h(pi)._numerical_approx()
-            3
-        """
-        return self._eval_(x)
 
 floor = Function_floor()
 
@@ -834,18 +818,21 @@ gamma1 = Function_gamma()
 class Function_log_gamma(GinacFunction):
     def __init__(self):
         r"""
-        The principal branch of the logarithm of Gamma function.
+        The principal branch of the log gamma function. Note that for
+        `x < 0`, ``log(gamma(x))`` is not, in general, equal to
+        ``log_gamma(x)``.
+
+        It is computed by the ``log_gamma`` function for the number type,
+        or by ``lgamma`` in Ginac, failing that.
+
         Gamma is defined for complex input `z` with real part greater
         than zero, and by analytic continuation on the rest of the
         complex plane (except for negative integers, which are poles).
 
-        It is computed by the `log_gamma` function for the number type,
-        or by `lgamma` in Ginac, failing that.
-
         EXAMPLES:
 
         Numerical evaluation happens when appropriate, to the
-        appropriate accuracy (see #10072)::
+        appropriate accuracy (see :trac:`10072`)::
 
             sage: log_gamma(6)
             log(120)
@@ -855,54 +842,66 @@ class Function_log_gamma(GinacFunction):
             4.78749174278205
             sage: log_gamma(RealField(100)(6))
             4.7874917427820459942477009345
-            sage: log_gamma(2.4+i)
+            sage: log_gamma(2.4 + I)
             -0.0308566579348816 + 0.693427705955790*I
             sage: log_gamma(-3.1)
-            0.400311696703985
+            0.400311696703985 - 12.5663706143592*I
+            sage: log_gamma(-1.1) == log(gamma(-1.1))
+            False
 
-        Symbolic input works (see #10075)::
+        Symbolic input works (see :trac:`10075`)::
 
             sage: log_gamma(3*x)
             log_gamma(3*x)
-            sage: log_gamma(3+i)
+            sage: log_gamma(3 + I)
             log_gamma(I + 3)
-            sage: log_gamma(3+i+x)
+            sage: log_gamma(3 + I + x)
             log_gamma(x + I + 3)
 
-        To get evaluation of input for which gamma
-        is negative and the ceiling is even, we must
-        explicitly make the input complex.  This is
-        a known issue, see #12521::
+        Check that :trac:`12521` is fixed::
 
             sage: log_gamma(-2.1)
-            NaN
+            1.53171380819509 - 9.42477796076938*I
             sage: log_gamma(CC(-2.1))
-            1.53171380819509 + 3.14159265358979*I
+            1.53171380819509 - 9.42477796076938*I
+            sage: log_gamma(-21/10).n()
+            1.53171380819509 - 9.42477796076938*I
+            sage: exp(log_gamma(-1.3) + log_gamma(-0.4) -
+            ....:     log_gamma(-1.3 - 0.4)).real_part()  # beta(-1.3, -0.4)
+            -4.92909641669610
 
-        In order to prevent evaluation, use the `hold` argument;
-        to evaluate a held expression, use the `n()` numerical
+        In order to prevent evaluation, use the ``hold`` argument;
+        to evaluate a held expression, use the ``n()`` numerical
         evaluation method::
 
-            sage: log_gamma(SR(5),hold=True)
+            sage: log_gamma(SR(5), hold=True)
             log_gamma(5)
-            sage: log_gamma(SR(5),hold=True).n()
+            sage: log_gamma(SR(5), hold=True).n()
             3.17805383034795
 
         TESTS::
 
-            sage: log_gamma(-2.1+i)
-            -1.90373724496982 - 0.901638463592247*I
+            sage: log_gamma(-2.1 + I)
+            -1.90373724496982 - 7.18482377077183*I
             sage: log_gamma(pari(6))
             4.78749174278205
+            sage: log_gamma(x)._sympy_()
+            loggamma(x)
             sage: log_gamma(CC(6))
             4.78749174278205
             sage: log_gamma(CC(-2.5))
-            -0.0562437164976740 + 3.14159265358979*I
-            sage: log_gamma(x)._sympy_()
-            loggamma(x)
+            -0.0562437164976740 - 9.42477796076938*I
+            sage: log_gamma(RDF(-2.5))
+            -0.0562437164976740 - 9.42477796076938*I
+            sage: log_gamma(CDF(-2.5))
+            -0.0562437164976740 - 9.42477796076938*I
+            sage: log_gamma(float(-2.5))
+            (-0.05624371649767403-9.42477796076938j)
+            sage: log_gamma(complex(-2.5))
+            (-0.05624371649767403-9.42477796076938j)
 
-        ``conjugate(log_gamma(x))==log_gamma(conjugate(x))`` unless on the branch
-        cut, which runs along the negative real axis.::
+        ``conjugate(log_gamma(x)) == log_gamma(conjugate(x))`` unless on the
+        branch cut, which runs along the negative real axis.::
 
             sage: conjugate(log_gamma(x))
             conjugate(log_gamma(x))
@@ -910,7 +909,7 @@ class Function_log_gamma(GinacFunction):
             y
             sage: conjugate(log_gamma(y))
             log_gamma(y)
-            sage: conjugate(log_gamma(y+I))
+            sage: conjugate(log_gamma(y + I))
             conjugate(log_gamma(y + I))
             sage: log_gamma(-2)
             +Infinity
@@ -1119,16 +1118,7 @@ def gamma(a, *args, **kwds):
             ...
             TypeError: cannot coerce arguments: no canonical coercion...
 
-        We make an exception for elements of AA or QQbar, which cannot be
-        coerced into symbolic expressions to allow this usage::
-
-            sage: t = QQbar(sqrt(2)) + sqrt(3); t
-            3.146264369941973?
-            sage: t.parent()
-            Algebraic Field
-
-        Symbolic functions convert the arguments to symbolic expressions if they
-        are in QQbar or AA::
+        TESTS::
 
             sage: gamma(QQbar(I))
             -0.154949828301811 - 0.498015668118356*I
@@ -1415,7 +1405,7 @@ class Function_factorial(GinacFunction):
             sage: latex(factorial)
             {\rm factorial}
 
-        Check that #11539 is fixed::
+        Check that :trac:`11539` is fixed::
 
             sage: (factorial(x) == 0).simplify()
             factorial(x) == 0
@@ -1465,16 +1455,6 @@ class Function_factorial(GinacFunction):
             return py_factorial_py(x)
 
         return None
-
-    def _evalf_(self, x, **kwds):
-        """
-        TESTS::
-
-            sage: h(x) = factorial(x)
-            sage: h(5)._numerical_approx()
-            120.000000000000
-        """
-        return self._eval_(x)
 
 factorial = Function_factorial()
 
@@ -1558,12 +1538,18 @@ class Function_binomial(GinacFunction):
             sage: binomial._maxima_init_()
             'binomial'
 
+        For polynomials::
+
+            sage: y = polygen(QQ, 'y')
+            sage: binomial(y, 2).parent()
+            Univariate Polynomial Ring in y over Rational Field
+
         Test pickling::
 
             sage: loads(dumps(binomial(n,k)))
             binomial(n, k)
         """
-        GinacFunction.__init__(self, "binomial", nargs=2,
+        GinacFunction.__init__(self, "binomial", nargs=2, preserved_arg=1,
                 conversions=dict(maxima='binomial',
                                  mathematica='Binomial',
                                  sympy='binomial'))
@@ -1584,10 +1570,14 @@ class Function_binomial(GinacFunction):
             sage: binomial._binomial_sym(x, SR(3))
             1/6*(x - 1)*(x - 2)*x
 
-           sage: binomial._binomial_sym(x, 0r)
-           1
-           sage: binomial._binomial_sym(x, -1)
-           0
+            sage: binomial._binomial_sym(x, 0r)
+            1
+            sage: binomial._binomial_sym(x, -1)
+            0
+
+            sage: y = polygen(QQ, 'y')
+            sage: binomial._binomial_sym(y, 2).parent()
+            Univariate Polynomial Ring in y over Rational Field
         """
         if isinstance(k, Expression):
             if k.is_integer():
@@ -1603,7 +1593,7 @@ class Function_binomial(GinacFunction):
             return n
 
         from sage.misc.all import prod
-        return prod([n-i for i in xrange(k)])/factorial(k)
+        return prod([n - i for i in xrange(k)]) / factorial(k)
 
     def _eval_(self, n, k):
         """
@@ -1622,15 +1612,21 @@ class Function_binomial(GinacFunction):
             sage: n = var('n')
             sage: binomial._eval_(x, n) is None
             True
+
+        TESTS::
+
+            sage: y = polygen(QQ, 'y')
+            sage: binomial._eval_(y, 2).parent()
+            Univariate Polynomial Ring in y over Rational Field
         """
         if not isinstance(k, Expression):
             if not isinstance(n, Expression):
                 n, k = coercion_model.canonical_coercion(n, k)
                 return self._evalf_(n, k)
-            if k in ZZ:
-                return self._binomial_sym(n, k)
+        if k in ZZ:
+            return self._binomial_sym(n, k)
         if (n - k) in ZZ:
-            return self._binomial_sym(n, n-k)
+            return self._binomial_sym(n, n - k)
 
         return None
 
@@ -1662,12 +1658,13 @@ class Function_beta(GinacFunction):
 
         .. math::
 
-            B(p,q) = \int_0^1 t^{p-1}(1-t)^{1-q} dt
+            \operatorname{B}(p,q) = \int_0^1 t^{p-1}(1-t)^{q-1} dt
 
         for complex or symbolic input `p` and `q`.
-        Note that the order of inputs does not matter:  `B(p,q)=B(q,p)`.
+        Note that the order of inputs does not matter:
+        `\operatorname{B}(p,q)=\operatorname{B}(q,p)`.
 
-        GiNaC is used to compute `B(p,q)`.  However, complex inputs
+        GiNaC is used to compute `\operatorname{B}(p,q)`.  However, complex inputs
         are not yet handled in general.  When GiNaC raises an error on
         such inputs, we raise a NotImplementedError.
 
@@ -1677,20 +1674,20 @@ class Function_beta(GinacFunction):
 
         .. math::
 
-            B(p,q) = \Gamma(p)\Gamma(q)/\Gamma(p+q)
+            \operatorname{B}(p,q) = \frac{\Gamma(p)\Gamma(q)}{\Gamma(p+q)}
 
         or
 
         .. math::
 
-            B(p,q) = (-1)^q B(1-p-q, q).
+            \operatorname{B}(p,q) = (-1)^q \operatorname{B}(1-p-q, q).
 
 
         For numerical inputs, GiNaC uses the formula
 
         .. math::
 
-            B(p,q) =  \exp[\log\Gamma(p)+\log\Gamma(q)-\log\Gamma(p+q)]
+            \operatorname{B}(p,q) =  \exp[\log\Gamma(p)+\log\Gamma(q)-\log\Gamma(p+q)]
 
 
         INPUT:

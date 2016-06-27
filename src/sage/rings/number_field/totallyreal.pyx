@@ -276,9 +276,9 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         try:
             n = Integer(n)
         except TypeError:
-            raise TypeError, "cannot coerce n (= %s) to an integer"%n
+            raise TypeError("cannot coerce n (= %s) to an integer" % n)
     if (n < 1):
-        raise ValueError, "n must be at least 1."
+        raise ValueError("n must be at least 1.")
 
     # Initialize
     n_int = int(n)
@@ -486,7 +486,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     # Make sure to return elements that belong to Sage
     if return_seqs:
         return [[ZZ(counts[i]) for i in range(4)],
-                [[ZZ(s[0]), map(QQ, s[1].reverse().Vec())] for s in S]]
+                [[ZZ(s[0]), map(QQ, s[1].polrecip().Vec())] for s in S]]
     elif return_pari_objects:
         return S
     else:

@@ -63,6 +63,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 import copy
 from sage.rings.integer import GCD_list
@@ -1124,7 +1125,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: P = LatticePolytope_PPL((1,0,0), (0,1,0), (0,0,1), (-1,-1,-1))
             sage: for p in P.sub_polytope_generator():
-            ....:     print p.vertices()
+            ....:     print(p.vertices())
             ((0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0))
             ((-1, -1, -1), (0, 0, 0), (0, 1, 0), (1, 0, 0))
             ((-1, -1, -1), (0, 0, 0), (0, 0, 1), (1, 0, 0))

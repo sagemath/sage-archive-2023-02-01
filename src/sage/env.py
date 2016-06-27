@@ -17,7 +17,9 @@ AUTHORS:
 ########################################################################
 from __future__ import absolute_import
 
-import os, socket, site
+import os
+import socket
+import site
 from . import version
 
 opj = os.path.join
@@ -94,7 +96,14 @@ _add_variable_or_fallback('SAGE_INC',        opj('$SAGE_LOCAL', 'include'))
 _add_variable_or_fallback('SAGE_SHARE',      opj('$SAGE_LOCAL', 'share'))
 
 _add_variable_or_fallback('SAGE_SRC',        opj('$SAGE_ROOT', 'src'))
-_add_variable_or_fallback('SITE_PACKAGES',   site.getsitepackages())
+
+try:
+    sitepackages_dirs = site.getsitepackages()
+except AttributeError:  # in case of use inside virtualenv
+    sitepackages_dirs = [os.path.join(os.path.dirname(site.__file__),
+                                     'site-packages')]
+_add_variable_or_fallback('SITE_PACKAGES',   sitepackages_dirs)
+
 _add_variable_or_fallback('SAGE_LIB',        SITE_PACKAGES[0])
 
 _add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_SRC', 'build', 'cythonized'))
@@ -165,7 +174,7 @@ def sage_include_directories(use_sources=False):
         sage: sage.env.sage_include_directories()
         ['.../include',
         '.../include/python...',
-        '.../python.../site-packages/numpy/core/include',
+        '.../python.../numpy/core/include',
         '.../python.../site-packages',
         '.../python.../site-packages/sage/ext']
     """

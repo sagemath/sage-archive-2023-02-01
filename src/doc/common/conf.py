@@ -75,12 +75,11 @@ release = version
 # Else, today_fmt is used as the format for a strftime call.
 #today_fmt = '%B %d, %Y'
 
-# List of documents that shouldn't be included in the build.
-#unused_docs = []
-
-# List of directories, relative to source directory, that shouldn't be searched
-# for source files.
-exclude_trees = ['.build']
+# List of glob-style patterns that should be excluded when looking for
+# source files. [1] They are matched against the source file names
+# relative to the source directory, using slashes as directory
+# separators on all platforms.
+exclude_patterns = ['.build']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 default_role = 'math'
@@ -227,8 +226,9 @@ if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
 
     mathjax_static = os.path.join(sagenb_path, mathjax_relative)
     html_static_path.append(mathjax_static)
-    exclude_patterns=['**/'+os.path.join(mathjax_relative, i) for i in ('docs', 'README*', 'test',
-                                                                        'unpacked', 'LICENSE')]
+    exclude_patterns += ['**/'+os.path.join(mathjax_relative, i)
+                         for i in ('docs', 'README*', 'test',
+                                   'unpacked', 'LICENSE')]
 else:
      extensions.append('sphinx.ext.pngmath')
 
@@ -615,7 +615,7 @@ def call_intersphinx(app, env, node, contnode):
         sage: for line in open(thematic_index).readlines():
         ....:     if "padics" in line:
         ....:         sys.stdout.write(line)
-        <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage Reference Manual: p-Adics ...)"><em>Introduction to the p-adics</em></a></li>
+        <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage Reference Manual: p-Adics ...)"><span>Introduction to the -adics</span></a></li>
     """
     debug_inf(app, "???? Trying intersphinx for %s"%node['reftarget'])
     builder = app.builder
@@ -724,9 +724,9 @@ base_class_as_func = [
 # link to the Python documentation several links where broken because there
 # where class listed as functions. Expand the list 'base_class_as_func'
 # above instead of marking the link as broken.
-nitpick_ignore = (
+nitpick_ignore = [
     ('py:class', 'twisted.web2.resource.Resource'),
-    ('py:class', 'twisted.web2.resource.PostableResource'))
+    ('py:class', 'twisted.web2.resource.PostableResource')]
 
 def nitpick_patch_config(app):
     """

@@ -54,6 +54,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.posets import Posets
@@ -522,7 +524,7 @@ class TamariIntervalPoset(Element):
         EXAMPLES::
 
             sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
-            sage: print ip._latex_()
+            sage: print(ip._latex_())
             \begin{tikzpicture}[scale=1]
             \node(T1) at (1,0) {1};
             \node(T2) at (0,-1) {2};
@@ -1086,7 +1088,7 @@ class TamariIntervalPoset(Element):
             ....:     for T in TamariIntervalPosets(n):
             ....:         for i in range(1, n + 2):
             ....:             if not (insert_alternative(T, i) == T.insertion(i)):
-            ....:                 print T, i
+            ....:                 print(T, i)
             ....:                 return False
             ....:     return True
             sage: test_equivalence(3)

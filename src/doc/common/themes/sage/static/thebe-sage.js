@@ -31,9 +31,26 @@ $(function() {
             wrapLineBlocks(this, lineClass, codeClass, codeBlockClass);
             wrapLineBlocks(this, lineClass, resultClass, resultBlockClass);
             $('.' + resultBlockClass, this).hide();
+            sanitizeCode(this, codeClass);
         });
-        thebeOptions.selector = cellSelector + ' .' + codeBlockClass;
+        thebeOptions.selector = '.' + codeBlockClass;
         return new Thebe(thebeOptions);
+    }
+
+    /**
+     * Sanitize the code before executing. For now, transforms the code line
+     * into pure text, also stripping out the Sage prompts and continuation
+     * characters at line start, if any.
+     *
+     * @param {Element} cellNode - The DOM element of the cell
+     * @param {String} codeClass - The class name associated to code line
+     */
+    function sanitizeCode(cellNode, codeClass) {
+        var rgx = /^(sage: )|(\.\.\.\.: )|(\.\.\.  )/;
+        var codeLines = cellNode.getElementsByClassName(codeClass);
+        Array.prototype.forEach.call(codeLines, function(line) {
+            line.textContent = line.textContent.replace(rgx, '');
+        });
     }
 
     /**

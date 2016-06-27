@@ -1211,9 +1211,15 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         # varid_name associates variables id to names
         varid_name = {}
+        varid_explainer = {}
         for 0<= i < b.ncols():
             s = b.col_name(i)
-            varid_name[i] = s if s else 'x_'+str(i)
+            default_name = str(self.linear_functions_parent()({i: 1}))
+            if s and s != default_name:
+                varid_name[i] = s
+                varid_explainer[i] = '{0} = {1}'.format(s, default_name)
+            else:
+                varid_explainer[i] = varid_name[i] = default_name
 
         ##### Sense and objective function
         print("Maximization:" if b.is_maximization() else "Minimization:")
@@ -1266,10 +1272,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
                 var_type = 'a boolean'
             else:
                 var_type = 'a continuous'
-            if varid_name[i] == str(self.gen(i)):
-                name = varid_name[i]
-            else:
-                name = '{0} = {1}'.format(varid_name[i], self.gen(i))
+            name = varid_explainer[i]
             lb, ub = b.col_bounds(i)
             print('  {0} is {1} variable (min={2}, max={3})'.format(
                 name, var_type, 

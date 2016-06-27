@@ -46,7 +46,6 @@ from sage.misc.lazy_import import lazy_import as _lazy_import
 _lazy_import('sage.coding.linear_code', ['LinearCodeGeneratorMatrixEncoder',
                                          'LinearCodeParityCheckEncoder'])
 _lazy_import('sage.coding.grs', ['GRSEvaluationVectorEncoder', 'GRSEvaluationPolynomialEncoder'])
-_lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcodeParityCheckEncoder')
 _lazy_import('sage.coding.cyclic_code', ['CyclicCodePolynomialEncoder',
                                          'CyclicCodeVectorEncoder'])
 _lazy_import('sage.coding.extended_code', 'ExtendedCodeExtendedMatrixEncoder')

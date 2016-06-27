@@ -278,7 +278,7 @@ We use the lexicographic ordering::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.interfaces.all import gap
 from sage.libs.all import pari
@@ -307,10 +307,10 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 
-from combinat import CombinatorialClass, CombinatorialElement
-import tableau
-import permutation
-import composition
+from .combinat import CombinatorialClass, CombinatorialElement
+from . import tableau
+from . import permutation
+from . import composition
 from sage.combinat.partitions import number_of_partitions as bober_number_of_partitions
 from sage.combinat.partitions import ZS1_iterator, ZS1_iterator_nk
 from sage.combinat.integer_vector import IntegerVectors
@@ -3656,7 +3656,7 @@ class Partition(CombinatorialElement):
             a.reverse()
             result[e] = a
 
-        from partition_tuple import PartitionTuple
+        from .partition_tuple import PartitionTuple
         return PartitionTuple(result)  #tuple(map(Partition, result))
 
     def is_core(self, k):
@@ -5453,7 +5453,7 @@ class Partitions_all(Partitions):
             ...       for mus in PartitionTuples(k,n_mus))
             True
         """
-        from partition_tuple import PartitionTuple, PartitionTuples
+        from .partition_tuple import PartitionTuple, PartitionTuples
         if not quotient in PartitionTuples():
             raise ValueError('the quotient %s must be a tuple of partitions'%quotient)
         components = PartitionTuple(quotient).components()

@@ -425,6 +425,58 @@ class AffinePlaneCurve(AffineCurve):
         I = self.defining_ideal()
         return I.plot(*args, **kwds)
 
+    def is_transverse(self, C, P):
+        r"""
+        Return whether the intersection of this curve with the curve ``C`` at the point ``P`` is transverse.
+
+        The intersection at ``P`` is transverse if ``P`` is a nonsingular point of both curves, and if the
+        tangents of the curves at ``P`` are distinct.
+
+        INPUT:
+
+        - ``C`` -- a curve in the ambient space of this curve.
+
+        - ``P`` -- a point in the intersection of both curves.
+
+        OUPUT: Boolean.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([x^2 + y^2 - 1], A)
+            sage: D = Curve([x - 1], A)
+            sage: Q = A([1,0])
+            sage: C.is_transverse(D, Q)
+            False
+
+        ::
+
+            sage: R.<a> = QQ[]
+            sage: K.<b> = NumberField(a^3 + 2)
+            sage: A.<x,y> = AffineSpace(K, 2)
+            sage: C = A.curve([x*y])
+            sage: D = A.curve([y - b*x])
+            sage: Q = A([0,0])
+            sage: C.is_transverse(D, Q)
+            False
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([y - x^3], A)
+            sage: D = Curve([y + x], A)
+            sage: Q = A([0,0])
+            sage: C.is_transverse(D, Q)
+            True
+        """
+        if not self.intersects_at(C, P):
+            raise TypeError("(=%s) must be a point in the intersection of (=%s) and this curve"%(P,C))
+        if self.is_singular(P) or C.is_singular(P):
+            return False
+
+        # there is only one tangent at a nonsingular point of a plane curve
+        return not self.tangents(P)[0] == C.tangents(P)[0]
+
     def multiplicity(self, P):
         r"""
         Return the multiplicity of this affine plane curve at the point ``P``.

@@ -115,26 +115,24 @@ Different backends compute with different base fields, for example::
     sage: 0.5 + 3/2*x[1]
     1/2 + 3/2*x_0
 
-
-Linear Variables and Expressions
+More about :class:`MIPVariable`s
 --------------------------------
 
-The underlying linear programming backends always work with matrices
-where each column corresponds to a linear variable. These variables
-can be accessed using the :meth:`MixedIntegerLinearProgram.gen` method
-or by calling with a dictionary variable index to coefficient::
+The underlying MILP backends always work with matrices
+where each column corresponds to a linear variable.  The
+variable corresponding to the `i`th column (counting from 0)
+is displayed as "x_i".
 
-    sage: mip = MixedIntegerLinearProgram(solver='GLPK')
-    sage: 5 + mip.gen(0) + 2*mip.gen(1)
-    5 + x_0 + 2*x_1
-    sage: mip({-1:5, 0:1, 1:2})
-    5 + x_0 + 2*x_1
+:class:`MixedIntegerLinearProgram` maintains a dynamic mapping
+from the components of :class:`MIPVariable`s, indexed by arbitrary keys,
+to the backend variables (indexed by nonnegative integers).
+Backend variables are created when a component of a :class:`MIPVariable`
+is accessed.
 
-However, this alone is often not convenient to construct a linear
-program. To make your code more readable, you can construct
+To make your code more readable, you can construct one or several
 :class:`MIPVariable` objects that can be arbitrarily named and
-indexed. Internally, this is then translated back to the `x_i`
-variables. For example::
+indexed. This can be done by calling :meth:`new_variable` several times,
+or by the following special syntax::
 
     sage: mip.<a,b> = MixedIntegerLinearProgram(solver='GLPK')
     sage: a
@@ -159,6 +157,17 @@ also allowed::
       a[(4, 'string', Rational Field)] = x_2 is a continuous variable (min=-oo, max=+oo)
       b[2] = x_3 is a continuous variable (min=-oo, max=+oo)
 
+The default MIP variable
+------------------------
+
+As a special shortcut, it is not necessary to call :meth:`new_variable`.
+A :class:`MixedIntegerLinearProgram` has a default :class:`MIPVariable`,
+whose components are obtained by using the syntax ``mip[key]``, where
+`key` is an arbitrary key.
+
+    sage: mip = MixedIntegerLinearProgram(solver='GLPK')
+    sage: 5 + mip[2] + 2*mip[7]
+    5 + x_0 + 2*x_1
 
 Index of functions and methods
 ------------------------------

@@ -158,6 +158,37 @@ class ProjectivePlaneCurvePoint_field(ProjectiveCurvePoint_field):
         """
         return self.curve().is_ordinary_singularity(self)
 
+    def is_transverse(self, D):
+        r"""
+        Return whether the intersection of the curve ``D`` at this point with the curve this point is on is
+        transverse or not.
+
+        INPUT:
+
+        - ``D`` -- a curve in the same ambient space as the curve this point is on.
+
+        OUTPUT: Boolean.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([x^2 - 2*y^2 - 2*z^2], P)
+            sage: D = Curve([y - z], P)
+            sage: Q = C([2,1,1])
+            sage: Q.is_transverse(D)
+            True
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(17), 2)
+            sage: C = Curve([x^4 - 16*y^3*z], P)
+            sage: D = Curve([y^2 - z*x], P)
+            sage: Q = C([0,0,1])
+            sage: Q.is_transverse(D)
+            False
+        """
+        return self.curve().is_transverse(D, self)
+
 class ProjectivePlaneCurvePoint_finite_field(ProjectivePlaneCurvePoint_field, SchemeMorphism_point_projective_finite_field):
     pass
 
@@ -270,6 +301,39 @@ class AffinePlaneCurvePoint_field(AffineCurvePoint_field):
             False
         """
         return self.curve().is_ordinary_singularity(self)
+
+    def is_transverse(self, D):
+        r"""
+        Return whether the intersection of the curve ``D`` at this point with the curve this point is on is
+        transverse or not.
+
+        INPUT:
+
+        - ``D`` -- a curve in the same ambient space as the curve this point is on.
+
+        OUTPUT: Boolean.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([y - x^2], A)
+            sage: D = Curve([y], A)
+            sage: Q = C([0,0])
+            sage: Q.is_transverse(D)
+            False
+
+        ::
+
+            sage: R.<a> = QQ[]
+            sage: K.<b> = NumberField(a^2 - 2)
+            sage: A.<x,y> = AffineSpace(K, 2)
+            sage: C = Curve([y^2 + x^2 - 1], A)
+            sage: D = Curve([y - x], A)
+            sage: Q = C([-1/2*b,-1/2*b])
+            sage: Q.is_transverse(D)
+            True
+        """
+        return self.curve().is_transverse(D, self)
 
 class AffinePlaneCurvePoint_finite_field(AffinePlaneCurvePoint_field, SchemeMorphism_point_affine_finite_field):
     pass

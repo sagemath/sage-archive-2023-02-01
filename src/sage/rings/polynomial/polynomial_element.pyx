@@ -2079,6 +2079,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ....:     for R in [R1, R2, R3, R3]:
             ....:         a = R.random_element()
             ....:         assert a^d == generic_power(a,d)
+
+        Test the powering modulo `x^n` (calling `_pow_trunc_`)::
+
+            sage: R.<x> = GF(3)[]
+            sage: pow(x + 1, 51, x^7)
+            x^6 + 2*x^3 + 1
+
+            sage: S.<y> = QQ[]
+            sage: R.<x> = S[]
+            sage: pow(y*x+1, 51, x^7)
+            18009460*y^6*x^6 + 2349060*y^5*x^5 + ... + 51*y*x + 1
         """
         if type(right) is not Integer:
             try:
@@ -2091,6 +2102,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if right < 0:
             return (~self)**(-right)
         if modulus:
+            if right > 0 and \
+               parent(modulus) == self.parent() and \
+               modulus.number_of_terms() == 1 and \
+               modulus.leading_coefficient().is_one():
+                return self._pow_trunc_(right, modulus.degree())
             return power_mod(self, right, modulus)
         if (<Polynomial>self).is_gen():   # special case x**n should be faster!
             P = self.parent()
@@ -2129,7 +2145,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         return generic_power(self,right)
 
-    cpdef Polynomial _pow_trunc_(self, long n, long prec):
+    cpdef Polynomial _pow_trunc_(self, unsigned long n, long prec):
         r"""
         Truncated power
 
@@ -2144,20 +2160,27 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = ZZ[]
             sage: p = x+1
             sage: q = p._pow_trunc_(100, 10)
+            sage: q
             1902231808400*x^9 + 186087894300*x^8 + ... + 4950*x^2 + 100*x + 1
             sage: (p^100).truncate(10) == q
             True
 
             sage: R.<x> = GF(3)[]
             sage: p = x^2 - x + 1
-            sage: q = p._pow_trunc_(81, 20)
+            sage: q = p._pow_trunc_(80, 20)
             sage: q
             x^19 + x^18 + ... + 2*x^4 + 2*x^3 + x + 1
-            sage: (p^81).truncate(20) == q
+            sage: (p^80).truncate(20) == q
             True
+
+        TESTS::
+
+            sage: R.<x> = QQ['y'][]
+            sage: for p in [R.one(), x, x+1, x-1, x^2 - 1]:
+            ....:     for n in range(0, 20):
+            ....:         for prec in [1, 2, 3, 10]:
+            ....:             assert p._pow_trunc_(n, prec) == (p**n).truncate(prec)
         """
-        if n < 0:
-            raise ValueError("n must be non-negative")
         cdef Polynomial a = self.truncate(prec)
 
         if n < 4:

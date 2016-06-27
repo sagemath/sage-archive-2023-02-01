@@ -1086,6 +1086,23 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                     sig_off()
                 return res
 
+    cpdef Polynomial _pow_trunc_(self, unsigned long n, long prec):
+        r"""
+        Truncated power
+
+        TESTS::
+
+            sage: R.<x> = ZZ[]
+            sage: (x**2 - x + 1)._pow_trunc_(100, 5)
+            4411275*x^4 - 171600*x^3 + 5050*x^2 - 100*x + 1
+            sage: R.zero()._pow_trunc_(0, 1)
+            1
+        """
+        cdef Polynomial_integer_dense_flint res
+        res = self._new()
+        fmpz_poly_pow_trunc(res.__poly, self.__poly, n, prec)
+        return res
+
     def __floordiv__(Polynomial_integer_dense_flint self, right):
         """
         EXAMPLES::

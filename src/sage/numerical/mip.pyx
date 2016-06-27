@@ -639,9 +639,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p['x']
             x_0
         """
-        if self._default_mipvariable is None:
-            self._default_mipvariable = self.new_variable()
-        return self._default_mipvariable[v]
+        return self.default_variable()[v]
 
     def base_ring(self):
         """
@@ -814,6 +812,20 @@ cdef class MixedIntegerLinearProgram(SageObject):
                       name=name,
                       lower_bound=0 if (nonnegative or binary) else None,
                       upper_bound=1 if binary else None)
+
+    def default_variable(self):
+        """
+        Return the default :class:`MIPVariable` of `self`.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: p.default_variable()
+            MIPVariable of dimension 1
+        """
+        if self._default_mipvariable is None:
+            self._default_mipvariable = self.new_variable()
+        return self._default_mipvariable
 
     def _first_ngens(self, n):
         """

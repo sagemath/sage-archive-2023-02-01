@@ -1,0 +1,18 @@
+= Polymake =
+
+== Description ==
+
+polymake is open source software for research in polyhedral
+geometry. It deals with polytopes, polyhedra and fans as
+well as simplicial complexes, matroids, graphs, tropical
+hypersurfaces, and other objects. Supported platforms
+include various flavors of Linux, Free BSD and Mac OS.
+
+== License ==
+
+ * GPL v3
+
+== Upstream Contact ==
+
+ * https://polymake.org/
+

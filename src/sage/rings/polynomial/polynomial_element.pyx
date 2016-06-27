@@ -203,7 +203,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
     .. automethod:: _rmul_
     .. automethod:: _mul_
     .. automethod:: _mul_trunc_
-    .. automethod:: _pow_trunc_
     """
 
     def __init__(self, parent, is_gen = False, construct=False):
@@ -2081,7 +2080,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ....:         a = R.random_element()
             ....:         assert a^d == generic_power(a,d)
 
-        Test the powering modulo `x^n` (calling `_pow_trunc_`)::
+        Test the powering modulo ``x^n`` (calling :meth:`power_trunc`)::
 
             sage: R.<x> = GF(3)[]
             sage: pow(x + 1, 51, x^7)
@@ -2107,7 +2106,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                parent(modulus) == self.parent() and \
                modulus.number_of_terms() == 1 and \
                modulus.leading_coefficient().is_one():
-                return self._pow_trunc_(right, modulus.degree())
+                return self.power_trunc(right, modulus.degree())
             return power_mod(self, right, modulus)
         if (<Polynomial>self).is_gen():   # special case x**n should be faster!
             P = self.parent()
@@ -2146,7 +2145,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         return generic_power(self,right)
 
-    cpdef Polynomial _pow_trunc_(self, unsigned long n, long prec):
+    cpdef Polynomial power_trunc(self, unsigned long n, long prec):
         r"""
         Truncated power
 
@@ -2154,13 +2153,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         - ``n`` -- (non-negative integer) power to be taken
 
-        - ``prec`` -- the precision
+        - ``prec`` -- (integer) the precision
 
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
             sage: p = x+1
-            sage: q = p._pow_trunc_(100, 10)
+            sage: q = p.power_trunc(100, 10)
             sage: q
             1902231808400*x^9 + 186087894300*x^8 + ... + 4950*x^2 + 100*x + 1
             sage: (p^100).truncate(10) == q
@@ -2168,7 +2167,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: R.<x> = GF(3)[]
             sage: p = x^2 - x + 1
-            sage: q = p._pow_trunc_(80, 20)
+            sage: q = p.power_trunc(80, 20)
             sage: q
             x^19 + x^18 + ... + 2*x^4 + 2*x^3 + x + 1
             sage: (p^80).truncate(20) == q
@@ -2180,7 +2179,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: for p in [R.one(), x, x+1, x-1, x^2 - 1]:
             ....:     for n in range(0, 20):
             ....:         for prec in [1, 2, 3, 10]:
-            ....:             assert p._pow_trunc_(n, prec) == (p**n).truncate(prec)
+            ....:             assert p.power_trunc(n, prec) == (p**n).truncate(prec)
         """
         cdef Polynomial a = self.truncate(prec)
 

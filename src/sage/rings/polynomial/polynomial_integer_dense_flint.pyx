@@ -87,7 +87,6 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
     .. automethod:: _rmul_
     .. automethod:: _mul_
     .. automethod:: _mul_trunc_
-    .. automethod:: _pow_trunc_
     """
 
     def __cinit__(self):
@@ -1087,16 +1086,16 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                     sig_off()
                 return res
 
-    cpdef Polynomial _pow_trunc_(self, unsigned long n, long prec):
+    cpdef Polynomial power_trunc(self, unsigned long n, long prec):
         r"""
         Truncated power
 
         TESTS::
 
             sage: R.<x> = ZZ[]
-            sage: (x**2 - x + 1)._pow_trunc_(100, 5)
+            sage: (x**2 - x + 1).power_trunc(100, 5)
             4411275*x^4 - 171600*x^3 + 5050*x^2 - 100*x + 1
-            sage: R.zero()._pow_trunc_(0, 1)
+            sage: R.zero().power_trunc(0, 1)
             1
         """
         cdef Polynomial_integer_dense_flint res

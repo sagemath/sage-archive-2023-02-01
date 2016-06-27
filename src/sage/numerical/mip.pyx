@@ -115,17 +115,17 @@ Different backends compute with different base fields, for example::
     sage: 0.5 + 3/2*x[1]
     1/2 + 3/2*x_0
 
-More about :class:`MIPVariable`s
---------------------------------
+More about MIP variables
+------------------------
 
 The underlying MILP backends always work with matrices
 where each column corresponds to a linear variable.  The
-variable corresponding to the `i`th column (counting from 0)
-is displayed as "x_i".
+variable corresponding to the `i`-th column (counting from 0)
+is displayed as ``x_i``.
 
 :class:`MixedIntegerLinearProgram` maintains a dynamic mapping
-from the components of :class:`MIPVariable`s, indexed by arbitrary keys,
-to the backend variables (indexed by nonnegative integers).
+from the arbitrary keys indexing the components of :class:`MIPVariable`
+objects to the backend variables (indexed by nonnegative integers).
 Backend variables are created when a component of a :class:`MIPVariable`
 is accessed.
 
@@ -163,7 +163,7 @@ The default MIP variable
 As a special shortcut, it is not necessary to call :meth:`new_variable`.
 A :class:`MixedIntegerLinearProgram` has a default :class:`MIPVariable`,
 whose components are obtained by using the syntax ``mip[key]``, where
-`key` is an arbitrary key.
+`key` is an arbitrary key::
 
     sage: mip = MixedIntegerLinearProgram(solver='GLPK')
     sage: 5 + mip[2] + 2*mip[7]
@@ -502,6 +502,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
     def __call__(self, x):
         """
         Construct a new linear function
+
+        .. warning::
+
+            This method is deprecated.  The variables appearing in
+            the linear function are not created in the backend.
+            Build linear functions from the components of
+            :class:`MIPVariable` objects instead; see
+            :meth:`new_variable`.
 
         EXAMPLES::
 
@@ -862,6 +870,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         Return the linear variable `x_i`.
         
+        .. warning::
+
+            This method is deprecated.  The variable is not created
+            in the backend if it does not exist, and most methods
+            do not accept this variable as valid input.
+
         EXAMPLE::
 
             sage: mip = MixedIntegerLinearProgram(solver='GLPK')

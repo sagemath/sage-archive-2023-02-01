@@ -696,7 +696,24 @@ void function::print(const print_context & c, unsigned level) const
 		Py_DECREF(args);
 	} else {
 
-		const function_options &opt = registered_functions()[serial];
+		if (is_a<print_latex>(c)) {
+		        PyObject* sfunc = py_funcs.py_get_sfunction_from_serial(serial);
+                        if (PyObject_HasAttrString(sfunc, "_print_latex_")) {
+                                PyObject* args = py_funcs.exvector_to_PyTuple(seq);
+                                std::string* sout;
+                                sout = py_funcs.py_latex_function(serial, args);
+                                if (PyErr_Occurred() != nullptr) {
+                                        throw(std::runtime_error("function::print(): python print function raised exception"));
+                                }
+                                c.s << *sout;
+                                c.s.flush();
+                                delete sout;
+                                Py_DECREF(args);
+                                return;
+                        }
+		}
+
+                const function_options &opt = registered_functions()[serial];
 		const std::vector<print_funcp> &pdt = opt.print_dispatch_table;
 
 

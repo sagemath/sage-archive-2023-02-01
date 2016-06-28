@@ -14,7 +14,7 @@ Let `c = (c_0, c_2, \dots, c_{n-1})` be a codeword of `C`.
 This codeword can be seen as a polynomial over `F_n[x]`, as follows:
 `\Sigma_{i=0}^{n-1} c_i \times x^i`.
 There is a unique, monic polynomial `g(x)` such that for every
-`c(x) \in F_n[x]`, `c(x) in C \Leftrightarrow g(x) \textpipe c(x)`.
+`c(x) \in F_n[x]`, `c(x) \in C \Leftrightarrow g(x) | c(x)`.
 This polynomial is called the generator polynomial of `C`.
 
 
@@ -133,7 +133,7 @@ def find_generator_polynomial(code, probabilistic = False):
          raise ValueError("Impossible to find a generator polynomial")
     return g
 
-def cyclotomic_coset(n, r, q):
+def _cyclotomic_coset(n, r, q):
     r"""
     Returns the ``q``-cyclotomic coset of ``r`` modulo ``n``.
 
@@ -151,7 +151,7 @@ def cyclotomic_coset(n, r, q):
 
     EXAMPLES::
 
-        sage.coding.cyclic_code.cyclotomic_coset(11, 7, 3)
+        sage.coding.cyclic_code._cyclotomic_coset(11, 7, 3)
         [8, 10, 2, 6, 7]
     """
     r = r%n
@@ -162,7 +162,7 @@ def cyclotomic_coset(n, r, q):
         rem = (rem*q) % n
     return list(cyc)
 
-def complete_list(l, length):
+def _complete_list(l, length):
     r"""
     Returns ``l`` with as many zeros appened to it as necessary to make
     it a list of size ``length``.
@@ -180,7 +180,7 @@ def complete_list(l, length):
     EXAMPLES::
 
         sage: l = [1, 2, 3, 4]
-        sage: sage.coding.cyclic_code.complete_list(l, 6)
+        sage: sage.coding.cyclic_code._complete_list(l, 6)
         [1, 2, 3, 4, 0, 0]
     """
     F = l[0].base_ring()
@@ -189,7 +189,7 @@ def complete_list(l, length):
         l = l + ([F.zero()] * (length - l_len))
     return l
 
-def build_chain_dictionary(D, n):
+def _build_chain_dictionary(D, n):
     r"""
     Returns the dictionnary containing the length of the arithmetic chain for each couple
     ``(d, delta)`` where ``d`` is in ``D`` and ``delta`` is the step of the chain.
@@ -218,7 +218,7 @@ def build_chain_dictionary(D, n):
 
         sage: D = [0, 1, 2, 4]
         sage: n = 5
-        sage: sage.coding.cyclic_code.build_chain_dictionary(D, n)
+        sage: sage.coding.cyclic_code._build_chain_dictionary(D, n)
         {(0, 1): 3,
          (0, 2): 4,
          (0, 3): 1,
@@ -240,10 +240,10 @@ def build_chain_dictionary(D, n):
     for delta in range(1, n):
         if gcd(delta, n) == 1:
             for i in D:
-                phi[i, delta] = fill_chain_dictionary(phi, D, i, delta, n)
+                phi[i, delta] = _fill_chain_dictionary(phi, D, i, delta, n)
     return phi
 
-def fill_chain_dictionary(phi, D, i, delta, n):
+def _fill_chain_dictionary(phi, D, i, delta, n):
     r"""
     Returns the associated value of ``(i, delta)`` for ``phi``.
 
@@ -270,7 +270,7 @@ def fill_chain_dictionary(phi, D, i, delta, n):
         sage: phi = {}
         sage: D = [0, 1, 2, 4]
         sage: i, delta, n = 0, 1, 5
-        sage: sage.coding.cyclic_code.fill_chain_dictionary(phi, D, i, delta, n)
+        sage: sage.coding.cyclic_code._fill_chain_dictionary(phi, D, i, delta, n)
         3
     """
     if not i % n in D:
@@ -279,7 +279,7 @@ def fill_chain_dictionary(phi, D, i, delta, n):
         try:
             return 1 + phi[i + delta, delta]
         except KeyError:
-            return 1 + fill_chain_dictionary(phi, D, i + delta, delta, n)
+            return 1 + _fill_chain_dictionary(phi, D, i + delta, delta, n)
 
 def bch_bound(n, D, arithmetic = False, bch_parameters = False):
     r"""
@@ -322,7 +322,7 @@ def bch_bound(n, D, arithmetic = False, bch_parameters = False):
         4
     """
     if arithmetic == True:
-        phi = build_chain_dictionary(D, n)
+        phi = _build_chain_dictionary(D, n)
         val = phi.values()
         longest = 0
         for i in val:
@@ -537,7 +537,7 @@ class CyclicCode(AbstractLinearCode):
                 pows = set()
                 for r in D:
                     if not r in pows:
-                        pows = pows.union(cyclotomic_coset(n, r, q))
+                        pows = pows.union(_cyclotomic_coset(n, r, q))
 
                 if primitive_element is not None and (primitive_element not in F or
                         multiplicative_order(primitive_element) != n):
@@ -571,7 +571,7 @@ class CyclicCode(AbstractLinearCode):
                 cosets = []
                 for r in D:
                     if not r in pows:
-                        current = cyclotomic_coset(n, r, q)
+                        current = _cyclotomic_coset(n, r, q)
                         cosets.append(current)
                         pows = pows.union(current)
 
@@ -778,7 +778,7 @@ class CyclicCode(AbstractLinearCode):
         h = self.check_polynomial()
         l = h.coefficients(sparse = False)
         l.reverse()
-        l = complete_list(l, n)
+        l = _complete_list(l, n)
         H = matrix(self.base_ring(), n - k, n)
         for i in range(n - k):
             H.set_row(i, l)
@@ -919,7 +919,7 @@ class CyclicCodePolynomialEncoder(Encoder):
     Let `C` be a cyclic code over some finite field `F`,
     and let `g` be its generator polynomial.
 
-    This encoder encodes any polynomial `p in F[x]_{<k}`, by doing:
+    This encoder encodes any polynomial `p \in F[x]_{<k}`, by doing:
     `\forall p \in F[x]_{<k}, (p \times g) \in C`
 
     INPUT:
@@ -1049,7 +1049,7 @@ class CyclicCodePolynomialEncoder(Encoder):
         if p.degree() > k:
             raise ValueError("Degree of the message must be at most %s" % k)
         res = (p * self.code().generator_polynomial()).coefficients(sparse = False)
-        res = complete_list(res, n)
+        res = _complete_list(res, n)
         return  vector(self.code().base_field(), res)
 
     def unencode_nocheck(self, c):
@@ -1234,7 +1234,7 @@ class CyclicCodeVectorEncoder(Encoder):
         if p.degree() > k:
             raise ValueError("Degree of the message must be at most %s" % k)
         res = (p * self.code().generator_polynomial()).coefficients(sparse = False)
-        res = complete_list(res, n)
+        res = _complete_list(res, n)
         return vector(F, res)
 
     def unencode_nocheck(self, c):
@@ -1266,7 +1266,7 @@ class CyclicCodeVectorEncoder(Encoder):
         g = self.code().generator_polynomial()
         p = R(c.list())
         l = (p//g).coefficients(sparse = False)
-        l = complete_list(l, self.message_space().dimension())
+        l = _complete_list(l, self.message_space().dimension())
         return vector(self.code().base_field(), l)
 
     @cached_method
@@ -1293,7 +1293,7 @@ class CyclicCodeVectorEncoder(Encoder):
         k = C.dimension()
         n = C.length()
         l = C.generator_polynomial().coefficients(sparse = False)
-        l = complete_list(l, n)
+        l = _complete_list(l, n)
         G = matrix(C.base_ring(), k, C.length())
         for i in range(k):
             G.set_row(i, l)

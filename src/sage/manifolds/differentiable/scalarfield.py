@@ -20,13 +20,13 @@ AUTHORS:
 
 REFERENCES:
 
-.. [ONeill83] \B. O'Neill : *Semi-Riemannian Geometry*, Academic Press
-   (San Diego) (1983)
-
 - [KN63]_ \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
   vol. 1, Interscience Publishers (New York) (1963)
 - [Lee13]_ \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
   (New York) (2013)
+- [ONeill83]_ \B. O'Neill : *Semi-Riemannian Geometry*, Academic Press
+  (San Diego) (1983)
+
 """
 
 #******************************************************************************
@@ -748,10 +748,12 @@ class DiffScalarField(ScalarField):
             \mathrm{d}f
 
         One may also use the global function
-        :func:`~sage.manifolds.utilities.exterior_derivative` instead
+        :func:`~sage.manifolds.utilities.exterior_derivative`
+        or its alias :func:`~sage.manifolds.utilities.xder` instead
         of the method ``exterior_derivative()``::
 
-            sage: exterior_derivative(f) is f.exterior_derivative()
+            sage: from sage.manifolds.utilities import xder
+            sage: xder(f) is f.exterior_derivative()
             True
 
         Differential computed on a chart that is not the default one::
@@ -805,7 +807,7 @@ class DiffScalarField(ScalarField):
 
     exterior_derivative = differential
 
-    def lie_der(self, vector):
+    def lie_derivative(self, vector):
         r"""
         Compute the Lie derivative with respect to a vector field.
 
@@ -832,10 +834,20 @@ class DiffScalarField(ScalarField):
             sage: f = M.scalar_field(x^2*cos(y))
             sage: v = M.vector_field(name='v')
             sage: v[:] = (-y, x)
-            sage: f.lie_der(v)
+            sage: f.lie_derivative(v)
             Scalar field on the 2-dimensional differentiable manifold M
-            sage: f.lie_der(v).expr()
+            sage: f.lie_derivative(v).expr()
             -x^3*sin(y) - 2*x*y*cos(y)
+
+        The result is cached::
+
+            sage: f.lie_derivative(v) is f.lie_derivative(v)
+            True
+
+        An alias is ``lie_der``::
+
+            sage: f.lie_der(v) is f.lie_derivative(v)
+            True
 
         Alternative expressions of the Lie derivative of a scalar field::
 
@@ -861,5 +873,4 @@ class DiffScalarField(ScalarField):
             vector._lie_der_along_self[id(self)] = self
         return self._lie_derivatives[id(vector)][1]
 
-    lie_derivative = lie_der
-
+    lie_der = lie_derivative

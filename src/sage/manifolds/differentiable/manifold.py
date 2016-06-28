@@ -2,10 +2,10 @@ r"""
 Differentiable Manifolds
 
 Given a non-discrete topological field `K` (in most applications, `K = \RR` or
-`K = \CC`; see however [4]_ for `K = \QQ_p` and [5]_ for other fields),
-a *differentiable manifold over* `K` is a topological manifold `M` over `K`
-equipped with an atlas whose transitions maps are of class `C^k` (i.e.
-`k`-times  continuously differentiable) for a fixed positive integer `k`
+`K = \CC`; see however [Serre92]_ for `K = \QQ_p` and [Bertram08]_ for other
+fields), a *differentiable manifold over* `K` is a topological manifold `M`
+over `K` equipped with an atlas whose transitions maps are of class `C^k`
+(i.e. `k`-times  continuously differentiable) for a fixed positive integer `k`
 (possibly `k=\infty`). `M` is then called a `C^k`-*manifold over* `K`.
 
 Note that
@@ -385,7 +385,7 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Lee13]_ \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
+.. [Lee13] \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
    (New York) (2013); :doi:`10.1007/978-1-4419-9982-5`
 .. [Serre92] \J.-P. Serre : *Lie Algebras and Lie Groups*, 2nd ed., Springer
    (Berlin) (1992); :doi:`10.1007/978-3-540-70634-2`
@@ -418,7 +418,6 @@ from sage.rings.all import CC
 from sage.rings.real_mpfr import RR
 from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
-from sage.misc.latex import latex
 from sage.manifolds.manifold import TopologicalManifold
 
 ###############################################################################
@@ -428,11 +427,11 @@ class DifferentiableManifold(TopologicalManifold):
     Differentiable manifold over a topological field `K`.
 
     Given a non-discrete topological field `K` (in most applications,
-    `K = \RR` or `K = \CC`; see however [4]_ for `K = \QQ_p` and [5]_ for
-    other fields), a *differentiable manifold over* `K` is a topological
-    manifold `M` over `K` equipped with an atlas whose transitions maps are of
-    class `C^k` (i.e. `k`-times  continuously differentiable) for a fixed
-    positive integer `k` (possibly `k=\infty`). `M` is then called a
+    `K = \RR` or `K = \CC`; see however [Serre92]_ for `K = \QQ_p` and
+    [Bertram08]_ for other fields), a *differentiable manifold over* `K` is a
+    topological manifold `M` over `K` equipped with an atlas whose transitions
+    maps are of class `C^k` (i.e. `k`-times  continuously differentiable) for
+    a fixed positive integer `k` (possibly `k=\infty`). `M` is then called a
     `C^k`-*manifold over* `K`.
 
     Note that

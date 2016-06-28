@@ -19,10 +19,10 @@ AUTHORS:
 
 REFERENCES:
 
-- \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
+- [KN63]_ \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
   vol. 1, Interscience Publishers (New York) (1963)
-- \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed.,
-  Springer (New York) (2013)
+- [Lee13]_ \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
+  (New York) (2013)
 
 """
 #******************************************************************************
@@ -808,7 +808,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
             return self._zero_element
         if isinstance(comp, (DiffForm, DiffFormParal)):
             # coercion by domain restriction
-            if (self._degree == comp._tensor_type[1] 
+            if (self._degree == comp._tensor_type[1]
                     and self._domain.is_subset(comp._domain)
                     and self._ambient_domain.is_subset(comp._ambient_domain)):
                 return comp.restrict(self._domain)

@@ -42,10 +42,10 @@ AUTHORS:
 
 REFERENCES:
 
-- \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
-  Interscience Publishers (New York) (1963)
-- \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
+- [KN63]_ \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
+  vol. 1, Interscience Publishers (New York) (1963)
+- [Lee13]_ \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
+  (New York) (2013)
 
 """
 
@@ -372,9 +372,12 @@ class DiffForm(TensorField):
             sage: a.exterior_derivative() is da
             True
 
-        Instead of invoking the method ``exterior_derivative()``, one may
-        use the global function :func:`~sage.manifolds.utilities.xder`::
+        Instead of invoking the method :meth:`exterior_derivative`, one may
+        use the global function
+        :func:`~sage.manifolds.utilities.exterior_derivative`
+        or its alias :func:`~sage.manifolds.utilities.xder`::
 
+            sage: from sage.manifolds.utilities import xder
             sage: xder(a) is a.exterior_derivative()
             True
 
@@ -953,7 +956,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
     def exterior_derivative(self):
         r"""
-        Compute the exterior derivative of ``self``..
+        Compute the exterior derivative of ``self``.
 
         OUTPUT:
 
@@ -983,8 +986,11 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             True
 
         Instead of invoking the method :meth:`exterior_derivative`, one may
-        use the global function :func:`~sage.manifolds.utilities.xder`::
+        use the global function
+        :func:`~sage.manifolds.utilities.exterior_derivative`
+        or its alias :func:`~sage.manifolds.utilities.xder`::
 
+            sage: from sage.manifolds.utilities import xder
             sage: xder(a) is a.exterior_derivative()
             True
 

@@ -24,11 +24,12 @@ AUTHORS:
 
 REFERENCES:
 
-- \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
-  Interscience Publishers (New York) (1963)
-- \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
-- \B. O'Neill : *Semi-Riemannian Geometry*, Academic Press (San Diego) (1983)
+- [KN63]_ \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
+  vol. 1, Interscience Publishers (New York) (1963)
+- [Lee13]_ \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
+  (New York) (2013); :doi:`10.1007/978-1-4419-9982-5`
+- [ONeill83]_ \B. O'Neill : *Semi-Riemannian Geometry*, Academic Press
+  (San Diego) (1983)
 
 """
 
@@ -160,7 +161,6 @@ class TensorField(ModuleElement):
     frames defined on subsets of `S^2`; let us start by the open subset `U`::
 
         sage: eU = c_xy.frame()
-        sage: t = M.tensor_field(0,2, name='t')
         sage: t[eU,:] = [[1,0], [-2,3]]
         sage: t.display(eU)
         t = dx*dx - 2 dy*dx + 3 dy*dy
@@ -194,11 +194,10 @@ class TensorField(ModuleElement):
     Let us consider two vector fields, `a` and `b`, on `S^2`::
 
         sage: a = M.vector_field(name='a')
-        sage: a[eU,:] = [1,x]
+        sage: a[eU,:] = [-y,x]
         sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
         sage: a.display(eV)
-        a = -(u^4 - v^4 + 2*u^2*v)/(u^2 + v^2) d/du
-         - (2*u^3*v + 2*u*v^3 - u^3 + u*v^2)/(u^2 + v^2) d/dv
+        a = -v d/du + u d/dv
         sage: b = M.vector_field(name='b')
         sage: b[eU,:] = [y,-1]
         sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
@@ -213,8 +212,8 @@ class TensorField(ModuleElement):
         Scalar field t(a,b) on the 2-dimensional differentiable manifold S^2
         sage: f.display()
         t(a,b): S^2 --> R
-        on U: (x, y) |--> -(2*x - 1)*y - 3*x
-        on V: (u, v) |--> -(3*u^3 + 3*u*v^2 - v^3 - (u^2 - 2*u)*v)/(u^4 + 2*u^2*v^2 + v^4)
+        on U: (x, y) |--> -2*x*y - y^2 - 3*x
+        on V: (u, v) |--> -(3*u^3 + (3*u + 1)*v^2 + 2*u*v)/(u^4 + 2*u^2*v^2 + v^4)
 
     The vectors can be defined only on subsets of `S^2`, the domain of the
     result is then the common subset::
@@ -224,15 +223,15 @@ class TensorField(ModuleElement):
          differentiable manifold S^2
         sage: s.display()
         t(a,b): U --> R
-           (x, y) |--> -(2*x - 1)*y - 3*x
-        on W: (u, v) |--> -(3*u^3 + 3*u*v^2 - v^3 - (u^2 - 2*u)*v)/(u^4 + 2*u^2*v^2 + v^4)
+           (x, y) |--> -2*x*y - y^2 - 3*x
+        on W: (u, v) |--> -(3*u^3 + (3*u + 1)*v^2 + 2*u*v)/(u^4 + 2*u^2*v^2 + v^4)
         sage: s = t(a.restrict(U), b.restrict(W)) ; s
         Scalar field t(a,b) on the Open subset W of the 2-dimensional
          differentiable manifold S^2
         sage: s.display()
         t(a,b): W --> R
-           (x, y) |--> -(2*x - 1)*y - 3*x
-           (u, v) |--> -(3*u^3 + 3*u*v^2 - v^3 - (u^2 - 2*u)*v)/(u^4 + 2*u^2*v^2 + v^4)
+           (x, y) |--> -2*x*y - y^2 - 3*x
+           (u, v) |--> -(3*u^3 + (3*u + 1)*v^2 + 2*u*v)/(u^4 + 2*u^2*v^2 + v^4)
 
     The tensor itself can be defined only on some open subset of `S^2`,
     yielding a result whose domain is this subset::
@@ -242,24 +241,26 @@ class TensorField(ModuleElement):
          differentiable manifold S^2
         sage: s.display()
         t(a,b): V --> R
-           (u, v) |--> -(3*u^3 + 3*u*v^2 - v^3 - (u^2 - 2*u)*v)/(u^4 + 2*u^2*v^2 + v^4)
-        on W: (x, y) |--> -(2*x - 1)*y - 3*x
+           (u, v) |--> -(3*u^3 + (3*u + 1)*v^2 + 2*u*v)/(u^4 + 2*u^2*v^2 + v^4)
+        on W: (x, y) |--> -2*x*y - y^2 - 3*x
 
     Tests regarding the multiplication by a scalar field::
 
+        sage: f = M.scalar_field({c_xy: 1/(1+x^2+y^2),
+        ....:                     c_uv: (u^2 + v^2)/(u^2 + v^2 + 1)}, name='f')
         sage: t.parent().base_ring() is f.parent()
         True
-        sage: s = f*t; s  # long time
+        sage: s = f*t; s
         Tensor field of type (0,2) on the 2-dimensional differentiable
          manifold S^2
-        sage: s[[0,0]] == f*t[[0,0]]  # long time
+        sage: s[[0,0]] == f*t[[0,0]]
         True
-        sage: s.restrict(U) == f.restrict(U) * t.restrict(U)  # long time
+        sage: s.restrict(U) == f.restrict(U) * t.restrict(U)
         True
-        sage: s = f*t.restrict(U); s  # long time
+        sage: s = f*t.restrict(U); s
         Tensor field of type (0,2) on the Open subset U of the 2-dimensional
          differentiable manifold S^2
-        sage: s.restrict(U) == f.restrict(U) * t.restrict(U)  # long time
+        sage: s.restrict(U) == f.restrict(U) * t.restrict(U)
         True
 
     """
@@ -613,12 +614,7 @@ class TensorField(ModuleElement):
 
         The module of vector fields on the 2-sphere as a "base module"::
 
-            sage: M = Manifold(2, 'S^2') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: M = Manifold(2, 'S^2')
             sage: t = M.tensor_field(0,2)
             sage: t.base_module()
             Module X(S^2) of vector fields on the 2-dimensional differentiable
@@ -643,12 +639,7 @@ class TensorField(ModuleElement):
 
         EXAMPLES::
 
-            sage: M = Manifold(2, 'S^2') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: M = Manifold(2, 'S^2')
             sage: t = M.tensor_field(1,2)
             sage: t.tensor_type()
             (1, 2)
@@ -670,12 +661,7 @@ class TensorField(ModuleElement):
 
         EXAMPLES::
 
-            sage: M = Manifold(2, 'S^2') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: M = Manifold(2, 'S^2')
             sage: t = M.tensor_field(1,2)
             sage: t.tensor_rank()
             3
@@ -692,12 +678,7 @@ class TensorField(ModuleElement):
 
         EXAMPLES::
 
-            sage: M = Manifold(2, 'S^2') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: M = Manifold(2, 'S^2')
             sage: t = M.tensor_field(1,2)
             sage: t.symmetries()
             no symmetry;  no antisymmetry
@@ -1465,17 +1446,15 @@ class TensorField(ModuleElement):
 
         EXAMPLES:
 
-        Copy of a type-`(1,1)` tensor field on the 2-sphere::
+        Copy of a type-`(1,1)` tensor field on a 2-dimensional manifold::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1, 1, name='t')
@@ -1512,32 +1491,30 @@ class TensorField(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                restrictions2= u^2+v^2!=0)
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1, 1, name='t')
-            sage: t[e_xy,:] = [[x+y, 0], [2, 1-y]]
-            sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)  # long time
-            sage: sorted(t._common_subdomains(t), key=str)  # long time
+            sage: t[e_xy,:] = [[x+y, 0], [2, 0]]
+            sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+            sage: sorted(t._common_subdomains(t), key=str)
             [Open subset U of the 2-dimensional differentiable manifold M,
              Open subset V of the 2-dimensional differentiable manifold M,
              Open subset W of the 2-dimensional differentiable manifold M]
             sage: a = M.tensor_field(1, 1, name='a')
-            sage: t._common_subdomains(a)  # long time
+            sage: t._common_subdomains(a)
             []
             sage: a[e_xy, 0, 1] = 0
-            sage: t._common_subdomains(a)  # long time
+            sage: t._common_subdomains(a)
             [Open subset U of the 2-dimensional differentiable manifold M]
             sage: a[e_uv, 0, 0] = 0
-            sage: sorted(t._common_subdomains(a), key=str)  # long time
+            sage: sorted(t._common_subdomains(a), key=str)
             [Open subset U of the 2-dimensional differentiable manifold M,
              Open subset V of the 2-dimensional differentiable manifold M]
 
@@ -1562,15 +1539,13 @@ class TensorField(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                restrictions2= u^2+v^2!=0)
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1, 1, name='t')
@@ -1654,15 +1629,13 @@ class TensorField(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                restrictions2= u^2+v^2!=0)
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1, 1, name='t')
@@ -1688,15 +1661,13 @@ class TensorField(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                restrictions2= u^2+v^2!=0)
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1, 1, name='t')
@@ -1728,38 +1699,29 @@ class TensorField(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                restrictions2= u^2+v^2!=0)
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
-            sage: t = M.tensor_field(1, 1, name='t')
             sage: t = M.tensor_field(1, 1, name='t')
             sage: t[e_xy, :] = [[x, -x], [y, -y]]
             sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: t.display(e_xy)
             t = x d/dx*dx - x d/dx*dy + y d/dy*dx - y d/dy*dy
             sage: t.display(e_uv)
-            t = (u^3 - 2*u^2*v - u*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/du*du
-             + (u^3 + 2*u^2*v - u*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/du*dv
-             + (u^2*v - 2*u*v^2 - v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv*du
-             + (u^2*v + 2*u*v^2 - v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv*dv
+            t = u d/du*dv + v d/dv*dv
             sage: s = t.__neg__(); s
             Tensor field -t of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: s.display(e_xy)
             -t = -x d/dx*dx + x d/dx*dy - y d/dy*dx + y d/dy*dy
             sage: s.display(e_uv)
-            -t = -(u^3 - 2*u^2*v - u*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/du*du
-             - (u^3 + 2*u^2*v - u*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/du*dv
-             - (u^2*v - 2*u*v^2 - v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv*du
-             - (u^2*v + 2*u*v^2 - v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv*dv
+            -t = -u d/du*dv - v d/dv*dv
             sage: s == -t  # indirect doctest
             True
 
@@ -1790,15 +1752,13 @@ class TensorField(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                restrictions2= u^2+v^2!=0)
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: a = M.tensor_field(1, 1, name='a')
@@ -1859,15 +1819,13 @@ class TensorField(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                restrictions2= u^2+v^2!=0)
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: a = M.tensor_field(1, 1, name='a')
@@ -1929,15 +1887,13 @@ class TensorField(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                restrictions2= u^2+v^2!=0)
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: a = M.tensor_field(1, 1, name='a')
@@ -1948,25 +1904,18 @@ class TensorField(ModuleElement):
             sage: f.display()
             f: M --> R
             on U: (x, y) |--> 1/(x^2 + y^2 + 1)
-            on V: (u, v) |--> (u^2 + v^2)/(u^2 + v^2 + 1)
+            on V: (u, v) |--> 2/(u^2 + v^2 + 2)
             sage: s = a._rmul_(f); s
             Tensor field of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: a.display(e_xy)
             a = x d/dx*dx + d/dx*dy + y d/dy*dx
             sage: s.display(e_xy)
-            x/(x^2 + y^2 + 1) d/dx*dx + 1/(x^2 + y^2 + 1) d/dx*dy
-             + y/(x^2 + y^2 + 1) d/dy*dx
+            x/(x^2 + y^2 + 1) d/dx*dx + 1/(x^2 + y^2 + 1) d/dx*dy + y/(x^2 + y^2 + 1) d/dy*dx
             sage: a.display(e_uv)
-            a = (2*u^3*v - 2*u*v^3 + u^3 - u*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/du*du
-             - (u^4 - 2*u^2*v^2 + v^4 - 2*u^2*v)/(u^4 + 2*u^2*v^2 + v^4) d/du*dv
-             + (4*u^2*v^2 + u^2*v - v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv*du
-             - 2*(u^3*v - u*v^3 - u*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/dv*dv
+            a = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
             sage: s.display(e_uv)
-            (2*u^3*v - 2*u*v^3 + u^3 - u*v^2)/(u^4 + v^4 + (2*u^2 + 1)*v^2 + u^2) d/du*du
-             - (u^4 - 2*u^2*v^2 + v^4 - 2*u^2*v)/(u^4 + v^4 + (2*u^2 + 1)*v^2 + u^2) d/du*dv
-             + (4*u^2*v^2 + u^2*v - v^3)/(u^4 + v^4 + (2*u^2 + 1)*v^2 + u^2) d/dv*du
-             - 2*(u^3*v - u*v^3 - u*v^2)/(u^4 + v^4 + (2*u^2 + 1)*v^2 + u^2) d/dv*dv
+            (u + 1)/(u^2 + v^2 + 2) d/du*du + (u - 1)/(u^2 + v^2 + 2) d/du*dv + (v + 1)/(u^2 + v^2 + 2) d/dv*du + (v - 1)/(u^2 + v^2 + 2) d/dv*dv
             sage: s == f*a  # indirect doctest
             True
             sage: z = a.parent().zero(); z
@@ -2004,15 +1953,13 @@ class TensorField(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                restrictions2= u^2+v^2!=0)
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: a = M.tensor_field(1, 1, name='a')
@@ -2031,34 +1978,25 @@ class TensorField(ModuleElement):
             a*b = x^2 d/dx*d/dx*dx + x d/dx*d/dx*dy + x*y d/dx*d/dy*dx
              + y d/dx*d/dy*dy + x*y d/dy*d/dx*dx + y^2 d/dy*d/dy*dx
             sage: s.display(e_uv)
-            a*b = -(2*u^4*v - 2*u^2*v^3 + u^4 - u^2*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/du*d/du*du
-             + (u^5 - 2*u^3*v^2 + u*v^4 - 2*u^3*v)/(u^4 + 2*u^2*v^2 + v^4) d/du*d/du*dv
-             - (2*u^3*v^2 - 2*u*v^4 + u^3*v - u*v^3)/(u^4 + 2*u^2*v^2 + v^4) d/du*d/dv*du
-             + (u^4*v - 2*u^2*v^3 + v^5 - 2*u^2*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/du*d/dv*dv
-             - (4*u^3*v^2 + u^3*v - u*v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv*d/du*du
-             + 2*(u^4*v - u^2*v^3 - u^2*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/dv*d/du*dv
-             - (4*u^2*v^3 + u^2*v^2 - v^4)/(u^4 + 2*u^2*v^2 + v^4) d/dv*d/dv*du
-             + 2*(u^3*v^2 - u*v^4 - u*v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv*d/dv*dv
+            a*b = (1/2*u^2 + 1/2*u) d/du*d/du*du + (1/2*u^2 - 1/2*u) d/du*d/du*dv
+             + 1/2*(u + 1)*v d/du*d/dv*du + 1/2*(u - 1)*v d/du*d/dv*dv
+             + (1/2*u*v + 1/2*u) d/dv*d/du*du + (1/2*u*v - 1/2*u) d/dv*d/du*dv
+             + (1/2*v^2 + 1/2*v) d/dv*d/dv*du + (1/2*v^2 - 1/2*v) d/dv*d/dv*dv
 
         Multiplication on the right by a scalar field::
 
-            sage: f = M.scalar_field({c_xy: 1/(1+x^2+y^2)}, name='f')
+            sage: f = M.scalar_field({c_xy: x*y}, name='f')
             sage: f.add_expr_by_continuation(c_uv, U.intersection(V))
-            sage: f.display()
-            f: M --> R
-            on U: (x, y) |--> 1/(x^2 + y^2 + 1)
-            on V: (u, v) |--> (u^2 + v^2)/(u^2 + v^2 + 1)
             sage: s = a.__mul__(f); s
             Tensor field of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: s.display(e_xy)
-            x/(x^2 + y^2 + 1) d/dx*dx + 1/(x^2 + y^2 + 1) d/dx*dy
-             + y/(x^2 + y^2 + 1) d/dy*dx
+            x^2*y d/dx*dx + x*y d/dx*dy + x*y^2 d/dy*dx
             sage: s.display(e_uv)
-            (2*u^3*v - 2*u*v^3 + u^3 - u*v^2)/(u^4 + v^4 + (2*u^2 + 1)*v^2 + u^2) d/du*du
-             - (u^4 - 2*u^2*v^2 + v^4 - 2*u^2*v)/(u^4 + v^4 + (2*u^2 + 1)*v^2 + u^2) d/du*dv
-             + (4*u^2*v^2 + u^2*v - v^3)/(u^4 + v^4 + (2*u^2 + 1)*v^2 + u^2) d/dv*du
-             - 2*(u^3*v - u*v^3 - u*v^2)/(u^4 + v^4 + (2*u^2 + 1)*v^2 + u^2) d/dv*dv
+            (1/8*u^3 - 1/8*(u + 1)*v^2 + 1/8*u^2) d/du*du
+             + (1/8*u^3 - 1/8*(u - 1)*v^2 - 1/8*u^2) d/du*dv
+             + (1/8*u^2*v - 1/8*v^3 + 1/8*u^2 - 1/8*v^2) d/dv*du
+             + (1/8*u^2*v - 1/8*v^3 - 1/8*u^2 + 1/8*v^2) d/dv*dv
             sage: s == f*a
             True
 
@@ -2070,10 +2008,8 @@ class TensorField(ModuleElement):
             sage: s.display(e_xy)
             2*x d/dx*dx + 2 d/dx*dy + 2*y d/dy*dx
             sage: s.display(e_uv)
-            2*(2*u^3*v - 2*u*v^3 + u^3 - u*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/du*du
-             - 2*(u^4 - 2*u^2*v^2 + v^4 - 2*u^2*v)/(u^4 + 2*u^2*v^2 + v^4) d/du*dv
-             + 2*(4*u^2*v^2 + u^2*v - v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv*du
-             - 4*(u^3*v - u*v^3 - u*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/dv*dv
+            (u + 1) d/du*du + (u - 1) d/du*dv + (v + 1) d/dv*du
+             + (v - 1) d/dv*dv
             sage: s.restrict(U) == 2*a.restrict(U)
             True
             sage: s.restrict(V) == 2*a.restrict(V)
@@ -2130,34 +2066,30 @@ class TensorField(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                restrictions2= u^2+v^2!=0)
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: a = M.tensor_field(1, 1, name='a')
             sage: a[e_xy,:] = [[x, 1], [y, 0]]
             sage: a.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: f = M.scalar_field({c_xy: (x^2 + y^2 + 2)/(x^2 + y^2 + 1)},
-            ....:                    name='f')
+            sage: f = M.scalar_field({c_xy: 1/(1+x^2+y^2)}, name='f')
             sage: f.add_expr_by_continuation(c_uv, U.intersection(V))
             sage: f.display()
             f: M --> R
-            on U: (x, y) |--> (x^2 + y^2 + 2)/(x^2 + y^2 + 1)
-            on V: (u, v) |--> (2*u^2 + 2*v^2 + 1)/(u^2 + v^2 + 1)
+            on U: (x, y) |--> 1/(x^2 + y^2 + 1)
+            on V: (u, v) |--> 2/(u^2 + v^2 + 2)
             sage: s = a.__div__(f); s
             Tensor field of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: s.display(e_xy)
-            (x^3 + x*y^2 + x)/(x^2 + y^2 + 2) d/dx*dx
-             + (x^2 + y^2 + 1)/(x^2 + y^2 + 2) d/dx*dy
-             + (y^3 + (x^2 + 1)*y)/(x^2 + y^2 + 2) d/dy*dx
+            (x^3 + x*y^2 + x) d/dx*dx + (x^2 + y^2 + 1) d/dx*dy
+             + (y^3 + (x^2 + 1)*y) d/dy*dx
             sage: f*s == a
             True
 
@@ -2169,10 +2101,8 @@ class TensorField(ModuleElement):
             sage: s.display(e_xy)
             1/2*x d/dx*dx + 1/2 d/dx*dy + 1/2*y d/dy*dx
             sage: s.display(e_uv)
-            1/2*(2*u^3*v - 2*u*v^3 + u^3 - u*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/du*du
-             - 1/2*(u^4 - 2*u^2*v^2 + v^4 - 2*u^2*v)/(u^4 + 2*u^2*v^2 + v^4) d/du*dv
-             + 1/2*(4*u^2*v^2 + u^2*v - v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv*du
-             - (u^3*v - u*v^3 - u*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/dv*dv
+            (1/4*u + 1/4) d/du*du + (1/4*u - 1/4) d/du*dv
+             + (1/4*v + 1/4) d/dv*du + (1/4*v - 1/4) d/dv*dv
             sage: s == a/2
             True
             sage: 2*s == a
@@ -2210,15 +2140,13 @@ class TensorField(ModuleElement):
 
         Action of a tensor field of type `(1,1)` on the 2-sphere::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1,1, name='t')
@@ -2238,10 +2166,9 @@ class TensorField(ModuleElement):
             sage: s.display()
             t(a,w): M --> R
             on U: (x, y) |--> x*y^4 + x*y^3 + x^2*y - x*y^2 - x^2
-            on V: (u, v) |--> -(u^8 - u^6*v + (u^2 + u)*v^6 - (u^2 + u)*v^5
-             + (3*u^4 + 2*u^3 - u)*v^4 - (2*u^4 + u^3)*v^3
-             + (3*u^6 + u^5)*v^2)/(u^10 + 5*u^8*v^2 + 10*u^6*v^4 + 10*u^4*v^6
-             + 5*u^2*v^8 + v^10)
+            on V: (u, v) |--> 1/32*u^5 - 1/32*(3*u + 2)*v^4 + 1/32*v^5
+             + 1/16*u^4 + 1/16*(u^2 + 2*u - 4)*v^3 + 1/16*(u^3 - 4)*v^2
+             - 1/4*u^2 - 1/32*(3*u^4 + 4*u^3 - 8*u^2 + 16*u)*v
             sage: s.restrict(U) == t.restrict(U)(a.restrict(U), w.restrict(U))
             True
             sage: s.restrict(V) == t.restrict(V)(a.restrict(V), w.restrict(V))
@@ -2255,8 +2182,8 @@ class TensorField(ModuleElement):
             sage: s.display(e_xy)
             t(w) = (x*y^2 + x^2) d/dx + y^3 d/dy
             sage: s.display(e_uv)
-            t(w) = -(u^4 - (u^2 - u)*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/du
-             - (2*u^3*v + v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv
+            t(w) = (1/4*u^3 + 1/4*(u + 1)*v^2 + 1/4*u^2 - 1/2*(u^2 - u)*v) d/du
+             + (-1/4*(2*u - 1)*v^2 + 1/4*v^3 + 1/4*u^2 + 1/4*(u^2 + 2*u)*v) d/dv
             sage: s.restrict(U) == t.restrict(U)(w.restrict(U))
             True
             sage: s.restrict(V) == t.restrict(V)(w.restrict(V))
@@ -2388,14 +2315,15 @@ class TensorField(ModuleElement):
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
-            ....:                              restrictions1= x>0, restrictions2= u+v>0)
-            sage: inv = transf.inverse()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: W = U.intersection(V)
-            sage: eU = c_xy.frame() ; eV = c_uv.frame()
             sage: a = M.tensor_field(1,1, name='a')
-            sage: a[eU,:] = [[1,x], [2,y]]
-            sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
+            sage: a[e_xy,:] = [[1,x], [2,y]]
+            sage: a.add_comp_by_continuation(e_uv, W, chart=c_uv)
             sage: s = a.trace() ; s
             Scalar field on the 2-dimensional differentiable manifold M
             sage: s.display()
@@ -2425,15 +2353,14 @@ class TensorField(ModuleElement):
             sage: b = M.tensor_field(1,2, name='b') ; b
             Tensor field b of type (1,2) on the 2-dimensional differentiable
              manifold M
-            sage: b[eU,:] = [[[1,x], [2,y]], [[0,y-3], [x*y,y^2]]]
-            sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
+            sage: b[e_xy,:] = [[[0,x+y], [y,0]], [[0,2], [3*x,-2]]]
+            sage: b.add_comp_by_continuation(e_uv, W, chart=c_uv)
             sage: s = b.trace(0,1) ; s # contraction on first and second slots
             1-form on the 2-dimensional differentiable manifold M
-            sage: s.display(eU)
-            (x*y + 1) dx + (y^2 + x) dy
-            sage: s.display(eV)
-            (1/4*u^2 - 1/4*(u - 1)*v + 1/4*u + 1/2) du
-             + (1/4*(u - 1)*v - 1/4*v^2 - 1/4*u + 1/2) dv
+            sage: s.display(e_xy)
+            3*x dx + (x + y - 2) dy
+            sage: s.display(e_uv)
+            (5/4*u + 3/4*v - 1) du + (1/4*u + 3/4*v + 1) dv
 
         Use of the index notation::
 
@@ -2461,11 +2388,10 @@ class TensorField(ModuleElement):
 
             sage: s = b.trace(0,2) ; s
             1-form on the 2-dimensional differentiable manifold M
-            sage: s.display(eU)
-            (y - 2) dx + (y^2 + 2) dy
-            sage: s.display(eV)
-            (1/8*u^2 - 1/4*(u + 1)*v + 1/8*v^2 + 1/4*u) du
-             + (-1/8*u^2 + 1/4*(u - 1)*v - 1/8*v^2 + 1/4*u - 2) dv
+            sage: s.display(e_xy)
+            2 dx + (y - 2) dy
+            sage: s.display(e_uv)
+            (1/4*u - 1/4*v) du + (-1/4*u + 1/4*v + 2) dv
 
         Use of index notation::
 
@@ -2876,7 +2802,7 @@ class TensorField(ModuleElement):
             resu._restrictions[rst._domain] = rst
         return resu
 
-    def lie_der(self, vector):
+    def lie_derivative(self, vector):
         r"""
         Lie derivative of the tensor field with respect to a vector field.
 
@@ -2895,43 +2821,37 @@ class TensorField(ModuleElement):
         Lie derivative of a type-(1,1) tensor field along a vector field on
         the 2-sphere::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                restrictions2= u^2+v^2!=0)
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1,1, name='t')
             sage: t[e_xy,:] = [[x, 1], [y, 0]]
             sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: w = M.vector_field(name='w')
-            sage: w[e_xy,:] = [y^2, x^2]
+            sage: w[e_xy,:] = [-y, x]
             sage: w.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: lt = t.lie_der(w); lt
+            sage: lt = t.lie_derivative(w); lt
             Tensor field of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: lt.display(e_xy)
-            (-y^2 + 2*x) d/dx*dx + 2*x*y d/dx*dy - x^2 d/dy*dx
-             + (2*y^2 - 2*x) d/dy*dy
+            d/dx*dx - x d/dx*dy + (-y - 1) d/dy*dy
             sage: lt.display(e_uv)
-            (2*u^7 + (2*u - 1)*v^6 - 2*u^5*v + 2*u^3*v^3
-             - 2*(5*u^3 - 3*u^2)*v^4
-             - (10*u^5 - 3*u^4)*v^2)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) d/du*du
-             - 2*(2*u^4*v^2 + u^3*v^3 + 2*(2*u^2 - u)*v^5
-             - (4*u^6 - u^5)*v)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) d/du*dv
-             + (8*u^6*v + u^6 - 2*u^4*v^2 + 2*u^3*v^3 + u^2*v^4
-             - 2*(4*u^2 - 3*u)*v^5)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) d/dv*du
-             - 2*(u^7 + (u - 1)*v^6 - u^5*v + u^3*v^3 - (5*u^3 - 2*u^2)*v^4
-             - (5*u^5 - u^4)*v^2)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) d/dv*dv
+            -1/2*u d/du*du + (1/2*u + 1) d/du*dv + (-1/2*v + 1) d/dv*du + 1/2*v d/dv*dv
 
         The result is cached::
 
-            sage: t.lie_der(w) is lt
+            sage: t.lie_derivative(w) is lt
+            True
+
+        An alias is ``lie_der``::
+
+            sage: t.lie_der(w) is t.lie_derivative(w)
             True
 
         Lie derivative of a vector field::
@@ -2942,10 +2862,9 @@ class TensorField(ModuleElement):
             sage: a.lie_der(w)
             Vector field on the 2-dimensional differentiable manifold M
             sage: a.lie_der(w).display(e_xy)
-            (-2*x*y + y^2) d/dx + (x^2 + y^2 - 2*x) d/dy
+            x d/dx + (-y - 1) d/dy
             sage: a.lie_der(w).display(e_uv)
-            (4*u^4*v - u^2*v^2 + 4*(u^2 - u)*v^3 + v^4)/(u^4 + 2*u^2*v^2 + v^4) d/du
-             - (2*u^5 - (2*u - 1)*v^4 - u^4 - 4*u^2*v^2 + 2*u*v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv
+            (v - 1) d/du + (u + 1) d/dv
 
         The Lie derivative is antisymmetric::
 
@@ -2954,8 +2873,7 @@ class TensorField(ModuleElement):
 
         and it coincides with the commutator of the two vector fields::
 
-            sage: f = M.scalar_field({c_xy: 1/(1+x^2+y^2),
-            ....:                     c_uv: (u^2+v^2)/(1+u^2+v^2)})
+            sage: f = M.scalar_field({c_xy: 3*x-1, c_uv:  3/2*(u+v)-1})
             sage: a.lie_der(w)(f) == w(a(f)) - a(w(f))  # long time
             True
 
@@ -2979,3 +2897,4 @@ class TensorField(ModuleElement):
             vector._lie_der_along_self[id(self)] = self
         return self._lie_derivatives[id(vector)][1]
 
+    lie_der = lie_derivative

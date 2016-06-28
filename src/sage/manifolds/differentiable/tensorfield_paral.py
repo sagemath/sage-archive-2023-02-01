@@ -25,11 +25,12 @@ AUTHORS:
 
 REFERENCES:
 
-- \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
-  Interscience Publishers (New York) (1963)
-- \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
-- \B. O'Neill : *Semi-Riemannian Geometry*, Academic Press (San Diego) (1983)
+- [KN63]_ \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
+  vol. 1, Interscience Publishers (New York) (1963)
+- [Lee13]_ \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
+  (New York) (2013); :doi:`10.1007/978-1-4419-9982-5`
+- [ONeill83]_ \B. O'Neill : *Semi-Riemannian Geometry*, Academic Press
+  (San Diego) (1983)
 
 EXAMPLES:
 
@@ -1104,7 +1105,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         return None
 
 
-    def lie_der(self, vector):
+    def lie_derivative(self, vector):
         r"""
         Compute the Lie derivative with respect to a vector field.
 
@@ -1133,10 +1134,20 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: v[:] = (-y, x)
             sage: w = M.vector_field()
             sage: w[:] = (2*x+y, x*y)
-            sage: w.lie_der(v)
+            sage: w.lie_derivative(v)
             Vector field on the 2-dimensional differentiable manifold M
-            sage: w.lie_der(v).display()
+            sage: w.lie_derivative(v).display()
             ((x - 2)*y + x) d/dx + (x^2 - y^2 - 2*x - y) d/dy
+
+        The result is cached::
+
+            sage: w.lie_derivative(v) is w.lie_derivative(v)
+            True
+
+        An alias is ``lie_der``::
+
+            sage: w.lie_der(v) is w.lie_derivative(v)
+            True
 
         The Lie derivative is antisymmetric::
 
@@ -1213,6 +1224,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             self._lie_derivatives[id(vector)] = (vector, res)
             vector._lie_der_along_self[id(self)] = self
         return self._lie_derivatives[id(vector)][1]
+
+    lie_der = lie_derivative
 
     def restrict(self, subdomain, dest_map=None):
         r"""

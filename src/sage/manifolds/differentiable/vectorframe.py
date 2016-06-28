@@ -27,8 +27,8 @@ AUTHORS:
 
 REFERENCES:
 
-- \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
+- [Lee13]_ \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
+  (New York) (2013); :doi:`10.1007/978-1-4419-9982-5`
 
 EXAMPLES:
 

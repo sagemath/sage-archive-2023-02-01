@@ -5,6 +5,7 @@ Let `F` be a field. A `[n ,k]` code `C` over `F` is called cyclic if every cycli
 of a codeword in `C` is also a codeword [R]:
 
     .. MATH::
+
         \begin{aligned}
         \forall c \in C \\
         c = (c_{0}, c_{1}, \dots , c_{n-1}) \in C
@@ -18,6 +19,20 @@ REFERENCES:
 
 .. [R2] Introduction to Coding Theory, Ron Roth, Cambridge University Press, 2006
 
+TESTS:
+
+This class uses the following experimental feature:
+:class:`sage.coding.relative_finite_field_extension.RelativeFiniteFieldExtension`.
+This test block is here only to trigger the experimental warning so it not
+interferes with doctests::
+
+    sage: from sage.coding.relative_finite_field_extension import *
+    sage: Fqm.<aa> = GF(16)
+    sage: Fq.<a> = GF(4)
+    sage: RelativeFiniteFieldExtension(Fqm, Fq)
+    doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+    See http://trac.sagemath.org/20284 for details.
+    Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
 
 
 """
@@ -48,9 +63,9 @@ from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.functions.log import log
 from sage.categories.homset import Hom
 from copy import copy
-from field_embedding import FieldEmbedding
 from sage.groups.generic import discrete_log
 from sage.misc.functional import multiplicative_order
+from relative_finite_field_extension import RelativeFiniteFieldExtension
 
 def find_generator_polynomial(code, probabilistic = False):
     r"""
@@ -522,7 +537,7 @@ class CyclicCode(AbstractLinearCode):
 
             else:
                 Fsplit, F_to_Fsplit = F.extension(Integer(s), map = True)
-                FE = FieldEmbedding(Fsplit, F, embedding = F_to_Fsplit)
+                FE = RelativeFiniteFieldExtension(Fsplit, F, embedding = F_to_Fsplit)
                 if primitive_element is not None and (primitive_element not in Fsplit or
                         multiplicative_order(primitive_element) != n):
                     raise ValueError("primitive_element has to be an element of multplicative order n in the extension field used to compute the generator polynomial")
@@ -559,7 +574,7 @@ class CyclicCode(AbstractLinearCode):
                 for i in min_pols:
                     tmp = []
                     for j in i:
-                        tmp.append(FE.small_field_polynomial_representation(j))
+                        tmp.append(sum(FE.relative_field_representation(j)))
                     pols_coeffs.append(tmp)
                 g = R.one()
                 for i in pols_coeffs:

@@ -914,7 +914,13 @@ class CyclicCode(AbstractLinearCode):
 
 class CyclicCodePolynomialEncoder(Encoder):
     r"""
-    An encoder which can encode polynomials into codewords.
+    An encoder encoding polynomials into codewords.
+
+    Let `C` be a cyclic code over some finite field `F`,
+    and let `g` be its generator polynomial.
+
+    This encoder encodes any polynomial `p in F[x]_{<k}`, by doing:
+    `\forall p \in F[x]_{<k}, (p \times g) \in C`
 
     INPUT:
 
@@ -933,7 +939,6 @@ class CyclicCodePolynomialEncoder(Encoder):
 
     def __init__(self, code):
         r"""
-
         EXAMPLES::
 
             sage: F.<x> = GF(2)[]
@@ -1104,6 +1109,15 @@ class CyclicCodePolynomialEncoder(Encoder):
 class CyclicCodeVectorEncoder(Encoder):
     r"""
     An encoder which can encode vectors into codewords.
+
+    Let `C` be a cyclic code over some finite field `F`,
+    and let `g` be its generator polynomial.
+
+    Let `m = (m_1, m_2, \dots, m_{k-1})` be a vector in `F^{k}`.
+    This codeword can be seen as a polynomial over `F_k[x]`, as follows:
+    `m_p = \Sigma_{i=0}^{k-1} m_i \times x^i`.
+
+    To encode m, this encoder does the following multiplication: `m_p \times g`.
 
     INPUT:
 
@@ -1301,6 +1315,7 @@ class CyclicCodeVectorEncoder(Encoder):
             Vector space of dimension 4 over Finite Field of size 2
         """
         return self.code().base_ring() ** self.code().dimension()
+
 
 ####################### registration ###############################
 

@@ -6,6 +6,8 @@ lrslib implements the linear reverse search algorithm of Avis and Fukuda.
 
 See the homepage (http://cgm.cs.mcgill.ca/~avis/C/lrs.html)  for details.
 
+We use an autotoolized version from ​https://github.com/mkoeppe/lrslib/tree/autoconfiscation
+
 == License ==
 lrslib is released under a GPL v2+ license.
 
@@ -18,6 +20,4 @@ David Avis, avis at cs dot mcgill dot edu.
 No dependencies.
 
 == Special Update/Build Instructions ==
-
-The only patch is the makefile, which has been cleaned up for Sage using our environmental variables and with an added "make check" section.
 

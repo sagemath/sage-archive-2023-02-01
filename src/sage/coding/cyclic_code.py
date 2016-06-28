@@ -642,22 +642,6 @@ class CyclicCode(AbstractLinearCode):
                 and self.length() == other.length() \
                 and self.generator_polynomial() == other.generator_polynomial() \
 
-    def __ne__(self, other):
-        r"""
-        Tests inequality of Cyclic Code objects.
-
-        EXAMPLES::
-
-            sage: F.<x> = GF(2)[]
-            sage: g1 = x ** 3 + x + 1
-            sage: g2 = (x ** 5 + 1) * (x ** 4 + x + 1)
-            sage: C1 = codes.CyclicCode(generator_pol = g1, length = 7)
-            sage: C2 = codes.CyclicCode(generator_pol = g2, length = 15)
-            sage: C1 != C2
-            True
-        """
-        return not self.__eq__(other)
-
     def _repr_(self):
         r"""
         Returns a string representation of ``self``.
@@ -1160,24 +1144,6 @@ class CyclicCodeVectorEncoder(Encoder):
         """
         return isinstance(other, CyclicCodeVectorEncoder) \
                 and self.code() == other.code()
-
-    def __ne__(self, other):
-        r"""
-        Tests difference between CyclicCodeVectorEncoder objects.
-
-        EXAMPLES::
-
-            sage: F.<x> = GF(2)[]
-            sage: g1 = x ** 3 + x + 1
-            sage: g2 = (x ** 5 + 1) * (x ** 4 + x + 1)
-            sage: C1 = codes.CyclicCode(generator_pol = g1, length = 7)
-            sage: C2 = codes.CyclicCode(generator_pol = g2, length = 15)
-            sage: E1 = codes.encoders.CyclicCodeVectorEncoder(C1)
-            sage: E2 = codes.encoders.CyclicCodeVectorEncoder(C2)
-            sage: E1 != E2
-            True
-        """
-        return not self.__eq__(other)
 
     def _repr_(self):
         r"""

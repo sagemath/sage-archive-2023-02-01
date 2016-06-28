@@ -731,14 +731,20 @@ class CyclicCode(AbstractLinearCode):
         r"""
         Returns the check polynomial of ``self``.
 
+        Let `C` be a cyclic code of length `n` and `g` its
+        generator polynomial.
+        The following: `h = \frac{x^n - 1}{g(x)}` is called `C`'s
+        check polynomial.
+
         EXAMPLES::
 
             sage: F.<x> = GF(2)[]
             sage: n = 7
             sage: g = x ** 3 + x + 1
             sage: C = codes.CyclicCode(generator_pol = g, length = n)
-            sage: C.check_polynomial()
-            x^4 + x^2 + x + 1
+            sage: h = C.check_polynomial()
+            sage: h == (x**n - 1)/C.generator_polynomial()
+            True
         """
         if hasattr(self, "_check_polynomial"):
             return self._check_polynomial
@@ -751,6 +757,9 @@ class CyclicCode(AbstractLinearCode):
     def parity_check_matrix(self):
         r"""
         Returns the parity check matrix of ``self``.
+
+        The parity check matrix of a linear code `C` corresponds to the
+        generator matrix of the dual code of `C`.
 
         EXAMPLES::
 
@@ -778,10 +787,8 @@ class CyclicCode(AbstractLinearCode):
 
     def defining_set(self):
         r"""
-        Returns the defining set of ``self``.
-
-        If it was computed at construction time, it returns immediately the computed one,
-        else it is computed using the generator polynomial built at construction time.
+        Returns the set of powers of the root of ``self``'s generator polynomial
+        over the extension field.
 
         EXAMPLES:
 
@@ -793,15 +800,15 @@ class CyclicCode(AbstractLinearCode):
             sage: C.defining_set()
             [1, 2]
 
-        If the defining was expanded while computing cyclotomic classes, the
-        expanded defining set will be returned::
+        If the defining set was provided by the user, it might have been expanded
+        at construction time. In this case, the expanded defining set will be returned::
 
             sage: C = codes.CyclicCode(length = 13, field = F, D = [1, 2])
             sage: C.defining_set()
             [1, 2, 3, 5, 6, 9]
 
         If a generator polynomial was passed at construction time,
-        the defining set is computed by this method::
+        the defining set is computed using this polynomial::
 
             sage: F.<x> = GF(8, 'a')[]
             sage: n = 7
@@ -862,7 +869,9 @@ class CyclicCode(AbstractLinearCode):
 
     def bch_bound(self, arithmetic = False, bch_parameters = False):
         r"""
-        Returns the BCH bound of self. See :meth:`sage.coding.cyclic_code.bch_bound` for details.
+        Returns the BCH bound of self which is a bound on ``self``'s minimum distance.
+
+        See :meth:`sage.coding.cyclic_code.bch_bound` for details.
 
         INPUT:
 

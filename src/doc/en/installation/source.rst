@@ -502,11 +502,11 @@ Running Sage from a directory with spaces in its name will also fail.
    to tell the ``make`` program to run ``NUM`` jobs in parallel when building
    Sage. This compiles Sage and all its dependencies.
 
-   .. note::
+   .. NOTE::
 
-      If you are compiling for an operating system that allows changing directories
-      without using exact capitalization, then beware of this convenience. Ignoring
-      exact capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
+      Mac OS X allows changing directories without using exact capitalization.
+      Beware of this convenience when compiling for OS X. Ignoring exact
+      capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
       errors for dependencies requiring exact capitalization in path names.
 
    Note that you do not need to be logged in as root, since no files are

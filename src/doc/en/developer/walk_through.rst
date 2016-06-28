@@ -89,11 +89,11 @@ packages of Sage::
 
     [user@localhost sage]$ make
 
-.. note::
+.. NOTE::
 
-    If you are compiling for an operating system that allows changing directories
-    without using exact capitalization, then beware of this convenience. Ignoring
-    exact capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
+    Mac OS X allows changing directories without using exact capitalization.
+    Beware of this convenience when compiling for OS X. Ignoring exact
+    capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
     errors for dependencies requiring exact capitalization in path names.
 
 For the experts, note that the repository at

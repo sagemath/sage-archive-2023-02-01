@@ -163,7 +163,7 @@ class SimplicialSetHomset(Homset):
 
 class SimplicialSetMorphism(Morphism):
     def __init__(self, f, domain, codomain):
-        """
+        r"""
         A morphism of simplicial sets.
 
         INPUTS:
@@ -175,6 +175,10 @@ class SimplicialSetMorphism(Morphism):
         The keys of the dictionary are the nondegenerate simplices of
         the domain, the corresponding values are simplices in the
         codomain.
+
+        Actually, the keys do not need to include all of the
+        nondegenerate simplices: if `\sigma` is a face of `\tau`, then
+        only the image of `\tau` needs to be specified.
 
         EXAMPLES::
 
@@ -203,9 +207,20 @@ class SimplicialSetMorphism(Morphism):
               To:   S^1
               Defn: [(0,), (1,), (0, 1)] --> [v_0, v_0, sigma_1]
 
+        Also, this map can be defined by specifying where the
+        1-simplex goes; the vertices then go where they have to, to
+        satisfy the condition `d_i \circ f = f \circ d_i`::
+
+            sage: H = Hom(K, S1)
+            sage: H({e01: sigma})
+            Simplicial set morphism:
+              From: 1-simplex
+              To:   S^1
+              Defn: [(0,), (1,), (0, 1)] --> [v_0, v_0, sigma_1]
+
         A constant map::
 
-            sage: g = {v0: w, v1: w, e01: w.apply_degeneracies(0)}
+            sage: g = {e01: w.apply_degeneracies(0)}
             sage: SimplicialSetMorphism(g, K, S1)
             Simplicial set morphism:
               From: 1-simplex
@@ -228,33 +243,61 @@ class SimplicialSetMorphism(Morphism):
             ...
             ValueError: at least one simplex in the defining dictionary is not in the domain
 
-        A partially defined map::
+        An improperly partially defined map::
 
             sage: h = {w: v0}
             sage: SimplicialSetMorphism(h, S1, K)
             Traceback (most recent call last):
             ...
             ValueError: the image of at least one simplex in the domain is not defined
+
+        A (good) partially defined map::
+
+            sage: S5 = simplicial_sets.Sphere(5)
+            sage: s = S5.n_cells(5)[0]
+            sage: one = S5.Hom(S5)({s: s})
+            sage: one
+            Simplicial set endomorphism of S^5
+              Defn: [v_0, sigma_5] --> [v_0, sigma_5]
+            sage: one._dictionary
+            {v_0: v_0, sigma_5: sigma_5}
         """
         if (not isinstance(domain, SimplicialSet_infinite)
             or not isinstance(codomain, SimplicialSet_infinite)):
             raise ValueError('the domain and codomain must be simplicial sets')
-
         if any(x.nondegenerate() not in
                domain.nondegenerate_simplices() for x in f.keys()):
             raise ValueError('at least one simplex in the defining '
                              'dictionary is not in the domain')
-
-        if any(x not in f.keys() for x in domain.nondegenerate_simplices()):
-            raise ValueError('the image of at least one simplex in '
-                             'the domain is not defined')
-
         # Remove degenerate simplices from the domain specification.
         d = {sigma:f[sigma] for sigma in f if sigma.is_nondegenerate()}
-
-        # We have to check that the proposed map commutes with the
-        # face maps. (The degeneracy maps should work automatically,
-        # since our simplicial sets have "free" degeneracies.)
+        # For each simplex in d.keys(), add its faces, and the faces
+        # of its faces, etc., to d.
+        for simplex in d.keys():
+            faces = domain.faces(simplex)
+            add = []
+            if faces:
+                for (i,sigma) in enumerate(faces):
+                    nondegen = sigma.nondegenerate()
+                    if nondegen not in d:
+                        add.append((sigma,i,simplex))
+            while add:
+                (sigma,i,tau) = add.pop()
+                # sigma is the ith face of tau.
+                face_f = codomain.face(d[tau], i)
+                degens = sigma.degeneracies()
+                x = face_f
+                for j in degens:
+                    x = codomain.face(x, j)
+                d[sigma.nondegenerate()] = x
+                faces = domain.faces(sigma.nondegenerate())
+                if faces:
+                    for (i,rho) in enumerate(faces):
+                        nondegen = rho.nondegenerate()
+                        if nondegen not in d:
+                            add.append((rho,i,sigma))
+        # Now check that the proposed map commutes with the face
+        # maps. (The degeneracy maps should work automatically.)
         for simplex in d:
             # Compare d[d_i (simplex)] to d_i d[simplex]. Since
             # d_i(simplex) may be degenerate, we have to be careful
@@ -269,12 +312,16 @@ class SimplicialSetMorphism(Morphism):
                 elif face.is_nondegenerate():
                     f_face = d[face]
                 else:
-                    f_face = d[face.nondegenerate()].apply_degeneracies(*face.degeneracies())
+                    nondegen = face.nondegenerate()
+                    f_face = d[nondegen].apply_degeneracies(*face.degeneracies())
                 if face_f != f_face:
                     bad = True
                     break
             if bad:
                 raise ValueError('the dictionary does not define a map of simplicial sets')
+        if any(x not in d.keys() for x in domain.nondegenerate_simplices()):
+            raise ValueError('the image of at least one simplex in '
+                             'the domain is not defined')
         self._dictionary = d
         Morphism.__init__(self, Hom(domain, codomain, SimplicialSets()))
 
@@ -322,6 +369,74 @@ class SimplicialSetMorphism(Morphism):
         """
         return not self == other
 
+    def __call__(self, x):
+        """
+        INPUT: a simplex of the domain.
+
+        Return its image under this morphism.
+
+        EXAMPLES::
+
+            sage: K = simplicial_sets.Simplex(1)
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: v0 = K.n_cells(0)[0]
+            sage: v1 = K.n_cells(0)[1]
+            sage: e01 = K.n_cells(1)[0]
+            sage: w = S1.n_cells(0)[0]
+            sage: sigma = S1.n_cells(1)[0]
+            sage: d = {v0: w, v1: w, e01: sigma}
+            sage: f = Hom(K, S1)(d)
+            sage: f(e01) # indirect doctest
+            sigma_1
+        """
+        try:
+            return self._dictionary[x.nondegenerate()].apply_degeneracies(*x.degeneracies())
+        except KeyError:
+            raise ValueError('element is not a simplex in the domain')
+
+    def _composition_(self, right, homset):
+        """
+        INPUT:
+
+        - ``self``, ``right`` -- maps
+        - ``homset`` -- a homset
+
+        ASSUMPTION:
+
+        The codomain of ``right`` is contained in the domain of
+        ``self``.  This assumption should be verified by the
+        ``Map.__mul__`` method in ``categories/map.pyx``, so we don't
+        need to check it here.
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: f = S1.Hom(S1).identity()
+            sage: f * f # indirect doctest
+            Simplicial set endomorphism of S^1
+              Defn: [v_0, sigma_1] --> [v_0, sigma_1]
+            sage: T = S1.product(S1)
+            sage: K = T.factor(0, as_subset=True)
+            sage: g = S1.Hom(T)({S1.n_cells(0)[0]:K.n_cells(0)[0], S1.n_cells(1)[0]:K.n_cells(1)[0]})
+            sage: g
+            Simplicial set morphism:
+              From: S^1
+              To:   Simplicial set with 6 non-degenerate simplices
+              Defn: [v_0, sigma_1] --> [(v_0, v_0), (sigma_1, Simplex obtained by applying degeneracy s_0 to v_0)]
+            sage: (g*f).image()
+            Simplicial set with 2 non-degenerate simplices
+            sage: f.image().homology()
+            {0: 0, 1: Z}
+        """
+        if self.is_identity():
+            return right
+        if right.is_identity():
+            return self
+        d = {}
+        for sigma in right._dictionary:
+            d[sigma] = self(right(sigma))
+        return homset(d)
+
     def image(self):
         """
         The image of this morphism as a subsimplicial set of the codomain.
@@ -343,6 +458,143 @@ class SimplicialSetMorphism(Morphism):
             {0: 0, 1: Z}
         """
         return self.codomain().subsimplicial_set(self._dictionary.values())
+
+    def is_identity(self):
+        """
+        True if this morphism is an identity map.
+
+        EXAMPLES::
+
+            sage: K = simplicial_sets.Simplex(1)
+            sage: v0 = K.n_cells(0)[0]
+            sage: v1 = K.n_cells(0)[1]
+            sage: e01 = K.n_cells(1)[0]
+            sage: L = simplicial_sets.Simplex(2).n_skeleton(1)
+            sage: w0 = L.n_cells(0)[0]
+            sage: w1 = L.n_cells(0)[1]
+            sage: w2 = L.n_cells(0)[2]
+            sage: f01 = L.n_cells(1)[0]
+            sage: f02 = L.n_cells(1)[1]
+            sage: f12 = L.n_cells(1)[2]
+
+            sage: d = {v0:w0, v1:w1, e01:f01}
+            sage: f = K.Hom(L)(d)
+            sage: f.is_identity()
+            False
+            sage: d = {w0:v0, w1:v1, w2:v1, f01:e01, f02:e01, f12: v1.apply_degeneracies(0,)}
+            sage: g = L.Hom(K)(d)
+            sage: (g*f).is_identity()
+            True
+            sage: (f*g).is_identity()
+            False
+            sage: (f*g).induced_homology_morphism().to_matrix(1)
+            [0]
+
+            sage: RP5 = simplicial_sets.RealProjectiveSpace(5)
+            sage: RP5.n_skeleton(2).inclusion_map().is_identity()
+            False
+            sage: RP5.n_skeleton(5).inclusion_map().is_identity()
+            True
+        """
+        return (self.domain() == self.codomain()
+                and all(a == b for a,b in self._dictionary.items()))
+
+    def is_surjective(self):
+        """
+        Return ``True`` if this map is surjective.
+
+        EXAMPLES::
+
+            sage: RP5 = simplicial_sets.RealProjectiveSpace(5)
+            sage: RP2 = RP5.n_skeleton(2)
+            sage: RP2.inclusion_map().is_surjective()
+            False
+
+            sage: RP5_2 = RP5.quotient(RP2)
+            sage: RP5_2.quotient_map().is_surjective()
+            True
+
+            sage: K = RP5_2.pullback(RP5_2.quotient_map(), RP5_2.base_point_map())
+            sage: f = K.universal_property(RP2.inclusion_map(), RP2.constant_map())
+            sage: f.is_surjective()
+            True
+        """
+        return self.image() == self.codomain()
+
+    def is_injective(self):
+        """
+        Return ``True`` if this map is surjective.
+
+        EXAMPLES::
+
+            sage: RP5 = simplicial_sets.RealProjectiveSpace(5)
+            sage: RP2 = RP5.n_skeleton(2)
+            sage: RP2.inclusion_map().is_injective()
+            True
+
+            sage: RP5_2 = RP5.quotient(RP2)
+            sage: RP5_2.quotient_map().is_injective()
+            False
+
+            sage: K = RP5_2.pullback(RP5_2.quotient_map(), RP5_2.base_point_map())
+            sage: f = K.universal_property(RP2.inclusion_map(), RP2.constant_map())
+            sage: f.is_injective()
+            True
+        """
+        domain = self.domain()
+        for n in range(domain.dimension()+1):
+            input = domain.n_cells(n)
+            output = set([self(sigma) for sigma in input if self(sigma).is_nondegenerate()])
+            if len(input) > len(output):
+                return False
+        return True
+
+    def is_bijective(self):
+        """
+        Return ``True`` if this map is surjective.
+
+        EXAMPLES::
+
+            sage: RP5 = simplicial_sets.RealProjectiveSpace(5)
+            sage: RP2 = RP5.n_skeleton(2)
+            sage: RP2.inclusion_map().is_bijective()
+            False
+
+            sage: RP5_2 = RP5.quotient(RP2)
+            sage: RP5_2.quotient_map().is_bijective()
+            False
+
+            sage: K = RP5_2.pullback(RP5_2.quotient_map(), RP5_2.base_point_map())
+            sage: f = K.universal_property(RP2.inclusion_map(), RP2.constant_map())
+            sage: f.is_bijective()
+            True
+        """
+        return self.is_injective() and self.is_surjective()
+
+    def is_pointed(self):
+        """
+        Return ``True`` if this is a pointed map.
+
+        That is, return ``True`` if the domain and codomain are
+        pointed and this morphism preserves the base point.
+
+        EXAMPLES::
+
+            sage: S0 = simplicial_sets.Sphere(0)
+            sage: f = Hom(S0,S0).identity()
+            sage: f.is_pointed()
+            True
+            sage: v = S0.n_cells(0)[0]
+            sage: w = S0.n_cells(0)[1]
+            sage: g = Hom(S0,S0)({v:v, w:v})
+            sage: g.is_pointed()
+            True
+            sage: t = Hom(S0,S0)({v:w, w:v})
+            sage: t.is_pointed()
+            False
+        """
+        return (self.domain().is_pointed() and self.codomain().is_pointed()
+                and self(self.domain().base_point()) == self.codomain().base_point())
 
     def pushout(self, *others):
         """
@@ -495,234 +747,41 @@ class SimplicialSetMorphism(Morphism):
         g = coprod.universal_property(other, one)
         return PushoutOfSimplicialSets([f, g])
 
-    def is_identity(self):
-        """
-        True if this morphism is an identity map.
-
-        EXAMPLES::
-
-            sage: K = simplicial_sets.Simplex(1)
-            sage: v0 = K.n_cells(0)[0]
-            sage: v1 = K.n_cells(0)[1]
-            sage: e01 = K.n_cells(1)[0]
-            sage: L = simplicial_sets.Simplex(2).n_skeleton(1)
-            sage: w0 = L.n_cells(0)[0]
-            sage: w1 = L.n_cells(0)[1]
-            sage: w2 = L.n_cells(0)[2]
-            sage: f01 = L.n_cells(1)[0]
-            sage: f02 = L.n_cells(1)[1]
-            sage: f12 = L.n_cells(1)[2]
-
-            sage: d = {v0:w0, v1:w1, e01:f01}
-            sage: f = K.Hom(L)(d)
-            sage: f.is_identity()
-            False
-            sage: d = {w0:v0, w1:v1, w2:v1, f01:e01, f02:e01, f12: v1.apply_degeneracies(0,)}
-            sage: g = L.Hom(K)(d)
-            sage: (g*f).is_identity()
-            True
-            sage: (f*g).is_identity()
-            False
-            sage: (f*g).induced_homology_morphism().to_matrix(1)
-            [0]
-
-            sage: RP5 = simplicial_sets.RealProjectiveSpace(5)
-            sage: RP5.n_skeleton(2).inclusion_map().is_identity()
-            False
-            sage: RP5.n_skeleton(5).inclusion_map().is_identity()
-            True
-        """
-        return (self.domain() == self.codomain()
-                and all(a == b for a,b in self._dictionary.items()))
-
-    def is_surjective(self):
-        """
-        Return ``True`` if this map is surjective.
-
-        EXAMPLES::
-
-            sage: RP5 = simplicial_sets.RealProjectiveSpace(5)
-            sage: RP2 = RP5.n_skeleton(2)
-            sage: RP2.inclusion_map().is_surjective()
-            False
-
-            sage: RP5_2 = RP5.quotient(RP2)
-            sage: RP5_2.quotient_map().is_surjective()
-            True
-
-            sage: K = RP5_2.pullback(RP5_2.quotient_map(), RP5_2.base_point_map())
-            sage: f = K.universal_property(RP2.inclusion_map(), RP2.constant_map())
-            sage: f.is_surjective()
-            True
-        """
-        return self.image() == self.codomain()
-
-    def is_injective(self):
-        """
-        Return ``True`` if this map is surjective.
-
-        EXAMPLES::
-
-            sage: RP5 = simplicial_sets.RealProjectiveSpace(5)
-            sage: RP2 = RP5.n_skeleton(2)
-            sage: RP2.inclusion_map().is_injective()
-            True
-
-            sage: RP5_2 = RP5.quotient(RP2)
-            sage: RP5_2.quotient_map().is_injective()
-            False
-
-            sage: K = RP5_2.pullback(RP5_2.quotient_map(), RP5_2.base_point_map())
-            sage: f = K.universal_property(RP2.inclusion_map(), RP2.constant_map())
-            sage: f.is_injective()
-            True
-        """
-        domain = self.domain()
-        for n in range(domain.dimension()+1):
-            input = domain.n_cells(n)
-            output = set([self(sigma) for sigma in input if self(sigma).is_nondegenerate()])
-            if len(input) > len(output):
-                return False
-        return True
-
-    def is_bijective(self):
-        """
-        Return ``True`` if this map is surjective.
-
-        EXAMPLES::
-
-            sage: RP5 = simplicial_sets.RealProjectiveSpace(5)
-            sage: RP2 = RP5.n_skeleton(2)
-            sage: RP2.inclusion_map().is_bijective()
-            False
-
-            sage: RP5_2 = RP5.quotient(RP2)
-            sage: RP5_2.quotient_map().is_bijective()
-            False
-
-            sage: K = RP5_2.pullback(RP5_2.quotient_map(), RP5_2.base_point_map())
-            sage: f = K.universal_property(RP2.inclusion_map(), RP2.constant_map())
-            sage: f.is_bijective()
-            True
-        """
-        return self.is_injective() and self.is_surjective()
-
-    def _composition_(self, right, homset):
-        """
-        INPUT:
-
-        - ``self``, ``right`` -- maps
-        - ``homset`` -- a homset
-
-        ASSUMPTION:
-
-        The codomain of ``right`` is contained in the domain of
-        ``self``.  This assumption should be verified by the
-        ``Map.__mul__`` method in ``categories/map.pyx``, so we don't
-        need to check it here.
+    def mapping_cone(self):
+        r"""
+        The mapping cone defined by this map.
 
         EXAMPLES::
 
             sage: S1 = simplicial_sets.Sphere(1)
-            sage: f = S1.Hom(S1).identity()
-            sage: f * f # indirect doctest
-            Simplicial set endomorphism of S^1
-              Defn: [v_0, sigma_1] --> [v_0, sigma_1]
-            sage: T = S1.product(S1)
-            sage: K = T.factor(0, as_subset=True)
-            sage: g = S1.Hom(T)({S1.n_cells(0)[0]:K.n_cells(0)[0], S1.n_cells(1)[0]:K.n_cells(1)[0]})
-            sage: g
+            sage: v_0, sigma_1 = S1.nondegenerate_simplices()
+            sage: K = simplicial_sets.Simplex(2).n_skeleton(1)
+
+        The mapping cone will be a little smaller if we use only
+        pointed simplicial sets. `S^1` is already pointed, but not
+        `K`. ::
+
+            sage: L = K.set_base_point(K.n_cells(0)[0])
+            sage: u,v,w = L.n_cells(0)
+            sage: e,f,g = L.n_cells(1)
+            sage: h = L.Hom(S1)({u:v_0, v:v_0, w:v_0, e:sigma_1, f:v_0.apply_degeneracies(0), g:sigma_1})
+            sage: h
             Simplicial set morphism:
-              From: S^1
-              To:   Simplicial set with 6 non-degenerate simplices
-              Defn: [v_0, sigma_1] --> [(v_0, v_0), (sigma_1, Simplex obtained by applying degeneracy s_0 to v_0)]
-            sage: (g*f).image()
-            Simplicial set with 2 non-degenerate simplices
-            sage: f.image().homology()
-            {0: 0, 1: Z}
-        """
-        if self.is_identity():
-            return right
-        if right.is_identity():
-            return self
-        d = {}
-        for sigma in right._dictionary:
-            d[sigma] = self(right(sigma))
-        return homset(d)
-
-    def __call__(self, x):
-        """
-        INPUT: a simplex of the domain.
-
-        Return its image under this morphism.
-
-        EXAMPLES::
-
-            sage: K = simplicial_sets.Simplex(1)
-            sage: S1 = simplicial_sets.Sphere(1)
-            sage: v0 = K.n_cells(0)[0]
-            sage: v1 = K.n_cells(0)[1]
-            sage: e01 = K.n_cells(1)[0]
-            sage: w = S1.n_cells(0)[0]
-            sage: sigma = S1.n_cells(1)[0]
-            sage: d = {v0: w, v1: w, e01: sigma}
-            sage: f = Hom(K, S1)(d)
-            sage: f(e01) # indirect doctest
-            sigma_1
-        """
-        try:
-            return self._dictionary[x.nondegenerate()].apply_degeneracies(*x.degeneracies())
-        except KeyError:
-            raise ValueError('element is not a simplex in the domain')
-
-    def _repr_type(self):
-        """
-        EXAMPLES::
-
-            sage: S1 = simplicial_sets.Sphere(1)
-            sage: f = Hom(S1,S1).identity()
-            sage: f._repr_type()
-            'Simplicial set'
-        """
-        return "Simplicial set"
-
-    def _repr_defn(self):
-        """
-        EXAMPLES::
-
-            sage: S1 = simplicial_sets.Sphere(1)
-            sage: f = Hom(S1,S1).identity()
-            sage: f._repr_defn()
-            '[v_0, sigma_1] --> [v_0, sigma_1]'
-        """
-        d = self._dictionary
-        keys = sorted(d.keys())
-        return "{} --> {}".format(keys, [d[x] for x in keys])
-
-    def is_pointed(self):
-        """
-        Return ``True`` if this is a pointed map.
-
-        That is, return ``True`` if the domain and codomain are
-        pointed and this morphism preserves the base point.
-
-        EXAMPLES::
-
-            sage: S0 = simplicial_sets.Sphere(0)
-            sage: f = Hom(S0,S0).identity()
-            sage: f.is_pointed()
+              From: Simplicial set with 6 non-degenerate simplices
+              To:   S^1
+              Defn: [(0,), (1,), (2,), (0, 1), (0, 2), (1, 2)] --> [v_0, v_0, v_0, sigma_1, Simplex obtained by applying degeneracy s_0 to v_0, sigma_1]
+            sage: h.induced_homology_morphism().to_matrix()
+            [1|0]
+            [-+-]
+            [0|2]
+            sage: X = h.mapping_cone()
+            sage: X.homology() == simplicial_sets.RealProjectiveSpace(2).homology()
             True
-            sage: v = S0.n_cells(0)[0]
-            sage: w = S0.n_cells(0)[1]
-            sage: g = Hom(S0,S0)({v:v, w:v})
-            sage: g.is_pointed()
-            True
-            sage: t = Hom(S0,S0)({v:w, w:v})
-            sage: t.is_pointed()
-            False
         """
-        return (self.domain().is_pointed() and self.codomain().is_pointed()
-                and self(self.domain().base_point()) == self.codomain().base_point())
+        dom = self.domain()
+        cone = dom.cone()
+        i = cone.map_from_X()
+        return self.pushout(i)
 
     def associated_chain_complex_morphism(self, base_ring=ZZ,
                                           augmented=False, cochain=False):
@@ -832,3 +891,27 @@ class SimplicialSetMorphism(Morphism):
             [0|1]
         """
         return InducedHomologyMorphism(self, base_ring, cohomology)
+
+    def _repr_type(self):
+        """
+        EXAMPLES::
+
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: f = Hom(S1,S1).identity()
+            sage: f._repr_type()
+            'Simplicial set'
+        """
+        return "Simplicial set"
+
+    def _repr_defn(self):
+        """
+        EXAMPLES::
+
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: f = Hom(S1,S1).identity()
+            sage: f._repr_defn()
+            '[v_0, sigma_1] --> [v_0, sigma_1]'
+        """
+        d = self._dictionary
+        keys = sorted(d.keys())
+        return "{} --> {}".format(keys, [d[x] for x in keys])

@@ -58,7 +58,7 @@ of groups, or more generally, nerves of finite monoids::
 
 The same simplicial set (albeit with a different name) can also be
 constructed as ::
-    
+
     sage: simplicial_sets.ClassifyingSpace(Sigma4)
     Classifying space of Symmetric group of order 4! as a permutation group
 
@@ -3007,7 +3007,7 @@ class SimplicialSet(SimplicialSet_infinite, GenericCellComplex):
 class SubSimplicialSet(SimplicialSet):
     def __init__(self, data, ambient=None):
         r"""
-        A finite simplicial set as a subsimplicial set of another 
+        A finite simplicial set as a subsimplicial set of another
         simplicial set.
 
         This keeps track of the ambient simplicial set and the
@@ -4282,6 +4282,22 @@ class ConeOfSimplicialSet(SimplicialSet):
         X = self._X
         return self.subsimplicial_set(X.nondegenerate_simplices())
 
+    def map_from_X(self):
+        r"""
+        If this is the cone `CX` on `X`, return the inclusion map from `X`.
+
+        EXAMPLES::
+
+            sage: X = simplicial_sets.Simplex(2).n_skeleton(1)
+            sage: Y = X.cone()
+            sage: Y.map_from_X()
+            Simplicial set morphism:
+              From: Simplicial set with 6 non-degenerate simplices
+              To:   Simplicial set with 13 non-degenerate simplices
+              Defn: [(0,), (1,), (2,), (0, 1), (0, 2), (1, 2)] --> [(0,), (1,), (2,), (0, 1), (0, 2), (1, 2)]
+        """
+        return self.X_as_subset().inclusion_map()
+
 
 class ReducedConeOfSimplicialSet(QuotientOfSimplicialSet):
     def __init__(self, X):
@@ -4343,7 +4359,7 @@ class ReducedConeOfSimplicialSet(QuotientOfSimplicialSet):
         """
         quotient_map = self.quotient_map()
         unreduced = quotient_map.domain()
-        temp_map = unreduced.X_as_subset().inclusion_map()
+        temp_map = unreduced.map_from_X()
         X = self._X
         incl = X.Hom(unreduced)(temp_map._dictionary)
         return quotient_map * incl
@@ -4408,8 +4424,8 @@ class Nerve(SimplicialSet_infinite):
             sage: BC3 == BC3
             True
         """
-        return (isinstance(other, Nerve) 
-                and self._monoid == other._monoid 
+        return (isinstance(other, Nerve)
+                and self._monoid == other._monoid
                 and self.n_cells(0) == other.n_cells(0))
 
     def __ne__(self, other):
@@ -4447,7 +4463,7 @@ class Nerve(SimplicialSet_infinite):
             sage: hash(X) != hash(Y)
             True
         """
-        return hash(self._monoid) & hash(self.base_point())
+        return hash(self._monoid) ^ hash(self.base_point())
 
     def n_skeleton(self, n):
         """
@@ -5269,3 +5285,97 @@ def simplicial_data_from_kenzo_output(filename):
         dim += 1
         dim_idx = new_dim_idx
     return simplex_data
+
+def HopfMap():
+    r"""
+    A simplicial model of the Hopf map `S^3 \to S^2`
+
+    This is taken from Exemple II.1.19 in the thesis of Clemens Berger
+    [Ber91]_.
+
+    The Hopf map is a fibration `S^3 \to S^2`. If it is viewed as
+    attaching a 4-cell to the 2-sphere, the resulting adjunction space
+    is 2-dimensional complex projective space. The resulting model is
+    a bit larger than the one obtained from
+    ``simplicial_sets.ComplexProjectiveSpace(2)``.
+
+    EXAMPLES::
+
+        sage: g = simplicial_sets.HopfMap()
+        sage: g.domain()
+        Simplicial set with 20 non-degenerate simplices
+        sage: g.codomain()
+        S^2
+
+    Using the Hopf map to attach a cell::
+
+        sage: X = g.mapping_cone()
+        sage: CP2 = simplicial_sets.ComplexProjectiveSpace(2)
+        sage: X.homology() == CP2.homology()
+        True
+
+        sage: X.f_vector()
+        [1, 0, 5, 9, 6]
+        sage: CP2.f_vector()
+        [1, 0, 2, 3, 3]
+
+    REFERENCES:
+
+    .. [Ber91] \C. Berger, "Une version effective du théorème de
+       Hurewicz", https://tel.archives-ouvertes.fr/tel-00339314/en/.
+    """
+    # The 2-sphere and its simplices.
+    S2 = Sphere(2)
+    v_0 = S2.n_cells(0)[0]
+    v_1 = v_0.apply_degeneracies(0)
+    v_2 = v_0.apply_degeneracies(0, 0)
+    sigma = S2.n_cells(2)[0]
+    s0_sigma = sigma.apply_degeneracies(0)
+    s1_sigma = sigma.apply_degeneracies(1)
+    s2_sigma = sigma.apply_degeneracies(2)
+    # The 3-sphere and its simplices.
+    w_0 = AbstractSimplex(0, name='w')
+    w_1 = w_0.apply_degeneracies(0)
+    w_2 = w_0.apply_degeneracies(0, 0)
+    beta_11 = AbstractSimplex(1, name='beta_11')
+    beta_22 = AbstractSimplex(1, name='beta_22')
+    beta_23 = AbstractSimplex(1, name='beta_23')
+    beta_44 = AbstractSimplex(1, name='beta_44')
+    beta_1 = AbstractSimplex(2, name='beta_1')
+    beta_2 = AbstractSimplex(2, name='beta_2')
+    beta_3 = AbstractSimplex(2, name='beta_3')
+    beta_4 = AbstractSimplex(2, name='beta_4')
+    alpha_12 = AbstractSimplex(2, name='alpha_12')
+    alpha_23 = AbstractSimplex(2, name='alpha_23')
+    alpha_34 = AbstractSimplex(2, name='alpha_34')
+    alpha_45 = AbstractSimplex(2, name='alpha_45')
+    alpha_56 = AbstractSimplex(2, name='alpha_56')
+    alpha_1 = AbstractSimplex(3, name='alpha_1')
+    alpha_2 = AbstractSimplex(3, name='alpha_2')
+    alpha_3 = AbstractSimplex(3, name='alpha_3')
+    alpha_4 = AbstractSimplex(3, name='alpha_4')
+    alpha_5 = AbstractSimplex(3, name='alpha_5')
+    alpha_6 = AbstractSimplex(3, name='alpha_6')
+    S3 = SimplicialSet({beta_11: (w_0, w_0), beta_22: (w_0, w_0),
+                        beta_23: (w_0, w_0), beta_44: (w_0, w_0),
+                        beta_1: (w_1, beta_11, w_1),
+                        beta_2: (w_1, beta_22, beta_23),
+                        beta_3: (w_1, beta_23, w_1),
+                        beta_4: (w_1, beta_44, w_1),
+                        alpha_12: (beta_11, beta_23, w_1),
+                        alpha_23: (beta_11, beta_22, w_1),
+                        alpha_34: (beta_11, beta_22, beta_44),
+                        alpha_45: (w_1, beta_23, beta_44),
+                        alpha_56: (w_1, beta_23, w_1),
+                        alpha_1: (beta_1, beta_3, alpha_12, w_2),
+                        alpha_2: (beta_11.apply_degeneracies(1), beta_2,
+                                  alpha_23, alpha_12),
+                        alpha_3: (beta_11.apply_degeneracies(0), alpha_34,
+                                  alpha_23, beta_4),
+                        alpha_4: (beta_1, beta_2, alpha_34, alpha_45),
+                        alpha_5: (w_2, alpha_45, alpha_56, beta_4),
+                        alpha_6: (w_2, beta_3, alpha_56, w_2)},
+                       base_point=w_0)
+    return S3.Hom(S2)({alpha_1:s0_sigma, alpha_2:s1_sigma,
+                       alpha_3:s2_sigma, alpha_4:s0_sigma,
+                       alpha_5:s2_sigma, alpha_6:s1_sigma})

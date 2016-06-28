@@ -10,6 +10,7 @@ patch -p1 < ../patches/polymake_sage.patch || die "Error: Couldn't apply patch."
             --exec-prefix="$SAGE_LOCAL" \
             --includedir="$SAGE_LOCAL"/include \
             --bindir="$SAGE_LOCAL"/bin \
-            --libdir="$SAGE_LOCAL"/lib
+            --libdir="$SAGE_LOCAL"/lib \
+	    --without-fink
 make
 make install

@@ -2,28 +2,32 @@ r"""
 Cyclic Code
 
 Let `F` be a field. A `[n ,k]` code `C` over `F` is called cyclic if every cyclic shift
-of a codeword in `C` is also a codeword [R]:
+of a codeword in `C` is also a codeword [R06]_:
 
     .. MATH::
 
-        \begin{aligned}
-        \forall c \in C \\
+        \forall c \in C,
         c = (c_{0}, c_{1}, \dots , c_{n-1}) \in C
         \Rightarrow (c_{n-1}, c_{0}, \dots , c_{n-2})
-        \end{aligned}
+
+Let `c = (c_0, c_2, \dots, c_{n-1})` be a codeword of `C`.
+This codeword can be seen as a polynomial over `F_n[x]`, as follows:
+`\Sigma_{i=0}^{n-1} c_i \times x^i`.
+There is a unique, monic polynomial `g(x)` such that for every
+`c(x) \in F_n[x]`, `c(x) in C \Leftrightarrow g(x) \textpipe c(x)`.
+This polynomial is called the generator polynomial of `C`.
+
 
 REFERENCES:
 
 .. [HT] C. Hartmann and K.K. Tzeng. Generalizations of the BCH Bound.
    Information and Control, 20(5):489-498, June 1972
 
-.. [R2] Introduction to Coding Theory, Ron Roth, Cambridge University Press, 2006
-
 TESTS:
 
 This class uses the following experimental feature:
 :class:`sage.coding.relative_finite_field_extension.RelativeFiniteFieldExtension`.
-This test block is here only to trigger the experimental warning so it not
+This test block is here only to trigger the experimental warning so it does not
 interferes with doctests::
 
     sage: from sage.coding.relative_finite_field_extension import *
@@ -33,8 +37,6 @@ interferes with doctests::
     doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
     See http://trac.sagemath.org/20284 for details.
     Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
-
-
 """
 
 #*****************************************************************************
@@ -71,15 +73,28 @@ def find_generator_polynomial(code, probabilistic = False):
     r"""
     Returns a possible generator polynomial for ``code``.
 
-    This method is probabilistic. If it does not find a good candidate in $k$
-    attempts, where k is ``code``'s dimension, it returns an exception.
+    It works as follows: as the generator polynomial of a cyclic code `C`
+    divides every word in `C`, we consider the generator matrix of `C` as
+    its rows form a basis of `C`. We denote by `n` [resp: `k`] the length
+    [resp: dimension] of `C`.
+
+    Then, we take the first row as temporary generator polynomial, and
+    compute a gcd between this temporary generator polynomial and the next row.
+    The result of this gcd is now our temporary generator polynomial.
+    We iterate over all rows, and if the the last temporary generator polynomial
+    divides `x^{n} - 1` and has degree `n-k` it is the generator polynoial of `C`.
+
+    The probabilistic version of this algorithm works as above, but instead of
+    considering every row of a generator matrix we take random codewords.
+    If a gcd of degree less than `n-k` is found, we take it as our generator polynomial.
+    If it fails at fidning such a polynomial in less than `k` attemps, the algorithm stops.
 
     INPUT:
 
     - ``code`` -- a linear code
 
     - ``probabilistic`` -- (default : ``False``) enables the probabilistic version of
-      this method
+      the algorithm
 
     OUTPUT:
 
@@ -120,7 +135,7 @@ def find_generator_polynomial(code, probabilistic = False):
 
 def cyclotomic_coset(n, r, q):
     r"""
-    Returns the q-cyclotomic coset of ``r`` modulo ``n``.
+    Returns the ``q``-cyclotomic coset of ``r`` modulo ``n``.
 
     INPUT:
 
@@ -132,8 +147,7 @@ def cyclotomic_coset(n, r, q):
 
     AUTHORS:
 
-    This function is taken from codinglib (https://bitbucket.org/jsrn/codinglib/)
-    and was written by Johan Nielsen.
+    This function is taken from codinglib [Nielsen]_
 
     EXAMPLES::
 
@@ -150,7 +164,8 @@ def cyclotomic_coset(n, r, q):
 
 def complete_list(l, length):
     r"""
-    Returns ``l`` with as many zeros appened to it as necessary for list to be of size ``length``.
+    Returns ``l`` with as many zeros appened to it as necessary to make
+    it a list of size ``length``.
 
     INPUT:
 
@@ -271,7 +286,7 @@ def bch_bound(n, D, arithmetic = False, bch_parameters = False):
     Returns the BCH bound obtained for a cyclic code of length ``n`` and defining set ``D``.
 
     Considering a cyclic code `C`, with defining set `D`, length `n`, and minimum
-    distance `d`. We have the following bound, called BCH bound on `d`:
+    distance `d`. We have the following bound, called BCH bound, on `d`:
     `d \geq \delta + 1`, where `\delta` is the length of the longest chain of
     consecutive elements of `D` modulo `n`.
 
@@ -357,33 +372,33 @@ class CyclicCode(AbstractLinearCode):
     r"""
     Representation of a cyclic code.
 
-    ..NOTE::
+    We propose three different ways to create a new CyclicCode, either by providing:
 
-        We propose three different ways to create a new CyclicCode, either by providing:
-        (1) the generator polynomial and the length
-        (2) an existing linear code. In that case, a generator polynomial will be computed
-          from the provided linear code's parameters
-        (3) the defining set of the cyclic code
+    - the generator polynomial and the length (1)
+    - an existing linear code. In that case, a generator polynomial will be computed
+       from the provided linear code's parameters (2)
+    - the defining set of the cyclic code (3)
 
-        Depending on what behaviour you want, you need to specify the names of the arguments to
-        CyclicCode. See EXAMPLES section below for details.
+    Depending on which behaviour you want, you need to specify the names of the arguments to
+    `CyclicCode`. See EXAMPLES section below for details.
 
     INPUT:
 
-    - ``generator_pol`` -- (default: ``None``) a generator polynomial for this code. It has to
-      be monic.
+    - ``generator_pol`` -- (default: ``None``) the unique monic polynomial which divides every
+      codeword of ``self``.
 
-    - ``length`` -- (default: ``None``) the length of the code. It has to be bigger than the degree
+    - ``length`` -- (default: ``None``) the length of ``self``. It has to be bigger than the degree
       of ``generator_pol``.
 
     - ``code`` -- (default: ``None``) a linear code.
 
     - ``probabilistic`` -- (default: ``False``) enables probabilistic version of the
-      generator polynomial lookup algorithm.
+      generator polynomial from any linear code lookup algorithm.
+      See :meth:`sage.find_generator_polynomial` for details.
 
-    - ``D`` -- (default: ``None``) the defining set of the code. It can be partial.
+    - ``D`` -- (default: ``None``) the set of powers of ``primitive element``. It can be partial.
 
-    - ``field`` -- (default: ``None``) the base field for this code.
+    - ``field`` -- (default: ``None``) the base field of ``self``.
 
     - ``primitive_element`` -- (default: ``None``) the primitive element
       to use when creating the set of roots for the generating polynomial

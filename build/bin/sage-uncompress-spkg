@@ -85,9 +85,14 @@ class SageTarFile(tarfile.TarFile):
     See http://trac.sagemath.org/ticket/20218#comment:16 for more background.
     """
 
-    def __init__(self, *args, **kwargs):
-        super(SageTarFile, self).__init__(*args, **kwargs)
+    def __new__(cls, *args, **kwargs):
+        # This is is that SageTarFile() is equivalent to TarFile.open() which
+        # is more flexible than the basic TarFile.__init__
+        inst = tarfile.TarFile.open(*args, **kwargs)
+        inst.__class__ = cls
+        return inst
 
+    def __init__(self, *args, **kwargs):
         # Unfortunately the only way to get the current umask is to set it
         # and then restore it
         self.umask = os.umask(0o777)
@@ -185,7 +190,7 @@ ARCHIVE_TYPES = [SageTarFile, SageZipFile]
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', dest='dir', nargs=1, metavar='DIR',
+    parser.add_argument('-d', dest='dir', metavar='DIR',
                         help='directory to extract archive contents into')
     parser.add_argument('pkg', nargs=1, metavar='PKG',
                         help='the archive to extract')
@@ -196,7 +201,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     filename = args.pkg[0]
-    dirname = args.dir and args.dir[0]
+    dirname = args.dir
 
     for cls in ARCHIVE_TYPES:
         if cls.can_read(filename):
@@ -208,7 +213,7 @@ def main(argv=None):
 
     # For now ZipFile and TarFile both have default open modes that are
     # acceptable
-    archive = cls.open(filename)
+    archive = cls(filename)
 
     if args.file:
         contents = archive.extractbytes(args.file)

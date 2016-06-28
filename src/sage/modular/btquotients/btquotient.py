@@ -1499,7 +1499,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: X = BruhatTitsQuotient(5,13)
-            sage: X._cache_key()
+            sage: X._cache_key() # random
             1375458358400022881
             sage: Y = BruhatTitsQuotient(5,13,use_magma = True) # optional - magma
             sage: Y._cache_key() == X._cache_key() # optional - magma
@@ -2475,18 +2475,20 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             sage: l = X.get_units_of_order()
             sage: len(l)
             12
-            sage: l[3]
+            sage: l[3] # random
             [-1]
             [ 0]
             [ 1]
             [ 1]
-            sage: X.embed_quaternion(l[3])
+            sage: u = X.embed_quaternion(l[3]); u # random
             [    O(7) 3 + O(7)]
             [2 + O(7) 6 + O(7)]
             sage: X._increase_precision(5)
-            sage: X.embed_quaternion(l[3])
+            sage: v = X.embed_quaternion(l[3]); v # random
             [                7 + 3*7^2 + 7^3 + 4*7^4 + O(7^6)             3 + 7 + 3*7^2 + 7^3 + 4*7^4 + O(7^6)]
             [            2 + 7 + 3*7^2 + 7^3 + 4*7^4 + O(7^6) 6 + 5*7 + 3*7^2 + 5*7^3 + 2*7^4 + 6*7^5 + O(7^6)]
+            sage: u == v
+            True
         """
         if exact:
             return Matrix(self.get_splitting_field(), 2, 2,
@@ -3449,7 +3451,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             sage: X._compute_exact_splitting() # optional - magma
         """
         # A = self.get_quaternion_algebra()
-        R = self._OMaxmagma
+        R = self.get_maximal_order(magma=True)
         f = R.MatrixRepresentation()
         self._FF = NumberField(f.Codomain().BaseRing().DefiningPolynomial().sage(), 'a')
         allmats = []

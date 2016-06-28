@@ -25,11 +25,9 @@ or on affine curves::
     Set of rational points of Affine Plane Curve over Finite Field of size
     23 defined by -y^4 - 6*x^2 - 2*x + y - 1
 
-regardless of whether the curve is a plane curve or not.
-
 AUTHORS:
 
-- Grayson Jorgenson (2016-6)
+- Grayson Jorgenson (2016-6): initial version
 """
 
 #*****************************************************************************

@@ -762,12 +762,12 @@ def ExtendedQuadraticResidueCode(n,F):
         sage: C1 = codes.QuadraticResidueCode(7,GF(2))
         sage: C2 = C1.extended_code()
         sage: C3 = codes.ExtendedQuadraticResidueCode(7,GF(2)); C3
-        Extended code coming from Linear code of length 7, dimension 4 over Finite Field of size 2
+        Extended code coming from [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
         sage: C2 == C3
         True
         sage: C = codes.ExtendedQuadraticResidueCode(17,GF(2))
         sage: C
-        Extended code coming from Linear code of length 17, dimension 9 over Finite Field of size 2
+        Extended code coming from [17, 9] Cyclic Code over Finite Field of size 2 with x^8 + x^7 + x^6 + x^4 + x^2 + x + 1 as generator polynomial
         sage: C3 = codes.QuadraticResidueCodeOddPair(7,GF(2))[0]
         sage: C3x = C3.extended_code()
         sage: C4 = codes.ExtendedQuadraticResidueCode(7,GF(2))

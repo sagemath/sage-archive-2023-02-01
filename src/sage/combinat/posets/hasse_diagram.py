@@ -1436,7 +1436,7 @@ class HasseDiagram(DiGraph):
             sage: list(H.orthocomplementations_iterator())
             [[9, 8, 5, 6, 7, 2, 3, 4, 1, 0], [9, 8, 5, 7, 6, 2, 4, 3, 1, 0]]
 
-        ALGORITHM::
+        ALGORITHM:
 
         As ``DiamondPoset(2*n+2)`` has `(2n)!/(n!2^n)` different
         orthocomplementations, the complexity of listing all of

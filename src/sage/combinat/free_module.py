@@ -1365,6 +1365,11 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F.basis().keys().cardinality()
             3
 
+        Rank is available as a synonym::
+
+            sage: F.rank()
+            3
+
         ::
 
             sage: s = SymmetricFunctions(QQ).schur()
@@ -1372,6 +1377,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             +Infinity
         """
         return self._indices.cardinality()
+
+    rank = dimension
 
     def gens(self):
         """

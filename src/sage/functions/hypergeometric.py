@@ -371,7 +371,7 @@ class Hypergeometric(BuiltinFunction):
         return (t * derivative(z, diff_param) *
                 hypergeometric([c + 1 for c in a], [c + 1 for c in b], z))
 
-    class EvaluationMethods:
+    class EvaluationMethods(object):
         def _fast_float_(cls, self, *args):
             """
             Do not support the old ``fast_float``.

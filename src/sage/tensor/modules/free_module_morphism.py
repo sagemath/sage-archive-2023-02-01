@@ -76,9 +76,9 @@ class FiniteRankFreeModuleMorphism(Morphism):
         sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
         sage: e = M.basis('e') ; f = N.basis('f')
         sage: H = Hom(M,N) ; H
-        Set of Morphisms from Rank-3 free module M over the Integer Ring to
-         Rank-2 free module N over the Integer Ring in Category of modules
-         over Integer Ring
+        Set of Morphisms from Rank-3 free module M over the Integer Ring
+         to Rank-2 free module N over the Integer Ring
+         in Category of finite dimensional modules over Integer Ring
         sage: phi = H([[2,-1,3], [1,0,-4]], name='phi', latex_name=r'\phi') ; phi
         Generic morphism:
           From: Rank-3 free module M over the Integer Ring
@@ -169,9 +169,9 @@ class FiniteRankFreeModuleMorphism(Morphism):
         sage: Id = End(M).one() ; Id
         Identity endomorphism of Rank-3 free module M over the Integer Ring
         sage: Id.parent()
-        Set of Morphisms from Rank-3 free module M over the Integer Ring to
-         Rank-3 free module M over the Integer Ring in Category of modules
-         over Integer Ring
+        Set of Morphisms from Rank-3 free module M over the Integer Ring
+         to Rank-3 free module M over the Integer Ring
+         in Category of finite dimensional modules over Integer Ring
         sage: Id.parent() is End(M)
         True
 

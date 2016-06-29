@@ -29,6 +29,8 @@ REFERENCES:
 Functions
 ---------
 """
+from __future__ import print_function
+
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from sage.arith.all import is_square, is_prime_power, divisors
@@ -460,7 +462,7 @@ def is_goethals_seidel(int v,int k,int l,int mu):
         ....:           (144, 77, 40, 42), (256, 135, 70, 72), (400, 209, 108, 110),
         ....:           (496, 255, 126, 136), (540, 275, 130, 150), (576, 299, 154, 156),
         ....:           (780, 399, 198, 210), (784, 405, 208, 210), (976, 495, 238, 264)]:
-        ....:     print is_goethals_seidel(*p)
+        ....:     print(is_goethals_seidel(*p))
         [<function GoethalsSeidelGraph at ...>, 2, 3]
         [<function GoethalsSeidelGraph at ...>, 3, 3]
         [<function GoethalsSeidelGraph at ...>, 2, 7]
@@ -2787,7 +2789,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         ....:     if graphs.strongly_regular_graph(*p,existence=True): # not tested
         ....:         try:                                             # not tested
         ....:             _ = graphs.strongly_regular_graph(*p)        # not tested
-        ....:             print p,"built successfully"                 # not tested
+        ....:             print(p, "built successfully")               # not tested
         ....:         except RuntimeError as e:                        # not tested
         ....:             if 'Brouwer' not in str(e):                  # not tested
         ....:                 raise                                    # not tested
@@ -3165,11 +3167,11 @@ def _check_database():
         sage_answer = strongly_regular_graph(*params,existence=True)
         if dic['status'] == 'open':
             if sage_answer:
-                print "Sage can build a {}, Brouwer's database cannot".format(params)
+                print("Sage can build a {}, Brouwer's database cannot".format(params))
             assert sage_answer is not False
         elif dic['status'] == 'exists':
             if sage_answer is not True:
-                print (("Sage cannot build a ({:<4} {:<4} {:<4} {:<4}) that exists. "+
+                print(("Sage cannot build a ({:<4} {:<4} {:<4} {:<4}) that exists. "+
                        "Comment from Brouwer's database: ").format(*params)
                        +dic['comments'].encode('ascii','ignore'))
                 missed += 1
@@ -3180,10 +3182,10 @@ def _check_database():
             assert False # must not happen
 
     status = [x['status'] for x in saved_database.values()]
-    print "\nIn Andries Brouwer's database:"
-    print "- {} impossible entries".format(status.count('impossible'))
-    print "- {} undecided entries".format(status.count('open'))
-    print "- {} realizable entries (Sage misses {} of them)".format(status.count('exists'),missed)
+    print("\nIn Andries Brouwer's database:")
+    print("- {} impossible entries".format(status.count('impossible')))
+    print("- {} undecided entries".format(status.count('open')))
+    print("- {} realizable entries (Sage misses {} of them)".format(status.count('exists'), missed))
 
     # Reassign its value to the global database
     _brouwer_database = saved_database

@@ -315,7 +315,7 @@ see :trac:`11645`::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 import os
 import re
@@ -635,7 +635,7 @@ class Singular(ExtraTabCompletion, Expect):
         # Uncomment the print statements below for low-level debugging of
         # code that involves the singular interfaces.  Everything goes
         # through here.
-        #print "input: %s"%x
+
         x = str(x).rstrip().rstrip(';')
         x = x.replace("> ",">\t") #don't send a prompt  (added by Martin Albrecht)
         if not allow_semicolon and x.find(";") != -1:
@@ -651,7 +651,7 @@ class Singular(ExtraTabCompletion, Expect):
         if get_verbose() > 0:
             for line in s.splitlines():
                 if line.startswith("//"):
-                    print line
+                    print(line)
             return s
         else:
             return s
@@ -1236,7 +1236,7 @@ class Singular(ExtraTabCompletion, Expect):
             SingularFunction(self,"option")("\""+str(cmd)+"\"")
 
     def _keyboard_interrupt(self):
-        print "Interrupting %s..." % self
+        print("Interrupting %s..." % self)
         try:
             self._expect.sendline(chr(4))
         except pexpect.ExceptionPexpect as msg:
@@ -2468,42 +2468,42 @@ class SingularGBLogPrettyPrinter:
                     continue
 
                 elif re.match(SingularGBLogPrettyPrinter.new_elem,token) and verbosity >= 3:
-                    print "New element found."
+                    print("New element found.")
 
                 elif re.match(SingularGBLogPrettyPrinter.red_zero,token) and verbosity >= 2:
-                    print "Reduction to zero."
+                    print("Reduction to zero.")
 
                 elif re.match(SingularGBLogPrettyPrinter.red_post, token) and verbosity >= 2:
-                    print "Reduction postponed."
+                    print("Reduction postponed.")
 
                 elif re.match(SingularGBLogPrettyPrinter.cri_hilb, token) and verbosity >= 2:
-                    print "Hilber series criterion applied."
+                    print("Hilber series criterion applied.")
 
                 elif re.match(SingularGBLogPrettyPrinter.hig_corn, token) and verbosity >= 1:
-                    print "Maximal degree found: %s"%token
+                    print("Maximal degree found: %s" % token)
 
                 elif re.match(SingularGBLogPrettyPrinter.num_crit, token) and verbosity >= 1:
-                    print "Leading term degree: %2d. Critical pairs: %s."%(self.curr_deg,token[1:-1])
+                    print("Leading term degree: %2d. Critical pairs: %s."%(self.curr_deg,token[1:-1]))
 
                 elif re.match(SingularGBLogPrettyPrinter.red_num, token) and verbosity >= 3:
-                    print "Performing complete reduction of %s elements."%token[3:-1]
+                    print("Performing complete reduction of %s elements."%token[3:-1])
 
                 elif re.match(SingularGBLogPrettyPrinter.deg_lead, token):
                     if verbosity >= 1:
-                        print "Leading term degree: %2d."%int(token)
+                        print("Leading term degree: %2d." % int(token))
                     self.curr_deg = int(token)
                     if self.max_deg < self.curr_deg:
                         self.max_deg = self.curr_deg
 
                 elif re.match(SingularGBLogPrettyPrinter.red_para, token) and verbosity >= 3:
                     m,n = re.match(SingularGBLogPrettyPrinter.red_para,token).groups()
-                    print "Parallel reduction of %s elements with %s non-zero output elements."%(m,n)
+                    print("Parallel reduction of %s elements with %s non-zero output elements." % (m, n))
 
                 elif re.match(SingularGBLogPrettyPrinter.red_betr, token) and verbosity >= 3:
-                    print "Replaced reductor by 'better' one."
+                    print("Replaced reductor by 'better' one.")
 
                 elif re.match(SingularGBLogPrettyPrinter.non_mini, token) and verbosity >= 2:
-                    print "New reductor with non-minimal leading term found."
+                    print("New reductor with non-minimal leading term found.")
 
     def flush(self):
         """

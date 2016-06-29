@@ -1,6 +1,7 @@
 r"""
 S-Boxes and Their Algebraic Representations
 """
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 from sage.combinat.integer_vector import IntegerVectors
@@ -490,7 +491,7 @@ class SBox(SageObject):
         According to this matrix the first bit of the input is equal
         to the third bit of the output 6 out of 8 times::
 
-            sage: for i in srange(8): print S.to_bits(i)[0] == S.to_bits(S(i))[2]
+            sage: for i in srange(8): print(S.to_bits(i)[0] == S.to_bits(S(i))[2])
             False
             True
             True
@@ -849,7 +850,7 @@ class SBox(SageObject):
 
         We can convert this representation to the DIMACS format::
 
-            sage: print S.cnf(format='dimacs')
+            sage: print(S.cnf(format='dimacs'))
             p cnf 4 8
             1 2 -3 0
             1 2 4 0
@@ -862,7 +863,7 @@ class SBox(SageObject):
 
         For concatenation we can strip the header::
 
-            sage: print S.cnf(format='dimacs_headless')
+            sage: print(S.cnf(format='dimacs_headless'))
             1 2 -3 0
             1 2 4 0
             1 -2 3 0
@@ -875,7 +876,7 @@ class SBox(SageObject):
         This might be helpful in combination with the ``xi`` and
         ``yi`` parameter to assign indices manually::
 
-            sage: print S.cnf(xi=[10,20],yi=[30,40], format='dimacs_headless')
+            sage: print(S.cnf(xi=[10,20],yi=[30,40], format='dimacs_headless'))
             10 20 -30 0
             10 20 40 0
             10 -20 30 0

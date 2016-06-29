@@ -708,7 +708,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
                 raise ValueError("polynomial_ring has to be a univariate polynomial ring")
             elif not len(polynomial_ring.variable_names()) == 1:
                 raise ValueError("polynomial_ring has to be a univariate polynomial ring")
-            if not polynomial_ring.base_field() == code.base_field():
+            if not polynomial_ring.base_ring() == code.base_field():
                 raise ValueError("polynomial_ring's base field has to be the same as code's")
             self._polynomial_ring = polynomial_ring
 

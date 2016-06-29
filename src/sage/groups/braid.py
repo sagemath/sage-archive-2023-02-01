@@ -1054,21 +1054,22 @@ class Braid(FinitelyPresentedGroupElement):
             form.pop(0)
             delta = delta-1
         return tuple([-delta]+form)
-    
+
     def right_normal_form(self):
         """
-        Return the left normal form of the braid
-        
+        Return the right normal form of the braid.
+
         EXAMPLES::
-        
+
             sage: B = BraidGroup(4)
             sage: b = B([1, 2, 1, -2, 3, 1])
             sage: b.right_normal_form() # optional - libbraiding
             (s1*s0, s0*s2, 1)
-            
+
         .. WARNING::
-        
-            This functionality requires the libbraiding package to be installed.
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import rightnormalform
@@ -1077,21 +1078,22 @@ class Braid(FinitelyPresentedGroupElement):
         l = rightnormalform(self)
         B = self.parent()
         return tuple([B(b) for b in l[:-1]] + [B.Delta() ** l[-1][0]])
-    
+
     def centralizer(self):
         """
         Return a list of generators of the centralizer of the braid.
-        
+
         EXAMPLES::
-        
+
             sage: B = BraidGroup(4)
             sage: b = B([2, 1, 3, 2])
             sage: b.centralizer() # optional - libbraiding
             [s1*s0*s2*s1, s0*s2]
-            
+
         .. WARNING::
-        
-            This functionality requires the libbraiding package to be installed.
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import centralizer
@@ -1100,13 +1102,13 @@ class Braid(FinitelyPresentedGroupElement):
         l = centralizer(self)
         B = self.parent()
         return [B._element_from_libbraiding(b) for b in l]
-    
+
     def super_summit_set(self):
         """
-        Return a list with the SuperSummitSet of the braid
-        
+        Return a list with the super summit set of the braid
+
         EXAMPLES::
-        
+
             sage: B = BraidGroup(3)
             sage: b = B([1, 2, -1, -2, -2, 1])
             sage: b.super_summit_set() # optional - libbraiding
@@ -1114,10 +1116,11 @@ class Braid(FinitelyPresentedGroupElement):
             (s0^-1*s1^-1*s0^-1)^2*s1^2*s0^3*s1,
             (s0^-1*s1^-1*s0^-1)^2*s1*s0^3*s1^2,
             s0^-1*s1^-1*s0^-2*s1^-1*s0*s1^3*s0]
-            
+
         .. WARNING::
-        
-            This functionality requires the libbraiding package to be installed.
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import supersummitset
@@ -1126,17 +1129,17 @@ class Braid(FinitelyPresentedGroupElement):
         l = supersummitset(self)
         B = self.parent()
         return [B._element_from_libbraiding(b) for b in l]
-    
+
     def gcd(self, other):
         """
         Return the greatest common divisor of the two braids.
-        
+
         INPUT:
-        
-        - ``other`` -- The other braid with respect with the gcd is computed
-        
+
+        - ``other`` -- the other braid with respect with the gcd is computed
+
         EXAMPLES::
-        
+
             sage: B = BraidGroup(3)
             sage: b = B([1, 2, -1, -2, -2, 1])
             sage: c = B([1, 2, 1])
@@ -1144,10 +1147,11 @@ class Braid(FinitelyPresentedGroupElement):
             s0^-1*s1^-1*s0^-2*s1^2*s0
             sage: c.gcd(b) # optional - libbraiding
             s0^-1*s1^-1*s0^-2*s1^2*s0
-            
+
         .. WARNING::
-        
-            This functionality requires the libbraiding package to be installed.
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import greatestcommondivisor
@@ -1156,17 +1160,17 @@ class Braid(FinitelyPresentedGroupElement):
         B = self.parent()
         b = greatestcommondivisor(self, other)
         return B._element_from_libbraiding(b)
-    
+
     def lcm(self, other):
         """
         Return the least common multiple of the two braids.
-        
+
         INPUT:
-        
-        - ``other`` -- The other braid with respect with the lcm is computed
-        
+
+        - ``other`` -- the other braid with respect with the lcm is computed
+
         EXAMPLES::
-        
+
             sage: B = BraidGroup(3)
             sage: b = B([1, 2, -1, -2, -2, 1])
             sage: c = B([1, 2, 1])
@@ -1174,7 +1178,7 @@ class Braid(FinitelyPresentedGroupElement):
             (s0*s1)^2*s0
 
         .. WARNING::
-        
+
             This functionality requires the libbraiding package to be installed.
         """
         try:
@@ -1184,31 +1188,33 @@ class Braid(FinitelyPresentedGroupElement):
         B = self.parent()
         b = leastcommonmultiple(self, other)
         return B._element_from_libbraiding(b)
-    
+
     def conjugating_braid(self, other):
-        """
-        Returns a conjugating braid, if it exists.
-        
+        r"""
+        Return a conjugating braid, if it exists.
+
         INPUT:
-        
-        - ``other`` -- The other braid to look for conjugating braid.
-        
+
+        - ``other`` -- the other braid to look for conjugating braid
+
         EXAMPLES::
+
             sage: B = BraidGroup(3)
-            sage: a = B([2, 2, -1, -1]) 
+            sage: a = B([2, 2, -1, -1])
             sage: b = B([2, 1, 2, 1])
             sage: c = b * a / b
             sage: d = a.conjugating_braid(c) # optional - libbraiding
-            sage: d * c / d == a # optional - libbraiding     
+            sage: d * c / d == a # optional - libbraiding
             True
             sage: d # optional - libbraiding
             s1*s0
             sage: d * a / d == c # optional - libbraiding
             False
-            
+
         .. WARNING::
-        
-            This functionality requires the libbraiding package to be installed.        
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import conjugatingbraid
@@ -1219,19 +1225,19 @@ class Braid(FinitelyPresentedGroupElement):
             return None
         else:
             return self.parent()._element_from_libbraiding(l)
-        
+
     def is_conjugated(self, other):
         """
-        Check if the two braids are conjugated
-        
+        Check if the two braids are conjugated.
+
         INPUT:
-        
-        - ``other`` -- The other breaid to check for conjugacy
+
+        - ``other`` -- the other breaid to check for conjugacy
 
         EXAMPLES::
-        
+
             sage: B = BraidGroup(3)
-            sage: a = B([2, 2, -1, -1]) 
+            sage: a = B([2, 2, -1, -1])
             sage: b = B([2, 1, 2, 1])
             sage: c = b * a / b
             sage: c.is_conjugated(a) # optional - libbraiding
@@ -1240,8 +1246,9 @@ class Braid(FinitelyPresentedGroupElement):
             False
 
         .. WARNING::
-        
-            This functionality requires the libbraiding package to be installed.
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import conjugatingbraid
@@ -1249,13 +1256,13 @@ class Braid(FinitelyPresentedGroupElement):
             raise PackageNotFoundError("libbraiding")
         l = conjugatingbraid(self, other)
         return bool(l)
-    
+
     def ultra_summit_set(self):
         """
         Return a list with the orbits of the ultra summit set of ``self``
-        
+
         EXAMPLES::
-        
+
             sage: B = BraidGroup(3)
             sage: a = B([2, 2, -1, -1, 2, 2])
             sage: b = B([2, 1, 2, 1])
@@ -1275,10 +1282,10 @@ class Braid(FinitelyPresentedGroupElement):
             s0^-1*s1^-1*s0^-2*s1^-1*s0^4*s1^2*s0,
             s0^-1*s1^-1*s0^-2*s1^-1*s0^3*s1^2*s0^2]]
 
-    
         .. WARNING::
-        
-            This functionality requires the libbraiding package to be installed.
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import ultrasummitset
@@ -1287,17 +1294,17 @@ class Braid(FinitelyPresentedGroupElement):
         uss = ultrasummitset(self)
         B = self.parent()
         return [[B._element_from_libbraiding(i) for i in s] for s in uss]
-    
+
     def thurston_type(self):
         """
         Return the thurston_type of ``self``.
-        
+
         OUTPUT:
-        
-        One of 'reducible', ' periodic' or 'pseudo-anosov'
-        
+
+        One of ``'reducible'``, ``'periodic'`` or ``'pseudo-anosov'``.
+
         EXAMPLES::
-        
+
             sage: B = BraidGroup(3)
             sage: b = B([1, 2, -1])
             sage: b.thurston_type() # optional - libbraiding
@@ -1308,23 +1315,24 @@ class Braid(FinitelyPresentedGroupElement):
             sage: c = B([2, 1, 2, 1])
             sage: c.thurston_type() # optional - libbraiding
             'periodic'
-        
+
         .. WARNING::
-        
-            This functionality requires the libbraiding package to be installed.        
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import thurston_type
         except ImportError:
             raise PackageNotFoundError("libbraiding")
         return thurston_type(self)
-    
+
     def is_reducible(self):
         """
-        Check weather the braid is reducible
-        
+        Check weather the braid is reducible.
+
         EXAMPLES::
-        
+
             sage: B = BraidGroup(3)
             sage: b = B([1, 2, -1])
             sage: b.is_reducible() # optional - libbraiding
@@ -1333,19 +1341,19 @@ class Braid(FinitelyPresentedGroupElement):
             sage: a.is_reducible() # optional - libbraiding
             False
 
-        
         .. WARNING::
-        
-            This functionality requires the libbraiding package to be installed.
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
-        return bool(self.thurston_type() == 'reducible')
-    
+        return self.thurston_type() == 'reducible'
+
     def is_periodic(self):
         """
-        Check weather the braid is periodic
-        
+        Check weather the braid is periodic.
+
         EXAMPLES::
-        
+
             sage: B = BraidGroup(3)
             sage: a = B([2, 2, -1, -1, 2, 2])
             sage: b = B([2, 1, 2, 1])
@@ -1353,19 +1361,20 @@ class Braid(FinitelyPresentedGroupElement):
             False
             sage: b.is_periodic() # optional - libbraiding
             True
-        
+
         .. WARNING::
-        
-            This functionality requires the libbraiding package to be installed.
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
-        return bool(self.thurston_type() == 'periodic')
-    
+        return self.thurston_type() == 'periodic'
+
     def is_pseudoanosov(self):
         """
-        Check if the braid is pseudo-anosov
-        
+        Check if the braid is pseudo-anosov.
+
         EXAMPLES::
-        
+
             sage: B = BraidGroup(3)
             sage: a = B([2, 2, -1, -1, 2, 2])
             sage: b = B([2, 1, 2, 1])
@@ -1374,19 +1383,19 @@ class Braid(FinitelyPresentedGroupElement):
             sage: b.is_pseudoanosov() # optional - libbraiding
             False
 
-        
         .. WARNING::
-        
-            This functionality requires the libbraiding package to be installed.
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
-        return bool(self.thurston_type() == 'pseudo-anosov')
-    
+        return self.thurston_type() == 'pseudo-anosov'
+
     def rigidity(self):
         """
-        Return the rigidity of self.
-        
+        Return the rigidity of ``self``.
+
         EXAMPLES::
-        
+
             sage: B = BraidGroup(3)
             sage: b = B([2, 1, 2, 1])
             sage: a = B([2, 2, -1, -1, 2, 2])
@@ -1395,27 +1404,28 @@ class Braid(FinitelyPresentedGroupElement):
             sage: b.rigidity() # optional - libbraiding
             0
 
-        
         .. WARNING::
-        
-            This functionality requires the libbraiding package to be installed.
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import rigidity
         except ImportError:
             raise PackageNotFoundError("libbraiding")
         return Integer(rigidity(self))
-    
+
     def sliding_circuits(self):
         """
         Return the sliding circuits of the braid.
-        
+
         OUTPUT:
-        
-        A list of sliding circuits. Each sliding circuit is itself a list of braids.
-        
+
+        A list of sliding circuits. Each sliding circuit is itself
+        a list of braids.
+
         EXAMPLES::
-        
+
             sage: B = BraidGroup(3)
             sage: b = B([2, 1, 2, 1])
             sage: a = B([2, 2, -1, -1, 2, 2])
@@ -1435,10 +1445,10 @@ class Braid(FinitelyPresentedGroupElement):
             sage: b.sliding_circuits()
             [[s0*s1*s0^2, (s0*s1)^2]]
 
-        
         .. WARNING::
-        
-            This functionality requires the libbraiding package to be installed.
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import sliding_circuits
@@ -2217,13 +2227,13 @@ class BraidGroup_class(FinitelyPresentedGroup):
         if is_FreeGroup(S) and op == operator.mul and not self_on_left:
             return self.mapping_class_action(S)
         return None
-    
+
     def Delta(self):
-        """
-        Return the Delta element of the braid group.
-        
+        r"""
+        Return the `\Delta` element of the braid group.
+
         EXAMPLES::
-            
+
             sage: B = BraidGroup(5)
             sage: B.Delta()
             s0*s1*s0*s2*s1*s0*s3*s2*s1*s0
@@ -2231,23 +2241,23 @@ class BraidGroup_class(FinitelyPresentedGroup):
         n = self.strands()
         delta = Permutation([n-i for i in range(n)])
         return self._permutation_braid(delta)
-    
+
     def _element_from_libbraiding(self, nf):
         """
-        Return the element of self corresponding to the output of libbraiding.
-        
+        Return the element of ``self`` corresponding to the output
+        of libbraiding.
+
         INPUT:
-        
-        - ``nf`` -- A list of lists, as returned by libbraiding.
-        
+
+        - ``nf`` -- a list of lists, as returned by libbraiding
+
         EXAMPLES::
-        
+
             sage: B = BraidGroup(5)
             sage: B._element_from_libbraiding([[-2], [2, 1], [1, 2], [2, 1]])
             (s0^-1*s1^-1*s2^-1*s3^-1*s0^-1*s1^-1*s2^-1*s0^-1*s1^-1*s0^-1)^2*s1*s0^2*s1^2*s0
             sage: B._element_from_libbraiding([[0]])
             1
-
         """
         if len(nf) == 1:
             return self.Delta() ** nf[0][0]

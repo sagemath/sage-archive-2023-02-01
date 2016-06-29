@@ -97,8 +97,8 @@ and browse through its code::
 
     sage: E??                                     # not tested
 
-This code is meant as a template from which to start implementing a
-new algebra. In particular it suggests that we need to implement the
+This code is meant as a template for implementing a
+new algebra. In particular, this template suggests that we need to implement the
 methods ``product_on_basis``, ``one_basis``, ``_repr_`` and
 ``algebra_generators``. Another way to get this list of methods is to
 ask the category (TODO: find a slicker idiom for this)::
@@ -117,18 +117,18 @@ ask the category (TODO: find a slicker idiom for this)::
     :func:`abstract_methods`. We also recommend browsing the
     documentation of this category: :class:`AlgebrasWithBasis`.
 
-Here is the obtained implementation of the group algebra::
+Adding these methods, here is the minimal implementation of the group algebra::
 
     sage: class MyCyclicGroupAlgebra(CombinatorialFreeModule):
-    ....:     #
+    ....:
     ....:     def __init__(self, R, n, **keywords):
     ....:         self._group = Zmod(n)
     ....:         CombinatorialFreeModule.__init__(self, R, self._group,
     ....:             category=AlgebrasWithBasis(R), **keywords)
-    ....:     #
+    ....:
     ....:     def product_on_basis(self, left, right):
     ....:         return self.monomial( left + right )
-    ....:     #
+    ....:
     ....:     def one_basis(self):
     ....:         return self._group.zero()
     ....:
@@ -176,13 +176,14 @@ Let us do some calculations::
 
 This seems to work fine, but we would like to put more stress on our
 implementation to shake potential bugs out of it. To this end, we will
-use :class:`TestSuite`, a tool which will perform many routine tests
+use :class:`TestSuite`, a tool that performs many routine tests
 on our algebra for us.
 
 Since we defined the class interactively, instead of in a Python
-module, those tests would complain about "pickling". We silence this
-error by faking the class being defined in a module. We could also
-just ignore those failing tests for now::
+module, those tests will complain about "pickling". We can silence this
+error by making sage think that the class is defined in a module. We could also
+just ignore those failing tests for now or call :class:`TestSuite` with the
+argument `skip='_test_pickling')`::
 
     sage: import __main__
     sage: __main__.MyCyclicGroupAlgebra = MyCyclicGroupAlgebra
@@ -228,7 +229,7 @@ We wanted to implement an algebra, so we:
 
 #.  Created the underlying vector space using :class:`CombinatorialFreeModule`
 #.  Looked at ``sage.categories.<tab>`` to find an appropriate category
-#.  Loaded an example of that category to see what methods we needed to write
+#.  Loaded an example of that category, and used :func:`sage.misc.abstract_method.abstract_methods_of_class`, to see what methods we needed to write
 #.  Added the category information and other necessary methods to our class
 #.  Ran :class:`TestSuite` to catch potential discrepancies
 
@@ -237,15 +238,15 @@ Exercises
 
 #. Make a tiny modification to ``product_on_basis`` in
    "MyCyclicGroupAlgebra" to implement the *dual* of the group algebra
-   of the cyclic group instead of its group algebra (product given by
+   of the cyclic group instead of its group algebra (so the product is now given by
    `b_fb_g=\delta_{f,g}bf`).
 
    Run the :class:`TestSuite` tests (you may ignore the "pickling"
    errors). What do you notice?
 
-   Fix the implementation of ``one`` and check that the tests now pass.
+   Fix the implementation of ``one`` and check that the :class:`TestSuite` tests now pass.
 
-   Add the hopf algebra structure. Hint: look at the example::
+   Add the Hopf algebra structure. Hint: look at the example::
 
        sage: C = HopfAlgebrasWithBasis(QQ).example()
 
@@ -262,7 +263,7 @@ Exercises
 
         sage: F = SubsetAlgebraOnFundamentalBasis(S, R)   # todo: not implemented
 
-   whose basis ``(b_s)_{s\subset S}`` is indexed by the subsets of ``S``::
+   with a basis ``(b_s)_{s\subset S}`` indexed by the subsets of ``S``::
 
         sage: Subsets(S)
         Subsets of {1, 2, 3, 4, 5}
@@ -291,10 +292,10 @@ to consider morphisms between them::
     ....:     The input is the index of basis element of the domain (A).
     ....:     The output is an element of the codomain (B).
     ....:     """
-    ....:     if g==1: return B.monomial(Zmod(6)(3))
+    ....:     if g==1: return B.monomial(Zmod(6)(3))# g==1 in the range A
     ....:     else:    return B.one()
 
-We can now define a morphism which extends this function to `A` by
+We can now define a morphism that extends this function to `A` by
 linearity::
 
     sage: phi = A.module_morphism(func_on_basis, codomain=B)
@@ -317,10 +318,11 @@ Define a new free module ``In`` with basis indexed by the subsets of
 Diagonal and Triangular Morphisms
 =================================
 
-We now illustrate how to specify that a given morphism is diagonal or
-triangular with respect to some order on the basis which makes it
-invertible. Currently this feature requires the domain and codomain to
-have the same index set (in progress ...).
+We now illustrate how to specify that a given morphism is diagonal or triangular
+with respect to some order on the basis, which means that the morphism is
+invertible and `Sage` is able to compute the inverse morphism automatically.
+Currently this feature requires the domain and codomain to have the same index
+set (in progress ...).
 
 ::
 
@@ -345,12 +347,12 @@ coefficient of the corresponding basis element of the codomain::
     sage: X_to_Y(f)
     2*y[[]] + 2*y[[1]] + 6*y[[2]]
 
-Python fun-fact: ``~`` is the inversion operator (but be careful with
+Python fun fact: ``~`` is the inversion operator (but be careful with
 int's!)::
 
     sage: ~2
     1/2
-    sage: ~(int(2))
+    sage: ~(int(2)) # in python this is the bitwise complement: ~x = -x-1
     -3
 
 Diagonal module morphisms are invertible::
@@ -365,7 +367,7 @@ Diagonal module morphisms are invertible::
     -2*y[[2, 1]] + y[[3]]
 
 For triangular morphisms, just like ordinary morphisms, we need a
-function which accepts as input the index of a basis element of the
+function that accepts as input the index of a basis element of the
 domain and returns an element of the codomain.  We think of this
 function as representing the columns of the matrix of the linear
 transformation::
@@ -403,14 +405,14 @@ For details, see
 Exercise
 --------
 
-Redefine the morphism ``phi`` from the previous exercise to specify
-that it is triangular w.r.t. inclusion of subsets, and inverse this
-morphism. You may want to use the following comparison function as
+Redefine the morphism ``phi`` from the previous exercise as a morphism that is
+triangular with respect to inclusion of subsets and define the inverse morphism.
+You may want to use the following comparison function as
 ``cmp`` argument to ``modules_morphism``::
 
     sage: def subset_cmp(s, t):
     ....:     """
-    ....:     A comparison function on sets which gives a linear extension
+    ....:     A comparison function on sets that gives a linear extension
     ....:     of the inclusion order.
     ....:
     ....:     INPUT:
@@ -435,7 +437,7 @@ a coercion.  This will allow Sage to apply the morphism automatically
 whenever we combine elements of `X` and `Y` together. See
 http://sagemath.com/doc/reference/coercion.html for more
 information. As a training step, let us first define a morphism `X` to
-`h`, and register it as a coercion::
+`Y`, and register it as a coercion::
 
     sage: def triang_on_basis(p):
     ....:     return Y.sum_of_monomials(mu for mu in Partitions(sum(p)) if mu >= p)
@@ -446,8 +448,8 @@ information. As a training step, let us first define a morphism `X` to
     sage: X_to_Y.<tab>                            # not tested
     sage: X_to_Y.register_as_coercion()
 
-Now we can not only convert elements from `X` to `Y`, but also do
-mixed arithmetic with them::
+Now we can not only convert elements from `X` to `Y`, but we can also do
+mixed arithmetic with these elements::
 
     sage: Y(x[Partition([3,2])])
     y[[3, 2]] + y[[4, 1]] + y[[5]]
@@ -473,19 +475,19 @@ functions::
     sage: SF = SymmetricFunctions(QQ);  # A graded Hopf algebra
     sage: h  = SF.homogeneous()         # A particular basis, indexed by partitions (with some additional magic)
 
-`h` is a graded algebra whose basis is indexed by partitions. Namely
-``h([i])`` represents the sum of all monomials of degree `i`::
+So, `h` is a graded algebra whose basis is indexed by partitions. In more
+detail, ``h([i])`` is the sum of all monomials of degree `i`::
 
     sage: h([2]).expand(4)
     x0^2 + x0*x1 + x1^2 + x0*x2 + x1*x2 + x2^2 + x0*x3 + x1*x3 + x2*x3 + x3^2
 
-and ``h(\mu) = prod( h(p) for p in mu )``::
+and ``h(mu) = prod( h(p) for p in mu )``::
 
     sage: h([3,2,2,1]) == h([3]) * h([2]) * h([2]) * h([1])
     True
 
-    Here we define a new basis `(X_\lambda)_\lambda` by triangularity
-    w.r.t. `h`; namely, we set `X_\lambda = \sum_{\mu\geq \lambda, |\mu|=|\nu|} h_\mu`.
+Here we define a new basis `(X_\lambda)_\lambda` by triangularity
+with respect to `h`; namely, we set `X_\lambda = \sum_{\mu\geq \lambda, |\mu|=|\nu|} h_\mu`::
 
     sage: class MySFBasis(CombinatorialFreeModule):
     ....:     r"""
@@ -513,7 +515,7 @@ and ``h(\mu) = prod( h(p) for p in mu )``::
     ....:
     ....:     @cached_method
     ....:     def one_basis(self):
-    ....:         r""" Returns the index of the basis element which is equal to '1'."""
+    ....:         r""" Returns the index of the basis element that is equal to '1'."""
     ....:         return Partition([])
     sage: X = MySFBasis(QQ, prefix='x'); x = X.basis(); h = SymmetricFunctions(QQ).homogeneous()
     sage: f = X(h([2,1,1]) - 2*h([2,2]))  # Note the capital X
@@ -529,8 +531,8 @@ and ``h(\mu) = prod( h(p) for p in mu )``::
 
 We now implement a quotient of the algebra of symmetric functions
 obtained by killing any monomial symmetric function `m_\lambda` such
-that the first part of `\lambda` exceeds `k`. See
-:meth:`Sets.SubcategoryMethods.Subquotients` for details about
+that the first part of `\lambda` is greater than `k`. See
+:meth:`Sets.SubcategoryMethods.Subquotients` for more details about
 implementing quotients::
 
     sage: class MySFQuotient(CombinatorialFreeModule):
@@ -597,23 +599,54 @@ implementing quotients::
 Implementing algebraic structures with several realizations
 ===========================================================
 
-Let us come back to the subset algebra. We have implemented separately
-its ``F``, ``In``, and ``Out`` bases, as well as coercions between
-them. It is convenient to tie those parents together by implementing an
-object ``A`` that models the abstract algebra itself. Then, the parents
-``F``, ``In`` and ``Out`` will be *realizations* of ``A``, while ``A``
-will be a *parent with realizations*. See
-:func:`Sets().WithRealizations <sage.categories.with_realizations.WithRealizations>`
-for the expected user interface and the rationale.
+we now return to the subset algebra and use it as an example to show how to
+implement several different bases for an algebra with automatic coercions
+between the different bases. We have already implemented three bases for this
+algebra:  the ``F``, ``In``, and ``Out`` bases, as well as coercions between
+them. In real calculations it is convenient to tie these parents together by
+implementing an object ``A`` that models the abstract algebra itself. Then, the
+parents ``F``, ``In`` and ``Out`` will be *realizations* of ``A``, while ``A``
+will be a *parent with realizations*. See :func:`Sets().WithRealizations
+<sage.categories.with_realizations.WithRealizations>` for more information
+about the expected user interface and the rationale.
 
-Here is a brief template highlighting the overall structure:
+Here is a brief template highlighting the overall structure::
+
+    class MyAlgebra(Parent, UniqueRepresentation):
+        def __init__(self, *args, **kwargs):
+            self._base = R # Won't be needed when CategoryObject won't override anymore base_ring
+            self._S = S
+            Parent.__init__(self, category = Algebras(R).WithRealizations())
+
+        class BasesForMyModule(Category_realization_of_parent): 
+            r""" Generic features of the bases """
+
+            def super_categories(self):  # I think this needs to be here although I can't say why
+                R = self.base().base_ring()
+                return [Algebras(R).Realizations(), self.base().Realizations(), AlgebrasWithBasis(R)]
+
+            class ParentMethods:
+                r""" Code that is common to all bases for the module """
+
+            class ElementMethods:
+                r""" Code that is common to all bases for the module """
+
+        class MyModuleBases(CombinatorialFreeModule, BindableClass):
+            r""" Generic basis code """
+            def __init__(self, mu_module):
+                CombinatorialFreeModule.__init__(self, ..., category=my_module.BasesForMyModule())
+
+            class FirstBasis(MyModuleBases):
+                r""" Code that is specific to this basis"""
+
+            class SecondBasis(MyModuleBases):
+                r""" Code that is specific to this basis"""
 
 .. TODO::
 
-    - Andrew: insert your template here
     - Nicolas: explain some of the technical details
 
-We now urge the reader to browse the full code of the example, which is
+We now urge the reader to browse the full code of the following example, which is
 meant as a template for constructing new parents with realizations::
 
     sage: A = Sets().WithRealizations().example()

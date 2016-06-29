@@ -4009,6 +4009,8 @@ class LinearCodeParityCheckEncoder(Encoder):
             sage: E
             Parity check matrix-based encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
         """
+        from sage.misc.superseded import deprecation
+        deprecation(20835, "LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.")
         super(LinearCodeParityCheckEncoder, self).__init__(code)
 
     def _repr_(self):
@@ -4160,8 +4162,13 @@ class LinearCodeSystematicEncoder(Encoder):
             [0 0 0 0 0 0 1]
 
         """
-        return self.code().generator_matrix().echelon_form()
-
+        C = self.code()
+        if hasattr(self, "_use_pc_matrix"):
+            return C.parity_check_matrix()
+        else:
+            self._use_pc_matrix = True
+            M = C.generator_matrix()
+        return M.echelon_form()
 
     def systematic_positions(self):
         r"""

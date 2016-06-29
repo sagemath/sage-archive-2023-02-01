@@ -614,33 +614,33 @@ Here is a brief template highlighting the overall structure::
 
     class MyAlgebra(Parent, UniqueRepresentation):
         def __init__(self, *args, **kwargs):
-            self._base = R # Won't be needed when CategoryObject won't override anymore base_ring
+            self._base = R # Won't be needed when CategoryObject stops overriding base_ring
             self._S = S
             Parent.__init__(self, category = Algebras(R).WithRealizations())
 
-        class BasesForMyModule(Category_realization_of_parent): 
+        class BasesForMyAlgebra(Category_realization_of_parent): 
             r""" Generic features of the bases """
 
-            def super_categories(self):  # I think this needs to be here although I can't say why
+            def super_categories(self):  # This initialises all of the realizations code
                 R = self.base().base_ring()
                 return [Algebras(R).Realizations(), self.base().Realizations(), AlgebrasWithBasis(R)]
 
             class ParentMethods:
-                r""" Code that is common to all bases for the module """
+                r""" Code that is common to all bases of the algebra"""
 
             class ElementMethods:
-                r""" Code that is common to all bases for the module """
+                r""" Code that is common to all bases of the algebra"""
 
-        class MyModuleBases(CombinatorialFreeModule, BindableClass):
+        class MyAlgebraBases(CombinatorialFreeAlgebra, BindableClass):
             r""" Generic basis code """
             def __init__(self, mu_module):
-                CombinatorialFreeModule.__init__(self, ..., category=my_module.BasesForMyModule())
+                CombinatorialFreeModule.__init__(self, ..., category=my_module.BasesForMyAlgebra())
 
-            class FirstBasis(MyModuleBases):
-                r""" Code that is specific to this basis"""
+        class FirstBasis(MyAlgebraBases):
+            r""" Code that is specific to this basis"""
 
-            class SecondBasis(MyModuleBases):
-                r""" Code that is specific to this basis"""
+        class SecondBasis(MyAlgebraBases):
+            r""" Code that is specific to this basis"""
 
 .. TODO::
 

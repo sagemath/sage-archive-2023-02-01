@@ -819,6 +819,98 @@ class AbstractLinearCode(module.Module):
         self.Element = type(facade_for.an_element()) #for when we made this a non-facade parent
         Parent.__init__(self, base=base_field, facade=facade_for, category=cat)
 
+    def _repr_(self):
+        r"""
+        Returns an error message requiring to override ``_repr_`` in ``self``.
+
+        As one has to implement specific representation methods (`_repr_` and `_latex_`)
+        when writing a new code class which inherits from :class:`AbstractLinearCode`,
+        the generic call to `_repr_` has to fail.
+
+        EXAMPLES:
+
+        This was taken from :trac:20899 (and thus ensures this method fixes what was
+        described in this ticket).
+
+        We create a new code class, its dedicated encoder
+        and set appropriate parameters::
+
+        sage: from sage.coding.linear_code import AbstractLinearCode
+        sage: from sage.coding.encoder import Encoder
+        sage: class MyCode(AbstractLinearCode):
+        ....:    _registered_encoders = {}
+        ....:    _registered_decoders = {}
+        ....:    def __init__(self):
+        ....:        super(MyCode, self).__init__(GF(5), 10, "Monkey", "Syndrome")
+        ....:        self._dimension = 2
+
+        sage: class MonkeyEncoder(Encoder):
+        ....:    def __init__(self, C):
+        ....:        super(MonkeyEncoder, self).__init__(C)
+        ....:    @cached_method
+        ....:    def generator_matrix(self):
+        ....:        return matrix(GF(5), 2, 10, [ [1]*5 + [0]*5, [0]*5 + [1]*5 ])
+        sage: MyCode._registered_encoders["Monkey"] = MonkeyEncoder
+        sage: MyCode._registered_decoders["Syndrome"] = codes.decoders.LinearCodeSyndromeDecoder
+
+        We check we get a sensible error message while asking for a string
+        representation of an instance of our new class:
+
+        sage: C = MyCode()
+        sage: C #random
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Please override _repr_ in the implementation of <class '__main__.MyCode_with_category'>
+        """
+        raise RuntimeError("Please override _repr_ in the implementation of %s"
+                 % self.parent())
+
+    def _latex_(self):
+        r"""
+        Returns an error message requiring to override ``_latex_`` in ``self``.
+
+        As one has to implement specific representation methods (`_repr_` and `_latex_`)
+        when writing a new code class which inherits from :class:`AbstractLinearCode`,
+        the generic call to `_latex_` has to fail.
+
+        EXAMPLES:
+
+        This was taken from :trac:20899 (and thus ensures this method fixes what was
+        described in this ticket).
+
+        We create a new code class, its dedicated encoder
+        and set appropriate parameters::
+
+        sage: from sage.coding.linear_code import AbstractLinearCode
+        sage: from sage.coding.encoder import Encoder
+        sage: class MyCode(AbstractLinearCode):
+        ....:    _registered_encoders = {}
+        ....:    _registered_decoders = {}
+        ....:    def __init__(self):
+        ....:        super(MyCode, self).__init__(GF(5), 10, "Monkey", "Syndrome")
+        ....:        self._dimension = 2
+
+        sage: class MonkeyEncoder(Encoder):
+        ....:    def __init__(self, C):
+        ....:        super(MonkeyEncoder, self).__init__(C)
+        ....:    @cached_method
+        ....:    def generator_matrix(self):
+        ....:        return matrix(GF(5), 2, 10, [ [1]*5 + [0]*5, [0]*5 + [1]*5 ])
+        sage: MyCode._registered_encoders["Monkey"] = MonkeyEncoder
+        sage: MyCode._registered_decoders["Syndrome"] = codes.decoders.LinearCodeSyndromeDecoder
+
+        We check we get a sensible error message while asking for a string
+        representation of an instance of our new class:
+
+        sage: C = MyCode()
+        sage: latex(C)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Please override _latex_ in the implementation of <class '__main__.MyCode_with_category'>
+        """
+        raise RuntimeError("Please override _latex_ in the implementation of %s"
+                 % self.parent())
+
     def _an_element_(self):
         r"""
         Return an element of the linear code. Currently, it simply returns

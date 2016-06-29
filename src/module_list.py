@@ -591,6 +591,13 @@ ext_modules = [
     Extension('sage.libs.gmp.rational_reconstruction',
               sources = ['sage/libs/gmp/rational_reconstruction.pyx']),
 
+    OptionalExtension('sage.libs.braiding',
+                      sources = ["sage/libs/braiding.pyx"],
+                      libraries = ["braiding"],
+                      package="libbraiding",
+                      language = 'c++'),
+
+
     OptionalExtension('sage.libs.homfly',
                       sources = ["sage/libs/homfly.pyx"],
                       libraries = ["homfly", "gc"],

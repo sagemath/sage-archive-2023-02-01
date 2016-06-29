@@ -8782,9 +8782,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: ~m
             [  -2    1]
             [ 3/2 -1/2]
-            sage: m.I
-            [  -2    1]
-            [ 3/2 -1/2]
 
         TESTS::
 
@@ -14509,6 +14506,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         """
         return self.conjugate().transpose()
 
+
     @property
     def I(self):
         r"""
@@ -14521,6 +14519,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ...                   [-1, -2, -2,  0],
             ...                   [-2, -1,  0, -4]])
             sage: A.I
+            doctest:861: DeprecationWarning: The I property on matrices has been deprecated. Please use the inverse() method instead.
+            See http://trac.sagemath.org/20904 for details.
             [ 0  2  1  0]
             [-4 -8 -2  7]
             [ 4  7  1 -7]
@@ -14535,6 +14535,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ...
             ZeroDivisionError: input matrix must be nonsingular
         """
+        from sage.misc.superseded import deprecation
+        deprecation(20904, "The I property on matrices has been deprecated. Please use the inverse() method instead.")
         return ~self
 
 

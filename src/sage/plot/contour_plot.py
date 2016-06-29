@@ -46,7 +46,7 @@ class ContourPlot(GraphicPrimitive):
     Note this should normally be used indirectly via ``contour_plot``::
 
         sage: from sage.plot.contour_plot import ContourPlot
-        sage: C = ContourPlot([[1,3],[2,4]],(1,2),(2,3),options={})
+        sage: C = ContourPlot([[1,3],[2,4]], (1,2), (2,3), options={})
         sage: C
         ContourPlot defined by a 2 x 2 data grid
         sage: C.xrange
@@ -58,9 +58,9 @@ class ContourPlot(GraphicPrimitive):
 
         sage: x,y = var('x,y')
         sage: contour_plot(x^2-y^3+10*sin(x*y),
-        ....:              (x, -4, 4),
-        ....:              (y, -4, 4),
-        ....:              plot_points=121,cmap='hsv')
+        ....:              (x,-4,4),
+        ....:              (y,-4,4),
+        ....:              plot_points=121, cmap='hsv')
         Graphics object consisting of 1 graphics primitive
     """
     def __init__(self, xy_data_array, xrange, yrange, options):
@@ -70,8 +70,8 @@ class ContourPlot(GraphicPrimitive):
         EXAMPLES::
 
             sage: x,y = var('x,y')
-            sage: C = contour_plot(x^2-y^3+10*sin(x*y), (x, -4, 4), (y, -4, 4),
-            ....:                  plot_points=121,cmap='hsv')
+            sage: C = contour_plot(x^2-y^3+10*sin(x*y), (x,-4,4), (y,-4,4),
+            ....:                  plot_points=121, cmap='hsv')
             sage: C[0].xrange
             (-4.0, 4.0)
             sage: C[0].options()['plot_points']
@@ -91,8 +91,8 @@ class ContourPlot(GraphicPrimitive):
         EXAMPLES::
 
             sage: x,y = var('x,y')
-            sage: f(x,y) = x^2 + y^2
-            sage: d = contour_plot(f, (3, 6), (3, 6))[0].get_minmax_data()
+            sage: f(x, y) = x^2 + y^2
+            sage: d = contour_plot(f, (3,6), (3,6))[0].get_minmax_data()
             sage: d['xmin']
             3.0
             sage: d['ymin']
@@ -108,8 +108,8 @@ class ContourPlot(GraphicPrimitive):
         EXAMPLES::
 
             sage: x,y = var('x,y')
-            sage: C = contour_plot(x^2-y^2,(x,-2,2),(y,-2,2))
-            sage: isinstance(C[0]._allowed_options(),dict)
+            sage: C = contour_plot(x^2-y^2, (x,-2,2), (y,-2,2))
+            sage: isinstance(C[0]._allowed_options(), dict)
             True
         """
         return {'plot_points': 'How many points to use for plotting precision',
@@ -138,7 +138,7 @@ class ContourPlot(GraphicPrimitive):
         EXAMPLES::
 
             sage: x,y = var('x,y')
-            sage: C = contour_plot(x^2-y^2,(x,-2,2),(y,-2,2))
+            sage: C = contour_plot(x^2-y^2, (x,-2,2), (y,-2,2))
             sage: c = C[0]; c
             ContourPlot defined by a 100 x 100 data grid
         """
@@ -151,8 +151,8 @@ class ContourPlot(GraphicPrimitive):
         A somewhat random plot, but fun to look at::
 
             sage: x,y = var('x,y')
-            sage: contour_plot(x^2-y^3+10*sin(x*y), (x, -4, 4), (y, -4, 4),
-            ....:              plot_points=121,cmap='hsv')
+            sage: contour_plot(x^2-y^3+10*sin(x*y), (x,-4,4), (y,-4,4),
+            ....:              plot_points=121, cmap='hsv')
             Graphics object consisting of 1 graphics primitive
         """
         from sage.rings.integer import Integer
@@ -234,7 +234,7 @@ class ContourPlot(GraphicPrimitive):
          legend_label=None, aspect_ratio=1, region=None)
 def contour_plot(f, xrange, yrange, **options):
     r"""
-    ``contour_plot`` takes a function of two variables, `f(x,y)`
+    ``contour_plot`` takes a function of two variables, `f(x, y)`
     and plots contour lines of the function over the specified
     ``xrange`` and ``yrange`` as demonstrated below.
 
@@ -244,10 +244,10 @@ def contour_plot(f, xrange, yrange, **options):
 
     - ``f`` -- a function of two variables
 
-    - ``(xmin, xmax)`` -- 2-tuple, the range of ``x`` values OR 3-tuple
+    - ``(xmin,xmax)`` -- 2-tuple, the range of ``x`` values OR 3-tuple
       ``(x,xmin,xmax)``
 
-    - ``(ymin, ymax)`` -- 2-tuple, the range of ``y`` values OR 3-tuple
+    - ``(ymin,ymax)`` -- 2-tuple, the range of ``y`` values OR 3-tuple
       ``(y,ymin,ymax)``
 
     The following inputs must all be passed in as named parameters:
@@ -341,37 +341,37 @@ def contour_plot(f, xrange, yrange, **options):
     declare the variables in 3-tuples for the range::
 
         sage: x,y = var('x,y')
-        sage: contour_plot(cos(x^2+y^2), (x, -4, 4), (y, -4, 4))
+        sage: contour_plot(cos(x^2+y^2), (x,-4,4), (y,-4,4))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = contour_plot(cos(x**2+y**2), (x, -4, 4), (y, -4, 4))
+        g = contour_plot(cos(x**2+y**2), (x,-4,4), (y,-4,4))
         sphinx_plot(g)
 
     Here we change the ranges and add some options::
 
         sage: x,y = var('x,y')
-        sage: contour_plot((x^2)*cos(x*y), (x, -10, 5), (y, -5, 5), fill=False, plot_points=150)
+        sage: contour_plot((x^2)*cos(x*y), (x,-10,5), (y,-5,5), fill=False, plot_points=150)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = contour_plot((x**2)*cos(x*y), (x, -10, 5), (y, -5, 5), fill=False, plot_points=150)
+        g = contour_plot((x**2) * cos(x*y), (x,-10,5), (y,-5,5), fill=False, plot_points=150)
         sphinx_plot(g)
 
     An even more complicated plot::
 
         sage: x,y = var('x,y')
-        sage: contour_plot(sin(x^2 + y^2)*cos(x)*sin(y), (x, -4, 4), (y, -4, 4),plot_points=150)
+        sage: contour_plot(sin(x^2 + y^2)*cos(x)*sin(y), (x,-4,4), (y,-4,4),plot_points=150)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = contour_plot(sin(x**2 + y**2)*cos(x)*sin(y), (x, -4, 4), (y, -4, 4),plot_points=150)
+        g = contour_plot(sin(x**2 + y**2)*cos(x)*sin(y), (x,-4,4), (y,-4,4),plot_points=150)
         sphinx_plot(g)
 
     Some elliptic curves, but with symbolic endpoints.  In the first
@@ -402,63 +402,63 @@ def contour_plot(f, xrange, yrange, **options):
     We can play with the contour levels::
 
         sage: x,y = var('x,y')
-        sage: f(x,y) = x^2 + y^2
-        sage: contour_plot(f, (-2, 2), (-2, 2))
+        sage: f(x, y) = x^2 + y^2
+        sage: contour_plot(f, (-2,2), (-2,2))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x,y): return x**2 + y**2
-        g = contour_plot(f, (-2, 2), (-2, 2))
+        def f(x, y): return x**2 + y**2
+        g = contour_plot(f, (-2,2), (-2,2))
         sphinx_plot(g)
 
     ::
 
-        sage: contour_plot(f, (-2, 2), (-2, 2), contours=2, cmap=[(1,0,0), (0,1,0), (0,0,1)])
+        sage: contour_plot(f, (-2,2), (-2,2), contours=2, cmap=[(1,0,0), (0,1,0), (0,0,1)])
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x,y): return x**2 + y**2
+        def f(x, y): return x**2 + y**2
         g = contour_plot(f, (-2, 2), (-2, 2), contours=2, cmap=[(1,0,0), (0,1,0), (0,0,1)])
         sphinx_plot(g)
 
     ::
 
-        sage: contour_plot(f, (-2, 2), (-2, 2),
-        ....:              contours=(0.1, 1.0, 1.2, 1.4), cmap='hsv')
+        sage: contour_plot(f, (-2,2), (-2,2),
+        ....:              contours=(0.1,1.0,1.2,1.4), cmap='hsv')
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x,y): return x**2 + y**2
-        g = contour_plot(f, (-2, 2), (-2, 2), contours=(0.1, 1.0, 1.2, 1.4), cmap='hsv')
+        def f(x, y): return x**2 + y**2
+        g = contour_plot(f, (-2,2), (-2,2), contours=(0.1,1.0,1.2,1.4), cmap='hsv')
         sphinx_plot(g)
 
     ::
 
-        sage: contour_plot(f, (-2, 2), (-2, 2), contours=(1.0,), fill=False)
+        sage: contour_plot(f, (-2,2), (-2,2), contours=(1.0,), fill=False)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x,y): return x**2 + y**2
-        g = contour_plot(f, (-2, 2), (-2, 2), contours=(1.0,), fill=False)
+        def f(x, y): return x**2 + y**2
+        g = contour_plot(f, (-2,2), (-2,2), contours=(1.0,), fill=False)
         sphinx_plot(g)
 
     ::
 
-        sage: contour_plot(x-y^2,(x,-5,5),(y,-3,3),contours=[-4,0,1])
+        sage: contour_plot(x - y^2, (x,-5,5), (y,-3,3), contours=[-4,0,1])
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = contour_plot(x-y**2,(x,-5,5),(y,-3,3),contours=[-4,0,1])
+        g = contour_plot(x - y**2, (x,-5,5), (y,-3,3), contours=[-4,0,1])
         sphinx_plot(g)
 
     We can change the style of the lines::
@@ -469,7 +469,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x,y): return x**2 + y**2
+        def f(x, y): return x**2 + y**2
         g = contour_plot(f, (-2,2), (-2,2), fill=False, linewidths=10)
         sphinx_plot(g)
 
@@ -482,74 +482,74 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x,y): return x**2 + y**2
+        def f(x, y): return x**2 + y**2
         g = contour_plot(f, (-2,2), (-2,2), fill=False, linestyles='dashdot')
         sphinx_plot(g)
 
     ::
 
-        sage: P = contour_plot(x^2 - y^2, (x, -3, 3), (y, -3, 3),
-        ....:                  contours=[0, 1, 2, 3, 4], linewidths=[1, 5],
-        ....:                  linestyles=['solid', 'dashed'], fill=False)
+        sage: P = contour_plot(x^2 - y^2, (x,-3,3), (y,-3,3),
+        ....:                  contours=[0,1,2,3,4], linewidths=[1,5],
+        ....:                  linestyles=['solid','dashed'], fill=False)
         sage: P
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        P = contour_plot(x**2 - y**2, (x, -3, 3), (y, -3, 3),
-                         contours=[0, 1, 2, 3, 4], linewidths=[1, 5],
-                         linestyles=['solid', 'dashed'], fill=False)
+        P = contour_plot(x**2 - y**2, (x,-3,3), (y,-3,3),
+                         contours=[0,1,2,3,4], linewidths=[1,5],
+                         linestyles=['solid','dashed'], fill=False)
         sphinx_plot(P)
 
     ::
 
-        sage: P = contour_plot(x^2 - y^2, (x, -3, 3), (y, -3, 3),
-        ....:                  contours=[0, 1, 2, 3, 4], linewidths=[1, 5],
-        ....:                  linestyles=['solid', 'dashed'])
+        sage: P = contour_plot(x^2 - y^2, (x,-3,3), (y,-3,3),
+        ....:                  contours=[0,1,2,3,4], linewidths=[1,5],
+        ....:                  linestyles=['solid','dashed'])
         sage: P
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        P = contour_plot(x**2 - y**2, (x, -3, 3), (y, -3, 3),
-                         contours=[0, 1, 2, 3, 4], linewidths=[1, 5],
-                         linestyles=['solid', 'dashed'])
+        P = contour_plot(x**2 - y**2, (x,-3,3), (y,-3,3),
+                         contours=[0,1,2,3,4], linewidths=[1,5],
+                         linestyles=['solid','dashed'])
         sphinx_plot(P)
 
     ::
 
-        sage: P = contour_plot(x^2 - y^2, (x, -3, 3), (y, -3, 3),
-        ....:                  contours=[0, 1, 2, 3, 4], linewidths=[1, 5],
-        ....:                  linestyles=['-', ':'])
+        sage: P = contour_plot(x^2 - y^2, (x,-3,3), (y,-3,3),
+        ....:                  contours=[0,1,2,3,4], linewidths=[1,5],
+        ....:                  linestyles=['-',':'])
         sage: P
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        P = contour_plot(x**2 - y**2, (x, -3, 3), (y, -3, 3),
-                         contours=[0, 1, 2, 3, 4], linewidths=[1, 5],
-                         linestyles=['-', ':'])
+        P = contour_plot(x**2 - y**2, (x,-3,3), (y,-3,3),
+                         contours=[0,1,2,3,4], linewidths=[1,5],
+                         linestyles=['-',':'])
         sphinx_plot(P)
 
     We can add labels and play with them::
 
-        sage: contour_plot(y^2 + 1 - x^3 - x, (x, -pi, pi), (y, -pi, pi),
+        sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi),
         ....:              fill=False, cmap='hsv', labels=True)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        P = contour_plot(y**2 + 1 - x**3 - x, (x, -pi, pi), (y, -pi, pi),
+        P = contour_plot(y**2 + 1 - x**3 - x, (x,-pi,pi), (y,-pi,pi),
                          fill=False, cmap='hsv', labels=True)
         sphinx_plot(P)
 
     ::
 
-        sage: P=contour_plot(y^2 + 1 - x^3 - x, (x, -pi, pi), (y, -pi, pi),
+        sage: P=contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi),
         ....:                fill=False, cmap='hsv',
         ....:                labels=True, label_fmt="%1.0f",
         ....:                label_colors='black')
@@ -559,7 +559,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        P=contour_plot(y**2 + 1 - x**3 - x, (x, -pi, pi), (y, -pi, pi),
+        P=contour_plot(y**2 + 1 - x**3 - x, (x,-pi,pi), (y,-pi,pi),
                        fill=False, cmap='hsv',
                        labels=True, label_fmt="%1.0f",
                         label_colors='black')
@@ -567,7 +567,7 @@ def contour_plot(f, xrange, yrange, **options):
 
     ::
 
-        sage: P = contour_plot(y^2 + 1 - x^3 - x, (x, -pi, pi), (y, -pi, pi),
+        sage: P = contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi),
         ....:                  fill=False, cmap='hsv', labels=True,
         ....:                  contours=[-4,0,4],
         ....:                  label_fmt={-4:"low", 0:"medium", 4: "hi"},
@@ -578,7 +578,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        P = contour_plot(y**2 + 1 - x**3 - x, (x, -pi, pi), (y, -pi, pi),
+        P = contour_plot(y**2 + 1 - x**3 - x, (x,-pi,pi), (y,-pi,pi),
                          fill=False, cmap='hsv', labels=True,
                          contours=[-4,0,4],
                          label_fmt={-4:"low", 0:"medium", 4: "hi"},
@@ -587,7 +587,7 @@ def contour_plot(f, xrange, yrange, **options):
 
     ::
 
-        sage: P = contour_plot(y^2 + 1 - x^3 - x, (x, -pi, pi), (y, -pi, pi),
+        sage: P = contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi),
         ....:                fill=False, cmap='hsv', labels=True,
         ....:                contours=[-4,0,4], label_fmt=lambda x: "$z=%s$"%x,
         ....:                label_colors='black', label_inline=True,
@@ -598,7 +598,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        P = contour_plot(y**2 + 1 - x**3 - x, (x, -pi, pi), (y, -pi, pi),
+        P = contour_plot(y**2 + 1 - x**3 - x, (x,-pi,pi), (y,-pi,pi),
                          fill=False, cmap='hsv', labels=True,
                          contours=[-4,0,4], label_fmt=lambda x: "$z=%s$"%x,
                          label_colors='black', label_inline=True,
@@ -607,7 +607,7 @@ def contour_plot(f, xrange, yrange, **options):
 
     ::
 
-        sage: P = contour_plot(y^2 + 1 - x^3 - x, (x, -pi, pi), (y, -pi, pi),
+        sage: P = contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi),
         ....:                  fill=False, cmap='hsv', labels=True,
         ....:                  label_fontsize=18)
         sage: P
@@ -616,14 +616,14 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        P = contour_plot(y**2 + 1 - x**3 - x, (x, -pi, pi), (y, -pi, pi),
+        P = contour_plot(y**2 + 1 - x**3 - x, (x,-pi,pi), (y,-pi,pi),
                          fill=False, cmap='hsv', labels=True,
                          label_fontsize=18)
         sphinx_plot(P)
 
     ::
 
-        sage: P = contour_plot(y^2 + 1 - x^3 - x, (x, -pi, pi), (y, -pi, pi),
+        sage: P = contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi),
         ....:                fill=False, cmap='hsv', labels=True,
         ....:                label_inline_spacing=1)
         sage: P
@@ -632,14 +632,14 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        P = contour_plot(y**2 + 1 - x**3 - x, (x, -pi, pi), (y, -pi, pi),
+        P = contour_plot(y**2 + 1 - x**3 - x, (x,-pi,pi), (y,-pi,pi),
                          fill=False, cmap='hsv', labels=True,
                          label_inline_spacing=1)
         sphinx_plot(P)
 
     ::
 
-        sage: P = contour_plot(y^2 + 1 - x^3 - x, (x, -pi, pi), (y, -pi, pi),
+        sage: P = contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi),
         ....:                  fill=False, cmap='hsv', labels=True,
         ....:                  label_inline=False)
         sage: P
@@ -648,7 +648,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        P = contour_plot(y**2 + 1 - x**3 - x, (x, -pi, pi), (y, -pi, pi),
+        P = contour_plot(y**2 + 1 - x**3 - x, (x,-pi,pi), (y,-pi,pi),
                          fill=False, cmap='hsv', labels=True,
                          label_inline=False)
         sphinx_plot(P)
@@ -661,20 +661,20 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x,y): return x**2 + y**2
+        def f(x, y): return x**2 + y**2
         g = contour_plot(f, (-2,2), (-2,2), labels=True, label_colors='red')
         sphinx_plot(g)
 
     We can add a colorbar as well::
 
-        sage: f(x,y)=x^2-y^2
+        sage: f(x, y)=x^2-y^2
         sage: contour_plot(f, (x,-3,3), (y,-3,3), colorbar=True)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x,y): return x**2 + y**2
+        def f(x, y): return x**2 + y**2
         g = contour_plot(f, (x,-3,3), (y,-3,3), colorbar=True)
         sphinx_plot(g)
 
@@ -686,7 +686,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x,y): return x**2 + y**2
+        def f(x, y): return x**2 + y**2
         g = contour_plot(f, (x,-3,3), (y,-3,3), colorbar=True, colorbar_orientation='horizontal')
         sphinx_plot(g)
 
@@ -698,22 +698,22 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x,y): return x**2 + y**2
+        def f(x, y): return x**2 + y**2
         g = contour_plot(f, (x,-3,3), (y,-3,3), contours=[-2,-1,4],
                         colorbar=True)
         sphinx_plot(g)
 
     ::
 
-        sage: contour_plot(f, (x, -3, 3), (y, -3, 3), contours=[-2, -1, 4],
+        sage: contour_plot(f, (x,-3,3), (y,-3,3), contours=[-2,-1,4],
         ....:              colorbar=True, colorbar_spacing='uniform')
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x,y): return x**2 + y**2
-        g = contour_plot(f, (x, -3, 3), (y, -3, 3), contours=[-2, -1, 4],
+        def f(x, y): return x**2 + y**2
+        g = contour_plot(f, (x,-3,3), (y,-3,3), contours=[-2,-1,4],
                          colorbar=True, colorbar_spacing='uniform')
         sphinx_plot(g)
 
@@ -726,80 +726,80 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x,y): return x**2 + y**2
+        def f(x, y): return x**2 + y**2
         g = contour_plot(f, (x,-3,3), (y,-3,3), contours=[0,2,3,6],
                          colorbar=True, colorbar_format='%.3f')
         sphinx_plot(g)
 
     ::
 
-        sage: contour_plot(f, (x, -3, 3), (y, -3, 3), labels=True,
-        ....:              label_colors='red', contours=[0, 2, 3, 6],
+        sage: contour_plot(f, (x,-3,3), (y,-3,3), labels=True,
+        ....:              label_colors='red', contours=[0,2,3,6],
         ....:              colorbar=True)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x,y): return x**2 + y**2
-        g = contour_plot(f, (x, -3, 3), (y, -3, 3), labels=True,
-                         label_colors='red', contours=[0, 2, 3, 6],
+        def f(x, y): return x**2 + y**2
+        g = contour_plot(f, (x,-3,3), (y,-3,3), labels=True,
+                         label_colors='red', contours=[0,2,3,6],
                          colorbar=True)
         sphinx_plot(g)
 
     ::
 
-        sage: contour_plot(f, (x, -3, 3), (y, -3, 3), cmap='winter',
+        sage: contour_plot(f, (x,-3,3), (y,-3,3), cmap='winter',
         ....:              contours=20, fill=False, colorbar=True)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x,y): return x**2 + y**2
-        g = contour_plot(f, (x, -3, 3), (y, -3, 3), cmap='winter',
+        def f(x, y): return x**2 + y**2
+        g = contour_plot(f, (x,-3,3), (y,-3,3), cmap='winter',
                          contours=20, fill=False, colorbar=True)
         sphinx_plot(g)
 
     This should plot concentric circles centered at the origin::
 
         sage: x,y = var('x,y')
-        sage: contour_plot(x^2+y^2-2,(x,-1,1), (y,-1,1))
+        sage: contour_plot(x^2 + y^2-2,(x,-1,1), (y,-1,1))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = contour_plot(x**2+y**2-2,(x,-1,1), (y,-1,1))
+        g = contour_plot(x**2 + y**2-2,(x,-1,1), (y,-1,1))
         sphinx_plot(g)
 
 
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: f(x, y) = cos(x) + sin(y)
-        sage: contour_plot(f, (0, pi), (0, pi), axes=True)
+        sage: contour_plot(f, (0,pi), (0,pi), axes=True)
         Graphics object consisting of 1 graphics primitive
 
     ::
 
-        sage: contour_plot(f, (0, pi), (0, pi)).show(axes=True) # These are equivalent
+        sage: contour_plot(f, (0,pi), (0,pi)).show(axes=True) # These are equivalent
 
     .. PLOT::
 
         x,y = var('x,y')
         def f(x, y): return cos(x) + sin(y)
-        g = contour_plot(f, (0, pi), (0, pi), axes=True)
+        g = contour_plot(f, (0,pi), (0,pi), axes=True)
         sphinx_plot(g)
 
     One can also plot over a reduced region::
 
-        sage: contour_plot(x**2-y**2, (x,-2, 2), (y,-2, 2), region=x - y, plot_points=300)
+        sage: contour_plot(x**2 - y**2, (x,-2,2), (y,-2,2), region=x - y, plot_points=300)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = contour_plot(x**2-y**2, (x,-2, 2), (y,-2, 2), region=x - y,
+        g = contour_plot(x**2 - y**2, (x,-2,2), (y,-2,2), region=x - y,
                          plot_points=300)
         sphinx_plot(g)
 
@@ -807,14 +807,14 @@ def contour_plot(f, xrange, yrange, **options):
     possibility of confusion between the contours and the axes, so use
     ``fill=False`` together with ``axes=True`` with caution::
 
-        sage: contour_plot(f, (-pi, pi), (-pi, pi), fill=False, axes=True)
+        sage: contour_plot(f, (-pi,pi), (-pi,pi), fill=False, axes=True)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
         def f(x, y): return cos(x) + sin(y)
-        g = contour_plot(f, (-pi, pi), (-pi, pi), fill=False, axes=True)
+        g = contour_plot(f, (-pi,pi), (-pi,pi), fill=False, axes=True)
         sphinx_plot(g)
 
     TESTS:
@@ -823,8 +823,8 @@ def contour_plot(f, xrange, yrange, **options):
     two::
 
         sage: x,y = var('x,y')
-        sage: contour_plot(x - y^2, (x, -5, 5), (y, -3, 3),
-        ....:              contours=[-4, -2, 0], fill=False)
+        sage: contour_plot(x - y^2, (x,-5,5), (y,-3,3),
+        ....:              contours=[-4,-2,0], fill=False)
         Graphics object consisting of 1 graphics primitive
     """
     from sage.plot.all import Graphics
@@ -833,8 +833,7 @@ def contour_plot(f, xrange, yrange, **options):
     region = options.pop('region')
     ev = [f] if region is None else [f, region]
 
-    F, ranges = setup_for_eval_on_grid(ev, [xrange, yrange],
-                                       options['plot_points'])
+    F, ranges = setup_for_eval_on_grid(ev, [xrange, yrange], options['plot_points'])
     g = F[0]
     xrange, yrange = [r[:2] for r in ranges]
 
@@ -875,22 +874,22 @@ def contour_plot(f, xrange, yrange, **options):
 @options(plot_points=150, contours=(0,), fill=False, cmap=["blue"])
 def implicit_plot(f, xrange, yrange, **options):
     r"""
-    ``implicit_plot`` takes a function of two variables, `f(x,y)`
-    and plots the curve `f(x,y) = 0` over the specified
+    ``implicit_plot`` takes a function of two variables, `f(x, y)`
+    and plots the curve `f(x, y) = 0` over the specified
     ``xrange`` and ``yrange`` as demonstrated below.
 
-    ``implicit_plot(f, (xmin, xmax), (ymin, ymax), ...)``
+    ``implicit_plot(f, (xmin,xmax), (ymin,ymax), ...)``
 
-    ``implicit_plot(f, (x, xmin, xmax), (y, ymin, ymax), ...)``
+    ``implicit_plot(f, (x,xmin,xmax), (y,ymin,ymax), ...)``
 
     INPUT:
 
     - ``f`` -- a function of two variables or equation in two variables
 
-    - ``(xmin, xmax)`` -- 2-tuple, the range of ``x``
+    - ``(xmin,xmax)`` -- 2-tuple, the range of ``x``
       values or ``(x,xmin,xmax)``
 
-    - ``(ymin, ymax)`` -- 2-tuple, the range of ``y``
+    - ``(ymin,ymax)`` -- 2-tuple, the range of ``y``
       values or ``(y,ymin,ymax)``
 
     The following inputs must all be passed in as named parameters:
@@ -899,7 +898,7 @@ def implicit_plot(f, xrange, yrange, **options):
       in each direction of the grid
 
     - ``fill`` -- boolean (default: ``False``); if ``True``, fill the region
-      `f(x,y) < 0`.
+      `f(x, y) < 0`.
 
     - ``linewidth`` -- integer (default: None), if a single integer all levels
       will be of the width given, otherwise the levels will be plotted with the
@@ -942,20 +941,20 @@ def implicit_plot(f, xrange, yrange, **options):
 
         sage: var("x y")
         (x, y)
-        sage: implicit_plot(x^2 + y^2-2, (x, -3, 3), (y, -3, 3))
+        sage: implicit_plot(x^2 + y^2-2, (x,-3,3), (y,-3,3))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x, y =var("x y")
-        g = implicit_plot(x**2+y**2-2, (x,-3,3), (y,-3,3))
+        g = implicit_plot(x**2 + y**2-2, (x,-3,3), (y,-3,3))
         sphinx_plot(g)
 
     I can do the same thing, but using a callable function so I don't need
     to explicitly define the variables in the ranges, and filling the inside::
 
-        sage: f(x,y) = x^2 + y^2 - 2
-        sage: implicit_plot(f, (-3, 3), (-3, 3),fill=True)
+        sage: f(x, y) = x^2 + y^2 - 2
+        sage: implicit_plot(f, (-3,3), (-3,3),fill=True)
         Graphics object consisting of 1 graphics primitive
 
     The same circle but with a different line width::
@@ -965,7 +964,7 @@ def implicit_plot(f, xrange, yrange, **options):
 
     .. PLOT::
 
-        def f(x,y): return x**2 + y**2 -2
+        def f(x, y): return x**2 + y**2 -2
         g = implicit_plot(f, (-3,3), (-3,3), linewidth=6)
         sphinx_plot(g)
 
@@ -977,7 +976,7 @@ def implicit_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x, y =var("x y")
-        def f(x,y): return x**2 + y**2 -2
+        def f(x, y): return x**2 + y**2 -2
         g = implicit_plot(f, (-3,3), (-3,3), linestyle='dashdot')
         sphinx_plot(g)
 
@@ -985,24 +984,24 @@ def implicit_plot(f, xrange, yrange, **options):
 
         sage: var("x y")
         (x, y)
-        sage: implicit_plot(x^2+y^2 == 2, (x,-3,3), (y,-3,3))
+        sage: implicit_plot(x^2 + y^2 == 2, (x,-3,3), (y,-3,3))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x, y =var("x y")
-        g = implicit_plot(x**2+y**2 == 2, (x,-3,3), (y,-3,3))
+        g = implicit_plot(x**2 + y**2 == 2, (x,-3,3), (y,-3,3))
         sphinx_plot(g)
 
     You can even change the color of the plot::
 
-        sage: implicit_plot(x^2+y^2 == 2, (x,-3,3), (y,-3,3), color="red")
+        sage: implicit_plot(x^2 + y^2 == 2, (x,-3,3), (y,-3,3), color="red")
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x, y =var("x y")
-        g = implicit_plot(x**2+y**2 == 2, (x,-3,3), (y,-3,3), color="red")
+        g = implicit_plot(x**2 + y**2 == 2, (x,-3,3), (y,-3,3), color="red")
         sphinx_plot(g)
 
     Here is a beautiful (and long) example which also tests that all
@@ -1011,7 +1010,7 @@ def implicit_plot(f, xrange, yrange, **options):
         sage: G = Graphics()
         sage: counter = 0
         sage: for col in colors.keys():  # long time
-        ....:     G += implicit_plot(x^2+y^2==1+counter*.1, (x,-4,4),(y,-4,4), color=col)
+        ....:     G += implicit_plot(x^2 + y^2 == 1 + counter*.1, (x,-4,4),(y,-4,4), color=col)
         ....:     counter += 1
         sage: G  # long time
         Graphics object consisting of 148 graphics primitives
@@ -1022,7 +1021,7 @@ def implicit_plot(f, xrange, yrange, **options):
         G = Graphics()
         counter = 0
         for col in colors.keys():  # long time
-            G += implicit_plot(x**2+y**2 == 1 + counter*.1, (x, -4, 4), (y, -4, 4), color=col)
+            G += implicit_plot(x**2 + y**2 == 1 + counter*.1, (x,-4,4), (y,-4,4), color=col)
             counter += 1
         sphinx_plot(G)
 
@@ -1041,7 +1040,7 @@ def implicit_plot(f, xrange, yrange, **options):
 
     The first-level approximation is just a circle::
 
-        sage: implicit_plot(mandel(1), (-3, 3), (-3, 3))
+        sage: implicit_plot(mandel(1), (-3,3), (-3,3))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
@@ -1055,12 +1054,12 @@ def implicit_plot(f, xrange, yrange, **options):
                  val = z(CDF(x, y))
                  return val.norm() - 4
              return f
-        g = implicit_plot(mandel(1), (-3, 3), (-3, 3))
+        g = implicit_plot(mandel(1), (-3,3), (-3,3))
         sphinx_plot(g)
 
     A third-level approximation starts to get interesting::
 
-        sage: implicit_plot(mandel(3), (-2, 1), (-1.5, 1.5))
+        sage: implicit_plot(mandel(3), (-2,1), (-1.5,1.5))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
@@ -1074,7 +1073,7 @@ def implicit_plot(f, xrange, yrange, **options):
                  val = z(CDF(x, y))
                  return val.norm() - 4
              return f
-        g = implicit_plot(mandel(3), (-2, 1), (-1.5, 1.5))
+        g = implicit_plot(mandel(3), (-2,1), (-1.5,1.5))
         sphinx_plot(g)
 
     The seventh-level approximation is a degree 64 polynomial, and
@@ -1083,7 +1082,7 @@ def implicit_plot(f, xrange, yrange, **options):
 
     ::
 
-        sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9), plot_points=50)
+        sage: implicit_plot(mandel(7), (-0.3,0.05), (-1.15,-0.9), plot_points=50)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
@@ -1097,7 +1096,7 @@ def implicit_plot(f, xrange, yrange, **options):
                  val = z(CDF(x, y))
                  return val.norm() - 4
              return f
-        g = implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9),
+        g = implicit_plot(mandel(7), (-0.3,0.05), (-1.15,-0.9),
                           plot_points=50)
         sphinx_plot(g)
 
@@ -1105,32 +1104,32 @@ def implicit_plot(f, xrange, yrange, **options):
     symbolic expression the user should increase the number of plot points to
     avoid artifacts::
 
-        sage: implicit_plot(lambda x,y: x^2+y^2-2, (x,-3,3), (y,-3,3),
+        sage: implicit_plot(lambda x, y: x^2 + y^2-2, (x,-3,3), (y,-3,3),
         ....:               fill=True, plot_points=500) # long time
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x, y = var("x y")
-        g = implicit_plot(lambda x,y: x**2+y**2-2, (x,-3,3), (y,-3,3),
+        g = implicit_plot(lambda x, y: x**2 + y**2-2, (x,-3,3), (y,-3,3),
                           fill=True, plot_points=500) # long time
         sphinx_plot(g)
 
     An example of an implicit plot on 'loglog' scale::
 
-        sage: implicit_plot(x^2 + y^2 == 200, (x, 1, 200), (y, 1, 200), scale='loglog')
+        sage: implicit_plot(x^2 + y^2 == 200, (x,1,200), (y,1,200), scale='loglog')
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x, y = var("x y")
-        g = implicit_plot(x**2 + y**2 == 200, (x, 1, 200), (y, 1, 200), scale='loglog')
+        g = implicit_plot(x**2 + y**2 == 200, (x,1,200), (y,1,200), scale='loglog')
         sphinx_plot(g)
 
     TESTS::
 
-        sage: f(x,y) = x^2 + y^2 - 2
-        sage: implicit_plot(f, (-3, 3), (-3, 3),fill=5)
+        sage: f(x, y) = x^2 + y^2 - 2
+        sage: implicit_plot(f, (-3,3), (-3,3),fill=5)
         Traceback (most recent call last):
         ...
         ValueError: fill=5 is not supported
@@ -1171,21 +1170,21 @@ def implicit_plot(f, xrange, yrange, **options):
 def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
                 borderstyle, borderwidth, alpha, **options):
     r"""
-    ``region_plot`` takes a boolean function of two variables, `f(x,y)`
+    ``region_plot`` takes a boolean function of two variables, `f(x, y)`
     and plots the region where f is True over the specified
     ``xrange`` and ``yrange`` as demonstrated below.
 
-    ``region_plot(f, (xmin, xmax), (ymin, ymax), ...)``
+    ``region_plot(f, (xmin,xmax), (ymin,ymax), ...)``
 
     INPUT:
 
     - ``f`` -- a boolean function or a list of boolean functions of
       two variables
 
-    - ``(xmin, xmax)`` -- 2-tuple, the range of ``x`` values OR 3-tuple
+    - ``(xmin,xmax)`` -- 2-tuple, the range of ``x`` values OR 3-tuple
       ``(x,xmin,xmax)``
 
-    - ``(ymin, ymax)`` -- 2-tuple, the range of ``y`` values OR 3-tuple
+    - ``(ymin,ymax)`` -- 2-tuple, the range of ``y`` values OR 3-tuple
       ``(y,ymin,ymax)``
 
     - ``plot_points``  -- integer (default: 100); number of points to plot
@@ -1241,29 +1240,29 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
     Here we plot a simple function of two variables::
 
         sage: x,y = var('x,y')
-        sage: region_plot(cos(x^2+y^2) <= 0, (x, -3, 3), (y, -3, 3))
+        sage: region_plot(cos(x^2 + y^2) <= 0, (x,-3,3), (y,-3,3))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = region_plot(cos(x**2+y**2) <= 0, (x, -3, 3), (y, -3, 3))
+        g = region_plot(cos(x**2 + y**2) <= 0, (x,-3,3), (y,-3,3))
         sphinx_plot(g)
 
     Here we play with the colors::
 
-        sage: region_plot(x^2+y^3 < 2, (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray')
+        sage: region_plot(x^2 + y^3 < 2, (x,-2,2), (y,-2,2), incol='lightblue', bordercol='gray')
         Graphics object consisting of 2 graphics primitives
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = region_plot(x**2+y**3 < 2, (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray')
+        g = region_plot(x**2 + y**3 < 2, (x,-2,2), (y,-2,2), incol='lightblue', bordercol='gray')
         sphinx_plot(g)
 
     An even more complicated plot, with dashed borders::
 
-        sage: region_plot(sin(x)*sin(y) >= 1/4, (x,-10,10), (y,-10,10),
+        sage: region_plot(sin(x) * sin(y) >= 1/4, (x,-10,10), (y,-10,10),
         ....:             incol='yellow', bordercol='black',
         ....:             borderstyle='dashed', plot_points=250)
         Graphics object consisting of 2 graphics primitives
@@ -1271,71 +1270,71 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
     .. PLOT::
 
         x,y = var('x,y')
-        g = region_plot(sin(x)*sin(y) >= 1/4, (x,-10,10), (y,-10,10),
+        g = region_plot(sin(x) * sin(y) >= 1/4, (x,-10,10), (y,-10,10),
                         incol='yellow', bordercol='black',
                         borderstyle='dashed', plot_points=250)
         sphinx_plot(g)
 
     A disk centered at the origin::
 
-        sage: region_plot(x^2+y^2<1, (x,-1,1), (y,-1,1))
+        sage: region_plot(x^2 + y^2 < 1, (x,-1,1), (y,-1,1))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = region_plot(x**2+y**2<1, (x,-1,1), (y,-1,1))
+        g = region_plot(x**2 + y**2 < 1, (x,-1,1), (y,-1,1))
         sphinx_plot(g)
 
     A plot with more than one condition (all conditions must be true for the
     statement to be true)::
 
-        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2))
+        sage: region_plot([x^2 + y^2 < 1, x < y], (x,-2,2), (y,-2,2))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = region_plot([x**2+y**2<1, x<y], (x,-2,2), (y,-2,2))
+        g = region_plot([x**2 + y**2 < 1, x < y], (x,-2,2), (y,-2,2))
         sphinx_plot(g)
 
     Since it doesn't look very good, let's increase ``plot_points``::
 
-        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2), plot_points=400)
+        sage: region_plot([x^2 + y^2 < 1, x< y], (x,-2,2), (y,-2,2), plot_points=400)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = region_plot([x**2+y**2<1, x<y], (x,-2,2), (y,-2,2), plot_points=400)
+        g = region_plot([x**2 + y**2 < 1, x < y], (x,-2,2), (y,-2,2), plot_points=400)
         sphinx_plot(g)
 
     To get plots where only one condition needs to be true, use a function.
     Using lambda functions, we definitely need the extra ``plot_points``::
 
-        sage: region_plot(lambda x,y: x^2+y^2<1 or x<y, (x,-2,2), (y,-2,2), plot_points=400)
+        sage: region_plot(lambda x, y: x^2 + y^2 < 1 or x < y, (x,-2,2), (y,-2,2), plot_points=400)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = region_plot(lambda x,y: x**2+y**2<1 or x<y, (x,-2,2), (y,-2,2), plot_points=400)
+        g = region_plot(lambda x, y: x**2 + y**2 < 1 or x < y, (x,-2,2), (y,-2,2), plot_points=400)
         sphinx_plot(g)
 
     The first quadrant of the unit circle::
 
-        sage: region_plot([y>0, x>0, x^2+y^2<1], (x,-1.1, 1.1), (y,-1.1, 1.1),plot_points = 400)
+        sage: region_plot([y > 0, x > 0, x^2 + y^2 < 1], (x,-1.1,1.1), (y,-1.1,1.1),plot_points=400)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x, y = var("x y")
-        g = region_plot([y>0, x>0, x**2+y**2<1], (x,-1.1, 1.1), (y,-1.1, 1.1), plot_points = 400)
+        g = region_plot([y > 0, x > 0, x**2 + y**2 < 1], (x,-1.1,1.1), (y,-1.1,1.1), plot_points=400)
         sphinx_plot(g)
 
     Here is another plot, with a huge border::
 
-        sage: region_plot(x*(x-1)*(x+1)+y^2<0, (x, -3, 2), (y, -3, 3),
+        sage: region_plot(x*(x-1)*(x+1) + y^2 < 0, (x,-3,2), (y,-3,3),
         ....:             incol='lightblue', bordercol='gray', borderwidth=10,
         ....:             plot_points=50)
         Graphics object consisting of 2 graphics primitives
@@ -1343,34 +1342,34 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
     .. PLOT::
 
         x, y = var("x y")
-        g = region_plot(x*(x-1)*(x+1)+y**2<0, (x, -3, 2), (y, -3, 3),
+        g = region_plot(x*(x-1)*(x+1) + y**2 < 0, (x,-3,2), (y,-3,3),
                           incol='lightblue', bordercol='gray', borderwidth=10,
                           plot_points=50)
         sphinx_plot(g)
 
     If we want to keep only the region where x is positive::
 
-        sage: region_plot([x*(x-1)*(x+1)+y^2<0, x>-1], (x, -3, 2), (y, -3, 3),
+        sage: region_plot([x*(x-1)*(x+1) + y^2 < 0, x > -1], (x,-3,2), (y,-3,3),
         ....:             incol='lightblue', plot_points=50)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x, y =var("x y")
-        g = region_plot([x*(x-1)*(x+1)+y**2<0, x>-1], (x, -3, 2), (y, -3, 3),
+        g = region_plot([x*(x-1)*(x+1) + y**2 < 0, x > -1], (x,-3,2), (y,-3,3),
                         incol='lightblue', plot_points=50)
         sphinx_plot(g)
 
     Here we have a cut circle::
 
-        sage: region_plot([x^2+y^2<4, x>-1], (x, -2, 2), (y, -2, 2),
+        sage: region_plot([x^2 + y^2 < 4, x > -1], (x,-2,2), (y,-2,2),
         ....:             incol='lightblue', bordercol='gray', plot_points=200)
         Graphics object consisting of 2 graphics primitives
 
     .. PLOT::
 
         x, y =var("x y")
-        g = region_plot([x**2+y**2<4, x>-1], (x, -2, 2), (y, -2, 2),
+        g = region_plot([x**2 + y**2 < 4, x > -1], (x,-2,2), (y,-2,2),
                         incol='lightblue', bordercol='gray', plot_points=200)
         sphinx_plot(g)
 
@@ -1378,13 +1377,13 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
     the second variable range corresponds to the vertical axis::
 
         sage: s, t = var('s, t')
-        sage: region_plot(s > 0, (t, -2, 2), (s, -2, 2))
+        sage: region_plot(s > 0, (t,-2,2), (s,-2,2))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         s, t = var('s, t')
-        g = region_plot(s > 0, (t, -2, 2), (s, -2, 2))
+        g = region_plot(s > 0, (t,-2,2), (s,-2,2))
         sphinx_plot(g)
 
     ::
@@ -1395,18 +1394,18 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
     .. PLOT::
 
         s, t = var('s, t')
-        g = region_plot(s > 0, (s, -2, 2), (t, -2, 2))
+        g = region_plot(s > 0, (s,-2,2), (t,-2,2))
         sphinx_plot(g)
 
     An example of a region plot in 'loglog' scale::
 
-        sage: region_plot(x^2+y^2<100, (x,1,10), (y,1,10), scale='loglog')
+        sage: region_plot(x^2 + y^2 < 100, (x,1,10), (y,1,10), scale='loglog')
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x, y = var("x y")
-        g = region_plot(x**2 + y**2 < 100, (x, 1, 10), (y, 1, 10), scale='loglog')
+        g = region_plot(x**2 + y**2 < 100, (x,1,10), (y,1,10), scale='loglog')
         sphinx_plot(g)
 
     TESTS:
@@ -1414,17 +1413,17 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
     To check that :trac:`16907` is fixed::
 
         sage: x, y = var('x, y')
-        sage: disc1 = region_plot(x^2+y^2 < 1, (x, -1, 1), (y, -1, 1), alpha=0.5)
-        sage: disc2 = region_plot((x-0.7)^2+(y-0.7)^2 < 0.5, (x, -2, 2), (y, -2, 2), incol='red', alpha=0.5)
+        sage: disc1 = region_plot(x^2 + y^2 < 1, (x,-1,1), (y,-1,1), alpha=0.5)
+        sage: disc2 = region_plot((x-0.7)^2 + (y-0.7)^2 < 0.5, (x,-2,2), (y,-2,2), incol='red', alpha=0.5)
         sage: disc1 + disc2
         Graphics object consisting of 2 graphics primitives
 
     To check that :trac:`18286` is fixed::
 
         sage: x, y = var('x, y')
-        sage: region_plot([x == 0], (x, -1, 1), (y, -1, 1))
+        sage: region_plot([x == 0], (x,-1,1), (y,-1,1))
         Graphics object consisting of 1 graphics primitive
-        sage: region_plot([x^2+y^2==1, x<y], (x, -1, 1), (y, -1, 1))
+        sage: region_plot([x^2 + y^2 == 1, x < y], (x,-1,1), (y,-1,1))
         Graphics object consisting of 1 graphics primitive
     """
     from sage.plot.all import Graphics
@@ -1437,8 +1436,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
         f = [f]
 
     feqs = [equify(g) for g in f if is_Expression(g) and g.operator() is operator.eq and not equify(g).is_zero()]
-    f = [equify(g)
-         for g in f if not (is_Expression(g) and g.operator() is operator.eq)]
+    f = [equify(g) for g in f if not (is_Expression(g) and g.operator() is operator.eq)]
     neqs = len(feqs)
     if neqs > 1:
         warn("There are at least 2 equations; " +
@@ -1534,10 +1532,10 @@ def equify(f):
         -x*y + 1
         sage: equify(y > 0)
         -y
-        sage: f=equify(lambda x,y: x>y)
-        sage: f(1,2)
+        sage: f=equify(lambda x, y: x > y)
+        sage: f(1, 2)
         1
-        sage: f(2,1)
+        sage: f(2, 1)
         -1
     """
     import operator

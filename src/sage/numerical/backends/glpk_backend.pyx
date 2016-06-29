@@ -996,8 +996,8 @@ cdef class GLPKBackend(GenericBackend):
         Same, now with a time limit::
 
             sage: p.solver_parameter("mip_gap_tolerance",1)
-            sage: p.solver_parameter("timelimit",0.01)
-            sage: p.solve() # rel tol 1
+            sage: p.solver_parameter("timelimit",3.0)
+            sage: p.solve() # rel tol 100
             1
         """
 

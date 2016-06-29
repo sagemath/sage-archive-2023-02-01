@@ -45,26 +45,6 @@ from sage.modular.arithgroup.congroup_gammaH import GammaH_constructor
 from sage.misc.misc import verbose
 
 
-def enumerate_words(v, n=None):
-    r"""
-    A useful function used to write words in the generators
-    """ ##mm TODO
-    if n is None:
-        n = []
-    while True:
-        add_new = True
-        for jj in range(len(n)):
-            n[jj] += 1
-            if n[jj] != len(v):
-                add_new = False
-                break
-            else:
-                n[jj] = 0
-        if add_new:
-            n.append(0)
-        yield [v[x] for x in n]
-
-
 class DoubleCosetReduction(SageObject):
     r"""
     Edges in the Bruhat-Tits tree are represented by cosets of
@@ -2828,101 +2808,6 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             O_units.append(vec)
         return O_units
 
-#    def _is_new_element(self, x, old_list, unit_list):
-#        for tt in old_list:
-#            for u in unit_list:
-#                if tt*u == u*x:
-#                    return False
-#        return True
-
-    #def get_CM_points(self, disc, prec, twist=None):
-    #    p=self._p
-    #    R = self.get_eichler_order()
-    #    D = fundamental_discriminant(disc)
-    #    if disc % D != 0:
-    #        raise ValueError('disc (= %s) should be a fundamental discriminant times a square' % disc)
-    #    c = ZZ(sqrt(disc/D))
-
-    #    if c > 1:
-    #        raise NotImplementedError('For now we only accept maximal orders (trivial conductor)')
-
-    #    K = QuadraticField(D) #, 'sq', check=False)
-    #    h = K.class_number()
-    #    Omax = K.maximal_order()
-    #    O = K.order(c*Omax.ring_generators()[0])
-    #    w = O.ring_generators()[0]
-    #    pol = w.minpoly()
-    #    try:
-    #        all_elts_purged=self._CM_points[disc]
-    #    except KeyError:
-    #        if not self.is_admissible(disc):
-    #            return []
-    #
-    #        all_elts=[]
-
-    #        all_elts_purged0=[]
-    #        all_elts_purged=[]
-
-    #        all_elts = self._find_elements_in_order(w.norm(),w.trace())
-    #        if len(all_elts) == 0:
-    #            all_elts = self._find_elements_in_order(w.norm()*p**2,w.trace()*p)
-    #            all_elts = [[xx/p for xx in x] for x in all_elts]
-
-            # Now we take into account the action of units
-    #        units=self._find_elements_in_order(1)
-    #        units0=[self._conv(u) for u in units]
-
-    #        all_elts0=[self._conv(v) for v in all_elts]
-    #        for v1 in all_elts:
-    #            v0=self._conv(v1)
-    #            if self._is_new_element(v0,all_elts_purged0,units0):
-    #                all_elts_purged0.append(v0)
-    #                all_elts_purged.append(v1)
-
-    #        self._CM_points[disc]=all_elts_purged
-    #        if c == 1 and 4*h != len(self._CM_points[disc])*K.unit_group().order():
-    #            print('K.class_number()=', K.class_number())
-    #            print('Found ', len(self._CM_points[disc]), 'points...')
-
-    #    all_elts_split=[self.embed_quaternion(matrix(4,1,y),prec=prec) for y in all_elts_purged]
-    #    assert not Qp(p,prec)(pol.discriminant()).is_square()
-    #    Kp=Qp(p,prec = prec).extension(pol,names='g')
-    #    g = Kp.gen()
-    #    W=[]
-    #    for m1 in all_elts_split:
-    #        if twist is not None:
-    #            m = twist.inverse()*m1*twist
-    #        else:
-    #            m = m1
-    #        a,b,c,d = m.list()
-            # Compute the fixed points of the matrix [a,b,c,d] acting on the Kp points of Hp.
-    #        A=Kp(a-d)
-    #        trace = a+d
-    #        norm = a*d-b*c
-
-    #        D2=Kp(trace**2-4*norm)
-    #        if D2 == 0:
-    #            D=D2
-    #        else:
-                # Compute the square root of D in a naive way
-    #            for a0,b0 in product(range(p),repeat = 2):
-    #                y0=a0+b0*g
-    #                if (y0**2-D2).valuation() > 0:
-    #                    break
-    #            y1=y0
-    #            D=0
-    #            while(D!=y1):
-    #                D=y1
-    #                y1=(D**2+D2)/(2*D)
-    #        z1 = (A+D)/(2*c)
-    #        assert  a*z1+b  == z1*(c*z1+d)
-    #        if c*z1+d != g:
-    #            z1 = (A-D)/(2*c)
-    #            assert a*z1+b == g*z1
-    #            assert c*z1+d == g
-    #        W.append(z1)
-    #    return W
-
     @cached_method
     def _get_Up_data(self):
         r"""
@@ -3045,6 +2930,23 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         alphamat = self.embed_quaternion(alpha)
         letters = self.get_nontorsion_generators() + filter(lambda g: prod([self._character(ZZ((v * Matrix(ZZ, 4, 1, g))[0, 0])) / self._character((p ** ZZ(nninc / 2))) for v in self.get_extra_embedding_matrices()]) == 1, self._find_elements_in_order(1))
         n_iters = 0
+
+        def enumerate_words(v, n=None):
+            if n is None:
+                n = []
+            while True:
+                add_new = True
+                for jj in range(len(n)):
+                    n[jj] += 1
+                    if n[jj] != len(v):
+                        add_new = False
+                        break
+                    else:
+                        n[jj] = 0
+                if add_new:
+                    n.append(0)
+                yield [v[x] for x in n]
+
         for wd in enumerate_words([self._conv(x) for x in letters]):
             if len(T) == l + 1:
                 break

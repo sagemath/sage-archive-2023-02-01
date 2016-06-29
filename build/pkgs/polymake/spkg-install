@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
 cd src
+
+patch -p1 < ../patches/polymake_sage.patch || die "Error: Couldn't apply patch."
+
 ./configure --without-java \
             --without-javaview \
             --prefix="$SAGE_LOCAL" \

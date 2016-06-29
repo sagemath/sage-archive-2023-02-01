@@ -978,7 +978,6 @@ class Magmas(Category_singleton):
     class ElementMethods:
 
         __mul__ = sage.categories.coercion_methods.__mul__
-        __imul__ = __mul__
 
         @abstract_method(optional = True)
         def _mul_(self, right):

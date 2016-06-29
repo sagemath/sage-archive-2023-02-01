@@ -520,31 +520,35 @@ fi
 ##################################################################
 
 if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
+    # New-style package
     echo "Setting up build directory for $PKG_NAME"
     cp -Rp "$PKG_SCRIPTS" "$PKG_NAME"
     cd "$PKG_NAME" || exit $?
+
+    sage-uncompress-spkg -d src "$PKG_SRC"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: failed to extract $PKG_SRC"
+        exit 1
+    fi
 else
+    # Old-style package (deprecated)
     echo "Extracting package $PKG_SRC"
     ls -l "$PKG_SRC"
-fi
 
-sage-uncompress-spkg -d src "$PKG_SRC"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: failed to extract $PKG_SRC"
-    exit 1
-fi
-
-if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
-    echo "Finished set up"
-else
-    echo "Finished extraction"
+    sage-uncompress-spkg "$PKG_SRC"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: failed to extract $PKG_SRC"
+        exit 1
+    fi
 
     cd "$PKG_NAME"
     if [ $? -ne 0 ]; then
-        echo >&2 "Error: after extracting, the directory $PKG_NAME does not exist"
+        echo >&2 "Error: after extracting, the directory '$PKG_NAME' does not exist"
         exit 1
     fi
 fi
+
+echo "Finished extraction"
 
 ##################################################################
 # The package has been extracted, prepare for installation

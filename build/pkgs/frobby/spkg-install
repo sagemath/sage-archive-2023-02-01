@@ -1,0 +1,39 @@
+#!/usr/bin/env sh
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+rm -rf "$SAGE_LOCAL/bin/frobby"
+
+GMP_INC_DIR="$SAGE_LOCAL/include"; export GMP_INC_DIR
+ldflags="-L$SAGE_LOCAL/lib/ -lgmpxx -lgmp"; export ldflags
+
+cd src
+
+#Apply the patches
+patch -p0 < ../patches/Makefile.patch
+patch -p0 < ../patches/main.cpp.patch
+patch -p0 < ../patches/randomDataGenerators.cpp.patch
+patch -p0 < ../patches/StatisticsStrategy.cpp.patch
+
+$MAKE MODE=release
+
+if [ $? -ne 0 ]; then
+   echo "Error building Frobby."
+   exit 1
+fi
+
+if [ ! -f bin/release/frobby ]; then
+   echo "Frobby executable not found."
+   exit 1
+fi
+
+$CP bin/release/frobby "$SAGE_LOCAL/bin/"
+
+if [ ! -f "$SAGE_LOCAL/bin/frobby" ]; then
+   echo "Frobby executable not copied."
+   exit 1
+fi

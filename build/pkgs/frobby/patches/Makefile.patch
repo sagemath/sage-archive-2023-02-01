@@ -1,0 +1,11 @@
+--- Makefile~	2012-05-24 21:17:21.000000000 -0700
++++ Makefile	2012-05-24 21:32:33.000000000 -0700
+@@ -93,7 +93,7 @@
+ ifeq ($(MODE), debug)
+   rawSources := $(rawSources) $(rawTests)
+   outdir = bin/debug/
+-  cflags += -g -D DEBUG -fno-inline -Werror -Wextra -Wno-uninitialized \
++  cflags += -g -D DEBUG -fno-inline -Wextra -Wno-uninitialized \
+             -Wno-unused-parameter
+   MATCH=true
+ endif

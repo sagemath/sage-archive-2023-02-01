@@ -1,5 +1,5 @@
 """
-Curve points.
+Curve points
 
 EXAMPLES:
 
@@ -47,32 +47,6 @@ from sage.schemes.projective.projective_point import (SchemeMorphism_point_proje
 
 class ProjectiveCurvePoint_field(SchemeMorphism_point_projective_field):
 
-    def curve(self):
-        r"""
-        Return the curve that this point is on.
-
-        OUTPUT:
-
-        - the projective curve that is the codomain of this point.
-
-        EXAMPLES::
-
-            sage: P.<x,y,z,w> = ProjectiveSpace(GF(17), 3)
-            sage: C = Curve([x^3 - y^2*z, z^2 - x*y])
-            sage: Q = C([0,16,0,1])
-            sage: Q.curve()
-            Projective Curve over Finite Field of size 17 defined by x^3 - y^2*z, -x*y + z^2
-
-        ::
-
-            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
-            sage: C = Curve([y^3 - x^3 - x^2*z])
-            sage: Q = C([-1,0,1])
-            sage: Q.curve()
-            Projective Plane Curve over Rational Field defined by -x^3 + y^3 - x^2*z
-        """
-        return self.codomain()
-
     def multiplicity(self):
         r"""
         Return the multiplicity of this point with respect to the projective curve it is on.
@@ -87,11 +61,11 @@ class ProjectiveCurvePoint_field(SchemeMorphism_point_projective_field):
             sage: Q.multiplicity()
             3
         """
-        return self.curve().multiplicity(self)
+        return self.codomain().multiplicity(self)
 
     def is_singular(self):
         r"""
-        Return whether this point is or is not a singular point of the projective curve it is on.
+        Return whether this point is a singular point of the projective curve it is on.
 
         OUTPUT: Boolean.
 
@@ -106,7 +80,7 @@ class ProjectiveCurvePoint_field(SchemeMorphism_point_projective_field):
             sage: Q2.is_singular()
             False
         """
-        return self.curve().is_singular(self)
+        return self.codomain().is_singular(self)
 
 class ProjectivePlaneCurvePoint_field(ProjectiveCurvePoint_field):
 
@@ -126,7 +100,7 @@ class ProjectivePlaneCurvePoint_field(ProjectiveCurvePoint_field):
             sage: Q.tangents()
             [y, 18*x + y]
         """
-        return self.curve().tangents(self)
+        return self.codomain().tangents(self)
 
     def is_ordinary_singularity(self):
         r"""
@@ -154,7 +128,7 @@ class ProjectivePlaneCurvePoint_field(ProjectiveCurvePoint_field):
             sage: Q.is_ordinary_singularity()
             True
         """
-        return self.curve().is_ordinary_singularity(self)
+        return self.codomain().is_ordinary_singularity(self)
 
     def is_transverse(self, D):
         r"""
@@ -185,38 +159,12 @@ class ProjectivePlaneCurvePoint_field(ProjectiveCurvePoint_field):
             sage: Q.is_transverse(D)
             False
         """
-        return self.curve().is_transverse(D, self)
+        return self.codomain().is_transverse(D, self)
 
 class ProjectivePlaneCurvePoint_finite_field(ProjectivePlaneCurvePoint_field, SchemeMorphism_point_projective_finite_field):
     pass
 
 class AffineCurvePoint_field(SchemeMorphism_point_affine_field):
-
-    def curve(self):
-        r"""
-        Return the curve that this point is on.
-
-        OUTPUT:
-
-        - the affine curve that is the codomain of this point.
-
-        EXAMPLES::
-
-            sage: A.<x,y,z,w> = AffineSpace(QQ, 4)
-            sage: C = A.curve([y - x^5 - z^2, x - w^3 - z*y, y - x - w])
-            sage: Q = C([0,1,-1,1])
-            sage: Q.curve()
-            Affine Curve over Rational Field defined by -x^5 - z^2 + y, -w^3 - y*z + x, -x + y - w
-
-        ::
-
-            sage: A.<x,y> = AffineSpace(GF(11), 2)
-            sage: C = Curve([y - 6*x^4 - y^2], A)
-            sage: Q = C([8,7])
-            sage: Q.curve()
-            Affine Plane Curve over Finite Field of size 11 defined by 5*x^4 - y^2 + y
-        """
-        return self.codomain()
 
     def multiplicity(self):
         r"""
@@ -232,11 +180,11 @@ class AffineCurvePoint_field(SchemeMorphism_point_affine_field):
             sage: Q.multiplicity()
             6
         """
-        return self.curve().multiplicity(self)
+        return self.codomain().multiplicity(self)
 
     def is_singular(self):
         r"""
-        Return whether this point is or is not a singular point of the affine curve it is on.
+        Return whether this point is a singular point of the affine curve it is on.
 
         OUTPUT: Boolean.
 
@@ -252,7 +200,7 @@ class AffineCurvePoint_field(SchemeMorphism_point_affine_field):
             sage: Q2.is_singular()
             False
         """
-        return self.curve().is_singular(self)
+        return self.codomain().is_singular(self)
 
 class AffinePlaneCurvePoint_field(AffineCurvePoint_field):
 
@@ -273,7 +221,7 @@ class AffinePlaneCurvePoint_field(AffineCurvePoint_field):
             sage: Q.tangents()
             [y, -x + y - 1, x + 1, x + y + 1]
         """
-        return self.curve().tangents(self)
+        return self.codomain().tangents(self)
 
     def is_ordinary_singularity(self):
         r"""
@@ -298,7 +246,7 @@ class AffinePlaneCurvePoint_field(AffineCurvePoint_field):
             sage: Q.is_ordinary_singularity()
             False
         """
-        return self.curve().is_ordinary_singularity(self)
+        return self.codomain().is_ordinary_singularity(self)
 
     def is_transverse(self, D):
         r"""
@@ -331,7 +279,7 @@ class AffinePlaneCurvePoint_field(AffineCurvePoint_field):
             sage: Q.is_transverse(D)
             True
         """
-        return self.curve().is_transverse(D, self)
+        return self.codomain().is_transverse(D, self)
 
 class AffinePlaneCurvePoint_finite_field(AffinePlaneCurvePoint_field, SchemeMorphism_point_affine_finite_field):
     pass

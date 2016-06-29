@@ -1460,10 +1460,12 @@ class PartitionTuple(CombinatorialElement):
     @cached_method
     def _initial_degree(self,e,multicharge):
         r"""
-        Return the Brundan-Kleshchev-Wang degree of the initial tableau of shape
-        ``self``. This degree depends only the shape of the tableau and it is
-        used as the base case for computing the degrees of all tableau of shape
-        ``self``, which is why this method is cached. See
+        Return the Brundan-Kleshchev-Wang degree of the initial tableau
+        of shape ``self``.
+
+        This degree depends only the shape of the tableau and it is
+        used as the base case for computing the degrees of all tableau of
+        shape ``self``, which is why this method is cached. See
         :meth:`sage.combinat.tableau.Tableau.degree` for more information.
 
         EXAMPLES::
@@ -1477,22 +1479,27 @@ class PartitionTuple(CombinatorialElement):
             sage: PartitionTuple([[2,1],[2,2]])._initial_degree(4,(0,0))
             1
         """
-        if e==0: deg=0
-        else: deg=sum(mu._initial_degree(e) for mu in self)
-        I=IntegerModRing(e)
-        multires=[I(k) for k in multicharge]
+        if e == 0:
+            deg = 0
+        else:
+            deg = sum(mu._initial_degree(e) for mu in self)
+        I = IntegerModRing(e)
+        multires = [I(k) for k in multicharge]
         for (k,r,c) in self.cells():
-            res=I(multicharge[k]-r+c)
-            for l in range(k+1,self.level()):
-                if res==multires[l]: deg+=1
+            res = I(multicharge[k]-r+c)
+            for l in range(k+1, self.level()):
+                if res == multires[l]:
+                    deg += 1
         return deg
 
     def degree(self, e, multicharge):
         r"""
-        Return the ``e``th degree of the partition ``self``. This is the sum of the
-        degrees of the standard tableaux of shape ``self``. The ``e``th degree is the
-        exponent of `\Phi_e(q)` in the Gram determinant of the Specht module for
-        a semisimple Iwahori-Hecke algebra of type A with parameter `q`.
+        Return the ``e``-th degree of ``self``.
+
+        The `e`-th degree is the sum of the degrees of the standard
+        tableaux of shape `\lambda`. The `e`-th degree is the exponent
+        of `\Phi_e(q)` in the Gram determinant of the Specht module for a
+        semisimple Iwahori-Hecke algebra of type `A` with parameter `q`.
 
         EXAMPLES::
 
@@ -1510,17 +1517,18 @@ class PartitionTuple(CombinatorialElement):
             0
 
         So we concludethat the Gram determinant of `S(5,3)` is
-        `q^N\Phi_2(q)^{169}\Phi_3(q)^{322}` for some integer `N`. Compare with 
-        :meth:`p_Degree`
+        `q^N \Phi_2(q)^{169} \Phi_3(q)^{322}` for some integer `N`.
+        Compare with  :meth:`p_Degree`.
         """
         return sum(t.degree(e,multicharge) for t in self.standard_tableaux())
 
     def p_Degree(self, p, multicharge):
         r"""
-        Return the ``p``th Degree of the partition ``self``. This is the sum of the
-        degrees of the standard tableaux of shape ``self``. The ``e``th degree is the
-        exponent of `p` in the Gram determinant of the Specht module of the symmetric group
-        of the symmetric group.
+        Return the ``p``-th Degree of ``self``.
+
+        The `p`-th degree is the sum of the degrees of the standard tableaux
+        of shape `\lambda`. The `p`-th degree is the exponent of `p` in the
+        Gram determinant of the Specht module of the symmetric group.
 
         EXAMPLES::
 
@@ -1534,30 +1542,31 @@ class PartitionTuple(CombinatorialElement):
             0
 
         So we concludethat the Gram determinant of `S(5,3)` is
-        `2^{168}3^{322}`  Compare with :meth:`degree`
+        `2^{168} 3^{322}`. Compare with :meth:`degree`.
         """
-        ps=[p]
+        ps = [p]
 
-        while ps[-1]*p<self.size():
-            ps.append(ps[-1]*p)
-        return sum(t.degree(pk,multicharge) for pk in ps for t in self.standard_tableaux())
+        while ps[-1]*p < self.size():
+            ps.append(ps[-1] * p)
+        return sum(t.degree(pk, multicharge) for pk in ps for t in self.standard_tableaux())
 
     def defect(self, e, multicharge):
         r"""
-        Return the `e`-defect or the `e`-weight of the partition. This is the
-        number of (connected) `e`-rim hooks that can be removed from the
-        partition.
+        Return the `e`-defect or the `e`-weight ``self``.
 
-        The defect of a a partition is given by 
+        The `e`-defect is the number of (connected) `e`-rim hooks
+        that can be removed from the partition.
+
+        The defect of a partition tuple is given by 
 
         .. MATH: 
 
             \text{defect}(\beta) = (\Lambda,\beta)-\tfrac12(\beta,\beta)
 
-        where `\Lambda=\sum_r\Lambda_{\kappa_r}$, where
-        `(\kappa_1,\dots,\kappa_\ell)` is the ``multicharge`` and 
-        `\beta=\sum_{(r,c)} \alpha_{(c-r)\pmod e}`, where the sum is over
-        the cells in the partition.
+        where `\Lambda = \sum_r \Lambda_{\kappa_r}`, where
+        `(\kappa_1, \ldots, \kappa_{\ell})` is the ``multicharge`` and 
+        `\beta = \sum_{(r,c)} \alpha_{(c-r) \pmod e}`, where the sum is
+        over the cells in the partition.
 
         EXAMPLES::
 
@@ -1576,15 +1585,18 @@ class PartitionTuple(CombinatorialElement):
             sage: PartitionTuple([[2,2],[2,2]]).defect(4,(0,0))
             0
         """
-        beta={} # Will correspond to an element of the positive root lattice corresponding to the block
-                # We use a dictionary to cover the case when e=0
+        # Will correspond to an element of the positive root lattice
+        #   corresponding to the block.
+        # We use a dictionary to cover the case when e = 0.
+        beta = {}
 
-        Ie=IntegerModRing(e)
+        Ie = IntegerModRing(e)
         for (k,r,c) in self.cells():
-            r=Ie(multicharge[k]+r-c)
-            beta[r]=beta[r]+1 if r in beta else 1
+            r = Ie(multicharge[k]+r-c)
+            beta[r] = beta[r] + 1 if r in beta else 1
 
-        return sum(beta[r] for r in beta)-sum(beta[r]**2-beta[r]*beta.get(Ie(r+1),0) for r in beta)
+        return sum(beta[r] for r in beta) - sum(beta[r]**2 - beta[r] * beta.get(Ie(r+1),0)
+                                                for r in beta)
 
 #--------------------------------------------------
 # Partition tuples - parent classes

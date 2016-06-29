@@ -3840,11 +3840,13 @@ class Tableau(ClonableList):
     ##################################
     # contents, residues and degrees #
     ##################################
+
     def content(self, k, multicharge=[0]):
         """
-        Returns the content of ``k`` in a standard tableau. That is, if
-        ``k`` appears in row `r` and column `c` of the tableau then we
-        return `c-r`.
+        Return the content of ``k`` in a standard tableau.
+
+        The content of `k` is if `k` appears in row `r` and column `c`
+        of the tableau then we return `c - r`.
 
         The ``multicharge`` is a list of length 1 which gives an offset for
         all of the contents. It is included mainly for compatibility with
@@ -3861,19 +3863,19 @@ class Tableau(ClonableList):
             ValueError: 6 does not appear in tableau
         """
         for r in range(len(self)):
-          try:
-            return self[r].index(k) - r + multicharge[0]
-          except ValueError:
-            pass
+            try:
+                return self[r].index(k) - r + multicharge[0]
+            except ValueError:
+                pass
         raise ValueError("%d does not appear in tableau"%k)
-
 
     def residue(self, k, e, multicharge=(0,)):
         """
-       INPUT:
-            - an integer `k`, with 1\le k\le n,
-            - an integer `e` in {0,2,3,4,5,...} (not checked!)
-            - an (optional) `multicharge` which defaluts to [0]
+        INPUT:
+
+        - an integer `k`, with 1\le k\le n,
+        - an integer `e` in {0,2,3,4,5,...} (not checked!)
+        - an (optional) `multicharge` which defaluts to [0]
 
         Here l is the level of the shape and n is its size.
 
@@ -3913,10 +3915,11 @@ class Tableau(ClonableList):
 
     def residue_sequence(self, e, multicharge=(0,)):
         """
-       INPUT:
-            - an integer `k`, with 1\le k\le n,
-            - an integer `e` in {0,2,3,4,5,...} (not checked!)
-            - an (optional) sequence of integers the `multicharge` of length 1.
+        INPUT:
+
+        - an integer `k`, with 1\le k\le n,
+        - an integer `e` in {0,2,3,4,5,...} (not checked!)
+        - an (optional) sequence of integers the `multicharge` of length 1.
 
         OUTPUT:
 
@@ -3934,31 +3937,34 @@ class Tableau(ClonableList):
             sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(4)
             4-residue sequence (0,1,3,0) with multicharge (0)
         """
-        from tableau_tuple import ResidueSequence
-        res=[0]*self.size()
-        for r in range(len(self)):
-            for c in range(len(self[r])):
-                res[self[r][c]-1]=multicharge[0]-r+c
-        return ResidueSequence(e,multicharge,res, check=False)
+        from sage.combinat.tableau_tuple import ResidueSequence
+        res = [0] * self.size()
+        for r,row in enumerate(self):
+            for c,entry in enumerate(row):
+                res[entry-1] = multicharge[0] - r + c
+        return ResidueSequence(e, multicharge, res, check=False)
 
-    def degree(self,e, multicharge=(0,)):
+    def degree(self, e, multicharge=(0,)):
         """
+        Return the degree of ``self``.
+
+        The degrees of the tableau ``self`` gives the degree of the
+        homogeneous basis element of the graded Specht module that
+        is indexed by ``self``.
+
+        This is defined recursively by successively stripping off the number
+        `k`, for `k = n, n-1, \ldots, 1` and at stage adding the number of
+        addable cell of the same residue minus the number of removable cells
+        of the same residue as `k` and which are below `k` in the diagram.
+
         INPUT:
 
         - ``e`` -- the **quantum characteristic** ``e``
-        - ``multicharge`` - the multicharge (default: ``[0]``).
+        - ``multicharge`` -- (default: ``[0]``) the multicharge
 
         OUTPUT:
 
         The **degree** of the tableau ``self`` which is a integer.
-
-        This is defined recursively by successively stripping off the number
-        `k`, for `k=n,n-1,...,1` and at stage adding the number of addable cell
-        of the same residue minus the number of removable cells of the same
-        residue as `k` and which are below `k` in the diagram.
-
-        The degrees of the tableau ``self`` gives the degree of the homogeneous basis
-        element of the Graded Specht module which is indexed by ``self``.
 
         EXAMPLES::
 
@@ -3967,10 +3973,11 @@ class Tableau(ClonableList):
             sage: StandardTableau([[1,2,5],[3,4]]).degree(4)
             1
 
-        REFERENCE:
+        REFERENCES:
 
-        .. [BKW]  J. Brundan, A. Kleshchev, and W. Wang, Graded Specht modules,
-                  J. Reine Angew. Math., 655 (2011), 61-87.
+        .. [BKW11] J. Brundan, A. Kleshchev, and W. Wang,
+           *Graded Specht modules*,
+           J. Reine Angew. Math., 655 (2011), 61-87.
         """
         n=self.size()
         if n==0: return 0
@@ -3978,15 +3985,26 @@ class Tableau(ClonableList):
         deg=self.shape()._initial_degree(e,multicharge)
         res=self.shape().initial_tableau().residue_sequence(e, multicharge)
         for r in self.reduced_row_word():
-            if res[r]==res[r+1]: 
-                deg-=2
-            elif res[r]==res[r+1]+1 or res[r]==res[r+1]-1:
-                deg+=(e==2 and 2 or 1)
-            res=res.swap_residues(r,r+1)
+            if res[r] == res[r+1]: 
+                deg -= 2
+            elif res[r] == res[r+1] + 1 or res[r] == res[r+1] - 1:
+                deg += (e == 2 and 2 or 1)
+            res = res.swap_residues(r, r+1)
         return deg
 
-    def codegree(self,e, multicharge=(0,)):
+    def codegree(self, e, multicharge=(0,)):
         """
+        Return the integer which is the Brundan-Kleshchev-Wang codegree of the
+        standard tableau ``self``.
+
+        This is defined recursively by successively stripping off the number `k`,
+        for `k = n, n-1, \ldots, 1` and at stage adding the number of addable cell
+        of the same residue minus the number of removable cells of the same
+        residue as `k` and which are above `k` in the diagram.
+
+        The degrees of the tableau ``self`` gives the degree of the homogeneous basis
+        element of the Graded Specht module which is indexed by ``self``.
+
         INPUT:
 
         - ``e`` -- the **quantum characteristic** ``e``
@@ -3995,17 +4013,6 @@ class Tableau(ClonableList):
         OUTPUT:
 
         The **codegree** of the tableau ``self`` which is a integer.
-
-        Return the integer which is the Brundan-Kleshchev-Wang codegree of the
-        standard tableau ``self``.
-
-        This is defined recursively by successively stripping off the number `k`,
-        for `k=n,n-1,...,1` and at stage adding the number of addable cell
-        of the same residue minus the number of removable cells of the same
-        residue as `k` and which are above `k` in the diagram.
-
-        The degrees of the tableau ``self`` gives the degree of the homogeneous basis
-        element of the Graded Specht module which is indexed by ``self``.
 
         EXAMPLES::
 
@@ -4016,29 +4023,34 @@ class Tableau(ClonableList):
             sage: StandardTableau([[1,2,5],[3,4]]).codegree(4)
             2
 
-        REFERENCE:
-            - J. Brundan, A. Kleshchev, and W. Wang, Graded Specht modules,
-              J. Reine Angew. Math., 655 (2011), 61-87.
-        """
-        if self==[]: return 0  # the trivial case
+        REFERENCES:
 
-        codeg=self.shape().conjugate()._initial_degree(e,tuple(-r for r in multicharge))
-        res=self.shape().conjugate().initial_tableau().residue_sequence(e, multicharge)
+        - [BKW11]_ J. Brundan, A. Kleshchev, and W. Wang,
+          *Graded Specht modules*,
+          J. Reine Angew. Math., 655 (2011), 61-87.
+        """
+        if not self:  # the trivial case
+            return 0
+
+        conj_shape = self.shape().conjugate()
+        codeg = conj_shape._initial_degree(e,tuple(-r for r in multicharge))
+        res = conj_shape.initial_tableau().residue_sequence(e, multicharge)
         for r in self.reduced_row_word():
-            if res[r]==res[r+1]: 
-                codeg-=2
-            elif res[r]==res[r+1]+1 or res[r]==res[r+1]-1:
-                codeg+=(e==2 and 2 or 1)
-            res=res.swap_residues(r,r+1)
+            if res[r] == res[r+1]:
+                codeg -= 2
+            elif res[r] == res[r+1] + 1 or res[r] == res[r+1] - 1:
+                codeg += (e == 2 and 2 or 1)
+            res = res.swap_residues(r, r+1)
         return codeg
 
     def first_row_descent(self):
-        """ Given a tableau return the first cell where the tableau is not row
+        """
+        Given a tableau return the first cell where the tableau is not row
         standard, where the cells are ordered left to right along the rows and
-        then top to bottom. That is, the cell (r,c) with r and c minimal such that
-        the entry in position (r,c) is bigger than the entry in position (r,c+1).
+        then top to bottom. That is, the cell `(r,c)` with `r` and `c` minimal such that
+        the entry in position `(r,c)` is bigger than the entry in position `(r,c+1)`.
 
-        If there is no such cell then None is returned - in this case the
+        If there is no such cell then ``None`` is returned - in this case the
         tableau is row strict.
 
         EXAMPLES::
@@ -4071,11 +4083,11 @@ class Tableau(ClonableList):
             True
         """
         for row in xrange(len(self)-1):
-            col=0
-            while col<len(self[row+1]):
-                if self[row][col]>self[row+1][col]:
-                    return (row,col)
-                col+=1
+            col = 0
+            while col < len(self[row+1]):
+                if self[row][col] > self[row+1][col]:
+                    return (row, col)
+                col += 1
         return None
 
     def reduced_row_word(self):
@@ -4091,7 +4103,7 @@ class Tableau(ClonableList):
         tableau from top to bottom in each component, and then left to right
         along the components.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: StandardTableau([[1,2,3],[4,5],[6]]).reduced_row_word()
             []
@@ -4105,9 +4117,6 @@ class Tableau(ClonableList):
             [3, 4, 5, 4]
         """
         return permutation.Permutation(list(self.entries())).inverse().reduced_word_lexmin()
-
-
-
 
 class SemistandardTableau(Tableau):
     """

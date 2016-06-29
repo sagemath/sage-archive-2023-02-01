@@ -806,7 +806,6 @@ class AbstractLinearCode(module.Module):
         ### Add here any generic encoder/decoder ###
         #This allows any class which inherits from AbstractLinearCode
         #to use generic decoders/encoders
-        self._registered_encoders["ParityCheck"] = LinearCodeParityCheckEncoder
         self._registered_encoders["Systematic"] = LinearCodeSystematicEncoder
         self._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
         self._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
@@ -1912,7 +1911,7 @@ class AbstractLinearCode(module.Module):
         It is possible to manually choose the encoder amongst the list of the available ones::
 
             sage: C.encoders_available()
-            ['GeneratorMatrix', 'Systematic', 'ParityCheck']
+            ['GeneratorMatrix', 'Systematic']
             sage: word = vector((0, 1, 1, 0))
             sage: C.encode(word, 'GeneratorMatrix')
             (1, 1, 0, 0, 1, 1, 0)
@@ -1965,7 +1964,7 @@ class AbstractLinearCode(module.Module):
         an exception will be raised::
 
             sage: C.encoders_available()
-            ['GeneratorMatrix', 'Systematic', 'ParityCheck']
+            ['GeneratorMatrix', 'Systematic']
             sage: C.encoder('NonExistingEncoder')
             Traceback (most recent call last):
             ...
@@ -1994,10 +1993,9 @@ class AbstractLinearCode(module.Module):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: C.encoders_available()
-            ['GeneratorMatrix', 'Systematic', 'ParityCheck']
+            ['GeneratorMatrix', 'Systematic']
             sage: C.encoders_available(True)
             {'GeneratorMatrix': <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>,
-             'ParityCheck': <class 'sage.coding.linear_code.LinearCodeParityCheckEncoder'>,
              'Systematic': <class 'sage.coding.linear_code.LinearCodeSystematicEncoder'>}
         """
         if classes == True:
@@ -4006,6 +4004,8 @@ class LinearCodeParityCheckEncoder(Encoder):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
+            doctest:...: DeprecationWarning: LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.
+            See http://trac.sagemath.org/20835 for details.
             sage: E
             Parity check matrix-based encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
         """
@@ -4022,6 +4022,8 @@ class LinearCodeParityCheckEncoder(Encoder):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
+            doctest:...: DeprecationWarning: LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.
+            See http://trac.sagemath.org/20835 for details.
             sage: E
             Parity check matrix-based encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
         """
@@ -4036,6 +4038,8 @@ class LinearCodeParityCheckEncoder(Encoder):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
+            doctest:...: DeprecationWarning: LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.
+            See http://trac.sagemath.org/20835 for details.
             sage: latex(E)
             \textnormal{Parity check matrix-based encoder for }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
         """
@@ -4051,6 +4055,8 @@ class LinearCodeParityCheckEncoder(Encoder):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
+            doctest:...: DeprecationWarning: LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.
+            See http://trac.sagemath.org/20835 for details.
             sage: E.generator_matrix()
             [1 0 0 0 0 1 1]
             [0 1 0 0 1 0 1]
@@ -4164,7 +4170,7 @@ class LinearCodeSystematicEncoder(Encoder):
         """
         C = self.code()
         if hasattr(self, "_use_pc_matrix"):
-            return C.parity_check_matrix()
+            return C.parity_check_matrix().right_kernel_matrix()
         else:
             self._use_pc_matrix = True
             M = C.generator_matrix()

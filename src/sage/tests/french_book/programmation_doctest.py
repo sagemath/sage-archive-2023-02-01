@@ -256,22 +256,22 @@ Sage example in ./programmation.tex, line 1243::
 
 Sage example in ./programmation.tex, line 1257::
 
-  sage: print 2^2, 3^3, 4^4 ; print 5^5, 6^6
+  sage: print 2^2, 3^3, 4^4 ; print 5^5, 6^6  # not tested - python2
   4 27 256
   3125 46656
 
 Sage example in ./programmation.tex, line 1265::
 
-  sage: for k in [1..10]: print '+', k,
+  sage: for k in [1..10]: print '+', k,  # not tested - python2
   + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10
 
 Sage example in ./programmation.tex, line 1273::
 
-  sage: print 10, 0.5 ; print(10+0.5) ; print 10.0, 5
+  sage: print 10, 0.5 ; print(10+0.5) ; print 10.0, 5  # not tested - python2
   10 0.500000000000000
   10.5000000000000
   10.0000000000000 5
-  sage: print 10+0, 5 ; print(str(10)+str(0.5))
+  sage: print 10+0, 5 ; print(str(10)+str(0.5))  # not tested - python2
   10 5
   100.500000000000000
 

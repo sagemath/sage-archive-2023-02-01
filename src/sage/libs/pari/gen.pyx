@@ -237,19 +237,19 @@ cdef class gen(gen_auto):
         s = repr(self)
         return (objtogen, (s,))
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         sig_on()
         return P.new_gen(gadd(self.g, (<gen>right).g))
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         sig_on()
         return P.new_gen(gsub(self.g, (<gen> right).g))
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         sig_on()
         return P.new_gen(gmul(self.g, (<gen>right).g))
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         sig_on()
         return P.new_gen(gdiv(self.g, (<gen>right).g))
 
@@ -1095,7 +1095,7 @@ cdef class gen(gen_auto):
     def __len__(gen self):
         return glength(self.g)
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Compare ``left`` and ``right`` using ``op``.
 
@@ -1168,7 +1168,7 @@ cdef class gen(gen_auto):
         sig_off()
         return r
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare ``left`` and ``right``.
 

@@ -31,6 +31,7 @@ from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerati
 
 from grs import GeneralizedReedSolomonCode
 from reed_muller_code import ReedMullerCode, BinaryReedMullerCode
+from extended_code import ExtendedCode
 
 from guava import QuasiQuadraticResidueCode, RandomLinearCodeGuava
 _lazy_import('sage.coding.punctured_code', 'PuncturedCode')

@@ -32,6 +32,7 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 import pexpect
 import time
@@ -94,9 +95,9 @@ class OptimalSolver:
         self.verbose = verbose
         self.start()
         if wait:
-            print "Initializing tables..."
+            print("Initializing tables...")
             self.ready()
-            print "Done."
+            print("Done.")
 
     def start(self):
         child = pexpect.spawn(self.__cmd)

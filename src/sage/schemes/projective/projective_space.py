@@ -1236,6 +1236,24 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         w = v.rational_points()
         return matrix(r, n+1, n+1, list(w[0]))
 
+    def curve(self,F):
+        r"""
+        Return a curve defined by ``F`` in this projective space.
+
+        INPUT:
+
+        - ``F`` -- a polynomial, or a list or tuple of polynomials in the coorinate ring
+          of this projective space.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: P.curve([y^2 - x*z])
+            Projective Plane Curve over Rational Field defined by y^2 - x*z
+        """
+        from sage.schemes.curves.constructor import Curve
+        return Curve(F, self)
+
 class ProjectiveSpace_finite_field(ProjectiveSpace_field):
     def _point(self, *args, **kwds):
         """

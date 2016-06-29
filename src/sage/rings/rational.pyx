@@ -721,7 +721,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         l = self.continued_fraction_list()
         return ContinuedFraction_periodic(l)
 
-    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare two rational numbers.
 
@@ -1546,6 +1546,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             return (self > 0)
 
         ## Check that p is prime
+        from .integer_ring import ZZ
         p = ZZ(p)
         if not p.is_prime():
             raise ValueError('p must be "infinity" or a positive prime number.')
@@ -1813,7 +1814,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         alpha, d = d.val_unit(2)
         beta, d  = d.val_unit(5)
         from sage.rings.finite_rings.integer_mod import Mod
-        return Mod(ZZ(10),d).multiplicative_order()
+        return Mod(10, d).multiplicative_order()
 
     def nth_root(self, int n):
         r"""
@@ -2076,7 +2077,7 @@ cdef class Rational(sage.structure.element.FieldElement):
     ################################################################
     # Optimized arithmetic
     ################################################################
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Return ``right`` plus ``self``.
 
@@ -2092,7 +2093,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_add(x.value, self.value, (<Rational>right).value)
         return x
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Return ``self`` minus ``right``.
 
@@ -2107,7 +2108,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_sub(x.value, self.value, (<Rational>right).value)
         return x
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Negate ``self``.
 
@@ -2121,7 +2122,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_neg(x.value, self.value)
         return x
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Return ``self`` times ``right``.
 
@@ -2143,7 +2144,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpq_mul(x.value, self.value, (<Rational>right).value)
         return x
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Return ``self`` divided by ``right``.
 
@@ -3680,8 +3681,8 @@ cdef class Z_to_Q(Morphism):
               From: Integer Ring
               To:   Rational Field
         """
-        import integer_ring
-        import rational_field
+        from . import integer_ring
+        from . import rational_field
         import sage.categories.homset
         Morphism.__init__(self, sage.categories.homset.Hom(integer_ring.ZZ, rational_field.QQ))
 
@@ -3788,7 +3789,7 @@ cdef class int_to_Q(Morphism):
               From: Set of Python objects of type 'int'
               To:   Rational Field
         """
-        import rational_field
+        from . import rational_field
         import sage.categories.homset
         from sage.structure.parent import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), rational_field.QQ))

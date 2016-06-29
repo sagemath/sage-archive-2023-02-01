@@ -1,5 +1,5 @@
 """
-Plane curve constructors
+General curve constructors.
 
 AUTHORS:
 
@@ -29,35 +29,48 @@ from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.structure.all import Sequence
 
+from sage.schemes.affine.affine_space import is_AffineSpace
 from sage.schemes.generic.ambient_space import is_AmbientSpace
 from sage.schemes.generic.algebraic_scheme import is_AlgebraicScheme
+from sage.schemes.projective.projective_space import is_ProjectiveSpace
 
 from sage.schemes.affine.all import AffineSpace
 
 from sage.schemes.projective.all import ProjectiveSpace
 
 
-from projective_curve import (ProjectiveCurve_generic,
-                              ProjectiveSpaceCurve_generic,
-                              ProjectiveCurve_finite_field,
-                              ProjectiveCurve_prime_finite_field)
+from projective_curve import (ProjectivePlaneCurve,
+                              ProjectiveCurve,
+                              ProjectivePlaneCurve_finite_field,
+                              ProjectivePlaneCurve_prime_finite_field)
 
-from affine_curve import (AffineCurve_generic,
-                          AffineSpaceCurve_generic,
-                          AffineCurve_finite_field,
-                          AffineCurve_prime_finite_field)
+from affine_curve import (AffinePlaneCurve,
+                          AffineCurve,
+                          AffinePlaneCurve_finite_field,
+                          AffinePlaneCurve_prime_finite_field)
 
 from sage.schemes.plane_conics.constructor import Conic
 
-def Curve(F):
+def Curve(F, A=None):
     """
-    Return the plane or space curve defined by `F`, where
-    `F` can be either a multivariate polynomial, a list or
+    Return the plane or space curve defined by ``F``, where
+    ``F`` can be either a multivariate polynomial, a list or
     tuple of polynomials, or an algebraic scheme.
 
-    If `F` is in two variables the curve is affine, and if it
-    is homogenous in `3` variables, then the curve is
-    projective.
+    If no ambient space is passed in for ``A``, and if ``F`` is not
+    an algebraic scheme, a new ambient space is constructed.
+
+    Also not specifying an ambient space will cause the curve to be defined
+    in either affine or projective space based on properties of ``F``. In
+    particular, if ``F`` contains a nonhomogenous polynomial, the curve is
+    affine, and if ``F`` consists of homogenous polynomials, then the curve
+    is projective.
+
+    INPUT:
+
+    - ``F`` -- a multivariate polynomial, or a list or tuple of polynomials, or an algebraic scheme.
+
+    - ``A`` -- (default: None) an ambient space in which to create the curve.
 
     EXAMPLE: A projective plane curve
 
@@ -65,7 +78,7 @@ def Curve(F):
 
         sage: x,y,z = QQ['x,y,z'].gens()
         sage: C = Curve(x^3 + y^3 + z^3); C
-        Projective Curve over Rational Field defined by x^3 + y^3 + z^3
+        Projective Plane Curve over Rational Field defined by x^3 + y^3 + z^3
         sage: C.genus()
         1
 
@@ -75,12 +88,12 @@ def Curve(F):
 
         sage: x,y = GF(7)['x,y'].gens()
         sage: C = Curve(y^2 + x^3 + x^10); C
-        Affine Curve over Finite Field of size 7 defined by x^10 + x^3 + y^2
+        Affine Plane Curve over Finite Field of size 7 defined by x^10 + x^3 + y^2
         sage: C.genus()
         0
         sage: x, y = QQ['x,y'].gens()
         sage: Curve(x^3 + y^3 + 1)
-        Affine Curve over Rational Field defined by x^3 + y^3 + 1
+        Affine Plane Curve over Rational Field defined by x^3 + y^3 + 1
 
     EXAMPLE: A projective space curve
 
@@ -88,7 +101,7 @@ def Curve(F):
 
         sage: x,y,z,w = QQ['x,y,z,w'].gens()
         sage: C = Curve([x^3 + y^3 - z^3 - w^3, x^5 - y*z^4]); C
-        Projective Space Curve over Rational Field defined by x^3 + y^3 - z^3 - w^3, x^5 - y*z^4
+        Projective Curve over Rational Field defined by x^3 + y^3 - z^3 - w^3, x^5 - y*z^4
         sage: C.genus()
         13
 
@@ -98,7 +111,7 @@ def Curve(F):
 
         sage: x,y,z = QQ['x,y,z'].gens()
         sage: C = Curve([y^2 + x^3 + x^10 + z^7,  x^2 + y^2]); C
-        Affine Space Curve over Rational Field defined by x^10 + z^7 + x^3 + y^2, x^2 + y^2
+        Affine Curve over Rational Field defined by x^10 + z^7 + x^3 + y^2, x^2 + y^2
         sage: C.genus()
         47
 
@@ -110,7 +123,7 @@ def Curve(F):
         sage: Curve((x-y)*(x+y))
         Projective Conic Curve over Rational Field defined by x^2 - y^2
         sage: Curve((x-y)^2*(x+y)^2)
-        Projective Curve over Rational Field defined by x^4 - 2*x^2*y^2 + y^4
+        Projective Plane Curve over Rational Field defined by x^4 - 2*x^2*y^2 + y^4
 
     EXAMPLE: A union of curves is a curve.
 
@@ -120,7 +133,7 @@ def Curve(F):
         sage: C = Curve(x^3 + y^3 + z^3)
         sage: D = Curve(x^4 + y^4 + z^4)
         sage: C.union(D)
-        Projective Curve over Rational Field defined by
+        Projective Plane Curve over Rational Field defined by
         x^7 + x^4*y^3 + x^3*y^4 + y^7 + x^4*z^3 + y^4*z^3 + x^3*z^4 + y^3*z^4 + z^7
 
     The intersection is not a curve, though it is a scheme.
@@ -164,9 +177,53 @@ def Curve(F):
         Traceback (most recent call last):
         ...
         ValueError: defining polynomial of curve must be nonzero
+
+    ::
+
+        sage: A.<x,y,z> = AffineSpace(QQ, 3)
+        sage: C = Curve([y - x^2, z - x^3], A)
+        sage: A == C.ambient_space()
+        True
     """
+    if not A is None:
+        if not isinstance(F, (list, tuple)):
+            return Curve([F], A)
+        if not is_AmbientSpace(A):
+            raise TypeError("A (=%s) must be either an affine or projective space"%A)
+        if not all([f.parent() == A.coordinate_ring() for f in F]):
+            raise TypeError("F (=%s) must be a list or tuple of polynomials of the coordinate ring of " \
+            "A (=%s)"%(F, A))
+        n = A.dimension_relative()
+        if n < 2:
+            raise TypeError("A (=%s) must be either an affine or projective space of dimension > 1"%A)
+        # there is no dimension check when initializing a plane curve, so check here that F consists
+        # of a single nonconstant polynomial
+        if n == 2:
+            if len(F) != 1 or F[0] == 0 or not is_MPolynomial(F[0]):
+                raise TypeError("F (=%s) must consist of a single nonconstant polynomial to define a plane curve"%(F,))
+        if is_AffineSpace(A):
+            if n > 2:
+                return AffineCurve(A, F)
+            k = A.base_ring()
+            if is_FiniteField(k):
+                if k.is_prime_field():
+                    return AffinePlaneCurve_prime_finite_field(A, F[0])
+                return AffinePlaneCurve_finite_field(A, F[0])
+            return AffinePlaneCurve(A, F[0])
+        elif is_ProjectiveSpace(A):
+            if not all([f.is_homogeneous() for f in F]):
+                raise TypeError("polynomials defining a curve in a projective space must be homogeneous")
+            if n > 2:
+                return ProjectiveCurve(A, F)
+            k = A.base_ring()
+            if is_FiniteField(k):
+                if k.is_prime_field():
+                    return ProjectivePlaneCurve_prime_finite_field(A, F[0])
+                return ProjectivePlaneCurve_finite_field(A, F[0])
+            return ProjectivePlaneCurve(A, F[0])
+
     if is_AlgebraicScheme(F):
-        return Curve(F.defining_polynomials())
+        return Curve(F.defining_polynomials(), F.ambient_space())
 
     if isinstance(F, (list, tuple)):
         if len(F) == 1:
@@ -180,11 +237,11 @@ def Curve(F):
             if not f.is_homogeneous():
                 A = AffineSpace(P.ngens(), P.base_ring())
                 A._coordinate_ring = P
-                return AffineSpaceCurve_generic(A, F)
+                return AffineCurve(A, F)
 
         A = ProjectiveSpace(P.ngens()-1, P.base_ring())
         A._coordinate_ring = P
-        return ProjectiveSpaceCurve_generic(A, F)
+        return ProjectiveCurve(A, F)
 
     if not is_MPolynomial(F):
         raise TypeError("F (=%s) must be a multivariate polynomial"%F)
@@ -199,11 +256,11 @@ def Curve(F):
 
         if is_FiniteField(k):
             if k.is_prime_field():
-                return AffineCurve_prime_finite_field(A2, F)
+                return AffinePlaneCurve_prime_finite_field(A2, F)
             else:
-                return AffineCurve_finite_field(A2, F)
+                return AffinePlaneCurve_finite_field(A2, F)
         else:
-            return AffineCurve_generic(A2, F)
+            return AffinePlaneCurve(A2, F)
 
     elif F.parent().ngens() == 3:
         if F == 0:
@@ -216,11 +273,11 @@ def Curve(F):
 
         if is_FiniteField(k):
             if k.is_prime_field():
-                return ProjectiveCurve_prime_finite_field(P2, F)
+                return ProjectivePlaneCurve_prime_finite_field(P2, F)
             else:
-                return ProjectiveCurve_finite_field(P2, F)
+                return ProjectivePlaneCurve_finite_field(P2, F)
         else:
-            return ProjectiveCurve_generic(P2, F)
+            return ProjectivePlaneCurve(P2, F)
 
 
     else:

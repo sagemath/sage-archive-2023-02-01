@@ -23,6 +23,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 from sage.libs.gsl.all cimport *
@@ -47,7 +48,7 @@ cdef double c_f(double t,void *params):
       else:
          value=wrapper.the_function(t)
    except Exception as msg:
-      print msg
+      print(msg)
       return 0
 
    return value

@@ -52,7 +52,7 @@ Now it takes much less than a second::
 #       Copyright (C) ???? Justin Walker
 #       Copyright (C) ???? Gonzalo Tornaria
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
-#       Copyright (C) 2010-2015 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#       Copyright (C) 2010-2016 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -61,36 +61,33 @@ Now it takes much less than a second::
 #*****************************************************************************
 from __future__ import print_function
 
-import math
 import types
-import operator
-import sage.structure.element
+cimport cython
+
 from cpython.string cimport PyString_AsString
-from cpython.int cimport PyInt_AS_LONG
+from cpython.int cimport PyInt_Check
+from cpython.long cimport PyLong_Check
 from cpython.float cimport PyFloat_AS_DOUBLE
 from cpython.complex cimport PyComplex_RealAsDouble, PyComplex_ImagAsDouble
+
+include "cysignals/memory.pxi"
+include "cysignals/signals.pxi"
+
+from .paridecl cimport *
+from .paripriv cimport *
+from .convert cimport integer_to_gen, gen_to_integer
+from .pari_instance cimport (PariInstance, pari_instance,
+        prec_bits_to_words, prec_words_to_bits, default_bitprec)
+from .pari_instance cimport pari_instance as P  # Shorthand
+
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.sage_object cimport rich_to_bool
 from sage.misc.superseded import deprecation, deprecated_function_alias
-
-from .paridecl cimport *
-from .paripriv cimport *
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
-
-cimport cython
-
-from sage.libs.gmp.mpz cimport *
-from sage.libs.gmp.pylong cimport mpz_set_pylong
 from sage.libs.pari.closure cimport objtoclosure
-
-from pari_instance cimport (PariInstance, pari_instance,
-        prec_bits_to_words, prec_words_to_bits, default_bitprec)
-cdef PariInstance P = pari_instance
-
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
+from sage.rings.infinity import Infinity
 
 
 include 'auto_gen.pxi'
@@ -240,19 +237,19 @@ cdef class gen(gen_auto):
         s = repr(self)
         return (objtogen, (s,))
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         sig_on()
         return P.new_gen(gadd(self.g, (<gen>right).g))
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         sig_on()
         return P.new_gen(gsub(self.g, (<gen> right).g))
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         sig_on()
         return P.new_gen(gmul(self.g, (<gen>right).g))
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         sig_on()
         return P.new_gen(gdiv(self.g, (<gen>right).g))
 
@@ -1098,7 +1095,7 @@ cdef class gen(gen_auto):
     def __len__(gen self):
         return glength(self.g)
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Compare ``left`` and ``right`` using ``op``.
 
@@ -1171,7 +1168,7 @@ cdef class gen(gen_auto):
         sig_off()
         return r
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare ``left`` and ``right``.
 
@@ -1355,7 +1352,7 @@ cdef class gen(gen_auto):
             sage: int(pari(RealField(63)(2^63+2)))
             9223372036854775810L
         """
-        return int(Integer(self))
+        return gen_to_integer(self)
 
     def python_list_small(gen self):
         """
@@ -1582,7 +1579,11 @@ cdef class gen(gen_auto):
             sage: long(pari("Mod(2, 7)"))
             2L
         """
-        return long(Integer(self))
+        x = gen_to_integer(self)
+        if isinstance(x, long):
+            return x
+        else:
+            return long(x)
 
     def __float__(gen self):
         """
@@ -3575,6 +3576,70 @@ cdef class gen(gen_auto):
         sig_on()
         return P.new_gen(nf_rnfeq(self.g, t0.g))
 
+    def _nf_nfzk(self, rnfeq):
+        """
+        Return data for constructing relative number field elements
+        from elements of the base field.
+
+        INPUT:
+
+        - ``rnfeq`` -- relative number field data as returned by
+          :meth:`_nf_rnfeq`
+
+        .. NOTE::
+
+            The output of this method is suitable for the method
+            :meth:`_nfeltup`.
+
+        TESTS::
+
+            sage: nf = pari('nfinit(y^2 - 2)')
+            sage: nf._nf_nfzk(nf._nf_rnfeq('x^2 - 3'))
+            ([2, -x^3 + 9*x], 1/2)
+
+        """
+        cdef GEN zknf, czknf
+        cdef gen t0 = objtogen(rnfeq)
+        cdef gen zk, czk
+        sig_on()
+        nf_nfzk(self.g, t0.g, &zknf, &czknf)
+        zk = P.new_gen_noclear(zknf)
+        czk = P.new_gen(czknf)
+        return zk, czk
+
+    def _nfeltup(self, x, zk, czk):
+        """
+        Construct a relative number field element from an element of
+        the base field.
+
+        INPUT:
+
+        - ``x`` -- element of the base field
+
+        - ``zk``, ``czk`` -- relative number field data as returned by
+          :meth:`_nf_nfzk`
+
+        .. WARNING::
+
+            This is a low-level version of :meth:`rnfeltup` that only
+            needs the output of :meth:`_nf_nfzk`, not a full PARI
+            ``rnf`` structure.  This method may raise errors or return
+            undefined results if called with invalid arguments.
+
+        TESTS::
+
+            sage: nf = pari('nfinit(y^2 - 2)')
+            sage: zk, czk = nf._nf_nfzk(nf._nf_rnfeq('x^2 - 3'))
+            sage: nf._nfeltup('y', zk, czk)
+            -1/2*x^3 + 9/2*x
+
+        """
+        cdef gen t0 = objtogen(x)
+        cdef gen t1 = objtogen(zk)
+        cdef gen t2 = objtogen(czk)
+        sig_on()
+        return P.new_gen(nfeltup(self.g, t0.g, t1.g, t2.g))
+
     reverse = deprecated_function_alias(20219, gen_auto.polrecip)
 
     def eval(self, *args, **kwds):
@@ -4534,7 +4599,6 @@ cpdef gen objtogen(s):
     """
     cdef GEN g
     cdef Py_ssize_t length, i
-    cdef mpz_t mpz_int
     cdef gen v
 
     if isinstance(s, gen):
@@ -4553,18 +4617,12 @@ cpdef gen objtogen(s):
             P.clear_stack()
             return None
         return P.new_gen(g)
-    if isinstance(s, int):
-        sig_on()
-        return P.new_gen(stoi(PyInt_AS_LONG(s)))
+    # This generates slightly more efficient code than
+    # isinstance(s, (int, long))
+    if PyInt_Check(s) | PyLong_Check(s):
+        return integer_to_gen(s)
     if isinstance(s, bool):
         return P.PARI_ONE if s else P.PARI_ZERO
-    if isinstance(s, long):
-        sig_on()
-        mpz_init(mpz_int)
-        mpz_set_pylong(mpz_int, s)
-        g = P._new_GEN_from_mpz_t(mpz_int)
-        mpz_clear(mpz_int)
-        return P.new_gen(g)
     if isinstance(s, float):
         sig_on()
         return P.new_gen(dbltor(PyFloat_AS_DOUBLE(s)))
@@ -4655,10 +4713,10 @@ cpdef gentoobj(gen z, locals={}):
         K = Qp(Integer(p), precp(g))
         return K(z.lift())
     elif t == t_INFINITY:
-        if z.sign() == 1:
-            return sage.rings.infinity.infinity
+        if inf_get_sign(g) >= 0:
+            return Infinity
         else:
-            return -sage.rings.infinity.infinity
+            return -Infinity
     
     # Fallback (e.g. polynomials): use string representation
     from sage.misc.sage_eval import sage_eval

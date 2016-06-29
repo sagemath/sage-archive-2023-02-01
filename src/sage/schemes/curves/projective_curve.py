@@ -1,5 +1,19 @@
 """
-Projective plane curves over a general ring
+Projective curves.
+
+EXAMPLES:
+
+We can construct curves in either a projective plane::
+
+    sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+    sage: C = Curve([y*z^2 - x^3], P); C
+    Projective Plane Curve over Rational Field defined by -x^3 + y*z^2
+
+or in higher dimensional projective spaces::
+
+    sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+    sage: C = Curve([y*w^3 - x^4, z*w^3 - x^4], P); C
+    Projective Curve over Rational Field defined by -x^4 + y*w^3, -x^4 + z*w^3
 
 AUTHORS:
 
@@ -22,34 +36,209 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.fields import Fields
+from sage.categories.homset import Hom
 from sage.interfaces.all import singular
 from sage.misc.all import add, sage_eval
 from sage.rings.all import degree_lowest_rational_function
+from sage.schemes.affine.affine_space import AffineSpace
 
+from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
 from sage.schemes.projective.projective_space import is_ProjectiveSpace
 
-from curve import Curve_generic_projective
+from curve import Curve_generic
 
-class ProjectiveSpaceCurve_generic(Curve_generic_projective):
+class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
     def _repr_type(self):
-        return "Projective Space"
+        r"""
+        Return a string representation of the type of this curve.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([y^3 - z^3 - w^3, z*x^3 - y^4])
+            sage: C._repr_type()
+            'Projective'
+        """
+        return "Projective"
 
     def __init__(self, A, X):
+        r"""
+        Initialization function.
+
+        EXMAPLES::
+
+            sage: P.<x,y,z,w,u> = ProjectiveSpace(GF(7), 4)
+            sage: C = Curve([y*u^2 - x^3, z*u^2 - x^3, w*u^2 - x^3, y^3 - x^3], P); C
+            Projective Curve over Finite Field of size 7 defined by -x^3 + y*u^2,
+            -x^3 + z*u^2, -x^3 + w*u^2, -x^3 + y^3
+
+        ::
+
+            sage: K.<u> = CyclotomicField(11)
+            sage: P.<x,y,z,w> = ProjectiveSpace(K, 3)
+            sage: C = Curve([y*w - u*z^2 - x^2, x*w - 3*u^2*z*w], P); C
+            Projective Curve over Cyclotomic Field of order 11 and degree 10 defined
+            by -x^2 + (-u)*z^2 + y*w, x*w + (-3*u^2)*z*w
+        """
         if not is_ProjectiveSpace(A):
             raise TypeError("A (=%s) must be a projective space"%A)
-        Curve_generic_projective.__init__(self, A, X)
+        Curve_generic.__init__(self, A, X)
         d = self.dimension()
         if d != 1:
             raise ValueError("defining equations (=%s) define a scheme of dimension %s != 1"%(X,d))
 
-class ProjectiveCurve_generic(Curve_generic_projective):
+    def affine_patch(self, i, AA=None):
+        r"""
+        Return the i-th affine patch of this projective curve.
+
+        INPUT:
+
+        - ``i`` -- affine coordinate chart of the projective ambient space of this curve to compute affine patch
+          with respect to.
+
+        - ``AA`` -- (default: None) ambient affine space, this is constructed if it is not given.
+
+        OUTPUT:
+
+        - a curve in affine space.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(CC, 3)
+            sage: C = Curve([y*z - x^2, w^2 - x*y], P)
+            sage: C.affine_patch(0)
+            Affine Curve over Complex Field with 53 bits of precision defined by
+            x0*x1 - 1.00000000000000, x2^2 - x0
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve(x^3 - x^2*y + y^3 - x^2*z, P)
+            sage: C.affine_patch(1)
+            Affine Plane Curve over Rational Field defined by x0^3 - x0^2*x1 - x0^2 + 1
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: P.<u,v,w> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([u^2 - v^2], P)
+            sage: C.affine_patch(1, A).ambient_space() == A
+            True
+        """
+        from constructor import Curve
+        return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i, AA))
+
+    def multiplicity(self, P):
+        r"""
+        Return the multiplicity of this projective curve at the point ``P``.
+
+        This is computed as the corresponding multiplicity of an affine patch of this curve that
+        contains the point. This curve must be defined over a field. An error is returned if ``P``
+        not a point on this curve.
+
+        INPUT:
+
+        - ``P`` -- a point in the ambient space of this curve.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([y^4 - x^3*z - x^2*z^2], P)
+            sage: Q = P([0,0,1])
+            sage: C.multiplicity(Q)
+            2
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(RR, 3)
+            sage: C = Curve([y^8 - x^2*z*w^5, w^2 - 2*y^2 - x*z], P)
+            sage: Q1 = P([-1,-1,1,1])
+            sage: C.multiplicity(Q1)
+            1
+            sage: Q2 = P([1,0,0,0])
+            sage: C.multiplicity(Q2)
+            7
+            sage: Q3 = P([0,0,1,0])
+            sage: C.multiplicity(Q3)
+            8
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(GF(29), 3)
+            sage: C = Curve([y^17 - x^5*w^4*z^8, x*y - z^2], P)
+            sage: Q = P([3,0,0,1])
+            sage: C.multiplicity(Q)
+            8
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = P.curve([y^2*z^5 - x^7])
+            sage: Q = P([-1,-1,1])
+            sage: C.multiplicity(Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: (=(-1 : -1 : 1)) is not a point on (=Projective Plane Curve
+            over Rational Field defined by -x^7 + y^2*z^5)
+        """
+        if not self.base_ring() in Fields():
+            raise TypeError("curve must be defined over a field")
+
+        # Check whether P is a point on this curve
+        try:
+            P = self(P)
+        except TypeError:
+            raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
+
+        # Find an affine chart of the ambient space of self that contains P
+        i = 0
+        while(P[i] == 0):
+            i = i + 1
+        C = self.affine_patch(i)
+        Q = list(P)
+        t = Q.pop(i)
+        Q = [1/t*Q[j] for j in range(self.ambient_space().dimension_relative())]
+        return C.multiplicity(C.ambient_space()(Q))
+
+class ProjectivePlaneCurve(ProjectiveCurve):
     def __init__(self, A, f):
+        r"""
+        Initialization function.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQbar, 2)
+            sage: C = Curve([y*z - x^2 - QQbar.gen()*z^2], P); C
+            Projective Plane Curve over Algebraic Field defined by
+            -x^2 + y*z + (-I)*z^2
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5^2, 'v'), 2)
+            sage: C = Curve([y^2*z - x*z^2 - z^3], P); C
+            Projective Plane Curve over Finite Field in v of size 5^2 defined by y^2*z - x*z^2 - z^3
+        """
         if not (is_ProjectiveSpace(A) and A.dimension != 2):
             raise TypeError("Argument A (= %s) must be a projective plane."%A)
-        Curve_generic_projective.__init__(self, A, [f])
+        Curve_generic.__init__(self, A, [f])
 
     def _repr_type(self):
-        return "Projective"
+        r"""
+        Return a string representation of the type of this curve.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([y*z^3 - 5/7*x^4 + 4*x^3*z - 9*z^4], P)
+            sage: C._repr_type()
+            'Projective Plane'
+        """
+        return "Projective Plane"
 
     def arithmetic_genus(self):
         r"""
@@ -64,7 +253,7 @@ class ProjectiveCurve_generic(Curve_generic_projective):
 
             sage: x,y,z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: C = Curve(y^2*z^7 - x^9 - x*z^8); C
-            Projective Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
+            Projective Plane Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
             sage: C.arithmetic_genus()
             28
             sage: C.genus()
@@ -265,9 +454,20 @@ class ProjectiveCurve_generic(Curve_generic_projective):
         C = Curve(self.affine_patch(patch))
         return C.plot(*args, **kwds)
 
-    def is_singular(C):
+    def is_singular(self, P=None):
         r"""
-        Returns whether the curve is singular or not.
+        Return whether this curve is singular or not, or if a point ``P`` is provided,
+        whether ``P`` is a singular point of this curve.
+
+        INPUT:
+
+        - ``P`` -- (default: None) a point on this curve.
+
+        OUTPUT:
+
+        - Boolean. If no point ``P`` is provided, returns True of False depending on whether
+          this curve is singular or not. If a point ``P`` is provided, returns True or False
+          depending on whether ``P`` is or is not a singular point of this curve.
 
         EXAMPLES:
 
@@ -316,12 +516,139 @@ class ProjectiveCurve_generic(Curve_generic_projective):
             sage: G = Curve(X^2+Y*Z)
             sage: G.is_singular()
             False
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(CC, 2)
+            sage: C = Curve([y^4 - x^3*z], P)
+            sage: Q = P([0,0,1])
+            sage: C.is_singular()
+            True
         """
-        poly = C.defining_polynomial()
-        return poly.parent().ideal(poly.gradient()+[poly]).dimension()> 0
+        if P is None:
+            poly = self.defining_polynomial()
+            return poly.parent().ideal(poly.gradient()+[poly]).dimension() > 0
+        else:
+            return not self.is_smooth(P)
 
+    def tangents(self, P):
+            r"""
+            Return the tangents of this projective plane curve at the point ``P``.
 
-class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
+            These are found by homogenizing the tangents of an affine patch of this curve
+            containing ``P``. The point ``P`` must be a point on this curve.
+
+            INPUT:
+
+            - ``P`` -- a point on this curve.
+
+            OUTPUT:
+
+            - a list of polynomials in the coordinate ring of the ambient space of this curve.
+
+            EXAMPLES::
+
+                sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+                sage: C = P.curve([x^2*y^3*z^4 - y^6*z^3 - 4*x^2*y^4*z^3 - 4*x^4*y^2*z^3 + 3*y^7*z^2 +\
+                10*x^2*y^5*z^2 + 9*x^4*y^3*z^2 + 5*x^6*y*z^2 - 3*y^8*z - 9*x^2*y^6*z - 11*x^4*y^4*z -\
+                7*x^6*y^2*z - 2*x^8*z + y^9 + 2*x^2*y^7 + 3*x^4*y^5 + 4*x^6*y^3 + 2*x^8*y])
+                sage: Q = P([0,1,1])
+                sage: C.tangents(Q)
+                [-y + z, -3*x^2 + y^2 - 2*y*z + z^2]
+
+            ::
+
+                sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+                sage: C = P.curve([z^3*x + y^4 - x^2*z^2])
+                sage: Q = P([1,1,1])
+                sage: C.tangents(Q)
+                Traceback (most recent call last):
+                ...
+                TypeError: (=(1 : 1 : 1)) is not a point on (=Projective Plane Curve
+                over Rational Field defined by y^4 - x^2*z^2 + x*z^3)
+            """
+            # Check whether P is a point on this curve
+            try:
+                P = self(P)
+            except TypeError:
+                raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
+    
+            # Find an affine chart of the ambient space of self that contains P
+            i = 0
+            while(P[i] == 0):
+                i = i + 1
+            C = self.affine_patch(i)
+            Q = list(P)
+            t = Q.pop(i)
+            L = C.tangents(C.ambient_space()([1/t*Q[j] for j in range(self.ambient_space().dimension_relative())]))
+            R = self.ambient_space().coordinate_ring()
+            H = Hom(C.ambient_space().coordinate_ring(), R)
+            G = list(R.gens())
+            x = G.pop(i)
+            phi = H(G)
+            return [phi(g).homogenize(x) for g in L]
+
+    def is_ordinary_singularity(self, P):
+        r"""
+        Return whether the singular point ``P`` of this projective plane curve is an ordinary singularity.
+
+        The point ``P`` is an ordinary singularity of this curve if it is a singular point, and
+        if the tangents of this curve at ``P`` are distinct.
+
+        INPUT:
+
+        - ``P`` -- a point on this curve.
+
+        OUTPUT:
+
+        - Boolean. True or False depending on whether ``P`` is or is not an ordinary singularity of this
+          curve, respectively. An error is raised if ``P`` is not a singular point of this curve.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([y^2*z^3 - x^5], P)
+            sage: Q = P([0,0,1])
+            sage: C.is_ordinary_singularity(Q)
+            False
+
+        ::
+
+            sage: R.<a> = QQ[]
+            sage: K.<b> = NumberField(a^2 - 3)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: C = P.curve([x^2*y^3*z^4 - y^6*z^3 - 4*x^2*y^4*z^3 - 4*x^4*y^2*z^3 + 3*y^7*z^2 + 10*x^2*y^5*z^2\
+            + 9*x^4*y^3*z^2 + 5*x^6*y*z^2 - 3*y^8*z - 9*x^2*y^6*z - 11*x^4*y^4*z - 7*x^6*y^2*z - 2*x^8*z + y^9 +\
+            2*x^2*y^7 + 3*x^4*y^5 + 4*x^6*y^3 + 2*x^8*y])
+            sage: Q = P([0,1,1])
+            sage: C.is_ordinary_singularity(Q)
+            True
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = P.curve([z^5 - y^5 + x^5 + x*y^2*z^2])
+            sage: Q = P([0,1,1])
+            sage: C.is_ordinary_singularity(Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: (=(0 : 1 : 1)) is not a singular point of (=Projective Plane
+            Curve over Rational Field defined by x^5 - y^5 + x*y^2*z^2 + z^5)
+        """
+        r = self.multiplicity(P)
+        if r < 2:
+            raise TypeError("(=%s) is not a singular point of (=%s)"%(P,self))
+
+        T = self.tangents(P)
+
+        # when there is a tangent of higher multiplicity
+        if len(T) < r:
+            return False
+
+        # otherwise they are distinct
+        return True
+
+class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
     def rational_points_iterator(self):
         r"""
         Return a generator object for the rational points on this curve.
@@ -494,7 +821,7 @@ class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
             points.sort()
         return points
 
-class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
+class ProjectivePlaneCurve_prime_finite_field(ProjectivePlaneCurve_finite_field):
     def _points_via_singular(self, sort=True):
         r"""
         Return all rational points on this curve, computed using Singular's
@@ -513,7 +840,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             sage: x, y, z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: f = y^2*z^7 - x^9 - x*z^8
             sage: C = Curve(f); C
-            Projective Curve over Finite Field of size 5 defined by
+            Projective Plane Curve over Finite Field of size 5 defined by
             -x^9 + y^2*z^7 - x*z^8
             sage: C._points_via_singular()
             [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1),
@@ -662,7 +989,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             sage: x, y, z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: f = y^2*z^7 - x^9 - x*z^8
             sage: C = Curve(f); C
-            Projective Curve over Finite Field of size 5 defined by
+            Projective Plane Curve over Finite Field of size 5 defined by
             -x^9 + y^2*z^7 - x*z^8
             sage: C.rational_points()
             [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1),
@@ -685,7 +1012,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         """
         if algorithm == "enum":
 
-            return ProjectiveCurve_finite_field.rational_points(self,
+            return ProjectivePlaneCurve_finite_field.rational_points(self,
                                                                 algorithm="enum",
                                                                 sort=sort)
 
@@ -736,3 +1063,7 @@ def Hasse_bounds(q, genus=1):
         rq = (4*(genus**2)*q).isqrt()
     return (q+1-rq,q+1+rq)
 
+# Fix pickles from changing class names and plane_curves folder name
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.schemes.plane_curves.projective_curve',
+                           'ProjectiveCurve_generic', ProjectivePlaneCurve)

@@ -11,7 +11,7 @@ Constructors for special matrices
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 import sage.rings.all as rings
 from sage.rings.ring import is_Ring
@@ -201,8 +201,8 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
 
         Matrices generated are not uniformly distributed. For unimodular
         matrices over finite field this function does not even generate
-        all of them: for example ``Matrix.random(GF(3), 2)`` never
-        generates ``[[2,0],[0,2]]``. This function is made for
+        all of them: for example ``Matrix.random(GF(3), 2, algorithm='unimodular')``
+        never generates ``[[2,0],[0,2]]``. This function is made for
         teaching purposes.
 
     .. warning::
@@ -1831,7 +1831,7 @@ def block_matrix(*args, **kwds):
     if len(args) == 0:
         args = [[]]
     if len(args) > 1:
-        print args
+        print(args)
         raise TypeError("invalid block_matrix invocation")
 
     sub_matrices = args[0]

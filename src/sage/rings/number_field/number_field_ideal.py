@@ -142,9 +142,8 @@ class NumberFieldIdeal(Ideal_generic):
         """
         EXAMPLES::
 
-            sage: NumberField(x^2 + 1, 'a').ideal(7).__hash__()
-            848642427            # 32-bit
-            3643975048496365947  # 64-bit
+            sage: NumberField(x^2 + 1, 'a').ideal(7).__hash__()  # random
+            7806919040325273549
         """
         try:
             return self._hash

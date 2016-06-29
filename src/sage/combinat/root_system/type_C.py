@@ -9,6 +9,8 @@ Root system data for type C
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 import ambient_space
 
 class AmbientSpace(ambient_space.AmbientSpace):
@@ -237,7 +239,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
         EXAMPLES::
 
-            sage: print CartanType(['C',4])._latex_dynkin_diagram()
+            sage: print(CartanType(['C',4])._latex_dynkin_diagram())
             \draw (0 cm,0) -- (4 cm,0);
             \draw (4 cm, 0.1 cm) -- +(2 cm,0);
             \draw (4 cm, -0.1 cm) -- +(2 cm,0);
@@ -251,7 +253,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
         When ``dual=True``, the Dynkin diagram for the dual Cartan
         type `B_n` is returned::
 
-            sage: print CartanType(['C',4])._latex_dynkin_diagram(dual=True)
+            sage: print(CartanType(['C',4])._latex_dynkin_diagram(dual=True))
             \draw (0 cm,0) -- (4 cm,0);
             \draw (4 cm, 0.1 cm) -- +(2 cm,0);
             \draw (4 cm, -0.1 cm) -- +(2 cm,0);
@@ -275,16 +277,16 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
         EXAMPLES::
 
-            sage: print CartanType(['C',1]).ascii_art()
+            sage: print(CartanType(['C',1]).ascii_art())
             O
             1
-            sage: print CartanType(['C',2]).ascii_art()
+            sage: print(CartanType(['C',2]).ascii_art())
             O=<=O
             1   2
-            sage: print CartanType(['C',3]).ascii_art()
+            sage: print(CartanType(['C',3]).ascii_art())
             O---O=<=O
             1   2   3
-            sage: print CartanType(['C',5]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['C',5]).ascii_art(label = lambda x: x+2))
             O---O---O---O=<=O
             3   4   5   6   7
         """

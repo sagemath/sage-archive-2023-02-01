@@ -116,17 +116,14 @@ removed before passing the data to TOPCOM which cannot handle it::
 
 REFERENCES:
 
-    .. [TOPCOM]
-       J. Rambau,
-       TOPCOM <http://www.rambau.wm.uni-bayreuth.de/TOPCOM/>.
+.. [TOPCOM] J. Rambau,
+   TOPCOM <http://www.rambau.wm.uni-bayreuth.de/TOPCOM/>.
 
-    .. [GKZ]
-       Gel'fand, I. M.; Kapranov, M. M.; and Zelevinsky, A. V.
-       "Discriminants, Resultants and Multidimensional Determinants" Birkhauser 1994.
+.. [GKZ] Gelfand, I. M.; Kapranov, M. M.; and Zelevinsky, A. V.
+   "Discriminants, Resultants and Multidimensional Determinants" Birkhauser 1994
 
-    .. [PUNTOS]
-       Jesus A. De Loera
-       http://www.math.ucdavis.edu/~deloera/RECENT_WORK/puntos2000
+.. [PUNTOS] Jesus A. De Loera
+   http://www.math.ucdavis.edu/~deloera/RECENT_WORK/puntos2000
 
 AUTHORS:
 
@@ -166,6 +163,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
@@ -611,16 +609,16 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         assert proc.readline().strip() == ''
 
         if verbose:
-            print "#### TOPCOM input ####"
-            print "# " + executable
-            print "# " + input_string
+            print("#### TOPCOM input ####")
+            print("# " + executable)
+            print("# " + input_string)
             sys.stdout.flush()
 
         proc.send(input_string)
         proc.send('X\nX\n')
 
         if verbose:
-            print "#### TOPCOM output ####"
+            print("#### TOPCOM output ####")
             sys.stdout.flush()
 
         while True:
@@ -628,12 +626,12 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 line = proc.readline().strip()
             except pexpect.TIMEOUT:
                 if verbose:
-                    print '# Still runnnig '+str(executable)
+                    print('# Still runnnig ' + str(executable))
                 continue
             if len(line)==0: # EOF
                 break;
             if verbose:
-                print "# " + line
+                print("# " + line)
                 sys.stdout.flush()
 
             try:
@@ -643,7 +641,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 raise StopIteration
 
         if verbose:
-            print "#######################"
+            print("#######################")
             sys.stdout.flush()
 
 
@@ -1978,7 +1976,6 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             new_facets = set()
             for facet in visible_facets:
                 simplex = frozenset(list(facet) + [point])
-                # print 'simplex', simplex
                 simplices.append(simplex)
                 for facet in facets_of_simplex(simplex):
                     if facet in visible_facets: continue

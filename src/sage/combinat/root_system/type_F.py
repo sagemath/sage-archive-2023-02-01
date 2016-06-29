@@ -9,6 +9,8 @@ Root system data for type F
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 import ambient_space
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ
@@ -293,7 +295,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
         EXAMPLES::
 
-            sage: print CartanType(['F',4])._latex_dynkin_diagram()
+            sage: print(CartanType(['F',4])._latex_dynkin_diagram())
             \draw (0 cm,0) -- (2 cm,0);
             \draw (2 cm, 0.1 cm) -- +(2 cm,0);
             \draw (2 cm, -0.1 cm) -- +(2 cm,0);
@@ -325,10 +327,10 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
         EXAMPLES::
 
-            sage: print CartanType(['F',4]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['F',4]).ascii_art(label = lambda x: x+2))
             O---O=>=O---O
             3   4   5   6
-            sage: print CartanType(['F',4]).ascii_art(label = lambda x: x-2)
+            sage: print(CartanType(['F',4]).ascii_art(label = lambda x: x-2))
             O---O=>=O---O
             -1  0   1   2
         """

@@ -131,7 +131,7 @@ class CompositionTableau(CombinatorialElement):
         EXAMPLES::
 
             sage: t = CompositionTableau([[1],[3,2],[4,4]])
-            sage: print t._repr_diagram()
+            sage: print(t._repr_diagram())
               1
               3  2
               4  4
@@ -175,7 +175,7 @@ class CompositionTableau(CombinatorialElement):
             3  2
             4  4
         """
-        print self._repr_diagram()
+        print(self._repr_diagram())
 
     def size(self):
         r"""

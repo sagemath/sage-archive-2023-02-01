@@ -9,6 +9,8 @@ Root system data for type E
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 import ambient_space
 from sage.rings.all import ZZ
 from sage.combinat.family import Family
@@ -576,7 +578,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
 
         EXAMPLES::
 
-            sage: print CartanType(['E',7])._latex_dynkin_diagram()
+            sage: print(CartanType(['E',7])._latex_dynkin_diagram())
             \draw (0 cm,0) -- (10 cm,0);
             \draw (4 cm, 0 cm) -- +(0,2 cm);
             \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$1$};
@@ -604,19 +606,19 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
 
         EXAMPLES::
 
-            sage: print CartanType(['E',6]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['E',6]).ascii_art(label = lambda x: x+2))
                     O 4
                     |
                     |
             O---O---O---O---O
             3   5   6   7   8
-            sage: print CartanType(['E',7]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['E',7]).ascii_art(label = lambda x: x+2))
                     O 4
                     |
                     |
             O---O---O---O---O---O
             3   5   6   7   8   9
-            sage: print CartanType(['E',8]).ascii_art(label = lambda x: x+1)
+            sage: print(CartanType(['E',8]).ascii_art(label = lambda x: x+1))
                     O 3
                     |
                     |

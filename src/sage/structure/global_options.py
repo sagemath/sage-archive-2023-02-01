@@ -267,9 +267,9 @@ method of the associated class ``MyClass`` as follows:
         def _repr_(self):
             return self.global_options.dispatch(self,'_repr_','first_option')
         def _repr_with_bells(self):
-            print 'Bell!'
+            print('Bell!')
         def _repr_with_whistles(self):
-            print 'Whistles!'
+            print('Whistles!')
 
 In this example, ``first_option`` is an option of ``MyOptions`` which takes
 values ``bells``, ``whistles``, and so on. Note that it is necessary to make
@@ -369,9 +369,11 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import, print_function
 
-from __builtin__ import str
+from six.moves.builtins import str
 from sage.structure.sage_object import SageObject
+
 
 class GlobalOptions(SageObject):
     r"""
@@ -639,14 +641,16 @@ class GlobalOptions(SageObject):
               - food:  apple
         """
         if get_value==() and set_value=={}:
-            print 'Current %s' % self
+            print('Current %s' % self)
             options=self._value.keys()+self._linked_value.keys()
             for x in self._alt_names:
                 options.remove(x)
             options.sort()
             width=1+max(len(option) for option in options)
-            print '\n'.join('  - {:{}} {}'.format(option+':',width,self[option])
-                            for option in options)
+            print('\n'.join('  - {:{}} {}'.format(option + ':',
+                                                  width,
+                                                  self[option])
+                            for option in options))
 
         # return these options
         if get_value!=():

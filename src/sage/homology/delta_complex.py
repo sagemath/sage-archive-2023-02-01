@@ -66,6 +66,7 @@ from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from sage.arith.all import binomial
 from sage.misc.cachefunc import cached_method
+from sage.misc.decorators import rename_keyword
 
 class DeltaComplex(GenericCellComplex):
     r"""
@@ -242,7 +243,7 @@ class DeltaComplex(GenericCellComplex):
     Type ``delta_complexes.`` and then hit the TAB key to get the
     full list.
     """
-    def __init__(self, data=None, **kwds):
+    def __init__(self, data=None, check_validity=True):
         r"""
         Define a `\Delta`-complex.  See :class:`DeltaComplex` for more
         documentation.
@@ -288,9 +289,6 @@ class DeltaComplex(GenericCellComplex):
                 new_data[d].append(bdry_list)
             return bdry_list
 
-        # process kwds
-        check_validity = kwds.get('check_validity', True)
-        # done with kwds
         new_data = {-1: ((),)}  # add the empty cell
         if data is None:
             pass
@@ -578,7 +576,10 @@ class DeltaComplex(GenericCellComplex):
             cells[-1] = (None,)
         return cells
 
-    def chain_complex(self, **kwds):
+    @rename_keyword(deprecation=20723, check_diffs='check')
+    def chain_complex(self, subcomplex=None, augmented=False,
+                      verbose=False, check=False, dimensions=None,
+                      base_ring=ZZ, cochain=False):
         r"""
         The chain complex associated to this `\Delta`-complex.
 
@@ -603,10 +604,10 @@ class DeltaComplex(GenericCellComplex):
         :param verbose: If True, print some messages as the chain
            complex is computed.
         :type verbose: boolean; optional, default False
-        :param check_diffs: If True, make sure that the chain complex
+        :param check: If True, make sure that the chain complex
            is actually a chain complex: the differentials are
            composable and their product is zero.
-        :type check_diffs: boolean; optional, default False
+        :type check: boolean; optional, default False
 
         .. note::
 
@@ -638,14 +639,6 @@ class DeltaComplex(GenericCellComplex):
             sage: T.homology(subcomplex=A)
             {0: 0, 1: 0, 2: Z}
         """
-        augmented = kwds.get('augmented', False)
-        cochain = kwds.get('cochain', False)
-        verbose = kwds.get('verbose', False)
-        check_diffs = kwds.get('check_diffs', False)
-        base_ring = kwds.get('base_ring', ZZ)
-        dimensions = kwds.get('dimensions', None)
-        subcomplex = kwds.get('subcomplex', None)
-
         if subcomplex is not None:
             # relative chain complex, so don't augment the chain complex
             augmented = False
@@ -695,9 +688,11 @@ class DeltaComplex(GenericCellComplex):
             cochain_diffs = {}
             for dim in differentials:
                 cochain_diffs[dim-1] = differentials[dim].transpose()
-            return ChainComplex(data=cochain_diffs, degree=1, **kwds)
+            return ChainComplex(data=cochain_diffs, degree=1,
+                                base_ring=base_ring, check=check)
         else:
-            return ChainComplex(data=differentials, degree=-1, **kwds)
+            return ChainComplex(data=differentials, degree=-1,
+                                base_ring=base_ring, check=check)
 
     def alexander_whitney(self, cell, dim_left):
         r"""

@@ -2681,7 +2681,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: H = End(P)
             sage: f = H([x**2 + x*z, y**2, z**2])
-            sage: f.conjugating_set(f) # long test
+            sage: f.automorphism_group() # long test
             [
             [1 0 0]
             [0 1 0]
@@ -4458,7 +4458,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         ALGORITHM:
         
-        Implimenting invariant set algorithim from the paper [FMV]_. Given that the set of  `n` th preimages of fixed points is
+        Implementing invariant set algorithim from the paper [FMV]_. Given that the set of  `n` th preimages of fixed points is
         invariant under conjugation find all elements of PGL that take one set to another.
 
         INPUT: Two nonconstant rational functions of same degree.
@@ -4600,7 +4600,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         ALGORITHM:
 
-        Implimenting invariant set algorithim from the paper[FMV]_. Given that the set of `n` th preimages is
+        Implementing invariant set algorithim from the paper[FMV]_. Given that the set of `n` th preimages is
         invariant under conjugation this function finds whether two maps are conjugate.
 
         INPUT: Two nonconstant rational functions of same degree.
@@ -4623,6 +4623,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             True
 
         ::
+
             sage: set_verbose(None)
             sage: P.<x,y> = ProjectiveSpace(QQbar,1)
             sage: H = End(P)

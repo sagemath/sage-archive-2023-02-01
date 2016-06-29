@@ -75,6 +75,11 @@ def _normalize_padic_lseries(self, p, normalize, use_eclib, implementation, prec
 
     TESTS::
 
+        sage: from sage.schemes.elliptic_curves.padics import _normalize_padic_lseries
+        sage: u = _normalize_padic_lseries(None, 5, None, None, 'sage', 10)
+        sage: v = _normalize_padic_lseries(None, 5, "L_ratio", None, 'sage', 10)
+        sage: u == v
+        True
      """
     if use_eclib is not None:
         from sage.misc.superseded import deprecation

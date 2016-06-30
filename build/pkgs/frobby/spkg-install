@@ -9,15 +9,20 @@ fi
 rm -rf "$SAGE_LOCAL/bin/frobby"
 
 GMP_INC_DIR="$SAGE_LOCAL/include"; export GMP_INC_DIR
-ldflags="-L$SAGE_LOCAL/lib/ -lgmpxx -lgmp"; export ldflags
+ldflags="-Wl,-rpath,$SAGE_LOCAL/lib -L$SAGE_LOCAL/lib/ -lgmpxx -lgmp"; export ldflags
 
 cd src
 
-#Apply the patches
-patch -p0 < ../patches/Makefile.patch
-patch -p0 < ../patches/main.cpp.patch
-patch -p0 < ../patches/randomDataGenerators.cpp.patch
-patch -p0 < ../patches/StatisticsStrategy.cpp.patch
+# Apply fixes to upstream source
+echo "Applying patches..."
+for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p0 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
 
 $MAKE MODE=release
 

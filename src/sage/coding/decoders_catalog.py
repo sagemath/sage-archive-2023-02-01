@@ -3,22 +3,22 @@ Index of decoders
 
 The ``codes.decoders`` object may be used to access the decoders that Sage can build.
 
-**Generic decoders**
+**Extended code decoders**
 
-- :class:`linear_code.LinearCodeSyndromeDecoder <sage.coding.linear_code.LinearCodeSyndromeDecoder>`
-- :class:`linear_code.LinearCodeNearestNeighborDecoder <sage.coding.linear_code.LinearCodeNearestNeighborDecoder>`
+- :class:`extended_code.ExtendedCodeOriginalCodeDecoder <sage.coding.extended_code.ExtendedCodeOriginalCodeDecoder>`
 
 **Generalized Reed-Solomon code decoders**
 
 - :class:`grs.GRSBerlekampWelchDecoder <sage.coding.grs.GRSBerlekampWelchDecoder>`
 - :class:`grs.GRSErrorErasureDecoder <sage.coding.grs.GRSErrorErasureDecoder>`
 - :class:`grs.GRSGaoDecoder <sage.coding.grs.GRSGaoDecoder>`
-- :class:`grs.GRSKeyEquationSyndromeDecoder <sage.coding.grs.GRSKeyEquationSyndromeDecoder>`
 - :class:`guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder <sage.coding.guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder>`
+- :class:`grs.GRSKeyEquationSyndromeDecoder <sage.coding.grs.GRSKeyEquationSyndromeDecoder>`
 
-**Extended code decoders**
+**Generic decoders**
 
-- :class:`extended_code.ExtendedCodeOriginalCodeDecoder <sage.coding.extended_code.ExtendedCodeOriginalCodeDecoder>`
+- :class:`linear_code.LinearCodeNearestNeighborDecoder <sage.coding.linear_code.LinearCodeNearestNeighborDecoder>`
+- :class:`linear_code.LinearCodeSyndromeDecoder <sage.coding.linear_code.LinearCodeSyndromeDecoder>`
 
 **Punctured codes decoders**
 
@@ -40,15 +40,15 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from linear_code import (LinearCodeSyndromeDecoder, LinearCodeNearestNeighborDecoder)
-from punctured_code import PuncturedCodeOriginalCodeDecoder
-from grs import (GRSBerlekampWelchDecoder,
-                 GRSGaoDecoder,
-                 GRSKeyEquationSyndromeDecoder,
-                 GRSErrorErasureDecoder)
+from sage.misc.lazy_import import lazy_import as _lazy_import
+
+_lazy_import('sage.coding.extended_code',              'ExtendedCodeOriginalCodeDecoder')
+_lazy_import('sage.coding.grs',                       ['GRSBerlekampWelchDecoder',
+                                                       'GRSErrorErasureDecoder',
+                                                       'GRSGaoDecoder',
+                                                       'GRSKeyEquationSyndromeDecoder'])
 from guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder
-from extended_code import ExtendedCodeOriginalCodeDecoder
-from grs import (GRSBerlekampWelchDecoder,
-                 GRSGaoDecoder,
-                 GRSKeyEquationSyndromeDecoder,
-                 GRSErrorErasureDecoder)
+_lazy_import('sage.coding.linear_code',               ['LinearCodeNearestNeighborDecoder',
+                                                       'LinearCodeSyndromeDecoder'])
+_lazy_import('sage.coding.punctured_code',             'PuncturedCodeOriginalCodeDecoder')
+

@@ -1496,10 +1496,21 @@ class PartitionTuple(CombinatorialElement):
         r"""
         Return the ``e``-th degree of ``self``.
 
+        INPUT:
+
+        - ``e`` -- an  integer  `e>1`(not checked!)
+
+        - ``muticharge`` -- the "multicharge", which is a `l`-tuple of integers
+          where `l` is the :meth:`level` of ``self``.
+
+        OUTPUT:
+
+        A non-negative integer
+
         The `e`-th degree is the sum of the degrees of the standard
-        tableaux of shape `\lambda`. The `e`-th degree is the exponent
+        tableaux of shape ``self``. The `e`-th degree is the exponent
         of `\Phi_e(q)` in the Gram determinant of the Specht module for a
-        semisimple Iwahori-Hecke algebra of type `A` with parameter `q`.
+        semisimple cyclotomic Hecke algebra of type `A` with parameter `q`.
 
         EXAMPLES::
 
@@ -1516,9 +1527,9 @@ class PartitionTuple(CombinatorialElement):
             sage: PartitionTuple([[2,1],[2,2]]).degree(7,(0,0))
             0
 
-        So we concludethat the Gram determinant of `S(5,3)` is
-        `q^N \Phi_2(q)^{169} \Phi_3(q)^{322}` for some integer `N`.
-        Compare with  :meth:`prime_degree`.
+        Therefore, the Gram determinant of `S(5,3)` is 
+        `q^N \Phi_2(q)^{169} \Phi_3(q)^{322}` for some integer `N`. 
+        Compare with :meth:`prime_degree`.
         """
         return sum(t.degree(e,multicharge) for t in self.standard_tableaux())
 
@@ -1526,9 +1537,27 @@ class PartitionTuple(CombinatorialElement):
         r"""
         Return the ``p``-th Degree of ``self``.
 
-        The `p`-th degree is the sum of the degrees of the standard tableaux
-        of shape `\lambda`. The `p`-th degree is the exponent of `p` in the
-        Gram determinant of the Specht module of the symmetric group.
+        INPUT:
+
+        - ``e`` -- an  integer  `e>1`(not checked!)
+
+        - ``muticharge`` -- the "multicharge", which is a `l`-tuple of integers
+          where `l` is the :meth:`level` of ``self``.
+
+        OUTPUT:
+
+        A non-negative integer
+
+        The degree of a partition `\lambda` is the sum of the
+        ``e``-:meth:`degree` of the standard tableaux of shape `\lambda`, for
+        ``e`` a poer of the prime ``p``. The prime degree gives the exponent of
+        `p` in the Gram determinant of the integal Specht module of the
+        symmetric group.
+
+        The `p`-th degree is the sum of the degrees of the standard tableaux of
+        shape ``self``. The `p`-th degree is the exponent of `p` in the Gram
+        determinant of a semisimple cyclotomic Hecke algebra of type `A` with
+        parameter `q=1`.
 
         EXAMPLES::
 
@@ -1541,7 +1570,7 @@ class PartitionTuple(CombinatorialElement):
             sage: PartitionTuple([[2,1],[2,2]]).prime_degree(7,(0,0))
             0
 
-        So we concludethat the Gram determinant of `S(5,3)` is
+       Therefore, the Gram determinant of `S(5,3)` is
         `2^{168} 3^{322}`. Compare with :meth:`degree`.
         """
         ps = [p]

@@ -2469,6 +2469,17 @@ class Partition(CombinatorialElement):
         r"""
         Return the ``e``-th degree of ``self``.
 
+        INPUT:
+
+        - ``e`` -- an  integer  `e>1`(not checked!)
+
+        - ``muticharge`` -- the "multicharge". This is optional and is included
+          for consistency with :meth:`sage.combinat.partition_tuple.PartitionTuple.degree`
+
+        OUTPUT:
+
+        A non-negative integer
+
         The ``e``th degree of a partition `\lambda` is the sum of the ``e``th
         degrees of the standard tableaux of shape `\lambda`. The `e`-th degree
         is the exponent of `\Phi_e(q)` in the Gram determinant of the Specht
@@ -2490,9 +2501,9 @@ class Partition(CombinatorialElement):
             sage: Partition([4,3]).degree(7)
             0
 
-        So we conclude that the Gram determinant of `S(5,3)` is
+        Therefore,  the Gram determinant of `S(5,3)` is
 
-        ..math:
+        ..math::
 
             q^N \Phi_2(q)^{28} \Phi_3(q)^{15} \Phi_4(q)^8 \Phi_5(q)^{13}
 
@@ -2502,12 +2513,24 @@ class Partition(CombinatorialElement):
 
     def prime_degree(self, p, multicharge=(0,)):
         r"""
-        Return the ``p``-th Degree of ``self``.
+        Return the prime degree for the prime integer``p`` for ``self``.
 
-        The degree of a partition `\lambda` is the sum of the degrees
-        of the standard tableaux of shape `\lambda`. The ``p``-th Degree
-        is the exponent of `p` in the Gram determinant of the Specht
-        module of the symmetric group.
+        INPUT:
+
+        - ``p`` -- a prime integer  (not checked!)
+
+        - ``muticharge`` -- the "multicharge". This is optional and is included
+          only for consistency with :meth:`sage.combinat.partition_tuple.PartitionTuple.prime_degree`
+
+        OUTPUT:
+
+        A non-negative integer 
+
+        The degree of a partition `\lambda` is the sum of the
+        ``e``-:meth:`degree` of the standard tableaux of shape `\lambda`, for
+        ``e`` a poer of the prime ``p``. The prime degree gives the exponent of
+        `p` in the Gram determinant of the integal Specht module of the
+        symmetric group.
 
         EXAMPLES::
 
@@ -2520,7 +2543,7 @@ class Partition(CombinatorialElement):
             sage: Partition([4,3]).prime_degree(7)
             0
 
-        So we conclude that the Gram determinant of `S(5,3)` is
+        THerefore, the Gram determinant of `S(5,3)` is
         `2^{36} 3^{15} 5^{13}`.  Compare with :meth:`degree`.
         """
         ps = [p]

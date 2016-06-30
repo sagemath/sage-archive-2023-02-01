@@ -75,7 +75,7 @@ from sage.combinat.permutation import Permutation
 from sage.categories.action import Action
 from sage.sets.set import Set
 from sage.groups.finitely_presented import FinitelyPresentedGroup, FinitelyPresentedGroupElement
-
+from sage.misc.package import PackageNotFoundError
 
 class Braid(FinitelyPresentedGroupElement):
     """
@@ -1427,22 +1427,22 @@ class Braid(FinitelyPresentedGroupElement):
         EXAMPLES::
 
             sage: B = BraidGroup(3)
-            sage: b = B([2, 1, 2, 1])
             sage: a = B([2, 2, -1, -1, 2, 2])
             sage: a.sliding_circuits() # optional - libbraiding
             [[(s0^-1*s1^-1*s0^-1)^2*s1^3*s0^2*s1^3],
-            [s0^-1*s1^-1*s0^-2*s1^-1*s0^2*s1^2*s0^3],
-            [s0^-1*s1^-1*s0^-2*s1^-1*s0^3*s1^2*s0^2],
-            [(s0^-1*s1^-1*s0^-1)^2*s1^4*s0^2*s1^2],
-            [(s0^-1*s1^-1*s0^-1)^2*s1^2*s0^2*s1^4],
-            [s0^-1*s1^-1*s0^-2*s1^-1*s0*s1^2*s0^4],
-            [(s0^-1*s1^-1*s0^-1)^2*s1^5*s0^2*s1],
-            [s0^-1*s1^-1*s0^-2*s1^-1*s0^4*s1^2*s0],
-            [(s0^-1*s1^-1*s0^-1)^2*s1*s0^2*s1^5],
-            [s0^-1*s1^-1*s0^-2*s1*s0^5],
-            [(s0^-1*s1^-1*s0^-1)^2*s1*s0^6*s1],
-            [s0^-1*s1^-1*s0^-2*s1^5*s0]]
-            sage: b.sliding_circuits()
+             [s0^-1*s1^-1*s0^-2*s1^-1*s0^2*s1^2*s0^3],
+             [s0^-1*s1^-1*s0^-2*s1^-1*s0^3*s1^2*s0^2],
+             [(s0^-1*s1^-1*s0^-1)^2*s1^4*s0^2*s1^2],
+             [(s0^-1*s1^-1*s0^-1)^2*s1^2*s0^2*s1^4],
+             [s0^-1*s1^-1*s0^-2*s1^-1*s0*s1^2*s0^4],
+             [(s0^-1*s1^-1*s0^-1)^2*s1^5*s0^2*s1],
+             [s0^-1*s1^-1*s0^-2*s1^-1*s0^4*s1^2*s0],
+             [(s0^-1*s1^-1*s0^-1)^2*s1*s0^2*s1^5],
+             [s0^-1*s1^-1*s0^-2*s1*s0^5],
+             [(s0^-1*s1^-1*s0^-1)^2*s1*s0^6*s1],
+             [s0^-1*s1^-1*s0^-2*s1^5*s0]]
+            sage: b = B([2, 1, 2, 1])
+            sage: b.sliding_circuits() # optional - libbraiding
             [[s0*s1*s0^2, (s0*s1)^2]]
 
         .. WARNING::

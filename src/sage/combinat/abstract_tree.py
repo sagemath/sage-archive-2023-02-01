@@ -63,7 +63,7 @@ incoherent with the data structure.
 - Frédéric Chapoton (2011): contributed some methods
 """
 # python3
-from __future__ import division
+from __future__ import division, absolute_import
 
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
@@ -735,6 +735,196 @@ class AbstractTree(object):
                 if not subtree.is_empty():
                     queue.insert(0, subtree)
 
+    def paths_at_depth(self, depth, path=[]):
+        r"""
+        Return a generator for all paths at a fixed depth.
+
+        This iterates over all paths for nodes that are at the given depth.
+
+        Here the root is considered to have depth 0.
+
+        INPUT:
+
+        - depth -- an integer
+        - path -- optional starting path, serving as a new root
+
+        .. SEEALSO::
+
+            :meth:`paths`, :meth:`paths_to_the_right`, :meth:`node_number_at_depth`
+
+        EXAMPLES::
+
+            sage: T = OrderedTree([[[], [[], [[]]]], [], [[[],[]]], [], []])
+            sage: ascii_art(T)
+                 ______o_______
+                /    /   /  / /
+              _o__  o   o  o o
+             /   /      |
+            o   o_      o_
+               / /     / /
+              o o     o o
+                |
+                o
+            sage: list(T.paths_at_depth(0))
+            [()]
+            sage: list(T.paths_at_depth(2))
+            [(0, 0), (0, 1), (2, 0)]
+            sage: list(T.paths_at_depth(4))
+            [(0, 1, 1, 0)]
+            sage: list(T.paths_at_depth(5))
+            []
+            sage: T = OrderedTree( [] )
+            sage: list(T.paths_at_depth(0))
+            [()]
+        """
+        if depth == 0:
+            yield tuple(path)
+        else:
+            for i in range(len(self)):
+                for p in self[i].paths_at_depth(depth - 1, path + [i]):
+                    yield p
+
+    def node_number_at_depth(self, depth):
+        r"""
+        Return the number of nodes at a given depth.
+
+        This counts all nodes that are at the given depth.
+
+        Here the root is considered to have depth 0.
+
+        INPUT:
+
+        - depth -- an integer
+
+        .. SEEALSO::
+
+            :meth:`node_number`, :meth:`node_number_to_the_right`, :meth:`paths_at_depth`
+
+        EXAMPLES::
+
+            sage: T = OrderedTree([[[], [[]]], [[], [[[]]]], []])
+            sage: ascii_art(T)
+                ___o____
+               /    /  /
+              o_   o_ o
+             / /  / /
+            o o  o o
+              |    |
+              o    o
+                   |
+                   o
+            sage: [T.node_number_at_depth(i) for i in range(6)]
+            [1, 3, 4, 2, 1, 0]
+        """
+        if depth == 0:
+            return Integer(1)
+        return sum(son.node_number_at_depth(depth - 1) for son in self)
+
+    def paths_to_the_right(self, path):
+        r"""
+        Return a generator of paths for all nodes at the same
+        depth and to the right of the node identified by ``path``.
+
+        This iterates over the paths for nodes that are at the same
+        depth as the given one, and strictly to its right.
+
+        INPUT:
+
+        - ``path`` -- any path in the tree
+
+        .. SEEALSO::
+
+            :meth:`paths`, :meth:`paths_at_depth`, :meth:`node_number_to_the_right`
+
+        EXAMPLES::
+
+            sage: T = OrderedTree([[[], [[]]], [[], [[[]]]], []])
+            sage: ascii_art(T)
+                ___o____
+               /    /  /
+              o_   o_ o
+             / /  / /
+            o o  o o
+              |    |
+              o    o
+                   |
+                   o
+            sage: g = T.paths_to_the_right(())
+            sage: list(g)
+            []
+
+            sage: g = T.paths_to_the_right((0,))
+            sage: list(g)
+            [(1,), (2,)]
+
+            sage: g = T.paths_to_the_right((0,1))
+            sage: list(g)
+            [(1, 0), (1, 1)]
+
+            sage: g = T.paths_to_the_right((0,1,0))
+            sage: list(g)
+            [(1, 1, 0)]
+
+            sage: g = T.paths_to_the_right((1,2))
+            sage: list(g)
+            []
+        """
+        depth = len(path)
+        if (not depth) or path[0] >= len(self):
+            return
+        for i in range(path[0] + 1, len(self)):
+            for p in self[i].paths_at_depth(depth - 1, path=[i]):
+                yield p
+        for p in self[path[0]].paths_to_the_right(path[1:]):
+            yield tuple([path[0]] + list(p))
+
+    def node_number_to_the_right(self, path):
+        r"""
+        Return the number of nodes at the same depth and to the right of
+        the node identified by ``path``.
+
+        This counts the nodes that are at the same depth as the given
+        one, and strictly to its right.
+
+        .. SEEALSO::
+
+            :meth:`node_number`, :meth:`node_number_at_depth`, :meth:`paths_to_the_right`
+
+        EXAMPLES::
+
+            sage: T = OrderedTree([[[], [[]]], [[], [[[]]]], []])
+            sage: ascii_art(T)
+                ___o____
+               /    /  /
+              o_   o_ o
+             / /  / /
+            o o  o o
+              |    |
+              o    o
+                   |
+                   o
+            sage: T.node_number_to_the_right(())
+            0
+            sage: T.node_number_to_the_right((0,))
+            2
+            sage: T.node_number_to_the_right((0,1))
+            2
+            sage: T.node_number_to_the_right((0,1,0))
+            1
+
+            sage: T = OrderedTree([])
+            sage: T.node_number_to_the_right(())
+            0
+        """
+        depth = len(path)
+        if depth == 0:
+            return Integer(0)
+        result = sum(son.node_number_at_depth(depth - 1)
+                     for son in self[path[0] + 1:])
+        if path[0] < len(self) and path[0] >= 0:
+            result += self[path[0]].node_number_to_the_right(path[1:])
+        return result
+
     def subtrees(self):
         """
         Return a generator for all nonempty subtrees of ``self``.
@@ -790,6 +980,10 @@ class AbstractTree(object):
 
         The root element is represented by the empty tuple ``()``.
 
+        .. SEEALSO::
+
+            :meth:`paths_at_depth`, :meth:`paths_to_the_right`
+
         EXAMPLES::
 
             sage: list(OrderedTree([]).paths())
@@ -820,6 +1014,10 @@ class AbstractTree(object):
     def node_number(self):
         """
         The number of nodes of ``self``.
+
+        .. SEEALSO::
+
+            :meth:`node_number_at_depth`, :meth:`node_number_to_the_right`
 
         EXAMPLES::
 

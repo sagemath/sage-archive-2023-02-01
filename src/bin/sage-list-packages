@@ -5,8 +5,11 @@
 
 from __future__ import print_function
 
-import os, sys, argparse, re
-from string import join
+import os
+import sys
+import argparse
+import re
+
 
 if "SAGE_ROOT" not in os.environ:
     raise RuntimeError("The environment variable SAGE_ROOT must be set.")
@@ -106,7 +109,7 @@ else:
             line = [p, local.get(p, remote.get(p, 'not_found')),
                     installed.get(p, 'not_installed')]
             if args['dump']:
-                print(join(line, ' '))
+                print(' '.join(line))
             else:
                 print("{:.<40} {} ({})".format(*line))
     else:

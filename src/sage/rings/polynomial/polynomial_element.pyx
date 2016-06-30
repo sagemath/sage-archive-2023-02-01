@@ -85,6 +85,7 @@ from sage.structure.element cimport (Element, RingElement,
 from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer cimport Integer, smallInteger
+from sage.libs.gmp.mpz cimport *
 from sage.rings.fraction_field import is_FractionField
 from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
 
@@ -2145,9 +2146,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         return generic_power(self,right)
 
-    cpdef Polynomial power_trunc(self, unsigned long n, long prec):
+    def power_trunc(self, n, prec):
         r"""
-        Truncated power
+        Truncated ``n``-th power of this polynomial up to precision ``prec``
 
         INPUT:
 
@@ -2158,12 +2159,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
-            sage: p = x+1
-            sage: q = p.power_trunc(100, 10)
-            sage: q
-            1902231808400*x^9 + 186087894300*x^8 + ... + 4950*x^2 + 100*x + 1
-            sage: (p^100).truncate(10) == q
-            True
+            sage: (3*x^2 - 2*x + 1).power_trunc(5, 8)
+            -1800*x^7 + 1590*x^6 - 1052*x^5 + 530*x^4 - 200*x^3 + 55*x^2 - 10*x + 1
+            sage: ((3*x^2 - 2*x + 1)^5).truncate(8)
+            -1800*x^7 + 1590*x^6 - 1052*x^5 + 530*x^4 - 200*x^3 + 55*x^2 - 10*x + 1
+
+            sage: S.<y> = R[]
+            sage: (x+y).power_trunc(5,5)
+            5*x*y^4 + 10*x^2*y^3 + 10*x^3*y^2 + 5*x^4*y + x^5
+            sage: ((x+y)^5).truncate(5)
+            5*x*y^4 + 10*x^2*y^3 + 10*x^3*y^2 + 5*x^4*y + x^5
 
             sage: R.<x> = GF(3)[]
             sage: p = x^2 - x + 1
@@ -2173,28 +2178,106 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (p^80).truncate(20) == q
             True
 
+            sage: R.<x> = GF(7)[]
+            sage: p = (x^2 + x + 1).power_trunc(2^100, 100)
+            sage: p
+            5*x^99 + 5*x^98 + 3*x^97 + 2*x^96 + 5*x^95 + ... + 2*x^5 + 5*x^4 + 2*x^3 + 3*x^2 + 4*x + 1
+            sage: for i in range(100):
+            ....:    q1 = (x^2 + x + 1).power_trunc(2^100 + i, 100)
+            ....:    q2 = p * (x^2 + x + 1).power_trunc(i, 100)
+            ....:    q2 = q2.truncate(100)
+            ....:    assert q1 == q2, "i = {}".format(i)
+
+        TESTS::
+
+            sage: x = polygen(QQ)
+            sage: (3*x-5).power_trunc(2^200, 0)
+            0
+            sage: x.power_trunc(-1, 10)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a non-negative integer
+        """
+        cdef long lprec = pyobject_to_long(prec)
+        cdef Integer ZZn = ZZ(n)
+
+        if mpz_sgn(ZZn.value) < 0:
+            raise ValueError("n must be a non-negative integer")
+        elif lprec <= 0:
+            return self._parent.zero()
+        elif mpz_fits_ulong_p(ZZn.value):
+            return self._power_trunc(mpz_get_ui(ZZn.value), lprec)
+
+        # check for idempotence, and store the result otherwise
+        cdef Polynomial a = self.truncate(lprec)
+        cdef Polynomial aa = a._mul_trunc_(a, lprec)
+        if aa == a:
+            return a
+
+        # since we've computed a^2, let's start squaring there
+        # so, let's keep the least-significant bit around, just
+        # in case.
+        cdef int mul_to_do = mpz_tstbit(ZZn.value, 0)
+        cdef mp_bitcnt_t i = 1
+        cdef mp_bitcnt_t size = mpz_sizeinbase(ZZn.value, 2)
+
+        # One multiplication can be saved by starting with
+        # the second-smallest power needed rather than with 1
+        # we've already squared a, so let's start there.
+        cdef Polynomial apow = aa
+        while mpz_tstbit(ZZn.value, i):
+            apow = apow._mul_trunc_(apow, lprec)
+            i += 1
+        cdef Polynomial power = apow
+        i += 1
+
+        # now multiply that least-significant bit in...
+        if mul_to_do:
+            power = power._mul_trunc_(a, lprec)
+
+        # and this is straight from the book.
+        while i < size:
+            apow = apow._mul_trunc_(apow, lprec)
+            if mpz_tstbit(ZZn.value, i):
+                power = power._mul_trunc_(apow, lprec)
+            i += 1
+
+        return power
+
+    cpdef Polynomial _power_trunc(self, unsigned long n, long prec):
+        r"""
+        Truncated ``n``-th power of this polynomial up to precision ``prec``
+
+        INPUT:
+
+        - ``n`` -- (non-negative integer) power to be taken
+
+        - ``prec`` -- (integer) the precision
+
         TESTS::
 
             sage: R.<x> = QQ['y'][]
             sage: for p in [R.one(), x, x+1, x-1, x^2 - 1]:
             ....:     for n in range(0, 20):
             ....:         for prec in [1, 2, 3, 10]:
-            ....:             assert p.power_trunc(n, prec) == (p**n).truncate(prec)
+            ....:             assert p._power_trunc(n, prec) == (p**n).truncate(prec)
         """
-        cdef Polynomial a = self.truncate(prec)
+        if prec <= 0:
+            return self._parent.zero()
 
         if n < 4:
             # These cases will probably be called often
             # and don't benefit from the code below
             if n == 0:
                 return self.parent().one()
-            if n == 1:
-                return a
+            elif n == 1:
+                return self.truncate(prec)
             elif n == 2:
-                return a._mul_trunc_(a, prec)
+                return self._mul_trunc_(self, prec)
             elif n == 3:
-                return a._mul_trunc_(a, prec)._mul_trunc_(a, prec)
+                return self._mul_trunc_(self, prec)._mul_trunc_(self, prec)
 
+        cdef Polynomial a = self.truncate(prec)
         # check for idempotence, and store the result otherwise
         cdef Polynomial aa = a._mul_trunc_(a, prec)
         if aa == a:
@@ -2203,7 +2286,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # since we've computed a^2, let's start squaring there
         # so, let's keep the least-significant bit around, just
         # in case.
-        cdef long m = n & 1
+        cdef int mul_to_do = <int>(n & 1)
         n = n >> 1
 
         # One multiplication can be saved by starting with
@@ -2217,7 +2300,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         n = n >> 1
 
         # now multiply that least-significant bit in...
-        if m:
+        if mul_to_do:
             power = power._mul_trunc_(a, prec)
 
         # and this is straight from the book.

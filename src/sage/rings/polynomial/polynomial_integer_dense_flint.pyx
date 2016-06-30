@@ -1086,7 +1086,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                     sig_off()
                 return res
 
-    cpdef Polynomial power_trunc(self, unsigned long n, long prec):
+    cpdef Polynomial _power_trunc(self, unsigned long n, long prec):
         r"""
         Truncated power
 

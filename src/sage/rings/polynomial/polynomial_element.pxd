@@ -17,7 +17,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cpdef bint is_one(self)
 
     cpdef Polynomial _mul_trunc_(self, Polynomial right, long n)
-    cpdef Polynomial power_trunc(self, unsigned long n, long prec)
+    cpdef Polynomial _power_trunc(self, unsigned long n, long prec)
 
     # UNSAFE, only call from an inplace operator
     # may return a new element if not possible to modify inplace

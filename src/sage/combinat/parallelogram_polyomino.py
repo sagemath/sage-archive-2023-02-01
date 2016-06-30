@@ -92,6 +92,33 @@ ParallelogramPolyominoesOptions = GlobalOptions(
 
 
 class _drawing_tool:
+    r"""
+    Technical class to produce TIKZ drawing.
+
+    This class contains some 2D geometric tools to produce some TIKZ 
+    drawings.
+    With that classes you can use options to set up drawing informations.
+    The the class will produce a drawin by using those informations.
+
+    EXAMPLES::
+
+        sage: dt = _drawing_tool(default_tikz_options)
+        sage: dt.draw_line( [1,1], [-1,-1] )
+
+        sage: opt = ParallelogramPolyominoesOptions['tikz_options']
+        sage: dt = _drawing_tool(opt)
+        sage: dt.draw_line([1, 1], [-1, -1])
+
+        sage: fct = lambda vec: [2*vec[0], vec[1]]
+        sage: dt = _drawing_tool(opt, fct)
+        sage: dt.draw_line([1, 1], [-1, -1])
+
+        sage: opt = copy.deepcopy(opt)
+        sage: opt['mirror'] = True
+        sage: dt = _drawing_tool(opt)
+        sage: dt.draw_line([1, 1], [-1, -1])
+
+    """
     def __init__(self, options, XY=lambda v: v):
         self._XY = lambda v: XY([float(v[0]), float(v[1])])
         self._translation = options['translation']
@@ -104,7 +131,31 @@ class _drawing_tool:
 
     def XY(self, v):
         """
-        TODO
+        This function give the image of v by some transformation given by the 
+        drawingoption of ``_drawing_tool``.
+
+        The transformation is the composition of rotation, mirror, translation 
+        and XY user function.
+        First we apply XY function, then the translation, then the mirror and 
+        finaly the rotation.
+
+        EXAMPLES::
+
+            sage: opt = ParallelogramPolyominoesOptions['tikz_options']
+            sage: dt = _drawing_tool(opt)
+            sage: dt.XY( [1, 1] )
+            [1, 1]
+
+            sage: fct = lambda vec: [2*vec[0], vec[1]]
+            sage: dt = _drawing_tool(opt, fct)
+            sage: dt.XY([1, 1])
+            [2, 1]
+
+            sage: opt = copy.deepcopy(opt)
+            sage: opt['mirror'] = True
+            sage: dt = _drawing_tool(opt)
+            sage: dt.XY([1, 1])
+            [-1, 1]
         """
         def translate(pos, v):
             return [pos[0]+v[0], pos[1]+v[1]]
@@ -134,7 +185,15 @@ class _drawing_tool:
 
     def draw_line(self, v1, v2, color=None, size=None):
         """
-        TODO
+        Return the TIKZ code for a line according the drawing option given 
+        to ``_drawing_tool``.
+
+        EXAMPLES::
+
+            sage: opt = ParallelogramPolyominoesOptions['tikz_options']
+            sage: dt = _drawing_tool(opt)
+            sage: dt.draw_line([1, 1], [-1, -1])
+
         """
         if color is None:
             color = self._color_line
@@ -148,7 +207,15 @@ class _drawing_tool:
 
     def draw_polyline(self, list_of_vertices, color=None, size=None):
         """
-        TODO
+        Return the TIKZ code for a polyline according the drawing option given 
+        to ``_drawing_tool``.
+
+        EXAMPLES::
+
+            sage: opt = ParallelogramPolyominoesOptions['tikz_options']
+            sage: dt = _drawing_tool(opt)
+            sage: dt.draw_polyline([1, 1], [-1, -1], [0,0])
+
         """
         res = ""
         for i in range(len(list_of_vertices)-1):
@@ -159,7 +226,15 @@ class _drawing_tool:
 
     def draw_point(self, p1, color=None, size=None):
         """
-        TODO
+        Return the TIKZ code for a point according the drawing option given 
+        to ``_drawing_tool``.
+
+        EXAMPLES::
+
+            sage: opt = ParallelogramPolyominoesOptions['tikz_options']
+            sage: dt = _drawing_tool(opt)
+            sage: dt.draw_point([1, 1])
+
         """
         if color is None:
             color = self._color_point
@@ -173,7 +248,19 @@ class _drawing_tool:
 
 class ParallelogramPolyomino(ClonableList):
     r"""
-    The class of Parallelogram Polyominoes
+    Parallelogram Polyominoes.
+
+    A parallelogram polyomino is a finite connected union of cells 
+    whose boundary can be decomposed in two paths, the upper and the lower 
+    paths, which are comprised of north and east unit steps and meet only at 
+    their starting and final points.
+
+    Parallelogram Polyominoes can be defined with those two paths.
+
+    EXAMPLES::
+        sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
+        sage: pp
+        [[0, 1], [1, 0]]
     """
     __metaclass__ = InheritComparisonClasscallMetaclass
 

@@ -8639,9 +8639,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             from sage.misc.misc import newton_method_sizes
             x = p.parent().gen()
             for i in newton_method_sizes(p.degree()//m+1):
-                # NOTE: if we had a _power_trunc_ we might preferably use it
-                # rather than the generic power modulo below
-                qi = pow(q, m-1, x**i).inverse_series_trunc(i)
+                qi = q._power_trunc(m-1, i).inverse_series_trunc(i)
                 q = ((m-1) * q + qi._mul_trunc_(p,i)) / m
 
                 # NOTE: if we knew that p was a n-th power we could remove the check

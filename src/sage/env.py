@@ -134,6 +134,19 @@ if ' ' in DOT_SAGE:
         print("directory with no spaces that you have write")
         print("permissions to before you start sage.")
 
+
+CYGWIN_VERSION = None
+if UNAME[:6] == 'CYGWIN':
+    import re
+    _uname = os.uname()
+    if len(_uname) >= 2:
+        m = re.match(r'(\d+\.\d+\.\d+)\(.+\)', _uname[2])
+        if m:
+            CYGWIN_VERSION = tuple(m.group(1).split('.'))
+
+        del m
+    del _uname, re
+
 # things that need DOT_SAGE
 _add_variable_or_fallback('PYTHON_EGG_CACHE',   opj('$DOT_SAGE', '.python-eggs'))
 _add_variable_or_fallback('SAGE_STARTUP_FILE',  opj('$DOT_SAGE', 'init.sage'))

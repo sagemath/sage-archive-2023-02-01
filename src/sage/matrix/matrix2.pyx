@@ -14519,7 +14519,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ...                   [-1, -2, -2,  0],
             ...                   [-2, -1,  0, -4]])
             sage: A.I
-            doctest:861: DeprecationWarning: The I property on matrices has been deprecated. Please use the inverse() method instead.
+            doctest:...: DeprecationWarning: The I property on matrices has been deprecated. Please use the inverse() method instead.
             See http://trac.sagemath.org/20904 for details.
             [ 0  2  1  0]
             [-4 -8 -2  7]

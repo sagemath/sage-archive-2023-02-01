@@ -259,12 +259,12 @@ class DirichletCharacter(MultiplicativeGroupElement):
                 if R.is_exact() and any(map(lambda u, v: u**v != 1, x, orders)):
                     raise ValueError("values (= {}) must have multiplicative orders dividing {}, respectively"
                                      .format(x, orders))
-                self.__values_on_gens = x
+                self.values_on_gens.set_cache(x)
         else:
             if free_module_element.is_FreeModuleElement(x):
                 self.element.set_cache(x)
             else:
-                self.__values_on_gens = x
+                self.values_on_gens.set_cache(x)
 
     @cached_method
     def __eval_at_minus_one(self):
@@ -1687,6 +1687,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
                 exponents[i] = 0
                 i += 1
 
+    @cached_method(do_pickle=True)
     def values_on_gens(self):
         r"""
         Return a tuple of the values of ``self`` on the standard
@@ -1697,16 +1698,19 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e = DirichletGroup(16)([-1, 1])
             sage: e.values_on_gens ()
             (-1, 1)
-        """
-        try:
-            return self.__values_on_gens
-        except AttributeError:
-            pows = self.parent()._zeta_powers
-            v = tuple([pows[i] for i in self.element()])
-            self.__values_on_gens = v
-            return v
 
-    @cached_method
+        .. NOTE::
+
+            The constructor of :class:`DirichletCharacter` sets the
+            cache of :meth:`element` or of :meth:`values_on_gens`. The cache of
+            one of these methods needs to be set for the other method to work properly,
+            these caches have to be stored when pickling an instance of
+            :class:`DirichletCharacter`.
+        """
+        pows = self.parent()._zeta_powers
+        return tuple([pows[i] for i in self.element()])
+
+    @cached_method(do_pickle=True)
     def element(self):
         r"""
         Return the underlying `\ZZ/n\ZZ`-module
@@ -1716,7 +1720,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
            Please do not change the entries of the returned vector;
            this vector is mutable *only* because immutable vectors are
-           implemented yet.
+           not implemented yet.
 
         EXAMPLES::
 
@@ -1725,6 +1729,14 @@ class DirichletCharacter(MultiplicativeGroupElement):
             (2, 0)
             sage: b.element()
             (0, 1)
+
+        .. NOTE::
+
+            The constructor of :class:`DirichletCharacter` sets the
+            cache of :meth:`element` or of :meth:`values_on_gens`. The cache of
+            one of these methods needs to be set for the other method to work properly,
+            these caches have to be stored when pickling an instance of
+            :class:`DirichletCharacter`.
         """
         P = self.parent()
         M = P._module

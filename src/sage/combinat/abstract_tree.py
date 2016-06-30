@@ -278,7 +278,7 @@ class AbstractTree(object):
             action = lambda x: None
         stack = []
         stack.append(self)
-        while len(stack) > 0:
+        while stack:
             node = stack.pop()
             action(node)
             for i in range(len(node)):
@@ -640,7 +640,7 @@ class AbstractTree(object):
         if action is None:
             action = lambda x: None
         stack = [self]
-        while len(stack) > 0:
+        while stack:
             node = stack[-1]
             if node is not None:
                 # A "None" on the stack means that the node right before
@@ -728,7 +728,7 @@ class AbstractTree(object):
             action = lambda x: None
         queue = []
         queue.append(self)
-        while len(queue) > 0:
+        while queue:
             node = queue.pop()
             action(node)
             for subtree in node:
@@ -746,7 +746,11 @@ class AbstractTree(object):
         INPUT:
 
         - depth -- an integer
-        - path -- optional starting path, serving as a new root
+        - path -- optional given path (as a list) used in the recursion
+
+        .. WARNING::
+
+            The ``path`` option should not be used directly.
 
         .. SEEALSO::
 
@@ -773,11 +777,12 @@ class AbstractTree(object):
             [(0, 1, 1, 0)]
             sage: list(T.paths_at_depth(5))
             []
-            sage: T = OrderedTree( [] )
-            sage: list(T.paths_at_depth(0))
+
+            sage: T2 = OrderedTree([])
+            sage: list(T2.paths_at_depth(0))
             [()]
         """
-        if depth == 0:
+        if not depth:
             yield tuple(path)
         else:
             for i in range(len(self)):
@@ -1173,11 +1178,13 @@ class AbstractTree(object):
         whitesep = acc._root+1
         lf_sep = " "*(acc._root+1) + "_"*(acc._l-acc._root)
         ls_sep = " "*(acc._root) + "/" + " "*(acc._l-acc._root)
-        while len(l_repr) > 0:
+        while l_repr:
             t_repr = l_repr.pop(0)
             acc += AsciiArt([" "]) + t_repr
-            if len(l_repr) == 0: lf_sep += "_"*(t_repr._root+1)
-            else: lf_sep += "_"*(t_repr._l+1)
+            if len(l_repr) == 0:
+                lf_sep += "_"*(t_repr._root+1)
+            else:
+                lf_sep += "_"*(t_repr._l+1)
             ls_sep += " "*(t_repr._root) + "/" + " "*(t_repr._l-t_repr._root)
         mid = whitesep + (len(lf_sep) - whitesep) // 2
         node = node_to_str( self )
@@ -1238,9 +1245,9 @@ class AbstractTree(object):
             ╭──o──╮  o  ╭o╮
             │  │  │  │  │ │
             o  o  o  o  o o
-               │  │  │ 
-              ╭o╮ o  o 
-              │ │    │ 
+               │  │  │
+              ╭o╮ o  o
+              │ │    │
               o o   ╭o╮
                     │ │
                     o o
@@ -1250,11 +1257,11 @@ class AbstractTree(object):
             ╭──2──╮   10  ╭16╮
             │  │  │   │   │  │
             3  4  8   11  17 18
-               │  │   │  
-              ╭5╮ 9   12 
-              │ │     │  
-              6 7   ╭13╮ 
-                    │  │ 
+               │  │   │
+              ╭5╮ 9   12
+              │ │     │
+              6 7   ╭13╮
+                    │  │
                     14 15
         """
 
@@ -1291,7 +1298,7 @@ class AbstractTree(object):
         whitesep = acc._root
         lf_sep = u" " * whitesep + u"╭" + u"─" * (acc._l - acc._root)
         ls_sep = u" " * whitesep + u"│" + u" " * (acc._l - acc._root)
-        while len(l_repr):
+        while l_repr:
             tr = l_repr.pop(0)
             acc += UnicodeArt([u" "]) + tr
             if not len(l_repr):
@@ -1529,7 +1536,8 @@ class AbstractTree(object):
                 matrix.append(node_to_str(node))
 
             def concat_matrix(mat, mat2):
-                lmat = len(mat); lmat2 = len(mat2)
+                lmat = len(mat)
+                lmat2 = len(mat2)
                 for i in range(max(lmat, lmat2)):
                     # mat[i] --> n & n & ...
                     # mat2[i] -> n' & n' & ...
@@ -1713,7 +1721,7 @@ class AbstractTree(object):
                 for i in range(split):
                     tmp(self[i], edge, nodes, edges, matrix)
                 # # prepare the root line
-                if len(matrix) != 0:
+                if len(matrix):
                     nb_of_and = matrix[0].count(sep)
                     sizetmp = len(matrix[0])
                 else:
@@ -1771,8 +1779,8 @@ class AbstractTree(object):
                 ("\n" +
                 path_begin +
                     "\n\t".join(make_edges(edges)) +
-                path_end if len(edges) > 0 else "")
-                if len(matrix) > 0 else "") +
+                path_end if len(edges) else "")
+                if len(matrix) else "") +
             end_env +
             "}")
 

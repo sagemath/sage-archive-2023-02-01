@@ -1615,17 +1615,24 @@ class StandardTableauTuple(TableauTuple):
         Return the integer which is the Brundan-Kleshchev-Wang [BKW11]_
         degree of a standard tableau.
 
-        INPUT: self.degree(e, multicharge)
+        INPUT:
 
-        This is defined recursively by successively stripping off the
-        number `k`, for `k = n, n-1, \ldots, 1`, and at stage adding the
-        count of the number of addable cell of the same residue minus
-        the number of removable cells of them same residue as `k` and
-        that are below `k` in the diagram.
+        - ``e`` -- the **quantum characteristic** ``e``
+        - ``multicharge`` -- (default: ``[0]``) the multicharge
+
+        OUTPUT:
+
+        The **degree** of the tableau ``self``, which is an integer.
+
+        The degree of a tableau ix an integer that is defined recursively by
+        successively stripping off the number `k`, for `k = n, n-1, \ldots, 1`,
+        and at stage adding the count of the number of addable cell of the same
+        residue minus the number of removable cells of them same residue as `k`
+        and that are below `k` in the diagram.
 
         Note that even though this degree function was defined by
-        Brundan-Kleshchev-Wang [BKW11]_ the underlying combinatorics is
-        much older, going back at least to Misra and Miwa.
+        Brundan-Kleshchev-Wang [BKW11]_ the underlying combinatorics is much
+        older, going back at least to Misra and Miwa.
 
         The degrees of the tableau `T` gives the degree of the homogeneous
         basis element of the graded Specht module which is indexed by `T`.
@@ -1654,6 +1661,72 @@ class StandardTableauTuple(TableauTuple):
                 deg += (e == 2 and 2 or 1)
             res = res.swap_residues(r, r+1)
         return deg
+
+    def codegree(self, e, multicharge):
+        """
+        Return the integer which is the Brundan-Kleshchev-Wang codegree of the
+        standard tableau ``self``.
+
+        INPUT:
+
+        - ``e`` -- the **quantum characteristic** ``e``
+        - ``multicharge`` -- (default: ``[0]``) the multicharge
+
+        OUTPUT:
+
+        The **codegree** of the tableau ``self``, which is an integer.
+
+        The coderee of a tableau is an integer that is defined recursively by
+        successively stripping off the number `k`, for `k = n, n-1, \ldots, 1`
+        and at stage adding the number of addable cell of the same residue minus
+        the number of removable cells of the same residue as `k` and which are
+        above `k` in the diagram.
+
+        The dcoegree of the tableau ``self`` gives the degree of  "dual"
+        homogeneous basis element of the Graded Specht module which is indexed
+        by ``self``.
+
+        INPUT:
+
+        - ``e`` -- the **quantum characteristic** ``e``
+        - ``multicharge`` - the multicharge (default: ``[0]``).
+
+        OUTPUT:
+
+        The **codegree** of the tableau ``self`` which is a integer.
+
+        EXAMPLES::
+
+            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).codegree(0,(0,1))
+            1
+            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).codegree(0,(2,1))
+            -1
+            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).codegree(2,(2,1))
+            -1
+            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).codegree(3,(2,1))
+            2
+            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).codegree(4,(2,1))
+            1
+
+        REFERENCES:
+
+        - [BKW11]_ J. Brundan, A. Kleshchev, and W. Wang,
+          *Graded Specht modules*,
+          J. Reine Angew. Math., 655 (2011), 61-87.
+        """
+        if not self:  # the trivial case
+            return 0
+
+        conj_shape = self.shape().conjugate()
+        codeg = conj_shape._initial_degree(e,tuple(-r for r in multicharge))
+        res = conj_shape.initial_tableau().residue_sequence(e, multicharge)
+        for r in self.reduced_row_word():
+            if res[r] == res[r+1]:
+                codeg -= 2
+            elif res[r] == res[r+1] + 1 or res[r] == res[r+1] - 1:
+                codeg += (e == 2 and 2 or 1)
+            res = res.swap_residues(r, r+1)
+        return codeg
 
     def dominates(self, t):
         """

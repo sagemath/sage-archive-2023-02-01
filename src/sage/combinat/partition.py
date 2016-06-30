@@ -2465,16 +2465,13 @@ class Partition(CombinatorialElement):
         else:
             return sum(m // e for m in self)
 
-    def degree(self, e, multicharge=(0,)):
+    def degree(self, e):
         r"""
         Return the ``e``-th degree of ``self``.
 
         INPUT:
 
         - ``e`` -- an  integer  `e>1`(not checked!)
-
-        - ``muticharge`` -- the "multicharge". This is optional and is included
-          for consistency with :meth:`sage.combinat.partition_tuple.PartitionTuple.degree`
 
         OUTPUT:
 
@@ -2501,7 +2498,8 @@ class Partition(CombinatorialElement):
             sage: Partition([4,3]).degree(7)
             0
 
-        Therefore,  the Gram determinant of `S(5,3)` is
+        Therefore,  the Gram determinant of `S(5,3)` when the Hecke parameter
+        `q` is "generic" is
 
         ..math::
 
@@ -2511,16 +2509,13 @@ class Partition(CombinatorialElement):
         """
         return sum(t.degree(e) for t in self.standard_tableaux())
 
-    def prime_degree(self, p, multicharge=(0,)):
+    def prime_degree(self, p):
         r"""
         Return the prime degree for the prime integer``p`` for ``self``.
 
         INPUT:
 
         - ``p`` -- a prime integer  (not checked!)
-
-        - ``muticharge`` -- the "multicharge". This is optional and is included
-          only for consistency with :meth:`sage.combinat.partition_tuple.PartitionTuple.prime_degree`
 
         OUTPUT:
 
@@ -2543,7 +2538,7 @@ class Partition(CombinatorialElement):
             sage: Partition([4,3]).prime_degree(7)
             0
 
-        THerefore, the Gram determinant of `S(5,3)` is
+        THerefore, the Gram determinant of `S(5,3)` whwn `q=1` is 
         `2^{36} 3^{15} 5^{13}`.  Compare with :meth:`degree`.
         """
         ps = [p]

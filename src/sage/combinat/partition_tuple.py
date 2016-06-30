@@ -1492,16 +1492,13 @@ class PartitionTuple(CombinatorialElement):
                     deg += 1
         return deg
 
-    def degree(self, e, multicharge):
+    def degree(self, e):
         r"""
         Return the ``e``-th degree of ``self``.
 
         INPUT:
 
         - ``e`` -- an  integer  `e>1`(not checked!)
-
-        - ``muticharge`` -- the "multicharge", which is a `l`-tuple of integers
-          where `l` is the :meth:`level` of ``self``.
 
         OUTPUT:
 
@@ -1512,28 +1509,39 @@ class PartitionTuple(CombinatorialElement):
         of `\Phi_e(q)` in the Gram determinant of the Specht module for a
         semisimple cyclotomic Hecke algebra of type `A` with parameter `q`.
 
+        For this calculation the multicharge (`\kappa_1,\dots,\kappa_l)` is
+        chosen so that `\kappa_{r+1}-\kappa_r>n`, where `n` is the :meth:`size:
+        of the multipartition as this ensures tat the Hecke algera is
+        semisimple.
+
         EXAMPLES::
 
-            sage: PartitionTuple([[2,1],[2,2]]).degree(2,(0,0))
-            168
-            sage: PartitionTuple([[2,1],[2,2]]).degree(3,(0,0))
-            322
-            sage: PartitionTuple([[2,1],[2,2]]).degree(4,(0,0))
-            0
-            sage: PartitionTuple([[2,1],[2,2]]).degree(5,(0,0))
-            0
-            sage: PartitionTuple([[2,1],[2,2]]).degree(6,(0,0))
-            0
-            sage: PartitionTuple([[2,1],[2,2]]).degree(7,(0,0))
+            sage: PartitionTuple([[2,1],[2,2]]).degree(2)
+            532
+            sage: PartitionTuple([[2,1],[2,2]]).degree(3)
+            259
+            sage: PartitionTuple([[2,1],[2,2]]).degree(4)
+            196
+            sage: PartitionTuple([[2,1],[2,2]]).degree(5)
+            105
+            sage: PartitionTuple([[2,1],[2,2]]).degree(6)
+            105
+            sage: PartitionTuple([[2,1],[2,2]]).degree(7)
             0
 
-        Therefore, the Gram determinant of `S(5,3)` is 
-        `q^N \Phi_2(q)^{169} \Phi_3(q)^{322}` for some integer `N`. 
-        Compare with :meth:`prime_degree`.
+        Therefore,  the Gram determinant of `S(2,1|2,2)` when the Hecke parameter
+        `q` is "generic" is
+
+        ..math::
+
+            q^N \Phi_2(q)^{532}\Phi_3(q)^{259}\Phi_4(q)^{196}\Phi_5(q)^{105}\Phi_6(q)^{105}
+
+        for some integer `N`.  Compare with :meth:`prime_degree`.
         """
-        return sum(t.degree(e,multicharge) for t in self.standard_tableaux())
+        multicharge=tuple([i*self.size() for i in range(self.size())])
+        return sum(t.degree(e, multicharge) for t in self.standard_tableaux())
 
-    def prime_degree(self, p, multicharge):
+    def prime_degree(self, p):
         r"""
         Return the ``p``-th Degree of ``self``.
 
@@ -1559,24 +1567,30 @@ class PartitionTuple(CombinatorialElement):
         determinant of a semisimple cyclotomic Hecke algebra of type `A` with
         parameter `q=1`.
 
+        As with :meth:`degree`, for this calculation the multicharge
+        (`\kappa_1,\dots,\kappa_l)` is chosen so that `\kappa_{r+1}-\kappa_r>n`,
+        where `n` is the :meth:`size: of the multipartition as this ensures tat
+        the Hecke algera is semisimple.
+
         EXAMPLES::
 
-            sage: PartitionTuple([[2,1],[2,2]]).prime_degree(2,(0,0))
-            168
-            sage: PartitionTuple([[2,1],[2,2]]).prime_degree(3,(0,0))
-            322
-            sage: PartitionTuple([[2,1],[2,2]]).prime_degree(5,(0,0))
-            0
-            sage: PartitionTuple([[2,1],[2,2]]).prime_degree(7,(0,0))
+            sage: PartitionTuple([[2,1],[2,2]]).prime_degree(2)
+            728
+            sage: PartitionTuple([[2,1],[2,2]]).prime_degree(3)
+            259
+            sage: PartitionTuple([[2,1],[2,2]]).prime_degree(5)
+            105
+            sage: PartitionTuple([[2,1],[2,2]]).prime_degree(7)
             0
 
-       Therefore, the Gram determinant of `S(5,3)` is
-        `2^{168} 3^{322}`. Compare with :meth:`degree`.
+       Therefore, the Gram determinant of `S(2,1|2,2)` whwn `q=1` is 
+       `2^{728} 3^{259}5^{105}`. Compare with :meth:`degree`.
         """
         ps = [p]
 
         while ps[-1]*p < self.size():
             ps.append(ps[-1] * p)
+        multicharge=tuple([i*self.size() for i in range(self.size())])
         return sum(t.degree(pk, multicharge) for pk in ps for t in self.standard_tableaux())
 
     def defect(self, e, multicharge):

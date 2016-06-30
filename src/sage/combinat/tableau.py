@@ -3948,15 +3948,6 @@ class Tableau(ClonableList):
         """
         Return the degree of ``self``.
 
-        The degrees of the tableau ``self`` gives the degree of the
-        homogeneous basis element of the graded Specht module that
-        is indexed by ``self``.
-
-        This is defined recursively by successively stripping off the number
-        `k`, for `k = n, n-1, \ldots, 1` and at stage adding the number of
-        addable cell of the same residue minus the number of removable cells
-        of the same residue as `k` and which are below `k` in the diagram.
-
         INPUT:
 
         - ``e`` -- the **quantum characteristic** ``e``
@@ -3964,7 +3955,17 @@ class Tableau(ClonableList):
 
         OUTPUT:
 
-        The **degree** of the tableau ``self`` which is a integer.
+        The **degree** of the tableau ``self``, which is an integer.
+
+        The degrees of the tableau ``self`` gives the degree of the
+        homogeneous basis element of the graded Specht module that
+        is indexed by ``self``.
+
+        The degree is an integer that is defined recursively by successively
+        stripping off the number `k`, for `k = n, n-1, \ldots, 1` and at stage
+        adding the number of addable cell of the same residue minus the number
+        of removable cells of the same residue as `k` and which are below `k` in
+        the diagram.
 
         EXAMPLES::
 
@@ -3997,13 +3998,24 @@ class Tableau(ClonableList):
         Return the integer which is the Brundan-Kleshchev-Wang codegree of the
         standard tableau ``self``.
 
-        This is defined recursively by successively stripping off the number `k`,
-        for `k = n, n-1, \ldots, 1` and at stage adding the number of addable cell
-        of the same residue minus the number of removable cells of the same
-        residue as `k` and which are above `k` in the diagram.
+        INPUT:
 
-        The degrees of the tableau ``self`` gives the degree of the homogeneous basis
-        element of the Graded Specht module which is indexed by ``self``.
+        - ``e`` -- the **quantum characteristic** ``e``
+        - ``multicharge`` -- (default: ``[0]``) the multicharge
+
+        OUTPUT:
+
+        The **codegree** of the tableau ``self``, which is an integer.
+
+        The coderee of a tableau is an integer that is defined recursively by
+        successively stripping off the number `k`, for `k = n, n-1, \ldots, 1`
+        and at stage adding the number of addable cell of the same residue minus
+        the number of removable cells of the same residue as `k` and which are
+        above `k` in the diagram.
+
+        The codegree of the tableau ``self`` gives the degree of  "dual"
+        homogeneous basis element of the Graded Specht module which is indexed
+        by ``self``.
 
         INPUT:
 

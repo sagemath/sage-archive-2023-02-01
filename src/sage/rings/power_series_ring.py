@@ -112,19 +112,20 @@ TESTS::
     sage: TestSuite(M).run()
 
 """
+from __future__ import absolute_import
 
-import power_series_poly
-import power_series_mpoly
-import power_series_ring_element
+from . import power_series_poly
+from . import power_series_mpoly
+from . import power_series_ring_element
 
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
-from polynomial.polynomial_ring_constructor import PolynomialRing
-import laurent_series_ring
-import laurent_series_ring_element
-import integer
+from .polynomial.polynomial_ring_constructor import PolynomialRing
+from . import laurent_series_ring
+from . import laurent_series_ring_element
+from . import integer
 from . import ring
-from infinity import infinity
+from .infinity import infinity
 import sage.misc.latex as latex
 from sage.structure.nonexact import Nonexact
 
@@ -703,6 +704,19 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             sage: PowerSeriesRing(PowerSeriesRing(QQ,'x'),'x')(x).coefficients()
             [x]
 
+        Conversion from symbolic series::
+
+            sage: x,y = var('x,y')
+            sage: s=(1/(1-x)).series(x,3); s
+            1 + 1*x + 1*x^2 + Order(x^3)
+            sage: R.<x> = PowerSeriesRing(QQ)
+            sage: R(s)
+            1 + x + x^2 + O(x^3)
+            sage: ex=(gamma(1-y)).series(y,3)
+            sage: R.<y> = PowerSeriesRing(SR)
+            sage: R(ex)
+            1 + euler_gamma*y + (1/2*euler_gamma^2 + 1/12*pi^2)*y^2 + O(y^3)
+
         Laurent series with non-negative valuation are accepted (see
         :trac:`6431`)::
 
@@ -728,6 +742,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             prec = integer.Integer(prec)
             if prec < 0:
                 raise ValueError("prec (= %s) must be non-negative" % prec)
+        from sage.symbolic.series import SymbolicSeries
         if isinstance(f, power_series_ring_element.PowerSeries) and f.parent() is self:
             if prec >= f.prec():
                 return f
@@ -744,6 +759,12 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
                 num = self.element_class(self, f.numerator(), prec, check=check)
                 den = self.element_class(self, f.denominator(), prec, check=check)
                 return self.coerce(num/den)
+        elif isinstance(f, SymbolicSeries):
+            if str(f.default_variable()) == self.variable_name():
+                return self.element_class(self, f.list(),
+                                      f.degree(f.default_variable()), check=check)
+            else:
+                raise TypeError("Can only convert series into ring with same variable name.")            
         return self.element_class(self, f, prec, check=check)
 
     def construction(self):
@@ -859,7 +880,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         """
         if im_gens[0] == 0:
             return True   # this is allowed.
-        from laurent_series_ring import is_LaurentSeriesRing
+        from .laurent_series_ring import is_LaurentSeriesRing
         if is_PowerSeriesRing(codomain) or is_LaurentSeriesRing(codomain):
             return im_gens[0].valuation() > 0
         return False

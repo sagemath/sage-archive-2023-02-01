@@ -49,11 +49,11 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 from sage.libs.pari.paridecl cimport *
-include "sage/libs/pari/pari_err.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.rings.finite_rings.finite_field_base cimport FiniteField
@@ -369,7 +369,7 @@ cdef class Cache_givaro(SageObject):
             if e.parent() is self.parent.prime_subfield() or e.parent() == self.parent.prime_subfield():
                 res = self.int_to_log(int(e))
             else:
-                raise TypeError, "unable to coerce from a finite field other than the prime subfield"
+                raise TypeError("unable to coerce from a finite field other than the prime subfield")
 
         elif isinstance(e, int) or \
              isinstance(e, Integer) or \
@@ -392,7 +392,7 @@ cdef class Cache_givaro(SageObject):
 
         elif isinstance(e, FreeModuleElement):
             if self.parent.vector_space() != e.parent():
-                raise TypeError, "e.parent must match self.vector_space"
+                raise TypeError("e.parent must match self.vector_space")
             ret = self._zero_element
             for i in range(len(e)):
                 e_entry = e[i] % self.characteristic()
@@ -405,7 +405,7 @@ cdef class Cache_givaro(SageObject):
             if e.is_constant():
                 return self.parent(e.constant_coefficient())
             else:
-                raise TypeError, "no coercion defined"
+                raise TypeError("no coercion defined")
 
         elif isinstance(e, Polynomial):
             if e.is_constant():
@@ -432,7 +432,7 @@ cdef class Cache_givaro(SageObject):
         elif isinstance(e, list):
             if len(e) > self.exponent():
                 # could reduce here...
-                raise ValueError, "list is too long"
+                raise ValueError("list is too long")
             ret = self._zero_element
             for i in range(len(e)):
                 e_entry = e[i] % self.characteristic()
@@ -447,7 +447,7 @@ cdef class Cache_givaro(SageObject):
         cdef GEN t
         cdef long c
         if isinstance(e, gen):
-            pari_catch_sig_on()
+            sig_on()
             t = (<gen>e).g
             if typ(t) == t_FFELT:
                 t = FF_to_FpXQ(t)
@@ -456,7 +456,7 @@ cdef class Cache_givaro(SageObject):
 
             if typ(t) == t_INT:
                 res = self.int_to_log(itos(t))
-                pari_catch_sig_off()
+                sig_off()
             elif typ(t) == t_POL:
                 res = self._zero_element
 
@@ -467,7 +467,7 @@ cdef class Cache_givaro(SageObject):
                     c = gtolong(gel(t, i+2))
                     res = self.objectptr.axpyin(res, self.int_to_log(c), x)
                     x = self.objectptr.mul(x,x,g)
-                pari_catch_sig_off()
+                sig_off()
             else:
                 raise TypeError("bad PARI type %r" % e.type())
 
@@ -577,7 +577,7 @@ cdef class Cache_givaro(SageObject):
         cdef int _n, t, i
 
         if n<0 or n>k.cardinality():
-            raise TypeError, "n must be between 0 and self.order()"
+            raise TypeError("n must be between 0 and self.order()")
 
         _n = n
 
@@ -787,7 +787,7 @@ cdef class FiniteField_givaro_iterator:
 
     EXAMPLES::
 
-        sage: for x in GF(2^2,'a'): print x
+        sage: for x in GF(2^2,'a'): print(x)
         0
         a
         a + 1
@@ -1086,7 +1086,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         elif extend:
             raise NotImplementedError # TODO: fix this once we have nested embeddings of finite fields
         else:
-            raise ValueError, "must be a perfect square."
+            raise ValueError("must be a perfect square.")
 
     cpdef ModuleElement _add_(self, ModuleElement right):
         """
@@ -1138,7 +1138,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         """
         cdef int r
         if (<FiniteField_givaroElement>right).element == 0:
-            raise ZeroDivisionError, 'division by zero in finite field.'
+            raise ZeroDivisionError('division by zero in finite field.')
         r = self._cache.objectptr.div(r, self.element,
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(self._cache,r)
@@ -1261,7 +1261,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         if not isinstance(exp, (int, Integer)):
             _exp = Integer(exp)
             if _exp != exp:
-                raise ValueError, "exponent must be an integer"
+                raise ValueError("exponent must be an integer")
             exp = _exp
 
         cdef Cache_givaro cache = self._cache
@@ -1392,7 +1392,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         cdef int a = self._cache.log_to_int(self.element)
         if a < self._cache.objectptr.characteristic():
             return Integer(a)
-        raise TypeError, "not in prime subfield"
+        raise TypeError("not in prime subfield")
 
     def _log_to_int(FiniteField_givaroElement self):
         r"""
@@ -1647,9 +1647,9 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             n = self.log(mod(g, cache.order_c()))
             return 'Z(%s)^%s'%(cache.order_c(), n)
         if not F.is_conway():
-            raise NotImplementedError, "conversion of (Givaro) finite field element to GAP not implemented except for fields defined by Conway polynomials."
+            raise NotImplementedError("conversion of (Givaro) finite field element to GAP not implemented except for fields defined by Conway polynomials.")
         if cache.order_c() > 65536:
-            raise TypeError, "order (=%s) must be at most 65536."%F.order_c()
+            raise TypeError("order (=%s) must be at most 65536." % F.order_c())
         g = F.multiplicative_generator()
         n = self.log(g)
         return 'Z(%s)^%s'%(cache.order_c(), n)
@@ -1703,7 +1703,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         """
         #vector(foo) might pass in ZZ
         if isinstance(reverse, Parent):
-            raise TypeError, "Base field is fixed to prime subfield."
+            raise TypeError("Base field is fixed to prime subfield.")
         cdef Cache_givaro cache = self._cache
         k = self.parent()
 

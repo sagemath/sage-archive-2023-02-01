@@ -1,6 +1,8 @@
 """
 Other functions
 """
+from __future__ import print_function
+
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.symbolic.pynac import register_symbol, symbol_table
@@ -209,7 +211,7 @@ class Function_erf(BuiltinFunction):
 
             sage: gp.set_real_precision(59)  # random
             38
-            sage: print gp.eval("1 - erfc(1)"); print erf(1).n(200);
+            sage: print(gp.eval("1 - erfc(1)")); print(erf(1).n(200));
             0.84270079294971486934122063508260925929606699796630290845994
             0.84270079294971486934122063508260925929606699796630290845994
 
@@ -427,7 +429,7 @@ class Function_ceil(BuiltinFunction):
         return r"\left \lceil %s \right \rceil"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=20000):
+    def __call__(self, x, **kwds):
         """
         Allows an object of this class to behave like a function. If
         ``ceil`` is an instance of this class, we can do ``ceil(n)`` to get
@@ -444,6 +446,7 @@ class Function_ceil(BuiltinFunction):
             sage: ceil((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -2
         """
+        maximum_bits = kwds.get('maximum_bits', 20000)
         try:
             return x.ceil()
         except AttributeError:
@@ -496,16 +499,6 @@ class Function_ceil(BuiltinFunction):
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.ceil(x)))
         return None
-
-    def _evalf_(self, x, **kwds):
-        """
-        TESTS::
-
-            sage: h(x) = ceil(x)
-            sage: h(pi)._numerical_approx()
-            4
-        """
-        return self._eval_(x)
 
 ceil = Function_ceil()
 
@@ -590,7 +583,7 @@ class Function_floor(BuiltinFunction):
         return r"\left \lfloor %s \right \rfloor"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=20000):
+    def __call__(self, x, **kwds):
         """
         Allows an object of this class to behave like a function. If
         ``floor`` is an instance of this class, we can do ``floor(n)`` to
@@ -607,6 +600,7 @@ class Function_floor(BuiltinFunction):
             sage: floor((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -3
         """
+        maximum_bits = kwds.get('maximum_bits',20000)
         try:
             return x.floor()
         except AttributeError:
@@ -657,16 +651,6 @@ class Function_floor(BuiltinFunction):
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.floor(x)))
         return None
-
-    def _evalf_(self, x, **kwds):
-        """
-        TESTS::
-
-            sage: h(x) = floor(x)
-            sage: h(pi)._numerical_approx()
-            3
-        """
-        return self._eval_(x)
 
 floor = Function_floor()
 
@@ -845,7 +829,7 @@ class Function_log_gamma(GinacFunction):
         EXAMPLES:
 
         Numerical evaluation happens when appropriate, to the
-        appropriate accuracy (see #10072)::
+        appropriate accuracy (see :trac:`10072`)::
 
             sage: log_gamma(6)
             log(120)
@@ -860,7 +844,7 @@ class Function_log_gamma(GinacFunction):
             sage: log_gamma(-3.1)
             0.400311696703985
 
-        Symbolic input works (see #10075)::
+        Symbolic input works (see :trac:`10075`)::
 
             sage: log_gamma(3*x)
             log_gamma(3*x)
@@ -872,7 +856,7 @@ class Function_log_gamma(GinacFunction):
         To get evaluation of input for which gamma
         is negative and the ceiling is even, we must
         explicitly make the input complex.  This is
-        a known issue, see #12521::
+        a known issue, see :trac:`12521`::
 
             sage: log_gamma(-2.1)
             NaN
@@ -1119,16 +1103,7 @@ def gamma(a, *args, **kwds):
             ...
             TypeError: cannot coerce arguments: no canonical coercion...
 
-        We make an exception for elements of AA or QQbar, which cannot be
-        coerced into symbolic expressions to allow this usage::
-
-            sage: t = QQbar(sqrt(2)) + sqrt(3); t
-            3.146264369941973?
-            sage: t.parent()
-            Algebraic Field
-
-        Symbolic functions convert the arguments to symbolic expressions if they
-        are in QQbar or AA::
+        TESTS::
 
             sage: gamma(QQbar(I))
             -0.154949828301811 - 0.498015668118356*I
@@ -1415,7 +1390,7 @@ class Function_factorial(GinacFunction):
             sage: latex(factorial)
             {\rm factorial}
 
-        Check that #11539 is fixed::
+        Check that :trac:`11539` is fixed::
 
             sage: (factorial(x) == 0).simplify()
             factorial(x) == 0
@@ -1465,16 +1440,6 @@ class Function_factorial(GinacFunction):
             return py_factorial_py(x)
 
         return None
-
-    def _evalf_(self, x, **kwds):
-        """
-        TESTS::
-
-            sage: h(x) = factorial(x)
-            sage: h(5)._numerical_approx()
-            120.000000000000
-        """
-        return self._eval_(x)
 
 factorial = Function_factorial()
 
@@ -1558,12 +1523,18 @@ class Function_binomial(GinacFunction):
             sage: binomial._maxima_init_()
             'binomial'
 
+        For polynomials::
+
+            sage: y = polygen(QQ, 'y')
+            sage: binomial(y, 2).parent()
+            Univariate Polynomial Ring in y over Rational Field
+
         Test pickling::
 
             sage: loads(dumps(binomial(n,k)))
             binomial(n, k)
         """
-        GinacFunction.__init__(self, "binomial", nargs=2,
+        GinacFunction.__init__(self, "binomial", nargs=2, preserved_arg=1,
                 conversions=dict(maxima='binomial',
                                  mathematica='Binomial',
                                  sympy='binomial'))
@@ -1584,10 +1555,14 @@ class Function_binomial(GinacFunction):
             sage: binomial._binomial_sym(x, SR(3))
             1/6*(x - 1)*(x - 2)*x
 
-           sage: binomial._binomial_sym(x, 0r)
-           1
-           sage: binomial._binomial_sym(x, -1)
-           0
+            sage: binomial._binomial_sym(x, 0r)
+            1
+            sage: binomial._binomial_sym(x, -1)
+            0
+
+            sage: y = polygen(QQ, 'y')
+            sage: binomial._binomial_sym(y, 2).parent()
+            Univariate Polynomial Ring in y over Rational Field
         """
         if isinstance(k, Expression):
             if k.is_integer():
@@ -1603,7 +1578,7 @@ class Function_binomial(GinacFunction):
             return n
 
         from sage.misc.all import prod
-        return prod([n-i for i in xrange(k)])/factorial(k)
+        return prod([n - i for i in xrange(k)]) / factorial(k)
 
     def _eval_(self, n, k):
         """
@@ -1622,15 +1597,21 @@ class Function_binomial(GinacFunction):
             sage: n = var('n')
             sage: binomial._eval_(x, n) is None
             True
+
+        TESTS::
+
+            sage: y = polygen(QQ, 'y')
+            sage: binomial._eval_(y, 2).parent()
+            Univariate Polynomial Ring in y over Rational Field
         """
         if not isinstance(k, Expression):
             if not isinstance(n, Expression):
                 n, k = coercion_model.canonical_coercion(n, k)
                 return self._evalf_(n, k)
-            if k in ZZ:
-                return self._binomial_sym(n, k)
+        if k in ZZ:
+            return self._binomial_sym(n, k)
         if (n - k) in ZZ:
-            return self._binomial_sym(n, n-k)
+            return self._binomial_sym(n, n - k)
 
         return None
 

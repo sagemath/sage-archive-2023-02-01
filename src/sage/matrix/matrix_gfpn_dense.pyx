@@ -26,7 +26,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 ## Define an environment variable that enables MeatAxe to find
 ## its multiplication tables.
@@ -55,12 +55,11 @@ from sage.misc.cachefunc import cached_method, cached_function
 from sage.structure.element cimport Element, ModuleElement, RingElement, Matrix
 
 from libc.stdlib cimport free
-from sage.ext.memory cimport check_realloc
 from libc.string cimport memset, memcpy
 
 cimport sage.matrix.matrix0
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 ####################
 #
@@ -309,7 +308,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
     EXAMPLES::
 
         sage: M = MatrixSpace(GF(25,'z'),2,3)([1,2,3,4,5,6])
-        sage: print M
+        sage: print(M)
         [1 2 3]
         [4 0 1]
         sage: type(M)     # optional: meataxe
@@ -472,7 +471,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             return
 
         if not self.Data: # should have been initialised by __cinit__
-            raise MemoryError, "Error allocating memory for MeatAxe matrix"
+            raise MemoryError("Error allocating memory for MeatAxe matrix")
         Matrix_dense.__init__(self, parent)
         self._is_immutable = not mutable
         B = self._base_ring
@@ -503,7 +502,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         if nr==0 or nc==0:
             return
         if len(data)<nr:
-            raise ValueError, "Expected a list of size at least the number of rows"
+            raise ValueError("Expected a list of size at least the number of rows")
         cdef list dt, dt_i
         FfSetField(self.Data.Field)
         FfSetNoc(nc)
@@ -550,7 +549,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
             sage: M = MatrixSpace(GF(25,'x'), 3, 20)([20*[0],20*[0],[1]+19*[0]])
             sage: N = copy(M)   # indirect doctest
-            sage: print N
+            sage: print(N)
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
             [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
@@ -616,7 +615,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
         """
         if self.Data == NULL:
-            raise IndexError, "Matrix is empty"
+            raise IndexError("Matrix is empty")
         FfSetField(self.Data.Field)
         return self._converter.int_to_field(FfToInt(FfExtract(MatGetPtr(self.Data,i), j)))
 
@@ -654,7 +653,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         # ASSUMPTION: value's parent is the base ring
         if self.Data == NULL:
-            raise IndexError, "Matrix is empty"
+            raise IndexError("Matrix is empty")
         FfSetField(self.Data.Field)
         FfInsert(MatGetPtr(self.Data,i), j, FfFromInt(self._converter.field_to_int(value)))
 
@@ -793,7 +792,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 #        for i in range(r_min, r_max):
 #            p = FfGetPtr(self.Data.Data, i)
 #            for j from 0<=j<self.Data.RowSize:
-#                print "%3.3d"%p[j],
+#                print("%3.3d" % p[j])
 #            print
 
 ##################
@@ -870,9 +869,9 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         L = [FfToInt(FfExtract(p,k)) for k in range(self.Data.Noc)]
         if j!=-1:
             if not(isinstance(j,int) or isinstance(j,Integer)):
-                raise TypeError, "Second index must be an integer"
+                raise TypeError("Second index must be an integer")
             if j >= self.Data.Nor:
-                raise IndexError, "Index out of range"
+                raise IndexError("Index out of range")
             for k from i < k <= j:
                 FfStepPtr(&(p)) # This is only called after MatGetPtr, hence, after FfSetNoc.
                 L.extend([FfToInt(FfExtract(p,l)) for l in range(self.Data.Noc)])
@@ -899,7 +898,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             FfSetField(self.Data.Field)
             FfSetNoc(self.Data.Noc)
         else:
-            raise IndexError, "Matrix is empty"
+            raise IndexError("Matrix is empty")
         cdef PTR p
         p = self.Data.Data
         sig_on()
@@ -1014,7 +1013,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
         """
         if self._nrows != self._ncols:
-            raise ValueError, "self must be a square matrix"
+            raise ValueError("self must be a square matrix")
         return self._converter.int_to_field(FfToInt(MatTrace(self.Data)))
 
     def stack(self, Matrix_gfpn_dense other):
@@ -1061,7 +1060,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         assert Self is not None
         assert Right is not None
         if Self.Data == NULL or Right.Data == NULL:
-            raise NotImplementedError, "The matrices must not be empty"
+            raise NotImplementedError("The matrices must not be empty")
         cdef Matrix_gfpn_dense Left = Self.__copy__()
         Left._cache = {}
         MatAdd(Left.Data, Right.Data)
@@ -1085,7 +1084,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         assert Self is not None
         assert Right is not None
         if Self.Data == NULL or Right.Data == NULL:
-            raise NotImplementedError, "The matrices must not be empty"
+            raise NotImplementedError("The matrices must not be empty")
         cdef Matrix_gfpn_dense Left = Self.__copy__()
         Left._is_immutable = False
         Left._cache = {}

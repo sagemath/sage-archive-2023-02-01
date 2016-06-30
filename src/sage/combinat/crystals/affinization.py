@@ -133,7 +133,7 @@ class AffinizationOfCrystal(UniqueRepresentation, Parent):
         G = super(AffinizationOfCrystal, self).digraph(subset, index_set)
         from sage.graphs.dot2tex_utils import have_dot2tex
         if have_dot2tex():
-            G.set_latex_options(edge_options = lambda (u,v,label): ({}))
+            G.set_latex_options(edge_options=lambda u_v_label: ({}))
         return G
 
     class Element(Element):

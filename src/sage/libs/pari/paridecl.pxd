@@ -88,10 +88,12 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     # kernel/gmp/int.h
 
-    long*   int_MSW(GEN x)
-    long*   int_LSW(GEN x)
-    long*   int_precW(long * xp)
-    long*   int_nextW(long * xp)
+    GEN     int_MSW(GEN z)
+    GEN     int_LSW(GEN z)
+    GEN     int_W(GEN z, long i)
+    GEN     int_W_lg(GEN z, long i, long lz)
+    GEN     int_precW(GEN z)
+    GEN     int_nextW(GEN z)
 
     # paristio.h
 
@@ -4034,6 +4036,8 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     serchop0(GEN s)
     GEN     sqrtnint(GEN a, long n)
     GEN     teich(GEN x)
+    GEN     teichmullerinit(long p, long n)
+    GEN     teichmuller(GEN x, GEN tab)
     GEN     trans_eval(char *fun, GEN (*f) (GEN, long), GEN x, long prec)
     ulong   upowuu(ulong p, ulong k)
     ulong   usqrtn(ulong a, ulong n)

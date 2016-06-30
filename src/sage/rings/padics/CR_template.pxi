@@ -142,7 +142,10 @@ cdef class CRElement(pAdicTemplateElement):
         else:
             self.relprec = min(rprec, aprec - val)
             self.ordp = val
-            cconv(self.unit, x, self.relprec, val, self.prime_pow)
+            if isinstance(x,CRElement) and x.parent() is self.parent():
+                cshift(self.unit, (<CRElement>x).unit, 0, self.relprec, self.prime_pow, True)
+            else:
+                cconv(self.unit, x, self.relprec, val, self.prime_pow)
 
     cdef int _set_exact_zero(self) except -1:
         """
@@ -289,8 +292,9 @@ cdef class CRElement(pAdicTemplateElement):
         cdef CRElement ans = self._new_c()
         ans.relprec = self.relprec
         ans.ordp = self.ordp
-        cneg(ans.unit, self.unit, ans.relprec, ans.prime_pow)
-        creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
+        if ans.relprec != 0:
+            cneg(ans.unit, self.unit, ans.relprec, ans.prime_pow)
+            creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
         return ans
 
     cpdef ModuleElement _add_(self, ModuleElement _right):
@@ -316,8 +320,9 @@ cdef class CRElement(pAdicTemplateElement):
             # possibly decreasing if we got cancellation
             ans.ordp = self.ordp
             ans.relprec = min(self.relprec, right.relprec)
-            cadd(ans.unit, self.unit, right.unit, ans.relprec, ans.prime_pow)
-            ans._normalize()
+            if ans.relprec != 0:
+                cadd(ans.unit, self.unit, right.unit, ans.relprec, ans.prime_pow)
+                ans._normalize()
         else:
             if self.ordp > right.ordp:
                 # Addition is commutative, swap so self.ordp < right.ordp
@@ -328,9 +333,10 @@ cdef class CRElement(pAdicTemplateElement):
             ans = self._new_c()
             ans.ordp = self.ordp
             ans.relprec = min(self.relprec, tmpL + right.relprec)
-            cshift(ans.unit, right.unit, tmpL, ans.relprec, ans.prime_pow, False)
-            cadd(ans.unit, ans.unit, self.unit, ans.relprec, ans.prime_pow)
-            creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
+            if ans.relprec != 0:
+                cshift(ans.unit, right.unit, tmpL, ans.relprec, ans.prime_pow, False)
+                cadd(ans.unit, ans.unit, self.unit, ans.relprec, ans.prime_pow)
+                creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
         return ans
 
     cpdef ModuleElement _sub_(self, ModuleElement _right):
@@ -354,8 +360,9 @@ cdef class CRElement(pAdicTemplateElement):
             # possibly decreasing if we got cancellation
             ans.ordp = self.ordp
             ans.relprec = min(self.relprec, right.relprec)
-            csub(ans.unit, self.unit, right.unit, ans.relprec, ans.prime_pow)
-            ans._normalize()
+            if ans.relprec != 0:
+                csub(ans.unit, self.unit, right.unit, ans.relprec, ans.prime_pow)
+                ans._normalize()
         elif self.ordp < right.ordp:
             tmpL = right.ordp - self.ordp
             if tmpL > self.relprec:
@@ -363,9 +370,10 @@ cdef class CRElement(pAdicTemplateElement):
             ans = self._new_c()
             ans.ordp = self.ordp
             ans.relprec = min(self.relprec, tmpL + right.relprec)
-            cshift(ans.unit, right.unit, tmpL, ans.relprec, ans.prime_pow, False)
-            csub(ans.unit, self.unit, ans.unit, ans.relprec, ans.prime_pow)
-            creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
+            if ans.relprec != 0:
+                cshift(ans.unit, right.unit, tmpL, ans.relprec, ans.prime_pow, False)
+                csub(ans.unit, self.unit, ans.unit, ans.relprec, ans.prime_pow)
+                creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
         else:
             tmpL = self.ordp - right.ordp
             if tmpL > right.relprec:
@@ -373,9 +381,10 @@ cdef class CRElement(pAdicTemplateElement):
             ans = self._new_c()
             ans.ordp = right.ordp
             ans.relprec = min(right.relprec, tmpL + self.relprec)
-            cshift(ans.unit, self.unit, tmpL, ans.relprec, ans.prime_pow, False)
-            csub(ans.unit, ans.unit, right.unit, ans.relprec, ans.prime_pow)
-            creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
+            if ans.relprec != 0:
+                cshift(ans.unit, self.unit, tmpL, ans.relprec, ans.prime_pow, False)
+                csub(ans.unit, ans.unit, right.unit, ans.relprec, ans.prime_pow)
+                creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
         return ans
 
     def __invert__(self):
@@ -1151,6 +1160,23 @@ cdef class CRElement(pAdicTemplateElement):
             ans.relprec = relprec
             ccopy(ans.unit, self.unit, ans.prime_pow)
         return ans
+
+    def _cache_key(self):
+        r"""
+        Return a hashable key which identifies this element for caching.
+
+        TESTS::
+
+            sage: K.<a> = Qq(9)
+            sage: (9*a)._cache_key()
+            (..., ((0, 1),), 2, 20)
+
+        .. SEEALSO::
+
+            :meth:`sage.misc.cachefunc._cache_key`
+        """
+        tuple_recursive = lambda l: tuple(tuple_recursive(x) for x in l) if isinstance(l, list) else l
+        return (self.parent(), tuple_recursive(self.list()), self.valuation(), self.precision_relative())
 
     def list(self, lift_mode = 'simple', start_val = None):
         """
@@ -1986,7 +2012,7 @@ cdef class pAdicConvert_QQ_CR(Morphism):
             sage: g == f
             True
             sage: g(1/6)
-            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20) 
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
             sage: g(1/6) == f(1/6)
             True
         """
@@ -2005,7 +2031,7 @@ cdef class pAdicConvert_QQ_CR(Morphism):
             sage: g == f
             True
             sage: g(1/6)
-            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20) 
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
             sage: g(1/6) == f(1/6)
             True
         """
@@ -2099,6 +2125,336 @@ cdef class pAdicConvert_QQ_CR(Morphism):
         """
         return self._section
 
+cdef class pAdicCoercion_CR_frac_field(RingHomomorphism_coercion):
+    """
+    The canonical inclusion of Zq into its fraction field.
+
+    EXAMPLES::
+
+        sage: R.<a> = ZqCR(27, implementation='FLINT')
+        sage: K = R.fraction_field()
+        sage: K.coerce_map_from(R)
+        Ring Coercion morphism:
+          From: Unramified Extension of 3-adic Ring with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+          To:   Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+    """
+    def __init__(self, R, K):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R); type(f)
+            <type 'sage.rings.padics.qadic_flint_CR.pAdicCoercion_CR_frac_field'>
+        """
+        RingHomomorphism_coercion.__init__(self, R.Hom(K), check=False)
+        self._zero = K(0)
+        self._section = pAdicConvert_CR_frac_field(K, R)
+
+    cpdef Element _call_(self, _x):
+        """
+        Evaluation.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: f(a)
+            a + O(3^20)
+            sage: f(R(0))
+            0
+        """
+        cdef CRElement x = _x
+        cdef CRElement ans = self._zero._new_c()
+        ans.ordp = x.ordp
+        ans.relprec = x.relprec
+        cshift(ans.unit, x.unit, 0, ans.relprec, x.prime_pow, False)
+        return ans
+
+    cpdef Element _call_with_args(self, _x, args=(), kwds={}):
+        """
+        This function is used when some precision cap is passed in
+        (relative or absolute or both).
+
+        See the documentation for
+        :meth:`pAdicCappedAbsoluteElement.__init__` for more details.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: f(a, 3)
+            a + O(3^3)
+            sage: b = 9*a
+            sage: f(b, 3)
+            a*3^2 + O(3^3)
+            sage: f(b, 4, 1)
+            a*3^2 + O(3^3)
+            sage: f(b, 4, 3)
+            a*3^2 + O(3^4)
+            sage: f(b, absprec=4)
+            a*3^2 + O(3^4)
+            sage: f(b, relprec=3)
+            a*3^2 + O(3^5)
+            sage: f(b, absprec=1)
+            O(3)
+            sage: f(R(0))
+            0
+        """
+        cdef long aprec, rprec
+        cdef CRElement x = _x
+        cdef CRElement ans = self._zero._new_c()
+        cdef bint reduce = False
+        _process_args_and_kwds(&aprec, &rprec, args, kwds, False, ans.prime_pow)
+        if aprec <= x.ordp:
+            csetzero(ans.unit, x.prime_pow)
+            ans.relprec = 0
+            ans.ordp = aprec
+        else:
+            if rprec < x.relprec:
+                reduce = True
+            else:
+                rprec = x.relprec
+            if aprec < rprec + x.ordp:
+                rprec = aprec - x.ordp
+                reduce = True
+            ans.ordp = x.ordp
+            ans.relprec = rprec
+            cshift(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
+        return ans
+
+    def section(self):
+        """
+        Returns a map back to the ring that converts elements of
+        non-negative valuation.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: f(K.gen())
+            a + O(3^20)
+        """
+        return self._section
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<a> = ZqCR(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Unramified Extension of 3-adic Ring with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+              To:   Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(a)
+            a + O(3^20)
+            sage: g(a) == f(a)
+            True
+
+        """
+        _slots['_zero'] = self._zero
+        _slots['_section'] = self._section
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<a> = ZqCR(9, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Unramified Extension of 3-adic Ring with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+              To:   Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(a)
+            a + O(3^20)
+            sage: g(a) == f(a)
+            True
+
+        """
+        self._zero = _slots['_zero']
+        self._section = _slots['_section']
+        RingHomomorphism_coercion._update_slots(self, _slots)
+
+cdef class pAdicConvert_CR_frac_field(Morphism):
+    """
+    The section of the inclusion from `\ZZ_q`` to its fraction field.
+
+    EXAMPLES::
+
+        sage: R.<a> = ZqCR(27, implementation='FLINT')
+        sage: K = R.fraction_field()
+        sage: f = R.convert_map_from(K); f
+        Generic morphism:
+          From: Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+          To:   Unramified Extension of 3-adic Ring with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+    """
+    def __init__(self, K, R):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K); type(f)
+            <type 'sage.rings.padics.qadic_flint_CR.pAdicConvert_CR_frac_field'>
+        """
+        Morphism.__init__(self, Hom(K, R, SetsWithPartialMaps()))
+        self._zero = R(0)
+
+    cpdef Element _call_(self, _x):
+        """
+        Evaluation.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K)
+            sage: f(K.gen())
+            a + O(3^20)
+        """
+        cdef CRElement x = _x
+        if x.ordp < 0: raise ValueError("negative valuation")
+        cdef CRElement ans = self._zero._new_c()
+        ans.relprec = x.relprec
+        ans.ordp = x.ordp
+        cshift(ans.unit, x.unit, 0, ans.relprec, ans.prime_pow, False)
+        return ans
+
+    cpdef Element _call_with_args(self, _x, args=(), kwds={}):
+        """
+        This function is used when some precision cap is passed in
+        (relative or absolute or both).
+
+        See the documentation for
+        :meth:`pAdicCappedAbsoluteElement.__init__` for more details.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K); a = K(a)
+            sage: f(a, 3)
+            a + O(3^3)
+            sage: b = 9*a
+            sage: f(b, 3)
+            a*3^2 + O(3^3)
+            sage: f(b, 4, 1)
+            a*3^2 + O(3^3)
+            sage: f(b, 4, 3)
+            a*3^2 + O(3^4)
+            sage: f(b, absprec=4)
+            a*3^2 + O(3^4)
+            sage: f(b, relprec=3)
+            a*3^2 + O(3^5)
+            sage: f(b, absprec=1)
+            O(3)
+            sage: f(K(0))
+            0
+        """
+        cdef long aprec, rprec
+        cdef CRElement x = _x
+        if x.ordp < 0: raise ValueError("negative valuation")
+        cdef CRElement ans = self._zero._new_c()
+        cdef bint reduce = False
+        _process_args_and_kwds(&aprec, &rprec, args, kwds, False, ans.prime_pow)
+        if aprec <= x.ordp:
+            csetzero(ans.unit, x.prime_pow)
+            ans.relprec = 0
+            ans.ordp = aprec
+        else:
+            if rprec < x.relprec:
+                reduce = True
+            else:
+                rprec = x.relprec
+            if aprec < rprec + x.ordp:
+                rprec = aprec - x.ordp
+                reduce = True
+            ans.ordp = x.ordp
+            ans.relprec = rprec
+            cshift(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
+        return ans
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<a> = ZqCR(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K)
+            sage: a = K(a)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Generic morphism:
+              From: Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+              To:   Unramified Extension of 3-adic Ring with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(a)
+            a + O(3^20)
+            sage: g(a) == f(a)
+            True
+
+        """
+        _slots['_zero'] = self._zero
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<a> = ZqCR(9, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K)
+            sage: a = K(a)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Generic morphism:
+              From: Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+              To:   Unramified Extension of 3-adic Ring with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(a)
+            a + O(3^20)
+            sage: g(a) == f(a)
+            True
+
+        """
+        self._zero = _slots['_zero']
+        Morphism._update_slots(self, _slots)
+
 def unpickle_cre_v2(cls, parent, unit, ordp, relprec):
     """
     Unpickles a capped relative element.
@@ -2115,7 +2471,7 @@ def unpickle_cre_v2(cls, parent, unit, ordp, relprec):
     """
     cdef CRElement ans = cls.__new__(cls)
     ans._parent = parent
-    ans.prime_pow = <PowComputer_class?>parent.prime_pow
+    ans.prime_pow = <PowComputer_?>parent.prime_pow
     cconstruct(ans.unit, ans.prime_pow)
     cunpickle(ans.unit, unit, ans.prime_pow)
     ans.ordp = ordp

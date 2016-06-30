@@ -218,7 +218,7 @@ class EllipticCurveFactory(UniqueFactory):
         Elliptic Curve defined by y^2 = x^3 + x + 1 over Multivariate Polynomial Ring in u, v
         over Integer Ring
 
-    We create a curve and a point over QQbar (see #6879)::
+    We create a curve and a point over ``QQbar`` (see :trac:`6879`)::
 
         sage: E = EllipticCurve(QQbar,[0,1])
         sage: E(0)
@@ -358,7 +358,7 @@ class EllipticCurveFactory(UniqueFactory):
         same base ring and Weierstrass equation; the data in
         ``extra_args`` do not influence comparison of elliptic curves.
         A consequence of this is that passing keyword arguments only
-        works when constructing an elliptic curve the first time:
+        works when constructing an elliptic curve the first time::
 
             sage: E = EllipticCurve('433a1', gens=[[-1, 1], [3, 4]])
             sage: E.gens()

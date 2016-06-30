@@ -12,7 +12,7 @@ Dancing Links internal pyx code
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 
@@ -156,7 +156,7 @@ cdef class dancing_linksWrapper:
             sage: rows+= [[1]]
             sage: rows+= [[3]]
             sage: x = dlx_solver(rows)
-            sage: print x.search()
+            sage: print(x.search())
             1
 
         The following example would crash in Sage's debug version
@@ -200,9 +200,9 @@ cdef class dancing_linksWrapper:
             sage: rows+= [[1]]
             sage: rows+= [[3]]
             sage: x = dlx_solver(rows)
-            sage: print x.search()
+            sage: print(x.search())
             1
-            sage: print x.get_solution()
+            sage: print(x.get_solution())
             [3, 0]
         """
         cdef size_t i
@@ -227,9 +227,9 @@ cdef class dancing_linksWrapper:
             sage: rows+= [[1]]
             sage: rows+= [[3]]
             sage: x = dlx_solver(rows)
-            sage: print x.search()
+            sage: print(x.search())
             1
-            sage: print x.get_solution()
+            sage: print(x.get_solution())
             [3, 0]
 
         TESTS:
@@ -431,15 +431,15 @@ def dlx_solver(rows):
         sage: rows+= [[1]]
         sage: rows+= [[3]]
         sage: x = dlx_solver(rows)
-        sage: print x.search()
+        sage: print(x.search())
         1
-        sage: print x.get_solution()
+        sage: print(x.get_solution())
         [3, 0]
-        sage: print x.search()
+        sage: print(x.search())
         1
-        sage: print x.get_solution()
+        sage: print(x.get_solution())
         [3, 1, 2]
-        sage: print x.search()
+        sage: print(x.search())
         0
     """
     return dancing_linksWrapper(rows)
@@ -458,7 +458,7 @@ def make_dlxwrapper(s):
         sage: from sage.combinat.matrices.dancing_links import make_dlxwrapper
         sage: rows = [[0,1,2]]
         sage: x = make_dlxwrapper(dumps(rows))
-        sage: print x.__str__()
+        sage: print(x.__str__())
         Dancing links solver for 3 columns and 1 rows
     """
     from sage.all import loads

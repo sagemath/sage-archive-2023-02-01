@@ -234,6 +234,7 @@ loaded.
 #
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import print_function
 
 import os
 
@@ -327,7 +328,7 @@ class Maple(ExtraTabCompletion, Expect):
             ...
             RuntimeError: Ctrl-c pressed while running Maple
         """
-        print "Interrupting %s..." % self
+        print("Interrupting %s..." % self)
         self._expect.sendline(chr(3))  # send ctrl-c
         self._expect.expect(self._prompt)
         raise RuntimeError("Ctrl-c pressed while running %s" % self)
@@ -394,7 +395,7 @@ class Maple(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: print maple._install_hints()
+            sage: print(maple._install_hints())
             In order...
         """
         return """
@@ -403,7 +404,7 @@ In order to use the Maple interface you need to have Maple installed
 and have a script in your PATH called "maple" that runs the
 command-line version of Maple.  Alternatively, you could use a remote
 connection to a server running Maple; for hints, type
-    print maple._install_hints_ssh()
+    print(maple._install_hints_ssh())
 
   (1) You might have to buy Maple (http://webstore.maplesoft.com/).
 
@@ -518,10 +519,10 @@ connection to a server running Maple; for hints, type
             v = sum([self.completions(chr(65+n)) for n in range(26)], []) + \
                 sum([self.completions(chr(97+n)) for n in range(26)], [])
         except RuntimeError:
-            print "\n"*3
-            print "*"*70
-            print "WARNING: You do not have a working version of Maple installed!"
-            print "*"*70
+            print("\n" * 3)
+            print("*" * 70)
+            print("WARNING: You do not have a working version of Maple installed!")
+            print("*" * 70)
             v = []
         v.sort()
         return v
@@ -550,9 +551,9 @@ connection to a server running Maple; for hints, type
                 except IOError:
                     pass
             if verbose:
-                print "\nBuilding Maple command completion list (this takes"
-                print "a few seconds only the first time you do it)."
-                print "To force rebuild later, delete %s."%COMMANDS_CACHE
+                print("\nBuilding Maple command completion list (this takes")
+                print("a few seconds only the first time you do it).")
+                print("To force rebuild later, delete %s." % COMMANDS_CACHE)
             v = self._commands()
             self.__tab_completion = v
             if len(v) > 200:
@@ -717,7 +718,7 @@ connection to a server running Maple; for hints, type
 
         EXAMPLES::
 
-            sage: print maple._source('curry').strip()  # optional - maple
+            sage: print(maple._source('curry').strip())  # optional - maple
             p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
             sage: maple._source('ZZZ')                  #not tested
             Traceback (most recent call last):
@@ -860,7 +861,7 @@ class MapleFunction(ExpectFunction):
 
         EXAMPLES::
 
-            sage: print maple.curry._sage_src_().strip() # optional - maple
+            sage: print(maple.curry._sage_src_().strip()) # optional - maple
             p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
             sage: maple.ZZZ._sage_src_()                 #not tested 
             Traceback (most recent call last):
@@ -894,7 +895,7 @@ class MapleFunctionElement(FunctionElement):
         EXAMPLES::
 
             sage: g = maple('gcd')                   # optional - maple
-            sage: print g.curry._sage_src_().strip() # optional - maple
+            sage: print(g.curry._sage_src_().strip()) # optional - maple
             p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
             sage: m = maple('2')                     # optional - maple
             sage: m.ZZZ._sage_src_()                 #not tested 
@@ -1097,11 +1098,11 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
 
         EXAMPLES::
 
-            sage: print latex(maple('(x^4 - y)/(y^2-3*x)'))      # optional - maple
+            sage: print(latex(maple('(x^4 - y)/(y^2-3*x)')))   # optional - maple
             {\frac {{x}^{4}-y}{{y}^{2}-3\,x}}
-            sage: print latex(maple(pi - e^3))                   # optional - maple
+            sage: print(latex(maple(pi - e^3)))                 # optional - maple
             \pi-{{\rm e}^{3}}
-            sage: print maple(pi - e^3)._latex_()                # optional - maple
+            sage: print(maple(pi - e^3)._latex_())              # optional - maple
             \pi-{{\rm e}^{3}}
  
         .. note::

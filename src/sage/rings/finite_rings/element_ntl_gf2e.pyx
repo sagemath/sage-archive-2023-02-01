@@ -19,11 +19,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 from sage.libs.pari.paridecl cimport *
-include "sage/libs/pari/pari_err.pxi"
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
@@ -316,7 +315,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
         elif isinstance(e, FreeModuleElement):
             if self._parent.vector_space() != e.parent():
-                raise TypeError, "e.parent must match self.vector_space"
+                raise TypeError("e.parent must match self.vector_space")
             ztmp = Integer(e.list(),2)
             # Can't do the following since we can't cimport Integer because of circular imports.
             #for i from 0 <= i < len(e):
@@ -327,7 +326,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         elif isinstance(e, (list, tuple)):
             if len(e) > self.degree():
                 # could reduce here...
-                raise ValueError, "list is too long"
+                raise ValueError("list is too long")
             ztmp = Integer(e,2)
             return self.fetch_int(ztmp)
 
@@ -335,7 +334,7 @@ cdef class Cache_ntl_gf2e(SageObject):
             if e.is_constant():
                 return self._parent(e.constant_coefficient())
             else:
-                raise TypeError, "no coercion defined"
+                raise TypeError("no coercion defined")
 
         elif isinstance(e, Polynomial):
             if e.is_constant():
@@ -368,7 +367,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
         cdef GEN t
         if isinstance(e, gen):
-            pari_catch_sig_on()
+            sig_on()
             t = (<gen>e).g
             if typ(t) == t_FFELT:
                 t = FF_to_FpXQ(t)
@@ -377,7 +376,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
             if typ(t) == t_INT:
                 GF2E_conv_long(res.x, itos(t))
-                pari_catch_sig_off()
+                sig_off()
             elif typ(t) == t_POL:
                 g = self._gen
                 x = self._new()
@@ -387,13 +386,13 @@ cdef class Cache_ntl_gf2e(SageObject):
                     if gtolong(gel(t, i+2)):
                         GF2E_add(res.x, res.x, x.x)
                     GF2E_mul(x.x, x.x, g.x)
-                pari_catch_sig_off()
+                sig_off()
             else:
                 raise TypeError("bad PARI type %r" % e.type())
 
             return res
 
-        raise ValueError, "Cannot coerce element %s to this field."%(e)
+        raise ValueError("Cannot coerce element %s to this field." % e)
 
     cpdef FiniteField_ntl_gf2eElement fetch_int(self, number):
         """
@@ -414,7 +413,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
         TESTS:
 
-        We test that #17027 is fixed::
+        We test that :trac:`17027` is fixed::
 
             sage: K.<a> = GF(2^16)
             sage: K._cache.fetch_int(0r)
@@ -429,7 +428,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         cdef int i
 
         if number < 0 or number >= self.order():
-            raise TypeError, "n must be between 0 and self.order()"
+            raise TypeError("n must be between 0 and self.order()")
 
         if isinstance(number, int) or isinstance(number, long):
             if not number:
@@ -440,15 +439,15 @@ cdef class Cache_ntl_gf2e(SageObject):
         elif isinstance(number, Integer):
             n = int(number.nbits())/8 + 1
         else:
-            raise TypeError, "number %s is not an integer"%number
+            raise TypeError("number %s is not an integer" % number)
 
-        p = <unsigned char*>sage_malloc(n)
+        p = <unsigned char*>sig_malloc(n)
         for i from 0 <= i < n:
             p[i] = (number%256)
             number = number >> 8
         GF2XFromBytes(_a, p, n)
         GF2E_conv_GF2X(a.x, _a)
-        sage_free(p)
+        sig_free(p)
         return a
 
     def polynomial(self):
@@ -512,7 +511,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             True
         """
         if parent is None:
-            raise ValueError, "You must provide a parent to construct a finite field element"
+            raise ValueError("You must provide a parent to construct a finite field element")
 
     def __cinit__(FiniteField_ntl_gf2eElement self, parent=None ):
         """
@@ -726,7 +725,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         """
         cdef FiniteField_ntl_gf2eElement r = (<FiniteField_ntl_gf2eElement>self)._new()
         if GF2E_IsZero((<FiniteField_ntl_gf2eElement>right).x):
-            raise ZeroDivisionError, 'division by zero in finite field.'
+            raise ZeroDivisionError('division by zero in finite field.')
         GF2E_div(r.x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
         return r
 
@@ -879,7 +878,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         if self.is_zero(): return Integer(0)
         elif self.is_one(): return Integer(1)
         else:
-            raise TypeError, "not in prime subfield"
+            raise TypeError("not in prime subfield")
 
     def __int__(FiniteField_ntl_gf2eElement self):
         """
@@ -1148,9 +1147,9 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         """
         F = self._parent
         if not F.is_conway():
-            raise NotImplementedError, "conversion of (NTL) finite field element to GAP not implemented except for fields defined by Conway polynomials."
+            raise NotImplementedError("conversion of (NTL) finite field element to GAP not implemented except for fields defined by Conway polynomials.")
         if F.order() > 65536:
-            raise TypeError, "order (=%s) must be at most 65536."%F.order()
+            raise TypeError("order (=%s) must be at most 65536." % F.order())
         if self == 0:
             return '0*Z(%s)'%F.order()
         assert F.degree() > 1
@@ -1194,7 +1193,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         """
         #vector(foo) might pass in ZZ
         if isinstance(reverse, Parent):
-            raise TypeError, "Base field is fixed to prime subfield."
+            raise TypeError("Base field is fixed to prime subfield.")
 
         cdef GF2X_c r = GF2E_rep(self.x)
         cdef int i

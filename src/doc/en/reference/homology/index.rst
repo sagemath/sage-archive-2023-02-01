@@ -23,6 +23,7 @@ cell complexes.
    sage/homology/cubical_complex
    sage/homology/cell_complex
    sage/homology/koszul_complex
+   sage/homology/hochschild_complex
    sage/homology/homology_group
    sage/homology/homology_vector_space_with_basis
    sage/homology/algebraic_topological_model

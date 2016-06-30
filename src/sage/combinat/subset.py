@@ -26,6 +26,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import sage.misc.prandom as rnd
 import itertools
@@ -1140,7 +1141,7 @@ class SubMultiset_sk(SubMultiset_s):
             sage: l = [1,1,1,1,2,2,3]
             sage: for k in xrange(len(l)):
             ....:    S = Subsets(l,k,submultiset=True)
-            ....:    print S.generating_serie(x) == S.cardinality()*x**k
+            ....:    print(S.generating_serie(x) == S.cardinality()*x**k)
             True
             True
             True

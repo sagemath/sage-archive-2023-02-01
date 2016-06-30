@@ -15,6 +15,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.plot.hyperbolic_polygon import HyperbolicPolygon, hyperbolic_polygon
 from sage.plot.all import Graphics
@@ -47,7 +48,7 @@ class HyperbolicRegularPolygon(HyperbolicPolygon):
     Note that constructions should use :func:`hyperbolic_regular_polygon`::
 
          sage: from sage.plot.hyperbolic_regular_polygon import HyperbolicRegularPolygon
-         sage: print HyperbolicRegularPolygon(5,pi/2,I, {})
+         sage: print(HyperbolicRegularPolygon(5,pi/2,I, {}))
          Hyperbolic regular polygon (sides=5, i_angle=1/2*pi, center=1.00000000000000*I)
 
     The code verifies is there exists a compact hyperbolic regular polygon
@@ -103,7 +104,7 @@ class HyperbolicRegularPolygon(HyperbolicPolygon):
         EXAMPLES::
 
             sage: from sage.plot.hyperbolic_regular_polygon import HyperbolicRegularPolygon
-            sage: print HyperbolicRegularPolygon(5,pi/2,I, {})
+            sage: print(HyperbolicRegularPolygon(5,pi/2,I, {}))
             Hyperbolic regular polygon (sides=5, i_angle=1/2*pi, center=1.00000000000000*I)
         """
         self.center = CC(center)

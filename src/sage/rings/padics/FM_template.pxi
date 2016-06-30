@@ -82,7 +82,10 @@ cdef class FMElement(pAdicTemplateElement):
             4*5^2 + 2*5^3 + O(5^5)
         """
         cconstruct(self.value, self.prime_pow)
-        cconv(self.value, x, self.prime_pow.prec_cap, 0, self.prime_pow)
+        if isinstance(x,FMElement) and x.parent() is self.parent():
+            cshift(self.value, (<FMElement>x).value, 0, 0, self.prime_pow, False)
+        else:
+            cconv(self.value, x, self.prime_pow.prec_cap, 0, self.prime_pow)
 
     cdef FMElement _new_c(self):
         """
@@ -1137,7 +1140,7 @@ def unpickle_fme_v2(cls, parent, value):
     """
     cdef FMElement ans = cls.__new__(cls)
     ans._parent = parent
-    ans.prime_pow = <PowComputer_class?>parent.prime_pow
+    ans.prime_pow = <PowComputer_?>parent.prime_pow
     cconstruct(ans.value, ans.prime_pow)
     cunpickle(ans.value, value, ans.prime_pow)
     return ans

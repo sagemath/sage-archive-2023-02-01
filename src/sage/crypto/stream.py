@@ -345,12 +345,12 @@ def blum_blum_shub(length, seed=None, p=None, q=None,
 
     REFERENCES:
 
-    .. [BlumBlumShub1982] L. Blum, M. Blum, and M. Shub.
+    .. [BlumBlumShub1982] \L. Blum, M. Blum, and M. Shub.
       Comparison of Two Pseudo-Random Number Generators.
       *Advances in Cryptology: Proceedings of Crypto '82*,
       pp.61--78, 1982.
 
-    .. [BlumBlumShub1986] L. Blum, M. Blum, and M. Shub.
+    .. [BlumBlumShub1986] \L. Blum, M. Blum, and M. Shub.
       A Simple Unpredictable Pseudo-Random Number Generator.
       *SIAM Journal on Computing*, 15(2):364--383, 1986.
     """

@@ -16,6 +16,7 @@ Interface to mwrank
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import os
 import weakref
@@ -50,7 +51,7 @@ def Mwrank(options="", server=None, server_tmpdir=None):
     EXAMPLES::
 
         sage: M = Mwrank('-v 0 -l')
-        sage: print M('0 0 1 -1 0')
+        sage: print(M('0 0 1 -1 0'))
         Curve [0,0,1,-1,0] :    Rank = 1
         Generator 1 is [0:-1:1]; height 0.0511114082399688
         Regulator = 0.0511114082399688
@@ -241,7 +242,7 @@ class Mwrank_class(Expect):
 
         TESTS:
 
-        Invalid input raises an ValueError (see #10108); this includes
+        Invalid input raises an ValueError (see :trac:`10108`); this includes
         syntactically valid input which defines a singular curve::
 
             sage: mwrank(10)

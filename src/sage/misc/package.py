@@ -89,7 +89,6 @@ def _list_to_table(list_of_packages):
         sage: set(a+b).symmetric_difference(_EXPERIMENTAL_PACKAGES) # optional internet
         set()
     """
-    from string import join
     s = (".. csv-table::\n"
                 "    :class: contentstable\n"
                 "    :widths: 20, 20, 20, 20, 20\n"
@@ -104,7 +103,7 @@ def _list_to_table(list_of_packages):
     list_of_packages.sort()
     list_of_packages.extend(['']*width)
     for l in range(height):
-        s += "        "+join(list_of_packages[l::height][:width], ' | ')+"\n"
+        s += "        " + ' | '.join(list_of_packages[l::height][:width])+"\n"
 
     return s
 

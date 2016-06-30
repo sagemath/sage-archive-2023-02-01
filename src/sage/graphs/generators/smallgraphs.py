@@ -1951,9 +1951,8 @@ def DejterGraph():
     from sage.coding.hamming_code import HammingCode
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
-    from string import join
     g = CubeGraph(7)
-    g.delete_vertices([join(map(str,x),"")
+    g.delete_vertices(["".join(map(str, x))
                        for x in HammingCode(FiniteField(2), 3)])
     g.name("Dejter Graph")
     return g

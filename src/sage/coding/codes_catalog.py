@@ -19,22 +19,25 @@ The ``codes`` object may be used to access the codes that Sage can build.
 # in the global namespace.
 
 from sage.misc.lazy_import import lazy_import as _lazy_import
-from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
-                                CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
-                                DuadicCodeOddPair, ExtendedBinaryGolayCode,
-                                ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
-                                LinearCode, LinearCodeFromCheckMatrix,
-                                QuadraticResidueCode, QuadraticResidueCodeEvenPair,
-                                QuadraticResidueCodeOddPair, RandomLinearCode,
-                                ReedSolomonCode, TernaryGolayCode,
-                                ToricCode, TrivialCode, WalshCode)
+_lazy_import('sage.coding.code_constructions',
+        ['BCHCode', 'BinaryGolayCode', 'CyclicCodeFromGeneratingPolynomial',
+         'CyclicCode', 'CyclicCodeFromCheckPolynomial', 'DuadicCodeEvenPair',
+         'DuadicCodeOddPair', 'ExtendedBinaryGolayCode',
+         'ExtendedQuadraticResidueCode', 'ExtendedTernaryGolayCode',
+         'LinearCode', 'LinearCodeFromCheckMatrix',
+         'QuadraticResidueCode', 'QuadraticResidueCodeEvenPair',
+         'QuadraticResidueCodeOddPair', 'RandomLinearCode',
+         'ReedSolomonCode', 'TernaryGolayCode',
+         'ToricCode', 'TrivialCode', 'WalshCode'])
 
-from grs import GeneralizedReedSolomonCode
-from extended_code import ExtendedCode
-
-from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
+_lazy_import('sage.coding.extended_code', 'ExtendedCode')
+_lazy_import('sage.coding.grs', 'GeneralizedReedSolomonCode')
+_lazy_import('sage.coding.guava', ['BinaryReedMullerCode',
+                                    'QuasiQuadraticResidueCode',
+                                    'RandomLinearCodeGuava'])
+_lazy_import('sage.coding.hamming_code', 'HammingCode')
 _lazy_import('sage.coding.punctured_code', 'PuncturedCode')
-from hamming_code import HammingCode
+
 import decoders_catalog as decoders
 import encoders_catalog as encoders
 import bounds_catalog as bounds

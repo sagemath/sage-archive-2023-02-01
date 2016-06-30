@@ -57,9 +57,7 @@ class ContourPlot(GraphicPrimitive):
     We test creating a contour plot::
 
         sage: x,y = var('x,y')
-        sage: contour_plot(x^2-y^3+10*sin(x*y),
-        ....:              (x,-4,4),
-        ....:              (y,-4,4),
+        sage: contour_plot(x^2-y^3+10*sin(x*y), (x,-4,4), (y,-4,4),
         ....:              plot_points=121, cmap='hsv')
         Graphics object consisting of 1 graphics primitive
     """
@@ -91,7 +89,7 @@ class ContourPlot(GraphicPrimitive):
         EXAMPLES::
 
             sage: x,y = var('x,y')
-            sage: f(x, y) = x^2 + y^2
+            sage: f(x,y) = x^2 + y^2
             sage: d = contour_plot(f, (3,6), (3,6))[0].get_minmax_data()
             sage: d['xmin']
             3.0
@@ -108,7 +106,7 @@ class ContourPlot(GraphicPrimitive):
         EXAMPLES::
 
             sage: x,y = var('x,y')
-            sage: C = contour_plot(x^2-y^2, (x,-2,2), (y,-2,2))
+            sage: C = contour_plot(x^2 - y^2, (x,-2,2), (y,-2,2))
             sage: isinstance(C[0]._allowed_options(), dict)
             True
         """
@@ -138,7 +136,7 @@ class ContourPlot(GraphicPrimitive):
         EXAMPLES::
 
             sage: x,y = var('x,y')
-            sage: C = contour_plot(x^2-y^2, (x,-2,2), (y,-2,2))
+            sage: C = contour_plot(x^2 - y^2, (x,-2,2), (y,-2,2))
             sage: c = C[0]; c
             ContourPlot defined by a 100 x 100 data grid
         """
@@ -151,7 +149,7 @@ class ContourPlot(GraphicPrimitive):
         A somewhat random plot, but fun to look at::
 
             sage: x,y = var('x,y')
-            sage: contour_plot(x^2-y^3+10*sin(x*y), (x,-4,4), (y,-4,4),
+            sage: contour_plot(x^2 - y^3 + 10*sin(x*y), (x,-4,4), (y,-4,4),
             ....:              plot_points=121, cmap='hsv')
             Graphics object consisting of 1 graphics primitive
         """
@@ -165,10 +163,10 @@ class ContourPlot(GraphicPrimitive):
             cmap = get_cmap('gray')
         else:
             if isinstance(contours, (int, Integer)):
-                cmap = get_cmap([(i, i, i) for i in xsrange(0, 1, 1/contours)])
+                cmap = get_cmap([(i,i,i) for i in xsrange(0,1,1/contours)])
             else:
                 l = Integer(len(contours))
-                cmap = get_cmap([(i, i, i) for i in xsrange(0, 1, 1/l)])
+                cmap = get_cmap([(i,i,i) for i in xsrange(0,1,1/l)])
 
         x0, x1 = float(self.xrange[0]), float(self.xrange[1])
         y0, y1 = float(self.yrange[0]), float(self.yrange[1])
@@ -234,11 +232,11 @@ class ContourPlot(GraphicPrimitive):
          legend_label=None, aspect_ratio=1, region=None)
 def contour_plot(f, xrange, yrange, **options):
     r"""
-    ``contour_plot`` takes a function of two variables, `f(x, y)`
+    ``contour_plot`` takes a function of two variables, `f(x,y)`
     and plots contour lines of the function over the specified
     ``xrange`` and ``yrange`` as demonstrated below.
 
-    ``contour_plot(f, (xmin, xmax), (ymin, ymax), ...)``
+    ``contour_plot(f, (xmin,xmax), (ymin,ymax), ...)``
 
     INPUT:
 
@@ -341,19 +339,19 @@ def contour_plot(f, xrange, yrange, **options):
     declare the variables in 3-tuples for the range::
 
         sage: x,y = var('x,y')
-        sage: contour_plot(cos(x^2+y^2), (x,-4,4), (y,-4,4))
+        sage: contour_plot(cos(x^2 + y^2), (x,-4,4), (y,-4,4))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = contour_plot(cos(x**2+y**2), (x,-4,4), (y,-4,4))
+        g = contour_plot(cos(x**2 + y**2), (x,-4,4), (y,-4,4))
         sphinx_plot(g)
 
     Here we change the ranges and add some options::
 
         sage: x,y = var('x,y')
-        sage: contour_plot((x^2)*cos(x*y), (x,-10,5), (y,-5,5), fill=False, plot_points=150)
+        sage: contour_plot((x^2) * cos(x*y), (x,-10,5), (y,-5,5), fill=False, plot_points=150)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
@@ -365,13 +363,13 @@ def contour_plot(f, xrange, yrange, **options):
     An even more complicated plot::
 
         sage: x,y = var('x,y')
-        sage: contour_plot(sin(x^2 + y^2)*cos(x)*sin(y), (x,-4,4), (y,-4,4),plot_points=150)
+        sage: contour_plot(sin(x^2+y^2) * cos(x) * sin(y), (x,-4,4), (y,-4,4), plot_points=150)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = contour_plot(sin(x**2 + y**2)*cos(x)*sin(y), (x,-4,4), (y,-4,4),plot_points=150)
+        g = contour_plot(sin(x**2+y**2) * cos(x) * sin(y), (x,-4,4), (y,-4,4),plot_points=150)
         sphinx_plot(g)
 
     Some elliptic curves, but with symbolic endpoints.  In the first
@@ -402,14 +400,14 @@ def contour_plot(f, xrange, yrange, **options):
     We can play with the contour levels::
 
         sage: x,y = var('x,y')
-        sage: f(x, y) = x^2 + y^2
+        sage: f(x,y) = x^2 + y^2
         sage: contour_plot(f, (-2,2), (-2,2))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x, y): return x**2 + y**2
+        def f(x,y): return x**2 + y**2
         g = contour_plot(f, (-2,2), (-2,2))
         sphinx_plot(g)
 
@@ -421,7 +419,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x, y): return x**2 + y**2
+        def f(x,y): return x**2 + y**2
         g = contour_plot(f, (-2, 2), (-2, 2), contours=2, cmap=[(1,0,0), (0,1,0), (0,0,1)])
         sphinx_plot(g)
 
@@ -434,7 +432,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x, y): return x**2 + y**2
+        def f(x,y): return x**2 + y**2
         g = contour_plot(f, (-2,2), (-2,2), contours=(0.1,1.0,1.2,1.4), cmap='hsv')
         sphinx_plot(g)
 
@@ -446,7 +444,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x, y): return x**2 + y**2
+        def f(x,y): return x**2 + y**2
         g = contour_plot(f, (-2,2), (-2,2), contours=(1.0,), fill=False)
         sphinx_plot(g)
 
@@ -469,7 +467,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x, y): return x**2 + y**2
+        def f(x,y): return x**2 + y**2
         g = contour_plot(f, (-2,2), (-2,2), fill=False, linewidths=10)
         sphinx_plot(g)
 
@@ -482,7 +480,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x, y): return x**2 + y**2
+        def f(x,y): return x**2 + y**2
         g = contour_plot(f, (-2,2), (-2,2), fill=False, linestyles='dashdot')
         sphinx_plot(g)
 
@@ -661,7 +659,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x, y): return x**2 + y**2
+        def f(x,y): return x**2 + y**2
         g = contour_plot(f, (-2,2), (-2,2), labels=True, label_colors='red')
         sphinx_plot(g)
 
@@ -674,7 +672,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x, y): return x**2 + y**2
+        def f(x,y): return x**2 + y**2
         g = contour_plot(f, (x,-3,3), (y,-3,3), colorbar=True)
         sphinx_plot(g)
 
@@ -686,7 +684,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x, y): return x**2 + y**2
+        def f(x,y): return x**2 + y**2
         g = contour_plot(f, (x,-3,3), (y,-3,3), colorbar=True, colorbar_orientation='horizontal')
         sphinx_plot(g)
 
@@ -698,7 +696,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x, y): return x**2 + y**2
+        def f(x,y): return x**2 + y**2
         g = contour_plot(f, (x,-3,3), (y,-3,3), contours=[-2,-1,4],
                         colorbar=True)
         sphinx_plot(g)
@@ -712,7 +710,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x, y): return x**2 + y**2
+        def f(x,y): return x**2 + y**2
         g = contour_plot(f, (x,-3,3), (y,-3,3), contours=[-2,-1,4],
                          colorbar=True, colorbar_spacing='uniform')
         sphinx_plot(g)
@@ -726,7 +724,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x, y): return x**2 + y**2
+        def f(x,y): return x**2 + y**2
         g = contour_plot(f, (x,-3,3), (y,-3,3), contours=[0,2,3,6],
                          colorbar=True, colorbar_format='%.3f')
         sphinx_plot(g)
@@ -741,7 +739,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x, y): return x**2 + y**2
+        def f(x,y): return x**2 + y**2
         g = contour_plot(f, (x,-3,3), (y,-3,3), labels=True,
                          label_colors='red', contours=[0,2,3,6],
                          colorbar=True)
@@ -756,7 +754,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x, y): return x**2 + y**2
+        def f(x,y): return x**2 + y**2
         g = contour_plot(f, (x,-3,3), (y,-3,3), cmap='winter',
                          contours=20, fill=False, colorbar=True)
         sphinx_plot(g)
@@ -776,7 +774,7 @@ def contour_plot(f, xrange, yrange, **options):
 
     Extra options will get passed on to show(), as long as they are valid::
 
-        sage: f(x, y) = cos(x) + sin(y)
+        sage: f(x,y) = cos(x) + sin(y)
         sage: contour_plot(f, (0,pi), (0,pi), axes=True)
         Graphics object consisting of 1 graphics primitive
 
@@ -787,7 +785,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x, y): return cos(x) + sin(y)
+        def f(x,y): return cos(x) + sin(y)
         g = contour_plot(f, (0,pi), (0,pi), axes=True)
         sphinx_plot(g)
 
@@ -813,7 +811,7 @@ def contour_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x,y = var('x,y')
-        def f(x, y): return cos(x) + sin(y)
+        def f(x,y): return cos(x) + sin(y)
         g = contour_plot(f, (-pi,pi), (-pi,pi), fill=False, axes=True)
         sphinx_plot(g)
 
@@ -875,7 +873,7 @@ def contour_plot(f, xrange, yrange, **options):
 def implicit_plot(f, xrange, yrange, **options):
     r"""
     ``implicit_plot`` takes a function of two variables, `f(x, y)`
-    and plots the curve `f(x, y) = 0` over the specified
+    and plots the curve `f(x,y) = 0` over the specified
     ``xrange`` and ``yrange`` as demonstrated below.
 
     ``implicit_plot(f, (xmin,xmax), (ymin,ymax), ...)``
@@ -953,8 +951,8 @@ def implicit_plot(f, xrange, yrange, **options):
     I can do the same thing, but using a callable function so I don't need
     to explicitly define the variables in the ranges, and filling the inside::
 
-        sage: f(x, y) = x^2 + y^2 - 2
-        sage: implicit_plot(f, (-3,3), (-3,3),fill=True)
+        sage: f(x,y) = x^2 + y^2 - 2
+        sage: implicit_plot(f, (-3,3), (-3,3), fill=True)
         Graphics object consisting of 1 graphics primitive
 
     The same circle but with a different line width::
@@ -964,7 +962,7 @@ def implicit_plot(f, xrange, yrange, **options):
 
     .. PLOT::
 
-        def f(x, y): return x**2 + y**2 -2
+        def f(x,y): return x**2 + y**2 -2
         g = implicit_plot(f, (-3,3), (-3,3), linewidth=6)
         sphinx_plot(g)
 
@@ -976,7 +974,7 @@ def implicit_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x, y =var("x y")
-        def f(x, y): return x**2 + y**2 -2
+        def f(x,y): return x**2 + y**2 -2
         g = implicit_plot(f, (-3,3), (-3,3), linestyle='dashdot')
         sphinx_plot(g)
 
@@ -1033,7 +1031,7 @@ def implicit_plot(f, xrange, yrange, **options):
         ....:     z = 0
         ....:     for i in range(n):
         ....:         z = z*z + c
-        ....:     def f(x, y):
+        ....:     def f(x,y):
         ....:         val = z(CDF(x, y))
         ....:         return val.norm() - 4
         ....:     return f
@@ -1050,7 +1048,7 @@ def implicit_plot(f, xrange, yrange, **options):
              z = 0
              for i in range(n):
                  z = z*z + c
-             def f(x, y):
+             def f(x,y):
                  val = z(CDF(x, y))
                  return val.norm() - 4
              return f
@@ -1069,7 +1067,7 @@ def implicit_plot(f, xrange, yrange, **options):
              z = 0
              for i in range(n):
                  z = z*z + c
-             def f(x, y):
+             def f(x,y):
                  val = z(CDF(x, y))
                  return val.norm() - 4
              return f
@@ -1092,7 +1090,7 @@ def implicit_plot(f, xrange, yrange, **options):
              z = 0
              for i in range(n):
                  z = z*z + c
-             def f(x, y):
+             def f(x,y):
                  val = z(CDF(x, y))
                  return val.norm() - 4
              return f
@@ -1128,8 +1126,8 @@ def implicit_plot(f, xrange, yrange, **options):
 
     TESTS::
 
-        sage: f(x, y) = x^2 + y^2 - 2
-        sage: implicit_plot(f, (-3,3), (-3,3),fill=5)
+        sage: f(x,y) = x^2 + y^2 - 2
+        sage: implicit_plot(f, (-3,3), (-3,3), fill=5)
         Traceback (most recent call last):
         ...
         ValueError: fill=5 is not supported
@@ -1323,7 +1321,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
 
     The first quadrant of the unit circle::
 
-        sage: region_plot([y > 0, x > 0, x^2 + y^2 < 1], (x,-1.1,1.1), (y,-1.1,1.1),plot_points=400)
+        sage: region_plot([y > 0, x > 0, x^2 + y^2 < 1], (x,-1.1,1.1), (y,-1.1,1.1), plot_points=400)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::

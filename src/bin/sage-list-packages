@@ -67,8 +67,13 @@ if args['remote'] and args['category']!='installed':
     MIRROR_URL = os.popen("sage-download-file --print-fastest-mirror").read().strip()
 
     # Load the list of packages
-    import urllib
-    f = urllib.urlopen(MIRROR_URL+"/spkg/"+args['category']+"/list")
+    try:
+        # Python 3.3+
+        from urllib.request import urlopen
+    except ImportError:
+        # Python 2.7
+        from urllib2 import urlopen
+    f = urlopen(MIRROR_URL+"/spkg/"+args['category']+"/list")
     packages_list_remote = f.read()
     f.close()
 

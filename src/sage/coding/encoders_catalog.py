@@ -37,5 +37,6 @@ from sage.misc.lazy_import import lazy_import as _lazy_import
 _lazy_import('sage.coding.linear_code', ['LinearCodeGeneratorMatrixEncoder',
                                          'LinearCodeParityCheckEncoder'])
 _lazy_import('sage.coding.grs', ['GRSEvaluationVectorEncoder', 'GRSEvaluationPolynomialEncoder'])
+_lazy_import('sage.coding.reed_muller_code', ['ReedMullerVectorEncoder', 'ReedMullerPolynomialEncoder'])
 _lazy_import('sage.coding.extended_code', 'ExtendedCodeExtendedMatrixEncoder')
 _lazy_import('sage.coding.punctured_code', 'PuncturedCodePuncturedMatrixEncoder')

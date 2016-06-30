@@ -122,14 +122,14 @@ AUTHORS:
 ########################################################################
 
 # just used for handy .load, .save, etc.
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import inspect
 from sage.structure.sage_object import SageObject
 from sage.arith.srange import srange
 from sage.rings.integer_ring import ZZ
 from sage.functions.all import prime_pi
-import partition
+from . import partition
 from sage.rings.integer import Integer as Integer_class
 
 Integer = ZZ

@@ -804,14 +804,14 @@ class ParallelogramPolyomino(ClonableList):
 
         EXAMPLES::
 
-        sage: ParallelogramPolyomino._prefix_lengths([], 1)
-        []
-        sage: ParallelogramPolyomino._prefix_lengths([], 0)
-        []
-        sage: ParallelogramPolyomino._prefix_lengths([1,1,0,1,0,0,1], 1)
-        [2, 3, 3]
-        sage: ParallelogramPolyomino._prefix_lengths([1,1,0,1,0,0,1], 0)
-        [0, 0, 1, 3]
+            sage: ParallelogramPolyomino._prefix_lengths([], 1)
+            []
+            sage: ParallelogramPolyomino._prefix_lengths([], 0)
+            []
+            sage: ParallelogramPolyomino._prefix_lengths([1,1,0,1,0,0,1], 1)
+            [2, 3, 3]
+            sage: ParallelogramPolyomino._prefix_lengths([1,1,0,1,0,0,1], 0)
+            [0, 0, 1, 3]
         """
         res = []
         h = 0
@@ -833,12 +833,12 @@ class ParallelogramPolyomino(ClonableList):
 
         EXAMPLES::
 
-        sage: ParallelogramPolyomino([[0, 1], [1, 0]]).upper_heights()
-        [0]
-        sage: ParallelogramPolyomino(
-        ....:     [[0, 0, 1, 1, 0, 1, 1, 1], [1, 0, 1, 1, 0, 1, 1, 0]]
-        ....: ).upper_heights()
-        [0, 1, 1, 2, 2]
+            sage: ParallelogramPolyomino([[0, 1], [1, 0]]).upper_heights()
+            [0]
+            sage: ParallelogramPolyomino(
+            ....:     [[0, 0, 1, 1, 0, 1, 1, 1], [1, 0, 1, 1, 0, 1, 1, 0]]
+            ....: ).upper_heights()
+            [0, 1, 1, 2, 2]
         """
         return ParallelogramPolyomino._prefix_lengths(self.upper_path(), 0)
 
@@ -853,12 +853,12 @@ class ParallelogramPolyomino(ClonableList):
 
         EXAMPLES::
 
-        sage: ParallelogramPolyomino([[0, 1], [1, 0]]).lower_heights()
-        [1]
-        sage: ParallelogramPolyomino(
-        ....:     [[0, 0, 1, 1, 0, 1, 1, 1], [1, 0, 1, 1, 0, 1, 1, 0]]
-        ....: ).lower_heights()
-        [2, 2, 3, 3, 3]
+            sage: ParallelogramPolyomino([[0, 1], [1, 0]]).lower_heights()
+            [1]
+            sage: ParallelogramPolyomino(
+            ....:     [[0, 0, 1, 1, 0, 1, 1, 1], [1, 0, 1, 1, 0, 1, 1, 0]]
+            ....: ).lower_heights()
+            [2, 2, 3, 3, 3]
         """
         return ParallelogramPolyomino._prefix_lengths(self.lower_path(), 0)
 
@@ -873,12 +873,12 @@ class ParallelogramPolyomino(ClonableList):
 
         EXAMPLES::
 
-        sage: ParallelogramPolyomino([[0, 1], [1, 0]]).upper_widths()
-        [1]
-        sage: ParallelogramPolyomino(
-        ....:     [[0, 0, 1, 1, 0, 1, 1, 1], [1, 0, 1, 1, 0, 1, 1, 0]]
-        ....: ).upper_widths()
-        [1, 3, 5]
+            sage: ParallelogramPolyomino([[0, 1], [1, 0]]).upper_widths()
+            [1]
+            sage: ParallelogramPolyomino(
+            ....:     [[0, 0, 1, 1, 0, 1, 1, 1], [1, 0, 1, 1, 0, 1, 1, 0]]
+            ....: ).upper_widths()
+            [1, 3, 5]
         """
         return ParallelogramPolyomino._prefix_lengths(self.upper_path(), 1)
 
@@ -893,12 +893,12 @@ class ParallelogramPolyomino(ClonableList):
 
         EXAMPLES::
 
-        sage: ParallelogramPolyomino([[0, 1], [1, 0]]).lower_widths()
-        [0]
-        sage: ParallelogramPolyomino(
-        ....:     [[0, 0, 1, 1, 0, 1, 1, 1], [1, 0, 1, 1, 0, 1, 1, 0]]
-        ....: ).lower_widths()
-        [0, 0, 2]
+            sage: ParallelogramPolyomino([[0, 1], [1, 0]]).lower_widths()
+            [0]
+            sage: ParallelogramPolyomino(
+            ....:     [[0, 0, 1, 1, 0, 1, 1, 1], [1, 0, 1, 1, 0, 1, 1, 0]]
+            ....: ).lower_widths()
+            [0, 0, 2]
         """
         return ParallelogramPolyomino._prefix_lengths(self.lower_path(), 1)
 
@@ -1642,7 +1642,7 @@ class ParallelogramPolyomino(ClonableList):
         Aval-Boussicault bijection between parallelogram polyomino and binary
         tree.
 
-        TODO : Vérifier le cas de la racine et donc si c'est Boussic&ault-Aval
+        TODO : Verifier le cas de la racine et donc si c'est Boussicault-Aval
         ou Boussicault-Socci
 
         INPUT:
@@ -2033,11 +2033,14 @@ class ParallelogramPolyominoesFactory(SetFactory):
         raise ValueError("Invalid argument for Parallelogram Polyominoes "
                          "Factory.")
 
-    def add_constraints(self, cons, (args, opts)):
+    def add_constraints(self, cons, args_opts):
         r"""
         This function permit to add some enumeration constraint to the 
         factory. The factory make a family using the given constraints.
+
+        :meth:`SetFactory.add_constraints<.set_factories.SetFactory.add_constraints>`.
         """
+        args, opts = args_opts
         return cons + args
 
     @lazy_attribute

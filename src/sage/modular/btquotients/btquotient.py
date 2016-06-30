@@ -778,7 +778,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         `P_1(\QQ_p)`.  Given a list of edges, this function return a list
         of edges corresponding to the level-th subdivision of the
         corresponding opens.  That is, each open ball of the input is
-        broken up into `p^\mbox{level}` subballs of equal radius.
+        broken up into `p^{\mbox{level}}` subballs of equal radius.
 
         INPUT:
 
@@ -824,7 +824,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         be further subdivided, to get a finer decomposition.
 
         This function returns the decompostion of `P^1(\QQ_p)`
-        corresponding to ``center`` into `(p+1)p^\mbox{level}` balls.
+        corresponding to ``center`` into `(p+1)p^{\mbox{level}}` balls.
 
         EXAMPLES::
 
@@ -938,7 +938,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
         Note that the translate of ``z`` belongs to the standard
         affinoid. That is, it is a `p`-adic unit and its reduction
-        modulo `p` is not in `\FF_p`::
+        modulo `p` is not in `\mathbb{F}_p`::
 
             sage: gz = (v[0,0]*z+v[0,1])/(v[1,0]*z+v[1,1]); gz
             (a + 1) + O(5^19)

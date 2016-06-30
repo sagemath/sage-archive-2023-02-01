@@ -4600,7 +4600,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         ALGORITHM:
 
-        Implementing invariant set algorithim from the paper[FMV]_. Given that the set of `n` th preimages is
+        Implementing invariant set algorithim from the paper [FMV]_. Given that the set of `n` th preimages is
         invariant under conjugation this function finds whether two maps are conjugate.
 
         INPUT: Two nonconstant rational functions of same degree.

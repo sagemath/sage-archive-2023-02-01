@@ -3937,11 +3937,11 @@ class Tableau(ClonableList):
             sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(4)
             4-residue sequence (0,1,3,0) with multicharge (0)
         """
-        from sage.combinat.tableau_tuple import ResidueSequence
         res = [0] * self.size()
         for r,row in enumerate(self):
             for c,entry in enumerate(row):
                 res[entry-1] = multicharge[0] - r + c
+        from sage.combinat.tableau_residues import ResidueSequence
         return ResidueSequence(e, multicharge, res, check=False)
 
     def degree(self, e, multicharge=(0,)):

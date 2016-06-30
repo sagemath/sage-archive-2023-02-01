@@ -2469,11 +2469,11 @@ class Partition(CombinatorialElement):
         r"""
         Return the ``e``-th degree of ``self``.
 
-        The degree of a partition `\lambda` is the sum of the degrees
-        of the standard tableaux of shape `\lambda`. The `e`-th degree is
-        the exponent of `\Phi_e(q)` in the Gram determinant of the
-        Specht module for a semisimple Iwahori-Hecke algebra of type `A`
-        with parameter `q`.
+        The ``e``th degree of a partition `\lambda` is the sum of the ``e``th
+        degrees of the standard tableaux of shape `\lambda`. The `e`-th degree
+        is the exponent of `\Phi_e(q)` in the Gram determinant of the Specht
+        module for a semisimple Iwahori-Hecke algebra of type `A` with parameter
+        `q`.
 
         EXAMPLES::
 
@@ -2496,11 +2496,11 @@ class Partition(CombinatorialElement):
 
             q^N \Phi_2(q)^{28} \Phi_3(q)^{15} \Phi_4(q)^8 \Phi_5(q)^{13}
 
-        for some integer `N`. Compare with :meth:`p_Degree`.
+        for some integer `N`. Compare with :meth:`prime_degree`.
         """
         return sum(t.degree(e) for t in self.standard_tableaux())
 
-    def p_Degree(self, p, multicharge=(0,)):
+    def prime_degree(self, p, multicharge=(0,)):
         r"""
         Return the ``p``-th Degree of ``self``.
 
@@ -2511,13 +2511,13 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: Partition([4,3]).p_Degree(2)
+            sage: Partition([4,3]).prime_degree(2)
             36
-            sage: Partition([4,3]).p_Degree(3)
+            sage: Partition([4,3]).prime_degree(3)
             15
-            sage: Partition([4,3]).p_Degree(5)
+            sage: Partition([4,3]).prime_degree(5)
             13
-            sage: Partition([4,3]).p_Degree(7)
+            sage: Partition([4,3]).prime_degree(7)
             0
 
         So we conclude that the Gram determinant of `S(5,3)` is

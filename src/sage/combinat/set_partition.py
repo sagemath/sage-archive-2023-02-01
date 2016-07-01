@@ -955,18 +955,25 @@ class SetPartition(ClonableArray):
                 arcs.append((p[i], p[i+1]))
         return arcs
 
-    def plot(self, color='black'):
+    def plot(self, color='black', base_set_dict=None):
         """
         Return a plot of ``self``.
 
         INPUT:
 
         - ``color`` -- color of the arcs
+        - ``base_set_dict`` -- dictionary asigning positions to elements of self.base_set()
 
         EXAMPLES::
 
-            sage: P=SetPartition([[1,3,4],[5]])
-            sage: print(P.plot().description())
+            sage: p=SetPartition([[1,3,4],[2,5]])
+            sage: print(p.plot().description())
+
+            sage: p=SetPartition([['a','c'],['b',-1],[20.2]])
+            sage: print(p.plot().description())
+
+            sage: p=SetPartition([['a','c'],['b',-1],[20.2]],{0:'a',1:'b',2:'c',-2.3:-1,5.4:20.2})
+            sage: print(p.plot().description())
         """
         from sage.plot.graphics import Graphics
         from sage.plot.point import point
@@ -974,15 +981,20 @@ class SetPartition(ClonableArray):
         from sage.plot.arc import arc
         from sage.functions.other import sqrt
         from sage.symbolic.constants import pi
-        #from sage.plot.circle import circle
-        #from sage.plot.arrow import arrow
-        
+
         diag = Graphics()
-        for i in self.base_set():
-            diag += point((i,0),size=30, color='black')
-            diag += text(i, (i,-0.2), color='black')
-        for (k,l) in self.arcs():
-            diag += arc(((k+l)/2,(k-l)/2),(l-k)/sqrt(2),sector=(pi/4,3*pi/4),color='black')
+        vertices_list=list(self.base_set())
+        vertices_list.sort()
+        vertices_dict = dict()
+        for pos in range(len(vertices_list)):
+            vertices_dict[pos]=vertices_list[pos]
+
+        for pos in range(0,len(vertices_list)):
+            diag += point((pos,0),size=30, color=color)
+            diag += text(vertices_list[pos], (pos,-0.2), color=color)
+        for (k,j) in self.arcs():
+            pos_k,pos_j=float(vertices_list.index(k)),float(vertices_list.index(j))
+            diag += arc(((pos_k+pos_j)/2,(pos_k-pos_j)/2),(pos_j-pos_k)/sqrt(2),sector=(pi/4,3*pi/4),color=color)
         diag.axes(False)
         return diag
 

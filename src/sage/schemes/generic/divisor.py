@@ -230,7 +230,7 @@ class Divisor_generic(FormalSum):
             sage: D = C.divisor(pts[0])*3 - C.divisor(pts[1]); D
             3*(x, y) - (x - 2, y - 2)
             sage: D.scheme()
-            Affine Curve over Finite Field of size 5 defined by -x^9 + y^2 - x
+            Affine Plane Curve over Finite Field of size 5 defined by -x^9 + y^2 - x
         """
         return self.parent().scheme()
 

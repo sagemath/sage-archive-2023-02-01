@@ -63,15 +63,21 @@ TESTS::
     sage: loads(dumps(std)) == std
     True
 """
+
 #*****************************************************************************
 #       Copyright (C) 2009 Michael Brickenstein <brickenstein@mfo.de>
 #       Copyright (C) 2009,2010 Martin Albrecht <M.R.Albrecht@rhul.ac.uk>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+from libc.string cimport memcpy
+
+include "cysignals/signals.pxi"
 
 from sage.structure.sage_object cimport SageObject
 
@@ -479,7 +485,6 @@ def all_vectors(s):
             return False
     return True
 
-
 cdef class Converter(SageObject):
     """
     A :class:`Converter` interfaces between Sage objects and Singular
@@ -872,9 +877,8 @@ cdef class Converter(SageObject):
         Append ``a`` to the list as intvec.
         """
         s = len(a)
-        cdef intvec *iv=intvec_new()
+        cdef intvec *iv = new intvec()
         iv.resize(s)
-        #new intvec(s);
 
         for i in xrange(s):
             iv.ivGetVec()[i]=<int>a[i]
@@ -902,8 +906,7 @@ cdef class Converter(SageObject):
         """
         cdef int nrows = <int> a.nrows()
         cdef int ncols = <int> a.ncols()
-        cdef intvec *iv=intvec_new_int3(nrows, ncols, 0)
-        #new intvec(s);
+        cdef intvec *iv = new intvec(nrows, ncols, 0)
 
         for i in xrange(nrows):
             for j in xrange(ncols):
@@ -930,11 +933,17 @@ cdef class Converter(SageObject):
         Check that negative integers come through unscathed::
 
             sage: P.<x,y,z> = QQ[]
-            sage: C= Curve((x-y)*(y-z)*(z-x)); 
+            sage: C = Curve((x-y)*(y-z)*(z-x))
+            sage: I = C.defining_ideal()
             sage: import sage.libs.singular.function_factory
-            sage: sing_genus = sage.libs.singular.function_factory.ff.normal__lib.genus
-            sage: I=C.defining_ideal()
-            sage: sing_genus(I)
+            sage: freerank = sage.libs.singular.function_factory.ff.poly__lib.freerank
+            sage: freerank(I, true)
+            [-1, [x^2*y - x*y^2 - x^2*z + y^2*z + x*z^2 - y*z^2]]
+
+        Singular's genus function is prone to crashing, see :trac:`12851` and :trac:`19750` ::
+
+            sage: sing_genus = sage.libs.singular.function_factory.ff.normal__lib.genus  # known bug
+            sage: sing_genus(I)  # known bug
             -2
         """
         #FIXME
@@ -1147,11 +1156,16 @@ cdef class KernelCallHandler(BaseCallHandler):
         """
         return True
 
+# The Sage ring used as a dummy for singular function calls.
+cdef object dummy_ring
+
 cdef class SingularFunction(SageObject):
     """
     The base class for Singular functions either from the kernel or
     from the library.
     """
+
+
     def __init__(self, name):
         """
         INPUT:
@@ -1197,18 +1211,22 @@ cdef class SingularFunction(SageObject):
     def __call__(self, *args, ring=None, bint interruptible=True, attributes=None):
         """
         Call this function with the provided arguments ``args`` in the
-        ring ``R``.
+        ``ring``.
 
         INPUT:
 
-        - ``args`` - a list of arguments
-        - ``ring`` - a multivariate polynomial ring
-        - ``interruptible`` - if ``True`` pressing Ctrl-C during the
+        - ``args`` -- a list of arguments
+        - ``ring`` -- a multivariate polynomial ring
+        - ``interruptible`` -- if ``True`` pressing Ctrl-C during the
           execution of this function will interrupt the computation
           (default: ``True``)
 
-        - ``attributes`` - a dictionary of optional Singular
+        - ``attributes`` -- a dictionary of optional Singular
           attributes assigned to Singular objects (default: ``None``)
+
+        If ``ring`` is not specified, it is guessed from the given arguments.
+        If this is not possible, then a dummy ring, univariate polynomial ring
+        over ``QQ``, is used.
 
         EXAMPLE::
 
@@ -1222,19 +1240,17 @@ cdef class SingularFunction(SageObject):
             sage: size(2, ring=P)
             1
             sage: size(2)
-            Traceback (most recent call last):
-            ...
-            ValueError: Could not detect ring.
-            sage: size(Ideal([a*b + c, a + 1]), ring=P)
+            1
+            sage: size(Ideal([a*b + c, a + 1]))
             2
             sage: size(Ideal([a*b + c, a + 1]))
             2
-            sage: size(1,2, ring=P)
+            sage: size(1,2)
             Traceback (most recent call last):
             ...
             RuntimeError: Error in Singular function call 'size':
              Wrong number of arguments
-            sage: size('foobar', ring=P)
+            sage: size('foobar')
             6
 
         Show the usage of the optional ``attributes`` parameter::
@@ -1290,10 +1306,16 @@ cdef class SingularFunction(SageObject):
             sage: triangL(G,attributes={G:{'isSB':1}})
             [[e + d + c + b + a, ...]]
         """
+        global dummy_ring
+        
         if ring is None:
             ring = self.common_ring(args, ring)
-        if not (isinstance(ring, MPolynomialRing_libsingular) or \
-                isinstance(ring, NCPolynomialRing_plural)):
+            if ring is None:
+                if dummy_ring is None:
+                    from sage.all import QQ, PolynomialRing
+                    dummy_ring = PolynomialRing(QQ,"dummy",1) # seems a reasonable default
+                ring = dummy_ring
+        if not (isinstance(ring, MPolynomialRing_libsingular) or isinstance(ring, NCPolynomialRing_plural)):
             raise TypeError("Cannot call Singular function '%s' with ring parameter of type '%s'"%(self._name,type(ring)))
         return call_function(self, args, ring, interruptible, attributes)
 
@@ -1314,27 +1336,30 @@ function '%s'.
 
 This wrapper takes care of converting Sage datatypes to Singular
 datatypes and vice versa. In addition to whatever parameters the
-underlying Singular function accepts when called this function also
+underlying Singular function accepts when called, this function also
 accepts the following keyword parameters:
 
 INPUT:
 
-- ``args`` - a list of arguments
-- ``ring`` - a multivariate polynomial ring
-- ``interruptible`` - if ``True`` pressing Ctrl-C during the
-                      execution of this function will
-                      interrupt the computation (default: ``True``)
-- ``attributes`` - a dictionary of optional Singular
-                   attributes assigned to Singular objects (default: ``None``)
+- ``args`` -- a list of arguments
+- ``ring`` -- a multivariate polynomial ring
+- ``interruptible`` -- if ``True`` pressing Ctrl-C during the
+  execution of this function will interrupt the computation
+  (default: ``True``)
+- ``attributes`` -- a dictionary of optional Singular attributes
+  assigned to Singular objects (default: ``None``)
 
-EXAMPLE::
+If ``ring`` is not specified, it is guessed from the given arguments.
+If this is not possible, then a dummy ring, univariate polynomial ring
+over ``QQ``, is used.
+
+EXAMPLES::
 
     sage: groebner = sage.libs.singular.function_factory.ff.groebner
     sage: P.<x, y> = PolynomialRing(QQ)
     sage: I = P.ideal(x^2-y, y+x)
     sage: groebner(I)
     [x + y, y^2 - y]
-
     sage: triangL = sage.libs.singular.function_factory.ff.triang__lib.triangL
     sage: P.<x1, x2> = PolynomialRing(QQ, order='lex')
     sage: f1 = 1/2*((x1^2 + 2*x1 - 4)*x2^2 + 2*(x1^2 + x1)*x2 + x1^2)
@@ -1350,7 +1375,10 @@ The Singular documentation for '%s' is given below.
 """%(self._name,self._name)
         # Trac ticket #11268: Include the Singular documentation as a block of code
         singular_doc = get_docstring(self._name).split('\n')
-        return prefix + "\n::\n\n"+'\n'.join(["    "+L for L in singular_doc])
+        if len(singular_doc) > 1:
+            return prefix + "\n::\n\n"+'\n'.join(["    "+L for L in singular_doc])
+        else:
+            return prefix + "\n::\n\n"+"    Singular documentation not found"
 
     cdef common_ring(self, tuple args, ring=None):
         """
@@ -1359,12 +1387,12 @@ The Singular documentation for '%s' is given below.
         If ``ring`` is not ``None`` this routine checks whether it is
         the parent/ring of all members of ``args`` instead.
 
-        If no common ring was found a ``ValueError`` is raised.
+        If no common ring was found, None is returned.
 
         INPUT:
 
-        - ``args`` - a list of Python objects
-        - ``ring`` - an optional ring to check
+        - ``args`` -- a list of Python objects
+        - ``ring`` -- an optional ring to check
         """
         from  sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
         from sage.matrix.matrix_integer_dense import Matrix_integer_dense
@@ -1403,8 +1431,6 @@ The Singular documentation for '%s' is given below.
                 ring = ring2
             elif ring is not ring2:
                 raise ValueError("Rings do not match up.")
-        if ring is None:
-            raise ValueError("Could not detect ring.")
         return ring
 
     def __reduce__(self):
@@ -1604,11 +1630,11 @@ def singular_function(name):
         sage: std(I)
         [3*y - 8*z - 4, 4*x + 1]
         sage: size = singular_function("size")
-        sage: size([2, 3, 3], ring=P)
+        sage: size([2, 3, 3])
         3
-        sage: size("sage", ring=P)
+        sage: size("sage")
         4
-        sage: size(["hello", "sage"], ring=P)
+        sage: size(["hello", "sage"])
         2
         sage: factorize = singular_function("factorize")
         sage: factorize(f)
@@ -1618,7 +1644,7 @@ def singular_function(name):
 
     We give a wrong number of arguments::
 
-        sage: factorize(ring=P)
+        sage: factorize()
         Traceback (most recent call last):
         ...
         RuntimeError: Error in Singular function call 'factorize':
@@ -1638,13 +1664,13 @@ def singular_function(name):
     arguments::
 
         sage: singular_list = singular_function("list")
-        sage: singular_list(2, 3, 6, ring=P)
+        sage: singular_list(2, 3, 6)
         [2, 3, 6]
-        sage: singular_list(ring=P)
+        sage: singular_list()
         []
-        sage: singular_list(1, ring=P)
+        sage: singular_list(1)
         [1]
-        sage: singular_list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ring=P)
+        sage: singular_list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     We try to define a non-existing function::
@@ -1659,9 +1685,9 @@ def singular_function(name):
         sage: from sage.libs.singular.function import lib as singular_lib
         sage: singular_lib('general.lib')
         sage: number_e = singular_function('number_e')
-        sage: number_e(10r,ring=P)
+        sage: number_e(10r)
         67957045707/25000000000
-        sage: RR(number_e(10r,ring=P))
+        sage: RR(number_e(10r))
         2.71828182828000
 
     ::
@@ -1679,7 +1705,7 @@ def singular_function(name):
         sage: l
         [0, ['x', 'y', 'z'], [['dp', (1, 1, 1)], ['C', (0,)]], [0]]
         sage: ring=singular_function("ring")
-        sage: ring(l, ring=P)
+        sage: ring(l)
         <RingWrap>
         sage: matrix = Matrix(P,2,2)
         sage: matrix.randomize(terms=1)
@@ -1690,12 +1716,11 @@ def singular_function(name):
         sage: coeffs(x*y+y+1,y)
         [    1]
         [x + 1]
-        sage: F.<x,y,z> = GF(3)[]
         sage: intmat = Matrix(ZZ, 2,2, [100,2,3,4])
-        sage: det(intmat, ring=F)
+        sage: det(intmat)
         394
         sage: random = singular_function("random")
-        sage: A = random(10,2,3, ring =F); A.nrows(), max(A.list()) <= 10
+        sage: A = random(10,2,3); A.nrows(), max(A.list()) <= 10
         (2, True)
         sage: P.<x,y,z> = PolynomialRing(QQ)
         sage: M=P**3
@@ -1738,7 +1763,7 @@ def singular_function(name):
         doctest...
         sage: M
         [(x + y, x*y)]
-        sage: syz(M, ring=P)
+        sage: syz(M)
         [(0)]
         sage: mres(I, 0)
         <Resolution>
@@ -1754,16 +1779,14 @@ def singular_function(name):
         sage: l = ringlist(P)
         sage: len(l)
         6
-        sage: ring(l, ring=P)
+        sage: ring(l)
         <noncommutative RingWrap>
         sage: I=twostd(I)
         sage: l[3]=I
-        sage: ring(l, ring=P)
+        sage: ring(l)
         <noncommutative RingWrap>
-
     """
 
-    cdef SingularFunction fnc
     try:
         return SingularKernelFunction(name)
     except NameError:
@@ -1775,7 +1798,7 @@ def lib(name):
 
     INPUT:
 
-    - ``name`` - a Singular library name
+    - ``name`` -- a Singular library name
 
     EXAMPLE::
 

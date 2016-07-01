@@ -18,6 +18,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 
@@ -84,6 +85,8 @@ class JmolData(SageObject):
 
         - datafile -- full path to the data file Jmol can read or
           text of a script telling Jmol what to read or load.
+          If it is a script and the platform is cygwin, the filenames in
+          the script should be in native windows format.
 
         - datafile_cmd -- (default ``'script'``)  ``'load'`` or ``'script'``
           should be ``"load"`` for a data file.
@@ -119,7 +122,7 @@ class JmolData(SageObject):
             sage: script = "load =1lcd;display DNA;moveto 0.0 { -473 -713 -518 59.94} 100.0 0.0 0.0 {21.17 26.72 27.295} 27.544636 {0.0 0.0 0.0} -25.287832 64.8414 0.0;"
             sage: testfile = tmp_filename(ext="DNA.png")
             sage: JData.export_image(targetfile=testfile,datafile=script,image_type="PNG")  # optional -- java internet
-            sage: print os.path.exists(testfile)  # optional -- java internet
+            sage: print(os.path.exists(testfile)) # optional -- java internet
             True
 
         Use Jmol to save an image of a 3-D object created in Sage.
@@ -132,20 +135,35 @@ class JmolData(SageObject):
             sage: from sage.misc.misc import SAGE_TMP
             sage: archive_name=os.path.join(SAGE_TMP, "archive.jmol.zip")
             sage: D.export_jmol(archive_name)  #not scaled properly...need some more steps.
+            sage: archive_native = archive_name
+            sage: import sys
+            sage: if sys.platform == 'cygwin':
+            ....:     from subprocess import check_output, STDOUT
+            ....:     archive_native = check_output(['cygpath', '-w', archive_native],
+            ....:                                   stderr=STDOUT).rstrip()
+            sage: script = 'set defaultdirectory "{0}"\n script SCRIPT\n'.format(archive_native)
             sage: testfile = os.path.join(SAGE_TMP, "testimage.png")
-            sage: script = 'set defaultdirectory "%s"\n script SCRIPT\n'%archive_name
-            sage: JData.export_image(targetfile =testfile,datafile = script, image_type="PNG") # optional -- java
-            sage: print os.path.exists(testfile) # optional -- java
+            sage: JData.export_image(targetfile=testfile, datafile=script, image_type="PNG") # optional -- java
+            sage: print(os.path.exists(testfile)) # optional -- java
             True
-
         """
         # Set up paths, file names and scripts
         jmolpath = os.path.join(SAGE_LOCAL, "share", "jmol", "JmolData.jar")
+        target_native = targetfile
+        import sys
+        if sys.platform == 'cygwin':
+            jmolpath      = subprocess.check_output(['cygpath', '-w', jmolpath],
+                                                    stderr=subprocess.STDOUT).rstrip()
+            target_native = subprocess.check_output(['cygpath', '-w', target_native],
+                                                    stderr=subprocess.STDOUT).rstrip()
+            if (datafile_cmd != 'script'):
+                datafile  = subprocess.check_output(['cygpath', '-w', datafile],
+                                                    stderr=subprocess.STDOUT).rstrip()
         launchscript = ""
         if (datafile_cmd!='script'):
             launchscript = "load "
         launchscript = launchscript + datafile
-        imagescript = "write "+ image_type +" "+targetfile+"\n"
+        imagescript = "write " + image_type + " " + target_native + "\n"
 
         sizeStr = "%sx%s" %(figsize*100,figsize*100)
         # Scratch file for Jmol errors

@@ -15,6 +15,8 @@ A Sage extension which adds sage-specific features:
 
   - ``%mode`` (like ``%maxima``, etc.)
 
+  - ``%%cython``
+
 * preparsing of input
 
 * loading Sage library
@@ -56,11 +58,11 @@ In contrast, input to the ``%time`` magic command is preparsed::
     sage: shell.quit()
 """
 
-from IPython.core.magic import Magics, magics_class, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic, cell_magic
 
 from sage.repl.load import load_wrap
-
 from sage.env import SAGE_IMPORTALL, SAGE_STARTUP_FILE
+from sage.misc.lazy_import import LazyImport
 
 @magics_class
 class SageMagics(Magics):
@@ -230,14 +232,14 @@ class SageMagics(Magics):
             sage: shell.run_cell('%display ascii_art')
             sage: shell.run_cell('StandardTableaux(4).list()')
             [
-            [                                                                  1  4    1  3
-            [                 1  3  4    1  2  4    1  2  3    1  3    1  2    2       2
-            [   1  2  3  4,   2      ,   3      ,   4      ,   2  4,   3  4,   3   ,   4
+            [                                                                  1  4
+            [                 1  3  4    1  2  4    1  2  3    1  3    1  2    2
+            [   1  2  3  4,   2      ,   3      ,   4      ,   2  4,   3  4,   3   ,
             <BLANKLINE>
-                        1 ]
-                1  2    2 ]
-                3       3 ]
-            ,   4   ,   4 ]
+                               1 ]
+               1  3    1  2    2 ]
+               2       3       3 ]
+               4   ,   4   ,   4 ]
             sage: shell.run_cell('%display ascii_art 50')
             sage: shell.run_cell('StandardTableaux(4).list()')
             [
@@ -269,7 +271,7 @@ class SageMagics(Magics):
         TESTS::
 
             sage: shell.run_cell('%display invalid_mode')
-            value must be unset (None) or one of ('plain', 'ascii_art', 'latex'), got invalid_mode
+            value must be unset (None) or one of ('plain', 'ascii_art', 'unicode_art', 'latex'), got invalid_mode
             sage: shell.quit()
         """
         from sage.repl.rich_output import get_display_manager
@@ -284,17 +286,17 @@ class SageMagics(Magics):
             dm.preferences.text = 'plain'
         elif arg0 == 'typeset':
             dm.preferences.text = 'latex'
-        elif arg0 == 'ascii_art' and len(args) > 1:
+        elif arg0 in ['ascii_art', 'unicode_art'] and len(args) > 1:
             try:
                 max_width = int(args[1])
             except ValueError:
                 max_width = 0
             if max_width <= 0:
                 raise ValueError(
-                        "ascii_art max width must be a positive integer")
-            import sage.misc.ascii_art as ascii_art
-            ascii_art.MAX_WIDTH = max_width
-            dm.preferences.text = 'ascii_art'
+                        "max width must be a positive integer")
+            import sage.typeset.character_art as character_art
+            character_art.MAX_WIDTH = max_width
+            dm.preferences.text = arg0
         # Unset all
         elif arg0 in ['default', 'None']:  # un-stringify "%display None"
             for option in map(str, dm.preferences.available_options()):
@@ -321,6 +323,38 @@ class SageMagics(Magics):
             except ValueError as err:
                 print(err)  # do not show traceback
 
+    @cell_magic
+    def cython(self, line, cell):
+        """
+        Cython cell magic
+
+        This is syntactic sugar on the
+        :func:`~sage.misc.cython_c.cython` function.
+
+        INPUT::
+
+        - ``line`` -- ignored.
+
+        - ``cell`` -- string. The Cython source code to process.
+
+        OUTPUT:
+
+        None. The Cython code is compiled and loaded.
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('''
+            ....: %%cython
+            ....: def f():
+            ....:     print('test')
+            ....: ''')
+            ....: shell.run_cell('f()')
+        """
+        from sage.misc.cython_c import cython_compile
+        return cython_compile(cell)
+
 
 class SageCustomizations(object):
 
@@ -333,18 +367,11 @@ class SageCustomizations(object):
         self.auto_magics = SageMagics(shell)
         self.shell.register_magics(self.auto_magics)
 
-        import sage.repl.display.formatter as formatter
-        self.shell.display_formatter.formatters['text/plain'] = (
-                formatter.SagePlainTextFormatter(config=shell.config))
-
         import sage.misc.edit_module as edit_module
         self.shell.set_hook('editor', edit_module.edit_devel)
 
         self.init_inspector()
         self.init_line_transforms()
-
-        import inputhook
-        inputhook.install()
 
         import sage.all # until sage's import hell is fixed
 
@@ -356,31 +383,12 @@ class SageCustomizations(object):
         if SAGE_IMPORTALL == 'yes':
             self.init_environment()
 
-
     def register_interface_magics(self):
         """
         Register magics for each of the Sage interfaces
         """
-        from sage.misc.superseded import deprecation
-        import sage.interfaces.all
-        interfaces = [(name, obj)
-                      for name, obj in sage.interfaces.all.__dict__.items()
-                      if isinstance(obj, sage.interfaces.interface.Interface)]
-
-        for real_name, obj in interfaces:
-            def tmp(line, name=real_name):
-                self.shell.run_cell('%s.interact()' % name)
-            tmp.__doc__ = "Interact with %s" % real_name
-            self.shell.register_magic_function(tmp, magic_name=real_name)
-
-            obj_name = obj.name()
-            if real_name != obj_name:
-                def tmp_deprecated(line, name=real_name, badname=obj_name):
-                    deprecation(6288, 'Use %%%s instead of %%%s.' % (name,
-                                                                     badname))
-                    self.shell.run_cell('%s.interact()' % name)
-                tmp_deprecated.__doc__ = "Interact with %s" % real_name
-                self.shell.register_magic_function(tmp_deprecated, magic_name=obj_name)
+        from sage.repl.interface_magic import InterfaceMagic
+        InterfaceMagic.register_all(self.shell)
 
     def set_quit_hook(self):
         """
@@ -417,13 +425,11 @@ class SageCustomizations(object):
         # that we could override; however, IPython looks them up in
         # the global :class:`IPython.core.oinspect` module namespace.
         # Thus, we have to monkey-patch.
-        import sage.misc.sagedoc as sagedoc
-        import sage.misc.sageinspect as sageinspect
         import IPython.core.oinspect
-        IPython.core.oinspect.getdoc = sageinspect.sage_getdoc
-        IPython.core.oinspect.getsource = sagedoc.my_getsource
-        IPython.core.oinspect.find_file = sageinspect.sage_getfile
-        IPython.core.oinspect.getargspec = sageinspect.sage_getargspec
+        IPython.core.oinspect.getdoc = LazyImport("sage.misc.sageinspect", "sage_getdoc")
+        IPython.core.oinspect.getsource = LazyImport("sage.misc.sagedoc", "my_getsource")
+        IPython.core.oinspect.find_file = LazyImport("sage.misc.sageinspect", "sage_getfile")
+        IPython.core.oinspect.getargspec = LazyImport("sage.misc.sageinspect", "sage_getargspec")
 
     def init_line_transforms(self):
         """

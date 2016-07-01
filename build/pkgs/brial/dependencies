@@ -1,0 +1,5 @@
+boost_cropped m4ri libpng pkgconf $(PYTHON)
+
+----------
+All lines of this file are ignored except the first.
+It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.

@@ -41,7 +41,7 @@ Sage example in ./linsolve.tex, line 422::
 Sage example in ./linsolve.tex, line 433::
 
   sage: v = 3*10^9
-  sage: print "%3.3f"%float(cout/v/3600/24/365)
+  sage: print("%3.3f" % float(cout/v/3600/24/365))
   540.028
 
 Sage example in ./linsolve.tex, line 502::
@@ -83,7 +83,7 @@ Sage example in ./linsolve.tex, line 786::
   sage: Z = transpose(A)*A
   sage: C = Z.cholesky()
   sage: R = transpose(A)*b
-  sage: Z.solve_right(R)  # rel tol 1e-14
+  sage: Z.solve_right(R)  # rel tol 1e-13
   (-1.5000000000000044, -0.5000000000000009, 2.750000000000003)
 
 Sage example in ./linsolve.tex, line 822::

@@ -204,19 +204,20 @@ class Profiler(SageObject):
 
         EXAMPLES::
 
+            sage: import six
             sage: from sage.misc.gperftools import Profiler
             sage: prof = Profiler()
             sage: try:
             ....:     pp = prof._pprof()
-            ....:     assert isinstance(pp, basestring)
+            ....:     assert isinstance(pp, six.string_types)
             ....: except OSError:
             ....:     pass    # not installed
         """
-        potential_names = ['pprof', 'google-pprof']
-        from subprocess import check_output, CalledProcessError
+        potential_names = ['google-pprof', 'pprof']
+        from subprocess import check_output, CalledProcessError, STDOUT
         for name in potential_names:
             try:
-                version = check_output([name, '--version'])
+                version = check_output([name, '--version'], stderr=STDOUT)
             except (CalledProcessError, OSError):
                 continue
             if 'gperftools' not in version:
@@ -365,8 +366,10 @@ def crun(s, evaluator):
     from sage.repl.preparse import preparse
     py_s = preparse(s)
     prof.start()
-    evaluator(py_s)
-    prof.stop()
+    try:
+        evaluator(py_s)
+    finally:
+        prof.stop()
     prof.top()
 
 

@@ -13,16 +13,16 @@ AUTHORS:
 
 REFERENCES:
 
-.. [CS] J.E.Cremona, and S. Siksek, Computing a Lower Bound for the
+.. [CS] \J.E.Cremona, and S. Siksek, Computing a Lower Bound for the
    Canonical Height on Elliptic Curves over `\QQ`, ANTS VII
    Proceedings: F.Hess, S.Pauli and M.Pohst (eds.), ANTS VII, Lecture
    Notes in Computer Science 4076 (2006), pages 275-286.
 
-.. [TT] T. Thongjunthug, Computing a lower bound for the canonical
+.. [TT] \T. Thongjunthug, Computing a lower bound for the canonical
    height on elliptic curves over number fields, Math. Comp. 79
    (2010), pages 2431-2449.
 
-.. [CPS] J.E. Cremona, M. Prickett and S. Siksek, Height Difference
+.. [CPS] \J.E. Cremona, M. Prickett and S. Siksek, Height Difference
    Bounds For Elliptic Curves over Number Fields, Journal of Number
    Theory 116(1) (2006), pages 42-68.
 
@@ -42,6 +42,7 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import print_function
 
 import numpy
 import math, bisect
@@ -50,7 +51,7 @@ from sage.rings.all import (ZZ, QQ, RR, RDF, RIF, CC, CDF, CIF,
     infinity, RealField, ComplexField)
 
 from sage.misc.all import cached_method, cartesian_product_iterator
-from sage.rings.arith import lcm, factor, factorial
+from sage.arith.all import lcm, factor, factorial
 from sage.ext.fast_callable import fast_callable
 from sage.functions.log import log, exp
 from sage.symbolic.all import SR
@@ -518,8 +519,7 @@ def nonneg_region(f):
         sage: nonneg_region(-x^4-1)
         ()
     """
-    roots = f.roots()
-    roots.sort()
+    roots = sorted(f.roots())
     sign_changes = [r for r,e in roots if e%2 == 1]
     if (f.leading_coefficient() * (-1)**f.degree()) > 0:
         sign_changes = [-infinity] + sign_changes
@@ -1204,7 +1204,7 @@ class EllipticCurveCanonicalHeight:
         OUTPUT:
 
         The union of intervals `S^{(v)}(\xi_1,\xi_2)` defined in [TT]_
-        sectoin 6.1.
+        section 6.1.
 
         EXAMPLES:
 
@@ -1575,7 +1575,6 @@ class EllipticCurveCanonicalHeight:
             if abs_only:
                 approx = abs(approx)
             approx += eps(err, abs_only)
-    #        print "fk_approx", approx
 
             # refine using an estimate that's better near the pole
             z_bound = abs(z).upper()
@@ -1716,7 +1715,7 @@ class EllipticCurveCanonicalHeight:
 
         # First try and prove a negative result (cheap).
         if verbose:
-            print "trying to prove negative result..."
+            print("trying to prove negative result...")
         intersection = None
         for B, n in sorted(zip(bounds, ZZ.range(1, k+1))):
             T = PeriodicRegion(CDF(1), CDF(tau), vals < B, full=not use_half)
@@ -1733,7 +1732,7 @@ class EllipticCurveCanonicalHeight:
 
         # Now try to prove a positive result.
         if verbose:
-            print "trying to prove positive result..."
+            print("trying to prove positive result...")
         intersection = None
         for B, n in sorted(zip(bounds, ZZ.range(1, k+1))):
 
@@ -1756,7 +1755,7 @@ class EllipticCurveCanonicalHeight:
             # This step here is the bottleneck.
             while not T.verify(check_line):
                 if verbose:
-                    print "bad"
+                    print("bad")
                 T = T.expand()
             if intersection is None:
                 intersection = T
@@ -1839,7 +1838,7 @@ class EllipticCurveCanonicalHeight:
         for n in ZZ.range(1, N+1):
             b = self.B(n, mu)
             if verbose:
-                print "B_%s(%s) = %s" % (n, mu, b)
+                print("B_%s(%s) = %s" % (n, mu, b))
             if b < 1:
                return True
             Bk.append(b)
@@ -1938,7 +1937,7 @@ class EllipticCurveCanonicalHeight:
         eps = 2.0
         while eps > tol+1:
             if verbose:
-                print "height bound in [%s, %s]" % (mu, mu*eps)
+                print("height bound in [%s, %s]" % (mu, mu * eps))
             eps = math.sqrt(eps)
             if test(mu*eps, n_max, False):
                 mu = mu*eps

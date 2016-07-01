@@ -395,7 +395,7 @@ class VertexOrder(EdgeSelection):
             {1: 4, 2: 3, 3: 2, 4: 0, 6: 1, 7: 5}
         """
         self.order = list(order)
-        self.inverse_order = dict(map(reversed, enumerate(order)))
+        self.inverse_order = dict([reversed(_) for _ in enumerate(order)])
 
     def __call__(self, graph):
         """
@@ -584,7 +584,7 @@ def tutte_polynomial(G, edge_selector=None, cache=None):
     if G.num_edges() == 0:
         return R.one()
 
-    G = G.relabel(inplace=False) # making sure the vertices are integers
+    G = G.relabel(inplace=False, immutable=False) # making sure the vertices are integers
     G.allow_loops(True)
     G.allow_multiple_edges(True)
 

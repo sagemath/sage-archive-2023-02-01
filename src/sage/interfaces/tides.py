@@ -33,7 +33,7 @@ AUTHORS:
 
 REFERENCES:
 
-.. [ALG924] A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM Transactions on Mathematical Software*, *39* (1), 1-28.
+.. [ALG924] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM Transactions on Mathematical Software*, *39* (1), 1-28.
 
 .. [TI]
    A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
@@ -162,7 +162,6 @@ def subexpressions_list(f, pars=None):
     varpar = list(parameters) + list(variables)
     F = symbolic_expression([i(*variables) for i in f]).function(*varpar)
     lis = flatten([fast_callable(i,vars=varpar).op_list() for i in F], max_level=1)
-    deflist = []
     stack = []
     const =[]
     stackcomp=[]

@@ -1,4 +1,3 @@
-# distutils: libraries = gmp
 """
 Low-level memory allocation functions
 
@@ -32,16 +31,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.libs.gmp.misc cimport mp_set_memory_functions
+include "cysignals/memory.pxi"
 
 cdef extern from "Python.h":
     # Declare as returning void without except value
     void PyErr_Format(object exception, char *format, ...)
-
-cdef extern from "gmp.h":
-    void mp_set_memory_functions(
-        void *(*) (size_t),
-        void *(*) (void *, size_t, size_t),
-        void (*) (void *, size_t))
+    int unlikely(int) nogil  # Defined by Cython
 
 
 cdef void alloc_error(size_t size) nogil:
@@ -59,7 +55,7 @@ cdef void* sage_sig_malloc(size_t size) nogil:
 
     Out-of-memory errors are handled using the ``sig_error`` mechanism.
     """
-    cdef void* p = sage_malloc(size)
+    cdef void* p = sig_malloc(size)
     if unlikely(p == NULL):
         alloc_error(size)
     return p
@@ -71,7 +67,7 @@ cdef void* sage_sig_realloc(void *ptr, size_t old_size, size_t new_size) nogil:
 
     Out-of-memory errors are handled using the ``sig_error`` mechanism.
     """
-    cdef void* p = sage_realloc(ptr, new_size)
+    cdef void* p = sig_realloc(ptr, new_size)
     if unlikely(p == NULL):
         alloc_error(new_size)
     return p
@@ -81,7 +77,7 @@ cdef void sage_sig_free(void *ptr, size_t size) nogil:
     """
     ``free()`` function for the MPIR/GMP library.
     """
-    sage_free(ptr)
+    sig_free(ptr)
 
 
 def init_memory_functions():

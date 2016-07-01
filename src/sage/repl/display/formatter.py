@@ -36,19 +36,19 @@ generally, all sage expression as an ASCII art object::
     10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x
     sage: shell.run_cell('StandardTableaux(4).list()')
     [
-    [                                                                  1  4    1  3
-    [                 1  3  4    1  2  4    1  2  3    1  3    1  2    2       2
-    [   1  2  3  4,   2      ,   3      ,   4      ,   2  4,   3  4,   3   ,   4
+    [                                                                  1  4
+    [                 1  3  4    1  2  4    1  2  3    1  3    1  2    2
+    [   1  2  3  4,   2      ,   3      ,   4      ,   2  4,   3  4,   3   ,
     <BLANKLINE>
-                1 ]
-        1  2    2 ]
-        3       3 ]
-    ,   4   ,   4 ]
+                       1 ]
+       1  3    1  2    2 ]
+       2       3       3 ]
+       4   ,   4   ,   4 ]
     sage: shell.run_cell('%display default')
     sage: shell.quit()
 
 This other facility uses a simple
-:class:`~sage.misc.ascii_art.AsciiArt` object (see and
+:class:`~sage.typeset.ascii_art.AsciiArt` object (see and
 :meth:`sage.structure.sage_object.SageObject._ascii_art_`).  """
 
 #*****************************************************************************
@@ -74,7 +74,7 @@ class SageDisplayFormatter(DisplayFormatter):
     def __init__(self, *args, **kwds):
         """
         This is where the Sage rich objects are translated to IPython
- 
+
         INPUT/OUTPUT:
 
         See the IPython documentation.
@@ -97,7 +97,7 @@ class SageDisplayFormatter(DisplayFormatter):
         self.dm.check_backend_class(BackendIPython)
 
     def format(self, obj, include=None, exclude=None):
-        """
+        r"""
         Use the Sage rich output instead of IPython
 
         INPUT/OUTPUT:
@@ -124,9 +124,44 @@ class SageDisplayFormatter(DisplayFormatter):
             10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x
             sage: shell.run_cell('%display default')
             sage: shell.quit()
+
+        TESTS::
+
+            sage: import os
+            sage: from sage.env import SAGE_EXTCODE
+            sage: example_png = os.path.join(SAGE_EXTCODE, 'doctest', 'rich_output', 'example.png')
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPython
+            sage: backend = BackendIPython()
+            sage: shell = get_test_shell()
+            sage: backend.install(shell=shell)
+            sage: shell.run_cell('get_ipython().display_formatter')
+            <sage.repl.display.formatter.SageDisplayFormatter object at 0x...>
+            sage: shell.run_cell('from IPython.display import Image')
+            sage: shell.run_cell('ipython_image = Image("{0}")'.format(example_png))
+            sage: shell.run_cell('ipython_image')
+            <IPython.core.display.Image object>
+            sage: shell.run_cell('get_ipython().display_formatter.format(ipython_image)')
+            ({u'image/png': '\x89PNG...',
+              u'text/plain': u'<IPython.core.display.Image object>'},
+            {})
         """
-        return self.dm.displayhook(obj)
-        
+        # First, use Sage rich output if there is any
+        PLAIN_TEXT = u'text/plain'
+        sage_format, sage_metadata = self.dm.displayhook(obj)
+        assert PLAIN_TEXT in sage_format, 'plain text is always present'
+        if sage_format.keys() != [PLAIN_TEXT]:
+            return sage_format, sage_metadata
+        # Second, try IPython widgets (obj._ipython_display_ and type registry)
+        if self.ipython_display_formatter(obj):
+            return {}, {}
+        # Finally, try IPython rich representation (obj._repr_foo_ methods)
+        if exclude is not None:
+            exclude = list(exclude) + [PLAIN_TEXT]
+        ipy_format, ipy_metadata = super(SageDisplayFormatter, self).format(
+            obj, include=include, exclude=exclude)
+        ipy_format.update(sage_format)
+        ipy_metadata.update(sage_metadata)
+        return ipy_format, ipy_metadata
 
 
 class SagePlainTextFormatter(PlainTextFormatter):
@@ -138,7 +173,7 @@ class SagePlainTextFormatter(PlainTextFormatter):
         In particular, it correctly print lists of matrices or other
         objects (see
         :meth:`sage.structure.parent.Parent._repr_option`).
- 
+
         .. warning::
 
             This IPython formatter is NOT used. You could use it to
@@ -151,11 +186,11 @@ class SagePlainTextFormatter(PlainTextFormatter):
         See the IPython documentation.
 
         EXAMPLES::
-    
+
             sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.display_formatter.formatters['text/plain']
-            <sage.repl.display.formatter.SagePlainTextFormatter object at 0x...>
+            <IPython.core.formatters.PlainTextFormatter object at 0x...>
             sage: shell.quit()
         """
         super(SagePlainTextFormatter, self).__init__(*args, **kwds)

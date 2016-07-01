@@ -18,6 +18,7 @@ Schemes
    sage/schemes/generic/homset
    sage/schemes/generic/morphism
    sage/schemes/generic/divisor
+   sage/schemes/generic/divisor_group
 
 Affine Schemes
 --------------
@@ -42,6 +43,8 @@ Projective Schemes
    sage/schemes/projective/projective_morphism
    sage/schemes/projective/projective_rational_point
    sage/schemes/projective/projective_homset
+   sage/schemes/projective/endPN_automorphism_group
+   sage/schemes/projective/endPN_minimal_model
 
 Products of Projective Spaces
 -----------------------------
@@ -53,6 +56,7 @@ Products of Projective Spaces
    sage/schemes/product_projective/homset
    sage/schemes/product_projective/morphism
    sage/schemes/product_projective/point
+   sage/schemes/product_projective/wehlerK3
 
 Toric Varieties
 ---------------
@@ -63,6 +67,7 @@ Toric Varieties
    sage/schemes/toric/fano_variety
    sage/schemes/toric/library
    sage/schemes/toric/divisor
+   sage/schemes/toric/divisor_class
    sage/schemes/toric/chow_group
    sage/schemes/toric/ideal
    sage/schemes/toric/morphism
@@ -73,5 +78,7 @@ Toric Varieties
    sage/schemes/toric/homset
    sage/schemes/toric/points
 
+   sage/schemes/toric/sheaf/constructor
+   sage/schemes/toric/sheaf/klyachko
 
 .. include:: ../footer.txt

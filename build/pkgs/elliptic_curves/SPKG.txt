@@ -9,10 +9,6 @@ Includes two databases:
    http://sage.math.washington.edu/cremona/INDEX.html
  * William Stein's database of interesting curves
 
-== SPKG Maintainers ==
-
- * R. Andrew Ohana <andrew.ohana@gmail.com>
-
 == Upstream Contact ==
 
 === cremona_mini ===
@@ -32,6 +28,9 @@ Includes two databases:
  * python
 
 == Changelog ==
+
+=== elliptic_curves-0.8 (Simon Spicer, 2014-10-24) ===
+ * #16773: add more examples of high rank curves
 
 === elliptic_curves-0.7 (R. Andrew Ohana, 2012-05-17) ===
  * #13123: move SAGE_DATA to SAGE_LOCAL/share

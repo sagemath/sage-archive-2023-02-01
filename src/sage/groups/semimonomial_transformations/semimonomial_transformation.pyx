@@ -171,7 +171,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         """
         return hash(self.v) + hash(self.perm) + hash(self.get_autom())
 
-    cpdef MonoidElement _mul_(left, MonoidElement _right):
+    cpdef _mul_(left, _right):
         r"""
         Multiplication of elements.
         
@@ -245,7 +245,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         return "(%s; %s, %s)"%(self.v, self.perm.cycle_string(),
                                self.get_autom())
 
-    def __cmp__(self, right):
+    cpdef int _cmp_(left, _right) except -2:
         """
         Compare group elements ``self`` and ``right``.
 
@@ -258,9 +258,6 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
             sage: g[1] != g[2] # indirect doctest
             True
         """
-        return (<Element> self)._cmp(right)
-
-    cpdef int _cmp_(left, Element _right) except -2:
         cdef SemimonomialTransformation right = <SemimonomialTransformation> _right
         return cmp([left.v, left.perm, left.get_autom()],
                    [right.v, right.perm, right.get_autom()])

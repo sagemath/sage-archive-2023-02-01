@@ -19,7 +19,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -158,7 +158,7 @@ class VectorPartition(CombinatorialElement):
         """
         return Partition(sorted([vec[i] for vec in self._list], reverse = True))
 
-class VectorPartitions(Parent, UniqueRepresentation):
+class VectorPartitions(UniqueRepresentation, Parent):
     r"""
     Class of all vector partitions of ``vec`` with all parts greater than
     or equal to ``min`` in lexicographic order.
@@ -177,7 +177,7 @@ class VectorPartitions(Parent, UniqueRepresentation):
 
         sage: VP = VectorPartitions([2, 2])
         sage: for vecpar in VP:
-        ....:     print vecpar
+        ....:     print(vecpar)
         [[0, 1], [0, 1], [1, 0], [1, 0]]
         [[0, 1], [0, 1], [2, 0]]
         [[0, 1], [1, 0], [1, 1]]
@@ -194,7 +194,7 @@ class VectorPartitions(Parent, UniqueRepresentation):
 
         sage: VP = VectorPartitions([2, 2], min = [1, 0])
         sage: for vecpar in VP:
-        ....:     print vecpar
+        ....:     print(vecpar)
         [[1, 0], [1, 2]]
         [[1, 1], [1, 1]]
         [[2, 2]]

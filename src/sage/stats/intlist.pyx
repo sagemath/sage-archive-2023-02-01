@@ -27,12 +27,11 @@ max_print = 10
 
 
 # Imports
+from libc.string cimport memcpy
 from sage.rings.integer import Integer
 from sage.finance.time_series cimport TimeSeries
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
-from cpython.slice cimport PySlice_Check
+include "cysignals/memory.pxi"
+include "cysignals/signals.pxi"
 from cpython.string cimport *
 
 cdef class IntList:
@@ -100,7 +99,7 @@ cdef class IntList:
         else:
             self._length = len(values)
 
-        self._values = <int*> sage_malloc(sizeof(int)*self._length)
+        self._values = <int*> sig_malloc(sizeof(int)*self._length)
         if self._values == NULL:
             raise MemoryError
         cdef Py_ssize_t i
@@ -149,7 +148,7 @@ cdef class IntList:
         Deallocate memory used by the IntList, if it was allocated.
         """
         if self._values:
-            sage_free(self._values)
+            sig_free(self._values)
 
     def __repr__(self):
         """
@@ -201,7 +200,7 @@ cdef class IntList:
         """
         cdef Py_ssize_t start, stop, step, j
         cdef IntList t
-        if PySlice_Check(i):
+        if isinstance(i, slice):
             start = 0 if (i.start is None) else i.start
             stop = self._length if (i.stop is None) else i.stop
             step = 1 if (i.step is None) else i.step
@@ -235,9 +234,9 @@ cdef class IntList:
             if j < 0:
                 j += self._length
                 if j < 0:
-                    raise IndexError, "IntList index out of range"
+                    raise IndexError("IntList index out of range")
             elif j >= self._length:
-                raise IndexError, "IntList index out of range"
+                raise IndexError("IntList index out of range")
             return self._values[j]
 
     def __setitem__(self, Py_ssize_t i, int x):
@@ -268,9 +267,9 @@ cdef class IntList:
         if i < 0:
             i += self._length
             if i < 0:
-                raise IndexError, "index out of range"
+                raise IndexError("index out of range")
         elif i >= self._length:
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
         self._values[i] = x
 
     def __reduce__(self):
@@ -399,9 +398,9 @@ cdef class IntList:
             [-2, 3, 5, 1, 1, 17]
         """
         if not isinstance(right, IntList):
-            raise TypeError, "right operand must be an int list"
+            raise TypeError("right operand must be an int list")
         if not isinstance(left, IntList):
-            raise TypeError, "left operand must be an int list"
+            raise TypeError("left operand must be an int list")
         cdef IntList R = right
         cdef IntList L = left
         cdef IntList t = new_int_list(L._length + R._length)
@@ -434,7 +433,7 @@ cdef class IntList:
             (-4, 1)
         """
         if self._length == 0:
-            raise ValueError, "min() arg is an empty sequence"
+            raise ValueError("min() arg is an empty sequence")
         cdef Py_ssize_t i, j
         cdef int s = self._values[0]
         j = 0
@@ -471,7 +470,7 @@ cdef class IntList:
             (3, 2)
         """
         if self._length == 0:
-            raise ValueError, "max() arg is an empty sequence"
+            raise ValueError("max() arg is an empty sequence")
         cdef Py_ssize_t i, j = 0
         cdef int s = self._values[0]
         for i in range(1,self._length):
@@ -499,7 +498,7 @@ cdef class IntList:
         # We just reach into the data structure underlying T, since we
         # want this function to be *very* fast.
         T._length = self._length
-        T._values = <double*> sage_malloc(sizeof(double)*self._length)
+        T._values = <double*> sig_malloc(sizeof(double)*self._length)
         cdef Py_ssize_t i
         for i in range(self._length):
             T._values[i] = self._values[i]
@@ -548,10 +547,10 @@ cdef IntList new_int_list(Py_ssize_t length):
         - an IntList.
     """
     if length < 0:
-        raise ValueError, "length must be nonnegative"
+        raise ValueError("length must be nonnegative")
     cdef IntList t = IntList.__new__(IntList)
     t._length = length
-    t._values = <int*> sage_malloc(sizeof(int)*length)
+    t._values = <int*> sig_malloc(sizeof(int)*length)
     return t
 
 

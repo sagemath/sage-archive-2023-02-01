@@ -9,6 +9,7 @@ Integer vectors modulo the action of a permutation group
 #              The full text of the GPL is available at:
 #                    http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from itertools import imap
 from sage.structure.unique_representation import UniqueRepresentation
@@ -167,10 +168,10 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
 
         sage: I = IntegerVectorsModPermutationGroup(SymmetricGroup(5)) # long time
         sage: for i in range(10): # long time
-        ...       d1 = I.subset(i).cardinality()
-        ...       d2 = Partitions(i, max_length=5).cardinality()
-        ...       print d1
-        ...       assert d1 == d2
+        ....:     d1 = I.subset(i).cardinality()
+        ....:     d2 = Partitions(i, max_length=5).cardinality()
+        ....:     print(d1)
+        ....:     assert d1 == d2
         1
         1
         2
@@ -191,10 +192,10 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         1
         sage: I = IntegerVectorsModPermutationGroup(G) # long time
         sage: for i in range(10): # long time
-        ...       d1 = I.subset(i).cardinality()
-        ...       d2 = IntegerVectors(i,6).cardinality()
-        ...       print d1
-        ...       assert d1 == d2
+        ....:     d1 = I.subset(i).cardinality()
+        ....:     d2 = IntegerVectors(i,6).cardinality()
+        ....:     print(d1)
+        ....:     assert d1 == d2
         1
         6
         21
@@ -284,7 +285,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         if sgs is None:
             self._sgs = G.strong_generating_system()
         else:
-            self._sgs = map(lambda x: list(x), list(sgs))
+            self._sgs = [list(x) for x in list(sgs)]
 
     def _repr_(self):
         """
@@ -293,7 +294,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3)]]))
             Integer vectors of length 3 enumerated up to the action of Permutation Group with generators [(1,2,3)]
         """
-        return "Integer vectors of length %s enumerated up to the action of %s"%(str(self.n), self._permgroup.__repr__())
+        return "Integer vectors of length %s enumerated up to the action of %r"%(self.n, self._permgroup)
 
     def ambient(self):
         r"""
@@ -589,8 +590,8 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
 
     Here is the enumeration of unlabeled graphs over 5 vertices::
 
-        sage: G = IntegerVectorsModPermutationGroup(TransitiveGroup(10,12), max_part=1) # optional
-        sage: G.cardinality() # optional
+        sage: G = IntegerVectorsModPermutationGroup(TransitiveGroup(10,12), max_part=1) # optional - database_gap
+        sage: G.cardinality()  # optional - database_gap
         34
 
     TESTS::
@@ -617,7 +618,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         if sgs is None:
             self._sgs = G.strong_generating_system()
         else:
-            self._sgs = map(lambda x: list(x), list(sgs))
+            self._sgs = [list(x) for x in list(sgs)]
 
     def _repr_(self):
         r"""
@@ -758,7 +759,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             return self.elements_of_depth_iterator(self._sum)
         else:
             SF = SearchForest((self([0]*(self.n), check=False),),
-                              lambda x : map(lambda y : self(y, check=False), canonical_children(self._sgs, x, self._max_part)),
+                              lambda x : [self(y, check=False) for y in canonical_children(self._sgs, x, self._max_part)],
                               algorithm = 'breadth')
             if self._sum is None:
                 return iter(SF)

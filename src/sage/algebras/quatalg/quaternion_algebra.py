@@ -20,38 +20,33 @@ Pickling test::
     True
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
-#       Copyright (C) 2009 Jonathon Bober <jwbober@gmail.com>
+#       Copyright (C) 2009 Jonathan Bober <jwbober@gmail.com>
 #       Copyright (C) 2014 Julian Rueth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
+from __future__ import print_function
 
-
-from sage.rings.arith import (GCD,
-                              hilbert_conductor_inverse, hilbert_conductor,
-                              factor, gcd, lcm, kronecker_symbol, valuation)
+from sage.arith.all import (hilbert_conductor_inverse, hilbert_conductor,
+        factor, gcd, lcm, kronecker_symbol, valuation)
 from sage.rings.all import RR, Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational import Rational
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 
 from sage.rings.ring import Algebra
 from sage.rings.ideal import Ideal_fractional
 from sage.rings.rational_field import is_RationalField, QQ
 from sage.rings.infinity import infinity
 from sage.rings.number_field.number_field import is_NumberField
-from sage.structure.parent_gens import ParentWithGens, normalize_names
+from sage.structure.category_object import normalize_names
+from sage.structure.parent_gens import ParentWithGens
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import diagonal_matrix, matrix
 from sage.structure.sequence import Sequence
@@ -709,10 +704,10 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
 
         REFERENCES:
 
-        .. [Piz1980] A. Pizer. An Algorithm for Computing Modular Forms
+        .. [Piz1980] \A. Pizer. An Algorithm for Computing Modular Forms
            on `\Gamma_0(N)`, J. Algebra 64 (1980), 340-390.
 
-        .. [Voi2012] J. Voight. Identifying the matrix ring: algorithms
+        .. [Voi2012] \J. Voight. Identifying the matrix ring: algorithms
            for quaternion algebras and quadratic forms, to appear.
         """
         try: return self.__maximal_order
@@ -926,7 +921,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             'Quaternion Algebra (-5, -2) with base ring Rational Field'
             sage: Q
             Quaternion Algebra (-5, -2) with base ring Rational Field
-            sage: print Q
+            sage: print(Q)
             Quaternion Algebra (-5, -2) with base ring Rational Field
             sage: str(Q)
             'Quaternion Algebra (-5, -2) with base ring Rational Field'
@@ -1740,7 +1735,17 @@ class QuaternionOrder(Algebra):
             return Q
 
 class QuaternionFractionalIdeal(Ideal_fractional):
-    pass
+    def __hash__(self):
+        r"""
+        Stupid constant hash function!
+
+        TESTS::
+
+            sage: R = QuaternionAlgebra(-11,-1).maximal_order()
+            sage: hash(R.right_ideal(R.basis()))
+            0
+        """
+        return 0
 
 class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
     """
@@ -1898,9 +1903,12 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 
            R = \{\alpha \in Q : \alpha b_n \in I, n=1,2,3,4\}.
         """
-        if side == 'left': action = 'right'
-        elif side == 'right': action = 'left'
-        else: ValueError, "side must be 'left' or 'right'"
+        if side == 'left':
+            action = 'right'
+        elif side == 'right':
+            action = 'left'
+        else:
+            raise ValueError("side must be 'left' or 'right'")
         Q = self.quaternion_algebra()
         if Q.base_ring() != QQ:
             raise NotImplementedError("computation of left and right orders only implemented over QQ")
@@ -1928,7 +1936,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         We do a consistency check::
 
             sage: B = BrandtModule(11,19); R = B.right_ideals()
-            sage: print [r.left_order().discriminant() for r in R]
+            sage: [r.left_order().discriminant() for r in R]
             [209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209]
         """
         if self.__left_order is None:
@@ -2500,6 +2508,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         Returns whether x is in self.
 
         EXAMPLES::
+
             sage: R.<i,j,k> = QuaternionAlgebra(-3, -13)
             sage: I = R.ideal([2+i, 3*i, 5*j, j+k])
             sage: 2+i in I

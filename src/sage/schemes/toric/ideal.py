@@ -176,7 +176,7 @@ class ToricIdeal(MPolynomialIdeal):
       ``z1``, ...
 
     - ``base_ring`` -- a ring (optional). Default: `\QQ`. The base
-      ring of the ideal. A toric ideal uses only coefficents `\pm 1`.
+      ring of the ideal. A toric ideal uses only coefficients `\pm 1`.
 
     - ``polynomial_ring`` -- a polynomial ring (optional). The
       polynomial ring to construct the ideal in.
@@ -251,7 +251,7 @@ class ToricIdeal(MPolynomialIdeal):
         if polynomial_ring:
             if (names!='z') or (base_ring is not QQ):
                 raise ValueError('You must not specify both variable names and a polynomial ring.')
-            self._names = map(str, polynomial_ring.gens())
+            self._names = [str(_) for _ in polynomial_ring.gens()]
             self._base_ring = polynomial_ring.base_ring()
             ring = polynomial_ring
         else:
@@ -447,7 +447,7 @@ class ToricIdeal(MPolynomialIdeal):
             d_new = dict( (subtract(exponent,power), coefficient)
                           for exponent, coefficient in d_old.iteritems() )
             return p.parent()(d_new)
-        basis = map(divide_by_x_n, basis)
+        basis = [divide_by_x_n(_) for _ in basis]
         quotient = ring.ideal(basis)
         return quotient.subs(x_to_y)
 

@@ -89,27 +89,29 @@ TODO:
 - make Matrix_modn_frontend and use it (?)
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2007,2008,2009 Martin Albrecht <M.R.Albrecht@rhul.ac.uk>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
-include 'sage/ext/stdsage.pxi'
-include 'sage/ext/random.pxi'
+include "cysignals/signals.pxi"
+include "cysignals/memory.pxi"
 
 cimport matrix_dense
-from sage.structure.element cimport Matrix, Vector
-from sage.structure.element cimport ModuleElement, Element
-
+from libc.stdio cimport *
+from sage.structure.element cimport (Matrix, Vector, parent_c,
+                                     ModuleElement, Element)
+from sage.modules.free_module_element cimport FreeModuleElement
+from sage.libs.gmp.random cimport *
 from sage.misc.functional import log
-
+from sage.misc.randstate cimport randstate, current_randstate
 from sage.misc.misc import verbose, get_verbose, cputime
-
 from sage.modules.free_module import VectorSpace
 from sage.modules.vector_mod2_dense cimport Vector_mod2_dense
 
@@ -181,7 +183,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 1 0]
             [0 0 1]
 
-        See trac #10858::
+        See :trac:`10858`::
 
             sage: matrix(GF(2),0,[]) * vector(GF(2),0,[])
             ()
@@ -267,39 +269,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for j from 0 <= j < self._ncols:
                 mzd_write_bit(self._entries,i,j, R(entries[k]))
                 k = k + 1
-
-    def __richcmp__(Matrix self, right, int op):
-        """
-        Compares ``self`` with ``right``. While equality and
-        inequality are clearly defined, ``<`` and ``>`` are not.  For
-        those first the matrix dimensions of ``self`` and ``right``
-        are compared. If these match then ``<`` means that there is a
-        position smallest (i,j) in ``self`` where ``self[i,j]`` is
-        zero but ``right[i,j]`` is one. This (i,j) is smaller than the
-        (i,j) if ``self`` and ``right`` are exchanged for the
-        comparison.
-
-        INPUT:
-
-        - ``right`` - a matrix
-        - ``op`` - comparison operation
-
-        EXAMPLE::
-
-            sage: A = MatrixSpace(GF(2),3,3).one()
-            sage: B = copy(MatrixSpace(GF(2),3,3).one())
-            sage: B[0,1] = 1
-            sage: A < B
-            True
-
-        TESTS::
-
-            sage: A = matrix(GF(2),2,0)
-            sage: B = matrix(GF(2),2,0)
-            sage: A < B
-            False
-        """
-        return self._richcmp(right, op)
 
     def __hash__(self):
         r"""
@@ -591,7 +560,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # def _pickle(self):
     # def _unpickle(self, data, int version):   # use version >= 0
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Matrix addition.
 
@@ -629,7 +598,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         return A
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Matrix addition.
 
@@ -645,7 +614,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         return self._add_(right)
 
-    cdef Vector _matrix_times_vector_(self, Vector v):
+    cdef _matrix_times_vector_(self, Vector v):
         """
         EXAMPLES::
 
@@ -656,6 +625,15 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: r1 = A*v1
             sage: r0.column(0) == r1
             True
+
+        TESTS:
+
+        Check that :trac:`19378` is fixed::
+
+            sage: m = matrix(GF(2), 11, 0)
+            sage: v = vector(GF(2), 0)
+            sage: m * v
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         """
         cdef mzd_t *tmp
         if not isinstance(v, Vector_mod2_dense):
@@ -665,6 +643,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             raise ArithmeticError("number of columns of matrix must equal degree of vector")
 
         VS = VectorSpace(self._base_ring, self._nrows)
+        # If the vector is 0-dimensional, the result will be the 0-vector
+        if not self.ncols():
+            return VS.zero()
         cdef Vector_mod2_dense c = Vector_mod2_dense.__new__(Vector_mod2_dense)
         c._init(self._nrows, VS)
         c._entries = mzd_init(1, self._nrows)
@@ -675,7 +656,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             mzd_free(tmp)
         return c
 
-    cdef Matrix _matrix_times_matrix_(self, Matrix right):
+    cdef _matrix_times_matrix_(self, Matrix right):
         """
         Matrix multiplication.
 
@@ -745,19 +726,19 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         REFERENCES:
 
-        ..  [AHU] A. Aho, J. Hopcroft, and J. Ullman. 'Chapter 6:
+        ..  [AHU] \A. Aho, J. Hopcroft, and J. Ullman. 'Chapter 6:
                      Matrix Multiplication and Related Operations.'
                      The Design and Analysis of Computer
                      Algorithms. Addison-Wesley, 1974.
 
-        ..  [ADKF70] V. Arlazarov, E. Dinic, M. Kronrod, and
+        ..  [ADKF70] \V. Arlazarov, E. Dinic, M. Kronrod, and
                      I. Faradzev. 'On Economical Construction of the
                      Transitive Closure of a Directed Graph.'
                      Dokl. Akad. Nauk. SSSR No. 194 (in Russian),
                      English Translation in Soviet Math Dokl. No. 11,
                      1970.
 
-        ..  [Bard06] G. Bard. 'Accelerating Cryptanalysis with the
+        ..  [Bard06] \G. Bard. 'Accelerating Cryptanalysis with the
                      Method of Four Russians'. Cryptography E-Print
                      Archive (http://eprint.iacr.org/2006/251.pdf),
                      2006.
@@ -1106,7 +1087,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         REFERENCES:
 
-        .. [Bard06] G. Bard. 'Accelerating Cryptanalysis with the Method of
+        .. [Bard06] \G. Bard. 'Accelerating Cryptanalysis with the Method of
            Four Russians'. Cryptography E-Print Archive
            (http://eprint.iacr.org/2006/251.pdf), 2006.
         """
@@ -1494,7 +1475,32 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             A.subdivide(*self.subdivisions())
         return A
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
+        """
+        Compares ``self`` with ``right``. While equality and
+        inequality are clearly defined, ``<`` and ``>`` are not.  For
+        those first the matrix dimensions of ``self`` and ``right``
+        are compared. If these match then ``<`` means that there is a
+        position smallest (i,j) in ``self`` where ``self[i,j]`` is
+        zero but ``right[i,j]`` is one. This (i,j) is smaller than the
+        (i,j) if ``self`` and ``right`` are exchanged for the
+        comparison.
+
+        EXAMPLE::
+
+            sage: A = MatrixSpace(GF(2),3,3).one()
+            sage: B = copy(MatrixSpace(GF(2),3,3).one())
+            sage: B[0,1] = 1
+            sage: A < B
+            True
+
+        TESTS::
+
+            sage: A = matrix(GF(2),2,0)
+            sage: B = matrix(GF(2),2,0)
+            sage: A < B
+            False
+        """
         if self._nrows == 0 or self._ncols == 0:
             return 0
         return mzd_cmp(self._entries, (<Matrix_mod2_dense>right)._entries)
@@ -1570,11 +1576,36 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: N = Matrix(GF(2), 0, 1, 0)
             sage: M.augment(N)
             []
+
+        Check that :trac:`19165` is solved::
+
+            sage: m = matrix(GF(2), 2, range(4))
+            sage: m.augment(matrix(GF(2), 2, range(4), sparse=True))
+            [0 1 0 1]
+            [0 1 0 1]
+
+            sage: m.augment(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: right must either be a matrix or a vector. Not
+            <type 'sage.rings.integer.Integer'>
         """
-        if hasattr(right, '_vector_'):
+        cdef Matrix_mod2_dense other
+
+        if isinstance(right, FreeModuleElement):
             right = right.column()
 
-        cdef Matrix_mod2_dense other = right
+        if isinstance(right, Matrix_mod2_dense):
+            other = <Matrix_mod2_dense> right
+        elif isinstance(right, Matrix):
+            from sage.matrix.constructor import matrix
+            other = matrix(self.base_ring(),
+                           right.nrows(),
+                           right.ncols(),
+                           right.list(),
+                           sparse=False)
+        else:
+            raise TypeError("right must either be a matrix or a vector. Not {}".format(type(right)))
 
         if self._nrows != other._nrows:
             raise TypeError("Both numbers of rows must match.")
@@ -1666,15 +1697,16 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Z._entries = mzd_stack(Z._entries, self._entries, other._entries)
         return Z
 
-    def submatrix(self, lowr, lowc, nrows , ncols):
+    def submatrix(self, Py_ssize_t row=0, Py_ssize_t col=0,
+                        Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
         """
-        Return submatrix from the index lowr,lowc (inclusive) with
+        Return submatrix from the index row, col (inclusive) with
         dimension nrows x ncols.
 
         INPUT:
 
-        - lowr -- index of start row
-        - lowc -- index of start column
+        - row -- index of start row
+        - col -- index of start column
         - nrows -- number of rows of submatrix
         - ncols -- number of columns of submatrix
 
@@ -1694,16 +1726,36 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
              True
              sage: A[1:200,1:200] == A.submatrix(1,1,199,199)
              True
+
+        TESTS for handling of default arguments (:trac:`18761`)::
+
+             sage: A.submatrix(17,15) == A.submatrix(17,15,183,185)
+             True
+             sage: A.submatrix(row=100,col=37,nrows=1,ncols=3) == A.submatrix(100,37,1,3)
+             True
         """
         cdef Matrix_mod2_dense A
 
         cdef int highr, highc
 
-        highr = lowr + nrows
-        highc = lowc + ncols
+        if nrows < 0:
+            nrows = self._nrows - row
+            if nrows < 0:
+                nrows = 0
 
-        if nrows <= 0 or ncols <= 0:
-            raise TypeError("Expected nrows, ncols to be > 0, but got %d,%d instead."%(nrows, ncols))
+        if ncols < 0:
+            ncols = self._ncols - col
+            if ncols < 0:
+                ncols = 0
+
+        highr = row + nrows
+        highc = col + ncols
+
+        if row < 0:
+            raise TypeError("Expected row >= 0, but got %d instead."%row)
+
+        if col < 0:
+            raise TypeError("Expected col >= 0, but got %d instead."%col)
 
         if highc > self._entries.ncols:
             raise TypeError("Expected highc <= self.ncols(), but got %d > %d instead."%(highc, self._entries.ncols))
@@ -1711,16 +1763,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if highr > self._entries.nrows:
             raise TypeError("Expected highr <= self.nrows(), but got %d > %d instead."%(highr, self._entries.nrows))
 
-        if lowr < 0:
-            raise TypeError("Expected lowr >= 0, but got %d instead."%lowr)
-
-        if lowc < 0:
-            raise TypeError("Expected lowc >= 0, but got %d instead."%lowc)
-
         A = self.new_matrix(nrows = nrows, ncols = ncols)
-        if self._ncols == 0 or self._nrows == 0:
+        if ncols == 0 or nrows == 0:
             return A
-        A._entries = mzd_submatrix(A._entries, self._entries, lowr, lowc, highr, highc)
+        A._entries = mzd_submatrix(A._entries, self._entries, row, col, highr, highc)
         return A
 
     def __reduce__(self):
@@ -1776,7 +1822,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             data = ''
         else:
             n = self._nrows*self._ncols*2 + 2
-            s = <char*> sage_malloc(n * sizeof(char))
+            s = <char*> sig_malloc(n * sizeof(char))
             k = 0
             sig_on()
             for i in range(self._nrows):
@@ -1788,7 +1834,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sig_off()
             s[k-1] = <char>0
             data = str(s)
-            sage_free(s)
+            sig_free(s)
         return data
 
     def density(self, approx=False):
@@ -2013,7 +2059,7 @@ def unpickle_matrix_mod2_dense_v1(r, c, data, size):
         True
     """
     from sage.matrix.constructor import Matrix
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
     cdef int i, j
     cdef Matrix_mod2_dense A
@@ -2022,7 +2068,7 @@ def unpickle_matrix_mod2_dense_v1(r, c, data, size):
     if r == 0 or c == 0:
         return A
 
-    cdef signed char *buf = <signed char*>sage_malloc(size)
+    cdef signed char *buf = <signed char*>sig_malloc(size)
     for i from 0 <= i < size:
         buf[i] = data[i]
 
@@ -2030,7 +2076,7 @@ def unpickle_matrix_mod2_dense_v1(r, c, data, size):
     cdef gdImagePtr im = gdImageCreateFromPngPtr(size, buf)
     sig_off()
 
-    sage_free(buf)
+    sig_free(buf)
 
     if gdImageSX(im) != c or gdImageSY(im) != r:
         raise TypeError("Pickled data dimension doesn't match.")
@@ -2063,7 +2109,7 @@ def from_png(filename):
         True
     """
     from sage.matrix.constructor import Matrix
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
     cdef int i,j,r,c
     cdef Matrix_mod2_dense A

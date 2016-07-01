@@ -18,7 +18,12 @@ If you define another output type then you must add it to the imports here.
 from .output_basic import (
     OutputPlainText,
     OutputAsciiArt,
+    OutputUnicodeArt,
     OutputLatex,
+)
+
+from .output_browser import (
+    OutputHtml,
 )
 
 from .output_graphics import (
@@ -34,4 +39,15 @@ from .output_graphics3d import (
     OutputSceneJmol,
     OutputSceneWavefront,
     OutputSceneCanvas3d,
+)
+
+from .output_video import (
+    OutputVideoOgg,
+    OutputVideoWebM,
+    OutputVideoMp4,
+    OutputVideoFlash,
+    OutputVideoMatroska,
+    OutputVideoAvi,
+    OutputVideoWmv,
+    OutputVideoQuicktime,
 )

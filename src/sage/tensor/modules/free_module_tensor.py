@@ -1318,7 +1318,7 @@ class FreeModuleTensor(ModuleElement):
 
         - ``other`` -- a tensor (instance of :class:`FreeModuleTensor`)
 
-        OUPUT:
+        OUTPUT:
 
         - instance of
           :class:`~sage.tensor.modules.free_module_basis.FreeModuleBasis`
@@ -1556,7 +1556,7 @@ class FreeModuleTensor(ModuleElement):
             False
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __pos__(self):
         r"""
@@ -1634,7 +1634,7 @@ class FreeModuleTensor(ModuleElement):
 
         - ``other`` -- a tensor, of the same type as ``self``
 
-        OUPUT:
+        OUTPUT:
 
         - the tensor resulting from the addition of ``self`` and ``other``
 
@@ -1680,7 +1680,7 @@ class FreeModuleTensor(ModuleElement):
 
         - ``other`` -- a tensor, of the same type as ``self``
 
-        OUPUT:
+        OUTPUT:
 
         - the tensor resulting from the subtraction of ``other`` from ``self``
 
@@ -1816,8 +1816,7 @@ class FreeModuleTensor(ModuleElement):
             result._components[basis] = other * self._components[basis]
         return result
 
-
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Division (by a scalar).
 
@@ -1844,6 +1843,7 @@ class FreeModuleTensor(ModuleElement):
             result._components[basis] = self._components[basis] / other
         return result
 
+    __div__ = __truediv__
 
     def __call__(self, *args):
         r"""

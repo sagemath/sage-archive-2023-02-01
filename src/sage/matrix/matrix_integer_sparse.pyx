@@ -28,9 +28,10 @@ include 'sage/modules/vector_modn_sparse_h.pxi'
 include 'sage/modules/vector_modn_sparse_c.pxi'
 from cpython.sequence cimport *
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
-from sage.rings.integer  cimport Integer
+from sage.libs.gmp.mpz cimport *
+from sage.rings.integer cimport Integer
 from matrix cimport Matrix
 
 from matrix_modn_sparse cimport Matrix_modn_sparse
@@ -51,7 +52,6 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     #   * __init__
     #   * set_unsafe
     #   * get_unsafe
-    #   * __richcmp__    -- always the same
     #   * __hash__       -- always simple
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
@@ -59,7 +59,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         # set the parent, nrows, ncols, etc.
         matrix_sparse.Matrix_sparse.__init__(self, parent)
 
-        self._matrix = <mpz_vector*> sage_malloc(parent.nrows()*sizeof(mpz_vector))
+        self._matrix = <mpz_vector*> sig_malloc(parent.nrows()*sizeof(mpz_vector))
         if self._matrix == NULL:
             raise MemoryError("error allocating sparse matrix")
 
@@ -74,7 +74,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         if self._initialized:
             for i from 0 <= i < self._nrows:
                 mpz_vector_clear(&self._matrix[i])
-        sage_free(self._matrix)
+        sig_free(self._matrix)
 
     def __init__(self, parent, entries, copy, coerce):
         """
@@ -154,12 +154,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         mpz_vector_get_entry(x.value, &self._matrix[i], j)
         return x
 
-    def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
-        return self._richcmp(right, op)
-
     def __hash__(self):
         return self._hash()
-
 
     ########################################################################
     # LEVEL 2 functionality
@@ -179,7 +175,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     ########################################################################
     # def _pickle(self):
     # def _unpickle(self, data, int version):   # use version >= 0
-    # cpdef ModuleElement _add_(self, ModuleElement right):
+    # cpdef _add_(self, right):
     # cdef _mul_(self, Matrix right):
     # cpdef int _cmp_(self, Matrix right) except -2:
     # def __neg__(self):
@@ -188,7 +184,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     # def _multiply_classical(left, matrix.Matrix _right):
     # def _list(self):
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         EXAMPLES::
 
@@ -210,7 +206,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             mpz_vector_scalar_multiply(M_row, self_row, _x.value)
         return M
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         cdef Py_ssize_t i, j
         cdef mpz_vector *self_row
         cdef mpz_vector *M_row
@@ -225,7 +221,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         mpz_clear(mul)
         return M
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         cdef Py_ssize_t i, j
         cdef mpz_vector *self_row
         cdef mpz_vector *M_row
@@ -387,7 +383,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
         TEST:
 
-        Check that ticket #9345 is fixed::
+        Check that :trac:`9345` is fixed::
 
             sage: A = random_matrix(ZZ, 3, 3, sparse = True)
             sage: A.rational_reconstruction(0)
@@ -604,7 +600,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             [0 2]
             [0 0]
 
-        The examples above show that Trac ticket #10626 has been implemented.
+        The examples above show that :trac:`10626` has been implemented.
 
 
         .. seealso::

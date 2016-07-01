@@ -49,6 +49,25 @@ which is anyway set to raise an error::
     Traceback (most recent call last):
     ...
     RuntimeError: Maxima interface in library mode can only be instantiated once
+
+Changed besselexpand to true in init_code -- automatically simplify bessel functions to trig functions when appropriate when true. Examples:
+
+For some infinite sums, a closed expression can be found. By default, "maxima" is used for that::
+
+    sage: x,n,k = var("x","n","k")
+    sage: sum(((-1)^n)*((x)^(2*n+1))/factorial(2*n+1),n,0,oo)
+    sin(x)
+
+Maxima has some flags that affect how the result gets simplified(By default, besselexpand was set to false in Maxima)::
+
+    sage: maxima_calculus("besselexpand:false")
+    false
+    sage: x,n,k = var("x","n","k")
+    sage: sum(((-1)^n)*((x)^(2*n+1))/factorial(2*n+1),n,0,oo)
+    1/2*sqrt(2)*sqrt(pi)*sqrt(x)*bessel_J(1/2, x)
+    sage: maxima_calculus("besselexpand:true")
+    true
+
 """
 
 #*****************************************************************************
@@ -65,10 +84,11 @@ which is anyway set to raise an error::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.symbolic.ring import SR
 
-from sage.libs.ecl import *
+from sage.libs.ecl import EclObject, ecl_eval
 
 from maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
   MaximaAbstractElement, MaximaAbstractFunctionElement,
@@ -139,9 +159,11 @@ ecl_eval("(setf *standard-output* *dev-null*)")
 ## Default options set in Maxima
 # display2d -- no ascii art output
 # keepfloat -- don't automatically convert floats to rationals
-init_code = ['display2d : false', 'domain : complex', 'keepfloat : true',
+
+init_code = ['besselexpand : true', 'display2d : false', 'domain : complex', 'keepfloat : true',
             'load(to_poly_solve)', 'load(simplify_sum)',
             'load(abs_integrate)', 'load(diag)']
+
 
 # Turn off the prompt labels, since computing them *very
 # dramatically* slows down the maxima interpret after a while.
@@ -426,7 +448,7 @@ class MaximaLib(MaximaAbstract):
                 statement = line[:ind_dollar]
                 line = line[ind_dollar+1:]
                 if statement:
-                    _ = maxima_eval("#$%s$"%statement)
+                    maxima_eval("#$%s$" % statement)
         if not reformat:
             return result
         return ''.join([x.strip() for x in result.split()])
@@ -856,6 +878,7 @@ class MaximaLib(MaximaAbstract):
             Traceback (most recent call last):
             ...
             RuntimeError: ECL says: Error executing code in Maxima: Zero to negative power computed.
+
         """
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_sum],([max_sum],[sr_to_max(SR(a)) for a in args])]]));
@@ -871,7 +894,7 @@ class MaximaLib(MaximaAbstract):
             else:
                 raise
 
-    def sr_limit(self,expr,v,a,dir=None):
+    def sr_limit(self, expr, v, a, dir=None):
         """
         Helper function to wrap calculus use of Maxima's limits.
 
@@ -936,12 +959,12 @@ class MaximaLib(MaximaAbstract):
 
         """
         try:
-            L=[sr_to_max(SR(a)) for a in [expr,v,a]]
+            L = [sr_to_max(SR(aa)) for aa in [expr, v, a]]
             if dir == "plus":
                 L.append(max_plus)
             elif dir == "minus":
                 L.append(max_minus)
-            return max_to_sr(maxima_eval(([max_limit],L)))
+            return max_to_sr(maxima_eval(([max_limit], L)))
         except RuntimeError as error:
             s = str(error)
             if "Is" in s: # Maxima asked for a condition
@@ -949,7 +972,7 @@ class MaximaLib(MaximaAbstract):
             else:
                 raise
 
-    def sr_tlimit(self,expr,v,a,dir=None):
+    def sr_tlimit(self, expr, v, a, dir=None):
         """
         Helper function to wrap calculus use of Maxima's Taylor series limits.
 
@@ -959,20 +982,20 @@ class MaximaLib(MaximaAbstract):
             sage: limit(f, x = I, taylor=True)
             (-I + 1)^I
         """
-        L=[sr_to_max(SR(a)) for a in [expr,v,a]]
+        L = [sr_to_max(SR(aa)) for aa in [expr, v, a]]
         if dir == "plus":
             L.append(max_plus)
         elif dir == "minus":
             L.append(max_minus)
-        return max_to_sr(maxima_eval(([max_tlimit],L)))
-    
+        return max_to_sr(maxima_eval(([max_tlimit], L)))
+
     def _missing_assumption(self,errstr):
         """
         Helper function for unified handling of failed computation because an
         assumption was missing.
         
         EXAMPLES::
-        
+
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: maxima_lib._missing_assumption('Is xyz a thing?')
             Traceback (most recent call last):
@@ -1104,7 +1127,7 @@ class MaximaLibElement(MaximaAbstractElement):
         # if ever want to dedent, see
         # http://mail.python.org/pipermail/python-list/2006-December/420033.html
         if onscreen:
-            print s
+            print(s)
         else:
             return s
 
@@ -1494,7 +1517,7 @@ def sr_to_max(expr):
         <ECL: $X>
         sage: sr_to_max(cos(x))
         <ECL: ((%COS) $X)>
-        sage: f = function('f',x)
+        sage: f = function('f')(x)
         sage: sr_to_max(f.diff())
         <ECL: ((%DERIVATIVE) (($F) $X) $X 1)>
 
@@ -1565,7 +1588,7 @@ def sr_to_max(expr):
             max_op_dict[op_max]=op
         return EclObject(([sage_op_dict[op]],
                      [sr_to_max(o) for o in expr.operands()]))
-    elif expr.is_symbol() or expr.is_constant():
+    elif expr.is_symbol() or expr._is_registered_constant_():
         if not expr in sage_sym_dict:
             sym_max=maxima(expr).ecl()
             sage_sym_dict[expr]=sym_max
@@ -1603,7 +1626,7 @@ def max_to_sr(expr):
     TESTS::
 
         sage: from sage.interfaces.maxima_lib import sr_to_max, max_to_sr
-        sage: f = function('f',x).diff()
+        sage: f = function('f')(x).diff()
         sage: bool(max_to_sr(sr_to_max(f)) == f)
         True
     """

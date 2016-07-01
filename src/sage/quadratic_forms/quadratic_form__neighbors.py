@@ -1,6 +1,8 @@
 """
 Neighbors
 """
+from __future__ import print_function
+
 from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ
 from copy import deepcopy
@@ -82,6 +84,7 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
     vectors, then return None.
 
     OUTPUT:
+
         vector or None
 
     EXAMPLES::
@@ -115,7 +118,7 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
 
     ## Test that the last non-zero entry is 1 (to detect tampering).
     if w[nz] != 1:
-        print "Warning: The input vector to QuadraticForm.find_primitive_p_divisible_vector__next() is not normalized properly."
+        print("Warning: The input vector to QuadraticForm.find_primitive_p_divisible_vector__next() is not normalized properly.")
 
 
 
@@ -127,8 +130,6 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
         ind = 0
         while (ind < nz) and (w[ind] == p-1):
             ind += 1
-
-        #print ind, nz, w
 
         ## Increment
         if (ind < nz):

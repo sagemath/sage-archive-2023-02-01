@@ -12,9 +12,9 @@ rank, and torsion for curves up to conductor 10000.
 The large database includes all curves in John Cremona's tables. It
 also includes data related to the BSD conjecture and modular degrees
 for all of these curves, and generators for the Mordell-Weil
-groups. To install it type the following in Sage::
+groups. To install it, run the following in the shell::
 
-    !sage -i database_cremona_ellcurve
+    sage -i database_cremona_ellcurve
 
 This causes the latest version of the database to be downloaded from
 the internet.
@@ -1324,7 +1324,7 @@ class MiniCremonaDatabase(SQLDatabase):
             self.__largest_conductor__ =  largest_conductor
 
         # Since July 2014 the data files have been arranged in
-        # subdirectories (see :trac:`16903`).
+        # subdirectories (see trac #16903).
         allcurves_dir = os.path.join(ftpdata,'allcurves')
         allbsd_dir = os.path.join(ftpdata,'allbsd')
         allgens_dir = os.path.join(ftpdata,'allgens')

@@ -14,11 +14,6 @@ depended upon by some of the world's leading scientists and engineers.
 SciPy's license is free for both commercial and non-commercial use, under the
 BSD terms. See http://www.scipy.org/License_Compatibility
 
-== SPKG Maintainers ==
- * William Stein
- * Josh Kantor
- * Jason Grout
-
 == Upstream Contact ==
  http://www.scipy.org/
 

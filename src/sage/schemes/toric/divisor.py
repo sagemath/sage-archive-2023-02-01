@@ -250,7 +250,7 @@ class ToricDivisorGroup(DivisorGroup_generic):
 
         TESTS::
 
-            sage: print toric_varieties.P2().toric_divisor_group()._latex_()
+            sage: print(toric_varieties.P2().toric_divisor_group()._latex_())
             \mathrm{Div_T}\left(\mathbb{P}_{\Delta^{2}_{15}}, \Bold{Z}\right)
         """
         return (r"\mathrm{Div_T}\left(%s, %s\right)"
@@ -1168,16 +1168,16 @@ class ToricDivisor_generic(Divisor_generic):
 
         Example 6.1.3, 6.1.11, 6.1.17 of [CLS]_::
 
+            sage: from itertools import product
             sage: fan = Fan(cones=[(0,1), (1,2), (2,3), (3,0)],
-            ...             rays=[(-1,2), (0,1), (1,0), (0,-1)])
+            ....:           rays=[(-1,2), (0,1), (1,0), (0,-1)])
             sage: F2 = ToricVariety(fan,'u1, u2, u3, u4')
             sage: def D(a,b): return a*F2.divisor(2) + b*F2.divisor(3)
-            ...
-            sage: [ (a,b) for a,b in CartesianProduct(range(-3,3),range(-3,3))
-            ...           if D(a,b).is_ample() ]
+            sage: [ (a,b) for a,b in product(range(-3,3), repeat=2)
+            ....:         if D(a,b).is_ample() ]
             [(1, 1), (1, 2), (2, 1), (2, 2)]
-            sage: [ (a,b) for a,b in CartesianProduct(range(-3,3),range(-3,3))
-            ...           if D(a,b).is_nef() ]
+            sage: [ (a,b) for a,b in product(range(-3,3), repeat=2)
+            ....:         if D(a,b).is_nef() ]
             [(0, 0), (0, 1), (0, 2), (1, 0),
              (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
 
@@ -1246,16 +1246,16 @@ class ToricDivisor_generic(Divisor_generic):
 
         Example 6.1.3, 6.1.11, 6.1.17 of [CLS]_::
 
+            sage: from itertools import product
             sage: fan = Fan(cones=[(0,1), (1,2), (2,3), (3,0)],
-            ...             rays=[(-1,2), (0,1), (1,0), (0,-1)])
+            ....:           rays=[(-1,2), (0,1), (1,0), (0,-1)])
             sage: F2 = ToricVariety(fan,'u1, u2, u3, u4')
             sage: def D(a,b): return a*F2.divisor(2) + b*F2.divisor(3)
-            ...
-            sage: [ (a,b) for a,b in CartesianProduct(range(-3,3),range(-3,3))
-            ...           if D(a,b).is_ample() ]
+            sage: [ (a,b) for a,b in product(range(-3,3), repeat=2)
+            ....:         if D(a,b).is_ample() ]
             [(1, 1), (1, 2), (2, 1), (2, 2)]
-            sage: [ (a,b) for a,b in CartesianProduct(range(-3,3),range(-3,3))
-            ...           if D(a,b).is_nef() ]
+            sage: [ (a,b) for a,b in product(range(-3,3), repeat=2)
+            ....:         if D(a,b).is_nef() ]
             [(0, 0), (0, 1), (0, 2), (1, 0),
              (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
         """
@@ -2020,7 +2020,7 @@ class ToricRationalDivisorClassGroup(FreeModule_ambient_field, UniqueRepresentat
 
             sage: P2 = toric_varieties.P2()
             sage: from sage.schemes.toric.divisor import ToricRationalDivisorClassGroup
-            sage: print ToricRationalDivisorClassGroup(P2)._latex_()
+            sage: print(ToricRationalDivisorClassGroup(P2)._latex_())
             \mathop{Cl}_{\QQ}\left(\mathbb{P}_{\Delta^{2}_{15}}\right)
         """
         return '\\mathop{Cl}_{\\QQ}\\left('+self._variety._latex_()+'\\right)'
@@ -2116,7 +2116,7 @@ class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
 
             sage: P1xP1 = toric_varieties.P1xP1()
             sage: L = P1xP1.Kaehler_cone().lattice()
-            sage: print L._repr_()
+            sage: print(L._repr_())
             Basis lattice of The toric rational divisor class group of a
             2-d CPR-Fano toric variety covered by 4 affine patches
         """
@@ -2134,7 +2134,7 @@ class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
 
             sage: P1xP1 = toric_varieties.P1xP1()
             sage: L = P1xP1.Kaehler_cone().lattice()
-            sage: print L._latex_()
+            sage: print(L._latex_())
             \text{Basis lattice of }
             \mathop{Cl}_{\QQ}\left(\mathbb{P}_{\Delta^{2}_{14}}\right)
         """

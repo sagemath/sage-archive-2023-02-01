@@ -253,8 +253,8 @@ AUTHOR:
         sage: z = etb.constant(0)
         sage: c = etb.var('c')
         sage: for i in range(16):
-        ...       z = z*z + c
-        sage: mand = fast_callable(z, domain=CDF) # not tested
+        ....:     z = z*z + c
+        sage: mand = fast_callable(z, domain=CDF)
 
     Now ``ff`` does 32 complex arithmetic operations on each call
     (16 additions and 16 multiplications).  However, if ``z*z`` produced
@@ -267,13 +267,13 @@ AUTHOR:
 
         sage: etb = ExpressionTreeBuilder('x')
         sage: x = etb.var('x')
-        sage: (x+1)*(x+1) # not tested
-        *(+(v_0, 1), +(v_0, 1))
+        sage: (x+1)*(x+1)
+        mul(add(v_0, 1), add(v_0, 1))
 
     but this code will only evaluate ``x+1`` once::
 
-        sage: v = x+1; v*v # not tested
-        *(+(v_0, 1), +(v_0, 1))
+        sage: v = x+1; v*v
+        mul(add(v_0, 1), add(v_0, 1))
 """
 
 
@@ -300,7 +300,6 @@ from copy import copy
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
 from sage.structure.element cimport Element
 from sage.rings.all import RDF, CDF
-from sage.libs.mpfr cimport mpfr_t, mpfr_ptr, mpfr_init2, mpfr_set, GMP_RNDN
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.element import parent
@@ -374,7 +373,7 @@ def fast_callable(x, domain=None, vars=None,
         sage: fp = fast_callable(p, domain=RDF)
         sage: fp.op_list()
         [('load_const', 0.0), ('load_const', -3.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 2), ('ipow', 1), 'mul', 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 1), ('ipow', 2), 'mul', 'mul', 'add', ('load_const', -6.0), ('load_arg', 0), ('ipow', 2), 'mul', 'add', ('load_const', -1.0), ('load_arg', 1), ('ipow', 2), 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 2), ('ipow', 2), 'mul', 'mul', 'add', 'return']
-        sage: fp(e, pi, sqrt(2))
+        sage: fp(e, pi, sqrt(2))   # abs tol 3e-14
         -98.00156403362932
         sage: symbolic_result = p(e, pi, sqrt(2)); symbolic_result
         -pi^2*e - pi^2 - 3*sqrt(2)*e - 6*e^2 - 2*e
@@ -447,7 +446,7 @@ def fast_callable(x, domain=None, vars=None,
                         from sage.misc.superseded import deprecation
                         deprecation(5413, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
                     else:
-                        raise ValueError, "List of variables must be specified for symbolic expressions"
+                        raise ValueError("List of variables must be specified for symbolic expressions")
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
             if is_PolynomialRing(x.parent()) or is_MPolynomialRing(x.parent()):
@@ -679,7 +678,7 @@ cdef class ExpressionTreeBuilder:
         try:
             ind = self._vars.index(var_name)
         except ValueError:
-            raise ValueError, "Variable '%s' not found" % var_name
+            raise ValueError("Variable '%s' not found" % var_name)
         return ExpressionVariable(self, ind)
 
     def _var_number(self, n):
@@ -701,7 +700,7 @@ cdef class ExpressionTreeBuilder:
         """
         if 0 <= n < len(self._vars):
             return ExpressionVariable(self, n)
-        raise ValueError, "Variable number %d out of range" % n
+        raise ValueError("Variable number %d out of range" % n)
 
     def call(self, fn, *args):
         r"""
@@ -890,6 +889,28 @@ cdef class Expression:
             mul(1, v_0)
         """
         return _expression_binop_helper(s, o, op_mul)
+
+    def __truediv__(s, o):
+        r"""
+        Compute a quotient of two Expressions.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: x/x
+            div(v_0, v_0)
+            sage: x/1
+            div(v_0, 1)
+            sage: 1/x
+            div(1, v_0)
+            sage: x.__truediv__(1)
+            div(v_0, 1)
+            sage: x.__rtruediv__(1)
+            div(1, v_0)
+        """
+        return _expression_binop_helper(s, o, op_div)
 
     def __div__(s, o):
         r"""
@@ -1683,8 +1704,8 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: def my_sin(x): return sin(x)
         sage: def my_norm(x, y): return x*x + y*y
         sage: def my_sqrt(x):
-        ...       if x < 0: raise ValueError, "sqrt of negative number"
-        ...       return sqrt(x, extend=False)
+        ....:     if x < 0: raise ValueError("sqrt of negative number")
+        ....:     return sqrt(x, extend=False)
         sage: fc = fast_callable(expr, domain=RealField(130))
         sage: fc(0)
         3.1415926535897932384626433832795028842
@@ -1863,7 +1884,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
             if stream.has_instr('py_call'):
                 stream.instr('py_call', fn, len(ecall._arguments))
             else:
-                raise ValueError, "Unhandled function %s in generate_code" % fn
+                raise ValueError("Unhandled function %s in generate_code" % fn)
         elif isinstance(expr, ExpressionIPow):
             base = expr.base()
             exponent = expr.exponent()
@@ -1882,7 +1903,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
             else:
                 stream.instr('py_call', IntegerPowerFunction(exponent), 1)
         else:
-            raise ValueError, "Unhandled expression kind %s in generate_code" % type(expr)
+            raise ValueError("Unhandled expression kind %s in generate_code" % type(expr))
 
 cdef class InterpreterMetadata  # forward declaration
 
@@ -1921,7 +1942,7 @@ cdef class InstructionStream:
         r"""
         Initialize an InstructionStream.
 
-        INPUTS:
+        INPUT:
 
         - metadata - The metadata_by_opname from a wrapper module
 

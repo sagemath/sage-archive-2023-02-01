@@ -15,12 +15,12 @@ They can be obtained as a subsequence of the *cyclic* De Bruijn sequence of
 parameters `k=2` and `n=3`::
 
     sage: seq = DeBruijnSequences(2,3).an_element()
-    sage: print Word(seq).string_rep()
+    sage: print(Word(seq).string_rep())
     00010111
     sage: shift = lambda i: [(i+j)%2**3 for j in range(3)]
     sage: for i in range(2**3):
-    ...      print (Word(map(lambda (j,b): b if j in shift(i) else '*',
-    ...                                       enumerate(seq))).string_rep())
+    ....:    w = Word([b if j in shift(i) else '*' for j, b in enumerate(seq)])
+    ....:    print(w.string_rep())
     000*****
     *001****
     **010***
@@ -43,11 +43,11 @@ TESTS:
 Checking the sequences generated are indeed valid::
 
     sage: for n in range(1, 7):
-    ...      for k in range(1, 7):
-    ...         D = DeBruijnSequences(k, n)
-    ...         if not D.an_element() in D:
-    ...             print "Something's dead wrong (n=%s, k=%s)!" %(n,k)
-    ...             break
+    ....:    for k in range(1, 7):
+    ....:       D = DeBruijnSequences(k, n)
+    ....:       if not D.an_element() in D:
+    ....:           print("Something's dead wrong (n=%s, k=%s)!" %(n,k))
+    ....:           break
 
 AUTHOR:
 
@@ -185,7 +185,9 @@ def is_debruijn_sequence(seq, k, n):
 from sage.categories.finite_sets import FiniteSets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.rings.integer import Integer
+
+from sage.rings.integer cimport Integer
+from sage.rings.integer_ring import ZZ
 
 class DeBruijnSequences(UniqueRepresentation, Parent):
     """
@@ -211,7 +213,7 @@ class DeBruijnSequences(UniqueRepresentation, Parent):
     Obtaining a De Bruijn sequence::
 
         sage: seq = DeBruijnSequences(2, 3).an_element()
-        sage: print seq
+        sage: seq
         [0, 0, 0, 1, 0, 1, 1, 1]
 
     Testing whether it is indeed one::
@@ -356,5 +358,6 @@ class DeBruijnSequences(UniqueRepresentation, Parent):
         .. [1] Rosenfeld, Vladimir Raphael, 2002: Enumerating De Bruijn
           Sequences. *Communications in Math. and in Computer Chem.*
         """
-        from sage.functions.other import factorial
-        return (factorial(self.k) ** (self.k ** (self.n - 1)))/ (self.k**self.n)
+        k = ZZ(self.k)
+        n = ZZ(self.n)
+        return (k.factorial() ** (k ** (n - 1))) // (k**n)

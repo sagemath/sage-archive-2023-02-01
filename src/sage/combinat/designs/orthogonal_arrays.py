@@ -55,6 +55,8 @@ Functions
 ---------
 
 """
+from __future__ import print_function
+
 from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
@@ -266,7 +268,7 @@ def transversal_design(k,n,resolvable=False,check=True,existence=False):
         ....:         except EmptySetError:
         ....:             pass
         ....:         k += 1
-        ....:     print "%2d: (%2d, %2d)"%(n,i,j)
+        ....:     print("%2d: (%2d, %2d)"%(n,i,j))
          2: ( 4,  4)
          3: ( 5,  5)
          4: ( 6,  6)
@@ -559,16 +561,16 @@ def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
         ....:            total += 1
         ....:            f, args = find_wilson_decomposition_with_one_truncated_group(k,n)
         ....:            _ = f(*args)
-        sage: print total
+        sage: total
         41
 
-        sage: print designs.orthogonal_arrays.explain_construction(7,58)
+        sage: print(designs.orthogonal_arrays.explain_construction(7,58))
         Wilson's construction n=8.7+1+1 with master design OA(7+2,8)
-        sage: print designs.orthogonal_arrays.explain_construction(9,115)
+        sage: print(designs.orthogonal_arrays.explain_construction(9,115))
         Wilson's construction n=13.8+11 with master design OA(9+1,13)
-        sage: print wilson_construction(None,5,11,21,[[(5,5)]],explain_construction=True)
+        sage: print(wilson_construction(None,5,11,21,[[(5,5)]],explain_construction=True))
         Brouwer-van Rees construction n=11.21+(5.5) with master design OA(5+1,11)
-        sage: print wilson_construction(None,71,17,21,[[(4,9),(1,1)],[(9,9),(1,1)]],explain_construction=True)
+        sage: print(wilson_construction(None,71,17,21,[[(4,9),(1,1)],[(9,9),(1,1)]],explain_construction=True))
         Brouwer-van Rees construction n=17.21+(9.4+1.1)+(9.9+1.1) with master design OA(71+2,17)
 
     An example using the Brouwer-van Rees generalization::
@@ -593,18 +595,17 @@ def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
     n_trunc = len(u)
 
     if explain_construction:
-        from string import join
         if not u:
             return ("Product of orthogonal arrays n={}.{}").format(r,m)
         elif all(len(uu) == 1 and uu[0][0] == 1 for uu in u):
-            return (("Wilson's construction n={}.{}+{} with master design OA({}+{},{})")
-                    .format(r,m,join((str(x) for ((_,x),) in u),"+"),k,n_trunc,r))
+            return ("Wilson's construction n={}.{}+{} with master design OA({}+{},{})"
+                    .format(r, m, "+".join(str(x) for ((_,x),) in u), k, n_trunc, r))
         else:
-            return (("Brouwer-van Rees construction n={}.{}+{} with master design OA({}+{},{})")
-                    .format(r,m,
-                            join(("("+join((str(x)+"."+str(mul) for mul,x in uu),"+")+")"
-                                  for uu in u),"+"),
-                            k,n_trunc,r))
+            return ("Brouwer-van Rees construction n={}.{}+{} with master design OA({}+{},{})"
+                    .format(r, m,
+                            "+".join("(" + "+".join(str(x)+"."+str(mul) for mul,x in uu) + ")"
+                                     for uu in u),
+                            k, n_trunc, r))
 
     if OA is None:
         master_design = orthogonal_array(k+n_trunc,r,check=False)
@@ -847,8 +848,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
             k = orthogonal_array(None,n,existence=True)-1
             if existence:
                 return k
-        OA = orthogonal_array(k+1,n,check=check)
-        OA.sort()
+        OA = sorted(orthogonal_array(k+1,n,check=check))
         return [B[1:] for B in OA]
 
     # If k is set to None we find the largest value available
@@ -900,7 +900,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
             return "Trivial construction [n]^k"
 
         from itertools import product
-        return map(list, product(range(n), repeat=k))
+        return [list(x) for x in product(range(n), repeat=k)]
 
     elif t != 2:
         if existence:
@@ -1264,8 +1264,7 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
         if existence:
             return orthogonal_array(k+1,n,existence=True)
 
-        OA = orthogonal_array(k+1,n)
-        OA.sort() # The future classes are now well-ordered
+        OA = sorted(orthogonal_array(k+1,n))
         OA = [B[1:] for B in OA]
 
         # We now relabel the points so that the last n blocks are the [i,i,...]
@@ -1400,9 +1399,8 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
         if existence:
             return Unknown
         # format the list of holes
-        from string import join
         f = lambda x: "" if x == 1 else "{}.".format(x)
-        holes_string = join(["-{}OA({},{})".format(f(holes.count(x)),k,x) for x in sorted(set(holes))],'')
+        holes_string = "".join("-{}OA({},{})".format(f(holes.count(x)),k,x) for x in sorted(set(holes)))
         raise NotImplementedError("I was not able to build this OA({},{}){}".format(k,n,holes_string))
 
     assert number_of_holes == len(independent_set)
@@ -1655,11 +1653,11 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
        University of New South Wales,
        1995
 
-    .. [AbelCheng1994] R.J.R. Abel and Y.W. Cheng,
+    .. [AbelCheng1994] \R.J.R. Abel and Y.W. Cheng,
        Some new MOLS of order 2np for p a prime power,
        The Australasian Journal of Combinatorics, vol 10 (1994)
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.rings.integer import Integer
     from itertools import izip,combinations
     from designs_pyx import is_difference_matrix
@@ -1674,7 +1672,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
     F = FiniteField(2**c,'w')
     GG = G.cartesian_product(F)
 
-    # dictionnary from integers to elments of GF(2^c): i -> w^i, None -> 0
+    # dictionary from integers to elments of GF(2^c): i -> w^i, None -> 0
     w = F.multiplicative_generator()
     r = {i:w**i for i in xrange(2**c-1)}
     r[None] = F.zero()
@@ -1859,7 +1857,7 @@ def OA_from_Vmt(m,t,V):
 
         sage: _ = designs.orthogonal_arrays.build(6,46) # indirect doctest
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     q = m*t+1
     Fq, M = QDM_from_Vmt(m,t,V)
     return OA_from_quasi_difference_matrix(M,Fq,add_col = False)
@@ -1909,7 +1907,7 @@ def QDM_from_Vmt(m,t,V):
 
         sage: _ = designs.orthogonal_arrays.build(6,46) # indirect doctest
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     q = m*t+1
     Fq = FiniteField(q, 'x')
     w = Fq.multiplicative_generator()

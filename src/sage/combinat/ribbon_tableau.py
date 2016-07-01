@@ -15,6 +15,8 @@ Ribbon Tableaux
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division, print_function, absolute_import
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -26,8 +28,9 @@ from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSkewTableaux
 from sage.combinat.tableau import TableauOptions
 from sage.combinat.partition import Partition, _Partitions
-import permutation
+from . import permutation
 import functools
+
 
 class RibbonTableau(SkewTableau):
     r"""
@@ -106,20 +109,20 @@ class RibbonTableau(SkewTableau):
             sage: RibbonTableau([[1,0],[2,0]]).length()
             2
         """
-        if self.to_expr() == [[],[]]:
+        if self.to_expr() == [[], []]:
             return 0
 
         tableau = self.to_expr()[1]
         l = 0
         t = 0
         for k in range(len(tableau)):
-            t += len( [ x for x in tableau[k] if x is not None and x > -1 ] )
-            l += len( [ x for x in tableau[k] if x is not None and x > 0  ] )
+            t += len([ x for x in tableau[k] if x is not None and x > -1])
+            l += len([ x for x in tableau[k] if x is not None and x > 0])
 
         if l == 0:
             return t
         else:
-            return t/l
+            return t // l
 
     def to_word(self):
         """
@@ -147,7 +150,7 @@ class RibbonTableau(SkewTableau):
 # Ribbon Tableaux   #
 #####################
 
-class RibbonTableaux(Parent, UniqueRepresentation):
+class RibbonTableaux(UniqueRepresentation, Parent):
     r"""
     Ribbon tableaux.
 
@@ -176,7 +179,7 @@ class RibbonTableaux(Parent, UniqueRepresentation):
         Ribbon tableaux of shape [2, 1] / [] and weight [1, 1, 1] with 1-ribbons
 
         sage: R = RibbonTableaux([[5,4,3],[2,1]], [2,1], 3)
-        sage: for i in R: i.pp(); print
+        sage: for i in R: i.pp(); print("\n")
           .  .  0  0  0
           .  0  0  2
           1  0  1
@@ -775,7 +778,6 @@ def graph_implementation_rec(skp, weight, length, function):
                 selection.append([retire, perms[j]])
 
     #selection contains the list of current nodes
-    #print "selection", selection
 
     if len(weight) == 1:
         return function([], selection, skp, weight, length)
@@ -783,7 +785,6 @@ def graph_implementation_rec(skp, weight, length, function):
         #The recursive calls permit us to construct the list of the sons
         #of all current nodes in selection
         a = [graph_implementation_rec([p[0], skp[1]], weight[:-1], length, function) for p in selection]
-        #print "a", a
         return function(a, selection, skp, weight, length)
 
 
@@ -952,7 +953,7 @@ class MultiSkewTableau(CombinatorialElement):
         return res
 
 
-class MultiSkewTableaux(Parent, UniqueRepresentation):
+class MultiSkewTableaux(UniqueRepresentation, Parent):
     r"""
     Multiskew tableaux.
     """

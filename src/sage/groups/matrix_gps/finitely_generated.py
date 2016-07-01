@@ -58,12 +58,13 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import print_function
 
 from sage.groups.group import Group
 from sage.rings.all import ZZ
 from sage.rings.integer import is_Integer
 from sage.rings.ring import is_Ring
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.interfaces.gap import gap
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace
@@ -120,7 +121,7 @@ def normalize_square_matrices(matrices):
             gens.append(m)
             continue
         if isinstance(m[0], (list, tuple)):
-            m = map(list, m)
+            m = [list(_) for _ in m]
             degree = ZZ(len(m))
         else:
             degree, rem = ZZ(len(m)).sqrtrem()
@@ -194,7 +195,7 @@ def QuaternionMatrixGroupGF3():
         sage: QP.is_isomorphic(H)
         False
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.matrix.matrix_space import MatrixSpace
     MS = MatrixSpace(FiniteField(3), 2)
     aye = MS([1,1,1,2])
@@ -544,7 +545,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         smallest one.
 
         EXAMPLES::
-
+        
             sage: MS = MatrixSpace(GF(2), 5, 5)
             sage: A = MS([[0,0,0,0,1],[0,0,0,1,0],[0,0,1,0,0],[0,1,0,0,0],[1,0,0,0,0]])
             sage: G = MatrixGroup([A])
@@ -579,6 +580,14 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         MatrixGroup G over GF(7). The section "Irreducible Maximal Finite
         Integral Matrix Groups" in the GAP reference manual has more
         details.
+
+        TESTS::
+
+            sage: A= matrix(QQ, 2, [0, 1, 1, 0])
+            sage: B= matrix(QQ, 2, [1, 0, 0, 1])
+            sage: a, b= MatrixGroup([A, B]).as_permutation_group().gens()
+            sage: a.order(), b.order()
+            (2, 1)
         """
         # Note that the output of IsomorphismPermGroup() depends on
         # memory locations and will change if you change the order of
@@ -600,7 +609,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             C = gap("Image( small )")
         else:
             C = gap("Image( iso )")
-        return PermutationGroup(gap_group=C)
+        return PermutationGroup(gap_group=C, canonicalize=False)
 
     def module_composition_factors(self, algorithm=None):
         r"""
@@ -650,7 +659,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         gap.eval("MCFs := MTX.CompositionFactors( M )")
         N = eval(gap.eval("Length(MCFs)"))
         if algorithm == "verbose":
-            print gap.eval('MCFs')+"\n"
+            print(gap.eval('MCFs') + "\n")
         L = []
         for i in range(1,N+1):
             gap.eval("MCF := MCFs[%s]"%i)
@@ -766,7 +775,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                 ReyName = 't'+singular._next_var_name()
                 singular.eval('matrix %s[%d][%d]'%(ReyName,self.cardinality(),n))
                 for i in range(1,self.cardinality()+1):
-                    M = Matrix(elements[i-1],F)
+                    M = Matrix(F, elements[i-1])
                     D = [{} for foobar in range(self.degree())]
                     for x,y in M.dict().items():
                         D[x[0]][x[1]] = y

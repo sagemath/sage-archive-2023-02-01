@@ -1,6 +1,8 @@
+# -*- encoding: utf-8 -*-
 r"""
 Abstract base class for Sage objects
 """
+from __future__ import print_function
 
 import cPickle
 import os
@@ -18,6 +20,42 @@ have_same_parent = LazyImport('sage.structure.element', 'have_same_parent', depr
 import zlib; comp = zlib
 import bz2; comp_other = bz2
 
+op_LT = Py_LT   # operator <
+op_LE = Py_LE   # operator <=
+op_EQ = Py_EQ   # operator ==
+op_NE = Py_NE   # operator !=
+op_GT = Py_GT   # operator >
+op_GE = Py_GE   # operator >=
+
+def py_rich_to_bool(op, c):
+    r"""
+    Return ``True`` or ``False`` for a rich comparison, given the result of an
+    ordinary comparison.
+
+    Do not use this function from Cython. Instead, call ``rich_to_bool`` or
+    ``rich_to_bool_sgn`` defined in ``sage_object.pxd``.
+
+    INPUT:
+
+    - ``op`` -- a rich comparison operation (e.g. ``op_EQ``)
+
+    - ``c`` -- the result of an ordinary comparison, i.e. an integer.
+
+    EXAMPLES::
+
+        sage: from sage.structure.sage_object import (py_rich_to_bool,
+        ....:    op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE)
+        sage: for op in (op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE):
+        ....:     for c in (-1,0,1):
+        ....:         print(py_rich_to_bool(op, c))
+        True False False
+        True True False
+        False True False
+        True False True
+        False False True
+        False True True
+    """
+    return rich_to_bool_sgn(op, c)
 
 cdef process(s):
     if s[-5:] != '.sobj':
@@ -96,7 +134,7 @@ cdef class SageObject:
             try:
                 self.__custom_name = str(x)
             except AttributeError:
-                raise NotImplementedError, "object does not support renaming: %s"%self
+                raise NotImplementedError("object does not support renaming: %s" % self)
 
     def reset_name(self):
         """
@@ -160,7 +198,12 @@ cdef class SageObject:
         except AttributeError:
             return str(type(self))
         else:
-            return repr_func()
+            result = repr_func()
+            if isinstance(result, unicode):
+                # Py3 compatibility: allow _repr_ to return unicode
+                return result.encode('utf-8')
+            else:
+                return result
 
     def _ascii_art_(self):
         r"""
@@ -174,12 +217,12 @@ cdef class SageObject:
 
         OUTPUT:
 
-        An :class:`~sage.misc.ascii_art.AsciiArt` object, see
-        :mod:`sage.misc.ascii_art` for details.
+        An :class:`~sage.typeset.ascii_art.AsciiArt` object, see
+        :mod:`sage.typeset.ascii_art` for details.
 
         EXAMPLES:
 
-        You can use the :func:`~sage.misc.ascii_art.ascii_art` function
+        You can use the :func:`~sage.typeset.ascii_art.ascii_art` function
         to get the ASCII art representation of any object in Sage::
 
             sage: ascii_art(integral(exp(x+x^2)/(x+1), x))
@@ -220,13 +263,87 @@ cdef class SageObject:
             sage: 1._ascii_art_()
             1
             sage: type(_)
-            <class 'sage.misc.ascii_art.AsciiArt'>
+            <class 'sage.typeset.ascii_art.AsciiArt'>
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(repr(self).splitlines())
 
+    def _unicode_art_(self):
+        r"""
+        Return a unicode art representation.
+
+        To implement multi-line unicode art output in a derived class
+        you must override this method. Unlike :meth:`_repr_`, which is
+        sometimes used for the hash key, the output of
+        :meth:`_unicode_art_` may depend on settings and is allowed to
+        change during runtime.
+
+        OUTPUT:
+
+        An :class:`~sage.typeset.unicode_art.UnicodeArt` object, see
+        :mod:`sage.typeset.unicode_art` for details.
+
+        EXAMPLES:
+
+        You can use the :func:`~sage.typeset.unicode_art.unicode_art` function
+        to get the ASCII art representation of any object in Sage::
+
+            sage: unicode_art(integral(exp(x+x^2)/(x+1), x))
+            ⌠
+            ⎮   2
+            ⎮  x  + x
+            ⎮ ℯ
+            ⎮ ─────── dx
+            ⎮  x + 1
+            ⌡
+
+
+        Alternatively, you can use the ``%display ascii_art/simple`` magic to
+        switch all output to ASCII art and back::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('tab = StandardTableaux(3)[2]; tab')
+            [[1, 2], [3]]
+            sage: shell.run_cell('%display ascii_art')
+            sage: shell.run_cell('tab')
+            1  2
+            3
+            sage: shell.run_cell('Tableaux.global_options(ascii_art="table", convention="French")')
+            sage: shell.run_cell('tab')
+            +---+
+            | 3 |
+            +---+---+
+            | 1 | 2 |
+            +---+---+
+            sage: shell.run_cell('%display plain')
+            sage: shell.run_cell('Tableaux.global_options.reset()')
+            sage: shell.quit()
+
+        TESTS::
+
+            sage: 1._unicode_art_()
+            1
+            sage: type(_)
+            <class 'sage.typeset.unicode_art.UnicodeArt'>
+        """
+        ascii_art = self._ascii_art_()
+        lines = map(unicode, ascii_art)
+        from sage.typeset.unicode_art import UnicodeArt
+        return UnicodeArt(lines)
+
     def __hash__(self):
-        return hash(self.__repr__())
+        r"""
+        Not implemented: mutable objects inherit from this class
+
+        EXAMPLES::
+
+            sage: hash(SageObject())
+            Traceback (most recent call last):
+            ...
+            TypeError: <type 'sage.structure.sage_object.SageObject'> is not hashable
+        """
+        raise TypeError("{} is not hashable".format(type(self)))
 
     def _cache_key(self):
         r"""
@@ -263,7 +380,7 @@ cdef class SageObject:
             sage: hash(b)
             Traceback (most recent call last):
             ...
-            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+            TypeError: unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'
             sage: @cached_method
             ....: def f(x): return x==a
             sage: f(b)
@@ -294,34 +411,9 @@ cdef class SageObject:
         else:
             assert False, "_cache_key() must not be called for hashable elements"
 
-    #############################################################################
+    ##########################################################################
     # DATABASE Related code
-    #############################################################################
-
-    def version(self):
-        r"""
-        The version of Sage.
-
-        Call this to save the version of Sage in this object.
-        If you then save and load this object it will know in what
-        version of Sage it was created.
-
-        This only works on Python classes that derive from SageObject.
-
-        TESTS::
-
-            sage: v = DiGraph().version()
-            doctest:... DeprecationWarning: version() is deprecated.
-            See http://trac.sagemath.org/2536 for details.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(2536, 'version() is deprecated.')
-        try:
-            return self.__version
-        except AttributeError:
-            import sage.version
-            self.__version = sage.version.version
-            return self.__version
+    ##########################################################################
 
     def save(self, filename=None, compress=True):
         """
@@ -338,7 +430,7 @@ cdef class SageObject:
             try:
                 filename = self._default_filename
             except AttributeError:
-                raise RuntimeError, "no default filename, so it must be specified"
+                raise RuntimeError("no default filename, so it must be specified")
         filename = process(filename)
         try:
             self._default_filename = filename
@@ -414,9 +506,8 @@ cdef class SageObject:
         Let us now write a broken :meth:`.category` method::
 
             sage: class CCls(SageObject):
-            ...       def category(self):
-            ...           return 3
-            ...
+            ....:     def category(self):
+            ....:         return 3
             sage: CC = CCls()
             sage: CC._test_category()
             Traceback (most recent call last):
@@ -496,17 +587,14 @@ cdef class SageObject:
         TESTS::
 
             sage: class Abstract(SageObject):
-            ...       @abstract_method
-            ...       def bla(self):
-            ...           "returns bla"
-            ...
+            ....:     @abstract_method
+            ....:     def bla(self):
+            ....:         "returns bla"
             sage: class Concrete(Abstract):
-            ...       def bla(self):
-            ...           return 1
-            ...
+            ....:     def bla(self):
+            ....:         return 1
             sage: class IncompleteConcrete(Abstract):
-            ...       pass
-            ...
+            ....:     pass
             sage: Concrete()._test_not_implemented_methods()
             sage: IncompleteConcrete()._test_not_implemented_methods()
             Traceback (most recent call last):
@@ -532,7 +620,9 @@ cdef class SageObject:
 
             sage: ZZ._test_pickling()
 
-        SEE ALSO: :func:`dumps` :func:`loads`
+        .. SEEALSO::
+
+            :func:`dumps`, :func:`loads`
 
         TESTS::
 
@@ -588,8 +678,7 @@ cdef class SageObject:
             try:
                 s = self._interface_init_(I)
             except Exception:
-                raise NotImplementedError, "coercion of object %s to %s not implemented:\n%s\n%s"%\
-                  (repr(self), I)
+                raise NotImplementedError("coercion of object %s to %s not implemented:\n%s\n%s" % (repr(self), I))
         X = I(s)
         if c:
             try:
@@ -842,7 +931,7 @@ def load(*filename, compress=True, verbose=True):
     is a filename ending in ``.py``, ``.pyx``, ``.sage``, ``.spyx``,
     ``.f``, ``.f90`` or ``.m``, load that file into the current running
     session.
-    
+
     Loaded files are not loaded into their own namespace, i.e., this is
     much more like Python's ``execfile`` than Python's ``import``.
 
@@ -866,7 +955,7 @@ def load(*filename, compress=True, verbose=True):
     We test loading a file or multiple files or even mixing loading files and objects::
 
         sage: t = tmp_filename(ext='.py')
-        sage: open(t,'w').write("print 'hello world'")
+        sage: open(t,'w').write("print('hello world')")
         sage: load(t)
         hello world
         sage: load(t,t)
@@ -958,8 +1047,8 @@ def save(obj, filename=None, compress=True, **kwds):
         sage: save(P, os.path.join(SAGE_TMP, "filename.with.some.wrong.ext"))
         Traceback (most recent call last):
         ...
-        ValueError: allowed file extensions for images are '.eps', '.pdf', '.png', '.ps', '.sobj', '.svg'!
-        sage: print load(objfile)
+        ValueError: allowed file extensions for images are '.eps', '.pdf', '.pgf', '.png', '.ps', '.sobj', '.svg'!
+        sage: print(load(objfile))
         Graphics object consisting of 2 graphics primitives
         sage: save("A python string", os.path.join(SAGE_TMP, 'test'))
         sage: load(objfile)
@@ -1004,7 +1093,7 @@ def dumps(obj, compress=True):
 
         sage: a = 2/3
         sage: s = dumps(a)
-        sage: print len(s)
+        sage: len(s)
         49
         sage: loads(s)
         2/3
@@ -1032,6 +1121,24 @@ def register_unpickle_override(module, name, callable, call_name=None):
     to use for unpickling.  (If this callable is a value in some module,
     you can specify the module name and class name, for the benefit of
     :func:`~sage.misc.explain_pickle.explain_pickle` when called with ``in_current_sage=True``).)
+
+    EXAMPLES:
+
+    Imagine that there used to be an ``old_integer`` module and old
+    pickles essentially trying to do the following::
+
+        sage: unpickle_global('sage.rings.old_integer', 'OldInteger')
+        Traceback (most recent call last):
+        ...
+        ImportError: cannot import OldInteger from sage.rings.old_integer, call register_unpickle_override('sage.rings.old_integer', 'OldInteger', ...) to fix this
+
+    After following the advice from the error message, unpickling
+    works::
+
+        sage: from sage.structure.sage_object import register_unpickle_override
+        sage: register_unpickle_override('sage.rings.old_integer', 'OldInteger', Integer)
+        sage: unpickle_global('sage.rings.old_integer', 'OldInteger')
+        <type 'sage.rings.integer.Integer'>
 
     In many cases, unpickling problems for old pickles can be resolved with a
     simple call to ``register_unpickle_override``, as in the example above and
@@ -1088,14 +1195,13 @@ def register_unpickle_override(module, name, callable, call_name=None):
     defining a new :meth:`__setstate__` method::
 
         sage: class SweeterPickle(CombinatorialObject,Element):
-        ...       def __setstate__(self, state):
-        ...           if isinstance(state, dict):   # a pickle from CombinatorialObject is just its instance dictionary
-        ...               self._set_parent(Tableaux())      # this is a fudge: we need an appropriate parent here
-        ...               self.__dict__ = state
-        ...           else:
-        ...               self._set_parent(state[0])
-        ...               self.__dict__ = state[1]
-        ...
+        ....:     def __setstate__(self, state):
+        ....:         if isinstance(state, dict):       # a pickle from CombinatorialObject is just its instance dictionary
+        ....:             self._set_parent(Tableaux())  # this is a fudge: we need an appropriate parent here
+        ....:             self.__dict__ = state
+        ....:         else:
+        ....:             self._set_parent(state[0])
+        ....:             self.__dict__ = state[1]
         sage: __main__.SweeterPickle = SweeterPickle
         sage: register_unpickle_override('__main__','SourPickle',SweeterPickle)
         sage: loads( gherkin )
@@ -1113,20 +1219,20 @@ def register_unpickle_override(module, name, callable, call_name=None):
     ::
 
         sage: class A(object):
-        ...      def __init__(self,value):
-        ...          self.original_attribute = value
-        ...      def __repr__(self):
-        ...          return 'A(%s)'%self.original_attribute
+        ....:    def __init__(self,value):
+        ....:        self.original_attribute = value
+        ....:    def __repr__(self):
+        ....:        return 'A(%s)'%self.original_attribute
         sage: class B(object):
-        ...      def __init__(self,value):
-        ...          self.new_attribute = value
-        ...      def __setstate__(self,state):
-        ...          try:
-        ...              self.new_attribute = state['new_attribute']
-        ...          except KeyError:      # an old pickle
-        ...              self.new_attribute = state['original_attribute']
-        ...      def __repr__(self):
-        ...          return 'B(%s)'%self.new_attribute
+        ....:    def __init__(self,value):
+        ....:        self.new_attribute = value
+        ....:    def __setstate__(self,state):
+        ....:        try:
+        ....:            self.new_attribute = state['new_attribute']
+        ....:        except KeyError:      # an old pickle
+        ....:            self.new_attribute = state['original_attribute']
+        ....:    def __repr__(self):
+        ....:        return 'B(%s)'%self.new_attribute
         sage: import __main__
         sage: __main__.A=A; __main__.B=B  # a hack to allow us to pickle command line classes
         sage: A(10)
@@ -1217,7 +1323,12 @@ def unpickle_global(module, name):
     mod = sys_modules.get(module)
     if mod is not None:
         return getattr(mod, name)
-    __import__(module)
+    try:
+        __import__(module)
+    except ImportError:
+        raise ImportError("cannot import {1} from {0}, "
+            "call register_unpickle_override({0!r}, {1!r}, ...) to fix this".format(
+            module, name))
     mod = sys_modules[module]
     return getattr(mod, name)
 
@@ -1254,7 +1365,7 @@ def loads(s, compress=True):
         UnpicklingError: invalid load key, 'x'.
     """
     if not isinstance(s, str):
-        raise TypeError, "s must be a string"
+        raise TypeError("s must be a string")
     if compress:
         try:
             s = comp.decompress(s)
@@ -1287,7 +1398,7 @@ def picklejar(obj, dir=None):
     descriptions of them.  Use the :func:`unpickle_all` to see if they unpickle
     later.
 
-    INPUTS:
+    INPUT:
 
     - ``obj`` -- a pickleable object
 
@@ -1309,12 +1420,13 @@ def picklejar(obj, dir=None):
         sage: import os
         sage: os.chmod(dir, 0o000)
         sage: try:
-        ...   uid = os.getuid()
-        ... except AttributeError:
-        ...    uid = -1
+        ....:     uid = os.getuid()
+        ....: except AttributeError:
+        ....:     uid = -1
         sage: if uid==0:
-        ...     raise OSError('You must not run the doctests as root, geez!')
-        ... else: sage.structure.sage_object.picklejar(1, dir + '/noaccess')
+        ....:     raise OSError('You must not run the doctests as root, geez!')
+        ....: else:
+        ....:     sage.structure.sage_object.picklejar(1, dir + '/noaccess')
         Traceback (most recent call last):
         ...
         OSError: ...
@@ -1398,7 +1510,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
 
         sage: from sage.structure.sage_object import register_unpickle_override, unpickle_all, unpickle_global
         sage: class A(CombinatorialObject,sage.structure.element.Element):
-        ...       pass # to break a pickle
+        ....:     pass  # to break a pickle
         sage: tableau_unpickler=unpickle_global('sage.combinat.tableau','Tableau_class')
         sage: register_unpickle_override('sage.combinat.tableau','Tableau_class',A) # breaking the pickle
         sage: unpickle_all()  # todo: not tested
@@ -1424,7 +1536,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
 
     If you want to find *lots* of little issues in Sage then try the following::
 
-        sage: print "x"; sage.structure.sage_object.unpickle_all(run_test_suite = True) # todo: not tested
+        sage: sage.structure.sage_object.unpickle_all(run_test_suite = True) # todo: not tested
 
     This runs :class:`TestSuite` tests on all objects in the Sage pickle
     jar. Some of those objects seem to unpickle properly, but do not
@@ -1477,9 +1589,9 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
             except Exception:
                 j += 1
                 if run_test_suite:
-                    print " * unpickle failure: TestSuite(load('%s')).run()"%os.path.join(dir,A)
+                    print(" * unpickle failure: TestSuite(load('%s')).run()" % os.path.join(dir, A))
                 else:
-                    print " * unpickle failure: load('%s')"%os.path.join(dir,A)
+                    print(" * unpickle failure: load('%s')" % os.path.join(dir, A))
                 from traceback import print_exc
                 print_exc()
                 failed.append(A)
@@ -1487,17 +1599,17 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
                     tracebacks.append(sys.exc_info())
 
     if len(failed) > 0:
-        print "Failed:\n%s"%('\n'.join(failed))
+        print("Failed:\n%s" % ('\n'.join(failed)))
         if pickle_jar:
             # if we are checking the pickle_jar then print a message to alert the
             # user about what to do to fix unpickling errors
-            print '-'*70
-            print """** This error is probably due to an old pickle failing to unpickle.
+            print('-' * 70)
+            print("""** This error is probably due to an old pickle failing to unpickle.
 ** See sage.structure.sage_object.register_unpickle_override for
 ** how to override the default unpickling methods for (old) pickles.
-** NOTE: pickles should never be removed from the pickle_jar! """
-            print '-'*70
-    print "Successfully unpickled %s objects."%i
-    print "Failed to unpickle %s objects."%j
+** NOTE: pickles should never be removed from the pickle_jar! """)
+            print('-' * 70)
+    print("Successfully unpickled %s objects." % i)
+    print("Failed to unpickle %s objects." % j)
     if debug:
         return tracebacks

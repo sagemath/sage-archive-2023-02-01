@@ -1,3 +1,4 @@
+# cython: profile=True
 """
 Lean matrices
 
@@ -29,8 +30,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include 'sage/data_structures/bitset.pxi'
+from libc.string cimport memcpy, memset
 from sage.matrix.matrix2 cimport Matrix
 from sage.rings.all import ZZ, FiniteField, GF
 from sage.rings.integer cimport Integer
@@ -318,10 +320,7 @@ cdef class LeanMatrix:
                     break
             if is_pivot:
                 self.swap_rows_c(p, r)
-                self.rescale_row_c(r, self.get_unsafe(r, c) ** (-1), 0)
-                for row from 0 <= row < self._nrows:
-                    if row != r and self.is_nonzero(row, c):
-                        self.add_multiple_of_row_c(row, r, -self.get_unsafe(row, c), 0)
+                self.pivot(r, c)
                 P.append(c)
                 r += 1
             if r == self._nrows:
@@ -511,6 +510,151 @@ cdef class LeanMatrix:
         """
         raise NotImplementedError("subclasses need to implement this.")
 
+    cdef shifting_all(self, P_rows, P_cols, Q_rows, Q_cols, int m):
+        r"""
+        Given a partial matrix `M`. If the submatrix `M` using rows
+        `P_rows` columns `P_cols` and submatrix using rows `Q_rows` columns
+        `Q_cols` can be extended to a ``m``-separator, then it returns
+        `True, E`, where `E` is a ``m``-separator. Otherwise it returns
+        `False, None`
+
+        `P_rows` and `Q_rows` must be disjoint subsets of row indices.
+        `P_cols` and `Q_cols` must be disjoint subsets of column indices.
+
+        Internal version does not verify the above properties hold. 
+
+        INPUT:
+
+        - ``P_rows`` -- list of row indices of the first submatrix
+        - ``P_cols`` -- list of column indices of the first submatrix
+        - ``Q_rows`` -- list of row indices of the second submatrix
+        - ``Q_cols`` -- list of column indices of the second submatrix
+        - ``m`` -- separation size
+
+        OUTPUT:
+
+        - `False, None`  -- if the input submatrices does not induce a `m``-separator.
+        - `True, E` -- if there exist a ``m``-separator ``E``.
+
+        """
+        for z in xrange(self.ncols()):
+            if z in P_cols+Q_cols:
+                continue
+            sol,cert = self.shifting(P_rows,P_cols,Q_rows,Q_cols,z,None,m)
+            if sol:
+                return True, cert
+            sol,cert = self.shifting(Q_rows,Q_cols,P_rows,P_cols,None,z,m)
+            if sol:
+                return True, cert
+            sol,cert = self.shifting(P_rows,P_cols,Q_rows,Q_cols,None,z,m)
+            if sol:
+                return True, cert
+            sol,cert = self.shifting(Q_rows,Q_cols,P_rows,P_cols,z,None,m)
+            if sol:
+                return True, cert
+        return False, None
+
+    cdef shifting(self, U_1, V_2, U_2, V_1, z2, z1, int m):
+        r"""
+        Let `E_1` be the submatrix using rows `U_1` and columns `V_2` with
+        optional column `z2` attached.
+        Let `E_2` be the submatrix using rows `U_2` and columns `V_1` with
+        optional column `z1` attached.
+        If `E_1` and `E_2` can be extended to a ``m``-separator, then it 
+        returns `True, E`, where `E` is a ``m``-separator. Otherwise it 
+        returns `False, None`
+
+        `U_1` and `U_2` must be disjoint subsets of row indices.
+        `V_1` and `V_2` must be disjoint subsets of column indices.
+
+        Internal version does not verify the above properties hold. 
+
+        INPUT:
+
+        - ``U_1`` -- list of row indices of the first submatrix
+        - ``V_2`` -- list of column indices of the first submatrix
+        - ``U_2`` -- list of row indices of the second submatrix
+        - ``V_1`` -- list of column indices of the second submatrix
+        - ``z2``  -- start by add an additional column with index `z2` to `V_2`
+        - ``z1``  -- start by add an additional column with index `z1` to `V_1`
+        - ``m`` -- separation size
+
+        OUTPUT:
+
+        - `False, None`  -- if the input submatrices does not induce a `m``-separator.
+        - `True, (X,Y)` -- row indices `X` and column indices `Y` defines a ``m``-separator.
+        """
+        # make copy because of destructive updates
+        cdef list X_1 = list(U_1)
+        cdef list X_2 = list(U_2)
+        cdef list Y_1 = []
+        cdef list Y_2 = []
+        if z1 != None:
+            Y_1 = list(V_1) + [z1]
+            Y_2 = list(V_2)
+        else:
+            Y_1 = list(V_1)
+            Y_2 = list(V_2) + [z2]
+
+        cdef int lX_2 = len(X_2)
+        cdef int lY_2 = len(Y_2)
+
+        if len(X_1) + len(Y_1) < m:
+            return False, None
+
+        cdef set X=set(xrange(self.nrows()))
+        cdef set Y=set(xrange(self.ncols()))
+
+        cdef set X_3 = X-set(X_1+X_2)
+        cdef set Y_3 = Y-set(Y_1+Y_2)
+
+        cdef list lU_2 = sorted(list(U_2))
+        cdef list lV_2 = sorted(list(V_2))
+        cdef dict rU = dict(zip(lU_2,xrange(len(U_2))))
+        cdef dict rV = dict(zip(lV_2,xrange(len(V_2))))
+
+        # find a unique representation of every column in U_1xY_3 using columns in U_1xV_2
+        B = self.matrix_from_rows_and_columns(list(U_1), xrange(len(Y)))
+        B.gauss_jordan_reduce(lV_2)
+        # find a unique representation of every rows in X_3xV_1 using rows in U_2xV_1
+        BT = self.matrix_from_rows_and_columns(xrange(len(X)),list(V_1)).transpose()
+        BT.gauss_jordan_reduce(lU_2)
+
+        cdef set X_p = set(X_1)
+        cdef set Y_p = set(Y_1)
+        while True:
+            #rowshifts
+            X_p_new = set([])
+            for x in set(X_3):
+                for y in Y_p:
+                    if sum([BT.get_unsafe(rU[u],x)*self.get_unsafe(u,y) for u in U_2]) != self.get_unsafe(x,y):
+                        X_1.append(x)
+                        X_3.remove(x)
+                        X_p_new.add(x)
+                        break
+            #colshifts
+            Y_p_new = set([])
+            for y in set(Y_3):
+                for x in X_p:
+                    if sum([B.get_unsafe(rV[v],y)*self.get_unsafe(x,v) for v in V_2]) != self.get_unsafe(x,y):
+                        Y_1.append(y)
+                        Y_3.remove(y)
+                        Y_p_new.add(y)
+                        break
+            X_p = X_p_new
+            Y_p = Y_p_new
+            if (not X_p_new and not Y_p_new):
+                break
+
+        # size of S_2
+        X_2 = list(X-set(X_1))
+        Y_2 = list(Y-set(Y_1))
+        if len(X_2)+len(Y_2) < m:
+            return False, None
+        if (lX_2==len(X_2) and lY_2==len(Y_2)):
+            return False, None
+        return True, (X_1, Y_1)
+
 cdef class GenericMatrix(LeanMatrix):
     """
     Matrix over arbitrary Sage ring.
@@ -597,7 +741,7 @@ cdef class GenericMatrix(LeanMatrix):
 
     def __repr__(self):
         """
-        Print representation.
+        Return representation.
 
         EXAMPLES::
 
@@ -842,7 +986,7 @@ cdef class BinaryMatrix(LeanMatrix):
         cdef long i, j
         self._nrows = m
         self._ncols = n
-        self._M = <bitset_t* > sage_malloc(self._nrows * sizeof(bitset_t))
+        self._M = <bitset_t* > sig_malloc(self._nrows * sizeof(bitset_t))
         if isinstance(M, BinaryMatrix):
             j = max(1, (<BinaryMatrix>M)._ncols)
         else:
@@ -874,18 +1018,15 @@ cdef class BinaryMatrix(LeanMatrix):
             if isinstance(M, BinaryMatrix):
                 for i from 0 <= i < M.nrows():
                     bitset_copy(self._M[i], (<BinaryMatrix>M)._M[i])
-                j = max(1, self._ncols)
-                for i from 0 <= i < self._nrows:
-                    bitset_realloc(self._M[i], j)
             elif isinstance(M, LeanMatrix):
                 for i from 0 <= i < M.nrows():
                     for j from 0 <= j < M.ncols():
-                        if int((<LeanMatrix>M).get_unsafe(i, j)) % 2:
+                        if int((<LeanMatrix>M).get_unsafe(i, j)) & 1:
                             self.set(i, j)
             elif isinstance(M, Matrix):
                 for i from 0 <= i < M.nrows():
                     for j from 0 <= j < M.ncols():
-                        if int((<Matrix>M).get_unsafe(i, j)) % 2:
+                        if int((<Matrix>M).get_unsafe(i, j)) & 1:
                             self.set(i, j)
             else:
                 raise TypeError("unrecognized input type")
@@ -894,12 +1035,12 @@ cdef class BinaryMatrix(LeanMatrix):
         cdef long i
         for i from 0 <= i < self._nrows:
             bitset_free(self._M[i])
-        sage_free(self._M)
+        sig_free(self._M)
         bitset_free(self._temp)
 
     def __repr__(self):
-        """
-        Print representation string
+        r"""
+        Return representation string
 
         EXAMPLES::
 
@@ -954,9 +1095,9 @@ cdef class BinaryMatrix(LeanMatrix):
             for i from k <= i < self._nrows:
                 bitset_free(self._M[i])
             self._nrows = k
-            self._M = <bitset_t* > sage_realloc(self._M, k * sizeof(bitset_t))
+            self._M = <bitset_t* > sig_realloc(self._M, k * sizeof(bitset_t))
         if k > self._nrows:
-            self._M = <bitset_t* > sage_realloc(self._M, k * sizeof(bitset_t))
+            self._M = <bitset_t* > sig_realloc(self._M, k * sizeof(bitset_t))
             c = max(1, self._ncols)
             for i from self._nrows <= i < k:
                 bitset_init(self._M[i], c)
@@ -999,10 +1140,8 @@ cdef class BinaryMatrix(LeanMatrix):
         cdef long i, j
         cdef BinaryMatrix A = BinaryMatrix(self._nrows, self._ncols + self._nrows)
         for i from 0 <= i < self._nrows:
+            bitset_lshift(A._M[i], self._M[i], self._nrows)
             A.set(i, i)
-            for j from 0 <= j < self._ncols:
-                if self.get(i, j):
-                    A.set(i, self._nrows + j)
         return A
 
     cpdef base_ring(self):
@@ -1045,7 +1184,7 @@ cdef class BinaryMatrix(LeanMatrix):
             bitset_discard(self._M[r], c)
         return 0
 
-    cdef bint is_nonzero(self, long r, long c) except -2:   # Not a Sage matrix operation
+    cdef inline bint is_nonzero(self, long r, long c) except -2:   # Not a Sage matrix operation
         return bitset_in(self._M[r], c)
 
     cdef inline bint get(self, long r, long c):   # Not a Sage matrix operation
@@ -1085,7 +1224,7 @@ cdef class BinaryMatrix(LeanMatrix):
         """
         bitset_copy(self._temp, self._M[i])
         bitset_intersection(self._temp, self._temp, self._M[j])
-        return bitset_len(self._temp) % 2
+        return bitset_len(self._temp) & 1
 
     cdef int add_multiple_of_row_c(self, long i, long j, s, bint col_start) except -1:
         """
@@ -1164,6 +1303,63 @@ cdef class BinaryMatrix(LeanMatrix):
                 if bitset_in(self._M[rows[r]], columns[c]):
                     bitset_add(A._M[r], c)
         return A
+
+    cdef matrix_from_rows_and_columns_reordered(self, rows, columns):
+        """
+        Return a submatrix indexed by indicated rows and columns, as well as
+        the column order of the resulting submatrix.
+        """
+        cdef BinaryMatrix A = BinaryMatrix(len(rows), len(columns))
+        cdef long r, c, lc, lg
+        cdef mp_bitcnt_t *cols
+        # deal with trivial case
+        lc = len(columns)
+        if lc == 0:
+            return A, []
+        # write [c for c in columns if c<lc] as bitset `mask` and
+        # write [c for c in columns if c>=lc] as array `cols`
+        cdef bitset_t mask
+        bitset_init(mask, lc)
+        bitset_clear(mask)
+        cols = <mp_bitcnt_t*>sig_malloc(lc*sizeof(mp_bitcnt_t))
+        g = 0
+        for c in columns:
+            if c<lc:
+                bitset_add(mask, c)
+            else:
+                cols[g] = c
+                g = g+1
+        # write [ c for c in range(lc) if c not in columns] as array `gaps`
+        cdef mp_bitcnt_t *gaps
+        gaps = <mp_bitcnt_t*>sig_malloc(lc*sizeof(mp_bitcnt_t))
+        bitset_complement(mask, mask)
+        g = 0
+        c = bitset_first(mask)
+        while c>=0:
+            gaps[g] = c
+            g = g+1
+            c =  bitset_next(mask, c+1)
+        lg = g
+        bitset_complement(mask, mask)
+        # copy relevant part of this matrix into A
+        cdef bitset_t row, row2
+        for r in xrange(len(rows)):
+            row = self._M[rows[r]]
+            row2 = A._M[r]
+            bitset_intersection(row2, row, mask) # yes, this is safe
+            for g in xrange(lg):
+                if bitset_in(row, cols[g]):
+                    bitset_add(row2, gaps[g])
+        # record order of the columns in list `order`
+        cdef list order = range(lc)
+        g = 0
+        for g in xrange(lg):
+            order[gaps[g]] = cols[g]
+        # free up the two arrays and the bitset
+        sig_free(gaps)
+        sig_free(cols)
+        bitset_free(mask)
+        return A, order
 
     cdef list _character(self, bitset_t x):   # Not a Sage matrix operation
         """
@@ -1406,8 +1602,8 @@ cdef class TernaryMatrix(LeanMatrix):
 
         self._nrows = m
         self._ncols = n
-        self._M0 = <bitset_t* > sage_malloc(self._nrows * sizeof(bitset_t))
-        self._M1 = <bitset_t* > sage_malloc(self._nrows * sizeof(bitset_t))
+        self._M0 = <bitset_t* > sig_malloc(self._nrows * sizeof(bitset_t))
+        self._M1 = <bitset_t* > sig_malloc(self._nrows * sizeof(bitset_t))
 
         if isinstance(M, TernaryMatrix):
             j = max(1, (<TernaryMatrix>M)._ncols)
@@ -1439,10 +1635,6 @@ cdef class TernaryMatrix(LeanMatrix):
                 for i from 0 <= i < (<TernaryMatrix>M)._nrows:
                     bitset_copy(self._M0[i], (<TernaryMatrix>M)._M0[i])
                     bitset_copy(self._M1[i], (<TernaryMatrix>M)._M1[i])
-                j = max(1, self._ncols)
-                for i from 0 <= i < self._nrows:
-                    bitset_realloc(self._M0[i], j)
-                    bitset_realloc(self._M1[i], j)
                 return
             if isinstance(M, LeanMatrix):
                 for i from 0 <= i < M.nrows():
@@ -1467,15 +1659,15 @@ cdef class TernaryMatrix(LeanMatrix):
         for i from 0 <= i < self._nrows:
             bitset_free(self._M0[i])
             bitset_free(self._M1[i])
-        sage_free(self._M0)
-        sage_free(self._M1)
+        sig_free(self._M0)
+        sig_free(self._M1)
         bitset_free(self._s)
         bitset_free(self._t)
         bitset_free(self._u)
 
     def __repr__(self):
-        """
-        Print representation string
+        r"""
+        Return representation string
 
         EXAMPLES::
 
@@ -1552,11 +1744,11 @@ cdef class TernaryMatrix(LeanMatrix):
                 bitset_free(self._M0[i])
                 bitset_free(self._M1[i])
             self._nrows = k
-            self._M0 = <bitset_t* > sage_realloc(self._M0, k * sizeof(bitset_t))
-            self._M1 = <bitset_t* > sage_realloc(self._M1, k * sizeof(bitset_t))
+            self._M0 = <bitset_t* > sig_realloc(self._M0, k * sizeof(bitset_t))
+            self._M1 = <bitset_t* > sig_realloc(self._M1, k * sizeof(bitset_t))
         if k > self._nrows:
-            self._M0 = <bitset_t* > sage_realloc(self._M0, k * sizeof(bitset_t))
-            self._M1 = <bitset_t* > sage_realloc(self._M1, k * sizeof(bitset_t))
+            self._M0 = <bitset_t* > sig_realloc(self._M0, k * sizeof(bitset_t))
+            self._M1 = <bitset_t* > sig_realloc(self._M1, k * sizeof(bitset_t))
             c = max(1, self._ncols)
             for i from self._nrows <= i < k:
                 bitset_init(self._M0[i], c)
@@ -1596,9 +1788,9 @@ cdef class TernaryMatrix(LeanMatrix):
         cdef long i, j
         cdef TernaryMatrix A = TernaryMatrix(self._nrows, self._ncols + self._nrows)
         for i from 0 <= i < self._nrows:
+            bitset_lshift(A._M0[i], self._M0[i], self._nrows)
+            bitset_lshift(A._M1[i], self._M1[i], self._nrows)
             A.set(i, i, 1)
-            for j from 0 <= j < self._ncols:
-                A.set(i, self._nrows + j, self.get(i, j))
         return A
 
     cpdef base_ring(self):
@@ -1647,10 +1839,10 @@ cdef class TernaryMatrix(LeanMatrix):
             bitset_add(self._M1[r], c)
         return 0
 
-    cdef bint is_nonzero(self, long r, long c) except -2:   # Not a Sage matrix operation
+    cdef inline bint is_nonzero(self, long r, long c) except -2:   # Not a Sage matrix operation
         return bitset_in(self._M0[r], c)
 
-    cdef bint _is_negative(self, long r, long c):
+    cdef inline bint _is_negative(self, long r, long c):
         return bitset_in(self._M1[r], c)
 
     cdef inline long row_len(self, long i):   # Not a Sage matrix operation
@@ -1786,6 +1978,71 @@ cdef class TernaryMatrix(LeanMatrix):
         M.resize(self._nrows)
         return M
 
+    cdef matrix_from_rows_and_columns_reordered(self, rows, columns):
+        """
+        Return a submatrix indexed by indicated rows and columns, as well as
+        the column order of the resulting submatrix.
+        """
+        cdef TernaryMatrix A = TernaryMatrix(len(rows), len(columns))
+        cdef long r, c, lc, lg
+        cdef mp_bitcnt_t *cols
+        # deal with trivial case
+        lc = len(columns)
+        if lc == 0:
+            return A, []
+        # write [c for c in columns if c<lc] as bitset `mask` and
+        # write [c for c in columns if c>=lc] as array `cols`
+        cdef bitset_t mask
+        bitset_init(mask, lc)
+        bitset_clear(mask)
+        cols = <mp_bitcnt_t*>sig_malloc(lc*sizeof(mp_bitcnt_t))
+        g = 0
+        for c in columns:
+            if c<lc:
+                bitset_add(mask, c)
+            else:
+                cols[g] = c
+                g = g+1
+        # write [ c for c in range(lc) if c not in columns] as array `gaps`
+        cdef mp_bitcnt_t *gaps
+        gaps = <mp_bitcnt_t*>sig_malloc(lc*sizeof(mp_bitcnt_t))
+        bitset_complement(mask, mask)
+        g = 0
+        c = bitset_first(mask)
+        while c>=0:
+            gaps[g] = c
+            g = g+1
+            c =  bitset_next(mask, c+1)
+        lg = g
+        bitset_complement(mask, mask)
+        # copy relevant part of this matrix into A
+        cdef bitset_t row0, row1, row0_2, row1_2
+        cdef mp_bitcnt_t p, q
+        for r in xrange(len(rows)):
+            row0 = self._M0[rows[r]]
+            row1 = self._M1[rows[r]]
+            row0_2 = A._M0[r]
+            row1_2 = A._M1[r]
+            bitset_intersection(row0_2, row0, mask) # yes, this is safe
+            bitset_intersection(row1_2, row1, mask) # yes, this is safe
+            for g in xrange(lg):
+                p = cols[g]
+                if bitset_in(row0, p):
+                    q = gaps[g]
+                    bitset_add(row0_2, q)
+                    if bitset_in(row1, p):
+                        bitset_add(row1_2, q)
+        # record order of the columns in list `order`
+        cdef list order = range(lc)
+        g = 0
+        for g in xrange(lg):
+            order[gaps[g]] = cols[g]
+        # free up the two arrays and the bitset
+        sig_free(gaps)
+        sig_free(cols)
+        bitset_free(mask)
+        return A, order
+
     def __richcmp__(left, right, op):
         """
         Compare two matrices.
@@ -1895,8 +2152,8 @@ cdef class QuaternaryMatrix(LeanMatrix):
         cdef long i, j
         self._nrows = m
         self._ncols = n
-        self._M0 = <bitset_t* > sage_malloc(self._nrows * sizeof(bitset_t))
-        self._M1 = <bitset_t* > sage_malloc(self._nrows * sizeof(bitset_t))
+        self._M0 = <bitset_t* > sig_malloc(self._nrows * sizeof(bitset_t))
+        self._M1 = <bitset_t* > sig_malloc(self._nrows * sizeof(bitset_t))
 
         if isinstance(M, QuaternaryMatrix):
             j = max(1, (<QuaternaryMatrix>M)._ncols)
@@ -1934,10 +2191,6 @@ cdef class QuaternaryMatrix(LeanMatrix):
                 for i from 0 <= i < (<QuaternaryMatrix>M)._nrows:
                     bitset_copy(self._M0[i], (<QuaternaryMatrix>M)._M0[i])
                     bitset_copy(self._M1[i], (<QuaternaryMatrix>M)._M1[i])
-                j = max(1, self._ncols)
-                for i from 0 <= i < self._nrows:
-                    bitset_realloc(self._M0[i], j)
-                    bitset_realloc(self._M1[i], j)
             elif isinstance(M, LeanMatrix):
                 self._gf4 = (<LeanMatrix>M).base_ring()
                 self._zero = self._gf4(0)
@@ -1981,15 +2234,15 @@ cdef class QuaternaryMatrix(LeanMatrix):
         for i from 0 <= i < self._nrows:
             bitset_free(self._M0[i])
             bitset_free(self._M1[i])
-        sage_free(self._M0)
-        sage_free(self._M1)
+        sig_free(self._M0)
+        sig_free(self._M1)
         bitset_free(self._s)
         bitset_free(self._t)
         bitset_free(self._u)
 
     def __repr__(self):
-        """
-        Print representation string
+        r"""
+        Return representation string
 
         EXAMPLES::
 
@@ -2071,7 +2324,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
         self.set(r, c, x)
         return 0
 
-    cdef bint is_nonzero(self, long r, long c) except -2:   # Not a Sage matrix operation
+    cdef inline bint is_nonzero(self, long r, long c) except -2:   # Not a Sage matrix operation
         return bitset_in(self._M0[r], c) or bitset_in(self._M1[r], c)
 
     cdef LeanMatrix copy(self):   # Deprecated Sage matrix operation
@@ -2092,11 +2345,11 @@ cdef class QuaternaryMatrix(LeanMatrix):
                 bitset_free(self._M0[i])
                 bitset_free(self._M1[i])
             self._nrows = k
-            self._M0 = <bitset_t* > sage_realloc(self._M0, k * sizeof(bitset_t))
-            self._M1 = <bitset_t* > sage_realloc(self._M1, k * sizeof(bitset_t))
+            self._M0 = <bitset_t* > sig_realloc(self._M0, k * sizeof(bitset_t))
+            self._M1 = <bitset_t* > sig_realloc(self._M1, k * sizeof(bitset_t))
         if k > self._nrows:
-            self._M0 = <bitset_t* > sage_realloc(self._M0, k * sizeof(bitset_t))
-            self._M1 = <bitset_t* > sage_realloc(self._M1, k * sizeof(bitset_t))
+            self._M0 = <bitset_t* > sig_realloc(self._M0, k * sizeof(bitset_t))
+            self._M1 = <bitset_t* > sig_realloc(self._M1, k * sizeof(bitset_t))
             c = max(1, self._ncols)
             for i from self._nrows <= i < k:
                 bitset_init(self._M0[i], c)
@@ -2135,9 +2388,9 @@ cdef class QuaternaryMatrix(LeanMatrix):
         cdef long i, j
         cdef QuaternaryMatrix A = QuaternaryMatrix(self._nrows, self._ncols + self._nrows, ring=self._gf4)
         for i from 0 <= i < self._nrows:
+            bitset_lshift(A._M0[i], self._M0[i], self._nrows)
+            bitset_lshift(A._M1[i], self._M1[i], self._nrows)
             A.set(i, i, 1)
-            for j from 0 <= j < self._ncols:
-                A.set(i, self._nrows + j, self.get(i, j))
         return A
 
     cpdef base_ring(self):
@@ -2185,8 +2438,8 @@ cdef class QuaternaryMatrix(LeanMatrix):
         bitset_symmetric_difference(self._u, self._u, self._s)
         bitset_intersection(self._s, self._M1[i], self._M1[j])
         bitset_symmetric_difference(self._t, self._t, self._s)
-        a = bitset_len(self._t) % 2
-        b = bitset_len(self._u) % 2
+        a = bitset_len(self._t) & 1
+        b = bitset_len(self._u) & 1
         if a:
             if b:
                 return self._x_one
@@ -2308,6 +2561,71 @@ cdef class QuaternaryMatrix(LeanMatrix):
         M.resize(self._nrows)
         return M
 
+    cdef matrix_from_rows_and_columns_reordered(self, rows, columns):
+        """
+        Return a submatrix indexed by indicated rows and columns, as well as
+        the column order of the resulting submatrix.
+        """
+        cdef QuaternaryMatrix A = QuaternaryMatrix(len(rows), len(columns), ring = self._gf4)
+        cdef long r, c, lc, lg
+        cdef mp_bitcnt_t *cols
+        # deal with trivial case
+        lc = len(columns)
+        if lc == 0:
+            return A, []
+        # write [c for c in columns if c<lc] as bitset `mask` and
+        # write [c for c in columns if c>=lc] as array `cols`
+        cdef bitset_t mask
+        bitset_init(mask, lc)
+        bitset_clear(mask)
+        cols = <mp_bitcnt_t*>sig_malloc(lc*sizeof(mp_bitcnt_t))
+        g = 0
+        for c in columns:
+            if c<lc:
+                bitset_add(mask, c)
+            else:
+                cols[g] = c
+                g = g+1
+        # write [ c for c in range(lc) if c not in columns] as array `gaps`
+        cdef mp_bitcnt_t *gaps
+        gaps = <mp_bitcnt_t*>sig_malloc(lc*sizeof(mp_bitcnt_t))
+        bitset_complement(mask, mask)
+        g = 0
+        c = bitset_first(mask)
+        while c>=0:
+            gaps[g] = c
+            g = g+1
+            c =  bitset_next(mask, c+1)
+        lg = g
+        bitset_complement(mask, mask)
+        # copy relevant part of this matrix into A
+        cdef bitset_t row0, row1, row0_2, row1_2
+        cdef mp_bitcnt_t p, q
+        for r in xrange(len(rows)):
+            row0 = self._M0[rows[r]]
+            row1 = self._M1[rows[r]]
+            row0_2 = A._M0[r]
+            row1_2 = A._M1[r]
+            bitset_intersection(row0_2, row0, mask) # yes, this is safe
+            bitset_intersection(row1_2, row1, mask)
+            for g in xrange(lg):
+                p = cols[g]
+                q = gaps[g]
+                if bitset_in(row0, p):
+                    bitset_add(row0_2, q)
+                if bitset_in(row1, p):
+                    bitset_add(row1_2, q)
+        # record order of the columns in list `order`
+        cdef list order = range(lc)
+        g = 0
+        for g in xrange(lg):
+            order[gaps[g]] = cols[g]
+        # free up the two arrays and the bitset
+        sig_free(gaps)
+        sig_free(cols)
+        bitset_free(mask)
+        return A, order
+    
     def __neg__(self):
         """
         Negate the matrix.
@@ -2444,7 +2762,7 @@ cdef class IntegerMatrix(LeanMatrix):
 
     EXAMPLES::
 
-        sage: M = Matroid(graphs.CompleteGraph(4).incidence_matrix(),
+        sage: M = Matroid(graphs.CompleteGraph(4).incidence_matrix(oriented=True),
         ....:             regular=True)  # indirect doctest
         sage: M.is_isomorphic(matroids.Wheel(3))
         True
@@ -2464,7 +2782,7 @@ cdef class IntegerMatrix(LeanMatrix):
         cdef long i, j
         self._nrows = nrows
         self._ncols = ncols
-        self._entries = <int* > sage_malloc(nrows * ncols * sizeof(int))
+        self._entries = <int* > sig_malloc(nrows * ncols * sizeof(int))
         memset(self._entries, 0, nrows * ncols * sizeof(int))
 
     def __init__(self, long nrows, long ncols, M=None, ring=None):
@@ -2507,11 +2825,11 @@ cdef class IntegerMatrix(LeanMatrix):
             2
             sage: A = None
         """
-        sage_free(self._entries)
+        sig_free(self._entries)
 
     def __repr__(self):
         """
-        Print representation.
+        Return representation.
 
         EXAMPLES::
 
@@ -2568,10 +2886,10 @@ cdef class IntegerMatrix(LeanMatrix):
         """
         cdef long l = self._ncols * (self._nrows - k)
         if l > 0:
-            sage_realloc(self._entries, self._ncols * k * sizeof(int))
+            sig_realloc(self._entries, self._ncols * k * sizeof(int))
             memset(self._entries + self._nrows * self._ncols, 0, l * self._ncols * sizeof(int))
         elif l < 0:
-            sage_realloc(self._entries, self._ncols * k * sizeof(int))
+            sig_realloc(self._entries, self._ncols * k * sizeof(int))
         self._nrows = k
         return 0
 
@@ -2673,13 +2991,13 @@ cdef class IntegerMatrix(LeanMatrix):
         Swap rows ``x`` and ``y``.
         """
         cdef int* tmp
-        tmp = <int* > sage_malloc(self._ncols * sizeof(int))
+        tmp = <int* > sig_malloc(self._ncols * sizeof(int))
         if not tmp:
             raise MemoryError
         memcpy(tmp, self._entries + x * self._ncols, self._ncols * sizeof(int))
         memcpy(self._entries + x * self._ncols, self._entries + y * self._ncols, self._ncols * sizeof(int))
         memcpy(self._entries + y * self._ncols, tmp, self._ncols * sizeof(int))
-        sage_free(tmp)
+        sig_free(tmp)
         return 0
 
     cdef int rescale_row_c(self, long x, s, bint col_start) except -1:
@@ -2688,7 +3006,6 @@ cdef class IntegerMatrix(LeanMatrix):
         compatibility, and is ignored.
         """
         cdef long i
-        # print "row-scale: ", x, ", ", s
         for i from 0 <= i < self._ncols:
             self.set(x, i, s * self.get(x, i))
         return 0

@@ -144,7 +144,7 @@ Or you can create a homomorphism from one lattice to any other::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.geometry.toric_lattice_element import (ToricLatticeElement,
                                                  is_ToricLatticeElement)
@@ -156,13 +156,9 @@ from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.free_module import (FreeModule_ambient_pid,
                                       FreeModule_generic_pid,
                                       FreeModule_submodule_pid,
-                                      FreeModule_submodule_with_basis_pid,
-                                      is_FreeModule)
+                                      FreeModule_submodule_with_basis_pid)
 from sage.rings.all import QQ, ZZ
 from sage.structure.factory import UniqueFactory
-
-
-
 
 
 def is_ToricLattice(x):
@@ -426,7 +422,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
         lattice of the appropriate dimension::
 
             sage: N3 = ToricLattice(3, 'N3')
-            sage: Q = N3 / N3.span([ N(1,2,3) ])
+            sage: Q = N3 / N3.span([ N3(1,2,3) ])
             sage: Q.an_element()
             N3[0, 0, 1]
             sage: N2 = ToricLattice(2, 'N2')
@@ -444,7 +440,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             return supercall(list(args[0]), **kwds)
 
         try:
-            coordinates = map(ZZ, args)
+            coordinates = [ZZ(_) for _ in args]
         except TypeError:
             # Prohibit conversion of elements of other lattices
             if (is_ToricLatticeElement(args[0])
@@ -533,7 +529,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
 
         TESTS::
 
-            sage: print ToricLattice(3).construction()
+            sage: print(ToricLattice(3).construction())
             None
         """
         return None
@@ -675,17 +671,64 @@ class ToricLattice_generic(FreeModule_generic_pid):
             Quotient with torsion of 3-d lattice N
             by Sublattice <N(1, 8, 0), N(0, 12, 0)>
 
+        Attempting to quotient one lattice by a sublattice of another
+        will result in a ``ValueError``::
+
+            sage: N = ToricLattice(3)
+            sage: M = ToricLattice(3, name='M')
+            sage: Ms = M.submodule([M(2,4,0), M(9,12,0)])
+            sage: N.quotient(Ms)
+            Traceback (most recent call last):
+            ...
+            ValueError: M(1, 8, 0) can not generate a sublattice of
+            3-d lattice N
+
+        However, if we forget the sublattice structure, then it is
+        possible to quotient by vector spaces or modules constructed
+        from any sublattice::
+
+            sage: N = ToricLattice(3)
+            sage: M = ToricLattice(3, name='M')
+            sage: Ms = M.submodule([M(2,4,0), M(9,12,0)])
+            sage: N.quotient(Ms.vector_space())
+            Quotient with torsion of 3-d lattice N by Sublattice
+            <N(1, 8, 0), N(0, 12, 0)>
+            sage: N.quotient(Ms.sparse_module())
+            Quotient with torsion of 3-d lattice N by Sublattice
+            <N(1, 8, 0), N(0, 12, 0)>
+
         See :class:`ToricLattice_quotient` for more examples.
+
+        TESTS:
+
+        We check that :trac:`19603` is fixed::
+
+            sage: K = Cone([(1,0,0),(0,1,0)])
+            sage: K.lattice()
+            3-d lattice N
+            sage: K.orthogonal_sublattice()
+            Sublattice <M(0, 0, 1)>
+            sage: K.lattice().quotient(K.orthogonal_sublattice())
+            Traceback (most recent call last):
+            ...
+            ValueError: M(0, 0, 1) can not generate a sublattice of
+            3-d lattice N
+
+        We can quotient by the trivial sublattice::
+
+            sage: N = ToricLattice(3)
+            sage: N.quotient(N.zero_submodule())
+            3-d lattice, quotient of 3-d lattice N by Sublattice <>
+
+        We can quotient a lattice by itself::
+
+            sage: N = ToricLattice(3)
+            sage: N.quotient(N)
+            0-d lattice, quotient of 3-d lattice N by Sublattice
+            <N(1, 0, 0), N(0, 1, 0), N(0, 0, 1)>
         """
-        if check:
-            try:
-                sub = self.submodule(sub)
-            except (TypeError, ArithmeticError):
-                raise ArithmeticError("cannot interpret %s as a sublattice "
-                                      "of %s!" % (sub, self))
-        return ToricLattice_quotient(self, sub, check=False,
-                                     positive_point=positive_point,
-                                     positive_dual_point=positive_dual_point)
+        return ToricLattice_quotient(self, sub, check,
+                                     positive_point, positive_dual_point)
 
     def saturation(self):
         r"""
@@ -751,6 +794,10 @@ class ToricLattice_generic(FreeModule_generic_pid):
         A = self.ambient_module()
         if base_ring is ZZ and all(g in A for g in gens):
             return ToricLattice_sublattice(A, gens)
+        for g in gens:
+            if is_ToricLatticeElement(g) and g not in A:
+                raise ValueError("%s can not generate a sublattice of %s"
+                                 % (g, A))
         else:
             return super(ToricLattice_generic, self).span(gens, base_ring,
                                                           *args, **kwds)
@@ -803,6 +850,10 @@ class ToricLattice_generic(FreeModule_generic_pid):
         A = self.ambient_module()
         if base_ring is ZZ and all(g in A for g in basis):
             return ToricLattice_sublattice_with_basis(A, basis)
+        for g in basis:
+            if is_ToricLatticeElement(g) and g not in A:
+                raise ValueError("%s can not generate a sublattice of %s"
+                                 % (g, A))
         else:
             return super(ToricLattice_generic, self).span_of_basis(
                                             basis, base_ring, *args, **kwds)
@@ -1065,7 +1116,7 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
             sage: L = ToricLattice(3, "L")
             sage: L.submodule_with_basis([(3,2,1),(1,2,3)])
             Sublattice <L(3, 2, 1), L(1, 2, 3)>
-            sage: print L.submodule([(3,2,1),(1,2,3)])._repr_()
+            sage: print(L.submodule([(3,2,1),(1,2,3)])._repr_())
             Sublattice <L(1, 2, 3), L(0, 4, 8)>
         """
         s = 'Sublattice '
@@ -1259,7 +1310,7 @@ class ToricLattice_quotient_element(FGP_Element):
             sage: N = ToricLattice(3)
             sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
             sage: Q = N/Ns
-            sage: print Q.gen(0)._latex_()
+            sage: print(Q.gen(0)._latex_())
             \left[0,\,1,\,0\right]_{N}
         """
         return latex(self.lift()).replace("(", "[", 1).replace(")", "]", 1)
@@ -1277,7 +1328,7 @@ class ToricLattice_quotient_element(FGP_Element):
             sage: N = ToricLattice(3)
             sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
             sage: Q = N/Ns
-            sage: print Q.gen(0)._repr_()
+            sage: print(Q.gen(0)._repr_())
             N[0, 1, 0]
         """
         return str(self.lift()).replace("(", "[", 1).replace(")", "]", 1)
@@ -1387,7 +1438,26 @@ class ToricLattice_quotient(FGP_Module_class):
             sage: from sage.geometry.toric_lattice import ToricLattice_quotient
             sage: ToricLattice_quotient(N, N.span([N(1,2,3)]))
             2-d lattice, quotient of 3-d lattice N by Sublattice <N(1, 2, 3)>
+
+        An ``ArithmeticError`` will be raised if ``W`` is not a
+        sublattice of ``V``::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([N.gen(0)])
+            sage: Ns
+            Sublattice <N(1, 0, 0)>
+            sage: Ns.span([N.gen(1)])
+            Sublattice <N(0, 1, 0)>
+            sage: Ns.quotient(Ns.span([N.gen(1)]))
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: W must be a sublattice of V
         """
+        if check:
+            try:
+                W = V.submodule(W)
+            except (TypeError, ArithmeticError):
+                raise ArithmeticError("W must be a sublattice of V")
         super(ToricLattice_quotient, self).__init__(V, W, check)
         if (positive_point, positive_dual_point) == (None, None):
             self._flip_sign_of_generator = False
@@ -1502,11 +1572,11 @@ class ToricLattice_quotient(FGP_Module_class):
             sage: N = ToricLattice(3)
             sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
             sage: Q = N/Ns
-            sage: print Q._latex_()
+            sage: print(Q._latex_())
             N / \left\langle\left(1,\,8,\,0\right)_{N}, \left(0,\,12,\,0\right)_{N}\right\rangle
             sage: Ns = N.submodule([N(1,4,0)])
             sage: Q = N/Ns
-            sage: print Q._latex_()
+            sage: print(Q._latex_())
             N / \left\langle\left(1,\,4,\,0\right)_{N}\right\rangle
         """
         return "%s / %s" % (latex(self.V()), latex(self.W()))
@@ -1524,12 +1594,12 @@ class ToricLattice_quotient(FGP_Module_class):
             sage: N = ToricLattice(3)
             sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
             sage: Q = N/Ns
-            sage: print Q._repr_()
+            sage: print(Q._repr_())
             Quotient with torsion of 3-d lattice N
             by Sublattice <N(1, 8, 0), N(0, 12, 0)>
             sage: Ns = N.submodule([N(1,4,0)])
             sage: Q = N/Ns
-            sage: print Q._repr_()
+            sage: print(Q._repr_())
             2-d lattice, quotient of 3-d lattice N
             by Sublattice <N(1, 4, 0)>
         """

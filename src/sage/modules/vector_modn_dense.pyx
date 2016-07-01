@@ -1,10 +1,8 @@
 """
 Vectors with integer mod n entries, with n small.
 
-AUTHOR:
-    -- William Stein (2007)
+EXAMPLES::
 
-EXAMPLES:
     sage: v = vector(Integers(8),[1,2,3,4,5])
     sage: type(v)
     <type 'sage.modules.vector_modn_dense.Vector_modn_dense'>
@@ -37,20 +35,23 @@ EXAMPLES:
     sage: u - v
     (0, 0, 0, 0, 4)
 
-We make a large zero vector:
+We make a large zero vector::
+
     sage: k = Integers(8)^100000; k
     Ambient free module of rank 100000 over Ring of integers modulo 8
     sage: v = k(0)
     sage: v[:10]
     (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-We multiply a vector by a matrix:
+We multiply a vector by a matrix::
+
     sage: a = (GF(97)^5)(range(5))
     sage: m = matrix(GF(97),5,range(25))
     sage: a*m
     (53, 63, 73, 83, 93)
 
-TESTS:
+TESTS::
+
     sage: v = vector(Integers(8), [1,2,3,4,5])
     sage: loads(dumps(v)) == v
     True
@@ -72,18 +73,28 @@ TESTS:
     <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
     sage: ~v[0]
     1482786336
+
+    sage: w = vector(GF(11), [-1,0,0,0])
+    sage: w.set_immutable()
+    sage: isinstance(hash(w), int)
+    True
+
+AUTHOR:
+
+- William Stein (2007)
 """
 
-###############################################################################
-#   Sage: System for Algebra and Geometry Experimentation
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
-include 'sage/ext/stdsage.pxi'
-from sage.ext.memory cimport check_allocarray
+include "cysignals/memory.pxi"
 
 from sage.rings.finite_rings.stdint cimport INTEGER_MOD_INT64_LIMIT
 
@@ -99,7 +110,7 @@ cdef mod_int ivalue(IntegerMod_abstract x) except -1:
     elif type(x) is IntegerMod_int64:
         return (<IntegerMod_int64>x).ivalue
     else:
-        raise TypeError, "non-fixed size integer"
+        raise TypeError("non-fixed size integer")
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
@@ -162,9 +173,9 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
                 self._entries[i] = 0
 
     def __dealloc__(self):
-        sage_free(self._entries)
+        sig_free(self._entries)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         EXAMPLES::
 
@@ -174,6 +185,9 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             sage: v == 1
             False
             sage: v == v
+            True
+            sage: w = vector(GF(11), [-1,0,0,0])
+            sage: w == w
             True
         """
         cdef Py_ssize_t i
@@ -186,28 +200,6 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             elif l > r:
                 return 1
         return 0
-
-    def __richcmp__(left, right, int op):
-        """
-        TEST::
-
-            sage: w = vector(GF(11), [-1,0,0,0])
-            sage: w == w
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    # __hash__ is not properly inherited if comparison is changed
-    def __hash__(self):
-        """
-        TEST::
-
-            sage: w = vector(GF(11), [-1,0,0,0])
-            sage: w.set_immutable()
-            sage: isinstance(hash(w), int)
-            True
-        """
-        return free_module_element.FreeModuleElement.__hash__(self)
 
     cdef get_unsafe(self, Py_ssize_t i):
         """
@@ -264,7 +256,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     def __reduce__(self):
         return unpickle_v1, (self._parent, self.list(), self._degree, self._p, self._is_mutable)
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         cdef Vector_modn_dense z, r
         r = right
         z = self._new_c()
@@ -274,7 +266,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
         return z
 
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         cdef Vector_modn_dense z, r
         r = right
         z = self._new_c()
@@ -283,7 +275,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             z._entries[i] = (self._p + self._entries[i] - r._entries[i]) % self._p
         return z
 
-    cpdef Element _dot_product_(self, Vector right):
+    cpdef _dot_product_(self, Vector right):
         cdef Py_ssize_t i
         cdef IntegerMod_int n
         cdef Vector_modn_dense r = right
@@ -296,7 +288,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
 
         return n
 
-    cpdef Vector _pairwise_product_(self, Vector right):
+    cpdef _pairwise_product_(self, Vector right):
         """
         EXAMPLES:
            sage: v = vector(Integers(8), [2,3]); w = vector(Integers(8), [2,5])
@@ -313,7 +305,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             z._entries[i] = (self._entries[i] * r._entries[i]) % self._p
         return z
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         cdef Vector_modn_dense z
 
         cdef mod_int a = ivalue(left)
@@ -324,10 +316,10 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             z._entries[i] = (self._entries[i] * a) % self._p
         return z
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         return self._rmul_(right)
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         cdef Vector_modn_dense z
         z = self._new_c()
         cdef Py_ssize_t i

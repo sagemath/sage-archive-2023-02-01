@@ -5,7 +5,7 @@ Notation used in the definitions follows mainly [Mac1995]_.
 
 REFERENCES:
 
-.. [Mac1995] I. G. Macdonald, Symmetric functions and Hall polynomials, second ed.,
+.. [Mac1995] \I. G. Macdonald, Symmetric functions and Hall polynomials, second ed.,
    The Clarendon Press, Oxford University Press, New York, 1995, With contributions
    by A. Zelevinsky, Oxford Science Publications.
 """
@@ -488,7 +488,7 @@ class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
         m = []
         for row_part in Plist:
             z = basis(self(row_part))
-            m.append( map( lambda col_part: z.coefficient(col_part), Plist ) )
+            m.append( [z.coefficient(col_part) for col_part in Plist] )
         return matrix(m)
 
     def _multiply(self, left, right):

@@ -1,4 +1,4 @@
-__doc__="""
+"""
 Root Systems
 ============
 
@@ -35,6 +35,7 @@ Cartan datum
 - :ref:`sage.combinat.root_system.dynkin_diagram`
 - :ref:`sage.combinat.root_system.cartan_matrix`
 - :ref:`sage.combinat.root_system.coxeter_matrix`
+- :ref:`sage.combinat.root_system.coxeter_type`
 
 Root systems
 ------------
@@ -53,10 +54,22 @@ Coxeter groups
 
 - :ref:`sage.combinat.root_system.coxeter_group`
 - :ref:`sage.combinat.root_system.weyl_group`
+- :ref:`sage.combinat.root_system.extended_affine_weyl_group`
+- :ref:`sage.combinat.root_system.fundamental_group`
 
 .. SEEALSO::
 
     The categories :class:`CoxeterGroups` and :class:`WeylGroups`
+
+Finite reflection groups
+------------------------
+
+- :ref:`sage.combinat.root_system.reflection_group_complex`
+- :ref:`sage.combinat.root_system.reflection_group_real`
+
+.. SEEALSO::
+
+    The category :class:`~sage.categories.complex_reflection_groups.ComplexReflectionGroups`
 
 Representation theory
 ---------------------
@@ -97,14 +110,12 @@ Root system data and code for specific Cartan types
 - :ref:`sage.combinat.root_system.type_G_affine`
 - :ref:`sage.combinat.root_system.type_BC_affine`
 """
-
-# currently needed to activate the backward compatibility register_unpickle_override
-import type_A
-import type_B
-import type_C
-import type_D
-import type_E
-import type_F
-import type_G
-
-import all
+# currently needed to activate the backward compatibility
+# register_unpickle_override
+from . import type_A
+from . import type_B
+from . import type_C
+from . import type_D
+from . import type_E
+from . import type_F
+from . import type_G

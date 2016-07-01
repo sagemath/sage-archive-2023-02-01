@@ -106,13 +106,13 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include 'sage/data_structures/bitset.pxi'
 
 from cpython.int cimport PyInt_FromSize_t
-from cpython.slice cimport PySlice_Check, PySlice_GetIndicesEx
+from cpython.slice cimport PySlice_GetIndicesEx
 from sage.libs.gmp.mpn cimport mpn_rshift, mpn_lshift, mpn_copyi, mpn_ior_n, mpn_zero, mpn_copyd, mpn_cmp
 from sage.libs.flint.flint cimport FLINT_BIT_COUNT as BIT_COUNT
 
@@ -949,7 +949,7 @@ cdef class BoundedIntegerSequence:
         """
         cdef BoundedIntegerSequence out
         cdef Py_ssize_t start, stop, step, slicelength
-        if PySlice_Check(index):
+        if isinstance(index, slice):
             PySlice_GetIndicesEx(index, self.data.length, &start, &stop, &step, &slicelength)
             if start==0 and stop==self.data.length and step==1:
                 return self
@@ -1251,7 +1251,7 @@ cdef class BoundedIntegerSequence:
             sage: T = BoundedIntegerSequence(21, [2,7,2,3,0,0,0,0,0,0,0,1])
             sage: (X+S).maximal_overlap(T)
             <2, 7, 2, 3, 0, 0, 0, 0, 0, 0, 0>
-            sage: print (X+S).maximal_overlap(BoundedIntegerSequence(21, [2,7,2,3,0,0,0,0,0,1]))
+            sage: print((X+S).maximal_overlap(BoundedIntegerSequence(21, [2,7,2,3,0,0,0,0,0,1])))
             None
             sage: (X+S).maximal_overlap(BoundedIntegerSequence(21, [0,0]))
             <0, 0>

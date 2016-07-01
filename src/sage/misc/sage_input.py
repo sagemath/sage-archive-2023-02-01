@@ -172,6 +172,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
+from __future__ import print_function
+
 
 def sage_input(x, preparse=True, verify=False, allow_locals=False):
     r"""
@@ -536,10 +538,10 @@ class SageInputBuilder:
             return SIE_literal_stringrep(self, repr(x))
 
         if isinstance(x, tuple):
-            return SIE_tuple(self, map(self, x), False)
+            return SIE_tuple(self, [self(_) for _ in x], False)
 
         if isinstance(x, list):
-            return SIE_tuple(self, map(self, x), True)
+            return SIE_tuple(self, [self(_) for _ in x], True)
 
         if isinstance(x, dict):
             return self.dict(x)
@@ -1431,7 +1433,7 @@ class SageInputExpression(object):
             sage: sie(4)
             {call: {atomic:3}({atomic:4})}
         """
-        args = map(self._sie_builder, args)
+        args = [self._sie_builder(_) for _ in args]
         for k in kwargs:
             kwargs[k] = self._sie_builder(kwargs[k])
         return SIE_call(self._sie_builder, self, args, kwargs)
@@ -1520,7 +1522,7 @@ class SageInputExpression(object):
         """
         return self._sie_binop('*', other)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Compute an expression tree for ``self / other``.
 
@@ -1533,6 +1535,8 @@ class SageInputExpression(object):
             {binop:/ {atomic:3} {atomic:4}}
         """
         return self._sie_binop('/', other)
+
+    __div__ = __truediv__
 
     def __add__(self, other):
         r"""
@@ -3141,7 +3145,7 @@ class SIE_import_name(SageInputExpression):
             sage: sie._sie_prepare(sif)
             sage: sie._sie_format(sif)
             ('make_integer(sad)', 40)
-            sage: print sif._commands
+            sage: print(sif._commands)
             from sage.rings.integer import make_integer
             from sage.foo import happy as sad
         """
@@ -3460,7 +3464,7 @@ def verify_same(a, b):
     if is_Element(a):
         assert(a.parent() == b.parent())
     else:
-        assert(isinstance(a, type(b)))
+        assert(type(a) is type(b))
     if isinstance(a, float):
         # The IEEE floating-point standard recommends that NaN != NaN
         # Sage doesn't do this for RDF or RR, but Python does for floats.

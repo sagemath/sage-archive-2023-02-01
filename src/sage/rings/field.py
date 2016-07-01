@@ -47,7 +47,7 @@ def is_PrimeField(R):
         sage: sage.rings.field.is_PrimeField(GF(7^2,'t'))
         False
     """
-    from finite_rings.constructor import is_FiniteField
+    from finite_rings.finite_field_constructor import is_FiniteField
     from rational_field import is_RationalField
 
     if is_RationalField(R):

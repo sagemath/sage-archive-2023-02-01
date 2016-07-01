@@ -22,12 +22,12 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
+include "sage/ext/cdefs.pxi"
+include "cysignals/memory.pxi"
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
-
-from sage.rings.arith import binomial, gcd
+from sage.arith.all import binomial, gcd
 from sage.rings.rational_field import RationalField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.real_mpfi import RealIntervalField
@@ -91,7 +91,7 @@ def hermite_constant(n):
     .. [CE] Henry Cohn and Noam Elkies, New upper bounds on sphere
        packings I, Ann. Math. 157 (2003), 689--714.
 
-    .. [CS] J.H. Conway and N.J.A. Sloane, Sphere packings, lattices
+    .. [CS] \J.H. Conway and N.J.A. Sloane, Sphere packings, lattices
        and groups, 3rd. ed., Grundlehren der Mathematischen
        Wissenschaften, vol. 290, Springer-Verlag, New York, 1999.
 
@@ -499,13 +499,13 @@ cdef class tr_data:
         self.gamma = hermite_constant(n-1)
 
         # Declare the coefficients of the polynomials (and max such).
-        self.a = <int*>sage_malloc(sizeof(int)*(n+1))
+        self.a = <int*>sig_malloc(sizeof(int)*(n+1))
         if self.a == NULL: raise MemoryError
-        self.amax = <int*>sage_malloc(sizeof(int)*(n+1))
+        self.amax = <int*>sig_malloc(sizeof(int)*(n+1))
         if self.amax == NULL: raise MemoryError
         # df is memory set aside for the derivative, as
         # used in Newton iteration above.
-        self.df = <int*>sage_malloc(sizeof(int)*(n+1))
+        self.df = <int*>sig_malloc(sizeof(int)*(n+1))
         if self.df == NULL: raise MemoryError
 
         for i from 0 <= i < n+1:
@@ -515,10 +515,10 @@ cdef class tr_data:
 
         # beta is an array of arrays (of length n) which list the
         # roots of the derivatives.
-        self.beta = <double*>sage_malloc(sizeof(double)*n*(n+1))
+        self.beta = <double*>sig_malloc(sizeof(double)*n*(n+1))
         if self.beta == NULL: raise MemoryError
         # gnk is the collection of (normalized) derivatives.
-        self.gnk = <int*>sage_malloc(sizeof(int)*(n+1)*n)
+        self.gnk = <int*>sig_malloc(sizeof(int)*(n+1)*n)
         if self.gnk == NULL: raise MemoryError
 
         for i from 0 <= i < (n+1)*n:
@@ -542,7 +542,7 @@ cdef class tr_data:
             # currently unknown; e.g., if k == -1, then we can iterate
             # over polynomials, and if k == n-1, then we have finished iterating.
             if a[len(a)-1] != 1:
-                raise ValueError, "a[len(a)-1](=%s) must be 1 so polynomial is monic"%a[len(a)-1]
+                raise ValueError("a[len(a)-1](=%s) must be 1 so polynomial is monic" % a[len(a)-1])
 
             k = n-len(a)
             self.k = k
@@ -577,17 +577,17 @@ cdef class tr_data:
                 self.gnk[(k+1)*n+i] = gnk[i]
         else:
             # Bad input!
-            raise ValueError, "a has length %s > n+1"%len(a)
+            raise ValueError("a has length %s > n+1" % len(a))
 
     def __dealloc__(self):
         r"""
         Destructor.
         """
-        sage_free(self.df)
-        sage_free(self.a)
-        sage_free(self.amax)
-        sage_free(self.beta)
-        sage_free(self.gnk)
+        sig_free(self.df)
+        sig_free(self.a)
+        sig_free(self.amax)
+        sig_free(self.beta)
+        sig_free(self.gnk)
 
     def increment(self, verbose=False, haltk=0, phc=False):
         r"""
@@ -629,9 +629,9 @@ cdef class tr_data:
         cdef int *f_out
         cdef int i
 
-        f_out = <int *>sage_malloc(sizeof(int) * (self.n + 1))
+        f_out = <int *>sig_malloc(sizeof(int) * (self.n + 1))
         if f_out == NULL:
-            raise MemoryError, "unable to allocate coefficient list"
+            raise MemoryError("unable to allocate coefficient list")
         for i from 0 <= i < self.n:
             f_out[i] = 0
         f_out[self.n] = 1
@@ -641,7 +641,7 @@ cdef class tr_data:
         g = [0] * (1 + self.n)
         for i from 0 <= i <= self.n:
             g[i] = f_out[i]
-        sage_free(f_out)
+        sig_free(f_out)
 
         return g
 
@@ -697,13 +697,13 @@ cdef class tr_data:
                 return
             else:
                 if verbose:
-                    print " ",
+                    print(" ", end="")
                     for i from 0 <= i < np1:
-                        print self.a[i],
-                    print ">",
+                        print(self.a[i], end="")
+                    print(">", end="")
                     for i from 0 <= i < np1:
-                        print self.amax[i],
-                    print ""
+                        print(self.amax[i], end="")
+                    print("")
 
                 # Already reached maximum, so "carry the 1" to find the next value of k.
                 k += 1
@@ -733,10 +733,10 @@ cdef class tr_data:
             # Recall k == -1 means all coefficients are good to go.
             while k >= 0 and (not haltk or k >= haltk):
                 if verbose:
-                    print k, ":",
+                    print(k, ":", end="")
                     for i from 0 <= i < np1:
-                        print self.a[i],
-                    print ""
+                        print(self.a[i], end="")
+                    print("")
 
                 if k == n-2:
                     # We only know the value of a[n-1], the trace.  Need to apply
@@ -751,13 +751,13 @@ cdef class tr_data:
                     # If maximum is already greater than the minimum, break!
                     if self.a[k] > self.amax[k]:
                         if verbose:
-                            print " ",
+                            print(" ", end="")
                             for i from 0 <= i < np1:
-                                print self.a[i],
-                            print ">",
+                                print(self.a[i], end="")
+                            print(">", end="")
                             for i from 0 <= i < np1:
-                                print self.amax[i],
-                            print ""
+                                print(self.amax[i], end="")
+                            print("")
                         maxoutflag = 1
                         break
 
@@ -776,7 +776,7 @@ cdef class tr_data:
                     self.gnk[k*n+2] = n*(n-1)/2
 
                     if verbose:
-                        print " ", '%.2f'%self.beta[k*np1+1]
+                        print(" ", '%.2f' % self.beta[k * np1 + 1])
                 else:
                     # Compute the roots of the derivative.
                     self.gnk[(k+1)*n+0] += self.a[k+1]
@@ -784,10 +784,10 @@ cdef class tr_data:
                                         &self.beta[(k+1)*np1],
                                         eps_global, &self.beta[k*np1+1])
                     if verbose:
-                        print " ",
+                        print(" ", end="")
                         for i from 0 <= i < n-k-1:
-                             print '%.2f'%self.beta[k*np1+1+i],
-                        print ""
+                             print('%.2f' % self.beta[k * np1 + 1 + i], end="")
+                        print("")
 
                     for i from 0 <= i < n-k-1:
                         if fabs(self.beta[k*np1+i]
@@ -799,7 +799,7 @@ cdef class tr_data:
                             df = ZZx([i*self.gnk[(k+1)*n+i] for i in range(1,n-(k+1)+1)])
                             if gcd(f,df) != 1:
                                 if verbose:
-                                    print "  gnk has multiple factor!"
+                                    print("  gnk has multiple factor!")
                                 maxoutflag = 1
                                 break
                     if maxoutflag:
@@ -826,9 +826,10 @@ cdef class tr_data:
                             break
 
                     if verbose:
-                        print "  [LM bounds:", '%.2f'%self.b_lower, '%.2f'%self.b_upper,
+                        print("  [LM bounds:", '%.2f' % self.b_lower,
+                              '%.2f' % self.b_upper, end="")
                         tb = sqrt((1.*self.a[n-1])**2 - 2.*self.a[n-2])
-                        print "vs. +/-", '%.2f'%tb, ']'
+                        print("vs. +/-", '%.2f' % tb, ']')
 
                     self.beta[k*np1+0] = self.b_lower
                     self.beta[k*np1+n-k] = self.b_upper
@@ -885,13 +886,13 @@ cdef class tr_data:
 
                     if self.a[k] > self.amax[k]:
                         if verbose:
-                            print " ",
+                            print(" ", end="")
                             for i from 0 <= i < np1:
-                                print self.a[i],
-                            print ">",
+                                print(self.a[i], end="")
+                            print(">", end="")
                             for i from 0 <= i < np1:
-                                print self.amax[i],
-                            print ""
+                                print(self.amax[i], end="")
+                            print("")
                         maxoutflag = 1
                         break
 
@@ -931,8 +932,8 @@ cdef class tr_data:
             gnk =  [...]
 
         """
-        print "k =", self.k
-        print "a =", [self.a[i] for i in range(self.n+1)]
-        print "amax =", [self.amax[i] for i in range(self.n+1)]
-        print "beta = ", [self.beta[i] for i in range(self.n*(self.n+1))]
-        print "gnk = ", [self.gnk[i] for i in range(self.n*(self.n+1))]
+        print("k =", self.k)
+        print("a =", [self.a[i] for i in range(self.n + 1)])
+        print("amax =", [self.amax[i] for i in range(self.n + 1)])
+        print("beta = ", [self.beta[i] for i in range(self.n * (self.n + 1))])
+        print("gnk = ", [self.gnk[i] for i in range(self.n * (self.n + 1))])

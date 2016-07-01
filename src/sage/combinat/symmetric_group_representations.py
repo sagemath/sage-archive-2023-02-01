@@ -27,6 +27,8 @@ Representations of the Symmetric Group
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.symbolic.ring import SR
 from sage.functions.all import sqrt
 from sage.combinat.combinat import CombinatorialClass
@@ -285,6 +287,17 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
         if cache_matrices is False:
             self.representation_matrix = self._representation_matrix_uncached
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: spc1 = SymmetricGroupRepresentation([3], cache_matrices=True)
+            sage: hash(spc1)
+            -1137003014   # 32-bit
+            3430541866490 # 64-bit
+        """
+        return hash(self._ring) ^ hash(self._partition)
+
     def __eq__(self, other):
         r"""
         Test for equality.
@@ -320,22 +333,6 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
         if not isinstance(other, type(other)):
             return False
         return (self._ring,self._partition)==(other._ring,other._partition)
-#        # both self and other must have caching enabled
-#        if 'representation_matrix' in self.__dict__:
-#            if 'representation_matrix' not in other.__dict__:
-#                return False
-#            else:
-#                for key in self.__dict__:
-#                    if key != 'representation_matrix':
-#                        if self.__dict__[key] != other.__dict__[key]:
-#                            return False
-#                else:
-#                    return True
-#        else:
-#            if 'representation_matrix' in other.__dict__:
-#                return False
-#            else:
-#                return self.__dict__.__eq__(other.__dict__)
 
     def __call__(self, permutation):
         r"""
@@ -384,7 +381,7 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
         for i in range(1,n):
             si = Permutation(range(1,i) + [i+1,i] + range(i+2,n+1))
             transpositions.append(si)
-        repn_matrices = map(self.representation_matrix, transpositions)
+        repn_matrices = [self.representation_matrix(_) for _ in transpositions]
         for (i,si) in enumerate(repn_matrices):
             for (j,sj) in enumerate(repn_matrices):
                 if i == j:
@@ -489,7 +486,7 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
         EXAMPLES::
 
             sage: orth = SymmetricGroupRepresentations(3, "orthogonal")
-            sage: for x in orth: print x
+            sage: for x in orth: print(x)
             Orthogonal representation of the symmetric group corresponding to [3]
             Orthogonal representation of the symmetric group corresponding to [2, 1]
             Orthogonal representation of the symmetric group corresponding to [1, 1, 1]
@@ -551,7 +548,7 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
         for (u,w,(i,beta)) in self._yang_baxter_graph._edges_in_bfs():
             # TODO: improve the following
             si = PermutationGroupElement((i,i+1))
-            tableau_dict[w] = Tableau([map(si, row) for row in tableau_dict[u]])
+            tableau_dict[w] = Tableau([[si(_) for _ in row] for row in tableau_dict[u]])
         return tableau_dict
 
     @lazy_attribute

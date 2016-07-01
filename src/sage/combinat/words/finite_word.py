@@ -65,7 +65,7 @@ Finite words in a specific combinatorial class::
 
     sage: W = Words("ab")
     sage: W
-    Words over {'a', 'b'}
+    Finite and infinite words over {'a', 'b'}
     sage: W("abbabaab")
     word: abbabaab
     sage: W(["a","b","b","a","b","a","a","b"])
@@ -103,9 +103,9 @@ of them::
 
 ::
 
-    sage: print w.lyndon_factorization()
+    sage: print(w.lyndon_factorization())
     (ab, aabbb, a)
-    sage: print w.crochemore_factorization()
+    sage: print(w.crochemore_factorization())
     (a, b, a, ab, bb, a)
 
 ::
@@ -125,13 +125,13 @@ As matrix and many other sage objects, words have a parent::
 
     sage: u = Word('xyxxyxyyy')
     sage: u.parent()
-    Words
+    Finite words over Set of Python objects of type 'object'
 
 ::
 
     sage: v = Word('xyxxyxyyy', alphabet='xy')
     sage: v.parent()
-    Words over {'x', 'y'}
+    Finite words over {'x', 'y'}
 
 ========================
 Factors and Rauzy Graphs
@@ -191,6 +191,9 @@ Left-special and bispecial factors::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
+from collections import defaultdict
 from itertools import islice, izip, cycle
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.words import Words
@@ -229,19 +232,19 @@ class FiniteWord_class(Word_class):
 
         With the print statement::
 
-            sage: print w
+            sage: print(w)
             01234
 
         No truncation is done for finite words::
 
             sage: w = Word([i % 5 for i in range(60)])
-            sage: print w
+            sage: print(w)
             012340123401234012340123401234012340123401234012340123401234
         """
         global word_options
         if word_options['display'] == 'string':
             ls = word_options['letter_separator']
-            letters = map(str, self)
+            letters = [str(_) for _ in self]
             if all(len(a)==1 for a in letters):
                 return ''.join(letters)
             else:
@@ -371,6 +374,17 @@ class FiniteWord_class(Word_class):
             <class 'sage.combinat.words.word.FiniteWord_str'>
             sage: type(Word([1,2,3]) * Word(''))
             <class 'sage.combinat.words.word.FiniteWord_list'>
+
+        Concatenation of finite words with infinite words works as expected::
+
+            sage: from itertools import repeat
+            sage: W = Words('ab')
+            sage: w1 = W('aba')
+            sage: w2 = W(repeat('b'), length='infinite')
+            sage: w1*w2
+            word: ababbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb...
+            sage: _.parent()
+            Infinite words over {'a', 'b'}
         """
         if self.is_empty():
             return other
@@ -378,7 +392,12 @@ class FiniteWord_class(Word_class):
             return self
         f = CallableFromListOfWords([self,other])
         length = self.length() + other.length()
-        return self._parent(f, length=length, datatype='callable', caching=True)
+        parent = self._parent
+        if length == Infinity:
+            parent = parent.shift()
+            return parent(f, datatype='callable', caching=True)
+        else:
+            return parent(f, length=length, datatype='callable', caching=True)
 
     __mul__ = concatenate
 
@@ -460,7 +479,7 @@ class FiniteWord_class(Word_class):
         # infinite power of a non-empty word
         fcn = lambda n: self[n % self.length()]
         if exp is Infinity:
-            return self._parent(fcn, length=Infinity)
+            return self._parent.shift()(fcn)
 
         #If exp*|self| is not an integer
         length = exp* self.length()
@@ -521,19 +540,19 @@ class FiniteWord_class(Word_class):
             sage: v = w.schuetzenberger_involution(); v
             word: 7849631
             sage: v.parent()
-            Words
+            Finite words over Set of Python objects of type 'object'
 
             sage: w = Word([1,2,3],alphabet=[1,2,3,4,5])
             sage: v = w.schuetzenberger_involution();v
             word: 345
             sage: v.parent()
-            Words over {1, 2, 3, 4, 5}
+            Finite words over {1, 2, 3, 4, 5}
 
             sage: w = Word([1,2,3])
             sage: v = w.schuetzenberger_involution(n=5);v
             word: 345
             sage: v.parent()
-            Words
+            Finite words over Set of Python objects of type 'object'
 
             sage: w = Word([11,32,69,2,53,1,2,3,18,41])
             sage: w.schuetzenberger_involution()
@@ -553,7 +572,7 @@ class FiniteWord_class(Word_class):
         w = list(r)
         parent = self.parent()
         if n is None:
-            alphsize = parent.size_of_alphabet()
+            alphsize = parent.alphabet().cardinality()
             if not alphsize == +Infinity:
                 n = max(parent.alphabet())
             elif r.length()>0:
@@ -561,6 +580,112 @@ class FiniteWord_class(Word_class):
         for k in range(r.length()):
             w[k] = n+1 - w[k]
         return parent(w, check=False)
+
+    def foata_bijection(self):
+        r"""
+        Return word ``self`` under the Foata bijection.
+
+        The Foata bijection `\phi` is a bijection on the set of words
+        of given content (by a slight generalization of Section 2 in [FoSc78]_).
+        It can be defined by induction on the size of the word: Given a word
+        `w_1 w_2 \cdots w_n`, start with `\phi(w_1) = w_1`. At the `i`-th step, if
+        `\phi(w_1 w_2 \cdots w_i) = v_1 v_2 \cdots v_i`, we define
+        `\phi(w_1 w_2 \cdots w_i w_{i+1})` by placing `w_{i+1}` on the end of
+        the word `v_1 v_2 \cdots v_i` and breaking the word up into blocks
+        as follows. If `w_{i+1} \ge v_i`, place a vertical line to the right
+        of each `v_k` for which `w_{i+1} \ge v_k`. Otherwise, if
+        `w_{i+1} < v_i`, place a vertical line to the right of each `v_k`
+        for which `w_{i+1} < v_k`. In either case, place a vertical line at
+        the start of the word as well. Now, within each block between
+        vertical lines, cyclically shift the entries one place to the
+        right.
+
+        For instance, to compute `\phi([4,1,5,4,2,2,3])`, the sequence of
+        words is
+
+        * `4`,
+        * `|4|1 \to 41`,
+        * `|4|1|5 \to 415`,
+        * `|415|4 \to 5414`,
+        * `|5|4|14|2 \to 54412`,
+        * `|5441|2|2 \to 154422`,
+        * `|1|5442|2|3 \to 1254423`.
+
+        So `\phi([4,1,5,4,2,2,3]) = [1,2,5,4,4,2,3]`.
+
+        .. SEEALSO::
+
+            :meth:`Foata bijection on Permutations <sage.combinat.permutation.Permutation.foata_bijection()>`.
+
+        EXAMPLES::
+
+            sage: w = Word([2,2,2,1,1,1])
+            sage: w.foata_bijection()
+            word: 112221
+            sage: w = Word([2,2,1,2,2,2,1,1,2,1])
+            sage: w.foata_bijection()
+            word: 2122212211
+            sage: w = Word([4,1,5,4,2,2,3])
+            sage: w.foata_bijection()
+            word: 1254423
+
+        TESTS::
+
+            sage: w = Word('121314')
+            sage: w.foata_bijection()
+            word: 231114
+            sage: w = Word('1133a1')
+            sage: w.foata_bijection()
+            word: 3113a1
+        """
+        s = self.standard_permutation()
+        ordered_alphabet = sorted(self.letters(), cmp=self.parent().cmp_letters)
+        eval_dict = self.evaluation_dict()
+        weight = [eval_dict[a] for a in ordered_alphabet]
+        return (s.foata_bijection()).destandardize(weight, ordered_alphabet=ordered_alphabet)
+
+    def major_index(self, final_descent=False):
+        r"""
+        Return the major index of ``self``.
+
+        The major index of a word `w` is the sum of the descents of `w`.
+
+        With the ``final_descent`` option, the last position of a
+        non-empty word is also considered as a descent.
+
+        .. SEEALSO::
+
+            :meth:`major index on Permutations <sage.combinat.permutation.Permutation.major_index()>`.
+
+        EXAMPLES::
+
+            sage: w = Word([2,1,3,3,2])
+            sage: w.major_index()
+            5
+            sage: w = Word([2,1,3,3,2])
+            sage: w.major_index(final_descent=True)
+            10
+        """
+        return (self.standard_permutation()).major_index(final_descent=final_descent)
+
+    def number_of_inversions(self):
+        r"""
+        Return the number of inversions in ``self``.
+
+        An inversion of a word `w = w_1 \ldots w_n` is a pair of indices `(i, j)`
+        with `i < j` and `w_i > w_j`.
+
+        .. SEEALSO::
+
+            :meth:`number of inversions on Permutations <sage.combinat.permutation.Permutation.number_of_inversions()>`.
+
+        EXAMPLES::
+
+            sage: w = Word([2,1,3,3,2])
+            sage: w.number_of_inversions()
+            3
+        """
+        return (self.standard_permutation()).number_of_inversions()
 
     def is_empty(self):
         r"""
@@ -602,6 +727,7 @@ class FiniteWord_class(Word_class):
             sage: w = Word(iter("cacao"), length="finite")
             sage: w.to_integer_word()
             word: 10102
+
             sage: w = Words([3,2,1])([2,3,3,1])
             sage: w.to_integer_word()
             word: 1002
@@ -953,7 +1079,7 @@ class FiniteWord_class(Word_class):
             sage: w = Word([1,2,1,2,3])
             sage: w.number_of_factors()
             13
-            sage: map(w.number_of_factors, range(6))
+            sage: [w.number_of_factors(i) for i in range(6)]
             [1, 3, 3, 3, 2, 1]
 
         ::
@@ -988,7 +1114,7 @@ class FiniteWord_class(Word_class):
             sage: blueberry = Word("blueberry")
             sage: blueberry.number_of_factors()
             43
-            sage: map(blueberry.number_of_factors, range(10))
+            sage: [blueberry.number_of_factors(i) for i in range(10)]
             [1, 6, 8, 7, 6, 5, 4, 3, 2, 1]
         """
         if algorithm == 'suffix tree':
@@ -1185,7 +1311,8 @@ class FiniteWord_class(Word_class):
 
             sage: w = words.ThueMorseWord()[:100]
             sage: topo = w.topological_entropy
-            sage: for i in range(0, 41, 5): print i, n(topo(i), digits=5)
+            sage: for i in range(0, 41, 5):
+            ....:     print("{} {}".format(i, n(topo(i), digits=5)))
             0 1.0000
             5 0.71699
             10 0.48074
@@ -1218,7 +1345,7 @@ class FiniteWord_class(Word_class):
            Verlag. V. Berthe, S. Ferenczi, C. Mauduit and A. Siegel, Eds.
            (2002).
         """
-        d = self.parent().size_of_alphabet()
+        d = self.parent().alphabet().cardinality()
         if d is Infinity:
             raise TypeError("The word must be defined over a finite alphabet")
         if n == 0:
@@ -1491,7 +1618,8 @@ class FiniteWord_class(Word_class):
 
             sage: alpha, beta, x = 0.54, 0.294, 0.1415
             sage: w = words.CodingOfRotationWord(alpha, beta, x)[:40]
-            sage: for i in range(5): print i, sorted(w.left_special_factors(i))
+            sage: for i in range(5):
+            ....:     print("{} {}".format(i, sorted(w.left_special_factors(i))))
             0 [word: ]
             1 [word: 0]
             2 [word: 00, word: 01]
@@ -1555,7 +1683,8 @@ class FiniteWord_class(Word_class):
         EXAMPLES::
 
             sage: w = words.ThueMorseWord()[:30]
-            sage: for i in range(5): print i, sorted(w.right_special_factors(i))
+            sage: for i in range(5):
+            ....:     print("{} {}".format(i, sorted(w.right_special_factors(i))))
             0 [word: ]
             1 [word: 0, word: 1]
             2 [word: 01, word: 10]
@@ -1580,8 +1709,8 @@ class FiniteWord_class(Word_class):
 
             sage: w = words.ThueMorseWord()[:30]
             sage: for i in range(10):
-            ...     for u in sorted(w.bispecial_factors_iterator(i)):
-            ...         print i,u
+            ....:     for u in sorted(w.bispecial_factors_iterator(i)):
+            ....:         print("{} {}".format(i,u))
             0
             1 0
             1 1
@@ -1649,7 +1778,8 @@ class FiniteWord_class(Word_class):
         ::
 
             sage: w = words.ThueMorseWord()[:30]
-            sage: for i in range(10): print i, sorted(w.bispecial_factors(i))
+            sage: for i in range(10):
+            ....:     print("{} {}".format(i, sorted(w.bispecial_factors(i))))
             0 [word: ]
             1 [word: 0, word: 1]
             2 [word: 01, word: 10]
@@ -2839,21 +2969,21 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        .. [BBGL08] A. Blondin Massé, S. Brlek, A. Garon, and S. Labbé,
+        .. [BBGL08] \A. Blondin Massé, S. Brlek, A. Garon, and S. Labbé,
            Combinatorial properties of f -palindromes in the Thue-Morse
            sequence. Pure Math. Appl., 19(2-3):39--52, 2008.
 
-        .. [BHNR04] S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the
+        .. [BHNR04] \S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the
            Palindromic Complexity of Infinite Words, in J. Berstel, J.
            Karhumaki, D. Perrin, Eds, Combinatorics on Words with Applications,
            International Journal of Foundation of Computer Science, Vol. 15,
            No. 2 (2004) 293--306.
 
-        .. [DJP01] X. Droubay, J. Justin, G. Pirillo, Episturmian words and some
+        .. [DJP01] \X. Droubay, J. Justin, G. Pirillo, Episturmian words and some
            constructions of de Luca and Rauzy, Theoret. Comput. Sci. 255,
            (2001), no. 1--2, 539--553.
 
-        .. [Sta11] Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
+        .. [Sta11] \Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
            Sci. 412 (2011) 1111--1121
         """
         g_w = 0
@@ -3218,8 +3348,8 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1] F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
-            Ser. A 13:90–99, 1972.
+        .. [Dejean] \F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
+           Ser. A 13:90--99, 1972.
         """
         return max(map(FiniteWord_class.order, self.factor_iterator()))
 
@@ -3497,16 +3627,17 @@ class FiniteWord_class(Word_class):
 
     def is_lyndon(self):
         r"""
-        Returns True if self is a Lyndon word, and False otherwise.
+        Return ``True`` if ``self`` is a Lyndon word, and ``False``
+        otherwise.
 
         A *Lyndon word* is a non-empty word that is lexicographically
-        smaller than all of its proper suffixes for the given order
-        on its alphabet. That is, `w` is a Lyndon word if `w` is non-empty
+        smaller than each of its proper suffixes (for the given order
+        on its alphabet). That is, `w` is a Lyndon word if `w` is non-empty
         and for each factorization `w = uv` (with `u`, `v` both non-empty),
         we have `w < v`.
 
         Equivalently, `w` is a Lyndon word iff `w` is a non-empty word that is
-        lexicographically smaller than all of its proper conjugates for the
+        lexicographically smaller than each of its proper conjugates for the
         given order on its alphabet.
 
         See for instance [1].
@@ -3516,7 +3647,7 @@ class FiniteWord_class(Word_class):
             sage: Word('123132133').is_lyndon()
             True
             sage: Word().is_lyndon()
-            True
+            False
             sage: Word('122112').is_lyndon()
             False
 
@@ -3527,9 +3658,9 @@ class FiniteWord_class(Word_class):
         Lyndon words, and compare with the ``LyndonWords`` generator::
 
             sage: for n in range(1,10):
-            ...       lw1 = [w for w in Words([1,2,3], n) if w.is_lyndon()]
-            ...       lw2 = LyndonWords(3,n)
-            ...       if set(lw1) != set(lw2): print False
+            ....:     lw1 = [w for w in Words([1,2,3], n) if w.is_lyndon()]
+            ....:     lw2 = LyndonWords(3,n)
+            ....:     if set(lw1) != set(lw2): print(False)
 
         Filter all words of length 8 on the alphabet [c,a,b] for Lyndon
         words, and compare with the :class:`LyndonWords` generator after
@@ -3548,7 +3679,7 @@ class FiniteWord_class(Word_class):
 
         """
         if self.is_empty():
-            return True
+            return False
         cmp = self.parent().cmp_letters
         n = self.length()
         i, j = 0, 1
@@ -3570,7 +3701,7 @@ class FiniteWord_class(Word_class):
 
     def lyndon_factorization(self):
         r"""
-        Returns the Lyndon factorization of self.
+        Return the Lyndon factorization of ``self``.
 
         The *Lyndon factorization* of a finite word `w` is the unique
         factorization of `w` as a non-increasing product of Lyndon words,
@@ -3579,7 +3710,7 @@ class FiniteWord_class(Word_class):
 
         OUTPUT:
 
-            list -- the list of factors obtained
+        the list `[l_1, \ldots, l_n]` of factors obtained
 
         EXAMPLES::
 
@@ -3676,7 +3807,7 @@ class FiniteWord_class(Word_class):
         each letter in the ordered alphabet is given by weights, which
         defaults to [1, 2, 3, ...].
 
-        INPUTS:
+        INPUT:
 
         -  ``weights`` - a list or tuple, or a dictionary keyed by the
            letters occurring in self.
@@ -3960,7 +4091,7 @@ class FiniteWord_class(Word_class):
 
         Check that :trac:`12804` is fixed::
 
-            sage: w = Word(iter("ababab"))
+            sage: w = Word(iter("ababab"), length="finite")
             sage: w.find("ab")
             0
             sage: w.find("ab", start=1)
@@ -4041,7 +4172,7 @@ class FiniteWord_class(Word_class):
 
         Check that :trac:`12804` is fixed::
 
-            sage: w = Word(iter("abab"))
+            sage: w = Word(iter("abab"), length="finite")
             sage: w.rfind("ab")
             2
             sage: w.rfind("ab", end=3)
@@ -4139,39 +4270,79 @@ class FiniteWord_class(Word_class):
         r"""
         Returns the number of times self appears in other as a subword.
 
+        This corresponds to the notion of `binomial coefficient` of two
+        finite words whose properties are presented in the chapter of
+        Lothaire's book written by Sakarovitch and Simon [1].
+
+        INPUT:
+
+        - ``other`` -- finite word
+
         EXAMPLES::
 
-            sage: Word().nb_subword_occurrences_in(Word('123'))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: undefined value
-            sage: Word('123').nb_subword_occurrences_in(Word('1133432311132311112'))
+            sage: tm = words.ThueMorseWord()
+
+            sage: u = Word([0,1,0,1])
+            sage: u.nb_subword_occurrences_in(tm[:1000])
+            2604124996
+
+            sage: u = Word([0,1,0,1,1,0])
+            sage: u.nb_subword_occurrences_in(tm[:100])
+            20370432
+
+        .. NOTE::
+
+            This code, based on [2], actually compute the number of
+            occurrences of all prefixes of ``self`` as subwords in all
+            prefixes of ``other``.  In particular, its complexity is
+            bounded by ``len(self) * len(other)``.
+
+        TESTS::
+
+            sage: Word('').nb_subword_occurrences_in(Word(''))
+            1
+            sage: parent(_)
+            Integer Ring
+            sage: v,u = Word(), Word('123')
+            sage: v.nb_subword_occurrences_in(u)
+            1
+            sage: v,u = Word('123'), Word('1133432311132311112')
+            sage: v.nb_subword_occurrences_in(u)
             11
-            sage: Word('4321').nb_subword_occurrences_in(Word('1132231112233212342231112'))
+            sage: v,u = Word('4321'), Word('1132231112233212342231112')
+            sage: v.nb_subword_occurrences_in(u)
             0
-            sage: Word('3').nb_subword_occurrences_in(Word('122332112321213'))
+            sage: v,u = Word('3'), Word('122332112321213')
+            sage: v.nb_subword_occurrences_in(u)
             4
+            sage: v,u = Word([]), words.ThueMorseWord()[:1000]
+            sage: v.nb_subword_occurrences_in(u)
+            1
+
+        REFERENCES:
+
+        - [1] M. Lothaire, Combinatorics on Words, Cambridge University
+          Press, (1997).
+        - [2] Mateescu, A., Salomaa, A., Salomaa, K. and Yu, S., A
+          sharpening of the Parikh mapping. Theoret. Informatics Appl. 35
+          (2001) 551-564.
         """
-        ls = self.length()
-        if ls == 0:
-            raise NotImplementedError("undefined value")
-        elif ls == 1:
-            return self.nb_factor_occurrences_in(other)
-        elif len(other) < ls:
-            return 0
-        symb = self[:1]
-        suffword = other
-        suffsm = self[1:]
-        n = 0
-        cpt = 0
-        i = symb.first_pos_in(suffword)
-        while i is not None:
-            suffword = suffword[i+1:]
-            m = suffsm.nb_subword_occurrences_in(suffword)
-            if m == 0: break
-            n += m
-            i = symb.first_pos_in(suffword)
-        return n
+        # record the position of letters in self
+        pos = defaultdict(list)
+        for i,a in enumerate(self):
+            pos[a].append(i)
+        for a in pos:
+            pos[a].reverse()
+
+        # compute the occurrences of all prefixes of self as subwords in other
+        occ = [ZZ.zero()] * (len(self)+1)
+        occ[0] = ZZ.one()
+        for a in other:
+            for i in pos[a]:
+                occ[i+1] += occ[i]
+
+        # return only the number of occurrences of self
+        return occ[-1]
 
     def _return_words_list(self, fact):
         r"""
@@ -4281,8 +4452,7 @@ class FiniteWord_class(Word_class):
         """
         idx = 0
         tab = {}
-        ret = map(lambda w: tab.setdefault(w, len(tab)) + 1, \
-                                self._return_words_list(fact))
+        ret = [tab.setdefault(w, len(tab)) + 1 for w in self._return_words_list(fact)]
         from sage.combinat.words.word import Word
         return Word(ret)
 
@@ -4457,10 +4627,7 @@ class FiniteWord_class(Word_class):
             sage: f['3'] == 1
             True
         """
-        d = {}
-        for a in self:
-            d[a] = d.get(a,0) + 1
-        return d
+        return evaluation_dict(self)
 
     def evaluation_sparse(self):
         r"""
@@ -4569,7 +4736,7 @@ class FiniteWord_class(Word_class):
             sage: w2 = m(w); w2
             word: 01234567876543210
             sage: w2.parent()
-            Words over {0, 1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19}
+            Finite words over {0, 1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19}
             sage: w2.is_palindrome()
             True
 
@@ -4666,7 +4833,7 @@ class FiniteWord_class(Word_class):
 
         from sage.sets.disjoint_set import DisjointSet_class
         if p is None:
-            if self.parent().size_of_alphabet() is Infinity:
+            if self.parent().alphabet().cardinality() is Infinity:
                 raise ValueError("The alphabet of the parent must be finite")
             from sage.sets.disjoint_set import DisjointSet
             p = DisjointSet(self.parent().alphabet())
@@ -4751,25 +4918,13 @@ class FiniteWord_class(Word_class):
             sage: Word(p.inverse().action(w))
             word: bbbaaa
         """
-        ev_dict = self.evaluation_dict()
-        ordered_alphabet = sorted(ev_dict, cmp=self.parent().cmp_letters)
-        offset = 0
-        temp = 0
-        for k in ordered_alphabet:
-            temp = ev_dict[k]
-            ev_dict[k] = offset
-            offset += temp
-        result = []
-        for l in self:
-            ev_dict[l] += 1
-            result.append(ev_dict[l])
-        from sage.combinat.permutation import Permutation
-        return Permutation(result)
+        from sage.combinat.permutation import to_standard
+        return to_standard(self, cmp=self.parent().cmp_letters)
 
     def _s(self, i):
         r"""
-        Implements Lascoux and Schutzenberger's `s_i` operator, swapping the
-        number of `i` and `i+1`s in a word.
+        Implement Lascoux and Schutzenberger `s_i` operator, swapping the
+        number of `i` and `i+1` in a word.
 
         EXAMPLES::
 
@@ -4784,7 +4939,7 @@ class FiniteWord_class(Word_class):
             word:
             sage: w = Words(3)([2,1,2])
             sage: w._s(1).parent()
-            Words over {1, 2, 3}
+            Finite words over {1, 2, 3}
         """
         unpaired_i  = [] # positions of unpaired is
         unpaired_ip = [] # positions of unpaired i+1s
@@ -5325,13 +5480,13 @@ class FiniteWord_class(Word_class):
         EXAMPLES::
 
             sage: w = words.FibonacciWord()[:100]
-            sage: map(w.abelian_complexity, range(20))
+            sage: [w.abelian_complexity(i) for i in range(20)]
             [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
         ::
 
             sage: w = words.ThueMorseWord()[:100]
-            sage: map(w.abelian_complexity, range(20))
+            sage: [w.abelian_complexity(i) for i in range(20)]
             [1, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2]
 
         """
@@ -5424,7 +5579,7 @@ class FiniteWord_class(Word_class):
         if self.is_empty():
             return self
         W = self.parent()
-        if (W.size_of_alphabet() == 2):
+        if W.alphabet().cardinality()== 2:
             alphabet = W.alphabet()
         else:
             alphabet = self.letters()
@@ -5546,12 +5701,12 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        .. [Arn2002] P. Arnoux, Sturmian sequences, in Substitutions in Dynamics,
+        .. [Arn2002] \P. Arnoux, Sturmian sequences, in Substitutions in Dynamics,
            N. Pytheas Fogg (Ed.), Arithmetics, and Combinatorics (Lecture
            Notes in Mathematics, Vol. 1794), 2002.
-        .. [Ser1985] C. Series. The geometry of Markoff numbers. The Mathematical
-           Intelligencer, 7(3):20–29, 1985.
-        .. [SU2009] J. Smillie and C. Ulcigrai. Symbolic coding for linear
+        .. [Ser1985] \C. Series. The geometry of Markoff numbers. The Mathematical
+           Intelligencer, 7(3):20--29, 1985.
+        .. [SU2009] \J. Smillie and C. Ulcigrai. Symbolic coding for linear
            trajectories in the regular octagon, :arxiv:`0905.0871`, 2009.
 
         AUTHOR:
@@ -5568,7 +5723,7 @@ class FiniteWord_class(Word_class):
         The finite word ``self`` must be defined on a two-letter alphabet.
 
         A binary word is said to be *tangent* if it can appear in
-        infintely many cutting sequences of a smooth curve, where each
+        infinitely many cutting sequences of a smooth curve, where each
         cutting sequence is observed on a progressively smaller grid.
 
         This class of words strictly contains the class of 1-balanced
@@ -5611,14 +5766,14 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        .. [Mon2010] T. Monteil, The asymptotic language of smooth curves, talk
+        .. [Mon2010] \T. Monteil, The asymptotic language of smooth curves, talk
            at LaCIM2010.
 
         AUTHOR:
 
         -   Thierry Monteil
         """
-        if (self.parent().size_of_alphabet() != 2):
+        if (self.parent().alphabet().cardinality() != 2):
             raise TypeError('your word must be defined on a binary alphabet')
         [a,b] = self.parent().alphabet()
         mini = 0
@@ -5763,7 +5918,7 @@ class FiniteWord_class(Word_class):
             evaluation_dict() instead
         """
         if alphabet is None:
-            if self.parent().size_of_alphabet() is Infinity:
+            if self.parent().alphabet().cardinality() is Infinity:
                 raise TypeError("The alphabet of the parent is infinite; define "
                         "the word with a parent on a finite alphabet or use "
                         "evaluation_dict() instead")
@@ -6220,7 +6375,7 @@ class FiniteWord_class(Word_class):
         W = self.parent()
         while m.length() > 1:
             m = m.delta_derivate_right()
-            if not all(W.has_letter(a) for a in m.letters()):
+            if not all(a in W.alphabet() for a in m.letters()):
                 return False
         return True
 
@@ -6251,15 +6406,15 @@ class FiniteWord_class(Word_class):
 
     def standard_factorization(self):
         r"""
-        Returns the standard factorization of ``self``.
+        Return the standard factorization of ``self``.
 
-        The *standard factorization* of a word `w` of length greater than 1 is
-        the unique factorization: `w = uv` where `v` is the longest proper
+        The *standard factorization* of a word `w` of length greater than
+        `1` is the factorization `w = uv` where `v` is the longest proper
         suffix of `w` that is a Lyndon word.
 
         Note that if `w` is a Lyndon word of length greater than 1 with
-        standard factorization `w = uv`, then `u` and `v` are also Lyndon words
-        and `u < v`.
+        standard factorization `w = uv`, then `u` and `v` are also Lyndon
+        words and `u < v`.
 
         See for instance [1], [2] and [3].
 
@@ -6269,7 +6424,7 @@ class FiniteWord_class(Word_class):
 
         OUTPUT:
 
-            tuple -- tuple of two factors
+        2-tuple `(u, v)`
 
         EXAMPLES::
 
@@ -6318,10 +6473,11 @@ class FiniteWord_class(Word_class):
             Encyclopedia of Mathematics and its Applications, Cambridge
             University Press, U.K., 2002.
         """
-        if self.length() < 2:
+        selflen = self.length()
+        if selflen < 2:
             raise ValueError("Standard factorization not defined on"
                              " words of length less than 2")
-        for l in xrange(1, self.length()):
+        for l in xrange(1, selflen):
             suff = self[l:]
             if suff.is_lyndon():
                 return self[:l], suff
@@ -6329,7 +6485,7 @@ class FiniteWord_class(Word_class):
     def apply_permutation_to_positions(self, permutation):
         r"""
         Return the word obtained by permuting the positions of the letters
-        in self.
+        in ``self`` according to the permutation ``permutation``.
 
         EXAMPLES::
 
@@ -6357,8 +6513,9 @@ class FiniteWord_class(Word_class):
 
     def apply_permutation_to_letters(self, permutation):
         r"""
-        Return the word obtained by applying permutation to
-        the letters of the alphabet of self.
+        Return the word obtained by applying the permutation
+        ``permutation`` of the alphabet of ``self`` to each letter of
+        ``self``.
 
         EXAMPLES::
 
@@ -6500,14 +6657,14 @@ class FiniteWord_class(Word_class):
         base = width / float(self.length()) if not self.is_empty() else None
 
         #A colored rectangle for each letter
-        dim = self.parent().size_of_alphabet()
+        dim = self.parent().alphabet().cardinality()
         if dim is Infinity:
             ordered_alphabet = sorted(self.letters(), \
                     cmp=self.parent().cmp_letters)
             dim = float(len(ordered_alphabet))
         else:
             ordered_alphabet = self.parent().alphabet()
-            dim = float(self.parent().size_of_alphabet())
+            dim = float(self.parent().alphabet().cardinality())
         letter_to_integer_dict = dict((a,i) for (i,a) in
                 enumerate(ordered_alphabet))
         xp = x
@@ -6661,6 +6818,76 @@ class FiniteWord_class(Word_class):
         M = FreeMonoid(len(l), l)
         return M(self)
 
+    def is_christoffel(self):
+        r"""
+        Returns True if self is a Christoffel word, and False otherwise.
+
+        The *Christoffel word* of slope `p/q` is obtained from the Cayley 
+        graph of `\ZZ/(p+q)\ZZ` with generator q as follows. If `u 
+        \rightarrow v` is an edge in the Cayley graph, then, `v = u + p 
+        \mod{p+q}`. Let `a`,`b` be the alphabet of `w`. Label the edge 
+        `u \rightarrow v` by `a` if u < v and `b` otherwise. The Christoffel 
+        word is the word obtained by reading the edge labels along the cycle 
+        beginning from 0.
+
+        Equivalently, `w` is a Christoffel word iff `w` is a symmetric 
+        non-empty word and `w[1:n-1]` is a palindrome. 
+
+        See for instance [1]_ and [2]_.
+
+        INPUT:
+
+        ``self`` -- word
+
+        OUTPUT:
+
+        Boolean -- ``True`` if ``self`` is a Christoffel word, 
+        ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: Word('00100101').is_christoffel()
+            True
+            sage: Word('aab').is_christoffel()
+            True
+            sage: Word().is_christoffel()
+            False
+            sage: Word('123123123').is_christoffel()
+            False
+            sage: Word('00100').is_christoffel()
+            False
+            sage: Word('0').is_christoffel()
+            True
+
+        TESTS::
+
+            sage: words.LowerChristoffelWord(5,4).is_christoffel()
+            True
+            sage: words.UpperChristoffelWord(5,4).is_christoffel()
+            True
+            sage: Word('aaaaaaaaa').is_christoffel()
+            False
+
+        REFERENCES:
+
+        .. [1]  Jean Berstel. Sturmian and episturmian words (a survey of
+            some recent results). In S. Bozapalidis and G. Rahonis, editors,
+            CAI 2007,volume 4728 of Lecture Notes in Computer Science, 
+            pages 23-47. Springer-Verlag, 2007.
+        .. [2] \J. Berstel, A. Lauve, C. R., F. Saliola, Combinatorics on
+            words: Christoffel words and repetitions in words, CRM Monograph 
+            Series, 27. American Mathematical Society, Providence, RI, 2009. 
+            xii+147 pp. ISBN: 978-0-8218-4480-9
+
+        """
+        if len(self) == 0 or len(self.letters()) > 2 or (self.is_palindrome() and len(self) > 1):
+            return False
+        elif self.is_symmetric() and self[1:len(self) - 1].is_palindrome():
+            return True
+        else:
+            return False
+
+
 #######################################################################
 
 class CallableFromListOfWords(tuple):
@@ -6730,4 +6957,36 @@ class Factorization(list):
             (ab, ba)
         """
         return '(%s)' % ', '.join(w.string_rep() for w in self)
+
+#######################################################################
+
+def evaluation_dict(w):
+    r"""
+    Return a dictionary keyed by the letters occurring in ``w`` with
+    values the number of occurrences of the letter.
+
+    INPUT:
+
+    - ``w`` -- a word
+
+    TESTS::
+
+        sage: from sage.combinat.words.finite_word import evaluation_dict
+        sage: evaluation_dict([2,1,4,2,3,4,2])
+        {1: 1, 2: 3, 3: 1, 4: 2}
+        sage: evaluation_dict('badbcdb')
+        {'a': 1, 'b': 3, 'c': 1, 'd': 2}
+        sage: evaluation_dict([])
+        {}
+
+    ::
+
+        sage: evaluation_dict('1213121') # keys appear in random order
+        {'1': 4, '2': 2, '3': 1}
+
+    """
+    d = defaultdict(int)
+    for a in w:
+        d[a] += 1
+    return dict(d)
 

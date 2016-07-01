@@ -8,7 +8,7 @@ example, we derive the quadratic formula as follows::
     sage: qe = (a*x^2 + b*x + c == 0)
     sage: qe
     a*x^2 + b*x + c == 0
-    sage: print solve(qe, x)
+    sage: print(solve(qe, x))
     [
     x == -1/2*(b + sqrt(b^2 - 4*a*c))/a,
     x == -1/2*(b - sqrt(b^2 - 4*a*c))/a
@@ -76,7 +76,7 @@ Multiply two symbolic equations::
 
     sage: x = var('x')
     sage: m = x == 5*x + 1
-    sage: n = sin(x) == sin(x+2*pi)
+    sage: n = sin(x) == sin(x+2*pi, hold=True)
     sage: m * n
     x*sin(x) == (5*x + 1)*sin(2*pi + x)
     sage: m = 2*x == 3*x^2 - 5
@@ -87,11 +87,11 @@ Divide two symbolic equations::
 
     sage: x = var('x')
     sage: m = x == 5*x + 1
-    sage: n = sin(x) == sin(x+2*pi)
+    sage: n = sin(x) == sin(x+2*pi, hold=True)
     sage: m/n
     x/sin(x) == (5*x + 1)/sin(2*pi + x)
     sage: m = x != 5*x + 1
-    sage: n = sin(x) != sin(x+2*pi)
+    sage: n = sin(x) != sin(x+2*pi, hold=True)
     sage: m/n
     x/sin(x) != (5*x + 1)/sin(2*pi + x)
 
@@ -247,8 +247,8 @@ LaTeX output::
     sage: latex(x^(3/5) >= pi)
     x^{\frac{3}{5}} \geq \pi
 
-When working with the symbolic complex number `I`, notice that comparison do not
-automatically simplifies even in trivial situations::
+When working with the symbolic complex number `I`, notice that comparisons do not
+automatically simplify even in trivial situations::
 
     sage: I^2 == -1
     -1 == -1
@@ -280,7 +280,7 @@ More Examples
 
     sage: f = x^5 + a
     sage: solve(f==0,x)
-    [x == (-a)^(1/5)*e^(2/5*I*pi), x == (-a)^(1/5)*e^(4/5*I*pi), x == (-a)^(1/5)*e^(-4/5*I*pi), x == (-a)^(1/5)*e^(-2/5*I*pi), x == (-a)^(1/5)]
+    [x == 1/4*(-a)^(1/5)*(sqrt(5) + I*sqrt(2*sqrt(5) + 10) - 1), x == -1/4*(-a)^(1/5)*(sqrt(5) - I*sqrt(-2*sqrt(5) + 10) + 1), x == -1/4*(-a)^(1/5)*(sqrt(5) + I*sqrt(-2*sqrt(5) + 10) + 1), x == 1/4*(-a)^(1/5)*(sqrt(5) - I*sqrt(2*sqrt(5) + 10) - 1), x == (-a)^(1/5)]
 
 You can also do arithmetic with inequalities, as illustrated
 below::
@@ -328,8 +328,10 @@ AUTHORS:
 - William Stein (2007-07-16): added arithmetic with symbolic equations
 
 """
+from __future__ import print_function
+
 import operator
-from sage.calculus.calculus import maxima
+
 
 def test_relation_maxima(relation):
     """
@@ -459,20 +461,20 @@ def test_relation_maxima(relation):
     if relation.operator() == operator.eq: # operator is equality
         try:
             s = m.parent()._eval_line('is (equal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
-        except TypeError as msg:
-            raise ValueError("unable to evaluate the predicate '%s'"%repr(relation))
+        except TypeError:
+            raise ValueError("unable to evaluate the predicate '%s'" % repr(relation))
 
     elif relation.operator() == operator.ne: # operator is not equal
         try:
             s = m.parent()._eval_line('is (notequal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
-        except TypeError as msg:
-            raise ValueError("unable to evaluate the predicate '%s'"%repr(relation))
+        except TypeError:
+            raise ValueError("unable to evaluate the predicate '%s'" % repr(relation))
 
     else: # operator is < or > or <= or >=, which Maxima handles fine
         try:
             s = m.parent()._eval_line('is (%s)'%repr(m))
-        except TypeError as msg:
-            raise ValueError("unable to evaluate the predicate '%s'"%repr(relation))
+        except TypeError:
+            raise ValueError("unable to evaluate the predicate '%s'" % repr(relation))
 
     if s == 'true':
         return True
@@ -596,7 +598,7 @@ def solve(f, *args, **kwds):
         sage: solve([sqrt(x) + sqrt(y) == 5, x + y == 10], x, y)
         [[x == -5/2*I*sqrt(5) + 5, y == 5/2*I*sqrt(5) + 5], [x == 5/2*I*sqrt(5) + 5, y == -5/2*I*sqrt(5) + 5]]
         sage: solutions=solve([x^2+y^2 == 1, y^2 == x^3 + x + 1], x, y, solution_dict=True)
-        sage: for solution in solutions: print solution[x].n(digits=3), ",", solution[y].n(digits=3)
+        sage: for solution in solutions: print("{} , {}".format(solution[x].n(digits=3), solution[y].n(digits=3)))
         -0.500 - 0.866*I , -1.27 + 0.341*I
         -0.500 - 0.866*I , 1.27 - 0.341*I
         -0.500 + 0.866*I , -1.27 - 0.341*I
@@ -617,7 +619,7 @@ def solve(f, *args, **kwds):
     for symbolic expressions, which defaults to exact answers only::
 
         sage: solve([y^6==y],y)
-        [y == e^(2/5*I*pi), y == e^(4/5*I*pi), y == e^(-4/5*I*pi), y == e^(-2/5*I*pi), y == 1, y == 0]
+        [y == 1/4*sqrt(5) + 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4, y == -1/4*sqrt(5) + 1/4*I*sqrt(-2*sqrt(5) + 10) - 1/4, y == -1/4*sqrt(5) - 1/4*I*sqrt(-2*sqrt(5) + 10) - 1/4, y == 1/4*sqrt(5) - 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4, y == 1, y == 0]
         sage: solve( [y^6 == y], y)==solve( y^6 == y, y)
         True
 
@@ -664,7 +666,7 @@ def solve(f, *args, **kwds):
         sage: solve([x^2-4*x+4],x,solution_dict=True)
         [{x: 2}]
         sage: res = solve([x^2 == y, y == 4],x,y,solution_dict=True)
-        sage: for soln in res: print "x: %s, y: %s"%(soln[x], soln[y])
+        sage: for soln in res: print("x: %s, y: %s" % (soln[x], soln[y]))
         x: 2, y: 4
         x: -2, y: 4
 
@@ -764,7 +766,7 @@ def solve(f, *args, **kwds):
         sage: solve((x==1,x==-1),x,solution_dict=1)
         []
 
-    This inequality holds for any real ``x`` (trac #8078)::
+    This inequality holds for any real ``x`` (:trac:`8078`)::
 
         sage: solve(x^4+2>0,x)
         [x < +Infinity]
@@ -1153,7 +1155,7 @@ def solve_ineq_univar(ineq):
     """
     ineqvar = ineq.variables()
     if len(ineqvar) != 1:
-        raise NotImplementedError, "The command solve_ineq_univar accepts univariate inequalities only. Your variables are ", ineqvar
+        raise NotImplementedError("The command solve_ineq_univar accepts univariate inequalities only. Your variables are " + ineqvar)
     ineq0 = ineq._maxima_()
     ineq0.parent().eval("if solve_rat_ineq_loaded#true then (solve_rat_ineq_loaded:true,load(\"solve_rat_ineq.mac\")) ")
     sol = ineq0.solve_rat_ineq().sage()
@@ -1204,7 +1206,7 @@ def solve_ineq_fourier(ineq,vars=None):
     Note that different systems will find default variables in different
     orders, so the following is not tested::
 
-        sage: solve_ineq_fourier([log(x)>log(y)]) # not tested - one of the following appears
+        sage: solve_ineq_fourier([log(x)>log(y)])  # random (one of the following appears)
         [[0 < y, y < x, 0 < x]]
         [[y < x, 0 < y]]
 
@@ -1294,7 +1296,7 @@ def solve_ineq(ineq, vars=None):
     the order it puts them in may depend on the system, so the following
     command is only guaranteed to give you one of the above answers::
 
-        sage: solve_ineq([x-y<0,x+y-3<0]) # not tested - random
+        sage: solve_ineq([x-y<0,x+y-3<0])  # random
         [[x < y, y < -x + 3, x < (3/2)]]
 
     ALGORITHM:

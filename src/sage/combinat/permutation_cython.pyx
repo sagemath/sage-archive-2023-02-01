@@ -27,9 +27,9 @@ speed, we provide a class that wraps our struct.
 #  Unfit for any purpose.
 #
 #  Copyright 2010, Tom Boothby
+from __future__ import print_function
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
+include "cysignals/memory.pxi"
 from cpython.list cimport *
 
 ##########################################################
@@ -137,9 +137,9 @@ def permutation_iterator_transposition_list(int n):
         sage: Q = [1,2,3,4]
         sage: L = [copy(Q)]
         sage: for t in permutation_iterator_transposition_list(3):
-        ...      Q[t], Q[t+1] = Q[t+1], Q[t]
-        ...      L.append(copy(Q))
-        sage: print L
+        ....:     Q[t], Q[t+1] = Q[t+1], Q[t]
+        ....:     L.append(copy(Q))
+        sage: print(L)
         [[1, 2, 3, 4], [1, 3, 2, 4], [3, 1, 2, 4], [3, 2, 1, 4], [2, 3, 1, 4], [2, 1, 3, 4]]
 
     """
@@ -161,7 +161,7 @@ def permutation_iterator_transposition_list(int n):
         N *= m
         m -= 1
 
-    c = <int *>sage_malloc(2*n*sizeof(int))
+    c = <int *>sig_malloc(2*n*sizeof(int))
     if c is NULL:
         raise MemoryError("Failed to allocate memory in "
                           "permutation_iterator_transposition_list")
@@ -170,14 +170,14 @@ def permutation_iterator_transposition_list(int n):
     try:
         T = PyList_New(N-1)
     except Exception:
-        sage_free(c)
+        sig_free(c)
         raise MemoryError("Failed to allocate memory in "
                           "permutation_iterator_transposition_list")
 
     reset_swap(n,c,o)
     for m in range(N-1):
         PyList_SET_ITEM(T, m, next_swap(n,c,o))
-    sage_free(c)
+    sig_free(c)
 
     return T
 

@@ -14,6 +14,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
+from __future__ import print_function
 
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -54,7 +55,7 @@ def IntervalGraph(intervals, points_ordered = False):
         sage: g.get_vertex(3)
         (3, 5)
         sage: neigh = g.neighbors(3)
-        sage: for v in neigh: print g.get_vertex(v)
+        sage: for v in neigh: print(g.get_vertex(v))
         (1, 3)
         (2, 4)
         (4, 6)
@@ -259,7 +260,7 @@ def PermutationGraph(second_permutation, first_permutation = None):
         vertex_to_index[v] = i+1
 
     from sage.combinat.permutation import Permutation
-    p2 = Permutation(map(lambda x:vertex_to_index[x], second_permutation))
+    p2 = Permutation([vertex_to_index[x] for x in second_permutation])
     p2 = p2.inverse()
 
     g = Graph(name="Permutation graph for "+str(second_permutation))
@@ -303,7 +304,7 @@ def ToleranceGraph(tolrep):
         sage: g.get_vertex(3)
         (0, 3, 3)
         sage: neigh = g.neighbors(3)
-        sage: for v in neigh: print g.get_vertex(v)
+        sage: for v in neigh: print(g.get_vertex(v))
         (1, 2, 1)
         (2, 3, 1)
         sage: g.is_interval()

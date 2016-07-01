@@ -5,13 +5,15 @@ AUTHORS:
 
 - Clement Pernet and William Stein (2008-02-07): initial version
 """
+from __future__ import print_function
 
 from copy import copy
 
 from sage.misc.misc import verbose, cputime
 from sage.matrix.constructor import random_matrix, matrix, matrix, identity_matrix
 
-from sage.rings.all import ZZ, Integer, previous_prime, next_prime, CRT_list, RR
+from sage.rings.all import ZZ, Integer, RR
+from sage.arith.all import previous_prime, next_prime, CRT_list
 
 def max_det_prime(n):
     """
@@ -190,7 +192,7 @@ def det_padic(A, proof=True, stabilize=2):
     Return the determinant of A, computed using a p-adic/multimodular
     algorithm.
 
-    INPUTS:
+    INPUT:
 
     - ``A`` -- a square matrix
 
@@ -1084,7 +1086,7 @@ def hnf(A, include_zero_rows=True, proof=True):
 def hnf_with_transformation(A, proof=True):
     """
     Compute the HNF H of A along with a transformation matrix U
-    such that U*A = H.  Also return the pivots of H.
+    such that U*A = H.
 
     INPUT:
 
@@ -1095,7 +1097,6 @@ def hnf_with_transformation(A, proof=True):
 
     - matrix -- the Hermite normal form H of A
     - U -- a unimodular matrix such that U * A = H
-    - pivots -- the pivot column positions of A
 
     EXAMPLES::
 
@@ -1103,7 +1104,7 @@ def hnf_with_transformation(A, proof=True):
         sage: A = matrix(ZZ, 2, [1, -5, -10, 1, 3, 197]); A
         [  1  -5 -10]
         [  1   3 197]
-        sage: H, U, pivots = matrix_integer_dense_hnf.hnf_with_transformation(A)
+        sage: H, U = matrix_integer_dense_hnf.hnf_with_transformation(A)
         sage: H
         [  1   3 197]
         [  0   8 207]
@@ -1116,10 +1117,10 @@ def hnf_with_transformation(A, proof=True):
     """
     # All we do is augment the input matrix with the identity matrix of the appropriate rank on the right.
     C = A.augment(identity_matrix(ZZ, A.nrows()))
-    H, pivots = hnf(C, include_zero_rows=True, proof=proof)
+    H, _ = hnf(C, include_zero_rows=True, proof=proof)
     U = H.matrix_from_columns(range(A.ncols(), H.ncols()))
     H2 = H.matrix_from_columns(range(A.ncols()))
-    return H2, U, pivots
+    return H2, U
 
 def hnf_with_transformation_tests(n=10, m=5, trials=10):
     """
@@ -1134,13 +1135,13 @@ def hnf_with_transformation_tests(n=10, m=5, trials=10):
     """
     import sys
     for i in range(trials):
-        print i,
+        print(i, end=" ")
         sys.stdout.flush()
-        a = random_matrix(ZZ, n, m)
-        w = hnf_with_transformation(a)
-        assert w[0] == w[1]*a
-        w = hnf_with_transformation(a, proof=False)
-        assert w[0] == w[1]*a
+        A = random_matrix(ZZ, n, m)
+        H, U = hnf_with_transformation(A)
+        assert H == U * A
+        H, U = hnf_with_transformation(A, proof=False)
+        assert H == U * A
 
 
 #################################################################################################
@@ -1163,7 +1164,8 @@ def benchmark_hnf(nrange, bits=4):
         t = cputime()
         h,_ = hnf(a, proof=False)
         tm = cputime(t)
-        print '%s,'%(('sage', n, bits, tm),)
+        print('%s,' % (('sage', n, bits, tm),))
+
 
 def benchmark_magma_hnf(nrange, bits=4):
     """
@@ -1181,7 +1183,7 @@ def benchmark_magma_hnf(nrange, bits=4):
         t = magma.cputime()
         h = a.EchelonForm()
         tm = magma.cputime(t)
-        print '%s,'%(('magma', n, bits, tm),)
+        print('%s,' % (('magma', n, bits, tm),))
 
 
 global sanity
@@ -1231,46 +1233,44 @@ def sanity_checks(times=50, n=8, m=5, proof=True, stabilize=2, check_using_magma
         for i,a in enumerate(v):
             global sanity
             sanity = a
-            print i,
+            print(i, end=" ")
             sys.stdout.flush()
             if check_using_magma:
                 if magma(hnf(a)[0]) != magma(a).EchelonForm():
-                    print "bug computing hnf of a matrix"
-                    print 'a = matrix(ZZ, %s, %s, %s)'%(a.nrows(), a.ncols(), a.list())
+                    print("bug computing hnf of a matrix")
+                    print('a = matrix(ZZ, %s, %s, %s)' % (a.nrows(), a.ncols(),
+                                                          a.list()))
                     return
             else:
                 if hnf(a)[0] != a.echelon_form(algorithm = 'pari'):
-                    print "bug computing hnf of a matrix"
-                    print 'a = matrix(ZZ, %s, %s, %s)'%(a.nrows(), a.ncols(), a.list())
+                    print("bug computing hnf of a matrix")
+                    print('a = matrix(ZZ, %s, %s, %s)' % (a.nrows(), a.ncols(),
+                                                          a.list()))
                     return
-        print " (done)"
+        print(" (done)")
 
-    print "small %s x %s"%(n,m)
+    print("small %s x %s" % (n, m))
     __do_check([random_matrix(ZZ, n, m, x=-1,y=1) for _ in range(times)])
-    print "big %s x %s"%(n,m)
+    print("big %s x %s" % (n, m))
     __do_check([random_matrix(ZZ, n, m, x=-2^32,y=2^32) for _ in range(times)])
 
-    print "small %s x %s"%(m,n)
+    print("small %s x %s" % (m, n))
     __do_check([random_matrix(ZZ, m, n, x=-1,y=1) for _ in range(times)])
-    print "big %s x %s"%(m,n)
+    print("big %s x %s" % (m, n))
     __do_check([random_matrix(ZZ, m, n, x=-2^32,y=2^32) for _ in range(times)])
 
-    print "sparse %s x %s"%(n,m)
+    print("sparse %s x %s" % (n, m))
     __do_check([random_matrix(ZZ, n, m, density=0.1) for _ in range(times)])
-    print "sparse %s x %s"%(m,n)
+    print("sparse %s x %s" % (m, n))
     __do_check([random_matrix(ZZ, m, n, density=0.1) for _ in range(times)])
 
-    print "ill conditioned -- 1000*A -- %s x %s"%(n,m)
+    print("ill conditioned -- 1000*A -- %s x %s" % (n, m))
     __do_check([1000*random_matrix(ZZ, n, m, x=-1,y=1) for _ in range(times)])
 
-    print "ill conditioned -- 1000*A but one row -- %s x %s"%(n,m)
+    print("ill conditioned -- 1000*A but one row -- %s x %s" % (n, m))
     v = []
     for _ in range(times):
         a = 1000*random_matrix(ZZ, n, m, x=-1,y=1)
         a[a.nrows()-1] = a[a.nrows()-1]/1000
         v.append(a)
     __do_check(v)
-
-
-
-

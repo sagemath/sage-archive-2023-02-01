@@ -14,23 +14,36 @@ EXAMPLES::
     False
     sage: 1 in S
     True
+
+TESTS::
+
+    sage: Pol.<y> = CBF[]
+    sage: Quo.<y> = Pol.quotient(y^3)
+    sage: CBF.zero()*y
+    0
+    sage: ((x - 1)/(x + 1))(1 + y)
+    -0.2500000000000000*y^2 + 0.5000000000000000*y
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
+from __future__ import absolute_import, print_function
+
+import six
 import sage.rings.number_field.all
-import polynomial_element
+from . import polynomial_element
 import sage.rings.rational_field
 import sage.rings.complex_field
 
-import sage.rings.commutative_ring
-import sage.rings.integral_domain
-from sage.rings.ring import Field
+from sage.rings.ring import Field, IntegralDomain, CommutativeRing
 
 from sage.misc.cachefunc import cached_method
 from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
@@ -38,11 +51,11 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
 
 from sage.categories.commutative_algebras import CommutativeAlgebras
 
-from sage.structure.parent_gens import ParentWithGens
+from sage.structure.category_object import normalize_names
 
 from sage.rings.polynomial.infinite_polynomial_ring import GenDictWithBasering
 from sage.all import sage_eval, parent
-from sage.structure.element import Element
+
 
 def PolynomialQuotientRing(ring, polynomial, names=None):
     r"""
@@ -101,11 +114,11 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
 
         sage: A.<y> = PolynomialRing(GF(2)); A
         Univariate Polynomial Ring in y over Finite Field of size 2 (using NTL)
-        sage: B = A.quotient(y^2 + y + 1, 'y2'); print B
+        sage: B = A.quotient(y^2 + y + 1, 'y2'); B
         Univariate Quotient Polynomial Ring in y2 over Finite Field of size 2 with modulus y^2 + y + 1
-        sage: C = PolynomialRing(B, 'x'); x=C.gen(); print C
+        sage: C = PolynomialRing(B, 'x'); x=C.gen(); C
         Univariate Polynomial Ring in x over Univariate Quotient Polynomial Ring in y2 over Finite Field of size 2 with modulus y^2 + y + 1
-        sage: R = C.quotient(x^3 - 5); print R
+        sage: R = C.quotient(x^3 - 5); R
         Univariate Quotient Polynomial Ring in xbar over Univariate Quotient Polynomial Ring in y2 over Finite Field of size 2 with modulus y^2 + y + 1 with modulus x^3 + 1
 
     Next we create a number field, but viewed as a quotient of a
@@ -166,9 +179,9 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
     if names is None:
         names = tuple([x + 'bar' for x in ring.variable_names()])
     else:
-        names = sage.structure.parent_gens.normalize_names(ring.ngens(), names)
+        names = normalize_names(ring.ngens(), names)
     R = ring.base_ring()
-    if isinstance(R, sage.rings.integral_domain.IntegralDomain):
+    if isinstance(R, IntegralDomain):
         try:
             if polynomial.is_irreducible():
                 if isinstance(R, Field):
@@ -184,7 +197,7 @@ def is_PolynomialQuotientRing(x):
     return isinstance(x, PolynomialQuotientRing_generic)
 
 
-class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing):
+class PolynomialQuotientRing_generic(CommutativeRing):
     """
     Quotient of a univariate polynomial ring by an ideal.
 
@@ -318,7 +331,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         self.__ring = ring
         self.__polynomial = polynomial
         category = CommutativeAlgebras(ring.base_ring()).Quotients().or_subcategory(category)
-        sage.rings.commutative_ring.CommutativeRing.__init__(self, ring, names=name, category=category)
+        CommutativeRing.__init__(self, ring, names=name, category=category)
 
     def __reduce__(self):
         """
@@ -425,7 +438,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         P = parent(x)
         if P is self:
             return x
-        if not isinstance(x,basestring):
+        if not isinstance(x, six.string_types):
             try:
                 return self.element_class(self, self.__ring(x) , check=True)
             except TypeError:
@@ -446,7 +459,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         try:
             return self.element_class(self, self.__ring(x), check=False)
         except TypeError:
-            raise TypeError("unable to convert %s into an element of %s"%(x,repr(self)))
+            raise TypeError("unable to convert %r to an element of %s"%(x, self))
 
     def _coerce_map_from_(self, R):
         """
@@ -531,7 +544,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
     ##
 
     retract = _coerce_impl
-    ambient = sage.rings.commutative_ring.CommutativeRing.base
+    ambient = CommutativeRing.base
 
     def lift(self, x):
         """
@@ -635,7 +648,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         -- Simon King (2010-05)
         """
         from sage.categories.pushout import QuotientFunctor
-        return QuotientFunctor([self.modulus()]*self.base(),self.variable_names(),self.is_field()), self.base()
+        return QuotientFunctor([self.modulus()]*self.base(),self.variable_names()), self.base()
 
     @cached_method
     def base_ring(self):
@@ -1106,7 +1119,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
                 for ideal_gen in clgp_gen.gens():
                     rel_ideal_gen = back_to_rel(phi(ideal_gen))
                     prod_ideal_gen = [0]*i + [rel_ideal_gen.lift()] + [0]*(n - i - 1)
-                    poly_ideal_gen = self(sage.rings.arith.crt(prod_ideal_gen, moduli))
+                    poly_ideal_gen = self(sage.arith.all.crt(prod_ideal_gen, moduli))
                     ideal_gens.append(poly_ideal_gen)
                 clgp_gens.append((tuple(ideal_gens), gen_order))
 
@@ -1275,7 +1288,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
                 mul_order = unit.multiplicative_order()
                 rel_unit = back_to_rel(phi(unit))
                 prod_unit = [1]*i + [rel_unit.lift()] + [1]*(n - i - 1)
-                poly_unit = self(sage.rings.arith.crt(prod_unit, moduli))
+                poly_unit = self(sage.arith.all.crt(prod_unit, moduli))
                 units.append((poly_unit, mul_order))
 
         return units
@@ -1401,12 +1414,12 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             for gen in component_selmer_groups[isos[i][1]]:
                 rel_gen = back_to_rel(phi(gen))
                 prod_gen = [1]*i + [rel_gen.lift()] + [1]*(n - i - 1)
-                poly_gen = self(sage.rings.arith.crt(prod_gen, moduli))
+                poly_gen = self(sage.arith.all.crt(prod_gen, moduli))
                 gens.append(poly_gen)
 
         return gens
 
-class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.integral_domain.IntegralDomain):
+class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, IntegralDomain):
     """
     EXAMPLES::
 

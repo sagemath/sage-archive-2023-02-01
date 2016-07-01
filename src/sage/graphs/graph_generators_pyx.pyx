@@ -1,4 +1,3 @@
-# distutils: libraries = gmp
 r"""
 Common graphs and digraphs generators (Cython)
 
@@ -23,7 +22,7 @@ def RandomGNP(n, p, directed = False, loops = False):
     Returns a random graph or a digraph on `n` nodes. Each edge is inserted
     independently with probability `p`.
 
-    INPUTS:
+    INPUT:
 
     - ``n`` -- number of nodes of the digraph
 
@@ -38,9 +37,9 @@ def RandomGNP(n, p, directed = False, loops = False):
 
     REFERENCES:
 
-    .. [1] P. Erdos and A. Renyi. On Random Graphs, Publ.  Math. 6, 290 (1959).
+    .. [1] \P. Erdos and A. Renyi. On Random Graphs, Publ.  Math. 6, 290 (1959).
 
-    .. [2] E. N. Gilbert. Random Graphs, Ann. Math.  Stat., 30, 1141 (1959).
+    .. [2] \E. N. Gilbert. Random Graphs, Ann. Math.  Stat., 30, 1141 (1959).
 
     EXAMPLE::
 

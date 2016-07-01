@@ -94,7 +94,7 @@ but only one generating line::
     sage: strip.faces(1)
     (<0,1>, <0,2>)
     sage: for face in strip.faces(1):
-    ...      print face, '=', face.as_polyhedron().Vrepresentation()
+    ....:      print("{} = {}".format(face, face.as_polyhedron().Vrepresentation()))
     <0,1> = (A line in the direction (0, 1), A vertex at (-1, 0))
     <0,2> = (A line in the direction (0, 1), A vertex at (1, 0))
 
@@ -216,6 +216,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 from sage.rings.all import QQ, ZZ, RDF, RR
 from sage.misc.decorators import rename_keyword
@@ -406,7 +407,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         if all(is_Integer(x) for x in values):
             if got_Vrep:
                 base_ring = ZZ
-            else:   # integral inequalities usually do not determine a latice polytope!
+            else:   # integral inequalities usually do not determine a lattice polytope!
                 base_ring = QQ
             convert = False
         elif all(is_Rational(x) for x in values):
@@ -417,7 +418,8 @@ def Polyhedron(vertices=None, rays=None, lines=None,
             convert = False
         else:
             try:
-                map(ZZ, values)
+                for v in values:
+                    ZZ(v)
                 if got_Vrep:
                     base_ring = ZZ
                 else:

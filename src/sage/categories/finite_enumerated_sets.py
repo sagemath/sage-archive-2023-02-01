@@ -7,6 +7,7 @@ Finite Enumerated Sets
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 import itertools
 
@@ -140,9 +141,9 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 [1]
                 sage: P.cardinality()
                 1
-                sage: P.cardinality('use alt algorithm') # Used to break here: see :trac:`13688`
+                sage: P.cardinality('use alt algorithm') # Used to break here: see trac #13688
                 1
-                sage: P.cardinality(dummy_arg='use alg algorithm') # Used to break here: see :trac:`13688`
+                sage: P.cardinality(dummy_arg='use alg algorithm') # Used to break here: see trac #13688
                 1
             """
             c = 0
@@ -271,11 +272,11 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 Let's take an example::
 
                     sage: class Example(Parent):
-                    ...       def __init__(self):
-                    ...           Parent.__init__(self, category = FiniteEnumeratedSets())
-                    ...       def __iter__(self):
-                    ...           print "hello!"
-                    ...           for x in [1,2,3]: yield x
+                    ....:     def __init__(self):
+                    ....:         Parent.__init__(self, category = FiniteEnumeratedSets())
+                    ....:     def __iter__(self):
+                    ....:         print("hello!")
+                    ....:         for x in [1,2,3]: yield x
                     sage: C = Example()
                     sage: list(C)
                     hello!
@@ -448,22 +449,12 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 Traceback (most recent call last):
                 ...
                 AssertionError: 4 != 3
-                sage: class CCls(Example):
-                ...       def cardinality(self):
-                ...           return int(3)
-                sage: CC = CCls()
-                sage: CC._test_enumerated_set_iter_cardinality()
-                Traceback (most recent call last):
-                ...
-                AssertionError: expected a Sage Integer and got 3 of type <type 'int'>
             """
             # isinstance with LazyImported classes is not robust
             from sage.rings.integer import Integer
             tester = self._tester(**options)
             if self.cardinality != self._cardinality_from_iterator:
                 card = self.cardinality()
-                tester.assert_(isinstance(card, Integer),
-                    "expected a Sage Integer and got {} of type {}".format(card,type(card)))
                 if card <= tester._max_runs:
                     tester.assertEqual(card,
                                        self._cardinality_from_iterator())
@@ -472,7 +463,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
         def extra_super_categories(self):
             """
-            A cartesian product of finite enumerated sets is a finite
+            A Cartesian product of finite enumerated sets is a finite
             enumerated set.
 
             EXAMPLES::
@@ -491,7 +482,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             associated attributes. But doing this way, Sage will not consider
             them as a doctest.
 
-            We check that cartesian products of finite enumerated sets
+            We check that Cartesian products of finite enumerated sets
             inherit various methods from `Sets.CartesianProducts`
             and not from :class:`EnumeratedSets.Finite`::
 
@@ -506,14 +497,14 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 'sage.categories.sets_cat'
 
                 sage: C.__iter__.__module__
-                'sage.categories.enumerated_sets'
+                'sage.categories.sets_cat'
             """
 
             # Ambiguity resolution between methods inherited from
             # Sets.CartesianProducts and from EnumeratedSets.Finite.
-            random_element = Sets.CartesianProducts.ParentMethods.random_element.im_func
-            cardinality = Sets.CartesianProducts.ParentMethods.cardinality.im_func
-            __iter__ = EnumeratedSets.CartesianProducts.ParentMethods.__iter__.im_func
+            random_element = Sets.CartesianProducts.ParentMethods.random_element.__func__
+            cardinality = Sets.CartesianProducts.ParentMethods.cardinality.__func__
+            __iter__ = Sets.CartesianProducts.ParentMethods.__iter__.__func__
 
             def last(self):
                 r"""
@@ -530,7 +521,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
             def rank(self, x):
                 r"""
-                Return the rank of an element of this cartesian product.
+                Return the rank of an element of this Cartesian product.
 
                 The *rank* of ``x`` is its position in the
                 enumeration. It is an integer between ``0`` and
@@ -549,7 +540,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                     sage: C.rank(C((0,0,0)))
                     0
 
-                    sage: for c in C: print C.rank(c)
+                    sage: for c in C: print(C.rank(c))
                     0
                     1
                     2
@@ -584,7 +575,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
             def unrank(self, i):
                 r"""
-                Return the ``i``-th element of this cartesian product.
+                Return the ``i``-th element of this Cartesian product.
 
                 INPUT:
 

@@ -19,21 +19,19 @@ This example initializes a sparse graph with room for twenty vertices, the first
 ten of which are in the graph. In general, the first ``nverts`` are "active."
 For example, see that 9 is already in the graph::
 
-    sage: S._num_verts()
-    10
+    sage: S.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     sage: S.add_vertex(9)
     9
-    sage: S._num_verts()
-    10
+    sage: S.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 But 10 is not, until we add it::
 
-    sage: S._num_verts()
-    10
     sage: S.add_vertex(10)
     10
-    sage: S._num_verts()
-    11
+    sage: S.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 You can begin working with unlabeled arcs right away as follows::
 
@@ -58,10 +56,6 @@ You can begin working with unlabeled arcs right away as follows::
     Traceback (most recent call last):
     ...
     LookupError: Vertex (7) is not a vertex of the graph.
-    sage: S._num_verts()
-    10
-    sage: S._num_arcs()
-    2
 
 Sparse graphs support multiple edges and labeled edges, but requires that the
 labels be positive integers (the case label = 0 is treated as no label).
@@ -185,13 +179,18 @@ working on a general-purpose Cython-based red black tree, which would be optimal
 for both of these uses.
 """
 
-#*******************************************************************************
-#        Copyright (C) 2008-9 Robert L. Miller <rlmillster@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2008-9 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-#*******************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
+
+from libc.string cimport memset
 include 'sage/data_structures/bitset.pxi'
 
 cdef enum:
@@ -277,15 +276,15 @@ cdef class SparseGraph(CGraph):
 
         # Allocating memory
         self.vertices = <SparseGraphBTNode **> \
-          sage_malloc(nverts * self.hash_length * sizeof(SparseGraphBTNode *))
-        self.in_degrees = <int *> sage_malloc(nverts * sizeof(int))
-        self.out_degrees = <int *> sage_malloc(nverts * sizeof(int))
+          sig_malloc(nverts * self.hash_length * sizeof(SparseGraphBTNode *))
+        self.in_degrees = <int *> sig_malloc(nverts * sizeof(int))
+        self.out_degrees = <int *> sig_malloc(nverts * sizeof(int))
 
         # Checking the memory was actually allocated
         if not self.vertices or not self.in_degrees or not self.out_degrees:
-            if self.vertices: sage_free(self.vertices)
-            if self.in_degrees: sage_free(self.in_degrees)
-            if self.out_degrees: sage_free(self.out_degrees)
+            if self.vertices: sig_free(self.vertices)
+            if self.in_degrees: sig_free(self.in_degrees)
+            if self.out_degrees: sig_free(self.out_degrees)
             raise RuntimeError("Failure allocating memory.")
 
         # Initializing variables:
@@ -333,15 +332,15 @@ cdef class SparseGraph(CGraph):
                     label_temp = temp[0].labels
                     while label_temp != NULL:
                         temp[0].labels = label_temp.next
-                        sage_free(label_temp)
+                        sig_free(label_temp)
                         label_temp = temp[0].labels
-                    sage_free(temp[0])
+                    sig_free(temp[0])
                     temp[0] = NULL
                     temp = &(self.vertices[i])
 
-        sage_free(self.vertices)
-        sage_free(self.in_degrees)
-        sage_free(self.out_degrees)
+        sig_free(self.vertices)
+        sig_free(self.in_degrees)
+        sig_free(self.out_degrees)
         bitset_free(self.active_vertices)
 
     cpdef realloc(self, int total):
@@ -398,9 +397,9 @@ cdef class SparseGraph(CGraph):
                 return -1
             bitset_free(bits)
 
-        self.vertices = <SparseGraphBTNode **> sage_realloc(self.vertices, total * self.hash_length * sizeof(SparseGraphBTNode *))
-        self.in_degrees = <int *> sage_realloc(self.in_degrees, total * sizeof(int))
-        self.out_degrees = <int *> sage_realloc(self.out_degrees, total * sizeof(int))
+        self.vertices = <SparseGraphBTNode **> sig_realloc(self.vertices, total * self.hash_length * sizeof(SparseGraphBTNode *))
+        self.in_degrees = <int *> sig_realloc(self.in_degrees, total * sizeof(int))
+        self.out_degrees = <int *> sig_realloc(self.out_degrees, total * sizeof(int))
 
         cdef int new_vertices = total - self.active_vertices.size
 
@@ -445,7 +444,7 @@ cdef class SparseGraph(CGraph):
                 ins_pt[0].number += 1
                 break
         if ins_pt[0] == NULL:
-            ins_pt[0] = <SparseGraphBTNode *> sage_malloc(sizeof(SparseGraphBTNode))
+            ins_pt[0] = <SparseGraphBTNode *> sig_malloc(sizeof(SparseGraphBTNode))
             if not ins_pt[0]:
                 raise RuntimeError("Failure allocating memory.")
             ins_pt[0].vertex = v
@@ -576,7 +575,7 @@ cdef class SparseGraph(CGraph):
         while labels != NULL:
             i = labels.number
             parent[0].labels = parent[0].labels.next
-            sage_free(labels)
+            sig_free(labels)
             labels = parent[0].labels
             self.in_degrees[v] -= i
             self.out_degrees[u] -= i
@@ -589,14 +588,14 @@ cdef class SparseGraph(CGraph):
         if parent[0].left == NULL:
             temp = parent[0]
             parent[0] = parent[0].right
-            sage_free(temp)
+            sig_free(temp)
             return 0
 
         # If there is no right child
         elif parent[0].right == NULL:
             temp = parent[0]
             parent[0] = parent[0].left
-            sage_free(temp)
+            sig_free(temp)
             return 0
 
         # Both children
@@ -627,7 +626,7 @@ cdef class SparseGraph(CGraph):
                 parent[0] = left_child[0]
                 left_child[0] = left_child[0].left
                 parent[0].left = temp.left
-                sage_free(temp)
+                sig_free(temp)
                 return 0
             else:
                 right_child[0].left = parent[0].left
@@ -635,7 +634,7 @@ cdef class SparseGraph(CGraph):
                 parent[0] = right_child[0]
                 right_child[0] = right_child[0].right
                 parent[0].right = temp.right
-                sage_free(temp)
+                sig_free(temp)
                 return 0
 
     cpdef del_all_arcs(self, int u, int v):
@@ -701,7 +700,7 @@ cdef class SparseGraph(CGraph):
                 neighbors[i] = pointers[0][i].vertex
             n_neighbors = -1
 
-        sage_free(pointers[0])
+        sig_free(pointers[0])
         return n_neighbors
 
     cdef int out_neighbors_BTNode_unsafe(self, int u, SparseGraphBTNode *** p_pointers):
@@ -730,7 +729,7 @@ cdef class SparseGraph(CGraph):
         if degree == 0:
             p_pointers[0] = NULL
             return 0
-        cdef SparseGraphBTNode **pointers = <SparseGraphBTNode **> sage_malloc(degree * sizeof(SparseGraphBTNode *))
+        cdef SparseGraphBTNode **pointers = <SparseGraphBTNode **> sig_malloc(degree * sizeof(SparseGraphBTNode *))
         p_pointers[0] = pointers
         if pointers == NULL:
             raise RuntimeError("Failure allocating memory.")
@@ -778,12 +777,12 @@ cdef class SparseGraph(CGraph):
         if self.out_degrees[u] == 0:
             return []
         cdef int size = self.out_degrees[u]
-        cdef int *neighbors = <int *> sage_malloc(size * sizeof(int))
+        cdef int *neighbors = <int *> sig_malloc(size * sizeof(int))
         if not neighbors:
             raise RuntimeError("Failure allocating memory.")
         num_nbrs = self.out_neighbors_unsafe(u, neighbors, size)
         output = [neighbors[i] for i from 0 <= i < num_nbrs]
-        sage_free(neighbors)
+        sig_free(neighbors)
         return output
 
     cpdef int out_degree(self, int u):
@@ -852,7 +851,7 @@ cdef class SparseGraph(CGraph):
                     label = label.next
 
         if pointers[0] != NULL:
-            sage_free(pointers[0])
+            sig_free(pointers[0])
 
         return l
 
@@ -913,12 +912,12 @@ cdef class SparseGraph(CGraph):
         if self.in_degrees[v] == 0:
             return []
         cdef int size = self.in_degrees[v]
-        cdef int *neighbors = <int *> sage_malloc(size * sizeof(int))
+        cdef int *neighbors = <int *> sig_malloc(size * sizeof(int))
         if not neighbors:
             raise RuntimeError("Failure allocating memory.")
         num_nbrs = self.in_neighbors_unsafe(v, neighbors, size)
         output = [neighbors[i] for i from 0 <= i < num_nbrs]
-        sage_free(neighbors)
+        sig_free(neighbors)
         return output
 
     cpdef int in_degree(self, int u):
@@ -972,7 +971,7 @@ cdef class SparseGraph(CGraph):
             else:
                 break
         if ins_pt[0] == NULL:
-            ins_pt[0] = <SparseGraphBTNode *> sage_malloc(sizeof(SparseGraphBTNode))
+            ins_pt[0] = <SparseGraphBTNode *> sig_malloc(sizeof(SparseGraphBTNode))
             if not ins_pt[0]:
                 raise RuntimeError("Failure allocating memory.")
             ins_pt[0].number = 0
@@ -985,9 +984,9 @@ cdef class SparseGraph(CGraph):
             while label_ptr != NULL and label_ptr.label != l:
                 label_ptr = label_ptr.next
             if label_ptr == NULL:
-                label_ptr = <SparseGraphLLNode *> sage_malloc(sizeof(SparseGraphLLNode))
+                label_ptr = <SparseGraphLLNode *> sig_malloc(sizeof(SparseGraphLLNode))
                 if not label_ptr:
-                    sage_free(ins_pt[0])
+                    sig_free(ins_pt[0])
                     raise RuntimeError("Failure allocating memory.")
                 label_ptr.label = l
                 label_ptr.number = 1
@@ -1176,15 +1175,15 @@ cdef class SparseGraph(CGraph):
             size = self.in_degrees[v]
         else:
             size = self.out_degrees[u]
-        arc_labels = <int *> sage_malloc(size * sizeof(int))
+        arc_labels = <int *> sig_malloc(size * sizeof(int))
         if not arc_labels:
             raise RuntimeError("Failure allocating memory.")
         num_arcs = self.all_arcs_unsafe(u, v, arc_labels, size)
         if num_arcs == -1:
-            sage_free(arc_labels)
+            sig_free(arc_labels)
             raise RuntimeError("There was an error: there seem to be more arcs than self.in_degrees or self.out_degrees indicate.")
         output = [arc_labels[i] for i from 0 <= i < num_arcs]
-        sage_free(arc_labels)
+        sig_free(arc_labels)
         return output
 
     cdef int del_arc_label_unsafe(self, int u, int v, int l):
@@ -1234,7 +1233,7 @@ cdef class SparseGraph(CGraph):
                 label.number -= 1
             else:
                 labels[0] = labels[0].next
-                sage_free(label)
+                sig_free(label)
                 if labels == &(parent[0].labels) and labels[0] == NULL and parent[0].number == 0:
                     # here we need to delete an "empty" binary tree node
                     self.del_arc_unsafe(u, v)
@@ -1343,123 +1342,6 @@ cdef class SparseGraph(CGraph):
 # Further tests. Unit tests for methods, functions, classes defined with cdef.
 ##############################
 
-def random_stress():
-    """
-    Randomly search for mistakes in the code.
-
-    DOCTEST (No output indicates that no errors were found)::
-
-        sage: from sage.graphs.base.sparse_graph import random_stress
-        sage: for _ in xrange(20):
-        ...    random_stress()
-
-    """
-    cdef int i, j, k, l, m, n
-    cdef SparseGraph Gnew
-    num_verts = 10
-    Gnew = SparseGraph(num_verts)
-    # This code deliberately uses random instead of sage.misc.prandom,
-    # so that every time it is run it does different tests, instead of
-    # doing the same random stress test every time.  (Maybe it should
-    # use sage.misc.random_testing?)
-    from random import randint
-    from sage.graphs.all import DiGraph
-    from sage.misc.misc import uniq
-    Gold = DiGraph(multiedges=True, loops=True, implementation='networkx')
-    Gold.add_vertices(xrange(num_verts))
-    for n from 0 <= n < 10:
-        i = randint(0,num_verts-1)
-        j = randint(0,num_verts-1)
-        l = randint(1,num_verts-1)
-        k = randint(0,num_verts-1)
-        if k > 7:
-#            print 'G.add_arc_label(%d,%d,%d);'%( i, j, l ) + ' Gold.add_edge(%d,%d,%d)'%( i, j, l )
-            if i not in Gold:
-                Gnew.add_vertex(i)
-            if j not in Gold:
-                Gnew.add_vertex(j)
-            Gold.add_edge(i,j,l)
-            Gnew.add_arc_label_unsafe(i,j,l)
-        elif k > 5:
-            m = randint(1,7)
-#            print 'G.add_vertices(range(num_verts, num_verts+%d)); '%m + ' Gold.add_vertices(range(num_verts, num_verts+%d));'%m + ' num_verts += %d'%m
-            Gold.add_vertices(range(num_verts, num_verts+m))
-            Gnew.add_vertices(range(num_verts, num_verts+m))
-            num_verts += m
-        elif k > 3:
-            m = randint(0,num_verts-1)
-            if m in Gold:
-#                print 'G.del_vertex(%d); '%m + ' Gold.delete_vertex(%d); num_verts -= 1'%(m)
-                Gold.delete_vertex(m)
-                Gnew.del_vertex(m)
-                num_verts -= 1
-        elif k > 1:
-#            print 'G.del_all_arcs(%d,%d);'%( i, j ) + ' Gold.delete_edges([(u,v,ll) for u,v,ll in Gold.edges() if u==%d and v==%d])'%(i,j)
-            Gold.delete_edges([(u,v,ll) for u,v,ll in Gold.edges() if u==i and v==j])
-            Gnew.del_arc_unsafe(i,j)
-        else:
-#            print 'G.del_arc_label(%d,%d,%d);'%( i, j, l ) + ' Gold.delete_edge(%d,%d,%d)'%( i, j, l )
-            Gold.delete_edge(i,j,l)
-            Gnew.del_arc_label_unsafe(i,j,l)
-    if Gnew.num_arcs != Gold.size():
-        #print Gnew.num_arcs, Gold.size()
-        raise RuntimeError( "NO:size" )
-    for i in Gold:
-        if Gnew.out_degrees[i] != Gold.out_degree(i):
-            raise RuntimeError( "NO:out degree" )
-        if Gnew.in_degrees[i] != Gold.in_degree(i):
-            raise RuntimeError( "NO:in degree" )
-        if sorted(Gnew.out_neighbors(i)) != uniq([v for u,v,l in Gold.outgoing_edge_iterator(i)]):
-            raise RuntimeError( "NO:out neighbors" )
-        if sorted(Gnew.in_neighbors(i)) != uniq([u for u,v,l in Gold.incoming_edge_iterator(i)]):
-#            print i
-#            print list(Gold.incoming_edge_iterator(i))
-#            print list(Gnew.in_neighbors(i))
-            raise RuntimeError( "NO:in neighbors %s %s %s "%((i,uniq([u for u,v,l in Gold.incoming_edge_iterator(i)]),Gnew.in_neighbors(i))) )
-        for j in Gold:
-            l = Gnew.arc_label_unsafe(i,j)
-            if l != 0:
-                if not Gold.has_edge(i,j,l):
-                    raise RuntimeError( "NO:has_edge" )
-            else:
-                if Gold.has_edge(i,j):
-                    raise RuntimeError( "NO:has_edge" )
-            list1 = Gnew.all_arcs(i,j)
-            list2 = [l for (u,v,l) in Gold.edges() if u==i and v==j]
-            if sorted(list1) != sorted(list2):
-                raise RuntimeError("NO:edges")
-            for l from 1 <= l < num_verts:
-                if Gold.has_edge(i,j,l) != Gnew.has_arc_label(i,j,l):
-                    raise RuntimeError("NO:edges")
-    Gnew = SparseGraph(num_verts)
-    Gold = DiGraph(loops=True, multiedges=True, implementation='networkx')
-    Gold.add_vertices(xrange(num_verts))
-    for n from 0 <= n < 100:
-        i = randint(0,num_verts-1)
-        j = randint(0,num_verts-1)
-        k = randint(0,num_verts-1)
-        if k != 0:
-            Gold.add_edge(i,j)
-            Gnew.add_arc_unsafe(i,j)
-        else:
-            while Gold.has_edge(i,j):
-                Gold.delete_edge(i,j)
-            Gnew.del_arc_unsafe(i,j)
-    if Gnew.num_arcs != Gold.size():
-        raise RuntimeError( "NO" )
-    for i from 0 <= i < num_verts:
-        if Gnew.out_degrees[i] != Gold.out_degree(i):
-            raise RuntimeError( "NO" )
-        if Gnew.in_degrees[i] != Gold.in_degree(i):
-            raise RuntimeError( "NO" )
-        if sorted(Gnew.out_neighbors(i)) != uniq([v for u,v,_ in Gold.outgoing_edge_iterator(i)]):
-            raise RuntimeError( "NO" )
-        if sorted(Gnew.in_neighbors(i)) != uniq([u for u,v,_ in Gold.incoming_edge_iterator(i)]):
-            raise RuntimeError( "NO" )
-        for j from 0 <= j < num_verts:
-            if Gnew.has_arc_unsafe(i,j) != Gold.has_edge(i,j):
-                raise RuntimeError( "NO" )
-
 def _test_adjacency_sequence_out():
     """
     Randomly test the method ``SparseGraph.adjacency_sequence_out()``. No output
@@ -1482,17 +1364,17 @@ def _test_adjacency_sequence_out():
     cdef SparseGraph g = SparseGraph(n,
                                      verts=randg.vertices(),
                                      arcs=E)
-    assert g._num_verts() == randg.order(), (
-        "Graph order mismatch: %s vs. %s" % (g._num_verts(), randg.order()))
-    assert g._num_arcs() == randg.size(), (
-        "Graph size mismatch: %s vs. %s" % (g._num_arcs(), randg.size()))
+    assert g.num_verts == randg.order(), (
+        "Graph order mismatch: %s vs. %s" % (g.num_verts, randg.order()))
+    assert g.num_arcs == randg.size(), (
+        "Graph size mismatch: %s vs. %s" % (g.num_arcs, randg.size()))
     M = randg.adjacency_matrix()
-    cdef int *V = <int *>sage_malloc(n * sizeof(int))
+    cdef int *V = <int *>sig_malloc(n * sizeof(int))
     cdef int i = 0
     for v in randg.vertex_iterator():
         V[i] = v
         i += 1
-    cdef int *seq = <int *> sage_malloc(n * sizeof(int))
+    cdef int *seq = <int *> sig_malloc(n * sizeof(int))
     for 0 <= i < randint(50, 101):
         u = randint(low, n - 1)
         g.adjacency_sequence_out(n, V, u, seq)
@@ -1500,28 +1382,15 @@ def _test_adjacency_sequence_out():
         try:
             assert A == list(M[u])
         except AssertionError:
-            sage_free(V)
-            sage_free(seq)
+            sig_free(V)
+            sig_free(seq)
             raise AssertionError("Graph adjacency mismatch")
-    sage_free(seq)
-    sage_free(V)
+    sig_free(seq)
+    sig_free(V)
 
 ###########################################
 # Sparse Graph Backend
 ###########################################
-
-cdef int new_edge_label(object l, dict edge_labels):
-    """
-    Returns a new unique int representing the arbitrary label l.
-    """
-    if l is None:
-        return 0
-    cdef int l_int, max = 0
-    for l_int in edge_labels:
-        if max < l_int:
-            max = l_int
-    edge_labels[max+1] = l
-    return max+1
 
 cdef class SparseGraphBackend(CGraphBackend):
     """
@@ -1578,6 +1447,25 @@ cdef class SparseGraphBackend(CGraphBackend):
         self.vertex_labels = {}
         self.vertex_ints = {}
         self.edge_labels = {}
+        self.edge_labels_max = 1
+        self.edge_labels_available_ids = []
+
+    cdef inline int new_edge_label(self, object l):
+        """
+        Returns a new unique int representing the arbitrary label l.
+        """
+        if l is None:
+            return 0
+
+        cdef int l_int
+        if self.edge_labels_available_ids:
+            l_int = self.edge_labels_available_ids.pop(-1)
+        else:
+            l_int = self.edge_labels_max
+            self.edge_labels_max += 1
+
+        self.edge_labels[l_int] = l
+        return l_int
 
     def add_edge(self, object u, object v, object l, bint directed):
         """
@@ -1615,7 +1503,7 @@ cdef class SparseGraphBackend(CGraphBackend):
         if l is None:
             l_int = 0
         else:
-            l_int = new_edge_label(l, self.edge_labels)
+            l_int = self.new_edge_label(l)
 
         if (not self.loops(None)) and u_int == v_int:
             return
@@ -1739,11 +1627,13 @@ cdef class SparseGraphBackend(CGraphBackend):
             self._cg_rev.del_arc_label(v_int, u_int, l_int)
             if l_int:
                 self.edge_labels.pop(l_int)
+                self.edge_labels_available_ids.append(l_int)
         else:
             self._cg.del_arc_label(u_int, v_int, l_int)
             if v_int != u_int: self._cg.del_arc_label(v_int, u_int, l_int)
             if l_int:
                 self.edge_labels.pop(l_int)
+                self.edge_labels_available_ids.append(l_int)
 
     def get_edge_label(self, object u, object v):
         """
@@ -1803,8 +1693,8 @@ cdef class SparseGraphBackend(CGraphBackend):
         cdef int v_int = self.get_vertex(v)
         if l is None:
             return self._cg.has_arc(u_int, v_int)
-        for l_int in self.edge_labels:
-            if self.edge_labels[l_int] == l and self._cg.has_arc_label(u_int, v_int, l_int):
+        for l_int in self._cg.all_arcs(u_int, v_int):
+            if l_int and self.edge_labels[l_int] == l:
                 return True
         return False
 
@@ -2066,7 +1956,7 @@ cdef class SparseGraphBackend(CGraphBackend):
         if l is None:
             l_int = 0
         else:
-            l_int = new_edge_label(l, self.edge_labels)
+            l_int = self.new_edge_label(l)
         cdef int u_int = self.get_vertex(u)
         cdef int v_int = self.get_vertex(v)
         if not (<SparseGraph>self._cg).has_arc_unsafe(u_int, v_int):
@@ -2074,6 +1964,7 @@ cdef class SparseGraphBackend(CGraphBackend):
         ll_int = (<SparseGraph>self._cg).arc_label_unsafe(u_int, v_int)
         if ll_int:
             self.edge_labels.pop(ll_int)
+            self.edge_labels_available_ids.append(ll_int)
         if directed:
             self._cg.del_arc_label(u_int, v_int, ll_int)
             self._cg_rev.del_arc_label(v_int, u_int, ll_int)

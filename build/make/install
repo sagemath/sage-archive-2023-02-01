@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+
+########################################################################
+# Set various environment variables
+########################################################################
+
+# Assume current directory is SAGE_ROOT/build/make
+export SAGE_ROOT=`cd ../.. && pwd -P`
+export SAGE_SRC="$SAGE_ROOT/src"
+export SAGE_LOCAL="$SAGE_ROOT/local"
+export SAGE_SHARE="$SAGE_LOCAL/share"
+export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
+export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
+export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
+export SAGE_VERSION=`cat $SAGE_ROOT/VERSION.txt | sed 's+.*\ \(.*\),.*+\1+'`
+
+if [ -z "${SAGE_ORIG_PATH_SET}" ]; then
+    SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH
+    SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET
+fi
+export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
+
+export PYTHONPATH="$SAGE_LOCAL"
+
+# Storing the start time of the build process. The time is stored in
+# seconds since 1970-01-01 in a hidden file called
+# "SAGE_ROOT/.BUILDSTART". See ticket #6744.
+echo `date -u "+%s"` > "$SAGE_ROOT/.BUILDSTART"
+
+###############################################################################
+# Skip the rest if nothing to do (i.e., to [re]build).
+###############################################################################
+
+# Set MAKE to "make" if unset
+if [ -z "$MAKE" ]; then
+    export MAKE=make
+fi
+
+# If "make" doesn't understand the -q option (although we require
+# GNU make, which supports it), it should exit with a non-zero status
+# which is not a problem.
+if $MAKE -q "$@" >/dev/null 2>/dev/null; then
+    echo "Nothing to (re)build / all up-to-date."
+    exit 0
+fi
+
+# Dump environment for debugging purposes:
+echo "*** ALL ENVIRONMENT VARIABLES BEFORE BUILD: ***"
+env | sort
+echo "***********************************************"
+
+###############################################################################
+# NOW do the actual build:
+###############################################################################
+time $MAKE "$@"
+if [ $? -ne 0 ]; then
+    cat >&2 <<EOF
+***************************************************************
+Error building Sage.
+
+The following package(s) may have failed to build (not necessarily
+during this run of 'make $@'):
+EOF
+
+    for f in "$SAGE_LOGS"/*.log; do
+        # Look for recent error message in log file.
+        # Note that "tail -n 20 ..." doesn't work on Solaris.
+        if tail -20 "$f" 2>/dev/null | grep "^Error" &>/dev/null; then
+            base_f=`basename $f .log`
+            cat >&2 <<EOF
+
+* package: $base_f
+  log file: $f
+  build directory: ${SAGE_BUILD_DIR:-$SAGE_LOCAL/var/tmp/sage/build}/$base_f
+EOF
+        fi
+    done
+
+    for f in "$SAGE_LOGS"/../doc*.log; do
+        # Look for recent error message in log file.
+        # Note that "tail -n 20 ..." doesn't work on Solaris.
+        if tail -100 "$f" 2>/dev/null | grep "^Error" &>/dev/null; then
+            base_f=`basename $f .log`
+            cat >&2 <<EOF
+
+* documentation: $base_f
+  log file: $f
+EOF
+        fi
+    done
+    cat >&2 <<EOF
+
+The build directory may contain configuration files and other potentially
+helpful information. WARNING: if you now run 'make' again, the build
+directory will, by default, be deleted. Set the environment variable
+SAGE_KEEP_BUILT_SPKGS to 'yes' to prevent this.
+
+EOF
+    exit 1
+fi
+
+# Build succeeded.
+echo "Sage build/upgrade complete!"
+
+if [ "$1" = "all" ]; then
+    echo
+    echo "To install small scripts to directly run Sage's versions of GAP,"
+    echo "the PARI/GP interpreter, Maxima, or Singular etc. (by typing e.g."
+    echo "just 'gap' or 'gp') into a standard 'bin' directory, start Sage"
+    echo "by typing 'sage' (or './sage') and enter something like"
+    echo
+    echo "    install_scripts('/usr/local/bin')"
+    echo
+    echo "at the Sage command prompt ('sage:')."
+    echo
+fi

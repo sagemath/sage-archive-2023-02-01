@@ -769,18 +769,23 @@ def CompleteGraphic(n):
         sage: M.is_valid()
         True
     """
-    M = Matroid(groundset=range(n * (n - 1) / 2), graph=graphs.CompleteGraph(n))
+    M = Matroid(groundset=range((n * (n - 1)) // 2),
+                graph=graphs.CompleteGraph(n))
     M.rename('M(K' + str(n) + '): ' + repr(M))
     return M
 
 
-def Wheel(n):
+def Wheel(n, field=None, ring=None):
     """
     Return the rank-`n` wheel.
 
     INPUT:
 
     - ``n`` -- a positive integer. The rank of the desired matroid.
+    - ``ring`` -- any ring. If provided, output will be a linear matroid 
+      over the ring or field ``ring``. If the ring is `\ZZ`, then output
+      will be a regular matroid.
+    - ``field`` -- any field. Same as ``ring``, but only fields are allowed.
 
     OUTPUT:
 
@@ -800,8 +805,24 @@ def Wheel(n):
         sage: M = matroids.Wheel(3)
         sage: M.is_isomorphic(matroids.CompleteGraphic(4))
         True
+        sage: M.is_isomorphic(matroids.Wheel(3,field=GF(3)))
+        True
+        sage: M = matroids.Wheel(3,field=GF(3)); M
+        Wheel(3): Ternary matroid of rank 3 on 6 elements, type 0+
     """
-    A = Matrix(ZZ, n, 2 * n, sparse=True)
+    base_ring = ZZ
+    if field != None and ring != None :
+        raise ValueError("only one of ring and field can be specified.")
+    if field != None :
+        base_ring = field
+        try:
+            if not base_ring.is_field():
+                raise TypeError("specified ``field`` is not a field.")
+        except AttributeError:
+            raise TypeError("specified ``field`` is not a field.")
+    if ring  != None :
+        base_ring = ring
+    A = Matrix(base_ring, n, 2 * n, sparse=True)
     for i in range(n):
         A[i, i] = 1
         A[i, n + i] = 1
@@ -809,7 +830,10 @@ def Wheel(n):
             A[i, i + n - 1] = -1
         else:
             A[i, 2 * n - 1] = -1
-    M = RegularMatroid(A)
+    if base_ring is ZZ:
+        M = RegularMatroid(A)
+    else:
+        M = Matroid(A)
     M.rename('Wheel(' + str(n) + '): ' + repr(M))
     return M
 
@@ -1342,7 +1366,7 @@ def Block_9_4():
         sage: M = matroids.named_matroids.Block_9_4()
         sage: M.is_valid() # long time
         True
-        sage: BD = designs.BlockDesign(M.groundset(), M.nonspanning_circuits())
+        sage: BD = BlockDesign(M.groundset(), M.nonspanning_circuits())
         sage: BD.is_t_design(return_parameters=True)
         (True, (2, 9, 4, 3))
     """
@@ -1366,7 +1390,7 @@ def Block_10_5():
         sage: M = matroids.named_matroids.Block_10_5()
         sage: M.is_valid() # long time
         True
-        sage: BD = designs.BlockDesign(M.groundset(), M.nonspanning_circuits())
+        sage: BD = BlockDesign(M.groundset(), M.nonspanning_circuits())
         sage: BD.is_t_design(return_parameters=True)
         (True, (3, 10, 5, 3))
     """

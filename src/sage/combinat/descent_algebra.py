@@ -30,7 +30,7 @@ from sage.combinat.subset import SubsetsSorted
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
 from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
 
-class DescentAlgebra(Parent, UniqueRepresentation):
+class DescentAlgebra(UniqueRepresentation, Parent):
     r"""
     Solomon's descent algebra.
 
@@ -65,15 +65,15 @@ class DescentAlgebra(Parent, UniqueRepresentation):
 
     REFERENCES:
 
-    .. [GR1989] C. Reutenauer, A. M. Garsia. *A decomposition of Solomon's
+    .. [GR1989] \C. Reutenauer, A. M. Garsia. *A decomposition of Solomon's
        descent algebra.* Adv. Math. **77** (1989).
        http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1989/Decomposition%20Solomon.pdf
 
-    .. [Atkinson] M. D. Atkinson. *Solomon's descent algebra revisited.*
+    .. [Atkinson] \M. D. Atkinson. *Solomon's descent algebra revisited.*
        Bull. London Math. Soc. 24 (1992) 545-551.
        http://www.cs.otago.ac.nz/staffpriv/mike/Papers/Descent/DescAlgRevisited.pdf
 
-    .. [MR-Desc] C. Malvenuto, C. Reutenauer, *Duality between
+    .. [MR-Desc] \C. Malvenuto, C. Reutenauer, *Duality between
        quasi-symmetric functions and the Solomon descent algebra*,
        Journal of Algebra 177 (1995), no. 3, 967-982.
        http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1995/Duality.pdf
@@ -453,7 +453,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             IM = IntegerMatrices(list(p), list(q))
             P = Compositions(self.realization_of()._n)
             to_composition = lambda m: P( [x for x in m.list() if x != 0] )
-            return self.sum_of_monomials(map(to_composition, IM))
+            return self.sum_of_monomials([to_composition(_) for _ in IM])
 
         @cached_method
         def one_basis(self):

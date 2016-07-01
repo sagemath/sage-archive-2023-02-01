@@ -337,32 +337,48 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
 
     def reflections(self):
         """
-        The reflections of W are the conjugates of the simple reflections.
-        They are in bijection with the positive roots, for given a positive
-        root, we may have the reflection in the hyperplane orthogonal to it.
-        This method returns a dictionary indexed by the reflections taking
-        values in the positive roots. This requires self to be a finite
-        Weyl group.
+        Return the reflections of ``self``.
+
+        The reflections of a Coxeter group `W` are the conjugates of
+        the simple reflections. They are in bijection with the positive
+        roots, for given a positive root, we may have the reflection in
+        the hyperplane orthogonal to it. This method returns a family
+        indexed by the positive roots taking values in the reflections.
+        This requires ``self`` to be a finite Weyl group.
+
+        .. NOTE::
+
+            Prior to :trac:`20027`, the reflections were the keys
+            of the family and the values were the positive roots.
 
         EXAMPLES::
 
             sage: W = WeylGroup("B2", prefix="s")
             sage: refdict = W.reflections(); refdict
-            Finite family {s1: (1, -1), s2*s1*s2: (1, 1), s1*s2*s1: (1, 0), s2: (0, 1)}
-            sage: [refdict[r]+r.action(refdict[r]) for r in refdict.keys()]
+            Finite family {(1, -1): s1, (1, 1): s2*s1*s2, (1, 0): s1*s2*s1, (0, 1): s2}
+            sage: [r+refdict[r].action(r) for r in refdict.keys()]
             [(0, 0), (0, 0), (0, 0), (0, 0)]
 
+            sage: W = WeylGroup(['A',2,1], prefix="s")
+            sage: W.reflections()
+            Lazy family (real root to reflection(i))_{i in
+                        Positive real roots of type ['A', 2, 1]}
+
+        TESTS::
+
+            sage: CM = CartanMatrix([[2,-6],[-1,2]])
+            sage: W = WeylGroup(CM, prefix='s')
+            sage: W.reflections()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented for finite and affine Cartan types
         """
-        ret = {}
-        try:
-            for alp in self.domain().positive_roots():
-                m = Matrix([self.domain().reflection(alp)(x).to_vector()
-                            for x in self.domain().basis()])
-                r = self(m)
-                ret[r] = alp
-            return Family(ret)
-        except Exception:
-            raise NotImplementedError("reflections are only implemented for finite Weyl groups")
+        prr = self.domain().positive_real_roots()
+        def to_elt(alp):
+            ref = self.domain().reflection(alp)
+            m = Matrix([ref(x).to_vector() for x in self.domain().basis()])
+            return self(m.transpose())
+        return Family(prr, to_elt, name="real root to reflection")
 
     def _repr_(self):
         """
@@ -412,6 +428,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
         Returns the unit element of the Weyl group
 
         EXAMPLES::
+
             sage: W = WeylGroup(['A',3])
             sage: e = W.one(); e
             [1 0 0 0]
@@ -513,7 +530,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             m = matrix(QQ, 3, l)
         else:
             m = diagonal_matrix([-1 for i in range(self.n)])
-        return self.__call__(m)
+        return self(m)
 
     def classical(self):
         """
@@ -572,7 +589,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             16
         """
         g = self.bruhat_interval(x, y)
-        ref = self.reflections().keys()
+        ref = self.reflections()
         d = {}
         for u in g:
             d[u] = [v for v in g if u.length() < v.length() and u*v.inverse() in ref]
@@ -703,11 +720,10 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: TestSuite(s1).run()
         """
         MatrixGroupElement_gap.__init__(self, parent, g, check=check)
-        self.__matrix = self.matrix()
         self._parent = parent
 
     def __hash__(self):
-        return hash(self.__matrix)
+        return hash(self.matrix())
 
     def domain(self):
         """
@@ -750,15 +766,17 @@ class WeylGroupElement(MatrixGroupElement_gap):
             return ret + "%s%d"%(self._parent._prefix, redword[-1])
 
     def _latex_(self):
-        """
+        r"""
+        Return the latex representation of ``self``.
+
         EXAMPLES::
 
             sage: W = WeylGroup(['A',2,1], prefix="s")
-            sage: [s0,s1,s2]=W.simple_reflections()
-            sage: latex(s0*s1) # indirect doctest
+            sage: [s0,s1,s2] = W.simple_reflections()
+            sage: latex(s0*s1)  # indirect doctest
             s_{0}s_{1}
             sage: W = WeylGroup(['A',2,1])
-            sage: [s0,s1,s2]=W.simple_reflections()
+            sage: [s0,s1,s2] = W.simple_reflections()
             sage: latex(s0*s1)
             \left(\begin{array}{rrr}
             0 & -1 & 2 \\
@@ -793,7 +811,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
         """
         return self.__class__ == other.__class__ and \
                self._parent   == other._parent   and \
-               self.__matrix  == other.__matrix
+               self.matrix()  == other.matrix()
 
     def _cmp_(self, other):
         """
@@ -817,6 +835,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
         Returns the action of self on the vector v.
 
         EXAMPLES::
+
             sage: W = WeylGroup(['A',2])
             sage: s = W.simple_reflections()
             sage: v = W.domain()([1,0,0])
@@ -839,7 +858,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
         """
         if v not in self.domain():
             raise ValueError("{} is not in the domain".format(v))
-        return self.domain().from_vector(self.__matrix*v.to_vector())
+        return self.domain().from_vector(self.matrix()*v.to_vector())
 
 
     ##########################################################################
@@ -848,12 +867,14 @@ class WeylGroupElement(MatrixGroupElement_gap):
 
     def has_descent(self, i, positive=False, side = "right"):
         """
-        Tests if self has a descent at position `i`, that is if self is
+        Test if ``self`` has a descent at position ``i``.
+
+        An element `w` has a descent in position `i` if `w` is
         on the strict negative side of the `i^{th}` simple reflection
         hyperplane.
 
-        If positive is True, tests if it is on the strict positive
-        side instead.
+        If ``positive`` is ``True``, tests if it is on the strict
+        positive side instead.
 
         EXAMPLES::
 
@@ -910,11 +931,53 @@ class WeylGroupElement(MatrixGroupElement_gap):
             self = ~self
 
         if use_rho:
-            s = self.action(L.rho()   ).scalar(L.alphacheck()[i]) >= 0
+            s = self.action(L.rho()).scalar(L.alphacheck()[i]) >= 0
         else:
             s = self.action(L.alpha()[i]).is_positive_root()
 
         return s is positive
+
+    def has_left_descent(self, i):
+        """
+        Test if ``self`` has a left descent at position ``i``.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A',3])
+            sage: s = W.simple_reflections()
+            sage: [W.one().has_left_descent(i) for i in W.domain().index_set()]
+            [False, False, False]
+            sage: [s[1].has_left_descent(i) for i in W.domain().index_set()]
+            [True, False, False]
+            sage: [s[2].has_left_descent(i) for i in W.domain().index_set()]
+            [False, True, False]
+            sage: [s[3].has_left_descent(i) for i in W.domain().index_set()]
+            [False, False, True]
+            sage: [(s[3]*s[2]).has_left_descent(i) for i in W.domain().index_set()]
+            [False, False, True]
+        """
+        return self.has_descent(i, side = "left")
+
+    def has_right_descent(self, i):
+        """
+        Test if ``self`` has a right descent at position ``i``.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A',3])
+            sage: s = W.simple_reflections()
+            sage: [W.one().has_right_descent(i) for i in W.domain().index_set()]
+            [False, False, False]
+            sage: [s[1].has_right_descent(i) for i in W.domain().index_set()]
+            [True, False, False]
+            sage: [s[2].has_right_descent(i) for i in W.domain().index_set()]
+            [False, True, False]
+            sage: [s[3].has_right_descent(i) for i in W.domain().index_set()]
+            [False, False, True]
+            sage: [(s[3]*s[2]).has_right_descent(i) for i in W.domain().index_set()]
+            [False, True, False]
+        """
+        return self.has_descent(i, side="right")
 
     def apply_simple_reflection(self, i, side = "right"):
         s = self.parent().simple_reflections()

@@ -48,7 +48,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.rings.all import Integers, Integer, PolynomialRing, PowerSeriesRing, Rationals, Rational, LaurentSeriesRing
 
@@ -64,7 +64,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
 
-from sage.rings.arith import binomial, integer_ceil as ceil
+from sage.arith.all import binomial, integer_ceil as ceil
 from sage.misc.functional import log
 from sage.misc.misc import newton_method_sizes
 
@@ -227,7 +227,7 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
-            sage: print R
+            sage: print(R)
             SpecialCubicQuotientRing over Ring of integers modulo 125 with polynomial T = x^3 + 124*x + 94
         """
         return "SpecialCubicQuotientRing over %s with polynomial T = %s" % \
@@ -1731,10 +1731,9 @@ import weakref
 from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
 from sage.schemes.hyperelliptic_curves.hyperelliptic_generic import is_HyperellipticCurve
 from sage.rings.padics.all import pAdicField
-from sage.rings.all import QQ
+from sage.rings.all import QQ, IntegralDomain
 
 from sage.rings.laurent_series_ring import is_LaurentSeriesRing
-from sage.rings.integral_domain import is_IntegralDomain
 
 from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import is_FreeModuleElement
@@ -1821,10 +1820,8 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
     reduced = [F_i.reduce_fast(True) for F_i in F]
 #    reduced = [F_i.reduce() for F_i in F]
 
-    #print reduced[0][0].diff() - F[0]
 
     # but the coeffs are WAY more precision than they need to be
-    # print reduced[0][1]
 
     prof("make matrix")
     # now take care of precision capping
@@ -1832,7 +1829,6 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
     for i in range(M.ncols()):
         for j in range(M.nrows()):
             M[i, j] = M[i, j].add_bigoh(prec)
-#    print prof
     return M.transpose(), [f for f, a in reduced]
 
 
@@ -2839,18 +2835,11 @@ class MonskyWashnitzerDifferentialRing(UniqueRepresentation, Module):
             t_cube = (t*t*t).truncate_neg(y_prec)
             t = t._rmul_(three_halves) - (half_a * t_cube).truncate_neg(y_prec)
             # t = (3/2) t - (1/2) a t^3
-            #        print "a =", a
-            #        print "t =", t
-            #        prof("verify")
-            #        print "a*t^2 =", a * t**2
 
         prof("compose")
         F_dx_y = (p * x_to_p_less_1 * t) >> (p-1)  # px^{p-1} sqrt(a) * y^{-p+1}
 
-        #        print "-----", F_dx_y
-        #        print "-----", x_to_p * F_dx_y
         prof("done")
-        #        print prof
         return MonskyWashnitzerDifferential(self, F_dx_y)
 
     def frob_basis_elements(self, prec, p):
@@ -2911,7 +2900,7 @@ class MonskyWashnitzerDifferentialRing(UniqueRepresentation, Module):
         for i in range(n):
             L.append((y*x**i).diff().extract_pow_y(0))
         A = matrix(L).transpose()
-        if not is_IntegralDomain(A.base_ring()):
+        if not isinstance(A.base_ring(), IntegralDomain):
             # must be using integer_mod or something to approximate
             self._helper_matrix = (~A.change_ring(QQ)).change_ring(A.base_ring())
         else:
@@ -3210,7 +3199,6 @@ class MonskyWashnitzerDifferential(ModuleElement):
                 j_inverse = ~R(j)
                 cs = [a*j_inverse for a in reduced.extract_pow_y(j-1)]
             lin_comb = M * vector(M.base_ring(), cs)
-#            print "j =", j, "b =", cs, "lin_comb =", lin_comb
             g = self.parent().base_ring()(0)
             if not lin_comb.is_zero():
                 for i in range(n):
@@ -3219,8 +3207,6 @@ class MonskyWashnitzerDifferential(ModuleElement):
                 if not g.is_zero():
                     f += g
                     reduced -= g.diff()
-#                    print g, g.diff()
-#                    print "reduced", reduced
 
         return f, reduced
 
@@ -3286,9 +3272,6 @@ class MonskyWashnitzerDifferential(ModuleElement):
 #        prof("recreate forms")
         f = S(forms, offset+1)
         reduced = S._monsky_washnitzer(coeffs[-1-offset:], -1)
-#        print self - f.diff() - reduced
-#        prof("done")
-#        print prof
         return f, reduced
 
     def reduce_neg_y_faster(self, even_degree_only=False):
@@ -3376,11 +3359,9 @@ class MonskyWashnitzerDifferential(ModuleElement):
         for j in range(self.max_pow_y(), 0, -1):
             for i in range(n-1, -1, -1):
                 c = reduced.extract_pow_y(j)[i]
-#                print "x^%s y^%s"%(i,j), c
                 if c != 0:
                     g = S.monomial(0, j+1) if i == n-1 else S.monomial(i+1, j-1)
                     dg = g.diff()
-#                    print reduced, " - ", dg
                     denom = dg.extract_pow_y(j)[i]
                     c /= denom
                     c = g.parent()(c)
@@ -3480,7 +3461,6 @@ class MonskyWashnitzerDifferential(ModuleElement):
             sage: f.diff() + a - w
             0 dx/2y
         """
-#        print "max_pow_y = ", self.max_pow_y(), "min_pow_y = ", self.min_pow_y()
         n = self.parent().base_ring().Q().degree()
         f1, a = self.reduce_neg_y()
         f2, a = a.reduce_pos_y()
@@ -3494,7 +3474,6 @@ class MonskyWashnitzerDifferential(ModuleElement):
             c = g.parent()(c/dg.extract_pow_y(0)[n-1])
             f += c * g
             a -= c * dg
-#            print g, dg
 
         return f, a
 
@@ -3519,8 +3498,6 @@ class MonskyWashnitzerDifferential(ModuleElement):
             sage: (x*y^2).diff().reduce_fast()
             (y^2*x, (0, 0))
         """
-#        print "max_pow_y = ", self.max_pow_y(), "min_pow_y = ", self.min_pow_y()
-
         f1, reduced = self.reduce_neg_y_fast(even_degree_only)
         f2, reduced = reduced.reduce_pos_y_fast(even_degree_only)
 #        f1, reduced = self.reduce_neg_y()

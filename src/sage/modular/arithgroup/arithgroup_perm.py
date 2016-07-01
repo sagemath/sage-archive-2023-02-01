@@ -41,7 +41,7 @@ For tests see the file ``sage.modular.arithgroup.tests``.
 
 REFERENCES:
 
-.. [AtSD71] A. O. L. Atkin and H. P. F. Swinnerton-Dyer, "Modular forms on
+.. [AtSD71] \A. O. L. Atkin and H. P. F. Swinnerton-Dyer, "Modular forms on
    noncongruence subgroups", Proc. Symp. Pure Math., Combinatorics (T. S. Motzkin,
    ed.), vol. 19, AMS, Providence 1971
 
@@ -125,13 +125,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ################################################################################
+from __future__ import print_function
 
 from all import SL2Z
 from arithgroup_generic import ArithmeticSubgroup
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import verbose
-import sage.rings.arith as arith
+import sage.arith.all as arith
 
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 
@@ -300,8 +301,8 @@ def _equalize_perms(l):
         sage: l
         [[0, 1, 2, 3], [1, 0, 2, 3], [3, 0, 1, 2]]
     """
-    n=max(map(len,l))
-    if n ==0:
+    n = max(map(len,l))
+    if n == 0:
         n = 1
     for p in l:
         p.extend(xrange(len(p),n))
@@ -678,10 +679,12 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
 
             sage: import sage.modular.arithgroup.arithgroup_perm as ap
             sage: ap.HsuExample10().perm_group()
-            Permutation Group with generators [(1,2)(3,4)(5,6)(7,8)(9,10), (1,4)(2,5,9,10,8)(3,7,6), (1,7,9,10,6)(2,3)(4,5,8), (1,8,3)(2,4,6)(5,7,10)]
+            Permutation Group with generators [(1,2)(3,4)(5,6)(7,8)(9,10), (1,8,3)(2,4,6)(5,7,10), (1,4)(2,5,9,10,8)(3,7,6), (1,7,9,10,6)(2,3)(4,5,8)]
         """
         from sage.groups.perm_gps.all import PermutationGroup
-        return PermutationGroup([self.S2(), self.S3(), self.L(), self.R()])
+        # we set canonicalize to False as otherwise PermutationGroup changes the
+        # order of the generators.
+        return PermutationGroup([self.S2(), self.S3(), self.L(), self.R()], canonicalize=False)
 
     def index(self):
         r"""
@@ -1348,9 +1351,9 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         generalized level (if `G` is odd). Then:
 
         - if `N` is odd, `G` is congruence if and only if the relation
-        
+
           .. math::
-        
+
             (L R^{-1} L)^2 = (R^2 L^{1/2})^3
 
           holds, where `1/2` is understood as the multiplicative inverse of 2
@@ -1393,7 +1396,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             sage: l = S2((2,3,4))
             sage: r = S2((1,3,4))
             sage: G = ArithmeticSubgroup_Permutation(L=l,R=r)
-            sage: print G
+            sage: G
             Arithmetic subgroup with permutations of right cosets
             S2=(1,2)(3,4)
             S3=(1,4,2)
@@ -1520,6 +1523,44 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
                 return False
 
             return True
+
+    def surgroups(self):
+        r"""
+        Return an iterator through the non-trivial intermediate groups between
+        `SL(2,\ZZ)` and this finite index group.
+
+        EXAMPLES::
+
+            sage: G = ArithmeticSubgroup_Permutation(S2="(1,2)(3,4)(5,6)", S3="(1,2,3)(4,5,6)")
+            sage: H = next(G.surgroups())
+            sage: H
+             Arithmetic subgroup with permutations of right cosets
+             S2=(1,2)
+             S3=(1,2,3)
+             L=(1,3)
+             R=(2,3)
+            sage: G.is_subgroup(H)
+            True
+
+        The principal congruence group `\Gamma(3)` has thirteen surgroups::
+
+            sage: G = Gamma(3).as_permutation_group()
+            sage: G.index()
+            24
+            sage: l = []
+            sage: for H in G.surgroups():
+            ....:     l.append(H.index())
+            ....:     assert G.is_subgroup(H) and H.is_congruence()
+            sage: l
+            [6, 3, 4, 8, 4, 8, 4, 12, 4, 6, 6, 8, 8]
+        """
+        from sage.interfaces.gap import gap
+        P = self.perm_group()._gap_()
+        for b in P.AllBlocks():
+            orbit = P.Orbit(b, gap.OnSets)
+            action = P.Action(orbit, gap.OnSets)
+            S2,S3,L,R = action.GeneratorsOfGroup()
+            yield ArithmeticSubgroup_Permutation(S2=S2, S3=S3, L=L, R=R, check=False)
 
 class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
     r"""
@@ -1744,7 +1785,7 @@ class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
 
         INPUT:
 
-        ``exp`` - boolean (default: False) - if True, return a dictionnary with
+        ``exp`` - boolean (default: False) - if True, return a dictionary with
         keys the possible widths and with values the number of cusp with that
         width.
 
@@ -1777,12 +1818,13 @@ class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
                 else:
                     widths.append(len(c))
             else:
+                c2 = len(c) // 2
                 if exp:
-                    if not len(c)/2 in widths:
-                        widths[len(c)/2] = 0
-                    widths[len(c)/2] += 1
+                    if not c2 in widths:
+                        widths[c2] = 0
+                    widths[c2] += 1
                 else:
-                    widths.append(len(c)/2)
+                    widths.append(c2)
 
         if exp:
             return widths
@@ -1844,7 +1886,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
         True
 
         sage: G = Gamma0(12).as_permutation_group()
-        sage: print G
+        sage: G
         Arithmetic subgroup of index 24
         sage: G.is_congruence()
         True
@@ -1995,7 +2037,9 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             sage: tree,reps,wreps,gens = G._spanning_tree_kulkarni()
             sage: tree
             Digraph on 4 vertices
-            sage: for m in reps: print m,"\n****"
+            sage: for m in reps:
+            ....:     print(m)
+            ....:     print("\n****")
             [1 0]
             [0 1]
             ****
@@ -2008,7 +2052,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             [1 1]
             [0 1]
             ****
-            sage: for w in wreps: print ','.join(w)
+            sage: for w in wreps: print(','.join(w))
             <BLANKLINE>
             s3
             s3,s3
@@ -2119,7 +2163,9 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             sage: tree,reps,wreps,gens=G._spanning_tree_verrill()
             sage: tree
             Digraph on 4 vertices
-            sage: for m in reps: print m, "\n****"
+            sage: for m in reps:
+            ....:     print(m)
+            ....:     print("\n****")
             [1 0]
             [0 1]
             ****
@@ -2414,24 +2460,24 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
         Starting from `\Gamma(4)` we get back `\Gamma(4)`::
 
             sage: G = Gamma(4).as_permutation_group()
-            sage: print G.is_odd(), G.index()
-            True 48
+            sage: G.is_odd(), G.index()
+            (True, 48)
             sage: Ge = G.to_even_subgroup()
             sage: Go = Ge.one_odd_subgroup()
-            sage: print Go.is_odd(), Go.index()
-            True 48
+            sage: Go.is_odd(), Go.index()
+            (True, 48)
             sage: Go == G
             True
 
         Strating from `\Gamma(6)` we get a different group::
 
             sage: G = Gamma(6).as_permutation_group()
-            sage: print G.is_odd(), G.index()
-            True 144
+            sage: G.is_odd(), G.index()
+            (True, 144)
             sage: Ge = G.to_even_subgroup()
             sage: Go = Ge.one_odd_subgroup()
-            sage: print Go.is_odd(), Go.index()
-            True 144
+            sage: Go.is_odd(), Go.index()
+            (True, 144)
             sage: Go == G
             False
 
@@ -2513,7 +2559,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             sage: [G.S2(), G.S3()]
             [(1,2)(3,4)(5,6)(7,8)(9,10), (1,8,3)(2,4,6)(5,7,10)]
             sage: X = G.odd_subgroups()
-            sage: for u in X: print [u.S2(), u.S3()]
+            sage: for u in X: print([u.S2(), u.S3()])
             [(1,2,11,12)(3,4,13,14)(5,6,15,16)(7,8,17,18)(9,10,19,20), (1,8,3,11,18,13)(2,4,6,12,14,16)(5,7,10,15,17,20)(9,19)]
             [(1,2,11,12)(3,4,13,14)(5,6,15,16)(7,8,17,18)(9,10,19,20), (1,18,13,11,8,3)(2,4,6,12,14,16)(5,7,10,15,17,20)(9,19)]
             [(1,2,11,12)(3,4,13,14)(5,6,15,16)(7,8,17,18)(9,10,19,20), (1,8,13,11,18,3)(2,4,6,12,14,16)(5,7,10,15,17,20)(9,19)]

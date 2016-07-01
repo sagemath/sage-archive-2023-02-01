@@ -36,16 +36,24 @@ TESTS::
     sage: v = vector(ZZ, [1,2,3,4])
     sage: loads(dumps(v)) == v
     True
+
+    sage: w = vector(ZZ, [-1,0,0,0])
+    sage: w.set_immutable()
+    sage: isinstance(hash(w), int)
+    True
 """
 
-###############################################################################
-#   Sage: System for Algebra and Geometry Experimentation
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
+
 include 'sage/ext/stdsage.pxi'
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
@@ -88,7 +96,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         self._degree = degree
         self._parent = parent
         self._is_mutable = 1
-        self._entries = <mpz_t *> sage_malloc(sizeof(mpz_t) * degree)
+        self._entries = <mpz_t *> sig_malloc(sizeof(mpz_t) * degree)
         if self._entries == NULL:
             raise MemoryError
 
@@ -119,9 +127,9 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         if self._entries:
             for i from 0 <= i < self._degree:
                 mpz_clear(self._entries[i])
-            sage_free(self._entries)
+            sig_free(self._entries)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         EXAMPLES::
 
@@ -133,6 +141,8 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             sage: v == v
             True
             sage: w = vector(ZZ, [-1,0,0,0])
+            sage: w == w
+            True
             sage: w < v
             True
             sage: w > v
@@ -147,29 +157,6 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             elif c > 0:
                 return 1
         return 0
-
-    # see sage/structure/element.pyx
-    def __richcmp__(left, right, int op):
-        """
-        TEST::
-
-            sage: w = vector(ZZ, [-1,0,0,0])
-            sage: w == w
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    # __hash__ is not properly inherited if comparison is changed
-    def __hash__(self):
-        """
-        TEST::
-
-            sage: w = vector(ZZ, [-1,0,0,0])
-            sage: w.set_immutable()
-            sage: isinstance(hash(w), int)
-            True
-        """
-        return free_module_element.FreeModuleElement.__hash__(self)
 
     cdef get_unsafe(self, Py_ssize_t i):
         """
@@ -226,7 +213,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
     def __reduce__(self):
         return (unpickle_v1, (self._parent, self.list(), self._degree, self._is_mutable))
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         cdef Vector_integer_dense z, r
         r = right
         z = self._new_c()
@@ -237,7 +224,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         return z
 
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         cdef Vector_integer_dense z, r
         r = right
         z = self._new_c()
@@ -247,7 +234,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             mpz_sub(z._entries[i], self._entries[i], r._entries[i])
         return z
 
-    cpdef Element _dot_product_(self, Vector right):
+    cpdef _dot_product_(self, Vector right):
         """
         Dot product of dense vectors over the integers.
 
@@ -272,7 +259,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         mpz_clear(t)
         return z
 
-    cpdef Vector _pairwise_product_(self, Vector right):
+    cpdef _pairwise_product_(self, Vector right):
         """
         EXAMPLES::
 
@@ -289,7 +276,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             mpz_mul(z._entries[i], self._entries[i], r._entries[i])
         return z
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         cdef Vector_integer_dense z
         cdef Integer a
         a = left
@@ -300,7 +287,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             mpz_mul(z._entries[i], self._entries[i], a.value)
         return z
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         cdef Vector_integer_dense z
         cdef Integer a
         a = right
@@ -311,7 +298,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             mpz_mul(z._entries[i], self._entries[i], a.value)
         return z
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         cdef Vector_integer_dense z
         z = self._new_c()
         cdef Py_ssize_t i

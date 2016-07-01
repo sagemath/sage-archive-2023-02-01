@@ -22,16 +22,15 @@ Check that operations with numpy elements work well (see :trac:`18076` and
     1.50000000000000*x
 """
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
-from sage.ext.memory cimport check_reallocarray, check_allocarray, sage_free
+include "cysignals/signals.pxi"
+include "cysignals/memory.pxi"
 
 from cpython cimport PyInt_AS_LONG, PyFloat_AS_DOUBLE
 
 from sage.structure.parent cimport Parent
 from polynomial_element cimport Polynomial
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
-from sage.rings.integer cimport Integer
+from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
 
 from sage.structure.element cimport Element, ModuleElement, RingElement
@@ -41,6 +40,16 @@ from sage.libs.mpfr cimport *
 from sage.libs.all import pari_gen
 
 cdef class PolynomialRealDense(Polynomial):
+    r"""
+
+    TESTS::
+
+        sage: f = RR['x'].random_element()
+        sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
+        sage: isinstance(f, PolynomialRealDense)
+        True
+
+    """
 
     cdef Py_ssize_t _degree
     cdef mpfr_t* _coeffs
@@ -68,7 +77,7 @@ cdef class PolynomialRealDense(Polynomial):
 
         TESTS:
 
-        Check that errors and interrupts are handled properly (see #10100)::
+        Check that errors and interrupts are handled properly (see :trac:`10100`)::
 
             sage: a = var('a')
             sage: PolynomialRealDense(RR['x'], [1,a])
@@ -82,25 +91,26 @@ cdef class PolynomialRealDense(Polynomial):
             TypeError: Cannot evaluate symbolic expression to a numeric value.
             sage: sig_on_count()
             0
-            sage: alarm(0.5); PolynomialRealDense(RR['x'], ZZ)  # Will loop forever
-            Traceback (most recent call last):
-            ...
-            AlarmInterrupt
 
-        Test that we don't clean up uninitialized coefficients (#9826)::
+        Test that we don't clean up uninitialized coefficients (:trac:`9826`)::
 
             sage: k.<a> = GF(7^3)
             sage: P.<x> = PolynomialRing(k)
             sage: (a*x).complex_roots()
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert x (='a') to real number.
+            TypeError: unable to convert 'a' to a real number
+
+        Check that :trac:`17190` is fixed::
+
+            sage: RR['x']({})
+            0
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         self._base_ring = parent._base
         cdef Py_ssize_t i, degree
         cdef int prec = self._base_ring.__prec
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         if x is None:
             self._coeffs = <mpfr_t*>check_allocarray(1, sizeof(mpfr_t)) # degree zero
             mpfr_init2(self._coeffs[0], prec)
@@ -112,11 +122,7 @@ cdef class PolynomialRealDense(Polynomial):
         elif isinstance(x, (int, float, Integer, Rational, RealNumber)):
             x = [x]
         elif isinstance(x, dict):
-            degree = max(x.keys())
-            c = [0] * (degree+1)
-            for i, a in x.items():
-                c[i] = a
-            x = c
+            x = self._dict_to_list(x,self._base_ring.zero())
         elif isinstance(x, pari_gen):
             x = [self._base_ring(w) for w in x.list()]
         elif not isinstance(x, list):
@@ -158,7 +164,7 @@ cdef class PolynomialRealDense(Polynomial):
         if self._coeffs != NULL:
             for i from 0 <= i <= self._degree:
                 mpfr_clear(self._coeffs[i])
-            sage_free(self._coeffs)
+            sig_free(self._coeffs)
 
     def __reduce__(self):
         """
@@ -184,8 +190,10 @@ cdef class PolynomialRealDense(Polynomial):
             self._coeffs = <mpfr_t*>check_reallocarray(self._coeffs, i+1, sizeof(mpfr_t))
             self._degree = i
 
-    def __getitem__(self, ix):
+    cdef get_unsafe(self, Py_ssize_t i):
         """
+        Return the `i`-th coefficient of ``self``.
+
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
@@ -205,27 +213,9 @@ cdef class PolynomialRealDense(Polynomial):
             x^5 + 5.0*x^4 + 10.*x^3 + 10.*x^2 + 5.0*x + 1.0
             sage: f[:3]
             10.*x^2 + 5.0*x + 1.0
-            sage: f[3:]
-            x^5 + 5.0*x^4 + 10.*x^3
-            sage: f[1:4]
-            10.*x^3 + 10.*x^2 + 5.0*x
-
         """
-        if isinstance(ix, slice):
-            if ix.stop is None:
-                chopped = self
-            else:
-                chopped = self.truncate(ix.stop)
-            if ix.start is None:
-                return chopped
-            else:
-                return (chopped >> ix.start) << ix.start
-        cdef RealNumber r = <RealNumber>RealNumber(self._base_ring)
-        cdef Py_ssize_t i = ix
-        if 0 <= i <= self._degree:
-            mpfr_set(r.value, self._coeffs[i], self._base_ring.rnd)
-        else:
-            mpfr_set_ui(r.value, 0, self._base_ring.rnd)
+        cdef RealNumber r = <RealNumber>RealNumber.__new__(RealNumber, self._base_ring)
+        mpfr_set(r.value, self._coeffs[i], self._base_ring.rnd)
         return r
 
     cdef PolynomialRealDense _new(self, Py_ssize_t degree):
@@ -241,8 +231,10 @@ cdef class PolynomialRealDense(Polynomial):
                 mpfr_init2(f._coeffs[i], prec)
         return f
 
-    cpdef Py_ssize_t degree(self):
+    def degree(self):
         """
+        Return the degree of the polynomial.
+
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
@@ -250,8 +242,13 @@ cdef class PolynomialRealDense(Polynomial):
             3.00000000000000*x^2 + 2.00000000000000*x + 1.00000000000000
             sage: f.degree()
             2
+
+        TESTS::
+
+            sage: type(f.degree())
+            <type 'sage.rings.integer.Integer'>
         """
-        return self._degree
+        return smallInteger(self._degree)
 
     cpdef Polynomial truncate(self, long n):
         r"""
@@ -375,13 +372,13 @@ cdef class PolynomialRealDense(Polynomial):
             -x^2 + 2.00000000000000
         """
         cdef Py_ssize_t i
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f = self._new(self._degree)
         for i from 0 <= i <= f._degree:
             mpfr_neg(f._coeffs[i], self._coeffs[i], rnd)
         return f
 
-    cpdef ModuleElement _add_(left, ModuleElement _right):
+    cpdef _add_(left, _right):
         """
         EXAMPLES::
 
@@ -398,7 +395,7 @@ cdef class PolynomialRealDense(Polynomial):
             0
         """
         cdef Py_ssize_t i
-        cdef mp_rnd_t rnd = left._base_ring.rnd
+        cdef mpfr_rnd_t rnd = left._base_ring.rnd
         cdef PolynomialRealDense right = _right
         cdef Py_ssize_t min = left._degree if left._degree < right._degree else right._degree
         cdef Py_ssize_t max = left._degree if left._degree > right._degree else right._degree
@@ -414,7 +411,7 @@ cdef class PolynomialRealDense(Polynomial):
         f._normalize()
         return f
 
-    cpdef ModuleElement _sub_(left, ModuleElement _right):
+    cpdef _sub_(left, _right):
         """
         EXAMPLES::
 
@@ -429,7 +426,7 @@ cdef class PolynomialRealDense(Polynomial):
             True
         """
         cdef Py_ssize_t i
-        cdef mp_rnd_t rnd = left._base_ring.rnd
+        cdef mpfr_rnd_t rnd = left._base_ring.rnd
         cdef PolynomialRealDense right = _right
         cdef Py_ssize_t min = left._degree if left._degree < right._degree else right._degree
         cdef Py_ssize_t max = left._degree if left._degree > right._degree else right._degree
@@ -445,10 +442,10 @@ cdef class PolynomialRealDense(Polynomial):
         f._normalize()
         return f
 
-    cpdef ModuleElement _rmul_(self, RingElement c):
+    cpdef _rmul_(self, RingElement c):
         return self._lmul_(c)
 
-    cpdef ModuleElement _lmul_(self, RingElement c):
+    cpdef _lmul_(self, RingElement c):
         """
         EXAMPLES::
 
@@ -464,13 +461,13 @@ cdef class PolynomialRealDense(Polynomial):
         cdef RealNumber a = c
         if mpfr_zero_p(a.value):
             return self._new(-1)
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f = self._new(self._degree)
         for i from 0 <= i <= self._degree:
             mpfr_mul(f._coeffs[i], self._coeffs[i], a.value, rnd)
         return f
 
-    cpdef RingElement _mul_(left, RingElement _right):
+    cpdef _mul_(left, _right):
         """
         Here we use the naive `O(n^2)` algorithm, as asymptotically faster algorithms such
         as Karatsuba can have very inaccurate results due to intermediate rounding errors.
@@ -490,7 +487,7 @@ cdef class PolynomialRealDense(Polynomial):
             8.00000000000000*x^6 + 10.0000000000000*x^5 + 7.00000000000000*x^4 + 4.00000000000000*x^3 + x^2
         """
         cdef Py_ssize_t i, j
-        cdef mp_rnd_t rnd = left._base_ring.rnd
+        cdef mpfr_rnd_t rnd = left._base_ring.rnd
         cdef PolynomialRealDense right = _right
         cdef PolynomialRealDense f
         cdef mpfr_t tmp
@@ -523,7 +520,7 @@ cdef class PolynomialRealDense(Polynomial):
         """
         if var is not None and var != self._parent.gen():
             return self._new(-1)
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f = self._new(self._degree-1)
         for i from 0 <= i < self._degree:
             mpfr_mul_ui(f._coeffs[i], self._coeffs[i+1], i+1, rnd)
@@ -538,7 +535,7 @@ cdef class PolynomialRealDense(Polynomial):
             sage: f.integral()
             0.333333333333333*x^3 + 1.57079632679490*x^2 + 3.00000000000000*x
         """
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f = self._new(self._degree+1)
         mpfr_set_ui(f._coeffs[0], 0, rnd)
         for i from 0 <= i <= self._degree:
@@ -556,7 +553,7 @@ cdef class PolynomialRealDense(Polynomial):
             sage: f.reverse()
             -3.00000000000000*x^3 + 3.14159265358979*x^2 + 1.00000000000000
         """
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f = self._new(self._degree)
         for i from 0 <= i <= self._degree:
             mpfr_set(f._coeffs[self._degree-i], self._coeffs[i], rnd)
@@ -566,6 +563,8 @@ cdef class PolynomialRealDense(Polynomial):
     @coerce_binop
     def quo_rem(self, PolynomialRealDense other):
         """
+        Return the quotient with remainder of ``self`` by ``other``.
+
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
@@ -589,10 +588,26 @@ cdef class PolynomialRealDense(Polynomial):
             sage: q, r = f.quo_rem(g)
             sage: g*q + r == f
             True
+
+        TESTS:
+
+        Check that :trac:`18467` is fixed::
+
+            sage: S.<x> = RR[]
+            sage: z = S.zero()
+            sage: z.degree()
+            -1
+            sage: q, r = z.quo_rem(x)
+            sage: q.degree()
+            -1
         """
         if other._degree < 0:
-            raise ZeroDivisionError, "other must be nonzero"
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+            raise ZeroDivisionError("other must be nonzero")
+        elif other._degree == 0:
+            return self * ~other[0], self._parent.zero()
+        elif other._degree > self._degree:
+            return self._parent.zero(), self
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense q, r
         cdef Py_ssize_t i, j
         cdef mpfr_t tmp
@@ -616,49 +631,6 @@ cdef class PolynomialRealDense(Polynomial):
         r._normalize()
         return q, r * leading
 
-    @coerce_binop
-    def gcd(self, other):
-        """
-        Returns the gcd of self and other as a monic polynomial. Due to the
-        inherit instability of division in this inexact ring, the results may
-        not be entirely stable.
-
-        EXAMPLES::
-
-            sage: R.<x> = RR[]
-            sage: (x^3).gcd(x^5+1)
-            1.00000000000000
-            sage: (x^3).gcd(x^5+x^2)
-            x^2
-            sage: f = (x+3)^2 * (x-1)
-            sage: g = (x+3)^5
-            sage: f.gcd(g)
-            x^2 + 6.00000000000000*x + 9.00000000000000
-
-        Unless the division is exact (i.e. no rounding occurs) the returned gcd is
-        almost certain to be 1. ::
-
-            sage: f = (x+RR.pi())^2 * (x-1)
-            sage: g = (x+RR.pi())^5
-            sage: f.gcd(g)
-            1.00000000000000
-
-        """
-        aval = self.valuation()
-        a = self >> aval
-        bval = other.valuation()
-        b = other >> bval
-        if b.degree() > a.degree():
-            a, b = b, a
-        while b: # this will be exactly zero when the previous b is degree 0
-            q, r = a.quo_rem(b)
-            a, b = b, r
-        if a.degree() == 0:
-            # make sure gcd of "relatively prime" things is exactly 1
-            return self._parent(1) << min(aval, bval)
-        else:
-            return a * ~a[a.degree()] << min(aval, bval)
-
     def __call__(self, *args, **kwds):
         """
         EXAMPLES::
@@ -674,7 +646,7 @@ cdef class PolynomialRealDense(Polynomial):
             sage: f(RealField(10)(2))
             2.0
             sage: f(pi)
-            pi^2 - 2.00000000000000
+            1.00000000000000*pi^2 - 2.00000000000000
 
 
             sage: f = PolynomialRealDense(RR['x'], range(5))
@@ -687,10 +659,10 @@ cdef class PolynomialRealDense(Polynomial):
             sage: f = PolynomialRealDense(RR['x'])
             sage: f(12)
             0.000000000000000
-            
+
         TESTS::
-        
-            sage: R.<x> = RR[]       # :trac:`17311`
+
+            sage: R.<x> = RR[]       # trac #17311
             sage: (x^2+1)(x=5)
             26.0000000000000
         """
@@ -698,15 +670,15 @@ cdef class PolynomialRealDense(Polynomial):
             xx = args[0]
         else:
             return Polynomial.__call__(self, *args, **kwds)
-        
+
         if not isinstance(xx, RealNumber):
             if self._base_ring.has_coerce_map_from(parent(xx)):
                 xx = self._base_ring(xx)
             else:
                 return Polynomial.__call__(self, xx)
-            
+
         cdef Py_ssize_t i
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef RealNumber x = <RealNumber>xx
         cdef RealNumber res
 
@@ -735,7 +707,7 @@ cdef class PolynomialRealDense(Polynomial):
                 mpfr_mul(res.value, res.value, x.value, rnd)
                 mpfr_add(res.value, res.value, self._coeffs[i], rnd)
         return res
-    
+
     def change_ring(self, R):
         """
         EXAMPLES::
@@ -750,7 +722,7 @@ cdef class PolynomialRealDense(Polynomial):
             1.5000000000000000000000000000*x^2 - 2.0000000000000000000000000000
         """
         cdef Py_ssize_t i
-        cdef mp_rnd_t rnd = self._base_ring.rnd
+        cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f
         if isinstance(R, RealField_class):
             f = PolynomialRealDense(R[self.variable_name()])

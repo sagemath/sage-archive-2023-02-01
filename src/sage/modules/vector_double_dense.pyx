@@ -1,6 +1,8 @@
 r"""
-Dense vectors using a NumPy backend.  This serves as a base class for
-dense vectors over Real Double Field and Complex Double Field
+Dense vectors using a NumPy backend.
+
+This serves as a base class for dense vectors over Real Double Field and
+Complex Double Field
 
 EXAMPLES::
 
@@ -24,7 +26,7 @@ EXAMPLES::
 AUTHORS:
 
 - Jason Grout, Oct 2008: switch to numpy backend, factored out
-       Vector_double_dense class
+  ``Vector_double_dense`` class
 - Josh Kantor
 - William Stein
 """
@@ -269,7 +271,7 @@ cdef class Vector_double_dense(FreeModuleElement):
                                                 numpy.PyArray_GETPTR1(self._vector_numpy, i)))
 
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two vectors together.
 
@@ -289,7 +291,7 @@ cdef class Vector_double_dense(FreeModuleElement):
 
         return self._new(_left._vector_numpy + _right._vector_numpy)
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Return self - right
 
@@ -309,7 +311,7 @@ cdef class Vector_double_dense(FreeModuleElement):
 
         return self._new(_left._vector_numpy - _right._vector_numpy)
 
-    cpdef Element _dot_product_(self, Vector right):
+    cpdef _dot_product_(self, Vector right):
         """
         Dot product of self and right.
 
@@ -333,7 +335,7 @@ cdef class Vector_double_dense(FreeModuleElement):
 
         return self._sage_dtype(numpy.dot(_left._vector_numpy, _right._vector_numpy))
 
-    cpdef Vector _pairwise_product_(self, Vector right):
+    cpdef _pairwise_product_(self, Vector right):
         """
         Return the component-wise product of self and right.
 
@@ -356,7 +358,7 @@ cdef class Vector_double_dense(FreeModuleElement):
 
         return self._new(_left._vector_numpy * _right._vector_numpy)
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         Multiply a scalar and vector
 
@@ -373,7 +375,7 @@ cdef class Vector_double_dense(FreeModuleElement):
         return self._new(self._python_dtype(left)*self._vector_numpy)
 
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         Multiply a scalar and vector
 
@@ -752,10 +754,10 @@ cdef class Vector_double_dense(FreeModuleElement):
 
             sage: v = vector(RDF, range(9))
             sage: w = vector(CDF, [k+(9-k)*I for k in range(9)])
-            sage: v.stats_kurtosis()
-            -1.2300000000000002
-            sage: w.stats_kurtosis()
-            -1.2300000000000002
+            sage: v.stats_kurtosis()  # rel tol 5e-15
+            -1.2300000000000000
+            sage: w.stats_kurtosis()  # rel tol 5e-15
+            -1.2300000000000000
         """
         import scipy.stats
         return self._sage_dtype(scipy.stats.kurtosis(self._vector_numpy))

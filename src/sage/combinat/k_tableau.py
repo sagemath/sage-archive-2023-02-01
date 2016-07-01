@@ -11,11 +11,11 @@ More information can be found in [LLMS2006]_ .
 
 REFERENCES:
 
-.. [LLMS2006] T. Lam, L. Lapointe, J. Morse, M. Shimozono,
+.. [LLMS2006] \T. Lam, L. Lapointe, J. Morse, M. Shimozono,
    Affine insertion and Pieri rules for the affine Grassmannian,
    Memoirs of the AMS, 208 (2010), no. 977, :arxiv:`math.CO/0609110`
 
-.. [LLMSSZ2013] T. Lam, L. Lapointe, J. Morse, A. Schilling, M. Shimozono, M. Zabrocki,
+.. [LLMSSZ2013] \T. Lam, L. Lapointe, J. Morse, A. Schilling, M. Shimozono, M. Zabrocki,
    `k`-Schur functions and affine Schubert calculus,
    preprint :arXiv:`1301.3569`
 
@@ -39,11 +39,13 @@ Authors:
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
+from __future__ import print_function
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableList
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.combinat.skew_tableau import SkewTableau, SemistandardSkewTableaux
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.root_system.weyl_group import WeylGroup
@@ -271,7 +273,7 @@ class WeakTableau_abstract(ClonableList):
     r"""
     Abstract class for the various element classes of WeakTableau.
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     def shape(self):
         r"""
@@ -423,9 +425,9 @@ class WeakTableau_abstract(ClonableList):
             [s2*s0, s3*s2]
         """
         if self.parent()._representation in ['core', 'bounded']:
-            print self._repr_diagram()
+            print(self._repr_diagram())
         else:
-            print self
+            print(self)
 
     def __hash__(self):
         r"""
@@ -747,7 +749,7 @@ class WeakTableau_core(WeakTableau_abstract):
         EXAMPLES::
 
             sage: t = WeakTableau([[None, None, 2, 3, 4], [1, 4], [2]], 3)
-            sage: print t._repr_diagram()
+            sage: print(t._repr_diagram())
             .  .  2  3  4
             1  4
             2
@@ -1458,12 +1460,12 @@ class WeakTableau_bounded(WeakTableau_abstract):
         EXAMPLES::
 
             sage: t = WeakTableau([[None, None, 1], [2, 4], [3]], 3, representation = 'bounded')
-            sage: print t._repr_diagram()
+            sage: print(t._repr_diagram())
             .  .  1
             2  4
             3
             sage: t = WeakTableau([[1,1,1],[2,2],[3]], 3, representation = 'bounded')
-            sage: print t._repr_diagram()
+            sage: print(t._repr_diagram())
             1  1  1
             2  2
             3
@@ -2331,7 +2333,7 @@ class StrongTableau(ClonableList):
         self._tableau = T
         ClonableList.__init__(self, parent, T)
 
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, T, k, weight=None):
@@ -2379,7 +2381,7 @@ class StrongTableau(ClonableList):
         """
         if isinstance(T, cls):
             return T
-        outer_shape = Core(map(len, T),k+1)
+        outer_shape = Core([len(t) for t in T], k+1)
         inner_shape = Core([x for x in [row.count(None) for row in T] if x>0], k+1)
         Te = [v for row in T for v in row if v is not None]+[0]
         count_marks = tuple(Te.count(-(i+1)) for i in range(-min(Te)))
@@ -2525,8 +2527,8 @@ class StrongTableau(ClonableList):
             True
         """
         T = self.to_standard_list()
-        size = Core(map(len,T), self.k+1).length()
-        inner_size = Core(map(len,[y for y in map(lambda row: [x for x in row if x is None], T) if len(y)>0]),self.k+1).length()
+        size = Core([len(t) for t in T], self.k+1).length()
+        inner_size = Core([y for y in (len([x for x in row if x is None]) for row in T) if y > 0], self.k+1).length()
         if len(uniq([v for v in flatten(list(T)) if v in ZZ and v<0]))!=size-inner_size:
             return False # TT does not have exactly self.size() marked cells
         for i in range(len(T)):
@@ -2908,7 +2910,7 @@ class StrongTableau(ClonableList):
         Return a dictionary of values and lists of cells where the heads with the values
         are located.
 
-        OUPUT:
+        OUTPUT:
 
         - a dictionary with keys the entries in the tableau and values are the coordinates
           of the heads with those entries
@@ -2957,7 +2959,7 @@ class StrongTableau(ClonableList):
 
         - ``v`` -- an integer label
 
-        OUPUT:
+        OUTPUT:
 
         - a list of pairs of integers of the coordinates of the heads of the ribbons
           with label ``v``
@@ -3001,7 +3003,7 @@ class StrongTableau(ClonableList):
 
         - ``v`` -- an integer label
 
-        OUPUT:
+        OUTPUT:
 
         - a list of integers of the content of the heads of the ribbons with label ``v``
 
@@ -3300,7 +3302,7 @@ class StrongTableau(ClonableList):
               .  . -1 -2
             sage: Tableaux.global_options(convention="English")
         """
-        print self._repr_diagram()
+        print(self._repr_diagram())
 
     def outer_shape( self ):
         r"""
@@ -3597,7 +3599,7 @@ class StrongTableau(ClonableList):
             sage: StrongTableau([],4).to_unmarked_standard_list()
             []
         """
-        return map(lambda x: map(nabs,x), self.to_standard_list())
+        return [[nabs(_) for _ in x] for x in self.to_standard_list()]
 
     def _latex_(self):
         r"""
@@ -3673,8 +3675,8 @@ class StrongTableau(ClonableList):
             []
         """
         rr = sum(self.weight()[:r])
-        rest_tab = [y for y in map(lambda row: [x for x in row if x is None or abs(x)<=rr], self.to_standard_list()) if len(y)>0]
-        new_parent = StrongTableaux( self.k, (Core(map(len, rest_tab), self.k+1), self.inner_shape()), self.weight()[:r] )
+        rest_tab = [y for y in ([x for x in row if x is None or abs(x)<=rr] for row in self.to_standard_list()) if len(y)>0]
+        new_parent = StrongTableaux( self.k, (Core([len(x) for x in rest_tab], self.k+1), self.inner_shape()), self.weight()[:r] )
         return new_parent(rest_tab)
 
     def set_weight( self, mu ):
@@ -3726,7 +3728,7 @@ class StrongTableau(ClonableList):
 
         - ``tij`` -- a transposition represented as a pair `(i, j)`.
 
-        OUPUT:
+        OUTPUT:
 
         - ``self`` after it has been modified by the action of the transposition ``tij``
 
@@ -4003,7 +4005,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: ST.an_element()
             [[-1, -1, -1]]
         """
-        return next(self.__iter__())
+        return next(iter(self))
 
     def outer_shape(self):
         r"""
@@ -4157,7 +4159,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         else:
             for T in cls.standard_unmarked_iterator(k, size-1, outer_shape, inner_shape):
                 for TT in cls.follows_tableau_unsigned_standard(T, k):
-                    if outer_shape is None or Core(outer_shape, k+1).contains(map(len,TT)):
+                    if outer_shape is None or Core(outer_shape, k+1).contains([len(_) for _ in TT]):
                         yield TT
 
     @classmethod
@@ -4211,9 +4213,9 @@ class StrongTableaux(UniqueRepresentation, Parent):
         if td == {}: # the tableau is empty
             yield StrongTableau( unmarkedT, k, [] )
         else:
-            allmarkings = cartesian_product.CartesianProduct(*[td[v] for v in td.keys()])
+            import itertools
             dsc = Composition(weight).descents()
-            for m in allmarkings:
+            for m in itertools.product(*td.values()):
                 if all(((m[i][1]-m[i][0]<m[i+1][1]-m[i+1][0]) or (i in dsc)) for i in range(len(m)-1)):
                    yield StrongTableaux.add_marking( unmarkedT, m, k, weight )
 
@@ -4299,7 +4301,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: T
             [[None, -10, -4], [4]]
         """
-        innershape = Core(map(len, Tlist), k+1)
+        innershape = Core([len(_) for _ in Tlist], k+1)
         outershape = innershape.affine_symmetric_group_action(tij, transposition=True)
         if outershape.length()==innershape.length()+1:
             for c in SkewPartition([outershape.to_partition(),innershape.to_partition()]).cells():
@@ -4351,7 +4353,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         """
         v = max([0]+[abs(v) for rows in Tlist for v in rows if v is not None])+1
         out = []
-        sh = Core(map(len, Tlist), k+1)
+        sh = Core([len(_) for _ in Tlist], k+1)
         for ga in sh.strong_covers():
             T = copy.deepcopy(Tlist)
             T += [[] for i in range(len(ga)-len(T))]
@@ -4377,7 +4379,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         - ``outer_shape`` - a list which is a `k+1`-core (default: ``None``)
         - ``inner_shape`` - a list which is a `k+1`-core (default: [])
 
-        OUPUT:
+        OUTPUT:
 
         - an iterator which returns the standard marked tableaux with ``size`` cells
           and that are contained in ``outer_shape`` and contain ``inner_shape``
@@ -4420,7 +4422,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
 
         - ``T`` -- a strong standard unmarked tableau as a list of lists
 
-        OUPUT:
+        OUTPUT:
 
         - a dictionary with keys the entries in the tableau and values are the coordinates
           of the heads with those entries
@@ -4513,7 +4515,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         marks = [v for row in T for v in row if v is not None and v<0] + [0]
         m = -min(marks) # the largest marked cell
         transeq = [] # start with the empty list and append on the right
-        sh = Core(map(len,T), k+1)
+        sh = Core([len(_) for _ in T], k+1)
         j = max([ c-r for r,row in enumerate(LL) for c,val in enumerate(row)
                   if val == -m ])
         P = sh.to_partition()

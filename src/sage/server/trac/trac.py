@@ -4,7 +4,10 @@ Sage Trac Server
 This module configures and launches a Trac server, if an optional
 package (e.g., trac-x.y.z.spkg) is installed.
 """
-import os, sys
+from __future__ import print_function
+
+import os
+import sys
 
 from sage.env import SAGE_LIB, SAGE_LOCAL
 from sage.misc.viewer import browser
@@ -39,12 +42,7 @@ def trac_create_instance(directory = 'sage_trac', easy_setup = False):
     from sage.misc.sage_ostools import have_program
 
     if not have_program('trac-admin'):
-        print "You must install the optional trac package."
-        print "Try something like install_package('trac-0.11.5'),"
-        print "but note that the package name may have a different"
-        print "version.  Use optional_packages() to get a list"
-        print "of current package names."
-        return
+        raise RuntimeError("trac is not installed")
 
     if easy_setup:
         cmd = 'trac-admin "%s" initenv "Sage" "sqlite:db/trac.db" "" ""' % directory
@@ -103,6 +101,9 @@ def trac(directory = 'sage_trac', port = 10000, address = 'localhost',
     - ``options`` - a string (default: ''); command-line options to pass
       directly to tracd
     """
+    from sage.misc.superseded import deprecation
+    deprecation(16759, "This Sage Trac Server interface is deprecated, you can just run the Trac server outside of Sage")
+
     if not os.path.exists(directory):
         trac_create_instance(directory, easy_setup = easy_setup)
 
@@ -113,24 +114,24 @@ def trac(directory = 'sage_trac', port = 10000, address = 'localhost',
 
     passwd = os.path.join(directory, 'conf/passwd')
     if not os.path.exists(passwd) or len(open(passwd).read()) < 2:
-        print "*" * 80
-        print "Create new accounts with the htdigest command (part of Apache):"
-        print "\nTo add a new user with name username:"
-        print "    cd %s" % os.path.abspath(os.path.join(directory, 'conf'))
-        print "    htdigest passwd %s <username>" % address
-        print "\nTo grant full admin permissions to a user:"
-        print "    %s %s permission add <username> TRAC_ADMIN" % (os.path.join(SAGE_LOCAL, 'bin','trac-admin'), os.path.abspath(directory))
-        print "\nThen restart the trac server."
-        print "*" * 80
-        open(passwd,'w').close()
+        print("*" * 80)
+        print("Create new accounts with the htdigest command (part of Apache):")
+        print("\nTo add a new user with name username:")
+        print("    cd %s" % os.path.abspath(os.path.join(directory, 'conf')))
+        print("    htdigest passwd %s <username>" % address)
+        print("\nTo grant full admin permissions to a user:")
+        print("    %s %s permission add <username> TRAC_ADMIN" % (os.path.join(SAGE_LOCAL, 'bin','trac-admin'), os.path.abspath(directory)))
+        print("\nThen restart the trac server.")
+        print("*" * 80)
+        open(passwd, 'w').close()
 
-    print "Open your web browser to " + url
-    print "Starting a Trac server..."
+    print("Open your web browser to " + url)
+    print("Starting a Trac server...")
 
     if auto_reload:
         options += ' --auto-reload '
 
     cmd ='tracd %s --port %s --hostname %s --auth *,%s,%s "%s" ' % (options, port, address, passwd, address, directory)
 
-    print cmd
+    print(cmd)
     os.system(cmd)

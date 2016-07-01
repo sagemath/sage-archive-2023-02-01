@@ -12,17 +12,20 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
-include "sage/ext/random.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
-from sage.libs.gmp.pylong cimport mpz_set_pylong
+from sage.libs.ntl.convert cimport PyLong_to_ZZ
+from sage.misc.randstate cimport randstate, current_randstate
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.int cimport PyInt_AS_LONG
 
 ZZ_sage = IntegerRing()
 
@@ -30,7 +33,7 @@ cdef make_ZZ(ZZ_c* x):
     cdef ntl_ZZ y
     y = ntl_ZZ()
     y.x = x[0]
-    ZZ_delete(x)
+    del x
     sig_off()
     return y
 
@@ -39,7 +42,7 @@ cdef make_ZZ(ZZ_c* x):
 # ZZ: Arbitrary precision integers
 ##############################################################################
 
-cdef class ntl_ZZ:
+cdef class ntl_ZZ(object):
     r"""
     The \class{ZZ} class is used to represent signed, arbitrary length integers.
 
@@ -80,9 +83,9 @@ cdef class ntl_ZZ:
         """
         if isinstance(v, ntl_ZZ):
             self.x = (<ntl_ZZ>v).x
-        elif PyInt_Check(v):
+        elif isinstance(v, int):
             ZZ_conv_from_int(self.x, PyInt_AS_LONG(v))
-        elif PyLong_Check(v):
+        elif isinstance(v, long):
             PyLong_to_ZZ(&self.x, v)
         elif isinstance(v, Integer):
             self.set_from_sage_int(v)
@@ -93,16 +96,10 @@ cdef class ntl_ZZ:
             if not ((v[0].isdigit() or v[0] == '-') and \
                     (v[1:-1].isdigit() or (len(v) <= 2)) and \
                     (v[-1].isdigit() or (v[-1].lower() in ['l','r']))):
-               raise ValueError, "invalid integer: %s"%v
+               raise ValueError("invalid integer: %s" % v)
             sig_on()
             ZZ_from_str(&self.x, v)
             sig_off()
-
-    def __cinit__(self):
-        ZZ_construct(&self.x)
-
-    def __dealloc__(self):
-        ZZ_destruct(&self.x)
 
     def __repr__(self):
         """
@@ -123,33 +120,47 @@ cdef class ntl_ZZ:
         """
         return unpickle_class_value, (ntl_ZZ, self._integer_())
 
-    def __cmp__(self, other):
+    def __richcmp__(ntl_ZZ self, other, int op):
         """
         Compare self to other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.ZZ(1)
             sage: g = ntl.ZZ(2)
             sage: h = ntl.ZZ(2)
             sage: w = ntl.ZZ(7)
             sage: h == g
             True
+            sage: g >= h
+            True
             sage: f == g
             False
-            sage: h > w ## indirect doctest
+            sage: h > w
             False
             sage: h < w
             True
+            sage: h <= 3
+            True
         """
-        if (type(self) != type(other)):
-            return cmp(type(self), type(other))
-        diff = self.__sub__(other)
-        if ZZ_IsZero( (<ntl_ZZ>diff).x ):
-            return 0
-        elif ZZ_sign( (<ntl_ZZ>diff).x ) == 1:
-            return 1
-        else:
-            return -1
+        cdef ntl_ZZ b
+        try:
+            b = <ntl_ZZ?>other
+        except TypeError:
+            b = ntl_ZZ(other)
+
+        if op == Py_EQ:
+            return self.x == b.x
+        if op == Py_NE:
+            return self.x != b.x
+        if op == Py_LT:
+            return self.x < b.x
+        if op == Py_LE:
+            return self.x <= b.x
+        if op == Py_GT:
+            return self.x > b.x
+        if op == Py_GE:
+            return self.x >= b.x
 
     def __hash__(self):
         """
@@ -266,9 +277,9 @@ cdef class ntl_ZZ:
 
         sage: x = ntl.ZZ(42)
         sage: i = x.get_as_int_doctest()
-        sage: print i
+        sage: i
          42
-        sage: print type(i)
+        sage: type(i)
          <type 'int'>
         """
         return self.get_as_int()
@@ -327,18 +338,20 @@ cdef class ntl_ZZ:
 
     def valuation(self, ntl_ZZ prime):
         """
-        Uses code in ntl_wrap.cpp to compute the number of times prime divides self.
+        Uses code in ``ntlwrap.cpp`` to compute the number of times
+        prime divides self.
 
-        EXAMPLES:
-        sage: a = ntl.ZZ(5^7*3^4)
-        sage: p = ntl.ZZ(5)
-        sage: a.valuation(p)
-        7
-        sage: a.valuation(-p)
-        7
-        sage: b = ntl.ZZ(0)
-        sage: b.valuation(p)
-        +Infinity
+        EXAMPLES::
+
+            sage: a = ntl.ZZ(5^7*3^4)
+            sage: p = ntl.ZZ(5)
+            sage: a.valuation(p)
+            7
+            sage: a.valuation(-p)
+            7
+            sage: b = ntl.ZZ(0)
+            sage: b.valuation(p)
+            +Infinity
         """
         cdef ntl_ZZ ans = ntl_ZZ.__new__(ntl_ZZ)
         cdef ntl_ZZ unit = ntl_ZZ.__new__(ntl_ZZ)
@@ -354,17 +367,19 @@ cdef class ntl_ZZ:
 
     def val_unit(self, ntl_ZZ prime):
         """
-        Uses code in ntl_wrap.cpp to compute p-adic valuation and unit of self.
+        Uses code in ``ntlwrap.cpp`` to compute p-adic valuation and
+        unit of self.
 
-        EXAMPLES:
-        sage: a = ntl.ZZ(5^7*3^4)
-        sage: p = ntl.ZZ(-5)
-        sage: a.val_unit(p)
-        (7, -81)
-        sage: a.val_unit(ntl.ZZ(-3))
-        (4, 78125)
-        sage: a.val_unit(ntl.ZZ(2))
-        (0, 6328125)
+        EXAMPLES::
+
+            sage: a = ntl.ZZ(5^7*3^4)
+            sage: p = ntl.ZZ(-5)
+            sage: a.val_unit(p)
+            (7, -81)
+            sage: a.val_unit(ntl.ZZ(-3))
+            (4, 78125)
+            sage: a.val_unit(ntl.ZZ(2))
+            (0, 6328125)
         """
         cdef ntl_ZZ val = ntl_ZZ.__new__(ntl_ZZ)
         cdef ntl_ZZ unit = ntl_ZZ.__new__(ntl_ZZ)
@@ -375,7 +390,6 @@ cdef class ntl_ZZ:
         ZZ_conv_from_long(val.x, valuation)
         return val, unit
 
-    # todo: add wrapper for int_to_ZZ in wrap.cc?
 
 def unpickle_class_value(cls, x):
     """
@@ -406,24 +420,27 @@ def ntl_setSeed(x=None):
     r"""
     Seed the NTL random number generator.
 
-    This is automatically called when you set the main \sage random
+    This is automatically called when you set the main Sage random
     number seed, then call any NTL routine requiring random numbers;
     so you should never need to call this directly.
 
     If for some reason you do need to call this directly, then
-    you need to get a random number from NTL (so that \sage will
-    seed NTL), then call this function and \sage will not notice.
+    you need to get a random number from NTL (so that Sage will
+    seed NTL), then call this function and Sage will not notice.
 
-    EXAMPLE:
-    This is automatically seeded from the main \sage random number seed.
+    EXAMPLES:
+
+    This is automatically seeded from the main Sage random number seed::
+
         sage: ntl.ZZ_random(1000)
-        341
+        979
 
     Now you can call this function, and it will not be overridden until
-    the next time the main \sage random number seed is changed.
+    the next time the main Sage random number seed is changed::
+
         sage: ntl.ntl_setSeed(10)
         sage: ntl.ZZ_random(1000)
-        776
+        935
     """
     cdef ntl_ZZ seed = ntl_ZZ(1)
     if x is None:
@@ -445,9 +462,10 @@ def randomBnd(q):
     "cryptographically strong"; of course, that depends in part on
     how they are seeded.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: [ntl.ZZ_random(99999) for i in range(5)]
-        [82123, 14857, 53872, 13159, 83337]
+        [30675, 84282, 80559, 6939, 44798]
 
     AUTHOR:
         -- Didier Deshommes <dfdeshom@gmail.com>
@@ -468,11 +486,12 @@ def randomBnd(q):
 
 def randomBits(long n):
     r"""
-    Return a pseudo-random number between 0 and $2^n-1$
+    Return a pseudo-random number between 0 and `2^n-1`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: [ntl.ZZ_random_bits(20) for i in range(3)]
-        [564629, 843071, 972038]
+        [948179, 477498, 1020180]
 
     AUTHOR:
         -- Didier Deshommes <dfdeshom@gmail.com>
@@ -485,14 +504,3 @@ def randomBits(long n):
     ZZ_RandomBits(ans.x, n)
     sig_off()
     return ans
-
-
-cdef void PyLong_to_ZZ(ZZ_c* z, value):
-    """
-    Convert ``value`` (which must be a Python ``long``) to NTL.
-    """
-    cdef mpz_t t
-    mpz_init(t)
-    mpz_set_pylong(t, value)
-    mpz_to_ZZ(z, t)
-    mpz_clear(t)

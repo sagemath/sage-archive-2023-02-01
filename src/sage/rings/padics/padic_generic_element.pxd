@@ -1,6 +1,5 @@
-include "sage/ext/cdefs.pxi"
-
 cimport sage.structure.element
+from sage.libs.gmp.types cimport mpz_t, mpq_t
 from sage.structure.element cimport Element, RingElement
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
 from sage.rings.padics.pow_computer cimport PowComputer_class
@@ -40,5 +39,3 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     cpdef abs(self, prec=*)
     cpdef bint _is_base_elt(self, p) except -1
-
-    cpdef RingElement _floordiv_(self, RingElement right)

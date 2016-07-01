@@ -70,9 +70,11 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-import ring
-import fraction_field_element
+import six
+from . import ring
+from . import fraction_field_element
 import sage.misc.latex as latex
 from sage.misc.cachefunc import cached_method
 
@@ -242,7 +244,7 @@ class FractionField_generic(ring.Field):
 
             sage: _.<x> = ZZ[]
             sage: K.<a> = NumberField(x^5-3*x^4+2424*x^3+2*x-232)
-            sage: R.<b> = K.ring_of_integers()
+            sage: R = K.ring_of_integers()
             sage: S.<y> = R[]
             sage: F = FractionField(S)
             sage: F(1/a)
@@ -342,7 +344,7 @@ class FractionField_generic(ring.Field):
 
             sage: _.<x> = ZZ[]
             sage: K.<a> = NumberField(x^5-3*x^4+2424*x^3+2*x-232)
-            sage: R.<b> = K.ring_of_integers()
+            sage: R = K.ring_of_integers()
             sage: S.<y> = R[]
             sage: F = FractionField(S) # indirect doctest
             sage: F(1/a)
@@ -556,14 +558,14 @@ class FractionField_generic(ring.Field):
                 return Element(self, x.numerator(), x.denominator())
 
         recurse = False
-        if isinstance(x, basestring):
+        if isinstance(x, six.string_types):
             from sage.misc.sage_eval import sage_eval
             try:
                 x = sage_eval(x, self.gens_dict_recursive())
             except NameError:
                 raise TypeError("unable to evaluate {!r} in {}".format(x, self))
             recurse = True
-        if isinstance(y, basestring):
+        if isinstance(y, six.string_types):
             from sage.misc.sage_eval import sage_eval
             try:
                 y = sage_eval(y, self.gens_dict_recursive())

@@ -101,22 +101,26 @@ class _drawing_tool:
     The the class will produce a drawin by using those informations.
 
     EXAMPLES::
-
-        sage: dt = _drawing_tool(default_tikz_options)
-        sage: dt.draw_line( [1,1], [-1,-1] )
-
+        sage: from sage.combinat.parallelogram_polyomino import (
+        ....:     _drawing_tool, default_tikz_options,
+        ....:     ParallelogramPolyominoesOptions
+        ....: )
         sage: opt = ParallelogramPolyominoesOptions['tikz_options']
         sage: dt = _drawing_tool(opt)
         sage: dt.draw_line([1, 1], [-1, -1])
+        '\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);'
 
         sage: fct = lambda vec: [2*vec[0], vec[1]]
         sage: dt = _drawing_tool(opt, fct)
         sage: dt.draw_line([1, 1], [-1, -1])
+        '\n  \\draw[color=black, line width=1] (2.000000, 1.000000) -- (-2.000000, -1.000000);'
 
+        sage: import copy
         sage: opt = copy.deepcopy(opt)
-        sage: opt['mirror'] = True
+        sage: opt['mirror'] = [0,1]
         sage: dt = _drawing_tool(opt)
         sage: dt.draw_line([1, 1], [-1, -1])
+        '\n  \\draw[color=black, line width=1] (-1.000000, 1.000000) -- (1.000000, -1.000000);'
 
     """
     def __init__(self, options, XY=lambda v: v):
@@ -141,21 +145,25 @@ class _drawing_tool:
 
         EXAMPLES::
 
+            sage: from sage.combinat.parallelogram_polyomino import (
+            ....:     _drawing_tool, ParallelogramPolyominoesOptions
+            ....: )
             sage: opt = ParallelogramPolyominoesOptions['tikz_options']
             sage: dt = _drawing_tool(opt)
             sage: dt.XY( [1, 1] )
-            [1, 1]
+            [1.0, 1.0]
 
             sage: fct = lambda vec: [2*vec[0], vec[1]]
             sage: dt = _drawing_tool(opt, fct)
             sage: dt.XY([1, 1])
-            [2, 1]
+            [2.0, 1.0]
 
+            sage: import copy
             sage: opt = copy.deepcopy(opt)
-            sage: opt['mirror'] = True
+            sage: opt['mirror'] = [0, 1]
             sage: dt = _drawing_tool(opt)
             sage: dt.XY([1, 1])
-            [-1, 1]
+            [-1.0, 1.0]
         """
         def translate(pos, v):
             return [pos[0]+v[0], pos[1]+v[1]]
@@ -167,6 +175,11 @@ class _drawing_tool:
         def mirror(pos,  axe):
             if axe is None:
                 return pos
+            if not isinstance(axe, (list, tuple)):
+                raise ValueError(
+                    "mirror option should be None or a list of two real" +
+                    " encoding a 2D vector."
+                )
             n = float(sqrt(axe[0]**2 + axe[1]**2))
             axe[0] = float(axe[0]/n)
             axe[1] = float(axe[1]/n)
@@ -190,9 +203,13 @@ class _drawing_tool:
 
         EXAMPLES::
 
+            sage: from sage.combinat.parallelogram_polyomino import (
+            ....:     _drawing_tool, ParallelogramPolyominoesOptions
+            ....: )
             sage: opt = ParallelogramPolyominoesOptions['tikz_options']
             sage: dt = _drawing_tool(opt)
             sage: dt.draw_line([1, 1], [-1, -1])
+            '\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);'
 
         """
         if color is None:
@@ -212,10 +229,13 @@ class _drawing_tool:
 
         EXAMPLES::
 
+            sage: from sage.combinat.parallelogram_polyomino import (
+            ....:     _drawing_tool, ParallelogramPolyominoesOptions
+            ....: )
             sage: opt = ParallelogramPolyominoesOptions['tikz_options']
             sage: dt = _drawing_tool(opt)
-            sage: dt.draw_polyline([1, 1], [-1, -1], [0,0])
-
+            sage: dt.draw_polyline([[1, 1], [-1, -1], [0,0]])
+            '\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);\n  \\draw[color=black, line width=1] (-1.000000, -1.000000) -- (0.000000, 0.000000);'
         """
         res = ""
         for i in range(len(list_of_vertices)-1):
@@ -231,9 +251,13 @@ class _drawing_tool:
 
         EXAMPLES::
 
+            sage: from sage.combinat.parallelogram_polyomino import (
+            ....:     _drawing_tool, ParallelogramPolyominoesOptions
+            ....: )
             sage: opt = ParallelogramPolyominoesOptions['tikz_options']
             sage: dt = _drawing_tool(opt)
             sage: dt.draw_point([1, 1])
+            '\n  \\filldraw[color=black] (1.000000, 1.000000) circle (3.5pt);'
 
         """
         if color is None:

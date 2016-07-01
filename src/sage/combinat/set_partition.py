@@ -955,13 +955,13 @@ class SetPartition(ClonableArray):
                 arcs.append((p[i], p[i+1]))
         return arcs
 
-    def plot(self, angle=pi/4, color='black', base_set_dict=None):
+    def plot(self, angle=None, color='black', base_set_dict=None):
         """
         Return a plot of ``self``.
 
         INPUT:
 
-        - ``angle`` -- the angle at which the arcs start (w.r.t. the horizontal direction); if angle is negative, the arcs are drawn below the horizontal line
+        - ``angle`` -- the angle at which the arcs take off (if angle is negative, the arcs are drawn below the horizontal line)
         - ``color`` -- color of the arcs
         - ``base_set_dict`` -- dictionary with keys elements of self.base_set() and values as integer or float
 
@@ -984,11 +984,16 @@ class SetPartition(ClonableArray):
         from sage.symbolic.constants import pi
         from sage.functions.trig import tan
         from sage.functions.trig import sin
+        from sage.functions.generalized import sgn
 
         diag = Graphics()
         sorted_vertices_list=list(self.base_set())
         sorted_vertices_list.sort()
         vertices_dict = dict()
+        
+        if not angle:
+            angle = pi/4
+            # the case angle = 0 should maybe treated separately
 
         if base_set_dict:
             vertices_dict = base_set_dict

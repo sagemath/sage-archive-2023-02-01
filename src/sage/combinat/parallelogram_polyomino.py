@@ -124,6 +124,25 @@ class _drawing_tool:
 
     """
     def __init__(self, options, XY=lambda v: v):
+        r"""
+        Construct a drawing tools to produce some TIKZ drawing.
+
+        INPUTS:
+
+        - `options` -- drawing options
+        - `XY` -- A user function to convert vector in other vector. 
+                  (default : identity function)
+
+        EXAMPLES::
+            sage: from sage.combinat.parallelogram_polyomino import (
+            ....:     _drawing_tool, default_tikz_options,
+            ....:     ParallelogramPolyominoesOptions
+            ....: )
+            sage: opt = ParallelogramPolyominoesOptions['tikz_options']
+            sage: dt = _drawing_tool(opt)
+            sage: dt.draw_line([1, 1], [-1, -1])
+            '\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);'
+        """
         self._XY = lambda v: XY([float(v[0]), float(v[1])])
         self._translation = options['translation']
         self._mirror = options['mirror']
@@ -142,6 +161,14 @@ class _drawing_tool:
         and XY user function.
         First we apply XY function, then the translation, then the mirror and 
         finaly the rotation.
+
+        INPUTS:
+
+        - `v` -- The vector to transform.
+
+        OUTPUT:
+
+        A list of 2 floats encoding a vector. 
 
         EXAMPLES::
 
@@ -201,6 +228,17 @@ class _drawing_tool:
         Return the TIKZ code for a line according the drawing option given 
         to ``_drawing_tool``.
 
+        INPUTS:
+
+        - `v1` -- The first point of the line.
+        - `v2` -- The second point of the line.
+        - `color` -- The color of the line.
+        - `size` -- The size of the line.
+
+        OUTPUT:
+
+        The code of a line in TIKZ.
+
         EXAMPLES::
 
             sage: from sage.combinat.parallelogram_polyomino import (
@@ -227,6 +265,16 @@ class _drawing_tool:
         Return the TIKZ code for a polyline according the drawing option given 
         to ``_drawing_tool``.
 
+        INPUTS:
+
+        - `list_of_vertices` -- A list of points
+        - `color` -- The color of the line.
+        - `size` -- The size of the line.
+
+        OUTPUT:
+
+        The code of a polyline in TIKZ.
+
         EXAMPLES::
 
             sage: from sage.combinat.parallelogram_polyomino import (
@@ -248,6 +296,16 @@ class _drawing_tool:
         """
         Return the TIKZ code for a point according the drawing option given 
         to ``_drawing_tool``.
+
+        INPUTS:
+
+        - `p1` -- A point
+        - `color` -- The color of the line.
+        - `size` -- The size of the point.
+
+        OUTPUT:
+
+        The code of a point in TIKZ.
 
         EXAMPLES::
 
@@ -509,8 +567,12 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Convert to a Dyck word using the Delest-Viennot bijection.
 
-        EXAMPLES::
+        This bijection is described in the following article :
+            Ref. Delest, M.-P. and Viennot, G.
+            "Algebraic Languages and Polyominoes Enumeration."
+            Theoret. Comput. Sci. 34, 169-206, 1984.
 
+        EXAMPLES::
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 1, 0, 0, 1, 1], [1, 1, 1, 0, 0, 0]]
             ....: )
@@ -534,10 +596,19 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Convert to a Dyck word.
 
-        TODO: verifier:
-        ref. Delest, M.-P. and Viennot, G.
-        "Algebraic Languages and Polyominoes [sic] Enumeration."
-        Theoret. Comput. Sci. 34, 169-206, 1984.
+        By default, we use the bijection from the following article :
+            Ref. Delest, M.-P. and Viennot, G.
+            "Algebraic Languages and Polyominoes Enumeration."
+            Theoret. Comput. Sci. 34, 169-206, 1984.
+
+        INPUTS:
+
+        - `bijection` -- The name of the bijection (default:'Delest-Viennot')
+
+        OUTPUT:
+
+        A list of 2 floats encoding a vector. 
+
 
         EXAMPLES::
 
@@ -558,10 +629,10 @@ class ParallelogramPolyomino(ClonableList):
         Convert dyck word to parallelogram polyomino using the Delest Viennot
         bijection.
 
-        TODO: verifier:
-        ref. Delest, M.-P. and Viennot, G.
-        "Algebraic Languages and Polyominoes [sic] Enumeration."
-        Theoret. Comput. Sci. 34, 169-206, 1984.
+        This bijection come from the article :
+            Ref. Delest, M.-P. and Viennot, G.
+            "Algebraic Languages and Polyominoes [sic] Enumeration."
+            Theoret. Comput. Sci. 34, 169-206, 1984.
 
         INPUTS:
 
@@ -622,15 +693,21 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Convert to a binary tree using the Aval-Boussicault algorithm.
 
+        You can use the parameter ``position`` to use the bijection on 
+        a new parallelogram polyomino (PP). This PP is obtained by cuting the 
+        PP in such a way the cell at position ``position`` becomes the 
+        top-left most corner of the PP.
+
         Ref.:
-        J.C Aval, A. Boussicault, M. Bouvel, M. Silimbani,
-        "Combinatorics of non-ambiguous trees",
-        :arxiv:`1305.3716`
+            J.C Aval, A. Boussicault, M. Bouvel, M. Silimbani,
+            "Combinatorics of non-ambiguous trees",
+            :arxiv:`1305.3716`
 
         INPUT:
 
         - ``bijection`` -- ``None`` (default) The name of bijection to use for
           the convertion. The possible value are, 'Aval-Boussicault'.
+        - ``position`` -- the celle position wher t this is a recursvive parameter. It should not be used.
 
         EXAMPLES::
 
@@ -681,15 +758,6 @@ class ParallelogramPolyomino(ClonableList):
             h += 1
         return BinaryTree(result)
 
-    def get_sub_binary_tree(self, position):
-        r"""
-        TODO
-        """
-        from sage.combinat.binary_tree import BinaryTree
-        if self[position[0]][position[1]] == 0:
-            return BinaryTree()
-        return self._to_tree_Aval_Boussicault(position)
-
     @combinatorial_map(name="To binary tree")
     def to_binary_tree(self, bijection=None):
         r"""
@@ -732,6 +800,13 @@ class ParallelogramPolyomino(ClonableList):
     def _to_ordered_tree_Bou_Socci(self):
         r"""
         Return the ordered tree using the Boussicault-Socci bijection.
+
+        This bijection is described in the article :
+            Ref. A. Boussicault, S. Rinaldi et S. Socci.
+            "The number of directed k-convex polyominoes"
+            27th Annual International Conference on Formal Power Series and 
+            Algebraic Combinatorics (FPSAC 2015), 2015.
+            arxiv:1501.00872
 
         EXAMPLES::
 
@@ -1752,9 +1827,6 @@ class ParallelogramPolyomino(ClonableList):
         Return True if the box contains a node in the context of the 
         Aval-Boussicault bijection between parallelogram polyomino and binary
         tree.
-
-        TODO : Verifier le cas de la racine et donc si c'est Boussicault-Aval
-        ou Boussicault-Socci
 
         INPUT:
 

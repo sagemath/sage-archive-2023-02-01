@@ -117,9 +117,9 @@ def wigner_3j(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
       .. math::
 
          Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3)
-          =Wigner3j(j_3,j_1,j_2,m_3,m_1,m_2)
+          =Wigner3j(j_3,j_1,j_2,m_3,m_1,m_2) \hspace{7em} \\
           =Wigner3j(j_2,j_3,j_1,m_2,m_3,m_1)
-          =(-1)^J Wigner3j(j_3,j_2,j_1,m_3,m_2,m_1)
+          =(-1)^J Wigner3j(j_3,j_2,j_1,m_3,m_2,m_1) \hspace{2em} \\
           =(-1)^J Wigner3j(j_1,j_3,j_2,m_1,m_3,m_2)
           =(-1)^J Wigner3j(j_2,j_1,j_3,m_2,m_1,m_3)
 
@@ -459,9 +459,9 @@ def wigner_6j(j_1, j_2, j_3, j_4, j_5, j_6, prec=None):
       .. math::
 
          Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
-          =Wigner6j(j_3,j_1,j_2,j_6,j_4,j_5)
+          =Wigner6j(j_3,j_1,j_2,j_6,j_4,j_5) \hspace{3em} \\ \hspace{3em}
           =Wigner6j(j_2,j_3,j_1,j_5,j_6,j_4)
-          =Wigner6j(j_3,j_2,j_1,j_6,j_5,j_4)
+          =Wigner6j(j_3,j_2,j_1,j_6,j_5,j_4) \\ \hspace{3em}
           =Wigner6j(j_1,j_3,j_2,j_4,j_6,j_5)
           =Wigner6j(j_2,j_1,j_3,j_5,j_4,j_6)
 
@@ -471,7 +471,7 @@ def wigner_6j(j_1, j_2, j_3, j_4, j_5, j_6, prec=None):
       .. math::
 
          Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
-          =Wigner6j(j_1,j_5,j_6,j_4,j_2,j_3)
+          =Wigner6j(j_1,j_5,j_6,j_4,j_2,j_3) \hspace{3em} \\ \hspace{3em}
           =Wigner6j(j_4,j_2,j_6,j_1,j_5,j_3)
           =Wigner6j(j_4,j_5,j_3,j_1,j_2,j_6)
 
@@ -586,11 +586,11 @@ def gaunt(l_1, l_2, l_3, m_1, m_2, m_3, prec=None):
 
     .. math::
 
-        Y(j_1,j_2,j_3,m_1,m_2,m_3)
+        Y(j_1,j_2,j_3,m_1,m_2,m_3) \hspace{12em} \\ 
         =\int Y_{l_1,m_1}(\Omega)
-         Y_{l_2,m_2}(\Omega) Y_{l_3,m_3}(\Omega) d\Omega
-        =\sqrt{(2l_1+1)(2l_2+1)(2l_3+1)/(4\pi)}
-         \; Y(j_1,j_2,j_3,0,0,0) \; Y(j_1,j_2,j_3,m_1,m_2,m_3)
+         Y_{l_2,m_2}(\Omega) Y_{l_3,m_3}(\Omega) d\Omega \hspace{5em} \\
+        =\sqrt{(2l_1+1)(2l_2+1)(2l_3+1)/(4\pi)} \hspace{5em} \\ 
+         \times Y(j_1,j_2,j_3,0,0,0) \; Y(j_1,j_2,j_3,m_1,m_2,m_3)
 
     INPUT:
 
@@ -649,9 +649,9 @@ def gaunt(l_1, l_2, l_3, m_1, m_2, m_3, prec=None):
       .. math::
 
           Y(j_1,j_2,j_3,m_1,m_2,m_3)
-          =Y(j_3,j_1,j_2,m_3,m_1,m_2)
+          =Y(j_3,j_1,j_2,m_3,m_1,m_2) \hspace{3em} \\ \hspace{3em}
           =Y(j_2,j_3,j_1,m_2,m_3,m_1)
-          =Y(j_3,j_2,j_1,m_3,m_2,m_1)
+          =Y(j_3,j_2,j_1,m_3,m_2,m_1) \\ \hspace{3em}
           =Y(j_1,j_3,j_2,m_1,m_3,m_2)
           =Y(j_2,j_1,j_3,m_2,m_1,m_3)
 

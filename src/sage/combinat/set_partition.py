@@ -1002,7 +1002,7 @@ class SetPartition(ClonableArray):
             diag += text(elt, (pos,-0.1), color=color)
         for (k,j) in self.arcs():
             pos_k,pos_j = float(vertices_dict[k]),float(vertices_dict[j])
-            diag += arc(center=((pos_k+pos_j)/2,-abs(pos_j-pos_k)/(2*tan(angle)), r1=abs((pos_j-pos_k)/(2*sin(angle))), sector=(pi/2-angle,pi/2+angle),color=color))
+            diag += arc(center=((pos_k+pos_j)/2,-abs(pos_j-pos_k)/(2*tan(angle))), r1=abs((pos_j-pos_k)/(2*sin(angle))), sector=(pi/2-angle,pi/2+angle),color=color)
         diag.axes(False)
         return diag
 

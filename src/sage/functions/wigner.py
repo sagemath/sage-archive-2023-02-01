@@ -112,7 +112,7 @@ def wigner_3j(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
     The Wigner 3j symbol obeys the following symmetry rules:
 
     - invariant under any permutation of the columns (with the
-      exception of a sign change where `J:=j_1+j_2+j_3`):
+      exception of a sign change where `J=j_1+j_2+j_3`):
 
       .. math::
 

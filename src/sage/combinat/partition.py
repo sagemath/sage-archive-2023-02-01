@@ -2273,6 +2273,21 @@ class Partition(CombinatorialElement):
         tab = [range(1+sum(mu[:i]), 1+sum(mu[:(i+1)])) for i in range(len(mu))]
         return tableau.StandardTableau(tab)
 
+    def initial_column_tableau(self):
+        r"""
+        Return the initial column tableau of shape ``self``.
+
+        The initial column taleau of shape self is the standard tableau 
+        that has the numbers `1` to `n`, where `n` is the :meth:`size` of ``self``,
+        entered in order from top to bottom and then left to right down the
+        columns of ``self``.
+
+        EXAMPLE::
+
+            sage: Partition([3,2]).initial_column_tableau()
+            [[1, 3, 5], [2, 4]]
+        """
+        return self.conjugate().initial_tableau().conjugate()
 
     def garnir_tableau(self,*cell):
         r"""
@@ -2485,7 +2500,7 @@ class Partition(CombinatorialElement):
     @cached_method
     def _initial_degree(self, e, multicharge=(0,)):
         r"""
-        Return the Brundan-Kleshchev-Wang degree of the initial tableau
+        Return the Brundan-Kleshchev-Wang degree of the initial row tableau
         of shape ``self``.
 
         This degree depends only the shape of the tableau and it is

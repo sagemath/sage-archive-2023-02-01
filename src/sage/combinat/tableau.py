@@ -4037,11 +4037,11 @@ class Tableau(ClonableList):
         EXAMPLES::
 
             sage: StandardTableau([[1,3,5],[2,4]]).codegree(3)
-            3
+            0
             sage: StandardTableau([[1,2,5],[3,4]]).codegree(3)
-            2
+            1
             sage: StandardTableau([[1,2,5],[3,4]]).codegree(4)
-            2
+            0
 
         REFERENCES:
 
@@ -4053,9 +4053,9 @@ class Tableau(ClonableList):
             return 0
 
         conj_shape = self.shape().conjugate()
-        codeg = conj_shape._initial_degree(e,tuple(-r for r in multicharge))
-        res = conj_shape.initial_tableau().residue_sequence(e, multicharge)
-        for r in self.reduced_row_word():
+        codeg = conj_shape._initial_degree(e)
+        res = conj_shape.initial_tableau().residue_sequence(e)
+        for r in self.reduced_column_word():
             if res[r] == res[r+1]:
                 codeg -= 2
             elif res[r] == res[r+1] + 1 or res[r] == res[r+1] - 1:
@@ -4135,6 +4135,32 @@ class Tableau(ClonableList):
             [3, 4, 5, 4]
         """
         return permutation.Permutation(list(self.entries())).inverse().reduced_word_lexmin()
+
+    def reduced_column_word(self):
+        r"""
+        Return the lexicographically minimal reduced expression for the
+        permutation that maps the conjugate of the :meth:`initial_tableau` to
+        ``self``.
+
+        Ths reduced expression is a minimal length coset representative for the
+        corresponding Young subgroup.  In one line notation, the permutation is
+        obtained by concatenating the columns of the tableau in order from top to
+        bottom.
+
+        EXAMPLES::
+
+            sage: StandardTableau([[1,4,6],[2,5],[3]]).reduced_column_word()
+            []
+            sage: StandardTableau([[1,4,5],[2,6],[3]]).reduced_column_word()
+            [5]
+            sage: StandardTableau([[1,3,6],[2,5],[4]]).reduced_column_word()
+            [3]
+            sage: StandardTableau([[1,3,5],[2,6],[4]]).reduced_column_word()
+            [3, 5]
+            sage: StandardTableau([[1,2,5],[3,6],[4]]).reduced_column_word()
+            [3, 2, 5]
+        """
+        return permutation.Permutation(list(self.conjugate().entries())).inverse().reduced_word_lexmin()
 
 class SemistandardTableau(Tableau):
     """

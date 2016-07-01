@@ -1034,6 +1034,7 @@ class PartitionTuple(CombinatorialElement):
             level+=1
         return True
 
+    @cached_method
     def initial_tableau(self):
         r"""
         Return the :class:`StandardTableauTuple` which has the numbers
@@ -1048,6 +1049,23 @@ class PartitionTuple(CombinatorialElement):
         """
         from .tableau_tuple import StandardTableauTuples
         return StandardTableauTuples(self).first()
+
+    @cached_method
+    def initial_column_tableau(self):
+        r"""
+        Return the initial column tableau of shape ``self``.
+
+        The initial column tableau of shape self is the standard tableau 
+        that has the numbers `1` to `n`, where `n` is the :meth:`size` of ``self``,
+        entered in order from top to bottom, and then left to right, down the columns of each component,
+        starting from the rightmost component and working to the left.
+
+        EXAMPLE::
+
+            sage: PartitionTuple([ [3,1],[3,2] ]).initial_column_tableau()
+            ([[6, 8, 9], [7]], [[1, 3, 5], [2, 4]])
+        """
+        return self.conjugate().initial_tableau().conjugate()
 
     def garnir_tableau(self, *cell):
         r"""

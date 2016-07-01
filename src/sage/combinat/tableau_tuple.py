@@ -963,6 +963,32 @@ class TableauTuple(CombinatorialElement):
         from sage.combinat.permutation import Permutation
         return Permutation(list(self.entries())).inverse().reduced_word_lexmin()
 
+    def reduced_column_word(self):
+        r"""
+        Return the lexicographically minimal reduced expression for the
+        permutation that maps the :meth:`initial_column_tableau` to ``self``.
+
+        This reduced expression is a minimal length coset representative for the
+        corresponding Young subgroup.  In one line notation, the permutation is
+        obtained by concatenating the rows of the tableau from top to bottom in
+        each component, and then left to right along the components.
+
+        EXAMPLES::
+
+            sage: StandardTableauTuple([[[7,9],[8]],[[1,4,6],[2,5],[3]]]).reduced_column_word()
+            []
+            sage: StandardTableauTuple([[[7,9],[8]],[[1,3,6],[2,5],[4]]]).reduced_column_word()
+            [3]
+            sage: StandardTableauTuple([[[6,9],[8]],[[1,3,7],[2,5],[4]]]).reduced_column_word()
+            [3, 6]
+            sage: StandardTableauTuple([[[6,8],[9]],[[1,3,7],[2,5],[4]]]).reduced_column_word()
+            [3, 6, 8]
+            sage: StandardTableauTuple([[[5,8],[9]],[[1,3,7],[2,6],[4]]]).reduced_column_word()
+            [3, 6, 5, 8]
+        """
+        from sage.combinat.permutation import Permutation
+        return Permutation(list(self.conjugate().entries())).inverse().reduced_word_lexmin()
+
     def cells_containing(self, m):
         r"""
         Return the list of cells in which the letter ``m`` appears in the
@@ -1630,17 +1656,24 @@ class StandardTableauTuple(TableauTuple):
 
         EXAMPLES::
 
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(0,(0,1))
-            1
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(0,(2,1))
-            -1
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(2,(2,1))
-            -1
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(3,(2,1))
+            sage: StandardTableauTuple([[[1]], [], []]).degree(0,(0,0,0))
             2
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(4,(2,1))
+            sage: StandardTableauTuple([[],[[1]], []]).degree(0,(0,0,0))
             1
-
+            sage: StandardTableauTuple([[], [], [[1]]]).degree(0,(0,0,0))
+            0
+            sage: StandardTableauTuple([[[1]],[[2]], []]).degree(0,(0,0,0))
+            3
+            sage: StandardTableauTuple([[[1]], [], [[2]]]).degree(0,(0,0,0))
+            2
+            sage: StandardTableauTuple([[],[[1]], [[2]]]).degree(0,(0,0,0))
+            1
+            sage: StandardTableauTuple([[[2]],[[1]], []]).degree(0,(0,0,0))
+            1
+            sage: StandardTableauTuple([[[2]], [], [[1]]]).degree(0,(0,0,0))
+            0
+            sage: StandardTableauTuple([[],[[2]], [[1]]]).degree(0,(0,0,0))
+            -1
         """
         shape = self.shape()
         deg = shape._initial_degree(e,multicharge)
@@ -1688,16 +1721,24 @@ class StandardTableauTuple(TableauTuple):
 
         EXAMPLES::
 
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).codegree(0,(0,1))
+            sage: StandardTableauTuple([[[1]], [], []]).codegree(0,(0,0,0))
+            0
+            sage: StandardTableauTuple([[],[[1]], []]).codegree(0,(0,0,0))
             1
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).codegree(0,(2,1))
-            -1
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).codegree(2,(2,1))
-            -1
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).codegree(3,(2,1))
+            sage: StandardTableauTuple([[], [], [[1]]]).codegree(0,(0,0,0))
             2
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).codegree(4,(2,1))
+            sage: StandardTableauTuple([[[1]],[[2]], []]).codegree(0,(0,0,0))
+            -1
+            sage: StandardTableauTuple([[[1]], [], [[2]]]).codegree(0,(0,0,0))
+            0
+            sage: StandardTableauTuple([[],[[1]], [[2]]]).codegree(0,(0,0,0))
             1
+            sage: StandardTableauTuple([[[2]],[[1]], []]).codegree(0,(0,0,0))
+            1
+            sage: StandardTableauTuple([[[2]], [], [[1]]]).codegree(0,(0,0,0))
+            2
+            sage: StandardTableauTuple([[],[[2]], [[1]]]).codegree(0,(0,0,0))
+            3
 
         REFERENCES:
 
@@ -1710,8 +1751,8 @@ class StandardTableauTuple(TableauTuple):
 
         conj_shape = self.shape().conjugate()
         codeg = conj_shape._initial_degree(e,tuple(-r for r in multicharge))
-        res = conj_shape.initial_tableau().residue_sequence(e, multicharge)
-        for r in self.reduced_row_word():
+        res = self.shape().initial_column_tableau().residue_sequence(e, multicharge)
+        for r in self.reduced_column_word():
             if res[r] == res[r+1]:
                 codeg -= 2
             elif res[r] == res[r+1] + 1 or res[r] == res[r+1] - 1:

@@ -66,7 +66,7 @@ For display options, see :meth:`Tableaux.global_options`.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
@@ -80,10 +80,10 @@ from sage.rings.infinity import PlusInfinity
 from sage.arith.all import factorial, binomial
 from sage.rings.integer import Integer
 from sage.combinat.composition import Composition, Compositions
-from integer_vector import IntegerVectors
+from .integer_vector import IntegerVectors
 import sage.libs.symmetrica.all as symmetrica
 import sage.misc.prandom as random
-import permutation
+from . import permutation
 import itertools
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.all import uniq, prod
@@ -811,7 +811,7 @@ class Tableau(ClonableList):
         """
         if len(self) == 0:
             return "{\\emptyset}"
-        from output import tex_from_array
+        from .output import tex_from_array
         return tex_from_array(self)
 
     def __truediv__(self, t):

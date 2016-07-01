@@ -373,9 +373,6 @@ class SageCustomizations(object):
         self.init_inspector()
         self.init_line_transforms()
 
-        import inputhook
-        inputhook.install()
-
         import sage.all # until sage's import hell is fixed
 
         self.shell.verbose_quit = True

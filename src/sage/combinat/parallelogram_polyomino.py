@@ -41,7 +41,9 @@ from sage.functions.trig import cos, sin
 from sage.functions.other import sqrt
 
 r"""
-TODO
+This is the default TIKZ options.
+This option is used to configurate element of a drawing to allow 
+TIKZ code generation.
 """
 default_tikz_options = dict(
     scale=1, line_size=1, point_size=3.5,
@@ -52,7 +54,25 @@ default_tikz_options = dict(
 )
 
 r"""
-TODO
+This global option contains all the data needed by the Parallelogram classes
+to draw, display in ASCII, compile in latex a parallelogram polyomino.
+
+The options avalaible are :
+ - tikz_options : this option configurate all the information usefull to 
+   generate TIKZ code. For example, color, line size, etc ...
+ - drawing_components : this option is used to explain to the system 
+   which compoent of the drawing you want to draw. For example, 
+   you can ask to draw some elements of the following list :
+      - the diagram,
+      - the tree inside the parallelogram polyomino,
+      - the bounce paths inside the parallelogram polyomino.
+ - display : this option is used to configurate the ASCII display.
+   the option avalaible are :
+      - list : the default value is 'list' and is used to represent PP as a 
+        list containinge the upper and lower path.
+      - drawing : this value is used to eplain we want to dispaly an array 
+        with th PP drawn inside (with connectec 1).
+ - latex : Same as display. The default is 'drawing'.
 """
 ParallelogramPolyominoesOptions = GlobalOptions(
     name='Parallelogram Polyominoes',

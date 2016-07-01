@@ -844,7 +844,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
     `N_{\alpha, \beta}` is the maximum such that
     `\alpha - N_{\alpha, \beta} \beta \in \Phi`.
 
-    For computing the signs of the coefficients, see Section 3 of [CMT]_.
+    For computing the signs of the coefficients, see Section 3 of [CMT03]_.
 
     REFERNCES:
 
@@ -970,7 +970,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
                 a = r + s
                 if a in p_roots:
                     # (r, s) is a special pair
-                    c = e_coeff(r, s) * sp_sign[(r, s)] 
+                    c = e_coeff(r, s) * sp_sign[(r, s)]
                     s_coeffs[(r, s)] = {a: c}
                     s_coeffs[(-r, -s)] = {-a: -c}
 

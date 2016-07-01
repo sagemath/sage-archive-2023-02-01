@@ -962,7 +962,7 @@ class SetPartition(ClonableArray):
         INPUT:
 
         - ``color`` -- color of the arcs
-        - ``base_set_dict`` -- dictionary asigning positions to elements of self.base_set()
+        - ``base_set_dict`` -- dictionary with keys elements of self.base_set() and values as integer or float
 
         EXAMPLES::
 
@@ -972,7 +972,7 @@ class SetPartition(ClonableArray):
             sage: p=SetPartition([['a','c'],['b',-1],[20.2]])
             sage: print(p.plot().description())
 
-            sage: p=SetPartition([['a','c'],['b',-1],[20.2]],{0:'a',1:'b',2:'c',-2.3:-1,5.4:20.2})
+            sage: p=SetPartition([['a','c'],['b',-1],[20.2]],{'a':0,'b':1,'c':2,-1:-2.3,20.2:5.4})
             sage: print(p.plot().description())
         """
         from sage.plot.graphics import Graphics
@@ -983,17 +983,18 @@ class SetPartition(ClonableArray):
         from sage.symbolic.constants import pi
 
         diag = Graphics()
-        vertices_list=list(self.base_set())
-        vertices_list.sort()
+        sorted_vertices_list=list(self.base_set())
+        sorted_vertices_list.sort()
         vertices_dict = dict()
-        for pos in range(len(vertices_list)):
-            vertices_dict[pos]=vertices_list[pos]
+        for pos in range(len(sorted_vertices_list)):
+            vertices_dict[sorted_vertices_list[pos]]=pos
 
-        for pos in range(0,len(vertices_list)):
+        for elt in vertices_dict:
+            pos = vertices_dict[elt]
             diag += point((pos,0),size=30, color=color)
-            diag += text(vertices_list[pos], (pos,-0.2), color=color)
+            diag += text(elt, (pos,-0.1), color=color)
         for (k,j) in self.arcs():
-            pos_k,pos_j=float(vertices_list.index(k)),float(vertices_list.index(j))
+            pos_k,pos_j=float(vertices_dict[k]),float(vertices_dict[j])
             diag += arc(((pos_k+pos_j)/2,(pos_k-pos_j)/2),(pos_j-pos_k)/sqrt(2),sector=(pi/4,3*pi/4),color=color)
         diag.axes(False)
         return diag

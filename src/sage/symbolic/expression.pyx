@@ -6504,7 +6504,7 @@ cdef class Expression(CommutativeRingElement):
                     60*z^4*w^2*x^2*u^5 + 375*z^8*w^3*x*y*u^7 + 150*z^8*w^5*x*y^4*u^6 + \
                     180*z^6*x*y^3*u^5 + 216*z^6*w^3*x^2*y^3*u^6;
             sage: d = e.diff(x)
-            sage: gcd(d,e) / (u^4*z^2) in QQ      # optional - giac
+            sage: gcd(d,e) / (u^4*z^2) in QQ      # known bug
             True
         """
         cdef Expression r = self.coerce_in(b)

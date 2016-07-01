@@ -845,12 +845,13 @@ class TableauTuple(CombinatorialElement):
         """
         return all(t.is_row_strict() for t in self)
 
-    def first_row_descent(self):
-        """
-        Given a tableau return the first cell where the tableau is not row
-        standard, where the cells are ordered left to right along the rows and
-        then top to bottom. That is, the cell minimal `(k,r,c)` such that
-        the entry in position `(k,r,c)` is bigger than the entry in position `(k,r,c+1)`.
+    def first_row_descent(self): 
+        r""" 
+        Return the first cell where the tableau is not row standard.
+
+        Cells are ordered left to right along the rows and then top to
+        bottom. That is, the cell minimal `(k,r,c)` such that the entry in
+        position `(k,r,c)` is bigger than the entry in position `(k,r,c+1)`.
 
         If there is no such cell then ``None`` is returned - in this case the
         tableau is row strict.
@@ -860,10 +861,6 @@ class TableauTuple(CombinatorialElement):
             sage: TableauTuple([[[5,6,7],[1,2]],[[1,3,2],[4]]]).first_row_descent()
             (1, 0, 1)
             sage: TableauTuple([[[1,2,3],[4]],[[6,7,8],[1,2,3]],[[1,11]]]).first_row_descent() is None
-            True
-            sage: StandardTableauTuples(size=4,level=3)
-            Standard tableau tuples of level 3 and size 4
-            sage: StandardTableauTuples(size=4,level=3) is StandardTableauTuples(3,4)
             True
         """
         for k in xrange(len(self)):
@@ -896,11 +893,11 @@ class TableauTuple(CombinatorialElement):
         return all(t.is_column_strict() for t in self)
 
     def first_column_descent(self):
-        """
-        Given a tableau `T`, return the first row where `T` is not column
-        standard. That is, the cell `(k,r,c)` with `(k,r,c)` minimal such that
-        the entry in position `(k,r,c)` is bigger than the entry in position `(k,r,c+1)`.
+        r"""
+        Return the first row where the tableau ``self`` is not column standard. 
 
+        That is, return the cell `(k,r,c)` with `(k,r,c)` minimal such that
+        the entry in position `(k,r,c)` is bigger than the entry in position `(k,r,c+1)`.
         If there is no such cell then ``None`` is returned - in this case the
         tableau is column strict.
 
@@ -943,17 +940,14 @@ class TableauTuple(CombinatorialElement):
         return entries==range(1,self.size()+1) and self.is_row_strict() and self.is_column_strict()
 
     def reduced_row_word(self):
-        """
+        r"""
         Return the lexicographically minimal reduced expression for the
-        permutation, which is a minimal length coset representative for the
-        corresponding Young subgroup, which uniquely determined by the property
-        that it maps the :meth:`initial_tableau` of this shape to the current
-        tableau.
+        permutation that maps the :meth:`initial_tableau` to ``self``.
 
-        In other words, this is a reduced expression for the permutation which,
-        in one line notation, is obtained by concatenating the rows of the
-        tableau from top to bottom in each component, and then left to right
-        along the components.
+        This reduced expression is a minimal length coset representative for the
+        corresponding Young subgroup.  In one line notation, the permutation is
+        obtained by concatenating the rows of the tableau from top to bottom in
+        each component, and then left to right along the components.
 
         EXAMPLES::
 
@@ -1154,7 +1148,7 @@ class TableauTuple(CombinatorialElement):
         except IndexError:
             if (k,r,c) in self.shape().addable_cells():
                 # add (k,r,c) is an addable cell the following should work
-                # so we do not need to trap anyting
+                # so we do not need to trap anything
                 if r==len(tab[k]):
                     tab[k].append([])
 
@@ -1303,7 +1297,7 @@ class TableauTuple(CombinatorialElement):
 
     def residue(self, k, e, multicharge):
         r"""
-        Return the residue of ``self``.
+        Return the *residue* of the integer ``k`` in the tableau ``self``.
 
         INPUT:
 
@@ -1320,13 +1314,14 @@ class TableauTuple(CombinatorialElement):
         ``k`` appears in row `r` and column `c` of the tableau then we
         return the image of `c - r + multicharge[k]` in `\ZZ / e\ZZ`.
 
-        The ``multicharge`` given by `(m_1, \ldots, m_l)` determines a weight
+        The ``multicharge`` given by `(m_1, \ldots, m_l)` determines the dominant 
+        weight
 
         .. MATH::
 
             \sum_{i=1}^l \Lambda_{a_i}
 
-        of the affine special linear group. In the combinatorics, it simply
+        for the affine special linear group. In the combinatorics, it simply
         offsets the contents in each component so that the cell `(k, 0, 0)`
         has content `a_k`.
 
@@ -1385,7 +1380,7 @@ class StandardTableauTuple(TableauTuple):
         tableaux: the longer rows are displayed on top.  As with
         :class:`PartitionTuple`, in sage the cells, or nodes, of partition
         tuples are 0-based. For example, the (lexicographically) first cell in
-        any non-empty partition tuple is `[0,0,0]`. Further, the coorindates
+        any non-empty partition tuple is `[0,0,0]`. Further, the coordinates
         ``[k,r,c]`` in a :class:`TableauTuple` refer to the component, row and
         column indices, respectively.
 
@@ -1580,10 +1575,10 @@ class StandardTableauTuple(TableauTuple):
                     pass
         raise ValueError( '%s must be contained in the tableaux' % k )
 
-
     def residue_sequence(self, e, multicharge):
         r"""
-        Return the residue sequence of ``self``.
+        Return the :class:`sage.combinat.tableau_residues.ResidueSequence` of the
+        tableau ``self``.
 
         INPUT:
 
@@ -1670,19 +1665,19 @@ class StandardTableauTuple(TableauTuple):
         INPUT:
 
         - ``e`` -- the **quantum characteristic** ``e``
-        - ``multicharge`` -- (default: ``[0]``) the multicharge
+        - ``multicharge`` -- the multicharge
 
         OUTPUT:
 
         The **codegree** of the tableau ``self``, which is an integer.
 
-        The coderee of a tableau is an integer that is defined recursively by
+        The codegree of a tableau is an integer that is defined recursively by
         successively stripping off the number `k`, for `k = n, n-1, \ldots, 1`
         and at stage adding the number of addable cell of the same residue minus
         the number of removable cells of the same residue as `k` and which are
         above `k` in the diagram.
 
-        The dcoegree of the tableau ``self`` gives the degree of  "dual"
+        The codegree of the tableau ``self`` gives the degree of  "dual"
         homogeneous basis element of the Graded Specht module which is indexed
         by ``self``.
 
@@ -2100,7 +2095,7 @@ class TableauTuples(UniqueRepresentation, Parent):
     def size(self):
         """
         Return the ``size`` of a tableau tuple in  ``self``, or ``None`` if
-        different tableau tuples in ``self`` can have sifferent sizes. The
+        different tableau tuples in ``self`` can have different sizes. The
         ``size`` of a tableau tuple is just the size of the underlying
         :class:`PartitionTuple`.
 
@@ -2456,9 +2451,9 @@ class StandardTableauTuples(TableauTuples):
     - ``shape`` -- A list or a partition tuple specifying the :meth:`shape` of
       the standard tableau tuples
 
-    It is not necessary to use the keywords. If they are not used then then
-    first integer argument specifies the :meth:`~TableauTuples.level` and the
-    second the :meth:`~TableauTuples.size` of the tableau tuples.
+    It is not necessary to use the keywords. If they are not used then the first
+    integer argument specifies the :meth:`~TableauTuples.level` and the second
+    the :meth:`~TableauTuples.size` of the tableau tuples.
 
     OUTPUT:
 

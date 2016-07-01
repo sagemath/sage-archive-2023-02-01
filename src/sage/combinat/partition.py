@@ -2471,14 +2471,14 @@ class Partition(CombinatorialElement):
 
         INPUT:
 
-        - ``e`` -- an  integer  `e>1`(not checked!)
+        - ``e`` -- an  integer  `e>1` (not checked!)
 
         OUTPUT:
 
         A non-negative integer
 
         The ``e``th degree of a partition `\lambda` is the sum of the ``e``th
-        degrees of the standard tableaux of shape `\lambda`. The `e`-th degree
+        degrees of the standard tableaux of shape `\lambda`. The ``e``-th degree
         is the exponent of `\Phi_e(q)` in the Gram determinant of the Specht
         module for a semisimple Iwahori-Hecke algebra of type `A` with parameter
         `q`.
@@ -2501,7 +2501,7 @@ class Partition(CombinatorialElement):
         Therefore,  the Gram determinant of `S(5,3)` when the Hecke parameter
         `q` is "generic" is
 
-        ..math::
+        ..MATH::
 
             q^N \Phi_2(q)^{28} \Phi_3(q)^{15} \Phi_4(q)^8 \Phi_5(q)^{13}
 
@@ -2538,7 +2538,7 @@ class Partition(CombinatorialElement):
             sage: Partition([4,3]).prime_degree(7)
             0
 
-        THerefore, the Gram determinant of `S(5,3)` whwn `q=1` is 
+        THerefore, the Gram determinant of `S(5,3)` when `q=1` is 
         `2^{36} 3^{15} 5^{13}`.  Compare with :meth:`degree`.
         """
         ps = [p]

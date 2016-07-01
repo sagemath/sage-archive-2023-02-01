@@ -1329,7 +1329,7 @@ class PartitionTuple(CombinatorialElement):
         """
         Returns a list of the removable cells of this partition tuple.
 
-        All indice are of the form ``(k, r, c)``, where ``r`` is the
+        All indices are of the form ``(k, r, c)``, where ``r`` is the
         row-index, ``c`` is the column index and ``k`` is the component.
 
         EXAMPLES::
@@ -1498,7 +1498,7 @@ class PartitionTuple(CombinatorialElement):
 
         INPUT:
 
-        - ``e`` -- an  integer  `e>1`(not checked!)
+        - ``e`` -- an  integer  `e>1` (not checked!)
 
         OUTPUT:
 
@@ -1510,8 +1510,8 @@ class PartitionTuple(CombinatorialElement):
         semisimple cyclotomic Hecke algebra of type `A` with parameter `q`.
 
         For this calculation the multicharge (`\kappa_1,\dots,\kappa_l)` is
-        chosen so that `\kappa_{r+1}-\kappa_r>n`, where `n` is the :meth:`size:
-        of the multipartition as this ensures tat the Hecke algera is
+        chosen so that `\kappa_{r+1}-\kappa_r>n`, where `n` is the :meth:`size`
+        of the multipartition as this ensures that the Hecke algera is
         semisimple.
 
         EXAMPLES::
@@ -1543,11 +1543,11 @@ class PartitionTuple(CombinatorialElement):
 
     def prime_degree(self, p):
         r"""
-        Return the ``p``-th Degree of ``self``.
+        Return the ``p``-th prime degree of ``self``.
 
         INPUT:
 
-        - ``e`` -- an  integer  `e>1`(not checked!)
+        - ``e`` -- an  integer  `e>1` (not checked!)
 
         - ``muticharge`` -- the "multicharge", which is a `l`-tuple of integers
           where `l` is the :meth:`level` of ``self``.
@@ -1556,11 +1556,11 @@ class PartitionTuple(CombinatorialElement):
 
         A non-negative integer
 
-        The degree of a partition `\lambda` is the sum of the
-        ``e``-:meth:`degree` of the standard tableaux of shape `\lambda`, for
-        ``e`` a poer of the prime ``p``. The prime degree gives the exponent of
-        `p` in the Gram determinant of the integal Specht module of the
-        symmetric group.
+        The degree of a partition `\lambda` is the sum of the `e`-degrees` of
+        the standard tableaux of shape `\lambda` (see :meth:`degree`), for ``e``
+        a poer of the prime ``p``. The prime degree gives the exponent of `p` in
+        the Gram determinant of the integral Specht module of the symmetric
+        group.
 
         The `p`-th degree is the sum of the degrees of the standard tableaux of
         shape ``self``. The `p`-th degree is the exponent of `p` in the Gram
@@ -1569,7 +1569,7 @@ class PartitionTuple(CombinatorialElement):
 
         As with :meth:`degree`, for this calculation the multicharge
         (`\kappa_1,\dots,\kappa_l)` is chosen so that `\kappa_{r+1}-\kappa_r>n`,
-        where `n` is the :meth:`size: of the multipartition as this ensures tat
+        where `n` is the :meth:`size` of the multipartition as this ensures that
         the Hecke algera is semisimple.
 
         EXAMPLES::
@@ -1583,7 +1583,7 @@ class PartitionTuple(CombinatorialElement):
             sage: PartitionTuple([[2,1],[2,2]]).prime_degree(7)
             0
 
-       Therefore, the Gram determinant of `S(2,1|2,2)` whwn `q=1` is 
+       Therefore, the Gram determinant of `S(2,1|2,2)` when `q=1` is 
        `2^{728} 3^{259}5^{105}`. Compare with :meth:`degree`.
         """
         ps = [p]

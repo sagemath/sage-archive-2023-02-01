@@ -199,7 +199,7 @@ class Tableau(ClonableList):
 
     A tableau is abstractly a mapping from the cells in a partition to
     arbitrary objects (called entries). It is often represented as a
-    finite list of nonempty lists (or generally an iterable of
+    finite list of nonempty lists (or, more generallym an iterator of
     iterables) of weakly decreasing lengths. This list,
     in particular, can be empty, representing the empty tableau.
 
@@ -833,7 +833,7 @@ class Tableau(ClonableList):
             ValueError: the shape of the tableau must contain the partition
         """
         from sage.combinat.partition import Partition
-        #if t is a list, convert to to a partition first
+        #if t is a list, convert it to a partition first
         if isinstance(t, list):
             t = Partition(t)
 
@@ -3442,8 +3442,8 @@ class Tableau(ClonableList):
         by closing parentheses, and all letters `i+1` in `w` by
         opening parentheses. Whenever an opening parenthesis stands
         left of a closing parenthesis without there being any
-        parentheses inbetween (it is allowed to have letters
-        inbetween as long as they are not parentheses), consider these
+        parentheses in between (it is allowed to have letters
+        in-between as long as they are not parentheses), consider these
         two parentheses as matched with each other, and replace them
         back by the letters `i+1` and `i`. Repeat this procedure until
         there are no more opening parentheses standing left of closing
@@ -3617,7 +3617,7 @@ class Tableau(ClonableList):
         then the output of the algorithm is `T`.
 
         To compute the right key tableau `R` of a tableau `T` we iterate over the columns
-        of `T`. Let `T_j` be the `j`-th column of `T` and iterate over the entires
+        of `T`. Let `T_j` be the `j`-th column of `T` and iterate over the entries
         in `T_j` from bottom to top. Initialize the corresponding entry `k` in `R` to be
         the largest entry in `T_j`. Scan the bottom of each column of `T` to the right of
         `T_j`, updating `k` to be the scanned entry whenever the scanned entry is weakly
@@ -3682,7 +3682,7 @@ class Tableau(ClonableList):
         then the output of the algorithm is `T`.
 
         To compute the left key tableau `L` of a tableau `T` we iterate over the columns
-        of `T`. Let `T_j` be the `j`-th column of `T` and iterate over the entires
+        of `T`. Let `T_j` be the `j`-th column of `T` and iterate over the entries
         in `T_j` from bottom to top. Initialize the corresponding entry `k` in `L` as the
         largest entry in `T_j`. Scan the columns to the left of `T_j` and with each column
         update `k` to be the lowest entry in that column which is weakly less than `k`.
@@ -3843,14 +3843,14 @@ class Tableau(ClonableList):
 
     def content(self, k, multicharge=[0]):
         """
-        Return the content of ``k`` in a standard tableau.
+        Return the content of ``k`` in the standard tableau ``self``.
 
         The content of `k` is if `k` appears in row `r` and column `c`
         of the tableau then we return `c - r`.
 
         The ``multicharge`` is a list of length 1 which gives an offset for
         all of the contents. It is included mainly for compatibility with
-        :class:`TableauTuple`.
+        :meth:`sage.combinat.tableau_tuple.TableauTuple`.
 
         EXAMPLES::
 
@@ -3870,12 +3870,14 @@ class Tableau(ClonableList):
         raise ValueError("%d does not appear in tableau"%k)
 
     def residue(self, k, e, multicharge=(0,)):
-        """
+        r"""
+        Return the *residue* of the integer ``k`` in the tableau ``self``.
+
         INPUT:
 
         - an integer `k`, with 1\le k\le n,
         - an integer `e` in {0,2,3,4,5,...} (not checked!)
-        - an (optional) `multicharge` which defaluts to [0]
+        - an (optional) `multicharge` that defaults to [0]
 
         Here l is the level of the shape and n is its size.
 
@@ -3886,7 +3888,8 @@ class Tableau(ClonableList):
         return the image of `c-r+multicharge[k]` in Z/eZ.
 
         The `multicharge` is a list of length 1 which gives an offset for all of
-        the contents. It is included mainly for compatabilty with TableauTuples.
+        the contents. It is included mainly for compatibility with 
+        :meth:`~sage.combinat.tableau_tuples.TableauTuple.residue`.
 
         EXAMPLES::
 
@@ -3912,9 +3915,11 @@ class Tableau(ClonableList):
             pass
         raise ValueError('%d does not appear in the tableau'%k)
 
-
     def residue_sequence(self, e, multicharge=(0,)):
-        """
+        r"""
+        Return the :class:`sage.combinat.tableau_residues.ResidueSequence` of the
+        tableau ``self``.
+
         INPUT:
 
         - an integer `k`, with 1\le k\le n,
@@ -3926,7 +3931,8 @@ class Tableau(ClonableList):
         The corresponding residue sequence of the tableau; see :class:`ResidueSequence`.
 
         The `multicharge` is a list of length 1 which gives an offset for all of
-        the contents. It is included mainly for compatabilty with TableauTuples.
+        the contents. It is included mainly for compatibility with
+        :meth:`~sage.combinat.tableau_tuples.StandardTableauTuple.residue`.
 
         EXAMPLES::
 
@@ -4020,7 +4026,9 @@ class Tableau(ClonableList):
         INPUT:
 
         - ``e`` -- the **quantum characteristic** ``e``
-        - ``multicharge`` - the multicharge (default: ``[0]``).
+        - ``multicharge`` - the multicharge (default: ``[0]``). This options
+          exists mainly for compatibility with
+          :meth:~~sage.combinat.tabuleau_tuple.StandardTableauTuple.codegree`.
 
         OUTPUT:
 
@@ -4056,11 +4064,12 @@ class Tableau(ClonableList):
         return codeg
 
     def first_row_descent(self):
-        """
-        Given a tableau return the first cell where the tableau is not row
-        standard, where the cells are ordered left to right along the rows and
-        then top to bottom. That is, the cell `(r,c)` with `r` and `c` minimal such that
-        the entry in position `(r,c)` is bigger than the entry in position `(r,c+1)`.
+        r"""
+        Return the first cell where the tableau ``self`` is not row standard.
+
+        Cells are ordered left to right along the rows and then top to bottom.
+        That is, the cell `(r,c)` with `r` and `c` minimal such that the entry
+        in position `(r,c)` is bigger than the entry in position `(r,c+1)`.
 
         If there is no such cell then ``None`` is returned - in this case the
         tableau is row strict.
@@ -4079,11 +4088,11 @@ class Tableau(ClonableList):
         return None
 
     def first_column_descent(self):
-        """
-        Given a tableau return the first row where the tableau is not column
-        standard. That is, the cell (r,c) with r and c minimal such that
-        the entry in position (r,c) is bigger than the entry in position (r,c+1).
+        r"""
+        Return the first row where the tableau is not column standard. 
 
+        That is, the cell (r,c) with r and c minimal such that
+        the entry in position (r,c) is bigger than the entry in position (r,c+1).
         If there is no such cell then None is returned - in this case the
         tableau is column strict.
 
@@ -4103,17 +4112,14 @@ class Tableau(ClonableList):
         return None
 
     def reduced_row_word(self):
-        """
+        r"""
         Return the lexicographically minimal reduced expression for the
-        permutation, which is a minimal length coset representative for the
-        corresponding Young subgroup, which uniquely determined by the property
-        that it maps the :meth:`initial_tableau` of this shape to the current
-        tableau.
+        permutation that maps the :meth:`initial_tableau` to ``self``.
 
-        In other words, this is a reduced expression for the permutation which,
-        in one line notation, is obtained by concatenating the rows of the
-        tableau from top to bottom in each component, and then left to right
-        along the components.
+        Ths reduced expression is a minimal length coset representative for the
+        corresponding Young subgroup.  In one line notation, the permutation is
+        obtained by concatenating the rows of the tableau in order from top to
+        bottom.
 
         EXAMPLES::
 
@@ -4380,7 +4386,7 @@ class StandardTableau(SemistandardTableau):
         ``t`` restrcted to `k`, for `k = 1, 2, \ldots, n`.
 
         When the two tableaux have the same shape, then this ordering
-        coincides with the Bruhat ordering for the correspomding permutations.
+        coincides with the Bruhat ordering for the corresponding permutations.
 
         INPUT:
 

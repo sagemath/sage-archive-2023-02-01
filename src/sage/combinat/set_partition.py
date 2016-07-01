@@ -955,6 +955,37 @@ class SetPartition(ClonableArray):
                 arcs.append((p[i], p[i+1]))
         return arcs
 
+    def plot(self, color='black'):
+        """
+        Return a plot of ``self``.
+
+        INPUT:
+
+        - ``color`` -- color of the arcs
+
+        EXAMPLES::
+
+            sage: P=SetPartition([[1,3,4],[5]])
+            sage: print(P.plot().description())
+        """
+        from sage.plot.graphics import Graphics
+        from sage.plot.point import point
+        from sage.plot.text import text
+        from sage.plot.arc import arc
+        from sage.functions.other import sqrt
+        from sage.symbolic.constants import pi
+        #from sage.plot.circle import circle
+        #from sage.plot.arrow import arrow
+        
+        diag = Graphics()
+        for i in self.base_set():
+            diag += point((i,0),size=30, color='black')
+            diag += text(i, (i,-0.2), color='black')
+        for (k,l) in self.arcs():
+            diag += arc(((k+l)/2,(k-l)/2),(l-k)/sqrt(2),sector=(pi/4,3*pi/4),color='black')
+        diag.axes(False)
+        return diag
+
 class SetPartitions(UniqueRepresentation, Parent):
     r"""
     An (unordered) partition of a set `S` is a set of pairwise

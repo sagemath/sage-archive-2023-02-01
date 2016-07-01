@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Q-Systems
 
@@ -149,8 +150,7 @@ class QSystem(CombinatorialFreeModule):
 
     def _repr_term(self, t):
         """
-        Return a string representation of the basis element indexed by ``a``
-        with all `m = 1`.
+        Return a string representation of the basis element indexed by ``t``.
 
         EXAMPLES::
 
@@ -171,7 +171,7 @@ class QSystem(CombinatorialFreeModule):
     def _latex_term(self, t):
         r"""
         Return a `\LaTeX` representation of the basis element indexed
-        by ``m``.
+        by ``t``.
 
         EXAMPLES::
 
@@ -188,6 +188,81 @@ class QSystem(CombinatorialFreeModule):
                 ret = '\\bigl(' + ret + '\\bigr)^{{{}}}'.format(x[1])
             return ret
         return ' '.join(repr_gen(x) for x in t._sorted_items())
+
+    def _ascii_art_term(self, t):
+        """
+        Return an ascii art representation of the term indexed by ``t``.
+
+        TESTS::
+
+            sage: Q = QSystem(QQ, ['A',4])
+            sage: ascii_art(Q.an_element())
+                                 2        2        3
+                    (1)   (  (1))  (  (2))  (  (3))        (2)
+            1 + 2*Q1    + (Q1   ) *(Q1   ) *(Q1   )  + 3*Q1
+        """
+        from sage.typeset.ascii_art import AsciiArt
+        if t == self.one_basis():
+            return AsciiArt(["1"])
+        ret = AsciiArt("")
+        first = True
+        for k, exp in t._sorted_items():
+            if not first:
+                ret += AsciiArt(['*'], baseline=0)
+            else:
+                first = False
+            a,m = k
+            var = AsciiArt([" "*(len(str(m))+1) + "({})".format(a),
+                            "Q{}".format(m)],
+                           baseline=0)
+            #print var
+            #print " "*(len(str(m))+1) + "({})".format(a) + '\n' + "Q{}".format(m)
+            if exp > 1:
+                var = (AsciiArt(['(','('], baseline=0) + var
+                       + AsciiArt([')', ')'], baseline=0))
+                var = AsciiArt([" "*len(var) + str(exp)], baseline=-1) * var
+            ret += var
+        return ret
+
+    def _unicode_art_term(self, t):
+        r"""
+        Return a unicode art representation of the term indexed by ``t``.
+
+        TESTS::
+
+            sage: Q = QSystem(QQ, ['A',4])
+            sage: unicode_art(Q.an_element())
+                                 2        2        3
+            1 + 2*Q₁⁽¹⁾ + (Q₁⁽¹⁾) ·(Q₁⁽²⁾) ·(Q₁⁽³⁾)  + 3*Q₁⁽²⁾
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        if t == self.one_basis():
+            return UnicodeArt(["1"])
+
+        subs = {'0': u'₀', '1': u'₁', '2': u'₂', '3': u'₃', '4': u'₄',
+                '5': u'₅', '6': u'₆', '7': u'₇', '8': u'₈', '9': u'₉'}
+        sups = {'0': u'⁰', '1': u'¹', '2': u'²', '3': u'³', '4': u'⁴',
+                '5': u'⁵', '6': u'⁶', '7': u'⁷', '8': u'⁸', '9': u'⁹'}
+        def to_super(x):
+            return u''.join(sups[i] for i in str(x))
+        def to_sub(x):
+            return u''.join(subs[i] for i in str(x))
+
+        ret = UnicodeArt("")
+        first = True
+        for k, exp in t._sorted_items():
+            if not first:
+                ret += UnicodeArt([u'·'], baseline=0)
+            else:
+                first = False
+            a,m = k
+            var = UnicodeArt([u"Q" + to_sub(m) + u'⁽' + to_super(a) + u'⁾'], baseline=0)
+            if exp > 1:
+                var = (UnicodeArt(['('], baseline=0) + var
+                       + UnicodeArt([')'], baseline=0))
+                var = UnicodeArt([" "*len(var) + str(exp)], baseline=-1) * var
+            ret += var
+        return ret
 
     def cartan_type(self):
         """

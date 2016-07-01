@@ -587,10 +587,11 @@ def gaunt(l_1, l_2, l_3, m_1, m_2, m_3, prec=None):
     .. math::
 
         Y(l_1,l_2,l_3,m_1,m_2,m_3) \hspace{12em} \\ 
-        =\int Y_{l_1,m_1}(\Omega)
-         Y_{l_2,m_2}(\Omega) Y_{l_3,m_3}(\Omega) d\Omega \hspace{5em} \\
-        =\sqrt{(2l_1+1)(2l_2+1)(2l_3+1)/(4\pi)} \hspace{5em} \\ 
-         \times Y(l_1,l_2,l_3,0,0,0) \; Y(l_1,l_2,l_3,m_1,m_2,m_3)
+        =\int Y_{l_1,m_1}(\Omega) \
+         Y_{l_2,m_2}(\Omega) \ Y_{l_3,m_3}(\Omega) \ d\Omega \hspace{5em} \\
+        =\sqrt{\frac{(2l_1+1)(2l_2+1)(2l_3+1)}{4\pi}} \hspace{6.5em} \\ 
+         \times \begin{pmatrix} l_1 & l_2 & l_3 \\ 0 & 0 & 0 \end{pmatrix}
+         \begin{pmatrix} l_1 & l_2 & l_3 \\ m_1 & m_2 & m_3 \end{pmatrix}
 
     INPUT:
 

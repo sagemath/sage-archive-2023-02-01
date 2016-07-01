@@ -955,7 +955,7 @@ class SetPartition(ClonableArray):
                 arcs.append((p[i], p[i+1]))
         return arcs
 
-    def plot(self, angle=pi/4, color='black', base_set_dict=None):
+    def plot(self, angle=3.14/4, color='black', base_set_dict=None):
         """
         Return a plot of ``self``.
 

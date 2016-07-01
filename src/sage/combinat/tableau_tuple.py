@@ -206,7 +206,7 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.words.word import Word
@@ -230,7 +230,7 @@ from sage.sets.positive_integers import PositiveIntegers
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
-import permutation
+from . import permutation
 
 #--------------------------------------------------
 # Tableau tuple - element class
@@ -565,7 +565,7 @@ class TableauTuple(CombinatorialElement):
             \end{array}$}
             } \Bigg)
         """
-        from output import tex_from_array_tuple
+        from .output import tex_from_array_tuple
         return r'\Bigg( %s \Bigg)' % tex_from_array_tuple(self)
 
 

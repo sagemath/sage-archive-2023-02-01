@@ -1561,6 +1561,31 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return (self.truncate(n) * right.truncate(n)).truncate(n)
 
+    def multiplication_trunc(self, other, n):
+        r"""
+        Truncated multiplication
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: (x^10 + 5*x^5 + x^2 - 3).multiplication_trunc(x^7 - 3*x^3 + 1, 11)
+            x^10 + x^9 - 15*x^8 - 3*x^7 + 2*x^5 + 9*x^3 + x^2 - 3
+
+        Check that coercion is working::
+
+            sage: R2 = QQ['x']
+            sage: x2 = R2.gen()
+            sage: p1 = (x^3 + 1).multiplication_trunc(x2^3 - 2, 5); p1
+            -x^3 - 2
+            sage: p2 = (x2^3 + 1).multiplication_trunc(x^3 - 2, 5); p2
+            -x^3 - 2
+            sage: parent(p1) == parent(p2) == R2
+            True
+        """
+        if not have_same_parent_c(self, other):
+            self, other = coercion_model.canonical_coercion(self, other)
+        return self._mul_trunc_(other, pyobject_to_long(n))
+
     def square(self):
         """
         Returns the square of this polynomial.

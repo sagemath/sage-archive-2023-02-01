@@ -226,7 +226,7 @@ Classes and methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -243,16 +243,15 @@ from sage.arith.all import factorial
 from sage.matrix.all import matrix
 from sage.combinat.tools import transitive_ideal
 from sage.combinat.composition import Composition
-import tableau
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.misc.prandom import sample
 from sage.graphs.digraph import DiGraph
 import itertools
-from combinat import CombinatorialElement, catalan_number
+from .combinat import CombinatorialElement, catalan_number
 from sage.misc.misc import uniq
 from sage.misc.cachefunc import cached_method
-from backtrack import GenericBacktracker
+from .backtrack import GenericBacktracker
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.rsk import RSK, RSK_inverse
 from sage.combinat.permutation_cython import (left_action_product,
@@ -498,6 +497,7 @@ class Permutation(CombinatorialElement):
             sage: P.parent()
             Standard permutations
         """
+        import sage.combinat.tableau as tableau
         if isinstance(l, Permutation):
             return l
         elif isinstance(l, PermutationGroupElement):
@@ -921,6 +921,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2]).reading_word_permutation()
             [3, 4, 1, 2, 5]
         """
+        import sage.combinat.tableau as tableau
         if sum(shape) != len(self):
             raise ValueError("the size of the partition must be the size of self")
 
@@ -7769,7 +7770,7 @@ class CyclicPermutations(Permutations_mset):
             for i in index_list:
                 content[i] += 1
 
-        from necklace import Necklaces
+        from .necklace import Necklaces
         for necklace in Necklaces(content):
             yield [self.mset[x-1] for x in necklace]
 

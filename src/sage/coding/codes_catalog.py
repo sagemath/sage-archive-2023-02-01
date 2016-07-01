@@ -37,6 +37,8 @@ _lazy_import('sage.coding.guava', ['BinaryReedMullerCode',
                                     'RandomLinearCodeGuava'])
 _lazy_import('sage.coding.hamming_code', 'HammingCode')
 _lazy_import('sage.coding.punctured_code', 'PuncturedCode')
+_lazy_import('sage.coding.reed_muller_code', ['BinaryReedMullerCode',
+                                              'ReedMullerCode'])
 
 import decoders_catalog as decoders
 import encoders_catalog as encoders

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Indexed Generators
 """
@@ -362,10 +363,41 @@ class IndexedGenerators(object):
              ##
               ##
                ####
+            sage: Partitions.global_options.reset()
         """
         from sage.typeset.ascii_art import AsciiArt, ascii_art
         pref = AsciiArt([self.prefix()])
         r = pref * (AsciiArt([" "**Integer(len(pref))]) + ascii_art(m))
+        r._baseline = r._h - 1
+        return r
+
+    def _unicode_art_generator(self, m):
+        r"""
+        Return an unicode art representing the generator indexed by ``m``.
+
+        TESTS::
+
+            sage: R = NonCommutativeSymmetricFunctions(QQ).R()
+            sage: unicode_art(R[1,2,2,4])
+            R
+               ┌┬┬┬┐
+              ┌┼┼┴┴┘
+             ┌┼┼┘
+             ├┼┘
+             └┘
+            sage: Partitions.global_options(convention="french")
+            sage: unicode_art(R[1,2,2,4])
+            R
+             ┌┐
+             ├┼┐
+             └┼┼┐
+              └┼┼┬┬┐
+               └┴┴┴┘
+            sage: Partitions.global_options.reset()
+        """
+        from sage.typeset.unicode_art import UnicodeArt, unicode_art
+        pref = UnicodeArt([self.prefix()])
+        r = pref * (UnicodeArt([" " ** Integer(len(pref))]) + unicode_art(m))
         r._baseline = r._h - 1
         return r
 

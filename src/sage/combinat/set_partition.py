@@ -955,6 +955,54 @@ class SetPartition(ClonableArray):
                 arcs.append((p[i], p[i+1]))
         return arcs
 
+    def plot(self, color='black', base_set_dict=None):
+        """
+        Return a plot of ``self``.
+
+        INPUT:
+
+        - ``color`` -- color of the arcs
+        - ``base_set_dict`` -- dictionary with keys elements of self.base_set() and values as integer or float
+
+        EXAMPLES::
+
+            sage: p=SetPartition([[1,3,4],[2,5]])
+            sage: print(p.plot().description())
+
+            sage: p=SetPartition([['a','c'],['b',-1],[20.2]])
+            sage: print(p.plot().description())
+
+            sage: p=SetPartition([['a','c'],['b',-1],[20.2]])
+            sage: print(p.plot(base_set_dict={'a':0,'b':1,'c':2,-1:-2.3,20.2:5.4}).description())
+        """
+        from sage.plot.graphics import Graphics
+        from sage.plot.point import point
+        from sage.plot.text import text
+        from sage.plot.arc import arc
+        from sage.functions.other import sqrt
+        from sage.symbolic.constants import pi
+
+        diag = Graphics()
+        sorted_vertices_list=list(self.base_set())
+        sorted_vertices_list.sort()
+        vertices_dict = dict()
+
+        if base_set_dict:
+            vertices_dict = base_set_dict
+        else:
+            for pos in range(len(sorted_vertices_list)):
+                vertices_dict[sorted_vertices_list[pos]]=pos
+
+        for elt in vertices_dict:
+            pos = vertices_dict[elt]
+            diag += point((pos,0),size=30, color=color)
+            diag += text(elt, (pos,-0.1), color=color)
+        for (k,j) in self.arcs():
+            pos_k,pos_j=float(vertices_dict[k]),float(vertices_dict[j])
+            diag += arc(center=((pos_k+pos_j)/2,(pos_k-pos_j)/2),r1=abs((pos_j-pos_k)/sqrt(2)),sector=(pi/4,3*pi/4),color=color)
+        diag.axes(False)
+        return diag
+
 class SetPartitions(UniqueRepresentation, Parent):
     r"""
     An (unordered) partition of a set `S` is a set of pairwise

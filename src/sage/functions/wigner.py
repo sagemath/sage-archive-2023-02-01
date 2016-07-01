@@ -586,11 +586,11 @@ def gaunt(l_1, l_2, l_3, m_1, m_2, m_3, prec=None):
 
     .. math::
 
-        Y(j_1,j_2,j_3,m_1,m_2,m_3) \hspace{12em} \\ 
+        Y(l_1,l_2,l_3,m_1,m_2,m_3) \hspace{12em} \\ 
         =\int Y_{l_1,m_1}(\Omega)
          Y_{l_2,m_2}(\Omega) Y_{l_3,m_3}(\Omega) d\Omega \hspace{5em} \\
         =\sqrt{(2l_1+1)(2l_2+1)(2l_3+1)/(4\pi)} \hspace{5em} \\ 
-         \times Y(j_1,j_2,j_3,0,0,0) \; Y(j_1,j_2,j_3,m_1,m_2,m_3)
+         \times Y(l_1,l_2,l_3,0,0,0) \; Y(l_1,l_2,l_3,m_1,m_2,m_3)
 
     INPUT:
 
@@ -648,22 +648,22 @@ def gaunt(l_1, l_2, l_3, m_1, m_2, m_3, prec=None):
 
       .. math::
 
-          Y(j_1,j_2,j_3,m_1,m_2,m_3)
-          =Y(j_3,j_1,j_2,m_3,m_1,m_2) \hspace{3em} \\ \hspace{3em}
-          =Y(j_2,j_3,j_1,m_2,m_3,m_1)
-          =Y(j_3,j_2,j_1,m_3,m_2,m_1) \\ \hspace{3em}
-          =Y(j_1,j_3,j_2,m_1,m_3,m_2)
-          =Y(j_2,j_1,j_3,m_2,m_1,m_3)
+          Y(l_1,l_2,l_3,m_1,m_2,m_3)
+          =Y(l_3,l_1,l_2,m_3,m_1,m_2) \hspace{3em} \\ \hspace{3em}
+          =Y(l_2,l_3,l_1,m_2,m_3,m_1)
+          =Y(l_3,l_2,l_1,m_3,m_2,m_1) \\ \hspace{3em}
+          =Y(l_1,l_3,l_2,m_1,m_3,m_2)
+          =Y(l_2,l_1,l_3,m_2,m_1,m_3)
 
     - invariant under space inflection, i.e.
 
       .. math::
 
-          Y(j_1,j_2,j_3,m_1,m_2,m_3)
-          =Y(j_1,j_2,j_3,-m_1,-m_2,-m_3)
+          Y(l_1,l_2,l_3,m_1,m_2,m_3)
+          =Y(l_1,l_2,l_3,-m_1,-m_2,-m_3)
 
     - symmetric with respect to the 72 Regge symmetries as inherited
-      for the `3j` symbols [Regge58]_
+      for the 3-`j` symbols [Regge58]_
 
     - zero for `l_1`, `l_2`, `l_3` not fulfilling triangle relation
 

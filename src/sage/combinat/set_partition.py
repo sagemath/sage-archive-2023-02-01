@@ -46,6 +46,7 @@ from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
 from functools import reduce
+from sage.misc.latex import latex
 
 
 class SetPartition(ClonableArray):
@@ -138,6 +139,7 @@ class SetPartition(ClonableArray):
             sage: SetPartition([])
             {}
         """
+        self._latex_options = {}
         ClonableArray.__init__(self, parent, sorted(map(Set, s), key=min))
 
     def check(self):
@@ -408,6 +410,60 @@ class SetPartition(ClonableArray):
         """
         return '{' + ', '.join(('{' + repr(sorted(x))[1:-1] + '}' for x in self)) + '}'
 
+    def set_latex_options(self, opts):
+        r"""
+        Set the latex options for use in the ``_latex_`` function. The default
+        values are set in the ``__init__`` function.
+
+        - ``tikz_scale`` -- (default: 1) scale for use with tikz package.
+
+        - ``plot`` -- (default: ``) ```` returns the set notation, ``linear``
+        returns a linear plot, ``cyclic`` returns a cyclic plot
+
+        - ``color`` -- (default: black) the arc colors.
+
+        - ``fill`` -- (default: False) If True then fills black, else you can
+        pass in a color to alter the fill color. *Only works with cyclic plot*
+
+        - ``show_labels`` -- (default: True) If True shows labels - *only works
+        with plots*
+
+        - ``radius`` -- (default: "1cm") Radius of circle for cyclic plot. *Only
+        works with cyclic plot*
+
+        INPUT:
+
+        - ``opts`` -- a dictionary with a list of latex parameters to change
+
+        EXAMPLES::
+
+        """
+
+        for opt in opts:
+            self._latex_options[opt] = opts[opt]
+    def latex_options(self):
+        r"""
+        Return the latex options for use in the ``_latex_`` function as a
+        dictionary. The default values are set using the global options.
+
+        Options can be found in set_latex_options()
+
+        EXAMPLES::
+        """
+        opts = self._latex_options.copy()
+        if "tikz_scale" not in opts:
+            opts["tikz_scale"] = 1
+        if "plot" not in opts:
+            opts["plot"] = ''
+        if "color" not in opts:
+            opts['color']= 'black'
+        if "fill" not in opts:
+            opts["fill"] = False
+        if "show_labels" not in opts:
+            opts['show_labels'] = True
+        if "radius" not in opts:
+            opts['radius'] = "1cm"
+        return opts
     def _latex_(self):
         r"""
         Return a `\LaTeX` string representation of ``self``.
@@ -418,7 +474,81 @@ class SetPartition(ClonableArray):
             sage: latex(x)
             \{\{1, 2\}, \{3, 4, 5\}\}
         """
-        return repr(self).replace("{",r"\{").replace("}",r"\}")
+        latex_options = self.latex_options()
+        if latex_options["plot"] == "":
+            return repr(self).replace("{",r"\{").replace("}",r"\}")
+        else:
+            latex.add_package_to_preamble_if_available("tikz")
+            res = "\\begin{tikzpicture}[scale="+str(latex_options['tikz_scale'])+"]\n"
+
+            cardinality = self.base_set_cardinality()
+            base_set = self.base_set().list()
+            color= latex_options['color']
+
+            # If we want cyclic plots
+            if latex_options['plot'] == 'cyclic' or latex_options['plot'] == 'cycle' or latex_options['plot'] == 'circle':
+                degrees = 360 / cardinality
+                radius = latex_options['radius']
+
+                # Add nodes
+                for k,i in enumerate(base_set):
+                    location = (cardinality - k) * degrees - 270
+                    res += "\t\\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black"
+                    if latex_options['show_labels']:
+                        res += ",label=" + str(location) + ":" + str(i)
+                    res += "] (" + str(k) + ") at (" + str(location) + ":" + radius + ") {};\n"
+
+                # Add the circle
+                for k,i in enumerate(base_set):
+                    xangle = k * degrees
+                    yangle = (k+1) * degrees
+                    res += "\t\\draw[-] (" + str(xangle) + ":" + radius + ")"
+                    res += " arc "
+                    res += "(" + str(xangle) + ":" + str(yangle) + ":" + radius + ");\n"
+
+                # Setup partitions
+                for partition in self:
+                    res += "\t\t\\draw[-,thick,color="+color
+                    if latex_options['fill'] != False:
+                        if isinstance(latex_options['fill'],str):
+                            res += ",fill="+latex_options['fill']
+                        else:
+                            res += ",fill={rgb:" + color + ",1;white,10}"
+                    res += "] "
+                    firstDone = False
+                    for j in partition:
+                        if firstDone:
+                            res += " -- (" + str(base_set.index(j)) + ".center)"
+                        else:
+                            firstDone = True
+                            res += "(" + str(base_set.index(j)) + ".center)"
+                    res += " -- cycle;\n"
+
+            # If we want line plots
+            if latex_options['plot'] == 'linear' or latex_options['plot'] == 'line' or latex_options['plot'] == 'planar':
+                # setup line
+                for k,i in enumerate(base_set):
+                    if latex_options['show_labels']:
+                        res += "\t\\node[below=.05cm] at (" + str(k) + ",0) {$" + str(i) + "$};\n"
+                    res += "\t\\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] "
+                    res += "(" + str(k) + ") at (" + str(k) + ",0) {};\n"
+                #res += "\t\\draw (0) -- (" + str(cardinality - 1) + ");\n"
+
+                # setup arcs
+                for partition in self:
+                    if partition.cardinality() > 1:
+                        for k,i in enumerate(partition.list()):
+                            if k != 0:
+                                #res += "\\draw (" + str(base_set.index(partition[0])) + ")"
+                                #res += " to [out=90,in=90] "
+                                #res += "(" + str(base_set.index(partition[-1])) + ");"
+                            #else:
+                                res += "\t\\draw[color=" + color + "] (" + str(base_set.index(partition[k])) + ")"
+                                res += " to [out=90,in=90] "
+                                res += "(" + str(base_set.index(partition[k-1])) + ");\n"
+
+            res += "\\end{tikzpicture}"
+            return res
 
     cardinality = ClonableArray.__len__
 

@@ -955,12 +955,13 @@ class SetPartition(ClonableArray):
                 arcs.append((p[i], p[i+1]))
         return arcs
 
-    def plot(self, color='black', base_set_dict=None):
+    def plot(self, angle=pi/4, color='black', base_set_dict=None):
         """
         Return a plot of ``self``.
 
         INPUT:
 
+        - ``angle`` -- the angle at which the arcs start (w.r.t. the horizontal direction)
         - ``color`` -- color of the arcs
         - ``base_set_dict`` -- dictionary with keys elements of self.base_set() and values as integer or float
 
@@ -981,6 +982,8 @@ class SetPartition(ClonableArray):
         from sage.plot.arc import arc
         from sage.functions.other import sqrt
         from sage.symbolic.constants import pi
+        from sage.functions.trig import tan
+        from sage.functions.trig import sin
 
         diag = Graphics()
         sorted_vertices_list=list(self.base_set())
@@ -998,8 +1001,8 @@ class SetPartition(ClonableArray):
             diag += point((pos,0),size=30, color=color)
             diag += text(elt, (pos,-0.1), color=color)
         for (k,j) in self.arcs():
-            pos_k,pos_j=float(vertices_dict[k]),float(vertices_dict[j])
-            diag += arc(center=((pos_k+pos_j)/2,(pos_k-pos_j)/2),r1=abs((pos_j-pos_k)/sqrt(2)),sector=(pi/4,3*pi/4),color=color)
+            pos_k,pos_j = float(vertices_dict[k]),float(vertices_dict[j])
+            diag += arc(center=((pos_k+pos_j)/2,-abs(pos_j-pos_k)/(2*tan(angle)), r1=abs((pos_j-pos_k)/(2*sin(angle)), sector=(pi/2-angle,pi/2+angle),color=color)
         diag.axes(False)
         return diag
 

@@ -40,6 +40,9 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.functions.trig import cos, sin
 from sage.functions.other import sqrt
 
+r"""
+TODO
+"""
 default_tikz_options = dict(
     scale=1, line_size=1, point_size=3.5,
     color_line='black', color_point='black',
@@ -48,6 +51,9 @@ default_tikz_options = dict(
     mirror=None,
 )
 
+r"""
+TODO
+"""
 ParallelogramPolyominoesOptions = GlobalOptions(
     name='Parallelogram Polyominoes',
     doc=r"""
@@ -795,6 +801,37 @@ class ParallelogramPolyomino(ClonableList):
             return self._to_binary_tree_Aval_Boussicault([0, 0])
 
     def _to_ordered_tree_via_dyck(self):
+        r"""
+        Convert the parallelogram polyominoe (PP) by using first 
+        the Delest-Viennot bijection between PP and dyck paths,
+        and then by using the classical bijection between dyck paths
+        and ordered trees.
+
+        See :meth:`_to_dyck_delest_viennot` and :meth:`to_ordered_tree()`.
+
+        EXAMPLES:
+
+            sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
+            sage: pp._to_ordered_tree_via_dyck()
+            [[]]
+
+            sage: pp = ParallelogramPolyomino([[0, 1, 1], [1, 1, 0]])
+            sage: pp._to_ordered_tree_via_dyck()
+            [[[]]]
+
+            sage: pp = ParallelogramPolyomino([[0, 0, 1], [1, 0, 0]])
+            sage: pp._to_ordered_tree_via_dyck()
+            [[], []]
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [
+            ....:         [0, 0, 1, 0, 1, 0, 1, 0, 1, 1],
+            ....:         [1, 1, 0, 1, 1, 0, 0, 0, 1, 0]
+            ....:     ]
+            ....: )
+            sage: pp._to_ordered_tree_via_dyck()
+            [[[[]], [[[]], []]], [[]]]
+        """
         return self._to_dyck_delest_viennot().to_ordered_tree()
 
     def _to_ordered_tree_Bou_Socci(self):
@@ -883,6 +920,15 @@ class ParallelogramPolyomino(ClonableList):
             ....: )
             sage: pp.to_ordered_tree()
             []
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [
+            ....:         [0, 0, 1, 0, 1, 0, 1, 0, 1, 1],
+            ....:         [1, 1, 0, 1, 1, 0, 0, 0, 1, 0]
+            ....:     ]
+            ....: )
+            sage: pp.to_ordered_tree('via dyck and Delest-Viennot')
+            [[[[]], [[[]], []]], [[]]]
         """
         if bijection is None or bijection == 'Boussicault-Socci':
             return self._to_ordered_tree_Bou_Socci()
@@ -1679,6 +1725,9 @@ class ParallelogramPolyomino(ClonableList):
         return self.get_options()['tikz_options']
 
     def _to_tikz_diagram(self):
+        r"""
+        TODO
+        """
         tikz_options = self.get_tikz_options()
         grid_width = self.width() + 1
         grid_height = self.height() + 1
@@ -1711,6 +1760,9 @@ class ParallelogramPolyomino(ClonableList):
         return res
 
     def _to_tikz_tree_with_bounce(self, directions=[0, 1]):
+        r"""
+        TODO
+        """
         res = ""
         tikz_options = self.get_tikz_options()
         if self.size() == 1:
@@ -1735,6 +1787,9 @@ class ParallelogramPolyomino(ClonableList):
         return res
 
     def _to_tikz_bounce(self, directions=[0, 1]):
+        r"""
+        TODO
+        """
         res = ""
         tikz_options = self.get_tikz_options()
         grid_width = self.width() + 1
@@ -1780,6 +1835,9 @@ class ParallelogramPolyomino(ClonableList):
         return res
 
     def _to_tikz_tree(self):
+        r"""
+        TODO
+        """
         res = ""
         tikz_options = self.get_tikz_options()
         if self.size() == 1:
@@ -1885,6 +1943,9 @@ class ParallelogramPolyomino(ClonableList):
         return box[0] == 0 and box[1] == 0
 
     def get_path_in_pair_of_tree_from_box(self, box, direction):
+        r"""
+        TODO
+        """
         path = []
         while not self.box_is_root(box):
             nb_sons = [0]
@@ -1895,10 +1956,16 @@ class ParallelogramPolyomino(ClonableList):
         return path
 
     def get_path_in_pair_of_tree_from_row(self, line):
+        r"""
+        TODO
+        """
         pos = self.get_node_position_at_row(line)
         return self.get_path_in_pair_of_tree_from_box(pos, 0)
 
     def get_path_in_pair_of_tree_from_line(self, line):
+        r"""
+        TODO
+        """
         pos = self.get_node_position_at_line(line)
         return self.get_path_in_pair_of_tree_from_box(pos, 1)
 
@@ -2379,6 +2446,16 @@ class ParallelogramPolyominoes_size(
             yield ParallelogramPolyomino.from_dyck_word(dyck)
 
     def get_options(self):
+        r"""
+        Return all the options associated with all the elements of 
+        the set of parallelogram polyominoes with a fixed size.
+
+        EXAMPLES::
+
+            sage: pps = ParallelogramPolyominoes(5)
+            sage: pps.get_options()
+            options for Parallelogram Polyominoes
+        """
         return self.global_options
 
     def size(self):
@@ -2416,6 +2493,9 @@ class ParallelogramPolyominoes_size(
         """
         self.global_options(*get_value, **set_value)
 
+    r"""
+    TODO
+    """
     global_options = ParallelogramPolyominoesOptions
 
 
@@ -2523,4 +2603,7 @@ class ParallelogramPolyominoes_all(
         """
         self.global_options(*get_value, **set_value)
 
+    r"""
+    TODO
+    """
     global_options = ParallelogramPolyominoesOptions

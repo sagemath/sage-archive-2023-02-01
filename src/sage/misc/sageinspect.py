@@ -1997,7 +1997,7 @@ def sage_getsourcelines(obj):
         sage: sage_getsourcelines(obj)
         (['def create_set_partition_function(letter, k):\n',
         ...
-        '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 34)
+        '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 35)
 
     Here are some cases that were covered in :trac`11298`;
     note that line numbers may easily change, and therefore we do

@@ -554,6 +554,30 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
+    @classmethod
+    def _test_add_col(cls, tester=None, **options):
+        """
+        Run tests on the method :meth:`.add_col`
+
+        TEST::
+
+            sage: from sage.numerical.backends.generic_backend import GenericBackend
+            sage: p = GenericBackend()
+            sage: p._test_add_col()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ...
+
+        """
+        p = cls()                         # fresh instance of the backend
+        if tester is None:
+            tester = p._tester(**options)
+        tester.assertIsNone(p.add_linear_constraints(5, 0, None))
+        tester.assertIsNone(p.add_col([0, 1, 2, 3, 4], [0, 1, 2, 3, 4]))
+        tester.assertEqual(p.nrows(), 5)
+        for 1 <= i <= 4:
+            tester.assertEqual(p.row(i), ([0], [i]))
+
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
         """
         Add ``'number`` linear constraints.
@@ -643,6 +667,35 @@ cdef class GenericBackend:
             MIPSolverException: ...
         """
         raise NotImplementedError()
+
+    ## Any test methods involving calls to 'solve' are set up as class methods,
+    ## which make a fresh instance of the backend.
+    @classmethod
+    def _test_solve(cls, tester=None, **options):
+        """
+        Trivial test for the solve method.
+
+        TEST::
+
+            sage: from sage.numerical.backends.generic_backend import GenericBackend
+            sage: p = GenericBackend()
+            sage: p._test_solve()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ...
+        """
+        p = cls()                         # fresh instance of the backend
+        if tester is None:
+            tester = p._tester(**options)
+        # From doctest of GenericBackend.solve:
+        tester.assertIsNone(p.add_linear_constraints(5, 0, None))
+        tester.assertIsNone(p.add_col(range(5), range(5)))
+        tester.assertEqual(p.solve(), 0)
+        tester.assertIsNone(p.objective_coefficient(0,1))
+        from sage.numerical.mip import MIPSolverException
+        #with tester.assertRaisesRegexp(MIPSolverException, "unbounded") as cm:  ## --- too specific
+        with tester.assertRaises(MIPSolverException) as cm:   # unbounded
+            p.solve()
 
     cpdef get_objective_value(self):
         """
@@ -1406,6 +1459,41 @@ cdef class GenericBackend:
             True
         """
         raise NotImplementedError()
+
+    @classmethod
+    def _test_solve_trac_18572(cls, tester=None, **options):
+        """
+        Run tests regarding :trac:`18572`::
+
+        TEST::
+
+            sage: from sage.numerical.backends.generic_backend import GenericBackend
+            sage: p = GenericBackend()
+            sage: p._test_solve_trac_18572()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        """
+        p = cls()                         # fresh instance of the backend
+        if tester is None:
+            tester = p._tester(**options)
+        tester.assertIsNone(p.set_sense(-1))
+        tester.assertEqual(p.add_variable(0, None, False, True, False, 0, None), 0)
+        tester.assertIsNone(p.set_variable_type(0, -1))
+        tester.assertEqual(p.add_variable(0, None, False, True, False, 0, None), 1)
+        tester.assertIsNone(p.set_variable_type(1, -1))
+        tester.assertEqual(p.add_variable(None, None, False, True, False, 0, None), 2)
+        tester.assertIsNone(p.set_variable_type(2, -1))
+        tester.assertIsNone(p.add_linear_constraint([(0, 2), (1, 1), (2, -1)], None, 0, None))
+        tester.assertIsNone(p.add_linear_constraint([(0, 1), (1, 3), (2, -1)], None, 0, None))
+        tester.assertIsNone(p.add_linear_constraint([(0, 1), (1, 1)], 1, 1, None))
+        tester.assertEqual(p.ncols(), 3)
+        tester.assertIsNone(p.set_objective([0, 0, 1], 0))
+        tester.assertEqual(p.solve(), 0)
+        tester.assertAlmostEqual(p.get_objective_value(), 1.66666666667)
+        tester.assertAlmostEqual(p.get_variable_value(0), 0.666666666667)
+        tester.assertAlmostEqual(p.get_variable_value(1), 0.333333333333)
 
 default_solver = None
 

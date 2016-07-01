@@ -142,7 +142,7 @@ Functions and classes
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity
@@ -154,7 +154,7 @@ from sage.misc.all import prod
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.misc.lazy_attribute import lazy_attribute
-from combinat_cython import _stirling_number2
+from .combinat_cython import _stirling_number2
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Integer compositions
 
@@ -162,9 +163,32 @@ class Composition(CombinatorialElement):
             [ #  #   #        ##                 ]
             [ #  #   ##  #     #  ##   ###       ]
             [ #, ##,  #, ###,  #,  ##,   #, #### ]
+            sage: Partitions.global_options.reset()
         """
         from sage.typeset.ascii_art import ascii_art
         return ascii_art(self.to_skew_partition())
+
+    def _unicode_art_(self):
+        """
+        TESTS::
+
+            sage: unicode_art(Compositions(4).list())
+            ⎡ ┌┐                                         ⎤
+            ⎢ ├┤  ┌┬┐   ┌┐         ┌┐                    ⎥
+            ⎢ ├┤  ├┼┘  ┌┼┤  ┌┬┬┐   ├┤   ┌┬┐    ┌┐        ⎥
+            ⎢ ├┤  ├┤   ├┼┘  ├┼┴┘  ┌┼┤  ┌┼┼┘  ┌┬┼┤  ┌┬┬┬┐ ⎥
+            ⎣ └┘, └┘ , └┘ , └┘  , └┴┘, └┴┘ , └┴┴┘, └┴┴┴┘ ⎦
+            sage: Partitions.global_options(diagram_str='#', convention="French")
+            sage: unicode_art(Compositions(4).list())
+            ⎡ ┌┐                                         ⎤
+            ⎢ ├┤  ┌┐   ┌┐         ┌┬┐                    ⎥
+            ⎢ ├┤  ├┤   ├┼┐  ┌┐    └┼┤  ┌┬┐   ┌┬┬┐        ⎥
+            ⎢ ├┤  ├┼┐  └┼┤  ├┼┬┐   ├┤  └┼┼┐  └┴┼┤  ┌┬┬┬┐ ⎥
+            ⎣ └┘, └┴┘,  └┘, └┴┴┘,  └┘,  └┴┘,   └┘, └┴┴┴┘ ⎦
+            sage: Partitions.global_options.reset()
+        """
+        from sage.typeset.unicode_art import unicode_art
+        return unicode_art(self.to_skew_partition())
 
     def __setstate__(self, state):
         r"""

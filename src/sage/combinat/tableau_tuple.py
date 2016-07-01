@@ -843,14 +843,18 @@ class TableauTuple(CombinatorialElement):
 
     def first_row_descent(self): 
         r""" 
-        Return the first cell where the tableau is not row standard.
+        Return the first cell of ``self`` that is not row standard.
 
         Cells are ordered left to right along the rows and then top to
         bottom. That is, the cell minimal `(k,r,c)` such that the entry in
         position `(k,r,c)` is bigger than the entry in position `(k,r,c+1)`.
+        If there is no such cell then ``None`` is returned - in this
+        case the tableau is row strict.
 
-        If there is no such cell then ``None`` is returned - in this case the
-        tableau is row strict.
+        OUTPUT:
+
+        The cell corresponding to the first row descent or ``None``
+        if the tableau is row strict.
 
         EXAMPLES::
 
@@ -890,12 +894,18 @@ class TableauTuple(CombinatorialElement):
 
     def first_column_descent(self):
         r"""
-        Return the first row where the tableau ``self`` is not column standard. 
+        Return the first cell of ``self`` is not column standard. 
 
-        That is, return the cell `(k,r,c)` with `(k,r,c)` minimal such that
-        the entry in position `(k,r,c)` is bigger than the entry in position `(k,r,c+1)`.
-        If there is no such cell then ``None`` is returned - in this case the
-        tableau is column strict.
+        Cells are ordered left to right along the rows and then top to
+        bottom. That is, return the cell `(k,r,c)` with `(k,r,c)` minimal
+        such that the entry in position `(k,r,c)` is bigger than the entry
+        in position `(k,r,c+1)`. If there is no such cell then ``None``
+        is returned - in this case the tableau is column strict.
+
+        OUTPUT:
+
+        The cell corresponding to the first column descent or ``None``
+        if the tableau is column strict.
 
         EXAMPLES::
 
@@ -1272,24 +1282,23 @@ class TableauTuple(CombinatorialElement):
         Return the content ``k`` in ``self``.
 
         The content of `k` in a standard tableau. That is, if
-        `k` appears in row `r` and column `c` of the tableau then we
-        return `c-r` + ``multicharge[k]``.
+        `k` appears in row `r` and column `c` of the tableau, then
+        we return `c - r + a_k`, where the multicharge is
+        `(a_1, a_2, \ldots, a_l)` and `l` is the level of the tableau.
 
-        The ``multicharge`` = `[m_1, \ldots, m_l]` determines the dominant
-        weight
+        The multicharge determines the dominant weight
 
         .. MATH::
 
             \Lambda = \sum_{i=1}^l \Lambda_{a_i}
 
         of the affine special linear group. In the combinatorics, the
-        ``muticharge`` simply offsets the contents in each component so that
+        muticharge simply offsets the contents in each component so that
         the cell `(k, r, c)` has content `a_k + c - r`.
 
         INPUT:
 
-        - ``k`` -- an integer with `1 \leq k \leq n`
-
+        - ``k`` -- an integer in `\{1, 2, \ldots, n\}`
         - ``multicharge`` -- a sequence of integers of length `l`
 
         Here `l` is the :meth:`~TableauTuple.level` and `n` is the
@@ -1307,7 +1316,6 @@ class TableauTuple(CombinatorialElement):
             Traceback (most recent call last):
             ...
             ValueError: 6 must be contained in the tableaux
-
         """
         for l, tableau in enumerate(self):
             for r,row in enumerate(tableau):
@@ -1321,23 +1329,11 @@ class TableauTuple(CombinatorialElement):
         r"""
         Return the *residue* of the integer ``k`` in the tableau ``self``.
 
-        INPUT:
+        The *residue* of `k` is `c - r + a_k` in `\ZZ / e\ZZ`, where `k`
+        appears in row `r` and column `c` of the tableau and
+        the multicharge is `(a_1, a_2, \ldots, a_l)`.
 
-        - an integer `k`, with 1\le k\le n,
-        - an integer `e` in {0,2,3,4,5,...} (not checked!)
-        - the `multicharge`, which is a list of integers of the same level/length
-          as the shape of the tableau
-
-        Here `l` is the level of the shape and `n` is its size.
-
-        OUTPUT:
-
-        The residue of ``k`` in a standard tableau. That is, if
-        ``k`` appears in row `r` and column `c` of the tableau then we
-        return the image of `c - r + multicharge[k]` in `\ZZ / e\ZZ`.
-
-        The ``multicharge`` given by `(m_1, \ldots, m_l)` determines the dominant 
-        weight
+        The multicharge determines the dominant weight
 
         .. MATH::
 
@@ -1346,6 +1342,19 @@ class TableauTuple(CombinatorialElement):
         for the affine special linear group. In the combinatorics, it simply
         offsets the contents in each component so that the cell `(k, 0, 0)`
         has content `a_k`.
+
+        INPUT:
+
+        - ``k`` -- an integer in `\{1, 2, \ldots, n\}`
+        - ``e`` -- an integer in `\{0, 2, 3, 4, 5, \ldots\}`
+        - ``multicharge`` -- a list of integers of length `l`
+
+        Here `l` is the :meth:`~TableauTuple.level` and `n` is the
+        :meth:`~TableauTuple.size` of ``self``.
+
+        OUTPUT:
+
+        The residue of ``k`` in a standard tableau. That is,
 
         EXAMPLES::
 
@@ -1359,7 +1368,6 @@ class TableauTuple(CombinatorialElement):
             Traceback (most recent call last):
             ...
             ValueError: 6 must be contained in the tableaux
-
         """
         for l, tableau in enumerate(self):
             for r, row in enumerate(tableau):
@@ -1599,18 +1607,19 @@ class StandardTableauTuple(TableauTuple):
 
     def residue_sequence(self, e, multicharge):
         r"""
-        Return the :class:`sage.combinat.tableau_residues.ResidueSequence` of the
-        tableau ``self``.
+        Return the :class:`sage.combinat.tableau_residues.ResidueSequence`
+        of the tableau ``self``.
 
         INPUT:
 
-        - an integer `k`, with 1\le k\le n,
-        - an integer `e` in {0,2,3,4,5,...} (not checked!)
-        - a sequence of integers the `multicharge` of length l.
+        - ``e`` -- integer in `\{0, 2, 3, 4, 5, \ldots\}`
+        - ``multicharge`` -- a sequence of integers of length equal
+          to the level/length of ``self``
 
         OUTPUT:
 
-        The corresponding residue sequence of the tableau; see :class:`ResidueSequence`.
+        The :class:`residue sequence
+        <sage.combinat.tableau_residues.ResidueSequence>` of the tableau.
 
         EXAMPLES::
 
@@ -1627,21 +1636,12 @@ class StandardTableauTuple(TableauTuple):
         from sage.combinat.tableau_residues import ResidueSequence
         return ResidueSequence(e, multicharge, res, check=False)
 
-    def degree(self,e, multicharge):
-        """
-        Return the integer which is the Brundan-Kleshchev-Wang [BKW11]_
-        degree of a standard tableau.
+    def degree(self, e, multicharge):
+        r"""
+        Return the Brundan-Kleshchev-Wang [BKW11]_ degree of the standard
+        tableau ``self``.
 
-        INPUT:
-
-        - ``e`` -- the **quantum characteristic** ``e``
-        - ``multicharge`` -- (default: ``[0]``) the multicharge
-
-        OUTPUT:
-
-        The **degree** of the tableau ``self``, which is an integer.
-
-        The degree of a tableau ix an integer that is defined recursively by
+        The *degree* of a tableau ix an integer that is defined recursively by
         successively stripping off the number `k`, for `k = n, n-1, \ldots, 1`,
         and at stage adding the count of the number of addable cell of the same
         residue minus the number of removable cells of them same residue as `k`
@@ -1653,6 +1653,15 @@ class StandardTableauTuple(TableauTuple):
 
         The degrees of the tableau `T` gives the degree of the homogeneous
         basis element of the graded Specht module which is indexed by `T`.
+
+        INPUT:
+
+        - ``e`` -- the *quantum characteristic* ``e``
+        - ``multicharge`` -- (default: ``[0]``) the multicharge
+
+        OUTPUT:
+
+        The degree of the tableau ``self``, which is an integer.
 
         EXAMPLES::
 
@@ -1687,37 +1696,28 @@ class StandardTableauTuple(TableauTuple):
         return deg
 
     def codegree(self, e, multicharge):
-        """
-        Return the integer which is the Brundan-Kleshchev-Wang codegree of the
-        standard tableau ``self``.
+        r"""
+        Return the Brundan-Kleshchev-Wang [BKW11]_ codegree of the standard
+        tableau ``self``.
+
+        The *codegree* of a tableau is an integer that is defined
+        recursively by successively stripping off the number `k`, for
+        `k = n, n-1, \ldots, 1` and at stage adding the number of addable
+        cell of the same residue minus the number of removable cells of
+        the same residue as `k` and which are above `k` in the diagram.
+
+        The codegree of the tableau ``self`` gives the degree of  "dual"
+        homogeneous basis element of the graded Specht module which is
+        indexed by ``self``.
 
         INPUT:
 
-        - ``e`` -- the **quantum characteristic** ``e``
+        - ``e`` -- the *quantum characteristic*
         - ``multicharge`` -- the multicharge
 
         OUTPUT:
 
-        The **codegree** of the tableau ``self``, which is an integer.
-
-        The codegree of a tableau is an integer that is defined recursively by
-        successively stripping off the number `k`, for `k = n, n-1, \ldots, 1`
-        and at stage adding the number of addable cell of the same residue minus
-        the number of removable cells of the same residue as `k` and which are
-        above `k` in the diagram.
-
-        The codegree of the tableau ``self`` gives the degree of  "dual"
-        homogeneous basis element of the Graded Specht module which is indexed
-        by ``self``.
-
-        INPUT:
-
-        - ``e`` -- the **quantum characteristic** ``e``
-        - ``multicharge`` - the multicharge (default: ``[0]``).
-
-        OUTPUT:
-
-        The **codegree** of the tableau ``self`` which is a integer.
+        The codegree of the tableau ``self``, which is an integer.
 
         EXAMPLES::
 
@@ -3588,13 +3588,16 @@ class StandardTableaux_residue(StandardTableauTuples):
     Class of all standard tableau tuples with a fixed residue sequence.
 
     Implicitly, this also specifies the quantum characteristic, multicharge
-    and hence the level and size of the tableaux. This class is not intended
-    to be called directly, but rather, it is accessed through the
-    standard tableaux.
+    and hence the level and size of the tableaux.
+
+    .. NOTE::
+
+        This class is not intended to be called directly, but rather,
+        it is accessed through the standard tableaux.
 
     EXAMPLES::
     
-        sage: StandardTableau([[1,2,3],[4,5]]).residue_sequence(2).standard_tableaux() # indirect doctest
+        sage: StandardTableau([[1,2,3],[4,5]]).residue_sequence(2).standard_tableaux()
         Standard tableaux with 2-residue sequence (0,1,0,1,0) and multicharge (0)
         sage: StandardTableau([[1,2,3],[4,5]]).residue_sequence(3).standard_tableaux()
         Standard tableaux with 3-residue sequence (0,1,2,2,0) and multicharge (0)
@@ -3671,7 +3674,8 @@ class StandardTableaux_residue(StandardTableauTuples):
 
         EXAMPLES::
 
-            sage: list(StandardTableauTuple([[[1,2],[5]],[[3,4]]]).residue_sequence(3,(0,1)).standard_tableaux())
+            sage: R = StandardTableauTuple([[[1,2],[5]],[[3,4]]]).residue_sequence(3, (0,1))
+            sage: list(R.standard_tableaux())
             [([[1, 2, 4], [5]], [[3]]),
              ([[1, 2, 4]], [[3, 5]]),
              ([[1, 2, 5], [4]], [[3]]),
@@ -3685,7 +3689,8 @@ class StandardTableaux_residue(StandardTableauTuples):
              ([[1, 3, 5]], [[2, 4]]),
              ([[1, 3], [5]], [[2, 4]])]
 
-            sage: StandardTableauTuple([[[1,4],[2]],[[3]]]).residue_sequence(3,(0,1)).standard_tableaux().list()
+            sage: R = StandardTableauTuple([[[1,4],[2]],[[3]]]).residue_sequence(3,(0,1))
+            sage: R.standard_tableaux().list()
             [([[1, 3], [2], [4]], []),
              ([[1, 3], [2]], [[4]]),
              ([[1, 4], [2], [3]], []),
@@ -3706,11 +3711,12 @@ class StandardTableaux_residue(StandardTableauTuples):
 
     def an_element(self):
         r"""
-        Return a particular element of the class.
+        Return a particular element of ``self``.
 
         EXAMPLES::
 
-            sage: StandardTableau([[1,2],[3]]).residue_sequence(3,(0,1)).standard_tableaux().an_element()
+            sage: T = StandardTableau([[1,2],[3]]).residue_sequence(3,(0,1)).standard_tableaux()
+            sage: T.an_element()
             ([[1, 2, 3]], [])
         """
         # the tableaux class may be empty so we trap a ValueError
@@ -3723,9 +3729,10 @@ class StandardTableaux_residue_shape(StandardTableauTuples):
     """
     All standard tableau tuples with a fixed residue and shape.
 
-    - shape -- the shape of the partitions or partition tuples
-    - residue -- the residue sequence of the label
-    - e -- the quantum characteristic
+    INPUT:
+
+    - ``shape`` -- the shape of the partitions or partition tuples
+    - ``residue`` -- the residue sequence of the label
 
     EXAMPLES::
 
@@ -3754,7 +3761,7 @@ class StandardTableaux_residue_shape(StandardTableauTuples):
          ([[1, 3], [4]], [[2, 5], [6], [7]])]
     """
 
-    def __init__(self, residue,shape):
+    def __init__(self, residue, shape):
         r"""
         Initialize ``self``.
 
@@ -3837,13 +3844,13 @@ class StandardTableaux_residue_shape(StandardTableauTuples):
 
     def an_element(self):
         r"""
-        Returns a particular element of the class.
+        Return a particular element of ``self``.
 
         EXAMPLES::
 
-            sage: StandardTableau([[1,3],[2]]).residue_sequence(3).standard_tableaux([2,1]).an_element()
+            sage: T = StandardTableau([[1,3],[2]]).residue_sequence(3).standard_tableaux([2,1])
+            sage: T.an_element()
             [[1, 3], [2]]
-
         """
         # the tableaux class may be empty so we trap a ValueError
         try:

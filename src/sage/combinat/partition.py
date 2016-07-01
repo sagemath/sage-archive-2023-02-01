@@ -2520,7 +2520,7 @@ class Partition(CombinatorialElement):
             1
         """
         if e == 0:
-            return 0
+            return ZZ.zero()
         else:
             return sum(m // e for m in self)
 
@@ -2528,19 +2528,19 @@ class Partition(CombinatorialElement):
         r"""
         Return the ``e``-th degree of ``self``.
 
+        The `e`-th degree of a partition `\lambda` is the sum of the `e`-th
+        degrees of the standard tableaux of shape `\lambda`. The `e`-th degree
+        is the exponent of `\Phi_e(q)` in the Gram determinant of the Specht
+        module for a semisimple Iwahori-Hecke algebra of type `A` with
+        parameter `q`.
+
         INPUT:
 
-        - ``e`` -- an  integer  `e>1` (not checked!)
+        - ``e`` -- an  integer  `e > 1`
 
         OUTPUT:
 
-        A non-negative integer
-
-        The ``e``th degree of a partition `\lambda` is the sum of the ``e``th
-        degrees of the standard tableaux of shape `\lambda`. The ``e``-th degree
-        is the exponent of `\Phi_e(q)` in the Gram determinant of the Specht
-        module for a semisimple Iwahori-Hecke algebra of type `A` with parameter
-        `q`.
+        A non-negative integer.
 
         EXAMPLES::
 
@@ -2574,15 +2574,15 @@ class Partition(CombinatorialElement):
 
         INPUT:
 
-        - ``p`` -- a prime integer  (not checked!)
+        - ``p`` -- a prime integer
 
         OUTPUT:
 
         A non-negative integer 
 
         The degree of a partition `\lambda` is the sum of the
-        ``e``-:meth:`degree` of the standard tableaux of shape `\lambda`, for
-        ``e`` a poer of the prime ``p``. The prime degree gives the exponent of
+        `e`-:meth:`degree` of the standard tableaux of shape `\lambda`, for
+        `e` a poer of the prime `p`. The prime degree gives the exponent of
         `p` in the Gram determinant of the integal Specht module of the
         symmetric group.
 
@@ -2597,7 +2597,7 @@ class Partition(CombinatorialElement):
             sage: Partition([4,3]).prime_degree(7)
             0
 
-        THerefore, the Gram determinant of `S(5,3)` when `q=1` is 
+        THerefore, the Gram determinant of `S(5,3)` when `q = 1` is 
         `2^{36} 3^{15} 5^{13}`.  Compare with :meth:`degree`.
         """
         ps = [p]
@@ -3375,12 +3375,12 @@ class Partition(CombinatorialElement):
 
         .. MATH: 
 
-            \text{defect}(\beta) = (\Lambda,\beta) - \tfrac12(\beta,\beta)
+            \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta)
 
-        where `\Lambda = \sum_r \Lambda_{\kappa_r}`, where
-        `(\kappa_1, \ldots, \kappa_{\ell})` is the ``multicharge`` and 
-        `\beta = \sum_{(r,c)} \alpha_{(c-r)\pmod e}`, where the sum is
-        over the cells in the partition.
+        where `\Lambda = \sum_r \Lambda_{\kappa_r}` for the multicharge
+        `(\kappa_1, \ldots, \kappa_{\ell})` and 
+        `\beta = \sum_{(r,c)} \alpha_{(c-r) \pmod e}`, with the sum
+        being over the cells in the partition.
 
         EXAMPLES::
 

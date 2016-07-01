@@ -1,41 +1,41 @@
 r"""
 Residue sequences of tableaux
 
-A *residue sequence* for a :class:`~sage.combinat.tableau.StandardTableau` , or
+A *residue sequence* for a :class:`~sage.combinat.tableau.StandardTableau`, or
 :class:`~sage.combinat.tableau_tuple.StandardTableauTuple`, of size `n` is an
-`n`-tuple `(i_1,i_2,\dots,i_n)` of elements of `\ZZ/e \ZZ` for some positive
-integer `e\ge 1`.  Such sequences arise in the representation theory of the
-symmetric group and the closely related cyclotomic Hecke algebras, and
-cyclotomic quiver Hecke algebras, where the residue sequences play a similar role
-to weights in the representations of Lie groups and Lie algebras. These Hecke
-algebras are semisimple when `e` is "large enough" and in these cases residue
-sequences are essentially the same as content sequences (see
-:meth:`sage.combinat.partition.Partition.content`) and it is not difficult to
-see that residue sequences are in bijection with the set of standard  tableaux.
-In the non-semisimple case, when `e` is "small", different standard tableaux can
-have the same residue sequence. In this case the residue sequences describe how to
-decompose modules into generalised eigenspaces for the Jucys-Murphy elements for
-these algebras.
+`n`-tuple `(i_1, i_2, \ldots, i_n)` of elements of `\ZZ / e\ZZ` for some
+positive integer `e \ge 1`.  Such sequences arise in the representation
+theory of the symmetric group and the closely related cyclotomic Hecke
+algebras, and cyclotomic quiver Hecke algebras, where the residue sequences
+play a similar role to weights in the representations of Lie groups and
+Lie algebras. These Hecke algebras are semisimple when `e` is "large enough"
+and in these cases residue sequences are essentially the same as content
+sequences (see :meth:`sage.combinat.partition.Partition.content`) and it
+is not difficult to see that residue sequences are in bijection with the
+set of standard  tableaux. In the non-semisimple case, when `e` is "small",
+different standard tableaux can have the same residue sequence. In this
+case the residue sequences describe how to decompose modules into
+generalised eigenspaces for the Jucys-Murphy elements for these algebras.
 
 By definition, if `t` is a :class:`~sage.combinat.tableau.StandardTableau` of
-size `n` then the residue sequence of `t` is the `n`-tuple `(i_1,\dots,i_n)`
-where `i_m = c-r +e\ZZ`, if `m` appears in row `r` and column `c` of `t`.
+size `n` then the residue sequence of `t` is the `n`-tuple `(i_1, \ldots, i_n)`
+where `i_m = c - r + e\ZZ`, if `m` appears in row `r` and column `c` of `t`.
 If `p` is prime then such sequence arise in the representation theory of the
 symmetric group n characteristic `p`. More generally, `e`-residue sequences
 arise in he representation theory of the Iwahori-Hecke algebra (see
-:class:`~sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgera`) the symmetric
-group with Hecke parameter at an `e`-th root of unity.
+:class:`~sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra`) the
+symmetric group with Hecke parameter at an `e`-th root of unity.
 
 More generally, the `e`-residue sequence of a
-:class:`~sage.combinat.tableau.StandardTableau`  of size `n` and level `l` is
-the `n`-tuple `(i_1,\dots,i_n)` determined by `e` and a  "multicharge"
-`\kappa=(\kappa_1,\dots,\kappa_l)` by setting `i_m = \kappa_k+ c-r +e\ZZ`, if `m`
-appears in component `k`,  row `r` and column `c` of `t`.  These sequences arise
-in the representation theory of the cyclotomic Hecke algebras of type A, which
-are also known as Ariki-Koike algebras.
+:class:`~sage.combinat.tableau.StandardTableau` of size `n` and level `l` is
+the `n`-tuple `(i_1, \ldots, i_n)` determined by `e` and a *multicharge*
+`\kappa = (\kappa_1, \ldots, \kappa_l)` by setting
+`i_m = \kappa_k + c - r + e\ZZ`, if `m` appears in component `k`, row `r`
+and column `c` of `t`.  These sequences arise in the representation theory
+of the cyclotomic Hecke algebras of type A, which are also known
+as Ariki-Koike algebras.
 
-Rather than calling the residue classes directly they are more easily
-constructed from standard tableaux::
+The residue classes are constructed from standard tableaux::
 
     sage: StandardTableau([[1,2],[3,4]]).residue_sequence(2)
     2-residue sequence (0,1,1,0) with multicharge (0)
@@ -49,14 +49,13 @@ constructed from standard tableaux::
     sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).residue_sequence(3,[0,2])
     3-residue sequence (2,0,1,2,0) with multicharge (0,2)
 
-One of the most useful functions of a class:`ResidueSequence` is that it can
-return the classes
-:class:`~sage.combinat.tableau_tuple.StandardTableaux_residue` and
-:class:`~sage.combinat.tableau_tuple.StandardTableaux_residue_shape` which
+One of the most useful functions of a :class:`ResidueSequence` is that it can
+return the :class:`~sage.combinat.tableau_tuple.StandardTableaux_residue` and
+:class:`~sage.combinat.tableau_tuple.StandardTableaux_residue_shape` that
 contain all of the tableaux with this residue sequence. Again, these are best
 accessed via the standard tableaux classes::
 
-    sage: res=StandardTableau([[1,2],[3,4]]).residue_sequence(2)
+    sage: res = StandardTableau([[1,2],[3,4]]).residue_sequence(2)
     sage: res.standard_tableaux()
     Standard tableaux with 2-residue sequence (0,1,1,0) and multicharge (0)
     sage: res.standard_tableaux()[:]
@@ -98,8 +97,9 @@ This module implements the following classes:
 
 .. TODO::
 
-    Strictly speaking this module implements residue sequences of type `A^{(1)}_e`.
-    Residue sequences of other types also need to be implemented.
+    Strictly speaking this module implements residue sequences of
+    type `A^{(1)}_e`. Residue sequences of other types also need
+    to be implemented.
 
 AUTHORS:
 
@@ -134,13 +134,13 @@ from .tableau_tuple import StandardTableaux_residue, StandardTableaux_residue_sh
 #--------------------------------------------------
 class ResidueSequence(ClonableArray):
     r"""
-    A residue sequence
+    A residue sequence.
 
     The *residue sequence* of a tableau `t` (of partition or partition tuple
     shape) is the sequence `(i_1, i_2, \ldots, i_n)` where `i_k` is the
     residue of `l` in `t`, for `k = 1, 2, \ldots, n`, where `n` is the
     size of `t`. Residue sequences are important in the representation
-    theory of the cyclotomic Hecke algebras of type `G(r,1,n)`, and
+    theory of the cyclotomic Hecke algebras of type `G(r, 1, n)`, and
     of the cyclotomic quiver Hecke algebras, because they determine the
     eigenvalues of the Jucys-Murphy elements upon all modules. More precisely,
     they index and completely determine the irreducible representations
@@ -152,11 +152,13 @@ class ResidueSequence(ClonableArray):
 
     INPUT:
 
-    - ResidueSequence(e, res)
-    - ResidueSequence(e, multicharge, res)
+    Can be of the form:
 
-    where ``e`` is a positive integer not equal to 1 and ``res`` is a sequence
-    of integers (the residues).
+    - ``ResidueSequence(e, res)``,
+    - ``ResidueSequence(e, multicharge, res)``,
+
+    where ``e`` is a positive integer not equal to 1 and ``res`` is a
+    sequence of integers (the residues).
 
     EXAMPLES::
 
@@ -232,10 +234,12 @@ class ResidueSequence(ClonableArray):
 
     def __init__(self, parent, residues, check):
         r"""
-        The ``multicharge`` is the optional argument which, if omitted, defaults
-        to (0,). On the other hand, the ``residue`` must always be specified so,
-        below, we check to see whether or note ``residues`` is `None` and adjust
-        accordingly in this case.
+        Initialize ``self``.
+
+        The ``multicharge`` is the optional argument which, if omitted,
+        defaults to ``(0,)``. On the other hand, the ``residue`` must
+        always be specified so, below, we check to see whether or note
+        ``residues`` is `None` and adjust accordingly in this case.
 
         EXAMPLES::
 
@@ -260,8 +264,7 @@ class ResidueSequence(ClonableArray):
 
     def check(self):
         r"""
-        Return ``True`` or ``False`` depending on whether or not ``self``
-        is a residue sequence.
+        Raise a ``ValueError`` if ``self`` is not a residue sequence.
 
         EXAMPLES::
 
@@ -300,18 +303,19 @@ class ResidueSequence(ClonableArray):
 
     def __getitem__(self, k):
         r"""
-        Return the `k`-th residue.
+        Return the ``k``-th residue.
 
         INPUT:
 
-        - ``k`` --- an integer between 1 and the length of the residue sequence
-          ``self``
+        - ``k`` --- an integer between 1 and the length of the residue
+          sequence ``self``
 
-        The ``k``-th residue is the  ``e``-residue (see
-        :meth:`sage.combinat.tableau.StandardTable.residue`) of the integer
-        ``k`` in some standard tableaux. As the entries of standard tableaux are
-        always between `1` and `n`, the size of the tableau, the integer ``k``
-        must also be in this range (that is, this is **not** 0-based!)
+        The ``k``-th residue is the ``e``-residue (see
+        :meth:`sage.combinat.tableau.StandardTable.residue`) of the
+        integer ``k`` in some standard tableaux. As the entries of standard
+        tableaux are always between `1` and `n`, the size of the tableau,
+        the integer ``k`` must also be in this range (that is, this
+        is **not** 0-based!).
 
         EXAMPLES::
 
@@ -346,9 +350,9 @@ class ResidueSequence(ClonableArray):
         r"""
         Return the subsequence of this sequence of length `m`.
 
-        The residue sequence ``self`` is of the form `(r_1,\dots,r_n)`. The
-        function returns the residue sequence `(r_1,\dots,r_m)`, with the same 
-        :meth:`quantum_characteristic` and :meth:`multicharge`.
+        The residue sequence ``self`` is of the form `(r_1, \ldots, r_n)`.
+        The function returns the residue sequence `(r_1, \ldots, r_m)`, with
+        the same  :meth:`quantum_characteristic` and :meth:`multicharge`.
 
         EXAMPLES::
 
@@ -360,8 +364,8 @@ class ResidueSequence(ClonableArray):
             sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3]).restrict(4)
             3-residue sequence (0,0,1,1) with multicharge (0,0,1)
         """
-        return ResidueSequence(self.quantum_characteristic(), self.multicharge(),
-                               self.residues()[:m])
+        return ResidueSequence(self.quantum_characteristic(),
+                               self.multicharge(), self.residues()[:m])
 
     def swap_residues(self, i, j):
         r"""
@@ -370,13 +374,13 @@ class ResidueSequence(ClonableArray):
 
         INPUT:
 
-        - ``i`` and ``j`` -- two integers between `1` and the length of the residue
-          sequence.
+        - ``i`` and ``j`` -- two integers between `1` and the length of
+          the residue sequence
 
-        If residue sequence ``self`` is of Te form `(r_1,\dots,r_n)`, and
-        `i<j`, then the residue sequence `(r_1,\dots,r_j,\dots,r_i,\dots,r_m)`,
-        with the same :meth:`quantum_characteristic` and :meth:`multicharge`, is
-        returned.
+        If residue sequence ``self`` is of Te form `(r_1, \ldots, r_n)`, and
+        `i < j`, then the residue sequence
+        `(r_1, \ldots, r_j, \ldots, r_i, \ldots, r_m)`, with the same
+        :meth:`quantum_characteristic` and :meth:`multicharge`, is returned.
 
         EXAMPLES::
 
@@ -400,18 +404,17 @@ class ResidueSequence(ClonableArray):
 
     def standard_tableaux(self, shape=None):
         r"""
-        Returns the residue-class of standard tableaux that have residue
+        Return the residue-class of standard tableaux that have residue
         sequence ``self``.
 
         INPUT:
 
-        - shape (optional) -- a partition or partition tuple of the correct level
-
-        Only one of size or shape needs to be specified.
+        - ``shape`` -- (optional) a partition or partition tuple of
+          the correct level
 
         OUTPUT:
 
-        An iterator for the standard tableaux with this residue sequence.  If
+        An iterator for the standard tableaux with this residue sequence. If
         the ``shape`` is given then only tableaux of this shape are returned,
         otherwise all of the full residue-class of standard tableaux, or
         standard tableaux tuples, is returned. The residue sequence ``self``
@@ -435,10 +438,10 @@ class ResidueSequence(ClonableArray):
         r"""
         Return the negative of the residue sequence ``self``.
 
-        That is, if ``self`` is the residue sequence `(i_1,\dots,i_n)` then
-        return `(-i_1,\dots,-i_n)`. Taking the negative residue sequences is a
-        shadow of tensoring with the sign representation fr the cyclotomic Hecke
-        algebras of type A.
+        That is, if ``self`` is the residue sequence `(i_1, \ldots, i_n)`
+        then return `(-i_1, \ldots, -i_n)`. Taking the negative residue
+        sequences is a shadow of tensoring with the sign representation
+        from the cyclotomic Hecke algebras of type `A`.
 
         EXAMPLES::
 
@@ -459,13 +462,13 @@ class ResidueSequence(ClonableArray):
 
         .. MATH::
 
-            \sum_{i\in I} \beta_i \alpha_i \in Q^+
+            \sum_{i\in I} \beta_i \alpha_i \in Q^+,
 
         a element of the positive root lattice of the corresponding
         Kac-Moody algebra.
 
         This is a useful statistics because two Specht modules for a cyclotomic
-        Hecke algebra of type A belong to the same block if and only if they
+        Hecke algebra of type `A` belong to the same block if and only if they
         correspond to same element `\beta` of the root lattice, given above.
 
         We return a dictionary because when the quantum characteristic is `0`,
@@ -484,8 +487,9 @@ class ResidueSequence(ClonableArray):
         r"""
         Return the base ring for the residue sequence.
 
-        If the :meth:`quantum_characteristic` of the residue sequence ``self`` is
-        `e` then the base ring for th sequence is `\ZZ/e\ZZ`, or `\ZZ` if `e=0`.
+        If the :meth:`quantum_characteristic` of the residue sequence ``self``
+        is `e` then the base ring for the sequence is `\ZZ / e\ZZ`,
+        or `\ZZ` if `e=0`.
 
         EXAMPLES::
 
@@ -499,10 +503,10 @@ class ResidueSequence(ClonableArray):
         r"""
         Return the quantum characteristic of the residue sequence ``self``.
 
-        The `e`-residue sequences are associated with a cyclotomic Hecke algebra
-        that has a parameter `q` of *quantum characteristic* `e`. This is the
-        smallest positive integer such that `1+q+\dots+q^{e-1}=0`, or `e=0` if
-        not such integer exists.
+        The `e`-residue sequences are associated with a cyclotomic Hecke
+        algebra that has a parameter `q` of *quantum characteristic* `e`.
+        This is the smallest positive integer such that
+        `1 + q + \cdots + q^{e-1} = 0`, or `e=0` if no such integer exists.
 
         EXAMPLES::
 
@@ -516,15 +520,16 @@ class ResidueSequence(ClonableArray):
         r"""
         Return the multicharge for the residue sequence ``self``.
 
-        The `e`-residue sequences are associated with a cyclotomic Hecke algebra
-        with Hecke parameter `q` of :meth:`quantum characteristic` `e` and
-        multicharge `(\kappa_1,\dots,\kappa_l)`. This means that the cyclotomic
-        parameters of the Hecke algebra are `q^{\kappa_1},\dots,q^{\kappa_l}`.
-        Equivalently, the Hecke algebra is determined by the dominant weight
+        The `e`-residue sequences are associated with a cyclotomic Hecke
+        algebra with Hecke parameter `q` of :meth:`quantum_characteristic` `e`
+        and multicharge `(\kappa_1, \ldots, \kappa_l)`. This means that
+        the cyclotomic parameters of the Hecke algebra are
+        `q^{\kappa_1}, \ldots, q^{\kappa_l}`. Equivalently, the Hecke
+        algebra is determined by the dominant weight
 
-        ..math::
+        .. MATH::
 
-            \sum_{r\in\ZZ/e\ZZ] \kappa_r \Lambda_r \in P^+
+            \sum_{r \in \ZZ / e\ZZ} \kappa_r \Lambda_r \in P^+.
 
         EXAMPLES::
 
@@ -556,10 +561,9 @@ class ResidueSequence(ClonableArray):
         r"""
         Return the size of the residue sequence. 
 
-        This is the size, or length, of the residue sequence, which is the same as 
-        the size of the :meth:`standard_tableaux` that belong to the residue
-        class of tableaux determined by ``self``.
-
+        This is the size, or length, of the residue sequence, which is the
+        same as  the size of the :meth:`standard_tableaux` that belong to
+        the residue class of tableaux determined by ``self``.
 
         EXAMPLES::
 
@@ -576,13 +580,12 @@ class ResidueSequences(UniqueRepresentation, Parent):
 
     This class exists because :class:`ResidueSequence` needs to have a parent.
     Apart form being a parent the only useful method that it provides is
-    :meth:`cell_residue`, which is a short-hand for computing the residue of a
-    cell using the :meth:`ResidueSequence.quantum_characteristic` and :meth:`ResidueSequence.multicharge` for
-    the residue class.
+    :meth:`cell_residue`, which is a short-hand for computing the residue
+    of a cell using the :meth:`ResidueSequence.quantum_characteristic`
+    and :meth:`ResidueSequence.multicharge` for the residue class.
 
     EXAMPLES::
 
-        sage: from sage.combinat.tableau_residues import ResidueSequences
         sage: from sage.combinat.tableau_residues import ResidueSequences
         sage: ResidueSequences(e=0, multicharge=(0,1,2))
         0-residue sequences with multicharge (0, 1, 2)
@@ -592,14 +595,6 @@ class ResidueSequences(UniqueRepresentation, Parent):
         False
         sage: ResidueSequences(e=0, multicharge=(0,1,2)).element_class
         <class 'sage.combinat.tableau_residues.ResidueSequences_with_category.element_class'>
-
-    The TestSuite fails _test_pickling because __getitem__ does not support
-    slices so we skip this.
-
-    TESTS::
-
-        sage: TestSuite( ResidueSequences(e=0, multicharge=(0,1,2)) ).run(skip='_test_elements')
-
     """
 
     Element = ResidueSequence
@@ -617,6 +612,12 @@ class ResidueSequences(UniqueRepresentation, Parent):
             True
             sage: ResidueSequences(e=0, multicharge=(0,1,2)) == ResidueSequences(e=3, multicharge=(0,1,2))
             False
+
+        The TestSuite fails ``_test_pickling` because ``__getitem__`` does
+        not support slices, so we skip this::
+
+            sage: R = ResidueSequences(e=0, multicharge=(0,1,2))
+            sage: TestSuite(R).run(skip='_test_elements')
         """
         self._quantum_characteristic = e
         self._base_ring = IntegerModRing(self._quantum_characteristic)
@@ -637,18 +638,19 @@ class ResidueSequences(UniqueRepresentation, Parent):
             sage: ResidueSequences(2, (0,1,2,3))
             2-residue sequences with multicharge (0, 1, 0, 1)
         """
-        return '{}-residue sequences with multicharge {}'.format(self._quantum_characteristic, self._multicharge)
+        return '{}-residue sequences with multicharge {}'.format(self._quantum_characteristic,
+                                                                 self._multicharge)
 
     def an_element(self):
         r"""
-        Return a particular element of the class.
+        Return a particular element of ``self``.
 
         EXAMPLES::
 
             sage: TableauTuples().an_element()
             ([[1]], [[2]], [[3]], [[4]], [[5]], [[6]], [[7]])
         """
-        return self.element_class(self, self._multicharge,check=True)
+        return self.element_class(self, self._multicharge, check=True)
 
     def _cell_residue_level_one(self, r,c):
         r"""
@@ -685,40 +687,38 @@ class ResidueSequences(UniqueRepresentation, Parent):
         INPUT:
 
         - ``r`` and ``c`` -- the row and column indices in level one
-
         - ``k``, ``r`` and ``c`` -- the component, row and column indices
           in higher levels
 
         EXAMPLES::
 
             sage: from sage.combinat.tableau_residues import ResidueSequences
-            sage: ResidueSequences(3).cell_residue(1,1)  # indirect doctest
+            sage: ResidueSequences(3).cell_residue(1,1)
             0
-            sage: ResidueSequences(3).cell_residue(2,1)  # indirect doctest
+            sage: ResidueSequences(3).cell_residue(2,1)
             2
-            sage: ResidueSequences(3).cell_residue(3,1)  # indirect doctest
+            sage: ResidueSequences(3).cell_residue(3,1)
             1
-            sage: ResidueSequences(3).cell_residue(3,2)  # indirect doctest
+            sage: ResidueSequences(3).cell_residue(3,2)
             2
-            sage: ResidueSequences(3,(0,1,2)).cell_residue(0,0,0) # indirect doctest
+            sage: ResidueSequences(3,(0,1,2)).cell_residue(0,0,0)
             0
-            sage: ResidueSequences(3,(0,1,2)).cell_residue(0,1,0) # indirect doctest
+            sage: ResidueSequences(3,(0,1,2)).cell_residue(0,1,0)
             2
-            sage: ResidueSequences(3,(0,1,2)).cell_residue(0,1,2) # indirect doctest
+            sage: ResidueSequences(3,(0,1,2)).cell_residue(0,1,2)
             1
-            sage: ResidueSequences(3,(0,1,2)).cell_residue(1,0,0) # indirect doctest
+            sage: ResidueSequences(3,(0,1,2)).cell_residue(1,0,0)
             1
-            sage: ResidueSequences(3,(0,1,2)).cell_residue(1,1,0) # indirect doctest
+            sage: ResidueSequences(3,(0,1,2)).cell_residue(1,1,0)
             0
-            sage: ResidueSequences(3,(0,1,2)).cell_residue(1,0,1) # indirect doctest
+            sage: ResidueSequences(3,(0,1,2)).cell_residue(1,0,1)
             2
-            sage: ResidueSequences(3,(0,1,2)).cell_residue(2,0,0) # indirect doctest
+            sage: ResidueSequences(3,(0,1,2)).cell_residue(2,0,0)
             2
-            sage: ResidueSequences(3,(0,1,2)).cell_residue(2,1,0) # indirect doctest
+            sage: ResidueSequences(3,(0,1,2)).cell_residue(2,1,0)
             1
-            sage: ResidueSequences(3,(0,1,2)).cell_residue(2,0,1) # indirect doctest
+            sage: ResidueSequences(3,(0,1,2)).cell_residue(2,0,1)
             0
-
         """
         # A shortcut for determining the residue of a cell, which depends on e
         # and the multicharge. The main advantage of this function is that it
@@ -749,6 +749,6 @@ class ResidueSequences(UniqueRepresentation, Parent):
             sage: ResidueSequence(3,(0,0,1),[2,0,1,1,2,2,3,3]) # indirect doctest
             3-residue sequence (2,0,1,1,2,2,0,0) with multicharge (0,0,1)
         """
-        if any([r not in self._base_ring for r in element]):
+        if any(r not in self._base_ring for r in element):
             raise ValueError('not a {}-residue sequence {}'.format(self._quantum_characteristic))
 

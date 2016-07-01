@@ -3845,8 +3845,8 @@ class Tableau(ClonableList):
         """
         Return the content of ``k`` in the standard tableau ``self``.
 
-        The content of `k` is if `k` appears in row `r` and column `c`
-        of the tableau then we return `c - r`.
+        The content of `k` is `c - r` if `k` appears in row `r` and
+        column `c` of the tableau.
 
         The ``multicharge`` is a list of length 1 which gives an offset for
         all of the contents. It is included mainly for compatibility with
@@ -3862,34 +3862,36 @@ class Tableau(ClonableList):
             ...
             ValueError: 6 does not appear in tableau
         """
-        for r in range(len(self)):
+        for r,row in enumerate(self):
             try:
-                return self[r].index(k) - r + multicharge[0]
+                return row.index(k) - r + multicharge[0]
             except ValueError:
                 pass
         raise ValueError("%d does not appear in tableau"%k)
 
     def residue(self, k, e, multicharge=(0,)):
         r"""
-        Return the *residue* of the integer ``k`` in the tableau ``self``.
+        Return the residue of the integer ``k`` in the tableau ``self``.
+
+        The *residue* of `k` in a standard tableau is `c - r + m`
+        in `\ZZ / e\ZZ`, where `k` appears in row `r` and column `c`
+        of the tableau with multicharge `m`.
 
         INPUT:
 
-        - an integer `k`, with 1\le k\le n,
-        - an integer `e` in {0,2,3,4,5,...} (not checked!)
-        - an (optional) `multicharge` that defaults to [0]
+        - ``k`` -- an integer in `\{1, 2, \ldots, n\}`
+        - ``e`` -- an integer in `\{0, 2, 3, 4, 5, \ldots\}`
+        - ``multicharge`` -- (default: ``[0]``) a list of length 1
 
-        Here l is the level of the shape and n is its size.
+        Here `n` is its size of ``self``.
+
+        The ``multicharge`` is a list of length 1 which gives an offset for
+        all of the contents. It is included mainly for compatibility with
+        :meth:`~sage.combinat.tableau_tuples.TableauTuple.residue`.
 
         OUTPUT:
 
-        The residue of ``k`` in a standard tableau. That is, if
-        ``k`` appears in row `r` and column `c` of the tableau then we
-        return the image of `c-r+multicharge[k]` in Z/eZ.
-
-        The `multicharge` is a list of length 1 which gives an offset for all of
-        the contents. It is included mainly for compatibility with 
-        :meth:`~sage.combinat.tableau_tuples.TableauTuple.residue`.
+        The residue in `\ZZ / e\ZZ`.
 
         EXAMPLES::
 
@@ -3908,31 +3910,32 @@ class Tableau(ClonableList):
             ...
             ValueError: 6 does not appear in the tableau
         """
-        for r in range(len(self)):
+        for r, row in enumerate(self):
           try:
-            return IntegerModRing(e)(self[r].index(k) - r + multicharge[0])
+            return IntegerModRing(e)(row.index(k) - r + multicharge[0])
           except ValueError:
             pass
         raise ValueError('%d does not appear in the tableau'%k)
 
     def residue_sequence(self, e, multicharge=(0,)):
         r"""
-        Return the :class:`sage.combinat.tableau_residues.ResidueSequence` of the
-        tableau ``self``.
+        Return the :class:`sage.combinat.tableau_residues.ResidueSequence`
+        of the tableau ``self``.
 
         INPUT:
 
-        - an integer `k`, with 1\le k\le n,
-        - an integer `e` in {0,2,3,4,5,...} (not checked!)
-        - an (optional) sequence of integers the `multicharge` of length 1.
+        - ``e`` -- an integer in `\{0, 2, 3, 4, 5, \ldots\}`
+        - ``multicharge`` -- (default: ``[0]``) a sequence of integers
+          of length 1
+
+        The `multicharge` is a list of length 1 which gives an offset for
+        all of the contents. It is included mainly for compatibility with
+        :meth:`~sage.combinat.tableau_tuples.StandardTableauTuple.residue`.
 
         OUTPUT:
 
-        The corresponding residue sequence of the tableau; see :class:`ResidueSequence`.
-
-        The `multicharge` is a list of length 1 which gives an offset for all of
-        the contents. It is included mainly for compatibility with
-        :meth:`~sage.combinat.tableau_tuples.StandardTableauTuple.residue`.
+        The corresponding residue sequence of the tableau;
+        see :class:`ResidueSequence`.
 
         EXAMPLES::
 
@@ -3952,26 +3955,25 @@ class Tableau(ClonableList):
 
     def degree(self, e, multicharge=(0,)):
         """
-        Return the degree of ``self``.
+        Return the Brundan-Kleshchev-Wang [BKW11]_ degree of ``self``.
+
+        The *degree* is an integer that is defined recursively by successively
+        stripping off the number `k`, for `k = n, n-1, \ldots, 1` and at stage
+        adding the number of addable cell of the same residue minus the number
+        of removable cells of the same residue as `k` and which are below `k`
+        in the diagram.
+
+        The degrees of the tableau `T` gives the degree of the homogeneous
+        basis element of the graded Specht module that is indexed by `T`.
 
         INPUT:
 
-        - ``e`` -- the **quantum characteristic** ``e``
+        - ``e`` -- the *quantum characteristic*
         - ``multicharge`` -- (default: ``[0]``) the multicharge
 
         OUTPUT:
 
-        The **degree** of the tableau ``self``, which is an integer.
-
-        The degrees of the tableau ``self`` gives the degree of the
-        homogeneous basis element of the graded Specht module that
-        is indexed by ``self``.
-
-        The degree is an integer that is defined recursively by successively
-        stripping off the number `k`, for `k = n, n-1, \ldots, 1` and at stage
-        adding the number of addable cell of the same residue minus the number
-        of removable cells of the same residue as `k` and which are below `k` in
-        the diagram.
+        The degree of the tableau ``self``, which is an integer.
 
         EXAMPLES::
 
@@ -3982,15 +3984,16 @@ class Tableau(ClonableList):
 
         REFERENCES:
 
-        .. [BKW11] J. Brundan, A. Kleshchev, and W. Wang,
+        .. [BKW11] \J. Brundan, A. Kleshchev, and W. Wang,
            *Graded Specht modules*,
            J. Reine Angew. Math., 655 (2011), 61-87.
         """
-        n=self.size()
-        if n==0: return 0
+        n = self.size()
+        if n == 0:
+            return 0
 
-        deg=self.shape()._initial_degree(e,multicharge)
-        res=self.shape().initial_tableau().residue_sequence(e, multicharge)
+        deg = self.shape()._initial_degree(e,multicharge)
+        res = self.shape().initial_tableau().residue_sequence(e, multicharge)
         for r in self.reduced_row_word():
             if res[r] == res[r+1]: 
                 deg -= 2
@@ -4001,38 +4004,27 @@ class Tableau(ClonableList):
 
     def codegree(self, e, multicharge=(0,)):
         """
-        Return the integer which is the Brundan-Kleshchev-Wang codegree of the
+        Return the Brundan-Kleshchev-Wang [BKW11]_ codegree of the
         standard tableau ``self``.
+
+        The *coderee* of a tableau is an integer that is defined recursively by
+        successively stripping off the number `k`, for `k = n, n-1, \ldots, 1`
+        and at stage adding the number of addable cell of the same residue
+        minus the number of removable cells of the same residue as `k` and
+        are above `k` in the diagram.
+
+        The codegree of the tableau `T` gives the degree of  "dual"
+        homogeneous basis element of the Graded Specht module that
+        is indexed by `T`.
 
         INPUT:
 
-        - ``e`` -- the **quantum characteristic** ``e``
+        - ``e`` -- the *quantum characteristic*
         - ``multicharge`` -- (default: ``[0]``) the multicharge
 
         OUTPUT:
 
-        The **codegree** of the tableau ``self``, which is an integer.
-
-        The coderee of a tableau is an integer that is defined recursively by
-        successively stripping off the number `k`, for `k = n, n-1, \ldots, 1`
-        and at stage adding the number of addable cell of the same residue minus
-        the number of removable cells of the same residue as `k` and which are
-        above `k` in the diagram.
-
-        The codegree of the tableau ``self`` gives the degree of  "dual"
-        homogeneous basis element of the Graded Specht module which is indexed
-        by ``self``.
-
-        INPUT:
-
-        - ``e`` -- the **quantum characteristic** ``e``
-        - ``multicharge`` - the multicharge (default: ``[0]``). This options
-          exists mainly for compatibility with
-          :meth:~~sage.combinat.tabuleau_tuple.StandardTableauTuple.codegree`.
-
-        OUTPUT:
-
-        The **codegree** of the tableau ``self`` which is a integer.
+        The codegree of the tableau ``self``, which is an integer.
 
         EXAMPLES::
 
@@ -4045,7 +4037,7 @@ class Tableau(ClonableList):
 
         REFERENCES:
 
-        - [BKW11]_ J. Brundan, A. Kleshchev, and W. Wang,
+        - [BKW11]_ \J. Brundan, A. Kleshchev, and W. Wang,
           *Graded Specht modules*,
           J. Reine Angew. Math., 655 (2011), 61-87.
         """
@@ -4069,10 +4061,14 @@ class Tableau(ClonableList):
 
         Cells are ordered left to right along the rows and then top to bottom.
         That is, the cell `(r,c)` with `r` and `c` minimal such that the entry
-        in position `(r,c)` is bigger than the entry in position `(r,c+1)`.
-
+        in position `(r,c)` is bigger than the entry in position `(r, c+1)`.
         If there is no such cell then ``None`` is returned - in this case the
         tableau is row strict.
+
+        OUTPUT:
+
+        The first cell which there is a descent or ``None`` if no such
+        cell exists.
 
         EXAMPLES::
 
@@ -4089,12 +4085,18 @@ class Tableau(ClonableList):
 
     def first_column_descent(self):
         r"""
-        Return the first row where the tableau is not column standard. 
+        Return the first cell where ``self`` is not column standard. 
 
-        That is, the cell (r,c) with r and c minimal such that
-        the entry in position (r,c) is bigger than the entry in position (r,c+1).
-        If there is no such cell then None is returned - in this case the
-        tableau is column strict.
+        Cells are ordered left to right along the rows and then top to bottom.
+        That is, the cell `(r, c)` with `r` and `c` minimal such that
+        the entry in position `(r, c)` is bigger than the entry in position
+        `(r, c+1)`. If there is no such cell then ``None`` is returned - in
+        this case the tableau is column strict.
+
+        OUTPUT:
+
+        The first cell which there is a descent or ``None`` if no such
+        cell exists.
 
         EXAMPLES::
 
@@ -4139,13 +4141,13 @@ class Tableau(ClonableList):
     def reduced_column_word(self):
         r"""
         Return the lexicographically minimal reduced expression for the
-        permutation that maps the conjugate of the :meth:`initial_tableau` to
-        ``self``.
+        permutation that maps the conjugate of the :meth:`initial_tableau`
+        to ``self``.
 
-        Ths reduced expression is a minimal length coset representative for the
-        corresponding Young subgroup.  In one line notation, the permutation is
-        obtained by concatenating the columns of the tableau in order from top to
-        bottom.
+        Ths reduced expression is a minimal length coset representative for
+        the corresponding Young subgroup.  In one line notation, the
+        permutation is obtained by concatenating the columns of the
+        tableau in order from top to bottom.
 
         EXAMPLES::
 
@@ -4160,7 +4162,8 @@ class Tableau(ClonableList):
             sage: StandardTableau([[1,2,5],[3,6],[4]]).reduced_column_word()
             [3, 2, 5]
         """
-        return permutation.Permutation(list(self.conjugate().entries())).inverse().reduced_word_lexmin()
+        data = list(self.conjugate().entries())
+        return permutation.Permutation(data).inverse().reduced_word_lexmin()
 
 class SemistandardTableau(Tableau):
     """
@@ -4416,7 +4419,7 @@ class StandardTableau(SemistandardTableau):
 
         INPUT:
 
-        - ``t`` -- A tableaux
+        - ``t`` -- a tableau
 
         EXAMPLES::
 

@@ -1055,10 +1055,11 @@ class PartitionTuple(CombinatorialElement):
         r"""
         Return the initial column tableau of shape ``self``.
 
-        The initial column tableau of shape self is the standard tableau 
-        that has the numbers `1` to `n`, where `n` is the :meth:`size` of ``self``,
-        entered in order from top to bottom, and then left to right, down the columns of each component,
-        starting from the rightmost component and working to the left.
+        The initial column tableau of shape `\lambda` is the standard tableau 
+        that has the numbers `1` to `n`, where `n` is the :meth:`size`
+        of `\lambda`, entered in order from top to bottom, and then left
+        to right, down the columns of each component, starting from the
+        rightmost component and working to the left.
 
         EXAMPLE::
 
@@ -1514,23 +1515,23 @@ class PartitionTuple(CombinatorialElement):
         r"""
         Return the ``e``-th degree of ``self``.
 
-        INPUT:
-
-        - ``e`` -- an  integer  `e>1` (not checked!)
-
-        OUTPUT:
-
-        A non-negative integer
-
         The `e`-th degree is the sum of the degrees of the standard
-        tableaux of shape ``self``. The `e`-th degree is the exponent
+        tableaux of shape `\lambda`. The `e`-th degree is the exponent
         of `\Phi_e(q)` in the Gram determinant of the Specht module for a
         semisimple cyclotomic Hecke algebra of type `A` with parameter `q`.
 
-        For this calculation the multicharge (`\kappa_1,\dots,\kappa_l)` is
-        chosen so that `\kappa_{r+1}-\kappa_r>n`, where `n` is the :meth:`size`
-        of the multipartition as this ensures that the Hecke algera is
-        semisimple.
+        For this calculation the multicharge `(\kappa_1, \ldots, \kappa_l)`
+        is chosen so that `\kappa_{r+1} - \kappa_r > n`, where `n` is
+        the :meth:`size` of `\lambda` as this ensures that the Hecke algera
+        is semisimple.
+
+        INPUT:
+
+        - ``e`` -- an integer `e > 1`
+
+        OUTPUT:
+
+        A non-negative integer.
 
         EXAMPLES::
 
@@ -1563,32 +1564,31 @@ class PartitionTuple(CombinatorialElement):
         r"""
         Return the ``p``-th prime degree of ``self``.
 
+        The degree of a partition `\lambda` is the sum of the `e`-degrees`
+        of the standard tableaux of shape `\lambda` (see :meth:`degree`),
+        for `e` a power of the prime `p`. The prime degree gives the
+        exponent of `p` in the Gram determinant of the integral Specht
+        module of the symmetric group.
+
+        The `p`-th degree is the sum of the degrees of the standard tableaux
+        of shape `\lambda`. The `p`-th degree is the exponent of `p` in the
+        Gram determinant of a semisimple cyclotomic Hecke algebra of type `A`
+        with parameter `q = 1`.
+
+        As with :meth:`degree`, for this calculation the multicharge
+        `(\kappa_1, \ldots, \kappa_l)` is chosen so that
+        `\kappa_{r+1} - \kappa_r > n`, where `n` is the :meth:`size`
+        of `\lambda` as this ensures that the Hecke algera is semisimple.
+
         INPUT:
 
-        - ``e`` -- an  integer  `e>1` (not checked!)
-
-        - ``muticharge`` -- the "multicharge", which is a `l`-tuple of integers
-          where `l` is the :meth:`level` of ``self``.
+        - ``e`` -- an  integer `e > 1`
+        - ``muticharge`` -- an `l`-tuple of integers, where `l` is
+          the :meth:`level` of ``self``
 
         OUTPUT:
 
         A non-negative integer
-
-        The degree of a partition `\lambda` is the sum of the `e`-degrees` of
-        the standard tableaux of shape `\lambda` (see :meth:`degree`), for ``e``
-        a poer of the prime ``p``. The prime degree gives the exponent of `p` in
-        the Gram determinant of the integral Specht module of the symmetric
-        group.
-
-        The `p`-th degree is the sum of the degrees of the standard tableaux of
-        shape ``self``. The `p`-th degree is the exponent of `p` in the Gram
-        determinant of a semisimple cyclotomic Hecke algebra of type `A` with
-        parameter `q=1`.
-
-        As with :meth:`degree`, for this calculation the multicharge
-        (`\kappa_1,\dots,\kappa_l)` is chosen so that `\kappa_{r+1}-\kappa_r>n`,
-        where `n` is the :meth:`size` of the multipartition as this ensures that
-        the Hecke algera is semisimple.
 
         EXAMPLES::
 
@@ -1613,21 +1613,21 @@ class PartitionTuple(CombinatorialElement):
 
     def defect(self, e, multicharge):
         r"""
-        Return the `e`-defect or the `e`-weight ``self``.
+        Return the ``e``-defect or the ``e``-weight ``self``.
 
         The `e`-defect is the number of (connected) `e`-rim hooks
         that can be removed from the partition.
 
-        The defect of a partition tuple is given by 
+        The defect of a partition tuple is given by
 
         .. MATH: 
 
-            \text{defect}(\beta) = (\Lambda,\beta)-\tfrac12(\beta,\beta)
+            \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta)
 
-        where `\Lambda = \sum_r \Lambda_{\kappa_r}`, where
-        `(\kappa_1, \ldots, \kappa_{\ell})` is the ``multicharge`` and 
-        `\beta = \sum_{(r,c)} \alpha_{(c-r) \pmod e}`, where the sum is
-        over the cells in the partition.
+        where `\Lambda = \sum_r \Lambda_{\kappa_r}` for the multicharge
+        `(\kappa_1, \ldots, \kappa_{\ell})` and 
+        `\beta = \sum_{(r,c)} \alpha_{(c-r) \pmod e}`, with the sum
+        being over the cells in the partition.
 
         EXAMPLES::
 

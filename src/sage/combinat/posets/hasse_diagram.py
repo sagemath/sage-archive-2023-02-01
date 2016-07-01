@@ -1505,7 +1505,7 @@ class HasseDiagram(DiGraph):
             True
 
         This lattice has an unique "possible orthocomplement" for every
-        element, but they can not be fit together; ortohocomplement pairs
+        element, but they can not be fit together; orthocomplement pairs
         would be 0-11, 1-7, 2-4, 3-10, 5-9 and 6-8, and then orthocomplements
         for chain 0-1-6-11 would be 11-7-8-0, which is not a chain::
 

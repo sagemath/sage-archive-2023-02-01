@@ -30,7 +30,7 @@ from sage.sets.disjoint_union_enumerated_sets \
 from sage.rings.integer import Integer
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.family import Family
-from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.sets.positive_integers import PositiveIntegers
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from copy import deepcopy
@@ -311,7 +311,7 @@ class ParallelogramPolyomino(ClonableList):
             sage: type(pp1) is type(pp)
             True
 
-            sage: pp1 = ParallelogramPolyominoes(1)([[0, 1], [1, 0]])
+            sage: pp1 = ParallelogramPolyominoes(2)([[0, 1], [1, 0]])
             sage: pp1.parent() is pp.parent()
             True
             sage: type(pp1) is type(pp)
@@ -438,14 +438,14 @@ class ParallelogramPolyomino(ClonableList):
             ....: ))
             True
 
-            sage: PPS = ParallelogramPolyominoes(7)
+            sage: PPS = ParallelogramPolyominoes(8)
             sage: D = { PPS[0]: True, PPS[1]: True }
             sage: D[PPS[0]] = False
             sage: import pprint
             sage: pp = pprint.PrettyPrinter()
             sage: pp.pprint(D)
             {[[0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0]]: False,
-            [[0, 0, 0, 0, 0, 0, 1, 1], [1, 0, 0, 0, 0, 0, 1, 0]]: True}
+             [[0, 0, 0, 0, 0, 0, 1, 1], [1, 0, 0, 0, 0, 0, 1, 0]]: True}
         """
         return hash(tuple(map(tuple, list(self))))
 
@@ -518,15 +518,15 @@ class ParallelogramPolyomino(ClonableList):
             [1, 1, 0, 1, 1, 0, 1, 0, 0, 0]
         """
         from sage.combinat.dyck_word import DyckWord
-        size = self.size()
         dyck = []
+        dick_size = self.size()-1
         upper_path = self.upper_path()
         lower_path = self.lower_path()
         dyck.append(1 - lower_path[0])
-        for i in range(1, size):
+        for i in range(1, dick_size):
             dyck.append(upper_path[i])
             dyck.append(1 - lower_path[i])
-        dyck.append(upper_path[size])
+        dyck.append(upper_path[dick_size])
         return DyckWord(dyck)
 
     @combinatorial_map(name="To Dyck word")
@@ -656,7 +656,7 @@ class ParallelogramPolyomino(ClonableList):
             .
         """
         from sage.combinat.binary_tree import BinaryTree
-        if self.size() == 0:
+        if self.size() == 1:
             return BinaryTree()
         result = [BinaryTree(), BinaryTree()]
         right_son = list(position)
@@ -1213,7 +1213,7 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.width()
             1
         """
-        if self.size() == 0:
+        if self.size() == 1:
             return 1
         return self.upper_widths()[-1]
 
@@ -1244,7 +1244,7 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.height()
             0
         """
-        if self.size() == 0:
+        if self.size() == 1:
             return 0
         return self.lower_heights()[-1]
 
@@ -1612,7 +1612,7 @@ class ParallelogramPolyomino(ClonableList):
             XY=lambda v: [v[0], grid_height-1-v[1]]
         )
         res = ""
-        if self.size() == 0:
+        if self.size() == 1:
             res += drawing_tool.draw_line([0, 0], [1, 0])
             return res
         res += drawing_tool.draw_line([0, 0], [0, self.lower_heights()[0]])
@@ -1638,7 +1638,7 @@ class ParallelogramPolyomino(ClonableList):
     def _to_tikz_tree_with_bounce(self, directions=[0, 1]):
         res = ""
         tikz_options = self.get_tikz_options()
-        if self.size() == 0:
+        if self.size() == 1:
             return res
         grid_width = self.width() + 1
         grid_height = self.height() + 1
@@ -1707,7 +1707,7 @@ class ParallelogramPolyomino(ClonableList):
     def _to_tikz_tree(self):
         res = ""
         tikz_options = self.get_tikz_options()
-        if self.size() == 0:
+        if self.size() == 1:
             return res
         grid_width = self.width() + 1
         grid_height = self.height() + 1
@@ -2040,27 +2040,29 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Return the size of the parallelogram polyomino.
 
+        The size of a parallelogram polyomino is its half-perimeter.
+
         EXAMPLES::
 
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 0, 0, 0, 1, 0, 1, 1], [1, 0, 0, 0, 1, 1, 0, 0]]
             ....: )
             sage: pp.size()
-            7
+            8
 
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 1], [1, 0]]
             ....: )
             sage: pp.size()
-            1
+            2
 
             sage: pp = ParallelogramPolyomino(
             ....:     [[1], [1]]
             ....: )
             sage: pp.size()
-            0
+            1
         """
-        return len(self.upper_path())-1
+        return len(self.upper_path())
 
     def _latex_(self):
         r"""
@@ -2124,9 +2126,9 @@ class ParallelogramPolyominoesFactory(SetFactory):
 
         EXAMPLES::
 
-            sage: PPS = ParallelogramPolyominoes(size=3)
+            sage: PPS = ParallelogramPolyominoes(size=4)
             sage: PPS
-            Parallelogram polyominoes of size 3
+            Parallelogram polyominoes of size 4
             sage: sorted( list(PPS) )
             [[[0, 0, 0, 1], [1, 0, 0, 0]],
              [[0, 0, 1, 1], [1, 0, 1, 0]],
@@ -2186,9 +2188,9 @@ class ParallelogramPolyominoes_size(
 
     EXAMPLES::
 
-        sage: PPS = ParallelogramPolyominoes(3)
+        sage: PPS = ParallelogramPolyominoes(4)
         sage: PPS
-        Parallelogram polyominoes of size 3
+        Parallelogram polyominoes of size 4
         sage: sorted( list(PPS) )
         [[[0, 0, 0, 1], [1, 0, 0, 0]],
          [[0, 0, 1, 1], [1, 0, 1, 0]],
@@ -2202,8 +2204,8 @@ class ParallelogramPolyominoes_size(
 
         EXAMPLES::
 
-            sage: ParallelogramPolyominoes(3)
-            Parallelogram polyominoes of size 3
+            sage: ParallelogramPolyominoes(4)
+            Parallelogram polyominoes of size 4
         """
         self._size = size
         ParentWithSetFactory.__init__(
@@ -2217,8 +2219,8 @@ class ParallelogramPolyominoes_size(
 
         EXAMPLES::
 
-            sage: ParallelogramPolyominoes(3)
-            Parallelogram polyominoes of size 3
+            sage: ParallelogramPolyominoes(4)
+            Parallelogram polyominoes of size 4
         """
         return "Parallelogram polyominoes of size %s" % (self._size)
 
@@ -2228,7 +2230,7 @@ class ParallelogramPolyominoes_size(
 
         EXAMPLES::
 
-            sage: PPS = ParallelogramPolyominoes(3)
+            sage: PPS = ParallelogramPolyominoes(4)
             sage: PPS.an_element() in PPS
             True
         """
@@ -2241,7 +2243,7 @@ class ParallelogramPolyominoes_size(
 
         EXAMPLES::
 
-            sage: PPS = ParallelogramPolyominoes(2)
+            sage: PPS = ParallelogramPolyominoes(3)
             sage: ParallelogramPolyomino([[0, 1, 1], [1, 1, 0]])  in PPS
             True
         """
@@ -2256,17 +2258,22 @@ class ParallelogramPolyominoes_size(
         r"""
         Return the number of parallelogram polyominoes.
 
+        The number of parallelogram polyominoes of size n is given by C(n-1)
+        where C is the catalan number.
+
         EXAMPLES::
 
             sage: ParallelogramPolyominoes(1).cardinality()
             1
             sage: ParallelogramPolyominoes(2).cardinality()
-            2
+            1
             sage: ParallelogramPolyominoes(3).cardinality()
+            2
+            sage: ParallelogramPolyominoes(4).cardinality()
             5
 
             sage: all([
-            ....:     ParallelogramPolyominoes(i).cardinality()
+            ....:     ParallelogramPolyominoes(i+1).cardinality()
             ....:     == catalan_number(i)
             ....:     for i in range(6)
             ....: ])
@@ -2275,11 +2282,11 @@ class ParallelogramPolyominoes_size(
             sage: all([
             ....:     ParallelogramPolyominoes(i).cardinality()
             ....:     == len(list(ParallelogramPolyominoes(i)))
-            ....:     for i in range(6)
+            ....:     for i in range(1,7)
             ....: ])
             True
         """
-        return catalan_number(self.size())
+        return catalan_number(self.size()-1)
 
     def __iter__(self):
         r"""
@@ -2287,16 +2294,16 @@ class ParallelogramPolyominoes_size(
 
         EXAMPLES::
 
-            sage: len(list(ParallelogramPolyominoes(3))) == 5
+            sage: len(list(ParallelogramPolyominoes(4))) == 5
             True
             sage: all([
             ....:     pp in ParallelogramPolyominoes()
-            ....:     for pp in ParallelogramPolyominoes(3)
+            ....:     for pp in ParallelogramPolyominoes(4)
             ....: ])
             True
         """
         from sage.combinat.dyck_word import DyckWords
-        for dyck in DyckWords(self.size()):
+        for dyck in DyckWords(self.size()-1):
             yield ParallelogramPolyomino.from_dyck_word(dyck)
 
     def get_options(self):
@@ -2374,7 +2381,7 @@ class ParallelogramPolyominoes_all(
         )
         DisjointUnionEnumeratedSets.__init__(
             self, Family(
-                NonNegativeIntegers(),
+                PositiveIntegers(),
                 lambda  n: ParallelogramPolyominoes_size(
                     n, policy=self.facade_policy()
                 )

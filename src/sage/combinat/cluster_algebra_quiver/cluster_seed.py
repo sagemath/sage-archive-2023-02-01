@@ -2470,9 +2470,11 @@ class ClusterSeed(SageObject):
             seqq = list( seqq )
         if not isinstance(seqq, list):
             raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
-                        
+        
+        # These boolean variables classify the input type
         isVertices = set(seqq).issubset(set(seed.nlist()))
         isIndices = set(seqq).issubset(set(range(n)))
+        
         # Note - this does not guarantee that the sequence consists of cluster variables, it only rules out some posibilities.
         isClusterVars = reduce(lambda x,y:isinstance(y,str),seqq,1) and seed._use_fpolys
         
@@ -3451,7 +3453,7 @@ class ClusterSeed(SageObject):
                     # If we aren't only sinking the source
                     if not only_sink_source or all( entry >= 0 for entry in sd[0]._M.row( i ) ) or all( entry <= 0 for entry in sd[0]._M.row( i ) ):
                         # do an inplace mutation on our cluster (sd[0])
-                        sd2  = sd[0].mutate( i, inplace=False )
+                        sd2  = sd[0].mutate( i, inplace=False, input_type = "indices")
 
                         # set up our new cluster variables
                         if up_to_equivalence:

@@ -255,14 +255,14 @@ subgroup::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import, print_function
+from __future__ import print_function, absolute_import
 
 import itertools
 
 from .combinat import CombinatorialElement
 from .integer_vector import IntegerVectors
 from .partition import (Partition, Partitions, Partitions_n, _Partitions,
-                       RegularPartitions_all, RegularPartitions_n)
+                        RegularPartitions_all, RegularPartitions_n)
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -850,7 +850,7 @@ class PartitionTuple(CombinatorialElement):
             sage: PartitionTuple([[],[3,2,2,1],[2,2,1],[3]]).standard_tableaux()
             Standard tableau tuples of shape ([], [3, 2, 2, 1], [2, 2, 1], [3])
         """
-        from sage.combinat.tableau_tuple import StandardTableauTuples
+        from .tableau_tuple import StandardTableauTuples
         return StandardTableauTuples(shape=self)
 
 
@@ -1046,7 +1046,7 @@ class PartitionTuple(CombinatorialElement):
             sage: PartitionTuple([ [2,1],[3,2] ]).initial_tableau()
             ([[1, 2], [3]], [[4, 5, 6], [7, 8]])
         """
-        from sage.combinat.tableau_tuple import StandardTableauTuples
+        from .tableau_tuple import StandardTableauTuples
         return StandardTableauTuples(self).first()
 
     def garnir_tableau(self, *cell):
@@ -1122,7 +1122,7 @@ class PartitionTuple(CombinatorialElement):
         a = g[comp][row][col]
         g[comp][row][col:] = range(a+col+1, g[comp][row+1][col]+1)
         g[comp][row+1][:col+1] = range(a, a+col+1)
-        from sage.combinat.tableau_tuple import TableauTuple
+        from .tableau_tuple import TableauTuple
         g = TableauTuple(g)
         g._garnir_cell = (comp,row,col)
         return g
@@ -1207,7 +1207,7 @@ class PartitionTuple(CombinatorialElement):
         # now we will put the number m,m+1,...,t[row+1][col] in order into t
         t[comp][row][col:a+col]=[m+col-b+1+i for i in range(a)]
         t[comp][row+1][col-b+1:col+1]=[m+a+col-b+1+i for i in range(b)]
-        from sage.combinat.tableau_tuple import StandardTableauTuple
+        from .tableau_tuple import StandardTableauTuple
         return StandardTableauTuple(t)
 
     def arm_length(self, k,r,c):

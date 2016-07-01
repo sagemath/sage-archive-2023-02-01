@@ -209,8 +209,7 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.words.word import Word
@@ -223,8 +222,6 @@ from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.flatten import flatten
-from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.misc.prandom import random
 from sage.misc.sage_unittest import TestSuite
@@ -233,10 +230,10 @@ from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer import Integer
 from sage.rings.all import NN
 from sage.sets.positive_integers import PositiveIntegers
-from sage.structure.list_clone import ClonableArray, ClonableList
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
+from . import permutation
 
 #--------------------------------------------------
 # Tableau tuple - element class
@@ -571,7 +568,7 @@ class TableauTuple(CombinatorialElement):
             \end{array}$}
             } \Bigg)
         """
-        from output import tex_from_array_tuple
+        from .output import tex_from_array_tuple
         return r'\Bigg( %s \Bigg)' % tex_from_array_tuple(self)
 
 
@@ -786,8 +783,7 @@ class TableauTuple(CombinatorialElement):
             sage: TableauTuple([[[1,2],[3,4]],[[5,6,7],[8]],[[9,10],[11],[12]]]).to_permutation()
             [12, 11, 9, 10, 8, 5, 6, 7, 3, 4, 1, 2]
         """
-        from sage.combinat.permutation import Permutation
-        return Permutation(self.to_word_by_row())
+        return permutation.Permutation(self.to_word_by_row())
 
     def entries(self):
         """

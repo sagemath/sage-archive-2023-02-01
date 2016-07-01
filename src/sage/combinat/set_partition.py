@@ -1085,12 +1085,13 @@ class SetPartition(ClonableArray):
                 arcs.append((p[i], p[i+1]))
         return arcs
 
-    def plot(self, color='black', base_set_dict=None):
+    def plot(self, angle=None, color='black', base_set_dict=None):
         """
         Return a plot of ``self``.
 
         INPUT:
 
+        - ``angle`` -- the angle at which the arcs take off (if angle is negative, the arcs are drawn below the horizontal line)
         - ``color`` -- color of the arcs
         - ``base_set_dict`` -- dictionary with keys elements of self.base_set() and values as integer or float
 
@@ -1111,11 +1112,18 @@ class SetPartition(ClonableArray):
         from sage.plot.arc import arc
         from sage.functions.other import sqrt
         from sage.symbolic.constants import pi
+        from sage.functions.trig import tan
+        from sage.functions.trig import sin
+        from sage.functions.generalized import sgn
 
         diag = Graphics()
         sorted_vertices_list=list(self.base_set())
         sorted_vertices_list.sort()
         vertices_dict = dict()
+        
+        if not angle:
+            angle = pi/4
+            # the case angle = 0 should maybe treated separately
 
         if base_set_dict:
             vertices_dict = base_set_dict
@@ -1126,10 +1134,11 @@ class SetPartition(ClonableArray):
         for elt in vertices_dict:
             pos = vertices_dict[elt]
             diag += point((pos,0),size=30, color=color)
-            diag += text(elt, (pos,-0.1), color=color)
+            diag += text(elt, (pos,-sgn(angle)*0.1), color=color)
+            # TODO: change 0.1 to something proportional to the height of the picture
         for (k,j) in self.arcs():
-            pos_k,pos_j=float(vertices_dict[k]),float(vertices_dict[j])
-            diag += arc(center=((pos_k+pos_j)/2,(pos_k-pos_j)/2),r1=abs((pos_j-pos_k)/sqrt(2)),sector=(pi/4,3*pi/4),color=color)
+            pos_k,pos_j = float(vertices_dict[k]),float(vertices_dict[j])
+            diag += arc(center=((pos_k+pos_j)/2,-abs(pos_j-pos_k)/(2*tan(angle))), r1=abs((pos_j-pos_k)/(2*sin(angle))), sector=(sgn(angle)*(pi/2-angle),sgn(angle)*(pi/2+angle)),color=color)
         diag.axes(False)
         return diag
 

@@ -196,16 +196,16 @@ the :func:`classmethod` as ``A.setter``::
 
     sage: from sage.structure.global_options import GlobalOptions
     sage: class A(SageObject):
-    ...       state = 0
-    ...       @classmethod
-    ...       def setter(cls, option, val):
-    ...           cls.state += int(val)
+    ....:     state = 0
+    ....:     @classmethod
+    ....:     def setter(cls, option, val):
+    ....:         cls.state += int(val)
     ...
     sage: A.options = GlobalOptions('A',
-    ...                     add=dict(default=1,
-    ...                              checker=lambda v: int(v)>0,
-    ...                              description='An option with a setter',
-    ...                              setter=A.setter))
+    ....:                   add=dict(default=1,
+    ....:                            checker=lambda v: int(v)>0,
+    ....:                            description='An option with a setter',
+    ....:                            setter=A.setter))
     sage: A.options
     Current options for A
     - add: 1
@@ -384,22 +384,22 @@ sage class. In this case the class is specified using the arguements to
 Here is an example to test the pickling of a :class:`GlobalOptions` instance::
 
     sage: class Menu(object):
-    ...       options = GlobalOptions(Menu, doc='Fancy documentation\n'+'-'*19, end_doc='The END!',
-    ...           entree=dict(default='soup',
-    ...                       description='The first course of a meal',
-    ...                       values=dict(soup='soup of the day', bread='oven baked'),
-    ...                       alias=dict(rye='bread')),
-    ...           appetizer=dict(alt_name='entree'),
-    ...           main=dict(default='pizza', description='Main meal',
-    ...                     values=dict(pizza='thick crust', pasta='penne arrabiata'),
-    ...                     case_sensitive=False),
-    ...           dessert=dict(default='espresso', description='Dessert',
-    ...                        values=dict(espresso='life begins again',
-    ...                                    cake='waist begins again',
-    ...                                    cream='fluffy, white stuff')),
-    ...           tip=dict(default=10, description='Reward for good service',
-    ...           checker=lambda tip: tip in range(0,20))
-    ...       )
+    ....:     options = GlobalOptions(Menu, doc='Fancy documentation\n'+'-'*19, end_doc='The END!',
+    ....:         entree=dict(default='soup',
+    ....:                     description='The first course of a meal',
+    ....:                     values=dict(soup='soup of the day', bread='oven baked'),
+    ....:                     alias=dict(rye='bread')),
+    ....:         appetizer=dict(alt_name='entree'),
+    ....:         main=dict(default='pizza', description='Main meal',
+    ....:                   values=dict(pizza='thick crust', pasta='penne arrabiata'),
+    ....:                   case_sensitive=False),
+    ....:         dessert=dict(default='espresso', description='Dessert',
+    ....:                      values=dict(espresso='life begins again',
+    ....:                                  cake='waist begins again',
+    ....:                                  cream='fluffy, white stuff')),
+    ....:         tip=dict(default=10, description='Reward for good service',
+    ....:         checker=lambda tip: tip in range(0,20))
+    ....:     )
     sage: TestSuite(Menu.options).run( skip = '_test_pickling' ) # not attached to a class => can't pickle
     sage: TestSuite(Partitions.options).run()
 
@@ -423,25 +423,27 @@ from pickle import PicklingError
 from sage.misc.superseded import deprecated_function_alias
 import inspect
 
-class _Option(object):
+class Option(object):
     r"""
-        Each option for an options class is an instance of this class which
-        implements the magic that allows the options to the attributes of the
-        options class that can be looked up, set and called.
+    An option.
 
-        By way of example, this class implements the following functionality.
+    Each option for an options class is an instance of this class which
+    implements the magic that allows the options to the attributes of the
+    options class that can be looked up, set and called.
 
-        EXAMPLES::
+    By way of example, this class implements the following functionality.
 
-            sage: Partitions.options.display           # indirect doctest
-            list
-            sage: Partitions.options.display='compact'
-            sage: Partitions.options.display('list')
-            sage: Partitions.options._reset()
+    EXAMPLES::
 
-        TESTS::
+        sage: Partitions.options.display
+        list
+        sage: Partitions.options.display='compact'
+        sage: Partitions.options.display('list')
+        sage: Partitions.options._reset()
 
-            sage: TestSuite(Partitions.options.display).run()
+    TESTS::
+
+        sage: TestSuite(Partitions.options.display).run()
     """
     __name__ = 'Option class'
 
@@ -453,12 +455,12 @@ class _Option(object):
         EXAMPLES::
 
             sage: type(Partitions.options.display)    # indirect doctest
-            <class 'sage.structure.global_options._Option'>
+            <class 'sage.structure.global_options.Option'>
         """
         self._name = name
         self._options = options
         self.__doc__= options._doc[name]
-        super(_Option, self).__init__()
+        super(Option, self).__init__()
 
     def __repr__(self):
         r"""
@@ -622,39 +624,39 @@ class GlobalOptions(object):
 
     INPUT:
 
-    - ``name`` -- Specifies a name for the options class (required)
+    - ``name`` -- specifies a name for the options class (required)
 
-    = ``module`` -- Gives the module that contains the associated options class
+    - ``module`` -- gives the module that contains the associated options class
 
-    - ``option_class`` -- Gives the name of the associated module class
+    - ``option_class`` -- gives the name of the associated module class
       (default: ``name``)
 
-    - ``doc`` -- Initial documentation string
+    - ``doc`` -- initial documentation string
 
-    - ``end_doc`` -- Final documentation string
+    - ``end_doc`` -- final documentation string
 
-    - ``<options>=dict(...)`` -- Dictionary specifying an option
+    - ``<options>=dict(...)`` -- dictionary specifying an option
 
     The options are specified by keyword arguments with their values
     being a dictionary which describes the option. The
     allowed/expected keys in the dictionary are:
 
-    - ``alias`` -- Defines alias/synonym for option values
-    - ``alt_name`` -- Alternative name for an option
-    - ``checker`` -- A function for checking whether a particular value for
+    - ``alias`` -- defines alias/synonym for option values
+    - ``alt_name`` -- alternative name for an option
+    - ``checker`` -- a function for checking whether a particular value for
       the option is valid
-    - ``default`` -- The default value of the option
-    - ``description`` -- Documentation string
-    - ``link_to`` -- Links to an option for this set of options to an
+    - ``default`` -- the default value of the option
+    - ``description`` -- documentation string
+    - ``link_to`` -- links to an option for this set of options to an
       option in another :class:`GlobalOptions`
-    - ``setter`` -- A function (class method) which is called whenever this
+    - ``setter`` -- a function (class method) which is called whenever this
       option changes
-    - ``values`` -- A dictionary of the legal values for this option (this
-      automatically defines the corresponding ``checker``). This dictionary
+    - ``values`` -- a dictionary of the legal values for this option (this
+      automatically defines the corresponding ``checker``); this dictionary
       gives the possible options, as keys, together with a brief description
-      of them.
-    - ``case_sensitive`` -- (Default: ``True``) ``True`` or ``False`` depending on
-      whether the values of the option are case sensitive.
+      of them
+    - ``case_sensitive`` -- (default: ``True``) ``True`` or ``False``
+      depending on whether the values of the option are case sensitive
 
     Options and their values can be abbreviated provided that this
     abbreviation is a prefix of a unique option.
@@ -666,22 +668,22 @@ class GlobalOptions(object):
 
         sage: from sage.structure.global_options import GlobalOptions
         sage: class Menu(object):
-        ...       options = GlobalOptions('menu', doc='Fancy documentation\n'+'-'*19, end_doc='End of Fancy documentation',
-        ...           entree=dict(default='soup',
-        ...                       description='The first course of a meal',
-        ...                       values=dict(soup='soup of the day', bread='oven baked'),
-        ...                       alias=dict(rye='bread')),
-        ...           appetizer=dict(alt_name='entree'),
-        ...           main=dict(default='pizza', description='Main meal',
-        ...                     values=dict(pizza='thick crust', pasta='penne arrabiata'),
-        ...                     case_sensitive=False),
-        ...           dessert=dict(default='espresso', description='Dessert',
-        ...                        values=dict(espresso='life begins again',
-        ...                                    cake='waist begins again',
-        ...                                    cream='fluffy white stuff')),
-        ...           tip=dict(default=10, description='Reward for good service',
-        ...                    checker=lambda tip: tip in range(0,20))
-        ...       )
+        ....:     options = GlobalOptions('menu', doc='Fancy documentation\n'+'-'*19, end_doc='End of Fancy documentation',
+        ....:         entree=dict(default='soup',
+        ....:                     description='The first course of a meal',
+        ....:                     values=dict(soup='soup of the day', bread='oven baked'),
+        ....:                     alias=dict(rye='bread')),
+        ....:         appetizer=dict(alt_name='entree'),
+        ....:         main=dict(default='pizza', description='Main meal',
+        ....:                   values=dict(pizza='thick crust', pasta='penne arrabiata'),
+        ....:                   case_sensitive=False),
+        ....:         dessert=dict(default='espresso', description='Dessert',
+        ....:                      values=dict(espresso='life begins again',
+        ....:                                  cake='waist begins again',
+        ....:                                  cream='fluffy white stuff')),
+        ....:         tip=dict(default=10, description='Reward for good service',
+        ....:                  checker=lambda tip: tip in range(0,20))
+        ....:     )
         sage: Menu.options
         Current options for menu
           - dessert: espresso
@@ -771,38 +773,38 @@ class GlobalOptions(object):
 
             sage: from sage.structure.global_options import GlobalOptions
             sage: menu = GlobalOptions('menu', doc='Fancy documentation\n'+'-'*19, end_doc='End of Fancy documentation',
-            ...       entree=dict(default='soup',
-            ...                   description='The first course of a meal',
-            ...                   values=dict(soup='soup of the day', bread='oven baked'),
-            ...                   alias=dict(rye='bread')),
-            ...       appetizer=dict(alt_name='entree'),
-            ...       main=dict(default='pizza', description='Main meal',
-            ...                 values=dict(pizza='thick crust', pasta='penne arrabiata'),
-            ...                 case_sensitive=False),
-            ...       dessert=dict(default='espresso', description='Dessert',
-            ...                    values=dict(espresso='life begins again',
-            ...                                cake='waist begins again',
-            ...                                cream='fluffy white stuff')),
-            ...       tip=dict(default=10, description='Reward for good service',
-            ...                checker=lambda tip: tip in range(0,20))
-            ...   )
+            ....:     entree=dict(default='soup',
+            ....:                 description='The first course of a meal',
+            ....:                 values=dict(soup='soup of the day', bread='oven baked'),
+            ....:                 alias=dict(rye='bread')),
+            ....:     appetizer=dict(alt_name='entree'),
+            ....:     main=dict(default='pizza', description='Main meal',
+            ....:               values=dict(pizza='thick crust', pasta='penne arrabiata'),
+            ....:               case_sensitive=False),
+            ....:     dessert=dict(default='espresso', description='Dessert',
+            ....:                  values=dict(espresso='life begins again',
+            ....:                              cake='waist begins again',
+            ....:                              cream='fluffy white stuff')),
+            ....:     tip=dict(default=10, description='Reward for good service',
+            ....:              checker=lambda tip: tip in range(0,20))
+            ....: )
             sage: specials = GlobalOptions('specials menu', doc='More fancy doc...',
-            ...       entree=dict(link_to=(menu, 'entree')),
-            ...       main_specials=dict(default='salmon', description='main course specials',
-            ...                     values=dict(salmon='a fish', crab='Sebastian'))
-            ...   )
+            ....:     entree=dict(link_to=(menu, 'entree')),
+            ....:     main_specials=dict(default='salmon', description='main course specials',
+            ....:                   values=dict(salmon='a fish', crab='Sebastian'))
+            ....: )
             sage: specials['entree'] = 'rye'
             sage: menu['entree']
             'bread'
 
             sage: alias_test = GlobalOptions( name='alias_test',
-            ...         doc="Test aliases with case sensitivity",
-            ...         test_opt=dict(default="Upper",
-            ...         description='Starts with an uppercase',
-            ...         values=dict(Upper="Starts with uppercase",
-            ...                     lower="only lowercase"),
-            ...         case_sensitive=False,
-            ...         alias=dict(UpperAlias="Upper", lower_alias="lower")) )
+            ....:       doc="Test aliases with case sensitivity",
+            ....:       test_opt=dict(default="Upper",
+            ....:       description='Starts with an uppercase',
+            ....:       values=dict(Upper="Starts with uppercase",
+            ....:                   lower="only lowercase"),
+            ....:       case_sensitive=False,
+            ....:       alias=dict(UpperAlias="Upper", lower_alias="lower")) )
             sage: alias_test['test_opt'] = 'Lower_Alias'
             sage: alias_test['test_opt']
             'lower'
@@ -834,15 +836,15 @@ class GlobalOptions(object):
 
         # Finally, we build the doc string for the options
         # First we strip common white space off the front of doc and end_doc
-        if len(doc)>0:
+        if doc:
             lines=doc.splitlines()
-            m=min(len(line)-len(line.lstrip()) for line in lines if len(line)>0)
-            self._doc_start='\n'.join(line[m:] for line in lines)
+            m = min(len(line)-len(line.lstrip()) for line in lines if line)
+            self._doc_start = '\n'.join(line[m:] for line in lines)
 
-        if len(end_doc)>0:
+        if end_doc:
             lines=end_doc.splitlines()
-            m=min(len(line)-len(line.lstrip()) for line in lines if len(line)>0)
-            self._doc_end='\n'.join(line[m:] for line in lines)
+            m = min(len(line)-len(line.lstrip()) for line in lines if line)
+            self._doc_end = '\n'.join(line[m:] for line in lines)
 
         super(GlobalOptions, self).__init__()
 
@@ -856,8 +858,8 @@ class GlobalOptions(object):
 
             sage: from sage.structure.global_options import GlobalOptions
             sage: FoodOptions=GlobalOptions('daily meal',
-            ...          food=dict(default='apple', values=dict(apple='a nice fruit',pear='fruit')),
-            ...          drink=dict(default='water', values=dict(water='wet',milk='white')))
+            ....:        food=dict(default='apple', values=dict(apple='a nice fruit',pear='fruit')),
+            ....:        drink=dict(default='water', values=dict(water='wet',milk='white')))
             sage: FoodOptions
             Current options for daily meal
               - drink: water
@@ -870,7 +872,7 @@ class GlobalOptions(object):
             return  'Current options for {}'.format(self._name)
 
         options.sort()
-        width=1+max(len(option) for option in options)
+        width = 1 + max(len(option) for option in options)
         return  'Current options for {}\n{}'.format(self._name,
                     '\n'.join('  - {:{}} {}'.format(option+':',width,self[option]) for option in options)
                 )
@@ -883,9 +885,9 @@ class GlobalOptions(object):
 
             sage: from sage.structure.global_options import GlobalOptions
             sage: FoodOptions=GlobalOptions('daily meal',
-            ...         food=dict(default='apple', values=dict(apple='a fruit',pair='of what?')),
-            ...         drink=dict(default='water', values=dict(water='a drink',coffee='a lifestyle')),
-            ...         beverage=dict(alt_name='drink'))
+            ....:       food=dict(default='apple', values=dict(apple='a fruit',pair='of what?')),
+            ....:       drink=dict(default='water', values=dict(water='a drink',coffee='a lifestyle')),
+            ....:       beverage=dict(alt_name='drink'))
             sage: FoodOptions()
             Current options for daily meal
               - drink: water
@@ -903,19 +905,19 @@ class GlobalOptions(object):
               - drink: coffee
               - food:  apple
         """
-        if get_value==() and set_value=={}:
+        if get_value == () and set_value == {}:
             print(self)
             return
 
-        if get_value!=():
+        if get_value != ():
         # use __getitem__ to return these options
-            if len(get_value)==1:
+            if len(get_value) == 1:
                 return self.__getitem__(get_value[0])
             else:
                 return [self.__getitem__(option) for option in get_value]
 
         # use __setitem__ to set these options
-        if set_value!=[]:
+        if set_value != []:
             for option in set_value:
                 self.__setitem__(option, set_value[option])
 
@@ -927,17 +929,17 @@ class GlobalOptions(object):
 
             sage: from sage.structure.global_options import GlobalOptions
             sage: FoodOptions=GlobalOptions('daily meal',
-            ...         food=dict(default='apple', values=dict(apple='a fruit',pair='of what?')),
-            ...         drink=dict(default='water', values=dict(water='a drink',coffee='a lifestyle')),
-            ...         beverage=dict(alt_name='drink'))
+            ....:       food=dict(default='apple', values=dict(apple='a fruit',pair='of what?')),
+            ....:       drink=dict(default='water', values=dict(water='a drink',coffee='a lifestyle')),
+            ....:       beverage=dict(alt_name='drink'))
             sage: FoodOptions['drink']
             'water'
             sage: FoodOptions['d']
             'water'
         """
-        option=self._match_option(option)
+        option = self._match_option(option)
         if option in self._linked_value:
-            link,linked_opt=self._linked_value[option]
+            link,linked_opt = self._linked_value[option]
             return link[linked_opt]
         elif option in self._value:
             if option in self._display_values:
@@ -954,8 +956,8 @@ class GlobalOptions(object):
 
             sage: from sage.structure.global_options import GlobalOptions
             sage: FoodOptions=GlobalOptions('daily meal',
-            ...         food=dict(default='apple', values=dict(apple='a fruit',pair='of what?')),
-            ...         drink=dict(default='water', values=dict(water='a drink',coffee='a lifestyle')))
+            ....:       food=dict(default='apple', values=dict(apple='a fruit',pair='of what?')),
+            ....:       drink=dict(default='water', values=dict(water='a drink',coffee='a lifestyle')))
             sage: FoodOptions['drink']='coffee'; FoodOptions()
             Current options for daily meal
               - drink: coffee
@@ -972,20 +974,20 @@ class GlobalOptions(object):
             <BLANKLINE>
             Current value: water
         """
-        option=self._match_option(option)
+        option = self._match_option(option)
         if not callable(value):
-            value=self._match_value(option, value)
+            value = self._match_value(option, value)
 
         if value=='?':  # return help
             print('%s\nCurrent value: %s' % (self._doc[option], self[option]))
             return      # we do not want to call the setter below
 
         elif option in self._linked_value:
-            link, linked_opt=self._linked_value[option]
-            link[linked_opt]=value
+            link, linked_opt = self._linked_value[option]
+            link[linked_opt] = value
 
         else:
-            self._value[option]=value
+            self._value[option] = value
 
         if option in self._setter:
             # if a setter function exists then call it with the associated
@@ -1079,8 +1081,8 @@ class GlobalOptions(object):
         """
         # open the options for the corresponding "parent" and copy all of
         # the data from its' options class into unpickle
-        options_class=getattr(import_module(state['options_module']), state['option_class'])
-        unpickle=options_class.options
+        options_class = getattr(import_module(state['options_module']), state['option_class'])
+        unpickle = options_class.options
         state.pop('option_class')
         state.pop('options_module')
         for setting in unpickle.__dict__.keys():
@@ -1091,7 +1093,7 @@ class GlobalOptions(object):
 
         # apply the options stored in state
         for opt in state:
-            self[opt]=state[opt]
+            self[opt] = state[opt]
         options_class.options = self
 
     def __getstate__(self):
@@ -1121,8 +1123,8 @@ class GlobalOptions(object):
         if self._options_module == '' :
             pickleable=False
         else:
-            opt_mod=import_module(self._options_module)
-            pickleable=hasattr(opt_mod, self._name) and hasattr(getattr(opt_mod, self._name),'options')
+            opt_mod = import_module(self._options_module)
+            pickleable = hasattr(opt_mod, self._name) and hasattr(getattr(opt_mod, self._name),'options')
 
         if not pickleable:
             raise PicklingError('%s cannot be pickled because it is not associated with a class' % self)
@@ -1130,11 +1132,11 @@ class GlobalOptions(object):
         pickle={'option_class': self._option_class, 'options_module': self._options_module}
         for opt in self._value.keys():
             if opt not in self._alt_names and self[opt]!=self.__default_value[opt]:
-                pickle[opt]=self[opt]
+                pickle[opt] = self[opt]
         for opt in self._linked_value:
-            link, linked_opt=self._linked_value[opt]
+            link, linked_opt = self._linked_value[opt]
             if opt not in self._alt_names and link[opt]!=link.__default_value[opt]:
-                pickle[opt]=self[opt]
+                pickle[opt] = self[opt]
         return pickle
 
 
@@ -1169,9 +1171,9 @@ class GlobalOptions(object):
 
             sage: from sage.structure.global_options import GlobalOptions
             sage: FoodOptions = GlobalOptions('daily meal',
-            ...         food=dict(default='apple', values=dict(apple='a fruit',pair='of what?')),
-            ...         drink=dict(default='water', values=dict(water='a drink',coffee='a lifestyle')),
-            ...         beverage=dict(alt_name='drink')) # indirect doctest
+            ....:       food=dict(default='apple', values=dict(apple='a fruit',pair='of what?')),
+            ....:       drink=dict(default='water', values=dict(water='a drink',coffee='a lifestyle')),
+            ....:       beverage=dict(alt_name='drink')) # indirect doctest
             sage: FoodOptions()
             Current options for daily meal
               - drink: water
@@ -1181,7 +1183,7 @@ class GlobalOptions(object):
         self._case_sensitive[option] = True    # ``True`` by default
         self._legal_values[option] = []
         for spec in sorted(specifications):   # NB: options processed alphabetically!
-            if spec=='alias':
+            if spec == 'alias':
                 self._alias[option]=specifications[spec]
                 self._legal_values[option]+=specifications[spec].keys()
                 for opt in specifications[spec]:
@@ -1198,15 +1200,16 @@ class GlobalOptions(object):
                     if option in self._alias:
                         self._alias[option] = {k.lower():v.lower() for k,v in self._alias[option].iteritems()}
                 self._case_sensitive[option] = bool(specifications[spec])
-            elif spec=='checker':
+            elif spec == 'checker':
                 if not callable(specifications[spec]):
                     raise ValueError('the checker for %s must be callable'%option)
                 self._checker[option]=specifications[spec]
-            elif spec=='default':
+            elif spec == 'default':
                 self.__default_value[option]=specifications[spec]
-            elif spec=='link_to':
-                if (isinstance(specifications[spec], tuple) and len(specifications[spec]) == 2 and
-                        isinstance(specifications[spec][0], GlobalOptions)):
+            elif spec == 'link_to':
+                if (isinstance(specifications[spec], tuple)
+                        and len(specifications[spec]) == 2
+                        and isinstance(specifications[spec][0], GlobalOptions)):
                     link, linked_opt = specifications['link_to']  # for sanity
                     if linked_opt in link._value:
                         self._linked_value[option] = specifications['link_to']
@@ -1219,7 +1222,7 @@ class GlobalOptions(object):
                         raise ValueError("could not find link to {1} in {0}".format(*specifications[spec]))
                 else:
                     raise ValueError("linked options must be specified as a string: 'linked_option' or a tuple: (link,linked_option)")
-            elif spec=='setter':
+            elif spec == 'setter':
                 if callable(specifications[spec]):
                     self._setter[option]=specifications[spec]
                 else:
@@ -1234,7 +1237,7 @@ class GlobalOptions(object):
                 else:
                     self._legal_values[option] += [val.lower() for val in specifications[spec].keys()]
                     self._display_values[option] = {val.lower():val for val in specifications[spec].keys()}
-            elif spec!='description':
+            elif spec != 'description':
                 raise ValueError('Initialization error in Global options for %s: %s not recognized!'%(self._name, spec))
 
         # now build the doc string for this option
@@ -1242,7 +1245,7 @@ class GlobalOptions(object):
             raise ValueError('no documentation specified for %s in the options for %s' % (option, self._name))
 
         # first a necessary hack to initialise the option in self._doc because __setitem__ calls _match_option
-        self._doc[option]=''   
+        self._doc[option] = ''   
         if option in self._linked_value:
             self._doc[option]=doc
         else:
@@ -1271,7 +1274,7 @@ class GlobalOptions(object):
 
         # Build getters and setters for this option. As we have overridden __setattr__ we 
         # call object.__setattr_ directly
-        object.__setattr__(self, option, _Option(self, option))
+        object.__setattr__(self, option, Option(self, option))
 
     def _match_option(self, option):
         r"""
@@ -1286,8 +1289,8 @@ class GlobalOptions(object):
 
             sage: from sage.structure.global_options import GlobalOptions
             sage: FoodOptions=GlobalOptions('daily meal',
-            ...         food=dict(default='apple', values=dict(apple='a fruit',pair='of what?')),
-            ...         drink=dict(default='water', values=dict(water='a drink',coffee='a lifestyle')))
+            ....:       food=dict(default='apple', values=dict(apple='a fruit',pair='of what?')),
+            ....:       drink=dict(default='water', values=dict(water='a drink',coffee='a lifestyle')))
             sage: FoodOptions('food') # indirect doctest
             'apple'
             sage: FoodOptions('f')
@@ -1328,8 +1331,8 @@ class GlobalOptions(object):
 
             sage: from sage.structure.global_options import GlobalOptions
             sage: FoodOptions=GlobalOptions('daily meal',
-            ...         food=dict(default='apple', values=dict(apple='a fruit',pair='of what?')),
-            ...         drink=dict(default='water', values=dict(water='a drink',wine='a lifestyle')))
+            ....:       food=dict(default='apple', values=dict(apple='a fruit',pair='of what?')),
+            ....:       drink=dict(default='water', values=dict(water='a drink',wine='a lifestyle')))
             sage: FoodOptions(f='a') # indirect doctest
             sage: FoodOptions('f')
             'apple'
@@ -1384,8 +1387,8 @@ class GlobalOptions(object):
 
             sage: from sage.structure.global_options import GlobalOptions
             sage: FoodOptions=GlobalOptions('daily meal',
-            ...         food=dict(default='apple', values=dict(apple='a fruit',pair='of what?')),
-            ...         drink=dict(default='water', values=dict(water='a drink',wine='a lifestyle')))
+            ....:       food=dict(default='apple', values=dict(apple='a fruit',pair='of what?')),
+            ....:       drink=dict(default='water', values=dict(water='a drink',wine='a lifestyle')))
             sage: FoodOptions._default_value('food')
             'apple'
         """
@@ -1425,12 +1428,12 @@ class GlobalOptions(object):
 
             sage: from sage.structure.global_options import GlobalOptions
             sage: DelimitedListOptions=GlobalOptions('list delimiters',
-            ...             delim=dict(default='b', values={'b':'brackets', 'p':'parentheses'}))
+            ....:           delim=dict(default='b', values={'b':'brackets', 'p':'parentheses'}))
             sage: class DelimitedList(CombinatorialObject):
-            ...      options=DelimitedListOptions
-            ...      def _repr_b(self): return '[%s]' % ','.join('%s'%i for i in self._list)
-            ...      def _repr_p(self): return '(%s)' % ','.join('%s'%i for i in self._list)
-            ...      def _repr_(self): return self.options._dispatch(self, '_repr_','delim')
+            ....:    options=DelimitedListOptions
+            ....:    def _repr_b(self): return '[%s]' % ','.join('%s'%i for i in self._list)
+            ....:    def _repr_p(self): return '(%s)' % ','.join('%s'%i for i in self._list)
+            ....:    def _repr_(self): return self.options._dispatch(self, '_repr_','delim')
             sage: dlist=DelimitedList([1,2,3]); dlist
             [1,2,3]
             sage: dlist.options.delim='p'; dlist
@@ -1466,9 +1469,9 @@ class GlobalOptions(object):
 
             sage: from sage.structure.global_options import GlobalOptions
             sage: class Meal(object):
-            ...       options = GlobalOptions('daily meal',
-            ...          food=dict(default='bread', values=dict(bread='rye bread', salmon='a fish')),
-            ...          drink=dict(default='water',values=dict(water='essential for life',wine='essential')))
+            ....:     options = GlobalOptions('daily meal',
+            ....:        food=dict(default='bread', values=dict(bread='rye bread', salmon='a fish')),
+            ....:        drink=dict(default='water',values=dict(water='essential for life',wine='essential')))
             sage: Meal.options.food='salmon'; Meal.options
             Current options for daily meal
               - drink: water

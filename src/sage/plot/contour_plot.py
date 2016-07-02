@@ -595,8 +595,8 @@ def implicit_plot(f, xrange, yrange, **options):
     - ``fill`` -- boolean (default: ``False``); if ``True``, fill the region
       `f(x,y) < 0`.
 
-    - ``fillcolor`` -- string (default: ``blue``), the color of the region
-      where `f(x,y)<0` if ``fill=True``. Colors are defined in
+    - ``fillcolor`` -- string (default: ``'blue'``), the color of the region
+      where `f(x,y) < 0` if ``fill = True``. Colors are defined in
       :mod:`sage.plot.colors`; try ``colors?`` to see them all.
 
     - ``linewidth`` -- integer (default: None), if a single integer all levels
@@ -607,14 +607,14 @@ def implicit_plot(f, xrange, yrange, **options):
       plotted, one of: ``"solid"``, ``"dashed"``, ``"dashdot"`` or
       ``"dotted"``, respectively ``"-"``, ``"--"``, ``"-."``, or ``":"``.
 
-    - ``color`` -- string (default: ``blue``), the color of the plot. Colors are
-      defined in :mod:`sage.plot.colors`; try ``colors?`` to see them all.
-      If ``fill=True``, then this sets only the color of the border of the
+    - ``color`` -- string (default: ``'blue'``), the color of the plot. Colors
+      are defined in :mod:`sage.plot.colors`; try ``colors?`` to see them all.
+      If ``fill = True``, then this sets only the color of the border of the
       plot. See ``fillcolor`` for setting the color of the fill region.
 
     - ``legend_label`` -- the label for this item in the legend
 
-    - ``base`` - (default: 10) the base of the logarithm if
+    - ``base`` -- (default: 10) the base of the logarithm if
       a logarithmic scale is set. This must be greater than 1. The base
       can be also given as a list or tuple ``(basex, basey)``.
       ``basex`` sets the base of the logarithm along the horizontal
@@ -644,22 +644,28 @@ def implicit_plot(f, xrange, yrange, **options):
         sage: implicit_plot(x^2+y^2-2, (x,-3,3), (y,-3,3))
         Graphics object consisting of 1 graphics primitive
 
-    I can do the same thing, but using a callable function so I don't need
-    to explicitly define the variables in the ranges, and filling the inside::
+    We can do the same thing, but using a callable function so we don't
+    need to explicitly define the variables in the ranges. We also fill
+    the inside::
 
         sage: f(x,y) = x^2 + y^2 - 2
-        sage: implicit_plot(f, (-3, 3), (-3, 3),fill=True)
-        Graphics object consisting of 1 graphics primitive
+        sage: implicit_plot(f, (-3, 3), (-3, 3), fill=True)
+        Graphics object consisting of 2 graphics primitive
 
     The same circle but with a different line width::
 
         sage: implicit_plot(f, (-3,3), (-3,3), linewidth=6)
         Graphics object consisting of 1 graphics primitive
 
-    And again the same circle but this time with a dashdot border::
+    Again the same circle but this time with a dashdot border::
 
         sage: implicit_plot(f, (-3,3), (-3,3), linestyle='dashdot')
         Graphics object consisting of 1 graphics primitive
+
+    The same circle with different line and fille colors::
+
+        sage: implicit_plot(f, (-3,3), (-3,3), color='red', fill=True, fillcolor='green')
+        Graphics object consisting of 2 graphics primitives
 
     You can also plot an equation::
 
@@ -676,6 +682,7 @@ def implicit_plot(f, xrange, yrange, **options):
     The color of the fill region can be changed::
 
         sage: implicit_plot(f, (-3, 3), (-3, 3), fill=True, fillcolor='red')
+        Graphics object consisting of 2 graphics primitives
 
     Here is a beautiful (and long) example which also tests that all
     colors work with this::
@@ -717,7 +724,7 @@ def implicit_plot(f, xrange, yrange, **options):
 
     ::
 
-        sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9),plot_points=50)
+        sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9), plot_points=50)
         Graphics object consisting of 1 graphics primitive
 
     When making a filled implicit plot using a python function rather than a
@@ -725,7 +732,7 @@ def implicit_plot(f, xrange, yrange, **options):
     avoid artifacts::
 
         sage: implicit_plot(lambda x,y: x^2+y^2-2, (x,-3,3), (y,-3,3), fill=True, plot_points=500) # long time
-        Graphics object consisting of 1 graphics primitive
+        Graphics object consisting of 2 graphics primitive
 
     An example of an implicit plot on 'loglog' scale::
 
@@ -806,16 +813,19 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
     otherwise it is only implicit (with color ``incol``) as the border of the
     inside of the region.
 
-     - ``bordercol`` -- a color (default: ``None``), the color of the border
-       (``'black'`` if ``borderwidth`` or ``borderstyle`` is specified but not ``bordercol``)
+    - ``bordercol`` -- a color (default: ``None``), the color of the border
+       (``'black'`` if ``borderwidth`` or ``borderstyle`` is specified but
+       not ``bordercol``)
 
-    - ``borderstyle``  -- string (default: 'solid'), one of ``'solid'``,
+    - ``borderstyle``  -- string (default: ``'solid'``), one of ``'solid'``,
       ``'dashed'``, ``'dotted'``, ``'dashdot'``, respectively ``'-'``,
       ``'--'``, ``':'``, ``'-.'``.
 
-    - ``borderwidth``  -- integer (default: None), the width of the border in pixels
+    - ``borderwidth``  -- integer (default: ``None``), the width of the
+      border in pixels
 
-    - ``alpha`` -- (default: 1) How transparent the fill is. A number between 0 and 1.
+    - ``alpha`` -- (default: 1) how transparent the fill is; a number
+      between 0 and 1
 
     - ``legend_label`` -- the label for this item in the legend
 

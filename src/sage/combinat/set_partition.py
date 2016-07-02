@@ -488,16 +488,25 @@ class SetPartition(ClonableArray):
             sage: x = SetPartition([[1,2], [3,5,4]])
             sage: latex(x)
             \{\{1, 2\}, \{3, 4, 5\}\}
-            sage: SP = SetPartition([[1,2]])
-            sage: SP.set_latex_options({'tikz_scale':2,'plot':'linear', 'fill':True, 'color':'blue', 'angle':45})
-            sage: latex(SP)
+            sage: p=SetPartition([['a','c'],['b',1],[20]])
+            sage: p.set_latex_options({'plot':'circle', 'color':'blue', 'angle':45, 'fill':True, 'tikz_scale':2})
+            sage: latex(p)
             \begin{tikzpicture}[scale=2]
-                \node[below=05cm] at (0,0) {$1$};
-                \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] (0) at (0,0) {};
-                \node[below=.05cm] at (1,0) {$2$};
-                \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] (1) at (1,0) {};
-                \draw[color=blue] (1) to [out=135,in=45] (0);
+            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black,label=90:a] (0) at (90:1cm) {};
+            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black,label=18:1] (1) at (18:1cm) {};
+            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black,label=-54:c] (2) at (-54:1cm) {};
+            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black,label=-126:b] (3) at (-126:1cm) {};
+            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black,label=-198:20] (4) at (-198:1cm) {};
+            \draw[-] (0:1cm) arc (0:72:1cm);
+            \draw[-] (72:1cm) arc (72:144:1cm);
+            \draw[-] (144:1cm) arc (144:216:1cm);
+            \draw[-] (216:1cm) arc (216:288:1cm);
+            \draw[-] (288:1cm) arc (288:360:1cm);
+            \draw[-,thick,color=blue,fill={rgb:blue,1;white,10}] (1.center) -- (3.center) -- cycle;
+            \draw[-,thick,color=blue,fill={rgb:blue,1;white,10}] (4.center) -- cycle;
+            \draw[-,thick,color=blue,fill={rgb:blue,1;white,10}] (0.center) -- (2.center) -- cycle;
             \end{tikzpicture}
+
         """
         latex_options = self.latex_options()
         if latex_options["plot"] == "":
@@ -511,14 +520,14 @@ class SetPartition(ClonableArray):
             color= latex_options['color']
 
             # If we want cyclic plots
-            if latex_options['plot'] == 'cyclic' or latex_options['plot'] == 'cycle' or latex_options['plot'] == 'circle':
+            if latex_options['plot'] == 'cyclic' or latex_options['plot'] == 'cycle' or latex_options['plot'] == 'circle' or latex_options['plot'] == 'circular':
                 degrees = 360 / cardinality
                 radius = latex_options['radius']
 
                 # Add nodes
                 for k,i in enumerate(base_set):
                     location = (cardinality - k) * degrees - 270
-                    res += "    \\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black"
+                    res += "\\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black"
                     if latex_options['show_labels']:
                         res += ",label=" + str(location) + ":" + str(i)
                     res += "] (" + str(k) + ") at (" + str(location) + ":" + radius + ") {};\n"
@@ -527,13 +536,13 @@ class SetPartition(ClonableArray):
                 for k,i in enumerate(base_set):
                     xangle = k * degrees
                     yangle = (k+1) * degrees
-                    res += "    \\draw[-] (" + str(xangle) + ":" + radius + ")"
+                    res += "\\draw[-] (" + str(xangle) + ":" + radius + ")"
                     res += " arc "
                     res += "(" + str(xangle) + ":" + str(yangle) + ":" + radius + ");\n"
 
                 # Setup partitions
                 for partition in self:
-                    res += "        \\draw[-,thick,color="+color
+                    res += "\\draw[-,thick,color="+color
                     if latex_options['fill'] != False:
                         if isinstance(latex_options['fill'],str):
                             res += ",fill="+latex_options['fill']
@@ -555,8 +564,8 @@ class SetPartition(ClonableArray):
                 # setup line
                 for k,i in enumerate(base_set):
                     if latex_options['show_labels']:
-                        res += "    \\node[below=.05cm] at (" + str(k) + ",0) {$" + str(i) + "$};\n"
-                    res += "    \\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] "
+                        res += "\\node[below=.05cm] at (" + str(k) + ",0) {$" + str(i) + "$};\n"
+                    res += "\\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] "
                     res += "(" + str(k) + ") at (" + str(k) + ",0) {};\n"
                 #res += "\t\\draw (0) -- (" + str(cardinality - 1) + ");\n"
 
@@ -569,7 +578,7 @@ class SetPartition(ClonableArray):
                                 #res += " to [out=90,in=90] "
                                 #res += "(" + str(base_set.index(partition[-1])) + ");"
                             #else:
-                                res += "    \\draw[color=" + color + "] (" + str(base_set.index(partition[k])) + ")"
+                                res += "\\draw[color=" + color + "] (" + str(base_set.index(partition[k])) + ")"
                                 res += " to [out=" + str(90+angle) + ",in=" + str(90-angle) + "] "
                                 res += "(" + str(base_set.index(partition[k-1])) + ");\n"
 
@@ -1125,12 +1134,48 @@ class SetPartition(ClonableArray):
 
             sage: p=SetPartition([[1,3,4],[2,5]])
             sage: print(p.plot().description())
-
+            Point set defined by 1 point(s):    [(0.0, 0.0)]
+            Point set defined by 1 point(s):    [(1.0, 0.0)]
+            Point set defined by 1 point(s):    [(2.0, 0.0)]
+            Point set defined by 1 point(s):    [(3.0, 0.0)]
+            Point set defined by 1 point(s):    [(4.0, 0.0)]
+            Text '1' at the point (0.0,-0.1)
+            Text '2' at the point (1.0,-0.1)
+            Text '3' at the point (2.0,-0.1)
+            Text '4' at the point (3.0,-0.1)
+            Text '5' at the point (4.0,-0.1)
+            Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237) angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            Arc with center (2.5,-0.5) radii (0.707106781187,0.707106781187) angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            Arc with center (2.5,-1.5) radii (2.12132034356,2.12132034356) angle 0.0 inside the sector (0.785398163397,2.35619449019)
             sage: p=SetPartition([['a','c'],['b',-1],[20.2]])
             sage: print(p.plot().description())
-
+            Point set defined by 1 point(s):  [(0.0, 0.0)]
+            Point set defined by 1 point(s):    [(1.0, 0.0)]
+            Point set defined by 1 point(s):    [(2.0, 0.0)]
+            Point set defined by 1 point(s):    [(3.0, 0.0)]
+            Point set defined by 1 point(s):    [(4.0, 0.0)]
+            Text '-1' at the point (0.0,-0.1)
+            Text '20.2000000000000' at the point (1.0,-0.1)
+            Text 'a' at the point (2.0,-0.1)
+            Text 'b' at the point (3.0,-0.1)
+            Text 'c' at the point (4.0,-0.1)
+            Arc with center (1.5,-1.5) radii (2.12132034356,2.12132034356) angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            Arc with center (3.0,-1.0) radii (1.41421356237,1.41421356237) angle 0.0 inside the sector (0.785398163397,2.35619449019)
             sage: p=SetPartition([['a','c'],['b',-1],[20.2]])
             sage: print(p.plot(base_set_dict={'a':0,'b':1,'c':2,-1:-2.3,20.2:5.4}).description())
+            Point set defined by 1 point(s):    [(-2.3, 0.0)]
+            Point set defined by 1 point(s):    [(0.0, 0.0)]
+            Point set defined by 1 point(s):    [(1.0, 0.0)]
+            Point set defined by 1 point(s):    [(2.0, 0.0)]
+            Point set defined by 1 point(s):    [(5.4, 0.0)]
+            Text '-1' at the point (-2.3,-0.1)
+            Text '20.2000000000000' at the point (5.4,-0.1)
+            Text 'a' at the point (0.0,-0.1)
+            Text 'b' at the point (1.0,-0.1)
+            Text 'c' at the point (2.0,-0.1)
+            Arc with center (-0.65,-1.65) radii (2.33345237792,2.33345237792) angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237) angle 0.0 inside the sector (0.785398163397,2.35619449019)
+
         """
         from sage.plot.graphics import Graphics
         from sage.plot.point import point

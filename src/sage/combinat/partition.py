@@ -652,7 +652,7 @@ class Partition(CombinatorialElement):
             ⎢         ┌┬┬┬┐  ┌┬┬┐  ├┼┴┘  ├┼┤  ├┤   ├┤ ⎥
             ⎢ ┌┬┬┬┬┐  ├┼┴┴┘  ├┼┼┘  ├┤    ├┼┘  ├┤   ├┤ ⎥
             ⎣ └┴┴┴┴┘, └┘   , └┴┘ , └┘  , └┘ , └┘ , └┘ ⎦
-            sage: Partitions.global_options(convention="French");
+            sage: Partitions.options.convention = "French"
             sage: unicode_art(Partitions(5).list())
             ⎡                                      ┌┐ ⎤
             ⎢                                 ┌┐   ├┤ ⎥
@@ -660,11 +660,11 @@ class Partition(CombinatorialElement):
             ⎢         ┌┐     ┌┬┐   ├┤    ├┼┐  ├┤   ├┤ ⎥
             ⎢ ┌┬┬┬┬┐  ├┼┬┬┐  ├┼┼┐  ├┼┬┐  ├┼┤  ├┼┐  ├┤ ⎥
             ⎣ └┴┴┴┴┘, └┴┴┴┘, └┴┴┘, └┴┴┘, └┴┘, └┴┘, └┘ ⎦
-            sage: Partitions.global_options.reset()
+            sage: Partitions.options._reset()
         """
         if not self._list:
             return u'∅'
-        if self.parent().global_options('convention') == "English":
+        if self.parent().options.convention == "English":
             data = list(self)
         else:
             data = list(reversed(self))
@@ -996,10 +996,10 @@ class Partition(CombinatorialElement):
             (/)
             sage: Partitions.options._reset()
         """
-        diag_str = self.parent().options('diagram_str')
+        diag_str = self.parent().options.diagram_str
         if not self._list:
             return '-' if diag_str != '-' else "(/)"
-        if self.parent().options('convention') == "English":
+        if self.parent().options.convention == "English":
             return '\n'.join([diag_str * p for p in self])
         else:
             return '\n'.join([diag_str * p for p in reversed(self)])
@@ -5010,12 +5010,12 @@ class Partitions(UniqueRepresentation, Parent):
     Element = Partition
 
     # add options to class
-    options = GlobalOptions('Partitions', 
+    options = GlobalOptions('Partitions',
         module='sage.combinat.partition',
         doc=r"""
-        Sets and displays the global options for elements of the partition, skew
-        partition, and partition tuple classes.  If no parameters are set, then the
-        function returns a copy of the options dictionary.
+        Sets and displays the global options for elements of the partition,
+        skew partition, and partition tuple classes.  If no parameters are
+        set, then the function returns a copy of the options dictionary.
 
         The ``options`` to partitions can be accessed as the method
         :obj:`Partitions.options` of :class:`Partitions` and

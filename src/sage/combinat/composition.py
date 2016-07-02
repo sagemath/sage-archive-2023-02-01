@@ -163,7 +163,7 @@ class Composition(CombinatorialElement):
             [ #  #   #        ##                 ]
             [ #  #   ##  #     #  ##   ###       ]
             [ #, ##,  #, ###,  #,  ##,   #, #### ]
-            sage: Partitions.global_options.reset()
+            sage: Partitions.options._reset()
         """
         from sage.typeset.ascii_art import ascii_art
         return ascii_art(self.to_skew_partition())
@@ -178,14 +178,14 @@ class Composition(CombinatorialElement):
             ⎢ ├┤  ├┼┘  ┌┼┤  ┌┬┬┐   ├┤   ┌┬┐    ┌┐        ⎥
             ⎢ ├┤  ├┤   ├┼┘  ├┼┴┘  ┌┼┤  ┌┼┼┘  ┌┬┼┤  ┌┬┬┬┐ ⎥
             ⎣ └┘, └┘ , └┘ , └┘  , └┴┘, └┴┘ , └┴┴┘, └┴┴┴┘ ⎦
-            sage: Partitions.global_options(diagram_str='#', convention="French")
+            sage: Partitions.options(diagram_str='#', convention="French")
             sage: unicode_art(Compositions(4).list())
             ⎡ ┌┐                                         ⎤
             ⎢ ├┤  ┌┐   ┌┐         ┌┬┐                    ⎥
             ⎢ ├┤  ├┤   ├┼┐  ┌┐    └┼┤  ┌┬┐   ┌┬┬┐        ⎥
             ⎢ ├┤  ├┼┐  └┼┤  ├┼┬┐   ├┤  └┼┼┐  └┴┼┤  ┌┬┬┬┐ ⎥
             ⎣ └┘, └┴┘,  └┘, └┴┴┘,  └┘,  └┴┘,   └┘, └┴┴┴┘ ⎦
-            sage: Partitions.global_options.reset()
+            sage: Partitions.options._reset()
         """
         from sage.typeset.unicode_art import unicode_art
         return unicode_art(self.to_skew_partition())

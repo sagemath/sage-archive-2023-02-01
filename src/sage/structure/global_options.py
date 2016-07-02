@@ -572,6 +572,22 @@ class _Option(object):
         """
         return self._options.__getitem__(self._name) == other
 
+    def __ne__(self, other):
+        r"""
+        Inequality testing for an option in based on the value of
+        the attribute.
+
+        EXAMPLES::
+
+            sage: Tableaux.options.convention
+            English
+            sage: Tableaux.options.convention != "English"
+            False
+            sage: Tableaux.options.convention != "French"
+            True
+        """
+        return self._options.__getitem__(self._name) != other
+
     def __hash__(self):
         r"""
         Return the hash of ``self``, which is the hash of the corresponding

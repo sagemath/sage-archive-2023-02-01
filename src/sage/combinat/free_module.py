@@ -2029,7 +2029,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             TESTS::
 
                 sage: R = NonCommutativeSymmetricFunctions(QQ).R()
-                sage: Partitions.global_options(diagram_str="#", convention="french")
+                sage: Partitions.options(diagram_str="#", convention="french")
                 sage: unicode_art(tensor((R[1,2], R[3,1,2])))
                 R    # R
                  ┌┐     ┌┬┬┐

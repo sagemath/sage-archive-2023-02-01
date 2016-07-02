@@ -6046,7 +6046,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         TESTS::
 
             sage: P = Permutations(5)
-            sage: P.options.mult='r2l'
+            sage: P.options.mult = 'r2l'
             sage: TestSuite(P).run(skip='_test_descents')
             sage: P.options._reset()
         """
@@ -8310,7 +8310,7 @@ class StandardPermutations_avoiding_312(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[3, 1, 2])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_generic, self).__init__(n, Permutations()([3, 1, 2]))
+        super(StandardPermutations_avoiding_312, self).__init__(n, Permutations()([3, 1, 2]))
 
     def cardinality(self):
         """
@@ -8342,7 +8342,7 @@ class StandardPermutations_avoiding_213(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[2, 1, 3])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_generic, self).__init__(n, Permutations()([2, 1, 3]))
+        super(StandardPermutations_avoiding_213, self).__init__(n, Permutations()([2, 1, 3]))
 
     def cardinality(self):
         """

@@ -381,7 +381,7 @@ class SkewPartition(CombinatorialElement):
                ##
             sage: SkewPartitions.options._reset()
         """
-        char, convention = self.parent().options('diagram_str','convention')
+        char, convention = self.parent().options('diagram_str', 'convention')
 
         if convention == "English":
             L = range(len(self[0]))
@@ -445,13 +445,13 @@ class SkewPartition(CombinatorialElement):
             ⎢       ┌┬┐   ┌┬┐   ┌┐    ┌┐  ├┤   ├┤  ┌┼┘   ┌┼┘ ⎥
             ⎢ ┌┬┬┐  ├┼┘  ┌┼┴┘  ┌┼┤  ┌┬┼┘  ├┤  ┌┼┘  ├┤   ┌┼┘  ⎥
             ⎣ └┴┴┘, └┘ , └┘  , └┴┘, └┴┘ , └┘, └┘ , └┘ , └┘   ⎦
-            sage: SkewPartitions.global_options(convention="French")
+            sage: SkewPartitions.options.convention = "French"
             sage: unicode_art(SkewPartitions(3).list())
             ⎡                             ┌┐  ┌┐   ┌┐   ┌┐   ⎤
             ⎢       ┌┐   ┌┐    ┌┬┐  ┌┬┐   ├┤  └┼┐  ├┤   └┼┐  ⎥
             ⎢ ┌┬┬┐  ├┼┐  └┼┬┐  └┼┤  └┴┼┐  ├┤   ├┤  └┼┐   └┼┐ ⎥
             ⎣ └┴┴┘, └┴┘,  └┴┘,  └┘,   └┘, └┘,  └┘,  └┘,   └┘ ⎦
-            sage: SkewPartitions.global_options.reset()
+            sage: SkewPartitions.options._reset()
 
             sage: unicode_art(SkewPartition([[3,1],[2]]))
               ┌┐
@@ -462,7 +462,7 @@ class SkewPartition(CombinatorialElement):
         inn = inn + [0] * (len(out) - len(inn))
         if not self._list:
             return u'∅'
-        if self.parent().global_options('convention') == "French":
+        if self.parent().options.convention == "French":
             s, t, b, l, r, tr, tl, br, bl, x, h = list(u' ┴┬├┤┘└┐┌┼─')
         else:
             s, t, b, l, r, tr, tl, br, bl, x, h = list(u' ┬┴├┤┐┌┘└┼─')
@@ -501,7 +501,7 @@ class SkewPartition(CombinatorialElement):
             txt += [start + middle + end]
         txt += [s * inn[-1] + bl + b * (out[-1] - inn[-1] - 1) + br]
 
-        if self.parent().global_options('convention') == "French":
+        if self.parent().options.convention == "French":
             txt = list(reversed(txt))
         from sage.typeset.unicode_art import UnicodeArt        
         return UnicodeArt(txt, baseline=0)

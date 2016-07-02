@@ -350,7 +350,7 @@ def racah(aa, bb, cc, dd, ee, ff, prec=None):
 
     .. math::
 
-       Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
+       \begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}
        =(-1)^{j_1+j_2+j_4+j_5} W(j_1,j_2,j_5,j_4,j_3,j_6)
 
     Please see the 6-`j` symbol for its much richer symmetries and for
@@ -398,7 +398,7 @@ def racah(aa, bb, cc, dd, ee, ff, prec=None):
 
 def wigner_6j(j_1, j_2, j_3, j_4, j_5, j_6, prec=None):
     r"""
-    Calculate the Wigner 6-`j` symbol `Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)`.
+    Calculate the Wigner 6-`j` symbol `\begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}`.
 
     INPUT:
 
@@ -448,7 +448,7 @@ def wigner_6j(j_1, j_2, j_3, j_4, j_5, j_6, prec=None):
 
     .. math::
 
-       Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
+       \begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}
         =(-1)^{j_1+j_2+j_4+j_5} W(j_1,j_2,j_5,j_4,j_3,j_6)
 
     The Wigner 6-`j` symbol obeys the following symmetry rules:
@@ -458,22 +458,22 @@ def wigner_6j(j_1, j_2, j_3, j_4, j_5, j_6, prec=None):
 
       .. math::
 
-         Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
-          =Wigner6j(j_3,j_1,j_2,j_6,j_4,j_5) \hspace{3em} \\ \hspace{3em}
-          =Wigner6j(j_2,j_3,j_1,j_5,j_6,j_4)
-          =Wigner6j(j_3,j_2,j_1,j_6,j_5,j_4) \\ \hspace{3em}
-          =Wigner6j(j_1,j_3,j_2,j_4,j_6,j_5)
-          =Wigner6j(j_2,j_1,j_3,j_5,j_4,j_6)
+         \begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}
+          =\begin{Bmatrix} j_3 & j_1 & j_2 \\ j_6 & j_4 & j_5 \end{Bmatrix}
+          =\begin{Bmatrix} j_2 & j_3 & j_1 \\ j_5 & j_6 & j_4 \end{Bmatrix} \hspace{3em} \\ \hspace{3em}
+          =\begin{Bmatrix} j_3 & j_2 & j_1 \\ j_6 & j_5 & j_4 \end{Bmatrix}
+          =\begin{Bmatrix} j_1 & j_3 & j_2 \\ j_4 & j_6 & j_5 \end{Bmatrix}
+          =\begin{Bmatrix} j_2 & j_1 & j_3 \\ j_5 & j_4 & j_6 \end{Bmatrix}
 
     - They are invariant under the exchange of the upper and lower
       arguments in each of any two columns, i.e.
 
       .. math::
 
-         Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
-          =Wigner6j(j_1,j_5,j_6,j_4,j_2,j_3) \hspace{3em} \\ \hspace{3em}
-          =Wigner6j(j_4,j_2,j_6,j_1,j_5,j_3)
-          =Wigner6j(j_4,j_5,j_3,j_1,j_2,j_6)
+         \begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}
+          =\begin{Bmatrix} j_1 & j_5 & j_6 \\ j_4 & j_2 & j_3 \end{Bmatrix}
+          =\begin{Bmatrix} j_4 & j_2 & j_6 \\ j_1 & j_5 & j_3 \end{Bmatrix}
+          =\begin{Bmatrix} j_4 & j_5 & j_3 \\ j_1 & j_2 & j_6 \end{Bmatrix}
 
     - additional 6 symmetries [Regge59]_ giving rise to 144 symmetries
       in total

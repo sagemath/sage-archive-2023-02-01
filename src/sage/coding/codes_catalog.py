@@ -30,6 +30,7 @@ from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerati
                                 ToricCode, TrivialCode, WalshCode)
 
 from grs import GeneralizedReedSolomonCode
+from reed_muller_code import ReedMullerCode, BinaryReedMullerCode
 from extended_code import ExtendedCode
 from subfield_subcode import SubfieldSubcode
 from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava

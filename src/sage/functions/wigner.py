@@ -68,7 +68,7 @@ def _calc_factlist(nn):
 
 def wigner_3j(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
     r"""
-    Calculate the Wigner 3-`j` symbol `Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3)`.
+    Calculate the Wigner 3-`j` symbol `\begin{pmatrix} j_1 & j_2 & j_3 \\ m_1 & m_2 & m_3 \end{pmatrix}`.
 
     INPUT:
 
@@ -116,19 +116,19 @@ def wigner_3j(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
 
       .. math::
 
-         Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3)
-          =Wigner3j(j_3,j_1,j_2,m_3,m_1,m_2) \hspace{7em} \\
-          =Wigner3j(j_2,j_3,j_1,m_2,m_3,m_1)
-          =(-1)^J Wigner3j(j_3,j_2,j_1,m_3,m_2,m_1) \hspace{2em} \\
-          =(-1)^J Wigner3j(j_1,j_3,j_2,m_1,m_3,m_2)
-          =(-1)^J Wigner3j(j_2,j_1,j_3,m_2,m_1,m_3)
+         \begin{pmatrix} j_1 & j_2 & j_3 \\ m_1 & m_2 & m_3 \end{pmatrix}
+          =\begin{pmatrix} j_3 & j_1 & j_2 \\ m_3 & m_1 & m_2 \end{pmatrix}
+          =\begin{pmatrix} j_2 & j_3 & j_1 \\ m_2 & m_3 & m_1 \end{pmatrix} \hspace{10em} \\ \hspace{1em}
+          =(-1)^J \begin{pmatrix} j_3 & j_2 & j_1 \\ m_3 & m_2 & m_1 \end{pmatrix}
+          =(-1)^J \begin{pmatrix} j_1 & j_3 & j_2 \\ m_1 & m_3 & m_2 \end{pmatrix}
+          =(-1)^J \begin{pmatrix} j_2 & j_1 & j_3 \\ m_2 & m_1 & m_3 \end{pmatrix}
 
     - invariant under space inflection, i.e.
 
       .. math::
 
-         Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3)
-         =(-1)^J Wigner3j(j_1,j_2,j_3,-m_1,-m_2,-m_3)
+         \begin{pmatrix} j_1 & j_2 & j_3 \\ m_1 & m_2 & m_3 \end{pmatrix}
+         =(-1)^J \begin{pmatrix} j_1 & j_2 & j_3 \\ -m_1 & -m_2 & -m_3 \end{pmatrix}
 
     - symmetric with respect to the 72 additional symmetries based on
       the work by [Regge58]_
@@ -253,8 +253,8 @@ def clebsch_gordan(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
     .. math::
 
         \langle j_1 m_1 \; j_2 m_2 | j_3 m_3 \rangle
-        =(-1)^{j_1-j_2+m_3} \sqrt{2j_3+1} \;
-        Wigner3j(j_1,j_2,j_3,m_1,m_2,-m_3)
+        =(-1)^{j_1-j_2+m_3} \sqrt{2j_3+1}
+        \begin{pmatrix} j_1 & j_2 & j_3 \\ m_1 & m_2 & -m_3 \end{pmatrix}
 
     See also the documentation on Wigner 3-`j` symbols which exhibit much
     higher symmetry relations than the Clebsch-Gordan coefficient.

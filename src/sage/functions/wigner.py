@@ -501,7 +501,7 @@ def wigner_6j(j_1, j_2, j_3, j_4, j_5, j_6, prec=None):
 def wigner_9j(j_1, j_2, j_3, j_4, j_5, j_6, j_7, j_8, j_9, prec=None):
     r"""
     Calculate the Wigner 9-`j` symbol
-    `Wigner9j(j_1,j_2,j_3,j_4,j_5,j_6,j_7,j_8,j_9)`.
+    `\begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \\ j_7 & j_8 & j_9 \end{Bmatrix}`.
 
     INPUT:
 

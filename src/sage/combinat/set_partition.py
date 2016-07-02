@@ -581,6 +581,8 @@ class SetPartition(ClonableArray):
                                 res += "\\draw[color=" + color + "] (" + str(base_set.index(partition[k])) + ")"
                                 res += " to [out=" + str(90+angle) + ",in=" + str(90-angle) + "] "
                                 res += "(" + str(base_set.index(partition[k-1])) + ");\n"
+            else:
+                raise ValueError("plot must be blank, 'cyclic', or 'linear'")
 
             res += "\\end{tikzpicture}"
             return res

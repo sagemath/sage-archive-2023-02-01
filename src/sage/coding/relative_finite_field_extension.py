@@ -219,8 +219,8 @@ class RelativeFiniteFieldExtension(SageObject):
 
     def relative_field_representation(self, b):
         r"""
-        Returns a polynomial representation of ``b`` in the basis of
-        the relative field over the base field.
+        Returns a vector representation of ``b`` in the basis of the absolute
+        field over the relative field.
 
         INPUT:
 

@@ -157,7 +157,7 @@ class Composition(CombinatorialElement):
             [ *  **   *        *                 ]
             [ *  *   **  ***   *   **    *       ]
             [ *, * , * , *  , **, ** , ***, **** ]
-            sage: Partitions.global_options(diagram_str='#', convention="French")
+            sage: Partitions.options(diagram_str='#', convention="French")
             sage: ascii_art(Compositions(4).list())
             [ #                                  ]
             [ #  #   #        ##                 ]

@@ -69,6 +69,7 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.superseded import deprecated_function_alias
 from sage.rings.integer import Integer
 from sage.rings.all import NN
 from sage.sets.non_negative_integers import NonNegativeIntegers
@@ -78,53 +79,6 @@ from sage.structure.element import Element
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-
-TamariIntervalPosetOptions = GlobalOptions(name="Tamari Interval-posets",
-    doc=r"""
-    Set and display the global options for Tamari interval-posets. If no
-    parameters are set, then the function returns a copy of the options
-    dictionary.
-
-    The ``options`` to Tamari interval-posets can be accessed as the method
-    :obj:`TamariIntervalPosets.global_options` of :class:`TamariIntervalPosets`
-    and related parent classes.
-    """,
-    end_doc=r"""
-    EXAMPLES::
-
-        sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
-        sage: ip.latex_options()["color_decreasing"]
-        'red'
-        sage: TamariIntervalPosets.global_options(latex_color_decreasing='green')
-        sage: ip.latex_options()["color_decreasing"]
-        'green'
-        sage: TamariIntervalPosets.global_options.reset()
-        sage: ip.latex_options()["color_decreasing"]
-        'red'
-    """,
-    latex_tikz_scale=dict(default=1,
-                          description='the default value for the tikz scale when latexed',
-                          checker=lambda x: True),  # More trouble than it's worth to check
-    latex_line_width_scalar=dict(default=0.5,
-                                 description='the default value for the line width as a'
-                                             'multiple of the tikz scale when latexed',
-                                 checker=lambda x: True),  # More trouble than it's worth to check
-    latex_color_decreasing=dict(default="red",
-                                description='the default color of decreasing relations when latexed',
-                                checker=lambda x: True),  # More trouble than it's worth to check
-    latex_color_increasing=dict(default="blue",
-                                description='the default color of increasing relations when latexed',
-                                checker=lambda x: True),  # More trouble than it's worth to check
-    latex_hspace=dict(default=1,
-                      description='the default difference between horizontal'
-                                  ' coordinates of vertices when latexed',
-                      checker=lambda x: True),  # More trouble than it's worth to check
-    latex_vspace=dict(default=1,
-                      description='the default difference between vertical'
-                                  ' coordinates of vertices when latexed',
-                      checker=lambda x: True)   # More trouble than it's worth to check
-)
-
 
 class TamariIntervalPoset(Element):
     r"""
@@ -343,7 +297,7 @@ class TamariIntervalPoset(Element):
             'black'
 
         To change the default options for all interval-posets, use the
-        parent's global latex options::
+        parent's latex options::
 
             sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
             sage: ip2 = TamariIntervalPoset(4,[(1,2),(2,3)])
@@ -351,24 +305,24 @@ class TamariIntervalPoset(Element):
             'red'
             sage: ip2.latex_options()["color_decreasing"]
             'red'
-            sage: TamariIntervalPosets.global_options(latex_color_decreasing='green')
+            sage: TamariIntervalPosets.options(latex_color_decreasing='green')
             sage: ip.latex_options()["color_decreasing"]
             'green'
             sage: ip2.latex_options()["color_decreasing"]
             'green'
 
-        Next we set a local latex option and show the global does not
+        Next we set a local latex option and show the global option does not
         override it::
 
             sage: ip.set_latex_options({"color_decreasing": 'black'})
             sage: ip.latex_options()["color_decreasing"]
             'black'
-            sage: TamariIntervalPosets.global_options(latex_color_decreasing='blue')
+            sage: TamariIntervalPosets.options(latex_color_decreasing='blue')
             sage: ip.latex_options()["color_decreasing"]
             'black'
             sage: ip2.latex_options()["color_decreasing"]
             'blue'
-            sage: TamariIntervalPosets.global_options.reset()
+            sage: TamariIntervalPosets.options._reset()
         """
         for opt in D:
             self._latex_options[opt] = D[opt]
@@ -376,7 +330,7 @@ class TamariIntervalPoset(Element):
     def latex_options(self):
         r"""
         Return the latex options for use in the ``_latex_`` function as a
-        dictionary. The default values are set using the global options.
+        dictionary. The default values are set using the options.
 
         - ``tikz_scale`` -- (default: 1) scale for use with the tikz package
 
@@ -405,17 +359,17 @@ class TamariIntervalPoset(Element):
         """
         d = self._latex_options.copy()
         if "tikz_scale" not in d:
-            d["tikz_scale"] = self.parent().global_options["latex_tikz_scale"]
+            d["tikz_scale"] = self.parent().options["latex_tikz_scale"]
         if "line_width" not in d:
-            d["line_width"] = self.parent().global_options["latex_line_width_scalar"] * d["tikz_scale"]
+            d["line_width"] = self.parent().options["latex_line_width_scalar"] * d["tikz_scale"]
         if "color_decreasing" not in d:
-            d["color_decreasing"] = self.parent().global_options["latex_color_decreasing"]
+            d["color_decreasing"] = self.parent().options["latex_color_decreasing"]
         if "color_increasing" not in d:
-            d["color_increasing"] = self.parent().global_options["latex_color_increasing"]
+            d["color_increasing"] = self.parent().options["latex_color_increasing"]
         if "hspace" not in d:
-            d["hspace"] = self.parent().global_options["latex_hspace"]
+            d["hspace"] = self.parent().options["latex_hspace"]
         if "vspace" not in d:
-            d["vspace"] = self.parent().global_options["latex_vspace"]
+            d["vspace"] = self.parent().options["latex_vspace"]
         return d
 
     def _find_node_positions(self, hspace=1, vspace=1):
@@ -519,7 +473,7 @@ class TamariIntervalPoset(Element):
         interval-posets, it might happen.
 
         You can use ``self.set_latex_options()`` to change default latex
-        options. Or you can use the parent's global options.
+        options. Or you can use the parent's options.
 
         EXAMPLES::
 
@@ -2124,7 +2078,6 @@ class TamariIntervalPoset(Element):
         c_down = self.lower_binary_tree().single_edge_cut_shapes()
         return not any(x in c_up for x in c_down)
 
-
 # Abstract class to serve as a Factory ; no instances are created.
 class TamariIntervalPosets(UniqueRepresentation, Parent):
     r"""
@@ -2172,6 +2125,60 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         if n not in NN:
             raise ValueError("n must be a non negative integer")
         return TamariIntervalPosets_size(Integer(n))
+
+
+    def __init__(self, category):
+        super(TamariIntervalPosets, self).__init__(category=category)
+
+    # add options to class
+    options=GlobalOptions('TamariIntervalPosets', 
+        module='sage.combinat.interval_posets',
+        doc=r"""
+        Set and display the options for Tamari interval-posets. If no
+        parameters are set, then the function returns a copy of the options
+        dictionary.
+
+        The ``options`` to Tamari interval-posets can be accessed as the method
+        :meth:`TamariIntervalPosets.options` of :class:`TamariIntervalPosets`
+        and related parent classes.
+        """,
+        end_doc=r"""
+        EXAMPLES::
+
+            sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
+            sage: ip.latex_options.color_decreasing
+            'red'
+            sage: TamariIntervalPosets.options.latex_color_decreasing='green'
+            sage: ip.latex_options.color_decreasing
+            'green'
+            sage: TamariIntervalPosets.options._reset()
+            sage: ip.latex_options.color_decreasing
+            'red'
+        """,
+        latex_tikz_scale=dict(default=1,
+                              description='the default value for the tikz scale when latexed',
+                              checker=lambda x: True),  # More trouble than it's worth to check
+        latex_line_width_scalar=dict(default=0.5,
+                                     description='the default value for the line width as a'
+                                                 'multiple of the tikz scale when latexed',
+                                     checker=lambda x: True),  # More trouble than it's worth to check
+        latex_color_decreasing=dict(default="red",
+                                    description='the default color of decreasing relations when latexed',
+                                    checker=lambda x: True),  # More trouble than it's worth to check
+        latex_color_increasing=dict(default="blue",
+                                    description='the default color of increasing relations when latexed',
+                                    checker=lambda x: True),  # More trouble than it's worth to check
+        latex_hspace=dict(default=1,
+                          description='the default difference between horizontal'
+                                      ' coordinates of vertices when latexed',
+                          checker=lambda x: True),  # More trouble than it's worth to check
+        latex_vspace=dict(default=1,
+                          description='the default difference between vertical'
+                                      ' coordinates of vertices when latexed',
+                          checker=lambda x: True)   # More trouble than it's worth to check
+    )
+
+    global_options=deprecated_function_alias(18555, options)
 
     @staticmethod
     def check_poset(poset):
@@ -2565,8 +2572,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         """
         return el2.contains_interval(el1)
 
-    global_options = TamariIntervalPosetOptions
-
+TamariIntervalPosetOptions=deprecated_function_alias(18555, TamariIntervalPosets.options)
 
 #################################################################
 # Enumerated set of all Tamari Interval-posets

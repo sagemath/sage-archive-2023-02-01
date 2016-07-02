@@ -26,6 +26,7 @@ Kirillov-Reshetikhin structure, and we extend this to symmetrizable types.
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.superseded import deprecated_function_alias
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
@@ -33,7 +34,7 @@ from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurationOptions
+from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
 from sage.combinat.rigged_configurations.rigged_configuration_element import (
      RiggedConfigurationElement, RCHighestWeightElement, RCHWNonSimplyLacedElement)
 from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
@@ -58,7 +59,7 @@ class CrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
 
     For simplicity, we display the rigged configurations horizontally::
 
-        sage: RiggedConfigurations.global_options(display='horizontal')
+        sage: RiggedConfigurations.options.display='horizontal'
 
     We start with a simply-laced finite type::
 
@@ -80,7 +81,7 @@ class CrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
 
     We reset the global options::
 
-        sage: RiggedConfigurations.global_options.reset()
+        sage: RiggedConfigurations.options._reset()
 
     REFERENCES:
 
@@ -156,7 +157,8 @@ class CrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
         n = self._cartan_type.rank() #== len(self._cartan_type.index_set())
         self.module_generators = (self.element_class( self, partition_list=[[] for i in range(n)] ),)
 
-    global_options = RiggedConfigurationOptions
+    options = RiggedConfigurations.options
+    global_options = deprecated_function_alias(18555, options)
 
     def _repr_(self):
         """

@@ -14,7 +14,7 @@ The coordinate system related to a partition applies from the top
 to the bottom and from left to right. So, the corners of the
 partition `[5, 3, 1]` are `[[0,4], [1,2], [2,0]]`.
 
-For display options, see :obj:`Partitions.global_options`.
+For display options, see :obj:`Partitions.options`.
 
 .. NOTE::
 
@@ -57,7 +57,7 @@ AUTHORS:
 - Andrew Mathas (2012-06-01): Removed depreciated functions and added
   compatibility with the PartitionTuple classes.  See :trac:`13072`
 
-- Travis Scrimshaw (2012-10-12): Added global options. Made
+- Travis Scrimshaw (2012-10-12): Added options. Made
   ``Partition_class`` to the element ``Partition``. ``Partitions*`` are now
   all in the category framework except ``PartitionsRestricted`` (which will
   eventually be removed). Cleaned up documentation.
@@ -296,6 +296,7 @@ lazy_import('sage.combinat.partition_tuple', 'PartitionTuple')
 from sage.misc.all import prod
 from sage.misc.prandom import randrange
 from sage.misc.cachefunc import cached_method, cached_function
+from sage.misc.superseded import deprecated_function_alias
 
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -320,97 +321,6 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.graphs.dot2tex_utils import have_dot2tex
 
-PartitionOptions=GlobalOptions(name='partitions',
-    doc=r"""
-    Sets and displays the global options for elements of the partition, skew
-    partition, and partition tuple classes.  If no parameters are set, then the
-    function returns a copy of the options dictionary.
-
-    The ``options`` to partitions can be accessed as the method
-    :obj:`Partitions.global_options` of :class:`Partitions` and
-    related parent classes.
-    """,
-    end_doc=r"""
-    EXAMPLES::
-
-        sage: P = Partition([4,2,2,1])
-        sage: P
-        [4, 2, 2, 1]
-        sage: Partitions.global_options(display="exp")
-        sage: P
-        1, 2^2, 4
-        sage: Partitions.global_options(display="exp_high")
-        sage: P
-        4, 2^2, 1
-
-    It is also possible to use user defined functions for the ``display`` and
-    ``latex`` options::
-
-        sage: Partitions.global_options(display=lambda mu: '<%s>' % ','.join('%s'%m for m in mu._list)); P
-        <4,2,2,1>
-        sage: Partitions.global_options(latex=lambda mu: '\\Diagram{%s}' % ','.join('%s'%m for m in mu._list)); latex(P)
-        \Diagram{4,2,2,1}
-        sage: Partitions.global_options(display="diagram", diagram_str="#")
-        sage: P
-        ####
-        ##
-        ##
-        #
-        sage: Partitions.global_options(diagram_str="*", convention="french")
-        sage: print(P.ferrers_diagram())
-        *
-        **
-        **
-        ****
-
-    Changing the ``convention`` for partitions also changes the ``convention``
-    option for tableaux and vice versa::
-
-        sage: T = Tableau([[1,2,3],[4,5]])
-        sage: T.pp()
-          4  5
-          1  2  3
-        sage: Tableaux.global_options(convention="english")
-        sage: print(P.ferrers_diagram())
-        ****
-        **
-        **
-        *
-        sage: T.pp()
-          1  2  3
-          4  5
-        sage: Partitions.global_options.reset()
-    """,
-    display=dict(default="list",
-                 description='Specifies how partitions should be printed',
-                 values=dict(list='displayed as a list',
-                           exp_low='in exponential form (lowest first)',
-                           exp_high='in exponential form (highest first)',
-                           diagram='as a Ferrers diagram',
-                           compact_low='compact form of ``exp_low``',
-                           compact_high='compact form of ``exp_high``'),
-                 alias=dict(exp="exp_low", compact="compact_low", array="diagram",
-                           ferrers_diagram="diagram", young_diagram="diagram"),
-                 case_sensitive=False),
-    latex=dict(default="young_diagram",
-               description='Specifies how partitions should be latexed',
-               values=dict(diagram='latex as a Ferrers diagram',
-                           young_diagram='latex as a Young diagram',
-                           list='latex as a list',
-                           exp_high='latex as a list in exponential notation (highest first)',
-                           exp_low='as a list latex in exponential notation (lowest first)'),
-               alias=dict(exp="exp_low", array="diagram", ferrers_diagram="diagram"),
-               case_sensitive=False),
-    diagram_str=dict(default="*",
-                     description='The character used for the cells when printing Ferrers diagrams',
-                     checker=lambda char: isinstance(char,str)),
-    latex_diagram_str=dict(default="\\ast",
-                     description='The character used for the cells when latexing Ferrers diagrams',
-                     checker=lambda char: isinstance(char,str)),
-    convention=dict(link_to=(tableau.TableauOptions,'convention')),
-    notation = dict(alt_name='convention')
-)
-
 class Partition(CombinatorialElement):
     r"""
     A partition `p` of a nonnegative integer `n` is a
@@ -430,7 +340,7 @@ class Partition(CombinatorialElement):
     to the bottom and from left to right. So, the corners of the
     partition ``[5, 3, 1]`` are ``[[0,4], [1,2], [2,0]]``.
 
-    For display options, see :meth:`Partitions.global_options`.
+    For display options, see :meth:`Partitions.options`.
 
     .. NOTE::
 
@@ -654,13 +564,13 @@ class Partition(CombinatorialElement):
     def _repr_(self):
         r"""
         Return a string representation of ``self`` depending on
-        :meth:`Partitions.global_options`.
+        :meth:`Partitions.options`.
 
         EXAMPLES::
 
             sage: mu=Partition([7,7,7,3,3,2,1,1,1,1,1,1,1]); mu # indirect doctest
             [7, 7, 7, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1]
-            sage: Partitions.global_options(display="diagram"); mu
+            sage: Partitions.options.display="diagram"; mu
             *******
             *******
             *******
@@ -674,21 +584,21 @@ class Partition(CombinatorialElement):
             *
             *
             *
-            sage: Partitions.global_options(display="list"); mu
+            sage: Partitions.options.display="list"; mu
             [7, 7, 7, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1]
-            sage: Partitions.global_options(display="compact_low"); mu
+            sage: Partitions.options.display="compact_low"; mu
             1^7,2,3^2,7^3
-            sage: Partitions.global_options(display="compact_high"); mu
+            sage: Partitions.options.display="compact_high"; mu
             7^3,3^2,2,1^7
-            sage: Partitions.global_options(display="exp_low"); mu
+            sage: Partitions.options.display="exp_low"; mu
             1^7, 2, 3^2, 7^3
-            sage: Partitions.global_options(display="exp_high"); mu
+            sage: Partitions.options.display="exp_high"; mu
             7^3, 3^2, 2, 1^7
 
-            sage: Partitions.global_options(convention="French");
+            sage: Partitions.options.convention="French";
             sage: mu=Partition([7,7,7,3,3,2,1,1,1,1,1,1,1]); mu # indirect doctest
             7^3, 3^2, 2, 1^7
-            sage: Partitions.global_options(display="diagram"); mu
+            sage: Partitions.options.display="diagram"; mu
             *
             *
             *
@@ -702,20 +612,20 @@ class Partition(CombinatorialElement):
             *******
             *******
             *******
-            sage: Partitions.global_options(display="list"); mu
+            sage: Partitions.options.display="list"; mu
             [7, 7, 7, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1]
-            sage: Partitions.global_options(display="compact_low"); mu
+            sage: Partitions.options.display="compact_low"; mu
             1^7,2,3^2,7^3
-            sage: Partitions.global_options(display="compact_high"); mu
+            sage: Partitions.options.display="compact_high"; mu
             7^3,3^2,2,1^7
-            sage: Partitions.global_options(display="exp_low"); mu
+            sage: Partitions.options.display="exp_low"; mu
             1^7, 2, 3^2, 7^3
-            sage: Partitions.global_options(display="exp_high"); mu
+            sage: Partitions.options.display="exp_high"; mu
             7^3, 3^2, 2, 1^7
 
-            sage: Partitions.global_options.reset()
+            sage: Partitions.options._reset()
         """
-        return self.parent().global_options.dispatch(self, '_repr_', 'display')
+        return self.parent().options._dispatch(self, '_repr_', 'display')
 
     def _ascii_art_(self):
         """
@@ -915,25 +825,25 @@ class Partition(CombinatorialElement):
         r"""
         Return a LaTeX version of ``self``.
 
-        For more on the latex options, see :meth:`Partitions.global_options`.
+        For more on the latex options, see :meth:`Partitions.options`.
 
         EXAMPLES::
 
             sage: mu = Partition([2, 1])
-            sage: Partitions.global_options(latex='diagram'); latex(mu)       # indirect doctest
+            sage: Partitions.options.latex='diagram'; latex(mu)       # indirect doctest
             {\def\lr#1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\\
             \lr{\ast}&\lr{\ast}\\
             \lr{\ast}\\
             \end{array}$}
             }
-            sage: Partitions.global_options(latex='exp_high'); latex(mu)      # indirect doctest
+            sage: Partitions.options.latex='exp_high'; latex(mu)      # indirect doctest
             2,1
-            sage: Partitions.global_options(latex='exp_low'); latex(mu)       # indirect doctest
+            sage: Partitions.options.latex='exp_low'; latex(mu)       # indirect doctest
             1,2
-            sage: Partitions.global_options(latex='list'); latex(mu)          # indirect doctest
+            sage: Partitions.options.latex='list'; latex(mu)          # indirect doctest
             [2, 1]
-            sage: Partitions.global_options(latex='young_diagram'); latex(mu) # indirect doctest
+            sage: Partitions.options.latex='young_diagram'; latex(mu) # indirect doctest
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
             \lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-2}
@@ -941,14 +851,14 @@ class Partition(CombinatorialElement):
             \end{array}$}
             }
 
-            sage: Partitions.global_options(latex="young_diagram", convention="french")
-            sage: Partitions.global_options(latex='exp_high'); latex(mu)      # indirect doctest
+            sage: Partitions.options(latex="young_diagram", convention="french")
+            sage: Partitions.options.latex='exp_high'; latex(mu)      # indirect doctest
             2,1
-            sage: Partitions.global_options(latex='exp_low'); latex(mu)       # indirect doctest
+            sage: Partitions.options.latex='exp_low'; latex(mu)       # indirect doctest
             1,2
-            sage: Partitions.global_options(latex='list'); latex(mu)          # indirect doctest
+            sage: Partitions.options.latex='list'; latex(mu)          # indirect doctest
             [2, 1]
-            sage: Partitions.global_options(latex='young_diagram'); latex(mu) # indirect doctest
+            sage: Partitions.options.latex='young_diagram'; latex(mu) # indirect doctest
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[t]{*{2}c}\cline{1-1}
             \lr{\phantom{x}}\\\cline{1-2}
@@ -956,9 +866,9 @@ class Partition(CombinatorialElement):
             \end{array}$}
             }
 
-            sage: Partitions.global_options.reset()
+            sage: Partitions.options._reset()
         """
-        return self.parent().global_options.dispatch(self, '_latex_', 'latex')
+        return self.parent().options._dispatch(self, '_latex_', 'latex')
 
     def _latex_young_diagram(self):
         r"""
@@ -1001,7 +911,7 @@ class Partition(CombinatorialElement):
         if not self._list:
             return "{\\emptyset}"
 
-        entry = self.parent().global_options("latex_diagram_str")
+        entry = self.parent().options("latex_diagram_str")
         from sage.combinat.output import tex_from_array
         return tex_from_array([ [entry]*row_size for row_size in self._list ], False)
 
@@ -1061,19 +971,19 @@ class Partition(CombinatorialElement):
         EXAMPLES::
 
             sage: mu=Partition([5,5,2,1])
-            sage: Partitions.global_options(diagram_str='*', convention="english")
+            sage: Partitions.options(diagram_str='*', convention="english")
             sage: print(mu.ferrers_diagram())
             *****
             *****
             **
             *
-            sage: Partitions.global_options(diagram_str='#')
+            sage: Partitions.options(diagram_str='#')
             sage: print(mu.ferrers_diagram())
             #####
             #####
             ##
             #
-            sage: Partitions.global_options(convention="french")
+            sage: Partitions.options.convention="french"
             sage: print(mu.ferrers_diagram())
             #
             ##
@@ -1081,15 +991,15 @@ class Partition(CombinatorialElement):
             #####
             sage: print(Partition([]).ferrers_diagram())
             -
-            sage: Partitions.global_options(diagram_str='-')
+            sage: Partitions.options(diagram_str='-')
             sage: print(Partition([]).ferrers_diagram())
             (/)
-            sage: Partitions.global_options.reset()
+            sage: Partitions.options._reset()
         """
-        diag_str = self.parent().global_options('diagram_str')
+        diag_str = self.parent().options('diagram_str')
         if not self._list:
             return '-' if diag_str != '-' else "(/)"
-        if self.parent().global_options('convention') == "English":
+        if self.parent().options('convention') == "English":
             return '\n'.join([diag_str * p for p in self])
         else:
             return '\n'.join([diag_str * p for p in reversed(self)])
@@ -1107,13 +1017,13 @@ class Partition(CombinatorialElement):
             *****
             **
             *
-            sage: Partitions.global_options(convention='French')
+            sage: Partitions.options.convention='French'
             sage: Partition([5,5,2,1]).pp()
             *
             **
             *****
             *****
-            sage: Partitions.global_options.reset()
+            sage: Partitions.options._reset()
         """
         print(self.ferrers_diagram())
 
@@ -5098,7 +5008,101 @@ class Partitions(UniqueRepresentation, Parent):
             Parent.__init__(self, category=FiniteEnumeratedSets())
 
     Element = Partition
-    global_options = PartitionOptions
+
+    # add options to class
+    options = GlobalOptions('Partitions', 
+        module='sage.combinat.partition',
+        doc=r"""
+        Sets and displays the global options for elements of the partition, skew
+        partition, and partition tuple classes.  If no parameters are set, then the
+        function returns a copy of the options dictionary.
+
+        The ``options`` to partitions can be accessed as the method
+        :obj:`Partitions.options` of :class:`Partitions` and
+        related parent classes.
+        """,
+        end_doc=r"""
+        EXAMPLES::
+
+            sage: P = Partition([4,2,2,1])
+            sage: P
+            [4, 2, 2, 1]
+            sage: Partitions.options.display="exp"
+            sage: P
+            1, 2^2, 4
+            sage: Partitions.options.display="exp_high"
+            sage: P
+            4, 2^2, 1
+
+        It is also possible to use user defined functions for the ``display`` and
+        ``latex`` options::
+
+            sage: Partitions.options(display=lambda mu: '<%s>' % ','.join('%s'%m for m in mu._list)); P
+            <4,2,2,1>
+            sage: Partitions.options(latex=lambda mu: '\\Diagram{%s}' % ','.join('%s'%m for m in mu._list)); latex(P)
+            \Diagram{4,2,2,1}
+            sage: Partitions.options(display="diagram", diagram_str="#")
+            sage: P
+            ####
+            ##
+            ##
+            #
+            sage: Partitions.options(diagram_str="*", convention="french")
+            sage: print(P.ferrers_diagram())
+            *
+            **
+            **
+            ****
+
+        Changing the ``convention`` for partitions also changes the ``convention``
+        option for tableaux and vice versa::
+
+            sage: T = Tableau([[1,2,3],[4,5]])
+            sage: T.pp()
+              4  5
+              1  2  3
+            sage: Tableaux.options.convention="english"
+            sage: print(P.ferrers_diagram())
+            ****
+            **
+            **
+            *
+            sage: T.pp()
+              1  2  3
+              4  5
+            sage: Partitions.options._reset()
+        """,
+        display=dict(default="list",
+                     description='Specifies how partitions should be printed',
+                     values=dict(list='displayed as a list',
+                               exp_low='in exponential form (lowest first)',
+                               exp_high='in exponential form (highest first)',
+                               diagram='as a Ferrers diagram',
+                               compact_low='compact form of ``exp_low``',
+                               compact_high='compact form of ``exp_high``'),
+                     alias=dict(exp="exp_low", compact="compact_low", array="diagram",
+                               ferrers_diagram="diagram", young_diagram="diagram"),
+                     case_sensitive=False),
+        latex=dict(default="young_diagram",
+                   description='Specifies how partitions should be latexed',
+                   values=dict(diagram='latex as a Ferrers diagram',
+                               young_diagram='latex as a Young diagram',
+                               list='latex as a list',
+                               exp_high='latex as a list in exponential notation (highest first)',
+                               exp_low='as a list latex in exponential notation (lowest first)'),
+                   alias=dict(exp="exp_low", array="diagram", ferrers_diagram="diagram"),
+                   case_sensitive=False),
+        diagram_str=dict(default="*",
+                         description='The character used for the cells when printing Ferrers diagrams',
+                         checker=lambda char: isinstance(char,str)),
+        latex_diagram_str=dict(default="\\ast",
+                         description='The character used for the cells when latexing Ferrers diagrams',
+                         checker=lambda char: isinstance(char,str)),
+        convention=dict(link_to=(tableau.Tableaux.options,'convention')),
+        notation = dict(alt_name='convention')
+    )
+
+    global_options=deprecated_function_alias(18555, options)
 
     def __reversed__(self):
         """
@@ -5200,6 +5204,8 @@ class Partitions(UniqueRepresentation, Parent):
         if len(args) != 0 or len(kwargs) != 0:
             raise ValueError("Invalid combination of arguments")
         return self
+
+PartitionOptions = deprecated_function_alias(18555, Partitions.options)
 
 class Partitions_all(Partitions):
     """
@@ -6733,7 +6739,8 @@ class Partitions_with_constraints(IntegerListsLex):
 #        IntegerListsLex.__init__(self, n, **kwargs)
 
     Element = Partition
-    global_options = PartitionOptions
+    options = Partitions.options
+    global_options = deprecated_function_alias(18555, options)
 
 ######################
 # Regular Partitions #
@@ -7342,7 +7349,8 @@ class PartitionsGreatestLE(UniqueRepresentation, IntegerListsLex):
         return "Partitions of %s having parts less than or equal to %s"%(self.n, self.k)
 
     Element = Partition
-    global_options = PartitionOptions
+    options = Partitions.options
+    global_options = deprecated_function_alias(18555, options)
 
 ##########################
 # Partitions Greatest EQ #
@@ -7402,7 +7410,8 @@ class PartitionsGreatestEQ(UniqueRepresentation, IntegerListsLex):
         return "Partitions of %s having greatest part equal to %s"%(self.n, self.k)
 
     Element = Partition
-    global_options = PartitionOptions
+    options = Partitions.options
+    global_options = deprecated_function_alias(18555, options)
 
 #########################
 # Restricted Partitions #
@@ -7480,7 +7489,8 @@ class RestrictedPartitions_nsk(CombinatorialClass):
         self.k = k
 
     Element = Partition
-    global_options = PartitionOptions
+    options = Partitions.options
+    global_options = deprecated_function_alias(18555, options)
 
     def __contains__(self, x):
         """

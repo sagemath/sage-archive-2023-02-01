@@ -33,6 +33,7 @@ from __future__ import print_function
 import operator
 from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
+from sage.misc.superseded import deprecated_function_alias
 from sage.structure.parent import Parent
 from sage.structure.element import parent
 from sage.structure.global_options import GlobalOptions
@@ -367,52 +368,6 @@ class CrystalOfWords(UniqueRepresentation, Parent):
             return sum(q**(c[0].energy_function())*B.sum(B(P0(b.weight())) for b in c) for c in C)
         return B.sum(q**(b.energy_function())*B(P0(b.weight())) for b in self)
 
-TensorProductOfCrystalsOptions=GlobalOptions(name='tensor_product_of_crystals',
-    doc=r"""
-    Sets the global options for tensor products of crystals. The default is to
-    use the anti-Kashiwara convention.
-
-    There are two conventions for how `e_i` and `f_i` act on tensor products,
-    and the difference between the two is the order of the tensor factors
-    are reversed. This affects both the input and output. See the example
-    below.
-    """,
-    end_doc=r"""
-
-    .. NOTE::
-
-        Changing the ``convention`` also changes how the input is handled.
-
-    .. WARNING::
-
-        Internally, the crystals are always stored using the anti-Kashiwara
-        convention.
-
-    If no parameters are set, then the function returns a copy of the
-    options dictionary.
-
-    EXAMPLES::
-
-        sage: C = crystals.Letters(['A',2])
-        sage: T = crystals.TensorProduct(C,C)
-        sage: elt = T(C(1), C(2)); elt
-        [1, 2]
-        sage: crystals.TensorProduct.global_options['convention'] = "Kashiwara"
-        sage: elt
-        [2, 1]
-        sage: T(C(1), C(2)) == elt
-        False
-        sage: T(C(2), C(1)) == elt
-        True
-        sage: crystals.TensorProduct.global_options.reset()
-    """,
-    convention=dict(default="antiKashiwara",
-                    description='Sets the convention used for displaying/inputting tensor product of crystals',
-                    values=dict(antiKashiwara='use the anti-Kashiwara convention',
-                                Kashiwara='use the Kashiwara convention'),
-                    alias=dict(anti="antiKashiwara", opposite="antiKashiwara"),
-                    case_sensitive=False)
-)
 
 class TensorProductOfCrystals(CrystalOfWords):
     r"""
@@ -639,10 +594,10 @@ class TensorProductOfCrystals(CrystalOfWords):
         sage: T = crystals.TensorProduct(C,C)
         sage: elt = T(C(1), C(2)); elt
         [1, 2]
-        sage: crystals.TensorProduct.global_options['convention'] = "Kashiwara"
+        sage: crystals.TensorProduct.options.convention = "Kashiwara"
         sage: elt
         [2, 1]
-        sage: crystals.TensorProduct.global_options.reset()
+        sage: crystals.TensorProduct.options._reset()
     """
     @staticmethod
     def __classcall_private__(cls, *crystals, **options):
@@ -712,7 +667,56 @@ class TensorProductOfCrystals(CrystalOfWords):
             return FullTensorProductOfRegularCrystals(tp, cartan_type=cartan_type)
         return FullTensorProductOfCrystals(tp, cartan_type=cartan_type)
 
-    global_options = TensorProductOfCrystalsOptions
+    # add options to class
+    options=GlobalOptions('TensorProductOfCrystals', 
+        module='sage.combinat.crystals',
+        doc=r"""
+        Sets the global options for tensor products of crystals. The default is to
+        use the anti-Kashiwara convention.
+
+        There are two conventions for how `e_i` and `f_i` act on tensor products,
+        and the difference between the two is the order of the tensor factors
+        are reversed. This affects both the input and output. See the example
+        below.
+        """,
+        end_doc=r"""
+
+        .. NOTE::
+
+            Changing the ``convention`` also changes how the input is handled.
+
+        .. WARNING::
+
+            Internally, the crystals are always stored using the anti-Kashiwara
+            convention.
+
+        If no parameters are set, then the function returns a copy of the
+        options dictionary.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['A',2])
+            sage: T = crystals.TensorProduct(C,C)
+            sage: elt = T(C(1), C(2)); elt
+            [1, 2]
+            sage: crystals.TensorProduct.options.convention = "Kashiwara"
+            sage: elt
+            [2, 1]
+            sage: T(C(1), C(2)) == elt
+            False
+            sage: T(C(2), C(1)) == elt
+            True
+            sage: crystals.TensorProduct.options._reset()
+        """,
+        convention=dict(default="antiKashiwara",
+                        description='Sets the convention used for displaying/inputting tensor product of crystals',
+                        values=dict(antiKashiwara='use the anti-Kashiwara convention',
+                                    Kashiwara='use the Kashiwara convention'),
+                            alias=dict(anti="antiKashiwara", opposite="antiKashiwara"),
+                            case_sensitive=False)
+    )
+
+    global_options=deprecated_function_alias(18555, options)
 
     def _element_constructor_(self, *crystalElements):
         """
@@ -728,9 +732,12 @@ class TensorProductOfCrystals(CrystalOfWords):
             sage: T(C(2), C(1), C(1))
             [2, 1, 1]
         """
-        if self.global_options['convention'] == "Kashiwara":
+        if self.options.convention == "Kashiwara":
             crystalElements = reversed(crystalElements)
         return self.element_class(self, list(crystalElements))
+
+
+TensorProductOfCrystalsOptions=deprecated_function_alias(18555, TensorProductOfCrystals.options)
 
 class TensorProductOfCrystalsWithGenerators(TensorProductOfCrystals):
     """
@@ -767,7 +774,7 @@ class TensorProductOfCrystalsWithGenerators(TensorProductOfCrystals):
             sage: crystals.TensorProduct(C,C,generators=[[C(2),C(1)]])
             The tensor product of the crystals [The crystal of letters for type ['A', 2], The crystal of letters for type ['A', 2]]
         """
-        if self.global_options['convention'] == "Kashiwara":
+        if self.options.convention == "Kashiwara":
             st = repr(list(reversed(self.crystals)))
         else:
             st = repr(list(self.crystals))
@@ -818,7 +825,7 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
             sage: crystals.TensorProduct(C,C)
             Full tensor product of the crystals [The crystal of letters for type ['A', 2], The crystal of letters for type ['A', 2]]
         """
-        if self.global_options['convention'] == "Kashiwara":
+        if self.options.convention == "Kashiwara":
             st = repr(list(reversed(self.crystals)))
         else:
             st = repr(list(self.crystals))
@@ -894,7 +901,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
             sage: T(C(1),C(2))
             [1, 2]
         """
-        if self.parent().global_options['convention'] == "Kashiwara":
+        if self.parent().options.convention == "Kashiwara":
             return repr(list(reversed(self._list)))
         return repr(self._list)
 

@@ -356,7 +356,7 @@ class IndexedGenerators(object):
               **
              **
              *
-            sage: Partitions.global_options(diagram_str="#", convention="french")
+            sage: Partitions.options(diagram_str="#", convention="french")
             sage: ascii_art(R[1,2,2,4])
             R
              #

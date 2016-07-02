@@ -24,6 +24,13 @@ AUTHORS:
 
 from sage.structure.list_clone import ClonableArray
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.parent import Parent
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.combinat.posets.posets import Poset
+from sage.rings.integer import Integer
+from sage.misc.all import prod
+from sage.combinat.tableau import Tableau
 
 class PlanePartition(ClonableArray):
     r"""
@@ -120,7 +127,8 @@ class PlanePartition(ClonableArray):
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.x_tableau()
-            [[4, 3, 2], [3, 1, 0], [3, 0, 0], [1, 0, 0]]
+            [[3, 2, 1, 1], [3, 1, 1, 0], [2, 1, 1, 0], [1, 0, 0, 0]]
+
 
         """
         X = [[0 for i in range(self._max_z)] for j in range(self._max_y)]
@@ -207,7 +215,7 @@ class PlanePartition(ClonableArray):
         EXAMPLES:
 
             sage: PlanePartition([[4,3,3,1],[2,1,1],[1,1]]).pp()
-                           
+            <BLANKLINE>              
                  / \       
                 |\ /|      
                 |\|/ \     
@@ -217,11 +225,11 @@ class PlanePartition(ClonableArray):
             |\ / \ / \|/ \ 
              \|\ /|\ /|\ /|
                \|/ \|/ \|/ 
-                           
-                           
-            
+            <BLANKLINE>  
+            <BLANKLINE>                             
+            <BLANKLINE>              
             sage: PlanePartition([[4,3,3,1],[2,1,1],[1,1]]).pp(True)
-                           
+            <BLANKLINE>                             
                  / \       
                /|\ /|\     
              /|/|\|/ \|\   
@@ -233,7 +241,7 @@ class PlanePartition(ClonableArray):
                \|/ \|/ \|/ 
                  \ / \ /   
                    \ /     
-            
+            <BLANKLINE>              
         """
         print self._repr_diagram(show_box)
 
@@ -255,7 +263,7 @@ class PlanePartition(ClonableArray):
         EXAMPLES:
 
             sage: PlanePartition([[1]]).latex()
-
+            <BLANKLINE>  
             \begin{tikzpicture}
             \draw[fill=white,shift={(210:0)},shift={(-30:0)},shift={(90:1)}]
             (0,0)--(-30:1)--(0,-1)--(210:1)--(0,0);
@@ -264,7 +272,7 @@ class PlanePartition(ClonableArray):
             \draw[fill=lightgray,shift={(210:1)},shift={(-30:0)},shift={(90:0)}]
             (0,0)--(0,1)--(30:1)--(-30:1)--(0,0);
             \end{tikzpicture}
-
+            <BLANKLINE>  
         """
 
         x=self._max_x
@@ -567,7 +575,7 @@ class PlanePartitions(UniqueRepresentation,Parent):
         sage: P = PlanePartitions((4,3,2))
         sage: P
         Plane partitions inside a 4 x 3 x 2 box.
-        sage: A.cardinality()
+        sage: P.cardinality()
         490
     """
 
@@ -606,8 +614,10 @@ class PlanePartitions(UniqueRepresentation,Parent):
             sage: PlanePartitions((4,3,5)).cardinality()
             116424
         """
-        return Integer(prod( [ (i+j+k-1)/(i+j+k-2) for i in range(1,self._box[0]+1) for j in range(1,self._box[1]+1)
-                       for k in range(1,self._box[2]+1)] ))
+        A = self._box[0]
+        B = self._box[1]
+        C = self._box[2]        
+        return Integer(prod( [ Integer(i+j+k-1)/Integer(i+j+k-2) for i in range(1,A+1) for j in range(1,B+1) for k in range(1,C+1)] ))
     
     def random_element(self):
         r"""
@@ -617,7 +627,7 @@ class PlanePartitions(UniqueRepresentation,Parent):
         EXAMPLES::
 
             sage: PlanePartitions((4,3,5)).random_element()
-            The plane partition [[5, 5, 3], [5, 3, 3], [3, 3, 0], [2, 2, 0]]. #random
+            The plane partition [[4, 3, 3], [4, 0, 0], [2, 0, 0], [0, 0, 0]].
         """
         def leq(thing1, thing2):
             if all(thing1[i] <= thing2[i] for i in range(len(thing1))):

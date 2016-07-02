@@ -83,11 +83,3 @@ Other tools
    sage/coding/relative_finite_field_extension
 
 .. include:: ../footer.txt
-
-Other tools
------------
-
-.. toctree::
-   :maxdepth: 1
-
-   sage/coding/field_embedding

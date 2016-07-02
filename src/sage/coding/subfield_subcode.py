@@ -27,7 +27,7 @@ from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.functions.all import log
 from sage.categories.homset import Hom
-from field_embedding import FieldEmbedding
+from relative_finite_field_extension import RelativeFiniteFieldExtension
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from decoder import Decoder
@@ -93,9 +93,9 @@ class SubfieldSubcode(AbstractLinearCode):
         if embedding is not None and not embedding in H:
             raise ValueError("embedding has to be an embedding from subfield to original_code's base field")
         elif embedding is not None:
-            self._embedding = FieldEmbedding(F, subfield, embedding)
+            self._embedding = RelativeFiniteFieldExtension(F, subfield, embedding)
         else:
-            self._embedding = FieldEmbedding(F, subfield, H[0])
+            self._embedding = RelativeFiniteFieldExtension(F, subfield, H[0])
         super(SubfieldSubcode, self).__init__(subfield, original_code.length(), "ParityCheck", "Syndrome")
 
     def __eq__(self, other):
@@ -234,26 +234,19 @@ class SubfieldSubcode(AbstractLinearCode):
         Fqm = C.base_field()
         Fq = self.base_field()
         H_original = C.parity_check_matrix()
-        E = self.embedding()
         n = self.length()
-        p = Fq.characteristic()
-        s = log(Fq.order(), p)
-        m = log(Fqm.order(), p) / s
-        H = matrix(Fq, H_original.nrows()*m, n)
-        if s == 1:
-            for i in range(H_original.nrows()):
-                for j in range(H_original.ncols()):
-                    h = H_original[i][j]
-                    h_vect = E.small_field_vector_representation(h)
-                    for k in range(m):
-                        H[i*m+k, j] = h_vect[k]
-        else:
-            for i in range(H_original.nrows()):
-                for j in range(H_original.ncols()):
-                    h = H_original[i][j]
-                    h_vect = E.small_field_vector_representation(h)
-                    for k in range(m):
-                        H[i*m + k, j] = Fq(h_vect[k*s:k*s+s])
+        codimC = H_original.nrows()
+        E = self.embedding()
+        m = E.absolute_field_power() / E.relative_field_power()
+        H = matrix(Fq, codimC * m, n)
+
+        for i in range(H_original.nrows()):
+            for j in range(H_original.ncols()):
+                h = H_original[i][j]
+                h_vect = E.relative_field_representation(h)
+                for k in range(m):
+                    H[i*m+k, j] = h_vect[k]
+
         H = H.echelon_form()
         delete = []
         for i in range(H.nrows()):
@@ -387,10 +380,10 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
         y_or = vector([phi(i) for i in y])
         c_or = D.decode_to_code(y_or)
         if 'list-decoder' in self.decoder_type():
-            return [vector([FE.small_field_polynomial_representation(i) for i in c])
+            return [vector([FE.absolute_field_representation(i) for i in c])
                     for c in c_or]
         else:
-            return vector([FE.small_field_polynomial_representation(i) for i in c_or])
+            return vector([FE.absolute_field_representation(i) for i in c_or])
 
     def decoding_radius(self, **kwargs):
         r"""

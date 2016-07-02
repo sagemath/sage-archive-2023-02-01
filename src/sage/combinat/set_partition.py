@@ -431,12 +431,16 @@ class SetPartition(ClonableArray):
         - ``radius`` -- (default: "1cm") Radius of circle for cyclic plot. *Only
         works with cyclic plot*
 
+        - ``angle`` -- (default: 0) Angle for linear
+
         INPUT:
 
         - ``opts`` -- a dictionary with a list of latex parameters to change
 
         EXAMPLES::
 
+            sage: SP = SetPartition([[1,6], [3,5,4]])
+            sage: SP.set_latex_options({'tikz_scale':2,'plot':'linear', 'fill':True, 'color':'blue', 'angle':45})
         """
 
         for opt in opts:
@@ -449,6 +453,15 @@ class SetPartition(ClonableArray):
         Options can be found in set_latex_options()
 
         EXAMPLES::
+            sage: SP = SetPartition([[1,6], [3,5,4]]); SP.latex_options()
+            {'angle': 0,
+             'color': 'black',
+             'fill': False,
+             'plot': '',
+             'radius': '1cm',
+             'show_labels': True,
+             'tikz_scale': 1}
+
         """
         opts = self._latex_options.copy()
         if "tikz_scale" not in opts:
@@ -463,6 +476,8 @@ class SetPartition(ClonableArray):
             opts['show_labels'] = True
         if "radius" not in opts:
             opts['radius'] = "1cm"
+        if "angle" not in opts:
+            opts['angle'] = 0
         return opts
     def _latex_(self):
         r"""
@@ -473,6 +488,16 @@ class SetPartition(ClonableArray):
             sage: x = SetPartition([[1,2], [3,5,4]])
             sage: latex(x)
             \{\{1, 2\}, \{3, 4, 5\}\}
+            sage: SP = SetPartition([[1,2]])
+            sage: SP.set_latex_options({'tikz_scale':2,'plot':'linear', 'fill':True, 'color':'blue', 'angle':45})
+            sage: latex(SP)
+            \begin{tikzpicture}[scale=2]
+                \node[below=05cm] at (0,0) {$1$};
+                \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] (0) at (0,0) {};
+                \node[below=.05cm] at (1,0) {$2$};
+                \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] (1) at (1,0) {};
+                \draw[color=blue] (1) to [out=135,in=45] (0);
+            \end{tikzpicture}
         """
         latex_options = self.latex_options()
         if latex_options["plot"] == "":
@@ -493,7 +518,7 @@ class SetPartition(ClonableArray):
                 # Add nodes
                 for k,i in enumerate(base_set):
                     location = (cardinality - k) * degrees - 270
-                    res += "\t\\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black"
+                    res += "    \\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black"
                     if latex_options['show_labels']:
                         res += ",label=" + str(location) + ":" + str(i)
                     res += "] (" + str(k) + ") at (" + str(location) + ":" + radius + ") {};\n"
@@ -502,13 +527,13 @@ class SetPartition(ClonableArray):
                 for k,i in enumerate(base_set):
                     xangle = k * degrees
                     yangle = (k+1) * degrees
-                    res += "\t\\draw[-] (" + str(xangle) + ":" + radius + ")"
+                    res += "    \\draw[-] (" + str(xangle) + ":" + radius + ")"
                     res += " arc "
                     res += "(" + str(xangle) + ":" + str(yangle) + ":" + radius + ");\n"
 
                 # Setup partitions
                 for partition in self:
-                    res += "\t\t\\draw[-,thick,color="+color
+                    res += "        \\draw[-,thick,color="+color
                     if latex_options['fill'] != False:
                         if isinstance(latex_options['fill'],str):
                             res += ",fill="+latex_options['fill']
@@ -526,11 +551,12 @@ class SetPartition(ClonableArray):
 
             # If we want line plots
             if latex_options['plot'] == 'linear' or latex_options['plot'] == 'line' or latex_options['plot'] == 'planar':
+                angle = latex_options['angle']
                 # setup line
                 for k,i in enumerate(base_set):
                     if latex_options['show_labels']:
-                        res += "\t\\node[below=.05cm] at (" + str(k) + ",0) {$" + str(i) + "$};\n"
-                    res += "\t\\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] "
+                        res += "    \\node[below=.05cm] at (" + str(k) + ",0) {$" + str(i) + "$};\n"
+                    res += "    \\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] "
                     res += "(" + str(k) + ") at (" + str(k) + ",0) {};\n"
                 #res += "\t\\draw (0) -- (" + str(cardinality - 1) + ");\n"
 
@@ -543,8 +569,8 @@ class SetPartition(ClonableArray):
                                 #res += " to [out=90,in=90] "
                                 #res += "(" + str(base_set.index(partition[-1])) + ");"
                             #else:
-                                res += "\t\\draw[color=" + color + "] (" + str(base_set.index(partition[k])) + ")"
-                                res += " to [out=90,in=90] "
+                                res += "    \\draw[color=" + color + "] (" + str(base_set.index(partition[k])) + ")"
+                                res += " to [out=" + str(90+angle) + ",in=" + str(90-angle) + "] "
                                 res += "(" + str(base_set.index(partition[k-1])) + ");\n"
 
             res += "\\end{tikzpicture}"
@@ -1120,7 +1146,7 @@ class SetPartition(ClonableArray):
         sorted_vertices_list=list(self.base_set())
         sorted_vertices_list.sort()
         vertices_dict = dict()
-        
+
         if not angle:
             angle = pi/4
             # the case angle = 0 should maybe treated separately

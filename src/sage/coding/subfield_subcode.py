@@ -51,6 +51,8 @@ class SubfieldSubcode(AbstractLinearCode):
 
         sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
         sage: codes.SubfieldSubcode(C, GF(4, 'a'))
+        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        See http://trac.sagemath.org/20284 for details.
         Subfield subcode over Finite Field in a of size 2^2 coming from Linear code of length 7, dimension 3 over Finite Field in aa of size 2^4
     """
     _registered_encoders = {}
@@ -205,7 +207,7 @@ class SubfieldSubcode(AbstractLinearCode):
             sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
             sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: Cs.embedding()
-            Embedding between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
+            Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
         """
         return self._embedding
 
@@ -380,10 +382,11 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
         y_or = vector([phi(i) for i in y])
         c_or = D.decode_to_code(y_or)
         if 'list-decoder' in self.decoder_type():
-            return [vector([FE.absolute_field_representation(i) for i in c])
-                    for c in c_or]
+            raise NotImplementedError("List decoder reduction to subfield subcodes not yet implemented.")
+            # return [vector([FE.absolute_field_representation(i) for i in c])
+            #         for c in c_or]
         else:
-            return vector([FE.absolute_field_representation(i) for i in c_or])
+            return vector([FE.relative_field_representation(i)[0] for i in c_or])
 
     def decoding_radius(self, **kwargs):
         r"""

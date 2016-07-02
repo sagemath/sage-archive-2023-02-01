@@ -1254,6 +1254,60 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         from sage.schemes.curves.constructor import Curve
         return Curve(F, self)
 
+    def line(self, points):
+        r"""
+        Return the unique line between ``points[0]`` and ``points[1]`` as a curve in this projective space.
+
+        Currently this is only implemented for points in a projective plane.
+
+        INPUT:
+
+        - ``points`` - a list or tuple consisting of two distinct points of this projective space.
+
+        OUTPUT:
+
+        - a curve in this projective space
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: Q = P([2,3,1])
+            sage: T = P([4,27,35/2])
+            sage: P.line([Q, T])
+            Projective Plane Curve over Rational Field defined by x - 62/51*y + 28/17*z
+
+        ::
+
+            sage: K = QuadraticField(-2)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: Q = P([2*K.0,4,3])
+            sage: T = P([0,0,1])
+            sage: P.line([Q, T])
+            Projective Plane Curve over Number Field in a with defining polynomial
+            x^2 + 2 defined by x + (-1/2*a)*y
+        """
+        if self.dimension_relative() != 2:
+            raise NotImplementedError("this space must be a projective plane")
+        if not isinstance(points, (list, tuple)):
+            raise TypeError("(=%s) must be a list or tuple"%points)
+        if len(points) != 2:
+            raise TypeError("(=%s) must consist of two elements"%points)
+        try:
+            points = [self(Q) for Q in points]
+        except TypeError:
+            raise TypeError("(=%s) must consist of points in (=%s)"%(points,self))
+        if (points[0] == points[1]):
+            raise TypeError("(=%s) must consist of two distinct points of (=%s)"%(points,self))
+        # the underlying subspace spanned by the coordinates of points[0], points[1]
+        # is two dimensional, so can't contain all of (1,0,0), (0,1,0), (0,0,1)
+        for i in range(3):
+            Q = [0]*3
+            Q[i] = 1
+            M = matrix([[points[0][j], points[1][j], Q[j]] for j in range(3)])
+            if not M.is_singular():
+                M = M.inverse()
+                return self.curve(sum([M.row(2)[j]*self.gens()[j] for j in range(3)]))
+
 class ProjectiveSpace_finite_field(ProjectiveSpace_field):
     def _point(self, *args, **kwds):
         """

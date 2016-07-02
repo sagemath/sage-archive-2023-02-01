@@ -531,7 +531,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         else:
             return not self.is_smooth(P)
 
-    def tangents(self, P):
+    def tangents(self, P, full=False):
             r"""
             Return the tangents of this projective plane curve at the point ``P``.
 
@@ -541,6 +541,9 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             INPUT:
 
             - ``P`` -- a point on this curve.
+
+            - ``full`` -- (default: False) whether to attempt factoring over the algebraic closure of the base field
+              of this curve.
 
             OUTPUT:
 
@@ -580,7 +583,8 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             C = self.affine_patch(i)
             Q = list(P)
             t = Q.pop(i)
-            L = C.tangents(C.ambient_space()([1/t*Q[j] for j in range(self.ambient_space().dimension_relative())]))
+            L = C.tangents(C.ambient_space()([1/t*Q[j] for j in range(self.ambient_space().dimension_relative())]),\
+                           full)
             R = self.ambient_space().coordinate_ring()
             H = Hom(C.ambient_space().coordinate_ring(), R)
             G = list(R.gens())
@@ -588,7 +592,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             phi = H(G)
             return [phi(g).homogenize(x) for g in L]
 
-    def is_ordinary_singularity(self, P):
+    def is_ordinary_singularity(self, P, full=False):
         r"""
         Return whether the singular point ``P`` of this projective plane curve is an ordinary singularity.
 
@@ -598,6 +602,9 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         INPUT:
 
         - ``P`` -- a point on this curve.
+
+        - ``full`` -- (default: False) whether to attempt factoring over the algebraic closure of the base field
+          of this curve.
 
         OUTPUT:
 
@@ -639,7 +646,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         if r < 2:
             raise TypeError("(=%s) is not a singular point of (=%s)"%(P,self))
 
-        T = self.tangents(P)
+        T = self.tangents(P, full)
 
         # when there is a tangent of higher multiplicity
         if len(T) < r:
@@ -647,6 +654,34 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         # otherwise they are distinct
         return True
+
+    def quadratic_transformation(self):
+        r"""
+        Return the image of this curve by the standard Cremona transformation.
+
+        The standard Cremona transformation is the birational automorphism of `\mathbb{P}^{2}` defined
+        `(x : y : z)\mapsto (yz : xz : xy)`. The map is not defined at the points `(0 : 0 : 1)`, `(0 : 1 : 0)`,
+        and `(1 : 0 : 0)`.
+
+        OUTPUT:
+
+        - a curve in the ambient space of this curve.
+
+        EXAMPLES::
+
+
+        """
+        PP = self.ambient_space()
+        L = PP.gens()
+        coords = [L[1]*L[2], L[0]*L[2], L[0]*L[1]]
+        G = self.defining_polynomials()[0](coords)
+        for i in range(PP.dimension_relative() + 1):
+            t = 0
+            while((L[i]**(t+1)).divides(G)):
+                t = t + 1
+            G = PP.coordinate_ring()(G/L[i]**t)
+        from constructor import Curve
+        return Curve(G, PP)
 
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
     def rational_points_iterator(self):

@@ -485,7 +485,7 @@ class AffinePlaneCurve(AffineCurve):
         # nonzero terms
         return min([g.degree() for g in f.monomials()])
 
-    def tangents(self, P):
+    def tangents(self, P, full=False):
         r"""
         Return the tangents of this affine plane curve at the point ``P``.
 
@@ -494,6 +494,9 @@ class AffinePlaneCurve(AffineCurve):
         INPUT:
 
         - ``P`` -- a point on this curve.
+
+        - ``full`` -- (default: False) whether to attempt factoring over the algebraic closure of the base field
+          of this curve.
 
         OUTPUT:
 
@@ -534,10 +537,21 @@ class AffinePlaneCurve(AffineCurve):
         deriv = [f.derivative(vars[0],i).derivative(vars[1],r-i)(list(P)) for i in range(r+1)]
         from sage.arith.misc import binomial
         T = sum([binomial(r,i)*deriv[i]*(vars[0] - P[0])**i*(vars[1] - P[1])**(r-i) for i in range(r+1)])
-        fact = T.factor()
+        if full:
+            R = T.parent()
+            d = T.degree(R.gens()[0]) + 1
+            roots = T(R.gens()[0], R.gens()[0]**d).univariate_polynomial().roots(ring=QQbar)
+            L = [roots[i][0] for i in range(len(roots))]
+            from sage.rings.qqbar import number_field_elements_from_algebraics
+            K = number_field_elements_from_algebraics(L)[0]
+            polyK = R.change_ring(base_ring=K)
+            f = polyK(T)
+            fact = f.factor()
+        else:
+            fact = T.factor()
         return [l[0] for l in fact]
 
-    def is_ordinary_singularity(self, P):
+    def is_ordinary_singularity(self, P, full=False):
         r"""
         Return whether the singular point ``P`` of this affine plane curve is an ordinary singularity.
 
@@ -547,6 +561,9 @@ class AffinePlaneCurve(AffineCurve):
         INPUT:
 
         - ``P`` -- a point on this curve.
+
+        - ``full`` -- (default: False) whether to attempt factoring over the algebraic closure of the base field
+          of this curve.
 
         OUTPUT:
 
@@ -586,7 +603,7 @@ class AffinePlaneCurve(AffineCurve):
         if r < 2:
             raise TypeError("(=%s) is not a singular point of (=%s)"%(P,self))
 
-        T = self.tangents(P)
+        T = self.tangents(P, full)
 
         # when there is a tangent of higher multiplicity
         if len(T) < r:

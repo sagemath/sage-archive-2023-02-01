@@ -48,7 +48,7 @@ if [ "$SAGE64" = yes ]; then
 fi
 
 # C++11 workaround https://trac.sagemath.org/ticket/20926
-CXXFLAGS="$CXXFLAGS -std=gnu++98"
+CXXFLAGS="$CXXFLAGS -std=c++98"
 
 ###############################################################################
 # Configure, build and install LinBox:

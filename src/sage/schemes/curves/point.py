@@ -47,22 +47,6 @@ from sage.schemes.projective.projective_point import (SchemeMorphism_point_proje
 
 class ProjectiveCurvePoint_field(SchemeMorphism_point_projective_field):
 
-    def multiplicity(self):
-        r"""
-        Return the multiplicity of this point with respect to the projective curve it is on.
-
-        OUTPUT: Integer.
-
-        EXAMPLES::
-
-            sage: P.<x,y,z,w,t> = ProjectiveSpace(GF(7), 4)
-            sage: C = Curve([y^3 - 2*x^3 - z^3, x^3 - w^3, t - z])
-            sage: Q = C([0,2,1,0,1])
-            sage: Q.multiplicity()
-            3
-        """
-        return self.codomain().multiplicity(self)
-
     def is_singular(self):
         r"""
         Return whether this point is a singular point of the projective curve it is on.
@@ -83,6 +67,22 @@ class ProjectiveCurvePoint_field(SchemeMorphism_point_projective_field):
         return self.codomain().is_singular(self)
 
 class ProjectivePlaneCurvePoint_field(ProjectiveCurvePoint_field):
+
+    def multiplicity(self):
+        r"""
+        Return the multiplicity of this point with respect to the projective curve it is on.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(17), 2)
+            sage: C = Curve([y^3*z - 16*x^4], P)
+            sage: Q = C([0,0,1])
+            sage: Q.multiplicity()
+            3
+        """
+        return self.codomain().multiplicity(self)
 
     def tangents(self):
         r"""
@@ -166,22 +166,6 @@ class ProjectivePlaneCurvePoint_finite_field(ProjectivePlaneCurvePoint_field, Sc
 
 class AffineCurvePoint_field(SchemeMorphism_point_affine_field):
 
-    def multiplicity(self):
-        r"""
-        Return the multiplicity of this point with respect to the affine curve it is on.
-
-        OUTPUT: Integer.
-
-        EXAMPLES::
-
-            sage: A.<x,y,z> = AffineSpace(QQ, 3)
-            sage: C = Curve([y^4 - 17*x^2 - x^3 + z^3, z^3 - x^2])
-            sage: Q = C([0,0,0])
-            sage: Q.multiplicity()
-            6
-        """
-        return self.codomain().multiplicity(self)
-
     def is_singular(self):
         r"""
         Return whether this point is a singular point of the affine curve it is on.
@@ -203,6 +187,25 @@ class AffineCurvePoint_field(SchemeMorphism_point_affine_field):
         return self.codomain().is_singular(self)
 
 class AffinePlaneCurvePoint_field(AffineCurvePoint_field):
+
+    def multiplicity(self):
+        r"""
+        Return the multiplicity of this point with respect to the affine curve it is on.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = A.curve([2*x^7 - 3*x^6*y + x^5*y^2 + 31*x^6 - 40*x^5*y + 13*x^4*y^2 - x^3*y^3\
+            + 207*x^5 - 228*x^4*y + 70*x^3*y^2 - 7*x^2*y^3 + 775*x^4 - 713*x^3*y + 193*x^2*y^2 - 19*x*y^3\
+            + y^4 + 1764*x^3 - 1293*x^2*y + 277*x*y^2 - 22*y^3 + 2451*x^2 - 1297*x*y + 172*y^2 + 1935*x\
+            - 570*y + 675])
+            sage: Q = C([-2,1])
+            sage: Q.multiplicity()
+            4
+        """
+        return self.codomain().multiplicity(self)
 
     def tangents(self):
         r"""

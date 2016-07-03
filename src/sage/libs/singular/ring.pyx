@@ -428,14 +428,6 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
 
     _ring.ShortOut = 0
-    
-    
-
-    if order.is_local():
-        assert(_ring.OrdSgn == -1)
-    if order.is_global():
-         assert(_ring.OrdSgn == 1)
-
 
     rChangeCurrRing(_ring)
 
@@ -445,6 +437,12 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     ring_refcount_dict[wrapped_ring] = 1
 
     rComplete(_ring, 1)
+
+    if order.is_local():
+        assert(_ring.OrdSgn == -1)
+    if order.is_global():
+         assert(_ring.OrdSgn == 1)
+
     #print "singular ring created"
     return _ring
 

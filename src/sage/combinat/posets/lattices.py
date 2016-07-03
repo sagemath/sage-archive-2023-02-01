@@ -1703,6 +1703,57 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return LatticePoset(self.subposet([self[x] for x in
                 self._hasse_diagram.frattini_sublattice()]))
 
+    def sublattices_lattice(self, element_constructor='lattice'):
+        """
+        Return the lattice of sublattices.
+
+        Every element of the returned lattice is a sublattice and
+        they are ordered by containment; that is, atoms are one-element
+        lattices, coatoms are maximal sublattices of the original
+        lattice and so on.
+
+        INPUT:
+
+        - ``element_constructor`` -- a string. If ``'lattice'`` (the default),
+          elements of the lattice will be lattices. If ``'tuple'``, elements
+          are lists of elements. If ``'integer'``, return a lattice
+          isomorphic to lattice of sublattices with plain integers as elements.
+
+        EXAMPLES::
+
+            sage: D4 = Posets.DiamondPoset(4)
+            sage: sll = D4.sublattices_lattice(element_constructor='tuple')
+            sage: sll.coatoms()  # = maximal sublattices of the original lattice
+            [(0, 1, 3), (0, 2, 3)]
+
+            sage: L = Posets.DivisorLattice(12)
+            sage: sll = L.sublattices_lattice()
+            sage: L.is_dismantlable() == (len(sll.atoms()) == sll.rank())
+            True
+
+        TESTS::
+
+            sage: E = Posets.ChainPoset(0)
+            sage: E.sublattices_lattice()
+            Finite lattice containing 1 elements
+
+            sage: C3 = Posets.ChainPoset(3)
+            sage: sll = C3.sublattices_lattice(element_constructor='integer')
+            sage: sll.is_isomorphic(Posets.BoolenLattice(3))
+            True
+        """
+        from sage.graphs.digraph import DiGraph
+
+        if element_constructor not in ['lattice', 'tuple', 'integer']:
+            raise ValueError("element_constructor must be one of 'lattice', 'tuple' or 'integer'")
+        sublats = [frozenset(x) for x in self._hasse_diagram.sublattices_iterator(set(), 0)]
+        G = DiGraph( [sublats, lambda a, b: a != b and a.issubset(b)] )
+        if element_constructor == 'tuple':
+            G.relabel(lambda x: tuple(self._vertex_to_element(y) for y in x))
+        if element_constructor == 'lattice':
+            G.relabel(lambda x: self.sublattice(x))
+        return LatticePoset(G)
+
     def moebius_algebra(self, R):
         """
         Return the Möbius algebra of ``self`` over ``R``.

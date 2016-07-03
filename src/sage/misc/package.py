@@ -108,7 +108,7 @@ def _list_to_table(list_of_packages):
     return s
 
 _STANDARD_PACKAGES = ['atlas', 'backports_ssl_match_hostname', 'boehm_gc',
-                      'boost_cropped', 'bzip2', 'cddlib', 'cephes', 'certifi', 'cliquer',
+                      'boost_cropped', 'brial', 'bzip2', 'cddlib', 'cephes', 'certifi', 'cliquer',
                       'combinatorial_designs', 'conway_polynomials', 'cvxopt', 'cython', 'dateutil',
                       'docutils', 'ecl', 'eclib', 'ecm', 'elliptic_curves', 'fflas_ffpack', 'flint',
                       'flintqs', 'freetype', 'gap', 'gd', 'gdmodule', 'genus2reduction', 'gf2x',
@@ -118,7 +118,7 @@ _STANDARD_PACKAGES = ['atlas', 'backports_ssl_match_hostname', 'boehm_gc',
                       'matplotlib', 'maxima', 'mercurial', 'mistune', 'mpc', 'mpfi', 'mpfr', 'mpmath',
                       'ncurses', 'networkx', 'ntl', 'numpy', 'palp', 'pari', 'pari_galdata',
                       'pari_seadata_small', 'patch', 'pexpect', 'pil', 'pillow', 'pip', 'pkgconf',
-                      'pkgconfig', 'planarity', 'polybori', 'polytopes_db', 'ppl', 'pycrypto',
+                      'pkgconfig', 'planarity', 'polytopes_db', 'ppl', 'pycrypto',
                       'pygments', 'pynac', 'pyparsing', 'python', 'pyzmq', 'r', 'ratpoints',
                       'readline', 'rpy2', 'rubiks', 'rw', 'sage', 'sage_root', 'sage_scripts',
                       'sagenb', 'sagetex', 'scipy', 'setuptools', 'singular', 'six', 'sphinx',

@@ -109,8 +109,8 @@ library_order_list = [
 ] + gsl_libs + [
     "pari", "flint", "ratpoints", "ecl", "glpk", "ppl",
     "arb", "fplll", "mpfi", "mpfr", "mpc", "gmp", "gmpxx",
-    "polybori",
-    "polybori_groebner",
+    "brial",
+    "brial_groebner",
     "m4rie",
 ] + m4ri_libs + [
     "zn_poly", "gap",
@@ -1620,7 +1620,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.pbori',
               sources = ['sage/rings/polynomial/pbori.pyx'],
-              libraries=['polybori', 'polybori_groebner'] + m4ri_libs + png_libs,
+              libraries=['brial', 'brial_groebner'] + m4ri_libs + png_libs,
               library_dirs = m4ri_library_dirs + png_library_dirs,
               include_dirs = m4ri_include_dirs + png_include_dirs,
               depends = [SAGE_INC + "/polybori/" + hd + ".h" for hd in ["polybori", "config"] ] +

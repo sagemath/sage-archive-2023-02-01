@@ -235,7 +235,11 @@ cdef extern from "singular/Singular/libsingular.h":
         long (*pFDegOrig)(poly *p, ring *r)
 
 
-    long p_Deg(poly *p, ring *r)
+    long p_Deg(poly *p, ring *r)    
+    long p_WTotaldegree(poly *p, ring *r)
+    long p_Totaldegree(poly *p, ring *r)
+    long p_WDegree(poly *p, ring *r)
+    
     # available ring orders
 
     ctypedef struct AlgExtInfo:

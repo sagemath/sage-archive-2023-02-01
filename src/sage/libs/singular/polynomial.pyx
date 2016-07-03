@@ -22,7 +22,7 @@ plusminus_pattern = re.compile("([^\(^])([\+\-])")
 from sage.libs.singular.decl cimport number, ideal
 from sage.libs.singular.decl cimport currRing, rChangeCurrRing
 from sage.libs.singular.decl cimport p_Copy, p_Add_q, p_Neg, pp_Mult_nn, p_GetCoeff, p_IsConstant, p_Cmp, pNext
-from sage.libs.singular.decl cimport p_GetMaxExp, pp_Mult_qq, pPower, p_String, p_GetExp, p_Deg
+from sage.libs.singular.decl cimport p_GetMaxExp, pp_Mult_qq, pPower, p_String, p_GetExp, p_Deg, p_Totaldegree, p_WTotaldegree, p_WDegree
 from sage.libs.singular.decl cimport n_Delete, idInit, fast_map, id_Delete
 from sage.libs.singular.decl cimport omAlloc0, omStrDup, omFree
 from sage.libs.singular.decl cimport p_GetComp, p_SetComp
@@ -523,14 +523,26 @@ cdef object singular_polynomial_str_with_changed_varnames(poly *p, ring *r, obje
     return s
 
 cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
-    cdef int deg, _deg, i
-
-    deg = 0
+    cdef int  i
+    cdef long _deg, deg
+    
+    #print (" ENTERED singular_polynomial_deg")
+    deg = -1
+    _deg = -1 
     if p == NULL:
         return -1
     if(r != currRing): rChangeCurrRing(r)
     if x == NULL:
-        return p_Deg(p, r)
+        while p:  
+            _deg = p_WTotaldegree(p,r)
+            #print ("p_WTotaldegree", _deg)      
+          
+            if _deg > deg:
+                deg = _deg
+            p = pNext(p)
+        #print ("deg", deg)      
+        #print (" LEAVING singular_polynomial_deg")
+        return deg
 
     for i in range(1,r.N+1):
         if p_GetExp(x, i, r):
@@ -540,6 +552,8 @@ cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
         if _deg > deg:
             deg = _deg
         p = pNext(p)
+    #print ("deg", deg)  
+    #print (" LEAVING singular_polynomial_deg")    
     return deg
 
 cdef int singular_polynomial_length_bounded(poly *p, int bound):

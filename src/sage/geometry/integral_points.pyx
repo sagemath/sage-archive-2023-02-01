@@ -315,13 +315,6 @@ def simplex_points(vertices):
         b = abs(RtR.det())
         A = RtR.solve_left(vector([b]*len(rays))) * Rt
 
-    # e, d, VDinv = ray_matrix_normal_form(R)
-    #    print origin
-    #    print rays
-    #    print parallelotope_points(rays, origin.parent())
-    #    print 'A = ', A
-    #    print 'b = ', b
-
     e, d, VDinv = ray_matrix_normal_form(R)
     lattice = origin.parent()
     points = loop_over_parallelotope_points(e, d, VDinv, R, lattice, A, b) + tuple(rays)

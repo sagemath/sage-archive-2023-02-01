@@ -700,7 +700,7 @@ cdef class CoinBackend(GenericBackend):
             c_indices[i] = indices[i]
             c_values[i] = coeffs[i]
 
-        self.si.addCol (1, c_indices, c_values, 0, self.si.getInfinity(), 0)
+        self.si.addCol (n, c_indices, c_values, 0, self.si.getInfinity(), 0)
 
         self.col_names.append("")
 

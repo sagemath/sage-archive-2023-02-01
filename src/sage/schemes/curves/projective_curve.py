@@ -35,6 +35,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import division
 
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
@@ -350,6 +351,34 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             phi = H([psi(L[0].defining_polynomials()[i]) for i in range(len(L[0].defining_polynomials()))])
         return tuple([phi, C])
 
+    def arithmetic_genus(self):
+        r"""
+        Return the arithmetic genus of this projective curve.
+
+        This is the arithmetic genus `g_a(C)` as defined in [Hartshorne]_. If `P` is the
+        Hilbert polynomial of the defining ideal of this curve, then the arithmetic genus
+        of this curve is `1 - P(0)`. This curve must be irreducible.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = P.curve([w*z - x^2, w^2 + y^2 + z^2])
+            sage: C.arithmetic_genus()
+            1
+
+        ::
+
+            sage: P.<x,y,z,w,t> = ProjectiveSpace(GF(7), 4)
+            sage: C = P.curve([t^3 - x*y*w, x^3 + y^3 + z^3, z - w])
+            sage: C.arithmetic_genus()
+            10
+        """
+        if not self.is_irreducible():
+            raise TypeError("this curve must be irreducible")
+        return 1 - self.defining_ideal().hilbert_polynomial()(0)
+
     def multiplicity(self, P):
         r"""
         Return the multiplicity of this projective curve at the point ``P``.
@@ -426,6 +455,36 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         Q = [1/t*Q[j] for j in range(self.ambient_space().dimension_relative())]
         return C.multiplicity(C.ambient_space()(Q))
 
+    def is_complete_intersection(self):
+        r"""
+        Return whether this projective curve is or is not a complete intersection.
+
+        OUTPUT: Boolean.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([x*y - z*w, x^2 - y*w, y^2*w - x*z*w], P)
+            sage: C.is_complete_intersection()
+            False
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([y*w - x^2, z*w^2 - x^3], P)
+            sage: C.is_complete_intersection()
+            True
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([z^2 - y*w, y*z - x*w, y^2 - x*z], P)
+            sage: C.is_complete_intersection()
+            False
+        """
+        singular.lib("sing.lib")
+        I = singular.simplify(self.defining_ideal(), 10)
+        L = singular.is_ci(I).sage()
+        return len(self.ambient_space().gens()) - len(I.sage().gens()) == L[-1]
+
 class ProjectivePlaneCurve(ProjectiveCurve):
     def __init__(self, A, f):
         r"""
@@ -463,12 +522,14 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
     def arithmetic_genus(self):
         r"""
-        Return the arithmetic genus of this curve.
+        Return the arithmetic genus of this projective curve.
 
-        This is the arithmetic genus `g_a(C)` as defined in
-        Hartshorne. If the curve has degree `d` then this is simply
-        `(d-1)(d-2)/2`. It need *not* equal the geometric genus
-        (the genus of the normalization of the curve).
+        This is the arithmetic genus `g_a(C)` as defined in [Hartshorne]_. For a projective
+        plane curve of degree `d`, this is simply `(d-1)(d-2)/2`. It need *not* equal
+        the geometric genus (the genus of the normalization of the curve). This curve must be
+        irreducible.
+
+        OUTPUT: Integer.
 
         EXAMPLE::
 
@@ -479,7 +540,20 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             28
             sage: C.genus()
             4
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([y^3*x - x^2*y*z - 7*z^4])
+            sage: C.arithmetic_genus()
+            3
+
+        REFERENCES:
+
+        ..  [Hartshorne] \R. Hartshorne. Algebraic Geometry. Springer-Verlag, New York, 1977.
         """
+        if not self.is_irreducible():
+            raise TypeError("this curve must be irreducible")
         d = self.defining_polynomial().total_degree()
         return int((d-1)*(d-2)/2)
 
@@ -578,7 +652,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         cmd = 'matrix c = coeffs ('+str(ft)+',t)'
         S.eval(cmd)
         N = int(S.eval('size(c)'))
-        b = ["c["+str(i)+",1]," for i in range(2,N/2-4)]
+        b = ["c["+str(i)+",1]," for i in range(2, N//2 - 4)]
         b = ''.join(b)
         b = b[:len(b)-1] #to cut off the trailing comma
         cmd = 'ideal I = '+b
@@ -793,7 +867,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                 P = self(P)
             except TypeError:
                 raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
-    
+
             # Find an affine chart of the ambient space of self that contains P
             i = 0
             while(P[i] == 0):
@@ -868,6 +942,57 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         # otherwise they are distinct
         return True
+
+    def is_transverse(self, C, P):
+        r"""
+        Return whether the intersection of this curve with the curve ``C`` at the point ``P`` is transverse.
+
+        The intersection at ``P`` is transverse if ``P`` is a nonsingular point of both curves, and if the
+        tangents of the curves at ``P`` are distinct.
+
+        INPUT:
+
+        - ``C`` -- a curve in the ambient space of this curve.
+
+        - ``P`` -- a point in the intersection of both curves.
+
+        OUPUT: Boolean.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([x^2 - y^2], P)
+            sage: D = Curve([x - y], P)
+            sage: Q = P([1,1,0])
+            sage: C.is_transverse(D, Q)
+            False
+
+        ::
+
+            sage: K = QuadraticField(-1)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: C = Curve([y^2*z - K.0*x^3], P)
+            sage: D = Curve([z*x + y^2], P)
+            sage: Q = P([0,0,1])
+            sage: C.is_transverse(D, Q)
+            False
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([x^2 - 2*y^2 - 2*z^2], P)
+            sage: D = Curve([y - z], P)
+            sage: Q = P([2,1,1])
+            sage: C.is_transverse(D, Q)
+            True
+        """
+        if not self.intersects_at(C, P):
+            raise TypeError("(=%s) must be a point in the intersection of (=%s) and this curve"%(P,C))
+        if self.is_singular(P) or C.is_singular(P):
+            return False
+
+        # there is only one tangent at a nonsingular point of a plane curve
+        return not self.tangents(P)[0] == C.tangents(P)[0]
 
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
     def rational_points_iterator(self):

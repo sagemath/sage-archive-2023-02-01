@@ -22,9 +22,7 @@ REFERENCES:
 #*****************************************************************************
 
 from linear_code import (AbstractLinearCode,
-                         LinearCodeParityCheckEncoder,
-                         LinearCodeSyndromeDecoder,
-                         LinearCodeNearestNeighborDecoder)
+                         LinearCodeParityCheckEncoder)
 from sage.matrix.matrix_space import MatrixSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.rings.integer import Integer
@@ -170,8 +168,7 @@ class HammingCode(AbstractLinearCode):
         """
         return 3
 
+
 ####################### registration ###############################
 
 HammingCode._registered_encoders["ParityCheck"] = LinearCodeParityCheckEncoder
-HammingCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
-HammingCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder

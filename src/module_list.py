@@ -64,6 +64,12 @@ aliases = dict(
 )
 
 #########################################################
+### C++11 workaround https://trac.sagemath.org/ticket/20926
+#########################################################
+
+nocxx11_args = ['-std=c++98']
+
+#########################################################
 ### M4RI flags
 #########################################################
 
@@ -934,7 +940,7 @@ ext_modules = [
               libraries = ['ntl', 'linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp'] + cblas_libs,
               library_dirs = cblas_library_dirs,
               include_dirs = cblas_include_dirs,
-              extra_compile_args = ['-DDISABLE_COMMENTATOR'] + givaro_extra_compile_args),
+              extra_compile_args = nocxx11_args + ['-DDISABLE_COMMENTATOR'] + givaro_extra_compile_args),
 
     Extension('sage.matrix.matrix_modn_dense_double',
               sources = ['sage/matrix/matrix_modn_dense_double.pyx'],
@@ -942,7 +948,7 @@ ext_modules = [
               libraries = ['ntl', 'linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp'] + cblas_libs,
               library_dirs = cblas_library_dirs,
               include_dirs = cblas_include_dirs,
-              extra_compile_args = ["-D_XPG6", "-DDISABLE_COMMENTATOR"]
+              extra_compile_args = nocxx11_args + ["-D_XPG6", "-DDISABLE_COMMENTATOR"]
                     + m4ri_extra_compile_args + givaro_extra_compile_args),
 
     Extension('sage.matrix.matrix_modn_sparse',

@@ -662,7 +662,7 @@ def implicit_plot(f, xrange, yrange, **options):
         sage: implicit_plot(f, (-3,3), (-3,3), linestyle='dashdot')
         Graphics object consisting of 1 graphics primitive
 
-    The same circle with different line and fille colors::
+    The same circle with different line and fill colors::
 
         sage: implicit_plot(f, (-3,3), (-3,3), color='red', fill=True, fillcolor='green')
         Graphics object consisting of 2 graphics primitives

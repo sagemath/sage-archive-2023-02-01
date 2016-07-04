@@ -511,6 +511,8 @@ cdef number *sa2si_NF(object elem, ring *_ring):
     _ext_names[0] = omStrDup(_name)
     qqr = rDefault( 0, 1, _ext_names);
     rComplete(qqr,1)
+    qqr.ShortOut = 0
+    
 
     nMapFuncPtr =  naSetMap( qqr.cf , _ring.cf ) # choose correct mapping function
     cdef poly *_p
@@ -628,6 +630,7 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
         _cf = nInitChar( n_Z, NULL) # integer coefficient ring
         ZZr = rDefault (_cf ,1, _ext_names)
         rComplete(ZZr,1)
+        ZZr.ShortOut = 0
         #print "ZZr = rDefault (_cf ,1, _ext_names) ok"
 
         nn = nrzInit(0, ZZr.cf)

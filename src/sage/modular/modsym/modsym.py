@@ -60,6 +60,15 @@ This test catches a tricky corner case for spaces with character::
 
     sage: ModularSymbols(DirichletGroup(20).1**3, weight=3, sign=1).cuspidal_subspace()
     Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 6 and level 20, weight 3, character [1, -zeta4], sign 1, over Cyclotomic Field of order 4 and degree 2
+    
+This tests the bugs reported in :trac:`20932`::
+
+    sage: chi = kronecker_character(3*34603)
+    sage: ModularSymbols(chi, 2, sign=1, base_ring=GF(3)) # optional # long time (600 seconds)
+    Modular Symbols space of dimension 11535 and level 103809, weight 2, character [2, 2], sign 1, over Finite Field of size 3
+    sage: chi = kronecker_character(3*61379)
+    sage: ModularSymbols(chi, 2, sign=1, base_ring=GF(3)) # optional # long time (1800 seconds)
+    Modular Symbols space of dimension 20460 and level 184137, weight 2, character [2, 2], sign 1, over Finite Field of size 3
 """
 
 #*****************************************************************************

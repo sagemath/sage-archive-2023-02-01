@@ -292,6 +292,15 @@ cdef int c_p1_normalize_llong(int N, int u, int v,
         0
         sage: (7*24) % 90
         78
+        
+    TESTS::
+    
+    This test reflects :trac:`20932`::
+        sage: N = 3*61379
+        sage: import sage.modular.modsym.p1list as p1list
+        sage: p1 = p1list.P1List(N)
+        sage: p1.normalize_with_scalar(21, -1)
+        (3, 105221, 7)
     """
     cdef int d, k, g, s, t, min_v, min_t, Ng, vNg
     cdef llong ll_s, ll_t, ll_N
@@ -360,7 +369,7 @@ cdef int c_p1_normalize_llong(int N, int u, int v,
     uu[0] = u
     vv[0] = v
     if compute_s:
-        ss[0] = <int> (arith_llong.c_inverse_mod_longlong(s*min_t, N) % ll_N)
+        ss[0] = <int> (arith_llong.c_inverse_mod_longlong((<llong> s)*(<llong> min_t), N) % ll_N)
     return 0
 
 def p1_normalize_llong(N, u, v):
@@ -428,6 +437,14 @@ def p1list_llong(int N):
         (0, 1)
         sage: L[len(L)-1]
         (25000, 1)
+        
+    TESTS::
+    
+    This test shows that :trac:`20513` has been resolved::
+        
+        sage: import sage.modular.modsym.p1list as p1list
+        sage: [(i,j) for (i,j) in p1list.P1List(103809) if i != 1 and i != 3]
+        [(0, 1), (34603, 1), (34603, 2), (34603, 3)]
     """
     cdef int g, u, v, s, c, d, h, d1, cmax
     if N==1: return [(0,0)]
@@ -440,7 +457,7 @@ def p1list_llong(int N):
 
     cmax = N/2
     if N%2:   # N odd, max divisor is <= N/3
-        if N%5:  # N not a multiple of 3 either, max is N/5
+        if N%3:  # N not a multiple of 3 either, max is N/5
             cmax = N/5
         else:
             cmax = N/3

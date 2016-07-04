@@ -38,14 +38,14 @@ class PlanePartition(ClonableArray):
 
     INPUT:
 
-    - ``A`` -- a list of lists which represents a tableau.
+    - ``PP`` -- a list of lists which represents a tableau.
 
     - ``box_size`` -- a list [A,B,C] of 3 positive integers (default: None)
-      If this is not given, it is determined by ``A``.
+      If this is not given, it is determined by ``PP``.
 
     OUTPUT:
 
-    The plane partition whose tableau representation is ``A``.
+    The plane partition whose tableau representation is ``PP``.
 
     EXAMPLES:
 
@@ -57,13 +57,13 @@ class PlanePartition(ClonableArray):
     __metaclass__ = InheritComparisonClasscallMetaclass
     
     @staticmethod
-    def __classcall_private__(cls, A, box_size=None):
+    def __classcall_private__(cls, PP, box_size=None):
         if box_size is None:
-            box_size = (len(A), len(A[0]), A[0][0])
-        return PlanePartitions(box_size)(A)
+            box_size = (len(PP), len(PP[0]), PP[0][0])
+        return PlanePartitions(box_size)(PP)
 
-    def __init__(self, parent, A):
-        ClonableArray.__init__(self, parent, A)
+    def __init__(self, parent, PP):
+        ClonableArray.__init__(self, parent, PP)
         self._max_x = parent._box[0]
         self._max_y = parent._box[1]
         self._max_z = parent._box[2]
@@ -201,7 +201,7 @@ class PlanePartition(ClonableArray):
 
     def pp(self, show_box=False):
         r"""
-        Prints a pretty print of the plane partition.
+        Return a pretty print of the plane partition.
 
         INPUT:
 
@@ -247,7 +247,7 @@ class PlanePartition(ClonableArray):
 
     def latex(self, show_box = False, colors = ["white","lightgray","darkgray"]):
         r"""
-        Returns a latex code which uses TikZ package to draw the plane partition.
+        Return a latex code which uses TikZ package to draw the plane partition.
 
         INPUT:
 
@@ -301,7 +301,7 @@ class PlanePartition(ClonableArray):
 
     def show(self, show_box = None, colors = ["white","lightgray","darkgray"]):
         r"""
-        Plots the plane partition.
+        Return a plot of the plane partition.
 
         INPUT:
 
@@ -401,7 +401,7 @@ class PlanePartition(ClonableArray):
 
     def is_SPP(self): 
         r"""
-        Check whether ``self`` is a symmetric plane partition.
+        Return whether ``self`` is a symmetric plane partition.
 
         EXAMPLES:
 
@@ -420,7 +420,7 @@ class PlanePartition(ClonableArray):
 
     def is_CSPP(self): 
         r"""
-        Check whether ``self`` is a cyclically symmetric plane partition.
+        Return whether ``self`` is a cyclically symmetric plane partition.
 
         EXAMPLES:
 
@@ -437,7 +437,7 @@ class PlanePartition(ClonableArray):
 
     def is_TSPP(self):    
         r"""
-        Check whether ``self`` is a totally symmetric plane partition.
+        Return whether ``self`` is a totally symmetric plane partition.
 
         EXAMPLES:
 
@@ -454,7 +454,7 @@ class PlanePartition(ClonableArray):
 
     def is_SCPP(self):  
         r"""
-        Check whether ``self`` is a self-complementary plane partition.
+        Return whether ``self`` is a self-complementary plane partition.
 
         EXAMPLES:
 
@@ -471,7 +471,7 @@ class PlanePartition(ClonableArray):
 
     def is_TCPP(self):    
         r"""
-        Check whether ``self`` is a transpose-complementary plane partition.
+        Return whether ``self`` is a transpose-complementary plane partition.
 
         EXAMPLES:
 
@@ -488,7 +488,7 @@ class PlanePartition(ClonableArray):
 
     def is_SSCPP(self):  
         r"""
-        Check whether ``self`` is a symmetric, self-complementary plane partition.
+        Return whether ``self`` is a symmetric, self-complementary plane partition.
 
         EXAMPLES:
 
@@ -505,7 +505,7 @@ class PlanePartition(ClonableArray):
 
     def is_CSTCPP(self):    
         r"""
-        Check whether ``self`` is a cyclically symmetric and transpose-complementary plane partition.
+        Return whether ``self`` is a cyclically symmetric and transpose-complementary plane partition.
 
         EXAMPLES:
 
@@ -522,7 +522,7 @@ class PlanePartition(ClonableArray):
 
     def is_CSSCPP(self):
         r"""
-        Check whether ``self`` is a cyclically symmetric and self-complementary 
+        Return whether ``self`` is a cyclically symmetric and self-complementary 
         plane partition.
 
         EXAMPLES:
@@ -540,7 +540,7 @@ class PlanePartition(ClonableArray):
 
     def is_TSSCPP(self):
         r"""
-        Check whether ``self`` is a totally symmetric self-complementary plane 
+        Return whether ``self`` is a totally symmetric self-complementary plane 
         partition.
 
         EXAMPLES:
@@ -569,8 +569,7 @@ class PlanePartitions(UniqueRepresentation,Parent):
 
     EXAMPLES:
 
-    This will create an instance to manipulate the alternating sign
-    matrices of size 3::
+    This will create an instance to manipulate the plane partitions in a 4x3x2 box::
 
         sage: P = PlanePartitions((4,3,2))
         sage: P
@@ -622,7 +621,7 @@ class PlanePartitions(UniqueRepresentation,Parent):
     def random_element(self):
         r"""
         Return a uniformly random element of ``self``. 
-        This uses the random_order_ideal method in posets.
+        This uses the {{{random_order_ideal()}}} method in posets.
 
         EXAMPLES::
 

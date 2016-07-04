@@ -40,7 +40,7 @@ ntl_patch()
     echo
     echo "Applying patches to NTL."
 
-    cd "$CUR/src/ntl"
+    cd "$CUR/src"
 
     # Apply all patches
     for patch in "$CUR"/patches/*.patch; do

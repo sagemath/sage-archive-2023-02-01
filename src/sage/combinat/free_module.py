@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Free modules
 """
@@ -28,6 +29,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.all import Category, Sets, ModulesWithBasis
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
 from sage.typeset.ascii_art import AsciiArt, empty_ascii_art
+from sage.typeset.unicode_art import UnicodeArt, empty_unicode_art
 
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
 class CombinatorialFreeModuleElement(Element):
@@ -298,6 +300,66 @@ class CombinatorialFreeModuleElement(Element):
             return "0"
         elif s == empty_ascii_art:
             return AsciiArt(["1"])
+        else:
+            return s
+
+    def _unicode_art_(self):
+        """
+        TESTS::
+
+            sage: M = QuasiSymmetricFunctions(QQ).M()
+            sage: unicode_art(M[1,1]**2)  # indirect doctest
+            6*M   + 2*M    + 2*M    + 2*M    + M
+               ┌┐      ┌┬┐       ┌┐       ┌┐     ┌┬┐
+               ├┤      ├┼┘      ┌┼┤       ├┤    ┌┼┼┘
+               ├┤      ├┤       ├┼┘      ┌┼┤    └┴┘
+               ├┤      └┘       └┘       └┴┘
+               └┘
+        """
+        from sage.misc.misc import coeff_repr
+        terms = self._sorted_items_for_printing()
+        scalar_mult = self.parent()._print_options['scalar_mult']
+        repr_monomial = self.parent()._unicode_art_term
+        strip_one = True
+
+        if repr_monomial is None:
+            repr_monomial = str
+
+        s = empty_unicode_art  # ""
+        first = True
+
+        if scalar_mult is None:
+            scalar_mult = "*"
+
+        for (monomial, c) in terms:
+            b = repr_monomial(monomial)  # PCR
+            if c != 0:
+                break_points = []
+                coeff = coeff_repr(c, False)
+                if coeff != "0":
+                    if coeff == "1":
+                        coeff = ""
+                    elif coeff == "-1":
+                        coeff = "-"
+                    elif b._l > 0:
+                        if len(coeff) > 0 and monomial == 1 and strip_one:
+                            b = empty_unicode_art  # ""
+                        else:
+                            b = UnicodeArt([scalar_mult]) + b
+                    if not first:
+                        if len(coeff) > 0 and coeff[0] == "-":
+                            coeff = " - %s" % coeff[1:]
+                        else:
+                            coeff = " + %s" % coeff
+                        break_points = [2]
+                    else:
+                        coeff = "%s" % coeff
+                s += UnicodeArt([coeff], break_points) + b
+                first = False
+        if first:
+            return "0"
+        elif s == empty_unicode_art:
+            return UnicodeArt(["1"])
         else:
             return s
 
@@ -1140,6 +1202,24 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             pass
         return IndexedGenerators._ascii_art_generator(self, m)
 
+    def _unicode_art_term(self, m):
+        r"""
+        Return an unicode art representation of the term indexed by ``m``.
+
+        TESTS::
+
+            sage: R = NonCommutativeSymmetricFunctions(QQ).R()
+            sage: unicode_art(R.one())  # indirect doctest
+            1
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        try:
+            if m == self.one_basis():
+                return UnicodeArt(["1"])
+        except Exception:
+            pass
+        return IndexedGenerators._unicode_art_generator(self, m)
+
     # mostly for backward compatibility
     @lazy_attribute
     def _element_class(self):
@@ -1365,6 +1445,11 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F.basis().keys().cardinality()
             3
 
+        Rank is available as a synonym::
+
+            sage: F.rank()
+            3
+
         ::
 
             sage: s = SymmetricFunctions(QQ).schur()
@@ -1372,6 +1457,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             +Infinity
         """
         return self._indices.cardinality()
+
+    rank = dimension
 
     def gens(self):
         """
@@ -1936,6 +2023,36 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             return rpr
 
         _ascii_art_term = _ascii_art_
+
+        def _unicode_art_(self, term):
+            """
+            TESTS::
+
+                sage: R = NonCommutativeSymmetricFunctions(QQ).R()
+                sage: Partitions.global_options(diagram_str="#", convention="french")
+                sage: unicode_art(tensor((R[1,2], R[3,1,2])))
+                R    # R
+                 ┌┐     ┌┬┬┐
+                 ├┼┐    └┴┼┤
+                 └┴┘      ├┼┐
+                          └┴┘
+            """
+            from sage.categories.tensor import tensor
+            if hasattr(self, "_print_options"):
+                symb = self._print_options['tensor_symbol']
+                if symb is None:
+                    symb = tensor.symbol
+            else:
+                symb = tensor.symbol
+            it = iter(zip(self._sets, term))
+            module, t = next(it)
+            rpr = module._unicode_art_term(t)
+            for (module, t) in it:
+                rpr += UnicodeArt([symb], [len(symb)])
+                rpr += module._unicode_art_term(t)
+            return rpr
+
+        _unicode_art_term = _unicode_art_
 
         def _latex_(self):
             """

@@ -1906,6 +1906,78 @@ class Link(object):
             regions.append(region)
         return regions
 
+    def mirror_image(self):
+        r"""
+        Return the mirror image of ``self``.
+
+        EXAMPLES::
+
+            sage: g = BraidGroup(2).gen(0)
+            sage: K = Link(g^3)
+            sage: K2 = K.mirror_image(); K2
+            Link with 1 component represented by 3 crossings
+            sage: K2.braid()
+            s^-3
+
+        .. PLOT::
+            :width: 300 px
+
+            g = BraidGroup(2).gen(0)
+            K = Link(g**3)
+            sphinx_plot(K.plot())
+
+        .. PLOT::
+            :width: 300 px
+
+            g = BraidGroup(2).gen(0)
+            K = Link(g**3)
+            sphinx_plot(K.mirror_image().plot())
+
+        ::
+
+            sage: K = Knot([[[1, -2, 3, -1, 2, -3]], [1, 1, 1]])
+            sage: K2 = K.mirror_image(); K2
+            Knot represented by 3 crossings
+            sage: K.pd_code()
+            [[4, 1, 5, 2], [2, 5, 3, 6], [6, 3, 1, 4]]
+            sage: K2.pd_code()
+            [[4, 2, 5, 1], [2, 6, 3, 5], [6, 4, 1, 3]]
+
+        .. PLOT::
+            :width: 300 px
+
+            K = Link([[[1,-2,3,-1,2,-3]],[1,1,1]])
+            sphinx_plot(K.plot())
+
+        .. PLOT::
+            :width: 300 px
+
+            K = Link([[[1,-2,3,-1,2,-3]],[1,1,1]])
+            K2 = K.mirror_image()
+            sphinx_plot(K2.plot())
+        """
+        # Use the braid information if it is the shortest version
+        #   of what we have already computed
+        if self._braid:
+            lb = len(self._braid.Tietze())
+
+            if self._pd_code:
+                lpd = len(self.pd_code())
+            else:
+                lpd = float('inf')
+
+            if self._oriented_gauss_code:
+                logc = len(self.oriented_gauss_code()[-1])
+            else:
+                logc = float('inf')
+
+            if lb <= logc and lb <= lpd:
+                return type(self)(~self._braid)
+
+        # Otherwise we fallback to the PD code
+        pd = [[a[0], a[3], a[2], a[1]] for a in self.pd_code()]
+        return type(self)(pd)
+
     def writhe(self):
         """
         Return the writhe of ``self``.

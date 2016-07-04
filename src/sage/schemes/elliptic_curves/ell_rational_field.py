@@ -49,7 +49,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
-from __future__ import print_function
+from __future__ import print_function, division
 
 import constructor
 import BSD
@@ -6092,7 +6092,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             b1_norm = R(m_LLL.row(0).norm())
 
             #compute constant c1 ~ c1_LLL of Corollary 2.3.17 and hence d(L,0)^2 ~ d_L_0
-            c1_LLL = -1
+            c1_LLL = -R.one()
             for i in range(n):
                 tmp = R(b1_norm/(m_gram.row(i).norm()))
                 if tmp > c1_LLL:
@@ -6105,10 +6105,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             #Reducing of upper bound
             Q = r * H_q**2
-            T = (1 + (3/2*r*H_q))/2
+            T = (1 + (Z(3)/2*r*H_q))/2
             if d_L_0 < R(T**2+Q):
                 d_L_0 = 10*(T**2*Q)
-            low_bound = R(((d_L_0 - Q).sqrt() - T)/c)
+            low_bound = (R(d_L_0 - Q).sqrt() - T) / c
 
             #new bound according to low_bound and upper bound
             #[c_5 exp((-c_2*H_q^2)/2)] provided by Corollary 8.7.3
@@ -6231,7 +6231,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: a=E.S_integral_points(S=[2,3], mw_base=[P1,P2,P3], verbose=True);a
             max_S: 3 len_S: 3 len_tors: 1
             lambda 0.485997517468...
-            k1,k2,k3,k4 6.68597129142710e234 1.31952866480763 3.31908110593519e9 2.42767548272846e17
+            k1,k2,k3,k4 7.65200453902598e234 1.31952866480763 3.54035317966420e9 2.42767548272846e17
             p= 2 : trying with p_prec =  30
             mw_base_p_log_val =  [2, 2, 1]
             min_psi =  2 + 2^3 + 2^6 + 2^7 + 2^8 + 2^9 + 2^11 + 2^12 + 2^13 + 2^16 + 2^17 + 2^19 + 2^20 + 2^21 + 2^23 + 2^24 + 2^28 + O(2^30)
@@ -6243,12 +6243,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             mp [5, 7]
             mw_base_p_log [[2^2 + 2^3 + 2^6 + 2^7 + 2^8 + 2^9 + 2^14 + 2^15 + 2^18 + 2^19 + 2^24 + 2^29 + O(2^30), 2^2 + 2^3 + 2^5 + 2^6 + 2^9 + 2^11 + 2^12 + 2^14 + 2^15 + 2^16 + 2^18 + 2^20 + 2^22 + 2^23 + 2^26 + 2^27 + 2^29 + O(2^30), 2 + 2^3 + 2^6 + 2^7 + 2^8 + 2^9 + 2^11 + 2^12 + 2^13 + 2^16 + 2^17 + 2^19 + 2^20 + 2^21 + 2^23 + 2^24 + 2^28 + O(2^30)], [2*3^2 + 2*3^5 + 2*3^6 + 2*3^7 + 3^8 + 3^9 + 2*3^10 + 3^12 + 2*3^14 + 3^15 + 3^17 + 2*3^19 + 2*3^23 + 3^25 + 3^28 + O(3^30), 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^6 + 2*3^7 + 2*3^8 + 3^10 + 2*3^12 + 3^13 + 2*3^14 + 3^15 + 3^18 + 3^22 + 3^25 + 2*3^26 + 3^27 + 3^28 + O(3^30), 3 + 3^2 + 2*3^3 + 3^6 + 2*3^7 + 2*3^8 + 3^9 + 2*3^11 + 2*3^12 + 2*3^13 + 3^15 + 2*3^16 + 3^18 + 2*3^19 + 2*3^22 + 2*3^23 + 2*3^24 + 2*3^27 + 3^28 + 3^29 + O(3^30)]]
             k5,k6,k7 0.321154513240... 1.55246328915... 0.161999172489...
-            initial bound 2.6227097483365...e117
+            initial bound 2.8057927340...e117
             bound_list [58, 58, 58]
             bound_list [8, 9, 9]
-            bound_list [8, 7, 7]
-            bound_list [8, 7, 7]
-            starting search of points using coefficient bound  8
+            bound_list [9, 7, 7]
+            starting search of points using coefficient bound  9
             x-coords of S-integral points via linear combination of mw_base and torsion:
             [-3, -26/9, -8159/2916, -2759/1024, -151/64, -1343/576, -2, -7/4, -1, -47/256, 0, 1/4, 4/9, 9/16, 58/81, 7/9, 6169/6561, 1, 17/16, 2, 33/16, 172/81, 9/4, 25/9, 3, 31/9, 4, 25/4, 1793/256, 8, 625/64, 11, 14, 21, 37, 52, 6142/81, 93, 4537/36, 342, 406, 816, 207331217/4096]
             starting search of extra S-integer points with absolute value bounded by 3.89321964979420
@@ -6380,7 +6379,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             m_gram = m_LLL.gram_schmidt()[0]
             b1_norm = R(m_LLL.row(0).norm())
 
-            c1_LLL = -1
+            c1_LLL = -R.one()
             for i in range(n):
                 tmp = R(b1_norm/(m_gram.row(i).norm()))
                 if tmp > c1_LLL:
@@ -6391,10 +6390,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             #Reducing of upper bound
             Q = r * H_q**2
-            T = (1 + (3/2*r*H_q))/2
+            T = (1 + (Z(3)/2*r*H_q))/2
             if d_L_0 < R(T**2+Q):
                 d_L_0 = 10*(T**2*Q)
-            low_bound = R(((d_L_0 - Q).sqrt() - T)/c)
+            low_bound = (R(d_L_0 - Q).sqrt() - T) / c
 
             ##new bound according to low_bound and upper bound
             ##[k5*k6 exp(-k7**H_q^2)]
@@ -6719,7 +6718,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             b1_norm = R(m_LLL.row(0).norm())
 
             #compute constant c1_LLL (cf. integral_points())
-            c1_LLL = -1
+            c1_LLL = -R.one()
             for i in range(n):
                 tmp = R(b1_norm/(m_gram.row(i).norm()))
                 if tmp > c1_LLL:
@@ -6730,10 +6729,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             #Reducing of upper bound
             Q = r * H_q**2
-            T = (1 + (3/2*r*H_q))/2
+            T = (1 + (Z(3)/2*r*H_q))/2
             if d_L_0 < R(T**2+Q):
                 d_L_0 = 10*(T**2*Q)
-            low_bound = R(((d_L_0 - Q).sqrt() - T)/c)
+            low_bound = (R(d_L_0 - Q).sqrt() - T) / c
 
             ##new bound according to low_bound and upper bound
             ##[k5*k6 exp(-k7**H_q^2)]

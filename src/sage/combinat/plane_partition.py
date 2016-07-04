@@ -41,7 +41,7 @@ class PlanePartition(ClonableArray):
     - ``PP`` -- a list of lists which represents a tableau.
 
     - ``box_size`` -- a list [A,B,C] of 3 positive integers (default: None)
-      If this is not given, it is determined by ``PP``.
+      If this is not given, it is determined by the smallest box bounding ``PP``.
 
     OUTPUT:
 
@@ -403,6 +403,9 @@ class PlanePartition(ClonableArray):
         r"""
         Return whether ``self`` is a symmetric plane partition.
 
+        A plane partition is symmetric if the corresponding tableau is 
+        symmetric about the diagonal.        
+
         EXAMPLES:
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
@@ -422,6 +425,9 @@ class PlanePartition(ClonableArray):
         r"""
         Return whether ``self`` is a cyclically symmetric plane partition.
 
+        A plane partition is cyclically symmetric if its x, y, and z tableaux 
+        are all equal.
+
         EXAMPLES:
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
@@ -438,6 +444,9 @@ class PlanePartition(ClonableArray):
     def is_TSPP(self):    
         r"""
         Return whether ``self`` is a totally symmetric plane partition.
+
+        A plane partition is totally symmetric if it is both symmetric and 
+        cyclically symmetric.
 
         EXAMPLES:
 

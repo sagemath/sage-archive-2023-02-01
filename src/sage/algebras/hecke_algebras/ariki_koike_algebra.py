@@ -40,23 +40,23 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
     .. MATH::
 
         \begin{aligned}
-        \prod_{i=0}^{r-1} (T_0 - u_i) & = 0, \\
-        T_i^2 & = (q - 1) T_i + q \qquad \text{for } 1 \leq i < n, \\
-        T_0 T_1 T_0 T_1 & = T_1 T_0 T_1 T_0, \\
-        T_i T_j & = T_j T_i \qquad \text{if } |i - j| \geq 2, \\
-        T_i T_{i+1} T_i = T_{i+1} T_i T_{i+1} \qquad \text{for } 1 \leq i < n.
+            \prod_{i=0}^{r-1} (T_0 - u_i) & = 0, \\
+            T_i^2 & = (q - 1) T_i + q \qquad \text{for } 1 \leq i < n, \\
+            T_0 T_1 T_0 T_1 & = T_1 T_0 T_1 T_0, \\
+            T_i T_j & = T_j T_i \qquad \text{if } |i - j| \geq 2, \\
+            T_i T_{i+1} T_i = T_{i+1} T_i T_{i+1} \qquad \text{for } 1 \leq i < n.
         \end{aligned}
 
     Thus the Ariki-Koike algebra is a deformation of the group algebra of
     the complex reflection group `G(r, 1, n) = \ZZ / r\ZZ \wr \mathfrak{S}_n`.
 
-    Next, we define Jucys-Murphy elements
+    Next, we define **Jucys-Murphy elements**
 
     .. MATH::
 
-        L_i = T_{i-1} \cdots T_1 T_0 T_1 \cdots T_{i-1}
+        L_i = q^{-1} T_{i-1} \cdots T_1 T_0 T_1 \cdots T_{i-1}
 
-    for `1 \leq i \leq n`. It was shown in [AK94]_ that `H_{r,n}(q, u)`
+    for `1 \leq i \leq n`. (Note: this It was shown in [AK94]_ that `H_{r,n}(q, u)`
     is a free `R`-module with a basis given by
 
     .. MATH::
@@ -176,7 +176,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
     @staticmethod
     def __classcall_private__(cls, r, n, q=None, u=None, R=None):
         """
-        Standardize input to ensure a unqiue representation.
+        Standardize input to ensure a unique representation.
 
         TESTS::
 
@@ -241,13 +241,13 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         self._n = n
         self._q = q
         self._u = u
+        self._zero_tuple = tuple([0] * n) # it is more efficient to copy this as we need this a lot
         self._Pn = Permutations(n)
         import itertools
         C = itertools.product(*([range(r)]*n))
         indices = list(itertools.product(C, self._Pn))
-        cat = Algebras(R).WithBasis()
         CombinatorialFreeModule.__init__(self, R, indices, prefix='T',
-                                         category=cat)
+                                         category = Algebras(R).WithBasis())
         self._assign_names(self.algebra_generators().keys())
 
     def _repr_(self):
@@ -335,16 +335,15 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
             {'T1': T[1], 'T2': T[2], 'T3': T[3]}
         """
         one = self._Pn.one()
-        zero = [0]*self._n
         d = {}
         if self._r != 1:
             for i in range(self._n):
-                r = list(zero) # Make a copy
+                r = list(self._zero_tuple) # Make a copy
                 r[i] = 1
                 d['L%s'%(i+1)] = self.monomial( (tuple(r), one) )
         G = self._Pn.group_generators()
         for i in range(1, self._n):
-            d['T%s'%i] = self.monomial( (tuple(zero), G[i]) )
+            d['T%s'%i] = self.monomial( (self._zero_tuple, G[i]) )
         return Family(sorted(d), lambda i: d[i])
 
     @cached_method
@@ -372,8 +371,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
             ((0, 0, 0), [1, 2, 3])
         """
         one = self._Pn.one()
-        zero = [0]*self._n
-        return (tuple(zero), one)
+        return (self._zero_tuple, one)
 
     def q(self):
         """
@@ -449,10 +447,10 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         G = self.algebra_generators()
         if i is None:
             if self._r == 1:
-                return [self._Li_r_power(j) for j in range(1, self._n+1)]
+                return [self._Li_power(j, 1) for j in range(1, self._n+1)]
             return [G['L%s'%j] for j in range(1, self._n+1)]
         if self._r == 1:
-            return self._Li_r_power(i)
+            return self._Li_power(i, 1)
         return G['L%s'%i]
 
     def dimension(self):
@@ -537,35 +535,67 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         """
         L1,T1 = m1
         L2,T2 = m2
+        print('Prod_on_basis: L1={}, T1={}, L2={}, T2={}'.format(L1,T1,L2,T2))
         # Product is of the form L1*T1*L2*T2
         id_perm = self._Pn.one()
+        # if T1 is trivial we just have L1*L2*T2
         # T1 is trivial, so commuting we just have L1*L2*T2
         if T1 == id_perm:
-            L = [(L1[i] + L2[i]) % self._r for i in range(self._n)]
-            # The l variables all commute, so we don't have to worry about
-            #   the order in which we multiply
-            ret = self.monomial((tuple(L), T2))
-            return prod(self._Li_r_power(i+1) for i in range(self._n)
-                        if L1[i] + L2[i] >= self._r) * ret
-        # Let T1 = T_{i_1} ... T_{i_k}. To compute the product, we do:
-        # 1 - commute T_{i_k} L2 = x.
-        # 2 - Multiply L1 * (T_{i_1} ... T_{i_{k-1}}) * x * T2
+            Lbig = list(self._zero_tuple)   # make a mutable copy
+            Lsmall = list(self._zero_tuple)
+            for i in range(self._n):
+                s=L1[i]+L2[i]
+                if s<self._r:
+                    Lsmall[i]=s
+                else:
+                    Lbig[i]=s
+            if Lbig == list(self._zero_tuple):
+                return self.monomial((tuple(Lsmall), T2))
+            else:
+                print('Lbig={}, Lsmall={}'.format(Lbig, Lsmall))
+                # The l variables all commute, so we can multiply them in any order
+                # that we like. For improved efficiency, however, we move the Ls to
+                # the left as soon as we can and we expand the big powers of the
+                # L_i's in reverse order as their expansion can increase the
+                # exponents of the smaller Li's
+                return (self.monomial((tuple(Lsmall), id_perm)) 
+                           * prod(self._Li_power(i+1, Lbig[i]) for i in range(self._n,0,-1) if Lbig[i]>0)
+                           * self.monomial((self._zero_tuple), T2))
+                        )
 
         # We have to flip the side due to Sage's multiplication
         #   convention for permutations
         if sum(L2) == 0:
-            # L2 is trivial, so we just multiply L1 * T1 * T2
+            # L2 is trivial, so we just multiply L1 * T1 * T2, although we need
+            # to be careful since L1 can contain "large" exponents
+            # If T1 = T_{i_1} ... T_{i_k} then to compute the product we:
+            #   - commute T_{i_k} L2 = x.
+            #   - Multiply L1 * (T_{i_1} ... T_{i_{k-1}}) * x * T2
+            Lbig = list(self._zero_tuple)   # make a mutable copy
+            Lsmall = list(self._zero_tuple)
+            for i in range(self._n):
+                s=L1[i]+L2[i]
+                if s<self._r:
+                    Lsmall[i]=s
+                else:
+                    Lbig[i]=s
+
             if T2 == id_perm:
-                return self.monomial((L1, T1))
+                if Lbig == list(self._zero_tuple):
+                    return self.monomial((Lsmall, T1))
+                else:
+                    return (self.monomial((tuple(Lsmall), id_perm)) 
+                             * prod(self._Li_power(i+1, Lbig[i]) for i in range(self._n,0,-1) if Lbig[i]>0)
+                           )
+
             i = T2.first_descent(side="right")
             T2p = T2.apply_simple_reflection_right(i)
-            return (self._product_basis_Ti((L1, T1), i)
-                    * self.monomial( (tuple([0]*len(L1)), T2p) ))
+            return self._product_basis_Ti((L1, T1), i) * self.monomial( (self._zero_tuple, T2p) )
 
-        i = T1.first_descent(side="left")
+        i = T1.first_descent(side="right")
         return (self.monomial((L1, T1.apply_simple_reflection_left(i)))
                 * self._product_Ti_L(i, L2)
-                * self.monomial((tuple([0]*len(L1)), T2)))
+                    * self.monomial((tuple([0]*len(L1)), T2)))
 
     def _product_Ti_L(self, i, L):
         r"""
@@ -663,7 +693,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
 
     def _product_basis_Ti(self, m, i):
         r"""
-        Return the product `l T_w T_i`.
+        Return the product `L T_w T_i`, where `m = L T_w`.
 
         If the quadratic relation is `T_i^2 = (q - 1) T_i + q`,
         then we have
@@ -671,14 +701,14 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         .. MATH::
 
             T_w T_i = \begin{cases}
-            T_{ws_i} & \text{if } \ell(ws_i) = \ell(w) + 1, \\
-            q T_{ws_i} + (q - 1) T_w & \text{if }
-            \ell(w s_i) = \ell(w) - 1.
-            \end{cases}
+                        T_{ws_i} & \text{if } \ell(ws_i) = \ell(w) + 1, \\
+                        q T_{ws_i} + (q - 1) T_w & \text{if }
+                        \ell(w s_i) = \ell(w) - 1.
+           \end{cases}
 
         INPUT:
 
-        - ``m`` -- a pair ``[t, w]``, where ``t`` encodes the monomial
+        - ``m`` -- a pair ``[L, w]``, where ``L`` encodes the monomial
           and ``w``  is an element of the permutation group
         - ``i`` -- an element of the index set
 
@@ -717,6 +747,71 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
 
         d = {(L, wi): self._q, (L, w): self._q - self.base_ring().one()}
         return self._from_dict(d, remove_zeros=False)
+
+    @cached_method
+    def _Li_power(self, i, m):
+        """
+        Return `L_i^m`, where `m\ge r`.
+
+
+        To compute `L_i^m` we use Corollary 3.4 of [MM98]_ which says that
+
+        .. MATH::
+
+            L_i^k = q^{-1}T_{i-1}L_i^kT_{i-1} + (q-q^{-1})\sum_{c=1}^{m-1} L_I^cL_{i-1}^{m-c} T_{i-1}
+
+        EXAMPLES::
+
+            sage: H = algebras.ArikiKoike(3, 3)
+            sage: for i in range(1,4): H._Li_r_power(i)
+            u0*u1*u2 + ((-u0*u1-u0*u2-u1*u2))*L1 + ((u0+u1+u2))*L1^2
+            u0*u1*u2*q^3 + (-u0*u1*u2*q^2+u0*u1*u2*q^3)*T[1]
+             + ((-u0*u1-u0*u2-u1*u2)*q^2)*L2 + ((u0+u1+u2)*q)*L2^2
+             + ((u0+u1+u2)*q+(-u0-u1-u2)*q^2)*L1*L2*T[1]
+             - (1-q)*L1*L2^2*T[1] - (q-q^2)*L1^2*L2*T[1]
+            u0*u1*u2*q^6 + (-u0*u1*u2*q^5+u0*u1*u2*q^6)*T[2]
+             + (-u0*u1*u2*q^4+u0*u1*u2*q^5)*T[2,1,2]
+             + ((-u0*u1-u0*u2-u1*u2)*q^4)*L3 + ((u0+u1+u2)*q^2)*L3^2
+             + ((u0+u1+u2)*q^2+(-u0-u1-u2)*q^3)*L2*L3*T[2]
+             - (1-q)*L2*L3^2*T[2] - (q-q^2)*L2^2*L3*T[2]
+             + ((u0+u1+u2)*q^2+(-2*u0-2*u1-2*u2)*q^3+(u0+u1+u2)*q^4)*L1*L3*T[1,2]
+             + ((u0+u1+u2)*q^2+(-u0-u1-u2)*q^3)*L1*L3*T[2,1,2]
+             - (1-2*q+q^2)*L1*L3^2*T[1,2] - (1-q)*L1*L3^2*T[2,1,2]
+             - (q-2*q^2+q^3)*L1*L2*L3*T[1,2] - (q^2-2*q^3+q^4)*L1^2*L3*T[1,2]
+             - (q^2-q^3)*L1^2*L3*T[2,1,2]
+        """
+        print('Powering up with i={} and m={}: r={} and n={}'.format(i,m, self._r, self._n))
+        one = self._Pn.one()
+        # shorthand for returning a tuple of the form (0,...,a,b,...,0) with a,b
+        # in the (i-1)th and i-th positions, respectively
+        Ltuple = lambda a, b: tuple([b if j == i else a if j == i-1 else 0 for j in range(1,self._n+1)])
+
+        # return "small" powers of the generators without change
+        if m < self._r:
+            print 'm<self_r'
+            return self.monomial( (Ltuple(0,m), one) )
+
+        L = lambda exp: tuple([exp if j == i else 0 for j in range(1, self._n+1)])
+        if i > 1:
+            print 'i > 1'
+            si  = self._Pn.group_generators()[i]
+            qsum = self._q-self._q**-1
+            # by calling _Li_power we avoid infinite recursion here
+            print 'i-1: ',self.sum_of_terms( ((Ltuple(c,m-c), si), qsum) for c in range(1,m) ) 
+            return ( self.sum_of_terms( ((Ltuple(c,m-c), si), qsum) for c in range(1,m) )
+                      + self._q**-1 * self.T(i-1) * self._Li_power(i-1,m) * self.T(i-1) )
+
+        # now left with the case i = 1 and m >= r
+        if m > self._r:
+            print 'm > r'
+            return self.monomial((Ltuple(0,1),one)) * self._Li_power(i,m-1)
+
+        print 'i=1, m=2!'
+        z = PolynomialRing(self.base_ring(), 'DUMMY').gen()
+        p = list(prod(z - val for val in self._u))[:-1]
+        zero = self.base_ring().zero()
+        return self._from_dict({(Ltuple(0,exp), one): -coeff for exp,coeff in enumerate(p) if coeff != zero},
+                               remove_zeros=False)
 
     @cached_method
     def _Li_r_power(self, i):

@@ -809,7 +809,7 @@ def cusps_from_mat(g):
     return ac, bd
 
 
-def ps_modsym_from_elliptic_curve(E, sign = 0, use_eclib=True):
+def ps_modsym_from_elliptic_curve(E, sign = 0, implementation='eclib'):
     r"""
     Return the overconvergent modular symbol associated to
     an elliptic curve defined over the rationals.
@@ -822,8 +822,9 @@ def ps_modsym_from_elliptic_curve(E, sign = 0, use_eclib=True):
       the plus (if ``sign`` == 1) or the minus (if ``sign`` == -1) modular
       symbol. The default of 0 returns the sum of the plus and minus symbols.
 
-    - ``use_eclib`` -- whether the underlying modular symbols are
-      computed using eclib (default) instead of sage
+    - ``implementation`` --  either 'eclib' (default) or 'sage'. This 
+      determines which implementation of the underlying classical
+      modular symbols is used.
 
     OUTPUT:
 
@@ -855,9 +856,9 @@ def ps_modsym_from_elliptic_curve(E, sign = 0, use_eclib=True):
     manin = V.source()
     # currently this uses eclib and the normalization given by 'L_ratio' in modular_symbol
     if sign >= 0:
-        plus_sym = E.modular_symbol(sign=1, use_eclib=use_eclib)
+        plus_sym = E.modular_symbol(sign=1, implementation=implementation)
     if sign <= 0:
-        minus_sym = E.modular_symbol(sign=-1, use_eclib=False)
+        minus_sym = E.modular_symbol(sign=-1, implementation='sage')
     val = {}
     for g in manin.gens():
         ac, bd = cusps_from_mat(g)

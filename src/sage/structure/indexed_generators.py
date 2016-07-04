@@ -363,7 +363,7 @@ class IndexedGenerators(object):
              ##
               ##
                ####
-            sage: Partitions.global_options.reset()
+            sage: Partitions.options._reset()
         """
         from sage.typeset.ascii_art import AsciiArt, ascii_art
         pref = AsciiArt([self.prefix()])
@@ -385,7 +385,7 @@ class IndexedGenerators(object):
              ┌┼┼┘
              ├┼┘
              └┘
-            sage: Partitions.global_options(convention="french")
+            sage: Partitions.options.convention="french"
             sage: unicode_art(R[1,2,2,4])
             R
              ┌┐
@@ -393,7 +393,7 @@ class IndexedGenerators(object):
              └┼┼┐
               └┼┼┬┬┐
                └┴┴┴┘
-            sage: Partitions.global_options.reset()
+            sage: Partitions.options._reset()
         """
         from sage.typeset.unicode_art import UnicodeArt, unicode_art
         pref = UnicodeArt([self.prefix()])

@@ -741,6 +741,9 @@ def implicit_plot(f, xrange, yrange, **options):
     if 'color' in options:
         options['cmap']=[options.pop('color', None)]
 
+    if 'rgbcolor' in options:
+        options['cmap']=[rgbcolor(options.pop('rgbcolor', None))]
+
     if options['fill'] is True:
         options.pop('fill')
         options.pop('contours',None)

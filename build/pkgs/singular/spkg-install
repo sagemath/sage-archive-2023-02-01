@@ -89,7 +89,7 @@ fi
 export MAKE="$MAKE -j1"
 
 # Workaround for GCC6: https://trac.sagemath.org/ticket/20926
-export CXXFLAGS="$CXXFLAGS -fno-strict-overflow"
+export CXXFLAGS="$CXXFLAGS -fno-delete-null-pointer-checks -fno-strict-overflow"
 
 choose_patches()
 {

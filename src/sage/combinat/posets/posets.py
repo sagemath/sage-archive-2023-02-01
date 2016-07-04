@@ -193,6 +193,7 @@ List of Poset methods
     :widths: 30, 70
     :delim: |
 
+    :meth:`~FinitePoset.sorted` | Return given list sorted by the poset.
     :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to another poset.
     :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to another poset.
     :meth:`~FinitePoset.has_isomorphic_subposet` | Return ``True`` if the poset contains a subposet isomorphic to another poset.
@@ -1368,6 +1369,59 @@ class FinitePoset(UniqueRepresentation, Parent):
             [0, 1, 2, 3, 4]
         """
         return iter(self._list)
+
+    def sorted(self, l, allow_incomparable=True, remove_duplicates=False):
+        """
+        Return the list `l` sorted by the poset.
+
+        INPUT:
+
+        - ``l`` -- a list of elements of the poset
+        - ``allow_incomparable`` -- a Boolean. If ``True`` (the default),
+          return incomparable elements in some order; if ``False``, raise
+          an error if ``l`` is not a chain of the poset.
+        - ``remove_duplicates`` - a Boolean. If ``True``, remove duplicates
+          from the output list.
+
+        EXAMPLES::
+
+            sage: P = Poset({7:[1, 5], 1:[2, 6], 5:[3], 6:[3, 4]})
+            sage: P.sorted([4, 1, 4, 5, 7])  # Random order for 1 and 5
+            [7, 1, 5, 4, 4]
+            sage: P.sorted([1, 4, 4, 7], remove_duplicates=True)
+            [7, 1, 4]
+            sage: P.sorted([4, 1, 4, 5, 7], allow_incomparable=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: the list contains incomparable elements
+
+        TESTS::
+
+            sage: P = Posets.PentagonPoset()
+            sage: P.sorted([], allow_incomparable=True, remove_duplicates=True)
+            []
+            sage: P.sorted([], allow_incomparable=False, remove_duplicates=True)
+            []
+            sage: P.sorted([], allow_incomparable=True, remove_duplicates=False)
+            []
+            sage: P.sorted([], allow_incomparable=False, remove_duplicates=False)
+            []
+        """
+        from sage.misc.misc import uniq
+
+        v = [self._element_to_vertex(x) for x in l]
+
+        if remove_duplicates:
+            o = uniq(v)
+        else:
+            o = sorted(v)
+
+        if not allow_incomparable:
+            H = self._hasse_diagram
+            if not all(H.is_lequal(a, b) for a, b in zip(o, o[1:])):
+                raise ValueError('the list contains incomparable elements')
+
+        return [self._vertex_to_element(x) for x in o]
 
     def linear_extension(self, linear_extension=None, check=True):
         """

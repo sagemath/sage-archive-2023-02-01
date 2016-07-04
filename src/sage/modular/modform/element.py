@@ -576,7 +576,7 @@ class ModularForm_abstract(ModuleElement):
         linear combinations of the real and the imaginary period of `E`::
 
             sage: s = E.modular_symbol(sign=+1)
-            sage: t = E.modular_symbol(sign=-1)
+            sage: t = E.modular_symbol(sign=-1, implementation="sage")
             sage: s(3/11), t(3/11)
             (1/10, 1/2)
             sage: s(3/11)*omega1 + t(3/11)*2*omega2.imag()*I
@@ -595,7 +595,7 @@ class ModularForm_abstract(ModuleElement):
 
         REFERENCE:
 
-        .. [Cremona] \J. E. Cremona, Algorithms for Modular Elliptic
+        .. [Cremona] J. E. Cremona, Algorithms for Modular Elliptic
            Curves.  Cambridge University Press, 1997.
 
         TESTS::

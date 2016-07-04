@@ -14,6 +14,21 @@ The normalisation of our modular symbols attached to `E` can be chosen, too.
 For instance one can make it depended on `E` rather than on its
 isogeny class. This is useful for `p`-adic L-functions.
 
+EXAMPLES::
+
+    sage: E = EllipticCurve("19a1")
+    sage: m = E.modular_symbol()
+    sage: m(0)
+    1/3
+    sage: m(1/17)
+    -2/3
+    sage: m2 = E.modular_symbol(-1, implementation="sage")
+    sage: m2(0)
+    0
+    sage: m2(1/5)
+    1/2
+
+
 For more details on modular symbols consult the following
 
 REFERENCES:
@@ -386,20 +401,21 @@ class ModularSymbol(SageObject):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('11a1')
+            sage: E = EllipticCurve('19a1')
             sage: m = E.modular_symbol(sign=+1)
             sage: m.__scale_by_periods_only__()
             Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
             sage: m._scaling
             1
 
-            sage: E = EllipticCurve('11a3')
+            sage: E = EllipticCurve('19a2')
             sage: m = E.modular_symbol(sign=+1)
+            sage: m._scaling
+            3/2
             sage: m.__scale_by_periods_only__()
             Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
             sage: m._scaling
-            1/5
-
+            3
         """
         # we only do this inside the cremona-tables.
         try :

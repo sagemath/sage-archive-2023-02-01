@@ -44,12 +44,17 @@ from sage.misc.all import add, sage_eval
 from sage.rings.all import degree_lowest_rational_function
 from sage.schemes.affine.affine_space import AffineSpace
 
+import point
+
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
 from sage.schemes.projective.projective_space import is_ProjectiveSpace
 
 from curve import Curve_generic
 
 class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
+
+    _point = point.ProjectiveCurvePoint_field
+
     def _repr_type(self):
         r"""
         Return a string representation of the type of this curve.
@@ -265,6 +270,9 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         return len(self.ambient_space().gens()) - len(I.sage().gens()) == L[-1]
 
 class ProjectivePlaneCurve(ProjectiveCurve):
+
+    _point = point.ProjectivePlaneCurvePoint_field
+
     def __init__(self, A, f):
         r"""
         Initialization function.
@@ -774,6 +782,9 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         return not self.tangents(P)[0] == C.tangents(P)[0]
 
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
+
+    _point = point.ProjectivePlaneCurvePoint_finite_field
+
     def rational_points_iterator(self):
         r"""
         Return a generator object for the rational points on this curve.

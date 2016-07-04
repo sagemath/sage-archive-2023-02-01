@@ -725,10 +725,16 @@ def implicit_plot(f, xrange, yrange, **options):
     TESTS::
 
         sage: f(x,y) = x^2 + y^2 - 2
-        sage: implicit_plot(f, (-3, 3), (-3, 3),fill=5)
+        sage: implicit_plot(f, (-3, 3), (-3, 3), fill=5)
         Traceback (most recent call last):
         ...
         ValueError: fill=5 is not supported
+
+    To check that :trac:`9654` is fixed::
+
+        sage: f(x,y) = x^2 + y^2 - 2
+        sage: implicit_plot(f, (-3, 3), (-3, 3), rgbcolor=(1,0,0))
+        Graphics object consisting of 1 graphics primitive
     """
     from sage.symbolic.expression import is_SymbolicEquation
     if is_SymbolicEquation(f):

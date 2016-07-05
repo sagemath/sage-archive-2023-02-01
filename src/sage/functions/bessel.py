@@ -1530,6 +1530,8 @@ class SphericalBesselJ(BuiltinFunction):
         0.152051648665037
         sage: spherical_bessel_J(3, 3.)
         0.152051662030533
+        sage: spherical_bessel_J(2.,3.)      # rel tol 1e-10
+        0.2986374970757335
         sage: spherical_bessel_J(4, x).simplify()
         -((45/x^2 - 105/x^4 - 1)*sin(x) + 5*(21/x^2 - 2)*cos(x)/x)/x
         sage: integrate(spherical_bessel_J(1,x)^2,(x,0,oo))
@@ -1820,6 +1822,10 @@ class SphericalHankel2(BuiltinFunction):
         0.0998874108557565 + 0.479149050937147*I
         sage: spherical_hankel2(1, x).simplify()
         -(x - I)*e^(-I*x)/x^2
+        sage: spherical_hankel2(2,i).simplify()
+        -e
+        sage: spherical_hankel2(2,x).simplify()
+        (-I*x^2 - 3*x + 3*I)*e^(-I*x)/x^3
         sage: spherical_hankel2(3 + 2*I, 5 - 0.2*I)
         0.0217627632692163 + 0.0224001906110906*I
         sage: integrate(spherical_hankel2(3, x), x)

@@ -197,6 +197,33 @@ class Jacobi(BuiltinFunction):
 
     def _eval_(self, x, m):
         r"""
+        EXAMPLES::
+
+            sage: jacobi_sn(1,1)
+            tanh(1)
+            sage: jacobi_sn(1/2,1/2)
+            jacobi_sn(1/2, 1/2)
+            sage: jacobi_sn(1/2,1/2).n()
+            0.470750473655657
+            sage: jacobi_sn(1/2,1/2).n(20)
+            0.47075
+            sage: jacobi_sn(1/2, 1/2).n(150)
+            0.47075047365565728333239188829218118473995953
+            sage: jacobi_sn._evalf_(1/2, 1/2, parent=complex)
+            (0.4707504736556573+0j)
+            sage: jacobi_sn._evalf_(1/2, 1/2, parent=RDF)
+            0.4707504736556573
+            sage: jacobi_sn._evalf_(1/2, 1/2, parent=CDF)
+            0.4707504736556573
+            sage: jacobi_sn(1, I).n()
+            0.848379519751901 - 0.0742924572771414*I
+            sage: jacobi_sn._evalf_(1/2, I, parent=CDF)
+            0.4793467849299404 - 0.017393558099789395*I
+            sage: jacobi_sn._evalf_(1/2, I, parent=RR) # known bug
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert...
+
         TESTS:
 
         Check that the simplifications are correct::

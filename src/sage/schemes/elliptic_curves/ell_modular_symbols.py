@@ -1,18 +1,35 @@
 # -*- coding: utf-8 -*-
 r"""
-Modular symbols
+Modular symbols attached to an elliptic curve
 
 To an elliptic curves `E` over the rational numbers one can associate
-a space - or better two spaces - of modular symbols of level `N`,
+a space of modular symbols of level `N`,
 equal to the conductor of `E`; because `E` is known to be modular.
+The space is two-dimensional and contains a subspace on which complex
+conjugation acts like `+1` and one on which it acts by `-1`.
 
 There are two implementations of modular symbols, one within ``sage``
 and the other as part of Cremona's ``eclib``. One can choose here which
 one is used.
 
-The normalisation of our modular symbols attached to `E` can be chosen, too.
-For instance one can make it depended on `E` rather than on its
-isogeny class. This is useful for `p`-adic L-functions.
+Associated to `E` there is a canonical generator in each space. They are maps
+`[.]^+` and `[.]^{-}`, both `\QQ \to\QQ`. They are normalised such that
+
+.. math::
+
+   [r]^{+} \Omega^{+} + [r]^{-}\Omega^{-}  = \int_{\infty}^r 2\pi i f(z) dz
+
+where `f` is the newform associated to the isogeny class of `E` and
+`\Omega^{+}` is the smallest positive period of the Néron differential
+of `E` and `\Omega^{-}` is the smallest positive purely imaginary
+period. Note that it depends on `E` rather than on its
+isogeny class.
+
+The computation of the space provides first generators, but they are not
+necessarily correctly normalised. There are two methods that try to
+find the correct scaling factor.
+
+Modular symbols are used to compute `p`-adic `L`-functions.
 
 EXAMPLES::
 
@@ -28,6 +45,11 @@ EXAMPLES::
     sage: m2(1/5)
     1/2
 
+    sage: V = E.modular_symbol_space()
+    sage: V
+    Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(19) of weight 2 with sign 1 over Rational Field
+    sage: V.q_eigenform(30)
+    q - 2*q^3 - 2*q^4 + 3*q^5 - q^7 + q^9 + 3*q^11 + 4*q^12 - 4*q^13 - 6*q^15 + 4*q^16 - 3*q^17 + q^19 - 6*q^20 + 2*q^21 + 4*q^25 + 4*q^27 + 2*q^28 + 6*q^29 + O(q^30)
 
 For more details on modular symbols consult the following
 
@@ -40,8 +62,9 @@ REFERENCES:
 - [Cre] John Cremona, Algorithms for modular elliptic curves,
   Cambridge University Press, 1997.
 
-- [SW] William Stein and Christian Wuthrich, Computations About Tate-Shafarevich Groups
-  using Iwasawa theory, preprint 2009.
+- [SW] William Stein and Christian Wuthrich, Algorithms for the
+  Arithmetic of Elliptic Curves using Iwasawa Theory, Mathematics
+  of Computation 82 (2013), 1757-1792.
 
 AUTHORS:
 
@@ -92,12 +115,12 @@ def modular_symbol_space(E, sign, base_ring, bound=None):
 
     INPUT:
 
-     - ``E`` - an elliptic curve over `\QQ`
-     - ``sign`` - integer, -1, 0, or 1
-     - ``base_ring`` - ring
-     - ``bound`` - (default: None) maximum number of Hecke operators to
-       use to cut out modular symbols factor.  If None, use
-       enough to provably get the correct answer.
+    - ``E`` - an elliptic curve over `\QQ`
+    - ``sign`` - integer, -1, 0, or 1
+    - ``base_ring`` - ring
+    - ``bound`` - (default: None) maximum number of Hecke operators to
+      use to cut out modular symbols factor.  If None, use
+      enough to provably get the correct answer.
 
     OUTPUT: a space of modular symbols
 

@@ -571,7 +571,7 @@ class ModularForm_abstract(ModuleElement):
 
         The elliptic curve `E` has a pair of modular symbols attached
         to it, which can be computed using the method
-        `:meth:~sage.schemes.elliptic_curves.ell_rational_field.EllipticCurve_rational_field.modular_symbol`.
+        :meth:`sage.schemes.elliptic_curves.ell_rational_field.EllipticCurve_rational_field.modular_symbol`.
         These can be used to express the periods of `f` as exact
         linear combinations of the real and the imaginary period of `E`::
 

@@ -36,6 +36,7 @@ AUTHORS:
 
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
+from copy import copy
 from sage.interfaces.all import singular
 import sage.libs.singular
 
@@ -44,6 +45,7 @@ from sage.misc.all import add
 from sage.rings.all import degree_lowest_rational_function
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.qqbar import QQbar
 
 from sage.schemes.affine.affine_space import is_AffineSpace
 
@@ -537,7 +539,7 @@ class AffinePlaneCurve(AffineCurve):
         # nonzero terms
         return min([g.degree() for g in f.monomials()])
 
-    def tangents(self, P, full=False):
+    def tangents(self, P):
         r"""
         Return the tangents of this affine plane curve at the point ``P``.
 
@@ -547,14 +549,24 @@ class AffinePlaneCurve(AffineCurve):
 
         - ``P`` -- a point on this curve.
 
-        - ``full`` -- (default: False) whether to attempt factoring over the algebraic closure of the base field
-          of this curve.
-
         OUTPUT:
 
         - a list of polynomials in the coordinate ring of the ambient space of this curve.
 
         EXAMPLES::
+
+            sage: set_verbose(-1)
+            sage: A.<x,y> = AffineSpace(QQbar, 2)
+            sage: C = Curve([x^5*y^3 + 2*x^4*y^4 + x^3*y^5 + 3*x^4*y^3 + 6*x^3*y^4 + 3*x^2*y^5\
+            + 3*x^3*y^3 + 6*x^2*y^4 + 3*x*y^5 + x^5 + 10*x^4*y + 40*x^3*y^2 + 81*x^2*y^3 + 82*x*y^4\
+            + 33*y^5], A)
+            sage: Q = A([0,0])
+            sage: C.tangents(Q)
+            [x + 3.425299577684700?*y, x + (1.949159013086856? + 1.179307909383728?*I)*y,
+            x + (1.949159013086856? - 1.179307909383728?*I)*y, x + (1.338191198070795? + 0.2560234251008043?*I)*y,
+            x + (1.338191198070795? - 0.2560234251008043?*I)*y]
+
+        ::
 
             sage: R.<a> = QQ[]
             sage: K.<b> = NumberField(a^2 - 3)
@@ -584,26 +596,32 @@ class AffinePlaneCurve(AffineCurve):
             Rational Field defined by -x^4 + 2*x^2 + x*y)
         """
         r = self.multiplicity(P)
-        f = self.defining_polynomials()[0]
+        f = self.defining_polynomial()
+        # move P to (0,0)
         vars = self.ambient_space().gens()
-        deriv = [f.derivative(vars[0],i).derivative(vars[1],r-i)(list(P)) for i in range(r+1)]
+        coords = [vars[0] + P[0], vars[1] + P[1]]
+        f = f(coords)
+        coords = [vars[0] - P[0], vars[1] - P[1]] # coords to change back with
+        deriv = [f.derivative(vars[0],i).derivative(vars[1],r-i)([0,0]) for i in range(r+1)]
         from sage.arith.misc import binomial
-        T = sum([binomial(r,i)*deriv[i]*(vars[0] - P[0])**i*(vars[1] - P[1])**(r-i) for i in range(r+1)])
-        if full:
-            R = T.parent()
-            d = T.degree(R.gens()[0]) + 1
-            roots = T(R.gens()[0], R.gens()[0]**d).univariate_polynomial().roots(ring=QQbar)
-            L = [roots[i][0] for i in range(len(roots))]
-            from sage.rings.qqbar import number_field_elements_from_algebraics
-            K = number_field_elements_from_algebraics(L)[0]
-            polyK = R.change_ring(base_ring=K)
-            f = polyK(T)
-            fact = f.factor()
+        T = sum([binomial(r,i)*deriv[i]*(vars[0])**i*(vars[1])**(r-i) for i in range(r+1)])
+        if self.base_ring() == QQbar:
+            # T is homogeneous in var[0], var[1], so dehomogenize
+            if T.degree(vars[0]) > 0:
+                T = T(vars[0], 1)
+                roots = T.univariate_polynomial().roots()
+                fact = [vars[0] - roots[i][0]*vars[1] for i in range(len(roots))]
+            else:
+                T = T(1, vars[1])
+                roots = T.univariate_polynomial().roots()
+                fact = [vars[1] - roots[i][0]*vars[0] for i in range(len(roots))]
+            # move (0,0) to P
+            return [f(coords) for f in fact]
         else:
             fact = T.factor()
-        return [l[0] for l in fact]
+            return [l[0](coords) for l in fact]
 
-    def is_ordinary_singularity(self, P, full=False):
+    def is_ordinary_singularity(self, P):
         r"""
         Return whether the singular point ``P`` of this affine plane curve is an ordinary singularity.
 
@@ -613,9 +631,6 @@ class AffinePlaneCurve(AffineCurve):
         INPUT:
 
         - ``P`` -- a point on this curve.
-
-        - ``full`` -- (default: False) whether to attempt factoring over the algebraic closure of the base field
-          of this curve.
 
         OUTPUT:
 
@@ -655,7 +670,7 @@ class AffinePlaneCurve(AffineCurve):
         if r < 2:
             raise TypeError("(=%s) is not a singular point of (=%s)"%(P,self))
 
-        T = self.tangents(P, full)
+        T = self.tangents(P)
 
         # when there is a tangent of higher multiplicity
         if len(T) < r:

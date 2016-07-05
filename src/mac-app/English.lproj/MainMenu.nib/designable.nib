@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9532" systemVersion="15D21" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="10116" systemVersion="15E65" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9532"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="10116"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="NSApplication">
@@ -181,8 +181,7 @@
                                     <action selector="paste:" target="-1" id="226"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Paste and Match Style" keyEquivalent="V" id="470">
-                                <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+                            <menuItem title="Paste and Match Style" keyEquivalent="v" id="470">
                                 <connections>
                                     <action selector="pasteAsPlainText:" target="-1" id="471"/>
                                 </connections>
@@ -336,18 +335,55 @@
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="1110"/>
-                            <menuItem title="Start Server" id="1107">
+                            <menuItem title="Start SageNB Server" id="1107">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="startServer:" target="578" id="1235"/>
+                                    <binding destination="762" name="hidden" keyPath="values.preferSageNB" id="bie-kj-02W">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                        </dictionary>
+                                    </binding>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Stop Server" id="1114">
+                            <menuItem title="Stop SageNB Server" id="1114">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="stopServer:" target="578" id="1205"/>
+                                    <binding destination="762" name="hidden" keyPath="values.preferSageNB" id="FUK-bE-9Pi">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                        </dictionary>
+                                    </binding>
                                 </connections>
                             </menuItem>
+                            <menuItem title="Start Jupyter" tag="1" id="FS5-eB-l73">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="startJupyter:" target="578" id="8qD-js-zGh"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Stop Jupyter" tag="1" id="FsC-It-kru">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="stopJupyter:" target="578" id="qsT-zQ-RyH"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Start SageNB Server" id="Wlz-zK-2Hm">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="startServer:" target="578" id="VYW-ER-kfD"/>
+                                    <binding destination="762" name="hidden" keyPath="values.preferSageNB" id="mhU-Tb-Ve8"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Stop SageNB Server" id="AYG-Vg-Q08">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="stopServer:" target="578" id="980-d9-j3i"/>
+                                    <binding destination="762" name="hidden" keyPath="values.preferSageNB" id="snT-Kr-otq"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="Ahu-nZ-fun"/>
                             <menuItem title="View Log" id="1679">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
@@ -567,7 +603,8 @@
                                     <action selector="performMiniaturize:" target="-1" id="37"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Zoom" id="239">
+                            <menuItem title="Zoom" keyEquivalent="=" id="239">
+                                <modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
                                 <connections>
                                     <action selector="performZoom:" target="-1" id="240"/>
                                 </connections>
@@ -683,7 +720,7 @@
                             <tabViewItem label="General" identifier="1" id="1674">
                                 <view key="view" id="1677">
                                     <rect key="frame" x="10" y="33" width="402" height="325"/>
-                                    <autoresizingMask key="autoresizingMask"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <button id="547">
                                             <rect key="frame" x="32" y="266" width="289" height="18"/>
@@ -808,7 +845,7 @@ Tip: Dragging a file to the Sage Executable text box will paste the path.</strin
                                             </connections>
                                         </textField>
                                         <button id="1694">
-                                            <rect key="frame" x="15" y="226" width="227" height="18"/>
+                                            <rect key="frame" x="15" y="226" width="230" height="18"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                             <buttonCell key="cell" type="check" title="Respect SAGE_BROWSER (slower)" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="1695">
                                                 <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -938,6 +975,69 @@ Tip: Dragging a file to the Sage Executable text box will paste the path.</strin
                                     </subviews>
                                 </view>
                             </tabViewItem>
+                            <tabViewItem label="Notebook" identifier="2" id="0ig-FD-Baa">
+                                <view key="view" id="wee-2t-ih0">
+                                    <rect key="frame" x="10" y="33" width="402" height="325"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <button id="teI-Km-bmZ">
+                                            <rect key="frame" x="15" y="300" width="219" height="18"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                            <buttonCell key="cell" type="check" title="Prefer Legacy SageNB notebook" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="eS1-lA-fQw">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <binding destination="762" name="value" keyPath="values.preferSageNB" id="cO2-vH-9lL"/>
+                                            </connections>
+                                        </button>
+                                        <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" id="Dsh-yH-fPA">
+                                            <rect key="frame" x="15" y="17" width="372" height="204"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" sendsActionOnEndEditing="YES" id="JX2-rS-UYJ">
+                                                <font key="font" metaFont="system"/>
+                                                <string key="title">Modern Sage has 3 notebook interfaces.  All three offer slightly different user experiences and there are some incompatibilities between them (e.g. interacts).
+
+1. SageNB.  These are the old notebooks of which you may have many.  Development of this interface has stalled.
+
+2. Jupyter.  This is the successor of IPython and is intended to be the successor of SageNB on the desktop.
+
+3. SageMathCloud.  This is (currently) a cloud-only offering, and hence not available on the desktop.</string>
+                                                <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField verticalHuggingPriority="750" id="Uy7-pD-nml">
+                                            <rect key="frame" x="35" y="247" width="350" height="22"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" title="~/Documents/Sage/" drawsBackground="YES" id="vMS-Xp-33c">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                            <connections>
+                                                <binding destination="762" name="value" keyPath="values.defaultJupyterPath" id="iid-hK-CXC">
+                                                    <dictionary key="options">
+                                                        <bool key="NSContinuouslyUpdatesValue" value="YES"/>
+                                                        <string key="NSNoSelectionPlaceholder">ns placeholder</string>
+                                                        <bool key="NSRaisesForNotApplicableKeys" value="NO"/>
+                                                    </dictionary>
+                                                </binding>
+                                                <outlet property="delegate" destination="572" id="xRr-SD-bvb"/>
+                                            </connections>
+                                        </textField>
+                                        <textField verticalHuggingPriority="750" id="DwU-UV-q0A">
+                                            <rect key="frame" x="15" y="277" width="132" height="17"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Default Jupyter Path:" id="ztB-Ef-xRp">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                    </subviews>
+                                </view>
+                            </tabViewItem>
                         </tabViewItems>
                     </tabView>
                 </subviews>
@@ -945,6 +1045,7 @@ Tip: Dragging a file to the Sage Executable text box will paste the path.</strin
             <connections>
                 <outlet property="delegate" destination="572" id="751"/>
             </connections>
+            <point key="canvasLocation" x="191" y="332.5"/>
         </window>
         <customObject id="572" customClass="PreferencePanelController">
             <connections>
@@ -1081,16 +1182,52 @@ Tip: Dragging a file to the Sage Executable text box will paste the path.</strin
                     </connections>
                 </menuItem>
                 <menuItem isSeparatorItem="YES" id="589"/>
-                <menuItem title="Start Sage Server" id="592">
+                <menuItem title="Start SageNB Server" id="6l6-Zi-y2l">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
-                        <action selector="startServer:" target="578" id="664"/>
+                        <action selector="startServer:" target="578" id="sxG-UP-VHm"/>
+                        <binding destination="762" name="hidden" keyPath="values.preferSageNB" id="Quk-Dm-YwV">
+                            <dictionary key="options">
+                                <string key="NSValueTransformerName">NSNegateBoolean</string>
+                            </dictionary>
+                        </binding>
                     </connections>
                 </menuItem>
-                <menuItem title="Stop Sage Server" id="585">
+                <menuItem title="Stop SageNB Server" id="upa-t5-N40">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
-                        <action selector="stopServer:" target="578" id="665"/>
+                        <action selector="stopServer:" target="578" id="1aS-1V-S12"/>
+                        <binding destination="762" name="hidden" keyPath="values.preferSageNB" id="ASe-rZ-hxs">
+                            <dictionary key="options">
+                                <string key="NSValueTransformerName">NSNegateBoolean</string>
+                            </dictionary>
+                        </binding>
+                    </connections>
+                </menuItem>
+                <menuItem title="Start Jupyter" tag="1" id="KNN-bb-0Gm">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="startJupyter:" target="578" id="KVw-0s-91A"/>
+                    </connections>
+                </menuItem>
+                <menuItem title="Stop Jupyter" state="on" tag="1" id="wZw-fz-7NL">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="stopJupyter:" target="578" id="JzO-mW-VOd"/>
+                    </connections>
+                </menuItem>
+                <menuItem title="Start SageNB Server" id="lI9-xc-Hft">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="startServer:" target="578" id="Elv-JO-Cw5"/>
+                        <binding destination="762" name="hidden" keyPath="values.preferSageNB" id="r3D-bf-qiH"/>
+                    </connections>
+                </menuItem>
+                <menuItem title="Stop SageNB Server" id="GkV-8j-u4b">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="stopServer:" target="578" id="YJC-y5-Ry1"/>
+                        <binding destination="762" name="hidden" keyPath="values.preferSageNB" id="QVY-Xh-soW"/>
                     </connections>
                 </menuItem>
                 <menuItem title="View Log" id="1685">
@@ -1293,6 +1430,7 @@ Tip: Dragging a file to the Sage Executable text box will paste the path.</strin
                     </connections>
                 </menuItem>
             </items>
+            <point key="canvasLocation" x="839.5" y="-64.5"/>
         </menu>
         <userDefaultsController representsSharedInstance="YES" id="762"/>
         <window title="Sage Input" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hidesOnDeactivate="YES" oneShot="NO" showsToolbarButton="NO" visibleAtLaunch="NO" animationBehavior="default" id="1293" userLabel="inputPanel" customClass="NSPanel">
@@ -1369,5 +1507,11 @@ The command will be run as
                 <outlet property="window" destination="1293" id="1309"/>
             </connections>
         </customObject>
+        <menuItem title="Start Server" id="pMs-5v-y88">
+            <modifierMask key="keyEquivalentModifierMask"/>
+            <connections>
+                <action selector="startServer:" target="578" id="TAJ-FM-oie"/>
+            </connections>
+        </menuItem>
     </objects>
 </document>

@@ -31,10 +31,12 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2006 David Joyner and William Stein <wstein@gmail.com>
+#       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -84,6 +86,20 @@ class AffineGroupElement(MultiplicativeGroupElement):
         sage: G(2)
               [2 0]     [0]
         x |-> [0 2] x + [0]
+
+    Conversion from a matrix and a matrix group element::
+
+        sage: M = Matrix(4, 4, [0, 0, -1, 1, 0, -1, 0, 1, -1, 0, 0, 1, 0, 0, 0, 1])
+        sage: A = AffineGroup(3, ZZ)
+        sage: A(M)
+              [ 0  0 -1]     [1]
+        x |-> [ 0 -1  0] x + [1]
+              [-1  0  0]     [1]
+        sage: G = MatrixGroup([M])
+        sage: A(G.0)
+              [ 0  0 -1]     [1]
+        x |-> [ 0 -1  0] x + [1]
+              [-1  0  0]     [1]
     """
     def __init__(self, parent, A, b=0, convert=True, check=True):
         r"""
@@ -95,10 +111,14 @@ class AffineGroupElement(MultiplicativeGroupElement):
             sage: g = G.random_element()
             sage: TestSuite(g).run()
         """
+        try:
+            A = A.matrix()
+        except AttributeError:
+            pass
         if is_Matrix(A) and A.nrows() == A.ncols() == parent.degree()+1:
             g = A
-            A = g.submatrix(0,0,2,2)
             d = parent.degree()
+            A = g.submatrix(0, 0, d, d)
             b = [ g[i,d] for i in range(d) ]
             convert = True
         if convert:

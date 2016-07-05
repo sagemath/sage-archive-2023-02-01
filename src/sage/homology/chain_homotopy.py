@@ -33,16 +33,16 @@ isomorphic.
 
 REFERENCES:
 
-.. [M-AR] H. Molina-Abril and P. Réal, *Homology computation using spanning
+.. [M-AR] \H. Molina-Abril and P. Réal, *Homology computation using spanning
    trees* in Progress in Pattern Recognition, Image Analysis,
    Computer Vision, and Applications, Lecture Notes in Computer
    Science, volume 5856, pp 272-278, Springer, Berlin (2009).
 
-.. [PR] P. Pilarczyk and P. Réal, *Computation of cubical homology,
+.. [PR] \P. Pilarczyk and P. Réal, *Computation of cubical homology,
    cohomology, and (co)homological operations via chain contraction*,
    Adv. Comput. Math. 41 (2015), pp 253--275.
 
-.. [RM-A] P. Réal and H. Molina-Abril, *Cell AT-models for digital
+.. [RM-A] \P. Réal and H. Molina-Abril, *Cell AT-models for digital
    volumes* in Torsello, Escolano, Brun (eds.), Graph-Based
    Representations in Pattern Recognition, Lecture Notes in
    Computer Science, volume 5534, pp. 314-3232, Springer, Berlin (2009).
@@ -547,8 +547,8 @@ class ChainContraction(ChainHomotopy):
 
             sage: phi.iota().in_degree(2)
             [-1]
-            [-1]
             [ 1]
+            [-1]
             [ 1]
         """
         return self._iota
@@ -584,8 +584,8 @@ class ChainContraction(ChainHomotopy):
             [1]
             sage: phi.iota().in_degree(2)
             [-1]
-            [-1]
             [ 1]
+            [-1]
             [ 1]
             sage: phi.dual().iota().in_degree(2)
             [0]

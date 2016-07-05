@@ -47,28 +47,40 @@ class Function_sin(GinacFunction):
             1/4*sqrt(-2*sqrt(6) - 2*sqrt(2) + 8)
             sage: sin(pi/30)
             -1/8*sqrt(5) + 1/4*sqrt(-3/2*sqrt(5) + 15/2) - 1/8
+            sage: sin(104*pi/105)
+            sin(1/105*pi)
             sage: cos(pi/8)
             1/2*sqrt(sqrt(2) + 2)
             sage: cos(pi/10)
-            1/2*sqrt(1/2*sqrt(5) + 5/2)
+            1/4*sqrt(2*sqrt(5) + 10)
             sage: cos(pi/12)
-            1/12*sqrt(6)*(sqrt(3) + 3)
+            1/4*sqrt(6) + 1/4*sqrt(2)
             sage: cos(pi/15)
             1/8*sqrt(5) + 1/4*sqrt(3/2*sqrt(5) + 15/2) - 1/8
             sage: cos(pi/24)
             1/4*sqrt(2*sqrt(6) + 2*sqrt(2) + 8)
+            sage: cos(104*pi/105)
+            -cos(1/105*pi)
             sage: tan(pi/5)
             sqrt(-2*sqrt(5) + 5)
             sage: tan(pi/8)
             sqrt(2) - 1
             sage: tan(pi/10)
-            sqrt(-2/5*sqrt(5) + 1)
+            1/5*sqrt(-10*sqrt(5) + 25)
             sage: tan(pi/16)
             -sqrt(2) + sqrt(2*sqrt(2) + 4) - 1
             sage: tan(pi/20)
-            sqrt(5) - 1/2*sqrt(8*sqrt(5) + 20) + 1
+            sqrt(5) - sqrt(2*sqrt(5) + 5) + 1
             sage: tan(pi/24)
             sqrt(6) - sqrt(3) + sqrt(2) - 2
+            sage: tan(104*pi/105)
+            -tan(1/105*pi)
+            sage: cot(104*pi/105)
+            -cot(1/105*pi)
+            sage: sec(104*pi/105)
+            -sec(1/105*pi)
+            sage: csc(104*pi/105)
+            csc(1/105*pi)
 
             sage: all(sin(rat*pi).n(200)-sin(rat*pi,hold=True).n(200) < 1e-30 for rat in [1/5,2/5,1/30,7/30,11/30,13/30,1/8,3/8,1/24,5/24,7/24,11/24])
             True
@@ -76,6 +88,22 @@ class Function_sin(GinacFunction):
             True
             sage: all(tan(rat*pi).n(200)-tan(rat*pi,hold=True).n(200) < 1e-30 for rat in [1/5,2/5,1/10,3/10,1/20,3/20,7/20,9/20,1/8,3/8,1/16,3/16,5/16,7/16,1/24,5/24,7/24,11/24])
             True
+
+        Check that :trac:`20456` is fixed::
+
+            sage: assume(x>0)
+            sage: sin(pi*x)
+            sin(pi*x)
+            sage: forget()
+
+        Check that :trac:`20752` is fixed::
+
+            sage: sin(3*pi+41/42*pi)
+            -sin(1/42*pi)
+            sage: sin(-5*pi+1/42*pi)
+            -sin(1/42*pi)
+            sage: sin(pi-1/42*pi)
+            sin(1/42*pi)
         """
         GinacFunction.__init__(self, "sin", latex_name=r"\sin",
                 conversions=dict(maxima='sin',mathematica='Sin'))
@@ -116,6 +144,14 @@ class Function_cos(GinacFunction):
             sage: cos(complex(1,1))     # rel tol 1e-15
             (0.8337300251311491-0.9888977057628651j)
 
+        Check that :trac:`20752` is fixed::
+
+            sage: cos(3*pi+41/42*pi)
+            cos(1/42*pi)
+            sage: cos(-5*pi+1/42*pi)
+            -cos(1/42*pi)
+            sage: cos(pi-1/42*pi)
+            -cos(1/42*pi)
         """
         GinacFunction.__init__(self, "cos", latex_name=r"\cos",
                 conversions=dict(maxima='cos',mathematica='Cos'))
@@ -225,6 +261,8 @@ class Function_cot(GinacFunction):
 
             sage: cot(complex(1,1))     # rel tol 1e-15
             (0.21762156185440273-0.8680141428959249j)
+            sage: cot(1.+I)
+            0.217621561854403 - 0.868014142895925*I
         """
         GinacFunction.__init__(self, "cot", latex_name=r"\cot")
 
@@ -425,6 +463,8 @@ class Function_arcsin(GinacFunction):
 
             sage: arcsin(x).operator()
             arcsin
+            sage: asin(complex(1,1))
+            (0.6662394324925152+1.0612750619050357j)
         """
         GinacFunction.__init__(self, 'arcsin', latex_name=r"\arcsin",
                 conversions=dict(maxima='asin', sympy='asin'))
@@ -480,6 +520,8 @@ class Function_arccos(GinacFunction):
 
             sage: arccos(x).operator()
             arccos
+            sage: acos(complex(1,1))
+            (0.9045568943023814-1.0612750619050357j)
         """
         GinacFunction.__init__(self, 'arccos', latex_name=r"\arccos",
                 conversions=dict(maxima='acos', sympy='acos'))
@@ -537,6 +579,8 @@ class Function_arctan(GinacFunction):
 
             sage: arctan(x).operator()
             arctan
+            sage: atan(complex(1,1))
+            (1.0172219678978514+0.4023594781085251j)
 
         Check that :trac:`19918` is fixed::
 
@@ -589,6 +633,8 @@ class Function_arccot(GinacFunction):
 
             sage: arccot(complex(1,1))  # rel tol 1e-15
             (0.5535743588970452-0.4023594781085251j)
+            sage: arccot(1.+I)
+            0.553574358897045 - 0.402359478108525*I
 
         """
         GinacFunction.__init__(self, "arccot", latex_name=r'{\rm arccot}',

@@ -903,7 +903,7 @@ class AlphabeticStringMonoid(StringMonoid_class):
 
         REFERENCES:
 
-        .. [BekPip82] H. Beker and F. Piper. *Cipher Systems: The
+        .. [BekPip82] \H. Beker and F. Piper. *Cipher Systems: The
           Protection of Communications*. John Wiley and Sons, 1982.
 
         .. [Lew00] Robert Edward Lewand. *Cryptological Mathematics*.

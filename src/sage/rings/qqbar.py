@@ -106,15 +106,11 @@ same result::
     sage: disc1(b, c, d) == disc2(s1, s2, s3)
     True
 
-We can coerce from symbolic expressions::
+We can convert from symbolic expressions::
 
     sage: QQbar(sqrt(-5))
     2.236067977499790?*I
     sage: AA(sqrt(2) + sqrt(3))
-    3.146264369941973?
-    sage: QQbar(sqrt(2)) + sqrt(3)
-    3.146264369941973?
-    sage: sqrt(2) + QQbar(sqrt(3))
     3.146264369941973?
     sage: QQbar(I)
     I
@@ -136,6 +132,14 @@ We can coerce from symbolic expressions::
     Traceback (most recent call last):
     ...
     ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+
+The coercion, however, goes in the other direction, since not all
+symbolic expressions are algebraic numbers::
+
+    sage: QQbar(sqrt(2)) + sqrt(3)
+    sqrt(3) + 1.414213562373095?
+    sage: QQbar(sqrt(2) + QQbar(sqrt(3)))
+    3.146264369941973?
 
 Note the different behavior in taking roots: for ``AA`` we prefer real
 roots if they exist, but for ``QQbar`` we take the principal root::
@@ -166,12 +170,12 @@ However, implicit coercion from `\QQ[I]` is not allowed::
 
 We can implicitly coerce from algebraic reals to algebraic numbers::
 
-    sage: a = QQbar(1); print a, a.parent()
-    1 Algebraic Field
-    sage: b = AA(1); print b, b.parent()
-    1 Algebraic Real Field
-    sage: c = a + b; print c, c.parent()
-    2 Algebraic Field
+    sage: a = QQbar(1); a, a.parent()
+    (1, Algebraic Field)
+    sage: b = AA(1); b, b.parent()
+    (1, Algebraic Real Field)
+    sage: c = a + b; c, c.parent()
+    (2, Algebraic Field)
 
 Some computation with radicals::
 
@@ -245,7 +249,7 @@ view ``QQbar`` as ``AA[I]``.)::
     True
     sage: r.norm() == 4
     True
-    sage: (r+I).norm().minpoly()
+    sage: (r+QQbar(I)).norm().minpoly()
     x^2 - 10*x + 13
     sage: r = AA.polynomial_root(x^2 - x - 1, RIF(-1, 0)); r
     -0.618033988749895?
@@ -495,6 +499,9 @@ Verify that :trac:`10981` is fixed::
     sage: P.partial_fraction_decomposition()
     (0, [(-0.3535533905932738?*x + 1/2)/(x^2 - 1.414213562373095?*x + 1), (0.3535533905932738?*x + 1/2)/(x^2 + 1.414213562373095?*x + 1)])
 """
+
+from __future__ import absolute_import, print_function
+
 import itertools
 import operator
 
@@ -515,29 +522,13 @@ from sage.rings.number_field.number_field import NumberField, QuadraticField, Cy
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from sage.arith.all import factor
 from sage.structure.element import generic_power, canonical_coercion
-import infinity
+from . import infinity
 from sage.misc.functional import cyclotomic_polynomial
 
 CC = ComplexField()
 CIF = ComplexIntervalField()
 
 is_SymbolicExpressionRing = None
-
-def _late_import():
-    r"""
-    Import the name "is_SymbolicExpressionRing" (which would cause an infinite
-    loop if imported at startup time).
-
-    EXAMPLE::
-
-        sage: sage.rings.qqbar._late_import()
-        sage: sage.rings.qqbar.is_SymbolicExpressionRing == sage.symbolic.ring.is_SymbolicExpressionRing
-        True
-    """
-    global is_SymbolicExpressionRing
-    if is_SymbolicExpressionRing is None:
-        import sage.symbolic.ring
-        is_SymbolicExpressionRing = sage.symbolic.ring.is_SymbolicExpressionRing
 
 class AlgebraicField_common(sage.rings.ring.Field):
     r"""
@@ -789,12 +780,11 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
             True
             sage: a + AA(3)
             5.645751311064590?
+            sage: AA.has_coerce_map_from(SR)
+            False
         """
-        if from_par == ZZ or from_par == QQ or from_par == int or from_par == long:
-            return True
-        if from_par == AA:
-            return True
-        return False
+        return (from_par is ZZ or from_par is QQ
+                or from_par is AA)
 
     def completion(self, p, prec, extras = {}):
         r"""
@@ -1185,15 +1175,11 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             True
             sage: QQbar.has_coerce_map_from(CC)
             False
+            sage: QQbar.has_coerce_map_from(SR)
+            False
         """
-        if from_par == ZZ or from_par == QQ or from_par == int or from_par == long:
-            return True
-        if from_par == AA or from_par == QQbar:
-            return True
-        _late_import()
-        if is_SymbolicExpressionRing(from_par):
-            return True
-        return False
+        return (from_par is ZZ or from_par is QQ
+                or from_par is AA or from_par is QQbar)
 
     def completion(self, p, prec, extras = {}):
         r"""
@@ -2391,18 +2377,12 @@ class AlgebraicGenerator(SageObject):
         sp = self._field.polynomial()
         op = other._field.polynomial()
         op = QQx(op)
-        # print sp
-        # print op
-        # print self._field.polynomial()
-        # print self._field.polynomial().degree()
         # pari_nf = self._field.pari_nf()
         pari_nf = self.pari_field()
-        # print pari_nf[0]
         factors = list(pari_nf.nffactor(op).lift())[0]
-        # print factors
         x, y = QQxy.gens()
         factors_sage = [QQxy(p) for p in factors]
-        # print factors_sage
+
         def find_fn(p, prec):
             ifield = RealIntervalField(prec)
             if_poly = ifield['x', 'y']
@@ -2412,7 +2392,6 @@ class AlgebraicGenerator(SageObject):
 
         if my_factor.degree(x) == 1 and my_factor.coefficient(x) == 1:
             value = (-my_factor + x).univariate_polynomial(QQy)
-            # print value
             rel = AlgebraicGeneratorRelation(self, QQy_y,
                                              other, value,
                                              self)
@@ -2490,12 +2469,9 @@ class AlgebraicGenerator(SageObject):
         if super is self:
             return self._field.gen()
         for u in self._unions.values():
-            # print self, u.parent
-            # print checked
             if u.parent in checked:
                 continue
             poly = u.parent.super_poly(super, checked)
-            # print poly, u.child1, u.child2
             if poly is None:
                 continue
             if self is u.child1:
@@ -3695,8 +3671,8 @@ class AlgebraicNumber(AlgebraicNumber_base):
             [-0.0221204634374361? - 1.090991904211621?*I,
              -0.0221204634374361? + 1.090991904211621?*I,
              -0.8088604911480535?*I,
-             0.?e-182 - 0.7598602580415435?*I,
-             0.?e-249 + 0.7598602580415435?*I,
+             0.?e-215 - 0.7598602580415435?*I,
+             0.?e-229 + 0.7598602580415435?*I,
              0.8088604911480535?*I,
              0.0221204634374361? - 1.090991904211621?*I,
              0.0221204634374361? + 1.090991904211621?*I]
@@ -4096,7 +4072,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             ...
             ValueError: Cannot coerce irrational Algebraic Real 1.414213562373095? to Rational
             sage: v1 = QQbar(1/3 + I*sqrt(5))^7
-            sage: v2 = QQbar(100336/729*golden_ratio - 50168/729)*I
+            sage: v2 = QQbar((100336/729*golden_ratio - 50168/729)*I)
             sage: v = v1 + v2; v
             -259.6909007773206? + 0.?e-15*I
             sage: v._rational_()
@@ -4242,7 +4218,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
         EXAMPLES::
 
-            sage: a = QQbar.zeta(9) + I + QQbar.zeta(9).conjugate(); a
+            sage: a = QQbar.zeta(9) + QQbar(I) + QQbar.zeta(9).conjugate(); a
             1.532088886237957? + 1.000000000000000?*I
             sage: a.complex_exact(CIF)
             1.532088886237957? + 1*I
@@ -4742,7 +4718,6 @@ class AlgebraicReal(AlgebraicNumber_base):
             return self.sign()
         elif self._value.prec() < 128:
             # OK, we'll try adding precision one more time
-            # print self._value
             self._more_precision()
             return self.sign()
         else:
@@ -5772,10 +5747,6 @@ class ANRoot(ANDescr):
 
             if linfo['sign'] == uinfo['sign']:
                 # Oops...
-                # print self._poly.poly()
-                # print interval_p
-                # print linfo['endpoint'], linfo['value'], linfo['sign']
-                # print uinfo['endpoint'], uinfo['value'], uinfo['sign']
                 raise ValueError("Refining interval that does not bound unique root!")
 
             # Use a simple algorithm:
@@ -6105,7 +6076,7 @@ class ANRoot(ANDescr):
             fld = gen.field()
 
             fpf = self._poly.factors()
-            # print fpf
+
             def find_fn(factor, prec):
                 # XXX
                 ifield = (ComplexIntervalField if self.is_complex() else RealIntervalField)(prec)
@@ -6128,7 +6099,6 @@ class ANRoot(ANDescr):
                 return ip(self_val)
             my_factor = find_zero_result(find_fn, fpf)
 
-            # print my_factor
             assert(my_factor.is_monic())
 
             if my_factor.degree() == 1:
@@ -6142,19 +6112,14 @@ class ANRoot(ANDescr):
 
             pari_nf = gen.pari_field()
 
-            # print pari_nf[0]
             x, y = QQxy.gens()
             my_factor = QQxy['z']([c.polynomial()(y) for c in my_factor])(x)
-            # print my_factor
 
             # XXX much duplicate code with AlgebraicGenerator.union()
 
             # XXX need more caching here
             newpol, self_pol, k = pari_nf.rnfequation(my_factor, 1)
             k = int(k)
-            # print newpol
-            # print self_pol
-            # print k
 
             newpol_sage = QQx(newpol)
             newpol_sage_y = QQy(newpol_sage)

@@ -206,7 +206,6 @@ We check that :trac:`17990` is fixed::
     sage: m.rows()
     [(+Infinity)]
 """
-
 #*****************************************************************************
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -214,12 +213,14 @@ We check that :trac:`17990` is fixed::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+# python3
+from __future__ import division
 
 from sys import maxsize
 from sage.rings.ring import Ring
 from sage.structure.element import RingElement, InfinityElement
-from sage.structure.parent_gens import ParentWithGens
+from sage.structure.parent import Parent
+from sage.misc.fast_methods import Singleton
 import sage.rings.integer
 import sage.rings.rational
 
@@ -541,7 +542,7 @@ class AnInfinity(object):
             return abs(self)
 
 
-class UnsignedInfinityRing_class(_uniq, Ring):
+class UnsignedInfinityRing_class(Singleton, Ring):
 
     def __init__(self):
         """
@@ -551,14 +552,21 @@ class UnsignedInfinityRing_class(_uniq, Ring):
 
             sage: sage.rings.infinity.UnsignedInfinityRing_class() is sage.rings.infinity.UnsignedInfinityRing_class() is UnsignedInfinityRing
             True
-        
+
         Sage can understand SymPy's complex infinity (:trac:`17493`)::
-        
+
             sage: import sympy
             sage: SR(sympy.zoo)
             Infinity
+
+        Some equality checks::
+
+            sage: infinity == UnsignedInfinityRing.gen()
+            True
+            sage: UnsignedInfinityRing(3) == UnsignedInfinityRing(-19.5)
+            True
         """
-        ParentWithGens.__init__(self, self, names=('oo',), normalize=False)
+        Parent.__init__(self, self, names=('oo',), normalize=False)
 
     def ngens(self):
         """
@@ -646,21 +654,6 @@ class UnsignedInfinityRing_class(_uniq, Ring):
             'The Unsigned Infinity Ring'
         """
         return "The Unsigned Infinity Ring"
-
-    def __cmp__(self, right):
-        """
-        Compare ``self`` to ``right``.
-
-        TESTS::
-
-            sage: infinity == UnsignedInfinityRing.gen()
-            True
-            sage: UnsignedInfinityRing(3) == UnsignedInfinityRing(-19.5)
-            True
-        """
-        if isinstance(right, UnsignedInfinityRing_class):
-            return 0
-        return cmp(type(self), type(right))
 
     def _element_constructor_(self, x):
         """
@@ -955,17 +948,24 @@ class SignError(ArithmeticError):
     """
     pass
 
-class InfinityRing_class(_uniq, Ring):
+class InfinityRing_class(Singleton, Ring):
     def __init__(self):
         """
         Initialize ``self``.
 
-        TEST::
+        TESTS::
 
             sage: sage.rings.infinity.InfinityRing_class() is sage.rings.infinity.InfinityRing_class() is InfinityRing
             True
+
+        Comparison tests::
+
+            sage: InfinityRing == InfinityRing
+            True
+            sage: InfinityRing == UnsignedInfinityRing
+            False
         """
-        ParentWithGens.__init__(self, self, names=('oo',), normalize=False)
+        Parent.__init__(self, self, names=('oo',), normalize=False)
 
     def fraction_field(self):
         """
@@ -1066,21 +1066,6 @@ class InfinityRing_class(_uniq, Ring):
             'The Infinity Ring'
         """
         return "The Infinity Ring"
-
-    def __cmp__(self, right):
-        """
-        Compare ``self`` to ``right``.
-
-        TESTS::
-
-            sage: InfinityRing == InfinityRing
-            True
-            sage: InfinityRing == UnsignedInfinityRing
-            False
-        """
-        if isinstance(right, InfinityRing_class):
-            return 0
-        return cmp(type(self), type(right))
 
     def _element_constructor_(self, x):
         """
@@ -1686,7 +1671,9 @@ def test_comparison(ring):
         AssertionError: testing -1000.0 in Symbolic Ring: id = ...
     """
     from sage.symbolic.ring import SR
-    elements = [-1e3, 99.9999, -SR(2).sqrt(), 0, 1, 3^(-1/3), SR.pi(), 100000]
+    from sage.rings.rational_field import QQ
+    elements = [-1e3, 99.9999, -SR(2).sqrt(), 0, 1,
+                3 ** (-QQ.one()/3), SR.pi(), 100000]
     elements.append(ring.an_element())
     elements.extend(ring.some_elements())
     for z in elements:

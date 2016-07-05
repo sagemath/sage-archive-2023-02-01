@@ -9,6 +9,8 @@ objects (or know if they can be built) with :func:`difference_matrix`::
 Functions
 ---------
 """
+from __future__ import print_function
+
 from sage.misc.unknown import Unknown
 from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
@@ -170,7 +172,7 @@ def difference_matrix(g,k,lmbda=1,existence=False,check=True):
 
         sage: for g in range(2,30):
         ....:     k_max = designs.difference_matrix(g=g,k=None,existence=True)
-        ....:     print "{:2} {}".format(g, k_max)
+        ....:     print("{:2} {}".format(g, k_max))
         ....:     _ = designs.difference_matrix(g,k_max)
          2 2
          3 3

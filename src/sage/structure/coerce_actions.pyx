@@ -631,7 +631,6 @@ cdef class RightModuleAction(ModuleAction):
             sage: A._call_(x+5, 2) # safe only when arguments have exactly the correct parent
             2*x + 10
         """
-        cdef PyObject* tmp
         if self.connecting is not None:
             g = self.connecting._call_(g)
         if self.extended_base is not None:
@@ -742,7 +741,7 @@ cdef class IntegerMulAction(Action):
             ...
             TypeError: No generic module division by Z.
         """
-        raise TypeError, "No generic module division by Z."
+        raise TypeError("No generic module division by Z.")
 
     def _repr_name_(self):
         """

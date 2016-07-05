@@ -179,15 +179,15 @@ AUTHORS:
 
 REFERENCES:
 
-.. [AS-Bessel] F. W. J. Olver: 9. Bessel Functions of Integer Order, in Abramowitz and Stegun: Handbook of Mathematical Functions
+.. [AS-Bessel] \F. W. J. Olver: 9. Bessel Functions of Integer Order, in Abramowitz and Stegun: Handbook of Mathematical Functions
     http://people.math.sfu.ca/~cbm/aands/page_355.htm
 .. [AS-Spherical] H. A. Antosiewicz: 10. Bessel Functions of Fractional Order, in Abramowitz and Stegun: Handbook of Mathematical Functions
     http://people.math.sfu.ca/~cbm/aands/page_435.htm
 .. [AS-Struve] M. Abramowitz: 12. Struve Functions and Related Functions, in Abramowitz and Stegun: Handbook of Mathematical Functions
-    http://people.math.sfu.ca/~cbm/aands/page_495.htm
+   http://people.math.sfu.ca/~cbm/aands/page_495.htm
 .. [DLMF-Bessel] F. W. J. Olver and L. C. Maximon: 10. Bessel Functions, in NIST Digital Library of Mathematical Functions
     http://dlmf.nist.gov/10
-.. [DLMF-Struve] R. B. Paris: 11. Struve and Related Functions, in NIST Digital Library of Mathematical Functions
+.. [DLMF-Struve] \R. B. Paris: 11. Struve and Related Functions, in NIST Digital Library of Mathematical Functions
     http://dlmf.nist.gov/11
 .. _`mpmath Library`: https://github.com/fredrik-johansson/mpmath
 .. [WP-Bessel] :wikipedia:`Bessel_function`
@@ -208,6 +208,7 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.functions.other import sqrt
 from sage.functions.log import exp
@@ -360,7 +361,7 @@ class Function_Bessel_J(BuiltinFunction):
             ....:     b = bessel_J(R(n), a)
             ....:     bb = R(bessel_J(n, aa))
             ....:     if b != bb:
-            ....:         print n, b-bb
+            ....:         print((n, b-bb))
         """
         if parent is not None:
             x = parent(x)
@@ -540,7 +541,7 @@ class Function_Bessel_Y(BuiltinFunction):
             ....:     b = bessel_Y(R(n), a)
             ....:     bb = R(bessel_Y(n, aa))
             ....:     if b != bb:
-            ....:         print n, b-bb
+            ....:         print((n, b-bb))
         """
         if parent is not None:
             x = parent(x)
@@ -840,7 +841,7 @@ class Function_Bessel_K(BuiltinFunction):
     For a fixed imaginary order and increasing, real, second component the
     value of Bessel K is exponentially decaying::
 
-        sage: for x in [10, 20, 50, 100, 200]: print bessel_K(5*I, x).n()
+        sage: for x in [10, 20, 50, 100, 200]: print(bessel_K(5*I, x).n())
         5.27812176514912e-6
         3.11005908421801e-10
         2.66182488515423e-23 - 8.59622057747552e-58*I

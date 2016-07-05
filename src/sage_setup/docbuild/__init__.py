@@ -767,7 +767,7 @@ class ReferenceSubBuilder(DocBuilder):
 
         env_pickle = os.path.join(self._doctrees_dir(), 'environment.pickle')
         try:
-            env = BuildEnvironment.frompickle(config, env_pickle)
+            env = BuildEnvironment.frompickle(self.dir, config, env_pickle)
             logger.debug("Opened Sphinx environment: %s", env_pickle)
             return env
         except IOError as err:

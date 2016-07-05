@@ -217,7 +217,7 @@ Generators
 Use ``graphs(n)`` to iterate through all non-isomorphic graphs of given size::
 
     sage: for g in graphs(4):
-    ....:     print g.spectrum()
+    ....:     print(g.spectrum())
     [0, 0, 0, 0]
     [1, 0, 0, -1]
     [1.4142135623..., 0, 0, -1.4142135623...]
@@ -415,6 +415,7 @@ Methods
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from copy import copy
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -1400,7 +1401,7 @@ class Graph(GenericGraph):
 
         EXAMPLES::
 
-            sage: for x in graphs(3):    print x.to_partition()
+            sage: for x in graphs(3):    print(x.to_partition())
             doctest:...: DeprecationWarning: Please use G.connected_components_sizes() instead
             See http://trac.sagemath.org/17449 for details.
             [1, 1, 1]
@@ -1786,10 +1787,10 @@ class Graph(GenericGraph):
             ...       i = 0
             ...       while i <= n:
             ...           if graphs.CompleteGraph(i).is_overfull():
-            ...               print "A complete graph of even order cannot be overfull."
+            ...               print("A complete graph of even order cannot be overfull.")
             ...               return
             ...           i += 2
-            ...       print "Complete graphs of even order up to %s are not overfull." % n
+            ...       print("Complete graphs of even order up to %s are not overfull." % n)
             ...
             sage: check_overfull_Kn_even(100)  # long time
             Complete graphs of even order up to 100 are not overfull.
@@ -1808,10 +1809,10 @@ class Graph(GenericGraph):
             ...       i = 3
             ...       while i <= n:
             ...           if not graphs.CompleteGraph(i).is_overfull():
-            ...               print "A complete graph of odd order > 1 must be overfull."
+            ...               print("A complete graph of odd order > 1 must be overfull.")
             ...               return
             ...           i += 2
-            ...       print "Complete graphs of odd order > 1 up to %s are overfull." % n
+            ...       print("Complete graphs of odd order > 1 up to %s are overfull." % n)
             ...
             sage: check_overfull_Kn_odd(100)  # long time
             Complete graphs of odd order > 1 up to 100 are overfull.
@@ -1881,12 +1882,12 @@ class Graph(GenericGraph):
             sage: if not g.is_forest():
             ...      cycle = g.is_even_hole_free(certificate = True)
             ...      if cycle.order() % 2 == 1:
-            ...          print "Error !"
+            ...          print("Error !")
             ...      if not cycle.is_isomorphic(
             ...             graphs.CycleGraph(cycle.order())):
-            ...          print "Error !"
+            ...          print("Error !")
             ...
-            sage: print "Everything is Fine !"
+            sage: print("Everything is Fine !")
             Everything is Fine !
 
         TESTS:
@@ -1908,7 +1909,7 @@ class Graph(GenericGraph):
 
         REFERENCE:
 
-        .. [ABCHRS08] L. Addario-Berry, M. Chudnovsky, F. Havet, B. Reed, P. Seymour
+        .. [ABCHRS08] \L. Addario-Berry, M. Chudnovsky, F. Havet, B. Reed, P. Seymour
           Bisimplicial vertices in even-hole-free graphs
           Journal of Combinatorial Theory, Series B
           vol 98, n.6 pp 1119-1164, 2008
@@ -1990,7 +1991,7 @@ class Graph(GenericGraph):
 
         REFERENCES:
 
-        .. [CRST06] M. Chudnovsky, G. Cornuejols, X. Liu, P. Seymour, K. Vuskovic
+        .. [CRST06] \M. Chudnovsky, G. Cornuejols, X. Liu, P. Seymour, K. Vuskovic
           Recognizing berge graphs
           Combinatorica vol 25, n 2, pages 143--186
           2005
@@ -2155,7 +2156,7 @@ class Graph(GenericGraph):
             ...       bm = G.is_triangle_free(algorithm='matrix')
             ...       bb = G.is_triangle_free(algorithm='bitset')
             ...       if bm != bb:
-            ...          print "That's not good!"
+            ...          print("That's not good!")
 
         Asking for an unknown algorithm::
 
@@ -2249,7 +2250,7 @@ class Graph(GenericGraph):
 
         REFERENCES:
 
-        .. [GraphClasses] A. Brandstadt, VB Le and JP Spinrad
+        .. [GraphClasses] \A. Brandstadt, VB Le and JP Spinrad
           Graph classes: a survey
           SIAM Monographs on Discrete Mathematics and Applications},
           1999
@@ -2633,7 +2634,7 @@ class Graph(GenericGraph):
 
         REFERENCES:
 
-        .. [SPGT] M. Chudnovsky, N. Robertson, P. Seymour, R. Thomas.
+        .. [SPGT] \M. Chudnovsky, N. Robertson, P. Seymour, R. Thomas.
           The strong perfect graph theorem
           Annals of Mathematics
           vol 164, number 1, pages 51--230
@@ -2841,7 +2842,7 @@ class Graph(GenericGraph):
         """
         Returns true if self is a half-transitive graph.
 
-        A graph is is half-transitive if it is both vertex and edge transitive
+        A graph is half-transitive if it is both vertex and edge transitive
         but not arc-transitive.
 
         See :wikipedia:`the wikipedia article on half-transitive graphs
@@ -3132,7 +3133,7 @@ class Graph(GenericGraph):
         Returns an orientation of ``self`` with the smallest possible maximum
         outdegree.
 
-        Given a Graph `G`, is is polynomial to compute an orientation
+        Given a Graph `G`, it is polynomial to compute an orientation
         `D` of the edges of `G` such that the maximum out-degree in
         `D` is minimized. This problem, though, is NP-complete in the
         weighted case [AMOZ06]_.
@@ -3310,7 +3311,7 @@ class Graph(GenericGraph):
 
             sage: try:
             ...      g.bounded_outdegree_orientation(ceil(mad/2-1))
-            ...      print "Error"
+            ...      print("Error")
             ... except ValueError:
             ...       pass
 
@@ -3325,7 +3326,7 @@ class Graph(GenericGraph):
             ...       if not (
             ...            all( D.out_degree(v) <= b(v) for v in g ) or
             ...            D.size() != g.size()):
-            ...           print "Something wrong happened"
+            ...           print("Something wrong happened")
 
         """
         self._scream_if_not_simple()
@@ -3582,13 +3583,13 @@ class Graph(GenericGraph):
             Graphics object consisting of 16 graphics primitives
             sage: H = G.coloring(hex_colors=True, algorithm="MILP")
             sage: for c in sorted(H.keys()):
-            ...       print c, H[c]
+            ....:     print("{} {}".format(c, H[c]))
             #0000ff [4]
             #00ff00 [0, 6, 5]
             #ff0000 [2, 1, 3]
             sage: H = G.coloring(hex_colors=True, algorithm="DLX")
             sage: for c in sorted(H.keys()):
-            ...       print c, H[c]
+            ....:     print("{} {}".format(c, H[c]))
             #0000ff [4]
             #00ff00 [1, 2, 3]
             #ff0000 [0, 5, 6]
@@ -3675,7 +3676,7 @@ class Graph(GenericGraph):
 
         REFERENCES:
 
-        .. [Stanley95] R. P. Stanley, *A symmetric function generalization
+        .. [Stanley95] \R. P. Stanley, *A symmetric function generalization
            of the chromatic polynomial of a graph*, Adv. Math., ***111***
            no.1 (1995), 166-194.
         """
@@ -3906,7 +3907,7 @@ class Graph(GenericGraph):
                     return sum(weight(self.edge_label(u, v))
                                 for u, v in d.iteritems()) * 0.5
                 else:
-                    return Integer(len(d)/2)
+                    return Integer(len(d) // 2)
             else:
                 return [(u, v, self.edge_label(u, v))
                         for u, v in d.iteritems() if u < v]
@@ -3981,7 +3982,7 @@ class Graph(GenericGraph):
 
                sage: g = graphs.CycleGraph(10)
                sage: mapping = g.has_homomorphism_to(g, core = True)
-               sage: print "The size of the core is",len(set(mapping.values()))
+               sage: print("The size of the core is {}".format(len(set(mapping.values()))))
                The size of the core is 2
 
         OUTPUT:
@@ -4160,7 +4161,7 @@ class Graph(GenericGraph):
             # Otherwise, we add a new constraint
 
             if verbose_constraints:
-                print "Adding a constraint on matching : ",matching
+                print("Adding a constraint on matching : {}".format(matching))
 
             p.add_constraint( p.sum( R(u,v) for u,v,_ in matching), max = 1)
 
@@ -4345,7 +4346,7 @@ class Graph(GenericGraph):
 
         REFERENCE:
 
-        .. [AhaBerZiv07] R. Aharoni and E. Berger and R. Ziv
+        .. [AhaBerZiv07] \R. Aharoni and E. Berger and R. Ziv
           Independent systems of representatives in weighted graphs
           Combinatorica vol 27, num 3, p253--267
           2007
@@ -4829,20 +4830,23 @@ class Graph(GenericGraph):
         r"""
         Returns the Seidel adjacency matrix of ``self``.
 
-        Returns `J-I-2A`, for `A` the (ordinary)
-        :meth:`adjacency matrix <GenericGraph.adjacency_matrix>` of ``self``,
-        `I` the identity matrix, and `J` the all-1 matrix.
+        Returns `J-I-2A`, for `A` the (ordinary) :meth:`adjacency
+        matrix
+        <sage.graphs.generic_graph.GenericGraph.adjacency_matrix>` of
+        ``self``, `I` the identity matrix, and `J` the all-1 matrix.
         It is closely related to :meth:`twograph`.
 
         The matrix returned is over the integers. If a different ring is
         desired, use either :meth:`sage.matrix.matrix0.Matrix.change_ring`
-        method or :func:`matrix` function.
+        method or :class:`matrix <sage.matrix.constructor.MatrixFactory>` function.
 
         INPUT:
 
-        - ``vertices`` (list) -- the ordering of the vertices defining how they
-          should appear in the matrix. By default, the ordering given by
-          :meth:`GenericGraph.vertices` is used.
+        - ``vertices`` (list) -- the ordering of the vertices defining
+          how they should appear in the matrix. By default, the
+          ordering given by
+          :meth:`~sage.graphs.generic_graph.GenericGraph.vertices` is
+          used.
 
         EXAMPLES::
 
@@ -5441,7 +5445,7 @@ class Graph(GenericGraph):
             sage: for i in range(10):                                            # optional - mcqd
             ...       g = graphs.RandomGNP(15,.5)                                # optional - mcqd
             ...       if g.clique_number() != g.clique_number(algorithm="mcqd"): # optional - mcqd
-            ...           print "This is dead wrong !"                           # optional - mcqd
+            ...           print("This is dead wrong !")                          # optional - mcqd
         """
         self._scream_if_not_simple(allow_loops=False)
         if algorithm=="Cliquer":
@@ -5495,7 +5499,7 @@ class Graph(GenericGraph):
             sage: F = graphs.Grid2dGraph(2,3)
             sage: X = F.cliques_number_of()
             sage: for v in sorted(X.iterkeys()):
-            ...    print v, X[v]
+            ....:     print("{} {}".format(v, X[v]))
             (0, 0) 2
             (0, 1) 3
             (0, 2) 2
@@ -5754,13 +5758,13 @@ class Graph(GenericGraph):
            ...       vc1 = len(vc1_set)
            ...       vc2 = g.vertex_cover(value_only = True, reduction_rules = False)
            ...       if vc1 != vc2:
-           ...           print "Error :", vc1, vc2
-           ...           print "With reduction rules :", vc1
-           ...           print "Without reduction rules :", vc2
+           ...           print("Error :", vc1, vc2)
+           ...           print("With reduction rules :", vc1)
+           ...           print("Without reduction rules :", vc2)
            ...           break
            ...       g.delete_vertices(vc1_set)
            ...       if g.size() != 0:
-           ...           print "This thing is not a vertex cover !"
+           ...           print("This thing is not a vertex cover !")
 
         Then for random GNP graphs::
 
@@ -5770,13 +5774,13 @@ class Graph(GenericGraph):
            ...       vc1 = len(vc1_set)
            ...       vc2 = g.vertex_cover(value_only = True, reduction_rules = False)
            ...       if vc1 != vc2:
-           ...           print "Error :", vc1, vc2
-           ...           print "With reduction rules :", vc1
-           ...           print "Without reduction rules :", vc2
+           ...           print("Error :", vc1, vc2)
+           ...           print("With reduction rules :", vc1)
+           ...           print("Without reduction rules :", vc2)
            ...           break
            ...       g.delete_vertices(vc1_set)
            ...       if g.size() != 0:
-           ...           print "This thing is not a vertex cover !"
+           ...           print("This thing is not a vertex cover !")
 
         Testing mcqd::
 
@@ -5792,7 +5796,7 @@ class Graph(GenericGraph):
 
         REFERENCE:
 
-        .. [ACFLSS04] F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.
+        .. [ACFLSS04] \F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.
           Langston, W. H. Suters, and C. T. Symons: Kernelization Algorithm for
           the Vertex Cover Problem: Theory and Experiments. *SIAM ALENEX/ANALCO*
           2004: 62-69.
@@ -5988,7 +5992,7 @@ class Graph(GenericGraph):
             sage: F = graphs.Grid2dGraph(2,3)
             sage: X = F.cliques_vertex_clique_number(algorithm="networkx")
             sage: for v in sorted(X.iterkeys()):
-            ...    print v, X[v]
+            ....:     print("{} {}".format(v, X[v]))
             (0, 0) 2
             (0, 1) 2
             (0, 2) 2
@@ -6052,7 +6056,7 @@ class Graph(GenericGraph):
             sage: F = graphs.Grid2dGraph(2,3)
             sage: X = F.cliques_containing_vertex()
             sage: for v in sorted(X.iterkeys()):
-            ...    print v, X[v]
+            ....:     print("{} {}".format(v, X[v]))
             (0, 0) [[(0, 1), (0, 0)], [(1, 0), (0, 0)]]
             (0, 1) [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]]
             (0, 2) [[(0, 1), (0, 2)], [(1, 2), (0, 2)]]
@@ -6407,7 +6411,7 @@ class Graph(GenericGraph):
           International Journal of Foundations of Computer Science
           vol. 10 n2 pp.147--170, 1999
 
-        .. [CapHabMont02] C. Capelle, M. Habib et F. de Montgolfier
+        .. [CapHabMont02] \C. Capelle, M. Habib et F. de Montgolfier
           Graph decomposition and Factorising Permutations
           Discrete Mathematics and Theoretical Computer Sciences, vol 5 no. 1 , 2002.
 
@@ -6469,7 +6473,7 @@ class Graph(GenericGraph):
         return D[0] == "Prime" and len(D[1]) == self.order()
 
     @rename_keyword(deprecation=19550, method='algorithm')
-    def _gomory_hu_tree(self, vertices, algorithm="FF"):
+    def _gomory_hu_tree(self, vertices, algorithm=None):
         r"""
         Return a Gomory-Hu tree associated to self.
 
@@ -6486,15 +6490,9 @@ class Graph(GenericGraph):
           fakes one introduced during the computations. This variable is
           useful for the algorithm and for recursion purposes.
 
-        - ``algorithm`` -- There are currently two different
-          implementations of this method :
-
-          * If ``algorithm = "FF"`` (default), a Python
-            implementation of the Ford-Fulkerson algorithm is
-            used.
-
-          * If ``algorithm = "LP"``, the flow problem is solved using
-            Linear Programming.
+        - ``algorithm`` -- select the algorithm used by the :meth:`edge_cut`
+          method. Refer to its documentation for allowed values and default
+          behaviour.
 
         EXAMPLE:
 
@@ -6566,7 +6564,7 @@ class Graph(GenericGraph):
 
     @doc_index("Connectivity, orientations, trees")
     @rename_keyword(deprecation=19550, method='algorithm')
-    def gomory_hu_tree(self, algorithm="FF"):
+    def gomory_hu_tree(self, algorithm=None):
         r"""
         Returns a Gomory-Hu tree of self.
 
@@ -6584,15 +6582,9 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``algorithm`` -- There are currently two different
-          implementations of this method :
-
-          * If ``algorithm = "FF"`` (default), a Python
-            implementation of the Ford-Fulkerson algorithm is
-            used.
-
-          * If ``algorithm = "LP"``, the flow problems are solved
-            using Linear Programming.
+        - ``algorithm`` -- select the algorithm used by the :meth:`edge_cut`
+          method. Refer to its documentation for allowed values and default
+          behaviour.
 
         OUTPUT:
 
@@ -6690,9 +6682,9 @@ class Graph(GenericGraph):
             sage: g = graphs.CompleteGraph(7)
             sage: classes = g.two_factor_petersen()
             sage: for c in classes:
-            ...     gg = Graph()
-            ...     gg.add_edges(c)
-            ...     print max(gg.degree())<=2
+            ....:     gg = Graph()
+            ....:     gg.add_edges(c)
+            ....:     print(max(gg.degree())<=2)
             True
             True
             True

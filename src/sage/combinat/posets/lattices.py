@@ -42,6 +42,8 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is modular.
     :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
     :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
+    :meth:`~FiniteLatticePoset.is_join_semidistributive` | Return ``True`` if the lattice is join-semidistributive.
+    :meth:`~FiniteLatticePoset.is_meet_semidistributive` | Return ``True`` if the lattice is meet-semidistributive.
     :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if every element of the lattice can be written as a join of atoms.
     :meth:`~FiniteLatticePoset.is_coatomic` | Return ``True`` if every element of the lattice can be written as a meet of coatoms.
     :meth:`~FiniteLatticePoset.is_geometric` | Return ``True`` if the lattice is atomic and upper semimodular.
@@ -61,6 +63,9 @@ List of (semi)lattice methods
     :widths: 30, 70
     :delim: |
 
+    :meth:`~FiniteLatticePoset.atoms` | Return the list of elements covering the bottom element.
+    :meth:`~FiniteLatticePoset.coatoms` | Return the list of elements covered by the top element.
+    :meth:`~FiniteLatticePoset.double_irreducibles` | Return the list of double irreducible elements.
     :meth:`~FiniteLatticePoset.complements` | Return the list of complements of an element, or the dictionary of complements for all elements.
     :meth:`~FiniteMeetSemilattice.pseudocomplement` | Return the pseudocomplement of an element.
     :meth:`~FiniteLatticePoset.is_modular_element` | Return ``True`` if given element is modular in the lattice.
@@ -103,7 +108,7 @@ from sage.combinat.posets.elements import (LatticePosetElement,
 
 ####################################################################################
 
-def MeetSemilattice(data, *args, **options):
+def MeetSemilattice(data=None, *args, **options):
     r"""
     Construct a meet semi-lattice from various forms of input data.
 
@@ -221,6 +226,13 @@ class FiniteMeetSemilattice(FinitePoset):
         r"""
         Return the meet of given elements in the lattice.
 
+        INPUT:
+
+        -  ``x, y`` -- two elements of the (semi)lattice OR
+        -  ``x`` -- a list or tuple of elements
+
+        .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteJoinSemilattice.join()`.
+
         EXAMPLES::
 
             sage: D = Posets.DiamondPoset(5)
@@ -242,14 +254,11 @@ class FiniteMeetSemilattice(FinitePoset):
             sage: B4.meet([])
             15
 
-        Test that this method also works for facade lattices::
+        For non-facade lattices operator ``*`` works for meet::
 
-            sage: L = LatticePoset([[1,2],[3],[3]], facade = True)
-            sage: L.meet(2, 3)
-            2
-            sage: L.meet(1, 2)
+            sage: L = Posets.PentagonPoset(facade=False)
+            sage: L(1)*L(2)
             0
-
         """
         if y is not None: # Handle basic case fast
             i, j = map(self._element_to_vertex, (x,y))
@@ -321,7 +330,7 @@ class FiniteMeetSemilattice(FinitePoset):
 
 ####################################################################################
 
-def JoinSemilattice(data, *args, **options):
+def JoinSemilattice(data=None, *args, **options):
     r"""
     Construct a join semi-lattice from various forms of input data.
 
@@ -440,9 +449,10 @@ class FiniteJoinSemilattice(FinitePoset):
 
         INPUT:
 
-        -  ``x, y`` - two elements of the (semi)lattice OR
+        -  ``x, y`` -- two elements of the (semi)lattice OR
+        -  ``x`` -- a list or tuple of elements
 
-        -  ``x`` - a list or tuple of elements
+        .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteMeetSemilattice.meet()`.
 
         EXAMPLES::
 
@@ -465,14 +475,11 @@ class FiniteJoinSemilattice(FinitePoset):
             sage: B4.join([])
             0
 
-        Test that this method also works for facade lattices::
+        For non-facade lattices operator ``+`` works for join::
 
-            sage: L = LatticePoset([[1,2],[3],[3]], facade = True)
-            sage: L.join(1, 0)
-            1
-            sage: L.join(1, 2)
-            3
-
+            sage: L = Posets.PentagonPoset(facade=False)
+            sage: L(1)+L(2)
+            4
         """
         if y is not None: # Handle basic case fast
             i, j = map(self._element_to_vertex, (x,y))
@@ -485,7 +492,7 @@ class FiniteJoinSemilattice(FinitePoset):
 
 ####################################################################################
 
-def LatticePoset(data, *args, **options):
+def LatticePoset(data=None, *args, **options):
     r"""
     Construct a lattice from various forms of input data.
 
@@ -586,6 +593,94 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             s += " with distinguished linear extension"
         return s
 
+    def atoms(self):
+        """
+        Return the atoms of this lattice.
+
+        An *atom* of a lattice is an element covering the bottom element.
+
+        .. SEEALSO::
+
+            :meth:`coatoms`
+
+        EXAMPLES::
+
+            sage: L = Posets.DivisorLattice(60)
+            sage: sorted(L.atoms())
+            [2, 3, 5]
+
+        TESTS::
+
+            sage: LatticePoset().atoms()
+            []
+            sage: LatticePoset({0: []}).atoms()
+            []
+        """
+        if self.cardinality() == 0:
+            return []
+        return self.upper_covers(self.bottom())
+
+    def coatoms(self):
+        """
+        Return the co-atoms of this lattice.
+
+        A *co-atom* of a lattice is an element covered by the top element.
+
+        .. SEEALSO::
+
+            :meth:`atoms`
+
+        EXAMPLES::
+
+            sage: L = Posets.DivisorLattice(60)
+            sage: sorted(L.coatoms())
+            [12, 20, 30]
+
+        TESTS::
+
+            sage: LatticePoset().coatoms()
+            []
+            sage: LatticePoset({0: []}).coatoms()
+            []
+        """
+        if self.cardinality() == 0:
+            return []
+        return self.lower_covers(self.top())
+
+    def double_irreducibles(self):
+        """
+        Return the list of double irreducible elements of this lattice.
+
+        A *double irreducible* element of a lattice is an element
+        covering and covered by exactly one element. In other words
+        it is neither a meet nor a join of any elements.
+
+        .. SEEALSO::
+
+            :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.meet_irreducibles`,
+            :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.join_irreducibles`
+
+        EXAMPLES::
+
+            sage: L = Posets.DivisorLattice(12)
+            sage: sorted(L.double_irreducibles())
+            [3, 4]
+
+            sage: L = Posets.BooleanLattice(3)
+            sage: L.double_irreducibles()
+            []
+
+        TESTS::
+
+            sage: LatticePoset().double_irreducibles()
+            []
+            sage: Posets.ChainPoset(2).double_irreducibles()
+            []
+        """
+        H = self._hasse_diagram
+        return [self._vertex_to_element(e) for e in H
+                if H.in_degree(e) == 1 and H.out_degree(e) == 1]
+
     def is_distributive(self):
         r"""
         Return ``True`` if the lattice is distributive, and ``False``
@@ -611,6 +706,84 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return (self.is_graded() and
          self.rank() == len(self.join_irreducibles()) ==
          len(self.meet_irreducibles()))
+
+    def is_meet_semidistributive(self):
+        r"""
+        Return ``True`` if the lattice is meet-semidistributive, and ``False``
+        otherwise.
+
+        A lattice is meet-semidistributive if `e \wedge x = e \wedge y`
+        implicates `e \wedge x = e \wedge (x \vee y)` for all elements
+        `e, x, y` in the lattice.
+
+        .. SEEALSO::
+
+            :meth:`is_join_semidistributive`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1:[2, 3, 4], 2:[4, 5], 3:[5, 6],
+            ....:                   4:[7], 5:[7], 6:[7]})
+            sage: L.is_meet_semidistributive()
+            True
+            sage: L_ = L.dual()
+            sage: L_.is_meet_semidistributive()
+            False
+
+        TESTS::
+
+            sage: LatticePoset().is_meet_semidistributive()
+            True
+        """
+        # See http://www.math.hawaii.edu/~ralph/Preprints/algorithms-survey.pdf
+        # for explanation of this
+        from sage.misc.functional import log
+        n = self.cardinality()
+        if n == 0:
+            return True
+        if self._hasse_diagram.size() > n*log(n, 2)/2:
+            return False
+
+        return self._hasse_diagram.is_semidistributive('meet') is None
+
+    def is_join_semidistributive(self):
+        r"""
+        Return ``True`` if the lattice is join-semidistributive, and ``False``
+        otherwise.
+
+        A lattice is join-semidistributive if `e \vee x = e \vee y` implicates
+        `e \vee x = e \vee (x \wedge y)` for all elements `e, x, y` in the
+        lattice.
+
+        .. SEEALSO::
+
+            :meth:`is_meet_semidistributive`
+
+        EXAMPLES::
+
+            sage: T4 = Posets.TamariLattice(4)
+            sage: T4.is_join_semidistributive()
+            True
+            sage: L = LatticePoset({1:[2, 3], 2:[4, 5], 3:[5, 6],
+            ....:                   4:[7], 5:[7], 6:[7]})
+            sage: L.is_join_semidistributive()
+            False
+
+        TESTS::
+
+            sage: LatticePoset().is_join_semidistributive()
+            True
+        """
+        # See http://www.math.hawaii.edu/~ralph/Preprints/algorithms-survey.pdf
+        # for explanation of this
+        from sage.misc.functional import log
+        n = self.cardinality()
+        if n == 0:
+            return True
+        if self._hasse_diagram.size() > n*log(n, 2)/2:
+            return False
+
+        return self._hasse_diagram.is_semidistributive('join') is None
 
     def is_complemented(self):
         r"""
@@ -712,6 +885,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         any join of elements `x_1, x_2, \ldots, x_{n+1}` is join of a
         proper subset of `x_i`.
 
+        This can be also characterized by sublattices: a lattice
+        of breadth at least `n` contains a sublattice isomorphic to the
+        Boolean lattice of `2^n` elements.
+
         INPUT:
 
         - ``certificate`` -- (boolean; default: ``False``) -- whether to
@@ -729,12 +906,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             3
             sage: B3.breadth(certificate=True)
             [1, 2, 4]
-
-        Smallest example of a lattice with breadth 4::
-
-            sage: L = LatticePoset(DiGraph('O]???w?K_@S?E_??Q?@_?D??I??W?B??@??C??O?@???'))
-            sage: L.breadth()
-            4
 
         ALGORITHM:
 
@@ -813,7 +984,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         INPUT:
 
-        - ``element`` - an element of the lattice whose complement is
+        - ``element`` -- an element of the lattice whose complement is
           returned. If ``None`` (default) then dictionary of
           complements for all elements having at least one
           complement is returned.
@@ -1078,11 +1249,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         REFERENCES:
 
-        .. [GW14] G. Gratzer and F. Wehrung,
+        .. [GW14] \G. Gratzer and F. Wehrung,
            Lattice Theory: Special Topics and Applications Vol. 1,
            Springer, 2014.
 
-        .. [Platt76] C. R. Platt,
+        .. [Platt76] \C. R. Platt,
            Planar lattices and planar graphs,
            Journal of Combinatorial Theory Series B,
            Vol 21, no. 1 (1976): 30-39.
@@ -1199,7 +1370,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         A lattice is upper semimodular if for any `x` in the lattice that is
         covered by `y` and `z`, both `y` and `z` are covered by their join.
 
-        See also :meth:`is_modular` and :meth:`is_lower_semimodular`.
+        .. SEEALSO::
+
+            :meth:`is_modular` and :meth:`is_lower_semimodular`.
 
         See :wikipedia:`Semimodular_lattice`
 
@@ -1241,7 +1414,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         A lattice is lower semimodular if for any `x` in the lattice that covers
         `y` and `z`, both `y` and `z` cover their meet.
 
-        See also :meth:`is_modular` and :meth:`is_upper_semimodular`.
+        .. SEEALSO::
+
+            :meth:`is_modular` and :meth:`is_upper_semimodular`.
 
         See :wikipedia:`Semimodular_lattice`
 
@@ -1305,11 +1480,19 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             ....:                   9: [11], 10: [11]})
             sage: L.is_supersolvable()
             False
+
+        TESTS::
+
+            sage: LatticePoset({}).is_supersolvable()
+            True
         """
         from sage.misc.cachefunc import cached_function
 
         if not self.is_ranked():
             return False
+
+        if self.cardinality() == 0:
+            return True
 
         H = self._hasse_diagram
         height = self.height()

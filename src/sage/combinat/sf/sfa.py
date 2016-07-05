@@ -1008,7 +1008,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             basis ``self``. These functions are defined below.
 
             The Carlitz-Shareshian-Wachs symmetric functions have been
-            introduced in [GriRei2014]_, Exercise 2.84, as
+            introduced in [GriRei2014]_, Exercise 2.87, as
             refinements of a certain particular case of chromatic
             quasisymmetric functions defined by Shareshian and Wachs.
             Their definitions are as follows:
@@ -1030,7 +1030,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 X_{n, d, s} = \sum_{w \in W(n, d, s)} x_w .
 
             This is a symmetric function (according to
-            [GriRei2014]_, Exercise 2.84(b)), and for `s = 0` equals
+            [GriRei2014]_, Exercise 2.87(b)), and for `s = 0` equals
             the `t^d`-coefficient of the descent enumerator of Smirnov
             words of length `n` (an example of a chromatic
             quasisymmetric function which happens to be symmetric --
@@ -1049,7 +1049,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             `w = (w_1, w_2, \ldots, w_n) \in W(n, d, s)`. These
             three power series `U_{n, d, s}`, `V_{n, d, s}` and
             `W_{n, d, s}` are symmetric functions as well
-            ([GriRei2014]_, Exercise 2.84(c)). Their sum is
+            ([GriRei2014]_, Exercise 2.87(c)). Their sum is
             `X_{n, d, s}`.
 
             REFERENCES:
@@ -2603,11 +2603,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: s.set_print_style('lex')
         """
         if ps == 'lex':
-            self.print_options(generator_cmp = lambda x,y: cmp(x,y))
+            self.print_options(sorting_key=lambda x: x)
         elif ps == 'length':
-            self.print_options(generator_cmp = lambda x,y: cmp(len(x), len(y)))
+            self.print_options(sorting_key=lambda x: len(x))
         elif ps == 'maximal_part':
-            self.print_options(generator_cmp = lambda x,y: cmp(_lmax(x), _lmax(y)))
+            self.print_options(sorting_key=lambda x: _lmax(x))
         else:
             raise ValueError("the print style must be one of lex, length, or maximal_part ")
         self._print_style = ps
@@ -2759,10 +2759,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def plethysm(self, x, include=None, exclude=None):
         r"""
-        Return the outer plethysm of ``self`` with ``x``. This is
-        implemented only over base rings which are `\QQ`-algebras.
-        (To compute outer plethysms over general binomial rings, change
-        bases to the fraction field.)
+        Return the outer plethysm of ``self`` with ``x``.
+
+        This is implemented only over base rings which are
+        `\QQ`-algebras.  (To compute outer plethysms over general
+        binomial rings, change bases to the fraction field.)
 
         The outer plethysm of `f` with `g` is commonly denoted by
         `f \left[ g \right]` or by `f \circ g`. It is an algebra map
@@ -2817,9 +2818,15 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         .. SEEALSO::
 
             :meth:`frobenius`
+
+        TESTS::
+
+            sage: (1+p[2]).plethysm(p[2])
+            p[] + p[4]
         """
         if not is_SymmetricFunction(x):
-            raise TypeError("only know how to compute plethysms between symmetric functions")
+            raise TypeError("only know how to compute plethysms "
+                            "between symmetric functions")
         parent = self.parent()
         p = parent.realization_of().power()
         R = parent.base_ring()
@@ -2827,7 +2834,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         if self == parent.zero():
             return self
 
-        #Handle degree one elements
+        # Handle degree one elements
         if include is not None and exclude is not None:
             raise RuntimeError("include and exclude cannot both be specified")
 
@@ -2844,24 +2851,32 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         if exclude:
             degree_one = [g for g in degree_one if g not in exclude]
 
+        degree_one = [g for g in degree_one if g != R.one()]
+            
+        # Takes in n, and returns a function which takes in a partition and
+        # scales all of the parts of that partition by n
+        
+        def scale_part(n):
+            return lambda m: m.__class__(m.parent(), [i * n for i in m])
 
-        #Takes in n, and returns a function which takes in a partition and
-        #scales all of the parts of that partition by n
-        scale_part = lambda n: lambda m: m.__class__(m.parent(), [i*n for i in m])
+        def raise_c(n):
+            return lambda c: c.subs(**{str(g): g ** n for g in degree_one})
 
-        raise_c = lambda n: lambda c: c.subs(**dict((str(g),g**n) for g in degree_one if g != 1))
+        # Takes n an symmetric function f, and an n and returns the
+        # symmetric function with all of its basis partitions scaled
+        # by n
 
-        #Takes n an symmetric function f, and an n and returns the
-        #symmetric function with all of its basis partitions scaled
-        #by n
-        pn_pleth = lambda f, n: f.map_support(scale_part(n))
+        def pn_pleth(f, n):
+            return f.map_support(scale_part(n))
 
-        #Takes in a partition and applies
-        f = lambda part: prod( pn_pleth(p_x.map_coefficients(raise_c(i)), i) for i in part )
-        return parent(p._apply_module_morphism(p(self),f))
+        # Takes in a partition and applies
+
+        def f(part):
+            return p.prod(pn_pleth(p_x.map_coefficients(raise_c(i)), i)
+                          for i in part)
+        return parent(p._apply_module_morphism(p(self), f, codomain=p))
 
     __call__ = plethysm
-
 
     def inner_plethysm(self, x):
         r"""
@@ -5234,7 +5249,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         REFERENCES:
 
-        .. [SZ2001] M. Shimozono, M. Zabrocki,
+        .. [SZ2001] \M. Shimozono, M. Zabrocki,
            Hall-Littlewood vertex operators and generalized Kostka polynomials.
            Adv. Math. 158 (2001), no. 1, 66-85.
 

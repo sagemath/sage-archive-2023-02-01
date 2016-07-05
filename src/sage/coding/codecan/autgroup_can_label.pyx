@@ -40,7 +40,7 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Feu2009] T. Feulner. The Automorphism Groups of Linear Codes and
+.. [Feu2009] \T. Feulner. The Automorphism Groups of Linear Codes and
   Canonical Representatives of Their Semilinear Isometry Classes.
   Advances in Mathematics of Communications 3 (4), pp. 363-383, Nov 2009
 

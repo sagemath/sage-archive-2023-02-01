@@ -225,7 +225,7 @@ cdef class Farey:
             sage: F = Gamma0(40).farey_symbol()
             sage: table = F.pairing_matrices_to_tietze_index()
             sage: table[12]
-            -2
+            (-2, -1)
             sage: F.pairing_matrices()[12]
             [  3  -1]
             [ 40 -13]
@@ -233,63 +233,72 @@ cdef class Farey:
             [ -3   1]
             [-40  13]
         """
-        gens_dict = self._get_dict_of_generators()
+        gens_dict = {g:i+1 for i,g in enumerate(self.generators())}
         ans = []
         for pm in self.pairing_matrices():
             a, b, c, d = pm.matrix().list()
             newval = gens_dict.get(SL2Z([a, b, c, d]))
             if newval is not None:
-                ans.append(newval)
+                ans.append((newval,1))
                 continue
             newval = gens_dict.get(SL2Z([-a, -b, -c, -d]))
             if newval is not None:
-                ans.append(newval)
+                ans.append((newval,-1))
                 continue
             newval = gens_dict.get(SL2Z([d, -b, -c, a]))
             if newval is not None:
-                ans.append(-newval)
+                ans.append((-newval,1))
                 continue
             newval = gens_dict.get(SL2Z([-d, b, c, -a]))
             if newval is not None:
-                ans.append(-newval)
+                ans.append((-newval,-1))
                 continue
             raise RuntimeError("This should have not happened")
         return ans
 
     @cached_method
-    def _get_dict_of_generators(self):
+    def _get_minus_one(self):
         r"""
-        Obtain a dict indexed by the generators.
+        If -I belongs to self, return a Tietze word representing it.
 
         OUTPUT:
 
-        A dict of key-value pairs (g,i+1) and (-g,i+1) (the latter one -I belongs to self),
-        where the i-th generator is g.
+        A Tietze word representing the element -I if it belongs to self.
+        Otherwise return []
 
         EXAMPLES::
 
-            sage: G = Gamma1(30)
-            sage: F = G.farey_symbol()
-            sage: dict_gens = F._get_dict_of_generators()
-            sage: g = F.generators()[5]
-            sage: dict_gens[g] # Note that the answer is 1-based.
-            6
-
-        The dict also contains -g if -I belongs to the arithmetic group::
-
-            sage: G = Gamma0(20)
-            sage: F = G.farey_symbol()
-            sage: dict_gens = F._get_dict_of_generators()
-            sage: E = G([-1,0,0,-1])
-            sage: h = F.generators()[7] * E
-            sage: dict_gens[h]
-            8
+            sage: Gamma1(30).farey_symbol()._get_minus_one()
+            []
+            sage: G = Gamma0(30).farey_symbol()
+            sage: G._get_minus_one()
+            [14]
+            sage: g = G.generators()[13]
+            sage: (-g.matrix()).is_one()
+            True
+            sage: G = Gamma(1).farey_symbol()
+            sage: G._get_minus_one()
+            [1, 1]
+            sage: g = G.generators()[0]**2
+            sage: (-g.matrix()).is_one()
+            True
+            sage: G = Gamma0(3).farey_symbol()
+            sage: G._get_minus_one()
+            [2, 2, 2]
+            sage: g = G.generators()[1]**3
+            sage: (-g.matrix()).is_one()
+            True
         """
-        ans = {g:i+1 for i,g in enumerate(self.generators())}
-        E = SL2Z([-1,0,0,-1])
-        if E in self.group:
-            ans.update({(g * E):i+1 for i,g in enumerate(self.generators())})
-        return ans
+        for i,g in enumerate(self.generators()):
+            m = g.matrix()
+            if (-m).is_one():
+                return [i+1]
+            t = m.trace()
+            if t == 0: # order = 4
+                return 2 * [i+1]
+            elif t == 1: # order = 6
+                return 3 * [i+1]
+        return []
 
     def word_problem(self, M, output = 'standard', check = True):
         r"""
@@ -362,7 +371,7 @@ cdef class Farey:
             sage: F = G.farey_symbol()
             sage: g = G([-701,-137,4600,899])
             sage: g1 = prod(F.generators()[i]**a for i,a in F.word_problem(g, output = 'syllables'))
-            sage: g == g1 or g * G([-1,0,0,-1]) == g1
+            sage: g == g1
             True
 
         Check that it works for GammaH as well (:trac:`19660`)::
@@ -371,11 +380,24 @@ cdef class Farey:
             sage: G.farey_symbol().word_problem(G([1,1,0,1]))
             (1,)
 
+        Check that :trac:`20347` is solved::
+
+            sage: from sage.misc.misc_c import prod
+            sage: G = ArithmeticSubgroup_Permutation(S2="(1,2)(3,4)",S3="(1,2,3)")
+            sage: S = G.farey_symbol()
+            sage: g1,g2 = S.generators()
+            sage: g = g1^3 * g2^-2 * g1 * g2
+            sage: S.word_problem(g)
+            (2, 2, 2, 1, 1, 1, 2, 1, 2)
+            sage: h = prod(S.generators()[i]**a for i,a in S.word_problem(g, output = 'syllables'))
+            sage: g == h
+            True
         """
         if output not in ['standard', 'syllables', 'gens']:
             raise ValueError('Unrecognized output format')
         if check:
-            assert M in self.group,"Matrix ( %s ) is not in group ( %s )"%(M,self.group)
+            if M not in self.group:
+                raise ValueError("Matrix ( %s ) is not in group ( %s )"%(M,self.group))
         cdef Integer a = M.d()
         cdef Integer b = -M.b()
         cdef Integer c = -M.c()
@@ -385,18 +407,51 @@ cdef class Farey:
         sig_on()
         result = self.this_ptr.word_problem(a.value, b.value, c.value, d.value, cpp_beta)
         sig_off()
-        beta = convert_to_SL2Z(cpp_beta[0])
+        beta = convert_to_SL2Z(cpp_beta[0])**-1
+        mbeta = SL2Z([-beta.a(),-beta.b(),-beta.c(),-beta.d()])
         V = self.pairing_matrices_to_tietze_index()
-        tietze = [V[o-1] if o > 0 else -V[-o-1] for o in result]
-        if not beta.is_one() and beta != E: # We need to correct for beta
-            gens_dict = self._get_dict_of_generators()
+        sgn = 1
+        tietze = []
+        for o in result:
+            if o > 0:
+                tietze.append(V[o-1][0])
+                sgn *= V[o-1][1]
+            else:
+                tietze.append(-V[-o-1][0])
+                sgn *= V[-o-1][1]
+        if sgn == -1:
+            beta, mbeta = mbeta, beta
+
+        gens_dict = {g:i+1 for i,g in enumerate(self.generators())}
+        extra_tietze = []
+        if beta.is_one():
+            found = True
+        elif mbeta.is_one():
+            found = True
+            extra_tietze = self._get_minus_one()
+        else:
+            found = False
+        if not found:
             newval = gens_dict.get(beta)
             if newval is not None:
-                newval = -newval
-            else:
-                newval = gens_dict.get(beta**-1)
-                assert newval is not None
-            tietze.append(newval)
+                found = True
+                extra_tietze = [newval]
+        if not found:
+            newval = gens_dict.get(beta**-1)
+            if newval is not None:
+                found = True
+                extra_tietze = [-newval]
+        if not found:
+            newval = gens_dict.get(mbeta)
+            if newval is not None:
+                found = True
+                extra_tietze = [newval] + self._get_minus_one()
+        if not found:
+            newval = gens_dict.get(mbeta**-1)
+            if newval is not None:
+                found = True
+                extra_tietze = [-newval] + self._get_minus_one()
+        tietze.extend(extra_tietze)
         tietze.reverse()
         gens = self.generators()
         if check:
@@ -611,7 +666,7 @@ cdef class Farey:
 
     def generators(self):
         r"""
-        Minmal set of generators of the group of the FareySymbol.
+        Minimal set of generators of the group of the FareySymbol.
 
         EXAMPLES:
 

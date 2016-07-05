@@ -66,6 +66,7 @@ For display options, see :meth:`Tableaux.global_options`.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
@@ -79,10 +80,10 @@ from sage.rings.infinity import PlusInfinity
 from sage.arith.all import factorial, binomial
 from sage.rings.integer import Integer
 from sage.combinat.composition import Composition, Compositions
-from integer_vector import IntegerVectors
+from .integer_vector import IntegerVectors
 import sage.libs.symmetrica.all as symmetrica
 import sage.misc.prandom as random
-import permutation
+from . import permutation
 import itertools
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.all import uniq, prod
@@ -126,12 +127,12 @@ TableauOptions=GlobalOptions(name='tableaux',
     for partitions and vice versa::
 
         sage: P = Partition([3,3,1])
-        sage: print P.ferrers_diagram()
+        sage: print(P.ferrers_diagram())
         *
         ***
         ***
         sage: Partitions.global_options(convention="english")
-        sage: print P.ferrers_diagram()
+        sage: print(P.ferrers_diagram())
         ***
         ***
         *
@@ -455,19 +456,41 @@ class Tableau(ClonableList):
         EXAMPLES::
 
             sage: t = Tableau([[1,2,3],[4,5]])
-            sage: print t._repr_diagram()
+            sage: print(t._repr_diagram())
               1  2  3
               4  5
             sage: Tableaux.global_options(convention="french")
-            sage: print t._repr_diagram()
+            sage: print(t._repr_diagram())
               4  5
               1  2  3
             sage: Tableaux.global_options.reset()
+
+        TESTS:
+
+        Check that :trac:`20768` is fixed::
+
+            sage: T = Tableau([[1523, 1, 2],[1,12341, -2]])
+            sage: T.pp()
+             1523     1  2
+                1 12341 -2
         """
-        if self.parent().global_options('convention') == "English":
-            return '\n'.join(["".join(("%3s"%str(x) for x in row)) for row in self])
-        else:
-            return '\n'.join(["".join(("%3s"%str(x) for x in row)) for row in reversed(self)])
+        if not self:
+            return "  -"
+
+        # Get the widths of the columns
+        str_tab = [[str(data) for data in row] for row in self]
+        col_widths = [2]*len(str_tab[0])
+        for row in str_tab:
+            for i,e in enumerate(row):
+                col_widths[i] = max(col_widths[i], len(e))
+
+        if self.parent().global_options('convention') == "French":
+            str_tab = reversed(str_tab)
+
+        return "\n".join(" "
+                         + " ".join("{:>{width}}".format(e,width=col_widths[i])
+                                    for i,e in enumerate(row))
+                         for row in str_tab)
 
     def _repr_compact(self):
         """
@@ -545,26 +568,26 @@ class Tableau(ClonableList):
         We check that :trac:`16487` is fixed::
 
             sage: t = Tableau([[1,2,3],[4,5]])
-            sage: print t._ascii_art_table()
+            sage: print(t._ascii_art_table())
             +---+---+---+
             | 1 | 2 | 3 |
             +---+---+---+
             | 4 | 5 |
             +---+---+
             sage: Tableaux.global_options(convention="french")
-            sage: print t._ascii_art_table()
+            sage: print(t._ascii_art_table())
             +---+---+
             | 4 | 5 |
             +---+---+---+
             | 1 | 2 | 3 |
             +---+---+---+
-            sage: t = Tableau([]); print t._ascii_art_table()
+            sage: t = Tableau([]); print(t._ascii_art_table())
             ++
             ++
             sage: Tableaux.global_options.reset()
 
             sage: t = Tableau([[1,2,3,10,15],[12,15,17]])
-            sage: print t._ascii_art_table()
+            sage: print(t._ascii_art_table())
             +----+----+----+----+----+
             |  1 |  2 |  3 | 10 | 15 |
             +----+----+----+----+----+
@@ -599,7 +622,7 @@ class Tableau(ClonableList):
         Unicode version::
 
             sage: t = Tableau([[1,2,15,7],[12,5],[8,10],[9]])
-            sage: print t._ascii_art_table(unicode=True)
+            sage: print(t._ascii_art_table(unicode=True))
             ┌────┬────┬────┬───┐
             │ 1  │ 2  │ 15 │ 7 │
             ├────┼────┼────┴───┘
@@ -611,7 +634,7 @@ class Tableau(ClonableList):
             └────┘
             sage: Tableaux().global_options(convention='french')
             sage: t = Tableau([[1,2,15,7],[12,5],[8,10],[9]])
-            sage: print t._ascii_art_table(unicode=True)
+            sage: print(t._ascii_art_table(unicode=True))
             ┌────┐
             │ 9  │
             ├────┼────┐
@@ -641,7 +664,7 @@ class Tableau(ClonableList):
             h = '-'
             dl = dr = ul = ur = vr = vl = uh = dh = vh = '+'
 
-        if len(self) == 0:
+        if not self:
             return dr + dl + '\n' + ur + ul
 
         # Get the widths of the columns
@@ -702,21 +725,25 @@ class Tableau(ClonableList):
         We check that :trac:`16487` is fixed::
 
             sage: t = Tableau([[1,2,3],[4,5]])
-            sage: print t._ascii_art_compact()
+            sage: print(t._ascii_art_compact())
             |1|2|3|
             |4|5|
             sage: Tableaux.global_options(convention="french")
-            sage: print t._ascii_art_compact()
+            sage: print(t._ascii_art_compact())
             |4|5|
             |1|2|3|
             sage: Tableaux.global_options.reset()
 
             sage: t = Tableau([[1,2,3,10,15],[12,15,17]])
-            sage: print t._ascii_art_compact()
+            sage: print(t._ascii_art_compact())
             |1 |2 |3 |10|15|
             |12|15|17|
+
+            sage: t = Tableau([])
+            sage: print(t._ascii_art_compact())
+            .
         """
-        if len(self) == 0:
+        if not self:
             return "."
 
         if self.parent().global_options('convention') == "English":
@@ -732,8 +759,9 @@ class Tableau(ClonableList):
                 col_widths[i] = max(col_widths[i], len(e))
 
         return "\n".join("|"
-                       + "|".join("{:^{width}}".format(e,width=col_widths[i]) for i,e in enumerate(row))
-                       + "|" for row in str_tab)
+                         + "|".join("{:^{width}}".format(e, width=col_widths[i])
+                                    for i,e in enumerate(row))
+                         + "|" for row in str_tab)
 
     def _latex_(self):
         r"""
@@ -772,7 +800,7 @@ class Tableau(ClonableList):
         EXAMPLES::
 
             sage: t = Tableau([[1,1,2],[2,3],[3]])
-            sage: print t._latex_diagram()
+            sage: print(t._latex_diagram())
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{3}c}\cline{1-3}
             \lr{1}&\lr{1}&\lr{2}\\\cline{1-3}
@@ -783,7 +811,7 @@ class Tableau(ClonableList):
         """
         if len(self) == 0:
             return "{\\emptyset}"
-        from output import tex_from_array
+        from .output import tex_from_array
         return tex_from_array(self)
 
     def __truediv__(self, t):
@@ -880,7 +908,7 @@ class Tableau(ClonableList):
         EXAMPLES::
 
             sage: t = Tableau([[1,2,3],[4,5]]);
-            sage: for s in t.components(): print s.to_list()
+            sage: for s in t.components(): print(s.to_list())
             [[1, 2, 3], [4, 5]]
         """
         return [self]
@@ -968,7 +996,7 @@ class Tableau(ClonableList):
               1  2  3
             sage: Tableaux.global_options.reset()
         """
-        print self._repr_diagram()
+        print(self._repr_diagram())
 
     def to_word_by_row(self):
         """
@@ -1488,7 +1516,7 @@ class Tableau(ClonableList):
 
         REFERENCES:
 
-        .. [BerKilGGI] A. N. Kirillov, A. D. Berenstein,
+        .. [BerKilGGI] \A. N. Kirillov, A. D. Berenstein,
            *Groups generated by involutions, Gelfand--Tsetlin patterns,
            and combinatorics of Young tableaux*,
            Algebra i Analiz, 1995, Volume 7, Issue 1, pp. 92--152.
@@ -1939,7 +1967,7 @@ class Tableau(ClonableList):
 
         REFERENCES:
 
-        .. [Ive2012] S. Iveson,
+        .. [Ive2012] \S. Iveson,
            *Tableaux on `k + 1`-cores, reduced words for affine
            permutations, and `k`-Schur expansions*,
            Operators on `k`-tableaux and the `k`-Littlewood-Richardson
@@ -2620,10 +2648,10 @@ class Tableau(ClonableList):
                 right_neighbor = new_st[spotl][spotc + 1]
                 if go_right is None or upper_neighbor > right_neighbor:
                     go_right = True
-            if go_right == True:
+            if go_right is True:
                 new_st[spotl][spotc] = right_neighbor
                 spotc += 1
-            elif go_right == False:
+            elif go_right is False:
                 new_st[spotl][spotc] = upper_neighbor
                 spotl += 1
             else:
@@ -3073,10 +3101,10 @@ class Tableau(ClonableList):
 
         EXAMPLES::
 
-            sage: s=StandardTableau([[1,2,5],[3,4]]); s.pp()
+            sage: s = StandardTableau([[1,2,5],[3,4]]); s.pp()
               1  2  5
               3  4
-            sage: t=s.add_entry( (1,2), 6); t.pp()
+            sage: t = s.add_entry( (1,2), 6); t.pp()
               1  2  5
               3  4  6
             sage: t.category()
@@ -3085,7 +3113,7 @@ class Tableau(ClonableList):
               1  2  5
               3  4
               6
-            sage: u=s.add_entry( (1,2), 3); u.pp()
+            sage: u = s.add_entry( (1,2), 3); u.pp()
               1  2  5
               3  4  3
             sage: u.category()
@@ -3327,7 +3355,7 @@ class Tableau(ClonableList):
 
         REFERENCES:
 
-        .. [LLM01] L. Lapointe, A. Lascoux, J. Morse.
+        .. [LLM01] \L. Lapointe, A. Lascoux, J. Morse.
            *Tableau atoms and a new Macdonald positivity conjecture*.
            :arxiv:`math/0008073v2`.
 
@@ -3553,12 +3581,12 @@ class Tableau(ClonableList):
 
         REFERENCES:
 
-        .. [LS90] A. Lascoux, M.-P. Schutzenberger.
+        .. [LS90] \A. Lascoux, M.-P. Schutzenberger.
            Keys and standard bases, invariant theory and tableaux.
            IMA Volumes in Math and its Applications (D. Stanton, ED.).
            Southend on Sea, UK, 19 (1990). 125-144.
 
-        .. [Willis10] M. Willis. A direct way to find the right key of
+        .. [Willis10] \M. Willis. A direct way to find the right key of
            a semistandard Young tableau. :arxiv:`1110.6184v1`.
 
         EXAMPLES::
@@ -3748,7 +3776,7 @@ class Tableau(ClonableList):
 
         REFERENCES:
 
-        .. [S14] B. Salisbury.
+        .. [S14] \B. Salisbury.
            The flush statistic on semistandard Young tableaux.
            :arXiv:`1401.1185`
 
@@ -5747,7 +5775,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
 
         REFERENCES:
 
-        .. [Krat99] C. Krattenthaler,
+        .. [Krat99] \C. Krattenthaler,
            *Another Involution Principle-Free Bijective Proof of Stanley's Hook Content Formula*,
            Journal of Combinatorial Theory, Series A vol 88 Issue 1 (1999), 66-92,
            http://www.sciencedirect.com/science/article/pii/0012365X9290368P

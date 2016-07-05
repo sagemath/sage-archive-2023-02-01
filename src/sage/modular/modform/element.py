@@ -573,13 +573,13 @@ class ModularForm_abstract(ModuleElement):
         to it, which can be computed using the method
         `:meth:~sage.schemes.elliptic_curves.ell_rational_field.EllipticCurve_rational_field.modular_symbol`.
         These can be used to express the periods of `f` as exact
-        linear combinations of a basis for the period lattice of `E`::
+        linear combinations of the real and the imaginary period of `E`::
 
             sage: s = E.modular_symbol(sign=+1)
             sage: t = E.modular_symbol(sign=-1)
             sage: s(3/11), t(3/11)
-            (1/10, 1)
-            sage: s(3/11)*omega1 + t(3/11)*omega2.imag()*I
+            (1/10, 1/2)
+            sage: s(3/11)*omega1 + t(3/11)*2*omega2.imag()*I
             0.634604652139777 + 1.45881661693850*I
 
         ALGORITHM:
@@ -595,7 +595,7 @@ class ModularForm_abstract(ModuleElement):
 
         REFERENCE:
 
-        .. [Cremona] J. E. Cremona, Algorithms for Modular Elliptic
+        .. [Cremona] \J. E. Cremona, Algorithms for Modular Elliptic
            Curves.  Cambridge University Press, 1997.
 
         TESTS::
@@ -1199,12 +1199,23 @@ class Newform(ModularForm_abstract):
             sage: f = Newforms(39,4,names='a')[1] ; f
             q + a1*q^2 - 3*q^3 + (2*a1 + 5)*q^4 + (-2*a1 + 14)*q^5 + O(q^6)
             sage: f._compute([2,3,7])
-            [alpha, -3, -2*alpha + 2]
+            [a1, -3, -2*a1 + 2]
             sage: f._compute([])
             []
+
+        Check that :trac:`20793` is fixed::
+
+            sage: f = Newforms(83, 2, names='a')[1]; f
+            q + a1*q^2 + (1/2*a1^4 - 1/2*a1^3 - 7/2*a1^2 + 3/2*a1 + 4)*q^3 + (a1^2 - 2)*q^4 + (-1/2*a1^5 - 1/2*a1^4 + 9/2*a1^3 + 7/2*a1^2 - 8*a1 - 2)*q^5 + O(q^6)
+            sage: K = f.hecke_eigenvalue_field(); K
+            Number Field in a1 with defining polynomial x^6 - x^5 - 9*x^4 + 7*x^3 + 20*x^2 - 12*x - 8
+            sage: l = f.coefficients(20); l[-1]
+            -a1^4 + 5*a1^2 - 4
+            sage: l[-1].parent() is K
+            True
         """
         M = self.modular_symbols(1)
-        return [M.eigenvalue(x) for x in X]
+        return [M.eigenvalue(x, name=self._name()) for x in X]
 
     def element(self):
         """
@@ -1722,7 +1733,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         REFERENCES:
 
-        .. [Atkin-Li] A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists
+        .. [Atkin-Li] \A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists
            of newforms and pseudo-eigenvalues of `W`-operators.
            Inventiones math. 48 (1978), 221-243.
 

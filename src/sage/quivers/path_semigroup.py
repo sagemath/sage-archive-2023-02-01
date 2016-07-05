@@ -18,6 +18,7 @@ Path Semigroups
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import six
 from sage.rings.integer import Integer
@@ -575,7 +576,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: counter = 0
             sage: for p in P:
             ....:     counter += 1
-            ....:     print p
+            ....:     print(p)
             ....:     if counter==20:
             ....:         break
             e_1

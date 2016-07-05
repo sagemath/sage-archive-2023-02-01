@@ -12,18 +12,15 @@ Pynac interface
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-cdef extern from "pynac_cc.h":
-    long double sage_logl(long double)
-    long double sage_sqrtl(long double)
-    long double sage_tgammal(long double)
-    long double sage_lgammal(long double)
-
-include "sage/ext/cdefs.pxi"
-from sage.ext.stdsage cimport PY_NEW
 from cpython cimport *
-from ginac cimport *
+from libc cimport math
 
+from .ginac cimport *
+
+from sage.ext.stdsage cimport PY_NEW
+from sage.libs.gmp.all cimport *
 from sage.libs.gsl.types cimport *
 from sage.libs.gsl.complex cimport *
 from sage.libs.gsl.gamma cimport gsl_sf_lngamma_complex_e
@@ -43,11 +40,10 @@ from sage.symbolic.function import get_sfunction_from_serial
 from sage.symbolic.function cimport Function
 from sage.symbolic.constants_c cimport PynacConstant
 
-import ring
+from . import ring
 
 from sage.rings.integer cimport Integer
 
-import math
 from sage.libs.mpmath import utils as mpmath_utils
 
 #################################################################
@@ -81,10 +77,10 @@ cdef object exprseq_to_PyTuple(GEx seq):
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=0)
         ....:
         ....:     def _eval_(self, *args):
-        ....:         print "len(args): %s, types: %s"%(len(args), str(map(type, args)))
+        ....:         print("len(args): %s, types: %s"%(len(args), str(map(type, args))))
         ....:         for i, a in enumerate(args):
         ....:             if isinstance(a, tuple):
-        ....:                 print "argument %s is a tuple, with types %s"%(str(i), str(map(type, a)))
+        ....:                 print("argument %s is a tuple, with types %s"%(str(i), str(map(type, a))))
         ....:
         sage: tfunc = TFunc()
         sage: u = SR._force_pyobject((1, x+1, 2))
@@ -143,7 +139,7 @@ cdef object exvector_to_PyTuple(GExVector seq):
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=0)
         ....:
         ....:     def _eval_(self, *args):
-        ....:         print "len(args): %s, types: %s"%(len(args), str(map(type, args)))
+        ....:         print("len(args): %s, types: %s"%(len(args), str(map(type, args))))
         sage: tfunc = TFunc()
         sage: u = SR._force_pyobject((1, x+1, 2))
         sage: tfunc(u, x, 3.0, 5.0r)
@@ -266,7 +262,7 @@ def get_fn_serial():
         sage: from sage.symbolic.function import get_sfunction_from_serial
         sage: get_fn_serial() > 125
         True
-        sage: print get_sfunction_from_serial(get_fn_serial())
+        sage: print(get_sfunction_from_serial(get_fn_serial()))
         None
         sage: get_sfunction_from_serial(get_fn_serial() - 1) is not None
         True
@@ -285,7 +281,7 @@ cdef object subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExV
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=0)
         ....:
         ....:     def _subs_(self, *args):
-        ....:         print "len(args): %s, types: %s"%(len(args), str(map(type, args)))
+        ....:         print("len(args): %s, types: %s"%(len(args), str(map(type, args))))
         ....:         return args[-1]
         sage: tfunc = TFunc()
         sage: tfunc(x).subs(x=1)
@@ -609,7 +605,7 @@ def py_print_fderivative_for_doctests(id, params, args):
         sage: from sage.symbolic.function import get_sfunction_from_serial
         sage: foo = function('foo', nargs=2)
         sage: for i in range(get_ginac_serial(), get_fn_serial()):
-        ...     if get_sfunction_from_serial(i) == foo: break
+        ....:     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
         True
@@ -621,7 +617,7 @@ def py_print_fderivative_for_doctests(id, params, args):
         sage: def my_print(self, *args): return "func_with_args(" + ', '.join(map(repr, args)) +')'
         sage: foo = function('foo', nargs=2, print_func=my_print)
         sage: for i in range(get_ginac_serial(), get_fn_serial()):
-        ...     if get_sfunction_from_serial(i) == foo: break
+        ....:     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
         True
@@ -1100,6 +1096,14 @@ cdef bint py_is_real(object a) except +:
     if type(a) is int or isinstance(a, Integer) or\
             type(a) is long or type(a) is float:
         return True
+    try:
+        P = parent_c(a)
+        if P.is_field() and P.is_finite():
+            return False
+    except NotImplementedError:
+        return False
+    except AttributeError:
+        pass
     return py_imag(a) == 0
 
 cdef bint py_is_prime(object n) except +:
@@ -1287,7 +1291,7 @@ cdef object py_tgamma(object x) except +:
     if type(x) is int or type(x) is long:
         x = float(x)
     if type(x) is float:
-        return sage_tgammal(x)
+        return math.tgamma(PyFloat_AS_DOUBLE(x))
 
     # try / except blocks are faster than
     # if hasattr(x, 'gamma')
@@ -1558,7 +1562,7 @@ cdef object py_exp(object x) except +:
         0.540302305868140 + 0.841470984807897*I
     """
     if type(x) is float:
-        return math.exp(x)
+        return math.exp(PyFloat_AS_DOUBLE(x))
     try:
         return x.exp()
     except AttributeError:
@@ -1617,10 +1621,11 @@ cdef object py_log(object x) except +:
     if type(x) is int or type(x) is long:
         x = float(x)
     if type(x) is float:
-        if (<float>x) > 0:
-            return sage_logl(x)
-        elif x < 0:
-            res = gsl_complex_log(gsl_complex_rect(PyFloat_AsDouble(x), 0))
+        real = PyFloat_AS_DOUBLE(x)
+        if real > 0:
+            return math.log(real)
+        elif real < 0:
+            res = gsl_complex_log(gsl_complex_rect(real, 0))
             return PyComplex_FromDoubles(res.dat[0], res.dat[1])
         else:
             return float('-inf')
@@ -1748,7 +1753,7 @@ cdef object py_sinh(object x) except +:
 
 cdef object py_cosh(object x) except +:
     if type(x) is float:
-        return math.cosh(x)
+        return math.cosh(PyFloat_AS_DOUBLE(x))
     try:
         return x.cosh()
     except AttributeError:
@@ -1765,6 +1770,10 @@ cdef object py_asinh(object x) except +:
     try:
         return x.arcsinh()
     except AttributeError:
+        pass
+    try:
+        return RR(x).arcsinh()
+    except TypeError:
         return CC(x).arcsinh()
 
 cdef object py_acosh(object x) except +:
@@ -1786,50 +1795,36 @@ cdef object py_atanh(object x) except +:
 
 cdef object py_lgamma(object x) except +:
     """
-    Return the value of the log gamma function at the given value.
+    Return the value of the principal branch of the log gamma function at the
+    given value.
 
-    The value is expected to be a numerical object, in RR, CC, RDF or CDF.
+    The value is expected to be a numerical object, in RR, CC, RDF or CDF, or
+    of the Python ``float`` or ``complex`` type.
 
     EXAMPLES::
 
         sage: from sage.symbolic.pynac import py_lgamma_for_doctests as py_lgamma
         sage: py_lgamma(4)
         1.79175946922805
-        sage: py_lgamma(4.r)
-        1.791759469228055
-        sage: py_lgamma(4r)
-        1.791759469228055
+        sage: py_lgamma(4.r)  # abs tol 2e-14
+        1.79175946922805
+        sage: py_lgamma(4r)  # abs tol 2e-14
+        1.79175946922805
         sage: py_lgamma(CC.0)
         -0.650923199301856 - 1.87243664726243*I
         sage: py_lgamma(ComplexField(100).0)
         -0.65092319930185633888521683150 - 1.8724366472624298171188533494*I
     """
-    cdef gsl_sf_result lnr, arg
-    cdef gsl_complex res
-    if type(x) is int or type(x) is long:
-        x = float(x)
-    if type(x) is float:
-         return sage_lgammal(x)
-    elif type(x) is complex:
-        gsl_sf_lngamma_complex_e(PyComplex_RealAsDouble(x),PyComplex_ImagAsDouble(x), &lnr, &arg)
-        res = gsl_complex_polar(lnr.val, arg.val)
-        return PyComplex_FromDoubles(res.dat[0], res.dat[1])
-    elif isinstance(x, Integer):
-        return x.gamma().log().n()
+    from mpmath import loggamma
 
-    # try / except blocks are faster than
-    # if hasattr(x, 'log_gamma')
     try:
         return x.log_gamma()
     except AttributeError:
         pass
-
     try:
-        return x.gamma().log()
-    except AttributeError:
-        pass
-
-    return CC(x).gamma().log()
+        return RR(x).log_gamma()
+    except TypeError:
+        return mpmath_utils.call(loggamma, x, parent=parent_c(x))
 
 def py_lgamma_for_doctests(x):
     """
@@ -1851,7 +1846,7 @@ cdef object py_sqrt(object x) except +:
         # WORRY: What if Integer's sqrt calls symbolic one and we go in circle?
         return x.sqrt()
     except AttributeError as msg:
-        return sage_sqrtl(float(x))
+        return math.sqrt(float(x))
 
 cdef object py_abs(object x) except +:
     return abs(x)

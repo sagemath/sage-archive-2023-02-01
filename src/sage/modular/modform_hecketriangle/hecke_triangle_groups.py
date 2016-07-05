@@ -15,6 +15,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.rings.all import ZZ, QQ, AA, AlgebraicField, infinity, PolynomialRing, NumberField
 from sage.functions.all import cos,exp,sec
@@ -290,11 +291,11 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
-            sage: HeckeTriangleGroup(3).rho() == 1/2 + sqrt(3)/2*i
+            sage: HeckeTriangleGroup(3).rho() == QQbar(1/2 + sqrt(3)/2*i)
             True
-            sage: HeckeTriangleGroup(4).rho() == sqrt(2)/2*(1 + i)
+            sage: HeckeTriangleGroup(4).rho() == QQbar(sqrt(2)/2*(1 + i))
             True
-            sage: HeckeTriangleGroup(6).rho() == sqrt(3)/2 + 1/2*i
+            sage: HeckeTriangleGroup(6).rho() == QQbar(sqrt(3)/2 + 1/2*i)
             True
             sage: HeckeTriangleGroup(10).rho()
             0.95105651629515...? + 0.30901699437494...?*I
@@ -541,7 +542,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: HeckeTriangleGroup(6).dvalue()
             1/108
             sage: HeckeTriangleGroup(10).dvalue()
-            e^(2*euler_gamma - 2*pi/sqrt(1/2*sqrt(5) + 5/2) + psi(4/5) + psi(7/10))
+            e^(2*euler_gamma - 4*pi/sqrt(2*sqrt(5) + 10) + psi(4/5) + psi(7/10))
             sage: HeckeTriangleGroup(infinity).dvalue()
             1/64
         """
@@ -935,7 +936,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: [key for key in sorted(G._conj_prim)]
             [-4, lam - 3, 0, 4*lam, 7*lam + 6, 9*lam + 5, 15*lam + 6, 33*lam + 21]
             sage: for key in sorted(G._conj_prim):
-            ....:     print G._conj_prim[key]
+            ....:     print(G._conj_prim[key])
             [[S], [S]]
             [[U], [U]]
             [[V(4)]]
@@ -948,7 +949,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             [-lam - 2, lam - 3, 32*lam + 16]
 
             sage: for key in sorted(G._conj_nonprim):
-            ....:     print G._conj_nonprim[key]
+            ....:     print(G._conj_nonprim[key])
             [[U^(-2)], [U^2], [U^(-2)], [U^2]]
             [[U^(-1)], [U^(-1)]]
             [[V(2)^2], [V(3)^2]]

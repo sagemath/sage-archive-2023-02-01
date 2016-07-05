@@ -31,12 +31,6 @@ ACKNOWLEDGEMENT:
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         Growth Group Generic(ZZ)
-        sage: GrowthGroup('x^ZZ * log(x)^ZZ')
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
-        Growth Group x^ZZ * log(x)^ZZ
 
 TESTS::
 
@@ -77,7 +71,7 @@ TESTS::
     sage: cm.common_parent(A, E)
     Growth Group QQ^x * x^QQ
     sage: for t in cm.exception_stack():  # not tested, see #19411
-    ....:     print t
+    ....:     print(t)
 
 ::
 
@@ -100,6 +94,7 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import sage
 
@@ -751,13 +746,17 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 'no common parent was found, and '
                 'splitting the factors was unsuccessful.' % (self, other, var))
 
-
+        # A wrapper around an iterator that stores additional intermediate data.
+        # This deviates slightly from the iterator protocol:
+        # At the end of the iteration the data is reset to None instead
+        # of raising a StopIteration.
         class it:
             def __init__(self, it):
                 self.it = it
                 self.var = None
                 self.factors = None
-            def next(self):
+
+            def next_custom(self):
                 try:
                     self.var, factors = next(self.it)
                     self.factors = tuple(factors)
@@ -772,24 +771,24 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         newS = []
         newO = []
 
-        S.next()
-        O.next()
+        S.next_custom()
+        O.next_custom()
         while S.var is not None or O.var is not None:
             if S.var is not None and S.var < O.var:
                 newS.extend(S.factors)
                 newO.extend(S.factors)
-                S.next()
+                S.next_custom()
             elif O.var is not None and S.var > O.var:
                 newS.extend(O.factors)
                 newO.extend(O.factors)
-                O.next()
+                O.next_custom()
             else:
                 SL, OL = pushout_univariate_factors(self, other, S.var,
                                                     S.factors, O.factors)
                 newS.extend(SL)
                 newO.extend(OL)
-                S.next()
-                O.next()
+                S.next_custom()
+                O.next_custom()
 
         assert(len(newS) == len(newO))
 

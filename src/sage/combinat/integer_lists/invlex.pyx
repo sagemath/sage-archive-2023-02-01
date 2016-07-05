@@ -27,7 +27,7 @@ limitations and lack of robustness w.r.t. input.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.cachefunc import cached_method
@@ -293,7 +293,7 @@ class IntegerListsLex(IntegerLists):
     but not in inverse lexicographic order::
 
         sage: L = IntegerListsLex(length=2, ceiling=[Infinity, 0], floor=[0,1])
-        sage: for l in L: print l
+        sage: for l in L: print(l)
         Traceback (most recent call last):
         ...
         ValueError: infinite upper bound for values of m
@@ -913,7 +913,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
         Indeed::
 
             sage: it = iter(IntegerListsLex(4, check=False))
-            sage: for _ in range(10): print next(it)
+            sage: for _ in range(10): print(next(it))
             [4]
             [3, 1]
             [3, 0, 1]

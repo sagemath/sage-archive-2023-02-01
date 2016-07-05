@@ -37,6 +37,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import operator
 import six
@@ -521,9 +522,9 @@ class Interface(ParentWithBase):
         EXAMPLES::
 
             sage: maxima.quad_qags(x, x, 0, 1, epsrel=1e-4)
-            [0.5,5.5511151231257...e-15,21,0]
+            [0.5,0.55511151231257...e-14,21,0]
             sage: maxima.function_call('quad_qags', [x, x, 0, 1], {'epsrel':'1e-4'})
-            [0.5,5.5511151231257...e-15,21,0]
+            [0.5,0.55511151231257...e-14,21,0]
         """
         args, kwds = self._convert_args_kwds(args, kwds)
         self._check_valid_function_name(function)
@@ -626,13 +627,13 @@ class InterfaceFunctionElement(SageObject):
         self._name = name
 
     def __repr__(self):
-        return "%s"%self._name
+        return "%s" % self._name
 
     def __call__(self, *args, **kwds):
         return self._obj.parent().function_call(self._name, [self._obj] + list(args), kwds)
 
     def help(self):
-        print self._sage_doc_()
+        print(self._sage_doc_())
 
     def _sage_doc_(self):
         """

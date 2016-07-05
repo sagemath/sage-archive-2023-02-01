@@ -92,6 +92,7 @@ See :trac:`12091`::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from cpython.object cimport Py_EQ, Py_GE, Py_LE, Py_GT, Py_LT
 
@@ -818,7 +819,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
             sage: x = p.new_variable()
             sage: f = 0.5 + 3/2*x[1] + 0.6*x[3]
             sage: for id, coeff in f.iteritems():
-            ....:    print 'id =', id, '  coeff =', coeff
+            ....:     print('id = {}   coeff = {}'.format(id, coeff))
             id = 0   coeff = 3/2
             id = 1   coeff = 3/5
             id = -1   coeff = 1/2
@@ -904,7 +905,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         except KeyError:
             return self.parent().base_ring().zero()
 
-    cpdef ModuleElement _add_(self, ModuleElement b):
+    cpdef _add_(self, b):
         r"""
         Defining the + operator
 
@@ -920,7 +921,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         P = self.parent()
         return P(e)
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         r"""
         Defining the - operator (opposite).
 
@@ -933,7 +934,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         P = self.parent()
         return P(dict([(id,-coeff) for (id, coeff) in self._f.iteritems()]))
 
-    cpdef ModuleElement _sub_(self, ModuleElement b):
+    cpdef _sub_(self, b):
         r"""
         Defining the - operator (substraction).
 
@@ -951,7 +952,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         P = self.parent()
         return P(e)
 
-    cpdef ModuleElement _rmul_(self, RingElement b):
+    cpdef _rmul_(self, RingElement b):
         r"""
         Left multiplication by scalars
 
@@ -964,7 +965,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         P = self.parent()
         return P(dict([(id,b*coeff) for (id, coeff) in self._f.iteritems()]))
 
-    cpdef ModuleElement _lmul_(self, RingElement b):
+    cpdef _lmul_(self, RingElement b):
         r"""
         Right multiplication by scalars
 
@@ -1538,7 +1539,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
             sage: list(ieq)
             [1, x_0, x_1, 3, x_2]
             sage: for term in ieq:
-            ....:     print term
+            ....:     print(term)
             1
             x_0
             x_1
@@ -1564,7 +1565,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
             sage: eqns = 1 == b[0] == b[2] == 3 == b[3];  eqns
             1 == x_0 == x_1 == 3 == x_2
             sage: for lhs, rhs in eqns.equations():
-            ....:     print str(lhs) + ' == ' + str(rhs)
+            ....:     print(str(lhs) + ' == ' + str(rhs))
             1 == x_0
             x_0 == x_1
             x_1 == 3
@@ -1597,7 +1598,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
             1 <= x_0 <= x_1 <= 3 <= x_2
 
             sage: for lhs, rhs in ieq.inequalities():
-            ....:     print str(lhs) + ' <= ' + str(rhs)
+            ....:     print(str(lhs) + ' <= ' + str(rhs))
             1 <= x_0
             x_0 <= x_1
             x_1 <= 3

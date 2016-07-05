@@ -23,6 +23,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import copy
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -224,7 +225,7 @@ class SkewTableau(ClonableList):
 
         EXAMPLES::
 
-            sage: print SkewTableau([[None,2,3],[None,4],[5]])._repr_list()
+            sage: print(SkewTableau([[None,2,3],[None,4],[5]])._repr_list())
             [[None, 2, 3], [None, 4], [5]]
         """
         return repr(self.to_list())
@@ -240,7 +241,7 @@ class SkewTableau(ClonableList):
 
         EXAMPLES::
 
-            sage: print SkewTableau([[None,2,3],[None,4],[5]])._repr_diagram()
+            sage: print(SkewTableau([[None,2,3],[None,4],[5]])._repr_diagram())
               .  2  3
               .  4
               5
@@ -279,7 +280,7 @@ class SkewTableau(ClonableList):
               .  4
               5
         """
-        print self._repr_diagram()
+        print(self._repr_diagram())
 
     def _ascii_art_(self):
         """
@@ -2036,7 +2037,7 @@ class SemistandardSkewTableaux(SkewTableaux):
          [[None, 3], [3]]]
 
         sage: for n in range(5):
-        ....:     print n, len(SemistandardSkewTableaux([[2,2,1],[1]], max_entry = n))
+        ....:     print("{} {}".format(n, len(SemistandardSkewTableaux([[2,2,1],[1]], max_entry = n))))
         0 0
         1 0
         2 1

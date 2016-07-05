@@ -91,7 +91,7 @@ The above is consistent with the following analytic computation::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.misc.all import verbose, prod
 from sage.misc.cachefunc import cached_method
@@ -3463,7 +3463,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: E = EllipticCurve('77a')
             sage: y = E.heegner_point(-52,5); y
             Heegner point of discriminant -52 and conductor 5 on elliptic curve of conductor 77
-            sage: print [z.quadratic_form() for z in y.conjugates_over_K()]
+            sage: print([z.quadratic_form() for z in y.conjugates_over_K()])
             [77*x^2 + 52*x*y + 13*y^2, 154*x^2 + 206*x*y + 71*y^2, 539*x^2 + 822*x*y + 314*y^2, 847*x^2 + 1284*x*y + 487*y^2, 1001*x^2 + 52*x*y + y^2, 1078*x^2 + 822*x*y + 157*y^2, 1309*x^2 + 360*x*y + 25*y^2, 1309*x^2 + 2054*x*y + 806*y^2, 1463*x^2 + 976*x*y + 163*y^2, 2233*x^2 + 2824*x*y + 893*y^2, 2387*x^2 + 2054*x*y + 442*y^2, 3619*x^2 + 3286*x*y + 746*y^2]
             sage: y.quadratic_form()
             77*x^2 + 52*x*y + 13*y^2

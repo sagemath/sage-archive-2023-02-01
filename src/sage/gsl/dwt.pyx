@@ -90,10 +90,10 @@ def WaveletTransform(n, wavelet_type, wavelet_k):
     cdef size_t _n, _k
     _n = int(n)
     if _n < 0:
-        raise ValueError, "n must be nonnegative."
+        raise ValueError("n must be nonnegative.")
     _k = int(wavelet_k)
     if not is2pow(_n):
-        raise NotImplementedError,"discrete wavelet transform only implemented when n is a 2-power"
+        raise NotImplementedError("discrete wavelet transform only implemented when n is a 2-power")
     return DiscreteWaveletTransform(_n,1,wavelet_type,_k)
 
 DWT = WaveletTransform
@@ -108,7 +108,7 @@ cdef class DiscreteWaveletTransform(gsl_array.GSLDoubleArray):
 
     def __init__(self,size_t n,size_t stride, wavelet_type, size_t wavelet_k):
         if not is2pow(n):
-            raise NotImplementedError,"discrete wavelet transform only implemented when n is a 2-power"
+            raise NotImplementedError("discrete wavelet transform only implemented when n is a 2-power")
         gsl_array.GSLDoubleArray.__init__(self,n,stride)
         if wavelet_type=="daubechies":
             self.wavelet = <gsl_wavelet*> gsl_wavelet_alloc(gsl_wavelet_daubechies, wavelet_k)

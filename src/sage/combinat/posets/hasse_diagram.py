@@ -16,6 +16,7 @@ Hasse diagrams of posets
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
@@ -493,8 +494,8 @@ class HasseDiagram(DiGraph):
             sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
             sage: r = P.rank_function()
             sage: for u,v in P.cover_relations_iterator():
-            ...    if r(v) != r(u) + 1:
-            ...        print "Bug in rank_function!"
+            ....:     if r(v) != r(u) + 1:
+            ....:         print("Bug in rank_function!")
 
         ::
 
@@ -715,7 +716,7 @@ class HasseDiagram(DiGraph):
             2
             sage: for u,v in P.cover_relations_iterator():
             ....:     if P.moebius_function(u,v) != -1:
-            ....:         print "Bug in moebius_function!"
+            ....:         print("Bug in moebius_function!")
         """
         try:
             return self._moebius_function_values[(i,j)]
@@ -795,7 +796,7 @@ class HasseDiagram(DiGraph):
             2
             sage: for u,v in P.cover_relations_iterator():
             ....:     if P.moebius_function(u,v) != -1:
-            ....:         print "Bug in moebius_function!"
+            ....:         print("Bug in moebius_function!")
 
         This uses ``self._moebius_function_matrix``, as computed by
         :meth:`moebius_function_matrix`.
@@ -1256,6 +1257,56 @@ class HasseDiagram(DiGraph):
             return False
         else:
             return True
+
+    def is_semidistributive(self, meet_or_join):
+        r"""
+        Check if the lattice is semidistributive or not.
+
+        INPUT:
+
+        - ``meet_or_join`` -- string ``'meet'`` or ``'join'``
+          to decide if to check for join-semidistributivity or
+          meet-semidistributivity
+
+        OUTPUT:
+
+        - ``None`` if the lattice is semidistributive OR
+        - tuple ``(u, e, x, y)`` such that
+          `u = e \vee x = e \vee y` but `u \neq e \vee (x \wedge y)`
+          if ``meet_or_join=='join'`` and
+          `u = e \wedge x = e \wedge y` but `u \neq e \wedge (x \vee y)`
+          if ``meet_or_join=='meet'``
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[1, 2], 1:[3, 4], 2:[4, 5], 3:[6],
+            ....:                   4:[6], 5:[6]})
+            sage: H.is_semidistributive('join') is None
+            False
+            sage: H.is_semidistributive('meet') is None
+            True
+        """
+        if meet_or_join == 'join':
+            M1 = self._join
+            M2 = self._meet
+        elif meet_or_join == 'meet':
+            M1 = self._meet
+            M2 = self._join
+        else:
+            raise ValueError("meet_or_join must be 'join' or 'meet'")
+
+        n = self.order()
+
+        for e in range(n):
+            for x in range(n):
+                u = M1[e, x]
+                for y in range(x):
+                    if u == M1[e, y]:
+                        if u != M1[e, M2[x, y]]:
+                            return (u, e, x, y)
+
+        return None
 
     def is_distributive_lattice(self): # still a dumb algorithm...
         r"""

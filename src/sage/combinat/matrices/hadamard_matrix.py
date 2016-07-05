@@ -53,6 +53,7 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
@@ -280,7 +281,7 @@ def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
     n = M.ncols()
     if n != M.nrows():
         if verbose:
-            print "The matrix is not square ({}x{})".format(M.nrows(),n)
+            print("The matrix is not square ({}x{})".format(M.nrows(), n))
         return False
 
     if n == 0:
@@ -290,7 +291,7 @@ def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
         for v in r:
             if v*v != 1:
                 if verbose:
-                    print "The matrix does not only contain +1 and -1 entries, e.g. "+str(v)
+                    print("The matrix does not only contain +1 and -1 entries, e.g. " + str(v))
                 return False
 
     prod = (M*M.transpose()).dict()
@@ -298,14 +299,14 @@ def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
         set(prod.itervalues()) != {n} or
         any( (i,i) not in prod for i in range(n) )):
         if verbose:
-            print "The product M*M.transpose() is not equal to nI"
+            print("The product M*M.transpose() is not equal to nI")
         return False
 
     if normalized:
         if (set(M.row(0)   ) != {1} or
             set(M.column(0)) != {1}):
             if verbose:
-                print "The matrix is not normalized"
+                print("The matrix is not normalized")
             return False
 
     if skew:
@@ -313,12 +314,12 @@ def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
             for j in xrange(i+1, n):
                 if M[i,j] != -M[j,i]:
                     if verbose:
-                        print "The matrix is not skew"
+                        print("The matrix is not skew")
                     return False
         for i in xrange(n):
             if M[i,i] != 1:
                 if verbose:
-                    print "The matrix is not skew - diagonal entries must be all 1"
+                    print("The matrix is not skew - diagonal entries must be all 1")
                 return False
     return True
 
@@ -502,7 +503,7 @@ def hadamard_matrix_www(url_file, comments=False):
     if comments:
         lastline = s[-1]
         if lastline[0] == "A":
-            print lastline
+            print(lastline)
     return matrix(rws)
 
 _rshcd_cache = {}
@@ -543,7 +544,7 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
     Other hardcoded values::
 
         sage: for n,e in [(36,1),(36,-1),(100,1),(100,-1),(196, 1)]:
-        ....:     print regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e)
+        ....:     print(regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e))
         36 x 36 dense matrix over Integer Ring
         36 x 36 dense matrix over Integer Ring
         100 x 100 dense matrix over Integer Ring
@@ -551,18 +552,18 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
         196 x 196 dense matrix over Integer Ring
 
         sage: for n,e in [(324,1),(324,-1)]: # not tested - long time, tested in RSHCD_324
-        ....:     print regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e) # not tested - long time
+        ....:     print(regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e)) # not tested - long time
         324 x 324 dense matrix over Integer Ring
         324 x 324 dense matrix over Integer Ring
 
     From two close prime powers::
 
-        sage: print regular_symmetric_hadamard_matrix_with_constant_diagonal(64,-1)
+        sage: print(regular_symmetric_hadamard_matrix_with_constant_diagonal(64,-1))
         64 x 64 dense matrix over Integer Ring
 
     Recursive construction::
 
-        sage: print regular_symmetric_hadamard_matrix_with_constant_diagonal(144,-1)
+        sage: print(regular_symmetric_hadamard_matrix_with_constant_diagonal(144,-1))
         144 x 144 dense matrix over Integer Ring
 
     REFERENCE:
@@ -695,8 +696,8 @@ def RSHCD_324(e):
         sage: from sage.combinat.matrices.hadamard_matrix import RSHCD_324, is_hadamard_matrix
         sage: for e in [1,-1]: # long time
         ....:     M = RSHCD_324(e) # long time
-        ....:     print M==M.T,is_hadamard_matrix(M),all([M[i,i]==1 for i in xrange(324)]) # long time
-        ....:     print set(map(sum,M)) # long time
+        ....:     print("{} {} {}".format(M==M.T,is_hadamard_matrix(M),all([M[i,i]==1 for i in xrange(324)]))) # long time
+        ....:     print(set(map(sum,M))) # long time
         True True True
         set([18])
         True True True

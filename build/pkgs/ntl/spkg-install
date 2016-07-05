@@ -82,10 +82,20 @@ ntl_configure()
         ;;
     esac
 
+    # If SAGE_FAT_BINARY is enabled we don't want ntl to be built with cpu specific 
+    # instructions such as avx and fma.
+    if [ "$SAGE_FAT_BINARY" = "yes" ]; then
+       DISABLE_NATIVE="NATIVE=off"
+    else
+       DISABLE_NATIVE="NATIVE=on"
+    fi
+    
     ./configure DEF_PREFIX="$SAGE_LOCAL" SHARED=on \
         CXX="$CXX" CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" \
         LDFLAGS="$LDFLAGS" LIBTOOL_LINK_FLAGS="$LIBTOOL_LINK_FLAGS" \
         NTL_GMP_LIP=on NTL_GF2X_LIB=on \
+        "$DISABLE_NATIVE" \
+        NTL_THREADS=off \
         LIBTOOL="$CUR/src/libtool/libtool"
 
     if [ $? -ne 0 ]; then

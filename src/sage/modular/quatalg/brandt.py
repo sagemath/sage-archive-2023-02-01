@@ -204,7 +204,7 @@ We decompose a Brandt module over both `\ZZ` and `\QQ`.::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 # imports
 from sage.misc.all import prod, verbose
@@ -1410,7 +1410,7 @@ def quaternion_order_with_given_level(A, level):
         sage: M = maximal_order(A)
         sage: L = O.free_module()
         sage: N = M.free_module()
-        sage: print L.index_in(N) == level/5  #check that the order has the right index in the maximal order
+        sage: L.index_in(N) == level/5  #check that the order has the right index in the maximal order
         True
     """
 
@@ -1611,7 +1611,8 @@ def benchmark_magma(levels, silent=False):
         magma.eval('HeckeOperator(BrandtModule(%s, %s),2)'%(p,M))
         tm = magma.cputime(t)
         v = ('magma', p, M, tm)
-        if not silent: print v
+        if not silent:
+            print(v)
         ans.append(v)
     return ans
 
@@ -1645,7 +1646,8 @@ def benchmark_sage(levels, silent=False):
         B = BrandtModule(p,M,use_cache=False).hecke_matrix(2)
         tm = cputime(t)
         v = ('sage', p, M, tm)
-        if not silent: print v
+        if not silent:
+            print(v)
         ans.append(v)
     return ans
 

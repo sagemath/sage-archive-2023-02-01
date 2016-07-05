@@ -52,6 +52,7 @@ An example in characteristic `7`::
 #
 #                  http://www.gnu.org/licenses/
 #########################################################################
+from __future__ import print_function
 
 from sage.structure.all import Sequence
 
@@ -127,7 +128,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         """
         global WARN
         if WARN:
-            print "Modular forms -- under development -- do not trust yet."
+            print("Modular forms -- under development -- do not trust yet.")
             WARN=False
         if not arithgroup.is_CongruenceSubgroup(group):
             raise TypeError("group (=%s) must be a congruence subgroup"%group)
@@ -309,7 +310,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         A space of forms with no particular character (hence None is
         returned)::
 
-            sage: print ModularForms(Gamma1(11),2).character()
+            sage: print(ModularForms(Gamma1(11),2).character())
             None
 
         If the level is one then the character is trivial.
@@ -708,7 +709,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 tries += 1
                 current_prec += d
             if tries > 5:
-                print "WARNING: possible bug in q_expansion_basis for modular forms space %s"%self
+                print("WARNING: possible bug in q_expansion_basis for modular forms space %s" % self)
         B = Sequence(B, immutable=True, cr=True)
         self.__q_expansion_basis = (current_prec, B)
         if current_prec == prec:

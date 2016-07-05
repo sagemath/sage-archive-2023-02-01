@@ -44,6 +44,7 @@ Comprehensive Module list
     sage/combinat/composition
     sage/combinat/composition_signed
     sage/combinat/composition_tableau
+    sage/combinat/constellation
     sage/combinat/core
     sage/combinat/counting
     sage/combinat/crystals/__init__

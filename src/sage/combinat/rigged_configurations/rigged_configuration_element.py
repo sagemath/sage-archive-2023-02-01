@@ -25,6 +25,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.list_clone import ClonableArray
@@ -312,7 +313,7 @@ class RiggedConfigurationElement(ClonableArray):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
-            sage: print RC(partition_list=[[2], [3,1], [3], [3]])._repr_vertical()
+            sage: print(RC(partition_list=[[2], [3,1], [3], [3]])._repr_vertical())
             <BLANKLINE>
             -1[ ][ ]-1
             <BLANKLINE>
@@ -323,7 +324,7 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
             -2[ ][ ][ ]-2
             <BLANKLINE>
-            sage: print RC(partition_list=[[],[],[],[]])._repr_vertical()
+            sage: print(RC(partition_list=[[],[],[],[]])._repr_vertical())
             <BLANKLINE>
             (/)
             <BLANKLINE>
@@ -346,10 +347,10 @@ class RiggedConfigurationElement(ClonableArray):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
-            sage: print RC(partition_list=[[2], [3,1], [3], [3]])._repr_horizontal()
+            sage: print(RC(partition_list=[[2], [3,1], [3], [3]])._repr_horizontal())
             -1[ ][ ]-1   2[ ][ ][ ]2   -2[ ][ ][ ]-2   -2[ ][ ][ ]-2
                          0[ ]0
-            sage: print RC(partition_list=[[],[],[],[]])._repr_horizontal()
+            sage: print(RC(partition_list=[[],[],[],[]])._repr_horizontal())
             (/)   (/)   (/)   (/)
         """
         tab_str = [repr(x).splitlines() for x in self]

@@ -18,6 +18,7 @@ REFERENCE:
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include 'data_structures_pyx.pxi' # includes bitsets
 
@@ -274,13 +275,13 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         sage: bsg = Graph()
         sage: bdg = Graph()
         sage: for i in range(20):
-        ...    for j in range(20):
-        ...        if bsp.has_arc(i,j):
-        ...            bsg.add_edge(i,j)
-        ...        if bde.has_arc(i,j):
-        ...            bdg.add_edge(i,j)
-        sage: print a, b.graph6_string()
-        [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0]] S?[PG__OQ@?_?_?P?CO?_?AE?EC?Ac?@O
+        ....:    for j in range(20):
+        ....:        if bsp.has_arc(i,j):
+        ....:            bsg.add_edge(i,j)
+        ....:        if bde.has_arc(i,j):
+        ....:            bdg.add_edge(i,j)
+        sage: a, b.graph6_string()
+        ([[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0]], 'S?[PG__OQ@?_?_?P?CO?_?AE?EC?Ac?@O')
         sage: a == asp
         True
         sage: a == ade
@@ -740,7 +741,7 @@ def all_labeled_graphs(n):
         ...        if not inn:
         ...            Giso[n].append(b)
         sage: for n in Giso:  # long time
-        ...    print n, len(Giso[n])
+        ....:    print("{} {}".format(n, len(Giso[n])))
         1 1
         2 2
         3 4
@@ -815,15 +816,15 @@ def random_tests(num=10, n_max=60, perms_per_graph=5):
             G.relabel(perm)
             G2 = search_tree(G, [G.vertices()])[1]
             if G1 != G2:
-                print "search_tree FAILURE: graph6-"
-                print H.graph6_string()
-                print perm
+                print("search_tree FAILURE: graph6-")
+                print(H.graph6_string())
+                print(perm)
                 return
             isom = isomorphic(G, H, [range(n)], range(n), 0, 1)
             if not isom or G.relabel(isom, inplace=False) != H:
-                print "isom FAILURE: graph6-"
-                print H.graph6_string()
-                print perm
+                print("isom FAILURE: graph6-")
+                print(H.graph6_string())
+                print(perm)
                 return
 
         D = DGG.RandomDirectedGNP(n, p)
@@ -840,20 +841,20 @@ def random_tests(num=10, n_max=60, perms_per_graph=5):
             D.relabel(perm)
             D2 = search_tree(D, [D.vertices()], dig=True)[1]
             if D1 != D2:
-                print "search_tree FAILURE: dig6-"
-                print E.dig6_string()
-                print perm
+                print("search_tree FAILURE: dig6-")
+                print(E.dig6_string())
+                print(perm)
                 return
             isom = isomorphic(D, E, [range(n)], range(n), 1, 1)
             if not isom or D.relabel(isom, inplace=False) != E:
-                print "isom FAILURE: dig6-"
-                print E.dig6_string()
-                print perm
-                print isom
+                print("isom FAILURE: dig6-")
+                print(E.dig6_string())
+                print(perm)
+                print(isom)
                 return
         num_tests += 4*perms_per_graph
         num_graphs += 2
-    print "All passed: %d random tests on %d graphs."%(num_tests, num_graphs)
+    print("All passed: %d random tests on %d graphs." % (num_tests, num_graphs))
 
 def orbit_partition(gamma, list_perm=False):
     r"""
@@ -1256,7 +1257,7 @@ def generate_dense_graphs_edge_addition(int n, bint loops, G = None, depth = Non
     ::
 
         sage: for n in [0..6]:
-        ...     print generate_dense_graphs_edge_addition(n,1)
+        ....:     print(generate_dense_graphs_edge_addition(n,1))
         1
         2
         6
@@ -1268,7 +1269,7 @@ def generate_dense_graphs_edge_addition(int n, bint loops, G = None, depth = Non
     ::
 
         sage: for n in [0..7]:
-        ...     print generate_dense_graphs_edge_addition(n,0)
+        ....:     print(generate_dense_graphs_edge_addition(n,0))
         1
         1
         2

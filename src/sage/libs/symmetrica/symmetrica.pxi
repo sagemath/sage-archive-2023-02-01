@@ -470,7 +470,6 @@ cdef void late_import():
 cdef object _py(OP a):
     cdef OBJECTKIND objk
     objk = s_o_k(a)
-    #print objk
     if objk == INTEGER:
         return _py_int(a)
     elif objk == LONGINT:
@@ -546,7 +545,7 @@ def test_integer(object x):
         -1267650600228229401496703205376
         sage: for i in range(100):
         ....:     if test_integer(2^i) != 2^i:
-        ....:         print "Failure at", i
+        ....:         print("Failure at {}".format(i))
     """
     cdef OP a = callocobject()
     _op_integer(x, a)

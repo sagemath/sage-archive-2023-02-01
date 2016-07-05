@@ -344,8 +344,6 @@ from sage.manifolds.structure import(
                             TopologicalStructure, RealTopologicalStructure,
                             DifferentialStructure, RealDifferentialStructure)
 
-from sage.misc.superseded import deprecated_function_alias
-
 
 #############################################################################
 ## Global options
@@ -1785,7 +1783,7 @@ class TopologicalManifold(ManifoldSubset):
         :obj:`Manifold.options`.
         """,
         end_doc=r"""
-            EXAMPLES::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -1796,34 +1794,33 @@ class TopologicalManifold(ManifoldSubset):
             sage: f = X.function(diff(g, x) + diff(g, y))
             sage: f
             d(g)/dx + d(g)/dy
+            sage: latex(f)
+            \frac{\partial\,g}{\partial x} + \frac{\partial\,g}{\partial y}
 
-                sage: latex(f)
-                \frac{\partial\,g}{\partial x} + \frac{\partial\,g}{\partial y}
+        One can switch to Pynac notation by changing ``textbook_output``
+        to ``False``::
 
-            One can switch to Pynac notation by changing ``textbook_output``
-            to ``False``::
+            sage: Manifold.options.textbook_output=False
+            sage: f
+            D[0](g)(x, y) + D[1](g)(x, y)
+            sage: latex(f)
+            D[0]\left(g\right)\left(x, y\right) + D[1]\left(g\right)\left(x, y\right)
+            sage: Manifold.options._reset()
 
-                sage: Manifold.options.textbook_output=False
-                sage: f
-                D[0](g)(x, y) + D[1](g)(x, y)
-                sage: latex(f)
-                D[0]\left(g\right)\left(x, y\right) + D[1]\left(g\right)\left(x, y\right)
-                sage: Manifold.options._reset()
+        If there is a clear understanding that `u` and `v` are functions of
+        `(x,y)`, the explicit mention of the latter can be cumbersome in lengthy
+        tensor expressions::
 
-            If there is a clear understanding that `u` and `v` are functions of
-            `(x,y)`, the explicit mention of the latter can be cumbersome in lengthy
-            tensor expressions::
+            sage: f = X.function(function('u')(x, y) * function('v')(x, y))
+            sage: f
+            u(x, y)*v(x, y)
 
-                sage: f = X.function(function('u')(x, y) * function('v')(x, y))
-                sage: f
-                u(x, y)*v(x, y)
+        We can switch it off by::
 
-            We can switch it off by::
-
-                sage: M.options.omit_function_arguments=True
-                sage: f
-                u*v
-                sage: M.options._reset()
+            sage: M.options.omit_function_arguments=True
+            sage: f
+            u*v
+            sage: M.options._reset()
         """,
         textbook_output=dict(default=True,
                              description='textbook-like output instead of the Pynac output for derivatives',
@@ -1832,8 +1829,6 @@ class TopologicalManifold(ManifoldSubset):
                                      description='Determine if the arguments of symbolic functions are printed',
                                      checker=lambda x: isinstance(x, bool)),
     )
-
-    global_options=deprecated_function_alias(18555, options)
 
     def _Hom_(self, other, category=None):
         r"""
@@ -2137,6 +2132,7 @@ class TopologicalManifold(ManifoldSubset):
         """
         return Hom(self, self).one()
 
+
 ##############################################################################
 ## Constructor function
 
@@ -2374,5 +2370,9 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                               "not implemented")
 
 Manifold.options = TopologicalManifold.options
+
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
 Manifold.global_options=deprecated_function_alias(18555, TopologicalManifold.options)
 ManifoldOptions = deprecated_function_alias(18555, TopologicalManifold.options)
+TopologicalManifold.global_options=deprecated_function_alias(18555, TopologicalManifold.options)

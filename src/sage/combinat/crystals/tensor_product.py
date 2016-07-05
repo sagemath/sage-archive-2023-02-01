@@ -33,7 +33,6 @@ from __future__ import print_function
 import operator
 from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
-from sage.misc.superseded import deprecated_function_alias
 from sage.structure.parent import Parent
 from sage.structure.element import parent
 from sage.structure.global_options import GlobalOptions
@@ -716,8 +715,6 @@ class TensorProductOfCrystals(CrystalOfWords):
                             case_sensitive=False)
     )
 
-    global_options=deprecated_function_alias(18555, options)
-
     def _element_constructor_(self, *crystalElements):
         """
         EXAMPLES::
@@ -735,9 +732,6 @@ class TensorProductOfCrystals(CrystalOfWords):
         if self.options.convention == "Kashiwara":
             crystalElements = reversed(crystalElements)
         return self.element_class(self, list(crystalElements))
-
-
-TensorProductOfCrystalsOptions=deprecated_function_alias(18555, TensorProductOfCrystals.options)
 
 class TensorProductOfCrystalsWithGenerators(TensorProductOfCrystals):
     """
@@ -2158,3 +2152,7 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
 
 CrystalOfTableaux.Element = CrystalOfTableauxElement
 
+# deprecations from trac:18555
+from sage.misc.superseded import deprecated_function_alias
+TensorProductOfCrystals.global_options=deprecated_function_alias(18555, TensorProductOfCrystals.options)
+TensorProductOfCrystalsOptions=deprecated_function_alias(18555, TensorProductOfCrystals.options)

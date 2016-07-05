@@ -26,7 +26,6 @@ Kirillov-Reshetikhin structure, and we extend this to symmetrizable types.
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.superseded import deprecated_function_alias
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
@@ -158,7 +157,6 @@ class CrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
         self.module_generators = (self.element_class( self, partition_list=[[] for i in range(n)] ),)
 
     options = RiggedConfigurations.options
-    global_options = deprecated_function_alias(18555, options)
 
     def _repr_(self):
         """
@@ -420,3 +418,6 @@ class CrystalOfNonSimplyLacedRC(CrystalOfRiggedConfigurations):
 
     Element = RCHWNonSimplyLacedElement
 
+# deprecations from trac:18555
+from sage.misc.superseded import deprecated_function_alias
+CrystalOfRiggedConfigurations.global_options = deprecated_function_alias(18555, CrystalOfRiggedConfigurations.options)

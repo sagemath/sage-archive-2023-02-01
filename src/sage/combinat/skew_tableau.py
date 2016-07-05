@@ -27,7 +27,6 @@ from __future__ import print_function
 
 import copy
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.superseded import deprecated_function_alias
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
@@ -1633,7 +1632,6 @@ class SkewTableaux(UniqueRepresentation, Parent):
 
     Element = SkewTableau
     options = Tableaux.options
-    global_options=deprecated_function_alias(18555, options)
 
     def __contains__(self, x):
         """
@@ -2514,3 +2512,6 @@ register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTablea
 register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_skewpartition',  StandardSkewTableaux_shape)
 register_unpickle_override('sage.combinat.skew_tableau', 'SkewTableau_class',  SkewTableau_class)
 
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+SkewTableaux.global_options=deprecated_function_alias(18555, SkewTableaux.options)

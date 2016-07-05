@@ -296,7 +296,6 @@ lazy_import('sage.combinat.partition_tuple', 'PartitionTuple')
 from sage.misc.all import prod
 from sage.misc.prandom import randrange
 from sage.misc.cachefunc import cached_method, cached_function
-from sage.misc.superseded import deprecated_function_alias
 
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -5102,8 +5101,6 @@ class Partitions(UniqueRepresentation, Parent):
         notation = dict(alt_name='convention')
     )
 
-    global_options=deprecated_function_alias(18555, options)
-
     def __reversed__(self):
         """
         A reversed iterator.
@@ -5204,8 +5201,6 @@ class Partitions(UniqueRepresentation, Parent):
         if len(args) != 0 or len(kwargs) != 0:
             raise ValueError("Invalid combination of arguments")
         return self
-
-PartitionOptions = deprecated_function_alias(18555, Partitions.options)
 
 class Partitions_all(Partitions):
     """
@@ -6740,7 +6735,6 @@ class Partitions_with_constraints(IntegerListsLex):
 
     Element = Partition
     options = Partitions.options
-    global_options = deprecated_function_alias(18555, options)
 
 ######################
 # Regular Partitions #
@@ -7350,7 +7344,6 @@ class PartitionsGreatestLE(UniqueRepresentation, IntegerListsLex):
 
     Element = Partition
     options = Partitions.options
-    global_options = deprecated_function_alias(18555, options)
 
 ##########################
 # Partitions Greatest EQ #
@@ -7411,7 +7404,6 @@ class PartitionsGreatestEQ(UniqueRepresentation, IntegerListsLex):
 
     Element = Partition
     options = Partitions.options
-    global_options = deprecated_function_alias(18555, options)
 
 #########################
 # Restricted Partitions #
@@ -7490,7 +7482,6 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
     Element = Partition
     options = Partitions.options
-    global_options = deprecated_function_alias(18555, options)
 
     def __contains__(self, x):
         """
@@ -7792,3 +7783,12 @@ register_unpickle_override('sage.combinat.partition', 'OrderedPartitions_nk', Or
 register_unpickle_override('sage.combinat.partition', 'PartitionsInBox_hw', PartitionsInBox)
 register_unpickle_override('sage.combinat.partition', 'PartitionsGreatestLE_nk', PartitionsGreatestLE)
 register_unpickle_override('sage.combinat.partition', 'PartitionsGreatestEQ_nk', PartitionsGreatestEQ)
+
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+Partitions.global_options=deprecated_function_alias(18555, Partitions.options)
+PartitionOptions = deprecated_function_alias(18555, Partitions.options)
+Partitions_with_constraints.global_options = deprecated_function_alias(18555, Partitions_with_constraints.options)
+PartitionsGreatestLE.global_options = deprecated_function_alias(18555, PartitionsGreatestLE.options)
+PartitionsGreatestEQ.global_options = deprecated_function_alias(18555, PartitionsGreatestEQ.options)
+RestrictedPartitions_nsk.global_options = deprecated_function_alias(18555, RestrictedPartitions_nsk.options)

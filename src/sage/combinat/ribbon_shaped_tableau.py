@@ -23,7 +23,6 @@ from sage.rings.integer import Integer
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
-from sage.misc.superseded import deprecated_function_alias
 
 class RibbonShapedTableau(SkewTableau):
     r"""
@@ -206,7 +205,6 @@ class RibbonShapedTableaux(SkewTableaux):
 
     Element = RibbonShapedTableau
     options = Tableaux.options
-    global_options = deprecated_function_alias(18555, options)
 
     def from_shape_and_word(self, shape, word):
         """
@@ -301,7 +299,6 @@ class StandardRibbonShapedTableaux(StandardSkewTableaux):
 
     Element = RibbonShapedTableau
     options = Tableaux.options
-    global_options = deprecated_function_alias(18555, options)
 
     def from_shape_and_word(self, shape, word):
         """
@@ -468,3 +465,7 @@ from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.ribbon', 'Ribbon_class', Ribbon_class)
 register_unpickle_override('sage.combinat.ribbon', 'StandardRibbons_shape', StandardRibbonShapedTableaux)
 
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+RibbonShapedTableaux.global_options = deprecated_function_alias(18555, RibbonShapedTableaux.options)
+StandardRibbonShapedTableaux.global_options = deprecated_function_alias(18555, StandardRibbonShapedTableaux.options)

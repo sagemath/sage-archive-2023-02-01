@@ -420,7 +420,6 @@ from __future__ import absolute_import, print_function
 from __builtin__ import object, str
 from importlib import import_module
 from pickle import PicklingError
-from sage.misc.superseded import deprecated_function_alias
 import inspect
 
 class Option(object):
@@ -763,7 +762,7 @@ class GlobalOptions(object):
         <BLANKLINE>
         Current value: espresso
     """
-    __name__ = 'Options class'
+    __name__ = 'options'
 
     def __init__(self, name='', module='', option_class='', doc='', end_doc='', **options):
         r"""
@@ -847,8 +846,6 @@ class GlobalOptions(object):
             self._doc_end = '\n'.join(line[m:] for line in lines)
 
         super(GlobalOptions, self).__init__()
-
-    __name__ = 'Options class'
 
     def __repr__(self):
         r"""
@@ -1139,7 +1136,6 @@ class GlobalOptions(object):
                 pickle[opt] = self[opt]
         return pickle
 
-
     def __eq__(self, other):
         r"""
         Two options classes are equal if they return the same :meth:`__getstate__.
@@ -1399,8 +1395,6 @@ class GlobalOptions(object):
             link, linked_opt=self._linked_value[option]
             return link._default_value(linked_opt)
 
-    default_value=deprecated_function_alias(18555, _default_value)
-
     def _dispatch(self, obj, dispatch_to, option, *args, **kargs):
         r"""
         .. TODO:: title
@@ -1453,8 +1447,6 @@ class GlobalOptions(object):
 
         raise ValueError('%s is not a dispatchable option!' % option)
 
-    dispatch=deprecated_function_alias(18555, _dispatch)
-
     def _reset(self, option=None):
         r"""
         Reset options to their default value.
@@ -1503,4 +1495,9 @@ class GlobalOptions(object):
                 link, linked_opt=self._linked_value[option]
                 link._reset(linked_opt)
 
-    reset=deprecated_function_alias(18555, _reset)
+
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+GlobalOptions.default_value=deprecated_function_alias(18555, GlobalOptions._default_value)
+GlobalOptions.dispatch=deprecated_function_alias(18555, GlobalOptions._dispatch)
+GlobalOptions.reset=deprecated_function_alias(18555, GlobalOptions._reset)

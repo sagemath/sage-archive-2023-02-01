@@ -40,7 +40,6 @@ from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.flatten import flatten
-from sage.misc.superseded import deprecated_function_alias
 from sage.rings.all import ZZ
 
 
@@ -272,8 +271,6 @@ class AbstractPartitionDiagram(SetPartition):
                                    case_sensitive=False),
     )
 
-    global_options=deprecated_function_alias(18555, options)
-
     def check(self):
         r"""
         Check the validity of the input for the diagram.
@@ -413,8 +410,6 @@ class AbstractPartitionDiagram(SetPartition):
             0
         """
         return ZZ(sum(1 for part in self._base_diagram if min(part) < 0 and max(part) > 0))
-
-BrauerDiagramOptions = deprecated_function_alias(18555, AbstractPartitionDiagram.options)
 
 class BrauerDiagram(AbstractPartitionDiagram):
     r"""
@@ -863,7 +858,6 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
     """
     Element = BrauerDiagram
     options = AbstractPartitionDiagram.options
-    global_options = deprecated_function_alias(18555, options)
 
     def __init__(self, order, category=None):
         r"""
@@ -2693,3 +2687,8 @@ def set_partition_composition(sp1, sp2):
 # END BORROWED CODE
 ##########################################################################
 
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+AbstractPartitionDiagram.global_options=deprecated_function_alias(18555, AbstractPartitionDiagram.options)
+BrauerDiagramOptions = deprecated_function_alias(18555, AbstractPartitionDiagram.options)
+BrauerDiagrams.global_options = deprecated_function_alias(18555, BrauerDiagrams.options)

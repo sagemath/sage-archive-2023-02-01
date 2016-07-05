@@ -222,7 +222,6 @@ from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
 from sage.misc.prandom import random
 from sage.misc.sage_unittest import TestSuite
-from sage.misc.superseded import deprecated_function_alias
 from sage.arith.all import factorial
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer import Integer
@@ -1645,7 +1644,6 @@ class TableauTuples(UniqueRepresentation, Parent):
     Element = TableauTuple
     level_one_parent_class = Tableaux_all  # used in element_constructor
     options=Tableaux.options
-    global_options=deprecated_function_alias(18555, Tableaux.options)
 
     @staticmethod
     def __classcall_private__(cls, level=None, size=None):
@@ -3259,3 +3257,7 @@ class StandardTableauTuples_shape(StandardTableauTuples):
         # Just to be safe we check that tab is standard and has shape mu by
         # using the class StandardTableauTuples(mu) to construct the tableau
         return self.element_class(self,tab)
+
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+TableauTuples.global_options=deprecated_function_alias(18555, Tableaux.options)

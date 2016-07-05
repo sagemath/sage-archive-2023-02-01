@@ -75,7 +75,6 @@ from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.words.word import Word
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrices
 from sage.misc.latex import latex
-from sage.misc.superseded import deprecated_function_alias
 
 open_symbol = 1
 close_symbol = 0
@@ -3142,8 +3141,6 @@ class DyckWords(UniqueRepresentation, Parent):
                               checker=lambda x: isinstance(x, bool)),
     )
 
-    global_options=deprecated_function_alias(18555, options)
-
     def _element_constructor_(self, word):
         """
         Construct an element of ``self``.
@@ -3308,8 +3305,6 @@ class DyckWords(UniqueRepresentation, Parent):
             if heights[i] > heights[i - 1]:
                 heights[i-1] = heights[i] - 1
         return self.from_heights(heights)
-
-DyckWordOptions = deprecated_function_alias(18555, DyckWords.options)
 
 class DyckWords_all(DyckWords):
     """
@@ -4121,3 +4116,8 @@ def pealing(D, return_touches=False):
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.dyck_word', 'DyckWord', DyckWord)
+
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+DyckWords.global_options=deprecated_function_alias(18555, DyckWords.options)
+DyckWordOptions = deprecated_function_alias(18555, DyckWords.options)

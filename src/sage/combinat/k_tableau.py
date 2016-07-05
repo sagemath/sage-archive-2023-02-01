@@ -46,7 +46,6 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableList
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.skew_tableau import SkewTableau, SemistandardSkewTableaux
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.root_system.weyl_group import WeylGroup
@@ -3995,7 +3994,6 @@ class StrongTableaux(UniqueRepresentation, Parent):
         return s
 
     options = Tableaux.options
-    global_options = deprecated_function_alias(18555, options)
 
     def an_element(self):
         r"""
@@ -4650,3 +4648,7 @@ def intermediate_shapes(t):
     for i in range(len(t.weight())+1):
         shapes += [ t.restrict(i).outer_shape()]
     return shapes
+
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+StrongTableaux.global_options = deprecated_function_alias(18555, StrongTableaux.options)

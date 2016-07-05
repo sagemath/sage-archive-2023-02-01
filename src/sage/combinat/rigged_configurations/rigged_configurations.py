@@ -25,7 +25,6 @@ import itertools
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.superseded import deprecated_function_alias
 from sage.structure.global_options import GlobalOptions
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -446,8 +445,6 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         convention=dict(link_to=(tableau.Tableaux.options,'convention')),
         notation = dict(alt_name='convention')
     )
-
-    global_options=deprecated_function_alias(18555, options)
 
     def _repr_(self):
         """
@@ -1072,8 +1069,6 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         return super(RiggedConfigurations, self).tensor(*crystals, **options)
 
     Element = KRRCSimplyLacedElement
-
-RiggedConfigurationOptions = deprecated_function_alias(18555, RiggedConfigurations.options)
 
 class RCNonSimplyLaced(RiggedConfigurations):
     r"""
@@ -1910,3 +1905,7 @@ class RCTypeA2Dual(RCTypeA2Even):
 
     Element = KRRCTypeA2DualElement
 
+# deprecations from trac:18555
+from sage.misc.superseded import deprecated_function_alias
+RiggedConfigurations.global_options=deprecated_function_alias(18555, RiggedConfigurations.options)
+RiggedConfigurationOptions = deprecated_function_alias(18555, RiggedConfigurations.options)

@@ -267,7 +267,6 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.interfaces.all import gp
-from sage.misc.superseded import deprecated_function_alias
 from sage.rings.all import NN, ZZ
 from sage.rings.integer import Integer
 from sage.sets.positive_integers import PositiveIntegers
@@ -1549,7 +1548,6 @@ class PartitionTuples(UniqueRepresentation, Parent):
 
     Element = PartitionTuple
     options=Partitions.options
-    global_options=deprecated_function_alias(18555, options)
 
     # default for level
     _level=None
@@ -2572,3 +2570,6 @@ class RegularPartitionTuples_level_size(RegularPartitionTuples):
                 mu[-1] = [self._size-1]
         return self.element_class(self, mu)
 
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+PartitionTuples.global_options=deprecated_function_alias(18555, PartitionTuples.options)

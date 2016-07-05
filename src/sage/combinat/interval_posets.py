@@ -69,7 +69,6 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.superseded import deprecated_function_alias
 from sage.rings.integer import Integer
 from sage.rings.all import NN
 from sage.sets.non_negative_integers import NonNegativeIntegers
@@ -2178,8 +2177,6 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
                           checker=lambda x: True)   # More trouble than it's worth to check
     )
 
-    global_options=deprecated_function_alias(18555, options)
-
     @staticmethod
     def check_poset(poset):
         r"""
@@ -2572,8 +2569,6 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         """
         return el2.contains_interval(el1)
 
-TamariIntervalPosetOptions=deprecated_function_alias(18555, TamariIntervalPosets.options)
-
 #################################################################
 # Enumerated set of all Tamari Interval-posets
 #################################################################
@@ -2824,3 +2819,7 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
         """
         return self.element_class(self, self._size, relations)
 
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+TamariIntervalPosets.global_options=deprecated_function_alias(18555, TamariIntervalPosets.options)
+TamariIntervalPosetOptions=deprecated_function_alias(18555, TamariIntervalPosets.options)

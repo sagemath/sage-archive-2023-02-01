@@ -23,7 +23,6 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.superseded import deprecated_function_alias
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
@@ -149,7 +148,6 @@ class InfinityCrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
         self.module_generators = (self.element_class(self, rigging_list=[[]]*cartan_type.rank()),)
 
     options = RiggedConfigurations.options
-    global_options = deprecated_function_alias(18555, options)
 
     def _repr_(self):
         """
@@ -475,3 +473,6 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
             alpha = list(P.simple_roots())
             return -sum(sum(x) * alpha[i] for i,x in enumerate(self))
 
+# deprecations from trac:18555
+from sage.misc.superseded import deprecated_function_alias
+InfinityCrystalOfRiggedConfigurations.global_options = deprecated_function_alias(18555, InfinityCrystalOfRiggedConfigurations.options)

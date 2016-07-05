@@ -76,7 +76,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.superseded import deprecated_function_alias
 from sage.rings.infinity import PlusInfinity
 from sage.arith.all import factorial, binomial
 from sage.rings.integer import Integer
@@ -4557,8 +4556,6 @@ class Tableaux(UniqueRepresentation, Parent):
         notation = dict(alt_name="convention")
     )
 
-    global_options=deprecated_function_alias(18555, options)
-
     def _element_constructor_(self, t):
         r"""
         Constructs an object from ``t`` as an element of ``self``, if
@@ -6877,3 +6874,6 @@ register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_nmu', 
 register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_pmu',  SemistandardTableaux_shape_weight)
 
 
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+Tableaux.global_options=deprecated_function_alias(18555, Tableaux.options)

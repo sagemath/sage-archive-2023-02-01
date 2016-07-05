@@ -446,10 +446,8 @@ from __future__ import print_function, absolute_import
 
 from types import ClassType as classobj
 from sage.misc.cachefunc import cached_method
-from sage.misc.superseded import deprecated_function_alias
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_import import LazyImport
-from sage.misc.superseded import deprecated_function_alias
 from sage.rings.all import ZZ
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
@@ -894,13 +892,9 @@ class CartanTypeFactory(SageObject):
                           checker=lambda x: isinstance(x,bool))
     )
 
-    global_options = deprecated_function_alias(18555, options)
-
 
 CartanType = CartanTypeFactory()
 CartanType.__doc__ = __doc__
-
-CartanTypeOptions = deprecated_function_alias(18555, CartanType.options)
 
 class CartanType_abstract(object):
     r"""
@@ -1452,7 +1446,6 @@ class CartanType_abstract(object):
         return CartanTypeFolded(self, self, [[i] for i in self.index_set()])
 
     options = CartanType.options
-    global_options = deprecated_function_alias(18555, CartanType.options)
 
 class CartanType_crystallographic(CartanType_abstract):
     """
@@ -2979,3 +2972,8 @@ class CartanType_simple_finite(object):
         self.__class__ = T.__class__
         self.__dict__ = T.__dict__
 
+# deprecations from trac:18555
+from sage.misc.superseded import deprecated_function_alias
+CartanTypeFactory.global_options = deprecated_function_alias(18555, CartanTypeFactory.options)
+CartanTypeOptions = deprecated_function_alias(18555, CartanType.options)
+CartanType_abstract.global_options = deprecated_function_alias(18555, CartanType.options)

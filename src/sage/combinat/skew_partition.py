@@ -151,7 +151,6 @@ from __future__ import print_function
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.superseded import deprecated_function_alias
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
@@ -1365,8 +1364,6 @@ class SkewPartitions(UniqueRepresentation, Parent):
         notation = dict(alt_name='convention')
     )
 
-    global_options=deprecated_function_alias(18555, options)
-
     Element = SkewPartition
 
     def _element_constructor_(self, skp):
@@ -1935,3 +1932,6 @@ class SkewPartitions_rowlengths(SkewPartitions):
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.skew_partition', 'SkewPartition_class', SkewPartition)
 
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+SkewPartitions.global_options=deprecated_function_alias(18555, SkewPartitions.options)

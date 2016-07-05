@@ -48,6 +48,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_coatomic` | Return ``True`` if every element of the lattice can be written as a meet of coatoms.
     :meth:`~FiniteLatticePoset.is_geometric` | Return ``True`` if the lattice is atomic and upper semimodular.
     :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if every element of the lattice has at least one complement.
+    :meth:`~FiniteLatticePoset.is_sectionally_complemented` | Return ``True`` if every interval from the bottom is complemented.
     :meth:`~FiniteLatticePoset.is_relatively_complemented` | Return ``True`` if every interval of the lattice is complemented.
     :meth:`~FiniteLatticePoset.is_pseudocomplemented` | Return ``True`` if every element of the lattice has a pseudocomplement.
     :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
@@ -875,6 +876,68 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             C = Counter(flatten([H.neighbors_out(e2) for e2 in H.neighbors_out(e1)]))
             if any(c == 1 and len(H.closed_interval(e1, e3)) == 3 for e3, c in C.iteritems()):
                 return False
+        return True
+
+    def is_sectionally_complemented(self):
+        """
+        Return ``True`` if the lattice is sectionally complemented, and
+        ``False`` otherwise.
+
+        A lattice is sectionally complemented if all intervals from
+        the bottom element interpreted as sublattices are complemented
+        lattices.
+
+        EXAMPLES:
+
+        Smallest examples of a complemented but not sectionally complemented
+        lattice and a sectionally complemented but not relatively complemented
+        lattice::
+
+            sage: L = Posets.PentagonPoset()
+            sage: L.is_complemented()
+            True
+            sage: L.is_sectionally_complemented()
+            False
+
+            sage: L = LatticePoset({0: [1, 2, 3], 1: [4], 2: [4], 3: [5], 4: [5]})
+            sage: L.is_sectionally_complemented()
+            True
+            sage: L.is_relatively_complemented()
+            False
+
+        .. SEEALSO::
+
+            :meth:`is_complemented`, :meth:`is_relatively_complemented`
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_sectionally_complemented() for i in range(5)]
+            [True, True, True, False, False]
+
+        Atomic and complemented but not sectionally complemented lattice::
+
+            sage: L = LatticePoset(DiGraph('HYOgC?C@?C?G@??'))
+            sage: L.is_sectionally_complemented()
+            False
+        """
+        if not self.is_atomic():
+            return False
+
+        n = self.cardinality()
+        H = self._hasse_diagram
+        mt = H._meet
+        jn = H._join
+        bottom = 0
+
+        for top in range(n):
+            interval = H.principal_order_ideal(top)
+            for e in interval:
+                for e_ in interval:
+                    if mt[e, e_] == bottom and jn[e, e_] == top:
+                        break
+                else:
+                    return False
+
         return True
 
     def breadth(self, certificate=False):

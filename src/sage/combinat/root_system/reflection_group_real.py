@@ -49,6 +49,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -497,7 +498,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         EXAMPLES::
 
             sage: W = ReflectionGroup(['A',2])                          # optional - gap3
-            sage: for r in W.reflections(): print W.reflection_to_positive_root(r)  # optional - gap3
+            sage: for r in W.reflections(): print(W.reflection_to_positive_root(r))  # optional - gap3
             (1, 0)
             (0, 1)
             (1, 1)
@@ -538,7 +539,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             sage: N = W.fundamental_weights()                           # optional - gap3
             sage: for i in W.index_set():                               # optional - gap3
             ....:     for j in W.index_set():                           # optional - gap3
-            ....:         print i, j, N[i], N[i]*S[j].to_matrix()       # optional - gap3
+            ....:         print("{} {} {} {}".format(i, j, N[i], N[i]*S[j].to_matrix()))
             1 1 (3/4, 1/2, 1/4) (-1/4, 1/2, 1/4)
             1 2 (3/4, 1/2, 1/4) (3/4, 1/2, 1/4)
             1 3 (3/4, 1/2, 1/4) (3/4, 1/2, 1/4)

@@ -75,6 +75,13 @@ DEVEL = False
 if DEVEL:
     extra_compile_args.append('-ggdb')
 
+# Work around GCC-4.8 bug which miscompiles some sig_on() statements:
+# * http://trac.sagemath.org/sage_trac/ticket/14460
+# * http://trac.sagemath.org/sage_trac/ticket/20226
+# * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56982
+if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shell=True) == 0:
+    extra_compile_args.append('-fno-tree-copyrename')
+
 #########################################################
 ### Testing related stuff
 #########################################################
@@ -602,6 +609,11 @@ python_packages, python_modules = find_python_sources(
     SAGE_SRC, ['sage', 'sage_setup'])
 python_data_files = find_extra_files(python_packages,
     ".", SAGE_CYTHONIZED, SAGE_LIB, ["ntlwrap.cpp"])
+
+print('python_packages = {0}'.format(python_packages))
+print('python_modules = {0}'.format(python_modules))
+print('python_data_files = {0}'.format(python_data_files))
+
 print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
 
 

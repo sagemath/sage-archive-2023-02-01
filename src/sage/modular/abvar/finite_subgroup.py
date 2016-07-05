@@ -45,8 +45,8 @@ EXAMPLES::
 We make a table of the order of the cuspidal subgroup for the first
 few levels::
 
-    sage: for N in range(11,40): print N, J0(N).cuspidal_subgroup().order()
-    ...
+    sage: for N in range(11,40):
+    ....:     print("{} {}".format(N, J0(N).cuspidal_subgroup().order()))
     11 5
     12 1
     13 1
@@ -96,6 +96,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.modular.abvar.torsion_point import TorsionPoint
 from sage.modules.module import Module

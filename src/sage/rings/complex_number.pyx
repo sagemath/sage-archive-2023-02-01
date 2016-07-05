@@ -22,7 +22,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 import math
 import operator
@@ -33,7 +33,6 @@ from sage.categories.map cimport Map
 from complex_double cimport ComplexDoubleElement
 from real_mpfr cimport RealNumber
 
-import complex_field
 import sage.misc.misc
 import integer
 import infinity
@@ -185,7 +184,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             mpfr_set(self.__re, rr.value, rnd)
             mpfr_set(self.__im, ii.value, rnd)
         except TypeError:
-            raise TypeError, "unable to coerce to a ComplexNumber: %s" % type(real)
+            raise TypeError("unable to coerce to a ComplexNumber: %s" % type(real))
 
 
     def  __dealloc__(self):
@@ -270,8 +269,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             ...               _ = sage_input(fld(v) * var, verify=True)
             sage: x = polygen(CC)
             sage: for v1 in [-2, 0, 2]:
-            ...       for v2 in [-2, -1, 0, 1, 2]:
-            ...           print str(sage_input(x + CC(v1, v2))).splitlines()[1]
+            ....:     for v2 in [-2, -1, 0, 1, 2]:
+            ....:         print(str(sage_input(x + CC(v1, v2))).splitlines()[1])
             x + CC(-2 - RR(2)*I)
             x + CC(-2 - RR(1)*I)
             x - 2
@@ -414,7 +413,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             return self.real()
         elif i == 1:
             return self.imag()
-        raise IndexError, "i must be between 0 and 1."
+        raise IndexError("i must be between 0 and 1.")
 
     def __reduce__( self ):
         """
@@ -589,14 +588,14 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             mpc(real='1.0', imag='2.0')
         """
         if prec is not None:
-            from complex_field import ComplexField
+            from .complex_field import ComplexField
             return ComplexField(prec)(self)._mpmath_()
         from sage.libs.mpmath.all import make_mpc
         re = mpfr_to_mpfval(self.__re)
         im = mpfr_to_mpfval(self.__im)
         return make_mpc((re, im))
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add ``self`` to ``right``.
 
@@ -611,7 +610,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_add(x.__im, self.__im, (<ComplexNumber>right).__im, rnd)
         return x
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract ``right`` from ``self``.
 
@@ -626,7 +625,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_sub(x.__im, self.__im, (<ComplexNumber>right).__im, rnd)
         return x
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply ``self`` by ``right``.
 
@@ -730,7 +729,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_clear(t1)
         return x
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide ``self`` by ``right``.
 
@@ -1052,7 +1051,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             ...
             TypeError: can't convert complex to int; use int(abs(z))
         """
-        raise TypeError, "can't convert complex to int; use int(abs(z))"
+        raise TypeError("can't convert complex to int; use int(abs(z))")
 
     def __long__(self):
         r"""
@@ -1074,7 +1073,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             ...
             TypeError: can't convert complex to long; use long(abs(z))
         """
-        raise TypeError, "can't convert complex to long; use long(abs(z))"
+        raise TypeError("can't convert complex to long; use long(abs(z))")
 
     def __float__(self):
         r"""
@@ -1124,7 +1123,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         return complex(mpfr_get_d(self.__re, rnd),
                        mpfr_get_d(self.__im, rnd))
 
-    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare ``left`` and ``right``.
 
@@ -1195,7 +1194,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             return integer.Integer(self._multiplicative_order)
         elif abs(abs(self) - 1) > 0.1:  # clearly not a root of unity
             return infinity.infinity
-        raise NotImplementedError, "order of element not known"
+        raise NotImplementedError("order of element not known")
 
 
     ########################################################################
@@ -1527,7 +1526,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         try:
             return self._parent(self._pari_().eta(not omit_frac))
         except sage.libs.pari.all.PariError:
-            raise ValueError, "value must be in the upper half plane"
+            raise ValueError("value must be in the upper half plane")
 
 
     def sin(self):
@@ -1865,7 +1864,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
                 mpfr_swap(b.__re, b1.__re)
                 mpfr_swap(b.__im, b1.__im)
 
-        raise ValueError, "agm algorithm must be one of 'pari', 'optimal', 'principal'"
+        raise ValueError("agm algorithm must be one of 'pari', 'optimal', 'principal'")
 
     def argument(self):
         r"""
@@ -2497,8 +2496,8 @@ def create_ComplexNumber(s_real, s_imag=None, int pad=0, min_prec=53):
                int(LOG_TEN_TWO_PLUS_EPSILON*len(s_imag)))
     #else:
     #    bits = max(int(math.log(base,2)*len(s_imag)),int(math.log(base,2)*len(s_imag)))
-
-    C = complex_field.ComplexField(prec=max(bits+pad, min_prec))
+    from .complex_field import ComplexField
+    C = ComplexField(prec=max(bits+pad, min_prec))
 
     return ComplexNumber(C, s_real, s_imag)
 

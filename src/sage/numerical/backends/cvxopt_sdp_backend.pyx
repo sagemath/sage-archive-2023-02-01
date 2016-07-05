@@ -18,6 +18,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.numerical.sdp import SDPSolverException
 from sage.matrix.all import Matrix
@@ -495,6 +496,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
            Behaviour is undefined unless ``solve`` has been called before.
 
         EXAMPLE::
+
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "cvxopt")
             sage: p = SemidefiniteProgram(solver = "cvxopt", maximization=False)
@@ -593,7 +595,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
             sage: p.problem_name("There once was a french fry")
-            sage: print p.problem_name()
+            sage: print(p.problem_name())
             There once was a french fry
         """
         if name == NULL:

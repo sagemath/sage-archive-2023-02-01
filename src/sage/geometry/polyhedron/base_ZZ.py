@@ -11,6 +11,7 @@ Base class for polyhedra over `\ZZ`
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
@@ -512,7 +513,7 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: X._subpoly_parallel_facets()
             <generator object _subpoly_parallel_facets at 0x...>
             sage: for p in X._subpoly_parallel_facets():
-            ...       print p.Vrepresentation()
+            ....:     print(p.Vrepresentation())
             (A vertex at (0, 0),)
             (A vertex at (0, -1), A vertex at (0, 0))
             (A vertex at (-1, 0), A vertex at (0, 0))

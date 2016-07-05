@@ -520,43 +520,35 @@ fi
 ##################################################################
 
 if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
+    # New-style package
     echo "Setting up build directory for $PKG_NAME"
     cp -Rp "$PKG_SCRIPTS" "$PKG_NAME"
     cd "$PKG_NAME" || exit $?
+
+    sage-uncompress-spkg -d src "$PKG_SRC"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: failed to extract $PKG_SRC"
+        exit 1
+    fi
 else
+    # Old-style package (deprecated)
     echo "Extracting package $PKG_SRC"
     ls -l "$PKG_SRC"
-fi
 
-sage-uncompress-spkg "$PKG_SRC"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: failed to extract $PKG_SRC"
-    exit 1
-fi
-
-if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
-    shopt -s nocaseglob      # see trac:16415
-    # Strip file extension from the archive file and hope (as per
-    # automake standards) that this is the same as the directory name
-    # inside; move the directory to "src".  (This goes wrong for
-    # upstream package archives that have been renamed to appease some
-    # other Sage script, such as "latte-int", whose archive is renamed
-    # to "latte_int".)
-    mv "$(echo "$PKG_NAME_UPSTREAM" | sed 's/\.zip$//g;s/\.tgz$//g;s/\.tar\.gz$//g;s/\.tar\.xz$//g;s/\.tar\.lz$//g;s/\.tar\.bz2$//g;s/\.tar$//g')"* src
-    # Do not check for errors here; the "mv" fails in the situation
-    # mentioned above, and the package-specific script needs to do
-    # this work itself.
-    shopt -u nocaseglob
-    echo "Finished set up"
-else
-    echo "Finished extraction"
+    sage-uncompress-spkg "$PKG_SRC"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: failed to extract $PKG_SRC"
+        exit 1
+    fi
 
     cd "$PKG_NAME"
     if [ $? -ne 0 ]; then
-        echo >&2 "Error: after extracting, the directory $PKG_NAME does not exist"
+        echo >&2 "Error: after extracting, the directory '$PKG_NAME' does not exist"
         exit 1
     fi
 fi
+
+echo "Finished extraction"
 
 ##################################################################
 # The package has been extracted, prepare for installation

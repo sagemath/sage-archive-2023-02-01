@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Tate's parametrisation of `p`-adic curves with multiplicative reduction
 
@@ -589,7 +590,7 @@ class TateCurve(SageObject):
         """
 
         if not self.is_split():
-            raise NotImplementedError("The curve must have split multiplicative reduction")
+            raise NotImplementedError("The p-adic height is not implemented for non-split multiplicative reduction.")
 
         p = self._p
 

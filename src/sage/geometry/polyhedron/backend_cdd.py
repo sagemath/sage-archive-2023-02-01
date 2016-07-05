@@ -1,6 +1,7 @@
 """
 The cdd backend for polyhedral computations
 """
+from __future__ import print_function
 
 from subprocess import Popen, PIPE
 from sage.rings.all import ZZ, QQ, RDF
@@ -159,17 +160,17 @@ class Polyhedron_cdd(Polyhedron_base):
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
         """
         if verbose:
-            print '---- CDD input -----'
-            print cdd_input_string
+            print('---- CDD input -----')
+            print(cdd_input_string)
 
         cdd_proc = Popen([self._cdd_executable, cmdline_arg],
                          stdin=PIPE, stdout=PIPE, stderr=PIPE)
         ans, err = cdd_proc.communicate(input=cdd_input_string)
 
         if verbose:
-            print '---- CDD output -----'
-            print ans
-            print err
+            print('---- CDD output -----')
+            print(ans)
+            print(err)
         if 'Error:' in ans + err:
             # cdd reports errors on stdout and misc information on stderr
             raise ValueError(ans.strip())

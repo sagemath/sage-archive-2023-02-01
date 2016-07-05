@@ -42,6 +42,7 @@ Test that write errors to stderr are handled gracefully by GAP
     sage: subprocess.call("echo syntax error | singular", **kwds)
     0
 """
+from __future__ import print_function
 
 from all import *
 from sage.misc.misc import cputime, walltime
@@ -51,7 +52,7 @@ def manyvars(s, num=70000, inlen=1, step=2000):
     """
     Test that > 65,000 variable names works in each system.
     """
-    print "Testing -- %s"%s
+    print("Testing -- %s" % s)
     t = '"%s"'%('9'*int(inlen))
     try:
         t = cputime()
@@ -62,9 +63,10 @@ def manyvars(s, num=70000, inlen=1, step=2000):
                 sys.stdout.write('%s '%i)
                 sys.stdout.flush()
             v.append(s(t))
-        print '\nsuccess -- time = cpu: %s, wall: %s'%(cputime(t), walltime(w))
+        print('\nsuccess -- time = cpu: %s, wall: %s' % (cputime(t),
+                                                         walltime(w)))
     except Exception:
-        print "%s -- failed!"%s
+        print("%s -- failed!" % s)
 
 def manyvars_all(num=70000):
     #for s in [gap, gp, singular, kash, magma, octave, maxima, mathematica]:

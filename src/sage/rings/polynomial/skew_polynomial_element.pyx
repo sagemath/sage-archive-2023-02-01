@@ -279,7 +279,8 @@ cdef class SkewPolynomial(AlgebraElement):
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp_(right, op)
 
-    cpdef int _cmp_(self, Element other) except -2:
+#    cpdef int _cmp_(self, Element other) except -2:
+    cpdef int _cmp_(self, other) except -2:
         """
         Compare the two skew polynomials self and other.
 
@@ -497,7 +498,8 @@ cdef class SkewPolynomial(AlgebraElement):
         return v
 
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+#    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Compute self + right
 
@@ -532,7 +534,8 @@ cdef class SkewPolynomial(AlgebraElement):
             return self._new_c([x[i] + y[i] for i from 0 <= i < dx], self._parent, 1)
 
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+#    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Compute self - right
 
@@ -568,7 +571,8 @@ cdef class SkewPolynomial(AlgebraElement):
             return self._new_c([x[i] - y[i] for i from 0 <= i < dx], self._parent, 1)
 
 
-    cpdef ModuleElement _neg_(self):
+#    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Return the opposite of self
 
@@ -641,7 +645,8 @@ cdef class SkewPolynomial(AlgebraElement):
         return self._new_c([ left*x[i] for i from 0 <= i < len(x) ], self._parent, 0)
 
 
-    cpdef RingElement _mul_(self, RingElement right):
+#    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Compute self * right (in this order)
 
@@ -1340,7 +1345,8 @@ cdef class SkewPolynomial(AlgebraElement):
         return q
 
 
-    cpdef RingElement _div_(self, RingElement right):
+#    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Not Implemented (since localization of Ore rings is
         not yet implemented, see trac #13215).

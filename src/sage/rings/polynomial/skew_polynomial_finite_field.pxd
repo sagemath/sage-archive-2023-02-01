@@ -23,7 +23,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
     # Karatsuba
     #cpdef RingElement _mul_karatsuba(self, RingElement other, cutoff=*)
     cpdef SkewPolynomial_finite_field_dense _mul_central(self, SkewPolynomial_finite_field_dense right)
-    cpdef RingElement _mul_(self, RingElement right)
+#    cpdef RingElement _mul_(self, RingElement right)
+    cpdef _mul_(self, right)
     cpdef rquo_rem_karatsuba(self, RingElement other, cutoff=*)
 
     cdef SkewPolynomial_finite_field_dense _rgcd(self,SkewPolynomial_finite_field_dense other)

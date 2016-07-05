@@ -29,7 +29,7 @@ cdef class SkewPolynomial(AlgebraElement):
     cdef list _list_c(self)
     cdef SkewPolynomial _new_c(self,list coeffs,Parent P,char check=*)
     cpdef SkewPolynomial _new_constant_poly(self,RingElement a,Parent P,char check=*)
-    cpdef ModuleElement _neg_(self)
+    cpdef _neg_(self)
 
 
 

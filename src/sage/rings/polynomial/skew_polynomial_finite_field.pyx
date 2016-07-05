@@ -414,7 +414,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         return self._new_c(res,skew_ring,1)
 
 
-    cpdef RingElement _mul_(self, RingElement right):
+#    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Compute self * right (in this order)
 

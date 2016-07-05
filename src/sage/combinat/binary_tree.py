@@ -41,6 +41,7 @@ REFERENCES:
 #*****************************************************************************
 # python3
 from __future__ import division
+from __future__ import absolute_import
 
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.abstract_tree import (AbstractClonableTree,
@@ -3402,7 +3403,7 @@ class BinaryTrees_size(BinaryTrees):
             sage: BinaryTrees(5).cardinality()
             42
         """
-        from combinat import catalan_number
+        from .combinat import catalan_number
         return catalan_number(self._size)
 
     def random_element(self):

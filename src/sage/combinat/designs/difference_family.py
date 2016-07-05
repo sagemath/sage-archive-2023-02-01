@@ -43,6 +43,7 @@ Functions
 #*****************************************************************************
 # python3
 from __future__ import division, print_function
+from __future__ import absolute_import
 
 from sage.categories.sets_cat import EmptySetError
 import sage.arith.all as arith
@@ -1340,9 +1341,9 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         matrices and relative difference families" (1998) and Jungnickel
         "Composition theorems for difference families and regular planes" (1978)
     """
-    from block_design import are_hyperplanes_in_projective_geometry_parameters
+    from .block_design import are_hyperplanes_in_projective_geometry_parameters
 
-    from database import DF, EDS
+    from .database import DF, EDS
 
     if (v,k,l) in DF:
         if existence:

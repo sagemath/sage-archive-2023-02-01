@@ -8,11 +8,12 @@ Root lattices and root spaces
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.cachefunc import ClearCacheOnPickle, cached_method, cached_in_parent_method
 from sage.rings.all import ZZ
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
-from root_lattice_realizations import RootLatticeRealizations
+from .root_lattice_realizations import RootLatticeRealizations
 from sage.misc.cachefunc import cached_in_parent_method
 import functools
 

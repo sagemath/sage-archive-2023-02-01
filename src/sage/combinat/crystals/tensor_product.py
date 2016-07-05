@@ -29,6 +29,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import operator
 from sage.misc.latex import latex
@@ -45,8 +46,8 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.partition import Partition
 from sage.combinat.tableau import Tableau
-from letters import CrystalOfLetters
-from spins import CrystalOfSpins, CrystalOfSpinsMinus, CrystalOfSpinsPlus
+from .letters import CrystalOfLetters
+from .spins import CrystalOfSpins, CrystalOfSpinsMinus, CrystalOfSpinsPlus
 from sage.misc.flatten import flatten
 from sage.structure.element import get_coercion_model
 

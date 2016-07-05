@@ -118,11 +118,6 @@ defined using properties of the zeros of `C`.
   related to Hadamard matrices.
   http://en.wikipedia.org/wiki/Walsh_code
 
-REFERENCES:
-
-.. [HP] \W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
-   Codes, Cambridge Univ. Press, 2003.
-
 AUTHOR:
 
 - David Joyner (2007-05): initial version

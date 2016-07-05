@@ -3,58 +3,64 @@
 Coding Theory
 =============
 
-Abstract classes, catalogs and databases
-----------------------------------------
+Coding Theory objects
+---------------------
 
 .. toctree::
    :maxdepth: 2
 
-   sage/coding/decoder
-   sage/coding/encoder
-   sage/coding/bounds_catalog
-   sage/coding/channels_catalog
-   sage/coding/codes_catalog
-   sage/coding/decoders_catalog
-   sage/coding/encoders_catalog
-   sage/coding/two_weight_db
+    Linear code and its abstract base class <sage/coding/linear_code>
+    sage/coding/channel_constructions
+    sage/coding/decoder
+    sage/coding/encoder
 
-Linear codes and related constructions
----------------------------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   sage/coding/linear_code
-   sage/coding/grs
-   sage/coding/hamming_code
-   sage/coding/guruswami_sudan/gs_decoder
-   sage/coding/guruswami_sudan/interpolation
-   sage/coding/guruswami_sudan/rootfinding
-   sage/coding/guruswami_sudan/utils
-   sage/coding/code_constructions
-   sage/coding/punctured_code
-   sage/coding/extended_code
-   sage/coding/sd_codes
-   sage/coding/guava
-   sage/coding/binary_code
-   sage/coding/reed_muller_code
-
-Bounds on codes
----------------
-
-.. toctree::
-   :maxdepth: 1
-
-   sage/coding/code_bounds
-   sage/coding/delsarte_bounds
-
-Channels and related constructions
-----------------------------------
+Catalogs
+--------
 
 .. toctree::
    :maxdepth: 2
 
-   sage/coding/channel_constructions
+    sage/coding/channels_catalog
+    sage/coding/codes_catalog
+    sage/coding/decoders_catalog
+    sage/coding/encoders_catalog
+
+Code constructions
+------------------
+
+.. toctree::
+   :maxdepth: 2
+
+    Constructing a linar code given a generator matrix <sage/coding/linear_code>
+
+    The named code families below are represented in Sage by their own classes,
+    allowing specialised implementations of e.g. decoding or computation of properties:
+
+    sage/coding/extended_code
+    sage/coding/grs
+    sage/coding/hamming_code
+    sage/coding/punctured_code
+    sage/coding/reed_muller_code
+
+    In contrast, for some code families Sage can only construct their generator
+    matrix and has no other a priori knowledge on them:
+
+    Code families whose generator matrix can be constructed <sage/coding/code_constructions>
+    Generator matrices constructed using GAP-Guave <sage/coding/guava>
+    sage/coding/two_weight_db
+    sage/coding/sd_codes
+    sage/coding/binary_code
+
+Methods and Operations related to Linear Codes
+----------------------------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+    Bounds on linear codes <sage/coding/bounds_catalog>
+    sage/coding/delsarte_bounds
+    sage/coding/codecan/codecan
+    sage/coding/codecan/autgroup_can_label
 
 Source coding
 -------------
@@ -63,22 +69,5 @@ Source coding
    :maxdepth: 1
 
    sage/coding/source_coding/huffman
-
-Canonical forms
----------------
-
-.. toctree::
-   :maxdepth: 1
-
-   sage/coding/codecan/codecan
-   sage/coding/codecan/autgroup_can_label
-
-Other tools
------------
-
-.. toctree::
-   :maxdepth: 1
-
-   sage/coding/relative_finite_field_extension
 
 .. include:: ../footer.txt

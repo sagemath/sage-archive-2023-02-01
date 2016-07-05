@@ -467,7 +467,7 @@ class Function_ceil(BuiltinFunction):
             except TypeError:
                 # If we cannot compute a numerical enclosure, leave the
                 # expression unevaluated.
-                return BuiltinFunction.__call__(self, SR(x), hold=hold)
+                return BuiltinFunction.__call__(self, SR(x))
             try:
                 return x_interval.unique_ceil()
             except ValueError:
@@ -621,7 +621,7 @@ class Function_floor(BuiltinFunction):
             except TypeError:
                 # If we cannot compute a numerical enclosure, leave the
                 # expression unevaluated.
-                return BuiltinFunction.__call__(self, SR(x), hold=hold)
+                return BuiltinFunction.__call__(self, SR(x))
             try:
                 return x_interval.unique_floor()
             except ValueError:

@@ -53,9 +53,9 @@ done
 echo "Configuring giac..."
 
 
-#    --disable-gmpxx  (broken built)
+#    --disable-ao     (avoid libao deps)
 
-./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-gmpxx
+./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-ao
 
 if [ $? -ne 0 ]; then
     exit 1

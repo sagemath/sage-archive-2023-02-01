@@ -631,7 +631,6 @@ cdef class RightModuleAction(ModuleAction):
             sage: A._call_(x+5, 2) # safe only when arguments have exactly the correct parent
             2*x + 10
         """
-        cdef PyObject* tmp
         if self.connecting is not None:
             g = self.connecting._call_(g)
         if self.extended_base is not None:

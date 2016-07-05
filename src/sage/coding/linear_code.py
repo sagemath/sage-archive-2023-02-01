@@ -803,6 +803,12 @@ class AbstractLinearCode(module.Module):
             ...
             ValueError: 'generator' must be defined on a field (not a ring)
         """
+        ### Add here any generic encoder/decoder ###
+        #This allows any class which inherits from AbstractLinearCode
+        #to use generic decoders/encoders
+        self._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
+        self._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
+
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")
         if not base_field.is_field():
@@ -811,6 +817,7 @@ class AbstractLinearCode(module.Module):
             raise ValueError("You must set a valid encoder as default encoder for this code, by filling in the dictionary of registered encoders")
         if not default_decoder_name in self._registered_decoders:
             raise ValueError("You must set a valid decoder as default decoder for this code, by filling in the dictionary of registered decoders")
+
         self._length = Integer(length)
         self._default_decoder_name = default_decoder_name
         self._default_encoder_name = default_encoder_name
@@ -1988,8 +1995,7 @@ class AbstractLinearCode(module.Module):
             ['GeneratorMatrix']
 
             sage: C.encoders_available(True)
-            {'GeneratorMatrix':
-            <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>}
+            {'GeneratorMatrix': <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>}
         """
         if classes == True:
             return copy(self._registered_encoders)
@@ -1997,29 +2003,22 @@ class AbstractLinearCode(module.Module):
 
     def extended_code(self):
         r"""
-        If ``self`` is a linear code of length `n` defined over `F` then this
-        returns the code of length `n+1` where the last digit `c_n` satisfies
-        the check condition `c_0+...+c_n=0`. If ``self`` is an `[n,k,d]`
-        binary code then the extended code `C^{\vee}` is an `[n+1,k,d^{\vee}]`
-        code, where `d^=d` (if d is even) and `d^{\vee}=d+1` (if `d` is odd).
+        Returns `self` as an extended code.
 
+        See documentation of :class:`sage.coding.extended_code.ExtendedCode`
+        for details.
         EXAMPLES::
+
 
             sage: C = codes.HammingCode(GF(4,'a'), 3)
             sage: C
             [21, 18] Hamming Code over Finite Field in a of size 2^2
             sage: Cx = C.extended_code()
             sage: Cx
-            Linear code of length 22, dimension 18 over Finite Field in a of size 2^2
+            Extended code coming from [21, 18] Hamming Code over Finite Field in a of size 2^2
         """
-        G = self.generator_matrix()
-        F = self.base_ring()
-        k = len(G.rows())
-        MS1 = MatrixSpace(F,k,1)
-        ck_sums = [-sum(G.rows()[i]) for i in range(k)]
-        last_col = MS1(ck_sums)
-        Gx = G.augment(last_col)
-        return LinearCode(Gx)
+        from extended_code import ExtendedCode
+        return ExtendedCode(self)
 
     def galois_closure(self, F0):
         r"""
@@ -3045,9 +3044,7 @@ class AbstractLinearCode(module.Module):
 
             sage: C1 = codes.HammingCode(GF(2), 3)
             sage: C2 = C1.extended_code(); C2
-            Linear code of length 8, dimension 4 over Finite Field of size 2
-            sage: C2.is_self_dual()
-            True
+            Extended code coming from [7, 4] Hamming Code over Finite Field of size 2
             sage: C2.sd_duursma_q(1,1)
             2/5*T^2 + 2/5*T + 1/5
             sage: C2.sd_duursma_q(3,1)
@@ -3112,9 +3109,7 @@ class AbstractLinearCode(module.Module):
 
             sage: C1 = codes.HammingCode(GF(2), 3)
             sage: C2 = C1.extended_code(); C2
-            Linear code of length 8, dimension 4 over Finite Field of size 2
-            sage: C2.is_self_dual()
-            True
+            Extended code coming from [7, 4] Hamming Code over Finite Field of size 2
             sage: C2.sd_zeta_polynomial()
             2/5*T^2 + 2/5*T + 1/5
             sage: C2.zeta_polynomial()
@@ -4302,7 +4297,7 @@ class LinearCodeSyndromeDecoder(Decoder):
         k = C.dimension()
         H = C.parity_check_matrix()
         F = C.base_ring()
-        l = F.list()
+        l = copy(F.list())
         zero = F.zero()
         #Builds a list of generators of all error positions for all
         #possible error weights
@@ -4577,7 +4572,5 @@ class LinearCodeNearestNeighborDecoder(Decoder):
 
 LinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder
 
-LinearCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
 LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "dynamic"}
-LinearCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
 LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}

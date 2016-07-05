@@ -16,7 +16,7 @@ Ribbon Tableaux
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 # python3
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -28,7 +28,7 @@ from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSkewTableaux
 from sage.combinat.tableau import TableauOptions
 from sage.combinat.partition import Partition, _Partitions
-import permutation
+from . import permutation
 import functools
 
 

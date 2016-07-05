@@ -603,6 +603,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.env import SAGE_LOCAL
 import pexpect
@@ -1625,7 +1626,7 @@ def qepcad(formula, assume=None, interact=False, solution=None,
         qe.assume(assume)
     if interact:
         if solution is not None:
-            print "WARNING: 'solution=' is ignored for interactive use"
+            print("WARNING: 'solution=' is ignored for interactive use")
         return qe
     else:
         qe.go()

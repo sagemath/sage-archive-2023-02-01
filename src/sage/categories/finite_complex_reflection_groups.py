@@ -293,6 +293,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                                self.number_of_reflection_hyperplanes(),
                                "the sum of the codegrees should be consistent with the number of reflection hyperplanes")
 
+        @cached_method
         def number_of_reflection_hyperplanes(self):
             r"""
             Return the number of reflection hyperplanes of ``self``.
@@ -324,6 +325,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             from sage.rings.all import ZZ
             return ZZ.sum(codeg+1 for codeg in self.codegrees())
 
+        @cached_method
         def number_of_reflections(self):
             r"""
             Return the number of reflections of ``self``.
@@ -357,6 +359,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             from sage.rings.all import ZZ
             return ZZ.sum(deg-1 for deg in self.degrees())
 
+        @cached_method
         def rank(self):
             r"""
             Return the rank of ``self``.

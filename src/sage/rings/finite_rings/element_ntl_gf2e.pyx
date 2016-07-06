@@ -18,6 +18,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
@@ -216,7 +217,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         # Print the current modulus.
         cdef GF2XModulus_c modulus = GF2E_modulus()
         cdef GF2X_c mod_poly = GF2XModulus_GF2X(modulus)
-        print GF2X_to_PyString(&mod_poly)
+        print(GF2X_to_PyString(&mod_poly))
 
         # do another garbage collection
         gc.collect()
@@ -224,7 +225,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         # and print the modulus again
         modulus = GF2E_modulus()
         mod_poly = GF2XModulus_GF2X(modulus)
-        print GF2X_to_PyString(&mod_poly)
+        print(GF2X_to_PyString(&mod_poly))
 
     cdef FiniteField_ntl_gf2eElement _new(self):
         """

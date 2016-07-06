@@ -153,26 +153,6 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         """
         return (-len(x), sorted(x))
 
-    def _cmp_term(self, x, y):
-        """
-        Compare the terms indexed by ``x`` and ``y``.
-
-        EXAMPLES::
-
-            sage: M = matroids.Wheel(3)
-            sage: OS = M.orlik_solomon_algebra(QQ)
-            sage: OS._cmp_term(frozenset({1, 2}), frozenset({1, 4}))
-            -1
-            sage: OS._cmp_term(frozenset({0, 1, 2}), frozenset({1, 4}))
-            -1
-            sage: OS._cmp_term(frozenset({}), frozenset({1, 4}))
-            1
-        """
-        c = cmp(len(x), len(y))
-        if c != 0:
-            return -c
-        return cmp(sorted(x), sorted(y))
-
     def _repr_term(self, m):
         """
         Return a string representation of the basis element indexed by `m`.

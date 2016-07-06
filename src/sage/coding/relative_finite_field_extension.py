@@ -36,7 +36,6 @@ as `F_q`-elements.
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import GF
-from sage.functions.all import log
 from sage.structure.sage_object import SageObject
 from sage.categories.homset import Hom
 from sage.matrix.constructor import column_matrix
@@ -117,9 +116,8 @@ class RelativeFiniteFieldExtension(SageObject):
             raise ValueError("absolute_field has to be a finite field")
         if not relative_field.is_finite():
             raise ValueError("relative_field has to be a finite field")
-        p = relative_field.characteristic()
-        s = log(relative_field.order(), p)
-        sm = log(absolute_field.order(), p)
+        s = relative_field.degree()
+        sm = absolute_field.degree()
         if not s.divides(sm):
             raise ValueError("relative_field has to be a subfield of absolute_field")
         H = Hom(relative_field, absolute_field)
@@ -136,8 +134,8 @@ class RelativeFiniteFieldExtension(SageObject):
         beta = absolute_field.gen()
         self._alphas = [alpha ** i for i in range(s)]
         self._betas = [beta ** i for i in range(sm)]
-        self._relative_field_power = s
-        self._absolute_field_power = sm
+        self._relative_field_degree = s
+        self._absolute_field_degree = sm
 
     def _repr_(self):
         r"""
@@ -186,8 +184,8 @@ class RelativeFiniteFieldExtension(SageObject):
             [0 1 1 1]
             [0 0 0 1]
         """
-        s = self.relative_field_power()
-        m = self.absolute_field_power() / s
+        s = self.relative_field_degree()
+        m = self.extension_degree()
         betas = self.absolute_field_basis()
         phi_alphas = [ self._phi(self._alphas[i]) for i in range(s) ]
         A = column_matrix([vector(betas[i] * phi_alphas[j])
@@ -238,13 +236,13 @@ class RelativeFiniteFieldExtension(SageObject):
         """
         if not b in self.absolute_field():
             raise ValueError("The input has to be an element of the absolute field")
-        s = self.relative_field_power()
+        s = self.relative_field_degree()
         if s == 1:
             return vector(b)
         else:
             Fq = self.relative_field()
             vect = self._flattened_relative_field_representation(b)
-            sm = self.absolute_field_power()
+            sm = self.absolute_field_degree()
             list_elts = []
             for i in range(0, sm, s):
                 list_elts.append(Fq(vect[i:i+s]))
@@ -270,9 +268,8 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: FE.absolute_field_representation(rel) == b
             True
         """
-        m = self.absolute_field_power()
-        s = self.relative_field_power()
-        m = m / s
+        s = self.relative_field_degree()
+        m = self.extension_degree()
         if len(a) != m:
             raise ValueError("The input has to be a vector with length equal to the order of the absolute field")
         if not a.base_ring() == self.relative_field():
@@ -394,7 +391,7 @@ class RelativeFiniteFieldExtension(SageObject):
         """
         return self._betas
 
-    def relative_field_power(self):
+    def relative_field_degree(self):
         r"""
         Let `F_p` be the base field of our relative field `F_q`.
         Returns `s` where `p^s = q`
@@ -405,12 +402,12 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
             sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
-            sage: FE.relative_field_power()
+            sage: FE.relative_field_degree()
             2
         """
-        return self._relative_field_power
+        return self._relative_field_degree
 
-    def absolute_field_power(self):
+    def absolute_field_degree(self):
         r"""
         Let `F_p` be the base field of our absolute field `F_{q^m}`.
         Returns `sm` where `p^{sm} = q^{m}`
@@ -421,10 +418,27 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
             sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
-            sage: FE.absolute_field_power()
+            sage: FE.absolute_field_degree()
             4
         """
-        return self._absolute_field_power
+        return self._absolute_field_degree
+
+    
+    def extension_degree(self):
+        r"""
+        Returns `m`, teh extension degree of the absiolute field over
+        the relative field.
+
+        EXAMPLES::
+
+            sage: from sage.coding.relative_finite_field_extension import *
+            sage: Fqm.<aa> = GF(64)
+            sage: Fq.<a> = GF(4)
+            sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
+            sage: FE.extension_degree()
+            3
+        """
+        return self.absolute_field_degree() // self.relative_field_degree()
 
     def prime_field(self):
         r"""

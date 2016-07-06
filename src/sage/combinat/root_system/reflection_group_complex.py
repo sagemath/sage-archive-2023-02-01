@@ -315,10 +315,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 raise ValueError("the given hyperplane index set (= %s) does not have the right size"%self._index_set.values())
         self._hyperplane_index_set_inverse = {i: ii for ii,i in enumerate(self._hyperplane_index_set)}
 
-        # storing the number of reflections for later use in descents
-        self._number_of_reflections = ZZ.sum(deg-1 for deg in self.degrees())
-
-        N_set = range(1, self._number_of_reflections+1)
+        N_set = range(1, self.number_of_reflections()+1)
         if self._reflection_index_set is None:
             self._reflection_index_set = tuple(N_set)
         else:
@@ -442,22 +439,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             ['ST']
         """
         return [self._type[i]['series'] for i in range(len(self._type))]
-
-    def number_of_reflections(self):
-        r"""
-        Return the number of reflections of ``self``.
-
-        EXAMPLES::
-
-            sage: W = ReflectionGroup((1,1,4))                          # optional - gap3
-            sage: W.number_of_reflections()                             # optional - gap3
-            6
-
-            sage: W = ReflectionGroup((2,1,4))                          # optional - gap3
-            sage: W.number_of_reflections()                             # optional - gap3
-            16
-        """
-        return self._number_of_reflections
 
     @cached_method
     def hyperplane_index_set(self):

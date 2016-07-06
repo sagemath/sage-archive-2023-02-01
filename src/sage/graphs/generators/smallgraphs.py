@@ -15,6 +15,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -345,8 +346,8 @@ def WellsGraph():
       Distance-Regular Graphs,
       Springer, 1989.
     """
-    from platonic_solids import DodecahedralGraph
-    from basic import CompleteBipartiteGraph
+    from .platonic_solids import DodecahedralGraph
+    from .basic import CompleteBipartiteGraph
 
     # Following the construction from the book "Distance-regular graphs"
     dodecahedron = DodecahedralGraph()

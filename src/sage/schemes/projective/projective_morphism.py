@@ -40,6 +40,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.calculus.functions import jacobian
 from sage.categories.number_fields import NumberFields
@@ -2472,7 +2473,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if self.degree() == 1:
             raise NotImplementedError("minimality is only for degree 2 or higher")
 
-        from endPN_minimal_model import affine_minimal
+        from .endPN_minimal_model import affine_minimal
         return(affine_minimal(self, False , prime_list , True))
 
     def minimal_model(self, return_transformation=False, prime_list=None):
@@ -2585,7 +2586,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if self.degree() == 1:
             raise NotImplementedError("minimality is only for degree 2 or higher")
 
-        from endPN_minimal_model import affine_minimal
+        from .endPN_minimal_model import affine_minimal
         return(affine_minimal(self, return_transformation, prime_list, False))
 
     def automorphism_group(self, **kwds):
@@ -2687,7 +2688,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             F = (f[0].numerator().univariate_polynomial(R))/f[0].denominator().univariate_polynomial(R)
         else:
             F = f[0].univariate_polynomial(R)
-        from endPN_automorphism_group import automorphism_group_QQ_CRT, automorphism_group_QQ_fixedpoints
+        from .endPN_automorphism_group import automorphism_group_QQ_CRT, automorphism_group_QQ_fixedpoints
         if alg is None:
             if self.degree() <= 12:
                 return(automorphism_group_QQ_fixedpoints(F, return_functions, iso_type))
@@ -4996,5 +4997,5 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             F = (f[0].numerator().polynomial(z))/f[0].denominator().polynomial(z)
         else:
             F = f[0].numerator().polynomial(z)
-        from endPN_automorphism_group import automorphism_group_FF
+        from .endPN_automorphism_group import automorphism_group_FF
         return(automorphism_group_FF(F, absolute, iso_type, return_functions))

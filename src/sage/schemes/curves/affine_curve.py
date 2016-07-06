@@ -23,6 +23,7 @@ AUTHORS:
 
 - David Kohel (2006-01)
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -51,7 +52,7 @@ from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affi
 
 from sage.schemes.projective.projective_space import ProjectiveSpace
 
-from curve import Curve_generic
+from .curve import Curve_generic
 
 class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
     def _repr_type(self):
@@ -141,7 +142,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: C.projective_closure(1, P).ambient_space() == P
             True
         """
-        from constructor import Curve
+        from .constructor import Curve
         return Curve(AlgebraicScheme_subscheme_affine.projective_closure(self, i, PP))
 
     def multiplicity(self, P):

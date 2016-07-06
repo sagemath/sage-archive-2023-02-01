@@ -814,6 +814,29 @@ def identity_matrix(ring, n=0, sparse=False):
         ring = rings.ZZ
     return matrix_space.MatrixSpace(ring, n, n, sparse)(1)
 
+@matrix_method
+def lehmer(ring, n=0):
+    r"""
+    Return the `n \times n` Lehmer matrix.
+
+    The default ring is the rationals.
+
+    Element `(i, j)` in the Lehmer matrix is
+    `min(i, j)/max(i, j)`.
+
+    EXAMPLES::
+
+        sage: matrix.lehmer(3)
+        [  1 1/2 1/3]
+        [1/2   1 2/3]
+        [1/3 2/3   1]
+    """
+    from sage.sets.integer_range import IntegerRange
+
+    if isinstance(ring, (int, long, rings.Integer)):
+        n = ring
+        ring = rings.QQ
+    return matrix_space.MatrixSpace(ring, n, n).matrix([[min(i, j)/max(i, j) for i in IntegerRange(1, n+1)] for j in IntegerRange(1, n+1)])
 
 @matrix_method
 def zero_matrix(ring, nrows=None, ncols=None, sparse=False):

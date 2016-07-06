@@ -25,7 +25,6 @@ from linear_code import (AbstractLinearCode,
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import GF
-from sage.functions.all import log
 from sage.categories.homset import Hom
 from relative_finite_field_extension import RelativeFiniteFieldExtension
 from sage.matrix.constructor import matrix
@@ -86,8 +85,8 @@ class SubfieldSubcode(AbstractLinearCode):
             raise ValueError("subfield has to be a finite field")
         p = subfield.characteristic()
         F = original_code.base_field()
-        s = log(subfield.order(), p)
-        sm = log(F.order(), p)
+        s = subfield.degree()
+        sm = F.degree()
         if not s.divides(sm):
             raise ValueError("subfield has to be a subfield of the base field of the original code")
         self._original_code = original_code
@@ -178,10 +177,7 @@ class SubfieldSubcode(AbstractLinearCode):
         C = self.original_code()
         n = C.length()
         k = C.dimension()
-        F = C.base_field()
-        p = F.characteristic()
-        s = log(self.base_field().order(), p)
-        m = log(F.order(), p) / s
+        m = self.embedding().extension_degree()
         return n - m*(n-k)
 
     def original_code(self):
@@ -239,7 +235,7 @@ class SubfieldSubcode(AbstractLinearCode):
         n = self.length()
         codimC = H_original.nrows()
         E = self.embedding()
-        m = E.absolute_field_power() / E.relative_field_power()
+        m = E.extension_degree()
         H = matrix(Fq, codimC * m, n)
 
         for i in range(H_original.nrows()):
@@ -382,11 +378,13 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
         y_or = vector([phi(i) for i in y])
         c_or = D.decode_to_code(y_or)
         if 'list-decoder' in self.decoder_type():
-            raise NotImplementedError("List decoder reduction to subfield subcodes not yet implemented.")
-            # return [vector([FE.absolute_field_representation(i) for i in c])
-            #         for c in c_or]
+            result = []
+            for c in c_or:
+                if all(FE.is_in_relative_field(x) for x in c):
+                    result.append(vector(map(FE.cast_into_relative_field, c)))
+            return result
         else:
-            return vector([FE.relative_field_representation(i)[0] for i in c_or])
+            return vector([FE.cast_into_relative_field(i) for i in c_or])
 
     def decoding_radius(self, **kwargs):
         r"""

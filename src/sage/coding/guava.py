@@ -39,7 +39,8 @@ from sage.interfaces.gap import gfq_gap_to_sage
 from sage.groups.perm_gps.permgroup import *
 from linear_code import *
 
-def BinaryReedMullerCode(r,k):
+
+def BinaryReedMullerCode(r, k):
     r"""
     The binary 'Reed-Muller code' with dimension k and
     order r is a code with length `2^k` and minimum distance `2^k-r`
@@ -60,21 +61,21 @@ def BinaryReedMullerCode(r,k):
     EXAMPLE::
 
         sage: C = codes.BinaryReedMullerCode(2,4); C  # optional - gap_packages (Guava package)
-        Linear code of length 16, dimension 11 over Finite Field of size 2
+        Binary Reed-Muller Code of order 2 and number of variables 4
         sage: C.minimum_distance()              # optional - gap_packages (Guava package)
         4
         sage: C.generator_matrix()                       # optional - gap_packages (Guava package)
         [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-        [0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1]
-        [0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1]
-        [0 0 1 1 0 0 1 1 0 0 1 1 0 0 1 1]
         [0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1]
-        [0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-        [0 0 0 0 0 0 0 0 0 0 1 1 0 0 1 1]
+        [0 0 1 1 0 0 1 1 0 0 1 1 0 0 1 1]
+        [0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1]
+        [0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1]
+        [0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1]
+        [0 0 0 0 0 1 0 1 0 0 0 0 0 1 0 1]
         [0 0 0 0 0 0 0 0 0 1 0 1 0 1 0 1]
         [0 0 0 0 0 0 1 1 0 0 0 0 0 0 1 1]
-        [0 0 0 0 0 1 0 1 0 0 0 0 0 1 0 1]
-        [0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1]
+        [0 0 0 0 0 0 0 0 0 0 1 1 0 0 1 1]
+        [0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
 
     AUTHOR: David Joyner (11-2005)
     """
@@ -87,6 +88,7 @@ def BinaryReedMullerCode(r,k):
     G = [[gfq_gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(G))
+
 
 def QuasiQuadraticResidueCode(p):
     r"""
@@ -128,11 +130,13 @@ def QuasiQuadraticResidueCode(p):
     gap.eval("G:=GeneratorMat(C)")
     k = int(gap.eval("Length(G)"))
     n = int(gap.eval("Length(G[1])"))
-    G = [[gfq_gap_to_sage(gap.eval("G[%s][%s]" % (i,j)),F) for j in range(1,n+1)] for i in range(1,k+1)]
-    MS = MatrixSpace(F,k,n)
+    G = [[gfq_gap_to_sage(gap.eval("G[%s][%s]" % (i,j)),F)
+          for j in range(1,n+1)] for i in range(1,k+1)]
+    MS = MatrixSpace(F, k, n)
     return LinearCode(MS(G))
 
-def RandomLinearCodeGuava(n,k,F):
+
+def RandomLinearCodeGuava(n, k, F):
     r"""
     The method used is to first construct a `k \times n` matrix of the block
     form `(I,A)`, where `I` is a `k \times k` identity matrix and `A` is a
@@ -166,5 +170,5 @@ def RandomLinearCodeGuava(n,k,F):
     k = int(gap.eval("Length(G)"))
     n = int(gap.eval("Length(G[1])"))
     G = [[gfq_gap_to_sage(gap.eval("G[%s][%s]" % (i,j)),F) for j in range(1,n+1)] for i in range(1,k+1)]
-    MS = MatrixSpace(F,k,n)
+    MS = MatrixSpace(F, k, n)
     return LinearCode(MS(G))

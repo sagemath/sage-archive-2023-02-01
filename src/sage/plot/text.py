@@ -102,29 +102,21 @@ class Text(GraphicPrimitive):
             'how to rotate the text: angle in degrees, vertical, horizontal'
 
         """
-        return {'fontsize': 'How big the text is. Either the size in points '
-                            'or a relative size, '
-                            'e.g. \'smaller\', \'x-large\', etc',
+        return {'fontsize': 'How big the text is. Either the size in points or a relative size, e.g. \'smaller\', \'x-large\', etc',
                 'fontstyle': 'either \'normal\', \'italic\' or \'oblic\'',
                 'fontweight': 'a numeric value in the range 0-1000 or a string'
-                              '\'ultralight\', \'light\', \'normal\', '
-                              '\'regular\', \'book\',\'medium\', \'roman\', '
-                              '\'semibold\', \'demibold\', \'demi\','
-                              '\'bold,\', \'heavy\', \'extra bold\', '
-                              '\'black\'',
+                              '\'ultralight\', \'light\', \'normal\', \'regular\', \'book\','
+                              '\'medium\', \'roman\', \'semibold\', \'demibold\', \'demi\','
+                              '\'bold,\', \'heavy\', \'extra bold\', \'black\'',
                 'rgbcolor': 'The color as an RGB tuple.',
                 'background_color': 'The background color.',
                 'bounding_box': 'A dictionary specifying a bounding box',
                 'hue': 'The color given as a hue.',
                 'alpha': 'a float (0.0 transparent through 1.0 opaque)',
-                'axis_coords': 'Uses axis coordinates -- (0,0) lower left '
-                              'and (1,1) upper right',
-                'rotation': 'how to rotate the text: angle in degrees, '
-                            'vertical, horizontal',
-                'vertical_alignment': 'how to align vertically: top, '
-                                      'center, bottom',
-                'horizontal_alignment': 'how to align horizontally: left, '
-                                        'center, right',
+                'axis_coords': 'Uses axis coordinates -- (0,0) lower left and (1,1) upper right',
+                'rotation': 'how to rotate the text: angle in degrees, vertical, horizontal',
+                'vertical_alignment': 'how to align vertically: top, center, bottom',
+                'horizontal_alignment': 'how to align horizontally: left, center, right',
                 'zorder': 'The layer level in which to draw',
                 'clip': 'Whether to clip or not.'}
 
@@ -178,10 +170,8 @@ class Text(GraphicPrimitive):
         """
         TESTS::
 
-            sage: t1 = text("Hello",(1,1), vertical_alignment="top",
-            ....: fontsize=30, rgbcolor='black')
-            sage: t2 = text("World", (1,1), horizontal_alignment="left",
-            ....: fontsize=20, zorder=-1)
+            sage: t1 = text("Hello",(1,1), vertical_alignment="top", fontsize=30, rgbcolor='black')
+            sage: t2 = text("World", (1,1), horizontal_alignment="left", fontsize=20, zorder=-1)
             sage: t1 + t2   # render the sum
             Graphics object consisting of 2 graphics primitives
 
@@ -218,14 +208,13 @@ class Text(GraphicPrimitive):
             else:
                 opts['rotation'] = float(options['rotation'])
 
-        p = subplot.text(self.x, self.y, self.string,
-                         clip_on=options['clip'], **opts)
+        p = subplot.text(self.x, self.y, self.string, clip_on=options['clip'], **opts)
         if not options['clip']:
             self._bbox_extra_artists = [p]
 
 
 @rename_keyword(color='rgbcolor')
-@options(fontsize=10, rgbcolor=(0, 0, 1), horizontal_alignment='center',
+@options(fontsize=10, rgbcolor=(0,0,1), horizontal_alignment='center',
          vertical_alignment='center', axis_coords=False, clip=False)
 def text(string, xy, **options):
     r"""
@@ -249,8 +238,7 @@ def text(string, xy, **options):
 
     - ``hue`` - The color given as a hue
 
-    - ``rotation`` - How to rotate the text: angle in degrees, vertical,
-      horizontal
+    - ``rotation`` - How to rotate the text: angle in degrees, vertical, horizontal
 
     - ``vertical_alignment`` - How to align vertically: top, center, bottom
 
@@ -265,8 +253,7 @@ def text(string, xy, **options):
 
     EXAMPLES::
 
-        sage: text("Sage graphics are really neat because they use matplotlib!",
-        ....:      (2,12))
+        sage: text("Sage graphics are really neat because they use matplotlib!", (2,12))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
@@ -276,39 +263,32 @@ def text(string, xy, **options):
 
     Larger font, bold, colored red and transparent text::
 
-        sage: text("I had a dream!", (2,12), alpha=0.3, fontsize='large',
-        ....:      fontweight='bold', color='red')
+        sage: text("I had a dream!", (2,12), alpha=0.3, fontsize='large', fontweight='bold', color='red')
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
-        sphinx_plot(text("I had a dream!", (2,12), alpha=0.3, fontsize='large',
-                    fontweight='bold', color='red'))
+        sphinx_plot(text("I had a dream!", (2,12), alpha=0.3, fontsize='large', fontweight='bold', color='red'))
 
     By setting ``horizontal_alignment`` to 'left' the text is guaranteed to be
     in the lower left no matter what::
 
-        sage: text("I got a horse and he lives in a tree", (0,0),
-        ....:      axis_coords=True, horizontal_alignment='left')
+        sage: text("I got a horse and he lives in a tree", (0,0), axis_coords=True, horizontal_alignment='left')
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         t = "I got a horse and he lives in a tree"
-        sphinx_plot(text(t, (0,0), axis_coords=True,
-                    horizontal_alignment='left'))
+        sphinx_plot(text(t, (0,0), axis_coords=True, horizontal_alignment='left'))
 
     Various rotations::
 
-        sage: text("noitator", (0,0), rotation=45.0,
-        ....:      horizontal_alignment='left', vertical_alignment='bottom')
+        sage: text("noitator", (0,0), rotation=45.0, horizontal_alignment='left', vertical_alignment='bottom')
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
-        sphinx_plot(text("noitator", (0,0), rotation=45.0,
-                         horizontal_alignment='left',
-                         vertical_alignment='bottom'))
+        sphinx_plot(text("noitator", (0,0), rotation=45.0, horizontal_alignment='left', vertical_alignment='bottom'))
 
     ::
 
@@ -334,13 +314,11 @@ def text(string, xy, **options):
 
     You can save text as part of PDF output::
 
-        sage: text("sage", (0,0),
-        ....:      rgbcolor=(0,0,0)).save(os.path.join(SAGE_TMP, 'a.pdf'))
+        sage: text("sage", (0,0), rgbcolor=(0,0,0)).save(os.path.join(SAGE_TMP, 'a.pdf'))
 
     Some examples of bounding box::
 
-        sage: bbox = {'boxstyle':"rarrow,pad=0.3", 'fc':"cyan",
-        ....:         'ec':"b", 'lw':2}
+        sage: bbox = {'boxstyle':"rarrow,pad=0.3", 'fc':"cyan", 'ec':"b", 'lw':2}
         sage: text("I feel good", (1,2), bounding_box=bbox)
         Graphics object consisting of 1 graphics primitive
 
@@ -351,8 +329,7 @@ def text(string, xy, **options):
 
     ::
 
-        sage: text("So good", (0,0), bounding_box={'boxstyle':'round',
-        ....:                                      'fc':'w'})
+        sage: text("So good", (0,0), bounding_box={'boxstyle':'round', 'fc':'w'})
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
@@ -362,7 +339,7 @@ def text(string, xy, **options):
 
     The possible options of the bounding box are 'boxstyle' (one of 'larrow',
     'rarrow', 'round', 'round4', 'roundtooth', 'sawtooth', 'square'), 'fc' or
-    'facecolor', 'ec' or 'edgecolor', 'ha' or horizontalalignment', 'va' or
+    'facecolor', 'ec' or 'edgecolor', 'ha' or 'horizontalalignment', 'va' or
     'verticalalignment', 'lw' or 'linewidth'.
 
     A text with a background color::
@@ -386,8 +363,7 @@ def text(string, xy, **options):
 
         sage: text("MATH IS AWESOME", (0, 0), fontsize=40, axes=False)
         Graphics object consisting of 1 graphics primitive
-        sage: text("MATH IS AWESOME", (0, 0),
-        ....:      fontsize=40).show(axes=False) # These are equivalent
+        sage: text("MATH IS AWESOME", (0, 0), fontsize=40).show(axes=False) # These are equivalent
     """
     try:
         x, y = xy

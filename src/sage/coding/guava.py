@@ -36,7 +36,7 @@ from sage.misc.randstate import current_randstate
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.interfaces.gap import gfq_gap_to_sage
-from linear_code import LinearCode
+from .linear_code import LinearCode
 
 
 def QuasiQuadraticResidueCode(p):

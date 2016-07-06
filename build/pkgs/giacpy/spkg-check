@@ -8,7 +8,7 @@ fi
 
 # --force-lib because we dont want sage -t to compile giacpy.pyx
 #             we  only use the test suite to test giacpy.so
-sage -t --verbose --force-lib src/giacpy.pyx
+sage -t --verbose --force-lib src/giacpy_sage.pyx
 
 if [ $? -ne 0 ]; then
   echo "There was a problem during the giacpy tests."

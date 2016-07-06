@@ -322,7 +322,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 15
             """
             from sage.rings.all import ZZ
-            return ZZ.sum(self.codegrees()) + self.rank()
+            return ZZ.sum(codeg+1 for codeg in self.codegrees())
 
         def number_of_reflections(self):
             r"""
@@ -355,7 +355,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 15
             """
             from sage.rings.all import ZZ
-            return ZZ.sum(self.degrees()) - self.rank()
+            return ZZ.sum(deg-1 for deg in self.degrees())
 
         def rank(self):
             r"""

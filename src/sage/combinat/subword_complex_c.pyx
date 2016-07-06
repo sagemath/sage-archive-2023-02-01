@@ -39,10 +39,7 @@ cpdef int _flip_c(W, set positions, list extended_root_conf_indices,
     cdef int r, nr_ref, r_minus, j, k
     cdef list R
     r = extended_root_conf_indices[i]
-    if hasattr(W,"_number_of_reflections"):
-        nr_ref = W._number_of_reflections
-    else:
-        nr_ref = len(W.long_element(as_word=True))
+    nr_ref = W.number_of_reflections()
     r_minus = (r + nr_ref) % (2 * nr_ref)  # get the negative root -r
     j = i
     for k in xrange(len(extended_root_conf_indices)):

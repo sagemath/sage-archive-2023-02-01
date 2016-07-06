@@ -3,7 +3,7 @@
 Wrappers for Giac functions
 
 We provide a python function to compute and convert to sage a groebner
-basis using the giacpy module.
+basis using the giacpy_sage module.
 
 AUTHORS:
 
@@ -52,7 +52,7 @@ class GiacSettingsDefaultContext:
         EXAMPLE::
 
            sage: from sage.libs.giac import GiacSettingsDefaultContext  # optional - giacpy
-           sage: from giacpy import giacsettings # optional - giacpy
+           sage: from giacpy_sage import giacsettings # optional - giacpy
            sage: giacsettings.proba_epsilon = 1e-16 # optional - giacpy
            sage: with GiacSettingsDefaultContext(): giacsettings.proba_epsilon = 1e-12 # optional - giacpy
            sage: giacsettings.proba_epsilon < 1e-14 # optional - giacpy
@@ -60,7 +60,7 @@ class GiacSettingsDefaultContext:
 
         """
         try:
-            from giacpy import giacsettings, libgiac
+            from giacpy_sage import giacsettings, libgiac
         except ImportError:
             raise ImportError("""One of the optional packages giac or giacpy is missing""")
 
@@ -74,7 +74,7 @@ class GiacSettingsDefaultContext:
         EXAMPLE::
 
            sage: from sage.libs.giac import GiacSettingsDefaultContext  # optional - giacpy
-           sage: from giacpy import giacsettings # optional - giacpy
+           sage: from giacpy_sage import giacsettings # optional - giacpy
            sage: giacsettings.proba_epsilon = 1e-16 # optional - giacpy
            sage: with GiacSettingsDefaultContext(): giacsettings.proba_epsilon = 1e-30 # optional - giacpy
            sage: giacsettings.proba_epsilon < 1e-20 # optional - giacpy
@@ -82,7 +82,7 @@ class GiacSettingsDefaultContext:
 
         """
         try:
-            from giacpy import giacsettings, libgiac
+            from giacpy_sage import giacsettings, libgiac
         except ImportError:
             raise ImportError("""One of the optional packages giac or giacpy is missing""")
 
@@ -103,7 +103,7 @@ def local_giacsettings(func):
         ....:    giacsettings.threads = b+2
         ....:    return (giacsettings.proba_epsilon, giacsettings.threads)
 
-        sage: from giacpy import giacsettings  # optional - giacpy
+        sage: from giacpy_sage import giacsettings  # optional - giacpy
         sage: from sage.libs.giac import local_giacsettings  # optional - giacpy
         sage: gporig, gtorig = (giacsettings.proba_epsilon,giacsettings.threads)  # optional - giacpy
         sage: gp, gt = local_giacsettings(testf)(giacsettings.proba_epsilon,giacsettings.threads)  # optional - giacpy
@@ -144,14 +144,14 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
 
         * if ``proba_epsilon`` is None, the value of
           ``sage.structure.proof.all.polynomial()`` is taken. If it is
-          false then the global ``giacpy.giacsettings.proba_epsilon`` is
+          false then the global ``giacpy_sage.giacsettings.proba_epsilon`` is
           used.
 
         * if ``proba_epsilon`` is 0, probabilistic algorithms are
           disabled.
 
     - ``threads`` - (default: None) Maximal number of threads allowed
-      for giac. If None, the global ``giacpy.giacsettings.threads`` is
+      for giac. If None, the global ``giacpy_sage.giacsettings.threads`` is
       considered.
 
     - ``prot`` - (default: False) if True print detailled informations
@@ -225,7 +225,7 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
 
     TESTS::
 
-        sage: from giacpy import libgiac # optional - giacpy
+        sage: from giacpy_sage import libgiac # optional - giacpy
         sage: libgiac("x2:=22; x4:='whywouldyoudothis'") # optional - giacpy
         22,whywouldyoudothis
         sage: gb_giac(I) # optional - giacpy
@@ -245,7 +245,7 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
 
     """
     try:
-        from giacpy import libgiac, giacsettings
+        from giacpy_sage import libgiac, giacsettings
     except ImportError:
         raise ImportError("""One of the optional packages giac or giacpy is missing""")
 

@@ -451,11 +451,11 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup((1,1,4))                          # optional - gap3
             sage: W.number_of_reflections()                             # optional - gap3
-            3
+            6
 
             sage: W = ReflectionGroup((2,1,4))                          # optional - gap3
             sage: W.number_of_reflections()                             # optional - gap3
-            8
+            16
         """
         return self._number_of_reflections
 

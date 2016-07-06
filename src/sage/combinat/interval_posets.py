@@ -2125,10 +2125,6 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             raise ValueError("n must be a non negative integer")
         return TamariIntervalPosets_size(Integer(n))
 
-
-    def __init__(self, category):
-        super(TamariIntervalPosets, self).__init__(category=category)
-
     # add options to class
     options=GlobalOptions('TamariIntervalPosets', 
         module='sage.combinat.interval_posets',

@@ -2501,16 +2501,14 @@ class AbstractLinearCode(module.Module):
         G = self.generator_matrix()
         n = self.length()
         k = self.dimension()
-        gapG = gap(G)
         if (q == 2 or q == 3) and algorithm=="guava":
             try:
                 gap.load_package("guava")
             except RuntimeError:
                 raise ValueError("You have to install the optional package GUAVA to use algorithm=\"guava\"")
-            C = gapG.GeneratorMatCode(gap(F))
+            C = gap(G).GeneratorMatCode(gap(F))
             d = C.MinimumWeight()
             return ZZ(d)
-        Gstr = "%s*Z(%s)^0"%(gapG, q)
         return self._minimum_weight_codeword(algorithm).hamming_weight()
 
     def _minimum_weight_codeword(self, algorithm = None):
@@ -2568,9 +2566,7 @@ class AbstractLinearCode(module.Module):
             C = gap(Gmat).GeneratorMatCode(F)
             cg = C.MinimumDistanceCodeword()
             c = [gfq_gap_to_sage(cg[j],F) for j in range(1,n+1)]
-            V = VectorSpace(F,n)
-            return V(c)
-
+            return vector(F, c)
 
         q = F.order()
         ans = None

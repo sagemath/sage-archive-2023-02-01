@@ -1135,3 +1135,39 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
             assert M[0]==vector([1]*n)
     _skew_had_cache[n]=True
     return M
+
+def symmetric_conference_matrix(n, check=True):
+    r"""
+    Tries to construct a symmetric conference matrix
+
+    A coneference matrix is an `n\times n` matrix `C` with 0s on the main diagonal
+    and 1s and -1s elsewhere, satisfying `CC^\top=(n-1)I`.
+    If `C=C^\top$ then `n \cong 2 \mod 4` and `C` is Seidel adjacency matrix of
+    a graph, whose descendent graphs are strongly regular graphs with parameters
+    `(n-1,(n-2)/2,(n-6)/4,(n-2)/4)`, see Sec.10.4 of [BH12]_. Thus `C` we build
+    from the Seidel adjacency matrix of the latter by adding row and column of 1s.
+
+    INPUT:
+
+    - ``n`` (integer) -- dimension of the matrix
+
+    - ``check`` (boolean) -- whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to ``True``
+      by default.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import symmetric_conference_matrix
+        sage: C=symmetric_conference_matrix(14)
+    """
+    from sage.graphs.strongly_regular_db import strongly_regular_graph as srg
+    try:
+        m = srg(n-1,(n-2)/2,(n-6)/4,(n-2)/4)
+    except ValueError:
+        raise
+    C = matrix([0]+[1]*(n-1)).stack(matrix([1]*(n-1)).stack(m.seidel_adjacency_matrix()).T)
+    if check:
+        assert (C==C.T and C**2==(n-1)*I(n))
+    return C
+

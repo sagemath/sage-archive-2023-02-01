@@ -1234,13 +1234,17 @@ expair mul::combine_ex_with_coeff_to_pair(const ex & e,
 expair mul::combine_pair_with_coeff_to_pair(const expair & p,
                                             const ex & c) const
 {
+        if (is_exactly_a<symbol>(p.rest))
+                return expair(p.rest, p.coeff*c);
+	if (c.is_integer_one())
+		return p;
+        if (p.coeff.is_integer_one())
+                return expair(p.rest, c);
+
 	// to avoid duplication of power simplification rules,
 	// we create a temporary power object
 	// otherwise it would be hard to correctly evaluate
 	// expression like (4^(1/3))^(3/2)
-	if (c.is_integer_one())
-		return p;
-
 	return split_ex_to_pair(power(recombine_pair_to_ex(p),c));
 }
 	

@@ -878,7 +878,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 return False
         return True
 
-    def is_sectionally_complemented(self):
+    def is_sectionally_complemented(self, certificate=False):
         """
         Return ``True`` if the lattice is sectionally complemented, and
         ``False`` otherwise.
@@ -886,6 +886,14 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         A lattice is sectionally complemented if all intervals from
         the bottom element interpreted as sublattices are complemented
         lattices.
+
+        INPUT:
+
+        - ``certificate``, a Boolean -- If ``False`` (the default), return
+          only truth value. If ``True``, return either
+          ``(True, None, None)`` or ``(False, t, e)``, where `t` is an
+          element so that in the sublattice from the bottom element to `t`
+          has no complement for element `e`.
 
         EXAMPLES:
 
@@ -905,6 +913,12 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_relatively_complemented()
             False
 
+        Getting a certificate::
+
+            sage: L = LatticePoset(DiGraph('HYOgC?C@?C?G@??'))
+            sage: L.is_sectionally_complemented(certificate=True)
+            (False, 6, 1)
+
         .. SEEALSO::
 
             :meth:`is_complemented`, :meth:`is_relatively_complemented`
@@ -913,14 +927,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             sage: [Posets.ChainPoset(i).is_sectionally_complemented() for i in range(5)]
             [True, True, True, False, False]
-
-        Atomic and complemented but not sectionally complemented lattice::
-
-            sage: L = LatticePoset(DiGraph('HYOgC?C@?C?G@??'))
-            sage: L.is_sectionally_complemented()
-            False
         """
-        if not self.is_atomic():
+        # Quick check: every sectionally complemented lattice is atomic.
+        if not certificate and not self.is_atomic():
             return False
 
         n = self.cardinality()
@@ -936,9 +945,12 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                     if mt[e, e_] == bottom and jn[e, e_] == top:
                         break
                 else:
+                    if certificate:
+                        return (False, self._vertex_to_element(top),
+                                self._vertex_to_element(e))
                     return False
 
-        return True
+        return (True, None, None) if certificate else True
 
     def breadth(self, certificate=False):
         r"""

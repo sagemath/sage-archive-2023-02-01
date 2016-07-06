@@ -62,7 +62,7 @@ if [ $? -ne 0 ]; then
 fi
 
 #############################################################
-#   Build and Install
+#   Build
 #############################################################
 
 echo "Building  giac..."
@@ -72,6 +72,27 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+#############################################################
+#   Clean old install
+#############################################################
+echo "Cleaning giac..."
+rm -f ${SAGE_LOCAL}/lib/libgiac*
+rm -f ${SAGE_LOCAL}/bin/icas
+rm -f ${SAGE_LOCAL}/bin/xcas
+rm -f ${SAGE_LOCAL}/bin/cas_help
+rm -f ${SAGE_LOCAL}/bin/pgiac
+rm -f ${SAGE_LOCAL}/bin/en_cas_help
+rm -f ${SAGE_LOCAL}/bin/es_cas_help
+rm -f ${SAGE_LOCAL}/bin/fr_cas_help
+rm -f ${SAGE_LOCAL}/bin/giac
+rm -f ${SAGE_LOCAL}/bin/xcasnew
+rm -rf ${SAGE_LOCAL}/share/giac
+rm -rf ${SAGE_LOCAL}/share/doc/giac
+rm -rf ${SAGE_LOCAL}/include/giac
+
+#############################################################
+#   Install
+#############################################################
 echo "Installing giac..."
 $MAKE install
 if [ $? -ne 0 ]; then

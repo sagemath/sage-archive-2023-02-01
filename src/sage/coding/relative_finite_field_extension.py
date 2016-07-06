@@ -315,11 +315,35 @@ class RelativeFiniteFieldExtension(SageObject):
         vect = self.relative_field_representation(b)
         return vect[1:vect.length()].is_zero()
 
+    def cast_into_relative_field(self, b, check=False):
+        r"""
+        Casts an absolute field element into the relative field (if possible).
+        This is the inverse function of the field embedding.
 
-    
+        INPUT:
 
+        - ``b`` -- an element of the absolute field which also lies in the
+        relative field.
 
-    
+        EXAMPLES::
+
+            sage: from sage.coding.relative_finite_field_extension import *
+            sage: Fqm.<aa> = GF(16)
+            sage: Fq.<a> = GF(4)
+            sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
+            sage: phi = FE.embedding()
+            sage: b = aa^2 + aa
+            sage: FE.is_in_relative_field(b)
+            True
+            sage: FE.cast_into_relative_field(b)
+            a
+            sage: phi(FE.cast_into_relative_field(b)) == b
+            True
+        """
+        if (check):
+            if not(is_in_relative_field(self, b)):
+                raise ValueError("%s does not belong to the relative field", b)
+        return self.relative_field_representation(b)[0]
 
     def embedding(self):
         r"""

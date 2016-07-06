@@ -282,7 +282,7 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
     G_gap = gap(Gmat)
     G = G_gap._matrix_(F)
     C = LinearCode(G)
-    return C._minimum_weight_vector(algorithm)
+    return C._minimum_weight_codeword(algorithm)
 
 def best_known_linear_code(n, k, F):
     r"""
@@ -2452,26 +2452,14 @@ class AbstractLinearCode(module.Module):
     @cached_method
     def minimum_distance(self, algorithm=None):
         r"""
-        Returns the minimum distance of this linear code.
-
-        By default, this uses a GAP kernel function (in C and not part of
-        Guava) written by Steve Linton.  If ``algorithm="guava"`` is set  and
-        `q` is 2 or 3 then this uses a very fast program written in C written
-        by CJ Tjhal. (This is much faster, except in some small examples.)
-
-        Raises a ``ValueError`` in case there is no non-zero vector in this
-        linear code.
-
-        The minimum distance of the code is stored once it has been
-        computed or provided during the initialization of :class:`LinearCode`.
-        If ``algorithm`` is ``None`` and the stored value of minimum
-        distance is found, then the stored value will be returned without
-        recomputing the minimum distance again.
+        Returns the minimum distance of ``self``.
 
         INPUT:
 
-        - ``algorithm`` - Method to be used, ``None``, ``"gap"``, or
-          ``"guava"`` (default: ``None``).
+        -  ``algorithm`` -- (default: ``None``) the name of the algorithm to use
+           to perform minimum distance computation. If set to ``None``,
+           GAP methods will be used. ``algorithm`` can be:
+           - ``"Guava"``, which will use optional GAP package Guava
 
         OUTPUT:
 
@@ -2485,26 +2473,12 @@ class AbstractLinearCode(module.Module):
             sage: C.minimum_distance()
             3
 
-        Once the minimum distance has been computed, it's value is stored.
-        Hence the following command will return the value instantly,
-        without further computations.::
-
-            sage: C.minimum_distance()
-            3
-
         If ``algorithm`` is provided, then the minimum distance will be
         recomputed even if there is a stored value from a previous run.::
 
             sage: C.minimum_distance(algorithm="gap")
             3
             sage: C.minimum_distance(algorithm="guava")  # optional - gap_packages (Guava package)
-            3
-
-        Another example.::
-
-            sage: C = codes.HammingCode(GF(4,"a"), 2); C
-            [5, 3] Hamming Code over Finite Field in a of size 2^2
-            sage: C.minimum_distance()
             3
 
         TESTS::
@@ -2529,20 +2503,24 @@ class AbstractLinearCode(module.Module):
         k = self.dimension()
         gapG = gap(G)
         if (q == 2 or q == 3) and algorithm=="guava":
+            try:
+                gap.load_package("guava")
+            except RuntimeError:
+                raise ValueError("You have to install the optional package GUAVA to use algorithm=\"guava\"")
             C = gapG.GeneratorMatCode(gap(F))
             d = C.MinimumWeight()
             return ZZ(d)
         Gstr = "%s*Z(%s)^0"%(gapG, q)
-        return self._minimum_weight_vector().hamming_weight()
+        return self._minimum_weight_codeword(algorithm).hamming_weight()
 
-    def _minimum_weight_vector(self, algorithm = None):
+    def _minimum_weight_codeword(self, algorithm = None):
         r"""
-        Returns a minimum weight vector of ``self``.
+        Returns a minimum weight codeword of ``self``.
 
         INPUT:
 
         -  ``algorithm`` -- (default: ``None``) the name of the algorithm to use
-           to perform minimum weight vector search. If set to ``None``,
+           to perform minimum weight codeword search. If set to ``None``,
            a search using GAP methods will be done. ``algorithm`` can be:
            - ``"Guava"``, which will use optional GAP package Guava
 
@@ -2558,8 +2536,8 @@ class AbstractLinearCode(module.Module):
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
-            sage: C = LinearCode(C)
-            sage: C._minimum_weight_vector()
+            sage: C = LinearCode(G)
+            sage: C._minimum_weight_codeword()
             (0, 1, 0, 1, 0, 1, 0)
 
         TESTS:
@@ -2582,7 +2560,7 @@ class AbstractLinearCode(module.Module):
 
         if algorithm=="guava":
             try:
-                gap.LoadPackage('"guava"')
+                gap.load_package("guava")
             except RuntimeError:
                 raise ValueError("You have to install the optional package GUAVA to use algorithm=\"guava\"")
             from sage.interfaces.gap import gfq_gap_to_sage

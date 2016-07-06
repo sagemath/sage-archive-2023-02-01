@@ -219,8 +219,8 @@ class RelativeFiniteFieldExtension(SageObject):
 
     def relative_field_representation(self, b):
         r"""
-        Returns a polynomial representation of ``b`` in the basis of
-        the relative field over the base field.
+        Returns a vector representation of the field element ``b`` in the basis
+        of the absolute field over the relative field.
 
         INPUT:
 
@@ -238,16 +238,13 @@ class RelativeFiniteFieldExtension(SageObject):
         """
         if not b in self.absolute_field():
             raise ValueError("The input has to be an element of the absolute field")
-        Fq = self.relative_field()
-        vect = self._flattened_relative_field_representation(b)
         s = self.relative_field_power()
-        sm = self.absolute_field_power()
         if s == 1:
-            pol = Fq.zero()
-            for i in vect:
-                pol += i
-            return vector(Fq, pol)
+            return vector(b)
         else:
+            Fq = self.relative_field()
+            vect = self._flattened_relative_field_representation(b)
+            sm = self.absolute_field_power()
             list_elts = []
             for i in range(0, sm, s):
                 list_elts.append(Fq(vect[i:i+s]))
@@ -255,11 +252,12 @@ class RelativeFiniteFieldExtension(SageObject):
 
     def absolute_field_representation(self, a):
         r"""
-        Returns a polynomial representation of ``a`` over the absolute field.
+        Returns an absolute field representation of the relative field
+        vector ``a``.
 
         INPUT:
 
-        - ``a`` -- an element of the relative extension field
+        - ``a`` -- a vector in the relative extension field
 
         EXAMPLES::
 
@@ -316,6 +314,12 @@ class RelativeFiniteFieldExtension(SageObject):
         """
         vect = self.relative_field_representation(b)
         return vect[1:vect.length()].is_zero()
+
+
+    
+
+
+    
 
     def embedding(self):
         r"""

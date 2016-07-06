@@ -398,7 +398,7 @@ def float_function(x):
     return latex(RDF(x))
 
 
-latex_table = {types.NoneType: None_function,
+latex_table = {type(None): None_function,
                bool: bool_function,
                dict: dict_function,
                float: float_function,
@@ -407,9 +407,8 @@ latex_table = {types.NoneType: None_function,
                long: str,
                str: str_function,
                tuple: tuple_function,
-               type(None):builtin_constant_function,
-               type(NotImplemented):builtin_constant_function,
-               type(Ellipsis):builtin_constant_function}
+               type(NotImplemented): builtin_constant_function,
+               type(Ellipsis): builtin_constant_function}
 
 
 class LatexExpr(str):

@@ -7,6 +7,7 @@ Crystals
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -651,7 +652,7 @@ class Crystals(Category_singleton):
                 sage: psi(Bp.highest_weight_vector())
                 [[1, 1], [2]]
 
-            We can also use a dictonary to specify the generators and
+            We can also use a dictionary to specify the generators and
             their images::
 
                 sage: psi = Bp.crystal_morphism({Bp.lowest_weight_vectors()[0]: x})
@@ -685,7 +686,7 @@ class Crystals(Category_singleton):
                 ....:                          scaling_factors={1:1, 2:1})
                 sage: for x in G:
                 ....:     ascii_art(x, psi(x), sep='  |-->  ')
-                ....:     print ""
+                ....:     print("")
                              1
                   1  |-->    2
                 <BLANKLINE>
@@ -1968,7 +1969,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
             sage: H = Hom(T, B)
             sage: b = B.highest_weight_vector()
             sage: psi = H((None, b, b, None), generators=T.highest_weight_vectors())
-            sage: print psi._repr_defn()
+            sage: print(psi._repr_defn())
             [[[1]], [[1]], [[1]]] |--> None
             [[[2]], [[1]], [[1]]] |--> [2, 1, 1]
             [[[1]], [[2]], [[1]]] |--> [2, 1, 1]
@@ -2347,7 +2348,7 @@ class CrystalHomset(Homset):
           From: The crystal of tableaux of type ['B', 3] and shape(s) [[1]]
           To:   The crystal of tableaux of type ['D', 4] and shape(s) [[2]]
           Defn: [1] |--> [1, 1]
-        sage: for b in B: print "{} |--> {}".format(b, psi(b))
+        sage: for b in B: print("{} |--> {}".format(b, psi(b)))
         [1] |--> [1, 1]
         [2] |--> [2, 2]
         [3] |--> [3, 3]

@@ -16,9 +16,9 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.category_singleton import Category_singleton
+import sage.categories.coercion_methods
 from sage.categories.sets_cat import Sets
 from sage.categories.realizations import RealizationsCategory
-from sage.structure.element import have_same_parent
 
 class Magmas(Category_singleton):
     """
@@ -313,8 +313,33 @@ class Magmas(Category_singleton):
             from magmas_and_additive_magmas import MagmasAndAdditiveMagmas
             return (self & MagmasAndAdditiveMagmas()).Distributive()
 
+        def JTrivial(self):
+            r"""
+            Return the full subcategory of the `J`-trivial objects of ``self``.
+
+            This axiom is in fact only meaningful for
+            :class:`semigroups <Semigroups>`. This stub definition is
+            here as a workaround for :trac:`20515`, in order to define
+            the `J`-trivial axiom as the intersection of the `L` and
+            `R`-trivial axioms.
+
+            .. SEEALSO:: :meth:`Semigroups.SubcategoryMethods.JTrivial`
+
+            TESTS::
+
+                sage: Magmas().JTrivial()
+                Category of j trivial magmas
+                sage: (Semigroups().RTrivial() & Semigroups().LTrivial()) is Semigroups().JTrivial()
+                True
+            """
+            return self._with_axiom('JTrivial')
+
     Associative = LazyImport('sage.categories.semigroups', 'Semigroups', at_startup=True)
     FinitelyGeneratedAsMagma = LazyImport('sage.categories.finitely_generated_magmas', 'FinitelyGeneratedMagmas')
+
+    class JTrivial(CategoryWithAxiom):
+        # Workaround for #20515; see also Magmas.SubcategoryMethods.JTrivial
+        pass
 
     class Algebras(AlgebrasCategory):
 
@@ -375,6 +400,22 @@ class Magmas(Category_singleton):
 
                     sage: Monoids().Commutative().Algebras(QQ).is_subcategory(Algebras(QQ).Commutative())
                     True
+                """
+                return [Magmas().Commutative()]
+
+        class CartesianProducts(CartesianProductsCategory):
+            def extra_super_categories(self):
+                r"""
+                Implement the fact that a Cartesian product of commutative
+                additive magmas is still an commutative additive magmas.
+
+                EXAMPLES::
+
+                    sage: C = Magmas().Commutative().CartesianProducts()
+                    sage: C.extra_super_categories()
+                    [Category of commutative magmas]
+                    sage: C.axioms()
+                    frozenset({'Commutative'})
                 """
                 return [Magmas().Commutative()]
 
@@ -452,9 +493,11 @@ class Magmas(Category_singleton):
                 for x in tester.some_elements():
                     tester.assert_(x * one == x)
                     tester.assert_(one * x == x)
-                # Check that one is immutable by asking its hash;
-                tester.assertEqual(type(one.__hash__()), int)
-                tester.assertEqual(one.__hash__(), one.__hash__())
+                # Check that one is immutable if it looks like we can test this
+                if hasattr(one,"is_immutable"):
+                    tester.assertEqual(one.is_immutable(),True)
+                if hasattr(one,"is_mutable"):
+                    tester.assertEqual(one.is_mutable(),False)
 
             def is_empty(self):
                 r"""
@@ -481,6 +524,50 @@ class Magmas(Category_singleton):
                     'sage.categories.magmas'
                 """
                 return False
+
+        class ElementMethods:
+
+            __truediv__ = sage.categories.coercion_methods.__truediv__
+            __div__ = __truediv__ # For Python2/3 compatibility; see e.g. #18578
+
+            def _div_(left, right):
+                r"""
+                Default implementation of division, multiplying (on the right) by the inverse.
+
+                INPUT:
+
+                - ``left``, ``right`` -- two elements of the same unital magma
+
+                .. SEEALSO:: :meth:`__div__`
+
+                EXAMPLES::
+
+                    sage: G = FreeGroup(2)
+                    sage: x0, x1 = G.group_generators()
+                    sage: c1 = cartesian_product([x0, x1])
+                    sage: c2 = cartesian_product([x1, x0])
+                    sage: c1._div_(c2)
+                    (x0*x1^-1, x1*x0^-1)
+
+                With this implementation, division will fail as soon
+                as ``right`` is not invertible, even if ``right``
+                actually divides ``left``::
+
+                    sage: x = cartesian_product([2, 1])
+                    sage: y = cartesian_product([1, 1])
+                    sage: x / y
+                    (2, 1)
+                    sage: x / x
+                    Traceback (most recent call last):
+                    ...
+                    TypeError: no conversion of this rational to integer
+
+                TESTS::
+
+                    sage: c1._div_.__module__
+                    'sage.categories.magmas'
+                """
+                return left._mul_(~right)
 
         class SubcategoryMethods:
 
@@ -517,7 +604,7 @@ class Magmas(Category_singleton):
             class CartesianProducts(CartesianProductsCategory):
                 def extra_super_categories(self):
                     """
-                    Implement the fact that a cartesian product of magmas with
+                    Implement the fact that a Cartesian product of magmas with
                     inverses is a magma with inverse.
 
                     EXAMPLES::
@@ -533,7 +620,7 @@ class Magmas(Category_singleton):
         class CartesianProducts(CartesianProductsCategory):
             def extra_super_categories(self):
                 """
-                Implement the fact that a cartesian product of unital magmas is
+                Implement the fact that a Cartesian product of unital magmas is
                 a unital magma
 
                 EXAMPLES::
@@ -554,9 +641,9 @@ class Magmas(Category_singleton):
                 @cached_method
                 def one(self):
                     """
-                    Return the unit of this cartesian product.
+                    Return the unit of this Cartesian product.
 
-                    It is built from the units for the cartesian factors of ``self``.
+                    It is built from the units for the Cartesian factors of ``self``.
 
                     EXAMPLES::
 
@@ -572,10 +659,10 @@ class Magmas(Category_singleton):
                     Return the inverse of ``self``, if it exists.
 
                     The inverse is computed by inverting each
-                    cartesian factor and attempting to convert the
+                    Cartesian factor and attempting to convert the
                     result back to the original parent.
 
-                    For example, if one of the cartesian factor is an
+                    For example, if one of the Cartesian factor is an
                     element ``x`` of `\ZZ`, the result of ``~x`` is in
                     `\QQ`. So we need to convert it back to `\ZZ`. As
                     a side effect, this checks that ``x`` is indeed
@@ -751,7 +838,7 @@ class Magmas(Category_singleton):
               :meth:`~sage.matrix.operation_table.OperationTable.dict`
               method.
 
-            INPUTS:
+            INPUT:
 
             - ``names`` - the type of names used
 
@@ -890,36 +977,7 @@ class Magmas(Category_singleton):
 
     class ElementMethods:
 
-        def __mul__(self, right):
-            r"""
-            Product of two elements
-
-            INPUT:
-
-            - ``self``, ``right`` -- two elements
-
-            This calls the `_mul_` method of ``self``, if it is
-            available and the two elements have the same parent.
-
-            Otherwise, the job is delegated to the coercion model.
-
-            Do not override; instead implement a ``_mul_`` method in the
-            element class or a ``product`` method in the parent class.
-
-            EXAMPLES::
-
-                sage: S = Semigroups().example("free")
-                sage: x = S('a'); y = S('b')
-                sage: x * y
-                'ab'
-            """
-            if have_same_parent(self, right) and hasattr(self, "_mul_"):
-                return self._mul_(right)
-            from sage.structure.element import get_coercion_model
-            import operator
-            return get_coercion_model().bin_op(self, right, operator.mul)
-
-        __imul__ = __mul__
+        __mul__ = sage.categories.coercion_methods.__mul__
 
         @abstract_method(optional = True)
         def _mul_(self, right):
@@ -942,31 +1000,7 @@ class Magmas(Category_singleton):
                 'ab'
             """
 
-        def _mul_parent(self, other):
-            r"""
-            Returns the product of the two elements, calculated using
-            the ``product`` method of the parent.
-
-            This is the default implementation of _mul_ if
-            ``product`` is implemented in the parent.
-
-            INPUT:
-
-            - ``other`` -- an element of the parent of ``self``
-
-            OUTPUT:
-
-            - an element of the parent of ``self``
-
-            EXAMPLES::
-
-                sage: S = Semigroups().example("free")
-                sage: x = S('a'); y = S('b')
-                sage: x._mul_parent(y)
-                'ab'
-
-            """
-            return self.parent().product(self, other)
+        _mul_parent = sage.categories.coercion_methods._mul_parent
 
         def is_idempotent(self):
             r"""
@@ -1013,16 +1047,18 @@ class Magmas(Category_singleton):
 
         def example(self):
             """
-            Return an example of cartesian product of magmas.
+            Return an example of Cartesian product of magmas.
 
             EXAMPLES::
 
                 sage: C = Magmas().CartesianProducts().example(); C
-                The cartesian product of (Rational Field, Integer Ring, Integer Ring)
+                The Cartesian product of (Rational Field, Integer Ring, Integer Ring)
                 sage: C.category()
-                Join of Category of rings ...
+                Category of Cartesian products of commutative rings
                 sage: sorted(C.category().axioms())
-                ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
+                ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse',
+                 'AdditiveUnital', 'Associative', 'Commutative',
+                 'Distributive', 'Unital']
 
                 sage: TestSuite(C).run()
             """
@@ -1038,7 +1074,7 @@ class Magmas(Category_singleton):
                 EXAMPLES::
 
                     sage: C = Magmas().CartesianProducts().example(); C
-                    The cartesian product of (Rational Field, Integer Ring, Integer Ring)
+                    The Cartesian product of (Rational Field, Integer Ring, Integer Ring)
                     sage: x = C.an_element(); x
                     (1/2, 1, 1)
                     sage: x * x

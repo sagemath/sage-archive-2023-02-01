@@ -424,9 +424,9 @@ cdef class CallableConvertMap(Map):
                 print self._codomain
             raise
         if y is None:
-            raise RuntimeError, "BUG in coercion model: %s returned None" % (self._func)
+            raise RuntimeError("BUG in coercion model: %s returned None" % (self._func))
         elif y._parent is not self._codomain:
-            raise RuntimeError, "BUG in coercion model: %s returned element with wrong parent (expected %s got %s)" % (self._func, self._codomain, y._parent)
+            raise RuntimeError("BUG in coercion model: %s returned element with wrong parent (expected %s got %s)" % (self._func, self._codomain, y._parent))
         return y
 
 
@@ -568,7 +568,7 @@ cdef class TryMap(Map):
         """
         if (morphism_preferred.domain() is not morphism_backup.domain()
              or morphism_preferred.codomain() is not morphism_backup.codomain()):
-            raise TypeError, "incorrectly matching parent"
+            raise TypeError("incorrectly matching parent")
         Map.__init__(self, morphism_preferred.parent())
         self._map_p = morphism_preferred
         self._map_b = morphism_backup

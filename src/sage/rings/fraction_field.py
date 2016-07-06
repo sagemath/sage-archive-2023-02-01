@@ -70,10 +70,11 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import six
-import ring
-import fraction_field_element
+from . import ring
+from . import fraction_field_element
 import sage.misc.latex as latex
 from sage.misc.cachefunc import cached_method
 
@@ -243,7 +244,7 @@ class FractionField_generic(ring.Field):
 
             sage: _.<x> = ZZ[]
             sage: K.<a> = NumberField(x^5-3*x^4+2424*x^3+2*x-232)
-            sage: R.<b> = K.ring_of_integers()
+            sage: R = K.ring_of_integers()
             sage: S.<y> = R[]
             sage: F = FractionField(S)
             sage: F(1/a)
@@ -343,7 +344,7 @@ class FractionField_generic(ring.Field):
 
             sage: _.<x> = ZZ[]
             sage: K.<a> = NumberField(x^5-3*x^4+2424*x^3+2*x-232)
-            sage: R.<b> = K.ring_of_integers()
+            sage: R = K.ring_of_integers()
             sage: S.<y> = R[]
             sage: F = FractionField(S) # indirect doctest
             sage: F(1/a)

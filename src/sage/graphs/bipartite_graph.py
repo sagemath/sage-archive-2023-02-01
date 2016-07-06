@@ -31,6 +31,7 @@ TESTS::
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from graph import Graph
 
@@ -521,7 +522,7 @@ class BipartiteGraph(Graph):
         vertices.  Vertices that already exist in the graph will not be added
         again.
 
-        INPUTS:
+        INPUT:
 
         - ``vertices`` -- sequence of vertices to add.
 
@@ -919,9 +920,9 @@ class BipartiteGraph(Graph):
 
         ::
 
-            sage: x = polygen(ZZ)
+            sage: x = polygen(QQ)
             sage: g = BipartiteGraph(graphs.CompleteBipartiteGraph(16, 16))
-            sage: factorial(16)*laguerre(16,x^2) == g.matching_polynomial(algorithm='rook')
+            sage: bool(factorial(16)*laguerre(16,x^2) == g.matching_polynomial(algorithm='rook'))
             True
 
         Compute the matching polynomial of a line with `60` vertices::
@@ -1092,12 +1093,12 @@ class BipartiteGraph(Graph):
             ....:             b.save_afile(file_name)
             ....:             b2 = BipartiteGraph(file_name)
             ....:             if b != b2:
-            ....:                 print "Load/save failed for code with edges:"
-            ....:                 print b.edges()
+            ....:                 print("Load/save failed for code with edges:")
+            ....:                 print(b.edges())
             ....:                 break
             ....:         except Exception:
-            ....:             print "Exception encountered for graph of order "+ str(order)
-            ....:             print "with edges: "
+            ....:             print("Exception encountered for graph of order "+ str(order))
+            ....:             print("with edges: ")
             ....:             g.edges()
             ....:             raise
         """

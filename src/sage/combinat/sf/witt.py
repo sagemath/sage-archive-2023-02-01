@@ -28,7 +28,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
     denoted by `(x_{\lambda})` in [HazWitt1]_, section 9.63, and by
     `(q_{\lambda})` in [DoranIV1996]_. We will denote this basis by
     `(w_{\lambda})` (which is precisely how it is denoted in
-    [GriRei2014]_, Exercise 2.76(d)). It is a multiplicative basis
+    [GriRei2014]_, Exercise 2.79(d)). It is a multiplicative basis
     (meaning that `w_{\emptyset} = 1` and that every partition
     `\lambda` satisfies
     `w_{\lambda} = w_{\lambda_1} w_{\lambda_2} w_{\lambda_3} \cdots`,
@@ -412,6 +412,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         Compute the transition matrices between ``self`` and another
         multiplicative homogeneous basis in the homogeneous components of
         degree `n`.
+
         The results are not returned, but rather stored in the caches.
 
         This assumes that the transition matrices in all degrees smaller
@@ -441,7 +442,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         Examples for usage of this function are the ``_precompute_h``,
         ``_precompute_e`` and ``_precompute_p`` methods of this class.
 
-        EXAMPLES::
+        EXAMPLES:
 
         The examples below demonstrate how the caches are built
         step by step using the ``_precompute_cache`` method. In order
@@ -750,7 +751,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         """
         l = len(self._p_transition_matrices)
         if l <= n:
-            from sage.rings.arith import divisors
+            from sage.arith.all import divisors
             from sage.combinat.partition import Partition
             from sage.misc.cachefunc import cached_function
             @cached_function
@@ -1140,7 +1141,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
             return result
 
         if parent_name == "powersum":
-            from sage.rings.arith import divisors
+            from sage.arith.all import divisors
             from sage.combinat.partition import Partition
             @cached_function
             def wsum_p(m):     # expansion of p_m in w-basis, for m > 0

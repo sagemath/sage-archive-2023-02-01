@@ -18,6 +18,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.all import cached_method
 from sage.categories.semigroups import Semigroups
@@ -503,14 +504,14 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: len(M._retract.get_cache().keys())
+            sage: len(M._retract.cache.keys())
             24
         """
         element = self._retract(ambient_element)
         if check:
             self.construct(up_to=ambient_element)
             if element not in self._elements_set:
-                cache = self._retract.get_cache()
+                cache = self._retract.cache
                 del cache[((ambient_element,), ())]
                 raise ValueError("%s not in %s"%(ambient_element, self))
         return element
@@ -865,18 +866,28 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
                 sage: R = IntegerModRing(15)
                 sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
                 sage: M.construct()
-                sage: for m in M: print m, m.reduced_word()
-                1  []
-                3  [1]
-                5  [2]
-                9  [1, 1]
-                0  [1, 2]
-                10 [2, 2]
-                12 [1, 1, 1]
-                6  [1, 1, 1, 1]
+                sage: for m in M: print((m, m.reduced_word()))
+                (1, [])
+                (3, [1])
+                (5, [2])
+                (9, [1, 1])
+                (0, [1, 2])
+                (10, [2, 2])
+                (12, [1, 1, 1])
+                (6, [1, 1, 1, 1])
+
+            TESTS:
+
+            We check that :trac:`19631` is fixed::
+
+                sage: R = IntegerModRing(101)
+                sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
+                sage: e = M.from_reduced_word([1, 1, 1, 2, 2, 2])
+                sage: e.reduced_word()
+                [1, 1, 1, 2, 2, 2]
             """
             if self._reduced_word is None:
-                self.construct(up_to=self)
+                self.parent().construct(up_to=self)
             return self._reduced_word
 
         def lift(self):

@@ -93,7 +93,7 @@ class AffineGroup(UniqueRepresentation, Group):
         space. If an integer is given, it must be a prime power and
         the corresponding finite field is constructed.
 
-      * ``var`` -- (Defalut: ``'a'``) Keyword argument to specify the finite
+      * ``var`` -- (default: ``'a'``) Keyword argument to specify the finite
         field generator name in the case where ``ring`` is a prime power.
 
     EXAMPLES::
@@ -173,7 +173,7 @@ class AffineGroup(UniqueRepresentation, Group):
             degree, ring = args
             from sage.rings.integer import is_Integer
             if is_Integer(ring):
-                from sage.rings.finite_rings.constructor import FiniteField
+                from sage.rings.finite_rings.finite_field_constructor import FiniteField
                 var = kwds.get('var', 'a')
                 ring = FiniteField(ring, var)
         return super(AffineGroup, cls).__classcall__(cls, degree, ring)
@@ -216,7 +216,7 @@ class AffineGroup(UniqueRepresentation, Group):
 
         This is called from the group element constructor and can be
         overridden for subgroups of the affine group. It is guaranteed
-        that ``A``, ``b`` are in the correct matrix/vetor space.
+        that ``A``, ``b`` are in the correct matrix/vector space.
 
         INPUT:
 

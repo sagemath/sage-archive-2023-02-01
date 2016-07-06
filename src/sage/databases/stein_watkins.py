@@ -137,8 +137,10 @@ REFERENCE:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-import bz2, os
+import bz2
+import os
 
 from sage.env import SAGE_SHARE
 
@@ -187,7 +189,7 @@ class SteinWatkinsAllData:
         name = str(num)
         name = '0'*(3-len(name)) + name
         self._file = os.path.join(SAGE_SHARE, 'stein_watkins', 'a.%s.bz2'%name)
-        self._iter = self.__iter__()
+        self._iter = iter(self)
 
     def __repr__(self):
         """
@@ -206,7 +208,7 @@ class SteinWatkinsAllData:
             sage: d = SteinWatkinsAllData(0)
             sage: d = d[10:20]                         # optional - database_stein_watkins; long time
             sage: for C in d:                          # optional - database_stein_watkins; long time
-            ....:     print C
+            ....:     print(C)
             Stein-Watkins isogeny class of conductor 11
             Stein-Watkins isogeny class of conductor 14
             Stein-Watkins isogeny class of conductor 15
@@ -290,12 +292,12 @@ class SteinWatkinsAllData:
             sage: next(E)                             # optional - database_stein_watkins
             [Stein-Watkins isogeny class of conductor 100007]
         """
-        iter = self.__iter__()
+        it = iter(self)
         C = []
         N = 0
         while True:
             try:
-                E = next(iter)
+                E = next(it)
             except StopIteration:
                 if C != []:
                     yield C
@@ -319,7 +321,7 @@ class SteinWatkinsPrimeData(SteinWatkinsAllData):
         name = str(num)
         name = '0'*(2-len(name)) + name
         self._file = os.path.join(SAGE_SHARE,'stein_watkins', 'p.%s.bz2'%name)
-        self._iter = self.__iter__()
+        self._iter = iter(self)
 
     def __repr__(self):
         """

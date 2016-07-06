@@ -186,6 +186,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import print_function
 
 import os
 
@@ -201,12 +202,12 @@ class Scilab(Expect):
         sage: a = scilab('[ 1, 1, 2; 3, 5, 8; 13, 21, 33 ]')    # optional - scilab
         sage: b = scilab('[ 1; 3; 13]')                         # optional - scilab
         sage: c = a * b                                         # optional - scilab
-        sage: print c                                           # optional - scilab
+        sage: print(c)                                          # optional - scilab
           30.
           122.
           505.
     """
-    def __init__(self, maxread=100, script_subdirectory=None,
+    def __init__(self, maxread=None, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None,
                  seed=None):
         """
@@ -222,7 +223,6 @@ class Scilab(Expect):
                         name = 'scilab',
                         prompt = '-->',
                         command = "scilab -nw",
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -279,7 +279,7 @@ class Scilab(Expect):
 
         EXAMPLES::
 
-            sage: print scilab._install_hints()               # optional - scilab
+            sage: print(scilab._install_hints())       # optional - scilab
             You must ...
         """
         return """

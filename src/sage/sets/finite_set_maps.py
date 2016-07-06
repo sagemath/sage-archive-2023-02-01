@@ -16,7 +16,9 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
+import itertools
 
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
@@ -25,7 +27,6 @@ from sage.categories.sets_cat import Sets, EmptySetError
 from sage.categories.monoids import Monoids
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.sets.integer_range import IntegerRange
 from sage.sets.finite_set_map_cy import (
     FiniteSetMap_MN, FiniteSetMap_Set,
@@ -83,7 +84,7 @@ class FiniteSetMaps(UniqueRepresentation, Parent):
         {'a', 'b'}
         sage: M.codomain()
         {3, 4, 5}
-        sage: for f in M: print f
+        sage: for f in M: print(f)
         map: a -> 3, b -> 3
         map: a -> 3, b -> 4
         map: a -> 3, b -> 5
@@ -338,7 +339,7 @@ class FiniteSetMaps_MN(FiniteSetMaps):
             sage: FiniteSetMaps(1,1).list()
             [[0]]
         """
-        for v in CartesianProduct(*([range(self._n)]*self._m)):
+        for v in itertools.product(range(self._n), repeat=self._m):
             yield self._from_list_(v)
 
     def _from_list_(self, v):
@@ -390,7 +391,7 @@ class FiniteSetMaps_Set(FiniteSetMaps_MN):
             Maps from {'a', 'b'} to {3, 4, 5}
             sage: M.cardinality()
             9
-            sage: for f in M: print f
+            sage: for f in M: print(f)
             map: a -> 3, b -> 3
             map: a -> 3, b -> 4
             map: a -> 3, b -> 5

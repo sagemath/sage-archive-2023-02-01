@@ -21,11 +21,9 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-include "sage/ext/python.pxi"
-from cpython.list cimport *
-from cpython.object cimport *
-from cpython.tuple cimport *
+from cpython cimport *
 
 import sage.modules.free_module
 import sage.misc.latex
@@ -796,7 +794,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         If we're given lists as arguments, we should throw an
         appropriate error when those lists do not contain valid
-        indices (trac #6569)::
+        indices (:trac:`6569`)::
 
             sage: A = matrix(4, range(1,17))
             sage: A[[1.5], [1]]
@@ -812,7 +810,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             IndexError: row indices must be integers
 
-        Before trac #6569 was fixed, sparse/dense matrices behaved
+        Before :trac:`6569` was fixed, sparse/dense matrices behaved
         differently due to implementation details. Given invalid
         indices, they should fail in the same manner. These tests
         just repeat the previous set with a sparse matrix::
@@ -846,7 +844,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         # single number
         cdef int single_row = 0, single_col = 0
 
-        if PyTuple_CheckExact(key):
+        if type(key) is tuple:
             key_tuple = <tuple>key
             #if PyTuple_Size(key_tuple) != 2:
             if len(key_tuple) != 2:
@@ -855,8 +853,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             row_index = <object>PyTuple_GET_ITEM(key_tuple, 0)
             col_index = <object>PyTuple_GET_ITEM(key_tuple, 1)
 
-            if PyList_CheckExact(row_index) or PyTuple_CheckExact(row_index):
-                if PyTuple_CheckExact(row_index):
+            if type(row_index) is list or type(row_index) is tuple:
+                if type(row_index) is tuple:
                     row_list = list(row_index)
                 else:
                     row_list = row_index
@@ -887,8 +885,8 @@ cdef class Matrix(sage.structure.element.Matrix):
                     raise IndexError("matrix index out of range")
                 single_row = 1
 
-            if PyList_CheckExact(col_index) or PyTuple_CheckExact(col_index):
-                if PyTuple_CheckExact(col_index):
+            if type(col_index) is list or type(col_index) is tuple:
+                if type(col_index) is tuple:
                     col_list = list(col_index)
                 else:
                     col_list = col_index
@@ -938,8 +936,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
 
         row_index = key
-        if PyList_CheckExact(row_index) or PyTuple_CheckExact(row_index):
-            if PyTuple_CheckExact(row_index):
+        if type(row_index) is list or type(row_index) is tuple:
+            if type(row_index) is tuple:
                 row_list = list(row_index)
             else:
                 row_list = row_index
@@ -1328,7 +1326,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         # exception.
         self.check_mutability()
 
-        if PyTuple_CheckExact(key):
+        if type(key) is tuple:
             key_tuple = <tuple>key
             #if PyTuple_Size(key_tuple) != 2:
             if len(key_tuple) != 2:
@@ -1378,13 +1376,13 @@ cdef class Matrix(sage.structure.element.Matrix):
             self.set_unsafe(row, col, self._coerce_element(value))
             return
 
-        if PyList_CheckExact(value):
+        if type(value) is list:
             if single_row and no_col_index:
                 # A convenience addition, so we can set a row by
                 # M[1] = [1,2,3] or M[1,:]=[1,2,3]
                 value_list_one_dimensional = 1
             value_list = value
-        elif  PyTuple_CheckExact(value):
+        elif type(value) is tuple:
             if single_row and no_col_index:
                 # A convenience addition, so we can set a row by
                 # M[1] = [1,2,3] or M[1,:]=[1,2,3]
@@ -1637,7 +1635,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A = matrix([[1,2], [3,4], [5,6]])
             sage: A.__repr__()
             '[1 2]\n[3 4]\n[5 6]'
-            sage: print A
+            sage: print(A)
             [1 2]
             [3 4]
             [5 6]
@@ -1647,7 +1645,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A = random_matrix(ZZ, 100)
             sage: A.__repr__()
             '100 x 100 dense matrix over Integer Ring'
-            sage: print A
+            sage: print(A)
             100 x 100 dense matrix over Integer Ring
 
         When a big matrix returned, include a hint on how to get the entries.
@@ -1769,7 +1767,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: K = (A-e).kernel()
             sage: P = K.basis_matrix()
             sage: P.str()
-            '[             1.000000000000000? + 0.?e-17*I -2.116651487479748? + 0.0255565807096352?*I -0.2585224251020429? + 0.288602340904754?*I -0.4847545623533090? - 1.871890760086142?*I]'
+            '[              1.000000000000000? + 0.?e-17*I  -2.116651487479748? + 0.0255565807096352?*I -0.2585224251020429? + 0.2886023409047535?*I  -0.4847545623533090? - 1.871890760086142?*I]'
 
         Use single-row delimiters where appropriate::
 
@@ -1940,7 +1938,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         if self._nrows < max_rows and self._ncols < max_cols:
             output = self.str(unicode=True)
         else:
-            output = self.__repr__()
+            output = repr(self)
         return UnicodeArt(output.splitlines())
 
     def _latex_(self):
@@ -3906,7 +3904,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
         """
         if self._ncols != self._nrows:
-            raise ValueError, "The matrix is not a square matrix"
+            raise ValueError("The matrix is not a square matrix")
         return self._check_symmetrizability(return_diag=return_diag, skew=False, positive=positive)
 
     def is_skew_symmetrizable(self, return_diag=False, positive=True):
@@ -3957,7 +3955,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
         """
         if self._ncols != self._nrows:
-            raise ValueError, "The matrix is not a square matrix"
+            raise ValueError("The matrix is not a square matrix")
         return self._check_symmetrizability(return_diag=return_diag, skew=True, positive=positive)
 
     def is_dense(self):
@@ -4205,7 +4203,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        .. [MulSto] T. Mulders, A. Storjohann, "On lattice reduction
+        .. [MulSto] \T. Mulders, A. Storjohann, "On lattice reduction
           for polynomial matrices", J. Symbolic Comput. 35 (2003),
           no. 4, 377--401
 
@@ -4242,7 +4240,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         OUTPUT: a tuple of Python integers: the position of the
         first nonzero entry in each row of the echelon form.
 
-        This returns a tuple so it is immutable; see #10752.
+        This returns a tuple so it is immutable; see :trac:`10752`.
 
         EXAMPLES::
 
@@ -4255,9 +4253,9 @@ cdef class Matrix(sage.structure.element.Matrix):
         self.echelon_form()
         x = self.fetch('pivots')
         if x is None:
-            print self
-            print self.nrows()
-            print self.dict()
+            print(self)
+            print(self.nrows())
+            print(self.dict())
             raise RuntimeError("BUG: matrix pivots should have been set but weren't, matrix parent = '%s'"%self.parent())
         return tuple(x)
 
@@ -4594,7 +4592,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     # Arithmetic
     ###################################################
-    cdef Vector _vector_times_matrix_(self, Vector v):
+    cdef _vector_times_matrix_(self, Vector v):
         """
         Returns the vector times matrix product.
 
@@ -4652,7 +4650,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         return sum([v[i] * self.row(i, from_list=True)
                     for i in xrange(self._nrows)], M(0))
 
-    cdef Vector _matrix_times_vector_(self, Vector v):
+    cdef _matrix_times_vector_(self, Vector v):
         """
         EXAMPLES::
 
@@ -4762,7 +4760,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             MS = self.matrix_space(n, m)
             return MS(X).transpose()
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         """
         Add two matrices with the same parent.
 
@@ -4785,7 +4783,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 A.set_unsafe(i,j,self.get_unsafe(i,j)._add_(right.get_unsafe(i,j)))
         return A
 
-    cpdef ModuleElement _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, _right):
         """
         Subtract two matrices with the same parent.
 
@@ -4851,7 +4849,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         return self.change_ring(self._base_ring.quotient_ring(p))
 
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         EXAMPLES::
 
@@ -4888,7 +4886,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 ans.set_unsafe(r, c, x * self.get_unsafe(r, c))
         return ans
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         EXAMPLES:
 
@@ -5188,7 +5186,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: parent(~1)
             Rational Field
 
-        A matrix with 0 rows and 0 columns is invertible (see trac #3734)::
+        A matrix with 0 rows and 0 columns is invertible (see :trac:`3734`)::
 
             sage: M = MatrixSpace(RR,0,0)(0); M
             []
@@ -5225,7 +5223,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             ZeroDivisionError: input matrix must be nonsingular
 
-        Check to make sure that trac #2256 is still fixed::
+        Check to make sure that :trac:`2256` is still fixed::
 
             sage: M = MatrixSpace(CC, 2)(-1.10220440881763)
             sage: N = ~M
@@ -5357,7 +5355,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     cdef long _hash(self) except -1:
         raise NotImplementedError
 
-    cpdef int _cmp_(left,Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare two matrices.
 

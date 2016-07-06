@@ -28,7 +28,7 @@ include 'sage/modules/vector_integer_sparse_c.pxi'
 include 'sage/modules/vector_rational_sparse_h.pxi'
 include 'sage/modules/vector_rational_sparse_c.pxi'
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 from cpython.sequence cimport *
 
 from sage.rings.rational cimport Rational
@@ -56,16 +56,15 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     #   * __init__
     #   * set_unsafe
     #   * get_unsafe
-    #   * __richcmp__    -- always the same
     #   * __hash__       -- always simple
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
         # set the parent, nrows, ncols, etc.
         matrix_sparse.Matrix_sparse.__init__(self, parent)
 
-        self._matrix = <mpq_vector*> sage_malloc(parent.nrows()*sizeof(mpq_vector))
+        self._matrix = <mpq_vector*> sig_malloc(parent.nrows()*sizeof(mpq_vector))
         if self._matrix == NULL:
-            raise MemoryError, "error allocating sparse matrix"
+            raise MemoryError("error allocating sparse matrix")
         # initialize the rows
         for i from 0 <= i < parent.nrows():
             mpq_vector_init(&self._matrix[i], self._ncols, 0)
@@ -83,7 +82,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             for i from 0 <= i < self._nrows:
                 mpq_vector_clear(&self._matrix[i])
         if self._matrix != NULL:
-            sage_free(self._matrix)
+            sig_free(self._matrix)
 
     def __init__(self, parent, entries, copy, coerce):
         """
@@ -122,12 +121,12 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
                 if z != 0:
                     i, j = ij  # nothing better to do since this is user input, which may be bogus.
                     if i < 0 or j < 0 or i >= self._nrows or j >= self._ncols:
-                        raise IndexError, "invalid entries list"
+                        raise IndexError("invalid entries list")
                     mpq_vector_set_entry(&self._matrix[i], j, z.value)
         elif isinstance(entries, list):
             # Dense input format -- fill in entries
             if len(entries) != self._nrows * self._ncols:
-                raise TypeError, "list of entries must be a dictionary of (i,j):x or a dense list of n * m elements"
+                raise TypeError("list of entries must be a dictionary of (i,j):x or a dense list of n * m elements")
             seq = PySequence_Fast(entries,"expected a list")
             X = PySequence_Fast_ITEMS(seq)
             k = 0
@@ -145,7 +144,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             if z == 0:
                 return
             if self._nrows != self._ncols:
-                raise TypeError, "matrix must be square to initialize with a scalar."
+                raise TypeError("matrix must be square to initialize with a scalar.")
             for i from 0 <= i < self._nrows:
                 mpq_vector_set_entry(&self._matrix[i], i, z.value)
 
@@ -159,8 +158,6 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         mpq_vector_get_entry(x.value, &self._matrix[i], j)
         return x
 
-    def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
-        return self._richcmp(right, op)
     def __hash__(self):
         return self._hash()
 
@@ -278,7 +275,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     ########################################################################
     # def _pickle(self):
     # def _unpickle(self, data, int version):   # use version >= 0
-    # cpdef ModuleElement _add_(self, ModuleElement right):
+    # cpdef _add_(self, right):
     # cdef _mul_(self, Matrix right):
     # cpdef int _cmp_(self, Matrix right) except -2:
     # def __neg__(self):
@@ -288,7 +285,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     # def _list(self):
 
 # TODO
-##     cpdef ModuleElement _lmul_(self, RingElement right):
+##     cpdef _lmul_(self, RingElement right):
 ##         """
 ##         EXAMPLES:
 ##             sage: a = matrix(QQ,2,range(6))
@@ -520,7 +517,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             [      0       0       1 238/157]
             [      0       0       0       0]
 
-        Trac #10319 has been fixed:
+        :trac:`10319` has been fixed::
 
             sage: m = Matrix(QQ, [1], sparse=True); m.echelonize()
             sage: m = Matrix(QQ, [1], sparse=True); m.echelonize(); m
@@ -585,9 +582,9 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         # Get rid of self's data
         self._dealloc()
         # Copy E's data to self's data.
-        self._matrix = <mpq_vector*> sage_malloc(E._nrows * sizeof(mpq_vector))
+        self._matrix = <mpq_vector*> sig_malloc(E._nrows * sizeof(mpq_vector))
         if self._matrix == NULL:
-            raise MemoryError, "error allocating sparse matrix"
+            raise MemoryError("error allocating sparse matrix")
         for i from 0 <= i < E._nrows:
             v = &self._matrix[i]
             w = &E._matrix[i]
@@ -679,9 +676,9 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 ##             self.set_unsafe(i,l,-A.get_unsafe(r,k))               #self[i,l] = -A[r,k]
 ##             l += 1
 ##         if self != B:
-##             print "correct =\n", self.str()
-##             print "wrong = \n", B.str()
-##             print "diff = \n", (self-B).str()
+##             print("correct =\n", self.str())
+##             print("wrong = \n", B.str())
+##             print("diff = \n", (self-B).str())
 
     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,
                                                                  Py_ssize_t r, cols,
@@ -718,7 +715,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         # this function exists just because it is useful for modular symbols presentations.
         self.check_row_bounds_and_mutability(i,i)
         if r < 0 or r >= A.nrows():
-            raise IndexError, "invalid row"
+            raise IndexError("invalid row")
 
         if not A.is_sparse():
             A = A.sparse_matrix()

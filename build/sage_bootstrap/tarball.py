@@ -18,9 +18,8 @@ import logging
 log = logging.getLogger()
 
 from sage_bootstrap.env import SAGE_DISTFILES
-from sage_bootstrap.download import Download
+from sage_bootstrap.download import Download, MirrorList
 from sage_bootstrap.package import Package
-from sage_bootstrap.mirror_list import MirrorList
 
 
 class ChecksumError(Exception):
@@ -120,7 +119,11 @@ class Tarball(object):
 
     def _compute_md5(self):
         import hashlib
-        return self._compute_md5(hashlib.md5())
+        return self._compute_hash(hashlib.md5())
+    
+    def _compute_cksum(self):
+        from sage_bootstrap.cksum import CksumAlgorithm
+        return self._compute_hash(CksumAlgorithm())
     
     def checksum_verifies(self):
         """

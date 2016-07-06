@@ -9,12 +9,6 @@ Solaris, but should also work on OSX and Cygwin.
 
 3-clause BSD
 
-== SPKG Maintainers ==
-
- * David Kirkby
- * William Stein
- * Volker Braun
-
 == Upstream Contact ==
 
  * Atlas devel mailing list.

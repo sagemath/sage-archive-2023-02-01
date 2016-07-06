@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Integer compositions
 
@@ -14,7 +15,6 @@ EXAMPLES::
     sage: list(Compositions(4))
     [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3], [2, 1, 1], [2, 2], [3, 1], [4]]
 
-
 AUTHORS:
 
 - Mike Hansen, Nicolas M. Thiery
@@ -28,16 +28,19 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #              http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
+from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.rings.all import ZZ
-from combinat import CombinatorialElement
-from cartesian_product import CartesianProduct
-from integer_list import IntegerListsLex
-import __builtin__
+from .combinat import CombinatorialElement
+from sage.categories.cartesian_product import cartesian_product
+
+from .integer_lists import IntegerListsLex
+from six.moves import builtins
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -160,9 +163,32 @@ class Composition(CombinatorialElement):
             [ #  #   #        ##                 ]
             [ #  #   ##  #     #  ##   ###       ]
             [ #, ##,  #, ###,  #,  ##,   #, #### ]
+            sage: Partitions.global_options.reset()
         """
         from sage.typeset.ascii_art import ascii_art
         return ascii_art(self.to_skew_partition())
+
+    def _unicode_art_(self):
+        """
+        TESTS::
+
+            sage: unicode_art(Compositions(4).list())
+            ⎡ ┌┐                                         ⎤
+            ⎢ ├┤  ┌┬┐   ┌┐         ┌┐                    ⎥
+            ⎢ ├┤  ├┼┘  ┌┼┤  ┌┬┬┐   ├┤   ┌┬┐    ┌┐        ⎥
+            ⎢ ├┤  ├┤   ├┼┘  ├┼┴┘  ┌┼┤  ┌┼┼┘  ┌┬┼┤  ┌┬┬┬┐ ⎥
+            ⎣ └┘, └┘ , └┘ , └┘  , └┴┘, └┴┘ , └┴┴┘, └┴┴┴┘ ⎦
+            sage: Partitions.global_options(diagram_str='#', convention="French")
+            sage: unicode_art(Compositions(4).list())
+            ⎡ ┌┐                                         ⎤
+            ⎢ ├┤  ┌┐   ┌┐         ┌┬┐                    ⎥
+            ⎢ ├┤  ├┤   ├┼┐  ┌┐    └┼┤  ┌┬┐   ┌┬┬┐        ⎥
+            ⎢ ├┤  ├┼┐  └┼┤  ├┼┬┐   ├┤  └┼┼┐  └┴┼┤  ┌┬┬┬┐ ⎥
+            ⎣ └┘, └┴┘,  └┘, └┴┴┘,  └┘,  └┴┘,   └┘, └┴┴┴┘ ⎦
+            sage: Partitions.global_options.reset()
+        """
+        from sage.typeset.unicode_art import unicode_art
+        return unicode_art(self.to_skew_partition())
 
     def __setstate__(self, state):
         r"""
@@ -748,10 +774,16 @@ class Composition(CombinatorialElement):
             sage: C = Composition([3,2]).finer()
             sage: C.cardinality()
             8
-            sage: list(C)
+            sage: C.list()
             [[1, 1, 1, 1, 1], [1, 1, 1, 2], [1, 2, 1, 1], [1, 2, 2], [2, 1, 1, 1], [2, 1, 2], [3, 1, 1], [3, 2]]
+
+            sage: Composition([]).finer()
+            {[]}
         """
-        return CartesianProduct(*[Compositions(i) for i in self]).map(Composition.sum)
+        if not self:
+            return FiniteEnumeratedSet([self])
+        else:
+            return cartesian_product([Compositions(i) for i in self]).map(Composition.sum)
 
     def is_finer(self, co2):
         """
@@ -1035,7 +1067,7 @@ class Composition(CombinatorialElement):
 
             sage: Composition([1,1,3,1,2,1,3]).to_subset()
             {1, 2, 5, 6, 8, 9}
-            sage: for I in Compositions(3): print I.to_subset()
+            sage: for I in Compositions(3): print(I.to_subset())
             {1, 2}
             {1}
             {2}
@@ -1308,7 +1340,7 @@ class Composition(CombinatorialElement):
 
 ##############################################################
 
-class Compositions(Parent, UniqueRepresentation):
+class Compositions(UniqueRepresentation, Parent):
     r"""
     Set of integer compositions.
 
@@ -1637,7 +1669,7 @@ class Compositions(Parent, UniqueRepresentation):
         """
         if isinstance(x, Composition):
             return True
-        elif isinstance(x, __builtin__.list):
+        elif isinstance(x, builtins.list):
             for i in x:
                 if (not isinstance(i, (int, Integer))) and i not in ZZ:
                     return False
@@ -1952,13 +1984,40 @@ class Compositions_n(Compositions):
             sage: Compositions(0).list()
             [[]]
         """
-        if self.n == 0:
-            yield self.element_class(self, [])
-            return
+        for c in composition_iterator_fast(self.n):
+            yield self.element_class(self, c)
 
-        for i in range(1,self.n+1):
-            for c in Compositions_n(self.n-i):
-                yield self.element_class(self, [i]+list(c))
+def composition_iterator_fast(n):
+    """
+    Iterator over compositions of ``n`` yielded as lists.
+
+    TESTS::
+
+        sage: from sage.combinat.composition import composition_iterator_fast
+        sage: L = list(composition_iterator_fast(4)); L
+        [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3], [2, 1, 1], [2, 2], [3, 1], [4]]
+        sage: type(L[0])
+        <type 'list'>
+    """
+    # Special cases
+    if n < 0:
+        return
+    if n == 0:
+        yield []
+        return
+
+    s = Integer(0) # Current sum
+    cur = [Integer(0)]
+    while cur:
+        cur[-1] += 1
+        s += 1
+        # Note that because we are adding 1 every time,
+        #   we will never have s > n
+        if s == n:
+            yield list(cur)
+            s -= cur.pop()
+        else:
+            cur.append(Integer(0))
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.composition', 'Composition_class', Composition)

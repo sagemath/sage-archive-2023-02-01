@@ -61,6 +61,7 @@ Note that the function is recomputed each time::
 #THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+from __future__ import print_function
 
 from cpython.object cimport PyObject_Call, PyObject_RichCompare
 
@@ -104,7 +105,7 @@ def lazy_string(f, *args, **kwargs):
 
         sage: class C:
         ....:     def __repr__(self):
-        ....:         print "determining string representation"
+        ....:         print("determining string representation")
         ....:         return "a test"
         sage: c = C()
         sage: s = lazy_string("this is %s", c)
@@ -177,7 +178,7 @@ cdef class _LazyString(object):
 
         sage: class C:
         ....:     def __repr__(self):
-        ....:         print "determining string representation"
+        ....:         print("determining string representation")
         ....:         return "a test"
         sage: c = C()
         sage: s = _LazyString("this is %s", (c,), {})
@@ -218,31 +219,31 @@ cdef class _LazyString(object):
         self.args = <tuple?>args
         self.kwargs = <dict?>kwargs
 
-    cdef value(self):
+    cdef val(self):
         cdef f = self.func
         if isinstance(f, basestring):
             return f % self.args
         return PyObject_Call(f, self.args, self.kwargs)
 
-    property value:
-        def __get__(self):
-            """
-            Return the value of this lazy string, as an ordinary string.
+    @property
+    def value(self):
+        """
+        Return the value of this lazy string, as an ordinary string.
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: from sage.misc.lazy_string import lazy_string
-                sage: f = lambda: "laziness"
-                sage: lazy_string(f).value
-                'laziness'
+            sage: from sage.misc.lazy_string import lazy_string
+            sage: f = lambda: "laziness"
+            sage: lazy_string(f).value
+            'laziness'
 
-            ::
+        ::
 
-                sage: from sage.misc.lazy_string import lazy_string
-                sage: lazy_string("%s", "laziness").value
-                'laziness'
-            """
-            return self.value()
+            sage: from sage.misc.lazy_string import lazy_string
+            sage: lazy_string("%s", "laziness").value
+            'laziness'
+        """
+        return self.val()
 
     def __contains__(self, key):
         """
@@ -256,7 +257,7 @@ cdef class _LazyString(object):
             sage: 'ni' in s
             False
         """
-        return key in self.value()
+        return key in self.val()
 
     def __nonzero__(self):
         """
@@ -270,7 +271,7 @@ cdef class _LazyString(object):
             sage: bool(lazy_string(f))
             False
         """
-        return bool(self.value())
+        return bool(self.val())
 
     def __dir__(self):
         """
@@ -297,7 +298,7 @@ cdef class _LazyString(object):
             sage: "".join(list(s)) # indirect doctest
             'laziness'
         """
-        return iter(self.value())
+        return iter(self.val())
 
     def __len__(self):
         """
@@ -309,7 +310,7 @@ cdef class _LazyString(object):
             sage: len(s)
             8
         """
-        return len(self.value())
+        return len(self.val())
 
     def __str__(self):
         """
@@ -321,7 +322,7 @@ cdef class _LazyString(object):
             sage: str(s) # indirect doctest
             'laziness'
         """
-        return str(self.value())
+        return str(self.val())
 
     def __unicode__(self):
         """
@@ -333,7 +334,7 @@ cdef class _LazyString(object):
             sage: unicode(s) # indirect doctest
             u'laziness'
         """
-        return unicode(self.value())
+        return unicode(self.val())
 
     def __add__(self, other):
         """
@@ -346,9 +347,9 @@ cdef class _LazyString(object):
             'laziness supreme'
         """
         if isinstance(self, _LazyString):
-            return (<_LazyString>self).value() + other
+            return (<_LazyString>self).val() + other
         else:
-            return self + (<_LazyString>other).value()
+            return self + (<_LazyString>other).val()
 
     def __mod__(self, other):
         """
@@ -366,9 +367,9 @@ cdef class _LazyString(object):
             'laziness'
         """
         if isinstance(self, _LazyString):
-            return (<_LazyString>self).value() % other
+            return (<_LazyString>self).val() % other
         else:
-            return self % (<_LazyString>other).value()
+            return self % (<_LazyString>other).val()
 
     def __mul__(self, other):
         """
@@ -383,9 +384,9 @@ cdef class _LazyString(object):
             'lazinesslaziness'
         """
         if isinstance(self, _LazyString):
-            return (<_LazyString>self).value() * other
+            return (<_LazyString>self).val() * other
         else:
-            return self * (<_LazyString>other).value()
+            return self * (<_LazyString>other).val()
 
     def __richcmp__(self, other, int op):
         """
@@ -431,7 +432,7 @@ cdef class _LazyString(object):
             sage: s >= s
             True
         """
-        self = (<_LazyString?>self).value()
+        self = (<_LazyString?>self).val()
         return PyObject_RichCompare(self, other, op)
 
     def __getattr__(self, name):
@@ -450,7 +451,7 @@ cdef class _LazyString(object):
         """
         if name == '__members__':
             return self.__dir__()
-        return getattr(self.value(), name)
+        return getattr(self.val(), name)
 
     def __reduce__(self):
         """
@@ -482,7 +483,7 @@ cdef class _LazyString(object):
             sage: s[4]
             'n'
         """
-        return self.value()[key]
+        return self.val()[key]
 
     def __copy__(self):
         """
@@ -507,7 +508,7 @@ cdef class _LazyString(object):
             l'laziness'
         """
         try:
-            return 'l' + repr(self.value())
+            return 'l' + repr(self.val())
         except Exception:
             return '<%s broken>' % self.__class__.__name__
 

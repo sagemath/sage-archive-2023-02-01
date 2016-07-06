@@ -76,7 +76,7 @@ cdef class GenericGraphBackend(SageObject):
         Add an edge (u,v) to self, with label l.  If directed is True, this is
         interpreted as an arc from u to v.
 
-        INPUT::
+        INPUT:
 
         - ``u,v`` -- vertices
         - ``l`` -- edge label

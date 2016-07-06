@@ -14,6 +14,7 @@ AUTHORS:
 
 - Martin Albrecht (2012): first version
 """
+from sage.misc.package import PackageNotFoundError
 
 cdef class SatSolver:
     def __cinit__(self, *args, **kwds):
@@ -33,7 +34,7 @@ cdef class SatSolver:
 
         INPUT:
 
-        - ``decision`` - is this variable a deicison variable?
+        - ``decision`` - is this variable a decision variable?
 
         EXAMPLE::
 
@@ -209,10 +210,10 @@ cdef class SatSolver:
         """
         TESTS::
 
-        sage: from sage.sat.solvers.satsolver import SatSolver
-        sage: solver = SatSolver()
-        sage: solver
-        a generic SAT solver (don't use me, inherit from me)
+            sage: from sage.sat.solvers.satsolver import SatSolver
+            sage: solver = SatSolver()
+            sage: solver
+            a generic SAT solver (don't use me, inherit from me)
         """
         return "a generic SAT solver (don't use me, inherit from me)"
 
@@ -275,3 +276,60 @@ cdef class SatSolver:
         """
         return ["gens"]
 
+def SAT(solver=None):
+    r"""
+    Return a :class:`SatSolver` instance.
+
+    Through this class, one can define and solve `SAT
+    <https://en.wikipedia.org/wiki/Boolean_satisfiability_problem>`__ problems.
+
+    INPUT:
+
+    - ``solver`` (string) -- select a solver. Admissible values are:
+
+        - ``"cryptominisat"`` -- note that the cryptominisat package must be
+          installed.
+
+        - ``"LP"`` -- use :class:`~sage.sat.solvers.sat_lp.SatLP` to solve the
+          SAT instance.
+
+        - ``None`` (default) -- use CryptoMiniSat if available, and a LP solver
+          otherwise.
+
+    EXAMPLE::
+
+        sage: SAT(solver="LP")
+        an ILP-based SAT Solver
+
+    TESTS::
+
+        sage: SAT(solver="Wouhouuuuuu")
+        Traceback (most recent call last):
+        ...
+        ValueError: Solver 'Wouhouuuuuu' is not available
+
+    Forcing CryptoMiniSat::
+
+        sage: SAT(solver="cryptominisat") # optional - cryptominisat
+        CryptoMiniSat
+        #vars:       0, #lits:       0, #clauses:       0, #learnt:       0, #assigns:       0
+
+    """
+    if solver is None:
+        try:
+            from sage.sat.solvers.cryptominisat.cryptominisat import CryptoMiniSat
+            solver = "cryptominisat"
+        except ImportError:
+            solver = "LP"
+
+    if solver == 'cryptominisat':
+        try:
+            from sage.sat.solvers.cryptominisat.cryptominisat import CryptoMiniSat
+        except ImportError:
+            raise PackageNotFoundError("cryptominisat")
+        return CryptoMiniSat()
+    elif solver == "LP":
+        from sat_lp import SatLP
+        return SatLP()
+    else:
+        raise ValueError("Solver '{}' is not available".format(solver))

@@ -270,7 +270,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
 
         try:
             B = matrix(B)
-        except ValueError:
+        except (TypeError, ValueError):
             pass
 
         try:

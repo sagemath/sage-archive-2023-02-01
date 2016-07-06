@@ -316,10 +316,10 @@ corresponding to the cones of the domain fan::
 
     sage: fm = phi_d.fan_morphism()
     sage: for c in flatten(phi_d.domain().fan().cones()):
-    ...       fc, m = phi_d.fiber_component(c, multiplicity=True)
-    ...       print "{} |-> {} ({} rays, multiplicity {}) over {}".format(
-    ...         c.ambient_ray_indices(), fc, fc.fan().nrays(),
-    ...         m, fm.image_cone(c).ambient_ray_indices())
+    ....:     fc, m = phi_d.fiber_component(c, multiplicity=True)
+    ....:     print("{} |-> {} ({} rays, multiplicity {}) over {}".format(
+    ....:       c.ambient_ray_indices(), fc, fc.fan().nrays(),
+    ....:       m, fm.image_cone(c).ambient_ray_indices()))
     () |-> 1-d affine toric variety (0 rays, multiplicity 2) over ()
     (0,) |-> 1-d affine toric variety (0 rays, multiplicity 1) over (0,)
     (1,) |-> 2-d affine toric variety (2 rays, multiplicity 1) over (0, 1)
@@ -336,9 +336,9 @@ affine line. An alternative perspective is provided by cones of the codomain
 fan::
 
     sage: for c in flatten(phi_d.codomain().fan().cones()):
-    ...       print "{} connected components over {}, each with {} irreducible components.".format(
-    ...         fm.index(c), c.ambient_ray_indices(),
-    ...         len(fm.primitive_preimage_cones(c)))
+    ....:     print("{} connected components over {}, each with {} irreducible components.".format(
+    ....:       fm.index(c), c.ambient_ray_indices(),
+    ....:       len(fm.primitive_preimage_cones(c))))
     2 connected components over (), each with 1 irreducible components.
     1 connected components over (0,), each with 1 irreducible components.
     None connected components over (1,), each with 0 irreducible components.
@@ -355,14 +355,18 @@ REFERENCES:
     http://arxiv.org/abs/1004.4924
 """
 
-
 #*****************************************************************************
-#  Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
-#  Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
-#  Copyright (C) 2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
+#       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 # For now, the scheme morphism base class cannot derive from Morphism
 # since this would clash with elliptic curves. So we derive only on
@@ -370,8 +374,9 @@ REFERENCES:
 # https://groups.google.com/d/msg/sage-devel/qF4yU6Vdmao/wQlNrneSmWAJ
 from sage.categories.morphism import Morphism
 
-from sage.structure.sequence  import Sequence
-from sage.rings.all import ZZ, gcd
+from sage.structure.sequence import Sequence
+from sage.rings.all import ZZ
+from sage.arith.all import gcd
 from sage.misc.all import cached_method
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.modules.free_module_element import vector
@@ -472,7 +477,7 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphis
     Same as for
     :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial`.
 
-    OUPUT:
+    OUTPUT:
 
     A :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial_toric_variety`.
 
@@ -813,7 +818,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
         :class:`SchemeMorphism_fan_toric_variety_dominant` for
         additional functionality for fibrations.
 
-    OUPUT:
+    OUTPUT:
 
     A :class:`~sage.schemes.toric.morphism.SchemeMorphism_fan_toric_variety`.
 
@@ -1354,7 +1359,7 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
     morphism :meth:`must be dominant
     <sage.geometry.fan_morphism.FanMorphism.is_dominant>`.
 
-    OUPUT:
+    OUTPUT:
 
     A :class:`~sage.schemes.toric.morphism.SchemeMorphism_fan_toric_variety_dominant`.
 
@@ -1486,7 +1491,7 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
             (2-d toric variety covered by 4 affine patches, 1)
 
             sage: for primitive_cone in primitive_cones:
-            ...       print fibration.fiber_component(primitive_cone)
+            ....:     print(fibration.fiber_component(primitive_cone))
             2-d toric variety covered by 4 affine patches
             2-d toric variety covered by 3 affine patches
             2-d toric variety covered by 3 affine patches
@@ -1943,7 +1948,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             sage: fc = fibration.fiber_component(primitive_cone)
             sage: f = fc.embedding_morphism()
             sage: for r in fc.fan().rays():
-            ...       print r, f._image_ray_multiplicity(r)
+            ....:     print("{} {}".format(r, f._image_ray_multiplicity(r)))
             N(0, 1) (5, 1)
             N(1, -3) (9, 2)
             N(-1, 2) (11, 1)

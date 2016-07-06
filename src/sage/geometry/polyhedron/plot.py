@@ -10,7 +10,7 @@ Functions for plotting polyhedra
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
-
+from __future__ import print_function
 
 from sage.rings.all import RDF
 from sage.structure.sage_object import SageObject
@@ -503,7 +503,7 @@ class Projection(SageObject):
         self.arrows.set_immutable()
         self.polygons.set_immutable()
 
-        self.__call__(proj)
+        self(proj)
 
 
     def _repr_(self):
@@ -515,7 +515,7 @@ class Projection(SageObject):
             sage: p = polytopes.hypercube(3)
             sage: from sage.geometry.polyhedron.plot import Projection
             sage: proj = Projection(p)
-            sage: print proj._repr_()
+            sage: print(proj._repr_())
             The projection of a polyhedron into 3 dimensions
         """
         s = 'The projection of a polyhedron into ' + \
@@ -556,7 +556,7 @@ class Projection(SageObject):
             sage: ppid.dimension
             3
         """
-        return self.__call__(projection_func_identity)
+        return self(projection_func_identity)
 
 
     def stereographic(self, projection_point=None):
@@ -581,7 +581,7 @@ class Projection(SageObject):
         """
         if projection_point is None:
             projection_point = [1] + [0]*(self.polyhedron_ambient_dim-1)
-        return self.__call__(ProjectionFuncStereographic(projection_point))
+        return self(ProjectionFuncStereographic(projection_point))
 
 
     def schlegel(self, projection_direction=None, height=1.1):
@@ -627,9 +627,9 @@ class Projection(SageObject):
             if self.parent_polyhedron.is_full_dimensional():
                 projection_direction = next(self.parent_polyhedron.inequality_generator()).A()
             else:
-                from sage.rings.arith import primes_first_n
+                from sage.arith.all import primes_first_n
                 projection_direction = primes_first_n(self.polyhedron_ambient_dim)
-        return self.__call__(ProjectionFuncSchlegel(
+        return self(ProjectionFuncSchlegel(
             projection_direction, height=height, center=center))
 
     def coord_index_of(self, v):
@@ -1091,7 +1091,7 @@ class Projection(SageObject):
             sage: cube = polytopes.hypercube(3)
             sage: cube_proj = cube.projection()
             sage: wire = cube_proj.render_wireframe_3d()
-            sage: print wire.tachyon().split('\n')[77]  # for testing
+            sage: print(wire.tachyon().split('\n')[77])  # for testing
             FCylinder base -1.0 1.0 -1.0 apex -1.0 -1.0 -1.0 rad 0.005 texture...
         """
         wireframe = []
@@ -1307,7 +1307,7 @@ class Projection(SageObject):
             sage: Image1 = P1.projection().tikz([1,3,5], 175, scale=4)
             sage: type(Image1)
             <class 'sage.misc.latex.LatexExpr'>
-            sage: print '\n'.join(Image1.splitlines()[:4])
+            sage: print('\n'.join(Image1.splitlines()[:4]))
             \begin{tikzpicture}%
                 [x={(-0.939161cm, 0.244762cm)},
                 y={(0.097442cm, -0.482887cm)},
@@ -1318,7 +1318,7 @@ class Projection(SageObject):
             sage: Image2 = P2.projection().tikz(scale=3, edge_color='blue!95!black', facet_color='orange!95!black', opacity=0.4, vertex_color='yellow', axis=True)
             sage: type(Image2)
             <class 'sage.misc.latex.LatexExpr'>
-            sage: print '\n'.join(Image2.splitlines()[:4])
+            sage: print('\n'.join(Image2.splitlines()[:4]))
             \begin{tikzpicture}%
                 [scale=3.000000,
                 back/.style={loosely dotted, thin},
@@ -1329,7 +1329,7 @@ class Projection(SageObject):
             sage: P3
             A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 3 vertices
             sage: Image3 = P3.projection().tikz([0.5,-1,-0.1], 55, scale=3, edge_color='blue!95!black',facet_color='orange!95!black', opacity=0.7, vertex_color='yellow', axis=True)
-            sage: print '\n'.join(Image3.splitlines()[:4])
+            sage: print('\n'.join(Image3.splitlines()[:4]))
             \begin{tikzpicture}%
                 [x={(0.658184cm, -0.242192cm)},
                 y={(-0.096240cm, 0.912008cm)},
@@ -1400,7 +1400,7 @@ class Projection(SageObject):
             sage: Image = P.projection()._tikz_2d(scale=3, edge_color='black', facet_color='orange', opacity=0.75, vertex_color='yellow', axis=True)
             sage: type(Image)
             <class 'sage.misc.latex.LatexExpr'>
-            sage: print '\n'.join(Image.splitlines()[:4])
+            sage: print('\n'.join(Image.splitlines()[:4]))
             \begin{tikzpicture}%
                 [scale=3.000000,
                 back/.style={loosely dotted, thin},
@@ -1518,7 +1518,7 @@ class Projection(SageObject):
             sage: P
             A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 3 vertices
             sage: Image = P.projection()._tikz_2d_in_3d(view=[0.5,-1,-0.5], angle=55, scale=3, edge_color='blue!95!black', facet_color='orange', opacity=0.5, vertex_color='yellow', axis=True)
-            sage: print '\n'.join(Image.splitlines()[:4])
+            sage: print('\n'.join(Image.splitlines()[:4]))
             \begin{tikzpicture}%
                 [x={(0.644647cm, -0.476559cm)},
                 y={(0.192276cm, 0.857859cm)},
@@ -1528,7 +1528,7 @@ class Projection(SageObject):
             sage: p = Polyhedron(vertices=[[1,0,0],[0,1,0],[0,0,1]])
             sage: proj = p.projection()
             sage: Img = proj.tikz([1,1,1],130,axis=True)
-            sage: print '\n'.join(Img.splitlines()[21:25])
+            sage: print('\n'.join(Img.splitlines()[21:25]))
             %% Drawing the interior
             %%
             \fill[facet] (1.00000, 0.00000, 0.00000) -- (0.00000, 0.00000, 1.00000) -- (0.00000, 1.00000, 0.00000) -- cycle {};
@@ -1646,7 +1646,7 @@ class Projection(SageObject):
             sage: Image = P.projection()._tikz_3d_in_3d([3,7,5], 100, scale=3, edge_color='blue', facet_color='orange', opacity=0.5, vertex_color='green', axis=True)
             sage: type(Image)
             <class 'sage.misc.latex.LatexExpr'>
-            sage: print '\n'.join(Image.splitlines()[:4])
+            sage: print('\n'.join(Image.splitlines()[:4]))
             \begin{tikzpicture}%
                 [x={(-0.046385cm, 0.837431cm)},
                 y={(-0.243536cm, 0.519228cm)},
@@ -1655,7 +1655,7 @@ class Projection(SageObject):
 
             sage: Associahedron = Polyhedron(vertices=[[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]).polar()
             sage: ImageAsso = Associahedron.projection().tikz([-15,-755,-655], 116, scale=1)
-            sage: print '\n'.join(ImageAsso.splitlines()[29:41])
+            sage: print('\n'.join(ImageAsso.splitlines()[29:41]))
             %% Drawing edges in the back
             %%
             \draw[edge,back] (-0.50000, -0.50000, -0.50000) -- (-1.00000, 0.00000, 0.00000);

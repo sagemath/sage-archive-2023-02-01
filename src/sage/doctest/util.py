@@ -18,7 +18,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.misc.misc import walltime, cputime
 
@@ -451,7 +451,7 @@ class NestedName:
             sage: str(qname) # indirect doctest
             'sage.categories.algebras.Algebras.at_the_end_of_the_universe'
         """
-        return self.__repr__()
+        return repr(self)
 
     def __repr__(self):
         """
@@ -463,7 +463,7 @@ class NestedName:
             sage: qname = NestedName('sage.categories.algebras')
             sage: qname[1] = 'Algebras'
             sage: qname[44] = 'at_the_end_of_the_universe'
-            sage: print qname # indirect doctest
+            sage: print(qname) # indirect doctest
             sage.categories.algebras.Algebras.at_the_end_of_the_universe
         """
         return '.'.join(a for a in self.all if a is not None)

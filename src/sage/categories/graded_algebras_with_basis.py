@@ -20,7 +20,7 @@ class GradedAlgebrasWithBasis(GradedModulesCategory):
         sage: C = GradedAlgebrasWithBasis(ZZ); C
         Category of graded algebras with basis over Integer Ring
         sage: sorted(C.super_categories(), key=str)
-        [Category of algebras with basis over Integer Ring,
+        [Category of filtered algebras with basis over Integer Ring,
          Category of graded algebras over Integer Ring,
          Category of graded modules with basis over Integer Ring]
 
@@ -28,107 +28,60 @@ class GradedAlgebrasWithBasis(GradedModulesCategory):
 
         sage: TestSuite(C).run()
     """
-
     class ParentMethods:
-        pass
+        # This needs to be copied in GradedAlgebras because we need to have
+        #   FilteredAlgebrasWithBasis as an extra super category
+        def graded_algebra(self):
+            """
+            Return the associated graded algebra to ``self``.
+
+            This is ``self``, because ``self`` is already graded.
+            See :meth:`~sage.categories.filtered_algebras_with_basis.FilteredAlgebrasWithBasis.graded_algebra`
+            for the general behavior of this method, and see
+            :class:`~sage.algebras.associated_graded.AssociatedGradedAlgebra`
+            for the definition and properties of associated graded
+            algebras.
+
+            EXAMPLES::
+
+                sage: m = SymmetricFunctions(QQ).m()
+                sage: m.graded_algebra() is m
+                True
+
+            TESTS:
+
+            Let us check that the three methods
+            :meth:`to_graded_conversion`, :meth:`from_graded_conversion`
+            and :meth:`projection` (which form the interface of the
+            associated graded algebra) work correctly here::
+
+                sage: to_gr = m.to_graded_conversion()
+                sage: from_gr = m.from_graded_conversion()
+                sage: m[2] == to_gr(m[2]) == from_gr(m[2])
+                True
+                sage: u = 3*m[1] - (1/2)*m[3]
+                sage: u == to_gr(u) == from_gr(u)
+                True
+                sage: m.zero() == to_gr(m.zero()) == from_gr(m.zero())
+                True
+                sage: p2 = m.projection(2)
+                sage: p2(m[2] - 4*m[1,1] + 3*m[1] - 2*m[[]])
+                -4*m[1, 1] + m[2]
+                sage: p2(4*m[1])
+                0
+                sage: p2(m.zero()) == m.zero()
+                True
+            """
+            return self
+
+        # .. TODO::
+        # Possibly override ``to_graded_conversion`` and
+        # ``from_graded_conversion`` with identity morphisms?
+        # I have to admit I don't know the right way to construct
+        # identity morphisms other than using the identity matrix.
+        # Also, ``projection`` could be overridden by, well, a
+        # projection.
 
     class ElementMethods:
-        def is_homogeneous(self):
-            """
-            Return whether this element is homogeneous.
+        pass
 
-            EXAMPLES::
-
-                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
-                sage: (x, y) = (S[2], S[3])
-                sage: (3*x).is_homogeneous()
-                True
-                sage: (x^3 - y^2).is_homogeneous()
-                True
-                sage: ((x + y)^2).is_homogeneous()
-                False
-            """
-            degree_on_basis = self.parent().degree_on_basis
-            degree = None
-            for m in self.support():
-                if degree is None:
-                    degree = degree_on_basis(m)
-                else:
-                    if degree != degree_on_basis(m):
-                        return False
-            return True
-
-        def homogeneous_degree(self):
-            """
-            The degree of this element.
-
-            .. note::
-
-               This raises an error if the element is not homogeneous.
-               To obtain the maximum of the degrees of the homogeneous
-               summands, use :meth:`maximal_degree`
-
-            .. seealso: :meth:`maximal_degree`
-
-            EXAMPLES::
-
-                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
-                sage: (x, y) = (S[2], S[3])
-                sage: x.homogeneous_degree()
-                2
-                sage: (x^3 + 4*y^2).homogeneous_degree()
-                6
-                sage: ((1 + x)^3).homogeneous_degree()
-                Traceback (most recent call last):
-                ...
-                ValueError: Element is not homogeneous.
-
-            TESTS::
-
-                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
-                sage: S.zero().degree()
-                Traceback (most recent call last):
-                ...
-                ValueError: The zero element does not have a well-defined degree.
-            """
-            if self.is_zero():
-                raise ValueError("The zero element does not have a well-defined degree.")
-            try:
-                assert self.is_homogeneous()
-                return self.parent().degree_on_basis(self.leading_support())
-            except AssertionError:
-                raise ValueError("Element is not homogeneous.")
-
-        # default choice for degree; will be overridden as necessary
-        degree = homogeneous_degree
-
-        def maximal_degree(self):
-            """
-            The maximum of the degrees of the homogeneous summands.
-
-            .. seealso: :meth:`homogeneous_degree`
-
-            EXAMPLES::
-
-                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
-                sage: (x, y) = (S[2], S[3])
-                sage: x.maximal_degree()
-                2
-                sage: (x^3 + 4*y^2).maximal_degree()
-                6
-                sage: ((1 + x)^3).maximal_degree()
-                6
-
-            TESTS::
-
-                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
-                sage: S.zero().degree()
-                Traceback (most recent call last):
-                ...
-                ValueError: The zero element does not have a well-defined degree.
-            """
-            if self.is_zero():
-                raise ValueError("The zero element does not have a well-defined degree.")
-            else:
-                degree_on_basis = self.parent().degree_on_basis
-                return max(degree_on_basis(m) for m in self.support())

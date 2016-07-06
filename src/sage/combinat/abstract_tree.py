@@ -62,6 +62,8 @@ incoherent with the data structure.
 - Florent Hivert (2010-2011): initial revision
 - Frédéric Chapoton (2011): contributed some methods
 """
+# python3
+from __future__ import division
 
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
@@ -979,9 +981,132 @@ class AbstractTree(object):
             if len(l_repr) == 0: lf_sep += "_"*(t_repr._root+1)
             else: lf_sep += "_"*(t_repr._l+1)
             ls_sep += " "*(t_repr._root) + "/" + " "*(t_repr._l-t_repr._root)
-        mid = whitesep + int((len(lf_sep)-whitesep)/2)
+        mid = whitesep + (len(lf_sep) - whitesep) // 2
         node = node_to_str( self )
         t_repr = AsciiArt([lf_sep[:mid-1] + node + lf_sep[mid+len(node)-1:], ls_sep]) * acc
+        t_repr._root = mid
+        t_repr._baseline = t_repr._h - 1
+        return t_repr
+
+    def _unicode_art_(self):
+        r"""
+        TESTS::
+
+            sage: t = OrderedTree([])
+            sage: unicode_art(t)
+            o
+            sage: t = OrderedTree([[]])
+            sage: aa = unicode_art(t);aa
+            o
+            │
+            o
+            sage: aa.get_baseline()
+            2
+            sage: tt1 = OrderedTree([[],[[],[],[[[[]]]]],[[[],[],[],[]]]])
+            sage: unicode_art(tt1)
+            ╭───┬─o────╮
+            │   │      │
+            o ╭─o─╮    o
+              │ │ │    │
+              o o o ╭─┬o┬─╮
+                  │ │ │ │ │
+                  o o o o o
+                  │
+                  o
+                  │
+                  o
+            sage: unicode_art(tt1.canonical_labelling())
+            ╭───┬──1─────╮
+            │   │        │
+            2 ╭─3─╮      10
+              │ │ │      │
+              4 5 6 ╭──┬11┬──╮
+                  │ │  │  │  │
+                  7 12 13 14 15
+                  │
+                  8
+                  │
+                  9
+            sage: unicode_art(OrderedTree([[],[[]]]))
+            ╭o╮
+            │ │
+            o o
+              │
+              o
+            sage: t = OrderedTree([[[],[[[],[]]],[[]]],[[[[[],[]]]]],[[],[]]])
+            sage: unicode_art(t)
+               ╭────o┬───╮
+               │     │   │
+            ╭──o──╮  o  ╭o╮
+            │  │  │  │  │ │
+            o  o  o  o  o o
+               │  │  │ 
+              ╭o╮ o  o 
+              │ │    │ 
+              o o   ╭o╮
+                    │ │
+                    o o
+            sage: unicode_art(t.canonical_labelling())
+               ╭──────1─────╮
+               │      │     │
+            ╭──2──╮   10  ╭16╮
+            │  │  │   │   │  │
+            3  4  8   11  17 18
+               │  │   │  
+              ╭5╮ 9   12 
+              │ │     │  
+              6 7   ╭13╮ 
+                    │  │ 
+                    14 15
+        """
+
+        def node_to_str(t):
+            if hasattr(t, "label"):
+                return str(t.label())
+            else:
+                return u"o"
+        # other possible choices for nodes would be u"█ ▓ ░ ╋ ╬"
+
+        if self.is_empty():
+            from sage.typeset.unicode_art import empty_unicode_art
+            return empty_unicode_art
+
+        from sage.typeset.unicode_art import UnicodeArt
+        if not len(self):
+            t_repr = UnicodeArt([node_to_str(self)])
+            t_repr._root = 0
+            return t_repr
+
+        if len(self) == 1:
+            repr_child = self[0]._unicode_art_()
+            sep = UnicodeArt([u" " * repr_child._root])
+            t_repr = UnicodeArt([node_to_str(self)])
+            repr_root = (sep + t_repr) * (sep + UnicodeArt([u"│"]))
+            t_repr = repr_root * repr_child
+            t_repr._root = repr_child._root
+            t_repr._baseline = t_repr._h - 1
+            return t_repr
+
+        # General case
+        l_repr = [subtree._unicode_art_() for subtree in self]
+        acc = l_repr.pop(0)
+        whitesep = acc._root
+        lf_sep = u" " * whitesep + u"╭" + u"─" * (acc._l - acc._root)
+        ls_sep = u" " * whitesep + u"│" + u" " * (acc._l - acc._root)
+        while len(l_repr):
+            tr = l_repr.pop(0)
+            acc += UnicodeArt([u" "]) + tr
+            if not len(l_repr):
+                lf_sep += u"─" * (tr._root) + u"╮" # + u" " * (tr._l - tr._root)
+                ls_sep += u" " * (tr._root) + u"│" # + u" " * (tr._l - tr._root)
+            else:
+                lf_sep += u"─" * (tr._root) + u"┬" + u"─" * (tr._l - tr._root)
+                ls_sep += u" " * (tr._root) + u"│" + u" " * (tr._l - tr._root)
+        mid = whitesep + (len(lf_sep) - whitesep) // 2
+        node = node_to_str(self)
+        lf_sep = (lf_sep[:mid - len(node) // 2] + node +
+                  lf_sep[mid + len(node) - len(node) // 2:])
+        t_repr = UnicodeArt([lf_sep, ls_sep]) * acc
         t_repr._root = mid
         t_repr._baseline = t_repr._h - 1
         return t_repr
@@ -1174,7 +1299,7 @@ class AbstractTree(object):
                 TESTS::
 
                     sage: t = BinaryTree()
-                    sage: print latex(t)
+                    sage: print(latex(t))
                     { \begin{tikzpicture}[auto]
                     \matrix[column sep=.3cm, row sep=.3cm,ampersand replacement=\&]{
                              \\
@@ -1187,14 +1312,14 @@ class AbstractTree(object):
                 r"""
                 TESTS::
 
-                    sage: t = BinaryTree([]); print latex(t)
+                    sage: t = BinaryTree([]); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$$}
                     ;}\begin{tikzpicture}[auto]
                     \matrix[column sep=.3cm, row sep=.3cm,ampersand replacement=\&]{
                      \nodea  \\
                     };
                     \end{tikzpicture}}
-                    sage: t = OrderedTree([]); print latex(t)
+                    sage: t = OrderedTree([]); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$$}
                     ;}\begin{tikzpicture}[auto]
                     \matrix[column sep=.3cm, row sep=.3cm,ampersand replacement=\&]{
@@ -1257,7 +1382,7 @@ class AbstractTree(object):
                 TESTS::
 
                     sage: t = OrderedTree([[[],[]],[[],[]]]).\
-                    ....:     canonical_labelling(); print latex(t)
+                    ....:     canonical_labelling(); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$1$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$2$}
                     ;}\newcommand{\nodec}{\node[draw,circle] (c) {$3$}
@@ -1276,7 +1401,7 @@ class AbstractTree(object):
                         (e) edge (f) edge (g)
                         (a) edge (b) edge (e);
                     \end{tikzpicture}}
-                    sage: t = BinaryTree([[],[[],[]]]); print latex(t)
+                    sage: t = BinaryTree([[],[[],[]]]); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$$}
                     ;}\newcommand{\nodec}{\node[draw,circle] (c) {$$}
@@ -1321,7 +1446,7 @@ class AbstractTree(object):
                 TESTS::
 
                     sage: t = OrderedTree([[]]).canonical_labelling()
-                    sage: print latex(t)
+                    sage: print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$1$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$2$}
                     ;}\begin{tikzpicture}[auto]
@@ -1332,7 +1457,7 @@ class AbstractTree(object):
                     <BLANKLINE>
                     \path[ultra thick, red] (a) edge (b);
                     \end{tikzpicture}}
-                    sage: t = OrderedTree([[[],[]]]).canonical_labelling(); print latex(t)
+                    sage: t = OrderedTree([[[],[]]]).canonical_labelling(); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$1$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$2$}
                     ;}\newcommand{\nodec}{\node[draw,circle] (c) {$3$}
@@ -1347,7 +1472,7 @@ class AbstractTree(object):
                     \path[ultra thick, red] (b) edge (c) edge (d)
                         (a) edge (b);
                     \end{tikzpicture}}
-                    sage: t = OrderedTree([[[],[],[]]]).canonical_labelling(); print latex(t)
+                    sage: t = OrderedTree([[[],[],[]]]).canonical_labelling(); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$1$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$2$}
                     ;}\newcommand{\nodec}{\node[draw,circle] (c) {$3$}
@@ -1363,7 +1488,7 @@ class AbstractTree(object):
                     \path[ultra thick, red] (b) edge (c) edge (d) edge (e)
                         (a) edge (b);
                     \end{tikzpicture}}
-                    sage: t = OrderedTree([[[],[],[]],[],[]]).canonical_labelling(); print latex(t)
+                    sage: t = OrderedTree([[[],[],[]],[],[]]).canonical_labelling(); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$1$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$2$}
                     ;}\newcommand{\nodec}{\node[draw,circle] (c) {$3$}
@@ -1724,7 +1849,7 @@ class AbstractLabelledTree(AbstractTree):
             sage: LBTS = LabelledOrderedTrees()
             sage: class Foo(LabelledOrderedTree):
             ....:     def bar(self):
-            ....:         print "bar called"
+            ....:         print("bar called")
             sage: foo = Foo(LBTS, [], label=1); foo
             1[]
             sage: foo1 = LBTS([LBTS([], label=21)], label=42); foo1
@@ -1963,7 +2088,7 @@ class AbstractLabelledTree(AbstractTree):
         from sage.graphs.digraph import DiGraph
         resu = dict([[self.label(),
                     [t.label() for t in self if not t.is_empty()]]])
-        resu = DiGraph(resu)
+        resu = DiGraph(resu, format="dict_of_lists")
         for t in self:
             if not t.is_empty():
                 resu = resu.union(t.as_digraph())
@@ -1987,7 +2112,7 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
 
         INPUT: ``label`` -- any Sage object
 
-        OUPUT: ``None``, ``self`` is modified in place
+        OUTPUT: ``None``, ``self`` is modified in place
 
         .. NOTE::
 
@@ -2048,7 +2173,7 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
 
         - ``label`` -- any sage object
 
-        OUPUT: Nothing, ``self`` is modified in place
+        OUTPUT: Nothing, ``self`` is modified in place
 
         .. NOTE::
 

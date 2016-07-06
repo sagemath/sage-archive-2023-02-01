@@ -7,17 +7,19 @@ Symmetric Group Algebra
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
+
 from sage.misc.cachefunc import cached_method
-from combinatorial_algebra import CombinatorialAlgebra
-from free_module import CombinatorialFreeModule
+from .combinatorial_algebra import CombinatorialAlgebra
+from .free_module import CombinatorialFreeModule
 from sage.categories.weyl_groups import WeylGroups
 from sage.combinat.permutation import (Permutation, Permutations,
      from_permutation_group_element, PermutationOptions)
-import partition
-from tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
+from . import partition
+from .tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
 from sage.interfaces.all import gap
 from sage.rings.all import QQ, PolynomialRing
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.matrix.all import matrix
 from sage.modules.all import vector
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -2207,8 +2209,8 @@ def seminormal_test(n):
             #Lemma 3.2.12 (ii)
             value = e(tab)*epsilon(tab,1)*e(tab) - e(tab)*(kappa(part))
             if value != 0:
-                print value
-                raise ValueError("3.2.12.2 - %s"%tab)
+                print(value)
+                raise ValueError("3.2.12.2 - %s" % tab)
 
             for tab2 in StandardTableaux(part):
                 #3.2.8 (i)

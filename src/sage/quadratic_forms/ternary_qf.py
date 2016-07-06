@@ -25,11 +25,11 @@ The form `a*x^2 + b*y^2 + c*z^2 + r*yz + s*xz + t*xy` is stored as a tuple (a, b
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ
-from sage.rings.arith import gcd, inverse_mod, kronecker_symbol
+from sage.arith.all import gcd, inverse_mod, kronecker_symbol
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.matrix.matrix import Matrix, is_Matrix
@@ -173,7 +173,7 @@ class TernaryQF(SageObject):
         EXAMPLES::
 
             sage: Q = TernaryQF([1, 1, 0, 2, -3, -1])
-            sage: print Q._repr_()
+            sage: print(Q._repr_())
             Ternary quadratic form with integer coefficients:
             [1 1 0]
             [2 -3 -1]

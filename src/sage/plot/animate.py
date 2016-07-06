@@ -112,14 +112,16 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ############################################################################
+from __future__ import print_function, absolute_import
 
 import os
 import struct
 import zlib
 
+from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 from sage.misc.temporary_file import tmp_dir, tmp_filename, graphics_filename
-import plot
+from . import plot
 import sage.misc.misc
 import sage.misc.viewer
 
@@ -139,7 +141,7 @@ def animate(frames, **kwds):
     """
     return Animation(frames, **kwds)
 
-class Animation(SageObject):
+class Animation(WithEqualityById, SageObject):
     r"""
     Return an animation of a sequence of plots of objects.
 
@@ -215,6 +217,9 @@ class Animation(SageObject):
         sage: a._frames
         <generator object ...
 
+        sage: from sage.plot.animate import Animation
+        sage: hash(Animation()) # random
+        140658972348064
     """
     def __init__(self, v=None, **kwds):
         r"""
@@ -259,13 +264,12 @@ class Animation(SageObject):
         for kwds in kwds_tuple:
             new_kwds.update(kwds)
 
-        import __builtin__
+        from six.moves import builtins
         for name in ['xmin', 'xmax', 'ymin', 'ymax']:
             values = [v for v in [kwds.get(name, None) for kwds in kwds_tuple] if v is not None]
             if values:
-                new_kwds[name] = getattr(__builtin__, name[1:])(values)
+                new_kwds[name] = getattr(builtins, name[1:])(values)
         return new_kwds
-
 
     def __getitem__(self, i):
         """
@@ -487,13 +491,13 @@ class Animation(SageObject):
 
         Modify the default arrangement of array::
 
-            sage: g = a.graphics_array(); print g
+            sage: g = a.graphics_array(); print(g)
             Graphics Array of size 2 x 3
             sage: g.show(figsize=[6,3])  # not tested
 
         Specify different arrangement of array and save it with a given file name::
 
-            sage: g = a.graphics_array(ncols=2); print g
+            sage: g = a.graphics_array(ncols=2); print(g)
             Graphics Array of size 2 x 2
             sage: f = tmp_filename(ext='.png')
             sage: g.save(f)
@@ -555,7 +559,7 @@ class Animation(SageObject):
             sage: td = tmp_dir()
             sage: a.gif()              # not tested
             sage: a.gif(savefile=td + 'my_animation.gif', delay=35, iterations=3)  # optional -- ImageMagick
-            sage: with open(td + 'my_animation.gif', 'rb') as f: print '\x21\xf9\x04\x08\x23\x00' in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'my_animation.gif', 'rb') as f: print('\x21\xf9\x04\x08\x23\x00') in f.read()  # optional -- ImageMagick
             True
             sage: a.gif(savefile=td + 'my_animation.gif', show_path=True) # optional -- ImageMagick
             Animation saved to .../my_animation.gif.
@@ -613,7 +617,7 @@ www.ffmpeg.org, or use 'convert' to produce gifs instead."""
             try:
                 check_call(cmd, shell=True)
                 if show_path:
-                    print "Animation saved to file %s." % savefile
+                    print("Animation saved to file %s." % savefile)
             except (CalledProcessError, OSError):
                 msg = """
 Error: Cannot generate GIF animation.  Verify that convert
@@ -940,9 +944,9 @@ please install it and try again."""
                 sage.misc.misc.verbose("\n---- ffmpeg output below ----\n")
                 check_call(cmd, shell=True, stderr=set_stderr)
                 if show_path:
-                    print "Animation saved to file %s." % savefile
+                    print("Animation saved to file %s." % savefile)
             except (CalledProcessError, OSError):
-                print "Error running ffmpeg."
+                print("Error running ffmpeg.")
                 raise
 
     def apng(self, savefile=None, show_path=False, delay=20, iterations=0):
@@ -1001,7 +1005,7 @@ please install it and try again."""
                 png = os.path.join(pngdir, "%08d.png" % i)
                 apng.add_frame(png)
         if show_path:
-            print "Animation saved to file %s." % savefile
+            print("Animation saved to file %s." % savefile)
 
     def save(self, filename=None, show_path=False, use_ffmpeg=False, **kwds):
         r"""
@@ -1050,19 +1054,19 @@ please install it and try again."""
         GIF image (see :trac:`18176`)::
 
             sage: a.save(td + 'wave.gif')   # optional -- ImageMagick
-            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xf9\x04\x08\x14\x00' in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x14\x00') in f.read()  # optional -- ImageMagick
             True
-            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00') in f.read()  # optional -- ImageMagick
             True
             sage: a.save(td + 'wave.gif', delay=35)   # optional -- ImageMagick
-            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xf9\x04\x08\x14\x00' in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x14\x00') in f.read()  # optional -- ImageMagick
             False
-            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xf9\x04\x08\x23\x00' in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x23\x00') in f.read()  # optional -- ImageMagick
             True
             sage: a.save(td + 'wave.gif', iterations=3)   # optional -- ImageMagick
-            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00') in f.read()  # optional -- ImageMagick
             False
-            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xff\x0bNETSCAPE2.0\x03\x01\x03\x00\x00' in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x03\x00\x00') in f.read()  # optional -- ImageMagick
             True
         """
         if filename is None:
@@ -1078,7 +1082,7 @@ please install it and try again."""
         elif suffix == '.sobj':
             SageObject.save(self, filename)
             if show_path:
-                print "Animation saved to file %s." % filename
+                print("Animation saved to file %s." % filename)
         else:
             self.ffmpeg(savefile=filename, show_path=show_path, **kwds)
 

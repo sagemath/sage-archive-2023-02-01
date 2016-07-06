@@ -103,8 +103,8 @@ The payoff to player 2 is given by:
 To compute this in Sage we have::
 
     sage: for ne in battle_of_the_sexes.obtain_nash(algorithm='enumeration'):
-    ....:     print "Utility for {}: ".format(ne)
-    ....:     print vector(ne[0]) * A * vector(ne[1]), vector(ne[0]) * B * vector(ne[1])
+    ....:     print("Utility for {}: ".format(ne))
+    ....:     print("{} {}".format(vector(ne[0]) * A * vector(ne[1]), vector(ne[0]) * B * vector(ne[1])))
     Utility for [(0, 1), (0, 1)]:
     2 3
     Utility for [(3/4, 1/4), (1/4, 3/4)]:
@@ -204,16 +204,16 @@ time spent in prison)::
 When obtaining Nash equilibrium there are 3 algorithms currently available:
 
 * ``'lrs'``: Reverse search vertex enumeration for 2 player games. This
-  algorithm uses the optional 'lrslib' package. To install it type ``sage -i
-  lrslib`` at the command line. For more information see [A2000]_.
+  algorithm uses the optional 'lrslib' package. To install it, type
+  ``sage -i lrslib`` in the shell. For more information, see [A2000]_.
 
 * ``'LCP'``: Linear complementarity program algorithm for 2 player games.
   This algorithm uses the open source game theory package:
   `Gambit <http://gambit.sourceforge.net/>`_ [MMAT2014]_. At present this is
   the only gambit algorithm available in sage but further development will
   hope to implement more algorithms
-  (in particular for games with more than 2 players). To install it
-  type ``sage -i gambit`` at the command line.
+  (in particular for games with more than 2 players). To install it,
+  type ``sage -i gambit`` in the shell.
 
 * ``'enumeration'``: Support enumeration for 2 player games. This
   algorithm is hard coded in Sage and checks through all potential
@@ -602,11 +602,11 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from collections import MutableMapping
 from itertools import product
 from parser import Parser
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.misc.latex import latex
 from sage.misc.misc import powerset
 from sage.rings.all import QQ
@@ -620,6 +620,7 @@ try:
     from gambit import Game
 except ImportError:
     Game = None
+
 
 class NormalFormGame(SageObject, MutableMapping):
     r"""
@@ -796,7 +797,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: B = matrix([[2, 0], [5, 4]])
             sage: prisoners_dilemma = NormalFormGame([A, B])
             sage: for key in prisoners_dilemma:
-            ....:     print "The strategy pair {} gives utilities {}".format(key, prisoners_dilemma[key])
+            ....:     print("The strategy pair {} gives utilities {}".format(key, prisoners_dilemma[key]))
             The strategy pair (0, 1) gives utilities [5, 0]
             The strategy pair (1, 0) gives utilities [0, 5]
             The strategy pair (0, 0) gives utilities [2, 2]
@@ -898,7 +899,7 @@ class NormalFormGame(SageObject, MutableMapping):
         if len(self.players) == 2:
             M1, M2 = self.payoff_matrices()
             return "\left(%s, %s\\right)" % (M1._latex_(), M2._latex_())
-        return latex(self.__str__())
+        return latex(str(self))
 
     def _two_matrix_game(self, matrices):
         r"""
@@ -1079,7 +1080,7 @@ class NormalFormGame(SageObject, MutableMapping):
             self.utilities = {}
         for profile in product(*strategy_sizes):
             if profile not in self.utilities.keys():
-                self.utilities[profile] = [False]*len(self.players)
+                self.utilities[profile] = [False] * len(self.players)
 
     def add_strategy(self, player):
         r"""
@@ -1421,9 +1422,9 @@ class NormalFormGame(SageObject, MutableMapping):
             scalar *= -1
         for strategy_profile in self.utilities:
             g[strategy_profile][0] = int(scalar *
-                                            self.utilities[strategy_profile][0])
+                                         self.utilities[strategy_profile][0])
             g[strategy_profile][1] = int(scalar *
-                                            self.utilities[strategy_profile][1])
+                                         self.utilities[strategy_profile][1])
         output = ExternalLCPSolver().solve(g)
         nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)
@@ -1549,7 +1550,7 @@ class NormalFormGame(SageObject, MutableMapping):
                                powerset(range(player.num_strategies))]
                               for player in self.players]
 
-        potential_support_pairs = [pair for pair in CartesianProduct(*potential_supports) if len(pair[0]) == len(pair[1])]
+        potential_support_pairs = [pair for pair in product(*potential_supports) if len(pair[0]) == len(pair[1])]
 
         equilibria = []
         for pair in potential_support_pairs:
@@ -1661,7 +1662,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g._solve_indifference((0,), (0,), -A.transpose())
             (1)
         """
-        linearsystem = matrix(QQ, len(support2)+1, M.nrows())
+        linearsystem = matrix(QQ, len(support2) + 1, M.nrows())
 
         # Build linear system for player 1
         for strategy1 in support1:
@@ -1743,23 +1744,27 @@ class NormalFormGame(SageObject, MutableMapping):
             False
         """
         # Check that supports are obeyed
-        if not (all([a[i] > 0 for i in p1_support]) and
-            all([b[j] > 0 for j in p2_support]) and
-            all([a[i] == 0 for i in range(len(a)) if i not in p1_support]) and
-            all([b[j] == 0 for j in range(len(b)) if j not in p2_support])):
+        if not(all([a[i] > 0 for i in p1_support]) and
+               all([b[j] > 0 for j in p2_support]) and
+               all([a[i] == 0 for i in range(len(a))
+                    if i not in p1_support]) and
+               all([b[j] == 0 for j in range(len(b))
+                    if j not in p2_support])):
             return False
 
         # Check that have pair of best responses
 
-        p1_payoffs = [sum(v * row[i] for i, v in enumerate(b)) for row
-                                                                  in M1.rows()]
-        p2_payoffs = [sum(v * col[j] for j, v in enumerate(a)) for col
-                                                               in M2.columns()]
+        p1_payoffs = [sum(v * row[i] for i, v in enumerate(b))
+                      for row in M1.rows()]
+        p2_payoffs = [sum(v * col[j] for j, v in enumerate(a))
+                      for col in M2.columns()]
 
         #if p1_payoffs.index(max(p1_payoffs)) not in p1_support:
-        if not any(i in p1_support for i, x in enumerate(p1_payoffs) if x == max(p1_payoffs)):
+        if not any(i in p1_support for i, x in enumerate(p1_payoffs)
+                   if x == max(p1_payoffs)):
             return False
-        if not any(i in p2_support for i, x in enumerate(p2_payoffs) if x == max(p2_payoffs)):
+        if not any(i in p2_support for i, x in enumerate(p2_payoffs)
+                   if x == max(p2_payoffs)):
             return False
 
         return True
@@ -1773,7 +1778,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[1, 2], [3, 4]])
             sage: B = matrix([[3, 3], [1, 4]])
             sage: C = NormalFormGame([A, B])
-            sage: print C._Hrepresentation(A, B)[0]
+            sage: print(C._Hrepresentation(A, B)[0])
             H-representation
             linearity 1 5
             begin
@@ -1785,7 +1790,7 @@ class NormalFormGame(SageObject, MutableMapping):
             -1 1 1 0
             end
             <BLANKLINE>
-            sage: print C._Hrepresentation(A, B)[1]
+            sage: print(C._Hrepresentation(A, B)[1])
             H-representation
             linearity 1 5
             begin
@@ -1998,12 +2003,12 @@ class NormalFormGame(SageObject, MutableMapping):
            *Enumeration of Nash equilibria for two-player games.*
            http://www.maths.lse.ac.uk/personal/stengel/ETissue/ARSvS.pdf (2010)
 
-        .. [AH2002] R. J. Aumann and S. Hart, Elsevier, eds.
+        .. [AH2002] \R. J. Aumann and S. Hart, Elsevier, eds.
            *Computing equilibria for two-person games*
            http://www.maths.lse.ac.uk/personal/stengel/TEXTE/nashsurvey.pdf
            (2002)
 
-        .. [CK2015] J. Campbell and V. Knight.
+        .. [CK2015] \J. Campbell and V. Knight.
            *On testing degeneracy of bi-matrix games*
            http://vknight.org/unpeudemath/code/2015/06/25/on_testing_degeneracy_of_games/
            (2015)
@@ -2020,14 +2025,14 @@ class NormalFormGame(SageObject, MutableMapping):
         M1, M2 = self.payoff_matrices()
         potential_supports = [[tuple(support) for support in
                                powerset(range(player.num_strategies))]
-                               for player in self.players]
+                              for player in self.players]
 
         # filter out all supports that are pure or empty
-        potential_supports = [[i for i in k if len(i) > 1] for k in
-                                                        potential_supports]
+        potential_supports = [[i for i in k if len(i) > 1]
+                              for k in potential_supports]
 
         potential_support_pairs = [pair for pair in
-                                   CartesianProduct(*potential_supports) if
+                                   product(*potential_supports) if
                                    len(pair[0]) != len(pair[1])]
 
         # Sort so that solve small linear systems first

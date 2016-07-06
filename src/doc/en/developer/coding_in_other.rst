@@ -67,7 +67,8 @@ add the method ``matfrobenius``::
         sig_on()
         return self.new_gen(matfrobenius(self.g, flag, 0))
 
-Note the use of the :ref:`sig_on() statement <section_sig_on>`.
+Note the use of the
+`sig_on() statement <http://cysignals.readthedocs.org/en/latest/#using-sig-on-and-sig-off>`_.
 
 The ``matfrobenius`` call is just a call to the PARI C library
 function ``matfrobenius`` with the appropriate parameters.
@@ -406,7 +407,7 @@ interface to Singular::
         //                  : names    x y
         //        block   2 : ordering C
     sage: f = singular('y^2-x^9-x')
-    sage: print singular.eval("list X1=Adj_div(%s);"%f.name())
+    sage: print(singular.eval("list X1=Adj_div(%s);"%f.name()))
     Computing affine singular points ...
     Computing all points at infinity ...
     Computing affine singular places ...
@@ -415,9 +416,9 @@ interface to Singular::
     Adjunction divisor computed successfully
     <BLANKLINE>
     The genus of the curve is 4
-    sage: print singular.eval("list X2=NSplaces(1,X1);")
+    sage: print(singular.eval("list X2=NSplaces(1,X1);"))
     Computing non-singular affine places of degree 1 ...
-    sage: print singular.eval("list X3=extcurve(1,X2);")
+    sage: print(singular.eval("list X3=extcurve(1,X2);"))
     <BLANKLINE>
     Total number of rational places : 6
     <BLANKLINE>
@@ -427,7 +428,7 @@ interface to Singular::
     ''
     sage: L = singular.eval("POINTS;")
 
-    sage: print L
+    sage: print(L)
     [1]:
        [1]:
           0
@@ -468,7 +469,6 @@ just that.
         """
         Pts=[]
         n=len(L)
-        #print n
         #start block to compute a pt
         L1=L
         while len(L1)>32:
@@ -478,11 +478,9 @@ just that.
             idx=L1.index("     ")
             idx2=L1[idx:].index("\n")
             L2=L1[idx:idx+idx2]
-            #print L2
             pt.append(F(eval(L2)))
             # end block1 to compute pt
             L1=L1[idx+8:] # repeat block 2 more times
-            #print len(L1)
             ## start block2 for compute pt
             idx=L1.index("     ")
             idx2=L1[idx:].index("\n")
@@ -498,7 +496,6 @@ just that.
                 idx2=len(L1[idx:])
             L2=L1[idx:idx+idx2]
             pt.append(F(eval(L2)))
-            #print pt
             # end block3 to compute pt
             #end block to compute a pt
             Pts.append(tuple(pt))  # repeat until no more pts
@@ -648,13 +645,12 @@ basic class for interfaces. The third line defines the class
 ``Octave``; it derives from ``Expect`` as well. After this comes a
 docstring, which we omit here (see the file for details). Next comes::
 
-        def __init__(self, maxread=100, script_subdirectory="", logfile=None,
+        def __init__(self, script_subdirectory="", logfile=None,
                      server=None, server_tmpdir=None):
             Expect.__init__(self,
                             name = 'octave',
                             prompt = '>',
                             command = "octave --no-line-editing --silent",
-                            maxread = maxread,
                             server = server,
                             server_tmpdir = server_tmpdir,
                             script_subdirectory = script_subdirectory,

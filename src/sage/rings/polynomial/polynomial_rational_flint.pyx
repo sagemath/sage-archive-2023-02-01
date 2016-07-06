@@ -17,7 +17,7 @@ AUTHOR:
 #*****************************************************************************
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.misc.long cimport pyobject_to_long
 
@@ -75,6 +75,13 @@ cdef class Polynomial_rational_flint(Polynomial):
     polynomial and a positive denominator which is coprime to the content of
     the numerator.
 
+    TESTS::
+
+        sage: f = QQ['x'].random_element()
+        sage: from sage.rings.polynomial.polynomial_rational_flint import Polynomial_rational_flint
+        sage: isinstance(f, Polynomial_rational_flint)
+        True
+
     .. automethod:: _add_
     .. automethod:: _sub_
     .. automethod:: _lmul_
@@ -118,7 +125,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         EXAMPLE::
 
-        sage: R.<x> = QQ[]
+            sage: R.<x> = QQ[]
             sage: x._new_constant_poly(2/1,R)
             2
             sage: x._new_constant_poly(2,R)
@@ -129,7 +136,6 @@ cdef class Polynomial_rational_flint(Polynomial):
             Traceback (most recent call last):
             ...
             ValueError: invalid literal for int() with base 10: '2.1'
-
         """
         cdef Polynomial_rational_flint res = Polynomial_rational_flint.__new__(Polynomial_rational_flint)
         res._parent = P
@@ -233,14 +239,14 @@ cdef class Polynomial_rational_flint(Polynomial):
             L1 = [e if isinstance(e, Rational) else Rational(e) for e in x]
             n  = <unsigned long> len(x)
             sig_on()
-            L2 = <mpq_t *> sage_malloc(n * sizeof(mpq_t))
+            L2 = <mpq_t *> sig_malloc(n * sizeof(mpq_t))
             for deg from 0 <= deg < n:
                 mpq_init(L2[deg])
                 mpq_set(L2[deg], (<Rational> L1[deg]).value)
             fmpq_poly_set_array_mpq(self.__poly, L2, n)
             for deg from 0 <= deg < n:
                 mpq_clear(L2[deg])
-            sage_free(L2)
+            sig_free(L2)
             sig_off()
 
 #           deg = 0
@@ -376,42 +382,31 @@ cdef class Polynomial_rational_flint(Polynomial):
         """
         return smallInteger(fmpq_poly_degree(self.__poly))
 
-    def __getitem__(self, n):
+    cdef get_unsafe(self, Py_ssize_t n):
         """
-        Returns coefficient of the monomial of degree `n` if `n` is an integer,
-        returns the monomials of self of degree in slice `n` if `n` is a slice.
+        Return the `n`-th coefficient of ``self``.
 
         INPUT:
 
-        - ``n`` - Degree of the monomial whose coefficient is to be returned
-                  or a slice.
+        - ``n`` -- Degree of the monomial whose coefficient is to be
+          returned.
 
         EXAMPLES::
 
             sage: R.<t> = QQ[]
             sage: f = 1 + t + t^2/2 + t^3/3 + t^4/4
-            sage: f[-1], f[0], f[3], f[5]            # indirect doctest
+            sage: f[-1], f[0], f[3], f[5]           # indirect doctest
             (0, 1, 1/3, 0)
-            sage: f[1:3]                             # indirect doctest
-            1/2*t^2 + t
+            sage: f[:3]                             # indirect doctest
+            1/2*t^2 + t + 1
         """
         cdef Rational z = Rational.__new__(Rational)
-        cdef Polynomial_rational_flint res = self._new()
-        cdef bint do_sig = _do_sig(self.__poly)
-        if isinstance(n, slice):
-            start, stop, step = n.indices(self.degree() + 1)
-            if do_sig: sig_str("FLINT exception")
-            fmpq_poly_get_slice(res.__poly, self.__poly, start, stop)
-            if do_sig: sig_off()
-            return res
-        else:
-            if 0 <= n and n < fmpq_poly_length(self.__poly):
-                fmpq_poly_get_coeff_mpq(z.value, self.__poly, n)
-            return z
+        fmpq_poly_get_coeff_mpq(z.value, self.__poly, n)
+        return z
 
     cpdef _unsafe_mutate(self, unsigned long n, value):
         """
-        Sets the `n`th coefficient of self to value.
+        Sets the `n`-th coefficient of self to value.
 
         TESTS::
 
@@ -783,7 +778,7 @@ cdef class Polynomial_rational_flint(Polynomial):
     # Arithmetic                                                              #
     ###########################################################################
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Returns the sum of two rational polynomials.
 
@@ -811,7 +806,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Returns the difference of two rational polynomials.
 
@@ -829,8 +824,6 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f = R.random_element(2000)
             sage: f - f/2 == 1/2 * f          # indirect doctest
             True
-            sage: f[:1000] == f - f[1000:]    # indirect doctest
-            True
         """
         cdef Polynomial_rational_flint op2 = <Polynomial_rational_flint> right
         cdef Polynomial_rational_flint res = self._new()
@@ -841,7 +834,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Returns the difference of two rational polynomials.
 
@@ -885,7 +878,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             True
         """
         if right.is_zero():
-            raise ZeroDivisionError, "division by zero polynomial"
+            raise ZeroDivisionError("division by zero polynomial")
         if self.is_zero():
             return self, self
 
@@ -975,7 +968,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         TESTS:
 
-        The following example used to crash (cf. #11771)::
+        The following example used to crash (cf. :trac:`11771`)::
 
             sage: R.<t> = QQ[]
             sage: f = 10**383 * (t+1)
@@ -995,7 +988,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         sig_off()
         return d, s, t
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Returns the product of self and right.
 
@@ -1061,7 +1054,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         r"""
         Returns left * self, where left is a rational number.
 
@@ -1081,7 +1074,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         r"""
         Returns self * right, where right is a rational number.
 
@@ -1105,19 +1098,19 @@ cdef class Polynomial_rational_flint(Polynomial):
         """
         Returns self raised to the power of exp.
 
-        The corner case of exp == 0 is handled by returning the constant
-        polynomial 1.  Note that this includes the case 0^0 == 1.
+        The corner case of ``exp == 0`` is handled by returning the constant
+        polynomial 1.  Note that this includes the case ``0^0 == 1``.
 
         This method only supports integral values for exp that fit into
-        a signed long int.
+        a signed long int (except when this is a constant polynomial).
 
         INPUT:
 
-        - exp - Exponent
+        - ``exp`` - Exponent
 
         OUTPUT:
 
-        - Polynomial; self raised to the power of exp
+        Polynomial; this polynomial raised to the power of ``exp``
 
         EXAMPLES::
 
@@ -1148,7 +1141,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (1 + t)^(2/3)
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            ValueError: not a 3rd power
             sage: (1 + t)^(2^63)
             Traceback (most recent call last):
             ...
@@ -1160,28 +1153,82 @@ cdef class Polynomial_rational_flint(Polynomial):
             Traceback (most recent call last):
             ...
             RuntimeError: FLINT exception
+
+        Test fractional powers (:trac:`20086`)::
+
+            sage: P.<R> = QQ[]
+            sage: (1/27*R^3 + 2/3*R^2 + 4*R + 8)^(2/3)
+            1/9*R^2 + 4/3*R + 4
+            sage: _.parent()
+            Univariate Polynomial Ring in R over Rational Field
+            sage: P(1/4)^(1/2)
+            1/2
+            sage: _.parent()
+            Univariate Polynomial Ring in R over Rational Field
+
+            sage: (R+2)^(2/5)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a 5th power
+
+            sage: P(1/3)^(1/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a perfect 2nd power
+            sage: P(4)^P(1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Rational Field to Rational Field
+            sage: (R + 1)^P(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Rational Field to Rational Field
+            sage: (R + 1)^R
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Rational Field to Rational Field
+            sage: 2^R
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Rational Field to Rational Field
         """
         cdef Polynomial_rational_flint res
+        cdef long n
 
-        cdef long n = pyobject_to_long(exp)
+        try:
+            n = pyobject_to_long(exp)
+        except TypeError:
+            r = QQ.coerce(exp)
+            num = r.numerator()
+            den = r.denominator()
 
-        if n < 0:
-            if fmpq_poly_is_zero(self.__poly):
-                raise ZeroDivisionError("negative exponent in power of zero")
-            res = self._new()
-            sig_str("FLINT exception")
-            fmpq_poly_pow(res.__poly, self.__poly, -n)
-            sig_off()
-            return ~res
+            if fmpq_poly_degree(self.__poly) == 0:
+                return self.parent()(self[0].nth_root(den) ** num)
+
+            return self.nth_root(den) ** num
+
         else:
-            res = self._new()
-            sig_str("FLINT exception")
-            if self._is_gen:
-                fmpq_poly_set_coeff_si(res.__poly, n, 1)
+            if n < 0:
+                if fmpq_poly_is_zero(self.__poly):
+                    raise ZeroDivisionError("negative exponent in power of zero")
+                res = self._new()
+                sig_str("FLINT exception")
+                fmpq_poly_pow(res.__poly, self.__poly, -n)
+                sig_off()
+                return ~res
             else:
-                fmpq_poly_pow(res.__poly, self.__poly, n)
-            sig_off()
-            return res
+                res = self._new()
+                sig_str("FLINT exception")
+                if self._is_gen:
+                    fmpq_poly_set_coeff_si(res.__poly, n, 1)
+                else:
+                    fmpq_poly_pow(res.__poly, self.__poly, n)
+                sig_off()
+                return res
 
     def __floordiv__(Polynomial_rational_flint self, right):
         """
@@ -1210,7 +1257,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef bint do_sig
 
         if right == 0:
-            raise ZeroDivisionError, "division by zero polynomial"
+            raise ZeroDivisionError("division by zero polynomial")
 
         if not isinstance(right, Polynomial_rational_flint):
             if right in QQ:
@@ -1306,7 +1353,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint res
 
         if right == 0:
-            raise ZeroDivisionError, "division by zero polynomial"
+            raise ZeroDivisionError("division by zero polynomial")
 
         if not isinstance(right, Polynomial_rational_flint):
             right = self._parent(right)
@@ -1379,7 +1426,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         -  Derivative as a ``Polynomial_rational_flint``
 
-        .. seealso:: :meth:`.derivative`
+        .. seealso:: :meth:`~Polynomial.derivative`
 
         EXAMPLES::
 
@@ -1403,7 +1450,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef bint do_sig
 
         if var is not None and var != self._parent.gen():
-            raise ValueError, "Cannot differentiate with respect to %s" %var
+            raise ValueError("Cannot differentiate with respect to %s" % var)
 
         der = self._new()
         do_sig = _do_sig(self.__poly)
@@ -2024,11 +2071,19 @@ cdef class Polynomial_rational_flint(Polynomial):
             Traceback (most recent call last):
             ...
             ValueError: The polynomial must be irreducible
+
+        Variable names that are reserved in PARI, such as ``zeta``,
+        are supported (see :trac:`20631`)::
+
+            sage: R.<zeta> = QQ[]
+            sage: (zeta^2 + zeta + 1).galois_group(pari_group=True)
+            PARI group [2, -1, 1, "S2"] of degree 2
+
         """
         from sage.groups.all import PariGroup, PermutationGroup, TransitiveGroup
 
         if not self.is_irreducible():
-            raise ValueError, "The polynomial must be irreducible"
+            raise ValueError("The polynomial must be irreducible")
 
         if self.degree() > 11 and algorithm == 'pari':
             algorithm = 'kash'
@@ -2040,7 +2095,7 @@ cdef class Polynomial_rational_flint(Polynomial):
                 "algorithm='magma' if you have magma.")
 
         if algorithm == 'pari':
-            G = self._pari_().Polrev().polgalois()
+            G = self._pari_with_name().Polrev().polgalois()
             H = PariGroup(G, self.degree())
             if pari_group:
                 return H
@@ -2057,7 +2112,7 @@ cdef class Polynomial_rational_flint(Polynomial):
                 n = int(kash.eval('%s.ext2'%G.name()))
                 return TransitiveGroup(d, n)
             except RuntimeError as msg:
-                raise NotImplementedError, (str(msg) + "\nSorry, " +
+                raise NotImplementedError(str(msg) + "\nSorry, " +
                     "computation of Galois groups of fields of degree " +
                     "bigger than 11 is not yet implemented.  Try installing " +
                     "the optional free (closed source) KASH package, which " +
@@ -2072,13 +2127,13 @@ cdef class Polynomial_rational_flint(Polynomial):
                 d = int(d)
                 n = int(n)
             except RuntimeError as msg:
-                raise RuntimeError, (str(msg) + "\nUnable to lookup " +
+                raise RuntimeError(str(msg) + "\nUnable to lookup " +
                     "description of Galois group as a transitive " +
-                    "group.\n%s" %X)
+                    "group.\n%s" % X)
             return TransitiveGroup(d, n)
 
         else:
-            raise ValueError, "Algorithm %s not supported." %algorithm
+            raise ValueError("Algorithm %s not supported." % algorithm)
 
     def factor_mod(self, p):
         """
@@ -2102,17 +2157,25 @@ cdef class Polynomial_rational_flint(Polynomial):
             x * (x^2 + 1)^2
             sage: (x^5 + 2).factor_mod(5)
             (x + 2)^5
+
+        Variable names that are reserved in PARI, such as ``zeta``,
+        are supported (see :trac:`20631`)::
+
+            sage: R.<zeta> = QQ[]
+            sage: (zeta^2 + zeta + 1).factor_mod(7)
+            (zeta + 3) * (zeta + 5)
+
         """
-        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
         p = Integer(p)
         if not p.is_prime():
-            raise ValueError, "p must be prime"
+            raise ValueError("p must be prime")
 
         if self.degree() < 1:
-            raise ValueError, "The polynomial must have degree at least 1"
+            raise ValueError("The polynomial must have degree at least 1")
 
-        G = self._pari_().factormod(p)
+        G = self._pari_with_name().factormod(p)
         K = FiniteField(p)
         R = K[self.parent().variable_name()]
         return R(1)._factor_pari_helper(G, unit=R(self).leading_coefficient())
@@ -2230,15 +2293,27 @@ cdef class Polynomial_rational_flint(Polynomial):
             [x]
             sage: R(x-1).hensel_lift(7, 2)
             [x + 48]
+
+        Variable names that are reserved in PARI, such as ``I``, are
+        supported (see :trac:`20631`)::
+
+            sage: R.<I> = QQ[]
+            sage: (I^2 + 1).hensel_lift(5, 3)
+            [I + 57, I + 68]
+            sage: (I^2 + 1).hensel_lift(2, 3)
+            Traceback (most recent call last):
+            ...
+            ValueError: I^2 + 1 is not square-free modulo 2
+
         """
         from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
         p = Integer(p)
         if not p.is_prime():
-            raise ValueError, "p must be prime"
+            raise ValueError("p must be prime")
         e = Integer(e)
         if e < 1:
-            raise ValueError, "e must be at least 1"
+            raise ValueError("e must be at least 1")
 
         # The relevant PARI method doesn't seem to play well with constant and
         # linear polynomials, so we handle these separately.
@@ -2250,14 +2325,11 @@ cdef class Polynomial_rational_flint(Polynomial):
             S = R[self.parent().variable_name()]
             return [S(self)]
 
-        F = self.factor_mod(p)
-        y = []
-        for g, n in F:
-            if n > 1:
-                raise ArithmeticError, ("The polynomial must be square free " +
-                    "modulo p")
-            y.append(self.parent()(g))
-        H = self._pari_().polhensellift(y, p, e)
+        f = self._pari_with_name()
+        F = f.factormod(p)
+        if any(n > 1 for n in F[1]):
+            raise ValueError("{} is not square-free modulo {}".format(self, p))
+        H = f.polhensellift(F[0].liftint(), p, e)
         R = IntegerModRing(p**e)
         S = R[self.parent().variable_name()]
         return [S(m) for m in H]
@@ -2329,8 +2401,16 @@ cdef class Polynomial_rational_flint(Polynomial):
             0
             sage: (t + 1/2).discriminant()
             1
+
+        Variable names that are reserved in PARI, such as ``I``, are
+        supported (see :trac:`20631`)::
+
+            sage: R.<I> = QQ[]
+            sage: (I^2 + 1).discriminant()
+            -4
+
         """
-        return QQ(self._pari_().poldisc())
+        return QQ(self._pari_with_name().poldisc())
 
     # Alias for discriminant
     disc = discriminant

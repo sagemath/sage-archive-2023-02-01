@@ -1,5 +1,5 @@
 r"""
-Index of Codes
+Index of codes
 
 The ``codes`` object may be used to access the codes that Sage can build.
 
@@ -18,18 +18,27 @@ The ``codes`` object may be used to access the codes that Sage can build.
 # This module is imported as "codes" in all.py so that codes.<tab> is available
 # in the global namespace.
 
+from sage.misc.lazy_import import lazy_import as _lazy_import
 from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
                                 CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
                                 DuadicCodeOddPair, ExtendedBinaryGolayCode,
                                 ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
-                                HammingCode, LinearCodeFromCheckMatrix,
+                                LinearCode, LinearCodeFromCheckMatrix,
                                 QuadraticResidueCode, QuadraticResidueCodeEvenPair,
                                 QuadraticResidueCodeOddPair, RandomLinearCode,
                                 ReedSolomonCode, TernaryGolayCode,
                                 ToricCode, TrivialCode, WalshCode)
 
-from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
+from grs import GeneralizedReedSolomonCode
+from reed_muller_code import ReedMullerCode, BinaryReedMullerCode
+from extended_code import ExtendedCode
 
-from sage.misc.rest_index_of_methods import gen_rest_table_index
-import sys
-__doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(sys.modules[__name__], only_local_functions=False))
+from guava import QuasiQuadraticResidueCode, RandomLinearCodeGuava
+_lazy_import('sage.coding.punctured_code', 'PuncturedCode')
+from hamming_code import HammingCode
+import decoders_catalog as decoders
+import encoders_catalog as encoders
+import bounds_catalog as bounds
+from sage.misc.rest_index_of_methods import gen_rest_table_index as _gen_rest_table_index
+import sys as _sys
+__doc__ = __doc__.format(INDEX_OF_FUNCTIONS=_gen_rest_table_index(_sys.modules[__name__], only_local_functions=False))

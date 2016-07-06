@@ -3,11 +3,7 @@
 import os, sys
 args = sys.argv[1:]
 
-try:
-    from sage.env import SAGE_SRC
-except ImportError:
-    SAGE_SRC = os.environ.get('SAGE_SRC',
-            os.path.join(os.environ['SAGE_ROOT'], 'src'))
+from sage.env import SAGE_SRC
 
 # args can have length 0, in case we're printing a usage message (see trac 12207)
 pyx_file = os.path.abspath(args[-1]) if len(args) else None
@@ -18,7 +14,7 @@ if pyx_file and pyx_file.endswith('.spyx'):
     pyx_file = pyx_file[:-5] + '.pyx'
     args[-1] = pyx_file
     f = open(pyx_file, 'w')
-    f.write("include 'sage/ext/stdsage.pxi'\ninclude 'sage/ext/cdefs.pxi'\ninclude 'sage/ext/interrupt.pxi'\n\n")
+    f.write("include 'sage/ext/stdsage.pxi'\ninclude 'sage/ext/cdefs.pxi'\ninclude 'cysignals/signals.pxi'\n\n")
     f.write(open(spyx_file).read())
     f.close()
     include_sage_flags = True

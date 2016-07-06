@@ -52,7 +52,7 @@ installed = dict(pkgname_split(pkgname)
 SAGE_PKGS = os.path.join(SAGE_ROOT, "build", "pkgs")
 local = {}
 for p in os.listdir(SAGE_PKGS):
-    if not os.path.isdir(os.path.join(SAGE_PKGS, p)):
+    if not os.path.isfile(os.path.join(SAGE_PKGS, p, "checksums.ini")):
         continue
     with open(os.path.join(SAGE_PKGS, p, "package-version.txt")) as f:
         version = f.read().strip()

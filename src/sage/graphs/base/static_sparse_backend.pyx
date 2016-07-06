@@ -34,6 +34,8 @@ This module implements two classes
 Classes and methods
 -------------------
 """
+from __future__ import print_function
+
 from sage.graphs.base.static_sparse_graph cimport (init_short_digraph,
                                                    init_reverse,
                                                    out_degree,
@@ -44,7 +46,7 @@ from c_graph cimport CGraphBackend
 from sage.data_structures.bitset cimport FrozenBitset
 from libc.stdint cimport uint32_t
 include 'sage/data_structures/bitset.pxi'
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 cdef class StaticSparseCGraph(CGraph):
     """
@@ -65,6 +67,13 @@ cdef class StaticSparseCGraph(CGraph):
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
+
+        Check that the digraph methods are working (see :trac:`20253`)::
+
+            sage: G = DiGraph([(0,1),(1,0)])
+            sage: G2 = G.copy(immutable=True)
+            sage: G2.is_strongly_connected()
+            True
         """
         cdef int i, j, tmp
         has_labels = any(l is not None for _,_,l in G.edge_iterator())
@@ -92,8 +101,12 @@ cdef class StaticSparseCGraph(CGraph):
                         break
 
         # Defining the meaningless set of 'active' vertices. Because of CGraph.
+        # As well as num_verts and num_edges
         bitset_init(self.active_vertices,  self.g.n+1)
         bitset_set_first_n(self.active_vertices, self.g.n)
+
+        self.num_verts = self.g.n
+        self.num_arcs = self.g.m
 
     def __dealloc__(self):
         r"""
@@ -106,7 +119,7 @@ cdef class StaticSparseCGraph(CGraph):
         """
         bitset_free(self.active_vertices)
         free_short_digraph(self.g)
-        sage_free(self.number_of_loops)
+        sig_free(self.number_of_loops)
         if self.g_rev != NULL:
             free_short_digraph(self.g_rev)
 
@@ -479,13 +492,13 @@ cdef class StaticSparseBackend(CGraphBackend):
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             sage: g = StaticSparseBackend(graphs.PetersenGraph())
-            sage: print g.get_edge_label(0,1)
+            sage: print(g.get_edge_label(0,1))
             None
-            sage: print g.get_edge_label(0,"Hey")
+            sage: print(g.get_edge_label(0,"Hey"))
             Traceback (most recent call last):
             ...
             LookupError: One of the two vertices does not belong to the graph
-            sage: print g.get_edge_label(0,7)
+            sage: print(g.get_edge_label(0,7))
             Traceback (most recent call last):
             ...
             LookupError: The edge does not exist
@@ -1083,10 +1096,10 @@ def _run_it_on_static_instead(f):
         sage: from sage.graphs.base.static_sparse_backend import _run_it_on_static_instead
         sage: @_run_it_on_static_instead
         ....: def new_graph_method(g):
-        ....:    print "My backend is of type", g._backend
+        ....:    print("My backend is of type {}".format(g._backend))
         sage: Graph.new_graph_method = new_graph_method
         sage: g = Graph(5)
-        sage: print "My backend is of type", g._backend
+        sage: print("My backend is of type {}".format(g._backend))
         My backend is of type <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
         sage: g.new_graph_method()
         My backend is of type <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>

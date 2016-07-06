@@ -1810,7 +1810,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
                 OUTPUT:
 
-                - A 3-tuple (`g`,``rw``,``signs``).
+                - A 3-tuple (`g`, ``rw``, ``signs``).
 
                 ALGORITHM:
 

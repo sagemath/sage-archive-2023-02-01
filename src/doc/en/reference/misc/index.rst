@@ -12,7 +12,6 @@ General Infrastructure
    sage/misc/randstate
    sage/misc/prandom
    sage/misc/unknown
-   sage/misc/exceptions
 
 Programming Utilities
 ---------------------
@@ -49,12 +48,14 @@ Lists and Iteration, etc.
    :maxdepth: 1
 
    sage/misc/callable_dict
+   sage/misc/converting_dict
    sage/misc/flatten
    sage/misc/search
    sage/misc/sage_itertools
    sage/misc/mrange
    sage/misc/multireplace
    sage/misc/map_threaded
+   sage/arith/srange
 
 File and OS Access
 ~~~~~~~~~~~~~~~~~~
@@ -114,8 +115,8 @@ Lazyness
    sage/misc/lazy_attribute
    sage/misc/lazy_format
    sage/misc/lazy_import
-   sage/misc/lazy_list
    sage/misc/lazy_import_cache
+   sage/misc/lazy_list
    sage/misc/lazy_string
 
 Caching
@@ -124,7 +125,6 @@ Caching
 .. toctree::
    :maxdepth: 1
 
-   sage/misc/cache
    sage/misc/cachefunc
    sage/misc/weak_dict
 
@@ -226,6 +226,7 @@ Interactive Sage Sessions
    sage/misc/viewer
    sage/misc/pager
    sage/misc/sagedoc
+   sage/misc/sphinxify
 
 Distribution
 ~~~~~~~~~~~~

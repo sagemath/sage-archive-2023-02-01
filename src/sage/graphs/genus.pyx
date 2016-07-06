@@ -36,6 +36,7 @@ described throughout the file.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from libc.string cimport memcpy
 
@@ -47,8 +48,8 @@ from sage.graphs.base.dense_graph cimport DenseGraph
 from sage.graphs.graph import Graph
 
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/memory.pxi"
+include "cysignals/signals.pxi"
 
 
 cdef inline int edge_map(int i):
@@ -124,17 +125,17 @@ cdef class simple_connected_genus_backtracker:
         cdef int i
 
         if self.vertex_darts != NULL:
-            sage_free(self.vertex_darts[0])
-            sage_free(self.vertex_darts)
+            sig_free(self.vertex_darts[0])
+            sig_free(self.vertex_darts)
 
         if self.swappers != NULL:
-            sage_free(self.swappers[0])
-            sage_free(self.swappers)
+            sig_free(self.swappers[0])
+            sig_free(self.swappers)
 
-        sage_free(self.face_map)
-        sage_free(self.visited)
-        sage_free(self.face_freeze)
-        sage_free(self.degree)
+        sig_free(self.face_map)
+        sig_free(self.visited)
+        sig_free(self.face_freeze)
+        sig_free(self.degree)
 
     cdef int got_memory(self):
         """
@@ -163,6 +164,7 @@ cdef class simple_connected_genus_backtracker:
         Initialize the genus_backtracker object.
 
         TESTS::
+
             sage: import sage.graphs.genus
             sage: G = Graph(implementation='c_graph', sparse=False)  #indirect doctest
             sage: gb = sage.graphs.genus.simple_connected_genus_backtracker(G._backend.c_graph()[0])
@@ -191,29 +193,29 @@ cdef class simple_connected_genus_backtracker:
         if self.num_verts <= 1:
             return
 
-        self.face_map     = <int *> sage_malloc(self.num_darts * sizeof(int))
-        self.vertex_darts = <int **>sage_malloc(self.num_verts * sizeof(int *))
-        self.swappers     = <int **>sage_malloc(self.num_verts * sizeof(int *))
-        self.degree       = <int *> sage_malloc(self.num_verts * sizeof(int))
-        self.visited      = <int *> sage_malloc(self.num_darts * sizeof(int))
-        self.face_freeze  = <int *> sage_malloc(self.num_darts * sizeof(int))
+        self.face_map     = <int *> sig_malloc(self.num_darts * sizeof(int))
+        self.vertex_darts = <int **>sig_malloc(self.num_verts * sizeof(int *))
+        self.swappers     = <int **>sig_malloc(self.num_verts * sizeof(int *))
+        self.degree       = <int *> sig_malloc(self.num_verts * sizeof(int))
+        self.visited      = <int *> sig_malloc(self.num_darts * sizeof(int))
+        self.face_freeze  = <int *> sig_malloc(self.num_darts * sizeof(int))
 
         if self.got_memory() == 0:
             # dealloc is NULL-safe and frees everything that did get alloc'd
-            raise MemoryError, "Error allocating memory for graph genus a"
+            raise MemoryError("Error allocating memory for graph genus a")
 
-        w = <int *>sage_malloc((self.num_verts + self.num_darts) * sizeof(int))
+        w = <int *>sig_malloc((self.num_verts + self.num_darts) * sizeof(int))
         self.vertex_darts[0] = w
-        s = <int *>sage_malloc( 2 * (self.num_darts - self.num_verts) * sizeof(int))
+        s = <int *>sig_malloc( 2 * (self.num_darts - self.num_verts) * sizeof(int))
         self.swappers[0] = s
 
         if w == NULL or s == NULL:
             # dealloc is NULL-safe and frees everything that did get alloc'd
-            raise MemoryError, "Error allocating memory for graph genus b"
+            raise MemoryError("Error allocating memory for graph genus b")
 
         for v in range(self.num_verts):
             if not G.has_vertex(v):
-                raise ValueError, "Please relabel G so vertices are 0, ..., n-1"
+                raise ValueError("Please relabel G so vertices are 0, ..., n-1")
 
             dv = G.in_degrees[v]
             self.degree[v] = 0
@@ -255,18 +257,18 @@ cdef class simple_connected_genus_backtracker:
 #   good for debugging
 #    def dump(self):
 #        cdef int v, j
-#        print "vertex darts:",
+#        print("vertex darts:", end="")
 #        for v in range(self.num_verts):
-#            print '(',
+#            print('(', end="")
 #            for j in range(self.degree[v] + 1):
-#                print self.vertex_darts[v][j],
-#            print ')',
-#        print "\n"
+#                print(self.vertex_darts[v][j], end="")
+#            print(')', end="")
+#        print("\n")
 
-#        print "face map: [",
+#        print("face map: [", end="")
 #        for v in range(self.num_darts):
-#            print self.face_map[v],
-#        print ']'
+#            print(self.face_map[v], end="")
+#        print(']')
 
 
     cdef inline void freeze_face(self):
@@ -285,7 +287,7 @@ cdef class simple_connected_genus_backtracker:
         will return the first minimal embedding that we found.
         Otherwise, this returns the first embedding considered.
 
-        DOCTESTS::
+        EXAMPLES::
 
             sage: import sage.graphs.genus
             sage: G = Graph(graphs.CompleteGraph(5), implementation='c_graph', sparse=False)
@@ -700,7 +702,7 @@ def simple_connected_graph_genus(G, set_embedding = False, check = True, minimal
     else:
         if check:
             if not G.is_connected():
-                raise ValueError, "Cannot compute the genus of a disconnected graph"
+                raise ValueError("Cannot compute the genus of a disconnected graph")
 
             if G.is_directed() or G.has_multiple_edges() or G.has_loops():
                 G = G.to_simple()

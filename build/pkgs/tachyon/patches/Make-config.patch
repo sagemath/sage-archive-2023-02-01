@@ -14,7 +14,7 @@
 -#PNGLIB= -L/usr/local/lib -lpng -lz
 +USEPNG= -DUSEPNG
 +PNGINC= -I$(SAGE_LOCAL)/include
-+PNGLIB= -L$(SAGE_LOCAL)/lib -lpng12 -lz
++PNGLIB= -L$(SAGE_LOCAL)/lib -lpng12 -lz $(LDFLAGS)
 +
  
  

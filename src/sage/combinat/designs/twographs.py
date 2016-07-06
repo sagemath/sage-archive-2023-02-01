@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Two-graphs
 
@@ -47,12 +48,15 @@ This module's functions are the following :
     :widths: 30, 70
     :delim: |
 
+    :func:`~taylor_twograph` | constructs Taylor's two-graph for `U_3(q)`
     :func:`~is_twograph`         | checks that the incidence system is a two-graph
     :func:`~twograph_descendant`  | returns the descendant graph w.r.t. a given vertex of the two-graph of a given graph
 
 Methods
 ---------
 """
+from __future__ import absolute_import
+
 from sage.combinat.designs.incidence_structures import IncidenceStructure
 from itertools import combinations
 
@@ -169,6 +173,31 @@ class TwoGraph(IncidenceStructure):
         """
         return super(TwoGraph, self).complement(uniform=True)
 
+def taylor_twograph(q):
+    r"""
+    constructing Taylor's two-graph for `U_3(q)`, `q` odd prime power
+
+    The Taylor's two-graph `T` has the `q^3+1` points of the projective plane over `F_{q^2}`
+    singular w.r.t. the non-degenerate Hermitean form `S` preserved by `U_3(q)` as its ground set;
+    the triples are `\{x,y,z\}` satisfying the condition that `S(x,y)S(y,z)S(z,x)` is square
+    (respectively non-square) if `q \cong 1 \mod 4` (respectively if `q \cong 3 \mod 4`).
+    See §7E of [BvL84]_.
+
+    There is also a `2-(q^3+1,q+1,1)`-design on these `q^3+1` points, known as the unital of
+    order `q`, also invariant under `U_3(q)`.
+
+    INPUT:
+
+    - ``q`` -- a power of an odd prime
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.twographs import taylor_twograph
+        sage: T=taylor_twograph(3); T
+        Incidence structure with 28 points and 1260 blocks
+    """
+    from sage.graphs.generators.classical_geometries import TaylorTwographSRG
+    return TaylorTwographSRG(q).twograph()
 
 def is_twograph(T):
     r"""
@@ -214,10 +243,12 @@ def is_twograph(T):
         for x in B:
             v_to_blocks[x].add(B)
 
-    has_triple = lambda (x,y,z) : bool(v_to_blocks[x]&v_to_blocks[y]&v_to_blocks[z])
+    def has_triple(x_y_z):
+        x, y, z = x_y_z
+        return bool(v_to_blocks[x] & v_to_blocks[y] & v_to_blocks[z])
 
     # Check that every quadruple contains an even number of triples
-    from __builtin__ import sum
+    from six.moves.builtins import sum
     for quad in combinations(range(T.num_points()),4):
         if sum(map(has_triple,combinations(quad,3))) % 2 == 1:
             return False

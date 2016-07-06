@@ -14,6 +14,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
+from __future__ import print_function
 
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -25,22 +26,17 @@ def BullGraph():
     Returns a bull graph with 5 nodes.
 
     A bull graph is named for its shape. It's a triangle with horns.
-    This constructor depends on `NetworkX <http://networkx.lanl.gov>`_
-    numeric labeling. For more information, see this
+    For more information, see this
     :wikipedia:`Wikipedia article on the bull graph <Bull_graph>`.
 
     PLOTTING:
 
-    Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, the bull graph
-    is drawn as a triangle with the first node (0) on the bottom. The
-    second and third nodes (1 and 2) complete the triangle. Node 3 is
-    the horn connected to 1 and node 4 is the horn connected to node
-    2.
+    Upon construction, the position dictionary is filled to override the
+    spring-layout algorithm. By convention, the bull graph is drawn as a
+    triangle with the first node (0) on the bottom. The second and third nodes
+    (1 and 2) complete the triangle. Node 3 is the horn connected to 1 and node
+    4 is the horn connected to node 2.
 
-    ALGORITHM:
-
-    Uses `NetworkX <http://networkx.lanl.gov>`_.
 
     EXAMPLES:
 
@@ -158,8 +154,6 @@ def CircularLadderGraph(n):
     ends, i.e.: a ladder bent around so that top meets bottom. Thus it
     can be described as two parallel cycle graphs connected at each
     corresponding node pair.
-
-    This constructor depends on NetworkX numeric labels.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the circular
@@ -555,12 +549,50 @@ def CompleteMultipartiteGraph(l):
         sage: g.chromatic_number()
         3
     """
+    
+    n = sum(l) #getting the number of vertices
+    r = len(l) #getting the number of partitions
+    positions = {}
+
+    if r > 2: #position code gives bad results on bipartite or isolated graphs
+
+        '''
+        Produce a layout of the vertices so that vertices in the same
+        vertex set are adjecent and clearly separated from vertices in other
+        vertex sets.
+
+        This is done by calculating the vertices of an r-gon then
+        calculating the slope between adjacent vertices. We then 'walk'
+        around the r-gon placing graph vertices in regular intervals between 
+        adjacent vertices of the r-gon.
+
+        Makes a nicely organized graph like in this picture: 
+        https://commons.wikimedia.org/wiki/File:Turan_13-4.svg
+        '''
+
+        points = [[cos(2*pi*i/r),sin(2*pi*i/r)] for i in range(r)]
+        slopes = [[(points[(i+1)%r][0]-points[i%r][0]),
+                   (points[(i+1)%r][1]-points[i%r][1])] for i in range(r)]
+
+        counter = 0
+
+        for i in range(len(l)):
+            vertex_set_size = l[i]+1
+            for j in range(1,vertex_set_size):
+                x = points[i][0]+slopes[i][0]*j/(vertex_set_size)
+                y = points[i][1]+slopes[i][1]*j/(vertex_set_size)
+                positions[counter] = (x,y)
+                counter += 1
+
     g = Graph()
     for i in l:
         g = g + CompleteGraph(i)
 
     g = g.complement()
+    g.set_pos(positions)
     g.name("Multipartite Graph with set sizes "+str(l))
+
+
 
     return g
 
@@ -570,8 +602,6 @@ def DiamondGraph():
 
     A diamond graph is a square with one pair of diagonal nodes
     connected.
-
-    This constructor depends on NetworkX numeric labeling.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the diamond
@@ -641,7 +671,7 @@ def ToroidalGrid2dGraph(n1, n2):
     2-dimensional grid is not ::
 
         sage: tgrid = graphs.ToroidalGrid2dGraph(8,9)
-        sage: print tgrid
+        sage: print(tgrid)
         Toroidal 2D Grid Graph with parameters 8,9
         sage: grid = graphs.Grid2dGraph(8,9)
         sage: grid.is_regular()
@@ -832,6 +862,42 @@ def GridGraph(dim_list):
         sage: g.name()
         'Grid Graph for [2, 4, 3]'
 
+    One dimensional grids (i.e., path) have simple vertex labels::
+
+        sage: g = graphs.GridGraph([5])
+        sage: g.vertices()
+        [0, 1, 2, 3, 4]
+
+    The graph is correct::
+
+        sage: dim = [randint(1,4) for i in range(4)]
+        sage: g = graphs.GridGraph(dim)
+        sage: import networkx
+        sage: h = Graph( networkx.grid_graph(list(dim)) )
+        sage: g.is_isomorphic(h)
+        True
+
+    Trivial cases::
+
+        sage: g = graphs.GridGraph([]); g; g.vertices()
+        Grid Graph for []: Graph on 0 vertices
+        []
+        sage: g = graphs.GridGraph([1]); g; g.vertices()
+        Grid Graph for [1]: Graph on 1 vertex
+        [0]
+        sage: g = graphs.GridGraph([2]); g; g.vertices()
+        Grid Graph for [2]: Graph on 2 vertices
+        [0, 1]
+        sage: g = graphs.GridGraph([1,1]); g; g.vertices()
+        Grid Graph for [1, 1]: Graph on 1 vertex
+        [(0, 0)]
+        sage: g = graphs.GridGraph([1, 1, 1]); g; g.vertices()
+        Grid Graph for [1, 1, 1]: Graph on 1 vertex
+        [(0, 0, 0)]
+        sage: g = graphs.GridGraph([1,1,2]); g; g.vertices()
+        Grid Graph for [1, 1, 2]: Graph on 2 vertices
+        [(0, 0, 0), (0, 0, 1)]
+
     All dimensions must be positive integers::
 
         sage: g = graphs.GridGraph([2,-1,3])
@@ -839,13 +905,33 @@ def GridGraph(dim_list):
         ...
         ValueError: All dimensions must be positive integers !
     """
-    import networkx
     dim = [int(a) for a in dim_list]
     if any(a <= 0 for a in dim):
         raise ValueError("All dimensions must be positive integers !")
-    # We give a copy of dim to networkx because it modifies the list
-    G = networkx.grid_graph(list(dim))
-    return graph.Graph(G, name="Grid Graph for " + str(dim))
+
+    g = Graph()
+    n_dim = len(dim)
+    if n_dim==1:
+        # Vertices are labeled from 0 to dim[0]-1
+        g = PathGraph(dim[0])
+    elif n_dim==2:
+        # We use the Grid2dGraph generator to also get the positions
+        g = Grid2dGraph(*dim)
+    elif n_dim>2:
+        # Vertices are tuples of dimension n_dim, and the graph contains at
+        # least vertex (0, 0, ..., 0)
+        g.add_vertex(tuple([0]*n_dim))
+        import itertools
+        for u in itertools.product(*[range(d) for d in dim]):
+            for i in range(n_dim):
+                if u[i]+1<dim[i]:
+                    v = list(u)
+                    v[i] = u[i]+1
+                    g.add_edge(u, tuple(v))
+
+    g.name("Grid Graph for {}".format(dim))
+    return g
+
 
 def HouseGraph():
     """
@@ -853,8 +939,6 @@ def HouseGraph():
 
     A house graph is named for its shape. It is a triangle (roof) over a
     square (walls).
-
-    This constructor depends on NetworkX numeric labeling.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the house
@@ -884,8 +968,6 @@ def HouseXGraph():
     upper-right corner is connected to the lower-left. And the
     upper-left corner is connected to the lower-right.
 
-    This constructor depends on NetworkX numeric labeling.
-
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the house X
     graph is drawn with the first node in the lower-left corner of the
@@ -913,8 +995,6 @@ def LadderGraph(n):
     A ladder graph is a basic structure that is typically displayed as
     a ladder, i.e.: two parallel path graphs connected at each
     corresponding node pair.
-
-    This constructor depends on NetworkX numeric labels.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, each ladder
@@ -964,8 +1044,6 @@ def LollipopGraph(n1, n2):
 
     A lollipop graph is a path graph (order n2) connected to a complete
     graph (order n1). (A barbell graph minus one of the bells).
-
-    This constructor depends on NetworkX numeric labels.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the complete
@@ -1117,8 +1195,6 @@ def StarGraph(n):
 
     A Star graph is a basic structure where one node is connected to
     all other nodes.
-
-    This constructor is dependent on NetworkX numeric labels.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, each star

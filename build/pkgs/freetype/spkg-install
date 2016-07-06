@@ -8,7 +8,7 @@ fi
 
 if [  "$SAGE64" = "yes" ]; then
    CFLAGS="-O2 -g -m64 "; export CFLAGS
-   LDFLAGS="-m64"; export LDFLAGS
+   LDFLAGS="-m64 $LDFLAGS"; export LDFLAGS
 fi
 
 cd src

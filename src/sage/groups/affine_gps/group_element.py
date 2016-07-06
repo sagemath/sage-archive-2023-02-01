@@ -31,18 +31,20 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2006 David Joyner and William Stein <wstein@gmail.com>
+#       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.matrix.matrix import is_Matrix
 from sage.misc.cachefunc import cached_method
-from sage.groups.matrix_gps.group_element import MatrixGroupElement_base
+from sage.structure.element import MultiplicativeGroupElement
 
-class AffineGroupElement(MatrixGroupElement_base):
+class AffineGroupElement(MultiplicativeGroupElement):
     """
     An affine group element.
 
@@ -84,6 +86,20 @@ class AffineGroupElement(MatrixGroupElement_base):
         sage: G(2)
               [2 0]     [0]
         x |-> [0 2] x + [0]
+
+    Conversion from a matrix and a matrix group element::
+
+        sage: M = Matrix(4, 4, [0, 0, -1, 1, 0, -1, 0, 1, -1, 0, 0, 1, 0, 0, 0, 1])
+        sage: A = AffineGroup(3, ZZ)
+        sage: A(M)
+              [ 0  0 -1]     [1]
+        x |-> [ 0 -1  0] x + [1]
+              [-1  0  0]     [1]
+        sage: G = MatrixGroup([M])
+        sage: A(G.0)
+              [ 0  0 -1]     [1]
+        x |-> [ 0 -1  0] x + [1]
+              [-1  0  0]     [1]
     """
     def __init__(self, parent, A, b=0, convert=True, check=True):
         r"""
@@ -95,10 +111,14 @@ class AffineGroupElement(MatrixGroupElement_base):
             sage: g = G.random_element()
             sage: TestSuite(g).run()
         """
+        try:
+            A = A.matrix()
+        except AttributeError:
+            pass
         if is_Matrix(A) and A.nrows() == A.ncols() == parent.degree()+1:
             g = A
-            A = g.submatrix(0,0,2,2)
             d = parent.degree()
+            A = g.submatrix(0, 0, d, d)
             b = [ g[i,d] for i in range(d) ]
             convert = True
         if convert:
@@ -357,7 +377,7 @@ class AffineGroupElement(MatrixGroupElement_base):
             True
         """
         if self_on_left:
-            return self.__call__(x)
+            return self(x)
 
     def inverse(self):
         """
@@ -415,4 +435,27 @@ class AffineGroupElement(MatrixGroupElement_base):
         if (c != 0):
             return c
         return cmp(self._b, other._b)
+
+    def list(self):
+        """
+        Return list representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = AffineGroup(3, QQ)
+            sage: g = F([1,2,3,4,5,6,7,8,0], [10,11,12])
+            sage: g
+                  [1 2 3]     [10]
+            x |-> [4 5 6] x + [11]
+                  [7 8 0]     [12]
+            sage: g.matrix()
+            [ 1  2  3|10]
+            [ 4  5  6|11]
+            [ 7  8  0|12]
+            [--------+--]
+            [ 0  0  0| 1]
+            sage: g.list()
+            [[1, 2, 3, 10], [4, 5, 6, 11], [7, 8, 0, 12], [0, 0, 0, 1]]
+        """
+        return [r.list() for r in self.matrix().rows()]
 

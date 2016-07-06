@@ -78,6 +78,7 @@ Calculus
 * :doc:`Symbolic Calculus <calculus/index>`
 * :doc:`Mathematical Constants <constants/index>`
 * :doc:`Elementary and Special Functions <functions/index>`
+* :doc:`Asymptotic Expansions <asymptotic/index>` (experimental)
 
 Geometry and Topology
 ---------------------
@@ -85,7 +86,9 @@ Geometry and Topology
 * :doc:`Combinatorial Geometry <geometry/index>`
 * :doc:`Cell Complexes and their Homology <homology/index>`
 * :doc:`Differential Forms <tensor/index>`
+* :doc:`Manifolds <manifolds/index>`
 * :doc:`Parametrized Surfaces <riemannian_geometry/index>`
+* :doc:`Knot Theory <knots/index>`
 
 Number Theory, Algebraic Geometry
 ---------------------------------
@@ -94,7 +97,7 @@ Number Theory, Algebraic Geometry
 * :doc:`Quadratic Forms <quadratic_forms/index>`
 * :doc:`L-Functions <lfunctions/index>`
 * :doc:`Schemes <schemes/index>`
-* :doc:`Elliptic, Plane, and Hyperelliptic Curves <plane_curves/index>`
+* :doc:`Elliptic, Plane, and Hyperelliptic Curves <curves/index>`
 * :doc:`Arithmetic Subgroups of SL_2(Z) <arithgroup/index>`
 * :doc:`General Hecke Algebras and Hecke Modules <hecke/index>`
 * :doc:`Modular Symbols <modsym/index>`

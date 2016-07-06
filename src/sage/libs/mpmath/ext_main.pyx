@@ -5,8 +5,9 @@ Implements mpf and mpc types, with binary operations and support
 for interaction with other types. Also implements the main
 context class, and related utilities.
 """
+from __future__ import print_function
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 from cpython.int cimport *
 from cpython.long cimport *
@@ -117,13 +118,13 @@ cdef int MPF_set_any(MPF *re, MPF *im, x, MPopts opts, bint str_tuple_ok) except
         MPF_set(re, &(<mpc>x).re)
         MPF_set(im, &(<mpc>x).im)
         return 2
-    if PyInt_Check(x) or PyLong_Check(x) or isinstance(x, Integer):
+    if isinstance(x, int) or isinstance(x, long) or isinstance(x, Integer):
         MPF_set_int(re, x)
         return 1
-    if PyFloat_Check(x):
+    if isinstance(x, float):
         MPF_set_double(re, x)
         return 1
-    if PyComplex_Check(x):
+    if isinstance(x, complex):
         MPF_set_double(re, x.real)
         MPF_set_double(im, x.imag)
         return 2
@@ -570,7 +571,7 @@ cdef class Context:
             s = (<mpc>x).re.special
             t = (<mpc>x).im.special
             return s == S_NAN or t == S_NAN
-        if PyInt_CheckExact(x) or PyLong_CheckExact(x) or isinstance(x, Integer) \
+        if type(x) is int or type(x) is long or isinstance(x, Integer) \
             or isinstance(x, rationallib.mpq):
             return False
         typ = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, 0)
@@ -613,7 +614,7 @@ cdef class Context:
             s = (<mpc>x).re.special
             t = (<mpc>x).im.special
             return s == S_INF or s == S_NINF or t == S_INF or t == S_NINF
-        if PyInt_CheckExact(x) or PyLong_CheckExact(x) or isinstance(x, Integer) \
+        if type(x) is int or type(x) is long or isinstance(x, Integer) \
             or isinstance(x, rationallib.mpq):
             return False
         typ = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, 0)
@@ -662,7 +663,7 @@ cdef class Context:
             if re == libmp.fzero: return im_normal
             if im == libmp.fzero: return re_normal
             return re_normal and im_normal
-        if PyInt_CheckExact(x) or PyLong_CheckExact(x) or isinstance(x, Integer) \
+        if type(x) is int or type(x) is long or isinstance(x, Integer) \
             or isinstance(x, rationallib.mpq):
             return bool(x)
         x = ctx.convert(x)
@@ -700,7 +701,7 @@ cdef class Context:
         cdef MPF v
         cdef MPF w
         cdef int typ
-        if PyInt_CheckExact(x) or PyLong_CheckExact(x) or isinstance(x, Integer):
+        if type(x) is int or type(x) is long or isinstance(x, Integer):
             return True
         if isinstance(x, mpf):
             v = (<mpf>x).value
@@ -985,7 +986,7 @@ cdef class Context:
         """
         cdef MPF v
         cdef bint ismpf, ismpc
-        if PyInt_Check(x) or PyLong_Check(x) or isinstance(x, Integer):
+        if isinstance(x, int) or isinstance(x, long) or isinstance(x, Integer):
             return int(x), 'Z'
         if isinstance(x, tuple):
             p, q = x
@@ -1064,7 +1065,7 @@ cdef class Context:
 
         """
         cdef int typ
-        if PyInt_Check(x) or PyLong_Check(x) or isinstance(x, Integer):
+        if isinstance(x, int) or isinstance(x, long) or isinstance(x, Integer):
             mpz_set_integer(tmp_opx_re.man, x)
             if mpz_sgn(tmp_opx_re.man) == 0:
                 return global_context.ninf
@@ -1187,11 +1188,11 @@ cdef class Context:
 
             sage: from mpmath import mp
             sage: mp.dps = 15
-            sage: print mp.sqrt(2)   # indirect doctest
+            sage: print(mp.sqrt(2))   # indirect doctest
             1.4142135623731
-            sage: print mp.sqrt(-2)
+            sage: print(mp.sqrt(-2))
             (0.0 + 1.4142135623731j)
-            sage: print mp.sqrt(2+2j)
+            sage: print(mp.sqrt(2+2j))
             (1.55377397403004 + 0.643594252905583j)
 
         """
@@ -1225,9 +1226,9 @@ cdef class Context:
 
             sage: from mpmath import mp
             sage: mp.dps = 15
-            sage: print mp.exp(2)   # indirect doctest
+            sage: print(mp.exp(2))   # indirect doctest
             7.38905609893065
-            sage: print mp.exp(2+2j)
+            sage: print(mp.exp(2+2j))
             (-3.07493232063936 + 6.71884969742825j)
 
         """
@@ -1257,9 +1258,9 @@ cdef class Context:
 
             sage: from mpmath import mp
             sage: mp.dps = 15
-            sage: print mp.cos(2)   # indirect doctest
+            sage: print(mp.cos(2))   # indirect doctest
             -0.416146836547142
-            sage: print mp.cos(2+2j)
+            sage: print(mp.cos(2+2j))
             (-1.56562583531574 - 3.29789483631124j)
 
         """
@@ -1294,9 +1295,9 @@ cdef class Context:
 
             sage: from mpmath import mp
             sage: mp.dps = 15
-            sage: print mp.sin(2)   # indirect doctest
+            sage: print(mp.sin(2))   # indirect doctest
             0.909297426825682
-            sage: print mp.sin(2+2j)
+            sage: print(mp.sin(2+2j))
             (3.42095486111701 - 1.50930648532362j)
 
         """
@@ -1330,11 +1331,11 @@ cdef class Context:
         EXAMPLES::
 
             sage: from mpmath import mp
-            sage: print mp.ln(2)   # indirect doctest
+            sage: print(mp.ln(2))   # indirect doctest
             0.693147180559945
-            sage: print mp.ln(-2)
+            sage: print(mp.ln(-2))
             (0.693147180559945 + 3.14159265358979j)
-            sage: print mp.ln(2+2j)
+            sage: print(mp.ln(2+2j))
             (1.03972077083992 + 0.785398163397448j)
 
         """
@@ -1463,7 +1464,7 @@ cdef class wrapped_libmp_function:
             return rc
         x = global_context.convert(x)
         if hasattr(x, "_mpf_") or hasattr(x, "_mpc_"):
-            return self.__call__(x, **kwargs)
+            return self(x, **kwargs)
         #if hasattr(x, "_mpi_"):
         #    if self.mpi_f:
         #        return global_context.make_mpi(self.mpi_f(x._mpi_, prec))
@@ -1672,7 +1673,7 @@ cdef class mpf_base(mpnumber):
             "mpf('3.25')"
         """
         if global_context.pretty:
-            return self.__str__()
+            return str(self)
         n = repr_dps(global_opts.prec)
         return "mpf('%s')" % to_str(self._mpf_, n)
 
@@ -2129,7 +2130,7 @@ cdef class mpf(mpf_base):
             sage: mp.prec = 53
             sage: (+x).man
             6004799503160661
-            sage: print +x
+            sage: print(+x)
             0.333333333333333
         """
         cdef mpf r = mpf.__new__(mpf)
@@ -2213,9 +2214,9 @@ cdef class constant(mpf_base):
         custom precision and rounding direction can also be passed ::
 
             sage: from mpmath import pi
-            sage: print pi(dps=5, rounding='d')
+            sage: print(pi(dps=5, rounding='d'))
             3.1415901184082
-            sage: print pi(dps=5, rounding='u')
+            sage: print(pi(dps=5, rounding='u'))
             3.14159393310547
 
         """
@@ -2257,7 +2258,7 @@ cdef class constant(mpf_base):
 
         """
         if global_context.pretty:
-            return self.__str__()
+            return str(self)
         return "<%s: %s~>" % (self.name, global_context.nstr(self))
 
     def __nonzero__(self):
@@ -2305,7 +2306,7 @@ cdef class constant(mpf_base):
         Computes the square root of the constant ::
 
             sage: from mpmath import pi
-            sage: print pi.sqrt()
+            sage: print(pi.sqrt())
             1.77245385090552
         """
         return mpf(self).sqrt()
@@ -2316,7 +2317,7 @@ cdef class constant(mpf_base):
         Convert to a fixed-point integer ::
 
             sage: from mpmath import pi
-            sage: print float(pi.to_fixed(10) / 2.0**10)
+            sage: float(pi.to_fixed(10) / 2.0**10)
             3.140625
         """
         return libmp.to_fixed(self._mpf_, prec)
@@ -2429,7 +2430,7 @@ cdef class mpc(mpnumber):
             "mpc(real='2.0', imag='3.0')"
         """
         if global_context.pretty:
-            return self.__str__()
+            return str(self)
         re, im = self._mpc_
         n = repr_dps(global_opts.prec)
         return "mpc(real='%s', imag='%s')" % (to_str(re, n), to_str(im, n))
@@ -2622,7 +2623,7 @@ def hypsum_internal(int p, int q, param_types, str ztype, coeffs, z,
 
         sage: from mpmath import mp  # indirect doctest
         sage: mp.dps = 15
-        sage: print mp.hyp1f1(1,2,3)
+        sage: print(mp.hyp1f1(1,2,3))
         6.36184564106256
 
     TODO: convert mpf/mpc parameters to fixed-point numbers here

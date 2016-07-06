@@ -331,7 +331,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             sage: f.element()
             1/x^2*y + x/(x^2 + 1)
             sage: type(f.element())
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
         """
         return self._x
 
@@ -361,7 +361,18 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         """
         return not not self._x
 
-    cpdef int _cmp_(self, Element other) except -2:
+    def __hash__(self):
+        """
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
+            sage: len({hash(y^i+x^j) for i in [-2..2] for j in [-2..2]}) == 25
+            True
+        """
+        return hash(self._x)
+
+    cpdef int _cmp_(self, other) except -2:
         """
         EXAMPLES::
 
@@ -376,7 +387,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         cdef FunctionFieldElement right = <FunctionFieldElement>other
         return cmp(left._x, right._x)
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         EXAMPLES::
 
@@ -393,7 +404,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         res._x = self._x + (<FunctionFieldElement>right)._x
         return res
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         EXAMPLES::
 
@@ -408,7 +419,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         res._x = self._x - (<FunctionFieldElement>right)._x
         return res
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         EXAMPLES::
 
@@ -421,7 +432,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         res._x = (self._x * (<FunctionFieldElement>right)._x) % self._parent.polynomial()
         return res
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         EXAMPLES::
 
@@ -448,7 +459,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             1
         """
         if self.is_zero():
-            raise ZeroDivisionError, "Cannot invert 0"
+            raise ZeroDivisionError("Cannot invert 0")
         P = self._parent
         return P(self._x.xgcd(P._polynomial)[1])
 
@@ -563,7 +574,20 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         return not not self._x
 
-    cpdef int _cmp_(self, Element other) except -2:
+    def __hash__(self):
+        """
+        TESTS:
+
+        It would be nice if the following would produce a list of
+        15 distinct hashes::
+
+            sage: K.<t> = FunctionField(QQ)
+            sage: len({hash(t^i+t^j) for i in [-2..2] for j in [i..2]})
+            10
+        """
+        return hash(self._x)
+
+    cpdef int _cmp_(self, other) except -2:
         """
         EXAMPLES::
 
@@ -580,7 +604,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         c = cmp(left._parent, right._parent)
         return c or cmp(left._x, right._x)
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         EXAMPLES::
 
@@ -592,7 +616,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         res._x = self._x + (<FunctionFieldElement>right)._x
         return res
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         EXAMPLES::
 
@@ -604,7 +628,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         res._x = self._x - (<FunctionFieldElement>right)._x
         return res
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         EXAMPLES::
 
@@ -616,7 +640,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         res._x = self._x * (<FunctionFieldElement>right)._x
         return res
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         EXAMPLES::
 

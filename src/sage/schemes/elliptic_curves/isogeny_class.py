@@ -24,6 +24,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import print_function
 
 import six
 from sage.structure.sage_object import SageObject
@@ -61,7 +62,7 @@ class IsogenyClass_EC(SageObject):
         EXAMPLES::
 
             sage: cls = EllipticCurve('1011b1').isogeny_class()
-            sage: print "\n".join([repr(E) for E in cls.curves])
+            sage: print("\n".join([repr(E) for E in cls.curves]))
             Elliptic Curve defined by y^2 + x*y = x^3 - 8*x - 9 over Rational Field
             Elliptic Curve defined by y^2 + x*y = x^3 - 23*x + 30 over Rational Field
         """
@@ -402,7 +403,7 @@ class IsogenyClass_EC(SageObject):
 
         REFERENCES:
 
-        .. [M78] B. Mazur.  Rational Isogenies of Prime Degree.
+        .. [M78] \B. Mazur.  Rational Isogenies of Prime Degree.
           *Inventiones mathematicae* 44,129-162 (1978).
         """
         from sage.graphs.graph import Graph
@@ -516,7 +517,7 @@ class IsogenyClass_EC(SageObject):
         EXAMPLES::
 
             sage: isocls = EllipticCurve('15a1').isogeny_class()
-            sage: print "\n".join([repr(C) for C in isocls.curves])
+            sage: print("\n".join([repr(C) for C in isocls.curves]))
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 10*x - 10 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 5*x + 2 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 + 35*x - 28 over Rational Field
@@ -526,7 +527,7 @@ class IsogenyClass_EC(SageObject):
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 110*x - 880 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 2160*x - 39540 over Rational Field
             sage: isocls2 = isocls.reorder('lmfdb')
-            sage: print "\n".join([repr(C) for C in isocls2.curves])
+            sage: print("\n".join([repr(C) for C in isocls2.curves]))
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 2160*x - 39540 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 135*x - 660 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 110*x - 880 over Rational Field
@@ -620,12 +621,23 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
 
             sage: isogs = C.isogenies()
             sage: [((i,j),isogs[i][j].degree()) for i in range(4) for j in range(4) if isogs[i][j]!=0]
-            [((0, 1), 3), ((2, 1), 2), ((3, 0), 2), ((3, 2), 3)]
+            [((0, 1), 3),
+            ((0, 3), 2),
+            ((1, 0), 3),
+            ((1, 2), 2),
+            ((2, 1), 2),
+            ((2, 3), 3),
+            ((3, 0), 2),
+            ((3, 2), 3)]
             sage: [((i,j),isogs[i][j].x_rational_map()) for i in range(4) for j in range(4) if isogs[i][j]!=0]
             [((0, 1), (1/9*x^3 - 12)/x^2),
-            ((2, 1), (-1/2*i*x^2 + x)/(x + 3/2*i)),
-            ((3, 0), (-1/2*i*x^2 - x - 4*i)/(x - 5/2*i)),
-            ((3, 2), (1/9*x^3 - 4/3*i*x^2 - 34/3*x + 226/9*i)/(x^2 - 8*i*x - 16))]
+             ((0, 3), (-1/2*i*x^2 + i*x - 12*i)/(x - 3)),
+             ((1, 0), (x^3 + 4)/x^2),
+             ((1, 2), (-1/2*i*x^2 - i*x - 2*i)/(x + 1)),
+             ((2, 1), (1/2*i*x^2 - x)/(x + 3/2*i)),
+             ((2, 3), (x^3 + 4*i*x^2 - 10*x - 10*i)/(x^2 + 4*i*x - 4)),
+             ((3, 0), (1/2*i*x^2 + x + 4*i)/(x - 5/2*i)),
+             ((3, 2), (1/9*x^3 - 4/3*i*x^2 - 34/3*x + 226/9*i)/(x^2 - 8*i*x - 16))]
 
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve([1+i, -i, i, 1, 0])
@@ -667,10 +679,10 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             [1 2]
             [2 1]
             sage: [E.ainvs() for E in C]
-            [(0, 0, 0, -25762110*c^2 - 67447215, -154360009760*c^2 - 404119737340),
-            (0, 0, 0, 130763490*c^2 + 342343485, 1391590873420*c^3 + 3643232206680*c)]
+            [(0, 0, 0, 83490*c^2 - 147015, -64739840*c^2 - 84465260),
+            (0, 0, 0, -161535*c^2 + 70785, -62264180*c^3 + 6229080*c)]
             sage: C.isogenies()[0][1]
-            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-25762110*c^2-67447215)*x + (-154360009760*c^2-404119737340) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (130763490*c^2+342343485)*x + (-1391590873420*c^3-3643232206680*c) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1
+            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (83490*c^2-147015)*x + (-64739840*c^2-84465260) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (-161535*c^2+70785)*x + (-62264180*c^3+6229080*c) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1
 
         TESTS::
 
@@ -729,6 +741,19 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             [3 1 2 6]
             [6 2 1 3]
             [2 6 3 1]
+
+        TESTS:
+
+        Check that :trac:`19030` is fixed (codomains of reverse isogenies were wrong)::
+
+            sage: K.<i> = NumberField(x^2+1)
+            sage: E = EllipticCurve([1, i + 1, 1, -72*i + 8, 95*i + 146])
+            sage: C = E.isogeny_class()
+            sage: curves = C.curves
+            sage: isos = C.isogenies()
+            sage: isos[0][3].codomain() == curves[3]
+            True
+
         """
         from sage.schemes.elliptic_curves.ell_curve_isogeny import fill_isogeny_matrix, unfill_isogeny_matrix
         from sage.matrix.all import MatrixSpace
@@ -750,7 +775,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         curves = [E]
         ncurves = 1
         degs = []
-        # tuples (i,j,l,phi) where curve i is l-isogenous to curve j
+        # tuples (i,j,l,phi) where curve i is l-isogenous to curve j via phi
         tuples = []
 
         def add_tup(t):
@@ -791,8 +816,13 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
                 E2 = phi.codomain()
                 d = phi.degree()
                 js = [j for j,E3 in enumerate(curves) if E2.is_isomorphic(E3)]
-                if js: # seen codomain already
-                    add_tup([i,js[0],d,phi])
+                if js: # seen codomain already -- up to isomorphism
+                    j = js[0]
+                    if phi.codomain()!=curves[j]:
+                        iso = E2.isomorphism_to(curves[j])
+                        phi.set_post_isomorphism(iso)
+                    assert phi.domain()==curves[i] and phi.codomain()==curves[j]
+                    add_tup([i,j,d,phi])
                 else:
                     curves.append(E2)
                     if verbose:
@@ -814,16 +844,17 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         self.curves = sorted(curves,key=key_function)
         perm = dict([(i,self.curves.index(E)) for i,E in enumerate(curves)])
         if verbose:
-            print "Sorting permutation = %s" % perm
+            print("Sorting permutation = %s" % perm)
 
         mat = MatrixSpace(ZZ,ncurves)(0)
         self._maps = [[0]*ncurves for i in range(ncurves)]
         for i,j,l,phi in tuples:
-            mat[perm[i],perm[j]] = l
-            self._maps[perm[i]][perm[j]] = phi
+            if phi!=0:
+                mat[perm[i],perm[j]] = l
+                self._maps[perm[i]][perm[j]] = phi
         self._mat = fill_isogeny_matrix(mat)
         if verbose:
-            print "Matrix = %s" % self._mat
+            print("Matrix = %s" % self._mat)
 
         if not E.has_rational_cm():
             self._qfmat = None
@@ -1156,7 +1187,7 @@ def possible_isogeny_degrees(E, verbose=False):
 
         from sage.libs.pari.all import pari
         from sage.sets.all import Set
-        from sage.rings.arith import kronecker_symbol
+        from sage.arith.all import kronecker_symbol
 
         n = E.base_field().absolute_degree()
         if not E.has_rational_cm():
@@ -1181,7 +1212,7 @@ def possible_isogeny_degrees(E, verbose=False):
 
         L = Set([ZZ(2), ZZ(3)]) if d==-3 else  Set([ZZ(2)])
         if verbose:
-            print ("initial primes: %s" % L)
+            print("initial primes: %s" % L)
 
         # Step 1: "vertical" primes l such that the isogenous curve
         # has CM by an order whose index is l or 1/l times the index
@@ -1199,7 +1230,7 @@ def possible_isogeny_degrees(E, verbose=False):
             L1 = Set(ram_l)
             L += L1
             if verbose:
-                print ("ramified primes: %s" % L1)
+                print("ramified primes: %s" % L1)
 
         else:
 
@@ -1208,7 +1239,7 @@ def possible_isogeny_degrees(E, verbose=False):
             L1 = Set([l for l in ram_l if d.valuation(l)>1])
             L += L1
             if verbose:
-                print ("upward primes: %s" % L1)
+                print("upward primes: %s" % L1)
 
             # Find the "downward" primes (index multiplied by l, class
             # number multiplied by l-kronecker_symbol(d,l)):
@@ -1219,7 +1250,7 @@ def possible_isogeny_degrees(E, verbose=False):
             L1 = Set([l for l in ram_l if l.divides(n_over_2h)])
             L += L1
             if verbose:
-                print ("downward ramified primes: %s" % L1)
+                print("downward ramified primes: %s" % L1)
 
         # (b) split primes; the suborder has class number (l-1)*h, so
         # l-1 must divide n/2h:
@@ -1228,7 +1259,7 @@ def possible_isogeny_degrees(E, verbose=False):
                   if (lm1+1).is_prime() and kronecker_symbol(d,lm1+1)==+1])
         L += L1
         if verbose:
-            print ("downward split primes: %s" % L1)
+            print("downward split primes: %s" % L1)
 
         # (c) inert primes; the suborder has class number (l+1)*h, so
         # l+1 must divide n/2h:
@@ -1237,7 +1268,7 @@ def possible_isogeny_degrees(E, verbose=False):
                   if (lp1-1).is_prime() and kronecker_symbol(d,lp1-1)==-1])
         L += L1
         if verbose:
-            print ("downward inert primes: %s" % L1)
+            print("downward inert primes: %s" % L1)
 
         # Now find primes represented by each form of discriminant d.
         # In the rational CM case, we use all forms associated to

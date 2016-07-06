@@ -128,7 +128,7 @@ class PariFunctionGenerator(object):
                         tech = objtogen(tech)
                         _tech = (<gen>tech).g
                     precision = prec_bits_to_words(precision)
-                    pari_catch_sig_on()
+                    sig_on()
                     cdef GEN _ret = bnfinit0(_P, flag, _tech, precision)
                     return pari_instance.new_gen(_ret)
             <BLANKLINE>
@@ -146,7 +146,7 @@ class PariFunctionGenerator(object):
                     cdef long _y = -1
                     if y is not None:
                         _y = pari_instance.get_var(y)
-                    pari_catch_sig_on()
+                    sig_on()
                     cdef GEN _ret = ellmodulareqn(N, _x, _y)
                     return pari_instance.new_gen(_ret)
             <BLANKLINE>
@@ -164,7 +164,7 @@ class PariFunctionGenerator(object):
                     :literal:`setrand(1)` twice will generate the exact same output.
                     ...
                     cdef GEN _n = n.g
-                    pari_catch_sig_on()
+                    sig_on()
                     setrand(_n)
                     pari_instance.clear_stack()
             <BLANKLINE>
@@ -217,8 +217,10 @@ class PariFunctionGenerator(object):
         s = "    def {function}({protoargs}):\n"
         s += '        r"""\n        {doc}\n        """\n'
         for a in args:
+            s += a.deprecation_warning_code(function)
+        for a in args:
             s += a.convert_code()
-        s += "        pari_catch_sig_on()\n"
+        s += "        sig_on()\n"
         s += ret.assign_code("{cname}({callargs})")
         s += ret.return_code()
 
@@ -233,9 +235,9 @@ class PariFunctionGenerator(object):
         D = sorted(D.values(), key=lambda d: d['function'])
         sys.stdout.write("Generating PARI functions:")
 
-        self.gen_file = open(self.gen_filename, 'w')
+        self.gen_file = open(self.gen_filename + '.tmp', 'w')
         self.gen_file.write(gen_banner)
-        self.instance_file = open(self.instance_filename, 'w')
+        self.instance_file = open(self.instance_filename + '.tmp', 'w')
         self.instance_file.write(instance_banner)
 
         for v in D:
@@ -249,3 +251,7 @@ class PariFunctionGenerator(object):
 
         self.gen_file.close()
         self.instance_file.close()
+
+        # All done? Let's commit.
+        os.rename(self.gen_filename + '.tmp', self.gen_filename)
+        os.rename(self.instance_filename + '.tmp', self.instance_filename)

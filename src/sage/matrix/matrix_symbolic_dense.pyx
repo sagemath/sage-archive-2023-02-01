@@ -239,7 +239,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             sage: symbolic_evalue
             1/2*sqrt(5) - 1/2
 
-            sage: qqbar_evalue == symbolic_evalue
+            sage: bool(qqbar_evalue == symbolic_evalue)
             True
 
         A slightly larger matrix with a "nice" spectrum. ::
@@ -364,7 +364,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
 
         """
         if not self.is_square():
-            raise ValueError, "exp only defined on square matrices"
+            raise ValueError("exp only defined on square matrices")
         if self.nrows() == 0:
             return self
         # Maxima's matrixexp function chokes on floating point numbers
@@ -507,6 +507,114 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         sub_dict = {var: SR.var(var)}
         return Factorization(self.charpoly(var).subs(**sub_dict).factor_list())
 
+    def jordan_form(self, subdivide=True, transformation=False):
+        """
+        Return a Jordan normal form of ``self``.
+
+        INPUT:
+
+        - ``self`` -- a square matrix
+
+        - ``subdivide`` -- boolean (default: ``True``)
+
+        - ``transformation`` -- boolean (default: ``False``)
+
+        OUTPUT:
+
+        If ``transformation`` is ``False``, only a Jordan normal form
+        (unique up to the ordering of the Jordan blocks) is returned.
+        Otherwise, a pair ``(J, P)`` is returned, where ``J`` is a
+        Jordan normal form and ``P`` is an invertible matrix such that
+        ``self`` equals ``P * J * P^(-1)``.
+
+        If ``subdivide`` is ``True``, the Jordan blocks in the
+        returned matrix ``J`` are indicated by a subdivision in
+        the sense of :meth:`~sage.matrix.matrix2.subdivide`.
+
+        EXAMPLES:
+
+        We start with some examples of diagonalisable matrices::
+
+            sage: a,b,c,d = var('a,b,c,d')
+            sage: matrix([a]).jordan_form()
+            [a]
+            sage: matrix([[a, 0], [1, d]]).jordan_form(subdivide=True)
+            [d|0]
+            [-+-]
+            [0|a]
+            sage: matrix([[a, 0], [1, d]]).jordan_form(subdivide=False)
+            [d 0]
+            [0 a]
+            sage: matrix([[a, x, x], [0, b, x], [0, 0, c]]).jordan_form()
+            [c|0|0]
+            [-+-+-]
+            [0|b|0]
+            [-+-+-]
+            [0|0|a]
+
+        In the following examples, we compute Jordan forms of some
+        non-diagonalisable matrices::
+
+            sage: matrix([[a, a], [0, a]]).jordan_form()
+            [a 1]
+            [0 a]
+            sage: matrix([[a, 0, b], [0, c, 0], [0, 0, a]]).jordan_form()
+            [c|0 0]
+            [-+---]
+            [0|a 1]
+            [0|0 a]
+
+        The following examples illustrate the ``transformation`` flag.
+        Note that symbolic expressions may need to be simplified to
+        make consistency checks succeed::
+
+            sage: A = matrix([[x - a*c, a^2], [-c^2, x + a*c]])
+            sage: J, P = A.jordan_form(transformation=True)
+            sage: J, P
+            (
+            [x 1]  [-a*c    1]
+            [0 x], [-c^2    0]
+            )
+            sage: A1 = P * J * ~P; A1
+            [             -a*c + x (a*c - x)*a/c + a*x/c]
+            [                 -c^2               a*c + x]
+            sage: A1.simplify_rational() == A
+            True
+
+            sage: B = matrix([[a, b, c], [0, a, d], [0, 0, a]])
+            sage: J, T = B.jordan_form(transformation=True)
+            sage: J, T
+            (
+            [a 1 0]  [b*d   c   0]
+            [0 a 1]  [  0   d   0]
+            [0 0 a], [  0   0   1]
+            )
+            sage: (B * T).simplify_rational() == T * J
+            True
+
+        Finally, some examples involving square roots::
+
+            sage: matrix([[a, -b], [b, a]]).jordan_form()
+            [a - I*b|      0]
+            [-------+-------]
+            [      0|a + I*b]
+            sage: matrix([[a, b], [c, d]]).jordan_form(subdivide=False)
+            [1/2*a + 1/2*d - 1/2*sqrt(a^2 + 4*b*c - 2*a*d + d^2)                                                   0]
+            [                                                  0 1/2*a + 1/2*d + 1/2*sqrt(a^2 + 4*b*c - 2*a*d + d^2)]
+        """
+        A = self._maxima_lib_()
+        jordan_info = A.jordan()
+        J = jordan_info.dispJordan()._sage_()
+        if subdivide:
+            v = [x[1] for x in jordan_info]
+            w = [sum(v[0:i]) for i in xrange(1, len(v))]
+            J.subdivide(w, w)
+        if transformation:
+            P = A.diag_mode_matrix(jordan_info)._sage_()
+            return J, P
+        else:
+            return J
+
     def simplify(self):
         """
         Simplifies self.
@@ -560,6 +668,37 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             [0 0 1]
         """
         return self._maxima_(maxima).fullratsimp()._sage_()
+
+    def simplify_full(self):
+        """
+        Simplify a symbolic matrix by calling
+        :meth:`Expression.simplify_full()` componentwise.
+
+        INPUT:
+
+        - ``self`` - The matrix whose entries we should simplify.
+
+        OUTPUT:
+
+        A copy of ``self`` with all of its entries simplified.
+
+        EXAMPLES:
+
+        Symbolic matrices will have their entries simplified::
+
+            sage: a,n,k = SR.var('a,n,k')
+            sage: f1 = sin(x)^2 + cos(x)^2
+            sage: f2 = sin(x/(x^2 + x))
+            sage: f3 = binomial(n,k)*factorial(k)*factorial(n-k)
+            sage: f4 = x*sin(2)/(x^a)
+            sage: A = matrix(SR, [[f1,f2],[f3,f4]])
+            sage: A.simplify_full()
+            [                1    sin(1/(x + 1))]
+            [     factorial(n) x^(-a + 1)*sin(2)]
+
+        """
+        M = self.parent()
+        return M([expr.simplify_full() for expr in self])
 
     def factor(self):
         """
@@ -721,7 +860,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             ValueError: the number of arguments must be less than or equal to 3
         """
         if kwargs and args:
-            raise ValueError, "args and kwargs cannot both be specified"
+            raise ValueError("args and kwargs cannot both be specified")
 
         if len(args) == 1 and isinstance(args[0], dict):
             kwargs = dict([(repr(x[0]), x[1]) for x in args[0].iteritems()])
@@ -744,7 +883,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             variables = list( self.arguments() )
 
             if len(args) > self.number_of_arguments():
-                raise ValueError, "the number of arguments must be less than or equal to %s"%self.number_of_arguments()
+                raise ValueError("the number of arguments must be less than or equal to %s" % self.number_of_arguments())
 
             new_entries = []
             for entry in self.list():

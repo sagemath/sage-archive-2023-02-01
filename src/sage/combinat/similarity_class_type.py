@@ -48,7 +48,7 @@ form `(d, \lambda)`.
 For `2 \times 2` matrices there are four types::
 
     sage: for tau in SimilarityClassTypes(2):
-    ....:    print tau
+    ....:    print(tau)
     [[1, [1]], [1, [1]]]
     [[1, [2]]]
     [[1, [1, 1]]]
@@ -174,22 +174,22 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from operator import mul
-from itertools import chain
+from itertools import chain, product
 from sage.misc.all import prod
 from sage.functions.all import factorial
-from sage.rings.arith import moebius
+from sage.arith.all import moebius, divisors
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.structure.element import Element
+from sage.structure.element import Element, parent
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.partition import Partitions, Partition
-from sage.rings.all import ZZ, QQ, FractionField, divisors
+from sage.rings.all import ZZ, QQ, FractionField
 from sage.misc.cachefunc import cached_in_parent_method, cached_function
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.misc import IterableFunctionCall
 from functools import reduce
 
@@ -400,6 +400,25 @@ class PrimarySimilarityClassType(Element):
         """
         return "%s"%([self._deg, self._par])
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: PT1 = PrimarySimilarityClassType(2, [3, 2, 1])
+            sage: PT2 = PrimarySimilarityClassType(3, [3, 2, 1])
+            sage: PT3 = PrimarySimilarityClassType(2, [4, 2, 1])
+            sage: hash(PT1)
+            5050909583595644741 # 64-bit
+            1658169157          # 32-bit
+            sage: hash(PT2)
+            5050909583595644740 # 64-bit
+            1658169156          # 32-bit
+            sage: hash(PT3)
+            6312110366011971308 # 64-bit
+            1429493484          # 32-bit
+        """
+        return hash(self._deg) ^ hash(tuple(self._par))
+
     def __eq__(self, other):
         """
         Check equality.
@@ -420,9 +439,25 @@ class PrimarySimilarityClassType(Element):
             sage: PT1 == PT5
             False
         """
-        if isinstance(other, PrimarySimilarityClassType):
-            return self.degree() == other.degree() and self.partition() == other.partition()
-        return False
+        return isinstance(other, PrimarySimilarityClassType) and \
+               self.degree() == other.degree() and \
+               self.partition() == other.partition()
+
+    def __ne__(self, other):
+        r"""
+        TESTS::
+
+            sage: PT1 =  PrimarySimilarityClassType(2, [3, 2, 1])
+            sage: PT2 =  PrimarySimilarityClassType(2, Partition([3, 2, 1]))
+            sage: PT1 != PT2
+            False
+            sage: PT3 =  PrimarySimilarityClassType(3, [3, 2, 1])
+            sage: PT1 != PT3
+            True
+        """
+        return not isinstance(other, PrimarySimilarityClassType) or \
+               self.degree() != other.degree() or \
+               self.partition() != other.partition()
 
     def size(self):
         """
@@ -519,7 +554,7 @@ class PrimarySimilarityClassType(Element):
         #p = q.parent()(prod(map(lambda n:fq(n, q = q), self.partition().to_exp()),1))
         #return q**self.centralizer_algebra_dim()*p.substitute(q = q**self.degree())
 
-class PrimarySimilarityClassTypes(Parent, UniqueRepresentation):
+class PrimarySimilarityClassTypes(UniqueRepresentation, Parent):
     r"""
     All primary similarity class types of size ``n`` whose degree is greater
     than that of ``min`` or whose degree is that of ``min`` and  whose partition
@@ -541,7 +576,7 @@ class PrimarySimilarityClassTypes(Parent, UniqueRepresentation):
 
         sage: PTC = PrimarySimilarityClassTypes(2)
         sage: for PT in PTC:
-        ....:     print PT
+        ....:     print(PT)
         [1, [2]]
         [1, [1, 1]]
         [2, [1]]
@@ -553,7 +588,7 @@ class PrimarySimilarityClassTypes(Parent, UniqueRepresentation):
 
         sage: PTC = PrimarySimilarityClassTypes(2, min = PrimarySimilarityClassType(1, [1, 1]))
         sage: for PT in PTC:
-        ....:     print PT
+        ....:     print(PT)
         [1, [1, 1]]
         [2, [1]]
     """
@@ -933,7 +968,7 @@ class SimilarityClassType(CombinatorialElement):
             q = FractionField(ZZ['q']).gen()
         return prod([PT.statistic(func, q = q) for PT in self])
 
-class SimilarityClassTypes(Parent, UniqueRepresentation):
+class SimilarityClassTypes(UniqueRepresentation, Parent):
     r"""
     Class of all similarity class types of size ``n`` with all primary matrix
     types greater than or equal to the primary matrix type ``min``.
@@ -952,7 +987,7 @@ class SimilarityClassTypes(Parent, UniqueRepresentation):
 
         sage: M = SimilarityClassTypes(2)
         sage: for tau in M:
-        ....:     print tau
+        ....:     print(tau)
         [[1, [1]], [1, [1]]]
         [[1, [2]]]
         [[1, [1, 1]]]
@@ -966,7 +1001,7 @@ class SimilarityClassTypes(Parent, UniqueRepresentation):
 
         sage: M = SimilarityClassTypes(2, min = [1, [1, 1]])
         sage: for tau in M:
-        ....:     print tau
+        ....:     print(tau)
         [[1, [1, 1]]]
         [[2, [1]]]
     """
@@ -1520,7 +1555,7 @@ def ext_orbit_centralizers(input_data, q = None, selftranspose = False):
             yield (item[0].substitute(q = q**tau.degree()), item[1].substitute(q = q**tau.degree()))
     elif case == 'sim':
         tau = data
-        for item in CartesianProduct(*[IterableFunctionCall(lambda x: ext_orbit_centralizers(x, q = q, selftranspose = selftranspose), PT) for PT in tau]):
+        for item in product(*[IterableFunctionCall(lambda x: ext_orbit_centralizers(x, q = q, selftranspose = selftranspose), PT) for PT in tau]):
                 size = prod([list(entry)[0] for entry in item])
                 freq = prod([list(entry)[1] for entry in item])
                 yield(size, freq)

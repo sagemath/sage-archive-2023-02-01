@@ -17,6 +17,9 @@ Base class for field elements
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.superseded import deprecation
+deprecation(19167, "the module sage.rings.field_element is deprecated, import from sage.structure.element instead")
+
 from sage.structure.element import FieldElement
 
 def is_FieldElement(x):
@@ -25,6 +28,9 @@ def is_FieldElement(x):
 
     EXAMPLES::
 
+        sage: import sage.rings.field_element
+        doctest:...: DeprecationWarning: the module sage.rings.field_element is deprecated, import from sage.structure.element instead
+        See http://trac.sagemath.org/19167 for details.
         sage: sage.rings.field_element.is_FieldElement(QQ(2))
         True
     """

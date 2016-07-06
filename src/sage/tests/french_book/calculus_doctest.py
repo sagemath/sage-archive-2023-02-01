@@ -46,7 +46,7 @@ Sage example in ./calculus.tex, line 110::
 Sage example in ./calculus.tex, line 122::
 
     sage: y = var('y'); u = sin(x) + x*cos(y)
-    sage: v = u.function(x, y); v
+    sage: v = u.function(x,y); v
     (x, y) |--> x*cos(y) + sin(x)
     sage: w(x, y) = u; w
     (x, y) |--> x*cos(y) + sin(x)
@@ -100,7 +100,7 @@ Sage example in ./calculus.tex, line 306::
 Sage example in ./calculus.tex, line 318::
 
     sage: f = sqrt(abs(x)^2); f.canonicalize_radical()
-    x
+    abs(x)
     sage: f = log(x*y); f.canonicalize_radical()
     log(x) + log(y)
 
@@ -175,8 +175,7 @@ Sage example in ./calculus.tex, line 531::
 Sage example in ./calculus.tex, line 537::
 
     sage: y = var('y'); solve(y^6==y, y)
-    [y == e^(2/5*I*pi), y == e^(4/5*I*pi), y == e^(-4/5*I*pi),
-    y == e^(-2/5*I*pi), y == 1, y == 0]
+    [y == 1/4*sqrt(5) + 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4, y == -1/4*sqrt(5) + 1/4*I*sqrt(-2*sqrt(5) + 10) - 1/4, y == -1/4*sqrt(5) - 1/4*I*sqrt(-2*sqrt(5) + 10) - 1/4, y == 1/4*sqrt(5) - 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4, y == 1, y == 0]
 
 Sage example in ./calculus.tex, line 544::
 
@@ -252,7 +251,7 @@ Sage example in ./calculus.tex, line 680::
 
 Sage example in ./calculus.tex, line 706::
 
-    sage: y = function('y', x)
+    sage: y = function('y')(x)
     sage: desolve(diff(y,x,x) + x*diff(y,x) + y == 0, y, [0,0,1])
     -1/2*I*sqrt(2)*sqrt(pi)*erf(1/2*I*sqrt(2)*x)*e^(-1/2*x^2)
 
@@ -406,7 +405,7 @@ Sage example in ./calculus.tex, line 1163::
 
     sage: diff(sin(x^2), x)
     2*x*cos(x^2)
-    sage: function('f', x); function('g', x); diff(f(g(x)), x)
+    sage: function('f')(x); function('g')(x); diff(f(g(x)), x)
     f(x)
     g(x)
     D[0](f)(g(x))*D[0](g)(x)

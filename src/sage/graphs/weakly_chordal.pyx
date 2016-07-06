@@ -110,6 +110,9 @@ def is_long_hole_free(g, certificate=False):
     g._scream_if_not_simple()
     cdef int a,b,c,i,u,v,d
 
+    if g.is_immutable():
+        g = g.copy(immutable=False)
+
     # relabel the graph on 0...n-1
     cdef dict label_id = g.relabel(return_map = True)
     cdef dict id_label = {idd:label for label, idd in label_id.iteritems()}
@@ -278,6 +281,9 @@ def is_long_antihole_free(g, certificate = False):
     """
     g._scream_if_not_simple()
     cdef int a,b,c,i,u,v,d
+
+    if g.is_immutable():
+        g = g.copy(immutable=False)
 
     # relabel the graph on 0...n-1
     cdef dict label_id = g.relabel(return_map = True)

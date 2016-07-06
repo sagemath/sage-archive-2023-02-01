@@ -9382,7 +9382,7 @@ cpdef Polynomial generic_power_trunc(Polynomial p, Integer n, long prec):
 
     - ``n`` - an integer (of type :class:`sage.rings.integer.Integer`)
 
-    - ``prec` - a precision (should fit into a `long`)
+    - ``prec`` - a precision (should fit into a C long)
 
     TESTS:
 

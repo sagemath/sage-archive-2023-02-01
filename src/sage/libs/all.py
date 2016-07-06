@@ -1,8 +1,9 @@
+from __future__ import absolute_import
 import sage.libs.ntl.all  as ntl
 
 from sage.libs.pari.all   import pari, pari_gen, PariError
 
-import symmetrica.all as symmetrica
+from . import symmetrica.all as symmetrica
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.libs.gap.libgap', 'libgap')

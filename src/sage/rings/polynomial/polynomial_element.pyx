@@ -2181,7 +2181,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = GF(7)[]
             sage: p = (x^2 + x + 1).power_trunc(2^100, 100)
             sage: p
-            5*x^99 + 5*x^98 + 3*x^97 + 2*x^96 + 5*x^95 + ... + 2*x^5 + 5*x^4 + 2*x^3 + 3*x^2 + 4*x + 1
+            2*x^99 + x^98 + x^95 + 2*x^94 + ... + 3*x^2 + 2*x + 1
+
             sage: for i in range(100):
             ....:    q1 = (x^2 + x + 1).power_trunc(2^100 + i, 100)
             ....:    q2 = p * (x^2 + x + 1).power_trunc(i, 100)

@@ -544,8 +544,18 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             sage: (x^4 - x + 1).power_trunc(88, 20)
             2*x^19 + 3*x^18 + 3*x^17 + 3*x^16 + ... + 3*x^2 + 2*x + 1
 
+        For high powers, the generic method is called::
+
             sage: (x^2 + 1).power_trunc(2^100, 10)
+            x^2 + 1
+            sage: (x^2 + 1).power_trunc(2^100+1, 10)
+            x^4 + 2*x^2 + 1
+            sage: (x^2 + 1).power_trunc(2^100+2, 10)
             x^6 + 3*x^4 + 3*x^2 + 1
+            sage: (x^2 + 1).power_trunc(2^100+3, 10)
+            x^8 + 4*x^6 + x^4 + 4*x^2 + 1
+
+        Check boundary values::
 
             sage: x._power_trunc(2, -1)
             0

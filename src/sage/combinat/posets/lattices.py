@@ -802,13 +802,20 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         return self._hasse_diagram.is_complemented_lattice()
 
-    def is_relatively_complemented(self):
+    def is_relatively_complemented(self, certificate=False):
         """
         Return ``True`` if the lattice is relatively complemented, and
         ``False`` otherwise.
 
         A lattice is relatively complemented if every interval of it
         is a complemented lattice.
+
+        INPUT:
+
+        - ``certificate``, a Boolean -- If ``False`` (the default), return
+          only truth value. If ``True``, return either
+          ``(True, None)`` or ``(False, (a, b, c))``, where `b` is the
+          only element that covers `a` and is covered by `c`.
 
         EXAMPLES::
 
@@ -832,6 +839,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             True
             sage: L.is_relatively_complemented()
             False
+
+        We can also get a non-complemented 3-element interval::
+
+            sage: L.is_relatively_complemented(certificate=True)
+            (False, (1, 6, 11))
 
         TESTS::
 
@@ -863,19 +875,27 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         H = self._hasse_diagram
         n = H.order()
         if n < 3:
-            return True
+            return (True, None) if certificate else True
 
         # Quick check: the lattice must be atomic and coatomic.
-        if H.out_degree(0) != H.in_degree().count(1):
-            return False
-        if H.in_degree(n-1) != H.out_degree().count(1):
-            return False
+        if not certificate:
+            if H.out_degree(0) != H.in_degree().count(1):
+                return False
+            if H.in_degree(n-1) != H.out_degree().count(1):
+                return False
 
         for e1 in range(n-1):
             C = Counter(flatten([H.neighbors_out(e2) for e2 in H.neighbors_out(e1)]))
-            if any(c == 1 and len(H.closed_interval(e1, e3)) == 3 for e3, c in C.iteritems()):
-                return False
-        return True
+            for e3, c in C.iteritems():
+                if c == 1 and len(H.closed_interval(e1, e3)) == 3:
+                    if not certificate:
+                        return False
+                    e2 = H.neighbors_in(e3)[0]
+                    e1 = H.neighbors_in(e2)[0]
+                    return (False, (self._vertex_to_element(e1),
+                                    self._vertex_to_element(e2),
+                                    self._vertex_to_element(e3)))
+        return (True, None) if certificate else True
 
     def breadth(self, certificate=False):
         r"""

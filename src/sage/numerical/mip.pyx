@@ -2521,8 +2521,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.solve()  # rel tol 1e-5
             GLPK Simplex Optimizer, v4.60
             2 rows, 2 columns, 4 non-zeros
-            *     0: obj =   7.000000000e+00  infeas =  0.000e+00 (0)
-            *     2: obj =   9.400000000e+00  infeas =  0.000e+00 (0)
+            *     0: obj =   7.000000000e+00 inf =   0.000e+00 (2)
+            *     2: obj =   9.400000000e+00 inf =   0.000e+00 (0)
             OPTIMAL LP SOLUTION FOUND
             9.4
         """

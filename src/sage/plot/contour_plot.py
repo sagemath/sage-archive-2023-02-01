@@ -735,6 +735,8 @@ def implicit_plot(f, xrange, yrange, **options):
         sage: f(x,y) = x^2 + y^2 - 2
         sage: implicit_plot(f, (-3, 3), (-3, 3), rgbcolor=(1,0,0))
         Graphics object consisting of 1 graphics primitive
+        sage: implicit_plot(f, (-3, 3), (-3, 3), color='green')
+        Graphics object consisting of 1 graphics primitive
         sage: implicit_plot(f, (-3, 3), (-3, 3), rgbcolor=(1,0,0), color='green')
         Traceback (most recent call last):
         ...

@@ -118,14 +118,14 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_simple):
         EXAMPLES::
 
             sage: print(CartanType(['A', oo]).ascii_art())
-            ...---O---O---O---O---O---O---O---...
-                 -3  -2  -1   0   1   2   3
+            ..---O---O---O---O---O---O---O---..
+                -3  -2  -1   0   1   2   3
 
         """
         if node is None:
             node = self._ascii_art_node
-        ret  = '...---'+'---'.join(node(label(i)) for i in range(7))+'---...\n'
-        ret += '   '+''.join("{:4}".format(label(i)) for i in range(-3,4))
+        ret  = '..---'+'---'.join(node(label(i)) for i in range(7))+'---..\n'
+        ret += '  '+''.join("{:4}".format(label(i)) for i in range(-3,4))
         return ret
 
     def dynkin_diagram(self):

@@ -1750,6 +1750,39 @@ class DirichletCharacter(MultiplicativeGroupElement):
             v = M([dlog[x] for x in self.values_on_gens()])
         return v
 
+    def __setstate__(self, state):
+        r"""
+        Restore a pickled element from ``state``.
+
+        TESTS::
+
+            sage: e = DirichletGroup(16)([-1, 1])
+            sage: loads(dumps(e)) == e
+
+        """
+        # values_on_gens() used an explicit cache __values_on_gens in the past
+        # we need to set the cache of values_on_gens() from that if we encounter it in a pickle
+        values_on_gens_key = '_DirichletCharacter__values_on_gens'
+        values_on_gens = None
+        state_dict = state[1]
+        if values_on_gens_key in state_dict:
+            values_on_gens = state_dict[values_on_gens_key]
+            del state_dict[values_on_gens_key]
+
+        # element() used an explicit cache __element in the past
+        # we need to set the cache of element() from that if we encounter it in a pickle
+        element_key = '_DirichletCharacter__element'
+        element = None
+        if element_key in state_dict:
+            element = state_dict[element_key]
+            del state_dict[element_key]
+
+        super(DirichletCharacter, self).__setstate__(state)
+
+        if values_on_gens is not None:
+            self.values_on_gens.set_cache(values_on_gens)
+        if element is not None:
+            self.element.set_cache(element)
 
 class DirichletGroupFactory(UniqueFactory):
     r"""
@@ -2133,6 +2166,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
         self._set_element_constructor()
         if '_zeta_order' in state:
             state['_zeta_order'] = rings.Integer(state['_zeta_order'])
+
         super(DirichletGroup_class, self).__setstate__(state)
 
     @property

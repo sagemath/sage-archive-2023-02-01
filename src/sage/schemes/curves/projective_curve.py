@@ -42,11 +42,13 @@ from sage.interfaces.all import singular
 from sage.matrix.constructor import matrix
 from sage.misc.all import add, sage_eval
 from sage.rings.all import degree_lowest_rational_function
-from sage.rings.qqbar import QQbar
+from sage.rings.qqbar import (number_field_elements_from_algebraics,
+                              QQbar)
 from sage.schemes.affine.affine_space import AffineSpace
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
-from sage.schemes.projective.projective_space import is_ProjectiveSpace
+from sage.schemes.projective.projective_space import (is_ProjectiveSpace,
+                                                      ProjectiveSpace)
 
 from curve import Curve_generic
 
@@ -563,7 +565,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         else:
             return not self.is_smooth(P)
 
-    def tangents(self, P):
+    def tangents(self, P, factor=True):
             r"""
             Return the tangents of this projective plane curve at the point ``P``.
 
@@ -573,6 +575,10 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             INPUT:
 
             - ``P`` -- a point on this curve.
+
+            - ``factor`` -- (default: True) whether to attempt computing the polynomials of the individual tangent
+              lines over the base field of this curve, or to just return the polynomial corresponding to the union
+              of the tangent lines (which requires fewer computations).
 
             OUTPUT:
 
@@ -587,6 +593,8 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                 sage: C.tangents(Q)
                 [x + 4.147899035704788?*y, x + (1.426050482147607? + 0.3689894074818041?*I)*y,
                 x + (1.426050482147607? - 0.3689894074818041?*I)*y]
+                sage: C.tangents(Q, factor=False)
+                [6*x^3 + 42*x^2*y + 84*x*y^2 + 54*y^3]
 
             ::
 
@@ -609,6 +617,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                 TypeError: (=(1 : 1 : 1)) is not a point on (=Projective Plane Curve
                 over Rational Field defined by y^4 - x^2*z^2 + x*z^3)
             """
+            PP = self.ambient_space()
             # Check whether P is a point on this curve
             try:
                 P = self(P)
@@ -622,8 +631,8 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             C = self.affine_patch(i)
             Q = list(P)
             t = Q.pop(i)
-            L = C.tangents(C.ambient_space()([1/t*Q[j] for j in range(self.ambient_space().dimension_relative())]))
-            R = self.ambient_space().coordinate_ring()
+            L = C.tangents(C.ambient_space()([1/t*Q[j] for j in range(PP.dimension_relative())]), factor)
+            R = PP.coordinate_ring()
             H = Hom(C.ambient_space().coordinate_ring(), R)
             G = list(R.gens())
             x = G.pop(i)
@@ -765,14 +774,16 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: P.<x,y,z> = ProjectiveSpace(QQbar, 2)
             sage: C = Curve([x*y - z^2], P)
             sage: Q = P([1,1,1])
-            sage: C.excellent_position(Q) # long time (4 seconds)
+            sage: C.excellent_position(Q)
             (Scheme morphism:
-               From: Projective Plane Curve over Algebraic Field defined by x*y - z^2
+               From: Projective Plane Curve over Algebraic Field defined by x*y -
+            z^2
                To:   Projective Space of dimension 2 over Algebraic Field
                Defn: Defined on coordinates by sending (x : y : z) to
-                     (2*x - y - z : (-3)*x + y + 2*z : -x + y + z),
-             Projective Plane Curve over Algebraic Field defined by (-5)*x^2 +
-            (-5)*x*y - y^2 + (-4)*x*z + (-3)*y*z)
+                     ((-3/4)*x + (-3/8)*y + 9/8*z : (-1/4)*x + 3/8*y + (-1/8)*z :
+            5/4*x + 1/8*y + (-3/8)*z),
+             Projective Plane Curve over Algebraic Field defined by (-14/9)*x^2 +
+            (-5/3)*x*y - y^2 + (-5/3)*x*z + y*z)
 
         REFERENCES:
 
@@ -780,7 +791,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             Redwood City CA (1989).
         """
         PP = self.ambient_space()
-        # currently only implemented for when base ring is QQbar
+        # currently only implemented for curves with QQbar base ring
         if not self.base_ring() == QQbar:
             raise NotImplementedError("base ring must be QQbar")
         # check that Q is on this curve
@@ -790,160 +801,142 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             raise TypeError("(=%s) must be a point on this curve"%Q)
         # first check that this curve is irreducible
         poly = self.defining_polynomial()
-        coeff = poly.coefficients()
-        from sage.rings.qqbar import number_field_elements_from_algebraics
+        items = poly.dict().items()
+        coeff = [items[j][1] for j in range(len(items))]
         temp = number_field_elements_from_algebraics(coeff)
         polyK = PP.coordinate_ring().change_ring(base_ring=temp[0])
-        poly = polyK(dict([(k,temp[1][coeff.index(v)]) for (k,v) in poly.dict().items()]))
+        poly = polyK(dict([(items[j][0], temp[1][j]) for j in range(len(items))]))
         if not polyK.ideal([poly]).is_prime():
             raise TypeError("this curve must be irreducible")
         r = self.multiplicity(Q)
+        d = self.defining_polynomial().degree()
         # first move Q to (0 : 0 : 1), (1 : 0 : 0), or (0 : 1 : 0)
+        # this makes it easier to construct the main transformation
         i = 0
-        while(Q[i] == 0):
+        while Q[i] == 0:
             i = i + 1
         coords = [PP.gens()[j] + Q[j]/Q[i]*PP.gens()[i] for j in range(3)]
         coords[i] = PP.gens()[i]
         accoords = [PP.gens()[j] - Q[j]/Q[i]*PP.gens()[i] for j in range(3)] # coords used in map construction
         accoords[i] = PP.gens()[i]
-        C = PP.curve(self.defining_polynomial()(coords))
-        d = C.defining_polynomial().degree()
+        baseC = PP.curve(self.defining_polynomial()(coords))
         P = [0]*3
         P[i] = 1
-        P = C(P)
+        P = PP(P)
         l = [0,1,2]
         l.pop(i)
-        u = PP.gens()[l[0]]
-        v = PP.gens()[l[1]]
-        # find the line to map to the line x
-        a = 0
+        # choose points forming a triangle with one vertex at P to map to the coordinate triangle
         good = False
-        while (not good):
-            a = a + 1
-            L = PP.curve(u + a*v)
-            # check that L and the tangents of C at P are distinct
-            distinct = True
-            for T in C.tangents(P):
-                Lpt = PP([L.defining_polynomial().coefficient({PP.gens()[j]:1}) for j in range(3)])
-                Tpt = PP([T.coefficient({PP.gens()[j]:1}) for j in range(3)])
-                if Lpt == Tpt:
-                    distinct = False
-                    break
-            if not distinct:
+        a = 1
+        b = 1
+        while not good:
+            # find point to map to (1 : 0 : 0)
+            oncurve = True
+            while oncurve:
+                a = a + 1
+                Px = [0]*3
+                Px[l[1]] = 1
+                Px[l[0]] = a
+                Px[i] = 0
+                Px = PP(Px)
+                try:
+                    Px = baseC(Px)
+                    continue
+                except TypeError:
+                    oncurve = False
+            # find a point to map to (0 : 1 : 0)
+            oncurve = True
+            while oncurve:
+                b = b + 1
+                Py = [0]*3
+                Py[l[1]] = b
+                Py[l[0]] = 1
+                Py[i] = 1
+                Py = PP(Py)
+                try:
+                    Py = baseC(Py)
+                    continue
+                except TypeError:
+                    oncurve = False
+            # by construction, P, Px, Py are linearly independent so the following matrix is invertible
+            M = matrix([[Py[j], Px[j], P[j]] for j in range(3)])
+            # M defines a change of coordinates sending (1 : 0 : 0) to Py, (0 : 1 : 0) to Px, (0 : 0 : 1) to P; the
+            # inverse of the transformation we want, used to create the new defining polynomial
+            coords = [sum([M.row(j)[k]*PP.gens()[k] for k in range(3)]) for j in range(3)]
+            C = PP.curve(baseC.defining_polynomial()(coords))
+            vP = PP([0,0,1])
+            # check that the lines x, y are distinct to the tangents of C at (0 : 0 : 1)
+            T = C.tangents(vP, factor=False)[0]
+            # check that x, y don't divide T
+            if all([G.degree(PP.gens()[0]) > 0 for G in T.monomials()]):
                 continue
-            # check that all intersections of C with L are transverse
-            # and that there are the right number of intersections, (d - r) other than P
-            pts = C.intersection(L).rational_points()
-            X = C.intersection(L)
-            pts = X.rational_points()
-            pts.remove(X(P))
-            if len(pts) != d - r:
+            if all([G.degree(PP.gens()[1]) > 0 for G in T.monomials()]):
                 continue
-            transverse = True
-            for pt in pts:
-                if not C.is_transverse(L, pt):
-                    transverse = False
+            # find intersection points of lines x, y, z with C
+            # since we know one coordinate will be 0 for any such intersection point
+            # we move to the projective line before finding rational points
+            from sage.schemes.projective.projective_space import ProjectiveSpace
+            PPline = ProjectiveSpace(PP.base_ring(), 1)
+            need_continue = False
+            for j in range(3):
+                lcoords = list(PP.gens())
+                lcoords[j] = 0
+                # just being careful that the generators map in the right order
+                H = Hom(PP.coordinate_ring(), PPline.coordinate_ring())
+                mcoords = list(PPline.gens())
+                mcoords.insert(j, 0)
+                psi = H(mcoords)
+                X = PPline.subscheme([psi(C.defining_polynomial()(lcoords))])
+                temp_pts = X.rational_points()
+                pts = []
+                for pt in temp_pts:
+                    pcoords = list(pt)
+                    pcoords.insert(j, 0)
+                    pts.append(PP(pcoords))
+                # if the line is z, we want that there are d distinct intersection points
+                if j == 2 and len(pts) != d:
+                    need_continue = True
                     break
-            if not transverse:
+                # if the line is x or y, we want that there are d - r + 1 distinct intersection points
+                # (one will be the point (0 : 0 : 1))
+                if j != 2 and len(pts) != d - r + 1:
+                    need_continue = True
+                    break
+                # note that if there are this many intersection points, then the only intersection point that
+                # can be a singular point is (0 : 0 : 1), the rest must be nonsingular
+                # so to check that the intersections are all transverse, we only need to check the
+                # tangents are distinct
+                not_distinct = False
+                for pt in pts:
+                    # ignore the point (0 : 0 : 1) since it has already been tested
+                    if pt == vP:
+                        continue
+                    T = C.tangents(pt, factor=False)[0]
+                    # check that PP.gens()[j] doesn't divide T
+                    if all([G.degree(PP.gens()[j]) > 0 for G in T.monomials()]):
+                        not_distinct = True
+                        break
+                if not_distinct:
+                    need_continue = True
+                    break
+            if need_continue:
                 continue
             good = True
-        Lx = PP.curve(u + a*v)
-        # find the line to map to the line y
-        good = False
-        b = a
-        while (not good):
-            b = b + 1
-            L = PP.curve(u + b*v)
-            # check that L and the tangents of C at P are distinct
-            distinct = True
-            for T in C.tangents(P):
-                Lpt = PP([L.defining_polynomial().coefficient({PP.gens()[j]:1}) for j in range(3)])
-                Tpt = PP([T.coefficient({PP.gens()[j]:1}) for j in range(3)])
-                if Lpt == Tpt:
-                    distinct = False
-                    break
-            if not distinct:
-                continue
-            # check that all intersections of C with L are transverse
-            # and that there are the right number of intersections (d - r) other than P
-            X = C.intersection(L)
-            pts = X.rational_points()
-            pts.remove(X(P))
-            if len(pts) != d - r:
-                continue
-            transverse = True
-            for pt in pts:
-                if not C.is_transverse(L, pt):
-                    transverse = False
-                    break
-            if not transverse:
-                continue
-            good = True
-        Ly = PP.curve(u + b*v)
-        # find the line to map to the line z
-        # pick one point on Lx, and one on Ly, each not on this curve, and such that
-        # the line between them does not contain P
-        # note that since this curve is irreducible, it does not contain either
-        # Lx, Ly, so only finitely many points of those lines will lie on this curve
-        good = False
-        t = 0
-        while(not good):
-            # construct points on Lx incrementally
-            t = t + 1
-            Px = [0]*3
-            Px[l[1]] = t
-            Px[l[0]] = -a*t
-            Px[i] = 0
-            Px = PP(Px)
-            try:
-                C(Px)
-                continue
-            except TypeError:
-                pass
-            good = True
-        good = False
-        t = 0
-        while(not good):
-            # construct points on Ly incrementally
-            t = t + 1
-            Py = [0]*3
-            Py[l[1]] = t
-            Py[l[0]] = -b*t
-            Py[i] = 1
-            Py = PP(Py)
-            try:
-                C(Py)
-                continue
-            except TypeError:
-                pass
-            Lz = PP.line([Px, Py])
-            pts = C.intersection(Lz).rational_points()
-            if len(pts) != d:
-                continue
-            transverse = True
-            for pt in pts:
-                if not C.is_transverse(Lz, pt):
-                    transverse = False
-                    break
-            if not transverse:
-                continue
-            good = True
-        # now create a change of coordinates sending Lx to the line x, Ly to the line y, and Lz to the line z
-        # by construction, P, Px, Py are linearly independent so the following matrix is invertible
-        M = matrix([[Py[j], Px[j], P[j]] for j in range(3)])
-        # M defines a change of coordinates sending (1:0:0) to Py, (0:1:0) to Px, (0:0:1) to P; the
-        # inverse of the transformation we want, used to create defining polynomial
-        coords = [sum([M.row(j)[k]*PP.gens()[k] for k in range(3)]) for j in range(3)]
-        # coords for map
-        M = M.inverse()
-        accoords2 = [sum([M.row(j)[k]*PP.gens()[k] for k in range(3)]) for j in range(3)]
-        H = Hom(self, PP)
-        phi = H([f(accoords) for f in accoords2])
-        return tuple([phi, PP.curve(C.defining_polynomial()(coords))])
+            # coords for map
+            M = M.inverse()
+            accoords2 = [sum([M.row(j)[k]*PP.gens()[k] for k in range(3)]) for j in range(3)]
+            H = Hom(self, PP)
+            phi = H([f(accoords) for f in accoords2])
+        return tuple([phi, C])
 
-    def ordinary_model(self):
+    def ordinary_model(self, sing=None):
         r"""
         Return an ordinary plane curve model of this curve.
+
+        INPUT:
+
+        - ``sing`` -- (default: None) the set of singular points of this curve. If not given, this is constructed.
+          For higher degree curves construction can be expensive.
 
         OUPUT:
 
@@ -956,47 +949,82 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: set_verbose(-1)
             sage: P.<x,y,z> = ProjectiveSpace(QQbar, 2)
             sage: C = Curve([y^2*z - x^3], P)
-            sage: C.ordinary_model() # long time (5 seconds)
+            sage: C.ordinary_model() # long time (2 seconds)
             (Scheme morphism:
                From: Projective Plane Curve over Algebraic Field defined by -x^3 + y^2*z
                To:   Projective Space of dimension 2 over Algebraic Field
                Defn: Defined on coordinates by sending (x : y : z) to
-                     (x^2 + 3*x*y + 2*y^2 + x*z + 2*y*z : -x^2 + (-2)*x*y - y^2 -
-            x*z - y*z : -x^2 + (-3)*x*y + (-2)*y^2),
+                     (2/9*x^2 + (-5/9)*x*y + 2/9*y^2 + 2/3*x*z + (-1/3)*y*z :
+            (-1/9)*x^2 + 4/9*x*y + (-4/9)*y^2 + (-1/3)*x*z + 2/3*y*z : (-2/9)*x^2 +
+            5/9*x*y + (-2/9)*y^2),
              Projective Plane Curve over Algebraic Field defined by x^3*y +
-            2*x^2*y^2 + x*y^3 + x^3*z + 7*x^2*y*z + 14*x*y^2*z + 9*y^3*z)
+            4*x^2*y^2 + 4*x*y^3 + (-8)*x^3*z + (-11)*x^2*y*z + (-2)*x*y^2*z +
+            3*y^3*z)
 
         ::
 
             sage: set_verbose(-1)
             sage: P.<x,y,z> = ProjectiveSpace(QQbar, 2)
-            sage: C = Curve([y^2*z^3 - x^5], P)
-            sage: C.ordinary_model() # long time (8 seconds)
+            sage: C = Curve([y^2*z^2 - x^4 - x^3*z], P)
+            sage: C.ordinary_model([P([0,0,1]), P([0,1,0])]) # long time (28 seconds)
             (Scheme morphism:
-               From: Projective Plane Curve over Algebraic Field defined by -x^5 + y^2*z^3
+               From: Projective Plane Curve over Algebraic Field defined by -x^4 -
+            x^3*z + y^2*z^2
                To:   Projective Space of dimension 2 over Algebraic Field
                Defn: Defined on coordinates by sending (x : y : z) to
-                     (x^2 + 3*x*y + 2*y^2 + x*z + 2*y*z : -x^2 + (-2)*x*y - y^2 -
-            x*z - y*z : -x^2 + (-3)*x*y + (-2)*y^2),
-             Projective Plane Curve over Algebraic Field defined by x^5*y^3 +
-            2*x^4*y^4 + x^3*y^5 + 3*x^4*y^3*z + 6*x^3*y^4*z + 3*x^2*y^5*z +
-            3*x^3*y^3*z^2 + 6*x^2*y^4*z^2 + 3*x*y^5*z^2 + x^5*z^3 + 10*x^4*y*z^3 +
-            40*x^3*y^2*z^3 + 81*x^2*y^3*z^3 + 82*x*y^4*z^3 + 33*y^5*z^3)
+                     (19/576*x^4 + (-7/48)*x^3*y + 3/16*x^2*y^2 + (-1/18)*x*y^3 +
+            125/864*x^3*z + (-97/288)*x^2*y*z + 13/144*x*y^2*z + 1/108*y^3*z +
+            91/576*x^2*z^2 + (-11/288)*x*y*z^2 + (-5/576)*y^2*z^2 : (-19/576)*x^4 +
+            7/48*x^3*y + (-3/16)*x^2*y^2 + 1/18*x*y^3 + 1/32*x^3*z +
+            (-17/96)*x^2*y*z + 13/48*x*y^2*z + (-1/12)*y^3*z + 13/64*x^2*z^2 +
+            (-9/32)*x*y*z^2 + 5/64*y^2*z^2 : (-1/64)*x^4 + 1/16*x^3*y +
+            (-1/16)*x^2*y^2 + 1/96*x^3*z + (-7/96)*x^2*y*z + 5/48*x*y^2*z +
+            7/64*x^2*z^2 + (-3/32)*x*y*z^2 + (-1/64)*y^2*z^2),
+             Projective Plane Curve over Algebraic Field defined by 36*x^6*y^4 +
+            72*x^5*y^5 + 36*x^4*y^6 + (-252)*x^6*y^3*z + (-484)*x^5*y^4*z +
+            (-212)*x^4*y^5*z + 20*x^3*y^6*z + 522*x^6*y^2*z^2 + 1100*x^5*y^3*z^2 +
+            3808/9*x^4*y^4*z^2 + (-2708/27)*x^3*y^5*z^2 + 326/81*x^2*y^6*z^2 +
+            (-459)*x^6*y*z^3 + (-939)*x^5*y^2*z^3 + (-758/3)*x^4*y^3*z^3 +
+            1630/9*x^3*y^4*z^3 + (-979/81)*x^2*y^5*z^3 + 103/243*x*y^6*z^3 +
+            162*x^6*z^4 + 243*x^5*y*z^4 + (-53)*x^4*y^2*z^4 + (-1070/9)*x^3*y^3*z^4
+            + 712/81*x^2*y^4*z^4 + (-167/243)*x*y^5*z^4 + 11/729*y^6*z^4)
         """
         C = self
-        H = Hom(C, C.ambient_space())
+        PP = C.ambient_space()
+        H = Hom(C, PP)
         coords = [C.ambient_space().gens()[i] for i in range(3)]
-        resolved = False
-        while not resolved:
-            resolved = True
-            for Q in C.singular_points():
-                if not C.is_ordinary_singularity(Q):
-                    temp_exc = C.excellent_position(Q)
-                    temp_qua = temp_exc[1].quadratic_transformation()
-                    C = temp_qua[1]
-                    coords = [f(temp_exc[0].defining_polynomials()) for f in temp_qua[0].defining_polynomials()]
-                    repeat = False
-                    break
+        if sing is None:
+            pts = C.singular_points()
+        else:
+            pts = sing
+        while len(pts) > 0:
+            for i in range(len(pts) - 1, -1, -1):
+                try:
+                    if C.is_ordinary_singularity(pts[i]):
+                        pts.pop(i)
+                except TypeError:
+                    pts.pop(i)
+            if len(pts) > 0:
+                temp_exc = C.excellent_position(pts[0])
+                temp_qua = temp_exc[1].quadratic_transformation()
+                C = temp_qua[1]
+                tmp_coords = [temp_exc[0].defining_polynomials()[i](coords) for i in range(3)]
+                coords = [temp_qua[0].defining_polynomials()[i](tmp_coords) for i in range(3)]
+                # transform the points
+                for i in range(len(pts)):
+                    # find image if it is a point the composition map is defined on
+                    try:
+                        pts[i] = temp_qua[0](temp_exc[0](pts[i]))
+                    except (TypeError, ValueError):
+                        pass
+                # add points from the intersection of C and the line z
+                PPline = ProjectiveSpace(PP.base_ring(), 1)
+                # make sure the conversion happens in the right order
+                ringH = Hom(PP.coordinate_ring(), PPline.coordinate_ring())
+                psi = ringH(list(PPline.gens()) + [0])
+                X = PPline.subscheme([psi(C.defining_polynomial())])
+                newpts = [PP(list(pt) + [0]) for pt in X.rational_points()]
+                pts.extend(newpts)
         phi = H(coords)
         return tuple([phi, C])
 
@@ -1045,11 +1073,13 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         """
         if not self.intersects_at(C, P):
             raise TypeError("(=%s) must be a point in the intersection of (=%s) and this curve"%(P,C))
-        if self.is_singular(P) or C.is_singular(P):
+        T = self.tangents(P, factor=False)[0]
+        S = C.tangents(P, factor=False)[0]
+        # if P is a nonsingular point of both curves, they will have only 1 tangent each there, of multiplicity 1
+        if T.degree() > 1 or S.degree() > 1:
             return False
 
-        # there is only one tangent at a nonsingular point of a plane curve
-        return not self.tangents(P)[0] == C.tangents(P)[0]
+        return not T.divides(S)
 
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
     def rational_points_iterator(self):

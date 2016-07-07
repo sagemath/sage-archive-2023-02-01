@@ -465,11 +465,13 @@ class AffinePlaneCurve(AffineCurve):
         """
         if not self.intersects_at(C, P):
             raise TypeError("(=%s) must be a point in the intersection of (=%s) and this curve"%(P,C))
-        if self.is_singular(P) or C.is_singular(P):
+        T = self.tangents(P, factor=False)[0]
+        S = C.tangents(P, factor=False)[0]
+        # if P is a nonsingular point of both curves, they will have only 1 tangent each there, of multiplicity 1
+        if T.degree() > 1 or S.degree() > 1:
             return False
 
-        # there is only one tangent at a nonsingular point of a plane curve
-        return not self.tangents(P)[0] == C.tangents(P)[0]
+        return not T.divides(S)
 
     def multiplicity(self, P):
         r"""
@@ -539,7 +541,7 @@ class AffinePlaneCurve(AffineCurve):
         # nonzero terms
         return min([g.degree() for g in f.monomials()])
 
-    def tangents(self, P):
+    def tangents(self, P, factor=True):
         r"""
         Return the tangents of this affine plane curve at the point ``P``.
 
@@ -548,6 +550,10 @@ class AffinePlaneCurve(AffineCurve):
         INPUT:
 
         - ``P`` -- a point on this curve.
+
+        - ``factor`` -- (default: True) whether to attempt computing the polynomials of the individual tangent
+          lines over the base field of this curve, or to just return the polynomial corresponding to the union
+          of the tangent lines (which requires fewer computations).
 
         OUTPUT:
 
@@ -565,6 +571,8 @@ class AffinePlaneCurve(AffineCurve):
             [x + 3.425299577684700?*y, x + (1.949159013086856? + 1.179307909383728?*I)*y,
             x + (1.949159013086856? - 1.179307909383728?*I)*y, x + (1.338191198070795? + 0.2560234251008043?*I)*y,
             x + (1.338191198070795? - 0.2560234251008043?*I)*y]
+            sage: C.tangents(Q, factor=False)
+            [120*x^5 + 1200*x^4*y + 4800*x^3*y^2 + 9720*x^2*y^3 + 9840*x*y^4 + 3960*y^5]
 
         ::
 
@@ -605,6 +613,8 @@ class AffinePlaneCurve(AffineCurve):
         deriv = [f.derivative(vars[0],i).derivative(vars[1],r-i)([0,0]) for i in range(r+1)]
         from sage.arith.misc import binomial
         T = sum([binomial(r,i)*deriv[i]*(vars[0])**i*(vars[1])**(r-i) for i in range(r+1)])
+        if not factor:
+            return [T(coords)]
         if self.base_ring() == QQbar:
             # T is homogeneous in var[0], var[1], so dehomogenize
             if T.degree(vars[0]) > 0:
@@ -615,7 +625,6 @@ class AffinePlaneCurve(AffineCurve):
                 T = T(1, vars[1])
                 roots = T.univariate_polynomial().roots()
                 fact = [vars[1] - roots[i][0]*vars[0] for i in range(len(roots))]
-            # move (0,0) to P
             return [f(coords) for f in fact]
         else:
             fact = T.factor()

@@ -67,7 +67,7 @@ source. More detailed instructions, including how to build faster on
 multicore machines, are contained later in this README and in the  
 Installation Guide:  
 
-   http://www.sagemath.org/doc/installation
+   http://doc.sagemath.org/html/en/installation
 
 __1. Make sure you have the dependencies and 5 GB of free disk space.__
 
@@ -122,7 +122,7 @@ Environment Variables
 There are a lot of environment variables which control the install  
 process of Sage, see:  
 
-   http://sagemath.org/doc/installation/source.html#environment-variables
+   http://doc.sagemath.org/html/en/installation/source.html#environment-variables
 
 
 Implementation
@@ -330,7 +330,7 @@ SAGE_ROOT                 Root directory (sage-x.y.z in Sage tarball)
 ```
 For more details, see:
 
-    http://sagemath.org/doc/developer/coding_basics.html#files-and-directory-structure
+    http://doc.sagemath.org/html/en/developer/coding_basics.html#files-and-directory-structure
 
 
 Relocation
@@ -348,7 +348,7 @@ Sage as root at least once prior to using the system-wide Sage as a
 normal user. See the Installation Guide for further information on  
 performing a system-wide installation:
 
-   http://www.sagemath.org/doc/installation/source.html#installation-in-a-multiuser-environment
+   http://doc.sagemath.org/html/en/installation/source.html#installation-in-a-multiuser-environment
 
 If you find anything that doesn't work correctly after you moved the  
 directory, please email the sage-support mailing list.  

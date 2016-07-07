@@ -373,7 +373,7 @@ def hadamard_matrix(n,existence=False, check=True):
         sage: hadamard_matrix(8).det() == 8^4
         True
 
-    We note that the method `hadamard_matrix()` returns a normalised Hadamard matrix
+    We note that :func:`hadamard_matrix` returns a normalised Hadamard matrix
     (the entries in the first row and column are all +1) ::
 
         sage: hadamard_matrix(12) # random
@@ -637,6 +637,16 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
         if existence:
             return true()
         M = -rshcd_from_close_prime_powers(int(sqrt(n)))
+
+    elif (  e  == 1                 and
+          is_square(n)              and
+          sqrt(n)%4 == 2            and
+          True == strongly_regular_graph(sqrt(n)-1,(sqrt(n)-2)/2,(sqrt(n)-6)/4,
+                    existence=True) and
+          is_prime_power(sqrt(n)+1)):
+        if existence:
+            return true()
+        M = rshcd_from_prime_power_and_conference_matrix(int(sqrt(n)+1))
 
     # Recursive construction: the kronecker product of two RSHCD is a RSHCD
     else:
@@ -1135,3 +1145,184 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
             assert M[0]==vector([1]*n)
     _skew_had_cache[n]=True
     return M
+
+def symmetric_conference_matrix(n, check=True):
+    r"""
+    Tries to construct a symmetric conference matrix
+
+    A coneference matrix is an `n\times n` matrix `C` with 0s on the main diagonal
+    and 1s and -1s elsewhere, satisfying `CC^\top=(n-1)I`.
+    If `C=C^\top$ then `n \cong 2 \mod 4` and `C` is Seidel adjacency matrix of
+    a graph, whose descendent graphs are strongly regular graphs with parameters
+    `(n-1,(n-2)/2,(n-6)/4,(n-2)/4)`, see Sec.10.4 of [BH12]_. Thus `C` we build
+    from the Seidel adjacency matrix of the latter by adding row and column of 1s.
+
+    INPUT:
+
+    - ``n`` (integer) -- dimension of the matrix
+
+    - ``check`` (boolean) -- whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to ``True``
+      by default.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import symmetric_conference_matrix
+        sage: C=symmetric_conference_matrix(10); C
+        [ 0  1  1  1  1  1  1  1  1  1]
+        [ 1  0 -1 -1  1 -1  1  1  1 -1]
+        [ 1 -1  0 -1  1  1 -1 -1  1  1]
+        [ 1 -1 -1  0 -1  1  1  1 -1  1]
+        [ 1  1  1 -1  0 -1 -1  1 -1  1]
+        [ 1 -1  1  1 -1  0 -1  1  1 -1]
+        [ 1  1 -1  1 -1 -1  0 -1  1  1]
+        [ 1  1 -1  1  1  1 -1  0 -1 -1]
+        [ 1  1  1 -1 -1  1  1 -1  0 -1]
+        [ 1 -1  1  1  1 -1  1 -1 -1  0]
+        sage: C^2==9*identity_matrix(10) and C==C.T
+        True
+    """
+    from sage.graphs.strongly_regular_db import strongly_regular_graph as srg
+    try:
+        m = srg(n-1,(n-2)/2,(n-6)/4,(n-2)/4)
+    except ValueError:
+        raise
+    C = matrix([0]+[1]*(n-1)).stack(matrix([1]*(n-1)).stack(m.seidel_adjacency_matrix()).T)
+    if check:
+        assert (C==C.T and C**2==(n-1)*I(n))
+    return C
+
+def szekeres_difference_set_pair(m):
+    r"""
+    Construct Szekeres pair of complementary difference sets
+
+    Let `4m+3` be a prime power. Theorem 3 in [Sz69]_ contains a construction of a pair
+    of *complementary* difference sets `A`, `B` in the subgroup `G` of the quadratic 
+    residues in `F_{4m+3}^*`. Namely `|A|=|B|=m`, `a\in A` whenever `a-1\in G`, `b\in B`
+    whenever `b+1 \in G`. See also Theorem 2.6 in [SWW72]_ (there the formula for `B` is
+    correct, as opposed to (4.2) in [Sz69]_, where the sign before `1` is wrong.
+    `
+    INPUT:
+
+    - ``m`` (integer) -- dimension of the matrix
+
+    EXAMPLES::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import szekeres_difference_set_pair
+        sage: G,A,B=szekeres_difference_set_pair(6)
+        sage: G,A,B=szekeres_difference_set_pair(7)
+
+    REFERENCE:
+
+    .. [Sz69] \G. Szekeres,
+      Tournaments and Hadamard matrices,
+      Enseignement Math. (2) 15(1969), 269-278
+    """
+    from sage.rings.finite_rings.finite_field_constructor import GF
+    F = GF(4*m+3)
+    Q = filter(lambda a: is_square(a) and a.is_unit(), F)
+    A = filter(lambda a: a-F.one() in Q, Q)
+    B = filter(lambda b: b+F.one() in Q, Q)
+    return Q,A,B
+
+def typeI_matrix_difference_set(G,A):
+    r"""
+    (1,-1)-incidence type I matrix of a difference set `A` in `G`
+
+    Let `A` be a difference set in a group `G` of order `n`. Return `n\times n`
+    matrix `M` with `M_{ij}=1` if `A_j A_j^{-1} \in G`, and `M_{ij}=-1` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import szekeres_difference_set_pair
+        sage: from sage.combinat.matrices.hadamard_matrix import typeI_matrix_difference_set
+        sage: G,A,B=szekeres_difference_set_pair(2)
+        sage: typeI_matrix_difference_set(G,A)
+        [-1  1 -1 -1  1]
+        [-1 -1 -1  1  1]
+        [ 1  1 -1 -1 -1]
+        [ 1 -1  1 -1 -1]
+        [-1 -1  1  1 -1]
+    """
+    n = len(G)
+    return matrix(n,n, lambda i,j: 1 if G[i]/G[j] in A else -1)
+
+def rshcd_from_prime_power_and_conference_matrix(n):
+    r"""
+    Return a `((n-1)^2,1)`-RSHCD if `n` is prime power, and symmetric `(n-1)`-conference matrix exists
+
+    The construction implemented here is Theorem 16 (and Corollary 17) from [WW72]_.
+
+    In [SWW72]_ this construction (Theorem 5.15 and Corollary 5.16)
+    is reproduced with a typo. Note that [WW72]_ refers to [Sz69]_ for the construction,
+    provided by :func:`szekeres_difference_set_pair`,
+    of complementary difference sets, and the latter has a typo.
+
+    From a :func:`symmetric_conference_matrix`, we only need the Seidel
+    adjacency matrix of the underlying strongly regular conference (i.e. Paley
+    type) graph, which we constuct directly.
+
+    INPUT:
+
+    - ``n`` -- an integer
+
+    .. SEEALSO::
+
+        :func:`regular_symmetric_hadamard_matrix_with_constant_diagonal`
+
+    EXAMPLES:
+
+    A 36x36 example ::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import rshcd_from_prime_power_and_conference_matrix
+        sage: from sage.combinat.matrices.hadamard_matrix import is_hadamard_matrix
+        sage: H = rshcd_from_prime_power_and_conference_matrix(7); H
+        36 x 36 dense matrix over Integer Ring (use the '.str()' method to see the entries)
+        sage: H==H.T and is_hadamard_matrix(H) and H.diagonal()==[1]*36 and list(sum(H))==[6]*36
+        True
+
+    Bigger examples, only provided by this construction ::
+
+        sage: H = rshcd_from_prime_power_and_conference_matrix(27)  # long time
+        sage: H==H.T and is_hadamard_matrix(H)                      # long time
+        True
+        sage: H.diagonal()==[1]*676 and list(sum(H))==[26]*676      # long time
+        True
+
+    In this example the conference matrix is not Paley, as 45 is not a prime power ::
+
+        sage: H = rshcd_from_prime_power_and_conference_matrix(47)  # not tested (long time)
+
+    REFERENCE:
+
+    .. [WW72] \J. Wallis and A.L. Whiteman,
+      Some classes of Hadamard matrices with constant diagonal,
+      Bull. Austral. Math. Soc. 7(1972), 233-249
+    """
+    from sage.graphs.strongly_regular_db import strongly_regular_graph as srg
+    if is_prime_power(n) and 2==(n-1)%4:
+        try:
+            M = srg(n-2,(n-3)/2,(n-7)/4,(n-3)/4)
+        except ValueError:
+            return
+        m = int((n-3)/4)
+        Q,X,Y = szekeres_difference_set_pair(m)
+        B = typeI_matrix_difference_set(Q,X) 
+        A = -typeI_matrix_difference_set(Q,Y) # must be symmetric
+        W = M.seidel_adjacency_matrix()
+        f = J(1,4*m+1)
+        e = J(1,2*m+1)
+        JJ = J(2*m+1, 2*m+1)
+        II = I(n-2)
+        Ib = I(2*m+1)
+        J4m = J(4*m+1,4*m+1)
+        H34 = -(B+Ib).tensor_product(W)+Ib.tensor_product(J4m)+(Ib-JJ).tensor_product(II)
+        A_t_W = A.tensor_product(W)
+        e_t_f = e.tensor_product(f)
+        H = block_matrix([
+            [J(1,1),                 f,                      e_t_f,                  -e_t_f],
+            [f.T,                  J4m,     e.tensor_product(W-II),  e.tensor_product(W+II)],
+            [ e_t_f.T, (e.T).tensor_product(W-II), A_t_W+JJ.tensor_product(II),         H34],
+            [-e_t_f.T, (e.T).tensor_product(W+II), H34.T,      -A_t_W+JJ.tensor_product(II)]])
+        return H

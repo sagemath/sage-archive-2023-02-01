@@ -5004,7 +5004,8 @@ def IoninKharaghani765Graph():
     r"""
     Return a `(765, 192, 48, 48)`-strongly regular graph.
 
-    This strongly regular graph was originally built in [IK03]_. This function
+    Existence of a strongly regular graph with these parameters was claimed in [IK03]_.
+    Implementing the construction in the latter did not work, however. This function
     implements the following instructions, shared by Yury Ionin and Hadi
     Kharaghani.
 

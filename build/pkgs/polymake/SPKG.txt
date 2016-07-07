@@ -16,3 +16,25 @@ include various flavors of Linux, Free BSD and Mac OS.
 
  * https://polymake.org/
 
+== Dependencies ==
+
+Polymake needs a working installation of Perl, including its shared
+library and some modules (XML::Writer XML::LibXML XML::LibXSLT).
+These are not provided by a Sage package.  Sage does install the
+Term::Readline::Gnu module, however, when you install polymake.
+
+On Fedora 23, use:
+ sudo yum install perl-ExtUtils-Embed
+
+On Mac OS X, all modules appear to be standard.
+
+
+Several Sage packages should be installed before installing the
+polymake package to give a more featureful Polymake installation:
+ sage -i latte_int 
+
+Information on missing Polymake prerequisites after installing
+polymake:
+ $ sage -sh
+ (sage-sh) $ polymake
+ polytope> show_unconfigured;

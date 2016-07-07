@@ -449,6 +449,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_import import LazyImport
 from sage.rings.all import ZZ
+from sage.rings.infinity import Infinity
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.global_options import GlobalOptions
@@ -615,11 +616,19 @@ class CartanTypeFactory(SageObject):
             sage: CT = CartanType('A2').relabel({1:-1, 2:-2})
             sage: CartanType([CT])
             ['A', 2] relabelled by {1: -1, 2: -2}
+
+        Check the errors from trac:`???`::
+
+            sage: CartanType(['A',-1])
+            Traceback (most recent call last):
+            ...
+            ValueError: ['A', -1] is not a valid Cartan type
         """
         if len(args) == 1:
             t = args[0]
         else:
             t = args
+
         if isinstance(t, CartanType_abstract):
             return t
         if hasattr(t, "cartan_type"):
@@ -644,6 +653,12 @@ class CartanTypeFactory(SageObject):
                 return CartanType([t[0], eval(t[1:])])
 
         t = list(t)
+
+        if isinstance(t[0], str) and t[1] is Infinity:
+            letter, n = t[0], t[1]
+            if letter == 'A':
+                from . import type_A_infinity
+                return type_A_infinity.CartanType(n)
 
         if isinstance(t[0], str) and t[1] in ZZ and t[1] >= 0:
             letter, n = t[0], t[1]
@@ -692,6 +707,7 @@ class CartanTypeFactory(SageObject):
                     if n >= 1:
                         from . import type_I
                         return type_I.CartanType(n)
+
             if len(t) == 3:
                 if t[2] == 1: # Untwisted affine
                     if letter == "A":
@@ -739,8 +755,14 @@ class CartanTypeFactory(SageObject):
                     if letter == "E" and t[2] == 2 and n == 6:
                         return CartanType(["F", 4, 1]).dual()
             raise ValueError("%s is not a valid Cartan type"%t)
+
+        # As the Cartan type has not been recognised try subtypes - but check
+        # for the error noted in trac:???
         from . import type_reducible
-        return type_reducible.CartanType([ CartanType(subtype) for subtype in t ])
+        try:
+            return type_reducible.CartanType([ CartanType(subtype) for subtype in t ])
+        except (SyntaxError, ValueError):
+            raise ValueError("%s is not a valid Cartan type"%t)
 
     global_options = CartanTypeOptions
 

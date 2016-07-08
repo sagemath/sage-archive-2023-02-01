@@ -2115,7 +2115,7 @@ class TamariIntervalPoset(Element):
         just computes the number of terms, not the planar tree nor
         the terms themselves.
 
-        .. SEEALSO:: :meth:`is_new`
+        .. SEEALSO:: :meth:`is_new`, :meth:`new_decomposition`
 
         EXAMPLES::
 
@@ -2147,7 +2147,7 @@ class TamariIntervalPoset(Element):
 
         .. SEEALSO::
 
-            :meth:`number_of_new_components`
+            :meth:`number_of_new_components`, :meth:`is_new`
 
         EXAMPLES::
 

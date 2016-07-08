@@ -812,10 +812,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         INPUT:
 
-        - ``certificate``, a Boolean -- If ``False`` (the default), return
-          only truth value. If ``True``, return either
-          ``(True, None)`` or ``(False, (a, b, c))``, where `b` is the
-          only element that covers `a` and is covered by `c`.
+        - ``certificate`` -- (default: ``False``) Whether to return
+          a certificate if the lattice is not relatively complemented.
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (a, b, c))``, where `b` is the only element that
+          covers `a` and is covered by `c`.
+        - If ``certificate=False`` return ``True`` or ``False``.
 
         EXAMPLES::
 

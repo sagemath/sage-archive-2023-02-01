@@ -95,7 +95,7 @@ def hadamard_matrix_paleyI(n, normalize=True):
 
     INPUT:
 
-    - ``n`` -- the matrix size 
+    - ``n`` -- the matrix size
 
     - ``normalize`` (boolean) -- whether to normalize the result.
 
@@ -230,8 +230,8 @@ def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
     - ``normalized`` (boolean) -- whether to test if ``M`` is a normalized
       Hadamard matrix, i.e. has its first row/column filled with +1.
 
-    - ``skew`` (boolean) -- whether to test if ``M`` is a skew 
-      Hadamard matrix, i.e. `M=S+I` for `-S=S^\top`, and `I` the identity matrix. 
+    - ``skew`` (boolean) -- whether to test if ``M`` is a skew
+      Hadamard matrix, i.e. `M=S+I` for `-S=S^\top`, and `I` the identity matrix.
 
     - ``verbose`` (boolean) -- whether to be verbose when the matrix is not
       Hadamard.
@@ -561,6 +561,11 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
         sage: print(regular_symmetric_hadamard_matrix_with_constant_diagonal(64,-1))
         64 x 64 dense matrix over Integer Ring
 
+    From a prime power and a conference matrix::
+
+        sage: print(regular_symmetric_hadamard_matrix_with_constant_diagonal(676,1)) # long time
+        676 x 676 dense matrix over Integer Ring
+
     Recursive construction::
 
         sage: print(regular_symmetric_hadamard_matrix_with_constant_diagonal(144,-1))
@@ -889,7 +894,7 @@ def williamson_goethals_seidel_skew_hadamard_matrix(a, b, c, d, check=True):
     r"""
     Williamson-Goethals-Seidel construction of a skew Hadamard matrix
 
-    Given `n\times n` (anti)circulant matrices `A`, `B`, `C`, `D` with 1,-1 entries, 
+    Given `n\times n` (anti)circulant matrices `A`, `B`, `C`, `D` with 1,-1 entries,
     and satisfying `A+A^\top = 2I`, `AA^\top + BB^\top + CC^\top + DD^\top = 4nI`,
     one can construct a skew Hadamard matrix of order `4n`, cf. [GS70s]_.
 
@@ -1198,7 +1203,7 @@ def szekeres_difference_set_pair(m):
     Construct Szekeres pair of complementary difference sets
 
     Let `4m+3` be a prime power. Theorem 3 in [Sz69]_ contains a construction of a pair
-    of *complementary* difference sets `A`, `B` in the subgroup `G` of the quadratic 
+    of *complementary* difference sets `A`, `B` in the subgroup `G` of the quadratic
     residues in `F_{4m+3}^*`. Namely `|A|=|B|=m`, `a\in A` whenever `a-1\in G`, `b\in B`
     whenever `b+1 \in G`. See also Theorem 2.6 in [SWW72]_ (there the formula for `B` is
     correct, as opposed to (4.2) in [Sz69]_, where the sign before `1` is wrong.
@@ -1221,10 +1226,15 @@ def szekeres_difference_set_pair(m):
     """
     from sage.rings.finite_rings.finite_field_constructor import GF
     F = GF(4*m+3)
-    Q = filter(lambda a: is_square(a) and a.is_unit(), F)
-    A = filter(lambda a: a-F.one() in Q, Q)
-    B = filter(lambda b: b+F.one() in Q, Q)
-    return Q,A,B
+    t = F.multiplicative_generator()**2
+    G = []
+    x = F.one()
+    for _ in xrange(2*m+1):
+        G.append(x)
+        x *= t
+    A = filter(lambda a: a-F.one() in G, G)
+    B = filter(lambda b: b+F.one() in G, G)
+    return G,A,B
 
 def typeI_matrix_difference_set(G,A):
     r"""
@@ -1239,10 +1249,10 @@ def typeI_matrix_difference_set(G,A):
         sage: from sage.combinat.matrices.hadamard_matrix import typeI_matrix_difference_set
         sage: G,A,B=szekeres_difference_set_pair(2)
         sage: typeI_matrix_difference_set(G,A)
-        [-1  1 -1 -1  1]
         [-1 -1 -1  1  1]
+        [ 1 -1 -1 -1  1]
         [ 1  1 -1 -1 -1]
-        [ 1 -1  1 -1 -1]
+        [-1  1  1 -1 -1]
         [-1 -1  1  1 -1]
     """
     n = len(G)
@@ -1308,7 +1318,7 @@ def rshcd_from_prime_power_and_conference_matrix(n):
             return
         m = int((n-3)/4)
         Q,X,Y = szekeres_difference_set_pair(m)
-        B = typeI_matrix_difference_set(Q,X) 
+        B = typeI_matrix_difference_set(Q,X)
         A = -typeI_matrix_difference_set(Q,Y) # must be symmetric
         W = M.seidel_adjacency_matrix()
         f = J(1,4*m+1)

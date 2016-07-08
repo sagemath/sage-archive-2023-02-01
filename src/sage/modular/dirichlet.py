@@ -1758,6 +1758,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
             sage: e = DirichletGroup(16)([-1, 1])
             sage: loads(dumps(e)) == e
+            True
 
         """
         # values_on_gens() used an explicit cache __values_on_gens in the past

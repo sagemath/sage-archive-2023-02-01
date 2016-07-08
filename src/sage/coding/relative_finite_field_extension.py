@@ -320,7 +320,7 @@ class RelativeFiniteFieldExtension(SageObject):
         INPUT:
 
         - ``b`` -- an element of the absolute field which also lies in the
-        relative field.
+          relative field.
 
         EXAMPLES::
 
@@ -423,7 +423,7 @@ class RelativeFiniteFieldExtension(SageObject):
         """
         return self._absolute_field_degree
 
-    
+
     def extension_degree(self):
         r"""
         Returns `m`, teh extension degree of the absiolute field over

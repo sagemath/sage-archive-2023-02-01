@@ -337,8 +337,8 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: phi(FE.cast_into_relative_field(b)) == b
             True
         """
-        if (check):
-            if not(is_in_relative_field(self, b)):
+        if check:
+            if not is_in_relative_field(self, b):
                 raise ValueError("%s does not belong to the relative field", b)
         return self.relative_field_representation(b)[0]
 

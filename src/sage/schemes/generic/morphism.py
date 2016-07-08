@@ -78,6 +78,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.element import AdditiveGroupElement, RingElement, Element, generic_power, parent
 from sage.structure.sequence import Sequence
@@ -88,9 +89,9 @@ from sage.rings.all import Integer, CIF
 from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.morphism import is_RingHomomorphism
-from point import is_SchemeTopologicalPoint
+from .point import is_SchemeTopologicalPoint
 from sage.rings.infinity import infinity
-import scheme
+from . import scheme
 
 from sage.categories.gcd_domains import GcdDomains
 from sage.rings.qqbar import QQbar
@@ -610,7 +611,7 @@ class SchemeMorphism(Element):
                             Rational Field by the ideal (x*y - 1)
                       Defn: y |--> ybar
         """
-        import glue
+        from . import glue
         return glue.GluedScheme(self, other)
 
 class SchemeMorphism_id(SchemeMorphism):

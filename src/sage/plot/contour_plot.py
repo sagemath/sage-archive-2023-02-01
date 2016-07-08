@@ -1131,6 +1131,19 @@ def implicit_plot(f, xrange, yrange, **options):
         Traceback (most recent call last):
         ...
         ValueError: fill=5 is not supported
+
+    To check that :trac:`9654` is fixed::
+
+        sage: f(x,y) = x^2 + y^2 - 2
+        sage: implicit_plot(f, (-3,3), (-3,3), rgbcolor=(1,0,0))
+        Graphics object consisting of 1 graphics primitive
+        sage: implicit_plot(f, (-3,3), (-3,3), color='green')
+        Graphics object consisting of 1 graphics primitive
+        sage: implicit_plot(f, (-3,3), (-3,3), rgbcolor=(1,0,0), color='green')
+        Traceback (most recent call last):
+        ...
+        ValueError: only one of color or rgbcolor should be specified
+
     """
     from sage.symbolic.expression import is_SymbolicEquation
     if is_SymbolicEquation(f):
@@ -1140,8 +1153,12 @@ def implicit_plot(f, xrange, yrange, **options):
     linewidths = options.pop('linewidth', None)
     linestyles = options.pop('linestyle', None)
 
-    if 'color' in options:
-        options['cmap'] = [options.pop('color', None)]
+    if 'color' in options and 'rgbcolor' in options:
+        raise ValueError('only one of color or rgbcolor should be specified')
+    elif 'color' in options:
+        options['cmap']=[options.pop('color', None)]
+    elif 'rgbcolor' in options:
+        options['cmap']=[rgbcolor(options.pop('rgbcolor', None))]
 
     if options['fill'] is True:
         options.pop('fill')

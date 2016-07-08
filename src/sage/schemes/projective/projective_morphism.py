@@ -80,6 +80,9 @@ from sage.ext.fast_callable import fast_callable
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
 import sys
+from sage.sets.set import Set
+from sage.combinat.permutation import Arrangements
+from sage.combinat.subset import Subsets
 from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
 
@@ -2592,7 +2595,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         r"""
         Calculates the subgroup of `PGL2` that is the automorphism group of this map.
 
-        Dimension 1 only. The automorphism group is the set of `PGL(2)` elements that fix this map
+        The automorphism group is the set of `PGL(2)` elements that fix this map
         under conjugation.
 
         INPUT:
@@ -2672,15 +2675,40 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [1 0]  [0 2]  [-1  0]  [ 0 -2]
             [0 1], [2 0], [ 0  1], [ 2  0]
             ]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([x**2 + x*z, y**2, z**2])
+            sage: f.automorphism_group() # long test
+            [
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            ]
+
+        ::
+
+            sage: K.<w> = CyclotomicField(3)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: H = End(P)
+            sage: D6 = H([y^2,x^2])
+            sage: D6.automorphism_group()
+            [
+            [1 0]  [0 w]  [0 1]  [w 0]  [-w - 1      0]  [     0 -w - 1]
+            [0 1], [1 0], [1 0], [0 1], [     0      1], [     1      0]
+            ]
         """
 
         alg = kwds.get('algorithm', None)
         p = kwds.get('starting_prime', 5)
         return_functions = kwds.get('return_functions', False)
         iso_type = kwds.get('iso_type', False)
-
         if self.domain().dimension_relative() != 1:
-            raise NotImplementedError("must be dimension 1")
+            return self.conjugating_set(self)
+        if self.base_ring() != QQ  and self.base_ring != ZZ:
+            return self.conjugating_set(self)
         f = self.dehomogenize(1)
         R = PolynomialRing(f.base_ring(),'x')
         if is_FractionFieldElement(f[0]):
@@ -3194,7 +3222,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         else:
             raise ValueError("algorithm must be either 'variety' or 'cyclegraph'")
 
-
     def multiplier_spectra(self, n, formal=True, embedding=None):
         r"""
         Computes the formal ``n`` multiplier spectra of this map.
@@ -3386,7 +3413,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         for i in range(0,N):
             polys.append(e([i+1]).expand(N)(multipliers))
         return polys
-
 
 class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial_projective_space):
 
@@ -4420,6 +4446,272 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             F.append(G)
         return(H(F))
 
+    def conjugating_set(self, other):
+        r"""
+        Returns the set of elements in PGL that conjugates one map to the other.
+
+        Given two nonconstant rational functions of equal degree determine to see if there is an element of PGL that
+        conjugates one rational function to another. It does this by taking the fixed points of one map and mapping
+        them to all unique permutations of the fixed points of the other map. If there are not enough fixed points the
+        function compares the mapping between rational preimages of fixed points and the rational preimages of the preimages of
+        fixed points until there are enough points; such that there are `n+2` points with all `n+1` subsets linearly independent.
+
+        ALGORITHM:
+        
+        Implementing invariant set algorithim from the paper [FMV]_. Given that the set of  `n` th preimages of fixed points is
+        invariant under conjugation find all elements of PGL that take one set to another.
+
+        INPUT: Two nonconstant rational functions of same degree.
+
+        OUTPUT: Set of conjugating `n+1` by `n+1` matrices.
+
+        AUTHORS:
+        
+        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray [FMV]_.
+        
+        - Implimented by Rebecca Lauren Miller, as part of GSOC 2016.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 - 2*y^2, y^2])
+            sage: m = matrix(QQbar, 2, 2, [-1, 3, 2, 1])
+            sage: g = f.conjugate(m)
+            sage: f.conjugating_set(g)
+            [
+            [-1  3]
+            [ 2  1]
+            ]
+
+        ::
+
+            sage: K.<w> = QuadraticField(-1)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + y^2, x*y])
+            sage: m = matrix(K, 2, 2, [1, 1, 2, 1])
+            sage: g = f.conjugate(m)
+            sage: f.conjugating_set(g) # long test
+            [
+            [1 1]  [-1 -1]
+            [2 1], [ 2  1]
+            ]
+
+        ::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: D8 = H([y^3, x^3])
+            sage: D8.conjugating_set(D8) # long test
+            [
+            [1 0]  [0 1]  [ 0 -i]  [i 0]  [ 0 -1]  [-1  0]  [-i  0]  [0 i]
+            [0 1], [1 0], [ 1  0], [0 1], [ 1  0], [ 0  1], [ 0  1], [1 0]
+            ]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: D8 = H([y^2, x^2])
+            sage: D8.conjugating_set(D8)
+            Traceback (most recent call last):
+            ...
+            ValueError: not enough rational preimages
+
+        ::
+        
+            sage: P.<x,y> = ProjectiveSpace(GF(7),1)
+            sage: H = End(P)
+            sage: D6 = H([y^2, x^2])
+            sage: D6.conjugating_set(D6)
+            [
+            [1 0]  [0 1]  [0 2]  [4 0]  [2 0]  [0 4]
+            [0 1], [1 0], [1 0], [0 1], [0 1], [1 0]
+            ]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([x^2 + x*z, y^2, z^2])
+            sage: f.conjugating_set(f) # long test
+            [
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            ]
+        """
+        f = copy(self)
+        g = copy(other)
+        try:
+            f.normalize_coordinates()
+            g.normalize_coordinates()
+        except (ValueError):
+            pass
+        if f.degree() != g.degree():# checks that maps are of equal degree
+            return []
+        n = f.domain().dimension_relative()
+        L = Set(f.periodic_points(1))
+        K = Set(g.periodic_points(1))
+        if len(L) != len(K):  # checks maps have the same number of fixed points
+            return []
+        d = len(L)
+        r = f.domain().base_ring()
+        more = True
+        if d >= n+2: # need at least n+2 points
+            for i in Subsets(L, n+2):# makes sure all n+1 subsets are linearly independent
+                Ml = matrix(r, [list(s) for s in i])
+                if not any([j == 0 for j in Ml.minors(n+1)]):
+                    Tf = list(i)
+                    more= False
+                    break
+        while more:
+            Tl = [Q for i in L for Q in f.rational_preimages(i)] #  finds preimages of fixed points
+            Tk = [Q for i in K for Q in g.rational_preimages(i)]
+            if len(Tl) != len(Tk):
+                return []
+            L = L.union(Set(Tl))
+            K = K.union(Set(Tk))
+            if d == len(L): # if no new preimages then not enough points
+                raise ValueError("not enough rational preimages")
+            d = len(L)
+            if d >= n+2: # makes sure all n+1 subsets are linearly independent
+                for i in Subsets(L, n+2):
+                    Ml = matrix(r, [list(s) for s in i])
+                    if not any([j == 0 for j in Ml.minors(n+1)]):
+                        more = False
+                        Tf = list(i)
+                        break
+        Conj = []
+        for i in Arrangements(K,(n+2)): # try all possible conjugations between invariant sets
+            try: # need all n+1 subsets linearly independenet
+                s = f.domain().point_transformation_matrix(i,Tf)# finds elements of PGL that maps one map to another
+                if self.conjugate(s) == other:
+                    Conj.append(s)
+            except (ValueError):
+                pass
+        return Conj
+
+    def is_conjugate(self, other):
+        r"""
+        Returns whether or not two maps are conjugate.
+
+        ALGORITHM:
+
+        Implementing invariant set algorithim from the paper [FMV]_. Given that the set of `n` th preimages is
+        invariant under conjugation this function finds whether two maps are conjugate.
+
+        INPUT: Two nonconstant rational functions of same degree.
+
+        OUTPUT: Boolean.
+
+        AUTHORS:
+
+        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray [FMV]_.
+
+        - Implimented by Rebecca Lauren Miller as part of GSOC 2016.
+
+        EXAMPLES::
+
+            sage: K.<w> = CyclotomicField(3)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: D8 = H([y^2, x^2])
+            sage: D8.is_conjugate(D8)
+            True
+
+        ::
+
+            sage: set_verbose(None)
+            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + x*y,y^2])
+            sage: m = matrix(QQbar, 2, 2, [1, 1, 2, 1])
+            sage: g = f.conjugate(m)
+            sage: f.is_conjugate(g) # long test
+            True
+            
+        ::
+        
+            sage: P.<x,y> = ProjectiveSpace(GF(5),1)
+            sage: H = End(P)
+            sage: f = H([x^3 + x*y^2,y^3])
+            sage: m = matrix(GF(5), 2, 2, [1, 3, 2, 9])
+            sage: g = f.conjugate(m)
+            sage: f.is_conjugate(g)
+            True
+            
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + x*y,y^2])
+            sage: g = H([x^3 + x^2*y, y^3])
+            sage: f.is_conjugate(g) 
+            False
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + x*y, y^2])
+            sage: g = H([x^2 - 2*y^2, y^2])
+            sage: f.is_conjugate(g)
+            False
+        """
+        f = copy(self)
+        g = copy(other)
+        try:
+            f.normalize_coordinates()
+            g.normalize_coordinates()
+        except (ValueError):
+            pass
+        if f.degree() != g.degree(): # checks that maps are of equal degree
+            return False
+        n = f.domain().dimension_relative()
+        L = Set(f.periodic_points(1))
+        K = Set(g.periodic_points(1))
+        if len(L) != len(K): # checks maps have the same number of fixed points
+            return False
+        d = len(L)
+        r = f.domain().base_ring()
+        more = True
+        if d >= n+2: # need at least n+2 points
+            for i in Subsets(L, n+2): # makes sure all n+1 subsets are linearly independent
+                Ml = matrix(r, [list(s) for s in i])
+                if not any([j == 0 for j in Ml.minors(n+1)]):
+                    Tf = list(i)
+                    more = False
+                    break
+        while more:
+            Tl = [Q for i in L for Q in f.rational_preimages(i)] # finds preimages of fixed points
+            Tk = [Q for i in K for Q in g.rational_preimages(i)]
+            if len(Tl) != len(Tk):
+                return False
+            L = L.union(Set(Tl))
+            K = K.union(Set(Tk))
+            if d == len(L):# if no new preimages then not enough points
+                raise ValueError("not enough rational preimages")
+            d = len(L)
+            if d >= n+2: # makes sure all n+1 subsets are linearly independent
+                for i in Subsets(L, n+2): # checks at least n+1 are linearly independent
+                    Ml = matrix(r, [list(s) for s in i])
+                    if not any([j == 0 for j in Ml.minors(n+1)]):
+                        more = False
+                        Tf = list(i)
+                        break
+        Conj = []
+        for i in Arrangements(K,n+2):# try all possible conjugations between invariant sets
+            try: # need all n+1 subsets linearly independenet
+                s = f.domain().point_transformation_matrix(i,Tf) # finds elements of PGL that maps one map to another
+                if self.conjugate(s) == other:
+                    return True
+            except (ValueError):
+                pass
+        return False
+
     def is_polynomial(self):
         r"""
         Checks to see if the function has a totally ramified fixed point.
@@ -4435,7 +4727,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: K.<w> = QuadraticField(7)
             sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: H = End(P)
-            sage: f = H([x^2 + 2*x*y - 5*y^2, 2*x*y])
+            sage: f = H([x**2 + 2*x*y - 5*y**2, 2*x*y])
             sage: f.is_polynomial()
             False
 
@@ -4445,7 +4737,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: K.<w> = QuadraticField(7)
             sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: H = End(P)
-            sage: f = H([x^2 - 7*x*y, 2*y^2])
+            sage: f = H([x**2 - 7*x*y, 2*y**2])
             sage: m = matrix(K, 2, 2, [w, 1, 0, 1])
             sage: f = f.conjugate(m)
             sage: f.is_polynomial()
@@ -4457,16 +4749,16 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
             sage: S = P.coordinate_ring()
-            sage: f = H([x^3 + w*y^3,x*y^2])
+            sage: f = H([x**3 + w*y^3,x*y**2])
             sage: f.is_polynomial()
             False
 
         ::
 
-            sage: K = GF(3^2, prefix='w')
+            sage: K = GF(3**2, prefix='w')
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
-            sage: f = H([x^2 + K.gen()*y^2, x*y])
+            sage: f = H([x**2 + K.gen()*y**2, x*y])
             sage: f.is_polynomial()
             False
         """

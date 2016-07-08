@@ -761,7 +761,10 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         INPUT:
 
-        - ``Q`` -- a point on this curve.
+        - ``Q`` -- a point on this curve, or a list/tuple of three non-collinear points to move to the points
+          `(0 : 0 : 1)`, `(0 : 1 : 0)`, and `(1 : 0 : 0)`, in that order. The last two points of ``Q`` must not be
+          points on the curve. If ``Q`` is a single point, the construction of the needed change of coordinates
+          map can be quite slow.
 
         OUPUT:
 
@@ -794,11 +797,6 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         # currently only implemented for curves with QQbar base ring
         if not self.base_ring() == QQbar:
             raise NotImplementedError("base ring must be QQbar")
-        # check that Q is on this curve
-        try:
-            Q = self(Q)
-        except TypeError:
-            raise TypeError("(=%s) must be a point on this curve"%Q)
         # first check that this curve is irreducible
         poly = self.defining_polynomial()
         items = poly.dict().items()
@@ -808,6 +806,30 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         poly = polyK(dict([(items[j][0], temp[1][j]) for j in range(len(items))]))
         if not polyK.ideal([poly]).is_prime():
             raise TypeError("this curve must be irreducible")
+        # if Q is a list or tuple of three points, use those to create the transformation
+        if isinstance(Q, (list, tuple)):
+            if len(Q) != 3:
+                raise TypeError("(=%s) must be a list/tuple of three points"%Q)
+            try:
+                self(Q[1])
+                self(Q[2])
+                raise TypeError("the last two points of (=%s) should not be on the curve"%Q)
+            except TypeError:
+                pass
+            M = matrix([[Q[2][j], Q[1][j], Q[0][j]] for j in range(3)])
+            if M.is_singular():
+                raise TypeError("the points of (=%s) must be non-collinear"%Q)
+            coords = [sum([M.row(j)[k]*PP.gens()[k] for k in range(3)]) for j in range(3)]
+            C = PP.curve(self.defining_polynomial()(coords))
+            M = M.inverse()
+            H = Hom(self, PP)
+            phi = H([sum([M.row(j)[k]*PP.gens()[k] for k in range(3)]) for j in range(3)])
+            return tuple([phi, C])
+        # check that Q is on this curve
+        try:
+            Q = self(Q)
+        except TypeError:
+            raise TypeError("(=%s) must be a point on this curve"%Q)
         r = self.multiplicity(Q)
         d = self.defining_polynomial().degree()
         # first move Q to (0 : 0 : 1), (1 : 0 : 0), or (0 : 1 : 0)
@@ -949,24 +971,22 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: set_verbose(-1)
             sage: P.<x,y,z> = ProjectiveSpace(QQbar, 2)
             sage: C = Curve([y^2*z - x^3], P)
-            sage: C.ordinary_model() # long time (2 seconds)
+            sage: C.ordinary_model()
             (Scheme morphism:
                From: Projective Plane Curve over Algebraic Field defined by -x^3 + y^2*z
                To:   Projective Space of dimension 2 over Algebraic Field
                Defn: Defined on coordinates by sending (x : y : z) to
-                     (2/9*x^2 + (-5/9)*x*y + 2/9*y^2 + 2/3*x*z + (-1/3)*y*z :
-            (-1/9)*x^2 + 4/9*x*y + (-4/9)*y^2 + (-1/3)*x*z + 2/3*y*z : (-2/9)*x^2 +
-            5/9*x*y + (-2/9)*y^2),
+                     ((-1/16)*x^2 + (-1/4)*x*y + (-1/4)*y^2 + 1/4*x*z + 1/2*y*z :
+            1/16*x^2 + (-1/4)*y^2 + (-1/4)*x*z + 1/2*y*z : (-1/16)*x^2 + 1/4*y^2),
              Projective Plane Curve over Algebraic Field defined by x^3*y +
-            4*x^2*y^2 + 4*x*y^3 + (-8)*x^3*z + (-11)*x^2*y*z + (-2)*x*y^2*z +
-            3*y^3*z)
+            2*x^2*y^2 + x*y^3 + (-7)*x^3*z + 26*x^2*y*z + (-23)*x*y^2*z + 8*y^3*z)
 
         ::
 
             sage: set_verbose(-1)
             sage: P.<x,y,z> = ProjectiveSpace(QQbar, 2)
             sage: C = Curve([y^2*z^2 - x^4 - x^3*z], P)
-            sage: C.ordinary_model([P([0,0,1]), P([0,1,0])]) # long time (28 seconds)
+            sage: C.ordinary_model([P([0,0,1]), P([0,1,0])])
             (Scheme morphism:
                From: Projective Plane Curve over Algebraic Field defined by -x^4 -
             x^3*z + y^2*z^2
@@ -997,34 +1017,75 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             pts = C.singular_points()
         else:
             pts = sing
-        while len(pts) > 0:
-            for i in range(len(pts) - 1, -1, -1):
-                try:
-                    if C.is_ordinary_singularity(pts[i]):
-                        pts.pop(i)
-                except TypeError:
-                    pts.pop(i)
-            if len(pts) > 0:
-                temp_exc = C.excellent_position(pts[0])
-                temp_qua = temp_exc[1].quadratic_transformation()
-                C = temp_qua[1]
-                tmp_coords = [temp_exc[0].defining_polynomials()[i](coords) for i in range(3)]
-                coords = [temp_qua[0].defining_polynomials()[i](tmp_coords) for i in range(3)]
-                # transform the points
-                for i in range(len(pts)):
-                    # find image if it is a point the composition map is defined on
+        if len(pts) > 0:
+            resolved = False
+        else:
+            resolved = True
+        a = 1
+        while not resolved:
+            C = self
+            a = a + 1
+            N = -1
+            prev_g = C.arithmetic_genus()
+            while len(pts) > 0:
+                for i in range(len(pts) - 1, -1, -1):
                     try:
-                        pts[i] = temp_qua[0](temp_exc[0](pts[i]))
-                    except (TypeError, ValueError):
-                        pass
-                # add points from the intersection of C and the line z
-                PPline = ProjectiveSpace(PP.base_ring(), 1)
-                # make sure the conversion happens in the right order
-                ringH = Hom(PP.coordinate_ring(), PPline.coordinate_ring())
-                psi = ringH(list(PPline.gens()) + [0])
-                X = PPline.subscheme([psi(C.defining_polynomial())])
-                newpts = [PP(list(pt) + [0]) for pt in X.rational_points()]
-                pts.extend(newpts)
+                        if C.is_ordinary_singularity(pts[i]):
+                            pts.pop(i)
+                    except TypeError:
+                        pts.pop(i)
+                if N <= 0:
+                    N = len(pts)
+                elif C.arithmetic_genus() >= prev_g and len(pts) >= N: # the transformation wasn't correct
+                    break
+                prev_g = C.arithmetic_genus()
+                N = len(pts)
+                if len(pts) > 0:
+                    t = 0
+                    while pts[0][t] == 0:
+                        t = t + 1
+                    # create the points used for the transformation
+                    # these need to be non-collinear, and also need to be able
+                    # to vary nicely as a varies (in case the first value of a doesn't work)
+                    P1 = [pts[0][j]/pts[0][t] for j in range(3)]
+                    P1[t] = pts[0][t]
+                    l = [0,1,2]
+                    l.pop(t)
+                    P1[l[0]] = P1[l[0]] + a
+                    P1[l[1]] = P1[l[1]] + 1
+                    P2 = [-a, 1]
+                    P2.insert(t, 0)
+                    try:
+                        temp_exc = C.excellent_position([pts[0], PP(P1), PP(P2)])
+                    except TypeError:
+                        break
+                    temp_qua = temp_exc[1].quadratic_transformation()
+                    C = temp_qua[1]
+                    tmp_coords = [temp_exc[0].defining_polynomials()[i](coords) for i in range(3)]
+                    coords = [temp_qua[0].defining_polynomials()[i](tmp_coords) for i in range(3)]
+                    # transform the points
+                    for i in range(len(pts)):
+                        # find image if it is a point the composition map is defined on
+                        try:
+                            temp_pt = temp_qua[0](temp_exc[0](pts[i]))
+                            pts.pop(i)
+                            if not PP(list(temp_pt)) in [PP(list(tpt)) for tpt in pts]:
+                                pts.append(temp_pt)
+                        except (TypeError, ValueError):
+                            pass
+                    # add points from the intersection of C and the line z
+                    PPline = ProjectiveSpace(PP.base_ring(), 1)
+                    # make sure the conversion happens in the right order
+                    ringH = Hom(PP.coordinate_ring(), PPline.coordinate_ring())
+                    psi = ringH(list(PPline.gens()) + [0])
+                    X = PPline.subscheme([psi(C.defining_polynomial())])
+                    newpts = [PP(list(pt) + [0]) for pt in X.rational_points()]
+                    for pt in newpts:
+                        if not PP(list(pt)) in [PP(list(tpt)) for tpt in pts]:
+                            pts.append(pt)
+                else:
+                    resolved = True
+                    break
         phi = H(coords)
         return tuple([phi, C])
 

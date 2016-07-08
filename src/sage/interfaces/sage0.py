@@ -4,6 +4,7 @@ Interface to Sage
 This is an expect interface to *another* copy of the Sage
 interpreter.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -18,7 +19,7 @@ interpreter.
 import cPickle
 import os
 
-from expect import Expect, ExpectElement, FunctionElement
+from .expect import Expect, ExpectElement, FunctionElement
 import sage.repl.preparse
 
 from sage.interfaces.tab_completion import ExtraTabCompletion

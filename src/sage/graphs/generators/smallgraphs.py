@@ -5096,6 +5096,11 @@ def IoninKharaghani765Graph():
         sage: graphs.strongly_regular_graph(765, 192, 48, 48)
         Ionin-Kharaghani: Graph on 765 vertices
 
+    .. TODO::
+
+        An update to [IK03]_ meant to fix the problem encountered became available
+        2016/02/24, see http://www.cs.uleth.ca/~hadi/research/IoninKharaghani.pdf
+
     REFERENCE:
 
     .. [IK03] Yury Ionin, Hadi Kharaghani

@@ -21,6 +21,7 @@ AUTHORS:
 Functions
 ---------
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 David Joyner <wdj@usna.edu>
@@ -37,7 +38,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.interfaces.gap import gfq_gap_to_sage
 from sage.groups.perm_gps.permgroup import *
-from linear_code import *
+from .linear_code import *
 
 def BinaryReedMullerCode(r,k):
     r"""

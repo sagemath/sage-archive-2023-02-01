@@ -487,7 +487,14 @@ class AbstractSimplex(SageObject):
             False
             sage: v.apply_degeneracies(2,1,0) == v.apply_degeneracies(2,1,0)
             True
+
+        TESTS::
+
+            sage: v == None
+            False
         """
+        if not isinstance(other, AbstractSimplex):
+            return False
         if self.is_nondegenerate() and other.is_nondegenerate():
             return self is other
         return (self._degens == other._degens
@@ -3505,7 +3512,8 @@ class ProductOfSimplicialSets(PullbackOfSimplicialSets):
             sage: Z.base_point()
             (w, v)
         """
-        PullbackOfSimplicialSets.__init__(self, [space.constant_map() for space in factors])
+        PullbackOfSimplicialSets.__init__(self, [space.constant_map()
+                                                 for space in factors])
         self._factors = tuple([f.domain() for f in self._maps])
 
     def factors(self):
@@ -3929,7 +3937,8 @@ class PushoutOfSimplicialSets(SimplicialSet):
         elif all(f.is_pointed() for f in maps):
             pt = _to_P[(codomains[0],0)][codomains[0].base_point()]
             if any(_to_P[(Y,i)][Y.base_point()] != pt for (Y,i) in spaces[2:]):
-                raise ValueError('something unexpected went wrong with base points')
+                raise ValueError('something unexpected went wrong '
+                                 'with base points')
             base_point = _to_P[(domain,-1)][domain.base_point()]
             if vertex_name is not None:
                 base_point.rename(vertex_name)
@@ -3938,7 +3947,8 @@ class PushoutOfSimplicialSets(SimplicialSet):
             SimplicialSet.__init__(self, simplices)
         # The relevant maps:
         self._maps = maps
-        self._induced = tuple([Y.Hom(self)(_to_P[(Y,i)]) for (Y,i) in spaces[1:]])
+        self._induced = tuple([Y.Hom(self)(_to_P[(Y,i)])
+                               for (Y,i) in spaces[1:]])
 
     def defining_map(self, i):
         r"""
@@ -4212,8 +4222,10 @@ class WedgeOfSimplicialSets(PushoutOfSimplicialSets):
             Z
         """
         m = len(self._factors)
-        simplices = ([self.inclusion(j).image().nondegenerate_simplices() for j in range(i)]
-                     + [self.inclusion(j).image().nondegenerate_simplices() for j in range(i+1,m)])
+        simplices = ([self.inclusion(j).image().nondegenerate_simplices()
+                      for j in range(i)]
+                     + [self.inclusion(j).image().nondegenerate_simplices()
+                        for j in range(i+1,m)])
         return self.quotient(list(itertools.chain(*simplices))).quotient_map()
 
 
@@ -4552,10 +4564,12 @@ class Nerve(SimplicialSet_infinite):
                             if d == 2:
                                 face = e.apply_degeneracies(i)
                             else:
-                                face = face_dict[chain[:i] + chain[i+2:]].apply_degeneracies(i)
+                                face = (face_dict[chain[:i]
+                                         + chain[i+2:]].apply_degeneracies(i))
                         else:
                             # Non-degenerate.
-                            face = face_dict[chain[:i] + (product,) + chain[i+2:]]
+                            face = (face_dict[chain[:i]
+                                              + (product,) + chain[i+2:]])
                         faces.append(face)
                     faces.append(face_dict[chain[:-1]])
                     simplices[x] = faces
@@ -4704,7 +4718,8 @@ def all_degeneracies(n, l=1):
         return set([tuple([_]) for _ in range(n+1)])
     ans = set()
     for i in range(n+l):
-        ans.update(set([tuple(standardize_degeneracies(*([i] + list(_)))) for _ in all_degeneracies(n, l-1)]))
+        ans.update(set([tuple(standardize_degeneracies(*([i] + list(_))))
+                        for _ in all_degeneracies(n, l-1)]))
     return ans
 
 def standardize_face_maps(*L):
@@ -4884,11 +4899,13 @@ def Sphere(n):
     v_0 = AbstractSimplex(0, name='v_0')
     if n == 0:
         w_0 = AbstractSimplex(0, name='w_0')
-        return SimplicialSet({v_0: None, w_0: None}, base_point=v_0, name='S^0')
+        return SimplicialSet({v_0: None, w_0: None}, base_point=v_0,
+                             name='S^0')
     degens = range(n-2, -1, -1)
     degen_v = v_0.apply_degeneracies(*degens)
     sigma = AbstractSimplex(n, name='sigma_{}'.format(n))
-    S = SimplicialSet({sigma: [degen_v] * (n+1)}, base_point=v_0, name='S^{}'.format(n))
+    S = SimplicialSet({sigma: [degen_v] * (n+1)}, base_point=v_0,
+                      name='S^{}'.format(n))
     S._latex_ = lambda: 'S^{{{}}}'.format(n)
     return S
 
@@ -4976,7 +4993,8 @@ def KleinBottle():
     """
     temp = SimplicialSet(delta_complexes.KleinBottle())
     pt = temp.n_cells(0)[0]
-    return SimplicialSet(temp.face_data(), base_point=pt, name='Klein bottle')
+    return SimplicialSet(temp.face_data(), base_point=pt,
+                         name='Klein bottle')
 
 
 def Torus():
@@ -5020,7 +5038,8 @@ def Simplex(n):
         sage: K.n_cells(2)
         [(0, 1, 2)]
     """
-    K = SimplicialSet(simplicial_complexes.Simplex(n), name='{}-simplex'.format(n))
+    K = SimplicialSet(simplicial_complexes.Simplex(n),
+                      name='{}-simplex'.format(n))
     K._latex_ = lambda: '\\Delta^{{{}}}'.format(n)
     return K
 
@@ -5156,15 +5175,23 @@ def ComplexProjectiveSpace(n):
     if n == 1:
         return Sphere(2)
     if n == 2:
-        v = AbstractSimplex(0, name='<<GBar>>')
-        f2_1 = AbstractSimplex(2, name='<<GBar<- (1)><- NIL>>>')
-        f2_2 = AbstractSimplex(2, name='<<GBar<- (2)><- NIL>>>')
-        f3_110 = AbstractSimplex(3, name='<<GBar<- (1 1)><0 NIL><- NIL>>>')
-        f3_011 = AbstractSimplex(3, name='<<GBar<0 (1)><- (1)><- NIL>>>')
-        f3_111 = AbstractSimplex(3, name='<<GBar<1 (1)><- (1)><- NIL>>>')
-        f4_101101 = AbstractSimplex(4, name='<<GBar<1-0 (1)><1-0 NIL><- (1)><- NIL>>>')
-        f4_201110 = AbstractSimplex(4, name='<<GBar<2-0 (1)><1 (1)><0 NIL><- NIL>>>')
-        f4_211010 = AbstractSimplex(4, name='<<GBar<2-1 (1)><0 (1)><0 NIL><- NIL>>>')
+        # v: Kenzo name <<GBar>>
+        v = AbstractSimplex(0, name='v')
+        # f_2_i: Kenzo name <<GBar<- (i)><- NIL>>> for i=1,2
+        f2_1 = AbstractSimplex(2, name='rho_0')
+        f2_2 = AbstractSimplex(2, name='rho_1')
+        # f3_110: Kenzo name <<GBar<- (1 1)><0 NIL><- NIL>>>
+        # f3_011: Kenzo name <<GBar<0 (1)><- (1)><- NIL>>>
+        # f3_111: Kenzo name <<GBar<1 (1)><- (1)><- NIL>>>
+        f3_110 = AbstractSimplex(3, name='sigma_0')
+        f3_011 = AbstractSimplex(3, name='sigma_1')
+        f3_111 = AbstractSimplex(3, name='sigma_2')
+        # f4_101101: Kenzo name <<GBar<1-0 (1)><1-0 NIL><- (1)><- NIL>>>
+        # f4_201110: Kenzo name <<GBar<2-0 (1)><1 (1)><0 NIL><- NIL>>>
+        # f4_211010: Kenzo name <<GBar<2-1 (1)><0 (1)><0 NIL><- NIL>>>
+        f4_101101 = AbstractSimplex(4, name='tau_0')
+        f4_201110 = AbstractSimplex(4, name='tau_1')
+        f4_211010 = AbstractSimplex(4, name='tau_2')
         K = SimplicialSet({f2_1: (v.apply_degeneracies(0),
                                   v.apply_degeneracies(0),
                                   v.apply_degeneracies(0)),
@@ -5271,7 +5298,8 @@ def simplicial_data_from_kenzo_output(filename):
                             if degen_str == '-':
                                 degens = []
                             else:
-                                degens = [Integer(_) for _ in degen_str.split('-')]
+                                degens = [Integer(_)
+                                          for _ in degen_str.split('-')]
                         else:
                             degens = [Integer(degen_str)]
 

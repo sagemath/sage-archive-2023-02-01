@@ -136,6 +136,68 @@ class SimplicialSetHomset(Homset):
                 f[s] = s
         return self(f)
 
+    def constant_map(self, point=None):
+        r"""
+        Constant map in this Hom set.
+
+        INPUT:
+
+        - ``point`` -- optional, default ``None``. If specified, it
+          must be a 0-simplex in the codomain, and it will be the
+          target of the constant map.
+
+        If ``point`` is specified, it is the target of the constant
+        map. Otherwise, if the codomain is pointed, the target is its
+        base point. If the codomain is not pointed and ``point`` is
+        not specified, raise an error.
+
+        EXAMPLES::
+
+            sage: S3 = simplicial_sets.Sphere(3)
+            sage: T = simplicial_sets.Torus()
+            sage: T.n_cells(0)[0].rename('w')
+            sage: Hom(S3,T).constant_map()
+            Simplicial set morphism:
+              From: S^3
+              To:   Torus
+              Defn: [v_0, sigma_3] --> [w, Simplex obtained by applying degeneracies s_2 s_1 s_0 to w]
+
+            sage: S0 = simplicial_sets.Sphere(0)
+            sage: v, w = S0.n_cells(0)
+            sage: Hom(S3, S0).constant_map(v)
+            Simplicial set morphism:
+              From: S^3
+              To:   S^0
+              Defn: [v_0, sigma_3] --> [v_0, Simplex obtained by applying degeneracies s_2 s_1 s_0 to v_0]
+            sage: Hom(S3, S0).constant_map(w)
+            Simplicial set morphism:
+              From: S^3
+              To:   S^0
+              Defn: [v_0, sigma_3] --> [w_0, Simplex obtained by applying degeneracies s_2 s_1 s_0 to w_0]
+
+        This constant map is not pointed, since it doesn't send the
+        base point of `S^3` to the base point of `S^0`::
+
+            sage: Hom(S3, S0).constant_map(w).is_pointed()
+            False
+
+            sage: S0 = S0.unset_base_point()
+            sage: Hom(S3, S0).constant_map()
+            Traceback (most recent call last):
+            ...
+            ValueError: codomain is not pointed, so specify a target for the constant map
+        """
+        codomain = self.codomain()
+        if point is None:
+            if codomain.is_pointed():
+                point = codomain.base_point()
+            else:
+                raise ValueError('codomain is not pointed, so specify a '
+                                 'target for the constant map')
+        d = {sigma: point.apply_degeneracies(*range(sigma.dimension()-1,-1,-1))
+             for sigma in self.domain().nondegenerate_simplices()}
+        return self(d)
+
     def an_element(self):
         """
         Return an element of ``self``: a constant map.
@@ -149,16 +211,20 @@ class SimplicialSetHomset(Homset):
               From: S^2
               To:   S^1
               Defn: [v_0, sigma_2] --> [v_0, Simplex obtained by applying degeneracies s_1 s_0 to v_0]
+
+            sage: K = simplicial_sets.Simplex(3)
+            sage: L = simplicial_sets.Simplex(4)
+            sage: d = {K.n_cells(3)[0]: L.n_cells(0)[0].apply_degeneracies(2, 1, 0)}
+            sage: Hom(K,L)(d) == Hom(K,L).an_element()
+            True
         """
         domain = self.domain()
         codomain = self.codomain()
-        target = codomain.n_cells(0)[0]
-        const = {}
-        for i in range(domain.dimension() + 1):
-            for s in domain.n_cells(i):
-                const[s] = target
-            target = target.apply_degeneracies(i)
-        return self(const)
+        if codomain.is_pointed():
+            target = codomain.base_point()
+        else:
+            target = codomain.n_cells(0)[0]
+        return self.constant_map(target)
 
 
 class SimplicialSetMorphism(Morphism):

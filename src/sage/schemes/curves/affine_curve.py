@@ -23,8 +23,6 @@ AUTHORS:
 
 - David Kohel (2006-01)
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -34,6 +32,7 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
@@ -48,7 +47,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.schemes.affine.affine_space import is_AffineSpace
 
-import point
+from . import point
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
 

@@ -45,12 +45,13 @@ from sage.misc.all import add, sage_eval
 from sage.rings.all import degree_lowest_rational_function
 from sage.schemes.affine.affine_space import AffineSpace
 
-import point
+from . import point
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
 from sage.schemes.projective.projective_space import is_ProjectiveSpace
 
 from .curve import Curve_generic
+
 
 class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
 

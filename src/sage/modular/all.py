@@ -35,6 +35,6 @@ from .local_comp.all import *
 
 from .cusps_nf import NFCusp, NFCusps, NFCusps_clear_cache, Gamma0_NFCusps
 
-from btquotients.all import *
+from .btquotients.all import *
 
-from pollack_stevens.all import *
+from .pollack_stevens.all import *

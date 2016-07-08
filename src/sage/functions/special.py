@@ -127,21 +127,6 @@ implemented here.
          (-1)^{n+1} \sqrt{\frac{\pi}{2x}} J_{-n-1/2}(x).
 
 
-
--  For `x>0`, the confluent hypergeometric function
-   `y = U(a,b,x)` is defined to be the solution to Kummer's
-   differential equation
-
-
-   .. math::
-
-     xy'' + (b-x)y' - ay = 0,
-
-   which satisfies `U(a,b,x) \sim x^{-a}`, as
-   `x\rightarrow \infty`. (There is a linearly independent
-   solution, called Kummer's function `M(a,b,x)`, which is not
-   implemented.)
-
    -  The incomplete elliptic integrals (of the first kind, etc.) are:
 
       .. math::
@@ -441,51 +426,6 @@ def maxima_function(name):
 
     return NewMaximaFunction()
 
-
-def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
-    r"""
-    Default is a wrap of PARI's hyperu(alpha,beta,x) function.
-    Optionally, algorithm = "scipy" can be used.
-
-    The confluent hypergeometric function `y = U(a,b,x)` is
-    defined to be the solution to Kummer's differential equation
-
-    .. math::
-
-             xy'' + (b-x)y' - ay = 0.
-
-    This satisfies `U(a,b,x) \sim x^{-a}`, as
-    `x\rightarrow \infty`, and is sometimes denoted
-    ``x^{-a}2_F_0(a,1+a-b,-1/x)``. This is not the same as Kummer's
-    `M`-hypergeometric function, denoted sometimes as
-    ``_1F_1(alpha,beta,x)``, though it satisfies the same DE that
-    `U` does.
-
-    .. warning::
-
-       In the literature, both are called "Kummer confluent
-       hypergeometric" functions.
-
-    EXAMPLES::
-
-        sage: hypergeometric_U(1,1,1,"scipy")
-        0.596347362323...
-        sage: hypergeometric_U(1,1,1)
-        0.59634736232319...
-        sage: hypergeometric_U(1,1,1,"pari",70)
-        0.59634736232319407434...
-    """
-    if algorithm == "scipy":
-        if prec != 53:
-            raise ValueError("for the scipy algorithm the precision must be 53")
-        import scipy.special
-        return RDF(scipy.special.hyperu(float(alpha), float(beta), float(x)))
-    elif algorithm == 'pari':
-        from sage.libs.pari.all import pari
-        R = RealField(prec)
-        return R(pari(R(alpha)).hyperu(R(beta), R(x), precision=prec))
-    else:
-        raise ValueError("unknown algorithm '%s'" % algorithm)
 
 def spherical_bessel_J(n, var, algorithm="maxima"):
     r"""

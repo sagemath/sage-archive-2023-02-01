@@ -138,6 +138,7 @@ Check that :trac:`5562` has been fixed::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.element import Element
 from sage.structure.category_object import check_default_category
@@ -159,17 +160,17 @@ from sage.misc.prandom import randint
 from sage.misc.cachefunc import cached_method
 
 from sage.rings.real_mpfr import is_RealField
-from polynomial_real_mpfr_dense import PolynomialRealDense
+from .polynomial_real_mpfr_dense import PolynomialRealDense
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.finite_rings.element_base import FiniteRingElement
 
-from polynomial_element import PolynomialBaseringInjection
+from .polynomial_element import PolynomialBaseringInjection
 
 from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
 
-import cyclotomic
+from . import cyclotomic
 
 ZZ_sage = IntegerRing()
 
@@ -2488,7 +2489,7 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
         from sage.libs.pari.all import pari
         from sage.rings.finite_rings.conway_polynomials import (conway_polynomial,
                                                                 exists_conway_polynomial)
-        from polynomial_gf2x import (GF2X_BuildIrred_list,
+        from .polynomial_gf2x import (GF2X_BuildIrred_list,
                                      GF2X_BuildSparseIrred_list,
                                      GF2X_BuildRandomIrred_list)
 

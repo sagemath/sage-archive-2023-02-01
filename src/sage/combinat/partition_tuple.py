@@ -267,7 +267,8 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.interfaces.all import gp
-from sage.rings.all import NN, ZZ
+from sage.misc.cachefunc import cached_method
+from sage.rings.all import NN, ZZ, IntegerModRing
 from sage.rings.integer import Integer
 from sage.sets.positive_integers import PositiveIntegers
 from sage.structure.parent import Parent
@@ -965,7 +966,6 @@ class PartitionTuple(CombinatorialElement):
         """
         return multicharge[k]-r+c
 
-
     def conjugate(self):
         """
         Return the conjugate partition tuple of ``self``.
@@ -1034,6 +1034,7 @@ class PartitionTuple(CombinatorialElement):
             level+=1
         return True
 
+    @cached_method
     def initial_tableau(self):
         r"""
         Return the :class:`StandardTableauTuple` which has the numbers
@@ -1048,6 +1049,24 @@ class PartitionTuple(CombinatorialElement):
         """
         from .tableau_tuple import StandardTableauTuples
         return StandardTableauTuples(self).first()
+
+    @cached_method
+    def initial_column_tableau(self):
+        r"""
+        Return the initial column tableau of shape ``self``.
+
+        The initial column tableau of shape `\lambda` is the standard tableau 
+        that has the numbers `1` to `n`, where `n` is the :meth:`size`
+        of `\lambda`, entered in order from top to bottom, and then left
+        to right, down the columns of each component, starting from the
+        rightmost component and working to the left.
+
+        EXAMPLE::
+
+            sage: PartitionTuple([ [3,1],[3,2] ]).initial_column_tableau()
+            ([[6, 8, 9], [7]], [[1, 3, 5], [2, 4]])
+        """
+        return self.conjugate().initial_tableau().conjugate()
 
     def garnir_tableau(self, *cell):
         r"""
@@ -1118,11 +1137,11 @@ class PartitionTuple(CombinatorialElement):
 
         if comp>=len(self) or row+1>=len(self[comp]) or col>=self[comp][row+1]:
             raise ValueError('(comp, row+1, col) must be inside the diagram')
-        from .tableau_tuple import TableauTuple
         g = self.initial_tableau().to_list()
         a = g[comp][row][col]
         g[comp][row][col:] = range(a+col+1, g[comp][row+1][col]+1)
         g[comp][row+1][:col+1] = range(a, a+col+1)
+        from .tableau_tuple import TableauTuple
         g = TableauTuple(g)
         g._garnir_cell = (comp,row,col)
         return g
@@ -1329,7 +1348,7 @@ class PartitionTuple(CombinatorialElement):
         """
         Returns a list of the removable cells of this partition tuple.
 
-        All indice are of the form ``(k, r, c)``, where ``r`` is the
+        All indices are of the form ``(k, r, c)``, where ``r`` is the
         row-index, ``c`` is the column index and ``k`` is the component.
 
         EXAMPLES::
@@ -1456,6 +1475,189 @@ class PartitionTuple(CombinatorialElement):
                 gens.extend([c for c in range(m+1,m+row)])
                 m+=row
         return gens
+
+    @cached_method
+    def _initial_degree(self,e,multicharge):
+        r"""
+        Return the Brundan-Kleshchev-Wang degree of the initial tableau
+        of shape ``self``.
+
+        This degree depends only the shape of the tableau and it is
+        used as the base case for computing the degrees of all tableau of
+        shape ``self``, which is why this method is cached. See
+        :meth:`sage.combinat.tableau.Tableau.degree` for more information.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[2,1],[2,2]])._initial_degree(0,(0,0))
+            1
+            sage: PartitionTuple([[2,1],[2,2]])._initial_degree(2,(0,0))
+            4
+            sage: PartitionTuple([[2,1],[2,2]])._initial_degree(3,(0,0))
+            1
+            sage: PartitionTuple([[2,1],[2,2]])._initial_degree(4,(0,0))
+            1
+        """
+        if e == 0:
+            deg = 0
+        else:
+            deg = sum(mu._initial_degree(e) for mu in self)
+        I = IntegerModRing(e)
+        multires = [I(k) for k in multicharge]
+        for (k,r,c) in self.cells():
+            res = I(multicharge[k]-r+c)
+            for l in range(k+1, self.level()):
+                if res == multires[l]:
+                    deg += 1
+        return deg
+
+    def degree(self, e):
+        r"""
+        Return the ``e``-th degree of ``self``.
+
+        The `e`-th degree is the sum of the degrees of the standard
+        tableaux of shape `\lambda`. The `e`-th degree is the exponent
+        of `\Phi_e(q)` in the Gram determinant of the Specht module for a
+        semisimple cyclotomic Hecke algebra of type `A` with parameter `q`.
+
+        For this calculation the multicharge `(\kappa_1, \ldots, \kappa_l)`
+        is chosen so that `\kappa_{r+1} - \kappa_r > n`, where `n` is
+        the :meth:`size` of `\lambda` as this ensures that the Hecke algera
+        is semisimple.
+
+        INPUT:
+
+        - ``e`` -- an integer `e > 1`
+
+        OUTPUT:
+
+        A non-negative integer.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[2,1],[2,2]]).degree(2)
+            532
+            sage: PartitionTuple([[2,1],[2,2]]).degree(3)
+            259
+            sage: PartitionTuple([[2,1],[2,2]]).degree(4)
+            196
+            sage: PartitionTuple([[2,1],[2,2]]).degree(5)
+            105
+            sage: PartitionTuple([[2,1],[2,2]]).degree(6)
+            105
+            sage: PartitionTuple([[2,1],[2,2]]).degree(7)
+            0
+
+        Therefore,  the Gram determinant of `S(2,1|2,2)` when the Hecke parameter
+        `q` is "generic" is
+
+        ..math::
+
+            q^N \Phi_2(q)^{532}\Phi_3(q)^{259}\Phi_4(q)^{196}\Phi_5(q)^{105}\Phi_6(q)^{105}
+
+        for some integer `N`.  Compare with :meth:`prime_degree`.
+        """
+        multicharge=tuple([i*self.size() for i in range(self.size())])
+        return sum(t.degree(e, multicharge) for t in self.standard_tableaux())
+
+    def prime_degree(self, p):
+        r"""
+        Return the ``p``-th prime degree of ``self``.
+
+        The degree of a partition `\lambda` is the sum of the `e`-degrees`
+        of the standard tableaux of shape `\lambda` (see :meth:`degree`),
+        for `e` a power of the prime `p`. The prime degree gives the
+        exponent of `p` in the Gram determinant of the integral Specht
+        module of the symmetric group.
+
+        The `p`-th degree is the sum of the degrees of the standard tableaux
+        of shape `\lambda`. The `p`-th degree is the exponent of `p` in the
+        Gram determinant of a semisimple cyclotomic Hecke algebra of type `A`
+        with parameter `q = 1`.
+
+        As with :meth:`degree`, for this calculation the multicharge
+        `(\kappa_1, \ldots, \kappa_l)` is chosen so that
+        `\kappa_{r+1} - \kappa_r > n`, where `n` is the :meth:`size`
+        of `\lambda` as this ensures that the Hecke algera is semisimple.
+
+        INPUT:
+
+        - ``e`` -- an  integer `e > 1`
+        - ``muticharge`` -- an `l`-tuple of integers, where `l` is
+          the :meth:`level` of ``self``
+
+        OUTPUT:
+
+        A non-negative integer
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[2,1],[2,2]]).prime_degree(2)
+            728
+            sage: PartitionTuple([[2,1],[2,2]]).prime_degree(3)
+            259
+            sage: PartitionTuple([[2,1],[2,2]]).prime_degree(5)
+            105
+            sage: PartitionTuple([[2,1],[2,2]]).prime_degree(7)
+            0
+
+       Therefore, the Gram determinant of `S(2,1|2,2)` when `q=1` is 
+       `2^{728} 3^{259}5^{105}`. Compare with :meth:`degree`.
+        """
+        ps = [p]
+
+        while ps[-1]*p < self.size():
+            ps.append(ps[-1] * p)
+        multicharge=tuple([i*self.size() for i in range(self.size())])
+        return sum(t.degree(pk, multicharge) for pk in ps for t in self.standard_tableaux())
+
+    def defect(self, e, multicharge):
+        r"""
+        Return the ``e``-defect or the ``e``-weight ``self``.
+
+        The `e`-defect is the number of (connected) `e`-rim hooks
+        that can be removed from the partition.
+
+        The defect of a partition tuple is given by
+
+        .. MATH: 
+
+            \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta)
+
+        where `\Lambda = \sum_r \Lambda_{\kappa_r}` for the multicharge
+        `(\kappa_1, \ldots, \kappa_{\ell})` and 
+        `\beta = \sum_{(r,c)} \alpha_{(c-r) \pmod e}`, with the sum
+        being over the cells in the partition.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[2,2],[2,2]]).defect(0,(0,0))
+            0
+            sage: PartitionTuple([[2,2],[2,2]]).defect(2,(0,0))
+            8
+            sage: PartitionTuple([[2,2],[2,2]]).defect(2,(0,1))
+            8
+            sage: PartitionTuple([[2,2],[2,2]]).defect(3,(0,2))
+            7
+            sage: PartitionTuple([[2,2],[2,2]]).defect(3,(0,2))
+            7
+            sage: PartitionTuple([[2,2],[2,2]]).defect(3,(3,2))
+            7
+            sage: PartitionTuple([[2,2],[2,2]]).defect(4,(0,0))
+            0
+        """
+        # Will correspond to an element of the positive root lattice
+        #   corresponding to the block.
+        # We use a dictionary to cover the case when e = 0.
+        beta = {}
+
+        Ie = IntegerModRing(e)
+        for (k,r,c) in self.cells():
+            r = Ie(multicharge[k]+r-c)
+            beta[r] = beta[r] + 1 if r in beta else 1
+
+        return sum(beta[r] for r in beta) - sum(beta[r]**2 - beta[r] * beta.get(Ie(r+1),0)
+                                                for r in beta)
 
 #--------------------------------------------------
 # Partition tuples - parent classes

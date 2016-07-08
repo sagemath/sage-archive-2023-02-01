@@ -9,6 +9,7 @@ Root system data for dual Cartan types
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method
@@ -526,7 +527,7 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
             sage: CartanType(['D', 4, 3]).basic_untwisted()
             ['D', 4]
         """
-        import cartan_type
+        from . import cartan_type
         if self.dual().type() == 'B':
             return cartan_type.CartanType(['A', self.classical().rank()*2-1])
         elif self.dual().type() == 'BC':

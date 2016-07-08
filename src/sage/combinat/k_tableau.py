@@ -40,6 +40,7 @@ Authors:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -57,7 +58,7 @@ from sage.misc.flatten import flatten
 from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.tableau import TableauOptions
 from sage.combinat.composition import Composition
-import cartesian_product
+from . import cartesian_product
 import copy
 
 def WeakTableau(t, k, inner_shape = [], representation = "core"):
@@ -481,7 +482,7 @@ class WeakTableau_abstract(ClonableList):
             return "%s"%x
         if self.parent()._representation in ['core', 'bounded']:
             t = [[chi(x) for x in row] for row in self]
-            from output import tex_from_array
+            from .output import tex_from_array
             return tex_from_array(t)
         else:
             return "["+"".join(self[i]._latex_()+',' for i in range(len(self)-1))+self[len(self)-1]._latex_()+"]"
@@ -3635,7 +3636,7 @@ class StrongTableau(ClonableList):
                 return s
             return "%s"%x
         T = [[chi(x) for x in row] for row in self.to_list()]
-        from output import tex_from_array
+        from .output import tex_from_array
         return tex_from_array(T)
 
     def restrict( self, r ):

@@ -1,6 +1,7 @@
 r"""
 Ambient lattices and ambient spaces
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
 #       Copyright (C) 2008-2013 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -10,7 +11,7 @@ Ambient lattices and ambient spaces
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
-from weight_lattice_realizations import WeightLatticeRealizations
+from .weight_lattice_realizations import WeightLatticeRealizations
 from sage.rings.all import ZZ, QQ
 from sage.misc.cachefunc import ClearCacheOnPickle
 from sage.modules.free_module_element import vector

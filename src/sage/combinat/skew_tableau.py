@@ -24,6 +24,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import copy
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -2479,7 +2480,7 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
             sage: SemistandardSkewTableaux([[2,1],[]],[2,1]).list()
             [[[1, 1], [2]]]
         """
-        from ribbon_tableau import RibbonTableaux_shape_weight_length
+        from .ribbon_tableau import RibbonTableaux_shape_weight_length
         for x in RibbonTableaux_shape_weight_length(self.p, self.mu, 1):
             yield self.element_class(self, x)
 

@@ -797,7 +797,27 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         # currently only implemented for curves with QQbar base ring
         if not self.base_ring() == QQbar:
             raise NotImplementedError("base ring must be QQbar")
-        # first check that this curve is irreducible
+        # if Q is a list or tuple of three points, use those to create the transformation
+        if isinstance(Q, (list, tuple)):
+            if len(Q) != 3:
+                raise TypeError("(=%s) must be a list/tuple of three points"%Q)
+            bad = False
+            try:
+                self(Q[1])
+                self(Q[2])
+                bad = True
+            except TypeError:
+                pass
+            if bad:
+                raise TypeError("the last two points of (=%s) should not be on the curve"%Q)
+            M = matrix([[Q[2][j], Q[1][j], Q[0][j]] for j in range(3)])
+            coords = [sum([M.row(j)[k]*PP.gens()[k] for k in range(3)]) for j in range(3)]
+            C = PP.curve(self.defining_polynomial()(coords))
+            M = M.inverse()
+            H = Hom(self, PP)
+            phi = H([sum([M.row(j)[k]*PP.gens()[k] for k in range(3)]) for j in range(3)])
+            return tuple([phi, C])
+        # check that this curve is irreducible
         poly = self.defining_polynomial()
         items = poly.dict().items()
         coeff = [items[j][1] for j in range(len(items))]
@@ -806,25 +826,6 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         poly = polyK(dict([(items[j][0], temp[1][j]) for j in range(len(items))]))
         if not polyK.ideal([poly]).is_prime():
             raise TypeError("this curve must be irreducible")
-        # if Q is a list or tuple of three points, use those to create the transformation
-        if isinstance(Q, (list, tuple)):
-            if len(Q) != 3:
-                raise TypeError("(=%s) must be a list/tuple of three points"%Q)
-            try:
-                self(Q[1])
-                self(Q[2])
-                raise TypeError("the last two points of (=%s) should not be on the curve"%Q)
-            except TypeError:
-                pass
-            M = matrix([[Q[2][j], Q[1][j], Q[0][j]] for j in range(3)])
-            if M.is_singular():
-                raise TypeError("the points of (=%s) must be non-collinear"%Q)
-            coords = [sum([M.row(j)[k]*PP.gens()[k] for k in range(3)]) for j in range(3)]
-            C = PP.curve(self.defining_polynomial()(coords))
-            M = M.inverse()
-            H = Hom(self, PP)
-            phi = H([sum([M.row(j)[k]*PP.gens()[k] for k in range(3)]) for j in range(3)])
-            return tuple([phi, C])
         # check that Q is on this curve
         try:
             Q = self(Q)
@@ -970,63 +971,72 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
             sage: set_verbose(-1)
             sage: P.<x,y,z> = ProjectiveSpace(QQbar, 2)
-            sage: C = Curve([y^2*z - x^3], P)
+            sage: C = Curve([x^5 - y*z^4], P)
             sage: C.ordinary_model()
             (Scheme morphism:
-               From: Projective Plane Curve over Algebraic Field defined by -x^3 + y^2*z
+               From: Projective Plane Curve over Algebraic Field defined by x^5 - y*z^4
                To:   Projective Space of dimension 2 over Algebraic Field
                Defn: Defined on coordinates by sending (x : y : z) to
-                     ((-1/16)*x^2 + (-1/4)*x*y + (-1/4)*y^2 + 1/4*x*z + 1/2*y*z :
-            1/16*x^2 + (-1/4)*y^2 + (-1/4)*x*z + 1/2*y*z : (-1/16)*x^2 + 1/4*y^2),
-             Projective Plane Curve over Algebraic Field defined by x^3*y +
-            2*x^2*y^2 + x*y^3 + (-7)*x^3*z + 26*x^2*y*z + (-23)*x*y^2*z + 8*y^3*z)
+                     ((-1/16)*x^2 + 1/4*x*y + (-1/4)*x*z + 1/2*y*z + (-1/4)*z^2 :
+            1/16*x^2 + (-1/4)*x*y + 1/2*y*z + (-1/4)*z^2 : (-1/16)*x^2 + 1/4*z^2),
+             Projective Plane Curve over Algebraic Field defined by -x^5*y +
+            (-4)*x^4*y^2 + (-6)*x^3*y^3 + (-4)*x^2*y^4 - x*y^5 + 31*x^5*z +
+            (-164)*x^4*y*z + 314*x^3*y^2*z + (-324)*x^2*y^3*z + 159*x*y^4*z +
+            (-32)*y^5*z)
 
         ::
 
             sage: set_verbose(-1)
             sage: P.<x,y,z> = ProjectiveSpace(QQbar, 2)
             sage: C = Curve([y^2*z^2 - x^4 - x^3*z], P)
-            sage: C.ordinary_model([P([0,0,1]), P([0,1,0])])
+            sage: C.ordinary_model([P([0,0,1]), P([0,1,0])]) # long time (2 seconds)
             (Scheme morphism:
                From: Projective Plane Curve over Algebraic Field defined by -x^4 -
             x^3*z + y^2*z^2
                To:   Projective Space of dimension 2 over Algebraic Field
                Defn: Defined on coordinates by sending (x : y : z) to
-                     (19/576*x^4 + (-7/48)*x^3*y + 3/16*x^2*y^2 + (-1/18)*x*y^3 +
-            125/864*x^3*z + (-97/288)*x^2*y*z + 13/144*x*y^2*z + 1/108*y^3*z +
-            91/576*x^2*z^2 + (-11/288)*x*y*z^2 + (-5/576)*y^2*z^2 : (-19/576)*x^4 +
-            7/48*x^3*y + (-3/16)*x^2*y^2 + 1/18*x*y^3 + 1/32*x^3*z +
-            (-17/96)*x^2*y*z + 13/48*x*y^2*z + (-1/12)*y^3*z + 13/64*x^2*z^2 +
-            (-9/32)*x*y*z^2 + 5/64*y^2*z^2 : (-1/64)*x^4 + 1/16*x^3*y +
-            (-1/16)*x^2*y^2 + 1/96*x^3*z + (-7/96)*x^2*y*z + 5/48*x*y^2*z +
-            7/64*x^2*z^2 + (-3/32)*x*y*z^2 + (-1/64)*y^2*z^2),
-             Projective Plane Curve over Algebraic Field defined by 36*x^6*y^4 +
-            72*x^5*y^5 + 36*x^4*y^6 + (-252)*x^6*y^3*z + (-484)*x^5*y^4*z +
-            (-212)*x^4*y^5*z + 20*x^3*y^6*z + 522*x^6*y^2*z^2 + 1100*x^5*y^3*z^2 +
-            3808/9*x^4*y^4*z^2 + (-2708/27)*x^3*y^5*z^2 + 326/81*x^2*y^6*z^2 +
-            (-459)*x^6*y*z^3 + (-939)*x^5*y^2*z^3 + (-758/3)*x^4*y^3*z^3 +
-            1630/9*x^3*y^4*z^3 + (-979/81)*x^2*y^5*z^3 + 103/243*x*y^6*z^3 +
-            162*x^6*z^4 + 243*x^5*y*z^4 + (-53)*x^4*y^2*z^4 + (-1070/9)*x^3*y^3*z^4
-            + 712/81*x^2*y^4*z^4 + (-167/243)*x*y^5*z^4 + 11/729*y^6*z^4)
+                     ((-3/128)*x^4 + (-15/128)*x^3*y + (-3/16)*x^2*y^2 +
+            (-3/32)*x*y^3 + 3/64*x^3*z + 15/32*x^2*y*z + 15/16*x*y^2*z + 3/8*y^3*z +
+            (-3/8)*x*y*z^2 + (-3/2)*y^2*z^2 : (-3/128)*x^4 + (-15/128)*x^3*y +
+            (-3/16)*x^2*y^2 + (-3/32)*x*y^3 + 5/64*x^3*z + 1/2*x^2*y*z +
+            13/16*x*y^2*z + 1/4*y^3*z + (-1/16)*x^2*z^2 + (-1/2)*x*y*z^2 - y^2*z^2 :
+            9/256*x^4 + 9/64*x^3*y + 9/64*x^2*y^2 + (-3/64)*x^3*z + (-9/16)*x^2*y*z
+            + (-15/16)*x*y^2*z + 3/8*x*y*z^2 + 3/2*y^2*z^2),
+             Projective Plane Curve over Algebraic Field defined by 4*x^6*y^4 +
+            (-8)*x^5*y^5 + 4*x^4*y^6 + 8*x^5*y^4*z + (-16)*x^4*y^5*z + 8*x^3*y^6*z +
+            (-5704/81)*x^6*y^2*z^2 + 11128/27*x^5*y^3*z^2 + (-8084/9)*x^4*y^4*z^2 +
+            2608/3*x^3*y^5*z^2 + (-316)*x^2*y^6*z^2 + (-512/81)*x^6*y*z^3 +
+            (-776/9)*x^5*y^2*z^3 + 5800/9*x^4*y^3*z^3 + (-13688/9)*x^3*y^4*z^3 +
+            4616/3*x^2*y^5*z^3 + (-576)*x*y^6*z^3 + 4/81*x^6*z^4 +
+            (-544/81)*x^5*y*z^4 + (-1192/81)*x^4*y^2*z^4 + 2080/9*x^3*y^3*z^4 +
+            (-5564/9)*x^2*y^4*z^4 + 1984/3*x*y^5*z^4 + (-256)*y^6*z^4)
         """
         C = self
         PP = C.ambient_space()
         H = Hom(C, PP)
         coords = [C.ambient_space().gens()[i] for i in range(3)]
         if sing is None:
-            pts = C.singular_points()
+            all_pts = C.singular_points()
         else:
-            pts = sing
-        if len(pts) > 0:
+            all_pts = list(sing)
+        mult = [C.multiplicity(pt) for pt in all_pts]
+        for i in range(len(all_pts) - 1, -1, -1):
+            try:
+                if C.is_ordinary_singularity(all_pts[i]):
+                    all_pts.pop(i)
+            except TypeError:
+                all_pts.pop(i)
+        if len(all_pts) > 0:
             resolved = False
         else:
             resolved = True
+        N = len(all_pts) + C.arithmetic_genus() - sum([m*(m-1)/2 for m in mult])
         a = 1
         while not resolved:
             C = self
+            pts = list(all_pts)
             a = a + 1
-            N = -1
-            prev_g = C.arithmetic_genus()
+            count = 0
             while len(pts) > 0:
                 for i in range(len(pts) - 1, -1, -1):
                     try:
@@ -1034,13 +1044,9 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                             pts.pop(i)
                     except TypeError:
                         pts.pop(i)
-                if N <= 0:
-                    N = len(pts)
-                elif C.arithmetic_genus() >= prev_g and len(pts) >= N: # the transformation wasn't correct
-                    break
-                prev_g = C.arithmetic_genus()
-                N = len(pts)
                 if len(pts) > 0:
+                    if count >= N:
+                        break
                     t = 0
                     while pts[0][t] == 0:
                         t = t + 1
@@ -1064,7 +1070,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                     tmp_coords = [temp_exc[0].defining_polynomials()[i](coords) for i in range(3)]
                     coords = [temp_qua[0].defining_polynomials()[i](tmp_coords) for i in range(3)]
                     # transform the points
-                    for i in range(len(pts)):
+                    for i in range(len(pts) - 1, -1, -1):
                         # find image if it is a point the composition map is defined on
                         try:
                             temp_pt = temp_qua[0](temp_exc[0](pts[i]))
@@ -1086,6 +1092,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                 else:
                     resolved = True
                     break
+                count = count + 1
         phi = H(coords)
         return tuple([phi, C])
 

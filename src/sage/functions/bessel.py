@@ -97,7 +97,7 @@ The main objects which are exported from this module are:
    linear combinations are also known as Bessel functions of the third
    kind; they are also two linearly independent solutions of Bessel's
    differential equation. They are named for Hermann Hankel.
-   
+
 -  When solving for separable solutions of Laplace's equation in
    spherical coordinates, the radial equation has the form:
 
@@ -181,11 +181,11 @@ REFERENCES:
 
 .. [AS-Bessel] \F. W. J. Olver: 9. Bessel Functions of Integer Order, in Abramowitz and Stegun: Handbook of Mathematical Functions
     http://people.math.sfu.ca/~cbm/aands/page_355.htm
-.. [AS-Spherical] H. A. Antosiewicz: 10. Bessel Functions of Fractional Order, in Abramowitz and Stegun: Handbook of Mathematical Functions
+.. [AS-Spherical] \H. A. Antosiewicz: 10. Bessel Functions of Fractional Order, in Abramowitz and Stegun: Handbook of Mathematical Functions
     http://people.math.sfu.ca/~cbm/aands/page_435.htm
-.. [AS-Struve] M. Abramowitz: 12. Struve Functions and Related Functions, in Abramowitz and Stegun: Handbook of Mathematical Functions
+.. [AS-Struve] \M. Abramowitz: 12. Struve Functions and Related Functions, in Abramowitz and Stegun: Handbook of Mathematical Functions
    http://people.math.sfu.ca/~cbm/aands/page_495.htm
-.. [DLMF-Bessel] F. W. J. Olver and L. C. Maximon: 10. Bessel Functions, in NIST Digital Library of Mathematical Functions
+.. [DLMF-Bessel] \F. W. J. Olver and L. C. Maximon: 10. Bessel Functions, in NIST Digital Library of Mathematical Functions
     http://dlmf.nist.gov/10
 .. [DLMF-Struve] \R. B. Paris: 11. Struve and Related Functions, in NIST Digital Library of Mathematical Functions
     http://dlmf.nist.gov/11

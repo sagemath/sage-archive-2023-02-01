@@ -174,7 +174,7 @@ Ilustramos un cálculo de matrices definidas sobre cuerpos finitos:
 
     sage: M = MatrixSpace(GF(2),4,8)
     sage: A = M([1,1,0,0, 1,1,1,1, 0,1,0,0, 1,0,1,1, 
-    ...          0,0,1,0, 1,1,0,1, 0,0,1,1, 1,1,1,0])
+    ....:        0,0,1,0, 1,1,0,1, 0,0,1,1, 1,1,1,0])
     sage: A
     [1 1 0 0 1 1 1 1]
     [0 1 0 0 1 0 1 1]

@@ -1579,7 +1579,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             P = self.parent()
             try:
                 c = c.inverse_of_unit()
-            except (AttributeError, ZeroDivisionError):
+            except (AttributeError, ZeroDivisionError, ArithmeticError):
                 c = ~c
                 if c.parent() is not P.base_ring():
                     P = P.change_ring(c.parent())

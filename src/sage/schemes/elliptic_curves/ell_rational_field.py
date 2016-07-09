@@ -68,6 +68,7 @@ import padic_lseries
 import padics
 
 from sage.modular.modsym.modsym import ModularSymbols
+from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
 
 from sage.lfunctions.zero_sums import LFunctionZeroSum_EllipticCurve
 
@@ -1284,6 +1285,46 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             P = lam[1].imag()
             return lambda a: self._modsym(a, prec).imag() / P
 
+
+    def pollack_stevens_modular_symbol(self, sign=0, use_eclib=True):
+        """
+        Create the modular symbol attached to the elliptic curve,
+        suitable for overconvergent calculations.
+
+        INPUT:
+
+        - ``sign`` -- +1 or -1 or 0 (default), in which case this it
+          is the sum of the two
+
+        - ``use_eclib`` -- Whether the underlying computation by
+          eclib (default) or sage's classical modular symbols
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('113a1')
+            sage: symb = E.pollack_stevens_modular_symbol()
+            sage: symb
+            Modular symbol of level 113 with values in Sym^0 Q^2
+            sage: symb.values()
+            [-1/2, 1, -1, 0, 0, 1, 1, -1, 0, -1, 0, 0, 0, 1, -1, 0, 0, 0, 1, 0, 0]
+
+            sage: E = EllipticCurve([0,1])
+            sage: symb = E.pollack_stevens_modular_symbol(+1)
+            sage: symb.values()
+            [-1/6, 1/12, 0, 1/6, 1/12, 1/3, -1/12, 0, -1/6, -1/12, -1/4, -1/6, 1/12]
+        """
+        typ = (sign, use_eclib)
+        try:
+            return self.__modular_symbol[typ] # Doesn't collide with original implementation because tuple is length two here.
+        except AttributeError:
+            self.__modular_symbol = {}
+        except KeyError:
+            pass
+        M = ps_modsym_from_elliptic_curve(self, sign, use_eclib=use_eclib)
+        self.__modular_symbol[typ] = M
+        return M
+
+    _normalize_padic_lseries = padics._normalize_padic_lseries
     padic_lseries = padics.padic_lseries
 
     def newform(self):

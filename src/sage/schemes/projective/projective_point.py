@@ -1723,6 +1723,53 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
         """
         self.scale_by(lcm([t.denominator() for t in self]))
 
+    def intersection_multiplicity(self, X):
+        r"""
+        Return the intersection multiplicity at this point of ``X`` and the codomain of this point.
+
+        Uses the subscheme intersection_multiplicity implementation.
+
+        INPUT:
+
+        - ``X`` -- a subscheme in the same ambient space as the codomain of this point.
+
+        OUTPUT: an integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: X = P.subscheme([y^2*z^3 - x^5])
+            sage: Y = P.subscheme([y - x])
+            sage: Q1 = X([1,1,1])
+            sage: Q1.intersection_multiplicity(Y)
+            1
+            sage: Q2 = X([0,0,1])
+            sage: Q2.intersection_multiplicity(Y)
+            2
+        """
+        return self.codomain().intersection_multiplicity(X, self)
+
+    def multiplicity(self):
+        r"""
+        Return the multiplicity of the codomain of this point at this point.
+
+        Uses the subscheme multiplicity implementation.
+
+        OUTPUT: an integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w,t> = ProjectiveSpace(QQ, 4)
+            sage: X = P.subscheme([y^6 - x^3*w^2*t + t^5*w, x^2 - t^2])
+            sage: Q1 = X([1,0,2,1,1])
+            sage: Q1.multiplicity()
+            1
+            sage: Q2 = X([0,0,-2,1,0])
+            sage: Q2.multiplicity()
+            8
+        """
+        return self.codomain().multiplicity(self)
+
 class SchemeMorphism_point_projective_finite_field(SchemeMorphism_point_projective_field):
 
     def __hash__(self):

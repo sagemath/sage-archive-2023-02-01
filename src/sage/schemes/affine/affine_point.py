@@ -348,6 +348,53 @@ class SchemeMorphism_point_affine_field(SchemeMorphism_point_affine):
                 newP += p(t)
         return(WR(newP))
 
+    def intersection_multiplicity(self, X):
+        r"""
+        Return the intersection multiplicity at this point of ``X`` and the codomain of this point.
+
+        Uses the subscheme intersection_multiplicity implementation.
+
+        INPUT:
+
+        - ``X`` -- a subscheme in the same ambient space as the codomain of this point.
+
+        OUTPUT: an integer.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: X = A.subscheme([y^3 + x^2*z - z^2])
+            sage: Y = A.subscheme([z^2 - y^3, z - y^3 - x^3])
+            sage: Q1 = X([0,1,1])
+            sage: Q1.intersection_multiplicity(Y)
+            2
+            sage: Q2 = X([0,0,0])
+            sage: Q2.intersection_multiplicity(Y)
+            15
+        """
+        return self.codomain().intersection_multiplicity(X, self)
+
+    def multiplicity(self):
+        r"""
+        Return the multiplicity of the codomain of this point at this point.
+
+        Uses the subscheme multiplicity implementation.
+
+        OUTPUT: an integer.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: X = A.subscheme([y^2 - x^7*z])
+            sage: Q1 = X([1,1,1])
+            sage: Q1.multiplicity()
+            1
+            sage: Q2 = X([0,0,2])
+            sage: Q2.multiplicity()
+            2
+        """
+        return self.codomain().multiplicity(self)
+
 class SchemeMorphism_point_affine_finite_field(SchemeMorphism_point_affine_field):
 
     def __hash__(self):

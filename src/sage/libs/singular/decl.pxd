@@ -48,8 +48,8 @@ cdef extern from "singular/Singular/libsingular.h":
     # OPTIONS
     #
 
-    cdef unsigned int singular_options "si_opt_1"
-    cdef unsigned int singular_verbose_options "si_opt_2"
+    cdef unsigned int singular_options "si_opt_1"           # previously 'test'
+    cdef unsigned int singular_verbose_options "si_opt_2"   # previously 'verbose'
 
     # actual options
     cdef int OPT_PROT
@@ -428,7 +428,7 @@ cdef extern from "singular/Singular/libsingular.h":
     cdef idhdl *currRingHdl
 
     cdef int errorreported
-    cdef int si_opt_2
+    cdef int si_opt_2    #  previously 'verbose'
     cdef void * currentVoice
     cdef int myynest
 

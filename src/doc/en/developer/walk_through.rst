@@ -89,6 +89,13 @@ packages of Sage::
 
     [user@localhost sage]$ make
 
+.. NOTE::
+
+    Mac OS X allows changing directories without using exact capitalization.
+    Beware of this convenience when compiling for OS X. Ignoring exact
+    capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
+    errors for dependencies requiring exact capitalization in path names.
+
 For the experts, note that the repository at
 `git.sagemath.org <http://git.sagemath.org>`_ is where development
 actually takes place.

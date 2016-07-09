@@ -1725,28 +1725,46 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
 
     def intersection_multiplicity(self, X):
         r"""
-        Return the intersection multiplicity at this point of ``X`` and the codomain of this point.
+        Return the intersection multiplicity of the intersection of the codomain of this point and
+        the subscheme ``X`` at this point.
 
-        Uses the subscheme intersection_multiplicity implementation.
+        This uses the intersection_multiplicity implementations for projective/affine subschemes. This
+        point must be a point of a projective subscheme.
 
         INPUT:
 
-        - ``X`` -- a subscheme in the same ambient space as the codomain of this point.
+        - ``X`` -- a subscheme in the same ambient space as that of the codomain of this point.
 
-        OUTPUT: an integer.
+        OUTPUT: Integer.
 
         EXAMPLES::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
-            sage: X = P.subscheme([y^2*z^3 - x^5])
-            sage: Y = P.subscheme([y - x])
-            sage: Q1 = X([1,1,1])
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: X = P.subscheme([x*z - y^2])
+            sage: Y = P.subscheme([x^3 - y*w^2 + z*w^2, x*y - z*w])
+            sage: Q1 = X([1/2, 1/4, 1/8, 1])
             sage: Q1.intersection_multiplicity(Y)
             1
-            sage: Q2 = X([0,0,1])
+            sage: Q2 = X([0,0,0,1])
             sage: Q2.intersection_multiplicity(Y)
-            2
+            5
+            sage: Q3 = X([0,0,1,0])
+            sage: Q3.intersection_multiplicity(Y)
+            6
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: X = P.subscheme([x^2 - y^2])
+            sage: Q = P([1,1,1,0])
+            sage: Q.intersection_multiplicity(X)
+            Traceback (most recent call last):
+            ...
+            TypeError: this point must be a point on a projective subscheme
         """
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        if is_ProjectiveSpace(self.codomain()):
+            raise TypeError("this point must be a point on a projective subscheme")
         return self.codomain().intersection_multiplicity(X, self)
 
     def multiplicity(self):

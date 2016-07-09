@@ -27,6 +27,7 @@ Functions, Classes and Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import sage   # WHAT !!!
 
@@ -621,7 +622,7 @@ class NotImplementedOZero(NotImplementedError):
             NotImplementedOZero: The error term in the result is O(0)
             which means 0 for sufficiently large m.
         """
-        from asymptotic_ring import AsymptoticRing
+        from .asymptotic_ring import AsymptoticRing
         if isinstance(data, AsymptoticRing) or var is not None:
             if var is None:
                 var = ', '.join(str(g) for g in data.gens())

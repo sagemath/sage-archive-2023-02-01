@@ -77,9 +77,10 @@ def normalized_laurent_polynomial(R, p):
         u + v^-1 + u^-1
     """
     try:
-        return R({k:R._base(c) for k,c in p.dict().iteritems()})
-    except (AttributeError,TypeError):
+        return R({k: R._base(c) for k, c in p.dict().iteritems()})
+    except (AttributeError, TypeError):
         return R(p)
+
 
 def index_cmp(x, y):
     """
@@ -101,7 +102,13 @@ def index_cmp(x, y):
         return 1
     if y.bruhat_le(x) or x.length() > y.length():
         return -1
-    return cmp(x, y) # Fallback total ordering
+    # fallback case, in order to define a total order
+    if x < y:
+        return -1
+    if x > y:
+        return 1
+    return 0
+
 
 class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
     r"""

@@ -350,28 +350,43 @@ class SchemeMorphism_point_affine_field(SchemeMorphism_point_affine):
 
     def intersection_multiplicity(self, X):
         r"""
-        Return the intersection multiplicity at this point of ``X`` and the codomain of this point.
+        Return the intersection multiplicity of the intersection of the codomain of this point and
+        the subscheme ``X`` at this point.
 
-        Uses the subscheme intersection_multiplicity implementation.
+        This uses the intersection_multiplicity implementations for projective/affine subschemes. This
+        point must be a point of an affine subscheme.
 
         INPUT:
 
-        - ``X`` -- a subscheme in the same ambient space as the codomain of this point.
+        - ``X`` -- a subscheme in the same ambient space as that of the codomain of this point.
 
-        OUTPUT: an integer.
+        OUTPUT: Integer.
 
         EXAMPLES::
 
-            sage: A.<x,y,z> = AffineSpace(QQ, 3)
-            sage: X = A.subscheme([y^3 + x^2*z - z^2])
-            sage: Y = A.subscheme([z^2 - y^3, z - y^3 - x^3])
-            sage: Q1 = X([0,1,1])
-            sage: Q1.intersection_multiplicity(Y)
+            sage: A.<x,y> = AffineSpace(GF(17), 2)
+            sage: X = A.subscheme([y^2 - x^3 + 2*x^2 - x])
+            sage: Y = A.subscheme([y - 2*x + 2])
+            sage: Q1 = Y([1,0])
+            sage: Q1.intersection_multiplicity(X)
             2
-            sage: Q2 = X([0,0,0])
+            sage: Q2 = X([4,6])
             sage: Q2.intersection_multiplicity(Y)
-            15
+            1
+
+        ::
+
+            sage: A.<x,y,z,w> = AffineSpace(QQ, 4)
+            sage: X = A.subscheme([x^2 - y*z^2, z - 2*w^2])
+            sage: Q = A([2,1,2,-1])
+            sage: Q.intersection_multiplicity(X)
+            Traceback (most recent call last):
+            ...
+            TypeError: this point must be a point on an affine subscheme
         """
+        from sage.schemes.affine.affine_space import is_AffineSpace
+        if is_AffineSpace(self.codomain()):
+            raise TypeError("this point must be a point on an affine subscheme")
         return self.codomain().intersection_multiplicity(X, self)
 
     def multiplicity(self):

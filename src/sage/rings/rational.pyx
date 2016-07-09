@@ -2612,7 +2612,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return self
 
-    def charpoly(self, var):
+    def charpoly(self, var='x'):
         """
         Return the characteristic polynomial of this rational number. This
         will always be just ``var - self``; this is really here so that code
@@ -2629,6 +2629,12 @@ cdef class Rational(sage.structure.element.FieldElement):
 
             sage: (1/3).charpoly('x')
              x - 1/3
+
+        The default is var='x'. (:trac:`20967`)::
+
+            sage: a = QQ(2); a.charpoly('x')
+            x - 2
+
 
         AUTHORS:
 

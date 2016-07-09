@@ -646,7 +646,7 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
     elif (  e  == 1                 and
           is_square(n)              and
           sqrt(n)%4 == 2            and
-          True == strongly_regular_graph(sqrt(n)-1,(sqrt(n)-2)/2,(sqrt(n)-6)/4,
+          True == strongly_regular_graph(sqrt(n)-1,(sqrt(n)-2)//2,(sqrt(n)-6)//4,
                     existence=True) and
           is_prime_power(sqrt(n)+1)):
         if existence:
@@ -1227,13 +1227,10 @@ def szekeres_difference_set_pair(m):
     from sage.rings.finite_rings.finite_field_constructor import GF
     F = GF(4*m+3)
     t = F.multiplicative_generator()**2
-    G = []
-    x = F.one()
-    for _ in xrange(2*m+1):
-        G.append(x)
-        x *= t
-    A = filter(lambda a: a-F.one() in G, G)
-    B = filter(lambda b: b+F.one() in G, G)
+    G = F.cyclotomic_cosets(t, cosets=[F.one()])[0]
+    sG = set(G)
+    A = filter(lambda a: a-F.one() in sG, G)
+    B = filter(lambda b: b+F.one() in sG, G)
     return G,A,B
 
 def typeI_matrix_difference_set(G,A):
@@ -1249,12 +1246,12 @@ def typeI_matrix_difference_set(G,A):
         sage: from sage.combinat.matrices.hadamard_matrix import typeI_matrix_difference_set
         sage: G,A,B=szekeres_difference_set_pair(2)
         sage: typeI_matrix_difference_set(G,A)
+        [-1  1 -1 -1  1]
         [-1 -1 -1  1  1]
-        [ 1 -1 -1 -1  1]
         [ 1  1 -1 -1 -1]
-        [-1  1  1 -1 -1]
+        [ 1 -1  1 -1 -1]
         [-1 -1  1  1 -1]
-    """
+"""
     n = len(G)
     return matrix(n,n, lambda i,j: 1 if G[i]/G[j] in A else -1)
 
@@ -1313,10 +1310,10 @@ def rshcd_from_prime_power_and_conference_matrix(n):
     from sage.graphs.strongly_regular_db import strongly_regular_graph as srg
     if is_prime_power(n) and 2==(n-1)%4:
         try:
-            M = srg(n-2,(n-3)/2,(n-7)/4,(n-3)/4)
+            M = srg(n-2,(n-3)//2,(n-7)//4)
         except ValueError:
             return
-        m = int((n-3)/4)
+        m = (n-3)//4
         Q,X,Y = szekeres_difference_set_pair(m)
         B = typeI_matrix_difference_set(Q,X)
         A = -typeI_matrix_difference_set(Q,Y) # must be symmetric

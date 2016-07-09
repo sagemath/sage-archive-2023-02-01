@@ -1771,7 +1771,8 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
         r"""
         Return the multiplicity of the codomain of this point at this point.
 
-        Uses the subscheme multiplicity implementation.
+        Uses the subscheme multiplicity implementation. This point must be a point on
+        a projective subscheme.
 
         OUTPUT: an integer.
 
@@ -1786,6 +1787,9 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             sage: Q2.multiplicity()
             8
         """
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        if is_ProjectiveSpace(self.codomain()):
+            raise TypeError("this point must be a point on a projective subscheme")
         return self.codomain().multiplicity(self)
 
 class SchemeMorphism_point_projective_finite_field(SchemeMorphism_point_projective_field):

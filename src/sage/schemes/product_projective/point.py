@@ -549,7 +549,8 @@ class ProductProjectiveSpaces_point_field(ProductProjectiveSpaces_point_ring):
         r"""
         Return the intersection multiplicity of the codomain of this point with the subscheme ``X``.
 
-        This uses the subscheme implementation of intersection_multiplicity.
+        This uses the subscheme implementation of intersection_multiplicity. This point must be a point
+        on a subscheme of a product of projective spaces.
 
         INPUT:
 
@@ -566,13 +567,17 @@ class ProductProjectiveSpaces_point_field(ProductProjectiveSpaces_point_ring):
             sage: Q.intersection_multiplicity(Y)
             2
         """
+        from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
+        if is_ProductProjectiveSpaces(self.codomain()):
+            raise TypeError("this point must be a point on a subscheme of a product of projective spaces")
         return self.codomain().intersection_multiplicity(X, self)
 
     def multiplicity(self):
         r"""
         Return the multiplicity of the codomain of this point at this point.
 
-        This uses the subscheme implementation of multiplicity.
+        This uses the subscheme implementation of multiplicity. This point must be a point
+        on a subscheme of a product of projective spaces.
 
         OUPUT: an integer.
 
@@ -590,6 +595,9 @@ class ProductProjectiveSpaces_point_field(ProductProjectiveSpaces_point_ring):
             sage: Q3.multiplicity()
             6
         """
+        from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
+        if is_ProductProjectiveSpaces(self.codomain()):
+            raise TypeError("this point must be a point on a subscheme of a product of projective spaces")
         return self.codomain().multiplicity(self)
 
 class ProductProjectiveSpaces_point_finite_field(ProductProjectiveSpaces_point_field):

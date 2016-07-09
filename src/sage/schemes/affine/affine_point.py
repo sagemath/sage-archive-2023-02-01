@@ -354,7 +354,7 @@ class SchemeMorphism_point_affine_field(SchemeMorphism_point_affine):
         the subscheme ``X`` at this point.
 
         This uses the intersection_multiplicity implementations for projective/affine subschemes. This
-        point must be a point of an affine subscheme.
+        point must be a point on an affine subscheme.
 
         INPUT:
 
@@ -393,7 +393,8 @@ class SchemeMorphism_point_affine_field(SchemeMorphism_point_affine):
         r"""
         Return the multiplicity of the codomain of this point at this point.
 
-        Uses the subscheme multiplicity implementation.
+        Uses the subscheme multiplicity implementation. This point must be a point on an
+        affine subscheme.
 
         OUTPUT: an integer.
 
@@ -408,6 +409,9 @@ class SchemeMorphism_point_affine_field(SchemeMorphism_point_affine):
             sage: Q2.multiplicity()
             2
         """
+        from sage.schemes.affine.affine_space import is_AffineSpace
+        if is_AffineSpace(self.codomain()):
+            raise TypeError("this point must be a point on an affine subscheme")
         return self.codomain().multiplicity(self)
 
 class SchemeMorphism_point_affine_finite_field(SchemeMorphism_point_affine_field):

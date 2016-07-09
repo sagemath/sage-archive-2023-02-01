@@ -1584,7 +1584,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             x = <Integer>PY_NEW(Integer)
             mpz_add(x.value, (<Integer>left).value, (<Integer>right).value)
             return x
-        elif isinstance(right, Rational):
+        elif type(right) is Rational:
             y = <Rational> Rational.__new__(Rational)
             mpq_add_z(y.value, (<Rational>right).value, (<Integer>left).value)
             return y
@@ -1667,7 +1667,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             x = <Integer>PY_NEW(Integer)
             mpz_sub(x.value, (<Integer>left).value, (<Integer>right).value)
             return x
-        elif isinstance(right, Rational):
+        elif type(right) is Rational:
             y = <Rational> Rational.__new__(Rational)
             mpz_mul(mpq_numref(y.value), (<Integer>left).value,
                     mpq_denref((<Rational>right).value))
@@ -1777,7 +1777,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             x = <Integer>PY_NEW(Integer)
             mpz_mul(x.value, (<Integer>left).value, (<Integer>right).value)
             return x
-        elif isinstance(right, Rational):
+        elif type(right) is Rational:
             y = <Rational> Rational.__new__(Rational)
             mpq_mul_z(y.value, (<Rational>right).value, (<Integer>left).value)
             return y
@@ -1844,7 +1844,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             x = <Rational> Rational.__new__(Rational)
             mpq_div_zz(x.value, (<Integer>left).value, (<Integer>right).value)
             return x
-        elif isinstance(right, Rational):
+        elif type(right) is Rational:
             if mpq_sgn((<Rational>right).value) == 0:
                 raise ZeroDivisionError("rational division by zero")
             # left * den(right) / num(right)

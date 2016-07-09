@@ -2096,7 +2096,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             x = <Rational> Rational.__new__(Rational)
             mpq_add(x.value, (<Rational>left).value, (<Rational>right).value)
             return x
-        elif isinstance(right, Integer):
+        elif type(right) is Integer:
             x = <Rational> Rational.__new__(Rational)
             mpq_add_z(x.value, (<Rational>left).value, (<Integer>right).value)
             return x
@@ -2144,7 +2144,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             x = <Rational> Rational.__new__(Rational)
             mpq_sub(x.value, (<Rational>left).value, (<Rational>right).value)
             return x
-        elif isinstance(right, Integer):
+        elif type(right) is Integer:
             x = <Rational> Rational.__new__(Rational)
             mpz_mul(mpq_numref(x.value), mpq_denref((<Rational>left).value),
                     (<Integer>right).value)
@@ -2201,7 +2201,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             x = <Rational> Rational.__new__(Rational)
             mpq_mul(x.value, (<Rational>left).value, (<Rational>right).value)
             return x
-        elif isinstance(right, Integer):
+        elif type(right) is Integer:
             x = <Rational> Rational.__new__(Rational)
             mpq_mul_z(x.value, (<Rational>left).value, (<Integer>right).value)
             return x
@@ -2254,7 +2254,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             x = <Rational> Rational.__new__(Rational)
             mpq_div(x.value, (<Rational>left).value, (<Rational>right).value)
             return x
-        elif isinstance(right, Integer):
+        elif type(right) is Integer:
             if mpz_cmp_si((<Integer> right).value, 0) == 0:
                 raise ZeroDivisionError('rational division by zero')
             x = <Rational> Rational.__new__(Rational)

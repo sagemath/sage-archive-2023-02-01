@@ -1541,7 +1541,7 @@ class NumberField_generic(number_field_base.NumberField):
             x = self.absolute_polynomial().parent()(x)
             return self._element_class(self, x)
         elif sage.interfaces.gap.is_GapElement(x):
-            s = repr(x)
+            s = repr(x).replace("\n ", "")
             if self.variable_name() in s:
                 return self._coerce_from_str(s)
             return self._coerce_from_str(s.replace('!',''))
@@ -9672,7 +9672,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             [             zeta8^2                    1]
             [                   0 -zeta8^3 + zeta8 + 1]
         """
-        s = str(x)
+        s = str(x).replace("\n ", "")
         i = s.find('E(')
         if i == -1:
             try:

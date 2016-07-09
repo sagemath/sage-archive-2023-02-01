@@ -495,9 +495,28 @@ cdef class NumberFieldElement(FieldElement):
             'GeneratorsOfField($sage2)[1]^2 + 2*GeneratorsOfField($sage2)[1] - 3'
             sage: gap(p._gap_init_())
             -3+2*E(8)+E(8)^2
+
+        Check that trac:`15276` is fixed::
+
+            sage: for n in range(2,50):
+            ....:     K = CyclotomicField(n)
+            ....:     assert K(gap(K.gen())) == K.gen(), "n = {}".format(n)
+            ....:     assert K(gap(K.one())) == K.one(), "n = {}".format(n)
+            ....:     for _ in range(10):
+            ....:         t = K.random_element()
+            ....:         assert K(gap(t)) == t, "n = {}  t = {}".format(n,t)
         """
-        s = self._repr_()
-        return s.replace(str(self.parent().gen()), 'GeneratorsOfField(%s)[1]'%sage.interfaces.gap.gap(self.parent()).name())
+        if self.is_rational():
+            return str(self)
+        p = self.polynomial()
+        n = self.parent()._n()
+        if n != 2 and n%4 == 2:
+            x = p.variables()[0]
+            p = p(-x**((n//2+1)//2))
+            E = 'E(%d)'%(n//2)
+        else:
+            E = 'E(%d)'%n
+        return str(p).replace(p.variable_name(), E)
 
     def _libgap_(self):
         """
@@ -515,11 +534,22 @@ cdef class NumberFieldElement(FieldElement):
             E(8)+3/2*E(8)^2-100*E(8)^3
             sage: type(_)
             <type 'sage.libs.gap.element.GapElement_Cyclotomic'>
+
+        Check that trac:`15276` is fixed::
+
+            sage: for n in range(2,50):
+            ....:     K = CyclotomicField(n)
+            ....:     assert K(libgap(K.gen())) == K.gen(), "n = {}".format(n)
+            ....:     assert K(libgap(K.one())) == K.one(), "n = {}".format(n)
+            ....:     for _ in range(10):
+            ....:         t = K.random_element()
+            ....:         assert K(libgap(t)) == t, "n = {}  t = {}".format(n,t)
         """
         n = self.parent()._n()
-        from sage.libs.gap.libgap import libgap
-        En = libgap(self.parent()).GeneratorsOfField()[0]
-        return self.polynomial()(En)
+        E = self.parent()._libgap_().GeneratorsOfField()[0]
+        if n%4 == 2:
+            E = -E**((n//2+1)//2)
+        return self.polynomial()(E)
 
     def _pari_polynomial(self, name='y'):
         """

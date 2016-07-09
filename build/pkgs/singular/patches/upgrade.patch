@@ -144,3 +144,19 @@ diff -rupN  a/kernel/GBEngine/shiftgb.cc b/kernel/GBEngine/shiftgb.cc
      return(NULL); /* violation, 2check */
    }
    int *e=(int *)omAlloc0((currRing->N+1)*sizeof(int));
+diff -rupN  a/Singular/LIB/brnoeth.lib b/Singular/LIB/brnoeth.lib
+--- a/Singular/LIB/brnoeth.lib	2016-07-09 23:58:18.672064819 +0200
++++ b/Singular/LIB/brnoeth.lib	2016-07-09 23:58:53.111055392 +0200
+@@ -370,10 +370,10 @@ static proc inf_P (poly f)
+         // the point is non-rational and a field extension with minpoly=aux
+         // is needed
+         ring r_ext=(char(basering),@a),(x,y,z),lp;
+-        poly F=imap(r_auxz,F);
+-        poly f_xz=subst(F,y,1);
+         poly aux=imap(base_r,aux);
+         minpoly=number(subst(aux,x,@a));
++        poly F=imap(r_auxz,F);
++        poly f_xz=subst(F,y,1);     
+         map phi=r_ext,x+@a,0,z;
+         poly f_origin=phi(f_xz);
+         if ( subst(subst(diff(f_origin,x),x,0),z,0)==0 &&

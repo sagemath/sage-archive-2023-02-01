@@ -1032,15 +1032,15 @@ class Braid(FinitelyPresentedGroupElement):
         i = j = 0
         while j<len(form):
             while i<len(form)-j-1:
-                e = form[i].inverse().descents()
-                s = form[i+1].descents()
+                e = form[i].idescents(from_zero=False)
+                s = form[i + 1].descents(from_zero=False)
                 S = set(s).difference(set(e))
-                while S!=set([]):
+                while S:
                     a = list(S)[0]
-                    form[i] = form[i]*Permutation((a+1, a+2))
-                    form[i+1] = Permutation((a+1, a+2))*form[i+1]
-                    e = form[i].inverse().descents()
-                    s = form[i+1].descents()
+                    form[i] = form[i] * Permutation((a, a+1))
+                    form[i + 1] = Permutation((a, a+1))*form[i+1]
+                    e = form[i].idescents(from_zero=False)
+                    s = form[i + 1].descents(from_zero=False)
                     S = set(s).difference(set(e))
                 if form[i+1].length()==0:
                     form.pop(i+1)
@@ -1049,7 +1049,7 @@ class Braid(FinitelyPresentedGroupElement):
                     i += 1
             j += 1
             i = 0
-        form = [a for a in form if a.length()>0]
+        form = [a for a in form if a.length()]
         while form!=[] and form[0]==Delta:
             form.pop(0)
             delta = delta-1

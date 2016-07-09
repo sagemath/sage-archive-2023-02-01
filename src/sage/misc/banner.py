@@ -11,6 +11,7 @@ SageMath version and banner info
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.env import SAGE_VERSION, SAGE_DATE, SAGE_SRC
 
@@ -56,7 +57,7 @@ def banner_text():
 
     EXAMPLES::
 
-        sage: print sage.misc.banner.banner_text()
+        sage: print(sage.misc.banner.banner_text())
         ┌────────────────────────────────────────────────────────────────────┐
         │ SageMath version ...
     """
@@ -142,7 +143,7 @@ def version_dict():
     EXAMPLES::
 
         sage: from sage.misc.banner import version_dict
-        sage: print "SageMath major version is %s" % version_dict()['major']
+        sage: print("SageMath major version is %s" % version_dict()['major'])
         SageMath major version is ...
         sage: version_dict()['major'] == int(sage.version.version.split('.')[0])
         True

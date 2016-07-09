@@ -103,8 +103,8 @@ The payoff to player 2 is given by:
 To compute this in Sage we have::
 
     sage: for ne in battle_of_the_sexes.obtain_nash(algorithm='enumeration'):
-    ....:     print "Utility for {}: ".format(ne)
-    ....:     print vector(ne[0]) * A * vector(ne[1]), vector(ne[0]) * B * vector(ne[1])
+    ....:     print("Utility for {}: ".format(ne))
+    ....:     print("{} {}".format(vector(ne[0]) * A * vector(ne[1]), vector(ne[0]) * B * vector(ne[1])))
     Utility for [(0, 1), (0, 1)]:
     2 3
     Utility for [(3/4, 1/4), (1/4, 3/4)]:
@@ -602,6 +602,7 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from collections import MutableMapping
 from itertools import product
@@ -796,7 +797,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: B = matrix([[2, 0], [5, 4]])
             sage: prisoners_dilemma = NormalFormGame([A, B])
             sage: for key in prisoners_dilemma:
-            ....:     print "The strategy pair {} gives utilities {}".format(key, prisoners_dilemma[key])
+            ....:     print("The strategy pair {} gives utilities {}".format(key, prisoners_dilemma[key]))
             The strategy pair (0, 1) gives utilities [5, 0]
             The strategy pair (1, 0) gives utilities [0, 5]
             The strategy pair (0, 0) gives utilities [2, 2]
@@ -1777,7 +1778,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[1, 2], [3, 4]])
             sage: B = matrix([[3, 3], [1, 4]])
             sage: C = NormalFormGame([A, B])
-            sage: print C._Hrepresentation(A, B)[0]
+            sage: print(C._Hrepresentation(A, B)[0])
             H-representation
             linearity 1 5
             begin
@@ -1789,7 +1790,7 @@ class NormalFormGame(SageObject, MutableMapping):
             -1 1 1 0
             end
             <BLANKLINE>
-            sage: print C._Hrepresentation(A, B)[1]
+            sage: print(C._Hrepresentation(A, B)[1])
             H-representation
             linearity 1 5
             begin

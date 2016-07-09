@@ -261,7 +261,7 @@ cdef class LinearTensor(ModuleElement):
             s += ']'
         return s
 
-    cpdef ModuleElement _add_(self, ModuleElement b):
+    cpdef _add_(self, b):
         r"""
         Return sum.
 
@@ -285,7 +285,7 @@ cdef class LinearTensor(ModuleElement):
             result[key] = self._f.get(key, 0) + coeff
         return self.parent()(result)
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         r"""
         Return the negative.
 
@@ -305,7 +305,7 @@ cdef class LinearTensor(ModuleElement):
             result[key] = -coeff
         return self.parent()(result)
 
-    cpdef ModuleElement _sub_(self, ModuleElement b):
+    cpdef _sub_(self, b):
         r"""
         Return difference.
 
@@ -331,7 +331,7 @@ cdef class LinearTensor(ModuleElement):
             result[key] = self._f.get(key, 0) - coeff
         return self.parent()(result)
 
-    cpdef ModuleElement _rmul_(self, RingElement b):
+    cpdef _rmul_(self, RingElement b):
         r"""
         Return right multiplication by scalar.
 
@@ -454,7 +454,7 @@ cdef class LinearTensor(ModuleElement):
         # see _cmp_() if you want to change the hash function
         return hash_by_id(<void *> self)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Implement comparison of two linear functions.
 

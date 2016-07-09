@@ -52,11 +52,11 @@ EXAMPLES::
 
     sage: TableauTuple([[1,2,3],[4,5]])
     [[1, 2, 3], [4, 5]]
-    sage: t=TableauTuple([ [[6,7],[8,9]],[[1,2,3],[4,5]] ]); t
+    sage: t = TableauTuple([ [[6,7],[8,9]],[[1,2,3],[4,5]] ]); t
     ([[6, 7], [8, 9]], [[1, 2, 3], [4, 5]])
     sage: t.pp()
-         6  7     1  2  3
-         8  9     4  5
+      6  7     1  2  3
+      8  9     4  5
     sage: t(0,0,1)
     7
     sage: t(1,0,1)
@@ -206,6 +206,7 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
 
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.words.word import Word
@@ -229,7 +230,7 @@ from sage.sets.positive_integers import PositiveIntegers
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
-import permutation
+from . import permutation
 
 #--------------------------------------------------
 # Tableau tuple - element class
@@ -282,7 +283,7 @@ class TableauTuple(CombinatorialElement):
 
     EXAMPLES::
 
-        sage: t = TableauTuple([ [[6,9,10],[11]],[[1,2,3],[4,5]],[[7],[8]] ]); t
+        sage: t = TableauTuple([ [[6,9,10],[11]], [[1,2,3],[4,5]], [[7],[8]] ]); t
         ([[6, 9, 10], [11]], [[1, 2, 3], [4, 5]], [[7], [8]])
         sage: t.level()
         3
@@ -293,8 +294,8 @@ class TableauTuple(CombinatorialElement):
         sage: t.is_standard()
         True
         sage: t.pp() # pretty print
-        6  9 10     1  2  3     7
-        11          4  5        8
+          6  9 10     1  2  3     7
+         11           4  5        8
         sage: t.category()
         Category of elements of Tableau tuples
         sage: t.parent()
@@ -459,48 +460,55 @@ class TableauTuple(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print TableauTuple([[[2,3]],[[1]],[[4],[5]],[]])._repr_diagram()
-                 2  3     1     4   -
-                                5
-            sage: print TableauTuple([[[2,3]],[],[[4],[5]],[]])._repr_diagram()
-                 2  3     -     4   -
-                                5
+            sage: print(TableauTuple([[[2,3]],[[1]],[[4],[5]],[]])._repr_diagram())
+              2  3     1     4     -
+                             5
+            sage: print(TableauTuple([[[2,3]],[],[[4],[5]],[]])._repr_diagram())
+              2  3     -     4     -
+                             5
             sage: TableauTuples.global_options(convention='French')
-            sage: print TableauTuple([[[2,3]],[[1]],[[4],[5]],[]])._repr_diagram()
-                                5
-                 2  3     1     4   -
-            sage: print TableauTuple([[[2,3]],[],[[4],[5]],[]])._repr_diagram()
-                                5
-                 2  3     -     4   -
+            sage: print(TableauTuple([[[2,3]],[[1]],[[4],[5]],[]])._repr_diagram())
+                             5      
+              2  3     1     4     -
+            sage: print(TableauTuple([[[2,3]],[],[[4],[5]],[]])._repr_diagram())
+                             5
+              2  3     -     4     -
             sage: TableauTuples.global_options.reset()
+
+        TESTS:
+
+        Check that :trac:`20768` is fixed::
+
+            sage: T = TableauTuple([[[1,2,1],[1],[12345]], [], [[1523,1,2],[1,12341,-2]]])
+            sage: T.pp()
+                 1  2  1     -    1523     1  2
+                 1                   1 12341 -2
+             12345
         """
-        col_len = [len(t)>0 and len(t[0]) or 1 for t in self]  # columns per component
-        row_max = max(len(t) for t in self)                    # maximum row length
-        # There should be a fancier list compression for this but I couldn't get
-        # one to work in the cases where a component was the empty partition
-        diag = []
-        for row in xrange(row_max):
-            line=''
-            for c in range(len(self)):
-                if row == 0 and self[c] == []:
-                    line += '     -'
-                elif row < len(self[c]):
-                    line += '   '+''.join(("%3s"%str(x) for x in self[c][row]))+'   '*(col_len[c]-len(self[c][row]))
-                else:
-                    line += '   '+'   '*col_len[c]
-            diag.append(line)
+        str_tt = [T._repr_diagram().split('\n') for T in self]
+        if TableauTuples.global_options('convention') == "French":
+            for T_str in str_tt:
+                T_str.reverse()
+        widths = [len(T_str[0]) for T_str in str_tt]
+        num_cols = max(len(T_str) for T_str in str_tt)
+
+        diag = ['   '.join(' ' * widths[j] if i >= len(T_str) else
+                           "{:<{width}}".format(T_str[i], width=widths[j])
+                           for j,T_str in enumerate(str_tt))
+                for i in range(num_cols)]
+
         if TableauTuples.global_options('convention') == "English":
-            return '\n'.join(map(str,diag))
+            return '\n'.join(diag)
         else:
-            return '\n'.join(map(str,diag[::-1]))
+            return '\n'.join(diag[::-1])
 
     def _ascii_art_(self):
         """
         TESTS::
 
             sage: ascii_art(TableauTuple([[[2,3]],[],[[4],[5]],[]]))
-             2  3     -     4     -
-                            5
+              2  3     -     4     -
+                             5
         """
         from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._repr_diagram().splitlines())
@@ -546,7 +554,7 @@ class TableauTuple(CombinatorialElement):
         EXAMPLES::
 
             sage: t = TableauTuple([ [[1,2],[3]], [], [[4,5],[6,7]] ])
-            sage: print t._latex_diagram()
+            sage: print(t._latex_diagram())
             \Bigg( {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
             \lr{1}&\lr{2}\\\cline{1-2}
@@ -557,7 +565,7 @@ class TableauTuple(CombinatorialElement):
             \end{array}$}
             } \Bigg)
         """
-        from output import tex_from_array_tuple
+        from .output import tex_from_array_tuple
         return r'\Bigg( %s \Bigg)' % tex_from_array_tuple(self)
 
 
@@ -692,28 +700,28 @@ class TableauTuple(CombinatorialElement):
         EXAMPLES::
 
             sage: TableauTuple([ [[1,2,3],[4,5]], [[1,2,3],[4,5]] ]).pp()
-                1  2  3     1  2  3
-                4  5        4  5
+              1  2  3     1  2  3
+              4  5        4  5
             sage: TableauTuple([ [[1,2],[3],[4]],[],[[6,7,8],[10,11],[12],[13]]]).pp()
-                1  2   -     6  7  8
-                3           10 11
-                4           12
+              1  2     -     6  7  8
+              3             10 11
+              4             12
                             13
             sage: t = TableauTuple([ [[1,2,3],[4,5],[6],[9]], [[1,2,3],[4,5,8]], [[11,12,13],[14]] ])
             sage: t.pp()
-                1  2  3     1  2  3    11 12 13
-                4  5        4  5  8    14
-                6
-                9
+              1  2  3     1  2  3    11 12 13
+              4  5        4  5  8    14
+              6
+              9
             sage: TableauTuples.global_options(convention="french")
             sage: t.pp()
-                 9
-                 6
-                 4  5        4  5  8    14
-                 1  2  3     1  2  3    11 12 13
+              9
+              6
+              4  5        4  5  8    14
+              1  2  3     1  2  3    11 12 13
             sage: TableauTuples.global_options.reset()
         """
-        print self._repr_diagram()
+        print(self._repr_diagram())
 
     def to_word_by_row(self):
         """
@@ -1014,28 +1022,28 @@ class TableauTuple(CombinatorialElement):
         EXAMPLES::
 
             sage: s=StandardTableauTuple([ [[3,4,7],[6,8]], [[9,13],[12]], [[1,5],[2,11],[10]] ]); s.pp()
-                 3  4  7     9 13     1  5
-                 6  8       12        2 11
-                                     10
+              3  4  7     9 13     1  5
+              6  8       12        2 11
+                                  10
             sage: t=s.add_entry( (0,0,3),14); t.pp(); t.category()
-                 3  4  7 14     9 13     1  5
-                 6  8          12        2 11
-                                        10
+              3  4  7 14     9 13     1  5
+              6  8          12        2 11
+                                     10
             Category of elements of Standard tableau tuples
             sage: t=s.add_entry( (0,0,3),15); t.pp(); t.category()
-                 3  4  7 15     9 13     1  5
-                 6  8          12        2 11
-                                        10
+              3  4  7 15     9 13     1  5
+              6  8          12        2 11
+                                     10
             Category of elements of Tableau tuples
             sage: t=s.add_entry( (1,1,1),14); t.pp(); t.category()
-                 3  4  7     9 13     1  5
-                 6  8       12 14     2 11
-                                     10
+              3  4  7     9 13     1  5
+              6  8       12 14     2 11
+                                  10
             Category of elements of Standard tableau tuples
             sage: t=s.add_entry( (2,1,1),14); t.pp(); t.category()
-                 3  4  7     9 13     1  5
-                 6  8       12        2 14
-                                     10
+              3  4  7     9 13     1  5
+              6  8       12        2 14
+                                  10
             Category of elements of Tableau tuples
             sage: t=s.add_entry( (2,1,2),14); t.pp(); t.category()
             Traceback (most recent call last):
@@ -1200,13 +1208,13 @@ class StandardTableauTuple(TableauTuple):
         sage: t = StandardTableauTuple([[[4,5],[7]],[[1,2,3],[6,8]],[[9]]]); t
         ([[4, 5], [7]], [[1, 2, 3], [6, 8]], [[9]])
         sage: t.pp()
-         4  5     1  2  3     9
-         7        6  8
+          4  5     1  2  3     9
+          7        6  8
         sage: t.shape()
         ([2, 1], [3, 2], [1])
-        sage: t[0].pp() # pretty print
-        4 5
-        7
+        sage: t[0].pp()  # pretty print
+          4  5
+          7
         sage: t.is_standard()
         True
         sage: t[0].is_standard()
@@ -2272,6 +2280,12 @@ class StandardTableauTuples(TableauTuples):
             Traceback (most recent call last):
             ...
             ValueError: the shape must be a partition tuple
+
+            sage: P = PartitionTuples()
+            sage: pt = P([[1]]); pt
+            ([1])
+            sage: StandardTableauTuples(pt)
+            Standard tableaux of shape [1]
         """
         from sage.combinat.partition_tuple import PartitionTuple
 
@@ -2329,7 +2343,10 @@ class StandardTableauTuples(TableauTuples):
                 raise ValueError('the shape and size must agree')
 
         # now that the inputs appear to make sense, return the appropriate class
-        if level is not None and level<=1:
+        if level is not None and level <= 1:
+            from sage.combinat.partition_tuple import PartitionTuple
+            if isinstance(shape, PartitionTuple):
+                shape = shape[0]
             if shape is not None:
                 return StandardTableaux_shape(shape)
             elif size is not None:
@@ -3053,7 +3070,9 @@ class StandardTableauTuples_shape(StandardTableauTuples):
             inserting t_1,..,t_n in order into the rows of mu, from left to right
             in each component and then left to right along the components.
             """
-            return self.element_class(self, [ [tab[clen[c]:clen[c+1]][cclen[c][r]:cclen[c][r+1]] for r in range(len(mu[c]))] for c in range(len(mu)) ])
+            return self.element_class(self, [ [tab[clen[c]:clen[c+1]][cclen[c][r]:cclen[c][r+1]]
+                                               for r in range(len(mu[c]))]
+                                              for c in range(len(mu)) ])
 
         # We're now ready to start generating the tableaux. Here's the first one:
         initial_tableau=tableau_from_list(tab)
@@ -3097,7 +3116,7 @@ class StandardTableauTuples_shape(StandardTableauTuples):
             c=component[tab.index(r)]
             while c>0:
                 comp=[m for m in tab[clen[c-1]:clen[c]] if m<r and cols[m]>cols[r]]
-                if comp==[]: c-=1
+                if not comp: c-=1
                 else:
                     return comp[-1]
 
@@ -3141,9 +3160,9 @@ class StandardTableauTuples_shape(StandardTableauTuples):
 
         EXAMPLES::
 
-            sage: t=StandardTableauTuples([[2],[2,2]]).last().pp()
-                5  6     1  3
-                         2  4
+            sage: StandardTableauTuples([[2],[2,2]]).last().pp()
+              5  6     1  3
+                       2  4
         """
         return StandardTableauTuples(self.shape().conjugate()).first().conjugate()
 

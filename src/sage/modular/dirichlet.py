@@ -56,6 +56,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import sage.categories.all                  as cat
 from sage.misc.all import prod
@@ -1086,7 +1087,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             ...                       for i in range(p-1) for j in range(p-1)[i:]]
             ...
             sage: for s in all_jacobi_sums:
-            ...       print s
+            ....:     print(s)
             ((1,), (1,), 5)
             ((1,), (zeta6,), -1)
             ((1,), (zeta6 - 1,), -1)
@@ -1610,7 +1611,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e.values()
             [0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1]
             sage: e = DirichletGroup(20).gen(0)
-            sage: print e.values()
+            sage: e.values()
             [0, 1, 0, -1, 0, 0, 0, -1, 0, 1, 0, -1, 0, 1, 0, 0, 0, 1, 0, -1]
             sage: e = DirichletGroup(20).gen(1)
             sage: e.values()

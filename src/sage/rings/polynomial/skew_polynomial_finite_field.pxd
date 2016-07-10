@@ -9,17 +9,6 @@ from sage.structure.element cimport RingElement
 
 
 cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
-    # cache
-    cdef list _conjugates
-    cdef Polynomial _norm
-    cdef _norm_factor
-    cdef _optbound
-    cdef dict _rdivisors
-    cdef dict _types
-    cdef _factorization
-
-    cdef inline void _init_cache(self)
-
     # Karatsuba
     #cpdef RingElement _mul_karatsuba(self, RingElement other, cutoff=*)
     cpdef SkewPolynomial_finite_field_dense _mul_central(self, SkewPolynomial_finite_field_dense right)

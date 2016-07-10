@@ -375,7 +375,6 @@ def text(string, xy, **options):
     options['rgbcolor'] = to_mpl_color(options['rgbcolor'])
     point = (float(x), float(y))
     g = Graphics()
-    g._set_extra_kwds(Graphics._extract_kwds_for_show(options,
-                                                      ignore='fontsize'))
+    g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore='fontsize'))
     g.add_primitive(Text(string, point, options))
     return g

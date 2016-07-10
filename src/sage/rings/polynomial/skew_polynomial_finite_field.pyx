@@ -138,8 +138,6 @@ include "../../ext/stdsage.pxi"
 #include "../../ext/interrupt.pxi"
 include "cysignals/signals.pxi"
 
-import operator, copy, re
-
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 from sage.functions.other import ceil

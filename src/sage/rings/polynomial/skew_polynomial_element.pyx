@@ -163,7 +163,8 @@ AUTHOR:
 
 include "../../ext/stdsage.pxi"
 
-import operator, copy, re
+import re
+from copy import copy
 
 import skew_polynomial_ring
 import sage.rings.infinity as infinity

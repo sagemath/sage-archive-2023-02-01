@@ -388,10 +388,19 @@ cdef class SkewPolynomial(AlgebraElement):
             [t^2 + 1, 0, t + 1, 0, 1]
         """
         sig_on()
-        l = list((<SkewPolynomial>self)._list_c())
+        l = copy(self._list_c())
         sig_off()
         return l
 
+    def __iter__(self):
+        """
+        EXAMPLE::
+
+            sage: P = PolynomialRing(ZZ, 'x')([1,2,3])
+            sage: [y for y in iter(P)]
+            [1, 2, 3]
+        """
+        return iter(self.list())
 
     def __getitem__(self,n):
         """

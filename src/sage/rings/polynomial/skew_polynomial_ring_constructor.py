@@ -131,7 +131,6 @@ def SkewPolynomialRing(base_ring,sigma=None,name=None,names=None,sparse=False):
         sage: R['x',sigma] == R['y',sigma]
         False
     """
-    import sage.rings.polynomial.skew_polynomial_ring as m
 
     if not isinstance(base_ring, ring.CommutativeRing):
         raise TypeError('base_ring must be a commutative ring')
@@ -153,9 +152,10 @@ def SkewPolynomialRing(base_ring,sigma=None,name=None,names=None,sparse=False):
     except IndexError:
         raise NotImplementedError("Multivariate skew polynomials rings not supported.")
 
-    if is_FiniteField(base_ring):
-        R = m.SkewPolynomialRing_finite_field(base_ring,sigma,name,sparse)
+    import sage.rings.polynomial.skew_polynomial_ring
+    if base_ring in FiniteFields: #MOD
+        R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field(base_ring,sigma,name,sparse)
     else:
-        R = m.SkewPolynomialRing_general(base_ring,sigma,name,sparse)
+        R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field(base_ring,sigma,name,sparse)
 
     return R

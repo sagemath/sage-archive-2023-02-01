@@ -282,9 +282,6 @@ cdef class SkewPolynomial(AlgebraElement):
     # Comparison
     # ----------
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp_(right, op)
-
 #    cpdef int _cmp_(self, Element other) except -2:
     cpdef int _cmp_(self, other) except -2:
         """
@@ -306,6 +303,23 @@ cdef class SkewPolynomial(AlgebraElement):
             if c: return c
         sig_off()
         return 0
+
+    def __hash__(self):
+        """
+        TODO: Make the real test
+        TESTS::
+
+            sage: X.<x> = InfinitePolynomialRing(QQ)
+            sage: a = x[0] + x[1]
+            sage: hash(a) # indirect doctest
+            -6172640511012239345   # 64-bit
+            -957478897             # 32-bit
+
+            971115012877883067 # 64-bit
+            -2103273797        # 32-bit
+        """
+        return hash(self.__coeffs)
+ 
 
 
     # Some c functions

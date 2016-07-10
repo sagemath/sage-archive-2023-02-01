@@ -33,11 +33,11 @@ from .transcendental import (zeta, zetaderiv, zeta_symmetric, hurwitz_zeta,
                             dickman_rho, stieltjes)
 
 from .bessel import (bessel_I, bessel_J, bessel_K, bessel_Y,
-                    Bessel, struve_H, struve_L)
+                    Bessel, struve_H, struve_L, hankel1, hankel2,
+                                   spherical_bessel_J, spherical_bessel_Y,
+                                   spherical_hankel1, spherical_hankel2)
 
-from .special import (spherical_bessel_J, spherical_bessel_Y,
-                     spherical_hankel1, spherical_hankel2,
-                     spherical_harmonic,
+from .special import (spherical_harmonic,
                      error_fcn, elliptic_e,
                      elliptic_f, elliptic_ec, elliptic_eu,
                      elliptic_kc, elliptic_pi, elliptic_j)

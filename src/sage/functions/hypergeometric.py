@@ -1016,7 +1016,7 @@ hypergeometric_M = Hypergeometric_M()
 
 class Hypergeometric_U(BuiltinFunction):
     r"""
-    For `x>0`, the confluent hypergeometric function of the second kind,
+    The confluent hypergeometric function of the second kind,
     `y = U(a,b,z)`, is defined to be the solution to Kummer's differential
     equation
 

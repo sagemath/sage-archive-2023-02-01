@@ -101,11 +101,6 @@ implemented here.
      \sin\theta\,d\varphi\,d\theta .
 
 
-   .. math::
-
-         y_n(x) = \sqrt{\frac{\pi}{2x}} Y_{n+1/2}(x) =
-         (-1)^{n+1} \sqrt{\frac{\pi}{2x}} J_{-n-1/2}(x).
-
    -  The incomplete elliptic integrals (of the first kind, etc.) are:
 
       .. math::

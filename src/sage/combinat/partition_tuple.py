@@ -1522,7 +1522,7 @@ class PartitionTuple(CombinatorialElement):
 
         For this calculation the multicharge `(\kappa_1, \ldots, \kappa_l)`
         is chosen so that `\kappa_{r+1} - \kappa_r > n`, where `n` is
-        the :meth:`size` of `\lambda` as this ensures that the Hecke algera
+        the :meth:`size` of `\lambda` as this ensures that the Hecke algebra
         is semisimple.
 
         INPUT:
@@ -1578,7 +1578,7 @@ class PartitionTuple(CombinatorialElement):
         As with :meth:`degree`, for this calculation the multicharge
         `(\kappa_1, \ldots, \kappa_l)` is chosen so that
         `\kappa_{r+1} - \kappa_r > n`, where `n` is the :meth:`size`
-        of `\lambda` as this ensures that the Hecke algera is semisimple.
+        of `\lambda` as this ensures that the Hecke algebra is semisimple.
 
         INPUT:
 

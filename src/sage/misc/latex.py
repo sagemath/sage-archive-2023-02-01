@@ -20,6 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 EMBEDDED_MODE = False
 
@@ -61,7 +62,7 @@ import subprocess
 import types
 
 from sage.misc.temporary_file import tmp_dir
-import sage_eval
+from . import sage_eval
 from sage.misc.sage_ostools import have_program
 from sage.misc.cachefunc import cached_function, cached_method
 
@@ -1161,7 +1162,7 @@ class Latex(LatexCall):
         """
         if t is None:
             return _Latex_prefs._option["blackboard_bold"]
-        from latex_macros import sage_configurable_latex_macros
+        from .latex_macros import sage_configurable_latex_macros
         global sage_configurable_latex_macros
         old = _Latex_prefs._option["blackboard_bold"]
         _Latex_prefs._option["blackboard_bold"] = bool(t)

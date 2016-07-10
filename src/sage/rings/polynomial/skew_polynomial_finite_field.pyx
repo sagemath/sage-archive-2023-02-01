@@ -154,8 +154,9 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.structure.factorization import Factorization
 
 from skew_polynomial_element cimport SkewPolynomial
-from polynomial_ring import PolynomialRing_general
-from polynomial_ring_constructor import PolynomialRing
+from sage.rings.polynomial.polynomial_element cimport Polynomial
+from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.rings.ring cimport Ring
 from sage.structure.element cimport RingElement
@@ -172,23 +173,11 @@ from sage.misc.mrange import xmrange_iter
 
 cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
+
     def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
         SkewPolynomial_generic_dense.__init__ (self, parent, x, check, is_gen, construct, **kwds)
-        self._init_cache()
-
-
-    cdef inline void _init_cache(self):
-        """
-        Initialize cached variables (set them to None).
-        """
-        self._conjugates = [ self.__coeffs ]
-        self._norm = None
-        self._norm_factor = None
-        self._optbound = None
-        self._rdivisors = None
-        self._types = None
-        self._factorization = None
-
+        #TODO: All of this caching should be cached using cached_method, I think
+        # self._init_cache()
 
     cdef SkewPolynomial _new_c(self, list coeffs, Parent P, char check=0):
         """
@@ -199,7 +188,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         cdef SkewPolynomial_finite_field_dense f = t.__new__(t)
         f._parent = P
         f.__coeffs = coeffs
-        f._init_cache()
+        #TODO: f._init_cache()
         if check:
             f.__normalize()
         return f

@@ -219,6 +219,10 @@ cdef class SkewPolynomial(AlgebraElement):
     """
     A skew polynomial.
     """
+    #MOD: (why were these defs not needed non-interactively?)
+    cdef int _is_gen
+    cdef __coeffs #TODO: Type?
+    
     def __init__(self,parent,is_gen=False,construct=False):
         """
         The following examples illustrate the creation of elements of
@@ -3085,6 +3089,12 @@ cdef class ConstantSkewPolynomialSection(Map):
 
 
 cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
+
+
+    #MOD:
+    cdef Element _an_element
+    cdef _new_constant_poly_ #TODO: Type?
+
     def __init__(self, domain, codomain):
         assert codomain.base_ring() is domain, "domain must be basering"
         RingHomomorphism.__init__(self, Hom(domain,codomain))

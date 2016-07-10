@@ -123,9 +123,8 @@ import sage.misc.latex as latex
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.polynomial.polynomial_element import Polynomial_generic_dense
 from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
-import copy, re
-import cysignals
 from sage.rings.polynomial.skew_polynomial_element import SkewPolynomial
+
 
 def is_SkewPolynomialRing(S):
     """
@@ -604,9 +603,18 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         try:
             return self._maps[n]
         except KeyError:
-            map = self._map**n
-            self._maps[n] = map
-            return map
+            if n >= 0:
+                map = self._map**n
+                self._maps[n] = map
+                return map
+            else:
+                try:
+                    map = self._map**n
+                except TypeError:
+                    raise NotImplementedError("Inversion of the twist map %s" % self._map)
+                self._maps[n] = map
+                return map
+                    
 
     def gen(self,n=0):
         """

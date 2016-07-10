@@ -501,13 +501,12 @@ def check_nested_class_picklability(app, what, name, obj, skip, options):
     """
     Print a warning if pickling is broken for nested classes.
     """
-    import types
     if hasattr(obj, '__dict__') and hasattr(obj, '__module__'):
         # Check picklability of nested classes.  Adapted from
         # sage.misc.nested_class.modify_for_nested_pickle.
         module = sys.modules[obj.__module__]
         for (nm, v) in obj.__dict__.iteritems():
-            if (isinstance(v, (type, types.ClassType)) and
+            if (isinstance(v, type) and
                 v.__name__ == nm and
                 v.__module__ == module.__name__ and
                 getattr(module, nm, None) is not v and
@@ -785,4 +784,3 @@ def setup(app):
         app.connect('builder-inited', set_intersphinx_mappings)
         app.connect('builder-inited', sphinx.ext.intersphinx.load_mappings)
         app.connect('builder-inited', nitpick_patch_config)
-

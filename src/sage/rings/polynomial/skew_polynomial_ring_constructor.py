@@ -153,6 +153,7 @@ def SkewPolynomialRing(base_ring,sigma=None,name=None,names=None,sparse=False):
         raise NotImplementedError("Multivariate skew polynomials rings not supported.")
 
     import sage.rings.polynomial.skew_polynomial_ring
+    from sage.categories.finite_fields import FiniteFields
     if base_ring in FiniteFields: #MOD
         R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field(base_ring,sigma,name,sparse)
     else:

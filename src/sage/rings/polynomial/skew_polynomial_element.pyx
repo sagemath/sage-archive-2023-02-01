@@ -249,6 +249,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         This hash incorporates the name of the variable.
         """
+        sig_on()
         cdef long result = 0 # store it in a c-int and just let the overflowing additions wrap
         cdef long result_mon
         cdef long c_hash
@@ -274,6 +275,7 @@ cdef class SkewPolynomial(AlgebraElement):
                     result += result_mon
         if result == -1:
             return -2
+        sig_off()
         return result
 
 
@@ -291,6 +293,7 @@ cdef class SkewPolynomial(AlgebraElement):
         We order polynomials first by degree, then in dictionary order
         starting with the coefficient of largest degree.
         """
+        sig_on()
         cdef list x = (<SkewPolynomial>self)._list_c()
         cdef list y = (<SkewPolynomial>other)._list_c()
         cdef Py_ssize_t dx = len(x), dy = len(y)
@@ -301,6 +304,7 @@ cdef class SkewPolynomial(AlgebraElement):
         for i from dx > i >= 0:
             c = cmp(x[i],y[i])
             if c: return c
+        sig_off()
         return 0
 
 
@@ -316,17 +320,23 @@ cdef class SkewPolynomial(AlgebraElement):
             Override this function in classes which inherit
             from SkewPolynomial.
         """
-        return P(list)
+        sig_on()
+        l = P(list)
+        sig_off()
+        return l
 
 
     cpdef SkewPolynomial _new_constant_poly(self,RingElement a,Parent P,char check=0):
         """
         Fast creation of a new constant skew polynomial
         """
+        sig_on()
         if a:
-            return self._new_c([a],P,check)
+            n = self._new_c([a],P,check)
         else:
-            return self._new_c([],P)
+            n = self._new_c([],P)
+        sig_off()
+        return n
 
 
     cdef list _list_c(self):
@@ -366,7 +376,10 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.list()
             [t^2 + 1, 0, t + 1, 0, 1]
         """
-        return list((<SkewPolynomial>self)._list_c())
+        sig_on()
+        l = list((<SkewPolynomial>self)._list_c())
+        sig_off()
+        return l
 
 
     def __getitem__(self,n):
@@ -395,9 +408,15 @@ cdef class SkewPolynomial(AlgebraElement):
             0
         """
         try:
-            return (<SkewPolynomial>self)._list_c()[n]
+            sig_on()
+            l = (<SkewPolynomial>self)._list_c()[n]
+            sig_off()
+            return l
         except IndexError:
-            return self.base_ring()(0)
+            sig_on()
+            c = self.base_ring()(0)
+            sig_off()
+            return c
 
 
     def __getslice__(self, Py_ssize_t i, Py_ssize_t j):
@@ -414,12 +433,15 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a[3:]
             0
         """
+        sig_on()
         if i <= 0:
             i = 0
             zeros = []
         elif i > 0:
             zeros = [self._parent.base_ring()(0)] * i
-        return self._new_c(zeros + self._list_c()[i:j], self._parent, 1)
+        c = self._new_c(zeros + self._list_c()[i:j], self._parent, 1)
+        sig_off()
+        return c
 
 
     def __setitem__(self, n, value):
@@ -525,17 +547,22 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: c.degree()
             1
         """
+        sig_on()
         cdef Py_ssize_t i, min
         cdef list x = (<SkewPolynomial>self)._list_c()
         cdef list y = (<SkewPolynomial>right)._list_c()
         cdef Py_ssize_t dx = len(x), dy = len(y)
 
         if dx > dy:
-            return self._new_c([x[i] + y[i] for i from 0 <= i < dy] + x[dy:], self._parent, 0)
+            r = self._new_c([x[i] + y[i] for i from 0 <= i < dy] + x[dy:], self._parent, 0)
+            return 
         elif dx < dy:
-            return self._new_c([x[i] + y[i] for i from 0 <= i < dx] + y[dx:], self._parent, 0)
+            r = self._new_c([x[i] + y[i] for i from 0 <= i < dx] + y[dx:], self._parent, 0)
+            return 
         else:
-            return self._new_c([x[i] + y[i] for i from 0 <= i < dx], self._parent, 1)
+            r = self._new_c([x[i] + y[i] for i from 0 <= i < dx], self._parent, 1)
+        sig_off()
+        return r
 
 
 #    cpdef ModuleElement _sub_(self, ModuleElement right):
@@ -561,6 +588,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: c.degree()
             1
         """
+        sig_on()
         cdef Py_ssize_t i, min
         cdef list x = (<SkewPolynomial>self)._list_c()
         cdef list y = (<SkewPolynomial>right)._list_c()
@@ -568,11 +596,14 @@ cdef class SkewPolynomial(AlgebraElement):
         cdef RingElement c
 
         if dx > dy:
-            return self._new_c([x[i] - y[i] for i from 0 <= i < dy] + x[dy:], self._parent, 0)
+            r = self._new_c([x[i] - y[i] for i from 0 <= i < dy] + x[dy:], self._parent, 0)
+            return 
         elif dx < dy:
-            return self._new_c([x[i] - y[i] for i from 0 <= i < dx] + [ -c for c in y[dx:] ], self._parent, 0)
+            r = self._new_c([x[i] - y[i] for i from 0 <= i < dx] + [ -c for c in y[dx:] ], self._parent, 0)
         else:
-            return self._new_c([x[i] - y[i] for i from 0 <= i < dx], self._parent, 1)
+            r = self._new_c([x[i] - y[i] for i from 0 <= i < dx], self._parent, 1)
+        sig_off()
+        return r
 
 
 #    cpdef ModuleElement _neg_(self):
@@ -589,7 +620,10 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: -a
             -t*x^2 - x + 3
         """
-        return self._new_c([-x for x in (<SkewPolynomial>self)._list_c()], self._parent, 0)
+        sig_on()
+        c = self._new_c([-x for x in (<SkewPolynomial>self)._list_c()], self._parent, 0)
+        sig_off()
+        return c
 
 
     cpdef ModuleElement _lmul_(self, RingElement right):
@@ -612,12 +646,15 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a * b == b * a
             False
         """
+        sig_on()
         if right == 0:
             return self._parent(0)
         cdef list x = (<SkewPolynomial>self)._list_c()
         cdef Py_ssize_t i
         map = self._parent._map
-        return self._new_c([ (map**i)(right)*x[i] for i from 0 <= i < len(x) ], self._parent, 0)
+        r = self._new_c([ (map**i)(right)*x[i] for i from 0 <= i < len(x) ], self._parent, 0)
+        sig_off()
+        return 
 
 
     cpdef ModuleElement _rmul_(self, RingElement left):
@@ -640,13 +677,16 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a * b == b * a
             False
         """
+        sig_on()
         if left == 0:
             return self.parent().zero()
 #            return self.parent().zero_element()
         cdef list x = (<SkewPolynomial>self)._list_c()
         cdef Py_ssize_t i
         map = self._parent._map
-        return self._new_c([ left*x[i] for i from 0 <= i < len(x) ], self._parent, 0)
+        r = self._new_c([ left*x[i] for i from 0 <= i < len(x) ], self._parent, 0)
+        sig_off()
+        return r
 
 
 #    cpdef RingElement _mul_(self, RingElement right):
@@ -672,6 +712,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a * b == b * a
             False
         """
+        sig_on()
         cdef list x = (<SkewPolynomial>self)._list_c()
         cdef list y = (<SkewPolynomial>right)._list_c()
         cdef Py_ssize_t i, k, start, end
@@ -692,7 +733,9 @@ cdef class SkewPolynomial(AlgebraElement):
             for i from start < i <= end:
                 sum += x[i] * parent.twist_map(i)(y[k-i])
             coeffs.append(sum)
-        return self._new_c(coeffs, parent, 0)
+        r = self._new_c(coeffs, parent, 0)
+        sig_off()
+        return r
 
 
     def square(self):
@@ -762,7 +805,10 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: u*y == y*v
             True
         """
-        return self._new_c([ self._parent.twist_map(n)(x) for x in (<SkewPolynomial>self)._list_c() ], self._parent, 0)
+        sig_on()
+        r = self._new_c([ self._parent.twist_map(n)(x) for x in (<SkewPolynomial>self)._list_c() ], self._parent, 0)
+        sig_off()
+        return r
 
 
     # Other useful mathematical functions
@@ -784,11 +830,14 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.constant_coefficient()
             t^2 + 2
         """
+        sig_on()
         cdef x = (<SkewPolynomial>self)._list_c()
         if len(x) == 0:
-            return self.base_ring()(0)
+            c = self.base_ring()(0)
         else:
-            return x[0]
+            c = x[0]
+        sig_off()
+        return c
 
 
     def leading_coefficient(self):
@@ -806,10 +855,14 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.leading_coefficient()
             t
         """
+        sig_on()
         cdef x = (<SkewPolynomial>self)._list_c()
         if len(x) == 0:
+            sig_off()
             raise ValueError("")
-        return x[-1]
+        c = x[-1]
+        sig_off()
+        return c
 
 
     def __nonzero__(self):
@@ -899,11 +952,15 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             NotImplementedError: the leading coefficient is not a unit
         """
+        sig_on()
         try:
             a = self.base_ring()(~self.leading_coefficient())
         except (ZeroDivisionError, TypeError):
+            sig_off()
             raise NotImplementedError("the leading coefficient is not a unit")
-        return self*self._parent.twist_map(-self.degree())(a)
+        r = self*self._parent.twist_map(-self.degree())(a)
+        sig_off()
+        return r
 
 
     def rmonic(self):
@@ -951,11 +1008,15 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             NotImplementedError: the leading coefficient is not a unit
         """
+        sig_on()
         try:
             a = self.base_ring()(~self.leading_coefficient())
         except (ZeroDivisionError, TypeError):
+            sig_off()
             raise NotImplementedError("the leading coefficient is not a unit")
-        return a*self
+        r = a*self
+        sig_off()
+        return r
 
 
     def monic(self, side=Right):
@@ -1078,17 +1139,20 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             NotImplementedError
         """
+        sig_on()
         cdef list a = list((<SkewPolynomial>self)._list_c())
         cdef list b = (<SkewPolynomial>other)._list_c()
         cdef Py_ssize_t i, j
         cdef Py_ssize_t da = self.degree(), db = other.degree()
         if db < 0:
+            sig_off()
             raise ZeroDivisionError
         if da < db:
             return self._new_c([],self._parent), self
         try:
             inv = self.base_ring()(~b[db])
         except (ZeroDivisionError, TypeError):
+            sig_off()
             raise NotImplementedError("the leading coefficient of the divisor is not invertible")
         cdef list q = [ ]
         parent = self._parent
@@ -1098,7 +1162,9 @@ cdef class SkewPolynomial(AlgebraElement):
                 a[i+j] -= b[j] * parent.twist_map(j)(c)
             q.append(c)
         q.reverse()
-        return self._new_c(q,parent), self._new_c(a[:db],parent,1)
+        r = self._new_c(q,parent), self._new_c(a[:db],parent,1)
+        sig_off()
+        return r
 
 
     def rquo_rem(self, other):
@@ -1140,18 +1206,21 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             NotImplementedError: the leading coefficient of the divisor is not invertible
         """
+        sig_on()
         cdef list a = list((<SkewPolynomial>self)._list_c())
         cdef list b = (<SkewPolynomial>other)._list_c()
         cdef Py_ssize_t i, j
         cdef Py_ssize_t da = self.degree(), db = other.degree()
         parent = self._parent
         if db < 0:
+            sig_off()
             raise ZeroDivisionError
         if da < db:
             return self._new_c([],parent), self
         try:
             inv = self.base_ring()(~b[db])
         except (ZeroDivisionError, TypeError):
+            sig_off()
             raise NotImplementedError("the leading coefficient of the divisor is not invertible")
         cdef list q = [ ]
         parent = self._parent
@@ -1161,7 +1230,9 @@ cdef class SkewPolynomial(AlgebraElement):
                 a[i+j] -= c * parent.twist_map(i)(b[j])
             q.append(c)
         q.reverse()
-        return self._new_c(q,parent), self._new_c(a[:db],parent,1)
+        r = self._new_c(q,parent), self._new_c(a[:db],parent,1)
+        sig_off()
+        return r
 
 
     def quo_rem(self,other,side=Right):
@@ -1560,7 +1631,9 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             NotImplementedError
         """
+        sig_on()
         if not isinstance(self.base_ring(),Field):
+            sig_off()
             raise TypeError("the base ring must be a field")
         G = self
         U = self._parent(1)
@@ -1583,6 +1656,7 @@ cdef class SkewPolynomial(AlgebraElement):
             G = G*lc
             U = U*lc
             V = V*lc
+        sig_off()
         return G,U,V
 
 
@@ -1646,7 +1720,9 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             TypeError: the base ring must be a field
         """
+        sig_on()
         if not isinstance(self.base_ring(),Field):
+            sig_off()
             raise TypeError("the base ring must be a field")
         G = self
         U = self._parent(1)
@@ -1668,6 +1744,7 @@ cdef class SkewPolynomial(AlgebraElement):
             G = lc*G
             U = lc*U
             V = lc*V
+        sig_off()
         return G,U,V
 
 
@@ -1817,7 +1894,9 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             TypeError: the base ring must be a field
         """
+        sig_on()
         if not isinstance(self.base_ring(),Field):
+            sig_off()
             raise TypeError("the base ring must be a field")
         if other.is_zero():
             return self
@@ -1827,6 +1906,7 @@ cdef class SkewPolynomial(AlgebraElement):
             A,B = B, A % B
         if monic:
             A = A.rmonic()
+        sig_off()
         return A
 
 
@@ -1894,7 +1974,9 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             NotImplementedError
         """
+        sig_on()
         if not isinstance(self.base_ring(),Field):
+            sig_off()
             raise TypeError("the base ring must be a field")
         if other.is_zero():
             return self
@@ -1904,6 +1986,7 @@ cdef class SkewPolynomial(AlgebraElement):
             A,B = B, A.rem(B,side=Left)
         if monic:
             A = A.lmonic()
+        sig_off()
         return A
 
 
@@ -2048,7 +2131,9 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             TypeError: the base ring must be a field
         """
+        sig_on()
         if not isinstance(self.base_ring(),Field):
+            sig_off()
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
             raise ZeroDivisionError
@@ -2066,6 +2151,7 @@ cdef class SkewPolynomial(AlgebraElement):
         V1 = V1*self
         if monic:
             V1 = V1.rmonic()
+        sig_off()
         return V1
 
 
@@ -2139,7 +2225,9 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             NotImplementedError
         """
+        sig_on()
         if not isinstance(self.base_ring(),Field):
+            sig_off()
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
             raise ZeroDivisionError
@@ -2160,6 +2248,7 @@ cdef class SkewPolynomial(AlgebraElement):
         V1 = self*V1
         if monic:
             V1 = V1.lmonic()
+        sig_off()
         return V1
 
 
@@ -2292,6 +2381,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a._repr(name='y')
             '(1/2*t + 1/2)*y + t^2'
         """
+        sig_on()
         s = " "
         m = self.degree() + 1
         if name is None:
@@ -2320,6 +2410,7 @@ cdef class SkewPolynomial(AlgebraElement):
         s = re.sub(r' -1(\.0+)?\*',' -', s)
         if s == " ":
             return "0"
+        sig_off()
         return s[1:]
 
 
@@ -2343,6 +2434,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a._latex_(name='y')
             '\\left(\\frac{1}{2} t + \\frac{1}{2}\\right) y + t^{2}'
         """
+        sig_on()
         s = " "
         coeffs = self.list()
         m = len(coeffs)
@@ -2372,6 +2464,7 @@ cdef class SkewPolynomial(AlgebraElement):
         s = s.replace("|","")
         if s==" ":
             return "0"
+        sig_off()
         return s[1:].lstrip().rstrip()
 
 
@@ -2429,15 +2522,20 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a << 2
             x^7 + t^4*x^6 + t^2*x^4 + t^10*x^2
         """
+        sig_on()
         if n == 0 or self.degree() < 0:
+            sig_off()
             return self
         if n > 0:
+            sig_off()
             return self._parent(n*[self.base_ring().zero()] + self.list(), check=False)
 #            return self._parent(n*[self.base_ring().zero_element()] + self.list(), check=False)
         if n < 0:
             if n > self.degree():
+                sig_off()
                 return self._parent([])
             else:
+                sig_off()
                 return self._parent(self.list()[-n:], check=False)
 
 

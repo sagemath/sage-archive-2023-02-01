@@ -157,6 +157,6 @@ def SkewPolynomialRing(base_ring,sigma=None,name=None,names=None,sparse=False):
     if base_ring in FiniteFields: #MOD
         R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field(base_ring,sigma,name,sparse)
     else:
-        R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field(base_ring,sigma,name,sparse)
+        R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general(base_ring,sigma,name,sparse)
 
     return R

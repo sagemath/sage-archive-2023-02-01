@@ -1087,7 +1087,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('37a1')
             sage: E.modular_symbol(implementation = 'eclib') is E.modular_symbol(implementation = 'eclib', normalize = 'L_ratio')
             True
-        """
+       """
         if use_eclib is not None:
             from sage.misc.superseded import deprecation
             deprecation(20864, "Use the option 'implementation' instead of 'use_eclib'")
@@ -1095,12 +1095,15 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 implementation = 'eclib'
             else:
                 implementation = 'sage'
+        if sign not in [1,-1]:
+            raise ValueError("The sign of a modular symbol must be 1 or -1")
         sign = ZZ(sign)
         if normalize is None:
             normalize = "L_ratio"
+        if normalize not in ["L_ratio", "period", "none"]:
+            raise ValueError("normalize should be one of 'L_ratio', 'period' or 'none'")
         if implementation not in ["sage", "eclib"]:
             raise ValueError("Implementation should be one of 'sage' or 'eclib'")
-
         return (sign, normalize, implementation)
 
     @cached_method(key = _modular_symbol_normalize)
@@ -1123,7 +1126,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
-        -  ``sign`` - +1 (default) or -1. 
+        -  ``sign`` - +1 (default) or -1.
 
         -  ``use_eclib`` - Deprecated. Use the ``implementation`` parameter instead.
 
@@ -1142,8 +1145,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            the initial computation of the modular symbol is
            much faster in implementation ``sage`` is chosen,
            though evaluation of it after computing it won't be any faster.
-        
-        -  ``implementation`` - either 'eclib' (default) or 'sage'. Here 'eclib' uses 
+
+        -  ``implementation`` - either 'eclib' (default) or 'sage'. Here 'eclib' uses
            John Cremona's implementation in his library eclib; it only works
            for ``sign`` +1 currently. Instead 'sage' uses the implementation within
            sage which is often quite a bit slower.
@@ -1280,7 +1283,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: E = EllipticCurve('19a1')
-            sage: f = E.modular_symbol_numerical(1) 
+            sage: f = E.modular_symbol_numerical(1)
             sage: g = E.modular_symbol()
             sage: f(0), g(0)  # abs tol 1e-14
             (0.333333333333330, 1/3)
@@ -1288,7 +1291,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             (-0.000000000000000, 0)
 
             sage: E = EllipticCurve('79a1')
-            sage: f = E.modular_symbol_numerical(-1) 
+            sage: f = E.modular_symbol_numerical(-1)
             sage: g = E.modular_symbol(-1, implementation="sage")
             sage: f(1/3), g(1/3)  # abs tol 1e-13
             (1.00000000000001, 1)
@@ -1314,7 +1317,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         - ``sign`` -- +1 or -1 or 0 (default), in which case this it
           is the sum of the two
 
-        - ``inmplementation`` -- either 'eclib' (default) or 'sage'. 
+        - ``inmplementation`` -- either 'eclib' (default) or 'sage'.
           This determines classical modular symbols which implementation
           of the underlying classical  modular symbols is used
 

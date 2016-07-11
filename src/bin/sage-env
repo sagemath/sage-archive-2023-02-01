@@ -441,6 +441,8 @@ if [ -d "$DOT_SAGE" ] ; then
 fi
 MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
 
+PERL5LIB="$SAGE_LOCAL/lib/perl5:$PERL5LIB" && export PERL5LIB
+
 ############ architecture flags
 
 # Support flags to change the build architecture.  Currently, this is

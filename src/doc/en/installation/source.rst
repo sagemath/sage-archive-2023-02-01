@@ -500,8 +500,14 @@ Running Sage from a directory with spaces in its name will also fail.
        MAKE='make -jNUM' make
 
    to tell the ``make`` program to run ``NUM`` jobs in parallel when building
-   Sage.
-   This compiles Sage and all its dependencies.
+   Sage. This compiles Sage and all its dependencies.
+
+   .. NOTE::
+
+      Mac OS X allows changing directories without using exact capitalization.
+      Beware of this convenience when compiling for OS X. Ignoring exact
+      capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
+      errors for dependencies requiring exact capitalization in path names.
 
    Note that you do not need to be logged in as root, since no files are
    changed outside of the :file:`sage-x.y.z` directory.
@@ -1222,13 +1228,6 @@ Sage uses the following environment variables when it runs:
 - :envvar:`SAGE_BROWSER` - on most platforms, Sage will detect the command to
   run a web browser, but if this doesn't seem to work on your machine, set this
   variable to the appropriate command.
-
-- :envvar:`SAGE_ORIG_LD_LIBRARY_PATH_SET` - set this to something non-empty to
-  force Sage to set the :envvar:`LD_LIBRARY_PATH` variable before executing
-  system commands.
-
-- :envvar:`SAGE_ORIG_DYLD_LIBRARY_PATH_SET` - similar, but only used on OS X to
-  set the :envvar:`DYLD_LIBRARY_PATH` variable.
 
 - :envvar:`SAGE_CBLAS` - used in the file
   :file:`SAGE_ROOT/src/sage/misc/cython.py`.

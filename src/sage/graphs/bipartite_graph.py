@@ -32,8 +32,9 @@ TESTS::
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
-from graph import Graph
+from .graph import Graph
 
 class BipartiteGraph(Graph):
     r"""

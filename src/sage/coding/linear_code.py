@@ -187,6 +187,7 @@ TESTS::
 #******************************************************************************
 # python3
 from __future__ import division, print_function
+from __future__ import absolute_import
 
 import sage.modules.module as module
 from sage.categories.modules import Modules
@@ -214,8 +215,8 @@ from sage.misc.randstate import current_randstate
 from sage.misc.decorators import rename_keyword
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
-from encoder import Encoder
-from decoder import Decoder, DecodingError
+from .encoder import Encoder
+from .decoder import Decoder, DecodingError
 from sage.combinat.subset import Subsets
 from sage.categories.cartesian_product import cartesian_product
 # import compatible with py2 and py3
@@ -607,7 +608,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     d=int(b)
     if d!=b or d%2==1 or d <= 0:
         raise ValueError("b (%s) must be a positive even integer."%b)
-    from binary_code import BinaryCode, BinaryCodeClassifier
+    from .binary_code import BinaryCode, BinaryCodeClassifier
     if k < 1 or n < 2:
         return
     if equal:
@@ -2017,7 +2018,7 @@ class AbstractLinearCode(module.Module):
             sage: Cx
             Extended code coming from [21, 18] Hamming Code over Finite Field in a of size 2^2
         """
-        from extended_code import ExtendedCode
+        from .extended_code import ExtendedCode
         return ExtendedCode(self)
 
     def galois_closure(self, F0):
@@ -2861,7 +2862,7 @@ class AbstractLinearCode(module.Module):
             sage: C.punctured([1,2])
             Punctured code coming from [7, 4] Hamming Code over Finite Field of size 2 punctured on position(s) [1, 2]
         """
-        from punctured_code import PuncturedCode
+        from .punctured_code import PuncturedCode
         return PuncturedCode(self, set(L))
 
     def _punctured_form(self, points):

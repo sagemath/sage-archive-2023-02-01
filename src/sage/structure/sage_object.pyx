@@ -247,7 +247,7 @@ cdef class SageObject:
             sage: shell.run_cell('tab')
             1  2
             3
-            sage: shell.run_cell('Tableaux.global_options(ascii_art="table", convention="French")')
+            sage: shell.run_cell('Tableaux.options(ascii_art="table", convention="French")')
             sage: shell.run_cell('tab')
             +---+
             | 3 |
@@ -255,7 +255,7 @@ cdef class SageObject:
             | 1 | 2 |
             +---+---+
             sage: shell.run_cell('%display plain')
-            sage: shell.run_cell('Tableaux.global_options.reset()')
+            sage: shell.run_cell('Tableaux.options._reset()')
             sage: shell.quit()
 
         TESTS::
@@ -309,7 +309,7 @@ cdef class SageObject:
             sage: shell.run_cell('tab')
             1  2
             3
-            sage: shell.run_cell('Tableaux.global_options(ascii_art="table", convention="French")')
+            sage: shell.run_cell('Tableaux.options(ascii_art="table", convention="French")')
             sage: shell.run_cell('tab')
             +---+
             | 3 |
@@ -317,7 +317,7 @@ cdef class SageObject:
             | 1 | 2 |
             +---+---+
             sage: shell.run_cell('%display plain')
-            sage: shell.run_cell('Tableaux.global_options.reset()')
+            sage: shell.run_cell('Tableaux.options._reset()')
             sage: shell.quit()
 
         TESTS::

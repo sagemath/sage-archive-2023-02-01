@@ -18,6 +18,7 @@ EXAMPLES::
     ]
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2004-2006 William Stein <wstein@gmail.com>
@@ -36,11 +37,11 @@ import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.all as rings
 
-import ambient_eps
-import ambient_g0
-import ambient_g1
-import ambient_R
-import defaults
+from .ambient_eps import ModularFormsAmbient_eps
+from .ambient_g0 import ModularFormsAmbient_g0_Q
+from .ambient_g1 import ModularFormsAmbient_g1_Q, ModularFormsAmbient_gH_Q
+from . import ambient_R
+from . import defaults
 
 
 def canonical_parameters(group, level, weight, base_ring):
@@ -314,17 +315,17 @@ def ModularForms(group  = 1,
 
     M = None
     if arithgroup.is_Gamma0(group):
-        M = ambient_g0.ModularFormsAmbient_g0_Q(group.level(), weight)
+        M = ModularFormsAmbient_g0_Q(group.level(), weight)
         if base_ring != rings.QQ:
             M = ambient_R.ModularFormsAmbient_R(M, base_ring)
 
     elif arithgroup.is_Gamma1(group):
-        M = ambient_g1.ModularFormsAmbient_g1_Q(group.level(), weight)
+        M = ModularFormsAmbient_g1_Q(group.level(), weight)
         if base_ring != rings.QQ:
             M = ambient_R.ModularFormsAmbient_R(M, base_ring)
 
     elif arithgroup.is_GammaH(group):
-        M = ambient_g1.ModularFormsAmbient_gH_Q(group, weight)
+        M = ModularFormsAmbient_gH_Q(group, weight)
         if base_ring != rings.QQ:
             M = ambient_R.ModularFormsAmbient_R(M, base_ring)
 
@@ -340,7 +341,7 @@ def ModularForms(group  = 1,
             return ModularForms(eps.modulus(), weight, base_ring,
                                 use_cache = use_cache,
                                 prec = prec)
-        M = ambient_eps.ModularFormsAmbient_eps(eps, weight)
+        M = ModularFormsAmbient_eps(eps, weight)
         if base_ring != eps.base_ring():
             M = M.base_extend(base_ring) # ambient_R.ModularFormsAmbient_R(M, base_ring)
 

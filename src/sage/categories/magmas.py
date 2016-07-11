@@ -1,6 +1,7 @@
 r"""
 Magmas
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2010 Nicolas M. Thiery <nthiery at users.sf.net>
 #
@@ -307,10 +308,10 @@ class Magmas(Category_singleton):
                 sage: Rings().Distributive.__module__
                 'sage.categories.magmas_and_additive_magmas'
             """
-            from additive_magmas import AdditiveMagmas
+            from .additive_magmas import AdditiveMagmas
             if not self.is_subcategory(AdditiveMagmas()):
                 raise ValueError("The distributive axiom only makes sense on a magma which is simultaneously an additive magma")
-            from magmas_and_additive_magmas import MagmasAndAdditiveMagmas
+            from .magmas_and_additive_magmas import MagmasAndAdditiveMagmas
             return (self & MagmasAndAdditiveMagmas()).Distributive()
 
         def JTrivial(self):
@@ -1062,7 +1063,7 @@ class Magmas(Category_singleton):
 
                 sage: TestSuite(C).run()
             """
-            from cartesian_product import cartesian_product
+            from .cartesian_product import cartesian_product
             from sage.rings.integer_ring import ZZ
             from sage.rings.rational_field import QQ
             return cartesian_product([QQ, ZZ, ZZ])

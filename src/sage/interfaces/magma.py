@@ -212,12 +212,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import re
 import sys
 
 from sage.structure.parent import Parent
-from expect import console, Expect, ExpectElement, ExpectFunction, FunctionElement
+from .expect import console, Expect, ExpectElement, ExpectFunction, FunctionElement
 PROMPT = ">>>"
 
 SAGE_REF = "_sage_ref"

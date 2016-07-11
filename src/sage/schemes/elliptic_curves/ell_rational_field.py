@@ -50,24 +50,26 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function, division
+from __future__ import absolute_import
 
-import constructor
-import BSD
-from   ell_generic import is_EllipticCurve
-import ell_modular_symbols
-from   ell_number_field import EllipticCurve_number_field
-import ell_point
-import ell_tate_curve
-import ell_torsion
-import heegner
-from   gp_simon import simon_two_descent
-from   lseries_ell import Lseries_ell
-import mod5family
-from   modular_parametrization import ModularParameterization
-import padic_lseries
-import padics
+from . import constructor
+from . import BSD
+from   .ell_generic import is_EllipticCurve
+from . import ell_modular_symbols
+from   .ell_number_field import EllipticCurve_number_field
+from . import ell_point
+from . import ell_tate_curve
+from . import ell_torsion
+from . import heegner
+from   .gp_simon import simon_two_descent
+from   .lseries_ell import Lseries_ell
+from . import mod5family
+from   .modular_parametrization import ModularParameterization
+from . import padic_lseries
+from . import padics
 
 from sage.modular.modsym.modsym import ModularSymbols
+from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
 
 from sage.lfunctions.zero_sums import LFunctionZeroSum_EllipticCurve
 
@@ -1284,6 +1286,46 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             P = lam[1].imag()
             return lambda a: self._modsym(a, prec).imag() / P
 
+
+    def pollack_stevens_modular_symbol(self, sign=0, use_eclib=True):
+        """
+        Create the modular symbol attached to the elliptic curve,
+        suitable for overconvergent calculations.
+
+        INPUT:
+
+        - ``sign`` -- +1 or -1 or 0 (default), in which case this it
+          is the sum of the two
+
+        - ``use_eclib`` -- Whether the underlying computation by
+          eclib (default) or sage's classical modular symbols
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('113a1')
+            sage: symb = E.pollack_stevens_modular_symbol()
+            sage: symb
+            Modular symbol of level 113 with values in Sym^0 Q^2
+            sage: symb.values()
+            [-1/2, 1, -1, 0, 0, 1, 1, -1, 0, -1, 0, 0, 0, 1, -1, 0, 0, 0, 1, 0, 0]
+
+            sage: E = EllipticCurve([0,1])
+            sage: symb = E.pollack_stevens_modular_symbol(+1)
+            sage: symb.values()
+            [-1/6, 1/12, 0, 1/6, 1/12, 1/3, -1/12, 0, -1/6, -1/12, -1/4, -1/6, 1/12]
+        """
+        typ = (sign, use_eclib)
+        try:
+            return self.__modular_symbol[typ] # Doesn't collide with original implementation because tuple is length two here.
+        except AttributeError:
+            self.__modular_symbol = {}
+        except KeyError:
+            pass
+        M = ps_modsym_from_elliptic_curve(self, sign, use_eclib=use_eclib)
+        self.__modular_symbol[typ] = M
+        return M
+
+    _normalize_padic_lseries = padics._normalize_padic_lseries
     padic_lseries = padics.padic_lseries
 
     def newform(self):
@@ -3004,7 +3046,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             self.__tamagawa_number = {}
         if p not in self.__kodaira_type:
             v = self.pari_mincurve().elllocalred(p)
-            from kodaira_symbol import KodairaSymbol
+            from .kodaira_symbol import KodairaSymbol
             self.__kodaira_type[p] = KodairaSymbol(v[1])
             self.__tamagawa_number[p] = Integer(v[3])
         return self.__kodaira_type[p]
@@ -3284,7 +3326,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__lseries
         except AttributeError:
-            from lseries_ell import Lseries_ell
+            from .lseries_ell import Lseries_ell
             self.__lseries = Lseries_ell(self)
             return self.__lseries
 
@@ -4641,7 +4683,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ValueError: 4 is not prime.
 
         """
-        from isogeny_small_degree import isogenies_prime_degree_genus_0, isogenies_sporadic_Q
+        from .isogeny_small_degree import isogenies_prime_degree_genus_0, isogenies_sporadic_Q
 
         if l in [2, 3, 5, 7, 13]:
             return isogenies_prime_degree_genus_0(self, l)
@@ -5162,7 +5204,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__rho
         except AttributeError:
-            from gal_reps import GaloisRepresentation
+            from .gal_reps import GaloisRepresentation
             self.__rho = GaloisRepresentation(self)
         return self.__rho
 
@@ -5503,7 +5545,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__sha
         except AttributeError:
-            from sha_tate import Sha
+            from .sha_tate import Sha
             self.__sha = Sha(self)
             return self.__sha
 

@@ -819,8 +819,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         - If ``certificate=True`` return either ``(True, None)`` or
           ``(False, (a, b, c))``, where `b` is the only element that
-          covers `a` and is covered by `c`.
-        - If ``certificate=False`` return ``True`` or ``False``.
+          covers `a` and is covered by `c`. If ``certificate=False``
+          return ``True`` or ``False``.
 
         EXAMPLES::
 

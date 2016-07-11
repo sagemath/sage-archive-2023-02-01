@@ -596,8 +596,8 @@ class Option(object):
 
         EXAMPLES::
 
-            sage: hash( Tableaux.options.convention ) # indirect doc-test
-            -6673246059928475433
+            sage: hash(Tableaux.options.convention) == hash(Tableaux.options('convention')) # indirect doc-test
+            True
         """
         return hash(self._options.__getitem__(self._name))
 

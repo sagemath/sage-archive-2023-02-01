@@ -373,6 +373,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             sage: a._mul_central(b) == a*b
             True
         """
+        sig_on()
         skew_ring = self._parent
         base_ring = skew_ring.base_ring()
         commutative_ring = PolynomialRing(skew_ring.base_ring(),name='x')
@@ -400,7 +401,9 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
                     res[k] += term[k] * twist[(k-i)%order]**j
             for k from i <= k < leny by order:
                 yc[k] = zero
-        return self._new_c(res,skew_ring,1)
+        r = self._new_c(res,skew_ring,1)
+        sig_off()
+        return r
 
 
 #    cpdef RingElement _mul_(self, RingElement right):
@@ -431,7 +434,10 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             sage: a * b == b * a
             False
         """
-        return self._parent._karatsuba_class.mul(self,right)
+        sig_on()
+        r = self._parent._karatsuba_class.mul(self,right)
+        sig_off()
+        return r
 
 
     def _mul_classical(self,right):
@@ -457,11 +463,13 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             sage: a * b == b * a
             False
         """
+        sig_on()
         karatsuba_class = self._parent._karatsuba_class
         save_cutoff = karatsuba_class.get_cutoff()
         karatsuba_class.set_cutoff(Infinity)
         res = karatsuba_class.mul(self,right)
         karatsuba_class.set_cutoff(save_cutoff)
+        sig_off()
         return res
 
 
@@ -499,6 +507,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             sage: a.rquo_rem(b) == a.rquo_rem_karatsuba(b)
             True
         """
+        sig_on()
         karatsuba_class = self._parent._karatsuba_class
         if cutoff != None:
             save_cutoff = karatsuba_class.get_cutoff()
@@ -506,6 +515,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         res = karatsuba_class.div(self,other)
         if cutoff != None:
             karatsuba_class.set_cutoff(save_cutoff)
+        sig_off()
         return res
 
 
@@ -567,15 +577,19 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             ...
             NotImplementedError: the leading coefficient of the divisor is not invertible
         """
+        sig_on()
         cdef list a = self.list()
         cdef list b = other.list()
         cdef Py_ssize_t i, j
         cdef Py_ssize_t da = len(a)-1, db = len(b)-1
         parent = self._parent
         if db < 0:
+            sig_off()
             raise ZeroDivisionError
         if da < db:
-            return parent(0), self
+            res = parent(0), self
+            sig_off()
+            return res
         cdef RingElement inv = ~b[db]
         cdef list q = [ ]
         cdef Py_ssize_t order = parent._order
@@ -590,13 +604,16 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
                 a[i+j] -= c * twb[i%order][j]
             q.append(c)
         q.reverse()
-        return parent(q), parent(a[:db])
+        res = parent(q), parent(a[:db])
+        sig_off()
+        return res
 
 
     cdef SkewPolynomial_finite_field_dense _rgcd(self,SkewPolynomial_finite_field_dense other):
         """
         Fast right gcd.
         """
+        sig_on()
         cdef SkewPolynomial_finite_field_dense A = self
         cdef SkewPolynomial_finite_field_dense B = other
         cdef SkewPolynomial_finite_field_dense swap
@@ -606,8 +623,10 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             while len(B.__coeffs):
                 A._inplace_rrem(B)
                 swap = A; A = B; B = swap
+            sig_off()
             return A
         else:
+            sig_off()
             return self
 
 
@@ -615,16 +634,20 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         """
         Replace self by self*right
         """
+        sig_on()
         self.__coeffs = self._parent._karatsuba_class.mul_list(self.__coeffs,right.__coeffs)
-        self._init_cache()
+        #TODO Clear cached methods self._init_cache()
+        sig_off()
 
 
     cdef void _inplace_lmul(self, SkewPolynomial_generic_dense left):
         """
         Replace self by left*self
         """
+        sig_on()
         self.__coeffs = self._parent._karatsuba_class.mul_list(left.__coeffs,self.__coeffs)
-        self._init_cache()
+        #TODO Clear cached methods self._init_cache()
+        sig_off()
 
 
     cpdef _pow_(self,right,modulus=None,side=Right):
@@ -688,20 +711,28 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             sage: a._pow_(10^100,modulus)  # rather fast
             (3*t^2 + 3)*x^2 + (t^2 + 2*t + 4)*x + 4*t^2 + 2*t + 1
         """
+        sig_on()
         cdef SkewPolynomial_finite_field_dense r
 
         if not isinstance(right, Integer) or isinstance(right, int):
             try:
                 right = Integer(right)
             except TypeError:
+                sig_off()
                 raise TypeError("non-integral exponents not supported")
 
         if self.degree() <= 0:
-            return self.parent()(self[0]**right)
+            r = self.parent()(self[0]**right)
+            sig_off()
+            return r
         if right == 0:
-            return self.parent()(1)
+            r = self.parent()(1)
+            sig_off()
+            return r
         if right < 0:
-            return (~self).pow(-right,modulus,side=side)
+            r = (~self).pow(-right,modulus,side=side)
+            sig_off()
+            return r
 
         if self == self.parent().gen(): # special case x**n should be faster!
             P = self.parent()
@@ -709,13 +740,12 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             v = [R.zero()]*right + [R.one()]
 #            v = [R.zero_element()]*right + [R.one_element()]
             r = <SkewPolynomial_generic_dense>self._parent(v)
-            sig_on()
             if modulus:
                 if side is Right:
                     r._inplace_rrem(modulus)
                 else:
                     r._inplace_lrem(modulus)
-                r._init_cache()
+                #TODO Clear cached methods r._init_cache()
             sig_off()
             return r
 
@@ -726,7 +756,6 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             except NotImplementedError:
                 mod = None
         r = <SkewPolynomial_generic_dense>self._new_c(self.__coeffs,self._parent)
-        sig_on()
         if mod:
             r._inplace_pow_mod(right,mod)
         else:
@@ -736,7 +765,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
                 r._inplace_rrem(modulus)
             else:
                 r._inplace_lrem(modulus)
-            r._init_cache()
+            #TODO Clear cached methods r._init_cache()
         sig_off()
         return r
 
@@ -758,6 +787,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         Replace self by the remainder in the left euclidean division
         of self by other (only for internal use).
         """
+        sig_on()
         cdef list a = (<SkewPolynomial_finite_field_dense>self).__coeffs
         cdef list b = (<SkewPolynomial_finite_field_dense>other).__coeffs
         cdef Py_ssize_t da = len(a)-1, db = len(b)-1
@@ -765,6 +795,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         cdef RingElement c, inv
         parent = self._parent
         if db < 0:
+            sig_off()
             raise ZeroDivisionError
         if da >= db:
             inv = ~b[db]
@@ -774,7 +805,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
                     a[i+j] -= b[j] * parent.twist_map(j)(c)
             del a[db:]
             self.__normalize()
-        self._init_cache()
+        sig_off()
+        #TODO Clear cached methods self._init_cache()
 
 
     cdef void _inplace_rrem(self, SkewPolynomial_finite_field_dense other):
@@ -782,6 +814,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         Replace self by the remainder in the right euclidean division
         of self by other (only for internal use).
         """
+        sig_on()
         cdef list a = (<SkewPolynomial_finite_field_dense>self).__coeffs
         cdef list b = (<SkewPolynomial_finite_field_dense>other).__coeffs
         cdef Py_ssize_t da = len(a)-1, db = len(b)-1
@@ -790,6 +823,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         cdef list twinv, twb
         parent = self._parent
         if db < 0:
+            sig_off()
             raise ZeroDivisionError
         if da >= db:
             order = parent._order
@@ -806,7 +840,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
                     a[i+j] -= c * twb[i%order][j]
             del a[db:]
             self.__normalize()
-        self._init_cache()
+        sig_off()
+        #TODO Clear cached methods self._init_cache()
 
 
     cdef void _inplace_lfloordiv(self, SkewPolynomial_finite_field_dense other):
@@ -814,6 +849,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         Replace self by the quotient in the left euclidean division
         of self by other (only for internal use).
         """
+        sig_on()
         cdef list a = (<SkewPolynomial_finite_field_dense>self).__coeffs
         cdef list b = (<SkewPolynomial_finite_field_dense>other).__coeffs
         cdef Py_ssize_t da = len(a)-1, db = len(b)-1
@@ -821,6 +857,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         cdef RingElement c, inv
         parent = self._parent
         if db < 0:
+            sig_off()
             raise ZeroDivisionError
         if da < db:
             (<SkewPolynomial_finite_field_dense>self).__coeffs = [ ]
@@ -834,7 +871,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
                     a[j] -= b[j-i] * parent.twist_map(j-i)(c)
             del a[:db]
             self.__normalize()
-        self._init_cache()
+        sig_off()
+        #TODO Clear cached methods self._init_cache()
 
 
     cdef void _inplace_rfloordiv(self, SkewPolynomial_finite_field_dense other):
@@ -842,6 +880,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         Replace self by the quotient in the right euclidean division
         of self by other (only for internal use).
         """
+        sig_on()
         cdef list a = (<SkewPolynomial_finite_field_dense>self).__coeffs
         cdef list b = (<SkewPolynomial_finite_field_dense>other).__coeffs
         cdef Py_ssize_t da = len(a)-1, db = len(b)-1
@@ -849,6 +888,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         cdef RingElement c, x, inv
         parent = self._parent
         if db < 0:
+            sig_off()
             raise ZeroDivisionError
         if da < db:
             (<SkewPolynomial_finite_field_dense>self).__coeffs = [ ]
@@ -869,7 +909,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
                     a[j] -= c * twb[i%order][j-i]
             del a[:db]
             self.__normalize()
-        self._init_cache()
+        sig_off()
+        #TODO Clear cached methods self._init_cache()
 
 
     cdef void _inplace_pow_mod(self, Integer n, SkewPolynomial_finite_field_dense mod):
@@ -881,6 +922,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
             Assume that mod is central
         """
+        sig_on()
         while n&1 == 0:
             self._inplace_rmul(self)
             self._inplace_rrem(mod)
@@ -894,12 +936,14 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
                 self._inplace_rmul(selfpow)
                 self._inplace_rrem(mod)
             n = n >> 1
+        sig_off()
 
 
     cdef void _inplace_lmonic(self):
         """
         Replace self by ``self.lmonic()`` (only for internal use).
         """
+        sig_on()
         cdef list a = (<SkewPolynomial_finite_field_dense>self).__coeffs
         cdef Py_ssize_t da = len(a)-1, i
         cdef RingElement inv = ~a[da]
@@ -907,26 +951,30 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         a[da] = parent.base_ring()(1)
         for i from 0 <= i < da:
             a[i] *= parent.twist_map(i-da)(inv)
-        self._init_cache()
+        sig_off()
+        #TODO Clear cached methods self._init_cache()
 
 
     cdef void _inplace_rmonic(self):
         """
         Replace self by ``self.rmonic()`` (only for internal use).
         """
+        sig_on()
         cdef list a = (<SkewPolynomial_finite_field_dense>self).__coeffs
         cdef Py_ssize_t da = len(a)-1, i
         cdef RingElement inv = ~a[da]
         a[da] = self._parent.base_ring()(1)
         for i from 0 <= i < da:
             a[i] *= inv
-        self._init_cache()
+        sig_off()
+        #TODO Clear cached methods self._init_cache()
 
 
     cdef void _inplace_rgcd(self,SkewPolynomial_finite_field_dense other):
         """
         Replace self by its right gcd with other (only for internal use).
         """
+        sig_on()
         cdef SkewPolynomial_finite_field_dense B
         cdef list swap
         if len(other.__coeffs):
@@ -937,7 +985,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
                 swap = self.__coeffs
                 self.__coeffs = B.__coeffs
                 B.__coeffs = swap
-        self._init_cache()
+        sig_off()
+        #TODO Clear cached methods self._init_cache()
 
 
     cdef SkewPolynomial_finite_field_dense _rquo_inplace_rem(self, SkewPolynomial_finite_field_dense other):
@@ -945,6 +994,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         Replace self by the remainder in the right euclidean division
         of self by other and return the quotient (only for internal use).
         """
+        sig_on()
         cdef list a = (<SkewPolynomial_finite_field_dense>self).__coeffs
         cdef list b = (<SkewPolynomial_finite_field_dense>other).__coeffs
         cdef Py_ssize_t da = len(a)-1, db = len(b)-1
@@ -953,9 +1003,12 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         cdef list q
         parent = self._parent
         if db < 0:
+            sig_off()
             raise ZeroDivisionError
         if da < db:
-            return self._new_c([],self._parent)
+            r = self._new_c([],self._parent)
+            sig_off()
+            return r
         inv = ~b[db]
         q = [ ]
         for i from da-db >= i >= 0:
@@ -965,9 +1018,11 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
                 a[i+j] -= c * parent.twist_map(i)(b[j])
         del a[db:]
         self.__normalize()
-        self._init_cache()
+        #TODO Clear cached methods self._init_cache()
         q.reverse()
-        return self._new_c(q,self._parent)
+        r = self._new_c(q,self._parent)
+        sig_off()
+        return r
 
 
     cdef Py_ssize_t _val_inplace_unit(self):
@@ -975,14 +1030,17 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         Return `v` the valuation of self and replace self by
         self >> v (only for internal use).
         """
+        sig_on()
         cdef list a = (<SkewPolynomial_finite_field_dense>self).__coeffs
         cdef Py_ssize_t val = 0
         if len(a) < 0:
+            sig_off()
             return -1
         while a[0].is_zero():
             del a[0]
             val += 1
-        self._init_cache()
+        #TODO Clear cached methods self._init_cache()
+        sig_off()
         return val
 
 
@@ -993,9 +1051,11 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         """
         (only for internal use)
         """
+        sig_on()
         cdef SkewPolynomial_finite_field_dense A = <SkewPolynomial_finite_field_dense>self
         cdef SkewPolynomial_finite_field_dense B = <SkewPolynomial_finite_field_dense>other
         if not len(A.__coeffs) and not len(B.__coeffs):
+            sig_off()
             raise ZeroDivisionError
         A = <SkewPolynomial_finite_field_dense>A._new_c(A.__coeffs[:],A._parent)
         B = <SkewPolynomial_finite_field_dense>A._new_c(B.__coeffs[:],B._parent)
@@ -1016,6 +1076,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             swap = U.__coeffs
             U.__coeffs = V.__coeffs
             V.__coeffs = swap
+        sig_off()
         return V
 
 
@@ -1027,6 +1088,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         Return the matrix of the multiplication by `X^r` on
         the quotient `K[X,\sigma] / K[X,\sigma]*self`.
         """
+        sig_on()
         cdef Py_ssize_t i, j, col, exp, n
         cdef Py_ssize_t d = self.degree()
         cdef Py_ssize_t r = self.parent()._order
@@ -1071,6 +1133,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             v._inplace_rrem(self)
             for i from 0 <= i <= v.degree():
                 phir.set_unsafe(i,j,v.__coeffs[i])
+        sig_off()
         return phir
 
     def smurf(self):
@@ -1087,6 +1150,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
             Does not work if self is not monic.
         """
+        sig_on()
         cdef Py_ssize_t i, j, deb, k, r = self.parent()._order
         cdef Py_ssize_t d = self.degree ()
         cdef Ring base_ring = <Ring?>self.parent().base_ring()
@@ -1108,6 +1172,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
                 M.set_unsafe(i,j,Polk(pol))
             for i from 0 <= i <= d:
                 l[i] = self._parent.twist_map()(l[i])
+        sig_off()
         return M
 
 
@@ -1184,12 +1249,10 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             sage: a.reduced_norm() * b.reduced_norm() == (a*b).reduced_norm()
             True
         """
-#        norm = self.norm()
+        sig_on()
         if self._norm is None:
-#        if norm is None:
             center = self.parent().center()
             if self.is_zero():
-#                norm = center(0)
                 self._norm = center(0)
             else:
                 section = center._embed_basering.section()
@@ -1198,14 +1261,12 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
                 lc = section(self.leading_coefficient()**exp)
                 if order < self.degree():
                     M = self._matmul_c()
-#                    norm = center([ lc*section(x) for x in M.determinant().monic().list() ])
                     self._norm = center([ lc*section(x) for x in M.determinant().monic().list() ])
                 else:
                     charpoly = self._matphir_c().characteristic_polynomial()
-#                    norm = center([ lc*section(x) for x in charpoly.list() ])
                     self._norm = center([ lc*section(x) for x in charpoly.list() ])
+        sig_off()
         return self._norm
-#        return norm
 
 
     def reduced_norm_factor(self):
@@ -1551,6 +1612,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             this (and his behaviour is not defined if the
             require property doesn't hold).
         """
+        sig_on()
         cdef skew_ring = P._parent
         cdef Py_ssize_t d = N.degree()
         cdef Py_ssize_t e = P.degree()/d
@@ -1558,6 +1620,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         if e == 1:
             D = <SkewPolynomial_finite_field_dense>P._new_c(list(P.__coeffs),skew_ring)
             D._inplace_rmonic()
+            sig_off()
             return D
 
         E = N.parent().base_ring().extension(N,name='xr')
@@ -1609,7 +1672,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             if D.degree() == 0:
                 continue
             D._inplace_rmonic()
-            D._init_cache()
+            #TODO: Clear out cached methods D._init_cache()
+            sig_off()
             return D
 
 
@@ -2663,6 +2727,7 @@ cdef class SkewPolynomial_finite_field_karatsuba:
             Behind the scene, the operator ``*`` calls actually
             the function ``KarClass.mul()``.
         """
+        sig_on()
         cdef Py_ssize_t dx = left.degree(), dy = right.degree()
         cdef list x = left.list()
         cdef list y = right.list()
@@ -2674,7 +2739,9 @@ cdef class SkewPolynomial_finite_field_karatsuba:
                 res = self.mul_iter(y,x,1)
             else:
                 res = self.mul_iter(x,y,0)
-        return self._parent(res)
+        r = self._parent(res)
+        sig_off()
+        return r
 
 
     def mul_matrix(self,left,right):
@@ -2705,6 +2772,7 @@ cdef class SkewPolynomial_finite_field_karatsuba:
             sage: c == a*b
             True
         """
+        sig_on()
         cdef Py_ssize_t dx = left.degree(), dy = right.degree()
         cdef list x = left.list()
         cdef list y = right.list()
@@ -2729,7 +2797,9 @@ cdef class SkewPolynomial_finite_field_karatsuba:
             res = self.mul_iter(x,y,0)
         self._cutoff = save_cutoff
         self._algo_matrix = 0
-        return self._parent(res)
+        r = self._parent(res)
+        sig_off()
+        return r
 
 
     def mul_list(self,x,y):
@@ -2772,8 +2842,11 @@ cdef class SkewPolynomial_finite_field_karatsuba:
         """
         Multiplication step in Karatsuba algorithm
         """
+        sig_on()
         cdef Py_ssize_t dx = len(x)-1, dy = len(y) - 1
-        if dx < 0 or dy < 0: return [ ]
+        if dx < 0 or dy < 0:
+            sig_off()
+            return [ ]
         cdef Py_ssize_t i, j, start, end = dx if dx < self._order else self._order-1
         cdef list twists = [ y ]
         for i from 0 <= i < end:
@@ -2786,6 +2859,7 @@ cdef class SkewPolynomial_finite_field_karatsuba:
             for i from start < i <= end:
                 sum += x[i] * twists[i % self._order][j-i]
             res.append(sum)
+        sig_off()
         return res
 
 
@@ -2816,6 +2890,7 @@ cdef class SkewPolynomial_finite_field_karatsuba:
             The polynomials `x` and `y` must have degree
             at most `r^2/2`
         """
+        sig_on()
         cdef Py_ssize_t dx = len(x)-1, dy = len(y) - 1
         cdef Py_ssize_t i, j
         cdef Py_ssize_t r = self._order
@@ -2843,7 +2918,9 @@ cdef class SkewPolynomial_finite_field_karatsuba:
             row = map(frob,row)
             M.set_row(i,row)
         M = self._Tinv * M
-        return M.list()[:dx+dy+1]
+        r = M.list()[:dx+dy+1]
+        sig_off()
+        return r
 
 
     cdef list mul_iter(self, list x, list y, char flag): # Assume dx >= dy
@@ -2854,19 +2931,24 @@ cdef class SkewPolynomial_finite_field_karatsuba:
 
             This function assumes that len(x) >= len(y).
         """
+        sig_on()
         cdef Py_ssize_t i, j, k
         cdef Py_ssize_t dx = len(x)-1, dy = len(y)-1
         if self._algo_matrix:
             if dx < self._cutoff:
                 if flag:
+                    sig_off()
                     return self.mul_step_matrix(y,x)
                 else:
+                    sig_off()
                     return self.mul_step_matrix(x,y)
         else:
             if dy < self._cutoff:
                 if flag:
+                    sig_off()
                     return self.mul_step(y,x)
                 else:
+                    sig_off()
                     return self.mul_step(x,y)
         cdef Py_ssize_t dp = self._order * (1 + ceil(dx/self._order/2))
         cdef list x1 = x[:dp], x2 = x[dp:]
@@ -2894,6 +2976,7 @@ cdef class SkewPolynomial_finite_field_karatsuba:
             for i from 0 <= i < dy:
                 res[i+dp] += p2[i]
             res.extend(p2[dy:])
+        sig_off()
         return res
 
 
@@ -2937,6 +3020,7 @@ cdef class SkewPolynomial_finite_field_karatsuba:
             sage: r == r2
             True
         """
+        sig_on()
         cdef list a = left.list()
         cdef list b = right.list()
         cdef Py_ssize_t da = len(a)-1, db = len(b)-1, i
@@ -2948,13 +3032,16 @@ cdef class SkewPolynomial_finite_field_karatsuba:
             q = self.div_step(a,0,da,b,0,db)
         else:
             q = self.div_iter(a,0,da,b,0,db)
-        return self._parent(q), self._parent(a[:db])
+        res = self._parent(q), self._parent(a[:db])
+        sig_off()
+        return res
 
 
     cdef list div_step(self, list a, Py_ssize_t ia, Py_ssize_t da, list b, Py_ssize_t ib, Py_ssize_t db):
         """
         Division step in Karatsuba's algorithm
         """
+        sig_on()
         cdef Py_ssize_t i, j
         cdef list q = [ ]
         cdef list twb = [ b[ib:ib+db] ]
@@ -2966,6 +3053,7 @@ cdef class SkewPolynomial_finite_field_karatsuba:
                 a[ia+i+j] -= c * twb[i%self._order][j]
             q.append(c)
         q.reverse()
+        sig_off()
         return q
 
 
@@ -2973,8 +3061,10 @@ cdef class SkewPolynomial_finite_field_karatsuba:
         """
         Karatsuba recursive iteration
         """
+        sig_on()
         cdef Py_ssize_t delta = da - db
         if delta < self._cutoff:
+            sig_off()
             return self.div_step(a,ia,da,b,ib,db)
         cdef Py_ssize_t i
         cdef Py_ssize_t dp = self._order * (1 + int(delta/self._order/2))
@@ -2987,4 +3077,5 @@ cdef class SkewPolynomial_finite_field_karatsuba:
             a[i+ia+dp] -= pr[i]
         cdef list qq = self.div_iter(a,ia,db+dp-1,b,ib,db)
         qq.extend(q)
+        sig_off()
         return qq

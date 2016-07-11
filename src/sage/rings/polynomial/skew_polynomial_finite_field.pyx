@@ -739,8 +739,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             P = self.parent()
             R = P.base_ring()
             v = [R.zero()]*right + [R.one()]
-#            v = [R.zero_element()]*right + [R.one_element()]
-            r = <SkewPolynomial_generic_dense>self._parent(v)
+            r = <SkewPolynomial_generic_dense>self._new_c(v,self._parent)
             if modulus:
                 if side is Right:
                     r._inplace_rrem(modulus)

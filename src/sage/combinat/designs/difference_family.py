@@ -27,11 +27,11 @@ REFERENCES:
 .. [Bu95] \M. Buratti "On simple radical difference families", J. of
    Combinatorial Designs, vol. 3, no. 2 (1995)
 
-.. [Tu1965] R. J. Turyn "Character sum and difference sets"
+.. [Tu1965] \R. J. Turyn "Character sum and difference sets"
    Pacific J. of Math. 15 (1965).
 
-.. [Tu1984] R. J. Turyn "A special class of Williamson matrices and
-   difference sets" J. Combit. Theory (A) (1984).
+.. [Tu1984] \R. J. Turyn "A special class of Williamson matrices and
+   difference sets" J. Combinatorial Theory (A) (1984).
 
 .. [Wi72] \R. M. Wilson "Cyclotomy and difference families in elementary Abelian
    groups", J. of Num. Th., 4 (1972), pp. 17-47.

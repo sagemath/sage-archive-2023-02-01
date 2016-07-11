@@ -725,7 +725,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             x = self.gen(i)
             ret[str(x)] = x
         from sage.sets.family import Family
-        return Family(ret)
+        return Family(self.variable_names(), lambda i: ret[i])
 
     @cached_method
     def gens(self):

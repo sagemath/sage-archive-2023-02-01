@@ -891,9 +891,10 @@ class SimplicialSet_infinite(Parent):
     defined to return ``self.n_skeleton(n).n_cells(n)``, but this
     cannot be the definition for finite simplicial sets -- those
     should instead inherit the method from
-    :class:`GenericCellComplex`. Similarly, ``n_cells`` should not be
-    an abstract method for this class, because we do not want to
-    interfere with the inheritance from :class:`GenericCellComplex`.
+    :class:`sage.homology.cell_complex.GenericCellComplex`.
+    Similarly, ``n_cells`` should not be an abstract method for this
+    class, because we do not want to interfere with the inheritance
+    from :class:`sage.homology.cell_complex.GenericCellComplex`.
     """
 
     def _map_from_empty_set(self):

@@ -2869,19 +2869,19 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         SkewPolynomial.__init__(self, parent, is_gen=is_gen)
         if x is None:
             self.__coeffs = []
+            sig_off()
             return
 
         R = parent.base_ring()
-#        if PY_TYPE_CHECK(x, list):
         if type(x) is list:
             if check:
                 self.__coeffs = [R(t) for t in x]
                 self.__normalize()
             else:
                 self.__coeffs = x
+            sig_off()
             return
 
-#        if PY_TYPE_CHECK(x, SkewPolynomial):
         if type(x) is SkewPolynomial:
             if (<Element>x)._parent is self._parent:
                 x = list(x.list())
@@ -2889,6 +2889,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                 try:
                     if x.is_zero():
                         self.__coeffs = []
+                        sig_off()
                         return
                 except (AttributeError, TypeError):
                     pass
@@ -2897,23 +2898,20 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                 self.__coeffs = [R(a, **kwds) for a in x.list()]
                 if check:
                     self.__normalize()
+                sig_off()
                 return
 
-#        elif PY_TYPE_CHECK(x, int) and x == 0:
         elif type(x) is int and x == 0:
             self.__coeffs = []
+            sig_off()
             return
 
         elif isinstance(x, dict):
             x = self._dict_to_list(x, R.zero())
-#            x = self._dict_to_list(x, R.zero_element())
 
         elif not isinstance(x, list):
             # We trust that the element constructors do not send x=0
-#            if x:
             x = [x] # constant polynomials
-#            else:
-#                x = [] # zero polynomial
         if check:
             self.__coeffs = [R(z, **kwds) for z in x]
             self.__normalize()

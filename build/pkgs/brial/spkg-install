@@ -22,8 +22,6 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-touch aclocal.m4 configure Makefile.in
-
 ./configure \
     --prefix="$SAGE_LOCAL" \
     --libdir="$SAGE_LOCAL/lib" \

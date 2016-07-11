@@ -502,7 +502,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: gap(p._gap_init_())
             -3+2*E(8)+E(8)^2
 
-        Check that trac:`15276` is fixed::
+        Check that :trac:`15276` is fixed::
 
             sage: for n in range(2,20):
             ....:     K = CyclotomicField(n)
@@ -546,7 +546,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: type(_)
             <type 'sage.libs.gap.element.GapElement_Cyclotomic'>
 
-        Check that trac:`15276` is fixed::
+        Check that :trac:`15276` is fixed::
 
             sage: for n in range(2,20):
             ....:     K = CyclotomicField(n)

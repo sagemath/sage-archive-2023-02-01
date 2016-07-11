@@ -101,13 +101,3 @@ if [ $? -ne 0 ]; then
 fi
 
 
-#############################################################
-#   Build dir for the pexpect interface
-#############################################################
-# create the script_subdirectory for the pexpect giac interface by running a trivial instruction
-sage -c "giac(1)"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error running the pexpect interface of giac"
-    exit 1
-fi
-

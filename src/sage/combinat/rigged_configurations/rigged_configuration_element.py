@@ -298,13 +298,13 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
             -2[ ][ ][ ]-2
             <BLANKLINE>
-            sage: RC.global_options(display='horizontal')
+            sage: RC.options(display='horizontal')
             sage: elt
             -1[ ][ ]-1   2[ ][ ][ ]2   -2[ ][ ][ ]-2   -2[ ][ ][ ]-2
                          0[ ]0
-            sage: RC.global_options.reset()
+            sage: RC.options._reset()
         """
-        return self.parent().global_options.dispatch(self, '_repr_', 'display')
+        return self.parent().options._dispatch(self, '_repr_', 'display')
 
     def _repr_vertical(self):
         """
@@ -443,7 +443,7 @@ class RiggedConfigurationElement(ClonableArray):
                                    3[ ]1     0[ ]0     0[ ]0
                                              0[ ]0     0[ ]0
                                              0[ ]0     0[ ]0
-            sage: Partitions.global_options(convention='French')
+            sage: Partitions.options(convention='French')
             sage: ascii_art(elt)
                                              0[ ]0     0[ ]0
                                              0[ ]0     0[ ]0
@@ -451,10 +451,10 @@ class RiggedConfigurationElement(ClonableArray):
                       1[ ]0        3[ ]2     0[ ]0     0[ ]0        0[ ]0
                       2[ ][ ]0     4[ ][ ]1  2[ ][ ]0  2[ ][ ]1     0[ ]0     0[ ][ ]0
             3[ ][ ]2  1[ ][ ][ ]1  4[ ][ ]4  2[ ][ ]1  0[ ][ ][ ]0  0[ ][ ]0  0[ ][ ]0
-            sage: Partitions.global_options.reset()
+            sage: Partitions.options._reset()
         """
-        from sage.combinat.partition import PartitionOptions
-        if PartitionOptions['convention'] == "French":
+        from sage.combinat.partition import Partitions
+        if Partitions.options.convention == "French":
             baseline = lambda s: 0
         else:
             baseline = lambda s: len(s)

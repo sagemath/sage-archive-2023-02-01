@@ -16,6 +16,7 @@ More interestingly, one can get the list of all graphs that Sage knows how to
 build by typing ``graphs.`` in Sage and then hitting tab.
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 # This method appends a list of methods to the doc as a 3xN table.
 
@@ -403,7 +404,7 @@ Functions and methods
 # import from Python standard library
 
 # import from Sage library
-import graph
+from . import graph
 import sage.graphs.strongly_regular_db
 
 class GraphGenerators():

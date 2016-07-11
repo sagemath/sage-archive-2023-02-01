@@ -15,6 +15,7 @@ REFERENCE:
        Proc. 1st Annual ACM-SIAM Symposium on Discrete Algorithms,
        San Francisco (1994), pp. 138-147.
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #      Copyright (C) 2008 Jonathan Bober and Emily Kirkman
 #
@@ -23,7 +24,7 @@ REFERENCE:
 #*****************************************************************************
 
 from sage.sets.set import Set
-from all import DiGraph
+from .all import DiGraph
 
 def _triangulate(g, comb_emb):
     """

@@ -89,7 +89,6 @@ def _list_to_table(list_of_packages):
         sage: set(a+b).symmetric_difference(_EXPERIMENTAL_PACKAGES) # optional internet
         set()
     """
-    from string import join
     s = (".. csv-table::\n"
                 "    :class: contentstable\n"
                 "    :widths: 20, 20, 20, 20, 20\n"
@@ -104,12 +103,12 @@ def _list_to_table(list_of_packages):
     list_of_packages.sort()
     list_of_packages.extend(['']*width)
     for l in range(height):
-        s += "        "+join(list_of_packages[l::height][:width], ' | ')+"\n"
+        s += "        " + ' | '.join(list_of_packages[l::height][:width])+"\n"
 
     return s
 
 _STANDARD_PACKAGES = ['atlas', 'backports_ssl_match_hostname', 'boehm_gc',
-                      'boost_cropped', 'bzip2', 'cddlib', 'cephes', 'certifi', 'cliquer',
+                      'boost_cropped', 'brial', 'bzip2', 'cddlib', 'cephes', 'certifi', 'cliquer',
                       'combinatorial_designs', 'conway_polynomials', 'cvxopt', 'cython', 'dateutil',
                       'docutils', 'ecl', 'eclib', 'ecm', 'elliptic_curves', 'fflas_ffpack', 'flint',
                       'flintqs', 'freetype', 'gap', 'gd', 'gdmodule', 'genus2reduction', 'gf2x',
@@ -119,7 +118,7 @@ _STANDARD_PACKAGES = ['atlas', 'backports_ssl_match_hostname', 'boehm_gc',
                       'matplotlib', 'maxima', 'mercurial', 'mistune', 'mpc', 'mpfi', 'mpfr', 'mpmath',
                       'ncurses', 'networkx', 'ntl', 'numpy', 'palp', 'pari', 'pari_galdata',
                       'pari_seadata_small', 'patch', 'pexpect', 'pil', 'pillow', 'pip', 'pkgconf',
-                      'pkgconfig', 'planarity', 'polybori', 'polytopes_db', 'ppl', 'pycrypto',
+                      'pkgconfig', 'planarity', 'polytopes_db', 'ppl', 'pycrypto',
                       'pygments', 'pynac', 'pyparsing', 'python', 'pyzmq', 'r', 'ratpoints',
                       'readline', 'rpy2', 'rubiks', 'rw', 'sage', 'sage_root', 'sage_scripts',
                       'sagenb', 'sagetex', 'scipy', 'setuptools', 'singular', 'six', 'sphinx',

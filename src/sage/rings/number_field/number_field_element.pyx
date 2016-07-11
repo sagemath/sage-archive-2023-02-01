@@ -480,7 +480,13 @@ cdef class NumberFieldElement(FieldElement):
 
         EXAMPLES::
 
-            sage: F=CyclotomicField(8)
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: (a**2 - a + 1)._gap_init_()
+            '\\$sage4^2 - \\$sage4 + 1'
+            sage: gap(_)
+            a^2-a+1
+
+            sage: F = CyclotomicField(8)
             sage: F.gen()
             zeta8
             sage: F._gap_init_()
@@ -488,7 +494,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: f = gap(F)
             sage: f.GeneratorsOfDivisionRing()
             [ E(8) ]
-            sage: p=F.gen()^2+2*F.gen()-3
+            sage: p = F.gen()^2+2*F.gen()-3
             sage: p
             zeta8^2 + 2*zeta8 - 3
             sage: p._gap_init_() # The variable name $sage2 belongs to the gap(F) and is somehow random
@@ -498,7 +504,7 @@ cdef class NumberFieldElement(FieldElement):
 
         Check that trac:`15276` is fixed::
 
-            sage: for n in range(2,50):
+            sage: for n in range(2,20):
             ....:     K = CyclotomicField(n)
             ....:     assert K(gap(K.gen())) == K.gen(), "n = {}".format(n)
             ....:     assert K(gap(K.one())) == K.one(), "n = {}".format(n)
@@ -509,13 +515,18 @@ cdef class NumberFieldElement(FieldElement):
         if self.is_rational():
             return str(self)
         p = self.polynomial()
-        n = self.parent()._n()
-        if n != 2 and n%4 == 2:
-            x = p.variables()[0]
-            p = p(-x**((n//2+1)//2))
-            E = 'E(%d)'%(n//2)
+        P = self.parent()
+        from number_field import NumberField_cyclotomic
+        if isinstance(P, NumberField_cyclotomic):
+            n = P._n()
+            if n != 2 and n%4 == 2:
+                x = p.variables()[0]
+                p = p(-x**((n//2+1)//2))
+                E = 'E(%d)'%(n//2)
+            else:
+                E = 'E(%d)'%n
         else:
-            E = 'E(%d)'%n
+            E = self.parent()._gap_().GeneratorsOfField()[1].name()
         return str(p).replace(p.variable_name(), E)
 
     def _libgap_(self):
@@ -537,7 +548,7 @@ cdef class NumberFieldElement(FieldElement):
 
         Check that trac:`15276` is fixed::
 
-            sage: for n in range(2,50):
+            sage: for n in range(2,20):
             ....:     K = CyclotomicField(n)
             ....:     assert K(libgap(K.gen())) == K.gen(), "n = {}".format(n)
             ....:     assert K(libgap(K.one())) == K.one(), "n = {}".format(n)
@@ -545,8 +556,14 @@ cdef class NumberFieldElement(FieldElement):
             ....:         t = K.random_element()
             ....:         assert K(libgap(t)) == t, "n = {}  t = {}".format(n,t)
         """
-        n = self.parent()._n()
-        E = self.parent()._libgap_().GeneratorsOfField()[0]
+        from number_field import NumberField_cyclotomic
+        P = self.parent()
+        if not isinstance(P, NumberField_cyclotomic):
+            raise NotImplementedError("libgap conversion is only implemented for cyclotomic fields")
+
+        from sage.libs.gap.libgap import libgap
+        E = libgap(P).GeneratorsOfField()[0]
+        n = P._n()
         if n%4 == 2:
             E = -E**((n//2+1)//2)
         return self.polynomial()(E)

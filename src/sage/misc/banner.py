@@ -65,6 +65,8 @@ def banner_text(full=None):
         sage: print(sage.misc.banner.banner_text(full=True))
         ┌────────────────────────────────────────────────────────────────────┐
         │ SageMath version ...
+        sage: print(sage.misc.banner.banner_text(full=False))
+        SageMath version ..., Release Date: ...
     """
 
     if full is None:

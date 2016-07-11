@@ -138,6 +138,8 @@ include "../../ext/stdsage.pxi"
 #include "../../ext/interrupt.pxi"
 include "cysignals/signals.pxi"
 
+import copy
+
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 from sage.functions.other import ceil
@@ -754,7 +756,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
                 mod = self.parent()(mod.bound())
             except NotImplementedError:
                 mod = None
-        r = <SkewPolynomial_generic_dense>self._new_c(self.__coeffs,self._parent)
+        r = <SkewPolynomial_generic_dense>self._new_c(copy.copy(self.__coeffs),self._parent)
         if mod:
             r._inplace_pow_mod(right,mod)
         else:

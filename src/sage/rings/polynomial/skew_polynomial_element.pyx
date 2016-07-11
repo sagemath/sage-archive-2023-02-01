@@ -2607,11 +2607,12 @@ cdef class SkewPolynomial(AlgebraElement):
         return R(self.list())
 
 
-    def __copy__(self):
-        """
-        Return a copy of this skew polynomial.
-        """
-        return self
+    # TODO/jsrn: I really think this should not be here!
+    # def __copy__(self):
+    #     """
+    #     Return a copy of this skew polynomial.
+    #     """
+    #     return self
 
 
     def dict(self):

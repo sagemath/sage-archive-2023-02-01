@@ -886,6 +886,14 @@ class SimplicialSet_infinite(Parent):
     one example. In particular, any such class must implement methods
     ``n_cells`` and ``n_skeleton`` -- without those, most computations
     will be impossible.
+
+    Note that for infinite simplicial sets, ``n_cells`` could often be
+    defined to return ``self.n_skeleton(n).n_cells(n)``, but this
+    cannot be the definition for finite simplicial sets -- those
+    should instead inherit the method from
+    :class:`GenericCellComplex`. Similarly, ``n_cells`` should not be
+    an abstract method for this class, because we do not want to
+    interfere with the inheritance from :class:`GenericCellComplex`.
     """
 
     def _map_from_empty_set(self):
@@ -951,7 +959,7 @@ class SimplicialSet_infinite(Parent):
         skel = self.n_skeleton(1)
         edges = skel.n_cells(1)
         vertices = skel.n_cells(0)
-        used_vertices = set([])  # vertices which are in an edge
+        used_vertices = set()  # vertices which are in an edge
         d = {}
         for e in edges:
             v = skel.face(e, 0)
@@ -1948,6 +1956,30 @@ class SimplicialSet(SimplicialSet_infinite, GenericCellComplex):
         """
         return list(self._simplices)
 
+    def _facets_(self):
+        r"""
+        List of facets of this simplicial set, where by "facet" we
+        mean a non-degenerate simplex which is not a face of another
+        non-degenerate simplex.
+
+        EXAMPLES::
+
+            sage: T = simplicial_sets.Torus()
+            sage: T._facets_()
+            [(Simplex obtained by applying degeneracy s_0 to sigma_1, Simplex obtained by applying degeneracy s_1 to sigma_1),
+             (Simplex obtained by applying degeneracy s_1 to sigma_1, Simplex obtained by applying degeneracy s_0 to sigma_1)]
+            sage: S5 = simplicial_sets.Sphere(5)
+            sage: S5._facets_()
+            [sigma_5]
+            sage: simplicial_sets.Sphere(0)._facets_()
+            [v_0, w_0]
+        """
+        faces = set()
+        for dim in range(self.dimension(), 0, -1):
+            for sigma in set(self.n_cells(dim)):
+                faces.update([tau.nondegenerate() for tau in self.faces(sigma)])
+        return sorted(list(set(self.nondegenerate_simplices()).difference(faces)))
+
     def cells(self, subcomplex=None):
         """
         Dictionary of all non-degenerate simplices.
@@ -2178,9 +2210,9 @@ class SimplicialSet(SimplicialSet_infinite, GenericCellComplex):
             simplices = new
 
         data = self.face_data()
-        vertices = set([])
+        vertices = set()
         keep = set(simplices)
-        old_keep = set([])
+        old_keep = set()
         while keep != old_keep:
             old_keep = copy.copy(keep)
             for x in old_keep:
@@ -2246,9 +2278,9 @@ class SimplicialSet(SimplicialSet_infinite, GenericCellComplex):
         """
         return sum([(-1)**n * num for (n, num) in enumerate(self.f_vector())])
 
-    def all_simplices(self, dim):
+    def all_n_simplices(self, n):
         """
-        All simplices, non-degenerate and degenerate, in dimension ``dim``.
+        All simplices, non-degenerate and degenerate, in dimension ``n``.
 
         EXAMPLES::
 
@@ -2262,22 +2294,22 @@ class SimplicialSet(SimplicialSet_infinite, GenericCellComplex):
         ``Y`` is the disjoint union of a 2-sphere, with vertex ``v``
         and non-degenerate 2-simplex ``tau``, and a point ``w``. ::
 
-            sage: Y.all_simplices(0)
+            sage: Y.all_n_simplices(0)
             [v, w]
-            sage: Y.all_simplices(1)
+            sage: Y.all_n_simplices(1)
             [Simplex obtained by applying degeneracy s_0 to v,
              Simplex obtained by applying degeneracy s_0 to w]
-            sage: Y.all_simplices(2)
+            sage: Y.all_n_simplices(2)
             [tau,
              Simplex obtained by applying degeneracies s_1 s_0 to v,
              Simplex obtained by applying degeneracies s_1 s_0 to w]
         """
-        non_degen = [_ for _ in self.nondegenerate_simplices() if _.dimension() <= dim]
-        ans = set([_ for _ in non_degen if _.dimension() == dim])
+        non_degen = [_ for _ in self.nondegenerate_simplices() if _.dimension() <= n]
+        ans = set([_ for _ in non_degen if _.dimension() == n])
         for sigma in non_degen:
             d = sigma.dimension()
             ans.update([sigma.apply_degeneracies(*_)
-                        for _ in all_degeneracies(d, dim - d)])
+                        for _ in all_degeneracies(d, n-d)])
         return sorted(list(ans))
 
     def chain_complex(self, dimensions=None, base_ring=ZZ, augmented=False,

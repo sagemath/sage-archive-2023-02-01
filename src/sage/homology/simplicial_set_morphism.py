@@ -25,6 +25,8 @@ This module implements morphisms and homsets of simplicial sets.
 #
 #*****************************************************************************
 
+import itertools
+
 from sage.homology.simplicial_set import SimplicialSet_infinite, \
     PushoutOfSimplicialSets, PullbackOfSimplicialSets
 from sage.matrix.constructor import matrix, zero_matrix
@@ -225,6 +227,63 @@ class SimplicialSetHomset(Homset):
         else:
             target = codomain.n_cells(0)[0]
         return self.constant_map(target)
+
+    def __iter__(self):
+        """
+        Iterate through all morphisms in this homset.
+
+        This is very slow: it tries all possible targets for the
+        maximal nondegenerate simplices and yields those which are
+        valid morphisms of simplicial sets. ("Maximal" means
+        nondegenerate simplices which are not the faces of other
+        nondegenerate simplices.) So if either the domain or the
+        codomain has many simplices, the number of possibilities may
+        be quite large.
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: T = simplicial_sets.Torus()
+            sage: H = Hom(S1, T)
+            sage: list(H)
+            [Simplicial set morphism:
+               From: S^1
+               To:   Torus
+               Defn: [v_0, sigma_1] --> [(v_0, v_0), (Simplex obtained by applying degeneracy s_0 to v_0, sigma_1)],
+             Simplicial set morphism:
+               From: S^1
+               To:   Torus
+               Defn: [v_0, sigma_1] --> [(v_0, v_0), (sigma_1, Simplex obtained by applying degeneracy s_0 to v_0)],
+             Simplicial set morphism:
+               From: S^1
+               To:   Torus
+               Defn: [v_0, sigma_1] --> [(v_0, v_0), (sigma_1, sigma_1)],
+             Simplicial set morphism:
+               From: S^1
+               To:   Torus
+               Defn: [v_0, sigma_1] --> [(v_0, v_0), Simplex obtained by applying degeneracy s_0 to (v_0, v_0)]]
+            sage: [f.induced_homology_morphism().to_matrix() for f in H]
+            [
+            [ 1| 0]  [1|0]  [1|0]  [1|0]
+            [--+--]  [-+-]  [-+-]  [-+-]
+            [ 0|-1]  [0|1]  [0|0]  [0|0]
+            [ 0| 1]  [0|0]  [0|1]  [0|0]
+            [--+--]  [-+-]  [-+-]  [-+-]
+            [ 0| 0], [0|0], [0|0], [0|0]
+            ]
+        """
+        codomain = self.codomain()
+        facets = self.domain()._facets_()
+        dims = [f.dimension() for f in facets]
+        # Record all of the n-simplices in the codomain once for each
+        # relevant dimension.
+        all_n_simplices = {d: codomain.all_n_simplices(d) for d in set(dims)}
+        for target in itertools.product(*[all_n_simplices[d] for d in dims]):
+            try:
+                yield self({sigma: tau for (sigma, tau) in zip(facets, target)})
+            except ValueError:
+                # Not a valid morphism.
+                pass
 
 
 class SimplicialSetMorphism(Morphism):

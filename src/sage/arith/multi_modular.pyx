@@ -252,7 +252,7 @@ cdef class MultiModularBasis_base(object):
         self._refresh_precomputations(old_count)
         return self.n
 
-    def __cmp__(self, other):
+    def __richcmp__(MultiModularBasis_base self, other, int op):
         """
         EXAMPLES::
 
@@ -261,15 +261,21 @@ cdef class MultiModularBasis_base(object):
             sage: nn = MultiModularBasis_base([10007])
             sage: mm == nn
             True
-
-            sage: mm == 1
-            False
         """
-        if not isinstance(other, MultiModularBasis_base):
-            return cmp(type(other), MultiModularBasis_base)
-        return cmp((self.list(), self._u_bound, self._l_bound),
-                (other.list(), (<MultiModularBasis_base>other)._u_bound,
-                    (<MultiModularBasis_base>other)._l_bound))
+        left = self.__getstate__()
+        right = other.__getstate__()
+        if op == 2:  # ==
+            return left == right
+        elif op == 3:  # !=
+            return left != right
+        elif op == 0:  # <
+            return left < right
+        elif op == 1:  # <=
+            return left <= right
+        elif op == 4:  # >
+            return left > right
+        elif op == 5:  # >=
+            return left >= right
 
     def __setstate__(self, state):
         """

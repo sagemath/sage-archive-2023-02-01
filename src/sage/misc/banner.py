@@ -55,6 +55,11 @@ def banner_text(full=None):
 
     A string containing the banner message.
 
+    If option full is False, a simplified plain ASCII banner is displayed; if
+    True the full banner with box art is displayed.  By default this is
+    determined from the SAGE_BANNER environment variable-- if its value is
+    "bare" this implies full=False.  Otherwise full=True by default.
+
     EXAMPLES::
 
         sage: print(sage.misc.banner.banner_text(full=True))
@@ -62,7 +67,10 @@ def banner_text(full=None):
         │ SageMath version ...
     """
 
-    if SAGE_BANNER.lower() == 'bare':
+    if full is None:
+        full = (SAGE_BANNER.lower() != 'bare')
+
+    if not full:
         return version()
 
     bars = u"─"*68
@@ -98,11 +106,10 @@ def banner(full=None):
 
     None
 
-    If optional option full is False, a simplified plain ASCII banner is
-    displayed; if True the full banner with box art is displayed.  By
-    default this is determined from the SAGE_BANNER environment variable--
-    if its value is "bare" this implies full=False.  Otherwise full=True
-    by default.
+    If option full is False, a simplified plain ASCII banner is displayed; if
+    True the full banner with box art is displayed.  By default this is
+    determined from the SAGE_BANNER environment variable-- if its value is
+    "bare" this implies full=False.  Otherwise full=True by default.
 
     EXAMPLES::
 

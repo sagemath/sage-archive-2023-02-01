@@ -1317,7 +1317,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         - ``sign`` -- +1 or -1 or 0 (default), in which case this it
           is the sum of the two
 
-        - ``inmplementation`` -- either 'eclib' (default) or 'sage'.
+        - ``implementation`` -- either 'eclib' (default) or 'sage'.
           This determines classical modular symbols which implementation
           of the underlying classical  modular symbols is used
 

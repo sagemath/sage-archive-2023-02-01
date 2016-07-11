@@ -144,7 +144,7 @@ static ex tgamma_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x)) {
 		try {
-			return tgamma(ex_to<numeric>(x));
+			return tgamma(ex_to<numeric>(x), parent);
 		} catch (const dunno &e) { }
 	}
 	
@@ -186,7 +186,7 @@ static ex tgamma_eval(const ex & x)
 			}
 		}
 		if (!ex_to<numeric>(x).is_crational())
-			return tgamma(ex_to<numeric>(x));
+			return tgamma_evalf(ex_to<numeric>(x), nullptr);
 	}
 	
 	return tgamma(x).hold();
@@ -254,9 +254,9 @@ REGISTER_FUNCTION(tgamma, eval_func(tgamma_eval).
 static ex beta_evalf(const ex & x, const ex & y, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x) && is_exactly_a<numeric>(y)) {
-		try {
-			return exp(lgamma(ex_to<numeric>(x))+lgamma(ex_to<numeric>(y))-lgamma(ex_to<numeric>(x+y)));
-		} catch (const dunno &e) { }
+		const numeric &nx = ex_to<numeric>(x);
+		const numeric &ny = ex_to<numeric>(y);
+                return (nx+ny).rgamma(parent) * nx.tgamma(parent) * ny.tgamma(parent);
 	}
 	
 	return beta(x,y).hold();
@@ -297,7 +297,7 @@ static ex beta_eval(const ex & x, const ex & y)
 		   !(nx+ny).is_positive())
 			 return _ex0;
 		if (not nx.is_crational() or not ny.is_crational())
-			return evalf(beta(x, y).hold());
+			return beta_evalf(x, y, nullptr);
 	}
 	
 	return beta(x,y).hold();

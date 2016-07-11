@@ -335,6 +335,29 @@ PyObject* CBF(int res) {
         return obj;
 }
 
+// Convert a to field elt, return a.meth()
+PyObject* CallBallMethod0Arg(PyObject* field, const char* meth, const GiNaC::numeric& a) {
+        PyObject* list1 = PyTuple_New(1);
+        if (list1 == nullptr)
+                throw(std::runtime_error("GiNaC::CallBallMethod1Arg(): PyTuple_New returned NULL"));
+        PyObject *aobj = a.to_pyobject();
+        int ret = PyTuple_SetItem(list1, 0, aobj);
+        if (ret != 0)
+                throw(std::runtime_error("GiNaC::CallBallMethod1Arg(): PyTuple_SetItem unsuccessful"));
+        PyObject *aball = PyObject_Call(field, list1, NULL);
+        if (aball == nullptr)
+                throw(std::runtime_error("GiNaC::CallBallMethod1Arg(): PyObject_Call unsuccessful"));
+        PyObject* name = PyString_FromString(meth);
+        PyObject* ret_ball = PyObject_CallMethodObjArgs(aball, name, NULL);
+        if (ret_ball == nullptr)
+                throw(std::runtime_error("GiNaC::CallBallMethod1Arg(): PyObject_CallMethodObjArgs unsuccessful"));
+        Py_DECREF(list1);
+        Py_DECREF(aball);
+        Py_DECREF(name);
+
+        return ret_ball;
+}
+
 // Convert a to field elt, return a.meth(b)
 PyObject* CallBallMethod1Arg(PyObject* field, const char* meth, const GiNaC::numeric& a, const GiNaC::numeric& b) {
         PyObject* list1 = PyTuple_New(1);
@@ -2272,8 +2295,23 @@ const numeric numeric::lgamma() const {
         PY_RETURN(py_funcs.py_lgamma);
 }
 
-const numeric numeric::tgamma() const {
+const numeric numeric::tgamma(PyObject* parent) const {
         PY_RETURN(py_funcs.py_tgamma);
+}
+
+const numeric numeric::rgamma(PyObject* parent) const {
+        int prec = precision(*this, parent);
+        PyObject* field = CBF(prec+15);
+        PyObject* ball = CallBallMethod0Arg(field, const_cast<char*>("rgamma"), *this);
+        PyObject* ret = CoerceBall(ball, prec);
+        Py_DECREF(field);
+        Py_DECREF(ball);
+
+        numeric rnum(ret);
+        if (is_real())
+                return rnum.real();
+        else
+                return rnum;
 }
 
 const numeric numeric::psi() const {
@@ -2748,8 +2786,8 @@ const numeric lgamma(const numeric &x) {
 }
 
 /** The Gamma function. */
-const numeric tgamma(const numeric &x) {
-        return x.tgamma();
+const numeric tgamma(const numeric &x, PyObject* parent) {
+        return x.tgamma(parent);
 }
 
 /** The psi function (aka polygamma function). */

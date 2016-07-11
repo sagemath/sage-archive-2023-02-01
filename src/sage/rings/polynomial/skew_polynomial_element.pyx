@@ -100,7 +100,8 @@ If we want left euclidean division, we need to specify
     sage: q,r = c.quo_rem(b,side=Left)
     Traceback (most recent call last):
     ...
-    NotImplementedError
+    NotImplementedError: Inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+      Defn: t |--> t + 1
 
 Here is a working example over a finite field::
 
@@ -280,6 +281,17 @@ cdef class SkewPolynomial(AlgebraElement):
         return result
 
 
+    cdef void _inplace_add(self, SkewPolynomial_generic_dense right):
+        raise NotImplementedError
+    cdef void _inplace_sub(self, SkewPolynomial_generic_dense right):
+        raise NotImplementedError
+    cdef void _inplace_rmul(self, SkewPolynomial_generic_dense right):
+        raise NotImplementedError
+    cdef void _inplace_lmul(self, SkewPolynomial_generic_dense right):
+        raise NotImplementedError
+    cdef void _inplace_pow(self, Py_ssize_t n):
+        raise NotImplementedError
+
     # Comparison
     # ----------
 
@@ -298,12 +310,19 @@ cdef class SkewPolynomial(AlgebraElement):
         cdef Py_ssize_t i
         cdef int c
         c = cmp(dx,dy)
-        if c: return c
+        if c:
+            sig_off()
+            return c
         for i from dx > i >= 0:
             c = cmp(x[i],y[i])
-            if c: return c
+            if c:
+                sig_off()
+                return c
         sig_off()
         return 0
+
+    def __cmp__(self, other):
+        return self._cmp_(other)
 
     def __hash__(self):
         """

@@ -30,20 +30,26 @@ cdef class SkewPolynomial(AlgebraElement):
     cdef SkewPolynomial _new_c(self,list coeffs,Parent P,char check=*)
     cpdef SkewPolynomial _new_constant_poly(self,RingElement a,Parent P,char check=*)
     cpdef _neg_(self)
-
-
-
-cdef class SkewPolynomial_generic_dense(SkewPolynomial):
-    cdef list __coeffs
+    
     cdef void __normalize(self)
-    cpdef _pow_(self,right,modulus=*,side=*)
-
-    # Inplace functions
     cdef void _inplace_add(self, SkewPolynomial_generic_dense right)
     cdef void _inplace_sub(self, SkewPolynomial_generic_dense right)
     cdef void _inplace_rmul(self, SkewPolynomial_generic_dense right)
     cdef void _inplace_lmul(self, SkewPolynomial_generic_dense right)
     cdef void _inplace_pow(self, Py_ssize_t n)
+
+
+
+cdef class SkewPolynomial_generic_dense(SkewPolynomial):
+    cdef list __coeffs
+    cpdef _pow_(self,right,modulus=*,side=*)
+
+    # Inplace functions
+    # cdef void _inplace_add(self, SkewPolynomial_generic_dense right)
+    # cdef void _inplace_sub(self, SkewPolynomial_generic_dense right)
+    # cdef void _inplace_rmul(self, SkewPolynomial_generic_dense right)
+    # cdef void _inplace_lmul(self, SkewPolynomial_generic_dense right)
+    # cdef void _inplace_pow(self, Py_ssize_t n)
 
 
 cdef class SkewPolynomialBaseringInjection(RingHomomorphism):

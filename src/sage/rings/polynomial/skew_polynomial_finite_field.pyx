@@ -710,7 +710,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             sage: a._pow_(10^100,modulus)  # rather fast
             (3*t^2 + 3)*x^2 + (t^2 + 2*t + 4)*x + 4*t^2 + 2*t + 1
         """
-        sig_on()
+       sig_on()
         cdef SkewPolynomial_finite_field_dense r
 
         if not isinstance(right, Integer) or isinstance(right, int):

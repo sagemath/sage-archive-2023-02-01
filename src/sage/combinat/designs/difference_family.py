@@ -33,7 +33,6 @@ REFERENCES:
 .. [Tu1984] R. J. Turyn "A special class of Williamson matrices and
    difference sets" J. Combit. Theory (A) (1984).
 
-
 .. [Wi72] \R. M. Wilson "Cyclotomy and difference families in elementary Abelian
    groups", J. of Num. Th., 4 (1972), pp. 17-47.
 
@@ -287,7 +286,7 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
 
         if sum(tmp_counter.itervalues()) != k*(k-1):
             if verbose:
-                print "repeated element in the {}-th block {}".format(i,d)
+                print("repeated element in the {}-th block {}".format(i,d))
             return False
 
         # Normalized number of occurrences added to counter

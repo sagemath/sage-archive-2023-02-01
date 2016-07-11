@@ -237,6 +237,9 @@ cdef class SkewPolynomial(AlgebraElement):
         AlgebraElement.__init__(self, parent)
         self._is_gen = is_gen
 
+    cdef void __normalize(self):
+        raise NotImplementedError
+        
     # you may have to replicate this boilerplate code in derived classes if you override
     # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
     # explains how __richcmp__, __hash__, and __cmp__ are tied together.
@@ -545,7 +548,6 @@ cdef class SkewPolynomial(AlgebraElement):
         return v
 
 
-#    cpdef ModuleElement _add_(self, ModuleElement right):
     cpdef _add_(self, right):
         """
         Compute self + right
@@ -573,14 +575,12 @@ cdef class SkewPolynomial(AlgebraElement):
         cdef list y = (<SkewPolynomial>right)._list_c()
         cdef Py_ssize_t dx = len(x), dy = len(y)
 
+        sig_on()
         if dx > dy:
-            sig_on()
             r = self._new_c([x[i] + y[i] for i from 0 <= i < dy] + x[dy:], self._parent, 0)
         elif dx < dy:
-            sig_on()
             r = self._new_c([x[i] + y[i] for i from 0 <= i < dx] + y[dx:], self._parent, 0)
         else:
-            sig_on()
             r = self._new_c([x[i] + y[i] for i in range(dx)], self._parent, 1)
         sig_off()
         return r

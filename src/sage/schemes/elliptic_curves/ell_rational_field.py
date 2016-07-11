@@ -1087,7 +1087,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('37a1')
             sage: E.modular_symbol(implementation = 'eclib') is E.modular_symbol(implementation = 'eclib', normalize = 'L_ratio')
             True
-       """
+        """
         if use_eclib is not None:
             from sage.misc.superseded import deprecation
             deprecation(20864, "Use the option 'implementation' instead of 'use_eclib'")

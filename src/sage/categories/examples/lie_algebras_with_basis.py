@@ -128,7 +128,8 @@ class IndexedPolynomialRing(CombinatorialFreeModule):
         if 'prefix' not in kwds:
             kwds['prefix'] = 'P'
         # This is a workaround until IndexedFree(Abelian)Monoid elements compare properly
-        kwds['generator_cmp'] = lambda x,y: -cmp(x.to_word_list(), y.to_word_list())
+        kwds['sorting_key'] = lambda x: x.to_word_list()
+        kwds['sorting_reverse'] = True
         M = IndexedFreeAbelianMonoid(indices, bracket='')
         CombinatorialFreeModule.__init__(self, R, M, **kwds)
 

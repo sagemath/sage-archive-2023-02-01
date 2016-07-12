@@ -48,17 +48,19 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         return Example(self.base_ring(), gens)
 
     class ParentMethods:
-        def _basis_cmp(self, x, y):
+        def _basis_key(self, x):
             """
-            Compare two basis element indices. The default is to call ``cmp``.
+            Return the key used to compare two basis element indices.
+
+            The default is to call the element itself.
 
             TESTS::
 
                 sage: L = LieAlgebras(QQ).WithBasis().example()
-                sage: L._basis_cmp(Partition([3,1]), Partition([2,1,1]))
-                1
+                sage: L._basis_key(Partition([3,1]))
+                [3, 1]
             """
-            return cmp(x, y)
+            return x
 
         @abstract_method(optional=True)
         def bracket_on_basis(self, x, y):
@@ -134,14 +136,18 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 0
             """
             P = self.parent()
-            def term(ml,mr):
-                comp = P._basis_cmp(ml,mr)
-                if comp == 0:
+
+            def term(ml, mr):
+                key_ml = P._basis_key(ml)
+                key_mr = P._basis_key(mr)
+                if key_ml == key_mr:
                     return P.zero()
-                if comp < 0:
+                if key_ml < key_mr:
                     return P.bracket_on_basis(ml, mr)
                 return -P.bracket_on_basis(mr, ml)
-            return P.sum(cl*cr * term(ml,mr) for ml,cl in self for mr,cr in y)
+
+            return P.sum(cl * cr * term(ml, mr)
+                         for ml, cl in self for mr, cr in y)
 
         def to_vector(self):
             """

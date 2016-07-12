@@ -245,14 +245,14 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             B = self.basis()
             K = B.keys()
             zero = self.zero()
-            for i,x in enumerate(K):
-                for y in K[i+1:]:
+            for i, x in enumerate(K):
+                for y in K[i + 1:]:
                     bx = B[x]
                     by = B[y]
                     val = self.bracket(bx, by)
                     if not include_zeros and val == zero:
                         continue
-                    if self._basis_cmp(x, y) > 0:
+                    if self._basis_key(x) > self._basis_key(y):
                         d[(y, x)] = -val
                     else:
                         d[(x, y)] = val

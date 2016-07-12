@@ -879,7 +879,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return True
 
     def is_sectionally_complemented(self, certificate=False):
-        """Return ``True`` if the lattice is sectionally complemented, and
+        """
+        Return ``True`` if the lattice is sectionally complemented, and
         ``False`` otherwise.
 
         A lattice is sectionally complemented if all intervals from
@@ -893,8 +894,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         OUTPUT:
 
-        - If ``certificate=True`` return either ``(True, None, None)``
-          or ``(False, t, e)``, where `t` is an element so that in the
+        - If ``certificate=True`` return either ``(True, None)``
+          or ``(False, (t, e))``, where `t` is an element so that in the
           sublattice from the bottom element to `t` has no complement
           for element `e`. If ``certificate=False`` return ``True`` or
           ``False``.
@@ -921,7 +922,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             sage: L = LatticePoset(DiGraph('HYOgC?C@?C?G@??'))
             sage: L.is_sectionally_complemented(certificate=True)
-            (False, 6, 1)
+            (False, (6, 1))
 
         .. SEEALSO::
 
@@ -950,11 +951,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                         break
                 else:
                     if certificate:
-                        return (False, self._vertex_to_element(top),
-                                self._vertex_to_element(e))
+                        return (False, (self._vertex_to_element(top),
+                                        self._vertex_to_element(e)))
                     return False
 
-        return (True, None, None) if certificate else True
+        return (True, None) if certificate else True
 
     def breadth(self, certificate=False):
         r"""

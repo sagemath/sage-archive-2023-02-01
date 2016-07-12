@@ -1,6 +1,6 @@
 This is a file used to manually test terminal and interrupt handling::
 
-    sage: for i in range(100): print i
+    sage: for i in range(100): print(i)
     0
     1
     2

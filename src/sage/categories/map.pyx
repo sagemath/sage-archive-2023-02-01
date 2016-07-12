@@ -137,6 +137,9 @@ cdef class Map(Element):
         else:
             self._coerce_cost = 10000 # inexact morphisms are bad.
 
+#    def codomain(self):
+#        return self._codomain
+
     def __copy__(self):
         """
         Return copy, with strong references to domain and codomain.
@@ -1410,6 +1413,9 @@ cdef class Section(Map):
               To:   Multivariate Polynomial Ring in x, y over Rational Field
         """
         return "Section"
+
+    def inverse(self):
+        return self._inverse
 
 cdef class FormalCompositeMap(Map):
     """

@@ -1334,7 +1334,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         Singer difference set
         sage: print(designs.difference_family(64,28,12, explain_construction=True))
         McFarland 1973 construction
-        sage: print designs.difference_family(576, 276, 132, explain_construction=True)
+        sage: print(designs.difference_family(576, 276, 132, explain_construction=True))
         Hadamard difference set product from N1=2 and N2=3
 
     For `k=6,7` we look at the set of small prime powers for which a
@@ -1485,11 +1485,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         sage: for N in range(2,21):
         ....:     v = 4*N^2; k = 2*N^2-N; l = N^2-N
         ....:     status = designs.difference_family(v,k,l,existence=True)
-        ....:     print N,
-        ....:     if status is True:
-        ....:         print designs.difference_family(v,k,l,explain_construction=True)
-        ....:     else:
-        ....:         print status
+        ....:     print("{:2} {}".format(N,designs.difference_family(v,k,l,explain_construction=True) if status else status))
         2 McFarland 1973 construction
         3 Turyn 1965 construction
         4 McFarland 1973 construction

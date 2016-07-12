@@ -46,8 +46,9 @@ REFERENCES:
 #                         http://www.gnu.org/licenses/
 ################################################################################
 from __future__ import print_function
+from __future__ import absolute_import
 
-import graph
+from . import graph
 import os
 import re
 from sage.rings.integer import Integer

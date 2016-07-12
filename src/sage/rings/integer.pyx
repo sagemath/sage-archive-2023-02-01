@@ -6071,8 +6071,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1/10
             sage: n.__invert__()
             1/10
+            sage: n = -3
+            sage: ~n
+            -1/3
         """
-        return one / self
+        if mpz_sgn(self.value) == 0:
+            raise ZeroDivisionError("rational division by zero")
+        cdef Rational x
+        x = <Rational> Rational.__new__(Rational)
+        mpz_set_ui(mpq_numref(x.value), 1)
+        mpz_set(mpq_denref(x.value), self.value)
+        if mpz_sgn(self.value) == -1:
+            mpz_neg(mpq_numref(x.value), mpq_numref(x.value))
+            mpz_neg(mpq_denref(x.value), mpq_denref(x.value))
+        return x
 
     def inverse_of_unit(self):
         """
@@ -6088,16 +6100,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 5.inverse_of_unit()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ArithmeticError: inverse does not exist
             sage: 0.inverse_of_unit()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ArithmeticError: inverse does not exist
         """
         if mpz_cmpabs_ui(self.value, 1) == 0:
             return self
         else:
-            raise ZeroDivisionError("Inverse does not exist.")
+            raise ArithmeticError("inverse does not exist")
 
     def inverse_mod(self, n):
         """

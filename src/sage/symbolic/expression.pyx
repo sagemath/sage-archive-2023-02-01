@@ -6504,7 +6504,7 @@ cdef class Expression(CommutativeRingElement):
                     60*z^4*w^2*x^2*u^5 + 375*z^8*w^3*x*y*u^7 + 150*z^8*w^5*x*y^4*u^6 + \
                     180*z^6*x*y^3*u^5 + 216*z^6*w^3*x^2*y^3*u^6;
             sage: d = e.diff(x)
-            sage: gcd(d,e) / (u^4*z^2) in QQ      # optional - giac
+            sage: gcd(d,e) / (u^4*z^2) in QQ      # known bug
             True
         """
         cdef Expression r = self.coerce_in(b)
@@ -8985,7 +8985,8 @@ cdef class Expression(CommutativeRingElement):
 
     def simplify_hypergeometric(self, algorithm='maxima'):
         """
-        Simplify an expression containing hypergeometric functions.
+        Simplify an expression containing hypergeometric or confluent
+        hypergeometric functions.
 
         INPUT:
 
@@ -9011,15 +9012,24 @@ cdef class Expression(CommutativeRingElement):
             sage: (nest(lambda y: hypergeometric([y], [1], x), 3, 1)
             ....:  .simplify_hypergeometric(algorithm='sage'))
             hypergeometric((hypergeometric((e^x,), (1,), x),), (1,), x)
+            sage: hypergeometric_M(1, 3, x).simplify_hypergeometric()
+            -2*(x - e^x + 1)/x^2
+            sage: (2 * hypergeometric_U(1, 3, x)).simplify_hypergeometric()
+            2*(x + 1)/x^2
 
         """
-        from sage.functions.hypergeometric import hypergeometric, closed_form
+        from sage.functions.hypergeometric import (hypergeometric,
+                                                   hypergeometric_M,
+                                                   hypergeometric_U,
+                                                   closed_form)
         from sage.calculus.calculus import maxima
         try:
             op = self.operator()
         except RuntimeError:
             return self
         ops = self.operands()
+        if op == hypergeometric_M or op == hypergeometric_U:
+            return self.generalized().simplify_hypergeometric(algorithm)
         if op == hypergeometric:
             if algorithm == 'maxima':
                 return (self.parent()

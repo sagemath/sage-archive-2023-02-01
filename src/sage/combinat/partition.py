@@ -301,7 +301,7 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.rings.all import QQ, ZZ, NN
+from sage.rings.all import QQ, ZZ, NN, IntegerModRing
 from sage.arith.all import factorial, gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
@@ -1427,7 +1427,7 @@ class Partition(CombinatorialElement):
             [[2, 2], [3, 1]]
             sage: Partition([3,2,1]).down_list()
             [[2, 2, 1], [3, 1, 1], [3, 2]]
-            sage: Partition([]).down_list()  # checks trac #11435
+            sage: Partition([]).down_list()  #checks :trac:`11435`
             []
         """
         return [p for p in self.down()]
@@ -2273,6 +2273,21 @@ class Partition(CombinatorialElement):
         tab = [range(1+sum(mu[:i]), 1+sum(mu[:(i+1)])) for i in range(len(mu))]
         return tableau.StandardTableau(tab)
 
+    def initial_column_tableau(self):
+        r"""
+        Return the initial column tableau of shape ``self``.
+
+        The initial column taleau of shape self is the standard tableau 
+        that has the numbers `1` to `n`, where `n` is the :meth:`size` of ``self``,
+        entered in order from top to bottom and then left to right down the
+        columns of ``self``.
+
+        EXAMPLE::
+
+            sage: Partition([3,2]).initial_column_tableau()
+            [[1, 3, 5], [2, 4]]
+        """
+        return self.conjugate().initial_tableau().conjugate()
 
     def garnir_tableau(self,*cell):
         r"""
@@ -2342,7 +2357,7 @@ class Partition(CombinatorialElement):
         g[row][col:]=range(a+col+1,g[row+1][col]+1)
         g[row+1][:col+1]=range(a,a+col+1)
         g=tableau.Tableau(g)
-        g._garnir_cell=cell
+        g._garnir_cell=(row,col)
         return g
 
     def top_garnir_tableau(self,e,cell):
@@ -2482,6 +2497,114 @@ class Partition(CombinatorialElement):
             m+=row
         return gens
 
+    @cached_method
+    def _initial_degree(self, e, multicharge=(0,)):
+        r"""
+        Return the Brundan-Kleshchev-Wang degree of the initial row tableau
+        of shape ``self``.
+
+        This degree depends only the shape of the tableau and it is
+        used as the base case for computing the degrees of all tableau
+        of shape ``self``, which is why this method is cached. See
+        :meth:`sage.combinat.tableau.Tableau.degree` for more information.
+
+        EXAMPLES::
+
+            sage: Partition([5,3,2])._initial_degree(0)
+            0
+            sage: Partition([5,3,2])._initial_degree(2)
+            4
+            sage: Partition([5,3,2])._initial_degree(3)
+            2
+            sage: Partition([5,3,2])._initial_degree(4)
+            1
+        """
+        if e == 0:
+            return ZZ.zero()
+        else:
+            return sum(m // e for m in self)
+
+    def degree(self, e):
+        r"""
+        Return the ``e``-th degree of ``self``.
+
+        The `e`-th degree of a partition `\lambda` is the sum of the `e`-th
+        degrees of the standard tableaux of shape `\lambda`. The `e`-th degree
+        is the exponent of `\Phi_e(q)` in the Gram determinant of the Specht
+        module for a semisimple Iwahori-Hecke algebra of type `A` with
+        parameter `q`.
+
+        INPUT:
+
+        - ``e`` -- an  integer  `e > 1`
+
+        OUTPUT:
+
+        A non-negative integer.
+
+        EXAMPLES::
+
+            sage: Partition([4,3]).degree(2)
+            28
+            sage: Partition([4,3]).degree(3)
+            15
+            sage: Partition([4,3]).degree(4)
+            8
+            sage: Partition([4,3]).degree(5)
+            13
+            sage: Partition([4,3]).degree(6)
+            0
+            sage: Partition([4,3]).degree(7)
+            0
+
+        Therefore,  the Gram determinant of `S(5,3)` when the Hecke parameter
+        `q` is "generic" is
+
+        ..MATH::
+
+            q^N \Phi_2(q)^{28} \Phi_3(q)^{15} \Phi_4(q)^8 \Phi_5(q)^{13}
+
+        for some integer `N`. Compare with :meth:`prime_degree`.
+        """
+        return sum(t.degree(e) for t in self.standard_tableaux())
+
+    def prime_degree(self, p):
+        r"""
+        Return the prime degree for the prime integer``p`` for ``self``.
+
+        INPUT:
+
+        - ``p`` -- a prime integer
+
+        OUTPUT:
+
+        A non-negative integer 
+
+        The degree of a partition `\lambda` is the sum of the
+        `e`-:meth:`degree` of the standard tableaux of shape `\lambda`, for
+        `e` a poer of the prime `p`. The prime degree gives the exponent of
+        `p` in the Gram determinant of the integal Specht module of the
+        symmetric group.
+
+        EXAMPLES::
+
+            sage: Partition([4,3]).prime_degree(2)
+            36
+            sage: Partition([4,3]).prime_degree(3)
+            15
+            sage: Partition([4,3]).prime_degree(5)
+            13
+            sage: Partition([4,3]).prime_degree(7)
+            0
+
+        THerefore, the Gram determinant of `S(5,3)` when `q = 1` is 
+        `2^{36} 3^{15} 5^{13}`.  Compare with :meth:`degree`.
+        """
+        ps = [p]
+
+        while ps[-1] * p < self.size():
+            ps.append(ps[-1] * p)
+        return sum(t.degree(pk) for pk in ps for t in self.standard_tableaux())
 
     def arm_length(self, i, j):
         r"""
@@ -3194,7 +3317,7 @@ class Partition(CombinatorialElement):
         m = self.to_exp()
         return prod([(i+1)**m[i]*factorial(m[i]) for i in range(len(m)) if m[i] > 0])
 
-    def content(self, r, c, multicharge=[0]):
+    def content(self, r, c, multicharge=(0,)):
         r"""
         Return the content of the cell at row `r` and column `c`.
 
@@ -3240,6 +3363,54 @@ class Partition(CombinatorialElement):
             2
         """
         return (c - r) % l
+
+    def defect(self, e, multicharge=(0,)):
+        r"""
+        Return the ``e``-defect or the ``e``-weight of ``self``.
+
+        The `e`-defect is the number of (connected) `e`-rim hooks that
+        can be removed from the partition.
+
+        The defect of a partition is given by 
+
+        .. MATH: 
+
+            \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta)
+
+        where `\Lambda = \sum_r \Lambda_{\kappa_r}` for the multicharge
+        `(\kappa_1, \ldots, \kappa_{\ell})` and 
+        `\beta = \sum_{(r,c)} \alpha_{(c-r) \pmod e}`, with the sum
+        being over the cells in the partition.
+
+        EXAMPLES::
+
+            sage: Partition([4,3,2]).defect(3)
+            3
+            sage: Partition([0]).defect(3)
+            0
+            sage: Partition([3]).defect(3)
+            1
+            sage: Partition([6]).defect(3)
+            2
+            sage: Partition([9]).defect(3)
+            3
+            sage: Partition([12]).defect(3)
+            4
+
+        TESTS::
+
+            sage: all(mu.core(e).size() + e * mu.defect(e) == 9
+            ....:     for mu in Partitions(9) for e in [2,3,4])
+            True
+        """
+        beta = [0]*e # element of positive root lattice corresponding to the block
+
+        Ie = IntegerModRing(e)
+        for (r,c) in self.cells():
+            beta[Ie(r-c)] += 1
+
+        return beta[multicharge[0]] - sum(beta[i]**2 - beta[i] * beta[Ie(i+1)]
+                                          for i in range(e))
 
     def conjugacy_class_size(self):
         """

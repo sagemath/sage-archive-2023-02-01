@@ -13,7 +13,7 @@ Classes for symbolic functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from ginac cimport *
+from .ginac cimport *
 
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject

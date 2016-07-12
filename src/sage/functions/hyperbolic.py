@@ -676,6 +676,13 @@ class Function_arccsch(GinacFunction):
             -1/(sqrt(x^2 + 1)*x)
             sage: latex(arccsch(x))
             \operatorname{arccsch}\left(x\right)
+
+        TESTS:
+
+        Check if :trac:`20818` is fixed::
+
+            sage: arccsch(float(0.1))
+            2.99822295029797
         """
         GinacFunction.__init__(self, "arccsch",
                 latex_name=r"\operatorname{arccsch}",

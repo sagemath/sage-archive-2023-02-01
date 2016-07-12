@@ -909,7 +909,7 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
     if [ "$TYPE" = pip ]; then
         # Special rules using PIP
         echo >&7 "$PKG_NAME:$DEPS"
-        echo >&7 "	sage-logger 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
+        echo >&7 "	sage-logger -p 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
         echo >&7
 
         # Add a target to remove the "installed" file for "sage -f"
@@ -921,7 +921,7 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
         echo >&7 "$PKG_NAME:$DEPS"
         echo >&7 "	cd '$SAGE_ROOT' && \\"
         echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
-        echo >&7 "	    sage-logger '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-install' \$(SAGE_LOGS)/$PKG_NAME.log"
+        echo >&7 "	    sage-logger -p '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-install' \$(SAGE_LOGS)/$PKG_NAME.log"
         echo >&7
 
         # Just run the spkg-uninstall script if it exists
@@ -933,7 +933,7 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
     else
         # Normal Sage packages
         echo >&7 "\$(INST)/$PKG_VERSION:$DEPS"
-        echo >&7 "	+sage-logger '\$(SAGE_SPKG) $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
+        echo >&7 "	+sage-logger -p '\$(SAGE_SPKG) $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
         echo >&7
 
         # Add a target with just the bare package name for "sage -i"

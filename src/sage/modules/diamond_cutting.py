@@ -14,6 +14,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.matrix.constructor import matrix, identity_matrix
@@ -215,7 +216,7 @@ def diamond_cut(V, GM, C, verbose=False):
             for hv in [hv, -hv]:
                 cut_count += 1
                 if verbose:
-                    print "\n%d) Cut using normal vector %s" % (cut_count, hv)
+                    print("\n%d) Cut using normal vector %s" % (cut_count, hv))
                 hv = [QQ(round(elmt, 6)) for elmt in hv]
                 inequalities.append(plane_inequality(hv))
                 #cut = Polyhedron(ieqs=[plane_inequality(hv)])

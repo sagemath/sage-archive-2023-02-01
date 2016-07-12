@@ -44,6 +44,7 @@ Comprehensive Module list
     sage/combinat/composition
     sage/combinat/composition_signed
     sage/combinat/composition_tableau
+    sage/combinat/constellation
     sage/combinat/core
     sage/combinat/counting
     sage/combinat/crystals/__init__
@@ -327,6 +328,7 @@ Comprehensive Module list
     sage/combinat/symmetric_group_algebra
     sage/combinat/symmetric_group_representations
     sage/combinat/tableau
+    sage/combinat/tableau_residues
     sage/combinat/tableau_tuple
     sage/combinat/tamari_lattices
     sage/combinat/tiling

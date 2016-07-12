@@ -137,6 +137,8 @@ Check that :trac:`5562` has been fixed::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.element import Element
 from sage.structure.category_object import check_default_category
@@ -158,17 +160,17 @@ from sage.misc.prandom import randint
 from sage.misc.cachefunc import cached_method
 
 from sage.rings.real_mpfr import is_RealField
-from polynomial_real_mpfr_dense import PolynomialRealDense
+from .polynomial_real_mpfr_dense import PolynomialRealDense
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.finite_rings.element_base import FiniteRingElement
 
-from polynomial_element import PolynomialBaseringInjection
+from .polynomial_element import PolynomialBaseringInjection
 
 from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
 
-import cyclotomic
+from . import cyclotomic
 
 ZZ_sage = IntegerRing()
 
@@ -665,7 +667,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R._magma_init_(magma)                     # optional - magma
             'SageCreateWithNames(PolynomialRing(_sage_ref...),["y"])'
             sage: S = magma(R)                              # optional - magma
-            sage: print S                                   # optional - magma
+            sage: S                                         # optional - magma
             Univariate Polynomial Ring in y over Rational Field
             sage: S.1                                       # optional - magma
             y
@@ -1316,7 +1318,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         EXAMPLES::
 
             sage: P = PolynomialRing(GF(3),'y')
-            sage: for p in P.polynomials( of_degree = 2 ): print p
+            sage: for p in P.polynomials( of_degree = 2 ): print(p)
             y^2
             y^2 + 1
             y^2 + 2
@@ -1335,7 +1337,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             2*y^2 + 2*y
             2*y^2 + 2*y + 1
             2*y^2 + 2*y + 2
-            sage: for p in P.polynomials( max_degree = 1 ): print p
+            sage: for p in P.polynomials( max_degree = 1 ): print(p)
             0
             1
             2
@@ -1345,7 +1347,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             2*y
             2*y + 1
             2*y + 2
-            sage: for p in P.polynomials( max_degree = 1, of_degree = 3 ): print p
+            sage: for p in P.polynomials( max_degree = 1, of_degree = 3 ): print(p)
             Traceback (most recent call last):
             ...
             ValueError: you should pass exactly one of of_degree and max_degree
@@ -1383,7 +1385,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         EXAMPLES::
 
             sage: P = PolynomialRing(GF(4,'a'),'y')
-            sage: for p in P.monics( of_degree = 2 ): print p
+            sage: for p in P.monics( of_degree = 2 ): print(p)
             y^2
             y^2 + a
             y^2 + a + 1
@@ -1400,13 +1402,13 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             y^2 + y + a
             y^2 + y + a + 1
             y^2 + y + 1
-            sage: for p in P.monics( max_degree = 1 ): print p
+            sage: for p in P.monics( max_degree = 1 ): print(p)
             1
             y
             y + a
             y + a + 1
             y + 1
-            sage: for p in P.monics( max_degree = 1, of_degree = 3 ): print p
+            sage: for p in P.monics( max_degree = 1, of_degree = 3 ): print(p)
             Traceback (most recent call last):
             ...
             ValueError: you should pass exactly one of of_degree and max_degree
@@ -2487,7 +2489,7 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
         from sage.libs.pari.all import pari
         from sage.rings.finite_rings.conway_polynomials import (conway_polynomial,
                                                                 exists_conway_polynomial)
-        from polynomial_gf2x import (GF2X_BuildIrred_list,
+        from .polynomial_gf2x import (GF2X_BuildIrred_list,
                                      GF2X_BuildSparseIrred_list,
                                      GF2X_BuildRandomIrred_list)
 

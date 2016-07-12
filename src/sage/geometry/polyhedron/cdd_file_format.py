@@ -10,7 +10,7 @@ Generate cdd ``.ext`` / ``.ine`` file format
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
-
+from __future__ import print_function
 
 from misc import _set_to_None_if_empty, _common_length_of, _to_space_separated_string
 
@@ -34,7 +34,7 @@ def cdd_Vrepresentation(cdd_type, vertices, rays, lines, file_output=None):
     EXAMPLES::
 
         sage: from sage.geometry.polyhedron.cdd_file_format import cdd_Vrepresentation
-        sage: print cdd_Vrepresentation('rational', [[0,0]], [[1,0]], [[0,1]])
+        sage: print(cdd_Vrepresentation('rational', [[0,0]], [[1,0]], [[0,1]]))
         V-representation
         linearity 1 1
         begin

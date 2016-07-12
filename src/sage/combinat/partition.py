@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Integer partitions
 
@@ -95,7 +96,7 @@ one by one to save memory.  Note that when we do something like
     [3, 1]
     sage: next(g)
     [2, 2]
-    sage: for p in Partitions(4): print p
+    sage: for p in Partitions(4): print(p)
     [4]
     [3, 1]
     [2, 2]
@@ -277,6 +278,7 @@ We use the lexicographic ordering::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
 
 from sage.interfaces.all import gap
 from sage.libs.all import pari
@@ -289,6 +291,7 @@ from sage.symbolic.ring import var
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.combinat.skew_partition', 'SkewPartition')
+lazy_import('sage.combinat.partition_tuple', 'PartitionTuple')
 
 from sage.misc.all import prod
 from sage.misc.prandom import randrange
@@ -298,16 +301,16 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.rings.all import QQ, ZZ, NN
+from sage.rings.all import QQ, ZZ, NN, IntegerModRing
 from sage.arith.all import factorial, gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 
-from combinat import CombinatorialClass, CombinatorialElement
-import tableau
-import permutation
-import composition
+from .combinat import CombinatorialClass, CombinatorialElement
+from . import tableau
+from . import permutation
+from . import composition
 from sage.combinat.partitions import number_of_partitions as bober_number_of_partitions
 from sage.combinat.partitions import ZS1_iterator, ZS1_iterator_nk
 from sage.combinat.integer_vector import IntegerVectors
@@ -354,7 +357,7 @@ PartitionOptions=GlobalOptions(name='partitions',
         ##
         #
         sage: Partitions.global_options(diagram_str="*", convention="french")
-        sage: print P.ferrers_diagram()
+        sage: print(P.ferrers_diagram())
         *
         **
         **
@@ -368,7 +371,7 @@ PartitionOptions=GlobalOptions(name='partitions',
           4  5
           1  2  3
         sage: Tableaux.global_options(convention="english")
-        sage: print P.ferrers_diagram()
+        sage: print(P.ferrers_diagram())
         ****
         **
         **
@@ -728,13 +731,56 @@ class Partition(CombinatorialElement):
         from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._repr_diagram().splitlines(), baseline=0)
 
+    def _unicode_art_(self):
+        """
+        TESTS::
+
+            sage: unicode_art(Partitions(5).list())
+            ⎡                                      ┌┐ ⎤
+            ⎢                                 ┌┬┐  ├┤ ⎥
+            ⎢                      ┌┬┬┐  ┌┬┐  ├┼┘  ├┤ ⎥
+            ⎢         ┌┬┬┬┐  ┌┬┬┐  ├┼┴┘  ├┼┤  ├┤   ├┤ ⎥
+            ⎢ ┌┬┬┬┬┐  ├┼┴┴┘  ├┼┼┘  ├┤    ├┼┘  ├┤   ├┤ ⎥
+            ⎣ └┴┴┴┴┘, └┘   , └┴┘ , └┘  , └┘ , └┘ , └┘ ⎦
+            sage: Partitions.global_options(convention="French");
+            sage: unicode_art(Partitions(5).list())
+            ⎡                                      ┌┐ ⎤
+            ⎢                                 ┌┐   ├┤ ⎥
+            ⎢                      ┌┐    ┌┐   ├┤   ├┤ ⎥
+            ⎢         ┌┐     ┌┬┐   ├┤    ├┼┐  ├┤   ├┤ ⎥
+            ⎢ ┌┬┬┬┬┐  ├┼┬┬┐  ├┼┼┐  ├┼┬┐  ├┼┤  ├┼┐  ├┤ ⎥
+            ⎣ └┴┴┴┴┘, └┴┴┴┘, └┴┴┘, └┴┴┘, └┴┘, └┴┘, └┘ ⎦
+            sage: Partitions.global_options.reset()
+        """
+        if not self._list:
+            return u'∅'
+        if self.parent().global_options('convention') == "English":
+            data = list(self)
+        else:
+            data = list(reversed(self))
+
+        txt = [u'┌' + u'┬' * (data[0] - 1) + u'┐']
+        for i in range(len(data) - 1):
+            p = data[i]
+            q = data[i + 1]
+            if p < q:
+                txt += [u'├' + u'┼' * p + u'┬' * (q - p - 1) + u'┐']
+            elif p == q:
+                txt += [u'├' + u'┼' * (p - 1) + u'┤']
+            else:
+                txt += [u'├' + u'┼' * q + u'┴' * (p - q - 1) + u'┘']
+        txt += [u'└' + u'┴' * (data[-1] - 1) + u'┘']
+
+        from sage.typeset.unicode_art import UnicodeArt        
+        return UnicodeArt(txt, baseline=0)
+
     def _repr_list(self):
         """
         Return a string representation of ``self`` as a list.
 
         EXAMPLES::
 
-            sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_list()
+            sage: print(Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_list())
             [7, 7, 7, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1]
         """
         return '[%s]' % ', '.join('%s'%m for m in self)
@@ -746,9 +792,9 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_exp_low()
+            sage: print(Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_exp_low())
             1^7, 2, 3^2, 7^3
-            sage: print Partition([])._repr_exp_low()
+            sage: print(Partition([])._repr_exp_low())
             -
         """
         if not self._list:
@@ -764,10 +810,10 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_exp_high()
+            sage: print(Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_exp_high())
             7^3, 3^2, 2, 1^7
 
-            sage: print Partition([])._repr_exp_high()
+            sage: print(Partition([])._repr_exp_high())
             -
         """
         if not self._list:
@@ -784,9 +830,9 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_compact_low()
+            sage: print(Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_compact_low())
             1^7,2,3^2,7^3
-            sage: print Partition([])._repr_compact_low()
+            sage: print(Partition([])._repr_compact_low())
             -
         """
         if not self._list:
@@ -802,9 +848,9 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_compact_high()
+            sage: print(Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_compact_high())
             7^3,3^2,2,1^7
-            sage: print Partition([])._repr_compact_low()
+            sage: print(Partition([])._repr_compact_low())
             -
         """
         if not self._list:
@@ -820,7 +866,7 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_diagram()
+            sage: print(Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_diagram())
             *******
             *******
             *******
@@ -920,14 +966,14 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([2, 1])._latex_young_diagram()
+            sage: print(Partition([2, 1])._latex_young_diagram())
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
             \lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-2}
             \lr{\phantom{x}}\\\cline{1-1}
             \end{array}$}
             }
-            sage: print Partition([])._latex_young_diagram()
+            sage: print(Partition([])._latex_young_diagram())
             {\emptyset}
         """
         if not self._list:
@@ -942,14 +988,14 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([2, 1])._latex_diagram()
+            sage: print(Partition([2, 1])._latex_diagram())
             {\def\lr#1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\\
             \lr{\ast}&\lr{\ast}\\
             \lr{\ast}\\
             \end{array}$}
             }
-            sage: print Partition([])._latex_diagram()
+            sage: print(Partition([])._latex_diagram())
             {\emptyset}
         """
         if not self._list:
@@ -965,9 +1011,9 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([2, 1])._latex_list()
+            sage: print(Partition([2, 1])._latex_list())
             [2, 1]
-            sage: print Partition([])._latex_list()
+            sage: print(Partition([])._latex_list())
             []
         """
         return repr(self._list)
@@ -978,9 +1024,9 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([2,2,1])._latex_exp_low()
+            sage: print(Partition([2,2,1])._latex_exp_low())
             1,2^{2}
-            sage: print Partition([])._latex_exp_low()
+            sage: print(Partition([])._latex_exp_low())
             {\emptyset}
         """
         if not self._list:
@@ -995,9 +1041,9 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([2,2,1])._latex_exp_high()
+            sage: print(Partition([2,2,1])._latex_exp_high())
             2^{2},1
-            sage: print Partition([])._latex_exp_high()
+            sage: print(Partition([])._latex_exp_high())
             {\emptyset}
         """
         if not self._list:
@@ -1016,27 +1062,27 @@ class Partition(CombinatorialElement):
 
             sage: mu=Partition([5,5,2,1])
             sage: Partitions.global_options(diagram_str='*', convention="english")
-            sage: print mu.ferrers_diagram()
+            sage: print(mu.ferrers_diagram())
             *****
             *****
             **
             *
             sage: Partitions.global_options(diagram_str='#')
-            sage: print mu.ferrers_diagram()
+            sage: print(mu.ferrers_diagram())
             #####
             #####
             ##
             #
             sage: Partitions.global_options(convention="french")
-            sage: print mu.ferrers_diagram()
+            sage: print(mu.ferrers_diagram())
             #
             ##
             #####
             #####
-            sage: print Partition([]).ferrers_diagram()
+            sage: print(Partition([]).ferrers_diagram())
             -
             sage: Partitions.global_options(diagram_str='-')
-            sage: print Partition([]).ferrers_diagram()
+            sage: print(Partition([]).ferrers_diagram())
             (/)
             sage: Partitions.global_options.reset()
         """
@@ -1044,9 +1090,9 @@ class Partition(CombinatorialElement):
         if not self._list:
             return '-' if diag_str != '-' else "(/)"
         if self.parent().global_options('convention') == "English":
-            return '\n'.join([diag_str*p for p in self])
+            return '\n'.join([diag_str * p for p in self])
         else:
-            return '\n'.join([diag_str*p for p in reversed(self)])
+            return '\n'.join([diag_str * p for p in reversed(self)])
 
     def pp(self):
         r"""
@@ -1069,7 +1115,7 @@ class Partition(CombinatorialElement):
             *****
             sage: Partitions.global_options.reset()
         """
-        print self.ferrers_diagram()
+        print(self.ferrers_diagram())
 
     def __truediv__(self, p):
         """
@@ -1381,7 +1427,7 @@ class Partition(CombinatorialElement):
             [[2, 2], [3, 1]]
             sage: Partition([3,2,1]).down_list()
             [[2, 2, 1], [3, 1, 1], [3, 2]]
-            sage: Partition([]).down_list()  # checks trac #11435
+            sage: Partition([]).down_list()  #checks :trac:`11435`
             []
         """
         return [p for p in self.down()]
@@ -2018,11 +2064,11 @@ class Partition(CombinatorialElement):
         The conjugate partition is obtained by transposing the Ferrers
         diagram of the partition (see :meth:`.ferrers_diagram`)::
 
-            sage: print Partition([6,3,1]).ferrers_diagram()
+            sage: print(Partition([6,3,1]).ferrers_diagram())
             ******
             ***
             *
-            sage: print Partition([6,3,1]).conjugate().ferrers_diagram()
+            sage: print(Partition([6,3,1]).conjugate().ferrers_diagram())
             ***
             **
             **
@@ -2227,6 +2273,21 @@ class Partition(CombinatorialElement):
         tab = [range(1+sum(mu[:i]), 1+sum(mu[:(i+1)])) for i in range(len(mu))]
         return tableau.StandardTableau(tab)
 
+    def initial_column_tableau(self):
+        r"""
+        Return the initial column tableau of shape ``self``.
+
+        The initial column taleau of shape self is the standard tableau 
+        that has the numbers `1` to `n`, where `n` is the :meth:`size` of ``self``,
+        entered in order from top to bottom and then left to right down the
+        columns of ``self``.
+
+        EXAMPLE::
+
+            sage: Partition([3,2]).initial_column_tableau()
+            [[1, 3, 5], [2, 4]]
+        """
+        return self.conjugate().initial_tableau().conjugate()
 
     def garnir_tableau(self,*cell):
         r"""
@@ -2296,7 +2357,7 @@ class Partition(CombinatorialElement):
         g[row][col:]=range(a+col+1,g[row+1][col]+1)
         g[row+1][:col+1]=range(a,a+col+1)
         g=tableau.Tableau(g)
-        g._garnir_cell=cell
+        g._garnir_cell=(row,col)
         return g
 
     def top_garnir_tableau(self,e,cell):
@@ -2436,6 +2497,114 @@ class Partition(CombinatorialElement):
             m+=row
         return gens
 
+    @cached_method
+    def _initial_degree(self, e, multicharge=(0,)):
+        r"""
+        Return the Brundan-Kleshchev-Wang degree of the initial row tableau
+        of shape ``self``.
+
+        This degree depends only the shape of the tableau and it is
+        used as the base case for computing the degrees of all tableau
+        of shape ``self``, which is why this method is cached. See
+        :meth:`sage.combinat.tableau.Tableau.degree` for more information.
+
+        EXAMPLES::
+
+            sage: Partition([5,3,2])._initial_degree(0)
+            0
+            sage: Partition([5,3,2])._initial_degree(2)
+            4
+            sage: Partition([5,3,2])._initial_degree(3)
+            2
+            sage: Partition([5,3,2])._initial_degree(4)
+            1
+        """
+        if e == 0:
+            return ZZ.zero()
+        else:
+            return sum(m // e for m in self)
+
+    def degree(self, e):
+        r"""
+        Return the ``e``-th degree of ``self``.
+
+        The `e`-th degree of a partition `\lambda` is the sum of the `e`-th
+        degrees of the standard tableaux of shape `\lambda`. The `e`-th degree
+        is the exponent of `\Phi_e(q)` in the Gram determinant of the Specht
+        module for a semisimple Iwahori-Hecke algebra of type `A` with
+        parameter `q`.
+
+        INPUT:
+
+        - ``e`` -- an  integer  `e > 1`
+
+        OUTPUT:
+
+        A non-negative integer.
+
+        EXAMPLES::
+
+            sage: Partition([4,3]).degree(2)
+            28
+            sage: Partition([4,3]).degree(3)
+            15
+            sage: Partition([4,3]).degree(4)
+            8
+            sage: Partition([4,3]).degree(5)
+            13
+            sage: Partition([4,3]).degree(6)
+            0
+            sage: Partition([4,3]).degree(7)
+            0
+
+        Therefore,  the Gram determinant of `S(5,3)` when the Hecke parameter
+        `q` is "generic" is
+
+        ..MATH::
+
+            q^N \Phi_2(q)^{28} \Phi_3(q)^{15} \Phi_4(q)^8 \Phi_5(q)^{13}
+
+        for some integer `N`. Compare with :meth:`prime_degree`.
+        """
+        return sum(t.degree(e) for t in self.standard_tableaux())
+
+    def prime_degree(self, p):
+        r"""
+        Return the prime degree for the prime integer``p`` for ``self``.
+
+        INPUT:
+
+        - ``p`` -- a prime integer
+
+        OUTPUT:
+
+        A non-negative integer 
+
+        The degree of a partition `\lambda` is the sum of the
+        `e`-:meth:`degree` of the standard tableaux of shape `\lambda`, for
+        `e` a poer of the prime `p`. The prime degree gives the exponent of
+        `p` in the Gram determinant of the integal Specht module of the
+        symmetric group.
+
+        EXAMPLES::
+
+            sage: Partition([4,3]).prime_degree(2)
+            36
+            sage: Partition([4,3]).prime_degree(3)
+            15
+            sage: Partition([4,3]).prime_degree(5)
+            13
+            sage: Partition([4,3]).prime_degree(7)
+            0
+
+        THerefore, the Gram determinant of `S(5,3)` when `q = 1` is 
+        `2^{36} 3^{15} 5^{13}`.  Compare with :meth:`degree`.
+        """
+        ps = [p]
+
+        while ps[-1] * p < self.size():
+            ps.append(ps[-1] * p)
+        return sum(t.degree(pk) for pk in ps for t in self.standard_tableaux())
 
     def arm_length(self, i, j):
         r"""
@@ -3148,7 +3317,7 @@ class Partition(CombinatorialElement):
         m = self.to_exp()
         return prod([(i+1)**m[i]*factorial(m[i]) for i in range(len(m)) if m[i] > 0])
 
-    def content(self, r, c, multicharge=[0]):
+    def content(self, r, c, multicharge=(0,)):
         r"""
         Return the content of the cell at row `r` and column `c`.
 
@@ -3194,6 +3363,54 @@ class Partition(CombinatorialElement):
             2
         """
         return (c - r) % l
+
+    def defect(self, e, multicharge=(0,)):
+        r"""
+        Return the ``e``-defect or the ``e``-weight of ``self``.
+
+        The `e`-defect is the number of (connected) `e`-rim hooks that
+        can be removed from the partition.
+
+        The defect of a partition is given by 
+
+        .. MATH: 
+
+            \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta)
+
+        where `\Lambda = \sum_r \Lambda_{\kappa_r}` for the multicharge
+        `(\kappa_1, \ldots, \kappa_{\ell})` and 
+        `\beta = \sum_{(r,c)} \alpha_{(c-r) \pmod e}`, with the sum
+        being over the cells in the partition.
+
+        EXAMPLES::
+
+            sage: Partition([4,3,2]).defect(3)
+            3
+            sage: Partition([0]).defect(3)
+            0
+            sage: Partition([3]).defect(3)
+            1
+            sage: Partition([6]).defect(3)
+            2
+            sage: Partition([9]).defect(3)
+            3
+            sage: Partition([12]).defect(3)
+            4
+
+        TESTS::
+
+            sage: all(mu.core(e).size() + e * mu.defect(e) == 9
+            ....:     for mu in Partitions(9) for e in [2,3,4])
+            True
+        """
+        beta = [0]*e # element of positive root lattice corresponding to the block
+
+        Ie = IntegerModRing(e)
+        for (r,c) in self.cells():
+            beta[Ie(r-c)] += 1
+
+        return beta[multicharge[0]] - sum(beta[i]**2 - beta[i] * beta[Ie(i+1)]
+                                          for i in range(e))
 
     def conjugacy_class_size(self):
         """
@@ -3610,7 +3827,7 @@ class Partition(CombinatorialElement):
             a.reverse()
             result[e] = a
 
-        from partition_tuple import PartitionTuple
+        from .partition_tuple import PartitionTuple
         return PartitionTuple(result)  #tuple(map(Partition, result))
 
     def is_core(self, k):
@@ -4912,7 +5129,7 @@ class Partitions(UniqueRepresentation, Parent):
 
         sage: a = [4,3,2,1,1,1,1]
         sage: for p in Partitions(8, outer=a, min_slope=-1):
-        ....:    print p
+        ....:    print(p)
         [3, 3, 2]
         [3, 2, 2, 1]
         [3, 2, 1, 1, 1]
@@ -5076,10 +5293,23 @@ class Partitions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Partitions()
-            sage: P([3,3,1]) # indirect doctest
+            sage: p = P([3,3,1]); p
             [3, 3, 1]
+            sage: P(p) is p
+            True
+            sage: P([3, 2, 1, 0])
+            [3, 2, 1]
+
+            sage: PT = PartitionTuples()
+            sage: elt = PT([[4,4,2,2,1]]); elt
+            ([4, 4, 2, 2, 1])
+            sage: P(elt)
+            [4, 4, 2, 2, 1]
         """
-        if isinstance(lst, Partition):
+        if isinstance(lst, PartitionTuple):
+            if lst.level() != 1:
+                raise ValueError('%s is not an element of %s'%(lst, self))
+            lst = lst[0]
             if lst.parent() is self:
                 return lst
         if lst in self:
@@ -5394,7 +5624,7 @@ class Partitions_all(Partitions):
             ...       for mus in PartitionTuples(k,n_mus))
             True
         """
-        from partition_tuple import PartitionTuple, PartitionTuples
+        from .partition_tuple import PartitionTuple, PartitionTuples
         if not quotient in PartitionTuples():
             raise ValueError('the quotient %s must be a tuple of partitions'%quotient)
         components = PartitionTuple(quotient).components()
@@ -6695,7 +6925,7 @@ class RegularPartitions(Partitions):
 
     INPUT:
 
-    - ``ell`` -- the integer `\ell`
+    - ``ell`` -- the positive integer `\ell`
     - ``is_infinite`` -- boolean; if the subset of `\ell`-regular
       partitions is infinite
     """
@@ -6748,7 +6978,7 @@ class RegularPartitions(Partitions):
         if not Partitions.__contains__(self, x):
             return False
         if isinstance(x, Partition):
-            return max(x.to_exp(1)) < self._ell
+            return max(x.to_exp() + [0]) < self._ell
         return all(x.count(i) < self._ell for i in set(x) if i > 0)
 
     def _fast_iterator(self, n, max_part):
@@ -6784,7 +7014,7 @@ class RegularPartitions_all(RegularPartitions):
 
     INPUT:
 
-    - ``ell`` -- the integer `\ell`
+    - ``ell`` -- the positive integer `\ell`
 
     .. SEEALSO::
 

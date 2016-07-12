@@ -669,7 +669,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         root or weight lattice (and dually).
 
         There is no mechanical way to define the ambient space just
-        from the Cartan matrix. Instead is is constructed from hard
+        from the Cartan matrix. Instead it is constructed from hard
         coded type by type data, according to the usual Bourbaki
         conventions. Such data is provided for all the finite
         (crystallographic) types. From this data, ambient spaces can be

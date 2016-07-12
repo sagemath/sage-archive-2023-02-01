@@ -30,6 +30,7 @@ called.
 Functions
 ---------
 """
+from __future__ import print_function
 
 from orthogonal_arrays import orthogonal_array, wilson_construction, is_orthogonal_array
 
@@ -66,7 +67,7 @@ def construction_3_3(k,n,m,i,explain_construction=False):
         sage: is_orthogonal_array(construction_3_3(*find_construction_3_3(k,n)[1]),k,n,2)
         True
 
-        sage: print designs.orthogonal_arrays.explain_construction(9,91)
+        sage: print(designs.orthogonal_arrays.explain_construction(9,91))
         Construction 3.3 with n=11,m=8,i=3 from:
            Julian R. Abel, Nicholas Cavenagh
            Concerning eight mutually orthogonal latin squares,
@@ -136,7 +137,7 @@ def construction_3_4(k,n,m,r,s,explain_construction=False):
         sage: is_orthogonal_array(construction_3_4(*find_construction_3_4(k,n)[1]),k,n,2)
         True
 
-        sage: print designs.orthogonal_arrays.explain_construction(8,164)
+        sage: print(designs.orthogonal_arrays.explain_construction(8,164))
         Construction 3.4 with n=23,m=7,r=2,s=1 from:
            Julian R. Abel, Nicholas Cavenagh
            Concerning eight mutually orthogonal latin squares,
@@ -211,7 +212,7 @@ def construction_3_5(k,n,m,r,s,t,explain_construction=False):
         sage: is_orthogonal_array(construction_3_5(*find_construction_3_5(k,n)[1]),k,n,2)
         True
 
-        sage: print designs.orthogonal_arrays.explain_construction(8,90)
+        sage: print(designs.orthogonal_arrays.explain_construction(8,90))
         Construction 3.5 with n=11,m=6,r=8,s=8,t=8 from:
            Julian R. Abel, Nicholas Cavenagh
            Concerning eight mutually orthogonal latin squares,
@@ -303,7 +304,7 @@ def construction_3_6(k,n,m,i,explain_construction=False):
         sage: is_orthogonal_array(construction_3_6(*find_construction_3_6(k,n)[1]),k,n,2)
         True
 
-        sage: print designs.orthogonal_arrays.explain_construction(10,756)
+        sage: print(designs.orthogonal_arrays.explain_construction(10,756))
         Construction 3.6 with n=16,m=47,i=4 from:
            Julian R. Abel, Nicholas Cavenagh
            Concerning eight mutually orthogonal latin squares,
@@ -485,7 +486,7 @@ def construction_q_x(k,q,x,check=True,explain_construction=False):
         sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import construction_q_x
         sage: _ = construction_q_x(9,16,6)
 
-        sage: print designs.orthogonal_arrays.explain_construction(9,158)
+        sage: print(designs.orthogonal_arrays.explain_construction(9,158))
         (q-x)-construction with q=16,x=6 from:
            Malcolm Greig,
            Designs from projective planes and PBD bases,
@@ -640,7 +641,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
         sage: is_orthogonal_array(OA,6,23*7+5+7+8,2)
         True
 
-        sage: print designs.orthogonal_arrays.explain_construction(10,408)
+        sage: print(designs.orthogonal_arrays.explain_construction(10,408))
         Lemma 4.1 with n=13,m=28 from:
            Charles J.Colbourn, Jeffrey H. Dinitz, Mieczyslaw Wojtas,
            Thwarts in transversal designs,
@@ -658,7 +659,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
         ....:     OA = thwart_lemma_3_5(k,n,m,a,b,c,d,complement=True)      # not tested -- too long
         ....:     assert is_orthogonal_array(OA,k,n*m+a+b+c+d,verbose=True) # not tested -- too long
 
-        sage: print designs.orthogonal_arrays.explain_construction(10,1046)
+        sage: print(designs.orthogonal_arrays.explain_construction(10,1046))
         Lemma 3.5 with n=13,m=79,a=9,b=1,c=0,d=9 from:
            Charles J.Colbourn, Jeffrey H. Dinitz, Mieczyslaw Wojtas,
            Thwarts in transversal designs,
@@ -770,7 +771,7 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
 
     EXAMPLE::
 
-        sage: print designs.orthogonal_arrays.explain_construction(10,408)
+        sage: print(designs.orthogonal_arrays.explain_construction(10,408))
         Lemma 4.1 with n=13,m=28 from:
            Charles J.Colbourn, Jeffrey H. Dinitz, Mieczyslaw Wojtas,
            Thwarts in transversal designs,
@@ -965,7 +966,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
         sage: is_orthogonal_array(OA,10,8*9*9)   # long time
         True
 
-        sage: print designs.orthogonal_arrays.explain_construction(10,648)
+        sage: print(designs.orthogonal_arrays.explain_construction(10,648))
         Three-factor product with n=8.9.9 from:
            Peter J. Dukes, Alan C.H. Ling,
            A three-factor product construction for mutually orthogonal latin squares,
@@ -1367,7 +1368,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
         sage: k,q,t=5,4,8; _=brouwer_separable_design(k,t,q,q**2,verbose=True,check=True)
         Case vi) with k=5,q=4,t=8,x=16,e3=0,e4=1
 
-        sage: print designs.orthogonal_arrays.explain_construction(10,189)
+        sage: print(designs.orthogonal_arrays.explain_construction(10,189))
         Brouwer's separable design construction with t=9,q=4,x=0 from:
            Andries E. Brouwer,
            A series of separable designs with application to pairwise orthogonal Latin squares
@@ -1466,7 +1467,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
     if x == 0:
 
         if verbose:
-            print "Case i) with k={},q={},t={},x={}".format(k,q,t,x)
+            print("Case i) with k={},q={},t={},x={}".format(k, q, t, x))
 
         # 1) We build a resolvable OA(k-1,t)-t.OA(k-1,1).
         #    With it, from every parallel class with blocks of size t we build a
@@ -1522,7 +1523,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
           orthogonal_array( k+1,t+q+1,existence=True)):
 
         if verbose:
-            print "Case ii) with k={},q={},t={},x={},e3={}".format(k,q,t,x,e3)
+            print("Case ii) with k={},q={},t={},x={},e3={}".format(k,q,t,x,e3))
 
         # The sets of size t:
         #
@@ -1562,7 +1563,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
           orthogonal_array(k+e2, t+1 ,existence=True) and # d2-e2
           orthogonal_array(k+1 , t+q ,existence=True)):   # d3-e1
         if verbose:
-            print "Case iii) with k={},q={},t={},x={},e2={}".format(k,q,t,x,e2)
+            print("Case iii) with k={},q={},t={},x={},e2={}".format(k,q,t,x,e2))
 
         OA = []
 
@@ -1602,7 +1603,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
           orthogonal_array(k+ 1,t+q+1,existence=True)):   # d4-1
 
         if verbose:
-            print "Case iv) with k={},q={},t={},x={},e4={}".format(k,q,t,x,e4)
+            print("Case iv) with k={},q={},t={},x={},e4={}".format(k,q,t,x,e4))
 
         # Sets of size t:
         #
@@ -1646,7 +1647,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
           orthogonal_array(k+e2,t+1,existence=True) and # d2-e2
           orthogonal_array(k+1,t+q,existence=True)):   # d3-1
         if verbose:
-            print "Case v) with k={},q={},t={},x={},e1={},e2={}".format(k,q,t,x,e1,e2)
+            print("Case v) with k={},q={},t={},x={},e1={},e2={}".format(k,q,t,x,e1,e2))
 
         OA = []
 
@@ -1695,7 +1696,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
           orthogonal_array(k+e4,t+1 ,existence=True) and # d2-e4
           orthogonal_array(k+1,t+q+1,existence=True)):    # d4-1
         if verbose:
-            print "Case vi) with k={},q={},t={},x={},e3={},e4={}".format(k,q,t,x,e3,e4)
+            print("Case vi) with k={},q={},t={},x={},e3={},e4={}".format(k,q,t,x,e3,e4))
 
         OA = []
 

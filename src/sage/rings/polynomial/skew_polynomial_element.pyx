@@ -209,14 +209,6 @@ def is_SkewPolynomial(a):
     return type(a) is SkewPolynomial
 #    return PY_TYPE_CHECK(a, SkewPolynomial)
 
-
-cdef class CenterSkewPolynomial_generic_dense(Polynomial_generic_dense):
-    """
-    A class for elements in the center of a skew polynomial ring.
-    """
-    pass
-
-
 cdef class SkewPolynomial(AlgebraElement):
     """
     A skew polynomial.

@@ -946,8 +946,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         for top in range(n):
             interval = H.principal_order_ideal(top)
             for e in interval:
-                for e_ in interval:
-                    if mt[e, e_] == bottom and jn[e, e_] == top:
+                for f in interval:
+                    if mt[e, f] == bottom and jn[e, f] == top:
                         break
                 else:
                     if certificate:

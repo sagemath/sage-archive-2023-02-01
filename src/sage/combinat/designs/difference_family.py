@@ -34,7 +34,7 @@ REFERENCES:
    difference sets" J. Combinatorial Theory (A) (1984).
 
 .. [Wi72] \R. M. Wilson "Cyclotomy and difference families in elementary Abelian
-   groups", J. of Num. Th., 4 (1972), pp. 17-47.
+   groups", J. of Number Theory, 4 (1972), pp. 17-47.
 
 Functions
 ---------
@@ -1088,7 +1088,7 @@ def mcfarland_1973_construction(q, s):
 
     .. [McF1973] Robert L. McFarland
        "A family of difference sets in non-cyclic groups"
-       Journal of Combinatorial Theory (A) vol 15 (1973).
+       J. of Combinatorial Theory (A) vol 15 (1973).
        http://dx.doi.org/10.1016/0097-3165(73)90031-9
 
     EXAMPLES::

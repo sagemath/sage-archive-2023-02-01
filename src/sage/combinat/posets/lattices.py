@@ -879,8 +879,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return True
 
     def is_sectionally_complemented(self, certificate=False):
-        """
-        Return ``True`` if the lattice is sectionally complemented, and
+        """Return ``True`` if the lattice is sectionally complemented, and
         ``False`` otherwise.
 
         A lattice is sectionally complemented if all intervals from
@@ -889,11 +888,16 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         INPUT:
 
-        - ``certificate``, a Boolean -- If ``False`` (the default), return
-          only truth value. If ``True``, return either
-          ``(True, None, None)`` or ``(False, t, e)``, where `t` is an
-          element so that in the sublattice from the bottom element to `t`
-          has no complement for element `e`.
+        - ``certificate`` -- (default: ``False``) Whether to return
+          a certificate if the lattice is not sectionally complemented.
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None, None)``
+          or ``(False, t, e)``, where `t` is an element so that in the
+          sublattice from the bottom element to `t` has no complement
+          for element `e`. If ``certificate=False`` return ``True`` or
+          ``False``.
 
         EXAMPLES:
 

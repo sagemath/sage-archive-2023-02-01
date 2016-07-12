@@ -595,12 +595,12 @@ libraries. Here is a small example::
     cdef sage.rings.finite_field_givaro.FiniteField_givaroElement y
     x = K(3)
     y = K(6)
-    print("x is a ".format(type(x)))
-    print("x = ".format(x))
-    print("y = ".format(y))
-    print("x has multiplicative order = ".format(x.multiplicative_order()))
-    print("y has multiplicative order = ".format(y.multiplicative_order()))
-    print("x*y = ".format(x * y))
+    print("x is a {}".format(type(x)))
+    print("x = {}".format(x))
+    print("y = {}".format(y))
+    print("x has multiplicative order = {}".format(x.multiplicative_order()))
+    print("y has multiplicative order = {}".format(y.multiplicative_order()))
+    print("x*y = {}".format(x * y))
     # Show that x behaves like a finite field element:
     for i in range(1, x.multiplicative_order() + 1):
         print("{} {}".format(i, x**i))

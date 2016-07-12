@@ -50,6 +50,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if every element of the lattice has at least one complement.
     :meth:`~FiniteLatticePoset.is_relatively_complemented` | Return ``True`` if every interval of the lattice is complemented.
     :meth:`~FiniteLatticePoset.is_pseudocomplemented` | Return ``True`` if every element of the lattice has a pseudocomplement.
+    :meth:`~FiniteLatticePoset.is_orthocomplemented` | Return ``True`` if the lattice has an orthocompletion.
     :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
     :meth:`~FiniteLatticePoset.is_planar` | Return ``True`` if the lattice has an upward planar drawing.
     :meth:`~FiniteLatticePoset.is_dismantlable` | Return ``True`` if the lattice is dismantlable.
@@ -1080,6 +1081,61 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         H = self._hasse_diagram
         return all(H.pseudocomplement(e) is not None for e in H)
+
+    def is_orthocomplemented(self, unique=False):
+        """
+        Return ``True`` if the lattice admits an orthocomplementation, and
+        ``False`` otherwise.
+
+        An orthocomplementation of a lattice is a function defined for
+        every element `e` and marked as `e^{\\bot}` such that
+        1) they are complements, i.e. `e \\vee e^{\\bot}` is the top element
+        and `e \wedge e^{\\bot}` is the bottom element, 2) it is involution,
+        i.e. `{(e^{\\bot})}^{\\bot} = e`, and 3) it is order-reversing, i.e.
+        if `a < b` then `b^{\\bot} < a^{\\bot}`.
+
+        INPUT:
+
+        - ``unique``, a Boolean -- If ``True``, return ``True`` only
+          if the lattice has exactly one orthocomplementation. If
+          ``False`` (the default), return ``True`` when the lattice
+          has at least one orthocomplementation.
+
+        EXAMPLES::
+
+            sage: D5 = Posets.DiamondPoset(5)
+            sage: D5.is_orthocomplemented()
+            False
+
+            sage: D6 = Posets.DiamondPoset(6)
+            sage: D6.is_orthocomplemented()
+            True
+            sage: D6.is_orthocomplemented(unique=True)
+            False
+
+            sage: hexagon = LatticePoset({0:[1, 2], 1:[3], 2:[4], 3:[5], 4:[5]})
+            sage: hexagon.is_orthocomplemented(unique=True)
+            True
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_orthocomplemented() for i in range(4)]
+            [True, True, True, False]
+        """
+        it = self._hasse_diagram.orthocomplementations_iterator()
+        n = 0
+        try:
+            _ = it.next()
+            n = 1
+            _ = it.next()
+            n = 2
+        except StopIteration:
+            pass
+        if unique and n == 1:
+            return True
+        if not unique and n > 0:
+            return True
+        return False
 
     def is_atomic(self):
         r"""

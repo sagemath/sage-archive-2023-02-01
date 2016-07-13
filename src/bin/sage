@@ -365,7 +365,7 @@ sage_setup() {
     fi
 
     # Display the startup banner
-    echo $SAGE_BANNER_TEXT
+    echo "$SAGE_BANNER_TEXT"
 
     maybe_sage_location
 

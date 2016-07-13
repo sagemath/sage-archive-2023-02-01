@@ -103,4 +103,4 @@ This is a file used to manually test terminal and interrupt handling::
     99
     sage: import time
     sage: time.sleep(10)
-    sage: raise RuntimeError
+    sage: raise RuntimeError          # not tested

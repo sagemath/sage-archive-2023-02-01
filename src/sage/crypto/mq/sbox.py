@@ -1303,10 +1303,10 @@ class SBox(SageObject):
 
         m = self.m
 
-        if m & 1 == 0:
-            raise TypeError("almost bent function only defined for an odd size S-Box")
+        if is_even(m):
+            return False
 
-        return (self.nonlinearity() == (1<<(m-1)) - (1<<((m-1)>>1)))
+        return self.nonlinearity() == 2**(m-1) - 2**((m-1)/2)
 
     def fixed_points(self):
         """
@@ -1420,10 +1420,8 @@ class SBox(SageObject):
         m = self.m
         n = self.n
 
-        if not is_even(m):
-            raise ValueError("Bent S-Box exists only when input size is even.")
-        if (n > (m >> 1)):
-            raise ValueError("Bent mxn S-Box exists only when n <= m/2")
+        if not is_even(m) or n > m/2:
+            return False
 
         return self.nonlinearity() == 2**(m-1) - 2**(m/2 - 1)
 
@@ -1475,17 +1473,15 @@ def feistel_construction(sboxes):
     if not isinstance(sboxes, (list, tuple)):
         raise TypeError("feistel_construction() takes a list/tuple of SBoxes as input")
 
-    Nr = len(sboxes)
     b = sboxes[0].m
     m = 2*b
 
     def substitute(x):
-        xl = (x>>b) & ((1<<b)-1)
-        xr = x & ((1<<b)-1)
-        for r in xrange(Nr):
-            prev_xl = xl
-            xl = sboxes[r](xl) ^ xr
-            xr = prev_xl
+        mask = (1<<b) - 1
+        xl = (x>>b) & mask
+        xr = x & mask
+        for sb in sboxes:
+            xl, xr = sb(xl) ^ xr, xl
         return (xl<<b) | xr
 
     return SBox([substitute(i) for i in xrange(1<<m)])
@@ -1521,17 +1517,15 @@ def misty_construction(sboxes):
     if not isinstance(sboxes, (list, tuple)):
         raise TypeError("misty_construction() takes a list/tuple of SBoxes as input")
 
-    Nr = len(sboxes)
     b = sboxes[0].m
     m = 2*b
 
     def substitute(x):
-        xl = (x>>b) & ((1<<b)-1)
-        xr = x & ((1<<b)-1)
-        for r in xrange(Nr):
-            prev_xl = xl
-            xl = sboxes[r](xr) ^ xl
-            xr = prev_xl
+        mask = (1<<b) - 1
+        xl = (x>>b) & mask
+        xr = x & mask
+        for sb in sboxes:
+            xl, xr = sb(xr) ^ xl, xl
         return (xl<<b) | xr
 
     return SBox([substitute(i) for i in xrange(1<<m)])

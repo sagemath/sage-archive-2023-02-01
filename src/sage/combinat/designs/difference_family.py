@@ -22,19 +22,19 @@ REFERENCES:
    University Press, (1999).
 
 .. [Bo39] \R. C. Bose, "On the construction of balanced incomplete block
-   designs", Ann. Eugenics, vol. 9, (1939), 353--399.
+   designs", Ann. Eugenics, 9 (1939), 353--399.
 
-.. [Bu95] \M. Buratti "On simple radical difference families", J. of
-   Combinatorial Designs, vol. 3, no. 2 (1995)
+.. [Bu95] \M. Buratti "On simple radical difference families", J.
+   Combinatorial Designs, 3 (1995) 161--168.
 
 .. [Tu1965] \R. J. Turyn "Character sum and difference sets"
-   Pacific J. of Math. 15 (1965).
+   Pacific J. Math. 15 (1965) 319--346.
 
 .. [Tu1984] \R. J. Turyn "A special class of Williamson matrices and
-   difference sets" J. Combinatorial Theory (A) (1984).
+   difference sets" J. Combinatorial Theory (A) 36 (1984) 111--115.
 
 .. [Wi72] \R. M. Wilson "Cyclotomy and difference families in elementary Abelian
-   groups", J. of Number Theory, 4 (1972), pp. 17-47.
+   groups", J. Number Theory, 4 (1972) 17--47.
 
 Functions
 ---------
@@ -1088,7 +1088,7 @@ def mcfarland_1973_construction(q, s):
 
     .. [McF1973] Robert L. McFarland
        "A family of difference sets in non-cyclic groups"
-       J. of Combinatorial Theory (A) vol 15 (1973).
+       J. Combinatorial Theory (A) 15 (1973) 1--10.
        http://dx.doi.org/10.1016/0097-3165(73)90031-9
 
     EXAMPLES::

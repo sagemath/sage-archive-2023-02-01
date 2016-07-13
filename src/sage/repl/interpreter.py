@@ -103,6 +103,7 @@ import os
 import re
 import sys
 from sage.repl.preparse import preparse
+from sage.repl.prompts import SagePrompts, InterfacePrompts
 
 from traitlets.config.loader import Config
 from traitlets import Bool, Type
@@ -371,11 +372,6 @@ class SageTestShell(SageShellOverride, TerminalInteractiveShell):
 ###################################################################
 
 DEFAULT_SAGE_CONFIG = Config(
-    PromptManager = Config(
-        in_template = 'sage: ',
-        in2_template = '....: ',
-        justify = False,
-        out_template = ''),
     TerminalIPythonApp = Config(
         display_banner = False,
         verbose_crash = True,
@@ -383,6 +379,7 @@ DEFAULT_SAGE_CONFIG = Config(
         shell_class = SageTerminalInteractiveShell,
     ),
     InteractiveShell = Config(
+        prompts_class = SagePrompts,
         ast_node_interactivity = 'all',
         colors = 'LightBG' if sys.stdout.isatty() else 'NoColor',
         confirm_exit = False,
@@ -616,13 +613,11 @@ def interface_shell_embed(interface):
         cfg = copy.deepcopy(get_ipython().config)
     except NameError:
         cfg = copy.deepcopy(DEFAULT_SAGE_CONFIG)
-    cfg.PromptManager['in_template'] = interface.name() + ': '
-    cfg.PromptManager['in2_template'] = len(interface.name())*'.' + ': '
-
     ipshell = InteractiveShellEmbed(config=cfg,
                                     banner1='\n  --> Switching to %s <--\n\n'%interface,
                                     exit_msg = '\n  --> Exiting back to Sage <--\n')
     ipshell.interface = interface
+    ipshell.prompts = InterfacePrompts(interface.name())
 
     while ipshell.prefilter_manager.transformers:
         ipshell.prefilter_manager.transformers.pop()

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Graph Plotting
 
@@ -190,6 +191,7 @@ from sage.structure.sage_object import SageObject
 from sage.plot.all import Graphics, scatter_plot, bezier_path, line, arrow, text, circle
 from sage.misc.decorators import options
 from math import sqrt, cos, sin, atan, pi
+from six import text_type as str
 
 DEFAULT_SHOW_OPTIONS = {
     "figsize"             : [4,4]
@@ -336,6 +338,10 @@ class GraphPlot(SageObject):
             sage: set(map(type, flatten(gp._pos.values())))
             {<type 'float'>}
 
+        Non-ascii labels are also possible using unicode (:trac:`21008`)::
+
+            sage: Graph({u'où': [u'là', u'ici']}).plot()
+            Graphics object consisting of 6 graphics primitives
         """
         self._pos = self._graph.layout(**self._options)
         # make sure the positions are floats (trac #10124)

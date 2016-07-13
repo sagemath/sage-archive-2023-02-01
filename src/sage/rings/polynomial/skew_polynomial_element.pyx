@@ -820,7 +820,6 @@ cdef class SkewPolynomial(AlgebraElement):
     def __nonzero__(self):
         return self.degree() >= 0
 
-
     def is_unit(self):
         """
         Return True if this skew polynomial is a unit.
@@ -828,7 +827,6 @@ cdef class SkewPolynomial(AlgebraElement):
         Not yet implemented.
         """
         raise NotImplementedError
-
 
     def is_monic(self):
         """

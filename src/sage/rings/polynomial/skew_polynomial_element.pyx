@@ -112,9 +112,9 @@ Here is a working example over a finite field::
     sage: b = (2*t^2 + 3)*x^2 + (3*t^2 + 1)*x + 4*t + 2
     sage: q,r = a.quo_rem(b,side=Left)
     sage: q
-    (4*t^2 + t + 1)*x^2 + (2*t^2 + 2*t + 2)*x + 2*t^2 + 4*t + 3
+    (4*t^2 + 2*t + 1)*x^2 + (t^2 + 2*t + 4)*x + 2*t^2 + 3*t + 3
     sage: r
-    (t + 2)*x + 3*t^2 + 2*t + 4
+    (3*t^2 + 3*t + 1)*x + 2*t^2 + 4*t + 4
     sage: a == b*q + r
     True
 
@@ -832,9 +832,23 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         Return True if this skew polynomial is a unit.
 
-        Not yet implemented.
+        .. NOTE::
+            
+            When the base ring R is an integral domain, then a skew
+            polynomial ``f`` is a unit if and only if degree of f is 
+            0 and f is then a unit in R. The general case is not yet
+            implemented.
         """
-        raise NotImplementedError
+        # todo: Sage does not yet have support for finding order of
+        #       automorphisms. Once that is available, general case can
+        #       be implemented.
+        if self._parent.base_ring().is_integral_domain():
+            if self.degree() == 0 and self[0].is_unit():
+                return True
+            else:
+                return False
+        else:
+            raise NotImplementedError
 
     def is_monic(self):
         """

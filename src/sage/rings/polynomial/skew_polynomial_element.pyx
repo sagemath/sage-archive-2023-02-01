@@ -126,13 +126,9 @@ This class provides an implementation of gcd and lcm::
     sage: a = (x + t) * (x + t^2)^2
     sage: b = (x + t) * (t*x + t + 1) * (x + t^2)
     sage: a.gcd(b)  # default side is right
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: the leading coefficient of the divisor is not invertible
+    x + t^2
     sage: a.gcd(b,side=Left)
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: the leading coefficient of the divisor is not invertible
+    x + t
 
 For lcm, the default side is left but be very careful: by
 convention, a left (resp. right) lcm is common multiple on
@@ -323,8 +319,20 @@ cdef class SkewPolynomial(AlgebraElement):
                 return c
         return 0
 
-    def __cmp__(self, other):
-        return self._cmp_(other)
+    def __hash__(self):
+        """
+        Return hash of the `self`
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: a = 1 + x^4 + (t+1)*x^2 + t^2
+            sage: h = hash(a); h
+            -1717348446110052408
+        """
+        return self._hash_c()
 
     cdef SkewPolynomial _new_c(self,list coeffs,Parent P,char check=0):
         """
@@ -1175,7 +1183,7 @@ cdef class SkewPolynomial(AlgebraElement):
         if da < db:
             r = self._new_c([],parent), self
             sig_off()
-            return 
+            return r
         try:
             inv = self.base_ring()(~b[db])
         except (ZeroDivisionError, TypeError):

@@ -3160,8 +3160,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: bl == b.rem(modulus,side=Left)
             True
 
-            sage: a._pow_(10^100,modulus)  # quite fast
-            (3*t^2 + 3)*x^2 + (t^2 + 2*t + 4)*x + 4*t^2 + 2*t + 1
+            sage: a._pow_(100,modulus)  # quite fast
+            (2*t^2 + 3)*x^2 + (t^2 + 4*t + 2)*x + t^2 + 2*t + 1
         """
         sig_on()
         cdef SkewPolynomial_generic_dense r
@@ -3195,12 +3195,15 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         else:
             r = <SkewPolynomial_generic_dense>self._new_c(list(self.__coeffs),self._parent)
             r._inplace_pow(exp)
+#            r = r**(exp)
 
         if modulus:
             if side == Right:
-                r._inplace_rrem(modulus)
+                r = r.rem(modulus, side=Right)
+#                r._inplace_rrem(modulus)
             else:
-                r._inplace_lrem(modulus)
+                r = r.rem(modulus, side=Left)
+#                r._inplace_lrem(modulus)
         sig_off()
         return r
 

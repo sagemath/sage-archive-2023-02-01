@@ -894,11 +894,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         OUTPUT:
 
-        - If ``certificate=True`` return either ``(True, None)``
+        - If ``certificate=False`` return ``True`` or ``False``.
+          If ``certificate=True`` return either ``(True, None)``
           or ``(False, (t, e))``, where `t` is an element so that in the
           sublattice from the bottom element to `t` has no complement
-          for element `e`. If ``certificate=False`` return ``True`` or
-          ``False``.
+          for element `e`.
 
         EXAMPLES:
 

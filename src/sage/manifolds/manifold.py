@@ -328,6 +328,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.categories.fields import Fields
 from sage.categories.manifolds import Manifolds
@@ -1333,7 +1334,7 @@ class TopologicalManifold(ManifoldSubset):
             Chart (M, (u, v))
 
         """
-        from chart import Chart
+        from .chart import Chart
         if not isinstance(chart, Chart):
             raise TypeError("{} is not a chart".format(chart))
         if chart._domain is not self:

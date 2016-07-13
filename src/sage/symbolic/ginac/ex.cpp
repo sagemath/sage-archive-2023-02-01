@@ -413,6 +413,11 @@ static bool match_monom(const ex& term, const symbol& symb, ex& expo, ex& coef)
         }
         if (is_exactly_a<power>(term)) {
                 const power& p = ex_to<power>(term);
+                if (p.op(1).has(symb)) {
+                        expo = _ex0;
+                        coef = term;
+                        return true;
+                }
                 if (p.op(0).is_equal(symb)) {
                         expo = p.op(1);
                         coef = _ex1;
@@ -425,6 +430,11 @@ static bool match_monom(const ex& term, const symbol& symb, ex& expo, ex& coef)
                 for (const auto& mterm : term) {
                         if (is_exactly_a<power>(mterm)) {
                                 const power& p = ex_to<power>(mterm);
+                                if (p.op(1).has(symb)) {
+                                        expo = _ex0;
+                                        coef = term;
+                                        return true;
+                                }
                                 if (p.op(0).is_equal(symb)) {
                                         expo = p.op(1);
                                         coef = ex_to<mul>(term).without_known_factor(mterm);
@@ -451,8 +461,16 @@ void ex::coefficients(const ex & s, expairvec & vec) const
 
         symbol symb;
         exmap submap {{s, symb}}, revmap {{symb, s}};
-        ex sub = expand().subs(submap);
+        ex sub = subs(submap);
+        {
+                ex expo, coef;
+                if (match_monom(sub, symb, expo, coef)) {
+                        vec.push_back(std::make_pair(coef.subs(revmap), expo.subs(revmap)));
+                        return;
+                }
+        }
 
+        sub = sub.expand();
         if (is_exactly_a<power>(s)) {
                 ex m = sub.coeff(symb);
                 vec.push_back(std::make_pair((sub - m*symb).subs(revmap), _ex0));

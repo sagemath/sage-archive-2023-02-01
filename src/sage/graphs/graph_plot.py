@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Graph Plotting
 
@@ -337,7 +338,7 @@ class GraphPlot(SageObject):
 
         Non-ascii labels are also possible using unicode (:trac:`21008`)::
 
-            sage: Graph({u'Б':[u'à',2]}).plot()
+            sage: Graph({u'où': [u'là', u'ici']}).plot()
             Graphics object consisting of 6 graphics primitives
         """
         self._pos = self._graph.layout(**self._options)

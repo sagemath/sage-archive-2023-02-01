@@ -318,9 +318,6 @@ cdef class SkewPolynomial(AlgebraElement):
         sig_off()
         return 0
 
-    def __cmp__(self, other):
-        return self._cmp_(other)
-
     def __hash__(self):
         """
         Return hash of the `self`

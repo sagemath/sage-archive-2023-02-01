@@ -456,7 +456,56 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         s = 'PolynomialRing(%s,%s,%s)'%(Bref, self.ngens(), self.term_order().magma_str())
         return magma._with_names(s, self.variable_names())
 
+    def _gap_init_(self, gap=None):
+        """
+        Return a string that yields a representation of ``self`` in GAP.
+
+        INPUT:
+
+        ``gap`` -- (optional GAP instance) Interface to which the
+                   string is addressed.
+
+        NOTE:
+
+        - If the optional argument ``gap`` is provided, the base ring
+          of ``self`` will be represented as ``gap(self.base_ring()).name()``.
+        - The result of applying the GAP interface to ``self`` is cached.
+
+        EXAMPLE::
+
+            sage: F = CyclotomicField(8)
+            sage: P.<x,y> = F[]
+            sage: gap(P)     # indirect doctest
+            PolynomialRing( CF(8), ["x", "y"] )
+            sage: libgap(P)
+            <field in characteristic 0>[x,y]
+        """
+        L = ['"%s"'%t for t in self.variable_names()]
+        if gap is not None:
+            return 'PolynomialRing(%s,[%s])'%(gap(self.base_ring()).name(),','.join(L))
+        return 'PolynomialRing(%s,[%s])'%(self.base_ring()._gap_init_(),','.join(L))
+
     def is_finite(self):
+        """
+        Tell whether ``self`` is finite.
+
+        NOTE:
+
+        ``self`` is finite if and only if it has no variables
+        and the base ring is finite.
+
+        EXAMPLES::
+
+            sage: P = PolynomialRing(QQ,names=[])
+            sage: P.is_finite()
+            False
+            sage: P = PolynomialRing(GF(5),names=[])
+            sage: P.is_finite()
+            True
+            sage: P = PolynomialRing(GF(5),names=['x'])
+            sage: P.is_finite()
+            False
+        """
         if self.ngens() == 0:
             return self.base_ring().is_finite()
         return False

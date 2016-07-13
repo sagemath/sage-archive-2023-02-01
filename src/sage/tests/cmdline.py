@@ -52,9 +52,9 @@ AUTHORS:
 - Jeroen Demeyer (2010-11-20): initial version (#10300)
 
 """
-
 from subprocess import *
-import os, select
+import os
+import select
 
 
 def test_executable(args, input="", timeout=100.0, **kwds):
@@ -499,7 +499,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ....:         os.open(os.ctermid(), os.O_RDONLY)
         ....:         return True
         ....:     except OSError:
-        ....:         return False 
+        ....:         return False
         sage: (out, err, ret) = test_executable(["sage", "--ecl"], "(* 12345 54321)\n")
         sage: out.find("Embeddable Common-Lisp") >= 0
         True
@@ -744,14 +744,18 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     p.stdin.close()
     fdout = p.stdout.fileno()
     fderr = p.stderr.fileno()
-    out = ""; err = ""
+    out = ""
+    err = ""
 
     while True:
         # Try reading from fdout and fderr
         rfd = []
-        if fdout: rfd.append(fdout)
-        if fderr: rfd.append(fderr)
-        if len(rfd) == 0: break
+        if fdout:
+            rfd.append(fdout)
+        if fderr:
+            rfd.append(fderr)
+        if len(rfd) == 0:
+            break
         rlist = select.select(rfd, [], [], timeout)[0]
 
         if len(rlist) == 0:
@@ -760,11 +764,13 @@ def test_executable(args, input="", timeout=100.0, **kwds):
             raise RuntimeError("timeout in test_executable()")
         if fdout in rlist:
             s = os.read(fdout, 1024)
-            if s == "": fdout = None   # EOF
+            if s == "":
+                fdout = None   # EOF
             out += s
         if fderr in rlist:
             s = os.read(fderr, 1024)
-            if s == "": fderr = None   # EOF
+            if s == "":
+                fderr = None   # EOF
             err += s
 
     return (out, err, p.wait())

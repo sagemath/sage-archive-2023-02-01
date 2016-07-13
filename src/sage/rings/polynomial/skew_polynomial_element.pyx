@@ -126,13 +126,9 @@ This class provides an implementation of gcd and lcm::
     sage: a = (x + t) * (x + t^2)^2
     sage: b = (x + t) * (t*x + t + 1) * (x + t^2)
     sage: a.gcd(b)  # default side is right
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: the leading coefficient of the divisor is not invertible
+    x + t^2
     sage: a.gcd(b,side=Left)
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: the leading coefficient of the divisor is not invertible
+    x + t
 
 For lcm, the default side is left but be very careful: by
 convention, a left (resp. right) lcm is common multiple on

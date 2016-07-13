@@ -1265,7 +1265,7 @@ cdef class SkewPolynomial(AlgebraElement):
         if da < db:
             r = self._new_c([],parent), self
             sig_off()
-            return 
+            return r
         try:
             inv = self.base_ring()(~b[db])
         except (ZeroDivisionError, TypeError):

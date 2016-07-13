@@ -603,10 +603,11 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from collections import MutableMapping
 from itertools import product
-from parser import Parser
+from .parser import Parser
 from sage.misc.latex import latex
 from sage.misc.misc import powerset
 from sage.rings.all import QQ

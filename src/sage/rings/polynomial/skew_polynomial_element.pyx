@@ -108,7 +108,7 @@ Here is a working example over a finite field::
     sage: k.<t> = GF(5^3)
     sage: Frob = k.frobenius_endomorphism()
     sage: S.<x> = k['x',Frob]
-    sage: a = x^4 + (4*t + 1)*x^3 + (t^2 + 3*t + 3)*x^2 + (3*t^2 + 2*t + 2)*x + 3*t^2 + 3*t + 1
+    sage: a = x^4 + (4*t + 1)*x^3 + (t^2 + 3*t + 3)*x^2 + (3*t^2 + 2*t + 2)*x + (3*t^2 + 3*t + 1)
     sage: b = (2*t^2 + 3)*x^2 + (3*t^2 + 1)*x + 4*t + 2
     sage: q,r = a.quo_rem(b,side=Left)
     sage: q
@@ -126,9 +126,13 @@ This class provides an implementation of gcd and lcm::
     sage: a = (x + t) * (x + t^2)^2
     sage: b = (x + t) * (t*x + t + 1) * (x + t^2)
     sage: a.gcd(b)  # default side is right
-    x + t^2
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: the leading coefficient of the divisor is not invertible
     sage: a.gcd(b,side=Left)
-    x + t
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: the leading coefficient of the divisor is not invertible
 
 For lcm, the default side is left but be very careful: by
 convention, a left (resp. right) lcm is common multiple on
@@ -206,7 +210,8 @@ def is_SkewPolynomial(a):
         sage: is_SkewPolynomial(a)
         True
     """
-    return type(a) is SkewPolynomial
+    return isinstance(a, SkewPolynomial)
+#    return type(a) is SkewPolynomial
 #    return PY_TYPE_CHECK(a, SkewPolynomial)
 
 cdef class SkewPolynomial(AlgebraElement):
@@ -318,20 +323,18 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def __hash__(self):
         """
-        TODO: Make the real test
-        TESTS::
+        Return hash of the `self`
 
-            sage: X.<x> = InfinitePolynomialRing(QQ)
-            sage: a = x[0] + x[1]
-            sage: hash(a) # indirect doctest
-            -6172640511012239345   # 64-bit
-            -957478897             # 32-bit
+        EXAMPLES::
 
-            971115012877883067 # 64-bit
-            -2103273797        # 32-bit
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: a = 1 + x^4 + (t+1)*x^2 + t^2
+            sage: h = hash(a); h
+            -1717348446110052408
         """
-        return hash(self.__coeffs)
- 
+        return self._hash_c()
 
 
     # Some c functions
@@ -443,14 +446,14 @@ cdef class SkewPolynomial(AlgebraElement):
             0
         """
         try:
-            sig_on()
+#            sig_on()
             l = (<SkewPolynomial>self)._list_c()[n]
-            sig_off()
+#            sig_off()
             return l
         except IndexError:
-            sig_on()
+#            sig_on()
             c = self.base_ring()(0)
-            sig_off()
+#            sig_off()
             return c
 
 
@@ -528,8 +531,11 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S(0).degree()
             -1
         """
-        return len((<SkewPolynomial>self)._list_c())-1
-
+        if self == self.parent()(0):
+            degree = -1
+        else:
+            degree = len((<SkewPolynomial>self)._list_c())-1
+        return degree
 
     def valuation(self):
         """
@@ -551,10 +557,10 @@ cdef class SkewPolynomial(AlgebraElement):
             +Infinity
         """
         cdef list x = (<SkewPolynomial>self)._list_c()
-        if len(x) == 0:
+        if self == self.parent()(0):
             return infinity.infinity
         cdef Py_ssize_t v = 0
-        while x[v].is_zero():
+        while x[v].is_zero() and v < len(x):
             v += 1
         return v
 
@@ -827,7 +833,8 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: b = a.conjugate(-1)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
+                Defn: t |--> t + 1
 
         Here is a working example::
 
@@ -841,9 +848,9 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: u*y == y*v
             True
         """
-        sig_on()
+#        sig_on()
         r = self._new_c([ self._parent.twist_map(n)(x) for x in (<SkewPolynomial>self)._list_c() ], self._parent, 0)
-        sig_off()
+#        sig_off()
         return r
 
 
@@ -1173,35 +1180,40 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.lquo_rem(b)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+                Defn: t |--> t + 1
         """
-        sig_on()
+#        sig_on()
         cdef list a = list((<SkewPolynomial>self)._list_c())
         cdef list b = (<SkewPolynomial>other)._list_c()
         cdef Py_ssize_t i, j
         cdef Py_ssize_t da = self.degree(), db = other.degree()
         if db < 0:
-            sig_off()
+#            sig_off()
             raise ZeroDivisionError
         if da < db:
             r = self._new_c([],self._parent), self
-            sig_off()
+#            sig_off()
             return r
         try:
             inv = self.base_ring()(~b[db])
         except (ZeroDivisionError, TypeError):
-            sig_off()
+#            sig_off()
             raise NotImplementedError("the leading coefficient of the divisor is not invertible")
         cdef list q = [ ]
         parent = self._parent
         for i from da-db >= i >= 0:
-            c = parent.twist_map(-db)(inv*a[i+db])
-            for j from 0 <= j < db:
-                a[i+j] -= b[j] * parent.twist_map(j)(c)
+            try:
+                c = parent.twist_map(-db)(inv*a[i+db])
+                for j from 0 <= j < db:
+                    a[i+j] -= b[j] * parent.twist_map(j)(c)
+            except:
+#                print "Hello"
+                raise NotImplementedError("Inversion of the twist map %s" % parent.twist_map())
             q.append(c)
         q.reverse()
         r = self._new_c(q,parent), self._new_c(a[:db],parent,1)
-        sig_off()
+#        sig_off()
         return r
 
 
@@ -1313,7 +1325,8 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: q,r = a.quo_rem(b,side=Left)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+                Defn: t |--> t + 1
 
         In any case, the leading coefficient of the divisor need to be
         invertible::
@@ -1380,7 +1393,8 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.rem(b,side=Left)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+                Defn: t |--> t + 1
 
         In any case, the leading coefficient of the divisor need to be
         invertible::
@@ -1669,11 +1683,12 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.lxgcd(b)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
+                Defn: t |--> t^2
         """
-        sig_on()
+#        sig_on()
         if not isinstance(self.base_ring(),Field):
-            sig_off()
+#            sig_off()
             raise TypeError("the base ring must be a field")
         G = self
         U = self._parent(1)
@@ -1696,7 +1711,7 @@ cdef class SkewPolynomial(AlgebraElement):
             G = G*lc
             U = U*lc
             V = V*lc
-        sig_off()
+#        sig_off()
         return G,U,V
 
 
@@ -1760,9 +1775,9 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             TypeError: the base ring must be a field
         """
-        sig_on()
+#        sig_on()
         if not isinstance(self.base_ring(),Field):
-            sig_off()
+#            sig_off()
             raise TypeError("the base ring must be a field")
         G = self
         U = self._parent(1)
@@ -1784,7 +1799,9 @@ cdef class SkewPolynomial(AlgebraElement):
             G = lc*G
             U = lc*U
             V = lc*V
-        sig_off()
+#        sig_off()
+#        r = G, U, V
+#        return r
         return G,U,V
 
 
@@ -1876,7 +1893,8 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: g,u,v = a.xgcd(b,side=Left); g
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
+                Defn: t |--> t^2
         """
         if side == Right:
             return self.rxgcd(other,monic=monic)
@@ -1934,12 +1952,12 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             TypeError: the base ring must be a field
         """
-        sig_on()
+#        sig_on()
         if not isinstance(self.base_ring(),Field):
-            sig_off()
+#            sig_off()
             raise TypeError("the base ring must be a field")
         if other.is_zero():
-            sig_off()
+#            sig_off()
             return self
         A = self
         B = other
@@ -1947,7 +1965,7 @@ cdef class SkewPolynomial(AlgebraElement):
             A,B = B, A % B
         if monic:
             A = A.rmonic()
-        sig_off()
+#        sig_off()
         return A
 
 
@@ -2013,14 +2031,15 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.lgcd(b)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
+                Defn: t |--> t^2
         """
-        sig_on()
+#        sig_on()
         if not isinstance(self.base_ring(),Field):
-            sig_off()
+#            sig_off()
             raise TypeError("the base ring must be a field")
         if other.is_zero():
-            sig_off()
+#            sig_off()
             return self
         A = self
         B = other
@@ -2028,7 +2047,7 @@ cdef class SkewPolynomial(AlgebraElement):
             A,B = B, A.rem(B,side=Left)
         if monic:
             A = A.lmonic()
-        sig_off()
+#        sig_off()
         return A
 
 
@@ -2106,7 +2125,8 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.gcd(b,side=Left)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
+                Defn: t |--> t^2
         """
         if side == Right:
             return self.rgcd(other,monic=monic)
@@ -2173,9 +2193,9 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             TypeError: the base ring must be a field
         """
-        sig_on()
+#        sig_on()
         if not isinstance(self.base_ring(),Field):
-            sig_off()
+#            sig_off()
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
             raise ZeroDivisionError
@@ -2193,7 +2213,7 @@ cdef class SkewPolynomial(AlgebraElement):
         V1 = V1*self
         if monic:
             V1 = V1.rmonic()
-        sig_off()
+#        sig_off()
         return V1
 
 
@@ -2265,11 +2285,12 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.rlcm(b)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
+                Defn: t |--> t^2
         """
-        sig_on()
+#        sig_on()
         if not isinstance(self.base_ring(),Field):
-            sig_off()
+#            sig_off()
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
             raise ZeroDivisionError
@@ -2290,7 +2311,7 @@ cdef class SkewPolynomial(AlgebraElement):
         V1 = self*V1
         if monic:
             V1 = V1.lmonic()
-        sig_off()
+#        sig_off()
         return V1
 
 
@@ -2376,7 +2397,8 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.lcm(b,side=Right)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
+                Defn: t |--> t^2
         """
         if side == Right:
             return self.rlcm(other,monic=monic)
@@ -2638,7 +2660,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S.<x> = R['x',sigma]
             sage: a = x^2012 + t*x^1006 + t^3 + 2*t
             sage: a.dict()
-            {0: t^3 + 2*t, 2012: 1, 1006: t}
+            {0: t^3 + 2*t, 1006: t, 2012: 1}
         """
         X = {}
         Y = self.list()

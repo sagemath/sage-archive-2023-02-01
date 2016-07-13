@@ -102,6 +102,7 @@ EXAMPLES::
 #
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.homology.simplicial_complex import Simplex, SimplicialComplex
 from sage.matrix.constructor import matrix, zero_matrix
@@ -718,5 +719,5 @@ class SimplicialComplexMorphism(Morphism):
             True
             sage: h = Hom(S,S2)({0: 0, 1:1, 2:2}).induced_homology_morphism()
         """
-        from homology_morphism import InducedHomologyMorphism
+        from .homology_morphism import InducedHomologyMorphism
         return InducedHomologyMorphism(self, base_ring, cohomology)

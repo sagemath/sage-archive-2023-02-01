@@ -50,6 +50,7 @@ REFERENCES:
 - Chap. 16 of S. Lang: *Algebra*, 3rd ed., Springer (New York) (2002)
 
 """
+from __future__ import absolute_import
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
@@ -557,9 +558,9 @@ class TensorFreeModule(FiniteRankFreeModule):
             False
 
         """
-        from free_module_homset import FreeModuleHomset
-        from ext_pow_free_module import ExtPowerFreeModule
-        from free_module_linear_group import FreeModuleLinearGroup
+        from .free_module_homset import FreeModuleHomset
+        from .ext_pow_free_module import ExtPowerFreeModule
+        from .free_module_linear_group import FreeModuleLinearGroup
         if isinstance(other, FreeModuleHomset):
             # Coercion of an endomorphism to a type-(1,1) tensor:
             if self._tensor_type == (1,1):

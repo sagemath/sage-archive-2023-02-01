@@ -3977,9 +3977,9 @@ cdef class Matroid(SageObject):
         - ``k`` -- the length of the line minor
         - ``hyperlines`` -- (default: ``None``) a set of flats of codimension
           2. Defaults to the set of all flats of codimension 2.
-        - ``certificate`` (default: ``False``); If ``True`` returns ``True, F``,
+        - ``certificate`` -- (default: ``False``) if ``True`` returns ``(True, F)``,
           where ``F`` is a flat and ``self.minor(contractions=F)`` has a
-          `U_{2,k}` restriction or ``False, None``.
+          `U_{2,k}` restriction or ``(False, None)``.
 
         OUTPUT:
 

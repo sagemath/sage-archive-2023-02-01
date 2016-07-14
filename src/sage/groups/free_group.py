@@ -227,6 +227,17 @@ class FreeGroupElement(ElementLibGAP):
             x = AbstractWordTietzeWord(l, parent._gap_gens())
         ElementLibGAP.__init__(self, parent, x)
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: G.<a,b> = FreeGroup()
+            sage: hash(a*b*b*~a)
+            -485698212495963022 # 64-bit
+            -1876767630         # 32-bit
+        """
+        return hash(self.Tietze())
+
     def _latex_(self):
         """
         Return a LaTeX representation
@@ -627,8 +638,8 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
         else:
             names = list(names)
             n = len(names)
-    from sage.structure.parent import normalize_names
-    names = tuple(normalize_names(n, names))
+    from sage.structure.category_object import normalize_names
+    names = normalize_names(n, names)
     if index_set is not None or abelian:
         if abelian:
             from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
@@ -904,4 +915,4 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         from sage.groups.finitely_presented import FinitelyPresentedGroup
         return FinitelyPresentedGroup(self, tuple(map(self, relations) ) )
 
-    __div__ = quotient
+    __truediv__ = quotient

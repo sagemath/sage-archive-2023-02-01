@@ -100,7 +100,7 @@ cdef class LinearTensor(ModuleElement):
             sage: lt[1]
             2*x_0 + 5*x_3
         """
-        f = dict([key, value.__getitem__(indices)] for key, value in self._f.items())
+        f = dict([key, value[indices]] for key, value in self._f.items())
         LF = self.parent().linear_functions()
         return LF(f)
 
@@ -261,7 +261,7 @@ cdef class LinearTensor(ModuleElement):
             s += ']'
         return s
 
-    cpdef ModuleElement _add_(self, ModuleElement b):
+    cpdef _add_(self, b):
         r"""
         Return sum.
 
@@ -285,7 +285,7 @@ cdef class LinearTensor(ModuleElement):
             result[key] = self._f.get(key, 0) + coeff
         return self.parent()(result)
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         r"""
         Return the negative.
 
@@ -305,7 +305,7 @@ cdef class LinearTensor(ModuleElement):
             result[key] = -coeff
         return self.parent()(result)
 
-    cpdef ModuleElement _sub_(self, ModuleElement b):
+    cpdef _sub_(self, b):
         r"""
         Return difference.
 
@@ -331,7 +331,7 @@ cdef class LinearTensor(ModuleElement):
             result[key] = self._f.get(key, 0) - coeff
         return self.parent()(result)
 
-    cpdef ModuleElement _rmul_(self, RingElement b):
+    cpdef _rmul_(self, RingElement b):
         r"""
         Return right multiplication by scalar.
 
@@ -355,7 +355,7 @@ cdef class LinearTensor(ModuleElement):
             result[key] = b * coeff
         return self.parent()(result)
 
-    cdef _richcmp(left, right, int op):
+    def __richcmp__(left, right, int op):
         """
         Create an inequality or equality object.
 
@@ -454,7 +454,7 @@ cdef class LinearTensor(ModuleElement):
         # see _cmp_() if you want to change the hash function
         return hash_by_id(<void *> self)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Implement comparison of two linear functions.
 

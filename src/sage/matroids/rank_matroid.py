@@ -49,6 +49,7 @@ AUTHORS:
 Methods
 =======
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 Rudi Pendavingh <rudi.pendavingh@gmail.com>
 #       Copyright (C) 2013 Stefan van Zwam <stefanvanzwam@gmail.com>
@@ -59,7 +60,7 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from matroid import Matroid
+from .matroid import Matroid
 
 
 class RankMatroid(Matroid):
@@ -252,7 +253,7 @@ class RankMatroid(Matroid):
             sage: M1 != M4
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     # Copying, loading, saving:
 

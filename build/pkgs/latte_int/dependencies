@@ -1,4 +1,4 @@
-$(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(NTL) $(INST)/$(CDDLIB)
+$(MP_LIBRARY) ntl 4ti2 cddlib
 
 ----------
 All lines of this file are ignored except the first.

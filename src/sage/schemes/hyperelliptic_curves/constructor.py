@@ -22,7 +22,7 @@ from hyperelliptic_g2_padic_field import HyperellipticCurve_g2_padic_field
 from sage.rings.padics.all import is_pAdicField
 
 from sage.rings.rational_field import is_RationalField
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 

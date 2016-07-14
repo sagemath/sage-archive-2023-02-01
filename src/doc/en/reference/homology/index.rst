@@ -13,6 +13,7 @@ cell complexes.
 
    sage/homology/chain_complex
    sage/homology/chain_complex_morphism
+   sage/homology/chain_homotopy
    sage/homology/chain_complex_homspace
    sage/homology/simplicial_complex
    sage/homology/simplicial_complex_morphism
@@ -22,7 +23,11 @@ cell complexes.
    sage/homology/cubical_complex
    sage/homology/cell_complex
    sage/homology/koszul_complex
+   sage/homology/hochschild_complex
    sage/homology/homology_group
+   sage/homology/homology_vector_space_with_basis
+   sage/homology/algebraic_topological_model
+   sage/homology/homology_morphism
    sage/homology/matrix_utils
    sage/interfaces/chomp
 

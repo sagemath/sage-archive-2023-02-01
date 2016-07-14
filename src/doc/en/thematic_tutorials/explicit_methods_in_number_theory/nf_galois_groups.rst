@@ -89,8 +89,7 @@ groups in the GAP transitive groups database.
 ::
 
     sage: K.<a> = NumberField(x^3 - 2)
-    sage: K.galois_group(type="gap", algorithm='magma')  # optional - magma
-    verbose...
+    sage: K.galois_group(type="gap", algorithm='magma')  # optional - magma database_gap
     Galois group Transitive group number 2 of degree 3 of
     the Number Field in a with defining polynomial x^3 - 2
 
@@ -251,7 +250,8 @@ create the number field :math:`\QQ(\zeta_n)`.
 
     sage: CyclotomicField(7)
     Cyclotomic Field of order 7 and degree 6
-    sage: for n in [2..15]: print n, CyclotomicField(n).class_number()
+    sage: for n in [2..15]:
+    ....:     print("{} {}".format(n, CyclotomicField(n).class_number()))
     2 1
     3 1
     ...

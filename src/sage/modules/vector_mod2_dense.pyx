@@ -34,7 +34,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
 
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 from sage.rings.integer cimport Integer
@@ -150,7 +149,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
         TESTS:
 
-        Check that ticket #8601 is fixed::
+        Check that ticket :trac:`8601` is fixed::
 
             sage: VS = VectorSpace(GF(2), 3)
             sage: VS((-1,-2,-3))
@@ -194,7 +193,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         if self._entries:
             mzd_free(self._entries)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         EXAMPLES::
             sage: v = vector(GF(2), [0,0,0,0])
@@ -264,7 +263,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         """
         return unpickle_v0, (self._parent, self.list(), self._degree, self._is_mutable)
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         EXAMPLE::
 
@@ -279,7 +278,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             mzd_add(z._entries, self._entries, (<Vector_mod2_dense>right)._entries)
         return z
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         EXAMPLE::
 
@@ -310,7 +309,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         return res
 
 
-    cpdef Element _dot_product_(self, Vector right):
+    cpdef _dot_product_(self, Vector right):
         """
         EXAMPLES::
            sage: VS = VectorSpace(GF(2),3)
@@ -356,7 +355,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
         return n
 
-    cpdef Vector _pairwise_product_(self, Vector right):
+    cpdef _pairwise_product_(self, Vector right):
         """
         EXAMPLE::
 
@@ -376,7 +375,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             z._entries.rows[0][i] = (self._entries.rows[0][i] & r._entries.rows[0][i])
         return z
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         EXAMPLE::
 
@@ -398,7 +397,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             return self._new_c()
 
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         EXAMPLE::
 
@@ -414,7 +413,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         """
         return self._rmul_(right)
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         EXAMPLE::
 

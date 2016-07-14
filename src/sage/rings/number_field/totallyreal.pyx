@@ -105,6 +105,7 @@ Authors
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include 'sage/ext/stdsage.pxi'
 
@@ -276,9 +277,9 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         try:
             n = Integer(n)
         except TypeError:
-            raise TypeError, "cannot coerce n (= %s) to an integer"%n
+            raise TypeError("cannot coerce n (= %s) to an integer" % n)
     if (n < 1):
-        raise ValueError, "n must be at least 1."
+        raise ValueError("n must be at least 1.")
 
     # Initialize
     n_int = int(n)
@@ -304,7 +305,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         counts[i] = 0
 
     B_pari = pari(B)
-    f_out = <int *>sage_malloc((n_int+1)*sizeof(int))
+    f_out = <int *>sig_malloc((n_int+1)*sizeof(int))
     if f_out == NULL: raise MemoryError
     for i from 0 <= i < n_int:
         f_out[i] = 0
@@ -344,7 +345,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     # Trivial case
     if n == 1:
-        sage_free(f_out)
+        sig_free(f_out)
         if return_seqs:
             return [[0,0,0,0],[[1,[-1,1]]]]
         elif return_pari_objects:
@@ -372,11 +373,10 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     while f_out[n]:
         nf = pari.new_t_POL_from_int_star(f_out, n_int+1, 0)
         if verb_int:
-            print "==>", nf, "["
+            print("==>", nf, "[")
             for j from 0 <= j < n-1:
-                print "%s "%f_out[j]
-            print "%s]"%f_out[n-1]
-
+                print("%s " % f_out[j])
+            print("%s]" % f_out[n - 1])
         d_poly = nf.poldisc()
         counts[0] += 1
         if d_poly > 0 and nf.polsturm() == n:
@@ -389,7 +389,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
                     if d <= keepB:
                         if verb_int:
-                            print "has discriminant", d,
+                            print("has discriminant", d, end='')
 
                         # Find a minimal lattice element
                         counts[3] += 1
@@ -401,14 +401,14 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
                             # Check if K is contained in the list.
                             found = dng in S
                             if found and verb_int:
-                                print "but is not new"
+                                print("but is not new")
 
                             ngt2 = <pari_gen>(ng[n_int-1]**2-2*ng[n_int-2])
                             if not found:
                                 temp_bint = ngt2 >= t2val
                                 if ((not use_t2) or temp_bint):
                                     if verb_int:
-                                        print "and is new!"
+                                        print("and is new!")
                                     S.add(dng)
                                     lenS += 1
                         else:
@@ -417,19 +417,19 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
                     else:
                         if verb_int:
-                            print "has discriminant", abs(d), "> B"
+                            print("has discriminant", abs(d), "> B")
                 else:
                     if verb_int:
-                        print "is not irreducible"
+                        print("is not irreducible")
             else:
                 if verb_int:
-                    print "has discriminant", abs(d), "with no large enough square divisor"
+                    print("has discriminant", abs(d), "with no large enough square divisor")
         else:
             if verb_int:
                 if d == 0:
-                    print "is not squarefree"
+                    print("is not squarefree")
                 else:
-                    print "is not totally real"
+                    print("is not totally real")
 
         if verb_int == 2:
             T.incr(f_out,verb_int,0,phc_flag)
@@ -444,7 +444,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         elif n_int == 3 and B >= 49 and ((not use_t2) or 5 >= t2val):
             jp_file.write(str([3,[1,-2,-1,1]]) + "\n")
         jp_file.close()
-        sage_free(f_out)
+        sig_free(f_out)
         return
 
     # Convert S to a sorted list of pairs [d, f], taking care to use
@@ -471,22 +471,22 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     # Output.
     if verb_int:
-        print "="*80
-        print "Polynomials tested:", counts[0]
-        print "Polynomials with sssd poldisc:", counts[1]
-        print "Irreducible polynomials:", counts[2]
-        print "Polynomials with nfdisc <= B:", counts[3]
+        print("=" * 80)
+        print("Polynomials tested:", counts[0])
+        print("Polynomials with sssd poldisc:", counts[1])
+        print("Irreducible polynomials:", counts[2])
+        print("Polynomials with nfdisc <= B:", counts[3])
         for i from 0 <= i < lenS:
-            print S[i]
+            print(S[i])
         if type(verbose) == str:
             fsock.close()
         sys.stdout = saveout
 
-    sage_free(f_out)
+    sig_free(f_out)
     # Make sure to return elements that belong to Sage
     if return_seqs:
         return [[ZZ(counts[i]) for i in range(4)],
-                [[ZZ(s[0]), map(QQ, s[1].reverse().Vec())] for s in S]]
+                [[ZZ(s[0]), map(QQ, s[1].polrecip().Vec())] for s in S]]
     elif return_pari_objects:
         return S
     else:

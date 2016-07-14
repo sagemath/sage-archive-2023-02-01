@@ -311,33 +311,34 @@ please consider reporting them to the Sage Development Team or even
 implementing them on your own as a patch for inclusion!
 """
 
-
 #*****************************************************************************
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import sys
 
 from sage.functions.all import factorial
 from sage.geometry.cone import Cone, is_Cone
 from sage.geometry.fan import Fan
-from sage.matrix.all import matrix
-from sage.misc.all import latex, prod, uniq, cached_method
+from sage.misc.all import latex, prod, cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module_element import vector
-from sage.rings.all import Infinity, PolynomialRing, ZZ, QQ
+from sage.rings.all import PolynomialRing, ZZ, QQ
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.schemes.affine.affine_space import AffineSpace
 from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.toric.homset import SchemeHomset_points_toric_field
+from sage.structure.category_object import certify_names
 from sage.categories.fields import Fields
 from sage.misc.cachefunc import ClearCacheOnPickle
 _Fields = Fields()
@@ -727,7 +728,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         - same as for
           :class:`~sage.schemes.generic.homset.SchemeHomset_points_toric_field`.
 
-        OUPUT:
+        OUTPUT:
 
         -
           :class:`~sage.schemes.generic.homset.SchemeHomset_points_toric_field`.
@@ -752,7 +753,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         TESTS::
 
             sage: P1xA1 = toric_varieties.P1xA1()
-            sage: print P1xA1._latex_()
+            sage: print(P1xA1._latex_())
             \mathbb{X}_{\Sigma^{2}}
         """
         return r"\mathbb{X}_{%s}" % latex(self.fan())
@@ -773,9 +774,9 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         EXAMPLES::
 
             sage: P1xA1 = toric_varieties.P1xA1()
-            sage: print P1xA1._latex_generic_point()
+            sage: print(P1xA1._latex_generic_point())
             \left[s : t : z\right]
-            sage: print P1xA1._latex_generic_point([1,2,3])
+            sage: print(P1xA1._latex_generic_point([1,2,3]))
             \left[1 : 2 : 3\right]
         """
         if coordinates is None:
@@ -792,7 +793,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         - same as for
           :class:`~sage.schemes.generic.morphism.SchemeMorphism_point_toric_field`.
 
-        OUPUT:
+        OUTPUT:
 
         :class:`~sage.schemes.generic.morphism.SchemeMorphism_point_toric_field`.
 
@@ -843,7 +844,8 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
                     [s : s : x : y]
 
             sage: hom_set = P1.Hom(P1)
-            sage: hom_set([s,s,x,y])
+            sage: sbar, tbar, xbar, ybar = P1.coordinate_ring().gens()
+            sage: hom_set([sbar,sbar,xbar,ybar])
             Scheme endomorphism of Closed subscheme of 2-d CPR-Fano toric
             variety covered by 4 affine patches defined by:
               s - t
@@ -864,7 +866,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         TESTS::
 
             sage: P1xA1 = toric_varieties.P1xA1()
-            sage: print P1xA1._repr_()
+            sage: print(P1xA1._repr_())
             2-d toric variety covered by 2 affine patches
         """
         result = "%d-d" % self.dimension_relative()
@@ -891,9 +893,9 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         EXAMPLES::
 
             sage: P1xP1 = toric_varieties.P1xP1()
-            sage: print P1xP1._repr_generic_point()
+            sage: print(P1xP1._repr_generic_point())
             [s : t : x : y]
-            sage: print P1xP1._repr_generic_point([1,2,3,4])
+            sage: print(P1xP1._repr_generic_point([1,2,3,4]))
             [1 : 2 : 3 : 4]
         """
         if coordinates is None:
@@ -1915,7 +1917,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
 
         OUTPUT:
 
-        - If the toric variety is is over `\CC` and has at most finite
+        - If the toric variety is over `\CC` and has at most finite
           orbifold singularities: `H^\bullet(X,\QQ)` as a polynomial
           quotient ring.
 
@@ -2145,6 +2147,25 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         if top_form.is_zero(): return 0
         return top_form.lc() / self.volume_class().lc()
 
+    @property
+    def sheaves(self):
+        r"""
+        Return the factory object for sheaves on the toric variety.
+
+        See :class:`sage.schemes.toric.sheaf.constructor.SheafLibrary`
+        for details.
+
+        EXAMPLES::
+        
+            sage: dP6 = toric_varieties.dP6()
+            sage: dP6.sheaves
+            Sheaf constructor on 2-d CPR-Fano toric variety covered by 6 affine patches
+            sage: dP6.sheaves.trivial_bundle()
+            Rank 1 bundle on 2-d CPR-Fano toric variety covered by 6 affine patches.
+        """
+        from sage.schemes.toric.sheaf.constructor import SheafLibrary
+        return SheafLibrary(self)
+
     @cached_method
     def Chern_class(self, deg=None):
         """
@@ -2373,10 +2394,9 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
 
             sage: dP6.divisor(0)
             V(x)
-            sage: for i in range(0,dP6.fan().nrays()):
-            ...       print dP6.divisor(i),
-            ...       print ': generated by ray',
-            ...       dP6.fan().ray(i)
+            sage: for i in range(dP6.fan().nrays()):
+            ....:     print('{} : generated by ray {}'.format(dP6.divisor(i),
+            ....:           dP6.fan().ray(i)))
             V(x) : generated by ray N(0, 1)
             V(u) : generated by ray N(-1, 0)
             V(y) : generated by ray N(-1, -1)
@@ -2781,9 +2801,9 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         REFERENCES:
 
         ..  [Demazure]
-            M. Demazure
+            \M. Demazure
             Sous-groupes algébriques de rang maximum du groupe de Cremona.
-            Ann. Sci. Ecole Norm. Sup. 1970, 3, 507–588.
+            Ann. Sci. Ecole Norm. Sup. 1970, 3, 507--588.
 
         ..  [Bazhov]
             Ivan Bazhov:
@@ -2968,7 +2988,7 @@ def normalize_names(names=None, ngens=None, prefix=None, indices=None,
     Let's now use all parameters at once::
 
         sage: normalize_names("x, y, s+", 4, prefix="t",
-        ...       indices=range(1,5), return_prefix=True)
+        ....:     indices=range(1,5), return_prefix=True)
         ['x', 'y', 's3', 's4', 's']
 
     Note that you still need to give indices for all names, even if some of
@@ -2986,14 +3006,14 @@ def normalize_names(names=None, ngens=None, prefix=None, indices=None,
         sage: normalize_names("123")
         Traceback (most recent call last):
         ...
-        ValueError: name must start with a letter! Got 123
+        ValueError: variable name '123' does not start with a letter
 
     A more subtle one::
 
         sage: normalize_names("x1", 4, prefix="x")
         Traceback (most recent call last):
         ...
-        ValueError: names must be distinct! Got: ['x1', 'x1', 'x2', 'x3']
+        ValueError: variable name 'x1' appears more than once
     """
     if names is None:
         names = []
@@ -3030,60 +3050,6 @@ def normalize_names(names=None, ngens=None, prefix=None, indices=None,
     if return_prefix:
         names.append(prefix)
     return names
-
-
-def certify_names(names):
-    r"""
-    Make sure that ``names`` are valid in Python.
-
-    INPUT:
-
-    - ``names`` -- list of strings.
-
-    OUTPUT:
-
-    - none, but a ``ValueError`` exception is raised if ``names`` are invalid.
-
-    Each name must satisfy the following requirements:
-
-    * Be non-empty.
-    * Contain only (Latin) letters, digits, and underscores ("_").
-    * Start with a letter.
-
-    In addition, all names must be distinct.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.toric.variety import certify_names
-        sage: certify_names([])
-        sage: certify_names(["a", "x0", "x_45"])
-        sage: certify_names(["", "x0", "x_45"])
-        Traceback (most recent call last):
-        ...
-        ValueError: name must be nonempty!
-        sage: certify_names(["a", "0", "x_45"])
-        Traceback (most recent call last):
-        ...
-        ValueError: name must start with a letter! Got 0
-        sage: certify_names(["a", "x0", "@_45"])
-        Traceback (most recent call last):
-        ...
-        ValueError: name must be alphanumeric! Got @_45
-        sage: certify_names(["a", "x0", "x0"])
-        Traceback (most recent call last):
-        ...
-        ValueError: names must be distinct! Got: ['a', 'x0', 'x0']
-    """
-    for name in names:
-        if not name:
-            raise ValueError("name must be nonempty!")
-        if not name.isalnum() and not name.replace("_","").isalnum():
-            # Must be alphanumeric except for non-leading '_'
-            raise ValueError("name must be alphanumeric! Got %s" % name)
-        if not name[0].isalpha():
-            raise ValueError("name must start with a letter! Got %s" % name)
-    if len(set(names)) != len(names):
-        raise ValueError("names must be distinct! Got: %s" % names)
 
 
 #*****************************************************************
@@ -3140,7 +3106,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
             sage: P2.cohomology_ring()
             Rational cohomology ring of a 2-d CPR-Fano toric variety covered by 3 affine patches
 
-        TESTS::
+        ::
 
             sage: cone1 = Cone([(1,0)]);  cone2 = Cone([(1,0)])
             sage: cone1 is cone2
@@ -3206,7 +3172,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
         EXAMPLES::
 
             sage: cohomology_ring = toric_varieties.P2().cohomology_ring()
-            sage: print cohomology_ring._latex_()
+            sage: print(cohomology_ring._latex_())
             H^\ast\left(\mathbb{P}_{\Delta^{2}_{15}},\QQ\right)
         """
         return 'H^\\ast\\left('+self._variety._latex_()+',\QQ\\right)'

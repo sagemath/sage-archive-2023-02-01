@@ -62,14 +62,15 @@ REFERENCES:
 #  the License, or (at your option) any later version.                       #
 #                 http://www.gnu.org/licenses/                               #
 #****************************************************************************#
+from __future__ import division
 
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix, vector
 from sage.rings.number_field.number_field import QuadraticField
 from sage.rings.finite_rings.integer_mod_ring import Integers
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.integer import Integer
-from sage.rings.arith import gcd, lcm, next_prime, is_prime, next_prime_power, legendre_symbol
+from sage.arith.all import gcd, lcm, next_prime, is_prime, next_prime_power, legendre_symbol
 from sage.functions.log import log
 from sage.functions.other import sqrt
 
@@ -710,9 +711,9 @@ class BinaryRecurrenceSequence(SageObject):
 
                             CongNew = []        #makes a new list from cong that is now mod M = lcm(M1, modu) instead of M1
                             M = lcm(M1, modu)
-                            for k in xrange(M/M1):
+                            for k in xrange(M // M1):
                                 for i in cong:
-                                    CongNew.append(k*M1+i)
+                                    CongNew.append(k * M1 + i)
                             cong = set(CongNew)
 
                             M1 = M

@@ -25,8 +25,7 @@ It prints in a nice factored form::
     sage: F
     -1 * 3^2 * 5
 
-There is an underlying list representation, \emph{which ignores the
-unit part}::
+There is an underlying list representation, which ignores the unit part::
 
     sage: list(F)
     [(3, 2), (5, 1)]
@@ -342,7 +341,7 @@ class Factorization(SageObject):
             ...
             IndexError: list index out of range
         """
-        return self.__x.__getitem__(i)
+        return self.__x[i]
 
     def __setitem__(self, i, v):
         """
@@ -1143,7 +1142,7 @@ class Factorization(SageObject):
         return Factorization([(p,-e) for p,e in reversed(self)],
             cr=self._cr(), unit=self.unit()**(-1))
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Return the quotient of two factorizations, which is obtained by
         multiplying the first by the inverse of the second.
@@ -1166,6 +1165,8 @@ class Factorization(SageObject):
         if not isinstance(other, Factorization):
             return self / Factorization([(other, 1)])
         return self * other**-1
+
+    __div__ = __truediv__
 
     def value(self):
         """

@@ -255,16 +255,15 @@ class InfinitePolynomial_sparse(RingElement):
         """
         return repr(self._p)
 
-    def _hash_(self):
+    def __hash__(self):
         """
         TESTS::
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
             sage: a = x[0] + x[1]
             sage: hash(a) # indirect doctest
-            -6172640511012239345   # 64-bit
-            -957478897             # 32-bit
-
+            971115012877883067 # 64-bit
+            -2103273797        # 32-bit
         """
         return hash(self._p)
 
@@ -893,7 +892,7 @@ class InfinitePolynomial_sparse(RingElement):
         """
         Indices = set([0]+[Integer(str(Y).split('_')[1]) for Y in self.variables()])
         Indices = sorted(Indices)
-        P = lambda n: Indices.index(n) if Indices.__contains__(n) else n
+        P = lambda n: Indices.index(n) if n in Indices else n
         return self**P
 
     def footprint(self):
@@ -1075,7 +1074,7 @@ class InfinitePolynomial_sparse(RingElement):
         for shift, Expo in Fbig.items():
             for g in gens:
                 if Expo[g]:
-                    OUT *= PARENT.gen(g)[shift].__pow__(Expo[g])
+                    OUT *= PARENT.gen(g)[shift] ** Expo[g]
         from sage.combinat.permutation import Permutation
         return (rawcmp, Permutation(P[1:]), OUT)
 
@@ -1139,7 +1138,7 @@ class InfinitePolynomial_sparse(RingElement):
             if monomial:
                 I = monomial.iterkeys()
                 K = next(I)
-                monomial.__delitem__(K)
+                del monomial[K]
                 res = self.coefficient(K).coefficient(monomial)
             else:
                 return self
@@ -1269,7 +1268,7 @@ class InfinitePolynomial_sparse(RingElement):
 
         """
         P = lambda n: k*n
-        return self.__pow__(P)
+        return self ** P
 
 
 class InfinitePolynomial_dense(InfinitePolynomial_sparse):

@@ -2,14 +2,16 @@
 H(yperplane) and V(ertex) representation objects for polyhedra
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
 
 
 from sage.structure.sage_object import SageObject
@@ -135,9 +137,7 @@ class PolyhedronRepresentation(SageObject):
         """
         if not isinstance(other, PolyhedronRepresentation):
             return -1
-        type_cmp = cmp(type(self), type(other))
-        if (type_cmp != 0): return type_cmp
-        return cmp(self._vector, other._vector)
+        return cmp(type(self), type(other)) or cmp(self._vector, other._vector)
 
     def vector(self, base_ring=None):
         """
@@ -1069,7 +1069,6 @@ class Vertex(Vrepresentation):
         """
         return self.VERTEX
 
-
     def is_vertex(self):
         """
         Tests if this object is a vertex.  By construction it always is.
@@ -1099,6 +1098,28 @@ class Vertex(Vrepresentation):
             'A vertex at (1, 0)'
         """
         return 'A vertex at ' + repr(self.vector());
+
+    def homogeneous_vector(self, base_ring=None):
+        """
+        Return homogeneous coordinates for this vertex.
+
+        Since a vertex is given by an affine point, this is the vector
+        with a 1 appended.
+
+        INPUT:
+
+        - ``base_ring`` -- the base ring of the vector.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(2,0)], rays=[(1,0)], lines=[(3,2)])
+            sage: P.vertices()[0].homogeneous_vector()
+            (2, 0, 1)
+            sage: P.vertices()[0].homogeneous_vector(RDF)
+            (2.0, 0.0, 1.0)
+        """
+        v = list(self._vector) + [1]
+        return vector(base_ring or self._base_ring, v)
 
     def evaluated_on(self, Hobj):
         r"""
@@ -1169,7 +1190,6 @@ class Ray(Vrepresentation):
         """
         return self.RAY
 
-
     def is_ray(self):
         """
         Tests if this object is a ray.  Always True by construction.
@@ -1195,6 +1215,28 @@ class Ray(Vrepresentation):
             'A ray in the direction (0, 1)'
         """
         return 'A ray in the direction ' + repr(self.vector());
+
+    def homogeneous_vector(self, base_ring=None):
+        """
+        Return homogeneous coordinates for this ray.
+
+        Since a ray is given by a direction, this is the vector with a
+        0 appended.
+
+        INPUT:
+
+        - ``base_ring`` -- the base ring of the vector.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(2,0)], rays=[(1,0)], lines=[(3,2)])
+            sage: P.rays()[0].homogeneous_vector()
+            (1, 0, 0)
+            sage: P.rays()[0].homogeneous_vector(RDF)
+            (1.0, 0.0, 0.0)
+        """
+        v = list(self._vector) + [0]
+        return vector(base_ring or self._base_ring, v)
 
     def evaluated_on(self, Hobj):
         r"""
@@ -1272,6 +1314,28 @@ class Line(Vrepresentation):
         """
         return 'A line in the direction ' + repr(self.vector());
 
+    def homogeneous_vector(self, base_ring=None):
+        """
+        Return homogeneous coordinates for this line.
+
+        Since a line is given by a direction, this is the vector with a
+        0 appended.
+
+        INPUT:
+
+        - ``base_ring`` -- the base ring of the vector.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(2,0)], rays=[(1,0)], lines=[(3,2)])
+            sage: P.lines()[0].homogeneous_vector()
+            (3, 2, 0)
+            sage: P.lines()[0].homogeneous_vector(RDF)
+            (3.0, 2.0, 0.0)
+        """
+        v = list(self._vector) + [0]
+        return vector(base_ring or self._base_ring, v)
+
     def evaluated_on(self, Hobj):
         r"""
         Returns `A\vec{\ell}`
@@ -1285,5 +1349,3 @@ class Line(Vrepresentation):
             0
         """
         return Hobj.A() * self.vector()
-
-

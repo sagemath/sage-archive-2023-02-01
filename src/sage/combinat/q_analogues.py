@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 r"""
-q-Analogues
+`q`-Analogues
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -15,6 +16,8 @@ q-Analogues
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 from sage.misc.cachefunc import cached_function
 from sage.misc.all import prod
@@ -277,8 +280,8 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         is_polynomial = isinstance(q, Polynomial)
 
     R = parent(q)
-    zero = R(0)
-    one = R(1)
+    zero = R.zero()
+    one = R.one()
 
     if not(0 <= k and k <= n):
         return zero
@@ -289,7 +292,7 @@ def q_binomial(n, k, q=None, algorithm='auto'):
     if algorithm == 'auto':
         from sage.symbolic.ring import SR
         if is_polynomial:
-            if n <= 70 or k <= n/4:
+            if n <= 70 or k <= n // 4:
                 algorithm = 'naive'
             else:
                 algorithm = 'cyclo_polynomial'
@@ -313,22 +316,23 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         else:
             num = prod(one - q**i for i in range(n-k+1, n+1))
             try:
-                return num//denom
-            except TypeError:
                 try:
-                    return num/denom
-                except (TypeError,ZeroDivisionError):
-                    #try a substitution
-                    return q_binomial(n,k)(q)
+                    return num // denom
+                except TypeError:
+                    return num / denom
+            except (TypeError, ZeroDivisionError):
+                # use substitution instead
+                return q_binomial(n,k)(q)
     elif algorithm == 'cyclo_generic':
         from sage.rings.polynomial.cyclotomic import cyclotomic_value
         return prod(cyclotomic_value(d,q)
                     for d in range(2,n+1)
-                    if (n/d).floor() != (k/d).floor() + ((n-k)/d).floor())
+                    if (n//d) != (k//d) + ((n-k)//d))
     elif algorithm == 'cyclo_polynomial':
         return prod(R.cyclotomic_polynomial(d)
                     for d in range(2,n+1)
-                    if (n/d).floor() != (k/d).floor() + ((n-k)/d).floor())
+                    if (n//d) != (k//d) + ((n-k)//d))
+
 
 def gaussian_binomial(n, k, q=None, algorithm='auto'):
     r"""
@@ -657,7 +661,7 @@ def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
        Mathematical Society 101, no. 4 (1987): 771-775.
        :doi:`10.1090/S0002-9939-1987-0911049-8`
 
-    .. [Delsarte48] S. Delsarte, *Fonctions de Mobius Sur Les Groupes Abeliens
+    .. [Delsarte48] \S. Delsarte, *Fonctions de Möbius Sur Les Groupes Abeliens
        Finis*, Annals of Mathematics, second series, Vol. 45, No. 3, (Jul 1948),
        pp. 600-609. http://www.jstor.org/stable/1969047
 

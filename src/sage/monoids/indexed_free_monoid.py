@@ -25,6 +25,7 @@ from sage.combinat.dict_addition import dict_addition
 
 from sage.categories.monoids import Monoids
 from sage.categories.poor_man_map import PoorManMap
+from sage.categories.sets_cat import Sets
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.rings.all import ZZ
@@ -371,6 +372,19 @@ class IndexedFreeMonoidElement(IndexedMonoidElement):
         """
         IndexedMonoidElement.__init__(self, F, tuple(map(tuple, x)))
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: F = FreeMonoid(index_set=tuple('abcde'))
+            sage: hash(F ([(1,2),(0,1)]) )
+            2401565693828035651 # 64-bit
+            1164080195          # 32-bit
+            sage: hash(F ([(0,2),(1,1)]) )
+            -3359280905493236379 # 64-bit
+            -1890405019          # 32-bit
+        """
+        return hash(self._monomial)
 
     def _sorted_items(self):
         """
@@ -383,10 +397,10 @@ class IndexedFreeMonoidElement(IndexedMonoidElement):
             sage: x = a*b^2*e*d
             sage: x._sorted_items()
             ((0, 1), (1, 2), (4, 1), (3, 1))
-            sage: F.print_options(generator_cmp = lambda x,y: -cmp(x,y))
+            sage: F.print_options(sorting_reverse=True)
             sage: x._sorted_items()
             ((0, 1), (1, 2), (4, 1), (3, 1))
-            sage: F.print_options(generator_cmp=cmp) # reset to original state
+            sage: F.print_options(sorting_reverse=False) # reset to original state
 
         .. SEEALSO::
 
@@ -469,10 +483,10 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             sage: x = a*b^2*e*d
             sage: x._sorted_items()
             [(0, 1), (1, 2), (3, 1), (4, 1)]
-            sage: F.print_options(generator_cmp = lambda x,y: -cmp(x,y))
+            sage: F.print_options(sorting_reverse=True)
             sage: x._sorted_items()
             [(4, 1), (3, 1), (1, 2), (0, 1)]
-            sage: F.print_options(generator_cmp=cmp) # reset to original state
+            sage: F.print_options(sorting_reverse=False) # reset to original state
 
         .. SEEALSO::
 
@@ -481,10 +495,25 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
         print_options = self.parent().print_options()
         v = self._monomial.items()
         try:
-            v.sort(cmp = print_options['generator_cmp'])
+            v.sort(key=print_options['sorting_key'],
+                   reverse=print_options['sorting_reverse'])
         except Exception: # Sorting the output is a plus, but if we can't, no big deal
             pass
         return v
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: F = FreeAbelianMonoid(index_set=ZZ)
+            sage: hash( F([(0,1), (2,2)]) )
+            8087055352805725849 # 64-bit
+            250091161           # 32-bit
+            sage: hash( F([(2,1)]) )
+            5118585357534560720 # 64-bit
+            1683816912          # 32-bit
+        """
+        return hash(frozenset(self._monomial.items()))
 
     def _mul_(self, other):
         """
@@ -661,6 +690,8 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             category = category.Finite()
         else:
             category = category.Infinite()
+        if indices in Sets().Finite():
+            category = category.FinitelyGeneratedAsMagma()
         Parent.__init__(self, names=names, category=category)
 
         # ignore the optional 'key' since it only affects CachedRepresentation
@@ -694,13 +725,12 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             sage: F(-5)
             Traceback (most recent call last):
             ...
-            ValueError: unable to convert -5, use gen() instead
+            TypeError: unable to convert -5, use gen() instead
         """
         if x is None:
             return self.one()
         if x in self._indices:
-            raise ValueError("unable to convert {}, use gen() instead".format(x))
-        #    return self.gens()[x]
+            raise TypeError("unable to convert {!r}, use gen() instead".format(x))
         return self.element_class(self, x)
 
     def _an_element_(self):
@@ -755,6 +785,7 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             return ZZ.one()
         return infinity
 
+    @cached_method
     def monoid_generators(self):
         """
         Return the monoid generators of ``self``.

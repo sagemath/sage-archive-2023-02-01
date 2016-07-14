@@ -39,7 +39,7 @@ class NilCoxeterAlgebra(IwahoriHeckeAlgebra.T):
         sage: u2*u1*u2 == u1*u2*u1
         True
         sage: U.an_element()
-        u[0,1,2,3] + 3*u[0,1] + 2*u[0] + 1
+        u[0,1,2,3] + 2*u[0] + 3*u[1] + 1
     """
 
     def __init__(self, W, base_ring = QQ, prefix='u'):
@@ -147,7 +147,7 @@ class NilCoxeterAlgebra(IwahoriHeckeAlgebra.T):
 
         REFERENCES:
 
-           .. [Lam2005] T. Lam, Affine Stanley symmetric functions, Amer. J. Math.  128  (2006),  no. 6, 1553--1586.
+           .. [Lam2005] \T. Lam, Affine Stanley symmetric functions, Amer. J. Math.  128  (2006),  no. 6, 1553--1586.
 
         This function is currently only defined in type `A^{(1)}`.
 

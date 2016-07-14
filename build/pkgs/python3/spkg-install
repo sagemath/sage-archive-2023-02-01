@@ -31,10 +31,6 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-# We are setting LDFLAGS so that we pick up Sage's readline
-LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
-export LDFLAGS
-
 if [ "$SAGE_DEBUG" = "yes" ]; then
     echo "Building Python with pydebug"
     PYTHON_CONFIGURE="$PYTHON_CONFIGURE --with-pydebug"
@@ -113,14 +109,19 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+PYTHON_VERSION=$("$SAGE_LOCAL/bin/python" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
+
 # On OS X with XCode 4, the presence of
-# $SAGE_LOCAL/lib/python/config/libpython2.7.a causes problems with
+# $SAGE_LOCAL/lib/python/config/libpython3.x.a causes problems with
 # GiNaC -- see #11967.  It is easiest to test the version of OS X; we
 # delete this file if using OS X 10.6 or later (so `uname -r` returns
 # x.y.z with x >= 10).
 if [ "$UNAME" = "Darwin" ] && \
     [ `uname -r | cut '-d.' -f1` -gt 9 ]; then
-    rm -f "$SAGE_LOCAL"/lib/python*/config/libpython*.a
+    rm -f "$SAGE_LOCAL/lib/python$PYTHON_VERSION/config/libpython${PYTHON_VERSION}.a"
+elif [ "$UNAME" = "CYGWIN" ]; then
+    # See http://trac.sagemath.org/ticket/20437
+    ln -sf "python/config/libpython${PYTHON_VERSION}.dll.a" "$SAGE_LOCAL/lib/libpython${PYTHON_VERSION}.dll.a"
 fi
 
 # Make sure extension modules were built correctly.
@@ -140,14 +141,6 @@ done
 
 if $import_errors; then
     echo >&2 "Error: One or more modules failed to import."
-    # Check if we are on Debian or one of its derivatives:
-    if { command -v dpkg && ! command -v dpkg-architecture; } >/dev/null; then
-        echo >&2 "You may have to install 'dpkg-architecture'"
-        echo >&2 "which is part of the Debian package 'dpkg-dev'."
-        echo >&2 "Try installing it by typing"
-        echo >&2 "    sudo apt-get install dpkg-dev"
-        echo >&2 "and rerun 'make'."
-    fi
     exit 1
 fi
 

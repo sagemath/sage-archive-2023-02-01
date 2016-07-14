@@ -1,4 +1,4 @@
-$(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(SINGULAR) $(INST)/$(BOOST_CROPPED)
+$(MP_LIBRARY) singular boost_cropped
 
 ----------
 All lines of this file are ignored except the first.

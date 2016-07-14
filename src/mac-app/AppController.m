@@ -34,6 +34,7 @@
     // Find sageBinary etc.
     [self setupPaths];
     [self ensureReadWrite];
+    [self offerNotebookUpgrade];
 
     // Initialize the StatusItem if desired.
     // If we are on Tiger, then showing in the dock doesn't work
@@ -59,6 +60,7 @@
     }
 
     // indicate that we haven't started the server yet
+    jupyterURL = nil;
     port = 0;
     neverOpenedFileBrowser = YES;
     URLQueue = [[NSMutableArray arrayWithCapacity:3] retain];
@@ -87,15 +89,115 @@
     [sageBinary release];
     [logPath release];
     [theTask release];
+    [launchTask release];
+    [jupyterTask release];
     [taskPipe release];
     [URLQueue release];
+    [jupyterURL release];
     [super dealloc];
+}
+
+-(IBAction)startJupyter:(id)sender{
+
+    if ( jupyterTask != nil ) {
+        if ( jupyterURL != nil ) {
+            NSLog(@"Going to browse to %@",jupyterURL);
+            [self browseRemoteURL:jupyterURL];
+        }
+        return;
+    }
+
+    NSLog(@"Starting Jupyter server");
+    if (haveStatusItem)  [statusItem setImage:statusImageGreen];
+
+    // Add SAGE_BROWSER to environment to point back to this application
+    if ( !useSystemBrowser ) {
+        NSString *browserPath = [[NSBundle mainBundle] pathForResource:@"open-location" ofType:@"sh"];
+        setenv("SAGE_BROWSER", [browserPath UTF8String], 1); // this overwrites, should it?
+    }
+
+    // Get any default options they might have for this session
+    [defaults synchronize];
+    NSString *jupyterPath = [defaults objectForKey:@"defaultJupyterPath"];
+    NSString *defArgs = [[defaults dictionaryForKey:@"DefaultArguments"]
+                         objectForKey:@"jupyter"];
+
+    // Escape the arguments
+    NSMutableString *escSageBin = [NSMutableString stringWithString:sageBinary];
+    [escSageBin replaceOccurrencesOfString:@"'"
+                                withString:@"'\\''"
+                                   options:0
+                                     range:NSMakeRange(0, [escSageBin length])];
+
+    NSMutableString * escLogPath = [NSMutableString stringWithString:logPath];
+    [escLogPath replaceOccurrencesOfString:@"'"
+                                withString:@"'\\''"
+                                   options:0
+                                     range:NSMakeRange(0, [escLogPath length])];
+
+    // Compile the command.
+    // We have to run it through a shell so that the default arguments are parsed properly
+    NSString *command = [NSString stringWithFormat:
+                         @"'%@' --notebook=jupyter %@ 2>&1 | tee -a '%@' |"
+                         " grep --line-buffered -i 'ipython notebook is running at' |"
+                         " grep --line-buffered -o http://.*",
+                         escSageBin,
+                         // default args are ready to be
+                         (defArgs == nil) ? @"" : defArgs,
+                         logPath];
+    NSLog(@"Command: %@",command);
+
+    // Create a task that starts the server
+    jupyterTask = [[[NSTask alloc] init] retain];
+    [jupyterTask setLaunchPath:@"/bin/bash"];
+    [jupyterTask setArguments:[NSArray arrayWithObjects: @"-c", command, nil]];
+    [jupyterTask setCurrentDirectoryPath:jupyterPath];
+
+    // set up std out to
+    NSPipe *outputPipe = [NSPipe pipe];
+    [jupyterTask setStandardOutput:outputPipe];
+
+    NSFileHandle *fh = [outputPipe fileHandleForReading];
+    [fh waitForDataInBackgroundAndNotify];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedData:) name:NSFileHandleDataAvailableNotification object:fh];
+
+    [jupyterTask launch];
+
+    if (haveStatusItem)  [statusItem setImage:statusImageBlue];
+}
+
+
+- (void)receivedData:(NSNotification *)notif {
+    NSFileHandle *fh = [notif object];
+    NSData *data = [fh availableData];
+    if (data.length > 0) {
+        NSString *str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+        jupyterURL = [[str stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]]
+                      retain];
+        [str release];
+    }
+}
+
+
+-(IBAction)stopJupyter:(id)sender{
+
+    if (jupyterTask == nil ) {
+        return;
+    }
+    if (haveStatusItem)  [statusItem setImage:statusImageRed];
+
+    [jupyterTask terminate];
+    [jupyterTask terminate]; // We have to send it twice to actually stop -- actually do I?
+    [jupyterTask release];
+    jupyterTask = nil;
+    if (haveStatusItem)  [statusItem setImage:statusImageGrey];
 }
 
 
 -(IBAction)startServer:(id)sender{
     // TODO: Check to see if it's running before attempting to start
-    NSLog(@"Starting server");
+    NSLog(@"Starting SageNB server");
     if (haveStatusItem)  [statusItem setImage:statusImageGreen];
     NSString *scriptPath  = [[NSBundle mainBundle] pathForResource:@"start-sage" ofType:@"sh"];
 
@@ -106,7 +208,7 @@
     }
 
     // Create a task to start the server
-    
+
     // Get any default options they might have for this session
     [defaults synchronize];
     NSString *defArgs = [[defaults dictionaryForKey:@"DefaultArguments"]
@@ -114,6 +216,7 @@
     launchTask = [[NSTask launchedTaskWithLaunchPath:scriptPath
                                            arguments:[NSArray arrayWithObjects:sageBinary,
                                                       logPath,
+                                                      @"sagenb",
                                                       defArgs, // May be nil, but that's okay
                                                       nil]]
                   retain];
@@ -155,6 +258,7 @@
 }
 
 - (void)taskTerminated:(NSNotification *)aNotification {
+    NSLog(@"Task stopped\n");
 
     NSTask *theObject = [aNotification object];
     if (theObject == theTask) {
@@ -181,13 +285,13 @@
         [taskPipe release];
         taskPipe = nil;
     } else if (theObject == launchTask ) {
-        
+
         const int status = [theObject terminationStatus];
-        if (status != 0) {
+        if (status == 0) {
+            if (haveStatusItem)  [statusItem setImage:statusImageGrey];
+        } else {
+            if (haveStatusItem)  [statusItem setImage:statusImageRed];
             // We failed, so tell the user
-            if (haveStatusItem) {
-                [statusItem setImage:statusImageGrey];
-            }
             port = 0;
             NSAlert *alert = [NSAlert alertWithMessageText:@"Sage Server failed to start"
                                              defaultButton:@"View Log"
@@ -207,11 +311,39 @@
         // Reset for next time.
         [launchTask release];
         launchTask = nil;
-        
+    } else if (theObject == jupyterTask ) {
+        NSLog(@"jupyterTask stopped\n");
+        const int status = [theObject terminationStatus];
+        if (status == 0) {
+            if (haveStatusItem)  [statusItem setImage:statusImageGrey];
+        } else {
+            if (haveStatusItem)  [statusItem setImage:statusImageRed];
+            // We failed, so tell the user
+            NSAlert *alert = [NSAlert alertWithMessageText:@"Jupyter Server failed to start"
+                                             defaultButton:@"View Log"
+                                           alternateButton:@"Cancel"
+                                               otherButton:nil
+                                 informativeTextWithFormat:@"For some reason the Jupyter server failed to start.  "
+                              "Please check the log for clues, and have that information handy when asking for help."];
+            [alert setAlertStyle:NSWarningAlertStyle];
+            NSInteger resp = [alert runModal];
+            if (resp == NSAlertDefaultReturn) {
+                // View Log
+                [self viewSageLog:self];
+            } else {
+                // Cancel
+            }
+        }
+        // Reset for next time.
+        [jupyterTask release];
+        jupyterTask = nil;
+
     } else {
         // NSLog(@"Got called for a different task.");
     }
 }
+
+// TODO: Test upgrading...
 
 -(IBAction)stopServer:(id)sender{
     if (haveStatusItem)  [statusItem setImage:statusImageRed];
@@ -243,6 +375,7 @@
 -(IBAction)stopServerAndQuit:(id)sender{
 
     [self stopServer:self];
+    [self stopJupyter:self];
 
     // Tell the application to quit
     [NSApp performSelector:@selector(terminate:) withObject:nil afterDelay:0.0];
@@ -372,22 +505,70 @@ You can change it later in Preferences."];
     }
 }
 
+-(void)offerNotebookUpgrade {
+    NSFileManager *filemgr = [NSFileManager defaultManager];
+    NSLog(@"Checking if sagenb exists %d.", [defaults boolForKey:@"askToUpgradeNB"]);
+    if ( ! [filemgr fileExistsAtPath:@"~/.sage/sage_notebook.sagenb/users.pickle"]
+        && [defaults boolForKey:@"askToUpgradeNB"]) {
+
+        NSAlert *alert = [NSAlert alertWithMessageText:@"Sage Notebook Upgrade"
+                                         defaultButton:@"Upgrade"
+                                       alternateButton:@"Ask me Later"
+                                           otherButton:@"Don't ask again"
+                             informativeTextWithFormat:@"You appear to have data in the old notebook format.\n"
+                          "Sage has changed to use Jupyter notebooks by default.\n"
+                          "Unfortunately, they are not completely compatible.\n"
+                          "We can attempt to upgrade, .\n"
+                          ];
+
+        [alert setAlertStyle:NSWarningAlertStyle];
+        NSInteger resp = [alert runModal];
+        if (resp == NSAlertDefaultReturn) { // Upgrade
+            [self upgradeNotebook:self];
+        } else if ( resp == NSAlertAlternateReturn) { // Ask Me Later
+            // nothing
+            NSLog(@"Ask to upgrade later.");
+        } else { // Don't ask again
+            NSLog(@"Don't ask to upgrade again.");
+            [defaults setBool:NO forKey:@"askToUpgradeNB"];
+            [defaults setObject:@"sagenb" forKey:@"preferredNotebookType"];
+            NSLog(@"synchronizing defaults: %@",defaults);
+        }
+    }
+}
+
+-(IBAction)upgradeNotebook:(id)sender{
+    NSLog(@"Upgrade Notebook.");
+    [self sageTerminalRun:@"notebook=export" withArguments:nil];
+    [defaults setBool:NO forKey:@"askToUpgradeNB"];
+    [defaults setObject:@"jupyter" forKey:@"preferredNotebookType"];
+}
+
 -(IBAction)revealInFinder:(id)sender{
     if ( [[sender title] isEqualToString:@"Reveal in Shell"] ) {
         [self terminalRun:[NSString stringWithFormat:@"cd '%@' && $SHELL",
                            [sageBinary stringByDeletingLastPathComponent]]];
     } else {
         [[NSWorkspace sharedWorkspace] selectFile:[sageBinary stringByDeletingLastPathComponent]
-                         inFileViewerRootedAtPath:nil];
+                         inFileViewerRootedAtPath:@""];
     }
 }
 
 -(IBAction)openNotebook:(id)sender{
-    [self browseLocalSageURL:@""];
+    if ( jupyterURL != nil ) {
+        [self browseRemoteURL:jupyterURL];
+    } else {
+        [self browseLocalSageURL:@""];
+    }
 }
 
 -(IBAction)newWorksheet:(id)sender{
-    [self browseLocalSageURL:@"new_worksheet"];
+    if ( jupyterURL != nil ) {
+        // AFAICT you can't create a new worksheet via curl
+        [self browseRemoteURL:jupyterURL];
+    } else {
+        [self browseLocalSageURL:@"new_worksheet"];
+    }
 }
 
 -(IBAction)showPreferences:(id)sender{
@@ -526,7 +707,7 @@ You can change it later in Preferences."];
     // process the files.
     NSString * base_dir = nil;
     if (neverOpenedFileBrowser) {
-        base_dir = [NSString stringWithFormat:@"%@/../devel/sage/sage",sageBinary];
+        base_dir = [NSString stringWithFormat:@"%@/../src/sage",sageBinary];
         neverOpenedFileBrowser=NO;
     }
     // If they supply files, then run the command

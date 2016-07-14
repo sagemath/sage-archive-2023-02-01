@@ -2,15 +2,17 @@
 Symbolic Integration
 """
 
-##############################################################################
-#
+#*****************************************************************************
 #       Copyright (C) 2009 Golam Mortuza Hossain <gmhossain@gmail.com>
 #       Copyright (C) 2010 Burcin Erocal <burcin@erocal.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL v2+)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
-##############################################################################
+#*****************************************************************************`
+from __future__ import print_function
 
 from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.symbolic.function import BuiltinFunction, Function
@@ -268,7 +270,7 @@ def _normalize_integral_input(f, v=None, a=None, b=None):
 
     It is also possible to pass last three parameters in ``v`` as a triple.
 
-    OUPUT:
+    OUTPUT:
 
     - a tuple of ``f``, ``v``, ``a``, and ``b``.
 
@@ -465,14 +467,14 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: _ = var('x, y, z')
         sage: f = sin(x^2) + y^z
         sage: g = mathematica(f)                           # optional - mathematica
-        sage: print g                                      # optional - mathematica
+        sage: print(g)                                      # optional - mathematica
                   z        2
                  y  + Sin[x ]
-        sage: print g.Integrate(x)                         # optional - mathematica
+        sage: print(g.Integrate(x))                         # optional - mathematica
                     z        Pi                2
                  x y  + Sqrt[--] FresnelS[Sqrt[--] x]
                              2                 Pi
-        sage: print f.integral(x)
+        sage: print(f.integral(x))
         x*y^z + 1/16*sqrt(pi)*((I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x) + (I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x) - (I - 1)*sqrt(2)*erf(sqrt(-I)*x) + (I + 1)*sqrt(2)*erf((-1)^(1/4)*x))
 
     Alternatively, just use algorithm='mathematica_free' to integrate via Mathematica
@@ -495,7 +497,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: (x^y - z).integrate(y, algorithm="sympy")  # see Trac #14694
         Traceback (most recent call last):
         ...
-        AttributeError: 'Piecewise' object has no attribute '_sage_'
+        AttributeError: 'ExprCondPair' object has no attribute '_sage_'
 
     We integrate the above function in Maple now::
 
@@ -715,7 +717,9 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
     Check that :trac:`11737` is fixed::
 
-        sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))
+        sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity), prec=54)
+        0.285736646322853
+        sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))  # known bug (non-zero imag part)
         0.285736646322853
 
     Check that :trac:`14209` is fixed::
@@ -733,8 +737,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: integrate(f(z,1)*f(z,3)*f(z,5)*f(z,7),z,0,oo)
         22/315*pi
         sage: for k in srange(1, 16, 2):
-        ....:     print integrate(prod(f(z, ell)
-        ....:                     for ell in srange(1, k+1, 2)), z, 0, oo)
+        ....:     print(integrate(prod(f(z, ell)
+        ....:                     for ell in srange(1, k+1, 2)), z, 0, oo))
         1/2*pi
         1/6*pi
         1/10*pi

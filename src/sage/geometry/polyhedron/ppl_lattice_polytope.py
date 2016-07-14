@@ -63,6 +63,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 import copy
 from sage.rings.integer import GCD_list
@@ -900,18 +901,19 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             ((1),)
         """
         quo = self.base_projection(fiber)
-        vertices = []
+        vertices = set()
         for p in points:
-            v = vector(ZZ,quo(p))
+            v = quo(p).vector()
             if v.is_zero():
                 continue
-            d =  GCD_list(v.list())
-            if d>1:
-                for i in range(0,v.degree()):
+            d = GCD_list(v.list())
+            if d > 1:
+                v = v.__copy__()
+                for i in range(v.degree()):
                     v[i] /= d
-            v.set_immutable()
-            vertices.append(v)
-        return tuple(uniq(vertices))
+                v.set_immutable()
+            vertices.add(v)
+        return tuple(sorted(vertices))
 
     @cached_method
     def has_IP_property(self):
@@ -1123,7 +1125,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: P = LatticePolytope_PPL((1,0,0), (0,1,0), (0,0,1), (-1,-1,-1))
             sage: for p in P.sub_polytope_generator():
-            ....:     print p.vertices()
+            ....:     print(p.vertices())
             ((0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0))
             ((-1, -1, -1), (0, 0, 0), (0, 1, 0), (1, 0, 0))
             ((-1, -1, -1), (0, 0, 0), (0, 0, 1), (1, 0, 0))

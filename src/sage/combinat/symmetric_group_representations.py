@@ -27,6 +27,8 @@ Representations of the Symmetric Group
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.symbolic.ring import SR
 from sage.functions.all import sqrt
 from sage.combinat.combinat import CombinatorialClass
@@ -331,22 +333,6 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
         if not isinstance(other, type(other)):
             return False
         return (self._ring,self._partition)==(other._ring,other._partition)
-#        # both self and other must have caching enabled
-#        if 'representation_matrix' in self.__dict__:
-#            if 'representation_matrix' not in other.__dict__:
-#                return False
-#            else:
-#                for key in self.__dict__:
-#                    if key != 'representation_matrix':
-#                        if self.__dict__[key] != other.__dict__[key]:
-#                            return False
-#                else:
-#                    return True
-#        else:
-#            if 'representation_matrix' in other.__dict__:
-#                return False
-#            else:
-#                return self.__dict__.__eq__(other.__dict__)
 
     def __call__(self, permutation):
         r"""
@@ -500,7 +486,7 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
         EXAMPLES::
 
             sage: orth = SymmetricGroupRepresentations(3, "orthogonal")
-            sage: for x in orth: print x
+            sage: for x in orth: print(x)
             Orthogonal representation of the symmetric group corresponding to [3]
             Orthogonal representation of the symmetric group corresponding to [2, 1]
             Orthogonal representation of the symmetric group corresponding to [1, 1, 1]

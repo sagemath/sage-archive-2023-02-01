@@ -82,7 +82,12 @@ Classes and methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import bz2, os, re, urllib
+import bz2
+import os
+import re
+
+# import compatible with py2 and py3
+from six.moves.urllib.request import urlretrieve
 
 from sage.misc.all import verbose
 from sage.env import SAGE_SHARE
@@ -203,13 +208,13 @@ class SloaneEncyclopediaClass:
 
         tm = verbose("Downloading stripped version of Sloane encyclopedia")
         try:
-            fname, _ = urllib.urlretrieve(oeis_url);
+            fname, _ = urlretrieve(oeis_url);
         except IOError as msg:
             raise IOError("%s\nError fetching the following website:\n    %s\nTry checking your internet connection."%(msg, oeis_url))
 
         if not names_url is None:
             try:
-                nname, _ = urllib.urlretrieve(names_url);
+                nname, _ = urlretrieve(names_url);
             except IOError as msg:
                 raise IOError("%s\nError fetching the following website:\n    %s\nTry checking your internet connection."%(msg, names_url))
         else:

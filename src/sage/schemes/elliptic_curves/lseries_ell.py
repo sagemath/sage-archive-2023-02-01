@@ -79,8 +79,6 @@ class Lseries_ell(SageObject):
             sage: L.taylor_series(series_prec=3)
             -1.27685190980159e-23 + (7.23588070754027e-24)*z + 0.759316500288427*z^2 + O(z^3)  # 32-bit
             -2.72911738151096e-23 + (1.54658247036311e-23)*z + 0.759316500288427*z^2 + O(z^3)  # 64-bit
-            sage: L.taylor_series(series_prec=3)[2:]
-            0.000000000000000 + 0.000000000000000*z + 0.759316500288427*z^2 + O(z^3)
         """
         D = self.dokchitser(prec)
         return D.taylor_series(a, series_prec, var)
@@ -233,7 +231,7 @@ class Lseries_ell(SageObject):
         EXAMPLES::
 
             sage: E = EllipticCurve('37a')
-            sage: print E.lseries().sympow_derivs(1,16,2)      # not tested -- requires precomputing "sympow('-new_data 2')"
+            sage: print(E.lseries().sympow_derivs(1,16,2))    # not tested -- requires precomputing "sympow('-new_data 2')"
             sympow 1.018 RELEASE  (c) Mark Watkins --- see README and COPYING for details
             Minimal model of curve  is [0,0,1,-1,0]
             At 37: Inertia Group is  C1 MULTIPLICATIVE REDUCTION

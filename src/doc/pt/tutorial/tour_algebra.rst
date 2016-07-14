@@ -151,7 +151,7 @@ ordinárias. Para resolver a equação :math:`x'+x-1=0`:
 ::
 
     sage: t = var('t')    # define a variable t
-    sage: x = function('x',t)   # define x to be a function of that variable
+    sage: x = function('x')(t)   # define x to be a function of that variable
     sage: DE = diff(x, t) + x - 1
     sage: desolve(DE, [x,t])
     (_C + e^t)*e^(-t)

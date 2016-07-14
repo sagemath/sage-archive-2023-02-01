@@ -5,18 +5,24 @@ Cython helper methods to compute integral points in polyhedra.
 #*****************************************************************************
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
+include "cysignals/signals.pxi"
+import copy
+import itertools
 
 from sage.matrix.constructor import matrix, column_matrix, vector, diagonal_matrix
-from sage.rings.all import QQ, RR, ZZ, gcd, lcm
+from sage.rings.all import QQ, RR, ZZ
 from sage.rings.integer cimport Integer
+from sage.arith.all import gcd, lcm
 from sage.combinat.permutation import Permutation
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.misc.all import prod, uniq
-import copy
 
 ##############################################################################
 # The basic idea to enumerate the lattice points in the parallelotope
@@ -209,7 +215,7 @@ cpdef loop_over_parallelotope_points(e, d, VDinv, R, lattice, A=None, b=None):
     s = ZZ.zero()  # summation variable
     gen = lattice(0)
     q_times_d = vector(ZZ, dim)
-    for base in CartesianProduct(*[ range(0,i) for i in e ]):
+    for base in itertools.product(*[ range(0,i) for i in e ]):
         for i in range(0, dim):
             s = ZZ.zero()
             for j in range(0, dim):
@@ -308,13 +314,6 @@ def simplex_points(vertices):
         RtR = Rt * R
         b = abs(RtR.det())
         A = RtR.solve_left(vector([b]*len(rays))) * Rt
-
-    # e, d, VDinv = ray_matrix_normal_form(R)
-    #    print origin
-    #    print rays
-    #    print parallelotope_points(rays, origin.parent())
-    #    print 'A = ', A
-    #    print 'b = ', b
 
     e, d, VDinv = ray_matrix_normal_form(R)
     lattice = origin.parent()
@@ -510,6 +509,27 @@ def rectangular_box_points(box_min, box_max, polyhedron=None,
          ((1, 0, 1), frozenset({0, 2})),
          ((1, 1, 0), frozenset({1, 2})),
          ((1, 1, 1), frozenset({0, 1, 2})))
+
+    TESTS:
+
+    Check that this can be interrupted, see :trac:`20781`::
+
+        sage: ieqs = [(-1, -1, -1, -1, -1, -1, -1, -1, -1),
+        ....:         (0, -1, 0, 0, 0, 0, 0, 0, 0),
+        ....:         (0, -1, 0, 2, -1, 0, 0, 0, 0),
+        ....:         (0, 0, -1, -1, 2, -1, 0, 0, 0),
+        ....:         (0, 2, 0, -1, 0, 0, 0, 0, 0),
+        ....:         (0, 0, 0, 0, 0, 0, 0, -1, 2),
+        ....:         (1, 0, 2, 0, -1, 0, 0, 0, 0),
+        ....:         (0, 0, 0, 0, -1, 2, -1, 0, 0),
+        ....:         (0, 0, 0, 0, 0, 0, 0, 0, -1),
+        ....:         (0, 0, 0, 0, 0, -1, 2, -1, 0),
+        ....:         (0, 0, 0, 0, 0, 0, -1, 2, -1)]
+        sage: P = Polyhedron(ieqs=ieqs)
+        sage: alarm(0.5); P.integral_points()
+        Traceback (most recent call last):
+        ...
+        AlarmInterrupt
     """
     assert len(box_min)==len(box_max)
     assert not (count_only and return_saturated)
@@ -579,6 +599,7 @@ cdef loop_over_rectangular_box_points(box_min, box_max, inequalities, int d, bin
     p = copy.copy(box_min)
     inequalities.prepare_next_to_inner_loop(p)
     while True:
+        sig_check()
         inequalities.prepare_inner_loop(p)
         i_min = box_min[0]
         i_max = box_max[0]
@@ -1011,7 +1032,7 @@ cdef class InequalityCollection:
 
         A pair ``(A,b)``.
 
-        EXAXMPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.integral_points import InequalityCollection
             sage: line = Polyhedron(eqns=[(2,3,7)])
@@ -1288,12 +1309,14 @@ cdef class InequalityCollection:
         """
         cdef int i
         for i in range(0,len(self.ineqs_int)):
+            sig_check()
             ineq = self.ineqs_int[i]
             if (<Inequality_int>ineq).is_not_satisfied(inner_loop_variable):
                 if i>0:
                     self.swap_ineq_to_front(i)
                 return False
         for i in range(0,len(self.ineqs_generic)):
+            sig_check()
             ineq = self.ineqs_generic[i]
             if (<Inequality_generic>ineq).is_not_satisfied(inner_loop_variable):
                 return False
@@ -1332,10 +1355,12 @@ cdef class InequalityCollection:
         cdef int i
         result = []
         for i in range(0,len(self.ineqs_int)):
+            sig_check()
             ineq = self.ineqs_int[i]
             if (<Inequality_int>ineq).is_equality(inner_loop_variable):
                 result.append( (<Inequality_int>ineq).index )
         for i in range(0,len(self.ineqs_generic)):
+            sig_check()
             ineq = self.ineqs_generic[i]
             if (<Inequality_generic>ineq).is_equality(inner_loop_variable):
                 result.append( (<Inequality_generic>ineq).index )
@@ -1362,10 +1387,8 @@ cpdef print_cache(InequalityCollection inequality_collection):
         Cached next-to-inner loop: 3 * x_0 + 7 * x_1 + 2 >= 0
     """
     cdef Inequality_int ieq = <Inequality_int>(inequality_collection.ineqs_int[0])
-    print 'Cached inner loop: ' + \
-        str(ieq.coeff) + ' * x_0 + ' + str(ieq.cache) + ' >= 0'
-    print 'Cached next-to-inner loop: ' + \
-        str(ieq.coeff) + ' * x_0 + ' + \
-        str(ieq.coeff_next) + ' * x_1 + ' + str(ieq.cache_next) + ' >= 0'
-
-
+    print('Cached inner loop: ' +
+          str(ieq.coeff) + ' * x_0 + ' + str(ieq.cache) + ' >= 0')
+    print('Cached next-to-inner loop: ' +
+          str(ieq.coeff) + ' * x_0 + ' +
+          str(ieq.coeff_next) + ' * x_1 + ' + str(ieq.cache_next) + ' >= 0')

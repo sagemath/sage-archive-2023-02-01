@@ -146,6 +146,8 @@ from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_l
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from sage.combinat.words.word import Word
+from sage.structure.category_object import normalize_names
+
 
 class FreeAlgebraFactory(UniqueFactory):
     """
@@ -299,7 +301,7 @@ class FreeAlgebraFactory(UniqueFactory):
             arg1 = name
         if arg2 is None:
             arg2 = len(arg1)
-        names = sage.structure.parent_gens.normalize_names(arg2, arg1)
+        names = normalize_names(arg2, arg1)
         return base_ring, names
 
     def create_object(self, version, key):
@@ -470,7 +472,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         """
         return self.__ngens <= 1 and self.base_ring().is_commutative()
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Two free algebras are considered the same if they have the same
         base ring, number of generators and variable names, and the same
@@ -498,14 +500,14 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
         """
         if not isinstance(other, FreeAlgebra_generic):
-            return -1
-        c = cmp(self.base_ring(), other.base_ring())
-        if c: return c
-        c = cmp(self.__ngens, other.ngens())
-        if c: return c
-        c = cmp(self.variable_names(), other.variable_names())
-        if c: return c
-        return 0
+            return False
+        if self.base_ring() != other.base_ring():
+            return False
+        if self.__ngens != other.ngens():
+            return False
+        if self.variable_names() != other.variable_names():
+            return False
+        return True
 
     def _repr_(self):
         """
@@ -984,8 +986,6 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             ret = ret * (self(x * y) - self(y * x))
         return ret
 
-from sage.misc.cache import Cache
-cache = Cache(FreeAlgebra_generic)
 
 class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
     """

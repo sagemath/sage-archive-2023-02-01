@@ -943,7 +943,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
         - ``other`` -- an automorphism of the same module as ``self``
 
-        OUPUT:
+        OUTPUT:
 
         - the automorphism resulting from the composition of ``other`` and
         ``self.``
@@ -1056,17 +1056,6 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
              + 5 e_1*e_1*e^0*e^0 + 7 e_1*e_1*e^0*e^1 + 15 e_1*e_1*e^1*e^0
              + 21 e_1*e_1*e^1*e^1
 
-        """
-        if isinstance(other, FreeModuleAutomorphism):
-            return self._mul_(other)  # general linear group law
-        else:
-            return FreeModuleTensor.__mul__(self, other)  # tensor product
-
-    def __imul__(self, other):
-        r"""
-        Redefinition of
-        :meth:`sage.structure.element.ModuleElement.__imul__`
-
         TESTS::
 
             sage: M = FiniteRankFreeModule(ZZ, 2, name='M', start_index=1)
@@ -1074,14 +1063,14 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             sage: a = M.automorphism([[1,2],[1,3]], name='a')
             sage: b = M.automorphism([[0,1],[-1,0]], name='b')
             sage: mat_a0 = a.matrix(e)
-            sage: a.__imul__(b)
-            Automorphism of the Rank-2 free module M over the Integer Ring
             sage: a *= b
             sage: a.matrix(e) == mat_a0 * b.matrix(e)
             True
-
         """
-        return self.__mul__(other)
+        if isinstance(other, FreeModuleAutomorphism):
+            return self._mul_(other)  # general linear group law
+        else:
+            return FreeModuleTensor.__mul__(self, other)  # tensor product
 
     def matrix(self, basis1=None, basis2=None):
         r"""

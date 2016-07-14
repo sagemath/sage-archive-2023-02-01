@@ -341,7 +341,7 @@ def elementary_substitution(self, c, i, j, in_place = False):     ## CHECK THIS!
         for k in range(self.dim()):
             if (k != i) and (k != j):
                 ans = self[j,k] + c*self[i,k]
-                self.__setitem__((j,k), ans)
+                self[j,k] = ans
             elif (k == j):
                 ans = self[j,k] + c*ij_old + c*c*self[i,i]
                 self[j,k] = ans

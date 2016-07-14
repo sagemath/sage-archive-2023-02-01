@@ -428,11 +428,22 @@ class HighestWeightCrystals(Category_singleton):
                  to The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
                 sage: type(H)
                 <class 'sage.categories.highest_weight_crystals.HighestWeightCrystalHomset_with_category'>
+
+            TESTS:
+
+            Check that we fallback first to trying a crystal homset
+            (:trac:`19458`)::
+
+                sage: Binf = crystals.infinity.Tableaux(['A',2])
+                sage: Bi = crystals.elementary.Elementary(Binf.cartan_type(), 1)
+                sage: tens = Bi.tensor(Binf)
+                sage: Hom(Binf, tens)
+                Set of Crystal Morphisms from ...
             """
             if category is None:
                 category = self.category()
-            elif not category.is_subcategory(HighestWeightCrystals()):
-                raise TypeError("{} is not a subcategory of HighestWeightCrystals()".format(category))
+            elif not category.is_subcategory(Crystals()):
+                raise TypeError("{} is not a subcategory of Crystals()".format(category))
             if Y not in Crystals():
                 raise TypeError("{} is not a crystal".format(Y))
             return HighestWeightCrystalHomset(self, Y, category=category, **options)
@@ -621,9 +632,11 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
             sage: psi = H({Bp.lowest_weight_vectors()[0]: x})
             sage: psi
             ['A', 2] Crystal morphism:
-              From: Full tensor product of the crystals [The T crystal of type ['A', 2] and weight (1, 1, 0), The crystal of tableaux of type ['A', 2] and shape(s) [[1]]]
+              From: Full tensor product of the crystals
+                [The T crystal of type ['A', 2] and weight Lambda[2],
+                 The crystal of tableaux of type ['A', 2] and shape(s) [[1]]]
               To:   The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
-              Defn: [(1, 1, 0), [[3]]] |--> [2, 1, 3]
+              Defn: [Lambda[2], [[3]]] |--> [2, 1, 3]
             sage: psi(Bp.highest_weight_vector())
             [[1, 1], [2]]
         """

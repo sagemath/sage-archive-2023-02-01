@@ -27,11 +27,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
-
-import sys
-
+from sage.ext.stdsage cimport PY_NEW
 cimport sage.rings.padics.local_generic_element
 from sage.libs.gmp.mpz cimport mpz_set_si
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
@@ -44,19 +40,7 @@ from sage.structure.element import coerce_binop
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
 cdef class pAdicGenericElement(LocalGenericElement):
-    def __richcmp__(left, right, int op):
-        """
-        Comparison.
-
-        EXAMPLES::
-
-            sage: R = Zp(5); a = R(5, 6); b = R(5 + 5^6, 8)
-            sage: a == b #indirect doctest
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         First compare valuations, then compare normalized
         residue of unit part.
@@ -74,6 +58,42 @@ cdef class pAdicGenericElement(LocalGenericElement):
             2 + O(19^5)
             sage: b = K(3); b
             3 + O(19^5)
+            sage: a < b
+            True
+
+        ::
+
+            sage: R = Zp(5); a = R(5, 6); b = R(5 + 5^6, 8)
+            sage: a == b #indirect doctest
+            True
+
+        ::
+
+            sage: R = Zp(5)
+            sage: a = R(17)
+            sage: b = R(21)
+            sage: a == b
+            False
+            sage: a < b
+            True
+
+        ::
+
+            sage: R = ZpCA(5)
+            sage: a = R(17)
+            sage: b = R(21)
+            sage: a == b
+            False
+            sage: a < b
+            True
+
+        ::
+
+            sage: R = ZpFM(5)
+            sage: a = R(17)
+            sage: b = R(21)
+            sage: a == b
+            False
             sage: a < b
             True
         """
@@ -125,7 +145,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
     cdef int _set_inexact_zero(self, long absprec) except -1:
         raise NotImplementedError
     cdef int _set_exact_zero(self) except -1:
-        raise TypeError, "this type of p-adic does not support exact zeros"
+        raise TypeError("this type of p-adic does not support exact zeros")
 
     cpdef bint _is_exact_zero(self) except -1:
         """
@@ -247,7 +267,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: (a // b) * b + a % b
             3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^16)
 
-            The alternative definition:
+        The alternative definition::
 
             sage: a
             3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
@@ -267,7 +287,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 raise ZeroDivisionError("cannot divide by zero")
             return self._floordiv_(right)
 
-    cpdef RingElement _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, right):
         """
         Implements floor division.
 
@@ -389,7 +409,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             The element returned is an element of the fraction field.
         """
-        return self.parent().fraction_field()(self, relprec = self.precision_relative()).__invert__()
+        return ~self.parent().fraction_field()(self, relprec = self.precision_relative())
 
     def __mod__(self, right):
         """
@@ -492,7 +512,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         Returns a string representation of self.
 
-        INPUTS:
+        INPUT:
 
         - ``mode`` -- allows one to override the default print mode of
           the parent (default: ``None``).
@@ -598,7 +618,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             5 + O(5^6)
         """
         if (ground is not None) and (ground != self.parent()):
-            raise ValueError, "Ground ring not a subring"
+            raise ValueError("Ground ring not a subring")
         else:
             return self
 
@@ -645,7 +665,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             x^4 - x^3 + x^2 - x + 1
         """
         # TODO: figure out if this works for extension rings.  If not, move this to padic_base_generic_element.
-        from sage.rings.arith import algdep
+        from sage.arith.all import algdep
         return algdep(self, n)
 
     def algebraic_dependency(self, n):
@@ -1419,7 +1439,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ValueError: Ring (5-adic Field with capped relative precision 4) residue field of the wrong characteristic.
         """
         if not p is None and p != self.parent().prime():
-            raise ValueError, 'Ring (%s) residue field of the wrong characteristic.'%self.parent()
+            raise ValueError('Ring (%s) residue field of the wrong characteristic.' % self.parent())
         cdef long v = self.valuation_c()
         if v == maxordp:
             return infinity
@@ -1522,7 +1542,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         p = self.parent().prime()
         alpha = self.unit_part().lift()
         m = Integer(p**self.precision_relative())
-        from sage.rings.arith import rational_reconstruction
+        from sage.arith.all import rational_reconstruction
         r = rational_reconstruction(alpha, m)
         return (Rational(p)**self.valuation())*r
 
@@ -1668,7 +1688,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         to 0 under any homomorphism to the fraction field, which is a torsion
         free group.
 
-        INPUTS:
+        INPUT:
 
         - ``p_branch`` -- an element in the base ring or its fraction
           field; the implementation will choose the branch of the
@@ -1701,9 +1721,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         .. TODO::
 
-        There is a soft-linear time algorith for logarithm described
-        by Dan Berstein at
-        http://cr.yp.to/lineartime/multapps-20041007.pdf
+            There is a soft-linear time algorithm for logarithm described
+            by Dan Berstein at
+            http://cr.yp.to/lineartime/multapps-20041007.pdf
 
         ALGORITHM:
 
@@ -2415,11 +2435,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
             # todo: should eventually change to return an element of
             # an extension field
             if extend:
-                raise NotImplementedError, "extending using the sqrt function not yet implemented"
+                raise NotImplementedError("extending using the sqrt function not yet implemented")
             elif all:
                 return []
             else:
-                raise ValueError, "element is not a square"
+                raise ValueError("element is not a square")
 
     #def _unit_part(self):
     #    raise NotImplementedError

@@ -28,18 +28,18 @@ The main function of this module is
 
 References:
 
-.. [Stinson91] D.R. Stinson,
+.. [Stinson91] \D.R. Stinson,
    A survey of Kirkman triple systems and related designs,
    Volume 92, Issues 1-3, 17 November 1991, Pages 371-393,
    Discrete Mathematics,
    http://dx.doi.org/10.1016/0012-365X(91)90294-C.
 
-.. [RCW71] D. K. Ray-Chaudhuri, R. M. Wilson,
+.. [RCW71] \D. K. Ray-Chaudhuri, R. M. Wilson,
    Solution of Kirkman's schoolgirl problem,
    Volume 19, Pages 187-203,
    Proceedings of Symposia in Pure Mathematics
 
-.. [BJL99] T. Beth, D. Jungnickel, H. Lenz,
+.. [BJL99] \T. Beth, D. Jungnickel, H. Lenz,
    Design Theory 2ed.
    Cambridge University Press
    1999
@@ -47,7 +47,9 @@ References:
 Functions
 ---------
 """
-from sage.rings.arith import is_prime_power
+from __future__ import print_function
+
+from sage.arith.all import is_prime_power
 from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
 from sage.categories.sets_cat import EmptySetError
 from bibd import balanced_incomplete_block_design
@@ -162,10 +164,12 @@ def kirkman_triple_system(v,existence=False):
         sage: kts = designs.kirkman_triple_system(15)
         sage: classes = kts.is_resolvable(1)[1]
         sage: names = '0123456789abcde'
-        sage: to_name = lambda (r,s,t): ' '+names[r]+names[s]+names[t]+' '
+        sage: def to_name(r_s_t):
+        ....:     r, s, t = r_s_t
+        ....:     return ' ' + names[r] + names[s] + names[t] + ' '
         sage: rows = ['   '.join(('Day {}'.format(i) for i in range(1,8)))]
         sage: rows.extend('   '.join(map(to_name,row)) for row in zip(*classes))
-        sage: print '\n'.join(rows)
+        sage: print('\n'.join(rows))
         Day 1   Day 2   Day 3   Day 4   Day 5   Day 6   Day 7
          07e     18e     29e     3ae     4be     5ce     6de
          139     24a     35b     46c     05d     167     028
@@ -202,7 +206,7 @@ def kirkman_triple_system(v,existence=False):
     #
     # For all prime powers q=1 mod 6, there exists a KTS(2q+1)
     elif ((v-1)//2)%6 == 1 and is_prime_power((v-1)//2):
-        from sage.rings.finite_rings.constructor import FiniteField as GF
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
         q = (v-1)//2
         K = GF(q,'x')
         a = K.primitive_element()
@@ -243,7 +247,7 @@ def kirkman_triple_system(v,existence=False):
     #
     # For all prime powers q=1 mod 6, there exists a KTS(3q)
     elif (v//3)%6 == 1 and is_prime_power(v//3):
-        from sage.rings.finite_rings.constructor import FiniteField as GF
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
         q = v//3
         K = GF(q,'x')
         a = K.primitive_element()
@@ -391,7 +395,7 @@ def v_4_1_rbibd(v,existence=False):
         if existence:
             return Unknown
         raise NotImplementedError("I don't know how to build a ({},{},1)-RBIBD!".format(v,4))
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     q = (v-1)//3
     nn = (q-1)//4
     G = GF(q,'x')

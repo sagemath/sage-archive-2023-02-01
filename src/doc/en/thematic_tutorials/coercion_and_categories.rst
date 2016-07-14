@@ -104,14 +104,14 @@ it makes sense to build on top of the base class
 This base class provides a lot more methods than a general parent::
 
     sage: [p for p in dir(Field) if p not in dir(Parent)]
-    ['__div__',
-     '__fraction_field',
+    ['__fraction_field',
      '__ideal_monoid',
      '__iter__',
      '__pow__',
-     '__rdiv__',
      '__rpow__',
+     '__rtruediv__',
      '__rxor__',
+     '__truediv__',
      '__xor__',
      '_an_element',
      '_an_element_c',
@@ -468,7 +468,7 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
     59
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    87
+    89
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
@@ -878,7 +878,7 @@ The four axioms requested for coercions
       rational field is a homomorphism of euclidean domains::
 
           sage: QQ.coerce_map_from(ZZ).category_for()
-          Category of euclidean domains
+          Join of Category of euclidean domains and Category of metric spaces
 
       .. end of output
 

@@ -8,6 +8,7 @@ AUTHORS:
 
 - David Roe
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 David Roe <roed.math@gmail.com>
@@ -20,14 +21,18 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from pow_computer_ext import PowComputer_ext_maker
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.finite_rings.integer_mod_ring import Zmod
+from .pow_computer_ext import PowComputer_ext_maker
+from .pow_computer_flint import PowComputer_flint_maker
 from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
 
-from unramified_extension_generic import UnramifiedExtensionGeneric
-from eisenstein_extension_generic import EisensteinExtensionGeneric
+from .unramified_extension_generic import UnramifiedExtensionGeneric
+from .eisenstein_extension_generic import EisensteinExtensionGeneric
 #from padic_general_extension_generic import pAdicGeneralExtensionGeneric
 
-from generic_nodes import pAdicCappedRelativeRingGeneric, \
+from .generic_nodes import pAdicCappedRelativeRingGeneric, \
                           pAdicCappedRelativeFieldGeneric, \
                           pAdicCappedAbsoluteRingGeneric, \
                           pAdicFixedModRingGeneric
@@ -42,10 +47,48 @@ from generic_nodes import pAdicCappedRelativeRingGeneric, \
 #from padic_general_extension_capped_relative_element import pAdicGeneralExtensionCappedRelativeElement
 #from padic_general_extension_lazy_element import pAdicGeneralExtensionLazyElement
 
-from padic_ZZ_pX_FM_element import pAdicZZpXFMElement
-from padic_ZZ_pX_CR_element import pAdicZZpXCRElement
-from padic_ZZ_pX_CA_element import pAdicZZpXCAElement
+from .padic_ZZ_pX_FM_element import pAdicZZpXFMElement
+from .padic_ZZ_pX_CR_element import pAdicZZpXCRElement
+from .padic_ZZ_pX_CA_element import pAdicZZpXCAElement
+from .qadic_flint_CR import qAdicCappedRelativeElement
+from .qadic_flint_CA import qAdicCappedAbsoluteElement
+from .qadic_flint_FM import qAdicFixedModElement
 
+def _make_integral_poly(prepoly, p, prec):
+    """
+    Converts a defining polynomial into one with integral coefficients.
+
+    INPUTS:
+
+    - ``prepoly`` - a univariate polynomial or symbolic expression
+
+    - ``p`` -- a prime
+
+    - ``prec`` -- the precision
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.padic_extension_leaves import _make_integral_poly
+        sage: R.<x> = QQ[]
+        sage: f = _make_integral_poly(x^2 - 2, 5, 3); f
+        x^2 - 2
+        sage: f.parent()
+        Univariate Polynomial Ring in x over Integer Ring
+        sage: f = _make_integral_poly(x^2 - 2/7, 5, 3); f
+        x^2 + 89
+        sage: f.parent()
+        Univariate Polynomial Ring in x over Integer Ring
+    """
+    try:
+        Zpoly = prepoly.change_ring(ZZ)
+    except AttributeError:
+        # should be a symoblic expression
+        Zpoly = prepoly.polynomial(QQ)
+    except (TypeError, ValueError):
+        Zpoly = prepoly.change_ring(QQ)
+    if Zpoly.base_ring() is not ZZ:
+        Zpoly = Zpoly.change_ring(Zmod(p**prec)).change_ring(ZZ)
+    return Zpoly
 
 class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCappedRelativeRingGeneric):
     """
@@ -54,11 +97,11 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
         sage: R.<a> = ZqCR(27,10000); R == loads(dumps(R))
         True
     """
-    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
         """
         A capped relative representation of Zq.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -86,14 +129,26 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
             sage: R.<a> = ZqCR(next_prime(10^30)^3, 3); R.prime()
             1000000000000000000000000000057
         """
-        ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**prec)
-        if prec <= 30:
-            self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), prec, prec, prec, False, ntl_poly, "small", "u")
-        else:
-            self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), 30, prec, prec, False, ntl_poly, "big", "u")
         self._shift_seed = None
         self._pre_poly = prepoly
-        UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXCRElement)
+        self._implementation = implementation
+        if implementation == 'NTL':
+            ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**prec)
+            if prec <= 30:
+                self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), prec, prec, prec, False, ntl_poly, "small", "u")
+            else:
+                self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), 30, prec, prec, False, ntl_poly, "big", "u")
+            element_class = pAdicZZpXCRElement
+        else:
+            Zpoly = _make_integral_poly(prepoly, poly.base_ring().prime(), prec)
+            cache_limit = min(prec, 30)
+            self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly, prec_type='capped-rel')
+            element_class = qAdicCappedRelativeElement
+        UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
+        if implementation != 'NTL':
+            from .qadic_flint_CR import pAdicCoercion_ZZ_CR, pAdicConvert_QQ_CR
+            self.register_coercion(pAdicCoercion_ZZ_CR(self))
+            self.register_conversion(pAdicConvert_QQ_CR(self))
 
 class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCappedRelativeFieldGeneric):
     """
@@ -102,11 +157,11 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
         sage: R.<a> = QqCR(27,10000); R == loads(dumps(R))
         True
     """
-    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
         """
         A representation of Qq.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -135,14 +190,26 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
             1000000000000000000000000000057
         """
         # Currently doesn't support polynomials with non-integral coefficients
-        ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**prec)
-        if prec <= 30:
-            self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), prec, prec, prec, True, ntl_poly, "small", "u")
-        else:
-            self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), 30, prec, prec, True, ntl_poly, "big", "u")
         self._shift_seed = None
         self._pre_poly = prepoly
-        UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXCRElement)
+        self._implementation = implementation
+        if implementation == 'NTL':
+            ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**prec)
+            if prec <= 30:
+                self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), prec, prec, prec, True, ntl_poly, "small", "u")
+            else:
+                self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), 30, prec, prec, True, ntl_poly, "big", "u")
+            element_class = pAdicZZpXCRElement
+        else:
+            Zpoly = _make_integral_poly(prepoly, poly.base_ring().prime(), prec)
+            cache_limit = min(prec, 30)
+            self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, True, Zpoly, prec_type='capped-rel')
+            element_class = qAdicCappedRelativeElement
+        UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
+        if implementation != 'NTL':
+            from .qadic_flint_CR import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR
+            self.register_coercion(pAdicCoercion_ZZ_CR(self))
+            self.register_coercion(pAdicCoercion_QQ_CR(self))
 
 #class UnramifiedExtensionRingLazy(UnramifiedExtensionGeneric, pAdicLazyRingGeneric):
 #    def __init__(self, poly, prec, halt, print_mode, names):
@@ -161,11 +228,11 @@ class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCap
         sage: R.<a> = ZqCA(27,10000); R == loads(dumps(R))
         True
     """
-    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
         """
         A capped absolute representation of Zq.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -194,14 +261,26 @@ class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCap
             1000000000000000000000000000057
         """
         # Currently doesn't support polynomials with non-integral coefficients
-        ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**prec)
-        if prec <= 30:
-            self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), prec, prec, prec, True, ntl_poly, "small", "u")
-        else:
-            self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), 30, prec, prec, True, ntl_poly, "big", "u")
         self._shift_seed = None
         self._pre_poly = prepoly
-        UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXCAElement)
+        self._implementation = implementation
+        if implementation == 'NTL':
+            ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**prec)
+            if prec <= 30:
+                self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), prec, prec, prec, True, ntl_poly, "small", "u")
+            else:
+                self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), 30, prec, prec, True, ntl_poly, "big", "u")
+            element_class = pAdicZZpXCAElement
+        else:
+            Zpoly = _make_integral_poly(prepoly, poly.base_ring().prime(), prec)
+            cache_limit = min(prec, 30)
+            self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly, prec_type='capped-abs')
+            element_class = qAdicCappedAbsoluteElement
+        UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
+        if implementation != 'NTL':
+            from .qadic_flint_CA import pAdicCoercion_ZZ_CA, pAdicConvert_QQ_CA
+            self.register_coercion(pAdicCoercion_ZZ_CA(self))
+            self.register_conversion(pAdicConvert_QQ_CA(self))
 
 class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModRingGeneric):
     """
@@ -210,11 +289,11 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
         sage: R.<a> = ZqFM(27,10000); R == loads(dumps(R))
         True
     """
-    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
         """
         A fixed modulus representation of Zq.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -242,11 +321,23 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
             sage: R.<a> = ZqFM(next_prime(10^30)^3, 3); R.prime()
             1000000000000000000000000000057
         """
-        ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**prec)
-        self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), max(min(prec - 1, 30), 1), prec, prec, False, ntl_poly, "FM", "u")
         self._shift_seed = None
         self._pre_poly = prepoly
-        UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXFMElement)
+        self._implementation = implementation
+        if implementation == 'NTL':
+            ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**prec)
+            self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), max(min(prec - 1, 30), 1), prec, prec, False, ntl_poly, "FM", "u")
+            element_class = pAdicZZpXFMElement
+        else:
+            Zpoly = _make_integral_poly(prepoly, poly.base_ring().prime(), prec)
+            cache_limit = 0 # prevents caching
+            self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly, prec_type='fixed-mod')
+            element_class = qAdicFixedModElement
+        UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
+        if implementation != 'NTL':
+            from .qadic_flint_FM import pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
+            self.register_coercion(pAdicCoercion_ZZ_FM(self))
+            self.register_conversion(pAdicConvert_QQ_FM(self))
 
     #def coerce_map_explicit(self, S):
     #    from sage.rings.padics.morphism import Morphism_ZZ_UnrFM, Morphism_ZpFM_UnrFM
@@ -264,11 +355,11 @@ class EisensteinExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCap
         sage: W.<w> = R.ext(f); W == loads(dumps(W))
         True
     """
-    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
         """
         A capped relative representation of an eisenstein extension of Zp.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -311,6 +402,7 @@ class EisensteinExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCap
             self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), 30, unram_prec, prec, False, ntl_poly, "big", "e", shift_poly)
         self._shift_seed = shift_seed
         self._pre_poly = prepoly
+        self._implementation = implementation
         EisensteinExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXCRElement)
 
 class EisensteinExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCappedRelativeFieldGeneric):
@@ -321,11 +413,11 @@ class EisensteinExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCa
         sage: W.<w> = R.ext(f); W == loads(dumps(W))
         True
     """
-    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
         """
         A capped relative representation of an eisenstein extension of Qp.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -369,6 +461,7 @@ class EisensteinExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCa
             self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), 30, unram_prec, prec, True, ntl_poly, "big", "e", shift_poly)
         self._shift_seed = shift_seed
         self._pre_poly = prepoly
+        self._implementation = implementation
         EisensteinExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXCRElement)
 
 #class EisensteinExtensionRingLazy(EisensteinExtensionGeneric, pAdicLazyRingGeneric):
@@ -389,11 +482,11 @@ class EisensteinExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCap
         sage: W.<w> = R.ext(f); W == loads(dumps(W))
         True
     """
-    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation):
         """
         A capped absolute representation of an eisenstein extension of Zp.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -436,6 +529,7 @@ class EisensteinExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCap
             self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), 30, unram_prec, prec, False, ntl_poly, "big", "e", shift_poly)
         self._shift_seed = shift_seed
         self._pre_poly = prepoly
+        self._implementation = implementation
         EisensteinExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXCAElement)
 
 class EisensteinExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModRingGeneric):
@@ -446,11 +540,11 @@ class EisensteinExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModR
         sage: W.<w> = R.ext(f); W == loads(dumps(W))
         True
     """
-    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
         """
         A fixed modulus representation of an eisenstein extension of Zp.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -492,6 +586,7 @@ class EisensteinExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModR
         self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, ntl_poly, "FM", "e", shift_poly)
         self._shift_seed = shift_seed
         self._pre_poly = prepoly
+        self._implementation = implementation
         EisensteinExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXFMElement)
 
     #def coerce_map_explicit(self, S):

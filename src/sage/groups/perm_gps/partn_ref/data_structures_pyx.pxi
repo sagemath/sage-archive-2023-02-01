@@ -45,11 +45,11 @@ cdef inline OrbitPartition *OP_new(int n):
     """
     cdef int i
     cdef OrbitPartition *OP = <OrbitPartition *> \
-                                sage_malloc(sizeof(OrbitPartition))
-    cdef int *int_array = <int *> sage_malloc( 4*n * sizeof(int) )
+                                sig_malloc(sizeof(OrbitPartition))
+    cdef int *int_array = <int *> sig_malloc( 4*n * sizeof(int) )
     if OP is NULL or int_array is NULL:
-        sage_free(OP)
-        sage_free(int_array)
+        sig_free(OP)
+        sig_free(int_array)
         return NULL
     OP.degree = n
     OP.num_cells = n
@@ -105,8 +105,8 @@ cdef inline OP_clear(OrbitPartition *OP):
 
 cdef inline int OP_dealloc(OrbitPartition *OP):
     if OP is not NULL:
-        sage_free(OP.parent)
-    sage_free(OP)
+        sig_free(OP.parent)
+    sig_free(OP)
 
 cdef inline int OP_find(OrbitPartition *OP, int n):
     """
@@ -207,56 +207,56 @@ def OP_represent(int n, merges, perm):
 
     """
     cdef int i
-    print "Allocating OrbitPartition..."
+    print("Allocating OrbitPartition...")
     cdef OrbitPartition *OP = OP_new(n)
     if OP is NULL:
-        print "Allocation failed!"
+        print("Allocation failed!")
         return
-    print "Allocation passed."
-    print "Checking that each element reports itself as its root."
+    print("Allocation passed.")
+    print("Checking that each element reports itself as its root.")
     good = True
     for i from 0 <= i < n:
         if not OP_find(OP, i) == i:
-            print "Failed at i = %d!"%i
+            print("Failed at i = %d!" % i)
             good = False
-    if good: print "Each element reports itself as its root."
-    print "Merging:"
+    if good: print("Each element reports itself as its root.")
+    print("Merging:")
     for i,j in merges:
         OP_join(OP, i, j)
-        print "Merged %d and %d."%(i,j)
-    print "Done merging."
-    print "Finding:"
+        print("Merged %d and %d." % (i, j))
+    print("Done merging.")
+    print("Finding:")
     for i from 0 <= i < n:
         j = OP_find(OP, i)
         s = "%d -> %d"%(i, j)
         if i == j:
             s += ", root: size=%d, mcr=%d, rank=%d"%\
                    (OP.size[i], OP.mcr[i], OP.rank[i])
-        print s
-    print "Allocating array to test merge_perm."
-    cdef int *gamma = <int *> sage_malloc( n * sizeof(int) )
+        print(s)
+    print("Allocating array to test merge_perm.")
+    cdef int *gamma = <int *> sig_malloc( n * sizeof(int) )
     if gamma is NULL:
-        print "Allocation failed!"
+        print("Allocation failed!")
         OP_dealloc(OP)
         return
-    print "Allocation passed."
+    print("Allocation passed.")
     for i from 0 <= i < n:
         gamma[i] = perm[i]
-    print "Merging permutation: %s"%perm
+    print("Merging permutation: %s" % perm)
     OP_merge_list_perm(OP, gamma)
-    print "Done merging."
-    print "Finding:"
+    print("Done merging.")
+    print("Finding:")
     for i from 0 <= i < n:
         j = OP_find(OP, i)
         s = "%d -> %d"%(i, j)
         if i == j:
             s += ", root: size=%d, mcr=%d, rank=%d"%\
                    (OP.size[i], OP.mcr[i], OP.rank[i])
-        print s
-    print "Deallocating OrbitPartition."
-    sage_free(gamma)
+        print(s)
+    print("Deallocating OrbitPartition.")
+    sig_free(gamma)
     OP_dealloc(OP)
-    print "Done."
+    print("Done.")
 
 # PartitionStacks
 
@@ -267,11 +267,11 @@ cdef inline PartitionStack *PS_new(int n, bint unit_partition):
     """
     cdef int i
     cdef PartitionStack *PS = <PartitionStack *> \
-                                sage_malloc(sizeof(PartitionStack))
-    cdef int *int_array = <int *> sage_malloc( 2*n * sizeof(int) )
+                                sig_malloc(sizeof(PartitionStack))
+    cdef int *int_array = <int *> sig_malloc( 2*n * sizeof(int) )
     if PS is NULL or int_array is NULL:
-        sage_free(PS)
-        sage_free(int_array)
+        sig_free(PS)
+        sig_free(int_array)
         return NULL
     PS.entries = int_array
     PS.levels  = int_array + n
@@ -301,11 +301,11 @@ cdef inline PartitionStack *PS_copy(PartitionStack *PS):
     cdef int i, n = PS.degree
 
     cdef PartitionStack *PS2 = <PartitionStack *> \
-                                sage_malloc(sizeof(PartitionStack))
-    cdef int *int_array = <int *> sage_malloc( 2*n * sizeof(int) )
+                                sig_malloc(sizeof(PartitionStack))
+    cdef int *int_array = <int *> sig_malloc( 2*n * sizeof(int) )
     if PS2 is NULL or int_array is NULL:
-        sage_free(PS2)
-        sage_free(int_array)
+        sig_free(PS2)
+        sig_free(int_array)
         return NULL
     PS2.entries = int_array
     PS2.levels  = int_array + n
@@ -347,8 +347,8 @@ cdef PartitionStack *PS_from_list(list L):
 
 cdef inline PS_dealloc(PartitionStack *PS):
     if PS is not NULL:
-        sage_free(PS.entries)
-    sage_free(PS)
+        sig_free(PS.entries)
+    sig_free(PS)
 
 cdef PS_print(PartitionStack *PS):
     """
@@ -357,7 +357,6 @@ cdef PS_print(PartitionStack *PS):
     cdef int i
     for i from 0 <= i <= PS.depth:
         PS_print_partition(PS, i)
-    print
 
 cdef PS_print_partition(PartitionStack *PS, int k):
     """
@@ -371,7 +370,7 @@ cdef PS_print_partition(PartitionStack *PS, int k):
         else:
             s += ' '
     s = s[:-1] + ')'
-    print s
+    print(s)
 
 cdef inline bint PS_is_discrete(PartitionStack *PS):
     """
@@ -534,14 +533,14 @@ cdef int PS_all_new_cells(PartitionStack *PS, bitset_t** nonsingletons_ptr):
                 for i from beg <= i <= end:
                     bitset_set(scratch, PS.entries[i])
                 count +=1
-                nonsingletons = <bitset_t*> sage_realloc(nonsingletons, count * sizeof(bitset_t))
+                nonsingletons = <bitset_t*> sig_realloc(nonsingletons, count * sizeof(bitset_t))
                 if nonsingletons is NULL:
                     raise MemoryError, "Memory error in PS_all_new_cells"
                 bitset_init(nonsingletons[count-1], n)
                 bitset_copy(nonsingletons[count-1], scratch)
         else:
             if beg==0:
-                nonsingletons = <bitset_t*> sage_realloc(nonsingletons, sizeof(bitset_t))
+                nonsingletons = <bitset_t*> sig_realloc(nonsingletons, sizeof(bitset_t))
                 if nonsingletons is NULL:
                     raise MemoryError, "Memory error in PS_all_new_cells"
                 bitset_init(nonsingletons[0], n)
@@ -671,88 +670,88 @@ def PS_represent(partition, splits):
     cdef int i, n = sum([len(cell) for cell in partition])
     cdef int *gamma
     cdef bitset_t b
-    print "Allocating PartitionStack..."
+    print("Allocating PartitionStack...")
     cdef PartitionStack *PS = PS_new(n, 1)
     cdef PartitionStack *PS2
     if PS is NULL:
-        print "Allocation failed!"
+        print("Allocation failed!")
         return
-    print "Allocation passed:"
+    print("Allocation passed:")
     PS_print(PS)
-    print "Checking that entries are in order and correct level."
+    print("Checking that entries are in order and correct level.")
     good = True
     for i from 0 <= i < n-1:
         if not (PS.entries[i] == i and PS.levels[i] == n):
-            print "Failed at i = %d!"%i
-            print PS.entries[i], PS.levels[i], i, n
+            print("Failed at i = %d!" % i)
+            print(PS.entries[i], PS.levels[i], i, n)
             good = False
     if not (PS.entries[n-1] == n-1 and PS.levels[n-1] == -1):
-        print "Failed at i = %d!"%(n-1)
+        print("Failed at i = %d!"%(n-1))
         good = False
     if not PS.degree == n or not PS.depth == 0:
-        print "Incorrect degree or depth!"
+        print("Incorrect degree or depth!")
         good = False
-    if good: print "Everything seems in order, deallocating."
+    if good: print("Everything seems in order, deallocating.")
     PS_dealloc(PS)
-    print "Deallocated."
-    print "Creating PartitionStack from partition %s."%partition
+    print("Deallocated.")
+    print("Creating PartitionStack from partition %s."%partition)
     PS = PS_from_list(partition)
-    print "PartitionStack's data:"
-    print "entries -> %s"%[PS.entries[i] for i from 0 <= i < n]
-    print "levels -> %s"%[PS.levels[i] for i from 0 <= i < n]
-    print "depth = %d, degree = %d"%(PS.depth,PS.degree)
+    print("PartitionStack's data:")
+    print("entries -> %s"%[PS.entries[i] for i from 0 <= i < n])
+    print("levels -> %s"%[PS.levels[i] for i from 0 <= i < n])
+    print("depth = %d, degree = %d" % (PS.depth,PS.degree))
     PS_print(PS)
-    print "Checking PS_is_discrete:"
-    print "True" if PS_is_discrete(PS) else "False"
-    print "Checking PS_num_cells:"
-    print PS_num_cells(PS)
-    print "Checking PS_is_mcr, min cell reps are:"
+    print("Checking PS_is_discrete:")
+    print("True" if PS_is_discrete(PS) else "False")
+    print("Checking PS_num_cells:")
+    print(PS_num_cells(PS))
+    print("Checking PS_is_mcr, min cell reps are:")
     L = [PS.entries[i] for i from 0 <= i < n if PS_is_mcr(PS, i)]
-    print L
-    print "Checking PS_is_fixed, fixed elements are:"
-    print [PS.entries[l] for l in L if PS_is_fixed(PS, l)]
-    print "Copying PartitionStack:"
+    print(L)
+    print("Checking PS_is_fixed, fixed elements are:")
+    print([PS.entries[l] for l in L if PS_is_fixed(PS, l)])
+    print("Copying PartitionStack:")
     PS2 = PS_copy(PS)
     PS_print(PS2)
-    print "Checking for consistency."
+    print("Checking for consistency.")
     good = True
     for i from 0 <= i < n:
         if PS.entries[i] != PS2.entries[i] or PS.levels[i] != PS2.levels[i]:
-            print "Failed at i = %d!"%i
+            print("Failed at i = %d!"%i)
             good = False
     if PS.degree != PS2.degree or PS.depth != PS2.depth:
-        print "Failure with degree or depth!"
+        print("Failure with degree or depth!")
         good = False
     if good:
-        print "Everything is consistent."
-    print "Clearing copy:"
+        print("Everything is consistent.")
+    print("Clearing copy:")
     PS_clear(PS2)
     PS_print(PS2)
     for s in splits:
-        print "Splitting point %d from original:"%s
-        print PS_split_point(PS, s)
+        print("Splitting point %d from original:"%s)
+        print(PS_split_point(PS, s))
         PS_print(PS)
-    print "Getting permutation from PS2->PS:"
-    gamma = <int *> sage_malloc(n * sizeof(int))
+    print("Getting permutation from PS2->PS:")
+    gamma = <int *> sig_malloc(n * sizeof(int))
     PS_get_perm_from(PS, PS2, gamma)
-    print [gamma[i] for i from 0 <= i < n]
-    sage_free(gamma)
-    print "Finding first smallest:"
+    print([gamma[i] for i from 0 <= i < n])
+    sig_free(gamma)
+    print("Finding first smallest:")
     bitset_init(b, n)
     i = PS_first_smallest(PS, b)
-    print "Minimal element is %d, bitset is:"%i
-    print bitset_string(b)
+    print("Minimal element is %d, bitset is:"%i)
+    print(bitset_string(b))
     bitset_free(b)
-    print "Finding element 1:"
+    print("Finding element 1:")
     bitset_init(b, n)
-    print "Location is:", PS_find_element(PS, b, 1)
-    print "Bitset is:"
-    print bitset_string(b)
+    print("Location is: {}".format(PS_find_element(PS, b, 1)))
+    print("Bitset is:")
+    print(bitset_string(b))
     bitset_free(b)
-    print "Deallocating PartitionStacks."
+    print("Deallocating PartitionStacks.")
     PS_dealloc(PS)
     PS_dealloc(PS2)
-    print "Done."
+    print("Done.")
 
 # StabilizerChains
 
@@ -767,7 +766,7 @@ cdef StabilizerChain *SC_new(int n, bint init_gens=True):
     """
     cdef int i
     cdef StabilizerChain *SC = <StabilizerChain *> \
-                                sage_calloc(1, sizeof(StabilizerChain))
+                                sig_calloc(1, sizeof(StabilizerChain))
     cdef int *array1
     cdef int *array2
     cdef int *array3
@@ -777,12 +776,12 @@ cdef StabilizerChain *SC_new(int n, bint init_gens=True):
     SC.degree = n
     SC.base_size = 0
     if n == 0:
-        # All internal pointers have been initialized to NULL by sage_calloc
+        # All internal pointers have been initialized to NULL by sig_calloc
         return SC
 
     # first level allocations
-    cdef int *int_array = <int *>  sage_malloc( (3*n*n + 6*n + 1) * sizeof(int) )
-    cdef int **int_ptrs = <int **> sage_calloc( 5*n, sizeof(int *) )
+    cdef int *int_array = <int *>  sig_malloc( (3*n*n + 6*n + 1) * sizeof(int) )
+    cdef int **int_ptrs = <int **> sig_calloc( 5*n, sizeof(int *) )
     SC.OP_scratch = OP_new(n)
     # bitset_init without the MemoryError:
     cdef long limbs = (default_num_bits - 1)/(8*sizeof(unsigned long)) + 1
@@ -790,15 +789,15 @@ cdef StabilizerChain *SC_new(int n, bint init_gens=True):
     SC.gen_is_id.size  = default_num_bits
     SC.gen_used.limbs  = limbs
     SC.gen_is_id.limbs = limbs
-    SC.gen_used.bits   = <mp_limb_t*>sage_malloc(limbs * sizeof(mp_limb_t))
-    SC.gen_is_id.bits  = <mp_limb_t*>sage_malloc(limbs * sizeof(mp_limb_t))
+    SC.gen_used.bits   = <mp_limb_t*>sig_malloc(limbs * sizeof(mp_limb_t))
+    SC.gen_is_id.bits  = <mp_limb_t*>sig_malloc(limbs * sizeof(mp_limb_t))
 
     # check for allocation failures
     if int_array        is NULL or int_ptrs          is NULL or \
        SC.gen_used.bits is NULL or SC.gen_is_id.bits is NULL or \
        SC.OP_scratch    is NULL:
-        sage_free(int_array)
-        sage_free(int_ptrs)
+        sig_free(int_array)
+        sig_free(int_ptrs)
         SC_dealloc(SC)
         return NULL
 
@@ -826,8 +825,8 @@ cdef StabilizerChain *SC_new(int n, bint init_gens=True):
     if init_gens:
         for i from 0 <= i < n:
             SC.array_size[i] = default_num_gens
-            SC.generators[i]   = <int *> sage_malloc( default_num_gens*n * sizeof(int) )
-            SC.gen_inverses[i] = <int *> sage_malloc( default_num_gens*n * sizeof(int) )
+            SC.generators[i]   = <int *> sig_malloc( default_num_gens*n * sizeof(int) )
+            SC.gen_inverses[i] = <int *> sig_malloc( default_num_gens*n * sizeof(int) )
             if SC.generators[i] is NULL or SC.gen_inverses[i] is NULL:
                 SC_dealloc(SC)
                 return NULL
@@ -849,8 +848,8 @@ cdef StabilizerChain *SC_symmetric_group(int n):
         SC.array_size[i] = n-i-1
     SC.array_size[n-1] = default_num_gens
     for i from 0 <= i < n:
-        SC.generators[i]   = <int *> sage_malloc( SC.array_size[i]*n * sizeof(int) )
-        SC.gen_inverses[i] = <int *> sage_malloc( SC.array_size[i]*n * sizeof(int) )
+        SC.generators[i]   = <int *> sig_malloc( SC.array_size[i]*n * sizeof(int) )
+        SC.gen_inverses[i] = <int *> sig_malloc( SC.array_size[i]*n * sizeof(int) )
         if SC.generators[i] is NULL or SC.gen_inverses[i] is NULL:
             SC_dealloc(SC)
             return NULL
@@ -891,8 +890,8 @@ cdef StabilizerChain *SC_alternating_group(int n):
     SC.array_size[n-2] = default_num_gens
     SC.array_size[n-1] = default_num_gens
     for i from 0 <= i < n:
-        SC.generators[i]   = <int *> sage_malloc( SC.array_size[i]*n * sizeof(int) )
-        SC.gen_inverses[i] = <int *> sage_malloc( SC.array_size[i]*n * sizeof(int) )
+        SC.generators[i]   = <int *> sig_malloc( SC.array_size[i]*n * sizeof(int) )
+        SC.gen_inverses[i] = <int *> sig_malloc( SC.array_size[i]*n * sizeof(int) )
         if SC.generators[i] is NULL or SC.gen_inverses[i] is NULL:
             SC_dealloc(SC)
             return NULL
@@ -928,11 +927,11 @@ cdef inline int SC_realloc_gens(StabilizerChain *SC, int level, int size):
     cdef int *temp
     cdef int n = SC.degree
 
-    temp = <int *> sage_realloc( SC.generators[level],   n * size * sizeof(int) )
+    temp = <int *> sig_realloc( SC.generators[level],   n * size * sizeof(int) )
     if temp is NULL: return 1
     SC.generators[level] = temp
 
-    temp = <int *> sage_realloc( SC.gen_inverses[level], n * size * sizeof(int) )
+    temp = <int *> sig_realloc( SC.gen_inverses[level], n * size * sizeof(int) )
     if temp is NULL: return 1
     SC.gen_inverses[level] = temp
 
@@ -953,12 +952,12 @@ cdef int SC_realloc_bitsets(StabilizerChain *SC, long size):
         new_size *= 2
     cdef unsigned long limbs_old = SC.gen_used.limbs
     cdef long limbs = (new_size - 1)/(8*sizeof(unsigned long)) + 1
-    cdef mp_limb_t *tmp = <mp_limb_t*> sage_realloc(SC.gen_used.bits, limbs * sizeof(mp_limb_t))
+    cdef mp_limb_t *tmp = <mp_limb_t*> sig_realloc(SC.gen_used.bits, limbs * sizeof(mp_limb_t))
     if tmp is not NULL:
         SC.gen_used.bits = tmp
     else:
         return 1
-    tmp = <mp_limb_t*> sage_realloc(SC.gen_is_id.bits, limbs * sizeof(mp_limb_t))
+    tmp = <mp_limb_t*> sig_realloc(SC.gen_is_id.bits, limbs * sizeof(mp_limb_t))
     if tmp is not NULL:
         SC.gen_is_id.bits = tmp
     else:
@@ -979,14 +978,14 @@ cdef inline SC_dealloc(StabilizerChain *SC):
         n =  SC.degree
         if SC.generators is not NULL:
             for i from 0 <= i < n:
-                sage_free(SC.generators[i])
-                sage_free(SC.gen_inverses[i])
-        sage_free(SC.generators) # frees int_ptrs
-        sage_free(SC.orbit_sizes) # frees int_array
-        sage_free(SC.gen_used.bits)
-        sage_free(SC.gen_is_id.bits)
+                sig_free(SC.generators[i])
+                sig_free(SC.gen_inverses[i])
+        sig_free(SC.generators) # frees int_ptrs
+        sig_free(SC.orbit_sizes) # frees int_array
+        sig_free(SC.gen_used.bits)
+        sig_free(SC.gen_is_id.bits)
         OP_dealloc(SC.OP_scratch)
-    sage_free(SC)
+    sig_free(SC)
 
 cdef StabilizerChain *SC_copy(StabilizerChain *SC, int level):
     """
@@ -1000,15 +999,15 @@ cdef StabilizerChain *SC_copy(StabilizerChain *SC, int level):
         return NULL
     level = min(level, SC.base_size)
     for i from 0 <= i < level:
-        SCC.generators[i]   = <int *> sage_malloc( SC.array_size[i]*n * sizeof(int) )
-        SCC.gen_inverses[i] = <int *> sage_malloc( SC.array_size[i]*n * sizeof(int) )
+        SCC.generators[i]   = <int *> sig_malloc( SC.array_size[i]*n * sizeof(int) )
+        SCC.gen_inverses[i] = <int *> sig_malloc( SC.array_size[i]*n * sizeof(int) )
         if SCC.generators[i] is NULL or SCC.gen_inverses[i] is NULL:
             SC_dealloc(SCC)
             return NULL
         SCC.array_size[i] = SC.array_size[i]
     for i from level <= i < n:
-        SCC.generators[i]   = <int *> sage_malloc( default_num_gens*n * sizeof(int) )
-        SCC.gen_inverses[i] = <int *> sage_malloc( default_num_gens*n * sizeof(int) )
+        SCC.generators[i]   = <int *> sig_malloc( default_num_gens*n * sizeof(int) )
+        SCC.gen_inverses[i] = <int *> sig_malloc( default_num_gens*n * sizeof(int) )
         if SCC.generators[i] is NULL or SCC.gen_inverses[i] is NULL:
             SC_dealloc(SCC)
             return NULL
@@ -1062,17 +1061,17 @@ cdef inline SC_identify(int *perm, int degree):
 cdef SC_print_level(StabilizerChain *SC, int level):
     cdef int i, j, n = SC.degree
     if level < SC.base_size:
-        print '/ level ', level
-        print '| orbit   ', [SC.base_orbits[level][i] for i from 0 <= i < SC.orbit_sizes[level]]
-        print '| parents ', [SC.parents       [level][i] for i from 0 <= i < n]
-        print '| labels  ', [SC.labels        [level][i] for i from 0 <= i < n]
-        print '|'
-        print '| generators  ', [[SC.generators  [level][n*i + j] for j from 0 <= j < n] for i from 0 <= i < SC.num_gens[level]]
-        print '\ inverses    ', [[SC.gen_inverses[level][n*i + j] for j from 0 <= j < n] for i from 0 <= i < SC.num_gens[level]]
+        print('/ level {}'.format(level))
+        print('| orbit   {}'.format([SC.base_orbits[level][i] for i from 0 <= i < SC.orbit_sizes[level]]))
+        print('| parents {}'.format([SC.parents       [level][i] for i from 0 <= i < n]))
+        print('| labels  {}'.format([SC.labels        [level][i] for i from 0 <= i < n]))
+        print('|')
+        print('| generators  {}'.format([[SC.generators  [level][n*i + j] for j from 0 <= j < n] for i from 0 <= i < SC.num_gens[level]]))
+        print('\ inverses    {}'.format([[SC.gen_inverses[level][n*i + j] for j from 0 <= j < n] for i from 0 <= i < SC.num_gens[level]]))
     else:
-        print '/ level ', level
-        print '|'
-        print '\ base_size ', SC.base_size
+        print('/ level {}'.format(level))
+        print('|')
+        print('\ base_size {}'.format(SC.base_size))
 
 cdef inline SC_add_base_point(StabilizerChain *SC, int b):
     """
@@ -1526,11 +1525,11 @@ cdef bint SC_is_giant(int n, int num_perms, int *perms, float p, bitset_t suppor
     cdef int i, j, num_steps, m = 1, support_root
     cdef unsigned long q
     cdef int *gen
-    cdef int *perm = <int *> sage_malloc(n*sizeof(int))
+    cdef int *perm = <int *> sig_malloc(n*sizeof(int))
     cdef OrbitPartition *OP = OP_new(n)
     if OP is NULL or perm is NULL:
         OP_dealloc(OP)
-        sage_free(perm)
+        sig_free(perm)
         return False
 
     # giants are transitive
@@ -1549,7 +1548,7 @@ cdef bint SC_is_giant(int n, int num_perms, int *perms, float p, bitset_t suppor
                     support_root = i
     if m == 1:
         OP_dealloc(OP)
-        sage_free(perm)
+        sig_free(perm)
         return False
     bitset_zero(support)
     for i from 0 <= i < n:
@@ -1572,12 +1571,12 @@ cdef bint SC_is_giant(int n, int num_perms, int *perms, float p, bitset_t suppor
                 q = OP.size[i]
                 if m < 2*q and q < m-2:
                     if n_is_prime(q):
-                        sage_free(perm)
+                        sig_free(perm)
                         OP_dealloc(OP)
                         return True
         SC_mult_perms(perm, perm, perms + n*(rand()%num_perms), n)
     OP_dealloc(OP)
-    sage_free(perm)
+    sig_free(perm)
     return False
 
 def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, bint test_contains):
@@ -1736,19 +1735,19 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
     if gap:
         G = PermutationGroup([[i+1 for i in p] for p in L])
         if G.order() > limit:
-            if limit_complain: print 'TOO BIG'
+            if limit_complain: print('TOO BIG')
             return
     SC = SC_new(n)
-    cdef int *perm = <int *>sage_malloc(n * (len(L)+3) * sizeof(int))
+    cdef int *perm = <int *>sig_malloc(n * (len(L)+3) * sizeof(int))
     try:
         bitset_init(giant_support, n)
     except MemoryError:
-        sage_free(perm)
+        sig_free(perm)
         SC_dealloc(SC)
         raise MemoryError
     if perm is NULL or SC is NULL:
         bitset_free(giant_support)
-        sage_free(perm)
+        sig_free(perm)
         SC_dealloc(SC)
         raise MemoryError
     cdef int *perm2 = perm +   n
@@ -1758,7 +1757,7 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
             perm[i] = Lperm[i]
         if SC_insert(SC, 0, perm, 1):
             bitset_free(giant_support)
-            sage_free(perm)
+            sig_free(perm)
             SC_dealloc(SC)
             raise MemoryError
     SCC = SC_copy(SC, n)
@@ -1768,7 +1767,7 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
     SC_nb = SC_new_base(SC, perm, n)
     if SCC is NULL or SCCC is NULL or SC_nb is NULL:
         bitset_free(giant_support)
-        sage_free(perm)
+        sig_free(perm)
         SC_dealloc(SC)
         SC_dealloc(SCC)
         SC_dealloc(SCCC)
@@ -1786,115 +1785,115 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
         if SC_is_giant(n, len(L), perm, 0.9, giant_support):
             giant = True
             m = bitset_len(giant_support)
-            from sage.rings.arith import factorial
+            from sage.arith.all import factorial
             if not (order == factorial(m) or order == factorial(m)/2):
-                print "SC_is_giant failed: %s %s"%(str(L), order)
+                print("SC_is_giant failed: %s %s"%(str(L), order))
                 raise AssertionError
             if order == factorial(n):
                 SC_dealloc(SC)
                 SC = SC_symmetric_group(n)
                 SC_order(SC,0,order.value)
                 if not order == factorial(n):
-                    print "SC_symmetric_group failed: %s %s"%(str(L), order)
+                    print("SC_symmetric_group failed: %s %s"%(str(L), order))
                     raise AssertionError
             elif order == factorial(n)/2:
                 SC_dealloc(SC)
                 SC = SC_alternating_group(n)
                 SC_order(SC,0,order.value)
                 if not order == factorial(n)/2:
-                    print "SC_alternating_group failed: %s %s"%(str(L), order)
+                    print("SC_alternating_group failed: %s %s"%(str(L), order))
                     raise AssertionError
         order2 = Integer(0)
         SC_order(SCC,0,order2.value)
         if order != order2:
-            print "FAIL", L
-            print 'SC_copy(n) does not agree with order of original', order, order2
+            print("FAIL {}".format(L))
+            print('SC_copy(n) does not agree with order of original {} {}'.format(order, order2))
             raise AssertionError
         SC_order(SCCC,0,order2.value)
         if order != order2:
-            print "FAIL", L
-            print 'does not agree with order of inserted base point', order, order2
+            print("FAIL {}".format(L))
+            print('does not agree with order of inserted base point {} {}'.format(order, order2))
             raise AssertionError
         SC_order(SC_nb,0,order2.value)
         if order != order2:
-            print "FAIL", L
-            print 'does not agree with order of new base', order, order2
+            print("FAIL {}".format(L))
+            print('does not agree with order of new base {} {}'.format(order, order2))
             raise AssertionError
         if test_contains:
             for i from 0 <= i < 3:
                 SC_random_element(SC, 0, perm)
                 if not SC_contains(SC, 0, perm, 0):
-                    print "FAIL", L
-                    print 'element', [perm[ii] for ii in range(n)]
-                    print 'SC_random_element says it is an element, SC_contains(modify=0) does not'
+                    print("FAIL {}".format(L))
+                    print('element {}'.format([perm[ii] for ii in range(n)]))
+                    print('SC_random_element says it is an element, SC_contains(modify=0) does not')
                     raise AssertionError
                 if not SC_contains(SC, 0, perm, 1):
-                    print "FAIL", L
-                    print 'element', [perm[ii] for ii in range(n)]
-                    print 'SC_random_element says it is an element, SC_contains(modify=1) does not'
+                    print("FAIL {}".format(L))
+                    print('element {}'.format([perm[ii] for ii in range(n)]))
+                    print('SC_random_element says it is an element, SC_contains(modify=1) does not')
                     raise AssertionError
                 if not SC_contains(SCC, 0, perm, 0):
-                    print "FAIL", L
-                    print 'element', [perm[ii] for ii in range(n)]
-                    print 'SC_random_element says it is an element, SC_contains(modify=0) does not on copy'
+                    print("FAIL {}".format(L))
+                    print('element {}'.format([perm[ii] for ii in range(n)]))
+                    print('SC_random_element says it is an element, SC_contains(modify=0) does not on copy')
                     raise AssertionError
                 if not SC_contains(SCC, 0, perm, 1):
-                    print "FAIL", L
-                    print 'element', [perm[ii] for ii in range(n)]
-                    print 'SC_random_element says it is an element, SC_contains(modify=1) does not on copy'
+                    print("FAIL {}".format(L))
+                    print('element {}'.format([perm[ii] for ii in range(n)]))
+                    print('SC_random_element says it is an element, SC_contains(modify=1) does not on copy')
                     raise AssertionError
                 if not SC_contains(SCCC, 0, perm, 0):
-                    print "FAIL", L
-                    print 'element', [perm[ii] for ii in range(n)]
-                    print 'SC_random_element says it is an element, SC_contains(modify=0) does not on inserted base point'
+                    print("FAIL {}".format(L))
+                    print('element {}'.format([perm[ii] for ii in range(n)]))
+                    print('SC_random_element says it is an element, SC_contains(modify=0) does not on inserted base point')
                     raise AssertionError
                 if not SC_contains(SCCC, 0, perm, 1):
-                    print "FAIL", L
-                    print 'element', [perm[ii] for ii in range(n)]
-                    print 'SC_random_element says it is an element, SC_contains(modify=1) does not on inserted base point'
+                    print("FAIL {}".format(L))
+                    print('element {}'.format([perm[ii] for ii in range(n)]))
+                    print('SC_random_element says it is an element, SC_contains(modify=1) does not on inserted base point')
                     raise AssertionError
                 if not SC_contains(SC_nb, 0, perm, 0):
-                    print "FAIL", L
-                    print 'element', [perm[ii] for ii in range(n)]
-                    print 'SC_random_element says it is an element, SC_contains(modify=0) does not on new base'
+                    print("FAIL {}".format(L))
+                    print('element {}'.format([perm[ii] for ii in range(n)]))
+                    print('SC_random_element says it is an element, SC_contains(modify=0) does not on new base')
                     raise AssertionError
                 if not SC_contains(SC_nb, 0, perm, 1):
-                    print "FAIL", L
-                    print 'element', [perm[ii] for ii in range(n)]
-                    print 'SC_random_element says it is an element, SC_contains(modify=1) does not on new base'
+                    print("FAIL {}".format(L))
+                    print('element {}'.format([perm[ii] for ii in range(n)]))
+                    print('SC_random_element says it is an element, SC_contains(modify=1) does not on new base')
                     raise AssertionError
                 SC_random_element(SCC, 0, perm2)
                 if not SC_contains(SC, 0, perm2, 0):
-                    print "FAIL", L
-                    print 'element', [perm[ii] for ii in range(n)]
-                    print 'SC_random_element says it is an element of copy, SC_contains(modify=0) does not'
+                    print("FAIL {}".format(L))
+                    print('element {}'.format([perm[ii] for ii in range(n)]))
+                    print('SC_random_element says it is an element of copy, SC_contains(modify=0) does not')
                     raise AssertionError
                 if not SC_contains(SC, 0, perm2, 1):
-                    print "FAIL", L
-                    print 'element', [perm[ii] for ii in range(n)]
-                    print 'SC_random_element says it is an element of copy, SC_contains(modify=1) does not'
+                    print("FAIL {}".format(L))
+                    print('element {}'.format([perm[ii] for ii in range(n)]))
+                    print('SC_random_element says it is an element of copy, SC_contains(modify=1) does not')
                     raise AssertionError
                 SC_random_element(SCCC, 0, perm3)
                 if not SC_contains(SC, 0, perm3, 0):
-                    print "FAIL", L
-                    print 'element', [perm[ii] for ii in range(n)]
-                    print 'SC_random_element says it is an element of inserted base point, SC_contains(modify=0) does not'
+                    print("FAIL {}".format(L))
+                    print('element {}'.format([perm[ii] for ii in range(n)]))
+                    print('SC_random_element says it is an element of inserted base point, SC_contains(modify=0) does not')
                     raise AssertionError
                 if not SC_contains(SC, 0, perm3, 1):
-                    print "FAIL", L
-                    print 'element', [perm[ii] for ii in range(n)]
-                    print 'SC_random_element says it is an element of inserted base point, SC_contains(modify=1) does not'
+                    print("FAIL {}".format(L))
+                    print('element {}'.format([perm[ii] for ii in range(n)]))
+                    print('SC_random_element says it is an element of inserted base point, SC_contains(modify=1) does not')
                     raise AssertionError
                 SC_random_element(SC_nb, 0, perm3)
                 if not SC_contains(SC, 0, perm3, 0):
-                    print "FAIL", L
-                    print 'element', [perm[ii] for ii in range(n)]
-                    print 'SC_random_element says it is an element of new base, SC_contains(modify=0) does not'
+                    print("FAIL {}".format(L))
+                    print('element {}'.format([perm[ii] for ii in range(n)]))
+                    print('SC_random_element says it is an element of new base, SC_contains(modify=0) does not')
                     raise AssertionError
                 if not SC_contains(SC, 0, perm3, 1):
-                    print "FAIL", L
-                    print 'element', [perm[ii] for ii in range(n)]
-                    print 'SC_random_element says it is an element of new base, SC_contains(modify=1) does not'
+                    print("FAIL {}".format(L))
+                    print('element {}'.format([perm[ii] for ii in range(n)]))
+                    print('SC_random_element says it is an element of new base, SC_contains(modify=1) does not')
                     raise AssertionError
         if gap:
             order = Integer(0)
@@ -1905,15 +1904,15 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
                     perm[n*j + i] = Lperm[i]
                 j += 1
             if SC_is_giant(n, len(L), perm, 0.9, giant_support):
-                from sage.rings.arith import factorial
+                from sage.arith.all import factorial
                 m = bitset_len(giant_support)
                 if order != factorial(m) and order != factorial(m)/2:
-                    print "SC_is_giant failed: %s %s"%(str(L), order)
+                    print("SC_is_giant failed: %s %s"%(str(L), order))
                     raise AssertionError
             if order != G.order():
-                print "FAIL", L
-                print 'order was computed to be', order
-                print 'GAP says it is', G.order()
+                print("FAIL {}".format(L))
+                print('order was computed to be {}'.format(order))
+                print('GAP says it is {}'.format(G.order()))
                 raise AssertionError
             if test_contains:
                 for i from 0 <= i < 3:
@@ -1921,14 +1920,14 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
                     for j from 0 <= j < n:
                         perm[j] = permy(j+1)-1
                     if not SC_contains(SC, 0, perm, 0):
-                        print "FAIL", L
-                        print 'element', permy
-                        print 'GAP says it is an element, SC_contains(modify=0) does not'
+                        print("FAIL {}".format(L))
+                        print('element {}'.format(permy))
+                        print('GAP says it is an element, SC_contains(modify=0) does not')
                         raise AssertionError
                     if not SC_contains(SC, 0, perm, 1):
-                        print "FAIL", L
-                        print 'element', permy
-                        print 'GAP says it is an element, SC_contains(modify=1) does not'
+                        print("FAIL {}".format(L))
+                        print('element {}'.format(permy))
+                        print('GAP says it is an element, SC_contains(modify=1) does not')
                         raise AssertionError
                     permy = range(1,n+1)
                     shuffle(permy)
@@ -1937,42 +1936,42 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
                         perm[j] = permy[j]-1
                     SC_says = SC_contains(SC, 0, perm, 0)
                     if bool(SC_says) != bool(gap_says):
-                        print "FAIL", L
-                        print 'element', permy
-                        print 'GAP says %d, SC_contains(modify=0) says %d'%(gap_says, SC_says)
+                        print("FAIL {}".format(L))
+                        print('element {}'.format(permy))
+                        print('GAP says %d, SC_contains(modify=0) says %d'%(gap_says, SC_says))
                         raise AssertionError
                     SC_says = SC_contains(SC, 0, perm, 1)
                     if bool(SC_says) != bool(gap_says):
-                        print "FAIL", L
-                        print 'element', permy
-                        print 'GAP says %d, SC_contains(modify=0) says %d'%(gap_says, SC_says)
+                        print("FAIL {}".format(L))
+                        print('element {}'.format(permy))
+                        print('GAP says %d, SC_contains(modify=0) says %d'%(gap_says, SC_says))
                         raise AssertionError
                     SC_random_element(SC, 0, perm)
                     for j from 0 <= j < n:
                         permy[j] = perm[j]+1
                     gap_says = (PermutationGroupElement(permy) in G)
                     if not SC_contains(SC, 0, perm, 0):
-                        print "FAIL", L
-                        print 'element', permy
-                        print 'random element not contained in group, modify=false'
+                        print("FAIL {}".format(L))
+                        print('element {}'.format(permy))
+                        print('random element not contained in group, modify=false')
                         raise AssertionError
                     if not SC_contains(SC, 0, perm, 1):
-                        print "FAIL", L
-                        print 'element', permy
-                        print 'random element not contained in group, modify=true'
+                        print("FAIL {}".format(L))
+                        print('element {}'.format(permy))
+                        print('random element not contained in group, modify=true')
                         raise AssertionError
                     if not gap_says:
-                        print "FAIL", L
-                        print 'element', permy
-                        print 'random element not contained in group, according to GAP'
+                        print("FAIL {}".format(L))
+                        print('element {}'.format(permy))
+                        print('random element not contained in group, according to GAP')
                         raise AssertionError
     except Exception:
         if giant:
-            print "detected giant!"
+            print("detected giant!")
         raise
     finally:
         bitset_free(giant_support)
-        sage_free(perm)
+        sig_free(perm)
         SC_dealloc(SC)
         SC_dealloc(SCC)
         SC_dealloc(SCCC)
@@ -2148,6 +2147,3 @@ cdef int compute_relabeling(StabilizerChain *group, StabilizerChain *scratch_gro
     SC_invert_perm(scratch, relabeling, n)
     memcpy(relabeling, scratch, n*sizeof(int))
     return 0
-
-
-

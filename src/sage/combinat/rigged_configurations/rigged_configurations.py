@@ -21,6 +21,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import itertools
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.global_options import GlobalOptions
@@ -32,7 +34,6 @@ from sage.rings.all import QQ
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.rigged_configurations.kleber_tree import KleberTree, VirtualKleberTree
 from sage.combinat.rigged_configurations.rigged_configuration_element import (
      RiggedConfigurationElement, KRRCSimplyLacedElement, KRRCNonSimplyLacedElement,
@@ -212,7 +213,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
     REFERENCES:
 
-    .. [HKOTT2002] G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
+    .. [HKOTT2002] \G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
        Paths, Crystals and Fermionic Formulae.
        Prog. Math. Phys. **23** (2002) Pages 205-272.
 
@@ -480,29 +481,15 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['A', 3, 1], [[2,1], [1,1]])
-            sage: g = RC.__iter__()
-            sage: next(g)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            sage: next(g) # random
-            <BLANKLINE>
-            0[ ]0
-            <BLANKLINE>
-            0[ ]0
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
+            sage: L = [x for x in RC]
+            sage: len(L)
+            24
         """
         index_set = self._cartan_type.classical().index_set()
         from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
         return RecursivelyEnumeratedSet(self.module_generators,
                     lambda x: [x.f(i) for i in index_set],
-                    structure=None).naive_search_iterator()
+                    structure='graded').breadth_first_search_iterator()
 
     @lazy_attribute
     def module_generators(self):
@@ -602,10 +589,9 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
                 L2 = []
                 for block in blocks[-1]:
                     L2.append(IterableFunctionCall(self._block_iterator, block))
-                L.append(CartesianProduct(*L2))
+                L.append(itertools.product(*L2))
 
-            # TODO Find a more efficient method without appealing to the CartesianProduct
-            C = CartesianProduct(*L)
+            C = itertools.product(*L)
             for curBlocks in C:
                 module_gens.append( self.element_class(self, KT_constructor=[shapes[:],
                                          self._blocks_to_values(curBlocks[:]),
@@ -810,8 +796,8 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
                 if dim[0] == self._rc_index[a]:
                     vac_num += min(dim[1], i)
 
-        for b, value in enumerate(self._cartan_matrix.row(a)):
-            vac_num -= value * partitions[b].get_num_cells_to_column(i)
+        for b in range(self._cartan_matrix.ncols()):
+            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i)
 
         return vac_num
 
@@ -1172,8 +1158,10 @@ class RCNonSimplyLaced(RiggedConfigurations):
                     vac_num += min(dim[1], i)
 
         gamma = self._folded_ct.scaling_factors()
-        for b, value in enumerate(self._cartan_matrix.row(a)):
-            vac_num -= value * partitions[b].get_num_cells_to_column(gamma[a+1]*i, gamma[b+1]) // gamma[b+1]
+        for b in range(self._cartan_matrix.ncols()):
+            vac_num -= (self._cartan_matrix[a,b]
+                        * partitions[b].get_num_cells_to_column(gamma[a+1]*i, gamma[b+1])
+                        // gamma[b+1])
 
         return vac_num
 
@@ -1279,10 +1267,9 @@ class RCNonSimplyLaced(RiggedConfigurations):
                 L2 = []
                 for block in blocks[-1]:
                     L2.append(IterableFunctionCall(self._block_iterator, block))
-                L.append(CartesianProduct(*L2))
+                L.append(itertools.product(*L2))
 
-            # TODO Find a more efficient method without appealing to the CartesianProduct
-            C = CartesianProduct(*L)
+            C = itertools.product(*L)
             for cur_blocks in C:
                 module_gens.append( self.element_class(self, KT_constructor=[shapes[:],
                                          self._blocks_to_values(cur_blocks[:]), vac_nums[:]]) )
@@ -1352,18 +1339,15 @@ class RCNonSimplyLaced(RiggedConfigurations):
         gamma = self._folded_ct.scaling_factors()
         sigma = self._folded_ct.folding_orbit()
         n = self._folded_ct._folding.classical().rank()
-        partitions = [None] * n
-        riggings = [None] * n
-        vac_nums = [None] * n
         # +/- 1 for indexing
-        for a in range(len(rc)):
+        partitions = [None] * n
+        for a,rp in enumerate(rc):
+            g = gamma[a+1]
             for i in sigma[a+1]:
-                partitions[i-1] = [row_len*gamma[a+1] for row_len in rc[a]._list]
-                riggings[i-1] = [rig_val*gamma[a+1] for rig_val in rc[a].rigging]
-                vac_nums[i-1] = [vac_num*gamma[a+1] for vac_num in rc[a].vacancy_numbers]
-        return self.virtual.element_class(self.virtual, partition_list=partitions,
-                            rigging_list=riggings,
-                            vacancy_numbers_list=vac_nums)
+                partitions[i-1] = RiggedPartition([row_len*g for row_len in rp._list],
+                                                  [rig_val*g for rig_val in rp.rigging],
+                                                  [vac_num*g for vac_num in rp.vacancy_numbers])
+        return self.virtual.element_class(self.virtual, partitions, use_vacancy_numbers=True)
 
     def from_virtual(self, vrc):
         """
@@ -1391,16 +1375,14 @@ class RCNonSimplyLaced(RiggedConfigurations):
         sigma = self._folded_ct.folding_orbit()
         n = self._cartan_type.classical().rank()
         partitions = [None] * n
-        riggings = [None] * n
-        vac_nums = [None] * n
         # +/- 1 for indexing
         for a in range(n):
-            index = sigma[a+1][0]-1
-            partitions[a] = [row_len//gamma[a+1] for row_len in vrc[index]._list]
-            riggings[a] = [rig_val//gamma[a+1] for rig_val in vrc[index].rigging]
-            vac_nums[a] = [vac_val//gamma[a+1] for vac_val in vrc[index].vacancy_numbers]
-        return self.element_class(self, partition_list=partitions,
-                                  rigging_list=riggings, vacancy_numbers_list=vac_nums)
+            rp = vrc[sigma[a+1][0] - 1]
+            g = gamma[a+1]
+            partitions[a] = RiggedPartition([row_len//g for row_len in rp._list],
+                                            [rig_val//g for rig_val in rp.rigging],
+                                            [vac_val//g for vac_val in rp.vacancy_numbers])
+        return self.element_class(self, partitions, use_vacancy_numbers=True)
 
     def _test_virtual_vacancy_numbers(self, **options):
         """
@@ -1521,8 +1503,8 @@ class RCTypeA2Even(RCNonSimplyLaced):
                     vac_num += min(dim[1], i)
 
         gamma = self._folded_ct.scaling_factors()
-        for b, value in enumerate(self._cartan_matrix.row(a)):
-            vac_num -= value * partitions[b].get_num_cells_to_column(i) // gamma[b+1]
+        for b in range(self._cartan_matrix.ncols()):
+            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i) // gamma[b+1]
 
         return vac_num
 
@@ -1558,17 +1540,14 @@ class RCTypeA2Even(RCNonSimplyLaced):
         sigma = self._folded_ct.folding_orbit()
         n = self._folded_ct._folding.classical().rank()
         partitions = [None] * n
-        riggings = [None] * n
-        vac_nums = [None] * n
-        # +/- 1 for indexing
-        for a in range(len(rc)):
+        for a,rp in enumerate(rc):
+            g = gamma[a+1]
             for i in sigma[a+1]:
-                partitions[i-1] = [row_len for row_len in rc[a]._list]
-                riggings[i-1] = [rig_val*gamma[a+1] for rig_val in rc[a].rigging]
-                vac_nums[i-1] = [vac_num*gamma[a+1] for vac_num in rc[a].vacancy_numbers]
-        return self.virtual.element_class(self.virtual, partition_list=partitions,
-                            rigging_list=riggings,
-                            vacancy_numbers_list=vac_nums)
+                partitions[i-1] = RiggedPartition([row_len for row_len in rp._list],
+                                                  [rig_val*g for rig_val in rp.rigging],
+                                                  [vac_num*g for vac_num in rp.vacancy_numbers])
+        return self.virtual.element_class(self.virtual, partitions, use_vacancy_numbers=True)
+
 
     def from_virtual(self, vrc):
         """
@@ -1597,16 +1576,15 @@ class RCTypeA2Even(RCNonSimplyLaced):
         sigma = self._folded_ct.folding_orbit()
         n = self._cartan_type.classical().rank()
         partitions = [None] * n
-        riggings = [None] * n
-        vac_nums = [None] * n
         # +/- 1 for indexing
         for a in range(n):
-            index = sigma[a+1][0]-1
-            partitions[index] = [row_len for row_len in vrc[index]._list]
-            riggings[index] = [rig_val//gamma[a+1] for rig_val in vrc[index].rigging]
-            vac_nums[a] = [vac_val//gamma[a+1] for vac_val in vrc[index].vacancy_numbers]
-        return self.element_class(self, partition_list=partitions,
-                                  rigging_list=riggings, vacancy_numbers_list=vac_nums)
+            rp = vrc[sigma[a+1][0] - 1]
+            g = gamma[a+1]
+            partitions[a] = RiggedPartition([row_len for row_len in rp._list],
+                                            [rig_val//g for rig_val in rp.rigging],
+                                            [vac_val//g for vac_val in rp.vacancy_numbers])
+        return self.element_class(self, partitions, use_vacancy_numbers=True)
+
 
 class RCTypeA2Dual(RCTypeA2Even):
     r"""
@@ -1673,8 +1651,8 @@ class RCTypeA2Dual(RCTypeA2Even):
                 if dim[0] == self._rc_index[a]:
                     vac_num += min(dim[1], i)
 
-        for b, value in enumerate(self._cartan_matrix.row(a)):
-            vac_num -= value * partitions[b].get_num_cells_to_column(i) / 2
+        for b in range(self._cartan_matrix.ncols()):
+            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i) / 2
 
         return vac_num
 
@@ -1768,7 +1746,7 @@ class RCTypeA2Dual(RCTypeA2Even):
                 L2 = []
                 for block in blocks[-1]:
                     L2.append(IterableFunctionCall(self._block_iterator, block))
-                L.append(CartesianProduct(*L2))
+                L.append(itertools.product(*L2))
 
             # Special case for the final tableau
             partition = base[-1]
@@ -1799,10 +1777,9 @@ class RCTypeA2Dual(RCTypeA2Even):
                         L2.append(IterableFunctionCall(self._block_iterator_n_odd, block))
                     else:
                         L2.append(IterableFunctionCall(self._block_iterator, block))
-                L.append(CartesianProduct(*L2))
+                L.append(itertools.product(*L2))
 
-            # TODO Find a more efficient method without appealing to the CartesianProduct
-            C = CartesianProduct(*L)
+            C = itertools.product(*L)
             for curBlocks in C:
                 module_gens.append( self.element_class(self, KT_constructor=[shapes[:],
                                          self._blocks_to_values(curBlocks[:]), vac_nums[:]]) )
@@ -1884,17 +1861,12 @@ class RCTypeA2Dual(RCTypeA2Even):
         sigma = self._folded_ct.folding_orbit()
         n = self._folded_ct._folding.classical().rank()
         partitions = [None] * n
-        riggings = [None] * n
-        vac_nums = [None] * n
-        # +/- 1 for indexing
-        for a in range(len(rc)):
+        for a,rp in enumerate(rc):
+            g = gammatilde[a+1]
             for i in sigma[a+1]:
-                partitions[i-1] = [row_len for row_len in rc[a]._list]
-                riggings[i-1] = [rig_val*gammatilde[a+1] for rig_val in rc[a].rigging]
-                vac_nums[i-1] = [vac_num for vac_num in rc[a].vacancy_numbers]
-        return self.virtual.element_class(self.virtual, partition_list=partitions,
-                            rigging_list=riggings,
-                            vacancy_numbers_list=vac_nums)
+                partitions[i-1] = RiggedPartition([row_len for row_len in rp._list],
+                                                  [rig_val*g for rig_val in rp.rigging])
+        return self.virtual.element_class(self.virtual, partitions)
 
     def from_virtual(self, vrc):
         """
@@ -1924,40 +1896,13 @@ class RCTypeA2Dual(RCTypeA2Even):
         sigma = self._folded_ct.folding_orbit()
         n = self._cartan_type.classical().rank()
         partitions = [None] * n
-        riggings = [None] * n
-        vac_nums = [None] * n
         # +/- 1 for indexing
         for a in range(n):
-            index = sigma[a+1][0]-1
-            partitions[index] = [row_len for row_len in vrc[index]._list]
-            riggings[index] = [rig_val/gammatilde[a+1] for rig_val in vrc[index].rigging]
-            vac_nums[a] = [vac_val for vac_val in vrc[index].vacancy_numbers]
-        return self.element_class(self, partition_list=partitions,
-                                  rigging_list=riggings, vacancy_numbers_list=vac_nums)
+            rp = vrc[sigma[a+1][0] - 1]
+            g = gammatilde[a+1]
+            partitions[a] = RiggedPartition([row_len for row_len in rp._list],
+                                            [rig_val/g for rig_val in rp.rigging])
+        return self.element_class(self, partitions)
 
     Element = KRRCTypeA2DualElement
-
-def HighestWeightRiggedConfigurations(cartan_type, B):
-    """
-    Deprecated in :trac:`13872`. Use instead the attribute
-    ``module_generators`` of :class:`RiggedConfigurations`.
-
-    EXAMPLES::
-
-        sage: HighestWeightRiggedConfigurations(['A',2,1], [[1,1]])
-        doctest:...: DeprecationWarning: this class is deprecated.
-         Use RiggedConfigurations(cartan_type, B).module_generators instead
-        See http://trac.sagemath.org/13872 for details.
-        (
-        <BLANKLINE>
-        (/)
-        <BLANKLINE>
-        (/)
-        <BLANKLINE>
-        )
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13872, 'this class is deprecated. Use RiggedConfigurations('
-                       'cartan_type, B).module_generators instead')
-    return RiggedConfigurations(cartan_type, B).module_generators
 

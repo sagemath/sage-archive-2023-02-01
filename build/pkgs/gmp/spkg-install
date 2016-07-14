@@ -6,8 +6,6 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-CUR=`pwd`
-
 cd src/
 
 ###############################################################################
@@ -16,9 +14,10 @@ cd src/
 
 echo "Applying patches to upstream sources..."
 for patch in ../patches/*.patch; do
-    patch -p1 <"$patch" || continue
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
-        echo >&2 "Error: '$patch' failed to apply."
+        echo >&2 "Error applying '$patch'"
         exit 1
     fi
 done
@@ -321,12 +320,14 @@ else
     echo "(Libraries with the same version number will get updated though.)"
 fi
 
+# Mark MPIR as not installed (since we will overwrite it)
+rm -f "$SAGE_SPKG_INST"/mpir-*
+
 ###############################################################################
 # Now install GMP:
 ###############################################################################
 
 echo "Now installing GMP..."
-# The potential race condition in `make install` was fixed in GMP 2.1.4.
 $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing GMP."

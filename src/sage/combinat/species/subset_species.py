@@ -49,13 +49,17 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
         rng = range(1, len(self._list)+1)
         return self.__class__(self.parent(), self._labels, rng)
 
-    def labels(self):
+
+    def label_subset(self):
         """
+        Returns a subset of the labels that "appear" in this
+        structure.
+
         EXAMPLES::
 
             sage: P = species.SubsetSpecies()
             sage: S = P.structures(["a", "b", "c"])
-            sage: [s.labels() for s in S]
+            sage: [s.label_subset() for s in S]
             [[], ['a'], ['b'], ['c'], ['a', 'b'], ['a', 'c'], ['b', 'c'], ['a', 'b', 'c']]
         """
         return [self._relabel(i) for i in self._list]

@@ -7,6 +7,7 @@ AUTHORS:
 
 - David Roe
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 David Roe <roed.math@gmail.com>
@@ -19,7 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from padic_extension_generic import pAdicExtensionGeneric
+from .padic_extension_generic import pAdicExtensionGeneric
 from sage.rings.infinity import infinity
 from sage.misc.latex import latex
 from sage.rings.integer import Integer
@@ -64,12 +65,12 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         valuation map on K in the image of the valuation map on self
         (both normalized so that the valuation of p is 1).
 
-        INPUTS:
+        INPUT:
 
         - self -- an Eisenstein extension
         - K -- a subring of self (default None -> self.ground_ring())
 
-        OUTPUTS:
+        OUTPUT:
 
         - The ramification index of the extension self/K
 
@@ -97,12 +98,12 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         fields induced by this extensions.  Since Eisenstein
         extensions are totally ramified, this will be 1 for K=None.
 
-        INPUTS:
+        INPUT:
 
         - self -- an Eisenstein extension
         - K -- a subring of self (default None -> self.ground_ring())
 
-        OUTPUTS:
+        OUTPUT:
 
         - The degree of the induced extensions of residue fields.
 

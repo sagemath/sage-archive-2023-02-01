@@ -1,16 +1,24 @@
 """
 Big O for various types (power series, p-adics, etc.)
-"""
 
-import sage.rings.arith as arith
-import laurent_series_ring_element
+.. SEEALSO::
+
+    - `asymptotic expansions <../../../asymptotic/index.html>`_
+    - `p-adic numbers <../../../padics/index.html>`_
+    - `power series <../../../power_series/index.html>`_
+    - `polynomials <../../../polynomial_rings/index.html>`_
+"""
+from __future__ import absolute_import
+
+import sage.arith.all as arith
+from . import laurent_series_ring_element
 import sage.rings.padics.factory as padics_factory
 import sage.rings.padics.padic_generic_element as padic_generic_element
-import power_series_ring_element
-import integer
-import rational
+from . import power_series_ring_element
+from . import integer
+from . import rational
 from sage.rings.polynomial.polynomial_element import Polynomial
-import multi_power_series_ring_element
+from . import multi_power_series_ring_element
 
 
 def O(*x, **kwds):
@@ -70,6 +78,15 @@ def O(*x, **kwds):
         11^-12 + O(11^15)
         sage: K(11^-12, 15)
         11^-12 + O(11^15)
+
+    We can also work with `asymptotic expansions`_::
+
+        sage: A.<n> = AsymptoticRing(growth_group='QQ^n * n^QQ * log(n)^QQ', coefficient_ring=QQ); A
+        doctest:...: FutureWarning:
+        This class/method/function is marked as experimental. ...
+        Asymptotic Ring <QQ^n * n^QQ * log(n)^QQ> over Rational Field
+        sage: O(n)
+        O(n)
 
     TESTS::
 

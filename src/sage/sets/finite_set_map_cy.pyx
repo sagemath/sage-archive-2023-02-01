@@ -634,7 +634,7 @@ cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):
         """
         Return the ``n``-th power of ``self``.
 
-        INPUT::
+        INPUT:
 
         - ``n`` -- a positive integer
         - ``dummy`` -- not used; must be set to ``None`` (for compatibility only).
@@ -650,7 +650,7 @@ cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):
             [0, 1, 2]
         """
         if dummy is not None:
-            raise RuntimeError, "__pow__ dummy argument not used"
+            raise RuntimeError("__pow__ dummy argument not used")
         return generic_power_c(self, n, self.parent().one())
 
 
@@ -692,7 +692,7 @@ cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
         """
         Return the ``n``-th power of self.
 
-        INPUT::
+        INPUT:
 
         - ``n`` -- a positive integer
         - ``dummy`` -- not used; must be set to None (for compatibility only).
@@ -708,5 +708,5 @@ cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
             True
         """
         if dummy is not None:
-            raise RuntimeError, "__pow__ dummy argument not used"
+            raise RuntimeError("__pow__ dummy argument not used")
         return generic_power_c(self, n, self.parent().one())

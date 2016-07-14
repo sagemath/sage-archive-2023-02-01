@@ -77,7 +77,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
 
     REFERENCES:
 
-    .. [HST2008] F. Hivert, A. Schilling, N. Thiery,
+    .. [HST2008] \F. Hivert, A. Schilling, N. Thiery,
        Hecke group algebras as quotients of affine Hecke algebras at level 0,
        Journal of Combinatorial Theory, Series A 116 (2009) 844-863 ( arXiv:0804.3781 [math.RT] )
     """

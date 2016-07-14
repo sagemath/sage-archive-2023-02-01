@@ -52,7 +52,7 @@ Let us define a free module of rank 2 over `\ZZ`::
     sage: M = FiniteRankFreeModule(ZZ, 2, name='M') ; M
     Rank-2 free module M over the Integer Ring
     sage: M.category()
-    Category of modules over Integer Ring
+    Category of finite dimensional modules over Integer Ring
 
 We introduce a first basis on ``M``::
 
@@ -241,9 +241,10 @@ distinguished basis, while ``FiniteRankFreeModule`` does not::
 This is also revealed by the category of each module::
 
     sage: M.category()
-    Category of modules over Integer Ring
+    Category of finite dimensional modules over Integer Ring
     sage: N.category()
-    Category of modules with basis over (euclidean domains and infinite enumerated sets)
+    Category of finite dimensional modules with basis over
+     (euclidean domains and infinite enumerated sets and metric spaces)
 
 In other words, the module created by ``FreeModule`` is actually `\ZZ^3`,
 while, in the absence of any distinguished basis, no *canonical* isomorphism
@@ -367,7 +368,8 @@ created by ``VectorSpace`` is actually a Cartesian power of the base field::
     sage: V = VectorSpace(QQ,3) ; V
     Vector space of dimension 3 over Rational Field
     sage: V.category()
-    Category of vector spaces with basis over quotient fields
+    Category of finite dimensional vector spaces with basis
+     over (quotient fields and metric spaces)
     sage: V is QQ^3
     True
     sage: V.basis()
@@ -383,7 +385,7 @@ To create a vector space without any distinguished basis, one has to use
     sage: V = FiniteRankFreeModule(QQ, 3, name='V') ; V
     3-dimensional vector space V over the Rational Field
     sage: V.category()
-    Category of vector spaces over Rational Field
+    Category of finite dimensional vector spaces over Rational Field
     sage: V.bases()
     []
     sage: V.print_bases()
@@ -521,6 +523,7 @@ The components on the basis are returned by the square bracket operator for
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -589,7 +592,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         sage: M = FiniteRankFreeModule(ZZ, 3, name='M') ; M  # declaration with a name
         Rank-3 free module M over the Integer Ring
         sage: M.category()
-        Category of modules over Integer Ring
+        Category of finite dimensional modules over Integer Ring
         sage: M.base_ring()
         Integer Ring
         sage: M.rank()
@@ -601,7 +604,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         sage: V = FiniteRankFreeModule(QQ, 3, name='V') ; V
         3-dimensional vector space V over the Rational Field
         sage: V.category()
-        Category of vector spaces over Rational Field
+        Category of finite dimensional vector spaces over Rational Field
 
     The LaTeX output is adjusted via the parameter ``latex_name``::
 
@@ -714,15 +717,15 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
     basis, are provided by the generator method :meth:`irange`. By default,
     they range from 0 to the module's rank minus one::
 
-        sage: for i in M.irange(): print i,
-        0 1 2
+        sage: list(M.irange())
+        [0, 1, 2]
 
     This can be changed via the parameter ``start_index`` in the module
     construction::
 
         sage: M1 = FiniteRankFreeModule(ZZ, 3, name='M', start_index=1)
-        sage: for i in M1.irange(): print i,
-        1 2 3
+        sage: list(M1.irange())
+        [1, 2, 3]
 
     The parameter ``output_formatter`` in the constructor of the free module
     is used to set the output format of tensor components::
@@ -742,7 +745,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
     Element = FiniteRankFreeModuleElement
 
     def __init__(self, ring, rank, name=None, latex_name=None, start_index=0,
-                 output_formatter=None):
+                 output_formatter=None, category=None):
         r"""
         See :class:`FiniteRankFreeModule` for documentation and examples.
 
@@ -758,7 +761,8 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         """
         if ring not in Rings().Commutative():
             raise TypeError("the module base ring must be commutative")
-        Parent.__init__(self, base=ring, category=Modules(ring))
+        category = Modules(ring).FiniteDimensional().or_subcategory(category)
+        Parent.__init__(self, base=ring, category=category)
         self._ring = ring # same as self._base
         self._rank = rank
         self._name = name
@@ -887,12 +891,12 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
             sage: H = M._Hom_(N) ; H
             Set of Morphisms from Rank-3 free module M over the Integer Ring
-             to Rank-2 free module N over the Integer Ring in Category of
-             modules over Integer Ring
+             to Rank-2 free module N over the Integer Ring
+             in Category of finite dimensional modules over Integer Ring
             sage: H = Hom(M,N) ; H  # indirect doctest
             Set of Morphisms from Rank-3 free module M over the Integer Ring
-             to Rank-2 free module N over the Integer Ring in Category of
-             modules over Integer Ring
+             to Rank-2 free module N over the Integer Ring
+             in Category of finite dimensional modules over Integer Ring
 
         """
         from free_module_homset import FreeModuleHomset
@@ -1850,20 +1854,20 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         Index range on a rank-3 module::
 
             sage: M = FiniteRankFreeModule(ZZ, 3)
-            sage: for i in M.irange(): print i,
-            0 1 2
-            sage: for i in M.irange(start=1): print i,
-            1 2
+            sage: list(M.irange())
+            [0, 1, 2]
+            sage: list(M.irange(start=1))
+            [1, 2]
 
         The default starting value corresponds to the parameter ``start_index``
         provided at the module construction (the default value being 0)::
 
             sage: M1 = FiniteRankFreeModule(ZZ, 3, start_index=1)
-            sage: for i in M1.irange(): print i,
-            1 2 3
+            sage: list(M1.irange())
+            [1, 2, 3]
             sage: M2 = FiniteRankFreeModule(ZZ, 3, start_index=-4)
-            sage: for i in M2.irange(): print i,
-            -4 -3 -2
+            sage: list(M2.irange())
+            [-4, -3, -2]
 
         """
         si = self._sindex

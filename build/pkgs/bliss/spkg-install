@@ -18,7 +18,7 @@ for patch in ../patches/*.patch; do
 done
 
 
-$MAKE && mv libbliss.a "$SAGE_LOCAL/lib" && mv *.hh "$SAGE_LOCAL/include"
+$MAKE && cp libbliss.a "$SAGE_LOCAL/lib" && cp *.hh "$SAGE_LOCAL/include"
 
 if [ $? -ne 0 ]; then
     echo "An error occurred whilst building bliss"

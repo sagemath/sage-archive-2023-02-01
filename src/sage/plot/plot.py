@@ -533,9 +533,9 @@ AUTHORS:
 
 - Jeroen Demeyer (2012-04-19): move parts of this file to graphics.py (:trac:`12857`)
 
-- Aaron Lauve (2015-07-13): reworked handling of 'color' and 'linestyle'
-  when passed a list of functions; now more in-line with other CAS's. (:trac:`12962`)
-
+- Aaron Lauve (2016-07-13): reworked handling of 'color' when passed
+  a list of functions; now more in-line with other CAS's. Added list functionality
+  to linestyle and legend_label options as well. (:trac:`12962`)
 """
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>
@@ -864,7 +864,7 @@ def plot(funcs, *args, **kwds):
         the entries/values of the list/dictonary may be any of the options above.
 
       - 'automatic' -- maps to blue if `X` is a single Sage object; and
-        maps to ``rainbow(len(X))`` if `X` is a list.
+        maps to ``golden_rainbow()`` if `X` is a list.
 
     - ``detect_poles`` - (Default: False) If set to True poles are detected.
       If set to "show" vertical asymptotes are drawn.
@@ -1078,10 +1078,10 @@ def plot(funcs, *args, **kwds):
         g=plot([sin(n*x) for n in range(1,5)], (0, pi))
         sphinx_plot(g)
 
-    By default, color and linestyle will change from one primitive to the next.
-    This may be controlled by modifying ``color`` and ``linestyle`` options::
+    By default, color will change from one primitive to the next.
+    This may be controlled by modifying ``color`` option::
 
-        sage: plot([sin(n*x)+n for n in [1..4]], (0, pi), color='blue', linestyle='-')
+        sage: plot([sin(n*x)+n for n in [1..4]], (0, pi), color='blue')
         Graphics object consisting of 4 graphics primitives
 
         sage: plot([sin(n*x)+n for n in [1..4]], (0, pi), color=['red','orange','green','purple'], linestyle=['-','-','--','-.'])
@@ -1990,6 +1990,7 @@ def _plot(funcs, xrange, parametric=False,
     from sage.plot.misc import setup_for_eval_on_grid
     if funcs == []:
         return Graphics()
+    orig_funcs = funcs # keep the original functions (for use in legend labels)
     excluded_points = []
     funcs, ranges = setup_for_eval_on_grid(funcs, [xrange], options['plot_points'])
     xmin, xmax, delta = ranges[0]
@@ -2006,22 +2007,18 @@ def _plot(funcs, xrange, parametric=False,
     # Otherwise, let the plot color be 'blue'.
     if parametric or not isinstance(funcs, (list, tuple)):
         if 'rgbcolor' in options.keys() and options['rgbcolor']=='automatic':
-            options['rgbcolor'] = (0,0,1) # default color for a single curve.
+            options['rgbcolor'] = (0, 0, 1) # default color for a single curve.
 
     #check to see if funcs is a list of functions that will
     #be all plotted together.
     if isinstance(funcs, (list, tuple)) and not parametric:
-        from sage.plot.colors import rainbow, Color
-        rainbow_colors = rainbow(len(funcs)+1)
-        # :TODO:
-        # decide if and/or how to replace `rainbow_colors` in the code below.
-        # for demonstration purposes, `golden_rainbow` is used for `color`
-        def golden_rainbow(i):
-            # note: 'blue' has hue-saturation-lightness values (2/3, 1, 1/2).
-            h = golden_ratio_conjugate = 0.618033988749895
-            return Color((0.666666666666+i*h) % 1, 1, 0.4, space='hsl')
+        from sage.plot.colors import Color
+        def golden_rainbow(i,lightness=0.4):
+            # note: sage's "blue" has hue-saturation-lightness values (2/3, 1, 1/2).
+            g = golden_ratio_conjugate = 0.61803399
+            return Color((0.6666666666 + i*g) % 1, 1, lightness, space='hsl')
 
-        default_line_styles = ("-","--","-.",":")*len(funcs)
+        default_line_styles = ("-", "--", "-.", ":")*len(funcs)
 
         G = Graphics()
         for i, h in enumerate(funcs):
@@ -2029,8 +2026,9 @@ def _plot(funcs, xrange, parametric=False,
             fill_temp = options_temp.pop('fill', fill)
             fillcolor_temp = options_temp.pop('fillcolor', 'automatic')
             color_temp = options_temp.pop('rgbcolor', 'automatic')
-            color_temp = options_temp.pop('color',color_temp)
-            linestyle_temp = options_temp.pop('linestyle',None)
+            color_temp = options_temp.pop('color', color_temp)
+            linestyle_temp = options_temp.pop('linestyle', None)
+            legend_label_temp = options_temp.pop('legend_label', None)
 
             # passed more than one fill directive?
             if isinstance(fill_temp, dict):
@@ -2065,14 +2063,14 @@ def _plot(funcs, xrange, parametric=False,
                 if i in fillcolor_temp:
                     fillcolor_entry = fillcolor_temp[i]
                 else:
-                    fillcolor_entry = rainbow_colors[i]
+                    fillcolor_entry = golden_rainbow(i,0.85)
             elif isinstance(fillcolor_temp, (list, tuple)):
                 if i < len(fillcolor_temp):
                     fillcolor_entry = fillcolor_temp[i]
                 else:
-                    fillcolor_entry = rainbow_colors[i]
+                    fillcolor_entry = golden_rainbow(i,0.85)
             elif fillcolor_temp == 'automatic':
-                fillcolor_entry = rainbow_colors[i]
+                fillcolor_entry = golden_rainbow(i,0.85)
             else:
                 fillcolor_entry = fillcolor_temp
 
@@ -2082,7 +2080,7 @@ def _plot(funcs, xrange, parametric=False,
                     color_entry = color_temp[i]
                 else:
                     color_entry = golden_rainbow(i)
-            elif isinstance(color_temp, (list,tuple)) and isinstance(color_temp[0], (str,list,tuple)):
+            elif isinstance(color_temp, (list, tuple)) and isinstance(color_temp[0], (str, list, tuple)):
                 if i < len(color_temp):
                     color_entry = color_temp[i]
                 else:
@@ -2098,23 +2096,35 @@ def _plot(funcs, xrange, parametric=False,
                     linestyle_entry = linestyle_temp[i]
                 else:
                     linestyle_entry = default_line_styles[i]
-            elif isinstance(linestyle_temp, (list,tuple)):
+            elif isinstance(linestyle_temp, (list, tuple)):
                 if i < len(linestyle_temp):
                     linestyle_entry = linestyle_temp[i]
                 else:
                     linestyle_entry = default_line_styles[i]
-            elif linestyle_temp == None:
+            elif linestyle_temp == 'automatic':
                 linestyle_entry = default_line_styles[i]
+            elif linestyle_temp == None:
+                linestyle_entry = 'solid'
             else:
                 linestyle_entry = linestyle_temp
 
-            if i >= 1:
-                legend_label=options_temp.pop('legend_label', None) # legend_label popped so the label isn't repeated for nothing
+            # passed more than one legend_label directive?
+            if legend_label_temp is not None:
+                legend_label_entry = orig_funcs[i].__repr__() # the 'automatic' choice
+                if isinstance(legend_label_temp, dict):
+                    if i in legend_label_temp:
+                        legend_label_entry = legend_label_temp[i]
+                elif isinstance(legend_label_temp, (list, tuple)):
+                    if i < len(legend_label_temp):
+                        legend_label_entry = legend_label_temp[i]
+            else:
+                legend_label_entry = None
+            #if i >= 1:
+            #    legend_label=options_temp.pop('legend_label', None) # legend_label popped so the label isn't repeated for nothing
 
-            #print color_entry
             G += plot(h, xrange, polar = polar, fill = fill_entry, fillcolor = fillcolor_entry, \
                       color = color_entry, linestyle = linestyle_entry, \
-                      **options_temp)
+                      legend_label = legend_label_entry, **options_temp)
         return G
 
     adaptive_tolerance = options.pop('adaptive_tolerance')

@@ -1861,7 +1861,6 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return self._repr()
 
-
     def _repr(self,name=None):
         """
         Return string representation of this skew polynomial.
@@ -1882,7 +1881,6 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a._repr(name='y')
             '(1/2*t + 1/2)*y + t^2'
         """
-        sig_on()
         s = " "
         m = self.degree() + 1
         if name is None:
@@ -1910,11 +1908,8 @@ cdef class SkewPolynomial(AlgebraElement):
         s = re.sub(r' 1(\.0+)?\*',' ', s)
         s = re.sub(r' -1(\.0+)?\*',' -', s)
         if s == " ":
-            sig_off()
             return "0"
-        sig_off()
         return s[1:]
-
 
     def _latex_(self,name=None):
         """
@@ -1936,7 +1931,6 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a._latex_(name='y')
             '\\left(\\frac{1}{2} t + \\frac{1}{2}\\right) y + t^{2}'
         """
-        sig_on()
         s = " "
         coeffs = self.list()
         m = len(coeffs)
@@ -1965,19 +1959,12 @@ cdef class SkewPolynomial(AlgebraElement):
         s = re.sub(" -1(\.0+)? \|", " -", s)
         s = s.replace("|","")
         if s==" ":
-            sig_off()
             return "0"
-        sig_off()
         return s[1:].lstrip().rstrip()
-
-
-    # Misc
-    # ----
 
     def _is_atomic(self):
         return (self.degree() == self.valuation() and
                 self.leading_coefficient()._is_atomic())
-
 
     def base_ring(self):
         """
@@ -1995,7 +1982,6 @@ cdef class SkewPolynomial(AlgebraElement):
             True
         """
         return self.parent().base_ring()
-
 
     def shift(self, n):
         """
@@ -2025,29 +2011,21 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a << 2
             x^7 + t^4*x^6 + t^2*x^4 + t^10*x^2
         """
-        sig_on()
         if n == 0 or self.degree() < 0:
-            sig_off()
             return self
         if n > 0:
-            sig_off()
             return self._parent(n*[self.base_ring().zero()] + self.list(), check=False)
         if n < 0:
             if n > self.degree():
-                sig_off()
                 return self._parent([])
             else:
-                sig_off()
                 return self._parent(self.list()[-n:], check=False)
-
 
     def __lshift__(self, k):
         return self.shift(k)
 
-
     def __rshift__(self, k):
         return self.shift(-k)
-
 
     def change_variable_name(self, var):
         """
@@ -2075,16 +2053,7 @@ cdef class SkewPolynomial(AlgebraElement):
         parent = self._parent
         R = parent.base_ring()[var,parent.twist_map()]
         return R(self.list())
-
-
-    # TODO/jsrn: I really think this should not be here!
-    # def __copy__(self):
-    #     """
-    #     Return a copy of this skew polynomial.
-    #     """
-    #     return self
-
-
+    
     def dict(self):
         """
         Return a sparse dictionary representation of this skew
@@ -2106,7 +2075,6 @@ cdef class SkewPolynomial(AlgebraElement):
             if c:
                 X[i] = c
         return X
-
 
     def is_monomial(self):
         """
@@ -2142,7 +2110,6 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return len(self.exponents()) == 1 and self.leading_coefficient() == 1
 
-
     def is_term(self):
         """
         Return True if self is an element of the base ring times a
@@ -2169,10 +2136,8 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return len(self.exponents()) == 1
 
-
     def is_gen(self):
         return self._is_gen
-
 
     def coefficients(self):
         """
@@ -2190,7 +2155,6 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return [c for c in self.list() if not c.is_zero()]
 
-
     def exponents(self):
         """
         Return the exponents of the monomials appearing in self.
@@ -2207,7 +2171,6 @@ cdef class SkewPolynomial(AlgebraElement):
         l = self.list()
         return [i for i in range(len(l)) if not l[i].is_zero()]
 
-
     def prec(self):
         """
         Return the precision of this polynomial. This is always infinity,
@@ -2223,7 +2186,6 @@ cdef class SkewPolynomial(AlgebraElement):
             +Infinity
         """
         return infinity.infinity
-
 
     def padded_list(self,n=None):
         """
@@ -2268,11 +2230,9 @@ cdef class SkewPolynomial(AlgebraElement):
             raise ValueError("n must be at least 0")
         if len(v) < n:
             z = self._parent.base_ring().zero()
-#            z = self._parent.base_ring().zero_element()
             return v + [z]*(n - len(v))
         else:
             return v[:int(n)]
-
 
     def coeffs(self):
         r"""
@@ -2292,7 +2252,6 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return self.list()
 
-
     def variable_name(self):
         """
         Return name of variable used in this polynomial as a string.
@@ -2310,6 +2269,10 @@ cdef class SkewPolynomial(AlgebraElement):
 
 
 cdef class SkewPolynomial_generic_dense(SkewPolynomial):
+    """
+    A generic dense skew polynomial.
+    """
+
     def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
         """
         TESTS::

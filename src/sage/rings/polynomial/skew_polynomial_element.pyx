@@ -1353,7 +1353,7 @@ cdef class SkewPolynomial(AlgebraElement):
         _, r = other.right_quo_rem(self)
         return r.is_zero()
 
-    def left_xgcd(self,other,monic=True):
+    def left_xgcd(self, other, monic=True):
         """
         INPUT:
 
@@ -1453,7 +1453,7 @@ cdef class SkewPolynomial(AlgebraElement):
             V = V*lc
         return G,U,V
 
-    def right_xgcd(self,other,monic=True):
+    def right_xgcd(self, other, monic=True):
         """
         INPUT:
 
@@ -1537,7 +1537,7 @@ cdef class SkewPolynomial(AlgebraElement):
             V = lc*V
         return G,U,V
 
-    def right_gcd(self,other,monic=True):
+    def right_gcd(self, other, monic=True):
         """
         INPUT:
 
@@ -1754,7 +1754,7 @@ cdef class SkewPolynomial(AlgebraElement):
             V1 = V1.right_monic()
         return V1
 
-    def right_lcm(self,other,monic=True):
+    def right_lcm(self, other, monic=True):
         """
         INPUT:
 
@@ -1861,7 +1861,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return self._repr()
 
-    def _repr(self,name=None):
+    def _repr(self, name=None):
         """
         Return string representation of this skew polynomial.
 
@@ -1911,7 +1911,7 @@ cdef class SkewPolynomial(AlgebraElement):
             return "0"
         return s[1:]
 
-    def _latex_(self,name=None):
+    def _latex_(self, name=None):
         """
         Return a latex representation of this skew polynomial.
 
@@ -2187,7 +2187,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return infinity.infinity
 
-    def padded_list(self,n=None):
+    def padded_list(self, n=None):
         """
         Return list of coefficients of self up to (but not including)
         `q^n`.
@@ -2298,7 +2298,6 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: x.parent() is S
             True
         """
-        sig_on()
         SkewPolynomial.__init__(self, parent, is_gen=is_gen)
         if x is None:
             self.__coeffs = []
@@ -2312,7 +2311,6 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                 self.__normalize()
             else:
                 self.__coeffs = x
-            sig_off()
             return
 
         if type(x) is SkewPolynomial:
@@ -2322,7 +2320,6 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                 try:
                     if x.is_zero():
                         self.__coeffs = []
-                        sig_off()
                         return
                 except (AttributeError, TypeError):
                     pass
@@ -2331,12 +2328,10 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                 self.__coeffs = [R(a, **kwds) for a in x.list()]
                 if check:
                     self.__normalize()
-                sig_off()
                 return
 
         elif type(x) is int and x == 0:
             self.__coeffs = []
-            sig_off()
             return
 
         elif isinstance(x, dict):
@@ -2350,8 +2345,6 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             self.__normalize()
         else:
             self.__coeffs = x
-        sig_off()
-
 
     cdef list _list_c(self):
         """
@@ -2363,40 +2356,29 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         """
         return self.__coeffs
 
-
     cdef SkewPolynomial _new_c(self, list coeffs, Parent P, char check=0):
         """
-        Fast creation of a new skew polynomial
+        Fast creation of a new generic dense skew polynomial
         """
-        sig_on()
         cdef type t = type(self)
         cdef SkewPolynomial_generic_dense f = t.__new__(t)
         f._parent = P
         f.__coeffs = coeffs
         if check:
             f.__normalize()
-        sig_off()
         return f
 
-
     cdef void __normalize(self):
-        sig_on()
         x = self.__coeffs
         cdef Py_ssize_t n = len(x) - 1
         while n >= 0 and not x[n]:
             del x[n]
             n -= 1
-        sig_off()
-
-
-    # Basic operations in place
-    # -------------------------
 
     cdef void _inplace_add(self, SkewPolynomial_generic_dense right):
         """
         Replace self by self+right (only for internal use).
         """
-        sig_on()
         cdef Py_ssize_t i, min
         x = (<SkewPolynomial_generic_dense>self).__coeffs
         y = (<SkewPolynomial_generic_dense>right).__coeffs
@@ -2410,13 +2392,11 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             x += y[len(x):]
         if len(x) == len(y):
             self.__normalize()
-        sig_off()
 
     cdef void _inplace_sub(self, SkewPolynomial_generic_dense right):
         """
         Replace self by self-right (only for internal use).
         """
-        sig_on()
         cdef Py_ssize_t i, min
         cdef list x = (<SkewPolynomial_generic_dense>self).__coeffs
         cdef list y = (<SkewPolynomial_generic_dense>right).__coeffs
@@ -2429,13 +2409,11 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             x += [-c for c in y[len(x):]]
         if len(x) == len(y):
             self.__normalize()
-        sig_off()
 
     cdef void _inplace_rmul(self, SkewPolynomial_generic_dense right):
         """
         Replace self by self*right (only for internal use).
         """
-        sig_on()
         cdef list x = (<SkewPolynomial_generic_dense>self).__coeffs
         cdef list y = (<SkewPolynomial_generic_dense>right).__coeffs
         cdef Py_ssize_t i, k, start, end
@@ -2457,13 +2435,11 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                 for i from start < i <= end:
                     sum += x[i] * parent.twist_map(i)(y[k-i])
                 x[k] = sum
-        sig_off()
 
     cdef void _inplace_lmul(self, SkewPolynomial_generic_dense left):
         """
         Replace self by left*self (only for internal use).
         """
-        sig_on()
         cdef list x = (<SkewPolynomial_generic_dense>self).__coeffs
         cdef list y = (<SkewPolynomial_generic_dense>left).__coeffs
         cdef Py_ssize_t i, k, start, end
@@ -2485,17 +2461,11 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                 for i from start < i <= end:
                     sum += parent.twist_map(k-i)(x[i]) * y[k-i]
                 x[k] = sum
-        sig_off()
-
-
-    # Fast exponentiation
-    # -------------------
 
     cdef void _inplace_pow(self, Py_ssize_t n):
         """
         Replace self by self**n.
         """
-        sig_on()
         while n & 1 == 0:
             self._inplace_rmul(self)
             n = n >> 1
@@ -2506,8 +2476,6 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             if n&1 == 1:
                 self._inplace_rmul(selfpow)
             n = n >> 1
-        sig_off()
-
 
     cpdef _pow_(self,exp,modulus=None,side=Right):
         """
@@ -2572,50 +2540,36 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: a._pow_(100,modulus)  # quite fast
             (2*t^2 + 3)*x^2 + (t^2 + 4*t + 2)*x + t^2 + 2*t + 1
         """
-        sig_on()
         cdef SkewPolynomial_generic_dense r
-
-#        if not PY_TYPE_CHECK_EXACT(exp, Integer) or \
-#                PY_TYPE_CHECK_EXACT(exp, int):
         if not type(exp) is Integer or \
                 type(exp) is int:
                     try:
                         exp = Integer(exp)
                     except TypeError:
-                        sig_off()
                         raise TypeError("non-integral exponents not supported")
 
         if self.degree() <= 0:
-            sig_off()
             return self.parent()(self[0]**exp)
         if exp == 0:
-            sig_off()
             return self.parent()(1)
         if exp < 0:
-            sig_off()
             return (~self).pow(-exp,modulus,side=side)
 
         if self == self.parent().gen(): # special case x**n should be faster!
             P = self.parent()
             R = P.base_ring()
-#            v = [R.zero_element()]*exp + [R.one_element()]
             v = [R.zero()]*exp + [R.one()]
             r = <SkewPolynomial_generic_dense>self._parent(v)
         else:
             r = <SkewPolynomial_generic_dense>self._new_c(list(self.__coeffs),self._parent)
             r._inplace_pow(exp)
-#            r = r**(exp)
 
         if modulus:
             if side == Right:
                 _, r = r.right_quo_rem(modulus)
-#                r._inplace_rrem(modulus)
             else:
                 _, r = r.left_quo_rem(modulus)
-#                r._inplace_lrem(modulus)
-        sig_off()
         return r
-
 
     def __pow__(self,exp,modulus):
         """
@@ -2656,7 +2610,6 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         """
         return self._pow_(exp,modulus)
 
-
 def make_generic_skew_polynomial(parent, coeffs):
     return parent(coeffs)
 
@@ -2692,14 +2645,12 @@ cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
         try:
             return self._codomain._element_constructor_(x)
         except AttributeError:
-            # if there is no element constructor, there is a custom call method.
             return self._codomain(x)
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         try:
             return self._codomain._element_constructor_(x, *args, **kwds)
         except AttributeError:
-            # if there is no element constructor, there is a custom call method.
             return self._codomain(x, *args, **kwds)
 
     def section(self):

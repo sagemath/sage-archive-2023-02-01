@@ -112,9 +112,9 @@ Here is a working example over a finite field::
     sage: b = (2*t^2 + 3)*x^2 + (3*t^2 + 1)*x + 4*t + 2
     sage: q,r = a.quo_rem(b,side=Left)
     sage: q
-    (4*t^2 + 2*t + 1)*x^2 + (t^2 + 2*t + 4)*x + 2*t^2 + 3*t + 3
+    (4*t^2 + t + 1)*x^2 + (2*t^2 + 2*t + 2)*x + 2*t^2 + 4*t + 3
     sage: r
-    (3*t^2 + 3*t + 1)*x + 2*t^2 + 4*t + 4
+    (t + 2)*x + 3*t^2 + 2*t + 4
     sage: a == b*q + r
     True
 
@@ -613,7 +613,7 @@ cdef class SkewPolynomial(AlgebraElement):
         c = self._new_c([-x for x in (<SkewPolynomial>self)._list_c()], self._parent, 0)
         return c
 
-    cpdef ModuleElement _rmul_(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         """
         Multiply self on the right by scalar.
 
@@ -641,7 +641,7 @@ cdef class SkewPolynomial(AlgebraElement):
         r = self._new_c([ (map**i)(right)*x[i] for i from 0 <= i < len(x) ], self._parent, 0)
         return r 
 
-    cpdef ModuleElement _lmul_(self, RingElement left):
+    cpdef ModuleElement _rmul_(self, RingElement left):
         """
         Multiply self on the left by scalar.
 

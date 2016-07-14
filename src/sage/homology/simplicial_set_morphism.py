@@ -908,6 +908,58 @@ class SimplicialSetMorphism(Morphism):
         i = cone.map_from_X()
         return self.pushout(i)
 
+    def product(self, *others):
+        r"""
+        The product of this map with ``others``.
+
+        - ``others`` -- morphisms of simplicial sets.
+
+        If the relevant maps are `f_i: X_i \to Y_i`, this returns the
+        natural map `\prod X_i \to \prod Y_i`.
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: f = Hom(S1,S1).identity()
+            sage: f.product(f).is_bijective()
+            True
+            sage: g = S1.constant_map(S1)
+            sage: g.product(g).is_bijective()
+            False
+        """
+        domain = self.domain().product(*[g.domain() for g in others])
+        codomain = self.codomain().product(*[g.codomain() for g in others])
+        factors = []
+        for (i,f) in enumerate([self] + list(others)):
+            factors.append(f * domain.projection_map(i))
+        return codomain.universal_property(*factors)
+
+    def coproduct(self, *others):
+        r"""
+        The coproduct of this map with ``others``.
+
+        - ``others`` -- morphisms of simplicial sets.
+
+        If the relevant maps are `f_i: X_i \to Y_i`, this returns the
+        natural map `\amalg X_i \to \amalg Y_i`.
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: f = Hom(S1,S1).identity()
+            sage: f.coproduct(f).is_bijective()
+            True
+            sage: g = S1.constant_map(S1)
+            sage: g.coproduct(g).is_bijective()
+            False
+        """
+        domain = self.domain().coproduct(*[g.domain() for g in others])
+        codomain = self.codomain().coproduct(*[g.codomain() for g in others])
+        factors = []
+        for (i,f) in enumerate([self] + list(others)):
+            factors.append(codomain.inclusion(i) * f)
+        return codomain.universal_property(*factors)
+
     def associated_chain_complex_morphism(self, base_ring=ZZ,
                                           augmented=False, cochain=False):
         """

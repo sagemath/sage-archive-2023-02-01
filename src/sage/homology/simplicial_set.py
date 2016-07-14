@@ -262,6 +262,7 @@ from sage.graphs.graph import Graph
 from sage.misc.latex import latex
 from sage.interfaces.gap import gap
 from sage.env import SAGE_ENV
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.homology.algebraic_topological_model import algebraic_topological_model_delta_complex
 from sage.homology.cell_complex import GenericCellComplex
 from sage.homology.chain_complex import ChainComplex
@@ -3443,7 +3444,16 @@ class PullbackOfSimplicialSets(SimplicialSet):
         for sigma in domain.nondegenerate_simplices():
             target = tuple([(f(sigma).nondegenerate(), tuple(f(sigma).degeneracies()))
                                for f in maps])
-            data[sigma] = translate[target]
+            # If there any degeneracies in common, remove them: the
+            # dictionary "translate" has nondegenerate simplices as
+            # its keys.
+            in_common = set.intersection(*[set(_[1]) for _ in target])
+            if in_common:
+                target = tuple((tau, tuple(sorted(set(degens).difference(in_common),
+                                                  reverse=True)))
+                               for tau, degens in target)
+            in_common = sorted(in_common, reverse=True)
+            data[sigma] = translate[target].apply_degeneracies(*in_common)
         return domain.Hom(self)(data)
 
 
@@ -4649,6 +4659,133 @@ class Nerve(SimplicialSet_infinite):
             Nerve of Z12
         """
         return "Nerve of {}".format(str(self._monoid))
+
+
+class StandardSimplex(SimplicialSet, UniqueRepresentation):
+    r"""
+    The standard `n`-simplex as a simplicial set.
+
+    INPUT:
+
+    - ``n`` -- non-negative integer, the dimension of the simplex.
+
+    Unlike the object obtained from ``simplicial_set.Simplex(n)``,
+    this is unique, and it comes equipped with coface and codegeneracy
+    maps, whose codomains are other standard simplices.
+
+    EXAMPLES::
+
+        sage: from sage.homology.simplicial_set import StandardSimplex
+        sage: K = StandardSimplex(2)
+        sage: K
+        Standard 2-simplex
+        sage: latex(K)
+        \Delta^{2}
+        sage: K.n_cells(0)
+        [(0,), (1,), (2,)]
+        sage: K.n_cells(1)
+        [(0, 1), (0, 2), (1, 2)]
+        sage: K.n_cells(2)
+        [(0, 1, 2)]
+        sage: K.coface(0)
+        Simplicial set morphism:
+          From: Standard 2-simplex
+          To:   Standard 3-simplex
+          Defn: [(0,), (1,), (2,), (0, 1), (0, 2), (1, 2), (0, 1, 2)] --> [(1,), (2,), (3,), (1, 2), (1, 3), (2, 3), (1, 2, 3)]
+        sage: K.codegeneracy(1).codomain()
+        Standard 1-simplex
+    """
+    def __init__(self, n):
+        """
+        TESTS:
+
+        Testing uniqueness::
+
+            sage: from sage.homology.simplicial_set import StandardSimplex
+            sage: StandardSimplex(2) == StandardSimplex(2)
+            True
+            sage: StandardSimplex(4) is StandardSimplex(4)
+            True
+
+        An "ordinary" simplex is not unique::
+
+            sage: simplicial_sets.Simplex(2) == simplicial_sets.Simplex(2)
+            False
+            sage: simplicial_sets.Simplex(4) is simplicial_sets.Simplex(4)
+            False
+        """
+        SimplicialSet.__init__(self, simplicial_complexes.Simplex(n),
+                          name='Standard {}-simplex'.format(n))
+        self._n = n
+
+    def _latex_(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import StandardSimplex
+            sage: latex(StandardSimplex(3))
+            \Delta^{3}
+        """
+        return '\\Delta^{{{}}}'.format(self._n)
+
+    def coface(self, i):
+        r"""
+        INPUT:
+
+        - ``i`` -- integer between 0 and `n+1`, if this simplicial set
+          is `\Delta^n`.
+
+        The `i`-th coface map is a map from the `n`-simplex `\Delta^n`
+        to the `(n+1)`-simplex `\Delta^{n+1}`, sending the
+        top-dimensional simplex in `\Delta^n` to the `i`-th face of
+        the top-dimensional simplex in `\Delta^{n+1}`.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import StandardSimplex
+            sage: K = StandardSimplex(2)
+            sage: delta1 = K.coface(1)
+            sage: L = delta1.codomain(); L
+            Standard 3-simplex
+            sage: delta1(K.n_cells(2)[0])
+            (0, 2, 3)
+            sage: delta1(K.n_cells(2)[0]) == L.face(L.n_cells(3)[0], 1)
+            True
+        """
+        n = self._n
+        domain = self
+        codomain = StandardSimplex(n+1)
+        tau = codomain.n_cells(n+1)[0]
+        return self.Hom(codomain)({self.n_cells(n)[0]:
+                                   codomain.face(tau, i)})
+
+    def codegeneracy(self, i):
+        r"""
+        INPUT:
+
+        - ``i`` -- integer between 0 and `n-1`, if this simplicial set
+          is `\Delta^n`.
+
+        The `i`-th codegeneracy map is a map from the `n`-simplex
+        `\Delta^n` to the `(n-1)`-simplex `\Delta^{n-1}`, sending the
+        top-dimensional simplex in `\Delta^n` to the `i`-th degeneracy
+        applied to the top-dimensional simplex in `\Delta^{n-1}`.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import StandardSimplex
+            sage: K = StandardSimplex(2)
+            sage: s1 = K.codegeneracy(1)
+            sage: L = s1.codomain(); L
+            Standard 1-simplex
+            sage: s1(K.n_cells(2)[0])
+            Simplex obtained by applying degeneracy s_1 to (0, 1)
+        """
+        n = self._n
+        codomain = StandardSimplex(n-1)
+        tau = codomain.n_cells(n-1)[0]
+        return self.Hom(codomain)({self.n_cells(n)[0]:
+                                   tau.apply_degeneracies(i)})
 
 
 ########################################################################

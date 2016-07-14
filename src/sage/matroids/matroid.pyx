@@ -1135,7 +1135,7 @@ cdef class Matroid(SageObject):
         """
         if self is N:
             if certificate:
-               return True, None
+               return True, (frozenset(), frozenset(), {x: x for x in self.groundset()})
             return True
         rd = self.full_rank() - N.full_rank()
         cd = self.full_corank() - N.full_corank()
@@ -3935,6 +3935,12 @@ cdef class Matroid(SageObject):
             sage: matroids.named_matroids.NonFano().has_minor(M, certificate=True)
             (True, (frozenset(), frozenset({'g'}),
                 {0: 'b', 1: 'c', 2: 'a', 3: 'd', 4: 'e', 5: 'f'}))
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.has_minor(M, True)
+            (True,
+             (frozenset(),
+              frozenset(),
+              {'a': 'a', 'b': 'b', 'c': 'c', 'd': 'd', 'e': 'e', 'f': 'f', 'g': 'g'}))
         """
         if not isinstance(N, Matroid):
             raise ValueError("N must be a matroid.")

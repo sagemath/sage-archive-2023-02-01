@@ -1353,11 +1353,7 @@ cdef class SkewPolynomial(AlgebraElement):
         _, r = other.right_quo_rem(self)
         return r.is_zero()
 
-
-    # greastest commun divisor
-    # ------------------------
-
-    def lxgcd(self,other,monic=True):
+    def left_xgcd(self,other,monic=True):
         """
         INPUT:
 
@@ -1395,46 +1391,44 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S.<x> = k['x',Frob]
             sage: a = (x + t) * (x^2 + t*x + 1)
             sage: b = 2 * (x + t) * (x^3 + (t+1)*x^2 + t^2)
-            sage: g,u,v = a.lxgcd(b); g
+            sage: g,u,v = a.left_xgcd(b); g
             x + t
             sage: a*u + b*v == g
             True
 
         Specifying ``monic=False``, we *can* get a nonmonic gcd::
 
-            sage: g,u,v = a.lxgcd(b,monic=False); g
+            sage: g,u,v = a.left_xgcd(b,monic=False); g
             2*t*x + 4*t + 2
             sage: a*u + b*v == g
             True
 
-        The base ring need to be a field::
+        The base ring must be a field::
 
             sage: R.<t> = QQ[]
             sage: sigma = R.hom([t+1])
             sage: S.<x> = R['x',sigma]
             sage: a = (x + t) * (x^2 + t*x + 1)
             sage: b = 2 * (x + t) * (x^3 + (t+1)*x^2 + t^2)
-            sage: a.lxgcd(b)
+            sage: a.left_xgcd(b)
             Traceback (most recent call last):
             ...
             TypeError: the base ring must be a field
 
-        And the twist map need to be bijective::
+        And the twist map must be bijective::
 
             sage: FR = R.fraction_field()
             sage: f = FR.hom([FR(t)^2])
             sage: S.<x> = FR['x',f]
             sage: a = (x + t) * (x^2 + t*x + 1)
             sage: b = 2 * (x + t) * (x^3 + (t+1)*x^2 + t^2)
-            sage: a.lxgcd(b)
+            sage: a.left_xgcd(b)
             Traceback (most recent call last):
             ...
             NotImplementedError: Inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
                 Defn: t |--> t^2
         """
-#        sig_on()
         if not isinstance(self.base_ring(),Field):
-#            sig_off()
             raise TypeError("the base ring must be a field")
         G = self
         U = self._parent(1)
@@ -1457,11 +1451,9 @@ cdef class SkewPolynomial(AlgebraElement):
             G = G*lc
             U = U*lc
             V = V*lc
-#        sig_off()
         return G,U,V
 
-
-    def rxgcd(self,other,monic=True):
+    def right_xgcd(self,other,monic=True):
         """
         INPUT:
 
@@ -1497,33 +1489,31 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S.<x> = k['x',Frob]
             sage: a = (x^2 + t*x + 1) * (x + t)
             sage: b = 2 * (x^3 + (t+1)*x^2 + t^2) * (x + t)
-            sage: g,u,v = a.rxgcd(b); g
+            sage: g,u,v = a.right_xgcd(b); g
             x + t
             sage: u*a + v*b == g
             True
 
         Specifying ``monic=False``, we *can* get a nonmonic gcd::
 
-            sage: g,u,v = a.rxgcd(b,monic=False); g
+            sage: g,u,v = a.right_xgcd(b,monic=False); g
             (4*t^2 + 4*t + 1)*x + 4*t^2 + 4*t + 3
             sage: u*a + v*b == g
             True
 
-        The base ring need to be a field::
+        The base ring must be a field::
 
             sage: R.<t> = QQ[]
             sage: sigma = R.hom([t+1])
             sage: S.<x> = R['x',sigma]
             sage: a = (x^2 + t*x + 1) * (x + t)
             sage: b = 2 * (x^3 + (t+1)*x^2 + t^2) * (x + t)
-            sage: a.rxgcd(b)
+            sage: a.right_xgcd(b)
             Traceback (most recent call last):
             ...
             TypeError: the base ring must be a field
         """
-#        sig_on()
         if not isinstance(self.base_ring(),Field):
-#            sig_off()
             raise TypeError("the base ring must be a field")
         G = self
         U = self._parent(1)
@@ -1545,108 +1535,7 @@ cdef class SkewPolynomial(AlgebraElement):
             G = lc*G
             U = lc*U
             V = lc*V
-#        sig_off()
-#        r = G, U, V
-#        return r
         return G,U,V
-
-
-    def xgcd(self,other,side=Right,monic=True):
-        """
-        INPUT:
-
-        -  ``other`` -- an other skew polynomial over the same
-           base
-
-        -  ``side`` -- ``Left`` or ``Right`` (default: Right)
-
-        -  ``monic`` -- boolean (default: True)
-
-        OUTPUT:
-
-        - The left (resp. right) gcd of self and other, that is a
-        skew polynomial `g` with the following property: any skew
-        polynomial is divisible on the left (resp. right) by `g`
-        iff it is divisible on the left (resp. right) by both
-        ``self`` and ``other``.
-        If monic is ``True``, `g` is in addition monic. (With this
-        extra condition, it is uniquely determined.)
-
-        - Two skew polynomials `u` and `v` such that:
-
-            - (if side=Left) `g = self * u + other * v`
-
-            - (if side=Right) `g = u * self + v * other`
-
-        .. NOTE::
-
-            Works only if the base ring is a field and, when
-            ``side`` is ``Left`` if the twist map on this field
-            is bijective (otherwise gcd do not exist in general).
-
-        EXAMPLES::
-
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
-            sage: a = (x + 2*t) * (x^2 + t*x + 1) * (x + t)
-            sage: b = 2 * (x + 2*t) * (x^3 + (t+1)*x^2 + t^2) * (x + t)
-            sage: g,u,v = a.xgcd(b); g    # side = Right
-            x + t
-            sage: u*a + v*b == g
-            True
-            sage: g,u,v = a.xgcd(b,side=Left); g
-            x + 2*t
-            sage: a*u + b*v == g
-            True
-
-        Specifying ``monic=False``, we *can* get a nonmonic gcd::
-
-            sage: g,u,v = a.xgcd(b,monic=False); g
-            (2*t^2 + 2*t + 4)*x + 2*t^2 + 3*t + 4
-            sage: u*a + v*b == g
-            True
-            sage: g,u,v = a.xgcd(b,side=Left,monic=False); g
-            (2*t^2 + 3*t + 4)*x + 2*t^2 + t + 3
-            sage: a*u + b*v == g
-            True
-
-        The base ring need to be a field::
-
-            sage: R.<t> = QQ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
-            sage: a = (x + 2*t) * (x^2 + t*x + 1) * (x + t)
-            sage: b = 2 * (x + 2*t) * (x^3 + (t+1)*x^2 + t^2) * (x + t)
-            sage: a.xgcd(b)
-            Traceback (most recent call last):
-            ...
-            TypeError: the base ring must be a field
-            sage: a.xgcd(b,side=Left)
-            Traceback (most recent call last):
-            ...
-            TypeError: the base ring must be a field
-
-        And the twist map need to be bijective::
-
-            sage: FR = R.fraction_field()
-            sage: f = FR.hom([FR(t)^2])
-            sage: S.<x> = FR['x',f]
-            sage: a = (x + 2*t) * (x^2 + t*x + 1) * (x + t)
-            sage: b = 2 * (x + 2*t) * (x^3 + (t+1)*x^2 + t^2) * (x + t)
-            sage: g,u,v = a.xgcd(b); g
-            x + t
-            sage: g,u,v = a.xgcd(b,side=Left); g
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
-                Defn: t |--> t^2
-        """
-        if side == Right:
-            return self.rxgcd(other,monic=monic)
-        else:
-            return self.lxgcd(other,monic=monic)
-
 
     def rgcd(self,other,monic=True):
         """

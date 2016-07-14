@@ -841,7 +841,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         # todo: Sage does not yet have support for finding order of
         #       automorphisms. Once that is available, general case can
-        #       be implemented.
+        #       be implemented. Reference: http://bit.ly/29Vidu7
         if self._parent.base_ring().is_integral_domain():
             if self.degree() == 0 and self[0].is_unit():
                 return True
@@ -875,8 +875,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return not self.is_zero() and self[self.degree()] == 1
 
-
-    def lmonic(self):
+    def left_monic(self):
         """
         Return the unique monic skew polynomial `a` of the same
         degree which divides this skew polynomial on the left
@@ -894,7 +893,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
             sage: a = (3*t^2 + 3*t + 2)*x^3 + (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 2
-            sage: b = a.lmonic(); b
+            sage: b = a.left_monic(); b
             x^3 + (4*t^2 + 3*t)*x^2 + (4*t + 2)*x + 2*t^2 + 4*t + 3
 
         Check list::
@@ -919,23 +918,19 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: sigma = R.hom([t+1])
             sage: S.<x> = R['x',sigma]
             sage: a = t*x
-            sage: a.lmonic()
+            sage: a.left_monic()
             Traceback (most recent call last):
             ...
             NotImplementedError: the leading coefficient is not a unit
         """
-        sig_on()
         try:
             a = self.base_ring()(~self.leading_coefficient())
         except (ZeroDivisionError, TypeError):
-            sig_off()
             raise NotImplementedError("the leading coefficient is not a unit")
         r = self*self._parent.twist_map(-self.degree())(a)
-        sig_off()
         return r
 
-
-    def rmonic(self):
+    def right_monic(self):
         """
         Return the unique monic skew polynomial `a` of the same
         degree which divides this skew polynomial on the right
@@ -951,7 +946,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
             sage: a = (3*t^2 + 3*t + 2)*x^3 + (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 2
-            sage: b = a.rmonic(); b
+            sage: b = a.right_monic(); b
             x^3 + (2*t^2 + 3*t + 4)*x^2 + (3*t^2 + 4*t + 1)*x + 2*t^2 + 4*t + 3
 
         Check list::
@@ -975,100 +970,17 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: sigma = R.hom([t+1])
             sage: S.<x> = R['x',sigma]
             sage: a = t*x
-            sage: a.rmonic()
+            sage: a.right_monic()
             Traceback (most recent call last):
             ...
             NotImplementedError: the leading coefficient is not a unit
         """
-        sig_on()
         try:
             a = self.base_ring()(~self.leading_coefficient())
         except (ZeroDivisionError, TypeError):
-            sig_off()
             raise NotImplementedError("the leading coefficient is not a unit")
         r = a*self
-        sig_off()
         return r
-
-
-    def monic(self, side=Right):
-        """
-        INPUT:
-
-        -  ``side`` -- ``Left`` or ``Right`` (default: Right)
-
-        OUTPUT:
-
-        -  the unique monic skew polynomial `a` of the same
-           degree which divides this skew polynomial on ``side``
-
-        .. Note::
-
-            if ``side`` is ``Right``, this skew polynomial is self
-            dividing on the *left* by its leading coefficient; if
-            ``side`` is ``Left``, it is self dividing on the
-            *right* by the `n`-th iterative (`n` is the degree of
-            self) of the inverse of the twist map applied to the
-            leading coefficient.
-
-        EXAMPLES::
-
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
-            sage: a = (3*t^2 + 3*t + 2)*x^3 + (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 2
-            sage: b = a.monic(); b
-            x^3 + (2*t^2 + 3*t + 4)*x^2 + (3*t^2 + 4*t + 1)*x + 2*t^2 + 4*t + 3
-
-        Check list::
-
-            sage: b.degree() == a.degree()
-            True
-            sage: b.is_divisible_by(a,side=Right)
-            True
-            sage: a == a.leading_coefficient() * b
-            True
-
-        Note that `b` does not divise `a` on the left::
-
-            sage: b.is_divisible_by(a,side=Left)
-            False
-
-        The same on the left::
-
-            sage: b = a.monic(side=Left); b
-            x^3 + (4*t^2 + 3*t)*x^2 + (4*t + 2)*x + 2*t^2 + 4*t + 3
-            sage: b.degree() == a.degree()
-            True
-            sage: b.is_divisible_by(a,side=Left)
-            True
-            sage: twist = S.twist_map(-a.degree())
-            sage: a == b * twist(a.leading_coefficient())
-            True
-
-        This function does not work if the leading coefficient is not a
-        unit::
-
-            sage: R.<t> = QQ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
-            sage: a = t*x
-            sage: a.monic()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: the leading coefficient is not a unit
-        """
-        if self.is_monic():
-            return self
-        if side == Right:
-            return self.rmonic()
-        else:
-            return self.lmonic()
-
-
-    # Divisibility
-    # ------------
-
 
     def lquo_rem(self, other):
         """
@@ -1893,7 +1805,7 @@ cdef class SkewPolynomial(AlgebraElement):
         while not B.is_zero():
             A,B = B, A % B
         if monic:
-            A = A.rmonic()
+            A = A.right_monic()
 #        sig_off()
         return A
 
@@ -1975,7 +1887,7 @@ cdef class SkewPolynomial(AlgebraElement):
         while not B.is_zero():
             A,B = B, A.rem(B,side=Left)
         if monic:
-            A = A.lmonic()
+            A = A.left_monic()
 #        sig_off()
         return A
 
@@ -2141,7 +2053,7 @@ cdef class SkewPolynomial(AlgebraElement):
             V3 = R
         V1 = V1*self
         if monic:
-            V1 = V1.rmonic()
+            V1 = V1.right_monic()
 #        sig_off()
         return V1
 
@@ -2239,7 +2151,7 @@ cdef class SkewPolynomial(AlgebraElement):
             V3 = R
         V1 = self*V1
         if monic:
-            V1 = V1.lmonic()
+            V1 = V1.left_monic()
 #        sig_off()
         return V1
 

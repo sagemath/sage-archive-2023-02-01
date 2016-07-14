@@ -134,14 +134,14 @@ For lcm, the default side is left but be very careful: by
 convention, a left (resp. right) lcm is common multiple on
 the right (resp. left)::
 
-    sage: c = a.lcm(b); c  # default side is left
+    sage: c = a.left_lcm(b); c
     x^5 + (4*t^2 + t + 3)*x^4 + (3*t^2 + 4*t)*x^3 + 2*t^2*x^2 + (2*t^2 + t)*x + 4*t^2 + 4
     sage: c.is_right_divisible_by(a)
     True
     sage: c.is_right_divisible_by(b)
     True
 
-    sage: d = a.lcm(b,side=Right); d
+    sage: d = a.right_lcm(b); d
     x^5 + (t^2 + 1)*x^4 + (3*t^2 + 3*t + 3)*x^3 + (3*t^2 + t + 2)*x^2 + (4*t^2 + 3*t)*x + 4*t + 4
     sage: d.is_left_divisible_by(a)
     True
@@ -1599,7 +1599,7 @@ cdef class SkewPolynomial(AlgebraElement):
             A = A.right_monic()
         return A
 
-    def left_gcd(self,other,monic=True):
+    def left_gcd(self, other, monic=True):
         """
         INPUT:
 
@@ -1671,13 +1671,14 @@ cdef class SkewPolynomial(AlgebraElement):
         A = self
         B = other
         while not B.is_zero():
-            A= B
-            _, B = A.left_quo_rem(B)
+            A_ = A
+            A = B
+            _, B = A_.left_quo_rem(B)
         if monic:
             A = A.left_monic()
         return A
 
-    def llcm(self,other,monic=True):
+    def left_lcm(self, other, monic=True):
         """
         INPUT:
 
@@ -1707,7 +1708,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S.<x> = k['x',Frob]
             sage: a = (x + t^2) * (x + t)
             sage: b = 2 * (x^2 + t + 1) * (x * t)
-            sage: c = a.llcm(b); c
+            sage: c = a.left_lcm(b); c
             x^5 + (2*t^2 + t + 4)*x^4 + (3*t^2 + 4)*x^3 + (3*t^2 + 3*t + 2)*x^2 + (t^2 + t + 2)*x
             sage: c.is_right_divisible_by(a)
             True
@@ -1718,7 +1719,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         Specifying ``monic=False``, we *can* get a nonmonic gcd::
 
-            sage: a.llcm(b,monic=False)
+            sage: a.left_lcm(b,monic=False)
             (t^2 + t)*x^5 + (4*t^2 + 4*t + 1)*x^4 + (t + 1)*x^3 + (t^2 + 2)*x^2 + (3*t + 4)*x
 
         The base ring need to be a field::
@@ -1728,14 +1729,12 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S.<x> = R['x',sigma]
             sage: a = (x + t^2) * (x + t)
             sage: b = 2 * (x^2 + t + 1) * (x * t)
-            sage: a.llcm(b)
+            sage: a.left_lcm(b)
             Traceback (most recent call last):
             ...
             TypeError: the base ring must be a field
         """
-#        sig_on()
         if not isinstance(self.base_ring(),Field):
-#            sig_off()
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
             raise ZeroDivisionError
@@ -1753,11 +1752,9 @@ cdef class SkewPolynomial(AlgebraElement):
         V1 = V1*self
         if monic:
             V1 = V1.right_monic()
-#        sig_off()
         return V1
 
-
-    def rlcm(self,other,monic=True):
+    def right_lcm(self,other,monic=True):
         """
         INPUT:
 
@@ -1789,7 +1786,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S.<x> = k['x',Frob]
             sage: a = (x + t) * (x + t^2)
             sage: b = 2 * (x + t) * (x^2 + t + 1)
-            sage: c = a.rlcm(b); c
+            sage: c = a.right_lcm(b); c
             x^4 + (2*t^2 + t + 2)*x^3 + (3*t^2 + 4*t + 1)*x^2 + (3*t^2 + 4*t + 1)*x + t^2 + 4
             sage: c.is_left_divisible_by(a)
             True
@@ -1800,7 +1797,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         Specifying ``monic=False``, we *can* get a nonmonic gcd::
 
-            sage: a.rlcm(b,monic=False)
+            sage: a.right_lcm(b,monic=False)
             2*t*x^4 + (3*t + 1)*x^3 + (4*t^2 + 4*t + 3)*x^2 + (3*t^2 + 4*t + 2)*x + 3*t^2 + 2*t + 3
 
         The base ring need to be a field::
@@ -1810,7 +1807,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S.<x> = R['x',sigma]
             sage: a = (x + t) * (x + t^2)
             sage: b = 2 * (x + t) * (x^2 + t + 1)
-            sage: a.rlcm(b)
+            sage: a.right_lcm(b)
             Traceback (most recent call last):
             ...
             TypeError: the base ring must be a field
@@ -1822,23 +1819,19 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S.<x> = FR['x',f]
             sage: a = (x + t) * (x + t^2)
             sage: b = 2 * (x + t) * (x^2 + t + 1)
-            sage: a.rlcm(b)
+            sage: a.right_lcm(b)
             Traceback (most recent call last):
             ...
             NotImplementedError: Inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
                 Defn: t |--> t^2
         """
-#        sig_on()
         if not isinstance(self.base_ring(),Field):
-#            sig_off()
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
             raise ZeroDivisionError
         R = self.parent()
-#        U = R.one_element()
         U = R.one()
         G = self
-#        V1 = R.zero_element()
         V1 = R.zero()
         V3 = other
         while not V3.is_zero():
@@ -1851,103 +1844,7 @@ cdef class SkewPolynomial(AlgebraElement):
         V1 = self*V1
         if monic:
             V1 = V1.left_monic()
-#        sig_off()
         return V1
-
-
-    def lcm(self,other,side=Left,monic=True):
-        """
-        INPUT:
-
-        -  ``other`` -- an other skew polynomial over the same
-           base
-
-        -  ``side`` -- ``Left`` or ``Right`` (default: Left)
-
-        -  ``monic`` -- boolean (default: True)
-
-        OUTPUT:
-
-        - The left (resp. right) lcm of self and other, that is a
-        skew polynomial `g` with the following property: any skew
-        polynomial divides `g` on the right (resp. left) iff it
-        divides both ``self`` and ``other`` on the rignt (resp.
-        left)
-        If monic is ``True``, `g` is in addition monic. (With this
-        extra condition, it is uniquely determined.)
-
-        .. NOTE::
-
-            Works only if the base ring is a field and, when
-            ``side=Right`` if, in addition, the twist map on this
-            field is bijective.
-
-        EXAMPLES::
-
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
-            sage: a = (x + 2*t) * (x + t^2) * (x + t)
-            sage: b = 2 * (x + 2*t) * (x + t + 1) * (x + t)
-
-            sage: c = a.lcm(b); c      # side = Left
-            x^5 + (2*t^2 + 4*t)*x^4 + (2*t^2 + 3*t + 4)*x^3 + (t^2 + t + 3)*x^2 + (2*t^2 + 4*t + 3)*x + t^2 + t + 1
-            sage: c.is_right_divisible_by(a)
-            True
-            sage: c.is_right_divisible_by(b)
-            True
-
-            sage: c = a.lcm(b,side=Right); c
-            x^5 + (3*t^2 + 2*t + 1)*x^4 + (4*t^2 + t + 2)*x^3 + (4*t^2 + 2*t + 3)*x^2 + 4*t^2*x + t^2 + 2
-            sage: c.is_left_divisible_by(a)
-            True
-            sage: c.is_left_divisible_by(b)
-            True
-
-        Specifying ``monic=False``, we *can* get a nonmonic gcd::
-
-            sage: a.lcm(b,monic=False)
-            (3*t^2 + 3*t + 4)*x^5 + (2*t^2 + 4*t + 1)*x^4 + (t^2 + t + 1)*x^3 + (2*t^2 + t + 4)*x^2 + (t^2 + 3*t + 3)*x + t^2 + 1
-            sage: a.lcm(b,side=Right,monic=False)
-            (4*t + 4)*x^5 + (3*t^2 + t + 1)*x^4 + (t^2 + 4)*x^3 + (4*t^2 + 2*t + 4)*x^2 + (3*t^2 + t)*x + 2*t^2 + 2
-
-        The base ring need to be a field::
-
-            sage: R.<t> = QQ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
-            sage: a = (x + 2*t) * (x + t^2) * (x + t)
-            sage: b = 2 * (x + 2*t) * (x + t + 1) * (x + t)
-            sage: a.lcm(b)
-            Traceback (most recent call last):
-            ...
-            TypeError: the base ring must be a field
-            sage: a.lcm(b,side=Right)
-            Traceback (most recent call last):
-            ...
-            TypeError: the base ring must be a field
-
-        And the twist map need to be bijective::
-
-            sage: FR = R.fraction_field()
-            sage: f = FR.hom([FR(t)^2])
-            sage: S.<x> = FR['x',f]
-            sage: a = (x + 2*t) * (x + t^2) * (x + t)
-            sage: b = 2 * (x + 2*t) * (x + t + 1) * (x + t)
-            sage: a.lcm(b,side=Right)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
-                Defn: t |--> t^2
-        """
-        if side == Right:
-            return self.rlcm(other,monic=monic)
-        else:
-            return self.llcm(other,monic=monic)
-
-
-    # Printing
-    # --------
 
     def _repr_(self):
         """

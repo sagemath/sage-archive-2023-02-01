@@ -77,7 +77,7 @@ the twist map defining the skew polynomial ring is invertible.
 
 EXAMPLES::
 
-    sage: q,r = c.quo_rem(b)   # default side is right
+    sage: q,r = c.right_quo_rem(b)
     sage: q
     x - 95*t^2
     sage: r
@@ -97,7 +97,7 @@ If we want left euclidean division, we need to specify
 ``side=Left``. Nonetheless, it won't work over our current
 `S` because Sage can't invert the twist map::
 
-    sage: q,r = c.quo_rem(b,side=Left)
+    sage: q,r = c.left_quo_rem(b)
     Traceback (most recent call last):
     ...
     NotImplementedError: Inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
@@ -110,7 +110,7 @@ Here is a working example over a finite field::
     sage: S.<x> = k['x',Frob]
     sage: a = x^4 + (4*t + 1)*x^3 + (t^2 + 3*t + 3)*x^2 + (3*t^2 + 2*t + 2)*x + (3*t^2 + 3*t + 1)
     sage: b = (2*t^2 + 3)*x^2 + (3*t^2 + 1)*x + 4*t + 2
-    sage: q,r = a.quo_rem(b,side=Left)
+    sage: q,r = a.left_quo_rem(b)
     sage: q
     (4*t^2 + t + 1)*x^2 + (2*t^2 + 2*t + 2)*x + 2*t^2 + 4*t + 3
     sage: r
@@ -136,16 +136,16 @@ the right (resp. left)::
 
     sage: c = a.lcm(b); c  # default side is left
     x^5 + (4*t^2 + t + 3)*x^4 + (3*t^2 + 4*t)*x^3 + 2*t^2*x^2 + (2*t^2 + t)*x + 4*t^2 + 4
-    sage: c.is_divisible_by(a)
+    sage: c.is_right_divisible_by(a)
     True
-    sage: c.is_divisible_by(b)
+    sage: c.is_right_divisible_by(b)
     True
 
     sage: d = a.lcm(b,side=Right); d
     x^5 + (t^2 + 1)*x^4 + (3*t^2 + 3*t + 3)*x^3 + (3*t^2 + t + 2)*x^2 + (4*t^2 + 3*t)*x + 4*t + 4
-    sage: d.is_divisible_by(a,side=Left)
+    sage: d.is_left_divisible_by(a)
     True
-    sage: d.is_divisible_by(b,side=Left)
+    sage: d.is_left_divisible_by(b)
     True
 
 AUTHOR:
@@ -213,7 +213,7 @@ cdef class SkewPolynomial(AlgebraElement):
     A skew polynomial.
     """
     
-    def __init__(self,parent,is_gen=False,construct=False):
+    def __init__(self, parent, is_gen=False, construct=False):
         """
         The following examples illustrate the creation of elements of
         skew polynomial rings.
@@ -334,7 +334,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return self._hash_c()
 
-    cdef SkewPolynomial _new_c(self,list coeffs,Parent P,char check=0):
+    cdef SkewPolynomial _new_c(self, list coeffs, Parent P, char check=0):
         """
         Fast creation of a new skew polynomial
 
@@ -346,7 +346,7 @@ cdef class SkewPolynomial(AlgebraElement):
         l = P(list)
         return l
 
-    cpdef SkewPolynomial _new_constant_poly(self,RingElement a,Parent P,char check=0):
+    cpdef SkewPolynomial _new_constant_poly(self, RingElement a, Parent P, char check=0):
         """
         Fast creation of a new constant skew polynomial
         """
@@ -393,7 +393,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return iter(self.list())
 
-    def __getitem__(self,n):
+    def __getitem__(self, n):
         """
         Return the 'n'-th coefficient of self.
 
@@ -733,7 +733,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return self * self
 
-    def conjugate(self,n):
+    def conjugate(self, n):
         """
         INPUT:
 
@@ -900,15 +900,15 @@ cdef class SkewPolynomial(AlgebraElement):
 
             sage: b.degree() == a.degree()
             True
-            sage: b.is_divisible_by(a,side=Left)
+            sage: b.is_left_divisible_by(a)
             True
             sage: twist = S.twist_map(-a.degree())
             sage: a == b * twist(a.leading_coefficient())
             True
 
-        Note that `b` does not divise `a` on the right::
+        Note that `b` does not divide `a` on the right::
 
-            sage: b.is_divisible_by(a,side=Right)
+            sage: b.is_right_divisible_by(a)
             False
 
         This function does not work if the leading coefficient is not a
@@ -953,14 +953,14 @@ cdef class SkewPolynomial(AlgebraElement):
 
             sage: b.degree() == a.degree()
             True
-            sage: b.is_divisible_by(a,side=Right)
+            sage: b.is_right_divisible_by(a)
             True
             sage: a == a.leading_coefficient() * b
             True
 
-        Note that `b` does not divise `a` on the right::
+        Note that `b` does not divide `a` on the right::
 
-            sage: b.is_divisible_by(a,side=Left)
+            sage: b.is_left_divisible_by(a)
             False
 
         This function does not work if the leading coefficient is not a
@@ -982,7 +982,7 @@ cdef class SkewPolynomial(AlgebraElement):
         r = a*self
         return r
 
-    def lquo_rem(self, other):
+    def left_quo_rem(self, other):
         """
         INPUT:
 
@@ -1006,7 +1006,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S.<x> = k['x',Frob]
             sage: a = (3*t^2 + 3*t + 2)*x^3 + (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 2
             sage: b = (3*t^2 + 4*t + 2)*x^2 + (2*t^2 + 4*t + 3)*x + 2*t^2 + t + 1
-            sage: q,r = a.lquo_rem(b)
+            sage: q,r = a.left_quo_rem(b)
             sage: a == b*q + r
             True
 
@@ -1018,28 +1018,24 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S.<x> = R['x',sigma]
             sage: a = (-2*t^2 - t + 1)*x^3 + (-t^2 + t)*x^2 + (-12*t - 2)*x - t^2 - 95*t + 1
             sage: b = x^2 + (5*t - 6)*x - 4*t^2 + 4*t - 1
-            sage: a.lquo_rem(b)
+            sage: a.left_quo_rem(b)
             Traceback (most recent call last):
             ...
             NotImplementedError: Inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
                 Defn: t |--> t + 1
         """
-#        sig_on()
         cdef list a = list((<SkewPolynomial>self)._list_c())
         cdef list b = (<SkewPolynomial>other)._list_c()
         cdef Py_ssize_t i, j
         cdef Py_ssize_t da = self.degree(), db = other.degree()
         if db < 0:
-#            sig_off()
             raise ZeroDivisionError
         if da < db:
             r = self._new_c([],self._parent), self
-#            sig_off()
             return r
         try:
             inv = self.base_ring()(~b[db])
         except (ZeroDivisionError, TypeError):
-#            sig_off()
             raise NotImplementedError("the leading coefficient of the divisor is not invertible")
         cdef list q = [ ]
         parent = self._parent
@@ -1049,16 +1045,13 @@ cdef class SkewPolynomial(AlgebraElement):
                 for j from 0 <= j < db:
                     a[i+j] -= b[j] * parent.twist_map(j)(c)
             except:
-#                print "Hello"
                 raise NotImplementedError("Inversion of the twist map %s" % parent.twist_map())
             q.append(c)
         q.reverse()
         r = self._new_c(q,parent), self._new_c(a[:db],parent,1)
-#        sig_off()
         return r
 
-
-    def rquo_rem(self, other):
+    def right_quo_rem(self, other):
         """
         INPUT:
 
@@ -1084,7 +1077,7 @@ cdef class SkewPolynomial(AlgebraElement):
             t^2*x^4 + (-12*t^2 - 2*t - 1)*x^3 + (-95*t^2 + t + 2)*x^2 + (-t^2 + t)*x + 2*t - 8
             sage: b = S.random_element(monic=True); b
             x^2 + (4*t^2 - t - 2)*x - t^2 + t - 1
-            sage: q,r = a.rquo_rem(b)
+            sage: q,r = a.right_quo_rem(b)
             sage: a == q*b + r
             True
 
@@ -1092,28 +1085,24 @@ cdef class SkewPolynomial(AlgebraElement):
 
             sage: c = S.random_element(); c
             (-4*t^2 + t)*x^2 - 2*t^2*x + 5*t^2 - 6*t - 4
-            sage: a.rquo_rem(c)
+            sage: a.right_quo_rem(c)
             Traceback (most recent call last):
             ...
             NotImplementedError: the leading coefficient of the divisor is not invertible
         """
-        sig_on()
         cdef list a = list((<SkewPolynomial>self)._list_c())
         cdef list b = (<SkewPolynomial>other)._list_c()
         cdef Py_ssize_t i, j
         cdef Py_ssize_t da = self.degree(), db = other.degree()
         parent = self._parent
         if db < 0:
-            sig_off()
             raise ZeroDivisionError
         if da < db:
             r = self._new_c([],parent), self
-            sig_off()
             return r
         try:
             inv = self.base_ring()(~b[db])
         except (ZeroDivisionError, TypeError):
-            sig_off()
             raise NotImplementedError("the leading coefficient of the divisor is not invertible")
         cdef list q = [ ]
         parent = self._parent
@@ -1124,144 +1113,9 @@ cdef class SkewPolynomial(AlgebraElement):
             q.append(c)
         q.reverse()
         r = self._new_c(q,parent), self._new_c(a[:db],parent,1)
-        sig_off()
         return r
 
-
-    def quo_rem(self,other,side=Right):
-        r"""
-        INPUT:
-
-        -  ``other`` -- a skew polynomial ring over the same
-           base ring
-
-        -  ``side`` -- ``Left`` or ``Right`` (default: Right)
-
-        OUTPUT:
-
-        -  the quotient and the remainder of the euclidean
-           division of this skew polynomial by ``other``
-
-        .. NOTE::
-
-            Doesn't work if the leading coefficient of the divisor
-            is not a unit.
-
-        EXAMPLES::
-
-            sage: R.<t> = ZZ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
-            sage: a = S.random_element(degree=4); a
-            t^2*x^4 + (-12*t^2 - 2*t - 1)*x^3 + (-95*t^2 + t + 2)*x^2 + (-t^2 + t)*x + 2*t - 8
-            sage: b = S.random_element(monic=True); b
-            x^2 + (4*t^2 - t - 2)*x - t^2 + t - 1
-            sage: q,r = a.quo_rem(b)  # right euclidean division
-            sage: a == q*b + r
-            True
-
-        The left euclidean division doesn't work over this `S` because
-        Sage cannot invert `\sigma`::
-
-            sage: q,r = a.quo_rem(b,side=Left)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
-                Defn: t |--> t + 1
-
-        In any case, the leading coefficient of the divisor need to be
-        invertible::
-
-            sage: c = S.random_element(); c
-            (-4*t^2 + t)*x^2 - 2*t^2*x + 5*t^2 - 6*t - 4
-            sage: a.quo_rem(c)  # right euclidean division
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: the leading coefficient of the divisor is not invertible
-
-        When the base ring is a finite field, everything works fine::
-
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
-            sage: a = 4*x^3 + (t^2 + 2*t + 4)*x^2 + (4*t^2 + 2*t + 4)*x + t^2 + 2
-            sage: b = (3*t + 2)*x^2 + 2*t*x + 3*t^2
-            sage: q,r = a.quo_rem(b)  # right euclidean division
-            sage: a == q*b + r
-            True
-            sage: q,r = a.quo_rem(b,side=Left)
-            sage: a == b*q + r
-            True
-        """
-        if side == Right:
-            return self.rquo_rem(other)
-        else:
-            return self.lquo_rem(other)
-
-
-    def rem(self,other,side=Right):
-        r"""
-        INPUT:
-
-        -  ``other`` -- a skew polynomial ring over the same
-           base ring
-
-        -  ``side`` -- ``Left`` or ``Right`` (default: Right)
-
-        OUTPUT:
-
-        -  the remainder of the euclidean division of this
-           skew polynomial by ``other``
-
-        .. NOTE::
-
-            Doesn't work if the leading coefficient of the divisor
-            is not a unit.
-
-        EXAMPLES::
-
-            sage: R.<t> = ZZ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
-            sage: b = x^2 + 2*t*x + 2
-            sage: a = (x+t)*b + t*x + 1
-            sage: a.rem(b)   # right euclidean division
-            t*x + 1
-
-        The left euclidean division doesn't work over this `S` because
-        Sage cannot invert `\sigma`::
-
-            sage: a.rem(b,side=Left)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
-                Defn: t |--> t + 1
-
-        In any case, the leading coefficient of the divisor need to be
-        invertible::
-
-            sage: (a*t).rem(b*t)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: the leading coefficient of the divisor is not invertible
-
-        When the base ring is a finite field, everything works fine::
-
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
-            sage: b = x^2 + 2*t*x + 2
-            sage: a = (x+t)*b + t*x + 1
-            sage: a.rem(b)  # right euclidean division
-            t*x + 1
-            sage: a.rem(b,side=Left)
-            (3*t^2 + 2)*x + 2*t^2
-        """
-        _,r = self.quo_rem(other,side=side)
-        return r
-
-
-    def __mod__(self,other):
+    def __mod__(self, other):
         """
         Return the remainder in the *right* euclidean division of
         this skew polynomial by ``other``
@@ -1276,16 +1130,15 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a % b
             t*x + 1
 
-            sage: (a*t).rem(b*t)
+            sage: (a*t).right_quo_rem(b*t)
             Traceback (most recent call last):
             ...
             NotImplementedError: the leading coefficient of the divisor is not invertible
         """
-        _,r = self.rquo_rem(other)
+        _,r = self.right_quo_rem(other)
         return r
 
-
-    def __floordiv__(self,right):
+    def __floordiv__(self, right):
         """
         Return the quotient of the right euclidean division of self by right.
 
@@ -1311,11 +1164,9 @@ cdef class SkewPolynomial(AlgebraElement):
             NotImplementedError: the leading coefficient of the divisor is not invertible
 
         """
-        q,_ = self.rquo_rem(right)
+        q,_ = self.right_quo_rem(right)
         return q
 
-
-#    cpdef RingElement _div_(self, RingElement right):
     cpdef _div_(self, right):
         """
         Not Implemented (since localization of Ore rings is
@@ -1342,18 +1193,15 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         raise NotImplementedError("Please use `//` (even for exact division)")
 
-
-    def is_divisible_by(self,other,side=Right):
+    def is_left_divisible_by(self, other):
         """
         INPUT:
 
-        -  ``other`` -- a skew polynomial over the same base
-
-        -  ``side`` -- ``Left`` or ``Right`` (default: Right)
+         -  ``other`` -- a skew polynomial over the same base
 
         OUTPUT:
 
-        Return True iff self is divisible by other on ``side``
+        Return True iff self is divisible by other on the left
 
         EXAMPLES::
 
@@ -1363,18 +1211,47 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a = x^2 + t*x + t^2 + 3
             sage: b = x^3 + (t + 1)*x^2 + 1
             sage: c = a*b
-            sage: c.is_divisible_by(a)   # on the right
-            False
-            sage: c.is_divisible_by(b)
+            sage: c.is_left_divisible_by(a)
             True
-            sage: c.is_divisible_by(a,side=Left)
-            True
-            sage: c.is_divisible_by(b,side=Left)
+            sage: c.is_left_divisible_by(b)
             False
+
+        Divisibility by 0 makes no sense::
+
+            sage: c.is_left_divisible_by(S(0))
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError
+        """
+        _, r = self.left_quo_rem(other)
+        return r.is_zero()
+
+    def is_right_divisible_by(self, other):
+        """
+        INPUT:
+
+        -  ``other`` -- a skew polynomial over the same base
+
+        OUTPUT:
+
+        Return True iff self is divisible by other on the right
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = x^2 + t*x + t^2 + 3
+            sage: b = x^3 + (t + 1)*x^2 + 1
+            sage: c = a*b
+            sage: c.is_right_divisible_by(a)
+            False
+            sage: c.is_right_divisible_by(b)
+            True
 
         Divisibility by 0 has no sense::
 
-            sage: c.is_divisible_by(S(0))
+            sage: c.is_right_divisible_by(S(0))
             Traceback (most recent call last):
             ...
             ZeroDivisionError
@@ -1388,25 +1265,23 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a = x^2 + 2*x + t
             sage: b = (t+1)*x + t^2
             sage: c = a*b
-            sage: c.is_divisible_by(b)
+            sage: c.is_right_divisible_by(b)
             Traceback (most recent call last):
             ...
             NotImplementedError: the leading coefficient of the divisor is not invertible
         """
-        return self.rem(other,side=side).is_zero()
+        _, r = self.right_quo_rem(other)
+        return r.is_zero()
 
-
-    def divides(self,other,side=Right):
+    def left_divides(self, other):
         """
         INPUT:
 
         -  ``other`` -- a skew polynomial over the same base
 
-        -  ``side`` -- ``Left`` or ``Right`` (default: Right)
-
         OUTPUT:
 
-        Return True iff self divides other on ``side``
+        Return True iff self divides other on the left
 
         EXAMPLES::
 
@@ -1416,20 +1291,49 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a = x^2 + t*x + t^2 + 3
             sage: b = x^3 + (t + 1)*x^2 + 1
             sage: c = a*b
-            sage: a.divides(c)   # on the right
-            False
-            sage: b.divides(c)
+            sage: a.left_divides(c)
             True
-            sage: a.divides(c,side=Left)
-            True
-            sage: b.divides(c,side=Left)
+            sage: b.left_divides(c)
             False
 
         Divisibility by 0 has no sense::
 
-            sage: S(0).divides(c)
+            sage: S(0).left_divides(c)
             Traceback (most recent call last):
             ...
+            ZeroDivisionError
+        """
+        _, r = other.left_quo_rem(self)
+        return r.is_zero()
+ 
+    def right_divides(self, other):
+        """
+        INPUT:
+
+        -  ``other`` -- a skew polynomial over the same base
+
+        OUTPUT:
+
+        Return True iff self divides other on the right
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = x^2 + t*x + t^2 + 3
+            sage: b = x^3 + (t + 1)*x^2 + 1
+            sage: c = a*b
+            sage: a.right_divides(c)
+            False
+            sage: b.right_divides(c)
+            True
+
+        Divisibility by 0 has no sense::
+
+            sage: S(0).right_divides(c)
+            Traceback (most recent call last):
+            ...BOB
             ZeroDivisionError
 
         This function does not work if the leading coefficient of the divisor
@@ -1441,12 +1345,13 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a = x^2 + 2*x + t
             sage: b = (t+1)*x + t^2
             sage: c = a*b
-            sage: b.divides(c)
+            sage: b.right_divides(c)
             Traceback (most recent call last):
             ...
             NotImplementedError: the leading coefficient of the divisor is not invertible
         """
-        return other.rem(self,side=side).is_zero()
+        _, r = other.right_quo_rem(self)
+        return r.is_zero()
 
 
     # greastest commun divisor
@@ -1539,13 +1444,13 @@ cdef class SkewPolynomial(AlgebraElement):
             V1 = self._parent(0)
             V3 = other
             while not V3.is_zero():
-                Q,R = G.lquo_rem(V3)
+                Q,R = G.left_quo_rem(V3)
                 T = U - V1*Q
                 U = V1
                 G = V3
                 V1 = T
                 V3 = R
-            V,_ = (G-self*U).lquo_rem(other)
+            V,_ = (G-self*U).left_quo_rem(other)
         if monic:
             lc = ~G.leading_coefficient()
             lc = self._parent.twist_map(-G.degree())(lc)
@@ -1628,13 +1533,13 @@ cdef class SkewPolynomial(AlgebraElement):
             V1 = self._parent(0)
             V3 = other
             while not V3.is_zero():
-                Q, R = G.rquo_rem(V3)
+                Q, R = G.right_quo_rem(V3)
                 T = U - Q*V1
                 U = V1
                 G = V3
                 V1 = T
                 V3 = R
-            V,_ = (G-U*self).rquo_rem(other)
+            V,_ = (G-U*self).right_quo_rem(other)
         if monic:
             lc = ~G.leading_coefficient()
             G = lc*G
@@ -1885,7 +1790,8 @@ cdef class SkewPolynomial(AlgebraElement):
         A = self
         B = other
         while not B.is_zero():
-            A,B = B, A.rem(B,side=Left)
+            A= B
+            _, B = A.left_quo_rem(B)
         if monic:
             A = A.left_monic()
 #        sig_off()
@@ -2010,9 +1916,9 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: b = 2 * (x^2 + t + 1) * (x * t)
             sage: c = a.llcm(b); c
             x^5 + (2*t^2 + t + 4)*x^4 + (3*t^2 + 4)*x^3 + (3*t^2 + 3*t + 2)*x^2 + (t^2 + t + 2)*x
-            sage: c.is_divisible_by(a,side=Right)
+            sage: c.is_right_divisible_by(a)
             True
-            sage: c.is_divisible_by(b,side=Right)
+            sage: c.is_right_divisible_by(b)
             True
             sage: a.degree() + b.degree() == c.degree() + a.rgcd(b).degree()
             True
@@ -2045,7 +1951,7 @@ cdef class SkewPolynomial(AlgebraElement):
         V1 = self._parent(0)
         V3 = other
         while not V3.is_zero():
-            Q, R = G.rquo_rem(V3)
+            Q, R = G.right_quo_rem(V3)
             T = U - Q*V1
             U = V1
             G = V3
@@ -2092,9 +1998,9 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: b = 2 * (x + t) * (x^2 + t + 1)
             sage: c = a.rlcm(b); c
             x^4 + (2*t^2 + t + 2)*x^3 + (3*t^2 + 4*t + 1)*x^2 + (3*t^2 + 4*t + 1)*x + t^2 + 4
-            sage: c.is_divisible_by(a,side=Left)
+            sage: c.is_left_divisible_by(a)
             True
-            sage: c.is_divisible_by(b,side=Left)
+            sage: c.is_left_divisible_by(b)
             True
             sage: a.degree() + b.degree() == c.degree() + a.lgcd(b).degree()
             True
@@ -2143,7 +2049,7 @@ cdef class SkewPolynomial(AlgebraElement):
         V1 = R.zero()
         V3 = other
         while not V3.is_zero():
-            Q, R = G.lquo_rem(V3)
+            Q, R = G.left_quo_rem(V3)
             T = U - V1*Q
             U = V1
             G = V3
@@ -2193,16 +2099,16 @@ cdef class SkewPolynomial(AlgebraElement):
 
             sage: c = a.lcm(b); c      # side = Left
             x^5 + (2*t^2 + 4*t)*x^4 + (2*t^2 + 3*t + 4)*x^3 + (t^2 + t + 3)*x^2 + (2*t^2 + 4*t + 3)*x + t^2 + t + 1
-            sage: c.is_divisible_by(a,side=Right)
+            sage: c.is_right_divisible_by(a)
             True
-            sage: c.is_divisible_by(b,side=Right)
+            sage: c.is_right_divisible_by(b)
             True
 
             sage: c = a.lcm(b,side=Right); c
             x^5 + (3*t^2 + 2*t + 1)*x^4 + (4*t^2 + t + 2)*x^3 + (4*t^2 + 2*t + 3)*x^2 + 4*t^2*x + t^2 + 2
-            sage: c.is_divisible_by(a,side=Left)
+            sage: c.is_left_divisible_by(a)
             True
-            sage: c.is_divisible_by(b,side=Left)
+            sage: c.is_left_divisible_by(b)
             True
 
         Specifying ``monic=False``, we *can* get a nonmonic gcd::
@@ -3001,11 +2907,13 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
             sage: br = a._pow_(10,modulus); br
             (t^2 + t)*x^2 + (3*t^2 + 1)*x + t^2 + t
-            sage: br == b.rem(modulus)
+            sage: rq, rr = b.right_quo_rem(modulus)
+            sage: br == rr
             True
             sage: bl = a._pow_(10,modulus,side=Left); bl
             (4*t^2 + 2*t + 3)*x^2 + (3*t^2 + 1)*x + 2*t + 3
-            sage: bl == b.rem(modulus,side=Left)
+            sage: lq, lr = b.left_quo_rem(modulus)
+            sage: bl == lr
             True
 
             sage: a._pow_(100,modulus)  # quite fast
@@ -3047,10 +2955,10 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         if modulus:
             if side == Right:
-                r = r.rem(modulus, side=Right)
+                _, r = r.right_quo_rem(modulus)
 #                r._inplace_rrem(modulus)
             else:
-                r = r.rem(modulus, side=Left)
+                _, r = r.left_quo_rem(modulus)
 #                r._inplace_lrem(modulus)
         sig_off()
         return r
@@ -3089,7 +2997,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
             sage: bmod = a._pow_(10,modulus); bmod
             (t^2 + t)*x^2 + (3*t^2 + 1)*x + t^2 + t
-            sage: bmod == b.rem(modulus)
+            sage: rq, rr = b.right_quo_rem(modulus)
+            sage: bmod == rr
             True
         """
         return self._pow_(exp,modulus)

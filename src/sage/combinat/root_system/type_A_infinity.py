@@ -16,13 +16,15 @@ from sage.rings.semirings.non_negative_integer_semiring import NN
 
 class CartanType(CartanType_standard, CartanType_simple):
     r"""
-    Define the Cartan type `A_oo`.
+    Define the Cartan type `A_{\infty}`.
 
-    In sage `oo` is the same as `+Infinity` so `NN` and `ZZ` are used to
-    differentiate between the `A_{+\infty}` and `A_{\infty}` root systems.
+    We use `NN` and `ZZ` to explicitly differentiate between the
+    `A_{+\infty}` and `A_{\infty}` root systems. While `oo` is
+    the same as `+Infinity` in Sage, it is used as an alias
+    for `ZZ`.
     """
     # We do not inherit from CartanType_crystallographic because it provides
-    # methods that are not yet implemented.
+    # methods that are not implemented for A_oo.
     def __init__(self, index_set):
         """
         EXAMPLES::

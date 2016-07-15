@@ -107,6 +107,7 @@ AUTHORS:
   refactoring. Added coordinate neighborhoods and is_smooth()
 - Ben Hutz (2014): subschemes of Cartesian products of projective space
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
@@ -153,8 +154,8 @@ from sage.structure.all import Sequence
 from sage.calculus.functions import jacobian
 
 import sage.schemes.affine
-import ambient_space
-import scheme
+from . import ambient_space
+from . import scheme
 
 
 

@@ -18,6 +18,7 @@ REFERENCES:
    The Clarendon Press, Oxford University Press, New York, 1995, With contributions
    by A. Zelevinsky, Oxford Science Publications.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
@@ -39,7 +40,7 @@ from sage.misc.all import prod
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom, End
 from sage.rings.fraction_field import FractionField
-import sfa
+from . import sfa
 
 QQt = FractionField(QQ['t'])
 

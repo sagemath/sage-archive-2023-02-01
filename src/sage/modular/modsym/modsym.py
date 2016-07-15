@@ -79,10 +79,10 @@ This test catches a tricky corner case for spaces with character::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import weakref
 
-import ambient
 import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.rational_field as rational_field
@@ -332,6 +332,7 @@ def ModularSymbols(group  = 1,
         sage: M is ModularSymbols(11,use_cache=False)
         False
     """
+    from . import ambient
     key = canonical_parameters(group, weight, sign, base_ring)
 
     if use_cache and key in _cache:

@@ -327,13 +327,13 @@ def _write_started_file():
 set_random_seed()
 
 import warnings
-warnings.filterwarnings('ignore',
-    '.*_default is deprecated: use @default decorator instead\.')
-warnings.filterwarnings('ignore',
-    module='(.*IPython.*|ipykernel|jupyter_client|jupyter_core|nbformat|notebook)')
-# Why isn't it taken care of by IPython???
-warnings.filterwarnings('ignore', module='storemagic')
 warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
+# Ignore all deprecations from IPython etc.
+warnings.filterwarnings('ignore',
+    module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|storemagic)')
+# but not those that have OUR deprecation warnings
+warnings.filterwarnings('default',
+    '[\s\S]*See http://trac.sagemath.org/[0-9]* for details.')
 
 # From now on it is ok to resolve lazy imports
 sage.misc.lazy_import.finish_startup()

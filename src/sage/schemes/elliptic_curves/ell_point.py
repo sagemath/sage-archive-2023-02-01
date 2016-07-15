@@ -117,6 +117,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import math
 
@@ -138,7 +139,7 @@ from sage.schemes.projective.projective_point import (SchemeMorphism_point_proje
                                                       SchemeMorphism_point_abelian_variety_field)
 from sage.schemes.generic.morphism import is_SchemeMorphism
 
-from constructor import EllipticCurve
+from .constructor import EllipticCurve
 from sage.misc.superseded import deprecated_function_alias
 
 oo = rings.infinity       # infinity

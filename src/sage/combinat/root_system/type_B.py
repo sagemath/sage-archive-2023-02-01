@@ -10,8 +10,9 @@ Root system data for type B
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
-import ambient_space
+from . import ambient_space
 
 class  AmbientSpace(ambient_space.AmbientSpace):
     def dimension(self):
@@ -127,7 +128,7 @@ class  AmbientSpace(ambient_space.AmbientSpace):
         else:
             return self.sum(self.monomial(j) for j in range(i))
 
-from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic, CartanType_simply_laced
+from .cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic, CartanType_simply_laced
 class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystallographic):
     def __init__(self, n):
         """
@@ -213,7 +214,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             sage: CartanType(["C", 3]).dual()
             ['B', 3]
         """
-        import cartan_type
+        from . import cartan_type
         return cartan_type.CartanType(["C", self.n])
 
     def dynkin_diagram(self):
@@ -238,7 +239,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
              sage: sorted(b.edges())
              []
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         n = self.n
         g = DynkinDiagram_class(self)
         for i in range(1, n):

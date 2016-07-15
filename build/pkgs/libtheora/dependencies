@@ -1,4 +1,4 @@
-zlib $(MP_LIBRARY) glpk
+libogg libpng
 
 ----------
 All lines of this file are ignored except the first.

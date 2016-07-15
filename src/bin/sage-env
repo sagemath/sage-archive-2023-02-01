@@ -261,11 +261,17 @@ if [ -z "${SAGE_ORIG_PATH_SET}" ]; then
 fi 
 export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
-if [ "$SAGE_BANNER" = "bare" ]; then
-    export SAGE_BANNER_TEXT=$(cat "$SAGE_ROOT/VERSION.txt")
-elif [ "$SAGE_BANNER" != "no" ]; then
-    export SAGE_BANNER_TEXT=$(cat "$SAGE_LOCAL/bin/sage-banner")
-fi
+sage_banner() {
+    if [ "$SAGE_BANNER" = "bare" ]; then
+        banner_file="$SAGE_ROOT/VERSION.txt"
+    elif [ "$SAGE_BANNER" != "no" ]; then
+        banner_file="$SAGE_LOCAL/bin/sage-banner"
+    fi
+
+    if [ -n "$banner_file" -a -f "$banner_file" ]; then
+        cat "$banner_file"
+    fi
+}
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
 # Since the user might do something crazy we do not do any checks, but hope for the best.

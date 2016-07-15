@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 help_banner() {
-    echo "$SAGE_BANNER_TEXT" | grep -v 'Type'
+    sage_banner | grep -v 'Type'
     echo
 }
 
@@ -367,7 +367,7 @@ sage_setup() {
     # Display the startup banner (unless SAGE_BANNER is explictly "no")
     if [ "$SAGE_BANNER" != "no" ]; then
         # can be 'bare', or 'yes', or unspecified
-        echo "$SAGE_BANNER_TEXT"
+        sage_banner
     fi
 
     maybe_sage_location

@@ -1388,13 +1388,25 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         return self.is_modular([x])
 
-    def is_upper_semimodular(self):
+    def is_upper_semimodular(self, certificate=False):
         r"""
         Return ``True`` if the lattice is upper semimodular and
         ``False`` otherwise.
 
-        A lattice is upper semimodular if for any `x` in the lattice that is
-        covered by `y` and `z`, both `y` and `z` are covered by their join.
+        A lattice is upper semimodular if any pair of elements with
+        a common lower cover have also a common upper cover.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) Whether to return
+          a certificate if the lattice is not upper semimodular.
+
+        OUTPUT:
+
+        - If ``certificate=False`` return ``True`` or ``False``.
+          If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (a, b))``, where `a` and `b` covers their meet but
+          are not covered by their join.
 
         .. SEEALSO::
 
@@ -1412,33 +1424,46 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_upper_semimodular()
             False
 
-            sage: L = posets.ChainPoset(6)
-            sage: L.is_upper_semimodular()
-            True
-
             sage: L = LatticePoset(posets.IntegerPartitions(4))
             sage: L.is_upper_semimodular()
             True
 
-        ALGORITHM:
+            sage: L = LatticePoset({1:[2, 3, 4], 2: [5], 3:[5, 6], 4:[6], 5:[7], 6:[7]})
+            sage: L.is_upper_semimodular(certificate=True)
+            (False, (4, 2))
 
-        Based on pp. 286-287 of Enumerative Combinatorics, Vol 1 [EnumComb1]_.
+        TESTS::
+
+            sage: all(Posets.ChainPoset(i).is_upper_semimodular() for i in range(5))
+            True
         """
-        if not self.is_ranked():
-            return False
-        H = self._hasse_diagram
-        n = H.order()
-        return all(H._rank[a] + H._rank[b] >=
-                   H._rank[H._meet[a, b]] + H._rank[H._join[a, b]]
-                   for a in range(n) for b in range(a + 1, n))
+        nonmodular = self._hasse_diagram.is_semimodular(upper=True)
+        if nonmodular is None:
+            return (True, None) if certificate else True
+        if certificate:
+            return (False, (self._vertex_to_element(nonmodular[0]),
+                            self._vertex_to_element(nonmodular[1])))
+        return False
 
-    def is_lower_semimodular(self):
+    def is_lower_semimodular(self, certificate=False):
         r"""
         Return ``True`` if the lattice is lower semimodular and
         ``False`` otherwise.
 
-        A lattice is lower semimodular if for any `x` in the lattice that covers
-        `y` and `z`, both `y` and `z` cover their meet.
+        A lattice is lower semimodular if any pair of elements with
+        a common upper cover have also a common lower cover.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) Whether to return
+          a certificate if the lattice is not lower semimodular.
+
+        OUTPUT:
+
+        - If ``certificate=False`` return ``True`` or ``False``.
+          If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (a, b))``, where `a` and `b` are covered by their
+          join but do no cover their meet.
 
         .. SEEALSO::
 
@@ -1460,17 +1485,17 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_lower_semimodular()
             True
 
-        ALGORITHM:
-
-        Based on pp. 286-287 of Enumerative Combinatorics, Vol 1 [EnumComb1]_.
+            sage: L = LatticePoset(DiGraph('IS?`?AAOE_@?C?_@??'))
+            sage: L.is_lower_semimodular(certificate=True)
+            (False, (4, 2))
         """
-        if not self.is_ranked():
-            return False
-        H = self._hasse_diagram
-        n = H.order()
-        return all(H._rank[a] + H._rank[b] <=
-                   H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
-                   for a in range(n) for b in range(a+1, n))
+        nonmodular = self._hasse_diagram.is_semimodular(upper=False)
+        if nonmodular is None:
+            return (True, None) if certificate else True
+        if certificate:
+            return (False, (self._vertex_to_element(nonmodular[0]),
+                            self._vertex_to_element(nonmodular[1])))
+        return False
 
     def is_supersolvable(self):
         """

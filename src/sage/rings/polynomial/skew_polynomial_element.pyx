@@ -93,8 +93,7 @@ and the remainder of the right euclidean division::
     sage: r == c % b
     True
 
-If we want left euclidean division, we need to specify
-``side=Left``. Nonetheless, it won't work over our current
+Left euclidean division won't work over our current
 `S` because Sage can't invert the twist map::
 
     sage: q,r = c.left_quo_rem(b)
@@ -2139,10 +2138,12 @@ cdef class SkewPolynomial(AlgebraElement):
     def is_gen(self):
         return self._is_gen
 
-    def coefficients(self):
+    def coefficients(self, sparse=True):
         """
-        Return the nonzero coefficients of the monomials
-        appearing in self.
+        Return the coefficients of the monomials appearing in self.
+        If ``sparse=True`` (the default), it returns only the non-zero
+        coefficients. Otherwise, it returns the same value as ``self.list()``.
+        (In this case, it may be slightly faster to invoke ``self.list()`` directly.)
 
         EXAMPLES::
 
@@ -2152,8 +2153,14 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a = 1 + x^4 + (t+1)*x^2 + t^2
             sage: a.coefficients()
             [t^2 + 1, t + 1, 1]
+            sage: a.coefficients(sparse=False)
+            [t^2 + 1, 0, t + 1, 0, 1]
         """
-        return [c for c in self.list() if not c.is_zero()]
+        zero = self.parent().base_ring().zero()
+        if (sparse):
+            return [c for c in self.list() if not c.is_zero()]
+        else:
+            return self.list()
 
     def exponents(self):
         """
@@ -2233,24 +2240,6 @@ cdef class SkewPolynomial(AlgebraElement):
             return v + [z]*(n - len(v))
         else:
             return v[:int(n)]
-
-    def coeffs(self):
-        r"""
-        Returns ``self.list()``.
-
-        (It is potentially slightly faster to use
-        ``self.list()`` directly.)
-
-        EXAMPLES::
-
-            sage: R.<t> = QQ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
-            sage: a = 1 + x^4 + (t+1)*x^2 + t^2
-            sage: a.coeffs()
-            [t^2 + 1, 0, t + 1, 0, 1]
-        """
-        return self.list()
 
     def variable_name(self):
         """

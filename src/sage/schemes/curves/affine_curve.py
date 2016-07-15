@@ -23,7 +23,6 @@ AUTHORS:
 
 - David Kohel (2006-01)
 """
-
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -33,6 +32,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
@@ -47,13 +47,13 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.schemes.affine.affine_space import is_AffineSpace
 
-import point
+from . import point
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
 
 from sage.schemes.projective.projective_space import ProjectiveSpace
 
-from curve import Curve_generic
+from .curve import Curve_generic
 
 class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
 
@@ -146,7 +146,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: C.projective_closure(1, P).ambient_space() == P
             True
         """
-        from constructor import Curve
+        from .constructor import Curve
         return Curve(AlgebraicScheme_subscheme_affine.projective_closure(self, i, PP))
 
     def multiplicity(self, P):

@@ -7,6 +7,7 @@ AUTHORS:
 
 - Vincent Delecroix (2012 and 2013): improve import_statements
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2011 Nicolas M. Thiery <nthiery at users.sf.net>
 #
@@ -634,7 +635,7 @@ def import_statements(*objects, **kwds):
 
         # if the object is a class instance, it is likely that it is defined in
         # some XYZ.all module
-        from sageinspect import isclassinstance
+        from .sageinspect import isclassinstance
         if isclassinstance(obj):
             module_name = type(obj).__module__
             i = module_name.rfind('.')

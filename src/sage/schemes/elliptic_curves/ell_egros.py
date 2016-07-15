@@ -88,11 +88,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.all import prod
 from sage.misc.all import xmrange
 from sage.rings.all import QQ
-from constructor import EllipticCurve, EllipticCurve_from_j
+from .constructor import EllipticCurve, EllipticCurve_from_j
 
 
 def is_possible_j(j, S=[]):

@@ -15,6 +15,7 @@ REFERENCES:
 - Chap. 3 of S. Lang : *Algebra*, 3rd ed., Springer (New York) (2002)
 
 """
+from __future__ import absolute_import
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
@@ -212,7 +213,7 @@ class FreeModuleHomset(Homset):
             \mathcal{L}(M,N)
 
         """
-        from finite_rank_free_module import FiniteRankFreeModule
+        from .finite_rank_free_module import FiniteRankFreeModule
         if not isinstance(fmodule1, FiniteRankFreeModule):
             raise TypeError("fmodule1 = {} is not an ".format(fmodule1) +
                             "instance of FiniteRankFreeModule")

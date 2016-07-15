@@ -2929,7 +2929,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: a % b
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: reduction modulo 100 not defined
+            ArithmeticError: reduction modulo 100 not defined
         """
         cdef Integer z
         cdef long yy, res

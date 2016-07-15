@@ -2267,7 +2267,7 @@ cdef class CommutativeRingElement(RingElement):
             sage: R(120).divides(R(121))
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: reduction modulo 120 not defined
+            ArithmeticError: reduction modulo 120 not defined
 
         If ``x`` has different parent than ``self``, they are first coerced to a
         common parent if possible. If this coercion fails, it returns a

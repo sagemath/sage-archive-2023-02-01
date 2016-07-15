@@ -130,6 +130,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.matrix.all import matrix
 from sage.rings.all import ZZ
@@ -148,7 +149,7 @@ from sage.misc.flatten import flatten
 #load "dancing_links.spyx"
 #load "dancing_links.sage"
 
-from dlxcpp import DLXCPP
+from .dlxcpp import DLXCPP
 from functools import reduce
 
 class LatinSquare:

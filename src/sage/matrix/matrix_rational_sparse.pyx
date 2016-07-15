@@ -275,7 +275,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     ########################################################################
     # def _pickle(self):
     # def _unpickle(self, data, int version):   # use version >= 0
-    # cpdef ModuleElement _add_(self, ModuleElement right):
+    # cpdef _add_(self, right):
     # cdef _mul_(self, Matrix right):
     # cpdef int _cmp_(self, Matrix right) except -2:
     # def __neg__(self):
@@ -285,7 +285,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     # def _list(self):
 
 # TODO
-##     cpdef ModuleElement _lmul_(self, RingElement right):
+##     cpdef _lmul_(self, RingElement right):
 ##         """
 ##         EXAMPLES:
 ##             sage: a = matrix(QQ,2,range(6))
@@ -676,9 +676,9 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 ##             self.set_unsafe(i,l,-A.get_unsafe(r,k))               #self[i,l] = -A[r,k]
 ##             l += 1
 ##         if self != B:
-##             print "correct =\n", self.str()
-##             print "wrong = \n", B.str()
-##             print "diff = \n", (self-B).str()
+##             print("correct =\n", self.str())
+##             print("wrong = \n", B.str())
+##             print("diff = \n", (self-B).str())
 
     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,
                                                                  Py_ssize_t r, cols,

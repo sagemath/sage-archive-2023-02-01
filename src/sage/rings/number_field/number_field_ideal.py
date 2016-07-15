@@ -35,6 +35,7 @@ We test that pickling works::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 SMALL_DISC = 1000000
 
@@ -49,7 +50,7 @@ import sage.arith.all as arith
 import sage.misc.misc as misc
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
-import number_field
+
 
 from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
 from sage.misc.all import prod
@@ -113,7 +114,8 @@ class NumberFieldIdeal(Ideal_generic):
             sage: I.norm()
             1/6
         """
-        if not isinstance(field, number_field.NumberField_generic):
+        from .number_field import NumberField_generic
+        if not isinstance(field, NumberField_generic):
             raise TypeError("field (=%s) must be a number field."%field)
 
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
@@ -142,9 +144,8 @@ class NumberFieldIdeal(Ideal_generic):
         """
         EXAMPLES::
 
-            sage: NumberField(x^2 + 1, 'a').ideal(7).__hash__()
-            848642427            # 32-bit
-            3643975048496365947  # 64-bit
+            sage: NumberField(x^2 + 1, 'a').ideal(7).__hash__()  # random
+            7806919040325273549
         """
         try:
             return self._hash
@@ -1731,7 +1732,8 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             sage: NumberField(x^2 + 1, 'a').ideal(7)
             Fractional ideal (7)
         """
-        if not isinstance(field, number_field.NumberField_generic):
+        from .number_field import NumberField_generic
+        if not isinstance(field, NumberField_generic):
             raise TypeError("field (=%s) must be a number field."%field)
 
         if len(gens)==0:

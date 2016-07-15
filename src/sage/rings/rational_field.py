@@ -49,11 +49,11 @@ AUTHORS:
   Removed duplicates of ``discriminant()`` and ``signature()``.
 
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-import rational
-import integer
-import infinity
+from .rational import Rational
+from .integer import Integer
+
 ZZ = None
 
 from sage.structure.parent_gens import ParentWithGens
@@ -141,8 +141,8 @@ class RationalField(Singleton, number_field_base.NumberField):
             from sage.rings.rational_field import QQ
             return QQ
         except BaseException:
-            import sage
-            return sage.rings.number_field.number_field_base.NumberField.__new__(cls)
+            from sage.rings.number_field.number_field_base import NumberField
+            return NumberField.__new__(cls)
 
     def __init__(self):
         r"""
@@ -220,7 +220,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         from sage.categories.basic import QuotientFields
         ParentWithGens.__init__(self, self, category=QuotientFields().Metric())
         self._assign_names(('x',),normalize=False) # ???
-        self._populate_coercion_lists_(element_constructor=rational.Rational, init_no_parent=True)
+        self._populate_coercion_lists_(element_constructor=Rational, init_no_parent=True)
 
     def _repr_(self):
         """
@@ -298,7 +298,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             (FractionField, Integer Ring)
         """
         from sage.categories.pushout import FractionField
-        import integer_ring
+        from . import integer_ring
         return FractionField(), integer_ring.ZZ
 
     def completion(self, p, prec, extras = {}):
@@ -312,7 +312,8 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.completion(5, 15, {'print_mode': 'bars'})
             5-adic Field with capped relative precision 15
         """
-        if p == infinity.Infinity:
+        from sage.rings.infinity import Infinity
+        if p == Infinity:
             from sage.rings.real_mpfr import create_RealField
             return create_RealField(prec, **extras)
         else:
@@ -355,8 +356,9 @@ class RationalField(Singleton, number_field_base.NumberField):
                       To:   Rational Field
         """
         global ZZ
+        from . import rational
         if ZZ is None:
-            import integer_ring
+            from . import integer_ring
             ZZ = integer_ring.ZZ
         if S is ZZ:
             return rational.Z_to_Q()
@@ -407,7 +409,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         yield self(0)
         yield self(1)
         yield self(-1)
-        height = integer.Integer(1)
+        height = Integer(1)
         while True:
             height = height + 1
             for other in range(1, height):
@@ -516,7 +518,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.discriminant()
             1
         """
-        return integer.Integer(1)
+        return Integer(1)
 
     def absolute_discriminant(self):
         """
@@ -549,7 +551,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.class_number()
             1
         """
-        return integer.Integer(1)
+        return Integer(1)
 
     def signature(self):
         r"""
@@ -561,7 +563,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.signature()
             (1, 0)
         """
-        return (integer.Integer(1), integer.Integer(0))
+        return (Integer(1), Integer(0))
 
     def embeddings(self, K):
         r"""
@@ -622,13 +624,14 @@ class RationalField(Singleton, number_field_base.NumberField):
               Defn: 1 |--> 1.0000000000000000000000000000000000000000000000000000000000]
         """
         import sage.rings.all
+        from sage.rings.infinity import Infinity
         if prec is None:
             R = sage.rings.all.RR
             C = sage.rings.all.CC
         elif prec == 53:
             R = sage.rings.all.RDF
             C = sage.rings.all.CDF
-        elif prec == infinity.Infinity:
+        elif prec == Infinity:
             R = sage.rings.all.AA
             C = sage.rings.all.QQbar
         else:
@@ -654,7 +657,7 @@ class RationalField(Singleton, number_field_base.NumberField):
               To:   Complex Field with 20 bits of precision
               Defn: 1 |--> 1.0000
         """
-        import complex_field
+        from . import complex_field
         CC = complex_field.ComplexField(prec)
         return self.hom([CC(1)])
 
@@ -718,7 +721,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.degree()
             1
         """
-        return integer.Integer(1)
+        return Integer(1)
 
     def absolute_degree(self):
         r"""
@@ -729,7 +732,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.absolute_degree()
             1
         """
-        return integer.Integer(1)
+        return Integer(1)
 
     def ngens(self):
         r"""
@@ -740,7 +743,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.ngens()
             1
         """
-        return integer.Integer(1)
+        return Integer(1)
 
     def is_absolute(self):
         r"""
@@ -829,7 +832,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: parent(c)
             Integer Ring
         """
-        return integer.Integer(0)
+        return Integer(0)
 
     def maximal_order(self):
         r"""
@@ -843,7 +846,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.ring_of_integers ()
             Integer Ring
         """
-        from integer_ring import ZZ
+        from .integer_ring import ZZ
         return ZZ
 
     def number_field(self):
@@ -873,7 +876,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         return [ self.gen() ]
 
-    def extension(self, poly, names, check=True, embedding=None):
+    def extension(self, poly, names, **kwds):
         r"""
         Create a field extension of `\QQ`.
 
@@ -894,7 +897,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             -5
         """
         from sage.rings.number_field.all import NumberField
-        return NumberField(poly, names=names, check=check, embedding=embedding)
+        return NumberField(poly, names=names, **kwds)
 
     def algebraic_closure(self):
         r"""
@@ -917,7 +920,8 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.order()
             +Infinity
         """
-        return infinity.infinity
+        from sage.rings.infinity import Infinity
+        return Infinity
 
     def _an_element_(self):
         r"""
@@ -928,7 +932,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.an_element() # indirect doctest
             1/2
         """
-        return rational.Rational((1,2))
+        return Rational((1,2))
 
     def some_elements(self):
         r"""
@@ -970,10 +974,10 @@ class RationalField(Singleton, number_field_base.NumberField):
         for n in range(1, 24):
             a = 2*n
             b = (2*n + 1)**(n//10 + 1)
-            yield rational.Rational((a, b))
-            yield rational.Rational((-a, b))
-            yield rational.Rational((b, a))
-            yield rational.Rational((-b, a))
+            yield Rational((a, b))
+            yield Rational((-a, b))
+            yield Rational((b, a))
+            yield Rational((-b, a))
 
     def random_element(self, num_bound=None, den_bound=None, *args, **kwds):
         """
@@ -1021,7 +1025,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         global ZZ
         if ZZ is None:
-            import integer_ring
+            from . import integer_ring
             ZZ = integer_ring.ZZ
         if num_bound is None:
             num = ZZ.random_element(*args, **kwds)
@@ -1063,9 +1067,9 @@ class RationalField(Singleton, number_field_base.NumberField):
             ValueError: no n-th root of unity in rational field
         """
         if n == 1:
-            return rational.Rational(1)
+            return Rational(1)
         elif n == 2:
-            return rational.Rational(-1)
+            return Rational(-1)
         else:
             raise ValueError("no n-th root of unity in rational field")
 
@@ -1312,4 +1316,4 @@ def frac(n,d):
         sage: frac(1,2)
         1/2
     """
-    return rational.Rational(n)/rational.Rational(d)
+    return Rational(n) / Rational(d)

@@ -927,7 +927,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return rich_to_bool_sgn(op, c)
 
-    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         cdef int c
         c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
         return (c > 0) - (c < 0)
@@ -1562,7 +1562,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_to_ZZ(z, self.value)
         sig_off()
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Integer addition.
 
@@ -1582,7 +1582,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_add(x.value, self.value, (<Integer>right).value)
         return x
 
-    cdef RingElement _add_long(self, long n):
+    cdef _add_long(self, long n):
         """
         Fast path for adding a C long.
 
@@ -1621,7 +1621,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_sub_ui(x.value, self.value, 0 - <unsigned long>n)
         return x
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Integer subtraction.
 
@@ -1659,7 +1659,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_neg(x.value, self.value)
         return x
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         cdef Integer x = <Integer>PY_NEW(Integer)
         mpz_neg(x.value, self.value)
         return x
@@ -1679,7 +1679,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             else:
                 return s * int(self) # will raise the appropriate exception
 
-    cdef ModuleElement _mul_long(self, long n):
+    cdef _mul_long(self, long n):
         """
         Fast path for multiplying a C long.
 
@@ -1701,7 +1701,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_mul_si(x.value, self.value, n)
         return x
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Integer multiplication.
 
@@ -1726,7 +1726,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_mul(x.value, self.value, (<Integer>right).value)
         return x
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         r"""
         Computes `\frac{a}{b}`
 
@@ -1742,7 +1742,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # we can't cimport rationals.
         return the_integer_ring._div(self, right)
 
-    cpdef RingElement _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, right):
         r"""
         Computes the whole part of `\frac{x}{y}`.
 
@@ -6071,8 +6071,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1/10
             sage: n.__invert__()
             1/10
+            sage: n = -3
+            sage: ~n
+            -1/3
         """
-        return one / self
+        if mpz_sgn(self.value) == 0:
+            raise ZeroDivisionError("rational division by zero")
+        cdef Rational x
+        x = <Rational> Rational.__new__(Rational)
+        mpz_set_ui(mpq_numref(x.value), 1)
+        mpz_set(mpq_denref(x.value), self.value)
+        if mpz_sgn(self.value) == -1:
+            mpz_neg(mpq_numref(x.value), mpq_numref(x.value))
+            mpz_neg(mpq_denref(x.value), mpq_denref(x.value))
+        return x
 
     def inverse_of_unit(self):
         """
@@ -6088,16 +6100,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 5.inverse_of_unit()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ArithmeticError: inverse does not exist
             sage: 0.inverse_of_unit()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ArithmeticError: inverse does not exist
         """
         if mpz_cmpabs_ui(self.value, 1) == 0:
             return self
         else:
-            raise ZeroDivisionError("Inverse does not exist.")
+            raise ArithmeticError("inverse does not exist")
 
     def inverse_mod(self, n):
         """

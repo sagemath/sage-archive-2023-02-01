@@ -325,11 +325,11 @@ def _big_delta_coeff(aa, bb, cc, prec=None):
 
 def racah(aa, bb, cc, dd, ee, ff, prec=None):
     r"""
-    Calculate the Racah symbol `W(a,b,c,d;e,f)`.
+    Calculate the Racah symbol `W(aa,bb,cc,dd;ee,ff)`.
 
     INPUT:
 
-    -  ``a``, ..., ``f`` - integer or half integer
+    -  ``aa``, ..., ``ff`` - integer or half integer
 
     -  ``prec`` - precision, default: ``None``. Providing a precision can
        drastically speed up the calculation.
@@ -351,7 +351,7 @@ def racah(aa, bb, cc, dd, ee, ff, prec=None):
     .. math::
 
        \begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}
-       =(-1)^{j_1+j_2+j_4+j_5} W(j_1,j_2,j_5,j_4,j_3,j_6)
+       =(-1)^{j_1+j_2+j_4+j_5} W(j_1,j_2,j_5,j_4;j_3,j_6)
 
     Please see the 6-`j` symbol for its much richer symmetries and for
     additional properties.
@@ -449,7 +449,7 @@ def wigner_6j(j_1, j_2, j_3, j_4, j_5, j_6, prec=None):
     .. math::
 
        \begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}
-        =(-1)^{j_1+j_2+j_4+j_5} W(j_1,j_2,j_5,j_4,j_3,j_6)
+        =(-1)^{j_1+j_2+j_4+j_5} W(j_1,j_2,j_5,j_4;j_3,j_6)
 
     The Wigner 6-`j` symbol obeys the following symmetry rules:
 

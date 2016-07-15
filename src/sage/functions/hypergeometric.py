@@ -998,7 +998,7 @@ class Hypergeometric_M(BuiltinFunction):
         raise NotImplementedError('derivative of hypergeometric function '
                                   'with respect to parameters')
 
-    class EvaluationMethods:
+    class EvaluationMethods(object):
         def generalized(cls, self, a, b, z):
             """
             Return as a generalized hypergeometric function
@@ -1098,7 +1098,7 @@ class Hypergeometric_U(BuiltinFunction):
         raise NotImplementedError('derivative of hypergeometric function '
                                   'with respect to parameters')
 
-    class EvaluationMethods:
+    class EvaluationMethods(object):
         def generalized(cls, self, a, b, z):
             """
             Return in terms of the generalized hypergeometric function

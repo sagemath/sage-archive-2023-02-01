@@ -2075,6 +2075,32 @@ cdef class SkewPolynomial(AlgebraElement):
                 X[i] = c
         return X
 
+    def is_term(self):
+        """
+        Return True if self is an element of the base ring times a
+        power of the generator.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: x.is_term()
+            True
+            sage: R(1).is_term()
+            True
+            sage: (3*x^5).is_term()
+            True
+            sage: (1+3*x^5).is_term()
+            False
+
+        To require that the coefficient is 1, use is_monomial() instead::
+
+            sage: (3*x^5).is_monomial()
+            False
+        """
+        return len(self.exponents()) == 1
+
     def is_monomial(self):
         """
         Returns True if self is a monomial, i.e., a power of the generator.
@@ -2109,32 +2135,6 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return len(self.exponents()) == 1 and self.leading_coefficient() == 1
 
-    def is_term(self):
-        """
-        Return True if self is an element of the base ring times a
-        power of the generator.
-
-        EXAMPLES::
-
-            sage: R.<t> = ZZ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
-            sage: x.is_term()
-            True
-            sage: R(1).is_term()
-            True
-            sage: (3*x^5).is_term()
-            True
-            sage: (1+3*x^5).is_term()
-            False
-
-        To require that the coefficient is 1, use is_monomial() instead::
-
-            sage: (3*x^5).is_monomial()
-            False
-        """
-        return len(self.exponents()) == 1
-
     def is_gen(self):
         return self._is_gen
 
@@ -2161,6 +2161,91 @@ cdef class SkewPolynomial(AlgebraElement):
             return [c for c in self.list() if not c.is_zero()]
         else:
             return self.list()
+
+    def number_of_terms(self):
+        """
+        Returns the number of non-zero coefficients of self. Also called weight,
+        hamming weight or sparsity.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: a = 1 + x^4 + (t+1)*x^2 + t^2
+            sage: a.number_of_terms()
+            3
+            
+        The method :meth: `hamming_weight` is an alias::
+
+            sage: a.hamming_weight()
+            3 
+        """
+        return len(self.coefficients())
+
+    # alias hamming_weight for number_of_terms:
+    hamming_weight = number_of_terms
+
+    def reverse(self, degree=None):
+        """
+        Return skew polynomial but with the coefficients reversed.
+        If an optional degree argument is given the coefficient list will be 
+        truncated or zero padded as necessary and the reverse skew polynomial will
+        have the specified degree.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: a = 1 + x^4 + (t+1)*x^2 + t^2
+            sage: a.reverse()
+            (t^2 + 1)*x^4 + (t + 1)*x^2 + 1
+            sage: a.reverse(degree=2)
+            (t^2 + 1)*x^2 + t + 1
+            sage: a.reverse(degree=6)
+            (t^2 + 1)*x^6 + (t + 1)*x^4 + x^2
+ 
+        TESTS::
+
+            sage: a.reverse(degree=1.5r)
+            Traceback (most recent call last):
+            ...
+            ValueError: degree argument must be a non-negative integer, got 1.5
+        """
+        v = list(self.list())
+        cdef unsigned long d
+        if degree:
+            d = degree
+            if d != degree:
+                raise ValueError("degree argument must be a non-negative integer, got %s"%(degree))
+            if len(v) < degree+1:
+                v.reverse()
+                v = [0]*(degree+1-len(v)) + v
+            elif len(v) > degree+1:
+                v = v[:degree+1]
+                v.reverse()
+            else: # len(v) == degree + 1
+                v.reverse()
+        else:
+            v.reverse()
+        return self.parent()(v)
+
+    def is_one(self):
+        """
+        Test whether this polynomial is 1.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: R(1).is_one()
+            True
+            sage: (x + 3).is_one()
+            False
+        """
+        return self.degree() == 0 and self[0].is_one()
 
     def exponents(self):
         """

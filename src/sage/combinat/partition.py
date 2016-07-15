@@ -319,6 +319,7 @@ from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.graphs.dot2tex_utils import have_dot2tex
+from sage.rings.all import QQ, NN, ZZ, IntegerModRing
 
 class Partition(CombinatorialElement):
     r"""
@@ -2198,7 +2199,7 @@ class Partition(CombinatorialElement):
         """
         return self.conjugate().initial_tableau().conjugate()
 
-    def garnir_tableau(self,*cell):
+    def garnir_tableau(self, *cell):
         r"""
         Return the Garnir tableau of shape ``self`` corresponding to the cell
         ``cell``. If ``cell`` `= (a,c)` then `(a+1,c)` must belong to the
@@ -2226,7 +2227,7 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: g=Partition([5,3,3,2]).garnir_tableau((0,2)); g.pp()
+            sage: g = Partition([5,3,3,2]).garnir_tableau((0,2)); g.pp()
               1  2  6  7  8
               3  4  5
               9 10 11
@@ -2255,18 +2256,18 @@ class Partition(CombinatorialElement):
             - :meth:`top_garnir_tableau`
         """
         try:
-            (row,col)=cell
+            (row, col) = cell
         except ValueError:
-            (row,col)=cell[0]
+            (row, col) = cell[0]
 
-        if row+1>=len(self) or col>=self[row+1]:
+        if row + 1 >= len(self) or col >= self[row+1]:
             raise ValueError('(row+1, col) must be inside the diagram')
         g=self.initial_tableau().to_list()
         a=g[row][col]
-        g[row][col:]=range(a+col+1,g[row+1][col]+1)
-        g[row+1][:col+1]=range(a,a+col+1)
+        g[row][col:] = range(a+col+1, g[row+1][col]+1)
+        g[row+1][:col+1] = range(a, a+col+1)
         g=tableau.Tableau(g)
-        g._garnir_cell=(row,col)
+        g._garnir_cell = (row, col)
         return g
 
     def top_garnir_tableau(self,e,cell):
@@ -3320,6 +3321,342 @@ class Partition(CombinatorialElement):
 
         return beta[multicharge[0]] - sum(beta[i]**2 - beta[i] * beta[Ie(i+1)]
                                           for i in range(e))
+
+    def contents_tableau(self, multicharge=(0,)):
+        """
+        Return the tableau which has ``(k,r,c)``-th cell equal to the
+        content ``multicharge[k] - r + c`` of the cell.
+
+        EXAMPLES::
+
+            sage: Partition([2,1]).contents_tableau()
+            [[0, 1], [-1]]
+            sage: Partition([3,2,1,1]).contents_tableau().pp()
+                0  1  2
+                -1  0
+                -2
+                -3
+            sage: Partition([3,2,1,1]).contents_tableau([ IntegerModRing(3)(0)] ).pp()
+                0  1  2
+                2  0
+                1
+                0
+        """
+        return tableau.Tableau([[multicharge[0]-r+c for c in range(self[r])]
+                                for r in range(len(self))])
+
+    def conormal_cells(self, e, multicharge=(0,), i=None, direction='up'):
+        r"""
+        Return a dictionary of the cells of ``self`` which are conormal.
+        If no residue ``i`` is specified then a list of length ``e``
+        is returned which gives the conormal cells for ``0 <= i < e``.
+
+        Following [Kleshchev09]_, the *conormal* cells are computed by
+        reading up (or down) the rows of the partition and marking all
+        of the addable and removable cells of `e`-residue `i` and then
+        recursively removing all adjacent pairs of removable and addable
+        cells (in that order) from this list. The addable `i`-cells that
+        remain at the end of the this process are the conormal `i`-cells.
+
+        When computing conormal cells you can either read the cells in order
+        from top to bottom (this corresponds to labelling the simple modules
+        of the symmetric group by regular partitions) or from bottom to top
+        (corresponding to labelling the simples by restricted partitions).
+        By default we read down the partition but this can be changed by
+        setting ``direction = 'up'``.
+
+        EXAMPLES::
+
+            sage: Partition([5,4,4,3,2]).conormal_cells(3)
+            {0: [(3, 3), (1, 4)], 1: [(5, 0)], 2: [(0, 5)]}
+            sage: Partition([5,4,4,3,2]).conormal_cells(3, i=0)
+            [(3, 3), (1, 4)]
+            sage: Partition([5,4,4,3,2]).conormal_cells(3, i=1)
+            [(5, 0)]
+            sage: Partition([5,4,4,3,2]).conormal_cells(3, direction='down')
+            {0: [(1, 4)], 1: [(4, 2), (5, 0)], 2: [(0, 5)]}
+        """
+        # kludge to allow multicharge to be an optional argument
+        if multicharge in ZZ:
+            i = multicharge
+            multicharge = (0,)
+
+        from collections import defaultdict
+        # We use a dictionary for the conormal nodes as the indexing set is Z when e=0
+        conormals = defaultdict(list)   # the conormal cells of each residue
+        carry = defaultdict(int)        # a tally of #(removable cells) - #(addable cells)
+
+        # determine if we read up or down the partition
+        rows = list(range(len(self)+1))
+        if direction == 'up':
+            rows.reverse()
+
+        Ie = IntegerModRing(e)
+        multicharge = [Ie(m) for m in multicharge]  # adding multicharge[0] works mod e
+        # work through the rows
+        for row in rows:
+            if row == len(self): # addable cell at bottom of partition
+                res = multicharge[0] - row
+                if carry[res] == 0:
+                    conormals[res].append((row, 0))
+                else:
+                    carry[res] += 1
+            else:
+                res = multicharge[0] + self[row] - row - 1
+                if row == len(self)-1 or self[row] > self[row+1]: # removable cell
+                    carry[res] -= 1
+                if row == 0 or self[row-1] > self[row]:               #addable cell
+                    if carry[res+1] >= 0:
+                        conormals[res+1].append((row, self[row]))
+                    else:
+                        carry[res+1] += 1
+
+        # finally return the result
+        return dict(conormals) if i is None else conormals[i]
+
+    def cogood_cells(self, e, multicharge=(0,), i=None, direction='up'):
+        r"""
+        Return a list of the cells of ``self`` that are cogood.
+        If no residue ``i`` is specified then the cogood cells of each
+        residue are returned (if they exist).
+
+        The cogood `i`-cell is the 'last' conormal `i`-cell. As with the
+        conormal cells we can choose to read either up or down the partition.
+
+        EXAMPLES::
+
+            sage: Partition([5,4,4,3,2]).cogood_cells(3)
+            {0: (3, 3), 1: (5, 0), 2: (0, 5)}
+            sage: Partition([5,4,4,3,2]).cogood_cells(3,0)
+            (3, 3)
+            sage: Partition([5,4,4,3,2]).cogood_cells(3,1)
+            (5, 0)
+            sage: Partition([5,4,4,3,2]).cogood_cells(4,direction='down')
+            {0: (3, 3), 1: (0, 5), 2: (4, 2), 3: (1, 4)}
+            sage: Partition([5,4,4,3,2]).cogood_cells(4,0,direction='down')
+            (3, 3)
+            sage: Partition([5,4,4,3,2]).cogood_cells(4,0,direction='down')
+            (3, 3)
+        """
+        # kludge to allow multicharge to be an optional argument
+        if multicharge in ZZ:
+            i = multicharge
+            multicharge = (0,)
+
+        conormal_cells = self.conormal_cells(e, multicharge, i, direction)
+        if i is None:
+            return {i: conormal_cells[i][-1] for i in conormal_cells}
+        elif not conormal_cells:
+            return None
+        else:
+            return conormal_cells[-1]
+
+    def normal_cells(self,e,multicharge=(0,),i=None,direction='up'):
+        r"""
+        Return a dictionary of the cells of the partition which are normal.
+        If no residue ``i`` is specified then a list of length ``e``
+        is returned which gives the normal cells for ``0 <= i < e``.
+
+        Following [Kleshchev09]_, the *normal* cells are computed by
+        reading up (or down) the rows of the partition and marking all
+        of the addable and removable cells of `e`-residue `i` and then
+        recursively removing all adjacent pairs of removable and
+        addable cells (in that order) from this list. The removable
+        `i`-cells that remain at the end of the this process are the
+        normal `i`-cells.
+
+        When computing normal cells you can either read the cells in order
+        from top to bottom (this corresponds to labelling the simple modules
+        of the symmetric group by regular partitions) or from bottom to top
+        (corresponding to labelling the simples by restricted partitions).
+        By default we read down the partition but this can be changed by
+        setting ``direction = 'up'``.
+
+        EXAMPLES::
+
+            sage: Partition([5,4,4,3,2]).normal_cells(3)
+            {0: [(4, 1)], 2: [(3, 2)]}
+            sage: Partition([5,4,4,3,2]).normal_cells(3,i=0)
+            [(4, 1)]
+            sage: Partition([5,4,4,3,2]).normal_cells(3,direction='up')
+            {0: [(4, 1)], 2: [(3, 2)]}
+        """
+        # kludge to allow multicharge to be an optional argument
+        if multicharge in ZZ:
+            i = multicharge
+            multicharge = (0,)
+
+        from collections import defaultdict
+        # We use a dictionary for the normal nodes as the indexing set is Z when e=0
+        normals = defaultdict(list)     # the normal cells of each residue
+        carry = defaultdict(int)        # a tally of #(removable cells)-#(addable cells)
+
+        # determine if we read up or down the partition
+        rows = list(range(len(self)+1))
+        if direction == 'down':
+            rows.reverse()
+
+        Ie = IntegerModRing(e)
+        multicharge = [Ie(m) for m in multicharge]  # adding multicharge[0] works mod e
+        # work through the rows
+        for row in rows:
+            if row == len(self): # addable cell at bottom of partition
+                carry[multicharge[0]-row] += 1
+            else:
+                res = multicharge[0] + self[row] - row - 1
+                if row == len(self) - 1 or self[row] > self[row+1]: # removable cell
+                    if carry[res] == 0:
+                        normals[res].append((row, self[row]-1))
+                    else:
+                        carry[res] -= 1
+                if row == 0 or self[row-1] > self[row]:              # addable cell
+                  carry[res+1] += 1
+
+        # finally return the result
+        return dict(normals) if i is None else normals[i]
+
+    def good_cells(self, e, multicharge=(0,), i=None, direction='up'):
+        """
+        Return a list of the cells of ``self`` that are good.
+        If no residue ``i`` is specified then the good cells of each
+        residue are returned (if they exist).
+
+        The good `i`-cell is the 'first' normal `i`-cell. As with the normal
+        cells we can choose to read either up or down the partition.
+
+        EXAMPLES::
+
+            sage: Partition([5,4,4,3,2]).good_cells(3)
+            {0: (4, 1), 2: (3, 2)}
+            sage: Partition([5,4,4,3,2]).good_cells(3,0)
+            (4, 1)
+            sage: Partition([5,4,4,3,2]).good_cells(4,direction='down')
+            {0: (0, 4), 1: (4, 1)}
+            sage: Partition([5,4,4,3,2]).good_cells(4,0,direction='down')
+            (0, 4)
+            sage: Partition([5,4,4,3,2]).good_cells(4,1,direction='down')
+            (4, 1)
+
+        """
+        # kludge to allow multicharge to be an optional argument
+        if multicharge in ZZ:
+            i = multicharge
+            multicharge = (0,)
+
+        normal_cells = self.normal_cells(e, multicharge, i, direction)
+        if i is None:
+            return {i: normal_cells[i][0] for i in normal_cells}
+        elif not normal_cells:
+            return None
+        else:
+            return normal_cells[0]
+
+    def good_residue_sequence(self, e, multicharge=(0,), direction='up'):
+        """
+        Return a sequence of good nodes from the empty partition
+        to ``self``, or ``None`` if no such sequence exists.
+
+        EXAMPLES::
+
+            sage: Partition([5,4,4,3,2]).good_residue_sequence(3)
+
+        """
+        if self.size() == 0:
+            return []
+
+        good_cells = self.good_cells(e,multicharge,direction)
+        try:
+            r,c = good_cells[0]
+            good_seq = self.remove_cell(r,c).good_residue_sequence(e, multicharge, direction)
+            good_seq.append( IntegerModRing(e)(multicharge[0]+c-r) )
+            return good_seq
+        except (TypeError, AttributeError):  # if this fails then there is no good cell sequence
+            return None
+
+    def good_cell_sequence(self, e, multicharge=(0,), direction='up'):
+        """
+        Return a sequence of good nodes from the empty partition
+        to ``self``, or ``None`` if no such sequence exists.
+
+        EXAMPLES::
+
+            sage: Partition([5,4,4,3,2]).good_cell_sequence(3)
+
+        """
+        if self.size() == 0:
+            return []
+        good_cells = self.good_cells(e, multicharge, direction)
+        try:
+            cell = good_cells[0]
+            good_seq = self.remove_cell(*cell).good_cell_sequence(e, multicharge, direction)
+            good_seq.append(*cell)
+            return good_seq
+        except (TypeError, AttributeError):  # if this fails then there is no good cell sequence
+            return None
+
+    def Mullineux_conjugate(self, e, multicharge, direction='up'):
+        """
+        Return the partition tuple which is the Mullineux conjugate of this
+        partition tuple, or ``None`` if no such partition tuple exists.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[5,4],[4,3,2]]).Mullineux_conjugate(3,[0,1])
+
+        """
+        if self.size() == 0:
+            return _Partitions([])
+        good_cells = self.good_cells(e,multicharge,direction)
+        try:
+            k,r,c = good_cells[0]
+            mu = self.remove_cell(k, r, c).Mullineux_conjugate(e, multicharge, direction)
+            # add back on a cogood cell of residue -residue(k,r,c)
+            return mu.add_cell(*mu.cogood_cell(e, muticharge=multicharge,
+                                               i=r-c-multicharge[k],
+                                               direction=direction))
+        except (TypeError, AttributeError):  # if this fails then there is no good cell sequence
+            return None
+
+    def is_restricted(self, e, multicharge=(0,)):
+        """
+        Return ``True`` is this is an ``e``-restricted partition.
+
+        An `e`-restricted partition is a partition such that the
+        difference of consecutive parts is always strictly less
+        than `e`, where partitions are considered to have an infinite
+        number of `0` parts. I.e., the last part must be strictly
+        less than `e`.
+
+        EXAMPLES::
+
+          sage: Partition([4,3,3,2]).is_restricted(2)
+          False
+          sage: Partition([4,3,3,2]).is_restricted(3)
+          True
+          sage: Partition([4,3,3,2]).is_restricted(4)
+          True
+          sage: Partition([4]).is_restricted(4)
+          False
+        """
+        return self[-1] < e and all(self[r]-self[r+1] < e for r in range(len(self)-1))
+
+    def is_regular(self, e, multicharge=(0,)):
+        """
+        Return ``True`` is this is an ``e``-regular partition.
+
+        A partition is `e`-regular if it does not have `e` equal
+        non-zero parts.
+
+        EXAMPLES::
+
+          sage: Partition([4,3,3,3]).is_regular(2)
+          False
+          sage: Partition([4,3,3,3]).is_regular(3)
+          False
+          sage: Partition([4,3,3,3]).is_regular(4)
+          True
+        """
+        return all(self[r] > self[r+e-1] for r in range(len(self)-e+1))
 
     def conjugacy_class_size(self):
         """

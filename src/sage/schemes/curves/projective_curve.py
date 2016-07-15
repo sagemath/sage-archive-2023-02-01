@@ -36,6 +36,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import division
+from __future__ import absolute_import
 
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
@@ -44,12 +45,18 @@ from sage.misc.all import add, sage_eval
 from sage.rings.all import degree_lowest_rational_function
 from sage.schemes.affine.affine_space import AffineSpace
 
+from . import point
+
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
 from sage.schemes.projective.projective_space import is_ProjectiveSpace
 
-from curve import Curve_generic
+from .curve import Curve_generic
+
 
 class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
+
+    _point = point.ProjectiveCurvePoint_field
+
     def _repr_type(self):
         r"""
         Return a string representation of the type of this curve.
@@ -127,7 +134,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: C.affine_patch(1, A).ambient_space() == A
             True
         """
-        from constructor import Curve
+        from .constructor import Curve
         return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i, AA))
 
     def arithmetic_genus(self):
@@ -265,6 +272,9 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         return len(self.ambient_space().gens()) - len(I.sage().gens()) == L[-1]
 
 class ProjectivePlaneCurve(ProjectiveCurve):
+
+    _point = point.ProjectivePlaneCurvePoint_field
+
     def __init__(self, A, f):
         r"""
         Initialization function.
@@ -524,7 +534,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         # one avoiding "infinity", i.e. the one corresponding to the
         # last projective coordinate being nonzero
         patch = kwds.pop('patch', self.ngens() - 1)
-        from constructor import Curve
+        from .constructor import Curve
         C = Curve(self.affine_patch(patch))
         return C.plot(*args, **kwds)
 
@@ -774,6 +784,9 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         return not self.tangents(P)[0] == C.tangents(P)[0]
 
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
+
+    _point = point.ProjectivePlaneCurvePoint_finite_field
+
     def rational_points_iterator(self):
         r"""
         Return a generator object for the rational points on this curve.

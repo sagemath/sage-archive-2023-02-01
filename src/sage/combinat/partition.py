@@ -1989,11 +1989,7 @@ class Partition(CombinatorialElement):
         p = list(self)
         if p == []:
             return self
-        l = len(p)
-        conj = [l] * p[-1]
-        for i in xrange(l - 1, 0, -1):
-            conj.extend([i] * (p[i - 1] - p[i]))
-        return Partition(conj)
+        return Partition(conjugate(p))
 
     def suter_diagonal_slide(self, n, exp=1):
         r"""
@@ -3368,13 +3364,13 @@ class Partition(CombinatorialElement):
         EXAMPLES::
 
             sage: Partition([5,4,4,3,2]).conormal_cells(3)
-            {0: [(3, 3), (1, 4)], 1: [(5, 0)], 2: [(0, 5)]}
+            {0: [(1, 4)], 1: [(5, 0), (4, 2)]}
             sage: Partition([5,4,4,3,2]).conormal_cells(3, i=0)
-            [(3, 3), (1, 4)]
+            [(1, 4)]
             sage: Partition([5,4,4,3,2]).conormal_cells(3, i=1)
-            [(5, 0)]
+            [(5, 0), (4, 2)]
             sage: Partition([5,4,4,3,2]).conormal_cells(3, direction='down')
-            {0: [(1, 4)], 1: [(4, 2), (5, 0)], 2: [(0, 5)]}
+            {0: [(1, 4), (3, 3)], 2: [(0, 5)]}
         """
         # kludge to allow multicharge to be an optional argument
         if multicharge in ZZ:
@@ -3426,17 +3422,16 @@ class Partition(CombinatorialElement):
         EXAMPLES::
 
             sage: Partition([5,4,4,3,2]).cogood_cells(3)
-            {0: (3, 3), 1: (5, 0), 2: (0, 5)}
+            {0: (1, 4), 1: (4, 2)}
             sage: Partition([5,4,4,3,2]).cogood_cells(3,0)
-            (3, 3)
+            (1, 4)
             sage: Partition([5,4,4,3,2]).cogood_cells(3,1)
-            (5, 0)
+            (4, 2)
             sage: Partition([5,4,4,3,2]).cogood_cells(4,direction='down')
-            {0: (3, 3), 1: (0, 5), 2: (4, 2), 3: (1, 4)}
+            {1: (0, 5), 2: (4, 2), 3: (1, 4)}
             sage: Partition([5,4,4,3,2]).cogood_cells(4,0,direction='down')
-            (3, 3)
-            sage: Partition([5,4,4,3,2]).cogood_cells(4,0,direction='down')
-            (3, 3)
+            sage: Partition([5,4,4,3,2]).cogood_cells(4,2,direction='down')
+            (4, 2)
         """
         # kludge to allow multicharge to be an optional argument
         if multicharge in ZZ:
@@ -3475,11 +3470,13 @@ class Partition(CombinatorialElement):
         EXAMPLES::
 
             sage: Partition([5,4,4,3,2]).normal_cells(3)
+            {1: [(0, 4), (2, 3)]}
+            sage: Partition([5,4,4,3,2]).normal_cells(3,i=1)
+            [(0, 4), (2, 3)]
+            sage: Partition([5,4,4,3,2]).normal_cells(3,direction='down')
             {0: [(4, 1)], 2: [(3, 2)]}
-            sage: Partition([5,4,4,3,2]).normal_cells(3,i=0)
-            [(4, 1)]
-            sage: Partition([5,4,4,3,2]).normal_cells(3,direction='up')
-            {0: [(4, 1)], 2: [(3, 2)]}
+            sage: Partition([5,4,4,3,2]).normal_cells(3,2,direction='down')
+            [(3, 2)]
         """
         # kludge to allow multicharge to be an optional argument
         if multicharge in ZZ:
@@ -3527,16 +3524,14 @@ class Partition(CombinatorialElement):
         EXAMPLES::
 
             sage: Partition([5,4,4,3,2]).good_cells(3)
-            {0: (4, 1), 2: (3, 2)}
-            sage: Partition([5,4,4,3,2]).good_cells(3,0)
-            (4, 1)
-            sage: Partition([5,4,4,3,2]).good_cells(4,direction='down')
-            {0: (0, 4), 1: (4, 1)}
-            sage: Partition([5,4,4,3,2]).good_cells(4,0,direction='down')
+            {1: (0, 4)}
+            sage: Partition([5,4,4,3,2]).good_cells(3,1)
             (0, 4)
+            sage: Partition([5,4,4,3,2]).good_cells(4,direction='down')
+            {1: (4, 1)}
+            sage: Partition([5,4,4,3,2]).good_cells(4,0,direction='down')
             sage: Partition([5,4,4,3,2]).good_cells(4,1,direction='down')
             (4, 1)
-
         """
         # kludge to allow multicharge to be an optional argument
         if multicharge in ZZ:
@@ -5117,8 +5112,8 @@ class Partitions(UniqueRepresentation, Parent):
 
     Valid keywords are: ``starting``, ``ending``, ``min_part``,
     ``max_part``, ``max_length``, ``min_length``, ``length``,
-    ``max_slope``, ``min_slope``, ``inner``, ``outer``, ``parts_in``
-    and ``regular``. They have the following meanings:
+    ``max_slope``, ``min_slope``, ``inner``, ``outer``, ``parts_in``,
+    ``regular``, and ``restricted``. They have the following meanings:
 
     - ``starting=p`` specifies that the partitions should all be less
       than or equal to `p` in lex order. This argument cannot be combined
@@ -5156,14 +5151,17 @@ class Partitions(UniqueRepresentation, Parent):
       and can only be combined with the ``max_length`` or ``max_part``, but
       not both, keywords if `n` is not specified
 
+    - ``restricted=ell`` specifies that the partitions are `\ell`-restricted,
+      and cannot be combined with any other keywords
+
     The ``max_*`` versions, along with ``inner`` and ``ending``, work
     analogously.
 
-    Right now, the ``parts_in``, ``starting``, ``ending``, and ``regular``
-    keyword arguments are mutually exclusive, both of each other and of other
-    keyword arguments. If you specify, say, ``parts_in``, all other
-    keyword arguments will be ignored; ``starting``, ``ending``, and
-    ``regular`` work the same way.
+    Right now, the ``parts_in``, ``starting``, ``ending``, ``regular``, and
+    ``restricted`` keyword arguments are mutually exclusive, both of each
+    other and of other keyword arguments. If you specify, say, ``parts_in``,
+    all other keyword arguments will be ignored; ``starting``, ``ending``,
+    ``regular``, and ``restricted`` work the same way.
 
     EXAMPLES:
 
@@ -5251,6 +5249,13 @@ class Partitions(UniqueRepresentation, Parent):
         4-Regular 3-Bounded Partitions
         sage: Partitions(3, regular=4)
         4-Regular Partitions of the integer 3
+
+    Some examples using the ``restricted`` keyword::
+
+        sage: Partitions(restricted=4)
+        4-Restricted Partitions
+        sage: Partitions(3, restricted=4)
+        4-Restricted Partitions of the integer 3
 
     Here are some further examples using various constraints::
 
@@ -5427,6 +5432,8 @@ class Partitions(UniqueRepresentation, Parent):
                         return Partitions_all_bounded(kwargs['max_part'])
                     if 'regular' in kwargs:
                         return RegularPartitions_all(kwargs['regular'])
+                    if 'restricted' in kwargs:
+                        return RestrictedPartitions_all(kwargs['restricted'])
                 elif len(kwargs) == 2:
                     if 'regular' in kwargs:
                         if kwargs['regular'] < 2:
@@ -5462,6 +5469,8 @@ class Partitions(UniqueRepresentation, Parent):
                 return Partitions_ending(n, kwargs['ending'])
             elif 'regular' in kwargs:
                 return RegularPartitions_n(n, kwargs['regular'])
+            elif 'restricted' in kwargs:
+                return RestrictedPartitions_n(n, kwargs['restricted'])
 
             # FIXME: should inherit from IntegerListLex, and implement repr, or _name as a lazy attribute
             kwargs['name'] = "Partitions of the integer %s satisfying constraints %s"%(n, ", ".join( ["%s=%s"%(key, kwargs[key]) for key in sorted(kwargs.keys())] ))
@@ -7943,6 +7952,12 @@ def RestrictedPartitions(n, S, k=None):
 
     Wraps GAP's ``RestrictedPartitions``.
 
+    .. NOTE::
+
+        This is more generic than, and should not be confused with
+        :class:`~sage.combinat.partition.RestrictedPartitions_generic`
+        and subclasses.
+
     EXAMPLES::
 
         sage: from sage.combinat.partition import RestrictedPartitions
@@ -8083,6 +8098,270 @@ class RestrictedPartitions_nsk(CombinatorialClass):
         else:
             ans=gap.eval("NrRestrictedPartitions(%s,%s,%s)"%(ZZ(n),S,ZZ(k)))
         return ZZ(ans)
+
+class RestrictedPartitions_generic(Partitions):
+    r"""
+    Base class for `\ell`-restricted partitions.
+
+    Let `\ell` be a positive integer. A partition `\lambda` is
+    `\ell`-*restricted* if `\lambda_i - \lambda_{i+1} < \ell` for all `i`,
+    including rows of length 0.
+
+    .. NOTE::
+
+        This is conjugate to the notion of `\ell`-*regular* partitions,
+        where the multiplicity of any parts is at most `\ell`.
+
+    INPUT:
+
+    - ``ell`` -- the positive integer `\ell`
+    - ``is_infinite`` -- boolean; if the subset of `\ell`-restricted
+      partitions is infinite
+    """
+    def __init__(self, ell, is_infinite=False):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(restricted=2)
+            sage: TestSuite(P).run()
+        """
+        self._ell = ell
+        Partitions.__init__(self, is_infinite)
+
+    def ell(self):
+        r"""
+        Return the value `\ell`.
+
+        EXAMPLES::
+
+            sage: P = Partitions(restricted=2)
+            sage: P.ell()
+            2
+        """
+        return self._ell
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: P = Partitions(restricted=3)
+            sage: [5] in P
+            False
+            sage: [2] in P
+            True
+            sage: [] in P
+            True
+            sage: [3, 3, 3, 3, 2, 2] in P
+            True
+            sage: [3, 3, 3, 1] in P
+            True
+            sage: [8, 3, 3, 1] in P
+            False
+            sage: [2, 0, 0, 0, 0, 0] in P
+            True
+            sage: Partition([4,2,2,1]) in P
+            True
+            sage: Partition([4,2,2,2]) in P
+            True
+            sage: Partition([6,6,6,6,4,3,2]) in P
+            True
+            sage: Partition([7,6,6,2]) in P
+            False
+            sage: Partition([6,5]) in P
+            False
+            sage: Partition([10,1]) in P
+            False
+            sage: Partition([3,3] + [1]*10) in P
+            True
+        """
+        if not Partitions.__contains__(self, x):
+            return False
+        if x == []:
+            return True
+        return (all(x[i] - x[i+1] < self._ell for i in range(len(x)-1))
+                and x[-1] < self._ell)
+
+    def _fast_iterator(self, n, max_part):
+        """
+        A fast (recursive) iterator which returns a list.
+
+        EXAMPLES::
+
+            sage: P = Partitions(restricted=3)
+            sage: list(P._fast_iterator(5, 5))
+            [[3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
+            sage: list(P._fast_iterator(5, 2))
+            [[2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
+
+        TESTS::
+
+            sage: for n in range(10):
+            ....:     for ell in range(2, n):
+            ....:         Pres = Partitions(n, restricted=ell)
+            ....:         Preg = Partitions(n, regular=ell)
+            ....:         assert set(Pres) == set(p.conjugate() for p in Preg)
+        """
+        if n == 0:
+            yield []
+            return
+
+        if n < max_part:
+            max_part = n
+
+        for i in range(max_part, 0, -1):
+            for p in self._fast_iterator(n-i, i):
+                if (p and i - p[0] >= self._ell) or (not p and i >= self._ell):
+                    break
+                yield [i] + p
+
+class RestrictedPartitions_all(RestrictedPartitions_generic):
+    r"""
+    The class of all `\ell`-restricted partitions.
+
+    INPUT:
+
+    - ``ell`` -- the positive integer `\ell`
+
+    .. SEEALSO::
+
+        :class:`~sage.combinat.partition.RestrictedPartitions_generic`
+    """
+    def __init__(self, ell):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(restricted=4)
+            sage: TestSuite(P).run()
+        """
+        RestrictedPartitions_generic.__init__(self, ell, True)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.partition import RestrictedPartitions_all
+            sage: RestrictedPartitions_all(3)
+            3-Restricted Partitions
+        """
+        return "{}-Restricted Partitions".format(self._ell)
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(restricted=3)
+            sage: it = P.__iter__()
+            sage: [next(it) for x in range(10)]
+            [[], [1], [2], [1, 1], [2, 1], [1, 1, 1],
+             [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
+        """
+        n = 0
+        while True:
+            for p in self._fast_iterator(n, n):
+                yield self.element_class(self, p)
+            n += 1
+
+class RestrictedPartitions_n(RestrictedPartitions_generic, Partitions_n):
+    r"""
+    The class of `\ell`-restricted partitions of `n`.
+
+    INPUT:
+
+    - ``n`` -- the integer `n` to partition
+    - ``ell`` -- the integer `\ell`
+
+    .. SEEALSO::
+
+        :class:`~sage.combinat.partition.RestrictedPartitions_generic`
+    """
+    def __init__(self, n, ell):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, restricted=3)
+            sage: TestSuite(P).run()
+        """
+        RestrictedPartitions_generic.__init__(self, ell)
+        Partitions_n.__init__(self, n)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.partition import RestrictedPartitions_n
+            sage: RestrictedPartitions_n(3, 5)
+            5-Restricted Partitions of the integer 3
+        """
+        return "{}-Restricted Partitions of the integer {}".format(self._ell, self.n)
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: P = Partitions(5, regular=3)
+            sage: [3, 1, 1] in P
+            True
+            sage: [3, 2, 1] in P
+            False
+        """
+        return RestrictedPartitions_generic.__contains__(self, x) and sum(x) == self.n
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, restricted=3)
+            sage: list(P)
+            [[3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
+        """
+        for p in self._fast_iterator(self.n, self.n):
+            yield self.element_class(self, p)
+
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, restricted=3)
+            sage: P.cardinality()
+            5
+            sage: P = Partitions(5, restricted=6)
+            sage: P.cardinality()
+            7
+            sage: P.cardinality() == Partitions(5).cardinality()
+            True
+        """
+        if self._ell > self.n:
+            return Partitions_n.cardinality(self)
+        return ZZ.sum(ZZ.one() for x in self)
+
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, restricted=3)
+            sage: P.an_element()
+            [2, 1, 1, 1]
+
+            sage: Partitions(0, restricted=3).an_element()
+            []
+            sage: Partitions(1, restricted=3).an_element()
+            [1]
+        """
+        return self.element_class(self, Partitions_n._an_element_(self).conjugate())
 
 
 #########################################################################
@@ -8272,6 +8551,31 @@ def number_of_partitions_length(n, k, algorithm='hybrid'):
 
 
 ##########
+## Helper functions
+
+def conjugate(p):
+    """
+    Return the conjugate partition associated to the partition ``p``
+    as a list.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.partition import conjugate
+        sage: conjugate([2,2])
+        [2, 2]
+        sage: conjugate([6,3,1])
+        [3, 2, 2, 1, 1, 1]
+    """
+    l = len(p)
+    if l == 0:
+        return []
+    conj = [l] * p[-1]
+    for j in xrange(l - 1, 0, -1):
+        conj.extend([j] * (p[j - 1] - p[j]))
+    return conj
+
+
+##########
 # trac 14225: Partitions() is frequently used, but only weakly cached. Hence,
 # establish a strong reference to it.
 
@@ -8300,3 +8604,4 @@ Partitions_with_constraints.global_options = deprecated_function_alias(18555, Pa
 PartitionsGreatestLE.global_options = deprecated_function_alias(18555, PartitionsGreatestLE.options)
 PartitionsGreatestEQ.global_options = deprecated_function_alias(18555, PartitionsGreatestEQ.options)
 RestrictedPartitions_nsk.global_options = deprecated_function_alias(18555, RestrictedPartitions_nsk.options)
+

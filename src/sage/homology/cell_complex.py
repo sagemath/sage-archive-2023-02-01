@@ -33,6 +33,7 @@ by developers producing new classes, not casual users.
     :meth:`~GenericCellComplex.homology` method for cell complexes --
     just make sure it gets documented.
 """
+from __future__ import absolute_import
 
 
 from sage.structure.sage_object import SageObject
@@ -821,7 +822,7 @@ class GenericCellComplex(SageObject):
             sage: list(H.basis(3))
             [h^{3,0}]
         """
-        from homology_vector_space_with_basis import HomologyVectorSpaceWithBasis
+        from .homology_vector_space_with_basis import HomologyVectorSpaceWithBasis
         return HomologyVectorSpaceWithBasis(base_ring, self, cohomology)
 
     def cohomology_ring(self, base_ring=QQ):
@@ -925,7 +926,7 @@ class GenericCellComplex(SageObject):
             Cohomology ring of Simplicial complex with 9 vertices and
             18 facets over Rational Field
         """
-        from homology_vector_space_with_basis import CohomologyRing
+        from .homology_vector_space_with_basis import CohomologyRing
         return CohomologyRing(base_ring, self)
 
     @abstract_method

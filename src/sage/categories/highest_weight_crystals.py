@@ -500,12 +500,12 @@ class HighestWeightCrystals(Category_singleton):
                     sage: C = crystals.Tableaux(['B',3], shape=[2,2])
                     sage: D = crystals.Tableaux(['B',3], shape=[1])
                     sage: T = crystals.TensorProduct(D, C)
-                    sage: T.global_options(convention='Kashiwara')
+                    sage: T.options(convention='Kashiwara')
                     sage: T.highest_weight_vectors()
                     ([[[1, 1], [2, 2]], [[1]]],
                      [[[1, 1], [2, 2]], [[3]]],
                      [[[1, 1], [2, 2]], [[-2]]])
-                    sage: T.global_options.reset()
+                    sage: T.options._reset()
                     sage: T.highest_weight_vectors()
                     ([[[1]], [[1, 1], [2, 2]]],
                      [[[3]], [[1, 1], [2, 2]]],

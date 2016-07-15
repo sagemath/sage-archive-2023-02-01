@@ -10,10 +10,11 @@ Root system data for type A
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.rings.all import ZZ
 from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
-import ambient_space
+from . import ambient_space
 
 class AmbientSpace(ambient_space.AmbientSpace):
     r"""
@@ -170,7 +171,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
     """
     _plot_projection = RootLatticeRealizations.ParentMethods.__dict__['_plot_projection_barycentric']
 
-from cartan_type import CartanType_standard_finite, CartanType_simply_laced, CartanType_simple
+from .cartan_type import CartanType_standard_finite, CartanType_simply_laced, CartanType_simple
 class CartanType(CartanType_standard_finite, CartanType_simply_laced, CartanType_simple):
     """
     Cartan Type `A_n`
@@ -268,7 +269,7 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced, CartanType
             sage: a.vertices(), a.edges()
             ([1], [])
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         n = self.n
         g = DynkinDiagram_class(self)
         for i in range(1, n):

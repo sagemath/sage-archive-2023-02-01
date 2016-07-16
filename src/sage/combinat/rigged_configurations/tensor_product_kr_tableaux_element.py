@@ -171,12 +171,12 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
               1  1 (X)   1 (X)   1  1  1
               2  2       2       2  2  2
                          3       3  3  3
-            sage: Partitions.global_options(convention='French')
+            sage: Partitions.options(convention='French')
             sage: print(TPKRT.module_generators[0]._repr_diagram())
               2  2 (X)   3 (X)   3  3  3
               1  1       2       2  2  2
                          1       1  1  1
-            sage: Partitions.global_options.reset()
+            sage: Partitions.options._reset()
         """
         comp = [crys._repr_diagram().splitlines() for crys in self]
         num_comp = len(comp) # number of components

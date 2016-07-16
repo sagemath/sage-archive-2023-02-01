@@ -54,6 +54,7 @@ factor `x`.
     sage: M0.T(2).matrix().fcp('x')
     (x - 9)^2 * (x^2 - 2*x - 2)^2
 """
+from __future__ import absolute_import
 
 ################################################################################
 #       Sage: Open Source Mathematical Software
@@ -101,21 +102,21 @@ from sage.modular.modsym.manin_symbol_list import (ManinSymbolList_gamma0,
                                                    ManinSymbolList_character)
 import sage.structure.all
 
-import boundary
-import element
-import heilbronn
-import modular_symbols
-import modsym
-import p1list
-import relation_matrix
-import space
-import subspace
+from . import boundary
+from . import element
+from . import heilbronn
+from . import modular_symbols
+from . import modsym
+from . import p1list
+from . import relation_matrix
+from .space import ModularSymbolsSpace
+from . import subspace
 
 QQ = rings.Rational
 ZZ = rings.Integers
 
 
-class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule):
+class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
     r"""
     An ambient space of modular symbols for a congruence subgroup of
     `SL_2(\ZZ)`.
@@ -167,7 +168,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         if character is None and arithgroup.is_Gamma0(group):
             character = dirichlet.TrivialCharacter(group.level(), base_ring)
 
-        space.ModularSymbolsSpace.__init__(self, group, weight,
+        ModularSymbolsSpace.__init__(self, group, weight,
                                            character, sign, base_ring,
                                            category=category)
 
@@ -200,7 +201,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             False
 
         """
-        if not isinstance(other, space.ModularSymbolsSpace):
+        if not isinstance(other, ModularSymbolsSpace):
             return cmp(type(self), type(other))
         if isinstance(other, ModularSymbolsAmbient):
             return misc.cmp_props(self, other, ['group', 'weight', 'sign', 'base_ring', 'character'])

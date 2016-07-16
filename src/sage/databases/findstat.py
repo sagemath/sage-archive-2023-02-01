@@ -182,7 +182,6 @@ from sage.misc.misc import verbose
 from sage.rings.integer import Integer
 from sage.databases.oeis import FancyTuple
 
-from string import join
 from ast import literal_eval
 from collections import OrderedDict
 import re
@@ -1031,7 +1030,7 @@ class FindStatStatistic(SageObject):
 
         stat = [(elements_str, str(values)[1:-1]) for (elements, elements_str, values) in data]
 
-        stat_str = join([join(keys, "\n") + "\n====> " + values for (keys, values) in stat], "\n")
+        stat_str = "\n".join(["\n".join(keys) + "\n====> " + values for (keys, values) in stat])
         _ = verbose("Sending the following data to FindStat\r\n %s" %stat_str, caller_name='FindStat')
 
         values = urlencode({"freedata": stat_str, "depth": str(self._depth), "caller": "Sage"})
@@ -1289,12 +1288,11 @@ class FindStatStatistic(SageObject):
             '[1] => 1\r\n'
 
         """
-        if self._first_terms != None:
+        if self._first_terms is not None:
             to_str = self._collection.to_string()
-            return join([to_str(key) + " => " + str(val)
-                         for (key, val) in self._first_terms], "\r\n")
-        else:
-            return ""
+            return "\r\n".join([to_str(key) + " => " + str(val)
+                                for (key, val) in self._first_terms])
+        return ""
 
     # apart from efficiency considerations, it is important to make
     # this lazy because the method _get_level is not available for

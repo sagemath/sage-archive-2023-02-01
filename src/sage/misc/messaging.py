@@ -11,6 +11,7 @@ AUTHORS:
 
 - Martin Albrecht (2012) - initial implementation
 """
+from __future__ import absolute_import
 pushover_defaults = {"token": "Eql67F14ohOZJ0AtEBJJU7FiLAk8wK"}
 
 def pushover(message, **kwds):
@@ -70,7 +71,7 @@ def pushover(message, **kwds):
     import httplib
 
     # import compatible with py2 and py3
-    from six.moves.urllib.parse import urlencode
+    from .six.moves.urllib.parse import urlencode
 
     request = {"message": message}
     request.update(pushover_defaults)

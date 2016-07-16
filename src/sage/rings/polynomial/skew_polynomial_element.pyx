@@ -380,13 +380,71 @@ cdef class SkewPolynomial(AlgebraElement):
         l = copy(self._list_c())
         return l
 
+    def __call__(self, eval_pt):
+        """
+        Evaluate this polynomial.
+
+        INPUT:
+
+        - ``eval_pt`` -- ring element, need not be in the coefficient ring
+            of the skew polynomial.
+
+        OUTPUT:
+
+        The value of the polynomial at the point specified by the argument.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: a = t*x + 1
+            sage: a(t^2)
+            t^3 + 1
+            sage: b = x + t
+            sage: a(b)
+            t*x + t^2 + 1
+            sage: c = x^2 + t*x^3 + t^2*x + 1
+            sage: c(2*t + 3)
+            2*t^3 + 5*t^2 + 9*t + 6
+
+        TESTS::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: T.<x> = k['x',Frob]
+            sage: b = T.random_element()
+            sage: a(b)
+            Traceback (most recent call last):
+            ...
+            TypeError: Evaluation point must be a ring element
+        """
+        if eval_pt not in self._parent:
+            raise TypeError("Evaluation point must be a ring element")
+        sigma = self._parent.twist_map()
+        coefficients = self.coefficients(sparse=False)
+        degree = self.degree()
+        elem = coefficients[0]
+        sigma_compositions = []
+        for i in range(degree):
+            if i == 0:
+                sigma_compositions.append(eval_pt)
+            else:
+                sig = sigma(sigma_compositions[i-1])
+                sigma_compositions.append(sig)
+            elem += coefficients[i+1]*sigma_compositions[i]
+        return elem
+
     def __iter__(self):
         """
         Return list iterator object of the list of coefficients of self.
        
         EXAMPLE::
 
-            sage: P = PolynomialRing(ZZ, 'x')([1,2,3])
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: P = S([1, 2, 3])
             sage: [y for y in iter(P)]
             [1, 2, 3]
         """
@@ -848,6 +906,34 @@ cdef class SkewPolynomial(AlgebraElement):
                 return False
         else:
             raise NotImplementedError
+
+    def is_nilpotent(self):
+        """
+        todo: The paper "Nilpotents and units in skew polynomial rings
+        over commutative rings" by M. Rimmer and K.R. Pearson describes
+        the method to check whether a given skew polynomial is nilpotent.
+        That method requires the order of the automorphism which is not
+        supported in Sage yet. 
+        """
+        raise NotImplementedError
+
+    def truncate(self, n):
+        """
+        Returns the polynomial of degree ` < n` which is equivalent
+        to self modulo `x^n`.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: a = t*x^3 + x^4 + (t+1)*x^2
+            sage: a.truncate(4)
+            t*x^3 + (t + 1)*x^2
+            sage: a.truncate(3)
+            (t + 1)*x^2
+        """
+        return self[:n]
 
     def is_monic(self):
         """
@@ -2231,6 +2317,23 @@ cdef class SkewPolynomial(AlgebraElement):
             v.reverse()
         return self.parent()(v)
 
+    def __copy__(self):
+        """
+        Return a "copy" of self. In Sage, since skew polynomials 
+        are immutable, this just returns self again.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: a = 1 + x^4 + (t+1)*x^2 + t^2
+            sage: b = copy(a)
+            sage: b is a
+            True
+        """
+        return self
+
     def is_one(self):
         """
         Test whether this polynomial is 1.
@@ -2246,6 +2349,44 @@ cdef class SkewPolynomial(AlgebraElement):
             False
         """
         return self.degree() == 0 and self[0].is_one()
+
+    def mod(self, other):
+        """
+        Remainder of division of self by other.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: a = 1 + t*x^2
+            sage: b = x + 1
+            sage: a % b
+            t + 1
+            sage: (x^3 + x - 1) % (x^2 - 1)
+            2*x - 1
+        """
+        return self % other
+
+    def is_constant(self):
+        """
+        Return True if this is a constant polynomial.
+
+        OUTPUT:
+
+            -  ``bool`` - True if and only if this polynomial is constant
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: R(2).is_constant()
+            True
+            sage: (x + 1).is_constant()
+            False
+        """
+        return self.degree() <= 0
 
     def exponents(self):
         """

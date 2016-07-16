@@ -42,7 +42,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
 cdef class SkewPolynomial_generic_dense(SkewPolynomial):
     cdef list __coeffs
-    cpdef _pow_(self,right,modulus=*,side=*)
+    cpdef _rightpow_(self,right,modulus=*)
+    cpdef _leftpow_(self,right,modulus=*)
 
     # Inplace functions
     # cdef void _inplace_add(self, SkewPolynomial_generic_dense right)

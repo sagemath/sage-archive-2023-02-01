@@ -231,6 +231,11 @@ cdef class SkewPolynomial(AlgebraElement):
     cdef long _hash_c(self):
         """
         This hash incorporates the name of the variable.
+
+        .. NOTE::
+
+            This is an internal method. Use def __hash__ instead.
+            
         """
         #todo - come up with a way to create hashes of zero that
         #       that do not incorrectly indicate that the element is 0.
@@ -257,7 +262,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def __hash__(self):
         """
-        Return hash of the `self`
+        Return hash of `self`.
 
         EXAMPLES::
 
@@ -317,21 +322,6 @@ cdef class SkewPolynomial(AlgebraElement):
             if c:
                 return c
         return 0
-
-    def __hash__(self):
-        """
-        Return hash of the `self`
-
-        EXAMPLES::
-
-            sage: R.<t> = QQ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
-            sage: a = 1 + x^4 + (t+1)*x^2 + t^2
-            sage: h = hash(a); h
-            -1717348446110052408
-        """
-        return self._hash_c()
 
     cdef SkewPolynomial _new_c(self, list coeffs, Parent P, char check=0):
         """
@@ -881,9 +871,6 @@ cdef class SkewPolynomial(AlgebraElement):
             raise ValueError("")
         c = x[-1]
         return c
-
-    def __nonzero__(self):
-        return self.degree() >= 0
 
     def is_unit(self):
         """
@@ -2048,8 +2035,39 @@ cdef class SkewPolynomial(AlgebraElement):
         return s[1:].lstrip().rstrip()
 
     def _is_atomic(self):
+        """
+        Test whether the skew polynomial is atomic.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: S([t+1])._is_atomic()
+            False
+            sage: S([1])._is_atomic()
+            True
+        """
         return (self.degree() == self.valuation() and
                 self.leading_coefficient()._is_atomic())
+
+    def __nonzero__(self):
+        """
+        Test whether the skew polynomial is nonzero.
+
+        EXAMPLE::
+
+            sage: R.<t> = ZZ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: a = x + 1
+            sage: a.__nonzero__()
+            True
+            sage: b = S.zero()
+            sage: b.__nonzero__()
+            False
+        """
+        return self.degree() >= 0
 
     def base_ring(self):
         """
@@ -2107,9 +2125,35 @@ cdef class SkewPolynomial(AlgebraElement):
                 return self._parent(self.list()[-n:], check=False)
 
     def __lshift__(self, k):
+        """
+        Return this skew polynomial multiplied on the right by the
+        power `x^k`.
+        
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: a = x^5 + t^4*x^4 + t^2*x^2 + t^10
+            sage: a << 2
+            x^7 + t^4*x^6 + t^2*x^4 + t^10*x^2
+        """
         return self.shift(k)
 
     def __rshift__(self, k):
+        """
+        Return this skew polynomial multiplied on the right by the
+        power `x^(-k)`.
+        
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: a = x^5 + t^4*x^4 + t^2*x^2 + t^10
+            sage: a >> 2
+            x^3 + t^4*x^2 + t^2
+       """
         return self.shift(-k)
 
     def change_variable_name(self, var):
@@ -2222,7 +2266,36 @@ cdef class SkewPolynomial(AlgebraElement):
         return len(self.exponents()) == 1 and self.leading_coefficient() == 1
 
     def is_gen(self):
-        return self._is_gen
+        """
+        Return True if `self` is the distinguished generator
+        of the parent skew polynomial ring.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: a = t*x^2
+            sage: a.is_gen()
+            False
+            sage: x.is_gen()
+            True
+        
+        .. NOTE::
+
+            This function does not return True if `self` equals
+            the generator; it returns True only *if* `self` is
+            the generator.
+
+            sage: b = S([0,1])
+            sage: b.is_gen()
+            False
+            sage: b is x
+            False
+            sage: b == x
+            True
+        """
+        return bool(self._is_gen)
 
     def coefficients(self, sparse=True):
         """
@@ -2692,7 +2765,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                 self._inplace_rmul(selfpow)
             n = n >> 1
 
-    cpdef _pow_(self,exp,modulus=None,side=Right):
+    cpdef _leftpow_(self,exp,modulus=None):
         """
         INPUT:
 
@@ -2700,13 +2773,93 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         -  ``modulus`` -- a skew polynomial over the same ring (default: None)
 
-        -  ``side`` -- ``Left`` or ``Right`` (default: Right)
+        OUTPUT:
+
+        If ``modulus`` is None, return ``self**exp``.
+
+        Otherwise, return the remainder of self**exp in the left
+        euclidean division by ``modulus``.
+
+        REMARK:
+
+        The quotient of the underlying skew polynomial ring by the
+        principal ideal generated by ``modulus`` is in general *not*
+        a ring.
+
+        As a consequence, Sage first computes exactly ``self**exp``
+        and then reduce it modulo ``modulus``.
+
+        However, if the base ring is a finite field, Sage uses the
+        following optimized algorithm:
+
+        #. One first compute a central skew polynomial `N` which is
+           divisible by ``modulus``. (Since `N` lies in center, the
+           quotient `K[X,\sigma]/N` inherits a ring structure.)
+
+        #. One compute ``self**exp`` in the quotient ring `K[X,\sigma]/N`
+
+        #. One reduce modulo ``modulus`` the result computed in the
+           previous step
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = x + t
+            sage: b = a._leftpow_(10)
+
+            sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
+            sage: bl = a._leftpow_(10,modulus); bl
+            (4*t^2 + 2*t + 3)*x^2 + (3*t^2 + 1)*x + 2*t + 3
+            sage: lq, lr = b.left_quo_rem(modulus)
+            sage: bl == lr
+            True
+
+            sage: a._leftpow_(100,modulus)  # quite fast
+            (4*t^2 + t + 1)*x^2 + (t^2 + 4*t + 1)*x + 3*t^2 + 3*t
+        """
+        cdef SkewPolynomial_generic_dense r
+        if not type(exp) is Integer or \
+                type(exp) is int:
+                    try:
+                        exp = Integer(exp)
+                    except TypeError:
+                        raise TypeError("non-integral exponents not supported")
+
+        if self.degree() <= 0:
+            return self.parent()(self[0]**exp)
+        if exp == 0:
+            return self.parent()(1)
+        if exp < 0:
+            return (~self).leftpow(-exp,modulus)
+
+        if self == self.parent().gen(): # special case x**n should be faster!
+            P = self.parent()
+            R = P.base_ring()
+            v = [R.zero()]*exp + [R.one()]
+            r = <SkewPolynomial_generic_dense>self._parent(v)
+        else:
+            r = <SkewPolynomial_generic_dense>self._new_c(list(self.__coeffs),self._parent)
+            r._inplace_pow(exp)
+
+        if modulus:
+            _, r = r.left_quo_rem(modulus)
+        return r
+
+    cpdef _rightpow_(self,exp,modulus=None):
+        """
+        INPUT:
+
+        -  ``exp`` -- an Integer
+
+        -  ``modulus`` -- a skew polynomial over the same ring (default: None)
 
         OUTPUT:
 
         If ``modulus`` is None, return ``self**exp``.
 
-        Otherwise, return the remainder of self**exp in the ``side``
+        Otherwise, return the remainder of self**exp in the right
         euclidean division by ``modulus``.
 
         REMARK:
@@ -2741,18 +2894,13 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             True
 
             sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
-            sage: br = a._pow_(10,modulus); br
+            sage: br = a._rightpow_(10,modulus); br
             (t^2 + t)*x^2 + (3*t^2 + 1)*x + t^2 + t
             sage: rq, rr = b.right_quo_rem(modulus)
             sage: br == rr
             True
-            sage: bl = a._pow_(10,modulus,side=Left); bl
-            (4*t^2 + 2*t + 3)*x^2 + (3*t^2 + 1)*x + 2*t + 3
-            sage: lq, lr = b.left_quo_rem(modulus)
-            sage: bl == lr
-            True
 
-            sage: a._pow_(100,modulus)  # quite fast
+            sage: a._rightpow_(100,modulus)  # quite fast
             (2*t^2 + 3)*x^2 + (t^2 + 4*t + 2)*x + t^2 + 2*t + 1
         """
         cdef SkewPolynomial_generic_dense r
@@ -2768,7 +2916,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         if exp == 0:
             return self.parent()(1)
         if exp < 0:
-            return (~self).pow(-exp,modulus,side=side)
+            return (~self).rightpow(-exp,modulus)
 
         if self == self.parent().gen(): # special case x**n should be faster!
             P = self.parent()
@@ -2780,10 +2928,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             r._inplace_pow(exp)
 
         if modulus:
-            if side == Right:
-                _, r = r.right_quo_rem(modulus)
-            else:
-                _, r = r.left_quo_rem(modulus)
+            _, r = r.right_quo_rem(modulus)
         return r
 
     def __pow__(self,exp,modulus):
@@ -2817,20 +2962,54 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             True
 
             sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
-            sage: bmod = a._pow_(10,modulus); bmod
+            sage: bmod = a._rightpow_(10,modulus); bmod
             (t^2 + t)*x^2 + (3*t^2 + 1)*x + t^2 + t
             sage: rq, rr = b.right_quo_rem(modulus)
             sage: bmod == rr
             True
         """
-        return self._pow_(exp,modulus)
+        return self._rightpow_(exp,modulus)
 
 def make_generic_skew_polynomial(parent, coeffs):
     return parent(coeffs)
 
 
 cdef class ConstantSkewPolynomialSection(Map):
+    """
+    This class is used for conversion from a polynomial ring to
+    its base ring.
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.skew_polynomial_element import ConstantSkewPolynomialSection
+        sage: R.<t> = QQ[]
+        sage: sigma = R.hom([t+1])
+        sage: S.<x> = R['x',sigma]
+        sage: m = ConstantSkewPolynomialSection(S, R); m
+        Generic map:
+            From: Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
+            To:   Univariate Polynomial Ring in t over Rational Field
+    """
     cpdef Element _call_(self, x):
+        """
+        TESTS::
+        sage: from sage.rings.polynomial.skew_polynomial_element import ConstantSkewPolynomialSection
+        sage: R.<t> = QQ[]
+        sage: sigma = R.hom([t+1])
+        sage: S.<x> = R['x',sigma]
+        sage: m = ConstantSkewPolynomialSection(S, R); m
+        Generic map:
+            From: Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
+            To:   Univariate Polynomial Ring in t over Rational Field
+        sage: m(S([0,1])-S([0,1]))
+        0
+        sage: m(S([3,1])-S([0,1]))
+        3
+        sage: m(S([0,1])-S([0,t]))
+        Traceback (most recent call last):
+        ...
+        TypeError: not a constant polynomial
+        """
         if x.degree() <= 0:
             try:
                 return <Element>(x.constant_coefficient())
@@ -2839,34 +3018,112 @@ cdef class ConstantSkewPolynomialSection(Map):
         else:
             raise TypeError("not a constant polynomial")
 
-
 cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
+    """
+    This class is used for conversion from a ring to a skew polynomial
+    over that ring.
 
+    EXAMPLES::
+
+        sage: R.<t> = QQ[]
+        sage: sigma = R.hom([t+1])
+        sage: S.<x> = R['x',sigma]
+        sage: S.coerce_map_from(S.base_ring())
+        Ring morphism:
+        From: Univariate Polynomial Ring in t over Rational Field
+        To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
+    """
 
     def __init__(self, domain, codomain):
+        """
+        TESTS::
+
+            sage: from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: SkewPolynomialBaseringInjection(k, k['x', Frob])
+            Ring morphism:
+            From: Finite Field in t of size 5^3
+            To:   Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            sage: R.<t> = QQ[]
+            sage: SkewPolynomialBaseringInjection(QQ, k['x', Frob])
+            Traceback (most recent call last):
+            ...
+            AssertionError: domain must be basering
+        """
         assert codomain.base_ring() is domain, "domain must be basering"
         RingHomomorphism.__init__(self, Hom(domain,codomain))
         self._an_element = codomain.gen()
-        self._repr_type_str = "Polynomial base injection"
+        self._repr_type_str = "Skew Polynomial base injection"
         self._new_constant_poly_ = self._an_element._new_constant_poly
 
     def an_element(self):
+        """
+        Returns generator of codomain of the ring homomorphism.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: m = SkewPolynomialBaseringInjection(k, k['x', Frob])
+            sage: m.an_element()
+            x
+        """
         return self._an_element
 
-    def new_constant_poly_(self):
-        return self._new_constant_poly_
-
     cpdef Element _call_(self, x):
+        """
+        TESTS::
+
+            sage: from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: m = SkewPolynomialBaseringInjection(k, k['x', Frob])
+            sage: m(4)
+            4
+            sage: parent(m(4))
+            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+        """
         try:
             return self._codomain._element_constructor_(x)
         except AttributeError:
             return self._codomain(x)
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
+        """
+        TESTS::
+
+            sage: from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: m = SkewPolynomialBaseringInjection(k, k['x', Frob])
+            sage: m(4)
+            4
+            sage: parent(m(4))
+            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+        """
         try:
             return self._codomain._element_constructor_(x, *args, **kwds)
         except AttributeError:
             return self._codomain(x, *args, **kwds)
 
     def section(self):
-        return ConstantSkewPolynomialSection(self._codomain, self._domain)
+        """
+        TESTS::
+
+            sage: from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: m = SkewPolynomialBaseringInjection(k, k['x', Frob])
+            sage: m.section()
+            Generic map:
+            From: Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            To:   Finite Field in t of size 5^3
+        """
+        return ConstantSkewPolynomialSection(self._codomain, self.domain())

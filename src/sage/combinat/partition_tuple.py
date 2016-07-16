@@ -995,7 +995,7 @@ class PartitionTuple(CombinatorialElement):
                 2                 0
                                   2
         """
-        from tableau_tuple import TableauTuple
+        from sage.combinat.tableau_tuple import TableauTuple
         return TableauTuple([[[multicharge[k]-r+c for c in range(self[k][r])]
                         for r in range(len(self[k]))] for k in range(len(self))])
 
@@ -1693,7 +1693,7 @@ class PartitionTuple(CombinatorialElement):
                                                 for r in beta)
 
     def conormal_cells(self, e, multicharge, i=None, direction='up'):
-        """
+        r"""
         Return a dictionary of the cells of the partition that are conormal.
         If no residue ``i`` is specified then a list of length ``e``
         is returned which gives the conormal cells for ``0 <= i < e``.
@@ -1760,7 +1760,7 @@ class PartitionTuple(CombinatorialElement):
         return conormals[i]
 
     def cogood_cells(self, e, multicharge, i=None, direction='up'):
-        """
+        r"""
         Return a list of the cells of the partition that are cogood.
         If no residue ``i`` is specified then the cogood cells of each
         residue are returned (if they exist).
@@ -1768,16 +1768,17 @@ class PartitionTuple(CombinatorialElement):
         The cogood `i`-cell is the 'last' conormal `i`-cell. As with the
         conormal cells we can choose to read either up or down the partition.
 
-        EXAMPLE::
+        EXAMPLES::
 
-            sage: PartitionTuple([[5,4],[4,3,2]]).cogood_cells(3, [0,1])
+            sage: pt = PartitionTuple([[5,4],[4,3,2]])
+            sage: pt.cogood_cells(3, [0,1])
             {0: (1, 1, 3), 1: (1, 3, 0), 2: (1, 0, 4)}
-            sage: PartitionTuple([[5,4],[4,3,2]]).cogood_cells(3, [0,1], 0)
+            sage: pt.cogood_cells(3, [0,1], 0)
             (1, 1, 3)
-            sage: PartitionTuple([[5,4],[4,3,2]]).cogood_cells(4, [0,1], direction='down')
+            sage: pt.cogood_cells(4, [0,1], direction='down')
             {1: (0, 0, 5), 2: (0, 2, 0), 3: (0, 1, 4)}
-            sage: PartitionTuple([[5,4],[4,3,2]]).cogood_cells(4, [0,1], 0, direction='down')
-            sage: PartitionTuple([[5,4],[4,3,2]]).cogood_cells(4, [0,1], 1, direction='down') is None
+            sage: pt.cogood_cells(4, [0,1], 0, direction='down')
+            sage: pt.cogood_cells(4, [0,1], 1, direction='down') is None
             False
         """
         conormal_cells = self.conormal_cells(e, multicharge, i, direction)
@@ -1789,10 +1790,10 @@ class PartitionTuple(CombinatorialElement):
             return conormal_cells[-1]
 
     def normal_cells(self, e, multicharge, i=None, direction='up'):
-        """
-        Return a dictionary of the removable cells of the partition that are normal.
-        If no residue ``i`` is specified then a list of length ``e`` is returned
-        which gives the normal cells for ``0 <= i < e``.
+        r"""
+        Return a dictionary of the removable cells of the partition that
+        are normal. If no residue ``i`` is specified then a list of length
+        ``e`` is returned which gives the normal cells for ``0 <= i < e``.
 
         Following [Kleshchev09]_, the *normal* cells are computed by
         reading up (or down) the rows of the partition and marking all
@@ -1852,7 +1853,7 @@ class PartitionTuple(CombinatorialElement):
             return normals[i]
 
     def good_cells(self, e, multicharge, i=None, direction='up'):
-        """
+        r"""
         Return a list of the cells of the partition tuple which are good.
         If no residue ``i`` is specified then the good cells of each
         residue are returned (if they exist).
@@ -1862,13 +1863,14 @@ class PartitionTuple(CombinatorialElement):
 
         EXAMPLE::
 
-            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(3,[0,1])
+            sage: pt = PartitionTuple([[5,4],[4,3,2]])
+            sage: pt.good_cells(3,[0,1])
             {0: (1, 2, 1), 2: (1, 1, 2)}
-            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(3,[0,1],0)
+            sage: pt.good_cells(3,[0,1],0)
             (1, 2, 1)
-            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(4,[0,1],direction='down')
+            sage: pt.good_cells(4,[0,1],direction='down')
             {0: (1, 2, 1), 2: (0, 1, 3)}
-            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(4,[0,1],1,direction='down') is None
+            sage: pt.good_cells(4,[0,1],1,direction='down') is None
             True
         """
         normal_cells = self.normal_cells(e, multicharge, i, direction)
@@ -1881,24 +1883,26 @@ class PartitionTuple(CombinatorialElement):
 
     def good_residue_sequence(self, e, multicharge, direction='up'):
         """
-        Return a sequence of good nodes from the empty partition to this
-        partition, or None if no such sequence exists.
+        Return a sequence of good nodes from the empty partition to ``self``,
+        or ``None`` if no such sequence exists.
 
         EXAMPLES::
 
-            sage: PartitionTuple([[5,4],[4,3,2]]).good_residue_sequence(3,[0,1])
-
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_residue_sequence(3, [0,1])
         """
         if self.size() == 0:
             return []
-        good_cells = self.good_cells(e, multicharge, direction)
-        try:
-            k,r,c = good_cells[0]
-            good_seq = self.remove_cell(k,r,c).good_residue_sequence(e, multicharge, direction)
-            good_seq.append( IntegerModRing(e)(multicharge[k]+c-r) )
-            return good_seq
-        except (TypeError, AttributeError):  # if this fails then there is no good cell sequence
+        good_cells = self.good_cells(e, multicharge, direction=direction)
+        if not good_cells:
             return None
+
+        res = good_cells.keys()[0]
+        k,r,c = good_cells[res]
+        good_seq = self.remove_cell(k,r,c).good_residue_sequence(e, multicharge, direction)
+        if good_seq is None:
+            return None
+        good_seq.append( IntegerModRing(e)(res) )
+        return good_seq
 
     def good_cell_sequence(self, e, multicharge, direction='up'):
         """
@@ -1908,40 +1912,44 @@ class PartitionTuple(CombinatorialElement):
         EXAMPLES::
 
             sage: PartitionTuple([[5,4],[4,3,2]]).good_cell_sequence(3,[0,1])
-
         """
         if self.size() == 0:
             return []
-        good_cells = self.good_cells(e, multicharge, direction)
-        try:
-            cell = good_cells[0]
-            good_seq = self.remove_cell(*cell).good_cell_sequence(e,multicharge,direction)
-            good_seq.append(cell)
-            return good_seq
-        except (TypeError, AttributeError):  # if this fails then there is no good cell sequence
+        good_cells = self.good_cells(e, multicharge, direction=direction)
+        if not good_cells:
             return None
 
-    def Mullineux_conjugate(self, e, multicharge, direction='up'):
+        cell = good_cells.values()[0]
+        good_seq = self.remove_cell(*cell).good_cell_sequence(e,multicharge,direction)
+        if good_seq is None:
+            return None
+        good_seq.append(cell)
+        return good_seq
+
+    def mullineux_conjugate(self, e, multicharge, direction='up'):
         """
-        Return the partition tuple which is the Mullineux conjugate of this
-        partition tuple, or None if no such partition tuple exists.
+        Return the partition tuple which is the Mullineux conjugate of
+        ``self``, or ``None`` if no such partition tuple exists.
 
         EXAMPLES::
 
-            sage: PartitionTuple([[5,4],[4,3,2]]).Mullineux_conjugate(3,[0,1])
+            sage: PartitionTuple([[5,4],[4,3,2]]).mullineux_conjugate(3, [0,1])
 
         """
         if self.size() == 0:
             return PartitionTuple([[]]*self.level())
-        good_cells = self.good_cells(e, multicharge, direction)
+
+        good_cells = self.good_cells(e, multicharge, direction=direction)
+        if not good_cells:
+            return None
         try:
-            k,r,c = good_cells[0]
-            mu = self.remove_cell(k,r,c).Mullineux_conjugate(e, multicharge, direction)
+            k,r,c = good_cells.values()[0]
+            mu = self.remove_cell(k,r,c).mullineux_conjugate(e, multicharge, direction)
             # add back on a cogood cell of residue -residue(k,r,c)
             return mu.add_cell(*mu.cogood_cell(e, muticharge=multicharge,
                                                i=r-c-multicharge[k],
                                                direction=direction))
-        except (TypeError, AttributeError):  # if this fails then there is no good cell sequence
+        except (TypeError, AttributeError):  # if this fails then there is no conjugate
             return None
 
     def is_regular(self, e, multicharge):
@@ -1954,14 +1962,17 @@ class PartitionTuple(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: Partition([3,1,1]).is_regular(2)
+            sage: PartitionTuple([[3,1,1], [3,2]]).is_regular(2, [0,2])
             False
-            sage: Partition([3,1,1]).is_regular(3)
+            sage: PartitionTuple([[3,1,1], [3,2]]).is_regular(3, [0,2])
+            True
+            sage: PartitionTuple([[], []]).is_regular(3, [0,2])
             True
         """
-        for cell in self.good_cells(e, multicharge, direction='down'):
-            if not cell is None:
-                return self.remove_cell(*cell).is_regular(e, multicharge)
+        if self.size() == 0:
+            return True
+        for cell in self.good_cells(e, multicharge, direction='up').values():
+            return self.remove_cell(*cell).is_regular(e, multicharge)
         return False
 
     def is_restricted(self, e, multicharge):
@@ -1974,16 +1985,17 @@ class PartitionTuple(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: Partition([3,1,1]).is_restricted(2)
+            sage: PartitionTuple([[3,2,1], [3,1,1]]).is_restricted(2, [0,2])
             False
-            sage: Partition([3,1,1]).is_restricted(3)
+            sage: PartitionTuple([[3,2,1], [3,1,1]]).is_restricted(3, [0,2])
+            True
+            sage: PartitionTuple([[], []]).is_restricted(3, [0,2])
             True
         """
         if self.size() == 0:
             return True
-        for cell in self.good_cells(e, multicharge).values():
-            if not cell is None:
-                return self.remove_cell(*cell).is_restricted(e, multicharge)
+        for cell in self.good_cells(e, multicharge, direction='down').values():
+            return self.remove_cell(*cell).is_restricted(e, multicharge)
         return False
 
 
@@ -3230,20 +3242,20 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
     We first do an example of a level 1 crystal::
 
-        sage: C = crystals.KleshchevPartitions(3, [0])
+        sage: C = crystals.KleshchevPartitions(3, [0], direction='down')
         sage: C
-        The crystal of multipartitions of type ['A', 2, 1] and residues (0,)
-        sage: mg = C.module_generators[0]
+        Kleshchev partitions with e=3
+        sage: mg = C.highest_weight_vector()
         sage: mg
-        []
+        ([])
         sage: mg.f(0)
-        [1]
+        ([1])
         sage: mg.f(1)
         sage: mg.f(2)
         sage: mg.f_string([0,2,1,0])
-        [1, 1, 1, 1]
+        ([1, 1, 1, 1])
         sage: mg.f_string([0,1,2,0])
-        [2, 2]
+        ([2, 2])
         sage: S = C.subcrystal(max_depth=5)
         sage: G = C.digraph(subset=S)
         sage: B = crystals.LSPaths(['A',2,1], [1,0,0])
@@ -3254,8 +3266,8 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
     Now a higher level crystal::
 
-        sage: C = crystals.KleshchevPartitions(3, [0,2])
-        sage: mg = C.module_generators[0]
+        sage: C = crystals.KleshchevPartitions(3, [0,2], direction='down')
+        sage: mg = C.highest_weight_vector()
         sage: mg
         ([], [])
         sage: mg.f(0)
@@ -3279,7 +3291,7 @@ class KleshchevPartitions_all(KleshchevPartitions):
     The ordering of the residues gives a different representation of the
     higher level crystals (but it is still isomorphic)::
 
-        sage: C2 = crystals.KleshchevPartitions(3, [2,0])
+        sage: C2 = crystals.KleshchevPartitions(3, [2,0], direction='down')
         sage: mg2 = C2.highest_weight_vector()
         sage: mg2.f_string([0,1,2,0])
         ([2], [2])
@@ -3340,8 +3352,10 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
         EXAMPLES::
 
-            sage: KleshchevPartitions(4,2)
-            Kleshchev partitions with e=4 and size 2
+            sage: K = KleshchevPartitions(4, [2])
+            sage: TestSuite(K).run()  # long time
+            sage: K = KleshchevPartitions(4, [0,2,1])
+            sage: TestSuite(K).run()  # long time
         """
         if e not in NN or e == 1:
             raise ValueError('e must belong to {0,2,3,4,5,6,...}')
@@ -3349,7 +3363,7 @@ class KleshchevPartitions_all(KleshchevPartitions):
             from sage.combinat.root_system.cartan_type import CartanType
             from sage.categories.highest_weight_crystals import HighestWeightCrystals
             from sage.categories.regular_crystals import RegularCrystals
-            self._cartan_type = CartanType(['A', e, 1])
+            self._cartan_type = CartanType(['A', e-1, 1])
             cat = (HighestWeightCrystals(), RegularCrystals().Infinite())
         else:
             cat = InfiniteEnumeratedSets()
@@ -3366,8 +3380,8 @@ class KleshchevPartitions_all(KleshchevPartitions):
         """
         EXAMPLES::
 
-            sage: KleshchevPartitions(4,2)
-            Kleshchev partitions with e=4 and size 2
+            sage: KleshchevPartitions(4, [2])
+            Kleshchev partitions with e=4
             sage: KleshchevPartitions(3,[0,0,0])
             Kleshchev partitions with e=3 and multicharge=(0,0,0)
             sage: KleshchevPartitions(3,[0,0,1])
@@ -3385,25 +3399,34 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
         EXAMPLES::
 
-            sage: PartitionTuple([[3,2],[2]]) in KleshchevPartitions(2,[0,0], 7)
+            sage: PartitionTuple([[3,2],[2]]) in KleshchevPartitions(2, [0,0], 7)
             False
-            sage: PartitionTuple([[],[2,1],[3,2]]) in KleshchevPartitions(5,[0,0,1], 7)
+            sage: PartitionTuple([[],[2,1],[3,2]]) in KleshchevPartitions(5, [0,0,1], 7)
             False
-            sage: PartitionTuple([[],[2,1],[3,2]]) in KleshchevPartitions(5,[0,1,1], 7)
+            sage: PartitionTuple([[],[2,1],[3,2]]) in KleshchevPartitions(5, [0,1,1], 7)
             False
-            sage: PartitionTuple([[],[2,1],[3,2]]) in KleshchevPartitions(5,[0,1,1], 8)
+            sage: PartitionTuple([[],[2,1],[3,2]]) in KleshchevPartitions(5, [0,1,1], 8)
             True
-            sage: all(mu in PartitionTuples(3,8) for mu in KleshchevPartitions(2,[0,0,0],8))
+            sage: all(mu in PartitionTuples(3,8) for mu in KleshchevPartitions(2, [0,0,0], 8))
             True
         """
         if isinstance(mu, PartitionTuple) and mu.level() == self.level():
-            return mu.is_restricted(self.e, self._multicharge)
+            if self._direction == 'up':
+                return mu.is_regular(self.e, self._multicharge)
+            else:
+                return mu.is_restricted(self.e, self._multicharge)
 
         try:
             mu = PartitionTuple(mu)
         except ValueError:
             return False
-        return mu.level() == self.level() and mu.is_restricted(self.e, self._multicharge)
+        if mu.level() != self.level():
+            return False
+
+        if self._direction == 'up':
+            return mu.is_regular(self.e, self._multicharge)
+        else:
+            return mu.is_restricted(self.e, self._multicharge)
 
     def __iter__(self):
         r"""
@@ -3411,18 +3434,21 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
         EXAMPLES::
 
-            sage: KleshchevPartitions(2,[0,1],size=0)[:] #indirect doctest
+            sage: KleshchevPartitions(2,[0,1],size=0)[:]
             [([], [])]
-            sage: KleshchevPartitions(2,[0,1],size=1)[:] #indirect doctest
+            sage: KleshchevPartitions(2,[0,1],size=1)[:]
             [([1], []), ([], [1])]
-            sage: KleshchevPartitions(2,[0,1],size=2)[:] #indirect doctest
+            sage: KleshchevPartitions(2,[0,1],size=2)[:]
             [([1], [1]), ([], [1, 1])]
-            sage: KleshchevPartitions(3,[0,1,2],size=2)[:] #indirect doctest
+            sage: KleshchevPartitions(3,[0,1,2],size=2)[:]
             [([1], [1], []), ([1], [], [1]), ([], [1, 1], []), ([], [1], [1]), ([], [], [2]), ([], [], [1, 1])]
         """
-        for size in NonNegativeIntegers():
-            for mu in KleshchevPartitions_size(self.e, self._multicharge, size):
+        size = 0
+        while True:
+            for mu in KleshchevPartitions_size(self.e, self._multicharge,
+                                               size, self._direction):
                 yield self(mu)
+            size += 1
 
     def _an_element_(self):
         """
@@ -3432,7 +3458,7 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
         EXAMPLES::
 
-            sage: KleshchevPartitions(3, [0,0,0,0], size=4).an_element()  # indirect doctest
+            sage: KleshchevPartitions(3, [0,0,0,0], size=4).an_element()
             ([1], [1], [1], [1])
         """
         return self[12]
@@ -3450,12 +3476,12 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
                 sage: C = crystals.KleshchevPartitions(3, [0,2])
                 sage: x = C(PartitionTuple([[5,4,1],[3,2,1,1]]))
-                sage: x.e(2)
-                ([5, 4, 1], [3, 1, 1, 1])
+                sage: x.e(0)
+                sage: x.e(1)
+                ([5, 4, 1], [2, 2, 1, 1])
             """
             P = self.parent()
-            cell = self.good_cells(P.e, i=i, multicharge=P._multicharge,
-                                   direction=P._direction)
+            cell = self.good_cells(P.e, P._multicharge, i, P._direction)
             if cell is None:
                 return None
             k,r,c = cell
@@ -3475,14 +3501,14 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
                 sage: C = crystals.KleshchevPartitions(3, [0,2])
                 sage: x = C(PartitionTuple([[5,4,1],[3,2,1,1]]))
-                sage: x.e(2)
-                ([5, 4, 1], [3, 1, 1, 1])
+                sage: x.f(0)
+                ([5, 5, 1], [3, 2, 1, 1])
+                sage: x.f(1)
+                ([5, 4, 1], [3, 2, 2, 1])
                 sage: x.f(2)
-                ([5, 4, 1], [4, 2, 1, 1])
             """
             P = self.parent()
-            cell = self.cogood_cells(P.e, i=i, multicharge=P._multicharge,
-                                     direction=P._direction)
+            cell = self.cogood_cells(P.e, P._multicharge, i, P._direction)
             if cell is None:
                 return None
             k,r,c = cell
@@ -3505,12 +3531,11 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
                 sage: C = crystals.KleshchevPartitions(3, [0,2])
                 sage: x = C(PartitionTuple([[5,4,1],[3,2,1,1]]))
-                sage: x.epsilon(2)
-                1
+                sage: [x.epsilon(i) for i in C.index_set()]
+                [0, 3, 0]
             """
             P = self.parent()
-            return len(self.normal_cells(P.e, i=i, multicharge=P._multicharge,
-                                         direction=P._direction))
+            return len(self.normal_cells(P.e, P._multicharge, i, P._direction))
 
         def phi(self, i):
             r"""
@@ -3524,12 +3549,11 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
                 sage: C = crystals.KleshchevPartitions(3, [0,2])
                 sage: x = C(PartitionTuple([[5,4,1],[3,2,1,1]]))
-                sage: x.phi(2)
-                1
+                sage: [x.phi(i) for i in C.index_set()]
+                [3, 2, 0]
             """
             P = self.parent()
-            return len(self.conormal_cells(P.e, i=i, multicharge=P._multicharge,
-                                           direction=P._direction))
+            return len(self.conormal_cells(P.e, P._multicharge, i, P._direction))
 
         def Epsilon(self):
             r"""
@@ -3545,7 +3569,7 @@ class KleshchevPartitions_all(KleshchevPartitions):
             P = self.parent()
             WLR = P.weight_lattice_realization()
             La = WLR.fundamental_weights()
-            n = self.normal_cells(P.e, multicharge=P._multicharge, direction=P._direction)
+            n = self.normal_cells(P.e, P._multicharge, direction=P._direction)
             return WLR.sum(len(n[i])*La[i] for i in P.index_set() if i in n)
 
         def Phi(self):
@@ -3562,7 +3586,7 @@ class KleshchevPartitions_all(KleshchevPartitions):
             P = self.parent()
             WLR = P.weight_lattice_realization()
             La = WLR.fundamental_weights()
-            c = self.conormal_cells(P.e, multicharge=P._multicharge, direction=P._direction)
+            c = self.conormal_cells(P.e, P._multicharge, direction=P._direction)
             return WLR.sum(len(c[i])*La[i] for i in P.index_set() if i in c)
 
         def weight(self):
@@ -3599,6 +3623,8 @@ class KleshchevPartitions_size(KleshchevPartitions):
 
             sage: K = KleshchevPartitions(4, 2)
             sage: TestSuite(K).run()
+            sage: K = KleshchevPartitions(4, [0,2,1], 4)
+            sage: TestSuite(K).run()
         """
         super(KleshchevPartitions_size, self).__init__(category=FiniteEnumeratedSets())
         self._size = size
@@ -3616,7 +3642,7 @@ class KleshchevPartitions_size(KleshchevPartitions):
         """
         EXAMPLES::
 
-            sage: KleshchevPartitions(4,[0,0],3)
+            sage: KleshchevPartitions(4, [0,0], 3)
             Kleshchev partitions with e=4 and multicharge=(0,0) and size 3
         """
         if self._level == 1:
@@ -3645,14 +3671,21 @@ class KleshchevPartitions_size(KleshchevPartitions):
         if (isinstance(mu, PartitionTuple)
             and mu.level() == self._level
             and mu.size() == self._size):
-            return PartitionTuple(mu).is_restricted(self.e, self._multicharge)
+            if self._direction == 'up':
+                return PartitionTuple(mu).is_regular(self.e, self._multicharge)
+            else:
+                return PartitionTuple(mu).is_restricted(self.e, self._multicharge)
 
         try:
             mu = PartitionTuple(mu)
         except ValueError:
             return False
-        return (mu.level() == self._level and mu.size() == self._size
-                and mu.is_restricted(self.e, self._multicharge))
+        if mu.level() != self._level or mu.size() != self._size:
+            return False
+        if self._direction == 'up':
+            return mu.is_regular(self.e, self._multicharge)
+        else:
+            return mu.is_restricted(self.e, self._multicharge)
 
     def __iter__level_one(self):
         r"""
@@ -3671,18 +3704,17 @@ class KleshchevPartitions_size(KleshchevPartitions):
         """
         if self._size == 0:
             yield Partition([])
-        elif self._direction != 'up':
-            # For level one restriction, with direction not up, means that the
-            # partition is `e`-regular, which means that no non-zero part
+        elif self._direction == 'up':
+            # For level one restriction, with direction being up, means that
+            # the partition is `e`-regular, which means that no non-zero part
             # appears with multiplicity greater or equal to e.
             for mu in Partitions(self._size, regular=self.e):
                 yield mu
         else:
             # For level one restriction simply means that the difference of 
             # consecutive parts is always less than e
-            for mu in Partitions(self._size, min_slope=1-self.e):
-                if mu[-1] < self.e:
-                    yield mu
+            for mu in Partitions(self._size, restricted=self.e):
+                yield mu
 
     def __iter__higher_levels(self):
         r"""
@@ -3727,13 +3759,13 @@ class KleshchevPartitions_size(KleshchevPartitions):
 
         EXAMPLES::
 
-            sage: KleshchevPartitions(3,3)[:]            #indirect doctest
+            sage: KleshchevPartitions(3, 3)[:]
             [[2, 1], [1, 1, 1]]
-            sage: KleshchevPartitions(3,3, direction='down')[:]            #indirect doctest
+            sage: KleshchevPartitions(3, 3, direction='down')[:]
             [[3], [2, 1]]
-            sage: KleshchevPartitions(3,[0],3)[:]        #indirect doctest
+            sage: KleshchevPartitions(3, [0], 3)[:]
             [[2, 1], [1, 1, 1]]
-            sage: KleshchevPartitions(3,[0,0],3)[:]      #indirect doctest
+            sage: KleshchevPartitions(3, [0,0], 3)[:]
             [([1], [2]), ([], [2, 1]), ([1], [1, 1]), ([], [1, 1, 1])]
         """
         if self.level() == 1:
@@ -3747,8 +3779,10 @@ class KleshchevPartitions_size(KleshchevPartitions):
 
         EXAMPLES::
 
-            sage: KleshchevPartitions(4,[0,0,0,0],4).an_element()  # indirect doctest
+            sage: KleshchevPartitions(4, [0,0,0,0], 4).an_element()
             ([1], [1], [1], [1])
+            sage: KleshchevPartitions(4, [2], 4).an_element()
+            [3, 1]
         """
         return self[0]
 
@@ -3756,3 +3790,4 @@ class KleshchevPartitions_size(KleshchevPartitions):
 # Deprecations from trac:18555. July 2016
 from sage.misc.superseded import deprecated_function_alias
 PartitionTuples.global_options=deprecated_function_alias(18555, PartitionTuples.options)
+

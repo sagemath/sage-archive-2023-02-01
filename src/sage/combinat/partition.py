@@ -3446,7 +3446,7 @@ class Partition(CombinatorialElement):
         else:
             return conormal_cells[-1]
 
-    def normal_cells(self,e,multicharge=(0,),i=None,direction='up'):
+    def normal_cells(self, e, multicharge=(0,), i=None, direction='up'):
         r"""
         Return a dictionary of the cells of the partition which are normal.
         If no residue ``i`` is specified then a list of length ``e``
@@ -3470,12 +3470,12 @@ class Partition(CombinatorialElement):
         EXAMPLES::
 
             sage: Partition([5,4,4,3,2]).normal_cells(3)
-            {1: [(0, 4), (2, 3)]}
-            sage: Partition([5,4,4,3,2]).normal_cells(3,i=1)
-            [(0, 4), (2, 3)]
-            sage: Partition([5,4,4,3,2]).normal_cells(3,direction='down')
+            {1: [(2, 3), (0, 4)]}
+            sage: Partition([5,4,4,3,2]).normal_cells(3, i=1)
+            [(2, 3), (0, 4)]
+            sage: Partition([5,4,4,3,2]).normal_cells(3, direction='down')
             {0: [(4, 1)], 2: [(3, 2)]}
-            sage: Partition([5,4,4,3,2]).normal_cells(3,2,direction='down')
+            sage: Partition([5,4,4,3,2]).normal_cells(3, 2, direction='down')
             [(3, 2)]
         """
         # kludge to allow multicharge to be an optional argument
@@ -3503,7 +3503,7 @@ class Partition(CombinatorialElement):
                 res = multicharge[0] + self[row] - row - 1
                 if row == len(self) - 1 or self[row] > self[row+1]: # removable cell
                     if carry[res] == 0:
-                        normals[res].append((row, self[row]-1))
+                        normals[res].insert(0, (row, self[row]-1))
                     else:
                         carry[res] -= 1
                 if row == 0 or self[row-1] > self[row]:              # addable cell
@@ -3524,14 +3524,14 @@ class Partition(CombinatorialElement):
         EXAMPLES::
 
             sage: Partition([5,4,4,3,2]).good_cells(3)
-            {1: (0, 4)}
-            sage: Partition([5,4,4,3,2]).good_cells(3,1)
-            (0, 4)
-            sage: Partition([5,4,4,3,2]).good_cells(4,direction='down')
-            {1: (4, 1)}
-            sage: Partition([5,4,4,3,2]).good_cells(4,0,direction='down')
-            sage: Partition([5,4,4,3,2]).good_cells(4,1,direction='down')
-            (4, 1)
+            {1: (2, 3)}
+            sage: Partition([5,4,4,3,2]).good_cells(3, 1)
+            (2, 3)
+            sage: Partition([5,4,4,3,2]).good_cells(4, direction='down')
+            {1: (2, 3)}
+            sage: Partition([5,4,4,3,2]).good_cells(4, 0, direction='down')
+            sage: Partition([5,4,4,3,2]).good_cells(4, 1, direction='down')
+            (2, 3)
         """
         # kludge to allow multicharge to be an optional argument
         if multicharge in ZZ:
@@ -3554,19 +3554,24 @@ class Partition(CombinatorialElement):
         EXAMPLES::
 
             sage: Partition([5,4,4,3,2]).good_residue_sequence(3)
-
+            [0, 2, 1, 1, 0, 2, 0, 2, 1, 1, 0, 2, 0, 2, 2, 0, 1, 1]
+            sage: Partition([5,4,4,3,2]).good_residue_sequence(3, direction='down')
+            [0, 1, 2, 2, 0, 1, 0, 2, 1, 2, 0, 1, 0, 2, 1, 2, 1, 0]
         """
-        if self.size() == 0:
+        if not self:
             return []
 
-        good_cells = self.good_cells(e,multicharge,direction)
-        try:
-            r,c = good_cells[0]
-            good_seq = self.remove_cell(r,c).good_residue_sequence(e, multicharge, direction)
-            good_seq.append( IntegerModRing(e)(multicharge[0]+c-r) )
-            return good_seq
-        except (TypeError, AttributeError):  # if this fails then there is no good cell sequence
+        good_cells = self.good_cells(e, multicharge, direction=direction)
+        if not good_cells:
             return None
+
+        res = good_cells.keys()[0]
+        r,c = good_cells[res]
+        good_seq = self.remove_cell(r,c).good_residue_sequence(e, multicharge, direction)
+        if good_seq is None:
+            return None
+        good_seq.append( IntegerModRing(e)(res) )
+        return good_seq
 
     def good_cell_sequence(self, e, multicharge=(0,), direction='up'):
         """
@@ -3576,40 +3581,51 @@ class Partition(CombinatorialElement):
         EXAMPLES::
 
             sage: Partition([5,4,4,3,2]).good_cell_sequence(3)
-
+            [(0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (0, 2),
+             (3, 0), (2, 1), (1, 2), (3, 1), (0, 3), (1, 3),
+             (2, 2), (3, 2), (4, 0), (4, 1), (0, 4), (2, 3)]
+            sage: Partition([5,4,4,3,2]).good_cell_sequence(3, direction='down')
+            [(0, 0), (0, 1), (1, 0), (0, 2), (1, 1), (2, 0),
+             (0, 3), (2, 1), (1, 2), (1, 3), (3, 0), (3, 1),
+             (2, 2), (4, 0), (2, 3), (3, 2), (0, 4), (4, 1)]
         """
-        if self.size() == 0:
+        if not self:
             return []
-        good_cells = self.good_cells(e, multicharge, direction)
-        try:
-            cell = good_cells[0]
-            good_seq = self.remove_cell(*cell).good_cell_sequence(e, multicharge, direction)
-            good_seq.append(*cell)
-            return good_seq
-        except (TypeError, AttributeError):  # if this fails then there is no good cell sequence
+
+        good_cells = self.good_cells(e, multicharge, direction=direction)
+        if not good_cells:
             return None
 
-    def Mullineux_conjugate(self, e, multicharge, direction='up'):
+        cell = good_cells.values()[0]
+        good_seq = self.remove_cell(*cell).good_cell_sequence(e, multicharge, direction)
+        if good_seq is None:
+            return None
+        good_seq.append(cell)
+        return good_seq
+
+    def mullineux_conjugate(self, e, multicharge=(0,), direction='up'):
         """
         Return the partition tuple which is the Mullineux conjugate of this
         partition tuple, or ``None`` if no such partition tuple exists.
 
         EXAMPLES::
 
-            sage: PartitionTuple([[5,4],[4,3,2]]).Mullineux_conjugate(3,[0,1])
+            sage: Partition([5,4,4,3,2]).mullineux_conjugate(3, [0])
 
         """
-        if self.size() == 0:
+        if not self:
             return _Partitions([])
-        good_cells = self.good_cells(e,multicharge,direction)
+        good_cells = self.good_cells(e, multicharge, direction=direction)
+        if not good_cells:
+            return None
         try:
-            k,r,c = good_cells[0]
-            mu = self.remove_cell(k, r, c).Mullineux_conjugate(e, multicharge, direction)
+            r,c = good_cells.values()[0]
+            mu = self.remove_cell(r, c).mullineux_conjugate(e, multicharge, direction)
             # add back on a cogood cell of residue -residue(k,r,c)
             return mu.add_cell(*mu.cogood_cell(e, muticharge=multicharge,
-                                               i=r-c-multicharge[k],
+                                               i=r-c-multicharge[0],
                                                direction=direction))
-        except (TypeError, AttributeError):  # if this fails then there is no good cell sequence
+        except (TypeError, AttributeError):  # if this fails then there is no conjugate
             return None
 
     def is_restricted(self, e, multicharge=(0,)):
@@ -3633,7 +3649,8 @@ class Partition(CombinatorialElement):
           sage: Partition([4]).is_restricted(4)
           False
         """
-        return self[-1] < e and all(self[r]-self[r+1] < e for r in range(len(self)-1))
+        return (not self
+                or ( self[-1] < e and all(self[r]-self[r+1] < e for r in range(len(self)-1)) ))
 
     def is_regular(self, e, multicharge=(0,)):
         """

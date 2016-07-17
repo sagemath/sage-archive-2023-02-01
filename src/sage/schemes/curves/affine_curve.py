@@ -465,13 +465,11 @@ class AffinePlaneCurve(AffineCurve):
         """
         if not self.intersects_at(C, P):
             raise TypeError("(=%s) must be a point in the intersection of (=%s) and this curve"%(P,C))
-        T = self.tangents(P, factor=False)[0]
-        S = C.tangents(P, factor=False)[0]
-        # if P is a nonsingular point of both curves, they will have only 1 tangent each there, of multiplicity 1
-        if T.degree() > 1 or S.degree() > 1:
+        if self.is_singular(P) or C.is_singular(P):
             return False
 
-        return not T.divides(S)
+        # there is only one tangent at a nonsingular point of a plane curve
+        return not self.tangents(P)[0] == C.tangents(P)[0]
 
     def multiplicity(self, P):
         r"""
@@ -610,21 +608,42 @@ class AffinePlaneCurve(AffineCurve):
         coords = [vars[0] + P[0], vars[1] + P[1]]
         f = f(coords)
         coords = [vars[0] - P[0], vars[1] - P[1]] # coords to change back with
-        deriv = [f.derivative(vars[0],i).derivative(vars[1],r-i)([0,0]) for i in range(r+1)]
+        deriv = [f.derivative(vars[0],i).derivative(vars[1], r-i)([0,0]) for i in range(r+1)]
         from sage.arith.misc import binomial
         T = sum([binomial(r,i)*deriv[i]*(vars[0])**i*(vars[1])**(r-i) for i in range(r+1)])
         if not factor:
             return [T(coords)]
         if self.base_ring() == QQbar:
-            # T is homogeneous in var[0], var[1], so dehomogenize
-            if T.degree(vars[0]) > 0:
-                T = T(vars[0], 1)
-                roots = T.univariate_polynomial().roots()
-                fact = [vars[0] - roots[i][0]*vars[1] for i in range(len(roots))]
-            else:
-                T = T(1, vars[1])
-                roots = T.univariate_polynomial().roots()
-                fact = [vars[1] - roots[i][0]*vars[0] for i in range(len(roots))]
+            fact = []
+            # first add tangents corresponding to vars[0], vars[1] if they divide T
+            t = T.degree(vars[0])
+            for monom in T.monomials():
+                if monom.degree(vars[0]) < t:
+                    t = monom.degree(vars[0])
+            # vars[0] divides T
+            if t > 0:
+                fact.append(vars[0])
+                # divide T by that power of vars[0]
+                T = self.ambient_space().coordinate_ring()(dict([((v[0] - t,v[1]), h) for (v,h) in T.dict().items()]))
+            t = T.degree(vars[1])
+            for monom in T.monomials():
+                if monom.degree(vars[1]) < t:
+                    t = monom.degree(vars[1])
+            # vars[1] divides T
+            if t > 0:
+                fact.append(vars[1])
+                # divide T by that power of vars[1]
+                T = self.ambient_space().coordinate_ring()(dict([((v[0],v[1] - t), h) for (v,h) in T.dict().items()]))
+            # T is homogeneous in var[0], var[1] if nonconstant, so dehomogenize
+            if not T in self.base_ring():
+                if T.degree(vars[0]) > 0:
+                    T = T(vars[0], 1)
+                    roots = T.univariate_polynomial().roots()
+                    fact.extend([vars[0] - roots[i][0]*vars[1] for i in range(len(roots))])
+                else:
+                    T = T(1, vars[1])
+                    roots = T.univariate_polynomial().roots()
+                    fact.extend([vars[1] - roots[i][0]*vars[0] for i in range(len(roots))])
             return [f(coords) for f in fact]
         else:
             fact = T.factor()
@@ -679,14 +698,14 @@ class AffinePlaneCurve(AffineCurve):
         if r < 2:
             raise TypeError("(=%s) is not a singular point of (=%s)"%(P,self))
 
-        T = self.tangents(P)
+        T = self.tangents(P, factor=False)[0]
+        vars = self.ambient_space().gens()
 
-        # when there is a tangent of higher multiplicity
-        if len(T) < r:
-            return False
-
-        # otherwise they are distinct
-        return True
+        # use resultants to determine if there is a higher multiplicity tangent
+        if T.degree(vars[0]) > 0:
+            return T.resultant(T.derivative(vars[0]), vars[0]) != 0
+        else:
+            return T.resultant(T.derivative(vars[1]), vars[1]) != 0
 
 class AffinePlaneCurve_finite_field(AffinePlaneCurve):
     def rational_points(self, algorithm="enum"):

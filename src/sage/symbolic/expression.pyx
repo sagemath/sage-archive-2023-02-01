@@ -5797,9 +5797,10 @@ cdef class Expression(CommutativeRingElement):
 
         The behaviour is undefined with noninteger or negative exponents::
 
-            sage: p = (17/3*a)*x^(3/2) + x*y + 1/x + x^x
-            sage: p.coefficients(x)
-            [[1, -1], [x^x, 0], [y, 1], [17/3*a, 3/2]]
+            sage: p = (17/3*a)*x^(3/2) + x*y + 1/x + x^x + 5*x^y
+            sage: rset = set([(1, -1), (y, 1), (17/3*a, 3/2), (x^x, 0), (5, y)])
+            sage: all([(pair[0],pair[1]) in rset for pair in p.coefficients(x)])
+            True
             sage: p.coefficients(x, sparse=False)
             Traceback (most recent call last):
             ...
@@ -8384,6 +8385,21 @@ cdef class Expression(CommutativeRingElement):
             (a*x^3 + b*x^3 + c*x^3 + a*x*y^2 + a*x^2 + b*x^2 + c*x^2 +
                     a*y^2 - a*x - 7*b*x - 7*c*x - 7*a - 7*b - 7*c)/((x^2 -
                         7)*a*(x + 1))
+
+        TESTS:
+
+        Check that :trac:`19775` is fixed::
+
+            sage: a,b,c,d,e,y = var('a,b,c,d,e,y')
+            sage: ((x - 2*y)^4/(x^2 - 4*y^2)^2).normalize()
+            (x - 2*y)^2/(x + 2*y)^2
+            sage: f = ((x - 2*y)^4/(x^2 - 4*y^2)^2 + 1)*(y + a)*(2*y + x) / (4*y^2 + x^2)
+            sage: f.normalize()
+            2*(a + y)/(x + 2*y)
+            sage: (c/a - b*c^2/(a^2*(b*c/a-d)) + c*d/(a*(b*c/a-d))).normalize()
+            0
+            sage: (e + c/a - b*c^2/(a^2*(b*c/a-d)) + c*d/(a*(b*c/a-d))).normalize()
+            e
 
         ALGORITHM: Uses GiNaC.
 

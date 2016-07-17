@@ -1216,6 +1216,37 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         self.__irreducible_components = C
         return C
 
+    def is_irreducible(self):
+        r"""
+        Return whether this subscheme is or is not irreducible.
+
+        OUTPUT: Boolean.
+
+        EXAMPLES::
+
+            sage: K = QuadraticField(-3)
+            sage: P.<x,y,z,w,t,u> = ProjectiveSpace(K, 5)
+            sage: X = P.subscheme([x*y - z^2 - K.0*t^2, t*w*x + y*z^2 - u^3])
+            sage: X.is_irreducible()
+            True
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: X = P.subscheme([(y + x - z)^2])
+            sage: X.is_irreducible()
+            False
+
+        ::
+
+            sage: A.<x,y,z,w> = AffineSpace(GF(17), 4)
+            sage: X = A.subscheme([x*y*z^2 - x*y*z*w - z*w^2 + w^3, x^3*y*z*w - x*y^3*z - x^2*y*z*w \
+            - x^2*w^3 + y^2*w^2 + x*w^3])
+            sage: X.is_irreducible()
+            False
+        """
+        return self.defining_ideal().is_prime()
+
     def Jacobian_matrix(self):
         r"""
         Return the matrix `\frac{\partial f_i}{\partial x_j}` of
@@ -3049,6 +3080,39 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         J_sat = S.ideal(J_sat_gens)
         L = J_sat.elimination_ideal(z[0: n + 1] + (z[-1],))
         return Pd.subscheme(L.change_ring(Rd))
+
+    def degree(self):
+        r"""
+        Return the degree of this projective subscheme.
+
+        If `P(t) = a_{m}t^m + \ldots + a_{0}` is the the Hilbert polynomial of this subscheme, then
+        the degree is `a_{m}m!`.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w,t,u> = ProjectiveSpace(QQ, 5)
+            sage: X = P.subscheme([x^7 + x*y*z*t^4 - u^7])
+            sage: X.degree()
+            7
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(GF(13), 3)
+            sage: X = P.subscheme([y^3 - w^3, x + 7*z])
+            sage: X.degree()
+            3
+
+        ::
+
+            sage: P.<x,y,z,w,u> = ProjectiveSpace(QQ, 4)
+            sage: C = P.curve([x^7 - y*z^3*w^2*u, w*x^2 - y*u^2, z^3 + y^3])
+            sage: C.degree()
+            63
+        """
+        P = self.defining_ideal().hilbert_polynomial()
+        return P.leading_coefficient()*P.degree().factorial()
 
     def intersection_multiplicity(self, X, P):
         r"""

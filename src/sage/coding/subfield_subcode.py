@@ -113,7 +113,7 @@ class SubfieldSubcode(AbstractLinearCode):
         """
         return isinstance(other, SubfieldSubcode) \
                 and self.original_code() == other.original_code()\
-                and self.base_field().order() == other.base_field().order()
+                and self.embedding() == other.embedding()
 
     def _repr_(self):
         r"""

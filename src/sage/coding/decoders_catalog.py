@@ -53,6 +53,7 @@ from .grs import (GRSBerlekampWelchDecoder,
                  GRSErrorErasureDecoder)
 from .guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder
 from .extended_code import ExtendedCodeOriginalCodeDecoder
+from .subfield_subcode import SubfieldSubcodeOriginalCodeDecoder
 from .grs import (GRSBerlekampWelchDecoder,
                  GRSGaoDecoder,
                  GRSKeyEquationSyndromeDecoder,

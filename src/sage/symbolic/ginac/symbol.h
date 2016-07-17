@@ -125,6 +125,8 @@ using symbolset = std::unordered_set<symbol,symbolhasher>;
 const symbol & get_symbol(const std::string & s);
 
 bool has_symbol(const ex & x);
+bool has_symbol(const ex & x, const symbol& s);
+bool has_free_symbol(const ex & x, const symbol& s);
 
 } // namespace GiNaC
 

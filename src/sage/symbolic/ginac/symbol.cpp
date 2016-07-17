@@ -406,4 +406,28 @@ bool has_symbol(const ex & x)
 	return false;
 }
 
+bool has_symbol(const ex & x, const symbol& s)
+{
+	if (is_exactly_a<symbol>(x) and ex_to<symbol>(x) == s)
+		return true;
+	for (size_t i=0; i<x.nops(); ++i)
+		if (has_symbol(x.op(i), s))
+			return true;
+
+	return false;
+}
+
+bool has_free_symbol(const ex & x, const symbol& s)
+{
+        if (is_exactly_a<function>(x))
+                return false;
+	if (is_exactly_a<symbol>(x) and ex_to<symbol>(x) == s)
+		return true;
+	for (size_t i=0; i<x.nops(); ++i)
+		if (has_free_symbol(x.op(i), s))
+			return true;
+
+	return false;
+}
+
 } // namespace GiNaC

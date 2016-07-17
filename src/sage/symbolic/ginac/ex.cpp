@@ -403,58 +403,78 @@ ex ex::sorted_op(size_t i) const
 		return bp->op(i);
 }
 
-static bool match_monom(const ex& term, const symbol& symb, ex& expo, ex& coef)
+static bool match_monom(const ex& term, const symbol& symb,
+                expairvec& vec, const exmap& map)
 {
 //    std::cerr << "mm(" << term << "," << symb << ")\n";
+        if (not has_free_symbol(term, symb)) {
+                return false;
+        }
         if (term.is_equal(symb)) {
-                expo = _ex1;
-                coef = _ex1;
+                vec.push_back(std::make_pair(_ex1, _ex1));
                 return true;
         }
         if (is_exactly_a<power>(term)) {
                 const power& p = ex_to<power>(term);
-                if (p.op(1).has(symb)) {
-                        expo = _ex0;
-                        coef = term;
-                        return true;
-                }
-                if (p.op(0).is_equal(symb)) {
-                        expo = p.op(1);
-                        coef = _ex1;
-                        return true;
-                }
-                else
+                if (has_symbol(p.op(1), symb))
                         return false;
+                if (p.op(0).is_equal(symb)) {
+                        vec.push_back(std::make_pair(_ex1, p.op(1)));
+                        return true;
+                }
+                else {
+                        expairvec tmpvec;
+                        expand(term).coefficients(symb, tmpvec);
+                        for (const auto& pair : tmpvec)
+                                vec.push_back(std::make_pair(pair.first.subs(map),
+                                                        pair.second));
+                        return true;
+                }
         }
         if (is_exactly_a<mul>(term)) {
+                // Handle cases C*x, C*x^c
                 for (const auto& mterm : term) {
+                        if (mterm.is_equal(symb)) {
+                                ex oth = ex_to<mul>(term).without_known_factor(symb);
+                                if (not has_free_symbol(oth, symb)) {
+                                        vec.push_back(std::make_pair(oth, _ex1));
+                                        return true;
+                                }
+                        }
                         if (is_exactly_a<power>(mterm)) {
                                 const power& p = ex_to<power>(mterm);
-                                if (p.op(1).has(symb)) {
-                                        expo = _ex0;
-                                        coef = term;
-                                        return true;
-                                }
+                                if (has_symbol(p.op(1), symb))
+                                        return false;
                                 if (p.op(0).is_equal(symb)) {
-                                        expo = p.op(1);
-                                        coef = ex_to<mul>(term).without_known_factor(mterm);
-                                        return true;
+                                        ex oth = ex_to<mul>(term).without_known_factor(mterm);
+                                        if (not has_free_symbol(oth, symb)) {
+                                                vec.push_back(std::make_pair(oth, p.op(1)));
+                                                return true;
+                                        }
                                 }
-                        }
-                        if (mterm.is_equal(symb)) {
-                                expo = _ex1;
-                                coef = ex_to<mul>(term).without_known_factor(mterm);
-                                return true;
                         }
                 }
+                expairvec tmpvec;
+                expand(term).coefficients(symb, tmpvec);
+                for (const auto& pair : tmpvec)
+                        vec.push_back(std::make_pair(pair.first.subs(map),
+                                                        pair.second));
+                return true;
         }
         return false;
 }
 
+/**
+ * Return in vec a list of pairs with (coefficient, exponent) of ex
+ * when interpreted as polynomial in s (with s any expression).
+ *
+ * We expand only parts of the expression known to contain free s, in
+ * order to keep coefficients as unexpanded as possible.
+ */
 void ex::coefficients(const ex & s, expairvec & vec) const
 {
         vec.clear();
-        if (not has(s)) {
+        if (is_exactly_a<add>(s)) {
                 vec.push_back(std::make_pair(*this, _ex0));
                 return;
         }
@@ -462,41 +482,27 @@ void ex::coefficients(const ex & s, expairvec & vec) const
         symbol symb;
         exmap submap {{s, symb}}, revmap {{symb, s}};
         ex sub = subs(submap);
-        {
-                ex expo, coef;
-                if (match_monom(sub, symb, expo, coef)) {
-                        vec.push_back(std::make_pair(coef.subs(revmap), expo.subs(revmap)));
-                        return;
-                }
-        }
 
-        sub = sub.expand();
-        if (is_exactly_a<power>(s)) {
-                ex m = sub.coeff(symb);
-                vec.push_back(std::make_pair((sub - m*symb).subs(revmap), _ex0));
-                vec.push_back(std::make_pair(m.subs(revmap), _ex1));
-                return;
-        }
         if (is_exactly_a<add>(sub)) {
-                ex constant_term = sub;
                 const add& addref = ex_to<add>(sub);
+                const ex& oc = addref.op(addref.nops()+1);
+                if (not oc.is_zero())
+                        vec.push_back(std::make_pair(oc, _ex0));
                 for (const auto& term : addref.seq) {
-                        ex expo, coef;
-                        ex t = addref.recombine_pair_to_ex(term);
-                        if (match_monom(t, symb, expo, coef)) {
-                                vec.push_back(std::make_pair(coef.subs(revmap), expo.subs(revmap)));
-                                constant_term -= t;
-                        }
+                        ex tmp = addref.recombine_pair_to_ex(term);
+                        if (not match_monom(tmp, symb, vec, revmap))
+                                vec.push_back(std::make_pair(tmp.subs(revmap), _ex0));
                 }
-                vec.push_back(std::make_pair(constant_term.subs(revmap), _ex0));
         }
         else {
-                ex expo, coef;
-                if (match_monom(sub, symb, expo, coef))
-                        vec.push_back(std::make_pair(coef.subs(revmap), expo.subs(revmap)));
+                if (not match_monom(sub, symb, vec, revmap)) {
+                        vec.clear();
+                        vec.push_back(std::make_pair(*this, _ex0));
+                }
                 return;
         }
 
+        // Add: Combine coefficients with the same exponent
         std::sort(vec.begin(), vec.end(), [](const std::pair<ex,ex>& x, const std::pair<ex,ex>& y)
         {
                 return x.second < y.second;
@@ -505,15 +511,23 @@ void ex::coefficients(const ex & s, expairvec & vec) const
         auto tmp_it = vec.end();
         for (auto it = vec.end(); it != vec.begin(); ) {
                 --it;
-                if ((it->first).is_zero() and (it->second).is_zero()) {
+        //        std::cerr<<it-vec.begin()<<"/"<<tmp_it-vec.begin()<<": "<<it->first<<","<<it->second<<"\n";
+                if ((it->first).is_zero()) {
+                //        std::cerr<<"#1#\n";
                         vec.erase(it);
                         tmp_it = vec.end();
                         continue;
                 }
                 if (tmp_it != vec.end() and (tmp_it->second).is_equal(it->second)) {
+                //        std::cerr<<"#2#\n";
                         it->first += tmp_it->first;
                         vec.erase(tmp_it);
+                        if ((it->first).is_zero()) {
+                                vec.erase(it);
+                                tmp_it = vec.end();
+                                continue;
                         }
+                }
                 tmp_it = it;
         }
 

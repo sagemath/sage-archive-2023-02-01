@@ -166,6 +166,27 @@ class RelativeFiniteFieldExtension(SageObject):
         return "\\textnormal{Relative field extension between %s and %s}" % (self.absolute_field()._latex_(),
                 self.relative_field()._latex_())
 
+    def __eq__(self, other):
+        r"""
+        Tests equality between embeddings.
+
+        EXAMPLES::
+
+            sage: from sage.coding.relative_finite_field_extension import *
+            sage: Fq = GF(4)
+            sage: FQ = GF(4**3)
+            sage: H = Hom(Fq, FQ)
+            sage: E1 = RelativeFiniteFieldExtension(FQ, Fq)
+            sage: E2 = RelativeFiniteFieldExtension(FQ, Fq, H[0])
+            sage: E3 = RelativeFiniteFieldExtension(FQ, Fq, H[1])
+            sage: E1 == E2
+            True
+            sage: E1 == E3
+            False
+        """
+        return isinstance(other, RelativeFiniteFieldExtension) \
+                and self.embedding() == other.embedding()
+
     @cached_method
     def _representation_matrix(self):
         r"""

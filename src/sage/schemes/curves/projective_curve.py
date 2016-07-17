@@ -753,7 +753,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         The standard Cremona transformation is the birational automorphism of `\mathbb{P}^{2}` defined
         `(x : y : z)\mapsto (yz : xz : xy)`. The map is not defined at the points `(0 : 0 : 1)`, `(0 : 1 : 0)`,
         and `(1 : 0 : 0)`. The transformed curve is created by applying the map to this curve, and then dividing
-        out by any common powers of `x,y,z` in the resulting defining polynomial.
+        out by any common powers of the variables `x,y,z` in the resulting defining polynomial.
 
         OUTPUT:
 
@@ -779,7 +779,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         coords = [L[1]*L[2], L[0]*L[2], L[0]*L[1]]
         H = Hom(self, PP)
         phi = H(coords)
-        G = self.defining_polynomials()[0](coords)
+        G = self.defining_polynomial()(coords)
         # divide out by any common powers of the generators of R
         degs = [G.degree()]*len(L)
         for F in G.monomials():
@@ -925,19 +925,19 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                 poly = C.defining_polynomial().subs({PP.gens()[j]: 0})
                 # this is a homogeneous polynomial in the other two variables
                 # and so should factor completely into homogeneous linear factors
-                # each corresponding to an intersection point where the jth coord is 0
+                # each corresponding to an intersection point where the jth coord is 0.
                 # check if there are enough roots, up to multiplicity (that is, that PP.gens()[j]
                 # doesn't divide the defining polynomial of C)
                 if poly.degree() != d:
                     need_continue = True
                     break
-                # if j != 2, then there should be d - r multiplicity 1 roots
+                # if j != 2, then there should be d - r multiplicity 1 roots,
+                # besides the root corresponding to (0 : 0 : 1)
                 # if j == 2, then all roots should have multiplicity 1
                 npoly = poly
                 if j != 2:
-                    # since (0 : 0 : 1) has multiplicity r on the curve divide out by
-                    # the highest shared power of the corresponding variable before doing
-                    # the resultant computations
+                    # since (0 : 0 : 1) has multiplicity r, divide out by the highest
+                    # shared power of the corresponding variable before doing the resultant computations
                     if j == 0:
                         while PP.gens()[1].divides(npoly):
                             npoly = PP.coordinate_ring()(npoly/PP.gens()[1])
@@ -948,12 +948,14 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                     if npoly.degree() != d - r:
                         need_continue = True
                         break
-                    t = 0
-                    while npoly.degree(PP.gens()[t]) == 0:
-                        t = t + 1
-                    if npoly.resultant(npoly.derivative(PP.gens()[t]), PP.gens()[t]) == 0:
-                        need_continue = True
-                        break
+                    # check that npoly isn't a constant now
+                    if npoly.degree() > 0:
+                        t = 0
+                        while npoly.degree(PP.gens()[t]) == 0:
+                            t = t + 1
+                        if npoly.resultant(npoly.derivative(PP.gens()[t]), PP.gens()[t]) == 0:
+                            need_continue = True
+                            break
                 else:
                     t = 0
                     while npoly.degree(PP.gens()[t]) == 0:
@@ -969,10 +971,14 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                 tmp_l.pop(j)
                 poly1 = npoly.derivative(PP.gens()[tmp_l[0]])
                 poly2 = npoly.derivative(PP.gens()[tmp_l[1]])
-                # maybe a stricter check than necessary
-                if poly1.resultant(poly2) == 0:
-                    need_continue = True
-                    break
+                if poly1.degree() > 0 or poly2.degree() > 0:
+                    t = 0
+                    while poly1.degree(PP.gens()[t]) == 0 and poly2.degree(PP.gens()[t]) == 0:
+                        t = t + 1
+                    # maybe a stricter check than necessary
+                    if poly1.resultant(poly2, PP.gens()[t]) == 0:
+                        need_continue = True
+                        break
             if need_continue:
                 continue
             good = True
@@ -1088,6 +1094,8 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         """
         if not self.base_ring() in NumberFields():
             raise NotImplementedError("the base ring of this curve must be a number field")
+        if not self.is_irreducible():
+            raise TypeError("this curve must be irreducible")
         C_orig = self
         C = self
         PP = C.ambient_space()

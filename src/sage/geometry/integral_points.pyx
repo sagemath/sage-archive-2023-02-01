@@ -682,8 +682,8 @@ cdef loop_over_rectangular_box_points_saturated(list box_min, list box_max,
     a set of H-representation object indices.
     """
     cdef int inc
-    points = []
-    p = copy.copy(box_min)
+    cdef list points = []
+    cdef list p = list(box_min)
     inequalities.prepare_next_to_inner_loop(p)
     while True:
         inequalities.prepare_inner_loop(p)
@@ -721,7 +721,6 @@ cdef loop_over_rectangular_box_points_saturated(list box_min, list box_max,
                 break
         if inc > 1:
             inequalities.prepare_next_to_inner_loop(p)
-
 
 
 cdef class Inequality_generic:
@@ -966,7 +965,7 @@ cdef class Inequality_int:
         """
         cdef int j
         if self.dim > 1:
-            self.cache = self.cache_next + self.coeff_next*p[1]
+            self.cache = self.cache_next + self.coeff_next * p[1]
         else:
             self.cache = self.cache_next
 
@@ -1283,7 +1282,7 @@ cdef class InequalityCollection:
         for ineq in self.ineqs_generic:
             (<Inequality_generic>ineq).prepare_inner_loop(p)
 
-    cpdef swap_ineq_to_front(self, i):
+    cpdef swap_ineq_to_front(self, int i):
         r"""
         Swap the ``i``-th entry of the list to the front of the list of inequalities.
 
@@ -1311,8 +1310,11 @@ cdef class InequalityCollection:
             integer: (-1, 4, -1) x + 1 >= 0
             integer: (-1, -1, 4) x + 1 >= 0
         """
-        i_th_entry = self.ineqs_int.pop(i)
-        self.ineqs_int.insert(0, i_th_entry)
+        i_th_entry = self.ineqs_int[i]
+        cdef int j
+        for j in range(i-1,-1,-1):
+            self.ineqs_int[j+1] = self.ineqs_int[j]
+        self.ineqs_int[0] = i_th_entry
 
     cpdef bint are_satisfied(self, inner_loop_variable):
         r"""

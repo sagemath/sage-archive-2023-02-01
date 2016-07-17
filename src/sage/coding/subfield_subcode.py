@@ -29,7 +29,7 @@ from sage.categories.homset import Hom
 from relative_finite_field_extension import RelativeFiniteFieldExtension
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
-from decoder import Decoder
+from decoder import Decoder, DecodingError
 from copy import copy
 
 class SubfieldSubcode(AbstractLinearCode):
@@ -238,8 +238,8 @@ class SubfieldSubcode(AbstractLinearCode):
         m = E.extension_degree()
         H = matrix(Fq, codimC * m, n)
 
-        for i in range(H_original.nrows()):
-            for j in range(H_original.ncols()):
+        for i in range(codimC):
+            for j in range(n):
                 h = H_original[i][j]
                 h_vect = E.relative_field_representation(h)
                 for k in range(m):
@@ -384,7 +384,12 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
                     result.append(vector(map(FE.cast_into_relative_field, c)))
             return result
         else:
-            return vector([FE.cast_into_relative_field(i) for i in c_or])
+            if all(FE.is_in_relative_field(x) for x in c_or):
+                return vector([FE.cast_into_relative_field(i, check=False)
+                               for i in c_or])
+            else:
+                raise DecodingError("Original decoder does not output a "
+                "subfield codeword. You may have exceeded the decoding radius.")
 
     def decoding_radius(self, **kwargs):
         r"""

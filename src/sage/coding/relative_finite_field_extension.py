@@ -312,7 +312,7 @@ class RelativeFiniteFieldExtension(SageObject):
         vect = self.relative_field_representation(b)
         return vect[1:vect.length()].is_zero()
 
-    def cast_into_relative_field(self, b, check=False):
+    def cast_into_relative_field(self, b, check=True):
         r"""
         Casts an absolute field element into the relative field (if possible).
         This is the inverse function of the field embedding.
@@ -338,8 +338,8 @@ class RelativeFiniteFieldExtension(SageObject):
             True
         """
         if check:
-            if not is_in_relative_field(self, b):
-                raise ValueError("%s does not belong to the relative field", b)
+            if not self.is_in_relative_field(b):
+                raise ValueError("%s does not belong to the relative field" % b)
         return self.relative_field_representation(b)[0]
 
     def embedding(self):

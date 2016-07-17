@@ -5835,21 +5835,25 @@ cdef class Expression(CommutativeRingElement):
             [[t, 0], [3, 1], [1, 2]]
 
         """
-        f = self._maxima_()
-        maxima = f.parent()
-        maxima._eval_line('load(coeflist)')
+        cdef vector[pair[GEx,GEx]] vec
+        cdef pair[GEx,GEx] gexpair
+        cdef Expression xx
         if x is None:
             x = self.default_variable()
-        G = f.coeffs(x)
-        from sage.calculus.calculus import symbolic_expression_from_maxima_string
-        S = symbolic_expression_from_maxima_string(repr(G))
-        l = S[1:]
+        xx = self.coerce_in(x)
+        self._gobj.coefficients(xx._gobj, vec)
+        l = []
+        for p in vec:
+            l.append([new_Expression_from_GEx(self._parent, p.first),
+                new_Expression_from_GEx(self._parent, p.second)])
         if sparse is True:
             return l
         else:
             from sage.rings.integer_ring import ZZ
             if any(not c[1] in ZZ for c in l):
                 raise ValueError("Cannot return dense coefficient list with noninteger exponents.")
+            if not l:
+                l = [[0, 0]]
             val = l[0][1]
             if val < 0:
                 raise ValueError("Cannot return dense coefficient list with negative valuation.")
@@ -6156,16 +6160,11 @@ cdef class Expression(CommutativeRingElement):
             2*a^2 - (2*sqrt(2)*a - 1)*x + x^2 + 1
         """
         from sage.symbolic.ring import SR
-        f = self._maxima_()
-        P = f.parent()
-        P._eval_line('load(coeflist)')
         if x is None:
             x = self.default_variable()
-        x = self._parent.var(repr(x))
-        G = f.coeffs(x)
+        G = self.coefficients(x)
         ans = None
-        for i in range(1, len(G)):
-            Z = G[i]
+        for Z in G:
             coeff = SR(Z[0])
             n = SR(Z[1])
             if repr(coeff) != '0':
@@ -8361,7 +8360,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.combine()
             ((x - 1)*x + y^2)/(x^2 - 7) + (b + c)/a + 1/(x + 1)
         """
-        return self.parent()(self._maxima_().combine())
+        return new_Expression_from_GEx(self._parent, self._gobj.combine_fractions())
 
     def normalize(self):
         """

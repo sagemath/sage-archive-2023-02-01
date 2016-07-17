@@ -1098,6 +1098,46 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         return False
 
     ## Auxiliary function for variable comparison
+    def varname_cmp(self, x, y):
+        """
+        Comparison of two variable names.
+ 
+        INPUT:
+ 
+        ``x,y`` -- two strings of the form ``a+'_'+str(n)``, where a is the
+         name of a generator, and n is an integer
+ 
+        RETURN:
+ 
+        -1,0,1 if x<y, x==y, x>y, respectively
+ 
+        THEORY:
+ 
+        The order is defined as follows:
+        x<y `\\iff` the string ``x.split('_')[0]`` is later in the list of
+        generator names of self than ``y.split('_')[0]``, or
+        (``x.split('_')[0]==y.split('_')[0]`` and
+        ``int(x.split('_')[1])<int(y.split('_')[1])``)
+ 
+        EXAMPLES::
+ 
+            sage: X.<alpha,beta> = InfinitePolynomialRing(ZZ)
+            sage: X.varname_cmp('alpha_1','beta_10')
+            doctest:...: DeprecationWarning: varname_cmp has been replaced by varname_key.
+            See http://trac.sagemath.org/21035 for details.
+             1
+            sage: X.varname_cmp('beta_1','alpha_10')
+            -1
+            sage: X.varname_cmp('alpha_1','alpha_10')
+            -1
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(21035, "varname_cmp has been replaced by varname_key.")
+        try:
+            return cmp(self._identify_variable(*x.split('_',1)),self._identify_variable(*y.split('_', 1)))
+        except (KeyError, ValueError, TypeError):
+            raise ValueError("%s or %s is not a valid variable name" % (x, y))
+ 
     def varname_key(self, x):
         """
         Key for comparison of variable names.

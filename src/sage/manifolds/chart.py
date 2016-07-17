@@ -37,6 +37,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
@@ -2167,7 +2168,7 @@ class RealChart(Chart):
         from sage.plot.graphics import Graphics
         from sage.plot.line import line
         from sage.manifolds.continuous_map import ContinuousMap
-        from utilities import set_axes_labels
+        from .utilities import set_axes_labels
 
         # Extract the kwds options
         color = kwds['color']

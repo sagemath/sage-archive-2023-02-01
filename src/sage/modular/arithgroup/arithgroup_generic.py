@@ -1,6 +1,7 @@
 r"""
 Arithmetic subgroups (finite index subgroups of `{\rm SL}_2(\ZZ)`)
 """
+from __future__ import absolute_import
 
 ################################################################################
 #
@@ -27,7 +28,7 @@ from sage.misc.lazy_import import lazy_import
 lazy_import('sage.modular.arithgroup.congroup_sl2z', 'SL2Z')
 from sage.structure.element import parent
 
-from arithgroup_element import ArithmeticSubgroupElement
+from .arithgroup_element import ArithmeticSubgroupElement
 
 def is_ArithmeticSubgroup(x):
     r"""
@@ -432,7 +433,7 @@ class ArithmeticSubgroup(group.Group):
         # Cheap trick: if self is a subgroup of something with no elliptic points,
         # then self has no elliptic points either.
 
-        from all import Gamma0, is_CongruenceSubgroup
+        from .all import Gamma0, is_CongruenceSubgroup
         if is_CongruenceSubgroup(self):
             if self.is_subgroup(Gamma0(self.level())) and Gamma0(self.level()).nu2() == 0:
                 return 0
@@ -472,7 +473,7 @@ class ArithmeticSubgroup(group.Group):
         # Cheap trick: if self is a subgroup of something with no elliptic points,
         # then self has no elliptic points either.
 
-        from all import Gamma0, is_CongruenceSubgroup
+        from .all import Gamma0, is_CongruenceSubgroup
         if is_CongruenceSubgroup(self):
             if self.is_subgroup(Gamma0(self.level())) and Gamma0(self.level()).nu3() == 0:
                 return 0
@@ -703,7 +704,7 @@ class ArithmeticSubgroup(group.Group):
         except (AttributeError,KeyError):
             self._cusp_list = {}
 
-        from congroup_sl2z import is_SL2Z
+        from .congroup_sl2z import is_SL2Z
         if is_SL2Z(self):
             s = [Cusp(1,0)]
 
@@ -974,7 +975,7 @@ class ArithmeticSubgroup(group.Group):
             sage: Gamma1(4).farey_symbol()
             FareySymbol(Congruence Subgroup Gamma1(4))
         """
-        from farey_symbol import Farey
+        from .farey_symbol import Farey
         return Farey(self)
 
     @cached_method

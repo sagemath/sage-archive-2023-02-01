@@ -33,9 +33,11 @@ Linear codes and related constructions
    sage/coding/guruswami_sudan/utils
    sage/coding/code_constructions
    sage/coding/punctured_code
+   sage/coding/extended_code
    sage/coding/sd_codes
    sage/coding/guava
    sage/coding/binary_code
+   sage/coding/reed_muller_code
 
 Bounds on codes
 ---------------

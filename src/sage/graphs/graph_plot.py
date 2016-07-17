@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Graph Plotting
 
@@ -147,6 +148,7 @@ graphplot_options.update(
                         '"-", "--", ":", "-.", respectively. '
                         'This currently only works for directed graphs, '
                         'since we pass off the undirected graph to networkx.',
+                    'edge_thickness': 'The thickness of the edges.',
                     'edge_color': 'The default color for edges.',
                     'edge_colors': 'a dictionary specifying edge colors: each '
                         'key is a color recognized by matplotlib, and each '
@@ -189,6 +191,7 @@ from sage.structure.sage_object import SageObject
 from sage.plot.all import Graphics, scatter_plot, bezier_path, line, arrow, text, circle
 from sage.misc.decorators import options
 from math import sqrt, cos, sin, atan, pi
+from six import text_type as str
 
 DEFAULT_SHOW_OPTIONS = {
     "figsize"             : [4,4]
@@ -199,6 +202,7 @@ DEFAULT_PLOT_OPTIONS = {
     "vertex_labels"       : True,
     "layout"              : None,
     "edge_style"          : 'solid',
+    "edge_thickness"      : 1,
     "edge_color"          : 'black',
     "edge_colors"         : None,
     "edge_labels"         : False,
@@ -334,6 +338,10 @@ class GraphPlot(SageObject):
             sage: set(map(type, flatten(gp._pos.values())))
             {<type 'float'>}
 
+        Non-ascii labels are also possible using unicode (:trac:`21008`)::
+
+            sage: Graph({u'où': [u'là', u'ici']}).plot()
+            Graphics object consisting of 6 graphics primitives
         """
         self._pos = self._graph.layout(**self._options)
         # make sure the positions are floats (trac #10124)
@@ -594,8 +602,8 @@ class GraphPlot(SageObject):
             eoptions['linestyle'] = get_matplotlib_linestyle(
                                         self._options['edge_style'],
                                         return_type='long')
-        if 'thickness' in self._options:
-            eoptions['thickness'] = self._options['thickness']
+        if 'edge_thickness' in self._options:
+            eoptions['thickness'] = self._options['edge_thickness']
 
         # Set labels param to add labels on the fly
         labels = False

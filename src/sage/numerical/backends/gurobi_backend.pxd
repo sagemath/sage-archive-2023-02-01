@@ -68,7 +68,7 @@ cdef extern from "gurobi_c.h":
      int GRB_BINARY
      int GRB_CONTINUOUS
      int GRB_INTEGER
-     int GRB_INFINITY
+     double GRB_INFINITY
 
      char GRB_LESS_EQUAL
      char GRB_GREATER_EQUAL

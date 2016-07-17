@@ -905,7 +905,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         except KeyError:
             return self.parent().base_ring().zero()
 
-    cpdef ModuleElement _add_(self, ModuleElement b):
+    cpdef _add_(self, b):
         r"""
         Defining the + operator
 
@@ -921,7 +921,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         P = self.parent()
         return P(e)
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         r"""
         Defining the - operator (opposite).
 
@@ -934,7 +934,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         P = self.parent()
         return P(dict([(id,-coeff) for (id, coeff) in self._f.iteritems()]))
 
-    cpdef ModuleElement _sub_(self, ModuleElement b):
+    cpdef _sub_(self, b):
         r"""
         Defining the - operator (substraction).
 
@@ -952,7 +952,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         P = self.parent()
         return P(e)
 
-    cpdef ModuleElement _rmul_(self, RingElement b):
+    cpdef _rmul_(self, RingElement b):
         r"""
         Left multiplication by scalars
 
@@ -965,7 +965,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         P = self.parent()
         return P(dict([(id,b*coeff) for (id, coeff) in self._f.iteritems()]))
 
-    cpdef ModuleElement _lmul_(self, RingElement b):
+    cpdef _lmul_(self, RingElement b):
         r"""
         Right multiplication by scalars
 

@@ -222,7 +222,7 @@ cdef class Polynomial_template(Polynomial):
         """
         celement_destruct(&self.x, (<Polynomial_template>self)._cparent)
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         EXAMPLE::
 
@@ -240,7 +240,7 @@ cdef class Polynomial_template(Polynomial):
         #assert(r._parent(pari(self) + pari(right)) == r)
         return r
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         EXAMPLE::
 
@@ -274,7 +274,7 @@ cdef class Polynomial_template(Polynomial):
         #assert(r._parent(-pari(self)) == r)
         return r
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         EXAMPLES::
 
@@ -304,7 +304,7 @@ cdef class Polynomial_template(Polynomial):
         celement_mul_scalar(&r.x, &(<Polynomial_template>self).x, left, (<Polynomial_template>self)._cparent)
         return r
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         EXAMPLES::
 
@@ -325,7 +325,7 @@ cdef class Polynomial_template(Polynomial):
         # all currently implemented rings are commutative
         return self._rmul_(right)
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         EXAMPLE::
 
@@ -412,7 +412,7 @@ cdef class Polynomial_template(Polynomial):
         #assert(t._parent(tp) == t)
         return r,s,t
 
-    cpdef RingElement _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, right):
         """
         EXAMPLES::
 
@@ -540,7 +540,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return not celement_is_zero(&self.x, (<Polynomial_template>self)._cparent)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         EXAMPLE::
 

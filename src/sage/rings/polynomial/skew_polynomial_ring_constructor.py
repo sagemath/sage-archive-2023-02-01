@@ -1,9 +1,9 @@
 r"""
-Constructors for sjew polynomial rings
+Constructors for skew polynomial rings
 
 This module provides the function :func:`SkewPolynomialRing`, which constructs
 rings of univariate skew polynomials, and implements caching to prevent the
-same ring being created in memory multiple times (which iswasteful and breaks
+same ring being created in memory multiple times (which is wasteful and breaks
 the general assumption in Sage that parents are unique).
 
 AUTHOR:
@@ -20,7 +20,6 @@ AUTHOR:
 #****************************************************************************
 
 from sage.structure.category_object import normalize_names
-#from sage.structure.parent_gens import normalize_names
 from sage.structure.element import is_Element
 import sage.rings.ring as ring
 import cysignals
@@ -95,17 +94,24 @@ def SkewPolynomialRing(base_ring,sigma=None,name=None,names=None,sparse=False):
         sage: (x + t)^2
         x^2 + (2*t + 1)*x + t^2
 
+    Here is an example with the square bracket notations::
+
+        sage: S.<x> = R['x',sigma]; S
+        Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+
+    Rings with different variables names are different::
+
+        sage: R['x',sigma] == R['y',sigma]
+        False
+
+    TESTS::
+
     You must specify a variable name::
 
         sage: SkewPolynomialRing(R,sigma)
         Traceback (most recent call last):
         ...
         TypeError: You must specify the name of the variable.
-
-    Here is an example with the square bracket notations::
-
-        sage: S.<x> = R['x',sigma]; S
-        Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
 
     With this syntax, it is not possible to omit the name of the
     variable neither in LHS nor in RHS. If we omit it in LHS, the
@@ -125,27 +131,35 @@ def SkewPolynomialRing(base_ring,sigma=None,name=None,names=None,sparse=False):
         ...
         ValueError: variable name 'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring\n  Defn: t |--> t + 1' is not alphanumeric
 
-    Rings with different variables names are different::
+    Multivariate skew polynomial rings are not supported::
+    
+        sage: S = SkewPolynomialRing(R,sigma,names=['x','y'])
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Multivariate skew polynomials rings not supported.
 
-        sage: R['x',sigma] == R['y',sigma]
-        False
+    Sparse skew polynomial rings are not implemented::
+        
+        sage: S = SkewPolynomialRing(R,sigma,name='x', sparse=True)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Sparse skew polynomial rings are not implemented.
     """
 
     if not isinstance(base_ring, ring.CommutativeRing):
         raise TypeError('base_ring must be a commutative ring')
     if sigma is None:
         sigma = IdentityMorphism(base_ring)
-        # should one return a polynomial ring in that case?
     else:
         if not isinstance(sigma,Morphism) or sigma.domain() != base_ring or sigma.codomain() != base_ring:
             raise TypeError("sigma must be a ring endomorphism of base_ring (=%s)" % base_ring)
-
+    if sparse:
+        raise NotImplementedError("Sparse skew polynomial rings are not implemented.")
     if name is None:
         name = names
     if name is None:
         raise TypeError("You must specify the name of the variable.")
 
-    R = None
     try:
         name = normalize_names(1, name)[0]
     except IndexError:

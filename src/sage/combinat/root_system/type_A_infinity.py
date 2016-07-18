@@ -1,12 +1,14 @@
 """
 Root system data for type A infinity
 """
+
 #*****************************************************************************
 # Copyright (C) 2016 Andrew Mathas <Andrew dot Mathas at Sydney dot edu dot au>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import print_function, absolute_import
 
 from .cartan_type import CartanType_standard, CartanType_simple
@@ -16,12 +18,12 @@ from sage.rings.semirings.non_negative_integer_semiring import NN
 
 class CartanType(CartanType_standard, CartanType_simple):
     r"""
-    Define the Cartan type `A_{\infty}`.
+    The Cartan type `A_{\infty}`.
 
-    We use `NN` and `ZZ` to explicitly differentiate between the
-    `A_{+\infty}` and `A_{\infty}` root systems. While `oo` is
-    the same as `+Infinity` in Sage, it is used as an alias
-    for `ZZ`.
+    We use ``NN`` and ``ZZ`` to explicitly differentiate between the
+    `A_{+\infty}` and `A_{\infty}` root systems, respectively.
+    While ``oo`` is the same as ``+Infinity`` in Sage, it is used as
+    an alias for ``ZZ``.
     """
     # We do not inherit from CartanType_crystallographic because it provides
     # methods that are not implemented for A_oo.
@@ -61,7 +63,7 @@ class CartanType(CartanType_standard, CartanType_simple):
         self.letter = 'A'
         self.n = index_set
 
-    def _repr_(self, compact = False):
+    def _repr_(self, compact=False):
         """
         Return a repsentation of ``self``.
 
@@ -72,8 +74,8 @@ class CartanType(CartanType_standard, CartanType_simple):
             sage: CartanType(['A',NN])._repr_(compact=True)
             'A_NN'
         """
-        format = '%s_%s' if compact else "['%s', %s]"
-        return format%(self.letter, 'ZZ' if self.n == ZZ else 'NN')
+        ret = '%s_%s' if compact else "['%s', %s]"
+        return ret % (self.letter, 'ZZ' if self.n == ZZ else 'NN')
 
     def _latex_(self):
         """
@@ -99,7 +101,7 @@ class CartanType(CartanType_standard, CartanType_simple):
                 -3  -2  -1   0   1   2   3
             sage: print(CartanType(['A', NN]).ascii_art())
             O---O---O---O---O---O---O---..
-            0   1   2   3
+            0   1   2   3   4   5   6
 
         """
         if node is None:
@@ -110,7 +112,7 @@ class CartanType(CartanType_standard, CartanType_simple):
             ret += '  '+''.join("{:4}".format(label(i)) for i in range(-3,4))
         else:
             ret  = '---'.join(node(label(i)) for i in range(7))+'---..\n'
-            ret += '0'+''.join("{:4}".format(label(i)) for i in range(1,4))
+            ret += '0'+''.join("{:4}".format(label(i)) for i in range(1,7))
 
         return ret
 
@@ -156,6 +158,7 @@ class CartanType(CartanType_standard, CartanType_simple):
     def is_finite(self):
         """
         Return ``True`` because ``self`` is not finite.
+
         EXAMPLES::
 
             sage: CartanType(['A', NN]).is_finite()
@@ -211,7 +214,7 @@ class CartanType(CartanType_standard, CartanType_simple):
 
     def type(self):
         """
-        Returns the type of ``self``.
+        Return the type of ``self``.
 
         EXAMPLES::
 
@@ -224,7 +227,7 @@ class CartanType(CartanType_standard, CartanType_simple):
 
     def index_set(self):
         """
-        Returns the index set for the Cartan type ``self``.
+        Return the index set for the Cartan type ``self``.
 
         The index set for all standard finite Cartan types is of the form
         `\{1, \ldots, n\}`. (See :mod:`~sage.combinat.root_system.type_I`
@@ -236,3 +239,4 @@ class CartanType(CartanType_standard, CartanType_simple):
             (1, 2, 3, 4, 5)
         """
         return self.n
+

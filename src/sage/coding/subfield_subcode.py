@@ -413,7 +413,5 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
 ####################### registration ###############################
 
 SubfieldSubcode._registered_encoders["ParityCheck"] = LinearCodeParityCheckEncoder
-SubfieldSubcode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
-SubfieldSubcode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
 SubfieldSubcode._registered_decoders["OriginalCode"] = SubfieldSubcodeOriginalCodeDecoder
 SubfieldSubcodeOriginalCodeDecoder._decoder_type = {"dynamic"}

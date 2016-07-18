@@ -368,7 +368,7 @@ class SBox(SageObject):
         return self(X)
 
     def is_permutation(self):
-        """
+        r"""
         Return ``True`` if this S-Box is a permutation.
 
         EXAMPLE::
@@ -1266,7 +1266,7 @@ class SBox(SageObject):
         return ret
 
     def is_balanced(self):
-        """
+        r"""
         Return ``True`` if this S-Box is balanced.
 
         An S-Box is balanced if all its component functions are balanced.
@@ -1343,7 +1343,7 @@ class SBox(SageObject):
         return SBox([L.index(i) for i in xrange(1<<m)], big_endian=self._big_endian)
 
     def is_monomial_function(self):
-        """
+        r"""
         Return ``True`` if this S-Box is a monomial/power function.
 
         EXAMPLES::
@@ -1426,7 +1426,7 @@ class SBox(SageObject):
         return self.nonlinearity() == 2**(m-1) - 2**(m/2 - 1)
 
     def is_involution(self):
-        """
+        r"""
         Return ``True`` if this S-Box is an involution, i.e. the inverse S-Box
         is equal itself.
 
@@ -1438,19 +1438,17 @@ class SBox(SageObject):
         """
         return self == self.inverse()
 
-def feistel_construction(sboxes):
+def feistel_construction(*args):
     r"""
-    Return an S-Box constructed by Feistel structure using collection of smaller
-    S-Boxes in ``sboxes``.
-
-    The variable ``sboxes`` is a list/tuple of mq.SBox object and the number of
-    round for the Feistel construction is equal to ``len(sboxes)``. For more
-    results concerning the differential uniformity and the nonlinearity of
-    S-Boxes constructed by Feistel structures see [CDL15]_ .
+    Return an S-Box constructed by Feistel structure using smaller S-Boxes in
+    ``args``. The number of round in the construction is equal to the number of
+    S-Boxes provided as input. For more results concerning the differential
+    uniformity and the nonlinearity of S-Boxes constructed by Feistel structures
+    see [CDL15]_ .
 
     INPUT:
 
-    - ``sboxes`` - a list/tuple of mq.SBox object
+    - ``args`` - a finite iterable mq.SBox objects
 
     EXAMPLES:
 
@@ -1459,7 +1457,7 @@ def feistel_construction(sboxes):
 
         sage: from sage.crypto.mq.sbox import feistel_construction
         sage: s = mq.SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2)
-        sage: S = feistel_construction([s, s, s])
+        sage: S = feistel_construction(s, s, s)
 
     The properties of the constructed S-Box can be easily examined::
 
@@ -1470,8 +1468,19 @@ def feistel_construction(sboxes):
         sage: S.linear_branch_number()
         2
     """
-    if not isinstance(sboxes, (list, tuple)):
-        raise TypeError("feistel_construction() takes a list/tuple of SBoxes as input")
+    if len(args) == 1:
+        if isinstance(args[0], SBox):
+            sboxes = [args[0]]
+        else:
+            sboxes = args[0]
+    elif len(args) > 1:
+        sboxes = args
+    else:
+        raise TypeError("No input provided")
+
+    for sb in sboxes:
+        if not isinstance(sb, SBox):
+            raise TypeError("All input must be an instance of mq.SBox object")
 
     b = sboxes[0].m
     m = 2*b
@@ -1486,18 +1495,16 @@ def feistel_construction(sboxes):
 
     return SBox([substitute(i) for i in xrange(1<<m)])
 
-def misty_construction(sboxes):
+def misty_construction(*args):
     r"""
-    Return an S-Box constructed by MISTY structure using collection of smaller
-    S-Boxes in ``sboxes``.
-
-    The variable ``sboxes`` is a list/tuple of mq.SBox object and the number of
-    round for the MISTY construction is equal to ``len(sboxes)``. For further
-    result, one may consult [CDL15]_.
+    Return an S-Box constructed by MISTY structure using smaller S-Boxes in
+    ``args``. The number of round in the construction is equal to the number of
+    S-Boxes provided as input. For further result related to the nonlinearity
+    and differential uniformity of the constructed S-Box one may consult [CDL15]_.
 
     INPUT:
 
-    - ``sboxes`` - a list/tuple of mq.SBox object
+    - ``args`` - a finite iterable mq.SBox objects
 
     EXAMPLES:
 
@@ -1508,14 +1515,25 @@ def misty_construction(sboxes):
         sage: S2 = mq.SBox([0x0,0x0,0x0,0x1,0x0,0xA,0x8,0x3,0x0,0x8,0x2,0xB,0x4,0x6,0xE,0xD])
         sage: S3 = mq.SBox([0x0,0x7,0xB,0xD,0x4,0x1,0xB,0xF,0x1,0x2,0xC,0xE,0xD,0xC,0x5,0x5])
         sage: from sage.crypto.mq.sbox import misty_construction
-        sage: S = misty_construction((S1, S2, S3))
+        sage: S = misty_construction(S1, S2, S3)
         sage: S.differential_uniformity()
         8
         sage: S.linearity()
         64
     """
-    if not isinstance(sboxes, (list, tuple)):
-        raise TypeError("misty_construction() takes a list/tuple of SBoxes as input")
+    if len(args) == 1:
+        if isinstance(args[0], SBox):
+            sboxes = [args[0]]
+        else:
+            sboxes = args[0]
+    elif len(args) > 1:
+        sboxes = args
+    else:
+        raise TypeError("No input provided")
+
+    for sb in sboxes:
+        if not isinstance(sb, SBox):
+            raise TypeError("All input must be an instance of mq.SBox object")
 
     b = sboxes[0].m
     m = 2*b

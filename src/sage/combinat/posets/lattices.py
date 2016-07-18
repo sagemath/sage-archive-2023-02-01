@@ -106,6 +106,7 @@ from sage.combinat.posets.posets import Poset, FinitePoset
 from sage.combinat.posets.elements import (LatticePosetElement,
                                            MeetSemilatticeElement,
                                            JoinSemilatticeElement)
+from sage.combinat.posets.hasse_diagram import LatticeError
 
 ####################################################################################
 
@@ -125,34 +126,37 @@ def MeetSemilattice(data=None, *args, **options):
 
     Using data that defines a poset::
 
-          sage: MeetSemilattice([[1,2],[3],[3]])
-          Finite meet-semilattice containing 4 elements
+        sage: MeetSemilattice([[1,2],[3],[3]])
+        Finite meet-semilattice containing 4 elements
 
-          sage: MeetSemilattice([[1,2],[3],[3]], cover_relations = True)
-          Finite meet-semilattice containing 4 elements
+        sage: MeetSemilattice([[1,2],[3],[3]], cover_relations = True)
+        Finite meet-semilattice containing 4 elements
 
     Using a previously constructed poset::
 
-          sage: P = Poset([[1,2],[3],[3]])
-          sage: L = MeetSemilattice(P); L
-          Finite meet-semilattice containing 4 elements
-          sage: type(L)
-          <class 'sage.combinat.posets.lattices.FiniteMeetSemilattice_with_category'>
+        sage: P = Poset([[1,2],[3],[3]])
+        sage: L = MeetSemilattice(P); L
+        Finite meet-semilattice containing 4 elements
+        sage: type(L)
+        <class 'sage.combinat.posets.lattices.FiniteMeetSemilattice_with_category'>
 
     If the data is not a lattice, then an error is raised::
 
-          sage: elms = [1,2,3,4,5,6,7]
-          sage: rels = [[1,2],[3,4],[4,5],[2,5]]
-          sage: MeetSemilattice((elms, rels))
-          Traceback (most recent call last):
-          ...
-          ValueError: Not a meet semilattice.
+        sage: MeetSemilattice({'a': ['b', 'c'], 'b': ['d', 'e'],
+        ....:                  'c': ['d', 'e'], 'd': ['f'], 'e': ['f']})
+        Traceback (most recent call last):
+        ...
+        ValueError: not a meet semilattice: no meet for e and d
     """
     if isinstance(data,FiniteMeetSemilattice) and len(args) == 0 and len(options) == 0:
         return data
     P = Poset(data, *args, **options)
-    if not P.is_meet_semilattice():
-        raise ValueError("Not a meet semilattice.")
+    try:
+        P._hasse_diagram.meet_matrix()
+    except LatticeError as error:
+        raise ValueError("not a meet semilattice: no meet for %s and %s" %
+                         (P._vertex_to_element(error.x),
+                         P._vertex_to_element(error.y)))
     return FiniteMeetSemilattice(P)
 
 class FiniteMeetSemilattice(FinitePoset):
@@ -347,34 +351,37 @@ def JoinSemilattice(data=None, *args, **options):
 
     Using data that defines a poset::
 
-          sage: JoinSemilattice([[1,2],[3],[3]])
-          Finite join-semilattice containing 4 elements
+        sage: JoinSemilattice([[1,2],[3],[3]])
+        Finite join-semilattice containing 4 elements
 
-          sage: JoinSemilattice([[1,2],[3],[3]], cover_relations = True)
-          Finite join-semilattice containing 4 elements
+        sage: JoinSemilattice([[1,2],[3],[3]], cover_relations = True)
+        Finite join-semilattice containing 4 elements
 
     Using a previously constructed poset::
 
-          sage: P = Poset([[1,2],[3],[3]])
-          sage: J = JoinSemilattice(P); J
-          Finite join-semilattice containing 4 elements
-          sage: type(J)
-          <class 'sage.combinat.posets.lattices.FiniteJoinSemilattice_with_category'>
+        sage: P = Poset([[1,2],[3],[3]])
+        sage: J = JoinSemilattice(P); J
+        Finite join-semilattice containing 4 elements
+        sage: type(J)
+        <class 'sage.combinat.posets.lattices.FiniteJoinSemilattice_with_category'>
 
     If the data is not a lattice, then an error is raised::
 
-          sage: elms = [1,2,3,4,5,6,7]
-          sage: rels = [[1,2],[3,4],[4,5],[2,5]]
-          sage: JoinSemilattice((elms, rels))
-          Traceback (most recent call last):
-          ...
-          ValueError: Not a join semilattice.
+        sage: JoinSemilattice({'a': ['b', 'c'], 'b': ['d', 'e'],
+        ....:                  'c': ['d', 'e'], 'd': ['f'], 'e': ['f']})
+        Traceback (most recent call last):
+        ...
+        ValueError: not a join semilattice: no join for b and c
     """
     if isinstance(data,FiniteJoinSemilattice) and len(args) == 0 and len(options) == 0:
         return data
     P = Poset(data, *args, **options)
-    if not P.is_join_semilattice():
-        raise ValueError("Not a join semilattice.")
+    try:
+        P._hasse_diagram.join_matrix()
+    except LatticeError as error:
+        raise ValueError("not a join semilattice: no join for %s and %s" %
+                         (P._vertex_to_element(error.x),
+                         P._vertex_to_element(error.y)))
     return FiniteJoinSemilattice(P)
 
 class FiniteJoinSemilattice(FinitePoset):
@@ -549,9 +556,15 @@ def LatticePoset(data=None, *args, **options):
     if isinstance(data,FiniteLatticePoset) and len(args) == 0 and len(options) == 0:
         return data
     P = Poset(data, *args, **options)
-    if not P.is_lattice():
-        raise ValueError("Not a lattice.")
-
+    if P.cardinality() != 0:
+        if not P.has_bottom():
+            raise ValueError("Not a lattice.")
+        try:
+            P._hasse_diagram.join_matrix()
+        except LatticeError as error:
+            raise ValueError("not a lattice: no join for %s and %s." %
+                         (P._vertex_to_element(error.x),
+                         P._vertex_to_element(error.y)))
     return FiniteLatticePoset(P, category = FiniteLatticePosets(), facade = P._is_facade)
 
 class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):

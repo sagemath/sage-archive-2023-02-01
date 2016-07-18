@@ -780,8 +780,8 @@ def xydata_from_point_list(points):
 
     return xdata, ydata
 
-@rename_keyword(color='rgbcolor')
-@options(alpha=1, thickness=1, fill=False, fillcolor='automatic', fillalpha=0.5, rgbcolor='automatic', plot_points=200,
+#@rename_keyword(color='rgbcolor')
+@options(alpha=1, thickness=1, fill=False, fillcolor='automatic', fillalpha=0.5, plot_points=200,
          adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles = False, exclude = None, legend_label=None,
          __original_opts=True, aspect_ratio='automatic')
 def plot(funcs, *args, **kwds):
@@ -1856,6 +1856,10 @@ def plot(funcs, *args, **kwds):
         sage: plot(x, x, 0, 1, legend_label=label)
         Graphics object consisting of 1 graphics primitive
     """
+    if 'color' in kwds and 'rgbcolor' in kwds:
+        raise ValueError('only one of color or rgbcolor should be specified')
+    elif 'color' in kwds:
+        kwds['rgbcolor'] = kwds.pop('color', None) # not sure why value is a list.
     G_kwds = Graphics._extract_kwds_for_show(kwds, ignore=['xmin', 'xmax'])
 
     original_opts = kwds.pop('__original_opts', {})
@@ -1963,10 +1967,15 @@ def _plot(funcs, xrange, parametric=False,
         1
         sage: len((p1+p2).matplotlib().axes[0].legend().texts)
         2
-        sage: q1 = plot([sin(x), tan(x)], legend_label='trig')
+        sage: q1 = plot([sin(x), tan(x)], color='blue', legend_label='trig')
         sage: len((q1).matplotlib().axes[0].legend().texts) # used to raise AttributeError
         1
         sage: q1
+        Graphics object consisting of 2 graphics primitives
+        sage: q2 = plot([sin(x), tan(x)], legend_label='trig')
+        sage: len((q2).matplotlib().axes[0].legend().texts)
+        2
+        sage: q2
         Graphics object consisting of 2 graphics primitives
 
     ::
@@ -1986,7 +1995,7 @@ def _plot(funcs, xrange, parametric=False,
         Graphics object consisting of 1 graphics primitive
 
     """
-
+    from sage.plot.colors import Color
     from sage.plot.misc import setup_for_eval_on_grid
     if funcs == []:
         return Graphics()
@@ -2008,15 +2017,17 @@ def _plot(funcs, xrange, parametric=False,
     if parametric or not isinstance(funcs, (list, tuple)):
         if 'rgbcolor' in options.keys() and options['rgbcolor']=='automatic':
             options['rgbcolor'] = (0, 0, 1) # default color for a single curve.
+        #else:
+        #    # coerce named color, html-hex string, or rgb-tuple into an rgb color.
+        #    options['rgbcolor'] = Color(options['rgbcolor'])
 
-    #check to see if funcs is a list of functions that will
-    #be all plotted together.
+    #check to see if funcs is a list of functions that will be all plotted together.
     if isinstance(funcs, (list, tuple)) and not parametric:
-        from sage.plot.colors import Color
+        from sage.rings.integer import Integer
         def golden_rainbow(i,lightness=0.4):
             # note: sage's "blue" has hue-saturation-lightness values (2/3, 1, 1/2).
-            g = golden_ratio_conjugate = 0.61803399
-            return Color((0.6666666666 + i*g) % 1, 1, lightness, space='hsl')
+            g = golden_ratio_conjugate = 0.61803398875
+            return Color((0.66666666666666 + i*g) % 1, 1, lightness, space='hsl')
 
         default_line_styles = ("-", "--", "-.", ":")*len(funcs)
 
@@ -2026,7 +2037,6 @@ def _plot(funcs, xrange, parametric=False,
             fill_temp = options_temp.pop('fill', fill)
             fillcolor_temp = options_temp.pop('fillcolor', 'automatic')
             color_temp = options_temp.pop('rgbcolor', 'automatic')
-            color_temp = options_temp.pop('color', color_temp)
             linestyle_temp = options_temp.pop('linestyle', None)
             legend_label_temp = options_temp.pop('legend_label', None)
 
@@ -2109,7 +2119,15 @@ def _plot(funcs, xrange, parametric=False,
                 linestyle_entry = linestyle_temp
 
             # passed more than one legend_label directive?
-            if legend_label_temp is not None:
+            if isinstance(legend_label_temp, str):
+                if i == 0:
+                    legend_label_entry = legend_label_temp
+                else:
+                    if isinstance(color_entry, str) or (isinstance(color_entry, tuple) and not isinstance(color_entry[0], str)):
+                        legend_label_entry = None # create only one legend entry if plots are one color and only one legend_label is given.
+                    else:
+                        legend_label_entry = ' ' # give subsequent entries no label (show only their colored `handles`)
+            elif legend_label_temp is not None:
                 legend_label_entry = orig_funcs[i].__repr__() # the 'automatic' choice
                 if isinstance(legend_label_temp, dict):
                     if i in legend_label_temp:
@@ -2119,8 +2137,6 @@ def _plot(funcs, xrange, parametric=False,
                         legend_label_entry = legend_label_temp[i]
             else:
                 legend_label_entry = None
-            #if i >= 1:
-            #    legend_label=options_temp.pop('legend_label', None) # legend_label popped so the label isn't repeated for nothing
 
             G += plot(h, xrange, polar = polar, fill = fill_entry, fillcolor = fillcolor_entry, \
                       color = color_entry, linestyle = linestyle_entry, \

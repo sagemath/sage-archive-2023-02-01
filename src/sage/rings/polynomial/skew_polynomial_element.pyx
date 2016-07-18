@@ -185,8 +185,6 @@ from sage.categories.map cimport Map
 from sage.rings.morphism cimport RingHomomorphism
 from sage.rings.polynomial.polynomial_element cimport Polynomial_generic_dense
 
-from sage.structure.side import Left, Right
-
 def is_SkewPolynomial(a):
     """
     Return True if `a` is a univariate skew polynomial (over some base).

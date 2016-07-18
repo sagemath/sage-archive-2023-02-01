@@ -29,5 +29,3 @@ from formal_sum  import FormalSums, FormalSum
 from mutability  import Mutability
 
 from element_wrapper import ElementWrapper
-
-from side import Left, Right

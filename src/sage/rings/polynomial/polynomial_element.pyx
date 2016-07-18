@@ -8495,7 +8495,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     raise ValueError("not a %s power"%m.ordinal_str())
             raise ValueError("not a %s power"%m.ordinal_str())
 
-
+    @coerce_binop
     def divides(self, p):
         r"""
         Return `True` if this polynomial divides `p`.
@@ -8517,25 +8517,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (2*x + 1).divides(4*x**2 + 1)
             False
         """
-        parent = self.parent()
-        if p.parent() is parent:
-            if p.is_zero(): return True          # everything divides 0
-            if self.is_zero(): return False      # 0 only divides 0
-            try:
-                if self.is_unit(): return True   # units divide everything
-            except NotImplementedError:
-                pass
-            if self.is_one(): return True        # if is_unit is not implemented
+        if p.is_zero(): return True          # everything divides 0
+        if self.is_zero(): return False      # 0 only divides 0
+        try:
+            if self.is_unit(): return True   # units divide everything
+        except NotImplementedError:
+            pass
+        if self.is_one(): return True        # if is_unit is not implemented
 
-            try:
-                return (p % self) == 0           # if quo_rem is defined
-            except ArithmeticError:
-                return False                     # if division is not exact
-
-        else:
-            cm = sage.structure.element.get_coercion_model()
-            a, b = cm.canonical_coercion(self, p)
-            return a.divides(b)
+        try:
+            return (p % self) == 0           # if quo_rem is defined
+        except ArithmeticError:
+            return False                     # if division is not exact
 
 
 # ----------------- inner functions -------------

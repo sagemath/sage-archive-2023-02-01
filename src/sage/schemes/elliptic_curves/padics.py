@@ -93,9 +93,7 @@ def _normalize_padic_lseries(self, p, normalize, implementation, precision):
         if normalize is not None:
             raise ValueError("The 'normalize' parameter is not used for Pollack-Stevens' overconvergent modular symbols")
     else:
-        raise ValueError("Implementation should be one of  'sage', 'eclib' or 'pollackstevens'")
-    #if precision is not None and implementation != 'pollackstevens':
-    #    raise ValueError("Must *not* specify precision unless using 'pollackstevens'")
+        raise ValueError("Implementation should be one of  'sage', 'eclib', 'num' or 'pollackstevens'")
     return (p, normalize, implementation, precision)
 
 @cached_method(key=_normalize_padic_lseries)
@@ -115,8 +113,9 @@ def padic_lseries(self, p, normalize = None, implementation = 'eclib', precision
        are normalized. See modular_symbol for
        more details.
 
-    -  ``implementation`` -- 'eclib' (default), 'sage', 'pollackstevens';
+    -  ``implementation`` -- 'eclib' (default), 'sage', 'num' or 'pollackstevens';
        Whether to use John Cremona's eclib, the Sage implementation,
+       numerical modular symbols
        or Pollack-Stevens' implementation of overconvergent
        modular symbols.
 
@@ -197,7 +196,7 @@ def padic_lseries(self, p, normalize = None, implementation = 'eclib', precision
     p, normalize, implementation, precision = self._normalize_padic_lseries(p,\
                              normalize, implementation, precision)
 
-    if implementation in ['sage', 'eclib']:
+    if implementation in ['sage', 'eclib', 'num']:
         if self.ap(p) % p != 0:
             Lp = plseries.pAdicLseriesOrdinary(self, p,
                                   normalize = normalize, implementation = implementation)

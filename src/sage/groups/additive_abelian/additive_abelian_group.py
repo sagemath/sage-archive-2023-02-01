@@ -311,7 +311,7 @@ class AdditiveAbelianGroup_class(FGP_Module_class, AbelianGroup):
 
         Check that :trac:`21027` is fixed::
 
-            sage: sage: G = groups.misc.AdditiveAbelian([2,2,2])
+            sage: G = AdditiveAbelianGroup([2,2,2])
             sage: phi = G.hom([G.0, G.0, G.0])
             sage: phi.image()
             Additive abelian group isomorphic to Z/2

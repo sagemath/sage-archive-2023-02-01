@@ -2657,6 +2657,9 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return f
 
     cdef void __normalize(self):
+        """
+        Remove higher order 0-coefficients from the representation of self.
+        """
         x = self.__coeffs
         cdef Py_ssize_t n = len(x) - 1
         while n >= 0 and not x[n]:

@@ -559,6 +559,11 @@ ext_modules = [
                       sources = ["sage/libs/homfly.pyx"],
                       libraries = ["homfly", "gc"],
                       package="libhomfly"),
+    
+    OptionalExtension('sage.libs.sirocco',
+                      sources = ["sage/libs/sirocco.pyx"],
+                      libraries = ["sirocco"],
+                      package="sirocco"),
 
     Extension('*', ['sage/libs/linbox/*.pyx']),
 

@@ -447,8 +447,9 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         sig_free(f_out)
         return
 
-    # Convert S to a sorted list of pairs [d, f], taking care to use
-    # cmp() and not the comparison operators on PARI polynomials.
+    # Convert S to a sorted list of pairs [d, f]
+    # we sort only according to d
+    # because we cannot compare t_POL objects (PARI polynomials)
     S = [list(s) for s in S]
     S.sort(key=lambda x: x[0])
 
@@ -570,6 +571,6 @@ def timestr(m):
         outstr += str(t)[:len(str(t))-2] + 'm '
         n -= t*60
     n += p
-    outstr += '%.1f'%n + 's'
+    outstr += '%.1f' % n + 's'
 
     return outstr

@@ -40,6 +40,7 @@ Check that sphinx is not imported at Sage start-up::
 #*****************************************************************************
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os, re, sys
 import pydoc
 from sage.misc.temporary_file import tmp_dir
@@ -921,7 +922,7 @@ You can build this with 'sage -docbuild {} html'.""".format(s))
                           extra2, extra3, extra4, extra5] if s])
         print(format_search_as_html(title, results, terms))
     else:
-        import pager
+        from . import pager
         pager.pager()(results)
 
 
@@ -1244,7 +1245,7 @@ def format_search_as_html(what, r, search):
 #######################################
 ## Add detex'ing of documentation
 #######################################
-import sageinspect
+from . import sageinspect
 
 def my_getsource(obj, oname=''):
     """

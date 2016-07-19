@@ -63,6 +63,14 @@ class PlanePartition(ClonableArray):
         return PlanePartitions(box_size)(PP)
 
     def __init__(self, parent, PP):
+        """
+        Initialize ``self``.
+
+        EXAMPLES:
+
+            sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
+            sage: TestSuite(PP).run()
+        """
         ClonableArray.__init__(self, parent, PP)
         self._max_x = parent._box[0]
         self._max_y = parent._box[1]
@@ -78,7 +86,7 @@ class PlanePartition(ClonableArray):
         r"""
         Return the tableau class of ``self``.
         
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.to_tableau()
@@ -91,7 +99,7 @@ class PlanePartition(ClonableArray):
         r"""
         Return the projection of ``self`` in the z direction.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.z_tableau()
@@ -107,7 +115,7 @@ class PlanePartition(ClonableArray):
         r"""
         Return the projection of ``self`` in the y direction.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.y_tableau()
@@ -123,13 +131,11 @@ class PlanePartition(ClonableArray):
         r"""
         Return the projection of ``self`` in the x direction.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.x_tableau()
             [[3, 2, 1, 1], [3, 1, 1, 0], [2, 1, 1, 0], [1, 0, 0, 0]]
-
-
         """
         X = [[0 for i in range(self._max_z)] for j in range(self._max_y)]
         for C in self.cells():
@@ -140,13 +146,12 @@ class PlanePartition(ClonableArray):
         r"""
         Return the list of cells inside the plane partition.
 
-        EXAMPLES:
+        EXAMPLES::
             
             sage: PP = PlanePartition([[3,1],[2]])
             sage: PP.cells()
             [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 0], [1, 0, 0], [1, 0, 1]]
         """
-
         L = []
         for r in range(len(self)):
             for c in range(len(self[r])):
@@ -212,7 +217,7 @@ class PlanePartition(ClonableArray):
 
         A pretty print of the plane partition.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PlanePartition([[4,3,3,1],[2,1,1],[1,1]]).pp()
             <BLANKLINE>              
@@ -357,7 +362,7 @@ class PlanePartition(ClonableArray):
         r"""
         Return the complement of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.complement()
@@ -382,7 +387,7 @@ class PlanePartition(ClonableArray):
         r"""
         Return the transpose of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.transpose()
@@ -406,7 +411,7 @@ class PlanePartition(ClonableArray):
         A plane partition is symmetric if the corresponding tableau is 
         symmetric about the diagonal.        
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.is_SPP()
@@ -428,7 +433,7 @@ class PlanePartition(ClonableArray):
         A plane partition is cyclically symmetric if its x, y, and z tableaux 
         are all equal.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.is_CSPP()
@@ -448,7 +453,7 @@ class PlanePartition(ClonableArray):
         A plane partition is totally symmetric if it is both symmetric and 
         cyclically symmetric.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.is_TSPP()
@@ -465,7 +470,7 @@ class PlanePartition(ClonableArray):
         r"""
         Return whether ``self`` is a self-complementary plane partition.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.is_SCPP()
@@ -482,7 +487,7 @@ class PlanePartition(ClonableArray):
         r"""
         Return whether ``self`` is a transpose-complementary plane partition.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.is_TCPP()
@@ -499,7 +504,7 @@ class PlanePartition(ClonableArray):
         r"""
         Return whether ``self`` is a symmetric, self-complementary plane partition.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.is_SSCPP()
@@ -516,7 +521,7 @@ class PlanePartition(ClonableArray):
         r"""
         Return whether ``self`` is a cyclically symmetric and transpose-complementary plane partition.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.is_CSTCPP()
@@ -534,7 +539,7 @@ class PlanePartition(ClonableArray):
         Return whether ``self`` is a cyclically symmetric and self-complementary 
         plane partition.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.is_CSSCPP()
@@ -552,7 +557,7 @@ class PlanePartition(ClonableArray):
         Return whether ``self`` is a totally symmetric self-complementary plane 
         partition.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.is_TSSCPP()
@@ -574,11 +579,12 @@ class PlanePartitions(UniqueRepresentation,Parent):
     INPUT:
 
     - `box_size` -- a triple of positive integers indicating the size of the box 
-      containing the plane partition.
+      containing the plane partition
 
     EXAMPLES:
 
-    This will create an instance to manipulate the plane partitions in a 4x3x2 box::
+    This will create an instance to manipulate the plane partitions
+    in a `4 \times 3 \times 2` box::
 
         sage: P = PlanePartitions((4,3,2))
         sage: P
@@ -647,16 +653,7 @@ class PlanePartitions(UniqueRepresentation,Parent):
         Z = [[0 for i in range(self._box[1])] for j in range(self._box[0])]
         for C in R:
             Z[C[0]][C[1]] += 1
-        return PlanePartition(Z,self._box)    
-
-
-
-
-
-
-
-
-
+        return PlanePartition(Z, self._box)
 
 
 

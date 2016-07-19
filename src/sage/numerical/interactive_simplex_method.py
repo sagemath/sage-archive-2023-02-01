@@ -2804,7 +2804,7 @@ class LPAbstractDictionary(SageObject):
         - ``constant``--  the constant term for the new row
 
         - ``basic_variable``-- (default: depends on :func:`style`)
-           a string giving the name of the basic variable of the new row
+          a string giving the name of the basic variable of the new row
 
         OUTPUT:
 
@@ -4071,7 +4071,7 @@ class LPDictionary(LPAbstractDictionary):
         - ``constant``--  the constant term for the new row
 
         - ``basic_variable``-- (default: depends on :func:`style`)
-           a string giving the name of the basic variable of the new row
+          a string giving the name of the basic variable of the new row
 
         OUTPUT:
 
@@ -4087,17 +4087,17 @@ class LPDictionary(LPAbstractDictionary):
             sage: D1 = D.add_row([7, 11, 19], 42, basic_variable='c')
             sage: D1.row_coefficients("c")
             (7, 11, 19)
+            sage: D1.constant_terms()[-1]
+            42
+            sage: D1.basic_variables()[-1]
+            c
         """
-        B = self.basic_variables()
-        N = self.nonbasic_variables()
-        b = self.constant_terms()
-        n = len(N)
+        A, b, c, v, B, N, z = self._AbcvBNz
         m = len(B)
-        A = tuple([self.row_coefficients(B[i]) for i in range(m)])
-        A = matrix(self.base_ring(), A)
-
-        v = vector(self.base_ring(), n, nonbasic_coefficients)
-        A = A.stack(v)
+        n = len(N)
+        BR = self.base_ring()
+        A = A.stack(vector(BR, n, nonbasic_coefficients))
+        b = vector(BR, m + 1, tuple(b) + (constant,))
 
         if basic_variable is None:
             basic_variable = default_variable_name("primal slack")
@@ -4108,22 +4108,13 @@ class LPDictionary(LPAbstractDictionary):
             basic_variable = "{}{:d}".format(basic_variable, index)
         if not isinstance(basic_variable, str):
             basic_variable = str(basic_variable)
-
-        b = vector(tuple(b) + (constant,))
-        B = tuple(B) + (basic_variable,)
-
-        # Construct a larger ring for variable
-        R = B[0].parent()
-        G = list(R.gens())
-        G.append(basic_variable)
-        R = PolynomialRing(self.base_ring(), G, order="neglex")
-        # Update B and N to the larger ring
-        B2 = vector([R(x) for x in B])
-        N2 = vector([R(x) for x in N])
-
-        new_dict = LPDictionary(matrix(QQ, A), b, self.objective_coefficients(),
-                                self.objective_value(), B2, N2, self._AbcvBNz[6])
-        return new_dict
+            
+        R = PolynomialRing(
+            BR, list(B.base_ring().gens()) + [basic_variable], order="neglex")
+        B = list(B) + [basic_variable]
+        B = map(R, B)
+        N = map(R, N)
+        return LPDictionary(A, b, c, v, B, N, z)
 
     def basic_variables(self):
         r"""
@@ -4945,8 +4936,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         E[l, l] = 1 / d
         return E
 
-    def add_row(self, nonbasic_coefficients, constant,
-                basic_variable=None):
+    def add_row(self, nonbasic_coefficients, constant, basic_variable=None):
         r"""
         Return a dictionary with an additional row based on a given dictionary.
 
@@ -4958,9 +4948,10 @@ class LPRevisedDictionary(LPAbstractDictionary):
 
         INPUT:
 
-        - ``nonbasic_coefficients``-- a list of the coefficients for the new row
+        - ``nonbasic_coefficients``-- a list of the coefficients for the
+          new row
 
-        - ``constant``-- a number of the constant term for the new row
+        - ``constant``--  the constant term for the new row
 
         - ``basic_variable``-- (default: depends on :func:`style`)
           a string giving the name of the basic variable of the new row
@@ -4969,9 +4960,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
 
         - a :class:`revised dictionary <LPRevisedDictionary>`
 
-        TESTS:
-
-        Tested with a variety of different bases::
+        EXAMPLES::
 
             sage: A = ([-1, 1111, 3, 17], [8, 222, 7, 6],
             ....: [3, 7, 17, 5], [9, 5, 7, 3])
@@ -4982,12 +4971,11 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: D1 = D.add_row([7, 11, 13, 9], 42)
             sage: D1.row_coefficients("x9")
             (7, 11, 13, 9)
-            sage: set(D1.constant_terms()).symmetric_difference(
-            ....: set(D.constant_terms()))
-            {42}
-            sage: set(D1.basic_variables()).symmetric_difference(
-            ....: set(D.basic_variables()))
-            {x9}
+            sage: D1.constant_terms()[-1]
+            42
+            sage: D1.basic_variables()[-1]
+            x9
+            
             sage: A = ([-9, 7, 48, 31, 23], [5, 2, 9, 13, 98],
             ....: [14, 15, 97, 49, 1], [9, 5, 7, 3, 17],
             ....: [119, 7, 121, 5, 111])
@@ -4998,56 +4986,27 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: D2 = D.add_row([5 ,7, 11, 13, 9], 99, basic_variable='c')
             sage: D2.row_coefficients("c")
             (5, 7, 11, 13, 9)
-            sage: set(D2.constant_terms()).symmetric_difference(
-            ....: set(D.constant_terms()))
-            {99}
-            sage: set(D2.basic_variables()).symmetric_difference(
-            ....: set(D.basic_variables()))
-            {c}
+            sage: D2.constant_terms()[-1]
+            99
+            sage: D2.basic_variables()[-1]
+            c
         """
-        problem = self._problem
-        A = problem.Abcx()[0]
-        b = problem.Abcx()[1]
-        nonbasic = self.nonbasic_variables()
-        original = list(self._problem.Abcx()[3])
-        slack = list(self._problem.slack_variables())
-        variables = original + slack
-        n = len(original)
-        set_nonbasic = set(self.nonbasic_variables())
-
-        # Update nonbasic_coefficients with the right orders
-        # in original and slack variables
-        dic = {item: coef for item, coef
-               in zip(nonbasic, nonbasic_coefficients)}
-        #new nonbasic coefficient after reordering
-        d = [dic[item] for item
-             in variables if item in set_nonbasic]
-        coefficients = vector(QQ, [0] * n)
-
-        def standard_unit_vector(index, length):
-            v = vector(QQ, [0] * length)
-            v[index] = 1
-            return v
-
-        d_index = 0
-        original_index = 0
-        slack_index = 0
-        for item in original:
-            if item in set_nonbasic:
-                coefficients += d[d_index] * standard_unit_vector(original_index, n)
-                d_index += 1
-            original_index += 1
-        for item in slack:
-            if item in set_nonbasic:
-                coefficients -= d[d_index] * A[slack_index]
-                constant -= d[d_index] * b[slack_index]
-                d_index += 1
-            slack_index += 1
-        new_problem = problem.add_constraint(
-            coefficients, constant, basic_variable)
-        new_basic_var = [str(i) for i in self.basic_variables()] + [str(new_problem.slack_variables()[-1])]
-        R = PolynomialRing(self.base_ring(), new_basic_var, order="neglex")
-        return new_problem.revised_dictionary(*R.gens())
+        P = self.problem()
+        n = P.n()
+        # Split nonbasic_coefficients into decision and slack parts
+        nbc_decision = vector(P.base_ring(), n)
+        nbc_slack = vector(P.base_ring(), P.m())
+        for i, coef in zip(self.nonbasic_indices(), nonbasic_coefficients):
+            # Extra -1 is due to the auxiliary variable at index 0
+            if i > n:
+                nbc_slack[i -1 - n] = coef
+            else:
+                nbc_decision[i - 1] = coef
+        P_new = P.add_constraint(nbc_decision - nbc_slack * P.A(),
+                                 constant - nbc_slack * P.b(),
+                                 basic_variable)
+        x_B = list(self.x_B()) + [P_new.slack_variables()[-1]]
+        return P_new.revised_dictionary(*x_B)
 
     def basic_indices(self):
         r"""

@@ -2136,7 +2136,7 @@ def _plot(funcs, xrange, parametric=False,
                 legend_label_entry = None
 
             G += plot(h, xrange, polar=polar, fill=fill_entry, fillcolor=fillcolor_entry, \
-                      color=color_entry, linestyle=linestyle_entry, \
+                      rgbcolor=color_entry, linestyle=linestyle_entry, \
                       legend_label=legend_label_entry, **options_temp)
         return G
 

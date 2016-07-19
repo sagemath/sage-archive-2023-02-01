@@ -403,13 +403,13 @@ Cycliclink::
 Pi Axis::
 
     sage: g1 = plot(sin(x), 0, 2*pi)
-    sage: g2 = plot(cos(x), 0, 2*pi, linestyle = "--")
+    sage: g2 = plot(cos(x), 0, 2*pi, linestyle="--")
     sage: (g1+g2).show(ticks=pi/6, tick_formatter=pi)  # long time # show their sum, nicely formatted
 
 .. PLOT::
 
     g1 = plot(sin(x), 0, 2*pi, ticks=pi/6, tick_formatter=pi)
-    g2 = plot(cos(x), 0, 2*pi, linestyle = "--", ticks=pi/6, tick_formatter=pi)
+    g2 = plot(cos(x), 0, 2*pi, linestyle="--", ticks=pi/6, tick_formatter=pi)
     sphinx_plot(g1+g2)
 
 An illustration of integration::
@@ -782,7 +782,7 @@ def xydata_from_point_list(points):
 
 #@rename_keyword(color='rgbcolor')
 @options(alpha=1, thickness=1, fill=False, fillcolor='automatic', fillalpha=0.5, plot_points=200,
-         adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles = False, exclude = None, legend_label=None,
+         adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles=False, exclude=None, legend_label=None,
          __original_opts=True, aspect_ratio='automatic')
 def plot(funcs, *args, **kwds):
     r"""
@@ -1473,70 +1473,70 @@ def plot(funcs, *args, **kwds):
 
     We can detect the poles of a function::
 
-        sage: plot(gamma, (-3, 4), detect_poles = True).show(ymin = -5, ymax = 5)
+        sage: plot(gamma, (-3, 4), detect_poles=True).show(ymin=-5, ymax=5)
 
     .. PLOT::
 
-        g = plot(gamma, (-3, 4), detect_poles = True)
+        g = plot(gamma, (-3, 4), detect_poles=True)
         g.ymin(-5)
         g.ymax(5)
         sphinx_plot(g)
 
     We draw the Gamma-Function with its poles highlighted::
 
-        sage: plot(gamma, (-3, 4), detect_poles = 'show').show(ymin = -5, ymax = 5)
+        sage: plot(gamma, (-3, 4), detect_poles='show').show(ymin=-5, ymax=5)
 
     .. PLOT::
 
-        g = plot(gamma, (-3, 4), detect_poles = 'show')
+        g = plot(gamma, (-3, 4), detect_poles='show')
         g.ymin(-5)
         g.ymax(5)
         sphinx_plot(g)
 
     The basic options for filling a plot::
 
-        sage: p1 = plot(sin(x), -pi, pi, fill = 'axis')
-        sage: p2 = plot(sin(x), -pi, pi, fill = 'min')
-        sage: p3 = plot(sin(x), -pi, pi, fill = 'max')
-        sage: p4 = plot(sin(x), -pi, pi, fill = 0.5 + cos(x))
+        sage: p1 = plot(sin(x), -pi, pi, fill='axis')
+        sage: p2 = plot(sin(x), -pi, pi, fill='min')
+        sage: p3 = plot(sin(x), -pi, pi, fill='max')
+        sage: p4 = plot(sin(x), -pi, pi, fill=0.5 + cos(x))
         sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False) # long time
 
     The basic options for filling a list of plots::
 
-        sage: p1 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill = {1: [0]}, fillcolor = 'blue', fillalpha = .25, color = 'blue')
-        sage: p2 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill = {0: 1, 1:[0]}, color = ['blue'])
-        sage: p3 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill = [0, [0]], fillcolor = ['#f60'], fillalpha = 1, color = {1: 'blue'})
-        sage: p4 = plot([sin(x), cos(2*x)*sin(x)], (x,-pi, pi), fill = [0, x/pi], fillcolor = 'grey', color=['red', 'blue'])
+        sage: p1 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill={1: [0]}, fillcolor='blue', fillalpha=.25, color='blue')
+        sage: p2 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill={0: 1, 1:[0]}, color=['blue'])
+        sage: p3 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill=[0, [0]], fillcolor=['#f60'], fillalpha=1, color={1: 'blue'})
+        sage: p4 = plot([sin(x), cos(2*x)*sin(x)], (x,-pi, pi), fill=[0, x/pi], fillcolor='grey', color=['red', 'blue'])
         sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False) # long time
 
     .. PLOT::
 
-        p1 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill = {1: [0]}, fillcolor = 'blue', fillalpha = .25, color = 'blue')
-        p2 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill = {0: 1, 1:[0]}, color = ['blue'])
-        p3 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill = [0, [0]], fillcolor = ['#f60'], fillalpha = 1, color = {1: 'blue'})
-        p4 = plot([sin(x), cos(2*x)*sin(x)], (x,-pi, pi), fill = [0, x/pi], fillcolor = 'grey', color=['red', 'blue'])
+        p1 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill={1: [0]}, fillcolor='blue', fillalpha=.25, color='blue')
+        p2 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill={0: 1, 1:[0]}, color=['blue'])
+        p3 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill=[0, [0]], fillcolor=['#f60'], fillalpha=1, color={1: 'blue'})
+        p4 = plot([sin(x), cos(2*x)*sin(x)], (x,-pi, pi), fill=[0, x/pi], fillcolor='grey', color=['red', 'blue'])
         g = graphics_array([[p1, p2], [p3, p4]])
         sphinx_plot(g.show(frame=True, axes=False))
 
 
     A example about the growth of prime numbers::
 
-        sage: plot(1.13*log(x), 1, 100, fill = lambda x: nth_prime(x)/floor(x), fillcolor = 'red')
+        sage: plot(1.13*log(x), 1, 100, fill=lambda x: nth_prime(x)/floor(x), fillcolor='red')
         Graphics object consisting of 2 graphics primitives
 
     .. PLOT::
 
-        sphinx_plot(plot(1.13*log(x), 1, 100, fill = lambda x: nth_prime(x)/floor(x), fillcolor = 'red'))
+        sphinx_plot(plot(1.13*log(x), 1, 100, fill=lambda x: nth_prime(x)/floor(x), fillcolor='red'))
 
     Fill the area between a function and its asymptote::
 
         sage: f = (2*x^3+2*x-1)/((x-2)*(x+1))
-        sage: plot([f, 2*x+2], -7,7, fill = {0: [1]}, fillcolor='#ccc').show(ymin=-20, ymax=20)
+        sage: plot([f, 2*x+2], -7,7, fill={0: [1]}, fillcolor='#ccc').show(ymin=-20, ymax=20)
 
     .. PLOT::
 
         f = (2*x**3+2*x-1)/((x-2)*(x+1))
-        g = plot([f, 2*x+2], -7,7, fill = {0: [1]}, fillcolor='#ccc')
+        g = plot([f, 2*x+2], -7,7, fill={0: [1]}, fillcolor='#ccc')
         g.ymin(-20)
         g.ymax(20)
         sphinx_plot(g)
@@ -1544,13 +1544,13 @@ def plot(funcs, *args, **kwds):
     Fill the area between a list of functions and the x-axis::
 
         sage: def b(n): return lambda x: bessel_J(n, x)
-        sage: plot([b(n) for n in [1..5]], 0, 20, fill = 'axis')
+        sage: plot([b(n) for n in [1..5]], 0, 20, fill='axis')
         Graphics object consisting of 10 graphics primitives
 
     .. PLOT::
 
         def b(n): return lambda x: bessel_J(n, x)
-        g = plot([b(n) for n in range(1,6)], 0, 20, fill = 'axis')
+        g = plot([b(n) for n in range(1,6)], 0, 20, fill='axis')
         sphinx_plot(g)
 
     Note that to fill between the ith and jth functions, you
@@ -1558,16 +1558,16 @@ def plot(funcs, *args, **kwds):
     like ``i:j`` will fill between the ith function and the line y=j::
 
         sage: def b(n): return lambda x: bessel_J(n, x) + 0.5*(n-1)
-        sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, [i+1]) for i in [0..3]]), color = 'blue')
+        sage: plot([b(c) for c in [1..5]], 0, 40, fill={i:[i+1] for i in [0..3]}, color='blue')
         Graphics object consisting of 9 graphics primitives
-        sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]]), color = 'blue', linestyle = '-') # long time
+        sage: plot([b(c) for c in [1..5]], 0, 40, fill={i:i+1 for i in [0..3]}, color='blue', linestyle='-') # long time
         Graphics object consisting of 9 graphics primitives
 
         .. PLOT::
 
             def b(n): return lambda x: bessel_J(n, x) + 0.5*(n-1)
-            p1 = plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, [i+1]) for i in [0..3]]), color = 'blue')
-            p2 = plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]]), color = 'blue', linestyle = '-') # long time
+            p1 = plot([b(c) for c in [1..5]], 0, 40, fill={i:[i+1] for i in [0..3]}, color='blue')
+            p2 = plot([b(c) for c in [1..5]], 0, 40, fill={i:i+1 for i in [0..3]}, color='blue', linestyle='-') # long time
             g = graphics_array([p1,p2])
             sphinx_plot(g.show(frame=True, axes=False))
 
@@ -1666,19 +1666,19 @@ def plot(funcs, *args, **kwds):
 
     A example with excluded values::
 
-        sage: plot(floor(x), (x, 1, 10), exclude = [1..10])
+        sage: plot(floor(x), (x, 1, 10), exclude=[1..10])
         Graphics object consisting of 11 graphics primitives
 
     .. PLOT::
 
-        g = plot(floor(x), (x, 1, 10), exclude = range(1,11))
+        g = plot(floor(x), (x, 1, 10), exclude=range(1,11))
         sphinx_plot(g)
 
     We exclude all points where :class:`~sage.functions.prime_pi.PrimePi`
     makes a jump::
 
         sage: jumps = [n for n in [1..100] if prime_pi(n) != prime_pi(n-1)]
-        sage: plot(lambda x: prime_pi(x), (x, 1, 100), exclude = jumps)
+        sage: plot(lambda x: prime_pi(x), (x, 1, 100), exclude=jumps)
         Graphics object consisting of 26 graphics primitives
 
     .. PLOT::
@@ -1689,31 +1689,31 @@ def plot(funcs, *args, **kwds):
         for n in range(1,101):
             if prime_pi(n) != prime_pi(n-1):
                 jumps.append(n)
-        g = plot(lambda x: prime_pi(x), (x, 1, 100), exclude = jumps)
+        g = plot(lambda x: prime_pi(x), (x, 1, 100), exclude=jumps)
         sphinx_plot(g)
 
     Excluded points can also be given by an equation::
 
         sage: g(x) = x^2-2*x-2
-        sage: plot(1/g(x), (x, -3, 4), exclude = g(x) == 0, ymin = -5, ymax = 5) # long time
+        sage: plot(1/g(x), (x, -3, 4), exclude=g(x)==0, ymin=-5, ymax=5) # long time
         Graphics object consisting of 3 graphics primitives
 
     .. PLOT::
 
         def g(x): return x**2-2*x-2
-        G = plot(1/g(x), (x, -3, 4), exclude = g(x) == 0, ymin = -5, ymax = 5)
+        G = plot(1/g(x), (x, -3, 4), exclude=g(x)==0, ymin=-5, ymax=5)
         sphinx_plot(G)
 
     ``exclude`` and ``detect_poles`` can be used together::
 
         sage: f(x) = (floor(x)+0.5) / (1-(x-0.5)^2)
-        sage: plot(f, (x, -3.5, 3.5), detect_poles = 'show', exclude = [-3..3], ymin = -5, ymax = 5)
+        sage: plot(f, (x, -3.5, 3.5), detect_poles='show', exclude=[-3..3], ymin=-5, ymax=5)
         Graphics object consisting of 12 graphics primitives
 
     .. PLOT::
 
         def f(x): return (floor(x)+0.5) / (1-(x-0.5)**2)
-        g = plot(f, (x, -3.5, 3.5), detect_poles = 'show', exclude = range(-3,4), ymin = -5, ymax = 5)
+        g = plot(f, (x, -3.5, 3.5), detect_poles='show', exclude=range(-3,4), ymin=-5, ymax=5)
         sphinx_plot(g)
 
     Regions in which the plot has no values are automatically excluded. The
@@ -2015,11 +2015,8 @@ def _plot(funcs, xrange, parametric=False,
     # Keep ``rgbcolor`` option 'automatic' only for lists of functions.
     # Otherwise, let the plot color be 'blue'.
     if parametric or not isinstance(funcs, (list, tuple)):
-        if 'rgbcolor' in options.keys() and options['rgbcolor']=='automatic':
+        if 'rgbcolor' in options.keys() and options['rgbcolor'] == 'automatic':
             options['rgbcolor'] = (0, 0, 1) # default color for a single curve.
-        #else:
-        #    # coerce named color, html-hex string, or rgb-tuple into an rgb color.
-        #    options['rgbcolor'] = Color(options['rgbcolor'])
 
     #check to see if funcs is a list of functions that will be all plotted together.
     if isinstance(funcs, (list, tuple)) and not parametric:
@@ -2138,9 +2135,9 @@ def _plot(funcs, xrange, parametric=False,
             else:
                 legend_label_entry = None
 
-            G += plot(h, xrange, polar = polar, fill = fill_entry, fillcolor = fillcolor_entry, \
-                      color = color_entry, linestyle = linestyle_entry, \
-                      legend_label = legend_label_entry, **options_temp)
+            G += plot(h, xrange, polar=polar, fill=fill_entry, fillcolor=fillcolor_entry, \
+                      color=color_entry, linestyle=linestyle_entry, \
+                      legend_label=legend_label_entry, **options_temp)
         return G
 
     adaptive_tolerance = options.pop('adaptive_tolerance')
@@ -2408,23 +2405,23 @@ def parametric_plot(funcs, *args, **kwargs):
 
     ::
 
-        sage: parametric_plot((t, t^2), (t, -4, 4), fill = True)
+        sage: parametric_plot((t, t^2), (t, -4, 4), fill=True)
         Graphics object consisting of 2 graphics primitives
 
     .. PLOT::
 
         t =var('t')
-        g = parametric_plot((t, t**2), (t, -4, 4), fill = True)
+        g = parametric_plot((t, t**2), (t, -4, 4), fill=True)
         sphinx_plot(g)
 
     A filled Hypotrochoid::
 
-        sage: parametric_plot([cos(x) + 2 * cos(x/4), sin(x) - 2 * sin(x/4)], (x,0, 8*pi), fill = True)
+        sage: parametric_plot([cos(x) + 2 * cos(x/4), sin(x) - 2 * sin(x/4)], (x,0, 8*pi), fill=True)
         Graphics object consisting of 2 graphics primitives
 
     .. PLOT::
 
-        g = parametric_plot([cos(x) + 2 * cos(x/4), sin(x) - 2 * sin(x/4)], (x,0, 8*pi), fill = True)
+        g = parametric_plot([cos(x) + 2 * cos(x/4), sin(x) - 2 * sin(x/4)], (x,0, 8*pi), fill=True)
         sphinx_plot(g)
 
     ::
@@ -2619,12 +2616,12 @@ def polar_plot(funcs, *args, **kwds):
 
     A filled spiral::
 
-        sage: polar_plot(sqrt, 0, 2 * pi, fill = True)
+        sage: polar_plot(sqrt, 0, 2 * pi, fill=True)
         Graphics object consisting of 2 graphics primitives
 
     .. PLOT::
 
-        g = polar_plot(sqrt, 0, 2 * pi, fill = True)
+        g = polar_plot(sqrt, 0, 2 * pi, fill=True)
         sphinx_plot(g)
 
     Fill the area between two functions::
@@ -2639,22 +2636,22 @@ def polar_plot(funcs, *args, **kwds):
 
     Fill the area between several spirals::
 
-        sage: polar_plot([(1.2+k*0.2)*log(x) for k in range(6)], 1, 3 * pi, fill = {0: [1], 2: [3], 4: [5]})
+        sage: polar_plot([(1.2+k*0.2)*log(x) for k in range(6)], 1, 3 * pi, fill={0: [1], 2: [3], 4: [5]})
         Graphics object consisting of 9 graphics primitives
 
     .. PLOT::
 
-        g = polar_plot([(1.2+k*0.2)*log(x) for k in range(6)], 1, 3 * pi, fill = {0: [1], 2: [3], 4: [5]})
+        g = polar_plot([(1.2+k*0.2)*log(x) for k in range(6)], 1, 3 * pi, fill={0: [1], 2: [3], 4: [5]})
         sphinx_plot(g)
 
     Exclude points at discontinuities::
 
-        sage: polar_plot(log(floor(x)), (x, 1, 4*pi), exclude = [1..12])
+        sage: polar_plot(log(floor(x)), (x, 1, 4*pi), exclude=[1..12])
         Graphics object consisting of 12 graphics primitives
 
     .. PLOT::
 
-        g = polar_plot(log(floor(x)), (x, 1, 4*pi), exclude = range(1,13))
+        g = polar_plot(log(floor(x)), (x, 1, 4*pi), exclude=range(1,13))
         sphinx_plot(g)
 
     """
@@ -3676,7 +3673,7 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
     else:
         return []
 
-def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adaptive_recursion=5, randomize = True, initial_points = None):
+def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adaptive_recursion=5, randomize=True, initial_points=None):
     r"""
     Calculate plot points for a function f in the interval xrange.  The
     adaptive refinement algorithm is also automatically invoked with a
@@ -3716,7 +3713,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
         [(0.0, 0.0), (3.141592653589793, 1.2246...e-16)]
 
         sage: from sage.plot.plot import generate_plot_points
-        sage: generate_plot_points(lambda x: x^2, (0, 6), plot_points=2, adaptive_recursion=0, initial_points = [1,2,3])
+        sage: generate_plot_points(lambda x: x^2, (0, 6), plot_points=2, adaptive_recursion=0, initial_points=[1,2,3])
         [(0.0, 0.0), (1.0, 1.0), (2.0, 4.0), (3.0, 9.0), (6.0, 36.0)]
 
         sage: generate_plot_points(sin(x).function(x), (-pi, pi), randomize=False)

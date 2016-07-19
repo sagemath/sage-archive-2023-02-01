@@ -109,7 +109,8 @@ from __future__ import print_function
 
 include 'sage/ext/stdsage.pxi'
 
-import math, sys
+import math
+import sys
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.pari.types cimport *
@@ -450,8 +451,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     # Convert S to a sorted list of pairs [d, f]
     # we sort only according to d
     # because we cannot compare t_POL objects (PARI polynomials)
-    S = [list(s) for s in S]
-    S.sort(key=lambda x: x[0])
+    S = sorted([list(s) for s in S], key=lambda x: x[0])
 
     # In the application of Smyth's theorem above (and easy
     # irreducibility test), we exclude finitely many possibilities

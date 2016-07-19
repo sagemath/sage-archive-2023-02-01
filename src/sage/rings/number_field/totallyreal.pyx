@@ -450,7 +450,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     # Convert S to a sorted list of pairs [d, f], taking care to use
     # cmp() and not the comparison operators on PARI polynomials.
     S = [list(s) for s in S]
-    S.sort(cmp=lambda x, y: cmp(x[0], y[0]) or cmp(x[1], y[1]))
+    S.sort(key=lambda x: x[0])
 
     # In the application of Smyth's theorem above (and easy
     # irreducibility test), we exclude finitely many possibilities

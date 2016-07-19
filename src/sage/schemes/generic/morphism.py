@@ -77,6 +77,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.element import AdditiveGroupElement, RingElement, Element, generic_power, parent
 from sage.structure.sequence import Sequence
@@ -87,9 +89,9 @@ from sage.rings.all import Integer, CIF
 from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.morphism import is_RingHomomorphism
-from point import is_SchemeTopologicalPoint
+from .point import is_SchemeTopologicalPoint
 from sage.rings.infinity import infinity
-import scheme
+from . import scheme
 
 from sage.categories.gcd_domains import GcdDomains
 from sage.rings.qqbar import QQbar
@@ -609,7 +611,7 @@ class SchemeMorphism(Element):
                             Rational Field by the ideal (x*y - 1)
                       Defn: y |--> ybar
         """
-        import glue
+        from . import glue
         return glue.GluedScheme(self, other)
 
 class SchemeMorphism_id(SchemeMorphism):
@@ -838,7 +840,7 @@ class SchemeMorphism_spec(SchemeMorphism):
             sage: phi = R.hom([QQ(7)])
             sage: X = Spec(QQ); Y = Spec(R)
             sage: f = X.hom(phi)
-            sage: print f._repr_defn()
+            sage: print(f._repr_defn())
             Ring morphism:
               From: Univariate Polynomial Ring in x over Rational Field
               To:   Rational Field
@@ -1162,7 +1164,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: A.<x,y> = AffineSpace(R)
             sage: H = A.Hom(A)
             sage: f = H([y,x^2+y])
-            sage: print f._repr_defn()
+            sage: print(f._repr_defn())
             Defined on coordinates by sending (x, y) to
             (y, x^2 + y)
         """
@@ -1293,7 +1295,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         OUTPUT:
 
-        - A new :class: `SchemeMorphism_polynomial` which is this map coerced to ``R``.
+        - A new :class:`SchemeMorphism_polynomial` which is this map coerced to ``R``.
 
         EXAMPLES::
 

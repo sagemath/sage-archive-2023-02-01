@@ -10,6 +10,8 @@ Sets
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.sage_unittest import TestSuite
@@ -2033,9 +2035,9 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                  An example of an infinite enumerated set: the non negative integers,
                  An example of a finite enumerated set: {1,2,3})
             """
-            from finite_enumerated_sets import FiniteEnumeratedSets
-            from infinite_enumerated_sets import InfiniteEnumeratedSets
-            from cartesian_product import cartesian_product
+            from .finite_enumerated_sets import FiniteEnumeratedSets
+            from .infinite_enumerated_sets import InfiniteEnumeratedSets
+            from .cartesian_product import cartesian_product
             S1 = Sets().example()
             S2 = InfiniteEnumeratedSets().example()
             S3 = FiniteEnumeratedSets().example()
@@ -2050,11 +2052,11 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 EXAMPLES::
 
                     sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]):
-                    ....:     print x,y
-                    1 a
-                    1 b
-                    2 a
-                    2 b
+                    ....:     print((x, y))
+                    (1, 'a')
+                    (1, 'b')
+                    (2, 'a')
+                    (2, 'b')
 
                     sage: A = FiniteEnumeratedSets()(["a", "b"])
                     sage: B = FiniteEnumeratedSets().example(); B
@@ -2552,7 +2554,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 for shorthand in self._shorthands:
                     realization = getattr(self, shorthand)()
                     if verbose:
-                        print 'Injecting {} as shorthand for {}'.format(shorthand, realization)
+                        print('Injecting {} as shorthand for {}'.format(shorthand, realization))
                     inject_variable(shorthand, realization)
 
             @abstract_method(optional=True)

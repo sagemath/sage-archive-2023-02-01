@@ -49,8 +49,8 @@ We test corner cases for multiplication::
     sage: m10 = matrix(GF(3),1,0,[])
     sage: m11 = matrix(GF(3),1,1,[1])
     sage: good = [ (v0,m00), (v0,m01), (v1,m10), (v1,m11), (m00,v0), (m10,v0), (m01,v1), (m11,v1), (m00,m00), (m01,m10), (m10,m01), (m11,m11) ]
-    sage: for v,m in good:
-    ...       print v, 'x', m, '=', v*m
+    sage: for v, m in good:
+    ....:     print('{} x {} = {}'.format(v, m, v * m))
     () x [] = ()
     () x [] = (0)
     (1) x [] = ()
@@ -66,11 +66,11 @@ We test corner cases for multiplication::
 
     sage: bad  = [ (v1,m00), (v1,m01), (v0,m10), (v0,m11), (m00,v1), (m10,v1), (m01,v0), (m11,v0), (m01,m01), (m10,m10), (m11,m01), (m10,m11) ]
     sage: for v,m in bad:
-    ...       try:
-    ...           v*m
-    ...           print 'Uncaught dimension mismatch!'
-    ...       except (TypeError, ArithmeticError):
-    ...           pass
+    ....:     try:
+    ....:         v*m
+    ....:         print('Uncaught dimension mismatch!')
+    ....:     except (TypeError, ArithmeticError):
+    ....:         pass
 
 """
 
@@ -798,7 +798,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return M
 
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         EXAMPLES::
 
@@ -808,7 +808,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         """
         return self._rmul_(right)
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         EXAMPLES::
 
@@ -856,7 +856,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return A
 
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two dense matrices over `\Z/n\Z`
 
@@ -900,7 +900,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return M
 
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         r"""
         Subtract two dense matrices over `\Z/n\Z`
 
@@ -937,7 +937,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return M
 
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         r"""
         Compare two dense matrices over `\Z/n\Z`
 
@@ -990,7 +990,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return 0
 
 
-    cdef Matrix _matrix_times_matrix_(self, Matrix right):
+    cdef _matrix_times_matrix_(self, Matrix right):
         """
         return ``self*right``
 
@@ -1191,7 +1191,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
 
         return ans
 
-    cdef Vector _vector_times_matrix_(self, Vector v):
+    cdef _vector_times_matrix_(self, Vector v):
         """
         ``v*self``
 
@@ -1248,7 +1248,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         sig_free(_c)
         return c
 
-    cdef Vector _matrix_times_vector_(self, Vector v):
+    cdef _matrix_times_vector_(self, Vector v):
         """
         ``self*v``
 

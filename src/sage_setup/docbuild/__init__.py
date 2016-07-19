@@ -767,7 +767,7 @@ class ReferenceSubBuilder(DocBuilder):
 
         env_pickle = os.path.join(self._doctrees_dir(), 'environment.pickle')
         try:
-            env = BuildEnvironment.frompickle(config, env_pickle)
+            env = BuildEnvironment.frompickle(self.dir, config, env_pickle)
             logger.debug("Opened Sphinx environment: %s", env_pickle)
             return env
         except IOError as err:
@@ -797,7 +797,8 @@ class ReferenceSubBuilder(DocBuilder):
             # env.topickle(env_pickle), which first writes a temporary
             # file.  We adapt sphinx.environment's
             # BuildEnvironment.topickle:
-            import cPickle, types
+            import cPickle
+            import types
 
             # remove unpicklable attributes
             env.set_warnfunc(None)
@@ -807,7 +808,7 @@ class ReferenceSubBuilder(DocBuilder):
             for key, val in vars(env.config).items():
                 if key.startswith('_') or isinstance(val, (types.ModuleType,
                                                            types.FunctionType,
-                                                           types.ClassType)):
+                                                           type)):
                     del env.config[key]
             try:
                 cPickle.dump(env, picklefile, cPickle.HIGHEST_PROTOCOL)
@@ -1620,7 +1621,7 @@ def main():
     # Delete empty directories. This is needed in particular for empty
     # directories due to "git checkout" which never deletes empty
     # directories it leaves behind. See Trac #20010.
-    delete_empty_directories(SAGE_DOC)
+    delete_empty_directories(SAGE_DOC_SRC)
 
     # Set up Intersphinx cache
     C = IntersphinxCache()

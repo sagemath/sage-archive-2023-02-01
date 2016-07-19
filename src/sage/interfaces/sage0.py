@@ -4,6 +4,7 @@ Interface to Sage
 This is an expect interface to *another* copy of the Sage
 interpreter.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -18,7 +19,7 @@ interpreter.
 import cPickle
 import os
 
-from expect import Expect, ExpectElement, FunctionElement
+from .expect import Expect, ExpectElement, FunctionElement
 import sage.repl.preparse
 
 from sage.interfaces.tab_completion import ExtraTabCompletion
@@ -316,7 +317,7 @@ class Sage(ExtraTabCompletion, Expect):
         Clear the variable named var.
 
         Note that the exact format of the NameError for a cleared variable
-        is slightly platform dependent, see trac #10539.
+        is slightly platform dependent, see :trac:`10539`.
 
         EXAMPLES::
 
@@ -346,7 +347,7 @@ class Sage(ExtraTabCompletion, Expect):
 
             sage: sage0.console() #not tested
             ----------------------------------------------------------------------
-            | SageMath Version ..., Release Date: ...                            |
+            | SageMath version ..., Release Date: ...                            |
             | Type notebook() for the GUI, and license() for information.        |
             ----------------------------------------------------------------------
             ...
@@ -358,7 +359,7 @@ class Sage(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: sage0.version()
-            'SageMath Version ..., Release Date: ...'
+            'SageMath version ..., Release Date: ...'
             sage: sage0.version() == version()
             True
         """
@@ -525,7 +526,7 @@ def sage0_console():
 
         sage: sage0_console() #not tested
         ----------------------------------------------------------------------
-        | SageMath Version ..., Release Date: ...                            |
+        | SageMath version ..., Release Date: ...                            |
         | Type notebook() for the GUI, and license() for information.        |
         ----------------------------------------------------------------------
         ...

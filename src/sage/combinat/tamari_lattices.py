@@ -207,7 +207,7 @@ def GeneralizedTamariLattice(a, b, m=1):
 
     REFERENCES:
 
-    .. [BMFPR] M. Bousquet-Melou, E. Fusy, L.-F. Preville Ratelle.
+    .. [BMFPR] \M. Bousquet-Melou, E. Fusy, L.-F. Preville Ratelle.
        *The number of intervals in the m-Tamari lattices*. :arxiv:`1106.1498`
     """
     if not(gcd(a, b) == 1 and a >= b):

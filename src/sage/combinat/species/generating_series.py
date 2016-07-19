@@ -60,12 +60,13 @@ weighted degree where each variable x_i has weight i.
 
 REFERENCES:
 
-.. [BLL] F. Bergeron, G. Labelle, and P. Leroux.
+.. [BLL] \F. Bergeron, G. Labelle, and P. Leroux.
    "Combinatorial species and tree-like structures".
    Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
 .. [BLL-Intro] Francois Bergeron, Gilbert Labelle, and Pierre Leroux.
    "Introduction to the Theory of Species of Structures", March 14, 2008.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>
@@ -77,8 +78,8 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from series import LazyPowerSeriesRing, LazyPowerSeries
-from stream import Stream, _integers_from
+from .series import LazyPowerSeriesRing, LazyPowerSeries
+from .stream import Stream, _integers_from
 from sage.rings.all import Integer, RationalField
 from sage.arith.all import moebius, gcd, lcm, divisors
 from sage.combinat.partition import Partition, Partitions
@@ -92,7 +93,7 @@ def OrdinaryGeneratingSeriesRing(R):
     """
     Return the ring of ordinary generating series over ``R``.
 
-    Note that is is just a
+    Note that it is just a
     :class:`LazyPowerSeriesRing` whose elements have
     some extra methods.
 
@@ -167,7 +168,7 @@ def ExponentialGeneratingSeriesRing(R):
     """
     Return the ring of exponential generating series over ``R``.
 
-    Note that is is just a
+    Note that it is just a
     :class:`LazyPowerSeriesRing` whose elements have
     some extra methods.
 
@@ -337,7 +338,7 @@ def CycleIndexSeriesRing(R):
     difficult to implement in Sage, as it would be an element
     of a power series ring in infinitely many variables.
 
-    Note that is is just a :class:`LazyPowerSeriesRing` (whose base
+    Note that it is just a :class:`LazyPowerSeriesRing` (whose base
     ring is `\Lambda`) whose elements have some extra methods.
 
     EXAMPLES::
@@ -752,7 +753,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
         REFERENCES:
 
-        .. [MM] M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
+        .. [MM] \M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
            Discrete Mathematics, vol. 308, issue 23, 2008, pp. 5407-5427.
            :arXiv:`math/0503436v2`.
 
@@ -1264,7 +1265,7 @@ def _exp_gen(R = RationalField()):
 
         sage: from sage.combinat.species.generating_series import _exp_gen
         sage: g = _exp_gen()
-        sage: [g.next() for i in range(4)]
+        sage: [next(g) for i in range(4)]
         [p[], p[1], 1/2*p[1, 1] + 1/2*p[2], 1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3]]
     """
     return (_exp_term(i, R) for i in _integers_from(0))
@@ -1323,7 +1324,7 @@ def _cl_gen (R = RationalField()):
 
         sage: from sage.combinat.species.generating_series import _cl_gen
         sage: g = _cl_gen()
-        sage: [g.next() for i in range(4)]
+        sage: [next(g) for i in range(4)]
         [0, p[1], -1/2*p[1, 1] - 1/2*p[2], 1/3*p[1, 1, 1] - 1/3*p[3]]
     """
     return (_cl_term(i, R) for i in _integers_from(0))
@@ -1355,7 +1356,7 @@ def LogarithmCycleIndexSeries(R = RationalField()):
 
     REFERENCES:
 
-    .. [Labelle] G. Labelle. "New combinatorial computational methods arising from pseudo-singletons." DMTCS Proceedings 1, 2008.
+    .. [Labelle] \G. Labelle. "New combinatorial computational methods arising from pseudo-singletons." DMTCS Proceedings 1, 2008.
     """
     CIS = CycleIndexSeriesRing(R)
     return CIS(_cl_gen(R))

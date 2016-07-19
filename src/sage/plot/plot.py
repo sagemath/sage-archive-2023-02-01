@@ -222,7 +222,7 @@ of a single polygon)::
 We combine together different graphics objects using "+"::
 
     sage: H = G + P + Q
-    sage: print H
+    sage: print(H)
     Graphics object consisting of 3 graphics primitives
     sage: type(H)
     <class 'sage.plot.graphics.Graphics'>
@@ -292,7 +292,7 @@ the first few zeros::
     sage: i = CDF.0      # define i this way for maximum speed.
     sage: p1 = plot(lambda t: arg(zeta(0.5+t*i)), 1,27,rgbcolor=(0.8,0,0))
     sage: p2 = plot(lambda t: abs(zeta(0.5+t*i)), 1,27,color=hue(0.7))
-    sage: print p1 + p2
+    sage: print(p1 + p2)
     Graphics object consisting of 2 graphics primitives
     sage: p1 + p2    # display it
     Graphics object consisting of 2 graphics primitives
@@ -406,6 +406,12 @@ Pi Axis::
     sage: g2 = plot(cos(x), 0, 2*pi, linestyle = "--")
     sage: (g1+g2).show(ticks=pi/6, tick_formatter=pi)  # long time # show their sum, nicely formatted
 
+.. PLOT::
+
+    g1 = plot(sin(x), 0, 2*pi, ticks=pi/6, tick_formatter=pi)
+    g2 = plot(cos(x), 0, 2*pi, linestyle = "--", ticks=pi/6, tick_formatter=pi)
+    sphinx_plot(g1+g2)
+
 An illustration of integration::
 
     sage: f(x) = (x-3)*(x-5)*(x-7)+40
@@ -437,28 +443,36 @@ NUMERICAL PLOTTING:
 
 Sage includes Matplotlib, which provides 2D plotting with an interface
 that is a likely very familiar to people doing numerical
-computation. For example,
+computation.
+You can use `plt.clf()` to clear the current image frame
+and `plt.close()` to close it.
+For example,
 
 ::
 
-    sage: from pylab import *
-    sage: t = arange(0.0, 2.0, 0.01)
+    sage: import pylab as plt
+    sage: t = plt.arange(0.0, 2.0, 0.01)
     sage: s = sin(2*pi*t)
-    sage: P = plot(t, s, linewidth=1.0)
-    sage: xl = xlabel('time (s)')
-    sage: yl = ylabel('voltage (mV)')
-    sage: t = title('About as simple as it gets, folks')
-    sage: grid(True)
-    sage: savefig(os.path.join(SAGE_TMP, 'sage.png'))
+    sage: P = plt.plot(t, s, linewidth=1.0)
+    sage: xl = plt.xlabel('time (s)')
+    sage: yl = plt.ylabel('voltage (mV)')
+    sage: t = plt.title('About as simple as it gets, folks')
+    sage: plt.grid(True)
+    sage: plt.savefig(os.path.join(SAGE_TMP, 'sage.png'))
+    sage: plt.clf()
+    sage: plt.savefig(os.path.join(SAGE_TMP, 'blank.png'))
+    sage: plt.close()
+    sage: plt.imshow([[1,2],[0,1]])
+    <matplotlib.image.AxesImage object at ...>
 
 We test that ``imshow`` works as well, verifying that
 :trac:`2900` is fixed (in Matplotlib).
 
 ::
 
-    sage: imshow([[(0,0,0)]])
+    sage: plt.imshow([[(0,0,0)]])
     <matplotlib.image.AxesImage object at ...>
-    sage: savefig(os.path.join(SAGE_TMP, 'foo.png'))
+    sage: plt.savefig(os.path.join(SAGE_TMP, 'foo.png'))
 
 Since the above overwrites many Sage plotting functions, we reset
 the state of Sage, so that the examples below work!
@@ -530,7 +544,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 from functools import reduce
@@ -552,7 +567,7 @@ from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
 
 from sage.misc.decorators import options, rename_keyword
 
-from graphics import Graphics, GraphicsArray
+from .graphics import Graphics, GraphicsArray
 
 #Currently not used - see comment immediately above about
 #figure.canvas.mpl_connect('draw_event', pad_for_tick_labels)
@@ -966,7 +981,7 @@ def plot(funcs, *args, **kwds):
 
     We plot the `\sin` function::
 
-        sage: P = plot(sin, (0,10)); print P
+        sage: P = plot(sin, (0,10)); print(P)
         Graphics object consisting of 1 graphics primitive
         sage: len(P)     # number of graphics primitives
         1
@@ -982,7 +997,7 @@ def plot(funcs, *args, **kwds):
 
     ::
 
-        sage: P = plot(sin, (0,10), plot_points=10); print P
+        sage: P = plot(sin, (0,10), plot_points=10); print(P)
         Graphics object consisting of 1 graphics primitive
         sage: len(P[0])  # random output
         32
@@ -3217,7 +3232,7 @@ def graphics_array(array, nrows=None, ncols=None):
 
         sage: p1 = plot(sin,(-4,4))
         sage: p2 = plot(cos,(-4,4))
-        sage: g = graphics_array([p1, p2]); print g
+        sage: g = graphics_array([p1, p2]); print(g)
         Graphics Array of size 1 x 2
         sage: g.show()
 
@@ -3679,15 +3694,15 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
     return data
 
 #Lovely cruft to keep the pickle jar working
-from line import line, line2d, Line as GraphicPrimitive_Line
-from arrow import arrow, Arrow as GraphicPrimitive_Arrow
-from bar_chart import bar_chart, BarChart as GraphicPrimitive_BarChart
-from disk import disk, Disk as GraphicPrimitive_Disk
-from point import point, points, point2d, Point as GraphicPrimitive_Point
-from matrix_plot import matrix_plot, MatrixPlot as GraphicPrimitive_MatrixPlot
-from plot_field import plot_vector_field, plot_slope_field, PlotField as GraphicPrimitive_PlotField
-from text import text, Text as GraphicPrimitive_Text
-from polygon import polygon, Polygon as GraphicPrimitive_Polygon
-from circle import circle, Circle as GraphicPrimtive_Circle
-from contour_plot import contour_plot, implicit_plot, ContourPlot as GraphicPrimitive_ContourPlot
+from .line import line, line2d, Line as GraphicPrimitive_Line
+from .arrow import arrow, Arrow as GraphicPrimitive_Arrow
+from .bar_chart import bar_chart, BarChart as GraphicPrimitive_BarChart
+from .disk import disk, Disk as GraphicPrimitive_Disk
+from .point import point, points, point2d, Point as GraphicPrimitive_Point
+from .matrix_plot import matrix_plot, MatrixPlot as GraphicPrimitive_MatrixPlot
+from .plot_field import plot_vector_field, plot_slope_field, PlotField as GraphicPrimitive_PlotField
+from .text import text, Text as GraphicPrimitive_Text
+from .polygon import polygon, Polygon as GraphicPrimitive_Polygon
+from .circle import circle, Circle as GraphicPrimtive_Circle
+from .contour_plot import contour_plot, implicit_plot, ContourPlot as GraphicPrimitive_ContourPlot
 

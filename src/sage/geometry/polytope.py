@@ -33,7 +33,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
-
+from __future__ import print_function
 
 from sage.misc.all import SAGE_TMP, tmp_filename
 from sage.rings.all import Integer, QQ
@@ -102,15 +102,14 @@ class Polytope(SageObject):
         stdin, stdout, stderr = os.popen3(cmd)
         stdin.close()
         err = stderr.read()
-        if len(err) > 0:
+        if len(err):
             raise RuntimeError(err)
-        print stdout.read(), err
+        print(stdout.read(), err)
         S = polymake.from_data(open(output_file).read())
         os.unlink(infile1)
         os.unlink(infile2)
         os.unlink(output_file)
         return S
-
 
     def data(self):
         return self.__data

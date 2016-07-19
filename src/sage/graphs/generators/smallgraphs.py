@@ -14,7 +14,8 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
+from __future__ import absolute_import
 
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -341,12 +342,12 @@ def WellsGraph():
 
     REFERENCES:
 
-    .. [BCN89] A. E. Brouwer, A. M. Cohen, A. Neumaier,
+    .. [BCN89] \A. E. Brouwer, A. M. Cohen, A. Neumaier,
       Distance-Regular Graphs,
       Springer, 1989.
     """
-    from platonic_solids import DodecahedralGraph
-    from basic import CompleteBipartiteGraph
+    from .platonic_solids import DodecahedralGraph
+    from .basic import CompleteBipartiteGraph
 
     # Following the construction from the book "Distance-regular graphs"
     dodecahedron = DodecahedralGraph()
@@ -674,7 +675,7 @@ def HallJankoGraph(from_string=True):
         ....:     nv = set(g.neighbors(v))
         ....:     nv.discard(0)
         ....:     if len(nu & nv) != expected:
-        ....:         print "Something is wrong here!!!"
+        ....:         print("Something is wrong here!!!")
         ....:         break
 
     Some other properties that we know how to check::
@@ -1951,9 +1952,8 @@ def DejterGraph():
     from sage.coding.hamming_code import HammingCode
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
-    from string import join
     g = CubeGraph(7)
-    g.delete_vertices([join(map(str,x),"")
+    g.delete_vertices(["".join(map(str, x))
                        for x in HammingCode(FiniteField(2), 3)])
     g.name("Dejter Graph")
     return g
@@ -4850,12 +4850,12 @@ def JankoKharaghaniGraph(v):
 
     .. [JK02] Janko, Kharaghani,
        A block negacyclic Bush-type Hadamard matrix and two strongly regular graphs.
-       J. Combin. Theory Ser. A 98 (2002), no. 1, 118–126.
+       J. Combin. Theory Ser. A 98 (2002), no. 1, 118--126.
        http://dx.doi.org/10.1006/jcta.2001.3231
 
     .. [GM87] Gibbons, Mathon,
        Construction methods for Bhaskar Rao and related designs,
-       J. Austral. Math. Soc. Ser. A 42 (1987), no. 1, 5–30.
+       J. Austral. Math. Soc. Ser. A 42 (1987), no. 1, 5--30.
        http://journals.cambridge.org/article_S1446788700033929
 
     """
@@ -4947,7 +4947,7 @@ def JankoKharaghaniTonchevGraph():
 
     REFERENCES:
 
-    .. [JKT01] Z.Janko, H.Kharaghani, V.D.Tonchev
+    .. [JKT01] \Z.Janko, H.Kharaghani, V.D.Tonchev
        The existence of a Bush-type Hadamard matrix of order 324
        and two new infinite classes of symmetric designs.
        Des. Codes Cryptogr. 24(2001), 225-232

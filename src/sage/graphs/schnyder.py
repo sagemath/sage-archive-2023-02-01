@@ -15,6 +15,7 @@ REFERENCE:
        Proc. 1st Annual ACM-SIAM Symposium on Discrete Algorithms,
        San Francisco (1994), pp. 138-147.
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #      Copyright (C) 2008 Jonathan Bober and Emily Kirkman
 #
@@ -23,7 +24,7 @@ REFERENCE:
 #*****************************************************************************
 
 from sage.sets.set import Set
-from all import DiGraph
+from .all import DiGraph
 
 def _triangulate(g, comb_emb):
     """
@@ -525,8 +526,8 @@ def _compute_coordinates(g, x):
 
 class TreeNode():
     """
-    A class to represent each node in the trees used by :func:`_realizer` and
-    :func:`_compute_coordinates` when finding a planar geometric embedding in
+    A class to represent each node in the trees used by ``_realizer`` and
+    ``_compute_coordinates`` when finding a planar geometric embedding in
     the grid.
 
     Each tree node is doubly linked to its parent and children.

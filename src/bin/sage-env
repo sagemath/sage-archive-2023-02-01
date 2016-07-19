@@ -261,6 +261,12 @@ if [ -z "${SAGE_ORIG_PATH_SET}" ]; then
 fi 
 export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
+if [ "$SAGE_BANNER" = "bare" ]; then
+    export SAGE_BANNER_TEXT=$(cat "$SAGE_ROOT/VERSION.txt")
+elif [ "$SAGE_BANNER" != "no" ]; then
+    export SAGE_BANNER_TEXT=$(cat "$SAGE_LOCAL/bin/sage-banner")
+fi
+
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
 # Since the user might do something crazy we do not do any checks, but hope for the best.
 if [ -f $SAGE_LOCAL/toolchain/toolchain-env ]; then
@@ -312,11 +318,6 @@ fi
 GP_DATA_DIR="$SAGE_LOCAL/share/pari" && export GP_DATA_DIR
 GPHELP="$SAGE_LOCAL/bin/gphelp" && export GPHELP
 GPDOCDIR="$SAGE_LOCAL/share/pari/doc" && export GPDOCDIR
-
-# Allow git to work without warning messages after relocating Sage.
-# See trac #15901.
-GIT_TEMPLATE_DIR="$SAGE_LOCAL"/share/git-core/templates && export GIT_TEMPLATE_DIR
-GIT_EXEC_PATH="$SAGE_LOCAL"/libexec/git-core && export GIT_EXEC_PATH
 
 SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
 SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
@@ -445,6 +446,8 @@ if [ -d "$DOT_SAGE" ] ; then
     fi
 fi
 MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
+
+PERL5LIB="$SAGE_LOCAL/lib/perl5:$PERL5LIB" && export PERL5LIB
 
 ############ architecture flags
 

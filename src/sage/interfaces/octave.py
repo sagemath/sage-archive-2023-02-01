@@ -150,9 +150,11 @@ EXAMPLES::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
-from expect import Expect, ExpectElement
+from .expect import Expect, ExpectElement
 
 
 class Octave(Expect):
@@ -245,7 +247,7 @@ class Octave(Expect):
 
         EXAMPLES::
 
-            sage: print octave._install_hints()
+            sage: print(octave._install_hints())
             You must get ...
         """
         return """
@@ -284,7 +286,7 @@ class Octave(Expect):
         # to signals.
         if not self._expect is None:
             if verbose:
-                print "Exiting spawned %s process." % self
+                print("Exiting spawned %s process." % self)
         return
 
     def _start(self):

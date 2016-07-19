@@ -1031,11 +1031,12 @@ cdef class BooleanFunction(SageObject):
 
     def is_plateaued(self):
         r"""
-        Return True if this function is plateaued, i.e. its Walsh transform
+        Return ``True`` if this function is plateaued, i.e. its Walsh transform
         takes at most three values `0` and `\pm \lambda`, where `\lambda` is some
         positive integer.
 
         EXAMPLES::
+
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: R.<x0, x1, x2, x3> = BooleanPolynomialRing()
             sage: f = BooleanFunction(x0*x1 + x2 + x3)

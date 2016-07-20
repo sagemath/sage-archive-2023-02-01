@@ -88,10 +88,16 @@ ntl_configure()
     # particular, its assembler) is too old to deal with at least some of the
     # instructions emitted by GCC with '-march=native'.  (That's not necessa-
     # rily the case, but safe.  TODO: Improve by adding checks.)
-    if [ "$SAGE_FAT_BINARY" = "yes" -o -x "$SAGE_LOCAL"/bin/gcc ]; then
-       DISABLE_NATIVE="NATIVE=off"
+    if [ "$SAGE_FAT_BINARY" = "yes" ]; then
+        echo "Configuring NTL with NATIVE=off because we're building a 'fat' binary."
+        DISABLE_NATIVE="NATIVE=off"
+    elif [ -x "$SAGE_LOCAL"/bin/gcc ]; then
+        # This is pretty rigorous, since on Darwin, Sage's GCC is always built.
+        echo "Configuring NTL with NATIVE=off because we're using Sage's GCC."
+        DISABLE_NATIVE="NATIVE=off"
     else
-       DISABLE_NATIVE="NATIVE=on"
+        echo "Configuring NTL with NATIVE=on (NTL might still disable it)."
+        DISABLE_NATIVE="NATIVE=on"
     fi
     
     ./configure DEF_PREFIX="$SAGE_LOCAL" SHARED=on \

@@ -53,6 +53,13 @@ const unsigned NAME##_NPARAMS = 3; \
 template<typename T1, typename T2, typename T3> const GiNaC::function NAME(const T1 & p1, const T2 & p2, const T3 & p3) { \
 	return GiNaC::function(NAME##_SERIAL::serial, GiNaC::ex(p1), GiNaC::ex(p2), GiNaC::ex(p3)); \
 }
+
+#define DECLARE_FUNCTION_6P(NAME) \
+class NAME##_SERIAL { public: static unsigned serial; }; \
+const unsigned NAME##_NPARAMS = 6; \
+template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6> const GiNaC::function NAME(const T1 & p1, const T2 & p2, const T3 & p3, const T4 & p4, const T5 & p5, const T6 & p6) { \
+	return GiNaC::function(NAME##_SERIAL::serial, GiNaC::ex(p1), GiNaC::ex(p2), GiNaC::ex(p3), GiNaC::ex(p4), GiNaC::ex(p5), GiNaC::ex(p6)); \
+}
 // end of generated lines
 
 #define REGISTER_FUNCTION(NAME,OPT) \
@@ -79,9 +86,11 @@ typedef void (* print_funcp)();
 typedef ex (* eval_funcp_1)(const ex &);
 typedef ex (* eval_funcp_2)(const ex &, const ex &);
 typedef ex (* eval_funcp_3)(const ex &, const ex &, const ex &);
+typedef ex (* eval_funcp_6)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &);
 typedef ex (* evalf_funcp_1)(const ex &, PyObject* parent);
 typedef ex (* evalf_funcp_2)(const ex &, const ex &, PyObject* parent);
 typedef ex (* evalf_funcp_3)(const ex &, const ex &, const ex &, PyObject* parent);
+typedef ex (* evalf_funcp_6)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, PyObject* parent);
 
 typedef ex (* conjugate_funcp_1)(const ex &);
 typedef ex (* conjugate_funcp_2)(const ex &, const ex &);
@@ -97,6 +106,7 @@ typedef ex (* imag_part_funcp_3)(const ex &, const ex &, const ex &);
 typedef ex (* derivative_funcp_1)(const ex &, unsigned);
 typedef ex (* derivative_funcp_2)(const ex &, const ex &, unsigned);
 typedef ex (* derivative_funcp_3)(const ex &, const ex &, const ex &, unsigned);
+typedef ex (* derivative_funcp_6)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, unsigned);
 typedef ex (* power_funcp_1)(const ex &, const ex &);
 typedef ex (* power_funcp_2)(const ex &, const ex &, const ex &);
 typedef ex (* power_funcp_3)(const ex &, const ex &, const ex &, const ex &);
@@ -143,10 +153,12 @@ public:
     function_options & eval_func(eval_funcp_1 e);
     function_options & eval_func(eval_funcp_2 e);
     function_options & eval_func(eval_funcp_3 e);
+    function_options & eval_func(eval_funcp_6 e);
 
     function_options & evalf_func(evalf_funcp_1 ef);
     function_options & evalf_func(evalf_funcp_2 ef);
     function_options & evalf_func(evalf_funcp_3 ef);
+    function_options & evalf_func(evalf_funcp_6 ef);
 
     function_options & conjugate_func(conjugate_funcp_1 d);
     function_options & conjugate_func(conjugate_funcp_2 d);
@@ -163,6 +175,7 @@ public:
     function_options & derivative_func(derivative_funcp_1 d);
     function_options & derivative_func(derivative_funcp_2 d);
     function_options & derivative_func(derivative_funcp_3 d);
+    function_options & derivative_func(derivative_funcp_6 d);
 
     function_options & power_func(power_funcp_1 d);
     function_options & power_func(power_funcp_2 d);
@@ -326,10 +339,11 @@ class function : public exprseq
 	// other constructors
 public:
 	function(unsigned ser);
-	// the following lines have been generated for max. 14 parameters
+	// the following lines have been generated for some parameters
     function(unsigned ser, const ex & param1);
     function(unsigned ser, const ex & param1, const ex & param2);
     function(unsigned ser, const ex & param1, const ex & param2, const ex & param3);
+    function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4, const ex & param5, const ex & param6);
 	// end of generated lines
 	function(unsigned ser, exprseq  es);
 	function(unsigned ser, const exvector & v, bool discardable = false);

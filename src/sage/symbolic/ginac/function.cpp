@@ -141,6 +141,12 @@ function_options & function_options::eval_func(eval_funcp_3 e)
 	eval_f = eval_funcp(e);
 	return *this;
 }
+function_options & function_options::eval_func(eval_funcp_6 e)
+{
+	test_and_set_nparams(6);
+	eval_f = eval_funcp(e);
+	return *this;
+}
 
 function_options & function_options::evalf_func(evalf_funcp_1 ef)
 {
@@ -157,6 +163,12 @@ function_options & function_options::evalf_func(evalf_funcp_2 ef)
 function_options & function_options::evalf_func(evalf_funcp_3 ef)
 {
 	test_and_set_nparams(3);
+	evalf_f = evalf_funcp(ef);
+	return *this;
+}
+function_options & function_options::evalf_func(evalf_funcp_6 ef)
+{
+	test_and_set_nparams(6);
 	evalf_f = evalf_funcp(ef);
 	return *this;
 }
@@ -233,6 +245,12 @@ function_options & function_options::derivative_func(derivative_funcp_2 d)
 function_options & function_options::derivative_func(derivative_funcp_3 d)
 {
 	test_and_set_nparams(3);
+	derivative_f = derivative_funcp(d);
+	return *this;
+}
+function_options & function_options::derivative_func(derivative_funcp_6 d)
+{
+	test_and_set_nparams(6);
 	derivative_f = derivative_funcp(d);
 	return *this;
 }

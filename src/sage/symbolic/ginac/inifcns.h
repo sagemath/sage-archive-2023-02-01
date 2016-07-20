@@ -233,6 +233,9 @@ DECLARE_FUNCTION_2P(hermite)
 /** Gegenbauer (ultraspherical) polynomial. */
 DECLARE_FUNCTION_3P(gegenbauer)
 
+/** Appell F1 function */
+DECLARE_FUNCTION_6P(appell_F1)
+
 /** Order term function (for truncated power series). */
 DECLARE_FUNCTION_1P(Order)
 

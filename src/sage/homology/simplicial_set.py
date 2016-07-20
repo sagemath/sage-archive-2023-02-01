@@ -886,7 +886,10 @@ class SimplicialSet_infinite(Parent):
     other classes which inherit from this one. See :class:`Nerve` for
     one example. In particular, any such class must implement methods
     ``n_cells`` and ``n_skeleton`` -- without those, most computations
-    will be impossible.
+    will be impossible. The ``__init__`` method of such a class should
+    also make sure to set the category, so that methods defined at the
+    category level, like ``is_pointed`` and ``is_finite``, work
+    correctly.
 
     Note that for infinite simplicial sets, ``n_cells`` could often be
     defined to return ``self.n_skeleton(n).n_cells(n)``, but this
@@ -981,7 +984,7 @@ class SimplicialSet_infinite(Parent):
 
     def is_connected(self):
         """
-        True if this simplicial set is connected
+        True if this simplicial set is connected.
 
         EXAMPLES::
 
@@ -1267,22 +1270,6 @@ class SimplicialSet_infinite(Parent):
                 # groups for which these errors are raised. 'IsTrivial'
                 # works for all of the examples I've seen, though.
                 raise ValueError('unable to determine if the fundamental group is trival')
-
-    def is_finite(self):
-        """
-        True if this simplicial set is finite.
-
-        EXAMPLES::
-
-            sage: C5 = groups.misc.MultiplicativeAbelian([5])
-            sage: BC5 = simplicial_sets.ClassifyingSpace(C5)
-            sage: BC5.is_finite()
-            False
-            sage: T = simplicial_sets.Torus()
-            sage: T.is_finite()
-            True
-        """
-        return isinstance(self, SimplicialSet)
 
     def connectivity(self, max_dim=None):
         """
@@ -4365,7 +4352,7 @@ class ReducedConeOfSimplicialSet(QuotientOfSimplicialSet):
 
         Start with the unreduced cone: take `X` and add a point `*`
         (which will become the base point) and for each simplex
-        `\sigma` in `X`, add both `\sigma` and a simplex made up of ``
+        `\sigma` in `X`, add both `\sigma` and a simplex made up of `*`
         and `\sigma` (topologically, form the join of `*` and
         `\sigma`).
 

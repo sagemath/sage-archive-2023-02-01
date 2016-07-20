@@ -4990,6 +4990,17 @@ class LPRevisedDictionary(LPAbstractDictionary):
             99
             sage: D2.basic_variables()[-1]
             c
+            
+            sage: D = P.revised_dictionary(0, 1, 2, 3, 4)
+            sage: D.add_row([1, 2, 3, 4, 5, 6], 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the sum of coefficients of nonbasic slack variables has
+            to be equal to -1 when inserting a row into a dictionary for the
+            auxiliary problem
+            sage: D3 = D.add_row([1, 2, 3, 4, 5, -15], 0)
+            sage: D3.row_coefficients(11)
+            (1, 2, 3, 4, 5, -15)
         """
         P = self.problem()
         n = P.n()
@@ -5002,6 +5013,11 @@ class LPRevisedDictionary(LPAbstractDictionary):
                 nbc_slack[i -1 - n] = coef
             else:
                 nbc_decision[i - 1] = coef
+        if 0 in self.basic_indices() and not sum(nbc_slack) == -1:
+            raise ValueError(
+                "the sum of coefficients of nonbasic slack variables has to "
+                "be equal to -1 when inserting a row into a dictionary for "
+                "the auxiliary problem")
         P_new = P.add_constraint(nbc_decision - nbc_slack * P.A(),
                                  constant - nbc_slack * P.b(),
                                  basic_variable)

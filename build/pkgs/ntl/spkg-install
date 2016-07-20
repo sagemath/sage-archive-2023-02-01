@@ -82,9 +82,13 @@ ntl_configure()
         ;;
     esac
 
-    # If SAGE_FAT_BINARY is enabled we don't want ntl to be built with cpu specific 
-    # instructions such as avx and fma.
-    if [ "$SAGE_FAT_BINARY" = "yes" ]; then
+    # If SAGE_FAT_BINARY is enabled we don't want NTL to be built with CPU-
+    # specific instructions such as AVX and FMA.
+    # Also, if Sage's GCC was built, assume that the native toolchain (in
+    # particular, its assembler) is too old to deal with at least some of the
+    # instructions emitted by GCC with '-march=native'.  (That's not necessa-
+    # rily the case, but safe.  TODO: Improve by adding checks.)
+    if [ "$SAGE_FAT_BINARY" = "yes" -o -x "$SAGE_LOCAL"/bin/gcc ]; then
        DISABLE_NATIVE="NATIVE=off"
     else
        DISABLE_NATIVE="NATIVE=on"

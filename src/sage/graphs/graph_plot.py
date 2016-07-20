@@ -149,8 +149,7 @@ graphplot_options.update(
                         'This currently only works for directed graphs, '
                         'since we pass off the undirected graph to networkx.',
                     'edge_thickness': 'The thickness of the edges.',
-                    'edge_color': 'The default color for edges not listed in '
-                    'edge_colors.',
+                    'edge_color': 'The default color for edges not listed in edge_colors.',
                     'edge_colors': 'a dictionary specifying edge colors: each '
                         'key is a color recognized by matplotlib, and each '
                         'entry is a list of edges.',

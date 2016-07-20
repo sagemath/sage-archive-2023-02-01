@@ -591,9 +591,14 @@ bool basic::match(const ex & pattern, lst & repl_lst) const
 /** Helper function for subs(). Does not recurse into subexpressions. */
 ex basic::subs_one_level(const exmap & m, unsigned options) const
 {
-	if ((options & subs_options::no_pattern) != 0u) {
-		const auto& it = m.find(*this);
-		return (it != m.end())? it->second : *this;
+	exmap::const_iterator it;
+
+ 	if (options & subs_options::no_pattern) {
+		ex thisex = *this;
+		it = m.find(thisex);
+		if (it != m.end())
+			return it->second;
+		return thisex;
 	} else {
                 for (const auto & elem : m) {
 			lst repl_lst;

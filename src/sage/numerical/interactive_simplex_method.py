@@ -2799,7 +2799,8 @@ class LPAbstractDictionary(SageObject):
         INPUT:
 
         - ``nonbasic_coefficients``-- a list of the coefficients for the
-          new row
+          new row (with which nonbasic variables are subtracted in the relation
+          for the new basic variable)
 
         - ``constant``--  the constant term for the new row
 
@@ -3564,7 +3565,10 @@ class LPAbstractDictionary(SageObject):
     @abstract_method
     def row_coefficients(self, v):
         r"""
-        Return the coefficients of a basic variable
+        Return the coefficients of the basic variable ``v``.
+        
+        These are the coefficients with which nonbasic variables are subtracted
+        in the relation for ``v``.
 
         INPUT:
 
@@ -4066,7 +4070,8 @@ class LPDictionary(LPAbstractDictionary):
         INPUT:
 
         - ``nonbasic_coefficients``-- a list of the coefficients for the
-          new row
+          new row (with which nonbasic variables are subtracted in the relation
+          for the new basic variable)
 
         - ``constant``--  the constant term for the new row
 
@@ -4269,7 +4274,10 @@ class LPDictionary(LPAbstractDictionary):
 
     def row_coefficients(self, v):
         r"""
-        Return the coefficients of a basic variable
+        Return the coefficients of the basic variable ``v``.
+        
+        These are the coefficients with which nonbasic variables are subtracted
+        in the relation for ``v``.
 
         INPUT:
 
@@ -4949,7 +4957,8 @@ class LPRevisedDictionary(LPAbstractDictionary):
         INPUT:
 
         - ``nonbasic_coefficients``-- a list of the coefficients for the
-          new row
+          new row (with which nonbasic variables are subtracted in the relation
+          for the new basic variable)
 
         - ``constant``--  the constant term for the new row
 
@@ -5346,7 +5355,10 @@ class LPRevisedDictionary(LPAbstractDictionary):
 
     def row_coefficients(self, v):
         r"""
-        Return the coefficients of a basic variable.
+        Return the coefficients of the basic variable ``v``.
+        
+        These are the coefficients with which nonbasic variables are subtracted
+        in the relation for ``v``.
 
         INPUT:
 

@@ -33,7 +33,7 @@ def tex_from_array(array, with_lines=True):
     ``[None]`` rather than ``[]``.
 
     The array is drawn using either the English or French convention
-    following :meth:`Tableaux.global_options``.
+    following :meth:`Tableaux.options``.
 
     .. SEEALSO:: :meth:`tex_from_array_tuple`
 
@@ -102,7 +102,7 @@ def tex_from_array(array, with_lines=True):
         &\lr{8}\\
         \end{array}$}
         }
-        sage: Tableaux.global_options(convention="french")
+        sage: Tableaux.options.convention="french"
         sage: print(tex_from_array([[1,2,3],[4,5]]))
         {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[t]{*{3}c}\cline{1-2}
@@ -165,10 +165,10 @@ def tex_from_array(array, with_lines=True):
         &&\lr{3}\\
         \end{array}$}
         }
-        sage: Tableaux.global_options.reset()
+        sage: Tableaux.options._reset()
     """
     lr=lr_macro.substitute(bar='|' if with_lines else '')
-    if Tableaux.global_options("convention") == "English":
+    if Tableaux.options.convention == "English":
         return '{%s\n%s\n}' % (lr, tex_from_skew_array(array, with_lines))
     else:
         return '{%s\n%s\n}' % (lr, tex_from_skew_array(array[::-1], with_lines, align='t'))
@@ -212,7 +212,7 @@ def tex_from_array_tuple(a_tuple, with_lines=True):
         \lr{9}\\
         \end{array}$}
         }
-        sage: Tableaux.global_options(convention="french")
+        sage: Tableaux.options.convention="french"
         sage: print(tex_from_array_tuple([[[1,2,3],[4,5]],[],[[None,6,7],[None,8],[9]]]))
         {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[t]{*{3}c}\cline{1-2}
@@ -237,7 +237,7 @@ def tex_from_array_tuple(a_tuple, with_lines=True):
         }
     """
     lr=lr_macro.substitute(bar='|' if with_lines else '')
-    if Tableaux.global_options("convention") == "English":
+    if Tableaux.options.convention == "English":
         return '{%s\n%s\n}' % (lr, ','.join(
             r'\emptyset' if comp==[] else tex_from_skew_array(comp, with_lines) for comp in a_tuple))
     else:

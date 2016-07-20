@@ -3626,7 +3626,9 @@ class PMDiagram(CombinatorialObject):
         osh = self.outer_shape() + [0]*self.n
         for i in range(self.n):
             t.append(['.']*ish[i]+['+']*(msh[i]-ish[i])+['-']*(osh[i]-msh[i]))
-        t=[i for i in t if i!= []]
+        t = [i for i in t if i!= []]
+        if not t:
+            return ''
         return Tableau(t)._repr_diagram()
 
     def pp(self):

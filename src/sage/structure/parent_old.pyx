@@ -25,6 +25,7 @@ This came up in some subtle bug once.
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function
 
 cimport sage_object
 import operator
@@ -78,8 +79,8 @@ cdef class Parent(parent.Parent):
 
     def __init__(self, coerce_from=[], actions=[], embeddings=[], category=None):
         # TODO: many classes don't call this at all, but __new__ crashes Sage
-#        if len(coerce_from) > 0:
-#            print type(self), coerce_from
+#        if len(coerce_from):
+#            print(type(self), coerce_from)
         self.init_coerce(False)
         self._coerce_from_list = list(coerce_from)
         self._coerce_from_hash = MonoDict(23)
@@ -89,8 +90,8 @@ cdef class Parent(parent.Parent):
         cdef parent.Parent other
         for mor in embeddings:
             other = mor.domain()
-            print "embedding", self, " --> ", other
-            print mor
+            print("embedding", self, " --> ", other)
+            print(mor)
             other.init_coerce() # TODO remove when we can
             other._coerce_from_list.append(mor)
 

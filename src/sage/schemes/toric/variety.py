@@ -340,7 +340,6 @@ from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.toric.homset import SchemeHomset_points_toric_field
 from sage.structure.category_object import certify_names
 from sage.categories.fields import Fields
-from sage.misc.cachefunc import ClearCacheOnPickle
 _Fields = Fields()
 
 
@@ -531,7 +530,7 @@ def AffineToricVariety(cone, *args, **kwds):
     return ToricVariety(fan, *args, **kwds)
 
 
-class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
+class ToricVariety_field(AmbientSpace):
     r"""
     Construct a toric variety associated to a rational polyhedral fan.
 
@@ -1917,7 +1916,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
 
         OUTPUT:
 
-        - If the toric variety is is over `\CC` and has at most finite
+        - If the toric variety is over `\CC` and has at most finite
           orbifold singularities: `H^\bullet(X,\QQ)` as a polynomial
           quotient ring.
 

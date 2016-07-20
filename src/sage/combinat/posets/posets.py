@@ -240,7 +240,7 @@ Classes and functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 # python3
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 
 import copy
 from sage.misc.cachefunc import cached_method
@@ -1506,7 +1506,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             [[0, 1, 2, 3, 4], [0, 1, 2, 4, 3], [0, 2, 1, 3, 4], [0, 2, 1, 4, 3], [0, 2, 4, 1, 3]]
 
         """
-        from linear_extensions import LinearExtensionsOfPoset
+        from .linear_extensions import LinearExtensionsOfPoset
         return LinearExtensionsOfPoset(self, facade = facade)
 
     def is_linear_extension(self, l):
@@ -1654,12 +1654,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: get_plot_labels(P1.plot(label_elements=False))
             []
             sage: get_plot_labels(P1.plot(label_elements=True))
-            ['0', '1', '2', '3', '4']
+            [u'0', u'1', u'2', u'3', u'4']
             sage: element_labels = {0:'a', 1:'b', 2:'c', 3:'d', 4:'e'}
             sage: get_plot_labels(P1.plot(element_labels=element_labels))
-            ['a', 'b', 'c', 'd', 'e']
+            [u'a', u'b', u'c', u'd', u'e']
             sage: get_plot_labels(P2.plot(element_labels=element_labels))
-            ['a', 'b', 'c', 'd', 'e']
+            [u'a', u'b', u'c', u'd', u'e']
 
         The following checks that :trac:`18936` has been fixed and labels still work::
 
@@ -3448,9 +3448,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         # remove duplicates.
         return [self.subposet([self._list[i] for i in x]) for x in uniq([frozenset(y) for y in L])]
 
-    import __builtin__ # Caveat: list is overridden by the method list above!!!
+    from six.moves import builtins
+    # Caveat: list is overridden by the method list above!!!
 
-    def antichains(self, element_constructor = __builtin__.list):
+    def antichains(self, element_constructor = builtins.list):
         """
         Return the antichains of the poset.
 
@@ -3634,7 +3635,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             chains.append(chain)
         return chains
 
-    def chains(self, element_constructor=__builtin__.list, exclude=None):
+    def chains(self, element_constructor=builtins.list, exclude=None):
         """
         Return the chains of the poset.
 

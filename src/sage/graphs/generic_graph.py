@@ -43,7 +43,9 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.delete_vertices` | Remove vertices from the (di)graph taken from an iterable container of vertices.
     :meth:`~GenericGraph.has_vertex` | Return ``True`` if vertex is one of the vertices of this graph.
     :meth:`~GenericGraph.random_vertex` | Return a random vertex of self.
+    :meth:`~GenericGraph.random_vertex_iterator` | Return an iterator over random vertices of self.
     :meth:`~GenericGraph.random_edge` | Return a random edge of self.
+    :meth:`~GenericGraph.random_edge_iterator` | Return an iterator over random edges of self.
     :meth:`~GenericGraph.vertex_boundary` | Return a list of all vertices in the external boundary of vertices1, intersected with vertices2.
     :meth:`~GenericGraph.set_vertices` | Associate arbitrary objects with each vertex
     :meth:`~GenericGraph.set_vertex` | Associate an arbitrary object with a vertex.
@@ -307,6 +309,7 @@ Methods
 -------
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 from copy import copy
 from sage.misc.decorators import options
@@ -315,7 +318,7 @@ from sage.misc.prandom import random
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
-from generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
+from .generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
 from sage.graphs.dot2tex_utils import assert_have_dot2tex
 from sage.misc.superseded import deprecation, deprecated_function_alias
 from sage.misc.decorators import rename_keyword
@@ -3695,7 +3698,7 @@ class GenericGraph(GenericGraph_pyx):
                 g = self
 
             if algorithm == "Kruskal":
-                from spanning_tree import kruskal
+                from .spanning_tree import kruskal
                 return kruskal(g, wfunction=wfunction_float, check=check)
             else:
                 from sage.graphs.base.boost_graph import min_spanning_tree
@@ -4717,7 +4720,7 @@ class GenericGraph(GenericGraph_pyx):
                     raise AttributeError('graph must have attribute _embedding set to compute current (embedded) genus')
                 return (2-verts+edges-faces) // 2
         else: # then compute either maximal or minimal genus of all embeddings
-            import genus
+            from . import genus
 
             if set_embedding:
                 if self.has_loops() or self.is_directed() or self.has_multiple_edges():
@@ -9422,6 +9425,47 @@ class GenericGraph(GenericGraph_pyx):
             next(it)
         return next(it)
 
+    def random_vertex_iterator(self, *args, **kwds):
+        r"""
+        Return an iterator over random vertices of self.
+
+        The returned iterator enables to amortize the cost of accessing random
+        vertices, as can be done with multiple calls to method
+        :meth:`random_vertex`.
+
+        INPUT:
+
+        - ``*args`` and ``**kwds`` - arguments to be passed down to the
+          :meth:`vertex_iterator` method.
+
+        EXAMPLE:
+
+        The returned value is an iterator over the vertices of self::
+
+            sage: g = graphs.PetersenGraph()
+            sage: it = g.random_vertex_iterator()
+            sage: [next(it) in g for _ in range(5)]
+            [True, True, True, True, True]
+
+        TESTS:
+
+        Empty Graph::
+
+            sage: empty_graph = Graph()
+            sage: list(empty_graph.random_vertex_iterator())
+            []
+            sage: it = empty_graph.random_vertex_iterator()
+            sage: next(it)
+            Traceback (most recent call last):
+            ...
+            StopIteration
+        """
+        from sage.misc.prandom import choice
+        if self.order():
+            V = list(self.vertex_iterator(*args, **kwds))
+            while True:
+                yield choice(V)
+
     def random_edge(self,**kwds):
         r"""
         Returns a random edge of self.
@@ -9452,6 +9496,55 @@ class GenericGraph(GenericGraph_pyx):
         for i in xrange(0, randint(0, self.size() - 1)):
             next(it)
         return next(it)
+
+    def random_edge_iterator(self, *args, **kwds):
+        r"""
+        Return an iterator over random edges of self.
+
+        The returned iterator enables to amortize the cost of accessing random
+        edges, as can be done with multiple calls to method :meth:`random_edge`.
+
+        INPUT:
+
+        - ``*args`` and ``**kwds`` - arguments to be passed down to the
+          :meth:`edge_iterator` method.
+
+        EXAMPLE:
+
+        The returned value is an iterator over the edges of self::
+
+            sage: g = graphs.PetersenGraph()
+            sage: it = g.random_edge_iterator()
+            sage: [g.has_edge(next(it)) for _ in range(5)]
+            [True, True, True, True, True]
+
+        As the :meth:`edges` method would, this function returns by default a
+        triple ``(u,v,l)`` of values, in which ``l`` is the label of edge
+        ``(u,v)``::
+
+            sage: print(next(g.random_edge_iterator())) # random
+            (0, 5, None)
+            sage: print(next(g.random_edge_iterator(labels=False))) # random
+            (5, 7)
+
+        TESTS:
+
+        Graph without edge::
+
+            sage: empty_graph = Graph()
+            sage: list(empty_graph.random_edge_iterator())
+            []
+            sage: it = empty_graph.random_edge_iterator()
+            sage: next(it)
+            Traceback (most recent call last):
+            ...
+            StopIteration
+        """
+        from sage.misc.prandom import choice
+        if self.size():
+            E = list(self.edge_iterator(*args, **kwds))
+            while True:
+                yield choice(E)
 
     def vertex_boundary(self, vertices1, vertices2=None):
         """
@@ -11776,7 +11869,7 @@ class GenericGraph(GenericGraph_pyx):
         # SubgraphSearch assumes the graph we are searching for has order at least 2.
         if G.order() == 1:
             if self.order() >= 1:
-                import graph
+                from . import graph
                 return graph.Graph({ self.vertices()[0]:[]})
             else:
                 return None
@@ -11951,7 +12044,7 @@ class GenericGraph(GenericGraph_pyx):
             return []
 
         elif G.order() == 1:
-            import graph
+            from . import graph
             return iter([graph.Graph({v:[]}) for v in self.vertices()])
         else:
             from sage.graphs.generic_graph_pyx import SubgraphSearch
@@ -13555,7 +13648,7 @@ class GenericGraph(GenericGraph_pyx):
             if by_weight:
                 raise ValueError("Algorithm '" + algorithm + "' does not work" +
                                  " on weighted graphs.")
-            from distances_all_pairs import diameter
+            from .distances_all_pairs import diameter
             return diameter(self, algorithm=algorithm)
 
         return max(self.eccentricity(by_weight=by_weight,
@@ -14098,7 +14191,7 @@ class GenericGraph(GenericGraph_pyx):
             algorithm = "NetworkX"
 
         if algorithm == "Sage":
-            from centrality import centrality_betweenness
+            from .centrality import centrality_betweenness
             return centrality_betweenness(self, normalize = normalized,exact=exact)
         elif algorithm == "NetworkX":
             import networkx
@@ -15804,7 +15897,7 @@ class GenericGraph(GenericGraph_pyx):
         if algorithm=='BFS' or (algorithm is None and not by_weight):
             if by_weight:
                 raise ValueError("BFS algorithm does not work on weighted graphs.")
-            from distances_all_pairs import wiener_index
+            from .distances_all_pairs import wiener_index
             return wiener_index(self)
 
         if not self.is_connected():
@@ -18320,7 +18413,7 @@ class GenericGraph(GenericGraph_pyx):
             os.system('%s %s 2>/dev/null 1>/dev/null &'% (browser(), filename))
             return
 
-        from graph_plot import graphplot_options
+        from .graph_plot import graphplot_options
         # This dictionary only contains the options that graphplot
         # understands. These options are removed from kwds at the same
         # time.
@@ -18470,7 +18563,7 @@ class GenericGraph(GenericGraph_pyx):
             - :meth:`plot`
             - :meth:`graphviz_string`
         """
-        import graph_plot
+        from . import graph_plot
         layout_options = dict( (key,kwds[key]) for key in kwds.keys() if key     in graph_plot.layout_options )
         kwds           = dict( (key,kwds[key]) for key in kwds.keys() if key not in graph_plot.layout_options )
         if pos3d is None:

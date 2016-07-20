@@ -38,6 +38,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
 from copy import copy
@@ -1851,7 +1852,7 @@ class ClusterQuiver(SageObject):
             ...
             ValueError: only makes sense for quivers of finite type
         """
-        from cluster_seed import ClusterSeed
+        from .cluster_seed import ClusterSeed
         from sage.geometry.fan import Fan
         from sage.geometry.cone import Cone
 
@@ -1899,7 +1900,7 @@ class ClusterQuiver(SageObject):
             ...
             ValueError: only supported for quivers of finite type
         """
-        from cluster_seed import ClusterSeed
+        from .cluster_seed import ClusterSeed
         from sage.geometry.fan import Fan
         from sage.geometry.cone import Cone
 

@@ -26,11 +26,11 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import, division
 
 import itertools
-import misc
-from __builtin__ import list as builtinlist
+from . import misc
+from six.moves.builtins import list as builtinlist
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.combinat.combinat import CombinatorialClass
 from sage.rings.integer import Integer
@@ -1014,7 +1014,7 @@ class IntegerVectors_nkconstraints(IntegerListsLex):
                     return binomial(self.n+self.k-1,self.n)
                 else: #do by inclusion / exclusion on the number
                       #i of parts greater than m
-                    return sum( [(-1)**i * binomial(self.n+self.k-1-i*(m+1), self.k-1)*binomial(self.k,i) for i in range(0, self.n/(m+1)+1)])
+                    return sum( [(-1)**i * binomial(self.n+self.k-1-i*(m+1), self.k-1)*binomial(self.k,i) for i in range(self.n // (m+1)+1)])
             else:
                 return super(IntegerVectors_nkconstraints, self).cardinality()
 

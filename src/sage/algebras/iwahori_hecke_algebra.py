@@ -18,6 +18,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from functools import cmp_to_key
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.bindable_class import BindableClass
@@ -76,9 +77,10 @@ def normalized_laurent_polynomial(R, p):
         u + v^-1 + u^-1
     """
     try:
-        return R({k:R._base(c) for k,c in p.dict().iteritems()})
-    except (AttributeError,TypeError):
+        return R({k: R._base(c) for k, c in p.dict().iteritems()})
+    except (AttributeError, TypeError):
         return R(p)
+
 
 def index_cmp(x, y):
     """
@@ -100,7 +102,13 @@ def index_cmp(x, y):
         return 1
     if y.bruhat_le(x) or x.length() > y.length():
         return -1
-    return cmp(x, y) # Fallback total ordering
+    # fallback case, in order to define a total order
+    if x < y:
+        return -1
+    if x > y:
+        return 1
+    return 0
+
 
 class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
     r"""
@@ -1204,7 +1212,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                                              algebra.base_ring(),
                                              algebra._W,
                                              category=algebra._BasesCategory(),
-                                             monomial_cmp=index_cmp,
+                                             sorting_key=cmp_to_key(index_cmp),
                                              prefix=self._prefix)
 
         # This **must** match the name of the class in order for

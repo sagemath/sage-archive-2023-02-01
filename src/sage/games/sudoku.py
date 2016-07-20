@@ -21,6 +21,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ######################################################################
 from __future__ import print_function
+from __future__ import absolute_import
 
 import six
 from sage.structure.sage_object import SageObject
@@ -719,7 +720,7 @@ class Sudoku(SageObject):
         .. [sudoku:escargot]  "Al Escargot", due to Arto Inkala, http://timemaker.blogspot.com/2006/12/ai-escargot-vwv.html
         .. [sudoku:wikipedia]  "Near worst case", Wikipedia: "Algorithmics of sudoku", http://en.wikipedia.org/wiki/Algorithmics_of_sudoku
         """
-        from sudoku_backtrack import backtrack_all
+        from .sudoku_backtrack import backtrack_all
         solutions = backtrack_all(self.n, self.puzzle)
         for soln in solutions:
             yield soln

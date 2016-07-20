@@ -142,7 +142,7 @@ Functions and classes
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity
@@ -154,7 +154,7 @@ from sage.misc.all import prod
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.misc.lazy_attribute import lazy_attribute
-from combinat_cython import _stirling_number2
+from .combinat_cython import _stirling_number2
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -465,11 +465,19 @@ def catalan_number(n):
     n = ZZ(n)
     return binomial(2*n,n).divide_knowing_divisible_by(n+1)
 
-def euler_number(n):
+def euler_number(n, algorithm='flint'):
     """
     Return the `n`-th Euler number.
 
-    IMPLEMENTATION: Wraps Maxima's euler.
+    INPUT:
+
+    - ``n`` -- a positive integer
+
+    - ``algorithm`` -- (Default: ``'flint'``) any one of the following:
+
+      - ``'maxima'`` -- Wraps Maxima's ``euler``.
+
+      - ``'flint'`` -- Wrap FLINT's ``arith_euler_number``
 
     EXAMPLES::
 
@@ -490,8 +498,15 @@ def euler_number(n):
     """
     n = ZZ(n)
     if n < 0:
-        raise ValueError("n (=%s) must be a nonnegative integer"%n)
-    return ZZ(maxima.eval("euler(%s)"%n))
+        raise ValueError("n (=%s) must be a nonnegative integer" % n)
+    if algorithm == 'maxima':
+        return ZZ(maxima.eval("euler(%s)" % n))
+    elif algorithm == 'flint':
+        import sage.libs.flint.arith
+        return sage.libs.flint.arith.euler_number(n)
+    else:
+        raise ValueError("algorithm must be 'flint' or 'maxima'")
+
 
 def fibonacci(n, algorithm="pari"):
     """

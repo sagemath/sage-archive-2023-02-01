@@ -1,6 +1,7 @@
 """
 Coerce maps
 """
+from __future__ import print_function
 
 import re
 import types
@@ -61,8 +62,8 @@ cdef class DefaultConvertMap(Map):
             return C._element_constructor(C, x)
         except Exception:
             if print_warnings:
-                print type(C), C
-                print type(C._element_constructor), C._element_constructor
+                print(type(C), C)
+                print(type(C._element_constructor), C._element_constructor)
             raise
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
@@ -81,8 +82,8 @@ cdef class DefaultConvertMap(Map):
                     return C._element_constructor(C, x, *args, **kwds)
         except Exception:
             if print_warnings:
-                print type(C), C
-                print type(C._element_constructor), C._element_constructor
+                print(type(C), C)
+                print(type(C._element_constructor), C._element_constructor)
             raise
 
 
@@ -104,8 +105,8 @@ cdef class DefaultConvertMap_unique(DefaultConvertMap):
             return C._element_constructor(x)
         except Exception:
             if print_warnings:
-                print type(C), C
-                print type(C._element_constructor), C._element_constructor
+                print(type(C), C)
+                print(type(C._element_constructor), C._element_constructor)
             raise
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
@@ -123,8 +124,8 @@ cdef class DefaultConvertMap_unique(DefaultConvertMap):
                     return C._element_constructor(x, *args, **kwds)
         except Exception:
             if print_warnings:
-                print type(C), C
-                print type(C._element_constructor), C._element_constructor
+                print(type(C), C)
+                print(type(C._element_constructor), C._element_constructor)
             raise
 
 
@@ -229,9 +230,9 @@ cdef class NamedConvertMap(Map):
             method = getattr(x, self.method_name)
         except AttributeError:
             if print_warnings:
-                print type(x), x
-                print type(C), C
-                print self.method_name
+                print(type(x), x)
+                print(type(C), C)
+                print(self.method_name)
             raise TypeError("Cannot coerce {} to {}".format(x, C))
         cdef Map m
         cdef Element e = method(C)
@@ -384,8 +385,8 @@ cdef class CallableConvertMap(Map):
                 y = self._func(x)
         except Exception:
             if print_warnings:
-                print self._func
-                print C
+                print(self._func)
+                print(C)
             raise
         if y is None:
             raise RuntimeError("BUG in coercion model: {} returned None".format(self._func))
@@ -420,8 +421,8 @@ cdef class CallableConvertMap(Map):
                 y = self._func(x, *args, **kwds)
         except Exception:
             if print_warnings:
-                print self._func
-                print self._codomain
+                print(self._func)
+                print(self._codomain)
             raise
         if y is None:
             raise RuntimeError("BUG in coercion model: %s returned None" % (self._func))

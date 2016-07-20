@@ -23,6 +23,9 @@ git init
 SRC=`pwd`/src
 BUILD=`pwd`/build
 
+# System m4 from Mac OS X 10.11.5 is too old to bootstrap libtool 1.4.3
+export M4="$SAGE_LOCAL/bin/m4"
+
 ########################################################################
 # Apply patch(es)
 ########################################################################

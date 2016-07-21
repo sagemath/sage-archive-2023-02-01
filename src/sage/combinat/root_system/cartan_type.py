@@ -400,7 +400,7 @@ used to differentiate between the `A_{+\infty}` and `A_{\infty}` root systems::
     ['A', NN]
     sage: print(CartanType(['A', NN]).ascii_art())
     O---O---O---O---O---O---O---..
-    0   1   2   3
+    0   1   2   3   4   5   6
     sage: CartanType(['A', ZZ])
     ['A', ZZ]
     sage: print(CartanType(['A', ZZ]).ascii_art())
@@ -2407,13 +2407,12 @@ class CartanType_standard(UniqueRepresentation, SageObject):
         """
         EXAMPLES::
 
+            sage: len(CartanType(['A',4]))
+            2
             sage: len(CartanType(['A',4,1]))
             3
         """
-        if hasattr(self, 'affine'):
-            return 3
-        else:
-            return 2
+        return 3 if self.is_affine() else 2
 
     def __getitem__(self, i):
         """

@@ -343,10 +343,14 @@ class PlanePartition(ClonableArray):
 
         """
         if show_box is None:
-            show_box = SHOW_BOX
+            show_box = False
         x=self._max_x
         y=self._max_y
         z=self._max_z
+        from sage.functions.trig import cos,sin
+        from sage.plot.polygon import polygon
+        from sage.symbolic.constants import pi
+        from sage.plot.plot import plot
         Uside = [[0,0], [cos(-pi/6),sin(-pi/6)], [0,-1],[cos(7*pi/6),sin(7*pi/6)]]
         Lside = [[0,0], [cos(-pi/6),sin(-pi/6)], [cos(pi/6),sin(pi/6)],[0,1]]
         Rside = [[0,0], [0,1],[cos(5*pi/6),sin(5*pi/6)], [cos(7*pi/6),sin(7*pi/6)]]

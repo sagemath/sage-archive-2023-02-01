@@ -615,6 +615,14 @@ class PlanePartitions(UniqueRepresentation,Parent):
     """
 
     def __init__(self, box_size):
+        r"""
+        Initialize ``self``
+
+        EXAMPLES:
+
+            sage: PP = PlanePartitions((4,3,2))
+            sage: TestSuite(PP).run()
+        """
         self._box = box_size
         Parent.__init__(self, category=FiniteEnumeratedSets())
 
@@ -625,6 +633,7 @@ class PlanePartitions(UniqueRepresentation,Parent):
         A = self._box[0]
         B = self._box[1]
         C = self._box[2]
+        from sage.combinat.tableau import SemistandardTableaux
         for T in SemistandardTableaux([B for i in range(A)],max_entry=C+A):
             PP = [[0 for i in range(B)] for j in range(A)]
             for r in range(A):

@@ -201,6 +201,27 @@ class PlanePartition(ClonableArray):
         return ret
         
     def _ascii_art_(self):
+        r"""
+        Return an ascii art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: print(PlanePartition([[4,3,3,1],[2,1,1],[1,1]])._ascii_art_())
+            <BLANKLINE>              
+                 / \       
+                |\ /|      
+                |\|/ \     
+               / \|\ / \   
+              |\ /|\|\ /|  
+             / \|/ \|\|/|  
+            |\ / \ / \|/ \ 
+             \|\ /|\ /|\ /|
+               \|/ \|/ \|/ 
+            <BLANKLINE>  
+            <BLANKLINE>                             
+            <BLANKLINE>              
+        """
+    
         from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._repr_diagram().splitlines(), baseline=0)
 

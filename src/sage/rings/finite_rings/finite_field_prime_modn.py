@@ -35,8 +35,9 @@ import sage.rings.finite_rings.integer_mod as integer_mod
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
-import sage.structure.factorization as factorization
-from sage.structure.parent import Parent
+
+from sage.structure.sage_object import register_unpickle_override
+
 
 class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRing_generic):
     r"""
@@ -297,3 +298,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             1
         """
         return Integer(1)
+
+register_unpickle_override(
+    'sage.rings.finite_field_prime_modn', 'FiniteField_prime_modn',
+    FiniteField_prime_modn)

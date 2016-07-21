@@ -1320,15 +1320,21 @@ def unpickle_global(module, name):
     if unpickler is not None:
         return unpickler[0]
 
+    def error():
+        raise ImportError("cannot import {1} from {0}, call "
+            "register_unpickle_override({0!r}, {1!r}, ...) to fix this".format(
+                module, name))
+
     mod = sys_modules.get(module)
     if mod is not None:
-        return getattr(mod, name)
+        try:
+            return getattr(mod, name)
+        except AttributeError:
+            error()
     try:
         __import__(module)
     except ImportError:
-        raise ImportError("cannot import {1} from {0}, "
-            "call register_unpickle_override({0!r}, {1!r}, ...) to fix this".format(
-            module, name))
+        error()
     mod = sys_modules[module]
     return getattr(mod, name)
 

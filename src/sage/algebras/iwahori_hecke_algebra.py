@@ -207,8 +207,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         sage: Cp(C[1])
         doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
         See http://trac.sagemath.org/21043 for details.
-        doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
-        See http://trac.sagemath.org/21043 for details.
         Cp[1] + (-u*v^-1-u^-1*v)
         sage: elt = Cp[2]*Cp[3]+C[1]; elt
         Cp[2,3] + Cp[1] + (-u*v^-1-u^-1*v)

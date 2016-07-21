@@ -653,10 +653,11 @@ class TriangularModuleMorphism(ModuleMorphism):
         """
         if cmp is not None:
             deprecation(21043, "the 'cmp' keyword is deprecated, use 'key' instead")
-            self._cmp = cmp
-            self._use_cmp = True
-        self._key = key
-        self._use_cmp = False
+            self._key_kwds = dict(cmp=cmp)
+        elif key is not None:
+            self._key_kwds = dict(key=key)
+        else:
+            self._key_kwds = dict()
 
         if triangular is True:
             deprecation(8678, "module_morphism(..., triangular=True) is deprecated; "
@@ -664,15 +665,9 @@ class TriangularModuleMorphism(ModuleMorphism):
             triangular = "lower"
 
         if triangular == "upper":
-            if self._use_cmp:
-                self._dominant_item = attrcall("leading_item", cmp=cmp)
-            else:
-                self._dominant_item = attrcall("leading_item", key=key)
+            self._dominant_item = attrcall("leading_item", **self._key_kwds)
         else:
-            if self._use_cmp:
-                self._dominant_item = attrcall("trailing_item", cmp=cmp)
-            else:
-                self._dominant_item = attrcall("trailing_item", key=key)
+            self._dominant_item = attrcall("trailing_item", **self._key_kwds)
         # We store those two just be able to pass them down to the inverse function
         self._triangular = triangular
 
@@ -819,22 +814,13 @@ class TriangularModuleMorphism(ModuleMorphism):
                 self._dominant_item(on_basis(i))[0]
 
         if self._invertible:
-            if self._use_cmp:  # using the deprecated cmp comparison
-                return self.__class__(
-                    domain=self.codomain(),
-                    on_basis=self._invert_on_basis,
-                    codomain=self.domain(), category=self.category_for(),
-                    unitriangular=self._unitriangular,  triangular=self._triangular,
-                    cmp=self._cmp, inverse=self,
-                    inverse_on_support=retract_dom, invertible = self._invertible)
-            else:
-                return self.__class__(
-                    domain=self.codomain(),
-                    on_basis=self._invert_on_basis,
-                    codomain=self.domain(), category=self.category_for(),
-                    unitriangular=self._unitriangular,  triangular=self._triangular,
-                    key=self._key, inverse=self,
-                    inverse_on_support=retract_dom, invertible = self._invertible)                
+            return self.__class__(
+                domain=self.codomain(),
+                on_basis=self._invert_on_basis,
+                codomain=self.domain(), category=self.category_for(),
+                unitriangular=self._unitriangular, triangular=self._triangular,
+                inverse=self, inverse_on_support=retract_dom,
+                invertible=self._invertible, **self._key_kwds)
         else:
             return SetMorphism(Hom(self.codomain(), self.domain(),
                                    SetsWithPartialMaps()),

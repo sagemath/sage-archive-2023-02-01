@@ -20,7 +20,6 @@ from __future__ import absolute_import
 from sage.misc.lazy_import import LazyImport, lazy_import
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
-from sage.misc.superseded import deprecation
 from sage.misc.abstract_method import abstract_method
 from sage.misc.sage_itertools import max_cmp, min_cmp
 from sage.categories.homsets import HomsetsCategory
@@ -40,10 +39,6 @@ lazy_import('sage.modules.with_basis.morphism',
              'DiagonalModuleMorphism',
              'TriangularModuleMorphismByLinearity',
              'TriangularModuleMorphismFromFunction'])
-
-
-def cmp_deprecation():
-    deprecation(21043, "the 'cmp' keyword is deprecated, use 'key' instead")
 
 
 class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
@@ -1448,7 +1443,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             else:
                 raise ValueError("{} is not a single term".format(self))
 
-        def leading_support(self, cmp=None, key=None):
+        def leading_support(self, *args, **kwds):
             r"""
             Return the maximal element of the support of ``self``. Note
             that this may not be the term which actually appears first when
@@ -1480,14 +1475,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: f.leading_support()
                 [3]
             """
-            if cmp is not None:
-                cmp_deprecation()
-                return max_cmp(self.support(), cmp)
-            if key is not None:
-                return max(self.support(), key=key)
-            return max(self.support())
+            return max_cmp(self.support(), *args, **kwds)
 
-        def leading_item(self, cmp=None, key=None):
+        def leading_item(self, *args, **kwds):
             r"""
             Return the pair ``(k, c)`` where
 
@@ -1512,8 +1502,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 (3, 4)
                 sage: def cmp(x,y): return y-x
                 sage: x.leading_item(cmp=cmp)
-                doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
-                See http://trac.sagemath.org/21043 for details.
                 (1, 3)
 
                 sage: def key(x): return -x
@@ -1525,14 +1513,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: f.leading_item()
                 ([3], -5)
             """
-            if cmp is not None:
-                cmp_deprecation()
-                k = self.leading_support(cmp=cmp)
-                return k, self[k]
-            k = self.leading_support(key=key)
+            k = self.leading_support(*args, **kwds)
             return k, self[k]
 
-        def leading_monomial(self, cmp=None, key=None):
+        def leading_monomial(self, *args, **kwds):
             r"""
             Return the leading monomial of ``self``.
 
@@ -1551,8 +1535,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 B[3]
                 sage: def cmp(x,y): return y-x
                 sage: x.leading_monomial(cmp=cmp)
-                doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
-                See http://trac.sagemath.org/21043 for details.
                 B[1]
 
                 sage: def key(x): return -x
@@ -1564,12 +1546,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: f.leading_monomial()
                 s[3]
             """
-            if cmp is not None:
-                cmp_deprecation()
-                return self.parent().monomial(self.leading_support(cmp=cmp))
-            return self.parent().monomial(self.leading_support(key=key))
+            return self.parent().monomial(self.leading_support(*args, **kwds))
 
-        def leading_coefficient(self, cmp=None, key=None):
+        def leading_coefficient(self, *args, **kwds):
             r"""
             Returns the leading coefficient of ``self``.
 
@@ -1588,8 +1567,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 1
                 sage: def cmp(x,y): return y-x
                 sage: x.leading_coefficient(cmp=cmp)
-                doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
-                See http://trac.sagemath.org/21043 for details.
                 3
 
                 sage: def key(x): return -x
@@ -1601,12 +1578,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: f.leading_coefficient()
                 -5
             """
-            if cmp is not None:
-                cmp_deprecation()
-                return self.leading_item(cmp=cmp)[1]
-            return self.leading_item(key=key)[1]
+            return self.leading_item(*args, **kwds)[1]
 
-        def leading_term(self, cmp=None, key=None):
+        def leading_term(self, *args, **kwds):
             r"""
             Return the leading term of ``self``.
 
@@ -1625,8 +1599,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 B[3]
                 sage: def cmp(x,y): return y-x
                 sage: x.leading_term(cmp=cmp)
-                doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
-                See http://trac.sagemath.org/21043 for details.
                 3*B[1]
 
                 sage: def key(x): return -x
@@ -1638,12 +1610,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: f.leading_term()
                 -5*s[3]
             """
-            if cmp is not None:
-                cmp_deprecation()
-                return self.parent().term(*self.leading_item(cmp=cmp))
-            return self.parent().term(*self.leading_item(key=key))
+            return self.parent().term(*self.leading_item(*args, **kwds))
 
-        def trailing_support(self, cmp=None, key=None):
+        def trailing_support(self, *args, **kwds):
             r"""
             Return the minimal element of the support of ``self``. Note
             that this may not be the term which actually appears last when
@@ -1675,14 +1644,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: f.trailing_support()
                 [1]
             """
-            if cmp is not None:
-                cmp_deprecation()
-                return min_cmp(self.support(), cmp)
-            if key is not None:
-                return min(self.support(), key=key)
-            return min(self.support())
+            return min_cmp(self.support(), *args, **kwds)
 
-        def trailing_item(self, cmp=None, key=None):
+        def trailing_item(self, *args, **kwds):
             r"""
             Returns the pair ``(c, k)`` where ``c*self.parent().monomial(k)``
             is the trailing term of ``self``.
@@ -1702,8 +1666,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 (1, 3)
                 sage: def cmp(x,y): return y-x
                 sage: x.trailing_item(cmp=cmp)
-                doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
-                See http://trac.sagemath.org/21043 for details.
                 (3, 1)
 
                 sage: def key(x): return -x
@@ -1715,14 +1677,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: f.trailing_item()
                 ([1], 2)
             """
-            if cmp is not None:
-                cmp_deprecation()
-                k = self.trailing_support(cmp=cmp)
-                return k, self[k]
-            k = self.trailing_support(key=key)
+            k = self.trailing_support(*args, **kwds)
             return k, self[k]
 
-        def trailing_monomial(self, cmp=None, key=None):
+        def trailing_monomial(self, *args, **kwds):
             r"""
             Return the trailing monomial of ``self``.
 
@@ -1741,8 +1699,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 B[1]
                 sage: def cmp(x,y): return y-x
                 sage: x.trailing_monomial(cmp=cmp)
-                doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
-                See http://trac.sagemath.org/21043 for details.
                 B[3]
 
                 sage: def key(x): return -x
@@ -1754,12 +1710,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: f.trailing_monomial()
                 s[1]
             """
-            if cmp is not None:
-                cmp_deprecation()
-                return self.parent().monomial(self.trailing_support(cmp=cmp))
-            return self.parent().monomial(self.trailing_support(key=key))
+            return self.parent().monomial(self.trailing_support(*args, **kwds))
 
-        def trailing_coefficient(self, cmp=None, key=None):
+        def trailing_coefficient(self, *args, **kwds):
             r"""
             Return the trailing coefficient of ``self``.
 
@@ -1778,8 +1731,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 3
                 sage: def cmp(x,y): return y-x
                 sage: x.trailing_coefficient(cmp=cmp)
-                doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
-                See http://trac.sagemath.org/21043 for details.
                 1
 
                 sage: def key(x): return -x
@@ -1791,12 +1742,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: f.trailing_coefficient()
                 2
             """
-            if cmp is not None:
-                cmp_deprecation()
-                return self.trailing_item(cmp=cmp)[1]
-            return self.trailing_item(key=key)[1]
+            return self.trailing_item(*args, **kwds)[1]
 
-        def trailing_term(self, cmp=None, key=None):
+        def trailing_term(self, *args, **kwds):
             r"""
             Return the trailing term of ``self``.
 
@@ -1815,8 +1763,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 3*B[1]
                 sage: def cmp(x,y): return y-x
                 sage: x.trailing_term(cmp=cmp)
-                doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
-                See http://trac.sagemath.org/21043 for details.
                 B[3]
 
                 sage: def key(x): return -x
@@ -1828,10 +1774,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: f.trailing_term()
                 2*s[1]
             """
-            if cmp is not None:
-                cmp_deprecation()
-                return self.parent().term(*self.trailing_item(cmp=cmp))
-            return self.parent().term(*self.trailing_item(key=key))
+            return self.parent().term(*self.trailing_item(*args, **kwds))
 
         def map_coefficients(self, f):
             """

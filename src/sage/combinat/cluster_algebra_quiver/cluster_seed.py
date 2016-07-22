@@ -145,7 +145,7 @@ class ClusterSeed(SageObject):
             * self._use_fpolys - a boolean tracking whether F-polynomials and cluster variables will be tracked as part of every mutation.
             * self._cluster - a list tracking the current names of cluster elements.
             * self._user_labels_prefix - the prefix for every named cluster element. Defaults to 'x'.
-            * self._user_labels - an optional dictionary or list of user defined names for all cluster elements. Defaults to 'x_i' for mutable elements and 'y_i' for immutable elements.
+            * self._user_labels - an optional dictionary or list of user defined names for all cluster elements. Defaults to 'x_i' for mutable elements and 'y_i' for immutable elements. All labels should be nonnegative integers or alphanumeric strings.'
             * self._init_vars - an internal list for defining ambient the algebraic setting and naming quiver vertices.
             * self._init_exch - the dictionary storing the initial mutable cluster variable names.
             * self._U - the coefficient tuple of the initial cluster seed.
@@ -748,6 +748,8 @@ class ClusterSeed(SageObject):
     def _sanitize_init_vars(self, user_labels, user_labels_prefix = 'x'):
         r"""
         Warning: This is an internal method that rewrites a user-given set of cluster variable names into a format that Sage can utilize.
+        
+        
 
         INPUT:
 

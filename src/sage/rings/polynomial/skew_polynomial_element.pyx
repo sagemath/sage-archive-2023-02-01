@@ -1,14 +1,32 @@
 r"""
-This module implements elements in skew polynomial rings.
+Univariate Skew Polynomials
+
+This module provides the class ``SkewPolynomial`` which constructs a
+single univariate skew polynomial over commutative base rings and an
+automorphism over the base ring. Skew polynomials are non-commutative
+and so principal properties such as left and right gcd, lcm, monic, 
+multiplication, division are provided by means of the left and right
+Euclidean algorithm. 
+
+This module also supports the creation of a generic dense skew polynomial,
+through the class ``SkewPolynomial_generic_dense`` along with classes 
+``ConstantSkewPolynomialSection`` and ``SkewPolynomialBaseringInjection``
+for conversion from a skew polynomial ring to its base ring and vice versa
+respectively.
 
 DEFINITION::
 
-Let `R` be a commutative ring equipped with an endomorphism `\sigma`.
+Let `R` be a commutative ring equipped with an automorphism `\sigma`.
 
-The skew polynomial ring over `(R, \sigma)` is the ring `S = `R[X,\sigma]`
-is the usual ring of polynomials over `R` equipped with the skew
-multiplication defined by the rule `X*a = \sigma(a)*X` for all `a`
-in `R`.
+Then, a formal skew polynomial is given by the equation:
+    F(X) = a_{n}X^{n} + ... + a_0
+where the coefficients a_{i} belong to R and X is a formal variable.
+
+Addition between two skew polynomials is defined by the usual addition
+operation and the modified multiplication is defined by the rule 
+`X a = \sigma(a) X` for all `a` in `R`. Skew polynomials are thus
+non-commutative and the degree of a product is equal to the sum of the
+degrees of the factors.
 
 EXAMPLES::
 
@@ -117,7 +135,6 @@ Here is a working example over a finite field::
     sage: a == b*q + r
     True
 
-
 Once we have euclidean divisions, we have for free gcd and lcm
 (at least if the base ring is a field).
 This class provides an implementation of gcd and lcm::
@@ -165,45 +182,17 @@ include "../../ext/stdsage.pxi"
 
 import re
 from copy import copy
-
 import skew_polynomial_ring
 import sage.rings.infinity as infinity
 from sage.misc.latex import latex
 from sage.structure.factorization import Factorization
-
 from sage.categories.homset import Hom
-
-from sage.structure.element import RingElement
 from sage.structure.element cimport Element, RingElement, ModuleElement
-
 from sage.rings.ring import Field
-
 from sage.structure.parent_gens cimport ParentWithGens
-
 from sage.rings.integer cimport Integer
 from sage.categories.map cimport Map
 from sage.rings.morphism cimport RingHomomorphism
-from sage.rings.polynomial.polynomial_element cimport Polynomial_generic_dense
-
-def is_SkewPolynomial(a):
-    """
-    Return True if `a` is a univariate skew polynomial (over some base).
-
-    INPUT:
-
-    -  ``a`` -- an object
-
-    EXAMPLES::
-
-        sage: from sage.rings.polynomial.skew_polynomial_element import is_SkewPolynomial
-        sage: R.<t> = ZZ[]
-        sage: sigma = R.hom([t+1])
-        sage: S.<x> = R['x',sigma]
-        sage: a = x^2
-        sage: is_SkewPolynomial(a)
-        True
-    """
-    return isinstance(a, SkewPolynomial)
 
 cdef class SkewPolynomial(AlgebraElement):
     """
@@ -212,6 +201,16 @@ cdef class SkewPolynomial(AlgebraElement):
     
     def __init__(self, parent, is_gen=False, construct=False):
         """
+        This method is a constructor for a skew polynomial.
+
+        INPUT::
+
+        - ``parent`` -- parent of `self`
+
+        - ``is_gen`` -- boolean (default: False) 
+
+        - ``construct`` -- boolean (default: False)
+
         The following examples illustrate the creation of elements of
         skew polynomial rings.
 
@@ -880,6 +879,15 @@ cdef class SkewPolynomial(AlgebraElement):
             polynomial ``f`` is a unit if and only if degree of f is 
             0 and f is then a unit in R. The general case is not yet
             implemented.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: a = x + (t+1)*x^5 + t^2*x^3 - x^5
+            sage: a.is_unit()
+            False 
         """
         # todo: Sage does not yet have support for finding order of
         #       automorphisms. Once that is available, general case can
@@ -1916,22 +1924,7 @@ cdef class SkewPolynomial(AlgebraElement):
             V1 = V1.left_monic()
         return V1
 
-    def _repr_(self):
-        """
-        Return string representation of this skew polynomial.
-
-        EXAMPLES::
-
-            sage: R.<t> = QQ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
-            sage: a = t^2 + 1/2*x*t;
-            sage: a._repr_()
-            '(1/2*t + 1/2)*x + t^2'
-        """
-        return self._repr()
-
-    def _repr(self, name=None):
+    def _repr_(self, name=None):
         """
         Return string representation of this skew polynomial.
 
@@ -1946,9 +1939,9 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: sigma = R.hom([t+1])
             sage: S.<x> = R['x',sigma]
             sage: a = t^2 + 1/2*x*t;
-            sage: a._repr()
+            sage: a._repr_()
             '(1/2*t + 1/2)*x + t^2'
-            sage: a._repr(name='y')
+            sage: a._repr_(name='y')
             '(1/2*t + 1/2)*y + t^2'
         """
         s = " "
@@ -2561,6 +2554,20 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
     def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
         """
+        This method constructs a generic dense skew polynomial.
+
+        INPUT::
+    
+        - ``parent`` -- parent of `self`
+
+        - ``x`` -- list of coefficients from which `self` can be constructed
+
+        - ``check`` -- flag variable to normalize the polynomial
+
+        - ``is_gen`` -- boolean (default: False)
+
+        - ``construct`` -- boolean (default: False)
+
         TESTS::
 
             sage: R.<t> = QQ[]
@@ -2587,7 +2594,6 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         SkewPolynomial.__init__(self, parent, is_gen=is_gen)
         if x is None:
             self.__coeffs = []
-            sig_off()
             return
 
         R = parent.base_ring()
@@ -2972,12 +2978,37 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return self._rightpow_(exp,modulus)
 
 def make_generic_skew_polynomial(parent, coeffs):
+    """
+    Constructs a generic skew polynomial of type `parent`
+    from the given list of coefficients `coeffs`.
+
+    INPUT::
+
+    - ``parent`` -- parent class of ring of skew polynomials
+
+    - ``coeffs`` -- list of coefficients
+
+    OUTPUT::
+
+    An element, i.e. skew polynomial, of `parent` with coefficients
+    corresponding to `coeffs`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.skew_polynomial_element import make_generic_skew_polynomial
+        sage: R.<t> = ZZ[]
+        sage: sigma = R.hom([t+1])
+        sage: S.<x> = SkewPolynomialRing(R,sigma)
+        sage: c = [1, 1, t]
+        sage: make_generic_skew_polynomial(S, c)
+        t*x^2 + x + 1
+    """
     return parent(coeffs)
 
 
 cdef class ConstantSkewPolynomialSection(Map):
     """
-    This class is used for conversion from a polynomial ring to
+    This class is used for conversion from a skew polynomial ring to
     its base ring.
 
     EXAMPLES::

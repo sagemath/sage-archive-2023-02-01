@@ -25,6 +25,7 @@ from sage.combinat.sf.sf import SymmetricFunctions
 from sage.rings.all import ZZ
 from functools import cmp_to_key, reduce
 
+
 def transpose_cmp(x, y):
     r"""
     Compare partitions ``x`` and ``y`` in transpose dominance order.
@@ -63,6 +64,7 @@ def transpose_cmp(x, y):
     xexp = x.to_exp()
     yexp = y.to_exp()
     n = min(len(xexp), len(yexp))
+
     def check(m, l):
         s1 = 0
         s2 = 0
@@ -76,7 +78,10 @@ def transpose_cmp(x, y):
         return 1
     if check(yexp, xexp):
         return -1
-    return cmp(x, y)
+    if x < y:
+        return -1
+    return 1
+
 
 class HallAlgebra(CombinatorialFreeModule):
     r"""

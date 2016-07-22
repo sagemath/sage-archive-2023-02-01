@@ -660,7 +660,6 @@ class rename_keyword(object):
         """
         assert deprecated is None, 'Use @rename_keyword(deprecation=<trac_number>, ...)'
         self.renames = renames
-        self.renames = renames
         self.deprecation = deprecation
 
     def __call__(self, func):

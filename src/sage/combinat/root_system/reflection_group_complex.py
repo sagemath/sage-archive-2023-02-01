@@ -315,10 +315,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 raise ValueError("the given hyperplane index set (= %s) does not have the right size"%self._index_set.values())
         self._hyperplane_index_set_inverse = {i: ii for ii,i in enumerate(self._hyperplane_index_set)}
 
-        # storing the number of reflections for later use in descents
-        self._number_of_reflections = self.number_of_reflections()
-
-        N_set = range(1, self._number_of_reflections+1)
+        N_set = range(1, self.number_of_reflections()+1)
         if self._reflection_index_set is None:
             self._reflection_index_set = tuple(N_set)
         else:
@@ -946,7 +943,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: W.degrees()                                           # optional - gap3
             (2, 3, 4, 3, 6)
 
-            sage: W = ReflectionGroup((1,1,4), (6,1,12), 23)            # optional - gap3 # fails in GAP3    
+            sage: W = ReflectionGroup((1,1,4), (6,1,12), 23)            # optional - gap3 # fails in GAP3
             sage: W.degrees()                                           # optional - gap3
             (2, 3, 4, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 72, 2, 6, 10)
         """

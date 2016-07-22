@@ -105,11 +105,14 @@ ntl_configure()
         if [ -n "$GAS_VERSION" ]; then
             echo "The default assembler appears to be GNU 'as' version ${GAS_VERSION}."
             case $GAS_VERSION in
-              2.2[2-9]*|2.3*) # GAS 2.22 already supports AVX2, BMI2 and FMA4.
+              2.2[2-9]*|2.3[0-9]*) # GAS 2.22 already supports AVX2, BMI2 and FMA4.
                 assembler_ok=true # perhaps until we upgrade Sage's GCC... ;-)
                 ;;
-              1.38) # This is Apple's ancient version of GNU as.
+              1.38) # This is almost certainly Apple's ancient version of GNU as.
                 # If we passed '-q', it would suddenly become LLVM's 'as'.
+                echo "Warning: You're still using Apple's outdated version."
+                echo "         Try upgrading to Xcode 7.x or later to get LLVM's assembler."
+                # (This should no longer happen in the future; see #20779.)
                 ;;
             esac
         elif [ -n "$LLVMAS_VERSION" ]; then

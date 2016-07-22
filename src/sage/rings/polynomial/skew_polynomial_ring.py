@@ -1,14 +1,30 @@
 r"""
 Skew Univariate Polynomial Rings
 
-Sage implements dense skew univariate polynomials over commutative rings.
+This module provides the class ``SkewPolynomialRing_general`` which constructs
+a general dense skew univariate polynomials over commutative base rings with
+automorphisms over the base rings. This is the set of formal polynomials where
+the coefficients are written on the left of the variable of the skew polynomial
+ring. The modified multiplication operation over elements of the base ring is
+extended to all elements of the skew poynomial ring by associativity and 
+distributivity.
 
 DEFINITION:
 
-Given a ring `R` and a ring endomorphism `\sigma` of `R`, the ring of
-skew polynomials `R[x,\sigma]` is the usual abelian group polynomial
-`R[x]` equipped with the modification multiplication deduced from the
-rule `X a = \sigma(a) X`.
+Let R be a commutative ring and let `\sigma` be an automorphism over R. An
+automorphism (also called twist map) is a structure preserving map from a
+mathematical object (in this case, R) onto itself that also admits an inverse.
+The ring of skew polynomials over an indeterminate variable X is defined then,
+as the ring structure on the set R as: 
+R[X, \sigma] = { a_{n-1}X^{n-1} + ... + a_{1}X + a_{0} | a_{i} \in R and n \in N }
+where the addition operation on R[X, \sigma] is given by the usual abelian
+group polynomial addition rule and the multiplication operation is defined
+by the modified rule `X*a = \sigma(a)X`.
+
+This ring is non-commutative and its elements are all such skew polynomials whose
+coefficients come from R.
+
+Reference: "Theory of Non-Commutative Polynomials" - Oystein Ore
 
 .. TODO::
 
@@ -74,6 +90,12 @@ There is a coercion map from the base ring of the skew polynomial rings::
     sage: y.parent() is S
     True
 
+.. SEE ALSO::
+
+    - ``def SkewPolynomialRing`` in sage.rings.polynomial.skew_polynomial_ring_constructor
+
+    - ``cdef class SkewPolynomial_generic_dense`` in sage.rings.polynomial.skew_polynomial_element
+
 AUTHOR:
 
 - Xavier Caruso (2012-06-29)
@@ -88,57 +110,17 @@ AUTHOR:
 #****************************************************************************
 
 from sage.structure.unique_representation import UniqueRepresentation
-
-from sage.rings.infinity import Infinity
-
 from sage.structure.element import Element
 import sage.algebras.algebra
 import sage.categories.basic as categories
-import sage.rings.ring as ring
-from sage.structure.element import RingElement
-from sage.rings.ring import is_Ring, PrincipalIdealDomain
-import sage.rings.polynomial.polynomial_element_generic as polynomial_element_generic
-import sage.rings.rational_field as rational_field
-from sage.rings.integer_ring import is_IntegerRing, IntegerRing
+#import sage.rings.ring as ring
 from sage.rings.integer import Integer
-from sage.libs.pari.all import pari_gen
-
 from sage.structure.category_object import normalize_names
 from sage.misc.prandom import randint
-
 from sage.categories.morphism import Morphism
 from sage.categories.morphism import IdentityMorphism
-from sage.categories.homset import Hom
-from sage.categories.map import Section
-from sage.rings.morphism import RingHomomorphism
-
-from sage.matrix.matrix_space import MatrixSpace
-
 import sage.misc.latex as latex
-
-from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
-from sage.rings.polynomial.polynomial_element import Polynomial_generic_dense
-from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
 from sage.rings.polynomial.skew_polynomial_element import SkewPolynomial
-
-
-def is_SkewPolynomialRing(S):
-    """
-    Return True if S is a skew polynomial ring.
-
-    EXAMPLES::
-
-        sage: from sage.rings.polynomial.skew_polynomial_ring import is_SkewPolynomialRing
-        sage: is_SkewPolynomialRing(QQ['x'])
-        False
-
-        sage: k.<t> = GF(5^3)
-        sage: Frob = k.frobenius_endomorphism()
-        sage: is_SkewPolynomialRing(k['x',Frob])
-        True
-    """
-    return isinstance(S, SkewPolynomialRing_general)
-
 
 #########################################################################################
 
@@ -146,7 +128,6 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
     """
     Skew Univariate polynomial ring over a ring.
     """
-    Element = SkewPolynomial
     @staticmethod
     def __classcall__(cls, base_ring, map, name=None, sparse=False, element_class=None):
         if not element_class:
@@ -159,6 +140,20 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     def __init__(self, base_ring, map, name, sparse, element_class):
         """
+        This method is a constructor for a general, dense univariate skew polynomial ring.
+
+        INPUT::
+
+        - ``base_ring`` -- a commutative ring
+
+        - ``map`` -- an automorphism of the base ring
+
+        - ``name`` -- string or list of strings representing the name of the variables of ring
+
+        - ``sparse`` -- boolean (default: False)
+
+        - ``element_class`` -- class representing the type of element to be used in ring
+
         EXAMPLES::
 
             sage: R.<t> = ZZ[]
@@ -182,30 +177,28 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
                 if map.domain () == base_ring and map.codomain () == base_ring:
                     self._map = map
                 else:
-                    raise TypeError("The given map is not an endomorphism of %s" % base_ring)
+                    raise TypeError("The given map is not an automorphism of %s" % base_ring)
             else:
                 raise TypeError("The given map is not a ring homomorphism")
         self._maps = { 0:IdentityMorphism(base_ring), 1:self._map }
         self._center = { }
         self._center_variable = None
-        # Algebra.__init__ also calls __init_extra__ of Algebras(...).parent_class, which
-        # tries to provide a conversion from the base ring, if it does not exist.
-        # This is for algebras that only do the generic stuff in their initialisation.
-        # But here, we want to use PolynomialBaseringInjection. Hence, we need to
-        # wipe the memory and construct the conversion from scratch.
+        self._no_generic_basering_coercion = True
         sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
         self.__generator = self._polynomial_class(self, [0,1], is_gen=True)
         base_inject = sage.rings.polynomial.skew_polynomial_element.SkewPolynomialBaseringInjection(base_ring,self)
-        self._unset_coercions_used()
         self._populate_coercion_lists_(
                 coerce_list = [base_inject],
                 convert_list = [list, base_inject])
 
     def __reduce__(self):
+        """
+        Return the globally unique skew polynomial ring based on
+        given arguments
+        """
         import sage.rings.polynomial.skew_polynomial_ring_constructor
         return (sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing,
-                (self.base_ring(), self.twist_map(), self.variable_name(), None, self.is_sparse()))
-
+                (self.base_ring(), self.twist_map(), self.variable_name(), self.is_sparse()))
 
     def _element_constructor_(self, x=None, check=True, is_gen = False, construct=False, **kwds):
         """
@@ -232,20 +225,11 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             if P is self:
                 return x
             elif P is self.base_ring():
-                # It *is* the base ring, hence, we should not need to check.
-                # Moreover, if x is equal to zero then we usually need to
-                # provide [] to the polynomial class, not [x], if we don't want
-                # to check (normally, polynomials like to strip trailing zeroes).
-                # However, in the padic case, we WANT that trailing
-                # zeroes are not stripped, because O(5)==0, but still it must
-                # not be forgotten. It should be the job of the __init__ method
-                # to decide whether to strip or not to strip.
-                return C(self, [x], check=False, is_gen=False,
+               return C(self, [x], check=False, is_gen=False,
                          construct=construct)
             elif P == self.base_ring():
                 return C(self, [x], check=True, is_gen=False,
                          construct=construct)
-
             elif self.base_ring().has_coerce_map_from(P):
                 return C(self, [x], check=True, is_gen=False,
                         construct=construct)
@@ -262,10 +246,6 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             except NameError:
                 raise TypeError("Unable to coerce string")
         return C(self, x, check, is_gen, construct=construct, **kwds)
-
-    #def construction(self):
-    #    from sage.categories.pushout import PolynomialFunctor
-    #    return PolynomialFunctor(self.variable_name(), sparse=self.__is_sparse), self.base_ring()
 
     def _coerce_map_from_(self, P):
         """
@@ -322,7 +302,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         # skew polynomial rings in the same variable over a base that canonically
         # coerces into self.base_ring()
         try:
-            if is_SkewPolynomialRing(P):
+            if isinstance(P, SkewPolynomialRing_general):
                 if self.__is_sparse and not P.is_sparse():
                     return False
                 if P.variable_name() == self.variable_name():
@@ -343,36 +323,6 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
                     return self.base_ring().has_coerce_map_from(P.base_ring())
         except AttributeError:
             pass
-
-    #def _sage_input_(self, sib, coerced):
-    #    r"""
-    #    Produce an expression which will reproduce this value when
-    #    evaluated.
-    #
-    #    EXAMPLES::
-    #
-    #        sage: sage_input(GF(5)['x']['y'], verify=True)
-    #        # Verified
-    #        GF(5)['x']['y']
-    #        sage: from sage.misc.sage_input import SageInputBuilder
-    #        sage: ZZ['z']._sage_input_(SageInputBuilder(), False)
-    #        {constr_parent: {subscr: {atomic:ZZ}[{atomic:'z'}]} with gens: ('z',)}
-    #    """
-    #    base = sib(self.base_ring())
-    #    sie = base[self.variable_name()]
-    #    gens_syntax = sib.empty_subscript(base)
-    #    return sib.parent_with_gens(self, sie, self.variable_names(), 'R',
-    #                                gens_syntax=gens_syntax)
-
-    # Skew Polynomial rings should be unique parents. Hence,
-    # no need for __cmp__. Or actually, having a __cmp__
-    # method that identifies a dense with a sparse ring
-    # is a bad bad idea!
-    #def __cmp__(left, right):
-    #    c = cmp(type(left),type(right))
-    #    if c: return c
-    #    return cmp((left.base_ring(), left.variable_name(), left.twist_map(), left.is_sparse()),
-    #               (right.base_ring(), right.variable_name(), right.twist_map(), right.is_sparse()))
 
     def _repr_(self):
         """
@@ -427,7 +377,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     def characteristic(self):
         """
-        Return the characteristic of the base field of this skew polynomial ring.
+        Return the characteristic of the base ring of this skew polynomial ring.
 
         EXAMPLES::
 
@@ -443,10 +393,10 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         """
         return self.base_ring().characteristic()
 
-    def twist_map(self,n=1):
+    def twist_map(self, n=1):
         """
-        Return the twist map (eventually iterated several times) used to define
-        this skew polynomial ring.
+        Return the twist map, otherwise known as the automorphism over the base ring of
+        `self`, iterated multiple times.
 
         INPUT:
 
@@ -502,7 +452,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
                 self._maps[n] = map
                 return map
                     
-    def gen(self,n=0):
+    def gen(self, n=0):
         """
         Return the indeterminate generator of this skew polynomial ring.
 

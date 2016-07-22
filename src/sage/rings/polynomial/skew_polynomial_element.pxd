@@ -6,21 +6,14 @@ include '../../ext/stdsage.pxi'
 
 from sage.rings.integer cimport Integer
 
-from sage.structure.element import Element, AlgebraElement
 from sage.structure.element cimport Element, AlgebraElement, ModuleElement
 from sage.structure.parent cimport Parent
-from polynomial_compiled import CompiledPolynomialFunction
 from polynomial_compiled cimport CompiledPolynomialFunction
 
 from sage.rings.morphism cimport RingHomomorphism
 from sage.structure.element cimport RingElement
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial_generic_dense
-
-
-cdef class CenterSkewPolynomial_generic_dense(Polynomial_generic_dense):
-    pass
-
 
 cdef class SkewPolynomial(AlgebraElement):
     cdef _is_gen
@@ -37,8 +30,6 @@ cdef class SkewPolynomial(AlgebraElement):
     cdef void _inplace_rmul(self, SkewPolynomial_generic_dense right)
     cdef void _inplace_lmul(self, SkewPolynomial_generic_dense right)
     cdef void _inplace_pow(self, Py_ssize_t n)
-
-
 
 cdef class SkewPolynomial_generic_dense(SkewPolynomial):
     cdef list __coeffs

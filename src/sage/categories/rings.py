@@ -855,13 +855,12 @@ class Rings(CategoryWithAxiom):
                     elts = normalize_arg(arg)
                 from sage.rings.power_series_ring import PowerSeriesRing
                 return PowerSeriesRing(self, elts)
-            
+           
             from sage.categories.morphism import Morphism
             if isinstance(arg, tuple):
                 if len(arg) == 2 and isinstance(arg[1], Morphism):
                    from sage.rings.polynomial.skew_polynomial_ring_constructor import SkewPolynomialRing
-                   return SkewPolynomialRing(self, arg[1], name=arg[0])
-                
+                   return SkewPolynomialRing(self, arg[1], names=arg[0])
                 
             # 2. Otherwise, if all specified elements are algebraic, try to
             #    return an algebraic extension

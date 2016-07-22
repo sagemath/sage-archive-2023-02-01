@@ -516,7 +516,7 @@ cdef class NumberFieldElement(FieldElement):
             return str(self)
         p = self.polynomial()
         P = self.parent()
-        from number_field import NumberField_cyclotomic
+        from .number_field import NumberField_cyclotomic
         if isinstance(P, NumberField_cyclotomic):
             n = P._n()
             if n != 2 and n%4 == 2:
@@ -556,7 +556,7 @@ cdef class NumberFieldElement(FieldElement):
             ....:         t = K.random_element()
             ....:         assert K(libgap(t)) == t, "n = {}  t = {}".format(n,t)
         """
-        from number_field import NumberField_cyclotomic
+        from .number_field import NumberField_cyclotomic
         P = self.parent()
         if not isinstance(P, NumberField_cyclotomic):
             raise NotImplementedError("libgap conversion is only implemented for cyclotomic fields")

@@ -1699,7 +1699,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         - ``element_constructor`` -- string; can be one of the following:
 
-          * ``'lattice'`` (the default) elements of the lattice will be
+          * ``'lattice'`` (default) elements of the lattice will be
             lattices that correspond to sublattices of the original lattice
 
           * ``'tuple'`` - elements are tuples of elements of the sublattices

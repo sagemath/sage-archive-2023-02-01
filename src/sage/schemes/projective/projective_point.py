@@ -1725,8 +1725,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
 
     def intersection_multiplicity(self, X):
         r"""
-        Return the intersection multiplicity of the intersection of the codomain of this point and
-        the subscheme ``X`` at this point.
+        Return the intersection multiplicity of the codomain of this point and ``X`` at this point.
 
         This uses the intersection_multiplicity implementations for projective/affine subschemes. This
         point must be a point of a projective subscheme.
@@ -1769,7 +1768,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
 
     def multiplicity(self):
         r"""
-        Return the multiplicity of the codomain of this point at this point.
+        Return the multiplicity of this point on its codomain.
 
         Uses the subscheme multiplicity implementation. This point must be a point on
         a projective subscheme.

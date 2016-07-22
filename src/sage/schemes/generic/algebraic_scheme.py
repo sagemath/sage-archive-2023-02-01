@@ -2147,7 +2147,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
 
     def multiplicity(self, P):
         r"""
-        Return the multiplicity of this affine subscheme at the point ``P``.
+        Return the multiplicity of ``P`` on this subscheme.
 
         This is computed as the multiplicity of the local ring of this subscheme corresponding to ``P``. This
         subscheme must be defined over a field. An error is raised if ``P`` is not a point on this subscheme.
@@ -3252,10 +3252,10 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
     def multiplicity(self, P):
         r"""
-        Return the multiplicity of this projective subscheme at the point ``P``.
+        Return the multiplicity of ``P`` on this subscheme.
 
-        This is computed as the corresponding multiplicity of an affine patch of this subscheme that
-        contains ``P``. This subscheme must be defined over a field. An error is returned if ``P``
+        This is computed as the multiplicity of the corresponding point on an affine patch of this subscheme
+        that contains ``P``. This subscheme must be defined over a field. An error is returned if ``P``
         not a point on this subscheme.
 
         INPUT:
@@ -3631,14 +3631,18 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
 
         OUTPUT: An integer.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Multiplicity of a fixed point of the map `z^2 + \frac{1}{4}`::
 
             sage: PP.<x,y,u,v> = ProductProjectiveSpaces(QQ, [1,1])
-            sage: G = PP.subscheme([(x^2 - 2*y^2)*u - y^2*v])
+            sage: G = PP.subscheme([(x^2 + 1/4*y^2)*v - y^2*u])
             sage: D = PP.subscheme([x*v - y*u])
-            sage: Q = PP([-1,1,-1,1])
+            sage: G.intersection(D).rational_points()
+            [(1 : 0 , 1 : 0), (1/2 : 1 , 1/2 : 1)]
+            sage: Q = PP([1/2,1,1/2,1])
             sage: G.intersection_multiplicity(D, Q)
-            1
+            2
 
         ::
 
@@ -3685,10 +3689,10 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
 
     def multiplicity(self, P):
         r"""
-        Return the multiplicity of this subscheme at the point ``P``.
+        Return the multiplicity of ``P`` on this subscheme.
 
-        This is computed as the corresponding multiplicity of an affine patch of this subscheme that
-        contains ``P``. This subscheme must be defined over a field. An error is returned if ``P``
+        This is computed as the multiplicity of the corresponding point on an affine patch of this subscheme
+        that contains ``P``. This subscheme must be defined over a field. An error is returned if ``P``
         not a point on this subscheme.
 
         INPUT:

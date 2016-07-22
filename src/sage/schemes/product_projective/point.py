@@ -547,7 +547,7 @@ class ProductProjectiveSpaces_point_field(ProductProjectiveSpaces_point_ring):
 
     def intersection_multiplicity(self, X):
         r"""
-        Return the intersection multiplicity of the codomain of this point with the subscheme ``X``.
+        Return the intersection multiplicity of the codomain of this point and subscheme ``X`` at this point.
 
         This uses the subscheme implementation of intersection_multiplicity. This point must be a point
         on a subscheme of a product of projective spaces.
@@ -574,7 +574,7 @@ class ProductProjectiveSpaces_point_field(ProductProjectiveSpaces_point_ring):
 
     def multiplicity(self):
         r"""
-        Return the multiplicity of the codomain of this point at this point.
+        Return the multiplicity of this point on its codomain.
 
         This uses the subscheme implementation of multiplicity. This point must be a point
         on a subscheme of a product of projective spaces.

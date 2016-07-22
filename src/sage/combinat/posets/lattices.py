@@ -1697,10 +1697,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         INPUT:
 
-        - ``element_constructor`` -- a string. If ``'lattice'`` (the default),
-          elements of the lattice will be lattices. If ``'tuple'``, elements
-          are lists of elements. If ``'integer'``, return a lattice
-          isomorphic to lattice of sublattices with plain integers as elements.
+        - ``element_constructor`` -- string; can be one of the following:
+
+          * ``'lattice'`` (the default) elements of the lattice will be
+            lattices that correspond to sublattices of the original lattice
+
+          * ``'tuple'`` - elements are tuples of elements of the sublattices
+            of the original lattice
+
+          * ``'integer'`` - elements are plain integers
 
         EXAMPLES::
 
@@ -1725,8 +1730,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: sll.is_isomorphic(Posets.BooleanLattice(3))
             True
         """
-        from sage.graphs.digraph import DiGraph
-
         if element_constructor not in ['lattice', 'tuple', 'integer']:
             raise ValueError("element_constructor must be one of 'lattice', 'tuple' or 'integer'")
         sublats = [frozenset(x) for x in self._hasse_diagram.sublattices_iterator(set(), 0)]

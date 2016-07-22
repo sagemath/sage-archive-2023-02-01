@@ -46,7 +46,6 @@ from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialRin
 
 # Skew Polynomial Rings
 from sage.rings.polynomial.skew_polynomial_ring_constructor import SkewPolynomialRing
-from sage.rings.polynomial.skew_polynomial_ring import is_SkewPolynomialRing
-from sage.rings.polynomial.skew_polynomial_element import is_SkewPolynomial
+
 # Evaluation of cyclotomic polynomials
 from sage.rings.polynomial.cyclotomic import cyclotomic_value

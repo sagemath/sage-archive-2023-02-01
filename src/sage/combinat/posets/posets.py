@@ -109,7 +109,7 @@ List of Poset methods
     :meth:`~FinitePoset.subposet` | Return the subposet containing elements with partial order induced by this poset.
     :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with given probability.
     :meth:`~FinitePoset.relabel` | Return a copy of this poset with its elements relabelled.
-    :meth:`~FinitePoset.canonical_label` | Return copy of the poset canonically (re)labelled with elements `\{0, \ldots, n-1\}`.
+    :meth:`~FinitePoset.canonical_label` | Return copy of the poset canonically (re)labelled to integers.
 
 **Chains & antichains**
 
@@ -3705,7 +3705,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: parts[0].cover_relations()
             [[6, 7], [6, 8]]
 
-        .. SEEALSO:: :meth:`disjoint_union`
+        .. SEEALSO:: :meth:`disjoint_union`, :meth:`is_connected`
 
         TESTS::
 
@@ -3850,6 +3850,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = Posets.ChainPoset(3)
             sage: P*Q
             Finite lattice containing 6 elements
+
+        .. SEEALSO::
+
+            :class:`~sage.combinat.posets.cartesian_product.CartesianProductPoset`
 
         TESTS::
 
@@ -4572,7 +4576,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Posets.BooleanLattice(3)
-            sage: set_random_seed(0)
+            sage: set_random_seed(0)  # Results are reproducible
             sage: Q = P.random_subposet(0.5)
             sage: Q.cover_relations()
             [[0, 2], [0, 5], [2, 3], [3, 7], [5, 7]]

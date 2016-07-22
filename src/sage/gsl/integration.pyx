@@ -203,7 +203,7 @@ def numerical_integral(func, a, b=None,
         sage: F(x) = sqrt((-x + b)/((x - 1.0)*x))
         sage: numerical_integral(F, 1, b)
         (inf, nan)
-        sage: numerical_integral(F, 1, b, algorithm='qags')
+        sage: numerical_integral(F, 1, b, algorithm='qags')    # abs tol 1e-10
         (1.1817104238446596, 3.387268288079781e-07)
 
     AUTHORS:

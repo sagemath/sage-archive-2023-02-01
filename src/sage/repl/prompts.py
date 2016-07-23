@@ -65,3 +65,28 @@ class InterfacePrompts(Prompts):
             (Token.OutPrompt, ''),
         ]
 
+
+class DebugPrompts(Prompts):
+
+    def in_prompt_tokens(self, cli=None):
+        return [
+            (Token.Prompt, 'debug: '),
+        ]
+
+    def continuation_prompt_tokens(self, cli=None, width=None):
+        return [
+            (Token.Prompt, '.....: '),
+        ]
+
+    def rewrite_prompt_tokens(self):
+        return [
+            (Token.Prompt, '-----> '),
+        ]
+
+    def out_prompt_tokens(self):
+        return [
+            (Token.OutPrompt, ''),
+        ]
+
+    
+    

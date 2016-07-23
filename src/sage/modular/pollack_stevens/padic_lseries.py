@@ -11,6 +11,7 @@ r"""
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 from sage.rings.padics.all import pAdicField
 from sage.rings.all import ZZ, QQ
 from sage.rings.power_series_ring import PowerSeriesRing
@@ -19,8 +20,8 @@ from sage.arith.all import binomial, gcd, kronecker
 from sage.rings.padics.precision_error import PrecisionError
 
 from sage.structure.sage_object import SageObject
-from sigma0 import Sigma0
-from fund_domain import M2Z
+from .sigma0 import Sigma0
+from .fund_domain import M2Z
 
 
 class pAdicLseries(SageObject):

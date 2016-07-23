@@ -390,9 +390,24 @@ Additionally one can set the notation option to use Kac's notation::
     E6^2
     sage: CartanType.options['notation'] = 'BC'
 
-.. TODO:: Should those indexes come before the introduction?
+.. rubric:: Infinite Cartan types
 
-Abstract classes for cartan types
+There are minimal implementations of the Cartan types `A_{\infty}` and
+`A_{+\infty}`.  In sage `oo` is the same as `+Infinity`, so `NN` and `ZZ` are
+used to differentiate between the `A_{+\infty}` and `A_{\infty}` root systems::
+
+    sage: CartanType(['A', NN])
+    ['A', NN]
+    sage: print(CartanType(['A', NN]).ascii_art())
+    O---O---O---O---O---O---O---..
+    0   1   2   3   4   5   6
+    sage: CartanType(['A', ZZ])
+    ['A', ZZ]
+    sage: print(CartanType(['A', ZZ]).ascii_art())
+    ..---O---O---O---O---O---O---O---..
+        -3  -2  -1   0   1   2   3
+
+.. rubric:: Abstract classes for cartan types
 
 - :class:`CartanType_abstract`
 - :class:`CartanType_crystallographic`
@@ -407,6 +422,8 @@ Abstract classes for cartan types
 
 Concrete classes for cartan types
 
+- :class:`CartanType_standard`
+- :class:`CartanType_standard_finite`
 - :class:`CartanType_standard_affine`
 - :class:`CartanType_standard_untwisted_affine`
 
@@ -434,6 +451,9 @@ this data.
 - :ref:`sage.combinat.root_system.type_F_affine`
 - :ref:`sage.combinat.root_system.type_G_affine`
 - :ref:`sage.combinat.root_system.type_BC_affine`
+- :ref:`sage.combinat.root_system.type_A_infinity`
+
+.. TODO:: Should those indexes come before the introduction?
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -449,6 +469,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_import import LazyImport
 from sage.rings.all import ZZ
+from sage.rings.infinity import Infinity
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.global_options import GlobalOptions
@@ -534,11 +555,19 @@ class CartanTypeFactory(SageObject):
             sage: CT = CartanType('A2').relabel({1:-1, 2:-2})
             sage: CartanType([CT])
             ['A', 2] relabelled by {1: -1, 2: -2}
+
+        Check the errors from trac:`20973`::
+
+            sage: CartanType(['A',-1])
+            Traceback (most recent call last):
+            ...
+            ValueError: ['A', -1] is not a valid Cartan type
         """
         if len(args) == 1:
             t = args[0]
         else:
             t = args
+
         if isinstance(t, CartanType_abstract):
             return t
         if hasattr(t, "cartan_type"):
@@ -563,6 +592,16 @@ class CartanTypeFactory(SageObject):
                 return CartanType([t[0], eval(t[1:])])
 
         t = list(t)
+
+        from sage.rings.semirings.non_negative_integer_semiring import NN
+        if isinstance(t[0], str) and t[1] in [Infinity, ZZ, NN]:
+            letter, n = t[0], t[1]
+            if letter == 'A':
+                from . import type_A_infinity
+                if t[1] == NN:
+                    return type_A_infinity.CartanType(NN)
+                else:
+                    return type_A_infinity.CartanType(ZZ)
 
         if isinstance(t[0], str) and t[1] in ZZ and t[1] >= 0:
             letter, n = t[0], t[1]
@@ -611,6 +650,7 @@ class CartanTypeFactory(SageObject):
                     if n >= 1:
                         from . import type_I
                         return type_I.CartanType(n)
+
             if len(t) == 3:
                 if t[2] == 1: # Untwisted affine
                     if letter == "A":
@@ -658,8 +698,14 @@ class CartanTypeFactory(SageObject):
                     if letter == "E" and t[2] == 2 and n == 6:
                         return CartanType(["F", 4, 1]).dual()
             raise ValueError("%s is not a valid Cartan type"%t)
+
+        # As the Cartan type has not been recognised try subtypes - but check
+        # for the error noted in trac:???
         from . import type_reducible
-        return type_reducible.CartanType([ CartanType(subtype) for subtype in t ])
+        try:
+            return type_reducible.CartanType([ CartanType(subtype) for subtype in t ])
+        except (SyntaxError, ValueError):
+            raise ValueError("%s is not a valid Cartan type"%t)
 
     def _repr_(self):
         """
@@ -2342,7 +2388,59 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
 ##############################################################################
 # Concrete base classes
 
-class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_finite):
+class CartanType_standard(UniqueRepresentation, SageObject):
+    # Technical methods
+    def _repr_(self, compact = False):
+        """
+        TESTS::
+
+            sage: ct = CartanType(['A',3])
+            sage: repr(ct)
+            "['A', 3]"
+            sage: ct._repr_(compact=True)
+            'A3'
+        """
+        format = '%s%s' if compact else "['%s', %s]"
+        return format%(self.letter, self.n)
+
+    def __len__(self):
+        """
+        EXAMPLES::
+
+            sage: len(CartanType(['A',4]))
+            2
+            sage: len(CartanType(['A',4,1]))
+            3
+        """
+        return 3 if self.is_affine() else 2
+
+    def __getitem__(self, i):
+        """
+        EXAMPLES::
+
+            sage: t = CartanType(['A', 3, 1])
+            sage: t[0]
+            'A'
+            sage: t[1]
+            3
+            sage: t[2]
+            1
+            sage: t[3]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+        """
+        if i == 0:
+            return self.letter
+        elif i==1:
+            return self.n
+        elif hasattr(self, 'affine') and i==2:
+            return self.affine
+        else:
+            raise IndexError("index out of range")
+
+
+class CartanType_standard_finite(CartanType_standard, CartanType_finite):
     """
     A concrete base class for the finite standard Cartan types.
 
@@ -2377,20 +2475,6 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
 #             assert(t[1] <= 4)
         self.letter = letter
         self.n = n
-
-    # Technical methods
-    def _repr_(self, compact = False):
-        """
-        TESTS::
-
-            sage: ct = CartanType(['A',3])
-            sage: repr(ct)
-            "['A', 3]"
-            sage: ct._repr_(compact=True)
-            'A3'
-        """
-        format = '%s%s' if compact else "['%s', %s]"
-        return format%(self.letter, self.n)
 
     def __reduce__(self):
         """
@@ -2433,38 +2517,6 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
             -5684143898951441983
         """
         return hash((self.n, self.letter))
-
-    def __getitem__(self, i):
-        """
-        EXAMPLES::
-
-            sage: t = CartanType(['A', 3, 1])
-            sage: t[0]
-            'A'
-            sage: t[1]
-            3
-            sage: t[2]
-            1
-            sage: t[3]
-            Traceback (most recent call last):
-            ...
-            IndexError: index out of range
-        """
-        if i == 0:
-            return self.letter
-        elif i==1:
-            return self.n
-        else:
-            raise IndexError("index out of range")
-
-    def __len__(self):
-        """
-        EXAMPLES::
-
-            sage: len(CartanType(['A',4]))
-            2
-        """
-        return 2
 
     # mathematical methods
 
@@ -2600,7 +2652,7 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
         return Family(d)
 
 ##########################################################################
-class CartanType_standard_affine(UniqueRepresentation, SageObject, CartanType_affine):
+class CartanType_standard_affine(CartanType_standard, CartanType_affine):
     r"""
     A concrete class for affine simple Cartan types.
     """
@@ -2667,15 +2719,6 @@ class CartanType_standard_affine(UniqueRepresentation, SageObject, CartanType_af
         """
         from sage.combinat.root_system.cartan_type import CartanType
         return (CartanType, (self.letter, self.n, self.affine))
-
-    def __len__(self):
-        """
-        EXAMPLES::
-
-            sage: len(CartanType(['A',4,1]))
-            3
-        """
-        return 3
 
     def __getitem__(self, i):
         """

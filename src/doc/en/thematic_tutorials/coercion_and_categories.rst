@@ -188,7 +188,7 @@ be complemented later.
     sage: class MyFrac(UniqueRepresentation, Field):
     ....:     def __init__(self, base):
     ....:         if base not in IntegralDomains():
-    ....:             raise ValueError, "%s is no integral domain"%base
+    ....:             raise ValueError("%s is no integral domain" % base)
     ....:         Field.__init__(self, base)
     ....:     def _repr_(self):
     ....:         return "NewFrac(%s)"%repr(self.base())
@@ -574,7 +574,7 @@ category::
     sage: class MyFrac(MyFrac):
     ....:     def __init__(self, base, category=None):
     ....:         if base not in IntegralDomains():
-    ....:             raise ValueError, "%s is no integral domain"%base
+    ....:             raise ValueError("%s is no integral domain" % base)
     ....:         Field.__init__(self, base, category=category or QuotientFields())
 
 When constructing instances of ``MyFrac``, their class is dynamically changed
@@ -1888,7 +1888,7 @@ Appendix: The complete code
         def __init__(self, base, category=None):
             # Fraction fields only exist for integral domains
             if base not in IntegralDomains():
-                raise ValueError, "%s is no integral domain"%base
+                raise ValueError("%s is no integral domain" % base)
             # Implement the category framework for the parent
             Field.__init__(self, base, category=category or QuotientFields())
 

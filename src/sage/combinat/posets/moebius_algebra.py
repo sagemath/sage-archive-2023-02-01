@@ -264,12 +264,12 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
             E = M.E()
             self.module_morphism(self._to_natural_basis,
                                  codomain=E, category=self.category(),
-                                 triangular='upper', unitriangular=True
+                                 triangular='lower', unitriangular=True
                                  ).register_as_coercion()
 
             E.module_morphism(E._to_idempotent_basis,
                               codomain=self, category=self.category(),
-                              triangular='upper', unitriangular=True
+                              triangular='lower', unitriangular=True
                               ).register_as_coercion()
 
 

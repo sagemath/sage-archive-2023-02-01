@@ -4,6 +4,12 @@ cd src
 
 patch -p1 < ../patches/polymake_sage.patch || die "Error: Couldn't apply patch."
 
+more_configure_options=
+
+if [ `uname` = Darwin ]; then
+    more_configure_options="$more_configure_options --without-fink"
+fi
+
 ./configure --without-java \
             --without-javaview \
             --prefix="$SAGE_LOCAL" \
@@ -11,6 +17,6 @@ patch -p1 < ../patches/polymake_sage.patch || die "Error: Couldn't apply patch."
             --includedir="$SAGE_LOCAL"/include \
             --bindir="$SAGE_LOCAL"/bin \
             --libdir="$SAGE_LOCAL"/lib \
-	    --without-fink
+	    $more_configure_options
 make
 make install

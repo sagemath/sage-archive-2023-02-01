@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+perl_ccflags=`perl -MExtUtils::Embed -e ccflags`
 perl_ldflags=`perl -MExtUtils::Embed -e ldopts`
+if [ `uname` = Darwin ]; then
+    # Change "-arch i386 -arch x86_64" to just "-arch x86_64".
+    # This is because all of Sage is just built for x86_64.
+    perl_ccflags=`echo $perl_ccflags| sed 's/-arch i386 -arch x86_64/-arch x86_64/g'`
+    perl_ldflags=`echo $perl_ldflags| sed 's/-arch i386 -arch x86_64/-arch x86_64/g'`
+fi
+CXXFLAGS="$CXXFLAGS $perl_ccflags"
 LDFLAGS="$LDFLAGS $perl_ldflags"
-pip install --ignore-installed --no-deps pypolymake
+pip install --verbose --ignore-installed --no-deps pypolymake

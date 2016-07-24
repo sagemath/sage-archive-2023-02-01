@@ -1407,4 +1407,4 @@ would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in December 2014 (Sage 6.5).**
+**This page was last updated in July 2016 (Sage 7.3).**

@@ -28,3 +28,6 @@ make || die "Error building polymake"
 # its installation directory.
 rm -Rf $SAGE_LOCAL/lib/polymake
 make install || die "Error installing polymake"
+# Reconfigure Polymake's rules.
+# This modifies ~/.polymake/customize.pl
+echo "exit;" | polymake --reconfigure - || die "Error calling 'polymake --reconfigure'"

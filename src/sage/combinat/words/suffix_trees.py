@@ -479,7 +479,7 @@ class SuffixTrie(SageObject):
             vertex_colors = {'#fec7b8':suffix_nodes,'#ffffff':non_suffix_nodes}
         return tree.plot(layout=layout, tree_root=tree_root,
                 tree_orientation=tree_orientation,
-                vertex_color=vertex_colors, edge_labels=edge_labels,
+                vertex_colors=vertex_colors, edge_labels=edge_labels,
                 *args, **kwds)
 
     def show(self, *args, **kwds):
@@ -885,7 +885,7 @@ class ImplicitSuffixTree(SageObject):
             veretex_colors = {'#fec7b8':tree.vertices()}
         return tree.plot(layout=layout, tree_root=tree_root,
                 tree_orientation=tree_orientation,
-                vertex_color=vertex_colors, edge_labels=edge_labels,
+                vertex_colors=vertex_colors, edge_labels=edge_labels,
                 *args, **kwds)
 
     def show(self, word_labels=None, *args, **kwds):

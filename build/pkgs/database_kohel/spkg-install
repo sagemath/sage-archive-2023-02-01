@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+if [ -z "$SAGE_LOCAL" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src
+
+TARGET="${SAGE_SHARE}/kohel/"
+
+echo "TARGET: $TARGET"
+
+if [ -d ${TARGET} ]
+then
+	echo "REMOVING PREVIOUS VERSION"
+    rm -rf ${TARGET}
+fi
+
+mkdir ${TARGET}
+
+mv PolMod ${TARGET}
+mv PolHeeg ${TARGET}
+
+
+

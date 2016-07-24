@@ -1,0 +1,22 @@
+= pypolymake =
+
+== Description ==
+
+The Python module pypolymake provides wrappers for polymake.
+
+== License ==
+
+ * GPL v3 or later
+
+== Upstream Contact ==
+
+ https://github.com/videlec/pypolymake
+
+== Dependencies ==
+
+ * polymake
+ * pip
+
+ An installation of Perl. No Sage package is provided for that.
+
+== Special Update/Build Instructions ==

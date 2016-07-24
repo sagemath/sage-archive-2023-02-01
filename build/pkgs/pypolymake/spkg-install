@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+perl_ldflags=`perl -MExtUtils::Embed -e ldopts`
+LDFLAGS="$LDFLAGS $perl_ldflags"
+pip install --ignore-installed --no-deps pypolymake

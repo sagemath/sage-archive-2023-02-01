@@ -1,0 +1,15 @@
+= SIP = 
+
+== Description ==
+
+Python extension module generator for C and C++ libraries
+
+== Upstream contact ==
+
+  https://www.riverbankcomputing.com/software/sip/
+  https://pypi.python.org/pypi/SIP
+
+== License ==
+
+  SIP is copyright (c) Riverbank Computing Limited. Its homepage is
+  https://www.riverbankcomputing.com/software/sip/.

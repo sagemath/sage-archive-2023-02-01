@@ -9,7 +9,8 @@ import subprocess
 from six import unichr
 
 
-leading_ws = re.compile("^ +", re.MULTILINE)
+leading_ws = re.compile("^( +)", re.MULTILINE)
+trailing_ws = re.compile("( +)$", re.MULTILINE)
 double_space = re.compile("  +")
 
 end_space = re.compile(r"(@\[end[a-z]*\])([A-Za-z])")
@@ -93,6 +94,10 @@ def raw_to_rest(doc):
         Traceback (most recent call last):
         ...
         SyntaxError: @ found: @[invalid]
+
+        sage: s = '@3@[startbold]*@[endbold] snip @[dollar]0@[dollar]\ndividing @[dollar]#E@[dollar].'
+        sage: raw_to_rest(s)
+        u'- snip :math:`0`\n  dividing :math:`\\#E`.'
     """
     doc = doc.decode("utf-8")
 
@@ -114,8 +119,9 @@ def raw_to_rest(doc):
     doc = doc.replace("@[uuml]", "ü")
     doc = doc.replace("\\'{a}", "á")
 
-    # Remove leading whitespace from every line
+    # Remove leading and trailing whitespace from every line
     doc = leading_ws.sub("", doc)
+    doc = trailing_ws.sub("", doc)
 
     # Remove multiple spaces
     doc = double_space.sub(" ", doc)
@@ -132,6 +138,10 @@ def raw_to_rest(doc):
     doc = doc.replace("@3@[startbold]*@[endbold] ", "@BULLET  ")
     doc = sub_loop(bullet_loop, "\\1  \\3", doc)
     doc = doc.replace("@BULLET  ", "- ")
+
+    # Add =VOID= in front of all leading whitespace (which was
+    # intentionally added) to avoid confusion with verbatim blocks.
+    doc = leading_ws.sub(r"=VOID=\1", doc)
 
     # Verbatim blocks
     doc = begin_verb.sub("::\n\n@0", doc)
@@ -162,6 +172,9 @@ def raw_to_rest(doc):
     doc = doc.replace("@[cbr]", "}")
     doc = doc.replace("@[startword]", "\\")
     doc = doc.replace("@[endword]", "")
+    # (special rules for Hom and Frob, see trac ticket 21005)
+    doc = doc.replace("@[startlword]Hom@[endlword]", "\\text{Hom}")
+    doc = doc.replace("@[startlword]Frob@[endlword]", "\\text{Frob}")
     doc = doc.replace("@[startlword]", "\\")
     doc = doc.replace("@[endlword]", "")
     doc = doc.replace("@[startbi]", "\\mathbb{")
@@ -186,6 +199,7 @@ def raw_to_rest(doc):
     doc = doc.replace("=MID=", r"\|")
     doc = doc.replace("=PERCENT=", r"\%")
     doc = doc.replace("=HASH=", r"\#")
+    doc = doc.replace("=VOID=", "")
 
     # Handle DISPLAYMATH
     doc = doc.replace("@[endDISPLAYMATH]", "\n\n")

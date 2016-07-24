@@ -1,6 +1,11 @@
 r"""
 Morphisms and homsets for simplicial sets
 
+.. NOTE::
+
+    Morphisms with infinite domain are not implemented in general:
+    only constant maps and identity maps are currently implemented.
+
 AUTHORS:
 
 - John H. Palmieri (2016-03)
@@ -27,8 +32,7 @@ This module implements morphisms and homsets of simplicial sets.
 
 import itertools
 
-from sage.homology.simplicial_set import SimplicialSet_infinite, \
-    PushoutOfSimplicialSets, PullbackOfSimplicialSets
+from sage.homology.simplicial_set import SimplicialSet_arbitrary
 from sage.matrix.constructor import matrix, zero_matrix
 from sage.rings.integer_ring import ZZ
 from sage.homology.chain_complex_morphism import ChainComplexMorphism
@@ -68,12 +72,15 @@ class SimplicialSetHomset(Homset):
           To:   Simplicial set with 2 non-degenerate simplices
           Defn: [v, w, e, f] --> [v, v, e, e]
     """
-    def __call__(self, f):
+    def __call__(self, f, check=True):
         r"""
         INPUT:
 
         - ``f`` -- a dictionary with keys the simplices of the domain
           and values simplices of the codomain
+
+        - ``check`` -- optional, default ``True``. Pass this to the
+          morphism constructor.
 
         EXAMPLES::
 
@@ -85,7 +92,7 @@ class SimplicialSetHomset(Homset):
             Simplicial set endomorphism of S^1
               Defn: [v_0, sigma_1] --> [v_0, Simplex obtained by applying degeneracy s_0 to v_0]
         """
-        return SimplicialSetMorphism(f, self.domain(), self.codomain())
+        return SimplicialSetMorphism(f, self.domain(), self.codomain(), check=check)
 
     def diagonal_morphism(self):
         r"""
@@ -97,7 +104,7 @@ class SimplicialSetHomset(Homset):
             sage: Hom(RP2, RP2.product(RP2)).diagonal_morphism()
             Simplicial set morphism:
               From: RP^2
-              To:   Simplicial set with 31 non-degenerate simplices
+              To:   RP^2 x RP^2
               Defn: [1, f, f * f] --> [(1, 1), (f, f), (f * f, f * f)]
         """
         domain = self.domain()
@@ -122,21 +129,16 @@ class SimplicialSetHomset(Homset):
             sage: S1 = simplicial_sets.Sphere(1)
             sage: Hom(S1, S1).identity()
             Simplicial set endomorphism of S^1
-              Defn: [v_0, sigma_1] --> [v_0, sigma_1]
+              Defn: Identity map
             sage: T = simplicial_sets.Torus()
             sage: Hom(S1, T).identity()
             Traceback (most recent call last):
             ...
             TypeError: identity map is only defined for endomorphism sets
         """
-        if not self.is_endomorphism_set():
-            raise TypeError("identity map is only defined for endomorphism sets")
-        f = {}
-        domain = self.domain()
-        for i in range(domain.dimension()+1):
-            for s in domain.n_cells(i):
-                f[s] = s
-        return self(f)
+        return SimplicialSetMorphism(domain=self.domain(),
+                                     codomain=self.codomain(),
+                                     identity=True)
 
     def constant_map(self, point=None):
         r"""
@@ -162,7 +164,7 @@ class SimplicialSetHomset(Homset):
             Simplicial set morphism:
               From: S^3
               To:   Torus
-              Defn: [v_0, sigma_3] --> [w, Simplex obtained by applying degeneracies s_2 s_1 s_0 to w]
+              Defn: Constant map at w
 
             sage: S0 = simplicial_sets.Sphere(0)
             sage: v, w = S0.n_cells(0)
@@ -170,12 +172,12 @@ class SimplicialSetHomset(Homset):
             Simplicial set morphism:
               From: S^3
               To:   S^0
-              Defn: [v_0, sigma_3] --> [v_0, Simplex obtained by applying degeneracies s_2 s_1 s_0 to v_0]
+              Defn: Constant map at v_0
             sage: Hom(S3, S0).constant_map(w)
             Simplicial set morphism:
               From: S^3
               To:   S^0
-              Defn: [v_0, sigma_3] --> [w_0, Simplex obtained by applying degeneracies s_2 s_1 s_0 to w_0]
+              Defn: Constant map at w_0
 
         This constant map is not pointed, since it doesn't send the
         base point of `S^3` to the base point of `S^0`::
@@ -189,6 +191,7 @@ class SimplicialSetHomset(Homset):
             ...
             ValueError: codomain is not pointed, so specify a target for the constant map
         """
+        domain = self.domain()
         codomain = self.codomain()
         if point is None:
             if codomain.is_pointed():
@@ -196,9 +199,9 @@ class SimplicialSetHomset(Homset):
             else:
                 raise ValueError('codomain is not pointed, so specify a '
                                  'target for the constant map')
-        d = {sigma: point.apply_degeneracies(*range(sigma.dimension()-1,-1,-1))
-             for sigma in self.domain().nondegenerate_simplices()}
-        return self(d)
+        return SimplicialSetMorphism(domain=self.domain(),
+                                     codomain=self.codomain(),
+                                     constant=point)
 
     def an_element(self):
         """
@@ -212,7 +215,7 @@ class SimplicialSetHomset(Homset):
             Simplicial set morphism:
               From: S^2
               To:   S^1
-              Defn: [v_0, sigma_2] --> [v_0, Simplex obtained by applying degeneracies s_1 s_0 to v_0]
+              Defn: Constant map at v_0
 
             sage: K = simplicial_sets.Simplex(3)
             sage: L = simplicial_sets.Simplex(4)
@@ -239,6 +242,8 @@ class SimplicialSetHomset(Homset):
         nondegenerate simplices.) So if either the domain or the
         codomain has many simplices, the number of possibilities may
         be quite large.
+
+        This is only implemented when the domain is finite.
 
         EXAMPLES::
 
@@ -272,6 +277,9 @@ class SimplicialSetHomset(Homset):
             [ 0| 0], [0|0], [0|0], [0|0]
             ]
         """
+        if not self.domain().is_finite():
+            raise NotImplementedError('domain must be finite to iterate '
+                                      'through all morphisms')
         codomain = self.codomain()
         facets = self.domain()._facets_()
         dims = [f.dimension() for f in facets]
@@ -287,23 +295,37 @@ class SimplicialSetHomset(Homset):
 
 
 class SimplicialSetMorphism(Morphism):
-    def __init__(self, f, domain, codomain):
+    def __init__(self, data=None, domain=None, codomain=None, 
+                 constant=None, identity=False, check=True):
         r"""
         A morphism of simplicial sets.
 
         INPUTS:
 
-        - ``f`` -- dictionary defining the map
+        - ``data`` -- optional. Dictionary defining the map
         - ``domain`` -- simplicial set
         - ``codomain`` -- simplicial set
+        - ``constant`` -- optional: if not ``None``, then this should
+          be a vertex in the codomain, in which case return the
+          constant map with this vertex as the target.
+        - ``identity`` -- optional: if ``True``, return the identity
+          morphism.
+        - ``check`` -- optional, default ``True``. If ``True``, check
+          that this is actually a morphism: it commutes with the face
+          maps.
 
-        The keys of the dictionary are the nondegenerate simplices of
-        the domain, the corresponding values are simplices in the
-        codomain.
+        So to any map, specify ``domain`` and ``codomain``. Then if
+        the map is constant, specify the target (a vertex in the
+        codomain) as ``constant``. If the map is the identity map,
+        specify ``identity=True``. Otherwise, pass a dictionary,
+        ``data``.  The keys of the dictionary are the nondegenerate
+        simplices of the domain, the corresponding values are
+        simplices in the codomain.
 
-        Actually, the keys do not need to include all of the
-        nondegenerate simplices: if `\sigma` is a face of `\tau`, then
-        only the image of `\tau` needs to be specified.
+        In fact, the keys do not need to include all of the
+        nondegenerate simplices, only those which are not faces of
+        other nondegenerate simplices: if `\sigma` is a face of
+        `\tau`, then the image of `\sigma` need not be specified.
 
         EXAMPLES::
 
@@ -387,15 +409,46 @@ class SimplicialSetMorphism(Morphism):
             sage: one._dictionary
             {v_0: v_0, sigma_5: sigma_5}
         """
-        if (not isinstance(domain, SimplicialSet_infinite)
-            or not isinstance(codomain, SimplicialSet_infinite)):
+        self._is_identity = False
+        self._constant = False
+        if not domain.is_finite():
+            if identity:
+                if not domain is codomain:
+                    raise TypeError("identity map is only defined for endomorphism sets")
+                self._is_identity = True
+                Morphism.__init__(self, Hom(domain, codomain, SimplicialSets()))
+                return
+            if constant:
+                self._constant = constant
+                Morphism.__init__(self, Hom(domain, codomain, SimplicialSets()))
+                return
+            raise NotImplementedError('morphisms with infinite domain '
+                                      'are not implemented in general')
+        else:
+            if identity:
+                self._is_identity = True
+                check = False
+                if not domain is codomain:
+                    raise TypeError("identity map is only defined for endomorphism sets")
+                data = {}
+                for i in range(domain.dimension()+1):
+                    for s in domain.n_cells(i):
+                        data[s] = s
+            if constant:
+                self._constant = constant
+                check = False
+                data = {sigma: constant.apply_degeneracies(*range(sigma.dimension()-1,-1,-1))
+                        for sigma in domain.nondegenerate_simplices()}
+
+        if (not isinstance(domain, SimplicialSet_arbitrary)
+            or not isinstance(codomain, SimplicialSet_arbitrary)):
             raise ValueError('the domain and codomain must be simplicial sets')
         if any(x.nondegenerate() not in
-               domain.nondegenerate_simplices() for x in f.keys()):
+               domain.nondegenerate_simplices() for x in data.keys()):
             raise ValueError('at least one simplex in the defining '
                              'dictionary is not in the domain')
         # Remove degenerate simplices from the domain specification.
-        d = {sigma:f[sigma] for sigma in f if sigma.is_nondegenerate()}
+        d = {sigma:data[sigma] for sigma in data if sigma.is_nondegenerate()}
         # For each simplex in d.keys(), add its faces, and the faces
         # of its faces, etc., to d.
         for simplex in d.keys():
@@ -423,27 +476,28 @@ class SimplicialSetMorphism(Morphism):
                             add.append((rho,i,sigma))
         # Now check that the proposed map commutes with the face
         # maps. (The degeneracy maps should work automatically.)
-        for simplex in d:
-            # Compare d[d_i (simplex)] to d_i d[simplex]. Since
-            # d_i(simplex) may be degenerate, we have to be careful
-            # when applying f to it. We can skip vertices and start
-            # with 1-simplices.
-            bad = False
-            for i in range(simplex.dimension()+1):
-                face_f = codomain.face(d[simplex], i)
-                face = domain.face(simplex, i)
-                if face is None:
-                    f_face = None
-                elif face.is_nondegenerate():
-                    f_face = d[face]
-                else:
-                    nondegen = face.nondegenerate()
-                    f_face = d[nondegen].apply_degeneracies(*face.degeneracies())
-                if face_f != f_face:
-                    bad = True
-                    break
-            if bad:
-                raise ValueError('the dictionary does not define a map of simplicial sets')
+        if check:
+            for simplex in d:
+                # Compare d[d_i (simplex)] to d_i d[simplex]. Since
+                # d_i(simplex) may be degenerate, we have to be careful
+                # when applying f to it. We can skip vertices and start
+                # with 1-simplices.
+                bad = False
+                for i in range(simplex.dimension()+1):
+                    face_f = codomain.face(d[simplex], i)
+                    face = domain.face(simplex, i)
+                    if face is None:
+                        f_face = None
+                    elif face.is_nondegenerate():
+                        f_face = d[face]
+                    else:
+                        nondegen = face.nondegenerate()
+                        f_face = d[nondegen].apply_degeneracies(*face.degeneracies())
+                    if face_f != f_face:
+                        bad = True
+                        break
+                if bad:
+                    raise ValueError('the dictionary does not define a map of simplicial sets')
         if any(x not in d.keys() for x in domain.nondegenerate_simplices()):
             raise ValueError('the image of at least one simplex in '
                              'the domain is not defined')
@@ -477,8 +531,12 @@ class SimplicialSetMorphism(Morphism):
             sage: f == g
             True
         """
-        return (self.domain() == other.domain() and self.codomain() == other.codomain()
-                and self._dictionary == other._dictionary)
+        if self.domain().is_finite() and other.domain().is_finite():
+            return (self.domain() == other.domain()
+                    and self.codomain() == other.codomain()
+                    and self._dictionary == other._dictionary)
+        else:
+            return False
 
     def __ne__(self, other):
         """
@@ -513,11 +571,25 @@ class SimplicialSetMorphism(Morphism):
             sage: f = Hom(K, S1)(d)
             sage: f(e01) # indirect doctest
             sigma_1
+
+            sage: one = Hom(S1, S1).identity()
+            sage: e = S1.n_cells(1)[0]
+            sage: one(e) == e
+            True
+
+            sage: B = AbelianGroup([2]).nerve()
+            sage: c = B.constant_map()
+            sage: c(B.n_cells(2)[0])
+            Simplex obtained by applying degeneracies s_1 s_0 to *
         """
-        try:
-            return self._dictionary[x.nondegenerate()].apply_degeneracies(*x.degeneracies())
-        except KeyError:
+        if x not in self.domain():
             raise ValueError('element is not a simplex in the domain')
+        if self._constant:
+            target = self._constant
+            return target.apply_degeneracies(*range(x.dimension()-1,-1,-1))
+        if self._is_identity:
+            return x
+        return self._dictionary[x.nondegenerate()].apply_degeneracies(*x.degeneracies())
 
     def _composition_(self, right, homset):
         """
@@ -539,14 +611,14 @@ class SimplicialSetMorphism(Morphism):
             sage: f = S1.Hom(S1).identity()
             sage: f * f # indirect doctest
             Simplicial set endomorphism of S^1
-              Defn: [v_0, sigma_1] --> [v_0, sigma_1]
+              Defn: Identity map
             sage: T = S1.product(S1)
             sage: K = T.factor(0, as_subset=True)
             sage: g = S1.Hom(T)({S1.n_cells(0)[0]:K.n_cells(0)[0], S1.n_cells(1)[0]:K.n_cells(1)[0]})
             sage: g
             Simplicial set morphism:
               From: S^1
-              To:   Simplicial set with 6 non-degenerate simplices
+              To:   S^1 x S^1
               Defn: [v_0, sigma_1] --> [(v_0, v_0), (sigma_1, Simplex obtained by applying degeneracy s_0 to v_0)]
             sage: (g*f).image()
             Simplicial set with 2 non-degenerate simplices
@@ -575,13 +647,23 @@ class SimplicialSetMorphism(Morphism):
             sage: f
             Simplicial set morphism:
               From: S^1
-              To:   Simplicial set with 6 non-degenerate simplices
+              To:   S^1 x S^1
               Defn: [v_0, sigma_1] --> [(v_0, v_0), (sigma_1, Simplex obtained by applying degeneracy s_0 to v_0)]
             sage: f.image()
             Simplicial set with 2 non-degenerate simplices
             sage: f.image().homology()
             {0: 0, 1: Z}
+
+            sage: B = simplicial_sets.ClassifyingSpace(groups.misc.MultiplicativeAbelian([2]))
+            sage: B.constant_map().image()
+            Simplicial set with 1 non-degenerate simplex
+            sage: Hom(B,B).identity().image() == B
+            True
         """
+        if self._is_identity:
+            return self.codomain()
+        if self._constant:
+            return self.codomain().subsimplicial_set([self._constant])
         return self.codomain().subsimplicial_set(self._dictionary.values())
 
     def is_identity(self):
@@ -621,8 +703,9 @@ class SimplicialSetMorphism(Morphism):
             sage: RP5.n_skeleton(5).inclusion_map().is_identity()
             True
         """
-        return (self.domain() == self.codomain()
-                and all(a == b for a,b in self._dictionary.items()))
+        return (self._is_identity or
+                (self.domain() == self.codomain()
+                and all(a == b for a,b in self._dictionary.items())))
 
     def is_surjective(self):
         """
@@ -644,7 +727,7 @@ class SimplicialSetMorphism(Morphism):
             sage: f.is_surjective()
             True
         """
-        return self.image() == self.codomain()
+        return self._is_identity or self.image() == self.codomain()
 
     def is_injective(self):
         """
@@ -666,6 +749,8 @@ class SimplicialSetMorphism(Morphism):
             sage: f.is_injective()
             True
         """
+        if self._is_identity:
+            return True
         domain = self.domain()
         for n in range(domain.dimension()+1):
             input = domain.n_cells(n)
@@ -721,6 +806,14 @@ class SimplicialSetMorphism(Morphism):
         return (self.domain().is_pointed() and self.codomain().is_pointed()
                 and self(self.domain().base_point()) == self.codomain().base_point())
 
+    def is_constant(self):
+        try:
+            return self._constant
+        except AttributeError:
+            pass
+        targets = [tau.nondegenerate() for tau in self._dictionary.values()]
+        return len(targets) == 1
+
     def pushout(self, *others):
         """
         The pushout of this morphism along with ``others``.
@@ -747,7 +840,7 @@ class SimplicialSetMorphism(Morphism):
         domain = self.domain()
         if any(domain != f.domain() for f in others):
             raise ValueError('the domains of the maps must be equal')
-        return PushoutOfSimplicialSets((self,) + others)
+        return self.domain().pushout(*(self,) + others)
 
     def pullback(self, *others):
         """
@@ -770,12 +863,20 @@ class SimplicialSetMorphism(Morphism):
             sage: term_K = K.constant_map()
             sage: P = term_T.pullback(term_K) # the product as a pullback
             sage: P
-            Simplicial set with 150 non-degenerate simplices
+            Pullback of maps:
+              Simplicial set morphism:
+                From: Torus
+                To:   Point
+                Defn: Constant map at *
+              Simplicial set morphism:
+                From: Klein bottle
+                To:   Point
+                Defn: Constant map at *
         """
         codomain = self.codomain()
         if any(codomain != f.codomain() for f in others):
             raise ValueError('the codomains of the maps must be equal')
-        return PullbackOfSimplicialSets((self,) + others)
+        return self.codomain().pullback(*(self,) + others)
 
     def equalizer(self, other):
         r"""
@@ -816,7 +917,15 @@ class SimplicialSetMorphism(Morphism):
             sage: g = Hom(X, Y)({v:v, w:x, x:x, evw:evx, evx:evx})
             sage: P = f.equalizer(g)
             sage: P
-            Simplicial set with 3 non-degenerate simplices
+            Pullback of maps:
+              Simplicial set morphism:
+                From: Simplicial set with 5 non-degenerate simplices
+                To:   Simplicial set with 5 non-degenerate simplices x Simplicial set with 6 non-degenerate simplices
+                Defn: [v, w, x, vw, vx] --> [(v, v), (w, w), (x, x), (vw, vw), (vx, vx)]
+              Simplicial set morphism:
+                From: Simplicial set with 5 non-degenerate simplices
+                To:   Simplicial set with 5 non-degenerate simplices x Simplicial set with 6 non-degenerate simplices
+                Defn: [v, w, x, vw, vx] --> [(v, v), (w, x), (x, x), (vw, vx), (vx, vx)]
         """
         domain = self.domain()
         codomain = self.codomain()
@@ -826,7 +935,7 @@ class SimplicialSetMorphism(Morphism):
         one = domain.Hom(domain).identity()
         f = prod.universal_property(one, self)
         g = prod.universal_property(one, other)
-        return PullbackOfSimplicialSets([f, g])
+        return f.pullback(g)
 
     def coequalizer(self, other):
         r"""
@@ -870,7 +979,7 @@ class SimplicialSetMorphism(Morphism):
         one = codomain.Hom(codomain).identity()
         f = coprod.universal_property(self, one)
         g = coprod.universal_property(other, one)
-        return PushoutOfSimplicialSets([f, g])
+        return f.pushout(g)
 
     def mapping_cone(self):
         r"""
@@ -1086,9 +1195,17 @@ class SimplicialSetMorphism(Morphism):
 
             sage: S1 = simplicial_sets.Sphere(1)
             sage: f = Hom(S1,S1).identity()
-            sage: f._repr_defn()
+
+        The identity morphism is constructed with a special name, so
+        make a copy of it for testing::
+
+            sage: Hom(S1,S1)(f._dictionary)._repr_defn() 
             '[v_0, sigma_1] --> [v_0, sigma_1]'
         """
+        if self._constant:
+            return 'Constant map at {}'.format(self._constant)
+        if self._is_identity:
+            return 'Identity map'
         d = self._dictionary
         keys = sorted(d.keys())
         return "{} --> {}".format(keys, [d[x] for x in keys])

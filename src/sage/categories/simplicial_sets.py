@@ -328,5 +328,3 @@ class SimplicialSets(Category_singleton):
 
         class MorphismMethods:
             pass
-
-        

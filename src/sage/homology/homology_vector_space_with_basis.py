@@ -36,7 +36,7 @@ from sage.categories.modules import Modules
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from sage.sets.family import Family
 from simplicial_complex import SimplicialComplex
-from simplicial_set import SimplicialSet
+from simplicial_set import SimplicialSet_arbitrary
 
 class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
     r"""
@@ -735,7 +735,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
             """
             P = self.parent()
             scomplex = P.complex()
-            if not isinstance(scomplex, (SimplicialComplex, SimplicialSet)):
+            if not isinstance(scomplex, (SimplicialComplex, SimplicialSet_arbitrary)):
                 raise NotImplementedError('Steenrod squares are only implemented for '
                                           'simplicial complexes and simplicial sets')
             base_ring = P.base_ring()

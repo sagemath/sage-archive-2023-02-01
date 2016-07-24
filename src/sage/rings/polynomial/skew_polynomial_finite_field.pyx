@@ -7,6 +7,14 @@ Put `S = k[X,\sigma]`: as an addtive group, it is the usual ring
 of polynomials with coefficients in `k` and the multiplication
 on `S` is defined by the rule `X * a = \sigma(a) * X`.
 
+.. SEE ALSO::
+
+    - ``Class SkewPolynomial_generic_dense`` and ``Class SkewPolynomial``
+        in sage.rings.polynomial.skew_polynomial_element
+
+    - ``Class SkewPolynomialRing`` and ``Class SkewPolynomialRing_finite_field``
+        in sage.rings.polynomial.skew_polynomial_ring
+
 We recall that:
 
 #. `S` is a left (resp. right) euclidean noncommutative ring
@@ -20,8 +28,6 @@ We recall that:
     new phenomena due to the non trivality of the Brauer group.
 
 EXAMPLES::
-
-We illustrate some properties listed above::
 
     sage: k.<t> = GF(5^3)
     sage: Frob = k.frobenius_endomorphism()
@@ -44,101 +50,46 @@ AUTHOR::
 cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
     def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
-        SkewPolynomial_generic_dense.__init__ (self, parent, x, check, is_gen, construct, **kwds)
-
-    cdef SkewPolynomial _new_c(self, list coeffs, Parent P, char check=0):
         """
-        Fast creation of a new skew polynomial
-        """
-        cdef type t = type(self)
-        cdef SkewPolynomial_finite_field_dense f = t.__new__(t)
-        f._parent = P
-        f.__coeffs = coeffs
-        if check:
-            f.__normalize()
-        return f
+        This method constructs a generic dense skew polynomial over finite field.
+        
+        INPUT::
+            
+        - ``parent`` -- parent of `self`
 
-    def rquo_rem(self, other):
-        """
-        DEFINITION:
+        - ``x`` -- list of coefficients from which `self` can be constructed
 
-        Let `a` and `b` be two skew polynomials over the same
-        ring. The *right euclidean division* of `a` by `b` is
-        a couple `(q,r)` such that
+        - ``check`` -- flag variable to normalize the polynomial
 
-        -  `a = q*b + r`
+        - ``is_gen`` -- boolean (default: False)
 
-        -  the degree of `r` is less than the degree of `b`
+        - ``construct`` -- boolean (default: False)
 
-        `q` (resp. `r`) is called the *quotient* (resp. the
-        remainder) of this euclidean division.
+        TESTS::
 
-        If the leading coefficient of `b` is a unit (e.g. if
-        `b` is monic) then `q` and `r` exist and are unique.
+            sage: R.<t> = GF(5^3)
+            sage: Frob = R.frobenius_endomorphism()
+            sage: S.<x> = R['x',Frob]; S
+            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
 
-        INPUT:
+        We create a skew polynomial from a list::
 
-        -  ``other`` -- a skew polynomial ring over the same
-           base ring
+            sage: S([t,1])
+            x + t
 
-        OUTPUT:
+        from another skew polynomial::
 
-        -  the quotient and the remainder of the left euclidean
-           division of this skew polynomial by ``other``
+            sage: S(x^2 + t)
+            x^2 + t
 
-        .. NOTE::
-
-            Doesn't work if the leading coefficient of the divisor
-            is not a unit.
-
-        EXAMPLES::
-
-            sage: R.<t> = ZZ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
-            sage: a = S.random_element(degree=4); a
-            t^2*x^4 + (-12*t^2 - 2*t - 1)*x^3 + (-95*t^2 + t + 2)*x^2 + (-t^2 + t)*x + 2*t - 8
-            sage: b = S.random_element(monic=True); b
-            x^2 + (4*t^2 - t - 2)*x - t^2 + t - 1
-            sage: q,r = a.right_quo_rem(b)
-            sage: a == q*b + r
+        from a constant::
+        
+            sage: x = S(t^2 + 1); x
+            t^2 + 1
+            sage: x.parent() is S
             True
-
-        The leading coefficient of the divisor need to be invertible::
-
-            sage: c = S.random_element(); c
-            (-4*t^2 + t)*x^2 - 2*t^2*x + 5*t^2 - 6*t - 4
-            sage: a.right_quo_rem(c)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: the leading coefficient of the divisor is not invertible
         """
-        cdef list a = self.list()
-        cdef list b = other.list()
-        cdef Py_ssize_t i, j
-        cdef Py_ssize_t da = len(a)-1, db = len(b)-1
-        parent = self._parent
-        if db < 0:
-            raise ZeroDivisionError
-        if da < db:
-            res = parent(0), self
-            return res
-        cdef RingElement inv = ~b[db]
-        cdef list q = [ ]
-        cdef Py_ssize_t order = parent._order
-        cdef list twinv = [ inv ], twb = [ b ]
-        cdef RingElement c, x
-        for i from 0 <= i < min(da-db,order-1):
-            twinv.append(parent.twist_map()(twinv[i]))
-            twb.append([ parent.twist_map()(x) for x in twb[i] ])
-        for i from da-db >= i >= 0:
-            c = twinv[i%order] * a[i+db]
-            for j from 0 <= j < db:
-                a[i+j] -= c * twb[i%order][j]
-            q.append(c)
-        q.reverse()
-        res = parent(q), parent(a[:db])
-        return res
+        SkewPolynomial_generic_dense.__init__ (self, parent, x, check, is_gen, construct, **kwds)
 
     cdef SkewPolynomial_finite_field_dense _rgcd(self,SkewPolynomial_finite_field_dense other):
         """

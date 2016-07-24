@@ -657,3 +657,99 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             True
         """
         return self.twist_map().is_identity()
+
+class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
+    """
+    A specific class for skew polynomial rings over finite field.
+    """
+    @staticmethod
+    def __classcall__(cls, base_ring, map, name=None, sparse=False, element_class=None):
+        if not element_class:
+            if sparse:
+                raise NotImplementedError("sparse skew polynomials are not implemented")
+            else:
+                from sage.rings.polynomial import skew_polynomial_finite_field
+                element_class = skew_polynomial_finite_field.SkewPolynomial_finite_field_dense
+                return super(SkewPolynomialRing_general,cls).__classcall__(cls,base_ring,map,name,sparse,element_class)
+            
+    def __init__(self, base_ring, map, name, sparse, element_class):
+        """
+        This method is a constructor for a general, dense univariate skew polynomial ring
+        over a finite field.
+
+        INPUT::
+
+        - ``base_ring`` -- a commutative ring
+
+        - ``map`` -- an automorphism of the base ring
+
+        - ``name`` -- string or list of strings representing the name of the variables of ring
+
+        - ``sparse`` -- boolean (default: False)
+
+        - ``element_class`` -- class representing the type of element to be used in ring
+
+        ..NOTE::
+
+            Multivariate and Sparse rings are not implemented.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = SkewPolynomialRing(R,sigma); S
+            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+            sage: S([1]) + S([-1])
+            0
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: T.<x> = k['x', Frob]; T 
+            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+        """
+        self._order = -1
+        try:
+            self._order = map.order()
+        except (AttributeError,NotImplementedError):
+            pass
+        if self._order < 0:
+            try:
+                if map.is_identity():
+                    self._order = 1
+            except (AttributeError,NotImplementedError):
+                pass
+        if self._order < 0:
+            raise NotImplementedError("Unable to determine the order of %s" % map)
+        SkewPolynomialRing_general.__init__ (self, base_ring, map, name, sparse, element_class)
+        self._maps = [ map**i for i in range(self._order) ]
+
+    def twist_map(self,n=1):
+        """
+        Return the twist map (eventually iterated several times) used to define
+        this skew polynomial ring.
+        
+        INPUT:
+
+        -  ``n`` - a relative integer (default: 1)
+        
+        OUTPUT:
+        
+        -  The `n`-th iterative of the twist map of this skew polynomial ring.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: S.twist_map()
+            Frobenius endomorphism t |--> t^5 on Finite Field in t of size 5^3
+            sage: S.twist_map(11)
+            Frobenius endomorphism t |--> t^(5^2) on Finite Field in t of size 5^3
+            sage: S.twist_map(3)
+            Identity endomorphism of Finite Field in t of size 5^3
+
+        It also works if `n` is negative::
+
+            sage: S.twist_map(-1)
+            Frobenius endomorphism t |--> t^(5^2) on Finite Field in t of size 5^3
+        """
+        return self._maps[n%self._order]

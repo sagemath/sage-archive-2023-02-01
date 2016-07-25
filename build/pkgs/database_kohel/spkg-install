@@ -9,19 +9,8 @@ fi
 cd src
 
 TARGET="${SAGE_SHARE}/kohel/"
-
-echo "TARGET: $TARGET"
-
-if [ -d ${TARGET} ]
-then
-	echo "REMOVING PREVIOUS VERSION"
-    rm -rf ${TARGET}
-fi
-
+rm -rf ${TARGET}
 mkdir ${TARGET}
-
 mv PolMod ${TARGET}
 mv PolHeeg ${TARGET}
-
-
 

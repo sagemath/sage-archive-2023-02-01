@@ -52,15 +52,12 @@ class ClassPolynomialDatabase:
             sage: db[123913912]
             Traceback (most recent call last):
             ...
-            KeyError: 'No database entry for class polynomial of discriminant 123913912'
+            LookupError: filename .../kohel/PolHeeg/Cls/123910001-123915000/pol.123913912.dbz does not exist
         """
         from sage.rings.integer_ring import ZZ
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         classpol = self._dbpath(disc,level)
-        try:
-            coeff_list = _dbz_to_integers(classpol)
-        except IOError:
-            raise KeyError("No database entry for class polynomial of discriminant %s"%disc)
+        coeff_list = _dbz_to_integers(classpol)
         return PolynomialRing(ZZ, var)(coeff_list)
 
 class HilbertClassPolynomialDatabase(ClassPolynomialDatabase):

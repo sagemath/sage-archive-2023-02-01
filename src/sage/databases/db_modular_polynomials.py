@@ -35,8 +35,12 @@ def _dbz_to_string(name):
     dblocation = os.path.join(SAGE_SHARE, 'kohel')
     filename = os.path.join(dblocation, name)
 
-    with open(filename) as f:
-        data = bz2.decompress(f.read())
+    try:
+        f = open(filename)
+    except IOError:
+        raise LookupError("filename {} does not exist".format(filename))
+
+    data = bz2.decompress(f.read())
 
     return data
 
@@ -133,7 +137,7 @@ class ModularPolynomialDatabase:
             sage: DBMP[50]                                     # optional - database_kohel
             Traceback (most recent call last):
             ...
-            KeyError: 'No database entry for modular polynomial of level 50'
+            LookupError: filename .../kohel/PolMod/Cls/pol.050.dbz does not exist
         """
         from sage.rings.integer import Integer
         from sage.rings.integer_ring import IntegerRing
@@ -148,10 +152,7 @@ class ModularPolynomialDatabase:
             if not N in (2,3,5,7,13):
                 raise TypeError("Argument level (= %s) must be prime."%N)
         modpol = self._dbpath(level)
-        try:
-            coeff_list = _dbz_to_integer_list(modpol)
-        except IOError:
-            raise KeyError("No database entry for modular polynomial of level %s"%level)
+        coeff_list = _dbz_to_integer_list(modpol)
         if self.model == "Cls":
             P = PolynomialRing(IntegerRing(),2,"j")
         else:

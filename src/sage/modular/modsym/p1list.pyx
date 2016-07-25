@@ -292,9 +292,10 @@ cdef int c_p1_normalize_llong(int N, int u, int v,
         sage: (7*24) % 90
         78
         
-    TESTS::
+    TESTS:
     
     This test reflects :trac:`20932`::
+    
         sage: N = 3*61379
         sage: import sage.modular.modsym.p1list as p1list
         sage: p1 = p1list.P1List(N)
@@ -436,11 +437,11 @@ def p1list_llong(int N):
         (0, 1)
         sage: L[len(L)-1]
         (25000, 1)
-        
-    TESTS::
-    
-    This test shows that :trac:`20513` has been resolved::
-        
+
+    TESTS:
+
+    This test shows that :trac:`20932` has been resolved::
+
         sage: import sage.modular.modsym.p1list as p1list
         sage: [(i,j) for (i,j) in p1list.P1List(103809) if i != 1 and i != 3]
         [(0, 1), (34603, 1), (34603, 2), (34603, 3)]

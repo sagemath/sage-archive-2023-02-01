@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting"
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+SRC=`pwd`
+
+CFLAGS="$CFLAGS -I$SAGE_LOCAL/include -L$SAGE_LOCAL/lib"
+
+if [ "x$SAGE_DEBUG" = "xyes" ]; then
+    CFLAGS="$CFLAGS -O0 -ggdb"
+fi
+
+ARCH=`uname -m`
+if [ x"$ARCH" = x"i386" -o x"$ARCH" = x"i486" -o x"$ARCH" = x"i586" -o x"$ARCH" = x"i686" ]; then
+  ARCH="x86"
+fi
+
+OS=`uname -s | tr '[:upper:]' '[:lower:]'`
+
+SOPLEX_TARBALL=`find . -name "soplex-*.tgz"`
+
+if [ -z $SOPLEX_TARBALL ]; then
+    echo "Could not find SoPlex tarball in the scipoptsuite tarball.  Something is wrong."
+    exit 1;
+fi
+
+rm -rf ./soplex-*
+tar xvfz $SOPLEX_TARBALL;
+
+if [ $? -ne 0 ]; then
+    echo "Error unpacking SOPLEX."
+    exit 1
+fi
+
+SOPLEX_DIR=`find . -name "soplex-*" -type d`
+SOPLEX_DIR=`basename $SOPLEX_DIR`
+SOPLEX_VERSION=`echo "$SOPLEX_DIR" | sed -e "s/.*-//"`
+
+SCIP_TARBALL=`find . -name "scip-*.tgz"`
+
+if [ -z $SCIP_TARBALL ]; then
+    echo "Could not find SCIP tarball in the scipoptsuite tarball.  Something is wrong."
+    exit 1;
+fi
+
+rm -rf ./scip-*
+tar xfz $SCIP_TARBALL;
+
+if [ $? -ne 0 ]; then
+    echo "Error unpacking SCIP."
+    exit 1
+fi
+
+SCIP_DIR=`find . -name "scip-*" -type d`
+SCIP_DIR=`basename $SCIP_DIR`
+SCIP_VERSION=`echo "$SCIP_DIR" | sed -e "s/.*-//"`
+
+
+# Apply patch to SCIP.
+(cd $SCIP_DIR && patch -p1 < ../patches/scip-libdep.patch || ( echo >&2 "Error applying 'scip-libdep.patch'"; exit 1 ) )
+
+echo "Compiling SoPlex"
+
+cd $SRC/$SOPLEX_DIR
+## The Makefile in soplex 2.2.1 forgets to add the library dependencies
+## "-lgmp -lz", causing the link to fail on Mac OS X.
+make VERBOSE=true OPT=opt ZLIB=true READLINE=true SHARED=true USRCFLAGS="$CFLAGS" LIBBUILDFLAGS="$LDFLAGS -shared -lgmp -lz "
+
+if [ $? -ne 0 ]; then
+    echo "Error building SOPLEX."
+    exit 1
+fi
+
+cp lib/*.so "$SAGE_LOCAL"/lib
+
+echo "Preparing SCIP ./lib symbolic links"
+
+# this is necessary, otherwise scip asks for directories (see the "touch" commands below)
+cd $SRC/$SCIP_DIR
+mkdir lib
+cd lib
+
+ln -sv $SRC/$SOPLEX_DIR/lib/libsoplex-$SOPLEX_VERSION.$OS.$ARCH.gnu.opt.so libsoplex.$OS.$ARCH.gnu.opt.so
+ln -sv $SRC/$SOPLEX_DIR/src/ spxinc
+touch libsoplex.$OS.$ARCH.gnu.opt.a
+
+echo "Compiling SCIP"
+
+cd $SRC/$SCIP_DIR
+# for clp add the option LPS=clp
+## added -rpath.  Abusing LIBBUILD_o is of course a hack. 
+make OPT=opt VERBOSE=true SHARED=true ZIMPL=false GMP=true ZLIB=true READLINE=true USRCFLAGS="$CFLAGS" USRLDFLAGS="-Wl,-rpath,$SAGE_LOCAL/lib" \
+ LIBBUILD_o="-Wl,-rpath,$SAGE_LOCAL/lib -o " INSTALLDIR="$SAGE_LOCAL" install
+
+if [ $? -ne 0 ]; then
+    echo "Error building SCIP"
+    exit 1
+fi
+
+## TODO: use make.install from scip??
+## cp lib/libscip*.so "$SAGE_LOCAL"/lib
+## cp lib/liblpispx*.so "$SAGE_LOCAL"/lib
+## cp lib/libnlpi*.so "$SAGE_LOCAL"/lib
+## cp lib/libobjscip*.so "$SAGE_LOCAL"/lib
+
+## if [ ! -d $SAGE_LOCAL/include/scip ]; then
+##    mkdir $SAGE_LOCAL/include/scip
+## fi
+
+## cp -r src/scip/*.h "$SAGE_LOCAL"/include/scip/
+
+## if [ ! -d $SAGE_LOCAL/include/blockmemshell ]; then
+##    mkdir $SAGE_LOCAL/include/blockmemshell
+## fi
+
+## cp -r src/blockmemshell/*.h "$SAGE_LOCAL"/include/blockmemshell
+
+
+## if [ ! -d $SAGE_LOCAL/include/nlpi ]; then
+##    mkdir $SAGE_LOCAL/include/nlpi
+## fi
+
+## cp -r src/nlpi/*.h "$SAGE_LOCAL"/include/nlpi
+
+
+echo "finished building SCIP with SoPlex"

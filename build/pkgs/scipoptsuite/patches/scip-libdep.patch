@@ -1,0 +1,17 @@
+diff --git a/Makefile b/Makefile
+index 6181eb4..27fb1ec 100644
+--- a/Makefile
++++ b/Makefile
+@@ -945,10 +945,10 @@ endif
+ makesciplibfile: preprocess
+ 		@$(MAKE) $(SCIPLIBFILE)
+ 
+-$(SCIPLIBFILE):	$(SCIPLIBOBJFILES) | $(LIBDIR) $(LIBOBJSUBDIRS)
++$(SCIPLIBFILE):	$(SCIPLIBOBJFILES) $(LPILIBFILE) | $(LIBDIR) $(LIBOBJSUBDIRS)
+ 		@echo "-> generating library $@"
+ 		-rm -f $@
+-		$(LIBBUILD) $(LIBBUILDFLAGS) $(LIBBUILD_o)$@ $(SCIPLIBOBJFILES)
++		$(LIBBUILD) $(LIBBUILDFLAGS) $(LIBBUILD_o)$@ $(SCIPLIBOBJFILES) $(LPILIBFILE)
+ ifneq ($(RANLIB),)
+ 		$(RANLIB) $@
+ endif

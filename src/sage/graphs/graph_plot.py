@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Graph Plotting
 
@@ -147,7 +148,8 @@ graphplot_options.update(
                         '"-", "--", ":", "-.", respectively. '
                         'This currently only works for directed graphs, '
                         'since we pass off the undirected graph to networkx.',
-                    'edge_color': 'The default color for edges.',
+                    'edge_thickness': 'The thickness of the edges.',
+                    'edge_color': 'The default color for edges not listed in edge_colors.',
                     'edge_colors': 'a dictionary specifying edge colors: each '
                         'key is a color recognized by matplotlib, and each '
                         'entry is a list of edges.',
@@ -189,6 +191,7 @@ from sage.structure.sage_object import SageObject
 from sage.plot.all import Graphics, scatter_plot, bezier_path, line, arrow, text, circle
 from sage.misc.decorators import options
 from math import sqrt, cos, sin, atan, pi
+from six import text_type as str
 
 DEFAULT_SHOW_OPTIONS = {
     "figsize"             : [4,4]
@@ -199,6 +202,7 @@ DEFAULT_PLOT_OPTIONS = {
     "vertex_labels"       : True,
     "layout"              : None,
     "edge_style"          : 'solid',
+    "edge_thickness"      : 1,
     "edge_color"          : 'black',
     "edge_colors"         : None,
     "edge_labels"         : False,
@@ -334,6 +338,10 @@ class GraphPlot(SageObject):
             sage: set(map(type, flatten(gp._pos.values())))
             {<type 'float'>}
 
+        Non-ascii labels are also possible using unicode (:trac:`21008`)::
+
+            sage: Graph({u'où': [u'là', u'ici']}).plot()
+            Graphics object consisting of 6 graphics primitives
         """
         self._pos = self._graph.layout(**self._options)
         # make sure the positions are floats (trac #10124)
@@ -594,8 +602,8 @@ class GraphPlot(SageObject):
             eoptions['linestyle'] = get_matplotlib_linestyle(
                                         self._options['edge_style'],
                                         return_type='long')
-        if 'thickness' in self._options:
-            eoptions['thickness'] = self._options['thickness']
+        if 'edge_thickness' in self._options:
+            eoptions['thickness'] = self._options['edge_thickness']
 
         # Set labels param to add labels on the fly
         labels = False
@@ -632,6 +640,10 @@ class GraphPlot(SageObject):
                     else:
                         edges_to_draw[key] = [(label, color, head)]
             # add unspecified edges in (default color black)
+            if 'edge_color' in self._options:
+                default_edge_color = self._options['edge_color']
+            else:
+                default_edge_color = 'black'
             for edge in self._graph.edge_iterator():
                 key = tuple(sorted([edge[0],edge[1]]))
                 label = edge[2]
@@ -644,7 +656,7 @@ class GraphPlot(SageObject):
                 if not specified:
                     if key == (edge[0],edge[1]): head = 1
                     else: head = 0
-                    edges_to_draw[key] = [(label, 'black', head)]
+                    edges_to_draw[key] = [(label, default_edge_color, head)]
         else:
             for edge in self._graph.edges(sort=True):
                 key = tuple(sorted([edge[0],edge[1]]))

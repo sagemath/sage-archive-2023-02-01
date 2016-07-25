@@ -56,13 +56,14 @@ Functions
 
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
-from designs_pyx import is_orthogonal_array
-from group_divisible_designs import GroupDivisibleDesign
-from designs_pyx import _OA_cache_set, _OA_cache_get, _OA_cache_construction_available
+from .designs_pyx import is_orthogonal_array
+from .group_divisible_designs import GroupDivisibleDesign
+from .designs_pyx import _OA_cache_set, _OA_cache_get, _OA_cache_construction_available
 
 def transversal_design(k,n,resolvable=False,check=True,existence=False):
     r"""
@@ -680,7 +681,7 @@ def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
                              matrix=[sum(point_to_point_set[i],[])]*k))
 
     if check:
-        from designs_pyx import is_orthogonal_array
+        from .designs_pyx import is_orthogonal_array
         assert is_orthogonal_array(OA,k,n,2)
 
     return OA
@@ -866,11 +867,11 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
     if existence and _OA_cache_get(k,n) is not None and t == 2:
         return _OA_cache_get(k,n)
 
-    from block_design import projective_plane
-    from latin_squares import mutually_orthogonal_latin_squares
-    from database import OA_constructions, MOLS_constructions, QDM
-    from orthogonal_arrays_find_recursive import find_recursive_construction
-    from difference_matrices import difference_matrix
+    from .block_design import projective_plane
+    from .latin_squares import mutually_orthogonal_latin_squares
+    from .database import OA_constructions, MOLS_constructions, QDM
+    from .orthogonal_arrays_find_recursive import find_recursive_construction
+    from .difference_matrices import difference_matrix
 
     may_be_available = _OA_cache_construction_available(k,n) is not False
 
@@ -926,7 +927,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
                 return projective_plane(n, existence=True)
             if explain_construction:
                 return "From a projective plane of order {}".format(n)
-            from block_design import projective_plane_to_OA
+            from .block_design import projective_plane_to_OA
             p = projective_plane(n, check=False)
             OA = projective_plane_to_OA(p, check=False)
         else:
@@ -934,7 +935,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
                 return True
             if explain_construction:
                 return "From a projective plane of order {}".format(n)
-            from block_design import projective_plane_to_OA
+            from .block_design import projective_plane_to_OA
             p = projective_plane(n, check=False)
             OA = [l[:k] for l in projective_plane_to_OA(p, check=False)]
 
@@ -1042,7 +1043,7 @@ def largest_available_k(n,t=2):
         ...
         ValueError: n(=-1) was expected to be >=0
     """
-    from block_design import projective_plane
+    from .block_design import projective_plane
     if n<0:
         raise ValueError("n(={}) was expected to be >=0".format(n))
     if t<0:
@@ -1660,7 +1661,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.rings.integer import Integer
     from itertools import izip,combinations
-    from designs_pyx import is_difference_matrix
+    from .designs_pyx import is_difference_matrix
 
     G_card = G.cardinality()
 
@@ -1983,7 +1984,7 @@ def OA_from_PBD(k,n,PBD, check=True):
     K = set(map(len,PBD))
 
     if check:
-        from designs_pyx import is_pairwise_balanced_design
+        from .designs_pyx import is_pairwise_balanced_design
         if not is_pairwise_balanced_design(PBD, n, K):
             raise RuntimeError("PBD is not a valid Pairwise Balanced Design on [0,...,{}]".format(n-1))
 

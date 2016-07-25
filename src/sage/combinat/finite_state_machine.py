@@ -4263,7 +4263,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
             sage: A = Automaton([(0, 0, -1)])
             sage: map(A.format_letter_negative, [-1, 0, 1, 'a', None])
-             ['\\overline{1}', 0, 1, \text{\texttt{a}}, \mbox{\rm None}]
+            ['\\overline{1}', 0, 1, \text{\texttt{a}}, \mathrm{None}]
             sage: A.latex_options(format_letter=A.format_letter_negative)
             sage: print(latex(A))
             \begin{tikzpicture}[auto, initial text=, >=latex]

@@ -8,6 +8,7 @@ AUTHORS:
 - Christian Stump (2010): :trac:`9648` module_morphism's to a wider class
   of codomains
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -2047,7 +2048,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: cartesian_product((A, B, A)).an_element()           # indirect doctest
                     2*B[(0, word: )] + 2*B[(0, word: a)] + 3*B[(0, word: b)]
                 """
-                from cartesian_product import cartesian_product
+                from .cartesian_product import cartesian_product
                 return cartesian_product([module.an_element() for module in self.modules])
 
     class TensorProducts(TensorProductsCategory):

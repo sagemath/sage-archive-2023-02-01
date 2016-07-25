@@ -1,7 +1,7 @@
 """
 Quitting interfaces
 """
-
+from __future__ import print_function
 
 ################################################################################
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
@@ -72,7 +72,7 @@ def kill_spawned_jobs(verbose=False):
         pid = L[:i].strip()
         try:
             if verbose:
-                print "Killing spawned job %s" % pid
+                print("Killing spawned job %s" % pid)
             os.killpg(int(pid), 9)
         except OSError:
             pass
@@ -82,7 +82,7 @@ def is_running(pid):
     Return True if and only if there is a process with id pid running.
     """
     try:
-        os.kill(int(pid),0)
+        os.kill(int(pid), 0)
         return True
     except (OSError, ValueError):
         return False

@@ -416,6 +416,7 @@ Methods
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from copy import copy
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -1130,22 +1131,22 @@ class Graph(GenericGraph):
             if weighted   is None: weighted   = False
             self.allow_loops(loops if loops else False, check=False)
             self.allow_multiple_edges(multiedges if multiedges else False, check=False)
-            from graph_input import from_graph6
+            from .graph_input import from_graph6
             from_graph6(self, data)
 
         elif format == 'sparse6':
             if weighted   is None: weighted   = False
             self.allow_loops(False if loops is False else True, check=False)
             self.allow_multiple_edges(False if multiedges is False else True, check=False)
-            from graph_input import from_sparse6
+            from .graph_input import from_sparse6
             from_sparse6(self, data)
 
         elif format == 'adjacency_matrix':
-            from graph_input import from_adjacency_matrix
+            from .graph_input import from_adjacency_matrix
             from_adjacency_matrix(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'incidence_matrix':
-            from graph_input import from_incidence_matrix
+            from .graph_input import from_incidence_matrix
             from_incidence_matrix(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'seidel_adjacency_matrix':
@@ -1154,7 +1155,7 @@ class Graph(GenericGraph):
             loops = False
             self.allow_loops(False)
             self.allow_multiple_edges(False)
-            from graph_input import from_seidel_adjacency_matrix
+            from .graph_input import from_seidel_adjacency_matrix
             from_seidel_adjacency_matrix(self, data)
         elif format == 'Graph':
             if loops is None:      loops      = data.allows_loops()
@@ -1221,12 +1222,12 @@ class Graph(GenericGraph):
             self.add_edges(data[1])
 
         elif format == 'dict_of_dicts':
-            from graph_input import from_dict_of_dicts
+            from .graph_input import from_dict_of_dicts
             from_dict_of_dicts(self, data, loops=loops, multiedges=multiedges, weighted=weighted,
                                convert_empty_dict_labels_to_None = False if convert_empty_dict_labels_to_None is None else convert_empty_dict_labels_to_None)
 
         elif format == 'dict_of_lists':
-            from graph_input import from_dict_of_lists
+            from .graph_input import from_dict_of_lists
             from_dict_of_lists(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'int':
@@ -5572,7 +5573,7 @@ class Graph(GenericGraph):
             Bipartite graph on 6 vertices
             sage: (G.cliques_get_clique_bipartite()).show(figsize=[2,2])
         """
-        from bipartite_graph import BipartiteGraph
+        from .bipartite_graph import BipartiteGraph
         import networkx
         return BipartiteGraph(networkx.make_clique_bipartite(self.networkx_graph(copy=False), **kwds))
 

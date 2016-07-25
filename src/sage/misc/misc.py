@@ -65,6 +65,7 @@ Test deprecation::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "generic_cmp", "to_gmp_hex", "todo",
@@ -74,7 +75,7 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
 from warnings import warn
 import os, stat, sys, signal, time, resource, math
 import sage.misc.prandom as random
-from lazy_string import lazy_string
+from .lazy_string import lazy_string
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.arith.srange', ('xsrange', 'srange', 'ellipsis_range', 'ellipsis_iter'), deprecation=20094)

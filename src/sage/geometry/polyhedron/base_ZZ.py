@@ -12,13 +12,14 @@ Base class for polyhedra over `\ZZ`
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
 from sage.modules.free_module_element import vector
 from sage.arith.all import gcd
-from constructor import Polyhedron
-from base import Polyhedron_base
+from .constructor import Polyhedron
+from .base import Polyhedron_base
 
 
 #########################################################################

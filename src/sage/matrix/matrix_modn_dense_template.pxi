@@ -798,7 +798,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return M
 
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         EXAMPLES::
 
@@ -808,7 +808,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         """
         return self._rmul_(right)
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         EXAMPLES::
 
@@ -856,7 +856,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return A
 
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two dense matrices over `\Z/n\Z`
 
@@ -900,7 +900,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return M
 
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         r"""
         Subtract two dense matrices over `\Z/n\Z`
 
@@ -937,7 +937,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return M
 
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         r"""
         Compare two dense matrices over `\Z/n\Z`
 
@@ -990,7 +990,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return 0
 
 
-    cdef Matrix _matrix_times_matrix_(self, Matrix right):
+    cdef _matrix_times_matrix_(self, Matrix right):
         """
         return ``self*right``
 
@@ -1191,7 +1191,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
 
         return ans
 
-    cdef Vector _vector_times_matrix_(self, Vector v):
+    cdef _vector_times_matrix_(self, Vector v):
         """
         ``v*self``
 
@@ -1248,7 +1248,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         sig_free(_c)
         return c
 
-    cdef Vector _matrix_times_vector_(self, Vector v):
+    cdef _matrix_times_vector_(self, Vector v):
         """
         ``self*v``
 
@@ -1470,7 +1470,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             if g != h:
                 raise ArithmeticError("Characteristic polynomials do not match.")
         else:
-            raise ValueError, "no algorithm '%s'"%algorithm
+            raise ValueError("no algorithm '%s'" % algorithm)
 
         self.cache(cache_key, g)
         return g
@@ -1681,7 +1681,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         verbose('_charpoly_linbox...')
 
         if self._nrows != self._ncols:
-            raise ValueError, "matrix must be square"
+            raise ValueError("matrix must be square")
         if self._nrows <= 1:
             return matrix_dense.Matrix_dense.charpoly(self, var)
         R = self._base_ring[var]
@@ -2070,7 +2070,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         if not x is None and x: return  # already known to be in Hessenberg form
 
         if self._nrows != self._ncols:
-            raise ArithmeticError, "Matrix must be square to compute Hessenberg form."
+            raise ArithmeticError("Matrix must be square to compute Hessenberg form.")
 
         cdef Py_ssize_t n
         n = self._nrows
@@ -2157,7 +2157,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             x^10 + 12*x^9 + 6*x^8 + 8*x^7 + 13*x^6
         """
         if self._nrows != self._ncols:
-            raise ArithmeticError, "charpoly not defined for non-square matrix."
+            raise ArithmeticError("charpoly not defined for non-square matrix.")
 
         cdef Py_ssize_t i, m, n,
         n = self._nrows
@@ -2388,7 +2388,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             0
         """
         if self._nrows != self._ncols:
-            raise ValueError, "self must be a square matrix"
+            raise ValueError("self must be a square matrix")
         if self._nrows == 0:
             return self._coerce_element(1)
 
@@ -2945,7 +2945,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         - ``list`` - a list of matrices
         """
         if nrows * ncols != self._ncols:
-            raise ValueError, "nrows * ncols must equal self's number of columns"
+            raise ValueError("nrows * ncols must equal self's number of columns")
 
         from matrix_space import MatrixSpace
         F = self.base_ring()

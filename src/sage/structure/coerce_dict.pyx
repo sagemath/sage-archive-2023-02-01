@@ -41,6 +41,7 @@ used with weak references on the values.
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from cpython.object cimport *
 from cpython.list cimport PyList_New
@@ -786,12 +787,12 @@ cdef class MonoDict:
                 if isinstance(key,fixed_KeyedRef):
                     key = <object>PyWeakref_GetObject(key)
                     if key is None:
-                        print "found defunct key"
+                        print("found defunct key")
                         continue
                 if self.weak_values and isinstance(value,fixed_KeyedRef):
                     value = <object>PyWeakref_GetObject(value)
                     if value is None:
-                        print "found defunct value"
+                        print("found defunct value")
                         continue
                 yield (key, value)
 
@@ -1488,24 +1489,24 @@ cdef class TripleDict:
                 if isinstance(key1,fixed_KeyedRef):
                     key1 = <object>PyWeakref_GetObject(key1)
                     if key1 is None:
-                        print "found defunct key1"
+                        print("found defunct key1")
                         continue
                 if isinstance(key2,fixed_KeyedRef):
                     key2 = <object>PyWeakref_GetObject(key2)
                     if key2 is None:
-                        print "found defunct key2"
+                        print("found defunct key2")
                         continue
                 if isinstance(key3,fixed_KeyedRef):
                     key3 = <object>PyWeakref_GetObject(key3)
                     if key3 is None:
-                        print "found defunct key3"
+                        print("found defunct key3")
                         continue
                 if self.weak_values and isinstance(value,fixed_KeyedRef):
                     value = <object>PyWeakref_GetObject(value)
                     if value is None:
-                        print "found defunct value"
+                        print("found defunct value")
                         continue
-                yield ((key1,key2,key3), value)
+                yield ((key1, key2, key3), value)
 
     def __reduce__(self):
         """

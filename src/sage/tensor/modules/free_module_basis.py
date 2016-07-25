@@ -17,6 +17,7 @@ REFERENCES:
 - Chap. 3 of S. Lang : *Algebra*, 3rd ed., Springer (New York) (2002)
 
 """
+from __future__ import absolute_import
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
@@ -459,7 +460,7 @@ class FreeModuleBasis(Basis_abstract):
             e_2 = -2/5 f_1 + 1/5 f_2
 
         """
-        from free_module_automorphism import FreeModuleAutomorphism
+        from .free_module_automorphism import FreeModuleAutomorphism
         if not isinstance(change_of_basis, FreeModuleAutomorphism):
             raise TypeError("the argument change_of_basis must be some " +
                             "instance of FreeModuleAutomorphism")

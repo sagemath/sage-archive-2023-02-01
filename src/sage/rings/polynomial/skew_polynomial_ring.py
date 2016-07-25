@@ -150,7 +150,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
         - ``name`` -- string or list of strings representing the name of the variables of ring
 
-        - ``sparse`` -- boolean (default: False)
+        - ``sparse`` -- boolean (default: ``False``)
 
         - ``element_class`` -- class representing the type of element to be used in ring
 
@@ -326,7 +326,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     def _repr_(self):
         """
-        Return representation of self.
+        Return representation of ``self``.
         
         EXAMPLES::
 
@@ -343,7 +343,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     def _latex_(self):
         """
-        Return latex representation of self.
+        Return latex representation of ``self``.
 
         EXAMPLES::
 
@@ -396,7 +396,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
     def twist_map(self, n=1):
         """
         Return the twist map, otherwise known as the automorphism over the base ring of
-        `self`, iterated multiple times.
+        ``self``, iterated multiple times.
 
         INPUT:
 
@@ -579,7 +579,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
            or a tuple of integers with minimum and maximum degrees
 
         -  ``monic`` - if True, returns a monic skew polynomial
-           (default: False)
+           (default: ``False``)
 
         -  ``*args, **kwds`` - Passed on to the ``random_element`` method for
            the base ring

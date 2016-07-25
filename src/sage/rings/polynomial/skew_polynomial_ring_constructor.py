@@ -48,12 +48,9 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
 
     - ``names`` -- a string or a list of one string
 
-    - ``sparse`` -- a boolean (default: False)
+    - ``sparse`` -- a boolean (default: ``False``)
 
     .. NOTE::
-
-        The input ``names`` is redundant with ``name`` but useful
-        to allow the syntax ``S.<x> = SkewPolynomialRing(R, base_ring_automorphism)``.
 
         The current implementation of skew polynomial rings does not support derivations
         and the ring thus created is actually a special case of skew polynomials where the 

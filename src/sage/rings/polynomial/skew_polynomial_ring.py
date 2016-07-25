@@ -658,6 +658,56 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         """
         return self.twist_map().is_identity()
 
+    def minimum_subspace_polynomial(self, eval_pts):
+        x = self([0, 1])
+        q = self.base_ring().characteristic()
+        if len(eval_pts) == 1:
+            if eval_pts[0] == self.zero():
+                return pow(x, pow(q, 0)) 
+            else:
+                return pow(x, pow(q, 1)) - pow(eval_pts[0], q-1) * pow(x, pow(q, 0)) 
+        else:
+            A = eval_pts[:len(eval_pts)/2]
+            B = eval_pts[(len(eval_pts)/2):]
+            M_A = self.minimum_subspace_polynomial(A)
+            M_A_B = self.multi_point_evaluation(M_A, B)
+            M_M_A_B = self.minimum_subspace_polynomial(M_A_B)
+            return M_M_A_B * M_A
+        
+    def multi_point_evaluation(self, p, eval_pts):
+        coefficients = p.list()
+        q = self.base_ring().characteristic()
+        if len(eval_pts) == 1:
+            y = []
+            y.append(coefficients[1]*pow(eval_pts[0], pow(q, 1)) + coefficients[0]*pow(eval_pts[0], pow(q, 0))) 
+            return y
+        else:
+            A = eval_pts[:len(eval_pts)/2]
+            B = eval_pts[(len(eval_pts)/2):]
+            M_A = self.minimum_subspace_polynomial(A)
+            M_B = self.minimum_subspace_polynomial(B)
+            Q_A, R_A = p.right_quo_rem(M_A)
+            Q_B, R_B = p.right_quo_rem(M_B)
+            r = list(set(self.multi_point_evaluation(R_A, A)).union(set(self.multi_point_evaluation(R_B, B))))
+            return list(set(self.multi_point_evaluation(R_A, A)).union(set(self.multi_point_evaluation(R_B, B))))
+
+    def interpolation_polynomial(self, eval_pts, values):
+        x = self([0, 1]) 
+        q = self.base_ring().characteristic()
+        if len(values) == 1:
+            c, _ = values[0].quo_rem(eval_pts[0])
+            return c*pow(x, pow(q, 0)) 
+        else:
+            A = eval_pts[:len(eval_pts)/2]
+            B = eval_pts[(len(eval_pts)/2):]
+            M_A = self.minimum_subspace_polynomial(A)
+            M_B = self.minimum_subspace_polynomial(B)
+            A_ = self.multi_point_evaluation(M_B, A)
+            B_ = self.multi_point_evaluation(M_A, B)
+            I_1 = self.interpolation_polynomial(A_, values[:len(eval_pts)/2])
+            I_2 = self.interpolation_polynomial(B_, values[(len(eval_pts)/2):])
+            return I_1 * M_B + I_2 * M_A
+
 class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
     """
     A specific class for skew polynomial rings over finite field.

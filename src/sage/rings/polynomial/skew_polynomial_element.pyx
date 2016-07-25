@@ -177,14 +177,10 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-
-include "../../ext/stdsage.pxi"
-
 import re
 from copy import copy
 import skew_polynomial_ring
 import sage.rings.infinity as infinity
-from sage.misc.latex import latex
 from sage.structure.factorization import Factorization
 from sage.categories.homset import Hom
 from sage.structure.element cimport Element, RingElement, ModuleElement
@@ -287,7 +283,7 @@ cdef class SkewPolynomial(AlgebraElement):
     cdef list _list_c(self):
         raise NotImplementedError
 
-    cpdef int _cmp_(self, other) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Compare the two skew polynomials ``self`` and ``other``.
 
@@ -306,19 +302,20 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a < b
             False
         """
-        cdef list x = (<SkewPolynomial>self)._list_c()
-        cdef list y = (<SkewPolynomial>other)._list_c()
-        cdef Py_ssize_t dx = len(x), dy = len(y)
-        cdef Py_ssize_t i
-        cdef int c
-        c = cmp(dx,dy)
-        if c:
-            return c
-        for i from dx > i >= 0:
-            c = cmp(x[i],y[i])
-            if c:
-                return c
-        return 0
+        cdef list x = (<SkewPolynomial>left)._list_c()
+        cdef list y = (<SkewPolynomial>right)._list_c()
+        if op == 0:
+            return x < y
+        elif op == 1:
+            return x <= y 
+        elif op == 2:
+            return x == y 
+        elif op == 3:
+            return x != y 
+        elif op == 4:
+            return x > y
+        else:
+            return x >= y 
 
     cdef SkewPolynomial _new_c(self, list coeffs, Parent P, char check=0):
         """
@@ -2010,7 +2007,7 @@ cdef class SkewPolynomial(AlgebraElement):
         atomic_repr = self.parent().base_ring()._repr_option('element_is_atomic')
         for n in reversed(xrange(m)):
             x = coeffs[n]
-            x = y = latex(x)
+            x = y = x._latex_()
             if x != '0':
                 if n != m-1:
                     s += " + "

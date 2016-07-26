@@ -14,12 +14,12 @@ through the class ``SkewPolynomial_generic_dense`` along with classes
 for conversion from a skew polynomial ring to its base ring and vice versa
 respectively.
 
-DEFINITION::
+DEFINITION:
 
 Let `R` be a commutative ring equipped with an automorphism `\sigma`.
 
 Then, a formal skew polynomial is given by the equation:
-    F(X) = a_{n}X^{n} + ... + a_0
+F(X) = a_{n}X^{n} + ... + a_0
 where the coefficients a_{i} belong to R and X is a formal variable.
 
 Addition between two skew polynomials is defined by the usual addition
@@ -28,7 +28,7 @@ operation and the modified multiplication is defined by the rule
 non-commutative and the degree of a product is equal to the sum of the
 degrees of the factors.
 
-EXAMPLES::
+EXAMPLES:
 
 We illustrate some functionalities implemented in this class.
 
@@ -379,7 +379,7 @@ cdef class SkewPolynomial(AlgebraElement):
         INPUT:
 
         - ``eval_pt`` -- ring element, need not be in the coefficient ring
-            of the skew polynomial.
+          of the skew polynomial.
 
         OUTPUT:
 
@@ -512,9 +512,9 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        -  ``n`` - an integer
+        - ``n`` - an integer
 
-        -  ``value`` - value to set the `n`-th coefficient to
+        - ``value`` - value to set the `n`-th coefficient to
 
         OUTPUT: an IndexError is always raised.
 
@@ -668,7 +668,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        -  ``right`` -- an element of the base ring
+        - ``right`` -- an element of the base ring
 
         EXAMPLES::
 
@@ -696,7 +696,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        -  ``left`` -- an element of the base ring
+        - ``left`` -- an element of the base ring
 
         EXAMPLES::
 
@@ -724,7 +724,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        -  ``right`` -- a skew polynomial in the same ring
+        - ``right`` -- a skew polynomial in the same ring
 
         EXAMPLES::
 
@@ -786,7 +786,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         INPUT:
 
-        -  `n` -- an integer
+        - `n` -- an integer
 
         OUTPUT:
 
@@ -1069,13 +1069,13 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         INPUT:
 
-        -  ``other`` -- a skew polynomial ring over the same
-           base ring
+        - ``other`` -- a skew polynomial ring over the same
+          base ring
 
         OUTPUT:
 
-        -  the quotient and the remainder of the left euclidean
-           division of this skew polynomial by ``other``
+        - the quotient and the remainder of the left euclidean
+          division of this skew polynomial by ``other``
 
         .. NOTE::
 
@@ -1138,13 +1138,13 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         INPUT:
 
-        -  ``other`` -- a skew polynomial ring over the same
-           base ring
+        - ``other`` -- a skew polynomial ring over the same
+          base ring
 
         OUTPUT:
 
-        -  the quotient and the remainder of the left euclidean
-           division of this skew polynomial by ``other``
+        - the quotient and the remainder of the left euclidean
+          division of this skew polynomial by ``other``
 
         .. NOTE::
 
@@ -1280,7 +1280,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         INPUT:
 
-         -  ``other`` -- a skew polynomial over the same base
+        - ``other`` -- a skew polynomial over the same base
 
         OUTPUT:
 
@@ -1313,7 +1313,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         INPUT:
 
-        -  ``other`` -- a skew polynomial over the same base
+        - ``other`` -- a skew polynomial over the same base
 
         OUTPUT:
 
@@ -1360,7 +1360,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         INPUT:
 
-        -  ``other`` -- a skew polynomial over the same base
+        - ``other`` -- a skew polynomial over the same base
 
         OUTPUT:
 
@@ -1393,7 +1393,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         INPUT:
 
-        -  ``other`` -- a skew polynomial over the same base
+        - ``other`` -- a skew polynomial over the same base
 
         OUTPUT:
 
@@ -1440,19 +1440,19 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         INPUT:
 
-        -  ``other`` -- an other skew polynomial over the same
-           base
+        - ``other`` -- an other skew polynomial over the same
+          base
 
-        -  ``monic`` -- boolean (default: True)
+        - ``monic`` -- boolean (default: ``True``)
 
         OUTPUT:
 
         - The left gcd of ``self`` and ``other``, that is a skew polynomial
-        `g` with the following property: any skew polynomial is
-        divisible on the left by `g` iff it is divisible on the left
-        by both ``self`` and ``other``.
-        If monic is ``True``, `g` is in addition monic. (With this
-        extra condition, it is uniquely determined.)
+          `g` with the following property: any skew polynomial is
+          divisible on the left by `g` iff it is divisible on the left
+          by both ``self`` and ``other``.
+          If monic is ``True``, `g` is in addition monic. (With this
+          extra condition, it is uniquely determined.)
 
         - Two skew polynomials `u` and `v` such that:
 
@@ -1540,19 +1540,19 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         INPUT:
 
-        -  ``other`` -- another skew polynomial over the same
-           base
+        - ``other`` -- another skew polynomial over the same
+          base
 
-        -  ``monic`` -- boolean (default: True)
+        - ``monic`` -- boolean (default: ``True``)
 
         OUTPUT:
 
         - The right gcd of ``self`` and ``other``, that is a skew polynomial
-        `g` with the following property: any skew polynomial is
-        divisible on the right by `g` iff it is divisible on the right
-        by both ``self`` and ``other``.
-        If monic is ``True``, `g` is in addition monic. (With this
-        extra condition, it is uniquely determined.)
+          `g` with the following property: any skew polynomial is
+          divisible on the right by `g` iff it is divisible on the right
+          by both ``self`` and ``other``.
+          If monic is ``True``, `g` is in addition monic. (With this
+          extra condition, it is uniquely determined.)
 
         - Two skew polynomials `u` and `v` such that:
 
@@ -1624,19 +1624,19 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         INPUT:
 
-        -  ``other`` -- another skew polynomial over the same
-           base
+        - ``other`` -- another skew polynomial over the same
+          base
 
-        -  ``monic`` -- boolean (default: True)
+        - ``monic`` -- boolean (default: ``True``)
 
         OUTPUT:
 
         - The right gcd of ``self`` and ``other``, that is a skew polynomial
-        `g` with the following property: any skew polynomial is
-        divisible on the right by `g` iff it is divisible on the right
-        by both ``self`` and ``other``.
-        If monic is ``True``, `g` is in addition monic. (With this
-        extra condition, it is uniquely determined.)
+          `g` with the following property: any skew polynomial is
+          divisible on the right by `g` iff it is divisible on the right
+          by both ``self`` and ``other``.
+          If monic is ``True``, `g` is in addition monic. (With this
+          extra condition, it is uniquely determined.)
 
         .. NOTE::
 
@@ -1686,19 +1686,19 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         INPUT:
 
-        -  ``other`` -- another skew polynomial over the same
-           base
+        - ``other`` -- another skew polynomial over the same
+          base
 
-        -  ``monic`` -- boolean (default: True)
+        - ``monic`` -- boolean (default: ``True``)
 
         OUTPUT:
 
         - The left gcd of ``self`` and ``other``, that is a skew polynomial
-        `g` with the following property: any skew polynomial is
-        divisible on the left by `g` iff it is divisible on the left
-        by both ``self`` and ``other``.
-        If monic is ``True``, `g` is in addition monic. (With this
-        extra condition, it is uniquely determined.)
+          `g` with the following property: any skew polynomial is
+          divisible on the left by `g` iff it is divisible on the left
+          by both ``self`` and ``other``.
+          If monic is ``True``, `g` is in addition monic. (With this
+          extra condition, it is uniquely determined.)
 
         .. NOTE::
 
@@ -1765,19 +1765,19 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         INPUT:
 
-        -  ``other`` -- another skew polynomial over the same
-           base
+        - ``other`` -- another skew polynomial over the same
+          base
 
-        -  ``monic`` -- boolean (default: True)
+        - ``monic`` -- boolean (default: ``True``)
 
         OUTPUT:
 
         - The left lcm of ``self`` and ``other``, that is a skew polynomial
-        `g` with the following property: any skew polynomial divides
-        `g` on the *right* iff it divides both ``self`` and ``other``
-        on the *right*.
-        If monic is ``True``, `g` is in addition monic. (With this
-        extra condition, it is uniquely determined.)
+          `g` with the following property: any skew polynomial divides
+          `g` on the *right* iff it divides both ``self`` and ``other``
+          on the *right*.
+          If monic is ``True``, `g` is in addition monic. (With this
+          extra condition, it is uniquely determined.)
 
         .. NOTE::
 
@@ -1841,19 +1841,19 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         INPUT:
 
-        -  ``other`` -- another skew polynomial over the same
-           base
+        - ``other`` -- another skew polynomial over the same
+          base
 
-        -  ``monic`` -- boolean (default: True)
+        - ``monic`` -- boolean (default: ``True``)
 
         OUTPUT:
 
         - The right lcm of ``self`` and ``other``, that is a skew polynomial
-        `g` with the following property: any skew polynomial divides
-        `g` on the *left* iff it divides both ``self`` and ``other``
-        on the *left*.
-        If monic is ``True``, `g` is in addition monic. (With this
-        extra condition, it is uniquely determined.)
+          `g` with the following property: any skew polynomial divides
+          `g` on the *left* iff it divides both ``self`` and ``other``
+          on the *left*.
+          If monic is ``True``, `g` is in addition monic. (With this
+          extra condition, it is uniquely determined.)
 
         .. NOTE::
 
@@ -1935,8 +1935,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        -  ``name`` -- the name of the variable (default: the
-           name given when the skew polynomial ring was created)
+        - ``name`` -- the name of the variable (default: the
+          name given when the skew polynomial ring was created)
 
         EXAMPLES::
 
@@ -1985,8 +1985,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        -  ``name`` -- the name of the variable (default: the
-           name given when the skew polynomial ring was created)
+        - ``name`` -- the name of the variable (default: the
+          name given when the skew polynomial ring was created)
 
         EXAMPLES::
 
@@ -2159,7 +2159,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        -  ``var`` -- the name of the new variable
+        - ``var`` -- the name of the new variable
 
         EXAMPLES::
 
@@ -2443,7 +2443,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         OUTPUT:
 
-            -  ``bool`` - True if and only if this polynomial is constant
+        - ``bool`` -- True if and only if this polynomial is constant
 
         EXAMPLES::
 
@@ -2499,10 +2499,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-
-        -  ``n`` - (default: ``None``); if given, an integer that
-           is at least 0
-
+        - ``n`` - (default: ``None``); if given, an integer that
+          is at least 0
 
         EXAMPLES::
 
@@ -2781,9 +2779,9 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         """
         INPUT:
 
-        -  ``exp`` -- an Integer
+        - ``exp`` -- an Integer
 
-        -  ``modulus`` -- a skew polynomial over the same ring (default: ``None``)
+        - ``modulus`` -- a skew polynomial over the same ring (default: ``None``)
 
         OUTPUT:
 
@@ -2863,9 +2861,9 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         """
         INPUT:
 
-        -  ``exp`` -- an Integer
+        - ``exp`` -- an Integer
 
-        -  ``modulus`` -- a skew polynomial over the same ring (default: ``None``)
+        - ``modulus`` -- a skew polynomial over the same ring (default: ``None``)
 
         OUTPUT:
 
@@ -2947,10 +2945,10 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         """
         INPUT:
 
-        -  ``exp`` -- an Integer
+        - ``exp`` -- an Integer
 
-        -  ``modulus`` -- a skew polynomial over the same ring
-           (default: ``None``)
+        - ``modulus`` -- a skew polynomial over the same ring
+          (default: ``None``)
 
         OUTPUT:
 
@@ -2993,7 +2991,7 @@ def make_generic_skew_polynomial(parent, coeffs):
 
     - ``coeffs`` -- list of coefficients
 
-    OUTPUT::
+    OUTPUT:
 
     An element, i.e. skew polynomial, of `parent` with coefficients
     corresponding to `coeffs`.

@@ -34,10 +34,10 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
     `R[X]` equipped with the modification multiplication deduced from the
     rule `X*a = \base_ring_automorphism(a)*X`.
 
-    SEE ALSO::
+    .. SEEALSO::
 
-    - Class ``SkewPolynomialRing_general`` in sage.rings.polynomial.skew_polynomial_ring.py
-    - Class ``SkewPolynomial`` in sage.rings.polynomial.skew_polynomial_element
+        Class ``SkewPolynomialRing_general`` in sage.rings.polynomial.skew_polynomial_ring.py
+        Class ``SkewPolynomial`` in sage.rings.polynomial.skew_polynomial_element
 
     INPUT:
 
@@ -93,10 +93,10 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
     You can alternatively create a skew polynomial ring over `R`
     twisted by `\base_ring_automorphism` by writing ``R['varname', base_ring_automorphism]``.
 
-    EXAMPLES::
+    EXAMPLES:
 
     We first define the base ring::
-
+    
         sage: R.<t> = ZZ[]; R
         Univariate Polynomial Ring in t over Integer Ring
 
@@ -128,7 +128,7 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
         sage: R['x', base_ring_automorphism] == R['y', base_ring_automorphism]
         False
 
-    TESTS::
+    TESTS:
 
     You must specify a variable name::
 

@@ -168,7 +168,7 @@ Parcourez la page web de Sage pour y trouver les informations pour les
 développeurs. Entre autres choses, vous trouverez une longue liste de
 projets en lien avec Sage rangés par priorité et catégorie. Le Guide du
 développeur Sage (`Sage Developer's Guide
-<http://www.sagemath.org/doc/developer/>`_) contient également des
+<http://doc.sagemath.org/html/en/developer/>`_) contient également des
 informations utiles. Vous pouvez aussi faire un tour sur le groupe
 Google ``sage-devel``.
 

@@ -28,13 +28,13 @@ class ClassPolynomialDatabase:
             'PolHeeg/Cls/0000001-0005000/pol.0000005.dbz'
             sage: db._dbpath(15000, 1)
             'PolHeeg/Cls/0010001-0015000/pol.0015000.dbz'
-            sage: db.__getitem__(-23,level=2)
+            sage: db._dbpath(3, 2)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Level (= 2) > 1 not yet implemented.
+            NotImplementedError: Level (= 2) > 1 not yet implemented
         """
         if level != 1:
-            raise NotImplementedError("Level (= %s) > 1 not yet implemented."%level)
+            raise NotImplementedError("Level (= %s) > 1 not yet implemented"%level)
         n1 = 5000*((abs(disc)-1)//5000)
         s1 = disc_format % (n1+1) #_pad_int(n1+1, disc_length)
         s2 = disc_format % (n1+5000)
@@ -42,7 +42,7 @@ class ClassPolynomialDatabase:
         discstr = disc_format % abs(disc)
         return "PolHeeg/%s/%s/pol.%s.dbz"%(self.model, subdir, discstr)
 
-    def __getitem__(self, disc, level=1, var='x'):
+    def __getitem__(self, disc):
         r"""
         TESTS::
 
@@ -56,9 +56,9 @@ class ClassPolynomialDatabase:
         """
         from sage.rings.integer_ring import ZZ
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        classpol = self._dbpath(disc,level)
+        classpol = self._dbpath(disc)
         coeff_list = _dbz_to_integers(classpol)
-        return PolynomialRing(ZZ, var)(coeff_list)
+        return PolynomialRing(ZZ, 'x')(coeff_list)
 
 class HilbertClassPolynomialDatabase(ClassPolynomialDatabase):
     """

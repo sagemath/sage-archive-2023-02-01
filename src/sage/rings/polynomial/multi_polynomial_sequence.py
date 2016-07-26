@@ -150,6 +150,10 @@ TEST::
    in Topics in Cryptology -- CT RSA'06; LNCS 3860; pp. 313--331; Springer Verlag 2006;
    pre-print available at http://eprint.iacr.org/2005/200
 
+.. [CMR05] C. Cid, S. Murphy, M. Robshaw Small Scale Variants of the AES;
+   in Proceedings of Fast Software Encryption 2005; LNCS 3557; 
+   Springer Verlag 2005; available at http://www.isg.rhul.ac.uk/~sean/smallAES-fse05.pdf
+
 Classes
 -------
 """

@@ -523,7 +523,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                         raise TypeError("unable to convert {!r} to a rational".format(x))
                     mpq_canonicalize(self.value)
 
-        elif isinstance(x, str):
+        elif isinstance(x, basestring):
             n = mpq_set_str(self.value, x, base)
             if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
                 raise TypeError("unable to convert {!r} to a rational".format(x))
@@ -577,10 +577,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             elif isinstance(x, numpy.floating):
                 self.__set_value(sage.rings.real_mpfr.RR(x), base)
             else:
-                raise TypeError("Unable to coerce {} ({}) to Rational".format(x,type(x)))
+                raise TypeError("unable to convert {!r} to a rational".format(x))
 
         else:
-            raise TypeError("Unable to coerce {} ({}) to Rational".format(x,type(x)))
+            raise TypeError("unable to convert {!r} to a rational".format(x))
 
     cdef void set_from_mpq(Rational self, mpq_t value):
         mpq_set(self.value, value)

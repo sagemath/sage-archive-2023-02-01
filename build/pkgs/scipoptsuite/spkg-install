@@ -65,17 +65,20 @@ SCIP_VERSION=`echo "$SCIP_DIR" | sed -e "s/.*-//"`
 
 echo "Compiling SoPlex"
 
+SHAREDLIBEXT="dylib"
+
 cd $SRC/$SOPLEX_DIR
 ## The Makefile in soplex 2.2.1 forgets to add the library dependencies
 ## "-lgmp -lz", causing the link to fail on Mac OS X.
-make VERBOSE=true OPT=opt ZLIB=true READLINE=true SHARED=true USRCFLAGS="$CFLAGS" LIBBUILDFLAGS="$LDFLAGS -shared -lgmp -lz "
+make VERBOSE=true OPT=opt ZLIB=true READLINE=true SHARED=true USRCFLAGS="$CFLAGS" LIBBUILDFLAGS="$LDFLAGS -dynamiclib -undefined suppress -flat_namespace -Wl,-rpath,$SAGE_LOCAL/lib -install_name $SAGE_LOCAL/lib/libsoplex.dylib -lgmp -lz " SHAREDLIBEXT="$SHAREDLIBEXT"
 
 if [ $? -ne 0 ]; then
     echo "Error building SOPLEX."
     exit 1
 fi
 
-cp lib/*.so "$SAGE_LOCAL"/lib
+
+cp lib/*.$SHAREDLIBEXT "$SAGE_LOCAL"/lib
 
 echo "Preparing SCIP ./lib symbolic links"
 
@@ -84,7 +87,7 @@ cd $SRC/$SCIP_DIR
 mkdir lib
 cd lib
 
-ln -sv $SRC/$SOPLEX_DIR/lib/libsoplex-$SOPLEX_VERSION.$OS.$ARCH.gnu.opt.so libsoplex.$OS.$ARCH.gnu.opt.so
+ln -sv $SRC/$SOPLEX_DIR/lib/libsoplex-$SOPLEX_VERSION.$OS.$ARCH.gnu.opt.$SHAREDLIBEXT libsoplex.$OS.$ARCH.gnu.opt.$SHAREDLIBEXT
 ln -sv $SRC/$SOPLEX_DIR/src/ spxinc
 touch libsoplex.$OS.$ARCH.gnu.opt.a
 
@@ -93,38 +96,12 @@ echo "Compiling SCIP"
 cd $SRC/$SCIP_DIR
 # for clp add the option LPS=clp
 ## added -rpath.  Abusing LIBBUILD_o is of course a hack. 
-make OPT=opt VERBOSE=true SHARED=true ZIMPL=false GMP=true ZLIB=true READLINE=true USRCFLAGS="$CFLAGS" USRLDFLAGS="-Wl,-rpath,$SAGE_LOCAL/lib" \
- LIBBUILD_o="-Wl,-rpath,$SAGE_LOCAL/lib -o " INSTALLDIR="$SAGE_LOCAL" install
+make OPT=opt VERBOSE=true SHARED=true ZIMPL=false GMP=true ZLIB=true READLINE=true USRCFLAGS="$CFLAGS" USRLDFLAGS="$LDFLAGS" \
+ LIBBUILD_o="-Wl,-rpath,$SAGE_LOCAL/lib -o " SHAREDLIBEXT="$SHAREDLIBEXT" INSTALLDIR="$SAGE_LOCAL" LINKRPATH="" install
 
 if [ $? -ne 0 ]; then
     echo "Error building SCIP"
     exit 1
 fi
-
-## TODO: use make.install from scip??
-## cp lib/libscip*.so "$SAGE_LOCAL"/lib
-## cp lib/liblpispx*.so "$SAGE_LOCAL"/lib
-## cp lib/libnlpi*.so "$SAGE_LOCAL"/lib
-## cp lib/libobjscip*.so "$SAGE_LOCAL"/lib
-
-## if [ ! -d $SAGE_LOCAL/include/scip ]; then
-##    mkdir $SAGE_LOCAL/include/scip
-## fi
-
-## cp -r src/scip/*.h "$SAGE_LOCAL"/include/scip/
-
-## if [ ! -d $SAGE_LOCAL/include/blockmemshell ]; then
-##    mkdir $SAGE_LOCAL/include/blockmemshell
-## fi
-
-## cp -r src/blockmemshell/*.h "$SAGE_LOCAL"/include/blockmemshell
-
-
-## if [ ! -d $SAGE_LOCAL/include/nlpi ]; then
-##    mkdir $SAGE_LOCAL/include/nlpi
-## fi
-
-## cp -r src/nlpi/*.h "$SAGE_LOCAL"/include/nlpi
-
 
 echo "finished building SCIP with SoPlex"

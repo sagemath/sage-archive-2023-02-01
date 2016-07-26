@@ -890,6 +890,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([u^2 + S(x^2)*v^2, v^2])
             sage: f.dynatomic_polynomial([1,1])
             v^3*xbar^2 + u^2*v + u*v^2
+
+        ::
+
+            sage: P.<x, y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([x^3-y^3*2, y^3])
+            sage: f.dynatomic_polynomial(1).parent()
+            Multivariate Polynomial Ring in x, y over Rational Field
        """
         if self.domain().ngens() > 2:
             raise TypeError("does not make sense in dimension >1")
@@ -899,9 +907,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         y = self.domain().gen(1)
         f0, f1 = F0, F1 = self._polys
         PHI = self.base_ring().one()
+        m = period[0]
         n = period[1]
-        if period[0] != 0:
-            m = period[0]
+        if m==0 and n==1:
+            return y*F0 - x*F1
+        if m != 0:
             fm = self.nth_iterate_map(m)
             fm1 = self.nth_iterate_map(m - 1)
             for d in range(1, n):

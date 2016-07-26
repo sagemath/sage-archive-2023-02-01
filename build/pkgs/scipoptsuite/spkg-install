@@ -65,20 +65,27 @@ SCIP_VERSION=`echo "$SCIP_DIR" | sed -e "s/.*-//"`
 
 echo "Compiling SoPlex"
 
-SHAREDLIBEXT="dylib"
+if [ `uname` = 'Darwin' ] ; then
+    SHAREDLIBEXT="dylib"
+    arg_LIBBUILDFLAGS=LIBBUILDFLAGS="$LDFLAGS -dynamiclib -undefined suppress -flat_namespace -install_name $SAGE_LOCAL/lib/libsoplex-$SOPLEX_VERSION.$OS.$ARCH.gnu.opt.$SHAREDLIBEXT -lgmp -lz"
+else
+    SHAREDLIBEXT="so"
+fi
 
 cd $SRC/$SOPLEX_DIR
 ## The Makefile in soplex 2.2.1 forgets to add the library dependencies
 ## "-lgmp -lz", causing the link to fail on Mac OS X.
-make VERBOSE=true OPT=opt ZLIB=true READLINE=true SHARED=true USRCFLAGS="$CFLAGS" LIBBUILDFLAGS="$LDFLAGS -dynamiclib -undefined suppress -flat_namespace -Wl,-rpath,$SAGE_LOCAL/lib -install_name $SAGE_LOCAL/lib/libsoplex.dylib -lgmp -lz " SHAREDLIBEXT="$SHAREDLIBEXT"
+LIBBUILDFLAGS="-lgmp -lz -lreadline"
+make VERBOSE=true OPT=opt ZLIB=true READLINE=true SHARED=true USRCFLAGS="$CFLAGS" USRLDFLAGS="$LDFLAGS" "$arg_LIBBUILDFLAGS" SHAREDLIBEXT="$SHAREDLIBEXT"  INSTALLDIR="$SAGE_LOCAL" install
 
 if [ $? -ne 0 ]; then
     echo "Error building SOPLEX."
     exit 1
 fi
 
-
-cp lib/*.$SHAREDLIBEXT "$SAGE_LOCAL"/lib
+# Soplex 'make install' installs 3 copies of the library instead of making symlinks. Overwrite.
+# Use -PR to copy symlink as symlink
+cp -PR lib/*.$SHAREDLIBEXT "$SAGE_LOCAL"/lib
 
 echo "Preparing SCIP ./lib symbolic links"
 
@@ -97,11 +104,29 @@ cd $SRC/$SCIP_DIR
 # for clp add the option LPS=clp
 ## added -rpath.  Abusing LIBBUILD_o is of course a hack. 
 make OPT=opt VERBOSE=true SHARED=true ZIMPL=false GMP=true ZLIB=true READLINE=true USRCFLAGS="$CFLAGS" USRLDFLAGS="$LDFLAGS" \
- LIBBUILD_o="-Wl,-rpath,$SAGE_LOCAL/lib -o " SHAREDLIBEXT="$SHAREDLIBEXT" INSTALLDIR="$SAGE_LOCAL" LINKRPATH="" install
-
+ LIBBUILD_o="-Wl,-rpath,$SAGE_LOCAL/lib -lgmp -lz -lreadline -o " SHAREDLIBEXT="$SHAREDLIBEXT" INSTALLDIR="$SAGE_LOCAL" LINKRPATH="" install
 if [ $? -ne 0 ]; then
-    echo "Error building SCIP"
+    echo "Error building/installing SCIP."
     exit 1
 fi
+
+if [ `uname` = 'Darwin' ]; then 
+    # Adjust install_name on Mac OS (check with otool -L).
+    # (Could instead change the Makefile to use -install_name option to linker)
+    for a in liblpispx libnlpi.cppad libscip libobjscip ; do
+	install_name_tool -id "$SAGE_LOCAL/lib/$a-$SCIP_VERSION.$OS.$ARCH.gnu.opt.$SHAREDLIBEXT" $SAGE_LOCAL/lib/$a-$SCIP_VERSION.$OS.$ARCH.gnu.opt.$SHAREDLIBEXT
+	if [ $? -ne 0 ]; then
+	    echo "Error adjusting install_name for SCIP libraries"
+	    exit 1
+	fi
+    done
+    # Finally, change the install name of libscip's dependencies.
+    for a in libscip; do
+	for b in liblpispx libnlpi.cppad ; do 
+	    install_name_tool -change lib/$b-$SCIP_VERSION.$OS.$ARCH.gnu.opt.$SHAREDLIBEXT $SAGE_LOCAL/lib/$b-$SCIP_VERSION.$OS.$ARCH.gnu.opt.$SHAREDLIBEXT $SAGE_LOCAL/lib/$a-$SCIP_VERSION.$OS.$ARCH.gnu.opt.$SHAREDLIBEXT
+	done
+    done
+fi
+
 
 echo "finished building SCIP with SoPlex"

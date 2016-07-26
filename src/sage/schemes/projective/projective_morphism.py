@@ -2765,6 +2765,69 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         J = jacobian(self.defining_polynomials(),dom.gens())
         return(R.ideal(J.minors(N)))
 
+    def critical_subscheme(self):
+        r"""
+        Returns the critical subscheme of this endomorphism defined over the ring ``R``
+        or the base ring of this map.
+
+        INPUT:
+
+            - ``R`` - a ring (optional).
+
+        OUTPUT: the critical subscheme defined over ``R``.
+
+        Examples::
+
+            sage: set_verbose(None)
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^3-2*x*y^2 + 2*y^3, y^3])
+            sage: f.critical_subscheme()
+            Closed subscheme of Projective Space of dimension 1 over Rational Field
+            defined by:
+            9*x^2*y^2 - 6*y^4
+
+        ::
+
+            sage: set_verbose(None)
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([2*x^2-y^2, x*y])
+            sage: f.critical_subscheme()
+            Closed subscheme of Projective Space of dimension 1 over Rational Field
+            defined by:
+            4*x^2 + 2*y^2
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([2*x^2-y^2, x*y, z^2])
+            sage: f.critical_subscheme()
+            Closed subscheme of Projective Space of dimension 2 over Rational Field
+            defined by:
+            8*x^2*z + 4*y^2*z
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(GF(81),3)
+            sage: H = End(P)
+            sage: g = H([x^3*y, y^3*z, z^3*x, x*y*z*w])
+            sage: g.critical_subscheme()
+            Closed subscheme of Projective Space of dimension 3 over Finite Field in z4 of size 3^4
+            defined by:
+            x^4*y^4*z^4
+        """
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        PS = self.domain()
+        if not is_ProjectiveSpace(PS):
+            raise NotImplementedError("not implemented for subschemes")
+        if not self.is_endomorphism():
+            raise NotImplementedError("must be an endomorphism")
+        wr = self.wronskian_ideal()
+        crit_subscheme = self.codomain().subscheme(wr)
+        return crit_subscheme
+
     def critical_points(self, R=None):
         r"""
         Returns the critical points of this endomorphism defined over the ring ``R``
@@ -2801,20 +2864,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         """
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
         PS = self.domain()
-        if not is_ProjectiveSpace(PS):
-            raise NotImplementedError("not implemented for subschemes")
-        if not self.is_endomorphism():
-            raise NotImplementedError("must be an endomorphism")
         if PS.dimension_relative() > 1:
             raise NotImplementedError("use .wronskian_ideal() for dimension > 1")
-
         if R is None:
             F = self
         else:
             F = self.change_ring(R)
         P = F.codomain()
-        wr = F.wronskian_ideal()
-        X = P.subscheme(wr)
+        X = F.critical_subscheme()
         crit_points = [P(Q) for Q in X.rational_points()]
         return crit_points
 

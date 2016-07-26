@@ -2767,14 +2767,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def critical_subscheme(self):
         r"""
-        Returns the critical subscheme of this endomorphism defined over the ring ``R``
-        or the base ring of this map.
+        Returns the critical subscheme of this endomorphism defined over the base ring of this map.
 
-        INPUT:
 
-            - ``R`` - a ring (optional).
-
-        OUTPUT: the critical subscheme defined over ``R``.
+        OUTPUT: the critical subscheme of the endomorphism.
 
         Examples::
 

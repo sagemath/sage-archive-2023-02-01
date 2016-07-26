@@ -1,3 +1,5 @@
+# distutils: language = c 
+
 cimport matrix_sparse
 
 include 'sage/modules/vector_modn_sparse_h.pxi'

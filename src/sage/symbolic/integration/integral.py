@@ -582,7 +582,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: integrate(sin)
         Traceback (most recent call last):
         ...
-        TypeError
+        TypeError: unable to convert sin to a symbolic expression
 
         sage: integrate(sin(x), x)
         -cos(x)

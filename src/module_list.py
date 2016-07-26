@@ -1795,7 +1795,6 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.skew_polynomial_element',
               sources = ['sage/rings/polynomial/skew_polynomial_element.pyx']),
-#              depends = numpy_depends),
 
     ################################
     ##

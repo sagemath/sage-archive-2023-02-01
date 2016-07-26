@@ -108,7 +108,7 @@ from types import MethodType
 from .element cimport parent_c, coercion_model
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
-from sage.structure.debug_options import debug
+from sage.structure.debug_options cimport debug
 from sage.structure.sage_object cimport SageObject, rich_to_bool
 from sage.structure.misc import (dir_with_other_class, getattr_from_other_class,
                                  is_extension_type)

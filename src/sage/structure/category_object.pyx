@@ -60,7 +60,7 @@ from __future__ import print_function
 cimport generators
 cimport sage_object
 from sage.categories.category import Category
-from sage.structure.debug_options import debug
+from sage.structure.debug_options cimport debug
 from sage.misc.cachefunc import cached_method
 
 

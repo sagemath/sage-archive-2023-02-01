@@ -53,16 +53,16 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
     .. NOTE::
 
         The current implementation of skew polynomial rings does not support derivations
-        and the ring thus created is actually a special case of skew polynomials where the 
+        and the ring thus created is actually a special case of skew polynomials where the
         derivation is taken to be zero. Such skew polynomials are called Linearized Polynomials.
 
-        Sparse skew polynomials and multivariate skew polynomials are 
+        Sparse skew polynomials and multivariate skew polynomials are
         currently not implemented.
 
     OUTPUT:
 
-    ``SkewPolynomialRing(base_ring, base_ring_automorphism, names, sparse=False)`` 
-    returns a univariate skew polynomial ring over ``base_ring`` twisted by 
+    ``SkewPolynomialRing(base_ring, base_ring_automorphism, names, sparse=False)``
+    returns a univariate skew polynomial ring over ``base_ring`` twisted by
     `\base_ring_automorphism`;
 
     UNIQUENESS and IMMUTABILITY:
@@ -76,14 +76,14 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
             sage: sigma = R.hom([t+1])
             sage: S.<x> = SkewPolynomialRing(R, sigma); S
             Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
-            
+
         The names of the variables defined above cannot be arbitrarily modified because
         each skew polynomial ring is unique in Sage and other objects in Sage could have
         pointers to that skew polynomial ring.
-        
+
         However, the variable can be changed within the scope of a ``with`` block using
         the localvars context::
-            
+
             sage: with localvars(S, ['y']):
             ....:     print S
             Skew Polynomial Ring in y over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
@@ -96,7 +96,7 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
     EXAMPLES:
 
     We first define the base ring::
-    
+
         sage: R.<t> = ZZ[]; R
         Univariate Polynomial Ring in t over Integer Ring
 

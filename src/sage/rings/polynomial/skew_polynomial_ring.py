@@ -6,7 +6,7 @@ a general dense skew univariate polynomials over commutative base rings with
 automorphisms over the base rings. This is the set of formal polynomials where
 the coefficients are written on the left of the variable of the skew polynomial
 ring. The modified multiplication operation over elements of the base ring is
-extended to all elements of the skew poynomial ring by associativity and 
+extended to all elements of the skew poynomial ring by associativity and
 distributivity.
 
 DEFINITION:
@@ -15,7 +15,7 @@ Let R be a commutative ring and let `\sigma` be an automorphism over R. An
 automorphism (also called twist map) is a structure preserving map from a
 mathematical object (in this case, R) onto itself that also admits an inverse.
 The ring of skew polynomials over an indeterminate variable X is defined then,
-as the ring structure on the set R as: 
+as the ring structure on the set R as:
 R[X, \sigma] = { a_{n-1}X^{n-1} + ... + a_{1}X + a_{0} | a_{i} \in R and n \in N }
 where the addition operation on R[X, \sigma] is given by the usual abelian
 group polynomial addition rule and the multiplication operation is defined
@@ -164,7 +164,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             0
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
-            sage: T.<x> = k['x', Frob]; T 
+            sage: T.<x> = k['x', Frob]; T
             Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
         """
         category = categories.Rings()
@@ -327,7 +327,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
     def _repr_(self):
         """
         Return representation of ``self``.
-        
+
         EXAMPLES::
 
             sage: R.<t> = ZZ[]
@@ -451,7 +451,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
                     raise NotImplementedError("Inversion of the twist map %s" % self._map)
                 self._maps[n] = map
                 return map
-                    
+
     def gen(self, n=0):
         """
         Return the indeterminate generator of this skew polynomial ring.

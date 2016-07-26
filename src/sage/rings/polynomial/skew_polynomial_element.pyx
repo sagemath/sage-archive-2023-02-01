@@ -4,12 +4,12 @@ Univariate Skew Polynomials
 This module provides the class ``SkewPolynomial`` which constructs a
 single univariate skew polynomial over commutative base rings and an
 automorphism over the base ring. Skew polynomials are non-commutative
-and so principal properties such as left and right gcd, lcm, monic, 
+and so principal properties such as left and right gcd, lcm, monic,
 multiplication, division are provided by means of the left and right
-Euclidean algorithm. 
+Euclidean algorithm.
 
 This module also supports the creation of a generic dense skew polynomial,
-through the class ``SkewPolynomial_generic_dense`` along with classes 
+through the class ``SkewPolynomial_generic_dense`` along with classes
 ``ConstantSkewPolynomialSection`` and ``SkewPolynomialBaseringInjection``
 for conversion from a skew polynomial ring to its base ring and vice versa
 respectively.
@@ -23,7 +23,7 @@ F(X) = a_{n}X^{n} + ... + a_0
 where the coefficients a_{i} belong to R and X is a formal variable.
 
 Addition between two skew polynomials is defined by the usual addition
-operation and the modified multiplication is defined by the rule 
+operation and the modified multiplication is defined by the rule
 `X a = \sigma(a) X` for all `a` in `R`. Skew polynomials are thus
 non-commutative and the degree of a product is equal to the sum of the
 degrees of the factors.
@@ -194,7 +194,7 @@ cdef class SkewPolynomial(AlgebraElement):
     """
     A skew polynomial.
     """
-    
+
     def __init__(self, parent, is_gen=False, construct=False):
         """
         This method is a constructor for a skew polynomial.
@@ -203,7 +203,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         - ``parent`` -- parent of ``self``
 
-        - ``is_gen`` -- boolean (default: ``False``) 
+        - ``is_gen`` -- boolean (default: ``False``)
 
         - ``construct`` -- boolean (default: ``False``)
 
@@ -228,7 +228,7 @@ cdef class SkewPolynomial(AlgebraElement):
         .. NOTE::
 
             This is an internal method. Use def __hash__ instead.
-            
+
         """
         #todo - come up with a way to create hashes of zero that
         #       that do not incorrectly indicate that the element is 0.
@@ -307,15 +307,15 @@ cdef class SkewPolynomial(AlgebraElement):
         if op == 0:
             return x < y
         elif op == 1:
-            return x <= y 
+            return x <= y
         elif op == 2:
-            return x == y 
+            return x == y
         elif op == 3:
-            return x != y 
+            return x != y
         elif op == 4:
             return x > y
         else:
-            return x >= y 
+            return x >= y
 
     cdef SkewPolynomial _new_c(self, list coeffs, Parent P, char check=0):
         """
@@ -366,14 +366,14 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def __call__(self, eval_pt):
         """
-        Evaluate this polynomial. The value of a given a skew polynomial 
+        Evaluate this polynomial. The value of a given a skew polynomial
         `p` of degree `d` at ring element `elem`, is calculated using the
         formula:
 
         p(elem) = \sum_{i=0}^{d} (coefficients[i])*sigma^{i}(elem)
 
         where `coefficients` is the list of coefficients of `p` and `sigma`
-        is the base ring automorphism. This is called the operator evaluation 
+        is the base ring automorphism. This is called the operator evaluation
         method.
 
         INPUT:
@@ -430,7 +430,7 @@ cdef class SkewPolynomial(AlgebraElement):
     def __iter__(self):
         """
         Return list iterator object of the list of coefficients of ``self``.
-       
+
         EXAMPLE::
 
             sage: R.<t> = QQ[]
@@ -481,7 +481,7 @@ cdef class SkewPolynomial(AlgebraElement):
         Return a specific portion of ``self``.
 
         .. NOTE::
-            
+
             For slices exceeding degree of polynomial, 0 is returned.
 
         EXAMPLES::
@@ -688,7 +688,7 @@ cdef class SkewPolynomial(AlgebraElement):
         cdef Py_ssize_t i
         map = self._parent._map
         r = self._new_c([ (map**i)(right)*x[i] for i from 0 <= i < len(x) ], self._parent, 0)
-        return r 
+        return r
 
     cpdef ModuleElement _rmul_(self, RingElement left):
         """
@@ -879,9 +879,9 @@ cdef class SkewPolynomial(AlgebraElement):
         Return True if this skew polynomial is a unit.
 
         .. NOTE::
-            
+
             When the base ring R is an integral domain, then a skew
-            polynomial ``f`` is a unit if and only if degree of f is 
+            polynomial ``f`` is a unit if and only if degree of f is
             0 and f is then a unit in R. The general case is not yet
             implemented.
 
@@ -892,7 +892,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S.<x> = R['x',sigma]
             sage: a = x + (t+1)*x^5 + t^2*x^3 - x^5
             sage: a.is_unit()
-            False 
+            False
         """
         # todo: Sage does not yet have support for finding order of
         #       automorphisms. Once that is available, general case can
@@ -911,7 +911,7 @@ cdef class SkewPolynomial(AlgebraElement):
         over commutative rings" by M. Rimmer and K.R. Pearson describes
         the method to check whether a given skew polynomial is nilpotent.
         That method requires the order of the automorphism which is not
-        supported in Sage yet. 
+        supported in Sage yet.
         """
         raise NotImplementedError
 
@@ -1388,7 +1388,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         _, r = other.left_quo_rem(self)
         return r.is_zero()
- 
+
     def right_divides(self, other):
         """
         INPUT:
@@ -2124,7 +2124,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         Return this skew polynomial multiplied on the right by the
         power `x^k`.
-        
+
         EXAMPLES::
 
             sage: R.<t> = QQ[]
@@ -2140,7 +2140,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         Return this skew polynomial multiplied on the right by the
         power `x^(-k)`.
-        
+
         EXAMPLES::
 
             sage: R.<t> = QQ[]
@@ -2178,7 +2178,7 @@ cdef class SkewPolynomial(AlgebraElement):
         parent = self._parent
         R = parent.base_ring()[var,parent.twist_map()]
         return R(self.list())
-    
+
     def dict(self):
         """
         Return a sparse dictionary representation of this skew
@@ -2276,7 +2276,7 @@ cdef class SkewPolynomial(AlgebraElement):
             False
             sage: x.is_gen()
             True
-        
+
         .. NOTE::
 
             This function does not return True if ``self`` equals
@@ -2330,11 +2330,11 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a = 1 + x^4 + (t+1)*x^2 + t^2
             sage: a.number_of_terms()
             3
-            
+
         The method :meth: `hamming_weight` is an alias::
 
             sage: a.hamming_weight()
-            3 
+            3
         """
         return len(self.coefficients())
 
@@ -2344,7 +2344,7 @@ cdef class SkewPolynomial(AlgebraElement):
     def reverse(self, degree=None):
         """
         Return skew polynomial but with the coefficients reversed.
-        If an optional degree argument is given the coefficient list will be 
+        If an optional degree argument is given the coefficient list will be
         truncated or zero padded as necessary and the reverse skew polynomial will
         have the specified degree.
 
@@ -2360,7 +2360,7 @@ cdef class SkewPolynomial(AlgebraElement):
             (t^2 + 1)*x^2 + t + 1
             sage: a.reverse(degree=6)
             (t^2 + 1)*x^6 + (t + 1)*x^4 + x^2
- 
+
         TESTS::
 
             sage: a.reverse(degree=1.5r)
@@ -2388,7 +2388,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def __copy__(self):
         """
-        Return a "copy" of ``self``. In Sage, since skew polynomials 
+        Return a "copy" of ``self``. In Sage, since skew polynomials
         are immutable, this just returns ``self`` again.
 
         EXAMPLES::
@@ -2560,7 +2560,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         This method constructs a generic dense skew polynomial.
 
         INPUT::
-    
+
         - ``parent`` -- parent of ``self``
 
         - ``x`` -- list of coefficients from which ``self`` can be constructed

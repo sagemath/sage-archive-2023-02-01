@@ -32,7 +32,5 @@ http://scip.zib.de/doc/html/AUTHORS.shtml
 == Special Update/Build Instructions ==
 
 We do not have permission to redistribute SCIP or SoPlex. Hence, you
-must download it yourself from http://scip.zib.de and take the tarball
-scipoptsuite-VERSION.tar (the SCIP server actually seems to gives you
-the unzipped version!), gzip it and make sure it's called
-scipoptsuite-VERSION.tar.gz in $SAGE_ROOT/upstream
+must download it yourself from http://scip.zib.de and put the tarball
+scipoptsuite-VERSION.tgz in $SAGE_ROOT/upstream

@@ -596,6 +596,9 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
     M = None
     if abs(e) != 1:
         raise ValueError
+    sqn = None
+    if is_square(n):
+        sqn = int(sqrt(n))
     if n<0:
         if existence:
             return False
@@ -636,22 +639,22 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
         M = RSHCD_324(e)
     elif (  e  == 1                 and
           n%16 == 0                 and
-          is_square(n)              and
-          is_prime_power(sqrt(n)-1) and
-          is_prime_power(sqrt(n)+1)):
+          not sqn is None           and
+          is_prime_power(sqn-1) and
+          is_prime_power(sqn+1)):
         if existence:
             return true()
-        M = -rshcd_from_close_prime_powers(int(sqrt(n)))
+        M = -rshcd_from_close_prime_powers(sqn)
 
     elif (  e  == 1                 and
-          is_square(n)              and
-          sqrt(n)%4 == 2            and
-          True == strongly_regular_graph(sqrt(n)-1,(sqrt(n)-2)//2,(sqrt(n)-6)//4,
+          not sqn is None           and
+          sqn%4 == 2            and
+          True == strongly_regular_graph(sqn-1,(sqn-2)//2,(sqn-6)//4,
                     existence=True) and
-          is_prime_power(sqrt(n)+1)):
+          is_prime_power(ZZ(sqn+1))):
         if existence:
             return true()
-        M = rshcd_from_prime_power_and_conference_matrix(int(sqrt(n)+1))
+        M = rshcd_from_prime_power_and_conference_matrix(sqn+1)
 
     # Recursive construction: the kronecker product of two RSHCD is a RSHCD
     else:
@@ -676,7 +679,7 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
         raise ValueError("I do not know how to build a {}-RSHCD".format((n,e)))
 
     assert M*M.transpose() == n*I(n)
-    assert set(map(sum,M)) == {e*sqrt(n)}
+    assert set(map(sum,M)) == {ZZ(e*sqn)}
 
     return M
 

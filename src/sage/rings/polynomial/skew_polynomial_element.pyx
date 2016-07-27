@@ -50,7 +50,7 @@ cdef class SkewPolynomial(AlgebraElement):
     Then, a formal skew polynomial is given by the equation:
     `F(X) = a_{n}X^{n} + ... + a_0`
     where the coefficients `a_{i}` belong to `R` and `X` is a formal variable.
-    
+
     Addition between two skew polynomials is defined by the usual addition
     operation and the modified multiplication is defined by the rule
     `X a = \sigma(a) X` for all `a` in `R`. Skew polynomials are thus
@@ -180,7 +180,7 @@ cdef class SkewPolynomial(AlgebraElement):
         True
         sage: c.is_right_divisible_by(b)
         True
-        
+
         sage: d = a.right_lcm(b); d
         x^5 + (t^2 + 1)*x^4 + (3*t^2 + 3*t + 3)*x^3 + (3*t^2 + t + 2)*x^2 + (4*t^2 + 3*t)*x + 4*t + 4
         sage: d.is_left_divisible_by(a)
@@ -334,7 +334,6 @@ cdef class SkewPolynomial(AlgebraElement):
             n = self._new_c([],P)
         return n
 
-#    def list(self):
     cpdef list list(self):
         """
         Return a new copy of the list of the underlying elements of ``self``.
@@ -357,7 +356,6 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.list()
             [t^2 + 1, 0, t + 1, 0, 1]
         """
-#        l = copy(self._coeffs)
         l = copy(self._coeffs)
         return l
 
@@ -430,7 +428,6 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: [y for y in iter(P)]
             [1, 2, 3]
         """
-#        return iter(self.list())
         return iter(self._coeffs)
 
     def __getitem__(self, n):
@@ -744,8 +741,8 @@ cdef class SkewPolynomial(AlgebraElement):
             return r
         cdef list coeffs = []
         for k from 0 <= k <= dx+dy:
-            start = 0 if k <= dy else k-dy # max(0, k-dy)
-            end = k if k <= dx else dx # min(k, dx)
+            start = 0 if k <= dy else k-dy
+            end = k if k <= dx else dx
             sum = x[start] * parent.twist_map(start)(y[k-start])
             for i from start < i <= end:
                 sum += x[i] * parent.twist_map(i)(y[k-i])
@@ -773,14 +770,12 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def conjugate(self, n):
         """
+        Return ``self`` conjugated by `x^n` (where `x` is the
+        variable of ``self``).
+
         INPUT:
 
         - `n` -- an integer
-
-        OUTPUT:
-
-        -  this skew polynomial conjugated by `x^n` (where x is
-           the variable)
 
         .. NOTE::
 
@@ -955,7 +950,7 @@ cdef class SkewPolynomial(AlgebraElement):
     def left_monic(self):
         """
         Return the unique monic skew polynomial `a` of the same
-        degree which divides this skew polynomial on the left
+        degree which divides this skew polynomial on the left.
 
         .. NOTE::
 
@@ -1010,7 +1005,7 @@ cdef class SkewPolynomial(AlgebraElement):
     def right_monic(self):
         """
         Return the unique monic skew polynomial `a` of the same
-        degree which divides this skew polynomial on the right
+        degree which divides this skew polynomial on the right.
 
         .. NOTE::
 
@@ -1061,6 +1056,9 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def left_quo_rem(self, other):
         """
+        Return the quotient and remainder of the left euclidean
+        division of ``self`` by ``other``.
+
         INPUT:
 
         - ``other`` -- a skew polynomial ring over the same
@@ -1130,6 +1128,9 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def right_quo_rem(self, other):
         """
+        Return the quotient and remainder of the right euclidean
+        division of ``self`` by ``other``.
+
         INPUT:
 
         - ``other`` -- a skew polynomial ring over the same
@@ -2391,7 +2392,7 @@ cdef class SkewPolynomial(AlgebraElement):
             elif len(v) > degree+1:
                 v = v[:degree+1]
                 v.reverse()
-            else: # len(v) == degree + 1
+            else:
                 v.reverse()
         else:
             v.reverse()
@@ -2619,7 +2620,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         if type(x) is SkewPolynomial:
             if (<Element>x)._parent is self._parent:
                 x = list(x.list())
-            elif R.has_coerce_map_from((<Element>x)._parent):# is R or (<Element>x)._parent == R:
+            elif R.has_coerce_map_from((<Element>x)._parent):
                 try:
                     if x.is_zero():
                         self._coeffs = []
@@ -2641,8 +2642,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             x = self._dict_to_list(x, R.zero())
 
         elif not isinstance(x, list):
-            # We trust that the element constructors do not send x=0
-            x = [x] # constant polynomials
+            x = [x]
         if check:
             self._coeffs = [R(z, **kwds) for z in x]
             self.__normalize()
@@ -2719,14 +2719,14 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             (<SkewPolynomial_generic_dense>self)._coeffs = [ ]
         elif d1 >= 0:
             for k from d1 < k <= d1+d2:
-                start = 0 if k <= d2 else k-d2 # max(0, k-d2)
+                start = 0 if k <= d2 else k-d2
                 sum = x[start] * parent.twist_map(start)(y[k-start])
                 for i from start < i <= d1:
                     sum += x[i] * parent.twist_map(i)(y[k-i])
                 x.append(sum)
             for k from d1 >= k >= 0:
-                start = 0 if k <= d2 else k-d2 # max(0, k-d2)
-                end = k if k <= d1 else d1 # min(k, d1)
+                start = 0 if k <= d2 else k-d2
+                end = k if k <= d1 else d1
                 sum = x[start] * parent.twist_map(start)(y[k-start])
                 for i from start < i <= end:
                     sum += x[i] * parent.twist_map(i)(y[k-i])
@@ -2745,14 +2745,14 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             (<SkewPolynomial_generic_dense>self)._coeffs = [ ]
         elif d1 >= 0:
             for k from d1 < k <= d1+d2:
-                start = 0 if k <= d2 else k-d2 # max(0, k-d2)
+                start = 0 if k <= d2 else k-d2
                 sum = parent.twist_map(k-start)(x[start]) * y[k-start]
                 for i from start < i <= d1:
                     sum += parent.twist_map(k-i)(x[i]) * y[k-i]
                 x.append(sum)
             for k from d1 >= k >= 0:
-                start = 0 if k <= d2 else k-d2 # max(0, k-d2)
-                end = k if k <= d1 else d1 # min(k, d1)
+                start = 0 if k <= d2 else k-d2
+                end = k if k <= d1 else d1
                 sum = parent.twist_map(k-start)(x[start]) * y[k-start]
                 for i from start < i <= end:
                     sum += parent.twist_map(k-i)(x[i]) * y[k-i]
@@ -2842,7 +2842,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         if exp < 0:
             return (~self).leftpow(-exp,modulus)
 
-        if self == self.parent().gen(): # special case x**n should be faster!
+        if self == self.parent().gen():
             P = self.parent()
             R = P.base_ring()
             v = [R.zero()]*exp + [R.one()]
@@ -2926,7 +2926,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         if exp < 0:
             return (~self).rightpow(-exp,modulus)
 
-        if self == self.parent().gen(): # special case x**n should be faster!
+        if self == self.parent().gen():
             P = self.parent()
             R = P.base_ring()
             v = [R.zero()]*exp + [R.one()]

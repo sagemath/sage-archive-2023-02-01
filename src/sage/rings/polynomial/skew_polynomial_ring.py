@@ -38,7 +38,7 @@ from sage.rings.polynomial.skew_polynomial_element import SkewPolynomial
 class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentation):
     """
     Skew Univariate polynomial ring over a ring.
-    
+
     DEFINITION:
 
     Let `R` be a commutative ring and let `\sigma` be an automorphism over `R`. An

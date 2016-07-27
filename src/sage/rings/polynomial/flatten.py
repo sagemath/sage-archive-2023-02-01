@@ -1,7 +1,7 @@
 r"""
 Class to flatten polynomial rings over polynomial ring
 
-For example ``QQ['a','b'],['x','y']`` flattens to ``QQ['a','b','c','d']``.
+For example ``QQ['a','b'],['x','y']`` flattens to ``QQ['a','b','x','y']``.
 
 
 EXAMPLES::
@@ -13,7 +13,6 @@ EXAMPLES::
       To:   Multivariate Polynomial Ring in x, y, s, t, X over Rational Field
     sage: phi('x*y*s + t*X').parent()
     Multivariate Polynomial Ring in x, y, s, t, X over Rational Field
-
 
 
 Authors:
@@ -79,7 +78,7 @@ class FlatteningMorphism(Morphism):
             Polynomial Ring in a, b, c over Integer Ring
               To:   Multivariate Polynomial Ring in a, b, c, x, y, z over Integer
             Ring
-        
+
         ::
 
             sage: R = ZZ['a']['b']['c']
@@ -88,6 +87,14 @@ class FlatteningMorphism(Morphism):
               From: Univariate Polynomial Ring in c over Univariate Polynomial Ring
             in b over Univariate Polynomial Ring in a over Integer Ring
               To:   Multivariate Polynomial Ring in a, b, c over Integer Ring
+
+        ::
+
+            sage: R = ZZ['a']['a','b']
+            sage: FlatteningMorphism(R)
+            Traceback (most recent call last):
+            ...
+            ValueError: clash in variable names
         """
         if not is_PolynomialRing(domain) and not is_MPolynomialRing(domain):
             raise ValueError("domain should be a polynomial ring")
@@ -108,27 +115,26 @@ class FlatteningMorphism(Morphism):
     def _call_(self, p):
         """
         Evaluate an flatenning morphism.
-        
-        
+
+
         This is slow, but works.
-        
+
         EXAMPLES::
-        
+
             sage: R = QQ['a','b','c']['x','y','z']
             sage: h = FlatteningMorphism(R)('2*a*x + b*z'); h
             2*a*x + b*z
             sage: h.parent()
             Multivariate Polynomial Ring in a, b, c, x, y, z over Rational Field
-            
         """
         return self.codomain()(str(p))
 
     def section(self):
         """
         Inverse of this flattenning morphism.
-        
+
         EXAMPLES::
-        
+
             sage: R = QQ['a','b','c']['x','y','z']
             sage: h = FlatteningMorphism(R)
             sage: h.section()
@@ -152,7 +158,7 @@ class FlatteningMorphism(Morphism):
 class UnflatteningMorphism(Morphism):
     r"""
     Inverses for :class:`FlatteningMorphism`
-    
+
     EXAMPLES::
 
         sage: R = QQ['x']['y']['s','t']['X']
@@ -165,11 +171,11 @@ class UnflatteningMorphism(Morphism):
     def _call_(self, p):
         """
         Evaluate an unflattening morphism.
-        
+
         This is slow, but works.
-        
+
         EXAMPLES::
-        
+
             sage: R = QQ['x']['y']['a,b,c']
             sage: p = R.random_element()
             sage: f = FlatteningMorphism(R)

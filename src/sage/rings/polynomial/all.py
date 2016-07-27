@@ -46,6 +46,3 @@ from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialRin
 
 # Evaluation of cyclotomic polynomials
 from sage.rings.polynomial.cyclotomic import cyclotomic_value
-
-# Flattening morphisms
-from sage.rings.polynomial.flatten import FlatteningMorphism

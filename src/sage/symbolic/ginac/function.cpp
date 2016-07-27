@@ -533,6 +533,11 @@ function::function(unsigned ser, const ex & param1, const ex & param2, const ex 
 {
 	tinfo_key = &function::tinfo_static;
 }
+function::function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4, const ex & param5, const ex & param6)
+	: exprseq(param1, param2, param3, param4, param5, param6), serial(ser)
+{
+	tinfo_key = &function::tinfo_static;
+}
 
 // end of generated lines
 

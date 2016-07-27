@@ -434,7 +434,7 @@ def process_extlinks(s, embedded=False):
 
     In docstrings at the command line, process markup related to the
     Sphinx extlinks extension. For example, replace ``:trac:`NUM```
-    with ``http://trac.sagemath.org/NUM``, and similarly with
+    with ``https://trac.sagemath.org/NUM``, and similarly with
     ``:python:TEXT`` and ``:wikipedia:TEXT``, looking up the url from
     the dictionary ``extlinks`` in SAGE_DOC_SRC/common/conf.py.
     If ``TEXT`` is of the form ``blah <LINK>``, then it uses ``LINK``
@@ -454,7 +454,7 @@ def process_extlinks(s, embedded=False):
 
         sage: from sage.misc.sagedoc import process_extlinks
         sage: process_extlinks('See :trac:`1234`, :wikipedia:`Wikipedia <Sage_(mathematics_software)>`, and :trac:`4321` ...')
-        'See http://trac.sagemath.org/1234, https://en.wikipedia.org/wiki/Sage_(mathematics_software), and http://trac.sagemath.org/4321 ...'
+        'See https://trac.sagemath.org/1234, https://en.wikipedia.org/wiki/Sage_(mathematics_software), and https://trac.sagemath.org/4321 ...'
         sage: process_extlinks('See :trac:`1234` for more information.', embedded=True)
         'See :trac:`1234` for more information.'
         sage: process_extlinks('see :python:`Implementing Descriptors <reference/datamodel.html#implementing-descriptors>` ...')

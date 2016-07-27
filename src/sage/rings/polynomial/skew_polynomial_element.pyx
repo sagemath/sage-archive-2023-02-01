@@ -3,7 +3,7 @@ Univariate Skew Polynomials
 
 This module provides the :class:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomial`
 which constructs a single univariate skew polynomial over commutative base rings and an
-automorphism over the base ring. Skew polynomials are non-commutative and so principal 
+automorphism over the base ring. Skew polynomials are non-commutative and so principal
 properties such as left and right gcd, lcm, monic, multiplication, division are
 provided by means of the left and right Euclidean algorithm.
 
@@ -88,8 +88,6 @@ Ring operations are supported::
 
 Sage implements also some arithmetics over skew polynomial rings.
 You will find below a short panorama.
-
-EXAMPLES::
 
     sage: q,r = c.right_quo_rem(b)
     sage: q
@@ -872,7 +870,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def is_unit(self):
         """
-        Return True if this skew polynomial is a unit.
+        Return ``True`` if this skew polynomial is a unit.
 
         .. NOTE::
 
@@ -903,6 +901,11 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def is_nilpotent(self):
         """
+        Check if ``self`` is nilpotent. Given a commutative ring `R` and a
+        base ring automorphism `\sigma`of order `n`, an element `f` of
+        `R[X, sigma]` is nilpotent iff all coefficients of `f^n` are
+        nilpotent in `R`.
+
         todo: The paper "Nilpotents and units in skew polynomial rings
         over commutative rings" by M. Rimmer and K.R. Pearson describes
         the method to check whether a given skew polynomial is nilpotent.
@@ -913,7 +916,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def truncate(self, n):
         """
-        Returns the polynomial of degree ` < n` which is equivalent
+        Return the polynomial of degree ` < n` which is equivalent
         to ``self`` modulo `x^n`.
 
         EXAMPLES::
@@ -931,7 +934,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def is_monic(self):
         """
-        Returns True if this skew polynomial is monic. The zero polynomial
+        Return ``True`` if this skew polynomial is monic. The zero polynomial
         is by definition not monic.
 
         EXAMPLES::
@@ -959,7 +962,7 @@ cdef class SkewPolynomial(AlgebraElement):
         Return the unique monic skew polynomial `a` of the same
         degree which divides this skew polynomial on the left
 
-        .. Note::
+        .. NOTE::
 
             This skew polynomial is self dividing on the
             *right* by the `n`-th iterative (`n` is the degree of
@@ -1014,7 +1017,7 @@ cdef class SkewPolynomial(AlgebraElement):
         Return the unique monic skew polynomial `a` of the same
         degree which divides this skew polynomial on the right
 
-        .. Note::
+        .. NOTE::
 
             This skew polynomial is self dividing on the *left*
             by its leading coefficient.
@@ -1219,13 +1222,10 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def __floordiv__(self, right):
         """
-        Return the quotient of the right euclidean division of ``self`` by right.
+        Return the quotient of the right euclidean division of ``self`` by ``right``.
 
         The algorithm fails if the leading coefficient of the divisor (``right``)
         is not invertible.
-
-        .. SEEALSO::
-
 
         TESTS::
 
@@ -2219,7 +2219,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def is_term(self):
         """
-        Return True if ``self`` is an element of the base ring times a
+        Return ``True`` if ``self`` is an element of the base ring times a
         power of the generator.
 
         EXAMPLES::
@@ -2245,7 +2245,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def is_monomial(self):
         """
-        Returns True if ``self`` is a monomial, i.e., a power of the generator.
+        Return ``True`` if ``self`` is a monomial, i.e., a power of the generator.
 
         EXAMPLES::
 
@@ -2279,7 +2279,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def is_gen(self):
         """
-        Return True if ``self`` is the distinguished generator
+        Return ``True`` if ``self`` is the distinguished generator
         of the parent skew polynomial ring.
 
         EXAMPLES::
@@ -2295,8 +2295,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
         .. NOTE::
 
-            This function does not return True if ``self`` equals
-            the generator; it returns True only *if* ``self`` is
+            This function does not return ``True`` if ``self`` equals
+            the generator; it returns ``True`` only *if* ``self`` is
             the generator.
 
             sage: b = S([0,1])
@@ -2335,7 +2335,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def number_of_terms(self):
         """
-        Returns the number of non-zero coefficients of ``self``. Also called weight,
+        Return the number of non-zero coefficients of ``self``. Also called weight,
         hamming weight or sparsity.
 
         EXAMPLES::
@@ -2437,7 +2437,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def mod(self, other):
         """
-        Remainder of division of ``self`` by ``other``.
+        Return remainder of division of ``self`` by ``other``.
 
         EXAMPLES::
 
@@ -2455,11 +2455,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def is_constant(self):
         """
-        Return ``True`` if ``self`` is a constant polynomial.
-
-        OUTPUT:
-
-        - ``bool`` -- True if and only if this polynomial is constant
+        Return ``True`` if ``self`` is a constant polynomial and
+        ``False`` otherwise.
 
         EXAMPLES::
 
@@ -2801,7 +2798,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         OUTPUT:
 
-        If ``modulus`` is None, return ``self**exp``.
+        If ``modulus`` is ``None``, return ``self**exp``.
 
         Otherwise, return the remainder of ``self**exp`` in the left
         euclidean division by ``modulus``.
@@ -3111,7 +3108,7 @@ cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
 
     def an_element(self):
         """
-        Returns generator of codomain of the ring homomorphism.
+        Return generator of codomain of the ring homomorphism.
 
         EXAMPLES::
 

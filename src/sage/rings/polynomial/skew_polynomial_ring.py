@@ -206,7 +206,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         INPUT:
 
         - ``x`` -- an element of the base ring of ``self`` or a ring that
-          has a coerce map from ``self`` (default: ``None``). 
+          has a coerce map from ``self`` (default: ``None``).
 
         - ``check`` -- boolean (default: ``True``)
 
@@ -275,12 +275,12 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
         INPUT:
 
-        - ``P`` -- a ring. 
+        - ``P`` -- a ring.
 
         OUTPUT:
-        
+
         Return ``True`` or ``False``.
-        
+
         .. NOTE::
 
             Sparse skew polynomials are not implemented.

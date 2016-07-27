@@ -43,10 +43,11 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 from sage.rings.continued_fraction import convergents
 from sage.misc.misc import verbose
-from sigma0 import Sigma0
-from fund_domain import t00, t10, t01, t11, M2Z
+from .sigma0 import Sigma0
+from .fund_domain import t00, t10, t01, t11, M2Z
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer_ring import ZZ
 from sage.parallel.decorate import parallel

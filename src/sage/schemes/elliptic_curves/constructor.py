@@ -874,6 +874,16 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
         sage: cubic = x^2*y + 4*x*y^2 + x^2*z + 8*x*y*z + 4*y^2*z + 9*x*z^2 + 9*y*z^2
         sage: EllipticCurve_from_cubic(cubic, [1,-1,1], morphism=False)
         Elliptic Curve defined by y^2 - 882*x*y - 2560000*y = x^3 - 127281*x^2 over Rational Field
+
+        sage: R.<x,y,z> = QQ[]
+        sage: cubic = -3*x^2*y + 3*x*y^2 + 4*x^2*z + 4*y^2*z - 3*x*z^2 + 3*y*z^2 - 8*z^3
+        sage: EllipticCurve_from_cubic(cubic, (-4/5, 4/5, 3/5) )
+        Scheme morphism:
+          From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+          -3*x^2*y + 3*x*y^2 + 4*x^2*z + 4*y^2*z - 3*x*z^2 + 3*y*z^2 - 8*z^3
+          To:   Elliptic Curve defined by y^2 + 10*x*y + 112*y = x^3 + 46*x^2 + 336*x over Rational Field
+          Defn: Defined on coordinates by sending (x : y : z) to
+                (1/3*z : y - 1/3*z : 1/112*x - 1/112*y - 1/42*z)
     """
     import sage.matrix.all as matrix
 
@@ -896,9 +906,18 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
         raise TypeError('%s is not a projective point'%P)
     x, y, z = R.gens()
 
-    # First case: if P = P2 then P is a flex
+    # First case: if P = P2 then P is a flex, or if P2 = P3 then P2 is a flex
     P2 = chord_and_tangent(F, P)
+    flex_point = None
     if are_projectively_equivalent(P, P2, base_ring=K):
+        flex_point = P
+    else:
+        P3 = chord_and_tangent(F, P2)
+        if are_projectively_equivalent(P2, P3, base_ring=K):
+            flex_point = P2
+
+    if flex_point is not None:
+        P = flex_point
         # find the tangent to F in P
         dx = K(F.derivative(x)(P))
         dy = K(F.derivative(y)(P))
@@ -935,9 +954,8 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
         fwd_defining_poly = [trans_x, trans_y, -b*trans_z]
         fwd_post = -a
 
-    # Second case: P is not a flex, then P, P2, P3 are different
+    # Second case: P, P2, P3 are different
     else:
-        P3 = chord_and_tangent(F, P2)
         # send P, P2, P3 to (1:0:0), (0:1:0), (0:0:1) respectively
         M = matrix.matrix(K, [P, P2, P3]).transpose()
         F2 = M.act_on_polynomial(F)

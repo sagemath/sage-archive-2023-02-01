@@ -113,7 +113,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
 import sage.algebras.algebra
 import sage.categories.basic as categories
-#import sage.rings.ring as ring
 from sage.rings.integer import Integer
 from sage.structure.category_object import normalize_names
 from sage.misc.prandom import randint
@@ -177,9 +176,9 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
                 if map.domain () == base_ring and map.codomain () == base_ring:
                     self._map = map
                 else:
-                    raise TypeError("The given map is not an automorphism of %s" % base_ring)
+                    raise TypeError("given map is not an automorphism of %s" % base_ring)
             else:
-                raise TypeError("The given map is not a ring homomorphism")
+                raise TypeError("given map is not a ring homomorphism")
         self._maps = { 0:IdentityMorphism(base_ring), 1:self._map }
         self._center = { }
         self._center_variable = None
@@ -233,7 +232,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             elif self.base_ring().has_coerce_map_from(P):
                 return C(self, [x], check=True, is_gen=False,
                         construct=construct)
-        try: #if hasattr(x, '_polynomial_'):
+        try:
             return x._polynomial_(self)
         except AttributeError:
             pass
@@ -244,7 +243,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
                 p = Parser(Integer, R, LookupNameMaker({self.variable_name(): self.gen()}, R))
                 return self(p.parse(x))
             except NameError:
-                raise TypeError("Unable to coerce string")
+                raise TypeError("unable to coerce string")
         return C(self, x, check, is_gen, construct=construct, **kwds)
 
     def _coerce_map_from_(self, P):
@@ -290,17 +289,12 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             sage: S.coerce_map_from(S)
             Identity endomorphism of Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
         """
-        # handle constants that canonically coerce into self.base_ring()
-        # first, if possible
         try:
             connecting = self.base_ring().coerce_map_from(P)
             if connecting is not None:
                 return self.coerce_map_from(self.base_ring()) * connecting
         except TypeError:
             pass
-
-        # skew polynomial rings in the same variable over a base that canonically
-        # coerces into self.base_ring()
         try:
             if isinstance(P, SkewPolynomialRing_general):
                 if self.__is_sparse and not P.is_sparse():
@@ -308,17 +302,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
                 if P.variable_name() == self.variable_name():
                     if P.base_ring() is self.base_ring() and \
                             self.base_ring() is ZZ_sage:
-                        # We're trying to coerce from FLINT->NTL
-                        # or vice versa.  Only allow coercions from
-                        # NTL->FLINT, not vice versa.
-                        # Unfortunately this doesn't work, because
-                        # the parents for ZZ[x]-with-NTL and
-                        # ZZ[x]-with-FLINT are equal, and the coercion model
-                        # believes this means that both coercions are valid;
-                        # but we'll probably change that in the
-                        # coercion model, at which point this code will
-                        # become useful.
-                        if self._implementation_names == ('NTL',):
+                       if self._implementation_names == ('NTL',):
                             return False
                     return self.base_ring().has_coerce_map_from(P.base_ring())
         except AttributeError:
@@ -426,7 +410,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             sage: S.twist_map(-1)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
+            NotImplementedError: inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
                   Defn: t |--> t + 1
 
         Sometimes it succeeds::
@@ -448,7 +432,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
                 try:
                     map = self._map**n
                 except TypeError:
-                    raise NotImplementedError("Inversion of the twist map %s" % self._map)
+                    raise NotImplementedError("inversion of the twist map %s" % self._map)
                 self._maps[n] = map
                 return map
 

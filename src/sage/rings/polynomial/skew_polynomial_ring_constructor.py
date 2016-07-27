@@ -135,7 +135,7 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
         sage: SkewPolynomialRing(R, base_ring_automorphism)
         Traceback (most recent call last):
         ...
-        TypeError: You must specify the name of the variable.
+        TypeError: you must specify the name of the variable.
 
     With this syntax, it is not possible to omit the name of the
     variable neither in LHS nor in RHS. If we omit it in LHS, the
@@ -160,14 +160,14 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
         sage: S = SkewPolynomialRing(R, base_ring_automorphism,names=['x','y'])
         Traceback (most recent call last):
         ...
-        NotImplementedError: Multivariate skew polynomials rings not supported.
+        NotImplementedError: multivariate skew polynomials rings not supported.
 
     Sparse skew polynomial rings are not implemented::
 
         sage: S = SkewPolynomialRing(R, base_ring_automorphism, names='x', sparse=True)
         Traceback (most recent call last):
         ...
-        NotImplementedError: Sparse skew polynomial rings are not implemented.
+        NotImplementedError: sparse skew polynomial rings are not implemented.
 
     TODO::
 
@@ -186,13 +186,13 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
                 base_ring_automorphism.codomain() != base_ring:
             raise TypeError("base_ring_automorphism must be a ring automorphism of base_ring (=%s)" % base_ring)
     if sparse:
-        raise NotImplementedError("Sparse skew polynomial rings are not implemented.")
+        raise NotImplementedError("sparse skew polynomial rings are not implemented.")
     if names is None:
-        raise TypeError("You must specify the name of the variable.")
+        raise TypeError("you must specify the name of the variable.")
     try:
         names = normalize_names(1, names)[0]
     except IndexError:
-        raise NotImplementedError("Multivariate skew polynomials rings not supported.")
+        raise NotImplementedError("multivariate skew polynomials rings not supported.")
 
     import sage.rings.polynomial.skew_polynomial_ring
     R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general(base_ring, base_ring_automorphism, names, sparse)

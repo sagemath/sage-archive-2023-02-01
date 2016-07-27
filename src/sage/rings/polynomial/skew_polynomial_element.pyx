@@ -1,32 +1,51 @@
 r"""
 Univariate Skew Polynomials
 
-This module provides the class ``SkewPolynomial`` which constructs a
-single univariate skew polynomial over commutative base rings and an
-automorphism over the base ring. Skew polynomials are non-commutative
-and so principal properties such as left and right gcd, lcm, monic,
-multiplication, division are provided by means of the left and right
-Euclidean algorithm.
+This module provides the :class:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomial`
+which constructs a single univariate skew polynomial over commutative base rings and an
+automorphism over the base ring. Skew polynomials are non-commutative and so principal 
+properties such as left and right gcd, lcm, monic, multiplication, division are
+provided by means of the left and right Euclidean algorithm.
 
 This module also supports the creation of a generic dense skew polynomial,
-through the class ``SkewPolynomial_generic_dense`` along with classes
-``ConstantSkewPolynomialSection`` and ``SkewPolynomialBaseringInjection``
-for conversion from a skew polynomial ring to its base ring and vice versa
-respectively.
+through the :class:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomial_generic_dense`
+along with :class:`~sage.rings.polynomial.skew_polynomial_element.ConstantSkewPolynomialSection`
+and :class:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomialBaseringInjection`
+for conversion from a skew polynomial ring to its base ring and vice versa respectively.
 
 DEFINITION:
 
 Let `R` be a commutative ring equipped with an automorphism `\sigma`.
 
 Then, a formal skew polynomial is given by the equation:
-F(X) = a_{n}X^{n} + ... + a_0
-where the coefficients a_{i} belong to R and X is a formal variable.
+`F(X) = a_{n}X^{n} + ... + a_0`
+where the coefficients `a_{i}` belong to `R` and `X` is a formal variable.
 
 Addition between two skew polynomials is defined by the usual addition
 operation and the modified multiplication is defined by the rule
 `X a = \sigma(a) X` for all `a` in `R`. Skew polynomials are thus
 non-commutative and the degree of a product is equal to the sum of the
 degrees of the factors.
+
+Let `a` and `b` be two skew polynomials in the same ring `S`.
+The *left (resp. right) euclidean division* of `a` by `b` is
+a couple `(q,r)` of elements in `S` such that
+
+-  `a = q*b + r` (resp. `a = b*q + r`)
+
+-  the degree of `r` is less than the degree of `b`
+
+`q` (resp. `r`) is called the *quotient* (resp. the remainder)
+of this euclidean division.
+
+PROPERTIES:
+
+Keeping the previous notations, if the leading coefficient of `b`
+is a unit (e.g. if `b` is monic) then the quotient and the remainder
+in the *right* euclidean division exist and are unique.
+
+The same result holds for the *left* euclidean division if in addition
+the twist map defining the skew polynomial ring is invertible.
 
 EXAMPLES:
 
@@ -67,31 +86,8 @@ Ring operations are supported::
     sage: b^2 == b*b
     True
 
-
 Sage implements also some arithmetics over skew polynomial rings.
 You will find below a short panorama.
-
-DEFINITION:
-
-Let `a` and `b` be two skew polynomials in the same ring `S`.
-The *left (resp. right) euclidean division* of `a` by `b` is
-a couple `(q,r)` of elements in `S` such that
-
--  `a = q*b + r` (resp. `a = b*q + r`)
-
--  the degree of `r` is less than the degree of `b`
-
-`q` (resp. `r`) is called the *quotient* (resp. the remainder)
-of this euclidean division.
-
-PROPERTIES:
-
-Keeping the previous notations, if the leading coefficient of `b`
-is a unit (e.g. if `b` is monic) then the quotient and the remainder
-in the *right* euclidean division exist and are unique.
-
-The same result holds for the *left* euclidean division if in addition
-the twist map defining the skew polynomial ring is invertible.
 
 EXAMPLES::
 
@@ -117,7 +113,7 @@ Left euclidean division won't work over our current
     sage: q,r = c.left_quo_rem(b)
     Traceback (most recent call last):
     ...
-    NotImplementedError: Inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+    NotImplementedError: inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
       Defn: t |--> t + 1
 
 Here is a working example over a finite field::
@@ -199,7 +195,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         This method is a constructor for a skew polynomial.
 
-        INPUT::
+        INPUT:
 
         - ``parent`` -- parent of ``self``
 
@@ -228,7 +224,6 @@ cdef class SkewPolynomial(AlgebraElement):
         .. NOTE::
 
             This is an internal method. Use def __hash__ instead.
-
         """
         #todo - come up with a way to create hashes of zero that
         #       that do not incorrectly indicate that the element is 0.
@@ -340,6 +335,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return n
 
     def list(self):
+#    cpdef list(self):
         """
         Return a new copy of the list of the underlying elements of ``self``.
 
@@ -352,7 +348,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: l = a.list(); l
             [t^2 + 1, 0, t + 1, 0, 1]
 
-        Note that l is a list, it is mutable, and each call to the list
+        Note that `l` is a list, it is mutable, and each call to the list
         method returns a new list::
 
             sage: type(l)
@@ -362,6 +358,7 @@ cdef class SkewPolynomial(AlgebraElement):
             [t^2 + 1, 0, t + 1, 0, 1]
         """
         l = copy(self._list_c())
+#        l = list(self.__coeffs)
         return l
 
     def __call__(self, eval_pt):
@@ -370,7 +367,7 @@ cdef class SkewPolynomial(AlgebraElement):
         `p` of degree `d` at ring element `elem`, is calculated using the
         formula:
 
-        p(elem) = \sum_{i=0}^{d} (coefficients[i])*sigma^{i}(elem)
+        `p(elem) = \sum_{i=0}^{d} (coefficients[i])*sigma^{i}(elem)`
 
         where `coefficients` is the list of coefficients of `p` and `sigma`
         is the base ring automorphism. This is called the operator evaluation
@@ -409,10 +406,10 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a(b)
             Traceback (most recent call last):
             ...
-            TypeError: Evaluation point must be a ring element
+            TypeError: evaluation point must be a ring element
         """
         if eval_pt not in self._parent:
-            raise TypeError("Evaluation point must be a ring element")
+            raise TypeError("evaluation point must be a ring element")
         sigma = self._parent.twist_map()
         coefficients = self.coefficients(sparse=False)
         degree = self.degree()
@@ -441,6 +438,7 @@ cdef class SkewPolynomial(AlgebraElement):
             [1, 2, 3]
         """
         return iter(self.list())
+#        return iter(self.__coeffs)
 
     def __getitem__(self, n):
         """
@@ -529,7 +527,7 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             IndexError: skew polynomials are immutable
         """
-        raise IndexError, "skew polynomials are immutable"
+        raise IndexError("skew polynomials are immutable")
 
     def degree(self):
         """
@@ -816,7 +814,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: b = a.conjugate(-1)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
+            NotImplementedError: inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
                 Defn: t |--> t + 1
 
         Here is a working example::
@@ -870,7 +868,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         cdef x = (<SkewPolynomial>self)._list_c()
         if len(x) == 0:
-            raise ValueError("")
+            raise ValueError
         c = x[-1]
         return c
 
@@ -1104,7 +1102,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.left_quo_rem(b)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+            NotImplementedError: inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
                 Defn: t |--> t + 1
         """
         cdef list a = list((<SkewPolynomial>self)._list_c())
@@ -1128,7 +1126,7 @@ cdef class SkewPolynomial(AlgebraElement):
                 for j from 0 <= j < db:
                     a[i+j] -= b[j] * parent.twist_map(j)(c)
             except:
-                raise NotImplementedError("Inversion of the twist map %s" % parent.twist_map())
+                raise NotImplementedError("inversion of the twist map %s" % parent.twist_map())
             q.append(c)
         q.reverse()
         r = self._new_c(q,parent), self._new_c(a[:db],parent,1)
@@ -1269,12 +1267,12 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: c / b
             Traceback (most recent call last):
             ...
-            NotImplementedError: Please use `//` (even for exact division)
+            NotImplementedError: please use `//` (even for exact division)
 
             sage: c // b == a
             True
         """
-        raise NotImplementedError("Please use `//` (even for exact division)")
+        raise NotImplementedError("please use `//` (even for exact division)")
 
     def is_left_divisible_by(self, other):
         """
@@ -1508,7 +1506,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.left_xgcd(b)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            NotImplementedError: inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
                 Defn: t |--> t^2
         """
         if not isinstance(self.base_ring(),Field):
@@ -1744,7 +1742,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.left_gcd(b)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            NotImplementedError: inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
                 Defn: t |--> t^2
         """
         if not isinstance(self.base_ring(),Field):
@@ -1905,7 +1903,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.right_lcm(b)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            NotImplementedError: inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
                 Defn: t |--> t^2
         """
         if not isinstance(self.base_ring(),Field):

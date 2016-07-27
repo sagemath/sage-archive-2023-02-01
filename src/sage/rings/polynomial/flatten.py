@@ -102,6 +102,23 @@ class FlatteningMorphism(Morphism):
             Traceback (most recent call last):
             ...
             ValueError: clash in variable names
+
+        ::
+
+            sage: K.<v> = NumberField(x^3 - 2)
+            sage: R = K['x','y']['a','b']
+            sage: from sage.rings.polynomial.flatten import FlatteningMorphism
+            sage: f = FlatteningMorphism(R)
+            sage: f(R('v*a*x^2 + b^2 + 1/v*y'))
+            (v)*x^2*a + b^2 + (1/2*v^2)*y
+
+        ::
+
+            sage: R = QQbar['x','y']['a','b']
+            sage: from sage.rings.polynomial.flatten import FlatteningMorphism
+            sage: f = FlatteningMorphism(R)
+            sage: f(R('QQbar(sqrt(2))*a*x^2 + b^2 + QQbar(I)*y'))
+            1.414213562373095?*x^2*a + b^2 + I*y
         """
         if not is_PolynomialRing(domain) and not is_MPolynomialRing(domain):
             raise ValueError("domain should be a polynomial ring")
@@ -119,7 +136,7 @@ class FlatteningMorphism(Morphism):
             ring = ring.base_ring()
         self._intermediate_rings = intermediate_rings
         variables.reverse()
-        codomain = PolynomialRing(ring.base_ring(), variables)
+        codomain = PolynomialRing(ring, variables)
 
         Morphism.__init__(self, domain, codomain)
 
@@ -227,6 +244,15 @@ class UnflatteningMorphism(Morphism):
             sage: g(f(p)).parent()
             Multivariate Polynomial Ring in a, b, c over Univariate Polynomial Ring
             in y over Univariate Polynomial Ring in x over Rational Field
+
+        ::
+
+            sage: R = QQbar['x','y']['a','b']
+            sage: from sage.rings.polynomial.flatten import FlatteningMorphism
+            sage: f = FlatteningMorphism(R)
+            sage: p = R('QQbar(sqrt(2))*a*x^2 + b^2 + QQbar(I)*y')
+            sage: f.section()(f(p)) ==p
+            True
         """
         p = p.dict()
 

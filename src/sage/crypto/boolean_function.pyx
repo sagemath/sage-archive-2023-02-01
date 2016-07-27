@@ -22,6 +22,7 @@ EXAMPLES::
 
 AUTHOR:
 
+- Rusydi H. Makarim (2016-07-09): add is_plateaued()
 - Yann Laigle-Chapuy (2010-02-26): add basic arithmetic
 - Yann Laigle-Chapuy (2009-08-28): first implementation
 
@@ -1027,6 +1028,25 @@ cdef class BooleanFunction(SageObject):
                     else:
                         return i
         raise ValueError("you just found a bug!")
+
+    def is_plateaued(self):
+        r"""
+        Return ``True`` if this function is plateaued, i.e. its Walsh transform
+        takes at most three values `0` and `\pm \lambda`, where `\lambda` is some
+        positive integer.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: R.<x0, x1, x2, x3> = BooleanPolynomialRing()
+            sage: f = BooleanFunction(x0*x1 + x2 + x3)
+            sage: f.walsh_hadamard_transform()
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -8, -8, -8, 8)
+            sage: f.is_plateaued()
+            True
+        """
+        W = self.absolute_walsh_spectrum()
+        return (len(W) == 1) or (len(W) == 2 and W.has_key(0))
 
     def __setitem__(self, i, y):
         """

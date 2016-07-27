@@ -927,6 +927,69 @@ class InteractiveLPProblem(SageObject):
         """
         return self._Abcx
 
+    def add_constraint(self, coefficients, constant_term, constraint_type="<="):
+        r"""
+        Return a new LP problem by adding a constraint to``self``.
+
+        INPUT:
+
+        - ``coefficients`` -- coefficients of the new constraint
+
+        - ``constant_term`` -- a constant term of the new constraint
+
+        - ``constraint_type`` -- (default: ``"<="``) a string indicating
+          the constraint type of the new constraint
+
+        OUTPUT:
+
+        - an :class:`LP problem <InteractiveLPProblem>`
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c)
+            sage: P1 = P.add_constraint(([2, 4]), 2000, "<=")
+            sage: P1.Abcx()
+            (
+            [1 1]
+            [3 1]
+            [2 4], (1000, 1500, 2000), (10, 5), (x1, x2)
+            )
+            sage: P1.constraint_types()
+            ('<=', '<=', '<=')
+            sage: P.Abcx()
+            (
+            [1 1]
+            [3 1], (1000, 1500), (10, 5), (x1, x2)
+            )
+            sage: P.constraint_types()
+            ('<=', '<=')
+            sage: P2 = P.add_constraint(([2, 4, 6]), 2000, "<=")
+            Traceback (most recent call last):
+            ...
+            TypeError: number of columns must be the same, not 2 and 3
+            sage: P3 = P.add_constraint(([2, 4]), 2000, "<")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown constraint type
+        """
+        A, b, c, x = self.Abcx()
+        A = A.stack(matrix(coefficients))
+        b = tuple(b) + (constant_term,)
+        if self._is_negative:
+            problem_type = "-" + self.problem_type()
+        else:
+            problem_type = self.problem_type()
+        return InteractiveLPProblem(A, b, c, x,
+                    constraint_type=self._constraint_types + (constraint_type,),
+                    variable_type=self.variable_types(),
+                    problem_type=problem_type,
+                    base_ring=self.base_ring(),
+                    is_primal=self._is_primal,
+                    objective_constant_term=self.objective_constant_term())
+
     def base_ring(self):
         r"""
         Return the base ring of ``self``.
@@ -1957,6 +2020,78 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
                 "primal objective" if is_primal else "dual objective")
         self._objective_name = SR(objective_name)
 
+    def add_constraint(self, coefficients, constant_term, slack_variable=None):
+        r"""
+        Return a new LP problem by adding a constraint to``self``.
+
+        INPUT:
+
+        - ``coefficients`` -- coefficients of the new constraint
+
+        - ``constant_term`` -- a constant term of the new constraint
+
+        - ``slack_variable`` -- (default: depends on :func:`style`)
+          a string giving the name of the slack variable of the new constraint
+
+        OUTPUT:
+
+        - an :class:`LP problem in standard form <InteractiveLPProblemStandardForm>`
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: P.Abcx()
+            (
+            [1 1]
+            [3 1], (1000, 1500), (10, 5), (x1, x2)
+            )
+            sage: P.slack_variables()
+            (x3, x4)
+            sage: P1 = P.add_constraint(([2, 4]), 2000)
+            sage: P1.Abcx()
+            (
+            [1 1]
+            [3 1]
+            [2 4], (1000, 1500, 2000), (10, 5), (x1, x2)
+            )
+            sage: P1.slack_variables()
+            (x3, x4, x5)
+            sage: P2 = P.add_constraint(([2, 4]), 2000, slack_variable='c')
+            sage: P2.slack_variables()
+            (x3, x4, c)
+            sage: P3 = P.add_constraint(([2, 4, 6]), 2000)
+            Traceback (most recent call last):
+            ...
+            TypeError: number of columns must be the same, not 2 and 3
+        """
+        A, b, c, x = self.Abcx()
+        A = A.stack(matrix(coefficients))
+        b = tuple(b) + (constant_term,)
+        if self._is_negative:
+            problem_type = "-" + self.problem_type()
+        else:
+            problem_type = self.problem_type()
+        if slack_variable is None:
+            slack_variable = default_variable_name(
+                "primal slack" if self._is_primal else "dual slack")
+            if style() == "UAlberta":
+                index = self.n() + self.m() + 1
+            if style() == 'Vanderbei':
+                index = self.m() + 1
+            slack_variable = "{}{:d}".format(slack_variable, index)
+        return InteractiveLPProblemStandardForm(
+                    A, b, c, x,
+                    problem_type=problem_type,
+                    slack_variables=tuple(self.slack_variables()) + (slack_variable,),
+                    auxiliary_variable=self.auxiliary_variable(),
+                    base_ring=self.base_ring(),
+                    is_primal=self._is_primal,
+                    objective_name=self._objective_name,
+                    objective_constant_term=self.objective_constant_term())
+
     def auxiliary_problem(self, objective_name=None):
         r"""
         Construct the auxiliary problem for ``self``.
@@ -2655,6 +2790,38 @@ class LPAbstractDictionary(SageObject):
             LP problem dictionary (use typeset mode to see details)
         """
         return "LP problem dictionary (use typeset mode to see details)"
+
+    @abstract_method
+    def add_row(self, nonbasic_coefficients, constant, basic_variable=None):
+        r"""
+        Return a dictionary with an additional row based on a given dictionary.
+
+        INPUT:
+
+        - ``nonbasic_coefficients``-- a list of the coefficients for the
+          new row (with which nonbasic variables are subtracted in the relation
+          for the new basic variable)
+
+        - ``constant``--  the constant term for the new row
+
+        - ``basic_variable``-- (default: depends on :func:`style`)
+          a string giving the name of the basic variable of the new row
+
+        OUTPUT:
+
+        - a new dictionary of the same class
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1, 7], [8, 2, 13], [34, 17, 12])
+            sage: b = (2, 17, 6)
+            sage: c = (55/10, 21/10, 14/30)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.dictionary("x1", "x2", "x4")
+            sage: D1 = D.add_row([7, 11, 19], 42, basic_variable='c')
+            sage: D1.row_coefficients("c")
+            (7, 11, 19)
+        """
 
     def base_ring(self):
         r"""
@@ -3398,7 +3565,10 @@ class LPAbstractDictionary(SageObject):
     @abstract_method
     def row_coefficients(self, v):
         r"""
-        Return the coefficients of a basic variable
+        Return the coefficients of the basic variable ``v``.
+        
+        These are the coefficients with which nonbasic variables are subtracted
+        in the relation for ``v``.
 
         INPUT:
 
@@ -3893,6 +4063,64 @@ class LPDictionary(LPAbstractDictionary):
         result += latex(self).split("\n", 2)[2] # Remove array header
         return LatexExpr(result)
 
+    def add_row(self, nonbasic_coefficients, constant, basic_variable=None):
+        r"""
+        Return a dictionary with an additional row based on a given dictionary.
+
+        INPUT:
+
+        - ``nonbasic_coefficients``-- a list of the coefficients for the
+          new row (with which nonbasic variables are subtracted in the relation
+          for the new basic variable)
+
+        - ``constant``--  the constant term for the new row
+
+        - ``basic_variable``-- (default: depends on :func:`style`)
+          a string giving the name of the basic variable of the new row
+
+        OUTPUT:
+
+        - a :class:`dictionary <LPDictionary>`
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1, 7], [8, 2, 13], [34, 17, 12])
+            sage: b = (2, 17, 6)
+            sage: c = (55/10, 21/10, 14/30)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.dictionary("x1", "x2", "x4")
+            sage: D1 = D.add_row([7, 11, 19], 42, basic_variable='c')
+            sage: D1.row_coefficients("c")
+            (7, 11, 19)
+            sage: D1.constant_terms()[-1]
+            42
+            sage: D1.basic_variables()[-1]
+            c
+        """
+        A, b, c, v, B, N, z = self._AbcvBNz
+        m = len(B)
+        n = len(N)
+        BR = self.base_ring()
+        A = A.stack(vector(BR, n, nonbasic_coefficients))
+        b = vector(BR, m + 1, tuple(b) + (constant,))
+
+        if basic_variable is None:
+            basic_variable = default_variable_name("primal slack")
+            if style() == "UAlberta":
+                index = n + m + 1
+            elif style() == 'Vanderbei':
+                index = m + 1
+            basic_variable = "{}{:d}".format(basic_variable, index)
+        if not isinstance(basic_variable, str):
+            basic_variable = str(basic_variable)
+            
+        R = PolynomialRing(
+            BR, list(B.base_ring().gens()) + [basic_variable], order="neglex")
+        B = list(B) + [basic_variable]
+        B = map(R, B)
+        N = map(R, N)
+        return LPDictionary(A, b, c, v, B, N, z)
+
     def basic_variables(self):
         r"""
         Return the basic variables of ``self``.
@@ -4046,7 +4274,10 @@ class LPDictionary(LPAbstractDictionary):
 
     def row_coefficients(self, v):
         r"""
-        Return the coefficients of a basic variable
+        Return the coefficients of the basic variable ``v``.
+        
+        These are the coefficients with which nonbasic variables are subtracted
+        in the relation for ``v``.
 
         INPUT:
 
@@ -4713,6 +4944,95 @@ class LPRevisedDictionary(LPAbstractDictionary):
         E[l, l] = 1 / d
         return E
 
+    def add_row(self, nonbasic_coefficients, constant, basic_variable=None):
+        r"""
+        Return a dictionary with an additional row based on a given dictionary.
+
+        The implementation of this method for revised dictionaries
+        adds a new inequality constraint to the problem, in which the given
+        `basic_variable` becomes the slack variable.  The resulting dictionary
+        (with `basic_variable` added to the basis) will have the given
+        `nonbasic_coefficients` and `constant` as a new row.
+
+        INPUT:
+
+        - ``nonbasic_coefficients``-- a list of the coefficients for the
+          new row (with which nonbasic variables are subtracted in the relation
+          for the new basic variable)
+
+        - ``constant``--  the constant term for the new row
+
+        - ``basic_variable``-- (default: depends on :func:`style`)
+          a string giving the name of the basic variable of the new row
+
+        OUTPUT:
+
+        - a :class:`revised dictionary <LPRevisedDictionary>`
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1111, 3, 17], [8, 222, 7, 6],
+            ....: [3, 7, 17, 5], [9, 5, 7, 3])
+            sage: b = (2, 17, 11, 27)
+            sage: c = (5/133, 1/10, 1/18, 47/3)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.final_revised_dictionary()
+            sage: D1 = D.add_row([7, 11, 13, 9], 42)
+            sage: D1.row_coefficients("x9")
+            (7, 11, 13, 9)
+            sage: D1.constant_terms()[-1]
+            42
+            sage: D1.basic_variables()[-1]
+            x9
+            
+            sage: A = ([-9, 7, 48, 31, 23], [5, 2, 9, 13, 98],
+            ....: [14, 15, 97, 49, 1], [9, 5, 7, 3, 17],
+            ....: [119, 7, 121, 5, 111])
+            sage: b = (33, 27, 1, 272, 61)
+            sage: c = (51/133, 1/100, 149/18, 47/37, 13/17)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.revised_dictionary("x1", "x2", "x3", "x4", "x5")
+            sage: D2 = D.add_row([5 ,7, 11, 13, 9], 99, basic_variable='c')
+            sage: D2.row_coefficients("c")
+            (5, 7, 11, 13, 9)
+            sage: D2.constant_terms()[-1]
+            99
+            sage: D2.basic_variables()[-1]
+            c
+            
+            sage: D = P.revised_dictionary(0, 1, 2, 3, 4)
+            sage: D.add_row([1, 2, 3, 4, 5, 6], 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the sum of coefficients of nonbasic slack variables has
+            to be equal to -1 when inserting a row into a dictionary for the
+            auxiliary problem
+            sage: D3 = D.add_row([1, 2, 3, 4, 5, -15], 0)
+            sage: D3.row_coefficients(11)
+            (1, 2, 3, 4, 5, -15)
+        """
+        P = self.problem()
+        n = P.n()
+        # Split nonbasic_coefficients into decision and slack parts
+        nbc_decision = vector(P.base_ring(), n)
+        nbc_slack = vector(P.base_ring(), P.m())
+        for i, coef in zip(self.nonbasic_indices(), nonbasic_coefficients):
+            # Extra -1 is due to the auxiliary variable at index 0
+            if i > n:
+                nbc_slack[i -1 - n] = coef
+            else:
+                nbc_decision[i - 1] = coef
+        if 0 in self.basic_indices() and not sum(nbc_slack) == -1:
+            raise ValueError(
+                "the sum of coefficients of nonbasic slack variables has to "
+                "be equal to -1 when inserting a row into a dictionary for "
+                "the auxiliary problem")
+        P_new = P.add_constraint(nbc_decision - nbc_slack * P.A(),
+                                 constant - nbc_slack * P.b(),
+                                 basic_variable)
+        x_B = list(self.x_B()) + [P_new.slack_variables()[-1]]
+        return P_new.revised_dictionary(*x_B)
+
     def basic_indices(self):
         r"""
         Return the basic indices of ``self``.
@@ -5035,7 +5355,10 @@ class LPRevisedDictionary(LPAbstractDictionary):
 
     def row_coefficients(self, v):
         r"""
-        Return the coefficients of a basic variable.
+        Return the coefficients of the basic variable ``v``.
+        
+        These are the coefficients with which nonbasic variables are subtracted
+        in the relation for ``v``.
 
         INPUT:
 

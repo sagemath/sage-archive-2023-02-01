@@ -88,7 +88,7 @@ cdef class _lazy_attribute(object):
             sage: src[0]
             'def banner(full=None):\n'
             sage: lines
-            99
+            87
         """
         from sage.misc.sageinspect import sage_getsourcelines
         return sage_getsourcelines(self.f)

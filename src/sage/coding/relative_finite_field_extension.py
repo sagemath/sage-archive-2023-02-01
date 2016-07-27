@@ -166,6 +166,27 @@ class RelativeFiniteFieldExtension(SageObject):
         return "\\textnormal{Relative field extension between %s and %s}" % (self.absolute_field()._latex_(),
                 self.relative_field()._latex_())
 
+    def __eq__(self, other):
+        r"""
+        Tests equality between embeddings.
+
+        EXAMPLES::
+
+            sage: from sage.coding.relative_finite_field_extension import *
+            sage: Fq = GF(4)
+            sage: FQ = GF(4**3)
+            sage: H = Hom(Fq, FQ)
+            sage: E1 = RelativeFiniteFieldExtension(FQ, Fq)
+            sage: E2 = RelativeFiniteFieldExtension(FQ, Fq, H[0])
+            sage: E3 = RelativeFiniteFieldExtension(FQ, Fq, H[1])
+            sage: E1 == E2
+            True
+            sage: E1 == E3
+            False
+        """
+        return isinstance(other, RelativeFiniteFieldExtension) \
+                and self.embedding() == other.embedding()
+
     @cached_method
     def _representation_matrix(self):
         r"""
@@ -312,7 +333,7 @@ class RelativeFiniteFieldExtension(SageObject):
         vect = self.relative_field_representation(b)
         return vect[1:vect.length()].is_zero()
 
-    def cast_into_relative_field(self, b, check=False):
+    def cast_into_relative_field(self, b, check=True):
         r"""
         Casts an absolute field element into the relative field (if possible).
         This is the inverse function of the field embedding.
@@ -338,8 +359,8 @@ class RelativeFiniteFieldExtension(SageObject):
             True
         """
         if check:
-            if not is_in_relative_field(self, b):
-                raise ValueError("%s does not belong to the relative field", b)
+            if not self.is_in_relative_field(b):
+                raise ValueError("%s does not belong to the relative field" % b)
         return self.relative_field_representation(b)[0]
 
     def embedding(self):

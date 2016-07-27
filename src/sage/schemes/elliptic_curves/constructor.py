@@ -728,10 +728,11 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
     Construct an elliptic curve from a ternary cubic with a rational point.
 
     If you just want the Weierstrass form and are not interested in
-    the morphism then it is easier to use
+    the morphism then it is easier to use the function
     :func:`~sage.schemes.elliptic_curves.jacobian.Jacobian`
-    instead. This will construct the same elliptic curve but you don't
-    have to supply the point ``P``.
+    instead. If there is a rational point on the given cubic, this
+    function will construct the same elliptic curve but you do not have to
+    supply the point ``P``.
 
     INPUT:
 
@@ -750,9 +751,9 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
     An elliptic curve in long Weierstrass form isomorphic to the curve
     `F=0`.
 
-    If ``morphism=True`` is passed, then a birational equivalence
-    between F and the Weierstrass curve is returned. If the point
-    happens to be a flex, then this is an isomorphism.
+    If ``morphism=True`` is passed, then a birational isomorphism
+    between the curve `F=0` and the Weierstrass curve is returned. If
+    the point happens to be a flex, then this is a linear isomorphism.
 
     EXAMPLES:
 
@@ -874,6 +875,18 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
         sage: cubic = x^2*y + 4*x*y^2 + x^2*z + 8*x*y*z + 4*y^2*z + 9*x*z^2 + 9*y*z^2
         sage: EllipticCurve_from_cubic(cubic, [1,-1,1], morphism=False)
         Elliptic Curve defined by y^2 - 882*x*y - 2560000*y = x^3 - 127281*x^2 over Rational Field
+
+    Here is a test for :trac:`21092`::
+
+        sage: R.<x,y,z> = QQ[]
+        sage: cubic = -3*x^2*y + 3*x*y^2 + 4*x^2*z + 4*y^2*z - 3*x*z^2 + 3*y*z^2 - 8*z^3
+        sage: EllipticCurve_from_cubic(cubic, (-4/5, 4/5, 3/5) )
+        Scheme morphism:
+          From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+          -3*x^2*y + 3*x*y^2 + 4*x^2*z + 4*y^2*z - 3*x*z^2 + 3*y*z^2 - 8*z^3
+          To:   Elliptic Curve defined by y^2 - 6*x*y - 112*y = x^3 + 62*x^2 + 560*x over Rational Field
+          Defn: Defined on coordinates by sending (x : y : z) to
+                (1/3*z : -y - 1/3*z : 1/112*x - 1/112*y - 1/42*z)
     """
     import sage.matrix.all as matrix
 
@@ -881,24 +894,38 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
     R = F.parent()
     if not is_MPolynomialRing(R):
         raise TypeError('equation must be a polynomial')
-    if R.ngens() != 3:
+    if R.ngens() != 3 or F.nvariables() != 3:
         raise TypeError('equation must be a polynomial in three variables')
+    x, y, z = R.gens()
     if not F.is_homogeneous():
         raise TypeError('equation must be a homogeneous polynomial')
+
+    if len(P) != 3:
+        raise TypeError('%s is not a projective point' % P)
     K = F.parent().base_ring()
     try:
         P = [K(c) for c in P]
     except TypeError:
-        raise TypeError('cannot convert %s into %s'%(P,K))
+        raise TypeError('cannot convert %s into %s' % (P, K))
     if F(P) != 0:
-        raise ValueError('%s is not a point on %s'%(P,F))
-    if len(P) != 3:
-        raise TypeError('%s is not a projective point'%P)
-    x, y, z = R.gens()
+        raise ValueError('%s is not a point on %s' % (P, F))
 
-    # First case: if P = P2 then P is a flex
-    P2 = chord_and_tangent(F, P)
-    if are_projectively_equivalent(P, P2, base_ring=K):
+    hessian_pol = matrix.Matrix(R, 3, 3, [[F.derivative(v1, v2)
+                                           for v1 in R.gens()]
+                                          for v2 in R.gens()]).det()
+    flex_point = None
+    if hessian_pol(P) == 0:
+        # case 1 : P itself is a flex
+        flex_point = P
+    else:
+        # case 2 : if P2 = P3 then P2 is a flex
+        P2 = chord_and_tangent(F, P)
+        P3 = chord_and_tangent(F, P2)
+        if are_projectively_equivalent(P2, P3, base_ring=K):
+            flex_point = P2
+
+    if flex_point is not None:
+        P = flex_point
         # find the tangent to F in P
         dx = K(F.derivative(x)(P))
         dy = K(F.derivative(y)(P))
@@ -910,7 +937,6 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
             F_Q = F(Q)
             if F_Q != 0:  # At most one further point may accidentally be on the cubic
                 break
-        assert F_Q != 0
         # pick linearly independent third point
         for third_point in [(1,0,0), (0,1,0), (0,0,1)]:
             M = matrix.matrix(K, [Q, P, third_point]).transpose()
@@ -935,9 +961,8 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
         fwd_defining_poly = [trans_x, trans_y, -b*trans_z]
         fwd_post = -a
 
-    # Second case: P is not a flex, then P, P2, P3 are different
+    # Second case: P, P2, P3 are different
     else:
-        P3 = chord_and_tangent(F, P2)
         # send P, P2, P3 to (1:0:0), (0:1:0), (0:0:1) respectively
         M = matrix.matrix(K, [P, P2, P3]).transpose()
         F2 = M.act_on_polynomial(F)

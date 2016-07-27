@@ -1198,19 +1198,27 @@ def symmetric_conference_matrix(n, check=True):
         assert (C==C.T and C**2==(n-1)*I(n))
     return C
 
-def szekeres_difference_set_pair(m):
+def szekeres_difference_set_pair(m, check=True):
     r"""
-    Construct Szekeres pair of complementary difference sets
+    Construct Szekeres `(2m+1,m,1)`-cyclic difference family
 
     Let `4m+3` be a prime power. Theorem 3 in [Sz69]_ contains a construction of a pair
-    of *complementary* difference sets `A`, `B` in the subgroup `G` of the quadratic
+    of *complementary difference sets* `A`, `B` in the subgroup `G` of the quadratic
     residues in `F_{4m+3}^*`. Namely `|A|=|B|=m`, `a\in A` whenever `a-1\in G`, `b\in B`
     whenever `b+1 \in G`. See also Theorem 2.6 in [SWW72]_ (there the formula for `B` is
     correct, as opposed to (4.2) in [Sz69]_, where the sign before `1` is wrong.
-    `
+
+    In modern terminilogy, for `m>`1 the sets `A` and `B` form a
+    :func:`difference family<sage.combinat.designs.difference_family>` with parameters `(2m+1,m,1)`.
+    I.e. each non-identity `g \in G` can be expressed uniquely as `xy^{-1}` for `x,y \in A` or `x,y \in B`.
+    Other, specific to this construction, properties of `A` and `B` are: for `a` in `A` one has
+    `a^{-1}` not in `A`, whereas for `b` in `B` one has `b^{-1}` in `B`.
+
     INPUT:
 
     - ``m`` (integer) -- dimension of the matrix
+
+    - ``check`` (default: ``True``) -- whether to check `A` and `B` for correctness
 
     EXAMPLES::
 
@@ -1231,6 +1239,13 @@ def szekeres_difference_set_pair(m):
     sG = set(G)
     A = filter(lambda a: a-F.one() in sG, G)
     B = filter(lambda b: b+F.one() in sG, G)
+    if check:
+        from itertools import product, chain
+        assert(len(A)==len(B)==m)
+        if m>1:
+            assert(sG==set(map(lambda (x,y): x/y, chain(product(A,A), product(B,B)))))
+        assert(all(F.one()/b+F.one() in sG for b in B))
+        assert(not any(F.one()/a-F.one() in sG for a in A))
     return G,A,B
 
 def typeI_matrix_difference_set(G,A):

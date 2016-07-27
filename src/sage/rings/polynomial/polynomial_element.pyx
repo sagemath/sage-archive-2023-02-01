@@ -8516,14 +8516,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = PolynomialRing(ZZ, implementation="NTL")
             sage: (2*x + 1).divides(4*x**2 + 1)
             False
+            sage: K.<z> = GF(4)
+            sage: R.<x> = K[]
+            sage: S.<y> = R[]
+            sage: p = ((3*z + 2)*x + 2*z - 1) * y + 2*x + z
+            sage: q = y^2 + z*y*x + 2*y + z
+            sage: p.divides(q)
+            False
+            sage: p.divides(p*q)
+            True
         """
         if p.is_zero(): return True          # everything divides 0
         if self.is_zero(): return False      # 0 only divides 0
         try:
             if self.is_unit(): return True   # units divide everything
         except NotImplementedError:
-            pass
-        if self.is_one(): return True        # if is_unit is not implemented
+            if self.is_one(): return True    # if is_unit is not implemented
 
         try:
             return (p % self) == 0           # if quo_rem is defined

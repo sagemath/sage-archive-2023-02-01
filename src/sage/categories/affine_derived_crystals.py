@@ -797,6 +797,13 @@ class KirillovReshetikhinCrystals(Category_singleton):
                     sage: T = crystals.TensorProduct(K1,K2)
                     sage: T.one_dimensional_configuration_sum() == T.one_dimensional_configuration_sum(group_components=False)
                     True
+
+                    sage: RC = RiggedConfigurations(['A',3,1],[[1,1],[1,2]])
+                    sage: B = crystals.KirillovReshetikhin(['A',3,1],1,1)
+                    sage: B1 = crystals.KirillovReshetikhin(['A',3,1],1,2)
+                    sage: T = crystals.TensorProduct(B,B1)
+                    sage: RC.fermionic_formula() == T.one_dimensional_configuration_sum()
+                    True
                 """
                 if q is None:
                     from sage.rings.all import QQ

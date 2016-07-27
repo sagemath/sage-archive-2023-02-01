@@ -17,11 +17,12 @@ cdef class SkewPolynomial(AlgebraElement):
     cdef _is_gen
 
     cdef long _hash_c(self)
-    cdef list _list_c(self)
     cdef SkewPolynomial _new_c(self,list coeffs,Parent P,char check=*)
     cpdef SkewPolynomial _new_constant_poly(self,RingElement a,Parent P,char check=*)
     cpdef _neg_(self)
+    cpdef list list(self)
 
+    cdef list _coeffs
     cdef void __normalize(self)
     cdef void _inplace_add(self, SkewPolynomial_generic_dense right)
     cdef void _inplace_sub(self, SkewPolynomial_generic_dense right)
@@ -30,7 +31,6 @@ cdef class SkewPolynomial(AlgebraElement):
     cdef void _inplace_pow(self, Py_ssize_t n)
 
 cdef class SkewPolynomial_generic_dense(SkewPolynomial):
-    cdef list __coeffs
     cpdef _rightpow_(self,right,modulus=*)
     cpdef _leftpow_(self,right,modulus=*)
 

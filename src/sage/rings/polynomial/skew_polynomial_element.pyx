@@ -277,8 +277,6 @@ cdef class SkewPolynomial(AlgebraElement):
         raise NotImplementedError
     cdef void __normalize(self):
         raise NotImplementedError
-    cdef list _list_c(self):
-        raise NotImplementedError
 
     cpdef _richcmp_(left, right, int op):
         """
@@ -299,8 +297,8 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a < b
             False
         """
-        cdef list x = (<SkewPolynomial>left)._list_c()
-        cdef list y = (<SkewPolynomial>right)._list_c()
+        cdef list x = (<SkewPolynomial>left)._coeffs
+        cdef list y = (<SkewPolynomial>right)._coeffs
         if op == 0:
             return x < y
         elif op == 1:
@@ -336,8 +334,8 @@ cdef class SkewPolynomial(AlgebraElement):
             n = self._new_c([],P)
         return n
 
-    def list(self):
-#    cpdef list(self):
+#    def list(self):
+    cpdef list list(self):
         """
         Return a new copy of the list of the underlying elements of ``self``.
 
@@ -359,8 +357,8 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.list()
             [t^2 + 1, 0, t + 1, 0, 1]
         """
-        l = copy(self._list_c())
-#        l = list(self.__coeffs)
+#        l = copy(self._coeffs)
+        l = copy(self._coeffs)
         return l
 
     def __call__(self, eval_pt):
@@ -432,8 +430,8 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: [y for y in iter(P)]
             [1, 2, 3]
         """
-        return iter(self.list())
-#        return iter(self.__coeffs)
+#        return iter(self.list())
+        return iter(self._coeffs)
 
     def __getitem__(self, n):
         """
@@ -463,7 +461,7 @@ cdef class SkewPolynomial(AlgebraElement):
             0
         """
         try:
-            l = (<SkewPolynomial>self)._list_c()[n]
+            l = (<SkewPolynomial>self)._coeffs[n]
             return l
         except IndexError:
             return self.base_ring().zero()
@@ -493,7 +491,7 @@ cdef class SkewPolynomial(AlgebraElement):
             zeros = []
         elif i > 0:
             zeros = [self._parent.base_ring().zero()] * i
-        c = self._new_c(zeros + self._list_c()[i:j], self._parent, 1)
+        c = self._new_c(zeros + self._coeffs[i:j], self._parent, 1)
         return c
 
     def __setitem__(self, n, value):
@@ -544,7 +542,7 @@ cdef class SkewPolynomial(AlgebraElement):
         if self == self.parent().zero():
             degree = -1
         else:
-            degree = len((<SkewPolynomial>self)._list_c())-1
+            degree = len((<SkewPolynomial>self)._coeffs)-1
         return degree
 
     def valuation(self):
@@ -566,7 +564,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S(0).valuation()
             +Infinity
         """
-        cdef list x = (<SkewPolynomial>self)._list_c()
+        cdef list x = (<SkewPolynomial>self)._coeffs
         if self == self.parent().zero():
             return infinity.infinity
         cdef Py_ssize_t v = 0
@@ -593,8 +591,8 @@ cdef class SkewPolynomial(AlgebraElement):
             1
         """
         cdef Py_ssize_t i, min
-        cdef list x = (<SkewPolynomial>self)._list_c()
-        cdef list y = (<SkewPolynomial>right)._list_c()
+        cdef list x = (<SkewPolynomial>self)._coeffs
+        cdef list y = (<SkewPolynomial>right)._coeffs
         cdef Py_ssize_t dx = len(x), dy = len(y)
 
         if dx > dy:
@@ -624,8 +622,8 @@ cdef class SkewPolynomial(AlgebraElement):
             1
         """
         cdef Py_ssize_t i, min
-        cdef list x = (<SkewPolynomial>self)._list_c()
-        cdef list y = (<SkewPolynomial>right)._list_c()
+        cdef list x = (<SkewPolynomial>self)._coeffs
+        cdef list y = (<SkewPolynomial>right)._coeffs
         cdef Py_ssize_t dx = len(x), dy = len(y)
         cdef RingElement c
 
@@ -650,7 +648,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: -a
             -t*x^2 - x + 3
         """
-        c = self._new_c([-x for x in (<SkewPolynomial>self)._list_c()], self._parent, 0)
+        c = self._new_c([-x for x in (<SkewPolynomial>self)._coeffs], self._parent, 0)
         return c
 
     cpdef ModuleElement _lmul_(self, RingElement right):
@@ -675,7 +673,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         if right == 0:
             return self._parent.zero()
-        cdef list x = (<SkewPolynomial>self)._list_c()
+        cdef list x = (<SkewPolynomial>self)._coeffs
         cdef Py_ssize_t i
         map = self._parent._map
         r = self._new_c([ (map**i)(right)*x[i] for i from 0 <= i < len(x) ], self._parent, 0)
@@ -703,7 +701,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         if left == 0:
             return self.parent().zero()
-        cdef list x = (<SkewPolynomial>self)._list_c()
+        cdef list x = (<SkewPolynomial>self)._coeffs
         cdef Py_ssize_t i
         map = self._parent._map
         r = self._new_c([ left*x[i] for i from 0 <= i < len(x) ], self._parent, 0)
@@ -731,8 +729,8 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a * b == b * a
             False
         """
-        cdef list x = (<SkewPolynomial>self)._list_c()
-        cdef list y = (<SkewPolynomial>right)._list_c()
+        cdef list x = (<SkewPolynomial>self)._coeffs
+        cdef list y = (<SkewPolynomial>right)._coeffs
         cdef Py_ssize_t i, k, start, end
         cdef Py_ssize_t dx = len(x)-1, dy = len(y)-1
         parent = self._parent
@@ -822,7 +820,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: u*y == y*v
             True
         """
-        r = self._new_c([ self._parent.twist_map(n)(x) for x in (<SkewPolynomial>self)._list_c() ], self._parent, 0)
+        r = self._new_c([ self._parent.twist_map(n)(x) for x in (<SkewPolynomial>self)._coeffs ], self._parent, 0)
         return r
 
     def constant_coefficient(self):
@@ -839,7 +837,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.constant_coefficient()
             t^2 + 2
         """
-        cdef x = (<SkewPolynomial>self)._list_c()
+        cdef x = (<SkewPolynomial>self)._coeffs
         if len(x) == 0:
             c = self.base_ring().zero()
         else:
@@ -859,7 +857,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.leading_coefficient()
             t
         """
-        cdef x = (<SkewPolynomial>self)._list_c()
+        cdef x = (<SkewPolynomial>self)._coeffs
         if len(x) == 0:
             raise ValueError
         c = x[-1]
@@ -1103,8 +1101,8 @@ cdef class SkewPolynomial(AlgebraElement):
             NotImplementedError: inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
                 Defn: t |--> t + 1
         """
-        cdef list a = list((<SkewPolynomial>self)._list_c())
-        cdef list b = (<SkewPolynomial>other)._list_c()
+        cdef list a = list((<SkewPolynomial>self)._coeffs)
+        cdef list b = (<SkewPolynomial>other)._coeffs
         cdef Py_ssize_t i, j
         cdef Py_ssize_t da = self.degree(), db = other.degree()
         if db < 0:
@@ -1169,8 +1167,8 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             NotImplementedError: the leading coefficient of the divisor is not invertible
         """
-        cdef list a = list((<SkewPolynomial>self)._list_c())
-        cdef list b = (<SkewPolynomial>other)._list_c()
+        cdef list a = list((<SkewPolynomial>self)._coeffs)
+        cdef list b = (<SkewPolynomial>other)._coeffs
         cdef Py_ssize_t i, j
         cdef Py_ssize_t da = self.degree(), db = other.degree()
         parent = self._parent
@@ -2606,16 +2604,16 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         """
         SkewPolynomial.__init__(self, parent, is_gen=is_gen)
         if x is None:
-            self.__coeffs = []
+            self._coeffs = []
             return
 
         R = parent.base_ring()
         if type(x) is list:
             if check:
-                self.__coeffs = [R(t) for t in x]
+                self._coeffs = [R(t) for t in x]
                 self.__normalize()
             else:
-                self.__coeffs = x
+                self._coeffs = x
             return
 
         if type(x) is SkewPolynomial:
@@ -2624,19 +2622,19 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             elif R.has_coerce_map_from((<Element>x)._parent):# is R or (<Element>x)._parent == R:
                 try:
                     if x.is_zero():
-                        self.__coeffs = []
+                        self._coeffs = []
                         return
                 except (AttributeError, TypeError):
                     pass
                 x = [x]
             else:
-                self.__coeffs = [R(a, **kwds) for a in x.list()]
+                self._coeffs = [R(a, **kwds) for a in x.list()]
                 if check:
                     self.__normalize()
                 return
 
         elif type(x) is int and x == 0:
-            self.__coeffs = []
+            self._coeffs = []
             return
 
         elif isinstance(x, dict):
@@ -2646,20 +2644,10 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             # We trust that the element constructors do not send x=0
             x = [x] # constant polynomials
         if check:
-            self.__coeffs = [R(z, **kwds) for z in x]
+            self._coeffs = [R(z, **kwds) for z in x]
             self.__normalize()
         else:
-            self.__coeffs = x
-
-    cdef list _list_c(self):
-        """
-        Return the list of the underlying elements of ``self``.
-
-        .. WARNING::
-
-            It is a priori not a copy; do not modify this list!
-        """
-        return self.__coeffs
+            self._coeffs = x
 
     cdef SkewPolynomial _new_c(self, list coeffs, Parent P, char check=0):
         """
@@ -2668,7 +2656,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         cdef type t = type(self)
         cdef SkewPolynomial_generic_dense f = t.__new__(t)
         f._parent = P
-        f.__coeffs = coeffs
+        f._coeffs = coeffs
         if check:
             f.__normalize()
         return f
@@ -2677,7 +2665,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         """
         Remove higher order 0-coefficients from the representation of ``self``.
         """
-        x = self.__coeffs
+        x = self._coeffs
         cdef Py_ssize_t n = len(x) - 1
         while n >= 0 and not x[n]:
             del x[n]
@@ -2688,8 +2676,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         Replace ``self`` by `self+right` (only for internal use).
         """
         cdef Py_ssize_t i, min
-        x = (<SkewPolynomial_generic_dense>self).__coeffs
-        y = (<SkewPolynomial_generic_dense>right).__coeffs
+        x = (<SkewPolynomial_generic_dense>self)._coeffs
+        y = (<SkewPolynomial_generic_dense>right)._coeffs
         if len(x) > len(y):
             for i from 0 <= i < len(y):
                 x[i] += y[i]
@@ -2706,8 +2694,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         Replace ``self`` by `self-right` (only for internal use).
         """
         cdef Py_ssize_t i, min
-        cdef list x = (<SkewPolynomial_generic_dense>self).__coeffs
-        cdef list y = (<SkewPolynomial_generic_dense>right).__coeffs
+        cdef list x = (<SkewPolynomial_generic_dense>self)._coeffs
+        cdef list y = (<SkewPolynomial_generic_dense>right)._coeffs
         if len(x) >= len(y):
             for i from 0 <= i < len(y):
                 x[i] -= y[i]
@@ -2722,13 +2710,13 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         """
         Replace ``self`` by `self*right` (only for internal use).
         """
-        cdef list x = (<SkewPolynomial_generic_dense>self).__coeffs
-        cdef list y = (<SkewPolynomial_generic_dense>right).__coeffs
+        cdef list x = (<SkewPolynomial_generic_dense>self)._coeffs
+        cdef list y = (<SkewPolynomial_generic_dense>right)._coeffs
         cdef Py_ssize_t i, k, start, end
         cdef Py_ssize_t d1 = len(x)-1, d2 = len(y)-1
         parent = self._parent
         if d2 == -1:
-            (<SkewPolynomial_generic_dense>self).__coeffs = [ ]
+            (<SkewPolynomial_generic_dense>self)._coeffs = [ ]
         elif d1 >= 0:
             for k from d1 < k <= d1+d2:
                 start = 0 if k <= d2 else k-d2 # max(0, k-d2)
@@ -2748,13 +2736,13 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         """
         Replace ``self`` by `left*self` (only for internal use).
         """
-        cdef list x = (<SkewPolynomial_generic_dense>self).__coeffs
-        cdef list y = (<SkewPolynomial_generic_dense>left).__coeffs
+        cdef list x = (<SkewPolynomial_generic_dense>self)._coeffs
+        cdef list y = (<SkewPolynomial_generic_dense>left)._coeffs
         cdef Py_ssize_t i, k, start, end
         cdef Py_ssize_t d1 = len(x)-1, d2 = len(y)-1
         parent = self._parent
         if d2 == -1:
-            (<SkewPolynomial_generic_dense>self).__coeffs = [ ]
+            (<SkewPolynomial_generic_dense>self)._coeffs = [ ]
         elif d1 >= 0:
             for k from d1 < k <= d1+d2:
                 start = 0 if k <= d2 else k-d2 # max(0, k-d2)
@@ -2777,7 +2765,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         while n & 1 == 0:
             self._inplace_rmul(self)
             n = n >> 1
-        cdef SkewPolynomial_generic_dense selfpow = <SkewPolynomial_generic_dense>self._new_c(list(self.__coeffs),self._parent)
+        cdef SkewPolynomial_generic_dense selfpow = <SkewPolynomial_generic_dense>self._new_c(list(self._coeffs),self._parent)
         n = n >> 1
         while n != 0:
             selfpow._inplace_rmul(selfpow)
@@ -2860,7 +2848,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             v = [R.zero()]*exp + [R.one()]
             r = <SkewPolynomial_generic_dense>self._parent(v)
         else:
-            r = <SkewPolynomial_generic_dense>self._new_c(list(self.__coeffs),self._parent)
+            r = <SkewPolynomial_generic_dense>self._new_c(list(self._coeffs),self._parent)
             r._inplace_pow(exp)
 
         if modulus:
@@ -2944,7 +2932,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             v = [R.zero()]*exp + [R.one()]
             r = <SkewPolynomial_generic_dense>self._parent(v)
         else:
-            r = <SkewPolynomial_generic_dense>self._new_c(list(self.__coeffs),self._parent)
+            r = <SkewPolynomial_generic_dense>self._new_c(list(self._coeffs),self._parent)
             r._inplace_pow(exp)
 
         if modulus:

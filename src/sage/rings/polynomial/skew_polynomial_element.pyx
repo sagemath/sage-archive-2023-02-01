@@ -13,151 +13,6 @@ along with :class:`~sage.rings.polynomial.skew_polynomial_element.ConstantSkewPo
 and :class:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomialBaseringInjection`
 for conversion from a skew polynomial ring to its base ring and vice versa respectively.
 
-DEFINITION:
-
-Let `R` be a commutative ring equipped with an automorphism `\sigma`.
-
-Then, a formal skew polynomial is given by the equation:
-`F(X) = a_{n}X^{n} + ... + a_0`
-where the coefficients `a_{i}` belong to `R` and `X` is a formal variable.
-
-Addition between two skew polynomials is defined by the usual addition
-operation and the modified multiplication is defined by the rule
-`X a = \sigma(a) X` for all `a` in `R`. Skew polynomials are thus
-non-commutative and the degree of a product is equal to the sum of the
-degrees of the factors.
-
-Let `a` and `b` be two skew polynomials in the same ring `S`.
-The *left (resp. right) euclidean division* of `a` by `b` is
-a couple `(q,r)` of elements in `S` such that
-
--  `a = q*b + r` (resp. `a = b*q + r`)
-
--  the degree of `r` is less than the degree of `b`
-
-`q` (resp. `r`) is called the *quotient* (resp. the remainder)
-of this euclidean division.
-
-PROPERTIES:
-
-Keeping the previous notations, if the leading coefficient of `b`
-is a unit (e.g. if `b` is monic) then the quotient and the remainder
-in the *right* euclidean division exist and are unique.
-
-The same result holds for the *left* euclidean division if in addition
-the twist map defining the skew polynomial ring is invertible.
-
-EXAMPLES:
-
-We illustrate some functionalities implemented in this class.
-
-We create the skew polynomial ring::
-
-    sage: R.<t> = ZZ[]
-    sage: sigma = R.hom([t+1])
-    sage: S.<x> = R['x',sigma]; S
-    Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
-
-and some elements in it::
-
-    sage: a = t + x + 1; a
-    x + t + 1
-    sage: b = S([t^2,t+1,1]); b
-    x^2 + (t + 1)*x + t^2
-    sage: c = S.random_element(degree=3,monic=True); c
-    x^3 + (-95*t^2 + t + 2)*x^2 + (-t^2 + t)*x + 2*t - 8
-
-Ring operations are supported::
-
-    sage: a + b
-    x^2 + (t + 2)*x + t^2 + t + 1
-    sage: a - b
-    -x^2 - t*x - t^2 + t + 1
-
-    sage: a * b
-    x^3 + (2*t + 3)*x^2 + (2*t^2 + 4*t + 2)*x + t^3 + t^2
-    sage: b * a
-    x^3 + (2*t + 4)*x^2 + (2*t^2 + 3*t + 2)*x + t^3 + t^2
-    sage: a * b == b * a
-    False
-
-    sage: b^2
-    x^4 + (2*t + 4)*x^3 + (3*t^2 + 7*t + 6)*x^2 + (2*t^3 + 4*t^2 + 3*t + 1)*x + t^4
-    sage: b^2 == b*b
-    True
-
-Sage implements also some arithmetics over skew polynomial rings.
-You will find below a short panorama.
-
-    sage: q,r = c.right_quo_rem(b)
-    sage: q
-    x - 95*t^2
-    sage: r
-    (95*t^3 + 93*t^2 - t - 1)*x + 95*t^4 + 2*t - 8
-    sage: c == q*b + r
-    True
-
-The operators ``//`` and ``%`` give respectively the quotient
-and the remainder of the right euclidean division::
-
-    sage: q == c // b
-    True
-    sage: r == c % b
-    True
-
-Left euclidean division won't work over our current
-`S` because Sage can't invert the twist map::
-
-    sage: q,r = c.left_quo_rem(b)
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
-      Defn: t |--> t + 1
-
-Here is a working example over a finite field::
-
-    sage: k.<t> = GF(5^3)
-    sage: Frob = k.frobenius_endomorphism()
-    sage: S.<x> = k['x',Frob]
-    sage: a = x^4 + (4*t + 1)*x^3 + (t^2 + 3*t + 3)*x^2 + (3*t^2 + 2*t + 2)*x + (3*t^2 + 3*t + 1)
-    sage: b = (2*t^2 + 3)*x^2 + (3*t^2 + 1)*x + 4*t + 2
-    sage: q,r = a.left_quo_rem(b)
-    sage: q
-    (4*t^2 + t + 1)*x^2 + (2*t^2 + 2*t + 2)*x + 2*t^2 + 4*t + 3
-    sage: r
-    (t + 2)*x + 3*t^2 + 2*t + 4
-    sage: a == b*q + r
-    True
-
-Once we have euclidean divisions, we have for free gcd and lcm
-(at least if the base ring is a field).
-This class provides an implementation of gcd and lcm::
-
-    sage: a = (x + t) * (x + t^2)^2
-    sage: b = (x + t) * (t*x + t + 1) * (x + t^2)
-    sage: a.right_gcd(b)
-    x + t^2
-    sage: a.left_gcd(b)
-    x + t
-
-For lcm, the default side is left but be very careful: by
-convention, a left (resp. right) lcm is common multiple on
-the right (resp. left)::
-
-    sage: c = a.left_lcm(b); c
-    x^5 + (4*t^2 + t + 3)*x^4 + (3*t^2 + 4*t)*x^3 + 2*t^2*x^2 + (2*t^2 + t)*x + 4*t^2 + 4
-    sage: c.is_right_divisible_by(a)
-    True
-    sage: c.is_right_divisible_by(b)
-    True
-
-    sage: d = a.right_lcm(b); d
-    x^5 + (t^2 + 1)*x^4 + (3*t^2 + 3*t + 3)*x^3 + (3*t^2 + t + 2)*x^2 + (4*t^2 + 3*t)*x + 4*t + 4
-    sage: d.is_left_divisible_by(a)
-    True
-    sage: d.is_left_divisible_by(b)
-    True
-
 AUTHOR:
 
 -  Xavier Caruso (2012-06-29)
@@ -187,8 +42,157 @@ from sage.rings.morphism cimport RingHomomorphism
 cdef class SkewPolynomial(AlgebraElement):
     """
     A skew polynomial.
-    """
 
+    DEFINITION:
+
+    Let `R` be a commutative ring equipped with an automorphism `\sigma`.
+
+    Then, a formal skew polynomial is given by the equation:
+    `F(X) = a_{n}X^{n} + ... + a_0`
+    where the coefficients `a_{i}` belong to `R` and `X` is a formal variable.
+    
+    Addition between two skew polynomials is defined by the usual addition
+    operation and the modified multiplication is defined by the rule
+    `X a = \sigma(a) X` for all `a` in `R`. Skew polynomials are thus
+    non-commutative and the degree of a product is equal to the sum of the
+    degrees of the factors.
+
+    Let `a` and `b` be two skew polynomials in the same ring `S`.
+    The *left (resp. right) euclidean division* of `a` by `b` is
+    a couple `(q,r)` of elements in `S` such that
+
+    -  `a = q*b + r` (resp. `a = b*q + r`)
+
+    -  the degree of `r` is less than the degree of `b`
+
+    `q` (resp. `r`) is called the *quotient* (resp. the remainder)
+    of this euclidean division.
+
+    PROPERTIES:
+
+    Keeping the previous notations, if the leading coefficient of `b`
+    is a unit (e.g. if `b` is monic) then the quotient and the remainder
+    in the *right* euclidean division exist and are unique.
+
+    The same result holds for the *left* euclidean division if in addition
+    the twist map defining the skew polynomial ring is invertible.
+
+    EXAMPLES:
+
+    We illustrate some functionalities implemented in this class.
+
+    We create the skew polynomial ring::
+
+        sage: R.<t> = ZZ[]
+        sage: sigma = R.hom([t+1])
+        sage: S.<x> = R['x',sigma]; S
+        Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+
+    and some elements in it::
+
+        sage: a = t + x + 1; a
+        x + t + 1
+        sage: b = S([t^2,t+1,1]); b
+        x^2 + (t + 1)*x + t^2
+        sage: c = S.random_element(degree=3,monic=True); c
+        x^3 + (-95*t^2 + t + 2)*x^2 + (-t^2 + t)*x + 2*t - 8
+
+    Ring operations are supported::
+
+        sage: a + b
+        x^2 + (t + 2)*x + t^2 + t + 1
+        sage: a - b
+        -x^2 - t*x - t^2 + t + 1
+
+        sage: a * b
+        x^3 + (2*t + 3)*x^2 + (2*t^2 + 4*t + 2)*x + t^3 + t^2
+        sage: b * a
+        x^3 + (2*t + 4)*x^2 + (2*t^2 + 3*t + 2)*x + t^3 + t^2
+        sage: a * b == b * a
+        False
+
+        sage: b^2
+        x^4 + (2*t + 4)*x^3 + (3*t^2 + 7*t + 6)*x^2 + (2*t^3 + 4*t^2 + 3*t + 1)*x + t^4
+        sage: b^2 == b*b
+        True
+
+    Sage implements also some arithmetics over skew polynomial rings.
+    You will find below a short panorama.
+
+        sage: q,r = c.right_quo_rem(b)
+        sage: q
+        x - 95*t^2
+        sage: r
+        (95*t^3 + 93*t^2 - t - 1)*x + 95*t^4 + 2*t - 8
+        sage: c == q*b + r
+        True
+
+    The operators ``//`` and ``%`` give respectively the quotient
+    and the remainder of the right euclidean division::
+
+        sage: q == c // b
+        True
+        sage: r == c % b
+        True
+
+    Left euclidean division won't work over our current
+    `S` because Sage can't invert the twist map::
+
+        sage: q,r = c.left_quo_rem(b)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+            Defn: t |--> t + 1
+
+    Here is a working example over a finite field::
+
+        sage: k.<t> = GF(5^3)
+        sage: Frob = k.frobenius_endomorphism()
+        sage: S.<x> = k['x',Frob]
+        sage: a = x^4 + (4*t + 1)*x^3 + (t^2 + 3*t + 3)*x^2 + (3*t^2 + 2*t + 2)*x + (3*t^2 + 3*t + 1)
+        sage: b = (2*t^2 + 3)*x^2 + (3*t^2 + 1)*x + 4*t + 2
+        sage: q,r = a.left_quo_rem(b)
+        sage: q
+        (4*t^2 + t + 1)*x^2 + (2*t^2 + 2*t + 2)*x + 2*t^2 + 4*t + 3
+        sage: r
+        (t + 2)*x + 3*t^2 + 2*t + 4
+        sage: a == b*q + r
+        True
+
+    Once we have euclidean divisions, we have for free gcd and lcm
+    (at least if the base ring is a field).
+    This class provides an implementation of gcd and lcm::
+
+        sage: a = (x + t) * (x + t^2)^2
+        sage: b = (x + t) * (t*x + t + 1) * (x + t^2)
+        sage: a.right_gcd(b)
+        x + t^2
+        sage: a.left_gcd(b)
+        x + t
+
+    For lcm, the default side is left but be very careful: by
+    convention, a left (resp. right) lcm is common multiple on
+    the right (resp. left)::
+
+        sage: c = a.left_lcm(b); c
+        x^5 + (4*t^2 + t + 3)*x^4 + (3*t^2 + 4*t)*x^3 + 2*t^2*x^2 + (2*t^2 + t)*x + 4*t^2 + 4
+        sage: c.is_right_divisible_by(a)
+        True
+        sage: c.is_right_divisible_by(b)
+        True
+        
+        sage: d = a.right_lcm(b); d
+        x^5 + (t^2 + 1)*x^4 + (3*t^2 + 3*t + 3)*x^3 + (3*t^2 + t + 2)*x^2 + (4*t^2 + 3*t)*x + 4*t + 4
+        sage: d.is_left_divisible_by(a)
+        True
+        sage: d.is_left_divisible_by(b)
+        True
+
+    .. SEEALSO::
+
+        :mod:`sage.rings.polynomial.skew_polynomial_ring`
+        :mod:`sage.rings.polynomial.skew_polynomial_ring_constructor`
+    """
     def __init__(self, parent, is_gen=False, construct=False):
         """
         This method is a constructor for a skew polynomial.

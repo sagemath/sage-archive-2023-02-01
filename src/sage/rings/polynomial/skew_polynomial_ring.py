@@ -8,93 +8,6 @@ are written on the left of the variable of the skew polynomial ring. The modifie
 operation over elements of the base ring is extended to all elements of the skew poynomial ring
 by associativity and distributivity.
 
-DEFINITION:
-
-Let `R` be a commutative ring and let `\sigma` be an automorphism over `R`. An
-automorphism (also called twist map) is a structure preserving map from a
-mathematical object (in this case, R) onto itself that also admits an inverse.
-The ring of skew polynomials over an indeterminate variable `X` is defined then,
-as the ring structure on the set `R` as:
-`R[X, \sigma] = { a_{n-1}X^{n-1} + ... + a_{1}X + a_{0} | a_{i} \in R and n \in N }`
-where the addition operation on `R[X, \sigma]` is given by the usual abelian
-group polynomial addition rule and the multiplication operation is defined
-by the modified rule `X*a = \sigma(a)X`.
-
-This ring is non-commutative and its elements are all such skew polynomials whose
-coefficients come from `R`.
-
-Reference: "Theory of Non-Commutative Polynomials" - Oystein Ore
-
-.. TODO::
-
-    Add derivations.
-
-EXAMPLES::
-
-    sage: R.<t> = ZZ[]
-    sage: sigma = R.hom([t+1])
-    sage: S.<x> = SkewPolynomialRing(R,sigma); S
-    Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
-
-One can also use a shorter syntax::
-
-    sage: S.<x> = R['x',sigma]; S
-    Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
-
-Be careful, with the latter syntax, one cannot omit the name of the
-variable neither in LHS nor in RHS. If we omit it in LHS, the variable
-is not created::
-
-    sage: Sy = R['y',sigma]; Sy
-    Skew Polynomial Ring in y over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
-    sage: y.parent()
-    Traceback (most recent call last):
-    ...
-    NameError: name 'y' is not defined
-
-If we omit it in RHS, sage tries to create a polynomial ring and fails::
-
-    sage: Sz.<z> = R[sigma]
-    Traceback (most recent call last):
-    ...
-    ValueError: variable name 'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring\n  Defn: t |--> t + 1' is not alphanumeric
-
-As for polynomials, skew polynomial rings with different variable names
-are not equal::
-
-    sage: R['x',sigma] == R['y',sigma]
-    False
-
-Of course, skew polynomial rings with different twist maps are not
-equal as well
-
-    sage: R['x',sigma] == R['x',sigma^2]
-    False
-
-Saving and loading of polynomial rings works::
-
-    sage: loads(dumps(R['x',sigma])) == R['x',sigma]
-    True
-
-There is a coercion map from the base ring of the skew polynomial rings::
-
-    sage: S.has_coerce_map_from(R)
-    True
-    sage: x.parent()
-    Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
-    sage: t.parent()
-    Univariate Polynomial Ring in t over Integer Ring
-    sage: y = x+t; y
-    x + t
-    sage: y.parent() is S
-    True
-
-.. SEE ALSO::
-
-    - ``def SkewPolynomialRing`` in sage.rings.polynomial.skew_polynomial_ring_constructor
-
-    - ``cdef class SkewPolynomial_generic_dense`` in sage.rings.polynomial.skew_polynomial_element
-
 AUTHOR:
 
 - Xavier Caruso (2012-06-29)
@@ -125,6 +38,92 @@ from sage.rings.polynomial.skew_polynomial_element import SkewPolynomial
 class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentation):
     """
     Skew Univariate polynomial ring over a ring.
+    
+    DEFINITION:
+
+    Let `R` be a commutative ring and let `\sigma` be an automorphism over `R`. An
+    automorphism (also called twist map) is a structure preserving map from a
+    mathematical object (in this case, R) onto itself that also admits an inverse.
+    The ring of skew polynomials over an indeterminate variable `X` is defined then,
+    as the ring structure on the set `R` as:
+    `R[X, \sigma] = { a_{n-1}X^{n-1} + ... + a_{1}X + a_{0} | a_{i} \in R and n \in N }`
+    where the addition operation on `R[X, \sigma]` is given by the usual abelian
+    group polynomial addition rule and the multiplication operation is defined
+    by the modified rule `X*a = \sigma(a)X`.
+
+    This ring is non-commutative and its elements are all such skew polynomials whose
+    coefficients come from `R`.
+
+    Reference: "Theory of Non-Commutative Polynomials" - Oystein Ore
+
+    .. TODO::
+
+        Add derivations.
+
+    EXAMPLES::
+
+        sage: R.<t> = ZZ[]
+        sage: sigma = R.hom([t+1])
+        sage: S.<x> = SkewPolynomialRing(R,sigma); S
+        Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+
+    One can also use a shorter syntax::
+
+        sage: S.<x> = R['x',sigma]; S
+        Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+
+    Be careful, with the latter syntax, one cannot omit the name of the
+    variable neither in LHS nor in RHS. If we omit it in LHS, the variable
+    is not created::
+
+        sage: Sy = R['y',sigma]; Sy
+        Skew Polynomial Ring in y over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+        sage: y.parent()
+        Traceback (most recent call last):
+        ...
+        NameError: name 'y' is not defined
+
+    If we omit it in RHS, sage tries to create a polynomial ring and fails::
+
+        sage: Sz.<z> = R[sigma]
+        Traceback (most recent call last):
+        ...
+        ValueError: variable name 'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring\n  Defn: t |--> t + 1' is not alphanumeric
+
+    As for polynomials, skew polynomial rings with different variable names
+    are not equal::
+
+        sage: R['x',sigma] == R['y',sigma]
+        False
+
+    Of course, skew polynomial rings with different twist maps are not
+    equal as well
+
+        sage: R['x',sigma] == R['x',sigma^2]
+        False
+
+    Saving and loading of polynomial rings works::
+
+        sage: loads(dumps(R['x',sigma])) == R['x',sigma]
+        True
+
+    There is a coercion map from the base ring of the skew polynomial rings::
+
+        sage: S.has_coerce_map_from(R)
+        True
+        sage: x.parent()
+        Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+        sage: t.parent()
+        Univariate Polynomial Ring in t over Integer Ring
+        sage: y = x+t; y
+        x + t
+        sage: y.parent() is S
+        True
+
+    .. SEE ALSO::
+
+        :meth:`sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing`
+        :mod:`sage.rings.polynomial.skew_polynomial_element`
     """
     @staticmethod
     def __classcall__(cls, base_ring, map, name=None, sparse=False, element_class=None):

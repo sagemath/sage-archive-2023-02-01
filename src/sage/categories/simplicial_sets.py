@@ -197,53 +197,53 @@ class SimplicialSets(Category_singleton):
                 """
                 return self._basepoint
 
+            def base_point_map(self, domain=None):
+                """
+                Return a map from a one-point space to this one, with image the
+                base point.
+
+                This raises an error if this simplicial set does not have a
+                base point.
+
+                INPUT:
+
+                - ``domain`` -- optional, default ``None``. Use
+                  this to specify a particular one-point space as
+                  the domain. The default behavior is to use the
+                  :func:`sage.homology.simplicial_set.Point`
+                  function to use a standard one-point space.
+
+                EXAMPLES::
+
+                    sage: T = simplicial_sets.Torus()
+                    sage: f = T.base_point_map(); f
+                    Simplicial set morphism:
+                      From: Point
+                      To:   Torus
+                      Defn: Constant map at (v_0, v_0)
+                    sage: S3 = simplicial_sets.Sphere(3)
+                    sage: g = S3.base_point_map()
+                    sage: f.domain() == g.domain()
+                    True
+                    sage: RP3 = simplicial_sets.RealProjectiveSpace(3)
+                    sage: temp = simplicial_sets.Simplex(0)
+                    sage: pt = temp.set_base_point(temp.n_cells(0)[0])
+                    sage: h = RP3.base_point_map(domain=pt)
+                    sage: f.domain() == h.domain()
+                    False
+                """
+                from sage.homology.simplicial_set import Point
+                if domain is None:
+                    domain = Point()
+                else:
+                    if len(domain._simplices) > 1:
+                        raise ValueError('domain has more than one nondegenerate simplex')
+                src = domain.base_point()
+                target = self.base_point()
+                return domain.Hom(self).constant_map(point=target)
+
         class Finite(CategoryWithAxiom):
             class ParentMethods():
-
-                def base_point_map(self, domain=None):
-                    """
-                    Return a map from a one-point space to this one, with image the
-                    base point.
-
-                    This raises an error if this simplicial set does not have a
-                    base point.
-
-                    INPUT:
-
-                    - ``domain`` -- optional, default ``None``. Use
-                      this to specify a particular one-point space as
-                      the domain. The default behavior is to use the
-                      :func:`sage.homology.simplicial_set.Point`
-                      function to use a standard one-point space.
-
-                    EXAMPLES::
-
-                        sage: T = simplicial_sets.Torus()
-                        sage: f = T.base_point_map(); f
-                        Simplicial set morphism:
-                          From: Point
-                          To:   Torus
-                          Defn: [*] --> [(v_0, v_0)]
-                        sage: S3 = simplicial_sets.Sphere(3)
-                        sage: g = S3.base_point_map()
-                        sage: f.domain() == g.domain()
-                        True
-                        sage: RP3 = simplicial_sets.RealProjectiveSpace(3)
-                        sage: temp = simplicial_sets.Simplex(0)
-                        sage: pt = temp.set_base_point(temp.n_cells(0)[0])
-                        sage: h = RP3.base_point_map(domain=pt)
-                        sage: f.domain() == h.domain()
-                        False
-                    """
-                    from sage.homology.simplicial_set import Point
-                    if domain is None:
-                        domain = Point()
-                    else:
-                        if len(domain._simplices) > 1:
-                            raise ValueError('domain has more than one nondegenerate simplex')
-                    src = domain.base_point()
-                    target = self.base_point()
-                    return domain.Hom(self)({src: target})
 
                 def unset_base_point(self):
                     """
@@ -298,9 +298,13 @@ class SimplicialSets(Category_singleton):
                         return self
                     return self.product(*[self]*(n-1)).fat_wedge_as_subset()
 
-                def smash_product(self, other):
+                def smash_product(self, *others):
                     """
-                    The smash product of this simplicial set with ``other``.
+                    The smash product of this simplicial set with ``others``.
+
+                    INPUT:
+
+                    - ``others`` -- one or several simplicial sets
 
                     EXAMPLES::
 
@@ -318,9 +322,8 @@ class SimplicialSets(Category_singleton):
                         sage: X.homology(reduced=False)
                         {0: Z, 1: 0, 2: Z x Z, 3: Z}
                     """
-                    prod = self.product(other)
-                    wedge = prod.wedge_as_subset()
-                    return prod.quotient(wedge)
+                    from sage.homology.simplicial_set_constructions import SmashProductOfSimplicialSets_finite
+                    return SmashProductOfSimplicialSets_finite((self,) + others)
 
 
         class ElementMethods:

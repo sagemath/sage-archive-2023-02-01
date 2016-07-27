@@ -8,7 +8,7 @@ Morphisms and homsets for simplicial sets
 
 AUTHORS:
 
-- John H. Palmieri (2016-03)
+- John H. Palmieri (2016-07)
 
 This module implements morphisms and homsets of simplicial sets.
 """
@@ -90,7 +90,7 @@ class SimplicialSetHomset(Homset):
             sage: f = {v0: v0, e: v0.apply_degeneracies(0)} # constant map
             sage: Hom(S1, S1)(f)
             Simplicial set endomorphism of S^1
-              Defn: [v_0, sigma_1] --> [v_0, Simplex obtained by applying degeneracy s_0 to v_0]
+              Defn: Constant map at v_0
         """
         return SimplicialSetMorphism(f, self.domain(), self.codomain(), check=check)
 
@@ -266,7 +266,7 @@ class SimplicialSetHomset(Homset):
              Simplicial set morphism:
                From: S^1
                To:   Torus
-               Defn: [v_0, sigma_1] --> [(v_0, v_0), Simplex obtained by applying degeneracy s_0 to (v_0, v_0)]]
+               Defn: Constant map at (v_0, v_0)]
             sage: [f.induced_homology_morphism().to_matrix() for f in H]
             [
             [ 1| 0]  [1|0]  [1|0]  [1|0]
@@ -372,7 +372,7 @@ class SimplicialSetMorphism(Morphism):
             Simplicial set morphism:
               From: 1-simplex
               To:   S^1
-              Defn: [(0,), (1,), (0, 1)] --> [v_0, v_0, Simplex obtained by applying degeneracy s_0 to v_0]
+              Defn: Constant map at v_0
 
         A non-map::
 
@@ -405,12 +405,11 @@ class SimplicialSetMorphism(Morphism):
             sage: one = S5.Hom(S5)({s: s})
             sage: one
             Simplicial set endomorphism of S^5
-              Defn: [v_0, sigma_5] --> [v_0, sigma_5]
+              Defn: Identity map
             sage: one._dictionary
             {v_0: v_0, sigma_5: sigma_5}
         """
         self._is_identity = False
-        self._constant = False
         if not domain.is_finite():
             if identity:
                 if not domain is codomain:
@@ -584,7 +583,7 @@ class SimplicialSetMorphism(Morphism):
         """
         if x not in self.domain():
             raise ValueError('element is not a simplex in the domain')
-        if self._constant:
+        if self.is_constant():
             target = self._constant
             return target.apply_degeneracies(*range(x.dimension()-1,-1,-1))
         if self._is_identity:
@@ -656,19 +655,19 @@ class SimplicialSetMorphism(Morphism):
 
             sage: B = simplicial_sets.ClassifyingSpace(groups.misc.MultiplicativeAbelian([2]))
             sage: B.constant_map().image()
-            Simplicial set with 1 non-degenerate simplex
+            Point
             sage: Hom(B,B).identity().image() == B
             True
         """
         if self._is_identity:
             return self.codomain()
-        if self._constant:
+        if self.is_constant():
             return self.codomain().subsimplicial_set([self._constant])
         return self.codomain().subsimplicial_set(self._dictionary.values())
 
     def is_identity(self):
         """
-        True if this morphism is an identity map.
+        Return ``True`` if this morphism is an identity map.
 
         EXAMPLES::
 
@@ -702,10 +701,19 @@ class SimplicialSetMorphism(Morphism):
             False
             sage: RP5.n_skeleton(5).inclusion_map().is_identity()
             True
+
+            sage: B = simplicial_sets.ClassifyingSpace(groups.misc.MultiplicativeAbelian([2]))
+            sage: Hom(B,B).identity().is_identity()
+            True
+            sage: Hom(B,B).constant_map().is_identity()
+            False
         """
-        return (self._is_identity or
+        ans = (self._is_identity or
                 (self.domain() == self.codomain()
-                and all(a == b for a,b in self._dictionary.items())))
+                 and self.domain().is_finite()
+                 and all(a == b for a,b in self._dictionary.items())))
+        self._is_identity = ans
+        return ans
 
     def is_surjective(self):
         """
@@ -807,12 +815,37 @@ class SimplicialSetMorphism(Morphism):
                 and self(self.domain().base_point()) == self.codomain().base_point())
 
     def is_constant(self):
+        """
+        Return ``True`` if this morphism is a constant map.
+
+        EXAMPLES::
+
+            sage: K = simplicial_sets.KleinBottle()
+            sage: S4 = simplicial_sets.Sphere(4)
+            sage: c = Hom(K, S4).constant_map()
+            sage: c.is_constant()
+            True
+            sage: X = S4.n_skeleton(3) # a point
+            sage: X.inclusion_map().is_constant()
+            True
+            sage: eta = simplicial_sets.HopfMap()
+            sage: eta.is_constant()
+            False
+        """
         try:
-            return self._constant
+            return bool(self._constant)
         except AttributeError:
             pass
+        if not self.domain().is_finite():
+            # The domain is infinite, so there is no safe way to
+            # determine if the map is constant.
+            return False
         targets = [tau.nondegenerate() for tau in self._dictionary.values()]
-        return len(targets) == 1
+        if len(set(targets)) == 1:
+            # It's constant, so save the target.
+            self._constant = targets[0]
+            return True
+        return False
 
     def pushout(self, *others):
         """
@@ -835,7 +868,15 @@ class SimplicialSetMorphism(Morphism):
             sage: init_K = K._map_from_empty_set()
             sage: D = init_T.pushout(init_K) # the disjoint union as a pushout
             sage: D
-            Simplicial set with 12 non-degenerate simplices
+            Pushout of maps:
+              Simplicial set morphism:
+                From: Empty simplicial set
+                To:   Torus
+                Defn: [] --> []
+              Simplicial set morphism:
+                From: Empty simplicial set
+                To:   Klein bottle
+                Defn: [] --> []
         """
         domain = self.domain()
         if any(domain != f.domain() for f in others):
@@ -969,7 +1010,15 @@ class SimplicialSetMorphism(Morphism):
             sage: g = Hom(K,L)({v:pt, w:pt, e:pt.apply_degeneracies(0)})
             sage: P = f.coequalizer(g)
             sage: P
-            Simplicial set with 5 non-degenerate simplices
+            Pushout of maps:
+              Simplicial set morphism:
+                From: Disjoint union: (Simplicial set with 3 non-degenerate simplices u 2-simplex)
+                To:   2-simplex
+                Defn: ...
+              Simplicial set morphism:
+                From: Disjoint union: (Simplicial set with 3 non-degenerate simplices u 2-simplex)
+                To:   2-simplex
+                Defn: ...
         """
         domain = self.domain()
         codomain = self.codomain()
@@ -1066,8 +1115,65 @@ class SimplicialSetMorphism(Morphism):
         codomain = self.codomain().coproduct(*[g.codomain() for g in others])
         factors = []
         for (i,f) in enumerate([self] + list(others)):
-            factors.append(codomain.inclusion(i) * f)
+            factors.append(codomain.inclusion_map(i) * f)
         return codomain.universal_property(*factors)
+
+    def n_skeleton(self, n, domain=None, codomain=None):
+        """
+        Restriction of this morphism to the n-skeleta
+        of the domain and codomain
+
+        INPUT:
+
+        - ``n`` -- the dimension
+
+        - ``domain`` -- optional, the domain. Specify this to
+          explicitly specify the domain; otherwise, Sage will attempt
+          to compute it. Specifying this can be useful if the domain
+          is built as a pushout or pullback, so trying to compute it
+          may lead to computing the `n`-skeleton of a map, causing an
+          infinite recursion.
+
+        - ``codomain`` -- optional, the codomain.
+
+        EXAMPLES::
+
+            sage: B = simplicial_sets.ClassifyingSpace(groups.misc.MultiplicativeAbelian([2]))
+            sage: one = Hom(B,B).identity()
+            sage: one.n_skeleton(3)
+            Simplicial set endomorphism of Simplicial set with 4 non-degenerate simplices
+              Defn: Identity map
+            sage: c = Hom(B,B).constant_map()
+            sage: c.n_skeleton(3)
+            Simplicial set endomorphism of Simplicial set with 4 non-degenerate simplices
+              Defn: Constant map at 1
+
+            sage: K = simplicial_sets.Simplex(2)
+            sage: L = K.subsimplicial_set(K.n_cells(0)[:2])
+            sage: L.nondegenerate_simplices()
+            [(0,), (1,)]
+            sage: L.inclusion_map()
+            Simplicial set morphism:
+              From: Simplicial set with 2 non-degenerate simplices
+              To:   2-simplex
+              Defn: [(0,), (1,)] --> [(0,), (1,)]
+            sage: L.inclusion_map().n_skeleton(1)
+            Simplicial set morphism:
+              From: Simplicial set with 2 non-degenerate simplices
+              To:   Simplicial set with 6 non-degenerate simplices
+              Defn: [(0,), (1,)] --> [(0,), (1,)]
+        """
+        if domain is None:
+            domain = self.domain().n_skeleton(n)
+        if codomain is None:
+            codomain = self.codomain().n_skeleton(n)
+        if self.is_constant():
+            return Hom(domain, codomain).constant_map(self._constant)
+        if self.is_identity():
+            return Hom(domain, domain).identity()
+        old = self._dictionary
+        new = {d: old[d] for d in old if d.dimension() <= n}
+        return Hom(domain, codomain)(new)
 
     def associated_chain_complex_morphism(self, base_ring=ZZ,
                                           augmented=False, cochain=False):
@@ -1193,19 +1299,26 @@ class SimplicialSetMorphism(Morphism):
         """
         EXAMPLES::
 
+            sage: K1 = simplicial_sets.Simplex(1)
+            sage: v = K1.n_cells(0)[0]
+            sage: e = K1.n_cells(1)[0]
+            sage: f = Hom(K1,K1)({e:v.apply_degeneracies(0)})
+            sage: f._repr_defn()
+            'Constant map at (0,)'
+
+            sage: K2 = simplicial_sets.Simplex(2)
+            sage: tau = K2.n_cells(1)[0]
+            sage: Hom(K1, K2)({e:tau})._repr_defn()
+            '[(0,), (1,), (0, 1)] --> [(0,), (1,), (0, 1)]'
+
             sage: S1 = simplicial_sets.Sphere(1)
-            sage: f = Hom(S1,S1).identity()
-
-        The identity morphism is constructed with a special name, so
-        make a copy of it for testing::
-
-            sage: Hom(S1,S1)(f._dictionary)._repr_defn() 
-            '[v_0, sigma_1] --> [v_0, sigma_1]'
+            sage: Hom(S1,S1).identity()._repr_defn()
+            'Identity map'
         """
-        if self._constant:
-            return 'Constant map at {}'.format(self._constant)
-        if self._is_identity:
+        if self.is_identity():
             return 'Identity map'
+        if self.is_constant():
+            return 'Constant map at {}'.format(self._constant)
         d = self._dictionary
         keys = sorted(d.keys())
         return "{} --> {}".format(keys, [d[x] for x in keys])

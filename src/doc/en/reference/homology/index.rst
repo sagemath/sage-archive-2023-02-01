@@ -22,6 +22,7 @@ cell complexes.
    sage/homology/delta_complex
    sage/homology/cubical_complex
    sage/homology/simplicial_set
+   sage/homology/simplicial_set_constructions
    sage/homology/simplicial_set_morphism
    sage/homology/cell_complex
    sage/homology/koszul_complex

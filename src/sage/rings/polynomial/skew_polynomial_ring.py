@@ -655,7 +655,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
                 raise ValueError("minimum degree must be less or equal than maximum degree")
             degree = randint(*degree)
         if monic:
-            return self ([ R.random_element (*args, **kwds) for _ in range (degree) ] + [ R(1) ])
+            return self ([ R.random_element (*args, **kwds) for _ in range (degree) ] + [ R.one() ])
         else:
             return self ([ R.random_element (*args, **kwds) for _ in range (degree+1) ])
 

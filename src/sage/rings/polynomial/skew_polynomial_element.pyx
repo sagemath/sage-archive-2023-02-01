@@ -471,8 +471,7 @@ cdef class SkewPolynomial(AlgebraElement):
             l = (<SkewPolynomial>self)._list_c()[n]
             return l
         except IndexError:
-            c = self.base_ring()(0)
-            return c
+            return self.base_ring().zero()
 
     def __getslice__(self, Py_ssize_t i, Py_ssize_t j):
         """
@@ -498,10 +497,9 @@ cdef class SkewPolynomial(AlgebraElement):
             i = 0
             zeros = []
         elif i > 0:
-            zeros = [self._parent.base_ring()(0)] * i
+            zeros = [self._parent.base_ring().zero()] * i
         c = self._new_c(zeros + self._list_c()[i:j], self._parent, 1)
         return c
-
 
     def __setitem__(self, n, value):
         """
@@ -548,7 +546,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S(0).degree()
             -1
         """
-        if self == self.parent()(0):
+        if self == self.parent().zero():
             degree = -1
         else:
             degree = len((<SkewPolynomial>self)._list_c())-1
@@ -574,7 +572,7 @@ cdef class SkewPolynomial(AlgebraElement):
             +Infinity
         """
         cdef list x = (<SkewPolynomial>self)._list_c()
-        if self == self.parent()(0):
+        if self == self.parent().zero():
             return infinity.infinity
         cdef Py_ssize_t v = 0
         while x[v].is_zero() and v < len(x):
@@ -681,7 +679,7 @@ cdef class SkewPolynomial(AlgebraElement):
             False
         """
         if right == 0:
-            return self._parent(0)
+            return self._parent.zero()
         cdef list x = (<SkewPolynomial>self)._list_c()
         cdef Py_ssize_t i
         map = self._parent._map
@@ -848,7 +846,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         cdef x = (<SkewPolynomial>self)._list_c()
         if len(x) == 0:
-            c = self.base_ring()(0)
+            c = self.base_ring().zero()
         else:
             c = x[0]
         return c
@@ -1522,11 +1520,11 @@ cdef class SkewPolynomial(AlgebraElement):
         if not isinstance(self.base_ring(),Field):
             raise TypeError("the base ring must be a field")
         G = self
-        U = self._parent(1)
+        U = self._parent.one()
         if other.is_zero():
-            V = self._parent(0)
+            V = self._parent.zero()
         else:
-            V1 = self._parent(0)
+            V1 = self._parent.zero()
             V3 = other
             while not V3.is_zero():
                 Q,R = G.left_quo_rem(V3)
@@ -1609,11 +1607,11 @@ cdef class SkewPolynomial(AlgebraElement):
         if not isinstance(self.base_ring(),Field):
             raise TypeError("the base ring must be a field")
         G = self
-        U = self._parent(1)
+        U = self._parent.one()
         if other.is_zero():
-            V = self._parent(0)
+            V = self._parent.zero()
         else:
-            V1 = self._parent(0)
+            V1 = self._parent.zero()
             V3 = other
             while not V3.is_zero():
                 Q, R = G.right_quo_rem(V3)
@@ -1837,9 +1835,9 @@ cdef class SkewPolynomial(AlgebraElement):
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
             raise ZeroDivisionError
-        U = self._parent(1)
+        U = self._parent.one()
         G = self
-        V1 = self._parent(0)
+        V1 = self._parent.zero()
         V3 = other
         while not V3.is_zero():
             Q, R = G.right_quo_rem(V3)
@@ -2858,7 +2856,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         if self.degree() <= 0:
             return self.parent()(self[0]**exp)
         if exp == 0:
-            return self.parent()(1)
+            return self.parent().one()
         if exp < 0:
             return (~self).leftpow(-exp,modulus)
 
@@ -2942,7 +2940,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         if self.degree() <= 0:
             return self.parent()(self[0]**exp)
         if exp == 0:
-            return self.parent()(1)
+            return self.parent().one()
         if exp < 0:
             return (~self).rightpow(-exp,modulus)
 

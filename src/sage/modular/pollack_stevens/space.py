@@ -24,21 +24,22 @@ and the ones in :mod:`sage.modular.modsym`:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 from sage.modules.module import Module
 from sage.modular.dirichlet import DirichletCharacter
 from sage.modular.arithgroup.all import Gamma0
 from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
-from fund_domain import ManinRelations
+from .fund_domain import ManinRelations
 from sage.rings.infinity import infinity as oo
 from sage.structure.factory import UniqueFactory
 
-from distributions import OverconvergentDistributions, Symk
-from modsym import (PSModularSymbolElement, PSModularSymbolElement_symk,
+from .distributions import OverconvergentDistributions, Symk
+from .modsym import (PSModularSymbolElement, PSModularSymbolElement_symk,
                     PSModularSymbolElement_dist, PSModSymAction)
-from manin_map import ManinMap
-from sigma0 import Sigma0, Sigma0Element
+from .manin_map import ManinMap
+from .sigma0 import Sigma0, Sigma0Element
 
 
 class PollackStevensModularSymbols_factory(UniqueFactory):

@@ -302,6 +302,17 @@ cdef class SymbolicRing(CommutativeRing):
             False
             sage: SR(a).is_positive()
             False
+
+        We get a sensible error message if conversion fails::
+
+            sage: SR(int)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert <type 'int'> to a symbolic expression
+            sage: r^(1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert R Interpreter to a symbolic expression
         """
         cdef GEx exp
         if is_Expression(x):
@@ -339,7 +350,7 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.misc.all import prod
             return prod([SR(p)**e for p,e in x], SR(x.unit()))
         else:
-            raise TypeError
+            raise TypeError(f"unable to convert {x!r} to a symbolic expression")
 
         return new_Expression_from_GEx(self, exp)
 

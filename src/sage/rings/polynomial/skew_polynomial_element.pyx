@@ -387,13 +387,11 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S.<x> = R['x',sigma]
             sage: a = t*x + 1
             sage: a(t^2)
-            t^3 + 1
+            t^3 + 3*t^2 + t
             sage: b = x + t
-            sage: a(b)
-            t*x + t^2 + 1
-            sage: c = x^2 + t*x^3 + t^2*x + 1
-            sage: c(2*t + 3)
-            2*t^3 + 5*t^2 + 9*t + 6
+            sage: b = x^2 + t*x^3 + t^2*x + 1
+            sage: b(2*t + 3)
+            2*t^3 + 7*t^2 + 13*t + 10
 
         TESTS::
 
@@ -408,19 +406,14 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         if eval_pt not in self._parent:
             raise TypeError("evaluation point must be a ring element")
-        sigma = self._parent.twist_map()
-        coefficients = self.coefficients(sparse=False)
-        degree = self.degree()
-        elem = coefficients[0]
-        sigma_compositions = []
-        for i in range(degree):
-            if i == 0:
-                sigma_compositions.append(eval_pt)
-            else:
-                sig = sigma(sigma_compositions[i-1])
-                sigma_compositions.append(sig)
-            elem += coefficients[i+1]*sigma_compositions[i]
-        return elem
+        cdef RingHomomorphism sigma = self._parent.twist_map()
+        cdef list coefficients = self.coefficients(sparse=False)
+        cdef RingElement sum = self.base_ring().zero()
+        cdef RingElement a = eval_pt
+        for c in coefficients:
+            sum += (<RingElement> c)*a
+            a = sigma(a)
+        return sum
 
     def __iter__(self):
         """

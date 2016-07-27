@@ -1276,13 +1276,15 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def is_left_divisible_by(self, other):
         """
+        Check if ``self`` is divisible by ``other`` on the left.
+
         INPUT:
 
         - ``other`` -- a skew polynomial over the same base
 
         OUTPUT:
 
-        Return True iff ``self`` is divisible by ``other`` on the left
+        Return ``True`` or ``False``
 
         EXAMPLES::
 
@@ -1309,13 +1311,15 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def is_right_divisible_by(self, other):
         """
+        Check if ``self`` is divisible by ``other`` on the right.
+
         INPUT:
 
         - ``other`` -- a skew polynomial over the same base
 
         OUTPUT:
 
-        Return True iff ``self`` is divisible by ``other`` on the right
+        Return ``True`` or ``False``
 
         EXAMPLES::
 
@@ -1356,13 +1360,15 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def left_divides(self, other):
         """
+        Check if ``self`` divides ``other`` on the left.
+
         INPUT:
 
         - ``other`` -- a skew polynomial over the same base
 
         OUTPUT:
 
-        Return True iff ``self`` divides ``other`` on the left
+        Return ``True`` or ``False``
 
         EXAMPLES::
 
@@ -1389,13 +1395,15 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def right_divides(self, other):
         """
+        Check if ``self`` divides ``other`` on the right.
+
         INPUT:
 
         - ``other`` -- a skew polynomial over the same base
 
         OUTPUT:
 
-        Return True iff ``self`` divides ``other`` on the right
+        Return ``True`` or ``False``
 
         EXAMPLES::
 
@@ -1436,6 +1444,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def left_xgcd(self, other, monic=True):
         """
+        Return the left gcd of ``self`` and ``other``.
+
         INPUT:
 
         - ``other`` -- an other skew polynomial over the same
@@ -1536,6 +1546,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def right_xgcd(self, other, monic=True):
         """
+        Return the right gcd of ``self`` and ``other``.
+
         INPUT:
 
         - ``other`` -- another skew polynomial over the same
@@ -1620,6 +1632,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def right_gcd(self, other, monic=True):
         """
+        Return the right gcd of ``self`` and ``other``.
+
         INPUT:
 
         - ``other`` -- another skew polynomial over the same
@@ -1682,6 +1696,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def left_gcd(self, other, monic=True):
         """
+        Return the left gcd of ``self`` and ``other``.
+
         INPUT:
 
         - ``other`` -- another skew polynomial over the same
@@ -1761,6 +1777,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def left_lcm(self, other, monic=True):
         """
+        Return the left lcm of ``self`` and ``other``.
+
         INPUT:
 
         - ``other`` -- another skew polynomial over the same
@@ -1837,6 +1855,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def right_lcm(self, other, monic=True):
         """
+        Return the right lcm of ``self`` and ``other``.
+
         INPUT:
 
         - ``other`` -- another skew polynomial over the same
@@ -2437,7 +2457,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def is_constant(self):
         """
-        Return True if ``self`` is a constant polynomial.
+        Return ``True`` if ``self`` is a constant polynomial.
 
         OUTPUT:
 

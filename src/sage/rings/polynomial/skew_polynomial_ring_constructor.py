@@ -62,8 +62,8 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
     OUTPUT:
 
     ``SkewPolynomialRing(base_ring, base_ring_automorphism, names, sparse=False)``
-    returns a univariate skew polynomial ring over ``base_ring`` twisted by
-    `\base_ring_automorphism`;
+    returns a univariate skew polynomial ring over `base_ring` twisted by
+    `\base_ring_automorphism`.
 
     UNIQUENESS and IMMUTABILITY:
 

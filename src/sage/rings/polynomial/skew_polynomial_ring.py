@@ -1,28 +1,27 @@
 r"""
 Skew Univariate Polynomial Rings
 
-This module provides the class ``SkewPolynomialRing_general`` which constructs
-a general dense skew univariate polynomials over commutative base rings with
-automorphisms over the base rings. This is the set of formal polynomials where
-the coefficients are written on the left of the variable of the skew polynomial
-ring. The modified multiplication operation over elements of the base ring is
-extended to all elements of the skew poynomial ring by associativity and
-distributivity.
+This module provides the :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general``
+which constructs a general dense skew univariate polynomials over commutative base rings with
+automorphisms over the base rings. This is the set of formal polynomials where the coefficients
+are written on the left of the variable of the skew polynomial ring. The modified multiplication
+operation over elements of the base ring is extended to all elements of the skew poynomial ring
+by associativity and distributivity.
 
 DEFINITION:
 
-Let R be a commutative ring and let `\sigma` be an automorphism over R. An
+Let `R` be a commutative ring and let `\sigma` be an automorphism over `R`. An
 automorphism (also called twist map) is a structure preserving map from a
 mathematical object (in this case, R) onto itself that also admits an inverse.
-The ring of skew polynomials over an indeterminate variable X is defined then,
-as the ring structure on the set R as:
-R[X, \sigma] = { a_{n-1}X^{n-1} + ... + a_{1}X + a_{0} | a_{i} \in R and n \in N }
-where the addition operation on R[X, \sigma] is given by the usual abelian
+The ring of skew polynomials over an indeterminate variable `X` is defined then,
+as the ring structure on the set `R` as:
+`R[X, \sigma] = { a_{n-1}X^{n-1} + ... + a_{1}X + a_{0} | a_{i} \in R and n \in N }`
+where the addition operation on `R[X, \sigma]` is given by the usual abelian
 group polynomial addition rule and the multiplication operation is defined
 by the modified rule `X*a = \sigma(a)X`.
 
 This ring is non-commutative and its elements are all such skew polynomials whose
-coefficients come from R.
+coefficients come from `R`.
 
 Reference: "Theory of Non-Commutative Polynomials" - Oystein Ore
 
@@ -201,8 +200,23 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     def _element_constructor_(self, x=None, check=True, is_gen = False, construct=False, **kwds):
         """
-        Convert ``x`` into this univariate skew polynomial ring,
+        Convert ``x`` into an element of this univariate skew polynomial ring,
         possibly non-canonically.
+
+        INPUT:
+
+        - ``x`` -- an element of the base ring of ``self`` or a ring that
+          has a coerce map from ``self`` (default: ``None``). 
+
+        - ``check`` -- boolean (default: ``True``)
+
+        - ``is_gen`` -- boolean (default: ``False``)
+
+        - ``construct`` -- boolean (default: ``False``)
+
+        OUTPUT:
+
+        An element of ``self``.
 
         EXAMPLES::
 
@@ -248,6 +262,8 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     def _coerce_map_from_(self, P):
         """
+        Check whether ``self`` has a coerce map from ``P``.
+
         The rings that canonically coerce into this ring are:
 
         - this ring itself
@@ -257,6 +273,14 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         - skew polynomial rings in the same variable and automorphism over
           any base ring that canonically coerces to the base ring of this ring
 
+        INPUT:
+
+        - ``P`` -- a ring. 
+
+        OUTPUT:
+        
+        Return ``True`` or ``False``.
+        
         .. NOTE::
 
             Sparse skew polynomials are not implemented.
@@ -344,8 +368,16 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     def change_var(self, var):
         r"""
-        Return the skew polynomial ring in variable var over the same base
+        Return the skew polynomial ring in variable ``var`` over the same base
         ring.
+
+        INPUT:
+
+        - ``var`` -- a string representing the name of the new variable of ``self``
+
+        OUTPUT:
+
+        ``self`` with variable name name changed to ``var``.
 
         EXAMPLES::
 
@@ -439,6 +471,10 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
     def gen(self, n=0):
         """
         Return the indeterminate generator of this skew polynomial ring.
+
+        INPUT:
+
+        - ``n`` -- an integer (default: 0)
 
         EXAMPLES::
 
@@ -625,7 +661,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     def is_commutative(self):
         """
-        Return true if this skew polynomial ring is commutative
+        Return ``True`` if this skew polynomial ring is commutative
         (i.e. if the twist map is the identity).
 
         EXAMPLES::

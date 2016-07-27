@@ -149,7 +149,7 @@ graphplot_options.update(
                         'This currently only works for directed graphs, '
                         'since we pass off the undirected graph to networkx.',
                     'edge_thickness': 'The thickness of the edges.',
-                    'edge_color': 'The default color for edges.',
+                    'edge_color': 'The default color for edges not listed in edge_colors.',
                     'edge_colors': 'a dictionary specifying edge colors: each '
                         'key is a color recognized by matplotlib, and each '
                         'entry is a list of edges.',
@@ -640,6 +640,10 @@ class GraphPlot(SageObject):
                     else:
                         edges_to_draw[key] = [(label, color, head)]
             # add unspecified edges in (default color black)
+            if 'edge_color' in self._options:
+                default_edge_color = self._options['edge_color']
+            else:
+                default_edge_color = 'black'
             for edge in self._graph.edge_iterator():
                 key = tuple(sorted([edge[0],edge[1]]))
                 label = edge[2]
@@ -652,7 +656,7 @@ class GraphPlot(SageObject):
                 if not specified:
                     if key == (edge[0],edge[1]): head = 1
                     else: head = 0
-                    edges_to_draw[key] = [(label, 'black', head)]
+                    edges_to_draw[key] = [(label, default_edge_color, head)]
         else:
             for edge in self._graph.edges(sort=True):
                 key = tuple(sorted([edge[0],edge[1]]))

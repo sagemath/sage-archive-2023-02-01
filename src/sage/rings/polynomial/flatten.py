@@ -9,7 +9,7 @@ EXAMPLES::
     sage: R = QQ['x']['y']['s','t']['X']
     sage: from sage.rings.polynomial.flatten import FlatteningMorphism
     sage: phi = FlatteningMorphism(R); phi
-    Generic morphism:
+    Flattening morphism:
       From: Univariate Polynomial Ring in X over Multivariate Polynomial Ring in s, t over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
       To:   Multivariate Polynomial Ring in x, y, s, t, X over Rational Field
     sage: phi('x*y*s + t*X').parent()
@@ -31,11 +31,15 @@ Vincent Delecroix, Ben Hutz (July 2016): initial implementation
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import, print_function
+
+from sage.misc.cachefunc import cached_method
+
 from sage.categories.morphism import Morphism
-from copy import copy
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+
+from .polynomial_ring_constructor import PolynomialRing
+from .polynomial_ring import is_PolynomialRing
+from .multi_polynomial_ring_generic import is_MPolynomialRing
 
 class FlatteningMorphism(Morphism):
     r"""
@@ -78,20 +82,17 @@ class FlatteningMorphism(Morphism):
             sage: R = ZZ['a', 'b', 'c']['x', 'y', 'z']
             sage: from sage.rings.polynomial.flatten import FlatteningMorphism
             sage: FlatteningMorphism(R)
-            Generic morphism:
-              From: Multivariate Polynomial Ring in x, y, z over Multivariate
-            Polynomial Ring in a, b, c over Integer Ring
-              To:   Multivariate Polynomial Ring in a, b, c, x, y, z over Integer
-            Ring
+            Flattening morphism:
+              From: Multivariate Polynomial Ring in x, y, z over Multivariate Polynomial Ring in a, b, c over Integer Ring
+              To:   Multivariate Polynomial Ring in a, b, c, x, y, z over Integer Ring
 
         ::
 
             sage: R = ZZ['a']['b']['c']
             sage: from sage.rings.polynomial.flatten import FlatteningMorphism
             sage: FlatteningMorphism(R)
-            Generic morphism:
-              From: Univariate Polynomial Ring in c over Univariate Polynomial Ring
-            in b over Univariate Polynomial Ring in a over Integer Ring
+            Flattening morphism:
+              From: Univariate Polynomial Ring in c over Univariate Polynomial Ring in b over Univariate Polynomial Ring in a over Integer Ring
               To:   Multivariate Polynomial Ring in a, b, c over Integer Ring
 
         ::
@@ -139,6 +140,7 @@ class FlatteningMorphism(Morphism):
         codomain = PolynomialRing(ring, variables)
 
         Morphism.__init__(self, domain, codomain)
+        self._repr_type_str = 'Flattening'
 
     def _call_(self, p):
         r"""
@@ -182,6 +184,7 @@ class FlatteningMorphism(Morphism):
 
         return self.codomain()(p)
 
+    @cached_method
     def section(self):
         """
         Inverse of this flattenning morphism.
@@ -192,25 +195,23 @@ class FlatteningMorphism(Morphism):
             sage: from sage.rings.polynomial.flatten import FlatteningMorphism
             sage: h = FlatteningMorphism(R)
             sage: h.section()
-            Generic morphism:
-              From: Multivariate Polynomial Ring in a, b, c, x, y, z over Rational
-            Field
-              To:   Multivariate Polynomial Ring in x, y, z over Multivariate
-            Polynomial Ring in a, b, c over Rational Field
+            Unflattening morphism:
+              From: Multivariate Polynomial Ring in a, b, c, x, y, z over Rational Field
+              To:   Multivariate Polynomial Ring in x, y, z over Multivariate Polynomial Ring in a, b, c over Rational Field
 
         ::
 
             sage: R = ZZ['a']['b']['c']
             sage: from sage.rings.polynomial.flatten import FlatteningMorphism
             sage: FlatteningMorphism(R).section()
-            Generic morphism:
+            Unflattening morphism:
               From: Multivariate Polynomial Ring in a, b, c over Integer Ring
-              To:   Univariate Polynomial Ring in c over Univariate Polynomial Ring
-            in b over Univariate Polynomial Ring in a over Integer Ring
+              To:   Univariate Polynomial Ring in c over Univariate Polynomial Ring in b over Univariate Polynomial Ring in a over Integer Ring
         """
         phi= UnflatteningMorphism(self.codomain(), self.domain())
-        phi._intermediate_rings = copy(self._intermediate_rings)
+        phi._intermediate_rings = self._intermediate_rings[:]
         phi._intermediate_rings.reverse()
+        phi._repr_type_str = 'Unflattening'
         return phi
 
 class UnflatteningMorphism(Morphism):

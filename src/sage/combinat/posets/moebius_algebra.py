@@ -96,6 +96,27 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
        European Journal of Combinatorics, **19**, 1998.
        :doi:`10.1006/eujc.1998.0227`.
     """
+    @staticmethod
+    def __classcall_private__(cls, R, L):
+        """
+        Normalize input to ensure a unique representation.
+
+        TESTS::
+
+            sage: L1 = posets.BooleanLattice(4)
+            sage: L2 = posets.BooleanLattice(4, facade=False)
+            sage: L1 is L2
+            False
+            sage: M1 = L1.moebius_algebra(QQ)
+            sage: M2 = L2.moebius_algebra(QQ)
+            sage: M1 is M2
+            True
+        """
+        # We force the lattice to not be a facade in order to guarantee
+        #   that the ordering of the poset is used (see #21054).
+        L = LatticePoset(L, facade=False)
+        return super(MoebiusAlgebra, cls).__classcall__(cls, R, L)
+
     def __init__(self, R, L):
         """
         Initialize ``self``.
@@ -106,8 +127,6 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
             sage: M = L.moebius_algebra(QQ)
             sage: TestSuite(M).run()
         """
-        if not L.is_lattice():
-            raise ValueError("L must be a lattice")
         cat = Algebras(R).Commutative().WithBasis()
         if L in FiniteEnumeratedSets():
             cat = cat.FiniteDimensional()
@@ -151,7 +170,16 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
             sage: M = L.moebius_algebra(QQ)
             sage: M.lattice()
             Finite lattice containing 16 elements
+
+        For technical reasons (the defining lattice is forced to be a
+        non-facade lattice), the result is not equal to ``L``::
+
             sage: M.lattice() == L
+            False
+
+        However it is isomorphic::
+
+            sage: M.lattice().is_isomorphic(L)
             True
         """
         return self._lattice

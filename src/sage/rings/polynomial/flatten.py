@@ -67,7 +67,7 @@ class FlatteningMorphism(Morphism):
         sage: f(p)
         x*y^3*s + x*y^3*t + x^2*s + x*y*s + x^2*t + x*y*t + x*y*X + 2*y*s + 2*y*t + s + t
         sage: f(p).parent()
-        Multivariate Polynomial Ring in x, y, s, t, X over Rational Field    
+        Multivariate Polynomial Ring in x, y, s, t, X over Rational Field
     """
     def __init__(self, domain):
         """
@@ -232,43 +232,29 @@ class UnflatteningMorphism(Morphism):
         """
         Evaluate an unflattening morphism.
 
-        This is slow, but works.
+        TESTS::
 
-        EXAMPLES::
-
-            sage: R = QQ['x']['y']['a,b,c']
-            sage: p = R.random_element()
             sage: from sage.rings.polynomial.flatten import FlatteningMorphism
-            sage: f = FlatteningMorphism(R)
-            sage: g = f.section()
-            sage: g(f(p)).parent()
-            Multivariate Polynomial Ring in a, b, c over Univariate Polynomial Ring
-            in y over Univariate Polynomial Ring in x over Rational Field
-
-        ::
-
-            sage: R = QQbar['x','y']['a','b']
-            sage: from sage.rings.polynomial.flatten import FlatteningMorphism
-            sage: f = FlatteningMorphism(R)
-            sage: p = R('QQbar(sqrt(2))*a*x^2 + b^2 + QQbar(I)*y')
-            sage: f.section()(f(p)) ==p
-            True
+            sage: for R in [ZZ['x']['y']['a,b,c'], GF(4)['x','y']['a','b'],
+            ....:           AA['x']['a','b']['y'], QQbar['a1','a2']['t']['X','Y']]:
+            ....:    f = FlatteningMorphism(R)
+            ....:    g = f.section()
+            ....:    for _ in range(10):
+            ....:        p = R.random_element()
+            ....:        assert p == g(f(p))
         """
-        p = p.dict()
-
-        vars = [R.gens() for R in self._intermediate_rings]
-        num = [len(v) for v in vars]
-        f = 0
-        for mon,pp in p.iteritems():
+        num = [len(R.gens()) for R in self._intermediate_rings]
+        f = self.codomain().zero()
+        for mon,pp in p.dict().iteritems():
             ind = 0
             g = pp
             for i in range(len(num)):
                 m = mon[ind:ind+num[i]]
                 ind += num[i]
-                if is_MPolynomialRing(self._intermediate_rings[i]):
-                    g = g * self._intermediate_rings[i](dict({tuple(m):1}))
-                else:
-                    g = g * self._intermediate_rings[i](dict({m[0]:1}))
+                R = self._intermediate_rings[i]
+                if is_PolynomialRing(R):
+                    m = m[0]
+                g = R({m: g})
             f += g
 
         return f

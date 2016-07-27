@@ -142,7 +142,7 @@ if UNAME[:6] == 'CYGWIN':
     if len(_uname) >= 2:
         m = re.match(r'(\d+\.\d+\.\d+)\(.+\)', _uname[2])
         if m:
-            CYGWIN_VERSION = tuple(m.group(1).split('.'))
+            CYGWIN_VERSION = tuple(map(int, m.group(1).split('.')))
 
         del m
     del _uname, re

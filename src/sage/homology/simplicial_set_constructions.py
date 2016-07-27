@@ -1675,7 +1675,8 @@ class QuotientOfSimplicialSet_finite(QuotientOfSimplicialSet,
         return self.induced_map(0)
 
 
-class SmashProductOfSimplicialSets_finite(QuotientOfSimplicialSet_finite):
+class SmashProductOfSimplicialSets_finite(QuotientOfSimplicialSet_finite,
+                                          Factors):
     def __init__(self, factors=None):
         r"""
         The smash product of finite pointed simplicial sets.

@@ -263,13 +263,11 @@ export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
 sage_banner() {
     if [ "$SAGE_BANNER" = "bare" ]; then
-        banner_file="$SAGE_ROOT/VERSION.txt"
+        cat "$SAGE_ROOT/VERSION.txt"
     elif [ "$SAGE_BANNER" != "no" ]; then
-        banner_file="$SAGE_LOCAL/bin/sage-banner"
-    fi
-
-    if [ -n "$banner_file" -a -f "$banner_file" ]; then
-        cat "$banner_file"
+        # This file sage-banner is not yet available during the build
+        # of Sage, so we ignore errors from cat.
+        cat "$SAGE_LOCAL/bin/sage-banner" 2>/dev/null
     fi
 }
 

@@ -365,10 +365,7 @@ sage_setup() {
     fi
 
     # Display the startup banner (unless SAGE_BANNER is explictly "no")
-    if [ "$SAGE_BANNER" != "no" ]; then
-        # can be 'bare', or 'yes', or unspecified
-        sage_banner
-    fi
+    sage_banner
 
     maybe_sage_location
 

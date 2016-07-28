@@ -1706,42 +1706,42 @@ EXAMPLES::
 
     sage: s = sandpiles.Complete(4)
     sage: m = s.markov_chain([0,0,0])
-    sage: m.next()          # random
+    sage: next(m)          # random
     {1: 0, 2: 0, 3: 0}
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 0, 0]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 0, 0]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 0, 0]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 1, 0]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 2, 0]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 2, 1]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [1, 2, 1]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [2, 2, 1]
     sage: m = s.markov_chain(s.zero_div(), [0.1,0.1,0.1,0.7])
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 0, 0, 1]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 0, 1, 1]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 0, 1, 2]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [1, 1, 2, 0]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [1, 1, 2, 1]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [1, 1, 2, 2]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [1, 1, 2, 3]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [1, 1, 2, 4]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [1, 1, 3, 4]
 
 .. NOTE::
@@ -2339,7 +2339,7 @@ EXAMPLES::
 
     sage: s = sandpiles.Complete(3)
     sage: a = s.stable_configs()
-    sage: a.next()
+    sage: next(a)
     {1: 0, 2: 0}
     sage: [i.values() for i in a]
     [[0, 1], [1, 0], [1, 1]]

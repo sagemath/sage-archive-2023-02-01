@@ -1861,9 +1861,9 @@ class HasseDiagram(DiGraph):
             sage: H = HasseDiagram({0: [1, 2], 1:[3], 2:[3]})
             sage: it = H.sublattices_iterator(set(), 0); it
             <generator object sublattices_iterator at ...>
-            sage: it.next()
+            sage: next(it)
             set()
-            sage: it.next()
+            sage: next(it)
             {0}
         """
         # Python3-note: "yield from" would be simpler.

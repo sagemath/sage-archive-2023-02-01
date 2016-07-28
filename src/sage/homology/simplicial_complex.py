@@ -3011,7 +3011,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         cur_complex = SimplicialComplex([])
         while facets:
             try:
-                F = it[-1].next()
+                F = next(it[-1])
             except StopIteration:
                 # Backtrace
                 if not cur_order:

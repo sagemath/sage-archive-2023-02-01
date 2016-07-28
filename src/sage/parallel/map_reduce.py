@@ -1194,7 +1194,7 @@ class RESetMapReduce(object):
             sage: S = RESetParallelIterator( [[]],
             ....:   lambda l: [l+[0], l+[1]] if len(l) < 17 else [])
             sage: it = iter(S)
-            sage: it.next()
+            sage: next(it)
             []
             sage: S.abort()
             sage: hasattr(S, 'work_queue')
@@ -1783,7 +1783,7 @@ class RESetMapReduceWorker(Process):
                 self._res = reduc(self._res, fun(res))
             newnodes = iter(children(node))
             try:
-                node = newnodes.next()
+                node = next(newnodes)
             except StopIteration:
                 return
             self._todo.extend(newnodes)
@@ -1922,9 +1922,9 @@ class RESetParallelIterator(RESetMapReduce):
             sage: S = RESetParallelIterator( [[]],
             ....:   lambda l: [l+[0], l+[1]] if len(l) < 15 else [])
             sage: it = iter(S)
-            sage: it.next() # random
+            sage: next(it) # random
             [1, 1, 0]
-            sage: it.next() # random
+            sage: next(it) # random
             [1, 1, 0, 1]
             sage: sum(1 for _ in it)
             65533

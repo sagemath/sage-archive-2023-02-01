@@ -47,6 +47,15 @@ AUTHOR::
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
+include "../../ext/stdsage.pxi"
+
+import copy
+import cysignals
+from sage.matrix.constructor import zero_matrix
+from sage.rings.ring cimport Ring
+from polynomial_ring_constructor import PolynomialRing
+from skew_polynomial_element cimport SkewPolynomial_generic_dense
+
 cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
     def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
@@ -98,10 +107,10 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         cdef SkewPolynomial_finite_field_dense A = self
         cdef SkewPolynomial_finite_field_dense B = other
         cdef SkewPolynomial_finite_field_dense swap
-        if len(B.__coeffs):
-            A = <SkewPolynomial_finite_field_dense>self._new_c(A.__coeffs[:],A._parent)
-            B = <SkewPolynomial_finite_field_dense>B._new_c(B.__coeffs[:],B._parent)
-            while len(B.__coeffs):
+        if len(B._coeffs):
+            A = <SkewPolynomial_finite_field_dense>self._new_c(A._coeffs[:],A._parent)
+            B = <SkewPolynomial_finite_field_dense>B._new_c(B._coeffs[:],B._parent)
+            while len(B._coeffs):
                 A._inplace_rrem(B)
                 swap = A; A = B; B = swap
             return A
@@ -195,7 +204,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
                 mod = self.parent()(mod.bound())
             except NotImplementedError:
                 mod = None
-        r = <SkewPolynomial_generic_dense>self._new_c(copy.copy(self.__coeffs),self._parent)
+        r = <SkewPolynomial_generic_dense>self._new_c(copy.copy(self._coeffs),self._parent)
         if mod:
             r._inplace_pow_mod(exp,mod)
         else:
@@ -293,7 +302,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
                 mod = self.parent()(mod.bound())
             except NotImplementedError:
                 mod = None
-        r = <SkewPolynomial_generic_dense>self._new_c(copy.copy(self.__coeffs),self._parent)
+        r = <SkewPolynomial_generic_dense>self._new_c(copy.copy(self._coeffs),self._parent)
         if mod:
             r._inplace_pow_mod(exp,mod)
         else:
@@ -307,8 +316,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         Replace self by the remainder in the left euclidean division
         of self by other (only for internal use).
         """
-        cdef list a = (<SkewPolynomial_finite_field_dense>self).__coeffs
-        cdef list b = (<SkewPolynomial_finite_field_dense>other).__coeffs
+        cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
+        cdef list b = (<SkewPolynomial_finite_field_dense>other)._coeffs
         cdef Py_ssize_t da = len(a)-1, db = len(b)-1
         cdef Py_ssize_t i, j
         cdef RingElement c, inv
@@ -329,8 +338,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         Replace self by the remainder in the right euclidean division
         of self by other (only for internal use).
         """
-        cdef list a = (<SkewPolynomial_finite_field_dense>self).__coeffs
-        cdef list b = (<SkewPolynomial_finite_field_dense>other).__coeffs
+        cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
+        cdef list b = (<SkewPolynomial_finite_field_dense>other)._coeffs
         cdef Py_ssize_t da = len(a)-1, db = len(b)-1
         cdef Py_ssize_t i, j, order
         cdef RingElement c, x, inv
@@ -359,8 +368,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         Replace self by the quotient in the left euclidean division
         of self by other (only for internal use).
         """
-        cdef list a = (<SkewPolynomial_finite_field_dense>self).__coeffs
-        cdef list b = (<SkewPolynomial_finite_field_dense>other).__coeffs
+        cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
+        cdef list b = (<SkewPolynomial_finite_field_dense>other)._coeffs
         cdef Py_ssize_t da = len(a)-1, db = len(b)-1
         cdef Py_ssize_t i, j, deb
         cdef RingElement c, inv
@@ -369,7 +378,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             sig_off()
             raise ZeroDivisionError
         if da < db:
-            (<SkewPolynomial_finite_field_dense>self).__coeffs = [ ]
+            (<SkewPolynomial_finite_field_dense>self)._coeffs = [ ]
         else:
             inv = ~b[db]
             for i from da-db >= i >= 0:
@@ -386,8 +395,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         Replace self by the quotient in the right euclidean division
         of self by other (only for internal use).
         """
-        cdef list a = (<SkewPolynomial_finite_field_dense>self).__coeffs
-        cdef list b = (<SkewPolynomial_finite_field_dense>other).__coeffs
+        cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
+        cdef list b = (<SkewPolynomial_finite_field_dense>other)._coeffs
         cdef Py_ssize_t da = len(a)-1, db = len(b)-1
         cdef Py_ssize_t i, j, deb, order
         cdef RingElement c, x, inv
@@ -395,7 +404,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         if db < 0:
             raise ZeroDivisionError
         if da < db:
-            (<SkewPolynomial_finite_field_dense>self).__coeffs = [ ]
+            (<SkewPolynomial_finite_field_dense>self)._coeffs = [ ]
         else:
             order = parent._order
             inv = ~b[db]
@@ -418,7 +427,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         """
         Replace self by ``self.lmonic()`` (only for internal use).
         """
-        cdef list a = (<SkewPolynomial_finite_field_dense>self).__coeffs
+        cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
         cdef Py_ssize_t da = len(a)-1, i
         cdef RingElement inv = ~a[da]
         parent = self._parent
@@ -430,7 +439,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         """
         Replace self by ``self.rmonic()`` (only for internal use).
         """
-        cdef list a = (<SkewPolynomial_finite_field_dense>self).__coeffs
+        cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
         cdef Py_ssize_t da = len(a)-1, i
         cdef RingElement inv = ~a[da]
         a[da] = self._parent.base_ring()(1)
@@ -443,14 +452,14 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         """
         cdef SkewPolynomial_finite_field_dense B
         cdef list swap
-        if len(other.__coeffs):
-            B = <SkewPolynomial_finite_field_dense>self._new_c(other.__coeffs[:],other._parent)
-            while len(B.__coeffs):
-                B._conjugates = [ B.__coeffs ]
+        if len(other._coeffs):
+            B = <SkewPolynomial_finite_field_dense>self._new_c(other._coeffs[:],other._parent)
+            while len(B._coeffs):
+                B._conjugates = [ B._coeffs ]
                 self._inplace_rrem(B)
-                swap = self.__coeffs
-                self.__coeffs = B.__coeffs
-                B.__coeffs = swap
+                swap = self._coeffs
+                self._coeffs = B._coeffs
+                B._coeffs = swap
 
 
     cdef SkewPolynomial_finite_field_dense _rquo_inplace_rem(self, SkewPolynomial_finite_field_dense other):
@@ -458,8 +467,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         Replace self by the remainder in the right euclidean division
         of self by other and return the quotient (only for internal use).
         """
-        cdef list a = (<SkewPolynomial_finite_field_dense>self).__coeffs
-        cdef list b = (<SkewPolynomial_finite_field_dense>other).__coeffs
+        cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
+        cdef list b = (<SkewPolynomial_finite_field_dense>other)._coeffs
         cdef Py_ssize_t da = len(a)-1, db = len(b)-1
         cdef Py_ssize_t i, j
         cdef RingElement c, inv
@@ -488,7 +497,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         Return `v` the valuation of self and replace self by
         self >> v (only for internal use).
         """
-        cdef list a = (<SkewPolynomial_finite_field_dense>self).__coeffs
+        cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
         cdef Py_ssize_t val = 0
         if len(a) < 0:
             sig_off()

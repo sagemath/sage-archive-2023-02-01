@@ -6,6 +6,10 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+SPKGDIR=`pwd`
+
+cd src
+
 SRC=`pwd`
 
 CFLAGS="$CFLAGS -I$SAGE_LOCAL/include -L$SAGE_LOCAL/lib"
@@ -28,7 +32,9 @@ if [ -z $SOPLEX_TARBALL ]; then
     exit 1;
 fi
 
-rm -rf ./soplex-*
+# Remove existing directories
+find . -name "soplex-*" -type d | xargs rm -rf
+
 tar xvfz $SOPLEX_TARBALL;
 
 if [ $? -ne 0 ]; then
@@ -47,7 +53,9 @@ if [ -z $SCIP_TARBALL ]; then
     exit 1;
 fi
 
-rm -rf ./scip-*
+# Remove existing directories
+find . -name "scip-*" -type d | xargs rm -rf
+
 tar xfz $SCIP_TARBALL;
 
 if [ $? -ne 0 ]; then
@@ -61,7 +69,12 @@ SCIP_VERSION=`echo "$SCIP_DIR" | sed -e "s/.*-//"`
 
 
 # Apply patch to SCIP.
-(cd $SCIP_DIR && patch -p1 < ../patches/scip-libdep.patch || ( echo >&2 "Error applying 'scip-libdep.patch'"; exit 1 ) )
+(cd $SCIP_DIR && patch -p1 < $SPKGDIR/patches/scip-libdep.patch)
+if [ $? -ne 0 ]; then
+    echo "Error patching SCIP."
+    exit 1
+fi
+
 
 echo "Compiling SoPlex"
 

@@ -3298,7 +3298,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if not is_ProjectiveSpace(PS):
             raise NotImplementedError("not implemented for subschemes")
         if (PS.dimension_relative() > 1):
-            raise NonImplementedError("only implemented for dimension 1")
+            raise NotImplementedError("only implemented for dimension 1")
         if not self.is_endomorphism():
             raise TypeError("self must be an endomorphism")
         if not PS.base_ring() in NumberFields() and not PS.base_ring() is QQbar:
@@ -3401,6 +3401,16 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2 - 5/4*y^2, y^2])
             sage: f.sigma_invariants(2, False, embedding=K.embeddings(QQbar)[0])
             [13, 11, -25, 0]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: H = End(P)
+            sage: f = H([x^2, y^2, z^2])
+            sage: f.sigma_invariants(1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented for dimension 1
         """
         polys = []
 

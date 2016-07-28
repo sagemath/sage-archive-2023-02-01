@@ -5024,6 +5024,66 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 return gccc, m*mc*mc2, psi
         return gccc
 
+    def indeterminacy_locus(self):
+        r"""
+        Return the indeterminacy locus of this map.
+
+        Only for rational maps on projective space. The indeterminacy locus is the set of points in projective space 
+        at which all of the defining polynomials of the rational map simultaneously vanish.  
+
+        OUTPUT:
+
+        - subscheme of the domain of the map.  The empty subscheme is returned as the vanishing 
+          of the coordinate functions of the domain.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([x*z-y*z, x^2-y^2, z^2])
+            sage: f.indeterminacy_locus()
+            Closed subscheme of Projective Space of dimension 2 over Rational Field
+            defined by:
+                x*z - y*z,
+                x^2 - y^2,
+                z^2
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([x^2, y^2, z^2])
+            sage: f.indeterminacy_locus()
+            Closed subscheme of Projective Space of dimension 2 over Rational Field
+            defined by:
+                x,
+                y,
+                z
+
+        ::
+
+            sage: P1.<x,y,z> = ProjectiveSpace(RR,2)
+            sage: P2.<t,u,v,w> = ProjectiveSpace(RR,3)
+            sage: H = Hom(P1,P2)
+            sage: h = H([y^3*z^3, x^3*z^3, y^3*z^3, x^2*y^2*z^2])
+            sage: h.indeterminacy_locus()
+            Closed subscheme of Projective Space of dimension 2 over Real Field with
+            53 bits of precision defined by:
+              y^3*z^3,
+              x^3*z^3,
+              y^3*z^3,
+              x^2*y^2*z^2
+        """
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        dom = self.domain()
+        if not is_ProjectiveSpace(dom):
+            raise NotImplementedError("not implemented for subschemes")
+        defPolys = self.defining_polynomials()
+        locus = dom.subscheme(defPolys)
+        if locus.dimension() < 0:
+            locus = dom.subscheme(dom.gens())
+        return locus 
+
 class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_polynomial_projective_space_field):
 
     def _fast_eval(self, x):
@@ -5228,7 +5288,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
         AUTHORS:
 
-        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray\
+        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray
 
         - Modified by Joao Alberto de Faria, Ben Hutz, Bianca Thompson
 
@@ -5291,3 +5351,5 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             F = f[0].numerator().polynomial(z)
         from .endPN_automorphism_group import automorphism_group_FF
         return(automorphism_group_FF(F, absolute, iso_type, return_functions))
+
+

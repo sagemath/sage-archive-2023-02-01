@@ -259,3 +259,125 @@ class UnflatteningMorphism(Morphism):
             f += g
 
         return f
+
+
+class SpecializationMorphism(Morphism):
+    r"""
+    Morphisms to specialize parameters in (stacked) polynomial rings
+
+    EXAMPLES::
+
+        sage: R.<c> = PolynomialRing(QQ)
+        sage: S.<x,y,z> = PolynomialRing(R)
+        sage: D = dict({c:1})
+        sage: from sage.rings.polynomial.flatten import SpecializationMorphism
+        sage: f = SpecializationMorphism(S, D)
+        sage: g = f(x^2 + c*y^2 - z^2); g
+        x^2 + y^2 - z^2
+        sage: g.parent()
+        Multivariate Polynomial Ring in x, y, z over Rational Field
+
+    ::
+
+        sage: R.<c> = PolynomialRing(QQ)
+        sage: S.<z> = PolynomialRing(R)
+        sage: from sage.rings.polynomial.flatten import SpecializationMorphism
+        sage: xi = SpecializationMorphism(S, dict({c:0})); xi
+        Specialization morphism:
+              From: Univariate Polynomial Ring in z over Univariate Polynomial Ring in c over Rational Field
+              To:   Univariate Polynomial Ring in z over Rational Field
+        sage: xi(z^2+c)
+        z^2
+
+    ::
+
+        sage: R1.<u,v> = PolynomialRing(QQ)
+        sage: R2.<a,b,c> = PolynomialRing(R1)
+        sage: S.<x,y,z> = PolynomialRing(R2)
+        sage: D = dict({a:1, b:2, x:0, u:1})
+        sage: from sage.rings.polynomial.flatten import SpecializationMorphism
+        sage: xi = SpecializationMorphism(S, D); xi
+        Specialization morphism:
+          From: Multivariate Polynomial Ring in x, y, z over Multivariate Polynomial Ring in a, b, c over Multivariate Polynomial Ring in u, v over Rational Field
+          To:   Multivariate Polynomial Ring in y, z over Univariate Polynomial Ring in c over Univariate Polynomial Ring in v over Rational Field
+        sage: xi(a*(x*z+y^2)*u+b*v*u*(x*z+y^2)*y^2*c+c*y^2*z^2)
+        2*v*c*y^4 + c*y^2*z^2 + y^2
+    """
+
+    def __init__(self, domain, D):
+        """
+        The Python constructor
+
+        EXAMPLES::
+
+            sage: S.<x,y> = PolynomialRing(QQ)
+            sage: D = dict({x:1})
+            sage: from sage.rings.polynomial.flatten import SpecializationMorphism
+            sage: phi = SpecializationMorphism(S, D); phi
+            Specialization morphism:
+              From: Multivariate Polynomial Ring in x, y over Rational Field
+              To:   Univariate Polynomial Ring in y over Rational Field
+            sage: phi(x^2 + y^2)
+            y^2 + 1
+
+        ::
+
+            sage: R.<a,b,c> = PolynomialRing(ZZ)
+            sage: S.<x,y,z> = PolynomialRing(R)
+            sage: from sage.rings.polynomial.flatten import SpecializationMorphism
+            sage: xi = SpecializationMorphism(S, dict({a:1/2}))
+            Traceback (most recent call last):
+            ...
+            ValueError: values must be in base ring
+        """
+        if not is_PolynomialRing(domain) and not is_MPolynomialRing(domain):
+            raise ValueError("domain should be a polynomial ring")
+
+        phi = FlatteningMorphism(domain)
+        newD = dict()
+        for k in D.keys():
+            newD[phi(k)] = D[k]
+        self._im_dict = newD
+        self._flattening_morph = phi
+
+        base = phi.codomain().base_ring()
+        if not all([c in base for c in D.values()]):
+            raise ValueError("values must be in base ring")
+
+        #make unflattened codomain
+        old_vars = []
+        ring = domain
+        while is_PolynomialRing(ring) or is_MPolynomialRing(ring):
+            old_vars.append(ring.gens())
+            ring = ring.base_ring()
+        new_vars = [[t for t in v if t not in newD.keys()] for v in old_vars]
+        new_vars.reverse()
+        R = ring.base_ring()
+        for i in range(len(new_vars)):
+            if new_vars[i] != []:
+                R = PolynomialRing(R, new_vars[i])
+
+        #unflattening eval
+        vals = [t.subs(newD) for t in phi.codomain().gens()]
+        psi = phi.codomain().hom(vals, R)
+        self._unflattening_morph = psi
+
+        self._repr_type_str = 'Specialization'
+
+        Morphism.__init__(self, domain, R)
+
+    def _call_(self, p):
+        """
+        Evaluate a specialization morphism.
+
+        EXAMPLES::
+
+            sage: R.<a,b,c> = PolynomialRing(ZZ)
+            sage: S.<x,y,z> = PolynomialRing(R)
+            sage: D = dict({a:1, b:2, c:3})
+            sage: from sage.rings.polynomial.flatten import SpecializationMorphism
+            sage: xi = SpecializationMorphism(S, D)
+            sage: xi(a*x + b*y + c*z)
+            x + 2*y + 3*z
+        """
+        return self._unflattening_morph(self._flattening_morph(p).subs(self._im_dict))

@@ -34,6 +34,7 @@ from .free_algebra import FreeAlgebra
 from .free_algebra_quotient import FreeAlgebraQuotient
 
 from .steenrod.all import *
+from .lie_algebras.all import *
 
 from .finite_dimensional_algebras.all import FiniteDimensionalAlgebra
 

@@ -676,3 +676,149 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             True
         """
         return self.twist_map().is_identity()
+
+    def minimum_subspace_polynomial(self, eval_pts):
+        x = self([0, 1])
+        q = self.base_ring().characteristic()
+        if len(eval_pts) == 1:
+            if eval_pts[0] == self.zero():
+                return pow(x, pow(q, 0)) 
+            else:
+                return pow(x, pow(q, 1)) - pow(eval_pts[0], q-1) * pow(x, pow(q, 0)) 
+        else:
+            A = eval_pts[:len(eval_pts)/2]
+            B = eval_pts[(len(eval_pts)/2):]
+            M_A = self.minimum_subspace_polynomial(A)
+            M_A_B = self.multi_point_evaluation(M_A, B)
+            M_M_A_B = self.minimum_subspace_polynomial(M_A_B)
+            return M_M_A_B * M_A
+        
+    def multi_point_evaluation(self, p, eval_pts):
+        coefficients = p.list()
+        q = self.base_ring().characteristic()
+        if len(eval_pts) == 1:
+            y = []
+            y.append(coefficients[1]*pow(eval_pts[0], pow(q, 1)) + coefficients[0]*pow(eval_pts[0], pow(q, 0))) 
+            return y
+        else:
+            A = eval_pts[:len(eval_pts)/2]
+            B = eval_pts[(len(eval_pts)/2):]
+            M_A = self.minimum_subspace_polynomial(A)
+            M_B = self.minimum_subspace_polynomial(B)
+            Q_A, R_A = p.right_quo_rem(M_A)
+            Q_B, R_B = p.right_quo_rem(M_B)
+            r = list(set(self.multi_point_evaluation(R_A, A)).union(set(self.multi_point_evaluation(R_B, B))))
+            return list(set(self.multi_point_evaluation(R_A, A)).union(set(self.multi_point_evaluation(R_B, B))))
+
+    def interpolation_polynomial(self, eval_pts, values):
+        x = self([0, 1]) 
+        q = self.base_ring().characteristic()
+        if len(values) == 1:
+            c, _ = values[0].quo_rem(eval_pts[0])
+            return c*pow(x, pow(q, 0)) 
+        else:
+            A = eval_pts[:len(eval_pts)/2]
+            B = eval_pts[(len(eval_pts)/2):]
+            M_A = self.minimum_subspace_polynomial(A)
+            M_B = self.minimum_subspace_polynomial(B)
+            A_ = self.multi_point_evaluation(M_B, A)
+            B_ = self.multi_point_evaluation(M_A, B)
+            I_1 = self.interpolation_polynomial(A_, values[:len(eval_pts)/2])
+            I_2 = self.interpolation_polynomial(B_, values[(len(eval_pts)/2):])
+            return I_1 * M_B + I_2 * M_A
+
+class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
+    """
+    A specific class for skew polynomial rings over finite field.
+    """
+    @staticmethod
+    def __classcall__(cls, base_ring, map, name=None, sparse=False, element_class=None):
+        if not element_class:
+            if sparse:
+                raise NotImplementedError("sparse skew polynomials are not implemented")
+            else:
+                from sage.rings.polynomial import skew_polynomial_finite_field
+                element_class = skew_polynomial_finite_field.SkewPolynomial_finite_field_dense
+                return super(SkewPolynomialRing_general,cls).__classcall__(cls,base_ring,map,name,sparse,element_class)
+            
+    def __init__(self, base_ring, map, name, sparse, element_class):
+        """
+        This method is a constructor for a general, dense univariate skew polynomial ring
+        over a finite field.
+
+        INPUT::
+
+        - ``base_ring`` -- a commutative ring
+
+        - ``map`` -- an automorphism of the base ring
+
+        - ``name`` -- string or list of strings representing the name of the variables of ring
+
+        - ``sparse`` -- boolean (default: False)
+
+        - ``element_class`` -- class representing the type of element to be used in ring
+
+        ..NOTE::
+
+            Multivariate and Sparse rings are not implemented.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = SkewPolynomialRing(R,sigma); S
+            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+            sage: S([1]) + S([-1])
+            0
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: T.<x> = k['x', Frob]; T 
+            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+        """
+        self._order = -1
+        try:
+            self._order = map.order()
+        except (AttributeError,NotImplementedError):
+            pass
+        if self._order < 0:
+            try:
+                if map.is_identity():
+                    self._order = 1
+            except (AttributeError,NotImplementedError):
+                pass
+        if self._order < 0:
+            raise NotImplementedError("Unable to determine the order of %s" % map)
+        SkewPolynomialRing_general.__init__ (self, base_ring, map, name, sparse, element_class)
+        self._maps = [ map**i for i in range(self._order) ]
+
+    def twist_map(self,n=1):
+        """
+        Return the twist map (eventually iterated several times) used to define
+        this skew polynomial ring.
+        
+        INPUT:
+
+        -  ``n`` - a relative integer (default: 1)
+        
+        OUTPUT:
+        
+        -  The `n`-th iterative of the twist map of this skew polynomial ring.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: S.twist_map()
+            Frobenius endomorphism t |--> t^5 on Finite Field in t of size 5^3
+            sage: S.twist_map(11)
+            Frobenius endomorphism t |--> t^(5^2) on Finite Field in t of size 5^3
+            sage: S.twist_map(3)
+            Identity endomorphism of Finite Field in t of size 5^3
+
+        It also works if `n` is negative::
+
+            sage: S.twist_map(-1)
+            Frobenius endomorphism t |--> t^(5^2) on Finite Field in t of size 5^3
+        """
+        return self._maps[n%self._order]

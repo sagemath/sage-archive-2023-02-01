@@ -875,15 +875,17 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
         sage: EllipticCurve_from_cubic(cubic, [1,-1,1], morphism=False)
         Elliptic Curve defined by y^2 - 882*x*y - 2560000*y = x^3 - 127281*x^2 over Rational Field
 
+    Here is a test for :trac:`21092`::
+
         sage: R.<x,y,z> = QQ[]
         sage: cubic = -3*x^2*y + 3*x*y^2 + 4*x^2*z + 4*y^2*z - 3*x*z^2 + 3*y*z^2 - 8*z^3
         sage: EllipticCurve_from_cubic(cubic, (-4/5, 4/5, 3/5) )
         Scheme morphism:
           From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
           -3*x^2*y + 3*x*y^2 + 4*x^2*z + 4*y^2*z - 3*x*z^2 + 3*y*z^2 - 8*z^3
-          To:   Elliptic Curve defined by y^2 + 10*x*y + 112*y = x^3 + 46*x^2 + 336*x over Rational Field
+          To:   Elliptic Curve defined by y^2 - 6*x*y - 112*y = x^3 + 62*x^2 + 560*x over Rational Field
           Defn: Defined on coordinates by sending (x : y : z) to
-                (1/3*z : y - 1/3*z : 1/112*x - 1/112*y - 1/42*z)
+                (1/3*z : -y - 1/3*z : 1/112*x - 1/112*y - 1/42*z)
     """
     import sage.matrix.all as matrix
 

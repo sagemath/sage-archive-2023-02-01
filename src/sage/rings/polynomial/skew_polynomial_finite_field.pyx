@@ -1,38 +1,9 @@
 r"""
-This module implements skew polynomials over finite fields.
+Univariate Dense Skew Polynomials over Finite Fields
 
-Let `k` be a finite field and `\sigma` be a ring automorphism
-of `k` (i.e. a power of the Frobenius endomorphism). Let
-Put `S = k[X,\sigma]`: as an addtive group, it is the usual ring
-of polynomials with coefficients in `k` and the multiplication
-on `S` is defined by the rule `X * a = \sigma(a) * X`.
-
-.. SEE ALSO::
-
-    - ``Class SkewPolynomial_generic_dense`` and ``Class SkewPolynomial``
-        in sage.rings.polynomial.skew_polynomial_element
-
-    - ``Class SkewPolynomialRing`` and ``Class SkewPolynomialRing_finite_field``
-        in sage.rings.polynomial.skew_polynomial_ring
-
-We recall that:
-
-#. `S` is a left (resp. right) euclidean noncommutative ring
-
-#. in particular, every left (resp. right) ideal is principal
-
-.. TODO::
-
-    Try to replace as possible ``finite field`` by ``field
-    endowed with a finite order twist morphism``. It may cause
-    new phenomena due to the non trivality of the Brauer group.
-
-EXAMPLES::
-
-    sage: k.<t> = GF(5^3)
-    sage: Frob = k.frobenius_endomorphism()
-    sage: S.<x> = k['x',Frob]; S
-    Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+This module provides the :class:`~sage.rings.polynomial.skew_polynomial_finite_field.SkewPolynomial_finite_field_dense`
+which constructs a single univariate skew polynomial over a finite field equipped with the Frobenius
+Endomorphism.
 
 AUTHOR::
 
@@ -57,22 +28,69 @@ from polynomial_ring_constructor import PolynomialRing
 from skew_polynomial_element cimport SkewPolynomial_generic_dense
 
 cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
+    """
+    A generic, dense, univariate skew polynomial over a finite field.
 
+    DEFINITION:
+
+    Let `R` be a commutative ring and let `\sigma` be the Frobenius
+    Endomorphism over `R` defined by:
+    `\sigma(r) = r^p`
+    where `r` is an element of `R` and `p` is the prime characteristic of `R`.
+
+    Then, a formal skew polynomial is given by the equation:
+    `F(X) = a_{n}X^{n} + ... + a_0`
+    where the coefficients `a_{i}` belong to `R` and `X` is a formal variable.
+
+    Addition between two skew polynomials is defined by the usual addition
+    operation and the modified multiplication is defined by the rule
+    `X a = \sigma(a) X` for all `a` in `R`. Skew polynomials are thus
+    non-commutative and the degree of a product is equal to the sum of the
+    degrees of the factors.
+
+    The ring of such skew polynomials over `R` equipped with `\sigma` is
+    denoted by `S = k[X,\sigma]`and it is an addtive group.
+
+    .. NOTE::
+
+        #. `S` is a left (resp. right) euclidean noncommutative ring
+
+        #. in particular, every left (resp. right) ideal is principal
+
+    EXAMPLES::
+
+        sage: k.<t> = GF(5^3)
+        sage: Frob = k.frobenius_endomorphism()
+        sage: S.<x> = k['x',Frob]; S
+        Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+
+    .. SEE ALSO::
+
+        :mod:`sage.rings.polynomial.skew_polynomial_element.SkewPolynomial_generic_dense`
+        :mod:`sage.rings.polynomial.skew_polynomial_element.SkewPolynomial`
+        :mod:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field`
+
+    .. TODO::
+
+        Try to replace as possible ``finite field`` by ``field
+        endowed with a finite order twist morphism``. It may cause
+        new phenomena due to the non trivality of the Brauer group.
+    """
     def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
         """
-        This method constructs a generic dense skew polynomial over finite field.
+        This method constructs a generic dense skew polynomial over a finite field.
 
         INPUT::
 
-        - ``parent`` -- parent of `self`
+        - ``parent`` -- parent of ``self``
 
-        - ``x`` -- list of coefficients from which `self` can be constructed
+        - ``x`` -- list of coefficients from which ``self`` can be constructed
 
         - ``check`` -- flag variable to normalize the polynomial
 
-        - ``is_gen`` -- boolean (default: False)
+        - ``is_gen`` -- boolean (default: ``False``)
 
-        - ``construct`` -- boolean (default: False)
+        - ``construct`` -- boolean (default: ``False``)
 
         TESTS::
 
@@ -97,12 +115,13 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             t^2 + 1
             sage: x.parent() is S
             True
-        """
+
+       """
         SkewPolynomial_generic_dense.__init__ (self, parent, x, check, is_gen, construct, **kwds)
 
-    cdef SkewPolynomial_finite_field_dense _rgcd(self,SkewPolynomial_finite_field_dense other):
+    cdef SkewPolynomial_finite_field_dense _rgcd(self, SkewPolynomial_finite_field_dense other):
         """
-        Fast right gcd.
+        Fast creation of the right gcd of ``self`` and ``other``.
         """
         cdef SkewPolynomial_finite_field_dense A = self
         cdef SkewPolynomial_finite_field_dense B = other
@@ -119,8 +138,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
     cdef void _inplace_lrem(self, SkewPolynomial_finite_field_dense other):
         """
-        Replace self by the remainder in the left euclidean division
-        of self by other (only for internal use).
+        Replace ``self`` by the remainder in the left euclidean division
+        of ``self`` by ``other`` (only for internal use).
         """
         cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
         cdef list b = (<SkewPolynomial_finite_field_dense>other)._coeffs
@@ -141,8 +160,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
     cdef void _inplace_rrem(self, SkewPolynomial_finite_field_dense other):
         """
-        Replace self by the remainder in the right euclidean division
-        of self by other (only for internal use).
+        Replace ``self`` by the remainder in the right euclidean division
+        of ``self`` by ``other`` (only for internal use).
         """
         cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
         cdef list b = (<SkewPolynomial_finite_field_dense>other)._coeffs
@@ -171,8 +190,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
     cdef void _inplace_lfloordiv(self, SkewPolynomial_finite_field_dense other):
         """
-        Replace self by the quotient in the left euclidean division
-        of self by other (only for internal use).
+        Replace ``self`` by the quotient in the left euclidean division
+        of ``self`` by ``other`` (only for internal use).
         """
         cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
         cdef list b = (<SkewPolynomial_finite_field_dense>other)._coeffs
@@ -198,8 +217,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
     cdef void _inplace_rfloordiv(self, SkewPolynomial_finite_field_dense other):
         """
-        Replace self by the quotient in the right euclidean division
-        of self by other (only for internal use).
+        Replace ``self`` by the quotient in the right euclidean division
+        of ``self`` by ``other`` (only for internal use).
         """
         cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
         cdef list b = (<SkewPolynomial_finite_field_dense>other)._coeffs
@@ -231,7 +250,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
     cdef void _inplace_lmonic(self):
         """
-        Replace self by ``self.lmonic()`` (only for internal use).
+        Replace ``self`` by ``self.lmonic()`` (only for internal use).
         """
         cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
         cdef Py_ssize_t da = len(a)-1, i
@@ -243,7 +262,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
     cdef void _inplace_rmonic(self):
         """
-        Replace self by ``self.rmonic()`` (only for internal use).
+        Replace ``self`` by ``self.rmonic()`` (only for internal use).
         """
         cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
         cdef Py_ssize_t da = len(a)-1, i
@@ -254,7 +273,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
     cdef void _inplace_rgcd(self,SkewPolynomial_finite_field_dense other):
         """
-        Replace self by its right gcd with other (only for internal use).
+        Replace ``self`` by its right gcd with ``other`` (only for internal use).
         """
         cdef SkewPolynomial_finite_field_dense B
         cdef list swap
@@ -270,8 +289,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
     cdef SkewPolynomial_finite_field_dense _rquo_inplace_rem(self, SkewPolynomial_finite_field_dense other):
         """
-        Replace self by the remainder in the right euclidean division
-        of self by other and return the quotient (only for internal use).
+        Replace ``self`` by the remainder in the right euclidean division
+        of ``self`` by ``other`` and return the quotient (only for internal use).
         """
         cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
         cdef list b = (<SkewPolynomial_finite_field_dense>other)._coeffs
@@ -300,8 +319,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
     cdef Py_ssize_t _val_inplace_unit(self):
         """
-        Return `v` the valuation of self and replace self by
-        self >> v (only for internal use).
+        Return `v` the valuation of ``self`` and replace ``self`` by
+        `self >> v` (only for internal use).
         """
         cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
         cdef Py_ssize_t val = 0
@@ -315,7 +334,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
     cdef Matrix_dense _matmul_c(self):
         r"""
-        Return the matrix of the multiplication by self on
+        Return the matrix of the multiplication by ``self`` on
         `K[X,\sigma]` considered as a free module over `K[X^r]`
         (here `r` is the order of `\sigma`).
 

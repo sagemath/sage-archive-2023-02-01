@@ -1586,7 +1586,7 @@ cdef class FormalCompositeMap(Map):
         _slots['__list'] = self.__list
         return Map._extra_slots(self, _slots)
 
-    def __richcmp__(FormalCompositeMap self, other, int op):
+    def __richcmp__(self, other, int op):
         """
         TEST::
 

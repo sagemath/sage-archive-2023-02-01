@@ -252,7 +252,7 @@ cdef class MultiModularBasis_base(object):
         self._refresh_precomputations(old_count)
         return self.n
 
-    def __richcmp__(MultiModularBasis_base self, other, int op):
+    def __richcmp__(self, other, int op):
         """
         EXAMPLES::
 

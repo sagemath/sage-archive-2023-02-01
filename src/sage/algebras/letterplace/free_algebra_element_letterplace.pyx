@@ -464,10 +464,10 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         if type(self) != type(other):
             return NotImplemented
-        left = self._poly
+        left = (<FreeAlgebraElement_letterplace>self)._poly
         right = (<FreeAlgebraElement_letterplace>other)._poly
         from sage.structure.sage_object import richcmp_shortcut
-        return richcmp_shortcut(left, right)
+        return richcmp_shortcut(left, right, op)
 
     ################################
     ## Arithmetic

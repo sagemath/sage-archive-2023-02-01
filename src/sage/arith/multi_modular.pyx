@@ -267,7 +267,7 @@ cdef class MultiModularBasis_base(object):
         left = self.__getstate__()
         right = other.__getstate__()
         from sage.structure.sage_object import richcmp_shortcut
-        return richcmp_shortcut(left, right)
+        return richcmp_shortcut(left, right, op)
 
     def __setstate__(self, state):
         """

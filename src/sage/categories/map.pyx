@@ -1602,10 +1602,10 @@ cdef class FormalCompositeMap(Map):
         """
         if type(self) != type(other):
             return NotImplemented
-        left = self.__list
+        left = (<FormalCompositeMap>self).__list
         right = (<FormalCompositeMap>other).__list
         from sage.structure.sage_object import richcmp_shortcut
-        return richcmp_shortcut(left, right)
+        return richcmp_shortcut(left, right, op)
 
     def __hash__(self):
         """

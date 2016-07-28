@@ -84,9 +84,9 @@ def richcmp_shortcut(left, right, op):
         False
         sage: richcmp_shortcut(A, B, 1)
         False
-        sage: richcmp_shortcut(A, B, 5)
+        sage: richcmp_shortcut(A, B, 4)
         True
-        sage: richcmp_shortcut(A, B, 6)
+        sage: richcmp_shortcut(A, B, 5)
         True
     """
     if op == 2:  # ==

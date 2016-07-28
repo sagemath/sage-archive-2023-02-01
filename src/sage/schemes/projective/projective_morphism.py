@@ -3288,6 +3288,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2 - 7/4*y^2, y^2])
             sage: f.multiplier_spectra(3)
             [1, 1]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + y^2, x*y])
+            sage: f.sigma_invariants(1)
+            [3, 3, 1]
         """
         PS = self.domain()
         n = Integer(n)
@@ -3326,7 +3334,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 phix = Kx.hom(phi,QQbarx)
                 F = phix(F)
 
-        other_roots = F([(f.domain().gens()[0]),1]).univariate_polynomial().roots(ring=QQbar)
+        other_roots = F.parent()(F([(f.domain().gens()[0]),1])).univariate_polynomial().roots(ring=QQbar)
 
         points = []
 

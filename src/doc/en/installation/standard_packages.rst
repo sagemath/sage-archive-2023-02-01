@@ -8,7 +8,7 @@ See the COPYING.txt file in the Sage root directory for more details.
 
 See `Listing Sage Packages <../reference/misc/sage/misc/package.html>`_
 for information about installing packages and for an up-to-date list
-of the standard, optional and experiemental packages.
+of the standard, optional and experimental packages.
 
 Here is a list of some of the software included with Sage:
 

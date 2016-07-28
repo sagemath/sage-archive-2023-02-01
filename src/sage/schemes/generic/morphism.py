@@ -101,6 +101,7 @@ from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism import SetMorphism
 from sage.categories.morphism import Morphism
+from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 
 def is_SchemeMorphism(f):
     """
@@ -1443,6 +1444,92 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                 G.append(f.change_ring(R))
         return(H(G, check))
 
+    def specialization(self, D=None, phi=None, homset=None):
+        r"""
+        Specialization of this map.
+
+        Given a family of maps defined over a polynomial ring. A specialization
+        is a particular member of that family. The specialization can be specified either
+        by a dictionary or a :class:`SpecializationMorphism`.
+
+        INPUT:
+
+        - ``D`` -- dictionary (optional)
+
+        - ``phi`` -- SpecializationMorphism (optional)
+
+        - ``homset`` -- homset of specialized map (optional)
+
+        OUTPUT: :class:`SchemeMorphism_polynomial`
+
+        EXAMPLES::
+
+            sage: R.<c> = PolynomialRing(QQ)
+            sage: P.<x,y> = ProjectiveSpace(R, 1)
+            sage: H = End(P)
+            sage: f = H([x^2 + c*y^2,y^2])
+            sage: f.specialization(dict({c:1}))
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+                  Defn: Defined on coordinates by sending (x : y) to
+                        (x^2 + y^2 : y^2)
+
+            ::
+
+            sage: R.<a,b> = PolynomialRing(QQ)
+            sage: P.<x,y> = ProjectiveSpace(R, 1)
+            sage: H = End(P)
+            sage: f = H([x^3 + a*x*y^2 + b*y^3, y^3])
+            sage: from sage.rings.polynomial.flatten import SpecializationMorphism
+            sage: phi = SpecializationMorphism(P.coordinate_ring(), dict({a:2,b:-1}))
+            sage: F = f.specialization(phi=phi); F
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+                  Defn: Defined on coordinates by sending (x : y) to
+                        (x^3 + 2*x*y^2 - y^3 : y^3)
+            sage: g = H([x^2 + a*y^2,y^2])
+            sage: G = g.specialization(phi=phi)
+            sage: G.parent() is F.parent()
+            False
+            sage: G = g.specialization(phi=phi, homset=F.parent())
+            sage: G.parent() is F.parent()
+            True
+
+        ::
+
+            sage: R.<c> = PolynomialRing(QQ)
+            sage: P.<x,y> = ProjectiveSpace(R, 1)
+            sage: X = P.subscheme([x - c*y])
+            sage: H = End(X)
+            sage: f = H([x^2, c*y^2])
+            sage: f.specialization(dict({c:2}))
+            Scheme endomorphism of Closed subscheme of Projective Space of dimension 1 over Rational Field defined by:
+                  x - 2*y
+                  Defn: Defined on coordinates by sending (x : y) to
+                        (x^2 : 2*y^2)
+        """
+        if D is None:
+            if phi is None:
+                raise ValueError("either the dictionary or the specialization must be provided")
+        else:
+            from sage.rings.polynomial.flatten import SpecializationMorphism
+            phi = SpecializationMorphism(self[0].parent(), D)
+        if homset is None:
+            domain = self.domain()
+            if isinstance(domain, AlgebraicScheme_subscheme):
+                domain = domain.specialization(phi=phi)
+            else:
+                domain = domain.change_ring(phi.codomain().base_ring())
+            if self.is_endomorphism():
+                homset = End(domain)
+            else:
+                codomain = self.codomain()
+                if isinstance(codomain, AlgebraicScheme_subscheme):
+                    codomain = codomain.specialization(phi=phi)
+                else:
+                    codomain = codomain.change_ring(phi.codomain().base_ring())
+                homset = Hom(domain, codomain)
+        return homset([phi(g) for g in self])
+
+
 ############################################################################
 # Rational points on schemes, which we view as morphisms determined
 # by coordinates.
@@ -1722,3 +1809,73 @@ class SchemeMorphism_point(SchemeMorphism):
             True
         """
         return(self._codomain.point(self._coords, check=False))
+
+    def specialization(self, D=None, phi=None, ambient=None):
+        r"""
+        Specialization of this point.
+
+        Given a family of points defined over a polynomial ring. A specialization
+        is a particular member of that family. The specialization can be specified either
+        by a dictionary or a :class:`SpecializationMorphism`.
+
+        INPUT:
+
+        - ``D`` -- dictionary (optional)
+
+        - ``phi`` -- SpecializationMorphism (optional)
+
+        - ``ambient`` -- ambient space of specialized point (optional)
+
+        OUTPUT: :class:`SchemeMorphism_polynomial`
+
+        EXAMPLES::
+
+            sage: R.<c> = PolynomialRing(QQ)
+            sage: P.<x,y> = ProjectiveSpace(R, 1)
+            sage: Q = P([c,1])
+            sage: Q.specialization(dict({c:1}))
+            (1 : 1)
+
+            ::
+
+            sage: R.<a,b> = PolynomialRing(QQ)
+            sage: P.<x,y> = ProjectiveSpace(R, 1)
+            sage: Q = P([a^2 + 2*a*b + 34, 1])
+            sage: from sage.rings.polynomial.flatten import SpecializationMorphism
+            sage: phi = SpecializationMorphism(P.coordinate_ring(),dict({a:2,b:-1}))
+            sage: T = Q.specialization(phi=phi); T
+            (34 : 1)
+            sage: Q2 = P([a,1])
+            sage: T2 = Q2.specialization(phi=phi)
+            sage: T2.codomain() is T.codomain()
+            False
+            sage: T3 = Q2.specialization(phi=phi, ambient=T.codomain())
+            sage: T3.codomain() is T.codomain()
+            True
+
+        ::
+
+            sage: R.<c> = PolynomialRing(QQ)
+            sage: P.<x,y> = ProjectiveSpace(R, 1)
+            sage: X = P.subscheme([x - c*y])
+            sage: Q = X([c, 1])
+            sage: Q2 = Q.specialization(dict({c:2})); Q2
+            (2 : 1)
+            sage: Q2.codomain()
+            Closed subscheme of Projective Space of dimension 1 over Rational Field defined by:
+                  x - 2*y
+
+        """
+        if D is None:
+            if phi is None:
+                raise ValueError("either the dictionary or the specialization must be provided")
+        else:
+            from sage.rings.polynomial.flatten import SpecializationMorphism
+            phi = SpecializationMorphism(self.codomain().ambient_space().coordinate_ring(), D)
+        if ambient is None:
+            ambient = self.codomain()
+            if isinstance(ambient, AlgebraicScheme_subscheme):
+                ambient = ambient.specialization(phi=phi)
+            else:
+                ambient = ambient.change_ring(phi.codomain().base_ring())
+        return ambient([phi(t) for t in self])

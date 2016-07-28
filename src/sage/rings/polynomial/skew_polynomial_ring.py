@@ -88,16 +88,17 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         sage: Sz.<z> = R[sigma]
         Traceback (most recent call last):
         ...
-        ValueError: variable name 'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring\n  Defn: t |--> t + 1' is not alphanumeric
-
+        ValueError: variable name 'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+            Defn: t |--> t + 1' is not alphanumeric
+        
     As for polynomials, skew polynomial rings with different variable names
     are not equal::
-
+    
         sage: R['x',sigma] == R['y',sigma]
         False
 
     Of course, skew polynomial rings with different twist maps are not
-    equal as well
+    equal as well::
 
         sage: R['x',sigma] == R['x',sigma^2]
         False

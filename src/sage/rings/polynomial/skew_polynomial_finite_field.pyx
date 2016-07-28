@@ -27,16 +27,15 @@ from sage.rings.ring cimport Ring
 from polynomial_ring_constructor import PolynomialRing
 from skew_polynomial_element cimport SkewPolynomial_generic_dense
 
-cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
+cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_generic_dense):
     """
     A generic, dense, univariate skew polynomial over a finite field.
 
     DEFINITION:
 
     Let `R` be a commutative ring and let `\sigma` be the Frobenius
-    Endomorphism over `R` defined by:
-    `\sigma(r) = r^p`
-    where `r` is an element of `R` and `p` is the prime characteristic of `R`.
+    Endomorphism over `R` defined by `\sigma(r) = r^p` where `r` is
+    an element of `R` and `p` is the prime characteristic of `R`.
 
     Then, a formal skew polynomial is given by the equation:
     `F(X) = a_{n}X^{n} + ... + a_0`
@@ -44,17 +43,17 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
     Addition between two skew polynomials is defined by the usual addition
     operation and the modified multiplication is defined by the rule
-    `X a = \sigma(a) X` for all `a` in `R`. Skew polynomials are thus
-    non-commutative and the degree of a product is equal to the sum of the
-    degrees of the factors.
+    `X a = \sigma(a) X` for all `a` in `R`.
 
-    The ring of such skew polynomials over `R` equipped with `\sigma` is
-    denoted by `S = k[X,\sigma]`and it is an addtive group.
+    Skew polynomials are thus non-commutative and the degree of a product
+    is equal to the sum of the degree of its factors. The ring of such skew
+    polynomials over `R` equipped with `\sigma` is denoted by `S = R[X, \sigma]`
+    and it is an additive group.
 
     .. NOTE::
-
+    
         #. `S` is a left (resp. right) euclidean noncommutative ring
-
+        
         #. in particular, every left (resp. right) ideal is principal
 
     EXAMPLES::

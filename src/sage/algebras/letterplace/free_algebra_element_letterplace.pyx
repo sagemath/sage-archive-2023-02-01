@@ -466,18 +466,8 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             return NotImplemented
         left = self._poly
         right = (<FreeAlgebraElement_letterplace>other)._poly
-        if op == 2:  # ==
-            return left == right
-        elif op == 3:  # !=
-            return left != right
-        elif op == 0:  # <
-            return left < right
-        elif op == 1:  # <=
-            return left <= right
-        elif op == 4:  # >
-            return left > right
-        elif op == 5:  # >=
-            return left >= right
+        from sage.structure.sage_object import richcmp_shortcut
+        return richcmp_shortcut(left, right)
 
     ################################
     ## Arithmetic

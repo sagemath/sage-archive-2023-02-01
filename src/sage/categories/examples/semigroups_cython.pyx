@@ -84,7 +84,7 @@ cdef class LeftZeroSemigroupElement(Element):
         """
         return LeftZeroSemigroupElement, (self._parent, self._value)
 
-    def __cmp__(LeftZeroSemigroupElement self, LeftZeroSemigroupElement other):
+    def __richcmp__(LeftZeroSemigroupElement self, LeftZeroSemigroupElement other):
         """
         EXAMPLES::
 
@@ -95,7 +95,8 @@ cdef class LeftZeroSemigroupElement(Element):
             sage: S(3) == S(2)
             False
         """
-        return cmp(self._value, other._value)
+        from sage.structure.sage_object import richcmp_shortcut
+        return richcmp_shortcut(self._value, other._value)
 
     # Apparently, python looks for __mul__, __pow__, ... in the
     # class of self rather than in self itself. No big deal, since

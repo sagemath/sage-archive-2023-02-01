@@ -266,18 +266,8 @@ cdef class MultiModularBasis_base(object):
             return NotImplemented
         left = self.__getstate__()
         right = other.__getstate__()
-        if op == 2:  # ==
-            return left == right
-        elif op == 3:  # !=
-            return left != right
-        elif op == 0:  # <
-            return left < right
-        elif op == 1:  # <=
-            return left <= right
-        elif op == 4:  # >
-            return left > right
-        elif op == 5:  # >=
-            return left >= right
+        from sage.structure.sage_object import richcmp_shortcut
+        return richcmp_shortcut(left, right)
 
     def __setstate__(self, state):
         """

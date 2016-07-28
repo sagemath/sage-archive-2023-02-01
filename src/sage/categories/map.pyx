@@ -1604,18 +1604,8 @@ cdef class FormalCompositeMap(Map):
             return NotImplemented
         left = self.__list
         right = (<FormalCompositeMap>other).__list
-        if op == 2:  # ==
-            return left == right
-        elif op == 3:  # !=
-            return left != right
-        elif op == 0:  # <
-            return left < right
-        elif op == 1:  # <=
-            return left <= right
-        elif op == 4:  # >
-            return left > right
-        elif op == 5:  # >=
-            return left >= right
+        from sage.structure.sage_object import richcmp_shortcut
+        return richcmp_shortcut(left, right)
 
     def __hash__(self):
         """

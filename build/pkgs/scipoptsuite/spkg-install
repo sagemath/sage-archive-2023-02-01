@@ -144,10 +144,16 @@ if [ `uname` = 'Darwin' ]; then
 	    exit 1
 	fi
     done
-    # Finally, change the install name of libscip's dependencies.
+    # Change the install name of libscip's dependencies.
     for a in libscip; do
 	for b in liblpispx libnlpi.cppad ; do 
 	    install_name_tool -change lib/$b-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT $SAGE_LOCAL/lib/$b-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT $SAGE_LOCAL/lib/$a-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT
+	done
+    done
+    # Finally, change the install name of scip's dependencies.
+    for a in scip; do
+	for b in liblpispx libnlpi.cppad libscip ; do 
+	    install_name_tool -change lib/$b-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT $SAGE_LOCAL/lib/$b-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT $SAGE_LOCAL/bin/$a-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.spx
 	done
     done
 fi

@@ -1,5 +1,5 @@
 diff --git a/Makefile b/Makefile
-index 6181eb4..abf324a 100644
+index 6181eb4..7ee691a 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -122,6 +122,7 @@ endif
@@ -10,6 +10,24 @@ index 6181eb4..abf324a 100644
  SOFTLINKS	+=	$(LIBDIR)/libsoplex.$(OSTYPE).$(ARCH).$(COMP).$(LPSOPT).$(STATICLIBEXT)
  SOFTLINKS	+=	$(LIBDIR)/libsoplex.$(OSTYPE).$(ARCH).$(COMP).$(LPSOPT).$(SHAREDLIBEXT)
  LPIINSTMSG	=	"  -> \"spxinc\" is the path to the SoPlex \"src\" directory, e.g., \"../../soplex/src\".\n"
+@@ -926,7 +927,7 @@ depend:		scipdepend lpidepend nlpidepend maindepend
+ -include	$(LPILIBDEP)
+ -include	$(NLPILIBDEP)
+ 
+-$(MAINFILE):	$(SCIPLIBOBJFILES) $(LPILIBOBJFILES) $(NLPILIBOBJFILES) $(MAINOBJFILES) | $(BINDIR) $(BINOBJDIR) $(LIBOBJSUBDIRS)
++$(MAINFILE):	$(SCIPLIBFILE) $(MAINOBJFILES) | $(BINDIR) $(BINOBJDIR) $(LIBOBJSUBDIRS)
+ 		@echo "-> linking $@"
+ ifeq ($(LINKER),C)
+ 		-$(LINKCC) $(MAINOBJFILES) \
+@@ -936,7 +937,7 @@ ifeq ($(LINKER),C)
+ endif
+ ifeq ($(LINKER),CPP)
+ 		-$(LINKCXX) $(MAINOBJFILES) \
+-		$(LINKCXX_L)$(LIBDIR) $(SCIPLIBOBJFILES) $(LPILIBOBJFILES) $(NLPILIBOBJFILES) \
++		$(LINKCXX_L)$(LIBDIR) $(SCIPLIBFILE) $(LPILIBFILE) $(NLPILIBFILE) \
+ 		$(OFLAGS) $(LPSLDFLAGS) $(LDFLAGS) $(LINKCXX_o)$@ \
+ 		|| ($(MAKE) errorhints && false)
+ endif
 @@ -945,10 +946,10 @@ endif
  makesciplibfile: preprocess
  		@$(MAKE) $(SCIPLIBFILE)

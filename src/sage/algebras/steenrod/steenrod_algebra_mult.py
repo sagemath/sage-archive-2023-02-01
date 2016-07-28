@@ -192,15 +192,6 @@ practice, one should use the cached version,
 ``make_mono_admissible``), which converts a product of Steenrod
 squares or pth power operations and Bocksteins into a dictionary
 representing a sum of admissible monomials.
-
-REFERENCES:
-
-- [Mil] J. W. Milnor, "The Steenrod algebra and its dual", Ann. of Math.
-  (2) 67 (1958), 150--171.
-
-- [SE] N. E. Steenrod, "Cohomology operations (Lectures by
-  N. E. Steenrod written and revised by D. B. A.  Epstein)". Annals of
-  Mathematics Studies, No. 50, 1962, Princeton University Press.
 """
 
 #*****************************************************************************

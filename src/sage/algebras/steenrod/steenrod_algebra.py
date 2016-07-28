@@ -310,7 +310,7 @@ odd, the excess of `Q_{0}^{e_0} Q_{1}^{e_1} ... \mathcal{P}(r_1, r_2,
 of Milnor basis elements is the minimum of the excesses of those basis
 elements.
 
-The degree of `\text{Sq}(i_1,i_2,i_3,...)` is `sum (2^n-1) i_n`, and
+The degree of `\text{Sq}(i_1,i_2,i_3,...)` is `\sum (2^n-1) i_n`, and
 when `p` is odd, the degree of `Q_{0}^{\epsilon_0} Q_{1}^{\epsilon_1}
 ... \mathcal{P}(r_1, r_2, ...)` is `\sum \epsilon_i (2p^i - 1) + \sum
 r_j (2p^j - 2)`.  The degree of a linear combination of such terms is
@@ -4142,7 +4142,7 @@ def SteenrodAlgebra(p=2, basis='milnor', generic='auto', **kwds):
     The generic Steenrod algebra is an associated graded algebra of the usual Steenrod algebra
     that is occasionally useful. Its cohomology, for example, is the `E_2`-term of a spectral sequence
     that computes the `E_2`-term of the Novikov spectral sequence. It can also be obtained as a
-    specialisation of Voevodsky's "motivic Steenrod algebra": in the notation of [VO], Remark 12.12,
+    specialisation of Voevodsky's "motivic Steenrod algebra": in the notation of [Vo]_, Remark 12.12,
     it corresponds to setting `\rho = \tau = 0`. The usual Steenrod algebra is given by `\rho = 0`
     and `\tau = 1`.
 

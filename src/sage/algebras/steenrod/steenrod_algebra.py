@@ -3581,7 +3581,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
             REFERENCES:
 
-            .. [May]: \J. P. May, "The cohomology of restricted Lie algebras
+            .. [May] \J. P. May, "The cohomology of restricted Lie algebras
                and of Hopf algebras; application to the Steenrod algebra."
                Thesis, Princeton Univ., 1964.
 
@@ -3708,7 +3708,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
             REFERENCES:
 
-            .. [Wall]: \C. T. C. Wall, "Generators and relations for
+            .. [Wall] \C. T. C. Wall, "Generators and relations for
                the Steenrod algebra," Ann. of Math. (2) **72** (1960),
                429-444.
 

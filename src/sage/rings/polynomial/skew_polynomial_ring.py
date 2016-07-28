@@ -37,7 +37,7 @@ from sage.rings.polynomial.skew_polynomial_element import SkewPolynomial
 
 class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentation):
     """
-    Skew Univariate polynomial ring over a ring.
+    General Skew Univariate polynomial ring over a ring.
 
     DEFINITION:
 
@@ -411,7 +411,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
     def twist_map(self, n=1):
         """
         Return the twist map, otherwise known as the automorphism over the base ring of
-        ``self``, iterated multiple times.
+        ``self``, iterated `n` times.
 
         INPUT:
 
@@ -679,7 +679,17 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
 class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
     """
-    A specific class for skew polynomial rings over finite field.
+    A specialized class for skew polynomial rings over finite fields.
+
+    .. SEEALSO::
+
+        :meth:`sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing`
+        :class:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general`
+        :mod:`sage.rings.polynomial.skew_polynomial_finite_field`
+
+    .. TODO::
+
+        Add center, irreducibility, karatsuba multiplication methods and factorization.
     """
     @staticmethod
     def __classcall__(cls, base_ring, map, name=None, sparse=False, element_class=None):
@@ -690,7 +700,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
                 from sage.rings.polynomial import skew_polynomial_finite_field
                 element_class = skew_polynomial_finite_field.SkewPolynomial_finite_field_dense
                 return super(SkewPolynomialRing_general,cls).__classcall__(cls,base_ring,map,name,sparse,element_class)
-            
+
     def __init__(self, base_ring, map, name, sparse, element_class):
         """
         This method is a constructor for a general, dense univariate skew polynomial ring
@@ -704,7 +714,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
 
         - ``name`` -- string or list of strings representing the name of the variables of ring
 
-        - ``sparse`` -- boolean (default: False)
+        - ``sparse`` -- boolean (default: ``False``)
 
         - ``element_class`` -- class representing the type of element to be used in ring
 
@@ -714,15 +724,9 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
 
         EXAMPLES::
 
-            sage: R.<t> = ZZ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = SkewPolynomialRing(R,sigma); S
-            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
-            sage: S([1]) + S([-1])
-            0
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
-            sage: T.<x> = k['x', Frob]; T 
+            sage: T.<x> = k['x', Frob]; T
             Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
         """
         self._order = -1
@@ -737,21 +741,21 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
             except (AttributeError,NotImplementedError):
                 pass
         if self._order < 0:
-            raise NotImplementedError("Unable to determine the order of %s" % map)
+            raise NotImplementedError("unable to determine the order of %s" % map)
         SkewPolynomialRing_general.__init__ (self, base_ring, map, name, sparse, element_class)
         self._maps = [ map**i for i in range(self._order) ]
 
-    def twist_map(self,n=1):
+    def twist_map(self, n=1):
         """
-        Return the twist map (eventually iterated several times) used to define
-        this skew polynomial ring.
-        
+        Return the twist map, otherwise known as the automorphism over the base ring of
+        ``self``, iterated `n` times.
+
         INPUT:
 
         -  ``n`` - a relative integer (default: 1)
-        
+
         OUTPUT:
-        
+
         -  The `n`-th iterative of the twist map of this skew polynomial ring.
 
         EXAMPLES::

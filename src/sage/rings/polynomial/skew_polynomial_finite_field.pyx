@@ -61,9 +61,9 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
     def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
         """
         This method constructs a generic dense skew polynomial over finite field.
-        
+
         INPUT::
-            
+
         - ``parent`` -- parent of `self`
 
         - ``x`` -- list of coefficients from which `self` can be constructed
@@ -92,7 +92,7 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             x^2 + t
 
         from a constant::
-        
+
             sage: x = S(t^2 + 1); x
             t^2 + 1
             sage: x.parent() is S

@@ -1024,7 +1024,6 @@ class HasseDiagram(DiGraph):
             return matrix(0)
         if not self.has_bottom():
             raise ValueError("Not a meet-semilattice: no bottom element.")
-        le = self._leq_matrix
         meet = [[0 for x in range(n)] for x in range(n)]
         lc = [self.neighbors_in(x) for x in range(n)]
 
@@ -1035,7 +1034,7 @@ class HasseDiagram(DiGraph):
 
                 q = max(T)
                 for z in T:
-                    if not le[z,q]:
+                    if meet[z][q] != z:
                         raise ValueError("No meet for x=%s y=%s"%(x,y))
                 meet[x][y] = q
                 meet[y][x] = q

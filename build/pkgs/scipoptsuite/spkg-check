@@ -6,15 +6,12 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-echo "Checking that SCIP starts"
-# (Could use -q to get rid of banner.)
-# We use -s /dev/null so that a faulty user parameter file does not cause an error
-$SAGE_LOCAL/bin/scip -s /dev/null -c quit
+cd src
 
+echo "Now running the SCIP test suite..."
+$MAKE check OPT=dbg
 if [ $? -ne 0 ]; then
-    echo "SCIP build completed but the scip executable does not work."
+    echo >&2 "Error: The SCIP test suite failed."
     exit 1
 fi
-
-# Unfortunately, since the scip binary does not link against libscip,
-# we cannot know whether libscip is in order.
+echo "The SCIP test suite passed successfully."

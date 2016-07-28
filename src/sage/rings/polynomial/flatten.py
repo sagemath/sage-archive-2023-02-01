@@ -250,11 +250,31 @@ class UnflatteningMorphism(Morphism):
             sage: g = f.section()
             sage: g(f(p)) == p
             True
+
+        ::
+
+            sage: R = QQ['a','b','x','y']
+            sage: S = ZZ['a','b']['x','z']
+            sage: from sage.rings.polynomial.flatten import UnflatteningMorphism
+            sage: UnflatteningMorphism(R, S)
+            Traceback (most recent call last):
+            ...
+            ValueError: rings must have same base ring
+
+        ::
+
+            sage: R = QQ['a','b','x','y']
+            sage: S = QQ['a','b']['x','z','w']
+            sage: from sage.rings.polynomial.flatten import UnflatteningMorphism
+            sage: UnflatteningMorphism(R, S)
+            Traceback (most recent call last):
+            ...
+            ValueError: rings must have the same number of variables
         """
-        if not is_PolynomialRing(domain) and not is_MPolynomialRing(domain):
-            raise ValueError("domain should be a polynomial ring")
+        if not is_MPolynomialRing(domain):
+            raise ValueError("domain should be a mutivariate polynomial ring")
         if not is_PolynomialRing(codomain) and not is_MPolynomialRing(codomain):
-            raise ValueError("domain should be a polynomial ring")
+            raise ValueError("codomain should be a polynomial ring")
 
         ring = codomain
         intermediate_rings = []
@@ -262,6 +282,11 @@ class UnflatteningMorphism(Morphism):
         while is_PolynomialRing(ring) or is_MPolynomialRing(ring):
             intermediate_rings.append(ring)
             ring = ring.base_ring()
+
+        if domain.base_ring() != intermediate_rings[-1].base_ring():
+            raise ValueError("rings must have same base ring")
+        if domain.ngens() != sum([R.ngens() for R in intermediate_rings]):
+            raise ValueError("rings must have the same number of variables")
 
         self._intermediate_rings = intermediate_rings
         self._intermediate_rings.reverse()

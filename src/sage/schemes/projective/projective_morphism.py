@@ -3377,9 +3377,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``embedding`` - embedding of the base field into `\QQbar`
 
-        OUTPUT:
-
-        - a list of `\QQbar` elements.
+        OUTPUT: a list of elements in the base ring.
 
         EXAMPLES::
 
@@ -3402,7 +3400,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(P)
             sage: f = H([x^2 - 5/4*y^2, y^2])
             sage: f.sigma_invariants(2, False, embedding=K.embeddings(QQbar)[0])
-            [13.00000000000000?, 11.00000000000000?, -25.00000000000000?, 0]
+            [13, 11, -25, 0]
         """
         polys = []
 
@@ -3411,8 +3409,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         e = SymmetricFunctions(QQbar).e()
 
         N = len(multipliers)
+        R = self.base_ring()
         for i in range(0,N):
-            polys.append(e([i+1]).expand(N)(multipliers))
+            polys.append(R(e([i+1]).expand(N)(multipliers)))
         return polys
 
 class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial_projective_space):

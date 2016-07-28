@@ -262,6 +262,8 @@ cdef class MultiModularBasis_base(object):
             sage: mm == nn
             True
         """
+        if not isinstance(other, MultiModularBasis_base):
+            return NotImplemented
         left = self.__getstate__()
         right = other.__getstate__()
         if op == 2:  # ==

@@ -462,6 +462,8 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             sage: p - p.lt() < p     # indirect doctest
             True
         """
+        if type(self) != type(other):
+            return NotImplemented
         left = self._poly
         right = (<FreeAlgebraElement_letterplace>other)._poly
         if op == 2:  # ==

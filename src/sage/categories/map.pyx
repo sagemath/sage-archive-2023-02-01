@@ -1600,6 +1600,8 @@ cdef class FormalCompositeMap(Map):
             sage: m == loads(dumps(m))
             True
         """
+        if type(self) != type(other):
+            return NotImplemented
         left = self.__list
         right = (<FormalCompositeMap>other).__list
         if op == 2:  # ==

@@ -18,6 +18,3 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
     cdef SkewPolynomial_finite_field_dense _rquo_inplace_rem(self, SkewPolynomial_finite_field_dense other)
 
     cdef Matrix_dense _matmul_c(self)
-
-    cpdef _leftpow_(self, exp, modulus=*)
-    cpdef _rightpow_(self, exp, modulus=*)

@@ -25,7 +25,6 @@ AUTHORS:
 
 - Ben Hutz (2015-11): iteration of subschemes
 
-
 """
 
 #*****************************************************************************
@@ -1172,6 +1171,57 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         """
         return(self._polys[0].degree())
 
+    def degree_sequence(self, iterates=2):
+        r"""
+        Return sequence of degrees of normalized iterates
+
+        INPUT: ``iterates`` -- positive integer (optional - default: 2)
+
+        OUTPUT: List
+
+        EXAMPLES::
+
+            sage: P2.<X,Y,Z> = ProjectiveSpace(QQ, 2)
+            sage: H = End(P2)
+            sage: f = H([Z^2, X*Y, Y^2]) 
+            sage: f.degree_sequence(15)
+            [1, 2, 3, 5, 8, 11, 17, 24, 31, 45, 56, 68, 91, 93, 184, 275]
+
+        ::
+
+            sage: F.<t> = PolynomialRing(QQ)
+            sage: P2.<X,Y,Z> = ProjectiveSpace(F, 2)
+            sage: H = End(P2)
+            sage: f = H([Y*Z, X*Y, Y^2 + t*X*Z]) 
+            sage: f.degree_sequence(5)
+            [1, 2, 3, 5, 8, 13]
+
+        ::
+
+            sage: P2.<X,Y,Z> = ProjectiveSpace(QQ, 2)
+            sage: H = End(P2)
+            sage: f = H([X^2, Y^2, Z^2]) 
+            sage: f.degree_sequence(10)
+            [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
+
+        """
+        if int(iterates) < 1:
+            raise TypeError("iteration number must be a positive integer")
+        if not self.is_endomorphism():
+            raise TypeError("map is not an endomorphism")
+
+        if self.is_morphism():
+            D = [1,self.degree()]
+            for n in range(2, iterates+1):
+                D.append(D[1]**n)
+        else:
+            D = []
+            for n in range(0, iterates+1):
+                fn = self.nth_iterate_map(n)
+                fn.normalize_coordinates()
+                D.append(fn.degree())
+        return D
+    
     def dehomogenize(self, n):
         r"""
         Returns the standard dehomogenization at the ``n[0]`` coordinate for the domain

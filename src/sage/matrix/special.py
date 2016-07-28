@@ -824,7 +824,7 @@ def lehmer(ring, n=0):
     Element `(i, j)` in the Lehmer matrix is
     `min(i, j)/max(i, j)`.
 
-    See :wikipedia:`Lehmer matrix`.
+    See :wikipedia:`Lehmer_matrix`.
 
     EXAMPLES::
 

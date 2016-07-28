@@ -31,6 +31,7 @@ AUTHORS:
 from cpython cimport PyObject
 from libc.limits cimport LONG_MAX
 
+from sage.misc.decorators import rename_keyword
 
 cdef extern from "graph.hh" namespace "bliss":
 
@@ -223,7 +224,8 @@ def automorphism_group(G, partition=None):
 cdef void empty_hook(void *user_param , unsigned int n, const unsigned int *aut):
     return
 
-def canonical_form(G, partition=None, return_graph=False, certify=False):
+@rename_keyword(deprecation=21111, certify='certificate')
+def canonical_form(G, partition=None, return_graph=False, certificate=False):
     """
     Return a canonical label of ``G``
 
@@ -241,7 +243,7 @@ def canonical_form(G, partition=None, return_graph=False, certify=False):
     - ``return_graph`` -- If set to ``True``, ``canonical_form`` returns the
         canonical graph of G. Otherwise, it returns its set of edges.
 
-    - ``certify`` -- If set to ``True`` returns the labeling of G into a
+    - ``certificate`` -- If set to ``True`` returns the labeling of G into a
       canonical graph.
 
     TESTS::
@@ -312,9 +314,9 @@ def canonical_form(G, partition=None, return_graph=False, certify=False):
             G = Graph(edges,loops=G.allows_loops(),multiedges=G.allows_multiple_edges())
 
         G.add_vertices(vert2int.values())
-        return (G, relabel) if certify else G
+        return (G, relabel) if certificate else G
 
-    if certify:
+    if certificate:
         return sorted(edges),relabel
 
     return sorted(edges)

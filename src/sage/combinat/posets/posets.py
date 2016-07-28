@@ -4378,7 +4378,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_isomorphic(P)
             True
         """
-        canonical_label = self._hasse_diagram.canonical_label(certify=True)[1]
+        canonical_label = self._hasse_diagram.canonical_label(certificate=True)[1]
         canonical_label = {self._elements[v]:i for v,i in canonical_label.iteritems()}
         return self.relabel(canonical_label)
 

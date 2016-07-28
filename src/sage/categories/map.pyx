@@ -1586,7 +1586,7 @@ cdef class FormalCompositeMap(Map):
         _slots['__list'] = self.__list
         return Map._extra_slots(self, _slots)
 
-    def __cmp__(self, other):
+    def __richcmp__(FormalCompositeMap self, other, int op):
         """
         TEST::
 
@@ -1600,10 +1600,20 @@ cdef class FormalCompositeMap(Map):
             sage: m == loads(dumps(m))
             True
         """
-        c = cmp(type(self), type(other))
-        if c == 0:
-            c = cmp(self.__list, (<FormalCompositeMap>other).__list)
-        return c
+        left = self.__list
+        right = (<FormalCompositeMap>other).__list
+        if op == 2:  # ==
+            return left == right
+        elif op == 3:  # !=
+            return left != right
+        elif op == 0:  # <
+            return left < right
+        elif op == 1:  # <=
+            return left <= right
+        elif op == 4:  # >
+            return left > right
+        elif op == 5:  # >=
+            return left >= right
 
     def __hash__(self):
         """

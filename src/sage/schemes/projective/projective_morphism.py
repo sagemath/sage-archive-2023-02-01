@@ -3175,7 +3175,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if not f.is_morphism():
             # if not, the variety is not dimension 0 and
             # can cannot construct the cyclegraph due to
-            #indeterminancies
+            #indeterminacies
             raise NotImplementedError("must be a projective morphism")
         PS = f.codomain()
         if algorithm == 'variety':
@@ -5028,8 +5028,8 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         r"""
         Return the indeterminacy locus of this map.
 
-        Only for rational maps on projective space. The indeterminacy locus is the set of points in projective space 
-        at which all of the defining polynomials of the rational map simultaneously vanish.  
+        Only for rational maps on projective space defined over a field. 
+        The indeterminacy locus is the set of points in projective space at which all of the defining polynomials of the rational map simultaneously vanish.
 
         OUTPUT:
 
@@ -5042,8 +5042,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: H = End(P)
             sage: f = H([x*z-y*z, x^2-y^2, z^2])
             sage: f.indeterminacy_locus()
-            Closed subscheme of Projective Space of dimension 2 over Rational Field
-            defined by:
+            Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
                 x*z - y*z,
                 x^2 - y^2,
                 z^2
@@ -5083,6 +5082,71 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         if locus.dimension() < 0:
             locus = dom.subscheme(dom.gens())
         return locus 
+
+    def indeterminacy_points(self, F=None):
+        r"""
+        Return the indeterminacy locus of this map defined over F.
+
+        Only for rational maps on projective space. Returns the set of points in projective space at which all of the defining polynomials of the rational map simultaneously vanish.
+
+        INPUT:
+
+        - ``F`` - a field (optional).
+
+        OUTPUT:
+
+        - indterminacy points of the map defined over F.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([x*z-y*z, x^2-y^2, z^2])
+            sage: f.indeterminacy_points()
+            [(-1 : 1 : 0), (1 : 1 : 0)]
+
+        ::
+
+            sage: P1.<x,y,z> = ProjectiveSpace(RR,2)
+            sage: P2.<t,u,v,w> = ProjectiveSpace(RR,3)
+            sage: H = Hom(P1,P2)
+            sage: h = H([x+y, y, z+y, y])
+            sage: h.indeterminacy_points()
+            []
+            sage: g = H([y^3*z^3, x^3*z^3, y^3*z^3, x^2*y^2*z^2])
+            sage: g.indeterminacy_points()
+            Traceback (most recent call last):
+            ...
+            ValueError: indeterminacy scheme is not dimension 0
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([x^2+y^2, x*z, x^2+y^2])
+            sage: f.indeterminacy_points()
+            [(0 : 0 : 1)]
+            sage: R.<t> = QQ[]
+            sage: K.<a> = NumberField(t^2+1)
+            sage: f.indeterminacy_points(K)
+            [(-a : 1 : 0), (0 : 0 : 1), (a : 1 : 0)]
+            sage: set_verbose(None)
+            sage: f.indeterminacy_points(QQbar)
+            [(-1*I : 1 : 0), (0 : 0 : 1), (1*I : 1 : 0)]
+        """
+        if F is None:
+            F = self.base_ring()
+            fcn = self
+        else:
+            fcn = self.change_ring(F)
+        if not F.is_field():
+            raise NotImplementedError("indeterminacy points only implemented for fields")
+        indScheme = fcn.indeterminacy_locus()
+        if indScheme.dimension() > 0:
+            raise ValueError("indeterminacy scheme is not dimension 0")
+        #Other error checking is in indeterminacy_locus
+        indPoints = indScheme.rational_points()
+        return indPoints
 
 class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_polynomial_projective_space_field):
 

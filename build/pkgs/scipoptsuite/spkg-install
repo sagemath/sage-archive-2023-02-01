@@ -158,6 +158,12 @@ if [ `uname` = 'Darwin' ]; then
     done
 fi
 
+# Also install libscip under the name libscipopt.  The scipoptsuite
+# Makefile target "scipoptlib" builds this library as a flat library
+# containing all of Soplex and SCIP.  Since we got the library
+# dependencies right, for us it's the same as libscip.
+( cd $SAGE_LOCAL/lib && rm -f libscipopt* && ln -sv libscip.$SHAREDLIBEXT libscipopt.$SHAREDLIBEXT )
+
 echo "Checking that SCIP starts"
 # (Could use -q to get rid of banner.)
 # We use -s /dev/null so that a faulty user parameter file does not cause an error

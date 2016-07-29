@@ -898,6 +898,16 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^3-y^3*2, y^3])
             sage: f.dynatomic_polynomial(1).parent()
             Multivariate Polynomial Ring in x, y over Rational Field
+
+        ::
+
+            sage: P.<x, y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([x^2 + y^2, y^2])
+            sage: f.dynatomic_polynomial(0)
+            0
+            sage: f.dynatomic_polynomial([0,0])
+            0
        """
         if self.domain().ngens() > 2:
             raise TypeError("does not make sense in dimension >1")
@@ -909,24 +919,20 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         PHI = self.base_ring().one()
         m = period[0]
         n = period[1]
-        if m==0 and n==1:
-            return y*F0 - x*F1
+        if m == 0:
+            if n == 0:
+                return self.base_ring()(0)
+            elif n == 1:
+                return y*F0 - x*F1
+        for d in range(1, n):
+            if n % d == 0:
+                PHI = PHI * ((y*F0 - x*F1)**moebius(n//d))
+            F0, F1 = f0(F0, F1), f1(F0, F1)
+        PHI = PHI * (y*F0 - x*F1)
         if m != 0:
             fm = self.nth_iterate_map(m)
             fm1 = self.nth_iterate_map(m - 1)
-            for d in range(1, n):
-                if n % d == 0:
-                    PHI = PHI * ((y*F0 - x*F1) ** moebius(n/d))
-                F0, F1 = f0(F0, F1), f1(F0, F1)
-            PHI = PHI * (y*F0 - x*F1)
-            if m != 0:
-                PHI = PHI(fm._polys)/ PHI(fm1._polys )
-        else:
-            for d in range(1, n):
-                if n % d == 0:
-                    PHI = PHI * ((y*F0 - x*F1) ** moebius(n//d))
-                F0, F1 = f0(F0, F1), f1(F0, F1)
-            PHI = PHI * (y*F0 - x*F1)
+            PHI = PHI(fm._polys)/ PHI(fm1._polys)
         try:
             QR = PHI.numerator().quo_rem(PHI.denominator())
             if not QR[1]:

@@ -764,6 +764,10 @@ class _Key(object):
     """
     Helper class to be a key for the module morphisms of the Möbius algebra
     that uses the comparison of the poset.
+
+    Because posets are often facades, we need to a way to force the
+    elements to use the comparison of the poset (the natural order on the
+    objects may not be a linear extension).
     """
     def __init__(self, P, elt):
         """

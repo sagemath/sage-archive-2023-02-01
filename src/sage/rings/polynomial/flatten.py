@@ -272,7 +272,7 @@ class UnflatteningMorphism(Morphism):
             ValueError: rings must have the same number of variables
         """
         if not is_MPolynomialRing(domain):
-            raise ValueError("domain should be a mutivariate polynomial ring")
+            raise ValueError("domain should be a multivariate polynomial ring")
         if not is_PolynomialRing(codomain) and not is_MPolynomialRing(codomain):
             raise ValueError("codomain should be a polynomial ring")
 

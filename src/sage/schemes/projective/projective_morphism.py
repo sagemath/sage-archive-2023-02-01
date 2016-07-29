@@ -2808,11 +2808,21 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y,z,w> = ProjectiveSpace(GF(81),3)
             sage: H = End(P)
-            sage: g = H([x^3*y, y^3*z, z^3*x, x*y*z*w])
+            sage: g = H([x^3+y^3, y^3+z^3, z^3+x^3, w^3])
             sage: g.critical_subscheme()
-            Closed subscheme of Projective Space of dimension 3 over Finite Field in z4 of size 3^4
-            defined by:
-            x^4*y^4*z^4
+            Closed subscheme of Projective Space of dimension 3 over Finite Field in
+            z4 of size 3^4 defined by:
+              0
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2,x*y])
+            sage: f.critical_subscheme()
+            Traceback (most recent call last):
+            ...
+            TypeError: the function is not a morphism
         """
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
         PS = self.domain()
@@ -2820,6 +2830,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             raise NotImplementedError("not implemented for subschemes")
         if not self.is_endomorphism():
             raise NotImplementedError("must be an endomorphism")
+        if not self.is_morphism():
+            raise TypeError("the function is not a morphism")
         wr = self.wronskian_ideal()
         crit_subscheme = self.codomain().subscheme(wr)
         return crit_subscheme

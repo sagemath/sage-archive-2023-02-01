@@ -88,7 +88,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         sage: Sz.<z> = R[sigma]
         Traceback (most recent call last):
         ...
-        ValueError: variable name 'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+        ValueError: variable name 'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring\n
             Defn: t |--> t + 1' is not alphanumeric
         
     As for polynomials, skew polynomial rings with different variable names
@@ -677,6 +677,86 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             True
         """
         return self.twist_map().is_identity()
+
+    def minimal_vanishing_polynomial(self, eval_pts):
+        """
+        Return the minimal vanishing polynomial. Given the elements
+        `a_1, ..., a_s`, it is defined as the unique minimal degree polynomial
+        `p` such that `p` is monic and `p(a_i) = 0`, for `i = 1, ..., s`.
+
+        INPUT:
+
+        - ``eval_pts`` -- list of evaluation points
+
+        OUTPUT:
+
+        The minimal vanishing polynomial.
+
+        EXAMPLES:
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = x + t 
+            sage: eval_pts = [1, t, t^2]
+            sage: b = S.minimal_vanishing_polynomial(eval_pts); b
+            x^3 + 4
+        """
+        x = self.gen()
+        sigma = self.twist_map()
+        if len(eval_pts) == 0:
+            return self.one()
+        elif len(eval_pts) == 1:
+            if eval_pts[0] == 0:
+                return self.one()
+            else:
+                return x - (sigma(eval_pts[0]) / eval_pts[0])
+        else:
+            A = eval_pts[:len(eval_pts)/2]
+            B = eval_pts[(len(eval_pts)/2):]
+            M_A = self.minimal_vanishing_polynomial(A)
+            M_A_B = self.multi_point_evaluation(M_A, B)
+            M_M_A_B = self.minimal_vanishing_polynomial(M_A_B)
+            return M_M_A_B * M_A
+
+    def multi_point_evaluation(self, p, eval_pts):
+        """
+        Evaluate skew polynomial at multiple evaluation points.
+
+        INPUT:
+
+        - ``p`` -- skew polynomial belonging to ``self``
+
+        - ``eval_pts`` -- list of points at which `p` is to be evaluated
+
+        OUTPUT:
+
+        List of values of `p` at the `eval_pts`.
+
+        EXAMPLES:
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = x + t 
+            sage: eval_pts = [1, t, t^2]
+            sage: c = S.multi_point_evaluation(a, eval_pts); c
+            [t + 1, 3*t^2 + 4*t + 4, 4*t]
+        """
+        coefficients = p.list()
+        sigma = self.twist_map()
+        if len(eval_pts) == 1:
+            if len(coefficients) == 1:
+                coefficients.append(0)
+            return [coefficients[1]*sigma(eval_pts[0]) + coefficients[0]*eval_pts[0]]
+        else:
+            A = eval_pts[:len(eval_pts)/2]
+            B = eval_pts[(len(eval_pts)/2):]
+            M_A = self.minimal_vanishing_polynomial(A)
+            M_B = self.minimal_vanishing_polynomial(B)
+            Q_A, R_A = p.right_quo_rem(M_A)
+            Q_B, R_B = p.right_quo_rem(M_B)
+            return self.multi_point_evaluation(R_A, A) + self.multi_point_evaluation(R_B, B)
 
 class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
     """

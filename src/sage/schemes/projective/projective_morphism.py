@@ -871,7 +871,25 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Multivariate Polynomial Ring in x, y over Fraction Field of Univariate Polynomial
             Ring in t over Number Field in v with defining polynomial x^2 - 33
 
-        This one still does not work, some function fields still return Symoblic Ring elements::
+        ::
+
+            sage: P.<x, y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([x^3-y^3*2, y^3])
+            sage: f.dynatomic_polynomial(1).parent()
+            Multivariate Polynomial Ring in x, y over Rational Field
+
+        ::
+
+            sage: P.<x, y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([x^2 + y^2, y^2])
+            sage: f.dynatomic_polynomial(0)
+            0
+            sage: f.dynatomic_polynomial([0,0])
+            0
+
+        Some rings still return Symoblic Ring elements::
 
             sage: S.<t> = FunctionField(CC)
             sage: P.<x,y> = ProjectiveSpace(S,1)
@@ -892,24 +910,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             v^3*xbar^2 + u^2*v + u*v^2
             sage: dyn.parent()
             Symbolic Ring
-
-        ::
-
-            sage: P.<x, y> = ProjectiveSpace(QQ, 1)
-            sage: H = End(P)
-            sage: f = H([x^3-y^3*2, y^3])
-            sage: f.dynatomic_polynomial(1).parent()
-            Multivariate Polynomial Ring in x, y over Rational Field
-
-        ::
-
-            sage: P.<x, y> = ProjectiveSpace(QQ, 1)
-            sage: H = End(P)
-            sage: f = H([x^2 + y^2, y^2])
-            sage: f.dynatomic_polynomial(0)
-            0
-            sage: f.dynatomic_polynomial([0,0])
-            0
        """
         if self.domain().ngens() > 2:
             raise TypeError("does not make sense in dimension >1")

@@ -5072,6 +5072,18 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
               x^3*z^3,
               y^3*z^3,
               x^2*y^2*z^2
+
+        If defining polynomials are not normalized, output scheme will not be normalized::
+
+            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
+            sage: H=End(P)
+            sage: f=H([x*x^2,x*y^2,x*z^2])
+            sage: f.indeterminacy_locus()
+            Closed subscheme of Projective Space of dimension 2 over Rational Field
+            defined by:
+              x^3,
+              x*y^2,
+              x*z^2
         """
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
         dom = self.domain()
@@ -5085,7 +5097,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
     def indeterminacy_points(self, F=None):
         r"""
-        Return the indeterminacy locus of this map defined over F.
+        Return the indeterminacy locus of this map defined over ``F``.
 
         Only for rational maps on projective space. Returns the set of points in projective space at which all of the defining polynomials of the rational map simultaneously vanish.
 
@@ -5095,7 +5107,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         OUTPUT:
 
-        - indterminacy points of the map defined over F.
+        - indeterminacy points of the map defined over ``F``, provided the indeterminacy scheme is 0-dimensional.
 
         EXAMPLES::
 
@@ -5128,23 +5140,55 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             [(0 : 0 : 1)]
             sage: R.<t> = QQ[]
             sage: K.<a> = NumberField(t^2+1)
-            sage: f.indeterminacy_points(K)
+            sage: f.indeterminacy_points(F=K)
             [(-a : 1 : 0), (0 : 0 : 1), (a : 1 : 0)]
             sage: set_verbose(None)
-            sage: f.indeterminacy_points(QQbar)
+            sage: f.indeterminacy_points(F=QQbar)
             [(-1*I : 1 : 0), (0 : 0 : 1), (1*I : 1 : 0)]
+
+        ::
+
+            sage: set_verbose(None)
+            sage: K.<t>=FunctionField(QQ)
+            sage: P.<x,y,z>=ProjectiveSpace(K,2)
+            sage: H=End(P)
+            sage: f=H([x^2-t^2*y^2,y^2-z^2,x^2-t^2*z^2])
+            sage: f.indeterminacy_points()
+            [(-t : -1 : 1), (-t : 1 : 1), (t : -1 : 1), (t : 1 : 1)]
+
+        ::
+
+            sage: set_verbose(None)
+            sage: P.<x,y,z>=ProjectiveSpace(Qp(3),2)
+            sage: H=End(P)
+            sage: f=H([x^2-7*y^2,y^2-z^2,x^2-7*z^2])
+            sage: f.indeterminacy_points()
+            [(2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 2*3^6 + 3^8 + 3^9 + 2*3^11 + 3^15 +
+            2*3^16 + 3^18 + O(3^20) : 1 + O(3^20) : 1 + O(3^20)),
+            (2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 2*3^6 + 3^8 + 3^9 + 2*3^11 + 3^15 +
+            2*3^16 + 3^18 + O(3^20) : 2 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 +
+            2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + 2*3^12 + 2*3^13 +
+            2*3^14 + 2*3^15 + 2*3^16 + 2*3^17 + 2*3^18 + 2*3^19 + O(3^20) : 1 +
+            O(3^20)),
+             (1 + 3 + 3^2 + 2*3^4 + 2*3^7 + 3^8 + 3^9 + 2*3^10 + 2*3^12 + 2*3^13 +
+            2*3^14 + 3^15 + 2*3^17 + 3^18 + 2*3^19 + O(3^20) : 1 + O(3^20) : 1 +
+            O(3^20)),
+             (1 + 3 + 3^2 + 2*3^4 + 2*3^7 + 3^8 + 3^9 + 2*3^10 + 2*3^12 + 2*3^13 +
+            2*3^14 + 3^15 + 2*3^17 + 3^18 + 2*3^19 + O(3^20) : 2 + 2*3 + 2*3^2 +
+            2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11
+            + 2*3^12 + 2*3^13 + 2*3^14 + 2*3^15 + 2*3^16 + 2*3^17 + 2*3^18 + 2*3^19
+            + O(3^20) : 1 + O(3^20))]
         """
         if F is None:
-            F = self.base_ring()
             fcn = self
         else:
+            if not F.is_field():
+                raise NotImplementedError("indeterminacy points only implemented for fields")
             fcn = self.change_ring(F)
-        if not F.is_field():
-            raise NotImplementedError("indeterminacy points only implemented for fields")
         indScheme = fcn.indeterminacy_locus()
         if indScheme.dimension() > 0:
             raise ValueError("indeterminacy scheme is not dimension 0")
-        #Other error checking is in indeterminacy_locus
+        # Other error checking is in indeterminacy_locus
         indPoints = indScheme.rational_points()
         return indPoints
 

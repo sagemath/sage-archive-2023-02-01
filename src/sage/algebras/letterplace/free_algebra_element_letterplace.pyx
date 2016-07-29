@@ -451,22 +451,23 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
                 return True
         return False
 
-    cpdef int _cmp_(self, other) except -2:
+    def __richcmp__(self, other, int op):
         """
-        Auxiliary method for comparison.
+        Implement comparisons, using the Cython richcmp convention.
 
         TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: p = ((2*x+3*y-4*z)^2*(5*y+6*z))
-            sage: p-p.lt() < p     # indirect doctest
+            sage: p - p.lt() < p     # indirect doctest
             True
-            sage: cmp(p,p-p.lt())  # indirect doctest
-            1
         """
-        cdef int c = cmp(type(self),type(other))
-        if c: return c
-        return cmp((<FreeAlgebraElement_letterplace>self)._poly,(<FreeAlgebraElement_letterplace>other)._poly)
+        if type(self) != type(other):
+            return NotImplemented
+        left = (<FreeAlgebraElement_letterplace>self)._poly
+        right = (<FreeAlgebraElement_letterplace>other)._poly
+        from sage.structure.sage_object import richcmp_shortcut
+        return richcmp_shortcut(left, right, op)
 
     ################################
     ## Arithmetic

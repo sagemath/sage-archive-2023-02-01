@@ -68,13 +68,16 @@ SCIP_DIR=`basename $SCIP_DIR`
 SCIP_VERSION=`echo "$SCIP_DIR" | sed -e "s/.*-//"`
 
 
-# Apply patch to SCIP.
-(cd $SCIP_DIR && patch -p1 < $SPKGDIR/patches/scip-libdep.patch)
-if [ $? -ne 0 ]; then
-    echo "Error patching SCIP."
-    exit 1
-fi
-
+# Apply patches to SCIP.
+cd $SCIP_DIR
+for patch in $SPKGDIR/patches/scip/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
 
 echo "Compiling SoPlex"
 

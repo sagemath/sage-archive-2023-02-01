@@ -20715,6 +20715,15 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g.is_isomorphic(h, certificate=True)
             (True, None)
+
+        Deprecation from #21111::
+
+            sage: G = DiGraph({'a':['b']})
+            sage: H = DiGraph({0:[1]})
+            sage: G.is_isomorphic(H, certify=True)
+            doctest:...: DeprecationWarning: use the option 'certificate' instead of 'certify'
+            See http://trac.sagemath.org/21111 for details.
+            (True, {'a': 0, 'b': 1})
         """
 
         if self.order() == other.order() == 0:
@@ -20904,6 +20913,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: s1 == s2                                                      # optional - bliss
             True
 
+        TESTS::
+
+            sage: G = Graph({'a': ['b']})
+            sage: G.canonical_label(certify=True)
+            doctest:...: DeprecationWarning: use the option 'certificate' instead of 'certify'
+            See http://trac.sagemath.org/21111 for details.
+            (Graph on 2 vertices, {'a': 0, 'b': 1})
         """
         from sage.misc.package import is_package_installed
         if (algorithm == 'bliss'           or  # explicit request; or

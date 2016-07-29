@@ -1003,6 +1003,14 @@ class ClusterQuiver(SageObject):
 
             sage: Q.canonical_label(certificate=True)
             (Quiver on 3 vertices of type [ ['A', 1], ['B', 2] ], {0: 1, 1: 2, 2: 0})
+
+        TESTS::
+
+            sage: Q = ClusterQuiver(['A',4])
+            sage: _,iso = Q.canonical_label(certify=True); iso
+            doctest:...: DeprecationWarning: use the option 'certificate' instead of 'certify'
+            See http://trac.sagemath.org/21111 for details.
+            {0: 0, 1: 3, 2: 1, 3: 2}
         """
         n = self._n
         m = self._m

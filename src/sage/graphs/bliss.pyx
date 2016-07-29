@@ -272,6 +272,13 @@ def canonical_form(G, partition=None, return_graph=False, certificate=False):
         sage: g2 = canonical_form(g2,return_graph=True)                     # optional - bliss
         sage: g2 == g2                                                      # optional - bliss
         True
+
+        sage: g = Graph({1: [2]})
+        sage: g_ = canonical_form(g, return_graph=True, certify=True)    # optional - bliss
+        doctest...: DeprecationWarning: use the option 'certificate' instead of 'certify'
+        See http://trac.sagemath.org/21111 for details.
+        sage: 0 in g_[0]                                                 # optional - bliss
+        True
     """
     # We need this to convert the numbers from <unsigned int> to
     # <long>. This assertion should be true simply for memory reasons.

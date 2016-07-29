@@ -3899,6 +3899,15 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: C2 = SimplicialComplex([['j','k','l'], ['j','l','m'], ['j','k','m']])
             sage: C1.is_isomorphic(C2, certificate=True)
             (True, {1: 'j', 2: 'k', 3: 'l', 4: 'm'})
+
+        TESTS::
+
+            sage: Z1 = SimplicialComplex([[0,1],[1,2],[2,3,4],[4,5]])
+            sage: Z2 = SimplicialComplex([['a','b'],['b','c'],['c','d','e'],['e','f']])
+            sage: Z1.is_isomorphic(Z2, certify=True)
+            doctest...: DeprecationWarning: use the option 'certificate' instead of 'certify'
+            See http://trac.sagemath.org/21111 for details.
+            (True, {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f'})
         """
         # Check easy invariants agree
         if (sorted(x.dimension() for x in self._facets)

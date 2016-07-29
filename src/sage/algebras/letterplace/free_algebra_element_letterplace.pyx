@@ -20,6 +20,7 @@ from __future__ import print_function
 from sage.libs.singular.function import lib, singular_function
 from sage.misc.misc import repr_lincomb
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
+from cpython.object cimport PyObject_RichCompare
 
 # Define some singular functions
 lib("freegb.lib")
@@ -466,8 +467,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             return NotImplemented
         left = (<FreeAlgebraElement_letterplace>self)._poly
         right = (<FreeAlgebraElement_letterplace>other)._poly
-        from sage.structure.sage_object import richcmp_shortcut
-        return richcmp_shortcut(left, right, op)
+        return PyObject_RichCompare(left, right, op)
 
     ################################
     ## Arithmetic

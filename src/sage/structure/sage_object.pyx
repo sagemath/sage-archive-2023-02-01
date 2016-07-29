@@ -64,45 +64,6 @@ cdef process(s):
         return s
 
 
-def richcmp_shortcut(left, right, op):
-    """
-    Auxiliary tool to define rich comparison from a sorting key.
-
-    This could also go in a ComparableMixin class inherited by SageObject ?
-    See http://python3porting.com/preparing.html
-
-    EXAMPLES::
-
-        sage: from sage.structure.sage_object import richcmp_shortcut
-        sage: A = (1492, 'America')
-        sage: B = (800, 'Carolus Magnus')
-        sage: richcmp_shortcut(A, B, 2)
-        False
-        sage: richcmp_shortcut(A, B, 3)
-        True
-        sage: richcmp_shortcut(A, B, 0)
-        False
-        sage: richcmp_shortcut(A, B, 1)
-        False
-        sage: richcmp_shortcut(A, B, 4)
-        True
-        sage: richcmp_shortcut(A, B, 5)
-        True
-    """
-    if op == 2:  # ==
-        return left == right
-    elif op == 3:  # !=
-        return left != right
-    elif op == 0:  # <
-        return left < right
-    elif op == 1:  # <=
-        return left <= right
-    elif op == 4:  # >
-        return left > right
-    elif op == 5:  # >=
-        return left >= right
-
-
 cdef class SageObject:
     """
     Base class for all (user-visible) objects in Sage

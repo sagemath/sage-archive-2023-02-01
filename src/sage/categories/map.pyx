@@ -31,6 +31,8 @@ from sage.structure.parent cimport Set_PythonType
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.superseded import deprecated_function_alias
 from sage.structure.element cimport parent_c
+from cpython.object cimport PyObject_RichCompare
+
 
 def unpickle_map(_class, parent, _dict, _slots):
     """
@@ -1604,8 +1606,7 @@ cdef class FormalCompositeMap(Map):
             return NotImplemented
         left = (<FormalCompositeMap>self).__list
         right = (<FormalCompositeMap>other).__list
-        from sage.structure.sage_object import richcmp_shortcut
-        return richcmp_shortcut(left, right, op)
+        return PyObject_RichCompare(left, right, op)
 
     def __hash__(self):
         """

@@ -19,6 +19,7 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.arith.all import random_prime
 from types import GeneratorType
 from sage.ext.stdsage cimport PY_NEW
+from cpython.object cimport PyObject_RichCompare
 
 # should I have mod_int versions of these functions?
 # c_inverse_mod_longlong modular inverse used exactly once in _refresh_precomputations
@@ -266,8 +267,7 @@ cdef class MultiModularBasis_base(object):
             return NotImplemented
         left = self.__getstate__()
         right = other.__getstate__()
-        from sage.structure.sage_object import richcmp_shortcut
-        return richcmp_shortcut(left, right, op)
+        return PyObject_RichCompare(left, right, op)
 
     def __setstate__(self, state):
         """

@@ -23,6 +23,8 @@ AUTHOR:
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
+from sage.functions.all import log
+from sage.misc.cachefunc import cached_method
 import sage.algebras.algebra
 import sage.categories.basic as categories
 from sage.rings.integer import Integer
@@ -757,6 +759,65 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             Q_A, R_A = p.right_quo_rem(M_A)
             Q_B, R_B = p.right_quo_rem(M_B)
             return self.multi_point_evaluation(R_A, A) + self.multi_point_evaluation(R_B, B)
+
+    def interpolation_polynomial(self, eval_pts, values, check=True):
+        """
+        Return the interpolation polynomial. Given `s` pairs of evaluation points
+        and values `{(x_1, y_1), ..., (x_s, y_s)}`, where each `x_i` is distinct
+        and non-zero, there exists a unique interpolation polynomial `I` such that
+        `I(x_i) = y_i`, for all `i = 1,...,s`.
+
+        INPUT:
+
+        - ``eval_pts`` -- list of evaluation points
+
+        - ``values`` -- list of values that the interpolation polynomial `I` takes
+          at the respective `eval_pts`
+
+        - ``check`` -- boolean (default: ``True``) that verifies whether the
+          `eval_pts` are linearly independent in the base ring of ``self``.
+
+        OUTPUT:
+
+        The interpolation polynomial.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: eval_pts = [t, t^2]
+            sage: values = [3*t^2 + 4*t + 4, 4*t]
+            sage: d = S.interpolation_polynomial(eval_pts, values); d
+            x + t
+        """
+        l = len(eval_pts)
+        if l > log(self.base_ring().order(), self.base_ring().characteristic()):
+            raise TypeError("number of evaluation points cannot be more than dimension of base field")
+        if l != len(values):
+            raise TypeError("number of evaluation points and values must be equal")
+        if l > len(set(eval_pts)):
+            raise TypeError("the evaluation points must be distinct")
+        if 0 in eval_pts:
+            raise TypeError("evaluation points must be non-zero")
+        if l == 1:
+            c, _ = values[0].quo_rem(eval_pts[0])
+            return c*self.one()
+        else:
+            A = eval_pts[:l/2]
+            B = eval_pts[(l/2):]
+            M_A = self.minimal_vanishing_polynomial(A)
+            M_B = self.minimal_vanishing_polynomial(B)
+            A_ = self.multi_point_evaluation(M_B, A)
+            B_ = self.multi_point_evaluation(M_A, B)
+            I_1 = self.interpolation_polynomial(A_, values[:l/2])
+            I_2 = self.interpolation_polynomial(B_, values[(l/2):])
+            interpolation_polynomial = I_1 * M_B + I_2 * M_A
+            if check:
+                for i in range(l):
+                    if interpolation_polynomial(eval_pts[i]) != values[i]:
+                        return ValueError("the evaluation points are not linearly independent")
+            return interpolation_polynomial
 
 class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
     """

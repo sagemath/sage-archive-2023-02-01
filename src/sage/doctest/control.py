@@ -314,11 +314,10 @@ class DocTestController(SageObject):
                 # that the package is actually installed).
                 if 'optional' in options.optional:
                     options.optional.discard('optional')
-                    from sage.misc.package import package_versions
-                    optional_pkgs = package_versions("optional", local=True)
-                    for pkg, versions in optional_pkgs.items():
-                        if versions[0] == versions[1]:
-                            options.optional.add(pkg)
+                    from sage.misc.package import list_packages
+                    for pkg in list_packages('optional', local=True).values():
+                        if pkg['installed_version'] == pkg['remote_version']:
+                            options.optional.add(pkg['name'])
 
                 # Check that all tags are valid
                 for o in options.optional:

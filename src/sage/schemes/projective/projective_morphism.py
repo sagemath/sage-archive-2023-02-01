@@ -888,8 +888,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<u,v> = ProjectiveSpace(FractionField(S),1)
             sage: H = End(P)
             sage: f = H([u^2 + S(x^2)*v^2, v^2])
-            sage: f.dynatomic_polynomial([1,1])
+            sage: dyn = f.dynatomic_polynomial([1,1]); dyn
             v^3*xbar^2 + u^2*v + u*v^2
+            sage: dyn.parent()
+            Symbolic Ring
 
         ::
 
@@ -921,7 +923,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         n = period[1]
         if m == 0:
             if n == 0:
-                return self.base_ring()(0)
+                return self[0].parent().zero()
             elif n == 1:
                 return y*F0 - x*F1
         for d in range(1, n):

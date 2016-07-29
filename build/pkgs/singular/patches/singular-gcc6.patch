@@ -1,6 +1,6 @@
-diff -up Singular-3-1-7/kernel/mod_raw.cc.orig Singular-3-1-7/kernel/mod_raw.cc
---- Singular-3-1-7/kernel/mod_raw.cc.orig	2014-08-06 09:59:15.000000000 -0600
-+++ Singular-3-1-7/kernel/mod_raw.cc	2016-02-15 21:53:02.950149126 -0700
+diff -up a/latest/kernel/mod_raw.cc b/latest/kernel/mod_raw.cc
+--- a/latest/kernel/mod_raw.cc	2014-08-06 09:59:15.000000000 -0600
++++ b/latest/kernel/mod_raw.cc	2016-02-15 21:53:02.950149126 -0700
 @@ -38,8 +38,8 @@ char* si_bultin_libs[]={ SI_FOREACH_BUIL
  
  lib_types type_of_LIB(char *newlib, char *libnamebuf)

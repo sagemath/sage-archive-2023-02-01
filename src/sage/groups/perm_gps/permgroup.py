@@ -808,7 +808,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             [(), (1,2), (1,2,3), (2,3), (1,3,2), (1,3)]
 
         Test that it is possible to iterate through moderately large groups
-        (trac:`18239`)::
+        (:trac:`18239`)::
 
             sage: p = [(i,i+1) for i in range(1,601,2)]
             sage: q = [tuple(range(1+i,601,3)) for i in range(3)]

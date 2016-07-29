@@ -85,7 +85,6 @@ class CellComplexReference(object):
 
         EXAMPLES::
 
-
             sage: X = simplicial_complexes.Simplex(2)
             sage: X.n_chains(1).degree()
             1
@@ -403,7 +402,7 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
 
         OUTPUT:
 
-        The cochains of the same cells with the same base ring.
+        The chains of the same cells with the same base ring.
 
         EXAMPLES::
 

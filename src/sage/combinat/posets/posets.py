@@ -1385,12 +1385,12 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: P = Poset({7:[1, 5], 1:[2, 6], 5:[3], 6:[3, 4]})
-            sage: P.sorted([4, 1, 4, 5, 7])  # Random order for 1 and 5
-            [7, 1, 5, 4, 4]
-            sage: P.sorted([1, 4, 4, 7], remove_duplicates=True)
-            [7, 1, 4]
-            sage: P.sorted([4, 1, 4, 5, 7], allow_incomparable=False)
+            sage: P = Posets.DivisorLattice(36)
+            sage: P.sorted([1, 4, 1, 6, 2, 12])  # Random order for 4 and 6
+            [1, 1, 2, 4, 6, 12]
+            sage: P.sorted([1, 4, 1, 6, 2, 12], remove_duplicates=True)
+            [1, 2, 4, 6, 12]
+            sage: P.sorted([1, 4, 1, 6, 2, 12], allow_incomparable=False)
             Traceback (most recent call last):
             ...
             ValueError: the list contains incomparable elements

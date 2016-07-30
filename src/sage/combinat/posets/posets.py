@@ -1395,6 +1395,16 @@ class FinitePoset(UniqueRepresentation, Parent):
             ...
             ValueError: the list contains incomparable elements
 
+            sage: P = Poset({7:[1, 5], 1:[2, 6], 5:[3], 6:[3, 4]})
+            sage: P.sorted([4, 1, 4, 5, 7])  # Random order for 1 and 5
+            [7, 1, 5, 4, 4]
+            sage: P.sorted([1, 4, 4, 7], remove_duplicates=True)
+            [7, 1, 4]
+            sage: P.sorted([4, 1, 4, 5, 7], allow_incomparable=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: the list contains incomparable elements
+
         TESTS::
 
             sage: P = Posets.PentagonPoset()

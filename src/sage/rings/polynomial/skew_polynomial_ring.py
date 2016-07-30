@@ -754,9 +754,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         coefficients = p.list()
         sigma = self.twist_map()
         if len(eval_pts) == 1:
-            if len(coefficients) == 1:
-                coefficients.append(0)
-            return [coefficients[1]*sigma(eval_pts[0]) + coefficients[0]*eval_pts[0]]
+            return [ p(eval_pts[0]) ] 
         else:
             A = eval_pts[:len(eval_pts)/2]
             B = eval_pts[(len(eval_pts)/2):]

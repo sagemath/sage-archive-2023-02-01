@@ -809,14 +809,15 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         if l == 1:
             return (values[0]/eval_pts[0])*self.one()
         else:
-            A = eval_pts[:l/2]
-            B = eval_pts[(l/2):]
+            t = l//2
+            A = eval_pts[:t]
+            B = eval_pts[t:]
             M_A = self.minimal_vanishing_polynomial(A)
             M_B = self.minimal_vanishing_polynomial(B)
             A_ = self.multi_point_evaluation(M_B, A)
             B_ = self.multi_point_evaluation(M_A, B)
-            I_1 = self.interpolation_polynomial(A_, values[:l/2])
-            I_2 = self.interpolation_polynomial(B_, values[(l/2):])
+            I_1 = self.interpolation_polynomial(A_, values[:t])
+            I_2 = self.interpolation_polynomial(B_, values[t:])
             interpolation_polynomial = I_1 * M_B + I_2 * M_A
             if check:
                 for i in range(l):

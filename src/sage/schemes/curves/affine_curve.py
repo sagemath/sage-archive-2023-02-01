@@ -263,9 +263,8 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             l[indices[i]] = AA2.gens()[i]
         phi = K(l)
         G = [phi(f) for f in J.gens()]
-        from constructor import Curve
         try:
-            C = Curve(G, AA2)
+            C = AA2.curve(G)
         except (TypeError, ValueError):
             C = AA2.subscheme(G)
         return tuple([psi, C])

@@ -295,8 +295,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         l.insert(j, 0)
         phi = K(l)
         G = [phi(f) for f in J.gens()]
-        from constructor import Curve
-        C = Curve(G, PP2)
+        C = PP2.curve(G)
         return tuple([psi, C])
 
     def plane_projection(self):

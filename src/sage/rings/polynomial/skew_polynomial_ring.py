@@ -680,7 +680,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         """
         return self.twist_map().is_identity()
 
-    def minimal_vanishing_polynomial(self, eval_pts):
+    def minimal_vanishing_polynomial(self, eval_pts, check=True):
         """
         Return the minimal vanishing polynomial. Given the elements
         `a_1, ..., a_s`, it is defined as the unique minimal degree polynomial
@@ -689,6 +689,9 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         INPUT:
 
         - ``eval_pts`` -- list of evaluation points
+
+        - ``check`` -- boolean (default: ``True``) that verifies whether the
+          `eval_pts` are linearly independent in the base ring of ``self``.
 
         OUTPUT:
 
@@ -718,6 +721,9 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             B = eval_pts[(len(eval_pts)/2):]
             M_A = self.minimal_vanishing_polynomial(A)
             M_A_B = self.multi_point_evaluation(M_A, B)
+            if check:
+                if 0 in M_A_B:
+                    raise ValueError("evaluation points are not linearly independent")
             M_M_A_B = self.minimal_vanishing_polynomial(M_A_B)
             return M_M_A_B * M_A
 

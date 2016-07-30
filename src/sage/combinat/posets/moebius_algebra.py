@@ -260,17 +260,16 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
 
             ## Change of basis:
             E = M.E()
-            key = lambda x: _Key(M._lattice, x)
             self.module_morphism(self._to_natural_basis,
                                  codomain=E, category=self.category(),
                                  triangular='lower', unitriangular=True,
-                                 key=key
+                                 key=self._key
                                  ).register_as_coercion()
 
             E.module_morphism(E._to_idempotent_basis,
                               codomain=self, category=self.category(),
                               triangular='lower', unitriangular=True,
-                              key=key
+                              key=self._key
                               ).register_as_coercion()
 
 
@@ -550,7 +549,7 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
             phi = self.module_morphism(self._to_natural_basis,
                                        codomain=E, category=self.category(),
                                        triangular='lower', unitriangular=True,
-                                       key=lambda x: _Key(M._lattice, x))
+                                       key=self._key)
 
             phi.register_as_coercion()
             (~phi).register_as_coercion()
@@ -631,7 +630,7 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
             phi = self.module_morphism(self._to_natural_basis,
                                        codomain=E, category=self.category(),
                                        triangular='lower', unitriangular=True,
-                                       key=lambda x: _Key(M._lattice, x))
+                                       key=self._key)
 
             phi.register_as_coercion()
             (~phi).register_as_coercion()
@@ -756,6 +755,20 @@ class MoebiusAlgebraBases(Category_realization_of_parent):
             """
             R = self.realization_of().a_realization()
             return self(R.one())
+
+        def _key(self, x):
+            """
+            Generate the key for comparisons in the basis module morphisms.
+
+            EXAMPLES::
+
+                sage: L = posets.BooleanLattice(4)
+                sage: M = L.moebius_algebra(QQ)
+                sage: E = M.E()
+                sage: type(E._key(5))
+                <class 'sage.combinat.posets.moebius_algebra._Key'>
+            """
+            return _Key(self.realization_of()._lattice, x)
 
     class ElementMethods:
         pass

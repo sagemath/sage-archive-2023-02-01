@@ -807,8 +807,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         if 0 in eval_pts:
             raise TypeError("evaluation points must be non-zero")
         if l == 1:
-            c, _ = values[0].quo_rem(eval_pts[0])
-            return c*self.one()
+            return (values[0]/eval_pts[0])*self.one()
         else:
             A = eval_pts[:l/2]
             B = eval_pts[(l/2):]

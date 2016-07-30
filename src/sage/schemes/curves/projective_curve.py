@@ -36,6 +36,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import division
+from __future__ import absolute_import
 
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
@@ -46,12 +47,18 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.schemes.affine.affine_space import AffineSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace
 
+from . import point
+
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
 from sage.schemes.projective.projective_space import is_ProjectiveSpace
 
-from curve import Curve_generic
+from .curve import Curve_generic
+
 
 class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
+
+    _point = point.ProjectiveCurvePoint_field
+
     def _repr_type(self):
         r"""
         Return a string representation of the type of this curve.
@@ -129,7 +136,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: C.affine_patch(1, A).ambient_space() == A
             True
         """
-        from constructor import Curve
+        from .constructor import Curve
         return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i, AA))
 
     def projection(self, P=None):
@@ -378,82 +385,6 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             raise TypeError("this curve must be irreducible")
         return 1 - self.defining_ideal().hilbert_polynomial()(0)
 
-    def multiplicity(self, P):
-        r"""
-        Return the multiplicity of this projective curve at the point ``P``.
-
-        This is computed as the corresponding multiplicity of an affine patch of this curve that
-        contains the point. This curve must be defined over a field. An error is returned if ``P``
-        not a point on this curve.
-
-        INPUT:
-
-        - ``P`` -- a point in the ambient space of this curve.
-
-        OUTPUT:
-
-        An integer.
-
-        EXAMPLES::
-
-            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
-            sage: C = Curve([y^4 - x^3*z - x^2*z^2], P)
-            sage: Q = P([0,0,1])
-            sage: C.multiplicity(Q)
-            2
-
-        ::
-
-            sage: P.<x,y,z,w> = ProjectiveSpace(RR, 3)
-            sage: C = Curve([y^8 - x^2*z*w^5, w^2 - 2*y^2 - x*z], P)
-            sage: Q1 = P([-1,-1,1,1])
-            sage: C.multiplicity(Q1)
-            1
-            sage: Q2 = P([1,0,0,0])
-            sage: C.multiplicity(Q2)
-            7
-            sage: Q3 = P([0,0,1,0])
-            sage: C.multiplicity(Q3)
-            8
-
-        ::
-
-            sage: P.<x,y,z,w> = ProjectiveSpace(GF(29), 3)
-            sage: C = Curve([y^17 - x^5*w^4*z^8, x*y - z^2], P)
-            sage: Q = P([3,0,0,1])
-            sage: C.multiplicity(Q)
-            8
-
-        ::
-
-            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
-            sage: C = P.curve([y^2*z^5 - x^7])
-            sage: Q = P([-1,-1,1])
-            sage: C.multiplicity(Q)
-            Traceback (most recent call last):
-            ...
-            TypeError: (=(-1 : -1 : 1)) is not a point on (=Projective Plane Curve
-            over Rational Field defined by -x^7 + y^2*z^5)
-        """
-        if not self.base_ring() in Fields():
-            raise TypeError("curve must be defined over a field")
-
-        # Check whether P is a point on this curve
-        try:
-            P = self(P)
-        except TypeError:
-            raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
-
-        # Find an affine chart of the ambient space of self that contains P
-        i = 0
-        while(P[i] == 0):
-            i = i + 1
-        C = self.affine_patch(i)
-        Q = list(P)
-        t = Q.pop(i)
-        Q = [1/t*Q[j] for j in range(self.ambient_space().dimension_relative())]
-        return C.multiplicity(C.ambient_space()(Q))
-
     def is_complete_intersection(self):
         r"""
         Return whether this projective curve is or is not a complete intersection.
@@ -485,6 +416,9 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         return len(self.ambient_space().gens()) - len(I.sage().gens()) == L[-1]
 
 class ProjectivePlaneCurve(ProjectiveCurve):
+
+    _point = point.ProjectivePlaneCurvePoint_field
+
     def __init__(self, A, f):
         r"""
         Initialization function.
@@ -744,7 +678,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         # one avoiding "infinity", i.e. the one corresponding to the
         # last projective coordinate being nonzero
         patch = kwds.pop('patch', self.ngens() - 1)
-        from constructor import Curve
+        from .constructor import Curve
         C = Curve(self.affine_patch(patch))
         return C.plot(*args, **kwds)
 
@@ -994,6 +928,9 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         return not self.tangents(P)[0] == C.tangents(P)[0]
 
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
+
+    _point = point.ProjectivePlaneCurvePoint_finite_field
+
     def rational_points_iterator(self):
         r"""
         Return a generator object for the rational points on this curve.

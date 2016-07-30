@@ -23,7 +23,6 @@ AUTHORS:
 
 - David Kohel (2006-01)
 """
-
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -33,6 +32,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
@@ -47,14 +47,19 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.schemes.affine.affine_space import is_AffineSpace
 
+from . import point
+
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
 
 from sage.schemes.affine.affine_space import AffineSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace
 
-from curve import Curve_generic
+from .curve import Curve_generic
 
 class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
+
+    _point = point.AffineCurvePoint_field
+
     def _repr_type(self):
         r"""
         Return a string representation of the type of this curve.
@@ -142,7 +147,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: C.projective_closure(1, P).ambient_space() == P
             True
         """
-        from constructor import Curve
+        from .constructor import Curve
         return Curve(AlgebraicScheme_subscheme_affine.projective_closure(self, i, PP))
 
     def projection(self, indices, newvariables=True):
@@ -325,74 +330,10 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                 if isinstance(L[1], Curve_generic):
                     return L
 
-    def multiplicity(self, P):
-        r"""
-        Return the multiplicity of this affine curve at the point ``P``.
-
-        This is computed as the multiplicity of the local ring of self corresponding to ``P``. This
-        curve must be defined over a field. An error is raised if ``P`` is not a point on this curve.
-
-        INPUT:
-
-        - ``P`` -- a point in the ambient space of this curve.
-
-        OUTPUT:
-
-        An integer.
-
-        EXAMPLES::
-
-            sage: A.<x,y,z> = AffineSpace(CC, 3)
-            sage: C = A.curve([y - x^2, z - x^3])
-            sage: Q = A([1,1,1])
-            sage: C.multiplicity(Q)
-            1
-
-        ::
-
-            sage: A.<x,y,z,w> = AffineSpace(QQ, 4)
-            sage: C = A.curve([y^9 - x^5, z^10 - w - y^4, z - y])
-            sage: C.multiplicity(A([0,0,0,0]))
-            5
-
-        ::
-
-            sage: A.<x,y,z,w,v> = AffineSpace(GF(23), 5)
-            sage: C = A.curve([x^8 - y, y^7 - z, z^3 - 1, w^5 - v^3])
-            sage: Q = A([22,1,1,0,0])
-            sage: C.multiplicity(Q)
-            3
-
-        ::
-
-            sage: A.<x,y,z> = AffineSpace(QQ, 3)
-            sage: C = A.curve([y^2 - x^3, x^2 - z^2])
-            sage: Q = A([1,1,0])
-            sage: C.multiplicity(Q)
-            Traceback (most recent call last):
-            ...
-            TypeError: (=(1, 1, 0)) is not a point on (=Affine Curve over Rational
-            Field defined by -x^3 + y^2, x^2 - z^2)
-        """
-        if not self.base_ring() in Fields():
-            raise TypeError("curve must be defined over a field")
-
-        # Check whether P is a point on this curve
-        try:
-            P = self(P)
-        except TypeError:
-            raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
-
-        # Apply a linear change of coordinates to self so that P is sent to the origin
-        # and then compute the multiplicity of the local ring of the translated curve 
-        # corresponding to the point (0,...,0)
-        AA = self.ambient_space()
-        chng_coords = [AA.gens()[i] + P[i] for i in range(AA.dimension_relative())]
-        R = AA.coordinate_ring().change_ring(order='negdegrevlex')
-        I = R.ideal([f(chng_coords) for f in self.defining_polynomials()])
-        return singular.mult(singular.std(I)).sage()
-
 class AffinePlaneCurve(AffineCurve):
+
+    _point = point.AffinePlaneCurvePoint_field
+
     def __init__(self, A, f):
         r"""
         Initialization function.
@@ -829,6 +770,9 @@ class AffinePlaneCurve(AffineCurve):
         return True
 
 class AffinePlaneCurve_finite_field(AffinePlaneCurve):
+
+    _point = point.AffinePlaneCurvePoint_finite_field
+
     def rational_points(self, algorithm="enum"):
         r"""
         Return sorted list of all rational points on this curve.

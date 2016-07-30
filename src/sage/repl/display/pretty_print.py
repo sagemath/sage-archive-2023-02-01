@@ -95,13 +95,9 @@ class SagePrettyPrinter(PrettyPrinter):
             <type 'sage.rings.integer.Integer'>
             sage: type
             <type 'type'>
-            sage: [type, type]
-            [<type 'type'>, <type 'type'>]
             sage: import types
-            sage: types.ClassType('name', (), {})
-            <class __main__.name at 0x...>
-            sage: types.TypeType
-            <type 'type'>
+            sage: type('name', (), {})
+            <class '__main__.name'>
             sage: types.BuiltinFunctionType
             <type 'builtin_function_or_method'>
     

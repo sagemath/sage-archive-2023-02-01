@@ -10,14 +10,15 @@ Functions
 ---------
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.unknown import Unknown
 from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.arith.all import is_prime_power, divisors
-from designs_pyx import is_difference_matrix
-from database import DM as DM_constructions
+from .designs_pyx import is_difference_matrix
+from .database import DM as DM_constructions
 
 @cached_function
 def find_product_decomposition(g, k, lmbda=1):

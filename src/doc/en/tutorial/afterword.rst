@@ -160,7 +160,7 @@ adding to the Sage documentation to reporting bugs.
 Browse the Sage web page for information for developers; among
 other things, you can find a long list of Sage-related projects
 ordered by priority and category. The
-`Sage Developer's Guide <http://www.sagemath.org/doc/developer/>`_
+`Sage Developer's Guide <http://doc.sagemath.org/html/en/developer/>`_
 has helpful information, as well, and you can also check out the
 ``sage-devel`` Google group.
 

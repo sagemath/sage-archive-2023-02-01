@@ -750,6 +750,8 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             sage: eval_pts = [1, t, t^2]
             sage: c = S.multi_point_evaluation(a, eval_pts); c
             [t + 1, 3*t^2 + 4*t + 4, 4*t]
+            sage: [ a(e) for e in eval_pts ]
+            [t + 1, 3*t^2 + 4*t + 4, 4*t]
         """
         coefficients = p.list()
         sigma = self.twist_map()

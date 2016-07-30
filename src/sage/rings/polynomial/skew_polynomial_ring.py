@@ -800,8 +800,6 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             x + t
         """
         l = len(eval_pts)
-        if l > log(self.base_ring().order(), self.base_ring().characteristic()):
-            raise TypeError("number of evaluation points cannot be more than dimension of base field")
         if l != len(values):
             raise TypeError("number of evaluation points and values must be equal")
         if l > len(set(eval_pts)):

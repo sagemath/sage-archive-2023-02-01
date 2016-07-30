@@ -88,6 +88,8 @@ OPT=dbg
 CFLAGS="$CFLAGS -O3"
 CXXFLAGS="$CXXFLAGS -O3"
 
+arg_LIBBUILDFLAGS=UNUSED=
+
 if [ `uname` = 'Darwin' ] ; then
     SHAREDLIBEXT="dylib"
     # regarding "-undefined dynamic_lookup" see https://trac.macports.org/ticket/44596
@@ -124,13 +126,18 @@ touch libsoplex.$OS.$ARCH.gnu.$OPT.a
 
 echo "Compiling SCIP"
 
+if [ `uname` = 'Darwin' ] ; then
+    # regarding "-undefined dynamic_lookup" see https://trac.macports.org/ticket/44596
+    arg_LIBBUILDFLAGS=LIBBUILDFLAGS="$LDFLAGS -dynamiclib -undefined dynamic_lookup -flat_namespace"
+fi
+
 cd $SRC/$SCIP_DIR
 # for clp add the option LPS=clp
 ## added -rpath.  Abusing LIBBUILD_o is of course a hack. 
 $MAKE OPT=$OPT LPSOPT=$OPT VERBOSE=true SHARED=true ZIMPL=false GMP=true ZLIB=true READLINE=true \
      USRCFLAGS="$CFLAGS" USRCXXFLAGS="$CXXFLAGS" USRLDFLAGS="$LDFLAGS" \
      LIBBUILD_o="-Wl,-rpath,$SAGE_LOCAL/lib -lgmp -lz -lreadline -o " \
-     LIBBUILDFLAGS="-dynamiclib -undefined dynamic_lookup -flat_namespace" \
+     "$arg_LIBBUILDFLAGS" \
      SHAREDLIBEXT="$SHAREDLIBEXT" INSTALLDIR="$SAGE_LOCAL" LINKRPATH="" install
 if [ $? -ne 0 ]; then
     echo "Error building/installing SCIP."

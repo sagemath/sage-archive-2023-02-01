@@ -42,36 +42,38 @@ from sage.functions.other import sqrt
 
 r"""
 This is the default TIKZ options.
-This option is used to configurate element of a drawing to allow 
+This option is used to configurate element of a drawing to allow
 TIKZ code generation.
 """
-default_tikz_options = dict(
-    scale=1, line_size=1, point_size=3.5,
-    color_line='black', color_point='black',
-    color_bounce_0='red', color_bounce_1='blue',
-    translation=[0, 0], rotation=0,
-    mirror=None,
-)
+default_tikz_options = dict(scale=1, line_size=1, point_size=3.5,
+                            color_line='black', color_point='black',
+                            color_bounce_0='red', color_bounce_1='blue',
+                            translation=[0, 0], rotation=0,
+                            mirror=None)
 
 r"""
 This global option contains all the data needed by the Parallelogram classes
 to draw, display in ASCII, compile in latex a parallelogram polyomino.
 
 The options avalaible are :
- - tikz_options : this option configurate all the information usefull to 
+
+ - tikz_options : this option configurate all the information usefull to
    generate TIKZ code. For example, color, line size, etc ...
- - drawing_components : this option is used to explain to the system 
-   which compoent of the drawing you want to draw. For example, 
+
+ - drawing_components : this option is used to explain to the system
+   which compoent of the drawing you want to draw. For example,
    you can ask to draw some elements of the following list :
       - the diagram,
       - the tree inside the parallelogram polyomino,
       - the bounce paths inside the parallelogram polyomino.
+
  - display : this option is used to configurate the ASCII display.
    the option avalaible are :
-      - list : the default value is 'list' and is used to represent PP as a 
+      - list : the default value is 'list' and is used to represent PP as a
         list containinge the upper and lower path.
-      - drawing : this value is used to eplain we want to dispaly an array 
+      - drawing : this value is used to eplain we want to dispaly an array
         with th PP drawn inside (with connectec 1).
+
  - latex : Same as display. The default is 'drawing'.
 """
 ParallelogramPolyominoesOptions = GlobalOptions(
@@ -121,12 +123,13 @@ class _drawing_tool:
     r"""
     Technical class to produce TIKZ drawing.
 
-    This class contains some 2D geometric tools to produce some TIKZ 
+    This class contains some 2D geometric tools to produce some TIKZ
     drawings.
     With that classes you can use options to set up drawing informations.
     The the class will produce a drawin by using those informations.
 
     EXAMPLES::
+
         sage: from sage.combinat.parallelogram_polyomino import (
         ....:     _drawing_tool, default_tikz_options,
         ....:     ParallelogramPolyominoesOptions
@@ -156,10 +159,11 @@ class _drawing_tool:
         INPUTS:
 
         - `options` -- drawing options
-        - `XY` -- A user function to convert vector in other vector. 
+        - `XY` -- A user function to convert vector in other vector.
                   (default : identity function)
 
         EXAMPLES::
+
             sage: from sage.combinat.parallelogram_polyomino import (
             ....:     _drawing_tool, default_tikz_options,
             ....:     ParallelogramPolyominoesOptions
@@ -180,21 +184,22 @@ class _drawing_tool:
 
     def XY(self, v):
         """
-        This function give the image of v by some transformation given by the 
+        This function give the image of v by some transformation given by the
         drawingoption of ``_drawing_tool``.
 
-        The transformation is the composition of rotation, mirror, translation 
+        The transformation is the composition of rotation, mirror, translation
         and XY user function.
-        First we apply XY function, then the translation, then the mirror and 
+
+        First we apply XY function, then the translation, then the mirror and
         finaly the rotation.
 
-        INPUTS:
+        INPUT:
 
         - `v` -- The vector to transform.
 
         OUTPUT:
 
-        A list of 2 floats encoding a vector. 
+        A list of 2 floats encoding a vector.
 
         EXAMPLES::
 
@@ -251,10 +256,10 @@ class _drawing_tool:
 
     def draw_line(self, v1, v2, color=None, size=None):
         """
-        Return the TIKZ code for a line according the drawing option given 
+        Return the TIKZ code for a line according the drawing option given
         to ``_drawing_tool``.
 
-        INPUTS:
+        INPUT:
 
         - `v1` -- The first point of the line.
         - `v2` -- The second point of the line.
@@ -288,10 +293,10 @@ class _drawing_tool:
 
     def draw_polyline(self, list_of_vertices, color=None, size=None):
         """
-        Return the TIKZ code for a polyline according the drawing option given 
+        Return the TIKZ code for a polyline according the drawing option given
         to ``_drawing_tool``.
 
-        INPUTS:
+        INPUT:
 
         - `list_of_vertices` -- A list of points
         - `color` -- The color of the line.
@@ -320,10 +325,10 @@ class _drawing_tool:
 
     def draw_point(self, p1, color=None, size=None):
         """
-        Return the TIKZ code for a point according the drawing option given 
+        Return the TIKZ code for a point according the drawing option given
         to ``_drawing_tool``.
 
-        INPUTS:
+        INPUT:
 
         - `p1` -- A point
         - `color` -- The color of the line.
@@ -358,14 +363,15 @@ class ParallelogramPolyomino(ClonableList):
     r"""
     Parallelogram Polyominoes.
 
-    A parallelogram polyomino is a finite connected union of cells 
-    whose boundary can be decomposed in two paths, the upper and the lower 
-    paths, which are comprised of north and east unit steps and meet only at 
+    A parallelogram polyomino is a finite connected union of cells
+    whose boundary can be decomposed in two paths, the upper and the lower
+    paths, which are comprised of north and east unit steps and meet only at
     their starting and final points.
 
     Parallelogram Polyominoes can be defined with those two paths.
 
     EXAMPLES::
+
         sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
         sage: pp
         [[0, 1], [1, 0]]
@@ -375,8 +381,8 @@ class ParallelogramPolyomino(ClonableList):
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         r"""
-        Ensure that parallelogram polyominoes created by the enumerated sets 
-        and directly are the same and that they are instances of 
+        Ensure that parallelogram polyominoes created by the enumerated sets
+        and directly are the same and that they are instances of
         :class:`ParallelogramPolyomino`.
 
         TESTS::
@@ -599,6 +605,7 @@ class ParallelogramPolyomino(ClonableList):
             Theoret. Comput. Sci. 34, 169-206, 1984.
 
         EXAMPLES::
+
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 1, 0, 0, 1, 1], [1, 1, 1, 0, 0, 0]]
             ....: )
@@ -627,14 +634,13 @@ class ParallelogramPolyomino(ClonableList):
             "Algebraic Languages and Polyominoes Enumeration."
             Theoret. Comput. Sci. 34, 169-206, 1984.
 
-        INPUTS:
+        INPUT:
 
         - `bijection` -- The name of the bijection (default:'Delest-Viennot')
 
         OUTPUT:
 
-        A list of 2 floats encoding a vector. 
-
+        A list of 2 floats encoding a vector.
 
         EXAMPLES::
 
@@ -660,7 +666,7 @@ class ParallelogramPolyomino(ClonableList):
             "Algebraic Languages and Polyominoes [sic] Enumeration."
             Theoret. Comput. Sci. 34, 169-206, 1984.
 
-        INPUTS:
+        INPUT:
 
         - `dyck` -- a dyck word
 
@@ -690,7 +696,7 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Convert dyck word to parallelogram polyomino.
 
-        INPUTS:
+        INPUT:
 
         - `dyck` -- a dyck word
         - `bijection` -- (default: 'Delest-Viennot') the bijection to use.
@@ -719,9 +725,9 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Convert to a binary tree using the Aval-Boussicault algorithm.
 
-        You can use the parameter ``position`` to use the bijection on 
-        a new parallelogram polyomino (PP). This PP is obtained by cuting the 
-        PP in such a way the cell at position ``position`` becomes the 
+        You can use the parameter ``position`` to use the bijection on
+        a new parallelogram polyomino (PP). This PP is obtained by cuting the
+        PP in such a way the cell at position ``position`` becomes the
         top-left most corner of the PP.
 
         Ref.:
@@ -822,7 +828,7 @@ class ParallelogramPolyomino(ClonableList):
 
     def _to_ordered_tree_via_dyck(self):
         r"""
-        Convert the parallelogram polyominoe (PP) by using first 
+        Convert the parallelogram polyominoe (PP) by using first
         the Delest-Viennot bijection between PP and dyck paths,
         and then by using the classical bijection between dyck paths
         and ordered trees.
@@ -859,11 +865,12 @@ class ParallelogramPolyomino(ClonableList):
         Return the ordered tree using the Boussicault-Socci bijection.
 
         This bijection is described in the article :
-            Ref. A. Boussicault, S. Rinaldi et S. Socci.
-            "The number of directed k-convex polyominoes"
-            27th Annual International Conference on Formal Power Series and 
-            Algebraic Combinatorics (FPSAC 2015), 2015.
-            arxiv:1501.00872
+
+        Ref. A. Boussicault, S. Rinaldi et S. Socci.
+        "The number of directed k-convex polyominoes"
+        27th Annual International Conference on Formal Power Series and
+        Algebraic Combinatorics (FPSAC 2015), 2015.
+        :arxiv:`1501.00872`
 
         EXAMPLES::
 
@@ -916,7 +923,7 @@ class ParallelogramPolyomino(ClonableList):
           'via dyck', 'via dyck and Delest-Viennot'. The default bijection is
           'Boussicault-Socci'.
 
-          TODO: Faire de la biblio.
+        TODO: Faire de la biblio.
 
         EXAMPLES::
 
@@ -1045,7 +1052,7 @@ class ParallelogramPolyomino(ClonableList):
         2) remove all the ``up`` letters and retrun the resulting list of
            integers.
 
-        INPUTS:
+        INPUT:
 
         - ``word`` -- A word of 0 and 1.
         - ``up`` -- 0 or 1 (a letter of the word)
@@ -1076,7 +1083,7 @@ class ParallelogramPolyomino(ClonableList):
 
     def upper_heights(self):
         r"""
-        Return the list of heights associated to each vertical step of the 
+        Return the list of heights associated to each vertical step of the
         parallogram polyomino's upper path.
 
         OUTPUT:
@@ -1096,7 +1103,7 @@ class ParallelogramPolyomino(ClonableList):
 
     def lower_heights(self):
         r"""
-        Return the list of heights associated to each vertical step of the 
+        Return the list of heights associated to each vertical step of the
         parallogram polyomino's lower path.
 
         OUTPUT:
@@ -1116,7 +1123,7 @@ class ParallelogramPolyomino(ClonableList):
 
     def upper_widths(self):
         r"""
-        Return the list of widths associated to each horizontal step of the 
+        Return the list of widths associated to each horizontal step of the
         parallogram polyomino's upper path.
 
         OUTPUT:
@@ -1136,7 +1143,7 @@ class ParallelogramPolyomino(ClonableList):
 
     def lower_widths(self):
         r"""
-        Return the list of widths associated to each horizontal step of the 
+        Return the list of widths associated to each horizontal step of the
         parallogram polyomino's lower path.
 
         OUTPUT:
@@ -1724,7 +1731,7 @@ class ParallelogramPolyomino(ClonableList):
 
     def get_tikz_options(self):
         r"""
-        Return all the tikz options permitting to draw the parallelogram 
+        Return all the tikz options permitting to draw the parallelogram
         polyomino.
 
         EXAMPLES::
@@ -1902,7 +1909,7 @@ class ParallelogramPolyomino(ClonableList):
 
     def box_is_node(self, pos):
         r"""
-        Return True if the box contains a node in the context of the 
+        Return True if the box contains a node in the context of the
         Aval-Boussicault bijection between parallelogram polyomino and binary
         tree.
 
@@ -1943,10 +1950,10 @@ class ParallelogramPolyomino(ClonableList):
 
     def box_is_root(self, box):
         r"""
-        Return True if the box contains the root of the tree : it is the left 
-        top most celle of the parallelogram polyomino.
+        Return ``True`` if the box contains the root of the tree : it
+        is the left top most cell of the parallelogram polyomino.
 
-        INPUTS:
+        INPUT:
 
         - `box` -- the x,y coordinate of the cell.
 
@@ -1991,10 +1998,10 @@ class ParallelogramPolyomino(ClonableList):
 
     def get_nodes(self):
         r"""
-        Return the list of cells containing node of the left and planar tree in 
+        Return the list of cells containing node of the left and planar tree in
         the Boussicault-Socci bijection.
 
-        Todo : make a class containg all information about the Boussicault-Saocci
+        Todo : make a class containg all information about the Boussicault-Socci
                bijection
 
         EXAMPLES::
@@ -2027,11 +2034,11 @@ class ParallelogramPolyomino(ClonableList):
 
     def get_right_nodes(self):
         r"""
-        Return the list of cells containing node of the right planar tree in 
+        Return the list of cells containing node of the right planar tree in
         the Boussicault-Socci bijection between parallelogram polyominoes
         and pair of ordered trees.
 
-        Todo : make a class containg all information about the Boussicault-Saocci
+        Todo : make a class containg all information about the Boussicault-Socci
                bijection
 
         EXAMPLES::
@@ -2081,11 +2088,11 @@ class ParallelogramPolyomino(ClonableList):
 
     def get_left_nodes(self):
         r"""
-        Return the list of cells containing node of the left planar tree in 
+        Return the list of cells containing node of the left planar tree in
         the Boussicault-Socci bijection between parallelogram polyominoes
         and pair of ordered trees.
 
-        Todo : make a class containg all information about the Boussicault-Saocci
+        Todo : make a class containg all information about the Boussicault-Socci
                bijection
 
         EXAMPLES::
@@ -2280,7 +2287,7 @@ class ParallelogramPolyominoesFactory(SetFactory):
     """
     def __call__(self, size=None, policy=None):
         r"""
-        Return a family of parallelogram polyominoes enumerated with the 
+        Return a family of parallelogram polyominoes enumerated with the
         parameter constraints.
 
         EXAMPLES::
@@ -2307,7 +2314,7 @@ class ParallelogramPolyominoesFactory(SetFactory):
 
     def add_constraints(self, cons, args_opts):
         r"""
-        This function permit to add some enumeration constraint to the 
+        This function permit to add some enumeration constraint to the
         factory. The factory make a family using the given constraints.
 
         :meth:`SetFactory.add_constraints<.set_factories.SetFactory.add_constraints>`.
@@ -2324,7 +2331,7 @@ class ParallelogramPolyominoesFactory(SetFactory):
 
     def _repr_(self):
         r"""
-        Return the string representation of the parallelogram polyominoes 
+        Return the string representation of the parallelogram polyominoes
         factory.
 
         EXAMPLES::
@@ -2408,10 +2415,7 @@ class ParallelogramPolyominoes_size(
         """
         if el.size() != self.size():
             raise ValueError(
-                "The parallelogram polyomino have a Wrong size: %s" % (
-                    el.size()
-                )
-            )
+                "the parallelogram polyomino has a wrong size: %s" % el.size())
 
     def cardinality(self):
         r"""
@@ -2445,7 +2449,7 @@ class ParallelogramPolyominoes_size(
             ....: ])
             True
         """
-        return catalan_number(self.size()-1)
+        return catalan_number(self.size() - 1)
 
     def __iter__(self):
         r"""
@@ -2467,7 +2471,7 @@ class ParallelogramPolyominoes_size(
 
     def get_options(self):
         r"""
-        Return all the options associated with all the elements of 
+        Return all the options associated with all the elements of
         the set of parallelogram polyominoes with a fixed size.
 
         EXAMPLES::

@@ -452,7 +452,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
                 return True
         return False
 
-    def __richcmp__(self, other, int op):
+    def _richcmp_(self, other, int op):
         """
         Implement comparisons, using the Cython richcmp convention.
 
@@ -463,8 +463,6 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             sage: p - p.lt() < p     # indirect doctest
             True
         """
-        if type(self) != type(other):
-            return NotImplemented
         left = (<FreeAlgebraElement_letterplace>self)._poly
         right = (<FreeAlgebraElement_letterplace>other)._poly
         return PyObject_RichCompare(left, right, op)

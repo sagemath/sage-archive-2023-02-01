@@ -86,7 +86,7 @@ cdef class LeftZeroSemigroupElement(Element):
         """
         return LeftZeroSemigroupElement, (self._parent, self._value)
 
-    def __richcmp__(self, other, int op):
+    def _richcmp_(self, other, int op):
         """
         EXAMPLES::
 
@@ -97,8 +97,6 @@ cdef class LeftZeroSemigroupElement(Element):
             sage: S(3) == S(2)
             False
         """
-        if type(self) != type(other):
-            return NotImplemented
         left = (<LeftZeroSemigroupElement>self)._value
         right = (<LeftZeroSemigroupElement>other)._value
         return PyObject_RichCompare(left, right, op)

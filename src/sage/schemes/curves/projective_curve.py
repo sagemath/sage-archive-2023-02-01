@@ -42,6 +42,7 @@ from sage.categories.homset import Hom
 from sage.interfaces.all import singular
 from sage.misc.all import add, sage_eval
 from sage.rings.all import degree_lowest_rational_function
+from sage.rings.rational_field import is_RationalField
 from sage.schemes.affine.affine_space import AffineSpace
 
 import point
@@ -780,6 +781,44 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         # there is only one tangent at a nonsingular point of a plane curve
         return not self.tangents(P)[0] == C.tangents(P)[0]
+
+    def rational_parameterization(self):
+        r"""
+        Return a rational parameterization of this curve.
+
+        This curve must have rational coefficients and be absolutely irreducible (i.e. irreducible
+        over the algebraic closure of the rational field). The curve must also be rational (have
+        geometric genus zero).
+
+        The rational parameterization may have coefficients in a quadratic extension of the rational
+        field.
+
+        OUTPUT:
+
+        - a tuple of three polynomials that define a birational map from `\mathbb{P}^1` to this curve.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([y^2*z - x^3], P)
+            sage: C.rational_parameterization()
+            (s^2*t, s^3, t^3)
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([x^3 - 4*y*z^2 + x*z^2 - x*y*z], P)
+            sage: C.rational_parameterization()
+            (4*s^2*t + s*t^2, s^2*t + t^3, 4*s^3 + s^2*t)
+        """
+        if self.genus() != 0:
+            raise TypeError("this curve must have geometric genus zero")
+        if not is_RationalField(self.base_ring()):
+            raise TypeError("this curve must be defined over the rational field")
+        singular.lib("paraplanecurves.lib")
+        R = singular.paraPlaneCurve(self.defining_polynomial())
+        singular.setring(R)
+        return tuple(singular('PARA').sage().gens())
 
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
 

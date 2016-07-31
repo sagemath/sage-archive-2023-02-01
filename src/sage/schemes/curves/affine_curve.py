@@ -655,6 +655,47 @@ class AffinePlaneCurve(AffineCurve):
         # otherwise they are distinct
         return True
 
+    def rational_parameterization(self):
+        r"""
+        Return a rational parameterization of this curve.
+
+        This curve must have rational coefficients and be absolutely irreducible (i.e. irreducible
+        over the algebraic closure of the rational field). The curve must also be rational (have
+        geometric genus zero).
+
+        The rational parameterization may have coefficients in a quadratic extension of the rational
+        field.
+
+        OUTPUT:
+
+        - a tuple of three elements of the fraction field of a polynomial ring in one indeterminant that
+          define a birational map from `\mathbb{A}^1` to this curve.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([y^2 - x], A)
+            sage: C.rational_parameterization()
+            (t^2, t)
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([(x^2 + y^2 - 2*x)^2 - x^2 - y^2], A)
+            sage: C.rational_parameterization()
+            ((-12*t^4 + 6*t^3 + 4*t^2 - 2*t)/(-25*t^4 + 40*t^3 - 26*t^2 + 8*t - 1),
+            (-9*t^4 + 12*t^3 - 4*t + 1)/(-25*t^4 + 40*t^3 - 26*t^2 + 8*t - 1))
+        """
+        para = self.projective_closure(i=0).rational_parameterization()
+        # these polynomials are homogeneous in two indeterminants, so dehomogenize wrt one of the variables
+        R = para[0].parent()
+        S = PolynomialRing(R.base_ring(), 1, 't')
+        para = [S(para[i].substitute({R.gens()[0]: 1})) for i in range(3)]
+        # because of the parameter i=0, the projective closure is constructed with respect to the
+        # affine patch corresponding to the first coordinate being nonzero. Thus para[0] will not be
+        # the zero polynomial, and dehomogenization won't change this
+        return tuple([para[1]/para[0], para[2]/para[0]])
+
 class AffinePlaneCurve_finite_field(AffinePlaneCurve):
 
     _point = point.AffinePlaneCurvePoint_finite_field

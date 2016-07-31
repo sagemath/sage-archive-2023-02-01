@@ -96,6 +96,7 @@ if [ `uname` = 'Darwin' ] ; then
     arg_LIBBUILDFLAGS=LIBBUILDFLAGS="$LDFLAGS -dynamiclib -undefined dynamic_lookup -flat_namespace -install_name $SAGE_LOCAL/lib/libsoplex-$SOPLEX_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT -lgmp -lz"
 else
     SHAREDLIBEXT="so"
+    arg_LIBBUILDFLAGS=LIBBUILDFLAGS="$LDFLAGS -shared --Wl,-soname=$SAGE_LOCAL/lib/libsoplex-$SOPLEX_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
 fi
 
 cd $SRC/$SOPLEX_DIR

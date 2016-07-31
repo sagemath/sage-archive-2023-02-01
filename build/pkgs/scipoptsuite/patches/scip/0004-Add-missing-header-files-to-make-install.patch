@@ -1,7 +1,7 @@
 From 9de9714845a02c6dcf40548f820c2970aa561eb3 Mon Sep 17 00:00:00 2001
 From: Matthias Koeppe <mkoeppe@math.ucdavis.edu>
 Date: Fri, 29 Jul 2016 14:18:32 -0700
-Subject: [PATCH 4/4] Add missing header files to 'make install'
+Subject: [PATCH 4/5] Add missing header files to 'make install'
 
 ---
  make/make.install | 9 +++++++++

@@ -129,6 +129,15 @@ echo "Compiling SCIP"
 if [ `uname` = 'Darwin' ] ; then
     # regarding "-undefined dynamic_lookup" see https://trac.macports.org/ticket/44596
     arg_LIBBUILDFLAGS=LIBBUILDFLAGS="$LDFLAGS -dynamiclib -undefined dynamic_lookup -flat_namespace"
+    SCIP_LIBBUILDFLAGS="-Wl,-install_name,$SAGE_LOCAL/lib/libscip-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
+    OBJSCIP_LIBBUILDFLAGS="-Wl,-install_name,$SAGE_LOCAL/lib/libobjscip-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
+    LPI_LIBBUILDFLAGS="-Wl,-install_name,$SAGE_LOCAL/lib/liblpispx-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
+    NLPI_LIBBUILDFLAGS="-Wl,-install_name,$SAGE_LOCAL/lib/libnlpi.cppad-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
+else
+    SCIP_LIBBUILDFLAGS="-Wl,-soname=$SAGE_LOCAL/lib/libscip-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
+    OBJSCIP_LIBBUILDFLAGS="-Wl,-soname=$SAGE_LOCAL/lib/libobjscip-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
+    LPI_LIBBUILDFLAGS="-Wl,-soname=$SAGE_LOCAL/lib/liblpispx-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
+    NLPI_LIBBUILDFLAGS="-Wl,-soname=$SAGE_LOCAL/lib/libnlpi.cppad-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
 fi
 
 cd $SRC/$SCIP_DIR
@@ -138,34 +147,14 @@ $MAKE OPT=$OPT LPSOPT=$OPT VERBOSE=true SHARED=true ZIMPL=false GMP=true ZLIB=tr
      USRCFLAGS="$CFLAGS" USRCXXFLAGS="$CXXFLAGS" USRLDFLAGS="$LDFLAGS" \
      LIBBUILD_o="-Wl,-rpath,$SAGE_LOCAL/lib -lgmp -lz -lreadline -o " \
      "$arg_LIBBUILDFLAGS" \
+     SCIP_LIBBUILDFLAGS=$SCIP_LIBBUILDFLAGS \
+     OBJSCIP_LIBBUILDFLAGS=$OBJSCIP_LIBBUILDFLAGS \
+     LPI_LIBBUILDFLAGS=$LPI_LIBBUILDFLAGS \
+     NLPI_LIBBUILDFLAGS=$NLPI_LIBBUILDFLAGS \
      SHAREDLIBEXT="$SHAREDLIBEXT" INSTALLDIR="$SAGE_LOCAL" LINKRPATH="" install
 if [ $? -ne 0 ]; then
     echo "Error building/installing SCIP."
     exit 1
-fi
-
-if [ `uname` = 'Darwin' ]; then 
-    # Adjust install_name on Mac OS (check with otool -L).
-    # (Could instead change the Makefile to use -install_name option to linker)
-    for a in liblpispx libnlpi.cppad libscip libobjscip ; do
-	install_name_tool -id "$SAGE_LOCAL/lib/$a-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT" $SAGE_LOCAL/lib/$a-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT
-	if [ $? -ne 0 ]; then
-	    echo "Error adjusting install_name for SCIP libraries"
-	    exit 1
-	fi
-    done
-    # Change the install name of libscip's dependencies.
-    for a in libscip; do
-	for b in liblpispx libnlpi.cppad ; do 
-	    install_name_tool -change lib/$b-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT $SAGE_LOCAL/lib/$b-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT $SAGE_LOCAL/lib/$a-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT
-	done
-    done
-    # Finally, change the install name of scip's dependencies.
-    for a in scip; do
-	for b in liblpispx libnlpi.cppad libscip ; do 
-	    install_name_tool -change lib/$b-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT $SAGE_LOCAL/lib/$b-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT $SAGE_LOCAL/bin/$a-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.spx
-	done
-    done
 fi
 
 # Also install libscip under the name libscipopt.  The scipoptsuite

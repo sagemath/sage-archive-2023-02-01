@@ -1,7 +1,7 @@
 From 89d51635a590233215f1f08a73407a38f3c1a2f1 Mon Sep 17 00:00:00 2001
 From: Matthias Koeppe <mkoeppe@math.ucdavis.edu>
 Date: Fri, 29 Jul 2016 14:18:12 -0700
-Subject: [PATCH 3/4] Link SCIP against libscip
+Subject: [PATCH 3/5] Link SCIP against libscip
 
 ---
  Makefile | 4 ++--

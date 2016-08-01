@@ -1132,7 +1132,10 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         # begin with points at infinity (on the smooth model)
         if g == 1:
             # elliptic curves always have one smooth point at infinity
-            a += 1
+            if K.degree() % 2:
+                a += 1
+            elif K.characteristic() != 2:
+                a += 1 + legendre_symbol(a, K.cardinality())
         else:
             # g > 1
             # solve y^2 + y*h[g+1] == f[2*g+2], i.e., y^2 + r*y - s == 0

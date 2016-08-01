@@ -10,8 +10,9 @@ Root system data for type G
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
-import ambient_space
+from . import ambient_space
 from sage.sets.family import Family
 from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 class AmbientSpace(ambient_space.AmbientSpace):
@@ -108,7 +109,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
     _plot_projection = RootLatticeRealizations.ParentMethods.__dict__['_plot_projection_barycentric']
 
 
-from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic
+from .cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic
 class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystallographic):
     def __init__(self):
         """
@@ -191,7 +192,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             sage: sorted(g.edges())
             [(1, 2, 1), (2, 1, 3)]
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         g = DynkinDiagram_class(self)
         g.add_edge(1,2)
         g.set_edge_label(2,1,3)

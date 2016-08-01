@@ -187,6 +187,7 @@ TESTS::
 #******************************************************************************
 # python3
 from __future__ import division, print_function
+from __future__ import absolute_import
 
 import sage.modules.module as module
 from sage.categories.modules import Modules
@@ -214,8 +215,8 @@ from sage.misc.randstate import current_randstate
 from sage.misc.decorators import rename_keyword
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
-from encoder import Encoder
-from decoder import Decoder, DecodingError
+from .encoder import Encoder
+from .decoder import Decoder, DecodingError
 from sage.combinat.subset import Subsets
 from sage.categories.cartesian_product import cartesian_product
 # import compatible with py2 and py3
@@ -607,7 +608,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     d=int(b)
     if d!=b or d%2==1 or d <= 0:
         raise ValueError("b (%s) must be a positive even integer."%b)
-    from binary_code import BinaryCode, BinaryCodeClassifier
+    from .binary_code import BinaryCode, BinaryCodeClassifier
     if k < 1 or n < 2:
         return
     if equal:
@@ -803,6 +804,12 @@ class AbstractLinearCode(module.Module):
             ...
             ValueError: 'generator' must be defined on a field (not a ring)
         """
+        ### Add here any generic encoder/decoder ###
+        #This allows any class which inherits from AbstractLinearCode
+        #to use generic decoders/encoders
+        self._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
+        self._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
+
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")
         if not base_field.is_field():
@@ -811,6 +818,7 @@ class AbstractLinearCode(module.Module):
             raise ValueError("You must set a valid encoder as default encoder for this code, by filling in the dictionary of registered encoders")
         if not default_decoder_name in self._registered_decoders:
             raise ValueError("You must set a valid decoder as default decoder for this code, by filling in the dictionary of registered decoders")
+
         self._length = Integer(length)
         self._default_decoder_name = default_decoder_name
         self._default_encoder_name = default_encoder_name
@@ -1988,8 +1996,7 @@ class AbstractLinearCode(module.Module):
             ['GeneratorMatrix']
 
             sage: C.encoders_available(True)
-            {'GeneratorMatrix':
-            <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>}
+            {'GeneratorMatrix': <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>}
         """
         if classes == True:
             return copy(self._registered_encoders)
@@ -2011,7 +2018,7 @@ class AbstractLinearCode(module.Module):
             sage: Cx
             Extended code coming from [21, 18] Hamming Code over Finite Field in a of size 2^2
         """
-        from extended_code import ExtendedCode
+        from .extended_code import ExtendedCode
         return ExtendedCode(self)
 
     def galois_closure(self, F0):
@@ -2855,7 +2862,7 @@ class AbstractLinearCode(module.Module):
             sage: C.punctured([1,2])
             Punctured code coming from [7, 4] Hamming Code over Finite Field of size 2 punctured on position(s) [1, 2]
         """
-        from punctured_code import PuncturedCode
+        from .punctured_code import PuncturedCode
         return PuncturedCode(self, set(L))
 
     def _punctured_form(self, points):
@@ -4291,7 +4298,7 @@ class LinearCodeSyndromeDecoder(Decoder):
         k = C.dimension()
         H = C.parity_check_matrix()
         F = C.base_ring()
-        l = F.list()
+        l = copy(F.list())
         zero = F.zero()
         #Builds a list of generators of all error positions for all
         #possible error weights
@@ -4566,7 +4573,5 @@ class LinearCodeNearestNeighborDecoder(Decoder):
 
 LinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder
 
-LinearCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
 LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "dynamic"}
-LinearCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
 LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}

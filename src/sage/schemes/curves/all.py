@@ -1,6 +1,7 @@
 """
 Plane curves
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #
@@ -20,7 +21,7 @@ Plane curves
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from constructor import Curve
+from .constructor import Curve
 
-from projective_curve import Hasse_bounds
+from .projective_curve import Hasse_bounds
 

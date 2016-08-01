@@ -43,8 +43,9 @@ Test that write errors to stderr are handled gracefully by GAP
     0
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
-from all import *
+from .all import *
 from sage.misc.misc import cputime, walltime
 import sys
 

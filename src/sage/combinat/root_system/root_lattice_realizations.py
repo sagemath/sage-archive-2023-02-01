@@ -12,6 +12,7 @@ Root lattice realizations
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.misc.misc import attrcall
@@ -181,7 +182,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 The embeddings are systematically tested in
                 :meth:`_test_root_lattice_realization`.
             """
-            from root_space import RootSpace
+            from .root_space import RootSpace
             K = self.base_ring()
             # If self is the root lattice or the root space, we don't want
             # to register its trivial embedding into itself. This builds
@@ -1849,8 +1850,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: RootSystem(["A",4,1]).ambient_space().classical()
                 Ambient space of the Root system of type ['A', 4]
             """
-            from root_space import RootSpace
-            from weight_space import WeightSpace
+            from .root_space import RootSpace
+            from .weight_space import WeightSpace
             R = self.cartan_type().classical().root_system()
             if isinstance(self, RootSpace):
                 return R.root_space(self.base_ring())
@@ -3162,8 +3163,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 Weight lattice of the Root system of type ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
 
             """
-            from root_space import RootSpace
-            from weight_space import WeightSpace
+            from .root_space import RootSpace
+            from .weight_space import WeightSpace
 
             if isinstance(self, RootSpace):
                 if self.root_system.dual_side:

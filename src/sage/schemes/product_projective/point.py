@@ -544,7 +544,61 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         return(Orb)
 
 class ProductProjectiveSpaces_point_field(ProductProjectiveSpaces_point_ring):
-    pass
+
+    def intersection_multiplicity(self, X):
+        r"""
+        Return the intersection multiplicity of the codomain of this point and subscheme ``X`` at this point.
+
+        This uses the subscheme implementation of intersection_multiplicity. This point must be a point
+        on a subscheme of a product of projective spaces.
+
+        INPUT:
+
+        - ``X`` -- a subscheme in the same ambient space as the codomain of this point.
+
+        OUTPUT: An integer.
+
+        EXAMPLES::
+
+            sage: PP.<x,y,z,u,v> = ProductProjectiveSpaces(QQ, [2,1])
+            sage: X = PP.subscheme([y^2*z^3*u - x^5*v])
+            sage: Y = PP.subscheme([u^3 - v^3, x - y])
+            sage: Q = X([0,0,1,1,1])
+            sage: Q.intersection_multiplicity(Y)
+            2
+        """
+        from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
+        if is_ProductProjectiveSpaces(self.codomain()):
+            raise TypeError("this point must be a point on a subscheme of a product of projective spaces")
+        return self.codomain().intersection_multiplicity(X, self)
+
+    def multiplicity(self):
+        r"""
+        Return the multiplicity of this point on its codomain.
+
+        This uses the subscheme implementation of multiplicity. This point must be a point
+        on a subscheme of a product of projective spaces.
+
+        OUPUT: an integer.
+
+        EXAMPLES::
+
+            sage: PP.<x,y,z,w,u,v,t> = ProductProjectiveSpaces(QQ, [3,2])
+            sage: X = PP.subscheme([x^8*t - y^8*t + z^5*w^3*v])
+            sage: Q1 = X([1,1,0,0,-1,-1,1])
+            sage: Q1.multiplicity()
+            1
+            sage: Q2 = X([0,0,0,1,0,1,1])
+            sage: Q2.multiplicity()
+            5
+            sage: Q3 = X([0,0,0,1,1,0,0])
+            sage: Q3.multiplicity()
+            6
+        """
+        from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
+        if is_ProductProjectiveSpaces(self.codomain()):
+            raise TypeError("this point must be a point on a subscheme of a product of projective spaces")
+        return self.codomain().multiplicity(self)
 
 class ProductProjectiveSpaces_point_finite_field(ProductProjectiveSpaces_point_field):
     pass

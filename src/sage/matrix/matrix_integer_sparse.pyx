@@ -43,7 +43,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
 
-cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
+cdef class Matrix_integer_sparse(Matrix_sparse):
 
     ########################################################################
     # LEVEL 1 functionality
@@ -57,7 +57,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     def __cinit__(self, parent, entries, copy, coerce):
         self._initialized = False
         # set the parent, nrows, ncols, etc.
-        matrix_sparse.Matrix_sparse.__init__(self, parent)
+        Matrix_sparse.__init__(self, parent)
 
         self._matrix = <mpz_vector*> sig_malloc(parent.nrows()*sizeof(mpz_vector))
         if self._matrix == NULL:

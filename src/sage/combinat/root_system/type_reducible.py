@@ -10,12 +10,13 @@ Root system data for reducible Cartan types
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 from sage.combinat.root_system.cartan_type import CartanType_abstract, CartanType_simple, CartanType_finite, CartanType_simply_laced, CartanType_crystallographic
 from sage.matrix.constructor import block_diagonal_matrix
 from sage.sets.family import Family
-import ambient_space
+from . import ambient_space
 import sage.combinat.root_system as root_system
 from sage.structure.sage_object import SageObject
 
@@ -296,7 +297,7 @@ class CartanType(SageObject, CartanType_abstract):
             F4xA2
 
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         relabelling = self._index_relabelling
         g = DynkinDiagram_class(self)
         for i in range(len(self._types)):

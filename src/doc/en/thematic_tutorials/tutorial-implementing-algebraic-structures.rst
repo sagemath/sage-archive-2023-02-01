@@ -613,42 +613,103 @@ about the expected user interface and the rationale.
 Here is a brief template highlighting the overall structure::
 
     class MyAlgebra(Parent, UniqueRepresentation):
-        def __init__(self, *args, **kwargs):
-            self._base = R # Won't be needed when CategoryObject stops overriding base_ring
-            self._S = S
-            Parent.__init__(self, category = Algebras(R).WithRealizations())
+        def __init__(self, R, ...):
+            category = Algebras(R).Commutative()
+            Parent.__init__(self, category=category.WithRealizations())
+            # attribute initalization, construction of the morphisms
+            # between the bases, ...
 
         class Bases(Category_realization_of_parent):
-            r"""Generic features for all the bases"""
-
-            def super_categories(self):  # This initialises all of the realizations code
-                R = self.base().base_ring()
-                C = Algebras(R).Commutative()
-                return [C.Realizations().WithBasis(), self.base().Realizations()]
+            def super_categories(self):
+                A = self.base()
+                category = Algebras(A.base_ring()).Commutative()
+                return [A.Realizations(), category.Realizations().WithBasis()]
 
             class ParentMethods:
                 r"""Code that is common to all bases of the algebra"""
 
             class ElementMethods:
-                r""" Code that is common to elements of all bases of the algebra"""
+                r"""Code that is common to elements of all bases of the algebra"""
+
+        class FirstBasis(CombinatorialFreeModule, BindableClass):
+            def __init__(self, A):
+                CombinatorialFreeModule.__init__(self, ..., category=A.Bases())
+
+            # implementation of the multiplication, the unit, ...
+
+        class SecondBasis(CombinatorialFreeModule, BindableClass):
+            def __init__(self, A):
+                CombinatorialFreeModule.__init__(self, ..., category=A.Bases())
+
+            # implementation of the multiplication, the unit, ...
+
+
+``A=MyAlgebra(...)`` models a commutative algebra with several
+realizations, which we specify in the constructor of ``MyAlgebra``.
+``MyAlgebra.FirstBasis`` and ``MyAlgebra.SecondBasis`` implement two
+realizations of ``A``, both corresponding to a distinguished basis on
+which elements are expanded. They are initialized in the category
+``MyAlgebra.Bases`` of all bases of ``A``, whose role is to factor out
+their common features. In particular we state there that they are:
+
+- realizations of ``A``
+- realizations of a commutative algebra, with a distinguished basis
+
+.. NOTE::
+
+    There is a bit of redundancy here: given that ``A`` knows it is a
+    commutative algebra with realizations, the infrastructure could
+    recover that its realizations are commutative algebras; then we
+    could just implement `Bases.super_categories` by returning::
+
+            [A.Realizations().WithBasis()]
+
+    This is not yet implemented though.
+
+.. NOTE::
+
+    Inheriting from :class:`BindableCass` just provides syntactic
+    sugar: it makes ``MyAlgebras().FirstBasis()`` a shorthand for
+    ``MyAlgebras.FirstBasis(MyAlgebras().FirstBasis())`` (binding
+    behavior). The class ``Bases`` inherits this binding behavior from
+    :class:`Category_realization_of_parent` , which is why we can
+    write ``MyAlgebras().Bases`` instead of
+    ``MyAlgebras.Bases(MyAlgebras())``
+
+.. NOTE::
+
+    More often than not, the constructor in all the bases will be very
+    similar, if not plain identical; so we would want to factor it
+    out. Annoyingly, the natural approach of putting it in
+    ``Bases.ParentMethods`` does not work: this is an abstract class,
+    while the constructor is about the concrete implementation and
+    data structure. Similarly, it would be desirable to specify only
+    once the classes the bases inherit from, but this can't go into
+    ``Bases`` for the same reason.
+
+    The current recommended solution is to add instead a class
+    ``Basis`` to factor out the concrete features between the bases::
+
+        ...
 
         class Basis(CombinatorialFreeModule, BindableClass):
-            r"""Concrete features of the basis"""
-            def __init__(self, my_algebra):
-                CombinatorialFreeModule.__init__(self, ..., category=my_algebra().Bases())
+            def __init__(self, A):
+                CombinatorialFreeModule.__init__(self, ..., category=A.Bases())
 
         class FirstBasis(Basis):
-            r"""Code that is specific to this basis"""
+            ...
 
         class SecondBasis(Basis):
-            r"""Code that is specific to this basis"""
+            ...
 
-.. TODO::
+    This solution is unsatisfactory, as there are two locations,
+    namely ``Basis`` and ``Bases``, to share features between the two
+    bases, depending on whether they are respectively concrete or
+    abstract. But it does the job.
 
-    - Nicolas: explain some of the technical details
-
-We now urge the reader to browse the full code of the following example, which is
-meant as a template for constructing new parents with realizations::
+We now urge the reader to browse the full code of the following
+example, which is meant as a complete template for constructing new
+parents with realizations::
 
     sage: A = Sets().WithRealizations().example()
     The subset algebra of {1, 2, 3} over Rational Field
@@ -659,6 +720,10 @@ meant as a template for constructing new parents with realizations::
 Review
 ======
 
+Congratulations on reading this far!
+
 We have now been through a complete tour of the features needed to
-implement an algebra with several realizations. Congratulations on
-reading this far!
+implement an algebra with several realizations. The infrastructure for
+realizations is not tied specifically to algebras; what we have
+learned applies mutatis mutandis in full generality, for example for
+implementing groups with several realizations.

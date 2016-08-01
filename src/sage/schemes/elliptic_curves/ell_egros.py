@@ -139,7 +139,7 @@ def curve_key(E1):
         sage: from sage.schemes.elliptic_curves.ell_egros import curve_key
         sage: E = EllipticCurve_from_j(1728)
         sage: curve_key(E)
-        (32, 0, 'a', 2)
+        (32, 0, 0, 2)
         sage: E = EllipticCurve_from_j(1729)
         sage: curve_key(E)
         (2989441, 1, (1, 0, 0, -36, -1))
@@ -147,7 +147,7 @@ def curve_key(E1):
     try:
         from sage.databases.cremona import parse_cremona_label, class_to_int
         N, l, k = parse_cremona_label(E1.label())
-        return (N, 0, l, k)
+        return (N, 0, class_to_int(l), k)
     except RuntimeError:
         return (E1.conductor(), 1, E1.ainvs())
 

@@ -159,8 +159,20 @@ def curve_cmp(E1, E2):
     Order by label if in the database, else first by conductor, then
     by c_invariants.
 
-    Please use instead `curve_key`.
+    Deprecated, please use instead `curve_key`.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.ell_egros import curve_cmp
+        sage: E1 = EllipticCurve_from_j(1728)
+        sage: E2 = EllipticCurve_from_j(1729)
+        sage: curve_cmp(E1,E2)
+        doctest:...: DeprecationWarning: Please use 'curve_key' instead.
+        See http://trac.sagemath.org/21142 for details.
+        -1
     """
+    from sage.misc.superseded import deprecation
+    deprecation(21142, "Please use 'curve_key' instead.")
     t = cmp(E1.conductor(), E2.conductor())
     if t:
         return t

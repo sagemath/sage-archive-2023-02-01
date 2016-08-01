@@ -2292,7 +2292,7 @@ cdef class SkewPolynomial(AlgebraElement):
         .. NOTE::
 
             This function does not return ``True`` if ``self`` equals
-            the generator; it returns ``True`` only *if* ``self`` is
+            the generator; it returns ``True`` only if ``self`` *is*
             the generator.
 
             sage: b = S([0,1])
@@ -2501,7 +2501,7 @@ cdef class SkewPolynomial(AlgebraElement):
     def padded_list(self, n=None):
         """
         Return list of coefficients of ``self`` up to (but not including)
-        `q^n`.
+        degree `n`.
 
         Includes 0's in the list on the right so that the list has length
         `n`.
@@ -3009,8 +3009,8 @@ def make_generic_skew_polynomial(parent, coeffs):
 
 cdef class ConstantSkewPolynomialSection(Map):
     """
-    This class is used for conversion from a skew polynomial ring to
-    its base ring.
+    Representation of the canonical homomorphism from the constants of a skew
+    polynomial ring to the base ring.
 
     EXAMPLES::
 
@@ -3053,15 +3053,15 @@ cdef class ConstantSkewPolynomialSection(Map):
 
 cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
     """
-    This class is used for conversion from a ring to a skew polynomial
-    over that ring.
+    Representation of the canonical homomorphism from a ring `R` into a skew
+    polynomial ring over `R`.
 
     EXAMPLES::
 
         sage: R.<t> = QQ[]
         sage: sigma = R.hom([t+1])
         sage: S.<x> = R['x',sigma]
-        sage: S.coerce_map_from(S.base_ring())
+        sage: S.coerce_map_from(S.base_ring()) #indirect doctest
         Ring morphism:
         From: Univariate Polynomial Ring in t over Rational Field
         To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
@@ -3083,9 +3083,9 @@ cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
             sage: SkewPolynomialBaseringInjection(QQ, k['x', Frob])
             Traceback (most recent call last):
             ...
-            AssertionError: domain must be basering
+            AssertionError: the domain of the injection must be the base ring of the skew polynomial ring
         """
-        assert codomain.base_ring() is domain, "domain must be basering"
+        assert codomain.base_ring() is domain, "the domain of the injection must be the base ring of the skew polynomial ring"
         RingHomomorphism.__init__(self, Hom(domain,codomain))
         self._an_element = codomain.gen()
         self._repr_type_str = "Skew Polynomial base injection"
@@ -3093,7 +3093,7 @@ cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
 
     def an_element(self):
         """
-        Return generator of codomain of the ring homomorphism.
+        Return an element of the codomain of the ring homomorphism.
 
         EXAMPLES::
 

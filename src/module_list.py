@@ -1799,6 +1799,9 @@ ext_modules = [
 
     Extension('*', ['sage/symbolic/*.pyx']),
 
+    Extension('sage.rings.polynomial.skew_polynomial_element',
+              sources = ['sage/rings/polynomial/skew_polynomial_element.pyx']),
+
     ################################
     ##
     ## sage.tests

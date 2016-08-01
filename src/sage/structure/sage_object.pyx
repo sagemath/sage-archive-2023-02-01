@@ -26,6 +26,10 @@ op_GT = Py_GT   # operator >
 op_GE = Py_GE   # operator >=
 
 
+from sage.misc.superseded import deprecated_function_alias
+py_rich_to_bool = deprecated_function_alias(21128, rich_to_bool)
+
+
 cdef process(s):
     if s[-5:] != '.sobj':
         return s + '.sobj'

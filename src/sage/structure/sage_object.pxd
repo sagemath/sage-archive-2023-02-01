@@ -56,6 +56,14 @@ cpdef inline bint rich_to_bool(int op, int c):
         (False, True, False)
         sage: 0 != 5, 5 != 5, 5 != -8
         (True, False, True)
+
+    TESTS::
+
+        sage: from sage.structure.sage_object import py_rich_to_bool
+        sage: py_rich_to_bool(op_EQ, 0)
+        doctest:...: DeprecationWarning: py_rich_to_bool is deprecated. Please use sage.structure.sage_object.rich_to_bool instead.
+        See http://trac.sagemath.org/21128 for details.
+        True
     """
     # op is a value in [0,5], c a value in [-1,1]. We implement this
     # function very efficienly using a bitfield. Note that the masking

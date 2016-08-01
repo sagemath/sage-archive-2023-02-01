@@ -40,6 +40,7 @@ from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.libs.mpfi cimport mpfi_t, mpfi_init, mpfi_set, mpfi_clear, mpfi_div_z, mpfi_init2, mpfi_get_prec, mpfi_set_prec
 from sage.libs.mpfr cimport mpfr_less_p, mpfr_greater_p, mpfr_greaterequal_p
+from sage.libs.ntl.error import NTLError
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
 from sage.structure.sage_object cimport rich_to_bool
 
@@ -2119,12 +2120,10 @@ cdef class NumberFieldElement(FieldElement):
         sig_on()
         # MulMod doesn't handle non-monic polynomials.
         # Therefore, we handle the non-monic case entirely separately.
-
+        ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
         if ZZ_IsOne(ZZX_LeadCoeff(self.__fld_numerator.x)):
-            ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
             ZZX_MulMod(x.__numerator, self.__numerator, _right.__numerator, self.__fld_numerator.x)
         else:
-            ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
             ZZX_mul(x.__numerator, self.__numerator, _right.__numerator)
             if ZZX_deg(x.__numerator) >= ZZX_deg(self.__fld_numerator.x):
                 ZZX_mul_ZZ( x.__numerator, x.__numerator, self.__fld_denominator.x )
@@ -2169,35 +2168,9 @@ cdef class NumberFieldElement(FieldElement):
             sage: a/0 # indirect doctest
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Number field element division by zero
+            ZeroDivisionError: number field element division by zero
         """
-        cdef NumberFieldElement x
-        cdef NumberFieldElement _right = right
-        cdef ZZX_c inv_num
-        cdef ZZ_c inv_den
-        cdef ZZX_c temp
-        cdef ZZ_c temp1
-        if not _right:
-            raise ZeroDivisionError("Number field element division by zero")
-        x = self._new()
-        sig_on()
-        _right._invert_c_(&inv_num, &inv_den)
-        if ZZ_IsOne(ZZX_LeadCoeff(self.__fld_numerator.x)):
-            ZZ_mul(x.__denominator, self.__denominator, inv_den)
-            ZZX_MulMod(x.__numerator, self.__numerator, inv_num, self.__fld_numerator.x)
-        else:
-            ZZ_mul(x.__denominator, self.__denominator, inv_den)
-            ZZX_mul(x.__numerator, self.__numerator, inv_num)
-            if ZZX_deg(x.__numerator) >= ZZX_deg(self.__fld_numerator.x):
-                ZZX_mul_ZZ( x.__numerator, x.__numerator, self.__fld_denominator.x )
-                ZZX_mul_ZZ( temp, self.__fld_numerator.x, x.__denominator )
-                ZZ_power(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(self.__fld_numerator.x)+1)
-                ZZX_PseudoRem(x.__numerator, x.__numerator, temp)
-                ZZ_mul(x.__denominator, x.__denominator, self.__fld_denominator.x)
-                ZZ_mul(x.__denominator, x.__denominator, temp1)
-        x._reduce_c_()
-        sig_off()
-        return x
+        return self._mul_(~right)
 
     def __nonzero__(self):
         """
@@ -2310,30 +2283,6 @@ cdef class NumberFieldElement(FieldElement):
         """
         return long(self.polynomial())
 
-    cdef void _invert_c_(self, ZZX_c *num, ZZ_c *den):
-        """
-        Computes the numerator and denominator of the multiplicative
-        inverse of this element.
-
-        Suppose that this element is x/d and the parent mod'ding polynomial
-        is M/D. The NTL function XGCD( r, s, t, a, b ) computes r,s,t such
-        that `r=s*a+t*b`. We compute XGCD( r, s, t, x\*D, M\*d )
-        and set num=s\*D\*d den=r
-
-        EXAMPLES:
-
-        I'd love to, but since we are dealing with c-types, I
-        can't at this level. Check __invert__ for doc-tests that rely
-        on this functionality.
-        """
-        cdef ZZX_c t # unneeded except to be there
-        cdef ZZX_c a, b
-        ZZX_mul_ZZ( a, self.__numerator, self.__fld_denominator.x )
-        ZZX_mul_ZZ( b, self.__fld_numerator.x, self.__denominator )
-        ZZX_XGCD( den[0], num[0],  t, a, b, 1 )
-        ZZX_mul_ZZ( num[0], num[0], self.__fld_denominator.x )
-        ZZX_mul_ZZ( num[0], num[0], self.__denominator )
-
     def __invert__(self):
         """
         Returns the multiplicative inverse of self in the number field.
@@ -2345,13 +2294,35 @@ cdef class NumberFieldElement(FieldElement):
             -I
             sage: (2*I).__invert__()
             -1/2*I
+
+        We check that :trac:`20693` has been resolved, i.e. number
+        field elements with huge denominator can be inverted::
+
+            sage: K.<zeta22> = CyclotomicField(22)
+            sage: x = polygen(K)
+            sage: f = x^9 + (zeta22^9 - zeta22^6 + zeta22^4 + 1)*x^8 + (2*zeta22^8 + 4*zeta22^7 - 6*zeta22^5 - 205*zeta22^4 - 6*zeta22^3 + 4*zeta22 + 2)*x^7 + (181*zeta22^9 - 354*zeta22^8 + 145*zeta22^7 - 253*zeta22^6 + 145*zeta22^5 - 354*zeta22^4 + 181*zeta22^3 + 189*zeta22 - 189)*x^6 + (902*zeta22^9 + 13116*zeta22^8 + 902*zeta22^7 - 500*zeta22^5 - 322*zeta22^4 - 176*zeta22^3 + 176*zeta22^2 + 322*zeta22 + 500)*x^5 + (13196*zeta22^9 + 548*zeta22^8 + 9176*zeta22^7 - 17964*zeta22^6 + 8512*zeta22^5 - 8512*zeta22^4 + 17964*zeta22^3 - 9176*zeta22^2 - 548*zeta22 - 13196)*x^4 + (17104*zeta22^9 + 23456*zeta22^8 + 8496*zeta22^7 - 8496*zeta22^6 - 23456*zeta22^5 - 17104*zeta22^4 + 39680*zeta22^2 + 283184*zeta22 + 39680)*x^3 + (118736*zeta22^9 - 118736*zeta22^8 - 93520*zeta22^6 + 225600*zeta22^5 + 66496*zeta22^4 + 373744*zeta22^3 + 66496*zeta22^2 + 225600*zeta22 - 93520)*x^2 + (342176*zeta22^9 + 388928*zeta22^8 + 4800*zeta22^7 - 234464*zeta22^6 - 1601152*zeta22^5 - 234464*zeta22^4 + 4800*zeta22^3 + 388928*zeta22^2 + 342176*zeta22)*x + 431552*zeta22^9 - 1830400*zeta22^8 - 1196800*zeta22^7 - 1830400*zeta22^6 + 431552*zeta22^5 + 1196096*zeta22^3 - 12672*zeta22^2 + 12672*zeta22 - 1196096
+            sage: L.<a> = K.extension(f)
+            sage: alpha = (a^8 + (zeta22^9 - zeta22^6 + 2*zeta22^4 + 33)*a^7)/(10**2555) #long time
+            sage: beta = ~alpha # long time (about 1:45min on a 2014 MacBook Pro, this used to cause a crash in Sage 7.2)
+            sage: alpha*beta # long time
+            1
         """
         if IsZero_ZZX(self.__numerator):
-            raise ZeroDivisionError
+            raise ZeroDivisionError("number field element division by zero")
         cdef NumberFieldElement x
-        x = self._new()
-        self._invert_c_(&x.__numerator, &x.__denominator)
-        x._reduce_c_()
+        cdef ZZX_c temp
+        try:
+            # Try to use NTL to compute the inverse.  This is fast,
+            # but may fail if NTL runs out of FFT primes.
+            x = self._new()
+            sig_on()
+            ZZX_XGCD(x.__denominator, x.__numerator, temp, self.__numerator, self.__fld_numerator.x, 1)
+            ZZX_mul_ZZ(x.__numerator, x.__numerator, self.__denominator)
+            x._reduce_c_()
+            sig_off()
+        except NTLError:
+            # In case NTL fails we fall back to PARI.
+            x = self._parent(~self._pari_())
         return x
 
     def _integer_(self, Z=None):

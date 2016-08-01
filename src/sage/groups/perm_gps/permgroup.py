@@ -122,6 +122,7 @@ REFERENCES:
    generators.
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -701,7 +702,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             ...
             TypeError: no implicit coercion of element into permutation group
         """
-        from permgroup_named import SymmetricGroup
+        from .permgroup_named import SymmetricGroup
         if isinstance(x, PermutationGroupElement):
             x_parent = x.parent()
             if x_parent is self:
@@ -807,7 +808,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             [(), (1,2), (1,2,3), (2,3), (1,3,2), (1,3)]
 
         Test that it is possible to iterate through moderately large groups
-        (trac:`18239`)::
+        (:trac:`18239`)::
 
             sage: p = [(i,i+1) for i in range(1,601,2)]
             sage: q = [tuple(range(1+i,601,3)) for i in range(3)]
@@ -3521,7 +3522,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         dsts = [right(iso.Image(x), check=False) for x in self.gens()]
 
-        from permgroup_morphism import PermutationGroupMorphism_im_gens
+        from .permgroup_morphism import PermutationGroupMorphism_im_gens
         return PermutationGroupMorphism_im_gens(self, right, dsts)
 
     def is_isomorphic(self, right):

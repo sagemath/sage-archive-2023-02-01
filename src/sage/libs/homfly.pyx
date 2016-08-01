@@ -91,7 +91,7 @@ def homfly_polynomial_dict(link):
         sage: from sage.libs.homfly import homfly_polynomial_dict # optional - libhomfly
         sage: trefoil = '1 6 0 1  1 -1  2 1  0 -1  1 1  2 -1 0 1 1 1 2 1'
         sage: homfly_polynomial_dict(trefoil) # optional - libhomfly
-        {(0, -4): -1, (0, -2): -2, (2, -2): 1}
+        {(-4, 0): -1, (-2, 0): -2, (-2, 2): 1}
     """
     cdef char* c_string = link
     cdef Term ter

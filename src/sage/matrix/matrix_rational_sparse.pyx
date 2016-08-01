@@ -47,7 +47,7 @@ from matrix_rational_dense cimport Matrix_rational_dense
 
 from sage.misc.misc import verbose
 
-cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
+cdef class Matrix_rational_sparse(Matrix_sparse):
 
     ########################################################################
     # LEVEL 1 functionality
@@ -60,7 +60,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
         # set the parent, nrows, ncols, etc.
-        matrix_sparse.Matrix_sparse.__init__(self, parent)
+        Matrix_sparse.__init__(self, parent)
 
         self._matrix = <mpq_vector*> sig_malloc(parent.nrows()*sizeof(mpq_vector))
         if self._matrix == NULL:
@@ -676,9 +676,9 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 ##             self.set_unsafe(i,l,-A.get_unsafe(r,k))               #self[i,l] = -A[r,k]
 ##             l += 1
 ##         if self != B:
-##             print "correct =\n", self.str()
-##             print "wrong = \n", B.str()
-##             print "diff = \n", (self-B).str()
+##             print("correct =\n", self.str())
+##             print("wrong = \n", B.str())
+##             print("diff = \n", (self-B).str())
 
     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,
                                                                  Py_ssize_t r, cols,

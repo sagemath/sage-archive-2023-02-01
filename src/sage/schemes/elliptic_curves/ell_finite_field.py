@@ -28,18 +28,19 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.randstate import current_randstate
 
 from sage.schemes.curves.projective_curve import Hasse_bounds
-from ell_field import EllipticCurve_field
-from constructor import EllipticCurve, EllipticCurve_from_j
+from .ell_field import EllipticCurve_field
+from .constructor import EllipticCurve, EllipticCurve_from_j
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
 import sage.rings.ring as ring
 from sage.rings.all import Integer, ZZ, PolynomialRing, GF, polygen
 from sage.rings.finite_rings.element_base import is_FiniteFieldElement
 import sage.groups.generic as generic
-import ell_point
+from . import ell_point
 from sage.arith.all import gcd, lcm, binomial
 from sage.structure.sequence import Sequence
 
@@ -1670,7 +1671,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E1.is_isogenous(E7,GF(13^30,'j'))
             False
         """
-        from ell_generic import is_EllipticCurve
+        from .ell_generic import is_EllipticCurve
         if not is_EllipticCurve(other):
             raise ValueError("Second argument is not an Elliptic Curve.")
         if self.is_isomorphic(other):

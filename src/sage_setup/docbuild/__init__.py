@@ -797,7 +797,8 @@ class ReferenceSubBuilder(DocBuilder):
             # env.topickle(env_pickle), which first writes a temporary
             # file.  We adapt sphinx.environment's
             # BuildEnvironment.topickle:
-            import cPickle, types
+            import cPickle
+            import types
 
             # remove unpicklable attributes
             env.set_warnfunc(None)
@@ -807,7 +808,7 @@ class ReferenceSubBuilder(DocBuilder):
             for key, val in vars(env.config).items():
                 if key.startswith('_') or isinstance(val, (types.ModuleType,
                                                            types.FunctionType,
-                                                           types.ClassType)):
+                                                           type)):
                     del env.config[key]
             try:
                 cPickle.dump(env, picklefile, cPickle.HIGHEST_PROTOCOL)

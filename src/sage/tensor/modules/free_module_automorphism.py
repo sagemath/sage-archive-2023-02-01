@@ -23,6 +23,7 @@ REFERENCES:
   (Boston) (1968)
 
 """
+from __future__ import absolute_import
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #
@@ -407,7 +408,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             <class 'sage.tensor.modules.comp.KroneckerDelta'>
 
         """
-        from comp import KroneckerDelta
+        from .comp import KroneckerDelta
         if self._is_identity:
             fmodule = self._fmodule
             return KroneckerDelta(fmodule._ring, basis,
@@ -769,7 +770,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             True
 
         """
-        from free_module_tensor import FiniteRankFreeModuleElement
+        from .free_module_tensor import FiniteRankFreeModuleElement
         if len(arg) > 1:
             # The automorphism acting as a type-(1,1) tensor on a pair
             # (linear form, module element), returning a scalar:
@@ -900,7 +901,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
         """
         from sage.matrix.constructor import matrix
-        from comp import Components
+        from .comp import Components
         if self._is_identity:
             return self
         if self._inverse is None:

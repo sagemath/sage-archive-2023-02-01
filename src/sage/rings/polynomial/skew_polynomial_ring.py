@@ -88,7 +88,8 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         sage: Sz.<z> = R[sigma]
         Traceback (most recent call last):
         ...
-        ValueError: variable name 'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring\n  Defn: t |--> t + 1' is not alphanumeric
+        ValueError: variable name 'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring\n
+        Defn: t |--> t + 1' is not alphanumeric
 
     As for polynomials, skew polynomial rings with different variable names
     are not equal::
@@ -300,15 +301,15 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
             sage: S.coerce_map_from(ZZ)
             Composite map:
-                From: Integer Ring
-                To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
-                Defn:   Polynomial base injection morphism:
-                        From: Integer Ring
-                        To:   Univariate Polynomial Ring in t over Integer Ring
+              From: Integer Ring
+              To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+              Defn:   Polynomial base injection morphism:
+                      From: Integer Ring
+                      To:   Univariate Polynomial Ring in t over Integer Ring
                     then
-                        Ring morphism:
-                        From: Univariate Polynomial Ring in t over Integer Ring
-                        To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+                      Skew Polynomial base injection morphism:
+                      From: Univariate Polynomial Ring in t over Integer Ring
+                      To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
             sage: S.coerce_map_from(S)
             Identity endomorphism of Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
         """

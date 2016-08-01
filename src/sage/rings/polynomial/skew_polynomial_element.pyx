@@ -3131,25 +3131,6 @@ cdef class SkewPolynomialBaseringInjection(Morphism):
         except AttributeError:
             return self._codomain(e)
 
-    cpdef Element _call_with_args(self, e, args=(), kwds={}):
-        """
-        TESTS::
-
-            sage: from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
-            sage: m = SkewPolynomialBaseringInjection(k, k['x', Frob])
-            sage: m(4)
-            4
-            sage: parent(m(4))
-            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
-        """
-        try:
-            return self._codomain._element_constructor_(e, *args, **kwds)
-        except AttributeError:
-            return self._codomain(e, *args, **kwds)
-
     def section(self):
         """
         TESTS::

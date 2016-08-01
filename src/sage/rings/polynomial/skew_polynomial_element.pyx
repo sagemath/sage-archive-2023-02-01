@@ -3107,7 +3107,7 @@ cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
         """
         return self._an_element
 
-    cpdef Element _call_(self, x):
+    cpdef Element _call_(self, e):
         """
         TESTS::
 
@@ -3122,11 +3122,11 @@ cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
             Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
         """
         try:
-            return self._codomain._element_constructor_(x)
+            return self._codomain._element_constructor_(e)
         except AttributeError:
-            return self._codomain(x)
+            return self._codomain(e)
 
-    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+    cpdef Element _call_with_args(self, e, args=(), kwds={}):
         """
         TESTS::
 
@@ -3141,9 +3141,9 @@ cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
             Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
         """
         try:
-            return self._codomain._element_constructor_(x, *args, **kwds)
+            return self._codomain._element_constructor_(e, *args, **kwds)
         except AttributeError:
-            return self._codomain(x, *args, **kwds)
+            return self._codomain(e, *args, **kwds)
 
     def section(self):
         """

@@ -128,6 +128,22 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
     """
     @staticmethod
     def __classcall__(cls, base_ring, map, name=None, sparse=False, element_class=None):
+        """
+        Input name mangling for `SkewPolynomialRing_general` class into
+        the `SkewPolynomialRing_general_with_category` class so that it
+        inherit all the methods from the super class. Sets the default
+        values for `name`, `sparse` and `element_class`.
+
+        EXAMPLES:
+
+            sage: R.<t> = ZZ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = SkewPolynomialRing(R,sigma)
+            sage: S.__class__(R, sigma, x)
+            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+            sage: type(S)
+            <class 'sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general_with_category'>
+        """
         if not element_class:
             if sparse:
                 raise NotImplementedError("sparse skew polynomials are not implemented")
@@ -192,7 +208,18 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
     def __reduce__(self):
         """
         Return the globally unique skew polynomial ring based on
-        given arguments
+        given arguments.
+
+        TESTS:
+
+            sage: R.<t> = ZZ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = SkewPolynomialRing(R,sigma); S
+            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+            sage: T.<x> = SkewPolynomialRing(R,sigma); T
+            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+            sage: S is T
+            True
         """
         import sage.rings.polynomial.skew_polynomial_ring_constructor
         return (sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing,
@@ -517,6 +544,15 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         Return the generator of this skew polynomial ring.
 
         This is the same as ``self.gen()``.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]; S
+            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
+            sage: y = S.parameter(); y
+            x
         """
         return self.gen()
 
@@ -572,6 +608,14 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
         Since sparse skew polynomials are not yet implemented, this
         function always returns False.
+
+        EXAMPLES:
+
+            sage: R.<t> = RR[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: S.is_sparse()
+            False
         """
         return self.__is_sparse
 

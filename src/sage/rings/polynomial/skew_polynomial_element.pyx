@@ -327,6 +327,17 @@ cdef class SkewPolynomial(AlgebraElement):
     cpdef SkewPolynomial _new_constant_poly(self, RingElement a, Parent P, char check=0):
         """
         Fast creation of a new constant skew polynomial
+
+        EXAMPLES:
+
+            sage: from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: SkewPolynomialBaseringInjection(k, k['x', Frob]) #indirect doctest
+            Skew Polynomial base injection morphism:
+              From: Finite Field in t of size 5^3
+              To:   Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
         """
         if a:
             n = self._new_c([a],P,check)
@@ -2444,7 +2455,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: b = x + 1
             sage: a % b
             t + 1
-            sage: (x^3 + x - 1) % (x^2 - 1)
+            sage: (x^3 + x - 1).mod(x^2 - 1)
             2*x - 1
         """
         return self % other

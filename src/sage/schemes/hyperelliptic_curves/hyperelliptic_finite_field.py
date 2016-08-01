@@ -52,6 +52,7 @@ from sage.schemes.hyperelliptic_curves.hypellfrob import hypellfrob
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import identity_matrix, matrix
 from sage.misc.functional import rank
+from sage.arith.misc import legendre_symbol
 
 
 class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_generic):
@@ -1117,6 +1118,15 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H = HyperellipticCurve(x^5+a*x^2+1, x+a+1)
             sage: H.count_points(6)
             [2, 24, 74, 256, 1082, 4272]
+
+        TESTS:
+
+        Check for :trac:`19122`::
+
+            sage: x = polygen(GF(19), 'x')
+            sage: f = 15*x^4 + 7*x^3 + 3*x^2 + 7*x + 18
+            sage: HyperellipticCurve(f).cardinality_exhaustive(1)
+            19
         """
         K = self.base_ring()
         g = self.genus()
@@ -1124,7 +1134,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
         if g == 0:
             # here is the projective line
-            return K.cardinality()**n + 1
+            return K.cardinality() ** n + 1
 
         f, h = self.hyperelliptic_polynomials()
         a = 0
@@ -1132,10 +1142,14 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         # begin with points at infinity (on the smooth model)
         if g == 1:
             # elliptic curves always have one smooth point at infinity
-            if K.degree() % 2:
+            # when the model is y^2 = cubic
+            # otherwise one has to look at the leading term
+            if f.degree() % 2 or K.characteristic() == 2:
+                # for odd degree or even characteristic
                 a += 1
-            elif K.characteristic() != 2:
-                a += 1 + legendre_symbol(a, K.cardinality())
+            else:
+                a += 1 + legendre_symbol(f.leading_coefficient(),
+                                         K.cardinality())
         else:
             # g > 1
             # solve y^2 + y*h[g+1] == f[2*g+2], i.e., y^2 + r*y - s == 0

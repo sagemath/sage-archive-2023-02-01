@@ -1661,6 +1661,9 @@ ext_modules = [
     Extension('sage.rings.polynomial.symmetric_reduction',
               sources = ['sage/rings/polynomial/symmetric_reduction.pyx']),
 
+    Extension('sage.rings.polynomial.skew_polynomial_element',
+              sources = ['sage/rings/polynomial/skew_polynomial_element.pyx']),
+
 
     ################################
     ##
@@ -1798,9 +1801,6 @@ ext_modules = [
     ################################
 
     Extension('*', ['sage/symbolic/*.pyx']),
-
-    Extension('sage.rings.polynomial.skew_polynomial_element',
-              sources = ['sage/rings/polynomial/skew_polynomial_element.pyx']),
 
     ################################
     ##

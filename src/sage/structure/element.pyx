@@ -1295,21 +1295,18 @@ cdef class ModuleElement(Element):
     # rmul -- left * self
     cpdef _rmul_(self, RingElement left):
         """
-        Default module left scalar multiplication, which is to try to
-        canonically coerce the scalar to the integers and do that
-        multiplication, which is always defined.
+        Reversed scalar multiplication for module elements with the
+        module element on the right and the scalar on the left.
 
-        Returning None indicates that this action is not implemented here.
+        By default, we assume commutativity and reverse the arguments.
         """
-        return None
+        return self._lmul_(left)
 
     # lmul -- self * right
-
     cpdef _lmul_(self, RingElement right):
         """
-        Default module left scalar multiplication, which is to try to
-        canonically coerce the scalar to the integers and do that
-        multiplication, which is always defined.
+        Scalar multiplication for module elements with the module
+        element on the left and the scalar on the right.
 
         Returning None indicates that this action is not implemented here.
         """
@@ -1446,18 +1443,6 @@ cdef class AdditiveGroupElement(ModuleElement):
     def __invert__(self):
         raise NotImplementedError("multiplicative inverse not defined for additive group elements")
 
-    cpdef _rmul_(self, RingElement left):
-        return self._lmul_(left)
-
-    cpdef _lmul_(self, RingElement right):
-        """
-        Default module left scalar multiplication, which is to try to
-        canonically coerce the scalar to the integers and do that
-        multiplication, which is always defined.
-
-        Returning None indicates this action is not implemented.
-        """
-        return None
 
 def is_MultiplicativeGroupElement(x):
     """
@@ -1577,14 +1562,6 @@ cdef class RingElement(ModuleElement):
     ##################################
     # Multiplication
     ##################################
-
-    cpdef _lmul_(self, RingElement right):
-        # We return None to invoke the default action of coercing into self
-        return None
-
-    cpdef _rmul_(self, RingElement left):
-        # We return None to invoke the default action of coercing into self
-        return None
 
     def __mul__(left, right):
         """

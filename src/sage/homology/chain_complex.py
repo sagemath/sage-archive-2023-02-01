@@ -526,7 +526,7 @@ class Chain_class(ModuleElement):
         parent = self.parent()
         return parent.element_class(parent, vectors)
 
-    def _rmul_(self, scalar):
+    def _lmul_(self, scalar):
         """
         Scalar multiplication
 

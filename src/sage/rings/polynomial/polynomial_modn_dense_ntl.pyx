@@ -232,12 +232,6 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         """
         return self.parent()(self.__poly * (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
-    cpdef _rmul_(self, RingElement c):
-        try:
-            return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
-        except RuntimeError as msg: # should this really be a TypeError
-            raise TypeError(msg)
-
     cpdef _lmul_(self, RingElement c):
         try:
             return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)

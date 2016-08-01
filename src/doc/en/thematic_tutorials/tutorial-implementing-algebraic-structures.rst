@@ -599,7 +599,7 @@ implementing quotients::
 Implementing algebraic structures with several realizations
 ===========================================================
 
-we now return to the subset algebra and use it as an example to show how to
+We now return to the subset algebra and use it as an example to show how to
 implement several different bases for an algebra with automatic coercions
 between the different bases. We have already implemented three bases for this
 algebra:  the ``F``, ``In``, and ``Out`` bases, as well as coercions between
@@ -618,29 +618,30 @@ Here is a brief template highlighting the overall structure::
             self._S = S
             Parent.__init__(self, category = Algebras(R).WithRealizations())
 
-        class BasesForMyAlgebra(Category_realization_of_parent): 
-            r""" Generic features of the bases """
+        class Bases(Category_realization_of_parent):
+            r"""Generic features for all the bases"""
 
             def super_categories(self):  # This initialises all of the realizations code
                 R = self.base().base_ring()
-                return [Algebras(R).Realizations(), self.base().Realizations(), AlgebrasWithBasis(R)]
+                C = Algebras(R).Commutative()
+                return [C.Realizations().WithBasis(), self.base().Realizations()]
 
             class ParentMethods:
-                r""" Code that is common to all bases of the algebra"""
+                r"""Code that is common to all bases of the algebra"""
 
             class ElementMethods:
-                r""" Code that is common to all bases of the algebra"""
+                r""" Code that is common to elements of all bases of the algebra"""
 
-        class MyAlgebraBases(CombinatorialFreeAlgebra, BindableClass):
-            r""" Generic basis code """
-            def __init__(self, mu_module):
-                CombinatorialFreeModule.__init__(self, ..., category=my_module.BasesForMyAlgebra())
+        class Basis(CombinatorialFreeModule, BindableClass):
+            r"""Concrete features of the basis"""
+            def __init__(self, my_algebra):
+                CombinatorialFreeModule.__init__(self, ..., category=my_algebra().Bases())
 
-        class FirstBasis(MyAlgebraBases):
-            r""" Code that is specific to this basis"""
+        class FirstBasis(Basis):
+            r"""Code that is specific to this basis"""
 
-        class SecondBasis(MyAlgebraBases):
-            r""" Code that is specific to this basis"""
+        class SecondBasis(Basis):
+            r"""Code that is specific to this basis"""
 
 .. TODO::
 

@@ -326,7 +326,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
                  Category of algebras with basis over Rational Field]
             """
             R = self.base().base_ring()
-            return [Algebras(R).Realizations(), self.base().Realizations(), AlgebrasWithBasis(R)]
+            return [Algebras(R).Realizations().WithBasis(), self.base().Realizations()]
 
         class ParentMethods:
 

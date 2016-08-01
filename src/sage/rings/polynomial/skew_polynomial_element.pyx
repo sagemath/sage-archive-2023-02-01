@@ -232,7 +232,7 @@ cdef class SkewPolynomial(AlgebraElement):
         cdef long result = 0
         cdef long result_mon
         cdef long c_hash
-        cdef long var_name_hash
+        cdef long var_name_hash = 0
         cdef int i
         for i from 0<= i <= self.degree():
             if i == 1:

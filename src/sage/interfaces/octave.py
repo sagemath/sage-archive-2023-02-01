@@ -156,6 +156,48 @@ from __future__ import absolute_import
 import os
 from .expect import Expect, ExpectElement
 
+def get_octave_version(command=None, server=None):
+    r"""
+    Get the octave version given the ``command`` and ``server``.
+
+    This does *not* launch the interface (since the latter needs configuration
+    options that actually depend on the version).
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.octave import get_octave_version
+        sage: octave.version() # optional - octave # indirect doctest
+        '...'
+    """
+    import re
+    from subprocess import Popen, PIPE
+
+    version_string = re.compile("GNU Octave, version (\d+\.\d+\.\d+)")
+
+    if command is None:
+        raise ValueError("a command must be provided")
+
+    if server:
+        cmd = [server, command, "--version"]
+    else:
+        cmd = [command, "--version"]
+
+    try:
+        proc = Popen(cmd, stdout=PIPE)
+    except OSError:
+        raise ValueError("octave not available")
+
+    s = proc.communicate()
+    if proc.poll():
+        raise ValueError("octave sent a non-zero signal (={})".format(proc.poll()))
+
+    first_line = s[0].split('\n')[0]
+    m = version_string.match(first_line)
+    if m is None:
+        raise ValueError("Octave first line of output does not fit with what "
+                "was expected:\n{}".format(first_line))
+
+    return m.group(1)
 
 class Octave(Expect):
     r"""
@@ -173,18 +215,35 @@ class Octave(Expect):
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
     """
 
-    def __init__(self, maxread=None, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None,
-                 seed=None):
+    def __init__(self, maxread=None, script_subdirectory=None, logfile=None,
+            server=None, server_tmpdir=None, seed=None, command=None):
         """
         EXAMPLES::
 
             sage: octave == loads(dumps(octave))
             True
         """
+        if command is None:
+            import os
+            command = os.getenv('SAGE_OCTAVE_COMMAND') or 'octave'
+        if server is None:
+            import os
+            server = os.getenv('SAGE_OCTAVE_SERVER') or None
+
+        version = get_octave_version(command=command, server=server)
+        major = int(version.split('.')[0])
+
+        if major < 4:
+            prompt = '>'
+            options = " --no-line-editing --silent"
+        else:
+            prompt = '>>'
+            options = " --no-gui --no-line-editing --silent"
+
         Expect.__init__(self,
                         name = 'octave',
-                        prompt = '>',
-                        command = "sage-native-execute octave --no-line-editing --silent",
+                        prompt = prompt,
+                        command = command + options,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -410,10 +469,14 @@ class Octave(Expect):
 
         EXAMPLES::
 
-            sage: octave.version()   # optional - octave; random output depending on version
-            '2.1.73'
+            sage: v = octave.version()   # optional - octave
+            sage: v                      # optional - octave; random
+            '2.13.7'
+
+            sage: import re
+            sage: assert re.match("\d+\.\d+\.\d+", v)  is not None # optional - octave
         """
-        return octave_version()
+        return str(self("version")).strip()
 
     def solve_linear_system(self, A, b):
         r"""
@@ -783,11 +846,16 @@ def octave_console():
 
 def octave_version():
     """
-    Return the version of Octave installed.
+    DEPRECATED: Return the version of Octave installed.
 
     EXAMPLES::
 
-        sage: octave_version()    # optional - octave; and output is random
-        '2.9.12'
+        sage: octave_version()    # optional - octave
+        doctest:...: DeprecationWarning: This has been deprecated. Use
+        octave.version() instead
+        See http://trac.sagemath.org/21135 for details.
+        '...'
     """
-    return str(octave('version')).strip()
+    from sage.misc.superseded import deprecation
+    deprecation(21135, "This has been deprecated. Use octave.version() instead")
+    return octave.version()

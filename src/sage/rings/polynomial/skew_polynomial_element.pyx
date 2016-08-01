@@ -37,7 +37,7 @@ from sage.rings.ring import Field
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.rings.integer cimport Integer
 from sage.categories.map cimport Map
-from sage.rings.morphism cimport RingHomomorphism
+from sage.rings.morphism cimport Morphism, RingHomomorphism
 
 cdef class SkewPolynomial(AlgebraElement):
     """
@@ -3051,10 +3051,14 @@ cdef class ConstantSkewPolynomialSection(Map):
         else:
             raise TypeError("not a constant polynomial")
 
-cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
+cdef class SkewPolynomialBaseringInjection(Morphism):
     """
     Representation of the canonical homomorphism from a ring `R` into a skew
     polynomial ring over `R`.
+
+    See
+    `:class:`~sage.rings.polynomial.polynomial_element.PolynomialBaseringInjection`
+    for information.
 
     EXAMPLES::
 
@@ -3062,9 +3066,9 @@ cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
         sage: sigma = R.hom([t+1])
         sage: S.<x> = R['x',sigma]
         sage: S.coerce_map_from(S.base_ring()) #indirect doctest
-        Ring morphism:
-        From: Univariate Polynomial Ring in t over Rational Field
-        To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
+        Skew Polynomial base injection morphism:
+          From: Univariate Polynomial Ring in t over Rational Field
+          To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
     """
 
     def __init__(self, domain, codomain):
@@ -3076,17 +3080,18 @@ cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
             sage: SkewPolynomialBaseringInjection(k, k['x', Frob])
-            Ring morphism:
-            From: Finite Field in t of size 5^3
-            To:   Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            Skew Polynomial base injection morphism:
+              From: Finite Field in t of size 5^3
+              To:   Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
             sage: R.<t> = QQ[]
             sage: SkewPolynomialBaseringInjection(QQ, k['x', Frob])
             Traceback (most recent call last):
             ...
             AssertionError: the domain of the injection must be the base ring of the skew polynomial ring
         """
-        assert codomain.base_ring() is domain, "the domain of the injection must be the base ring of the skew polynomial ring"
-        RingHomomorphism.__init__(self, Hom(domain,codomain))
+        assert codomain.base_ring() is domain, \
+            "the domain of the injection must be the base ring of the skew polynomial ring"
+        Morphism.__init__(self, Hom(domain,codomain))
         self._an_element = codomain.gen()
         self._repr_type_str = "Skew Polynomial base injection"
         self._new_constant_poly_ = self._an_element._new_constant_poly

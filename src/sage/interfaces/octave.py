@@ -318,20 +318,13 @@ class Octave(Expect):
         from Sage.   You can read all about Octave at
                 http://www.gnu.org/software/octave/
 
-        LINUX / WINDOWS (colinux):
-           Do apt-get install octave as root on your machine
-           (or, in Windows, in the colinux console).
+        LINUX:
+           Do apt-get install octave as root on your machine (Ubuntu/Debian).
+           Other Linux systems have octave too.
 
         OS X:
-           * This website has links to binaries for OS X PowerPC
-             and OS X Intel builds of the latest version of Octave:
-                     http://hpc.sourceforge.net/
-             Once you get the tarball from there, go to the / directory
-             and type
-                     tar zxvf octave-intel-bin.tar.gz
-             to extract it to usr/local/...   Make sure /usr/local/bin
-             is in your PATH.  Then type "octave" and verify that
-             octave starts up.
+           * This website has details on OS X builds of Octave:
+                    http://wiki.octave.org/Octave_for_MacOS_X
            * Darwin ports and fink have Octave as well.
         """
     def _eval_line(self, line, reformat=True, allow_use_file=False,
@@ -342,6 +335,7 @@ class Octave(Expect):
             sage: print(octave._eval_line('2+2'))  #optional - octave
               ans =  4
         """
+        from pexpect.exceptions import EOF
         if not wait_for_prompt:
             return Expect._eval_line(self, line)
         if line == '':
@@ -365,11 +359,14 @@ class Octave(Expect):
                 return ''
         except KeyboardInterrupt:
             self._keyboard_interrupt()
-        if reformat:
-            if 'syntax error' in out:
-                raise SyntaxError(out)
-        out = "\n".join(out.splitlines()[1:])
-        return out
+        try:
+            if reformat:
+                if 'syntax error' in out:
+                    raise SyntaxError(out)
+            out = "\n".join(out.splitlines()[1:])
+            return out
+        except NameError:
+            return ''
 
     def _keyboard_interrupt(self):
         print("CntrlC: Interrupting %s..."%self)

@@ -30,6 +30,7 @@ import sage.categories.basic as categories
 from sage.rings.integer import Integer
 from sage.structure.category_object import normalize_names
 from sage.misc.prandom import randint
+from sage.rings.ring import Field
 from sage.categories.morphism import Morphism
 from sage.categories.morphism import IdentityMorphism
 import sage.misc.latex as latex
@@ -690,7 +691,8 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
         INPUT:
 
-        - ``eval_pts`` -- list of evaluation points
+        - ``eval_pts`` -- list of evaluation points which are linearly
+        independent over the fixed field of the twist map of ``self``.
 
         - ``check`` -- boolean (default: ``True``) that verifies whether the
           `eval_pts` are linearly independent in the base ring of ``self``.
@@ -717,6 +719,20 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             if eval_pts[0] == 0:
                 return self.one()
             else:
+                R = self.base_ring()
+                print R
+                print isinstance(R, Field)
+                if not isinstance(R, Field):
+                    print "Hi"
+                    Q = R.fraction_field()
+                    print Q
+                    t = Q(R.variable_name())
+#                    sigma = Q.self.twist_map()
+                    print sigma
+                    print self.twist_map()
+                    print Q.variable_name()
+                    S = Q[self.variable_name(), sigma]
+                    x = S.gen()
                 return x - (sigma(eval_pts[0]) / eval_pts[0])
         else:
             t = len(eval_pts)//2
@@ -779,7 +795,8 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
         INPUT:
 
-        - ``eval_pts`` -- list of evaluation points
+        - ``eval_pts`` -- list of evaluation points which are linearly
+        independent over the fixed field of the twist map of ``self``.
 
         - ``values`` -- list of values that the interpolation polynomial `I` takes
           at the respective `eval_pts`
@@ -809,7 +826,13 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         if 0 in eval_pts:
             raise TypeError("evaluation points must be non-zero")
         if l == 1:
-            return (values[0]/eval_pts[0])*self.one()
+            one = self.one()
+            R = self.base_ring()
+            if not isinstance(R, Field):
+                Q = FractionField(R)
+                S = Q[self.variable_name(), self.twist_map()]
+                one = S.one()
+            return (values[0]/eval_pts[0])*one
         else:
             t = l//2
             A = eval_pts[:t]

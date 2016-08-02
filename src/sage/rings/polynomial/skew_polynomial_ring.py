@@ -308,7 +308,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
                         From: Integer Ring
                         To:   Univariate Polynomial Ring in t over Integer Ring
                     then
-                        Ring morphism:
+                        Skew Polynomial base injection morphism:
                         From: Univariate Polynomial Ring in t over Integer Ring
                         To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
             sage: S.coerce_map_from(S)

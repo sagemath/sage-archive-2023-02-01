@@ -88,9 +88,6 @@ from sage.categories.fields import Fields
 from sage.rings.all import Integer, CIF
 from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
-from sage.categories.morphism import Morphism
-from sage.rings.all           import Integer
-from sage.rings.commutative_ring import is_CommutativeRing
 from sage.rings.morphism import is_RingHomomorphism
 from .point import is_SchemeTopologicalPoint
 from sage.rings.infinity import infinity

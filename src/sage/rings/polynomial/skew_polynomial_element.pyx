@@ -37,7 +37,7 @@ from sage.rings.ring import Field
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.rings.integer cimport Integer
 from sage.categories.map cimport Map
-from sage.rings.morphism cimport RingHomomorphism
+from sage.rings.morphism cimport Morphism, RingHomomorphism
 
 cdef class SkewPolynomial(AlgebraElement):
     """
@@ -232,7 +232,7 @@ cdef class SkewPolynomial(AlgebraElement):
         cdef long result = 0
         cdef long result_mon
         cdef long c_hash
-        cdef long var_name_hash
+        cdef long var_name_hash = 0
         cdef int i
         for i from 0<= i <= self.degree():
             if i == 1:
@@ -725,6 +725,11 @@ cdef class SkewPolynomial(AlgebraElement):
             x^4 + (t + 3)*x^3 + t*x^2 + (t^2 + t)*x
             sage: a * b == b * a
             False
+
+        TESTS::
+
+            sage: S(0)*a, (S(0)*a).list()
+            (0, [])
         """
         cdef list x = (<SkewPolynomial>self)._coeffs
         cdef list y = (<SkewPolynomial>right)._coeffs
@@ -732,9 +737,9 @@ cdef class SkewPolynomial(AlgebraElement):
         cdef Py_ssize_t dx = len(x)-1, dy = len(y)-1
         parent = self._parent
         if dx == -1:
-            return self
+            return self # = zero
         elif dy == -1:
-            return right
+            return right # = zero
         elif dx == 0:
             c = x[0]
             r = self._new_c([c*a for a in y], parent, 0)
@@ -2292,7 +2297,7 @@ cdef class SkewPolynomial(AlgebraElement):
         .. NOTE::
 
             This function does not return ``True`` if ``self`` equals
-            the generator; it returns ``True`` only *if* ``self`` is
+            the generator; it returns ``True`` only if ``self`` *is*
             the generator.
 
             sage: b = S([0,1])
@@ -2501,7 +2506,7 @@ cdef class SkewPolynomial(AlgebraElement):
     def padded_list(self, n=None):
         """
         Return list of coefficients of ``self`` up to (but not including)
-        `q^n`.
+        degree `n`.
 
         Includes 0's in the list on the right so that the list has length
         `n`.
@@ -3009,8 +3014,8 @@ def make_generic_skew_polynomial(parent, coeffs):
 
 cdef class ConstantSkewPolynomialSection(Map):
     """
-    This class is used for conversion from a skew polynomial ring to
-    its base ring.
+    Representation of the canonical homomorphism from the constants of a skew
+    polynomial ring to the base ring.
 
     EXAMPLES::
 
@@ -3051,20 +3056,24 @@ cdef class ConstantSkewPolynomialSection(Map):
         else:
             raise TypeError("not a constant polynomial")
 
-cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
+cdef class SkewPolynomialBaseringInjection(Morphism):
     """
-    This class is used for conversion from a ring to a skew polynomial
-    over that ring.
+    Representation of the canonical homomorphism from a ring `R` into a skew
+    polynomial ring over `R`.
+
+    See
+    `:class:`~sage.rings.polynomial.polynomial_element.PolynomialBaseringInjection`
+    for information.
 
     EXAMPLES::
 
         sage: R.<t> = QQ[]
         sage: sigma = R.hom([t+1])
         sage: S.<x> = R['x',sigma]
-        sage: S.coerce_map_from(S.base_ring())
-        Ring morphism:
-        From: Univariate Polynomial Ring in t over Rational Field
-        To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
+        sage: S.coerce_map_from(S.base_ring()) #indirect doctest
+        Skew Polynomial base injection morphism:
+          From: Univariate Polynomial Ring in t over Rational Field
+          To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
     """
 
     def __init__(self, domain, codomain):
@@ -3076,24 +3085,25 @@ cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
             sage: SkewPolynomialBaseringInjection(k, k['x', Frob])
-            Ring morphism:
-            From: Finite Field in t of size 5^3
-            To:   Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            Skew Polynomial base injection morphism:
+              From: Finite Field in t of size 5^3
+              To:   Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
             sage: R.<t> = QQ[]
             sage: SkewPolynomialBaseringInjection(QQ, k['x', Frob])
             Traceback (most recent call last):
             ...
-            AssertionError: domain must be basering
+            AssertionError: the domain of the injection must be the base ring of the skew polynomial ring
         """
-        assert codomain.base_ring() is domain, "domain must be basering"
-        RingHomomorphism.__init__(self, Hom(domain,codomain))
+        assert codomain.base_ring() is domain, \
+            "the domain of the injection must be the base ring of the skew polynomial ring"
+        Morphism.__init__(self, Hom(domain,codomain))
         self._an_element = codomain.gen()
         self._repr_type_str = "Skew Polynomial base injection"
         self._new_constant_poly_ = self._an_element._new_constant_poly
 
     def an_element(self):
         """
-        Return generator of codomain of the ring homomorphism.
+        Return an element of the codomain of the ring homomorphism.
 
         EXAMPLES::
 
@@ -3107,7 +3117,7 @@ cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
         """
         return self._an_element
 
-    cpdef Element _call_(self, x):
+    cpdef Element _call_(self, e):
         """
         TESTS::
 
@@ -3122,28 +3132,9 @@ cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
             Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
         """
         try:
-            return self._codomain._element_constructor_(x)
+            return self._codomain._element_constructor_(e)
         except AttributeError:
-            return self._codomain(x)
-
-    cpdef Element _call_with_args(self, x, args=(), kwds={}):
-        """
-        TESTS::
-
-            sage: from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
-            sage: m = SkewPolynomialBaseringInjection(k, k['x', Frob])
-            sage: m(4)
-            4
-            sage: parent(m(4))
-            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
-        """
-        try:
-            return self._codomain._element_constructor_(x, *args, **kwds)
-        except AttributeError:
-            return self._codomain(x, *args, **kwds)
+            return self._codomain(e)
 
     def section(self):
         """

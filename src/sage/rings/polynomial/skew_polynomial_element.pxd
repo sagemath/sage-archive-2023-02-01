@@ -8,7 +8,7 @@ from sage.structure.element cimport Element, AlgebraElement, ModuleElement
 from sage.structure.parent cimport Parent
 from polynomial_compiled cimport CompiledPolynomialFunction
 
-from sage.rings.morphism cimport RingHomomorphism
+from sage.rings.morphism cimport Morphism
 from sage.structure.element cimport RingElement
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial_generic_dense
@@ -34,6 +34,6 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
     cpdef _rightpow_(self,right,modulus=*)
     cpdef _leftpow_(self,right,modulus=*)
 
-cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
+cdef class SkewPolynomialBaseringInjection(Morphism):
     cdef RingElement _an_element
     cdef object _new_constant_poly_

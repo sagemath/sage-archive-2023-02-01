@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 r"""
-Chains and cochains 
+Chains and cochains
 
-This module implements formal linear combinations of cells of a given cell
-complex (:class:`Chains`) and their dual (:class:`Cohains`). It is closely
-related to the :mod:`sage.homology.chain_complex` module. The main difference is
-that chains and cochains here are of homogeneous dimension only, and that
-reference their cell complex.
+This module implements formal linear combinations of cells of a given
+cell complex (:class:`Chains`) and their dual (:class:`Cochains`). It
+is closely related to the :mod:`sage.homology.chain_complex`
+module. The main differences are that chains and cochains here are of
+homogeneous dimension only, and that they reference their cell
+complex.
 """
 
 #*****************************************************************************
@@ -20,7 +21,8 @@ reference their cell complex.
 
 from __future__ import absolute_import
 
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule, \
+    CombinatorialFreeModuleElement
 from sage.rings.integer_ring import ZZ
 from sage.structure.element import get_coercion_model
 
@@ -90,7 +92,7 @@ class CellComplexReference(object):
             1
         """
         return self._degree
-    
+
 
 class Chains(CellComplexReference, CombinatorialFreeModule):
     r"""
@@ -104,7 +106,7 @@ class Chains(CellComplexReference, CombinatorialFreeModule):
 
     One difference between chains and cochains is notation. In a
     simplicial complex, for example, a simplex ``(0,1,2)`` is written
-    as "(0,1,2)" in the group of chains but as "\chi_(0,1,2)" in the
+    as "(0,1,2)" in the group of chains but as "\\chi_(0,1,2)" in the
     group of cochains.
 
     Also, since the free modules of chains and cochains are dual,
@@ -203,17 +205,17 @@ class Chains(CellComplexReference, CombinatorialFreeModule):
             sage: CC = square.n_chains(2, QQ).chain_complex(); CC
             Chain complex with at most 3 nonzero terms over Rational Field
             sage: ascii_art(CC)
-                        [ 0  0  1  1]       [-1]      
-                        [ 0  1  0 -1]       [ 1]      
-                        [ 1  0 -1  0]       [-1]      
-                        [-1 -1  0  0]       [ 1]      
-             0 <-- C_0 <-------------- C_1 <----- C_2 <-- 0 
+                        [ 0  0  1  1]       [-1]
+                        [ 0  1  0 -1]       [ 1]
+                        [ 1  0 -1  0]       [-1]
+                        [-1 -1  0  0]       [ 1]
+             0 <-- C_0 <-------------- C_1 <----- C_2 <-- 0
         """
         return self.cell_complex().chain_complex(
             base_ring=self.base_ring(),
             cochain=False,
         )
-    
+
     class Element(CombinatorialFreeModuleElement):
 
         def to_complex(self):
@@ -233,10 +235,10 @@ class Chains(CellComplexReference, CombinatorialFreeModule):
                 sage: chain.to_complex()
                 Chain(1:(0, 0, 0, 1))
                 sage: ascii_art(_)
-                   d_0  [0]  d_1  [0]  d_2       d_3  
+                   d_0  [0]  d_1  [0]  d_2       d_3
                 0 <---- [0] <---- [0] <---- [0] <---- 0
-                        [0]       [0]          
-                        [0]       [1]          
+                        [0]       [0]
+                        [0]       [1]
             """
             return self.parent().chain_complex()({
                 self.parent().degree(): self.to_vector()
@@ -294,7 +296,7 @@ class Chains(CellComplexReference, CombinatorialFreeModule):
                 AttributeError: 'Chains_with_category.element_class' object has no attribute 'is_cocycle'
             """
             return self.to_complex().is_cycle()
-        
+
         def is_boundary(self):
             """
             Test whether the chain is a boundary
@@ -335,7 +337,7 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
 
     One difference between chains and cochains is notation. In a
     simplicial complex, for example, a simplex ``(0,1,2)`` is written
-    as "(0,1,2)" in the group of chains but as "\chi_(0,1,2)" in the
+    as "(0,1,2)" in the group of chains but as "\\chi_(0,1,2)" in the
     group of cochains.
 
     Also, since the free modules of chains and cochains are dual,
@@ -395,7 +397,7 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
             prefix='\\chi',
             bracket=['_', '']
         )
-        
+
     def dual(self):
         """
         Return the chains
@@ -420,7 +422,7 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
             self.cell_complex, self.degree,
             cells=self._cells, base_ring=self.base_ring()
         )
-        
+
     def cochain_complex(self):
         """
         Return the cochain complex.
@@ -436,17 +438,17 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
             sage: C2.cochain_complex()
             Chain complex with at most 3 nonzero terms over Rational Field
             sage: ascii_art(C2.cochain_complex())
-                                            [ 0  0  1 -1]      
-                                            [ 0  1  0 -1]      
-                                            [ 1  0 -1  0]      
-                        [-1  1 -1  1]       [ 1 -1  0  0]      
-             0 <-- C_2 <-------------- C_1 <-------------- C_0 <-- 0 
+                                            [ 0  0  1 -1]
+                                            [ 0  1  0 -1]
+                                            [ 1  0 -1  0]
+                        [-1  1 -1  1]       [ 1 -1  0  0]
+             0 <-- C_2 <-------------- C_1 <-------------- C_0 <-- 0
         """
         return self.cell_complex().chain_complex(
             base_ring=self.base_ring(),
             cochain=True,
         )
-    
+
     class Element(CombinatorialFreeModuleElement):
 
         def to_complex(self):
@@ -466,7 +468,7 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
                 sage: cochain.to_complex()
                 Chain(1:(0, 0, 0, 1))
                 sage: ascii_art(_)
-                   d_2       d_1  [0]  d_0  [0]  d_-1  
+                   d_2       d_1  [0]  d_0  [0]  d_-1
                 0 <---- [0] <---- [0] <---- [0] <----- 0
                                   [0]       [0]
                                   [1]       [0]
@@ -478,7 +480,7 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
         def coboundary(self):
             """
             Return the coboundary of this cochain
-            
+
             OUTPUT:
 
             The coboundary as a cochain in one degree higher.
@@ -501,7 +503,7 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
                 degree + 1, base_ring=self.base_ring(), cochains=True
             )
             return codomain.from_vector(d * self.to_vector())
-        
+
         def is_cocycle(self):
             """
             Test whether the cochain is a cocycle
@@ -527,7 +529,7 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
                 AttributeError: 'Cochains_with_category.element_class' object has no attribute 'is_cycle'
             """
             return self.to_complex().is_cycle()
-        
+
         def is_coboundary(self):
             """
             Test whether the cochain is a coboundary
@@ -599,7 +601,8 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
                 raise ValueError('argument is not a chain')
             if other.parent().indices() != self.parent().indices():
                 raise ValueError('the cells are not compatible')
-            result = sum(coeff * other.coefficient(cell) for cell, coeff in self)
+            result = sum(coeff * other.coefficient(cell)
+                         for cell, coeff in self)
             R = self.base_ring()
             if R != other.base_ring():
                 cm = get_coercion_model()
@@ -609,7 +612,7 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
         def cup_product(self, cochain):
             """
             Return the cup product with another cochain
-            
+
             INPUT:
 
             - ``cochain`` -- cochain over the same cell complex
@@ -651,7 +654,7 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
             right_chains = cochain.parent().dual()
             base_ring = get_coercion_model().common_parent(
                 left_chains.base_ring(), right_chains.base_ring())
-            cx = self.parent().cell_complex() 
+            cx = self.parent().cell_complex()
             codomain = cx.n_chains(
                 left_deg + right_deg, base_ring=base_ring, cochains=True)
             accumulator = codomain.zero()
@@ -663,5 +666,5 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
                         right = right_chains(right_cell)
                         accumulator += codomain(cell) * coeff * self.eval(left) * cochain.eval(right)
             return accumulator
-        
-        
+
+

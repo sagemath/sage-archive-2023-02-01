@@ -57,8 +57,8 @@ class SagePrettyPrinter(PrettyPrinter):
         EXAMPLES::
 
             sage: from sage.repl.display.pretty_print import SagePrettyPrinter
-            sage: import StringIO
-            sage: stream = StringIO.StringIO()
+            sage: from six import StringIO
+            sage: stream = StringIO()
             sage: spp = SagePrettyPrinter(stream, 78, '\n')
             sage: spp.toplevel()
             True
@@ -126,8 +126,8 @@ class SagePrettyPrinter(PrettyPrinter):
         EXAMPLES::
 
             sage: from sage.repl.display.pretty_print import SagePrettyPrinter
-            sage: import StringIO
-            sage: stream = StringIO.StringIO()
+            sage: from six import StringIO
+            sage: stream = StringIO()
             sage: SagePrettyPrinter(stream, 78, '\n').pretty([type, 123, 'foo'])
             sage: stream.getvalue()
             "[<type 'type'>,"

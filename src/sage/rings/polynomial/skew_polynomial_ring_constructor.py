@@ -20,8 +20,9 @@ AUTHOR:
 #****************************************************************************
 
 import cysignals
-from sage.structure.category_object import normalize_names
 import sage.rings.ring as ring
+from sage.structure.category_object import normalize_names
+from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.categories.morphism import Morphism, IdentityMorphism
 
 def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, sparse=False):
@@ -195,6 +196,8 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
         raise NotImplementedError("multivariate skew polynomials rings not supported.")
 
     import sage.rings.polynomial.skew_polynomial_ring
-    R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general(base_ring, base_ring_automorphism, names, sparse)
-
+    if is_FiniteField(base_ring):
+        R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field(base_ring, base_ring_automorphism, names, sparse)
+    else:
+        R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general(base_ring, base_ring_automorphism, names, sparse)
     return R

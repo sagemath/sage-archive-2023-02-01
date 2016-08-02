@@ -88,6 +88,9 @@ from sage.categories.fields import Fields
 from sage.rings.all import Integer, CIF
 from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
+from sage.categories.morphism import Morphism
+from sage.rings.all           import Integer
+from sage.rings.commutative_ring import is_CommutativeRing
 from sage.rings.morphism import is_RingHomomorphism
 from .point import is_SchemeTopologicalPoint
 from sage.rings.infinity import infinity
@@ -129,6 +132,11 @@ def is_SchemeMorphism(f):
     from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
     return isinstance(f, (SchemeMorphism, EllipticCurvePoint_field));
 
+#TODO:
+# SchemeMorphism inherits from Element!!
+# (this is because points on schemes are morphisms)
+# to make the composition works I managed to make SchemeMorphism_polynomial
+# *not* inherits from SchemeMorphism!!
 
 class SchemeMorphism(Element):
     """
@@ -877,7 +885,7 @@ class SchemeMorphism_spec(SchemeMorphism):
 # The domain can be either affine or projective regardless
 # of the class
 ############################################################################
-class SchemeMorphism_polynomial(SchemeMorphism):
+class SchemeMorphism_polynomial(Morphism):
     """
     A morphism of schemes determined by polynomials that define what
     the morphism does on points in the ambient space.
@@ -952,7 +960,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                     raise TypeError("polys (=%s) must be elements of %s"%(polys, source_ring))
             polys = Sequence(polys)
         self._polys = polys
-        SchemeMorphism.__init__(self, parent)
+        Morphism.__init__(self, parent)
 
     def defining_polynomials(self):
         """
@@ -1330,6 +1338,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                 Defn: Defined on coordinates by sending (x : y) to
                     (x : y)
 
+
         Check that :trac:`16834` is fixed::
 
             sage: A.<x,y,z> = AffineSpace(RR, 3)
@@ -1442,6 +1451,43 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             else:
                 G.append(f.change_ring(R))
         return(H(G, check))
+
+    def _composition_(self, other, homset):
+        r"""
+        Straightforward implementation of composition for scheme morphisms
+        defined by polynomials.
+
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2 -29/16*y^2, y^2])
+            sage: g = H([y,x+y])
+            sage: h = f*g
+            sage: h
+            Scheme endomorphism of Projective Space of dimension 1 over Rational
+            Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (-29/16*x^2 - 29/8*x*y - 13/16*y^2 : x^2 + 2*x*y + y^2)
+            sage: p = P((1,3))
+            sage: h(p) == f(g(p))
+            True
+
+            sage: Q = ProjectiveSpace(QQ,2)
+            sage: H2 = Hom(P,Q)
+            sage: h2 = H2([x^2+y^2,x^2,y^2+2*x^2])
+            sage: h2 * f
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Rational Field
+              To:   Projective Space of dimension 2 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^4 - 29/8*x^2*y^2 + 1097/256*y^4 : x^4 - 29/8*x^2*y^2 + 841/256*y^4 : 2*x^4 - 29/4*x^2*y^2 + 969/128*y^4)
+        """
+        try:
+            opolys = tuple(other._polys)
+        except AttributeError:
+            raise NotImplementedError
+        return homset([p(*opolys) for p in self._polys])
 
 ############################################################################
 # Rational points on schemes, which we view as morphisms determined

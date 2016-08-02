@@ -518,7 +518,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: E.is_singular()
             False
 
-        Showing that ticket #12187 is fixed::
+        Showing that :trac:`12187` is fixed::
 
             sage: F.<X,Y,Z> = GF(2)[]
             sage: G = Curve(X^2+Y*Z)

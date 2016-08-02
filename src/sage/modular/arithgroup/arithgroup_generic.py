@@ -464,7 +464,7 @@ class ArithmeticSubgroup(group.Group):
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup.nu3(Gamma0(1729)) == 8
             True
 
-        We test that a bug in handling of subgroups not containing -1 is fixed: ::
+        We test that a bug in handling of subgroups not containing -1 is fixed::
 
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup.nu3(GammaH(7, [2]))
             2

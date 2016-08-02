@@ -228,23 +228,25 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             t + 1
             sage: S(1 + t).degree()
             0
+            sage: S(0).list()
+            []
         """
         C = self._polynomial_class
         if isinstance(x, list):
             return C(self, x, check=check, is_gen=False,construct=construct)
         if isinstance(x, Element):
             P = x.parent()
+            def build(check):
+                if x.is_zero():
+                    return P.zero()
+                else:
+                    return C(self, [x], check=check, is_gen=False, construct=construct)
             if P is self:
                 return x
             elif P is self.base_ring():
-               return C(self, [x], check=False, is_gen=False,
-                         construct=construct)
-            elif P == self.base_ring():
-                return C(self, [x], check=True, is_gen=False,
-                         construct=construct)
-            elif self.base_ring().has_coerce_map_from(P):
-                return C(self, [x], check=True, is_gen=False,
-                        construct=construct)
+                build(False)
+            elif P == self.base_ring() or self.base_ring().has_coerce_map_from(P):
+                build(True)
         try:
             return x._polynomial_(self)
         except AttributeError:

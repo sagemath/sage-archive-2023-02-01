@@ -725,6 +725,11 @@ cdef class SkewPolynomial(AlgebraElement):
             x^4 + (t + 3)*x^3 + t*x^2 + (t^2 + t)*x
             sage: a * b == b * a
             False
+
+        TESTS::
+
+            sage: S(0)*a, (S(0)*a).list()
+            (0, [])
         """
         cdef list x = (<SkewPolynomial>self)._coeffs
         cdef list y = (<SkewPolynomial>right)._coeffs
@@ -732,9 +737,9 @@ cdef class SkewPolynomial(AlgebraElement):
         cdef Py_ssize_t dx = len(x)-1, dy = len(y)-1
         parent = self._parent
         if dx == -1:
-            return self
+            return self # = zero
         elif dy == -1:
-            return right
+            return right # = zero
         elif dx == 0:
             c = x[0]
             r = self._new_c([c*a for a in y], parent, 0)

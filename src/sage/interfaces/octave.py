@@ -226,7 +226,7 @@ class Octave(Expect):
         """
         if command is None:
             import os
-            command = os.getenv('SAGE_OCTAVE_COMMAND') or 'octave'
+            command = os.getenv('SAGE_OCTAVE_COMMAND') or 'octave-cli'
         if server is None:
             import os
             server = os.getenv('SAGE_OCTAVE_SERVER') or None
@@ -246,7 +246,7 @@ class Octave(Expect):
                         # We want the prompt sequence to be unique to avoid confusion with syntax error messages containing >>>
                         prompt = 'octave\:\d+> ',
                         # We don't want any pagination of output
-                        command = "sage-native-execute octave --no-line-editing --silent --eval 'PS2(PS1());more off' --persist",
+                        command = command + options + " --eval 'PS2(PS1());more off' --persist",
                         maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
@@ -327,6 +327,7 @@ class Octave(Expect):
                     http://wiki.octave.org/Octave_for_MacOS_X
            * Darwin ports and fink have Octave as well.
         """
+
     def _eval_line(self, line, reformat=True, allow_use_file=False,
                    wait_for_prompt=True, restart_if_needed=False):
         """
@@ -374,13 +375,11 @@ class Octave(Expect):
             try:
                 self._expect.close(force=1)
             except pexpect.ExceptionPexpect as msg:
-                raise pexpect.ExceptionPexpect( "THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
+                raise RuntimeError( "THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
             self._start()
             raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)"%self)
         else:
             self._expect.send('\003') # control-c
-            #self._expect.expect(self._prompt)
-            #self._expect.expect(self._prompt)
             raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
     def quit(self, verbose=False):
@@ -896,7 +895,7 @@ def octave_console():
     from sage.repl.rich_output.display_manager import get_display_manager
     if not get_display_manager().is_in_terminal():
         raise RuntimeError('Can use the console only in the terminal. Try %%octave magics instead.')
-    os.system('octave')
+    os.system('octave-cli')
 
 
 def octave_version():

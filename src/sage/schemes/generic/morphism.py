@@ -149,7 +149,7 @@ class SchemeMorphism(Element):
         sub-class of :class:`~sage.structure.element.ModuleElement` and
         :class:`SchemeMorphism`, but Cython would currently confuse cpdef
         attributes of the two base classes. Proper inheritance should be used
-        as soon as this bug is fixed. See trac #14711.
+        as soon as this bug is fixed. See {{{:trac:`14711`}}}.
 
     EXAMPLES::
 

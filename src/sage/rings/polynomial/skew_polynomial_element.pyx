@@ -2682,41 +2682,6 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             del x[n]
             n -= 1
 
-    cdef void _inplace_add(self, SkewPolynomial_generic_dense right):
-        """
-        Replace ``self`` by `self+right` (only for internal use).
-        """
-        cdef Py_ssize_t i, min
-        x = (<SkewPolynomial_generic_dense>self)._coeffs
-        y = (<SkewPolynomial_generic_dense>right)._coeffs
-        if len(x) > len(y):
-            for i from 0 <= i < len(y):
-                x[i] += y[i]
-        else:
-            x += y[len(x):]
-            for i from 0 <= i < len(x):
-                x[i] += y[i]
-            x += y[len(x):]
-        if len(x) == len(y):
-            self.__normalize()
-
-    cdef void _inplace_sub(self, SkewPolynomial_generic_dense right):
-        """
-        Replace ``self`` by `self-right` (only for internal use).
-        """
-        cdef Py_ssize_t i, min
-        cdef list x = (<SkewPolynomial_generic_dense>self)._coeffs
-        cdef list y = (<SkewPolynomial_generic_dense>right)._coeffs
-        if len(x) >= len(y):
-            for i from 0 <= i < len(y):
-                x[i] -= y[i]
-        else:
-            for i from 0 <= i < len(x):
-                x[i] -= y[i]
-            x += [-c for c in y[len(x):]]
-        if len(x) == len(y):
-            self.__normalize()
-
     cdef void _inplace_rmul(self, SkewPolynomial_generic_dense right):
         """
         Replace ``self`` by `self*right` (only for internal use).
@@ -2743,32 +2708,6 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                     sum += x[i] * parent.twist_map(i)(y[k-i])
                 x[k] = sum
 
-    cdef void _inplace_lmul(self, SkewPolynomial_generic_dense left):
-        """
-        Replace ``self`` by `left*self` (only for internal use).
-        """
-        cdef list x = (<SkewPolynomial_generic_dense>self)._coeffs
-        cdef list y = (<SkewPolynomial_generic_dense>left)._coeffs
-        cdef Py_ssize_t i, k, start, end
-        cdef Py_ssize_t d1 = len(x)-1, d2 = len(y)-1
-        parent = self._parent
-        if d2 == -1:
-            (<SkewPolynomial_generic_dense>self)._coeffs = [ ]
-        elif d1 >= 0:
-            for k from d1 < k <= d1+d2:
-                start = 0 if k <= d2 else k-d2
-                sum = parent.twist_map(k-start)(x[start]) * y[k-start]
-                for i from start < i <= d1:
-                    sum += parent.twist_map(k-i)(x[i]) * y[k-i]
-                x.append(sum)
-            for k from d1 >= k >= 0:
-                start = 0 if k <= d2 else k-d2
-                end = k if k <= d1 else d1
-                sum = parent.twist_map(k-start)(x[start]) * y[k-start]
-                for i from start < i <= end:
-                    sum += parent.twist_map(k-i)(x[i]) * y[k-i]
-                x[k] = sum
-
     cdef void _inplace_pow(self, Py_ssize_t n):
         """
         Replace ``self`` by `self**n`.
@@ -2784,13 +2723,13 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                 self._inplace_rmul(selfpow)
             n = n >> 1
 
-    cpdef _leftpow_(self,exp,modulus=None):
+    cpdef power_left_mod(self, exp, modulus):
         """
         INPUT:
 
         - ``exp`` -- an Integer
 
-        - ``modulus`` -- a skew polynomial over the same ring (default: ``None``)
+        - ``modulus`` -- a skew polynomial over the same ring
 
         OUTPUT:
 
@@ -2826,16 +2765,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
             sage: a = x + t
-            sage: b = a._leftpow_(10)
-
             sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
-            sage: bl = a._leftpow_(10,modulus); bl
-            (4*t^2 + 2*t + 3)*x^2 + (3*t^2 + 1)*x + 2*t + 3
-            sage: lq, lr = b.left_quo_rem(modulus)
-            sage: bl == lr
-            True
-
-            sage: a._leftpow_(100,modulus)  # quite fast
+            sage: a.power_left_mod(100,modulus)  # quite fast
             (4*t^2 + t + 1)*x^2 + (t^2 + 4*t + 1)*x + 3*t^2 + 3*t
         """
         cdef SkewPolynomial_generic_dense r
@@ -2851,7 +2782,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         if exp == 0:
             return self.parent().one()
         if exp < 0:
-            return (~self).leftpow(-exp,modulus)
+            return (~self).power_left_mod(-exp,modulus)
 
         if self == self.parent().gen():
             P = self.parent()
@@ -2866,13 +2797,13 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             _, r = r.left_quo_rem(modulus)
         return r
 
-    cpdef _rightpow_(self,exp,modulus=None):
+    cpdef power_right_mod(self, exp, modulus):
         """
         INPUT:
 
         - ``exp`` -- an Integer
 
-        - ``modulus`` -- a skew polynomial over the same ring (default: ``None``)
+        - ``modulus`` -- a skew polynomial over the same ring
 
         OUTPUT:
 
@@ -2911,15 +2842,13 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: b = a^10  # short form for ``a._pow_(10)``
             sage: b == a*a*a*a*a*a*a*a*a*a
             True
-
             sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
-            sage: br = a._rightpow_(10,modulus); br
+            sage: br = a.power_right_mod(10,modulus); br
             (t^2 + t)*x^2 + (3*t^2 + 1)*x + t^2 + t
             sage: rq, rr = b.right_quo_rem(modulus)
             sage: br == rr
             True
-
-            sage: a._rightpow_(100,modulus)  # quite fast
+            sage: a.power_right_mod(100,modulus)  # quite fast
             (2*t^2 + 3)*x^2 + (t^2 + 4*t + 2)*x + t^2 + 2*t + 1
         """
         cdef SkewPolynomial_generic_dense r
@@ -2935,7 +2864,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         if exp == 0:
             return self.parent().one()
         if exp < 0:
-            return (~self).rightpow(-exp,modulus)
+            return (~self).power_right_mod(-exp,modulus)
 
         if self == self.parent().gen():
             P = self.parent()
@@ -2950,14 +2879,13 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             _, r = r.right_quo_rem(modulus)
         return r
 
-    def __pow__(self,exp,modulus):
+    def __pow__(self,exp, modulus):
         """
         INPUT:
 
         - ``exp`` -- an Integer
 
         - ``modulus`` -- a skew polynomial over the same ring
-          (default: ``None``)
 
         OUTPUT:
 
@@ -2979,44 +2907,14 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: b = a^10
             sage: b == a*a*a*a*a*a*a*a*a*a
             True
-
             sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
-            sage: bmod = a._rightpow_(10,modulus); bmod
+            sage: bmod = a.power_right_mod(10,modulus); bmod
             (t^2 + t)*x^2 + (3*t^2 + 1)*x + t^2 + t
             sage: rq, rr = b.right_quo_rem(modulus)
             sage: bmod == rr
             True
         """
-        return self._rightpow_(exp,modulus)
-
-def make_generic_skew_polynomial(parent, coeffs):
-    """
-    Constructs a generic skew polynomial of type `parent`
-    from the given list of coefficients `coeffs`.
-
-    INPUT::
-
-    - ``parent`` -- parent class of ring of skew polynomials
-
-    - ``coeffs`` -- list of coefficients
-
-    OUTPUT:
-
-    An element, i.e. skew polynomial, of `parent` with coefficients
-    corresponding to `coeffs`.
-
-    EXAMPLES::
-
-        sage: from sage.rings.polynomial.skew_polynomial_element import make_generic_skew_polynomial
-        sage: R.<t> = ZZ[]
-        sage: sigma = R.hom([t+1])
-        sage: S.<x> = SkewPolynomialRing(R,sigma)
-        sage: c = [1, 1, t]
-        sage: make_generic_skew_polynomial(S, c)
-        t*x^2 + x + 1
-    """
-    return parent(coeffs)
-
+        return self.power_right_mod(exp,modulus)
 
 cdef class ConstantSkewPolynomialSection(Map):
     """

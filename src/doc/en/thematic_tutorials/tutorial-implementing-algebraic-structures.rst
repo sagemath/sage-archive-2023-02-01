@@ -640,13 +640,13 @@ Here is a brief template highlighting the overall structure::
             # implementation of the multiplication, the unit, ...
 
 
-``A=MyAlgebra(...)`` models a commutative algebra with several
-realizations, which we specify in the constructor of ``MyAlgebra``.
-``MyAlgebra.FirstBasis`` and ``MyAlgebra.SecondBasis`` implement two
-realizations of ``A``, both corresponding to a distinguished basis on
-which elements are expanded. They are initialized in the category
-``MyAlgebra.Bases`` of all bases of ``A``, whose role is to factor out
-their common features. In particular we state there that they are:
+The class ``A=MyAlgebra(...)`` models a commutative algebra with several
+realizations, which we specify in the constructor of ``MyAlgebra``. The two
+bases classes ``MyAlgebra.FirstBasis`` and ``MyAlgebra.SecondBasis`` implement
+different realizations of ``A`` that correspond to distinguished bases on which
+elements are expanded. They are initialized in the category ``MyAlgebra.Bases``
+of all bases of ``A``, whose role is to factor out their common features. In
+particular, this construction says that they are:
 
 - realizations of ``A``
 - realizations of a commutative algebra, with a distinguished basis
@@ -654,13 +654,14 @@ their common features. In particular we state there that they are:
 .. NOTE::
 
     There is a bit of redundancy here: given that ``A`` knows it is a
-    commutative algebra with realizations, the infrastructure could
-    recover that its realizations are commutative algebras; then we
-    could just implement `Bases.super_categories` by returning::
+    commutative algebra with realizations the infrastructure could, in
+    principle, determine that its realizations are commutative algebras. If this
+    was done then it would be possible to implement `Bases.super_categories` by
+    returning::
 
             [A.Realizations().WithBasis()]
 
-    This is not yet implemented though.
+    However, this has not been implemented yet.
 
 .. NOTE::
 
@@ -674,17 +675,17 @@ their common features. In particular we state there that they are:
 
 .. NOTE::
 
-    More often than not, the constructor in all the bases will be very
-    similar, if not plain identical; so we would want to factor it
-    out. Annoyingly, the natural approach of putting it in
-    ``Bases.ParentMethods`` does not work: this is an abstract class,
-    while the constructor is about the concrete implementation and
-    data structure. Similarly, it would be desirable to specify only
-    once the classes the bases inherit from, but this can't go into
-    ``Bases`` for the same reason.
+    More often than not, the constructors for all of the bases will be very
+    similar, if not identical; so we would want to factor it out. Annoyingly,
+    the natural approach of putting the constructor in ``Bases.ParentMethods``
+    does not work because this is an abstract class whereas the constructor
+    handles the concrete implementation of the data structure. Similarly, it
+    would be better if it was only necessary to  specify the classes the bases
+    inherit from once, but this can't code go into ``Bases`` for the same
+    reason.
 
-    The current recommended solution is to add instead a class
-    ``Basis`` to factor out the concrete features between the bases::
+    The current recommended solution is to have an additional class ``Basis``
+    that factors out the common concrete features of the different bases::
 
         ...
 
@@ -698,10 +699,9 @@ their common features. In particular we state there that they are:
         class SecondBasis(Basis):
             ...
 
-    This solution is unsatisfactory, as there are two locations,
-    namely ``Basis`` and ``Bases``, to share features between the two
-    bases, depending on whether they are respectively concrete or
-    abstract. But it does the job.
+    This solution works but it is not optimal because to share features between
+    the two bases code needs to go into two locations, ``Basis`` and ``Bases``,
+    depending on whether they are concrete or abstract, respectively.
 
 We now urge the reader to browse the full code of the following
 example, which is meant as a complete template for constructing new

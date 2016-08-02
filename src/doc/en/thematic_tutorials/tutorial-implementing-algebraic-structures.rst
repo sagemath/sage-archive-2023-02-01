@@ -640,7 +640,7 @@ Here is a brief template highlighting the overall structure::
             # implementation of the multiplication, the unit, ...
 
 
-The class ``A=MyAlgebra(...)`` models a commutative algebra with several
+The class ``MyAlgebra`` implements a commutative algebra ``A`` with several
 realizations, which we specify in the constructor of ``MyAlgebra``. The two
 bases classes ``MyAlgebra.FirstBasis`` and ``MyAlgebra.SecondBasis`` implement
 different realizations of ``A`` that correspond to distinguished bases on which

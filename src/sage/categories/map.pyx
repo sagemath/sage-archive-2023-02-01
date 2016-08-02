@@ -1588,7 +1588,7 @@ cdef class FormalCompositeMap(Map):
         _slots['__list'] = self.__list
         return Map._extra_slots(self, _slots)
 
-    def __richcmp__(self, other, int op):
+    cpdef _richcmp_(self, other, int op):
         """
         TEST::
 
@@ -1602,8 +1602,6 @@ cdef class FormalCompositeMap(Map):
             sage: m == loads(dumps(m))
             True
         """
-        if type(self) != type(other):
-            return NotImplemented
         left = (<FormalCompositeMap>self).__list
         right = (<FormalCompositeMap>other).__list
         return PyObject_RichCompare(left, right, op)

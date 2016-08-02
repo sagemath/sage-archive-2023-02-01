@@ -86,7 +86,7 @@ cdef class LeftZeroSemigroupElement(Element):
         """
         return LeftZeroSemigroupElement, (self._parent, self._value)
 
-    def _richcmp_(self, other, int op):
+    cpdef _richcmp_(self, other, int op):
         """
         EXAMPLES::
 

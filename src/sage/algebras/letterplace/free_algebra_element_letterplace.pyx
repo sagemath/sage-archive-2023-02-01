@@ -452,7 +452,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
                 return True
         return False
 
-    def _richcmp_(self, other, int op):
+    cpdef _richcmp_(self, other, int op):
         """
         Implement comparisons, using the Cython richcmp convention.
 

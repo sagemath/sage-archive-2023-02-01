@@ -154,7 +154,7 @@ class SchemeMorphism(Element):
         sub-class of :class:`~sage.structure.element.ModuleElement` and
         :class:`SchemeMorphism`, but Cython would currently confuse cpdef
         attributes of the two base classes. Proper inheritance should be used
-        as soon as this bug is fixed.
+        as soon as this bug is fixed. See trac #14711.
 
     EXAMPLES::
 
@@ -885,7 +885,7 @@ class SchemeMorphism_spec(SchemeMorphism):
 # The domain can be either affine or projective regardless
 # of the class
 ############################################################################
-class SchemeMorphism_polynomial(Morphism):
+class SchemeMorphism_polynomial(SchemeMorphism):
     """
     A morphism of schemes determined by polynomials that define what
     the morphism does on points in the ambient space.
@@ -960,7 +960,7 @@ class SchemeMorphism_polynomial(Morphism):
                     raise TypeError("polys (=%s) must be elements of %s"%(polys, source_ring))
             polys = Sequence(polys)
         self._polys = polys
-        Morphism.__init__(self, parent)
+        SchemeMorphism.__init__(self, parent)
 
     def defining_polynomials(self):
         """
@@ -1482,6 +1482,31 @@ class SchemeMorphism_polynomial(Morphism):
               To:   Projective Space of dimension 2 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
                     (x^4 - 29/8*x^2*y^2 + 1097/256*y^4 : x^4 - 29/8*x^2*y^2 + 841/256*y^4 : 2*x^4 - 29/4*x^2*y^2 + 969/128*y^4)
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: A1.<z> = AffineSpace(QQ, 1)
+            sage: H = End(A)
+            sage: f = H([x^2+y^2, y^2/x])
+            sage: H1 = Hom(A, A1)
+            sage: g = H1([x + y^2])
+            sage: g*f
+            Scheme morphism:
+              From: Affine Space of dimension 2 over Rational Field
+              To:   Affine Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x, y) to
+                    ((x^4 + x^2*y^2 + y^4)/x^2)
+            sage: f*g
+            Traceback (most recent call last):
+            ...
+            TypeError: self (=Scheme endomorphism of Affine Space of dimension 2 over Rational Field
+              Defn: Defined on coordinates by sending (x, y) to
+                    (x^2 + y^2, y^2/x)) domain must equal right (=Scheme morphism:
+              From: Affine Space of dimension 2 over Rational Field
+              To:   Affine Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x, y) to
+                    (y^2 + x)) codomain
         """
         try:
             opolys = tuple(other._polys)

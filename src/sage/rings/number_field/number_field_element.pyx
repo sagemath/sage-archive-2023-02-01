@@ -908,12 +908,15 @@ cdef class NumberFieldElement(FieldElement):
         return 0  # No error
 
 
-    # TODO: this is wrong if there is a real embedding specified
     def __abs__(self):
         r"""
-        Return the numerical absolute value of this number field element
-        with respect to the first archimedean embedding, to double
-        precision.
+        Return the absolute value of this number field element.
+
+        If a real-valued coercion embedding is defined, the
+        returned absolute value is an element of the same field.
+
+        Otherwise, it is the numerical absolute value with respect to
+        the first archimedean embedding, to double precision.
 
         This is the ``abs( )`` Python function. If you want a
         different embedding or precision, use
@@ -924,12 +927,30 @@ cdef class NumberFieldElement(FieldElement):
             sage: k.<a> = NumberField(x^3 - 2)
             sage: abs(a)
             1.25992104989487
+            sage: a.abs()
+            1.25992104989487
             sage: abs(a)^3
+            2.00000000000000
+            sage: a.abs()^3
             2.00000000000000
             sage: a.abs(prec=128)
             1.2599210498948731647672106072782283506
+
+        Number field with a real-valued coercion embedding
+        (:trac:`21105`)::
+
+            sage: k.<cbrt2> = NumberField(x^3 - 2, embedding=1.26)
+            sage: abs(cbrt2)
+            cbrt2
+            sage: cbrt2.abs()
+            1.25992104989487
+            sage: abs(cbrt2)^3
+            2
         """
-        return self.abs(prec=53, i=None)
+        if (<number_field_base.NumberField> self._parent)._embedded_real:
+            return self.sign() * self
+        else:
+            return self.abs(prec=53, i=None)
 
     def sign(self):
         r"""

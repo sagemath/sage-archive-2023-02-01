@@ -312,8 +312,8 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             sage: t_element = t._pari_('b')
             sage: t_element
             3*b^2 + 2*b + 4
-            sage: t_element.parent()
-            Interface to the PARI C library
+            sage: type(t_element)
+            <type 'sage.libs.pari.gen.gen'>
         """
         if var is None:
             var = self.parent().variable_name()

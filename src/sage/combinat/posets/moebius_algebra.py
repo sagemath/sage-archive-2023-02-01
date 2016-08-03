@@ -251,6 +251,17 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
                 sage: L = posets.BooleanLattice(4)
                 sage: M = L.moebius_algebra(QQ)
                 sage: TestSuite(M.I()).run()
+
+            Check that the transition maps can be pickled::
+
+                sage: L = posets.BooleanLattice(4)
+                sage: M = L.moebius_algebra(QQ)
+                sage: E = M.E()
+                sage: I = M.I()
+                sage: phi = E.coerce_map_from(I)
+                sage: loads(dumps(phi))
+                Generic morphism:
+                ...
             """
             self._basis_name = "idempotent"
             CombinatorialFreeModule.__init__(self, M.base_ring(),
@@ -263,13 +274,13 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
             self.module_morphism(self._to_natural_basis,
                                  codomain=E, category=self.category(),
                                  triangular='lower', unitriangular=True,
-                                 key=self._key
+                                 key=M._lattice._element_to_vertex
                                  ).register_as_coercion()
 
             E.module_morphism(E._to_idempotent_basis,
                               codomain=self, category=self.category(),
                               triangular='lower', unitriangular=True,
-                              key=self._key
+                              key=M._lattice._element_to_vertex
                               ).register_as_coercion()
 
 
@@ -549,7 +560,7 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
             phi = self.module_morphism(self._to_natural_basis,
                                        codomain=E, category=self.category(),
                                        triangular='lower', unitriangular=True,
-                                       key=self._key)
+                                       key=M._lattice._element_to_vertex)
 
             phi.register_as_coercion()
             (~phi).register_as_coercion()
@@ -630,7 +641,7 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
             phi = self.module_morphism(self._to_natural_basis,
                                        codomain=E, category=self.category(),
                                        triangular='lower', unitriangular=True,
-                                       key=self._key)
+                                       key=M._lattice._element_to_vertex)
 
             phi.register_as_coercion()
             (~phi).register_as_coercion()
@@ -756,126 +767,6 @@ class MoebiusAlgebraBases(Category_realization_of_parent):
             R = self.realization_of().a_realization()
             return self(R.one())
 
-        def _key(self, x):
-            """
-            Generate the key for comparisons in the basis module morphisms.
-
-            EXAMPLES::
-
-                sage: L = posets.BooleanLattice(4)
-                sage: M = L.moebius_algebra(QQ)
-                sage: E = M.E()
-                sage: type(E._key(5))
-                <class 'sage.combinat.posets.moebius_algebra._Key'>
-            """
-            return _Key(self.realization_of()._lattice, x)
-
     class ElementMethods:
         pass
-
-class _Key(object):
-    """
-    Helper class to be a key for the module morphisms of the Möbius algebra
-    that uses the comparison of the poset.
-
-    Because posets are often facades, we need to a way to force the
-    elements to use the comparison of the poset (the natural order on the
-    objects may not be a linear extension).
-    """
-    def __init__(self, P, elt):
-        """
-            sage: from sage.combinat.posets.moebius_algebra import _Key
-            sage: L = posets.BooleanLattice(4)
-            sage: K = _Key(L, 5)
-            sage: isinstance(K, _Key)
-            True
-            sage: K._poset is L
-            True
-        """
-        self._poset = P
-        self._elt = elt
-
-    def __eq__(self, other):
-        """
-            sage: from sage.combinat.posets.moebius_algebra import _Key
-            sage: L = posets.BooleanLattice(4)
-            sage: K1 = _Key(L, 5)
-            sage: K2 = _Key(L, 5)
-            sage: K1 == K2
-            True
-            sage: K3 = _Key(L, 8)
-            sage: K1 == K3
-            False
-        """
-        return self._elt == other._elt
-
-    def __ne__(self, other):
-        """
-            sage: from sage.combinat.posets.moebius_algebra import _Key
-            sage: L = posets.BooleanLattice(4)
-            sage: K1 = _Key(L, 5)
-            sage: K2 = _Key(L, 5)
-            sage: K1 != K2
-            False
-            sage: K3 = _Key(L, 8)
-            sage: K1 != K3
-            True
-        """
-        return self._elt != other._elt
-
-    def __lt__(self, other):
-        """
-            sage: from sage.combinat.posets.moebius_algebra import _Key
-            sage: L = posets.BooleanLattice(4)
-            sage: K1 = _Key(L, 1)
-            sage: K2 = _Key(L, 5)
-            sage: K1 < K2
-            True
-            sage: K3 = _Key(L, 3)
-            sage: K3 < K2
-            False
-        """
-        return self._poset.lt(self._elt, other._elt)
-
-    def __gt__(self, other):
-        """
-            sage: from sage.combinat.posets.moebius_algebra import _Key
-            sage: L = posets.BooleanLattice(4)
-            sage: K1 = _Key(L, 1)
-            sage: K2 = _Key(L, 5)
-            sage: K2 > K1
-            True
-            sage: K3 = _Key(L, 3)
-            sage: K2 > K3
-            False
-        """
-        return self._poset.gt(self._elt, other._elt)
-
-    def __le__(self, other):
-        """
-            sage: from sage.combinat.posets.moebius_algebra import _Key
-            sage: L = posets.BooleanLattice(4)
-            sage: K1 = _Key(L, 1)
-            sage: K2 = _Key(L, 5)
-            sage: K1 <= K2
-            True
-            sage: K3 = _Key(L, 3)
-            sage: K3 <= K2
-            False
-        """
-        return self._poset.le(self._elt, other._elt)
-
-    def __ge__(self, other):
-        """
-            sage: from sage.combinat.posets.moebius_algebra import _Key
-            sage: L = posets.BooleanLattice(4)
-            sage: K1 = _Key(L, 1)
-            sage: K2 = _Key(L, 5)
-            sage: K2 >= K1
-            True
-            sage: K3 = _Key(L, 3)
-            sage: K2 >= K3
-            False
-        """
-        return self._poset.ge(self._elt, other._elt)
 

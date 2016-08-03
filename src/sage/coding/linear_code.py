@@ -4084,12 +4084,17 @@ class LinearCodeSystematicEncoder(Encoder):
 
     To encode an element of its message space, this encoder first builds a
     generator matrix in systematic form. What is called systematic form here
-    is the row echelon form of a matrix, which is not necessarily
+    is the reduced row echelon form of a matrix, which is not necessarily
     `[I \vert H]`, where `I` is the identity block and `H` the parity block.
     One can refer to :meth:`LinearCodeSystematicEncoder.generator_matrix`
     for a concrete example.
     Once such a matrix has been computed, it is used to encode any message
     into a codeword.
+
+    This encoder can also serve as the default encoder of a code defined by a
+    parity check matrix: if the :class:`LinearCodeSystematicEncoder` detects
+    that it is the default encoder, it computes a generator matrix as the
+    reduced row echelon form of the right kernel of the parity check matrix.
 
     INPUT:
 
@@ -4139,19 +4144,23 @@ class LinearCodeSystematicEncoder(Encoder):
     @cached_method
     def generator_matrix(self):
         r"""
-        Returns a generator matrix of the associated code of ``self``.
+        Returns a generator matrix in systematic form of the associated code of ``self``.
 
-        This generator matrix will be in systematic form.
+        Systematic form here means that a subsets of the columns of the matrix
+        forms the identity matrix.
 
         .. NOTE::
 
             The matrix returned by this method will not necessarily be `[I \vert H]`, where `I`
             is the identity block and `H` the parity block. If one wants to know which columns
-            create the identity block, one should use :meth:`systematic_positions`
+            create the identity block, one can call :meth:`systematic_positions`
 
         EXAMPLES::
 
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],\
+                                     [1,0,0,1,1,0,0],\
+                                     [0,1,0,1,0,1,0],\
+                                     [1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
             sage: E.generator_matrix()
@@ -4160,19 +4169,24 @@ class LinearCodeSystematicEncoder(Encoder):
             [0 0 1 0 1 1 0]
             [0 0 0 1 1 1 1]
 
-        Another one, with a matrix which won't be `[I \vert H]`::
+        Another example, with a generator matrix which won't be `[I \vert H]`::
 
-            sage: G = Matrix(GF(2), [[1,1,0,0,1,0,1],[1,1,0,0,1,0,0],[0,0,1,0,0,1,0],[0,0,1,0,1,0,1]])
+            sage: G = Matrix(GF(2), [[1,1,0,0,1,0,1],\
+                                     [1,1,0,0,1,0,0],\
+                                     [0,0,1,0,0,1,0],\
+                                     [0,0,1,0,1,0,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
             sage: E.generator_matrix()
             [1 1 0 0 0 1 0]
             [0 0 1 0 0 1 0]
             [0 0 0 0 1 1 0]
-            [0 0 0 0 0 0 1]
-
+            [0 0 0 0 0 0 1]            
         """
         C = self.code()
+        # This if statement detects if this encoder is itself the default encoder.
+        # In this case, attempt building the generator matrix from the parity
+        # check matrix
         if hasattr(self, "_use_pc_matrix"):
             return C.parity_check_matrix().right_kernel_matrix()
         else:

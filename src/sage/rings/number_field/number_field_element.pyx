@@ -1141,51 +1141,49 @@ cdef class NumberFieldElement(FieldElement):
 
         EXAMPLES::
 
-        sage: z = CyclotomicField(7).gen()
-        sage: abs(z)
-        1.00000000000000
-        sage: abs(z^2 + 17*z - 3)
-        16.0604426799931
-        sage: K.<a> = NumberField(x^3+17)
-        sage: abs(a)
-        2.57128159065824
-        sage: a.abs(prec=100)
-        2.5712815906582353554531872087
-        sage: a.abs(prec=100,i=1)
-        2.5712815906582353554531872087
-        sage: a.abs(100, 2)
-        2.5712815906582353554531872087
+            sage: z = CyclotomicField(7).gen()
+            sage: abs(z)
+            1.00000000000000
+            sage: abs(z^2 + 17*z - 3)
+            16.0604426799931
+            sage: K.<a> = NumberField(x^3+17)
+            sage: abs(a)
+            2.57128159065824
+            sage: a.abs(prec=100)
+            2.5712815906582353554531872087
+            sage: a.abs(prec=100,i=1)
+            2.5712815906582353554531872087
+            sage: a.abs(100, 2)
+            2.5712815906582353554531872087
 
-        Here's one where the absolute value depends on the embedding.
+        Here's one where the absolute value depends on the embedding::
 
-        ::
-
-        sage: K.<b> = NumberField(x^2-2)
-        sage: a = 1 + b
-        sage: a.abs(i=0)
-        0.414213562373095
-        sage: a.abs(i=1)
-        2.41421356237309
+            sage: K.<b> = NumberField(x^2-2)
+            sage: a = 1 + b
+            sage: a.abs(i=0)
+            0.414213562373095
+            sage: a.abs(i=1)
+            2.41421356237309
 
         Check that :trac:`16147` is fixed::
 
-        sage: x = polygen(ZZ)
-        sage: f = x^3 - x - 1
-        sage: beta = f.complex_roots()[0]; beta
-        1.32471795724475
-        sage: K.<b> = NumberField(f, embedding=beta)
-        sage: b.abs()
-        1.32471795724475
+            sage: x = polygen(ZZ)
+            sage: f = x^3 - x - 1
+            sage: beta = f.complex_roots()[0]; beta
+            1.32471795724475
+            sage: K.<b> = NumberField(f, embedding=beta)
+            sage: b.abs()
+            1.32471795724475
 
         Check that for fields with real coercion embeddings, absolute
         values are in the same field (:trac:`21105`)::
 
-        sage: x = polygen(ZZ)
-        sage: f = x^3 - x - 1
-        sage: K.<b> = NumberField(f, embedding=1.3)
-        sage: b.abs()
-        b
-"""
+            sage: x = polygen(ZZ)
+            sage: f = x^3 - x - 1
+            sage: K.<b> = NumberField(f, embedding=1.3)
+            sage: b.abs()
+            b
+        """
         if i is None and (<number_field_base.NumberField> self._parent)._embedded_real:
             return self.sign() * self
         else:

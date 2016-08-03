@@ -249,7 +249,7 @@ class Yangian(CombinatorialFreeModule):
         basis_keys = IndexedFreeAbelianMonoid(indices, bracket=False,
                                               prefix=variable_name)
         CombinatorialFreeModule.__init__(self, base_ring, basis_keys,
-                                         generator_cmp=Yangian._term_cmp,
+                                         sorting_key=Yangian._term_key,
                                          prefix=variable_name, category=category)
 
     def _repr_(self):
@@ -278,22 +278,18 @@ class Yangian(CombinatorialFreeModule):
         return "Y(\\mathfrak{{gl}}_{{{}}}, {})".format(self._n, latex(self.base_ring()))
 
     @staticmethod
-    def _term_cmp(x, y):
+    def _term_key(x):
         """
-        Compare the terms indexed by ``x`` and ``y``.
+        Compute a key for ``x`` for comparisons.
 
         EXAMPLES::
 
             sage: Y = Yangian(QQ, 4)
             sage: x = Y.gen(2, 1, 1).leading_support()
-            sage: y = Y.gen(5, 2, 1).leading_support()
-            sage: Y._term_cmp(x, y)
-            -1
+            sage: Yangian._term_key(x)
+            (-1, [((2, 1, 1), 1)])
         """
-        c = -cmp(len(x), len(y))
-        if c:
-            return c
-        return cmp(x._sorted_items(), y._sorted_items())
+        return (-len(x), x._sorted_items())
 
     def _repr_term(self, m):
         """

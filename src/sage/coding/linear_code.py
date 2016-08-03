@@ -4099,8 +4099,37 @@ class LinearCodeSystematicEncoder(Encoder):
     INPUT:
 
     - ``code`` -- The associated code of this encoder.
+
+    - ``systematic_positions`` -- optional: the positions in codewords that
+      should correspond to the message symbols. A list of `k` distinct integers in
+      the range 0 to `n-1` where `n` is the length of the code and `k` its
+      dimension. The 0th symbol of a message will then be at position
+      ``systematic_positions[0]``, the 1st index at position
+      ``systematic_positions[1]``, etc. A ``ValueError`` is raised at
+      construction time if the supplied indices do not form an information set.
     
     EXAMPLES:
+
+    The following demonstrates the basic usage of :class:`LinearCodeSystematicEncoder`::
+    
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],\
+                                     [1,0,0,1,1,0,0],\
+                                     [0,1,0,1,0,1,0],\
+                                     [1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E.generator_matrix()
+            [1 0 0 0 0 1 1]
+            [0 1 0 0 1 0 1]
+            [0 0 1 0 1 1 0]
+            [0 0 0 1 1 1 1]
+            sage: E2 = codes.encoders.LinearCodeSystematicEncoder(C, systematic_positions=[5,4,3,2])
+            sage: E2.generator_matrix()
+            [1 0 0 0 0 1 1]
+            [0 1 0 0 1 0 1]
+            [1 1 0 1 0 0 1]
+            [1 1 1 0 0 0 0]
+
 
     We exemplify how to use :class:`LinearCodeSystematicEncoder` as the default
     encoder. The following class is the dual of the repitition code::
@@ -4138,7 +4167,7 @@ class LinearCodeSystematicEncoder(Encoder):
         ValueError: a parity check matrix must be specified if LinearCodeSystematicEncoder is the default encoder
     """
 
-    def __init__(self, code):
+    def __init__(self, code, systematic_positions=None):
         r"""
         EXAMPLES::
 
@@ -4149,6 +4178,40 @@ class LinearCodeSystematicEncoder(Encoder):
             Systematic encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
         """
         super(LinearCodeSystematicEncoder, self).__init__(code)
+        self._systematic_positions = tuple(systematic_positions) if systematic_positions else None
+        if systematic_positions:
+            # Test that systematic_positions consists of integers in the right
+            # range. We test that len(systematic_positions) = code.dimension()
+            # in self.generator_matrix() to avoid possible infinite recursion.
+            if (not all( e in ZZ and e >= 0 and e < code.length() for e in systematic_positions)) \
+               or len(systematic_positions) != len(set(systematic_positions)):
+                raise ValueError("systematic positions must be a tuple of distinct integers in the range 0 to n-1 where n is the length of the code")
+            # Test that the systematic positions are an information set
+            self.generator_matrix()
+
+
+    def __eq__(self, other):
+        r"""
+        Tests equality between LinearCodeSystematicEncoder objects.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(3), [[1,0,0,1,0,1,0,1,2],[0,1,0,2,2,0,1,1,0],[0,0,1,0,2,2,2,1,2]])
+            sage: E1 = codes.encoders.LinearCodeSystematicEncoder(LinearCode(G))
+            sage: E2 = codes.encoders.LinearCodeSystematicEncoder(LinearCode(G))
+            sage: E1 == E2
+            True
+            sage: E1.systematic_positions()
+            (0, 1, 2)
+            sage: E3 = codes.encoders.LinearCodeSystematicEncoder(LinearCode(G), systematic_positions=(3,5,7))
+            sage: E3.systematic_positions()
+            (3, 5, 7)
+            sage: E1 == E3
+            False
+        """
+        return isinstance(other, LinearCodeSystematicEncoder)\
+                and self.code() == other.code()\
+                and self.systematic_positions() == other.systematic_positions()
 
     def _repr_(self):
         r"""
@@ -4206,7 +4269,16 @@ class LinearCodeSystematicEncoder(Encoder):
             [0 0 1 0 1 1 0]
             [0 0 0 1 1 1 1]
 
-        Another example, with a generator matrix which won't be `[I \vert H]`::
+        We can ask for different systematic positions::
+
+            sage: E2 = codes.encoders.LinearCodeSystematicEncoder(C, systematic_positions=[5,4,3,2])
+            sage: E2.generator_matrix()
+            [1 0 0 0 0 1 1]
+            [0 1 0 0 1 0 1]
+            [1 1 0 1 0 0 1]
+            [1 1 1 0 0 0 0]
+
+        Another example where there is no generator matrix of the form `[I \vert H]`::
 
             sage: G = Matrix(GF(2), [[1,1,0,0,1,0,1],\
                                      [1,1,0,0,1,0,0],\
@@ -4232,8 +4304,32 @@ class LinearCodeSystematicEncoder(Encoder):
                 raise ValueError("a parity check matrix must be specified if LinearCodeSystematicEncoder is the default encoder")
         else:
             self._use_pc_matrix = 1
-            M = C.generator_matrix()
-        return M.echelon_form()
+            M = copy(C.generator_matrix())
+        if not self._systematic_positions:
+            M.echelonize()
+        else:
+            n,k = M.ncols(), M.nrows() # it is important that k is *not* computed as C.dimension() to avoid possible cyclic dependency
+            if len(self._systematic_positions) != k:
+                raise ValueError("systematic_positions must be a tuple of length equal to the dimension of the code")
+            # Permute the columns of M and bring to reduced row echelon formb
+            lp = [ None ]*n
+            for (i,j) in zip(range(k), self._systematic_positions):
+                lp[i] = j
+            j = k
+            set_sys_pos = set(self._systematic_positions)
+            for i in range(n):
+                if not i in set_sys_pos:
+                    lp[j] = i
+                    j += 1
+            from sage.combinat.permutation import Permutation
+            perm = Permutation([1 + e for e in lp])
+            M.permute_columns(perm)
+            M.echelonize()
+            M.permute_columns(perm.inverse())
+            if M[:,:k].is_singular():
+                raise ValueError("systematic_positions are not an information set")
+        M.set_immutable()
+        return M
 
     def systematic_positions(self):
         r"""
@@ -4266,7 +4362,7 @@ class LinearCodeSystematicEncoder(Encoder):
             sage: m == info
             True
         """
-        return self.generator_matrix().pivots()
+        return self._systematic_positions if self._systematic_positions else self.generator_matrix().pivots()
 
 
 

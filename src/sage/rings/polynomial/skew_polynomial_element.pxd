@@ -1,16 +1,7 @@
-include "cysignals/signals.pxi"
-include "../../ext/cdefs.pxi"
-include '../../ext/stdsage.pxi'
-
-from sage.rings.integer cimport Integer
-
-from sage.structure.element cimport Element, AlgebraElement, ModuleElement
+from sage.structure.element cimport AlgebraElement
 from sage.structure.parent cimport Parent
-from polynomial_compiled cimport CompiledPolynomialFunction
-
 from sage.rings.morphism cimport Morphism
 from sage.structure.element cimport RingElement
-
 from sage.rings.polynomial.polynomial_element cimport Polynomial_generic_dense
 
 cdef class SkewPolynomial(AlgebraElement):

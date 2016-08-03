@@ -266,14 +266,8 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return self._hash_c()
 
-#    cdef void _inplace_add(self, SkewPolynomial_generic_dense right):
-#        raise NotImplementedError
-#    cdef void _inplace_sub(self, SkewPolynomial_generic_dense right):
-##        raise NotImplementedError
     cdef void _inplace_rmul(self, SkewPolynomial_generic_dense right):
         raise NotImplementedError
-#    cdef void _inplace_lmul(self, SkewPolynomial_generic_dense right):
-##        raise NotImplementedError
     cdef void _inplace_pow(self, Py_ssize_t n):
         raise NotImplementedError
     cdef void __normalize(self):
@@ -2728,9 +2722,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         OUTPUT:
 
-        If ``modulus`` is ``None``, return ``self**exp``.
-
-        Otherwise, return the remainder of ``self**exp`` in the left
+        Return the remainder of ``self**exp`` in the left
         euclidean division by ``modulus``.
 
         REMARK:
@@ -2786,7 +2778,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             r = <SkewPolynomial_generic_dense>self._parent(v)
         else:
             r = <SkewPolynomial_generic_dense>self._new_c(list(self._coeffs),self._parent)
-            r._inplace_pow(exp)
+#            r._inplace_pow(exp)
+            r = r**exp
 
         if modulus:
             _, r = r.left_quo_rem(modulus)
@@ -2802,9 +2795,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         OUTPUT:
 
-        If ``modulus`` is ``None``, return ``self**exp``.
-
-        Otherwise, return the remainder of self**exp in the right
+        Return the remainder of ``self**exp`` in the right
         euclidean division by ``modulus``.
 
         REMARK:
@@ -2869,6 +2860,11 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         else:
             r = <SkewPolynomial_generic_dense>self._new_c(list(self._coeffs),self._parent)
             r._inplace_pow(exp)
+#            print "HI"
+#            for i in range(exp-1):
+#                r = r * r
+#            r = r**exp
+##            print r
 
         if modulus:
             _, r = r.right_quo_rem(modulus)
@@ -2884,9 +2880,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         OUTPUT:
 
-        If ``modulus`` is ``None``, return ``self**exp``.
-
-        Otherwise, return the remainder of self**exp in the right
+        Return the remainder of ``self**exp`` in the right
         euclidean division by ``modulus``.
 
         .. SEEALSO::

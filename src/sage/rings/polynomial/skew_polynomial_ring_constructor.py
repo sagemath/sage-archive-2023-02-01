@@ -8,7 +8,11 @@ the general assumption in Sage that parents are unique).
 
 AUTHOR:
 
-- Xavier Caruso (2012-06-29)
+- Xavier Caruso (2012-06-29): initial version
+
+- Arpit Merchant (2016-08-04): improved docstrings, added doctests and refactored method
+
+- Johan Nielson (2016-08-03): changes to import format
 """
 
 #############################################################################

@@ -15,7 +15,11 @@ for conversion from a skew polynomial ring to its base ring and vice versa respe
 
 AUTHOR:
 
--  Xavier Caruso (2012-06-29)
+- Xavier Caruso (2012-06-29): initial version
+
+- Arpit Merchant (2016-08-04): improved docstrings, fixed doctests and refactored classes and methods
+
+- Johan Nielson (2016-08-03): changes for bug fixes, docstring and doctest errors  
 """
 
 #############################################################################
@@ -2778,7 +2782,6 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             r = <SkewPolynomial_generic_dense>self._parent(v)
         else:
             r = <SkewPolynomial_generic_dense>self._new_c(list(self._coeffs),self._parent)
-#            r._inplace_pow(exp)
             r = r**exp
 
         if modulus:
@@ -2860,11 +2863,6 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         else:
             r = <SkewPolynomial_generic_dense>self._new_c(list(self._coeffs),self._parent)
             r._inplace_pow(exp)
-#            print "HI"
-#            for i in range(exp-1):
-#                r = r * r
-#            r = r**exp
-##            print r
 
         if modulus:
             _, r = r.right_quo_rem(modulus)

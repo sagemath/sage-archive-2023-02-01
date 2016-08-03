@@ -11,6 +11,10 @@ by associativity and distributivity.
 AUTHOR:
 
 - Xavier Caruso (2012-06-29)
+
+- Arpit Merchant (2016-08-04): improved docstrings, fixed doctests and refactored classes and methods
+
+- Johan Nielson (2016-08-03): changes for bug fixes, docstring and doctest errors
 """
 
 #############################################################################

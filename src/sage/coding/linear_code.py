@@ -4112,23 +4112,31 @@ class LinearCodeSystematicEncoder(Encoder):
 
     The following demonstrates the basic usage of :class:`LinearCodeSystematicEncoder`::
     
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],\
-                                     [1,0,0,1,1,0,0],\
-                                     [0,1,0,1,0,1,0],\
-                                     [1,1,0,1,0,0,1]])
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0,0],\
+                                     [1,0,0,1,1,0,0,0],\
+                                     [0,1,0,1,0,1,0,0],\
+                                     [1,1,0,1,0,0,1,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
             sage: E.generator_matrix()
-            [1 0 0 0 0 1 1]
-            [0 1 0 0 1 0 1]
-            [0 0 1 0 1 1 0]
-            [0 0 0 1 1 1 1]
+            [1 0 0 0 0 1 1 1]
+            [0 1 0 0 1 0 1 1]
+            [0 0 1 0 1 1 0 0]
+            [0 0 0 1 1 1 1 1]
             sage: E2 = codes.encoders.LinearCodeSystematicEncoder(C, systematic_positions=[5,4,3,2])
             sage: E2.generator_matrix()
-            [1 0 0 0 0 1 1]
-            [0 1 0 0 1 0 1]
-            [1 1 0 1 0 0 1]
-            [1 1 1 0 0 0 0]
+            [1 0 0 0 0 1 1 1]
+            [0 1 0 0 1 0 1 1]
+            [1 1 0 1 0 0 1 1]
+            [1 1 1 0 0 0 0 0]
+
+    An error is raised if one specifies systematic positions which do not form
+    an information set::
+
+            sage: E3 = codes.encoders.LinearCodeSystematicEncoder(C, systematic_positions=[0,1,6,7])
+            Traceback (most recent call last):
+            ...
+            ValueError: systematic_positions are not an information set
 
 
     We exemplify how to use :class:`LinearCodeSystematicEncoder` as the default
@@ -4203,9 +4211,9 @@ class LinearCodeSystematicEncoder(Encoder):
             True
             sage: E1.systematic_positions()
             (0, 1, 2)
-            sage: E3 = codes.encoders.LinearCodeSystematicEncoder(LinearCode(G), systematic_positions=(3,5,7))
+            sage: E3 = codes.encoders.LinearCodeSystematicEncoder(LinearCode(G), systematic_positions=(2,5,6))
             sage: E3.systematic_positions()
-            (3, 5, 7)
+            (2, 5, 6)
             sage: E1 == E3
             False
         """
@@ -4325,9 +4333,9 @@ class LinearCodeSystematicEncoder(Encoder):
             perm = Permutation([1 + e for e in lp])
             M.permute_columns(perm)
             M.echelonize()
-            M.permute_columns(perm.inverse())
             if M[:,:k].is_singular():
                 raise ValueError("systematic_positions are not an information set")
+            M.permute_columns(perm.inverse())
         M.set_immutable()
         return M
 

@@ -146,7 +146,7 @@ class SchemeMorphism(Element):
         sub-class of :class:`~sage.structure.element.ModuleElement` and
         :class:`SchemeMorphism`, but Cython would currently confuse cpdef
         attributes of the two base classes. Proper inheritance should be used
-        as soon as this bug is fixed. See trac #14711.
+        as soon as this bug is fixed. See :trac:`14711`.
 
     EXAMPLES::
 
@@ -1499,11 +1499,29 @@ class SchemeMorphism_polynomial(SchemeMorphism):
               To:   Affine Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x, y) to
                     (y^2 + x)) codomain
+
+        Not both defined by polynomials::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^2 - 2)
+            sage: p1, p2 = K.Hom(K)
+            sage: R.<x,y> = K[]
+            sage: q1 = R.Hom(R)(p1)
+            sage: A = AffineSpace(R)
+            sage: f1 = A.Hom(A)(q1)
+            sage: g = A.Hom(A)([x^2-y, y+1])
+            sage: g*f1
+            Composite map:
+              From: Affine Space of dimension 2 over Number Field in a with defining polynomial x^2 - 2
+              To:   Affine Space of dimension 2 over Number Field in a with defining polynomial x^2 - 2
+              Defn:   Generic endomorphism of Affine Space of dimension 2 over Number Field in a with defining polynomial x^2 - 2
+                    then
+                      Generic endomorphism of Affine Space of dimension 2 over Number Field in a with defining polynomial x^2 - 2
         """
         try:
             opolys = tuple(other._polys)
         except AttributeError:
-            raise NotImplementedError
+            return super(SchemeMorphism_polynomial, self)._composition_(other, homset)
         return homset([p(*opolys) for p in self._polys])
 
 ############################################################################

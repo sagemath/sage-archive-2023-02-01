@@ -2318,6 +2318,37 @@ class AbstractLinearCode(module.Module):
         """
         return self.encoder("Systematic").systematic_positions()
 
+    def is_information_set(self, positions):
+        """
+        Return whether the given positions form an information set.
+
+        INPUT:
+
+        - A list of positions, i.e. integers in the range 0 to `n-1` where `n`
+          is the length of `self`.
+
+        OUTPUT:
+
+        - A boolean indicating whether the positions form an information set.
+
+
+        EXAMPLES::
+
+            sage: G = matrix(GF(3),2,[1,2,0,\
+                                      2,1,1])
+            sage: code = LinearCode(G)
+            sage: code.is_information_set([0,1])
+            False
+            sage: code.is_information_set([0,2])
+            True
+        """
+        try:
+            self.encoder("Systematic", systematic_positions=tuple(positions))
+            return True
+        except ValueError:
+            return False
+            
+
     def is_permutation_automorphism(self,g):
         r"""
         Returns `1` if `g` is an element of `S_n` (`n` = length of self) and

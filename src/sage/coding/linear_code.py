@@ -2308,7 +2308,8 @@ class AbstractLinearCode(module.Module):
 
         EXAMPLES::
 
-            sage: G = matrix(GF(3),2,[1,-1,0,-1,1,1])
+            sage: G = matrix(GF(3),2,[1,2,0,\
+                                      2,1,1])
             sage: code = LinearCode(G)
             sage: code.systematic_generator_matrix()
             [1 2 0]
@@ -2977,17 +2978,23 @@ class AbstractLinearCode(module.Module):
         c.set_immutable()
         return c
 
-    def redundancy_matrix(C):
+    def redundancy_matrix(self):
         r"""
-        If C is a linear [n,k,d] code then this function returns a
-        `k \times (n-k)` matrix A such that G = (I,A) generates a code (in
-        standard form) equivalent to C. If C is already in standard form and
-        G = (I,A) is its generator matrix then this function simply returns
-        that A.
+        Returns the non-identity columns of a systematic generator matrix for
+        ``self``.
+
+        A systematic generator matrix is a generator matrix such that a subset
+        of its columns forms the identity matrix. This method returns the
+        remaining part of the matrix.
+
+        For any given code, there can be many systematic generator matrices
+        (depending on which positions should form the identity). This method
+        will use the matrix returned by
+        :meth:`AbstractLinearCode.systematic_generator_matrix`.
 
         OUTPUT:
 
-        - Matrix, the redundancy matrix
+        - An `k \times (n-k)` matrix.
 
         EXAMPLES::
 
@@ -3002,24 +3009,18 @@ class AbstractLinearCode(module.Module):
              [1 0 1]
              [1 1 0]
              [1 1 1]
-            sage: C.standard_form()[0].generator_matrix()
-             [1 0 0 0 0 1 1]
-             [0 1 0 0 1 0 1]
-             [0 0 1 0 1 1 0]
-             [0 0 0 1 1 1 1]
-            sage: C = codes.HammingCode(GF(3), 2)
-            sage: C.generator_matrix()
-            [1 0 1 1]
-            [0 1 1 2]
+            sage: C = LinearCode(matrix(GF(3),2,[1,2,0,\
+                                                 2,1,1]))
+            sage: C.systematic_generator_matrix()
+            [1 2 0]
+            [0 0 1]
             sage: C.redundancy_matrix()
-            [1 1]
-            [1 2]
+            [2]
+            [0]
         """
-        n = C.length()
-        k = C.dimension()
-        C1 = C.standard_form()[0]
-        G1 = C1.generator_matrix()
-        return G1.matrix_from_columns(range(k,n))
+        E = self.encoder("Systematic")
+        G = E.generator_matrix()
+        return G.delete_columns(E.systematic_positions())
 
     def sd_duursma_data(C, i):
         r"""

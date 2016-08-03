@@ -230,6 +230,20 @@ cdef class TropicalSemiringElement(RingElement):
             2
             sage: T.infinity() + T(2)
             2
+
+        TESTS:
+
+        Check some additions with trivial coercion of ``int(0)``::
+
+            sage: T = TropicalSemiring(QQ)
+            sage: T(1) + int(0)
+            0
+            sage: T(-1) + int(0)
+            -1
+            sage: int(0) + T(1)
+            0
+            sage: int(0) + T(-1)
+            -1
         """
         cdef TropicalSemiringElement self, rhs
         self = left

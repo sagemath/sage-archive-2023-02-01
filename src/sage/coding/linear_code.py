@@ -3295,7 +3295,7 @@ class AbstractLinearCode(module.Module):
             s = 0
             for L in StringIO(lines).readlines():
                 L = L.strip()
-                if len(L):
+                if L:
                     o = ord(L[0])
                     if o >= 48 and o <= 57:
                         wt, num = L.split()

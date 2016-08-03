@@ -2886,12 +2886,9 @@ class AbstractLinearCode(module.Module):
             sage: C.generator_matrix() == Cg.systematic_generator_matrix()
             True
         """
-        F = self.base_ring()
-        G = self.generator_matrix()
-        n = len(G.columns())
-        MS = MatrixSpace(F,n,n)
-        Gp = G*MS(p.matrix().rows())
-        return LinearCode(Gp)
+        G = copy(self.generator_matrix())
+        G.permute_columns(p)
+        return LinearCode(G)
 
     def punctured(self, L):
         r"""

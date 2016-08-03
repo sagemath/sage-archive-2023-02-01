@@ -465,7 +465,7 @@ cdef class QuiverPath(MonoidElement):
         biseq_init_concat(OUT._path, self._path,right._path)
         return OUT
 
-    def __mod__(self, other):
+    cpdef _mod_(self, other):
         """
         Return what remains of this path after removing the initial segment ``other``.
 
@@ -491,19 +491,18 @@ cdef class QuiverPath(MonoidElement):
             None
 
         """
-        cdef QuiverPath right = other
-        cdef QuiverPath cself = self
+        cdef QuiverPath right = <QuiverPath>other
         # Handle trivial case
-        if right is None or cself._start!=right._start:
+        if self._start != right._start:
             return None
         if right._path.length==0:
             return self
 
         # If other is the beginning, return the rest
         cdef QuiverPath OUT
-        if (cself._start == right._start) and biseq_startswith(cself._path, right._path):
-            OUT = cself._new_(right._end, cself._end)
-            biseq_init_slice(OUT._path, cself._path, right._path.length, cself._path.length, 1)
+        if (self._start == right._start) and biseq_startswith(self._path, right._path):
+            OUT = self._new_(right._end, self._end)
+            biseq_init_slice(OUT._path, self._path, right._path.length, self._path.length, 1)
             return OUT
         else:
             return None

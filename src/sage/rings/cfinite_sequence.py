@@ -292,7 +292,7 @@ class CFiniteSequence(FieldElement):
             sage: CFiniteSequence(pi)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce pi (<class 'sage.symbolic.constants.Pi'>) to Rational
+            TypeError: unable to convert pi to a rational
             sage: var('y')
             y
             sage: f4 = CFiniteSequence((2-y)/(1-y-y^2))

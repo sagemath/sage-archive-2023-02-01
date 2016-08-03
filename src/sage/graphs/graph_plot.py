@@ -134,11 +134,11 @@ graphplot_options = layout_options.copy()
 graphplot_options.update(
                    {'pos': 'The position dictionary of vertices',
                     'vertex_labels': 'Whether or not to draw vertex labels.',
+                    'vertex_color': 'Default color for vertices not listed '
+                        'in vertex_colors dictionary.',
                     'vertex_colors': 'Dictionary of vertex coloring : each '
                         'key is a color recognizable by matplotlib, and each '
-                        'corresponding entry is a list of vertices. '
-                        'If a vertex is not listed, it looks invisible on '
-                        'the resulting plot (it does not get drawn).',
+                        'corresponding entry is a list of vertices. ',
                     'vertex_size': 'The size to draw the vertices.',
                     'vertex_shape': 'The shape to draw the vertices. '
                         'Currently unavailable for Multi-edged DiGraphs.',
@@ -364,7 +364,7 @@ class GraphPlot(SageObject):
             sage: GP.set_vertices(talk=True)
             sage: GP.plot()
             Graphics object consisting of 22 graphics primitives
-            sage: GP.set_vertices(vertex_colors='pink', vertex_shape='^')
+            sage: GP.set_vertices(vertex_color='green', vertex_shape='^')
             sage: GP.plot()
             Graphics object consisting of 22 graphics primitives
 
@@ -390,6 +390,8 @@ class GraphPlot(SageObject):
                 sphinx_plot(GP)
 
         """
+        from sage.misc.superseded import deprecation
+
         # Handle base vertex options
         voptions = {}
 
@@ -405,6 +407,15 @@ class GraphPlot(SageObject):
         else:
             voptions['markersize'] = self._options['vertex_size']
 
+        if 'vertex_color' not in self._options or self._options['vertex_color'] is None:
+            vertex_color = '#fec7b8'
+        else:
+            vertex_color = self._options['vertex_color']
+
+        if ('vertex_colors' in self._options and
+            not isinstance(self._options['vertex_colors'], dict)):
+            deprecation(21048, "Use of vertex_colors=<string> is deprecated, use vertex_color=<string> and/or vertex_colors=<dict>.")
+
         if 'vertex_colors' not in self._options or self._options['vertex_colors'] is None:
             if self._options['partition'] is not None:
                 from sage.plot.colors import rainbow,rgbcolor
@@ -415,7 +426,7 @@ class GraphPlot(SageObject):
                 for i in range(l):
                     vertex_colors[R[i]] = partition[i]
             elif not vertex_colors:
-                vertex_colors='#fec7b8'
+                vertex_colors = vertex_color
         else:
             vertex_colors = self._options['vertex_colors']
 
@@ -452,15 +463,10 @@ class GraphPlot(SageObject):
                 colors += [i]*len(vertex_colors[i])
 
             # If all the vertices have not been assigned a color
-            if len(self._pos)!=len(pos):
-                from sage.plot.colors import rainbow,rgbcolor
-                vertex_colors_rgb=[rgbcolor(c) for c in vertex_colors]
-                for c in rainbow(len(vertex_colors)+1):
-                    if rgbcolor(c) not in vertex_colors_rgb:
-                        break
-                leftovers=[j for j in self._pos.values() if j not in pos]
-                pos+=leftovers
-                colors+=[c]*len(leftovers)
+            if len(self._pos) != len(pos):
+                leftovers = [j for j in self._pos.values() if j not in pos]
+                pos += leftovers
+                colors += [vertex_color]*len(leftovers)
 
             if self._arcdigraph:
                 self._plot_components['vertices'] = [circle(pos[i],

@@ -13,6 +13,7 @@ Test downloading files
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import print_function, absolute_import
 
 import unittest
 import tempfile
@@ -38,7 +39,7 @@ class DownloadTestCase(unittest.TestCase):
             self.assertTrue(content.startswith('# Sage Mirror List'))
 
     def test_error(self):
-        URL = 'http://www.sagemath.org/sage_bootstrap/this_url_does_not_exist'
+        URL = 'http://files.sagemath.org/sage_bootstrap/this_url_does_not_exist'
         progress = StringIO()
         download = Download(URL, progress=progress)
         log = CapturedLog()
@@ -51,7 +52,7 @@ class DownloadTestCase(unittest.TestCase):
             '[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]\n')
 
     def test_ignore_errors(self):
-        URL = 'http://www.sagemath.org/sage_bootstrap/this_url_does_not_exist'
+        URL = 'http://files.sagemath.org/sage_bootstrap/this_url_does_not_exist'
         with CapturedLog() as log:
             Download(URL, progress=False, ignore_errors=True).run()
         self.assertIsNotFoundError(log.messages())
@@ -61,6 +62,6 @@ class DownloadTestCase(unittest.TestCase):
         self.assertEqual(messages[0][0], 'ERROR')
         self.assertTrue(messages[0][1].startswith('[Errno'))
         self.assertTrue(messages[0][1].endswith(
-            "Not Found: '//www.sagemath.org/sage_bootstrap/this_url_does_not_exist'"))
+            "[Errno 404] Not Found: '//files.sagemath.org/sage_bootstrap/this_url_does_not_exist'"))
         
 

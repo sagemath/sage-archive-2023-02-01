@@ -14,7 +14,7 @@ cd src
 echo
 echo "Now running GMP-ECM's test suite..."
 
-$MAKE check
+$MAKE check longcheck
 
 if [ $? -ne 0 ]; then
     echo >&2 "Error: GMP-ECM's test suite failed."

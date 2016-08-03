@@ -53,9 +53,10 @@ import subprocess
 try:
     # Python 3.3+
     from urllib.request import urlopen
+    from urllib.error import URLError
 except ImportError:
     # Python 2.7
-    from urllib2 import urlopen
+    from urllib2 import urlopen, URLError
 
 DEFAULT_PYPI = 'https://pypi.python.org/pypi'
 PIP_VERSION = re.compile("^([^\s]+) \(([^\s]+)\)$", re.MULTILINE)
@@ -73,20 +74,39 @@ def pkgname_split(name):
     """
     return (name.split('-',1) + [''])[:2]
 
-def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI):
+def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI, ignore_URLError=False):
     r"""
     Return the version of this pip package available on PyPI.
+
+    INPUT:
+
+    - ``pkg`` -- the package
+
+    - ``pypi_url`` -- an optional Python package repository to use (default is the
+      standard PyPI url)
+
+    - ``ignore_URLError`` -- if set to ``True`` than no error is raised if the
+      connection fails and the function returns ``None`` (set to ``False`` by
+      default).
 
     EXAMPLES::
 
         sage: from sage.misc.package import pip_remote_version
-        sage: pip_remote_version('beautifulsoup') # optional - internet
+        sage: pip_remote_version('beautifulsoup', ignore_URLError=True) # optional - internet
         u'...'
     """
     url = '{pypi_url}/{pkg}/json'.format(pypi_url=pypi_url, pkg=pkg)
-    f = urlopen(url)
-    text = f.read()
-    f.close()
+
+    try:
+        f = urlopen(url)
+        text = f.read()
+        f.close()
+    except URLError:
+        if ignore_URLError:
+            return
+        else:
+            raise
+
     info = json.loads(text)
     stable_releases = [v for v in info['releases'] if 'a' not in v and 'b' not in v]
     return max(stable_releases)
@@ -126,12 +146,15 @@ def list_packages(*pkg_types, **opts):
 
     INPUT:
 
-    - `pkg_types` - (optional) a sublist of 'standard', 'optional', 'experimental' or
+    - ``pkg_types`` - (optional) a sublist of 'standard', 'optional', 'experimental' or
       'pip'. If provided, list only the package with this given type otherwise
       list all packages.
 
-    - `local` - if set to ``False`` then do not consult remote upstream version
+    - ``local`` - if set to ``False`` then do not consult remote upstream version
       of packages (only applicable for 'pip' type)
+
+    - ``ignore_URLError`` -- if set to ``True`` than connection error will be
+      ignored (set to ``False`` by default)
 
     EXAMPLES::
 
@@ -172,6 +195,7 @@ def list_packages(*pkg_types, **opts):
     installed = installed_packages()
 
     local = opts.pop('local', False)
+    ignore_URLError = opts.pop('ignore_URLError', False)
     if opts:
         raise ValueError("{} are not valid options".format(sorted(opts)))
 
@@ -193,7 +217,7 @@ def list_packages(*pkg_types, **opts):
         package_filename = os.path.join(SAGE_PKGS, p, "package-version.txt")
         if pkg['type'] == 'pip':
             if not local:
-                pkg['remote_version'] = pip_remote_version(p)
+                pkg['remote_version'] = pip_remote_version(p, ignore_URLError=ignore_URLError)
             else:
                 pkg['remote_version'] = None
         elif os.path.isfile(package_filename):

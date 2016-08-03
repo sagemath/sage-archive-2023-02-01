@@ -62,11 +62,11 @@ else:
 
 # make the list of packages
 if args['category'] == 'installed':
-    L = [pkg for pkg in list_packages(local=True).values() if pkg['installed']]
+    L = [pkg for pkg in list_packages(local=True, ignore_URLError=True).values() if pkg['installed']]
 elif args['category'] == 'optional':
-    L = list_packages('optional', 'pip', local=args['local']).values()
+    L = list_packages('optional', 'pip', local=args['local'], ignore_URLError=True).values()
 else:
-    L = list_packages(args['category'], local=args['local']).values()
+    L = list_packages(args['category'], local=args['local'], ignore_URLError=True).values()
 L.sort(key = lambda pkg: pkg['name'])
 
 # print (while getting rid of None in versions)

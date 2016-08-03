@@ -4099,6 +4099,43 @@ class LinearCodeSystematicEncoder(Encoder):
     INPUT:
 
     - ``code`` -- The associated code of this encoder.
+    
+    EXAMPLES:
+
+    We exemplify how to use :class:`LinearCodeSystematicEncoder` as the default
+    encoder. The following class is the dual of the repitition code:
+
+        sage: class DualRepetitionCode(sage.coding.linear_code.AbstractLinearCode):
+        ....:   def __init__(self, field, length):
+        ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self,field, length, "Systematic", "Syndrome")
+        ....:
+        ....:   def parity_check_matrix(self):
+        ....:       return Matrix(self.base_field(), [1]*self.length())
+        ....:
+        ....:   def _repr_(self):
+        ....:       return "Dual of the Repetition Code of length %d over %s" % (self.length(), self.base_field())
+        ....:
+        sage: DualRepetitionCode(GF(3), 5).generator_matrix()
+        [1 0 0 0 2]
+        [0 1 0 0 2]
+        [0 0 1 0 2]
+        [0 0 0 1 2]
+
+
+    An exception is thrown if SystematicEncoder is the default encoder but no
+    parity check matrix has been specified for the code.::
+
+        sage: class BadCodeExample(sage.coding.linear_code.AbstractLinearCode):
+        ....:   def __init__(self, field, length):
+        ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self, field, length, "Systematic", "Syndrome")
+        ....:
+        ....:   def _repr_(self):
+        ....:       return "I am a badly defined code"
+        ....:
+        sage: BadCodeExample(GF(3), 5).generator_matrix()
+        Traceback (most recent call last):
+        ...
+        ValueError: a parity check matrix must be specified if SystematicEncoder is the default encoder
     """
 
     def __init__(self, code):
@@ -4188,9 +4225,13 @@ class LinearCodeSystematicEncoder(Encoder):
         # In this case, attempt building the generator matrix from the parity
         # check matrix
         if hasattr(self, "_use_pc_matrix"):
-            return C.parity_check_matrix().right_kernel_matrix()
+            if self._use_pc_matrix == 1:
+                self._use_pc_matrix = 2
+                return C.parity_check_matrix().right_kernel_matrix()
+            else:
+                raise ValueError("a parity check matrix must be specified if SystematicEncoder is the default encoder")
         else:
-            self._use_pc_matrix = True
+            self._use_pc_matrix = 1
             M = C.generator_matrix()
         return M.echelon_form()
 

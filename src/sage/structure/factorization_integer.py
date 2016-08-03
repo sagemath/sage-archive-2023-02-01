@@ -110,9 +110,10 @@ class IntegerFactorization(Factorization):
             5 * 3
         """
         if _cmp is not None:
+            from functools import cmp_to_key
             from sage.misc.superseded import deprecation
             deprecation(21145, "Please use 'key' to sort.")
-            self.__x.sort(cmp=_cmp)
+            self.__x.sort(key=cmp_to_key(_cmp))
             return
         elif 'key' is not None:
             self.__x.sort(key=key)

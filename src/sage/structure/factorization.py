@@ -696,10 +696,10 @@ class Factorization(SageObject):
             return
 
         if _cmp is not None:
-            # no longer possible in py3
+            from functools import cmp_to_key
             from sage.misc.superseded import deprecation
             deprecation(21145, "Please use 'key' to sort.")
-            self.__x.sort(cmp=_cmp)
+            self.__x.sort(key=cmp_to_key(_cmp))
             return
 
         if key is not None:

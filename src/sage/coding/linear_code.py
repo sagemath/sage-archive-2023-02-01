@@ -2316,7 +2316,7 @@ class AbstractLinearCode(module.Module):
             sage: code.information_set()
             (0, 2)
         """
-        return self.generator_matrix().transpose().pivot_rows()
+        return self.encoder("Systematic").systematic_positions()
 
     def is_permutation_automorphism(self,g):
         r"""

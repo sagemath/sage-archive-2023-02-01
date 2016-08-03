@@ -1602,6 +1602,8 @@ cdef class FormalCompositeMap(Map):
             sage: m == loads(dumps(m))
             True
         """
+        if type(self) is not type(other):
+            return NotImplemented
         left = (<FormalCompositeMap>self).__list
         right = (<FormalCompositeMap>other).__list
         return PyObject_RichCompare(left, right, op)

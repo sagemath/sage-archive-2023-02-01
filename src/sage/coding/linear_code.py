@@ -2192,7 +2192,7 @@ class AbstractLinearCode(module.Module):
         E = self.encoder(encoder_name, **kwargs)
         return E.generator_matrix()
 
-    def generator_matrix_systematic(self):
+    def systematic_generator_matrix(self):
         """
         Return a systematic generator matrix of the code.
 
@@ -2206,11 +2206,14 @@ class AbstractLinearCode(module.Module):
             sage: code.generator_matrix()
             [1 2 1]
             [2 1 1]
-            sage: code.generator_matrix_systematic()
+            sage: code.systematic_generator_matrix()
             [1 2 0]
             [0 0 1]
         """
-        return LinearCodeSystematicEncoder(self).generator_matrix()
+        return self.encoder("Systematic").generator_matrix()
+
+    generator_matrix_systematic = deprecated_function_alias(20835,
+            systematic_generator_matrix)
 
     @cached_method
     def gens(self):
@@ -2293,7 +2296,7 @@ class AbstractLinearCode(module.Module):
 
             sage: G = matrix(GF(3),2,[1,-1,0,-1,1,1])
             sage: code = LinearCode(G)
-            sage: code.generator_matrix_systematic()
+            sage: code.systematic_generator_matrix()
             [1 2 0]
             [0 0 1]
             sage: code.information_set()
@@ -2835,7 +2838,7 @@ class AbstractLinearCode(module.Module):
             sage: Cg = C.permuted_code(g)
             sage: Cg
             Linear code of length 7, dimension 4 over Finite Field of size 2
-            sage: C.generator_matrix() == Cg.generator_matrix_systematic()
+            sage: C.generator_matrix() == Cg.systematic_generator_matrix()
             True
         """
         F = self.base_ring()

@@ -462,34 +462,6 @@ cdef class SkewPolynomial(AlgebraElement):
         except IndexError:
             return self.base_ring().zero()
 
-    def __getslice__(self, Py_ssize_t i, Py_ssize_t j):
-        """
-        Return a specific portion of ``self``.
-
-        .. NOTE::
-
-            For slices exceeding degree of polynomial, 0 is returned.
-
-        EXAMPLES::
-            sage: R.<t> = QQ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
-            sage: a = t*x^2 + (t + 3/7)*x + t^2
-            sage: a[1:]
-            t*x^2 + (t + 3/7)*x
-            sage: a[:1]
-            t^2
-            sage: a[3:]
-            0
-        """
-        if i <= 0:
-            i = 0
-            zeros = []
-        elif i > 0:
-            zeros = [self._parent.base_ring().zero()] * i
-        c = self._new_c(zeros + self._coeffs[i:j], self._parent, 1)
-        return c
-
     def __setitem__(self, n, value):
         """
         Set the `n`-th coefficient of this skew polynomial. This always
@@ -924,7 +896,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.truncate(3)
             (t + 1)*x^2
         """
-        return self[:n]
+        return self._new_c(self[:n], self._parent, 1)
 
     def is_monic(self):
         """

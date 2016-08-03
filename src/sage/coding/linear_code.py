@@ -3349,18 +3349,27 @@ class AbstractLinearCode(module.Module):
         else:
             raise NotImplementedError("The only algorithms implemented currently are 'gap', 'leon' and 'binary'.")
 
-    def standard_form(self):
+    def standard_form(self, return_permutation=True):
         r"""
-        Returns the standard form of this linear code.
+        Returns a linear code which is permutation-equivalent to ``self`` and
+        admits a generator matrix in standard form.
 
-        An `[n,k]` linear code with generator matrix `G` in standard form is
-        the row-reduced echelon form of `G` is `(I,A)`, where `I` denotes the
-        `k \times k` identity matrix and `A` is a `k \times (n-k)` block. This
-        method returns a pair `(C,p)` where `C` is a code permutation
-        equivalent to ``self`` and `p` in `S_n`, with `n` the length of `C`,
-        is the permutation sending ``self`` to `C`. This does not call GAP.
+        A generator matrix is in standard form if it is of the form `[I \vert
+        A]`, where `I` is the `k \times k` identity matrix. Any code admits a
+        generator matrix in systematic form, i.e. where a subset of the columns
+        form the identity matrix, but one might need to permute columns to allow
+        the identity matrix to be leading.
 
-        Thanks to Frank Luebeck for (the GAP version of) this code.
+        INPUT:
+
+        - ``return_permutation`` -- (default: ``True``) if ``True``, the column
+          permutation which brings ``self`` into the returned code is also
+          returned.
+
+        OUTPUT:
+
+        - A :class:`LinearCode` whose :meth:`systematic_generator_matrix` is
+          guaranteed to be of the form `[I \vert A]`.
 
         EXAMPLES::
 
@@ -3372,39 +3381,27 @@ class AbstractLinearCode(module.Module):
             [0 0 0 1 1 1 1]
             sage: Cs,p = C.standard_form()
             sage: p
-            ()
-            sage: MS = MatrixSpace(GF(3),3,7)
-            sage: G = MS([[1,0,0,0,1,1,0],[0,1,0,1,0,1,0],[0,0,0,0,0,0,1]])
-            sage: C = LinearCode(G)
+            []
+            sage: Cs is C
+            True
+            sage: C = LinearCode(matrix(GF(2), [[1,0,0,0,1,1,0],\
+                                                [0,1,0,1,0,1,0],\
+                                                [0,0,0,0,0,0,1]]))
             sage: Cs, p = C.standard_form()
             sage: p
-            (3,7)
+            [1, 2, 7, 3, 4, 5, 6]
             sage: Cs.generator_matrix()
-             [1 0 0 0 1 1 0]
-             [0 1 0 1 0 1 0]
-             [0 0 1 0 0 0 0]
+            [1 0 0 0 0 1 1]
+            [0 1 0 0 1 0 1]
+            [0 0 1 0 0 0 0]
         """
-        from sage.coding.code_constructions import permutation_action as perm_action
-        mat = self.generator_matrix()
-        MS = mat.parent()
-        A = []
-        k = len(mat.rows())
-        M = mat.echelon_form()
-        d = len(mat.columns())
-        G = SymmetricGroup(d)
-        perm = G([()])
-        for i in range(1,k+1):
-            r = M.rows()[i-1]
-            j = r.nonzero_positions()[0]
-            if j < d and i != j+1:
-                perm = perm *G([(i,j+1)])
-        if perm != G([()]):
-            for i in range(k):
-                r = M.rows()[i]
-                A.append(perm_action(perm,r))
-        if perm == G([()]):
-            A = M
-        return LinearCode(MS(A)), perm
+        E = self.encoder("Systematic")
+        if E.systematic_positions() == tuple(range(self.dimension())):
+            from sage.combinat.permutation import Permutation
+            return self, Permutation([])
+        else:
+            perm = E.systematic_permutation()
+            return self.permuted_code(perm), perm
 
     def support(self):
         r"""
@@ -4143,7 +4140,7 @@ class LinearCodeSystematicEncoder(Encoder):
 
     - ``code`` -- The associated code of this encoder.
 
-    - ``systematic_positions`` -- optional: the positions in codewords that
+    - ``systematic_positions`` -- (default: ``None``) the positions in codewords that
       should correspond to the message symbols. A list of `k` distinct integers in
       the range 0 to `n-1` where `n` is the length of the code and `k` its
       dimension. The 0th symbol of a message will then be at position
@@ -4359,21 +4356,11 @@ class LinearCodeSystematicEncoder(Encoder):
         if not self._systematic_positions:
             M.echelonize()
         else:
-            n,k = M.ncols(), M.nrows() # it is important that k is *not* computed as C.dimension() to avoid possible cyclic dependency
+            k = M.nrows() # it is important that k is *not* computed as C.dimension() to avoid possible cyclic dependency
             if len(self._systematic_positions) != k:
                 raise ValueError("systematic_positions must be a tuple of length equal to the dimension of the code")
             # Permute the columns of M and bring to reduced row echelon formb
-            lp = [ None ]*n
-            for (i,j) in zip(range(k), self._systematic_positions):
-                lp[i] = j
-            j = k
-            set_sys_pos = set(self._systematic_positions)
-            for i in range(n):
-                if not i in set_sys_pos:
-                    lp[j] = i
-                    j += 1
-            from sage.combinat.permutation import Permutation
-            perm = Permutation([1 + e for e in lp])
+            perm = self.systematic_permutation()
             M.permute_columns(perm)
             M.echelonize()
             if M[:,:k].is_singular():
@@ -4381,6 +4368,36 @@ class LinearCodeSystematicEncoder(Encoder):
             M.permute_columns(perm.inverse())
         M.set_immutable()
         return M
+
+    def systematic_permutation(self):
+        r"""
+        Returns a permutation which would take the systematic positions into [0,..,k-1]
+
+        EXAMPLES::
+
+            sage: C = LinearCode(matrix(GF(2), [[1,0,0,0,1,1,0],\
+                                                [0,1,0,1,0,1,0],\
+                                                [0,0,0,0,0,0,1]]))
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E.systematic_positions()
+            (0, 1, 6)
+            sage: E.systematic_permutation()
+            [1, 2, 7, 3, 4, 5, 6]
+        """
+        n = self.code().length()
+        systematic_positions = self.systematic_positions()
+        k = len(systematic_positions)
+        lp = [ None ]*n
+        for (i,j) in zip(range(k), systematic_positions):
+            lp[i] = j
+        j = k
+        set_sys_pos = set(systematic_positions)
+        for i in range(n):
+            if not i in set_sys_pos:
+                lp[j] = i
+                j += 1
+        from sage.combinat.permutation import Permutation
+        return Permutation([1 + e for e in lp])
 
     def systematic_positions(self):
         r"""

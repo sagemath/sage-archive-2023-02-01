@@ -943,14 +943,11 @@ cdef class NumberFieldElement(FieldElement):
             sage: abs(cbrt2)
             cbrt2
             sage: cbrt2.abs()
-            1.25992104989487
+            cbrt2
             sage: abs(cbrt2)^3
             2
         """
-        if (<number_field_base.NumberField> self._parent)._embedded_real:
-            return self.sign() * self
-        else:
-            return self.abs(prec=53, i=None)
+        return self.abs()
 
     def sign(self):
         r"""
@@ -1117,15 +1114,19 @@ cdef class NumberFieldElement(FieldElement):
         return low
 
     def abs(self, prec=53, i=None):
-        r"""
-        Return the absolute value of this element.
+        r"""Return the absolute value of this element.
 
         If ``i`` is provided, then the absolute of the `i`-th embedding is
-        given. Otherwise, if the number field as a defined embedding into `\CC`
-        then the corresponding absolute value is returned and if there is none,
-        it corresponds to the choice ``i=0``.
+        given.
 
-        If prec is 53 (the default), then the complex double field is
+        Otherwise, if the number field has a coercion embedding into
+        `\RR`, the corresponding absolute value is returned as an
+        element of the same field (and ``prec`` is ignored).
+        Otherwise, if it has a coercion embedding into
+        `\CC`, then the corresponding absolute value is returned.
+        Finally, if there is no coercion embedding, `i` defaults to 0.
+
+        If ``prec`` is 53 (the default), then the complex double field is
         used; otherwise the arbitrary precision (but slow) complex
         field is used.
 
@@ -1140,49 +1141,61 @@ cdef class NumberFieldElement(FieldElement):
 
         EXAMPLES::
 
-            sage: z = CyclotomicField(7).gen()
-            sage: abs(z)
-            1.00000000000000
-            sage: abs(z^2 + 17*z - 3)
-            16.0604426799931
-            sage: K.<a> = NumberField(x^3+17)
-            sage: abs(a)
-            2.57128159065824
-            sage: a.abs(prec=100)
-            2.5712815906582353554531872087
-            sage: a.abs(prec=100,i=1)
-            2.5712815906582353554531872087
-            sage: a.abs(100, 2)
-            2.5712815906582353554531872087
+        sage: z = CyclotomicField(7).gen()
+        sage: abs(z)
+        1.00000000000000
+        sage: abs(z^2 + 17*z - 3)
+        16.0604426799931
+        sage: K.<a> = NumberField(x^3+17)
+        sage: abs(a)
+        2.57128159065824
+        sage: a.abs(prec=100)
+        2.5712815906582353554531872087
+        sage: a.abs(prec=100,i=1)
+        2.5712815906582353554531872087
+        sage: a.abs(100, 2)
+        2.5712815906582353554531872087
 
         Here's one where the absolute value depends on the embedding.
 
         ::
 
-            sage: K.<b> = NumberField(x^2-2)
-            sage: a = 1 + b
-            sage: a.abs(i=0)
-            0.414213562373095
-            sage: a.abs(i=1)
-            2.41421356237309
+        sage: K.<b> = NumberField(x^2-2)
+        sage: a = 1 + b
+        sage: a.abs(i=0)
+        0.414213562373095
+        sage: a.abs(i=1)
+        2.41421356237309
 
         Check that :trac:`16147` is fixed::
 
-            sage: x = polygen(ZZ)
-            sage: f = x^3 - x - 1
-            sage: beta = f.complex_roots()[0]; beta
-            1.32471795724475
-            sage: K.<b> = NumberField(f, embedding=beta)
-            sage: b.abs()
-            1.32471795724475
-        """
-        CCprec = ComplexField(prec)
-        if i is None and CCprec.has_coerce_map_from(self.parent()):
-            return CCprec(self).abs()
+        sage: x = polygen(ZZ)
+        sage: f = x^3 - x - 1
+        sage: beta = f.complex_roots()[0]; beta
+        1.32471795724475
+        sage: K.<b> = NumberField(f, embedding=beta)
+        sage: b.abs()
+        1.32471795724475
+
+        Check that for fields with real coercion embeddings, absolute
+        values are in the same field (:trac:`21105`)::
+
+        sage: x = polygen(ZZ)
+        sage: f = x^3 - x - 1
+        sage: K.<b> = NumberField(f, embedding=1.3)
+        sage: b.abs()
+        b
+"""
+        if i is None and (<number_field_base.NumberField> self._parent)._embedded_real:
+            return self.sign() * self
         else:
-            i = 0 if i is None else i
-            P = self.number_field().complex_embeddings(prec)[i]
-            return P(self).abs()
+            CCprec = ComplexField(prec)
+            if i is None and CCprec.has_coerce_map_from(self.parent()):
+                return CCprec(self).abs()
+            else:
+                i = 0 if i is None else i
+                P = self.number_field().complex_embeddings(prec)[i]
+                return P(self).abs()
 
     def abs_non_arch(self, P, prec=None):
         r"""

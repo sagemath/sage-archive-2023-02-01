@@ -4103,7 +4103,7 @@ class LinearCodeSystematicEncoder(Encoder):
     EXAMPLES:
 
     We exemplify how to use :class:`LinearCodeSystematicEncoder` as the default
-    encoder. The following class is the dual of the repitition code:
+    encoder. The following class is the dual of the repitition code::
 
         sage: class DualRepetitionCode(sage.coding.linear_code.AbstractLinearCode):
         ....:   def __init__(self, field, length):
@@ -4122,8 +4122,8 @@ class LinearCodeSystematicEncoder(Encoder):
         [0 0 0 1 2]
 
 
-    An exception is thrown if SystematicEncoder is the default encoder but no
-    parity check matrix has been specified for the code.::
+    An exception is thrown if :class:`LinearCodeSystematicEncoder` is the default encoder but no
+    parity check matrix has been specified for the code::
 
         sage: class BadCodeExample(sage.coding.linear_code.AbstractLinearCode):
         ....:   def __init__(self, field, length):
@@ -4135,7 +4135,7 @@ class LinearCodeSystematicEncoder(Encoder):
         sage: BadCodeExample(GF(3), 5).generator_matrix()
         Traceback (most recent call last):
         ...
-        ValueError: a parity check matrix must be specified if SystematicEncoder is the default encoder
+        ValueError: a parity check matrix must be specified if LinearCodeSystematicEncoder is the default encoder
     """
 
     def __init__(self, code):
@@ -4229,7 +4229,7 @@ class LinearCodeSystematicEncoder(Encoder):
                 self._use_pc_matrix = 2
                 return C.parity_check_matrix().right_kernel_matrix()
             else:
-                raise ValueError("a parity check matrix must be specified if SystematicEncoder is the default encoder")
+                raise ValueError("a parity check matrix must be specified if LinearCodeSystematicEncoder is the default encoder")
         else:
             self._use_pc_matrix = 1
             M = C.generator_matrix()

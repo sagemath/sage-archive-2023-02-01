@@ -3255,8 +3255,8 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
         Q = R.fraction_field()
 
         # process deprecated keyword arguments
-        hasn = kwargs.has_key('numerator')
-        hasdf = kwargs.has_key('denominator_factored')
+        hasn = 'numerator' in kwargs
+        hasdf = 'denominator_factored' in kwargs
         if hasn:
             from sage.misc.superseded import deprecation
             deprecation(10519, "Keyword argument 'numerator' "
@@ -3277,7 +3277,7 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
             args = [kwargs.pop('numerator') if hasn else R(0),
                     kwargs.pop('denominator_factored') if hasdf else []]
 
-        hasq = kwargs.has_key('quotient')
+        hasq = 'quotient' in kwargs
         if hasq:
             from sage.misc.superseded import deprecation
             deprecation(10519, "Keyword argument 'quotient' "

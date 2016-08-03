@@ -2925,21 +2925,14 @@ class TamariIntervalPosets_all(DisjointUnionEnumeratedSets, TamariIntervalPosets
 class TamariIntervalPosets_size(TamariIntervalPosets):
     r"""
     The enumerated set of interval-posets of a given size.
-
-    TESTS::
-
-        sage: from sage.combinat.interval_posets import TamariIntervalPosets_size
-        sage: for i in xrange(6): TestSuite(TamariIntervalPosets_size(i)).run()
     """
     def __init__(self, size):
         r"""
         TESTS::
 
             sage: S = TamariIntervalPosets(3)
-            sage: TestSuite(S).run()
-
-            sage: S is TamariIntervalPosets(3)
-            True
+            sage: assert S is TamariIntervalPosets(3)
+            sage: for i in xrange(6): TestSuite(TamariIntervalPosets(i)).run()
         """
         # there is a natural order on interval-posets through inclusions
         # that is why we use the FinitePosets category

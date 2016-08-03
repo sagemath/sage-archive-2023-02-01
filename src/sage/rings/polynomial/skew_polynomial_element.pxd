@@ -24,10 +24,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     cdef list _coeffs
     cdef void __normalize(self)
-    cdef void _inplace_add(self, SkewPolynomial_generic_dense right)
-    cdef void _inplace_sub(self, SkewPolynomial_generic_dense right)
     cdef void _inplace_rmul(self, SkewPolynomial_generic_dense right)
-    cdef void _inplace_lmul(self, SkewPolynomial_generic_dense right)
     cdef void _inplace_pow(self, Py_ssize_t n)
 
 cdef class SkewPolynomial_generic_dense(SkewPolynomial):

@@ -36,6 +36,7 @@ from sage.structure.element cimport Element, RingElement, ModuleElement
 from sage.rings.ring import Field
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.rings.integer cimport Integer
+from cpython.object cimport PyObject_RichCompare
 from sage.categories.map cimport Map
 from sage.rings.morphism cimport Morphism, RingHomomorphism
 
@@ -265,14 +266,14 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return self._hash_c()
 
-    cdef void _inplace_add(self, SkewPolynomial_generic_dense right):
-        raise NotImplementedError
-    cdef void _inplace_sub(self, SkewPolynomial_generic_dense right):
-        raise NotImplementedError
+#    cdef void _inplace_add(self, SkewPolynomial_generic_dense right):
+#        raise NotImplementedError
+#    cdef void _inplace_sub(self, SkewPolynomial_generic_dense right):
+##        raise NotImplementedError
     cdef void _inplace_rmul(self, SkewPolynomial_generic_dense right):
         raise NotImplementedError
-    cdef void _inplace_lmul(self, SkewPolynomial_generic_dense right):
-        raise NotImplementedError
+#    cdef void _inplace_lmul(self, SkewPolynomial_generic_dense right):
+##        raise NotImplementedError
     cdef void _inplace_pow(self, Py_ssize_t n):
         raise NotImplementedError
     cdef void __normalize(self):
@@ -299,18 +300,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         cdef list x = (<SkewPolynomial>left)._coeffs
         cdef list y = (<SkewPolynomial>right)._coeffs
-        if op == 0:
-            return x < y
-        elif op == 1:
-            return x <= y
-        elif op == 2:
-            return x == y
-        elif op == 3:
-            return x != y
-        elif op == 4:
-            return x > y
-        else:
-            return x >= y
+        return PyObject_RichCompare(x, y, op)
 
     cdef SkewPolynomial _new_c(self, list coeffs, Parent P, char check=0):
         """

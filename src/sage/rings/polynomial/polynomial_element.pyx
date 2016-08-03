@@ -78,9 +78,8 @@ from sage.rings.complex_double import is_ComplexDoubleField, CDF
 from sage.rings.real_mpfi import is_RealIntervalField
 
 from sage.structure.element import generic_power
-from sage.structure.element cimport parent_c as parent, have_same_parent_c
-from sage.structure.element cimport (Element, RingElement,
-        ModuleElement, MonoidElement, coercion_model)
+from sage.structure.element cimport (parent, have_same_parent,
+        Element, RingElement, coercion_model)
 
 from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
@@ -1583,7 +1582,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: parent(p1) == parent(p2) == R2
             True
         """
-        if not have_same_parent_c(self, other):
+        if not have_same_parent(self, other):
             self, other = coercion_model.canonical_coercion(self, other)
         return self._mul_trunc_(other, pyobject_to_long(n))
 
@@ -9059,7 +9058,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             ...
             AttributeError: type object 'int' has no attribute 'base_ring'
         """
-        if have_same_parent_c(self, right):
+        if have_same_parent(self, right):
             return (<Polynomial_generic_dense>self)._floordiv_(<Polynomial_generic_dense>right)
         P = parent(self)
         d = P.base_ring()(right)

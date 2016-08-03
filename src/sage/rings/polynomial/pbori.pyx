@@ -204,10 +204,8 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 
 from sage.rings.ideal import FieldIdeal
 
-from sage.structure.element cimport Element
-from sage.structure.element cimport RingElement
-from sage.structure.element cimport ModuleElement
-from sage.structure.element cimport have_same_parent_c, coercion_model
+from sage.structure.element cimport (Element, RingElement,
+        have_same_parent, coercion_model)
 
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
@@ -3110,7 +3108,7 @@ cdef class BooleanPolynomial(MPolynomial):
                 return (br or bl) == (op == Py_NE)
 
         # Copy from Element.__richcmp__
-        if have_same_parent_c(left, right):
+        if have_same_parent(left, right):
             return (<Element>left)._richcmp_(<Element>right, op)
         else:
             return coercion_model.richcmp(left, right, op)

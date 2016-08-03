@@ -2192,25 +2192,39 @@ class AbstractLinearCode(module.Module):
         E = self.encoder(encoder_name, **kwargs)
         return E.generator_matrix()
 
-    def systematic_generator_matrix(self):
+    def systematic_generator_matrix(self, systematic_positions=None):
         """
         Return a systematic generator matrix of the code.
 
         A generator matrix of a code is called systematic if it contains
         a set of columns forming an identity matrix.
 
+        INPUT:
+
+        - ``systematic_positions`` -- (default: ``None``) if supplied, the set
+          of systematic positions in the systematic generator matrix. See the 
+          documentation for :class:`LinearCodeSystematicEncoder` details.
+
         EXAMPLES::
 
-            sage: G = matrix(GF(3),2,[1,-1,1,-1,1,1])
+            sage: G = matrix(GF(3), [[ 1, 2, 1, 0],\
+                                     [ 2, 1, 1, 1]])
             sage: code = LinearCode(G)
             sage: code.generator_matrix()
-            [1 2 1]
-            [2 1 1]
+            [1 2 1 0]
+            [2 1 1 1]
             sage: code.systematic_generator_matrix()
-            [1 2 0]
-            [0 0 1]
+            [1 2 0 1]
+            [0 0 1 2]
+
+        Specific systematic positions can also be requested:
+
+            sage: code.systematic_generator_matrix(systematic_positions=[3,2])
+            [1 2 0 1]
+            [1 2 1 0]
         """
-        return self.encoder("Systematic").generator_matrix()
+        systematic_positions = tuple(systematic_positions) if systematic_positions else None
+        return self.encoder("Systematic", systematic_positions=systematic_positions).generator_matrix()
 
     generator_matrix_systematic = deprecated_function_alias(20835,
             systematic_generator_matrix)

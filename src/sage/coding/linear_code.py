@@ -2209,17 +2209,17 @@ class AbstractLinearCode(module.Module):
 
             sage: G = matrix(GF(3), [[ 1, 2, 1, 0],\
                                      [ 2, 1, 1, 1]])
-            sage: code = LinearCode(G)
-            sage: code.generator_matrix()
+            sage: C = LinearCode(G)
+            sage: C.generator_matrix()
             [1 2 1 0]
             [2 1 1 1]
-            sage: code.systematic_generator_matrix()
+            sage: C.systematic_generator_matrix()
             [1 2 0 1]
             [0 0 1 2]
 
         Specific systematic positions can also be requested:
 
-            sage: code.systematic_generator_matrix(systematic_positions=[3,2])
+            sage: C.systematic_generator_matrix(systematic_positions=[3,2])
             [1 2 0 1]
             [1 2 1 0]
         """
@@ -4406,7 +4406,10 @@ class LinearCodeSystematicEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],\
+                                     [1,0,0,1,1,0,0],\
+                                     [0,1,0,1,0,1,0],\
+                                     [1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
             sage: E.systematic_positions()
@@ -4414,13 +4417,16 @@ class LinearCodeSystematicEncoder(Encoder):
 
         We take another matrix with a less nice shape::
 
-            sage: G = Matrix(GF(2), [[1,1,0,0,1,0,1],[1,1,0,0,1,0,0],[0,0,1,0,0,1,0],[0,0,1,0,1,0,1]])
+            sage: G = Matrix(GF(2), [[1,1,0,0,1,0,1],\
+                                     [1,1,0,0,1,0,0],\
+                                     [0,0,1,0,0,1,0],\
+                                     [0,0,1,0,1,0,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
             sage: E.systematic_positions()
             (0, 2, 4, 6)
 
-        These positions correspond to the positions which carry information in a codeword::
+        The systematic positions correspond to the positions which carry information in a codeword::
 
             sage: MS = E.message_space()
             sage: m = MS.random_element()
@@ -4429,6 +4435,18 @@ class LinearCodeSystematicEncoder(Encoder):
             sage: info = MS([c[i] for i in pos])
             sage: m == info
             True
+
+        When constructing a systematic encoder with specific systematic
+        positions, then it is guaranteed that this method returns exactly those
+        positions (even if another choice might also be systematic)::
+
+            sage: G = Matrix(GF(2), [[1,0,0,0],\
+                                     [0,1,0,0],\
+                                     [0,0,1,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C, systematic_positions=[0,1,3])
+            sage: E.systematic_positions()
+            (0, 1, 3)
         """
         return self._systematic_positions if self._systematic_positions else self.generator_matrix().pivots()
 

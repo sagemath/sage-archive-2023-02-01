@@ -35,11 +35,11 @@ class FiniteMonoids(CategoryWithAxiom):
             Return the Rhodes radical congruence of the semigroup.
 
             The Rhodes radical congruence is the congruence induced on S by the
-            map `S \rightarrow kS \rightarrow ks / rad kS` with k a field.
+            map `S \rightarrow kS \rightarrow kS / rad kS` with k a field.
 
             INPUT:
 
-            - ``base_ring`` (default: QQ) a field
+            - ``base_ring`` (default: `\QQ`) a field
 
             OUTPUT:
 
@@ -57,8 +57,8 @@ class FiniteMonoids(CategoryWithAxiom):
                 sage: H3.rhodes_radical_congruence()
                 [([1, 2], [2, 1]), ([1, 2], [1, 2, 1]), ([2, 1], [1, 2, 1])]
 
-            Thanks to Maschke theorem, every group is semisimple hence the
-            Rhodes radical of a group must be trivial::
+            By Maschke's theorem, every group algebra over `\QQ`
+            is semisimple hence the Rhodes radical of a group must be trivial::
 
                 sage: SymmetricGroup(3).rhodes_radical_congruence()
                 []
@@ -67,11 +67,11 @@ class FiniteMonoids(CategoryWithAxiom):
 
             REFERENCES:
 
-            ..  [Rho69] Characters and complexity of finite semigroups
-            J. Combinatorial Theory, vol 6, John Rhodes, 1969
+            .. [Rho69] Characters and complexity of finite semigroups
+               J. Combinatorial Theory, vol 6, John Rhodes, 1969
             """
             from sage.rings.rational_field import QQ
-            if base_ring == None:
+            if base_ring is None:
                 base_ring = QQ
             kS = self.algebra(base_ring)
             kSrad = kS.radical()
@@ -82,11 +82,10 @@ class FiniteMonoids(CategoryWithAxiom):
                         continue
                     try:
                         kSrad.retract(kS(m) - kS(n))
-                        res.append((m,n))
+                        res.append((m, n))
                     except:
                         pass
             return res
-
 
     class ElementMethods:
         def pseudo_order(self):

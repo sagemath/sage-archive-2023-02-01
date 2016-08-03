@@ -1,3 +1,5 @@
+#!python
+#cython: wraparound=False, boundscheck=False
 r"""
 Cython helper methods to compute integral points in polyhedra.
 """
@@ -73,7 +75,7 @@ from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 #      existing lattice point and then copy it!
 
 
-cpdef parallelotope_points(spanning_points, lattice):
+cpdef tuple parallelotope_points(spanning_points, lattice):
     r"""
     Return integral points in the parallelotope starting at the origin
     and spanned by the ``spanning_points``.
@@ -137,9 +139,10 @@ cpdef parallelotope_points(spanning_points, lattice):
         sage: len(parallelotope_points(rays, ZZ^4))
         967
     """
-    R = matrix(spanning_points).transpose()
+    cdef Matrix_integer_dense VDinv
+    cdef Matrix_integer_dense R = matrix(spanning_points).transpose()
     e, d, VDinv = ray_matrix_normal_form(R)
-    points = loop_over_parallelotope_points(e, d, VDinv, R, lattice)
+    cdef tuple points = loop_over_parallelotope_points(e, d, VDinv, R, lattice)
     for p in points:
         p.set_immutable()
     return points
@@ -348,8 +351,9 @@ cdef translate_points(v_list, Vector_integer_dense delta):
 # rectangular bounding box) it is faster to naively enumerate the
 # points. This saves the overhead of triangulating the polytope etc.
 
-cpdef rectangular_box_points(box_min, box_max, polyhedron=None,
-                             count_only=False, return_saturated=False):
+cpdef rectangular_box_points(list box_min, list box_max,
+                             polyhedron=None, count_only=False,
+                             return_saturated=False):
     r"""
     Return the integral points in the lattice bounding box that are
     also contained in the given polyhedron.
@@ -380,7 +384,7 @@ cpdef rectangular_box_points(box_min, box_max, polyhedron=None,
     OUTPUT:
 
     By default, this function returns a tuple containing the integral
-    points of the rectangular box spanned by `box_min` and `box_max`
+    points of the rectangular box spanned by ``box_min`` and ``box_max``
     and that lie inside the ``polyhedron``. For sufficiently large
     bounding boxes, this are all integral points of the polyhedron.
 
@@ -411,7 +415,7 @@ cpdef rectangular_box_points(box_min, box_max, polyhedron=None,
 
       .. MATH::
 
-          Ax\leq b
+          Ax \leq b
           \quad \Leftrightarrow \quad
           a_1 x_1 ~\leq~ b - \sum_{i=2}^d a_i x_i
 
@@ -583,7 +587,7 @@ cpdef rectangular_box_points(box_min, box_max, polyhedron=None,
 
     return tuple(points)
 
-cdef list perm_action(list p, lst):
+cdef list perm_action(list p, list lst):
     """
     Return the action of a permutation ``p`` of `(0, ..., n-1)`
     on a list of length `n`.
@@ -619,7 +623,7 @@ cdef loop_over_rectangular_box_points(list box_min, list box_max,
         points = 0
     else:
         points = []
-    cdef list p = copy.copy(box_min)
+    cdef list p = list(box_min)
     inequalities.prepare_next_to_inner_loop(p)
     while True:
         sig_check()
@@ -811,7 +815,7 @@ cdef class Inequality_generic:
         for j in range(1, len(self.A)):
             self.cache += self.A[j] * p[j]
 
-    cdef bint is_not_satisfied(self, inner_loop_variable):
+    cdef bint is_not_satisfied(self, inner_loop_variable) except -1:
         r"""
         Test the inequality, using the cached value from :meth:`prepare_inner_loop`
 
@@ -821,7 +825,7 @@ cdef class Inequality_generic:
         """
         return inner_loop_variable * self.coeff + self.cache < 0
 
-    cdef bint is_equality(Inequality_generic self, int inner_loop_variable):
+    cdef bint is_equality(Inequality_generic self, int inner_loop_variable) except -1:
         r"""
         Test the inequality, using the cached value from :meth:`prepare_inner_loop`
 
@@ -1095,8 +1099,8 @@ cdef class InequalityCollection:
             integer: (3, 7) x + 2 >= 0
             integer: (-3, -7) x + -2 >= 0
         """
-        max_abs_coordinates = [ max(abs(c_min), abs(c_max))
-                                for c_min, c_max in zip(box_min, box_max) ]
+        cdef list max_abs_coordinates = [max(abs(c_min), abs(c_max))
+                                         for c_min, c_max in zip(box_min, box_max)]
         max_abs_coordinates = perm_action(permutation, max_abs_coordinates)
         self.ineqs_int = []
         self.ineqs_generic = []
@@ -1143,7 +1147,7 @@ cdef class InequalityCollection:
         cdef list A
         cdef int index
         for index,c in enumerate(polyhedron.minimized_constraints()):
-            A = perm_action(permutation, c.coefficients())
+            A = perm_action(permutation, list(c.coefficients()))
             b = c.inhomogeneous_term()
             try:
                 H = Inequality_int(A, b, max_abs_coordinates, index)
@@ -1325,7 +1329,7 @@ cdef class InequalityCollection:
             self.ineqs_int[j+1] = self.ineqs_int[j]
         self.ineqs_int[0] = i_th_entry
 
-    cpdef bint are_satisfied(self, inner_loop_variable):
+    cpdef bint are_satisfied(self, inner_loop_variable) except -1:
         r"""
         Return whether all inequalities are satisfied.
 

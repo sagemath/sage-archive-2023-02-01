@@ -3516,6 +3516,8 @@ def LinearCodeFromVectorSpace(V, d=None):
         sage: C.minimum_distance()
         4
     """
+    from sage.misc.superseded import deprecation
+    deprecation(9999, "LinearCodeFromVectorSpace is deprecated. Simply call LinearCode with your vector space instead.")
     F = V.base_ring()
     B = V.basis()
     n = len(B[0].list())
@@ -3523,6 +3525,9 @@ def LinearCodeFromVectorSpace(V, d=None):
     MS = MatrixSpace(F,k,n)
     G = MS([B[i].list() for i in range(k)])
     return LinearCode(G, d=d)
+
+
+
 
 ############################ linear codes python class ########################
 
@@ -3667,7 +3672,10 @@ class LinearCode(AbstractLinearCode):
             raise ValueError("'generator' must be defined on a field (not a ring)")
 
         try:
-            basis = generator.row_space().basis() # generator matrix case
+            if hasattr(generator,"row_space"):
+                basis = generator.row_space().basis() # generator matrix case
+            else:
+                basis = generator.basis() # vector space etc. case
 
             # if the matrix does not have full rank we replace it
             if len(basis) != generator.nrows():

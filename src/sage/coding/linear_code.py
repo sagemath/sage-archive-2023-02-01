@@ -2942,91 +2942,64 @@ class AbstractLinearCode(module.Module):
         Cdp = Cd.punctured(set(L))
         return Cdp.dual_code()
 
-    def _spectrum_from_gap(self):
+    def weight_distribution(self, algorithm=None):
         r"""
-        Returns the weight distribution of the associated code. Uses the C programs
-        available in the kernel of GAP and thus is fairly fast.
+        Returns the weight distribution, or spectrum of ``self`` as a list.
 
-        The weight distribution of a code of length `n` is the sequence `A_0, A_1,..., A_n`
-        where `A_i` is the number of codewords of weight `i` (0 <= i <= n).
-
-        OUTPUT:
-        - a vector of integers, the weight distribution of the code
-
-        EXAMPLES::
-            sage: from sage.interfaces.all import gap
-            sage: MS = MatrixSpace(GF(2),4,7)
-            sage: G = MS([[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: C._spectrum_from_gap()
-            [1, 0, 0, 7, 7, 0, 0, 1]
-
-        AUTHORS:
-
-        - David Joyner (2005-11)
-        """
-        Gmat = self.generator_matrix()._gap_init_()
-        G = gap(Gmat)
-        q = self.base_ring().order()
-        k = gap(self.base_ring())
-        z = 'Z(%s)*%s'%(q, [0]*self.length())     # GAP zero vector as a string
-        _ = gap.eval("w:=DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
-        v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,self.length()+2)] # because GAP returns vectors in compressed form
-        return v
-
-    def spectrum(self, algorithm=None):
-        r"""
-        Returns the spectrum of ``self`` as a list.
-
-        The default algorithm uses a GAP kernel function (in C) written by
-        Steve Linton.
+        The weight distribution a code of length `n` is the sequence `A_0,
+        A_1,..., A_n` where `A_i` is the number of codewords of weight `i`.
 
         INPUT:
 
-        - ``algorithm`` - ``None``, ``"gap"``, ``"leon"``, or ``"binary"``;
-          defaults to ``"gap"`` except in the binary case.  If ``"gap"`` then
-          uses the GAP function, if ``"leon"`` then uses Jeffrey Leon's
-          software via Guava, and if ``"binary"`` then uses Sage native Cython
-          code
+        - ``algorithm`` - (optional, default: ``None``) If set to ``"gap"``,
+          call GAP. If set to `"leon"`, call the option GAP package GUAVA and
+          call a function therein by Jeffrey Leon (see warning below). If set to
+          ``"binary"``, use an algorithm optimized for binary codes. The default
+          is to use ``"binary"`` for binary codes and ``"gap"`` otherwise.
 
-        - List, the spectrum
+        OUTPUT:
+        
+        - A list of non-negative integers: the weight distribution.
 
-        The optional algorithm (``"leon"``) may create a stack smashing error
-        and a traceback but should return the correct answer. It appears to run
-        much faster than the GAP algorithm in some small examples and much
-        slower than the GAP algorithm in other larger examples.
+        WARNING::
+
+            Specifying ``algorithm = "leon"`` sometimes prints a traceback
+            related to a stack smashing error in the C library. The result
+            appears to be computed correctly, however. It appears to run much
+            faster than the GAP algorithm in small examples and much slower than
+            the GAP algorithm in larger examples.
 
         EXAMPLES::
 
             sage: MS = MatrixSpace(GF(2),4,7)
             sage: G = MS([[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: C.spectrum()
+            sage: C.weight_distribution()
             [1, 0, 0, 7, 7, 0, 0, 1]
             sage: F.<z> = GF(2^2,"z")
             sage: C = codes.HammingCode(F, 2); C
             [5, 3] Hamming Code over Finite Field in z of size 2^2
-            sage: C.spectrum()
+            sage: C.weight_distribution()
             [1, 0, 0, 30, 15, 18]
             sage: C = codes.HammingCode(GF(2), 3); C
             [7, 4] Hamming Code over Finite Field of size 2
-            sage: C.spectrum(algorithm="leon")   # optional - gap_packages (Guava package)
+            sage: C.weight_distribution(algorithm="leon")   # optional - gap_packages (Guava package)
             [1, 0, 0, 7, 7, 0, 0, 1]
-            sage: C.spectrum(algorithm="gap")
+            sage: C.weight_distribution(algorithm="gap")
             [1, 0, 0, 7, 7, 0, 0, 1]
-            sage: C.spectrum(algorithm="binary")
+            sage: C.weight_distribution(algorithm="binary")
             [1, 0, 0, 7, 7, 0, 0, 1]
             sage: C = codes.HammingCode(GF(3), 3); C
             [13, 10] Hamming Code over Finite Field of size 3
-            sage: C.spectrum() == C.spectrum(algorithm="leon")   # optional - gap_packages (Guava package)
+            sage: C.weight_distribution() == C.weight_distribution(algorithm="leon")   # optional - gap_packages (Guava package)
             True
             sage: C = codes.HammingCode(GF(5), 2); C
             [6, 4] Hamming Code over Finite Field of size 5
-            sage: C.spectrum() == C.spectrum(algorithm="leon")   # optional - gap_packages (Guava package)
+            sage: C.weight_distribution() == C.weight_distribution(algorithm="leon")   # optional - gap_packages (Guava package)
             True
             sage: C = codes.HammingCode(GF(7), 2); C
             [8, 6] Hamming Code over Finite Field of size 7
-            sage: C.spectrum() == C.spectrum(algorithm="leon")   # optional - gap_packages (Guava package)
+            sage: C.weight_distribution() == C.weight_distribution(algorithm="leon")   # optional - gap_packages (Guava package)
             True
 
         """
@@ -3039,7 +3012,14 @@ class AbstractLinearCode(module.Module):
         n = self.length()
         G = self.generator_matrix()
         if algorithm=="gap":
-            return self._spectrum_from_gap()
+            Gmat = self.generator_matrix()._gap_init_()
+            G = gap(Gmat)
+            q = self.base_ring().order()
+            k = gap(self.base_ring())
+            z = 'Z(%s)*%s'%(q, [0]*self.length())     # GAP zero vector as a string
+            _ = gap.eval("w:=DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
+            v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,self.length()+2)] # because GAP returns vectors in compressed form
+            return v
         elif algorithm=="binary":
             from sage.coding.binary_code import weight_dist
             return weight_dist(self.generator_matrix())
@@ -3066,6 +3046,8 @@ class AbstractLinearCode(module.Module):
             return wts
         else:
             raise NotImplementedError("The only algorithms implemented currently are 'gap', 'leon' and 'binary'.")
+
+    spectrum = weight_distribution
 
     def standard_form(self):
         r"""

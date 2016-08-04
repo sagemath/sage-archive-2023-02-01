@@ -298,6 +298,7 @@ cdef class lazy_list_generic(object):
         sage: l[200]
         1229
     """
+
     def __init__(self, cache=None, start=None, stop=None, step=None):
         r"""
         No check is performed on input and bad input can result in a Sage crash.
@@ -337,6 +338,7 @@ cdef class lazy_list_generic(object):
         self.stop = PY_SSIZE_T_MAX if stop is None else stop
         self.step = 1 if step is None else step
 
+
     def start_stop_step(self):
         r"""
         Return the triple ``(start, stop, step)`` of reference points of the
@@ -354,6 +356,7 @@ cdef class lazy_list_generic(object):
         from sage.misc.superseded import deprecation
         deprecation(16137, "The method start_stop_step is deprecated. Consider using _info() instead.")
         return (self.start, self.stop, self.step)
+
 
     def list(self):
         r"""
@@ -394,6 +397,7 @@ cdef class lazy_list_generic(object):
         self._fit(self.stop - self.step)
         return self.cache[self.start:self.stop:self.step]
 
+
     def info(self):
         r"""
         Deprecated method
@@ -413,6 +417,7 @@ cdef class lazy_list_generic(object):
         from sage.misc.superseded import deprecation
         deprecation(19428, "info is deprecated in favor of a private method. Use _info() instead")
         return self._info()
+
 
     def _info(self):
         r"""
@@ -439,6 +444,7 @@ cdef class lazy_list_generic(object):
         print "start       ", self.start
         print "stop        ", self.stop
         print "step        ", self.step
+
 
     def __add__(self, other):
         r"""
@@ -543,6 +549,7 @@ cdef class lazy_list_generic(object):
             raise NotImplementedError
         return slice_unpickle, (self.master, self.start, self.stop, self.step)
 
+
     cpdef int _fit(self, Py_ssize_t n) except -1:
         r"""
         Fill the cache making the term at index ``n`` available.
@@ -601,6 +608,7 @@ cdef class lazy_list_generic(object):
                 self.stop += self.step + (self.start - self.stop) % self.step
             return 1
         return 0
+
 
     cpdef get(self, Py_ssize_t i):
         r"""
@@ -662,6 +670,7 @@ cdef class lazy_list_generic(object):
         """
         return self.get(i)
 
+
     def __iter__(self):
         r"""
         Return an iterator.
@@ -692,6 +701,7 @@ cdef class lazy_list_generic(object):
                 return
             yield self.cache[i]
             i += self.step
+
 
     def __getitem__(self, key):
         r"""
@@ -915,6 +925,7 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
         sage: loads(dumps(m))
         lazy list [0, 1, 2, ...]
     """
+
     def __init__(self, iterator, cache=None, stop=None):
         r"""
         INPUT:
@@ -964,6 +975,7 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
             self.cache.append(o)
         return 0
 
+
     def __reduce__(self):
         r"""
         TESTS::
@@ -977,7 +989,9 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
         """
         return lazy_list_from_iterator, (self.iterator, self.cache, self.stop)
 
+
 cdef class lazy_list_from_function(lazy_list_generic):
+
     def __init__(self, function, cache=None, stop=None):
         r"""
         INPUT:
@@ -1028,6 +1042,7 @@ cdef class lazy_list_from_function(lazy_list_generic):
         while len(self.cache) <= i:
             self.cache.append(self.callable(len(self.cache)))
 
+
     def __reduce__(self):
         r"""
         TESTS::
@@ -1042,7 +1057,9 @@ cdef class lazy_list_from_function(lazy_list_generic):
             raise RuntimeError
         return lazy_list_from_function, (self.callable, self.cache, self.stop)
 
+
 cdef class lazy_list_from_update_function(lazy_list_generic):
+
     def __init__(self, function, cache=None, stop=None):
         r"""
         INPUT:
@@ -1097,6 +1114,7 @@ cdef class lazy_list_from_update_function(lazy_list_generic):
                 return 1
             l = ll
         return 0
+
 
     def __reduce__(self):
         r"""

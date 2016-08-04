@@ -2,6 +2,7 @@
 Combinatorics features that are imported by default in the interpreter namespace
 """
 from __future__ import absolute_import
+from sage.misc.lazy_import import lazy_import
 
 from .combinat import bell_number, catalan_number, euler_number, fibonacci, \
         lucas_number1, lucas_number2, stirling_number1, stirling_number2, \
@@ -82,8 +83,8 @@ from .similarity_class_type import PrimarySimilarityClassType, PrimarySimilarity
 from .core import Core, Cores
 
 #Tableaux
-from .tableau import Tableau, SemistandardTableau, StandardTableau, \
-        Tableaux, StandardTableaux, SemistandardTableaux
+lazy_import('sage.combinat.tableau',["Tableau", "SemistandardTableau", "StandardTableau", "RowStandardTableau", 
+                                     "Tableaux","SemistandardTableaux","StandardTableaux","RowStandardTableaux"])
 from .skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, SemistandardSkewTableaux
 from .ribbon_shaped_tableau import RibbonShapedTableau, RibbonShapedTableaux, StandardRibbonShapedTableaux
 from .ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableaux, MultiSkewTableau, SemistandardMultiSkewTableaux
@@ -110,7 +111,6 @@ from .non_decreasing_parking_function import NonDecreasingParkingFunctions, NonD
 from .parking_functions import ParkingFunctions, ParkingFunction
 
 # Trees and Tamari interval posets
-from sage.misc.lazy_import import lazy_import
 from .ordered_tree import (OrderedTree, OrderedTrees,
                           LabelledOrderedTree, LabelledOrderedTrees)
 from .binary_tree import (BinaryTree, BinaryTrees,

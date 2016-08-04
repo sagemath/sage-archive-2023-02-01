@@ -138,15 +138,17 @@ class ExtendedCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: set_random_seed(42)
-            sage: C = codes.RandomLinearCode(9, 5, GF(7))
+            sage: C = LinearCode(matrix(GF(2),[[1,0,0,1,1],\
+                                               [0,1,0,1,0],\
+                                               [0,0,1,1,1]]))
+            sage: C.parity_check_matrix()
+            [1 0 1 0 1]
+            [0 1 0 1 1]
             sage: Ce = codes.ExtendedCode(C)
             sage: Ce.parity_check_matrix()
-            [1 1 1 1 1 1 1 1 1 1]
-            [1 0 0 0 2 1 6 6 4 0]
-            [0 1 0 0 6 1 6 1 0 0]
-            [0 0 1 0 3 2 6 2 1 0]
-            [0 0 0 1 4 5 4 3 5 0]
+            [1 1 1 1 1 1]
+            [1 0 1 0 1 0]
+            [0 1 0 1 1 0]
         """
         F = self.base_ring()
         zero = F.zero()
@@ -267,16 +269,15 @@ class ExtendedCodeExtendedMatrixEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: set_random_seed(42)
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = LinearCode(matrix(GF(2),[[1,0,0,1,1],\
+                                               [0,1,0,1,0],\
+                                               [0,0,1,1,1]]))
             sage: Ce = codes.ExtendedCode(C)
             sage: E = codes.encoders.ExtendedCodeExtendedMatrixEncoder(Ce)
             sage: E.generator_matrix()
-            [1 0 0 0 0 5 2 6 1 2 0 4]
-            [0 1 0 0 0 5 2 2 5 3 4 6]
-            [0 0 1 0 0 2 4 6 6 3 3 3]
-            [0 0 0 1 0 3 0 6 4 2 6 6]
-            [0 0 0 0 1 5 4 5 3 0 5 5]
+            [1 0 0 1 1 1]
+            [0 1 0 1 0 0]
+            [0 0 1 1 1 1]
         """
         C = self.code()
         F = C.base_ring()

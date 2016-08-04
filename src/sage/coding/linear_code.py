@@ -223,7 +223,6 @@ from sage.categories.cartesian_product import cartesian_product
 from six.moves.urllib.request import urlopen
 
 ZZ = IntegerRing()
-from sage.misc.superseded import deprecated_function_alias
 from sage.misc.lazy_import import lazy_import
 
 
@@ -2711,11 +2710,11 @@ class AbstractLinearCode(module.Module):
         G1 = C1.generator_matrix()
         return G1.matrix_from_columns(range(k,n))
 
-    def sd_duursma_data(C, i):
+    sd_duursma_data = deprecated_function_alias(21165, _self_dual_duursma_zeta_data)
+    def _self_dual_duursma_zeta_data(self, i):
         r"""
-        Returns the Duursma data `v` and `m` of this formally s.d. code `C`
-        and the type number `i` in (1,2,3,4).  Does *not* check if this code
-        is actually sd.
+        Compute two integers pertaining to the computation of the Duursma zeta
+        function for ``self``, if ``self`` is a self-dual code.
 
         INPUT:
 
@@ -2737,14 +2736,14 @@ class AbstractLinearCode(module.Module):
             sage: C = LinearCode(G)
             sage: C == C.dual_code()  # checks that C is self dual
             True
-            sage: for i in [1,2,3,4]: print(C.sd_duursma_data(i))
-            [2, -1]
-            [2, -3]
-            [2, -2]
-            [2, -1]
+            sage: for i in [1,2,3,4]: print(C._self_dual_duursma_zeta_data(i))
+            (2, -1)
+            (2, -3)
+            (2, -2)
+            (2, -1)
         """
-        n = C.length()
-        d = C.minimum_distance()
+        n = self.length()
+        d = self.minimum_distance()
         if i == 1:
             v = (n-4*d)//2 + 4
             m = d-3
@@ -2757,10 +2756,16 @@ class AbstractLinearCode(module.Module):
         elif i == 4:
             v = (n-3*d)//2 + 3
             m = d-3
-        return [v,m]
+        else:
+            raise ValueError("the type i should be 1,2,3 or 4")
+        return (v,m)
 
-    def sd_duursma_q(C,i,d0):
+    sd_duursma_q = deprecated_function_alias(21165, _self_dual_duursma_zeta_qcoeffs)
+    def _self_dual_duursma_zeta_Q(self, i, d0):
         r"""
+        Compute a polynomial pertaining to the computation of the Duursma zeta
+        function for ``self``, if ``self`` is a self-dual code.
+
         INPUT:
 
         -  ``C`` - sd code; does *not* check if `C` is actually an sd code
@@ -2770,7 +2775,7 @@ class AbstractLinearCode(module.Module):
 
         OUTPUT:
 
-        - Coefficients `q_0, q_1, ...` of `q(T)` as in Duursma [D]_
+        - The polynomial `Q(T)` as in Duursma [D]_
 
         REFERENCES:
 
@@ -2782,27 +2787,27 @@ class AbstractLinearCode(module.Module):
             sage: C1 = codes.HammingCode(GF(2), 3)
             sage: C2 = C1.extended_code(); C2
             Extended code coming from [7, 4] Hamming Code over Finite Field of size 2
-            sage: C2.sd_duursma_q(1,1)
+            sage: C2._self_dual_duursma_zeta_Q(1,1)
             2/5*T^2 + 2/5*T + 1/5
-            sage: C2.sd_duursma_q(3,1)
+            sage: C2._self_dual_duursma_zeta_Q(3,1)
             3/5*T^4 + 1/5*T^3 + 1/15*T^2 + 1/15*T + 1/15
         """
-        q = (C.base_ring()).order()
-        n = C.length()
-        d = C.minimum_distance()
-        d0 = C.divisor()
+        q = (self.base_ring()).order()
+        n = self.length()
+        d = self.minimum_distance()
+        d0 = self.divisor()
         if i==1 or i==2:
             if d>d0:
-                c0 = QQ((n-d)*rising_factorial(d-d0,d0+1)*C.spectrum()[d])/rising_factorial(n-d0-1,d0+2)
+                c0 = QQ((n-d)*rising_factorial(d-d0,d0+1)*self.spectrum()[d])/rising_factorial(n-d0-1,d0+2)
             else:
-                c0 = QQ((n-d)*C.spectrum()[d])/rising_factorial(n-d0-1,d0+2)
+                c0 = QQ((n-d)*self.spectrum()[d])/rising_factorial(n-d0-1,d0+2)
         if i==3 or i==4:
             if d>d0:
-                c0 = rising_factorial(d-d0,d0+1)*C.spectrum()[d]/((q-1)*rising_factorial(n-d0,d0+1))
+                c0 = rising_factorial(d-d0,d0+1)*self.spectrum()[d]/((q-1)*rising_factorial(n-d0,d0+1))
             else:
-                c0 = C.spectrum()[d]/((q-1)*rising_factorial(n-d0,d0+1))
-        v = ZZ(C.sd_duursma_data(i)[0])
-        m = ZZ(C.sd_duursma_data(i)[1])
+                c0 = self.spectrum()[d]/((q-1)*rising_factorial(n-d0,d0+1))
+        v = ZZ(self._self_dual_duursma_zeta_data(i)[0])
+        m = ZZ(self._self_dual_duursma_zeta_data(i)[1])
         if m<0 or v<0:
             raise ValueError("This case not implemented.")
         PR = PolynomialRing(QQ,"T")
@@ -2810,75 +2815,99 @@ class AbstractLinearCode(module.Module):
         if i == 1:
             coefs = PR(c0*(1+3*T+2*T**2)**m*(2*T**2+2*T+1)**v).list()
             qc = [coefs[j]/binomial(4*m+2*v,m+j) for j in range(2*m+2*v+1)]
-            q = PR(qc)
         if i == 2:
             F = ((T+1)**8+14*T**4*(T+1)**4+T**8)**v
             coefs = (c0*(1+T)**m*(1+4*T+6*T**2+4*T**3)**m*F).coefficients(sparse=False)
             qc = [coefs[j]/binomial(6*m+8*v,m+j) for j in range(4*m+8*v+1)]
-            q = PR(qc)
         if i == 3:
             F = (3*T**2+4*T+1)**v*(1+3*T**2)**v
             # Note that: (3*T**2+4*T+1)(1+3*T**2)=(T+1)**4+8*T**3*(T+1)
             coefs = (c0*(1+3*T+3*T**2)**m*F).coefficients(sparse=False)
             qc = [coefs[j]/binomial(4*m+4*v,m+j) for j in range(2*m+4*v+1)]
-            q = PR(qc)
         if i == 4:
             coefs = (c0*(1+2*T)**m*(4*T**2+2*T+1)**v).coefficients(sparse=False)
             qc = [coefs[j]/binomial(3*m+2*v,m+j) for j in range(m+2*v+1)]
-            q = PR(qc)
-        return q/q(1)
+        Q = PR(qc)
+        return Q/Q(1)
 
-    def sd_zeta_polynomial(C, typ=1):
+
+    sd_zeta_polynomial = deprecated_function_alias(21165, self_dual_zeta_polynomial)
+    def self_dual_zeta_polynomial(self, typ=None):
         r"""
-        Returns the Duursma zeta function of a self-dual code using the
-        construction in [D]_.
+        If ``self`` is a self-dual code, return the Duursma zeta function for the code.
 
-        INPUT:
-
-        -  ``typ`` - Integer, type of this s.d. code; one of 1,2,3, or
-           4 (default: 1)
+        The Duursma zeta function is only defined if ``self`` is self-dual and
+        its base field has cardinality 2,3 or 4.
 
         OUTPUT:
 
-        -  Polynomial
+        -  Polynomial in a variable "T": the Duursma zeta function as in [D]
 
         EXAMPLES::
 
             sage: C1 = codes.HammingCode(GF(2), 3)
             sage: C2 = C1.extended_code(); C2
             Extended code coming from [7, 4] Hamming Code over Finite Field of size 2
-            sage: C2.sd_zeta_polynomial()
+            sage: C2.is_self_dual()
+            True
+            sage: P = C2.self_dual_zeta_polynomial()
             2/5*T^2 + 2/5*T + 1/5
-            sage: C2.zeta_polynomial()
-            2/5*T^2 + 2/5*T + 1/5
-            sage: P = C2.sd_zeta_polynomial(); P(1)
-            1
-            sage: F.<z> = GF(4,"z")
-            sage: MS = MatrixSpace(F, 3, 6)
-            sage: G = MS([[1,0,0,1,z,z],[0,1,0,z,1,z],[0,0,1,z,z,1]])
-            sage: C = LinearCode(G)  # the "hexacode"
-            sage: C.sd_zeta_polynomial(4)
+
+        The Duursma zeta polynomials always evaluates to 1 at 1::
+
+            sage: P(1)
             1
 
-        It is a general fact about Duursma zeta polynomials that `P(1) = 1`.
+        The Duursma zeta polynomial is defined over a base field of size 2,3 or 4::
+        
+            sage: F.<z> = GF(4,"z")
+            sage: C = LinearCode(matrix(F, [[1,0,0,1,z,z],[0,1,0,z,1,z],[0,0,1,z,z,1]])) # the "hexacode"
+            sage: C.is_self_dual()
+            True
+            sage: C.self_dual_zeta_polynomial()
+            1
+
+        The Duursma zeta polynomials are defined only for self-dual codes::
+        
+            sage: C1 = codes.HammingCode(GF(2), 3)
+            sage: C1.is_self_dual()
+            False
+            sage: C1.self_dual_zeta_polynomial()
+            Traceback (most recent call last):
+            ...
+            ValueError: the Duursma zeta polynomial is only defined for self-dual codes.
 
         REFERENCES:
 
         - [D] I. Duursma, "Extremal weight enumerators and ultraspherical
           polynomials"
         """
-        d0 = C.divisor()
-        P = C.sd_duursma_q(typ,d0)
-        PR = P.parent()
+        if not self.is_self_dual():
+            raise ValueError("the Duursma zeta polynomial is only defined for self-dual codes.")
+        if not self.base_field().cardinality() <= 4:
+            raise ValueError("the Duursma zeta polynomial is only defined for codes over GF(2), GF(3) or GF(4).")
+        if typ != None:
+            from sage.misc.superseded import deprecation
+            deprecation(21165, "the keyword 'typ' has been deprecated and is now determined automatically.")
+        #Determine the type, according to [D, p. 105]:
+        q = self.base_field().cardinality()
+        n = self.length()
+        if q == 2:
+            typ = 2 if n % 8 == 0 else 1
+        else:
+            typ = 3 if q == 3 else 4
+        d0 = self.divisor()
+        Q = self._self_dual_duursma_zeta_Q(typ,d0)
+        PR = Q.parent()
         T = FractionField(PR).gen()
         if typ == 1:
-            P0 = P
+            P0 = Q
         if typ == 2:
-            P0 = P/(1-2*T+2*T**2)
+            P0 = Q/(1-2*T+2*T**2)
         if typ == 3:
-            P0 = P/(1+3*T**2)
+            P0 = Q/(1+3*T**2)
         if typ == 4:
-            P0 = P/(1+2*T)
+            P0 = Q/(1+2*T)
         return P0/P0(1)
 
     def shortened(self, L):

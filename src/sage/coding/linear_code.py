@@ -2830,7 +2830,7 @@ class AbstractLinearCode(Module):
         Return the Duursma zeta polynomial, computed in a fashion that only
         works if ``self`` is self-dual.
 
-        WARNING::
+        .. WARNING::
 
             This function does not check that ``self`` is self-dual. Indeed, it
             is not even clear which notion of self-dual is supported ([D] seems
@@ -2938,7 +2938,7 @@ class AbstractLinearCode(Module):
         
         - A list of non-negative integers: the weight distribution.
 
-        WARNING::
+        .. WARNING::
 
             Specifying ``algorithm = "leon"`` sometimes prints a traceback
             related to a stack smashing error in the C library. The result
@@ -4039,7 +4039,7 @@ class LinearCodeSyndromeDecoder(Decoder):
     the covering radius of the code, this decoder is complete, i.e. it decodes
     every vector in the ambient space.
 
-    NOTE:
+    .. NOTE:
 
     Constructing the lookup table takes time exponential in the length of the
     code and the size of the code's base field. Afterwards, the individual

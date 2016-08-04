@@ -189,9 +189,8 @@ TESTS::
 from __future__ import division, print_function
 from __future__ import absolute_import
 
-import sage.modules.module as module
+from sage.modules.module import Module
 from sage.categories.modules import Modules
-from sage.categories.fields import Fields
 from copy import copy
 from sage.interfaces.all import gap
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
@@ -204,15 +203,11 @@ from sage.groups.all import SymmetricGroup
 from sage.misc.all import prod
 from sage.misc.functional import log, is_even
 from sage.rings.rational_field import QQ
+from sage.rings.integer_ring import ZZ
 from sage.structure.parent import Parent
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.fraction_field import FractionField
-from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer import Integer
-from sage.combinat.set_partition import SetPartitions
 from sage.modules.free_module import VectorSpace
-from sage.misc.randstate import current_randstate
-from sage.misc.decorators import rename_keyword
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
 from .encoder import Encoder
@@ -220,10 +215,6 @@ from .decoder import Decoder, DecodingError
 from sage.combinat.subset import Subsets
 from sage.categories.cartesian_product import cartesian_product
 # import compatible with py2 and py3
-from six.moves.urllib.request import urlopen
-
-ZZ = IntegerRing()
-from sage.misc.lazy_import import lazy_import
 
 
 
@@ -336,6 +327,7 @@ def _gap_minimal_weight_vector(Gmat, n, k, F, algorithm=None):
 
     - David Joyner (11-2005)
     """
+    from sage.misc.randstate import current_randstate
     current_randstate().set_seed_gap()
 
     if algorithm=="guava":
@@ -373,7 +365,7 @@ min_wt_vec_gap = deprecated_function_alias(21165, _gap_minimal_weight_vector)
 
 
 
-class AbstractLinearCode(module.Module):
+class AbstractLinearCode(Module):
     """
     Abstract class for linear codes.
 
@@ -960,6 +952,7 @@ class AbstractLinearCode(module.Module):
             return 0
         if i>n-dp and i<=n:
             return binomial(n,i)*(q**(i+k-n) -1)//(q-1)
+        from sage.combinat.set_partition import SetPartitions
         P = SetPartitions(J,2).list()
         b = QQ(0)
         for p in P:
@@ -1143,7 +1136,7 @@ class AbstractLinearCode(module.Module):
         C = self
         n = C.length()
         RT = PolynomialRing(QQ,2,"Ts")
-        T,s = FractionField(RT).gens()
+        T,s = RT.fraction_field().gens()
         t = PolynomialRing(QQ,"t").gen()
         Cd = C.dual_code()
         k = C.dimension()
@@ -2890,7 +2883,7 @@ class AbstractLinearCode(module.Module):
         d0 = self.divisor()
         Q = self._self_dual_duursma_zeta_Q(typ,d0)
         PR = Q.parent()
-        T = FractionField(PR).gen()
+        T = PR.fraction_field().gen()
         if typ == 1:
             P0 = Q
         if typ == 2:

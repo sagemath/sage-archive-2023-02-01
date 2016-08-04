@@ -1804,6 +1804,17 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             True
             sage: richcmp(x, y, op_LT if cmp(type(x), type(y)) == -1 else op_GT)
             True
+
+        We support non-Sage types with the usual Python convention::
+
+            sage: class AlwaysEqual(object):
+            ....:     def __eq__(self, other):
+            ....:         return True
+            sage: x = AlwaysEqual()
+            sage: x == 1
+            True
+            sage: 1 == x
+            True
         """
         # Some very special cases
         if x is None or x is Ellipsis:
@@ -1811,9 +1822,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         if y is None or y is Ellipsis:
             return rich_to_bool(op, 0 if x is y else 1)
 
+        cdef bint y_is_Element = isinstance(y, Element)
+
         # Check for manual __richcmp__ override (only on y since
-        # x.__richmp__ would already have been called)
-        if isinstance(y, Element):
+        # x.__richcmp__ would already have been called)
+        if y_is_Element:
             if (<Element>y)._parent.get_flag(Parent_richcmp_element_without_coercion):
                 return Py_TYPE(y).tp_richcompare(x, y, op)
 
@@ -1830,6 +1843,17 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             return PyObject_RichCompare(x, y, op)
 
         # Comparing with coercion didn't work, try something else.
+
+        # Try y.__richcmp__(x, revop) where revop is the reversed
+        # operation (<= becomes >=).
+        # This only makes sense when y is not a Sage Element, otherwise
+        # we would end up trying the same coercion again.
+        cdef int revop
+        if not y_is_Element and Py_TYPE(y).tp_richcompare:
+            revop = (5 - op) ^ 1
+            res = Py_TYPE(y).tp_richcompare(y, x, revop)
+            if res is not NotImplemented:
+                return res
 
         # If types are not equal: compare types
         cdef int c = cmp(type(x), type(y))

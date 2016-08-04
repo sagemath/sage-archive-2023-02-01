@@ -152,3 +152,129 @@ def best_linear_code_in_codetables_dot_de(n, k, F, verbose=False):
         raise IOError("Error parsing data (missing pre tags).")
     text = s[i+5:j].strip()
     return text
+
+
+
+def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
+    in_test=None):
+    """
+    Returns a Python iterator which generates a complete set of
+    representatives of all permutation equivalence classes of
+    self-orthogonal binary linear codes of length in ``[1..n]`` and
+    dimension in ``[1..k]``.
+
+    INPUT:
+
+    -  ``n`` - Integer, maximal length
+
+    -  ``k`` - Integer, maximal dimension
+
+    -  ``b`` - Integer, requires that the generators all have weight divisible
+       by ``b`` (if ``b=2``, all self-orthogonal codes are generated, and if
+       ``b=4``, all doubly even codes are generated). Must be an even positive
+       integer.
+
+    -  ``parent`` - Used in recursion (default: ``None``)
+
+    -  ``BC`` - Used in recursion (default: ``None``)
+
+    -  ``equal`` - If ``True`` generates only [n, k] codes (default: ``False``)
+
+    -  ``in_test`` - Used in recursion (default: ``None``)
+
+    EXAMPLES:
+
+    Generate all self-orthogonal codes of length up to 7 and dimension up
+    to 3::
+
+        sage: for B in self_orthogonal_binary_codes(7,3):
+        ....:    print(B)
+        Linear code of length 2, dimension 1 over Finite Field of size 2
+        Linear code of length 4, dimension 2 over Finite Field of size 2
+        Linear code of length 6, dimension 3 over Finite Field of size 2
+        Linear code of length 4, dimension 1 over Finite Field of size 2
+        Linear code of length 6, dimension 2 over Finite Field of size 2
+        Linear code of length 6, dimension 2 over Finite Field of size 2
+        Linear code of length 7, dimension 3 over Finite Field of size 2
+        Linear code of length 6, dimension 1 over Finite Field of size 2
+
+    Generate all doubly-even codes of length up to 7 and dimension up
+    to 3::
+
+        sage: for B in self_orthogonal_binary_codes(7,3,4):
+        ....:    print(B); print(B.generator_matrix())
+        Linear code of length 4, dimension 1 over Finite Field of size 2
+        [1 1 1 1]
+        Linear code of length 6, dimension 2 over Finite Field of size 2
+        [1 1 1 1 0 0]
+        [0 1 0 1 1 1]
+        Linear code of length 7, dimension 3 over Finite Field of size 2
+        [1 0 1 1 0 1 0]
+        [0 1 0 1 1 1 0]
+        [0 0 1 0 1 1 1]
+
+    Generate all doubly-even codes of length up to 7 and dimension up
+    to 2::
+
+        sage: for B in self_orthogonal_binary_codes(7,2,4):
+        ....:    print(B); print(B.generator_matrix())
+        Linear code of length 4, dimension 1 over Finite Field of size 2
+        [1 1 1 1]
+        Linear code of length 6, dimension 2 over Finite Field of size 2
+        [1 1 1 1 0 0]
+        [0 1 0 1 1 1]
+
+    Generate all self-orthogonal codes of length equal to 8 and
+    dimension equal to 4::
+
+        sage: for B in self_orthogonal_binary_codes(8, 4, equal=True):
+        ....:     print(B); print(B.generator_matrix())
+        Linear code of length 8, dimension 4 over Finite Field of size 2
+        [1 0 0 1 0 0 0 0]
+        [0 1 0 0 1 0 0 0]
+        [0 0 1 0 0 1 0 0]
+        [0 0 0 0 0 0 1 1]
+        Linear code of length 8, dimension 4 over Finite Field of size 2
+        [1 0 0 1 1 0 1 0]
+        [0 1 0 1 1 1 0 0]
+        [0 0 1 0 1 1 1 0]
+        [0 0 0 1 0 1 1 1]
+
+    Since all the codes will be self-orthogonal, b must be divisible by
+    2::
+
+        sage: list(self_orthogonal_binary_codes(8, 4, 1, equal=True))
+        Traceback (most recent call last):
+        ...
+        ValueError: b (1) must be a positive even integer.
+    """
+    d=int(b)
+    if d!=b or d%2==1 or d <= 0:
+        raise ValueError("b (%s) must be a positive even integer."%b)
+    from .binary_code import BinaryCode, BinaryCodeClassifier
+    if k < 1 or n < 2:
+        return
+    if equal:
+        in_test = lambda M : (M.ncols() - M.nrows()) <= (n-k)
+        out_test = lambda C : (C.dimension() == k) and (C.length() == n)
+    else:
+        in_test = lambda M : True
+        out_test = lambda C : True
+    if BC is None:
+        BC = BinaryCodeClassifier()
+    if parent is None:
+        for j in xrange(d, n+1, d):
+            M = Matrix(GF(2), [[1]*j])
+            if in_test(M):
+                for N in self_orthogonal_binary_codes(n, k, d, M, BC, in_test=in_test):
+                    if out_test(N): yield N
+    else:
+        C = LinearCode(parent)
+        if out_test(C): yield C
+        if k == parent.nrows():
+            return
+        for nn in xrange(parent.ncols()+1, n+1):
+            if in_test(parent):
+                for child in BC.generate_children(BinaryCode(parent), nn, d):
+                    for N in self_orthogonal_binary_codes(n, k, d, child, BC, in_test=in_test):
+                        if out_test(N): yield N

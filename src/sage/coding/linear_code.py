@@ -365,9 +365,13 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
     # return the result as a vector (and not a 1xn matrix)
     return vector(F, ans)
 
+min_wt_vec_gap = deprecated_function_alias(9999, _gap_minimal_weight_vector)
+
+lazy_import('sage.coding.databases', 'best_linear_code_in_guava', deprecation=9999)
+lazy_import('sage.coding.databases', 'bounds_on_minimum_distance_in_guava', deprecation=9999)
 
 
-
+best_known_linear_code = deprecated_function_alias(9999, 
 
 
 

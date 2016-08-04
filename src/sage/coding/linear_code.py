@@ -227,9 +227,11 @@ from sage.misc.superseded import deprecated_function_alias
 from sage.misc.lazy_import import lazy_import
 
 
+
 ####################### coding theory functions ###############################
 
-def code2leon(C):
+
+def _dump_code_in_leon_format(C):
     r"""
     Writes a file in Sage's temp directory representing the code C, returning
     the absolute path to the file. This is the Sage translation of the
@@ -247,7 +249,7 @@ def code2leon(C):
 
         sage: C = codes.HammingCode(GF(2), 3); C
         [7, 4] Hamming Code over Finite Field of size 2
-        sage: file_loc = sage.coding.linear_code.code2leon(C)
+        sage: file_loc = sage.coding.linear_code._dump_code_in_leon_format(C)
         sage: f = open(file_loc); print(f.read())
         LIBRARY code;
         code=seq(2,4,7,seq(
@@ -270,8 +272,11 @@ def code2leon(C):
     f = open(file_loc,"w")
     f.write(s)
     f.close()
+    
     return file_loc
 
+code2leon = deprecated_function_alias(9999, _dump_code_in_leon_format)
+    
 def wtdist_gap(Gmat, n, F):
     from sage.misc.superseded import deprecation
     deprecation(20565, "wtdist_gap is now deprecated. Please use AbstractLinearCode._spectrum_from_gap instead.")

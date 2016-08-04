@@ -238,7 +238,7 @@ class PuncturedCode(AbstractLinearCode):
         r"""
         Returns a random codeword of ``self``.
 
-        This methods does not trigger the computation of
+        This method does not trigger the computation of
         ``self``'s :meth:`sage.coding.linear_code.generator_matrix`.
 
         INPUT:
@@ -250,9 +250,8 @@ class PuncturedCode(AbstractLinearCode):
 
             sage: C = codes.RandomLinearCode(11, 5, GF(7))
             sage: Cp = codes.PuncturedCode(C, 3)
-            sage: set_random_seed(10)
-            sage: Cp.random_element()
-            (2, 0, 1, 3, 3, 3, 2, 6, 0, 5)
+            sage: Cp.random_element() in Cp
+            True
         """
         C_original = self.original_code()
         m = (C_original.base_ring() ** C_original.dimension()).random_element()

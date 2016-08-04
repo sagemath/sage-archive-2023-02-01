@@ -3371,6 +3371,8 @@ def LinearCodeFromVectorSpace(V, d=None):
         sage: V = VectorSpace(GF(2), 8)
         sage: L = V.subspace([[1,1,1,1,0,0,0,0],[0,0,0,0,1,1,1,1]])
         sage: C = LinearCodeFromVectorSpace(L)
+        doctest:...: DeprecationWarning: LinearCodeFromVectorSpace is deprecated. Simply call LinearCode with your vector space instead.
+        See http://trac.sagemath.org/21165 for details
         sage: C.generator_matrix()
         [1 1 1 1 0 0 0 0]
         [0 0 0 0 1 1 1 1]
@@ -3380,6 +3382,8 @@ def LinearCodeFromVectorSpace(V, d=None):
     Here, we provide the minimum distance of the code.::
 
         sage: C = LinearCodeFromVectorSpace(L, d=4)
+        doctest:...: DeprecationWarning: LinearCodeFromVectorSpace is deprecated. Simply call LinearCode with your vector space instead.
+        See http://trac.sagemath.org/21165 for details
         sage: C.minimum_distance()
         4
     """

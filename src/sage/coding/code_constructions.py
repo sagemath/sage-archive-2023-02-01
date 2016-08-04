@@ -158,7 +158,7 @@ from sage.matrix.constructor import matrix
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.misc.all import prod
-from .linear_code import LinearCodeFromVectorSpace, LinearCode
+from .linear_code import LinearCode
 from sage.modules.free_module import span
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.structure.sequence import Sequence, Sequence_generic
@@ -585,7 +585,7 @@ def BinaryGolayCode():
     # MS = MatrixSpace(F,12,23)
     # V = VectorSpace(F,23)
     V = span(B, F)
-    return LinearCodeFromVectorSpace(V, d=7)
+    return LinearCode(V, d=7)
 
 
 def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
@@ -833,7 +833,7 @@ def ExtendedBinaryGolayCode():
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1],\
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1]]
     V = span(B, GF(2))
-    return LinearCodeFromVectorSpace(V, d=8)
+    return LinearCode(V, d=8)
     # C = BinaryGolayCode()
     # return C.extended_code()
 
@@ -906,7 +906,7 @@ def ExtendedTernaryGolayCode():
          [0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 0, 1],\
          [0, 0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 1]]
     V = span(B, GF(3))
-    return LinearCodeFromVectorSpace(V, d=6)
+    return LinearCode(V, d=6)
     # C = TernaryGolayCode()
     # return C.extended_code()
 
@@ -1152,8 +1152,7 @@ def RandomLinearCode(n,k,F):
     for i in range(50):
         G = MS.random_element()
         if G.rank() == k:
-            V = span(G.rows(), F)
-            return LinearCodeFromVectorSpace(V)  # may not be in standard form
+            return LinearCode(G)  # may not be in standard form
     MS1 = MatrixSpace(F,k,k)
     MS2 = MatrixSpace(F,k,n-k)
     Ik = MS1.identity_matrix()
@@ -1209,7 +1208,7 @@ def TernaryGolayCode():
          [0, 0, 0, 0, 2, 0, 1, 2, 1, 1, 0],\
          [0, 0, 0, 0, 0, 2, 0, 1, 2, 1, 1]]
     V = span(B, F)
-    return LinearCodeFromVectorSpace(V, d=5)
+    return LinearCode(V, d=5)
 
 def ToricCode(P,F):
     r"""

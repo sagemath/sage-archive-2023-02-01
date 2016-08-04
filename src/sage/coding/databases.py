@@ -3,6 +3,13 @@ r"""
 Databases and accessors of online databases for coding theory
 """
 
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
+from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.constructor import Matrix
+from .linear_code import LinearCode
+from sage.interfaces.all import gap
+
+
 def best_linear_code_in_guava(n, k, F):
     r"""
     Returns the best linear code of length ``n``, dimension ``k`` over field
@@ -188,7 +195,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     Generate all self-orthogonal codes of length up to 7 and dimension up
     to 3::
 
-        sage: for B in self_orthogonal_binary_codes(7,3):
+        sage: for B in codes.databases.self_orthogonal_binary_codes(7,3):
         ....:    print(B)
         Linear code of length 2, dimension 1 over Finite Field of size 2
         Linear code of length 4, dimension 2 over Finite Field of size 2
@@ -202,7 +209,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     Generate all doubly-even codes of length up to 7 and dimension up
     to 3::
 
-        sage: for B in self_orthogonal_binary_codes(7,3,4):
+        sage: for B in codes.databases.self_orthogonal_binary_codes(7,3,4):
         ....:    print(B); print(B.generator_matrix())
         Linear code of length 4, dimension 1 over Finite Field of size 2
         [1 1 1 1]
@@ -217,7 +224,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     Generate all doubly-even codes of length up to 7 and dimension up
     to 2::
 
-        sage: for B in self_orthogonal_binary_codes(7,2,4):
+        sage: for B in codes.databases.self_orthogonal_binary_codes(7,2,4):
         ....:    print(B); print(B.generator_matrix())
         Linear code of length 4, dimension 1 over Finite Field of size 2
         [1 1 1 1]
@@ -228,7 +235,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     Generate all self-orthogonal codes of length equal to 8 and
     dimension equal to 4::
 
-        sage: for B in self_orthogonal_binary_codes(8, 4, equal=True):
+        sage: for B in codes.databases.self_orthogonal_binary_codes(8, 4, equal=True):
         ....:     print(B); print(B.generator_matrix())
         Linear code of length 8, dimension 4 over Finite Field of size 2
         [1 0 0 1 0 0 0 0]

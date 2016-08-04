@@ -97,7 +97,7 @@ class SubfieldSubcode(AbstractLinearCode):
             self._embedding = RelativeFiniteFieldExtension(F, subfield, embedding)
         else:
             self._embedding = RelativeFiniteFieldExtension(F, subfield, H[0])
-        super(SubfieldSubcode, self).__init__(subfield, original_code.length(), "ParityCheck", "Syndrome")
+        super(SubfieldSubcode, self).__init__(subfield, original_code.length(), "Systematic", "Syndrome")
 
     def __eq__(self, other):
         r"""
@@ -412,6 +412,5 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
 
 ####################### registration ###############################
 
-SubfieldSubcode._registered_encoders["ParityCheck"] = LinearCodeParityCheckEncoder
 SubfieldSubcode._registered_decoders["OriginalCode"] = SubfieldSubcodeOriginalCodeDecoder
 SubfieldSubcodeOriginalCodeDecoder._decoder_type = {"dynamic"}

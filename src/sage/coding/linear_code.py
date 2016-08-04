@@ -807,6 +807,7 @@ class AbstractLinearCode(module.Module):
         ### Add here any generic encoder/decoder ###
         #This allows any class which inherits from AbstractLinearCode
         #to use generic decoders/encoders
+        self._registered_encoders["Systematic"] = LinearCodeSystematicEncoder
         self._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
         self._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
 
@@ -954,13 +955,13 @@ class AbstractLinearCode(module.Module):
 
             sage: C.add_encoder("MyEncoder", MyEncoder)
             sage: C.encoders_available()
-            ['MyEncoder', 'ParityCheck']
+            ['MyEncoder', 'ParityCheck', 'Systematic']
 
         We can verify that any new code will not know MyEncoder::
 
             sage: C2 = codes.HammingCode(GF(2), 3)
             sage: C2.encoders_available()
-            ['ParityCheck']
+            ['Systematic', 'ParityCheck']
 
         TESTS:
 
@@ -1911,7 +1912,7 @@ class AbstractLinearCode(module.Module):
         It is possible to manually choose the encoder amongst the list of the available ones::
 
             sage: C.encoders_available()
-            ['GeneratorMatrix']
+            ['GeneratorMatrix', 'Systematic']
             sage: word = vector((0, 1, 1, 0))
             sage: C.encode(word, 'GeneratorMatrix')
             (1, 1, 0, 0, 1, 1, 0)
@@ -1964,7 +1965,7 @@ class AbstractLinearCode(module.Module):
         an exception will be raised::
 
             sage: C.encoders_available()
-            ['GeneratorMatrix']
+            ['GeneratorMatrix', 'Systematic']
             sage: C.encoder('NonExistingEncoder')
             Traceback (most recent call last):
             ...
@@ -1993,10 +1994,10 @@ class AbstractLinearCode(module.Module):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: C.encoders_available()
-            ['GeneratorMatrix']
-
+            ['GeneratorMatrix', 'Systematic']
             sage: C.encoders_available(True)
-            {'GeneratorMatrix': <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>}
+            {'GeneratorMatrix': <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>,
+             'Systematic': <class 'sage.coding.linear_code.LinearCodeSystematicEncoder'>}
         """
         if classes == True:
             return copy(self._registered_encoders)
@@ -2191,7 +2192,7 @@ class AbstractLinearCode(module.Module):
         E = self.encoder(encoder_name, **kwargs)
         return E.generator_matrix()
 
-    def generator_matrix_systematic(self):
+    def systematic_generator_matrix(self):
         """
         Return a systematic generator matrix of the code.
 
@@ -2205,11 +2206,14 @@ class AbstractLinearCode(module.Module):
             sage: code.generator_matrix()
             [1 2 1]
             [2 1 1]
-            sage: code.generator_matrix_systematic()
+            sage: code.systematic_generator_matrix()
             [1 2 0]
             [0 0 1]
         """
-        return self.generator_matrix().echelon_form()
+        return self.encoder("Systematic").generator_matrix()
+
+    generator_matrix_systematic = deprecated_function_alias(20835,
+            systematic_generator_matrix)
 
     @cached_method
     def gens(self):
@@ -2292,7 +2296,7 @@ class AbstractLinearCode(module.Module):
 
             sage: G = matrix(GF(3),2,[1,-1,0,-1,1,1])
             sage: code = LinearCode(G)
-            sage: code.generator_matrix_systematic()
+            sage: code.systematic_generator_matrix()
             [1 2 0]
             [0 0 1]
             sage: code.information_set()
@@ -2834,7 +2838,7 @@ class AbstractLinearCode(module.Module):
             sage: Cg = C.permuted_code(g)
             sage: Cg
             Linear code of length 7, dimension 4 over Finite Field of size 2
-            sage: C.generator_matrix() == Cg.generator_matrix_systematic()
+            sage: C.generator_matrix() == Cg.systematic_generator_matrix()
             True
         """
         F = self.base_ring()
@@ -4004,9 +4008,13 @@ class LinearCodeParityCheckEncoder(Encoder):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
+            doctest:...: DeprecationWarning: LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.
+            See http://trac.sagemath.org/20835 for details.
             sage: E
-            Parity check matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+            Parity check matrix-based encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
         """
+        from sage.misc.superseded import deprecation
+        deprecation(20835, "LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.")
         super(LinearCodeParityCheckEncoder, self).__init__(code)
 
     def _repr_(self):
@@ -4018,10 +4026,12 @@ class LinearCodeParityCheckEncoder(Encoder):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
+            doctest:...: DeprecationWarning: LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.
+            See http://trac.sagemath.org/20835 for details.
             sage: E
-            Parity check matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+            Parity check matrix-based encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
         """
-        return "Parity check matrix-based encoder for the %s" % self.code()
+        return "Parity check matrix-based encoder for %s" % self.code()
 
     def _latex_(self):
         r"""
@@ -4032,10 +4042,12 @@ class LinearCodeParityCheckEncoder(Encoder):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
+            doctest:...: DeprecationWarning: LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.
+            See http://trac.sagemath.org/20835 for details.
             sage: latex(E)
-            \textnormal{Parity check matrix-based encoder for the }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+            \textnormal{Parity check matrix-based encoder for }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
         """
-        return "\\textnormal{Parity check matrix-based encoder for the }%s" % self.code()._latex_()
+        return "\\textnormal{Parity check matrix-based encoder for }%s" % self.code()._latex_()
 
     @cached_method
     def generator_matrix(self):
@@ -4047,6 +4059,8 @@ class LinearCodeParityCheckEncoder(Encoder):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
+            doctest:...: DeprecationWarning: LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.
+            See http://trac.sagemath.org/20835 for details.
             sage: E.generator_matrix()
             [1 0 0 0 0 1 1]
             [0 1 0 0 1 0 1]
@@ -4054,6 +4068,215 @@ class LinearCodeParityCheckEncoder(Encoder):
             [0 0 0 1 1 1 1]
         """
         return self.code().parity_check_matrix().right_kernel_matrix()
+
+
+
+
+
+
+
+
+
+
+class LinearCodeSystematicEncoder(Encoder):
+    r"""
+    Encoder based on a generator matrix in systematic form for Linear codes.
+
+    To encode an element of its message space, this encoder first builds a
+    generator matrix in systematic form. What is called systematic form here
+    is the reduced row echelon form of a matrix, which is not necessarily
+    `[I \vert H]`, where `I` is the identity block and `H` the parity block.
+    One can refer to :meth:`LinearCodeSystematicEncoder.generator_matrix`
+    for a concrete example.
+    Once such a matrix has been computed, it is used to encode any message
+    into a codeword.
+
+    This encoder can also serve as the default encoder of a code defined by a
+    parity check matrix: if the :class:`LinearCodeSystematicEncoder` detects
+    that it is the default encoder, it computes a generator matrix as the
+    reduced row echelon form of the right kernel of the parity check matrix.
+
+    INPUT:
+
+    - ``code`` -- The associated code of this encoder.
+    
+    EXAMPLES:
+
+    We exemplify how to use :class:`LinearCodeSystematicEncoder` as the default
+    encoder. The following class is the dual of the repitition code::
+
+        sage: class DualRepetitionCode(sage.coding.linear_code.AbstractLinearCode):
+        ....:   def __init__(self, field, length):
+        ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self,field, length, "Systematic", "Syndrome")
+        ....:
+        ....:   def parity_check_matrix(self):
+        ....:       return Matrix(self.base_field(), [1]*self.length())
+        ....:
+        ....:   def _repr_(self):
+        ....:       return "Dual of the Repetition Code of length %d over %s" % (self.length(), self.base_field())
+        ....:
+        sage: DualRepetitionCode(GF(3), 5).generator_matrix()
+        [1 0 0 0 2]
+        [0 1 0 0 2]
+        [0 0 1 0 2]
+        [0 0 0 1 2]
+
+
+    An exception is thrown if :class:`LinearCodeSystematicEncoder` is the default encoder but no
+    parity check matrix has been specified for the code::
+
+        sage: class BadCodeExample(sage.coding.linear_code.AbstractLinearCode):
+        ....:   def __init__(self, field, length):
+        ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self, field, length, "Systematic", "Syndrome")
+        ....:
+        ....:   def _repr_(self):
+        ....:       return "I am a badly defined code"
+        ....:
+        sage: BadCodeExample(GF(3), 5).generator_matrix()
+        Traceback (most recent call last):
+        ...
+        ValueError: a parity check matrix must be specified if LinearCodeSystematicEncoder is the default encoder
+    """
+
+    def __init__(self, code):
+        r"""
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E
+            Systematic encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        super(LinearCodeSystematicEncoder, self).__init__(code)
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E
+            Systematic encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        return "Systematic encoder for %s" % self.code()
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: latex(E)
+            \textnormal{Systematic encoder for }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+        """
+        return "\\textnormal{Systematic encoder for }%s" % self.code()._latex_()
+
+    @cached_method
+    def generator_matrix(self):
+        r"""
+        Returns a generator matrix in systematic form of the associated code of ``self``.
+
+        Systematic form here means that a subsets of the columns of the matrix
+        forms the identity matrix.
+
+        .. NOTE::
+
+            The matrix returned by this method will not necessarily be `[I \vert H]`, where `I`
+            is the identity block and `H` the parity block. If one wants to know which columns
+            create the identity block, one can call :meth:`systematic_positions`
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],\
+                                     [1,0,0,1,1,0,0],\
+                                     [0,1,0,1,0,1,0],\
+                                     [1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E.generator_matrix()
+            [1 0 0 0 0 1 1]
+            [0 1 0 0 1 0 1]
+            [0 0 1 0 1 1 0]
+            [0 0 0 1 1 1 1]
+
+        Another example, with a generator matrix which won't be `[I \vert H]`::
+
+            sage: G = Matrix(GF(2), [[1,1,0,0,1,0,1],\
+                                     [1,1,0,0,1,0,0],\
+                                     [0,0,1,0,0,1,0],\
+                                     [0,0,1,0,1,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E.generator_matrix()
+            [1 1 0 0 0 1 0]
+            [0 0 1 0 0 1 0]
+            [0 0 0 0 1 1 0]
+            [0 0 0 0 0 0 1]            
+        """
+        C = self.code()
+        # This if statement detects if this encoder is itself the default encoder.
+        # In this case, attempt building the generator matrix from the parity
+        # check matrix
+        if hasattr(self, "_use_pc_matrix"):
+            if self._use_pc_matrix == 1:
+                self._use_pc_matrix = 2
+                return C.parity_check_matrix().right_kernel_matrix()
+            else:
+                raise ValueError("a parity check matrix must be specified if LinearCodeSystematicEncoder is the default encoder")
+        else:
+            self._use_pc_matrix = 1
+            M = C.generator_matrix()
+        return M.echelon_form()
+
+    def systematic_positions(self):
+        r"""
+        Returns a tuple containing the indices of the columns which form an
+        identity matrix when the generator matrix is in systematic form.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E.systematic_positions()
+            (0, 1, 2, 3)
+
+        We take another matrix with a less nice shape::
+
+            sage: G = Matrix(GF(2), [[1,1,0,0,1,0,1],[1,1,0,0,1,0,0],[0,0,1,0,0,1,0],[0,0,1,0,1,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E.systematic_positions()
+            (0, 2, 4, 6)
+
+        These positions correspond to the positions which carry information in a codeword::
+
+            sage: MS = E.message_space()
+            sage: m = MS.random_element()
+            sage: c = m * E.generator_matrix()
+            sage: pos = E.systematic_positions()
+            sage: info = MS([c[i] for i in pos])
+            sage: m == info
+            True
+        """
+        return self.generator_matrix().pivots()
+
+
+
+
+
+
+
+
+
+
 
 ####################### decoders ###############################
 class LinearCodeSyndromeDecoder(Decoder):

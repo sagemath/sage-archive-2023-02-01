@@ -87,11 +87,15 @@ Alternatively, you can create the lazy list from an update function::
 
 You can also create extension type inheriting from :class:`lazy_list_generic`
 (with Cython). In that case you would better implement directly the method
-`update_cache_up_to`. See the examples in this file with the classes
+:meth:`~lazy_list_generic.update_cache_up_to`. See the examples in this file with the classes
 :class:`lazy_list_from_iterator` and :class:`lazy_list_from_function`.
+
+Classes and Methods
+===================
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Vincent Delecroix <20100.delecroix@gmail.com>
+#       Copyright (C) 2016 Daniel Krenn <dev@danielkrenn.at>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of

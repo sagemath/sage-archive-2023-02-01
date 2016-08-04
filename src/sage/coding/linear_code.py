@@ -209,7 +209,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.modules.free_module import VectorSpace
 from sage.misc.cachefunc import cached_method
-from sage.misc.superseded import deprecated_function_alias
+from sage.misc.superseded import deprecation, deprecated_function_alias
 from .encoder import Encoder
 from .decoder import Decoder, DecodingError
 from sage.combinat.subset import Subsets
@@ -2119,39 +2119,6 @@ class AbstractLinearCode(Module):
             False
         """
         return self == self.dual_code()
-
-    def is_formally_self_dual(self):
-        r"""
-        Returns whether ``self`` is formally self-dual.
-
-        A code is formally self-dual if its weight enumerator is invariant under
-        the MacWilliams transform. More precisely, if `W(x,y)` is the
-        homogeneous weight enumerator of ``self``, then ``self`` is formally
-        self dual if `W(x,y) = W(x+(q-1)y, x-y)/C`, where `GF(q)` is the
-        base field of ``self`` and `C` is the cardinality of ``self``.
-
-        Formally self-dual is a weaker condition than self-dual, so the latter
-        implies the former but not vice versa.
-
-        EXAMPLE::
-
-            sage: C = codes.HammingCode(GF(2), 3)
-            sage: C.is_self_dual(), C.is_formally_self_dual()
-            False, False
-            sage: C2 = codes.ExtendedBinaryGolayCode()
-            sage: C2.is_self_dual(), C2.is_formally_self_dual()
-            True, True
-            sage: C3 = LinearCode(matrix(GF(2), [[1,0,0,1,1,0],\
-                                                 [0,1,0,0,1,1],\
-                                                 [0,0,1,0,0,1]]))
-            sage: C3.is_self_dual(), C3.is_formally_self_dual()
-            False, True
-        """
-        q = self.base_field().cardinality()
-        W = self.weight_enumerator()
-        x,y = W.parent().gens()
-        Wtr = W(x+(q-1)*y, x-y)/self.cardinality()
-        return W == Wtr
         
     def is_self_orthogonal(self):
         """
@@ -2730,7 +2697,7 @@ class AbstractLinearCode(Module):
         G1 = C1.generator_matrix()
         return G1.matrix_from_columns(range(k,n))
 
-    def _self_dual_duursma_zeta_data(self, i):
+    def sd_duursma_data(self, i, warn=True):
         r"""
         Compute two integers pertaining to the computation of the self-dual
         Duursma zeta function for ``self``, if ``self`` is a self-dual code.
@@ -2755,12 +2722,16 @@ class AbstractLinearCode(Module):
             sage: C = LinearCode(G)
             sage: C == C.dual_code()  # checks that C is self dual
             True
-            sage: for i in [1,2,3,4]: print(C._self_dual_duursma_zeta_data(i))
+            sage: for i in [1,2,3,4]: print(C.sd_duursma_data(i))
+            doctest:...: DeprecationWarning: AbstractLinearCode.sd_duursma_data will be removed in a future release of Sage. Please use AbstractLinearCode.zeta_polynomial() to compute the Duursma zeta polynomial
+            See http://trac.sagemath.org/21165 for details.
             (2, -1)
             (2, -3)
             (2, -2)
             (2, -1)
         """
+        if warn:
+            deprecation(21165, "AbstractLinearCode.sd_duursma_data will be removed in a future release of Sage. Please use AbstractLinearCode.zeta_polynomial() to compute the Duursma zeta polynomial")
         n = self.length()
         d = self.minimum_distance()
         if i == 1:
@@ -2779,14 +2750,13 @@ class AbstractLinearCode(Module):
             raise ValueError("the type i should be 1,2,3 or 4")
         return (ZZ(v),m)
     
-    def _self_dual_duursma_zeta_Q(self, i, d0):
+    def sd_duursma_q(self, i, d0, warn=True):
         r"""
         Compute a polynomial pertaining to the computation of the self-dual
         Duursma zeta function for ``self``, if ``self`` is a self-dual code.
 
         INPUT:
 
-        -  ``C`` - sd code; does *not* check if `C` is actually an sd code
         -  ``i`` - Type number, one of 1,2,3,4
         -  ``d0`` - Divisor, the smallest integer such that each `A_i > 0` iff
            `i` is divisible by `d0`
@@ -2805,11 +2775,15 @@ class AbstractLinearCode(Module):
             sage: C1 = codes.HammingCode(GF(2), 3)
             sage: C2 = C1.extended_code(); C2
             Extended code coming from [7, 4] Hamming Code over Finite Field of size 2
-            sage: C2._self_dual_duursma_zeta_Q(1,1)
+            sage: C2.sd_duursma_q(1,1)
+            doctest:...: DeprecationWarning: AbstractLinearCode.sd_duursma_q will be removed in a future release of Sage. Please use AbstractLinearCode.zeta_polynomial() to compute the Duursma zeta polynomial
+            See http://trac.sagemath.org/21165 for details.
             2/5*T^2 + 2/5*T + 1/5
-            sage: C2._self_dual_duursma_zeta_Q(3,1)
+            sage: C2.sd_duursma_q(3,1)
             3/5*T^4 + 1/5*T^3 + 1/15*T^2 + 1/15*T + 1/15
         """
+        if warn:
+            deprecation(21165, "AbstractLinearCode.sd_duursma_q will be removed in a future release of Sage. Please use AbstractLinearCode.zeta_polynomial() to compute the Duursma zeta polynomial")
         q = (self.base_ring()).order()
         n = self.length()
         d = self.minimum_distance()
@@ -2824,9 +2798,9 @@ class AbstractLinearCode(Module):
                 c0 = rising_factorial(d-d0,d0+1)*self.spectrum()[d]/((q-1)*rising_factorial(n-d0,d0+1))
             else:
                 c0 = self.spectrum()[d]/((q-1)*rising_factorial(n-d0,d0+1))
-        v, m = self._self_dual_duursma_zeta_data(i)
+        v, m = self.sd_duursma_data(i, warn=False)
         if m<0 or v<0:
-            raise NotImplementedError("This combination of length and minimum distance is not yet supported.")
+            raise NotImplementedError("This combination of length and minimum distance is not supported.")
         PR = PolynomialRing(QQ,"T")
         T = PR.gen()
         if i == 1:
@@ -2847,15 +2821,22 @@ class AbstractLinearCode(Module):
         Q = PR(qc)
         return Q/Q(1)
 
-    def self_dual_zeta_polynomial(self, typ=None):
+    def sd_zeta_polynomial(self, typ=1):
         r"""
-        If ``self`` is a formally self-dual code, return the self-dual Duursma zeta
-        polynomial for the code, as given in [D].
+        Return the Duursma zeta polynomial, computed in a fashion that only
+        works if ``self`` is self-dual.
 
-        The self-dual Duursma zeta function is only defined if ``self`` is
-        formally self-dual and its base field has cardinality 2,3 or 4. See
-        :meth:`AbstractLinearCode.formally_self_dual` for the a definition of
-        the former.
+        WARNING::
+
+            This function does not check that ``self`` is self-dual. Indeed, it
+            is not even clear which notion of self-dual is supported ([D] seems
+            to indicate formal self-dual, but the example below is a hexacode
+            which is Hermitian self-dual).
+
+        INPUT:
+
+        -  ``typ`` - Integer, type of this s.d. code; one of 1,2,3, or
+           4 (default: 1)
 
         OUTPUT:
 
@@ -2866,60 +2847,29 @@ class AbstractLinearCode(Module):
             sage: C1 = codes.HammingCode(GF(2), 3)
             sage: C2 = C1.extended_code(); C2
             Extended code coming from [7, 4] Hamming Code over Finite Field of size 2
-            sage: C2.is_self_dual()
-            True
-            sage: P = C2.self_dual_zeta_polynomial()
+            sage: P = C2.sd_zeta_polynomial(); P
+            doctest:...: DeprecationWarning: AbstractLinearCode.sd_zeta_polynomial() will be removed in a future release of Sage. Please use AbstractLinearCode.zeta_polynomial() instead
+            See http://trac.sagemath.org/21165 for details.
             2/5*T^2 + 2/5*T + 1/5
-
-        The self-dual Duursma zeta polynomials always evaluates to 1 at 1::
-
             sage: P(1)
             1
-
-        The self-dual Duursma zeta polynomial is defined over a base field of
-        size 2,3 or 4::
-        
-            sage: C = LinearCode(matrix(GF(2), [[1,0,0,0,1,2,1,2],\
-                                                [0,1,0,0,1,0,1,2],\
-                                                [0,0,1,0,2,0,1,1],\
-                                                [0,0,0,1,0,1,0,0]]))
-            sage: C.is_formally_self_dual()
-            True
-            sage: C.self_dual_zeta_polynomial()
+            sage: F.<z> = GF(4,"z")
+            sage: MS = MatrixSpace(F, 3, 6)
+            sage: G = MS([[1,0,0,1,z,z],[0,1,0,z,1,z],[0,0,1,z,z,1]])
+            sage: C = LinearCode(G)  # the "hexacode"
+            sage: C.sd_zeta_polynomial(4)
             1
-
-        The self-dual Duursma zeta polynomial is defined only for formally
-        self-dual codes::
-        
-            sage: C1 = codes.HammingCode(GF(2), 3)
-            sage: C1.is_formally_self_dual()
-            False
-            sage: C1.self_dual_zeta_polynomial()
-            Traceback (most recent call last):
-            ...
-            ValueError: the Duursma zeta polynomial is only defined for self-dual codes.
 
         REFERENCES:
 
         - [D] I. Duursma, "Extremal weight enumerators and ultraspherical
           polynomials"
         """
-        if not self.is_formally_self_dual():
-            raise ValueError("the Duursma zeta polynomial is only defined for formally self-dual codes.")
+        deprecation(21165, "AbstractLinearCode.sd_zeta_polynomial() will be removed in a future release of Sage. Please use AbstractLinearCode.zeta_polynomial() instead")
         if not self.base_field().cardinality() <= 4:
             raise ValueError("the Duursma zeta polynomial is only defined for codes over GF(2), GF(3) or GF(4).")
-        if typ != None:
-            from sage.misc.superseded import deprecation
-            deprecation(21165, "the keyword 'typ' has been deprecated and is now determined automatically.")
-        #Determine the type, according to [D, p. 105]:
-        q = self.base_field().cardinality()
-        n = self.length()
-        if q == 2:
-            typ = 2 if n % 8 == 0 else 1
-        else:
-            typ = 3 if q == 3 else 4
         d0 = self.divisor()
-        Q = self._self_dual_duursma_zeta_Q(typ,d0)
+        Q = self.sd_duursma_q(typ,d0, warn=False)
         PR = Q.parent()
         T = PR.fraction_field().gen()
         if typ == 1:
@@ -2931,10 +2881,6 @@ class AbstractLinearCode(Module):
         if typ == 4:
             P0 = Q/(1+2*T)
         return PR(P0/P0(1))
-
-    sd_duursma_data = deprecated_function_alias(21165, _self_dual_duursma_zeta_data)
-    sd_duursma_q = deprecated_function_alias(21165, _self_dual_duursma_zeta_Q)
-    sd_zeta_polynomial = deprecated_function_alias(21165, self_dual_zeta_polynomial)
 
     def shortened(self, L):
         r"""

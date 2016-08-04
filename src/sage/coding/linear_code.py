@@ -2120,7 +2120,37 @@ class AbstractLinearCode(Module):
         """
         return self == self.dual_code()
 
+    def is_formally_self_dual(self):
+        r"""
+        Returns whether ``self`` is formally self-dual.
 
+        A code is formally self-dual if its weight enumerator is invariant under
+        the MacWilliams transform. More precisely, if `W(x,y)` is the
+        homogeneous weight enumerator of ``self``, then ``self`` is formally
+        self dual if `W(x,y) = W(x+(q-1)y, x-y)/C`, where `GF(q)` is the
+        base field of ``self`` and `C` is the cardinality of ``self``.
+
+        Formally self-dual is a weaker condition than self-dual, so the latter
+        implies the former but not vice versa.
+
+        EXAMPLE::
+
+            sage: C = codes.HammingCode(GF(2), 3)
+            sage: C.is_self_dual()
+            False
+            sage: F.<z> = GF(4,"z")
+            sage: C = LinearCode(matrix(F, [[1,0,0,1,z,z],[0,1,0,z,1,z],[0,0,1,z,z,1]])) # the "hexacode"
+            sage: C.is_self_dual()
+            False
+            sage: C.is_formally_self_dual()
+            True
+        """
+        q = self.base_field().cardinality()
+        W = self.weight_enumerator()
+        x,y = W.parent().gens()
+        Wtr = W(x+(q-1)*y, x-y)/self.cardinality()
+        return W == Wtr
+        
     def is_self_orthogonal(self):
         """
         Returns ``True`` if this code is self-orthogonal and ``False``
@@ -2818,10 +2848,13 @@ class AbstractLinearCode(Module):
 
     def self_dual_zeta_polynomial(self, typ=None):
         r"""
-        If ``self`` is a self-dual code, return the Duursma zeta function for the code.
+        If ``self`` is a formally self-dual code, return the Duursma zeta
+        function for the code.
 
-        The Duursma zeta function is only defined if ``self`` is self-dual and
-        its base field has cardinality 2,3 or 4.
+        The Duursma zeta function is only defined if ``self`` is formally
+        self-dual and its base field has cardinality 2,3 or 4. See
+        :meth:`AbstractLinearCode.formally_self_dual` for the a definition of
+        the former.
 
         OUTPUT:
 
@@ -2846,7 +2879,7 @@ class AbstractLinearCode(Module):
         
             sage: F.<z> = GF(4,"z")
             sage: C = LinearCode(matrix(F, [[1,0,0,1,z,z],[0,1,0,z,1,z],[0,0,1,z,z,1]])) # the "hexacode"
-            sage: C.is_self_dual()
+            sage: C.is_formally_self_dual()
             True
             sage: C.self_dual_zeta_polynomial()
             1
@@ -2854,7 +2887,7 @@ class AbstractLinearCode(Module):
         The Duursma zeta polynomials are defined only for self-dual codes::
         
             sage: C1 = codes.HammingCode(GF(2), 3)
-            sage: C1.is_self_dual()
+            sage: C1.is_formally_self_dual()
             False
             sage: C1.self_dual_zeta_polynomial()
             Traceback (most recent call last):
@@ -2866,8 +2899,8 @@ class AbstractLinearCode(Module):
         - [D] I. Duursma, "Extremal weight enumerators and ultraspherical
           polynomials"
         """
-        if not self.is_self_dual():
-            raise ValueError("the Duursma zeta polynomial is only defined for self-dual codes.")
+        if not self.is_formally_self_dual():
+            raise ValueError("the Duursma zeta polynomial is only defined for formally self-dual codes.")
         if not self.base_field().cardinality() <= 4:
             raise ValueError("the Duursma zeta polynomial is only defined for codes over GF(2), GF(3) or GF(4).")
         if typ != None:

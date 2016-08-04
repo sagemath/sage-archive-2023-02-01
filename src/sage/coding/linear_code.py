@@ -279,7 +279,7 @@ code2leon = deprecated_function_alias(9999, _dump_code_in_leon_format)
     
 def wtdist_gap(Gmat, n, F):
     from sage.misc.superseded import deprecation
-    deprecation(20565, "wtdist_gap is now deprecated. Please use AbstractLinearCode._spectrum_from_gap instead.")
+    deprecation(20565, "wtdist_gap is now deprecated. You should simply call AbstractLinearCode.weight_distribution instead.")
     G_gap = gap(Gmat)
     G = G_gap._matrix_(F)
     C = LinearCode(G)

@@ -89,11 +89,26 @@ def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI, ignore_URLError=False):
       connection fails and the function returns ``None`` (set to ``False`` by
       default).
 
-    EXAMPLES::
+    EXAMPLES:
+
+    The following test does fail if there is no TLS support (see e.g.
+    :trac:`19213`)::
 
         sage: from sage.misc.package import pip_remote_version
-        sage: pip_remote_version('beautifulsoup', ignore_URLError=True) # optional - internet
+        sage: pip_remote_version('beautifulsoup') # optional - internet # not tested
         u'...'
+
+    These tests are reliable since the tested package does not exist::
+
+        sage: nap = 'hey_this_is_NOT_a_python_package'
+        sage: pypi = 'http://this.is.not.pypi.com/'
+        sage: pip_remote_version(nap, pypi_url=pypi, ignore_URLError=True) # optional - internet
+        doctest:...: UserWarning: failed to fetch the version of
+        pkg='hey_this_is_NOT_a_python_package' at http://this.is.not.pypi.com/
+        sage: pip_remote_version(nap, pypi_url=pypi, ignore_URLError=False) # optional - internet
+        Traceback (most recent call last):
+        ...
+        HTTPError: HTTP Error 404: Not Found
     """
     url = '{pypi_url}/{pkg}/json'.format(pypi_url=pypi_url, pkg=pkg)
 
@@ -103,6 +118,8 @@ def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI, ignore_URLError=False):
         f.close()
     except URLError:
         if ignore_URLError:
+            import warnings
+            warnings.warn("failed to fetch the version of pkg={!r} at {}".format(pkg, pypi_url))
             return
         else:
             raise

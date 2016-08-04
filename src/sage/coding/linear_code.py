@@ -2366,7 +2366,7 @@ class AbstractLinearCode(Module):
             d = C.MinimumWeight()
             return ZZ(d)
         Gstr = "%s*Z(%s)^0"%(gapG, q)
-        return min_wt_vec_gap(Gstr,n,k,F).hamming_weight()
+        return _gap_minimal_weight_vector(Gstr,n,k,F).hamming_weight()
 
     def module_composition_factors(self, gp):
         r"""
@@ -2967,7 +2967,8 @@ class AbstractLinearCode(Module):
         Cd = self.dual_code()
         Cdp = Cd.punctured(set(L))
         return Cdp.dual_code()
-
+        
+    @cached_method
     def weight_distribution(self, algorithm=None):
         r"""
         Returns the weight distribution, or spectrum of ``self`` as a list.
@@ -3410,7 +3411,7 @@ def LinearCodeFromVectorSpace(V, d=None):
         sage: L = V.subspace([[1,1,1,1,0,0,0,0],[0,0,0,0,1,1,1,1]])
         sage: C = LinearCodeFromVectorSpace(L)
         doctest:...: DeprecationWarning: LinearCodeFromVectorSpace is deprecated. Simply call LinearCode with your vector space instead.
-        See http://trac.sagemath.org/21165 for details
+        See http://trac.sagemath.org/21165 for details.
         sage: C.generator_matrix()
         [1 1 1 1 0 0 0 0]
         [0 0 0 0 1 1 1 1]
@@ -3420,8 +3421,6 @@ def LinearCodeFromVectorSpace(V, d=None):
     Here, we provide the minimum distance of the code.::
 
         sage: C = LinearCodeFromVectorSpace(L, d=4)
-        doctest:...: DeprecationWarning: LinearCodeFromVectorSpace is deprecated. Simply call LinearCode with your vector space instead.
-        See http://trac.sagemath.org/21165 for details
         sage: C.minimum_distance()
         4
     """
@@ -3567,6 +3566,12 @@ class LinearCode(AbstractLinearCode):
             sage: C.minimum_distance()
             3
 
+        We can construct a linear code directly from a vector space
+            sage: VS = matrix(GF(2), [[1,0,1],\
+                                      [1,0,1]]).row_space()
+            sage: C = LinearCode(VS); C
+            Linear code of length 3, dimension 1 over Finite Field of size 2
+
         Forbid the zero vector space (see :trac:`17452` and :trac:`6486`)::
 
             sage: G = matrix(GF(2), [[0,0,0]])
@@ -3581,16 +3586,15 @@ class LinearCode(AbstractLinearCode):
             raise ValueError("'generator' must be defined on a field (not a ring)")
 
         try:
-            if hasattr(generator,"row_space"):
-                basis = generator.row_space().basis() # generator matrix case
+            basis = None
+            if hasattr(generator,"nrows"): # generator matrix case
+                if generator.rank() < generator.nrows():
+                    basis = generator.row_space().basis() 
             else:
                 basis = generator.basis() # vector space etc. case
-
-            # if the matrix does not have full rank we replace it
-            if len(basis) != generator.nrows():
+            if not basis is None:
                 from sage.matrix.constructor import matrix
                 generator = matrix(base_ring, basis)
-
                 if generator.nrows() == 0:
                     raise ValueError("this linear code contains no non-zero vector")
         except AttributeError:

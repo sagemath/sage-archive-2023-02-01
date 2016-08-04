@@ -910,51 +910,31 @@ def ExtendedTernaryGolayCode():
     # C = TernaryGolayCode()
     # return C.extended_code()
 
-def LinearCodeFromCheckMatrix(H):
+def from_parity_check_matrix(H):
     r"""
-    A linear [n,k]-code C is uniquely determined by its generator
-    matrix G and check matrix H. We have the following short exact
-    sequence
+    Return the linear code that has ``H`` as a parity check matrix.
 
-    .. math::
-
-        0 \rightarrow
-        {\mathbf{F}}^k \stackrel{G}{\rightarrow}
-        {\mathbf{F}}^n \stackrel{H}{\rightarrow}
-        {\mathbf{F}}^{n-k} \rightarrow
-        0.
-
-    ("Short exact" means (a) the arrow `G` is injective, i.e.,
-    `G` is a full-rank `k\times n` matrix, (b) the
-    arrow `H` is surjective, and (c)
-    `{\rm image}(G)={\rm kernel}(H)`.)
+    If ``H`` has dimensions `h \times n` then the linear code will have
+    dimension `n-h` and length `n`.
 
     EXAMPLES::
-
+    
         sage: C = codes.HammingCode(GF(2), 3)
+        sage: C.systematic_generator_matrix()
+        [1 0 1 0 1 0 1]
         sage: H = C.parity_check_matrix(); H
         [1 0 1 0 1 0 1]
         [0 1 1 0 0 1 1]
         [0 0 0 1 1 1 1]
-        sage: Gh = codes.LinearCodeFromCheckMatrix(H).generator_matrix()
-        sage: Gc = C.systematic_generator_matrix()
-        sage: Gh == Gc
-        True
-        sage: C = codes.HammingCode(GF(3), 2)
-        sage: H = C.parity_check_matrix(); H
-        [1 0 1 1]
-        [0 1 1 2]
-        sage: Gh = codes.LinearCodeFromCheckMatrix(H).generator_matrix()
-        sage: Gc = C.systematic_generator_matrix()
-        sage: Gh == Gc
-        True
-        sage: C = codes.RandomLinearCode(10,5,GF(4,"a"))
-        sage: H = C.parity_check_matrix()
-        sage: codes.LinearCodeFromCheckMatrix(H) == C
-        True
+        sage: C2 = codes.from_parity_check_matrix(H).systematic_generator_matrix()
+        [1 0 1 0 1 0 1]
     """
     Cd = LinearCode(H)
     return Cd.dual_code()
+
+LinearCodeFromCheckmatrix = deprecated_function_alias(21165, from_parity_check_matrix)
+
+
 
 def QuadraticResidueCode(n,F):
     r"""

@@ -1,121 +1,19 @@
 r"""
-Linear code constructions
+Linear code constructors that do not preserve the structural information.
 
-This file contains constructions of error-correcting codes which are
-pure Python/Sage and not obtained from wrapping GUAVA functions.
-The GUAVA wrappers are in guava.py.
+This file contains a variety of constructions which builds the generator matrix
+of special (or random) linear codes and wraps them in a
+:class:`sage.coding.linear_code.LinearCode` object. These constructions are
+therefore not rich objects such as
+:class:`sage.coding.grs.GeneralizedReedSolomonCodes`.
+
+For deprecation reasons, this file also contains some constructions for which
+Sage now does have rich representations.
 
 All codes available here can be accessed through the ``codes`` object::
 
-    sage: codes.HammingCode(GF(2), 3)
-    [7, 4] Hamming Code over Finite Field of size 2
-
-
-Let `F` be a finite field with `q` elements.
-Here's a constructive definition of a cyclic code of length
-`n`.
-
-#. Pick a monic polynomial `g(x)\in F[x]` dividing
-   `x^n-1`. This is called the generating polynomial of the
-   code.
-
-#. For each polynomial `p(x)\in F[x]`, compute
-   `p(x)g(x)\ ({\rm mod}\ x^n-1)`. Denote the answer by
-   `c_0+c_1x+...+c_{n-1}x^{n-1}`.
-
-#. `{\bf c} =(c_0,c_1,...,c_{n-1})` is a codeword in
-   `C`. Every codeword in `C` arises in this way
-   (from some `p(x)`).
-
-The polynomial notation for the code is to call
-`c_0+c_1x+...+c_{n-1}x^{n-1}` the codeword (instead of
-`(c_0,c_1,...,c_{n-1})`). The polynomial
-`h(x)=(x^n-1)/g(x)` is called the check polynomial of
-`C`.
-
-Let `n` be a positive integer relatively prime to
-`q` and let `\alpha` be a primitive
-`n`-th root of unity. Each generator polynomial `g`
-of a cyclic code `C` of length `n` has a
-factorization of the form
-
-
-.. math::
-
-     g(x) = (x - \alpha^{k_1})...(x - \alpha^{k_r}),
-
-
-where `\{k_1,...,k_r\} \subset \{0,...,n-1\}`. The
-numbers `\alpha^{k_i}`, `1 \leq i \leq r`, are
-called the zeros of the code `C`. Many families of cyclic
-codes (such as BCH codes and the quadratic residue codes) are
-defined using properties of the zeros of `C`.
-
-- BCHCode - A 'Bose-Chaudhuri-Hockenghem code' (or BCH code for short)
-  is the largest possible cyclic code of length n over field F=GF(q),
-  whose generator polynomial has zeros (which contain the set)
-  `Z = \{a^i\ |\ i \in C_b\cup ... C_{b+delta-2}\}`, where
-  `a` is a primitive `n^{th}` root of unity in the
-  splitting field `GF(q^m)`, `b` is an integer
-  `0\leq b\leq n-delta+1` and `m` is the multiplicative
-  order of `q` modulo `n`. The default here is `b=0`
-  (unlike Guava, which has default `b=1`). Here `C_k` are
-  the cyclotomic codes.
-
-- BinaryGolayCode, ExtendedBinaryGolayCode, TernaryGolayCode,
-  ExtendedTernaryGolayCode the well-known"extremal" Golay codes,
-  http://en.wikipedia.org/wiki/Golay_code
-
-- cyclic codes - CyclicCodeFromGeneratingPolynomial (= CyclicCode),
-  CyclicCodeFromCheckPolynomial,
-  http://en.wikipedia.org/wiki/Cyclic_code
-
-- DuadicCodeEvenPair, DuadicCodeOddPair: Constructs the "even
-  (resp. odd) pair" of duadic codes associated to the "splitting" S1,
-  S2 of n. This is a special type of cyclic code whose generator is
-  determined by S1, S2. See chapter 6 in [HP]_.
-
-- HammingCode - the well-known Hamming code,
-  http://en.wikipedia.org/wiki/Hamming_code
-
-- from_parity_check_matrix - for specifying the code using the
-  check matrix instead of the generator matrix.
-
-- QuadraticResidueCodeEvenPair, QuadraticResidueCodeOddPair: Quadratic
-  residue codes of a given odd prime length and base ring either don't
-  exist at all or occur as 4-tuples - a pair of
-  "odd-like" codes and a pair of "even-like" codes. If n 2 is prime
-  then (Theorem 6.6.2 in [HP]_) a QR code exists over GF(q) iff q is a
-  quadratic residue mod n. Here they are constructed as"even-like"
-  duadic codes associated the splitting (Q,N) mod n, where Q is the
-  set of non-zero quadratic residues and N is the non-residues.
-  QuadraticResidueCode (a special case) and
-  ExtendedQuadraticResidueCode are included as well.
-
-- random_linear_code: Generate a random linear code over a given field, with
-  given length and dimension.
-
-- ReedSolomonCode - Given a finite field `F` of order `q`,
-  let `n` and `k` be chosen such that
-  `1 \leq k \leq n \leq q`.
-  Pick `n` distinct elements of `F`, denoted
-  `\{ x_1, x_2, ... , x_n \}`. Then, the codewords are obtained
-  by evaluating every polynomial in `F[x]` of degree less than
-  `k` at each `x_i`.
-
-- ToricCode - Let `P` denote a list of lattice points in
-  `\ZZ^d` and let `T` denote a listing of all
-  points in `(F^x )^d`. Put `n=|T|` and let `k`
-  denote the dimension of the vector space of functions
-  `V = \mathrm{Span} \{x^e \ |\ e \in P\}`.
-  The associated toric code `C` is
-  the evaluation code which is the image of the evaluation map
-  `eval_T : V \rightarrow F^n`, where `x^e` is the
-  multi-index notation.
-
-- WalshCode - a binary linear `[2^m,m,2^{m-1}]` code
-  related to Hadamard matrices.
-  http://en.wikipedia.org/wiki/Walsh_code
+    sage: codes.BinaryGolayCode()
+    Linear code of length 23 and dimension 11 over Finite Field of size 2
 
 REFERENCES:
 
@@ -134,9 +32,6 @@ AUTHOR:
 - " (2008-09) fix for bug in BCHCode reported by F. Voloch
 
 - " (2008-10) small docstring changes to WalshCode and walsh_matrix
-
-Functions
----------
 
 """
 

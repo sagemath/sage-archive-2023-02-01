@@ -78,7 +78,7 @@ defined using properties of the zeros of `C`.
 - HammingCode - the well-known Hamming code,
   http://en.wikipedia.org/wiki/Hamming_code
 
-- LinearCodeFromCheckMatrix - for specifying the code using the
+- from_parity_check_matrix - for specifying the code using the
   check matrix instead of the generator matrix.
 
 - QuadraticResidueCodeEvenPair, QuadraticResidueCodeOddPair: Quadratic
@@ -168,6 +168,8 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.sets.set import Set
 from sage.rings.finite_rings.integer_mod import Mod
+
+from sage.misc.superseded import deprecation, deprecated_function_alias
 
 ############### utility functions ################
 
@@ -919,21 +921,21 @@ def from_parity_check_matrix(H):
 
     EXAMPLES::
     
-        sage: C = codes.HammingCode(GF(2), 3)
-        sage: C.systematic_generator_matrix()
-        [1 0 1 0 1 0 1]
+        sage: C = codes.HammingCode(GF(2), 3); C
+        [7, 4] Hamming Code over Finite Field of size 2
         sage: H = C.parity_check_matrix(); H
         [1 0 1 0 1 0 1]
         [0 1 1 0 0 1 1]
         [0 0 0 1 1 1 1]
-        sage: C2 = codes.from_parity_check_matrix(H).systematic_generator_matrix()
-        [1 0 1 0 1 0 1]
+        sage: C2 = codes.from_parity_check_matrix(H); C2
+        Linear code of length 7, dimension 4 over Finite Field of size 2
+        sage: C2.systematic_generator_matrix() == C.systematic_generator_matrix()
+        True
     """
     Cd = LinearCode(H)
     return Cd.dual_code()
 
-LinearCodeFromCheckmatrix = deprecated_function_alias(21165, from_parity_check_matrix)
-
+LinearCodeFromCheckMatrix = deprecated_function_alias(21165, from_parity_check_matrix)
 
 
 def QuadraticResidueCode(n,F):
@@ -1142,7 +1144,6 @@ def RandomLinearCode(n,k,F):
 
 
 def ReedSolomonCode(n,k,F,pts = None):
-    from sage.misc.superseded import deprecation
     from sage.coding.grs import GeneralizedReedSolomonCode
     deprecation(18928, "codes.ReedSolomonCode is now deprecated. Please use codes.GeneralizedReedSolomonCode instead.")
     q = F.order()

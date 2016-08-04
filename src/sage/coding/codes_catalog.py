@@ -20,11 +20,14 @@ from __future__ import absolute_import
 # in the global namespace.
 
 from sage.misc.lazy_import import lazy_import as _lazy_import
+
+from .linear_code import LinearCode
 from .code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
                                 CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
                                 DuadicCodeOddPair, ExtendedBinaryGolayCode,
                                 ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
-                                LinearCode, LinearCodeFromCheckMatrix,
+                                from_parity_check_matrix,
+                                LinearCodeFromCheckMatrix, #deprecated
                                 QuadraticResidueCode, QuadraticResidueCodeEvenPair,
                                 QuadraticResidueCodeOddPair, RandomLinearCode,
                                 ReedSolomonCode, TernaryGolayCode,

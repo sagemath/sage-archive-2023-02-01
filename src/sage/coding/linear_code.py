@@ -275,7 +275,7 @@ def _dump_code_in_leon_format(C):
     
     return file_loc
 
-code2leon = deprecated_function_alias(9999, _dump_code_in_leon_format)
+code2leon = deprecated_function_alias(21165, _dump_code_in_leon_format)
     
 def wtdist_gap(Gmat, n, F):
     from sage.misc.superseded import deprecation
@@ -370,10 +370,12 @@ def _gap_minimal_weight_vector(Gmat, n, k, F, algorithm=None):
     # return the result as a vector (and not a 1xn matrix)
     return vector(F, ans)
 
-min_wt_vec_gap = deprecated_function_alias(9999, _gap_minimal_weight_vector)
+min_wt_vec_gap = deprecated_function_alias(21165, _gap_minimal_weight_vector)
 
-lazy_import('sage.coding.databases', 'best_linear_code_in_guava', deprecation=9999)
-lazy_import('sage.coding.databases', 'bounds_on_minimum_distance_in_guava', deprecation=9999)
+lazy_import('sage.coding.databases', 'best_linear_code_in_guava', "best_known_linear_code", deprecation=21165)
+lazy_import('sage.coding.databases', 'best_linear_code_in_guava', "best_known_linear_code_www", deprecation=21165)
+lazy_import('sage.coding.databases', 'bounds_on_minimum_distance_in_guava', "bounds_minimum_distance", deprecation=21165)
+lazy_import('sage.coding.databases', 'self_orthogonal_binary_code_representatives', "self_orthogonal_binary_codes", deprecation=21165)
 
 
 
@@ -3390,7 +3392,7 @@ def LinearCodeFromVectorSpace(V, d=None):
         4
     """
     from sage.misc.superseded import deprecation
-    deprecation(9999, "LinearCodeFromVectorSpace is deprecated. Simply call LinearCode with your vector space instead.")
+    deprecation(21165, "LinearCodeFromVectorSpace is deprecated. Simply call LinearCode with your vector space instead.")
     F = V.base_ring()
     B = V.basis()
     n = len(B[0].list())

@@ -376,8 +376,6 @@ lazy_import('sage.coding.databases', 'best_linear_code_in_guava', deprecation=99
 lazy_import('sage.coding.databases', 'bounds_on_minimum_distance_in_guava', deprecation=9999)
 
 
-best_known_linear_code = deprecated_function_alias(9999, 
-
 
 
 def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,

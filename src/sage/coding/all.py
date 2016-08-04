@@ -31,17 +31,23 @@ deprecated_callable_import(19315,
             ("This method soon will not be available in that way."
             "Please call codes.bounds.%(name)s instead"))
 
-lazy_import("sage.coding.linear_code", ["LinearCode",
+lazy_import("sage.coding.linear_code", [
+            "LinearCode",
             "LinearCodeFromVectorSpace",
-            "best_known_linear_code",
-            "best_known_linear_code_www",
-            "bounds_minimum_distance",
             "self_orthogonal_binary_codes"])
 
-lazy_import("sage.coding.delsarte_bounds", ["Krawtchouk", "Kravchuk",
+lazy_import("sage.coding.delsarte_bounds", [
+            "Krawtchouk",
+            "Kravchuk",
             "delsarte_bound_hamming_space",
             "delsarte_bound_additive_hamming_space"])
 
 from .sd_codes import self_dual_codes_binary
 lazy_import('sage.coding', 'codes_catalog', 'codes')
 lazy_import('sage.coding', 'channels_catalog', 'channels')
+
+lazy_import('sage.coding', 'databases', [
+            "best_linear_code_in_guava",
+            "bounds_on_minimum_distance_in_guava",
+            "best_linear_code_in_codetables_dot_de"
+            ])

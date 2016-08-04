@@ -991,7 +991,7 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
 
         - ``0`` -- everything went fine
 
-        - ``1`` -- the iterator stopped before ``i`
+        - ``1`` -- the iterator stopped before ``i``
         """
         while len(self.cache) <= i:
             try:
@@ -1063,7 +1063,7 @@ cdef class lazy_list_from_function(lazy_list_generic):
 
         - ``0`` -- everything went fine
 
-        - ``1`` -- the iterator stopped before ``i`
+        - ``1`` -- the iterator stopped before ``i``
         """
         while len(self.cache) <= i:
             self.cache.append(self.callable(len(self.cache)))
@@ -1127,7 +1127,7 @@ cdef class lazy_list_from_update_function(lazy_list_generic):
 
         - ``0`` -- everything went fine
 
-        - ``1`` -- the iterator stopped before ``i`
+        - ``1`` -- the iterator stopped before ``i``
         """
         cdef Py_ssize_t l,ll
         l = len(self.cache)

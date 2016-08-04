@@ -13,7 +13,7 @@ Sage now does have rich representations.
 All codes available here can be accessed through the ``codes`` object::
 
     sage: codes.BinaryGolayCode()
-    Linear code of length 23 and dimension 11 over Finite Field of size 2
+    Linear code of length 23, dimension 12 over Finite Field of size 2
 
 REFERENCES:
 
@@ -69,7 +69,7 @@ from sage.misc.superseded import deprecation, deprecated_function_alias
 ############### utility functions ################
 
 
-def is_a_splitting(S1, S2, n, return_automorphism=False):
+def _is_a_splitting(S1, S2, n, return_automorphism=False):
     """
     Check wether ``(S1,S2)`` is a splitting of `\ZZ/n\ZZ`.
 
@@ -100,19 +100,19 @@ def is_a_splitting(S1, S2, n, return_automorphism=False):
 
     EXAMPLES::
 
-        sage: from sage.coding.code_constructions import is_a_splitting
-        sage: is_a_splitting([1,2],[3,4],5)
+        sage: from sage.coding.code_constructions import _is_a_splitting
+        sage: _is_a_splitting([1,2],[3,4],5)
         True
-        sage: is_a_splitting([1,2],[3,4],5,return_automorphism=True)
+        sage: _is_a_splitting([1,2],[3,4],5,return_automorphism=True)
         (True, 4)
 
-        sage: is_a_splitting([1,3],[2,4,5,6],7)
+        sage: _is_a_splitting([1,3],[2,4,5,6],7)
         False
-        sage: is_a_splitting([1,3,4],[2,5,6],7)
+        sage: _is_a_splitting([1,3,4],[2,5,6],7)
         False
 
         sage: for P in SetPartitions(6,[3,3]):
-        ....:     res,aut= is_a_splitting(P[0],P[1],7,return_automorphism=True)
+        ....:     res,aut= _is_a_splitting(P[0],P[1],7,return_automorphism=True)
         ....:     if res:
         ....:         print((aut, P[0], P[1]))
         (6, {1, 2, 3}, {4, 5, 6})
@@ -127,7 +127,7 @@ def is_a_splitting(S1, S2, n, return_automorphism=False):
         [[0], [1, 3, 4, 5, 9], [2, 6, 7, 8, 10]]
         sage: S1 = C[1]
         sage: S2 = C[2]
-        sage: is_a_splitting(S1,S2,11)
+        sage: _is_a_splitting(S1,S2,11)
         True
         sage: F = GF(q)
         sage: P.<x> = PolynomialRing(F,"x")
@@ -190,8 +190,9 @@ def is_a_splitting(S1, S2, n, return_automorphism=False):
     else:
         return False
 
+is_a_splitting = deprecated_function_alias(21165, _is_a_splitting)
 
-def lift2smallest_field(a):
+def _lift2smallest_field(a):
     """
     INPUT: a is an element of a finite field GF(q)
 
@@ -204,6 +205,8 @@ def lift2smallest_field(a):
         sage: FF.<z> = GF(3^4,"z")
         sage: a = z^10
         sage: lift2smallest_field(a)
+        doctest:...: DeprecationWarning: lift2smallest_field is deprecated. Please use sage.coding.code_constructions._lift2smallest_field instead.
+        See http://trac.sagemath.org/21165 for details.
         (2*z + 1, Finite Field in z of size 3^2)
         sage: a = z^40
         sage: lift2smallest_field(a)
@@ -226,10 +229,14 @@ def lift2smallest_field(a):
     b = pol.roots(F,multiplicities=False)[0]
     return b, F
 
+
+lift2smallest_field = deprecated_function_alias(21165, _lift2smallest_field)
+
 def lift2smallest_field2(a):
     """
-    INPUT: a is an element of a finite field GF(q) OUTPUT: the element
-    b of the smallest subfield F of GF(q) for which F(b)=a.
+    INPUT: a is an element of a finite field GF(q)
+
+    OUTPUT: the element b of the smallest subfield F of GF(q) for which F(b)=a.
 
     EXAMPLES::
 
@@ -237,6 +244,8 @@ def lift2smallest_field2(a):
         sage: FF.<z> = GF(3^4,"z")
         sage: a = z^40
         sage: lift2smallest_field2(a)
+        doctest:...: DeprecationWarning: lift2smallest_field2 will be removed in a future release of Sage. Consider using sage.coding.code_constructions._lift2smallest_field instead, though this is private and may be removed in the future without deprecation warning. If you care about this functionality being in Sage, consider opening a Trac ticket for promoting the function to public.
+        See http://trac.sagemath.org/21165 for details.
         (2, Finite Field of size 3)
         sage: FF.<z> = GF(2^4,"z")
         sage: a = z^15
@@ -252,6 +261,7 @@ def lift2smallest_field2(a):
 
     - David Joyner
     """
+    deprecation(21165, "lift2smallest_field2 will be removed in a future release of Sage. Consider using sage.coding.code_constructions._lift2smallest_field instead, though this is private and may be removed in the future without deprecation warning. If you care about this functionality being in Sage, consider opening a Trac ticket for promoting the function to public.")
     FF = a.parent()
     q = FF.order()
     if q.is_prime():
@@ -606,7 +616,7 @@ def CyclicCodeFromCheckPolynomial(n,h,ignore=True):
 def DuadicCodeEvenPair(F,S1,S2):
     r"""
     Constructs the "even pair" of duadic codes associated to the
-    "splitting" (see the docstring for ``is_a_splitting``
+    "splitting" (see the docstring for ``_is_a_splitting``
     for the definition) S1, S2 of n.
 
     .. warning::
@@ -616,20 +626,20 @@ def DuadicCodeEvenPair(F,S1,S2):
 
     EXAMPLES::
 
-        sage: from sage.coding.code_constructions import is_a_splitting
+        sage: from sage.coding.code_constructions import _is_a_splitting
         sage: n = 11; q = 3
         sage: C = Zmod(n).cyclotomic_cosets(q); C
         [[0], [1, 3, 4, 5, 9], [2, 6, 7, 8, 10]]
         sage: S1 = C[1]
         sage: S2 = C[2]
-        sage: is_a_splitting(S1,S2,11)
+        sage: _is_a_splitting(S1,S2,11)
         True
         sage: codes.DuadicCodeEvenPair(GF(q),S1,S2)
         (Linear code of length 11, dimension 5 over Finite Field of size 3,
          Linear code of length 11, dimension 5 over Finite Field of size 3)
     """
     n = len(S1) + len(S2) + 1
-    if not is_a_splitting(S1,S2,n):
+    if not _is_a_splitting(S1,S2,n):
         raise TypeError("%s, %s must be a splitting of %s."%(S1,S2,n))
     q = F.order()
     k = Mod(q,n).multiplicative_order()
@@ -642,8 +652,8 @@ def DuadicCodeEvenPair(F,S1,S2):
     g2 = prod([x-zeta**i for i in S2+[0]])
     P2 = PolynomialRing(F,"x")
     x = P2.gen()
-    gg1 = P2([lift2smallest_field(c)[0] for c in g1.coefficients(sparse=False)])
-    gg2 = P2([lift2smallest_field(c)[0] for c in g2.coefficients(sparse=False)])
+    gg1 = P2([_lift2smallest_field(c)[0] for c in g1.coefficients(sparse=False)])
+    gg2 = P2([_lift2smallest_field(c)[0] for c in g2.coefficients(sparse=False)])
     C1 = CyclicCodeFromGeneratingPolynomial(n,gg1)
     C2 = CyclicCodeFromGeneratingPolynomial(n,gg2)
     return C1,C2
@@ -660,13 +670,13 @@ def DuadicCodeOddPair(F,S1,S2):
 
     EXAMPLES::
 
-        sage: from sage.coding.code_constructions import is_a_splitting
+        sage: from sage.coding.code_constructions import _is_a_splitting
         sage: n = 11; q = 3
         sage: C = Zmod(n).cyclotomic_cosets(q); C
         [[0], [1, 3, 4, 5, 9], [2, 6, 7, 8, 10]]
         sage: S1 = C[1]
         sage: S2 = C[2]
-        sage: is_a_splitting(S1,S2,11)
+        sage: _is_a_splitting(S1,S2,11)
         True
         sage: codes.DuadicCodeOddPair(GF(q),S1,S2)
         (Linear code of length 11, dimension 6 over Finite Field of size 3,
@@ -675,7 +685,7 @@ def DuadicCodeOddPair(F,S1,S2):
     This is consistent with Theorem 6.1.3 in [HP]_.
     """
     n = len(S1) + len(S2) + 1
-    if not is_a_splitting(S1,S2,n):
+    if not _is_a_splitting(S1,S2,n):
         raise TypeError("%s, %s must be a splitting of %s."%(S1,S2,n))
     q = F.order()
     k = Mod(q,n).multiplicative_order()
@@ -689,8 +699,8 @@ def DuadicCodeOddPair(F,S1,S2):
     j = sum([x**i/n for i in range(n)])
     P2 = PolynomialRing(F,"x")
     x = P2.gen()
-    coeffs1 = [lift2smallest_field(c)[0] for c in (g1+j).coefficients(sparse=False)]
-    coeffs2 = [lift2smallest_field(c)[0] for c in (g2+j).coefficients(sparse=False)]
+    coeffs1 = [_lift2smallest_field(c)[0] for c in (g1+j).coefficients(sparse=False)]
+    coeffs2 = [_lift2smallest_field(c)[0] for c in (g2+j).coefficients(sparse=False)]
     gg1 = P2(coeffs1)
     gg2 = P2(coeffs2)
     C1 = CyclicCodeFromGeneratingPolynomial(n,gg1)

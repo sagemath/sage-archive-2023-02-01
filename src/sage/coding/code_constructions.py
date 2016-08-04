@@ -1274,11 +1274,6 @@ def ToricCode(P,F):
     return LinearCode(MS(B))
 
 
-def TrivialCode(F,n):
-    MS = MatrixSpace(F,1,n)
-    return LinearCode(MS(0))
-
-
 def WalshCode(m):
     r"""
     Returns the binary Walsh code of length `2^m`. The matrix

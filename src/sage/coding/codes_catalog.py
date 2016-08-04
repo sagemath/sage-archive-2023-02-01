@@ -33,7 +33,7 @@ from .code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerat
                                 random_linear_code,
                                 RandomLinearCode, #deprecated
                                 ReedSolomonCode, TernaryGolayCode,
-                                ToricCode, TrivialCode, WalshCode)
+                                ToricCode, WalshCode)
 
 from .grs import GeneralizedReedSolomonCode
 from .reed_muller_code import ReedMullerCode, BinaryReedMullerCode

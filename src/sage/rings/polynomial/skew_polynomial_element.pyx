@@ -19,7 +19,7 @@ AUTHOR:
 
 - Arpit Merchant (2016-08-04): improved docstrings, fixed doctests and refactored classes and methods
 
-- Johan Nielson (2016-08-03): changes for bug fixes, docstring and doctest errors  
+- Johan Nielson (2016-08-03): changes for bug fixes, docstring and doctest errors
 """
 
 #############################################################################
@@ -1169,7 +1169,7 @@ cdef class SkewPolynomial(AlgebraElement):
         r = self._new_c(q,parent), self._new_c(a[:db],parent,1)
         return r
 
-    def __mod__(self, other):
+    cpdef _mod_(self, other):
         """
         Return the remainder in the *right* euclidean division of
         this skew polynomial by ``other``
@@ -1192,7 +1192,7 @@ cdef class SkewPolynomial(AlgebraElement):
         _,r = self.right_quo_rem(other)
         return r
 
-    def __floordiv__(self, right):
+    cpdef _floordiv_(self, right):
         """
         Return the quotient of the right euclidean division of ``self`` by ``right``.
 
@@ -1221,7 +1221,7 @@ cdef class SkewPolynomial(AlgebraElement):
     cpdef _div_(self, right):
         """
         Not Implemented (since localization of Ore rings is
-        not yet implemented, see trac #13215).
+        not yet implemented, see :trac: `13215`).
 
         Use the operator `//` even for exact division.
 
@@ -2585,7 +2585,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             return
 
         R = parent.base_ring()
-        if type(x) is list:
+        if isinstance(x, list):
             if check:
                 self._coeffs = [R(t) for t in x]
                 self.__normalize()
@@ -2593,7 +2593,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                 self._coeffs = x
             return
 
-        if type(x) is SkewPolynomial:
+        if isinstance(x, SkewPolynomial):
             if (<Element>x)._parent is self._parent:
                 x = list(x.list())
             elif R.has_coerce_map_from((<Element>x)._parent):
@@ -2610,7 +2610,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                     self.__normalize()
                 return
 
-        elif type(x) is int and x == 0:
+        elif isinstance(x, int) and x == 0:
             self._coeffs = []
             return
 
@@ -2733,8 +2733,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             (4*t^2 + t + 1)*x^2 + (t^2 + 4*t + 1)*x + 3*t^2 + 3*t
         """
         cdef SkewPolynomial_generic_dense r
-        if not type(exp) is Integer or \
-                type(exp) is int:
+        if not isinstance(exp, Integer) or \
+                isinstance(exp, int):
                     try:
                         exp = Integer(exp)
                     except TypeError:
@@ -2813,8 +2813,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             (2*t^2 + 3)*x^2 + (t^2 + 4*t + 2)*x + t^2 + 2*t + 1
         """
         cdef SkewPolynomial_generic_dense r
-        if not type(exp) is Integer or \
-                type(exp) is int:
+        if not isinstance(exp, Integer) or \
+                isinstance(exp, int):
                     try:
                         exp = Integer(exp)
                     except TypeError:

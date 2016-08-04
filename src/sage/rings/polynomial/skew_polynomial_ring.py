@@ -10,7 +10,7 @@ by associativity and distributivity.
 
 AUTHOR:
 
-- Xavier Caruso (2012-06-29)
+- Xavier Caruso (2012-06-29): initial version
 
 - Arpit Merchant (2016-08-04): improved docstrings, fixed doctests and refactored classes and methods
 

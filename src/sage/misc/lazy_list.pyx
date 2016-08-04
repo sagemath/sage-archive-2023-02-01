@@ -498,35 +498,61 @@ cdef class lazy_list_generic(object):
             sage: lazy_list([0,1,2,3])
             lazy list [0, 1, 2, ...]
         """
+        return self.str()
+
+
+    def str(self, name=None, separator=None, more=None,
+            opening_delimiter=None, closing_delimiter=None,
+            preview=None):
+        r"""
+        Return a string representation.
+
+        INPUT:
+
+        - ``name`` -- (default: ``'lazy list'``) a string.
+
+        - ``opening_delimiter`` -- (default: ``'['``) a string.
+
+        - ``closing_delimiter`` -- (default: ``']'``) a string.
+
+        - ``separator`` -- (default: ``', '``) a string.
+
+        - ``more`` -- (default: ``'...'``) a string.
+
+        - ``preview`` -- (default: ``3``) an integer specifying the number of
+          elements shown in the representation string.
+
+        OUTPUT:
+
+        A string.
+        """
+        if name is None:
+            name = 'lazy list'
+        if opening_delimiter is None:
+            opening_delimiter = '['
+        if separator is None:
+            separator = ', '
+        if more is None:
+            more = '...'
+        if closing_delimiter is None:
+            closing_delimiter = ']'
+        if preview is None:
+            preview = 3
+
+        cdef str s = name
+        if s:
+            s += ' '
+        s += opening_delimiter
+        cdef list P = list(self[:preview+1])
+        cdef list E = list('{!r}'.format(e)
+                           for e in P[:preview])
         cdef Py_ssize_t num_elts = 1 + (self.stop-self.start-1) / self.step
-        cdef Py_ssize_t length = len(self.cache)
+        if num_elts > preview:
+            E.append(more)
+        s += separator.join(E)
+        s += closing_delimiter
+        return s
 
-        if (length <= self.start + 3*self.step and
-            num_elts != length / self.step):
-            self._fit(self.start + 3*self.step)
-            num_elts = 1 + (self.stop-self.start-1) / self.step
-
-        if num_elts == 0:
-            return "lazy list []"
-
-        if num_elts == 1:
-            return "lazy list [{!r}]".format(self.get(0))
-
-        if num_elts == 2:
-            return "lazy list [{!r}, {!r}]".format(
-                    self.get(0),
-                    self.get(1))
-
-        if num_elts == 3:
-            return "lazy list [{!r}, {!r}, {!r}]".format(
-                self.get(0),
-                self.get(1),
-                self.get(2))
-
-        return "lazy list [{!r}, {!r}, {!r}, ...]".format(
-                self.get(0),
-                self.get(1),
-                self.get(2))
 
     def __reduce__(self):
         r"""

@@ -1227,18 +1227,11 @@ class AbstractLinearCode(module.Module):
     @cached_method
     def covering_radius(self):
         r"""
-        Wraps Guava's ``CoveringRadius`` command.
+        Return the minimimal integer `r` such that any element in the ambient space of ``self`` has distance at most `r` to a codeword of ``self``.
+        
+        This method requires the optional GAP package Guava.
 
-        The covering radius of a linear code `C` is the smallest number `r`
-        with the property that each element `v` of the ambient vector space
-        of `C` has at most a distance `r` to the code `C`. So for each
-        vector `v` there must be an element `c` of `C` with `d(v,c) \leq  r`.
-        A binary linear code with reasonable small covering radius is often
-        referred to as a covering code.
-
-        For example, if `C` is a perfect code, the covering radius is equal
-        to `t`, the number of errors the code can correct, where `d = 2t+1`,
-        with `d` the minimum distance of `C`.
+        If the covering radius a code equals its minimum distance, then the code is called perfect.
 
         EXAMPLES::
 

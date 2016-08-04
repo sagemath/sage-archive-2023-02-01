@@ -200,9 +200,9 @@ H8 = MS8([[1, 1, 1, 1, 1, 1, 1, 1],\
 
 ############## main functions ##############
 
-def self_dual_codes_binary(n):
+def self_dual_binary_codes(n):
     r"""
-    Returns the dictionary of inequivalent sd codes of length n.
+    Returns the dictionary of inequivalent binary self dual codes of length n.
 
     For n=4 even, returns the sd codes of a given length, up to (perm)
     equivalence, the (perm) aut gp, and the type.

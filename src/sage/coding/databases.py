@@ -279,3 +279,5 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
                 for child in BC.generate_children(BinaryCode(parent), nn, d):
                     for N in self_orthogonal_binary_codes(n, k, d, child, BC, in_test=in_test):
                         if out_test(N): yield N
+
+from sage.coding.sd_codes import self_dual_binary_codes

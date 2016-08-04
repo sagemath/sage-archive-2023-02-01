@@ -13,20 +13,23 @@ along with :class:`~sage.rings.polynomial.skew_polynomial_element.ConstantSkewPo
 and :class:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomialBaseringInjection`
 for conversion from a skew polynomial ring to its base ring and vice versa respectively.
 
-AUTHOR:
+AUTHORS:
 
 - Xavier Caruso (2012-06-29): initial version
 
 - Arpit Merchant (2016-08-04): improved docstrings, fixed doctests and refactored classes and methods
 
-- Johan Nielson (2016-08-03): changes for bug fixes, docstring and doctest errors
+- Johan Rosenkilde (2016-08-03): changes for bug fixes, docstring and doctest errors
+
 """
 
 #############################################################################
 #    Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 2 of the License, or
+#    (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
@@ -296,8 +299,8 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a < b
             False
         """
-        cdef list x = (<SkewPolynomial>left)._coeffs
-        cdef list y = (<SkewPolynomial>right)._coeffs
+        cdef x = (<SkewPolynomial>left)._coeffs
+        cdef y = (<SkewPolynomial>right)._coeffs
         return PyObject_RichCompare(x, y, op)
 
     cdef SkewPolynomial _new_c(self, list coeffs, Parent P, char check=0):
@@ -2754,7 +2757,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             r = <SkewPolynomial_generic_dense>self._parent(v)
         else:
             r = <SkewPolynomial_generic_dense>self._new_c(list(self._coeffs),self._parent)
-            r = r**exp
+            r._inplace_pow(exp)
 
         if modulus:
             _, r = r.left_quo_rem(modulus)

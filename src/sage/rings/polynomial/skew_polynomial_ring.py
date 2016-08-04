@@ -14,14 +14,17 @@ AUTHOR:
 
 - Arpit Merchant (2016-08-04): improved docstrings, fixed doctests and refactored classes and methods
 
-- Johan Nielson (2016-08-03): changes for bug fixes, docstring and doctest errors
+- Johan Rosenkilde (2016-08-03): changes for bug fixes, docstring and doctest errors
+
 """
 
 #############################################################################
 #    Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 2 of the License, or
+#    (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 

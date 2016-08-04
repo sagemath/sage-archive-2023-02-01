@@ -34,6 +34,7 @@ def best_known_linear_code(n, k, F):
     return LinearCode(MS(Gs))
 
 def best_known_linear_code_www(n, k, F, verbose=False):
+def bounds_minimum_distance(n, k, F):
     r"""
     Explains the construction of the best known linear code over GF(q) with
     length n and dimension k, courtesy of the www page
@@ -42,17 +43,33 @@ def best_known_linear_code_www(n, k, F, verbose=False):
     INPUT:
 
     -  ``n`` - Integer, the length of the code
+    Calculates a lower and upper bound for the minimum distance of an optimal
+    linear code with word length ``n`` and dimension ``k`` over the field
+    ``F``.
 
     -  ``k`` - Integer, the dimension of the code
+    The function returns a record with the two bounds and an explanation for
+    each bound. The function Display can be used to show the explanations.
 
     -  ``F`` - Finite field, of order 2, 3, 4, 5, 7, 8, or 9
+    The values for the lower and upper bound are obtained from a table
+    constructed by Cen Tjhai for GUAVA, derived from the table of
+    Brouwer. See http://www.codetables.de/ for the most recent data.
+    These tables contain lower and upper bounds for `q=2` (when ``n <= 257``),
+    `q=3` (when ``n <= 243``), `q=4` (``n <= 256``). (Current as of
+    11 May 2006.) For codes over other fields and for larger word lengths,
+    trivial bounds are used.
 
     -  ``verbose`` - Bool (default: ``False``)
+    This does not require an internet connection. The format of the output is
+    a little non-intuitive. Try ``bounds_minimum_distance(10,5,GF(2))`` for
+    an example.
 
     OUTPUT:
 
 
     -  Text about why the bounds are as given
+    This function requires optional GAP package (Guava).
 
     EXAMPLES::
 
@@ -76,6 +93,30 @@ def best_known_linear_code_www(n, k, F, verbose=False):
 
     - Steven Sivek (2005-11-14)
     - David Joyner (2008-03)
+        sage: print(bounds_minimum_distance(10,5,GF(2))) # optional - gap_packages (Guava package)
+        rec(
+          construction :=
+           [ <Operation "ShortenedCode">,
+              [
+                  [ <Operation "UUVCode">,
+                      [
+                          [ <Operation "DualCode">,
+                              [ [ <Operation "RepetitionCode">, [ 8, 2 ] ] ] ],
+                          [ <Operation "UUVCode">,
+                              [
+                                  [ <Operation "DualCode">,
+                                      [ [ <Operation "RepetitionCode">, [ 4, 2 ] ] ] ]
+                                    , [ <Operation "RepetitionCode">, [ 4, 2 ] ] ] ]
+                         ] ], [ 1, 2, 3, 4, 5, 6 ] ] ],
+          k := 5,
+          lowerBound := 4,
+          lowerBoundExplanation := ...
+          n := 10,
+          q := 2,
+          references := rec(
+               ),
+          upperBound := 4,
+          upperBoundExplanation := ... )
     """
     q = F.order()
     if not q in [2, 3, 4, 5, 7, 8, 9]:
@@ -98,3 +139,6 @@ def best_known_linear_code_www(n, k, F, verbose=False):
         raise IOError("Error parsing data (missing pre tags).")
     text = s[i+5:j].strip()
     return text
+    gap.eval("data := BoundsMinimumDistance(%s,%s,GF(%s))"%(n,k,q))
+    Ldata = gap.eval("Display(data)")
+    return Ldata

@@ -200,6 +200,19 @@ class Yangian(CombinatorialFreeModule):
     EXAMPLES::
 
         sage: Y = Yangian(QQ, 4)
+
+    REFERENCES:
+
+    - :wikipedia:`Yangian`
+
+    .. [MNO94] Alexander Molev, Maxim Nazarov, and Grigori Olshanski.
+       *Yangians and classical Lie algebras*.
+       :arxiv:`hep-th/9409025`
+
+    .. [Molev07] Alexander Ivanovich Molev.
+       *Yangians and Classical Lie Algebras*.
+       Mathematical Surveys and Monographs.
+       Providence, RI: American Mathematical Society. (2007)
     """
     @staticmethod
     def __classcall_private__(cls, base_ring, n, level=None,

@@ -2080,8 +2080,8 @@ class AbstractLinearCode(Module):
             True
             sage: C1.is_permutation_equivalent(C2,algorithm="verbose")
             (True, (3,4)(5,7,6))
-            sage: C1 = codes.RandomLinearCode(10,5,GF(2))
-            sage: C2 = codes.RandomLinearCode(10,5,GF(3))
+            sage: C1 = codes.random_linear_code(GF(2), 10, 5)
+            sage: C2 = codes.random_linear_code(GF(3), 10, 5)
             sage: C1.is_permutation_equivalent(C2)
             False
         """
@@ -2313,7 +2313,7 @@ class AbstractLinearCode(Module):
 
         TESTS::
 
-            sage: C = codes.RandomLinearCode(5, 2, GF(4,"a"))
+            sage: C = codes.random_linear_code(GF(4,"a"), 5, 2)
             sage: C.minimum_distance(algorithm='something')
             Traceback (most recent call last):
             ...
@@ -2601,7 +2601,7 @@ class AbstractLinearCode(Module):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 4, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 4)
             sage: C._punctured_form({3})
             Linear code of length 10, dimension 4 over Finite Field of size 7
         """
@@ -2644,7 +2644,7 @@ class AbstractLinearCode(Module):
         Test that codeword returned has the same parent as any non-random codeword
         (see :trac:`19653`)::
 
-            sage: C = codes.RandomLinearCode(10, 4, GF(16, 'a'))
+            sage: C = codes.random_linear_code(GF(16, 'a'), 10, 4)
             sage: c1 = C.random_element()
             sage: c2 = C[1]
             sage: c1.parent() == c2.parent()
@@ -3142,9 +3142,9 @@ class AbstractLinearCode(Module):
 
         Syndrome computation works fine on bigger fields::
 
-            sage: C = codes.RandomLinearCode(12, 4, GF(59))
-            sage: r = C.random_element()
-            sage: C.syndrome(r)
+            sage: C = codes.random_linear_code(GF(59), 12, 4)
+            sage: c = C.random_element()
+            sage: C.syndrome(c)
             (0, 0, 0, 0, 0, 0, 0, 0)
         """
         return self.parity_check_matrix()*r

@@ -92,9 +92,8 @@ defined using properties of the zeros of `C`.
   QuadraticResidueCode (a special case) and
   ExtendedQuadraticResidueCode are included as well.
 
-- RandomLinearCode - Repeatedly applies Sage's random_element applied
-  to the ambient MatrixSpace of the generator matrix until a full rank
-  matrix is found.
+- random_linear_code: Generate a random linear code over a given field, with
+  given length and dimension.
 
 - ReedSolomonCode - Given a finite field `F` of order `q`,
   let `n` and `k` be chosen such that
@@ -155,6 +154,7 @@ from __future__ import absolute_import
 
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
+from sage.matrix.special import random_matrix
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.misc.all import prod
@@ -1105,43 +1105,47 @@ def QuadraticResidueCodeOddPair(n,F):
         raise ValueError("the order of the finite field must be a quadratic residue modulo n")
     return DuadicCodeOddPair(F,Q,N)
 
-def RandomLinearCode(n,k,F):
+def random_linear_code(F, length, dimension):
     r"""
-    The method used is to first construct a `k \times n`
-    matrix using Sage's random_element method for the MatrixSpace
-    class. The construction is probabilistic but should only fail
-    extremely rarely.
+    Generate a random linear code of length ``length``, dimension ``dimension``
+    and over the field ``F``.
 
-    INPUT: Integers n,k, with `n>k`, and a finite field F
+    This function is Las Vegas probabilistic: always correct, usually fast.
+    Random matrices over the ``F`` are drawn until one with full rank is hit.
 
-    OUTPUT: Returns a "random" linear code with length n, dimension k
-    over field F.
+    If ``F`` is infinite, the distribution of the elements in the random
+    generator matrix will be random according to the distribution of
+    ``F.random_element()``.
 
     EXAMPLES::
 
-        sage: C = codes.RandomLinearCode(30,15,GF(2))
+        sage: C = codes.random_linear_code(GF(2), 10, 3)
         sage: C
-        Linear code of length 30, dimension 15 over Finite Field of size 2
-        sage: C = codes.RandomLinearCode(10,5,GF(4,'a'))
-        sage: C
-        Linear code of length 10, dimension 5 over Finite Field in a of size 2^2
-
-    AUTHORS:
-
-    - David Joyner (2007-05)
+        Linear code of length 10, dimension 3 over Finite Field of size 2
+        sage: C.generator_matrix().rank()
+        3
     """
-    MS = MatrixSpace(F,k,n)
-    for i in range(50):
-        G = MS.random_element()
-        if G.rank() == k:
-            return LinearCode(G)  # may not be in standard form
-    MS1 = MatrixSpace(F,k,k)
-    MS2 = MatrixSpace(F,k,n-k)
-    Ik = MS1.identity_matrix()
-    A = MS2.random_element()
-    G = Ik.augment(A)
-    return LinearCode(G)                          # in standard form
+    while True:
+        G = random_matrix(F, dimension, length)
+        if G.rank() == dimension:
+            return LinearCode(G)
+    
+def RandomLinearCode(n, k, F):
+    r"""
+    Deprecated alias of :func:`random_linear_code`.
 
+    EXAMPLES::
+
+        sage: C = codes.RandomLinearCode(10, 3, GF(2))
+        doctest:...: DeprecationWarning: codes.RandomLinearCode(n, k, F) is deprecated. Please use codes.random_linear_code(F, n, k) instead
+        See http://trac.sagemath.org/21165 for details.
+        sage: C
+        Linear code of length 10, dimension 3 over Finite Field of size 2
+        sage: C.generator_matrix().rank()
+        3
+    """
+    deprecation(21165, "codes.RandomLinearCode(n, k, F) is deprecated. Please use codes.random_linear_code(F, n, k) instead")
+    return random_linear_code(F, n, k)
 
 def ReedSolomonCode(n,k,F,pts = None):
     from sage.coding.grs import GeneralizedReedSolomonCode

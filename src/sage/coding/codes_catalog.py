@@ -29,7 +29,9 @@ from .code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerat
                                 from_parity_check_matrix,
                                 LinearCodeFromCheckMatrix, #deprecated
                                 QuadraticResidueCode, QuadraticResidueCodeEvenPair,
-                                QuadraticResidueCodeOddPair, RandomLinearCode,
+                                QuadraticResidueCodeOddPair,
+                                random_linear_code,
+                                RandomLinearCode, #deprecated
                                 ReedSolomonCode, TernaryGolayCode,
                                 ToricCode, TrivialCode, WalshCode)
 

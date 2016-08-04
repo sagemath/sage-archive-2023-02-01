@@ -48,7 +48,7 @@ class ExtendedCode(AbstractLinearCode):
 
     EXAMPLES::
 
-        sage: C = codes.RandomLinearCode(11, 5, GF(7))
+        sage: C = codes.random_linear_code(GF(7), 11, 5)
         sage: Ce = codes.ExtendedCode(C)
         sage: Ce
         Extended code coming from Linear code of length 11, dimension 5 over Finite Field of size 7
@@ -81,7 +81,7 @@ class ExtendedCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: C1 = codes.ExtendedCode(C)
             sage: C2 = codes.ExtendedCode(C)
             sage: C1 == C2
@@ -96,7 +96,7 @@ class ExtendedCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Ce = codes.ExtendedCode(C)
             sage: Ce
             Extended code coming from Linear code of length 11, dimension 5 over Finite Field of size 7
@@ -109,7 +109,7 @@ class ExtendedCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Ce = codes.ExtendedCode(C)
             sage: latex(Ce)
             \textnormal{Extended code coming from Linear code of length 11, dimension 5 over Finite Field of size 7}
@@ -122,7 +122,7 @@ class ExtendedCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Ce = codes.ExtendedCode(C)
             sage: Ce.original_code()
             Linear code of length 11, dimension 5 over Finite Field of size 7
@@ -168,7 +168,7 @@ class ExtendedCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(9, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 9, 5)
             sage: Ce = codes.ExtendedCode(C)
             sage: c = Ce.random_element() #random
             sage: c in Ce
@@ -205,7 +205,7 @@ class ExtendedCodeExtendedMatrixEncoder(Encoder):
         r"""
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Ce = codes.ExtendedCode(C)
             sage: E = codes.encoders.ExtendedCodeExtendedMatrixEncoder(Ce)
             sage: E
@@ -222,7 +222,7 @@ class ExtendedCodeExtendedMatrixEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Ce = codes.ExtendedCode(C)
             sage: E = codes.encoders.ExtendedCodeExtendedMatrixEncoder(Ce)
             sage: E
@@ -236,7 +236,7 @@ class ExtendedCodeExtendedMatrixEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Ce = codes.ExtendedCode(C)
             sage: E = codes.encoders.ExtendedCodeExtendedMatrixEncoder(Ce)
             sage: latex(E)
@@ -250,7 +250,7 @@ class ExtendedCodeExtendedMatrixEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Ce = codes.ExtendedCode(C)
             sage: D1 = codes.encoders.ExtendedCodeExtendedMatrixEncoder(Ce)
             sage: D2 = codes.encoders.ExtendedCodeExtendedMatrixEncoder(Ce)

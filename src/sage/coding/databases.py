@@ -131,6 +131,7 @@ def best_linear_code_in_codetables_dot_de(n, k, F, verbose=False):
     - Steven Sivek (2005-11-14)
     - David Joyner (2008-03)
     """
+    from six.moves.urllib.request import urlopen
     q = F.order()
     if not q in [2, 3, 4, 5, 7, 8, 9]:
         raise ValueError("q (=%s) must be in [2,3,4,5,7,8,9]"%q)

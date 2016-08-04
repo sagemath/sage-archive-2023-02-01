@@ -371,11 +371,6 @@ def _gap_minimal_weight_vector(Gmat, n, k, F, algorithm=None):
 
 min_wt_vec_gap = deprecated_function_alias(21165, _gap_minimal_weight_vector)
 
-lazy_import('sage.coding.databases', 'best_linear_code_in_guava', "best_known_linear_code", deprecation=21165)
-lazy_import('sage.coding.databases', 'best_linear_code_in_guava', "best_known_linear_code_www", deprecation=21165)
-lazy_import('sage.coding.databases', 'bounds_on_minimum_distance_in_guava', "bounds_minimum_distance", deprecation=21165)
-lazy_import('sage.coding.databases', 'self_orthogonal_binary_code_representatives', "self_orthogonal_binary_codes", deprecation=21165)
-
 
 
 class AbstractLinearCode(module.Module):
@@ -2710,7 +2705,6 @@ class AbstractLinearCode(module.Module):
         G1 = C1.generator_matrix()
         return G1.matrix_from_columns(range(k,n))
 
-    sd_duursma_data = deprecated_function_alias(21165, _self_dual_duursma_zeta_data)
     def _self_dual_duursma_zeta_data(self, i):
         r"""
         Compute two integers pertaining to the computation of the Duursma zeta
@@ -2759,8 +2753,7 @@ class AbstractLinearCode(module.Module):
         else:
             raise ValueError("the type i should be 1,2,3 or 4")
         return (v,m)
-
-    sd_duursma_q = deprecated_function_alias(21165, _self_dual_duursma_zeta_qcoeffs)
+    
     def _self_dual_duursma_zeta_Q(self, i, d0):
         r"""
         Compute a polynomial pertaining to the computation of the Duursma zeta
@@ -2830,8 +2823,6 @@ class AbstractLinearCode(module.Module):
         Q = PR(qc)
         return Q/Q(1)
 
-
-    sd_zeta_polynomial = deprecated_function_alias(21165, self_dual_zeta_polynomial)
     def self_dual_zeta_polynomial(self, typ=None):
         r"""
         If ``self`` is a self-dual code, return the Duursma zeta function for the code.
@@ -2909,6 +2900,10 @@ class AbstractLinearCode(module.Module):
         if typ == 4:
             P0 = Q/(1+2*T)
         return P0/P0(1)
+
+    sd_duursma_data = deprecated_function_alias(21165, _self_dual_duursma_zeta_data)
+    sd_duursma_q = deprecated_function_alias(21165, _self_dual_duursma_zeta_Q)
+    sd_zeta_polynomial = deprecated_function_alias(21165, self_dual_zeta_polynomial)
 
     def shortened(self, L):
         r"""

@@ -41,6 +41,10 @@ from .hamming_code import HammingCode
 from . import decoders_catalog as decoders
 from . import encoders_catalog as encoders
 from . import bounds_catalog as bounds
+
+_lazy_import('sage.coding','databases')
+
+del _lazy_import
 from sage.misc.rest_index_of_methods import gen_rest_table_index as _gen_rest_table_index
 import sys as _sys
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=_gen_rest_table_index(_sys.modules[__name__], only_local_functions=False))

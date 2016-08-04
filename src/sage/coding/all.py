@@ -36,6 +36,17 @@ lazy_import("sage.coding.linear_code", [
             "LinearCodeFromVectorSpace",
             "self_orthogonal_binary_codes"])
 
+# Functions moved from the global namespace
+lazy_import('sage.coding.databases','best_linear_code_in_guava', "best_known_linear_code",
+    deprecation=(21165, "best_known_linear_code has moved to sage.coding.databases.best_linear_code_in_guava"))
+lazy_import('sage.coding.databases','best_linear_code_in_guava', "best_known_linear_code_www",
+    deprecation=(21165, "best_known_linear_code_www has moved to sage.coding.databases.best_linear_code_in_guava"))
+lazy_import('sage.coding.databases','bounds_on_minimum_distance_in_guava', "bounds_minimum_distance",
+    deprecation=(21165, "bounds_minimum_distance has moved to sage.coding.databases.bounds_on_minimum_distance_in_guava"))
+lazy_import('sage.coding.databases','self_orthogonal_binary_code_representatives', "self_orthogonal_binary_codes",
+    deprecation=(21165, "self_orthogonal_binary_codes has moved to sage.coding.databases.self_orthogonal_binary_code_representatives"))
+
+
 lazy_import("sage.coding.delsarte_bounds", [
             "Krawtchouk",
             "Kravchuk",
@@ -45,9 +56,3 @@ lazy_import("sage.coding.delsarte_bounds", [
 from .sd_codes import self_dual_codes_binary
 lazy_import('sage.coding', 'codes_catalog', 'codes')
 lazy_import('sage.coding', 'channels_catalog', 'channels')
-
-lazy_import('sage.coding', 'databases', [
-            "best_linear_code_in_guava",
-            "bounds_on_minimum_distance_in_guava",
-            "best_linear_code_in_codetables_dot_de"
-            ])

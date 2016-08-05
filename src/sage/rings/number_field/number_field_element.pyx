@@ -1126,9 +1126,10 @@ cdef class NumberFieldElement(FieldElement):
         `\CC`, then the corresponding absolute value is returned.
         Finally, if there is no coercion embedding, `i` defaults to 0.
 
-        If ``prec`` is ``None`` or 53, then the complex double field is
-        used; otherwise the arbitrary precision (but slow) complex
-        field is used.  The result is in the corresponding real field.
+        For the computation, the complex field with ``prec`` bits of
+        precision is used, defaulting to 53 bits of precision if
+        ``prec`` is not provided. The result is in the corresponding
+        real field.
 
         INPUT:
 

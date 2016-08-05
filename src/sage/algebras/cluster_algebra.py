@@ -2,7 +2,8 @@ r"""
 Cluster algebras
 
 Implementation of cluster algebras as an algebra using mainly structural theorems from CA IV
-We should write a nice paragraph here.
+
+TODO: We should write a nice paragraph here.
 
 AUTHORS:
 
@@ -12,11 +13,11 @@ AUTHORS:
 
 EXAMPLES::
 
-<Lots and lots of examples>
+    TODO: we need to write a complete example of usage here
 """
 
 #*****************************************************************************
-#       Copyright (C) 2013 YOUR NAME  Dylan Rupel and Salvaroe Stella
+#       Copyright (C) 2015 Dylan Rupel and Salvaroe Stella
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,45 +48,91 @@ from sage.functions.other import binomial
 from sage.modules.free_module_element import vector
 from sage.functions.generalized import sign
 from functools import wraps
+from sage.categories.quotient_fields import QuotientFields
+from sage.matrix.special import block_matrix
 
 ##############################################################################
 # Helper functions
 ##############################################################################
-def tropical_evaluation(f):
-    try:
-        # This is an hack to use the same code on polynomials, laurent polynomials and rational expressions
-        f = f.parent().fraction_field()(f)
-        num_exponents = f.numerator().exponents()
-        if type(num_exponents[0]) != int:
-            num_exponent = map(min, zip(*num_exponents))
-        else:
-            num_exponent = [min(num_exponents)]
-        den_exponents = f.denominator().exponents()
-        if type(den_exponents[0]) != int:
-            den_exponent = map(min, zip(*den_exponents))
-        else:
-            den_exponent = [min(den_exponents)]
-        variables = f.parent().gens()
-        return prod(map(lambda x,p: x**p, variables,num_exponent))*prod(map(lambda x,p: x**(-p), variables,den_exponent))
-    except: # This should only happen when f is a constant
+def tropical_evaluation(f): #READY
+    r"""
+    Return the tropical evaluation of ``f``.
+
+    INPUT:
+
+    - ``f`` -- a (Laurent) polynomial or a rational function without subtractions.
+
+    OUTPUT:
+    
+    The Laurent monomial obtained by evaluating ``f`` in the tropical semifield of Laurent monomials with min and +
+
+    EXAMPLES::
+    
+        sage: from sage.algebras.cluster_algebra import tropical_evaluation
+        sage: tropical_evaluation(4+6/3)
+        1
+        sage: R.<x,y,z> = PolynomialRing(ZZ)
+        sage: f = (x^3+2*x*y^3+x^2*y)/(x^2*z^3+y*z^2+z)
+        sage: f.parent()
+        Fraction Field of Multivariate Polynomial Ring in x, y, z over Integer Ring
+        sage: tropical_evaluation(f)
+        x/z
+        sage: var('t')
+        t
+        sage: g = t^3+5
+        sage: g.parent()
+        Symbolic Ring
+        sage: tropical_evaluation(g)
+        Traceback (most recent call last):
+        ...
+        ValueError: Cannot compute numerator and denominator of t^3 + 5
+        
+    """
+    ambient = f.parent().fraction_field()
+    if ambient not in QuotientFields:
+        raise ValueError("Cannot compute numerator and denominator of %s"%str(f))
+
+    if ambient is QQ:
         return 1
 
-def mutation_parse(mutate):
+    # This is an hack to use the same code on polynomials, laurent polynomials and rational expressions
+    # we could probably gain some marginal speed by doing things better
+    f = ambient(f)
+    num_exponents = f.numerator().exponents()
+    if type(num_exponents[0]) != int:
+        num_exponent = map(min, zip(*num_exponents))
+    else:
+        num_exponent = [min(num_exponents)]
+    den_exponents = f.denominator().exponents()
+    if type(den_exponents[0]) != int:
+        den_exponent = map(min, zip(*den_exponents))
+    else:
+        den_exponent = [min(den_exponents)]
+    variables = f.parent().gens()
+    return prod(map(lambda x,p: x**p, variables,num_exponent))*prod(map(lambda x,p: x**(-p), variables,den_exponent))
+
+def mutation_parse(mutate): # READY
     r"""
-    Parse input for mutation functions; it should provide:
+    Preparse input for mutation functions.
+    
+    This wrapper provides:
         - inplace
         - mutate along sequence
-        - mutate at cluster variariable
         - mutate at all sinks/sources
-        - urban renewals? (I do not care much abouth this)
+        
+    Possible things to iplement later include:
+        - mutate at cluster variariable
+        - mutate at a g-vector
+        - urban renewals
         - other?
     """
     mutate.__doc__ += r"""
 
             - inplace: bool (default True) whether to mutate in place or to return a new object
             - direction: can be
-                - an integer
-                - an iterable of integers
+                - an integer in ``range(self.rk())``
+                - an iterable of such integers
+                - a string "sinks" or "sources"
             """
     @wraps(mutate)
     def mutate_wrapper(self, direction, inplace=True, *args, **kwargs):
@@ -93,11 +140,18 @@ def mutation_parse(mutate):
             to_mutate = self
         else:
             to_mutate = copy(self)
-
-        try:
-            seq = iter(direction)
-        except TypeError:
-            seq = iter((direction,))
+        
+        if direction == "sinks":
+            B = self.b_matrix()
+            seq = [ i for i in range(B.ncols()) if all( x<=0 for x in B.column(i)) ]
+        elif direction == "sources":
+            B = self.b_matrix()
+            seq = [ i for i in range(B.ncols()) if all( x>=0 for x in B.column(i)) ]
+        else:
+            try:
+                seq = iter(direction)
+            except TypeError:
+                seq = iter((direction,))
 
         for k in seq:
             mutate(to_mutate, k, *args, **kwargs)
@@ -163,17 +217,46 @@ class ClusterAlgebraElement(ElementWrapper):
 # Methods not always defined
 ####
 
-def g_vector(self):
+def g_vector(self): #READY
+    r"""
+    Return the g-vector of ``self``.
+
+    EXAMPLES::
+
+        sage: A = ClusterAlgebra(['B',2],principal_coefficients=True)
+        sage: A.cluster_variable((1,0)).g_vector() == (1,0)
+        True
+    """
     components = self.homogeneous_components()
     if len(components) == 1:
         return components.keys()[0]
     else:
         raise ValueError("This element is not homogeneous.")
 
-def is_homogeneous(self):
+def is_homogeneous(self):   #READY
+    r"""
+    Return ``True`` if ``self`` is an homogeneous element of ``self.parent()``.
+    
+    EXAMPLES::
+    
+        sage: A = ClusterAlgebra(['B',2],principal_coefficients=True)
+        sage: x = A.cluster_variable((1,0)) + A.cluster_variable((0,1))
+        sage: x.is_homogeneous()
+        False
+    """
     return len(self.homogeneous_components()) == 1
 
-def homogeneous_components(self):
+def homogeneous_components(self):   #READY
+    r"""
+    Return a dictionary of the homogeneous components of ``self''.
+
+    EXAMPLES::
+    
+        sage: A = ClusterAlgebra(['B',2],principal_coefficients=True)
+        sage: x = A.cluster_variable((1,0)) + A.cluster_variable((0,1))
+        sage: x.homogeneous_components()
+        {(0, 1): x1, (1, 0): x0}
+    """
     deg_matrix = block_matrix([[identity_matrix(self.parent().rk),-self.parent()._B0]])
     components = dict()
     x = self.lift()
@@ -651,7 +734,7 @@ class ClusterAlgebra(Parent):
         return ClusterAlgebraSeed(self._B0, I, I, self)
 
     @property
-    def initial_b_matrix(self):
+    def initial_b_matrix(self): # change this to b_matrix for mutation wrapper
         n = self.rk
         return copy(self._B0)
 
@@ -799,6 +882,36 @@ class ClusterAlgebra(Parent):
 
     @mutation_parse
     def mutate_initial(self, k):
+        # WARNING: at the moment this function does not behave well with respect to coefficients:
+        # sage: A = ClusterAlgebra(['B',2],principal_coefficients=True)
+        # sage: A.initial_seed.b_matrix()
+        # [ 0  1]
+        # [-2  0]
+        # sage: A.initial_seed.c_matrix()
+        # [1 0]
+        # [0 1]
+        # sage: A.mutate_initial(0)
+        # sage: A.initial_seed.b_matrix()
+        # [ 0 -1]
+        # [ 2  0]
+        # sage: A.initial_seed.c_matrix()
+        # [1 0]
+        # [0 1]
+        # this creates several issues 
+        # BTW: mutating the initial seed in place creates several issues with elements of the algebra: for example:
+        # sage: A = ClusterAlgebra(['B',4],principal_coefficients=True)
+        # sage: A.explore_to_depth(infinity)
+        # sage: x = A.cluster_variable((-1, 1, -2, 2))
+        # sage: x.is_homogeneous()
+        # True
+        # sage: A.mutate_initial([0,3])
+        # sage: x in A
+        # True
+        # sage: (-1, 1, -2, 2) in A.g_vectors_so_far()
+        # False
+        # sage: x.is_homogeneous()
+        # False
+
         r"""
         Mutate ``self`` in direction `k` at the initial cluster.
 

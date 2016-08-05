@@ -48,7 +48,8 @@ from sage.schemes.affine.affine_space import AffineSpace
 import point
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
-from sage.schemes.projective.projective_space import is_ProjectiveSpace
+from sage.schemes.projective.projective_space import (is_ProjectiveSpace,
+                                                      ProjectiveSpace)
 
 from curve import Curve_generic
 
@@ -795,21 +796,29 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         OUTPUT:
 
-        - a tuple of three polynomials that define a birational map from `\mathbb{P}^1` to this curve.
+        - a birational map between `\mathbb{P}^{1}` and this curve, given as a scheme morphism.
 
         EXAMPLES::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: C = Curve([y^2*z - x^3], P)
             sage: C.rational_parameterization()
-            (s^2*t, s^3, t^3)
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Rational Field
+              To:   Projective Plane Curve over Rational Field defined by -x^3 + y^2*z
+              Defn: Defined on coordinates by sending (s : t) to
+                    (s^2*t : s^3 : t^3)
 
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: C = Curve([x^3 - 4*y*z^2 + x*z^2 - x*y*z], P)
             sage: C.rational_parameterization()
-            (4*s^2*t + s*t^2, s^2*t + t^3, 4*s^3 + s^2*t)
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Rational Field
+              To:   Projective Plane Curve over Rational Field defined by x^3 - x*y*z + x*z^2 - 4*y*z^2
+              Defn: Defined on coordinates by sending (s : t) to
+                    (4*s^2*t + s*t^2 : s^2*t + t^3 : 4*s^3 + s^2*t)
         """
         if self.genus() != 0:
             raise TypeError("this curve must have geometric genus zero")
@@ -818,7 +827,11 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         singular.lib("paraplanecurves.lib")
         R = singular.paraPlaneCurve(self.defining_polynomial())
         singular.setring(R)
-        return tuple(singular('PARA').sage().gens())
+        param = singular('PARA').sage().gens()
+        R = R.sage()
+        C = self.ambient_space().curve(self.change_ring(R.base_ring()).defining_polynomials())
+        H = Hom(ProjectiveSpace(R.base_ring(), 1, R.gens()), C)
+        return H(param)
 
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
 

@@ -131,6 +131,7 @@ from __future__ import absolute_import
 #          class AlgebraicScheme_subscheme_affine_toric
 #    class AlgebraicScheme_quasi
 
+from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
 from sage.categories.morphism import Morphism
 
@@ -2145,6 +2146,70 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
             t = sum(singular.Tor(i, Iloc, Jloc).std().hilb(2).sage())
         return s
 
+    def multiplicity(self, P):
+        r"""
+        Return the multiplicity of ``P`` on this subscheme.
+
+        This is computed as the multiplicity of the local ring of this subscheme corresponding to ``P``. This
+        subscheme must be defined over a field. An error is raised if ``P`` is not a point on this subscheme.
+
+        INPUT:
+
+        - ``P`` -- a point on this subscheme.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z,w> = AffineSpace(QQ, 4)
+            sage: X = A.subscheme([z*y - x^7, w - 2*z])
+            sage: Q1 = A([1,1/3,3,6])
+            sage: X.multiplicity(Q1)
+            1
+            sage: Q2 = A([0,0,0,0])
+            sage: X.multiplicity(Q2)
+            2
+
+        ::
+
+            sage: A.<x,y,z,w,v> = AffineSpace(GF(23), 5)
+            sage: C = A.curve([x^8 - y, y^7 - z, z^3 - 1, w^5 - v^3])
+            sage: Q = A([22,1,1,0,0])
+            sage: C.multiplicity(Q)
+            3
+
+        ::
+
+            sage: K.<a> = QuadraticField(-1)
+            sage: A.<x,y,z,w,t> = AffineSpace(K, 5)
+            sage: X = A.subscheme([y^7 - x^2*z^5 + z^3*t^8 - x^2*y^4*z - t^8])
+            sage: Q1 = A([1,1,0,1,-1])
+            sage: X.multiplicity(Q1)
+            1
+            sage: Q2 = A([0,0,0,-a,0])
+            sage: X.multiplicity(Q2)
+            7
+        """
+        if not self.base_ring() in Fields():
+            raise TypeError("subscheme must be defined over a field")
+
+        # Check whether P is a point on this subscheme
+        try:
+            P = self(P)
+        except TypeError:
+            raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
+
+        # Apply a linear change of coordinates to self so that P is sent to the origin
+        # and then compute the multiplicity of the local ring of the translated subscheme 
+        # corresponding to the point (0,...,0)
+        AA = self.ambient_space()
+        chng_coords = [AA.gens()[i] + P[i] for i in range(AA.dimension_relative())]
+        R = AA.coordinate_ring().change_ring(order='negdegrevlex')
+        I = R.ideal([f(chng_coords) for f in self.defining_polynomials()])
+        return singular.mult(singular.std(I)).sage()
+
 
 #*******************************************************************
 # Projective varieties
@@ -3166,7 +3231,9 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             Traceback (most recent call last):
             ...
             TypeError: the intersection of this subscheme and (=Closed subscheme of Affine Space of dimension 3
-            over Rational Field defined by: x1^2 + x2^2 - 2*x0, x0^2 - x2^2) must be proper and finite
+            over Rational Field defined by:
+              x1^2 + x2^2 - 2*x0,
+              x0^2 - x2^2) must be proper and finite
         """
         try:
             self.ambient_space()(P)
@@ -3183,6 +3250,71 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         t = Q.pop(i)
         Q = [1/t*Q[j] for j in range(n)]
         return X1.intersection_multiplicity(X2, X1.ambient_space()(Q))
+
+    def multiplicity(self, P):
+        r"""
+        Return the multiplicity of ``P`` on this subscheme.
+
+        This is computed as the multiplicity of the corresponding point on an affine patch of this subscheme
+        that contains ``P``. This subscheme must be defined over a field. An error is returned if ``P``
+        not a point on this subscheme.
+
+        INPUT:
+
+        - ``P`` -- a point on this subscheme.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w,t> = ProjectiveSpace(QQ, 4)
+            sage: X = P.subscheme([y^2 - x*t, w^7 - t*w*x^5 - z^7])
+            sage: Q1 = P([0,0,1,1,1])
+            sage: X.multiplicity(Q1)
+            1
+            sage: Q2 = P([1,0,0,0,0])
+            sage: X.multiplicity(Q2)
+            3
+            sage: Q3 = P([0,0,0,0,1])
+            sage: X.multiplicity(Q3)
+            7
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(CC, 3)
+            sage: X = P.subscheme([z^5*x^2*w - y^8])
+            sage: Q = P([2,0,0,1])
+            sage: X.multiplicity(Q)
+            5
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(GF(29), 3)
+            sage: C = Curve([y^17 - x^5*w^4*z^8, x*y - z^2], P)
+            sage: Q = P([3,0,0,1])
+            sage: C.multiplicity(Q)
+            8
+        """
+        if not self.base_ring() in Fields():
+            raise TypeError("subscheme must be defined over a field")
+
+        # Check whether P is a point on this subscheme
+        try:
+            P = self(P)
+        except TypeError:
+            raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
+
+        # Find an affine chart of the ambient space of self that contains P
+        i = 0
+        while(P[i] == 0):
+            i = i + 1
+        X = self.affine_patch(i)
+        Q = list(P)
+        t = Q.pop(i)
+        Q = [1/t*Q[j] for j in range(self.ambient_space().dimension_relative())]
+        return X.multiplicity(X.ambient_space()(Q))
 
 class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_projective):
 
@@ -3484,6 +3616,133 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
             return U,phi
         else:
             return U
+
+    def intersection_multiplicity(self, X, P):
+        r"""
+        Return the intersection multiplicity of this subscheme and the subscheme ``X`` at the point ``P``.
+
+        This uses the intersection_multiplicity function for affine subschemes on affine patches of this subscheme
+        and ``X`` that contain ``P``.
+
+        INPUT:
+
+        - ``X`` -- subscheme in the same ambient space as this subscheme.
+
+        - ``P`` -- a point in the intersection of this subscheme with ``X``.
+
+        OUTPUT: An integer.
+
+        EXAMPLES:
+
+        Multiplicity of a fixed point of the map `z^2 + \frac{1}{4}`::
+
+            sage: PP.<x,y,u,v> = ProductProjectiveSpaces(QQ, [1,1])
+            sage: G = PP.subscheme([(x^2 + 1/4*y^2)*v - y^2*u])
+            sage: D = PP.subscheme([x*v - y*u])
+            sage: G.intersection(D).rational_points()
+            [(1 : 0 , 1 : 0), (1/2 : 1 , 1/2 : 1)]
+            sage: Q = PP([1/2,1,1/2,1])
+            sage: G.intersection_multiplicity(D, Q)
+            2
+
+        ::
+
+            sage: F.<a> = GF(4)
+            sage: PP.<x,y,z,u,v,w> = ProductProjectiveSpaces(F, [2,2])
+            sage: X = PP.subscheme([z^5 + 3*x*y^4 + 8*y^5, u^2 - v^2])
+            sage: Y = PP.subscheme([x^6 + z^6, w*z - v*y])
+            sage: Q = PP([a,a+1,1,a,a,1])
+            sage: X.intersection_multiplicity(Y, Q)
+            16
+
+        ::
+
+            sage: PP.<x,y,z,u,v,w> = ProductProjectiveSpaces(QQ, [2,2])
+            sage: X = PP.subscheme([x^2*u^3 + y*z*u*v^2, x - y])
+            sage: Y = PP.subscheme([u^3 - w^3, x*v - y*w, z^3*w^2 - y^3*u*v])
+            sage: Q = PP([0,0,1,0,1,0])
+            sage: X.intersection_multiplicity(Y, Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: the intersection of this subscheme and (=Closed subscheme of Affine Space of dimension 4
+            over Rational Field defined by: x2^3 - x3^3, -x1*x3 + x0, -x1^3*x2 + x3^2) must be proper and finite
+        """
+        PP = self.ambient_space()
+        try:
+            PP(P)
+        except TypeError:
+            raise TypeError("(=%s) must be a point in the ambient space of this subscheme and (=%s)"%(P,X))
+        # find an affine chart of the ambient space of this subscheme that contains P
+        indices = []
+        aff_pt = []
+        for i in range(PP.num_components()):
+            Q = P[i]
+            j = 0
+            while Q[j] == 0:
+                j = j + 1
+            indices.append(j)
+            T = list(Q)
+            t = T.pop(j)
+            aff_pt.extend([1/t*T[k] for k in range(PP.components()[i].dimension_relative())])
+        X1 = self.affine_patch(indices)
+        X2 = X.affine_patch(indices)
+        return X1.intersection_multiplicity(X2, X1.ambient_space()(aff_pt))
+
+    def multiplicity(self, P):
+        r"""
+        Return the multiplicity of ``P`` on this subscheme.
+
+        This is computed as the multiplicity of the corresponding point on an affine patch of this subscheme
+        that contains ``P``. This subscheme must be defined over a field. An error is returned if ``P``
+        not a point on this subscheme.
+
+        INPUT:
+
+        - ``P`` -- a point on this subscheme.
+
+        OUPUT: an integer.
+
+        EXAMPLES::
+
+            sage: PP.<x,y,z,w> = ProductProjectiveSpaces(QQ, [1,1])
+            sage: X = PP.subscheme([x^4*z^3 - y^4*w^3])
+            sage: Q1 = PP([1,1,1,1])
+            sage: X.multiplicity(Q1)
+            1
+            sage: Q2 = PP([0,1,1,0])
+            sage: X.multiplicity(Q2)
+            3
+
+        ::
+
+            sage: PP.<x,y,z,w,u> = ProductProjectiveSpaces(GF(11), [1,2])
+            sage: X = PP.subscheme([x^7*u - y^7*z, u^6*x^2 - w^3*z^3*x*y - w^6*y^2])
+            sage: Q1 = PP([1,0,10,1,0])
+            sage: X.multiplicity(Q1)
+            1
+            sage: Q2 = PP([1,0,1,0,0])
+            sage: X.multiplicity(Q2)
+            4
+        """
+        PP = self.ambient_space()
+        try:
+            PP(P)
+        except TypeError:
+            raise TypeError("(=%s) must be a point in the ambient space of this subscheme and (=%s)"%(P,X))
+        # find an affine chart of the ambient space of this subscheme that contains P
+        indices = []
+        aff_pt = []
+        for i in range(PP.num_components()):
+            Q = P[i]
+            j = 0
+            while Q[j] == 0:
+                j = j + 1
+            indices.append(j)
+            T = list(Q)
+            t = T.pop(j)
+            aff_pt.extend([1/t*T[k] for k in range(PP.components()[i].dimension_relative())])
+        X = self.affine_patch(indices)
+        return X.multiplicity(X.ambient_space()(aff_pt))
 
 #*******************************************************************
 # Toric varieties

@@ -232,13 +232,13 @@ class SphericalHarmonic(BuiltinFunction):
         Check that :trac:`20939` is fixed::
 
             sage: spherical_harmonic(3,2,1,2*pi/3)
-            1/240*sqrt(30)*(-15*I*sqrt(7)*sqrt(3) -
-            ...15*sqrt(7))*cos(1)*sin(1)^2/sqrt(pi)
+            1/240*sqrt(30)*(-15*I*sqrt(7)*sqrt(3)
+            ...- 15*sqrt(7))*cos(1)*sin(1)^2/sqrt(pi)
         """
         if n in ZZ and m in ZZ and n > -1:
             if abs(m) > n:
                 return ZZ(0)
-            if (m == 0 and theta.is_zero()):
+            if m == 0 and theta.is_zero():
                 return sqrt((2*n+1)/4/pi)
             from sage.arith.misc import factorial
             from sage.functions.trig import cos

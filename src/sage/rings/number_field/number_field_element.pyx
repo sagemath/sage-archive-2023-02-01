@@ -1183,6 +1183,13 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<b> = NumberField(f, embedding=1.3)
             sage: b.abs()
             b
+
+        However, if a specific embedding is requested, the behavior reverts
+        to that of number fields without a coercion embedding into `\RR`::
+
+            sage: b.abs(i=2)
+            1.32471795724475
+
         """
         if i is None and (<number_field_base.NumberField> self._parent)._embedded_real:
             return self.sign() * self

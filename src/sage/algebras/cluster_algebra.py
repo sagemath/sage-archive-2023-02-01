@@ -121,8 +121,8 @@ def mutation_parse(mutate): # READY
         - mutate at all sinks/sources
         
     Possible things to iplement later include:
-        - mutate at cluster variariable
-        - mutate at a g-vector
+        - mutate at a cluster variariable
+        - mutate at a g-vector (it is hard to distinguish this case from a generic sequence)
         - urban renewals
         - other?
     """
@@ -143,10 +143,10 @@ def mutation_parse(mutate): # READY
         
         if direction == "sinks":
             B = self.b_matrix()
-            seq = [ i for i in range(B.ncols()) if all( x<=0 for x in B.column(i)) ]
+            seq = [ i for i in range(B.ncols()) if all( x<=0 for x in B.column(i) ) ]
         elif direction == "sources":
             B = self.b_matrix()
-            seq = [ i for i in range(B.ncols()) if all( x>=0 for x in B.column(i)) ]
+            seq = [ i for i in range(B.ncols()) if all( x>=0 for x in B.column(i) ) ]
         else:
             try:
                 seq = iter(direction)

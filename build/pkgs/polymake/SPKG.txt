@@ -23,6 +23,9 @@ library and some modules (XML::Writer XML::LibXML XML::LibXSLT).
 These are not provided by a Sage package.  Sage does install the
 Term::Readline::Gnu module, however, when you install polymake.
 
+On Ubuntu, use:
+ sudo apt-get install libxml-libxslt-perl libxml-writer-perl libxml2-dev libperl-dev libncurses-dev
+
 On Fedora 23, use:
  sudo yum install perl-ExtUtils-Embed
 
@@ -51,3 +54,9 @@ polymake:
  $ sage -sh
  (sage-sh) $ polymake
  polytope> show_unconfigured;
+
+== Debugging polymake install problems ==
+
+# apt-get install libdevel-trace-perl
+$ cd src
+$ perl -d:Trace support/configure.pl

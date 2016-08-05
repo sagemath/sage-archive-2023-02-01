@@ -912,7 +912,7 @@ cdef class lazy_list_generic(object):
 
         TESTS::
 
-            sage: from sage.misc.lazy_list import lazy_list, lazy_list_generic
+            sage: from sage.misc.lazy_list import lazy_list
             sage: L = lazy_list(Primes())[2:]
             sage: L.update_cache_up_to(4)
             0
@@ -1016,6 +1016,18 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
         - ``0`` -- everything went fine
 
         - ``1`` -- the iterator stopped before ``i``
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list
+            sage: L = lazy_list(iter(Primes()))[2:]
+            sage: L.update_cache_up_to(4)
+            0
+            sage: L._info()
+            cache length 5
+            start        2
+            stop         9223372036854775807
+            step         1
         """
         while len(self.cache) <= i:
             try:
@@ -1088,6 +1100,18 @@ cdef class lazy_list_from_function(lazy_list_generic):
         - ``0`` -- everything went fine
 
         - ``1`` -- the iterator stopped before ``i``
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list
+            sage: L = lazy_list(lambda x: 2*x)[2:]
+            sage: L.update_cache_up_to(4)
+            0
+            sage: L._info()
+            cache length 5
+            start        2
+            stop         9223372036854775807
+            step         1
         """
         while len(self.cache) <= i:
             self.cache.append(self.callable(len(self.cache)))
@@ -1152,6 +1176,21 @@ cdef class lazy_list_from_update_function(lazy_list_generic):
         - ``0`` -- everything went fine
 
         - ``1`` -- the iterator stopped before ``i``
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list_from_update_function
+            sage: def update_function(values):
+            ....:     n = len(values)+1
+            ....:     values.extend([n]*n)
+            sage: L = lazy_list_from_update_function(update_function)[2:]
+            sage: L.update_cache_up_to(4)
+            0
+            sage: L._info()
+            cache length 7
+            start        2
+            stop         9223372036854775807
+            step         1
         """
         cdef Py_ssize_t l,ll
         l = len(self.cache)

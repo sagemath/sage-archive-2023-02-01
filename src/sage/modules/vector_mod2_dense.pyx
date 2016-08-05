@@ -375,9 +375,9 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             z._entries.rows[0][i] = (self._entries.rows[0][i] & r._entries.rows[0][i])
         return z
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _lmul_(self, RingElement left):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),10)
             sage: e = VS.random_element(); e
@@ -388,6 +388,18 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             (1, 0, 0, 0, 1, 1, 1, 0, 0, 1)
             sage: 2 * e #indirect doctest
             (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+        ::
+
+            sage: VS = VectorSpace(GF(2),10)
+            sage: e = VS.random_element(); e
+            (1, 1, 0, 1, 1, 1, 0, 0, 0, 1)
+            sage: e * 0 #indirect doctest
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            sage: e * 1
+            (1, 1, 0, 1, 1, 1, 0, 0, 0, 1)
+            sage: e * 2
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         """
         cdef IntegerMod_int a
 
@@ -395,23 +407,6 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             return self.__copy__()
         else:
             return self._new_c()
-
-
-    cpdef _lmul_(self, RingElement right):
-        """
-        EXAMPLE::
-
-            sage: VS = VectorSpace(GF(2),10)
-            sage: e = VS.random_element(); e
-            (1, 0, 0, 0, 1, 1, 1, 0, 0, 1)
-            sage: e * 0 #indirect doctest
-            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-            sage: e * 1
-            (1, 0, 0, 0, 1, 1, 1, 0, 0, 1)
-            sage: e * 2
-            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-        """
-        return self._rmul_(right)
 
     cpdef _neg_(self):
         """

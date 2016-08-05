@@ -331,7 +331,7 @@ cdef class ModuleAction(Action):
             # The right thing to do is a normal multiplication
             raise CoercionException("Best viewed as standard multiplication")
         # Objects are implemented with the assumption that
-        # _rmul_ is given an element of the base ring
+        # _lmul_/_rmul_ are given an element of the base ring
         if G is not base:
             # first we try the easy case of coercing G to the base ring of S
             self.connecting = base._internal_coerce_map_from(G)
@@ -609,7 +609,7 @@ cdef class LeftModuleAction(ModuleAction):
             g = self.connecting._call_(g)
         if self.extended_base is not None:
             a = self.extended_base(a)
-        return (<ModuleElement>a)._rmul_(<RingElement>g)  # a * g
+        return (<ModuleElement>a)._rmul_(<RingElement>g)  # g * a
 
 
 cdef class RightModuleAction(ModuleAction):

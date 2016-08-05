@@ -2996,7 +2996,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return left._add_(right)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _lmul_(self, RingElement left):
         """
         EXAMPLE::
 
@@ -3005,15 +3005,8 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f = a*z + b + 1
             sage: f*k(1)  # indirect doctest
             a*z + b + 1
-        """
-        if left:
-            return new_BP_from_PBPoly(self._parent, self._pbpoly)
-        else:
-            return self._parent.zero()
 
-    cpdef _lmul_(self, RingElement right):
-        """
-        EXAMPLE::
+        ::
 
             sage: B.<a,b,z> = BooleanPolynomialRing(3)
             sage: k = B.base_ring()
@@ -3021,7 +3014,10 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: k(0)*f # indirect doctest
             0
         """
-        return self._rmul_(right)
+        if left:
+            return new_BP_from_PBPoly(self._parent, self._pbpoly)
+        else:
+            return self._parent.zero()
 
     cpdef _mul_(left, right):
         """

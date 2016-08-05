@@ -1113,7 +1113,7 @@ cdef class NumberFieldElement(FieldElement):
             upp = a.upper().ceil()
         return low
 
-    def abs(self, prec=53, i=None):
+    def abs(self, prec=None, i=None):
         r"""Return the absolute value of this element.
 
         If ``i`` is provided, then the absolute of the `i`-th embedding is
@@ -1121,21 +1121,21 @@ cdef class NumberFieldElement(FieldElement):
 
         Otherwise, if the number field has a coercion embedding into
         `\RR`, the corresponding absolute value is returned as an
-        element of the same field (and ``prec`` is ignored).
+        element of the same field (unless ``prec`` is given).
         Otherwise, if it has a coercion embedding into
         `\CC`, then the corresponding absolute value is returned.
         Finally, if there is no coercion embedding, `i` defaults to 0.
 
-        If ``prec`` is 53 (the default), then the complex double field is
+        If ``prec`` is ``None`` or 53, then the complex double field is
         used; otherwise the arbitrary precision (but slow) complex
         field is used.
 
         INPUT:
 
 
-        -  ``prec`` - (default: 53) integer bits of precision
+        -  ``prec`` - (default: None) integer bits of precision
 
-        -  ``i`` - (default: ) integer, which embedding to
+        -  ``i`` - (default: None) integer, which embedding to
            use
 
 
@@ -1190,10 +1190,19 @@ cdef class NumberFieldElement(FieldElement):
             sage: b.abs(i=2)
             1.32471795724475
 
+        Also, if a precision is requested explicitly, the behavior reverts
+        to that of number fields without a coercion embedding into `\RR`::
+
+            sage: b.abs(prec=53)
+            1.32471795724475
+
         """
-        if i is None and (<number_field_base.NumberField> self._parent)._embedded_real:
+        if (i is None and prec is None
+            and (<number_field_base.NumberField> self._parent)._embedded_real):
             return self.sign() * self
         else:
+            if prec is None:
+                prec = 53
             CCprec = ComplexField(prec)
             if i is None and CCprec.has_coerce_map_from(self.parent()):
                 return CCprec(self).abs()

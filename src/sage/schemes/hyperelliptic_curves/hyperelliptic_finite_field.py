@@ -1148,8 +1148,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
                 # for odd degree or even characteristic
                 a += 1
             else:
-                a += 1 + legendre_symbol(f.leading_coefficient(),
-                                         K.cardinality())
+                a += 2 if f.leading_coefficient().is_square() else 0
         else:
             # g > 1
             # solve y^2 + y*h[g+1] == f[2*g+2], i.e., y^2 + r*y - s == 0

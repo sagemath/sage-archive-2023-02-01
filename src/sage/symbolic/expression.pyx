@@ -5797,9 +5797,10 @@ cdef class Expression(CommutativeRingElement):
 
         The behaviour is undefined with noninteger or negative exponents::
 
-            sage: p = (17/3*a)*x^(3/2) + x*y + 1/x + x^x
-            sage: p.coefficients(x)
-            [[1, -1], [x^x, 0], [y, 1], [17/3*a, 3/2]]
+            sage: p = (17/3*a)*x^(3/2) + x*y + 1/x + x^x + 5*x^y
+            sage: rset = set([(1, -1), (y, 1), (17/3*a, 3/2), (x^x, 0), (5, y)])
+            sage: all([(pair[0],pair[1]) in rset for pair in p.coefficients(x)])
+            True
             sage: p.coefficients(x, sparse=False)
             Traceback (most recent call last):
             ...
@@ -5835,21 +5836,25 @@ cdef class Expression(CommutativeRingElement):
             [[t, 0], [3, 1], [1, 2]]
 
         """
-        f = self._maxima_()
-        maxima = f.parent()
-        maxima._eval_line('load(coeflist)')
+        cdef vector[pair[GEx,GEx]] vec
+        cdef pair[GEx,GEx] gexpair
+        cdef Expression xx
         if x is None:
             x = self.default_variable()
-        G = f.coeffs(x)
-        from sage.calculus.calculus import symbolic_expression_from_maxima_string
-        S = symbolic_expression_from_maxima_string(repr(G))
-        l = S[1:]
+        xx = self.coerce_in(x)
+        self._gobj.coefficients(xx._gobj, vec)
+        l = []
+        for p in vec:
+            l.append([new_Expression_from_GEx(self._parent, p.first),
+                new_Expression_from_GEx(self._parent, p.second)])
         if sparse is True:
             return l
         else:
             from sage.rings.integer_ring import ZZ
             if any(not c[1] in ZZ for c in l):
                 raise ValueError("Cannot return dense coefficient list with noninteger exponents.")
+            if not l:
+                l = [[0, 0]]
             val = l[0][1]
             if val < 0:
                 raise ValueError("Cannot return dense coefficient list with negative valuation.")
@@ -6156,16 +6161,11 @@ cdef class Expression(CommutativeRingElement):
             2*a^2 - (2*sqrt(2)*a - 1)*x + x^2 + 1
         """
         from sage.symbolic.ring import SR
-        f = self._maxima_()
-        P = f.parent()
-        P._eval_line('load(coeflist)')
         if x is None:
             x = self.default_variable()
-        x = self._parent.var(repr(x))
-        G = f.coeffs(x)
+        G = self.coefficients(x)
         ans = None
-        for i in range(1, len(G)):
-            Z = G[i]
+        for Z in G:
             coeff = SR(Z[0])
             n = SR(Z[1])
             if repr(coeff) != '0':
@@ -8361,7 +8361,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.combine()
             ((x - 1)*x + y^2)/(x^2 - 7) + (b + c)/a + 1/(x + 1)
         """
-        return self.parent()(self._maxima_().combine())
+        return new_Expression_from_GEx(self._parent, self._gobj.combine_fractions())
 
     def normalize(self):
         """
@@ -8385,6 +8385,21 @@ cdef class Expression(CommutativeRingElement):
             (a*x^3 + b*x^3 + c*x^3 + a*x*y^2 + a*x^2 + b*x^2 + c*x^2 +
                     a*y^2 - a*x - 7*b*x - 7*c*x - 7*a - 7*b - 7*c)/((x^2 -
                         7)*a*(x + 1))
+
+        TESTS:
+
+        Check that :trac:`19775` is fixed::
+
+            sage: a,b,c,d,e,y = var('a,b,c,d,e,y')
+            sage: ((x - 2*y)^4/(x^2 - 4*y^2)^2).normalize()
+            (x - 2*y)^2/(x + 2*y)^2
+            sage: f = ((x - 2*y)^4/(x^2 - 4*y^2)^2 + 1)*(y + a)*(2*y + x) / (4*y^2 + x^2)
+            sage: f.normalize()
+            2*(a + y)/(x + 2*y)
+            sage: (c/a - b*c^2/(a^2*(b*c/a-d)) + c*d/(a*(b*c/a-d))).normalize()
+            0
+            sage: (e + c/a - b*c^2/(a^2*(b*c/a-d)) + c*d/(a*(b*c/a-d))).normalize()
+            e
 
         ALGORITHM: Uses GiNaC.
 

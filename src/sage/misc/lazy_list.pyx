@@ -525,6 +525,30 @@ cdef class lazy_list_generic(object):
         OUTPUT:
 
         A string.
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_list import lazy_list
+            sage: L = lazy_list(Primes()); L
+            lazy list [2, 3, 5, ...]
+            sage: repr(L) == L.str()
+            True
+            sage: L.str(name='primes')
+            'primes [2, 3, 5, ...]'
+            sage: L.str(opening_delimiter='(', closing_delimiter=')')
+            'lazy list (2, 3, 5, ...)'
+            sage: L.str(opening_delimiter='', closing_delimiter='')
+            'lazy list 2, 3, 5, ...'
+            sage: L.str(separator='--')
+            'lazy list [2--3--5--...]'
+            sage: L.str(more='and more')
+            'lazy list [2, 3, 5, and more]'
+            sage: L.str(preview=10)
+            'lazy list [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, ...]'
+            sage: L.str(name='primes',
+            ....:       opening_delimiter='', closing_delimiter='',
+            ....:       separator=' ', more='->', preview=7)
+            'primes 2 3 5 7 11 13 17 ->'
         """
         if name is None:
             name = 'lazy list'

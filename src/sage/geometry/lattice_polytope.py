@@ -129,7 +129,7 @@ from sage.numerical.mip import MixedIntegerLinearProgram
 
 from copy import copy
 import collections
-import copy_reg
+from six.moves import copyreg
 import os
 import subprocess
 import StringIO
@@ -324,7 +324,7 @@ def LatticePolytope(data, compute_vertices=True, n=0, lattice=None):
     return LatticePolytopeClass(data, compute_vertices)
 
 
-copy_reg.constructor(LatticePolytope)   # "safe for unpickling"
+copyreg.constructor(LatticePolytope)   # "safe for unpickling"
 
 
 def ReflexivePolytope(dim, n):

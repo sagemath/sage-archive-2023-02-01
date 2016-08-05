@@ -154,6 +154,7 @@ old pickles to work).
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
+from __future__ import absolute_import
 
 from pickletools import genops
 
@@ -1196,7 +1197,7 @@ class PickleExplainer(object):
         r"""
         TESTS::
 
-            sage: from copy_reg import *
+            sage: from six.moves.copyreg import *
             sage: from sage.misc.explain_pickle import *
             sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
             sage: test_pickle(EmptyNewstyleClass())
@@ -1223,7 +1224,7 @@ class PickleExplainer(object):
         r"""
         TESTS::
 
-            sage: from copy_reg import *
+            sage: from six.moves.copyreg import *
             sage: from sage.misc.explain_pickle import *
             sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 31415)
             sage: test_pickle(EmptyNewstyleClass())
@@ -1250,7 +1251,7 @@ class PickleExplainer(object):
         r"""
         TESTS::
 
-            sage: from copy_reg import *
+            sage: from six.moves.copyreg import *
             sage: from sage.misc.explain_pickle import *
             sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 27182818)
             sage: test_pickle(EmptyNewstyleClass())
@@ -2489,13 +2490,13 @@ def unpickle_extension(code):
 
     EXAMPLES::
 
-        sage: from copy_reg import *
+        sage: from six.moves.copyreg import *
         sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
         sage: unpickle_extension(42)
         <class 'sage.misc.explain_pickle.EmptyNewstyleClass'>
         sage: remove_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
     """
-    from copy_reg import _inverted_registry, _extension_cache
+    from six.moves.copyreg import _inverted_registry, _extension_cache
     # copied from .get_extension() in pickle.py
     nil = []
     obj = _extension_cache.get(code, nil)

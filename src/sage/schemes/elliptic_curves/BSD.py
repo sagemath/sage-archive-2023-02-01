@@ -439,7 +439,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
 
     TESTS:
 
-    This was fixed by trac #8184 and #7575::
+    This was fixed by :trac:`8184` and :trac:`7575`::
 
         sage: EllipticCurve('438e1').prove_BSD(verbosity=1)
         p = 2: True by 2-descent...

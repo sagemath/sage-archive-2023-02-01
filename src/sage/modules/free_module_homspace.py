@@ -48,7 +48,7 @@ TESTS::
     sage: loads(dumps(H)) == H
     True
 
-See trac 5886::
+See :trac:`5886`::
 
     sage: V = (ZZ^2).span_of_basis([[1,2],[3,4]])
     sage: V.hom([V.0, V.1])

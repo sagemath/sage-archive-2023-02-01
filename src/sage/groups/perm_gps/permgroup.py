@@ -3391,7 +3391,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         TESTS:
 
-        This shows that the issue at trac ticket 7360 is fixed::
+        This shows that the issue at :trac:`7360` is fixed::
 
             sage: G = KleinFourGroup()
             sage: G.is_simple()
@@ -4148,7 +4148,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         TESTS:
 
         Implementation details should not prevent us from computing
-        large subgroups (trac #5491)::
+        large subgroups (:trac:`5491`)::
 
             sage: PSL(10,2).sylow_subgroup(7)
             Subgroup of...

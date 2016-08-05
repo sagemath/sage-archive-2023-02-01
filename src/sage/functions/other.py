@@ -776,7 +776,7 @@ class Function_gamma(GinacFunction):
             sage: latex(gamma1(z))
             \Gamma\left(z\right)
 
-        Test that Trac ticket 5556 is fixed::
+        Test that :trac:`5556` is fixed::
 
             sage: gamma1(3/4)
             gamma(3/4)

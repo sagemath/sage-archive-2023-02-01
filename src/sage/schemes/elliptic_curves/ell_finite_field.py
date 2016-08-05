@@ -126,7 +126,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: len(S)
             100
 
-        See trac #4687, where the following example did not work::
+        See :trac:`4687`, where the following example did not work::
 
             sage: E=EllipticCurve(GF(2),[0, 0, 1, 1, 1])
             sage: E.points()
@@ -342,7 +342,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         TESTS:
 
-        See trac #8311::
+        See :trac:`8311`::
 
             sage: E = EllipticCurve(GF(3), [0,0,0,2,2])
             sage: E.random_element()
@@ -400,7 +400,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.trace_of_frobenius()
             802
 
-        The following shows that the issue from trac #2849 is fixed::
+        The following shows that the issue from :trac:`2849` is fixed::
 
             sage: E=EllipticCurve(GF(3^5,'a'),[-1,-1])
             sage: E.trace_of_frobenius()
@@ -1373,7 +1373,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.cardinality(extension_degree=100)
             1267650600228231653296516890625
 
-        This tests the patch for trac #3111, using 10 primes randomly
+        This tests the patch for :trac:`3111`, using 10 primes randomly
         selected::
 
             sage: E = EllipticCurve('389a')
@@ -1383,7 +1383,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             ...       if p != 389:
             ...           G = E.change_ring(GF(p)).abelian_group()
 
-        This tests that the bug reported in trac #3926 has been fixed::
+        This tests that the bug reported in :trac:`3926` has been fixed::
 
             sage: K.<i> = QuadraticField(-1)
             sage: OK = K.ring_of_integers()

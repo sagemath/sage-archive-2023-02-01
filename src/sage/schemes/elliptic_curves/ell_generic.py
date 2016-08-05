@@ -2729,7 +2729,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
         TESTS:
 
-        This shows that the bug at trac #4937 is fixed::
+        This shows that the bug at :trac:`4937` is fixed::
 
             sage: a=804515977734860566494239770982282063895480484302363715494873
             sage: b=584772221603632866665682322899297141793188252000674256662071

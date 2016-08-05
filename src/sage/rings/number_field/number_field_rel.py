@@ -456,7 +456,7 @@ class NumberField_relative(NumberField_generic):
 
         TESTS:
 
-        Trivial extensions work like non-trivial ones (trac #2220)::
+        Trivial extensions work like non-trivial ones (:trac:`2220`)::
 
             sage: NumberField([x^2 - 3, x], 'a').gens()
             (a0, 0)
@@ -931,7 +931,7 @@ class NumberField_relative(NumberField_generic):
 
         TESTS:
 
-        Examples from Trac ticket :trac:`4727`::
+        Examples from :trac:`4727`::
 
             sage: K.<j,b> = QQ[sqrt(-1), sqrt(2)]
             sage: j
@@ -945,7 +945,7 @@ class NumberField_relative(NumberField_generic):
             sage: K((b*j + 1/2).list())
             sqrt2*I + 1/2
 
-        Examples from Trac :trac:`4869`::
+        Examples from :trac:`4869`::
 
             sage: K.<z> = CyclotomicField(7)
             sage: Ky.<y> = PolynomialRing(K)

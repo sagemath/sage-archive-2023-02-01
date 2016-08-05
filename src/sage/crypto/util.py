@@ -375,7 +375,7 @@ def carmichael_lambda(n):
         ...
         ValueError: Input n must be a positive integer.
 
-    Bug reported in trac #8283::
+    Bug reported in :trac:`8283`::
 
         sage: from sage.crypto.util import carmichael_lambda
         sage: type(carmichael_lambda(16))

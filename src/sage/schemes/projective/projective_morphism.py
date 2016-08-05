@@ -40,6 +40,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.calculus.functions import jacobian
 from sage.categories.number_fields import NumberFields
@@ -85,6 +86,7 @@ from sage.combinat.permutation import Arrangements
 from sage.combinat.subset import Subsets
 from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
+from sage.rings.number_field.number_field import NumberField
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     r"""
@@ -2475,7 +2477,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if self.degree() == 1:
             raise NotImplementedError("minimality is only for degree 2 or higher")
 
-        from endPN_minimal_model import affine_minimal
+        from .endPN_minimal_model import affine_minimal
         return(affine_minimal(self, False , prime_list , True))
 
     def minimal_model(self, return_transformation=False, prime_list=None):
@@ -2588,7 +2590,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if self.degree() == 1:
             raise NotImplementedError("minimality is only for degree 2 or higher")
 
-        from endPN_minimal_model import affine_minimal
+        from .endPN_minimal_model import affine_minimal
         return(affine_minimal(self, return_transformation, prime_list, False))
 
     def automorphism_group(self, **kwds):
@@ -2715,7 +2717,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             F = (f[0].numerator().univariate_polynomial(R))/f[0].denominator().univariate_polynomial(R)
         else:
             F = f[0].univariate_polynomial(R)
-        from endPN_automorphism_group import automorphism_group_QQ_CRT, automorphism_group_QQ_fixedpoints
+        from .endPN_automorphism_group import automorphism_group_QQ_CRT, automorphism_group_QQ_fixedpoints
         if alg is None:
             if self.degree() <= 12:
                 return(automorphism_group_QQ_fixedpoints(F, return_functions, iso_type))
@@ -4761,6 +4763,14 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f = H([x**2 + K.gen()*y**2, x*y])
             sage: f.is_polynomial()
             False
+
+        ::
+
+            sage: PS.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(PS)
+            sage: f = H([6*x^2+12*x*y+7*y^2, 12*x*y + 42*y^2])
+            sage: f.is_polynomial()
+            False
         """
         if self.codomain().dimension_relative() != 1:
             raise NotImplementedError("space must have dimension equal to 1")
@@ -5039,7 +5049,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
         """
         if self._is_prime_finite_field:
             p = self.base_ring().characteristic()
-            P = [f(*x) % p for f in self._fastpolys]
+            P = [Integer(f(*x)) % p for f in self._fastpolys]
         else:
             P = [f(*x) for f in self._fastpolys]
         return P
@@ -5288,5 +5298,5 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             F = (f[0].numerator().polynomial(z))/f[0].denominator().polynomial(z)
         else:
             F = f[0].numerator().polynomial(z)
-        from endPN_automorphism_group import automorphism_group_FF
+        from .endPN_automorphism_group import automorphism_group_FF
         return(automorphism_group_FF(F, absolute, iso_type, return_functions))

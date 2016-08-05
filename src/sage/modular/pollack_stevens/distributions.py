@@ -12,6 +12,7 @@ Spaces of Distributions for overconvergent modular symbols
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 from sage.modules.module import Module
 from sage.structure.parent import Parent
 from sage.rings.padics.factory import ZpCA, QpCR
@@ -25,7 +26,7 @@ from sage.structure.factory import UniqueFactory
 
 import sage.rings.ring as ring
 
-from sigma0 import _default_adjuster
+from .sigma0 import _default_adjuster
 
 
 class OverconvergentDistributions_factory(UniqueFactory):

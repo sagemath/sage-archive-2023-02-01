@@ -12,6 +12,7 @@ Element class for Pollack-Stevens' Modular Symbols
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 import operator
 from sage.structure.element import ModuleElement
 from sage.rings.integer_ring import ZZ
@@ -25,10 +26,10 @@ from sage.misc.misc import verbose
 from sage.rings.padics.precision_error import PrecisionError
 
 from sage.categories.action import Action
-from manin_map import ManinMap
-from sigma0 import Sigma0
+from .manin_map import ManinMap
+from .sigma0 import Sigma0
 from sage.misc.misc import walltime
-from fund_domain import M2Z
+from .fund_domain import M2Z
 
 minusproj = [1, 0, 0, -1]
 

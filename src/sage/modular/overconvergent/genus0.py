@@ -173,6 +173,7 @@ classical) does not apply.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.matrix.all        import matrix, MatrixSpace, diagonal_matrix
 from sage.misc.misc         import verbose
@@ -189,7 +190,7 @@ from sage.plot.plot         import plot
 from sage.rings.all         import (O, Infinity, ZZ, QQ, pAdicField, PolynomialRing, PowerSeriesRing, is_pAdicField)
 import weakref
 
-from weightspace import WeightSpace_constructor as WeightSpace, WeightCharacter
+from .weightspace import WeightSpace_constructor as WeightSpace, WeightCharacter
 __ocmfdict = {}
 
 ####################

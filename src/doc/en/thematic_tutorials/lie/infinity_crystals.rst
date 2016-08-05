@@ -295,13 +295,14 @@ label (or rigging).  A crystal structure was defined on these objects in
 [Schilling2006]_, then later extended to work as a model for `B(\infty)`.
 See [SalisburyScrimshaw2015]_ for more information::
 
-    sage: RiggedConfigurations.global_options(display="horizontal")
+    sage: RiggedConfigurations.options(display="horizontal")
     sage: RC = crystals.infinity.RiggedConfigurations(['C',3,1])
     sage: nu = RC.highest_weight_vector().f_string([0,1,2,3,2,1,0]); nu
     -2[ ]-1   2[ ][ ]1   0[ ][ ]0   0[ ]0
     -2[ ]-1
     sage: nu.weight()
     -2*Lambda[0] + 2*Lambda[1] - 2*delta
+    sage: RiggedConfigurations.options._reset()
 
 We can check this crystal is isomorphic to the crystal above using Nakajima
 monomials::

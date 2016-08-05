@@ -492,46 +492,46 @@ class PartitionTuple(CombinatorialElement):
     def _repr_(self, compact=None):
         """
         Return a string representation of ``self`` depending on
-        :meth:`PartitionTuples.global_options`.
+        :meth:`PartitionTuples.options`.
 
         EXAMPLES::
 
             sage: mu=PartitionTuple(([2,1],[3,2],[1,1,1]))      # indirect doctest
 
-            sage: PartitionTuples.global_options(display="list"); mu
+            sage: PartitionTuples.options(display="list"); mu
             ([2, 1], [3, 2], [1, 1, 1])
-            sage: PartitionTuples.global_options(display="diagram"); mu
+            sage: PartitionTuples.options(display="diagram"); mu
             **   ***   *
             *    **    *
             *
-            sage: PartitionTuples.global_options(display="compact_low"); mu
+            sage: PartitionTuples.options(display="compact_low"); mu
             1,2|2,3|1^3
-            sage: PartitionTuples.global_options(display="compact_high"); mu
+            sage: PartitionTuples.options(display="compact_high"); mu
             2,1|3,2|1^3
-            sage: PartitionTuples.global_options(display="exp_low"); mu
+            sage: PartitionTuples.options(display="exp_low"); mu
             1, 2 | 2, 3 | 1^3
-            sage: PartitionTuples.global_options(display="exp_high"); mu
+            sage: PartitionTuples.options(display="exp_high"); mu
             2, 1 | 3, 2 | 1^3
-            sage: PartitionTuples.global_options.reset()
+            sage: PartitionTuples.options._reset()
 
-            sage: Partitions.global_options(convention="French");
-            sage: PartitionTuples.global_options(display="diagram"); mu
+            sage: Partitions.options(convention="French");
+            sage: PartitionTuples.options(display="diagram"); mu
             *
             *    **    *
             **   ***   *
-            sage: PartitionTuples.global_options(display="list"); mu
+            sage: PartitionTuples.options(display="list"); mu
             ([2, 1], [3, 2], [1, 1, 1])
-            sage: PartitionTuples.global_options(display="compact_low"); mu
+            sage: PartitionTuples.options(display="compact_low"); mu
             1,2|2,3|1^3
-            sage: PartitionTuples.global_options(display="compact_high"); mu
+            sage: PartitionTuples.options(display="compact_high"); mu
             2,1|3,2|1^3
-            sage: PartitionTuples.global_options(display="exp_low"); mu
+            sage: PartitionTuples.options(display="exp_low"); mu
             1, 2 | 2, 3 | 1^3
-            sage: PartitionTuples.global_options(display="exp_high"); mu
+            sage: PartitionTuples.options(display="exp_high"); mu
             2, 1 | 3, 2 | 1^3
-            sage: PartitionTuples.global_options.reset()
+            sage: PartitionTuples.options._reset()
         """
-        return self.parent().global_options.dispatch(self, '_repr_', 'display')
+        return self.parent().options._dispatch(self, '_repr_', 'display')
 
     def _repr_diagram(self):
         """
@@ -626,7 +626,7 @@ class PartitionTuple(CombinatorialElement):
         EXAMPLES::
 
             sage: mu = PartitionTuple([[2, 1],[1,1,1]])
-            sage: PartitionTuples.global_options(latex='diagram'); latex(mu)       # indirect doctest
+            sage: PartitionTuples.options(latex='diagram'); latex(mu)       # indirect doctest
             {\def\lr#1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\\
             \lr{\ast}&\lr{\ast}\\
@@ -637,13 +637,13 @@ class PartitionTuple(CombinatorialElement):
             \lr{\ast}\\
             \end{array}$}
             }
-            sage: PartitionTuples.global_options(latex='exp_high'); latex(mu)      # indirect doctest
+            sage: PartitionTuples.options(latex='exp_high'); latex(mu)      # indirect doctest
             (2,1|1^{3})
-            sage: PartitionTuples.global_options(latex='exp_low'); latex(mu)       # indirect doctest
+            sage: PartitionTuples.options(latex='exp_low'); latex(mu)       # indirect doctest
             (1,2|1^{3})
-            sage: PartitionTuples.global_options(latex='list'); latex(mu)          # indirect doctest
+            sage: PartitionTuples.options(latex='list'); latex(mu)          # indirect doctest
             [[2, 1], [1, 1, 1]]
-            sage: PartitionTuples.global_options(latex='young_diagram'); latex(mu) # indirect doctest
+            sage: PartitionTuples.options(latex='young_diagram'); latex(mu) # indirect doctest
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
             \lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-2}
@@ -655,14 +655,14 @@ class PartitionTuple(CombinatorialElement):
             \end{array}$}
             }
 
-            sage: PartitionTuples.global_options(latex="young_diagram", convention="french")
-            sage: PartitionTuples.global_options(latex='exp_high'); latex(mu)      # indirect doctest
+            sage: PartitionTuples.options(latex="young_diagram", convention="french")
+            sage: PartitionTuples.options(latex='exp_high'); latex(mu)      # indirect doctest
             (2,1|1^{3})
-            sage: PartitionTuples.global_options(latex='exp_low'); latex(mu)       # indirect doctest
+            sage: PartitionTuples.options(latex='exp_low'); latex(mu)       # indirect doctest
             (1,2|1^{3})
-            sage: PartitionTuples.global_options(latex='list'); latex(mu)          # indirect doctest
+            sage: PartitionTuples.options(latex='list'); latex(mu)          # indirect doctest
             [[2, 1], [1, 1, 1]]
-            sage: PartitionTuples.global_options(latex='young_diagram'); latex(mu) # indirect doctest
+            sage: PartitionTuples.options(latex='young_diagram'); latex(mu) # indirect doctest
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[t]{*{2}c}\cline{1-1}
             \lr{\phantom{x}}\\\cline{1-2}
@@ -674,9 +674,9 @@ class PartitionTuple(CombinatorialElement):
             \end{array}$}
             }
 
-            sage: PartitionTuples.global_options.reset()
+            sage: PartitionTuples.options._reset()
         """
-        return self.parent().global_options.dispatch(self, '_latex_', 'latex')
+        return self.parent().options._dispatch(self, '_latex_', 'latex')
 
     def _latex_young_diagram(self):
         """
@@ -697,7 +697,7 @@ class PartitionTuple(CombinatorialElement):
 
             sage: mu = PartitionTuple([[2, 1],[1,1,1]])._latex_diagram()
         """
-        entry = self.parent().global_options("latex_diagram_str")
+        entry = self.parent().options("latex_diagram_str")
         from sage.combinat.output import tex_from_array_tuple
         return tex_from_array_tuple([ [[entry]*row for row in mu] for mu in self._list ], with_lines=False)
 
@@ -779,20 +779,20 @@ class PartitionTuple(CombinatorialElement):
                **    *        *
                               *
                               *
-            sage: PartitionTuples.global_options(convention="french")
+            sage: PartitionTuples.options(convention="french")
             sage: print(PartitionTuple([[3,2],[2,1],[],[1,1,1,1]]).diagram())
                               *
                               *
                **    *        *
                ***   **   -   *
-            sage: PartitionTuples.global_options.reset()
+            sage: PartitionTuples.options._reset()
         """
         col_len = [len(mu)>0 and mu[0] or 1 for mu in self]  # columns per component
         row_max = max(len(mu) for mu in self)                # maximum row length
         # There should be a fancier list compression for this but I couldn't get
         # one to work in the cases where a component was the empty partition
         diag = []
-        diag_str=PartitionTuples.global_options('diagram_str')
+        diag_str=PartitionTuples.options('diagram_str')
         for row in range(row_max):
             line=''
             for c in range(len(self)):
@@ -803,7 +803,7 @@ class PartitionTuple(CombinatorialElement):
                 else:
                     line += '   {:{}}'.format('',col_len[c])
             diag.append(line.rstrip())
-        if PartitionTuples.global_options('convention') == "English":
+        if PartitionTuples.options('convention') == "English":
             return '\n'.join(map(str, diag))
         else:
             return '\n'.join(map(str, diag[::-1]))
@@ -1522,7 +1522,7 @@ class PartitionTuple(CombinatorialElement):
 
         For this calculation the multicharge `(\kappa_1, \ldots, \kappa_l)`
         is chosen so that `\kappa_{r+1} - \kappa_r > n`, where `n` is
-        the :meth:`size` of `\lambda` as this ensures that the Hecke algera
+        the :meth:`size` of `\lambda` as this ensures that the Hecke algebra
         is semisimple.
 
         INPUT:
@@ -1578,7 +1578,7 @@ class PartitionTuple(CombinatorialElement):
         As with :meth:`degree`, for this calculation the multicharge
         `(\kappa_1, \ldots, \kappa_l)` is chosen so that
         `\kappa_{r+1} - \kappa_r > n`, where `n` is the :meth:`size`
-        of `\lambda` as this ensures that the Hecke algera is semisimple.
+        of `\lambda` as this ensures that the Hecke algebra is semisimple.
 
         INPUT:
 
@@ -1749,7 +1749,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
         return RegularPartitionTuples_level_size(level, size, regular)
 
     Element = PartitionTuple
-    global_options=Partitions.global_options
+    options=Partitions.options
 
     # default for level
     _level=None
@@ -2772,3 +2772,6 @@ class RegularPartitionTuples_level_size(RegularPartitionTuples):
                 mu[-1] = [self._size-1]
         return self.element_class(self, mu)
 
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+PartitionTuples.global_options=deprecated_function_alias(18555, PartitionTuples.options)

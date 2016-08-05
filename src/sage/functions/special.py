@@ -101,32 +101,6 @@ implemented here.
      \sin\theta\,d\varphi\,d\theta .
 
 
-
--  When solving for separable solutions of Laplace's equation in
-   spherical coordinates, the radial equation has the form:
-
-   .. math::
-
-         x^2 \frac{d^2 y}{dx^2} + 2x \frac{dy}{dx} + [x^2 - n(n+1)]y = 0.
-
-
-   The spherical Bessel functions `j_n` and `y_n`,
-   are two linearly independent solutions to this equation. They are
-   related to the ordinary Bessel functions `J_n` and
-   `Y_n` by:
-
-   .. math::
-
-         j_n(x) = \sqrt{\frac{\pi}{2x}} J_{n+1/2}(x),
-
-
-
-   .. math::
-
-         y_n(x) = \sqrt{\frac{\pi}{2x}} Y_{n+1/2}(x) =
-         (-1)^{n+1} \sqrt{\frac{\pi}{2x}} J_{-n-1/2}(x).
-
-
    -  The incomplete elliptic integrals (of the first kind, etc.) are:
 
       .. math::
@@ -201,308 +175,6 @@ from sage.libs.mpmath import utils as mpmath_utils
 from sage.functions.all import sqrt, sin, cot, exp
 from sage.symbolic.all import I
 
-_done = False
-def _init():
-    """
-    Internal function which checks if Maxima has loaded the
-    "orthopoly" package.  All functions using this in this
-    file should call this function first.
-
-    TEST:
-
-    The global starts ``False``::
-
-        sage: sage.functions.special._done
-        False
-
-    Then after using one of the MaximaFunctions, it changes::
-
-        sage: spherical_hankel2(2,x)
-        (-I*x^2 - 3*x + 3*I)*e^(-I*x)/x^3
-
-        sage: sage.functions.special._done
-        True
-    """
-    global _done
-    if _done:
-        return
-    maxima.eval('load("orthopoly");')
-    maxima.eval('orthopoly_returns_intervals:false;')
-    _done = True
-
-def meval(x):
-    """
-    Return ``x`` evaluated in Maxima, then returned to Sage.
-
-    This is used to evaluate several of these special functions.
-
-    TEST::
-
-        sage: from sage.functions.special import spherical_bessel_J
-        sage: spherical_bessel_J(2.,3.)      # rel tol 1e-10
-        0.2986374970757335
-    """
-    return maxima(x).sage()
-
-
-class MaximaFunction(BuiltinFunction):
-    """
-    EXAMPLES::
-
-        sage: from sage.functions.special import MaximaFunction
-        sage: f = MaximaFunction("jacobi_sn")
-        sage: f(1,1)
-        tanh(1)
-        sage: f(1/2,1/2).n()
-        0.470750473655657
-    """
-    def __init__(self, name, nargs=2, conversions={}):
-        """
-        EXAMPLES::
-
-            sage: from sage.functions.special import MaximaFunction
-            sage: f = MaximaFunction("jacobi_sn")
-            sage: f(1,1)
-            tanh(1)
-            sage: f(1/2,1/2).n()
-            0.470750473655657
-        """
-        c = dict(maxima=name)
-        c.update(conversions)
-        BuiltinFunction.__init__(self, name=name, nargs=nargs,
-                                   conversions=c)
-
-    def _maxima_init_evaled_(self, *args):
-        """
-        Returns a string which represents this function evaluated at
-        *args* in Maxima.
-
-        EXAMPLES::
-
-            sage: from sage.functions.special import MaximaFunction
-            sage: f = MaximaFunction("jacobi_sn")
-            sage: f._maxima_init_evaled_(1/2, 1/2)
-            'jacobi_sn(1/2, 1/2)'
-
-        TESTS:
-
-        Check if complex numbers in the arguments are converted to maxima
-        correctly (see :trac:`7557`)::
-
-            sage: t = f(1.2+2*I*elliptic_kc(1-.5),.5)
-            sage: maxima(t) # abs tol 1e-13
-            0.88771548861928029 - 1.7301614091485560e-15*%i
-            sage: t.n() # abs tol 1e-13
-            0.887715488619280 - 1.73016140914856e-15*I
-        """
-        args_maxima = []
-        for a in args:
-            if isinstance(a, str):
-                args_maxima.append(a)
-            elif hasattr(a, '_maxima_init_'):
-                args_maxima.append(a._maxima_init_())
-            else:
-                args_maxima.append(str(a))
-        return "%s(%s)"%(self.name(), ', '.join(args_maxima))
-
-    def _evalf_(self, *args, **kwds):
-        """
-        Returns a numerical approximation of this function using
-        Maxima.  Currently, this is limited to 53 bits of precision.
-
-        EXAMPLES::
-
-            sage: from sage.functions.special import MaximaFunction
-            sage: f = MaximaFunction("jacobi_sn")
-            sage: f(1/2, 1/2)
-            jacobi_sn(1/2, 1/2)
-            sage: f(1/2, 1/2).n()
-            0.470750473655657
-            sage: f(1/2, 1/2).n(20)
-            0.47075
-            sage: f(1, I).n()
-            0.848379519751901 - 0.0742924572771414*I
-
-        TESTS::
-
-            sage: f(1/2, 1/2).n(150)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Maxima function jacobi_sn not implemented for Real Field with 150 bits of precision
-            sage: f._evalf_(1/2, 1/2, parent=int)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Maxima function jacobi_sn not implemented for <type 'int'>
-            sage: f._evalf_(1/2, 1/2, parent=complex)
-            (0.4707504736556572+0j)
-            sage: f._evalf_(1/2, 1/2, parent=RDF)
-            0.4707504736556572
-            sage: f._evalf_(1, I, parent=CDF)  # abs tol 1e-16
-            0.8483795707591759 - 0.07429247342160791*I
-            sage: f._evalf_(1, I, parent=RR)
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to convert '0.848379570759176-0.0742924734216079*I' to a real number
-        """
-        parent = kwds['parent']
-        # The result from maxima is a machine double, which corresponds
-        # to RDF (or CDF). Therefore, before converting, we check that
-        # we can actually coerce RDF into our parent.
-        if parent is not float and parent is not complex:
-            if (not isinstance(parent, Parent)
-                or not parent.has_coerce_map_from(RDF)):
-                raise NotImplementedError("Maxima function %s not implemented for %r"%(self.name(), parent))
-        _init()
-        return parent(maxima("%s, numer"%self._maxima_init_evaled_(*args)))
-
-    def _eval_(self, *args):
-        """
-        Try to evaluate this function at ``*args``, return ``None`` if
-        Maxima did not compute a numerical evaluation.
-
-        EXAMPLES::
-
-            sage: from sage.functions.special import MaximaFunction
-            sage: f = MaximaFunction("jacobi_sn")
-            sage: f(1,1)
-            tanh(1)
-
-            sage: f._eval_(1,1)
-            tanh(1)
-
-        Since Maxima works only with double precision, numerical
-        results are in ``RDF``, no matter what the input precision is::
-
-            sage: R = RealField(300)
-            sage: r = jacobi_sn(R(1/2), R(1/8)); r # not tested
-            0.4950737320232015
-            sage: parent(r)  # not tested
-            Real Double Field
-        """
-        _init()
-        try:
-            s = maxima(self._maxima_init_evaled_(*args))
-        except TypeError:
-            return None
-
-        if self.name() in repr(s):  # Avoid infinite recursion
-            return None
-        else:
-            return s.sage()
-
-from sage.misc.cachefunc import cached_function
-
-@cached_function
-def maxima_function(name):
-    """
-    Returns a function which is evaluated both symbolically and
-    numerically via Maxima.  In particular, it returns an instance
-    of :class:`MaximaFunction`.
-
-    .. note::
-
-       This function is cached so that duplicate copies of the same
-       function are not created.
-
-    EXAMPLES::
-
-        sage: spherical_hankel2(2,i)
-        -e
-    """
-    # The superclass of MaximaFunction, BuiltinFunction, assumes that there
-    # will be only one symbolic function with the same name and class.
-    # We create a new class for each Maxima function wrapped.
-    class NewMaximaFunction(MaximaFunction):
-        def __init__(self):
-            """
-            Constructs an object that wraps a Maxima function.
-
-            TESTS::
-
-                sage: spherical_hankel2(2,x)
-                (-I*x^2 - 3*x + 3*I)*e^(-I*x)/x^3
-            """
-            MaximaFunction.__init__(self, name)
-
-    return NewMaximaFunction()
-
-
-def spherical_bessel_J(n, var, algorithm="maxima"):
-    r"""
-    Returns the spherical Bessel function of the first kind for
-    integers n >= 1.
-
-    Reference: AS 10.1.8 page 437 and AS 10.1.15 page 439.
-
-    EXAMPLES::
-
-        sage: spherical_bessel_J(2,x)
-        ((3/x^2 - 1)*sin(x) - 3*cos(x)/x)/x
-        sage: spherical_bessel_J(1, 5.2, algorithm='scipy')
-        -0.12277149950007...
-        sage: spherical_bessel_J(1, 3, algorithm='scipy')
-        0.345677499762355...
-    """
-    if algorithm == "scipy":
-        from scipy.special.specfun import sphj
-        return CDF(sphj(int(n), float(var))[1][-1])
-    elif algorithm == 'maxima':
-        _init()
-        return meval("spherical_bessel_j(%s,%s)"%(ZZ(n),var))
-    else:
-        raise ValueError("unknown algorithm '%s'"%algorithm)
-
-def spherical_bessel_Y(n,var, algorithm="maxima"):
-    r"""
-    Returns the spherical Bessel function of the second kind for
-    integers n -1.
-
-    Reference: AS 10.1.9 page 437 and AS 10.1.15 page 439.
-
-    EXAMPLES::
-
-        sage: x = PolynomialRing(QQ, 'x').gen()
-        sage: spherical_bessel_Y(2,x)
-        -((3/x^2 - 1)*cos(x) + 3*sin(x)/x)/x
-    """
-    if algorithm == "scipy":
-        import scipy.special
-        return CDF(scipy.special.sph_yn(int(n),float(var)))
-    elif algorithm == 'maxima':
-        _init()
-        return meval("spherical_bessel_y(%s,%s)"%(ZZ(n),var))
-    else:
-        raise ValueError("unknown algorithm '%s'"%algorithm)
-
-def spherical_hankel1(n, var):
-    r"""
-    Returns the spherical Hankel function of the first kind for
-    integers `n > -1`, written as a string. Reference: AS
-    10.1.36 page 439.
-
-    EXAMPLES::
-
-        sage: spherical_hankel1(2, x)
-        (I*x^2 - 3*x - 3*I)*e^(I*x)/x^3
-    """
-    return maxima_function("spherical_hankel1")(ZZ(n), var)
-
-def spherical_hankel2(n,x):
-    r"""
-    Returns the spherical Hankel function of the second kind for
-    integers `n > -1`, written as a string. Reference: AS 10.1.17 page
-    439.
-
-    EXAMPLES::
-
-        sage: spherical_hankel2(2, x)
-        (-I*x^2 - 3*x + 3*I)*e^(-I*x)/x^3
-
-    Here I = sqrt(-1).
-    """
-    return maxima_function("spherical_hankel2")(ZZ(n), x)
-
-
 class SphericalHarmonic(BuiltinFunction):
     r"""
     Returns the spherical harmonic function `Y_n^m(\theta, \varphi)`.
@@ -560,8 +232,8 @@ class SphericalHarmonic(BuiltinFunction):
         if n in ZZ and m in ZZ and n > -1:
             if abs(m) > n:
                 return ZZ(0)
-            return meval("spherical_harmonic({},{},{},{})".format(
-                ZZ(n), ZZ(m), maxima(theta), maxima(phi)))
+            return maxima("spherical_harmonic({},{},{},{})".format(
+                ZZ(n), ZZ(m), maxima(theta), maxima(phi))).sage()
 
     def _evalf_(self, n, m, theta, phi, parent, **kwds):
         r"""
@@ -1158,6 +830,17 @@ class EllipticKC(BuiltinFunction):
             1/2*pi
             sage: elliptic_kc(1/2)
             elliptic_kc(1/2)
+
+        TESTS:
+
+        Check if complex numbers in the arguments are converted to maxima
+        correctly (see :trac:`7557`)::
+
+            sage: t = jacobi_sn(1.2+2*I*elliptic_kc(1-.5),.5)
+            sage: maxima(t) # abs tol 1e-13
+            0.88771548861928029 - 1.7301614091485560e-15*%i
+            sage: t.n() # abs tol 1e-13
+            0.887715488619280 - 1.73016140914856e-15*I
         """
         if z == 0:
             return pi / 2

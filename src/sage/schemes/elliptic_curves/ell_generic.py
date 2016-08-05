@@ -44,6 +44,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import math
 
@@ -65,11 +66,11 @@ from sage.misc.fast_methods import WithEqualityById
 import sage.schemes.projective.projective_space as projective_space
 from sage.schemes.projective.projective_homset import SchemeHomset_points_abelian_variety_field
 
-import ell_point
-import ell_torsion
-import constructor
-import formal_group
-import weierstrass_morphism as wm
+from . import ell_point
+from . import ell_torsion
+from . import constructor
+from . import formal_group
+from . import weierstrass_morphism as wm
 
 
 sqrt = math.sqrt
@@ -2428,7 +2429,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E.short_weierstrass_model(complete_cube=False).is_isomorphic(E)
             True
         """
-        import constructor
+        from . import constructor
         K = self.base_ring()
 
         # any curve of the form y^2 = x^3 +.. is singular in characteristic 2

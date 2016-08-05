@@ -527,6 +527,14 @@ cdef class Expression(CommutativeRingElement):
                 overall_coeff
                 1 (numeric) ...
                 =====
+
+        Check that user-defined functions get the same treatment (:trac:`19194`)::
+
+            sage: f=function('f')(x)
+            sage: f._dbgprinttree()
+            function f ...
+                x (symbol) ...
+                =====
         """
         self._gobj.dbgprinttree();
 

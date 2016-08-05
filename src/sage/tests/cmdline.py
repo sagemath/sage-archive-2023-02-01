@@ -52,9 +52,9 @@ AUTHORS:
 - Jeroen Demeyer (2010-11-20): initial version (#10300)
 
 """
-
 from subprocess import *
-import os, select
+import os
+import select
 
 
 def test_executable(args, input="", timeout=100.0, **kwds):
@@ -418,7 +418,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     issues raised in :trac:`10589` are fixed. We have to go to slightly silly
     lengths to doctest the output.::
 
-        sage: test='r\"\"\"Add a doc-test for the fixdoctest command line option and, in particular, check that\n:trac:`10589` is fixed.\n\nEXAMPLES::\n\n    sage: 1+1              # incorrect output\n    3\n    sage: m=matrix(ZZ,3)   # output when none is expected\n    [0 0 0]\n    [0 0 0]\n    [1 0 0]\n    sage: (2/3)*m          # no output when it is expected\n    sage: mu=PartitionTuple([[4,4],[3,3,2,1],[1,1]])   # output when none is expected\n    [4, 4, 3, 3, 2, 1, 1]\n    sage: mu.pp()          # uneven indentation\n    ****\n    ****\n    sage: PartitionTuples.global_options(convention="French")\n    sage: mu.pp()         # fix doctest with uneven indentation\n    sage: PartitionTuples.global_options.reset()\n\"\"\"\n'
+        sage: test='r\"\"\"Add a doc-test for the fixdoctest command line option and, in particular, check that\n:trac:`10589` is fixed.\n\nEXAMPLES::\n\n    sage: 1+1              # incorrect output\n    3\n    sage: m=matrix(ZZ,3)   # output when none is expected\n    [0 0 0]\n    [0 0 0]\n    [1 0 0]\n    sage: (2/3)*m          # no output when it is expected\n    sage: mu=PartitionTuple([[4,4],[3,3,2,1],[1,1]])   # output when none is expected\n    [4, 4, 3, 3, 2, 1, 1]\n    sage: mu.pp()          # uneven indentation\n    ****\n    ****\n    sage: PartitionTuples.options(convention="French")\n    sage: mu.pp()         # fix doctest with uneven indentation\n    sage: PartitionTuples.options._reset()\n\"\"\"\n'
         sage: test_file = os.path.join(tmp_dir(), 'test_file.py')
         sage: F = open(test_file, 'w')
         sage: F.write(test)
@@ -450,13 +450,13 @@ def test_executable(args, input="", timeout=100.0, **kwds):
          '+       ****   ***   *',
          '+              **',
          '+              *',
-         '     sage: PartitionTuples.global_options(convention="French")',
+         '     sage: PartitionTuples.options(convention="French")',
          '     sage: mu.pp()         # fix doctest with uneven indentation',
          '+    *',
          '+    **',
          '+    ****   ***   *',
          '+    ****   ***   *',
-         '     sage: PartitionTuples.global_options.reset()']
+         '     sage: PartitionTuples.options._reset()']
 
     Test external programs being called by Sage::
 
@@ -499,7 +499,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ....:         os.open(os.ctermid(), os.O_RDONLY)
         ....:         return True
         ....:     except OSError:
-        ....:         return False 
+        ....:         return False
         sage: (out, err, ret) = test_executable(["sage", "--ecl"], "(* 12345 54321)\n")
         sage: out.find("Embeddable Common-Lisp") >= 0
         True
@@ -744,14 +744,18 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     p.stdin.close()
     fdout = p.stdout.fileno()
     fderr = p.stderr.fileno()
-    out = ""; err = ""
+    out = ""
+    err = ""
 
     while True:
         # Try reading from fdout and fderr
         rfd = []
-        if fdout: rfd.append(fdout)
-        if fderr: rfd.append(fderr)
-        if len(rfd) == 0: break
+        if fdout:
+            rfd.append(fdout)
+        if fderr:
+            rfd.append(fderr)
+        if len(rfd) == 0:
+            break
         rlist = select.select(rfd, [], [], timeout)[0]
 
         if len(rlist) == 0:
@@ -760,11 +764,13 @@ def test_executable(args, input="", timeout=100.0, **kwds):
             raise RuntimeError("timeout in test_executable()")
         if fdout in rlist:
             s = os.read(fdout, 1024)
-            if s == "": fdout = None   # EOF
+            if s == "":
+                fdout = None   # EOF
             out += s
         if fderr in rlist:
             s = os.read(fderr, 1024)
-            if s == "": fderr = None   # EOF
+            if s == "":
+                fderr = None   # EOF
             err += s
 
     return (out, err, p.wait())

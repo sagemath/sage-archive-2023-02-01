@@ -150,7 +150,7 @@ def tmp_filename(name="tmp_", ext=""):
 def graphics_filename(ext='.png'):
     """
     Deprecated SageNB graphics filename
-    
+
     You should just use :meth:`tmp_filename`.
 
     When run from the Sage notebook, return the next available canonical

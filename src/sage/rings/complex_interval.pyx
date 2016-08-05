@@ -45,7 +45,7 @@ from sage.libs.gmp.mpz cimport mpz_sgn, mpz_cmpabs_ui
 from sage.libs.flint.fmpz cimport *
 
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
-from complex_number cimport ComplexNumber
+from .complex_number cimport ComplexNumber
 
 import complex_interval_field
 from complex_field import ComplexField
@@ -620,8 +620,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(RIF(1, 2), RIF(3, 4)).center()
             1.50000000000000 + 3.50000000000000*I
         """
-        cdef complex_number.ComplexNumber center
-        center = complex_number.ComplexNumber(self._parent._middle_field(), None)
+        cdef ComplexNumber center
+        center = ComplexNumber(self._parent._middle_field(), None)
         mpfi_mid(center.__re, self.__re)
         mpfi_mid(center.__im, self.__im)
 

@@ -430,8 +430,9 @@ unlike for the other interfaces.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
-from expect import Expect, ExpectElement
+from .expect import Expect, ExpectElement
 import os
 
 class Kash(Expect):

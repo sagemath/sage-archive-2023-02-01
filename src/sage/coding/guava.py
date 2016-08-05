@@ -21,7 +21,6 @@ AUTHORS:
 Functions
 ---------
 """
-
 #*****************************************************************************
 #       Copyright (C) 2007 David Joyner <wdj@usna.edu>
 #                     2006 Nick Alexander <ncalexan@math.uci.edu>
@@ -30,6 +29,7 @@ Functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.interfaces.all import gap
 from sage.misc.randstate import current_randstate

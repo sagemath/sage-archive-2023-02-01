@@ -32,7 +32,7 @@ from cpython cimport PyObject
 from libc.limits cimport LONG_MAX
 
 
-cdef extern from "graph.hh" namespace "bliss":
+cdef extern from "bliss/graph.hh" namespace "bliss":
 
     cdef cppclass Stats:
         pass

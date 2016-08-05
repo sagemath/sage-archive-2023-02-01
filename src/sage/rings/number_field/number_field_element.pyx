@@ -1116,8 +1116,8 @@ cdef class NumberFieldElement(FieldElement):
     def abs(self, prec=None, i=None):
         r"""Return the absolute value of this element.
 
-        If ``i`` is provided, then the absolute of the `i`-th embedding is
-        given.
+        If ``i`` is provided, then the absolute value of the `i`-th
+        embedding is given.
 
         Otherwise, if the number field has a coercion embedding into
         `\RR`, the corresponding absolute value is returned as an
@@ -1128,7 +1128,7 @@ cdef class NumberFieldElement(FieldElement):
 
         If ``prec`` is ``None`` or 53, then the complex double field is
         used; otherwise the arbitrary precision (but slow) complex
-        field is used.
+        field is used.  The result is in the corresponding real field.
 
         INPUT:
 

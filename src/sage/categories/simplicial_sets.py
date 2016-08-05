@@ -12,6 +12,7 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.sets_cat import Sets
+from sage.categories.homsets import HomsetsCategory
 
 class SimplicialSets(Category_singleton):
     r"""
@@ -145,6 +146,25 @@ class SimplicialSets(Category_singleton):
 
     class MorphismMethods:
         pass
+
+    class Homsets(HomsetsCategory):
+        class Endset(CategoryWithAxiom):
+            class ParentMethods:
+                def one(self):
+                    """
+                    Return the identity morphism in `Hom(S, S)`.
+
+                    EXAMPLES::
+
+                        sage: T = simplicial_sets.Torus()
+                        sage: Hom(T, T).identity()
+                        Simplicial set endomorphism of Torus
+                          Defn: Identity map
+                    """
+                    from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
+                    return SimplicialSetMorphism(domain=self.domain(),
+                                                 codomain=self.codomain(),
+                                                 identity=True)
 
     class Finite(CategoryWithAxiom):
         """

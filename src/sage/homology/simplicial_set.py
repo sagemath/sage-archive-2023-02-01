@@ -171,7 +171,7 @@ Without the ``range`` argument, this would raise an error, since
     sage: B3.product(S1).homology()
     Traceback (most recent call last):
     ...
-    NotImplementedError: this simplicial set may be infinite, so please specify dimensions when computing homology
+    NotImplementedError: this simplicial set may be infinite, so specify dimensions when computing homology
 
 To define a simplicial set by hand, first define some simplices, then
 use them to construct a simplicial set by specifying their faces::
@@ -985,6 +985,13 @@ class SimplicialSet_arbitrary(Parent):
              Simplex obtained by applying degeneracies s_1 s_0 to v_0,
              Simplex obtained by applying degeneracies s_1 s_0 to v_0]
 
+            sage: C3 = groups.misc.MultiplicativeAbelian([3])
+            sage: BC3 = simplicial_sets.ClassifyingSpace(C3)
+            sage: f2 = BC3.n_cells(1)[1]; f2
+            f^2
+            sage: BC3.faces(f2)
+            (1, 1)
+
         TESTS::
 
             sage: v_0 = S2.n_cells(0)[0]
@@ -1173,14 +1180,25 @@ class SimplicialSet_arbitrary(Parent):
             sage: X0 = SimplicialSet({v: None, w: None})
             sage: X0.nondegenerate_simplices() # new ordering is used
             [w, z]
+
+        Test an infinite example::
+
+            sage: C3 = groups.misc.MultiplicativeAbelian([3])
+            sage: BC3 = simplicial_sets.ClassifyingSpace(C3)
+            sage: BC3.nondegenerate_simplices(2)
+            [1, f, f^2, f * f, f * f^2, f^2 * f, f^2 * f^2]
+            sage: BC3.nondegenerate_simplices()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this simplicial set may be infinite, so specify max_dim
         """
         if self.is_finite():
             if max_dim is None:
                 return list(self._simplices)
             return list(sigma for sigma in self._simplices if sigma.dimension() <= max_dim)
         if max_dim is None:
-            raise NotImplementedError('this simplicial set may be infinite, '
-                                      'so please specify max_dim')
+            raise NotImplementedError('this simplicial set may be '
+                                      'infinite, so specify max_dim')
         return list(sigma for sigma in self.n_skeleton(max_dim)._simplices)
 
     def cells(self, subcomplex=None, max_dim=None):
@@ -1226,6 +1244,17 @@ class SimplicialSet_arbitrary(Parent):
             sage: X = SimplicialSet({e: (v,w)})
             sage: X.cells(X.subsimplicial_set([v, w]))
             {0: [*], 1: [e]}
+
+        Test an infinite example::
+
+            sage: C3 = groups.misc.MultiplicativeAbelian([3])
+            sage: BC3 = simplicial_sets.ClassifyingSpace(C3)
+            sage: BC3.cells(max_dim=2)
+            {0: [1], 1: [f, f^2], 2: [f * f, f * f^2, f^2 * f, f^2 * f^2]}
+            sage: BC3.cells()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this simplicial set may be infinite, so specify max_dim
         """
         if subcomplex is None:
             if self.is_finite():
@@ -1236,13 +1265,13 @@ class SimplicialSet_arbitrary(Parent):
                     else:
                         simplices[sigma.dimension()] = [sigma]
                 if max_dim is not None:
-                    return {d: sorted(simplices[d]) for d in simplices 
+                    return {d: sorted(simplices[d]) for d in simplices
                             if d <= max_dim}
                 return {d: sorted(simplices[d]) for d in simplices}
             # Infinite case:
             if max_dim is None:
-                raise NotImplementedError('this simplicial set may be infinite, '
-                                          'so please specify max_dim')
+                raise NotImplementedError('this simplicial set may be '
+                                          'infinite, so specify max_dim')
             return self.n_skeleton(max_dim).cells()
         # subcomplex is not None:
         return self.quotient(subcomplex).cells(max_dim=max_dim)
@@ -1264,16 +1293,21 @@ class SimplicialSet_arbitrary(Parent):
 
         EXAMPLES::
 
-            sage: delta_complexes.Torus().n_cells(1)
-            [(0, 0), (0, 0), (0, 0)]
-            sage: cubical_complexes.Cube(1).n_cells(0)
-            [[1,1], [0,0]]
+            sage: simplicial_sets.Sphere(3).n_cells(3)
+            [sigma_3]
+            sage: simplicial_sets.Sphere(3).n_cells(2)
+            []
+            sage: C2 = groups.misc.MultiplicativeAbelian([2])
+            sage: BC2 = C2.nerve()
+            sage: BC2.n_cells(3)
+            [f * f * f]
         """
         cells = self.cells(subcomplex=subcomplex, max_dim=n)
         try:
             return list(cells[n])
         except KeyError:
-            # don't barf if someone asks for n_cells in a dimension where there are none
+            # Don't barf if someone asks for n_cells in a dimension
+            # where there are none.
             return []
 
     def _map_from_empty_set(self):
@@ -1294,9 +1328,30 @@ class SimplicialSet_arbitrary(Parent):
         """
         return Empty().Hom(self)({})
 
+    def identity(self):
+        """
+        Return the identity map on this simplicial set.
+
+        EXAMPLES::
+
+            sage: S3 = simplicial_sets.Sphere(3)
+            sage: S3.identity()
+            Simplicial set endomorphism of S^3
+              Defn: Identity map
+
+            sage: BC3 = simplicial_sets.ClassifyingSpace(groups.misc.MultiplicativeAbelian([3]))
+            sage: one = BC3.identity()
+            sage: [(sigma, one(sigma)) for sigma in BC3.n_cells(2)]
+            [(f * f, f * f),
+             (f * f^2, f * f^2),
+             (f^2 * f, f^2 * f),
+             (f^2 * f^2, f^2 * f^2)]
+        """
+        return self.Hom(self).identity()
+
     def constant_map(self, codomain=None, point=None):
         """
-        Return a constant map with this space as its domain.
+        Return a constant map with this simplicial set as its domain.
 
         INPUT:
 
@@ -1323,6 +1378,13 @@ class SimplicialSet_arbitrary(Parent):
               From: S^4
               To:   S^0
               Defn: Constant map at v_0
+
+            sage: Sigma3 = groups.permutation.Symmetric(3)
+            sage: Sigma3.nerve().constant_map()
+            Simplicial set morphism:
+              From: Nerve of Symmetric group of order 3! as a permutation group
+              To:   Point
+              Defn: Constant map at *
 
         TESTS::
 
@@ -1377,6 +1439,10 @@ class SimplicialSet_arbitrary(Parent):
             1
             sage: len(G.edges())
             0
+
+            sage: Sigma3 = groups.permutation.Symmetric(3)
+            sage: Sigma3.nerve().is_connected()
+            True
         """
         skel = self.n_skeleton(1)
         edges = skel.n_cells(1)
@@ -1628,12 +1694,12 @@ class SimplicialSet_arbitrary(Parent):
             sage: BC3.homology()
             Traceback (most recent call last):
             ...
-            NotImplementedError: this simplicial set may be infinite, so please specify dimensions when computing homology
+            NotImplementedError: this simplicial set may be infinite, so specify dimensions when computing homology
         """
         if not isinstance(self, SimplicialSet_finite):
             if dim is None:
                 raise NotImplementedError('this simplicial set may be infinite, so '
-                                          'please specify dimensions when computing homology')
+                                          'specify dimensions when computing homology')
             else:
                 if isinstance(dim, (list, tuple)):
                     max_dim = max(dim)
@@ -1694,7 +1760,7 @@ class SimplicialSet_arbitrary(Parent):
             sage: BC3.cohomology()
             Traceback (most recent call last):
             ...
-            NotImplementedError: this simplicial set may be infinite, so please specify dimensions when computing homology
+            NotImplementedError: this simplicial set may be infinite, so specify dimensions when computing homology
         """
         return self.homology(dim=dim, cohomology=True, **kwds)
 
@@ -1745,11 +1811,11 @@ class SimplicialSet_arbitrary(Parent):
             sage: X_1.fundamental_group().is_abelian()
             False
 
-        Compute the fundamental group of some classifying spaces::
-
             sage: RP3 = simplicial_sets.RealProjectiveSpace(3)
             sage: RP3.fundamental_group()
             Finitely presented group < e | e^2 >
+
+        Compute the fundamental group of some classifying spaces::
 
             sage: C5 = groups.misc.MultiplicativeAbelian([5])
             sage: BC5 = C5.nerve()
@@ -1853,7 +1919,8 @@ class SimplicialSet_arbitrary(Parent):
                 # code reaches this point, but there are certainly
                 # groups for which these errors are raised. 'IsTrivial'
                 # works for all of the examples I've seen, though.
-                raise ValueError('unable to determine if the fundamental group is trival')
+                raise ValueError('unable to determine if the fundamental '
+                                 'group is trivial')
 
     def connectivity(self, max_dim=None):
         """
@@ -1900,9 +1967,9 @@ class SimplicialSet_arbitrary(Parent):
             if self.is_finite():
                 max_dim = self.dimension()
             else:
-                # Note: should never reach this, because our only
-                # examples (so far) of infinite simplicial sets are
-                # not simply connected.
+                # Note: at the moment, this will never be reached,
+                # because our only examples (so far) of infinite
+                # simplicial sets are not simply connected.
                 raise ValueError('this simplicial set may be infinite, so specify '
                                  'a maximum dimension through which to check')
 
@@ -1932,11 +1999,9 @@ class SimplicialSet_arbitrary(Parent):
         finite), the quotient map.
 
         Base points: if the original simplicial set has a base point
-        contained in ``subcomplex``, then ``*`` is the base point in
-        the quotient. If the original simplicial set has a base point
-        not contained in ``subcomplex``, then use that base point. If
-        the original simplicial set had no base point, then use
-        ``*``.
+        not contained in ``subcomplex`` and if the original simplicial
+        set is finite, then use its image as the base point for the
+        quotient. In all other cases, ``*`` is the base point.
 
         EXAMPLES::
 
@@ -1985,6 +2050,26 @@ class SimplicialSet_arbitrary(Parent):
               From: RP^5
               To:   Quotient: (RP^5/Simplicial set with 3 non-degenerate simplices)
               Defn: [1, f, f * f, f * f * f, f * f * f * f, f * f * f * f * f] --> [*, Simplex obtained by applying degeneracy s_0 to *, Simplex obtained by applying degeneracies s_1 s_0 to *, f * f * f, f * f * f * f, f * f * f * f * f]
+
+        Behavior of base points::
+
+            sage: K = simplicial_sets.Simplex(3)
+            sage: K.is_pointed()
+            False
+            sage: L = K.subsimplicial_set([K.n_cells(1)[-1]])
+            sage: L.nondegenerate_simplices()
+            [(2,), (3,), (2, 3)]
+            sage: K.quotient([K.n_cells(1)[-1]]).base_point()
+            *
+
+            sage: K = K.set_base_point(K.n_cells(0)[0])
+            sage: K.base_point()
+            (0,)
+            sage: L = K.subsimplicial_set([K.n_cells(1)[-1]])
+            sage: L.nondegenerate_simplices()
+            [(2,), (3,), (2, 3)]
+            sage: K.quotient(L).base_point()
+            (0,)
 
         TESTS::
 
@@ -2139,8 +2224,8 @@ class SimplicialSet_arbitrary(Parent):
 
         If a simplicial set is constructed as a product, the factors
         are recorded and are accessible via the method
-        :meth:`.simplicial_set_constructions.ProductOfSimplicialSets.factors`. If
-        each factor is finite, then you can also construct the
+        :meth:`.simplicial_set_constructions.ProductOfSimplicialSets.factors`.
+        If each factor is finite, then you can also construct the
         projection maps onto each factor, the wedge as a subcomplex,
         and the fat wedge as a subcomplex.
 
@@ -2206,6 +2291,19 @@ class SimplicialSet_arbitrary(Parent):
               Defn: ...
             sage: S2xS3.wedge_as_subset().homology()
             {0: 0, 1: 0, 2: Z, 3: Z}
+
+        In the case of pointed simplicial sets, there is an inclusion
+        of each factor into the product. These are not automatically
+        defined in Sage, but they are easy to construct using identity
+        maps and constant maps::
+
+            sage: one = S2.identity()
+            sage: const = S2.constant_map(codomain=S3)
+            sage: S2xS3.universal_property(one, const)
+            Simplicial set morphism:
+              From: S^2
+              To:   S^2 x S^3
+              Defn: [v_0, sigma_2] --> [(v_0, v_0), (sigma_2, Simplex obtained by applying degeneracies s_1 s_0 to v_0)]
         """
         from .simplicial_set_constructions import ProductOfSimplicialSets, \
             ProductOfSimplicialSets_finite
@@ -2274,7 +2372,7 @@ class SimplicialSet_arbitrary(Parent):
               From: Point
               To:   S^1 x S^1
               Defn: Constant map at (v_0, v_0)
-            sage: W.induced_map(0)
+            sage: W.structure_map(0)
             Simplicial set morphism:
               From: S^1
               To:   Wedge: (S^1 v S^1 x S^1)
@@ -2366,7 +2464,7 @@ class SimplicialSet_arbitrary(Parent):
 
             sage: P.defining_map(0) == one
             True
-            sage: P.induced_map(1)
+            sage: P.structure_map(1)
             Simplicial set morphism:
               From: Pullback of maps:
               Simplicial set endomorphism of S^2
@@ -2375,9 +2473,9 @@ class SimplicialSet_arbitrary(Parent):
                 Defn: Identity map
               To:   S^2
               Defn: [(v_0, v_0), (sigma_2, sigma_2)] --> [v_0, sigma_2]
-            sage: P.induced_map(0).domain() == P
+            sage: P.structure_map(0).domain() == P
             True
-            sage: P.induced_map(0).codomain() == S2
+            sage: P.structure_map(0).codomain() == S2
             True
 
         The pullback `P` also has a universal property: given a
@@ -3494,7 +3592,7 @@ class Nerve(SimplicialSet_arbitrary):
         """
         return (isinstance(other, Nerve)
                 and self._monoid == other._monoid
-                and self.n_cells(0) == other.n_cells(0))
+                and self.base_point() == other.base_point())
 
     def __ne__(self, other):
         """
@@ -4563,3 +4661,4 @@ def HopfMap():
     return S3.Hom(S2)({alpha_1:s0_sigma, alpha_2:s1_sigma,
                        alpha_3:s2_sigma, alpha_4:s0_sigma,
                        alpha_5:s2_sigma, alpha_6:s1_sigma})
+

@@ -96,7 +96,7 @@ class SubSimplicialSet(SimplicialSet_finite):
             sage: S3 = simplicial_sets.Sphere(3)
             sage: K = simplicial_sets.KleinBottle()
             sage: X = S3.disjoint_union(K)
-            sage: Y = X.induced_map(0).image() # the S3 summand
+            sage: Y = X.structure_map(0).image() # the S3 summand
             sage: Y.inclusion_map()
             Simplicial set morphism:
               From: Simplicial set with 2 non-degenerate simplices
@@ -321,9 +321,9 @@ class PullbackOfSimplicialSets_finite(PullbackOfSimplicialSets, SimplicialSet_fi
 
     When the simplicial sets involved are all finite, there are more
     methods available to the resulting pullback, as compared to case
-    when some of the components are infinite: the induced maps from
+    when some of the components are infinite: the structure maps from
     the pullback and the pullback's universal property: see
-    :meth:`induced_map` and :meth:`universal_property`.
+    :meth:`structure_map` and :meth:`universal_property`.
     """
     def __init__(self, maps=None):
         r"""
@@ -487,16 +487,16 @@ class PullbackOfSimplicialSets_finite(PullbackOfSimplicialSets, SimplicialSet_fi
         # the product.
         self._translation = tuple(translate.items())
 
-    def induced_map(self, i):
+    def structure_map(self, i):
         r"""
-        The `i`-th induced map from the pullback.
+        The `i`-th projection map from the pullback.
 
         INPUT:
 
         - ``i`` -- integer
 
         If this pullback `P` was constructed as ``Y.pullback(f_0, f_1,
-        ...)``, where `f_i: X_i \to Y`, then there are induced maps
+        ...)``, where `f_i: X_i \to Y`, then there are structure maps
         `\bar{f}_i: P \to X_i`. This method constructs `\bar{f}_i`.
 
         EXAMPLES::
@@ -504,7 +504,7 @@ class PullbackOfSimplicialSets_finite(PullbackOfSimplicialSets, SimplicialSet_fi
             sage: RP5 = simplicial_sets.RealProjectiveSpace(5)
             sage: K = RP5.quotient(RP5.n_skeleton(2))
             sage: Y = K.pullback(K.quotient_map(), K.base_point_map())
-            sage: Y.induced_map(0)
+            sage: Y.structure_map(0)
             Simplicial set morphism:
               From: Pullback of maps:
               Simplicial set morphism:
@@ -517,7 +517,12 @@ class PullbackOfSimplicialSets_finite(PullbackOfSimplicialSets, SimplicialSet_fi
                 Defn: Constant map at *
               To:   RP^5
               Defn: [(1, *), (f, Simplex obtained by applying degeneracy s_0 to *), (f * f, Simplex obtained by applying degeneracies s_1 s_0 to *)] --> [1, f, f * f]
-            sage: Y.induced_map(1).codomain()
+            sage: Y.structure_map(1).codomain()
+            Point
+
+        These maps are also accessible via ``projection``::
+
+            sage: Y.projection(1).codomain()
             Point
         """
         if len(self._maps) == 1:
@@ -527,6 +532,8 @@ class PullbackOfSimplicialSets_finite(PullbackOfSimplicialSets, SimplicialSet_fi
             f[x[1]] = x[0][i][0].apply_degeneracies(*x[0][i][1])
         codomain = self.defining_map(i).domain()
         return self.Hom(codomain)(f)
+
+    projection = structure_map
 
     def universal_property(self, *maps):
         r"""
@@ -901,7 +908,7 @@ class ProductOfSimplicialSets_finite(ProductOfSimplicialSets, PullbackOfSimplici
             sage: m_0 == m_1
             False
         """
-        return self.induced_map(i)
+        return self.structure_map(i)
 
     def wedge_as_subset(self):
         """
@@ -1037,7 +1044,7 @@ class PushoutOfSimplicialSets(SimplicialSet_arbitrary):
 
             sage: P.defining_map(0) == f0
             True
-            sage: P.induced_map(1)
+            sage: P.structure_map(1)
             Simplicial set morphism:
               From: 0-simplex
               To:   Pushout of maps:
@@ -1050,9 +1057,9 @@ class PushoutOfSimplicialSets(SimplicialSet_arbitrary):
                 To:   0-simplex
                 Defn: Constant map at (0,)
               Defn: Constant map at a
-            sage: P.induced_map(0).domain() == Y0
+            sage: P.structure_map(0).domain() == Y0
             True
-            sage: P.induced_map(0).codomain() == P
+            sage: P.structure_map(0).codomain() == P
             True
 
         An inefficient way of constructing a suspension for an
@@ -1122,8 +1129,16 @@ class PushoutOfSimplicialSets(SimplicialSet_arbitrary):
             sage: B = simplicial_sets.ClassifyingSpace(groups.misc.MultiplicativeAbelian([2]))
             sage: K = B.n_skeleton(3)
             sage: Q = K.pushout(K.inclusion_map(), K.constant_map())
-            sage: Q.n_skeleton(6).homology()
-            {0: 0, 1: 0, 2: 0, 3: 0, 4: Z, 5: C2, 6: 0}
+            sage: Q.n_skeleton(5).homology()
+            {0: 0, 1: 0, 2: 0, 3: 0, 4: Z, 5: Z}
+
+        Of course, computing the `n`-skeleton and then taking homology
+        need not yield the same answer as asking for homology through
+        dimension `n`, since the latter computation will use the
+        `(n+1)`-skeleton::
+
+            sage: Q.homology(range(6))
+            {0: 0, 1: 0, 2: 0, 3: 0, 4: Z, 5: C2}
         """
         if self.is_finite():
             maps = self._maps
@@ -1210,7 +1225,7 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
     methods available to the resulting pushout, as compared to case
     when some of the components are infinite: the induced maps to the
     pushout and the pushout's universal property: see
-    :meth:`induced_map` and :meth:`universal_property`.
+    :meth:`structure_map` and :meth:`universal_property`.
     """
     def __init__(self, maps=None, vertex_name=None):
         r"""
@@ -1381,7 +1396,7 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
                                for (Y,i) in spaces[1:]])
         self._vertex_name = vertex_name
 
-    def induced_map(self, i):
+    def structure_map(self, i):
         r"""
         The $i$-th induced map to the pushout.
 
@@ -1398,14 +1413,14 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
             sage: S1 = simplicial_sets.Sphere(1)
             sage: T = simplicial_sets.Torus()
             sage: X = S1.disjoint_union(T) # a pushout
-            sage: X.induced_map(0)
+            sage: X.structure_map(0)
             Simplicial set morphism:
               From: S^1
               To:   Disjoint union: (S^1 u Torus)
               Defn: [v_0, sigma_1] --> [v_0, sigma_1]
-            sage: X.induced_map(1).domain()
+            sage: X.structure_map(1).domain()
             Torus
-            sage: X.induced_map(1).codomain()
+            sage: X.structure_map(1).codomain()
             Disjoint union: (S^1 u Torus)
         """
         return self._induced[i]
@@ -1465,7 +1480,7 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
             raise ValueError('the maps are not compatible')
         data = {}
         for i,g in enumerate(maps):
-            f_i_dict = self.induced_map(i)._dictionary
+            f_i_dict = self.structure_map(i)._dictionary
             for sigma in f_i_dict:
                 tau = f_i_dict[sigma]
                 # For sigma_i in Y_i, define the map G by
@@ -1513,6 +1528,11 @@ class QuotientOfSimplicialSet(PushoutOfSimplicialSets):
         PushoutOfSimplicialSets.__init__(self, [subcomplex.inclusion_map(),
                                                 subcomplex.constant_map()],
                                          vertex_name=vertex_name)
+
+        ambient = subcomplex.ambient_space()
+        if ambient.is_pointed() and ambient.is_finite():
+            if ambient.base_point() not in subcomplex:
+                self._basepoint = self.structure_map(0)(ambient.base_point())
 
     def ambient(self):
         """
@@ -1652,6 +1672,10 @@ class QuotientOfSimplicialSet_finite(QuotientOfSimplicialSet,
         PushoutOfSimplicialSets_finite.__init__(self, [subcomplex.inclusion_map(),
                                                        subcomplex.constant_map()],
                                                 vertex_name=vertex_name)
+        ambient = subcomplex.ambient_space()
+        if ambient.is_pointed():
+            if ambient.base_point() not in subcomplex:
+                self._basepoint = self.structure_map(0)(ambient.base_point())
 
     def quotient_map(self):
         """
@@ -1672,7 +1696,7 @@ class QuotientOfSimplicialSet_finite(QuotientOfSimplicialSet,
             sage: q.codomain() == S1
             True
         """
-        return self.induced_map(0)
+        return self.structure_map(0)
 
 
 class SmashProductOfSimplicialSets_finite(QuotientOfSimplicialSet_finite,
@@ -1857,7 +1881,7 @@ class WedgeOfSimplicialSets_finite(WedgeOfSimplicialSets, PushoutOfSimplicialSet
             sage: W.inclusion_map(2).domain()
             S^1
         """
-        return self.induced_map(i)
+        return self.structure_map(i)
 
     def projection_map(self, i):
         """
@@ -2025,7 +2049,7 @@ class DisjointUnionOfSimplicialSets_finite(DisjointUnionOfSimplicialSets,
             sage: W.inclusion_map(2).domain()
             S^1
         """
-        return self.induced_map(i)
+        return self.structure_map(i)
 
 
 class ConeOfSimplicialSet(SimplicialSet_arbitrary):

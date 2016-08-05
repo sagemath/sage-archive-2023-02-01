@@ -295,7 +295,7 @@ class SimplicialSetHomset(Homset):
 
 
 class SimplicialSetMorphism(Morphism):
-    def __init__(self, data=None, domain=None, codomain=None, 
+    def __init__(self, data=None, domain=None, codomain=None,
                  constant=None, identity=False, check=True):
         r"""
         A morphism of simplicial sets.
@@ -441,7 +441,7 @@ class SimplicialSetMorphism(Morphism):
 
         if (not isinstance(domain, SimplicialSet_arbitrary)
             or not isinstance(codomain, SimplicialSet_arbitrary)):
-            raise ValueError('the domain and codomain must be simplicial sets')
+            raise TypeError('the domain and codomain must be simplicial sets')
         if any(x.nondegenerate() not in
                domain.nondegenerate_simplices() for x in data.keys()):
             raise ValueError('at least one simplex in the defining '

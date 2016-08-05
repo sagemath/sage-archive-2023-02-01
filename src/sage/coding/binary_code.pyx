@@ -40,6 +40,7 @@ from __future__ import print_function
 
 include 'sage/ext/cdefs.pxi'
 from cpython.mem cimport *
+from cpython.object cimport PyObject_RichCompare
 include "cysignals/memory.pxi"
 from sage.structure.element import is_Matrix
 from sage.misc.misc import cputime
@@ -829,7 +830,7 @@ cdef class BinaryCode:
         """
         return BinaryCode, (self.matrix(),)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
         Comparison of BinaryCodes.
 
@@ -841,9 +842,10 @@ cdef class BinaryCode:
             sage: C = BinaryCode(B.matrix())
             sage: B == C
             True
-
         """
-        return cmp(self.matrix(), other.matrix())
+        if type(self) is not type(other):
+            return NotImplemented
+        return PyObject_RichCompare(self.matrix(), other.matrix(), op)
 
     def matrix(self):
         """

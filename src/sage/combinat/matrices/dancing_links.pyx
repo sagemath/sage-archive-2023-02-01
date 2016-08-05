@@ -15,8 +15,7 @@ Dancing Links internal pyx code
 from __future__ import print_function
 
 include "cysignals/signals.pxi"
-
-from sage.structure.sage_object cimport rich_to_bool
+from cpython.object cimport PyObject_RichCompare
 
 from libcpp.vector cimport vector
 
@@ -138,7 +137,7 @@ cdef class dancing_linksWrapper:
             sage: X == Y
             0
         """
-        return rich_to_bool(op, cmp(left._rows, right._rows))
+        return PyObject_RichCompare(left._rows, right._rows, op)
 
     def _init_rows(self, rows):
         """

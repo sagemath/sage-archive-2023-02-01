@@ -661,7 +661,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             for i in list_pts:
                 yl.insert(i + shift, zero)
                 shift += 1
-            values = I.next()
+            values = next(I)
             while not end:
                 try:
                     shift = 0
@@ -669,7 +669,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
                         yl[i + shift] =  values[shift]
                         shift += 1
                     y = A(yl)
-                    values = I.next()
+                    values = next(I)
                     try:
                         c_or = self.original_decoder().decode_to_code(y)
                         end = True

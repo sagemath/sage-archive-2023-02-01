@@ -423,7 +423,7 @@ def ellipsis_iter(*args, step=None):
                 next = None
             more = xsrange(start, end, step, coerce=False, include_endpoint=True)
             try:
-                first = more.next()
+                first = more.next()  # BUG: cannot currently use next(more)
                 if last_end != first:
                     yield first
                 for a in more:

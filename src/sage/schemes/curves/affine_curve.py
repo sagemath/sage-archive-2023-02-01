@@ -627,13 +627,25 @@ class AffinePlaneCurve(AffineCurve):
               Defn: Defined on coordinates by sending (t) to
                     ((-12*t^4 + 6*t^3 + 4*t^2 - 2*t)/(-25*t^4 + 40*t^3 - 26*t^2 +
             8*t - 1), (-9*t^4 + 12*t^3 - 4*t + 1)/(-25*t^4 + 40*t^3 - 26*t^2 + 8*t - 1))
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([x^2 + y^2 + 7], A)
+            sage: C.rational_parameterization()
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Number Field in a with defining polynomial a^2 + 7
+              To:   Affine Plane Curve over Number Field in a with defining
+            polynomial a^2 + 7 defined by x^2 + y^2 + 7
+              Defn: Defined on coordinates by sending (t) to
+                    (((7*a)*t^2 + (a))/(-7*t^2 + 1), (-14*t)/(-7*t^2 + 1))
         """
-        para = self.projective_closure(i=0).rational_parameterization()
+        para = self.projective_closure(i=0).rational_parameterization().defining_polynomials()
         # these polynomials are homogeneous in two indeterminants, so dehomogenize wrt one of the variables
         R = para[0].parent()
         A_line = AffineSpace(R.base_ring(), 1, 't')
         para = [A_line.coordinate_ring()(para[i].substitute({R.gens()[0]: 1})) for i in range(3)]
-        C = self.ambient_space().curve(self.change_ring(R.base_ring()).defining_polynomials())
+        C = self.change_ring(R.base_ring())
         # because of the parameter i=0, the projective closure is constructed with respect to the
         # affine patch corresponding to the first coordinate being nonzero. Thus para[0] will not be
         # the zero polynomial, and dehomogenization won't change this

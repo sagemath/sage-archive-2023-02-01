@@ -1601,6 +1601,12 @@ class Function_factorial(GinacFunction):
             sage: (factorial(x) == y).solve(x)
             [factorial(x) == y]
 
+        Check that :trac:`16166` is fixed::
+
+            sage: RBF=RealBallField(53)
+            sage: factorial(RBF(4.2))
+            [32.5780960503313 +/- 6.71e-14]
+
         Test pickling::
 
             sage: loads(dumps(factorial))

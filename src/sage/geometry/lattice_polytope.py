@@ -132,7 +132,7 @@ import collections
 from six.moves import copyreg
 import os
 import subprocess
-import StringIO
+from six import StringIO
 from functools import reduce
 
 
@@ -293,7 +293,7 @@ def LatticePolytope(data, compute_vertices=True, n=0, lattice=None):
         skip_palp_matrix(f, n)
         data = read_palp_matrix(data)
         f.close()
-    if isinstance(data, (file, StringIO.StringIO)):
+    if isinstance(data, (file, StringIO)):
         data = read_palp_matrix(data)
     if not is_PointCollection(data) and not isinstance(data, (list, tuple)):
         try:
@@ -1196,7 +1196,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             (2, 2, 3)
         """
         if isinstance(data, str):
-            f = StringIO.StringIO(data)
+            f = StringIO(data)
             self._read_equations(f)
             f.close()
             return
@@ -1293,7 +1293,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             ValueError: Cannot read face structure for a polytope constructed as polar, use _compute_faces!
         """
         if isinstance(data, str):
-            f = StringIO.StringIO(data)
+            f = StringIO(data)
             self._read_faces(f)
             f.close()
             return
@@ -1368,7 +1368,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             ]
         """
         if isinstance(data, str):
-            f = StringIO.StringIO(data)
+            f = StringIO(data)
             self._read_nef_partitions(f)
             f.close()
             return
@@ -5823,7 +5823,7 @@ def _read_nef_x_partitions(data):
         [[2, 4, 5], [3, 4, 5], [4, 5]]
     """
     if isinstance(data, str):
-        f = StringIO.StringIO(data)
+        f = StringIO(data)
         partitions = _read_nef_x_partitions(f)
         f.close()
         return partitions
@@ -6411,7 +6411,7 @@ def read_palp_matrix(data, permutation=False):
         [2 4 6]
     """
     if isinstance(data,str):
-        f = StringIO.StringIO(data)
+        f = StringIO(data)
         mat = read_palp_matrix(f, permutation=permutation)
         f.close()
         return mat

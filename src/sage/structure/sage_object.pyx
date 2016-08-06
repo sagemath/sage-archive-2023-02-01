@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function
 import cPickle
 import os
 import sys
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 from sage.misc.sage_unittest import TestSuite
 
 sys_modules = sys.modules

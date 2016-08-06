@@ -2412,7 +2412,7 @@ def unpickle_newobj(klass, args):
 
     pers_load = lambda id: pers[int(id)]
 
-    from cStringIO import StringIO
+    from six.moves import cStringIO as StringIO
     import cPickle
     unp = cPickle.Unpickler(StringIO(pickle))
     unp.persistent_load = pers_load
@@ -2602,12 +2602,15 @@ def test_pickle(p, verbose_eval=False, pedantic=False, args=()):
     global unpickle_persistent_loader
     unpickle_persistent_loader = pers_load
 
-    if verbose_eval: print("evaluating explain_pickle in_current_sage=True:")
+    if verbose_eval:
+        print("evaluating explain_pickle in_current_sage=True:")
     current_res = sage_eval(current, preparse=False)
-    if verbose_eval: print("evaluating explain_pickle in_current_sage=False:")
+    if verbose_eval:
+        print("evaluating explain_pickle in_current_sage=False:")
     generic_res = sage_eval(generic, preparse=False)
-    if verbose_eval: print("loading pickle with cPickle:")
-    from cStringIO import StringIO
+    if verbose_eval:
+        print("loading pickle with cPickle:")
+    from six.moves import cStringIO as StringIO
     import cPickle
     unp = cPickle.Unpickler(StringIO(p))
     unp.persistent_load = pers_load

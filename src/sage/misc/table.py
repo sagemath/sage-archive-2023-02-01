@@ -11,7 +11,7 @@ AUTHORS:
 """
 from __future__ import absolute_import
 
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 
@@ -776,8 +776,8 @@ class table(SageObject):
         EXAMPLES::
 
             sage: T = table([['a', 'bb', 'ccccc'], [10, -12, 0], [1, 2, 3]])
-            sage: import StringIO
-            sage: s = StringIO.StringIO()
+            sage: from six import StringIO
+            sage: s = StringIO()
             sage: T._html_table_row(s, ['a', 2, '$x$'])
             sage: print(s.getvalue())
             <td>a</td>

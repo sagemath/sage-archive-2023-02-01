@@ -2192,25 +2192,39 @@ class AbstractLinearCode(module.Module):
         E = self.encoder(encoder_name, **kwargs)
         return E.generator_matrix()
 
-    def systematic_generator_matrix(self):
+    def systematic_generator_matrix(self, systematic_positions=None):
         """
         Return a systematic generator matrix of the code.
 
         A generator matrix of a code is called systematic if it contains
         a set of columns forming an identity matrix.
 
+        INPUT:
+
+        - ``systematic_positions`` -- (default: ``None``) if supplied, the set
+          of systematic positions in the systematic generator matrix. See the 
+          documentation for :class:`LinearCodeSystematicEncoder` details.
+
         EXAMPLES::
 
-            sage: G = matrix(GF(3),2,[1,-1,1,-1,1,1])
-            sage: code = LinearCode(G)
-            sage: code.generator_matrix()
-            [1 2 1]
-            [2 1 1]
-            sage: code.systematic_generator_matrix()
-            [1 2 0]
-            [0 0 1]
+            sage: G = matrix(GF(3), [[ 1, 2, 1, 0],\
+                                     [ 2, 1, 1, 1]])
+            sage: C = LinearCode(G)
+            sage: C.generator_matrix()
+            [1 2 1 0]
+            [2 1 1 1]
+            sage: C.systematic_generator_matrix()
+            [1 2 0 1]
+            [0 0 1 2]
+
+        Specific systematic positions can also be requested:
+
+            sage: C.systematic_generator_matrix(systematic_positions=[3,2])
+            [1 2 0 1]
+            [1 2 1 0]
         """
-        return self.encoder("Systematic").generator_matrix()
+        systematic_positions = tuple(systematic_positions) if systematic_positions else None
+        return self.encoder("Systematic", systematic_positions=systematic_positions).generator_matrix()
 
     generator_matrix_systematic = deprecated_function_alias(20835,
             systematic_generator_matrix)
@@ -2294,7 +2308,8 @@ class AbstractLinearCode(module.Module):
 
         EXAMPLES::
 
-            sage: G = matrix(GF(3),2,[1,-1,0,-1,1,1])
+            sage: G = matrix(GF(3),2,[1,2,0,\
+                                      2,1,1])
             sage: code = LinearCode(G)
             sage: code.systematic_generator_matrix()
             [1 2 0]
@@ -2302,7 +2317,38 @@ class AbstractLinearCode(module.Module):
             sage: code.information_set()
             (0, 2)
         """
-        return self.generator_matrix().transpose().pivot_rows()
+        return self.encoder("Systematic").systematic_positions()
+
+    def is_information_set(self, positions):
+        """
+        Return whether the given positions form an information set.
+
+        INPUT:
+
+        - A list of positions, i.e. integers in the range 0 to `n-1` where `n`
+          is the length of `self`.
+
+        OUTPUT:
+
+        - A boolean indicating whether the positions form an information set.
+
+
+        EXAMPLES::
+
+            sage: G = matrix(GF(3),2,[1,2,0,\
+                                      2,1,1])
+            sage: code = LinearCode(G)
+            sage: code.is_information_set([0,1])
+            False
+            sage: code.is_information_set([0,2])
+            True
+        """
+        try:
+            self.encoder("Systematic", systematic_positions=tuple(positions))
+            return True
+        except ValueError:
+            return False
+            
 
     def is_permutation_automorphism(self,g):
         r"""
@@ -2841,12 +2887,9 @@ class AbstractLinearCode(module.Module):
             sage: C.generator_matrix() == Cg.systematic_generator_matrix()
             True
         """
-        F = self.base_ring()
-        G = self.generator_matrix()
-        n = len(G.columns())
-        MS = MatrixSpace(F,n,n)
-        Gp = G*MS(p.matrix().rows())
-        return LinearCode(Gp)
+        G = copy(self.generator_matrix())
+        G.permute_columns(p)
+        return LinearCode(G)
 
     def punctured(self, L):
         r"""
@@ -2935,17 +2978,23 @@ class AbstractLinearCode(module.Module):
         c.set_immutable()
         return c
 
-    def redundancy_matrix(C):
+    def redundancy_matrix(self):
         r"""
-        If C is a linear [n,k,d] code then this function returns a
-        `k \times (n-k)` matrix A such that G = (I,A) generates a code (in
-        standard form) equivalent to C. If C is already in standard form and
-        G = (I,A) is its generator matrix then this function simply returns
-        that A.
+        Returns the non-identity columns of a systematic generator matrix for
+        ``self``.
+
+        A systematic generator matrix is a generator matrix such that a subset
+        of its columns forms the identity matrix. This method returns the
+        remaining part of the matrix.
+
+        For any given code, there can be many systematic generator matrices
+        (depending on which positions should form the identity). This method
+        will use the matrix returned by
+        :meth:`AbstractLinearCode.systematic_generator_matrix`.
 
         OUTPUT:
 
-        - Matrix, the redundancy matrix
+        - An `k \times (n-k)` matrix.
 
         EXAMPLES::
 
@@ -2960,24 +3009,18 @@ class AbstractLinearCode(module.Module):
              [1 0 1]
              [1 1 0]
              [1 1 1]
-            sage: C.standard_form()[0].generator_matrix()
-             [1 0 0 0 0 1 1]
-             [0 1 0 0 1 0 1]
-             [0 0 1 0 1 1 0]
-             [0 0 0 1 1 1 1]
-            sage: C = codes.HammingCode(GF(3), 2)
-            sage: C.generator_matrix()
-            [1 0 1 1]
-            [0 1 1 2]
+            sage: C = LinearCode(matrix(GF(3),2,[1,2,0,\
+                                                 2,1,1]))
+            sage: C.systematic_generator_matrix()
+            [1 2 0]
+            [0 0 1]
             sage: C.redundancy_matrix()
-            [1 1]
-            [1 2]
+            [2]
+            [0]
         """
-        n = C.length()
-        k = C.dimension()
-        C1 = C.standard_form()[0]
-        G1 = C1.generator_matrix()
-        return G1.matrix_from_columns(range(k,n))
+        E = self.encoder("Systematic")
+        G = E.generator_matrix()
+        return G.delete_columns(E.systematic_positions())
 
     def sd_duursma_data(C, i):
         r"""
@@ -3308,18 +3351,27 @@ class AbstractLinearCode(module.Module):
         else:
             raise NotImplementedError("The only algorithms implemented currently are 'gap', 'leon' and 'binary'.")
 
-    def standard_form(self):
+    def standard_form(self, return_permutation=True):
         r"""
-        Returns the standard form of this linear code.
+        Returns a linear code which is permutation-equivalent to ``self`` and
+        admits a generator matrix in standard form.
 
-        An `[n,k]` linear code with generator matrix `G` in standard form is
-        the row-reduced echelon form of `G` is `(I,A)`, where `I` denotes the
-        `k \times k` identity matrix and `A` is a `k \times (n-k)` block. This
-        method returns a pair `(C,p)` where `C` is a code permutation
-        equivalent to ``self`` and `p` in `S_n`, with `n` the length of `C`,
-        is the permutation sending ``self`` to `C`. This does not call GAP.
+        A generator matrix is in standard form if it is of the form `[I \vert
+        A]`, where `I` is the `k \times k` identity matrix. Any code admits a
+        generator matrix in systematic form, i.e. where a subset of the columns
+        form the identity matrix, but one might need to permute columns to allow
+        the identity matrix to be leading.
 
-        Thanks to Frank Luebeck for (the GAP version of) this code.
+        INPUT:
+
+        - ``return_permutation`` -- (default: ``True``) if ``True``, the column
+          permutation which brings ``self`` into the returned code is also
+          returned.
+
+        OUTPUT:
+
+        - A :class:`LinearCode` whose :meth:`systematic_generator_matrix` is
+          guaranteed to be of the form `[I \vert A]`.
 
         EXAMPLES::
 
@@ -3331,39 +3383,27 @@ class AbstractLinearCode(module.Module):
             [0 0 0 1 1 1 1]
             sage: Cs,p = C.standard_form()
             sage: p
-            ()
-            sage: MS = MatrixSpace(GF(3),3,7)
-            sage: G = MS([[1,0,0,0,1,1,0],[0,1,0,1,0,1,0],[0,0,0,0,0,0,1]])
-            sage: C = LinearCode(G)
+            []
+            sage: Cs is C
+            True
+            sage: C = LinearCode(matrix(GF(2), [[1,0,0,0,1,1,0],\
+                                                [0,1,0,1,0,1,0],\
+                                                [0,0,0,0,0,0,1]]))
             sage: Cs, p = C.standard_form()
             sage: p
-            (3,7)
+            [1, 2, 7, 3, 4, 5, 6]
             sage: Cs.generator_matrix()
-             [1 0 0 0 1 1 0]
-             [0 1 0 1 0 1 0]
-             [0 0 1 0 0 0 0]
+            [1 0 0 0 0 1 1]
+            [0 1 0 0 1 0 1]
+            [0 0 1 0 0 0 0]
         """
-        from sage.coding.code_constructions import permutation_action as perm_action
-        mat = self.generator_matrix()
-        MS = mat.parent()
-        A = []
-        k = len(mat.rows())
-        M = mat.echelon_form()
-        d = len(mat.columns())
-        G = SymmetricGroup(d)
-        perm = G([()])
-        for i in range(1,k+1):
-            r = M.rows()[i-1]
-            j = r.nonzero_positions()[0]
-            if j < d and i != j+1:
-                perm = perm *G([(i,j+1)])
-        if perm != G([()]):
-            for i in range(k):
-                r = M.rows()[i]
-                A.append(perm_action(perm,r))
-        if perm == G([()]):
-            A = M
-        return LinearCode(MS(A)), perm
+        E = self.encoder("Systematic")
+        if E.systematic_positions() == tuple(range(self.dimension())):
+            from sage.combinat.permutation import Permutation
+            return self, Permutation([])
+        else:
+            perm = E.systematic_permutation()
+            return self.permuted_code(perm), perm
 
     def support(self):
         r"""
@@ -4101,8 +4141,45 @@ class LinearCodeSystematicEncoder(Encoder):
     INPUT:
 
     - ``code`` -- The associated code of this encoder.
+
+    - ``systematic_positions`` -- (default: ``None``) the positions in codewords that
+      should correspond to the message symbols. A list of `k` distinct integers in
+      the range 0 to `n-1` where `n` is the length of the code and `k` its
+      dimension. The 0th symbol of a message will then be at position
+      ``systematic_positions[0]``, the 1st index at position
+      ``systematic_positions[1]``, etc. A ``ValueError`` is raised at
+      construction time if the supplied indices do not form an information set.
     
     EXAMPLES:
+
+    The following demonstrates the basic usage of :class:`LinearCodeSystematicEncoder`::
+    
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0,0],\
+                                     [1,0,0,1,1,0,0,0],\
+                                     [0,1,0,1,0,1,0,0],\
+                                     [1,1,0,1,0,0,1,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E.generator_matrix()
+            [1 0 0 0 0 1 1 1]
+            [0 1 0 0 1 0 1 1]
+            [0 0 1 0 1 1 0 0]
+            [0 0 0 1 1 1 1 1]
+            sage: E2 = codes.encoders.LinearCodeSystematicEncoder(C, systematic_positions=[5,4,3,2])
+            sage: E2.generator_matrix()
+            [1 0 0 0 0 1 1 1]
+            [0 1 0 0 1 0 1 1]
+            [1 1 0 1 0 0 1 1]
+            [1 1 1 0 0 0 0 0]
+
+    An error is raised if one specifies systematic positions which do not form
+    an information set::
+
+            sage: E3 = codes.encoders.LinearCodeSystematicEncoder(C, systematic_positions=[0,1,6,7])
+            Traceback (most recent call last):
+            ...
+            ValueError: systematic_positions are not an information set
+
 
     We exemplify how to use :class:`LinearCodeSystematicEncoder` as the default
     encoder. The following class is the dual of the repitition code::
@@ -4140,7 +4217,7 @@ class LinearCodeSystematicEncoder(Encoder):
         ValueError: a parity check matrix must be specified if LinearCodeSystematicEncoder is the default encoder
     """
 
-    def __init__(self, code):
+    def __init__(self, code, systematic_positions=None):
         r"""
         EXAMPLES::
 
@@ -4151,6 +4228,40 @@ class LinearCodeSystematicEncoder(Encoder):
             Systematic encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
         """
         super(LinearCodeSystematicEncoder, self).__init__(code)
+        self._systematic_positions = tuple(systematic_positions) if systematic_positions else None
+        if systematic_positions:
+            # Test that systematic_positions consists of integers in the right
+            # range. We test that len(systematic_positions) = code.dimension()
+            # in self.generator_matrix() to avoid possible infinite recursion.
+            if (not all( e in ZZ and e >= 0 and e < code.length() for e in systematic_positions)) \
+               or len(systematic_positions) != len(set(systematic_positions)):
+                raise ValueError("systematic positions must be a tuple of distinct integers in the range 0 to n-1 where n is the length of the code")
+            # Test that the systematic positions are an information set
+            self.generator_matrix()
+
+
+    def __eq__(self, other):
+        r"""
+        Tests equality between LinearCodeSystematicEncoder objects.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(3), [[1,0,0,1,0,1,0,1,2],[0,1,0,2,2,0,1,1,0],[0,0,1,0,2,2,2,1,2]])
+            sage: E1 = codes.encoders.LinearCodeSystematicEncoder(LinearCode(G))
+            sage: E2 = codes.encoders.LinearCodeSystematicEncoder(LinearCode(G))
+            sage: E1 == E2
+            True
+            sage: E1.systematic_positions()
+            (0, 1, 2)
+            sage: E3 = codes.encoders.LinearCodeSystematicEncoder(LinearCode(G), systematic_positions=(2,5,6))
+            sage: E3.systematic_positions()
+            (2, 5, 6)
+            sage: E1 == E3
+            False
+        """
+        return isinstance(other, LinearCodeSystematicEncoder)\
+                and self.code() == other.code()\
+                and self.systematic_positions() == other.systematic_positions()
 
     def _repr_(self):
         r"""
@@ -4208,7 +4319,16 @@ class LinearCodeSystematicEncoder(Encoder):
             [0 0 1 0 1 1 0]
             [0 0 0 1 1 1 1]
 
-        Another example, with a generator matrix which won't be `[I \vert H]`::
+        We can ask for different systematic positions::
+
+            sage: E2 = codes.encoders.LinearCodeSystematicEncoder(C, systematic_positions=[5,4,3,2])
+            sage: E2.generator_matrix()
+            [1 0 0 0 0 1 1]
+            [0 1 0 0 1 0 1]
+            [1 1 0 1 0 0 1]
+            [1 1 1 0 0 0 0]
+
+        Another example where there is no generator matrix of the form `[I \vert H]`::
 
             sage: G = Matrix(GF(2), [[1,1,0,0,1,0,1],\
                                      [1,1,0,0,1,0,0],\
@@ -4234,8 +4354,52 @@ class LinearCodeSystematicEncoder(Encoder):
                 raise ValueError("a parity check matrix must be specified if LinearCodeSystematicEncoder is the default encoder")
         else:
             self._use_pc_matrix = 1
-            M = C.generator_matrix()
-        return M.echelon_form()
+            M = copy(C.generator_matrix())
+        if not self._systematic_positions:
+            M.echelonize()
+        else:
+            k = M.nrows() # it is important that k is *not* computed as C.dimension() to avoid possible cyclic dependency
+            if len(self._systematic_positions) != k:
+                raise ValueError("systematic_positions must be a tuple of length equal to the dimension of the code")
+            # Permute the columns of M and bring to reduced row echelon formb
+            perm = self.systematic_permutation()
+            M.permute_columns(perm)
+            M.echelonize()
+            if M[:,:k].is_singular():
+                raise ValueError("systematic_positions are not an information set")
+            M.permute_columns(perm.inverse())
+        M.set_immutable()
+        return M
+
+    def systematic_permutation(self):
+        r"""
+        Returns a permutation which would take the systematic positions into [0,..,k-1]
+
+        EXAMPLES::
+
+            sage: C = LinearCode(matrix(GF(2), [[1,0,0,0,1,1,0],\
+                                                [0,1,0,1,0,1,0],\
+                                                [0,0,0,0,0,0,1]]))
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E.systematic_positions()
+            (0, 1, 6)
+            sage: E.systematic_permutation()
+            [1, 2, 7, 3, 4, 5, 6]
+        """
+        n = self.code().length()
+        systematic_positions = self.systematic_positions()
+        k = len(systematic_positions)
+        lp = [ None ]*n
+        for (i,j) in zip(range(k), systematic_positions):
+            lp[i] = j
+        j = k
+        set_sys_pos = set(systematic_positions)
+        for i in range(n):
+            if not i in set_sys_pos:
+                lp[j] = i
+                j += 1
+        from sage.combinat.permutation import Permutation
+        return Permutation([1 + e for e in lp])
 
     def systematic_positions(self):
         r"""
@@ -4244,7 +4408,10 @@ class LinearCodeSystematicEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],\
+                                     [1,0,0,1,1,0,0],\
+                                     [0,1,0,1,0,1,0],\
+                                     [1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
             sage: E.systematic_positions()
@@ -4252,13 +4419,16 @@ class LinearCodeSystematicEncoder(Encoder):
 
         We take another matrix with a less nice shape::
 
-            sage: G = Matrix(GF(2), [[1,1,0,0,1,0,1],[1,1,0,0,1,0,0],[0,0,1,0,0,1,0],[0,0,1,0,1,0,1]])
+            sage: G = Matrix(GF(2), [[1,1,0,0,1,0,1],\
+                                     [1,1,0,0,1,0,0],\
+                                     [0,0,1,0,0,1,0],\
+                                     [0,0,1,0,1,0,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
             sage: E.systematic_positions()
             (0, 2, 4, 6)
 
-        These positions correspond to the positions which carry information in a codeword::
+        The systematic positions correspond to the positions which carry information in a codeword::
 
             sage: MS = E.message_space()
             sage: m = MS.random_element()
@@ -4267,8 +4437,20 @@ class LinearCodeSystematicEncoder(Encoder):
             sage: info = MS([c[i] for i in pos])
             sage: m == info
             True
+
+        When constructing a systematic encoder with specific systematic
+        positions, then it is guaranteed that this method returns exactly those
+        positions (even if another choice might also be systematic)::
+
+            sage: G = Matrix(GF(2), [[1,0,0,0],\
+                                     [0,1,0,0],\
+                                     [0,0,1,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C, systematic_positions=[0,1,3])
+            sage: E.systematic_positions()
+            (0, 1, 3)
         """
-        return self.generator_matrix().pivots()
+        return self._systematic_positions if self._systematic_positions else self.generator_matrix().pivots()
 
 
 

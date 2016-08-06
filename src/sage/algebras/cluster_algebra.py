@@ -17,7 +17,7 @@ EXAMPLES::
 """
 
 #*****************************************************************************
-#       Copyright (C) 2015 Dylan Rupel and Salvaroe Stella
+#       Copyright (C) 2015 Dylan Rupel and Salvatore Stella
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

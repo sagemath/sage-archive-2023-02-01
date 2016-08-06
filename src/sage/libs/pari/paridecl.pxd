@@ -4491,6 +4491,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN set_gel(GEN x, long n, GEN z)              # gel(x, n) = z
     GEN set_gmael(GEN x, long i, long j, GEN z)    # gmael(x, i, j) = z
     GEN set_gcoeff(GEN x, long i, long j, GEN z)   # gcoeff(x, i, j) = z
+    GEN set_uel(GEN x, long n, ulong z)            # uel(x, n) = z
 
 
 # Inline functions in separate file

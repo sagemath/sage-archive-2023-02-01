@@ -427,8 +427,9 @@ information. You can use the existing functions of Sage as templates.
   - a line which starts with whitespace and then a Sphinx directive
     of the form ".. FOO:", optionally followed by other text.
 
-  - a line which starts with whitespace and then text of the form
-    "UPPERCASE:", optionally followed by other text.
+  - a line which starts with whitespace -- no more whitespace than
+    preceding "TESTS:" -- and then text of the form "UPPERCASE:",
+    optionally followed by other text.
 
   - lines which look like a reST header: one line containing
     anything, followed by a line consisting only of whitespace,

@@ -248,8 +248,9 @@ def skip_TESTS_block(docstring):
     - a line which starts with whitespace and then a Sphinx directive
       of the form ".. foo:", optionally followed by other text.
 
-    - a line which starts with whitespace and then text of the form
-      "UPPERCASE:", optionally followed by other text.
+    - a line which starts with whitespace -- no more whitespace than
+      preceding "TESTS:" -- and then text of the form "UPPERCASE:",
+      optionally followed by other text.
 
     - lines which look like a ReST header: one line containing
       anything, followed by a line consisting only of whitespace,
@@ -322,11 +323,13 @@ def skip_TESTS_block(docstring):
                 s += l
         else:
             if end_of_block.match(l) and not tests_block.match(l):
+                if l.startswith(indentation + " "):
+                    continue
                 skip = False
                 s += "\n"
                 s += l
             elif header.match(l):
-                if l.find(indentation) == 0:
+                if l.startswith(indentation):
                     continue
                 skip = False
                 if previous:

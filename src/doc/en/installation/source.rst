@@ -1039,7 +1039,7 @@ Here are some of the more commonly used variables affecting the build process:
   you run ``make``, ``make doc``, or ``make doc-pdf``.
   For example, you can add ``--no-plot`` to this variable to avoid building
   the graphics coming from the ``.. PLOT`` directive within the documentation,
-  or you can add ``--no-tests`` to omit all "TESTS" blocks in the
+  or you can add ``--include-tests-blocks`` to include all "TESTS" blocks in the
   reference manual. Run ``sage --docbuild help`` to see the full list
   of options.
 

@@ -273,7 +273,7 @@ class FiniteWord_class(Word_class):
 
     def coerce(self, other):
         r"""
-        Tries to return a pair of words with a common parent; raises an
+        Try to return a pair of words with a common parent; raise an
         exception if this is not possible.
 
         This function begins by checking if both words have the same
@@ -802,7 +802,7 @@ class FiniteWord_class(Word_class):
 
     def has_suffix(self, other):
         """
-        Tests whether ``self`` has ``other`` as a suffix.
+        Test whether ``self`` has ``other`` as a suffix.
 
         .. note::
 
@@ -886,7 +886,7 @@ class FiniteWord_class(Word_class):
 
     def has_prefix(self, other):
         r"""
-        Tests whether ``self`` has ``other`` as a prefix.
+        Test whether ``self`` has ``other`` as a prefix.
 
         INPUT:
 
@@ -1058,7 +1058,7 @@ class FiniteWord_class(Word_class):
 
     def number_of_factors(self, n=None, algorithm='suffix tree'):
         r"""
-        Counts the number of distinct factors of ``self``.
+        Count the number of distinct factors of ``self``.
 
         INPUT:
 
@@ -1127,7 +1127,7 @@ class FiniteWord_class(Word_class):
 
     def factor_iterator(self, n=None):
         r"""
-        Generates distinct factors of ``self``.
+        Generate distinct factors of ``self``.
 
         INPUT:
 
@@ -4924,7 +4924,7 @@ class FiniteWord_class(Word_class):
 
     def _s(self, i):
         r"""
-        Implements Lascoux and Schützenberger `s_i` operator, swapping the
+        Implement Lascoux and Schützenberger `s_i` operator, swap the
         number of ``i`` and ``i+1`` in a word.
 
         EXAMPLES::
@@ -5221,7 +5221,7 @@ class FiniteWord_class(Word_class):
 
     def count(self, letter):
         r"""
-        Counts the number of occurrences of ``letter`` in ``self``.
+        Count the number of occurrences of ``letter`` in ``self``.
 
         EXAMPLES::
 
@@ -5495,7 +5495,7 @@ class FiniteWord_class(Word_class):
 
     def sturmian_desubstitute_as_possible(self):
         r"""
-        Sturmian desubstitutes the word ``self`` as much as possible.
+        Sturmian-desubstitute the word ``self`` as much as possible.
 
         The finite word ``self`` must be defined on a two-letter
         alphabet or use at most two letters.
@@ -5648,7 +5648,7 @@ class FiniteWord_class(Word_class):
 
     def is_sturmian_factor(self):
         r"""
-        Tells whether ``self`` is a factor of a Sturmian word.
+        Tell whether ``self`` is a factor of a Sturmian word.
 
         The finite word ``self`` must be defined on a two-letter alphabet.
 
@@ -5719,7 +5719,7 @@ class FiniteWord_class(Word_class):
 
     def is_tangent(self):
         r"""
-        Tells whether ``self`` is a tangent word.
+        Tell whether ``self`` is a tangent word.
 
         The finite word ``self`` must be defined on a two-letter alphabet.
 
@@ -5956,7 +5956,7 @@ class FiniteWord_class(Word_class):
 
     def _rsk_iter(self):
         r"""
-        An iterator for :func:`~sage.combinat.rsk.RSK`.
+        Return an iterator for :func:`~sage.combinat.rsk.RSK`.
 
         Yields pairs `(i, w_i)` for a word `w = w_1 w_2 \cdots w_k`.
 
@@ -6081,7 +6081,7 @@ class FiniteWord_class(Word_class):
     ######################################################################
     def delta_inv(self, W=None, s=None):
         r"""
-        Lifts ``self`` via the delta operator to obtain a word containing the
+        Lift ``self`` via the delta operator to obtain a word containing the
         letters in alphabet (default is ``[0, 1]``). The letters used in the
         construction start with ``s`` (default is ``alphabet[0]``) and cycle
         through alphabet.
@@ -6250,7 +6250,7 @@ class FiniteWord_class(Word_class):
 
     def phi(self):
         r"""
-        Applies the phi function to ``self`` and returns the result. This is
+        Apply the phi function to ``self`` and return the result. This is
         the word obtained by taking the first letter of the words obtained
         by iterating delta on ``self``.
 
@@ -6295,7 +6295,7 @@ class FiniteWord_class(Word_class):
 
     def phi_inv(self, W=None):
         r"""
-        Applies the inverse of the phi function to ``self``.
+        Apply the inverse of the phi function to ``self``.
 
         INPUT:
 

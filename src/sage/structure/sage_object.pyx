@@ -610,6 +610,8 @@ cdef class SageObject:
             try:
                 getattr(self, name)
             except NotImplementedError:
+                # Restore warnings
+                warnings.filters.pop(0)
                 # It would be best to make sure that this NotImplementedError was triggered by AbstractMethod
                 tester.fail("Not implemented method: %s"%name)
             except Exception:

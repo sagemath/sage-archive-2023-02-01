@@ -332,7 +332,7 @@ class SageMagics(Magics):
         This is syntactic sugar on the
         :func:`~sage.misc.cython_c.cython` function.
 
-        INPUT::
+        INPUT:
 
         - ``line`` -- ignored.
 

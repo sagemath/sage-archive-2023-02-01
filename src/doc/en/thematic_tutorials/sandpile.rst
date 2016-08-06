@@ -834,7 +834,7 @@ first presented.  This internal format is returned by  ``dict()``::
    into the designated sink.  If the sink has out-edges, these will be ignored
    for the purposes of sandpile calculations (but not calculations on divisors).
 
-Code for checking whether a given vertex is a sink: ::
+Code for checking whether a given vertex is a sink::
 
     sage: S = Sandpile({0:[], 1:[0, 3, 4], 2:[0, 3, 5], 3: [2, 5], 4: [1, 3], 5: [2, 3]},0)
     sage: [S.distance(v,0) for v in S.vertices()] # 0 is a sink

@@ -1876,7 +1876,7 @@ cdef class WeightKAction_vector(WeightKAction):
 
 #     - ``pM`` -- an unsigned long
 
-#     OUPUT:
+#     OUTPUT:
 
 #     - ``a % pM`` as a positive integer.
 #     """

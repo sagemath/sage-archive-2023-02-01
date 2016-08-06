@@ -356,7 +356,7 @@ class KlyachkoBundle_class(SageObject):
 
         - ``i`` -- integer. The filtration degree.
 
-        OUPUT:
+        OUTPUT:
 
         Let the cone be spanned by the rays `\sigma=\langle r_1,\dots,
         r_k\rangle`. This method returns the intersection
@@ -451,7 +451,7 @@ class KlyachkoBundle_class(SageObject):
         - ``m`` -- tuple of integers or `M`-lattice point. A point in
           the dual lattice of the fan. Must be immutable.
 
-        OUPUT:
+        OUTPUT:
 
         The subspace `E^\sigma(m)`
 
@@ -494,7 +494,7 @@ class KlyachkoBundle_class(SageObject):
         - ``m`` -- tuple of integers or `M`-lattice point. A point in
           the dual lattice of the fan. Must be immutable.
 
-        OUPUT:
+        OUTPUT:
 
         The subspace `E_\sigma(m)`
 

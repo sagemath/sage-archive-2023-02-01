@@ -3700,7 +3700,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
 
         - ``P`` -- a point on this subscheme.
 
-        OUPUT: an integer.
+        OUTPUT: an integer.
 
         EXAMPLES::
 

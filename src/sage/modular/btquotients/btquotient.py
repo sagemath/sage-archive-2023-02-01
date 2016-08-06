@@ -414,7 +414,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         - ``normalized`` - boolean (default: false). If True
             then the input matrix is assumed to be normalized.
 
-        OUPUT:
+        OUTPUT:
 
         - ``e`` - 2x2 integer matrix representing the target of
           the input edge
@@ -727,7 +727,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
         - ``e`` - 2x2 integer matrix
 
-        OUPUT:
+        OUTPUT:
 
         2x2 integer matrix
 

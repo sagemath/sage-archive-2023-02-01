@@ -689,9 +689,9 @@ def simple_connected_graph_genus(G, set_embedding = False, check = True, minimal
         sage: genus(G)
         1
 
-    REFERENCS::
+    REFERENCES:
 
-        [1] http://www.springerlink.com/content/0776127h0r7548v7/
+    [1] http://www.springerlink.com/content/0776127h0r7548v7/
 
     """
     cdef int style, cutoff

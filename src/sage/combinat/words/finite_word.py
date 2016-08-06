@@ -2001,9 +2001,9 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        - ``other`` - a finite word
+        - ``other`` -- a finite word
 
-        OUPUT
+        OUTPUT
 
         bool
 

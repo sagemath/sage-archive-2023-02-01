@@ -74,7 +74,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         r"""
         Initialization function.
 
-        EXMAPLES::
+        EXAMPLES::
 
             sage: P.<x,y,z,w,u> = ProjectiveSpace(GF(7), 4)
             sage: C = Curve([y*u^2 - x^3, z*u^2 - x^3, w*u^2 - x^3, y^3 - x^3], P); C
@@ -669,7 +669,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         - ``P`` -- a point in the intersection of both curves.
 
-        OUPUT: Boolean.
+        OUTPUT: Boolean.
 
         EXAMPLES::
 

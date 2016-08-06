@@ -1900,7 +1900,7 @@ class RESetParallelIterator(RESetMapReduce):
 
         INPUT: ``z`` -- a node
 
-        OUPUT: ``(z, )``
+        OUTPUT: ``(z, )``
 
         EXAMPLE::
 

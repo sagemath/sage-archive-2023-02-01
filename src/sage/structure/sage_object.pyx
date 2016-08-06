@@ -603,21 +603,21 @@ cdef class SageObject:
 
         """
         tester = self._tester(**options)
-        # Disable warnings for the duration of the test
-        import warnings
-        warnings.filterwarnings('ignore')
-        for name in dir(self):
-            try:
-                getattr(self, name)
-            except NotImplementedError:
-                # Restore warnings
-                warnings.filters.pop(0)
-                # It would be best to make sure that this NotImplementedError was triggered by AbstractMethod
-                tester.fail("Not implemented method: %s"%name)
-            except Exception:
-                pass
-        # Restore warnings
-        warnings.filters.pop(0)
+        try:
+            # Disable warnings for the duration of the test
+            import warnings
+            warnings.filterwarnings('ignore')
+            for name in dir(self):
+                try:
+                    getattr(self, name)
+                except NotImplementedError:
+                    # It would be best to make sure that this NotImplementedError was triggered by AbstractMethod
+                    tester.fail("Not implemented method: %s"%name)
+                except Exception:
+                    pass
+        finally: 
+            # Restore warnings
+            warnings.filters.pop(0)
 
     def _test_pickling(self, **options):
         """

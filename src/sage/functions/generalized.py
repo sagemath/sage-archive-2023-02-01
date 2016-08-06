@@ -152,7 +152,7 @@ class FunctionDiracDelta(BuiltinFunction):
         TESTS::
 
             sage: h(x) = dirac_delta(x)
-            sage: h(pi)._numerical_approx()
+            sage: h(pi).numerical_approx()
             0.000000000000000
         """
         approx_x = ComplexIntervalField()(x)
@@ -273,7 +273,7 @@ class FunctionHeaviside(BuiltinFunction):
         TESTS::
 
             sage: h(x) = heaviside(x)
-            sage: h(pi)._numerical_approx()
+            sage: h(pi).numerical_approx()
             1.00000000000000
         """
         approx_x = ComplexIntervalField()(x)
@@ -393,7 +393,7 @@ class FunctionUnitStep(BuiltinFunction):
         TESTS::
 
             sage: h(x) = unit_step(x)
-            sage: h(pi)._numerical_approx()
+            sage: h(pi).numerical_approx()
             1.00000000000000
         """
         approx_x = ComplexIntervalField()(x)
@@ -541,7 +541,7 @@ class FunctionSignum(BuiltinFunction):
             sage: M.n()
             1
             sage: h(x) = sgn(x)
-            sage: h(pi)._numerical_approx()
+            sage: h(pi).numerical_approx()
             1.00000000000000
         """
         if hasattr(x,'sign'): # First check if x has a sign method
@@ -662,7 +662,7 @@ class FunctionKroneckerDelta(BuiltinFunction):
         TESTS::
 
             sage: h(x) = kronecker_delta(3,x)
-            sage: h(pi)._numerical_approx()
+            sage: h(pi).numerical_approx()
             0.000000000000000
         """
         if bool(repr(m) > repr(n)):

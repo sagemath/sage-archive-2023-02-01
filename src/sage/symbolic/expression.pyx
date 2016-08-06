@@ -157,10 +157,8 @@ from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_i
 from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class
 from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
+from sage.arith.numerical_approx cimport digits_to_bits
 
-
-# a small overestimate of log(10,2)
-LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363
 
 cpdef bint is_Expression(x):
     """
@@ -5334,11 +5332,25 @@ cdef class Expression(CommutativeRingElement):
         res._expr = self
         return res
 
-    def _numerical_approx(self, prec=None, digits=None, algorithm=None):
+    def numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
-        Return a numerical approximation this symbolic expression as
-        either a real or complex number with at least the requested
-        number of bits or digits of precision.
+        Return a numerical approximation of ``self`` with ``prec`` bits
+        (or decimal ``digits``) of precision.
+
+        No guarantee is made about the accuracy of the result.
+
+        INPUT:
+
+        - ``prec`` -- precision in bits
+
+        - ``digits`` -- precision in decimal digits (only used if
+          ``prec`` is not given)
+
+        - ``algorithm`` -- which algorithm to use to compute this
+          approximation
+
+        If neither ``prec`` nor ``digits`` is given, the default
+        precision is 53 bits (roughly 16 digits).
 
         EXAMPLES::
 
@@ -5412,10 +5424,7 @@ cdef class Expression(CommutativeRingElement):
             163.000000000000
         """
         if prec is None:
-            if digits is None:
-                prec = 53
-            else:
-                prec = int((digits+1) * LOG_TEN_TWO_PLUS_EPSILON) + 1
+            prec = digits_to_bits(digits)
 
         from sage.symbolic.expression_conversions import ExpressionTreeWalker
         class DefiniteSumExpander(ExpressionTreeWalker):
@@ -5453,11 +5462,6 @@ cdef class Expression(CommutativeRingElement):
         if isinstance(res, AnInfinity):
             return res.n(prec=prec,digits=digits)
         return res
-
-    #added this line to make doctests visible to users
-    numerical_approx =_numerical_approx
-    n=_numerical_approx
-    N=_numerical_approx
 
     def round(self):
         """

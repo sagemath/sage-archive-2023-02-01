@@ -658,8 +658,11 @@ class ClusterAlgebra(Parent):
             self.greedy_coefficient = MethodType(greedy_coefficient, self, self.__class__)
             self.theta_basis_element = MethodType(theta_basis_element, self, self.__class__)
 
-        # TODO: understand if we need this
-        #self._populate_coercion_lists_()
+        # Register embedding into self.ambient()
+        from sage.categories.morphism import SetMorphism
+        from sage.categories.homset import Hom
+        embedding = SetMorphism(Hom(self,self.ambient()), lambda x: x.lift())
+        self._populate_coercion_lists_(embedding=embedding)
 
     def __copy__(self):
         other = type(self).__new__(type(self))
@@ -678,10 +681,13 @@ class ClusterAlgebra(Parent):
         return other
 
     def __eq__(self, other):
-        return type(self) == type(other) and self._B0 == other._B0 and  self._yhat == other._yhat
+        return type(self) == type(other) and self._B0 == other._B0 and  self._yhat == other._yhat and self.base() == other.base()
 
-    # enable standard coercions: everything that is in the base can be coerced
     def _coerce_map_from_(self, other):
+        # if other is a cluster algebra allow inherit coercions from ambients
+        if isinstance(other, ClusterAlgebra):
+            return self.ambient().has_coerce_map_from(other.ambient())
+        # everything that is in the base can be coerced to self
         return self.base().has_coerce_map_from(other)
 
     def _repr_(self):
@@ -818,7 +824,7 @@ class ClusterAlgebra(Parent):
         r"""
         Return x as an element of self._ambient
         """
-        return x.value
+        return self.ambient()(x.value)
 
     def retract(self, x):
         return self(x)

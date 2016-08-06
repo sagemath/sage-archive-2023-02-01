@@ -1867,7 +1867,7 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
 
         - I, J -- two facets
 
-        OUTPUT
+        OUTPUT:
 
         a set of facets
 

@@ -1246,7 +1246,7 @@ class QuiverRepElement(ModuleElement):
         The support is the set of vertices to which a nonzero vector is
         associated.
 
-        OUTPUT
+        OUTPUT:
 
         - list, the support
 

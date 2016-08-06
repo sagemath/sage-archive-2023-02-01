@@ -263,7 +263,9 @@ class EuclideanDomains(Category_singleton):
 
             - ``other`` -- an element in the same euclidean domain
 
-            OUTPUT
+            OUTPUT:
+
+            a pair of elements
 
             EXAMPLES::
 

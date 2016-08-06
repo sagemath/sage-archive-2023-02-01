@@ -1240,7 +1240,7 @@ class MultiCoordFunction(SageObject):
 
         - ``index`` -- index `i` of the function (`0 \leq i \leq m-1`)
 
-        OUTPUT
+        OUTPUT:
 
         -- a :class:`CoordFunction` representing the function
 

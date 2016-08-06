@@ -3499,7 +3499,7 @@ class CohomologyClass(QuotientRingElement):
             cohomology class without constant term can be
             exponentiated.
 
-        OUTPUT
+        OUTPUT:
 
         The cohomology class `\exp(` ``self`` `)` if the constant part
         vanishes, otherwise a ``ValueError`` is raised.

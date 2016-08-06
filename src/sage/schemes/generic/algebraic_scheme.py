@@ -4146,7 +4146,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
         - ``point`` -- a point of the toric algebraic scheme.
 
-        OUTPUT
+        OUTPUT:
 
         An affine toric algebraic scheme (polynomial equations in an
         affine toric variety) with fixed

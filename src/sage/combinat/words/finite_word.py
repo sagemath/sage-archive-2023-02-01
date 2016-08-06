@@ -2003,7 +2003,7 @@ class FiniteWord_class(Word_class):
 
         - ``other`` -- a finite word
 
-        OUTPUT
+        OUTPUT:
 
         bool
 

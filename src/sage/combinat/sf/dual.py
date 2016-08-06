@@ -263,7 +263,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         """
         Representation of ``self``.
 
-        OUTPUT
+        OUTPUT:
 
         - a string description of ``self``
 

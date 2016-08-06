@@ -603,6 +603,9 @@ cdef class SageObject:
 
         """
         tester = self._tester(**options)
+        # Disable warnings for the duration of the test
+        import warnings
+        warnings.filterwarnings('ignore')
         for name in dir(self):
             try:
                 getattr(self, name)
@@ -611,6 +614,8 @@ cdef class SageObject:
                 tester.fail("Not implemented method: %s"%name)
             except Exception:
                 pass
+        # Restore warnings
+        warnings.filters.pop(0)
 
     def _test_pickling(self, **options):
         """

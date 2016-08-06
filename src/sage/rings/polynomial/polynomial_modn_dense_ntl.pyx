@@ -45,7 +45,6 @@ import polynomial_singular_interface
 from sage.interfaces.all import singular as singular_default
 
 from sage.structure.element import generic_power, canonical_coercion, bin_op, coerce_binop
-from sage.structure.element cimport have_same_parent_c
 
 from sage.libs.ntl.types cimport NTL_SP_BOUND
 from sage.libs.ntl.ZZ_p cimport *

@@ -77,10 +77,12 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 
-from sage.structure.element import AdditiveGroupElement, RingElement, Element, generic_power, parent
+from __future__ import absolute_import, print_function
+
+import operator
+from sage.structure.element import (AdditiveGroupElement, RingElement,
+        Element, generic_power, parent, get_coercion_model)
 from sage.structure.sequence import Sequence
 from sage.categories.homset import Homset, Hom, End
 from sage.categories.number_fields import NumberFields
@@ -101,6 +103,9 @@ from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism import SetMorphism
 from sage.categories.morphism import Morphism
+
+coercion_model = get_coercion_model()
+
 
 def is_SchemeMorphism(f):
     """
@@ -383,7 +388,7 @@ class SchemeMorphism(Element):
               Defn: Structure map) codomain
         """
         if not isinstance(right, SchemeMorphism):
-            raise TypeError("right (=%s) must be a SchemeMorphism to multiply it by %s"%(right, self))
+            return coercion_model.bin_op(self, right, operator.mul)
         if right.codomain() != self.domain():
             raise TypeError("self (=%s) domain must equal right (=%s) codomain"%(self, right))
         if isinstance(self, SchemeMorphism_id):
@@ -391,7 +396,6 @@ class SchemeMorphism(Element):
         if isinstance(right, SchemeMorphism_id):
             return self
         return self._composition(right)
-
 
     def __pow__(self, n, dummy=None):
         """

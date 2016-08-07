@@ -116,30 +116,38 @@ def mutation_parse(mutate): # READY
     Preparse input for mutation functions.
     
     This wrapper provides:
-        - inplace
+        - inplace (only for seeds)
         - mutate along sequence
         - mutate at all sinks/sources
         
-    Possible things to iplement later include:
+    Possible things to implement later include:
         - mutate at a cluster variariable
         - mutate at a g-vector (it is hard to distinguish this case from a generic sequence)
         - urban renewals
         - other?
     """
-    mutate.__doc__ += r"""
+    doc = mutate.__doc__.split("INPUT:")
+    doc[0] += "INPUT:"
+    if mutate.__name__ == "mutate":
+        doc[0] += r"""
+    
+        - ``inplace`` -- bool (default True) whether to mutate in place or to return a new object
+    """
+    doc[0] += r"""
+    
+        - ``direction`` -- in which direction(s) to mutate. It can be
+            - an integer in ``range(self.rk())`` to mutate in one direction only;
+            - an iterable of such integers to mutate along a sequence;
+            - a string "sinks" or "sources" to mutate at all sinks or sources simultaneously.
+    """
+    mutate.__doc__ = doc[0] + doc[1]
 
-            - inplace: bool (default True) whether to mutate in place or to return a new object
-            - direction: can be
-                - an integer in ``range(self.rk())``
-                - an iterable of such integers
-                - a string "sinks" or "sources"
-            """
     @wraps(mutate)
     def mutate_wrapper(self, direction, inplace=True, *args, **kwargs):
-        if inplace:
-            to_mutate = self
-        else:
+        if not inplace or mutate.__name__ == "mutate_initial":
             to_mutate = copy(self)
+        else:
+            to_mutate = self
         
         if direction == "sinks":
             B = self.b_matrix()
@@ -156,7 +164,7 @@ def mutation_parse(mutate): # READY
         for k in seq:
             mutate(to_mutate, k, *args, **kwargs)
 
-        if not inplace:
+        if not inplace or mutate.__name__ == "mutate_initial":
             return to_mutate
 
     return mutate_wrapper
@@ -378,6 +386,9 @@ class ClusterAlgebraSeed(SageObject):
     def mutate(self, k, mutating_F=True):
         r"""
         mutate seed
+        
+        INPUT:
+
         bla bla ba
         """
         n = self.parent().rk
@@ -676,6 +687,8 @@ class ClusterAlgebra(Parent):
         other._is_principal = self._is_principal
         other._B0 = copy(self._B0)
         other._n = self._n
+        other._seed = copy(self._seed)
+        other._store_exchange_relations = self._store_exchange_relations
         # We probably need to put n=2 initializations here also
         # TODO: we may want to use __init__ to make the initialization somewhat easier (say to enable special cases) This might require a better written __init__
         return other
@@ -739,8 +752,10 @@ class ClusterAlgebra(Parent):
         I = identity_matrix(n)
         return ClusterAlgebraSeed(self._B0, I, I, self)
 
-    @property
-    def initial_b_matrix(self): # change this to b_matrix for mutation wrapper
+    def b_matrix(self): 
+        r"""
+        Return the initial exchange matrix of ``self``.
+        """
         n = self.rk
         return copy(self._B0)
 
@@ -928,7 +943,9 @@ class ClusterAlgebra(Parent):
 
         if k not in xrange(n):
             raise ValueError('Cannot mutate in direction %s, please try a value between 0 and %s.'%(str(k),str(n-1)))
-
+        
+        #store current seed location
+        path_to_current = self.current_seed().path_from_initial_seed()
         #modify self._path_dict using Nakanishi-Zelevinsky (4.1) and self._F_poly_dict using CA-IV (6.21)
         new_path_dict = dict()
         new_F_dict = dict()
@@ -969,6 +986,9 @@ class ClusterAlgebra(Parent):
         self._F_poly_dict = new_F_dict
 
         self._B0.mutate(k)
+       
+        # keep the current seed were it was on the exchange graph
+        self._seed = self.initial_seed.mutate([k]+self.current_seed().path_from_initial_seed(), mutating_F=False, inplace=False)
 
     def explore_to_depth(self, depth):
         while self._explored_depth <= depth:

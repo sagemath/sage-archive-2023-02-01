@@ -1115,13 +1115,13 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
 
         if -1 in d:
             coeff = d.pop(-1)
-            if coeff!=0:
+            if coeff:
                 t = self._coeff_formatter(coeff, constant_term=True)
                 first = False
 
         cdef list l = sorted(d.items())
-        for id,coeff in l:
-            sign = cmp(coeff,0)
+        for id, coeff in l:
+            sign = coeff.sign()
             if sign == 0:
                 continue
             if not first:

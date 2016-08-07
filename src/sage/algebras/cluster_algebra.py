@@ -560,22 +560,21 @@ class ClusterAlgebra(Parent):
         r"""
         See :class:`ClusterAlgebra` for full documentation.
         """
-        # TODO: right now we use ClusterQuiver to parse input data. It looks like a good idea but we should make sure it is.
-        # TODO: in base replace LaurentPolynomialRing with the group algebra of a tropical semifield once it is implemented
-
         # Temporary variables
         Q = ClusterQuiver(data)
         n = Q.n()
         B0 = Q.b_matrix()[:n,:]
         I = identity_matrix(n)
-        if 'principal_coefficients' in kwargs and kwargs['principal_coefficients']:
+        if kwargs.get('principal_coefficients', False):
             M0 = I
         else:
             M0 = Q.b_matrix()[n:,:]
         m = M0.nrows()
 
         # Ambient space for F-polynomials
-        # NOTE: for speed purposes we need to have QQ here instead of the more natural ZZ. The reason is that _mutated_F is faster if we do not cast the result to polynomials but then we get "rational" coefficients
+        # NOTE: for speed purposes we need to have QQ here instead of the more
+        # natural ZZ. The reason is that _mutated_F is faster if we do not cast
+        # the result to polynomials but then we get "rational" coefficients
         self._U = PolynomialRing(QQ, ['u%s'%i for i in xrange(n)])
 
         # Storage for computed data
@@ -583,61 +582,38 @@ class ClusterAlgebra(Parent):
         self._F_poly_dict = dict([ (v, self._U(1)) for v in self._path_dict ])
 
         # Determine the names of the initial cluster variables
-        if 'cluster_variables_names' in kwargs:
-            if len(kwargs['cluster_variables_names']) == n:
-                variables = kwargs['cluster_variables_names']
-                cluster_variables_prefix='dummy' # this is just to avoid checking again if cluster_variables_prefix is defined. Make this better before going public
-            else:
-                    raise ValueError("cluster_variables_names should be a list of %d valid variable names"%n)
-        else:
-            try:
-                cluster_variables_prefix = kwargs['cluster_variables_prefix']
-            except:
-                cluster_variables_prefix = 'x'
-            variables = [cluster_variables_prefix+'%s'%i for i in xrange(n)]
-            # why not just put str(i) instead of '%s'%i?
+        variables_prefix = kwargs.get('cluster_variables_prefix','x')
+        variables = kwargs.get('cluster_variables_names', [variables_prefix+str(i) for i in xrange(n)])
+        if len(variables) != n:
+             raise ValueError("cluster_variables_names should be a list of %d valid variable names"%n)
 
         # Determine scalars
-        try:
-            scalars = kwargs['scalars']
-        except:
-            scalars = ZZ
+        scalars = kwargs.get('scalars', ZZ)
 
         # Determine coefficients and setup self._base
         if m>0:
-            if 'coefficients_names' in kwargs:
-                if len(kwargs['coefficients_names']) == m:
-                    coefficients = kwargs['coefficients_names']
-                else:
-                    raise ValueError("coefficients_names should be a list of %d valid variable names"%m)
+            coefficients_prefix = kwargs.get('coefficients_prefix', 'y')
+            if coefficients_prefix == variables_prefix:
+                offset = n
             else:
-                try:
-                    coefficients_prefix = kwargs['coefficients_prefix']
-                except:
-                    coefficients_prefix = 'y'
-                if coefficients_prefix == cluster_variables_prefix:
-                    offset = n
-                else:
-                    offset = 0
-                coefficients = [coefficients_prefix+'%s'%i for i in xrange(offset,m+offset)]
-            # TODO: (***) base should eventually become the group algebra of a tropical semifield
+                offset = 0
+            coefficients = kwargs.get('coefficients_names', [coefficients_prefix+str(i) for i in xrange(offset,m+offset)])
+            if len(coefficients) != m:
+                raise ValueError("coefficients_names should be a list of %d valid variable names"%m)
             base = LaurentPolynomialRing(scalars, coefficients)
         else:
             base = scalars
-            # TODO: next line should be removed when (***) is implemented
             coefficients = []
 
         # setup Parent and ambient
-        # TODO: (***) _ambient should eventually be replaced with LaurentPolynomialRing(base, variables)
         self._ambient = LaurentPolynomialRing(scalars, variables+coefficients)
         self._ambient_field = self._ambient.fraction_field()
-        # TODO: understand why using Algebras() instead of Rings() makes A(1) complain of missing _lmul_
         Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(), names=variables+coefficients)
 
         # Data to compute cluster variables using separation of additions
         # BUG WORKAROUND: if your sage installation does not have trac:`19538` merged uncomment the following line and comment the next
-        self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(n+i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
-        #self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
+        #self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(n+i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
+        self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
         self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n)])*self._y[self._U.gen(j)]) for j in xrange(n)])
 
         # Have we principal coefficients?

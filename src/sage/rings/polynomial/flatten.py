@@ -209,9 +209,6 @@ class FlatteningMorphism(Morphism):
               To:   Univariate Polynomial Ring in c over Univariate Polynomial Ring in b over Univariate Polynomial Ring in a over Integer Ring
         """
         phi= UnflatteningMorphism(self.codomain(), self.domain())
-        phi._intermediate_rings = self._intermediate_rings[:]
-        phi._intermediate_rings.reverse()
-        phi._repr_type_str = 'Unflattening'
         return phi
 
 class UnflatteningMorphism(Morphism):
@@ -220,14 +217,82 @@ class UnflatteningMorphism(Morphism):
 
     EXAMPLES::
 
-        sage: R = QQ['x']['y']['s','t']['X']
-        sage: p = R.random_element()
-        sage: from sage.rings.polynomial.flatten import FlatteningMorphism
-        sage: f = FlatteningMorphism(R)
-        sage: g = f.section()
-        sage: g(f(p)) == p
-        True
+        sage: R = QQ['c','x','y','z']
+        sage: S = QQ['c']['x','y','z']
+        sage: from sage.rings.polynomial.flatten import UnflatteningMorphism
+        sage: f = UnflatteningMorphism(R, S)
+        sage: g = f(R('x^2 + c*y^2 - z^2'));g
+        x^2 + c*y^2 - z^2
+        sage: g.parent()
+        Multivariate Polynomial Ring in x, y, z over Univariate Polynomial Ring in c over Rational Field
+
+    ::
+
+        sage: R = QQ['a','b', 'x','y']
+        sage: S = QQ['a','b']['x','y']
+        sage: from sage.rings.polynomial.flatten import UnflatteningMorphism
+        sage: UnflatteningMorphism(R, S)
+        Unflattening morphism:
+          From: Multivariate Polynomial Ring in a, b, x, y over Rational Field
+          To:   Multivariate Polynomial Ring in x, y over Multivariate Polynomial Ring in a, b over Rational Field
     """
+
+    def __init__(self, domain, codomain):
+        """
+        The Python constructor
+
+        EXAMPLES::
+
+            sage: R = QQ['x']['y']['s','t']['X']
+            sage: p = R.random_element()
+            sage: from sage.rings.polynomial.flatten import FlatteningMorphism
+            sage: f = FlatteningMorphism(R)
+            sage: g = f.section()
+            sage: g(f(p)) == p
+            True
+
+        ::
+
+            sage: R = QQ['a','b','x','y']
+            sage: S = ZZ['a','b']['x','z']
+            sage: from sage.rings.polynomial.flatten import UnflatteningMorphism
+            sage: UnflatteningMorphism(R, S)
+            Traceback (most recent call last):
+            ...
+            ValueError: rings must have same base ring
+
+        ::
+
+            sage: R = QQ['a','b','x','y']
+            sage: S = QQ['a','b']['x','z','w']
+            sage: from sage.rings.polynomial.flatten import UnflatteningMorphism
+            sage: UnflatteningMorphism(R, S)
+            Traceback (most recent call last):
+            ...
+            ValueError: rings must have the same number of variables
+        """
+        if not is_MPolynomialRing(domain):
+            raise ValueError("domain should be a multivariate polynomial ring")
+        if not is_PolynomialRing(codomain) and not is_MPolynomialRing(codomain):
+            raise ValueError("codomain should be a polynomial ring")
+
+        ring = codomain
+        intermediate_rings = []
+
+        while is_PolynomialRing(ring) or is_MPolynomialRing(ring):
+            intermediate_rings.append(ring)
+            ring = ring.base_ring()
+
+        if domain.base_ring() != intermediate_rings[-1].base_ring():
+            raise ValueError("rings must have same base ring")
+        if domain.ngens() != sum([R.ngens() for R in intermediate_rings]):
+            raise ValueError("rings must have the same number of variables")
+
+        self._intermediate_rings = intermediate_rings
+        self._intermediate_rings.reverse()
+
+        Morphism.__init__(self, domain, codomain)
+        self._repr_type_str = 'Unflattening'
 
     def _call_(self, p):
         """

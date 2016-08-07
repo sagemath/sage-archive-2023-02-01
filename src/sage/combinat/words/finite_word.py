@@ -526,10 +526,10 @@ class FiniteWord_class(Word_class):
         alphabet is assumed to be `[1,2,\ldots,n]`. If no alphabet is specified,
         `n` is the maximal letter appearing in ``self``.
 
-       INPUT:
+        INPUT:
 
-       - ``self`` -- a word
-       - ``n`` -- an integer specifying the maximal letter in the alphabet (optional)
+        - ``self`` -- a word
+        - ``n`` -- an integer specifying the maximal letter in the alphabet (optional)
 
         OUTPUT:
 
@@ -1574,7 +1574,7 @@ class FiniteWord_class(Word_class):
         INPUT:
 
         - ``n`` -- integer (optional, default: ``None``). If ``None``, it returns
-           an iterator over all left special factors.
+          an iterator over all left special factors.
 
         EXAMPLES::
 
@@ -1609,7 +1609,7 @@ class FiniteWord_class(Word_class):
         INPUT:
 
         - ``n`` -- integer (optional, default: ``None``). If ``None``, it
-           returns all left special factors.
+          returns all left special factors.
 
         OUTPUT:
 
@@ -1640,7 +1640,7 @@ class FiniteWord_class(Word_class):
         INPUT:
 
         - ``n`` -- integer (optional, default: ``None``). If ``None``, it returns
-           an iterator over all right special factors.
+          an iterator over all right special factors.
 
         EXAMPLES::
 
@@ -1675,7 +1675,7 @@ class FiniteWord_class(Word_class):
         INPUT:
 
         - ``n`` -- integer (optional, default: ``None``). If ``None``, it returns
-           all right special factors.
+          all right special factors.
 
         OUTPUT:
 
@@ -1704,7 +1704,7 @@ class FiniteWord_class(Word_class):
         INPUT:
 
         - ``n`` -- integer (optional, default: ``None``). If ``None``, it returns
-           an iterator over all bispecial factors.
+          an iterator over all bispecial factors.
 
         EXAMPLES::
 
@@ -1764,7 +1764,7 @@ class FiniteWord_class(Word_class):
         INPUT:
 
         - ``n`` -- integer (optional, default: ``None``). If ``None``, it returns
-           all bispecial factors.
+          all bispecial factors.
 
         OUTPUT:
 

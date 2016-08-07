@@ -3372,6 +3372,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2 - 7/4*y^2, y^2])
             sage: f.multiplier_spectra(3)
             [1, 1]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + y^2, x*y])
+            sage: f.sigma_invariants(1)
+            [3, 3, 1]
         """
         PS = self.domain()
         n = Integer(n)
@@ -3382,7 +3390,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if not is_ProjectiveSpace(PS):
             raise NotImplementedError("not implemented for subschemes")
         if (PS.dimension_relative() > 1):
-            raise NonImplementedError("only implemented for dimension 1")
+            raise NotImplementedError("only implemented for dimension 1")
         if not self.is_endomorphism():
             raise TypeError("self must be an endomorphism")
         if not PS.base_ring() in NumberFields() and not PS.base_ring() is QQbar:
@@ -3410,7 +3418,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 phix = Kx.hom(phi,QQbarx)
                 F = phix(F)
 
-        other_roots = F([(f.domain().gens()[0]),1]).univariate_polynomial().roots(ring=QQbar)
+        other_roots = F.parent()(F([(f.domain().gens()[0]),1])).univariate_polynomial().roots(ring=QQbar)
 
         points = []
 
@@ -3461,9 +3469,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``embedding`` - embedding of the base field into `\QQbar`
 
-        OUTPUT:
-
-        - a list of `\QQbar` elements.
+        OUTPUT: a list of elements in the base ring.
 
         EXAMPLES::
 
@@ -3486,7 +3492,17 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(P)
             sage: f = H([x^2 - 5/4*y^2, y^2])
             sage: f.sigma_invariants(2, False, embedding=K.embeddings(QQbar)[0])
-            [13.00000000000000?, 11.00000000000000?, -25.00000000000000?, 0]
+            [13, 11, -25, 0]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: H = End(P)
+            sage: f = H([x^2, y^2, z^2])
+            sage: f.sigma_invariants(1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented for dimension 1
         """
         polys = []
 
@@ -3495,8 +3511,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         e = SymmetricFunctions(QQbar).e()
 
         N = len(multipliers)
+        R = self.base_ring()
         for i in range(0,N):
-            polys.append(e([i+1]).expand(N)(multipliers))
+            polys.append(R(e([i+1]).expand(N)(multipliers)))
         return polys
 
 class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial_projective_space):

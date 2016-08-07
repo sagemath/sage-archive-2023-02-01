@@ -979,7 +979,8 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         INPUT:
 
-        - ``x`` -- a point in the domain or a list or tuple that defines a point in the domain.
+        - ``x`` -- a point in the domain or a list or tuple that
+          defines a point in the domain.
 
         OUTPUT:
 
@@ -1022,10 +1023,8 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             defined by:
               x, but a `pushforward` method is not properly implemented
 
-        ::
-
         It is possible to avoid the checks on the resulting point which can be
-        useful for indeterminacies, but be careful!!
+        useful for indeterminacies, but be careful!! ::
 
             sage: PS.<x,y>=ProjectiveSpace(QQ,1)
             sage: H=Hom(PS,PS)
@@ -1034,16 +1033,12 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: f(P,check=False)
             (0 : 0)
 
-        ::
-
             sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
             sage: X=P.subscheme(x^2-y^2);
             sage: H=Hom(X,X)
             sage: f=H([x^2,y^2,z^2]);
             sage: f([4,4,1])
             (16 : 16 : 1)
-
-        ::
 
             sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
             sage: X=P.subscheme(x^2-y^2);
@@ -1107,9 +1102,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
               x, but a `pushforward` method is not properly implemented
 
         It is possible to avoid the checks on the resulting point which can be
-        useful for indeterminacies, but be careful!!
-
-        ::
+        useful for indeterminacies, but be careful!! ::
 
             sage: PS.<x,y>=ProjectiveSpace(QQ,1)
             sage: H=Hom(PS,PS)

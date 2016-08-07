@@ -696,7 +696,7 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
                 % (t, latex(self.ambient_space()), X, Y))
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of this algebraic scheme.
 
         EXAMPLES::
@@ -1048,7 +1048,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
                 % (latex(self.ambient_space()), polynomials))
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of this scheme.
 
         EXAMPLES::

@@ -758,7 +758,7 @@ class ToricVariety_field(AmbientSpace):
         return r"\mathbb{X}_{%s}" % latex(self.fan())
 
     def _latex_generic_point(self, coordinates=None):
-        """
+        r"""
         Return a LaTeX representation of a point of ``self``.
 
         INPUT:
@@ -768,7 +768,7 @@ class ToricVariety_field(AmbientSpace):
 
         OUTPUT:
 
-        - string.
+        string.
 
         EXAMPLES::
 

@@ -114,9 +114,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             ...
             ValueError: [0, 0, 0, 0] does not define a valid point since all entries are 0
 
-        ::
-
-        It is possible to avoid the possibly time consuming checks, but be careful!!
+        It is possible to avoid the possibly time consuming checks, but be careful!! ::
 
             sage: P = ProjectiveSpace(3, QQ)
             sage: P.point([0,0,0,0], check=False)

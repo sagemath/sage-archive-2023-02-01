@@ -1556,8 +1556,7 @@ class ToricDivisor_generic(Divisor_generic):
 
         OUTPUT:
 
-        - :class:`simplicial complex
-        <sage.homology.simplicial_complex.SimplicialComplex>`.
+        - :class:`simplicial complex <sage.homology.simplicial_complex.SimplicialComplex>`.
 
         EXAMPLES::
 
@@ -1646,10 +1645,10 @@ class ToricDivisor_generic(Divisor_generic):
 
         ALGORITHM:
 
-        See :meth:`cohomology` and note that every `d`-tuple
-        (`d`=dimension of the variety) of rays determines one vertex
-        in the chamber decomposition if none of the hyperplanes are
-        parallel.
+        See :meth:`cohomology` and note that every `d`-tuple (where
+        `d` is the dimension of the variety) of rays determines one
+        vertex in the chamber decomposition if none of the hyperplanes
+        are parallel.
 
         EXAMPLES::
 

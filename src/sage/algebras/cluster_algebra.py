@@ -138,35 +138,37 @@ class ClusterAlgebraElement(ElementWrapper):
     def _div_(self, other):
         return self.parent().retract(self.lift()/other.lift())
 
-    # HACK: LaurentPolynomial_mpair does not know how to compute denominators, we need to lift to its fraction field
-    def lift_to_field(self):
-        return self.parent().lift_to_field(self)
-
-    # this function is quite disgusting but at least it works for any element of
-    # the algebra, can we do better?
-    # For cluster variables yes we can do better: use CA4 Prop 7.16
-    # It looks to me that Prop 7.16 in CA IV only works if you know the
-    # F-polynomial; in particular one ask d_vector() of a cluster variable (or
-    # maybe of a cluster monomial if we know the cluster decomposition). The
-    # current implementation is uglier but more general.
     def d_vector(self):
-        n = self.parent().rk
-        one = self.parent().ambient_field()(1)
-        factors = self.lift_to_field().factor()
-        initial = []
-        non_initial = []
-        [(initial if x[1] > 0 and len(x[0].monomials()) == 1 else non_initial).append(x[0]**x[1]) for x in factors]
-        initial = prod(initial+[one]).numerator()
-        non_initial = prod(non_initial+[one]).denominator()
-        v1 = vector(non_initial.exponents()[0][:n])
-        v2 = vector(initial.exponents()[0][:n])
-        return tuple(v1-v2)
+        r"""
+        Return the d-vector of ``self`` as a tuple of integers.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['F',4], principal_coefficients=True)
+            sage: A.current_seed().mutate([0, 2, 1])
+            sage: x = A.cluster_variable((-1, 2, -2, 2))
+            sage: x = A.cluster_variable((-1, 2, -2, 2)) * A.cluster_variable((0,0,0,1))**2
+            sage: x.d_vector()
+            (1, 1, 2, -2)
+        """
+        monomials = self.lift()._dict().keys()
+        minimal = map(min, zip(*monomials))
+        return tuple(-vector(minimal))[:self.parent().rk]
 
     def _repr_(self):
-        # use this to factor d-vector in the representation
-        return repr(self.lift_to_field())
+        r"""
+        Return a string representation of ``self``.
 
+        EXAMPLES::
 
+            sage: A = ClusterAlgebra(['F',4], principal_coefficients=True)
+            sage: A.current_seed().mutate([0, 2, 1])
+            sage: A.cluster_variable((-1, 2, -2, 2))
+            (x0*x2^2*y0*y1*y2^2 + x1^3*x3^2 + x1^2*x3^2*y0 + 2*x1^2*x3*y2 + 2*x1*x3*y0*y2 + x1*y2^2 + y0*y2^2)/(x0*x1*x2^2)
+        """
+        numer, denom = self.lift()._fraction_pair()
+        return repr(numer/denom)
+    
 ####
 # Methods not always defined
 ####

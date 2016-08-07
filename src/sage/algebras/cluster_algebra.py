@@ -138,7 +138,7 @@ class ClusterAlgebraElement(ElementWrapper):
     def _div_(self, other):
         return self.parent().retract(self.lift()/other.lift())
 
-    def d_vector(self):
+    def d_vector(self): # READY
         r"""
         Return the d-vector of ``self`` as a tuple of integers.
 
@@ -155,7 +155,7 @@ class ClusterAlgebraElement(ElementWrapper):
         minimal = map(min, zip(*monomials))
         return tuple(-vector(minimal))[:self.parent().rk]
 
-    def _repr_(self):
+    def _repr_(self):   # READY
         r"""
         Return a string representation of ``self``.
 
@@ -527,7 +527,6 @@ class ClusterAlgebra(Parent):
 
         # setup Parent and ambient
         self._ambient = LaurentPolynomialRing(scalars, variables+coefficients)
-        self._ambient_field = self._ambient.fraction_field()
         Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(), names=variables+coefficients)
 
         # Data to compute cluster variables using separation of additions
@@ -563,7 +562,6 @@ class ClusterAlgebra(Parent):
         other._path_dict = copy(self._path_dict)
         other._F_poly_dict = copy(self._F_poly_dict)
         other._ambient = self._ambient
-        other._ambient_field = self._ambient_field
         other._y = copy(self._y)
         other._yhat = copy(self._yhat)
         other._is_principal = self._is_principal
@@ -670,7 +668,7 @@ class ClusterAlgebra(Parent):
         F_std = self.F_polynomial(g_vector).subs(self._yhat)
         g_mon = prod([self.ambient().gen(i)**g_vector[i] for i in xrange(self.rk)])
         # LaurentPolynomial_mpair does not know how to compute denominators, we need to lift to its fraction field
-        F_trop = self.ambient_field()(self.F_polynomial(g_vector).subs(self._y)).denominator()
+        F_trop = self.F_polynomial(g_vector).subs(self._y)._fraction_pair()[1]
         return self.retract(g_mon*F_std*F_trop)
 
     def find_cluster_variable(self, g_vector, depth=infinity):
@@ -709,12 +707,6 @@ class ClusterAlgebra(Parent):
 
     def ambient(self):
         return self._ambient
-
-    def ambient_field(self):
-        return self._ambient_field
-
-    def lift_to_field(self, x):
-        return self.ambient_field()(1)*x.value
 
     def lift(self, x):
         r"""

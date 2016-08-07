@@ -720,19 +720,17 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
                 return self.one()
             else:
                 R = self.base_ring()
-                print R
-                print isinstance(R, Field)
+                sigma = self.twist_map()
+#                print R
+##                print isinstance(R, Field)
                 if not isinstance(R, Field):
-                    print "Hi"
+##                    print "Hi"
                     Q = R.fraction_field()
-                    print Q
-                    t = Q(R.variable_name())
-#                    sigma = Q.self.twist_map()
-                    print sigma
-                    print self.twist_map()
-                    print Q.variable_name()
-                    S = Q[self.variable_name(), sigma]
-                    x = S.gen()
+                    gens = R.gens()
+                    try:
+                        sigma = Q.hom([ Q(sigma(g)) for g in gens ])
+                    except:
+                        raise ValueError("Unable to lift the twist map to a twist map over %s" % Q)
                 return x - (sigma(eval_pts[0]) / eval_pts[0])
         else:
             t = len(eval_pts)//2

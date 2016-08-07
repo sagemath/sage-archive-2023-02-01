@@ -538,12 +538,12 @@ class ClusterAlgebra(Parent):
         # Temporary variables
         Q = ClusterQuiver(data)
         n = Q.n()
-        B0 = Q.b_matrix()[:n,:]
         I = identity_matrix(n)
         if kwargs.get('principal_coefficients', False):
             M0 = I
         else:
             M0 = Q.b_matrix()[n:,:]
+        B0 = block_matrix([[Q.b_matrix()[:n,:]],[M0]])
         m = M0.nrows()
 
         # Ambient space for F-polynomials
@@ -590,13 +590,13 @@ class ClusterAlgebra(Parent):
         # merged uncomment the following line and comment the next
         #self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(n+i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
         self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
-        self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n)])*self._y[self._U.gen(j)]) for j in xrange(n)])
+        self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n+m)])) for j in xrange(n)])
 
         # Have we got principal coefficients?
         self._is_principal = (M0 == I)
 
         # Store initial data
-        self._B0 = block_matrix([[B0],[M0]])
+        self._B0 = copy(B0)
         self._n = n
         self.reset_current_seed()
 

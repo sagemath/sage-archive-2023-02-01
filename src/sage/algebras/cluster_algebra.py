@@ -438,16 +438,6 @@ class ClusterAlgebraSeed(SageObject):
         # B-matrix
         self._B.mutate(k)
 
-        # exchange relation
-        if self.parent()._store_exchange_relations:
-            ex_pair = frozenset([g_vector,old_g_vector])
-            if ex_pair not in self.parent()._exchange_relations:
-                coefficient = self.coefficient(k).lift()
-                variables = zip(self.g_vectors(), self.b_matrix().column(k))
-                Mp = [ (g,p) for (g,p) in variables if p > 0 ]
-                Mm = [ (g,-p) for (g,p) in variables if p < 0 ]
-                self.parent()._exchange_relations[ex_pair] = ( (Mp,coefficient.numerator()), (Mm,coefficient.denominator()) )
-
     def _mutated_F(self, k, old_g_vector):
         alg = self.parent()
         pos = alg._U(1)
@@ -509,23 +499,6 @@ class ClusterAlgebraSeed(SageObject):
             element = tuple(element)
             cluster = self.g_vectors()
         return element in cluster
-
-    def Y(self, j):
-        r"""
-        The j-th element of the Y-pattern in the universal coefficient semifield
-        C.f. CA4 definition 3.10
-        Uses CA4 Proposition 3.13
-        """
-        Y = prod(map(lambda y,c: y**c, self.parent()._U.gens(), self.c_vector(j)))
-        for i in range(self.parent()._n):
-            Y *= self.F_polynomial(i)**self.b_matrix()[i,j]
-        return self.parent()._U.fraction_field()(Y)
-
-    def coefficient(self, j):
-        # TODO: the name of this function can be confusing: what this returns is the ration of the two coefficients in the exchange relations or, if you prefer, the j-th column of the bottom part of the extended exchange matrix at this seed
-        ev = self.Y(j).subs(self.parent()._y)
-        #ev = self.parent().ambient_field()(ev)
-        return self.parent().retract(tropical_evaluation(ev))
 
 ##############################################################################
 # Cluster algebras
@@ -628,19 +601,6 @@ class ClusterAlgebra(Parent):
         # Internal data for exploring the exchange graph
         self.reset_exploring_iterator()
 
-        # Internal data to store exchange relations
-        # This is a dictionary indexed by a frozen set of two g-vectors (the g-vectors of the exchanged variables)
-        # Exchange relations are, for the moment, a frozen set of precisely two entries (one for each term in the exchange relation's RHS).
-        # Each of them contains two things
-        # 1) a list of pairs (g-vector, exponent) one for each cluster variable appearing in the term
-        # 2) the coefficient part of the term
-        # TODO: possibly refactor this producing a class ExchangeRelation with some pretty printing feature
-        self._exchange_relations = dict()
-        if 'store_exchange_relations' in kwargs and kwargs['store_exchange_relations']:
-            self._store_exchange_relations = True
-        else:
-            self._store_exchange_relations = False
-
         # Add methods that are defined only for special cases
         if n == 2:
             self.greedy_element = MethodType(greedy_element, self, self.__class__)
@@ -666,7 +626,6 @@ class ClusterAlgebra(Parent):
         other._B0 = copy(self._B0)
         other._n = self._n
         other._seed = copy(self._seed)
-        other._store_exchange_relations = self._store_exchange_relations
         # We probably need to put n=2 initializations here also
         # TODO: we may want to use __init__ to make the initialization somewhat easier (say to enable special cases) This might require a better written __init__
         return other

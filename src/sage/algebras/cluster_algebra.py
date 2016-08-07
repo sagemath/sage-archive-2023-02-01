@@ -266,7 +266,7 @@ def homogeneous_components(self):   #READY
         sage: x.homogeneous_components()
         {(0, 1): x1, (1, 0): x0}
     """
-    deg_matrix = block_matrix([[identity_matrix(self.parent().rk),-self.parent()._B0]])
+    deg_matrix = block_matrix([[identity_matrix(self.parent().rk),-self.parent().b_matrix()]])
     components = dict()
     x = self.lift()
     monomials = x.monomials()
@@ -611,16 +611,17 @@ class ClusterAlgebra(Parent):
         Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(), names=variables+coefficients)
 
         # Data to compute cluster variables using separation of additions
-        # BUG WORKAROUND: if your sage installation does not have trac:`19538` merged uncomment the following line and comment the next
+        # BUG WORKAROUND: if your sage installation does not have trac:`19538`
+        # merged uncomment the following line and comment the next
         #self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(n+i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
         self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
         self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n)])*self._y[self._U.gen(j)]) for j in xrange(n)])
 
-        # Have we principal coefficients?
+        # Have we got principal coefficients?
         self._is_principal = (M0 == I)
 
         # Store initial data
-        self._B0 = copy(B0)
+        self._B0 = block_matrix([[B0],[M0]])
         self._n = n
         self.reset_current_seed()
 
@@ -727,14 +728,14 @@ class ClusterAlgebra(Parent):
         """
         n = self.rk
         I = identity_matrix(n)
-        return ClusterAlgebraSeed(self._B0, I, I, self)
+        return ClusterAlgebraSeed(self.b_matrix(), I, I, self)
 
     def b_matrix(self): 
         r"""
         Return the initial exchange matrix of ``self``.
         """
         n = self.rk
-        return copy(self._B0)
+        return copy(self._B0[:n,:])
 
     def g_vectors_so_far(self):
         r"""

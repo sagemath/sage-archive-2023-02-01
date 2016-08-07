@@ -872,7 +872,25 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Multivariate Polynomial Ring in x, y over Fraction Field of Univariate Polynomial
             Ring in t over Number Field in v with defining polynomial x^2 - 33
 
-        This one still does not work, some function fields still return Symoblic Ring elements::
+        ::
+
+            sage: P.<x, y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([x^3-y^3*2, y^3])
+            sage: f.dynatomic_polynomial(1).parent()
+            Multivariate Polynomial Ring in x, y over Rational Field
+
+        ::
+
+            sage: P.<x, y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([x^2 + y^2, y^2])
+            sage: f.dynatomic_polynomial(0)
+            0
+            sage: f.dynatomic_polynomial([0,0])
+            0
+
+        Some rings still return Symoblic Ring elements::
 
             sage: S.<t> = FunctionField(CC)
             sage: P.<x,y> = ProjectiveSpace(S,1)
@@ -889,8 +907,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<u,v> = ProjectiveSpace(FractionField(S),1)
             sage: H = End(P)
             sage: f = H([u^2 + S(x^2)*v^2, v^2])
-            sage: f.dynatomic_polynomial([1,1])
+            sage: dyn = f.dynatomic_polynomial([1,1]); dyn
             v^3*xbar^2 + u^2*v + u*v^2
+            sage: dyn.parent()
+            Symbolic Ring
        """
         if self.domain().ngens() > 2:
             raise TypeError("does not make sense in dimension >1")
@@ -900,24 +920,22 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         y = self.domain().gen(1)
         f0, f1 = F0, F1 = self._polys
         PHI = self.base_ring().one()
+        m = period[0]
         n = period[1]
-        if period[0] != 0:
-            m = period[0]
+        if m == 0:
+            if n == 0:
+                return self[0].parent().zero()
+            elif n == 1:
+                return y*F0 - x*F1
+        for d in range(1, n):
+            if n % d == 0:
+                PHI = PHI * ((y*F0 - x*F1)**moebius(n//d))
+            F0, F1 = f0(F0, F1), f1(F0, F1)
+        PHI = PHI * (y*F0 - x*F1)
+        if m != 0:
             fm = self.nth_iterate_map(m)
             fm1 = self.nth_iterate_map(m - 1)
-            for d in range(1, n):
-                if n % d == 0:
-                    PHI = PHI * ((y*F0 - x*F1) ** moebius(n/d))
-                F0, F1 = f0(F0, F1), f1(F0, F1)
-            PHI = PHI * (y*F0 - x*F1)
-            if m != 0:
-                PHI = PHI(fm._polys)/ PHI(fm1._polys )
-        else:
-            for d in range(1, n):
-                if n % d == 0:
-                    PHI = PHI * ((y*F0 - x*F1) ** moebius(n//d))
-                F0, F1 = f0(F0, F1), f1(F0, F1)
-            PHI = PHI * (y*F0 - x*F1)
+            PHI = PHI(fm._polys)/ PHI(fm1._polys)
         try:
             QR = PHI.numerator().quo_rem(PHI.denominator())
             if not QR[1]:

@@ -56,63 +56,6 @@ from types import MethodType
 ##############################################################################
 # Helper functions
 ##############################################################################
-def tropical_evaluation(f): #READY
-    r"""
-    Return the tropical evaluation of ``f``.
-
-    INPUT:
-
-    - ``f`` -- a (Laurent) polynomial or a rational function without subtractions.
-
-    OUTPUT:
-    
-    The Laurent monomial obtained by evaluating ``f`` in the tropical semifield of Laurent monomials with min and +
-
-    EXAMPLES::
-    
-        sage: from sage.algebras.cluster_algebra import tropical_evaluation
-        sage: tropical_evaluation(4+6/3)
-        1
-        sage: R.<x,y,z> = PolynomialRing(ZZ)
-        sage: f = (x^3+2*x*y^3+x^2*y)/(x^2*z^3+y*z^2+z)
-        sage: f.parent()
-        Fraction Field of Multivariate Polynomial Ring in x, y, z over Integer Ring
-        sage: tropical_evaluation(f)
-        x/z
-        sage: var('t')
-        t
-        sage: g = t^3+5
-        sage: g.parent()
-        Symbolic Ring
-        sage: tropical_evaluation(g)
-        Traceback (most recent call last):
-        ...
-        ValueError: Cannot compute numerator and denominator of t^3 + 5
-        
-    """
-    ambient = f.parent().fraction_field()
-    if ambient not in QuotientFields:
-        raise ValueError("Cannot compute numerator and denominator of %s"%str(f))
-
-    if ambient is QQ:
-        return 1
-
-    # This is an hack to use the same code on polynomials, laurent polynomials and rational expressions
-    # we could probably gain some marginal speed by doing things better
-    f = ambient(f)
-    num_exponents = f.numerator().exponents()
-    if type(num_exponents[0]) != int:
-        num_exponent = map(min, zip(*num_exponents))
-    else:
-        num_exponent = [min(num_exponents)]
-    den_exponents = f.denominator().exponents()
-    if type(den_exponents[0]) != int:
-        den_exponent = map(min, zip(*den_exponents))
-    else:
-        den_exponent = [min(den_exponents)]
-    variables = f.parent().gens()
-    return prod(map(lambda x,p: x**p, variables,num_exponent))*prod(map(lambda x,p: x**(-p), variables,den_exponent))
-
 def mutation_parse(mutate): # READY
     r"""
     Preparse input for mutation functions.
@@ -889,7 +832,6 @@ class ClusterAlgebra(Parent):
         new_F_dict[tuple(identity_matrix(n).column(k))] = self._U(1)
 
         poly_ring = PolynomialRing(ZZ,'u')
-        h_subs_tuple = tuple([poly_ring.gen(0)**(-1) if j==k else poly_ring.gen(0)**max(-self._B0[k][j],0) for j in xrange(n)])
         F_subs_tuple = tuple([self._U.gen(k)**(-1) if j==k else self._U.gen(j)*self._U.gen(k)**max(-self._B0[k][j],0)*(1+self._U.gen(k))**(self._B0[k][j]) for j in xrange(n)])
 
         for g_vect in self._path_dict:
@@ -912,10 +854,7 @@ class ClusterAlgebra(Parent):
             new_path_dict[tuple(new_g_vect)] = new_path
 
             #compute new F-polynomial
-            h = 0
-            trop = tropical_evaluation(self._F_poly_dict[g_vect](h_subs_tuple))
-            if trop != 1:
-                h = trop.denominator().exponents()[0]-trop.numerator().exponents()[0]
+            h =  -min(0,g_vect[k])
             new_F_dict[tuple(new_g_vect)] = self._F_poly_dict[g_vect](F_subs_tuple)*self._U.gen(k)**h*(self._U.gen(k)+1)**g_vect[k]
 
         self._path_dict = new_path_dict

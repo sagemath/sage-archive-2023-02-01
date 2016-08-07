@@ -361,7 +361,7 @@ def WellsGraph():
 
     # Computing the isomorphism between the two
     b = b.line_graph(labels = False)
-    _, labels = distance3.is_isomorphic(b, certify = True)
+    _, labels = distance3.is_isomorphic(b, certificate=True)
 
     # The relabeling that the books claims to exist.
     for v,new_name in labels.items():

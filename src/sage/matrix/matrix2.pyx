@@ -7578,7 +7578,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         M_B = self.as_bipartite_graph()
         N_B = N.as_bipartite_graph()
         if check:
-            truth, perm = N_B.is_isomorphic(M_B, certify=True, edge_labels=True)
+            truth, perm = N_B.is_isomorphic(M_B, certificate=True, edge_labels=True)
             from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
             if perm:
                 s = sorted(perm.items(), key=lambda x:x[0])
@@ -7587,7 +7587,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                 perm = (PermutationGroupElement(row_perms), PermutationGroupElement(col_perms))
             return truth, perm
         else:
-            return N_B.is_isomorphic(M_B, certify=False, edge_labels=True)
+            return N_B.is_isomorphic(M_B, certificate=False, edge_labels=True)
 
     #####################################################################################
     # Windowed Strassen Matrix Multiplication and Echelon

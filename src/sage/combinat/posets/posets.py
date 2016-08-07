@@ -4501,7 +4501,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset().canonical_label()  # Test the empty poset
             Finite poset containing 0 elements
         """
-        canonical_label = self._hasse_diagram.canonical_label(certify=True)[1]
+        canonical_label = self._hasse_diagram.canonical_label(certificate=True)[1]
         canonical_label = {self._elements[v]:i for v,i in canonical_label.iteritems()}
         return self.relabel(canonical_label)
 

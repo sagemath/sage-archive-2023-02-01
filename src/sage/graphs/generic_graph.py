@@ -20508,13 +20508,14 @@ class GenericGraph(GenericGraph_pyx):
         except EmptySetError:
             return False
 
-    def is_isomorphic(self, other, certify=False, verbosity=0, edge_labels=False):
+    @rename_keyword(deprecation=21111, certify='certificate')
+    def is_isomorphic(self, other, certificate=False, verbosity=0, edge_labels=False):
         r"""
         Tests for isomorphism between self and other.
 
         INPUT:
 
-        -  ``certify`` - if True, then output is `(a, b)`, where `a`
+        -  ``certificate`` - if True, then output is `(a, b)`, where `a`
            is a boolean and `b` is either a map or ``None``.
 
         -  ``edge_labels`` - default ``False``, otherwise allows
@@ -20522,7 +20523,7 @@ class GenericGraph(GenericGraph_pyx):
 
         OUTPUT:
 
-        - either a boolean or, if ``certify`` is ``True``, a tuple consisting
+        - either a boolean or, if ``certificate`` is ``True``, a tuple consisting
           of a boolean and a map or ``None``
 
         EXAMPLES:
@@ -20544,7 +20545,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: gamma = S.random_element()
             sage: E = copy(D)
             sage: E.relabel(gamma)
-            sage: a,b = D.is_isomorphic(E, certify=True); a
+            sage: a,b = D.is_isomorphic(E, certificate=True); a
             True
             sage: from sage.plot.graphics import GraphicsArray
             sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
@@ -20579,7 +20580,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: A = DiGraph( { 0 : [1,2] } )
             sage: B = DiGraph( { 1 : [0,2] } )
-            sage: A.is_isomorphic(B, certify=True)
+            sage: A.is_isomorphic(B, certificate=True)
             (True, {0: 1, 1: 0, 2: 2})
 
         Edge labeled graphs::
@@ -20597,7 +20598,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: H = G.relabel([1,2,3,4,0], inplace=False)
             sage: G.is_isomorphic(H, edge_labels=True)
             True
-            sage: G.is_isomorphic(H, edge_labels=True, certify=True)
+            sage: G.is_isomorphic(H, edge_labels=True, certificate=True)
             (True, {0: 1, 1: 2, 2: 3, 3: 4, 4: 0})
 
         TESTS::
@@ -20672,13 +20673,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: H = Graph(multiedges = True, loops = True)
             sage: G.add_edges([(0,1,0),(1,0,1),(1,1,2),(0,0,3)])
             sage: H.add_edges([(0,1,3),(1,0,2),(1,1,1),(0,0,0)])
-            sage: G.is_isomorphic(H, certify=True)
+            sage: G.is_isomorphic(H, certificate=True)
             (True, {0: 0, 1: 1})
             sage: set_random_seed(0)
             sage: D = digraphs.RandomDirectedGNP(6, .2)
-            sage: D.is_isomorphic(D, certify = True)
+            sage: D.is_isomorphic(D, certificate=True)
             (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5})
-            sage: D.is_isomorphic(D,edge_labels=True, certify = True)
+            sage: D.is_isomorphic(D,edge_labels=True, certificate=True)
             (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5})
 
         Ensure that :trac:`11620` is fixed::
@@ -20712,16 +20713,25 @@ class GenericGraph(GenericGraph_pyx):
 
         as well as :trac:`18613`::
 
-            sage: g.is_isomorphic(h, certify=True)
+            sage: g.is_isomorphic(h, certificate=True)
             (True, None)
+
+        Deprecation from #21111::
+
+            sage: G = DiGraph({'a':['b']})
+            sage: H = DiGraph({0:[1]})
+            sage: G.is_isomorphic(H, certify=True)
+            doctest:...: DeprecationWarning: use the option 'certificate' instead of 'certify'
+            See http://trac.sagemath.org/21111 for details.
+            (True, {'a': 0, 'b': 1})
         """
 
         if self.order() == other.order() == 0:
-            return (True, None) if certify else True
+            return (True, None) if certificate else True
 
         if (self.is_directed() != other.is_directed() or self.order() != other.order() or
             self.size() != other.size() or self.degree_sequence() != other.degree_sequence()):
-            if certify:
+            if certificate:
                 return False,None
             else:
                 return False
@@ -20732,16 +20742,16 @@ class GenericGraph(GenericGraph_pyx):
         other_vertices = other.vertices()
         if edge_labels or self.has_multiple_edges():
             if edge_labels and sorted(self.edge_labels()) != sorted(other.edge_labels()):
-                return (False, None) if certify else False
+                return (False, None) if certificate else False
             else:
                 G, partition, relabeling, G_edge_labels = graph_isom_equivalent_non_edge_labeled_graph(self, return_relabeling=True, ignore_edge_labels=(not edge_labels), return_edge_labels=True)
                 self_vertices = sum(partition,[])
                 G2, partition2, relabeling2, G2_edge_labels = graph_isom_equivalent_non_edge_labeled_graph(other, return_relabeling=True, ignore_edge_labels=(not edge_labels), return_edge_labels=True)
                 if [len(_) for _ in partition] != [len(_) for _ in partition2]:
-                    return (False, None) if certify else False
+                    return (False, None) if certificate else False
                 multilabel = (lambda e:e) if edge_labels else (lambda e:[[None, el[1]] for el in e])
                 if [multilabel(_) for _ in G_edge_labels] != [multilabel(_) for _ in G2_edge_labels]:
-                    return (False, None) if certify else False
+                    return (False, None) if certificate else False
                 partition2 = sum(partition2,[])
                 other_vertices = partition2
         else:
@@ -20773,11 +20783,11 @@ class GenericGraph(GenericGraph_pyx):
         GC2 = G2
         isom = isomorphic(GC, GC2, partition, partition2, (self._directed or self.has_loops()), 1)
 
-        if not isom and certify:
+        if not isom and certificate:
             return False, None
         elif not isom:
             return False
-        elif not certify:
+        elif not certificate:
             return True
         else:
             isom_trans = {}
@@ -20792,7 +20802,8 @@ class GenericGraph(GenericGraph_pyx):
                     isom_trans[v] = other_vertices[isom[G_to[v]]]
             return True, isom_trans
 
-    def canonical_label(self, partition=None, certify=False, verbosity=0,
+    @rename_keyword(deprecation=21111, certify='certificate')
+    def canonical_label(self, partition=None, certificate=False, verbosity=0,
                         edge_labels=False,algorithm=None,return_graph=True):
         """Return a graph on `\{0,1,...,n-1\}` ( ``n = self.order()`` ) which
 
@@ -20816,7 +20827,7 @@ class GenericGraph(GenericGraph_pyx):
            respect to this set partition will be computed. The default is the unit
            set partition.
 
-        -  ``certify`` - if True, a dictionary mapping from the
+        -  ``certificate`` - if True, a dictionary mapping from the
            (di)graph to its canonical label will be given.
 
         -  ``verbosity`` - gets passed to nice: prints helpful
@@ -20844,7 +20855,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = graphs.DodecahedralGraph()
             sage: E = D.canonical_label(algorithm='sage'); E
             Dodecahedron: Graph on 20 vertices
-            sage: D.canonical_label(certify=True,algorithm='sage')
+            sage: D.canonical_label(certificate=True, algorithm='sage')
             (Dodecahedron: Graph on 20 vertices, {0: 0, 1: 19, 2: 16, 3: 15, 4: 9, 5: 1, 6: 10, 7: 8, 8: 14, 9: 12, 10: 17, 11: 11, 12: 5, 13: 6, 14: 2, 15: 4, 16: 3, 17: 7, 18: 13, 19: 18})
             sage: D.is_isomorphic(E)
             True
@@ -20882,7 +20893,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] )
             sage: G.canonical_label(edge_labels=True)
             Graph on 5 vertices
-            sage: G.canonical_label(edge_labels=True,certify=True)
+            sage: G.canonical_label(edge_labels=True, certificate=True)
             (Graph on 5 vertices, {0: 4, 1: 3, 2: 0, 3: 1, 4: 2})
 
         Check for immutable graphs (:trac:`16602`)::
@@ -20902,6 +20913,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: s1 == s2                                                      # optional - bliss
             True
 
+        TESTS::
+
+            sage: G = Graph({'a': ['b']})
+            sage: G.canonical_label(certify=True)
+            doctest:...: DeprecationWarning: use the option 'certificate' instead of 'certify'
+            See http://trac.sagemath.org/21111 for details.
+            (Graph on 2 vertices, {'a': 0, 'b': 1})
         """
         from sage.misc.package import is_package_installed
         if (algorithm == 'bliss'           or  # explicit request; or
@@ -20914,7 +20932,7 @@ class GenericGraph(GenericGraph_pyx):
                 from sage.graphs.bliss import canonical_form
             except ImportError:
                 raise ImportError("You must install the 'bliss' package to run this command.")
-            return canonical_form(self, partition, return_graph, certify)
+            return canonical_form(self, partition, return_graph, certificate)
 
         if (algorithm is not None and
             algorithm != "sage"):
@@ -20940,14 +20958,14 @@ class GenericGraph(GenericGraph_pyx):
                 HB.add_edge(u,v,None,G._directed)
             GC = HB.c_graph()[0]
             partition = [[G_to[v] for v in cell] for cell in partition]
-            a,b,c = search_tree(GC, partition, certify=True, dig=dig, verbosity=verbosity)
+            a,b,c = search_tree(GC, partition, certificate=True, dig=dig, verbosity=verbosity)
             # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
             H = copy(self)
             c_new = {}
             for v in self.vertices():
                 c_new[v] = c[G_to[relabeling[v]]]
             H.relabel(c_new)
-            if certify:
+            if certificate:
                 return H, c_new
             else:
                 return H
@@ -20964,13 +20982,13 @@ class GenericGraph(GenericGraph_pyx):
             HB.add_edge(u,v,None,self._directed)
         GC = HB.c_graph()[0]
         partition = [[G_to[v] for v in cell] for cell in partition]
-        a,b,c = search_tree(GC, partition, certify=True, dig=dig, verbosity=verbosity)
+        a,b,c = search_tree(GC, partition, certificate=True, dig=dig, verbosity=verbosity)
         H = copy(self)
         c_new = {}
         for v in G_to:
             c_new[v] = c[G_to[v]]
         H.relabel(c_new)
-        if certify:
+        if certificate:
             return H, c_new
         else:
             return H
@@ -21081,7 +21099,7 @@ class GenericGraph(GenericGraph_pyx):
                     c, CG = C[0].is_cayley(return_group = True)
                     if c:
                         from sage.groups.perm_gps.permgroup import PermutationGroup
-                        I = [C[0].is_isomorphic(g, certify=True)[1] for g in C]
+                        I = [C[0].is_isomorphic(g, certificate=True)[1] for g in C]
                         # gens generate the direct product of CG and a cyclic group
                         gens = [sum([[tuple([M[x] for x in p])
                                 for p in h.cycle_tuples()] for M in I], [])

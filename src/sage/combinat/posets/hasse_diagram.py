@@ -1574,7 +1574,7 @@ class HasseDiagram(DiGraph):
         if n % 2 == 1:
             raise(StopIteration)
 
-        dual_isomorphism = self.is_isomorphic(self.reverse(), certify=True)[1]
+        dual_isomorphism = self.is_isomorphic(self.reverse(), certificate=True)[1]
         if dual_isomorphism is None:  # i.e. if the lattice is not self-dual.
             raise(StopIteration)
 

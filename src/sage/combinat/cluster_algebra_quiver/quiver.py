@@ -49,6 +49,7 @@ from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMuta
 from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form, _mutation_class_iter, _digraph_to_dig6, _dig6_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutation_type, _mutation_type_from_data, is_mutation_finite
 
+from sage.misc.decorators import rename_keyword
 
 class ClusterQuiver(SageObject):
     """
@@ -972,14 +973,15 @@ class ClusterQuiver(SageObject):
         """
         return self._m
 
-    def canonical_label( self, certify=False ):
+    @rename_keyword(deprecation=21111, certify='certificate')
+    def canonical_label( self, certificate=False ):
         """
         Returns the canonical labelling of ``self``, see
         :meth:`sage.graphs.graph.GenericGraph.canonical_label`.
 
         INPUT:
 
-        - ``certify`` -- (default: False) if True, the dictionary from ``self.vertices()`` to the vertices of the returned quiver is returned as well.
+        - ``certificate`` -- (default: False) if True, the dictionary from ``self.vertices()`` to the vertices of the returned quiver is returned as well.
 
         EXAMPLES::
 
@@ -989,7 +991,7 @@ class ClusterQuiver(SageObject):
             sage: T = Q.canonical_label(); T.digraph().edges()
             [(0, 3, (1, -1)), (1, 2, (1, -1)), (1, 3, (1, -1))]
 
-            sage: T,iso = Q.canonical_label(certify=True); T.digraph().edges(); iso
+            sage: T,iso = Q.canonical_label(certificate=True); T.digraph().edges(); iso
             [(0, 3, (1, -1)), (1, 2, (1, -1)), (1, 3, (1, -1))]
             {0: 0, 1: 3, 2: 1, 3: 2}
 
@@ -999,8 +1001,16 @@ class ClusterQuiver(SageObject):
             sage: Q.canonical_label()
             Quiver on 3 vertices of type [ ['A', 1], ['B', 2] ]
 
-            sage: Q.canonical_label(certify=True)
+            sage: Q.canonical_label(certificate=True)
             (Quiver on 3 vertices of type [ ['A', 1], ['B', 2] ], {0: 1, 1: 2, 2: 0})
+
+        TESTS::
+
+            sage: Q = ClusterQuiver(['A',4])
+            sage: _,iso = Q.canonical_label(certify=True); iso
+            doctest:...: DeprecationWarning: use the option 'certificate' instead of 'certify'
+            See http://trac.sagemath.org/21111 for details.
+            {0: 0, 1: 3, 2: 1, 3: 2}
         """
         n = self._n
         m = self._m
@@ -1021,7 +1031,7 @@ class ClusterQuiver(SageObject):
                 for i in range( len( CC_new ) ):
                     Q._mutation_type.append( copy( self._mutation_type.irreducible_components()[ comp_iso[i] ] ) )
                 Q._mutation_type = QuiverMutationType( Q._mutation_type )
-        if certify:
+        if certificate:
             return Q, iso
         else:
             return Q

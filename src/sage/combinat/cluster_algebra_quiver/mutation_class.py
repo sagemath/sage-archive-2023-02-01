@@ -150,7 +150,7 @@ def _matrix_to_digraph( M ):
             dg.add_vertex(i)
     return dg
 
-def _dg_canonical_form( dg, n, m ):
+def _dg_canonical_form( dg, nlist, mlist ):
     """
     Turns the digraph ``dg`` into its canonical form, and returns the corresponding isomorphism, and the vertex orbits of the automorphism group.
 
@@ -160,11 +160,13 @@ def _dg_canonical_form( dg, n, m ):
         sage: from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
         sage: dg = ClusterQuiver(['B',4]).digraph(); dg.edges()
         [(0, 1, (1, -1)), (2, 1, (1, -1)), (2, 3, (1, -2))]
-        sage: _dg_canonical_form(dg,4,0); dg.edges()
+        sage: _dg_canonical_form(dg,range(4),[]); dg.edges()
         ({0: 0, 1: 3, 2: 1, 3: 2}, [[0], [3], [1], [2]])
         [(0, 3, (1, -1)), (1, 2, (1, -2)), (1, 3, (1, -1))]
     """
-    vertices = [ v for v in dg ]
+    vertices = nlist + mlist
+    n = len(nlist)
+    m = len(mlist)
     if m > 0:
         partition = [ vertices[:n], vertices[n:] ]
     else:
@@ -220,7 +222,7 @@ def _mutation_class_iter( dg, n, m, depth=infinity, return_dig6=False, show_dept
     timer = time.time()
     depth_counter = 0
     if up_to_equivalence:
-        iso, orbits = _dg_canonical_form( dg, n, m )
+        iso, orbits = _dg_canonical_form( dg, range(n), range(n,n+m) )
         iso_inv = dict( (iso[a],a) for a in iso )
 
     dig6 = _digraph_to_dig6( dg, hashable=True )
@@ -256,7 +258,7 @@ def _mutation_class_iter( dg, n, m, depth=infinity, return_dig6=False, show_dept
                 if not sink_source or _dg_is_sink_source( dg, i ):
                     dg_new = _digraph_mutate( dg, i, n, m )
                     if up_to_equivalence:
-                        iso, orbits = _dg_canonical_form( dg_new, n, m )
+                        iso, orbits = _dg_canonical_form( dg_new, range(n), range(n,n+m) )
                         i_new = iso[i]
                         iso_inv = dict( (iso[a],a) for a in iso )
                     else:
@@ -369,7 +371,7 @@ def _dig6_to_matrix( dig6 ):
         [ 0  0 -1  0]
     """
     dg = _dig6_to_digraph( dig6 )
-    return _edge_list_to_matrix( dg.edges(), dg.order(), 0 )
+    return _edge_list_to_matrix( dg.edges(), range(dg.order()), [ ] )
 
 def _dg_is_sink_source( dg, v ):
     """

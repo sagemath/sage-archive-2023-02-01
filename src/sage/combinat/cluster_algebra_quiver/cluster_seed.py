@@ -2921,7 +2921,7 @@ class ClusterSeed(SageObject):
         EXAMPLES::
 
             sage: S = ClusterSeed(['A',4])
-            sage: T = ClusterSeed( S.quiver().digraph().edges(), frozen=1 )
+            sage: T = ClusterSeed( S.quiver().digraph().edges(), frozen=[3] )
             sage: T.quiver().digraph().edges()
             [(0, 1, (1, -1)), (2, 1, (1, -1)), (2, 3, (1, -1))]
 

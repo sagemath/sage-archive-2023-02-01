@@ -13,16 +13,23 @@ along with :class:`~sage.rings.polynomial.skew_polynomial_element.ConstantSkewPo
 and :class:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomialBaseringInjection`
 for conversion from a skew polynomial ring to its base ring and vice versa respectively.
 
-AUTHOR:
+AUTHORS:
 
--  Xavier Caruso (2012-06-29)
+- Xavier Caruso (2012-06-29): initial version
+
+- Arpit Merchant (2016-08-04): improved docstrings, fixed doctests and refactored classes and methods
+
+- Johan Rosenkilde (2016-08-03): changes for bug fixes, docstring and doctest errors
+
 """
 
 #############################################################################
 #    Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 2 of the License, or
+#    (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
@@ -36,6 +43,7 @@ from sage.structure.element cimport Element, RingElement, ModuleElement
 from sage.rings.ring import Field
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.rings.integer cimport Integer
+from cpython.object cimport PyObject_RichCompare
 from sage.categories.map cimport Map
 from sage.rings.morphism cimport Morphism, RingHomomorphism
 
@@ -265,13 +273,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return self._hash_c()
 
-    cdef void _inplace_add(self, SkewPolynomial_generic_dense right):
-        raise NotImplementedError
-    cdef void _inplace_sub(self, SkewPolynomial_generic_dense right):
-        raise NotImplementedError
     cdef void _inplace_rmul(self, SkewPolynomial_generic_dense right):
-        raise NotImplementedError
-    cdef void _inplace_lmul(self, SkewPolynomial_generic_dense right):
         raise NotImplementedError
     cdef void _inplace_pow(self, Py_ssize_t n):
         raise NotImplementedError
@@ -297,20 +299,9 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a < b
             False
         """
-        cdef list x = (<SkewPolynomial>left)._coeffs
-        cdef list y = (<SkewPolynomial>right)._coeffs
-        if op == 0:
-            return x < y
-        elif op == 1:
-            return x <= y
-        elif op == 2:
-            return x == y
-        elif op == 3:
-            return x != y
-        elif op == 4:
-            return x > y
-        else:
-            return x >= y
+        cdef x = (<SkewPolynomial>left)._coeffs
+        cdef y = (<SkewPolynomial>right)._coeffs
+        return PyObject_RichCompare(x, y, op)
 
     cdef SkewPolynomial _new_c(self, list coeffs, Parent P, char check=0):
         """
@@ -473,34 +464,6 @@ cdef class SkewPolynomial(AlgebraElement):
             return l
         except IndexError:
             return self.base_ring().zero()
-
-    def __getslice__(self, Py_ssize_t i, Py_ssize_t j):
-        """
-        Return a specific portion of ``self``.
-
-        .. NOTE::
-
-            For slices exceeding degree of polynomial, 0 is returned.
-
-        EXAMPLES::
-            sage: R.<t> = QQ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
-            sage: a = t*x^2 + (t + 3/7)*x + t^2
-            sage: a[1:]
-            t*x^2 + (t + 3/7)*x
-            sage: a[:1]
-            t^2
-            sage: a[3:]
-            0
-        """
-        if i <= 0:
-            i = 0
-            zeros = []
-        elif i > 0:
-            zeros = [self._parent.base_ring().zero()] * i
-        c = self._new_c(zeros + self._coeffs[i:j], self._parent, 1)
-        return c
 
     def __setitem__(self, n, value):
         """
@@ -936,7 +899,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.truncate(3)
             (t + 1)*x^2
         """
-        return self[:n]
+        return self._new_c(self[:n], self._parent, 1)
 
     def is_monic(self):
         """
@@ -1209,7 +1172,7 @@ cdef class SkewPolynomial(AlgebraElement):
         r = self._new_c(q,parent), self._new_c(a[:db],parent,1)
         return r
 
-    def __mod__(self, other):
+    cpdef _mod_(self, other):
         """
         Return the remainder in the *right* euclidean division of
         this skew polynomial by ``other``
@@ -1232,7 +1195,7 @@ cdef class SkewPolynomial(AlgebraElement):
         _,r = self.right_quo_rem(other)
         return r
 
-    def __floordiv__(self, right):
+    cpdef _floordiv_(self, right):
         """
         Return the quotient of the right euclidean division of ``self`` by ``right``.
 
@@ -1261,7 +1224,7 @@ cdef class SkewPolynomial(AlgebraElement):
     cpdef _div_(self, right):
         """
         Not Implemented (since localization of Ore rings is
-        not yet implemented, see trac #13215).
+        not yet implemented, see :trac: `13215`).
 
         Use the operator `//` even for exact division.
 
@@ -2625,7 +2588,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             return
 
         R = parent.base_ring()
-        if type(x) is list:
+        if isinstance(x, list):
             if check:
                 self._coeffs = [R(t) for t in x]
                 self.__normalize()
@@ -2633,7 +2596,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                 self._coeffs = x
             return
 
-        if type(x) is SkewPolynomial:
+        if isinstance(x, SkewPolynomial):
             if (<Element>x)._parent is self._parent:
                 x = list(x.list())
             elif R.has_coerce_map_from((<Element>x)._parent):
@@ -2650,7 +2613,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                     self.__normalize()
                 return
 
-        elif type(x) is int and x == 0:
+        elif isinstance(x, int) and x == 0:
             self._coeffs = []
             return
 
@@ -2738,9 +2701,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         OUTPUT:
 
-        If ``modulus`` is ``None``, return ``self**exp``.
-
-        Otherwise, return the remainder of ``self**exp`` in the left
+        Return the remainder of ``self**exp`` in the left
         euclidean division by ``modulus``.
 
         REMARK:
@@ -2775,8 +2736,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             (4*t^2 + t + 1)*x^2 + (t^2 + 4*t + 1)*x + 3*t^2 + 3*t
         """
         cdef SkewPolynomial_generic_dense r
-        if not type(exp) is Integer or \
-                type(exp) is int:
+        if not isinstance(exp, Integer) or \
+                isinstance(exp, int):
                     try:
                         exp = Integer(exp)
                     except TypeError:
@@ -2812,9 +2773,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         OUTPUT:
 
-        If ``modulus`` is ``None``, return ``self**exp``.
-
-        Otherwise, return the remainder of self**exp in the right
+        Return the remainder of ``self**exp`` in the right
         euclidean division by ``modulus``.
 
         REMARK:
@@ -2857,8 +2816,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             (2*t^2 + 3)*x^2 + (t^2 + 4*t + 2)*x + t^2 + 2*t + 1
         """
         cdef SkewPolynomial_generic_dense r
-        if not type(exp) is Integer or \
-                type(exp) is int:
+        if not isinstance(exp, Integer) or \
+                isinstance(exp, int):
                     try:
                         exp = Integer(exp)
                     except TypeError:
@@ -2894,9 +2853,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         OUTPUT:
 
-        If ``modulus`` is ``None``, return ``self**exp``.
-
-        Otherwise, return the remainder of self**exp in the right
+        Return the remainder of ``self**exp`` in the right
         euclidean division by ``modulus``.
 
         .. SEEALSO::

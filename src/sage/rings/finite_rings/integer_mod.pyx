@@ -361,6 +361,40 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         """
         return codomain._coerce_(self)
 
+    def __mod__(self, modulus):
+        """
+        Coerce this element to the ring `Z/(modulus)`.
+
+        If the new ``modulus`` does not divide the current modulus,
+        an ``ArithmeticError`` is raised.
+
+        EXAMPLES::
+
+            sage: a = Mod(14, 35)
+            sage: a % 5
+            4
+            sage: parent(a % 5)
+            Ring of integers modulo 5
+            sage: a % 350
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: reduction modulo 350 not defined
+            sage: a % 35
+            14
+            sage: int(1) % a
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for %: 'int' and 'sage.rings.finite_rings.integer_mod.IntegerMod_int'
+        """
+        if not isinstance(self, IntegerMod_abstract):
+            # something % Mod(x,y) makes no sense
+            return NotImplemented
+        from integer_mod_ring import IntegerModRing
+        R = IntegerModRing(modulus)
+        if (<Element>self)._parent._IntegerModRing_generic__order % R.order():
+            raise ArithmeticError(f"reduction modulo {modulus!r} not defined")
+        return R(self)
+
     def is_nilpotent(self):
         r"""
         Return ``True`` if ``self`` is nilpotent,
@@ -1997,12 +2031,6 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
     def __long__(self):
         return long(self.lift())
 
-    def __mod__(self, right):
-        if self.modulus() % right != 0:
-            raise ZeroDivisionError("reduction modulo right not defined.")
-        import integer_mod_ring
-        return IntegerMod(integer_mod_ring.IntegerModRing(right), self)
-
     def __pow__(IntegerMod_gmp self, exp, m): # NOTE: m ignored, always use modulus of parent ring
         """
         EXAMPLES:
@@ -2411,13 +2439,6 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     def __long__(IntegerMod_int self):
         return self.ivalue
-
-    def __mod__(IntegerMod_int self, right):
-        right = int(right)
-        if self.__modulus.int32 % right != 0:
-            raise ZeroDivisionError("reduction modulo right not defined.")
-        import integer_mod_ring
-        return integer_mod_ring.IntegerModRing(right)(self)
 
     def __lshift__(IntegerMod_int self, k):
         r"""
@@ -3232,13 +3253,6 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
     def __long__(IntegerMod_int64 self):
         return self.ivalue
-
-    def __mod__(IntegerMod_int64 self, right):
-        right = int(right)
-        if self.__modulus.int64 % right != 0:
-            raise ZeroDivisionError("reduction modulo right not defined.")
-        import integer_mod_ring
-        return integer_mod_ring.IntegerModRing(right)(self)
 
     def __lshift__(IntegerMod_int64 self, k):
         r"""

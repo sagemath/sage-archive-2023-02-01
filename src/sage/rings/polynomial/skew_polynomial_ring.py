@@ -10,14 +10,21 @@ by associativity and distributivity.
 
 AUTHOR:
 
-- Xavier Caruso (2012-06-29)
+- Xavier Caruso (2012-06-29): initial version
+
+- Arpit Merchant (2016-08-04): improved docstrings, fixed doctests and refactored classes and methods
+
+- Johan Rosenkilde (2016-08-03): changes for bug fixes, docstring and doctest errors
+
 """
 
 #############################################################################
 #    Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 2 of the License, or
+#    (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
@@ -706,10 +713,23 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
-            sage: a = x + t 
             sage: eval_pts = [1, t, t^2]
             sage: b = S.minimal_vanishing_polynomial(eval_pts); b
             x^3 + 4
+
+        The minimum vanishing polynomial evaluates to 0 at each of the evaluation points::
+
+            sage: eval = [b(eval_pts[y]) for y in range(len(eval_pts))]; eval
+            [0, 0, 0]
+
+       If the evaluation points are not linearly independent over the given fixed
+       field of the twist map, an error is raised::
+
+            sage: eval_pts_ld = [1, t, 2*t]
+            sage: c = S.minimal_vanishing_polynomial(eval_pts_ld)
+            Traceback (most recent call last):
+            ...
+            ValueError: evaluation points must be linearly independent over the fixed field of the twist map
         """
         x = self.gen()
         sigma = self.twist_map()
@@ -721,14 +741,13 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             else:
                 R = self.base_ring()
                 sigma = self.twist_map()
-#                print R
-##                print isinstance(R, Field)
                 if not isinstance(R, Field):
-##                    print "Hi"
                     Q = R.fraction_field()
                     gens = R.gens()
                     try:
                         sigma = Q.hom([ Q(sigma(g)) for g in gens ])
+                        S = Q[self.variable_name(), sigma]
+                        x = S.gen()
                     except:
                         raise ValueError("Unable to lift the twist map to a twist map over %s" % Q)
                 return x - (sigma(eval_pts[0]) / eval_pts[0])
@@ -815,6 +834,14 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             sage: values = [3*t^2 + 4*t + 4, 4*t]
             sage: d = S.interpolation_polynomial(eval_pts, values); d
             x + t
+
+            sage: R.<t> = ZZ[]
+            sage: sigma = R.hom([t+1])
+            sage: T.<x> = R['x', sigma]
+            sage: eval_pts = [1, t, t^2]
+            sage: values = [t^2 + 3*t + 4, 2*t^2 + 3*t + 1, t^2 + 3*t + 4]
+            sage: p = T.interpolation_polynomial(eval_pts, values); p
+            ((-t^4 - 2*t - 3)/-2)*x^2 + (-t^4 - t^3 - t^2 - 3*t - 2)*x + (-t^4 - 2*t^3 - 4*t^2 - 10*t - 9)/-2
         """
         l = len(eval_pts)
         if l != len(values):
@@ -826,10 +853,16 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         if l == 1:
             one = self.one()
             R = self.base_ring()
+            sigma = self.twist_map()
             if not isinstance(R, Field):
-                Q = FractionField(R)
-                S = Q[self.variable_name(), self.twist_map()]
-                one = S.one()
+                Q = R.fraction_field()
+                gens = R.gens()
+                try:
+                    sigma = Q.hom([ Q(sigma(g)) for g in gens ])
+                    S = Q[self.variable_name(), sigma]
+                    one = S.one()
+                except:
+                    raise ValueError("Unable to lift the twist map to a twist map over %s" % Q)
             return (values[0]/eval_pts[0])*one
         else:
             t = l//2

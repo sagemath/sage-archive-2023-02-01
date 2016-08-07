@@ -8,14 +8,21 @@ the general assumption in Sage that parents are unique).
 
 AUTHOR:
 
-- Xavier Caruso (2012-06-29)
+- Xavier Caruso (2012-06-29): initial version
+
+- Arpit Merchant (2016-08-04): improved docstrings, added doctests and refactored method
+
+- Johan Rosenkilde (2016-08-03): changes to import format
+
 """
 
 #############################################################################
 #    Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 2 of the License, or
+#    (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 

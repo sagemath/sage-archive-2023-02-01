@@ -403,7 +403,8 @@ class ClusterQuiver(SageObject):
                 dg.add_edges( [ (v1,v2,multi_edges[(v1,v2)]) for v1,v2 in multi_edges ] )
             for edge in dg.edge_iterator():
                 if edge[0] >= n and edge[1] >= n:
-                    raise ValueError("The input digraph contains edges within the frozen vertices")
+                    #raise ValueError("The input digraph contains edges within the frozen vertices")
+                    print('Warning: The input digraph contained edges within the frozen vertices.')
                 if edge[2] is None:
                     dg.set_edge_label( edge[0], edge[1], (1,-1) )
                     edge = (edge[0],edge[1],(1,-1))
@@ -1102,6 +1103,47 @@ class ClusterQuiver(SageObject):
         return self._mlist
 
     def set_frozen( self, new_frozen, keep_previous_frozen=True):
+        """
+        Updates the frozen vertices of ``self`` by turning the vertices given in the list new_frozen into frozen vertices.
+        
+        If the optional parameter keep_perivous_frozen is set to be False, then the new list overwrites any previously frozen vertices. 
+        
+        EXAMPLES::
+        
+            sage: Q = ClusterQuiver(DiGraph([['a','b'],['c','b'],['c','d'],['e','d']]), frozen = ['c']); Q
+            Quiver on 5 vertices with 1 frozen vertex
+            sage: Q2 = ClusterQuiver(DiGraph([['a','b'],['c','b'],['c','d'],['e','d']])); Q2
+            Quiver on 5 vertices
+            sage: Q == Q2
+            False
+            sage: Q2.set_frozen(['c']); Q2
+            Quiver on 5 vertices with 1 frozen vertex
+            sage: Q == Q2
+            True
+            sage: Q2.set_frozen(['e']); Q2.mutation_type()
+            [ ['A', 2], ['A', 1] ]
+            sage: Q2.set_frozen([], keep_previous_frozen = False); Q2.mutation_type()
+            ['A', 5]
+            sage: Q2.set_frozen(['a']); Q2
+            Quiver on 5 vertices with 1 frozen vertex
+            sage: Q2.set_frozen(['a']); Q2
+            Quiver on 5 vertices with 1 frozen vertex
+            sage: Q2.set_frozen(['a','b']); Q2
+            Warning: The input digraph contained edges within the frozen vertices.
+            Quiver on 5 vertices with 2 frozen vertices
+            sage: Q2.set_frozen(['a','b','c']); Q2
+            Warning: The input digraph contained edges within the frozen vertices.
+            Warning: The input digraph contained edges within the frozen vertices.
+            Quiver on 5 vertices with 3 frozen vertices
+            sage: Q2.mutation_type()
+            ['A', 2]
+            sage: Q.set_frozen(['a','b','c'],keep_previous_frozen=False); Q
+            Warning: The input digraph contained edges within the frozen vertices.
+            Warning: The input digraph contained edges within the frozen vertices.
+            Quiver on 5 vertices with 3 frozen vertices
+            sage: Q == Q2
+            True
+        """        
         dg = self._digraph
 
         if (new_frozen is None) and (keep_previous_frozen==False):
@@ -1111,13 +1153,14 @@ class ClusterQuiver(SageObject):
             total_frozen = self._mlist
 
         elif isinstance(new_frozen, list):
-            if not set(frozen).issubset(set(dg.vertices())):
+            if not set(new_frozen).issubset(set(dg.vertices())):
                 raise ValueError("The optional list of frozen elements must be vertices of the digraph.")
             else:
                 if keep_previous_frozen == True:
                     total_frozen = self._mlist
                     for fz in new_frozen:
-                        total_frozen.append(fz)
+                        if fz not in total_frozen:
+                            total_frozen.append(fz)
                 elif keep_previous_frozen == False:
                     total_frozen = new_frozen
 

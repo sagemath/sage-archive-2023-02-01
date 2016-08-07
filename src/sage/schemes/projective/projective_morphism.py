@@ -3259,7 +3259,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if not f.is_morphism():
             # if not, the variety is not dimension 0 and
             # can cannot construct the cyclegraph due to
-            #indeterminancies
+            #indeterminacies
             raise NotImplementedError("must be a projective morphism")
         PS = f.codomain()
         if algorithm == 'variety':
@@ -5116,6 +5116,174 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 return gccc, m*mc*mc2, psi
         return gccc
 
+    def indeterminacy_locus(self):
+        r"""
+        Return the indeterminacy locus of this map.
+
+        Only for rational maps on projective space defined over a field. 
+        The indeterminacy locus is the set of points in projective space at which all of the defining polynomials of the rational map simultaneously vanish.
+
+        OUTPUT:
+
+        - subscheme of the domain of the map.  The empty subscheme is returned as the vanishing 
+          of the coordinate functions of the domain.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([x*z-y*z, x^2-y^2, z^2])
+            sage: f.indeterminacy_locus()
+            Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+                x*z - y*z,
+                x^2 - y^2,
+                z^2
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([x^2, y^2, z^2])
+            sage: f.indeterminacy_locus()
+            Closed subscheme of Projective Space of dimension 2 over Rational Field
+            defined by:
+                x,
+                y,
+                z
+
+        ::
+
+            sage: P1.<x,y,z> = ProjectiveSpace(RR,2)
+            sage: P2.<t,u,v,w> = ProjectiveSpace(RR,3)
+            sage: H = Hom(P1,P2)
+            sage: h = H([y^3*z^3, x^3*z^3, y^3*z^3, x^2*y^2*z^2])
+            sage: h.indeterminacy_locus()
+            Closed subscheme of Projective Space of dimension 2 over Real Field with
+            53 bits of precision defined by:
+              y^3*z^3,
+              x^3*z^3,
+              y^3*z^3,
+              x^2*y^2*z^2
+
+        If defining polynomials are not normalized, output scheme will not be normalized::
+
+            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
+            sage: H=End(P)
+            sage: f=H([x*x^2,x*y^2,x*z^2])
+            sage: f.indeterminacy_locus()
+            Closed subscheme of Projective Space of dimension 2 over Rational Field
+            defined by:
+              x^3,
+              x*y^2,
+              x*z^2
+        """
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        dom = self.domain()
+        if not is_ProjectiveSpace(dom):
+            raise NotImplementedError("not implemented for subschemes")
+        defPolys = self.defining_polynomials()
+        locus = dom.subscheme(defPolys)
+        if locus.dimension() < 0:
+            locus = dom.subscheme(dom.gens())
+        return locus 
+
+    def indeterminacy_points(self, F=None):
+        r"""
+        Return the indeterminacy locus of this map defined over ``F``.
+
+        Only for rational maps on projective space. Returns the set of points in projective space at which all of the defining polynomials of the rational map simultaneously vanish.
+
+        INPUT:
+
+        - ``F`` - a field (optional).
+
+        OUTPUT:
+
+        - indeterminacy points of the map defined over ``F``, provided the indeterminacy scheme is 0-dimensional.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([x*z-y*z, x^2-y^2, z^2])
+            sage: f.indeterminacy_points()
+            [(-1 : 1 : 0), (1 : 1 : 0)]
+
+        ::
+
+            sage: P1.<x,y,z> = ProjectiveSpace(RR,2)
+            sage: P2.<t,u,v,w> = ProjectiveSpace(RR,3)
+            sage: H = Hom(P1,P2)
+            sage: h = H([x+y, y, z+y, y])
+            sage: h.indeterminacy_points()
+            []
+            sage: g = H([y^3*z^3, x^3*z^3, y^3*z^3, x^2*y^2*z^2])
+            sage: g.indeterminacy_points()
+            Traceback (most recent call last):
+            ...
+            ValueError: indeterminacy scheme is not dimension 0
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([x^2+y^2, x*z, x^2+y^2])
+            sage: f.indeterminacy_points()
+            [(0 : 0 : 1)]
+            sage: R.<t> = QQ[]
+            sage: K.<a> = NumberField(t^2+1)
+            sage: f.indeterminacy_points(F=K)
+            [(-a : 1 : 0), (0 : 0 : 1), (a : 1 : 0)]
+            sage: set_verbose(None)
+            sage: f.indeterminacy_points(F=QQbar)
+            [(-1*I : 1 : 0), (0 : 0 : 1), (1*I : 1 : 0)]
+
+        ::
+
+            sage: set_verbose(None)
+            sage: K.<t>=FunctionField(QQ)
+            sage: P.<x,y,z>=ProjectiveSpace(K,2)
+            sage: H=End(P)
+            sage: f=H([x^2-t^2*y^2,y^2-z^2,x^2-t^2*z^2])
+            sage: f.indeterminacy_points()
+            [(-t : -1 : 1), (-t : 1 : 1), (t : -1 : 1), (t : 1 : 1)]
+
+        ::
+
+            sage: set_verbose(None)
+            sage: P.<x,y,z>=ProjectiveSpace(Qp(3),2)
+            sage: H=End(P)
+            sage: f=H([x^2-7*y^2,y^2-z^2,x^2-7*z^2])
+            sage: f.indeterminacy_points()
+            [(2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 2*3^6 + 3^8 + 3^9 + 2*3^11 + 3^15 +
+            2*3^16 + 3^18 + O(3^20) : 1 + O(3^20) : 1 + O(3^20)),
+            (2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 2*3^6 + 3^8 + 3^9 + 2*3^11 + 3^15 +
+            2*3^16 + 3^18 + O(3^20) : 2 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 +
+            2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + 2*3^12 + 2*3^13 +
+            2*3^14 + 2*3^15 + 2*3^16 + 2*3^17 + 2*3^18 + 2*3^19 + O(3^20) : 1 +
+            O(3^20)),
+             (1 + 3 + 3^2 + 2*3^4 + 2*3^7 + 3^8 + 3^9 + 2*3^10 + 2*3^12 + 2*3^13 +
+            2*3^14 + 3^15 + 2*3^17 + 3^18 + 2*3^19 + O(3^20) : 1 + O(3^20) : 1 +
+            O(3^20)),
+             (1 + 3 + 3^2 + 2*3^4 + 2*3^7 + 3^8 + 3^9 + 2*3^10 + 2*3^12 + 2*3^13 +
+            2*3^14 + 3^15 + 2*3^17 + 3^18 + 2*3^19 + O(3^20) : 2 + 2*3 + 2*3^2 +
+            2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11
+            + 2*3^12 + 2*3^13 + 2*3^14 + 2*3^15 + 2*3^16 + 2*3^17 + 2*3^18 + 2*3^19
+            + O(3^20) : 1 + O(3^20))]
+        """
+        if F is None:
+            fcn = self
+        else:
+            if not F.is_field():
+                raise NotImplementedError("indeterminacy points only implemented for fields")
+            fcn = self.change_ring(F)
+        indScheme = fcn.indeterminacy_locus()
+        if indScheme.dimension() > 0:
+            raise ValueError("indeterminacy scheme is not dimension 0")
+        # Other error checking is in indeterminacy_locus
+        indPoints = indScheme.rational_points()
+        return indPoints
+
 class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_polynomial_projective_space_field):
 
     def _fast_eval(self, x):
@@ -5320,7 +5488,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
         AUTHORS:
 
-        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray\
+        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray
 
         - Modified by Joao Alberto de Faria, Ben Hutz, Bianca Thompson
 
@@ -5383,3 +5551,5 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             F = f[0].numerator().polynomial(z)
         from .endPN_automorphism_group import automorphism_group_FF
         return(automorphism_group_FF(F, absolute, iso_type, return_functions))
+
+

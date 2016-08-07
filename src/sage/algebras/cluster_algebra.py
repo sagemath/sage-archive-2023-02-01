@@ -28,28 +28,30 @@ EXAMPLES::
 
 # TODO: check that we import all we need and possibly move some import used
 # rarely close to where needed
-from types import MethodType
-from sage.structure.element_wrapper import ElementWrapper
-from sage.structure.sage_object import SageObject
-from sage.structure.parent import Parent
-from sage.rings.integer_ring import ZZ
-from sage.rings.integer import Integer
-from sage.rings.rational_field import QQ
-from sage.misc.cachefunc import cached_method
-from sage.rings.infinity import infinity
-from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
-from sage.matrix.constructor import identity_matrix
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-from sage.categories.rings import Rings
-from sage.misc.misc_c import prod
 from copy import copy
-from sage.functions.other import binomial
-from sage.modules.free_module_element import vector
-from sage.functions.generalized import sign
 from functools import wraps
+from sage.categories.homset import Hom
+from sage.categories.morphism import SetMorphism
 from sage.categories.quotient_fields import QuotientFields
+from sage.categories.rings import Rings
+from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
+from sage.functions.generalized import sign
+from sage.functions.other import binomial
+from sage.matrix.constructor import identity_matrix
 from sage.matrix.special import block_matrix
+from sage.misc.cachefunc import cached_method
+from sage.misc.misc_c import prod
+from sage.modules.free_module_element import vector
+from sage.rings.infinity import infinity
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.rational_field import QQ
+from sage.structure.element_wrapper import ElementWrapper
+from sage.structure.parent import Parent
+from sage.structure.sage_object import SageObject
+from types import MethodType
 
 ##############################################################################
 # Helper functions
@@ -602,14 +604,11 @@ class ClusterAlgebra(Parent):
         self.reset_exploring_iterator()
 
         # Add methods that are defined only for special cases
-        if n == 2:
+        if n == 2 and m == 0:
             self.greedy_element = MethodType(greedy_element, self, self.__class__)
             self.greedy_coefficient = MethodType(greedy_coefficient, self, self.__class__)
-            self.theta_basis_element = MethodType(theta_basis_element, self, self.__class__)
 
         # Register embedding into self.ambient()
-        from sage.categories.morphism import SetMorphism
-        from sage.categories.homset import Hom
         embedding = SetMorphism(Hom(self,self.ambient()), lambda x: x.lift())
         self._populate_coercion_lists_(embedding=embedding)
 
@@ -952,6 +951,9 @@ class ClusterAlgebra(Parent):
     def lower_bound(self):
         pass
 
+    def theta_basis_element(self, g_vector):
+        pass
+
 ####
 # Methods only defined for special cases
 ####
@@ -1010,11 +1012,4 @@ def greedy_coefficient(self,d_vector,p,q):
     return max(sum1,sum2)
 
 
-# At the moment I know only how to compute theta basis in rank 2
-# maybe we should let ClusterAlgebra have this method for any rank and have a
-# NotImplementedError to encourage someone (read: Greg) to code this
-# I think Greg already has some code to do this
-# I asked about the code and it seems Greg has very little confidence in the code he has so far...
-def theta_basis_element(self, g_vector):
-    pass
 

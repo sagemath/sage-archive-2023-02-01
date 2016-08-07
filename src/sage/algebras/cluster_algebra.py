@@ -143,11 +143,12 @@ def mutation_parse(mutate): # READY
     mutate.__doc__ = doc[0] + doc[1]
 
     @wraps(mutate)
-    def mutate_wrapper(self, direction, inplace=True, *args, **kwargs):
-        if not inplace or mutate.__name__ == "mutate_initial":
-            to_mutate = copy(self)
-        else:
+    def mutate_wrapper(self, direction, *args, **kwargs):
+        inplace = kwargs.pop('inplace', True) and mutate.__name__ != "mutate_initial"
+        if inplace:
             to_mutate = self
+        else:
+            to_mutate = copy(self)
         
         if direction == "sinks":
             B = self.b_matrix()
@@ -164,7 +165,7 @@ def mutation_parse(mutate): # READY
         for k in seq:
             mutate(to_mutate, k, *args, **kwargs)
 
-        if not inplace or mutate.__name__ == "mutate_initial":
+        if not inplace:
             return to_mutate
 
     return mutate_wrapper

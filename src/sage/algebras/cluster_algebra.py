@@ -167,7 +167,7 @@ class ClusterAlgebraElement(ElementWrapper):    # READY
         r"""
         Return the quotient of ``self`` and ``other``.
 
-        .. WARNING::
+        WARNING::
             
             This method returns an element of ``self.parent().ambient()``
             rather than an element of ``self.parent()`` because, a priori,
@@ -195,7 +195,7 @@ class ClusterAlgebraElement(ElementWrapper):    # READY
         """
         monomials = self.lift()._dict().keys()
         minimal = map(min, zip(*monomials))
-        return tuple(-vector(minimal))[:self.parent().rk]
+        return tuple(-vector(minimal))[:self.parent().rk()]
 
     def _repr_(self):   # READY
         r"""
@@ -255,7 +255,7 @@ def homogeneous_components(self):   #READY
         sage: x.homogeneous_components()
         {(0, 1): x1, (1, 0): x0}
     """
-    deg_matrix = block_matrix([[identity_matrix(self.parent().rk),-self.parent().b_matrix()]])
+    deg_matrix = block_matrix([[identity_matrix(self.parent().rk()),-self.parent().b_matrix()]])
     components = dict()
     x = self.lift()
     monomials = x.monomials()
@@ -274,14 +274,60 @@ def homogeneous_components(self):   #READY
 
 class ClusterAlgebraSeed(SageObject):
 
-    def __init__(self, B, C, G, parent):
+    def __init__(self, B, C, G, parent, **kwargs):  # READY
+        r"""
+        A seed in a cluster algebra.
+
+        INPUT:
+        
+        - ``B`` -- a skew-symmetrizable integer matrix;
+
+        - ``C`` -- the matrix of c-vectors of ``self``;
+
+        - ``G`` -- the matrix of g-vectors of ``self``;
+
+        - ``parent`` -- a :class:`ClusterAlgebra`: the algebra to which the
+          seed belongs;
+
+        - ``path`` -- list (default: []) the mutation sequence from the initial
+          seed of ``parent`` to `self``
+
+        WARNING:
+            
+            Seeds should **not** be created manually: no test is performed to
+            assert that they are built from consistent data nor that they
+            really are seeds of ``parent``. If you create seeds with
+            inconsistent data all sort of things can go wrong, even
+            :meth:`__eq__` is no longer guaranteed to give correct answers. 
+            Use at your ouwn risk.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['F',4])
+            sage: from sage.algebras.cluster_algebra import ClusterAlgebraSeed
+            sage: ClusterAlgebraSeed(A.b_matrix(),identity_matrix(4),identity_matrix(4),A,path=[1,2,3])
+            The seed of Cluster Algebra of rank 4 obtained from the initial by mutating along the sequence [1, 2, 3]
+
+        """
         self._B = copy(B)
         self._C = copy(C)
         self._G = copy(G)
         self._parent = parent
-        self._path = []
+        self._path = kwargs.get('path', [])
 
-    def __copy__(self):
+    def __copy__(self): # READY
+        r"""
+        Return a copy of ``self``.                                                                                                  
+         
+        EXAMPLES::
+         
+            sage: A = ClusterAlgebra(['A',3])
+            sage: S = copy(A.current_seed())
+            sage: S == A.current_seed()
+            True
+            sage: S is not A.current_seed()
+            True
+        """
         other = type(self).__new__(type(self))
         other._B = copy(self._B)
         other._C = copy(self._C)
@@ -290,41 +336,76 @@ class ClusterAlgebraSeed(SageObject):
         other._path = copy(self._path)
         return other
 
-    def __eq__(self, other):
-        return self.parent() == other.parent() and  frozenset(self.g_vectors()) == frozenset(other.g_vectors())
-        # Why was I doing something so convoluted?
-        # It looks like the idea was to consider seeds up to simultaneous permutation of rows and columns,
-        # the relation P between the c-matrices determines if there could exist such a permutation,
-        # the remaining checks then ask about the remaining data
+    def __eq__(self, other):    # READY
+        r"""
+        Test equality of two seeds.
 
-        #P = self.c_matrix().inverse()*other.c_matrix()
-        #return frozenset(P.columns()) == frozenset(identity_matrix(self.parent().rk).columns()) and self.g_matrix()*P == other.g_matrix() and P.inverse()*self.b_matrix()*P == other.b_matrix() and self.parent() == other.parent()
+        INPUT:
 
-    def _repr_(self):
+        - ``other`` -- a :class:`ClusterAlgebraSeed`
+
+        ALGORITHM:
+            
+            ``self`` and ``other`` are deemed to be equal if they have the same
+            parent and their set of g-vectors coincide, i.e. this tests
+            equality of unlabelled seeds.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',3])
+            sage: S = copy(A.current_seed())
+            sage: S.mutate([0,2,0])
+            sage: S == A.current_seed()
+            False
+            sage: S.mutate(2)
+            sage: S == A.current_seed()
+            True
+        """
+        return self.parent() == other.parent() and frozenset(self.g_vectors()) == frozenset(other.g_vectors())
+
+    def _repr_(self):   # READY
+        r"""
+        Return the string representation of ``self``.
+ 
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',3])
+            sage: S = A.current_seed(); S
+            The initial seed of Cluster Algebra of rank 3
+            sage: S.mutate(0); S
+            The seed of Cluster Algebra of rank 3 obtained from the initial by mutating in direction 0
+            sage: S.mutate(1); S
+            The seed of Cluster Algebra of rank 3 obtained from the initial by mutating along the sequence [0, 1]
+        """
         if self._path == []:
             return "The initial seed of %s"%str(self.parent())
-        elif self._path.__len__() == 1:
+        elif len(self._path) == 1:
             return "The seed of %s obtained from the initial by mutating in direction %s"%(str(self.parent()),str(self._path[0]))
         else:
             return "The seed of %s obtained from the initial by mutating along the sequence %s"%(str(self.parent()),str(self._path))
 
-    def depth(self):
+    def depth(self):    # READY
         r"""
         Retun the length of a path from the initial seed of :meth:`parent` to ``self``.
 
-        .. WARNING::
-            This is the length of the path returned by :meth:`path_from_initial_seed` which needs not be the shortest possible.
+        WARNING::
+            This is the length of the path returned by
+            :meth:`path_from_initial_seed` which needs not be the shortest
+            possible.
 
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A',2])
-            sage: S = A.current_seed()
-            sage: S.depth()
-            0
-            sage: S.mutate([0,1])
-            sage: S.depth()
-            2
-
+            sage: S1 = A.initial_seed()
+            sage: S1.mutate([0,1,0,1])
+            sage: S1.depth()
+            4
+            sage: S2 = A.initial_seed()
+            sage: S2.mutate(1)
+            sage: S2.depth()
+            1
+            sage: S1 == S2
+            True
         """
         return len(self._path)
 
@@ -381,7 +462,7 @@ class ClusterAlgebraSeed(SageObject):
 
         bla bla ba
         """
-        n = self.parent().rk
+        n = self.parent().rk()
 
         if k not in xrange(n):
             raise ValueError('Cannot mutate in direction ' + str(k) + '.')
@@ -431,7 +512,7 @@ class ClusterAlgebraSeed(SageObject):
         alg = self.parent()
         pos = alg._U(1)
         neg = alg._U(1)
-        for j in xrange(alg.rk):
+        for j in xrange(alg.rk()):
             if self._C[j,k] > 0:
                 pos *= alg._U.gen(j)**self._C[j,k]
             else:
@@ -483,7 +564,7 @@ class ClusterAlgebraSeed(SageObject):
     # True as an answer.
     def __contains__(self, element):
         if isinstance(element, ClusterAlgebraElement):
-            cluster = [ self.cluster_variable(i) for i in xrange(self.parent().rk) ]
+            cluster = [ self.cluster_variable(i) for i in xrange(self.parent().rk()) ]
         else:
             element = tuple(element)
             cluster = self.g_vectors()
@@ -625,12 +706,11 @@ class ClusterAlgebra(Parent):
         return self.base().has_coerce_map_from(other)
 
     def _repr_(self):
-        return "Cluster Algebra of rank %s"%self.rk
+        return "Cluster Algebra of rank %s"%self.rk()
 
     def _an_element_(self):
         return self.current_seed().cluster_variable(0)
 
-    @property
     def rk(self):
         r"""
         The rank of ``self`` i.e. the number of cluster variables in any seed of
@@ -654,7 +734,7 @@ class ClusterAlgebra(Parent):
             raise ValueError("This is not a seed in this cluster algebra.")
 
     def contains_seed(self, seed):
-        computed_sd = self.initial_seed
+        computed_sd = self.initial_seed()
         computed_sd.mutate(seed._path, mutating_F=False)
         return computed_sd == seed
 
@@ -662,14 +742,13 @@ class ClusterAlgebra(Parent):
         r"""
         Reset the current seed to the initial one
         """
-        self._seed = self.initial_seed
+        self._seed = self.initial_seed()
 
-    @property
     def initial_seed(self):
         r"""
         Return the initial seed
         """
-        n = self.rk
+        n = self.rk()
         I = identity_matrix(n)
         return ClusterAlgebraSeed(self.b_matrix(), I, I, self)
 
@@ -677,7 +756,7 @@ class ClusterAlgebra(Parent):
         r"""
         Return the initial exchange matrix of ``self``.
         """
-        n = self.rk
+        n = self.rk()
         return copy(self._B0[:n,:])
 
     def g_vectors_so_far(self):
@@ -708,7 +787,7 @@ class ClusterAlgebra(Parent):
             # Should we let the self.F_polynomial below handle raising the exception?
             raise ValueError("This Cluster Variable has not been computed yet.")
         F_std = self.F_polynomial(g_vector).subs(self._yhat)
-        g_mon = prod([self.ambient().gen(i)**g_vector[i] for i in xrange(self.rk)])
+        g_mon = prod([self.ambient().gen(i)**g_vector[i] for i in xrange(self.rk())])
         # LaurentPolynomial_mpair does not know how to compute denominators, we need to lift to its fraction field
         F_trop = self.ambient()(self.F_polynomial(g_vector).subs(self._y))._fraction_pair()[1]
         return self.retract(g_mon*F_std*F_trop)
@@ -775,12 +854,12 @@ class ClusterAlgebra(Parent):
         if from_current_seed:
             seed = self.current_seed()
         else:
-            seed = self.initial_seed
+            seed = self.initial_seed()
         # add allowed_directions
 
         yield seed
         depth_counter = 0
-        n = self.rk
+        n = self.rk()
         cl = frozenset(seed.g_vectors())
         clusters = {}
         clusters[cl] = [ seed, range(n) ]
@@ -821,17 +900,17 @@ class ClusterAlgebra(Parent):
     def mutate_initial(self, k):
         # WARNING: at the moment this function does not behave well with respect to coefficients:
         # sage: A = ClusterAlgebra(['B',2],principal_coefficients=True)
-        # sage: A.initial_seed.b_matrix()
+        # sage: A.initial_seed().b_matrix()
         # [ 0  1]
         # [-2  0]
-        # sage: A.initial_seed.c_matrix()
+        # sage: A.initial_seed().c_matrix()
         # [1 0]
         # [0 1]
         # sage: A.mutate_initial(0)
-        # sage: A.initial_seed.b_matrix()
+        # sage: A.initial_seed().b_matrix()
         # [ 0 -1]
         # [ 2  0]
-        # sage: A.initial_seed.c_matrix()
+        # sage: A.initial_seed().c_matrix()
         # [1 0]
         # [0 1]
         # this creates several issues 
@@ -855,7 +934,7 @@ class ClusterAlgebra(Parent):
         INPUT:
         - ``k`` -- integer in between 0 and ``self.rk``
         """
-        n = self.rk
+        n = self.rk()
 
         if k not in xrange(n):
             raise ValueError('Cannot mutate in direction %s, please try a value between 0 and %s.'%(str(k),str(n-1)))
@@ -900,7 +979,7 @@ class ClusterAlgebra(Parent):
         self._B0.mutate(k)
        
         # keep the current seed were it was on the exchange graph
-        self._seed = self.initial_seed.mutate([k]+self.current_seed().path_from_initial_seed(), mutating_F=False, inplace=False)
+        self._seed = self.initial_seed().mutate([k]+self.current_seed().path_from_initial_seed(), mutating_F=False, inplace=False)
 
     def explore_to_depth(self, depth):
         while self._explored_depth <= depth:

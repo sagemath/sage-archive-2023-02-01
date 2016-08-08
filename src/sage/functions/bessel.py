@@ -349,6 +349,8 @@ class Function_Bessel_J(BuiltinFunction):
             sage: n = var('n')
             sage: bessel_J(0, 0)
             1
+            sage: bessel_J(I, 0)
+            bessel_J(I, 0)
             sage: bessel_J(5/2, 0)
             0
             sage: bessel_J(-5/2, 0)
@@ -364,11 +366,11 @@ class Function_Bessel_J(BuiltinFunction):
         if x == 0:
             if n == 0:
                 return ZZ(1)
-            elif n > 0 or n in ZZ:
+            elif n.real() > 0 or n in ZZ:
                 return ZZ(0)
-            elif not isinstance(n, Expression):
+            elif n.real() < 0:
                 return unsigned_infinity
-        elif n == QQ(1)/2:
+        if n == QQ(1)/2:
             return sqrt(2/pi/x) * sin(x)
         elif n == QQ(-1)/2:
             return sqrt(2/pi/x) * cos(x)
@@ -557,9 +559,10 @@ class Function_Bessel_Y(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: n = var('n')
             sage: bessel_Y(1, 0)
             Infinity
+            sage: bessel_Y(I,0)
+            bessel_Y(I, 0)
             sage: bessel_Y(1/2, x)
             -sqrt(2)*sqrt(1/(pi*x))*cos(x)
             sage: bessel_Y(-1/2, x)
@@ -569,9 +572,9 @@ class Function_Bessel_Y(BuiltinFunction):
         if x == 0:
             if n == 0:
                 return -infinity
-            elif not isinstance(n, Expression):
+            elif n.real() > 0 or n.real() < 0:
                 return unsigned_infinity
-        elif n == QQ(1)/2:
+        if n == QQ(1)/2:
             return -sqrt(2/pi/x) * cos(x)
         elif n == QQ(-1)/2:
             return sqrt(2/pi/x) * sin(x)
@@ -770,13 +773,12 @@ class Function_Bessel_I(BuiltinFunction):
             bessel_I(n, 0)
         """
         from sage.rings.infinity import unsigned_infinity
-        # special identities
         if x == 0:
             if n == 0:
                 return ZZ(1)
-            elif n > 0 or n in ZZ:
+            elif n.real() > 0 or n in ZZ:
                 return ZZ(0)
-            elif not isinstance(n, Expression):
+            elif n.real() < 0:
                 return unsigned_infinity
         if n == QQ(1)/2:
             return sqrt(2 / (pi * x)) * sinh(x)
@@ -960,9 +962,11 @@ class Function_Bessel_K(BuiltinFunction):
             bessel_K(n, 0)
         """
         from sage.rings.infinity import unsigned_infinity
-        # special identity
-        if x == 0 and not isinstance(n, Expression):
-            return unsigned_infinity
+        if x == 0:
+            if n == 0:
+                return infinity
+            elif n.real() > 0 or n.real() < 0:
+                return unsigned_infinity
         if n == QQ(1)/2 or n == -QQ(1)/2 and x > 0:
             return sqrt(pi / 2) * exp(-x) * x ** (-Integer(1) / Integer(2))
 

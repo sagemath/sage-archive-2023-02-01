@@ -1518,43 +1518,25 @@ class ClusterAlgebra(Parent):
 
     @mutation_parse
     def mutate_initial(self, k):
-        # WARNING: at the moment this function does not behave well with respect to coefficients:
-        # sage: A = ClusterAlgebra(['B',2],principal_coefficients=True)
-        # sage: A.initial_seed().b_matrix()
-        # [ 0  1]
-        # [-2  0]
-        # sage: A.initial_seed().c_matrix()
-        # [1 0]
-        # [0 1]
-        # sage: A.mutate_initial(0)
-        # sage: A.initial_seed().b_matrix()
-        # [ 0 -1]
-        # [ 2  0]
-        # sage: A.initial_seed().c_matrix()
-        # [1 0]
-        # [0 1]
-        # this creates several issues 
-
         r"""
         Mutate ``self`` in direction `k` at the initial cluster.
 
         INPUT:
-        - ``k`` -- integer in between 0 and ``self.rk``
+
+        EXAMPLES::
+
         """
         n = self.rk()
 
         if k not in xrange(n):
             raise ValueError('Cannot mutate in direction %s, please try a value between 0 and %s.'%(str(k),str(n-1)))
         
-        #store current seed location
-        path_to_current = self.current_seed().path_from_initial_seed()
         #modify self._path_dict using Nakanishi-Zelevinsky (4.1) and self._F_poly_dict using CA-IV (6.21)
         new_path_dict = dict()
         new_F_dict = dict()
         new_path_dict[tuple(identity_matrix(n).column(k))] = []
         new_F_dict[tuple(identity_matrix(n).column(k))] = self._U(1)
 
-        poly_ring = PolynomialRing(ZZ,'u')
         F_subs_tuple = tuple([self._U.gen(k)**(-1) if j==k else self._U.gen(j)*self._U.gen(k)**max(-self._B0[k][j],0)*(1+self._U.gen(k))**(self._B0[k][j]) for j in xrange(n)])
 
         for g_vect in self._path_dict:

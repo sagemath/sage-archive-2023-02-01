@@ -6224,8 +6224,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Return polynomial but with the coefficients reversed.
 
         If an optional degree argument is given the coefficient list will be
-        truncated or zero padded as necessary and the reverse polynomial will
-        have the specified degree.
+        truncated or zero padded as necessary before reversing it. Assuming
+        that the constant coefficient of ``self`` is nonzero, the reverse
+        polynomial will have the specified degree.
 
         EXAMPLES::
 
@@ -6245,11 +6246,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: degree argument must be a non-negative integer, got 1.5
+
+            sage: f.reverse(0)
+            -3*x
+            sage: f
+            y^3 + x*y - 3*x
         """
-        v = list(self.list())
+        v = self.list()
 
         cdef unsigned long d
-        if degree:
+        if degree is not None:
             d = degree
             if d != degree:
                 raise ValueError("degree argument must be a non-negative integer, got %s"%(degree))

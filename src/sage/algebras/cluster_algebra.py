@@ -171,7 +171,10 @@ class ClusterAlgebraElement(ElementWrapper):    # READY
             
             This method returns an element of ``self.parent().ambient()``
             rather than an element of ``self.parent()`` because, a priori,
-            we cannot guarantee membership.
+            we cannot guarantee membership. 
+            
+            You can force the result to be an element of ``self.parent()``
+            by feeding it into ``self.parent().retract``.
 
         EXAMPLES::
 
@@ -363,6 +366,31 @@ class ClusterAlgebraSeed(SageObject):
         """
         return self.parent() == other.parent() and frozenset(self.g_vectors()) == frozenset(other.g_vectors())
 
+    def __contains__(self, element):    # READY
+        r"""
+        Test whether ``element`` belong to ``self``
+
+        INPUT:
+
+        - ``element`` -- either a g-vector or and element of :meth:`parent`
+
+        EXAMPLES::
+            sage: A = ClusterAlgebra(['A',3])
+            sage: S = A.initial_seed()
+            sage: (1,0,0) in S
+            True
+            sage: (1,1,0) in S
+            False
+            sage: A.cluster_variable((1,0,0)) in S
+            True
+        """
+        if isinstance(element, ClusterAlgebraElement):
+            cluster = self.cluster_variables()
+        else:
+            element = tuple(element)
+            cluster = self.g_vectors()
+        return element in cluster
+
     def _repr_(self):   # READY
         r"""
         Return the string representation of ``self``.
@@ -384,12 +412,23 @@ class ClusterAlgebraSeed(SageObject):
         else:
             return "The seed of %s obtained from the initial by mutating along the sequence %s"%(str(self.parent()),str(self._path))
 
+    def parent(self):   # READY
+        r"""
+        Return the parent of ``self``.
+
+        EXAMPLES::
+            sage: A = ClusterAlgebra(['B',3])
+            sage: A.current_seed().parent() == A
+            True
+        """
+        return self._parent
+
     def depth(self):    # READY
         r"""
-        Retun the length of a path from the initial seed of :meth:`parent` to ``self``.
+        Retun the length of a mutation sequence from the initial seed of :meth:`parent` to ``self``.
 
-        WARNING::
-            This is the length of the path returned by
+        WARNING:
+            This is the length of the mutation sequence returned by
             :meth:`path_from_initial_seed` which needs not be the shortest
             possible.
 
@@ -409,49 +448,195 @@ class ClusterAlgebraSeed(SageObject):
         """
         return len(self._path)
 
-    def parent(self):
+    def path_from_initial_seed(self):   # READY
         r"""
-        Return the parent of ``self``.
+        Return a mutation sequence from the initial seed of :meth:`parent` to ``self``.
+
+        WARNING:
+
+            This is the path used to compute ``self`` and it does not have to
+            be the shortest possible.
 
         EXAMPLES::
-            sage: A = ClusterAlgebra(['B',3])
-            sage: A.current_seed().parent() == A
+            
+            sage: A = ClusterAlgebra(['A',2])
+            sage: S1 = A.initial_seed()
+            sage: S1.mutate([0,1,0,1])
+            sage: S1.path_from_initial_seed()
+            [0, 1, 0, 1]
+            sage: S2 = A.initial_seed()
+            sage: S2.mutate(1)
+            sage: S2.path_from_initial_seed()
+            [1]
+            sage: S1 == S2
             True
         """
-        return self._parent
+        return copy(self._path)
 
-    def b_matrix(self):
+    def b_matrix(self): # READY
+        r"""
+        Return the exchange matrix of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',3])
+            sage: S = A.initial_seed()
+            sage: S.b_matrix()
+            [ 0  1  0]
+            [-1  0 -1]
+            [ 0  1  0]
+        """
         return copy(self._B)
 
-    def c_matrix(self):
+    def c_matrix(self): # READY
+        r"""
+        Return the matrix whose columns are the c-vectors of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',3])
+            sage: S = A.initial_seed()
+            sage: S.c_matrix()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
         return copy(self._C)
 
-    def c_vector(self, j):
+    def c_vector(self, j):  # READY
+        r"""
+        Return the j-th c-vector of ``self``.
+
+        INPUT:
+
+        - ``j`` -- an integer in ``range(self.parent().rk())``
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',3])
+            sage: S = A.initial_seed()
+            sage: S.c_vector(0)
+            (1, 0, 0)
+        """
         return tuple(self._C.column(j))
 
-    def c_vectors(self):
+    def c_vectors(self):    # READY
+        r"""
+        Return all the c-vectors of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',3])
+            sage: S = A.initial_seed()
+            sage: S.c_vectors()
+            [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
+        """
         return map(tuple, self._C.columns())
 
-    def g_matrix(self):
+    def g_matrix(self): # READY
+        r"""
+        Return the matrix whose columns are the g-vectors of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',3])
+            sage: S = A.initial_seed()
+            sage: S.g_matrix()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
         return copy(self._G)
 
-    def g_vector(self, j):
+    def g_vector(self, j):  # READY
+        r"""
+        Return the j-th g-vector of ``self``.
+
+        INPUT:
+
+        - ``j`` -- an integer in ``range(self.parent().rk())``
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',3])
+            sage: S = A.initial_seed()
+            sage: S.g_vector(0)
+            (1, 0, 0)
+        """
         return tuple(self._G.column(j))
 
-    def g_vectors(self):
+    def g_vectors(self):    # READY
+        r"""
+        Return all the g-vectors of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',3])
+            sage: S = A.initial_seed()
+            sage: S.g_vectors()
+            [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
+        """
         return map(tuple, self._G.columns())
 
-    def F_polynomial(self, j):
+    def F_polynomial(self, j):  # READY
+        r"""
+        Return the j-th F-polynomial of ``self``.
+
+        INPUT:
+        
+        - ``j`` -- an integer in ``range(self.parent().rk())``
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',3])
+            sage: S = A.initial_seed()
+            sage: S.F_polynomial(0)
+            1
+        """
         return self.parent().F_polynomial(self.g_vector(j))
 
-    def F_polynomials(self):
-        return (self.parent().F_polynomial(g) for g in self.g_vectors())
+    def F_polynomials(self):    # READY
+        r"""
+        Return all the F-polynomials of ``self``.
 
-    def cluster_variable(self, j):
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',3])
+            sage: S = A.initial_seed()
+            sage: S.F_polynomials()
+            [1, 1, 1]
+        """
+        return [self.parent().F_polynomial(g) for g in self.g_vectors()]
+
+    def cluster_variable(self, j):  # READY
+        r"""
+        Return the j-th cluster variable of ``self``.
+
+        INPUT:
+        
+        - ``j`` -- an integer in ``range(self.parent().rk())``
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',3])
+            sage: S = A.initial_seed()
+            sage: S.cluster_variable(0)
+            x0
+        """
         return self.parent().cluster_variable(self.g_vector(j))
 
-    def cluster_variables(self):
-        return (self.parent().cluster_variable(g) for g in self.g_vectors())
+    def cluster_variables(self):    # READY
+        r"""
+        Return all the cluster variables of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',3])
+            sage: S = A.initial_seed()
+            sage: S.cluster_variables()
+            [x0, x1, x2]
+        """
+        return [self.parent().cluster_variable(g) for g in self.g_vectors()]
 
     @mutation_parse
     def mutate(self, k, mutating_F=True):
@@ -551,24 +736,6 @@ class ClusterAlgebraSeed(SageObject):
 
         # DR: Now I get the same computation time for / and //, 49.7s while simultaneously rebuiling sage
         return (pos+neg)/alg.F_polynomial(old_g_vector)
-
-    def path_from_initial_seed(self):
-        return copy(self._path)
-
-    # TODO: ideally we should allow to mutate in direction "this g-vector" or
-    # "this cluster variable" or "sink", "urban renewal" and all the other
-    # options provided by Gregg et al. To do so I guess the best option is to
-    # have a generic function transforming all these into an index and use it as
-    # a decorator. In this way we can also use it in this __contains__ even
-    # though one may write weird things like "sink" in A.current_seed and get
-    # True as an answer.
-    def __contains__(self, element):
-        if isinstance(element, ClusterAlgebraElement):
-            cluster = [ self.cluster_variable(i) for i in xrange(self.parent().rk()) ]
-        else:
-            element = tuple(element)
-            cluster = self.g_vectors()
-        return element in cluster
 
 ##############################################################################
 # Cluster algebras

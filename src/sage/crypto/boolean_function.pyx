@@ -1046,7 +1046,7 @@ cdef class BooleanFunction(SageObject):
             True
         """
         W = self.absolute_walsh_spectrum()
-        return (len(W) == 1) or (len(W) == 2 and W.has_key(0))
+        return (len(W) == 1) or (len(W) == 2 and 0 in W)
 
     def __setitem__(self, i, y):
         """

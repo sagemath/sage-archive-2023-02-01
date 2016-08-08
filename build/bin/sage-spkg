@@ -272,7 +272,8 @@ elif [ -z "$PKG_HAS_PATH" ]; then
             echo "that it will build correctly, or behave as expected."
             echo "Use at your own risk!"
             echo "==============================================================="
-            read -p "Are you sure you want to continue [Y/n]? " answer
+            echo "Are you sure you want to continue [Y/n]?"
+            read -p "Answer: " answer
             case "$answer" in
                 n*|N*) exit 0;;
             esac
@@ -365,7 +366,8 @@ if [ ! -f "$PKG_SRC" ]; then
                             echo "For more information about making Sage packages, see"
                             echo "http://doc.sagemath.org/html/en/developer/packaging.html"
                             echo "=========================================================================="
-                            read -p "Are you sure you want to continue [Y/n]? " answer
+                            echo "Are you sure you want to continue [Y/n]?"
+                            read -p "Answer: " answer
                             case "$answer" in
                                 n*|N*) exit 0;;
                             esac
@@ -381,7 +383,8 @@ if [ ! -f "$PKG_SRC" ]; then
                             echo "http://doc.sagemath.org/html/en/developer/packaging.html"
                             echo "=========================================================================="
                             echo
-                            read -t 30 -p "Are you sure (automatically continuing in 30 seconds) [Y/n]? " answer
+                            echo "Are you sure (automatically continuing in 30 seconds) [Y/n]?"
+                            read -t 30 -p "Answer: " answer
                             case "$answer" in
                                 n*|N*) exit 0;;
                             esac

@@ -826,8 +826,7 @@ cdef class GapElement(RingElement):
             libgap_exit()
         return make_any_gap_element(self.parent(), result)
 
-
-    def __mod__(GapElement self, GapElement right):
+    cpdef _mod_(self, right):
         r"""
         Modulus of two GapElement objects.
 
@@ -848,7 +847,7 @@ cdef class GapElement(RingElement):
         try:
             libgap_enter()
             sig_on()
-            result = libGAP_MOD(self.value, right.value)
+            result = libGAP_MOD(self.value, (<GapElement>right).value)
             sig_off()
         except RuntimeError as msg:
             libGAP_ClearError()

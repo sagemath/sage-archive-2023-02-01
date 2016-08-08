@@ -289,7 +289,7 @@ def _unit_gens_primepowercase(p, r):
 
 class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     """
-    The ring of integers modulo `N`, with `N` composite.
+    The ring of integers modulo `N`.
 
     INPUT:
 

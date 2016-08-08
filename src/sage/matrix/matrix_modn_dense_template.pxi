@@ -107,17 +107,14 @@ from libc.stdio cimport snprintf
 from sage.modules.vector_modn_dense cimport Vector_modn_dense
 
 from sage.arith.all import is_prime
-from sage.structure.element cimport ModuleElement
-
-cimport matrix_dense
-
-from sage.structure.element cimport Matrix
+from sage.structure.element cimport (Element, Vector, Matrix,
+        ModuleElement, RingElement)
+from sage.matrix.matrix_dense cimport Matrix_dense
+from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 from sage.misc.misc import verbose, get_verbose, cputime
 from sage.rings.integer cimport Integer
-from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
-from matrix_integer_dense cimport Matrix_integer_dense
-from sage.rings.integer_ring  import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.structure.proof.proof import get_flag as get_proof_flag
 from sage.misc.randstate cimport randstate, current_randstate
 import sage.matrix.matrix_space as matrix_space
@@ -355,7 +352,7 @@ cdef inline linbox_charpoly(celement modulus, Py_ssize_t nrows, celement* entrie
     del F
     return l
 
-cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
+cdef class Matrix_modn_dense_template(Matrix_dense):
     def __cinit__(self, parent, entries, copy, coerce):
         """
         Create a new matrix.
@@ -382,7 +379,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             sage: type(A)
             <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
         """
-        matrix_dense.Matrix_dense.__init__(self, parent)
+        Matrix_dense.__init__(self, parent)
 
         cdef long p = self._base_ring.characteristic()
         self.p = p
@@ -707,7 +704,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             True
         """
         if version < 10:
-            return matrix_dense.Matrix_dense._unpickle(self, data, version)
+            return Matrix_dense._unpickle(self, data, version)
 
         cdef Py_ssize_t i, j
         cdef unsigned char* us
@@ -1463,10 +1460,10 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         if algorithm == 'linbox':
             g = self._charpoly_linbox(var)
         elif algorithm == 'generic':
-            g = matrix_dense.Matrix_dense.charpoly(self, var)
+            g = Matrix_dense.charpoly(self, var)
         elif algorithm == 'all':
             g = self._charpoly_linbox(var)
-            h = matrix_dense.Matrix_dense.charpoly(self, var)
+            h = Matrix_dense.charpoly(self, var)
             if g != h:
                 raise ArithmeticError("Characteristic polynomials do not match.")
         else:
@@ -1621,7 +1618,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
                 raise ValueError("matrix must be square")
 
             if self._nrows <= 1:
-                return matrix_dense.Matrix_dense.minpoly(self, var)
+                return Matrix_dense.minpoly(self, var)
 
             R = self._base_ring[var]
             v = linbox_minpoly(self.p, self._nrows, self._entries)
@@ -1683,7 +1680,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         if self._nrows != self._ncols:
             raise ValueError("matrix must be square")
         if self._nrows <= 1:
-            return matrix_dense.Matrix_dense.charpoly(self, var)
+            return Matrix_dense.charpoly(self, var)
         R = self._base_ring[var]
         # call linbox for charpoly
         v = linbox_charpoly(self.p, self._nrows, self._entries)
@@ -2280,7 +2277,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         else:
             # linbox is very buggy for p=2, but this code should never
             # be called since p=2 is handled via M4RI
-            return matrix_dense.Matrix_dense.rank(self)
+            return Matrix_dense.rank(self)
 
     def determinant(self):
         """
@@ -2401,7 +2398,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             self.cache('det', d2)
             return d2
         else:
-            return matrix_dense.Matrix_dense.determinant(self)
+            return Matrix_dense.determinant(self)
 
     cdef xgcd_eliminate(self, celement * row1, celement* row2, Py_ssize_t start_col):
         """

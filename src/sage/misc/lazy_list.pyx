@@ -87,7 +87,7 @@ Alternatively, you can create the lazy list from an update function::
 
 You can also create extension type inheriting from :class:`lazy_list_generic`
 (with Cython). In that case you would better implement directly the method
-:meth:`~lazy_list_generic.update_cache_up_to`. See the examples in this file with the classes
+``_update_cache_up_to``. See the examples in this file with the classes
 :class:`lazy_list_from_iterator` and :class:`lazy_list_from_function`.
 
 Classes and Methods
@@ -244,9 +244,7 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
         data = cache + list(data)
         l = lazy_list_generic(data, start=0, stop=len(data), step=1)
     elif isinstance(data, lazy_list_generic):
-        l = lazy_list_generic()
-        l.master = data
-        l.cache = data._get_cache_()
+        return data
     else:
         # the code below is not very clean
         # we just want to differentiate on the one hand iterable (= object with a
@@ -647,7 +645,7 @@ cdef class lazy_list_generic(object):
         if n > self.stop - self.step:
             return 1
 
-        if self.update_cache_up_to(n):
+        if self._update_cache_up_to(n):
             self.stop = min(self.stop, len(self.cache))
             if self.master is not None:
                 self.stop = min(self.stop, self.master.stop)
@@ -698,10 +696,10 @@ cdef class lazy_list_generic(object):
         if i < 0:
             raise ValueError("indices must be non-negative")
 
-        cdef Py_ssize_t n = self.start + i*self.step
-        if self._fit(n):
+        i = self.start + i*self.step
+        if self._fit(i):
             raise IndexError("lazy list index out of range")
-        return self.cache[n]
+        return self.cache[i]
 
 
     def __call__(self, i):
@@ -896,7 +894,7 @@ cdef class lazy_list_generic(object):
         return l
 
 
-    cpdef int update_cache_up_to(self, Py_ssize_t i) except -1:
+    cpdef int _update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
         Update the cache up to ``i``.
 
@@ -914,7 +912,7 @@ cdef class lazy_list_generic(object):
 
             sage: from sage.misc.lazy_list import lazy_list
             sage: L = lazy_list(Primes())[2:]
-            sage: L.update_cache_up_to(4)
+            sage: L._update_cache_up_to(4)
             0
             sage: L._info()
             cache length 5
@@ -1005,7 +1003,7 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
         lazy_list_generic.__init__(self, cache, None, stop, None)
 
 
-    cpdef int update_cache_up_to(self, Py_ssize_t i) except -1:
+    cpdef int _update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
         Update the cache up to ``i``.
 
@@ -1021,7 +1019,7 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
 
             sage: from sage.misc.lazy_list import lazy_list
             sage: L = lazy_list(iter(Primes()))[2:]
-            sage: L.update_cache_up_to(4)
+            sage: L._update_cache_up_to(4)
             0
             sage: L._info()
             cache length 5
@@ -1089,7 +1087,7 @@ cdef class lazy_list_from_function(lazy_list_generic):
         lazy_list_generic.__init__(self, cache)
 
 
-    cpdef int update_cache_up_to(self, Py_ssize_t i) except -1:
+    cpdef int _update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
         Update the cache up to ``i``.
 
@@ -1105,7 +1103,7 @@ cdef class lazy_list_from_function(lazy_list_generic):
 
             sage: from sage.misc.lazy_list import lazy_list
             sage: L = lazy_list(lambda x: 2*x)[2:]
-            sage: L.update_cache_up_to(4)
+            sage: L._update_cache_up_to(4)
             0
             sage: L._info()
             cache length 5
@@ -1165,7 +1163,7 @@ cdef class lazy_list_from_update_function(lazy_list_generic):
         lazy_list_generic.__init__(self, cache, None, stop, None)
 
 
-    cpdef int update_cache_up_to(self, Py_ssize_t i) except -1:
+    cpdef int _update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
         Update the cache up to ``i``.
 
@@ -1184,7 +1182,7 @@ cdef class lazy_list_from_update_function(lazy_list_generic):
             ....:     n = len(values)+1
             ....:     values.extend([n]*n)
             sage: L = lazy_list_from_update_function(update_function)[2:]
-            sage: L.update_cache_up_to(4)
+            sage: L._update_cache_up_to(4)
             0
             sage: L._info()
             cache length 7

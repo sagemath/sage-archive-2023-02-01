@@ -537,7 +537,6 @@ implementing quotients::
     ....:     by those monomial symmetric functions whose part is larger than some fixed
     ....:     number ``k``.
     ....:     """
-    ....:
     ....:     def __init__(self, R, k, prefix=None, *args, **kwargs):
     ....:         CombinatorialFreeModule.__init__(self, R,
     ....:             Partitions(NonNegativeIntegers(), max_part=k),
@@ -570,8 +569,9 @@ implementing quotients::
     sage: mm = MM.basis()
     sage: m = SymmetricFunctions(QQ).monomial()
     sage: P = Partition
-    sage: g = m[P([3,2,1])] + 2*m[P([3,3])] + m[P[4,2]]; g
-    sage: f = mm(f); f
+    sage: g = m[P([3,2,1])] + 2*m[P([3,3])] + m[P([4,2])]; g
+    m[3, 2, 1] + 2*m[3, 3] + m[4, 2]
+    sage: f = MM(g); f
     mm[[3, 2, 1]] + 2*mm[[3, 3]]
     sage: m(f)
     m[3, 2, 1] + 2*m[3, 3]
@@ -707,7 +707,7 @@ We now urge the reader to browse the full code of the following
 example, which is meant as a complete template for constructing new
 parents with realizations::
 
-    sage: A = Sets().WithRealizations().example()
+    sage: A = Sets().WithRealizations().example(); A
     The subset algebra of {1, 2, 3} over Rational Field
 
     sage: A??                                     # not implemented

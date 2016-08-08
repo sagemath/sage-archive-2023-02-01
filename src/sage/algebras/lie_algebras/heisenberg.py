@@ -24,9 +24,10 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.structure.indexed_generators import IndexedGenerators
 
-from sage.algebras.lie_algebras.lie_algebra import (InfinitelyGeneratedLieAlgebra,
-    LieAlgebraFromAssociative, FinitelyGeneratedLieAlgebra)
-from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraMatrixWrapper
+from sage.algebras.lie_algebras.lie_algebra import (LieAlgebraFromAssociative,
+                                                    LieAlgebraWithGenerators)
+from sage.algebras.lie_algebras.lie_algebra_element import (LieAlgebraElement,
+                                                            LieAlgebraMatrixWrapper)
 from sage.categories.lie_algebras import LieAlgebras
 from sage.categories.cartesian_product import cartesian_product
 from sage.matrix.matrix_space import MatrixSpace
@@ -138,6 +139,8 @@ class HeisenbergAlgebra_abstract(IndexedGenerators):
         if len(m) == 1:
             return m
         return "%s_{%s}"%(m[0], m[1]) # else it is of length 2
+
+    Element = LieAlgebraElement
 
 class HeisenbergAlgebra_fd(object):
     """
@@ -296,7 +299,7 @@ class HeisenbergAlgebra_fd(object):
         return super(HeisenbergAlgebra_fd, self)._coerce_map_from_(H)
 
 class HeisenbergAlgebra(HeisenbergAlgebra_fd, HeisenbergAlgebra_abstract,
-                        FinitelyGeneratedLieAlgebra):
+                        LieAlgebraWithGenerators):
     """
     A Heisenberg algebra defined using structure coefficients.
 
@@ -352,7 +355,7 @@ class HeisenbergAlgebra(HeisenbergAlgebra_fd, HeisenbergAlgebra_abstract,
         names = tuple(['p%s'%i for i in range(1,n+1)]
                       + ['q%s'%i for i in range(1,n+1)]
                       + ['z'])
-        FinitelyGeneratedLieAlgebra.__init__(self, R, names=names, index_set=names,
+        LieAlgebraWithGenerators.__init__(self, R, names=names, index_set=names,
             category=LieAlgebras(R).FiniteDimensional().WithBasis())
         HeisenbergAlgebra_abstract.__init__(self, names)
 
@@ -367,7 +370,7 @@ class HeisenbergAlgebra(HeisenbergAlgebra_fd, HeisenbergAlgebra_abstract,
         """
         return "Heisenberg algebra of rank {0} over {1}".format(self._n, self.base_ring())
 
-class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedLieAlgebra):
+class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, LieAlgebraWithGenerators):
     r"""
     The infinite Heisenberg algebra.
 
@@ -390,7 +393,7 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
         """
         S = cartesian_product([PositiveIntegers(), ['p','q']])
         cat = LieAlgebras(R).WithBasis()
-        InfinitelyGeneratedLieAlgebra.__init__(self, R, index_set=S, category=cat)
+        LieAlgebraWithGenerators.__init__(self, R, index_set=S, category=cat)
         HeisenbergAlgebra_abstract.__init__(self, S)
 
     def _repr_(self):

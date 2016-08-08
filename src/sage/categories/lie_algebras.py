@@ -212,6 +212,8 @@ class LieAlgebras(Category_over_base_ring):
         #    Return the generators of ``self`` as a Lie algebra.
         #    """
 
+        # TODO: Move this to LieAlgebraElement, cythonize, and use more standard
+        #   coercion framework test (i.e., have_same_parent)
         def bracket(self, lhs, rhs):
             """
             Return the Lie bracket ``[lhs, rhs]`` after coercing ``lhs`` and

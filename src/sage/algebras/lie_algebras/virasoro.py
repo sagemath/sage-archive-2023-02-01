@@ -28,8 +28,9 @@ from sage.sets.family import Family
 from sage.sets.set import Set
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.structure.indexed_generators import IndexedGenerators
-#from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
-from sage.algebras.lie_algebras.lie_algebra import InfinitelyGeneratedLieAlgebra, FinitelyGeneratedLieAlgebra
+from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
+from sage.algebras.lie_algebras.lie_algebra import (InfinitelyGeneratedLieAlgebra,
+                                                    FinitelyGeneratedLieAlgebra)
 
 class LieAlgebraRegularVectorFields(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
@@ -136,6 +137,8 @@ class LieAlgebraRegularVectorFields(InfinitelyGeneratedLieAlgebra, IndexedGenera
             [d[0], d[2], d[-2], d[-1] + d[0] - 3*d[1]]
         """
         return [self.monomial(0), self.monomial(2), self.monomial(-2), self.an_element()]
+
+    Element = LieAlgebraElement
 
 class WittLieAlgebra_charp(FinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
@@ -250,7 +253,11 @@ class WittLieAlgebra_charp(FinitelyGeneratedLieAlgebra, IndexedGenerators):
             sage: L.some_elements()
             [d[0], d[2], d[3], d[0] + 2*d[1] + d[4]]
         """
-        return [self.monomial(0), self.monomial(2 % self._p), self.monomial((-2) % self._p), self.an_element()]
+        return [self.monomial(0), self.monomial(2 % self._p),
+                self.monomial((-2) % self._p),
+                self.an_element()]
+
+    Element = LieAlgebraElement
 
 class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
@@ -448,4 +455,6 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
         """
         d = self.monomial
         return [d(0), d(2), d(-2), d('c'), self.an_element()]
+
+    Element = LieAlgebraElement
 

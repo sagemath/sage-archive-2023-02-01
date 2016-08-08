@@ -63,7 +63,7 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
 
         EXAMPLES::
 
-            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}})
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
             sage: y*x
             x*y - z
         """
@@ -242,6 +242,20 @@ class LieAlgebraElementWrapper(ElementWrapper):
         from sage.misc.latex import latex
         return latex(self.value)
 
+    def _ascii_art_(self):
+        """
+        Return an ascii art representation of ``self``.
+        """
+        from sage.typeset.ascii_art import ascii_art
+        return ascii_art(self.value)
+
+    def _unicode_art_(self):
+        """
+        Return a unicode art representation of ``self``.
+        """
+        from sage.typeset.unicode_art import unicode_art
+        return unicode_art(self.value)
+
     def _add_(self, rhs):
         """
         Add ``self`` and ``rhs``.
@@ -387,6 +401,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
         """
         return self.value.__getitem__(i)
 
+# TODO: Also used for vectors, find a better name
 class LieAlgebraMatrixWrapper(LieAlgebraElementWrapper):
     def __init__(self, parent, value):
         """

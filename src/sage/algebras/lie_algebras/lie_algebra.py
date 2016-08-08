@@ -23,7 +23,8 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-#from sage.structure.indexed_generators import IndexedGenerators
+from sage.structure.indexed_generators import (IndexedGenerators,
+                                               standardize_names_index_set)
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -41,7 +42,6 @@ from sage.rings.ring import Ring
 from sage.rings.infinity import infinity
 from sage.matrix.matrix_space import MatrixSpace
 from sage.sets.family import Family, AbstractFamily
-from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 
 class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
     r"""
@@ -241,7 +241,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
     .. [deGraaf] Willem A. de Graaf. *Lie Algebras: Theory and Algorithms*.
        North-Holland Mathemtaical Library. (2000). Elsevier Science B.V.
 
-    - [Kac]_
+    - [Kac]_ Victor Kac, *Infinite dimensional Lie algebras*.
 
     - :wikipedia:`Lie_algebra`
     """
@@ -286,7 +286,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
 
         if isinstance(arg0, dict):
             if not arg0:
-                from sage.algebras.lie_algebras.structure_coefficients import AbelianLieAlgebra
+                from sage.algebras.lie_algebras.abelian import AbelianLieAlgebra
                 return AbelianLieAlgebra(R, names, index_set)
             elif isinstance(arg0.keys()[0], (list,tuple)):
                 # We assume it is some structure coefficients
@@ -326,7 +326,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
                                      " number of generators")
 
         if abelian:
-            from sage.algebras.lie_algebras.structure_coefficients import AbelianLieAlgebra
+            from sage.algebras.lie_algebras.abelian import AbelianLieAlgebra
             return AbelianLieAlgebra(R, names, index_set)
 
         # Otherwise it is the free Lie algebra
@@ -344,101 +344,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
 
         raise NotImplementedError("the free Lie algebra has only been implemented using polynomials in the free algebra, see trac ticket #16823")
 
-    @staticmethod
-    def _standardize_names_index_set(names=None, index_set=None, ngens=None):
-        """
-        Standardize the ``names`` and ``index_set`` for a Lie algebra.
-
-        The method is supposed to return a pair
-        ``(names', index_set')``, where ``names'`` is either
-        ``None`` or a tuple of strings, and where ``index_set'``
-        is a finite enumerated set. (The purpose of
-        ``index_set'`` is to index the basis elements or the
-        generators of some Lie algebra; the strings in
-        ``names'``, when they exist, are used for printing these
-        indices.)
-
-        .. TODO::
-
-            As far as I understand, the optional parameter ``ngens``
-            is only used to raise errors when it is wrong. There is
-            no automatic numbering like "if ``names`` is a string
-            with no commas and ``ngens`` is not ``None``, then set
-            ``names = [names + str(i) for i in range(ngens)]``". Do
-            we need this parameter then?
-
-        .. TODO::
-
-            This function could likely be generalized for any parent
-            inheriting from :class:`IndexedGenerators` and (potentially)
-            having ``names``. Should this method be moved to
-            :class:`IndexedGenerators`?
-
-        TESTS::
-
-            sage: LieAlgebra._standardize_names_index_set('x,y')
-            (('x', 'y'), {'x', 'y'})
-            sage: LieAlgebra._standardize_names_index_set(['x','y'])
-            (('x', 'y'), {'x', 'y'})
-            sage: LieAlgebra._standardize_names_index_set(['x','y'], ['a','b'])
-            (('x', 'y'), {'a', 'b'})
-            sage: LieAlgebra._standardize_names_index_set('x,y', ngens=2)
-            (('x', 'y'), {'x', 'y'})
-            sage: LieAlgebra._standardize_names_index_set(index_set=['a','b'], ngens=2)
-            (None, {'a', 'b'})
-
-            sage: LieAlgebra._standardize_names_index_set()
-            Traceback (most recent call last):
-            ...
-            ValueError: either the names of the generators or the index set must be specified
-            sage: LieAlgebra._standardize_names_index_set(['x'], ['a', 'b'])
-            Traceback (most recent call last):
-            ...
-            ValueError: the number of names must equal the size of the indexing set
-            sage: LieAlgebra._standardize_names_index_set('x,y', ['a'])
-            Traceback (most recent call last):
-            ...
-            ValueError: the number of names must equal the size of the indexing set
-            sage: LieAlgebra._standardize_names_index_set('x,y,z', ngens=2)
-            Traceback (most recent call last):
-            ...
-            ValueError: the number of names must equal the number of generators
-            sage: LieAlgebra._standardize_names_index_set(index_set=['a'], ngens=2)
-            Traceback (most recent call last):
-            ...
-            ValueError: the size of the indexing set must equal the number of generators
-        """
-        if isinstance(names, str):
-            names = tuple(names.split(','))
-        elif names is not None:
-            names = tuple(names)
-
-        if index_set is None:
-            if names is None:
-                raise ValueError("either the names of the generators"
-                                 " or the index set must be specified")
-            # If only the names are specified, then we make the indexing set
-            #   be the names
-            index_set = tuple(names)
-
-        if isinstance(index_set, (tuple, list)):
-            index_set = FiniteEnumeratedSet(index_set)
-
-        if names is not None:
-            if len(names) != index_set.cardinality():
-                raise ValueError("the number of names must equal"
-                                 " the size of the indexing set")
-            if ngens is not None and len(names) != ngens:
-                raise ValueError("the number of names must equal the number of generators")
-        elif ngens is not None and index_set.cardinality() != ngens:
-            raise ValueError("the size of the indexing set must equal"
-                             " the number of generators")
-
-        return names, index_set
-
-    # TODO: Should this inherit from IndexedGenerators or should this
-    #   be a subclass?
-    def __init__(self, R, names=None, index_set=None, category=None):
+    def __init__(self, R, names=None, category=None):
         """
         The Lie algebra.
 
@@ -447,8 +353,6 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         - ``R`` -- the base ring
 
         - ``names`` -- (optional) the names of the generators
-
-        - ``index_set`` -- (optional) the indexing set
 
         - ``category`` -- the category of the Lie algebra; the default is the
           category of Lie algebras over ``R``
@@ -460,8 +364,6 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             Category of finite dimensional lie algebras with basis over Rational Field
         """
         category = LieAlgebras(R).or_subcategory(category)
-
-        self._indices = index_set
         Parent.__init__(self, base=R, names=names, category=category)
 
     def _element_constructor_(self, x):
@@ -557,20 +459,6 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         """
         return self.element_class(self, {})
 
-    # TODO: Find a better place for this method?
-    # TODO: Use IndexedGenerators?
-    def indices(self):
-        """
-        Return the indices of the basis of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<x,y> = LieAlgebra(QQ, representation="polynomial")
-            sage: L.indices()
-            {'x', 'y'}
-        """
-        return self._indices
-
     # The following methods should belong to ModulesWithBasis?
     def _from_dict(self, d, coerce=False, remove_zeros=True):
         """
@@ -632,6 +520,58 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             c = self.base_ring()(c)
         return self.element_class(self, {i: c})
 
+    def get_order(self):
+        """
+        Return an ordering of the basis indices.
+
+        .. TODO::
+
+            Remove this method and in :class:`CombinatorialFreeModule`
+            in favor of a method in the category of (finite dimensional)
+            modules with basis.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LieAlgebra(QQ, {})
+            sage: L.get_order()
+            ('x', 'y')
+        """
+        try:
+            return self._basis_ordering
+        except AttributeError:
+            raise ValueError("the Lie algebra is not finite dimensional with a basis")
+
+    #Element = LieAlgebraElement # Default for all Lie algebras
+
+class LieAlgebraWithGenerators(LieAlgebra):
+    """
+    A Lie algebra with distinguished generators.
+    """
+    def __init__(self, R, names=None, index_set=None, category=None, prefix='L', **kwds):
+        """
+        The Lie algebra.
+
+        INPUT:
+
+        - ``R`` -- the base ring
+        - ``names`` -- (optional) the names of the generators
+        - ``index_set`` -- (optional) the indexing set
+        - ``category`` -- the category of the Lie algebra; the default is the
+          category of Lie algebras over ``R``
+        - ``prefix`` -- (optional) the prefix for the generator representation
+        - any keyword accepted by
+          :class:`~sage.structure.indexed_generators.IndexedGenerators`
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LieAlgebra(QQ, abelian=True)
+            sage: L.category()
+            Category of finite dimensional lie algebras with basis over Rational Field
+        """
+        self._indices = index_set
+        LieAlgebra.__init__(self, R, names, category)
+
+    @cached_method
     def lie_algebra_generators(self):
         """
         Return the generators of ``self`` as a Lie algebra.
@@ -657,8 +597,6 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             (x, y)
         """
         G = self.lie_algebra_generators()
-        if G.cardinality() == float('inf'):
-            return G
         try:
             return tuple(G[i] for i in self.variable_names())
         except (KeyError, IndexError):
@@ -676,34 +614,23 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             sage: L.gen(0)
             x
         """
-        return tuple(self.gens())[i]
+        return self.gens()[i]
 
-    def get_order(self):
+    def indices(self):
         """
-        Return an ordering of the basis indices.
-
-        .. TODO::
-
-            Remove this method and in :class:`CombinatorialFreeModule`
-            in favor of a method in the category of (finite dimensional)
-            modules with basis.
+        Return the indices of ``self``.
 
         EXAMPLES::
 
-            sage: L.<x,y> = LieAlgebra(QQ, {})
-            sage: L.get_order()
-            ('x', 'y')
+            sage: L.<x,y> = LieAlgebra(QQ, representation="polynomial")
+            sage: F.indices()
+            {'x', 'y'}
         """
-        try:
-            return self._basis_ordering
-        except AttributeError:
-            raise ValueError("the Lie algebra is not finite dimensional with a basis")
+        return self._indices
 
-    Element = LieAlgebraElement # Default for all Lie algebras
-
-class FinitelyGeneratedLieAlgebra(LieAlgebra):
+class FinitelyGeneratedLieAlgebra(LieAlgebraWithGenerators):
     r"""
-    An finitely generated Lie algebra.
+    A finitely generated Lie algebra.
     """
     def __init__(self, R, names=None, index_set=None, category=None):
         """
@@ -725,7 +652,7 @@ class FinitelyGeneratedLieAlgebra(LieAlgebra):
             sage: L.category()
             Category of finite dimensional lie algebras with basis over Rational Field
         """
-        LieAlgebra.__init__(self, R, names, index_set, category)
+        LieAlgebraWithGenerators.__init__(self, R, names, index_set, category)
         self.__ngens = len(self._indices)
 
     def _repr_(self):
@@ -769,7 +696,7 @@ class FinitelyGeneratedLieAlgebra(LieAlgebra):
         """
         return self.sum(self.lie_algebra_generators())
 
-class InfinitelyGeneratedLieAlgebra(LieAlgebra):
+class InfinitelyGeneratedLieAlgebra(LieAlgebraWithGenerators):
     r"""
     An infinitely generated Lie algebra.
     """
@@ -785,19 +712,21 @@ class InfinitelyGeneratedLieAlgebra(LieAlgebra):
         """
         return self.lie_algebra_generators()[self._indices.an_element()]
 
-    def dimension(self):
-        r"""
-        Return the dimension of ``self``, which is `\infty`.
+# Do we want this to return lie_algebra_generators()? Perhaps in the category?
+#    def gens(self):
+#        """
+#        Return a tuple whose entries are the generators for this
+#        object, in some order.
+#
+#        EXAMPLES::
+#
+#            sage: L.<x,y> = LieAlgebra(QQ, abelian=True)
+#            sage: L.gens()
+#            (x, y)
+#        """
+#        return self.lie_algebra_generators()
 
-        EXAMPLES::
-
-            sage: L = lie_algebras.Heisenberg(QQ, oo)
-            sage: L.dimension()
-            +Infinity
-        """
-        return infinity
-
-class LieAlgebraFromAssociative(LieAlgebra):
+class LieAlgebraFromAssociative(LieAlgebraWithGenerators):
     """
     A Lie algebra whose elements are from an associative algebra and whose
     bracket is the commutator.
@@ -957,7 +886,7 @@ class LieAlgebraFromAssociative(LieAlgebra):
             # Make sure all the generators have the same parent of A
             gens = tuple([A(g) for g in gens])
 
-        names, index_set = LieAlgebra._standardize_names_index_set(names, index_set, ngens)
+        names, index_set = standardize_names_index_set(names, index_set, ngens)
 
         if isinstance(A, MatrixSpace):
             if gens is not None:
@@ -997,7 +926,7 @@ class LieAlgebraFromAssociative(LieAlgebra):
         if 'WithBasis' in self._assoc.category().axioms() and gens is None:
             category = category.WithBasis()
 
-        LieAlgebra.__init__(self, R, names, index_set, category)
+        LieAlgebraWithGenerators.__init__(self, R, names, index_set, category)
 
         if isinstance(gens, tuple):
             # This guarantees that the generators have a specified ordering
@@ -1252,7 +1181,7 @@ class LieAlgebraFromAssociative(LieAlgebra):
         def lift_associative(self):
             """
             Lift ``self`` to the ambient associative algebra (which
-            might be larger than the universal envelopting algebra).
+            might be smaller than the universal enveloping algebra).
 
             EXAMPLES::
 
@@ -1287,7 +1216,6 @@ class LieAlgebraFromAssociative(LieAlgebra):
             """
             if self.parent()._gens is not None:
                 raise NotImplementedError("the basis is not defined")
-            # Copy is ignored until #18066 is merged or a dependency
             return self.value.monomial_coefficients(copy)
 
 class LiftMorphismToAssociative(LiftMorphism):

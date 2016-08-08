@@ -368,13 +368,13 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             K = B.keys()
             LK = LB.keys()
             # We echelonize the matrix here
+            # TODO: Do we want to?
             b_mat = matrix(A.base_ring(), [A.bracket(B[a], LB[b]).to_vector()
                                            for a in K for b in LK])
             b_mat.echelonize()
             r = b_mat.rank()
             I = A._basis_ordering
-            gens = [A.element_class(A, {I[i]: v for i,v in row.iteritems()})
-                    for row in b_mat.rows()[:r]]
+            gens = [A.from_vector(row) for row in b_mat.rows()[:r]]
             return A.subalgebra(gens)
 
         @cached_method

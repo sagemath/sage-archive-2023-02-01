@@ -244,9 +244,7 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
         data = cache + list(data)
         l = lazy_list_generic(data, start=0, stop=len(data), step=1)
     elif isinstance(data, lazy_list_generic):
-        l = lazy_list_generic()
-        l.master = data
-        l.cache = data._get_cache_()
+        return data
     else:
         # the code below is not very clean
         # we just want to differentiate on the one hand iterable (= object with a

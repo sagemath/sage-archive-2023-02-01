@@ -833,7 +833,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         cdef x = (<SkewPolynomial>self)._coeffs
         if len(x) == 0:
-            raise ValueError
+            raise ValueError("a valid skew polynomial must be provided")
         c = x[-1]
         return c
 
@@ -866,7 +866,9 @@ cdef class SkewPolynomial(AlgebraElement):
             else:
                 return False
         else:
-            raise NotImplementedError
+            raise NotImplementedError("support for determining if skew polynomial is a unit \
+                    is not available when the base ring of the parent skew polynomial \
+                    ring is not an integral domain")
 
     def is_nilpotent(self):
         """
@@ -881,7 +883,8 @@ cdef class SkewPolynomial(AlgebraElement):
         That method requires the order of the automorphism which is not
         supported in Sage yet.
         """
-        raise NotImplementedError
+        raise NotImplementedError("support for determining if skew polynomial is \
+                nilpotent is not available yet")
 
     def truncate(self, n):
         """
@@ -1083,7 +1086,7 @@ cdef class SkewPolynomial(AlgebraElement):
         cdef Py_ssize_t i, j
         cdef Py_ssize_t da = self.degree(), db = other.degree()
         if db < 0:
-            raise ZeroDivisionError
+            raise ZeroDivisionError("division by zero is not valid")
         if da < db:
             r = self._new_c([],self._parent), self
             return r
@@ -1153,7 +1156,7 @@ cdef class SkewPolynomial(AlgebraElement):
         cdef Py_ssize_t da = self.degree(), db = other.degree()
         parent = self._parent
         if db < 0:
-            raise ZeroDivisionError
+            raise ZeroDivisionError("division by zero is not valid")
         if da < db:
             r = self._new_c([],parent), self
             return r
@@ -1277,7 +1280,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: c.is_left_divisible_by(S(0))
             Traceback (most recent call last):
             ...
-            ZeroDivisionError
+            ZeroDivisionError: division by zero is not valid
         """
         _, r = self.left_quo_rem(other)
         return r.is_zero()
@@ -1312,7 +1315,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: c.is_right_divisible_by(S(0))
             Traceback (most recent call last):
             ...
-            ZeroDivisionError
+            ZeroDivisionError: division by zero is not valid
 
         This function does not work if the leading coefficient of the divisor
         is not a unit::
@@ -1361,7 +1364,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S(0).left_divides(c)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError
+            ZeroDivisionError: division by zero is not valid
         """
         _, r = other.left_quo_rem(self)
         return r.is_zero()
@@ -1395,8 +1398,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
             sage: S(0).right_divides(c)
             Traceback (most recent call last):
-            ...BOB
-            ZeroDivisionError
+            ...
+            ZeroDivisionError: division by zero is not valid
 
         This function does not work if the leading coefficient of the divisor
         is not a unit::
@@ -1809,7 +1812,7 @@ cdef class SkewPolynomial(AlgebraElement):
         if not isinstance(self.base_ring(),Field):
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
-            raise ZeroDivisionError
+            raise ZeroDivisionError("division by zero is not valid")
         U = self._parent.one()
         G = self
         V1 = self._parent.zero()
@@ -1902,7 +1905,7 @@ cdef class SkewPolynomial(AlgebraElement):
         if not isinstance(self.base_ring(),Field):
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
-            raise ZeroDivisionError
+            raise ZeroDivisionError("division by zero is not valid")
         R = self.parent()
         U = R.one()
         G = self
@@ -2630,7 +2633,16 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
     cdef SkewPolynomial _new_c(self, list coeffs, Parent P, char check=0):
         """
-        Fast creation of a new generic dense skew polynomial
+        Fast creation of a new generic dense skew polynomial.
+
+        TESTS::
+
+            sage: R.<t> = ZZ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: a = t*x^3 + x^4 + (t+1)*x^2
+            sage: a.truncate(4) #indirect doctest
+            t*x^3 + (t + 1)*x^2
         """
         cdef type t = type(self)
         cdef SkewPolynomial_generic_dense f = t.__new__(t)
@@ -2643,6 +2655,13 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
     cdef void __normalize(self):
         """
         Remove higher order 0-coefficients from the representation of ``self``.
+
+        TESTS::
+
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]; S #indirect doctest
+            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
         """
         x = self._coeffs
         cdef Py_ssize_t n = len(x) - 1
@@ -2653,6 +2672,16 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
     cdef void _inplace_rmul(self, SkewPolynomial_generic_dense right):
         """
         Replace ``self`` by `self*right` (only for internal use).
+
+        TESTS::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = x + t
+            sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
+            sage: a.power_left_mod(100,modulus)  # indirect doctest
+            (4*t^2 + t + 1)*x^2 + (t^2 + 4*t + 1)*x + 3*t^2 + 3*t
         """
         cdef list x = (<SkewPolynomial_generic_dense>self)._coeffs
         cdef list y = (<SkewPolynomial_generic_dense>right)._coeffs
@@ -2678,7 +2707,17 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
     cdef void _inplace_pow(self, Py_ssize_t n):
         """
-        Replace ``self`` by `self**n`.
+        Replace ``self`` by `self**n` (only for internal use).
+
+        TESTS::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = x + t
+            sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
+            sage: a.power_left_mod(100,modulus)  # indirect doctest
+            (4*t^2 + t + 1)*x^2 + (t^2 + 4*t + 1)*x + 3*t^2 + 3*t
         """
         while n & 1 == 0:
             self._inplace_rmul(self)
@@ -2693,6 +2732,9 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
     cpdef power_left_mod(self, exp, modulus):
         """
+        Return the remainder of ``self**exp`` in the left euclidean division
+        by ``modulus``.
+
         INPUT:
 
         - ``exp`` -- an Integer
@@ -2701,8 +2743,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         OUTPUT:
 
-        Return the remainder of ``self**exp`` in the left
-        euclidean division by ``modulus``.
+        Remainder of ``self**exp`` in the left euclidean division
+        by ``modulus``.
 
         REMARK:
 
@@ -2765,6 +2807,9 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
     cpdef power_right_mod(self, exp, modulus):
         """
+        Return the remainder of ``self**exp`` in the right euclidean division
+        by ``modulus``.
+
         INPUT:
 
         - ``exp`` -- an Integer
@@ -2773,8 +2818,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         OUTPUT:
 
-        Return the remainder of ``self**exp`` in the right
-        euclidean division by ``modulus``.
+        Remainder of ``self**exp`` in the right euclidean division
+        by ``modulus``.
 
         REMARK:
 
@@ -2845,6 +2890,9 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
     def __pow__(self,exp, modulus):
         """
+        Return the remainder of ``self**exp`` in the left euclidean division
+        by ``modulus``.
+
         INPUT:
 
         - ``exp`` -- an Integer
@@ -2853,8 +2901,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         OUTPUT:
 
-        Return the remainder of ``self**exp`` in the right
-        euclidean division by ``modulus``.
+        Remainder of ``self**exp`` in the right euclidean division
+        by ``modulus``.
 
         .. SEEALSO::
 
@@ -2927,9 +2975,9 @@ cdef class SkewPolynomialBaseringInjection(Morphism):
     Representation of the canonical homomorphism from a ring `R` into a skew
     polynomial ring over `R`.
 
-    See
-    `:class:`~sage.rings.polynomial.polynomial_element.PolynomialBaseringInjection`
-    for information.
+    .. SEEALSO::
+
+        :class:~sage.rings.polynomial.polynomial_element.PolynomialBaseringInjection`
 
     EXAMPLES::
 
@@ -2944,6 +2992,16 @@ cdef class SkewPolynomialBaseringInjection(Morphism):
 
     def __init__(self, domain, codomain):
         """
+        This method is a constructor for Skew Polynomial Basering Injection.
+
+        INPUT:
+
+        - ``domain`` -- a ring `R` which is the domain of the canonical
+          homomorphism.
+
+        - ``codomain`` -- a ring of skew polynomials over ``domain`` which is
+          the codomain of the canonical homomorphism.
+
         TESTS::
 
             sage: from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
@@ -2985,6 +3043,17 @@ cdef class SkewPolynomialBaseringInjection(Morphism):
 
     cpdef Element _call_(self, e):
         """
+        Return the corresponding skew polynomial to the element from the
+        base ring according to ``self``.
+
+        INPUT:
+
+        - ``e`` -- element belonging to the base ring according to ``self``
+
+        OUTPUT:
+
+        The skew polynomial corresponding to `e` according to ``self``.
+
         TESTS::
 
             sage: from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
@@ -3004,6 +3073,9 @@ cdef class SkewPolynomialBaseringInjection(Morphism):
 
     def section(self):
         """
+        Return the canonical homomorphism from the constants of a skew
+        polynomial ring to the base ring according to ``self``.
+
         TESTS::
 
             sage: from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection

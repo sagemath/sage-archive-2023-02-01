@@ -38,6 +38,8 @@ from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
 from sage.combinat.permutation import Permutation
 from sage.functions.generalized import sign
 from sage.functions.other import binomial
+from sage.geometry.cone import Cone
+from sage.geometry.fan import Fan
 from sage.matrix.constructor import identity_matrix, matrix
 from sage.matrix.special import block_matrix
 from sage.misc.cachefunc import cached_method
@@ -46,7 +48,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing, LaurentPolynomialRing_generic
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
 from sage.structure.element_wrapper import ElementWrapper
@@ -698,15 +700,12 @@ class ClusterAlgebraSeed(SageObject):
 
         # path to new g-vector (we store the shortest encountered so far)
         g_vector = self.g_vector(k)
-        if g_vector not in self.parent().g_vectors_so_far():
-            old_path_length = infinity
-            # F-polynomials
-            if mutating_F:
-                self.parent()._F_poly_dict[g_vector] = self._mutated_F(k, old_g_vector)
-        else:
-            old_path_length = len(self.parent()._path_dict[g_vector])
-        if len(self._path) < old_path_length:
+        if not self.parent()._path_dict.has_key(g_vector) or len(self.parent()._path_dict[g_vector]) > len(self._path):
             self.parent()._path_dict[g_vector] = copy(self._path)
+
+        # compute F-polynomials
+        if mutating_F and not self.parent()._F_poly_dict.has_key(g_vector):
+            self.parent()._F_poly_dict[g_vector] = self._mutated_F(k, old_g_vector)
 
         # compute new C-matrix
         J = identity_matrix(n)
@@ -1008,7 +1007,7 @@ class ClusterAlgebra(Parent):
             sage: A2.has_coerce_map_from(A1)
             False
             sage: f = A1.coerce_map_from(A2)
-            sage: A2.find_cluster_variable((-1, 1, -1))
+            sage: A2.find_g_vector((-1, 1, -1))
             [0, 2, 1]
             sage: S = A1.initial_seed(); S.mutate([0, 2, 1])
             sage: S.cluster_variable(1) == f(A2.cluster_variable((-1, 1, -1)))
@@ -1031,190 +1030,491 @@ class ClusterAlgebra(Parent):
         # everything that is in the base can be coerced to self
         return self.base().has_coerce_map_from(other)
 
-    def rk(self):
+    def rk(self):   # READY
         r"""
-        The rank of ``self`` i.e. the number of cluster variables in any seed of
-        ``self``.
+        Return the rank of ``self`` i.e. the number of cluster variables in any seed.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',2],principal_coefficients=True); A
+            A Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Integer Ring
+            sage: A.rk()
+            2
         """
         return self._n
 
-    def current_seed(self):
+    def current_seed(self): # READY
         r"""
-        The current seed of ``self``.
+        Return the current seed of ``self``.
+
+        EXAMPLES::
+            
+            sage: A = ClusterAlgebra(['A',2])
+            sage: A.current_seed()
+            The initial seed of A Cluster Algebra with cluster variables x0, x1 and no coefficients  over Integer Ring
         """
         return self._seed
 
-    def set_current_seed(self, seed):
+    def set_current_seed(self, seed):   # READY
         r"""
-        Set ``self._seed`` to ``seed`` if it makes sense.
+        Set the value reported by :meth:`current_seed`  to ``seed`` if it makes sense.
+
+        INPUT:
+
+        - ``seed`` -- an instance of :class:`ClusterAlgebraSeed`
+        
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',2])
+            sage: S = copy(A.current_seed())
+            sage: S.mutate([0,1,0])
+            sage: A.current_seed() == S
+            False
+            sage: A.set_current_seed(S)
+            sage: A.current_seed() == S
+            True
         """
         if self.contains_seed(seed):
             self._seed = seed
         else:
             raise ValueError("This is not a seed in this cluster algebra.")
 
-    def contains_seed(self, seed):
+    def contains_seed(self, seed):  # READY
+        r"""
+        Test if ``seed`` is a seed in ``self``.
+
+        INPUT:
+
+        - ``seed`` -- an instance of :class:`ClusterAlgebraSeed`
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',2],principal_coefficients=True); A
+            A Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Integer Ring
+            sage: S = copy(A.current_seed())
+            sage: A.contains_seed(S)
+            True
+        """
         computed_sd = self.initial_seed()
         computed_sd.mutate(seed._path, mutating_F=False)
         return computed_sd == seed
 
-    def reset_current_seed(self):
+    def reset_current_seed(self):   # READY
         r"""
-        Reset the current seed to the initial one
+        Reset the value reported by :meth:`current_seed` to :meth:`initial_seed`.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',2])
+            sage: A.current_seed().mutate([1,0])
+            sage: A.current_seed() == A.initial_seed()
+            False
+            sage: A.reset_current_seed()
+            sage: A.current_seed() == A.initial_seed()
+            True
         """
         self._seed = self.initial_seed()
 
-    def initial_seed(self):
+    def initial_seed(self): # READY
         r"""
-        Return the initial seed
+        Return the initial seed of ``self``
+
+        EXAMPLES::
+            
+            sage: A = ClusterAlgebra(['A',2])
+            sage: A.initial_seed()
+            The initial seed of A Cluster Algebra with cluster variables x0, x1 and no coefficients  over Integer Ring
         """
         n = self.rk()
         I = identity_matrix(n)
         return ClusterAlgebraSeed(self.b_matrix(), I, I, self)
 
-    def b_matrix(self): 
+    def b_matrix(self): # READY
         r"""
         Return the initial exchange matrix of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',2])
+            sage: A.b_matrix()
+            [ 0  1]
+            [-1  0]
         """
         n = self.rk()
         return copy(self._B0[:n,:])
 
-    def g_vectors_so_far(self):
+    def g_vectors_so_far(self): # READY
         r"""
-        Return the g-vectors of cluster variables encountered so far.
+        Return a list of the g-vectors of cluster variables encountered so far.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',2])
+            sage: A.current_seed().mutate(0)
+            sage: A.g_vectors_so_far()
+            [(0, 1), (1, 0), (-1, 1)]
         """
         return self._path_dict.keys()
 
-    def F_polynomial(self, g_vector):
-        g_vector= tuple(g_vector)
-        try:
-            return self._F_poly_dict[g_vector]
-        except:
-            # If the path is known, should this method perform that sequence of mutations to compute the desired F-polynomial?
-            # Yes, perhaps with the a prompt first, something like:
-            #comp = raw_input("This F-polynomial has not been computed yet.  It can be found using %s mutations.  Continue? (y or n):"%str(directions.__len__()))
-            #if comp == 'y':
-            #    ...compute the F-polynomial...
-            if g_vector in self._path_dict:
-                raise ValueError("The F-polynomial with g-vector %s has not been computed yet.  You probably explored the exchange tree with compute_F=False.  You can compute this F-polynomial by mutating from the initial seed along the sequence %s."%(str(g_vector),str(self._path_dict[g_vector])))
-            else:
-                raise ValueError("The F-polynomial with g-vector %s has not been computed yet."%str(g_vector))
-
-    @cached_method(key=lambda a,b: tuple(b) )
-    def cluster_variable(self, g_vector):
-        g_vector = tuple(g_vector)
-        if not g_vector in self.g_vectors_so_far():
-            # Should we let the self.F_polynomial below handle raising the exception?
-            raise ValueError("This Cluster Variable has not been computed yet.")
-        F_std = self.F_polynomial(g_vector).subs(self._yhat)
-        g_mon = prod([self.ambient().gen(i)**g_vector[i] for i in xrange(self.rk())])
-        # LaurentPolynomial_mpair does not know how to compute denominators, we need to lift to its fraction field
-        F_trop = self.ambient()(self.F_polynomial(g_vector).subs(self._y))._fraction_pair()[1]
-        return self.retract(g_mon*F_std*F_trop)
-
-    def find_cluster_variable(self, g_vector, depth=infinity):
+    def cluster_variables_so_far(self): # READY
         r"""
-        Returns the shortest mutation path to obtain the cluster variable with
-        g-vector ``g_vector`` from the initial seed.
+        Return a list of the cluster variables encountered so far.
 
-        ``depth``: maximum distance from ``self.current_seed`` to reach.
+        EXAMPLES::
 
-        WARNING: if this method is interrupted then ``self._sd_iter`` is left in
-        an unusable state. To use again this method it is then necessary to
-        reset ``self._sd_iter`` via self.reset_exploring_iterator()
+            sage: A = ClusterAlgebra(['A',2])
+            sage: A.current_seed().mutate(0)
+            sage: A.cluster_variables_so_far()
+            [x1, x0, (x1 + 1)/x0]
+        """
+        return map(self.cluster_variable, self.g_vectors_so_far())
+
+    def F_polynomials_so_far(self): # READY
+        r"""
+        Return a list of the cluster variables encountered so far.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',2])
+            sage: A.current_seed().mutate(0)
+            sage: A.F_polynomials_so_far()
+            [1, 1, u0 + 1]
+        """
+        return self._F_poly_dict.values()
+
+    def F_polynomial(self, g_vector):   # READY
+        r"""
+        Return the F-polynomial with g-vector ``g_vector`` if it has been found.
+
+        INPUT:
+
+        - ``g_vector`` -- a tuple: the g-vector of the F-polynomial to return.
+
+        EXAMPLES::
+            
+            sage: A = ClusterAlgebra(['A',2])
+            sage: A.F_polynomial((-1, 1))
+            Traceback (most recent call last):
+            ...
+            KeyError: 'The g-vector (-1, 1) has not been found yet.'
+            sage: A.initial_seed().mutate(0,mutating_F=False)
+            sage: A.F_polynomial((-1, 1))
+            Traceback (most recent call last):
+            ...
+            KeyError: 'The F-polynomial with g-vector (-1, 1) has not been computed yet. 
+            You can compute it by mutating from the initial seed along the sequence [0].'
+            sage: A.initial_seed().mutate(0)
+            sage: A.F_polynomial((-1, 1))
+            u0 + 1
         """
         g_vector = tuple(g_vector)
-        mutation_counter = 0
+        try:
+            return self._F_poly_dict[g_vector]
+        except KeyError:
+            if g_vector in self._path_dict:
+                msg = "The F-polynomial with g-vector %s has not been computed yet. "%str(g_vector)
+                msg += "You can compute it by mutating from the initial seed along the sequence "
+                msg += str(self._path_dict[g_vector]) + "."
+                raise KeyError(msg)
+            else:
+                raise KeyError("The g-vector %s has not been found yet."%str(g_vector))
+
+    @cached_method(key=lambda a,b: tuple(b) )
+    def cluster_variable(self, g_vector):   # READY
+        r"""
+        Return the cluster variable with g-vector ``g_vector`` if it has been found.
+
+        INPUT:
+       
+        - ``g_vector`` -- a tuple: the g-vector of the cluster variable to return.
+        
+        ALGORITHM:
+
+            This function computes cluster variables from their g-vectors and
+            and F-polynomials using the "separation of additions" formula of
+            Theorem 3.7 in [FZ07]_.
+
+        EXAMPLE::
+
+            sage: A = ClusterAlgebra(['A',2])
+            sage: A.initial_seed().mutate(0)
+            sage: A.cluster_variable((-1,1))
+            (x1 + 1)/x0
+        """
+        g_vector = tuple(g_vector)
+        F = self.F_polynomial(g_vector)
+        F_std = F.subs(self._yhat)
+        g_mon = prod([self.ambient().gen(i)**g_vector[i] for i in xrange(self.rk())])
+        F_trop = self.ambient()(F.subs(self._y))._fraction_pair()[1]
+        return self.retract(g_mon*F_std*F_trop)
+
+    def find_g_vector(self, g_vector, depth=infinity):  # READY
+        r"""
+        Return a mutation sequence to obtain a seed containing the g-vector ``g_vector`` from the initial seed.
+
+        INPUT:
+
+        - ``g_vector`` -- a tuple: the g-vector to find.
+
+        - ``depth`` -- a positive integer: the maximum distance from ``self.current_seed`` to reach.
+
+        OUTPUT:
+            
+            This function returns a list of integers if it can find
+            ``g_vector`` otherwise it returns ``None``.  If the exploring
+            iterator stops it means that the algebra is of finite type and
+            ``g_vector`` is not the g-vector of any cluster variable. In this
+            case the fuction resets the iterator and raises an error.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['G',2],principal_coefficients=True)
+            sage: A.find_g_vector((-2, 3), depth=2)
+            sage: A.find_g_vector((-2, 3), depth=3)
+            [0, 1, 0]
+        """
+        g_vector = tuple(g_vector)
         while g_vector not in self.g_vectors_so_far() and self._explored_depth <= depth:
             try:
                 seed = next(self._sd_iter)
                 self._explored_depth = seed.depth()
-            except:
-                raise ValueError("Could not find a cluster variable with g-vector %s up to mutation depth %s after performing %s mutations."%(str(g_vector),str(depth),str(mutation_counter)))
+            except StopIteration:
+                # Unless self._sd_iter has been manually altered, we checked
+                # all the seeds of self and did not find g_vector.
+                # Do some house cleaning before failing
+                self.reset_exploring_iterator()
+                raise ValueError("%s is not the g-vector of any cluster variable of %s."%(str(g_vector),str(self)))
+        return copy(self._path_dict.get(g_vector,None))
 
-            # If there was a way to have the seeds iterator continue after the depth_counter reaches depth,
-            # the following code would allow the user to continue searching the exchange graph
-            #cont = raw_input("Could not find a cluster variable with g-vector %s up to mutation depth %s."%(str(g_vector),str(depth))+"  Continue searching? (y or n):")
-            #if cont == 'y':
-            #    new_depth = 0
-            #    while new_depth <= depth:
-            #        new_depth = raw_input("Please enter a new mutation search depth greater than %s:"%str(depth))
-            #    seeds.send(new_depth)
-            #else:
-            #    raise ValueError("Could not find a cluster variable with g-vector %s after %s mutations."%(str(g_vector),str(mutation_counter)))
+    def ambient(self):  # READY
+        r"""
+        Return the Laurent polynomial ring containing ``self``.
+        
+        EXAMPLES::
 
-            mutation_counter += 1
-        return copy(self._path_dict[g_vector])
-
-    def ambient(self):
+            sage: A = ClusterAlgebra(['A',2],principal_coefficients=True)
+            sage: A.ambient()
+            Multivariate Laurent Polynomial Ring in x0, x1, y0, y1 over Integer Ring
+        """
         return self._ambient
 
-    def lift(self, x):
+    def lift(self, x):  # READY
         r"""
-        Return x as an element of self._ambient
+        Return ``x`` as an element of :meth:`ambient`.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',2],principal_coefficients=True)
+            sage: x = A.cluster_variable((1,0))
+            sage: A.lift(x).parent()
+            Multivariate Laurent Polynomial Ring in x0, x1, y0, y1 over Integer Ring
         """
         return self.ambient()(x.value)
 
-    def retract(self, x):
+    def retract(self, x):   # READY
+        r"""
+        Return ``x`` as an element of ``self``.
+
+        EXAMPLES::
+            
+            sage: A = ClusterAlgebra(['A',2],principal_coefficients=True)
+            sage: L = A.ambient()
+            sage: x = L.gen(0)
+            sage: A.retract(x).parent()
+            A Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Integer Ring
+        """
         return self(x)
 
-    def gens(self):
+    def gens(self): # READY
         r"""
-        Return the generators of :meth:`self.ambient`
+        Return the list of initial cluster variables and coefficients of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',2],principal_coefficients=True)
+            sage: A.gens()
+            [x0, x1, y0, y1]
         """
         return map(self.retract, self.ambient().gens())
 
-    def seeds(self, depth=infinity, mutating_F=True, from_current_seed=False):
+    def coefficients(self): # READY
         r"""
-        Return an iterator producing all seeds of ``self`` up to distance
-        ``depth`` from ``self.initial_seed`` or ``self.current_seed``.
+        Return the list of coefficients of ``self``.
 
-        If ``mutating_F`` is set to false it does not compute F_polynomials
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',2],principal_coefficients=True)
+            sage: A.coefficients()
+            [y0, y1]
         """
-        if from_current_seed:
-            seed = self.current_seed()
+        if isinstance(self.base(), LaurentPolynomialRing_generic):
+            return map(self.retract, self.base().gens())
+        else:
+            return []
+
+    def initial_cluster_variables(self):    # READY
+        r"""
+        Return the list of initial cluster variables of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',2],principal_coefficients=True)
+            sage: A.initial_cluster_variables()
+            [x0, x1]
+        """
+        return map(self.retract, self.ambient().gens()[:self.rk()])
+
+    def seeds(self, **kwargs):  # READY
+        r"""
+        Return an iterator running over seeds of ``self``.
+
+        INPUT:
+
+        - ``from_current_seed`` -- bool (default False): whether to start the
+          iterator from :meth:`current_seed` or :meth:`initial_seed`.
+
+        - ``mutating_F`` -- bool (default True): wheter to compute also
+          F-polynomials; for speed considerations you may want to disable this.
+
+        - ``allowed_directions`` -- a tuple of integers (default
+          ``range(self.rk())``: the directions in which to mutate.
+
+        - ``depth`` -- the maximum depth at which to stop searching.
+
+        ALGORITHM:
+
+            This function traverses the exchange graph in a breadth-first search.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',4])
+            sage: seeds = A.seeds(allowed_directions=[3,0,1])
+            sage: _ = list(seeds)
+            sage: A.g_vectors_so_far()
+            [(-1, 0, 0, 0),
+             (1, 0, 0, 0),
+             (0, 0, 0, 1),
+             (0, -1, 0, 0),
+             (0, 0, 1, 0),
+             (0, 1, 0, 0),
+             (-1, 1, 0, 0),
+             (0, 0, 0, -1)]
+        """
+        # should we begin from the current seed?
+        if kwargs.get('from_current_seed', False):
+            seed = copy(self.current_seed())
         else:
             seed = self.initial_seed()
-        # add allowed_directions
 
+        # yield first seed
         yield seed
+
+        # some initialization
         depth_counter = 0
         n = self.rk()
+
+        # do we mutate F-polynomials?
+        mutating_F = kwargs.get('mutating_F', True)
+
+        # which directions are we allowed to mutate into
+        allowed_dirs = list(sorted(kwargs.get('allowed_directions', range(n))))
+       
+        # setup seeds storage
         cl = frozenset(seed.g_vectors())
         clusters = {}
-        clusters[cl] = [ seed, range(n) ]
+        clusters[cl] = [ seed, copy(allowed_dirs) ]
+
+        # ready, set, go!
         gets_bigger = True
-        while gets_bigger and depth_counter < depth:
+        while gets_bigger and depth_counter < kwargs.get('depth', infinity):
+            # remember if we got a new seed
             gets_bigger = False
-            keys = clusters.keys()
-            for key in keys:
+            
+            for key in clusters.keys():
                 sd, directions = clusters[key]
                 while directions:
+                    # we can mutate in some direction
                     i = directions.pop()
                     new_sd  = sd.mutate(i, inplace=False, mutating_F=mutating_F)
                     new_cl = frozenset(new_sd.g_vectors())
                     if new_cl in clusters:
+                        # we already had new_sd, make sure it does not mutate to sd during next round
                         j = map(tuple,clusters[new_cl][0].g_vectors()).index(new_sd.g_vector(i))
                         try:
                             clusters[new_cl][1].remove(j)
-                        except:
+                        except ValueError:
                             pass
                     else:
+                        # we got a new seed
                         gets_bigger = True
-                        # doublecheck this way of producing directions for the new seed: it is taken almost verbatim fom ClusterSeed
-                        new_directions = [ j for j in xrange(n) if j > i or new_sd.b_matrix()[j,i] != 0 ]
+                        # next round do not mutate back to sd and do commuting mutations only in directions j > i
+                        new_directions = [ j for j in copy(allowed_dirs) if j > i or new_sd.b_matrix()[j,i] != 0 ]
                         clusters[new_cl] = [ new_sd, new_directions ]
-                        # Use this if we want to have the user pass info to the
-                        # iterator
-                        #new_depth = yield new_sd
-                        #if new_depth > depth:
-                        #    depth = new_depth
                         yield new_sd
+            # we went one step deeper
             depth_counter += 1
 
-    def reset_exploring_iterator(self, mutating_F=True):
+    def reset_exploring_iterator(self, mutating_F=True):    # READY
+        r"""
+        Reset the iterator used to explore ``self``.
+
+        INPUT:
+
+        - ``mutating_F`` -- bool (default True): wheter to compute also
+          F-polynomials; for speed considerations you may want to disable this.
+
+        EXAMPLES::
+            
+            sage: A = ClusterAlgebra(['A',4])
+            sage: A.reset_exploring_iterator(mutating_F=False)
+            sage: A.explore_to_depth(infinity)
+            sage: len(A.g_vectors_so_far())
+            14
+            sage: len(A.F_polynomials_so_far())
+            4
+        """
         self._sd_iter = self.seeds(mutating_F=mutating_F)
         self._explored_depth = 0
+
+    def explore_to_depth(self, depth):  # READY
+        r"""
+        Explore the exchange graph of ``self`` up to distance ``depth`` from the initial seed.
+
+        INPUT:
+
+        - ``depth`` -- the maximum depth at which to stop searching.
+
+        EXAMPLES::
+            
+            sage: A = ClusterAlgebra(['A',4])
+            sage: A.explore_to_depth(infinity)
+            sage: len(A.g_vectors_so_far())   
+            14
+        """
+        while self._explored_depth <= depth:
+            try:
+                seed = next(self._sd_iter)
+                self._explored_depth = seed.depth()
+            except:
+                break
+
+    def cluster_fan(self, depth=infinity):
+        r"""
+        Return the cluster fan (the fan of g-vectors) of ``self``.
+
+        INPUT:
+
+        - ``depth`` -- the maximum depth at which to comute.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',2])
+            sage: A.cluster_fan()
+            Rational polyhedral fan in 2-d lattice N
+        """
+        seeds = self.seeds(depth=depth, mutating_F=False)
+        cones = map(lambda s: Cone(s.g_vectors()), seeds)
+        return Fan(cones)
 
     @mutation_parse
     def mutate_initial(self, k):
@@ -1300,21 +1600,6 @@ class ClusterAlgebra(Parent):
        
         # keep the current seed were it was on the exchange graph
         self._seed = self.initial_seed().mutate([k]+self.current_seed().path_from_initial_seed(), mutating_F=False, inplace=False)
-
-    def explore_to_depth(self, depth):
-        while self._explored_depth <= depth:
-            try:
-                seed = next(self._sd_iter)
-                self._explored_depth = seed.depth()
-            except:
-                break
-
-    def cluster_fan(self, depth=infinity):
-        from sage.geometry.cone import Cone
-        from sage.geometry.fan import Fan
-        seeds = self.seeds(depth=depth, mutating_F=False)
-        cones = map(lambda s: Cone(s.g_vectors()), seeds)
-        return Fan(cones)
 
     # DESIDERATA. Some of these are probably unrealistic
     def upper_cluster_algebra(self):

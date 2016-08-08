@@ -783,6 +783,13 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
         List of values of `p` at the `eval_pts`.
 
+        .. TODO::
+
+            This method currently trivially calls the evaluation function 
+            repeatedly and should be updated to the recursive algorithm
+            from the paper "Fast Operations on Linearized Polynomials
+            and their Applications in Coding Theory" by Puchinger, et al.
+
         EXAMPLES:
 
             sage: k.<t> = GF(5^3)
@@ -792,22 +799,8 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             sage: eval_pts = [1, t, t^2]
             sage: c = S.multi_point_evaluation(a, eval_pts); c
             [t + 1, 3*t^2 + 4*t + 4, 4*t]
-            sage: [ a(e) for e in eval_pts ]
-            [t + 1, 3*t^2 + 4*t + 4, 4*t]
         """
-        coefficients = p.list()
-        sigma = self.twist_map()
-        if len(eval_pts) == 1:
-            return [ p(eval_pts[0]) ] 
-        else:
-            t = len(eval_pts)//2
-            A = eval_pts[:t]
-            B = eval_pts[t:]
-            M_A = self.minimal_vanishing_polynomial(A)
-            M_B = self.minimal_vanishing_polynomial(B)
-            Q_A, R_A = p.right_quo_rem(M_A)
-            Q_B, R_B = p.right_quo_rem(M_B)
-            return self.multi_point_evaluation(R_A, A) + self.multi_point_evaluation(R_B, B)
+        return [ p(e) for e in eval_pts ]
 
     def interpolation_polynomial(self, eval_pts, values, check=True):
         """

@@ -1534,19 +1534,6 @@ class ClusterAlgebra(Parent):
         # [1 0]
         # [0 1]
         # this creates several issues 
-        # BTW: mutating the initial seed in place creates several issues with elements of the algebra: for example:
-        # sage: A = ClusterAlgebra(['B',4],principal_coefficients=True)
-        # sage: A.explore_to_depth(infinity)
-        # sage: x = A.cluster_variable((-1, 1, -2, 2))
-        # sage: x.is_homogeneous()
-        # True
-        # sage: A.mutate_initial([0,3])
-        # sage: x in A
-        # True
-        # sage: (-1, 1, -2, 2) in A.g_vectors_so_far()
-        # False
-        # sage: x.is_homogeneous()
-        # False
 
         r"""
         Mutate ``self`` in direction `k` at the initial cluster.
@@ -1601,18 +1588,31 @@ class ClusterAlgebra(Parent):
         # keep the current seed were it was on the exchange graph
         self._seed = self.initial_seed().mutate([k]+self.current_seed().path_from_initial_seed(), mutating_F=False, inplace=False)
 
-    # DESIDERATA. Some of these are probably unrealistic
+    # DESIDERATA
+    # Some of these are probably unrealistic
     def upper_cluster_algebra(self):
-        pass
+        r"""
+        Return the upper cluster algebra associated to ``self``.
+        """
+        raise NotImplementedError("Not implemented yet.")
 
     def upper_bound(self):
-        pass
+        r"""
+        Return the upper bound associated to ``self``.
+        """
+        raise NotImplementedError("Not implemented yet.")
 
     def lower_bound(self):
-        pass
+        r"""
+        Return the lower bound associated to ``self``.
+        """
+        raise NotImplementedError("Not implemented yet.")
 
     def theta_basis_element(self, g_vector):
-        pass
+        r"""
+        Return the element of the theta basis with g-vector ``g_vetor``.
+        """
+        raise NotImplementedError("Not implemented yet.")
 
 ####
 # Methods only defined for special cases

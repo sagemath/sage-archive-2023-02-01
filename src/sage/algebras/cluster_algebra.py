@@ -35,9 +35,10 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.quotient_fields import QuotientFields
 from sage.categories.rings import Rings
 from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
+from sage.combinat.permutation import Permutation
 from sage.functions.generalized import sign
 from sage.functions.other import binomial
-from sage.matrix.constructor import identity_matrix
+from sage.matrix.constructor import identity_matrix, matrix
 from sage.matrix.special import block_matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
@@ -817,7 +818,7 @@ class ClusterAlgebra(Parent):
         
         .. [FZ07] \S. Fomin and \A. Zelevinsky, "Cluster algebras IV.
            Coefficients", Compos. Math. 143 (2007), no. 1, 112–164.
-
+        
         .. [NZ12] \T. Nakanishi and \A. Zelevinsky, "On tropical dualities in
            cluster algebras', Algebraic groups and quantum groups, Contemp.
            Math., vol. 565, Amer. Math. Soc., Providence, RI, 2012, pp.
@@ -981,10 +982,52 @@ class ClusterAlgebra(Parent):
         """
         return self.current_seed().cluster_variable(0)
 
-    def _coerce_map_from_(self, other):
-        # if other is a cluster algebra allow inherit coercions from ambients
+    def _coerce_map_from_(self, other): # READY
+        r"""
+        Test whether there is a coercion from ``other`` to ``self``.
+
+        ALGORITHM:
+
+            If ``other`` is an instance of :class:`ClusterAlgebra` then allow
+            coercion if ``other.ambient()`` can be coerced into
+            ``self.ambient()`` and other can be obtained from ``self``
+            permuting variables and coefficients and/or freezing some initial
+            cluster variables. 
+            
+            Otherwise allow anthing that coerces into ``self.base()`` to coerce
+            into ``self``.
+
+        EXAMPLES::
+            
+            sage: B1 = matrix([(0, 1, 0, 0),(-1, 0, -1, 0),(0, 1, 0, 1),(0, 0, -2, 0),(-1, 0, 0, 0),(0, -1, 0, 0)])
+            sage: B2 = B1.matrix_from_columns([0,1,2])
+            sage: A1 = ClusterAlgebra(B1, coefficient_prefix='x')
+            sage: A2 = ClusterAlgebra(B2, coefficient_prefix='x')
+            sage: A1.has_coerce_map_from(A2)
+            True
+            sage: A2.has_coerce_map_from(A1)
+            False
+            sage: f = A1.coerce_map_from(A2)
+            sage: A2.find_cluster_variable((-1, 1, -1))
+            [0, 2, 1]
+            sage: S = A1.initial_seed(); S.mutate([0, 2, 1])
+            sage: S.cluster_variable(1) == f(A2.cluster_variable((-1, 1, -1)))
+            True
+        """ 
         if isinstance(other, ClusterAlgebra):
-            return self.ambient().has_coerce_map_from(other.ambient())
+            gen_s = self.gens()
+            gen_o = other.gens()
+            if len(gen_s) == len(gen_o):
+                f = self.ambient().coerce_map_from(other.ambient())
+            if f is not None:
+                perm = Permutation([ gen_s.index(self(f(v)))+1 for v in gen_o ]).inverse()
+                n = self.rk()
+                m = len(perm) - n
+                M = self._B0[n:,:]
+                B = block_matrix([[self.b_matrix(),-M.transpose()],[M,matrix(m)]])
+                B.permute_rows_and_columns(perm,perm)
+                return B.matrix_from_columns(range(other.rk())) == other._B0
+
         # everything that is in the base can be coerced to self
         return self.base().has_coerce_map_from(other)
 

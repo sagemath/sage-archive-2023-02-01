@@ -54,6 +54,32 @@ class kRegularSequence(Element):
             ', '.join(repr(self[n]) for n in xsrange(10)) + ', ...'
 
 
+    def info(self):
+        r"""
+        EXAMPLES:
+
+            sage: from sage.combinat.k_regular_sequence import kRegularSequences
+            sage: Seq2 = kRegularSequences(2, ZZ)
+            sage: Seq2.guess(lambda n: sum(n.digits(2))).info()
+            matrices:
+            (
+            [1 0]  [ 0 -1]
+            [0 1], [ 1  2]
+            )
+            initial:
+            (0, 1)
+            selection:
+            (1, 0)
+        """
+        from sys import displayhook
+        print('matrices:')
+        displayhook(self.matrices)
+        print('initial:')
+        displayhook(self.initial)
+        print('selection:')
+        displayhook(self.selection)
+
+
     @cached_method
     def __getitem__(self, n):
         result = self.product_of_matrices(n)

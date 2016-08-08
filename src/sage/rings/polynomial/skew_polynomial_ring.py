@@ -100,10 +100,10 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         ...
         ValueError: variable name 'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring\n
             Defn: t |--> t + 1' is not alphanumeric
-        
+
     As for polynomials, skew polynomial rings with different variable names
     are not equal::
-    
+
         sage: R['x',sigma] == R['y',sigma]
         False
 
@@ -761,46 +761,13 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
                 A = eval_pts[:t]
                 B = eval_pts[t:]
                 M_A = create_mvp(A)
-                M_A_B = self.multi_point_evaluation(M_A, B)
+                M_A_B = M_A.multi_point_evaluation(B)
                 if check:
                     if 0 in M_A_B:
                         raise ValueError("evaluation points must be linearly independent over the fixed field of the twist map")
                 M_M_A_B = create_mvp(M_A_B)
                 return M_M_A_B * M_A
         return create_mvp(eval_pts)
-        
-    def multi_point_evaluation(self, p, eval_pts):
-        """
-        Evaluate skew polynomial at multiple evaluation points.
-
-        INPUT:
-
-        - ``p`` -- skew polynomial belonging to ``self``
-
-        - ``eval_pts`` -- list of points at which `p` is to be evaluated
-
-        OUTPUT:
-
-        List of values of `p` at the `eval_pts`.
-
-        .. TODO::
-
-            This method currently trivially calls the evaluation function 
-            repeatedly and should be updated to the recursive algorithm
-            from the paper "Fast Operations on Linearized Polynomials
-            and their Applications in Coding Theory" by Puchinger, et al.
-
-        EXAMPLES:
-
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
-            sage: a = x + t 
-            sage: eval_pts = [1, t, t^2]
-            sage: c = S.multi_point_evaluation(a, eval_pts); c
-            [t + 1, 3*t^2 + 4*t + 4, 4*t]
-        """
-        return [ p(e) for e in eval_pts ]
 
     def interpolation_polynomial(self, eval_pts, values, check=True):
         """
@@ -874,8 +841,8 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
                 B = eval_pts[t:]
                 M_A = self.minimal_vanishing_polynomial(A)
                 M_B = self.minimal_vanishing_polynomial(B)
-                A_ = self.multi_point_evaluation(M_B, A)
-                B_ = self.multi_point_evaluation(M_A, B)
+                A_ = M_B.multi_point_evaluation(A)
+                B_ = M_A.multi_point_evaluation(B)
                 I_1 = interpolate(A_, values[:t])
                 I_2 = interpolate(B_, values[t:])
                 return I_1 * M_B + I_2 * M_A
@@ -884,7 +851,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         if check:
             for i in range(l):
                 if interpolation_polynomial(eval_pts[i]) != values[i]:
-                    return ValueError("the evaluation points are not linearly independent")
+                    return ValueError("evaluation points must be linearly independent over the fixed field of the twist map")
         return interpolation_polynomial
 
 class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):

@@ -119,9 +119,25 @@ def mutation_parse(mutate): # READY
 # Elements of a cluster algebra
 ##############################################################################
 
-class ClusterAlgebraElement(ElementWrapper):
+class ClusterAlgebraElement(ElementWrapper):    # READY
 
-    def __init__(self, parent, value):
+    def __init__(self, parent, value):  # READY
+        r"""
+        An element of a cluster algebra.
+
+        INPUT:
+
+        - ``parent`` -- a :class:`ClusterAlgebra`: the algebra to which the element belongs;
+
+        - ``value`` -- the value of the element.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['F',4])
+            sage: from sage.algebras.cluster_algebra import ClusterAlgebraElement
+            sage: ClusterAlgebraElement(A,1)
+            1
+        """
         ElementWrapper.__init__(self, parent=parent, value=value)
 
         # setup methods defined only in special cases
@@ -130,13 +146,40 @@ class ClusterAlgebraElement(ElementWrapper):
             self.is_homogeneous = MethodType(is_homogeneous, self, self.__class__)
             self.homogeneous_components = MethodType(homogeneous_components, self, self.__class__)
 
-    # This function needs to be removed once AdditiveMagmas.Subobjects implements _add_
-    def _add_(self, other):
+    # AdditiveMagmas.Subobjects currently does not implements _add_
+    def _add_(self, other): # READY
+        r"""
+        Return the sum of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` - an element of ``self.parent()``
+
+        EXAMPLES::
+            
+            sage: A = ClusterAlgebra(['F',4])
+            sage: A.an_element() + A.an_element()
+            2*x0
+        """
         return self.parent().retract(self.lift() + other.lift())
 
-    # I am not sure we want to have this function: its output is most of the times not in the algebra but it is convenient to have
-    def _div_(self, other):
-        return self.parent().retract(self.lift()/other.lift())
+    def _div_(self, other): # READY
+        r"""
+        Return the quotient of ``self`` and ``other``.
+
+        .. WARNING::
+            
+            This method returns an element of ``self.parent().ambient()``
+            rather than an element of ``self.parent()`` because, a priori,
+            we cannot guarantee membership.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['F',4])
+            sage: A.an_element() / A.an_element()
+            1
+        """
+        return self.lift()/other.lift()
 
     def d_vector(self): # READY
         r"""
@@ -146,7 +189,6 @@ class ClusterAlgebraElement(ElementWrapper):
 
             sage: A = ClusterAlgebra(['F',4], principal_coefficients=True)
             sage: A.current_seed().mutate([0, 2, 1])
-            sage: x = A.cluster_variable((-1, 2, -2, 2))
             sage: x = A.cluster_variable((-1, 2, -2, 2)) * A.cluster_variable((0,0,0,1))**2
             sage: x.d_vector()
             (1, 1, 2, -2)
@@ -157,7 +199,7 @@ class ClusterAlgebraElement(ElementWrapper):
 
     def _repr_(self):   # READY
         r"""
-        Return a string representation of ``self``.
+        Return the string representation of ``self``.
 
         EXAMPLES::
 
@@ -273,7 +315,7 @@ class ClusterAlgebraSeed(SageObject):
         .. WARNING::
             This is the length of the path returned by :meth:`path_from_initial_seed` which needs not be the shortest possible.
 
-        .. EXAMPLES::
+        EXAMPLES::
 
             sage: A = ClusterAlgebra(['A',2])
             sage: S = A.current_seed()
@@ -290,7 +332,7 @@ class ClusterAlgebraSeed(SageObject):
         r"""
         Return the parent of ``self``.
 
-        .. EXAMPLES::
+        EXAMPLES::
             sage: A = ClusterAlgebra(['B',3])
             sage: A.current_seed().parent() == A
             True
@@ -668,7 +710,7 @@ class ClusterAlgebra(Parent):
         F_std = self.F_polynomial(g_vector).subs(self._yhat)
         g_mon = prod([self.ambient().gen(i)**g_vector[i] for i in xrange(self.rk)])
         # LaurentPolynomial_mpair does not know how to compute denominators, we need to lift to its fraction field
-        F_trop = self.F_polynomial(g_vector).subs(self._y)._fraction_pair()[1]
+        F_trop = self.ambient()(self.F_polynomial(g_vector).subs(self._y))._fraction_pair()[1]
         return self.retract(g_mon*F_std*F_trop)
 
     def find_cluster_variable(self, g_vector, depth=infinity):
@@ -734,6 +776,7 @@ class ClusterAlgebra(Parent):
             seed = self.current_seed()
         else:
             seed = self.initial_seed
+        # add allowed_directions
 
         yield seed
         depth_counter = 0

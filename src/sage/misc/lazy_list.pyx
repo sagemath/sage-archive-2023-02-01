@@ -696,10 +696,10 @@ cdef class lazy_list_generic(object):
         if i < 0:
             raise ValueError("indices must be non-negative")
 
-        cdef Py_ssize_t n = self.start + i*self.step
-        if self._fit(n):
+        i = self.start + i*self.step
+        if self._fit(i):
             raise IndexError("lazy list index out of range")
-        return self.cache[n]
+        return self.cache[i]
 
 
     def __call__(self, i):

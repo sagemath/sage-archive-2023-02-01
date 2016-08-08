@@ -75,3 +75,28 @@ class kRegularSequence(Element):
         r = m - n*k
         return self.matrices[r] * self.product_of_matrices(n)
 
+
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.parent import Parent
+
+class kRegularSequences(UniqueRepresentation, Parent):
+
+    Element = kRegularSequence
+
+    def __init__(self, k, base, category=None):
+        r"""
+        TESTS::
+
+            sage: from sage.combinat.k_regular_sequence import kRegularSequences
+            sage: kRegularSequences(2, ZZ)
+            Set of 2-regular sequences over Integer Ring
+        """
+        from sage.categories.sets_cat import Sets
+        self.k = k
+        super(kRegularSequences, self).__init__(category=category or Sets(),
+                                                base=base)
+
+
+    def _repr_(self):
+        return 'Set of {}-regular sequences over {}'.format(self.k, self.base())
+

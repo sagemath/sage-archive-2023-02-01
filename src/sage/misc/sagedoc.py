@@ -306,7 +306,7 @@ def skip_TESTS_block(docstring):
     end_of_block = re.compile('[ ]*(\.\.[ ]+[-_A-Za-z]+|[A-Z]+):')
     # header: match a string of hyphens, or other characters which are
     # valid markers for ReST headers: - = ` : ' " ~ _ ^ * + # < >
-    header = re.compile(r'^[ ]*([-=`:\'"~_^*+#><])\1+[ ]*$')
+    header = re.compile(r'^([-=`:\'"~_^*+#><])\1+[ ]*$')
     s = ''
     skip = False
     previous = ''
@@ -322,15 +322,20 @@ def skip_TESTS_block(docstring):
                 s += "\n"
                 s += l
         else:
-            if end_of_block.match(l) and not tests_block.match(l):
+            if l and not l.isspace() and not l.startswith(indentation):
+                # A non-blank line indented less than 'TESTS:'
+                skip = False
+                s += "\n"
+                s += l
+            elif end_of_block.match(l) and not tests_block.match(l):
+                # A line matching end_of_block and indented the same as 'TESTS:'
                 if l.startswith(indentation + " "):
                     continue
                 skip = False
                 s += "\n"
                 s += l
             elif header.match(l):
-                if l.startswith(indentation):
-                    continue
+                # A line matching header.
                 skip = False
                 if previous:
                     s += "\n"

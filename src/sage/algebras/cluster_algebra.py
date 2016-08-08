@@ -251,6 +251,11 @@ def homogeneous_components(self):   #READY
     r"""
     Return a dictionary of the homogeneous components of ``self''.
 
+    OUTPUT:
+    
+    A dictionary whose keys are homogeneous degrees and whose values are the
+    summands of ``self`` of the given degree.
+
     EXAMPLES::
     
         sage: A = ClusterAlgebra(['B',2],principal_coefficients=True)
@@ -309,7 +314,7 @@ class ClusterAlgebraSeed(SageObject):
             sage: A = ClusterAlgebra(['F',4])
             sage: from sage.algebras.cluster_algebra import ClusterAlgebraSeed
             sage: ClusterAlgebraSeed(A.b_matrix(),identity_matrix(4),identity_matrix(4),A,path=[1,2,3])
-            The seed of Cluster Algebra of rank 4 obtained from the initial by mutating along the sequence [1, 2, 3]
+            The seed of A Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients  over Integer Ring obtained from the initial by mutating along the sequence [1, 2, 3]
 
         """
         self._B = copy(B)
@@ -364,7 +369,7 @@ class ClusterAlgebraSeed(SageObject):
             sage: S == A.current_seed()
             True
         """
-        return self.parent() == other.parent() and frozenset(self.g_vectors()) == frozenset(other.g_vectors())
+        return type(self) == type(other) and self.parent() == other.parent() and frozenset(self.g_vectors()) == frozenset(other.g_vectors())
 
     def __contains__(self, element):    # READY
         r"""
@@ -399,11 +404,11 @@ class ClusterAlgebraSeed(SageObject):
 
             sage: A = ClusterAlgebra(['A',3])
             sage: S = A.current_seed(); S
-            The initial seed of Cluster Algebra of rank 3
+            The initial seed of A Cluster Algebra with cluster variables x0, x1, x2 and no coefficients  over Integer Ring
             sage: S.mutate(0); S
-            The seed of Cluster Algebra of rank 3 obtained from the initial by mutating in direction 0
+            The seed of A Cluster Algebra with cluster variables x0, x1, x2 and no coefficients  over Integer Ring obtained from the initial by mutating in direction 0
             sage: S.mutate(1); S
-            The seed of Cluster Algebra of rank 3 obtained from the initial by mutating along the sequence [0, 1]
+            The seed of A Cluster Algebra with cluster variables x0, x1, x2 and no coefficients  over Integer Ring obtained from the initial by mutating along the sequence [0, 1]
         """
         if self._path == []:
             return "The initial seed of %s"%str(self.parent())
@@ -657,7 +662,7 @@ class ClusterAlgebraSeed(SageObject):
             sage: A = ClusterAlgebra(['A',2])
             sage: S = A.initial_seed()
             sage: S.mutate(0); S
-            The seed of Cluster Algebra of rank 2 obtained from the initial by mutating in direction 0
+            The seed of A Cluster Algebra with cluster variables x0, x1 and no coefficients  over Integer Ring obtained from the initial by mutating in direction 0
             sage: S.mutate(5)
             Traceback (most recent call last):
             ...
@@ -758,33 +763,65 @@ class ClusterAlgebraSeed(SageObject):
 ##############################################################################
 
 class ClusterAlgebra(Parent):
-    r"""
-    INPUT:
-
-    - ``data`` -- some data defining a cluster algebra.
-
-    - ``scalars`` -- (default ZZ) the scalars on which the cluster algebra
-      is defined.
-
-    - ``cluster_variables_prefix`` -- string (default 'x').
-
-    - ``cluster_variables_names`` -- a list of strings.  Superseedes
-      ``cluster_variables_prefix``.
-
-    - ``coefficients_prefix`` -- string (default 'y').
-
-    - ``coefficients_names`` -- a list of strings. Superseedes
-      ``cluster_variables_prefix``.
-
-    - ``principal_coefficients`` -- bool (default: False). Superseedes any
-      coefficient defined by ``data``.
-    """
 
     Element = ClusterAlgebraElement
 
-    def __init__(self, data, **kwargs):
+    def __init__(self, data, **kwargs): # READY
         r"""
-        See :class:`ClusterAlgebra` for full documentation.
+        A cluster algebra.
+
+        INPUT:
+
+        - ``data`` -- some data defining a cluster algebra. It can be anything
+          that can be parsed by :class:`ClusterQuiver`.
+
+        - ``scalars`` -- (default ZZ) the scalars on which the cluster algebra
+          is defined.
+
+        - ``cluster_variable_prefix`` -- string (default 'x'); it needs to be
+          a valid variable name.
+
+        - ``cluster_variable_names`` -- a list of strings.  Superseedes
+          ``cluster_variable_prefix``. Each element needs to be a valid
+          variable name.
+
+        - ``coefficient_prefix`` -- string (default 'y'); it needs to be         
+          a valid variable name.                            
+
+        - ``coefficient_names`` -- a list of strings. Superseedes
+          ``cluster_variable_prefix``. Each element needs to be a valid                                                            
+          variable name.       
+
+        - ``principal_coefficients`` -- bool (default: False). Superseedes any
+          coefficient defined by ``data``.
+
+        EXAMPLES::
+
+            sage: B = matrix([(0, 1, 0, 0),(-1, 0, -1, 0),(0, 1, 0, 1),(0, 0, -2, 0),(-1, 0, 0, 0),(0, -1, 0, 0)])
+            sage: A = ClusterAlgebra(B); A
+            A Cluster Algebra with cluster variables x0, x1, x2, x3 and coefficients y0, y1 over Integer Ring
+            sage: A.gens()
+            [x0, x1, x2, x3, y0, y1]
+            sage: A = ClusterAlgebra(['A',2]); A
+            A Cluster Algebra with cluster variables x0, x1 and no coefficients  over Integer Ring
+            sage: A = ClusterAlgebra(['A',2], principal_coefficients=True); A.gens()
+            [x0, x1, y0, y1]
+            sage: A = ClusterAlgebra(['A',2], principal_coefficients=True, coefficient_prefix='x'); A.gens()
+            [x0, x1, x2, x3]
+
+        ALGORITHM:
+        
+        The implementation is mainly based on [FZ07]_ and [NZ12]_.
+
+        REFERENCES:
+        
+        .. [FZ07] \S. Fomin and \A. Zelevinsky, "Cluster algebras IV.
+           Coefficients", Compos. Math. 143 (2007), no. 1, 112–164.
+
+        .. [NZ12] \T. Nakanishi and \A. Zelevinsky, "On tropical dualities in
+           cluster algebras', Algebraic groups and quantum groups, Contemp.
+           Math., vol. 565, Amer. Math. Soc., Providence, RI, 2012, pp.
+           217–226.
         """
         # Temporary variables
         Q = ClusterQuiver(data)
@@ -808,24 +845,24 @@ class ClusterAlgebra(Parent):
         self._F_poly_dict = dict([ (v, self._U(1)) for v in self._path_dict ])
 
         # Determine the names of the initial cluster variables
-        variables_prefix = kwargs.get('cluster_variables_prefix','x')
-        variables = kwargs.get('cluster_variables_names', [variables_prefix+str(i) for i in xrange(n)])
+        variables_prefix = kwargs.get('cluster_variable_prefix','x')
+        variables = list(kwargs.get('cluster_variable_names', [variables_prefix+str(i) for i in xrange(n)]))
         if len(variables) != n:
-             raise ValueError("cluster_variables_names should be a list of %d valid variable names"%n)
+             raise ValueError("cluster_variable_names should be a list of %d valid variable names"%n)
 
         # Determine scalars
         scalars = kwargs.get('scalars', ZZ)
 
         # Determine coefficients and setup self._base
         if m>0:
-            coefficients_prefix = kwargs.get('coefficients_prefix', 'y')
-            if coefficients_prefix == variables_prefix:
+            coefficient_prefix = kwargs.get('coefficient_prefix', 'y')
+            if coefficient_prefix == variables_prefix:
                 offset = n
             else:
                 offset = 0
-            coefficients = kwargs.get('coefficients_names', [coefficients_prefix+str(i) for i in xrange(offset,m+offset)])
+            coefficients = list(kwargs.get('coefficient_names', [coefficient_prefix+str(i) for i in xrange(offset,m+offset)]))
             if len(coefficients) != m:
-                raise ValueError("coefficients_names should be a list of %d valid variable names"%m)
+                raise ValueError("coefficient_names should be a list of %d valid variable names"%m)
             base = LaurentPolynomialRing(scalars, coefficients)
         else:
             base = scalars
@@ -836,9 +873,6 @@ class ClusterAlgebra(Parent):
         Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(), names=variables+coefficients)
 
         # Data to compute cluster variables using separation of additions
-        # BUG WORKAROUND: if your sage installation does not have trac:`19538`
-        # merged uncomment the following line and comment the next
-        #self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(n+i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
         self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
         self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n+m)])) for j in xrange(n)])
 
@@ -846,6 +880,8 @@ class ClusterAlgebra(Parent):
         self._is_principal = (M0 == I)
 
         # Store initial data
+        # NOTE: storing both _B0 as rectangular matrix and _yhat is redundant.
+        # We keep both around for speed purposes.
         self._B0 = copy(B0)
         self._n = n
         self.reset_current_seed()
@@ -862,24 +898,88 @@ class ClusterAlgebra(Parent):
         embedding = SetMorphism(Hom(self,self.ambient()), lambda x: x.lift())
         self._populate_coercion_lists_(embedding=embedding)
 
-    def __copy__(self):
-        other = type(self).__new__(type(self))
-        other._U = self._U
-        other._path_dict = copy(self._path_dict)
+    def __copy__(self): # READY
+        r"""
+        Return a copy of ``self``.                                                                                                  
+           
+        EXAMPLES::
+           
+            sage: A1 = ClusterAlgebra(['A',3])
+            sage: A2 = copy(A1)
+            sage: A2 == A1
+            True
+            sage: A2 is not A1
+            True
+        """
+        n = self.rk()
+        cv_names = self.variable_names()[:n]
+        coeff_names = self.variable_names()[n:]
+        other = ClusterAlgebra(self._B0, cluster_variable_names=cv_names, 
+                coefficient_names=coeff_names, scalars=self.base().base())
         other._F_poly_dict = copy(self._F_poly_dict)
-        other._ambient = self._ambient
-        other._y = copy(self._y)
-        other._yhat = copy(self._yhat)
-        other._is_principal = self._is_principal
-        other._B0 = copy(self._B0)
-        other._n = self._n
-        other._seed = copy(self._seed)
-        # We probably need to put n=2 initializations here also
-        # TODO: we may want to use __init__ to make the initialization somewhat easier (say to enable special cases) This might require a better written __init__
+        other._path_dict = copy(self._path_dict)
+        S = self.current_seed()
+        S._parent = other
+        other.set_current_seed(S)
         return other
 
-    def __eq__(self, other):
-        return type(self) == type(other) and self._B0 == other._B0 and  self._yhat == other._yhat and self.base() == other.base()
+    def __eq__(self, other):    # READY
+        r"""
+        Test equality of two cluster algebras.
+
+        INPUT:
+         
+        - ``other`` -- a :class:`ClusterAlgebra`
+         
+        ALGORITHM:
+            
+            ``self`` and ``other`` are deemed to be equal if they have the same
+            initial exchange matrix and their ambients coincide. In
+            particular we do not keep track of how much each algebra has been
+            explored.
+         
+        EXAMPLES::
+         
+            sage: A1 = ClusterAlgebra(['A',3])
+            sage: A2 = copy(A1)
+            sage: A1 is not A2
+            True
+            sage: A1 == A2
+            True
+            sage: A1.current_seed().mutate([0,1,2])
+            sage: A1 == A2
+            True
+        """
+        return type(self) == type(other) and self._B0 == other._B0 and self.ambient() == other.ambient()
+
+    def _repr_(self):   # READY
+        r"""
+        Return the string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(matrix(1),principal_coefficients=True); A
+            A Cluster Algebra with cluster variable x0 and coefficient y0 over Integer Ring
+            sage: A = ClusterAlgebra(['A',2],principal_coefficients=True); A
+            A Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Integer Ring
+        """
+        var_names = self.variable_names()[:self.rk()]
+        var_names = (" " if len(var_names)==1 else "s ") + ", ".join(var_names)
+        coeff_names = self.variable_names()[self.rk():]
+        coeff_prefix = " and" +(" " if len(coeff_names) >0 else " no ") + "coefficient"
+        coeff = coeff_prefix + (" " if len(coeff_names)==1 else "s ") + ", ".join(coeff_names)
+        return "A Cluster Algebra with cluster variable" + var_names + coeff + " over " + repr(self.base().base())
+        
+    def _an_element_(self): # READY
+        r"""
+        Return an element of ``self``.
+
+        EXAMPLES::
+            sage: A = ClusterAlgebra(['A',2])
+            sage: A.an_element()
+            x0
+        """
+        return self.current_seed().cluster_variable(0)
 
     def _coerce_map_from_(self, other):
         # if other is a cluster algebra allow inherit coercions from ambients
@@ -887,12 +987,6 @@ class ClusterAlgebra(Parent):
             return self.ambient().has_coerce_map_from(other.ambient())
         # everything that is in the base can be coerced to self
         return self.base().has_coerce_map_from(other)
-
-    def _repr_(self):
-        return "Cluster Algebra of rank %s"%self.rk()
-
-    def _an_element_(self):
-        return self.current_seed().cluster_variable(0)
 
     def rk(self):
         r"""

@@ -107,8 +107,8 @@ class SubSimplicialSet(SimplicialSet_finite):
         """
         if ambient is None:
             ambient = self
-        if (ambient.is_pointed() 
-            and hasattr(ambient, '_basepoint') 
+        if (ambient.is_pointed()
+            and hasattr(ambient, '_basepoint')
             and ambient.base_point() in data):
             SimplicialSet_finite.__init__(self, data, base_point=ambient.base_point())
         else:
@@ -1146,9 +1146,9 @@ class PushoutOfSimplicialSets(SimplicialSet_arbitrary):
                 domain = SimplicialSet_finite.n_skeleton(maps[0].domain(), n)
                 codomains = [SimplicialSet_finite.n_skeleton(f.codomain(), n) for f in maps]
                 new_maps = [f.n_skeleton(n, domain, c) for (f, c) in zip(maps, codomains)]
-                return PushoutOfSimplicialSets_finite(new_maps, 
+                return PushoutOfSimplicialSets_finite(new_maps,
                                                       vertex_name=self._vertex_name)
-            return PushoutOfSimplicialSets_finite(maps, 
+            return PushoutOfSimplicialSets_finite(maps,
                                                   vertex_name=self._vertex_name)
         start, skel = self._n_skeleton
         if start == n:
@@ -1215,7 +1215,7 @@ class PushoutOfSimplicialSets(SimplicialSet_arbitrary):
             t = '\n' + str(f)
             s += t.replace('\n', '\n  ')
         return s
-        
+
 
 class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_finite):
     """
@@ -1606,7 +1606,7 @@ class QuotientOfSimplicialSet(PushoutOfSimplicialSets):
             ambient = SimplicialSet_finite.n_skeleton(self.ambient(), n)
             subcomplex = SimplicialSet_finite.n_skeleton(self.subcomplex(), n)
             subcomplex = ambient.subsimplicial_set(subcomplex.nondegenerate_simplices())
-            return QuotientOfSimplicialSet_finite(subcomplex, 
+            return QuotientOfSimplicialSet_finite(subcomplex,
                                                   vertex_name=self._vertex_name)
         start, skel = self._n_skeleton
         if start == n:
@@ -1970,14 +1970,14 @@ class DisjointUnionOfSimplicialSets(PushoutOfSimplicialSets, Factors):
             {0: Z, 1: Z x Z x C2, 2: Z, 3: Z}
         """
         if self.is_finite():
-            return DisjointUnionOfSimplicialSets_finite([X.n_skeleton(n) 
+            return DisjointUnionOfSimplicialSets_finite([X.n_skeleton(n)
                                                          for X in self._factors])
         start, skel = self._n_skeleton
         if start == n:
             return skel
         elif start > n:
             return skel.n_skeleton(n)
-        ans = DisjointUnionOfSimplicialSets_finite([X.n_skeleton(n) 
+        ans = DisjointUnionOfSimplicialSets_finite([X.n_skeleton(n)
                                                     for X in self._factors])
         self._n_skeleton = (n, ans)
         return ans
@@ -2299,7 +2299,7 @@ class ReducedConeOfSimplicialSet(QuotientOfSimplicialSet):
             Reduced cone of S^4
         """
         return 'Reduced cone of {}'.format(self._X)
-        
+
 
 class ReducedConeOfSimplicialSet_finite(ReducedConeOfSimplicialSet,
                                         QuotientOfSimplicialSet_finite):

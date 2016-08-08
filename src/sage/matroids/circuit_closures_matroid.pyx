@@ -78,7 +78,7 @@ cdef class CircuitClosuresMatroid(Matroid):
 
     As each independent set of size `k` is in at most one closure(`C`) of rank
     `k`, and each closure(`C`) of rank `k` contains at least `k + 1`
-    independent sets of size `k`, there are at most `{n \choose k}/(k + 1)`
+    independent sets of size `k`, there are at most `\binom{n}{k}/(k + 1)`
     such closures-of-circuits of rank `k`. Each closure(`C`) takes `O(n)` bits
     to store, giving an upper bound of `O(2^n)` on the space complexity of the
     entire matroid.

@@ -4101,6 +4101,8 @@ class ClusterSeed(SageObject):
              x1^-1 * x0^-1 * (x0*x3*x4 + x1*x2 + x2*x3),
              x2^-1 * x1^-1 * x0^-1 * (x0*x1*x3*x4*x5 + x0*x3*x4 + x1*x2 + x2*x3)]
         """
+        from sage.modules.free_module import VectorSpace
+        from sage.rings.finite_rings.finite_field_constructor import GF
         B = self.b_matrix()
         aSet = VectorSpace(GF(2), B.ncols()).list()
         genSet = []
@@ -4154,6 +4156,8 @@ class ClusterSeed(SageObject):
             sage: C._compute_compatible_vectors(v)
             [[[0, 0, 0, 0], [0, 0, 1, 0], [1, 0, 1, 0]], [[0, 0, 0, 0], [0, 0, 1, 0]]]  
         """
+        from sage.modules.free_module import VectorSpace
+        from sage.rings.finite_rings.finite_field_constructor import GF
         B = self.b_matrix()
         # E is the set of 'edges' in the quiver. It records the tuple
         # of indices `(i,j)` if `b_{ij} > 0`.
@@ -4533,7 +4537,7 @@ def _vector_decomposition(a, length):
         for j in range(diff):
             if ap[i] > 0:
                 c.append(1)
-                ap[i]- = 1
+                ap[i] -= 1
             elif ap[i] < 0:
                 c.append(-1)
                 ap[i] += 1

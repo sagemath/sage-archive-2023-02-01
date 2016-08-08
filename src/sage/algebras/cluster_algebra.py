@@ -639,27 +639,42 @@ class ClusterAlgebraSeed(SageObject):
         return [self.parent().cluster_variable(g) for g in self.g_vectors()]
 
     @mutation_parse
-    def mutate(self, k, mutating_F=True):
+    def mutate(self, k, mutating_F=True):   # READY
         r"""
-        mutate seed
+        Mutate ``self``.
         
         INPUT:
 
-        bla bla ba
+        - ``mutating_F`` -- bool (default True) whether to compute also
+          F-polynomials. While knowing F-polynomials is essential to computing
+          cluster variables, the process of mutating them is quite slow. If you
+          care only about combinatorial data like g-vectors and c-vectors,
+          setting ``mutating_F=False`` yields significant benefits in terms of
+          speed.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',2])
+            sage: S = A.initial_seed()
+            sage: S.mutate(0); S
+            The seed of Cluster Algebra of rank 2 obtained from the initial by mutating in direction 0
+            sage: S.mutate(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot mutate in direction 5.
         """
         n = self.parent().rk()
 
         if k not in xrange(n):
             raise ValueError('Cannot mutate in direction ' + str(k) + '.')
 
-        # store mutation path
+        # store new mutation path
         if self._path != [] and self._path[-1] == k:
             self._path.pop()
         else:
             self._path.append(k)
 
         # find sign of k-th c-vector
-        # Will this be used enough that it should be a built-in function?
         if any(x > 0 for x in self._C.column(k)):
             eps = +1
         else:
@@ -668,32 +683,62 @@ class ClusterAlgebraSeed(SageObject):
         # store the g-vector to be mutated in case we are mutating F-polynomials also
         old_g_vector = self.g_vector(k)
 
-        # G-matrix
+        # compute new G-matrix
         J = identity_matrix(n)
         for j in xrange(n):
             J[j,k] += max(0, -eps*self._B[j,k])
         J[k,k] = -1
         self._G = self._G*J
 
-        # g-vector path list
+        # path to new g-vector (we store the shortest encountered so far)
         g_vector = self.g_vector(k)
         if g_vector not in self.parent().g_vectors_so_far():
-            self.parent()._path_dict[g_vector] = copy(self._path)
+            old_path_length = infinity
             # F-polynomials
             if mutating_F:
                 self.parent()._F_poly_dict[g_vector] = self._mutated_F(k, old_g_vector)
+        else:
+            old_path_length = len(self.parent()._path_dict[g_vector])
+        if len(self._path) < old_path_length:
+            self.parent()._path_dict[g_vector] = copy(self._path)
 
-        # C-matrix
+        # compute new C-matrix
         J = identity_matrix(n)
         for j in xrange(n):
             J[k,j] += max(0, eps*self._B[k,j])
         J[k,k] = -1
         self._C = self._C*J
 
-        # B-matrix
+        # compute new B-matrix
         self._B.mutate(k)
 
-    def _mutated_F(self, k, old_g_vector):
+    def _mutated_F(self, k, old_g_vector):  # READY
+        r"""
+        Compute new F-polynomial obtained by mutating in direction ``k``.
+
+        INPUT:
+
+        - ``k`` --  an integer in ``range(self.parent().rk())``: the direction
+          in which we are mutating
+
+        - ``old_g_vector`` -- tuple: the k-th g-vector of ``self`` before
+          mutating
+
+        NOTE:
+
+            This function is the bottleneck of :meth:`mutate`. The problem is
+            that operations on polynomials are slow. One can get a significant
+            speed boost by disabling this method calling :meth:`mutate` with
+            ``mutating_F=False``.
+
+        EXAMPLES::
+            
+            sage: A = ClusterAlgebra(['A',2])
+            sage: S = A.initial_seed()
+            sage: S.mutate(0)
+            sage: S._mutated_F(0,(1,0))
+            u0 + 1
+        """
         alg = self.parent()
         pos = alg._U(1)
         neg = alg._U(1)
@@ -706,35 +751,6 @@ class ClusterAlgebraSeed(SageObject):
                 pos *= self.F_polynomial(j)**self._B[j,k]
             elif self._B[j,k] <0:
                 neg *= self.F_polynomial(j)**(-self._B[j,k])
-        # TODO: understand why using // instead of / here slows the code down by
-        # a factor of 3 but in the original experiments we made at sage days it
-        # was much faster with // (we were working with cluter variables at the
-        # time).
-        # By the way, as of August 28th 2015 we split in half the running time
-        # compared to sage days. With my laptop plugged in I get
-        # sage: A = ClusterAlgebra(['E',8])
-        # sage: seeds = A.seeds()
-        # sage: %time void = list(seeds)
-        # CPU times: user 26.8 s, sys: 21 ms, total: 26.9 s
-        # Wall time: 26.8 s
-        #####
-        # Bad news: as of 19/10/2015 we got a huge slowdown:
-        # right now it takes 150s with / and 100s with //
-        # what did we do wrong?
-        ##
-        # I figured it out: the problem is that casting the result to alg._U is
-        # quite slow: it amounts to run // instead of / :(
-        # do we need to perform this or can we be less precise here and allow
-        # F-polynomials to be rational funtions?
-        # I am partucularly unhappy about this, for the moment the correct and
-        # slow code is commented
-        #return alg._U((pos+neg)/alg.F_polynomial(old_g_vector))
-        ##
-        # One more comment: apparently even without casting the result is a
-        # polynomial! This is really weird but I am not going to complain. I
-        # suppose we should not do the casting then
-
-        # DR: Now I get the same computation time for / and //, 49.7s while simultaneously rebuiling sage
         return (pos+neg)/alg.F_polynomial(old_g_vector)
 
 ##############################################################################

@@ -1,9 +1,57 @@
 r"""
 `k`-regular Sequences
+
+EXAMPLES::
+
+    sage: from sage.combinat.k_regular_sequence import kRegularSequences
+
+Binary sum of digits::
+
+    sage: Seq2 = kRegularSequences(2, ZZ)
+    sage: S = Seq2((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
+    ....:          initial=vector([0, 1]), selection=vector([1, 0]))
+    sage: S
+    2-regular sequence 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, ...
+    sage: all(S[n] == sum(n.digits(2)) for n in srange(10))
+    True
+
+Dumas, Example 2::
+
+    sage: @cached_function
+    ....: def u(n):
+    ....:     if n <= 1:
+    ....:         return n
+    ....:     elif 2.divides(n):
+    ....:         return 3*u(n//2)
+    ....:     else:
+    ....:         return 2*u(n//2) + u(n//2+1)
+    sage: tuple(u(n) for n in srange(10))
+    (0, 1, 3, 5, 9, 11, 15, 19, 27, 29)
+
+    sage: U = Seq2((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
+    ....:          initial=vector([0, 1]), selection=vector([1, 0]), transpose=True)
+    sage: all(U[n] == u(n) for n in srange(10))
+    True
 """
 
 import itertools
 from sage.misc.cachefunc import cached_function, cached_method
+
+def pad_right(T, length, zero=0):
+    r"""
+    TESTS::
+
+        sage: from sage.combinat.k_regular_sequence import pad_right
+        sage: pad_right((1,2,3), 10)
+        (1, 2, 3, 0, 0, 0, 0, 0, 0, 0)
+        sage: pad_right((1,2,3), 2)
+        (1, 2, 3)
+        sage: pad_right([1,2,3], 10)
+        [1, 2, 3, 0, 0, 0, 0, 0, 0, 0]
+    """
+    return T + type(T)(zero for _ in xrange(length - len(T)))
+
+
 from sage.structure.element import Element
 
 class kRegularSequence(Element):

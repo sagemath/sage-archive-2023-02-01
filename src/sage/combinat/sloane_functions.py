@@ -6575,19 +6575,15 @@ class A000204(SloaneSequence):
 class A000217(SloaneSequence):
     def __init__(self):
         r"""
-        Triangular numbers: `a(n) = \binom{n+1}{2}) = n(n+1)/2`.
+        Triangular numbers: `a(n) = \binom{n+1}{2} = n(n+1)/2`.
 
         INPUT:
 
-
         -  ``n`` - non negative integer
-
 
         OUTPUT:
 
-
         -  ``integer`` - function value
-
 
         EXAMPLES::
 

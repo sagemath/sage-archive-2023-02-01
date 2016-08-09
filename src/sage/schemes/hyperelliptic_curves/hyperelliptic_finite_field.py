@@ -523,6 +523,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             x^4 + 2*x^3 - 58*x^2 + 202*x + 10201
 
         Over prime fields of odd characteristic, `f` may have even degree::
+
             sage: H = HyperellipticCurve(t^6 + 27*t + 3)
             sage: H.frobenius_polynomial()
             x^4 + 25*x^3 + 322*x^2 + 2525*x + 10201
@@ -1130,10 +1131,11 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H.count_points(6)
             [2, 24, 74, 256, 1082, 4272]
 
-            This example shows that ticket #20391 is resolved:
+            This example shows that :trac:`20391` is resolved:
+
             sage: x = polygen(GF(4099))
             sage: H = HyperellipticCurve(x^6 + x + 1)
-            sage: H.count_points(1)    
+            sage: H.count_points(1)
             [4106]
         """
         K = self.base_ring()

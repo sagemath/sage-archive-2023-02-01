@@ -156,7 +156,6 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
     """
     Wrap an element as a Lie algebra element.
     """
-
     def __richcmp__(self, right, int op):
         """
         Perform a rich comparison.
@@ -493,19 +492,23 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
         P = self.parent()
         cdef dict s_coeff = P._s_coeff
         d = P.dimension()
-        ret = P._M.zero()
-        cdef int i1, i2
-        for i1,c1 in enumerate(self.value):
+        cdef list ret = [P.base_ring().zero()]*d
+        cdef int i1, i2, i3
+        for i1 in range(d):
+            c1 = self.value[i1]
             if not c1:
                 pass
-            for i2,c2 in enumerate(right.value):
+            for i2 in range(d):
+                c2 = right.value[i2]
                 if not c2:
                     pass
                 if (i1, i2) in s_coeff:
-                    ret += c1 * c2 * s_coeff[i1, i2]
+                    for i3 in range(d):
+                        ret[i3] += c1 * c2 * s_coeff[i1, i2][i3]
                 elif (i2, i1) in s_coeff:
-                    ret -= c1 * c2 * s_coeff[i2, i1]
-        return self.__class__(P, ret)
+                    for i3 in range(d):
+                        ret[i3] -= c1 * c2 * s_coeff[i2, i1][i3]
+        return self.__class__(P, P._M(ret))
 
     def __iter__(self):
         """

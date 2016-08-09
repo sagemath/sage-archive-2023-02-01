@@ -764,7 +764,7 @@ class CFiniteSequence(FieldElement):
         R = LaurentSeriesRing(QQ, 'x', default_prec=n)
         return R(self.ogf())
 
-    def closed_form(self):
+    def closed_form(self, n = 'n'):
         """
         Return a symbolic expression in ``n`` that maps ``n`` to the n-th member of the sequence.
 
@@ -810,72 +810,40 @@ class CFiniteSequence(FieldElement):
             sage: all(_.subs(n==i).simplify_full()==fibonacci(i) for i in range(10))
             True
         """
-        from sage.symbolic.ring import SR
-        from sage.arith.all import lcm, binomial
-        __, parts = (self.ogf()).partial_fraction_decomposition()
-        cm = lcm([part.factor().unit().denominator() for part in parts])
-        expr = SR(0)
-        for part in parts:
-            denom = part.denominator()
-            num = part.numerator()
-            f = denom.factor()
-            assert len(f) == 1
-            denom_base = f[0][0]
-            denom_exp = f[0][1]
-            cc_denom = denom.constant_coefficient()
-            denom = denom/cc_denom
-            num = num/cc_denom
-            cc_denom_base = denom_base.constant_coefficient()
-            denom_base = denom_base/cc_denom_base
-            dl = denom_base.list()
-            term = SR(0)
-            n = SR.var('n')
-            can_simplify = True
+        from sage.arith.all import binomial
+        from sage.rings.qqbar import QQbar
 
-            if len(dl) == 2:
-                constant_factor = num
-                if dl[1] == -1:
-                    term = SR(constant_factor)
-                else:
-                    term = SR(constant_factor)*SR(-dl[1])**n
-                if denom_exp > 1:
-                    term *= binomial(n+denom_exp-1, denom_exp-1)
-            elif len(dl) == 3 and denom_exp == 1:
-                from sage.functions.other import sqrt
-                a0 = self[0]
-                a1 = self[1]
-                c = -dl[1]
-                d = -dl[2]
-                r1 = 2*d/(-c+sqrt(c**2+4*d))
-                r2 = 2*d/(-c-sqrt(c**2+4*d))
-                term = ((a1-c*a0+a0*r1)*r1**n-(a1-c*a0+a0*r2)*r2**n)/sqrt(c**2+4*d)
-            elif denom_exp == 1:
-                from operator import add, mul
-                from sage.rings.qqbar import QQbar
-                from sage.matrix.constructor import Matrix
-                deg = len(dl)-1
-                num_coeffs = num.coefficients(sparse=False)
-                num_coeffs += [0] * (deg - len(num_coeffs))
-                can_simplify = False
-                R = PolynomialRing(QQbar, 'X')
-                X = R.gen()
-                roots = denom_base.roots(QQbar)
-                full_prod = reduce(mul, [X-r for (r,_) in roots], 1)
-                prods = [full_prod/(X-roots[i][0]) for i in range(deg)]
-                m = Matrix(QQbar, [[prods[j].numerator().list(X)[i]
-                                   for j in range(deg)] for i in range(deg)])
-                rv = m.inverse() * Matrix(QQbar, deg, 1, num_coeffs)
-                for i in range(deg):
-                    c = rv[i][0]
-                    c.exactify()
-                    term += SR(c/roots[i][0]) * SR(1/roots[i][0])**n
-            else:
-                return []
+        from sage.symbolic.ring import SR
+        n = SR(n)
+        expr = SR(0)
+
+        R = FractionField(PolynomialRing(QQbar, self.parent().variable_name()))
+        ogf = R(self.ogf())
+
+        __, parts = ogf.partial_fraction_decomposition()
+        for part in parts:
+            denom = part.denominator().factor()
+            denom_base, denom_exp = denom[0]
+
+            # If the partial fraction decomposition was done correctly, there
+            # is only one factor, of degree 1, and monic.
+            assert len(denom) == 1 and len(denom_base.list()) == 2 and denom_base.list()[1] == 1
+
+            # this part is of the form a/(x+b)^{m+1}
+            a = QQbar(part.numerator()) / denom.unit()
+            m = denom_exp - 1
+            b = denom_base.constant_coefficient()
+
+            # term = a*SR(1/b)**(m+1)*SR(-1/b)**(n)
+            c = SR((a*(1/b)**(m+1)).radical_expression())
+            r = SR((-1/b).radical_expression())
+            term = c * r**n
+            if m > 0:
+                term *= binomial(n+m, m)
+
             expr += term
-        if can_simplify:
-            return expr.simplify_full()
-        else:
-            return expr
+
+        return expr
 
 
 class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):

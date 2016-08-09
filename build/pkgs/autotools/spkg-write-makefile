@@ -185,13 +185,11 @@ write_make_rules() {
         [ -z "$lt_ver" ] || echo -e "\texport LIBTOOL_VERSION=$lt_ver ; \\\\"
         [ -z "$ac_ver" ] || echo -e "\texport AUTOCONF_VERSION=$ac_ver ; \\\\"
         [ -z "$am_ver" ] || echo -e "\texport AUTOMAKE_VERSION=$am_ver ; \\\\"
-sed 's/^/\t/;' <<EOF
-cd $p-$v && ${bootstrap}\\
-    ./configure --prefix="\$(SAGE_LOCAL)/$p-$v" && \\
-    \$\$MAKE && \$\$MAKE install
-# Remove all files except for the .* files
-[ "\$\$SAGE_KEEP_BUILT_SPKGS" = yes ] || rm -rf $p-$v/*
-EOF
+	echo -e "\tcd $p-$v && ${bootstrap}\\\\"
+	echo -e "\t    ./configure --prefix=\"\$(SAGE_LOCAL)/$p-$v\" && \\\\"
+	echo -e "\t    \$\$MAKE && \$\$MAKE install"
+	echo -e "\t# Remove all files except for the .* files"
+	echo -e "\t[ \"\$\$SAGE_KEEP_BUILT_SPKGS\" = yes ] || rm -rf $p-$v/*"
         echo
 
         prevextract="$p-$v/.tarball-version"

@@ -26,13 +26,10 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-# TODO: check that we import all we need and possibly move some import used
-# rarely close to where needed
 from copy import copy
 from functools import wraps
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
-from sage.categories.quotient_fields import QuotientFields
 from sage.categories.rings import Rings
 from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
 from sage.combinat.permutation import Permutation

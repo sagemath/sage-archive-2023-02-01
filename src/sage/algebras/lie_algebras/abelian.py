@@ -30,7 +30,8 @@ from sage.categories.lie_algebras import LieAlgebras
 
 #from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
-from sage.algebras.lie_algebras.lie_algebra import LieAlgebra, FinitelyGeneratedLieAlgebra
+from sage.algebras.lie_algebras.lie_algebra import (LieAlgebra, FinitelyGeneratedLieAlgebra,
+                                                    InfinitelyGeneratedLieAlgebra)
 from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStructureCoefficients
 #from sage.algebras.lie_algebras.ideal import LieAlgebraIdeal
 #from sage.algebras.lie_algebras.quotient import QuotientLieAlgebra
@@ -141,7 +142,7 @@ class AbelianLieAlgebra(LieAlgebraWithStructureCoefficients):
             """
             return self.parent().zero()
 
-class InfiniteDimensionalAbelianLieAlgebra(LieAlgebra, IndexedGenerators):
+class InfiniteDimensionalAbelianLieAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
     An infinite dimensional abelian Lie algebra.
 
@@ -158,7 +159,7 @@ class InfiniteDimensionalAbelianLieAlgebra(LieAlgebra, IndexedGenerators):
             sage: TestSuite(L).run()
         """
         cat = LieAlgebras(R).WithBasis()
-        LieAlgebra.__init__(self, R, category=cat)
+        InfinitelyGeneratedLieAlgebra.__init__(self, R, category=cat)
         IndexedGenerators.__init__(self, index_set, prefix=prefix, **kwds)
 
     def dimension(self):
@@ -176,5 +177,4 @@ class InfiniteDimensionalAbelianLieAlgebra(LieAlgebra, IndexedGenerators):
     class Element(LieAlgebraElement):
         def _bracket_(self, other):
             return self.parent().zero()
-
 

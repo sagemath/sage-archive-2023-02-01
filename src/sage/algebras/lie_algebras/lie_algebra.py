@@ -623,7 +623,7 @@ class LieAlgebraWithGenerators(LieAlgebra):
         EXAMPLES::
 
             sage: L.<x,y> = LieAlgebra(QQ, representation="polynomial")
-            sage: F.indices()
+            sage: L.indices()
             {'x', 'y'}
         """
         return self._indices

@@ -735,66 +735,114 @@ def projective_plane(n, check=True, existence=False):
     else:
         return DesarguesianProjectivePlaneDesign(n, point_coordinates=False, check=check)
 
-def AffineGeometryDesign(n, d, F):
+def AffineGeometryDesign(n, d, F, point_coordinates=True, check=True):
     r"""
-    Return an Affine Geometry Design.
+    Return an affine geometry design.
+
+    The affine geometry design `AG_d(n,q)` is the 2-design whose blocks are the
+    `d`-vector subspaces in `\GF{q}^n`. It has parameters
+
+    .. MATH::
+
+        v = q^n,\ k = q^d,\ \lambda = \binom{n-1}{d-1}_q
+
+    where the `q`-binomial coefficient `\binom{m}{r}_q` is defined by
+
+    .. MATH::
+
+        \binom{m}{r}_q = \frac{(q^m - 1)(q^{m-1} - 1) \cdots (q^{m-r+1}-1)}
+              {(q^r-1)(q^{r-1}-1)\cdots (q-1)}
+
+    .. SEEALSO::
+
+        :func:`ProjectiveGeometryDesign`
 
     INPUT:
 
-    - `n` (integer) -- the Euclidean dimension. The number of points is
-      `v=|F^n|`.
+    - ``n`` (integer) -- the Euclidean dimension. The number of points of the
+      design is `v=|\GF{q}^n|`.
 
-    - `d` (integer) -- the dimension of the (affine) subspaces of `P = GF(q)^n`
+    - ``d`` (integer) -- the dimension of the (affine) subspaces of `\GF(q)^n`
       which make up the blocks.
 
-    - `F` -- a Finite Field (i.e. ``FiniteField(17)``), or a prime power
-      (i.e. an integer)
+    - ``F`` -- a finite field or a prime power.
 
-    `AG_{n,d} (F)`, as it is sometimes denoted, is a `2` - `(v, k, \lambda)`
-    design of points and `d`- flats (cosets of dimension `n`) in the affine
-    geometry `AG_n (F)`, where
+    - ``point_coordinates`` -- (optional, default ``True``) whether we use
+      coordinates in `\GF(q)^n` or plain integers for the points of the design.
 
-    .. math::
-
-             v = q^n,\  k = q^d ,
-             \lambda =\frac{(q^{n-1}-1) \cdots (q^{n+1-d}-1)}{(q^{n-1}-1) \cdots (q-1)}.
-
-    Wraps some functions used in GAP Design's ``PGPointFlatBlockDesign``.  Does
-    *not* require GAP's Design package.
+    - ``check`` -- (optional, default ``True``) whether to check the output.
 
     EXAMPLES::
 
         sage: BD = designs.AffineGeometryDesign(3, 1, GF(2))
         sage: BD.is_t_design(return_parameters=True)
         (True, (2, 8, 2, 1))
-        sage: BD = designs.AffineGeometryDesign(3, 2, GF(2))
+        sage: BD = designs.AffineGeometryDesign(3, 2, GF(4))
         sage: BD.is_t_design(return_parameters=True)
-        (True, (3, 8, 4, 1))
+        (True, (2, 64, 16, 5))
+        sage: BD = designs.AffineGeometryDesign(4, 2, GF(3))
+        sage: BD.is_t_design(return_parameters=True)
+        (True, (2, 81, 9, 13))
 
-    With an integer instead of a Finite Field::
+    With ``F`` an integer instead of a finite field::
 
         sage: BD = designs.AffineGeometryDesign(3, 2, 4)
         sage: BD.is_t_design(return_parameters=True)
         (True, (2, 64, 16, 5))
+
+    Testing the option ``point_coordinates``::
+
+        sage: designs.AffineGeometryDesign(3, 1, GF(2), point_coordinates=True).blocks()[0]
+        [(0, 0, 0), (0, 0, 1)]
+        sage: designs.AffineGeometryDesign(3, 1, GF(2), point_coordinates=False).blocks()[0]
+        [0, 1]
     """
     try:
         q = int(F)
     except TypeError:
-        q = F.order()
+        q = F.cardinality()
+    else:
+        from sage.rings.finite_rings.finite_field_constructor import GF
+        F = GF(q)
 
-    from sage.interfaces.gap import gap, GapElement
-    from sage.sets.set import Set
-    gap.eval("V:=GaloisField(%s)^%s"%(q,n))
-    gap.eval("points:=AsSet(V)")
-    gap.eval("Subs:=AsSet(Subspaces(V,%s));"%d)
-    gap.eval("CP:=Cartesian(points,Subs)")
-    flats = gap.eval("flats:=List(CP,x->Sum(x))") # affine spaces
-    gblcks = eval(gap.eval("Set(List(flats,f->Filtered([1..Length(points)],i->points[i] in f)));"))
-    v = q**n
-    gB = []
-    for b in gblcks:
-       gB.append([x-1 for x in b])
-    return BlockDesign(v, gB, name="AffineGeometryDesign")
+    n = int(n)
+    d = int(d)
+
+    from sage.matrix.echelon_matrix import reduced_echelon_matrix_iterator
+
+    points = {p:i for i,p in enumerate(reduced_echelon_matrix_iterator(F,1,n+1,copy=True,set_immutable=True)) if p[0,0]}
+
+    blocks = []
+    for m1 in reduced_echelon_matrix_iterator(F,d+1,n+1,copy=False):
+        if not m1[0,0]:
+            # this is a subspace at infinity
+            # (comes at the end in the iterator)
+            break
+        b = []
+        for m2 in reduced_echelon_matrix_iterator(F,1,d+1,copy=False):
+            if not m2[0,0]:
+                # this will give a point at infinity
+                # (comes at the end in the iterator)
+                break
+            m = m2*m1
+            m.echelonize()
+            m.set_immutable()
+            b.append(points[m])
+        blocks.append(b)
+
+    B = BlockDesign(len(points), blocks, name="AffineGeometryDesign", check=check)
+
+    if point_coordinates:
+        rd = {i:p[0][1:] for p,i in points.iteritems()}
+        for v in rd.values(): v.set_immutable()
+        B.relabel(rd)
+
+    if check:
+        from sage.combinat.q_analogues import q_binomial
+        if not B.is_t_design(t=2, v=q**n, k=q**d, l=q_binomial(n-1, d-1, q)):
+            raise RuntimeError("error in AffineGeometryDesign "
+                    "construction. Please e-mail sage-devel@googlegroups.com")
+    return B
 
 def CremonaRichmondConfiguration():
     r"""

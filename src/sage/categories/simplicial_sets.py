@@ -66,22 +66,23 @@ class SimplicialSets(Category_singleton):
     class ParentMethods:
         def is_finite(self):
             """
-            True if this simplicial set is finite, i.e., has a finite number
-            of nondegenerate simplices.
-
-            As of this writing, all simplicial sets implemented in
-            Sage are finite.
+            Return ``True`` if this simplicial set is finite, i.e., has a
+            finite number of nondegenerate simplices.
 
             EXAMPLES::
 
                 sage: simplicial_sets.Torus().is_finite()
                 True
+                sage: C5 = groups.misc.MultiplicativeAbelian([5])
+                sage: simplicial_sets.ClassifyingSpace(C5).is_finite()
+                False
             """
             return SimplicialSets.Finite() in self.categories()
 
         def is_pointed(self):
             """
-            True if this simplicial set is pointed, i.e., has a base point.
+            Return ``True`` if this simplicial set is pointed, i.e., has a
+            base point.
 
             EXAMPLES::
 
@@ -144,18 +145,12 @@ class SimplicialSets(Category_singleton):
                                  'simplicial set')
             return SimplicialSet(self.face_data(), base_point=point)
 
-    class ElementMethods:
-        pass
-
-    class MorphismMethods:
-        pass
-
     class Homsets(HomsetsCategory):
         class Endset(CategoryWithAxiom):
             class ParentMethods:
                 def one(self):
-                    """
-                    Return the identity morphism in `Hom(S, S)`.
+                    r"""
+                    Return the identity morphism in `\operatorname{Hom}(S, S)`.
 
                     EXAMPLES::
 
@@ -176,14 +171,7 @@ class SimplicialSets(Category_singleton):
         The objects are simplicial sets with finitely many
         non-degenerate simplices.
         """
-        class ParentMethods:
-            pass
-
-        class ElementMethods:
-            pass
-
-        class MorphismMethods:
-            pass
+        pass
 
     class SubcategoryMethods:
         def Pointed(self):
@@ -254,6 +242,14 @@ class SimplicialSets(Category_singleton):
                     sage: h = RP3.base_point_map(domain=pt)
                     sage: f.domain() == h.domain()
                     False
+
+                    sage: C5 = groups.misc.MultiplicativeAbelian([5])
+                    sage: BC5 = simplicial_sets.ClassifyingSpace(C5)
+                    sage: BC5.base_point_map()
+                    Simplicial set morphism:
+                      From: Point
+                      To:   Classifying space of Multiplicative Abelian group isomorphic to C5
+                      Defn: Constant map at 1
                 """
                 from sage.homology.simplicial_set import Point
                 if domain is None:
@@ -271,10 +267,10 @@ class SimplicialSets(Category_singleton):
 
                 INPUT:
 
-                - ``simplify`` (bool, optional True) -- if False, then
-                  return a presentation of the group in terms of
-                  generators and relations. If True, the default,
-                  simplify as much as GAP is able to.
+                - ``simplify`` (bool, optional ``True``) -- if
+                  ``False``, then return a presentation of the group
+                  in terms of generators and relations. If ``True``,
+                  the default, simplify as much as GAP is able to.
 
                 Algorithm: we compute the edge-path group -- see
                 Section 19 of [Kan]_ and
@@ -373,7 +369,7 @@ class SimplicialSets(Category_singleton):
 
             def is_simply_connected(self):
                 """
-                True if this pointed simplicial set is simply connected.
+                Return ``True`` if this pointed simplicial set is simply connected.
 
                 .. WARNING::
 
@@ -428,7 +424,7 @@ class SimplicialSets(Category_singleton):
 
             def connectivity(self, max_dim=None):
                 """
-                The connectivity of this pointed simplicial set.
+                Return the connectivity of this pointed simplicial set.
 
                 INPUT:
 
@@ -514,7 +510,7 @@ class SimplicialSets(Category_singleton):
 
                 def fat_wedge(self, n):
                     """
-                    The $n$-th fat wedge of this pointed simplicial set.
+                    Return the $n$-th fat wedge of this pointed simplicial set.
 
                     This is the subcomplex of the $n$-fold product `X^n`
                     consisting of those points in which at least one
@@ -544,7 +540,7 @@ class SimplicialSets(Category_singleton):
 
                 def smash_product(self, *others):
                     """
-                    The smash product of this simplicial set with ``others``.
+                    Return the smash product of this simplicial set with ``others``.
 
                     INPUT:
 
@@ -569,9 +565,3 @@ class SimplicialSets(Category_singleton):
                     from sage.homology.simplicial_set_constructions import SmashProductOfSimplicialSets_finite
                     return SmashProductOfSimplicialSets_finite((self,) + others)
 
-
-        class ElementMethods:
-            pass
-
-        class MorphismMethods:
-            pass

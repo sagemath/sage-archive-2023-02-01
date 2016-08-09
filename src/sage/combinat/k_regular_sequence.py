@@ -37,21 +37,6 @@ Dumas, Example 2::
 import itertools
 from sage.misc.cachefunc import cached_function, cached_method
 
-def pad_right(T, length, zero=0):
-    r"""
-    TESTS::
-
-        sage: from sage.combinat.k_regular_sequence import pad_right
-        sage: pad_right((1,2,3), 10)
-        (1, 2, 3, 0, 0, 0, 0, 0, 0, 0)
-        sage: pad_right((1,2,3), 2)
-        (1, 2, 3)
-        sage: pad_right([1,2,3], 10)
-        [1, 2, 3, 0, 0, 0, 0, 0, 0, 0]
-    """
-    return T + type(T)(zero for _ in xrange(length - len(T)))
-
-
 from sage.structure.element import Element
 
 class kRegularSequence(Element):

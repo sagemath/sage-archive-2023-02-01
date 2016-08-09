@@ -183,6 +183,11 @@ write_make_rules() {
         echo "$p-$v/.tarball-version: $prevextract"
         echo -e "\t( cd \$(SRC)/$p && git archive --format=tar --prefix=$p-$v/ $tag ) | tar xf -"
         echo -e "\techo $v >$p-$v/.tarball-version"
+	if [ $p = libtool -a ! -f .serial ] ; then
+	       echo -e "\techo $( git log --pretty=oneline | wc -l | sed 's|[\t ]||g ' ) > $p-$v/.serial"
+	# Could instead compute the .serial at "make" time:
+	#echo -e "\tif test ! -f \"$p-$v/.serial\"; then ( cd \$(SRC)/$p && git log --pretty=oneline $tag ) |wc -l | sed 's|[\t ]||g ' > $p-$v/.serial ; fi"
+	fi
         echo
 
         echo "\$(SAGE_LOCAL)/$p-$v: $p-$v/.tarball-version $deps"

@@ -91,7 +91,7 @@ def mutation_parse(mutate): # READY
     mutate.__doc__ = doc[0] + doc[1]
 
     @wraps(mutate)
-    def mutate_wrapper(self, direction, *args, **kwargs):
+    def mutate_wrapper(self, direction, **kwargs):
         inplace = kwargs.pop('inplace', True) and mutate.__name__ != "mutate_initial"
         if inplace:
             to_mutate = self
@@ -111,7 +111,7 @@ def mutation_parse(mutate): # READY
                 seq = iter((direction,))
 
         for k in seq:
-            mutate(to_mutate, k, *args, **kwargs)
+            mutate(to_mutate, k, **kwargs)
 
         if not inplace:
             return to_mutate
@@ -912,10 +912,10 @@ class ClusterAlgebra(Parent):
             True
         """
         n = self.rk()
-        cv_names = self.variable_names()[:n]
-        coeff_names = self.variable_names()[n:]
+        cv_names = self.initial_cluster_variable_names()
+        coeff_names = self.coefficient_names()
         other = ClusterAlgebra(self._B0, cluster_variable_names=cv_names, 
-                coefficient_names=coeff_names, scalars=self.base().base())
+                coefficient_names=coeff_names, scalars=self.scalars())
         other._F_poly_dict = copy(self._F_poly_dict)
         other._path_dict = copy(self._path_dict)
         S = self.current_seed()
@@ -963,12 +963,12 @@ class ClusterAlgebra(Parent):
             sage: A = ClusterAlgebra(['A',2],principal_coefficients=True); A
             A Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Integer Ring
         """
-        var_names = self.variable_names()[:self.rk()]
+        var_names = self.initial_cluster_variable_names()
         var_names = (" " if len(var_names)==1 else "s ") + ", ".join(var_names)
-        coeff_names = self.variable_names()[self.rk():]
+        coeff_names = self.coefficient_names()
         coeff_prefix = " and" +(" " if len(coeff_names) >0 else " no ") + "coefficient"
         coeff = coeff_prefix + (" " if len(coeff_names)==1 else "s ") + ", ".join(coeff_names)
-        return "A Cluster Algebra with cluster variable" + var_names + coeff + " over " + repr(self.base().base())
+        return "A Cluster Algebra with cluster variable" + var_names + coeff + " over " + repr(self.scalars())
         
     def _an_element_(self): # READY
         r"""
@@ -1298,6 +1298,18 @@ class ClusterAlgebra(Parent):
         """
         return self._ambient
 
+    def scalars(self):  # READY
+        r"""
+        Return the scalars on which ``self`` is defined.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',2])
+            sage: A.scalars()
+            Integer Ring
+        """
+        return self.base().base()
+
     def lift(self, x):  # READY
         r"""
         Return ``x`` as an element of :meth:`ambient`.
@@ -1352,6 +1364,19 @@ class ClusterAlgebra(Parent):
         else:
             return []
 
+    def coefficient_names(self):    # READY
+        r"""                    
+        Return the list of coefficient names.
+        
+        EXAMPLES::              
+        
+            sage: A = ClusterAlgebra(['B',2],principal_coefficients=True)
+            sage: A.coefficient_names()
+            ('y0', 'y1')        
+        """                     
+        return self.variable_names()[self.rk():]
+
+
     def initial_cluster_variables(self):    # READY
         r"""
         Return the list of initial cluster variables of ``self``.
@@ -1363,6 +1388,18 @@ class ClusterAlgebra(Parent):
             [x0, x1]
         """
         return map(self.retract, self.ambient().gens()[:self.rk()])
+
+    def initial_cluster_variable_names(self):   # READY
+        r"""
+        Return the list of initial variable names.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['B',2],principal_coefficients=True)
+            sage: A.initial_cluster_variable_names()
+            ('x0', 'x1')
+        """
+        return self.variable_names()[:self.rk()]
 
     def seeds(self, **kwargs):  # READY
         r"""
@@ -1519,56 +1556,86 @@ class ClusterAlgebra(Parent):
     @mutation_parse
     def mutate_initial(self, k):
         r"""
-        Mutate ``self`` in direction `k` at the initial cluster.
+        Return the cluster algebra obtained by mutating ``self`` at the initial seed.
 
         INPUT:
+        
+        ALGORITHM:
+
+            This function computes data for the new algebra from known data for
+            the old algebra using [NZ12]_ equation (4.2) for g-vectors, and
+            [FZ07]_ equation (6.21) for F-polynomials. The exponent h in the
+            formula for F-polynomials is -min(0,old_g_vect[k]) due to [NZ07]_
+            Proposition 4.2.
 
         EXAMPLES::
 
+            sage: A = ClusterAlgebra(['F',4])
+            sage: A.explore_to_depth(infinity)
+            sage: B = A.b_matrix()
+            sage: B.mutate(0)
+            sage: A1 = ClusterAlgebra(B)
+            sage: A1.explore_to_depth(infinity)
+            sage: A2 = A1.mutate_initial(0)
+            sage: A2._F_poly_dict == A._F_poly_dict
+            True
         """
         n = self.rk()
-
         if k not in xrange(n):
-            raise ValueError('Cannot mutate in direction %s, please try a value between 0 and %s.'%(str(k),str(n-1)))
-        
-        #modify self._path_dict using Nakanishi-Zelevinsky (4.1) and self._F_poly_dict using CA-IV (6.21)
-        new_path_dict = dict()
-        new_F_dict = dict()
-        new_path_dict[tuple(identity_matrix(n).column(k))] = []
-        new_F_dict[tuple(identity_matrix(n).column(k))] = self._U(1)
+            raise ValueError('Cannot mutate in direction ' + str(k) + '.')
 
-        F_subs_tuple = tuple([self._U.gen(k)**(-1) if j==k else self._U.gen(j)*self._U.gen(k)**max(-self._B0[k][j],0)*(1+self._U.gen(k))**(self._B0[k][j]) for j in xrange(n)])
+        # save computed data
+        old_F_poly_dict = copy(self._F_poly_dict)
+        old_path_dict = copy(self._path_dict)
+        old_path_to_current =  copy(self.current_seed().path_from_initial_seed())
 
-        for g_vect in self._path_dict:
+        # mutate initial exchange matrix
+        B0 = copy(self._B0)
+        B0.mutate(k)
+
+        # HACK: pretend there is no embedding of self into self.parent(): we
+        # will recreate this in a moment.  The problem is that there can be
+        # only one embedding per object and it is set up in __init__.
+        self._unset_embedding()
+
+        # update algebra
+        cv_names = self.initial_cluster_variable_names()
+        coeff_names = self.coefficient_names()
+        scalars = self.scalars()
+        self.__init__(B0, cluster_variable_names=cv_names,
+                coefficient_names=coeff_names, scalars=scalars)
+
+        # substitution data to compute new F-polynomials
+        Ugen = self._U.gens()
+        # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
+        F_subs = tuple(Ugen[k]**(-1) if j==k else Ugen[j]*Ugen[k]**max(B0[k,j],0)*(1+Ugen[k])**(-B0[k,j]) for j in xrange(n))
+
+        # restore computed data
+        for old_g_vect in old_path_dict:
             #compute new path
-            path = self._path_dict[g_vect]
-            if g_vect == tuple(identity_matrix(n).column(k)):
-                new_path = [k]
-            elif path != []:
-                if path[0] != k:
-                    new_path = [k] + path
-                else:
-                    new_path = path[1:]
-            else:
-                new_path = []
+            new_path = old_path_dict[old_g_vect]
+            new_path = ([k]+new_path[:1] if new_path[:1] != [k] else []) + new_path[1:]
 
-            #compute new g-vector
-            new_g_vect = vector(g_vect) - 2*g_vect[k]*identity_matrix(n).column(k)
-            for i in xrange(n):
-                new_g_vect += max(sign(g_vect[k])*self._B0[i,k],0)*g_vect[k]*identity_matrix(n).column(i)
-            new_path_dict[tuple(new_g_vect)] = new_path
+            # compute new g-vector
+            J = identity_matrix(n)
+            eps = sign(old_g_vect[k])
+            for j in xrange(n):
+                # here we have -eps*B0 rather than eps*B0 because we want the k-th column of the old B0
+                J[j,k] += max(0, -eps*B0[j,k])
+            J[k,k] = -1
+            new_g_vect = tuple(J*vector(old_g_vect))
+            self._path_dict[new_g_vect] = new_path
 
             #compute new F-polynomial
-            h =  -min(0,g_vect[k])
-            new_F_dict[tuple(new_g_vect)] = self._F_poly_dict[g_vect](F_subs_tuple)*self._U.gen(k)**h*(self._U.gen(k)+1)**g_vect[k]
+            if old_F_poly_dict.has_key(old_g_vect):
+                h =  -min(0,old_g_vect[k])
+                new_F_poly = old_F_poly_dict[old_g_vect](F_subs)*Ugen[k]**h*(Ugen[k]+1)**old_g_vect[k]
+                self._F_poly_dict[new_g_vect] = new_F_poly
 
-        self._path_dict = new_path_dict
-        self._F_poly_dict = new_F_dict
-
-        self._B0.mutate(k)
-       
-        # keep the current seed were it was on the exchange graph
-        self._seed = self.initial_seed().mutate([k]+self.current_seed().path_from_initial_seed(), mutating_F=False, inplace=False)
+        # reset self.current_seed() to the previous location
+        S = self.initial_seed()
+        S.mutate([k]+old_path_to_current, mutating_F=False)
+        self.set_current_seed(S)
 
     # DESIDERATA
     # Some of these are probably unrealistic

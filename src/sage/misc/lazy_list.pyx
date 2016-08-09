@@ -504,15 +504,21 @@ cdef class lazy_list_generic(object):
 
         INPUT:
 
-        - ``name`` -- (default: ``'lazy list'``) a string.
+        - ``name`` -- (default: ``'lazy list'``) a string appearing
+          at first position (i.e., in front of the actual values)
+          in the representation.
 
-        - ``opening_delimiter`` -- (default: ``'['``) a string.
+        - ``opening_delimiter`` -- (default: ``'['``) a string heading
+          the shown entries.
 
-        - ``closing_delimiter`` -- (default: ``']'``) a string.
+        - ``closing_delimiter`` -- (default: ``']'``) a string trailing
+          the shown entries
 
-        - ``separator`` -- (default: ``', '``) a string.
+        - ``separator`` -- (default: ``', '``) a string appearing between
+          two entries.
 
-        - ``more`` -- (default: ``'...'``) a string.
+        - ``more`` -- (default: ``'...'``) a string indicating that
+          not all entries of the list are shown.
 
         - ``preview`` -- (default: ``3``) an integer specifying the number of
           elements shown in the representation string.

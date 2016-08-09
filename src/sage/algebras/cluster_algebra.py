@@ -327,7 +327,7 @@ class ClusterAlgebraSeed(SageObject):
             really are seeds of ``parent``. If you create seeds with
             inconsistent data all sort of things can go wrong, even
             :meth:`__eq__` is no longer guaranteed to give correct answers.
-            Use at your ouwn risk.
+            Use at your own risk.
 
         EXAMPLES::
 
@@ -1698,7 +1698,7 @@ def greedy_element(self, d_vector):
 
     REFERENCES:
 
-    .. [LLZ??] \K. Lee, \L. Li, and \A. Zelevinsky, "Greedy elements in rank 2
+    .. [LLZ14] \K. Lee, \L. Li, and \A. Zelevinsky, "Greedy elements in rank 2
        cluster algebras", Selecta Math. 20 (2014), 57-82.
 
     EXAMPLES::

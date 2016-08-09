@@ -413,6 +413,16 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
                         ret -= c1 * c2 * s_coeff[i2, i1]
             return type(self)(P, ret)
 
+        def __iter__(self):
+            """
+            Iterate over ``self``.
+            """
+            zero = self.base_ring().zero()
+            I = self.parent()._indices
+            for i,v in enumerate(self.value):
+                if v != zero:
+                    yield (I[i], v)
+
         def to_vector(self):
             """
             Return ``self`` as a vector.
@@ -441,6 +451,14 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             Return the monomial coefficients of ``self``.
 
             EXAMPLES::
+
+                sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
+                sage: a = 2*x - 3/2*y + z
+                sage: list(a)
+                [('x', 2), ('y', -3/2), ('z', 1)]
+                sage: a = 2*x - 3/2*z
+                sage: list(a)
+                [('x', 2), ('z', -3/2)]
             """
-            return self.value.monomial_coefficients(copy)
+            return {self._indices[i]: v for i,v in self.value.monomial_coefficients()}
 

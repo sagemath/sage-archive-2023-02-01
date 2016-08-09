@@ -581,7 +581,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
             sage: R.<t> = QQ[]
             sage: f = 1 + t/2
-            sage: f.reverse(2**64)
+            sage: f.reverse(2**64 - 1)
             Traceback (most recent call last):
             ...
             OverflowError: long int too large to convert
@@ -594,7 +594,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f.reverse(I)
             Traceback (most recent call last):
             ...
-            ValueError: cannot convert I to int
+            ValueError: cannot convert I + 1 to int
 
         We check that this specialized implementation is compatible with the
         generic one::
@@ -611,7 +611,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if degree is None:
             len = fmpq_poly_length(self.__poly)
         else:
-            len = (<unsigned long> degree + 1)
+            len = <unsigned long> (degree + 1)
 
         res = self._new()
         do_sig = _do_sig(self.__poly)

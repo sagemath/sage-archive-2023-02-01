@@ -205,24 +205,15 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
         ValueError: only one of the arguments 'data' or 'update_function'
         can be used
 
-    Lazy lists created from each other share their cache::
+    Applying :func:`lazy_list` is idempotent. Thus, lazy lists created
+    from each other are unmodified::
 
         sage: C = lazy_list(count())
         sage: C[4]
         4
         sage: D = lazy_list(C)
-        sage: D._info()
-        cache length 5
-        start        0
-        stop         9223372036854775807
-        step         1
-        sage: D[6]
-        6
-        sage: C._info()
-        cache length 7
-        start        0
-        stop         9223372036854775807
-        step         1
+        sage: C is D
+        True
     """
     cdef lazy_list_generic l
 

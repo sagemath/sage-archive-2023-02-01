@@ -410,27 +410,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return "\\Bold{Z}"
 
-    def _div(self, integer.Integer left, integer.Integer right):
-        """
-        TESTS::
-
-            sage: from sage.rings.integer_ring import IntegerRing_class
-            sage: A = IntegerRing_class()
-            sage: A._div(12,7)
-            12/7
-            sage: A._div(12,0)
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: rational division by zero
-        """
-        cdef rational.Rational x = rational.Rational.__new__(rational.Rational)
-        if mpz_sgn(right.value) == 0:
-            raise ZeroDivisionError('rational division by zero')
-        mpz_set(mpq_numref(x.value), left.value)
-        mpz_set(mpq_denref(x.value), right.value)
-        mpq_canonicalize(x.value)
-        return x
-
     def __getitem__(self, x):
         """
         Return the ring `\ZZ[...]` obtained by adjoining to the integers one

@@ -13,7 +13,27 @@ AUTHORS:
 
 EXAMPLES::
 
-    TODO: we need to write a complete example of usage here
+    sage: A = ClusterAlgebra(['A',2])
+    sage: A.b_matrix()
+    [ 0  1]
+    [-1  0]
+    sage: A.explore_to_depth(2)
+    sage: A.g_vectors_so_far()
+    [(0, 1), (0, -1), (1, 0), (-1, 1), (-1, 0)]
+    sage: A.F_polynomials_so_far()
+    [1, u1 + 1, 1, u0 + 1, u0*u1 + u0 + 1]
+    sage: A.cluster_variables_so_far()
+    [x1, (x0 + 1)/x1, x0, (x1 + 1)/x0, (x0 + x1 + 1)/(x0*x1)]
+    sage: B = A.mutate_initial(0)
+    sage: B.b_matrix()
+    [ 0 -1]
+    [ 1  0]
+    sage: B.g_vectors_so_far()
+    [(0, 1), (0, -1), (1, 0), (1, -1), (-1, 0)]
+    sage: B.F_polynomials_so_far()
+    [1, u0*u1 + u1 + 1, 1, u1 + 1, u0 + 1]
+    sage: B.cluster_variables_so_far()
+    [x1, (x0 + x1 + 1)/(x0*x1), x0, (x0 + 1)/x1, (x1 + 1)/x0]
 """
 
 #*****************************************************************************
@@ -965,7 +985,7 @@ class ClusterAlgebra(Parent):
         coeff_names = self.coefficient_names()
         coeff_prefix = " and" +(" " if len(coeff_names) >0 else " no ") + "coefficient"
         coeff = coeff_prefix + (" " if len(coeff_names)==1 else "s ") + ", ".join(coeff_names)
-        return "A Cluster Algebra with cluster variable" + var_names + coeff + " over " + repr(self.scalars())
+        return "A Cluster Algebra with cluster variable" + var_names + coeff + (" " if len(coeff_names)>0 else "") + "over " + repr(self.scalars())
         
     def _an_element_(self): # READY
         r"""
@@ -986,15 +1006,15 @@ class ClusterAlgebra(Parent):
 
             If ``other`` is an instance of :class:`ClusterAlgebra` then allow
             coercion if ``other.ambient()`` can be coerced into
-            ``self.ambient()`` and other can be obtained from ``self``
+            ``self.ambient()`` and other can be obtained from ``self`` by
             permuting variables and coefficients and/or freezing some initial
-            cluster variables. 
-            
+            cluster variables.
+
             Otherwise allow anything that coerces into ``self.base()`` to coerce
             into ``self``.
 
         EXAMPLES::
-            
+
             sage: B1 = matrix([(0, 1, 0, 0),(-1, 0, -1, 0),(0, 1, 0, 1),(0, 0, -2, 0),(-1, 0, 0, 0),(0, -1, 0, 0)])
             sage: B2 = B1.matrix_from_columns([0,1,2])
             sage: A1 = ClusterAlgebra(B1, coefficient_prefix='x')
@@ -1009,7 +1029,7 @@ class ClusterAlgebra(Parent):
             sage: S = A1.initial_seed(); S.mutate([0, 2, 1])
             sage: S.cluster_variable(1) == f(A2.cluster_variable((-1, 1, -1)))
             True
-        """ 
+        """
         if isinstance(other, ClusterAlgebra):
             gen_s = self.gens()
             gen_o = other.gens()
@@ -1494,7 +1514,7 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``mutating_F`` -- bool (default True): wheter to compute also
+        - ``mutating_F`` -- bool (default True): whether to also compute
           F-polynomials; for speed considerations you may want to disable this.
 
         EXAMPLES::

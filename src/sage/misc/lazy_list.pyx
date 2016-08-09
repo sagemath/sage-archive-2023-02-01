@@ -85,8 +85,9 @@ Alternatively, you can create the lazy list from an update function::
     sage: w2[:500].list() == w[:500].list()
     True
 
-You can also create extension type inheriting from :class:`lazy_list_generic`
-(with Cython). In that case you would better implement directly the method
+You can also create user-defined classes (Python) and extension types (Cython)
+inheriting from :class:`lazy_list_generic`.
+In that case you would better implement directly the method
 ``_update_cache_up_to``. See the examples in this file with the classes
 :class:`lazy_list_from_iterator` and :class:`lazy_list_from_function`.
 

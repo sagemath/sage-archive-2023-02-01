@@ -23,13 +23,14 @@ AUTHORS:
 
 #from sage.misc.abstract_method import abstract_method
 #from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
-#from sage.misc.misc import repr_lincomb
+from sage.misc.misc import repr_lincomb
 from copy import copy
 #from functools import total_ordering
 #from sage.structure.element import ModuleElement, RingElement, coerce_binop
 #from sage.structure.sage_object import SageObject
 from sage.combinat.free_module import CombinatorialFreeModuleElement
-from sage.structure.element_wrapper import ElementWrapper
+from sage.structure.element cimport have_same_parent, coercion_model
+from sage.structure.element_wrapper cimport ElementWrapper
 
 # TODO: Have the other classes inherit from this?
 # TODO: Should this be a mixin class (or moved to the category)?
@@ -151,13 +152,14 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
         """
         return sorted(self._monomial_coefficients.items())
 
-class LieAlgebraElementWrapper(ElementWrapper):
+cdef class LieAlgebraElementWrapper(ElementWrapper):
     """
     Wrap an element as a Lie algebra element.
     """
-    def __eq__(self, rhs):
+
+    def __richcmp__(self, right, int op):
         """
-        Check equality.
+        Perform a rich comparison.
 
         EXAMPLES::
 
@@ -175,16 +177,8 @@ class LieAlgebraElementWrapper(ElementWrapper):
             sage: L = lie_algebras.three_dimensional_by_rank(QQ, 1)
             sage: L.bracket(L.gen(0), L.gen(1)) == -L.bracket(L.gen(1), L.gen(0))
             True
-        """
-        if not isinstance(rhs, LieAlgebraElementWrapper):
-            return self.value == 0 and rhs == 0
-        return self.parent() == rhs.parent() and self.value == rhs.value
 
-    def __ne__(self, rhs):
-        """
-        Check non-equality.
-
-        EXAMPLES::
+        Check inequality::
 
             sage: L = lie_algebras.sl(QQ, 2, representation='matrix')
             sage: L.bracket(L.gen(0), L.gen(1)) != -L.bracket(L.gen(1), L.gen(0))
@@ -200,10 +194,11 @@ class LieAlgebraElementWrapper(ElementWrapper):
             sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3)
             sage: L.bracket(L.gen(0), L.gen(1)) != -L.bracket(L.gen(1), L.gen(0))
             False
-            sage: L.zero() == 0
-            True
-            sage: L.zero() != 0
+            sage: L.an_element()
+            sage: L.an_element() == 0
             False
+            sage: L.an_element() != 0
+            True
 
             sage: L = lie_algebras.three_dimensional_by_rank(QQ, 1)
             sage: L.bracket(L.gen(0), L.gen(1)) != -L.bracket(L.gen(1), L.gen(0))
@@ -212,8 +207,27 @@ class LieAlgebraElementWrapper(ElementWrapper):
             True
             sage: L.zero() != 0
             False
+            sage: L.zero() >= 0
+            True
+            sage: L.zero() < 0
+            False
         """
-        return not (self == rhs)
+        if right == self.parent().base_ring().zero():
+            if op == 3: # !=
+                return self.__nonzero__()
+            if op in [1,2,5]: # <=, ==, >=
+                return not self.__nonzero__()
+            return False # <, >
+        if not have_same_parent(self, right):
+            try:
+                self, right = coercion_model.canonical_coercion(self, right)
+            except (TypeError, ValueError):
+                return op == 3
+        if op == 3: # !=
+            return self.value != right.value
+        if op in [1,2,5]: # <=, ==, >=
+            return self.value == right.value
+        return False # <, >
 
     def _repr_(self):
         """
@@ -256,7 +270,13 @@ class LieAlgebraElementWrapper(ElementWrapper):
         from sage.typeset.unicode_art import unicode_art
         return unicode_art(self.value)
 
-    def _add_(self, rhs):
+    def __nonzero__(self):
+        """
+        Return if ``self`` is non-zero.
+        """
+        return bool(self.value)
+
+    cpdef _add_(self, right):
         """
         Add ``self`` and ``rhs``.
 
@@ -267,9 +287,9 @@ class LieAlgebraElementWrapper(ElementWrapper):
             sage: x + y
             x + y
         """
-        return self.__class__(self.parent(), self.value + rhs.value)
+        return self.__class__(self.parent(), self.value + right.value)
 
-    def _sub_(self, rhs):
+    cpdef _sub_(self, right):
         """
         Subtract ``self`` and ``rhs``.
 
@@ -280,7 +300,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
             sage: x - y
             x - y
         """
-        return self.__class__(self.parent(), self.value - rhs.value)
+        return self.__class__(self.parent(), self.value - right.value)
 
     # We need to bypass the coercion framework
     # We let the universal enveloping algebra handle the rest if both
@@ -319,7 +339,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
         # Otherwise we lift to the UEA
         return self.lift() * x
 
-    def __div__(self, x, self_on_left=False ):
+    def __div__(self, x):
         """
         Division by coefficients.
 
@@ -331,9 +351,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
             sage: x / 2
             1/2*p1 + 1/2*p2 + 1/2*p3 + 1/2*q1 + 1/2*q2 + 1/2*q3 + 1/2*z
         """
-        if self_on_left:
-            return self * (~x)
-        return (~x) * self
+        return self * (~x)
 
     def _acted_upon_(self, scalar, self_on_left=False):
         """
@@ -402,7 +420,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
         return self.value.__getitem__(i)
 
 # TODO: Also used for vectors, find a better name
-class LieAlgebraMatrixWrapper(LieAlgebraElementWrapper):
+cdef class LieAlgebraMatrixWrapper(LieAlgebraElementWrapper):
     def __init__(self, parent, value):
         """
         Initialize ``self``.
@@ -416,4 +434,135 @@ class LieAlgebraMatrixWrapper(LieAlgebraElementWrapper):
         """
         value.set_immutable() # Make the matrix immutable for hashing
         LieAlgebraElementWrapper.__init__(self, parent, value)
+
+cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
+    """
+    An element of a Lie algebra given by structure coefficients.
+    """
+    def _repr_(self):
+        """
+        EXAMPLES::
+        """
+        return repr_lincomb(self._sorted_items_for_printing(),
+                            scalar_mult=self.parent()._print_options['scalar_mult'],
+                            repr_monomial=self.parent()._repr_generator,
+                            strip_one=True)
+
+    def _latex_(self):
+        """
+        EXAMPLES::
+        """
+        return repr_lincomb(self._sorted_items_for_printing(),
+                            scalar_mult=self.parent()._print_options['scalar_mult'],
+                            latex_scalar_mult=self.parent()._print_options['latex_scalar_mult'],
+                            repr_monomial=self.parent()._latex_term,
+                            is_latex=True, strip_one=True)
+
+    cpdef bracket(self, right):
+        """
+        Return the Lie bracket ``[self, right]``.
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}, ('y','z'): {'x':1}, ('z','x'): {'y':1}})
+            sage: x.bracket(y)
+            z
+            sage: y.bracket(x)
+            -z
+            sage: (x + y - z).bracket(x - y + z)
+            -2*y - 2*z
+        """
+        if not have_same_parent(self, right):
+            self, right = coercion_model.canonical_coercion(self, right)
+        return self._bracket_(right)
+
+    # We need this method because the LieAlgebra.bracket method (from the
+    #   category) calls this, where we are guaranteed to have the same parent.
+    cpdef _bracket_(self, right):
+        """
+        Return the Lie bracket ``[self, right]``.
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}, ('y','z'): {'x':1}, ('z','x'): {'y':1}})
+            sage: x._bracket_(y)
+            z
+            sage: y._bracket_(x)
+            -z
+        """
+        P = self.parent()
+        cdef dict s_coeff = P._s_coeff
+        d = P.dimension()
+        ret = P._M.zero()
+        cdef int i1, i2
+        for i1,c1 in enumerate(self.value):
+            if not c1:
+                pass
+            for i2,c2 in enumerate(right.value):
+                if not c2:
+                    pass
+                if (i1, i2) in s_coeff:
+                    ret += c1 * c2 * s_coeff[i1, i2]
+                elif (i2, i1) in s_coeff:
+                    ret -= c1 * c2 * s_coeff[i2, i1]
+        return self.__class__(P, ret)
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+        """
+        zero = self.base_ring().zero()
+        I = self.parent()._indices
+        cdef int i
+        for i,v in enumerate(self.value):
+            if v != zero:
+                yield (I[i], v)
+
+    cpdef to_vector(self):
+        """
+        Return ``self`` as a vector.
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
+            sage: a = x + 3*y - z/2
+            sage: a.to_vector()
+            (1, 3, -1/2)
+        """
+        return self.value
+
+    def lift(self):
+        """
+        Return the lift of ``self`` to the universal enveloping algebra.
+
+        EXAMPLES::
+        """
+        UEA = self.parent().universal_enveloping_algebra()
+        gens = UEA.gens()
+        return UEA.sum(c * gens[i] for i, c in self.value.iteritems())
+
+    cpdef dict monomial_coefficients(self, bint copy=True):
+        """
+        Return the monomial coefficients of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
+            sage: a = 2*x - 3/2*y + z
+            sage: list(a)
+            [('x', 2), ('y', -3/2), ('z', 1)]
+            sage: a = 2*x - 3/2*z
+            sage: list(a)
+            [('x', 2), ('z', -3/2)]
+        """
+        I = self.parent()._indices
+        return {I[i]: v for i,v in self.value.monomial_coefficients()}
+
+    def __getitem__(self, i):
+        """
+        Return the coefficient of the basis element indexed by ``i``.
+
+        EXAMPLES::
+        """
+        return self.value[self.parent()._indices.index(i)]
 

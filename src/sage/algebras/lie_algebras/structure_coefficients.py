@@ -24,7 +24,6 @@ AUTHORS:
 #from copy import copy
 from sage.misc.cachefunc import cached_method
 #from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.misc import repr_lincomb
 from sage.structure.indexed_generators import (IndexedGenerators,
                                                standardize_names_index_set)
 #from sage.structure.parent import Parent
@@ -34,7 +33,7 @@ from sage.structure.indexed_generators import (IndexedGenerators,
 from sage.categories.lie_algebras import LieAlgebras
 
 #from sage.algebras.free_algebra import FreeAlgebra
-from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraMatrixWrapper
+from sage.algebras.lie_algebras.lie_algebra_element import StructureCoefficientsElement
 from sage.algebras.lie_algebras.lie_algebra import LieAlgebra, FinitelyGeneratedLieAlgebra
 #from sage.algebras.lie_algebras.subalgebra import LieSubalgebra
 #from sage.algebras.lie_algebras.ideal import LieAlgebraIdeal
@@ -341,10 +340,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         return list(self.basis()) + [self.sum(self.basis())]
 
-    class Element(LieAlgebraMatrixWrapper):
-        """
-        An element of a Lie algebra given by structure coefficients.
-        """
+    class Element(StructureCoefficientsElement):
         def _sorted_items_for_printing(self):
             """
             Return a list of pairs ``(k, c)`` used in printing.
@@ -365,100 +361,4 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             except Exception: # Sorting the output is a plus, but if we can't, no big deal
                 pass
             return v
-
-        def _repr_(self):
-            """
-            EXAMPLES::
-            """
-            return repr_lincomb(self._sorted_items_for_printing(),
-                                scalar_mult=self.parent()._print_options['scalar_mult'],
-                                repr_monomial=self.parent()._repr_generator,
-                                strip_one=True)
-
-        def _latex_(self):
-            """
-            EXAMPLES::
-            """
-            return repr_lincomb(self._sorted_items_for_printing(),
-                                scalar_mult=self.parent()._print_options['scalar_mult'],
-                                latex_scalar_mult=self.parent()._print_options['latex_scalar_mult'],
-                                repr_monomial=self.parent()._latex_term,
-                                is_latex=True, strip_one=True)
-
-        def _bracket_(self, other):
-            """
-            Return the Lie bracket ``[self, other]``.
-
-            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}, ('y','z'): {'x':1}, ('z','x'): {'y':1}})
-            sage: L.bracket(x, y)
-            z
-            sage: L.bracket(y, x)
-            -z
-            sage: L.bracket(x + y - z, x - y + z)
-            -2*y - 2*z
-            """
-            P = self.parent()
-            s_coeff = P._s_coeff
-            d = P.dimension()
-            ret = P._M.zero()
-            for i1,c1 in enumerate(self.value):
-                if not c1:
-                    pass
-                for i2,c2 in enumerate(other.value):
-                    if not c2:
-                        pass
-                    if (i1, i2) in s_coeff:
-                        ret += c1 * c2 * s_coeff[i1, i2]
-                    elif (i2, i1) in s_coeff:
-                        ret -= c1 * c2 * s_coeff[i2, i1]
-            return type(self)(P, ret)
-
-        def __iter__(self):
-            """
-            Iterate over ``self``.
-            """
-            zero = self.base_ring().zero()
-            I = self.parent()._indices
-            for i,v in enumerate(self.value):
-                if v != zero:
-                    yield (I[i], v)
-
-        def to_vector(self):
-            """
-            Return ``self`` as a vector.
-
-            EXAMPLES::
-
-                sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
-                sage: a = x + 3*y - z/2
-                sage: a.to_vector()
-                (1, 3, -1/2)
-            """
-            return self.value
-
-        def lift(self):
-            """
-            Return the lift of ``self`` to the universal enveloping algebra.
-
-            EXAMPLES::
-            """
-            UEA = self.parent().universal_enveloping_algebra()
-            gens = UEA.gens()
-            return UEA.sum(c * gens[i] for i, c in self.value.iteritems())
-
-        def monomial_coefficients(self, copy=True):
-            """
-            Return the monomial coefficients of ``self``.
-
-            EXAMPLES::
-
-                sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
-                sage: a = 2*x - 3/2*y + z
-                sage: list(a)
-                [('x', 2), ('y', -3/2), ('z', 1)]
-                sage: a = 2*x - 3/2*z
-                sage: list(a)
-                [('x', 2), ('z', -3/2)]
-            """
-            return {self._indices[i]: v for i,v in self.value.monomial_coefficients()}
 

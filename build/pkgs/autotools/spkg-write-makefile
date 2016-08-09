@@ -141,6 +141,11 @@ write_make_rules() {
                 ac_ver=`( echo 2.59; autoconf --trace='AC_PREREQ:$1' configure.ac ) | latest_version`
             fi
 
+	    # Fix up for wrong prereq.
+	    if [ $p = automake ] && [ $v = 1.10 ]; then
+		ac_ver=2.60
+	    fi
+
             # Minimum required version of libtool.
             # Empty by default.
             lt_ver=`( autoconf --trace='LT_PREREQ:$1' configure.ac ) | latest_version`

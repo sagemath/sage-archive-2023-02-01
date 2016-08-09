@@ -1608,14 +1608,10 @@ class ClusterAlgebra(Parent):
         # substitution data to compute new F-polynomials
         Ugen = self._U.gens()
         # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
-        F_subs = tuple(Ugen[k]**(-1) if j==k else Ugen[j]*Ugen[k]**max(B0[k,j],0)*(1+Ugen[k])**(-B0[k,j]) for j in xrange(n))
+        F_subs = [Ugen[k]**(-1) if j==k else Ugen[j]*Ugen[k]**max(B0[k,j],0)*(1+Ugen[k])**(-B0[k,j]) for j in xrange(n)]
 
         # restore computed data
         for old_g_vect in old_path_dict:
-            #compute new path
-            new_path = old_path_dict[old_g_vect]
-            new_path = ([k]+new_path[:1] if new_path[:1] != [k] else []) + new_path[1:]
-
             # compute new g-vector
             J = identity_matrix(n)
             eps = sign(old_g_vect[k])
@@ -1624,6 +1620,10 @@ class ClusterAlgebra(Parent):
                 J[j,k] += max(0, -eps*B0[j,k])
             J[k,k] = -1
             new_g_vect = tuple(J*vector(old_g_vect))
+
+            #compute new path
+            new_path = old_path_dict[old_g_vect]
+            new_path = ([k]+new_path[:1] if new_path[:1] != [k] else []) + new_path[1:]
             self._path_dict[new_g_vect] = new_path
 
             #compute new F-polynomial

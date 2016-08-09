@@ -316,8 +316,8 @@ the first few zeros::
 
 .. PLOT::
 
-        g=plot(lambda x:fibonacci(round(x)),(x,1,10))
-        sphinx_plot(g)
+    g=plot(lambda x:fibonacci(round(x)),(x,1,10))
+    sphinx_plot(g)
 
 Many concentric circles shrinking toward the origin::
 
@@ -397,7 +397,7 @@ Cycliclink::
 
     g1 = plot(cos(20*x)*exp(-2*x), 0, 1)
     g2 = plot(2*exp(-30*x) - exp(-3*x), 0, 1)
-    g = graphics_array([g1, g2], 2, 1) #needs a GraphicsArray.plot() method
+    g = graphics_array([g1, g2], 2, 1)
     sphinx_plot(g)
 
 Pi Axis::
@@ -1516,7 +1516,7 @@ def plot(funcs, *args, **kwds):
         p3 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill=[0, [0]], fillcolor=['#f60'], fillalpha=1, color={1: 'blue'})
         p4 = plot([sin(x), cos(2*x)*sin(x)], (x,-pi, pi), fill=[0, x/pi], fillcolor='grey', color=['red', 'blue'])
         g = graphics_array([[p1, p2], [p3, p4]])
-        sphinx_plot(g.show(frame=True, axes=False))
+        sphinx_plot(g) # Needs to accept options 'frame', 'axes', ...
 
 
     A example about the growth of prime numbers::
@@ -1569,7 +1569,7 @@ def plot(funcs, *args, **kwds):
             p1 = plot([b(c) for c in [1..5]], 0, 40, fill={i:[i+1] for i in [0..3]}, color='blue')
             p2 = plot([b(c) for c in [1..5]], 0, 40, fill={i:i+1 for i in [0..3]}, color='blue', linestyle='-') # long time
             g = graphics_array([p1,p2])
-            sphinx_plot(g.show(frame=True, axes=False))
+            sphinx_plot(g) # Needs to accept options 'frame', 'axes', ...
 
     Extra options will get passed on to :meth:`~sage.plot.graphics.Graphics.show`,
     as long as they are valid::
@@ -3102,8 +3102,10 @@ def list_plot_loglog(data, plotjoined=False, **kwds):
 
     .. PLOT::
 
-        #g = list_plot_loglog(zip(xl, yl), base=2.1) # long time # with base 2.1 on both axes
-        #sphinx_plot(g)
+        yl = [5**k for k in range(10)]
+        xl = [2**k for k in range(10)]
+        g = list_plot_loglog(zip(xl, yl), base=2.1) # long time # with base 2.1 on both axes
+        sphinx_plot(g)
 
     ::
 

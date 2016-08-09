@@ -43,12 +43,13 @@ from sage.homology.homology_morphism import InducedHomologyMorphism
 
 class SimplicialSetHomset(Homset):
     r"""
-    Set of morphisms between simplicial sets.
+    A set of morphisms between simplicial sets.
 
-    Given a hom set, one can use it to construct a morphism `f` by
-    specifying a dictionary, the keys of which are the nondegenerate
-    simplices in the domain, and the value corresponding to `\sigma`
-    is the simplex `f(\sigma)` in the codomain.
+    Once a homset has been constructed in Sage, typically via
+    ``Hom(X,Y)`` or ``X.Hom(Y)``, one can use it to construct a
+    morphism `f` by specifying a dictionary, the keys of which are the
+    nondegenerate simplices in the domain, and the value corresponding
+    to `\sigma` is the simplex `f(\sigma)` in the codomain.
 
     EXAMPLES::
 
@@ -60,7 +61,7 @@ class SimplicialSetHomset(Homset):
         sage: X = SimplicialSet({e: (v, w), f: (w, v)})
         sage: Y = SimplicialSet({e: (v, v)})
 
-    Define the hom set::
+    Define the homset::
 
         sage: H = Hom(X, Y)
 
@@ -96,7 +97,7 @@ class SimplicialSetHomset(Homset):
 
     def diagonal_morphism(self):
         r"""
-        Return the diagonal morphism in `Hom(S, S \times S)`.
+        Return the diagonal morphism in `\operatorname{Hom}(S, S \times S)`.
 
         EXAMPLES::
 
@@ -121,8 +122,8 @@ class SimplicialSetHomset(Homset):
         return self(f)
 
     def identity(self):
-        """
-        Return the identity morphism in `Hom(S, S)`.
+        r"""
+        Return the identity morphism in `\operatorname{Hom}(S, S)`.
 
         EXAMPLES::
 
@@ -142,7 +143,7 @@ class SimplicialSetHomset(Homset):
 
     def constant_map(self, point=None):
         r"""
-        Constant map in this Hom set.
+        Return the constant map in this homset.
 
         INPUT:
 
@@ -185,6 +186,8 @@ class SimplicialSetHomset(Homset):
             sage: Hom(S3, S0).constant_map(w).is_pointed()
             False
 
+        TESTS::
+
             sage: S0 = S0.unset_base_point()
             sage: Hom(S3, S0).constant_map()
             Traceback (most recent call last):
@@ -205,7 +208,7 @@ class SimplicialSetHomset(Homset):
 
     def an_element(self):
         """
-        Return an element of ``self``: a constant map.
+        Return an element of this homset: a constant map.
 
         EXAMPLES::
 
@@ -298,11 +301,11 @@ class SimplicialSetMorphism(Morphism):
     def __init__(self, data=None, domain=None, codomain=None,
                  constant=None, identity=False, check=True):
         r"""
-        A morphism of simplicial sets.
+        Return a morphism of simplicial sets.
 
         INPUTS:
 
-        - ``data`` -- optional. Dictionary defining the map
+        - ``data`` -- optional. Dictionary defining the map.
         - ``domain`` -- simplicial set
         - ``codomain`` -- simplicial set
         - ``constant`` -- optional: if not ``None``, then this should
@@ -314,16 +317,16 @@ class SimplicialSetMorphism(Morphism):
           that this is actually a morphism: it commutes with the face
           maps.
 
-        So to any map, specify ``domain`` and ``codomain``. Then if
-        the map is constant, specify the target (a vertex in the
-        codomain) as ``constant``. If the map is the identity map,
-        specify ``identity=True``. Otherwise, pass a dictionary,
-        ``data``.  The keys of the dictionary are the nondegenerate
-        simplices of the domain, the corresponding values are
-        simplices in the codomain.
+        So to define a map, you must specify ``domain`` and
+        ``codomain``. If the map is constant, specify the target (a
+        vertex in the codomain) as ``constant``. If the map is the
+        identity map, specify ``identity=True``. Otherwise, pass a
+        dictionary, ``data``.  The keys of the dictionary are the
+        nondegenerate simplices of the domain, the corresponding
+        values are simplices in the codomain.
 
-        In fact, the keys do not need to include all of the
-        nondegenerate simplices, only those which are not faces of
+        In fact, the keys in ``data`` do not need to include all of
+        the nondegenerate simplices, only those which are not faces of
         other nondegenerate simplices: if `\sigma` is a face of
         `\tau`, then the image of `\sigma` need not be specified.
 
@@ -374,6 +377,34 @@ class SimplicialSetMorphism(Morphism):
               To:   S^1
               Defn: Constant map at v_0
 
+        The same constant map::
+
+            sage: SimplicialSetMorphism(domain=K, codomain=S1, constant=w)
+            Simplicial set morphism:
+              From: 1-simplex
+              To:   S^1
+              Defn: Constant map at v_0
+
+        An identity map::
+
+            sage: SimplicialSetMorphism(domain=K, codomain=K, identity=True)
+            Simplicial set endomorphism of 1-simplex
+              Defn: Identity map
+
+        Defining a map by specifying it on only some of the simplices
+        in the domain::
+
+            sage: S5 = simplicial_sets.Sphere(5)
+            sage: s = S5.n_cells(5)[0]
+            sage: one = S5.Hom(S5)({s: s})
+            sage: one
+            Simplicial set endomorphism of S^5
+              Defn: Identity map
+            sage: one._dictionary
+            {v_0: v_0, sigma_5: sigma_5}
+
+        TESTS:
+
         A non-map::
 
             sage: h = {w: v0, sigma: e01}
@@ -390,6 +421,13 @@ class SimplicialSetMorphism(Morphism):
             ...
             ValueError: at least one simplex in the defining dictionary is not in the domain
 
+        A non-identity map::
+
+            sage: SimplicialSetMorphism(domain=K, codomain=S1, identity=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: identity map is only defined for endomorphism sets
+
         An improperly partially defined map::
 
             sage: h = {w: v0}
@@ -397,22 +435,13 @@ class SimplicialSetMorphism(Morphism):
             Traceback (most recent call last):
             ...
             ValueError: the image of at least one simplex in the domain is not defined
-
-        A (good) partially defined map::
-
-            sage: S5 = simplicial_sets.Sphere(5)
-            sage: s = S5.n_cells(5)[0]
-            sage: one = S5.Hom(S5)({s: s})
-            sage: one
-            Simplicial set endomorphism of S^5
-              Defn: Identity map
-            sage: one._dictionary
-            {v_0: v_0, sigma_5: sigma_5}
         """
         self._is_identity = False
         if not domain.is_finite():
             if identity:
-                if not domain is codomain:
+                if codomain is None:
+                    codomain = domain
+                elif not domain is codomain:
                     raise TypeError("identity map is only defined for endomorphism sets")
                 self._is_identity = True
                 Morphism.__init__(self, Hom(domain, codomain, SimplicialSets()))
@@ -539,6 +568,8 @@ class SimplicialSetMorphism(Morphism):
 
     def __ne__(self, other):
         """
+        The negation of ``__eq__``.
+
         EXAMPLES::
 
             sage: S0 = simplicial_sets.Sphere(0)
@@ -592,6 +623,8 @@ class SimplicialSetMorphism(Morphism):
 
     def _composition_(self, right, homset):
         """
+        Return the composition of two morphisms.
+
         INPUT:
 
         - ``self``, ``right`` -- maps
@@ -635,7 +668,8 @@ class SimplicialSetMorphism(Morphism):
 
     def image(self):
         """
-        The image of this morphism as a subsimplicial set of the codomain.
+        Return the image of this morphism as a subsimplicial set of the
+        codomain.
 
         EXAMPLES::
 
@@ -849,7 +883,7 @@ class SimplicialSetMorphism(Morphism):
 
     def pushout(self, *others):
         """
-        The pushout of this morphism along with ``others``.
+        Return the pushout of this morphism along with ``others``.
 
         INPUT:
 
@@ -857,7 +891,7 @@ class SimplicialSetMorphism(Morphism):
           which must all equal that of ``self``.
 
         This returns the pushout as a simplicial set. See
-        :class:`sage.homology.simplicial_set.PushoutOfSimplicialComplexes`
+        :class:`sage.homology.simplicial_set_constructions.PushoutOfSimplicialSets`
         for more documentation and examples.
 
         EXAMPLES::
@@ -885,7 +919,7 @@ class SimplicialSetMorphism(Morphism):
 
     def pullback(self, *others):
         """
-        The pullback of this morphism along with ``others``.
+        Return the pullback of this morphism along with ``others``.
 
         INPUT:
 
@@ -893,7 +927,7 @@ class SimplicialSetMorphism(Morphism):
           which must all equal that of ``self``.
 
         This returns the pullback as a simplicial set. See
-        :class:`sage.homology.simplicial_set.PullbackOfSimplicialComplexes`
+        :class:`sage.homology.simplicial_set_constructions.PullbackOfSimplicialSets`
         for more documentation and examples.
 
         EXAMPLES::
@@ -921,7 +955,7 @@ class SimplicialSetMorphism(Morphism):
 
     def equalizer(self, other):
         r"""
-        The equalizer of this map with ``other``.
+        Return the equalizer of this map with ``other``.
 
         INPUT:
 
@@ -980,7 +1014,7 @@ class SimplicialSetMorphism(Morphism):
 
     def coequalizer(self, other):
         r"""
-        The coequalizer of this map with ``other``.
+        Return the coequalizer of this map with ``other``.
 
         INPUT:
 
@@ -1032,7 +1066,7 @@ class SimplicialSetMorphism(Morphism):
 
     def mapping_cone(self):
         r"""
-        The mapping cone defined by this map.
+        Return the mapping cone defined by this map.
 
         EXAMPLES::
 
@@ -1068,7 +1102,7 @@ class SimplicialSetMorphism(Morphism):
 
     def product(self, *others):
         r"""
-        The product of this map with ``others``.
+        Return the product of this map with ``others``.
 
         - ``others`` -- morphisms of simplicial sets.
 
@@ -1094,7 +1128,7 @@ class SimplicialSetMorphism(Morphism):
 
     def coproduct(self, *others):
         r"""
-        The coproduct of this map with ``others``.
+        Return the coproduct of this map with ``others``.
 
         - ``others`` -- morphisms of simplicial sets.
 
@@ -1120,8 +1154,8 @@ class SimplicialSetMorphism(Morphism):
 
     def n_skeleton(self, n, domain=None, codomain=None):
         """
-        Restriction of this morphism to the n-skeleta
-        of the domain and codomain
+        Return the restriction of this morphism to the n-skeleta of the
+        domain and codomain
 
         INPUT:
 
@@ -1132,7 +1166,8 @@ class SimplicialSetMorphism(Morphism):
           to compute it. Specifying this can be useful if the domain
           is built as a pushout or pullback, so trying to compute it
           may lead to computing the `n`-skeleton of a map, causing an
-          infinite recursion.
+          infinite recursion. (Users should not have to specify this,
+          but it may be useful for developers.)
 
         - ``codomain`` -- optional, the codomain.
 
@@ -1251,7 +1286,7 @@ class SimplicialSetMorphism(Morphism):
 
     def induced_homology_morphism(self, base_ring=None, cohomology=False):
         """
-        The map in (co)homology induced by this map
+        Return the map in (co)homology induced by this map
 
         INPUT:
 

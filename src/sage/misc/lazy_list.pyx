@@ -468,7 +468,13 @@ cdef class lazy_list_generic(object):
         if not isinstance(self, list):
             raise TypeError("can only add list to lazy_list")
 
-        return lazy_list_from_iterator(iter(other), cache=self[:])
+        cdef lazy_list_from_iterator l = lazy_list_from_iterator.__new__(lazy_list_from_iterator)
+        l.cache = self[:]
+        l.start = 0
+        l.stop = PY_SSIZE_T_MAX
+        l.step = 1
+        l.iterator = iter(other)
+        return l
 
 
     def __repr__(self):

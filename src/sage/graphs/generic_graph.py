@@ -5188,7 +5188,7 @@ class GenericGraph(GenericGraph_pyx):
 
             :meth:`blocks_and_cut_vertices`
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: T = graphs.KrackhardtKiteGraph().blocks_and_cuts_tree(); T
             Graph on 5 vertices

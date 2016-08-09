@@ -411,7 +411,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         return ~self.parent().fraction_field()(self, relprec = self.precision_relative())
 
-    def __mod__(self, right):
+    cpdef _mod_(self, right):
         """
         If self is in a field, returns 0.  If in a ring, returns a
         p-adic integer such that
@@ -468,21 +468,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
         EXAMPLES::
 
             sage: R = ZpCA(5); a = R(129378); b = R(2398125)
-            sage: a // b
-            3 + 3*5 + 4*5^2 + 2*5^4 + 2*5^6 + 4*5^7 + 5^9 + 5^10 + 5^11 + O(5^12)
-            sage: a / b
-            4*5^-4 + 3*5^-3 + 2*5^-2 + 5^-1 + 3 + 3*5 + 4*5^2 + 2*5^4 + 2*5^6 + 4*5^7 + 5^9 + 5^10 + 5^11 + O(5^12)
-            sage: a % b #indirect doctest
+            sage: a % b
             3 + 5^4 + 3*5^5 + 2*5^6 + 4*5^7 + 5^8 + O(5^16)
-
-            The alternative definition:
-
-            sage: a
-            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
-            sage: c = ((a - 3)>>4)/b.unit_part(); c
-            1 + 2*5 + 2*5^3 + 4*5^4 + 5^6 + 5^7 + 5^8 + 4*5^9 + 2*5^10 + 4*5^11 + 4*5^12 + 2*5^13 + 3*5^14 + O(5^16)
-            sage: c*b + 3
-            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
         """
         if right == 0:
             raise ZeroDivisionError

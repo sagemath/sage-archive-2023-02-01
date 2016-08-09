@@ -86,6 +86,7 @@ from sage.combinat.permutation import Arrangements
 from sage.combinat.subset import Subsets
 from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
+from sage.rings.number_field.number_field import NumberField
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     r"""
@@ -4762,6 +4763,14 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f = H([x**2 + K.gen()*y**2, x*y])
             sage: f.is_polynomial()
             False
+
+        ::
+
+            sage: PS.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(PS)
+            sage: f = H([6*x^2+12*x*y+7*y^2, 12*x*y + 42*y^2])
+            sage: f.is_polynomial()
+            False
         """
         if self.codomain().dimension_relative() != 1:
             raise NotImplementedError("space must have dimension equal to 1")
@@ -5040,7 +5049,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
         """
         if self._is_prime_finite_field:
             p = self.base_ring().characteristic()
-            P = [f(*x) % p for f in self._fastpolys]
+            P = [Integer(f(*x)) % p for f in self._fastpolys]
         else:
             P = [f(*x) for f in self._fastpolys]
         return P

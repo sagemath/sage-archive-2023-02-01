@@ -1282,6 +1282,17 @@ class InterfaceElement(RingElement):
         """
         return self._operation("/", right)
 
+    def _mod_(self, right):
+        """
+        EXAMPLES::
+
+            sage: f = gp("x^3 + x")
+            sage: g = gp("2*x + 1")
+            sage: f % g
+            -5/8
+        """
+        return self._operation("%", right)
+
     def __pow__(self, n):
         """
         EXAMPLES::

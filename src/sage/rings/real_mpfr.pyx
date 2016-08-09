@@ -2695,7 +2695,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
     # Rounding etc
     ###################
 
-    def __mod__(left, right):
+    cpdef _mod_(left, right):
         """
         Return the value of ``left - n*right``, rounded according to the
         rounding mode of the parent, where ``n`` is the integer quotient of
@@ -2712,13 +2712,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage 1.1 % 0.25
             0.100000000000000
         """
-        if not isinstance(left, Element) or \
-                not isinstance(right, Element) or \
-                (<Element>left)._parent is not (<Element>right)._parent:
-            from sage.structure.element import canonical_coercion
-            left, right = canonical_coercion(left, right)
-            return left % right
-
         cdef RealNumber x
         x = (<RealNumber>left)._new()
         mpfr_remainder (x.value, (<RealNumber>left).value,

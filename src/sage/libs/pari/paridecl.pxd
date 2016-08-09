@@ -89,10 +89,12 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     # kernel/gmp/int.h
 
-    long*   int_MSW(GEN x)
-    long*   int_LSW(GEN x)
-    long*   int_precW(long * xp)
-    long*   int_nextW(long * xp)
+    GEN     int_MSW(GEN z)
+    GEN     int_LSW(GEN z)
+    GEN     int_W(GEN z, long i)
+    GEN     int_W_lg(GEN z, long i, long lz)
+    GEN     int_precW(GEN z)
+    GEN     int_nextW(GEN z)
 
     # paristio.h
 
@@ -666,10 +668,6 @@ cdef extern from "sage/libs/pari/parisage.h":
     ulong   Flx_oneroot_split(GEN f, ulong p)
     GEN     Flx_roots(GEN f, ulong p)
     GEN     Flx_rootsff(GEN P, GEN T, ulong p)
-    GEN     FlxqX_Frobenius(GEN S, GEN T, ulong p)
-    GEN     FlxqXQ_halfFrobenius(GEN a, GEN S, GEN T, ulong p)
-    GEN     FlxqX_roots(GEN S, GEN T, ulong p)
-    long    FlxqX_nbroots(GEN f, GEN T, ulong p)
     void    FlxV_to_ZXV_inplace(GEN v)
     GEN     FpX_degfact(GEN f, GEN p)
     int     FpX_is_irred(GEN f, GEN p)
@@ -683,6 +681,17 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     FpX_roots(GEN f, GEN p)
     GEN     FpX_rootsff(GEN P, GEN T, GEN p)
     GEN     FpX_split_part(GEN f, GEN p)
+    GEN     factcantor(GEN x, GEN p)
+    GEN     factormod0(GEN f, GEN p, long flag)
+    GEN     rootmod0(GEN f, GEN p, long flag)
+
+    # FpXQX_factor.c
+
+    GEN     F2xqX_roots(GEN x, GEN T)
+    GEN     FlxqX_Frobenius(GEN S, GEN T, ulong p)
+    GEN     FlxqXQ_halfFrobenius(GEN a, GEN S, GEN T, ulong p)
+    GEN     FlxqX_roots(GEN S, GEN T, ulong p)
+    long    FlxqX_nbroots(GEN f, GEN T, ulong p)
     GEN     FpXQX_Frobenius(GEN S, GEN T, GEN p)
     GEN     FpXQX_factor(GEN x, GEN T, GEN p)
     long    FpXQX_nbfact(GEN u, GEN T, GEN p)
@@ -692,11 +701,8 @@ cdef extern from "sage/libs/pari/parisage.h":
     long    FqX_is_squarefree(GEN P, GEN T, GEN p)
     long    FqX_nbfact(GEN u, GEN T, GEN p)
     long    FqX_nbroots(GEN f, GEN T, GEN p)
-    GEN     factcantor(GEN x, GEN p)
     GEN     factorff(GEN f, GEN p, GEN a)
-    GEN     factormod0(GEN f, GEN p, long flag)
     GEN     polrootsff(GEN f, GEN p, GEN T)
-    GEN     rootmod0(GEN f, GEN p, long flag)
 
     # FpXX.c
 
@@ -4225,7 +4231,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     msnew(GEN W)
     GEN     msstar(GEN W, GEN)
     GEN     msqexpansion(GEN W, GEN proV, ulong B)
-    GEN     mssplit(GEN W, GEN H)
+    GEN     mssplit(GEN W, GEN H, long deglim)
     GEN     mstooms(GEN W, GEN phi)
 
     # zetamult.c

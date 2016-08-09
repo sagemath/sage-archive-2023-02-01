@@ -235,6 +235,8 @@ class Function_coth(GinacFunction):
             1.0037418731973213
             sage: RR(coth(pi))
             1.00374187319732
+            sage: coth(complex(1, 2))  # abs tol 1e-15
+            (0.8213297974938518+0.17138361290918508j)
 
             sage: bool(diff(coth(x), x) == diff(1/tanh(x), x))
             True
@@ -437,6 +439,8 @@ class Function_arccosh(GinacFunction):
             1.3169578969248168
             sage: cosh(float(arccosh(2)))
             2.0
+            sage: arccosh(complex(1, 2))  # abs tol 1e-15
+            (1.5285709194809982+1.1437177404024204j)
 
         .. warning::
 
@@ -676,6 +680,13 @@ class Function_arccsch(GinacFunction):
             -1/(sqrt(x^2 + 1)*x)
             sage: latex(arccsch(x))
             \operatorname{arccsch}\left(x\right)
+
+        TESTS:
+
+        Check if :trac:`20818` is fixed::
+
+            sage: arccsch(float(0.1))
+            2.99822295029797
         """
         GinacFunction.__init__(self, "arccsch",
                 latex_name=r"\operatorname{arccsch}",

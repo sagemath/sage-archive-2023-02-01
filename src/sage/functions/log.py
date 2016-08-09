@@ -866,7 +866,7 @@ class Function_exp_polar(BuiltinFunction):
             sage: exp_polar(-5.0 + 8.0*I).n()
             Traceback (most recent call last):
             ...
-            TypeError: cannot evaluate symbolic expression numerically
+            ValueError: invalid attempt to numerically evaluate exp_polar()
 
         """
         from sage.functions.other import imag
@@ -875,7 +875,7 @@ class Function_exp_polar(BuiltinFunction):
             and bool(-const_pi < imag(z) <= const_pi)):
             return exp(z)
         else:
-            return exp_polar(z)
+            raise ValueError("invalid attempt to numerically evaluate exp_polar()")
 
     def _eval_(self, z):
         """

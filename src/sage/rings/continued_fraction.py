@@ -142,7 +142,7 @@ fractions. For them special methods give access to preperiod and period::
 On the following we can remark how the tail may change even in the same
 quadratic field::
 
-    sage: for i in xrange(20): print continued_fraction(i*sqrt2)
+    sage: for i in xrange(20): print(continued_fraction(i*sqrt2))
     [0]
     [1; (2)*]
     [2; (1, 4)*]
@@ -199,11 +199,12 @@ AUTHORS:
   old implementation in ``contfrac`` (:trac:`14567`).
 """
 # python3
-from __future__ import division
+from __future__ import division, print_function
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
-from integer import Integer
-from infinity import Infinity
+from .integer import Integer
+from .infinity import Infinity
 
 ZZ_0 = Integer(0)
 ZZ_1 = Integer(1)
@@ -348,7 +349,7 @@ class ContinuedFraction_base(SageObject):
 
         EXAMPLES::
 
-            sage: print continued_fraction(pi).str()
+            sage: print(continued_fraction(pi).str())
                                          1                          
             3 + ----------------------------------------------------
                                             1                       
@@ -368,14 +369,14 @@ class ContinuedFraction_base(SageObject):
                                                                1    
                                                        2 + ---------
                                                             1 + ... 
-            sage: print continued_fraction(pi).str(nterms=1)
+            sage: print(continued_fraction(pi).str(nterms=1))
             3 + ...
-            sage: print continued_fraction(pi).str(nterms=2)
+            sage: print(continued_fraction(pi).str(nterms=2))
                     1    
             3 + ---------
                  7 + ... 
 
-            sage: print continued_fraction(243/354).str()
+            sage: print(continued_fraction(243/354).str())
                        1           
             -----------------------
                          1         
@@ -400,7 +401,7 @@ class ContinuedFraction_base(SageObject):
              '                3 + ---',
              '                     2 ']
 
-            sage: print continued_fraction(243/354).str(unicode=True)
+            sage: print(continued_fraction(243/354).str(unicode=True))
                        1           
             ───────────────────────
                          1         
@@ -1183,7 +1184,7 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
             ....:     if not k.is_square():
             ....:         s = QuadraticField(k).gen()
             ....:         cf = continued_fraction(s)
-            ....:         print '%2d %d %s'%(k, len(cf.period()), cf)
+            ....:         print('%2d %d %s' % (k, len(cf.period()), cf))
              2 1 [1; (2)*]
              3 2 [1; (1, 2)*]
              5 1 [2; (4)*]
@@ -1612,7 +1613,7 @@ class ContinuedFraction_real(ContinuedFraction_base):
         self._x0 = x
 
 
-        from real_mpfi import RealIntervalField
+        from .real_mpfi import RealIntervalField
         self._xa = RealIntervalField(53)(self._x0)   # an approximation of the
                                                      # last element of the orbit
                                                      # under the Gauss map
@@ -1769,7 +1770,7 @@ class ContinuedFraction_real(ContinuedFraction_base):
                 # approximation with the expected number of digits (see the
                 # examples). In that case, we augment the precision.
                 while x.lower().is_infinity() or x.upper().is_infinity() or x.lower().floor() != x.upper().floor():
-                    from real_mpfi import RealIntervalField
+                    from .real_mpfi import RealIntervalField
                     self._prec = x.parent().prec() + 100
                     x = RealIntervalField(self._prec)(orbit(self._x0))
 
@@ -2198,7 +2199,7 @@ def continued_fraction_list(x, type="std", partial_convergents=False, bits=None,
         sage: continued_fraction(RBF(e))
         [2; 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12]
     """
-    from rational_field import QQ
+    from .rational_field import QQ
 
     try:
         return x.continued_fraction_list(type=type)
@@ -2206,7 +2207,7 @@ def continued_fraction_list(x, type="std", partial_convergents=False, bits=None,
         pass
 
     if bits is not None:
-        from real_mpfi import RealIntervalField
+        from .real_mpfi import RealIntervalField
         x = RealIntervalField(bits)(x)
 
     if type == "hj":
@@ -2430,7 +2431,7 @@ def continued_fraction(x, value=None):
     #     sage: a = 1.575709393346379
     #     sage: a in QQ
     #     False
-    from rational_field import QQ
+    from .rational_field import QQ
     if x in QQ:
         return QQ(x).continued_fraction()
 
@@ -2440,7 +2441,7 @@ def continued_fraction(x, value=None):
     except AttributeError:
         pass
 
-    from real_mpfi import RealIntervalField, RealIntervalFieldElement
+    from .real_mpfi import RealIntervalField, RealIntervalFieldElement
     if is_real is False:
         # we can not rely on the answer of .is_real() for elements of the
         # symbolic ring. The thing below is a dirty temporary hack.

@@ -2,11 +2,22 @@ r"""
 Base class for elements of multivariate polynomial rings
 """
 
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from __future__ import print_function
+
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.element cimport coercion_model
 from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import infinity
+from sage.structure.element cimport Element
 
 from sage.misc.all import prod
 
@@ -230,7 +241,7 @@ cdef class MPolynomial(CommutativeRingElement):
         try:
             ind = Z.index(var)
         except ValueError:
-            raise ValueError, "var must be one of the generators of the parent polynomial ring."
+            raise ValueError("var must be one of the generators of the parent polynomial ring.")
         d = self.dict()
         return R(dict([(k, c) for k, c in d.iteritems() if k[ind] < n]))
 
@@ -435,7 +446,7 @@ cdef class MPolynomial(CommutativeRingElement):
         try:
             ind = Z.index(var)
         except ValueError:
-            raise ValueError, "var must be one of the generators of the parent polynomial ring."
+            raise ValueError("var must be one of the generators of the parent polynomial ring.")
 
         if R.ngens() <= 1:
             return self.univariate_polynomial()
@@ -756,9 +767,9 @@ cdef class MPolynomial(CommutativeRingElement):
             if 0 <= var < P.ngens():
                 return self._homogenize(var)
             else:
-                raise TypeError, "Variable index %d must be < parent(self).ngens()."%var
+                raise TypeError("Variable index %d must be < parent(self).ngens()." % var)
         else:
-            raise TypeError, "Parameter var must be either a variable, a string or an integer."
+            raise TypeError("Parameter var must be either a variable, a string or an integer.")
 
     def is_homogeneous(self):
         r"""
@@ -796,7 +807,7 @@ cdef class MPolynomial(CommutativeRingElement):
         else:
             return True
 
-    def __mod__(self, other):
+    cpdef _mod_(self, other):
         """
         EXAMPLES::
 
@@ -1100,7 +1111,7 @@ cdef class MPolynomial(CommutativeRingElement):
         P = self.parent()
         k = P.base_ring()
         if not k.is_field() and k.is_finite():
-            raise TypeError, "k must be a finite field"
+            raise TypeError("k must be a finite field")
         p = k.characteristic()
         e = k.degree()
         v = [self] + [self.map_coefficients(k.hom([k.gen()**(p**i)])) for i in range(1,e)]
@@ -1131,7 +1142,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f = (y + 1)*x + 3*x**2
             sage: g = (y + 2)*x + 4*x**2
             sage: M = f.sylvester_matrix(g, x)
-            sage: print M
+            sage: M
             [    3 y + 1     0     0]
             [    0     3 y + 1     0]
             [    4 y + 2     0     0]
@@ -1591,7 +1602,7 @@ cdef class MPolynomial(CommutativeRingElement):
             XY = P.one().lift((self,) + tuple(B))
             return P(XY[0])
         except ValueError:
-            raise ArithmeticError, "element is non-invertible"
+            raise ArithmeticError("element is non-invertible")
 
     def weighted_degree(self, *weights):
         """
@@ -1765,6 +1776,60 @@ cdef class MPolynomial(CommutativeRingElement):
             return self._parent(unibase._gcd_univariate_polynomial(uniself, other.polynomial(x)))
         else:
             raise NotImplementedError("GCD is not implemented for multivariate polynomials over {}".format(self._parent._mpoly_base_ring()))
+
+    def nth_root(self, n):
+        r"""
+        Return a `n`-th root of this element.
+
+        This method relies on factorization.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: a = 32 * (x*y + 1)^5 * (x+y+z)^5
+            sage: a.nth_root(5)
+            2*x^2*y + 2*x*y^2 + 2*x*y*z + 2*x + 2*y + 2*z
+            sage: b = x + 2*y + 3*z
+            sage: b.nth_root(42)
+            Traceback (most recent call last):
+            ...
+            ValueError: (x + 2*y + 3*z)^(1/42) does not lie in
+            Multivariate Polynomial Ring in x, y, z over Rational Field
+        """
+        # note: this code is duplicated in
+        # sage.rings.polynomial.polynomial_element.Polynomial.nth_root
+        from sage.rings.integer_ring import ZZ
+
+        n = ZZ.coerce(n)
+
+        if n <= 0:
+            raise ValueError("n (={}) must be positive".format(n))
+        elif n.is_one() or self.is_zero():
+            return self
+        elif self.degree() % n:
+            raise ValueError("({})^(1/{}) does not lie in {}".format(self, n, self.parent()))
+        else:
+            f = self.factor()
+            u = self.base_ring()(f.unit())
+
+            if u.is_one():
+                ans = self.parent().one()
+            else:
+                # try to compute a n-th root of the unit in the
+                # base ring. the `nth_root` method thus has to be
+                # implemented in the base ring.
+                try:
+                    ans = self.parent(u.nth_root(n))
+                except AttributeError:
+                    raise NotImplementedError("nth root not implemented for {}".format(u.parent()))
+
+            for (v, exp) in f:
+                if exp % n:
+                    raise ValueError("({})^(1/{}) does not lie in {}".format(self, n, self.parent()))
+                ans *= v ** (exp // n)
+
+            return ans
+
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

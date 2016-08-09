@@ -139,8 +139,9 @@ AUTHORS:
 #
 ##########################################################################
 from __future__ import print_function
+from __future__ import absolute_import
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
+from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.misc.misc import verbose
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.libs.pari.all import pari
@@ -526,7 +527,7 @@ class Gp(ExtraTabCompletion, Expect):
             sage: gp.get_default('log')
             0
             sage: gp.get_default('datadir')
-            '.../local/share/pari'
+            '.../share/pari'
             sage: gp.get_default('seriesprecision')
             16
             sage: gp.get_default('realprecision')

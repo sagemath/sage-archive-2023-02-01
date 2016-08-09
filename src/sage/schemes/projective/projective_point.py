@@ -31,6 +31,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.number_fields import NumberFields
@@ -376,11 +377,11 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
             sage: hash(P([1, 1]))
-            1265304440                      # 32-bit
-            7316841028997809016             # 64-bit
+            1300952125                      # 32-bit
+            3713081631935493181             # 64-bit
             sage: hash(P.point([2, 2], False))
-            1265304440                      # 32-bit
-            7316841028997809016             # 64-bit
+            1300952125                      # 32-bit
+            3713081631935493181             # 64-bit
 
         ::
 
@@ -389,11 +390,11 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: O = K.maximal_order()
             sage: P.<x,y> = ProjectiveSpace(O, 1)
             sage: hash(P([1+w, 2]))
-            -609701421                     # 32-bit
-            4801154424156762579            # 64-bit
+            -1562365407                    # 32-bit
+            1251212645657227809            # 64-bit
             sage: hash(P([2, 1-w]))
-            -609701421                     # 32-bit
-            4801154424156762579            # 64-bit
+            -1562365407                    # 32-bit
+            1251212645657227809            # 64-bit
 
         ::
 
@@ -408,7 +409,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         if R in IntegralDomains():
             P = self.change_ring(FractionField(R))
             P.normalize_coordinates()
-            return hash(str(P))
+            return hash(tuple(P))
         #if there is no good way to normalize return
         #a constant value
         return hash(self.codomain())
@@ -1615,15 +1616,15 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: hash(P([1/2, 1]))
-            -1741117121                     # 32-bit
-            3714374126286711103             # 64-bit
+            -1503642134                     # 32-bit
+            -6819944855328768534            # 64-bit
             sage: hash(P.point([1, 2], False))
-            -1741117121                     # 32-bit
-            3714374126286711103             # 64-bit
+            -1503642134                     # 32-bit
+            -6819944855328768534            # 64-bit
         """
         P = copy(self)
         P.normalize_coordinates()
-        return hash(str(P))
+        return hash(tuple(P))
 
     def normalize_coordinates(self):
         r"""
@@ -1721,6 +1722,74 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             (3 : 2)
         """
         self.scale_by(lcm([t.denominator() for t in self]))
+
+    def intersection_multiplicity(self, X):
+        r"""
+        Return the intersection multiplicity of the codomain of this point and ``X`` at this point.
+
+        This uses the intersection_multiplicity implementations for projective/affine subschemes. This
+        point must be a point of a projective subscheme.
+
+        INPUT:
+
+        - ``X`` -- a subscheme in the same ambient space as that of the codomain of this point.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: X = P.subscheme([x*z - y^2])
+            sage: Y = P.subscheme([x^3 - y*w^2 + z*w^2, x*y - z*w])
+            sage: Q1 = X([1/2, 1/4, 1/8, 1])
+            sage: Q1.intersection_multiplicity(Y)
+            1
+            sage: Q2 = X([0,0,0,1])
+            sage: Q2.intersection_multiplicity(Y)
+            5
+            sage: Q3 = X([0,0,1,0])
+            sage: Q3.intersection_multiplicity(Y)
+            6
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: X = P.subscheme([x^2 - y^2])
+            sage: Q = P([1,1,1,0])
+            sage: Q.intersection_multiplicity(X)
+            Traceback (most recent call last):
+            ...
+            TypeError: this point must be a point on a projective subscheme
+        """
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        if is_ProjectiveSpace(self.codomain()):
+            raise TypeError("this point must be a point on a projective subscheme")
+        return self.codomain().intersection_multiplicity(X, self)
+
+    def multiplicity(self):
+        r"""
+        Return the multiplicity of this point on its codomain.
+
+        Uses the subscheme multiplicity implementation. This point must be a point on
+        a projective subscheme.
+
+        OUTPUT: an integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w,t> = ProjectiveSpace(QQ, 4)
+            sage: X = P.subscheme([y^6 - x^3*w^2*t + t^5*w, x^2 - t^2])
+            sage: Q1 = X([1,0,2,1,1])
+            sage: Q1.multiplicity()
+            1
+            sage: Q2 = X([0,0,-2,1,0])
+            sage: Q2.multiplicity()
+            8
+        """
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        if is_ProjectiveSpace(self.codomain()):
+            raise TypeError("this point must be a point on a projective subscheme")
+        return self.codomain().multiplicity(self)
 
 class SchemeMorphism_point_projective_finite_field(SchemeMorphism_point_projective_field):
 

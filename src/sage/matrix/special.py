@@ -11,7 +11,8 @@ Constructors for special matrices
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
+from __future__ import absolute_import
 
 import sage.rings.all as rings
 from sage.rings.ring import is_Ring
@@ -20,7 +21,7 @@ from sage.modules.free_module_element import vector
 from sage.structure.element import is_Vector
 from sage.rings.all import ZZ, QQ
 from sage.misc.misc_c import running_total
-from matrix import is_Matrix
+from .matrix import is_Matrix
 from copy import copy
 from .constructor import matrix
 
@@ -201,8 +202,8 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
 
         Matrices generated are not uniformly distributed. For unimodular
         matrices over finite field this function does not even generate
-        all of them: for example ``Matrix.random(GF(3), 2)`` never
-        generates ``[[2,0],[0,2]]``. This function is made for
+        all of them: for example ``Matrix.random(GF(3), 2, algorithm='unimodular')``
+        never generates ``[[2,0],[0,2]]``. This function is made for
         teaching purposes.
 
     .. warning::
@@ -1831,7 +1832,7 @@ def block_matrix(*args, **kwds):
     if len(args) == 0:
         args = [[]]
     if len(args) > 1:
-        print args
+        print(args)
         raise TypeError("invalid block_matrix invocation")
 
     sub_matrices = args[0]
@@ -1880,7 +1881,6 @@ def block_matrix(*args, **kwds):
             if ncols is None:
                 if n.is_square():
                     import warnings
-                    warnings.resetwarnings()
                     warnings.warn("invocation of block_matrix with just a list whose length is a perfect square is deprecated. See the documentation for details.", DeprecationWarning, stacklevel=2)
                     nrows = ncols = n.sqrt()
                 else:

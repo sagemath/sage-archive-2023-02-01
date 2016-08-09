@@ -76,12 +76,16 @@ Check that Cython source code appears in tracebacks::
     sage: shell = get_test_shell()
     sage: shell.run_cell('1/0')
     ---------------------------------------------------------------------------
-    .../sage/rings/integer_ring.pyx in sage.rings.integer_ring.IntegerRing_class._div (.../cythonized/sage/rings/integer_ring.c:...)()
-        ...         cdef rational.Rational x = rational.Rational.__new__(rational.Rational)
-        ...         if mpz_sgn(right.value) == 0:
-        ...             raise ZeroDivisionError('rational division by zero')
-        ...         mpz_set(mpq_numref(x.value), left.value)
-        ...         mpz_set(mpq_denref(x.value), right.value)
+    ZeroDivisionError                         Traceback (most recent call last)
+    <ipython-input-...> in <module>()
+    ----> 1 Integer(1)/Integer(0)
+    <BLANKLINE>
+    .../src/sage/rings/integer.pyx in sage.rings.integer.Integer.__div__ (.../cythonized/sage/rings/integer.c:...)()
+       ...          if type(left) is type(right):
+       ...              if mpz_sgn((<Integer>right).value) == 0:
+    -> ...                  raise ZeroDivisionError("rational division by zero")
+       ...              x = <Rational> Rational.__new__(Rational)
+       ...              mpq_div_zz(x.value, (<Integer>left).value, (<Integer>right).value)
     <BLANKLINE>
     ZeroDivisionError: rational division by zero
     sage: shell.quit()
@@ -180,10 +184,6 @@ class SageShellOverride(object):
         """
         Run a system command.
 
-        If the command is not a sage-specific binary, adjust the library
-        paths before calling system commands.  See :trac:`975` for a
-        discussion of running system commands.
-
         This is equivalent to the sage-native-execute shell script.
 
         EXAMPLES::
@@ -196,22 +196,12 @@ class SageShellOverride(object):
             sage: shell.system_raw('true')
             sage: shell.user_ns['_exit_code']
             0
-            sage: shell.system_raw('env | grep "^LD_LIBRARY_PATH=" | grep $SAGE_LOCAL')
-            sage: shell.user_ns['_exit_code']
-            1
             sage: shell.system_raw('R --version')
             R version ...
             sage: shell.user_ns['_exit_code']
             0
             sage: shell.quit()
         """
-        path = os.path.join(SAGE_LOCAL, 'bin',
-                            re.split(r'[\s|;&]', cmd)[0])
-        if not os.access(path, os.X_OK):
-            libraries = 'LD_LIBRARY_PATH="$SAGE_ORIG_LD_LIBRARY_PATH";export LD_LIBRARY_PATH;'
-            if os.uname()[0]=='Darwin':
-                libraries += 'DYLD_LIBRARY_PATH="$SAGE_ORIG_DYLD_LIBRARY_PATH";export DYLD_LIBRARY_PATH;'
-            cmd = libraries+cmd
         return super(SageShellOverride, self).system_raw(cmd)
 
 
@@ -731,10 +721,10 @@ class SageTerminalApp(TerminalIPythonApp):
     name = u'Sage'
     crash_handler_class = SageCrashHandler
 
-    test_shell = Bool(False, config=True,
-                      help='Whether the shell is a test shell')
-    shell_class = Type(InteractiveShell, config=True,
-                       help='Type of the shell')
+    test_shell = Bool(False, help='Whether the shell is a test shell')
+    test_shell.tag(config=True)
+    shell_class = Type(InteractiveShell, help='Type of the shell')
+    shell_class.tag(config=True)
 
     def load_config_file(self, *args, **kwds):
         r"""

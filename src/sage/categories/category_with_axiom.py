@@ -1693,10 +1693,12 @@ def uncamelcase(s,separator=" "):
 
         sage: sage.categories.category_with_axiom.uncamelcase("FiniteDimensionalAlgebras")
         'finite dimensional algebras'
+        sage: sage.categories.category_with_axiom.uncamelcase("JTrivialMonoids")
+        'j trivial monoids'
         sage: sage.categories.category_with_axiom.uncamelcase("FiniteDimensionalAlgebras", "_")
         'finite_dimensional_algebras'
     """
-    return re.sub("[a-z][A-Z]", lambda match: match.group()[0]+separator+match.group()[1], s).lower()
+    return re.sub("(?!^)[A-Z]", lambda match: separator+match.group()[0], s).lower()
 
 def base_category_class_and_axiom(cls):
     """

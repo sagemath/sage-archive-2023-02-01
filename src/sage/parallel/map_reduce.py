@@ -499,7 +499,7 @@ Generating series for sum of strictly decreassing list of integer smaller than
 Classes and methods
 -------------------
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from multiprocessing import Process, Value, Semaphore, Lock, cpu_count
 from multiprocessing.queues import Pipe, SimpleQueue
@@ -507,7 +507,11 @@ from multiprocessing.sharedctypes import RawArray
 from threading import Thread
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet # _generic
 from sage.misc.lazy_attribute import lazy_attribute
-import collections, copy, sys, random, ctypes
+import collections
+import copy
+import sys
+import random
+import ctypes
 
 
 import logging

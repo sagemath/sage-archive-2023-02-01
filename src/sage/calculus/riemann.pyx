@@ -24,6 +24,7 @@ Development supported by NSF award No. 0702939.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 
@@ -169,7 +170,7 @@ cdef class Riemann_Map:
     Compute rough error for this map::
 
         sage: x = 0.75  # long time
-        sage: print "error =", m.inverse_riemann_map(m.riemann_map(x)) - x  # long time
+        sage: print("error = {}".format(m.inverse_riemann_map(m.riemann_map(x)) - x))  # long time
         error = (-0.000...+0.0016...j)
 
     A fun, complex region for demonstration purposes::
@@ -802,7 +803,7 @@ cdef class Riemann_Map:
             sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
             sage: m = Riemann_Map([f], [fprime], 0)
             sage: data = m.compute_on_grid([],5)
-            sage: print data[0][8,1]
+            sage: data[0][8,1]
             (-0.0879...+0.9709...j)
         """
         cdef FLOAT_T xmin, xmax, xstep, ymin, ymax, ystep

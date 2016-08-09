@@ -124,6 +124,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ######################################################################
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
 import sage.arith.all as arith
@@ -143,7 +145,7 @@ def _ex_set(p):
     EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.gal_reps import _ex_set
-        sage: for p in prime_range(3,30): print p, _ex_set(p)
+        sage: for p in prime_range(3,30): print("{} {}".format(p, _ex_set(p)))
         3 [0, 1, 2, 1]
         5 [0, 1, 2, 4]
         7 [0, 1, 2, 4]
@@ -365,7 +367,7 @@ class GaloisRepresentation(SageObject):
 
         E = self._E
         j = E.j_invariant()
-        from isogeny_small_degree import sporadic_j
+        from .isogeny_small_degree import sporadic_j
         if j in sporadic_j: # includes all CM j-invariants
             R = [sporadic_j[j]]
         else:
@@ -1243,7 +1245,6 @@ class GaloisRepresentation(SageObject):
                 d = (self._E.ap(ell)**2 * ell.inverse_mod(p)) % p
                 res[d] += 1
                 co += 1
-        # print res
         Rt = RealField(16)
         res = [Rt(x)/Rt(co) for x in res]
         return res

@@ -21,6 +21,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import sage.misc.latex
 import sage.interfaces.expect
@@ -34,7 +35,7 @@ import sage.rings.real_mpfr
 import sage.rings.complex_field
 import sage.rings.integer
 
-import __builtin__
+from six.moves import builtins
 
 LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
@@ -1478,16 +1479,16 @@ def round(x, ndigits=0):
        This is currently slower than the builtin round function, since
        it does more work - i.e., allocating an RDF element and
        initializing it. To access the builtin version do
-       ``import __builtin__; __builtin__.round``.
+       ``from six.moves import builtins; builtins.round``.
     """
     try:
         if ndigits:
-            return RealDoubleElement(__builtin__.round(x, ndigits))
+            return RealDoubleElement(builtins.round(x, ndigits))
         else:
             try:
                 return x.round()
             except AttributeError:
-                return RealDoubleElement(__builtin__.round(x, 0))
+                return RealDoubleElement(builtins.round(x, 0))
     except ArithmeticError:
         if not isinstance(x, RealDoubleElement):
             return round(RDF(x), ndigits)

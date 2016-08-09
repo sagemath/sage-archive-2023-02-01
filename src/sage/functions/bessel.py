@@ -363,7 +363,7 @@ class Function_Bessel_J(BuiltinFunction):
             bessel_J(n, 0)
         """
         from sage.rings.infinity import unsigned_infinity
-        if x == 0:
+        if not isinstance(x, Expression) and x == 0:
             if n == 0:
                 return ZZ(1)
             elif n.real() > 0 or n in ZZ:
@@ -569,7 +569,7 @@ class Function_Bessel_Y(BuiltinFunction):
             sqrt(2)*sqrt(1/(pi*x))*sin(x)
         """
         from sage.rings.infinity import infinity, unsigned_infinity
-        if x == 0:
+        if not isinstance(x, Expression) and x == 0:
             if n == 0:
                 return -infinity
             elif n.real() > 0 or n.real() < 0:
@@ -773,7 +773,7 @@ class Function_Bessel_I(BuiltinFunction):
             bessel_I(n, 0)
         """
         from sage.rings.infinity import unsigned_infinity
-        if x == 0:
+        if not isinstance(x, Expression) and x == 0:
             if n == 0:
                 return ZZ(1)
             elif n.real() > 0 or n in ZZ:
@@ -962,7 +962,7 @@ class Function_Bessel_K(BuiltinFunction):
             bessel_K(n, 0)
         """
         from sage.rings.infinity import unsigned_infinity
-        if x == 0:
+        if not isinstance(x, Expression) and x == 0:
             if n == 0:
                 return infinity
             elif n.real() > 0 or n.real() < 0:

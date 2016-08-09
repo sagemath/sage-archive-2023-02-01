@@ -780,7 +780,6 @@ def xydata_from_point_list(points):
 
     return xdata, ydata
 
-#@rename_keyword(color='rgbcolor')
 @options(alpha=1, thickness=1, fill=False, fillcolor='automatic', fillalpha=0.5, plot_points=200,
          adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles=False, exclude=None, legend_label=None,
          __original_opts=True, aspect_ratio='automatic')
@@ -1859,7 +1858,7 @@ def plot(funcs, *args, **kwds):
     if 'color' in kwds and 'rgbcolor' in kwds:
         raise ValueError('only one of color or rgbcolor should be specified')
     elif 'color' in kwds:
-        kwds['rgbcolor'] = kwds.pop('color', None) # not sure why value is a list.
+        kwds['rgbcolor'] = kwds.pop('color', (0,0,1)) # take blue as default ``rgbcolor``
     G_kwds = Graphics._extract_kwds_for_show(kwds, ignore=['xmin', 'xmax'])
 
     original_opts = kwds.pop('__original_opts', {})
@@ -2004,11 +2003,11 @@ def _plot(funcs, xrange, parametric=False,
     funcs, ranges = setup_for_eval_on_grid(funcs, [xrange], options['plot_points'])
     xmin, xmax, delta = ranges[0]
     xrange=ranges[0][:2]
-    #parametric_plot will be a list or tuple of two functions (f,g)
-    #and will plotted as (f(x), g(x)) for all x in the given range
+    # parametric_plot will be a list or tuple of two functions (f,g)
+    # and will plotted as (f(x), g(x)) for all x in the given range
     if parametric:
         f, g = funcs
-    #or we have only a single function to be plotted:
+    # or we have only a single function to be plotted:
     else:
         f = funcs
 
@@ -2018,7 +2017,7 @@ def _plot(funcs, xrange, parametric=False,
         if 'rgbcolor' in options.keys() and options['rgbcolor'] == 'automatic':
             options['rgbcolor'] = (0, 0, 1) # default color for a single curve.
 
-    #check to see if funcs is a list of functions that will be all plotted together.
+    # Check to see if funcs is a list of functions that will be all plotted together.
     if isinstance(funcs, (list, tuple)) and not parametric:
         from sage.rings.integer import Integer
         def golden_rainbow(i,lightness=0.4):
@@ -2120,10 +2119,12 @@ def _plot(funcs, xrange, parametric=False,
                 if i == 0:
                     legend_label_entry = legend_label_temp
                 else:
+                    # create only one legend entry if plots are one color and only one legend_label is given.
+                    # give subsequent entries no label (show only their colored `linestyle` markers)
                     if isinstance(color_entry, str) or (isinstance(color_entry, tuple) and not isinstance(color_entry[0], str)):
-                        legend_label_entry = None # create only one legend entry if plots are one color and only one legend_label is given.
+                        legend_label_entry = None 
                     else:
-                        legend_label_entry = ' ' # give subsequent entries no label (show only their colored `handles`)
+                        legend_label_entry = ' ' 
             elif legend_label_temp is not None:
                 legend_label_entry = orig_funcs[i].__repr__() # the 'automatic' choice
                 if isinstance(legend_label_temp, dict):

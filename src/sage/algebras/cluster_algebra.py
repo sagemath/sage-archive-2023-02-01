@@ -993,7 +993,7 @@ class ClusterAlgebra(Parent):
             permuting variables and coefficients and/or freezing some initial
             cluster variables. 
             
-            Otherwise allow anthing that coerces into ``self.base()`` to coerce
+            Otherwise allow anything that coerces into ``self.base()`` to coerce
             into ``self``.
 
         EXAMPLES::

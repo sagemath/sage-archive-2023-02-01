@@ -76,7 +76,7 @@ from types import MethodType
 ##############################################################################
 # Helper functions
 ##############################################################################
-def mutation_parse(mutate): # READY
+def _mutation_parse(mutate): # READY
     r"""
     Preparse input for mutation functions.
 
@@ -269,7 +269,7 @@ def is_homogeneous(self):   #READY
 
 def homogeneous_components(self):   #READY
     r"""
-    Return a dictionary of the homogeneous components of ``self''.
+    Return a dictionary of the homogeneous components of ``self``.
 
     OUTPUT:
 
@@ -442,6 +442,7 @@ class ClusterAlgebraSeed(SageObject):
         Return the parent of ``self``.
 
         EXAMPLES::
+
             sage: A = ClusterAlgebra(['B',3])
             sage: A.current_seed().parent() == A
             True
@@ -663,7 +664,7 @@ class ClusterAlgebraSeed(SageObject):
         """
         return [self.parent().cluster_variable(g) for g in self.g_vectors()]
 
-    @mutation_parse
+    @_mutation_parse
     def mutate(self, k, mutating_F=True):   # READY
         r"""
         Mutate ``self``.
@@ -833,12 +834,12 @@ class ClusterAlgebra(Parent):
         REFERENCES:
 
         .. [FZ07] \S. Fomin and \A. Zelevinsky, "Cluster algebras IV.
-           Coefficients", Compos. Math. 143 (2007), no. 1, 112–164.
+           Coefficients", Compos. Math. 143 (2007), no. 1, 112-164.
 
         .. [NZ12] \T. Nakanishi and \A. Zelevinsky, "On tropical dualities in
            cluster algebras', Algebraic groups and quantum groups, Contemp.
            Math., vol. 565, Amer. Math. Soc., Providence, RI, 2012, pp.
-           217–226.
+           217-226.
         """
         # Temporary variables
         Q = ClusterQuiver(data)
@@ -1558,7 +1559,7 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``depth`` -- the maximum depth at which to comute.
+        - ``depth`` -- (default ``infinity``): the maximum depth at which to comute.
 
         EXAMPLES::
 
@@ -1570,7 +1571,7 @@ class ClusterAlgebra(Parent):
         cones = map(lambda s: Cone(s.g_vectors()), seeds)
         return Fan(cones)
 
-    @mutation_parse
+    @_mutation_parse
     def mutate_initial(self, k):
         r"""
         Return the cluster algebra obtained by mutating ``self`` at the initial seed.
@@ -1582,7 +1583,7 @@ class ClusterAlgebra(Parent):
             This function computes data for the new algebra from known data for
             the old algebra using [NZ12]_ equation (4.2) for g-vectors, and
             [FZ07]_ equation (6.21) for F-polynomials. The exponent h in the
-            formula for F-polynomials is -min(0,old_g_vect[k]) due to [NZ07]_
+            formula for F-polynomials is -min(0,old_g_vect[k]) due to [NZ12]_
             Proposition 4.2.
 
         EXAMPLES::

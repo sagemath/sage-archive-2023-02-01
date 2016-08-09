@@ -113,3 +113,10 @@ cd "$BUILD"
 ) >Makefile
 
 $MAKE
+
+# Install symlinks bin/aclocal-AM_API_VERSION and bin/automake-AM_API_VERSION.
+# (am__api_version).  These are required for autoreconf to work (Trac #21047).
+cd "$SAGE_LOCAL"/bin
+for x in $automake_versions; do
+    ln -sf ../automake-$x/bin/automake-* ../automake-$x/bin/aclocal-* .
+done

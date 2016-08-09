@@ -334,7 +334,7 @@ class ClusterAlgebraSeed(SageObject):
             sage: A = ClusterAlgebra(['F',4])
             sage: from sage.algebras.cluster_algebra import ClusterAlgebraSeed
             sage: ClusterAlgebraSeed(A.b_matrix(),identity_matrix(4),identity_matrix(4),A,path=[1,2,3])
-            The seed of A Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients  over Integer Ring obtained from the initial by mutating along the sequence [1, 2, 3]
+            The seed of A Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring obtained from the initial by mutating along the sequence [1, 2, 3]
 
         """
         self._B = copy(B)
@@ -424,11 +424,11 @@ class ClusterAlgebraSeed(SageObject):
 
             sage: A = ClusterAlgebra(['A',3])
             sage: S = A.current_seed(); S
-            The initial seed of A Cluster Algebra with cluster variables x0, x1, x2 and no coefficients  over Integer Ring
+            The initial seed of A Cluster Algebra with cluster variables x0, x1, x2 and no coefficients over Integer Ring
             sage: S.mutate(0); S
-            The seed of A Cluster Algebra with cluster variables x0, x1, x2 and no coefficients  over Integer Ring obtained from the initial by mutating in direction 0
+            The seed of A Cluster Algebra with cluster variables x0, x1, x2 and no coefficients over Integer Ring obtained from the initial by mutating in direction 0
             sage: S.mutate(1); S
-            The seed of A Cluster Algebra with cluster variables x0, x1, x2 and no coefficients  over Integer Ring obtained from the initial by mutating along the sequence [0, 1]
+            The seed of A Cluster Algebra with cluster variables x0, x1, x2 and no coefficients over Integer Ring obtained from the initial by mutating along the sequence [0, 1]
         """
         if self._path == []:
             return "The initial seed of %s"%str(self.parent())
@@ -682,7 +682,7 @@ class ClusterAlgebraSeed(SageObject):
             sage: A = ClusterAlgebra(['A',2])
             sage: S = A.initial_seed()
             sage: S.mutate(0); S
-            The seed of A Cluster Algebra with cluster variables x0, x1 and no coefficients  over Integer Ring obtained from the initial by mutating in direction 0
+            The seed of A Cluster Algebra with cluster variables x0, x1 and no coefficients over Integer Ring obtained from the initial by mutating in direction 0
             sage: S.mutate(5)
             Traceback (most recent call last):
             ...
@@ -820,7 +820,7 @@ class ClusterAlgebra(Parent):
             sage: A.gens()
             [x0, x1, x2, x3, y0, y1]
             sage: A = ClusterAlgebra(['A',2]); A
-            A Cluster Algebra with cluster variables x0, x1 and no coefficients  over Integer Ring
+            A Cluster Algebra with cluster variables x0, x1 and no coefficients over Integer Ring
             sage: A = ClusterAlgebra(['A',2], principal_coefficients=True); A.gens()
             [x0, x1, y0, y1]
             sage: A = ClusterAlgebra(['A',2], principal_coefficients=True, coefficient_prefix='x'); A.gens()
@@ -1068,7 +1068,7 @@ class ClusterAlgebra(Parent):
             
             sage: A = ClusterAlgebra(['A',2])
             sage: A.current_seed()
-            The initial seed of A Cluster Algebra with cluster variables x0, x1 and no coefficients  over Integer Ring
+            The initial seed of A Cluster Algebra with cluster variables x0, x1 and no coefficients over Integer Ring
         """
         return self._seed
 
@@ -1140,7 +1140,7 @@ class ClusterAlgebra(Parent):
             
             sage: A = ClusterAlgebra(['A',2])
             sage: A.initial_seed()
-            The initial seed of A Cluster Algebra with cluster variables x0, x1 and no coefficients  over Integer Ring
+            The initial seed of A Cluster Algebra with cluster variables x0, x1 and no coefficients over Integer Ring
         """
         n = self.rk()
         I = identity_matrix(n)

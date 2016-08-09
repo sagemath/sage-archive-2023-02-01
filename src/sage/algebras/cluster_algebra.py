@@ -892,7 +892,7 @@ class ClusterAlgebra(Parent):
         # Add methods that are defined only for special cases
         if n == 2 and m == 0:
             self.greedy_element = MethodType(greedy_element, self, self.__class__)
-            self.greedy_coefficient = MethodType(greedy_coefficient, self, self.__class__)
+            self._greedy_coefficient = MethodType(_greedy_coefficient, self, self.__class__)
 
         # Register embedding into self.ambient()
         embedding = SetMorphism(Hom(self,self.ambient()), lambda x: x.lift())
@@ -1667,58 +1667,79 @@ class ClusterAlgebra(Parent):
 # Methods only defined for special cases
 ####
 
-# Greedy elements exist only in rank 2
-# Does not yet take into account coefficients, this can probably be done by
-# using the greedy coefficients to write down the F-polynomials
-def greedy_element(self, d_vector):
-    b = abs(self._B0[0,1])
-    c = abs(self._B0[1,0])
-    a1 = d_vector[0]
-    a2 = d_vector[1]
-    # TODO: we need to have something like initial_cluster_variables so that we
-    # do not have to use the generators of the ambient field. (this would also
-    # make it better behaved when allowing different names)
-    # Warning: there might be issues with coercions, make sure there are not
-    x1 = self._ambient.gens()[0]
-    x2 = self._ambient.gens()[1]
+def greedy_element(self, d_vector): 
+    r"""
+    Return the greedy element with d-vector ``d_vector``.
+
+    INPUT
+
+    - ``d_vector`` -- tuple of 2 integers: the d-vector of the element to compute.
+
+    ALGORITHM:
+
+        This implements bla from [LLZ??]_ ????
+
+    REFERENCES:
+    
+    .. [LLZ??] \S. Fomin and \A. Zelevinsky, "Cluster algebras IV.
+       Coefficients", Compos. Math. 143 (2007), no. 1, 112–164.
+       CHANGETHIS!!!!!
+
+    EXAMPLES::
+
+        sage: A = ClusterAlgebra(['A',[1,1],1])
+        sage: A.greedy_element((1,1))
+        (x0^2 + x1^2 + 1)/(x0*x1)
+    """
+    b = abs(self.b_matrix()[0,1])
+    c = abs(self.b_matrix()[1,0])
+    (a1, a2) = d_vector
+    # here we use the generators of self.ambient() because cluster variables do not have an inverse.
+    (x1, x2) = self.ambient().gens()
     if a1 < 0:
         if a2 < 0:
-            return self.retract(x1**(-a1)*x2**(-a2))
+            return self.retract(x1**(-a1) * x2**(-a2))
         else:
-            return self.retract(x1**(-a1)*((1+x2**c)/x1)**a2)
+            return self.retract(x1**(-a1) * ((1+x2**c)/x1)**a2)
     elif a2 < 0:
-        return self.retract(((1+x1**b)/x2)**a1*x2**(-a2))
+        return self.retract(((1+x1**b)/x2)**a1 * x2**(-a2))
     output = 0
-    for p in xrange(0,a2+1):
-        for q in xrange(0,a1+1):
-            output += self.greedy_coefficient(d_vector,p,q)*x1**(b*p)*x2**(c*q)
-    return self.retract(x1**(-a1)*x2**(-a2)*output)
+    for p in xrange(0, a2+1):
+        for q in xrange(0, a1+1):
+            output += self._greedy_coefficient(d_vector, p, q) * x1**(b*p) * x2**(c*q)
+    return self.retract(x1**(-a1) * x2**(-a2) * output)
 
-# Is this function something we want to make public or do we want to make this a
-# private method changing it to _greedy_coefficient ?
-def greedy_coefficient(self,d_vector,p,q):
-    b = abs(self._B0[0,1])
-    c = abs(self._B0[1,0])
-    a1 = d_vector[0]
-    a2 = d_vector[1]
+def _greedy_coefficient(self,d_vector,p,q): # READY
+    r"""
+    Return the coefficient of the monomial ``x1**(b*p) * x2**(c*q)`` in the numerator of the greedy element with d-vector ``d_vector``.
+
+    EXAMPLES::
+
+        sage: A = ClusterAlgebra(['A',[1,1],1])
+        sage: A.greedy_element((1,1))
+        (x0^2 + x1^2 + 1)/(x0*x1)
+        sage: A._greedy_coefficient((1,1),0,0)
+        1
+        sage: A._greedy_coefficient((1,1),1,0)
+        1
+    """
+    b = abs(self.b_matrix()[0,1])
+    c = abs(self.b_matrix()[1,0])
+    (a1, a2) = d_vector
     p = Integer(p)
     q = Integer(q)
     if p == 0 and q == 0:
-        return 1
+        return Integer(1)
     sum1 = 0
     for k in range(1,p+1):
-        bin = 0
-        if a2-c*q+k-1 >= k:
-            bin = binomial(a2-c*q+k-1,k)
-        sum1 += (-1)**(k-1)*self.greedy_coefficient(d_vector,p-k,q)*bin
+        bino = 0
+        if a2 - c*q + k - 1 >= k:
+            bino = binomial(a2 - c*q + k - 1, k)
+        sum1 += (-1)**(k-1) * self._greedy_coefficient(d_vector, p-k, q) * bino
     sum2 = 0
-    for l in range(1,q+1):
-        bin = 0
-        if a1-b*p+l-1 >= l:
-            bin = binomial(a1-b*p+l-1,l)
-        sum2 += (-1)**(l-1)*self.greedy_coefficient(d_vector,p,q-l)*bin
-    #print "sum1=",sum1,"sum2=",sum2
-    return max(sum1,sum2)
-
-
-
+    for l in range(1, q+1):
+        bino = 0
+        if a1 - b*p + l - 1 >= l:
+            bino = binomial(a1 - b*p + l - 1, l)
+        sum2 += (-1)**(l-1) * self._greedy_coefficient(d_vector, p, q-l) * bino
+    return Integer(max(sum1, sum2))

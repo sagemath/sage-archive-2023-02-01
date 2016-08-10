@@ -129,6 +129,11 @@ class kRegularSequence(Element):
             ....:      Matrix([[0, 1]]), Matrix([[1], [0]]),
             ....:      lambda o: o[0, 0], transpose=True)
             2-regular sequence 0, 1, 3, 5, 9, 11, 15, 19, 27, 29, ...
+
+        .. SEEALSO::
+
+            :doc:`k-regular sequence <k_regular_sequence>`,
+            :class:`kRegularSequenceSpace`.
         """
         super(kRegularSequence, self).__init__(parent=parent)
 
@@ -159,7 +164,7 @@ class kRegularSequence(Element):
 
     def _repr_(self):
         r"""
-        Return a representation string of this `k`-regular sequence
+        Return a representation string of this `k`-regular sequence.
 
         OUTPUT:
 
@@ -359,5 +364,17 @@ class kRegularSequenceSpace(UniqueRepresentation, Parent):
 
 
     def _repr_(self):
+        r"""
+        Return a representation string of this `k`-regular sequence space.
+
+        OUTPUT:
+
+        A string
+
+        TESTS::
+
+            sage: repr(kRegularSequenceSpace(2, ZZ))  # indirect doctest
+            'Space of 2-regular sequences over Integer Ring'
+        """
         return 'Space of {}-regular sequences over {}'.format(self.k, self.base())
 

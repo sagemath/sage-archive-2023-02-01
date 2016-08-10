@@ -132,7 +132,7 @@ Sage example in ./recequadiff.tex, line 408::
   sage: for k in range(1,20,2):
   ...       P += plot(solve(ed, y)[0].subs(c == 1+k/4).rhs(), x, -3, 3)
   sage: P
-  Graphics object consisting of 10 graphics primitives
+  Graphics object consisting of 1... graphics primitives
 
 Sage example in ./recequadiff.tex, line 426::
 

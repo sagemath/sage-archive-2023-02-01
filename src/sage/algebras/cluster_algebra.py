@@ -1555,7 +1555,7 @@ class ClusterAlgebra(Parent):
                         # we got a new seed
                         gets_bigger = True
                         # next round do not mutate back to sd and do commuting mutations only in directions j > i
-                        new_directions = [ j for j in copy(allowed_dirs) if j > i or new_sd.b_matrix()[j,i] != 0 ]
+                        new_directions = [ j for j in allowed_dirs if j > i or new_sd.b_matrix()[j,i] != 0 ]
                         clusters[new_cl] = [ new_sd, new_directions ]
                         yield new_sd
             # we went one step deeper

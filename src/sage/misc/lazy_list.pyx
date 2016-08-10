@@ -312,23 +312,23 @@ def lazy_list_formatter(L, name=None, separator=None, more=None,
         sage: from sage.misc.lazy_list import lazy_list
         sage: L = lazy_list(Primes()); L
         lazy list [2, 3, 5, ...]
-        sage: repr(L) == L.str()
+        sage: repr(L) == lazy_list_formatter(L)
         True
-        sage: L.str(name='primes')
+        sage: lazy_list_formatter(L, name='primes')
         'primes [2, 3, 5, ...]'
-        sage: L.str(opening_delimiter='(', closing_delimiter=')')
+        sage: lazy_list_formatter(L, opening_delimiter='(', closing_delimiter=')')
         'lazy list (2, 3, 5, ...)'
-        sage: L.str(opening_delimiter='', closing_delimiter='')
+        sage: lazy_list_formatter(L, opening_delimiter='', closing_delimiter='')
         'lazy list 2, 3, 5, ...'
-        sage: L.str(separator='--')
+        sage: lazy_list_formatter(L, separator='--')
         'lazy list [2--3--5--...]'
-        sage: L.str(more='and more')
+        sage: lazy_list_formatter(L, more='and more')
         'lazy list [2, 3, 5, and more]'
-        sage: L.str(preview=10)
+        sage: lazy_list_formatter(L, preview=10)
         'lazy list [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, ...]'
-        sage: L.str(name='primes',
-        ....:       opening_delimiter='', closing_delimiter='',
-        ....:       separator=' ', more='->', preview=7)
+        sage: lazy_list_formatter(L, name='primes',
+        ....:                     opening_delimiter='', closing_delimiter='',
+        ....:                     separator=' ', more='->', preview=7)
         'primes 2 3 5 7 11 13 17 ->'
     """
     if name is None:

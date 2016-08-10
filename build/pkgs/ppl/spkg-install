@@ -48,6 +48,10 @@ if [ $? -ne 0 ]; then
     fi
 fi
 
+if [ "$UNAME" = "CYGWIN" ]; then
+    sed -i 's/#define HAVE_DECL_SETITIMER 1/#define HAVE_DECL_SETITIMER 0/' config.h
+fi
+
 $MAKE
 if [ $? -ne 0 ]; then
    echo >&2 "Error building the Parma Polyhedra Library."

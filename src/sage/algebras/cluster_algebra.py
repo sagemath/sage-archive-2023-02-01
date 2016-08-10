@@ -1087,7 +1087,7 @@ class ClusterAlgebra(Parent):
             if len(gen_s) == len(gen_o):
                 f = self.ambient().coerce_map_from(other.ambient())
             if f is not None:
-                perm = Permutation([ gen_s.index(self(f(v)))+1 for v in gen_o ]).inverse()
+                perm = Permutation([ gen_s.index(self(f(v)))+1 for v in gen_o ])
                 n = self.rk()
                 m = len(perm) - n
                 M = self._B0[n:,:]

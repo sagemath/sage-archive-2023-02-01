@@ -1067,9 +1067,8 @@ class ClusterAlgebra(Parent):
             sage: S = A1.initial_seed(); S.mutate([0, 2, 1])
             sage: S.cluster_variable(1) == f(A2.cluster_variable((-1, 1, -1)))
             True
-
             sage: B3 = B1.matrix_from_columns([1,2,3])
-            sage: G = PermutationGroup(['(1,4,3,2)'])
+            sage: G = PermutationGroup(['(1,2,3,4)'])
             sage: B3.permute_rows(G.gen(0))
             sage: A3 = ClusterAlgebra(B3, cluster_variable_names=['x1','x2','x3'], coefficient_names=['x0','x4','x5'])
             sage: A1.has_coerce_map_from(A3)
@@ -1077,8 +1076,10 @@ class ClusterAlgebra(Parent):
             sage: g = A1.coerce_map_from(A3)
             sage: A3.find_g_vector((1,-2,2))
             [1, 2, 1, 0]
-            sage: S = A1.initial_seed(); S.mutate([1, 2, 1,0])
-            sage: S.cluster_variable(2) == g(A3.cluster_variable((1,-2,2))
+            sage: map(lambda x: x-1,map(G.gen(0),map(lambda x: x+1,[1, 2, 1, 0])))
+            [2, 3, 2, 1]
+            sage: S = A1.initial_seed(); S.mutate([2, 3, 2, 1])
+            sage: S.cluster_variable(1) == g(A3.cluster_variable((1,-2,2)))
             True
         """
         if isinstance(other, ClusterAlgebra):

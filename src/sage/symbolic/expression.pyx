@@ -11180,7 +11180,7 @@ cdef class Expression(CommutativeRingElement):
 
         You can embed 2d plots in 3d space as follows::
 
-            sage: plot(sin(x^2), (x,-pi, pi), thickness=2).plot3d(z = 1)
+            sage: plot(sin(x^2), (x,-pi, pi), thickness=2).plot3d(z = 1)  # long time
             Graphics3d Object
 
         A more complicated family::

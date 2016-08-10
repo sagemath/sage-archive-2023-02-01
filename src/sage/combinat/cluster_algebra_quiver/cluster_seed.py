@@ -309,7 +309,7 @@ class ClusterSeed(SageObject):
                 else:
                     labelset = set(user_labels)
                     # Sanitizes our user_labels to use Integers instead of ints
-                    user_labels = map(lambda x : ZZ(x) if type(x) == int else x,user_labels)
+                    user_labels = [ZZ(x) if type(x) == int else x for x in user_labels]
                 if labelset != set(self._nlist + self._mlist) and labelset != set(range(self._n + self._m)):
                     
                     print('Warning: user_labels conflict with both the given vertex labels and the default labels.')
@@ -776,7 +776,7 @@ class ClusterSeed(SageObject):
             for i in xrange(len(user_labels)):
                 if isinstance(user_labels[i], Integer):
                     self._init_vars[i] = user_labels_prefix+user_labels[i].str()
-                elif type(user_labels[i]) in [list,tuple]:
+                elif isinstance(user_labels[i], (list, tuple)):
                     self._user_labels_prefix = user_labels_prefix
                     strng = self._user_labels_prefix
                     for j in user_labels[i]:
@@ -2476,21 +2476,21 @@ class ClusterSeed(SageObject):
             raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
         
         # These boolean variables classify the input type
-        isVertices = set(seqq).issubset(set(seed.nlist()))
-        isIndices = set(seqq).issubset(set(range(n)))
+        is_vertices = set(seqq).issubset(set(seed.nlist()))
+        is_indices = set(seqq).issubset(set(range(n)))
         
         # Note - this does not guarantee that the sequence consists of cluster variables, it only rules out some posibilities.
-        isClusterVars = reduce(lambda x,y:isinstance(y,str),seqq,1) and seed._use_fpolys
+        is_cluster_vars = reduce(lambda x,y:isinstance(y,str),seqq,1) and seed._use_fpolys
         
         # Ensures the sequence has elements of type input_type.
         if input_type:
-            if input_type == "vertices" and not isVertices:
+            if input_type == "vertices" and not is_vertices:
                 raise ValueError('input_type set to "vertices" but not everything in the mutation sequence is a vertex.')
         
-            elif input_type == "indices" and not isIndices:
+            elif input_type == "indices" and not is_indices:
                 raise ValueError('input_type set to "indices" but not everything in the mutation sequence is an index.')
         
-            elif input_type == "cluster_vars" and not isClusterVars:
+            elif input_type == "cluster_vars" and not is_cluster_vars:
                 raise ValueError('input_type set to "cluster_vars" but not everything in the mutation sequence is a cluster variable.')
             
             elif input_type not in ["vertices", "indices", "cluster_vars"]:
@@ -2498,15 +2498,15 @@ class ClusterSeed(SageObject):
 
         # Classifies the input_type.  Raises warnings if the input is ambiguous, and errors if the input is not all of the same type.
         else:
-            if isVertices:
+            if is_vertices:
                 input_type = "vertices"
                 for x in seqq:
                     
-                    if isIndices and seed._nlist[x] != x:
+                    if is_indices and seed._nlist[x] != x:
                         print("Warning: Input can be ambiguously interpreted as both vertices and indices. Mutating at vertices by default.")
                         break
                         
-                    elif isClusterVars:
+                    elif is_cluster_vars:
                         
                         cluster_var_index = seed.cluster_index(x)
                         vertex_index = seed._nlist.index(x)
@@ -2515,9 +2515,9 @@ class ClusterSeed(SageObject):
                             break
             
             # It should be impossible to interpret an index as a cluster variable.
-            elif isIndices:
+            elif is_indices:
                 input_type = "indices"
-            elif isClusterVars:
+            elif is_cluster_vars:
                 input_type = "cluster_vars"
             else:
                 raise ValueError('Invalid mutation sequence. Mutation sequences may consist of vertices, indices, or cluster variables.')

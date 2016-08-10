@@ -20,7 +20,7 @@ positive integers) such that the matrix `M = (m_{ab})` with
     by the pair `(i,-i)`.
 
 For the compendium on the cluster algebra and quiver package see ::
-f
+
     http://arxiv.org/abs/1102.4844.
 
 AUTHORS:

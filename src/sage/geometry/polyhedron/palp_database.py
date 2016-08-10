@@ -29,6 +29,10 @@ EXAMPLES::
 """
 from __future__ import print_function
 
+import errno
+import time
+
+from contextlib import contextmanager
 from subprocess import Popen, PIPE
 
 from sage.structure.sage_object import SageObject
@@ -38,6 +42,78 @@ from sage.rings.all import Integer, ZZ
 from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
 from sage.geometry.polyhedron.constructor import Polyhedron
 
+
+@contextmanager
+def terminate(sp):
+    """
+    Context manager that terminates or kills the given `subprocess.Popen`
+    when it is no longer needed, in case the process does not end on its
+    own.
+
+    INPUT:
+
+    - ``sp`` -- a `subprocess.Popen` instance
+
+    EXAMPLES:
+
+    A still-running process will be terminated upon exiting the terminate
+    context::
+
+        sage: import signal
+        sage: from subprocess import Popen, PIPE
+        sage: from sage.geometry.polyhedron.palp_database import terminate
+        sage: cmd = ['python', '-c', 'while True: print("y")']
+        sage: sp = Popen(cmd, stdout=PIPE)
+        sage: with terminate(sp):
+        ....:     print(sp.stdout.readline())
+        y
+        <BLANKLINE>
+        sage: sp.wait() == -signal.SIGTERM
+        True
+
+    If for any reason the process can't be terminated normally, a ``kill()``
+    is attempted::
+
+        sage: cmd[2] = 'from signal import signal, SIGTERM, SIG_IGN\n' \
+        ....:          'signal(SIGTERM, SIG_IGN)\n' \
+        ....:          'while True: print("y")'
+        sage: sp = Popen(cmd, stdout=PIPE)
+        sage: with terminate(sp):
+        ....:     print(sp.stdout.readline())
+        y
+        <BLANKLINE>
+        sage: sp.wait() == -signal.SIGKILL
+        True
+
+    """
+
+    try:
+        yield sp
+    finally:
+        for stream in [sp.stdin, sp.stdout, sp.stderr]:
+            if stream:
+                stream.close()
+
+        for idx, method in enumerate([sp.terminate, sp.kill]):
+            if idx:
+                # Give the previous shutdown method a moment to work
+                # before trying the next one
+                time.sleep(0.1)
+
+            if sp.poll() is None:
+                # There is a possible race here--between here and the poll()
+                # call the process may have ended, so that calling
+                # terminate/kill may result in a 'No such process' error
+                try:
+                    # Try to force the process to end
+                    method()
+                except OSError as exc:
+                    if exc.errno == errno.ESRCH:
+                        break
+
+                    raise
+            else:
+                break
 
 
 #########################################################################
@@ -206,8 +282,9 @@ class PALPreader(SageObject):
             start = 0
         if step is None:
             step = 1
+
         palp = self._palp_Popen()
-        try:
+        with terminate(palp):
             palp_out = palp.stdout
             i = 0
             while True:
@@ -231,14 +308,6 @@ class PALPreader(SageObject):
                 i += 1
                 if stop is not None and i>=stop:
                     return
-        finally:
-            palp.poll()
-            if palp.returncode is None:
-                palp.terminate()
-            palp.poll()
-            if palp.returncode is None:
-                palp.kill()
-
 
     def _iterate_Polyhedron(self, start, stop, step):
         """

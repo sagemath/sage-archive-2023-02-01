@@ -280,9 +280,12 @@ def lazy_list_formatter(L, name=None, separator=None, more=None,
         opening_delimiter=None, closing_delimiter=None,
         preview=None):
     r"""
-    Return a string representation.
+    Return a string representation of ``L``.
 
     INPUT:
+
+    - ``L`` -- an object supporting indexing, i.e., extracting a value
+      via ``[]`` (method ``__getitem__``).
 
     - ``name`` -- (default: ``'lazy list'``) a string appearing
       at first position (i.e., in front of the actual values)
@@ -308,6 +311,12 @@ def lazy_list_formatter(L, name=None, separator=None, more=None,
     A string.
 
     EXAMPLES::
+
+        sage: from sage.misc.lazy_list import lazy_list_formatter
+        sage: lazy_list_formatter(srange(3, 1000, 5), name='list')
+        'list [3, 8, 13, ...]'
+
+    ::
 
         sage: from sage.misc.lazy_list import lazy_list
         sage: L = lazy_list(Primes()); L
@@ -555,6 +564,9 @@ cdef class lazy_list_generic(object):
     def __repr__(self):
         r"""
         Return a string representation.
+
+        To customize the string representation, the
+        :func:`lazy_list_formatter` can be used.
 
         TESTS::
 

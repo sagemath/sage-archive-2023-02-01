@@ -121,6 +121,32 @@ class kRegularSequence(Element):
 
     @cached_method
     def _product_of_matrices_(self, m):
+        r"""
+        Return the product of matrices according to the `k`-ary
+        digit expansion of `m`.
+
+        INPUT:
+
+        - ``m`` -- a nonnegative integer.
+
+        OUTPUT:
+
+        A matrix.
+
+        TESTS::
+
+            sage: Seq2 = kRegularSequences(2, ZZ)
+            sage: M0 = Matrix([[1, 0], [0, 1]])
+            sage: M1 = Matrix([[0, -1], [1, 2]])
+            sage: S = Seq2((M0, M1))
+            sage: S._product_of_matrices_(0) == M0
+            True
+            sage: S._product_of_matrices_(1) == M1
+            True
+            sage: S._product_of_matrices_(3) == M1^2
+            True
+
+         """
         k = self.parent().k
         if m < 0:
             raise ValueError

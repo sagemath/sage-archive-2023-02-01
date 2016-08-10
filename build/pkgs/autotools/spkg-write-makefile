@@ -188,8 +188,6 @@ write_make_rules() {
 	    # Since we don't do "make dist" but rather build from a repository check-out, we have to
 	    # supply the .serial file ourselves.  The following recipe is from libtool's Makefile.am.
 	    echo -e "\techo $( git log --pretty=oneline | wc -l | sed 's|[\t ]||g ' ) > $p-$v/.serial"
-	    # Could instead compute the .serial at "make" time:
-	    #echo -e "\tif test ! -f \"$p-$v/.serial\"; then ( cd \$(SRC)/$p && git log --pretty=oneline $tag ) |wc -l | sed 's|[\t ]||g ' > $p-$v/.serial ; fi"
 	fi
         echo
 

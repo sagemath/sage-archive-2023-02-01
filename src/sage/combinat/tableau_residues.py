@@ -89,8 +89,10 @@ This module implements the following classes:
     * :class:`PartitionTuples`
     * :class:`Partitions`
     * :class:`StandardTableau`
-    * :class:`~sage.combinat.tableau_tuple.StandardTableaux_residue_shape`
     * :class:`~sage.combinat.tableau_tuple.StandardTableaux_residue`
+    * :class:`~sage.combinat.tableau_tuple.StandardTableaux_residue_shape`
+    * :class:`~sage.combinat.tableau_tuple.RowStandardTableaux_residue`
+    * :class:`~sage.combinat.tableau_tuple.RowStandardTableaux_residue_shape`
     * :class:`StandardTableaux`
     * :class:`Tableau`
     * :class:`Tableaux`
@@ -127,7 +129,8 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
 from .partition_tuple import PartitionTuple
-from .tableau_tuple import StandardTableaux_residue, StandardTableaux_residue_shape
+from .tableau_tuple import StandardTableaux_residue, StandardTableaux_residue_shape,\
+                           RowStandardTableaux_residue, RowStandardTableaux_residue_shape
 
 #--------------------------------------------------
 # Residue sequences
@@ -175,8 +178,8 @@ class ResidueSequence(ClonableArray):
         [0, 2, 1, 1, 0, 2, 0]
         sage: res.restrict(2)
         3-residue sequence (0,2) with multicharge (0,2)
-        sage: res.standard_tableaux([[2,1],[1],[2,1,1]])
-        Standard (2,1|1|2,1^2)-tableaux with 3-residue sequence (0,2,1,1,0,2,0) and multicharge (0,2)
+        sage: res.standard_tableaux([[2,1],[1],[2,1]])
+        Standard (2,1|1|2,1)-tableaux with 3-residue sequence (0,2,1,1,0,2,0) and multicharge (0,2)
         sage: res.standard_tableaux([[2,2],[3]]).list()
         []
         sage: res.standard_tableaux([[2,2],[3]])[:]
@@ -367,6 +370,58 @@ class ResidueSequence(ClonableArray):
         return ResidueSequence(self.quantum_characteristic(),
                                self.multicharge(), self.residues()[:m])
 
+    def restrict_row(self, cell, row):
+        r"""
+        Return a residue sequence for the tableau obtained by swapping the row
+        in ending in `cell` with the row that is `row` rows above it and  which
+        has the same length.
+
+        The residue sequence ``self`` is of the form `(r_1, \ldots, r_n)`.
+        The function returns the residue sequence `(r_1, \ldots, r_m)`, with
+        the same  :meth:`quantum_characteristic` and :meth:`multicharge`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tableau_residues import ResidueSequence
+            sage: ResidueSequence(3, [0,1,2,2,0,1]).restrict_row((1,2),1)
+            3-residue sequence (2,0,1,0,1) with multicharge (0)
+            sage: ResidueSequence(3, [1,0], [0,1,2,2,0,1]).restrict_row((1,1,2),1)
+            3-residue sequence (2,0,1,0,1) with multicharge (1,0)
+        """
+        residues = self.residues() # residue sequence
+        residues.reverse()         # reversed residue sequence
+
+        if residues[0]+row == residues[0]:
+            # if the residues in the two rows are the same we don't need to do
+            # anything special
+            return self.restrict(len(residues)-1)
+
+        # determine the sets of residues, one_res and two_res, that need to be
+        # interchanged in order to swap the corresponding rows
+        row_len=cell[-1] # length of the row being swapped
+        one_res=[0]      # last row of tableau will move
+        two_res=[0]      # will prune this entry later
+        try:
+            for c in range(1, row_len+1):
+                # residues decrease by 1 from right to left in each row
+                one_res.append(residues.index(residues[0]-c, one_res[c-1]+1))
+            for c in range(row_len+1):
+                two_res.append(residues.index(residues[0]-c+row, two_res[c]+1))
+                while two_res[-1] in one_res:
+                    # entries in one_res and two_res must be disjoint
+                    two_res[-1] = residues.index(residues[0]-c+row, two_res[-1]+1)
+        except ValueError:
+            return None
+
+        # now add row to the residues in two_res and subtract row from those in
+        # one_res
+        for c in range(row_len+1):
+            residues[one_res[c]] += row
+            residues[two_res[c+1]] -= row # jump over two_res[0]
+
+        # remove the first residue, reverse the order and return
+        return ResidueSequence(self.quantum_characteristic(), self.multicharge(), residues[1:][::-1])
+
     def swap_residues(self, i, j):
         r"""
         Return the *new* residue sequence obtained by swapping the residues
@@ -398,7 +453,7 @@ class ResidueSequence(ClonableArray):
                 # we have overridden __getitem__ so that indices are 1-based but
                 # __setitem__ is still 0-based so we need to renormalise the LHS
                 swap[i-1],swap[j-1] = self[j], self[i]
-            except:
+            except ValueError:
                 raise IndexError('%s and %s must be between 1 and %s' % (i,j,self.size))
         return swap
 
@@ -433,6 +488,38 @@ class ResidueSequence(ClonableArray):
             return StandardTableaux_residue(residue=self)
         else:
             return StandardTableaux_residue_shape(residue=self,shape=PartitionTuple(shape))
+
+    def row_standard_tableaux(self, shape=None):
+        r"""
+        Return the residue-class of row standard tableaux that have residue
+        sequence ``self``.
+
+        INPUT:
+
+        - ``shape`` -- (optional) a partition or partition tuple of
+          the correct level
+
+        OUTPUT:
+
+        An iterator for the row standard tableaux with this residue sequence. If
+        the ``shape`` is given then only tableaux of this shape are returned,
+        otherwise all of the full residue-class of row standard tableaux, or row
+        standard tableaux tuples, is returned. The residue sequence ``self``
+        specifies the :meth:`multicharge` of the tableaux which, in turn,
+        determines the :meth:`level` of the tableaux in the residue class.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tableau_residues import ResidueSequence
+            sage: ResidueSequence(3,(0,0,0),[0,1,2,0,1,2,0,1,2]).row_standard_tableaux()
+            Row standard tableaux with 3-residue sequence (0,1,2,0,1,2,0,1,2) and multicharge (0,0,0)
+            sage: ResidueSequence(3,(0,0,0),[0,1,2,0,1,2,0,1,2]).row_standard_tableaux([[3],[3],[3]])
+            Row standard (3|3|3)-tableaux with 3-residue sequence (0,1,2,0,1,2,0,1,2) and multicharge (0,0,0)
+        """
+        if shape is None:
+            return RowStandardTableaux_residue(residue=self)
+        else:
+            return RowStandardTableaux_residue_shape(residue=self,shape=PartitionTuple(shape))
 
     def negative(self):
         r"""

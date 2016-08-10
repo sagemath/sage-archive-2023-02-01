@@ -839,6 +839,18 @@ class PartitionTuple(CombinatorialElement):
         """
         return sum(mu.size() for mu in self)
 
+    def row_standard_tableaux(self):
+        """
+        Return the :class:`standard tableau tuples<StandardTableauTuples>` of
+        this shape.
+
+        EXAMPLE::
+
+            sage: PartitionTuple([[],[3,2,2,1],[2,2,1],[3]]).standard_tableaux()
+            Standard tableau tuples of shape ([], [3, 2, 2, 1], [2, 2, 1], [3])
+        """
+        from .tableau_tuple import RowStandardTableauTuples
+        return RowStandardTableauTuples(shape=self)
 
     def standard_tableaux(self):
         """
@@ -852,7 +864,6 @@ class PartitionTuple(CombinatorialElement):
         """
         from .tableau_tuple import StandardTableauTuples
         return StandardTableauTuples(shape=self)
-
 
     def up(self):
         r"""

@@ -28,6 +28,29 @@ pushout::
 See the main documentation for simplicial sets, as well as for the
 classes for pushouts, pullbacks, etc., for more details.
 
+Many of the classes defined here inherit from
+:class:`sage.structure.unique_representation.UniqueRepresentation`. This
+means that they produce identical output if given the same input, so
+for example, if ``K`` is a simplicial set, calling ``K.suspension()``
+twice returns the same result both times::
+
+    sage: CP2.suspension() is CP2.suspension()
+    True
+
+So on one hand, a command like ``simplicial_sets.Sphere(2)``
+constructs a distinct copy of a 2-sphere each time it is called; on
+the other, once you have constructed a 2-sphere, then constructing its
+cone, its suspension, its product with another simplicial set, etc.,
+will give you the same result each time::
+
+    sage: simplicial_sets.Sphere(2) == simplicial_sets.Sphere(2)
+    False
+    sage: S2 = simplicial_sets.Sphere(2)
+    sage: S2.product(S2) == S2.product(S2)
+    True
+    sage: S2.disjoint_union(CP2, S2) == S2.disjoint_union(CP2, S2)
+    True
+
 AUTHORS:
 
 - John H. Palmieri (2016-07)
@@ -58,6 +81,7 @@ from sage.homology.simplicial_set import AbstractSimplex, \
     standardize_degeneracies, face_degeneracies, \
     Empty
 from sage.graphs.graph import Graph
+from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.categories.simplicial_sets', 'SimplicialSets')
@@ -156,7 +180,22 @@ class SubSimplicialSet(SimplicialSet_finite):
         return self._inclusion.codomain()
 
 
-class PullbackOfSimplicialSets(SimplicialSet_arbitrary):
+class PullbackOfSimplicialSets(SimplicialSet_arbitrary, UniqueRepresentation):
+    @staticmethod
+    def __classcall_private__(self, maps=None):
+        """
+        TESTS::
+
+            sage: from sage.homology.simplicial_set_constructions import PullbackOfSimplicialSets
+            sage: S2 = simplicial_sets.Sphere(2)
+            sage: one = S2.Hom(S2).identity()
+            sage: PullbackOfSimplicialSets([one, one]) == PullbackOfSimplicialSets((one, one))
+            True
+        """
+        if maps:
+            return super(PullbackOfSimplicialSets, self).__classcall__(self, tuple(maps))
+        return super(PullbackOfSimplicialSets, self).__classcall__(self)
+
     def __init__(self, maps=None):
         r"""
         Return the pullback obtained from the morphisms ``maps``.
@@ -206,7 +245,7 @@ class PullbackOfSimplicialSets(SimplicialSet_arbitrary):
         """
         # Import this here to prevent circular imports.
         from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
-        if any(not isinstance(f, SimplicialSetMorphism) for f in maps):
+        if maps and any(not isinstance(f, SimplicialSetMorphism) for f in maps):
             raise ValueError('the maps must be morphisms of simplicial sets')
 
         Cat = SimplicialSets()
@@ -326,6 +365,21 @@ class PullbackOfSimplicialSets_finite(PullbackOfSimplicialSets, SimplicialSet_fi
     the pullback and the pullback's universal property: see
     :meth:`structure_map` and :meth:`universal_property`.
     """
+    @staticmethod
+    def __classcall_private__(self, maps=None):
+        """
+        TESTS::
+
+            sage: from sage.homology.simplicial_set_constructions import PullbackOfSimplicialSets_finite
+            sage: S2 = simplicial_sets.Sphere(2)
+            sage: one = S2.Hom(S2).identity()
+            sage: PullbackOfSimplicialSets_finite([one, one]) == PullbackOfSimplicialSets_finite((one, one))
+            True
+        """
+        if maps:
+            return super(PullbackOfSimplicialSets_finite, self).__classcall__(self, tuple(maps))
+        return super(PullbackOfSimplicialSets_finite, self).__classcall__(self)
+
     def __init__(self, maps=None):
         r"""
         Return the pullback obtained from the morphisms ``maps``.
@@ -353,7 +407,7 @@ class PullbackOfSimplicialSets_finite(PullbackOfSimplicialSets, SimplicialSet_fi
         """
         # Import this here to prevent circular imports.
         from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
-        if any(not isinstance(f, SimplicialSetMorphism) for f in maps):
+        if maps and any(not isinstance(f, SimplicialSetMorphism) for f in maps):
             raise ValueError('the maps must be morphisms of simplicial sets')
         if not maps:
             star = AbstractSimplex(0, name='*')
@@ -639,6 +693,20 @@ class Factors(object):
 
 
 class ProductOfSimplicialSets(PullbackOfSimplicialSets, Factors):
+    @staticmethod
+    def __classcall__(cls, factors=None):
+        """
+        TESTS::
+
+            sage: from sage.homology.simplicial_set_constructions import ProductOfSimplicialSets
+            sage: S2 = simplicial_sets.Sphere(2)
+            sage: ProductOfSimplicialSets([S2, S2]) == ProductOfSimplicialSets((S2, S2))
+            True
+        """
+        if factors:
+            return super(ProductOfSimplicialSets, cls).__classcall__(cls, factors=tuple(factors))
+        return super(ProductOfSimplicialSets, cls).__classcall__(cls)
+
     def __init__(self, factors=None):
         r"""
         Return the product of simplicial sets.
@@ -766,7 +834,6 @@ class ProductOfSimplicialSets(PullbackOfSimplicialSets, Factors):
         if self.is_finite():
             n_skel = SimplicialSet_finite.n_skeleton
             return n_skel(self, n)
-            # return n_skel(ProductOfSimplicialSets_finite([X.n_skeleton(n) for X in self._factors]), n)
         start, skel = self._n_skeleton
         if start == n:
             return skel
@@ -980,7 +1047,23 @@ class ProductOfSimplicialSets_finite(ProductOfSimplicialSets, PullbackOfSimplici
         return self.subsimplicial_set(simps)
 
 
-class PushoutOfSimplicialSets(SimplicialSet_arbitrary):
+class PushoutOfSimplicialSets(SimplicialSet_arbitrary, UniqueRepresentation):
+    @staticmethod
+    def __classcall_private__(cls, maps=None, vertex_name=None):
+        """
+        TESTS::
+
+            sage: from sage.homology.simplicial_set_constructions import PushoutOfSimplicialSets
+            sage: S2 = simplicial_sets.Sphere(2)
+            sage: one = S2.Hom(S2).identity()
+            sage: PushoutOfSimplicialSets([one, one]) == PushoutOfSimplicialSets((one, one))
+            True
+        """
+        if maps:
+            return super(PushoutOfSimplicialSets, cls).__classcall__(cls, maps=tuple(maps),
+                                                                      vertex_name=vertex_name)
+        return super(PushoutOfSimplicialSets, cls).__classcall__(cls, vertex_name=vertex_name)
+
     def __init__(self, maps=None, vertex_name=None):
         r"""
         Return the pushout obtained from the morphisms ``maps``.
@@ -1098,7 +1181,7 @@ class PushoutOfSimplicialSets(SimplicialSet_arbitrary):
         """
         # Import this here to prevent circular imports.
         from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
-        if any(not isinstance(f, SimplicialSetMorphism) for f in maps):
+        if maps and any(not isinstance(f, SimplicialSetMorphism) for f in maps):
             raise ValueError('the maps must be morphisms of simplicial sets')
         Cat = SimplicialSets()
         if maps:
@@ -1228,6 +1311,22 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
     pushout and the pushout's universal property: see
     :meth:`structure_map` and :meth:`universal_property`.
     """
+    @staticmethod
+    def __classcall_private__(cls, maps=None, vertex_name=None):
+        """
+        TESTS::
+
+            sage: from sage.homology.simplicial_set_constructions import PushoutOfSimplicialSets_finite
+            sage: S2 = simplicial_sets.Sphere(2)
+            sage: one = S2.Hom(S2).identity()
+            sage: PushoutOfSimplicialSets_finite([one, one]) == PushoutOfSimplicialSets_finite((one, one))
+            True
+        """
+        if maps:
+            return super(PushoutOfSimplicialSets_finite, cls).__classcall__(cls, maps=tuple(maps),
+                                                                      vertex_name=vertex_name)
+        return super(PushoutOfSimplicialSets_finite, cls).__classcall__(cls, vertex_name=vertex_name)
+
     def __init__(self, maps=None, vertex_name=None):
         r"""
         Return the pushout obtained from the morphisms ``maps``.
@@ -1251,7 +1350,7 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
         """
         # Import this here to prevent circular imports.
         from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
-        if any(not isinstance(f, SimplicialSetMorphism) for f in maps):
+        if maps and any(not isinstance(f, SimplicialSetMorphism) for f in maps):
             raise ValueError('the maps must be morphisms of simplicial sets')
         if not maps:
             SimplicialSet_finite.__init__(self, {})
@@ -1492,23 +1591,20 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
 
 
 class QuotientOfSimplicialSet(PushoutOfSimplicialSets):
-    def __init__(self, subcomplex, vertex_name='*'):
+    def __init__(self, inclusion, vertex_name='*'):
         r"""
         Return the quotient of a simplicial set by a subsimplicial set.
 
         INPUT:
 
-        - ``subcomplex`` -- a subcomplex (= subsimplicial set) of a
-          simplicial set
+        - ``inclusion`` -- inclusion map of a subcomplex (=
+          subsimplicial set) of a simplicial set
         - ``vertex_name`` -- optional, default ``'*'``
 
         A subcomplex `A` comes equipped with the inclusion map `A \to
-        X` to its ambient complex `X`, so the ambient complex is not
-        specified explicitly. This constructs the quotient `X/A`,
-        collapsing `A` to a point.
-
-        The resulting point is called ``vertex_name``, which is
-        ``'*'`` by default.
+        X` to its ambient complex `X`, and this constructs the
+        quotient `X/A`, collapsing `A` to a point. The resulting point
+        is called ``vertex_name``, which is ``'*'`` by default.
 
         When the simplicial sets involved are finite, there is a
         :meth:`QuotientOfSimplicialSet_finite.quotient_map` method available.
@@ -1526,11 +1622,12 @@ class QuotientOfSimplicialSet(PushoutOfSimplicialSets):
               To:   Quotient: (RP^5/Simplicial set with 3 non-degenerate simplices)
               Defn: [1, f, f * f, f * f * f, f * f * f * f, f * f * f * f * f] --> [*, Simplex obtained by applying degeneracy s_0 to *, Simplex obtained by applying degeneracies s_1 s_0 to *, f * f * f, f * f * f * f, f * f * f * f * f]
         """
-        PushoutOfSimplicialSets.__init__(self, [subcomplex.inclusion_map(),
+        subcomplex = inclusion.domain()
+        PushoutOfSimplicialSets.__init__(self, [inclusion,
                                                 subcomplex.constant_map()],
                                          vertex_name=vertex_name)
 
-        ambient = subcomplex.ambient_space()
+        ambient = inclusion.codomain()
         if ambient.is_pointed() and ambient.is_finite():
             if ambient.base_point() not in subcomplex:
                 self._basepoint = self.structure_map(0)(ambient.base_point())
@@ -1607,7 +1704,7 @@ class QuotientOfSimplicialSet(PushoutOfSimplicialSets):
             ambient = SimplicialSet_finite.n_skeleton(self.ambient(), n)
             subcomplex = SimplicialSet_finite.n_skeleton(self.subcomplex(), n)
             subcomplex = ambient.subsimplicial_set(subcomplex.nondegenerate_simplices())
-            return QuotientOfSimplicialSet_finite(subcomplex,
+            return QuotientOfSimplicialSet_finite(subcomplex.inclusion_map(),
                                                   vertex_name=self._vertex_name)
         start, skel = self._n_skeleton
         if start == n:
@@ -1616,7 +1713,7 @@ class QuotientOfSimplicialSet(PushoutOfSimplicialSets):
             return skel.n_skeleton(n)
         ambient = self.ambient().n_skeleton(n)
         subcomplex = ambient.subsimplicial_set(self.subcomplex().nondegenerate_simplices(n))
-        ans = QuotientOfSimplicialSet_finite(subcomplex,
+        ans = QuotientOfSimplicialSet_finite(subcomplex.inclusion_map(),
                                              vertex_name=self._vertex_name)
         self._n_skeleton = (n, ans)
         return ans
@@ -1642,7 +1739,7 @@ class QuotientOfSimplicialSet_finite(QuotientOfSimplicialSet,
     When the simplicial sets involved are finite, there is a
     :meth:`quotient_map` method available.
     """
-    def __init__(self, subcomplex, vertex_name='*'):
+    def __init__(self, inclusion, vertex_name='*'):
         r"""
         Return the quotient of a simplicial set by a subsimplicial set.
 
@@ -1661,10 +1758,11 @@ class QuotientOfSimplicialSet_finite(QuotientOfSimplicialSet,
               To:   Quotient: (RP^5/Simplicial set with 3 non-degenerate simplices)
               Defn: [1, f, f * f, f * f * f, f * f * f * f, f * f * f * f * f] --> [*, Simplex obtained by applying degeneracy s_0 to *, Simplex obtained by applying degeneracies s_1 s_0 to *, f * f * f, f * f * f * f, f * f * f * f * f]
         """
-        PushoutOfSimplicialSets_finite.__init__(self, [subcomplex.inclusion_map(),
+        subcomplex = inclusion.domain()
+        PushoutOfSimplicialSets_finite.__init__(self, [inclusion,
                                                        subcomplex.constant_map()],
                                                 vertex_name=vertex_name)
-        ambient = subcomplex.ambient_space()
+        ambient = inclusion.codomain()
         if ambient.is_pointed():
             if ambient.base_point() not in subcomplex:
                 self._basepoint = self.structure_map(0)(ambient.base_point())
@@ -1694,6 +1792,20 @@ class QuotientOfSimplicialSet_finite(QuotientOfSimplicialSet,
 
 class SmashProductOfSimplicialSets_finite(QuotientOfSimplicialSet_finite,
                                           Factors):
+    @staticmethod
+    def __classcall__(cls, factors=None):
+        """
+        TESTS::
+
+            sage: from sage.homology.simplicial_set_constructions import SmashProductOfSimplicialSets_finite as Smash
+            sage: S2 = simplicial_sets.Sphere(2)
+            sage: Smash([S2, S2]) == Smash((S2, S2))
+            True
+        """
+        if factors:
+            return super(SmashProductOfSimplicialSets_finite, cls).__classcall__(cls, factors=tuple(factors))
+        return super(SmashProductOfSimplicialSets_finite, cls).__classcall__(cls)
+
     def __init__(self, factors=None):
         r"""
         Return the smash product of finite pointed simplicial sets.
@@ -1722,7 +1834,7 @@ class SmashProductOfSimplicialSets_finite(QuotientOfSimplicialSet_finite,
             raise ValueError('the simplicial sets must be pointed')
         prod = ProductOfSimplicialSets_finite(factors)
         wedge = prod.wedge_as_subset()
-        QuotientOfSimplicialSet_finite.__init__(self, wedge)
+        QuotientOfSimplicialSet_finite.__init__(self, wedge.inclusion_map())
         self._factors = factors
 
     def _repr_(self):
@@ -1743,6 +1855,20 @@ class SmashProductOfSimplicialSets_finite(QuotientOfSimplicialSet_finite,
 
 
 class WedgeOfSimplicialSets(PushoutOfSimplicialSets, Factors):
+    @staticmethod
+    def __classcall__(cls, factors=None):
+        """
+        TESTS::
+
+            sage: from sage.homology.simplicial_set_constructions import WedgeOfSimplicialSets
+            sage: S2 = simplicial_sets.Sphere(2)
+            sage: WedgeOfSimplicialSets([S2, S2]) == WedgeOfSimplicialSets((S2, S2))
+            True
+        """
+        if factors:
+            return super(WedgeOfSimplicialSets, cls).__classcall__(cls, factors=tuple(factors))
+        return super(WedgeOfSimplicialSets, cls).__classcall__(cls)
+
     def __init__(self, factors=None):
         r"""
         Return the wedge sum of pointed simplicial sets.
@@ -1792,17 +1918,12 @@ class WedgeOfSimplicialSets(PushoutOfSimplicialSets, Factors):
         """
         if any(not space.is_pointed() for space in factors):
             raise ValueError('the simplicial sets must be pointed')
-        if all(space.is_finite() for space in factors):
-            PushoutOfSimplicialSets_finite.__init__(self, [space.base_point_map()
-                                                           for space in factors])
-        else:
-            PushoutOfSimplicialSets.__init__(self, [space.base_point_map()
-                                                    for space in factors])
-            if factors:
-                vertices = PushoutOfSimplicialSets_finite([space.n_skeleton(0).base_point_map()
-                                                           for space in factors])
-                self._basepoint = vertices.base_point()
-
+        PushoutOfSimplicialSets.__init__(self, [space.base_point_map()
+                                                for space in factors])
+        if factors:
+            vertices = PushoutOfSimplicialSets_finite([space.n_skeleton(0).base_point_map()
+                                                       for space in factors])
+            self._basepoint = vertices.base_point()
         self.base_point().rename('*')
         self._factors = factors
 
@@ -1835,7 +1956,7 @@ class WedgeOfSimplicialSets_finite(WedgeOfSimplicialSets, PushoutOfSimplicialSet
 
         INPUT:
 
-        - ``factors`` -- a list or tuple of simplicial sets
+        - ``factors`` -- a tuple of simplicial sets
 
         See :class:`WedgeOfSimplicialSets` for more information.
 
@@ -1843,7 +1964,7 @@ class WedgeOfSimplicialSets_finite(WedgeOfSimplicialSets, PushoutOfSimplicialSet
 
             sage: from sage.homology.simplicial_set_constructions import WedgeOfSimplicialSets_finite
             sage: K = simplicial_sets.Simplex(3)
-            sage: WedgeOfSimplicialSets_finite([K,K])
+            sage: WedgeOfSimplicialSets_finite((K,K))
             Traceback (most recent call last):
             ...
             ValueError: the simplicial sets must be pointed
@@ -1904,6 +2025,20 @@ class WedgeOfSimplicialSets_finite(WedgeOfSimplicialSets, PushoutOfSimplicialSet
 
 
 class DisjointUnionOfSimplicialSets(PushoutOfSimplicialSets, Factors):
+    @staticmethod
+    def __classcall__(cls, factors=None):
+        """
+        TESTS::
+
+            sage: from sage.homology.simplicial_set_constructions import DisjointUnionOfSimplicialSets
+            sage: S2 = simplicial_sets.Sphere(2)
+            sage: DisjointUnionOfSimplicialSets([S2, S2]) == DisjointUnionOfSimplicialSets((S2, S2))
+            True
+        """
+        if factors:
+            return super(DisjointUnionOfSimplicialSets, cls).__classcall__(cls, factors=tuple(factors))
+        return super(DisjointUnionOfSimplicialSets, cls).__classcall__(cls)
+
     def __init__(self, factors=None):
         r"""
         Return the disjoint union of simplicial sets.
@@ -1930,12 +2065,8 @@ class DisjointUnionOfSimplicialSets(PushoutOfSimplicialSets, Factors):
               To:   Disjoint union: (CP^2 u Klein bottle)
               Defn: [Delta_{0,0}, Delta_{1,0}, Delta_{1,1}, Delta_{1,2}, Delta_{2,0}, Delta_{2,1}] --> [Delta_{0,0}, Delta_{1,0}, Delta_{1,1}, Delta_{1,2}, Delta_{2,0}, Delta_{2,1}]
         """
-        if all(space.is_finite() for space in factors):
-            PushoutOfSimplicialSets_finite.__init__(self, [space._map_from_empty_set()
-                                                           for space in factors])
-        else:
-            PushoutOfSimplicialSets.__init__(self, [space._map_from_empty_set()
-                                                    for space in factors])
+        PushoutOfSimplicialSets.__init__(self, [space._map_from_empty_set()
+                                                for space in factors])
         self._factors = factors
         self._n_skeleton = (-1, Empty())
 
@@ -1963,15 +2094,15 @@ class DisjointUnionOfSimplicialSets(PushoutOfSimplicialSets, Factors):
             {0: Z, 1: Z x Z x C2, 2: Z, 3: Z}
         """
         if self.is_finite():
-            return DisjointUnionOfSimplicialSets_finite([X.n_skeleton(n)
-                                                         for X in self._factors])
+            return DisjointUnionOfSimplicialSets_finite(tuple([X.n_skeleton(n)
+                                                               for X in self._factors]))
         start, skel = self._n_skeleton
         if start == n:
             return skel
         elif start > n:
             return skel.n_skeleton(n)
-        ans = DisjointUnionOfSimplicialSets_finite([X.n_skeleton(n)
-                                                    for X in self._factors])
+        ans = DisjointUnionOfSimplicialSets_finite(tuple([X.n_skeleton(n)
+                                                          for X in self._factors]))
         self._n_skeleton = (n, ans)
         return ans
 
@@ -2006,7 +2137,7 @@ class DisjointUnionOfSimplicialSets_finite(DisjointUnionOfSimplicialSets,
 
         INPUT:
 
-        - ``factors`` -- a list or tuple of simplicial sets
+        - ``factors`` -- a tuple of simplicial sets
 
         Return the disjoint union of the simplicial sets in
         ``factors``.  The disjoint union comes equipped with a map
@@ -2016,7 +2147,7 @@ class DisjointUnionOfSimplicialSets_finite(DisjointUnionOfSimplicialSets,
 
             sage: from sage.homology.simplicial_set_constructions import DisjointUnionOfSimplicialSets_finite
             sage: S = simplicial_sets.Sphere(4)
-            sage: DisjointUnionOfSimplicialSets_finite([S,S,S])
+            sage: DisjointUnionOfSimplicialSets_finite((S,S,S))
             Disjoint union: (S^4 u S^4 u S^4)
         """
         PushoutOfSimplicialSets_finite.__init__(self, [space._map_from_empty_set()
@@ -2045,7 +2176,7 @@ class DisjointUnionOfSimplicialSets_finite(DisjointUnionOfSimplicialSets,
         return self.structure_map(i)
 
 
-class ConeOfSimplicialSet(SimplicialSet_arbitrary):
+class ConeOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
     def __init__(self, X):
         r"""
         Return the unreduced cone on a finite simplicial set.
@@ -2159,7 +2290,7 @@ class ConeOfSimplicialSet_finite(ConeOfSimplicialSet, SimplicialSet_finite):
         # Dictionary for translating old simplices to new: keys are
         # old simplices, corresponding value is the new simplex
         # (sigma, *).
-        new_simplices = {None: star}
+        new_simplices = {'cone': star}
         for sigma in X.nondegenerate_simplices():
             new = AbstractSimplex(sigma.dimension()+1,
                                        name='({},*)'.format(sigma))
@@ -2174,7 +2305,16 @@ class ConeOfSimplicialSet_finite(ConeOfSimplicialSet, SimplicialSet_finite):
                 data[new] = (new_faces + [sigma])
             new_simplices[sigma] = new
         SimplicialSet_finite.__init__(self, data, base_point=star)
+        # self._X: original simplicial set.
         self._X = X
+        # self._joins: dictionary, each key is a simplex sigma in X,
+        # the corresponding value is the new simplex (sigma, *) in
+        # CX. Also, one other key is 'cone', and the value is the cone
+        # vertex. This is used in the suspension class to construct
+        # the suspension of a morphism. It could be used to construct
+        # the cone of a morphism, also, although cones of morphisms
+        # are not yet implemented.
+        self._joins = new_simplices
 
     def X_as_subset(self):
         """
@@ -2245,7 +2385,8 @@ class ReducedConeOfSimplicialSet(QuotientOfSimplicialSet):
             if sorted(CX.faces(t)) == edge_faces:
                 edge = t
                 break
-        QuotientOfSimplicialSet.__init__(self, CX.subsimplicial_set([edge]))
+        inc = CX.subsimplicial_set([edge]).inclusion_map()
+        QuotientOfSimplicialSet.__init__(self, inc)
         self._X = X
         self._n_skeleton = (-1, Empty())
 
@@ -2330,8 +2471,11 @@ class ReducedConeOfSimplicialSet_finite(ReducedConeOfSimplicialSet,
             if sorted(CX.faces(t)) == edge_faces:
                 edge = t
                 break
-        QuotientOfSimplicialSet_finite.__init__(self, CX.subsimplicial_set([edge]))
+        inc = CX.subsimplicial_set([edge]).inclusion_map()
+        QuotientOfSimplicialSet_finite.__init__(self, inc)
         self._X = X
+        q = self.quotient_map()
+        self._joins = {sigma:q(CX._joins[sigma]) for sigma in CX._joins}
 
     def map_from_X(self):
         r"""
@@ -2361,7 +2505,7 @@ class ReducedConeOfSimplicialSet_finite(ReducedConeOfSimplicialSet,
         return quotient_map * incl
 
 
-class SuspensionOfSimplicialSet(SimplicialSet_arbitrary):
+class SuspensionOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
     def __init__(self, X):
         r"""
         Return the (reduced) suspension of a simplicial set.
@@ -2397,6 +2541,15 @@ class SuspensionOfSimplicialSet(SimplicialSet_arbitrary):
               From: Reduced cone of S^3
               To:   Sigma(S^3)
               Defn: [*, sigma_3, (sigma_3,*)] --> [*, Simplex obtained by applying degeneracies s_2 s_1 s_0 to *, (sigma_3,*)]
+
+        TESTS::
+
+            sage: S3.suspension() == S3.suspension()
+            True
+            sage: S3.suspension() == simplicial_sets.Sphere(3).suspension()
+            False
+            sage: B.suspension() == B.suspension()
+            True
         """
         Cat = SimplicialSets()
         if X.is_finite():
@@ -2471,8 +2624,7 @@ class SuspensionOfSimplicialSet(SimplicialSet_arbitrary):
             # Reduced suspension.
             symbol = 'Sigma'
         else:
-            # Unreduced suspension. Should only appear once: iterated
-            # suspensions will be reduced.
+            # Unreduced suspension.
             symbol = 'S'
         idx = 1
         while isinstance(X, SuspensionOfSimplicialSet):
@@ -2518,5 +2670,12 @@ class SuspensionOfSimplicialSet_finite(SuspensionOfSimplicialSet,
         else:
             CX = ConeOfSimplicialSet_finite(X)
             subcomplex = CX.X_as_subset()
-        QuotientOfSimplicialSet_finite.__init__(self, subcomplex)
+        QuotientOfSimplicialSet_finite.__init__(self, subcomplex.inclusion_map())
         self._reduced = reduced
+        # self._suspensions: dictionary, each key is a simplex sigma
+        # in X, the corresponding value is the new simplex (sigma, *)
+        # in SX. Another key is 'cone', and its value is the cone
+        # vertex in CX. This is used to construct the suspension of a
+        # morphism.
+        q = self.quotient_map()
+        self._suspensions = {sigma: q(CX._joins[sigma]) for sigma in CX._joins}

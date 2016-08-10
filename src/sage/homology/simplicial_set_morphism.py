@@ -1152,6 +1152,67 @@ class SimplicialSetMorphism(Morphism):
             factors.append(codomain.inclusion_map(i) * f)
         return codomain.universal_property(*factors)
 
+    def suspension(self, n=1):
+        """
+        Return the `n`-th suspension of this morphism of simplicial sets.
+
+        INPUT:
+
+        - ``n`` (optional) -- non-negative integer, default 1
+
+        EXAMPLES::
+
+            sage: eta = simplicial_sets.HopfMap()
+            sage: susp_eta = eta.suspension()
+            sage: susp_eta.mapping_cone().homology() == eta.mapping_cone().suspension().homology()
+            True
+
+        This uses reduced suspensions if the original morphism is
+        pointed, unreduced otherwise. So for example, if a constant
+        map is not pointed, its suspension is not a constant map::
+
+            sage: L = simplicial_sets.Simplex(1)
+            sage: L.constant_map().is_pointed()
+            False
+            sage: f = L.constant_map().suspension()
+            sage: f.is_constant()
+            False
+
+            sage: K = simplicial_sets.Sphere(3)
+            sage: K.constant_map().is_pointed()
+            True
+            sage: g = K.constant_map().suspension()
+            sage: g.is_constant()
+            True
+
+            sage: h = K.identity().suspension()
+            sage: h.is_identity()
+            True
+        """
+        domain = self.domain()
+        codomain = self.codomain()
+        if not self.is_pointed():
+            # Make sure to use unreduced suspensions for both domain
+            # and codomain.
+            if domain.is_pointed():
+                domain = domain.unset_base_point()
+            if codomain.is_pointed():
+                codomain = codomain.unset_base_point()
+        f = self
+        for i in range(n):
+            new_dom = domain.suspension()
+            new_cod = codomain.suspension()
+            data = {new_dom.base_point(): new_cod.base_point()}
+            for sigma in f._dictionary:
+                target = f(sigma)
+                underlying = target.nondegenerate()
+                degens = target.degeneracies()
+                data[new_dom._suspensions[sigma]] = new_cod._suspensions[underlying].apply_degeneracies(*degens)
+            f = new_dom.Hom(new_cod)(data)
+            domain = f.domain()
+            codomain = f.codomain()
+        return f
+
     def n_skeleton(self, n, domain=None, codomain=None):
         """
         Return the restriction of this morphism to the n-skeleta of the

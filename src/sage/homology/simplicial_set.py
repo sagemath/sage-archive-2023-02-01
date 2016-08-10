@@ -808,7 +808,8 @@ class AbstractSimplex(SageObject):
             v''
         """
         # Don't preserve the underlying simplex when copying, just the
-        # dimension and the degeneracies.
+        # dimension, the degeneracies, and the name (with a prime
+        # added).
         sigma = AbstractSimplex(self._dim, degeneracies=self.degeneracies())
         if hasattr(self, '__custom_name'):
             sigma.rename(str(self) + "'")
@@ -1879,9 +1880,11 @@ class SimplicialSet_arbitrary(Parent):
                 raise ValueError('the "subcomplex" is not actually a subcomplex')
             pass
         if self.is_finite():
-            return QuotientOfSimplicialSet_finite(subcomplex, vertex_name=vertex_name)
+            return QuotientOfSimplicialSet_finite(subcomplex.inclusion_map(),
+                                                  vertex_name=vertex_name)
         else:
-            return QuotientOfSimplicialSet(subcomplex, vertex_name=vertex_name)
+            return QuotientOfSimplicialSet(subcomplex.inclusion_map(),
+                                           vertex_name=vertex_name)
 
     def disjoint_union(self, *others):
         """
@@ -2196,7 +2199,7 @@ class SimplicialSet_arbitrary(Parent):
         if any(self != f.domain() for f in maps):
             raise ValueError('the domains of the maps must be equal')
         if not maps:
-            return PushoutOfSimplicialSets_finite(maps)
+            return PushoutOfSimplicialSets_finite()
         if all(f.codomain().is_finite() for f in maps):
             return PushoutOfSimplicialSets_finite(maps)
         else:
@@ -2295,7 +2298,7 @@ class SimplicialSet_arbitrary(Parent):
         if any(self != f.codomain() for f in maps):
             raise ValueError('the codomains of the maps must be equal')
         if not maps:
-            return PullbackOfSimplicialSets_finite(maps)
+            return PullbackOfSimplicialSets_finite()
         if self.is_finite() and all(f.domain().is_finite() for f in maps):
             return PullbackOfSimplicialSets_finite(maps)
         else:
@@ -2303,7 +2306,7 @@ class SimplicialSet_arbitrary(Parent):
 
     # Ideally, this would be defined at the category level and only
     # for pointed simplicial sets, but the abstract_method "wedge" in
-    # cell_complex.py shadows that.
+    # cell_complex.py would shadow that.
     def wedge(self, *others):
         r"""
         Return the wedge sum of this pointed simplicial set with ``others``.
@@ -3138,7 +3141,6 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
         else:
             if not isinstance(dimensions, (list, tuple)):
                 dimensions = range(dimensions-1, dimensions+2)
-            # augmented = False
 
         differentials = {}
         # Convert the tuple self._data to a dictionary indexed by the
@@ -3303,8 +3305,8 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
         return "Simplicial set with {} non-degenerate simplices".format(num)
 
 
-# SimplicialSet could be turned into a function, for example allowing
-# for the construction of infinite simplicial sets.
+# TODO: possibly turn SimplicialSet into a function, for example
+# allowing for the construction of infinite simplicial sets.
 SimplicialSet = SimplicialSet_finite
 
 
@@ -4203,7 +4205,6 @@ def simplicial_data_from_kenzo_output(filename):
                     faces = []
                     for f in face_str[1:]:
                         # f has the form 'DEGENS NAME>', possibly with a trailing space.
-
                         # DEGENS is a hyphen-separated list, like
                         # '3-2-1-0' or '0' or '-'.
                         m = re.match('[-[0-9]+', f)

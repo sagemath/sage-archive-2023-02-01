@@ -87,11 +87,11 @@ class kRegularSequence(Element):
 
     def info(self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
 
-            sage: from sage.combinat.k_regular_sequence import kRegularSequences
             sage: Seq2 = kRegularSequences(2, ZZ)
-            sage: Seq2.guess(lambda n: sum(n.digits(2))).info()
+            sage: Seq2((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
+            ....:      initial=vector([0, 1]), selection=vector([1, 0])).info()
             matrices:
             (
             [1 0]  [ 0 -1]

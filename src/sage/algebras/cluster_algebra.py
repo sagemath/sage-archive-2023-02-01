@@ -1614,8 +1614,8 @@ class ClusterAlgebra(Parent):
 
             This function computes data for the new algebra from known data for
             the old algebra using [NZ12]_ equation (4.2) for g-vectors, and
-            [FZ07]_ equation (6.21) for F-polynomials. The exponent h in the
-            formula for F-polynomials is -min(0,old_g_vect[k]) due to [NZ12]_
+            [FZ07]_ equation (6.21) for F-polynomials. The exponent ``h`` in the
+            formula for F-polynomials is ``-min(0,old_g_vect[k])`` due to [NZ12]_
             Proposition 4.2.
 
         EXAMPLES::

@@ -226,3 +226,16 @@ class Knot(Link):
 
         return 1
 
+    def connect_sum(K1,K2):
+        from sage.groups.braid import BraidGroup
+        b1 = K1.braid()
+        b2 = K2.braid()
+
+        b1s = b1.strands()
+        b2s = b2.strands()
+
+        B = BraidGroup(b1s + b2s)
+
+        return Knot(B(list(b1.Tietze())
+                      + [(abs(i) + b2s) * Integer(i).sign() for i in b2.Tietze()]
+                      + [b1s]))

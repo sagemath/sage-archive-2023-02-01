@@ -346,7 +346,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     def _repr_(self):
         """
-        Return representation of ``self``.
+        Return string representation of ``self``.
 
         EXAMPLES::
 
@@ -504,7 +504,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             True
         """
         if n != 0:
-            raise IndexError, "generator n not defined"
+            raise IndexError("generator n not defined")
         return self.__generator
 
     def gens_dict(self):
@@ -534,7 +534,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     def is_finite(self):
         """
-        Return False since skew polynomial rings are not finite (unless the
+        Return ``False`` since skew polynomial rings are not finite (unless the
         base ring is 0.)
 
         EXAMPLES::
@@ -554,7 +554,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     def is_exact(self):
         """
-        Return True if elements of this skew polynomial ring are exact.
+        Return ``True`` if elements of this skew polynomial ring are exact.
         It happens if and only if elements of the base ring are exact.
 
         EXAMPLES::
@@ -579,11 +579,19 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     def is_sparse(self):
         """
-        Return true if elements of this polynomial ring have a sparse
+        Return ``True`` if elements of this polynomial ring have a sparse
         representation.
 
         Since sparse skew polynomials are not yet implemented, this
-        function always returns False.
+        function always returns ``False``.
+
+        EXAMPLES:
+
+            sage: R.<t> = RR[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: S.is_sparse()
+            False
         """
         return self.__is_sparse
 

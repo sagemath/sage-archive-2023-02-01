@@ -276,7 +276,7 @@ def slice_unpickle(master, start, stop, step):
     return master[start:stop:step]
 
 
-def str(self, name=None, separator=None, more=None,
+def lazy_list_formatter(L, name=None, separator=None, more=None,
         opening_delimiter=None, closing_delimiter=None,
         preview=None):
     r"""
@@ -348,11 +348,10 @@ def str(self, name=None, separator=None, more=None,
     if s:
         s += ' '
     s += opening_delimiter
-    cdef list P = list(self[:preview+1])
+    cdef list P = list(L[:preview+1])
     cdef list E = list('{!r}'.format(e)
                        for e in P[:preview])
-    cdef Py_ssize_t num_elts = 1 + (self.stop-self.start-1) / self.step
-    if num_elts > preview:
+    if len(P) > preview:
         E.append(more)
     s += separator.join(E)
     s += closing_delimiter
@@ -578,7 +577,7 @@ cdef class lazy_list_generic(object):
             sage: lazy_list([0,1,2,3])
             lazy list [0, 1, 2, ...]
         """
-        return self.str()
+        return lazy_list_formatter(self)
 
 
     def __reduce__(self):

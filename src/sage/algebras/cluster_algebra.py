@@ -686,9 +686,6 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``k`` --  an integer in ``range(self.parent().rk())``: the direction
-          in which we are mutating
-
         - ``mutating_F`` -- bool (default True) whether to compute F-polynomials
           also. While knowing F-polynomials is essential to computing
           cluster variables, the process of mutating them is quite slow. If you
@@ -1652,9 +1649,6 @@ class ClusterAlgebra(Parent):
         Return the cluster algebra obtained by mutating ``self`` at the initial seed.
 
         INPUT:
-
-        - ``k`` --  an integer in ``range(self.parent().rk())``: the direction
-          in which we are mutating
 
         ALGORITHM:
 

@@ -146,10 +146,16 @@ class kRegularSequence(Element):
             sage: S._product_of_matrices_(3) == M1^2
             True
 
+        ::
+
+            sage: S._product_of_matrices_(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: m=-1 is not a nonnegative integer.
          """
         k = self.parent().k
         if m < 0:
-            raise ValueError
+            raise ValueError('m={} is not a nonnegative integer.'.format(m))
         if 0 <= m < k:
             return self.matrices[m]
         n = m // k

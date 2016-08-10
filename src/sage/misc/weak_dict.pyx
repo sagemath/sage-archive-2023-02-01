@@ -471,8 +471,11 @@ cdef class WeakValueDictionary(dict):
         sage: class C(object):
         ....:     def __init__(self, n):
         ....:         self.n = n
-        ....:     def __cmp__(self, other):
-        ....:         return cmp(type(self),type(other)) or cmp(self.n, other.n)
+        ....:     def __richcmp__(self, other, op):
+        ....:         from sage.structure.sage_object import richcmp
+        ....:         if type(self) != type(other):
+        ....:             return NotImplemented
+        ....:         return richcmp(self.n, other.n, op)
         sage: B = 100
         sage: L = [None]*B
         sage: D1 = WeakValueDictionary()
@@ -1028,11 +1031,11 @@ cdef class WeakValueDictionary(dict):
             ....:         self.n = n
             ....:     def __repr__(self):
             ....:         return "<%s>"%self.n
-            ....:     def __cmp__(self, other):
-            ....:         c = cmp(type(self),type(other))
-            ....:         if c:
-            ....:             return c
-            ....:         return cmp(self.n,other.n)
+            ....:     def __richcmp__(self, other, op):
+            ....:         from sage.structure.sage_object import richcmp
+            ....:         if type(self) != type(other):
+            ....:             return NotImplemented
+            ....:         return richcmp(self.n, other.n, op)
             sage: L = [Vals(n) for n in range(10)]
             sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(L))
 
@@ -1077,12 +1080,12 @@ cdef class WeakValueDictionary(dict):
             ....:     def __init__(self, n):
             ....:         self.n = n
             ....:     def __repr__(self):
-            ....:         return "<%s>"%self.n
-            ....:     def __cmp__(self, other):
-            ....:         c = cmp(type(self),type(other))
-            ....:         if c:
-            ....:             return c
-            ....:         return cmp(self.n,other.n)
+            ....:         return "<%s>" % self.n
+            ....:     def __richcmp__(self, other, op):
+            ....:         from sage.structure.sage_object import richcmp
+            ....:         if type(self) != type(other):
+            ....:             return NotImplemented
+            ....:         return richcmp(self.n, other.n, op)
             sage: L = [Vals(n) for n in range(10)]
             sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(L))
 
@@ -1114,12 +1117,12 @@ cdef class WeakValueDictionary(dict):
             ....:     def __init__(self, n):
             ....:         self.n = n
             ....:     def __repr__(self):
-            ....:         return "<%s>"%self.n
-            ....:     def __cmp__(self, other):
-            ....:         c = cmp(type(self),type(other))
-            ....:         if c:
-            ....:             return c
-            ....:         return cmp(self.n,other.n)
+            ....:         return "<%s>" % self.n
+            ....:     def __richcmp__(self, other, op):
+            ....:         from sage.structure.sage_object import richcmp
+            ....:         if type(self) != type(other):
+            ....:             return NotImplemented
+            ....:         return richcmp(self.n, other.n, op)
             sage: class Keys(object):
             ....:     def __init__(self, n):
             ....:         self.n = n
@@ -1128,12 +1131,12 @@ cdef class WeakValueDictionary(dict):
             ....:             return 5
             ....:         return 3
             ....:     def __repr__(self):
-            ....:         return "[%s]"%self.n
-            ....:     def __cmp__(self, other):
-            ....:         c = cmp(type(self),type(other))
-            ....:         if c:
-            ....:             return c
-            ....:         return cmp(self.n,other.n)
+            ....:         return "[%s]" % self.n
+            ....:     def __richcmp__(self, other, op):
+            ....:         from sage.structure.sage_object import richcmp
+            ....:         if type(self) != type(other):
+            ....:             return NotImplemented
+            ....:         return richcmp(self.n, other.n, op)
             sage: L = [(Keys(n), Vals(n)) for n in range(10)]
             sage: D = sage.misc.weak_dict.WeakValueDictionary(L)
 
@@ -1179,11 +1182,11 @@ cdef class WeakValueDictionary(dict):
             ....:         self.n = n
             ....:     def __repr__(self):
             ....:         return "<%s>"%self.n
-            ....:     def __cmp__(self, other):
-            ....:         c = cmp(type(self),type(other))
-            ....:         if c:
-            ....:             return c
-            ....:         return cmp(self.n,other.n)
+            ....:     def __richcmp__(self, other, op):
+            ....:         from sage.structure.sage_object import richcmp
+            ....:         if type(self) != type(other):
+            ....:             return NotImplemented
+            ....:         return richcmp(self.n, other.n, op)
             sage: class Keys(object):
             ....:     def __init__(self, n):
             ....:         self.n = n
@@ -1193,11 +1196,11 @@ cdef class WeakValueDictionary(dict):
             ....:         return 3
             ....:     def __repr__(self):
             ....:         return "[%s]"%self.n
-            ....:     def __cmp__(self, other):
-            ....:         c = cmp(type(self),type(other))
-            ....:         if c:
-            ....:             return c
-            ....:         return cmp(self.n,other.n)
+            ....:     def __richcmp__(self, other, op):
+            ....:         from sage.structure.sage_object import richcmp
+            ....:         if type(self) != type(other):
+            ....:             return NotImplemented
+            ....:         return richcmp(self.n, other.n, op)
             sage: L = [(Keys(n), Vals(n)) for n in range(10)]
             sage: D = sage.misc.weak_dict.WeakValueDictionary(L)
 

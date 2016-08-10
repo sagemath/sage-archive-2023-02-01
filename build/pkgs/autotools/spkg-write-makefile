@@ -185,6 +185,11 @@ write_make_rules() {
         echo -e "\techo $v >$p-$v/.tarball-version"
 	if [ $p = libtool -a ! -f .serial ] ; then
 	    # The file .serial would be generated at "make dist" time.  It is used in ltversion.m4.
+	    # If .serial is missing, ltmversion.m4 will be malformed, causing the following warning
+	    # when the user uses autoreconf.
+	    #   m4/ltversion.m4:12: warning: ill-formed serial number 'ltversion.m4',
+	    #                                expecting a version string with only digits and dots
+	    # See Trac #21047.
 	    # Since we don't do "make dist" but rather build from a repository check-out, we have to
 	    # supply the .serial file ourselves.  The following recipe is from libtool's Makefile.am.
 	    echo -e "\techo $( git log --pretty=oneline | wc -l | sed 's|[\t ]||g ' ) > $p-$v/.serial"

@@ -275,7 +275,7 @@ class Function_cot(GinacFunction):
              sage: cot(a)
              array([-0.45765755, -7.01525255,  0.86369115])
         """
-        return 1 / tan(x)
+        return 1.0 / tan(x)
 
 cot = Function_cot()
 

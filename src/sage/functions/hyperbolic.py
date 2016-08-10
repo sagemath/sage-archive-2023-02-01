@@ -256,7 +256,7 @@ class Function_coth(GinacFunction):
             sage: coth(a)
             array([ 1.03731472,  1.00496982,  1.00067115])
         """
-        return 1 / tanh(x)
+        return 1.0 / tanh(x)
 
 coth = Function_coth()
 
@@ -307,7 +307,7 @@ class Function_sech(GinacFunction):
             sage: sech(a)
             array([ 0.26580223,  0.09932793,  0.03661899])
         """
-        return 1 / cosh(x)
+        return 1.0 / cosh(x)
 
 sech = Function_sech()
 
@@ -356,7 +356,7 @@ class Function_csch(GinacFunction):
             sage: csch(a)
             array([ 0.27572056,  0.09982157,  0.03664357])
         """
-        return 1 / sinh(x)
+        return 1.0 / sinh(x)
 
 csch = Function_csch()
 

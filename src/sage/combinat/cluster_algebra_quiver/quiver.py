@@ -401,10 +401,13 @@ class ClusterQuiver(SageObject):
                         multi_edges[(v1,v2)] = label
                     dg.delete_edge(v1,v2)
                 dg.add_edges( [ (v1,v2,multi_edges[(v1,v2)]) for v1,v2 in multi_edges ] )
+            
+            warning_given = False
             for edge in dg.edge_iterator():
-                if edge[0] >= n and edge[1] >= n:
+                if edge[0] >= n and edge[1] >= n and not warning_given:
                     #raise ValueError("The input digraph contains edges within the frozen vertices")
-                    print('Warning: The input digraph contained edges within the frozen vertices.')
+                    print('Warning: The input digraph contained edges within the frozen vertices. Use remove_frozen_edges to remove these edges.')
+                    warning_given = True
                 if edge[2] is None:
                     dg.set_edge_label( edge[0], edge[1], (1,-1) )
                     edge = (edge[0],edge[1],(1,-1))
@@ -1129,17 +1132,15 @@ class ClusterQuiver(SageObject):
             sage: Q2.set_frozen(['a']); Q2
             Quiver on 5 vertices with 1 frozen vertex
             sage: Q2.set_frozen(['a','b']); Q2
-            Warning: The input digraph contained edges within the frozen vertices.
+            Warning: The input digraph contained edges within the frozen vertices. Use remove_frozen_edges to remove these edges.
             Quiver on 5 vertices with 2 frozen vertices
             sage: Q2.set_frozen(['a','b','c']); Q2
-            Warning: The input digraph contained edges within the frozen vertices.
-            Warning: The input digraph contained edges within the frozen vertices.
+            Warning: The input digraph contained edges within the frozen vertices. Use remove_frozen_edges to remove these edges.
             Quiver on 5 vertices with 3 frozen vertices
             sage: Q2.mutation_type()
             ['A', 2]
             sage: Q.set_frozen(['a','b','c'],keep_previous_frozen=False); Q
-            Warning: The input digraph contained edges within the frozen vertices.
-            Warning: The input digraph contained edges within the frozen vertices.
+            Warning: The input digraph contained edges within the frozen vertices. Use remove_frozen_edges to remove these edges.
             Quiver on 5 vertices with 3 frozen vertices
             sage: Q == Q2
             True
@@ -1168,6 +1169,46 @@ class ClusterQuiver(SageObject):
             raise ValueError("The input new_frozen must be a list of vertices of the quiver.")
 
         self.__init__(dg, frozen=total_frozen, user_labels=None)
+        
+    def remove_frozen_edges( self, inplace = True):
+        """
+        Removes edges between frozen vertices.  self._digraph will be changed by default, optionally a new ClusterQuiver can be returned if 'inplace = False.'
+        
+        EXAMPLES::
+        
+            sage: dg = DiGraph([['a','b'],['c','b'],['b','d'],['c','e'],['f','e'],['h','e']])
+            sage: S = ClusterQuiver(dg,frozen = ['a','b','c','d'])
+            Warning: The input digraph contained edges within the frozen vertices. Use remove_frozen_edges to remove these edges.
+            sage: S.remove_frozen_edges()
+            sage: S.digraph().edges()
+            [('c', 'e', (1, -1)), ('f', 'e', (1, -1)), ('h', 'e', (1, -1))]
+            sage: ClusterQuiver(S.digraph(), frozen = S._mlist)
+            Quiver on 7 vertices with 4 frozen vertices
+            
+            sage: dg = DiGraph([['a','b'],['c','b'],['d','c']])
+            sage: Q = ClusterQuiver(dg, frozen = ['a','b'])
+            Warning: The input digraph contained edges within the frozen vertices. Use remove_frozen_edges to remove these edges.
+            sage: Qnew = Q.remove_frozen_edges(inplace = False)
+            sage: Qnew.digraph().edges()
+            [('c', 'b', (1, -1)), ('d', 'c', (1, -1))]
+            sage: Q.digraph().edges()
+            [('a', 'b', (1, -1)), ('c', 'b', (1, -1)), ('d', 'c', (1, -1))]
+        """
+        
+        edges = self._digraph.edges()
+        
+        for edge in self._digraph.edges():
+            if edge[0] in self._mlist and edge[1] in self._mlist:
+                edges.remove(edge)
+        
+        digraph = DiGraph()
+        digraph.add_vertices(self._digraph.vertices())
+        digraph.add_edges(edges)
+        
+        if not inplace:
+            return ClusterQuiver(digraph, frozen = self._mlist )
+        
+        self._digraph = digraph
         
     def canonical_label( self, certify=False ):
         """

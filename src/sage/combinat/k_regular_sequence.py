@@ -76,10 +76,12 @@ class kRegularSequence(Element):
 
 
     def _repr_(self):
-        # TODO
-        from sage.arith.srange import xsrange
-        return '{}-regular sequence '.format(self.parent().k) +\
-            ', '.join(repr(self[n]) for n in xsrange(10)) + ', ...'
+        from sage.misc.lazy_list import lazy_list_formatter
+        return lazy_list_formatter(
+            [self[n] for n in xrange(11)],  # once slicing works, use self
+            name='{}-regular sequence'.format(self.parent().k),
+            opening_delimiter='', closing_delimiter='',
+            preview=10)
 
 
     def info(self):

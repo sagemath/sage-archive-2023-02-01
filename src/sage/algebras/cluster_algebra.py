@@ -802,7 +802,7 @@ class ClusterAlgebra(Parent):
 
     Element = ClusterAlgebraElement
 
-    def __init__(self, data, **kwargs): # READY
+    def __init__(self, data, **kwargs):
         r"""
         A Cluster Algebra.
 
@@ -850,6 +850,12 @@ class ClusterAlgebra(Parent):
             Traceback (most recent call last):
             ...
             ValueError: cluster_variable_names should be a list of 3 valid variable names
+            sage: A = ClusterAlgebra(['A',3], principal_coefficients=True, coefficient_names=['a','b','c']); A.gens()
+            [x0, x1, x2, a, b, c]
+            sage: A = ClusterAlgebra(['A',3], principal_coefficients=True, coefficient_names=['a','b']); A.gens()
+            Traceback (most recent call last):
+            ...
+            ValueError: coefficient_names should be a list of 3 valid variable names
 
         ALGORITHM:
 
@@ -940,7 +946,7 @@ class ClusterAlgebra(Parent):
         embedding = SetMorphism(Hom(self,self.ambient()), lambda x: x.lift())
         self._populate_coercion_lists_(embedding=embedding)
 
-    def __copy__(self): # READY
+    def __copy__(self):
         r"""
         Return a copy of ``self``.
 
@@ -952,6 +958,14 @@ class ClusterAlgebra(Parent):
             True
             sage: A2 is not A1
             True
+
+            sage: S1 = A1.current_seed()
+            sage: S2 = A2.current_seed()
+            sage: S1 == S2
+            True
+            sage: S1.mutate(0)
+            sage: S1 == S2
+            False
         """
         n = self.rk()
         cv_names = self.initial_cluster_variable_names()
@@ -960,7 +974,7 @@ class ClusterAlgebra(Parent):
                 coefficient_names=coeff_names, scalars=self.scalars())
         other._F_poly_dict = copy(self._F_poly_dict)
         other._path_dict = copy(self._path_dict)
-        S = self.current_seed()
+        S = copy(self.current_seed())
         S._parent = other
         other.set_current_seed(S)
         return other

@@ -978,7 +978,7 @@ class ClusterAlgebra(Parent):
         other.set_current_seed(S)
         return other
 
-    def __eq__(self, other):    # READY
+    def __eq__(self, other):
         r"""
         Test equality of two cluster algebras.
 
@@ -1007,7 +1007,7 @@ class ClusterAlgebra(Parent):
         """
         return type(self) == type(other) and self._B0 == other._B0 and self.ambient() == other.ambient()
 
-    def _repr_(self):   # READY
+    def _repr_(self):
         r"""
         Return the string representation of ``self``.
 
@@ -1025,7 +1025,7 @@ class ClusterAlgebra(Parent):
         coeff = coeff_prefix + (" " if len(coeff_names)==1 else "s ") + ", ".join(coeff_names) + (" " if len(coeff_names)>0 else "")
         return "A Cluster Algebra with cluster variable" + var_names + coeff + "over " + repr(self.scalars())
 
-    def _an_element_(self): # READY
+    def _an_element_(self):
         r"""
         Return an element of ``self``.
 
@@ -1044,7 +1044,7 @@ class ClusterAlgebra(Parent):
 
             If ``other`` is an instance of :class:`ClusterAlgebra` then allow
             coercion if ``other.ambient()`` can be coerced into
-            ``self.ambient()`` and other can be obtained from ``self`` by
+            ``self.ambient()`` and ``other`` can be obtained from ``self`` by
             permuting variables and coefficients and/or freezing some initial
             cluster variables.
 
@@ -1066,6 +1066,19 @@ class ClusterAlgebra(Parent):
             [0, 2, 1]
             sage: S = A1.initial_seed(); S.mutate([0, 2, 1])
             sage: S.cluster_variable(1) == f(A2.cluster_variable((-1, 1, -1)))
+            True
+
+            sage: B3 = B1.matrix_from_columns([1,2,3])
+            sage: G = PermutationGroup(['(1,4,3,2)'])
+            sage: B3.permute_rows(G.gen(0))
+            sage: A3 = ClusterAlgebra(B3, cluster_variable_names=['x1','x2','x3'], coefficient_names=['x0','x4','x5'])
+            sage: A1.has_coerce_map_from(A3)
+            True
+            sage: g = A1.coerce_map_from(A3)
+            sage: A3.find_g_vector((1,-2,2))
+            [1, 2, 1, 0]
+            sage: S = A1.initial_seed(); S.mutate([1, 2, 1,0])
+            sage: S.cluster_variable(2) == g(A3.cluster_variable((1,-2,2))
             True
         """
         if isinstance(other, ClusterAlgebra):

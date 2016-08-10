@@ -14,7 +14,7 @@ Binary sum of digits
 
 ::
 
-    sage: Seq2 = kRegularSequences(2, ZZ)
+    sage: Seq2 = kRegularSequenceSpace(2, ZZ)
     sage: S = Seq2((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
     ....:          initial=vector([0, 1]), selection=vector([1, 0]))
     sage: S
@@ -91,7 +91,7 @@ class kRegularSequence(Element):
 
         INPUT:
 
-        - ``parent`` -- an instance of :class:`kRegularSequences`.
+        - ``parent`` -- an instance of :class:`kRegularSequenceSpace`.
 
         - ``matrices`` -- a tuple or other iterable of square matrices,
           all of which have the same dimension.
@@ -117,7 +117,7 @@ class kRegularSequence(Element):
 
         EXAMPLES::
 
-            sage: Seq2 = kRegularSequences(2, ZZ)
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: Seq2((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
             ....:      vector([0, 1]), vector([1, 0]),
             ....:      transpose=True)
@@ -167,7 +167,7 @@ class kRegularSequence(Element):
 
         TESTS::
 
-            sage: Seq2 = kRegularSequences(2, ZZ)
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: s = Seq2((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
             ....:           vector([0, 1]), vector([1, 0]), transpose=True)
             sage: repr(s)  # indirect doctest
@@ -192,7 +192,7 @@ class kRegularSequence(Element):
 
         EXAMPLES::
 
-            sage: Seq2 = kRegularSequences(2, ZZ)
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: Seq2((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
             ....:      initial=vector([0, 1]), selection=vector([1, 0])).info()
             matrices:
@@ -229,7 +229,7 @@ class kRegularSequence(Element):
 
         EXAMPLES::
 
-            sage: Seq2 = kRegularSequences(2, ZZ)
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: S = Seq2((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
             ....:          initial=vector([0, 1]), selection=vector([1, 0]))
             sage: S[7]
@@ -259,7 +259,7 @@ class kRegularSequence(Element):
 
         TESTS::
 
-            sage: Seq2 = kRegularSequences(2, ZZ)
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: M0 = Matrix([[1, 0], [0, 1]])
             sage: M1 = Matrix([[0, -1], [1, 2]])
             sage: S = Seq2((M0, M1))
@@ -290,7 +290,7 @@ class kRegularSequence(Element):
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 
-class kRegularSequences(UniqueRepresentation, Parent):
+class kRegularSequenceSpace(UniqueRepresentation, Parent):
 
     Element = kRegularSequence
 
@@ -298,15 +298,18 @@ class kRegularSequences(UniqueRepresentation, Parent):
         r"""
         TESTS::
 
-            sage: kRegularSequences(2, ZZ)
-            Set of 2-regular sequences over Integer Ring
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: Seq2
+            Space of 2-regular sequences over Integer Ring
+            sage: Seq2.category()
+            Category of sets
         """
         from sage.categories.sets_cat import Sets
         self.k = k
-        super(kRegularSequences, self).__init__(category=category or Sets(),
-                                                base=base)
+        super(kRegularSequenceSpace, self).__init__(
+            category=category or Sets(), base=base)
 
 
     def _repr_(self):
-        return 'Set of {}-regular sequences over {}'.format(self.k, self.base())
+        return 'Space of {}-regular sequences over {}'.format(self.k, self.base())
 

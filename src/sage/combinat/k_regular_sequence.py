@@ -1,9 +1,18 @@
 r"""
 `k`-regular Sequences
 
-EXAMPLES:
+An introduction and formal definition of `k`-regular sequences can be
+found, for example, on the :wikipedia:`k-regular_sequence` or in
+[AS2003]_.
 
-Binary sum of digits::
+
+Examples
+========
+
+Binary sum of digits
+--------------------
+
+::
 
     sage: Seq2 = kRegularSequences(2, ZZ)
     sage: S = Seq2((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),

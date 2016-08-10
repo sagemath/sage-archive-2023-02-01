@@ -319,7 +319,7 @@ class ClusterAlgebraSeed(SageObject):
         - ``parent`` -- a :class:`ClusterAlgebra`: the algebra to which the
           seed belongs;
 
-        - ``path`` -- list (default: []) the mutation sequence from the initial
+        - ``path`` -- list (default []) the mutation sequence from the initial
           seed of ``parent`` to `self``
 
         WARNING:
@@ -686,6 +686,9 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
+        - ``k`` --  an integer in ``range(self.parent().rk())``: the direction
+          in which we are mutating
+
         - ``mutating_F`` -- bool (default True) whether to compute F-polynomials
           also. While knowing F-polynomials is essential to computing
           cluster variables, the process of mutating them is quite slow. If you
@@ -801,7 +804,7 @@ class ClusterAlgebra(Parent):
 
     def __init__(self, data, **kwargs): # READY
         r"""
-        A cluster algebra.
+        A Cluster Algebra.
 
         INPUT:
 
@@ -814,18 +817,18 @@ class ClusterAlgebra(Parent):
         - ``cluster_variable_prefix`` -- string (default 'x'); it needs to be
           a valid variable name.
 
-        - ``cluster_variable_names`` -- a list of strings.  Superseedes
+        - ``cluster_variable_names`` -- a list of strings.  Supersedes
           ``cluster_variable_prefix``. Each element needs to be a valid
           variable name.
 
         - ``coefficient_prefix`` -- string (default 'y'); it needs to be
           a valid variable name.
 
-        - ``coefficient_names`` -- a list of strings. Superseedes
+        - ``coefficient_names`` -- a list of strings. Supersedes
           ``cluster_variable_prefix``. Each element needs to be a valid
           variable name.
 
-        - ``principal_coefficients`` -- bool (default: False). Superseedes any
+        - ``principal_coefficients`` -- bool (default False). Supersedes any
           coefficient defined by ``data``.
 
         EXAMPLES::
@@ -841,10 +844,16 @@ class ClusterAlgebra(Parent):
             [x0, x1, y0, y1]
             sage: A = ClusterAlgebra(['A',2], principal_coefficients=True, coefficient_prefix='x'); A.gens()
             [x0, x1, x2, x3]
+            sage: A = ClusterAlgebra(['A',3], principal_coefficients=True, cluster_variable_names=['a','b','c']); A.gens()
+            [a, b, c, y0, y1, y2]
+            sage: A = ClusterAlgebra(['A',3], principal_coefficients=True, cluster_variable_names=['a','b'])
+            Traceback (most recent call last):
+            ...
+            ValueError: cluster_variable_names should be a list of 3 valid variable names
 
         ALGORITHM:
 
-        The implementation is mainly based on [FZ07]_ and [NZ12]_.
+            The implementation is mainly based on [FZ07]_ and [NZ12]_.
 
         REFERENCES:
 
@@ -1629,6 +1638,9 @@ class ClusterAlgebra(Parent):
         Return the cluster algebra obtained by mutating ``self`` at the initial seed.
 
         INPUT:
+
+        - ``k`` --  an integer in ``range(self.parent().rk())``: the direction
+          in which we are mutating
 
         ALGORITHM:
 

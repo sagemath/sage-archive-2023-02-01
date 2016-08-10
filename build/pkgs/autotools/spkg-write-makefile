@@ -141,7 +141,7 @@ write_make_rules() {
                 ac_ver=`( echo 2.59; autoconf --trace='AC_PREREQ:$1' configure.ac ) | latest_version`
             fi
 
-	    # Fix up for wrong prereq.
+	    # Automake 1.10 thinks it only needs autoconf 2.59, when in fact it needs 2.60.  Fix it up.
 	    if [ $p = automake ] && [ $v = 1.10 ]; then
 		ac_ver=2.60
 	    fi
@@ -184,9 +184,12 @@ write_make_rules() {
         echo -e "\t( cd \$(SRC)/$p && git archive --format=tar --prefix=$p-$v/ $tag ) | tar xf -"
         echo -e "\techo $v >$p-$v/.tarball-version"
 	if [ $p = libtool -a ! -f .serial ] ; then
-	       echo -e "\techo $( git log --pretty=oneline | wc -l | sed 's|[\t ]||g ' ) > $p-$v/.serial"
-	# Could instead compute the .serial at "make" time:
-	#echo -e "\tif test ! -f \"$p-$v/.serial\"; then ( cd \$(SRC)/$p && git log --pretty=oneline $tag ) |wc -l | sed 's|[\t ]||g ' > $p-$v/.serial ; fi"
+	    # The file .serial would be generated at "make dist" time.  It is used in ltversion.m4.
+	    # Since we don't do "make dist" but rather build from a repository check-out, we have to
+	    # supply the .serial file ourselves.  The following recipe is from libtool's Makefile.am.
+	    echo -e "\techo $( git log --pretty=oneline | wc -l | sed 's|[\t ]||g ' ) > $p-$v/.serial"
+	    # Could instead compute the .serial at "make" time:
+	    #echo -e "\tif test ! -f \"$p-$v/.serial\"; then ( cd \$(SRC)/$p && git log --pretty=oneline $tag ) |wc -l | sed 's|[\t ]||g ' > $p-$v/.serial ; fi"
 	fi
         echo
 

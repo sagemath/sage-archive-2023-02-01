@@ -1484,9 +1484,9 @@ class ClusterAlgebra(Parent):
           F-polynomials; for speed considerations you may want to disable this.
 
         - ``allowed_directions`` -- a tuple of integers (default
-          ``range(self.rk())``: the directions in which to mutate.
+          ``range(self.rk())``): the directions in which to mutate.
 
-        - ``depth`` -- the maximum depth at which to stop searching.
+        - ``depth`` -- (defaulf ``infinity``):  the maximum depth at which to stop searching.
 
         ALGORITHM:
 

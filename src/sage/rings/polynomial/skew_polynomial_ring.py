@@ -690,6 +690,31 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         """
         return self.twist_map().is_identity()
 
+    def _create_mvp(self, x, one, sigma, eval_pts, check=True):
+        """
+        """
+#        one = S.one()
+#        sigma = S.twist_map()
+        l = len(eval_pts)
+        if l == 0:
+            return one
+        elif l == 1:
+            if eval_pts[0] == 0:
+                return one
+            else:
+                return x - (sigma(eval_pts[0]) / eval_pts[0])
+        else:
+            t = l//2
+            A = eval_pts[:t]
+            B = eval_pts[t:]
+            M_A = self._create_mvp(x, one, sigma, A)
+            M_A_B = M_A.multi_point_evaluation(B)
+            if check:
+                if 0 in M_A_B:
+                    raise ValueError("evaluation points must be linearly independent over the fixed field of the twist map")
+            M_M_A_B = self._create_mvp(x, one, sigma, M_A_B)
+            return M_M_A_B * M_A
+
     def minimal_vanishing_polynomial(self, eval_pts, check=True):
         """
         Return the minimal vanishing polynomial. Given the elements
@@ -747,27 +772,8 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             one = self.one()
             x = self.gen()
 
-        def create_mvp(eval_pts):
-            l = len(eval_pts)
-            if l == 0:
-                return one
-            elif l == 1:
-                if eval_pts[0] == 0:
-                    return one
-                else:
-                    return x - (sigma(eval_pts[0]) / eval_pts[0])
-            else:
-                t = l//2
-                A = eval_pts[:t]
-                B = eval_pts[t:]
-                M_A = create_mvp(A)
-                M_A_B = M_A.multi_point_evaluation(B)
-                if check:
-                    if 0 in M_A_B:
-                        raise ValueError("evaluation points must be linearly independent over the fixed field of the twist map")
-                M_M_A_B = create_mvp(M_A_B)
-                return M_M_A_B * M_A
-        return create_mvp(eval_pts)
+#        def create_mvp(eval_pts):
+        return self._create_mvp(x, one, sigma, eval_pts)
 
     def interpolation_polynomial(self, eval_pts, values, check=True):
         """

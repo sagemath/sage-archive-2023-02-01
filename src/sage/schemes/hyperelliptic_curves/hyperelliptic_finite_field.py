@@ -424,7 +424,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
     def frobenius_polynomial_pari(self):
         r"""
         Compute the charpoly of frobenius, as an element of `\ZZ[x]`,
-        by calling the PARI function hyperellcharpoly.
+        by calling the PARI function ``hyperellcharpoly``.
 
         EXAMPLES::
 
@@ -547,9 +547,11 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         g = self.genus()
         f, h = self.hyperelliptic_polynomials()
 
-        if e == 1 and q >= (2*g+1)*(2*self._frobenius_coefficient_bound_charpoly()-1) and h==0 and f.degree() %2 == 1:
+        if (e == 1 and
+            q >= (2*g+1)*(2*self._frobenius_coefficient_bound_charpoly()-1) and
+            h == 0 and f.degree() % 2):
             return self.frobenius_polynomial_matrix()
-        elif q%2 == 1:
+        elif q % 2 == 1:
             return self.frobenius_polynomial_pari()
         else:
             return self.frobenius_polynomial_cardinalities()
@@ -1132,7 +1134,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H.count_points(6)
             [2, 24, 74, 256, 1082, 4272]
 
-            This example shows that :trac:`20391` is resolved:
+        This example shows that :trac:`20391` is resolved::
 
             sage: x = polygen(GF(4099))
             sage: H = HyperellipticCurve(x^6 + x + 1)

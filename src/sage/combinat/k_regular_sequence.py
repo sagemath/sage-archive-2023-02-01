@@ -1,9 +1,7 @@
 r"""
 `k`-regular Sequences
 
-EXAMPLES::
-
-    sage: from sage.combinat.k_regular_sequence import kRegularSequences
+EXAMPLES:
 
 Binary sum of digits::
 
@@ -44,7 +42,6 @@ class kRegularSequence(Element):
         r"""
         TESTS::
 
-            sage: from sage.combinat.k_regular_sequence import kRegularSequences
             sage: Seq2 = kRegularSequences(2, ZZ)
             sage: Seq2((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
             ....:      Matrix([[0, 1]]), Matrix([[1], [0]]),
@@ -144,7 +141,6 @@ class kRegularSequences(UniqueRepresentation, Parent):
         r"""
         TESTS::
 
-            sage: from sage.combinat.k_regular_sequence import kRegularSequences
             sage: kRegularSequences(2, ZZ)
             Set of 2-regular sequences over Integer Ring
         """

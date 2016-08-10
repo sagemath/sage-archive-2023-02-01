@@ -1240,6 +1240,17 @@ class Partition(CombinatorialElement):
         """
         return (-1)**(self.size()-self.length())
 
+    def row_standard_tableaux(self):
+        """
+        Return the :class:`standard tableaux<StandardTableaux>` of this shape.
+
+        EXAMPLE::
+
+            sage: Partition([3,2,2,1]).standard_tableaux()
+            Standard tableaux of shape [3, 2, 2, 1]
+        """
+        return tableau.RowStandardTableaux(self)
+
     def standard_tableaux(self):
         """
         Return the :class:`standard tableaux<StandardTableaux>` of this shape.
@@ -5645,7 +5656,6 @@ class Partitions_all(Partitions):
         return self.element_class(self, [new_w[i]+i for i in range(len(new_w))])
 
 class Partitions_all_bounded(Partitions):
-
     def __init__(self, k):
         """
         TESTS::
@@ -5703,7 +5713,6 @@ class Partitions_all_bounded(Partitions):
             for p in Partitions(n, max_part=self.k):
                 yield self.element_class(self, p)
             n += 1
-
 
 class Partitions_n(Partitions):
     """

@@ -15,6 +15,8 @@ AUTHORS:
 - Travis Scrimshaw (11-22-2012): Added tuple options, changed ``*katabolism*``
   to ``*catabolism*``. Cleaned up documentation.
 
+- Andrew Mathas (2016-08-11): Row standard tableaux added
+
 This file consists of the following major classes:
 
 Element classes:

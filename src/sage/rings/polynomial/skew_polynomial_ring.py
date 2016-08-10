@@ -698,11 +698,81 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         """
         return self.twist_map().is_identity()
 
+    def _gen_one_sigma(self):
+        """
+        Return the indeterminate generator, one and twist map of
+        ``self``, or of the skew polynomial ring `S` associated
+        with the fraction field of the base ring of ``self`` if
+        the base ring of ``self`` is not a field (internal method).
+
+        OUTPUT:
+
+        - ``x`` -- indeterminate generator of ``self`` or `S`
+
+        - ``one`` -- one of ``self`` or `S`
+
+        - ``sigma`` -- twist map of ``self`` or `S`
+
+        EXAMPLES:
+
+            sage: R.<t> = ZZ[]
+            sage: sigma = R.hom([t+1])
+            sage: T.<x> = R['x', sigma]
+            sage: eval_pts = [1, t, t^2]
+            sage: values = [t^2 + 3*t + 4, 2*t^2 + 3*t + 1, t^2 + 3*t + 4]
+            sage: p = T.interpolation_polynomial(eval_pts, values); p #indirect doctest
+            ((-t^4 - 2*t - 3)/-2)*x^2 + (-t^4 - t^3 - t^2 - 3*t - 2)*x + (-t^4 - 2*t^3 - 4*t^2 - 10*t - 9)/-2
+        """
+        R = self.base_ring()
+        sigma = self.twist_map()
+        if not isinstance(R, Field):
+            Q = R.fraction_field()
+            gens = R.gens()
+            try:
+                sigma = Q.hom([ Q(sigma(g)) for g in gens ])
+                S = Q[self.variable_name(), sigma]
+                one = S.one()
+                x = S.gen()
+            except:
+                raise ValueError("unable to lift the twist map to a twist map over %s" % Q)
+        else:
+            one = self.one()
+            x = self.gen()
+        return x, one, sigma
+
     def _create_mvp(self, x, one, sigma, eval_pts, check=True):
         """
-        """
-#        one = S.one()
-#        sigma = S.twist_map()
+        Return the minimum vanishing polynomial (internal method).
+
+        INPUT:
+
+        - ``x`` -- the generator of the associated skew polynomial ring
+
+        - ``one`` -- the one of the associated skew polynomial ring
+
+        - ``sigma`` -- the twist map of the associated skew polynomial ring
+
+        - ``eval_pts`` -- list of evaluation points which are linearly
+          independent over the fixed field of the twist map of the associated
+          skew polynomial ring
+
+        - ``check`` -- boolean (default: ``True``) that verifies whether the
+          `eval_pts` are linearly independent in the fixed field of twist map
+          of the associated skew polynomial ring
+
+        OUTPUT:
+
+        The minimum vanishing polynomial.
+
+        EXAMPLES:
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: eval_pts = [1, t, t^2]
+            sage: b = S.minimal_vanishing_polynomial(eval_pts); b #indirect doctest
+            x^3 + 4
+       """
         l = len(eval_pts)
         if l == 0:
             return one
@@ -715,12 +785,12 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             t = l//2
             A = eval_pts[:t]
             B = eval_pts[t:]
-            M_A = self._create_mvp(x, one, sigma, A)
+            M_A = self._create_mvp(x, one, sigma, A, check)
             M_A_B = M_A.multi_point_evaluation(B)
             if check:
                 if 0 in M_A_B:
                     raise ValueError("evaluation points must be linearly independent over the fixed field of the twist map")
-            M_M_A_B = self._create_mvp(x, one, sigma, M_A_B)
+            M_M_A_B = self._create_mvp(x, one, sigma, M_A_B, check)
             return M_M_A_B * M_A
 
     def minimal_vanishing_polynomial(self, eval_pts, check=True):
@@ -732,7 +802,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         INPUT:
 
         - ``eval_pts`` -- list of evaluation points which are linearly
-        independent over the fixed field of the twist map of ``self``.
+          independent over the fixed field of the twist map of ``self``.
 
         - ``check`` -- boolean (default: ``True``) that verifies whether the
           `eval_pts` are linearly independent in the fixed field of twist map of ``self``.
@@ -764,24 +834,56 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             ...
             ValueError: evaluation points must be linearly independent over the fixed field of the twist map
         """
-        R = self.base_ring()
-        sigma = self.twist_map()
-        if not isinstance(R, Field):
-            Q = R.fraction_field()
-            gens = R.gens()
-            try:
-                sigma = Q.hom([ Q(sigma(g)) for g in gens ])
-                S = Q[self.variable_name(), sigma]
-                one = S.one()
-                x = S.gen()
-            except:
-                raise ValueError("Unable to lift the twist map to a twist map over %s" % Q)
-        else:
-            one = self.one()
-            x = self.gen()
+        x, one, sigma = self._gen_one_sigma()
+        return self._create_mvp(x, one, sigma, eval_pts, check)
 
-#        def create_mvp(eval_pts):
-        return self._create_mvp(x, one, sigma, eval_pts)
+    def _interpolate(self, x, one, sigma, eval_pts, values):
+        """
+        Return the interpolation polynomial (internal method).
+
+        INPUT:
+
+        - ``x`` -- the generator of the associated skew polynomial ring
+
+        - ``one`` -- the one of the associated skew polynomial ring
+
+        - ``sigma`` -- the twist map of the associated skew polynomial ring
+
+        - ``eval_pts`` -- list of evaluation points which are linearly
+          independent over the fixed field of the twist map of the associated
+          skew polynomial ring
+
+        - ``values`` -- list of values that the interpolation polynomial takes
+          at the respective `eval_pts`
+
+        OUTPUT:
+
+        The interpolation polynomial.
+
+        EXAMPLES:
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: eval_pts = [t, t^2]
+            sage: values = [3*t^2 + 4*t + 4, 4*t]
+            sage: d = S.interpolation_polynomial(eval_pts, values); d #indirect doctest
+            x + t
+        """
+        l = len(eval_pts)
+        if l == 1:
+            return (values[0]/eval_pts[0])*one
+        else:
+            t = l//2
+            A = eval_pts[:t]
+            B = eval_pts[t:]
+            M_A = self._create_mvp(x, one, sigma, A)
+            M_B = self._create_mvp(x, one, sigma, B)
+            A_ = M_B.multi_point_evaluation(A)
+            B_ = M_A.multi_point_evaluation(B)
+            I_1 = self._interpolate(x, one, sigma, A_, values[:t])
+            I_2 = self._interpolate(x, one, sigma, B_, values[t:])
+            return I_1 * M_B + I_2 * M_A
 
     def interpolation_polynomial(self, eval_pts, values, check=True):
         """
@@ -793,7 +895,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         INPUT:
 
         - ``eval_pts`` -- list of evaluation points which are linearly
-        independent over the fixed field of the twist map of ``self``.
+          independent over the fixed field of the twist map of ``self``.
 
         - ``values`` -- list of values that the interpolation polynomial `I` takes
           at the respective `eval_pts`
@@ -831,41 +933,14 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         if 0 in eval_pts:
             raise TypeError("evaluation points must be non-zero")
 
-        R = self.base_ring()
-        if not isinstance(R, Field):
-            Q = R.fraction_field()
-            gens = R.gens()
-            sigma = self.twist_map()
-            try:
-                sigma_frac = Q.hom([ Q(sigma(g)) for g in gens ])
-                S = Q[self.variable_name(), sigma_frac]
-                one = S.one()
-            except:
-                raise ValueError("Unable to lift the twist map to a twist map over %s" % Q)
-        else:
-            one = self.one()
+        x, one, sigma = self._gen_one_sigma()
+        interpolation_polynomial = self._interpolate(x, one, sigma, eval_pts, values)
 
-        def interpolate(eval_pts, values):
-            l = len(eval_pts)
-            if l == 1:
-                return (values[0]/eval_pts[0])*one
-            else:
-                t = l//2
-                A = eval_pts[:t]
-                B = eval_pts[t:]
-                M_A = self.minimal_vanishing_polynomial(A)
-                M_B = self.minimal_vanishing_polynomial(B)
-                A_ = M_B.multi_point_evaluation(A)
-                B_ = M_A.multi_point_evaluation(B)
-                I_1 = interpolate(A_, values[:t])
-                I_2 = interpolate(B_, values[t:])
-                return I_1 * M_B + I_2 * M_A
-
-        interpolation_polynomial = interpolate(eval_pts, values)
         if check:
             for i in range(l):
                 if interpolation_polynomial(eval_pts[i]) != values[i]:
                     return ValueError("evaluation points must be linearly independent over the fixed field of the twist map")
+
         return interpolation_polynomial
 
 class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):

@@ -248,8 +248,9 @@ def g_vector(self):   #READY
         sage: A.cluster_variable((1,0)).g_vector() == (1,0)
         True
     """
-    if self.is_homogeneous():
-        return self.homogeneous_components().keys()[0]
+    components = self.homogeneous_components()
+    if len(components) == 1:
+        return components.keys()[0]
     else:
         raise ValueError("This element is not homogeneous.")
 
@@ -1380,6 +1381,25 @@ class ClusterAlgebra(Parent):
             [x0, x1, y0, y1]
         """
         return map(self.retract, self.ambient().gens())
+
+    def coefficient(self, j):   # READY
+        r"""
+        Return the j-th coefficient of ``self``.
+
+        INPUT:
+
+        - ``j`` -- an integer: the index of the coefficient to return.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',2],principal_coefficients=True)
+            sage: A.coefficient(0)
+            y0
+        """
+        if isinstance(self.base(), LaurentPolynomialRing_generic):
+            return self.retract(self.base().gen(j))
+        else:
+            raise ValueError("generator not defined")
 
     def coefficients(self): # READY
         r"""

@@ -111,6 +111,7 @@ class kRegularSequence(Element):
     @cached_method
     def __getitem__(self, n):
         result = self.product_of_matrices(n)
+        result = self._product_of_matrices_(n)
         if self.initial is not None:
             result = self.initial * result
         if self.selection is not None:
@@ -119,7 +120,7 @@ class kRegularSequence(Element):
 
 
     @cached_method
-    def product_of_matrices(self, m):
+    def _product_of_matrices_(self, m):
         k = self.parent().k
         if m < 0:
             raise ValueError
@@ -127,7 +128,7 @@ class kRegularSequence(Element):
             return self.matrices[m]
         n = m // k
         r = m - n*k
-        return self.matrices[r] * self.product_of_matrices(n)
+        return self.matrices[r] * self._product_of_matrices_(n)
 
 
 from sage.structure.unique_representation import UniqueRepresentation

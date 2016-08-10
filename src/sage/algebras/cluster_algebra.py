@@ -1,9 +1,21 @@
 r"""
 Cluster algebras
 
-Implementation of cluster algebras as an algebra using mainly structural theorems from CA IV
+Implementation of cluster algebras as an algebra using mainly structural theorems from [FZ07]_
 
 TODO: We should write a nice paragraph here.
+
+REFERENCES:
+
+.. [FZ07] \S. Fomin and \A. Zelevinsky, "Cluster algebras IV.  Coefficients",
+   Compos. Math. 143 (2007), no. 1, 112-164.
+
+.. [LLZ14] \K. Lee, \L. Li, and \A. Zelevinsky, "Greedy elements in rank 2
+   cluster algebras", Selecta Math. 20 (2014), 57-82.
+
+.. [NZ12] \T. Nakanishi and \A. Zelevinsky, "On tropical dualities in cluster
+   algebras', Algebraic groups and quantum groups, Contemp.  Math., vol. 565,
+   Amer. Math. Soc., Providence, RI, 2012, pp.  217-226.
 
 AUTHORS:
 
@@ -828,6 +840,10 @@ class ClusterAlgebra(Parent):
         - ``principal_coefficients`` -- bool (default False). Supersedes any
           coefficient defined by ``data``.
 
+        ALGORITHM:
+
+            The implementation is mainly based on [FZ07]_ and [NZ12]_.
+
         EXAMPLES::
 
             sage: B = matrix([(0, 1, 0, 0),(-1, 0, -1, 0),(0, 1, 0, 1),(0, 0, -2, 0),(-1, 0, 0, 0),(0, -1, 0, 0)])
@@ -853,20 +869,6 @@ class ClusterAlgebra(Parent):
             Traceback (most recent call last):
             ...
             ValueError: coefficient_names should be a list of 3 valid variable names
-
-        ALGORITHM:
-
-            The implementation is mainly based on [FZ07]_ and [NZ12]_.
-
-        REFERENCES:
-
-        .. [FZ07] \S. Fomin and \A. Zelevinsky, "Cluster algebras IV.
-           Coefficients", Compos. Math. 143 (2007), no. 1, 112-164.
-
-        .. [NZ12] \T. Nakanishi and \A. Zelevinsky, "On tropical dualities in
-           cluster algebras', Algebraic groups and quantum groups, Contemp.
-           Math., vol. 565, Amer. Math. Soc., Providence, RI, 2012, pp.
-           217-226.
         """
         # Temporary variables
         Q = ClusterQuiver(data)
@@ -1768,11 +1770,6 @@ def greedy_element(self, d_vector):
     ALGORITHM:
 
         This implements greedy elements of a rank 2 cluster algebra from [LLZ14]_ equation (1.5).
-
-    REFERENCES:
-
-    .. [LLZ14] \K. Lee, \L. Li, and \A. Zelevinsky, "Greedy elements in rank 2
-       cluster algebras", Selecta Math. 20 (2014), 57-82.
 
     EXAMPLES::
 

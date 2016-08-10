@@ -284,8 +284,8 @@ def lazy_list_formatter(L, name=None, separator=None, more=None,
 
     INPUT:
 
-    - ``L`` -- an object supporting indexing, i.e., extracting a value
-      via ``[]`` (method ``__getitem__``).
+    - ``L`` -- an object supporting slicing. To be precise, extracting an
+      iterable of the first `n` values via ``iter(L[:n])`` has to be possible.
 
     - ``name`` -- (default: ``'lazy list'``) a string appearing
       at first position (i.e., in front of the actual values)

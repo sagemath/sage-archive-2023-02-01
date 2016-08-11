@@ -1622,6 +1622,67 @@ class PartitionTuple(CombinatorialElement):
         multicharge=tuple([i*self.size() for i in range(self.size())])
         return sum(t.degree(pk, multicharge) for pk in ps for t in self.standard_tableaux())
 
+    @cached_method
+    def block(self, e, multicharge):
+        r"""
+        Return a dictionary `\beta` that determines the block associated to
+        the partition ``self`` and the quantum characteristic ``e``.
+
+        INPUT:
+
+        - ``e`` -- the quantum characteritic
+
+        - ``multicharge`` -- the multicharge (default `(0,)`)
+
+        OUTPUT:
+
+        - A dictionary giving the multiplicities of the residues in the
+          partition tuple ``self``
+
+        In more detail, the dictionary `\beta[i]` is equal to the
+        number of nodes of residue ``i``. This corresponds to
+
+        .. MATH::
+
+            \sum_{i\in I} \beta_i \alpha_i \in Q^+,
+
+        a element of the positive root lattice of the corresponding
+        Kac-Moody algebra.
+
+        This is a useful statistics because two Specht modules for a cyclotomic
+        Hecke algebra of type `A` belong to the same block if and only if they
+        correspond to same element `\beta` of the root lattice, given above.
+
+        We return a dictionary because when the quantum characteristic is `0`,
+        the Cartan type is `A_{\infty}`, in which case the simple roots are
+        indexed by the integers.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[2,2],[2,2]]).block(0,(0,0))
+            {-1: 2, 0: 4, 1: 2}
+            sage: PartitionTuple([[2,2],[2,2]]).block(2,(0,0))
+            {0: 4, 1: 4}
+            sage: PartitionTuple([[2,2],[2,2]]).block(2,(0,1))
+            {0: 4, 1: 4}
+            sage: PartitionTuple([[2,2],[2,2]]).block(3,(0,2))
+            {0: 3, 1: 2, 2: 3}
+            sage: PartitionTuple([[2,2],[2,2]]).block(3,(0,2))
+            {0: 3, 1: 2, 2: 3}
+            sage: PartitionTuple([[2,2],[2,2]]).block(3,(3,2))
+            {0: 3, 1: 2, 2: 3}
+            sage: PartitionTuple([[2,2],[2,2]]).block(4,(0,0))
+            {0: 4, 1: 2, 3: 2}
+
+        """
+        block={}
+        Ie = IntegerModRing(e)
+        for (k,r,c) in self.cells():
+            i=Ie(multicharge[k]+c-r)
+            block[i] = block.get(i,0) + 1
+        return block
+
+
     def defect(self, e, multicharge):
         r"""
         Return the ``e``-defect or the ``e``-weight ``self``.
@@ -1649,25 +1710,20 @@ class PartitionTuple(CombinatorialElement):
             sage: PartitionTuple([[2,2],[2,2]]).defect(2,(0,1))
             8
             sage: PartitionTuple([[2,2],[2,2]]).defect(3,(0,2))
-            7
+            5
             sage: PartitionTuple([[2,2],[2,2]]).defect(3,(0,2))
-            7
+            5
             sage: PartitionTuple([[2,2],[2,2]]).defect(3,(3,2))
-            7
+            2
             sage: PartitionTuple([[2,2],[2,2]]).defect(4,(0,0))
             0
         """
         # Will correspond to an element of the positive root lattice
         #   corresponding to the block.
         # We use a dictionary to cover the case when e = 0.
-        beta = {}
-
+        beta = self.block(e, multicharge)
         Ie = IntegerModRing(e)
-        for (k,r,c) in self.cells():
-            r = Ie(multicharge[k]+r-c)
-            beta[r] = beta[r] + 1 if r in beta else 1
-
-        return sum(beta[r] for r in beta) - sum(beta[r]**2 - beta[r] * beta.get(Ie(r+1),0)
+        return sum(beta.get(r,0) for r in multicharge) - sum(beta[r]**2 - beta[r] * beta.get(Ie(r+1),0)
                                                 for r in beta)
 
 #--------------------------------------------------

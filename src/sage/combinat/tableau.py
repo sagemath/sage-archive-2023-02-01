@@ -749,7 +749,7 @@ class Tableau(ClonableList):
             ...
             ValueError: the shape of the tableau must contain the partition
         """
-        from sage.combinat.partition import Partition
+        from .partition import Partition
         #if t is a list, convert it to a partition first
         if isinstance(t, list):
             t = Partition(t)
@@ -765,7 +765,7 @@ class Tableau(ClonableList):
             for j in range(t_i):
                 st_i[j] = None
 
-        from sage.combinat.skew_tableau import SkewTableau
+        from .skew_tableau import SkewTableau
         return SkewTableau(st)
 
     __div__ = __truediv__
@@ -841,7 +841,7 @@ class Tableau(ClonableList):
             sage: Tableau([[1,2,3],[4,5],[6]]).shape()
             [3, 2, 1]
         """
-        from sage.combinat.partition import Partition
+        from .partition import Partition
         return Partition([len(row) for row in self])
 
     def size(self):
@@ -929,7 +929,7 @@ class Tableau(ClonableList):
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_row()
             word: 325146
         """
-        from sage.combinat.words.word import Word
+        from .words.word import Word
         w = []
         for row in reversed(self):
             w += row
@@ -948,7 +948,7 @@ class Tableau(ClonableList):
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_column()
             word: 321546
         """
-        from sage.combinat.words.word import Word
+        from .words.word import Word
         w = []
         for row in self.conjugate():
             w += row[::-1]
@@ -1442,7 +1442,7 @@ class Tableau(ClonableList):
         """
         if check and self not in SemistandardTableaux():
             raise ValueError("the tableau must be semistandard")
-        from sage.combinat.skew_tableau import SkewTableau
+        from .skew_tableau import SkewTableau
         sk = SkewTableau(self).bender_knuth_involution(k, rows, False)
         return SemistandardTableaux()(list(sk))
 
@@ -2040,7 +2040,7 @@ class Tableau(ClonableList):
             ....:      for T in StandardTableaux(5) for i in range(1, 5) )
             True
         """
-        from sage.combinat.partition import Partition
+        from .partition import Partition
         res = [len([y for y in row if y <= n]) for row in self]
         return Partition(res)
 
@@ -2098,7 +2098,7 @@ class Tableau(ClonableList):
             sage: T.to_Gelfand_Tsetlin_pattern()
             [[2, 1, 0], [1, 1], [1]]
         """
-        from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPatterns
+        from .gelfand_tsetlin_patterns import GelfandTsetlinPatterns
         return GelfandTsetlinPatterns()(self)
 
     def anti_restrict(self, n):
@@ -2122,7 +2122,7 @@ class Tableau(ClonableList):
             [[None, None, None], [None, None]]
         """
         t_new = [[None if g <= n else g for g in row] for row in self]
-        from sage.combinat.skew_tableau import SkewTableau
+        from .skew_tableau import SkewTableau
         return SkewTableau(t_new)
 
     def to_list(self):
@@ -2473,7 +2473,7 @@ class Tableau(ClonableList):
         for row in left:
             st.append(row)
 
-        from sage.combinat.skew_tableau import SkewTableau
+        from .skew_tableau import SkewTableau
         return SkewTableau(st).rectify()
 
     def _slide_up(self, c):
@@ -3867,7 +3867,7 @@ class Tableau(ClonableList):
         for r,row in enumerate(self):
             for c,entry in enumerate(row):
                 res[entry-1] = multicharge[0] - r + c
-        from sage.combinat.tableau_residues import ResidueSequence
+        from .tableau_residues import ResidueSequence
         return ResidueSequence(e, multicharge, res, check=False)
 
     def degree(self, e, multicharge=(0,)):
@@ -5028,7 +5028,7 @@ class Tableaux(UniqueRepresentation, Parent):
             sage: 1 in sage.combinat.tableau.Tableaux()
             False
         """
-        from sage.combinat.partition import _Partitions
+        from .partition import _Partitions
         if isinstance(x, Tableau):
             return True
         elif isinstance(x, list):
@@ -5353,7 +5353,7 @@ class SemistandardTableaux(Tableaux):
             ...
             ValueError: shape must be a (skew) partition
         """
-        from sage.combinat.partition import Partition, _Partitions
+        from .partition import Partition, _Partitions
         # Process the keyword arguments -- allow for original syntax where
         #   n == size,  p== shape and mu == eval
         n = kwargs.get('n', None)
@@ -5395,13 +5395,13 @@ class SemistandardTableaux(Tableaux):
                 raise ValueError( "size must be non-negative" )
 
         if shape is not None:
-            from sage.combinat.skew_partition import SkewPartitions
+            from .skew_partition import SkewPartitions
             # use in (and not isinstance) below so that lists can be used as
             # shorthand
             if shape in _Partitions:
                 shape = Partition(shape)
             elif shape in SkewPartitions():
-                from sage.combinat.skew_tableau import SemistandardSkewTableaux
+                from .skew_tableau import SemistandardSkewTableaux
                 return SemistandardSkewTableaux(shape, mu)
             else:
                 raise ValueError( "shape must be a (skew) partition" )
@@ -5746,7 +5746,7 @@ class SemistandardTableaux_size_inf(SemistandardTableaux):
             sage: sst[0].parent() is sst
             True
         """
-        from sage.combinat.partition import Partitions
+        from .partition import Partitions
         # Iterates through with maximum entry as order
         i = 1
         while(True):
@@ -5966,7 +5966,7 @@ class SemistandardTableaux_size(SemistandardTableaux):
         """
         from sage.rings.all import ZZ
         from sage.matrix.constructor import diagonal_matrix
-        from sage.combinat.rsk import RSK
+        from .rsk import RSK
         kchoose2m1 = self.max_entry * (self.max_entry - 1) / 2 - 1
         km1 = self.max_entry - 1
         weights = [binomial(self.size - i + km1, km1) * binomial((i/2) + kchoose2m1, kchoose2m1)
@@ -6007,7 +6007,7 @@ class SemistandardTableaux_size(SemistandardTableaux):
             sage: all([sst.cardinality() == len(sst.list()) for sst in ssts])
             True
         """
-        from sage.combinat.partition import Partitions
+        from .partition import Partitions
         c = 0
         for part in Partitions(self.size):
             c += SemistandardTableaux_shape(part, self.max_entry).cardinality()
@@ -6053,7 +6053,7 @@ class SemistandardTableaux_size(SemistandardTableaux):
             sage: sst[0].parent() is sst
             True
         """
-        from sage.combinat.partition import Partitions
+        from .partition import Partitions
         for part in Partitions(self.size):
             for sst in SemistandardTableaux_shape(part, self.max_entry):
                 yield self.element_class(self, sst)
@@ -6195,7 +6195,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
            http://www.sciencedirect.com/science/article/pii/0012365X9290368P
         """
         from sage.misc.prandom import randint
-        from sage.combinat.partition import Partition
+        from .partition import Partition
         with_sentinels = [max(i,j) for i,j in zip([0]+list(self.shape), [k+1 for k in self.shape]+[0])]
         t = [[self.max_entry+1]*i for i in with_sentinels]
         for i,l in enumerate(self.shape):
@@ -6445,7 +6445,7 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
             sage: sst[0].parent() is sst
             True
         """
-        from sage.combinat.partition import Partitions
+        from .partition import Partitions
         for p in Partitions(self.size):
             for sst in SemistandardTableaux_shape_weight(p, self.weight):
                 yield self.element_class(self, sst)
@@ -6462,7 +6462,7 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
             sage: SemistandardTableaux(4, [2,2]).cardinality()
             3
         """
-        from sage.combinat.partition import Partitions
+        from .partition import Partitions
         c = 0
         for p in Partitions(self.size):
             c += SemistandardTableaux_shape_weight(p, self.weight).cardinality()
@@ -6478,9 +6478,460 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
             sage: all([sst in SST for sst in SemistandardTableaux([3,2,1],[2,2,2])])
             True
         """
-        from sage.combinat.partition import Partition
+        from .partition import Partition
         return x in SemistandardTableaux_shape_weight(Partition(
             [len(_) for _ in x]), self.weight)
+
+
+#########################
+# Row standard Tableaux #
+#########################
+
+class RowStandardTableaux(Tableaux):
+    """
+    A factory for the various classes of row standard tableaux.
+
+    INPUT:
+
+    - Either a non-negative integer (possibly specified with the keyword ``n``)
+      or a partition.
+
+    OUTPUT:
+
+    - With no argument, the class of all standard tableaux
+
+    - With a non-negative integer argument, ``n``, the class of all standard
+      tableaux of size ``n``
+
+    - With a partition argument, the class of all standard tableaux of that
+      shape.
+
+    A standard tableau is a semistandard tableaux which contains each of the
+    entries from 1 to ``n`` exactly once.
+
+    All classes of standard tableaux are iterable.
+
+    EXAMPLES::
+
+        sage: ST = RowStandardTableaux(3); ST
+        Row standard tableaux of size 3
+        sage: ST.first()
+        [[1, 2, 3]]
+        sage: ST.last()
+        [[1], [2], [3]]
+        sage: ST.cardinality()
+        10
+        sage: ST.list()
+        [[[1, 2, 3]],
+         [[2, 3], [1]],
+         [[1, 3], [2]],
+         [[1, 2], [3]],
+         [[3], [2], [1]],
+         [[2], [3], [1]],
+         [[3], [1], [2]],
+         [[2], [1], [3]],
+         [[1], [3], [2]],
+         [[1], [2], [3]]]
+
+    .. SEEALSO:
+
+        - :class:`Tableaux`
+        - :class:`Tableau`
+        - :class:`SemistandardTableaux`
+        - :class:`SemistandardTableau`
+        - :class:`RowStandardTableau`
+        - :class:`StandardSkewTableaux`
+
+    TESTS::
+
+        sage: RowStandardTableaux()([])
+        []
+        sage: ST = RowStandardTableaux([2,2]); ST
+        Row standard tableaux of shape [2, 2]
+        sage: ST.first()
+        [[3, 4], [1, 2]]
+        sage: ST.last()
+        [[1, 2], [3, 4]]
+        sage: ST.cardinality()
+        6
+        sage: ST.list()
+        [[[3, 4], [1, 2]],
+         [[2, 4], [1, 3]],
+         [[2, 3], [1, 4]],
+         [[1, 4], [2, 3]],
+         [[1, 3], [2, 4]],
+         [[1, 2], [3, 4]]]
+        sage: RowStandardTableau([[1,2,3],[4,5]]).residue_sequence(3).standard_tableaux()
+        Standard tableaux with 3-residue sequence (0,1,2,2,0) and multicharge (0)
+    """
+    @staticmethod
+    def __classcall_private__(cls, *args, **kwargs):
+        r"""
+        This is a factory class which returns the appropriate parent based on
+        arguments.  See the documentation for :class:`RowStandardTableaux` for
+        more information.
+
+        TESTS::
+
+            sage: RowStandardTableaux()
+            Row standard tableaux
+            sage: RowStandardTableaux(3)
+            Row standard tableaux of size 3
+            sage: RowStandardTableaux([2,1])
+            Row standard tableaux of shape [2, 1]
+            sage: RowStandardTableaux(0)
+            Row standard tableaux of size 0
+
+            sage: RowStandardTableaux(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The argument must be a non-negative integer or a partition.
+            sage: RowStandardTableaux([[1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: The argument must be a non-negative integer or a partition.
+        """
+        from .partition import _Partitions, Partition
+        from .skew_partition import SkewPartitions
+
+        if args:
+            n = args[0]
+        elif 'n' in kwargs:
+            n = kwargs[n]
+        else:
+            n = None
+
+        if n is None:
+            return RowStandardTableaux_all()
+
+        elif n in _Partitions:
+            return RowStandardTableaux_shape(Partition(n))
+
+        elif n in SkewPartitions():
+            from .skew_tableau import StandardSkewTableaux
+            return StandardSkewTableaux(n)
+
+        if not isinstance(n, (int, Integer)) or n < 0:
+            raise ValueError( "The argument must be a non-negative integer or a partition." )
+
+        return RowStandardTableaux_size(n)
+
+    Element = RowStandardTableau
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: [[1,1],[2,3]] in RowStandardTableaux()
+            False
+            sage: [[1,2],[3,4]] in RowStandardTableaux()
+            True
+            sage: [[1,3],[2,4]] in RowStandardTableaux()
+            True
+            sage: [[1,3],[2,5]] in RowStandardTableaux()
+            False
+            sage: [] in RowStandardTableaux()
+            True
+
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in RowStandardTableaux()
+            False
+        """
+        if isinstance(x, RowStandardTableau):
+            return True
+        elif Tableaux.__contains__(self, x):
+            flatx = sorted(sum((list(row) for row in x),[]))
+            return flatx == range(1,len(flatx)+1) and all(row[i]<row[i+1] for row in x for i in range(len(row)-1))
+        return False
+
+
+class RowStandardTableaux_all(RowStandardTableaux, DisjointUnionEnumeratedSets):
+    """
+    All standard tableaux.
+    """
+    def __init__(self):
+        r"""
+        Initializes the class of all standard tableaux.
+
+        TESTS::
+
+            sage: ST = RowStandardTableaux()
+            sage: TestSuite(ST).run()
+        """
+        RowStandardTableaux.__init__(self)
+        DisjointUnionEnumeratedSets.__init__( self,
+                Family(NonNegativeIntegers(), RowStandardTableaux_size),
+                facade=True, keepkey = False)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: repr(RowStandardTableaux())    # indirect doctest
+            'Row standard tableaux'
+        """
+        return "Row standard tableaux"
+
+    def an_element(self):
+        r"""
+        Returns a particular element of the class.
+
+        EXAMPLES::
+
+            sage: RowStandardTableaux().an_element()
+            [[4, 5, 6, 7], [2, 3], [1]]
+        """
+        return self.element_class(self, reversed([range(2**(i-1),2**i) for i in range(1,4)]))
+
+
+class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets):
+    """
+    Standard tableaux of fixed size `n`.
+
+    .. WARNING::
+
+        Input is not checked; please use :class:`RowStandardTableaux` to ensure
+        the options are properly parsed.
+
+    EXAMPLES::
+
+        sage: [ t for t in RowStandardTableaux(1) ]
+        [[[1]]]
+        sage: [ t for t in RowStandardTableaux(2) ]
+        [[[1, 2]], [[2], [1]], [[1], [2]]]
+        sage: RowStandardTableaux(3)[:]
+        [[[1, 2, 3]],
+         [[2, 3], [1]],
+         [[1, 3], [2]],
+         [[1, 2], [3]],
+         [[3], [2], [1]],
+         [[2], [3], [1]],
+         [[3], [1], [2]],
+         [[2], [1], [3]],
+         [[1], [3], [2]],
+         [[1], [2], [3]]]
+
+    TESTS::
+
+        sage: TestSuite( RowStandardTableaux(4) ).run()
+    """
+    def __init__(self, n):
+        r"""
+        Initializes the class of all standard tableaux of size ``n``.
+
+        TESTS::
+
+            sage: TestSuite( RowStandardTableaux(0) ).run()
+            sage: TestSuite( RowStandardTableaux(3) ).run()
+        """
+        RowStandardTableaux.__init__(self)
+        from .partition import Partitions_n
+        DisjointUnionEnumeratedSets.__init__( self,
+                Family(Partitions_n(n), RowStandardTableaux_shape),
+                facade=True, keepkey = False)
+        self._size = Integer(n)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: repr(RowStandardTableaux(3))    # indirect doctest
+            'Row standard tableaux of size 3'
+        """
+        return "Row standard tableaux of size %s"%self._size
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: ST3 = RowStandardTableaux(3)
+            sage: all([st in ST3 for st in ST3])
+            True
+            sage: ST4 = RowStandardTableaux(4)
+            sage: filter(lambda x: x in ST3, ST4)
+            []
+
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in RowStandardTableaux(4)
+            False
+        """
+        return RowStandardTableaux.__contains__(self, x) and sum(map(len, x)) == self._size
+
+    def an_element(self):
+        r"""
+        Returns a particular element of the class.
+
+        EXAMPLES::
+
+            sage: RowStandardTableaux(4).an_element()
+            [[1, 2, 3, 4]]
+        """
+        if self._size==0:
+            return self.element_class(self, [])
+        elif self._size==1:
+            return self.element_class(self, [[1]])
+        else:
+            return self.element_class(self, [range(1,self._size+1)])
+
+    def cardinality(self):
+        r"""
+        Return the number of all standard tableaux of size ``n``.
+
+        The number of standard tableaux of size `n` is equal to the
+        number of involutions in the symmetric group `S_n`.
+        This is a consequence of the symmetry of the RSK
+        correspondence, that if `\sigma \mapsto (P, Q)`, then
+        `\sigma^{-1} \mapsto (Q, P)`. For more information, see
+        :wikipedia:`Robinson-Schensted-Knuth_correspondence#Symmetry`.
+
+        ALGORITHM:
+
+        The algorithm uses the fact that standard tableaux of size
+        ``n`` are in bijection with the involutions of size ``n``,
+        (see page 41 in section 4.1 of [Ful1997]_).  For each number of
+        fixed points, you count the number of ways to choose those
+        fixed points multiplied by the number of perfect matchings on
+        the remaining values.
+
+        REFERENCES:
+
+        .. [Ful1997] William Fulton,
+           *Young Tableaux*.
+           Cambridge University Press, 1997.
+
+        EXAMPLES::
+
+            sage: RowStandardTableaux(3).cardinality()
+            10
+            sage: ns = [1,2,3,4,5,6]
+            sage: sts = [RowStandardTableaux(n) for n in ns]
+            sage: all([st.cardinality() == len(st.list()) for st in sts])
+            True
+            sage: RowStandardTableaux(50).cardinality()
+            76931761091810351579902288335137910982339087386495265901611602683
+        """
+        from .partition import Partitions
+        return sum(RowStandardTableaux_shape(mu).cardinality() for mu in Partitions(self._size))
+
+
+class RowStandardTableaux_shape(RowStandardTableaux):
+    """
+    Row Standard tableaux of a fixed shape `p`.
+
+    .. WARNING::
+
+        Input is not checked; please use :class:`SemistandardTableaux` to
+        ensure the options are properly parsed.
+    """
+    def __init__(self, p):
+        r"""
+        Initializes the class of all row standard tableaux of a given shape.
+
+        TESTS::
+
+            sage: TestSuite( RowStandardTableaux([2,1,1]) ).run()
+        """
+        from .partition import Partition
+        super(RowStandardTableaux_shape, self).__init__(category = FiniteEnumeratedSets())
+        self.shape = Partition(p)
+
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: ST = RowStandardTableaux([2,1,1])
+            sage: all([st in ST for st in ST])
+            True
+            sage: len(filter(lambda x: x in ST, RowStandardTableaux(4)))
+            12
+            sage: ST.cardinality()
+            12
+
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in RowStandardTableaux([2,1,1])
+            False
+        """
+        return RowStandardTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: repr(RowStandardTableaux([2,1,1]))    # indirect doctest
+            'Row standard tableaux of shape [2, 1, 1]'
+        """
+        return "Row standard tableaux of shape %s"%str(self.shape)
+
+    def __iter__(self):
+        r"""
+        An iterator for the standard Young tableaux associated to the
+        shape `p` of ``self``.
+
+        EXAMPLES::
+
+            sage: [t for t in RowStandardTableaux([2,2])]
+            [[[3, 4], [1, 2]],
+             [[2, 4], [1, 3]],
+             [[2, 3], [1, 4]],
+             [[1, 4], [2, 3]],
+             [[1, 3], [2, 4]],
+             [[1, 2], [3, 4]]]
+            sage: [t for t in RowStandardTableaux([3,2])]
+            [[[3, 4, 5], [1, 2]],
+             [[2, 4, 5], [1, 3]],
+             [[2, 3, 5], [1, 4]],
+             [[2, 3, 4], [1, 5]],
+             [[1, 4, 5], [2, 3]],
+             [[1, 3, 5], [2, 4]],
+             [[1, 3, 4], [2, 5]],
+             [[1, 2, 5], [3, 4]],
+             [[1, 2, 4], [3, 5]],
+             [[1, 2, 3], [4, 5]]]
+            sage: st = RowStandardTableaux([2,1])
+            sage: st[0].parent() is st
+            True
+        """
+        partial_sums = [sum(self.shape[:i]) for i in range(len(self.shape)+1)]
+
+        # convert self.shape into a poset
+        relations = []
+        m=1
+        for row in self.shape:
+            relations += [(m+i,m+i+1) for i in range(row-1)]
+            m+=row
+
+        # now run through the linear extensions and return the corresponding tableau
+        for lin in Poset((range(1,self.shape.size()+1), relations)).linear_extensions():
+            linear_tab = list(permutation.Permutation(lin).inverse())
+            tab = [linear_tab[partial_sums[i]:partial_sums[i+1]] for i in range(len(self.shape))]
+            yield self.element_class(self, tab)
+
+    def cardinality(self):
+        r"""
+        Return the number of row standard tableaux of this shape.
+
+        This is just the index of the corresponding Young subgroup in the full
+        symmetric group.
+
+        EXAMPLES::
+
+            sage: RowStandardTableaux([3,2,1]).cardinality()
+            60
+            sage: RowStandardTableaux([2,2]).cardinality()
+            6
+            sage: RowStandardTableaux([5]).cardinality()
+            1
+            sage: RowStandardTableaux([6,5,5,3]).cardinality()
+            1955457504
+            sage: RowStandardTableaux([]).cardinality()
+            1
+        """
+        return Integer( factorial(sum(self.shape))/prod(factorial(m) for m in self.shape) )
+
 
 ########################
 # Standard Tableaux    #
@@ -6576,8 +7027,8 @@ class StandardTableaux(SemistandardTableaux):
             ...
             ValueError: The argument must be a non-negative integer or a partition.
         """
-        from sage.combinat.partition import _Partitions, Partition
-        from sage.combinat.skew_partition import SkewPartitions
+        from .partition import _Partitions, Partition
+        from .skew_partition import SkewPartitions
 
         if args:
             n = args[0]
@@ -6593,7 +7044,7 @@ class StandardTableaux(SemistandardTableaux):
             return StandardTableaux_shape(Partition(n))
 
         elif n in SkewPartitions():
-            from sage.combinat.skew_tableau import StandardSkewTableaux
+            from .skew_tableau import StandardSkewTableaux
             return StandardSkewTableaux(n)
 
         if not isinstance(n, (int, Integer)) or n < 0:
@@ -6661,7 +7112,7 @@ class StandardTableaux_all(StandardTableaux, DisjointUnionEnumeratedSets):
         return "Standard tableaux"
 
 
-class StandardTableaux_size(StandardTableaux):
+class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
     """
     Standard tableaux of fixed size `n`.
 
@@ -6669,6 +7120,30 @@ class StandardTableaux_size(StandardTableaux):
 
         Input is not checked; please use :class:`StandardTableaux` to ensure
         the options are properly parsed.
+
+    EXAMPLES::
+
+        sage: [ t for t in StandardTableaux(1) ]
+        [[[1]]]
+        sage: [ t for t in StandardTableaux(2) ]
+        [[[1, 2]], [[1], [2]]]
+        sage: [ t for t in StandardTableaux(3) ]
+        [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]]]
+        sage: StandardTableaux(4)[:]
+        [[[1, 2, 3, 4]],
+         [[1, 3, 4], [2]],
+         [[1, 2, 4], [3]],
+         [[1, 2, 3], [4]],
+         [[1, 3], [2, 4]],
+         [[1, 2], [3, 4]],
+         [[1, 4], [2], [3]],
+         [[1, 3], [2], [4]],
+         [[1, 2], [3], [4]],
+         [[1], [2], [3], [4]]]
+
+    TESTS::
+
+        sage: TestSuite( StandardTableaux(4) ).run()
     """
     def __init__(self, n):
         r"""
@@ -6679,10 +7154,12 @@ class StandardTableaux_size(StandardTableaux):
             sage: TestSuite( StandardTableaux(0) ).run()
             sage: TestSuite( StandardTableaux(3) ).run()
         """
-        super(StandardTableaux_size, self).__init__(
-              category = FiniteEnumeratedSets())
+        StandardTableaux.__init__(self)
+        from .partition import Partitions_n
+        DisjointUnionEnumeratedSets.__init__( self,
+                Family(Partitions_n(n), StandardTableaux_shape),
+                facade=True, keepkey = False)
         self.size = Integer(n)
-
 
     def _repr_(self):
         """
@@ -6710,36 +7187,6 @@ class StandardTableaux_size(StandardTableaux):
             False
         """
         return StandardTableaux.__contains__(self, x) and sum(map(len, x)) == self.size
-
-    def __iter__(self):
-        """
-        EXAMPLES::
-
-            sage: [ t for t in StandardTableaux(1) ]
-            [[[1]]]
-            sage: [ t for t in StandardTableaux(2) ]
-            [[[1, 2]], [[1], [2]]]
-            sage: [ t for t in StandardTableaux(3) ]
-            [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]]]
-            sage: [ t for t in StandardTableaux(4) ]
-            [[[1, 2, 3, 4]],
-             [[1, 3, 4], [2]],
-             [[1, 2, 4], [3]],
-             [[1, 2, 3], [4]],
-             [[1, 3], [2, 4]],
-             [[1, 2], [3, 4]],
-             [[1, 4], [2], [3]],
-             [[1, 3], [2], [4]],
-             [[1, 2], [3], [4]],
-             [[1], [2], [3], [4]]]
-            sage: ST4 = StandardTableaux(4)
-            sage: ST4[0].parent() is ST4
-            True
-        """
-        from sage.combinat.partition import Partitions
-        for p in Partitions(self.size):
-            for st in StandardTableaux(p):
-                yield self.element_class(self, st)
 
     def cardinality(self):
         r"""
@@ -6842,8 +7289,8 @@ class StandardTableaux_size(StandardTableaux):
         """
         from sage.misc.prandom import randrange
         from sage.misc.prandom import sample
-        from sage.combinat.perfect_matching import PerfectMatchings
-        from sage.combinat.permutation import from_cycles
+        from .perfect_matching import PerfectMatchings
+        from .permutation import from_cycles
         # We compute the number of involutions of size ``size``.
         involution_index = randrange(0, StandardTableaux(self.size).cardinality())
         # ``involution_index`` is our random integer `r`.
@@ -6891,7 +7338,7 @@ class StandardTableaux_shape(StandardTableaux):
 
             sage: TestSuite( StandardTableaux([2,1,1]) ).run()
         """
-        from sage.combinat.partition import Partition
+        from .partition import Partition
         super(StandardTableaux_shape, self).__init__(category = FiniteEnumeratedSets())
         self.shape = Partition(p)
 
@@ -7092,7 +7539,6 @@ class StandardTableaux_shape(StandardTableaux):
 
         return
 
-
     def list(self):
         r"""
         Return a list of the standard Young tableaux of the specified shape.
@@ -7180,519 +7626,6 @@ class StandardTableaux_shape(StandardTableaux):
         return self.element_class(self, t)
 
 
-########################
-# Row standard Tableaux    #
-########################
-
-class RowStandardTableaux(Tableaux):
-    """
-    A factory for the various classes of row standard tableaux.
-
-    INPUT:
-
-    - Either a non-negative integer (possibly specified with the keyword ``n``)
-      or a partition.
-
-    OUTPUT:
-
-    - With no argument, the class of all standard tableaux
-
-    - With a non-negative integer argument, ``n``, the class of all standard
-      tableaux of size ``n``
-
-    - With a partition argument, the class of all standard tableaux of that
-      shape.
-
-    A standard tableau is a semistandard tableaux which contains each of the
-    entries from 1 to ``n`` exactly once.
-
-    All classes of standard tableaux are iterable.
-
-    EXAMPLES::
-
-        sage: ST = RowStandardTableaux(3); ST
-        Row standard tableaux of size 3
-        sage: ST.first()
-        [[1, 2, 3]]
-        sage: ST.last()
-        [[1], [2], [3]]
-        sage: ST.cardinality()
-        10
-        sage: ST.list()
-        [[[1, 2, 3]],
-         [[2, 3], [1]],
-         [[1, 3], [2]],
-         [[1, 2], [3]],
-         [[3], [2], [1]],
-         [[2], [3], [1]],
-         [[3], [1], [2]],
-         [[2], [1], [3]],
-         [[1], [3], [2]],
-         [[1], [2], [3]]]
-
-    .. SEEALSO:
-
-        - :class:`Tableaux`
-        - :class:`Tableau`
-        - :class:`SemistandardTableaux`
-        - :class:`SemistandardTableau`
-        - :class:`RowStandardTableau`
-        - :class:`StandardSkewTableaux`
-
-    TESTS::
-
-        sage: RowStandardTableaux()([])
-        []
-        sage: ST = RowStandardTableaux([2,2]); ST
-        Row standard tableaux of shape [2, 2]
-        sage: ST.first()
-        [[3, 4], [1, 2]]
-        sage: ST.last()
-        [[1, 2], [3, 4]]
-        sage: ST.cardinality()
-        6
-        sage: ST.list()
-        [[[3, 4], [1, 2]],
-         [[2, 4], [1, 3]],
-         [[2, 3], [1, 4]],
-         [[1, 4], [2, 3]],
-         [[1, 3], [2, 4]],
-         [[1, 2], [3, 4]]]
-        sage: RowStandardTableau([[1,2,3],[4,5]]).residue_sequence(3).standard_tableaux()
-        Standard tableaux with 3-residue sequence (0,1,2,2,0) and multicharge (0)
-    """
-    @staticmethod
-    def __classcall_private__(cls, *args, **kwargs):
-        r"""
-        This is a factory class which returns the appropriate parent based on
-        arguments.  See the documentation for :class:`RowStandardTableaux` for
-        more information.
-
-        TESTS::
-
-            sage: RowStandardTableaux()
-            Row standard tableaux
-            sage: RowStandardTableaux(3)
-            Row standard tableaux of size 3
-            sage: RowStandardTableaux([2,1])
-            Row standard tableaux of shape [2, 1]
-            sage: RowStandardTableaux(0)
-            Row standard tableaux of size 0
-
-            sage: RowStandardTableaux(-1)
-            Traceback (most recent call last):
-            ...
-            ValueError: The argument must be a non-negative integer or a partition.
-            sage: RowStandardTableaux([[1]])
-            Traceback (most recent call last):
-            ...
-            ValueError: The argument must be a non-negative integer or a partition.
-        """
-        from sage.combinat.partition import _Partitions, Partition
-        from sage.combinat.skew_partition import SkewPartitions
-
-        if args:
-            n = args[0]
-        elif 'n' in kwargs:
-            n = kwargs[n]
-        else:
-            n = None
-
-        if n is None:
-            return RowStandardTableaux_all()
-
-        elif n in _Partitions:
-            return RowStandardTableaux_shape(Partition(n))
-
-        elif n in SkewPartitions():
-            from sage.combinat.skew_tableau import StandardSkewTableaux
-            return StandardSkewTableaux(n)
-
-        if not isinstance(n, (int, Integer)) or n < 0:
-            raise ValueError( "The argument must be a non-negative integer or a partition." )
-
-        return RowStandardTableaux_size(n)
-
-    Element = RowStandardTableau
-
-    def __contains__(self, x):
-        """
-        EXAMPLES::
-
-            sage: [[1,1],[2,3]] in RowStandardTableaux()
-            False
-            sage: [[1,2],[3,4]] in RowStandardTableaux()
-            True
-            sage: [[1,3],[2,4]] in RowStandardTableaux()
-            True
-            sage: [[1,3],[2,5]] in RowStandardTableaux()
-            False
-            sage: [] in RowStandardTableaux()
-            True
-
-        Check that :trac:`14145` is fixed::
-
-            sage: 1 in RowStandardTableaux()
-            False
-        """
-        if isinstance(x, RowStandardTableau):
-            return True
-        elif Tableaux.__contains__(self, x):
-            flatx = sorted(sum((list(row) for row in x),[]))
-            return flatx == range(1,len(flatx)+1) and all(row[i]<row[i+1] for row in x for i in range(len(row)-1))
-        return False
-
-class RowStandardTableaux_all(RowStandardTableaux, DisjointUnionEnumeratedSets):
-    """
-    All standard tableaux.
-    """
-    def __init__(self):
-        r"""
-        Initializes the class of all standard tableaux.
-
-        TESTS::
-
-            sage: ST = RowStandardTableaux()
-            sage: TestSuite(ST).run()
-        """
-        DisjointUnionEnumeratedSets.__init__( self,
-                Family(NonNegativeIntegers(), RowStandardTableaux_size),
-                facade=True, keepkey = False)
-
-    def _repr_(self):
-        """
-        TESTS::
-
-            sage: repr(RowStandardTableaux())    # indirect doctest
-            'Row standard tableaux'
-        """
-        return "Row standard tableaux"
-
-
-class RowStandardTableaux_size(RowStandardTableaux):
-    """
-    Standard tableaux of fixed size `n`.
-
-    .. WARNING::
-
-        Input is not checked; please use :class:`RowStandardTableaux` to ensure
-        the options are properly parsed.
-    """
-    def __init__(self, n):
-        r"""
-        Initializes the class of all standard tableaux of size ``n``.
-
-        TESTS::
-
-            sage: TestSuite( RowStandardTableaux(0) ).run()
-            sage: TestSuite( RowStandardTableaux(3) ).run()
-        """
-        super(RowStandardTableaux_size, self).__init__(
-              category = FiniteEnumeratedSets())
-        self.size = Integer(n)
-
-
-    def _repr_(self):
-        """
-        TESTS::
-
-            sage: repr(RowStandardTableaux(3))    # indirect doctest
-            'Row standard tableaux of size 3'
-        """
-        return "Row standard tableaux of size %s"%self.size
-
-    def __contains__(self, x):
-        """
-        TESTS::
-
-            sage: ST3 = RowStandardTableaux(3)
-            sage: all([st in ST3 for st in ST3])
-            True
-            sage: ST4 = RowStandardTableaux(4)
-            sage: filter(lambda x: x in ST3, ST4)
-            []
-
-        Check that :trac:`14145` is fixed::
-
-            sage: 1 in RowStandardTableaux(4)
-            False
-        """
-        return RowStandardTableaux.__contains__(self, x) and sum(map(len, x)) == self.size
-
-    def __iter__(self):
-        """
-        EXAMPLES::
-
-            sage: [ t for t in RowStandardTableaux(1) ]
-            [[[1]]]
-            sage: [ t for t in RowStandardTableaux(2) ]
-            [[[1, 2]], [[2], [1]], [[1], [2]]]
-            sage: [ t for t in RowStandardTableaux(3) ]
-            [[[1, 2, 3]],
-             [[2, 3], [1]],
-             [[1, 3], [2]],
-             [[1, 2], [3]],
-             [[3], [2], [1]],
-             [[2], [3], [1]],
-             [[3], [1], [2]],
-             [[2], [1], [3]],
-             [[1], [3], [2]],
-             [[1], [2], [3]]]
-            sage: ST4 = RowStandardTableaux(4)
-            sage: ST4.cardinality() == len(ST4[:])
-            True
-            sage: ST4[0].parent() is ST4
-            True
-        """
-        from sage.combinat.partition import Partitions
-        for p in Partitions(self.size):
-            for st in RowStandardTableaux_shape(p):
-                yield self.element_class(self, st)
-
-    def cardinality(self):
-        r"""
-        Return the number of all standard tableaux of size ``n``.
-
-        The number of standard tableaux of size `n` is equal to the
-        number of involutions in the symmetric group `S_n`.
-        This is a consequence of the symmetry of the RSK
-        correspondence, that if `\sigma \mapsto (P, Q)`, then
-        `\sigma^{-1} \mapsto (Q, P)`. For more information, see
-        :wikipedia:`Robinson-Schensted-Knuth_correspondence#Symmetry`.
-
-        ALGORITHM:
-
-        The algorithm uses the fact that standard tableaux of size
-        ``n`` are in bijection with the involutions of size ``n``,
-        (see page 41 in section 4.1 of [Ful1997]_).  For each number of
-        fixed points, you count the number of ways to choose those
-        fixed points multiplied by the number of perfect matchings on
-        the remaining values.
-
-        REFERENCES:
-
-        .. [Ful1997] William Fulton,
-           *Young Tableaux*.
-           Cambridge University Press, 1997.
-
-        EXAMPLES::
-
-            sage: RowStandardTableaux(3).cardinality()
-            10
-            sage: ns = [1,2,3,4,5,6]
-            sage: sts = [RowStandardTableaux(n) for n in ns]
-            sage: all([st.cardinality() == len(st.list()) for st in sts])
-            True
-            sage: RowStandardTableaux(50).cardinality()
-            76931761091810351579902288335137910982339087386495265901611602683
-        """
-        from .partition import Partitions
-        return sum(RowStandardTableaux_shape(mu).cardinality() for mu in Partitions(self.size))
-
-
-class RowStandardTableaux_shape(RowStandardTableaux):
-    """
-    Row Standard tableaux of a fixed shape `p`.
-
-    .. WARNING::
-
-        Input is not checked; please use :class:`SemistandardTableaux` to
-        ensure the options are properly parsed.
-    """
-    def __init__(self, p):
-        r"""
-        Initializes the class of all row standard tableaux of a given shape.
-
-        TESTS::
-
-            sage: TestSuite( RowStandardTableaux([2,1,1]) ).run()
-        """
-        from sage.combinat.partition import Partition
-        super(RowStandardTableaux_shape, self).__init__(category = FiniteEnumeratedSets())
-        self.shape = Partition(p)
-
-
-    def __contains__(self, x):
-        """
-        EXAMPLES::
-
-            sage: ST = RowStandardTableaux([2,1,1])
-            sage: all([st in ST for st in ST])
-            True
-            sage: len(filter(lambda x: x in ST, RowStandardTableaux(4)))
-            12
-            sage: ST.cardinality()
-            12
-
-        Check that :trac:`14145` is fixed::
-
-            sage: 1 in RowStandardTableaux([2,1,1])
-            False
-        """
-        return RowStandardTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
-
-    def _repr_(self):
-        """
-        TESTS::
-
-            sage: repr(RowStandardTableaux([2,1,1]))    # indirect doctest
-            'Row standard tableaux of shape [2, 1, 1]'
-        """
-        return "Row standard tableaux of shape %s"%str(self.shape)
-
-    def cardinality(self):
-        r"""
-        Return the number of row standard tableaux of this shape.
-
-        This is just the index of the corresponding Young subgroup in the full
-        symmetric group.
-
-        EXAMPLES::
-
-            sage: RowStandardTableaux([3,2,1]).cardinality()
-            60
-            sage: RowStandardTableaux([2,2]).cardinality()
-            6
-            sage: RowStandardTableaux([5]).cardinality()
-            1
-            sage: RowStandardTableaux([6,5,5,3]).cardinality()
-            1955457504
-            sage: RowStandardTableaux([]).cardinality()
-            1
-        """
-        return Integer( factorial(sum(self.shape))/prod(factorial(m) for m in self.shape) )
-
-    def __iter__(self):
-        r"""
-        An iterator for the standard Young tableaux associated to the
-        shape `p` of ``self``.
-
-        EXAMPLES::
-
-            sage: [t for t in RowStandardTableaux([2,2])]
-            [[[3, 4], [1, 2]],
-             [[2, 4], [1, 3]],
-             [[2, 3], [1, 4]],
-             [[1, 4], [2, 3]],
-             [[1, 3], [2, 4]],
-             [[1, 2], [3, 4]]]
-            sage: [t for t in RowStandardTableaux([3,2])]
-            [[[3, 4, 5], [1, 2]],
-             [[2, 4, 5], [1, 3]],
-             [[2, 3, 5], [1, 4]],
-             [[2, 3, 4], [1, 5]],
-             [[1, 4, 5], [2, 3]],
-             [[1, 3, 5], [2, 4]],
-             [[1, 3, 4], [2, 5]],
-             [[1, 2, 5], [3, 4]],
-             [[1, 2, 4], [3, 5]],
-             [[1, 2, 3], [4, 5]]]
-            sage: st = RowStandardTableaux([2,1])
-            sage: st[0].parent() is st
-            True
-        """
-        partial_sums = [sum(self.shape[:i]) for i in range(len(self.shape)+1)]
-
-        # convert self.shape into a poset
-        relations = []
-        m=1
-        for row in self.shape:
-            relations += [(m+i,m+i+1) for i in range(row-1)]
-            m+=row
-
-        # now run through the linear extensions and return the corresponding tableau
-        for lin in Poset((range(1,self.shape.size()+1), relations)).linear_extensions():
-            linear_tab = list(permutation.Permutation(lin).inverse())
-            tab = [linear_tab[partial_sums[i]:partial_sums[i+1]] for i in range(len(self.shape))]
-            yield self.element_class(self, tab)
-
-    def list(self):
-        r"""
-        Return a list of the standard Young tableaux of the specified shape.
-
-        EXAMPLES::
-
-            sage: RowStandardTableaux([2,2]).list()
-            [[[3, 4], [1, 2]],
-             [[2, 4], [1, 3]],
-             [[2, 3], [1, 4]],
-             [[1, 4], [2, 3]],
-             [[1, 3], [2, 4]],
-             [[1, 2], [3, 4]]]
-            sage: RowStandardTableaux([5]).list()
-            [[[1, 2, 3, 4, 5]]]
-            sage: RowStandardTableaux([3,2]).list()
-            [[[3, 4, 5], [1, 2]],
-             [[2, 4, 5], [1, 3]],
-             [[2, 3, 5], [1, 4]],
-             [[2, 3, 4], [1, 5]],
-             [[1, 4, 5], [2, 3]],
-             [[1, 3, 5], [2, 4]],
-             [[1, 3, 4], [2, 5]],
-             [[1, 2, 5], [3, 4]],
-             [[1, 2, 4], [3, 5]],
-             [[1, 2, 3], [4, 5]]]
-        """
-        return [y for y in self]
-
-
-    def random_element(self):
-        """
-        Return a random standard tableau of the given shape using the
-        Greene-Nijenhuis-Wilf Algorithm.
-
-        EXAMPLES::
-
-            sage: RowStandardTableaux([2,2]).random_element()
-            [[1, 2], [3, 4]]
-            sage: RowStandardTableaux([]).random_element()
-            []
-        """
-
-        p = self.shape
-
-        t = [[None]*n for n in p]
-
-
-        #Get the cells in the
-        cells = []
-        for i in range(len(p)):
-            for j in range(p[i]):
-                cells.append((i,j))
-
-        m = sum(p)
-        while m > 0:
-
-            #Choose a cell at random
-            cell = random.choice(cells)
-
-
-            #Find a corner
-            inner_corners = p.corners()
-            while cell not in inner_corners:
-                hooks = []
-                for k in range(cell[1], p[cell[0]]):
-                    hooks.append((cell[0], k))
-                for k in range(cell[0], len(p)):
-                    if p[k] > cell[1]:
-                        hooks.append((k, cell[1]))
-
-                cell = random.choice(hooks)
-
-
-            #Assign m to cell
-            t[cell[0]][cell[1]] = m
-
-            p = p.remove_cell(cell[0])
-
-            cells.remove(cell)
-
-            m -= 1
-
-        return self.element_class(self, t)
-
-
-
 ##########################
 # Symmetric group action #
 ##########################
@@ -7771,7 +7704,6 @@ def symmetric_group_action_on_values(word, perm):
             for i in places_r[nbr-dif:ma]:
                 w[i] = l
     return w
-
 
 
 class Tableau_class(Tableau):

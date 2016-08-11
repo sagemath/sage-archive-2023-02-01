@@ -178,6 +178,7 @@ lazy_import('sage.combinat.finite_state_machine_generators',
             ['automata', 'transducers'])
 # Binary Recurrence Sequences
 from binary_recurrence_sequences import BinaryRecurrenceSequence
+lazy_import('sage.combinat.recognizable_series', 'RecognizableSeriesSpace')
 
 # Six Vertex Model
 lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')

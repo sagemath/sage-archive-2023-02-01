@@ -4,9 +4,8 @@ Listing Sage packages
 This module can be used to see which Sage packages are installed
 and which packages are available for installation.
 
-For more information about creating Sage packages, see
-the "Packaging Third-Party Code" section of the
-Sage Developer's Guide.
+For more information about creating Sage packages, see the "Packaging
+Third-Party Code" section of the Sage Developer's Guide.
 
 Actually installing the packages should be done via the command
 line, using the following commands:
@@ -16,20 +15,20 @@ line, using the following commands:
 - ``sage -f PACKAGE_NAME`` -- re-install the given package, even if it
   was already installed
 
-Packages available
-------------------
+To list the packages available, either use in a terminal one of ``sage
+-standard``, ``sage -optional`` or ``sage -experimental``. Or the following
+command inside Sage::
 
-**Standard packages:**
-
-{STANDARD_PACKAGES}
-
-**Optional packages:**
-
-{OPTIONAL_PACKAGES}
-
-**Experimental packages:**
-
-{EXPERIMENTAL_PACKAGES}
+    sage: from sage.misc.package import list_packages
+    sage: pkgs = list_packages(local=True)
+    sage: sorted(pkgs.keys())
+    ['4ti2',
+     'alabaster',
+     'arb',
+     ...
+     'zlib',
+     'zn_poly',
+     'zope_interface']
 
 Functions
 ---------
@@ -285,7 +284,7 @@ def installed_packages():
 
     .. seealso::
 
-        :func:`standard_packages`, :func:`optional_packages`, :func:`experimental_packages`
+        :func:`list_packages`
     """
     from sage.env import SAGE_SPKG_INST
     installed = dict(pkgname_split(pkgname) for pkgname in os.listdir(SAGE_SPKG_INST))
@@ -313,6 +312,8 @@ def is_package_installed(package):
 
 def package_versions(package_type, local=False):
     r"""
+    DEPRECATED: use :func:`list_packages`
+
     Return version information for each Sage package.
 
     INPUT:
@@ -334,18 +335,26 @@ def package_versions(package_type, local=False):
     EXAMPLES::
 
         sage: std = package_versions('standard', local=True)
+        doctest:...: DeprecationWarning: package_versions is deprecated. Use
+        list_packages from sage.misc.package
+        See http://trac.sagemath.org/19213 for details.
         sage: 'gap' in std
         True
         sage: std['zn_poly']
         ('0.9.p11', '0.9.p11')
     """
+    from sage.misc.superseded import deprecation
+    deprecation(19213, "package_versions is deprecated. Use list_packages "
+            "from sage.misc.package")
     return {pkg['name']: (pkg['installed_version'], pkg['remote_version']) for pkg in list_packages(package_type, local=local).values()}
 
 def standard_packages():
     """
+    DEPRECATED: use :func:`list_packages`
+
     Return two lists. The first contains the installed and the second
     contains the not-installed standard packages that are available
-    from the Sage repository. You must have an internet connection.
+    from the Sage repository.
 
     OUTPUT:
 
@@ -359,19 +368,27 @@ def standard_packages():
     EXAMPLE::
 
         sage: from sage.misc.package import standard_packages
-        sage: installed, not_installed = standard_packages() # optional internet
-        sage: installed[0], installed[-1]                    # optional internet
+        sage: installed, not_installed = standard_packages()
+        doctest:...: DeprecationWarning: standard_packages is deprecated. Use
+        list_packages from sage.misc.package
+        See http://trac.sagemath.org/19213 for details.
+        sage: installed[0], installed[-1]
         ('alabaster', 'zope_interface')
     """
+    from sage.misc.superseded import deprecation
+    deprecation(19213, "standard_packages is deprecated. Use list_packages "
+            "from sage.misc.package")
     pkgs = list_packages('standard', local=True).values()
     return (sorted(pkg['name'] for pkg in pkgs if pkg['installed']),
             sorted(pkg['name'] for pkg in pkgs if not pkg['installed']))
 
 def optional_packages():
     """
+    DEPRECATED: use :func:`list_packages`
+
     Return two lists. The first contains the installed and the second
     contains the not-installed optional packages that are available
-    from the Sage repository. You must have an internet connection.
+    from the Sage repository.
 
     OUTPUT:
 
@@ -386,6 +403,9 @@ def optional_packages():
 
         sage: from sage.misc.package import optional_packages
         sage: installed, not_installed = optional_packages()
+        doctest:...: DeprecationWarning: optional_packages is deprecated. Use
+        list_packages from sage.misc.package
+        See http://trac.sagemath.org/19213 for details.
         sage: 'ore_algebra' in installed+not_installed
         True
         sage: 'beautifulsoup' in installed+not_installed
@@ -396,6 +416,9 @@ def optional_packages():
         sage: 'ore_algebra' in installed     # optional - ore_algebra
         True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(19213, "optional_packages is deprecated. Use list_packages "
+            "from sage.misc.package")
     pkgs = list_packages('optional', local=True)
     pkgs.update(list_packages('pip', local=True))
     pkgs = pkgs.values()
@@ -404,9 +427,11 @@ def optional_packages():
 
 def experimental_packages():
     """
+    DEPRECATED: use :func:`list_packages`
+
     Return two lists. The first contains the installed and the second
     contains the not-installed experimental packages that are available
-    from the Sage repository. You must have an internet connection.
+    from the Sage repository.
 
     OUTPUT:
 
@@ -421,7 +446,13 @@ def experimental_packages():
 
         sage: from sage.misc.package import experimental_packages
         sage: installed, not_installed = experimental_packages()
+        doctest:...: DeprecationWarning: experimental_packages is deprecated. Use
+        list_packages from sage.misc.package
+        See http://trac.sagemath.org/19213 for details.
     """
+    from sage.misc.superseded import deprecation
+    deprecation(19213, "experimental_packages is deprecated. Use list_packages "
+            "from sage.misc.package")
     pkgs = list_packages('experimental', local=True).values()
     return (sorted(pkg['name'] for pkg in pkgs if pkg['installed']),
             sorted(pkg['name'] for pkg in pkgs if not pkg['installed']))
@@ -479,83 +510,3 @@ class PackageNotFoundError(RuntimeError):
         return ("the package {0!r} was not found. "
             "You can install it by running 'sage -i {0}' in a shell"
             .format(self.args[0]))
-
-
-# the line below create nice tables to put in the documentation
-
-def _list_to_table(list_of_packages):
-    r"""
-    Helper function returning a ReST table from a list of strings.
-
-    The entries are sorted vertically.
-
-    INPUT:
-
-    - ``list_of_packages`` -- a list
-
-    EXAMPLE::
-
-        sage: print(sage.misc.package._list_to_table([str(x) for x in range(10)]))
-        .. csv-table::
-            :class: contentstable
-            :widths: 20, 20, 20, 20, 20
-            :delim: |
-        <BLANKLINE>
-                ``0`` | ``2`` | ``4`` | ``6`` | ``8``
-                ``1`` | ``3`` | ``5`` | ``7`` | ``9``
-        <BLANKLINE>
-
-    Check that the local list of packages matches the online list. Standard
-    packages::
-
-        sage: from sage.misc.package import _STANDARD_PACKAGES, standard_packages
-        sage: a,b = standard_packages() # optional internet
-        sage: set(a+b).symmetric_difference(_STANDARD_PACKAGES) # optional internet
-        set()
-
-    Optional packages::
-
-        sage: from sage.misc.package import _OPTIONAL_PACKAGES, optional_packages
-        sage: a,b = optional_packages() # optional internet
-        sage: set(a+b).symmetric_difference(_OPTIONAL_PACKAGES) # optional internet
-        set()
-
-    Experimental packages::
-
-        sage: from sage.misc.package import _EXPERIMENTAL_PACKAGES, experimental_packages
-        sage: a,b = experimental_packages() # optional internet
-        sage: set(a+b).symmetric_difference(_EXPERIMENTAL_PACKAGES) # optional internet
-        set()
-    """
-    s = (".. csv-table::\n"
-                "    :class: contentstable\n"
-                "    :widths: 20, 20, 20, 20, 20\n"
-                "    :delim: |\n\n")
-    length = len(list_of_packages)
-    width = 5
-    height = (length+width-1)//width
-
-    list_of_packages = sorted(["``"+p+"``" if p else p
-                               for p in list_of_packages])
-
-    list_of_packages.sort()
-    list_of_packages.extend(['']*width)
-    for l in range(height):
-        s += "        " + ' | '.join(list_of_packages[l::height][:width])+"\n"
-
-    return s
-
-_STANDARD_PACKAGES = []
-_OPTIONAL_PACKAGES = []
-_EXPERIMENTAL_PACKAGES = []
-for pkg in list_packages(local=True).values():
-    if pkg['type'] == 'standard':
-        _STANDARD_PACKAGES.append(pkg['name'])
-    elif pkg['type'] == 'optional' or pkg['type'] == 'pip':
-        _OPTIONAL_PACKAGES.append(pkg['name'])
-    elif pkg['type'] == 'experimental':
-        _EXPERIMENTAL_PACKAGES.append(pkg['name'])
-
-__doc__ = __doc__.format(STANDARD_PACKAGES     =_list_to_table(_STANDARD_PACKAGES),
-                         OPTIONAL_PACKAGES     =_list_to_table(_OPTIONAL_PACKAGES),
-                         EXPERIMENTAL_PACKAGES =_list_to_table(_EXPERIMENTAL_PACKAGES))

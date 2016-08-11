@@ -99,7 +99,7 @@ def is_mathon_PC_srg(int v,int k,int l,int mu):
         The current implementation only gives a subset of all possible graphs that can be
         obtained using this construction. A  full implementation should rely on a database
         of conference matrices (or, equivalently, on a database of s.r.g.'s with parameters
-        `(4t+1,2t,t-1,t)`. Currently we make an extra assumtion that `4t+1` is a prime power.
+        `(4t+1,2t,t-1,t)`. Currently we make an extra assumption that `4t+1` is a prime power.
         The first case where we miss a construction is `t=11`, where we could (recursively)
         use the graph for `t=1` to construct a graph on 83205 vertices.
 

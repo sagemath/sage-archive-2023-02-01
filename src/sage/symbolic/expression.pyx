@@ -9372,7 +9372,7 @@ cdef class Expression(CommutativeRingElement):
 
         With ``map=True`` each term in a sum is simplified separately
         and thus the resuls are shorter for functions which are
-        combination of rational and nonrational funtions. In the
+        combination of rational and nonrational functions. In the
         following example, we use this option if we want not to
         combine logarithm and the rational function into one
         fraction::

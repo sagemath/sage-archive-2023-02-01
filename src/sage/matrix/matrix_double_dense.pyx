@@ -2466,7 +2466,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.is_unitary(algorithm='orthonormal')
             False
 
-        The QR decoposition will produce a unitary matrix as Q and the
+        The QR decomposition will produce a unitary matrix as Q and the
         SVD decomposition will create two unitary matrices, U and V. ::
 
             sage: A = matrix(CDF, [[   1 - I,   -3*I,  -2 + I,        1, -2 + 3*I],

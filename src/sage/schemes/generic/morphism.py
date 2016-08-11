@@ -3,7 +3,7 @@ Scheme morphism
 
 .. NOTE::
 
-    You should never create the morphisms directy. Instead, use the
+    You should never create the morphisms directly. Instead, use the
     :meth:`~sage.schemes.generic.scheme.hom` and
     :meth:`~sage.structure.parent.Hom` methods that are inherited by
     all schemes.

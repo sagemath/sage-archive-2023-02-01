@@ -571,7 +571,7 @@ class Composition(CombinatorialElement):
             True
 
         Let us check that the join of `I` and `J` is indeed the
-        conctenation of `I_1, I_2, \cdots , I_m`, where
+        concatenation of `I_1, I_2, \cdots , I_m`, where
         `I = I_1 \bullet I_2 \bullet \ldots \bullet I_m` is the ribbon
         decomposition of `I` with respect to `J`::
 

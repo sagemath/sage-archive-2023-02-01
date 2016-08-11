@@ -3383,7 +3383,7 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
                         # Singular's factor() needs 'proof=False'.
                         df = q.factor(proof=False)
                     numerator = p / df.unit()
-                    df = sorted(tuple(t) for t in df)  # sort for consitency
+                    df = sorted(tuple(t) for t in df)  # sort for consistency
                     denominator_factored = df
             else:
                 # At this point, denominator could not be factored.

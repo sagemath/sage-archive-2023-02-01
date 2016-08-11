@@ -824,7 +824,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         `P^1(\QQ_p)` into `p+1` open balls. Each of these balls may
         be further subdivided, to get a finer decomposition.
 
-        This function returns the decompostion of `P^1(\QQ_p)`
+        This function returns the decomposition of `P^1(\QQ_p)`
         corresponding to ``center`` into `(p+1)p^{\mbox{level}}` balls.
 
         EXAMPLES::
@@ -3693,7 +3693,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
 
     def harmonic_cocycles(self, k, prec=None, basis_matrix=None, base_field=None):
         r"""
-        Compute the space of harmonic coclyces of a given even weight ``k``.
+        Compute the space of harmonic cocycles of a given even weight ``k``.
 
         INPUT:
 

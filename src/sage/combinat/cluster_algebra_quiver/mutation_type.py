@@ -1245,7 +1245,7 @@ def load_data(n):
 
         sage: def test_database(n):
         ....:     import os.path
-        ....:     import cPickle
+        ....:     from six.moves import cPickle
         ....:     from sage.env import SAGE_SHARE
         ....:     relative_filename = 'cluster_algebra_quiver/mutation_classes_%s.dig6'%n
         ....:     filename = os.path.join(SAGE_SHARE, relative_filename)
@@ -1272,7 +1272,7 @@ def load_data(n):
            ('BP_', (((0, 1), (2, -2)), ((1, 2), (1, -3)), ((2, 0), (3, -1))))])]
     """
     import os.path
-    import cPickle
+    from six.moves import cPickle
     from sage.env import DOT_SAGE, SAGE_SHARE
     relative_filename = 'cluster_algebra_quiver/mutation_classes_%s.dig6'%n
     getfilename = lambda path: os.path.join(path,relative_filename)

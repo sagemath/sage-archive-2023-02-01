@@ -37,7 +37,7 @@ def load_sage_object(cls, dic):   # not used
         X.__dict__ = dic
     return X
 
-import cPickle
+from six.moves import cPickle
 def load_sage_element(cls, parent, dic_pic):
     X = cls.__new__(cls)
     X._set_parent(parent)

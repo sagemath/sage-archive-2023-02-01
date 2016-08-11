@@ -292,7 +292,7 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
 
         sage: type(FooBar).__reduce__(FooBar)
         (<function dynamic_class at ...>, ('FooBar', (<class __main__.Bar at ...>,), <class '__main__.Foo'>, None, None))
-        sage: import cPickle
+        sage: from six.moves import cPickle
         sage: cPickle.loads(cPickle.dumps(FooBar)) == FooBar
         True
 

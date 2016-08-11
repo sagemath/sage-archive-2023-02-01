@@ -184,9 +184,23 @@ List of Poset methods
     :meth:`~FinitePoset.cover_relations_graph` | Return the (undirected) graph of cover relations.
     :meth:`~FinitePoset.comparability_graph` | Return the comparability graph of the poset.
     :meth:`~FinitePoset.incomparability_graph` | Return the incomparability graph of the poset.
+    :meth:`~FinitePoset.frank_network` | Return Frank's network of the poset.
     :meth:`~FinitePoset.linear_extensions_graph` | Return the linear extensions graph of the poset.
 
-**Other & not yet classified**
+**Linear extensions**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FinitePoset.is_linear_extension` | Return ``True`` if the given list is a linear extension of the poset.
+    :meth:`~FinitePoset.linear_extension` | Return a linear extension of the poset.
+    :meth:`~FinitePoset.linear_extensions` | Return the enumerated set of all the linear extensions of the poset.
+    :meth:`~FinitePoset.promotion` | Return the (extended) promotion on the linear extension of the poset.
+    :meth:`~FinitePoset.evacuation` | Return evacuation on the linear extension associated to the poset.
+
+**Miscellanous**
 
 .. csv-table::
     :class: contentstable
@@ -199,21 +213,14 @@ List of Poset methods
     :meth:`~FinitePoset.has_isomorphic_subposet` | Return ``True`` if the poset contains a subposet isomorphic to another poset.
     :meth:`~FinitePoset.moebius_function` | Return the value of Möbius function of given elements in the poset.
     :meth:`~FinitePoset.moebius_function_matrix` | Return a matrix whose ``(i,j)`` entry is the value of the Möbius function evaluated at ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
-    :meth:`~FinitePoset.is_linear_extension` | Return whether ``l`` is a linear extension of ``self``.
-    :meth:`~FinitePoset.linear_extension` | Return a linear extension of this poset.
-    :meth:`~FinitePoset.linear_extensions` | Return the enumerated set of all the linear extensions of this poset.
-    :meth:`~FinitePoset.promotion` | Computes the (extended) promotion on the linear extension of the poset.
-    :meth:`~FinitePoset.evacuation` | Computes evacuation on the linear extension associated to the poset.
     :meth:`~FinitePoset.coxeter_transformation` | Return the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules.
     :meth:`~FinitePoset.coxeter_polynomial` | Return the characteristic polynomial of the Coxeter transformation.
     :meth:`~FinitePoset.list` | List the elements of the poset.
     :meth:`~FinitePoset.cuts` | Return the cuts of the given poset.
     :meth:`~FinitePoset.dilworth_decomposition` | Return a partition of the points into the minimal number of chains.
-    :meth:`~FinitePoset.frank_network` | Return Frank's network (a DiGraph along with a cost function on its edges) associated to ``self``.
     :meth:`~FinitePoset.greene_shape` | Computes the Greene-Kleitman partition aka Greene shape of the poset ``self``.
     :meth:`~FinitePoset.incidence_algebra` | Return the indicence algebra of ``self``.
     :meth:`~FinitePoset.is_EL_labelling` | Return whether ``f`` is an EL labelling of the poset.
-    :meth:`~FinitePoset.is_linear_extension` | Return whether ``l`` is a linear extension of ``self``.
     :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to another poset.
     :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to another poset.
     :meth:`~FinitePoset.lequal_matrix` | Computes the matrix whose ``(i,j)`` entry is 1 if ``self.linear_extension()[i] < self.linear_extension()[j]`` and 0 otherwise.
@@ -1232,31 +1239,33 @@ class FinitePoset(UniqueRepresentation, Parent):
             return element
         return super(FinitePoset, self).__call__(element)
 
-    # TODO: wrapped is not used
-    def hasse_diagram(self, wrapped = True):
+    def hasse_diagram(self):
         r"""
-        Return the Hasse diagram of ``self`` as a Sage :class:`DiGraph`. If
-        ``dot2tex`` is installed, then this sets the Hasse diagram's latex
+        Return the Hasse diagram of the poset as a Sage :class:`DiGraph`.
+
+        The Hasse diagram is a directed graph where vertices are the
+        elements of the poset and there is an edge from `u` to `v`
+        whenever `v` covers `u` in the poset.
+
+        If ``dot2tex`` is installed, then this sets the Hasse diagram's latex
         options to use the ``dot2tex`` formatting.
-
-        .. TODO::
-
-            Should the vertices of the diagram have the poset as parent?
 
         EXAMPLES::
 
-            sage: Q = Poset({5:[2,3], 1:[3,4], 2:[0], 3:[0], 4:[0]}, facade = False)
-            sage: Q.hasse_diagram()
+            sage: P = Posets.DivisorLattice(12)
+            sage: H = P.hasse_diagram(); H
             Digraph on 6 vertices
-
-            sage: P = Poset({'a':['b'],'b':['d'],'c':['d'],'d':['f'],'e':['f'],'f':[]}, facade = False)
-            sage: H = P.hasse_diagram()
             sage: P.cover_relations()
-            [[e, f], [c, d], [a, b], [b, d], [d, f]]
-            sage: H.edges()
-            [(a, b, None), (c, d, None), (b, d, None), (e, f, None), (d, f, None)]
+            [[1, 2], [1, 3], [2, 4], [2, 6], [4, 12], [3, 6], [6, 12]]
+            sage: H.edges(labels=False)
+            [(1, 2), (1, 3), (2, 4), (2, 6), (3, 6), (4, 12), (6, 12)]
 
-            sage: P = Poset((divisors(15), attrcall("divides")), facade = False)
+        TESTS::
+
+            sage: Poset().hasse_diagram()
+            Digraph on 0 vertices
+
+            sage: P = Poset((divisors(15), attrcall("divides")), facade=True)
             sage: H = P.hasse_diagram()
             sage: H.vertices()
             [1, 3, 5, 15]
@@ -1873,20 +1882,30 @@ class FinitePoset(UniqueRepresentation, Parent):
     @combinatorial_map(name="cover_relations_graph")
     def cover_relations_graph(self):
         """
-        Return the graph of cover relations.
+        Return the (undirected) graph of cover relations.
 
         EXAMPLES::
 
-            sage: P = Poset({0:[1,2],1:[3],2:[3],3:[]})
+            sage: P = Poset({0: [1, 2], 1: [3], 2: [3]})
             sage: G = P.cover_relations_graph(); G
             Graph on 4 vertices
-            sage: S = Poset()
-            sage: H = S.cover_relations_graph(); H
+            sage: G.has_edge(3, 1), G.has_edge(3, 0)
+            (True, False)
+
+        .. SEEALSO::
+
+            :meth:`hasse_diagram`
+
+        TESTS::
+
+            sage: Poset().cover_relations_graph()
             Graph on 0 vertices
 
         Check that it is hashable and coincides with the Hasse diagram as a
         graph::
 
+            sage: P = Poset({0: [1, 2], 1: [3], 2: [3]})
+            sage: G = P.cover_relations_graph()
             sage: hash(G) == hash(G)
             True
             sage: G == Graph(P.hasse_diagram())
@@ -4908,7 +4927,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def comparability_graph(self):
         r"""
-        Returns the comparability graph of ``self``.
+        Return the comparability graph of the poset.
+
+        The comparability graph is an undirected graph where vertices
+        are the elements of the poset and there is an edge between two
+        vertices if they are comparable in the poset.
 
         See :wikipedia:`Comparability_graph`
 
@@ -4916,15 +4939,26 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: p = posets.ChainPoset(4)
-            sage: p.comparability_graph().is_isomorphic(graphs.CompleteGraph(4))
+            sage: Y = Poset({1: [2], 2: [3, 4]})
+            sage: g = Y.comparability_graph(); g
+            Comparability graph on 4 vertices
+            sage: Y.compare_elements(1, 3) is not None
+            True
+            sage: g.has_edge(1, 3)
             True
 
-            sage: p = posets.DiamondPoset(5)
-            sage: g = p.comparability_graph(); g
-            Comparability graph on 5 vertices
-            sage: g.size()
-            7
+        TESTS::
+
+            sage: Poset().comparability_graph()
+            Comparability graph on 0 vertices
+
+            sage: C4 = Posets.ChainPoset(4)
+            sage: C4.comparability_graph().is_isomorphic(graphs.CompleteGraph(4))
+            True
+
+            sage: A4 = Posets.AntichainPoset(4)
+            sage: A4.comparability_graph().is_isomorphic(Graph(4))
+            True
         """
         G = self.hasse_diagram().transitive_closure().to_undirected()
         G.rename('Comparability graph on %s vertices' % self.cardinality())
@@ -4932,23 +4966,37 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def incomparability_graph(self):
         r"""
-        Returns the incomparability graph of ``self``.
+        Return the incomparability graph of the poset.
 
-        This is the complement of the comparability graph.
+        This is the complement of the comparability graph, i.e. an
+        undirected graph where vertices are the elements of the poset
+        and there is an edge between vertices if they are not
+        comparable in the poset.
 
-        .. SEEALSO:: :meth:`comparability_graph`, :mod:`sage.graphs.comparability`
+        .. SEEALSO:: :meth:`comparability_graph`
 
         EXAMPLES::
 
-            sage: p = posets.ChainPoset(4)
-            sage: p.incomparability_graph().size()
-            0
+            sage: Y = Poset({1: [2], 2: [3, 4]})
+            sage: g = Y.incomparability_graph(); g
+            Incomparability graph on 4 vertices
+            sage: Y.compare_elements(1, 3) is not None
+            True
+            sage: g.has_edge(1, 3)
+            False
 
-            sage: p = posets.DiamondPoset(5)
-            sage: g = p.incomparability_graph(); g
-            Incomparability graph on 5 vertices
-            sage: g.size()
-            3
+        TESTS::
+
+            sage: Poset().incomparability_graph()
+            Incomparability graph on 0 vertices
+
+            sage: C4 = Posets.ChainPoset(4)
+            sage: C4.incomparability_graph().is_isomorphic(Graph(4))
+            True
+
+            sage: A4 = Posets.AntichainPoset(4)
+            sage: C4.comparability_graph().is_isomorphic(graphs.CompleteGraph(4))
+            True
         """
         G = self.comparability_graph().complement()
         G.rename('Incomparability graph on %s vertices' % self.cardinality())
@@ -4964,13 +5012,13 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: P = Poset({1:[3,4],2:[4]})
-            sage: G = P.linear_extensions_graph(); G
+            sage: N = Poset({1: [3, 4], 2: [4]})
+            sage: G = N.linear_extensions_graph(); G
             Graph on 5 vertices
-            sage: G.degree_sequence()
-            [3, 2, 2, 2, 1]
+            sage: G.neighbors(N.linear_extension([1,2,3,4]))
+            [[2, 1, 3, 4], [1, 2, 4, 3], [1, 3, 2, 4]]
 
-            sage: chevron = Poset({1:[2,6], 2:[3], 4:[3,5], 6:[5]})
+            sage: chevron = Poset({1: [2, 6], 2: [3], 4: [3, 5], 6: [5]})
             sage: G = chevron.linear_extensions_graph(); G
             Graph on 22 vertices
             sage: G.size()
@@ -5942,7 +5990,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def frank_network(self):
         r"""
-        Computes Frank's network of the poset ``self``.
+        Return Frank's network of the poset.
 
         This is defined in Section 8 of [BF1999]_.
 

@@ -292,6 +292,31 @@ class kRegularSequence(Element):
         return self.matrices[r] * self._product_of_matrices_(n)
 
 
+    def __iter__(self):
+        r"""
+        Return an iterator.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: S = Seq2((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
+            ....:          initial=vector([0, 1]), selection=vector([1, 0]))
+            sage: from itertools import islice
+            sage: tuple(islice(S, 10))
+             (0, 1, 1, 2, 1, 2, 2, 3, 1, 2)
+
+        TESTS::
+
+            sage: it = iter(S)
+            sage: iter(it) is it
+            True
+            sage: iter(S) is not it
+            True
+        """
+        from itertools import count
+        return iter(self[n] for n in count())
+
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 

@@ -474,7 +474,7 @@ Next, we compute the Riemann-Roch space.
        _[2]=x2z
 
 That was the basis of the Riemann-Roch space, where each pair of
-fuctions represents the quotient (first function divided by second
+functions represents the quotient (first function divided by second
 function). Each of these basis elements get evaluated at certain
 points to construct the generator matrix of the code. We next
 construct the points.

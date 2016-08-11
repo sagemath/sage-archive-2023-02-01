@@ -1057,7 +1057,7 @@ cdef class InequalityCollection:
         """
         The Cython constructor
 
-        See the class documentation for the desrciption of the arguments.
+        See the class documentation for the description of the arguments.
 
         EXAMPLES::
 

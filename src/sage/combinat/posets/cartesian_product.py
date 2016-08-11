@@ -235,7 +235,7 @@ class CartesianProductPoset(CartesianProduct):
         A boolean.
 
         The comparison is ``True`` if the result of the
-        comparision in each component is ``True``.
+        comparison in each component is ``True``.
 
         EXAMPLES::
 

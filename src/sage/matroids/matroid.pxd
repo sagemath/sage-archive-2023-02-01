@@ -111,7 +111,7 @@ cdef class Matroid(SageObject):
     cpdef is_isomorphism(self, other, morphism)
     cpdef _is_isomorphism(self, other, morphism)
 
-    # minors, dual, trucation
+    # minors, dual, truncation
     cpdef minor(self, contractions=*, deletions=*)
     cpdef contract(self, X)
     cpdef delete(self, X)

@@ -1102,7 +1102,7 @@ cpdef get_derivatives(np.ndarray[COMPLEX_T, ndim=2] z_values, FLOAT_T xstep,
     Computes the r*e^(I*theta) form of derivatives from the grid of points. The
     derivatives are computed using quick-and-dirty taylor expansion and
     assuming analyticity. As such ``get_derivatives`` is primarily intended
-    to be used for comparisions in ``plot_spiderweb`` and not for
+    to be used for comparisons in ``plot_spiderweb`` and not for
     applications that require great precision.
 
     INPUT:

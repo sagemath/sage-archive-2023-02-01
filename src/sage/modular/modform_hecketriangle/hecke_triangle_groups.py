@@ -741,7 +741,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             #return NumberField(L.absolute_polynomial(), 'e', structure=AbsoluteFromRelative(L), embedding=(???))
             return L
 
-    # We cache this method for performance reasons (it is repeatadly reused)
+    # We cache this method for performance reasons (it is repeatedly reused)
     @cached_method
     def root_extension_embedding(self, D, K=None):
         r"""

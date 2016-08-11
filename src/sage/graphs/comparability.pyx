@@ -35,7 +35,7 @@ edge between any two elements that are comparable. Co-comparability graph are
 complements of such graphs, i.e. graphs built from a poset by adding an edge
 between any two incomparable elements.
 
-For more information on comparablity graphs, see the :wikipedia:`corresponding
+For more information on comparability graphs, see the :wikipedia:`corresponding
 wikipedia page <Comparability_graph>`
 
 **Permutation graphs**

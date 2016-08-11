@@ -639,7 +639,7 @@ def cython_create_local_so(filename):
         sage: curdir = os.path.abspath(os.curdir)
         sage: dir = tmp_dir(); os.chdir(dir)
         sage: f = open('hello.spyx', 'w')
-        sage: s = "def hello():\n  print 'hello'\n"
+        sage: s = "def hello():\n    print('hello')\n"
         sage: f.write(s)
         sage: f.close()
         sage: cython_create_local_so('hello.spyx')

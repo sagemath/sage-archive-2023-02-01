@@ -2,24 +2,41 @@ r"""
 Cyclic Code
 
 Let `F` be a field. A `[n ,k]` code `C` over `F` is called cyclic if every cyclic shift
-of a codeword in `C` is also a codeword [R]:
+of a codeword in `C` is also a codeword [R06]_:
 
     .. MATH::
-        \begin{aligned}
-        \forall c \in C \\
+
+        \forall c \in C,
         c = (c_{0}, c_{1}, \dots , c_{n-1}) \in C
         \Rightarrow (c_{n-1}, c_{0}, \dots , c_{n-2})
-        \end{aligned}
+
+Let `c = (c_0, c_2, \dots, c_{n-1})` be a codeword of `C`.
+This codeword can be seen as a polynomial over `F_n[x]`, as follows:
+`\Sigma_{i=0}^{n-1} c_i \times x^i`.
+There is a unique, monic polynomial `g(x)` such that for every
+`c(x) \in F_n[x]`, `c(x) \in C \Leftrightarrow g(x) | c(x)`.
+This polynomial is called the generator polynomial of `C`.
+
 
 REFERENCES:
 
 .. [HT] C. Hartmann and K.K. Tzeng. Generalizations of the BCH Bound.
    Information and Control, 20(5):489-498, June 1972
 
-.. [R2] Introduction to Coding Theory, Ron Roth, Cambridge University Press, 2006
+TESTS:
 
+This class uses the following experimental feature:
+:class:`sage.coding.relative_finite_field_extension.RelativeFiniteFieldExtension`.
+This test block is here only to trigger the experimental warning so it does not
+interferes with doctests::
 
-
+    sage: from sage.coding.relative_finite_field_extension import *
+    sage: Fqm.<aa> = GF(16)
+    sage: Fq.<a> = GF(4)
+    sage: RelativeFiniteFieldExtension(Fqm, Fq)
+    doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+    See http://trac.sagemath.org/20284 for details.
+    Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
 """
 
 #*****************************************************************************
@@ -48,23 +65,36 @@ from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.functions.log import log
 from sage.categories.homset import Hom
 from copy import copy
-from field_embedding import FieldEmbedding
 from sage.groups.generic import discrete_log
 from sage.misc.functional import multiplicative_order
+from relative_finite_field_extension import RelativeFiniteFieldExtension
 
 def find_generator_polynomial(code, probabilistic = False):
     r"""
     Returns a possible generator polynomial for ``code``.
 
-    This method is probabilistic. If it does not find a good candidate in $k$
-    attempts, where k is ``code``'s dimension, it returns an exception.
+    It works as follows: as the generator polynomial of a cyclic code `C`
+    divides every word in `C`, we consider the generator matrix of `C` as
+    its rows form a basis of `C`. We denote by `n` [resp: `k`] the length
+    [resp: dimension] of `C`.
+
+    Then, we take the first row as temporary generator polynomial, and
+    compute a gcd between this temporary generator polynomial and the next row.
+    The result of this gcd is now our temporary generator polynomial.
+    We iterate over all rows, and if the the last temporary generator polynomial
+    divides `x^{n} - 1` and has degree `n-k` it is the generator polynoial of `C`.
+
+    The probabilistic version of this algorithm works as above, but instead of
+    considering every row of a generator matrix we take random codewords.
+    If a gcd of degree less than `n-k` is found, we take it as our generator polynomial.
+    If it fails at fidning such a polynomial in less than `k` attemps, the algorithm stops.
 
     INPUT:
 
     - ``code`` -- a linear code
 
     - ``probabilistic`` -- (default : ``False``) enables the probabilistic version of
-      this method
+      the algorithm
 
     OUTPUT:
 
@@ -103,9 +133,9 @@ def find_generator_polynomial(code, probabilistic = False):
          raise ValueError("Impossible to find a generator polynomial")
     return g
 
-def cyclotomic_coset(n, r, q):
+def _cyclotomic_coset(n, r, q):
     r"""
-    Returns the q-cyclotomic coset of ``r`` modulo ``n``.
+    Returns the ``q``-cyclotomic coset of ``r`` modulo ``n``.
 
     INPUT:
 
@@ -117,12 +147,11 @@ def cyclotomic_coset(n, r, q):
 
     AUTHORS:
 
-    This function is taken from codinglib (https://bitbucket.org/jsrn/codinglib/)
-    and was written by Johan Nielsen.
+    This function is taken from codinglib [Nielsen]_
 
     EXAMPLES::
 
-        sage.coding.cyclic_code.cyclotomic_coset(11, 7, 3)
+        sage.coding.cyclic_code._cyclotomic_coset(11, 7, 3)
         [8, 10, 2, 6, 7]
     """
     r = r%n
@@ -133,9 +162,10 @@ def cyclotomic_coset(n, r, q):
         rem = (rem*q) % n
     return list(cyc)
 
-def complete_list(l, length):
+def _complete_list(l, length):
     r"""
-    Returns ``l`` with as many zeros appened to it as necessary for list to be of size ``length``.
+    Returns ``l`` with as many zeros appened to it as necessary to make
+    it a list of size ``length``.
 
     INPUT:
 
@@ -150,7 +180,7 @@ def complete_list(l, length):
     EXAMPLES::
 
         sage: l = [1, 2, 3, 4]
-        sage: sage.coding.cyclic_code.complete_list(l, 6)
+        sage: sage.coding.cyclic_code._complete_list(l, 6)
         [1, 2, 3, 4, 0, 0]
     """
     F = l[0].base_ring()
@@ -159,7 +189,7 @@ def complete_list(l, length):
         l = l + ([F.zero()] * (length - l_len))
     return l
 
-def build_chain_dictionary(D, n):
+def _build_chain_dictionary(D, n):
     r"""
     Returns the dictionnary containing the length of the arithmetic chain for each couple
     ``(d, delta)`` where ``d`` is in ``D`` and ``delta`` is the step of the chain.
@@ -188,7 +218,7 @@ def build_chain_dictionary(D, n):
 
         sage: D = [0, 1, 2, 4]
         sage: n = 5
-        sage: sage.coding.cyclic_code.build_chain_dictionary(D, n)
+        sage: sage.coding.cyclic_code._build_chain_dictionary(D, n)
         {(0, 1): 3,
          (0, 2): 4,
          (0, 3): 1,
@@ -210,10 +240,10 @@ def build_chain_dictionary(D, n):
     for delta in range(1, n):
         if gcd(delta, n) == 1:
             for i in D:
-                phi[i, delta] = fill_chain_dictionary(phi, D, i, delta, n)
+                phi[i, delta] = _fill_chain_dictionary(phi, D, i, delta, n)
     return phi
 
-def fill_chain_dictionary(phi, D, i, delta, n):
+def _fill_chain_dictionary(phi, D, i, delta, n):
     r"""
     Returns the associated value of ``(i, delta)`` for ``phi``.
 
@@ -240,7 +270,7 @@ def fill_chain_dictionary(phi, D, i, delta, n):
         sage: phi = {}
         sage: D = [0, 1, 2, 4]
         sage: i, delta, n = 0, 1, 5
-        sage: sage.coding.cyclic_code.fill_chain_dictionary(phi, D, i, delta, n)
+        sage: sage.coding.cyclic_code._fill_chain_dictionary(phi, D, i, delta, n)
         3
     """
     if not i % n in D:
@@ -249,14 +279,14 @@ def fill_chain_dictionary(phi, D, i, delta, n):
         try:
             return 1 + phi[i + delta, delta]
         except KeyError:
-            return 1 + fill_chain_dictionary(phi, D, i + delta, delta, n)
+            return 1 + _fill_chain_dictionary(phi, D, i + delta, delta, n)
 
 def bch_bound(n, D, arithmetic = False, bch_parameters = False):
     r"""
     Returns the BCH bound obtained for a cyclic code of length ``n`` and defining set ``D``.
 
     Considering a cyclic code `C`, with defining set `D`, length `n`, and minimum
-    distance `d`. We have the following bound, called BCH bound on `d`:
+    distance `d`. We have the following bound, called BCH bound, on `d`:
     `d \geq \delta + 1`, where `\delta` is the length of the longest chain of
     consecutive elements of `D` modulo `n`.
 
@@ -292,7 +322,7 @@ def bch_bound(n, D, arithmetic = False, bch_parameters = False):
         4
     """
     if arithmetic == True:
-        phi = build_chain_dictionary(D, n)
+        phi = _build_chain_dictionary(D, n)
         val = phi.values()
         longest = 0
         for i in val:
@@ -342,33 +372,33 @@ class CyclicCode(AbstractLinearCode):
     r"""
     Representation of a cyclic code.
 
-    ..NOTE::
+    We propose three different ways to create a new CyclicCode, either by providing:
 
-        We propose three different ways to create a new CyclicCode, either by providing:
-        (1) the generator polynomial and the length
-        (2) an existing linear code. In that case, a generator polynomial will be computed
-          from the provided linear code's parameters
-        (3) the defining set of the cyclic code
+    - the generator polynomial and the length (1)
+    - an existing linear code. In that case, a generator polynomial will be computed
+       from the provided linear code's parameters (2)
+    - the defining set of the cyclic code (3)
 
-        Depending on what behaviour you want, you need to specify the names of the arguments to
-        CyclicCode. See EXAMPLES section below for details.
+    Depending on which behaviour you want, you need to specify the names of the arguments to
+    `CyclicCode`. See EXAMPLES section below for details.
 
     INPUT:
 
-    - ``generator_pol`` -- (default: ``None``) a generator polynomial for this code. It has to
-      be monic.
+    - ``generator_pol`` -- (default: ``None``) the unique monic polynomial which divides every
+      codeword of ``self``.
 
-    - ``length`` -- (default: ``None``) the length of the code. It has to be bigger than the degree
+    - ``length`` -- (default: ``None``) the length of ``self``. It has to be bigger than the degree
       of ``generator_pol``.
 
     - ``code`` -- (default: ``None``) a linear code.
 
     - ``probabilistic`` -- (default: ``False``) enables probabilistic version of the
-      generator polynomial lookup algorithm.
+      generator polynomial from any linear code lookup algorithm.
+      See :meth:`sage.find_generator_polynomial` for details.
 
-    - ``D`` -- (default: ``None``) the defining set of the code. It can be partial.
+    - ``D`` -- (default: ``None``) the set of powers of ``primitive element``. It can be partial.
 
-    - ``field`` -- (default: ``None``) the base field for this code.
+    - ``field`` -- (default: ``None``) the base field of ``self``.
 
     - ``primitive_element`` -- (default: ``None``) the primitive element
       to use when creating the set of roots for the generating polynomial
@@ -507,7 +537,7 @@ class CyclicCode(AbstractLinearCode):
                 pows = set()
                 for r in D:
                     if not r in pows:
-                        pows = pows.union(cyclotomic_coset(n, r, q))
+                        pows = pows.union(_cyclotomic_coset(n, r, q))
 
                 if primitive_element is not None and (primitive_element not in F or
                         multiplicative_order(primitive_element) != n):
@@ -522,8 +552,7 @@ class CyclicCode(AbstractLinearCode):
 
             else:
                 Fsplit, F_to_Fsplit = F.extension(Integer(s), map = True)
-                FE = FieldEmbedding(Fsplit, F, embedding = F_to_Fsplit)
-                self._field_embedding = FE
+                FE = RelativeFiniteFieldExtension(Fsplit, F, embedding = F_to_Fsplit)
                 if primitive_element is not None and (primitive_element not in Fsplit or
                         multiplicative_order(primitive_element) != n):
                     raise ValueError("primitive_element has to be an element of multplicative order n in the extension field used to compute the generator polynomial")
@@ -542,7 +571,7 @@ class CyclicCode(AbstractLinearCode):
                 cosets = []
                 for r in D:
                     if not r in pows:
-                        current = cyclotomic_coset(n, r, q)
+                        current = _cyclotomic_coset(n, r, q)
                         cosets.append(current)
                         pows = pows.union(current)
 
@@ -560,7 +589,7 @@ class CyclicCode(AbstractLinearCode):
                 for i in min_pols:
                     tmp = []
                     for j in i:
-                        tmp.append(FE.small_field_polynomial_representation(j))
+                        tmp.append(sum(FE.relative_field_representation(j)))
                     pols_coeffs.append(tmp)
                 g = R.one()
                 for i in pols_coeffs:
@@ -612,22 +641,6 @@ class CyclicCode(AbstractLinearCode):
                 and self.base_field() == other.base_field() \
                 and self.length() == other.length() \
                 and self.generator_polynomial() == other.generator_polynomial() \
-
-    def __ne__(self, other):
-        r"""
-        Tests inequality of Cyclic Code objects.
-
-        EXAMPLES::
-
-            sage: F.<x> = GF(2)[]
-            sage: g1 = x ** 3 + x + 1
-            sage: g2 = (x ** 5 + 1) * (x ** 4 + x + 1)
-            sage: C1 = codes.CyclicCode(generator_pol = g1, length = 7)
-            sage: C2 = codes.CyclicCode(generator_pol = g2, length = 15)
-            sage: C1 != C2
-            True
-        """
-        return not self.__eq__(other)
 
     def _repr_(self):
         r"""
@@ -718,14 +731,20 @@ class CyclicCode(AbstractLinearCode):
         r"""
         Returns the check polynomial of ``self``.
 
+        Let `C` be a cyclic code of length `n` and `g` its
+        generator polynomial.
+        The following: `h = \frac{x^n - 1}{g(x)}` is called `C`'s
+        check polynomial.
+
         EXAMPLES::
 
             sage: F.<x> = GF(2)[]
             sage: n = 7
             sage: g = x ** 3 + x + 1
             sage: C = codes.CyclicCode(generator_pol = g, length = n)
-            sage: C.check_polynomial()
-            x^4 + x^2 + x + 1
+            sage: h = C.check_polynomial()
+            sage: h == (x**n - 1)/C.generator_polynomial()
+            True
         """
         if hasattr(self, "_check_polynomial"):
             return self._check_polynomial
@@ -738,6 +757,9 @@ class CyclicCode(AbstractLinearCode):
     def parity_check_matrix(self):
         r"""
         Returns the parity check matrix of ``self``.
+
+        The parity check matrix of a linear code `C` corresponds to the
+        generator matrix of the dual code of `C`.
 
         EXAMPLES::
 
@@ -756,7 +778,7 @@ class CyclicCode(AbstractLinearCode):
         h = self.check_polynomial()
         l = h.coefficients(sparse = False)
         l.reverse()
-        l = complete_list(l, n)
+        l = _complete_list(l, n)
         H = matrix(self.base_ring(), n - k, n)
         for i in range(n - k):
             H.set_row(i, l)
@@ -765,10 +787,8 @@ class CyclicCode(AbstractLinearCode):
 
     def defining_set(self):
         r"""
-        Returns the defining set of ``self``.
-
-        If it was computed at construction time, it returns immediately the computed one,
-        else it is computed using the generator polynomial built at construction time.
+        Returns the set of powers of the root of ``self``'s generator polynomial
+        over the extension field.
 
         EXAMPLES:
 
@@ -780,15 +800,15 @@ class CyclicCode(AbstractLinearCode):
             sage: C.defining_set()
             [1, 2]
 
-        If the defining was expanded while computing cyclotomic classes, the
-        expanded defining set will be returned::
+        If the defining set was provided by the user, it might have been expanded
+        at construction time. In this case, the expanded defining set will be returned::
 
             sage: C = codes.CyclicCode(length = 13, field = F, D = [1, 2])
             sage: C.defining_set()
             [1, 2, 3, 5, 6, 9]
 
         If a generator polynomial was passed at construction time,
-        the defining set is computed by this method::
+        the defining set is computed using this polynomial::
 
             sage: F.<x> = GF(8, 'a')[]
             sage: n = 7
@@ -849,7 +869,9 @@ class CyclicCode(AbstractLinearCode):
 
     def bch_bound(self, arithmetic = False, bch_parameters = False):
         r"""
-        Returns the BCH bound of self. See :meth:`sage.coding.cyclic_code.bch_bound` for details.
+        Returns the BCH bound of self which is a bound on ``self``'s minimum distance.
+
+        See :meth:`sage.coding.cyclic_code.bch_bound` for details.
 
         INPUT:
 
@@ -907,7 +929,13 @@ class CyclicCode(AbstractLinearCode):
 
 class CyclicCodePolynomialEncoder(Encoder):
     r"""
-    An encoder which can encode polynomials into codewords.
+    An encoder encoding polynomials into codewords.
+
+    Let `C` be a cyclic code over some finite field `F`,
+    and let `g` be its generator polynomial.
+
+    This encoder encodes any polynomial `p \in F[x]_{<k}`, by doing:
+    `\forall p \in F[x]_{<k}, (p \times g) \in C`
 
     INPUT:
 
@@ -926,7 +954,6 @@ class CyclicCodePolynomialEncoder(Encoder):
 
     def __init__(self, code):
         r"""
-
         EXAMPLES::
 
             sage: F.<x> = GF(2)[]
@@ -1037,7 +1064,7 @@ class CyclicCodePolynomialEncoder(Encoder):
         if p.degree() > k:
             raise ValueError("Degree of the message must be at most %s" % k)
         res = (p * self.code().generator_polynomial()).coefficients(sparse = False)
-        res = complete_list(res, n)
+        res = _complete_list(res, n)
         return  vector(self.code().base_field(), res)
 
     def unencode_nocheck(self, c):
@@ -1098,6 +1125,15 @@ class CyclicCodeVectorEncoder(Encoder):
     r"""
     An encoder which can encode vectors into codewords.
 
+    Let `C` be a cyclic code over some finite field `F`,
+    and let `g` be its generator polynomial.
+
+    Let `m = (m_1, m_2, \dots, m_{k-1})` be a vector in `F^{k}`.
+    This codeword can be seen as a polynomial over `F_k[x]`, as follows:
+    `m_p = \Sigma_{i=0}^{k-1} m_i \times x^i`.
+
+    To encode m, this encoder does the following multiplication: `m_p \times g`.
+
     INPUT:
 
     - ``code`` -- The associated code of this encoder
@@ -1146,24 +1182,6 @@ class CyclicCodeVectorEncoder(Encoder):
         """
         return isinstance(other, CyclicCodeVectorEncoder) \
                 and self.code() == other.code()
-
-    def __ne__(self, other):
-        r"""
-        Tests difference between CyclicCodeVectorEncoder objects.
-
-        EXAMPLES::
-
-            sage: F.<x> = GF(2)[]
-            sage: g1 = x ** 3 + x + 1
-            sage: g2 = (x ** 5 + 1) * (x ** 4 + x + 1)
-            sage: C1 = codes.CyclicCode(generator_pol = g1, length = 7)
-            sage: C2 = codes.CyclicCode(generator_pol = g2, length = 15)
-            sage: E1 = codes.encoders.CyclicCodeVectorEncoder(C1)
-            sage: E2 = codes.encoders.CyclicCodeVectorEncoder(C2)
-            sage: E1 != E2
-            True
-        """
-        return not self.__eq__(other)
 
     def _repr_(self):
         r"""
@@ -1231,7 +1249,7 @@ class CyclicCodeVectorEncoder(Encoder):
         if p.degree() > k:
             raise ValueError("Degree of the message must be at most %s" % k)
         res = (p * self.code().generator_polynomial()).coefficients(sparse = False)
-        res = complete_list(res, n)
+        res = _complete_list(res, n)
         return vector(F, res)
 
     def unencode_nocheck(self, c):
@@ -1263,7 +1281,7 @@ class CyclicCodeVectorEncoder(Encoder):
         g = self.code().generator_polynomial()
         p = R(c.list())
         l = (p//g).coefficients(sparse = False)
-        l = complete_list(l, self.message_space().dimension())
+        l = _complete_list(l, self.message_space().dimension())
         return vector(self.code().base_field(), l)
 
     @cached_method
@@ -1290,7 +1308,7 @@ class CyclicCodeVectorEncoder(Encoder):
         k = C.dimension()
         n = C.length()
         l = C.generator_polynomial().coefficients(sparse = False)
-        l = complete_list(l, n)
+        l = _complete_list(l, n)
         G = matrix(C.base_ring(), k, C.length())
         for i in range(k):
             G.set_row(i, l)

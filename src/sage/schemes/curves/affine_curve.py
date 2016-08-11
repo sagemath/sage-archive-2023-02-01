@@ -212,35 +212,31 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         I = R.ideal([f(chng_coords) for f in self.defining_polynomials()])
         return singular.mult(singular.std(I)).sage()
 
-    def blowup(self, P):
+    def blowup(self):
         r"""
-        Return the blow up this affine curve at the point ``P``.
+        Return the blow up of this affine curve at the origin.
 
-        This curve must be irreducible and its base ring must be a field. Let `C` denote this curve, and let
-        `n` denote the dimension of the affine ambient space of `C`. Then the blow up of `C` at ``P`` is a
-        subvariety of the mixed product space `\mathbb{A}^{n}\times\mathbb{P}^{n-1}`. This function describes
-        the blow up in each of the standard affine charts of the product space.
-
-        INPUT:
-
-        - ``P`` -- a point on this curve.
+        An error is returned if the origin is not a point on this curve. The blow up is described
+        by affine charts.
 
         OUTPUT:
 
-        - a tuple consisting of two elements. The first element is a list of affine curves that represent
-          the blow up of this curve at ``P`` in each of the standard affine charts of the mixed product space.
-          The second element is a list of lists of transition maps between the affine charts such that the
-          ijth element is the transition map from the ith chart to the jth chart.
+        - a tuple consisting of three elements. The first is a tuple of curves in affine space of
+          the same dimension as the ambient space of this subscheme, which define the blow up in
+          each affine chart. The second is a tuple of tuples such that the jth element of the ith
+          tuple is the transition map from the ith affine patch to the jth affine patch. Lastly,
+          the third element is a tuple consisting of the restrictions of the projection map from
+          the blow up back to the original subscheme, restricted to each affine patch. There the
+          ith element will be the projection from the ith affine patch.
 
         EXAMPLES::
 
             sage: A.<x,y> = AffineSpace(QQ, 2)
             sage: C = Curve([y^2 - x^3], A)
-            sage: Q = A([0,0])
-            sage: C.blowup(Q)
-            ([Affine Plane Curve over Rational Field defined by z1^2 - z0,
-              Affine Plane Curve over Rational Field defined by -z0*z1^3 + 1],
-             [[Scheme endomorphism of Affine Space of dimension 2 over Rational
+            sage: C.blowup()
+            ((Affine Plane Curve over Rational Field defined by z1^2 - z0,
+              Affine Plane Curve over Rational Field defined by -z0*z1^3 + 1),
+             ([Scheme endomorphism of Affine Space of dimension 2 over Rational
             Field
                  Defn: Defined on coordinates by sending (z0, z1) to
                        (z0, z1),
@@ -255,60 +251,67 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                Scheme endomorphism of Affine Space of dimension 2 over Rational
             Field
                  Defn: Defined on coordinates by sending (z0, z1) to
-                       (z0, z1)]])
+                       (z0, z1)]),
+             (Scheme morphism:
+                From: Affine Plane Curve over Rational Field defined by z1^2 - z0
+                To:   Affine Plane Curve over Rational Field defined by -x^3 + y^2
+                Defn: Defined on coordinates by sending (z0, z1) to
+                      (z0, z0*z1), Scheme morphism:
+                From: Affine Plane Curve over Rational Field defined by -z0*z1^3 + 1
+                To:   Affine Plane Curve over Rational Field defined by -x^3 + y^2
+                Defn: Defined on coordinates by sending (z0, z1) to
+                      (z0*z1, z0)))
 
         ::
 
             sage: K.<a> = QuadraticField(2)
             sage: A.<x,y,z> = AffineSpace(K, 3)
-            sage: C = Curve([(y - 2)^2 - (x + a)^3, z - x - a], A)
-            sage: Q = A([-a,2,0])
-            sage: B = C.blowup(Q)
+            sage: C = Curve([y^2 - a*x^5, x - z], A)
+            sage: B = C.blowup()
             sage: B[0]
-            [Affine Curve over Number Field in a with defining polynomial x^2 - 2
-            defined by z1^2 - z0 + (-a), z2 - 1,
-             Affine Curve over Number Field in a with defining polynomial x^2 - 2
-            defined by -z0*z1^3 + 2*z1^3 + 1, -z1 + z2,
-             Affine Curve over Number Field in a with defining polynomial x^2 - 2
-            defined by -z0*z1^3 + z2^2, -z1 + 1]
+            (Affine Curve over Number Field in a with defining polynomial x^2 - 2
+            defined by (-a)*z0^3 + z1^2, -z2 + 1, Affine Curve over Number Field in
+            a with defining polynomial x^2 - 2 defined by (-a)*z0^3*z1^5 + 1, z1 -
+            z2, Affine Curve over Number Field in a with defining polynomial x^2 - 2
+            defined by (-a)*z0^3*z1^5 + z2^2, z1 - 1)
             sage: B[1][0][2]
             Scheme endomorphism of Affine Space of dimension 3 over Number Field in
             a with defining polynomial x^2 - 2
               Defn: Defined on coordinates by sending (z0, z1, z2) to
-                    (z0*z2 + (a)*z2, 1/z2, z1/z2)
+                    (z0*z2, 1/z2, z1/z2)
             sage: B[1][2][0]
             Scheme endomorphism of Affine Space of dimension 3 over Number Field in
             a with defining polynomial x^2 - 2
               Defn: Defined on coordinates by sending (z0, z1, z2) to
-                    (z0*z1 + (-a), z2/z1, 1/z1)
+                    (z0*z1, z2/z1, 1/z1)
         """
+        A = self.ambient_space()
+        n = A.dimension_relative()
         try:
-            self(P)
+            self([0]*n)
         except TypeError:
-            raise TypeError("(=%s) must be a point on this curve"%P)
+            raise TypeError("the origin must be a point on this curve")
         if not self.base_ring() in Fields():
             raise TypeError("the base ring of this curve must be a field")
         if not self.defining_ideal().is_prime():
             raise TypeError("this curve must be irreducible")
-        A = self.ambient_space()
-        n = A.dimension_relative()
         R = PolynomialRing(A.base_ring(), 2*n, 'x')
         # move the defining polynomials of this curve into R
         H = Hom(A.coordinate_ring(), R)
         psi = H([R.gens()[i] for i in range(n)])
         n_polys = [psi(f) for f in self.defining_polynomials()]
-        # the blow up ideal of A at the point P is the ideal generated by
-        # (x_i - P[i])*x_{j + n} - (x_j - P[j])*x_{i + n} for i != j from 0,...,n-1
+        # the blow up ideal of A at the origin is the ideal generated by
+        # x_i*x_{j + n} - x_j*x_{i + n} for i != j from 0,...,n-1
         # in the mixed product space of A^n and P^{n-1}. We describe the blow up of
-        # this curve at P in each affine chart
+        # this curve at the origin in each affine chart
         patches = []
         for i in range(n):
             # in this chart, x_{i + n} is assumed to be 1
-            # substitute in x_{j} = (x_{i} - P[i])*x_{j + n} + P[j] for each j != i
+            # substitute in x_{j} = x_{i}*x_{j + n} for each j != i
             coords = list(R.gens())
             for j in range(n):
                 if j != i:
-                    coords[j] = (R.gens()[i] - P[i])*R.gens()[j + n] + P[j]
+                    coords[j] = R.gens()[i]*R.gens()[j + n]
             c_polys = [f(coords) for f in n_polys]
             c_A = AffineSpace(R.base_ring(), n, 'z')
             H = Hom(R, c_A.coordinate_ring())
@@ -325,8 +328,8 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             c_polys = [psi(f) for f in c_polys]
             # remove the component corresponding to the exceptional divisor
             for j in range(len(c_polys)):
-                while (c_A.gens()[0] - P[i]).divides(c_polys[j]):
-                    c_polys[j] = c_A.coordinate_ring()(c_polys[j]/(c_A.gens()[0] - P[i]))
+                while c_A.gens()[0].divides(c_polys[j]):
+                    c_polys[j] = c_A.coordinate_ring()(c_polys[j]/c_A.gens()[0])
             patches.append(c_A.curve(c_polys))
         # create the transition maps between the charts
         t_maps = []
@@ -340,13 +343,21 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                 homvars = list(AA.gens())
                 homvars.pop(0)
                 homvars.insert(i, 1)
-                coords = [(vars[0] - P[i])*homvars[j] + P[j]]
+                coords = [vars[0]*homvars[j]]
                 for t in range(n):
                     if t != j:
                         coords.append(homvars[t]/homvars[j])
                 maps.append(H(coords))
             t_maps.append(maps)
-        return tuple([patches, t_maps])
+        # create the restrictions of the projection map
+        proj_maps = []
+        for i in range(n):
+            p_A = patches[i].ambient_space()
+            H = Hom(patches[i], self)
+            coords = [p_A.gens()[0]*p_A.gens()[j] for j in range(1,n)]
+            coords.insert(i, p_A.gens()[0])
+            proj_maps.append(H(coords))
+        return tuple([tuple(patches), tuple(t_maps), tuple(proj_maps)])
 
 class AffinePlaneCurve(AffineCurve):
     def __init__(self, A, f):

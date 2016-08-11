@@ -4995,7 +4995,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             True
 
             sage: A4 = Posets.AntichainPoset(4)
-            sage: C4.comparability_graph().is_isomorphic(graphs.CompleteGraph(4))
+            sage: A4.incomparability_graph().is_isomorphic(graphs.CompleteGraph(4))
             True
         """
         G = self.comparability_graph().complement()

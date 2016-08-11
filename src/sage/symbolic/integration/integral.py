@@ -528,8 +528,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
         sage: f(x) = sqrt(x+sqrt(1+x^2))/x
         sage: integrate(f(x), x, algorithm="fricas")      # optional - fricas
-        2*sqrt(x + sqrt(x^2 + 1)) + log(sqrt(x + sqrt(x^2 + 1)) - 1)
-        - log(sqrt(x + sqrt(x^2 + 1)) + 1) - 2*arctan(sqrt(x + sqrt(x^2 + 1)))
+        2*sqrt(x + sqrt(x^2 + 1)) - 2*arctan(sqrt(x + sqrt(x^2 + 1))) - log(sqrt(x + sqrt(x^2 + 1)) + 1) + log(sqrt(x + sqrt(x^2 + 1)) - 1)
 
     The following definite integral is not found with the
     default integrator::
@@ -541,7 +540,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
     Both fricas and sympy give the correct result::
 
         sage: integrate(f(x), x, 1, 2, algorithm="fricas")  # optional - fricas
-        -1/2*pi + arctan(1/2) + arctan(2) + arctan(5) + arctan(8)
+        -1/2*pi + arctan(8) + arctan(5) + arctan(2) + arctan(1/2)
         sage: integrate(f(x), x, 1, 2, algorithm="sympy")
         -1/2*pi + arctan(8) + arctan(5) + arctan(2) + arctan(1/2)
 

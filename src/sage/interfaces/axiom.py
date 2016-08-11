@@ -430,9 +430,9 @@ class PanAxiom(ExtraTabCompletion, Expect):
             sage: print(fricas._eval_line("2+2"))  # optional - fricas
             $$
             4 
-            \leqno(11)
+            \leqno(3)
             $$
-                                                       Type: PositiveInteger
+                                                                                                                                                                                                                                    Type: PositiveInteger
             sage: fricas._eval_line(")set output tex off")  #optional - fricas
             ''
             sage: fricas._eval_line(")set output algebra on")  #optional - fricas

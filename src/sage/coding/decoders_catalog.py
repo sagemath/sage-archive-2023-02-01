@@ -8,10 +8,6 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 - :class:`linear_code.LinearCodeSyndromeDecoder <sage.coding.linear_code.LinearCodeSyndromeDecoder>`
 - :class:`linear_code.LinearCodeNearestNeighborDecoder <sage.coding.linear_code.LinearCodeNearestNeighborDecoder>`
 
-**Subfield subcode decoder**
-
-- :class:`subfield_subcode.SubfieldSubcodeOriginalCodeDecoder <sage.coding.subfield_subcode.SubfieldSubcodeOriginalCodeDecoder>`
-
 **Generalized Reed-Solomon code decoders**
 
 - :class:`grs.GRSBerlekampWelchDecoder <sage.coding.grs.GRSBerlekampWelchDecoder>`
@@ -58,3 +54,4 @@ from .grs import (GRSBerlekampWelchDecoder,
                  GRSGaoDecoder,
                  GRSKeyEquationSyndromeDecoder,
                  GRSErrorErasureDecoder)
+from guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder

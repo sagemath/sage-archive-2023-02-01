@@ -8,6 +8,21 @@ Let `\alpha` be an element of multiplicative order `n` in `\Phi`.
 A BCH code consists of all codewords `c(x) \in F_{n}[x]` such that
 `c(\alpha^{a}) = 0`, for `a = b, b + l, b + 2\times l, \dots, b + (\delta - 2) \times l`,
 with `b`, `\delta` integers such that `b < \delta` and `0 < \delta \leq n`.
+
+TESTS:
+
+This class uses the following experimental feature:
+:class:`sage.coding.relative_finite_field_extension.RelativeFiniteFieldExtension`.
+This test block is here only to trigger the experimental warning so it does not
+interferes with doctests::
+
+    sage: from sage.coding.relative_finite_field_extension import *
+    sage: Fqm.<aa> = GF(16)
+    sage: Fq.<a> = GF(4)
+    sage: RelativeFiniteFieldExtension(Fqm, Fq)
+    doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+    See http://trac.sagemath.org/20284 for details.
+    Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
 """
 
 #*****************************************************************************
@@ -338,7 +353,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
             FE = C._field_embedding
             a = []
             for i in c:
-                a.append(FE.small_field_polynomial_representation(i))
+                a.append(FE.cast_into_relative_field(i))
             return vector(a)
         return c
 

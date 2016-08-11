@@ -263,7 +263,7 @@ def is_a_splitting(S1, S2, n, return_automorphism=False):
         True
         sage: C1 = codes.CyclicCode(length = n, generator_pol = gcd(i1, x^n - 1))
         sage: C2 = codes.CyclicCode(length = n, generator_pol = gcd(1-i2, x^n - 1))
-        sage: C1.dual_code().generator_matrix_systematic() == C2.generator_matrix_systematic()
+        sage: C1.dual_code().systematic_generator_matrix() == C2.systematic_generator_matrix()
         True
 
     This is a special case of Theorem 6.4.3 in [HP]_.
@@ -559,7 +559,7 @@ def DuadicCodeEvenPair(F,S1,S2):
         ([11, 5] Cyclic Code over Finite Field of size 3 with x^6 + x^4 + 2*x^3 + 2*x^2 + 2*x + 1 as generator polynomial,
          [11, 5] Cyclic Code over Finite Field of size 3 with x^6 + 2*x^5 + 2*x^4 + 2*x^3 + x^2 + 1 as generator polynomial)
     """
-    from cyclic_code import CyclicCode
+    from .cyclic_code import CyclicCode
     n = len(S1) + len(S2) + 1
     if not is_a_splitting(S1,S2,n):
         raise TypeError("%s, %s must be a splitting of %s."%(S1,S2,n))
@@ -606,7 +606,7 @@ def DuadicCodeOddPair(F,S1,S2):
 
     This is consistent with Theorem 6.1.3 in [HP]_.
     """
-    from cyclic_code import CyclicCode
+    from .cyclic_code import CyclicCode
     n = len(S1) + len(S2) + 1
     if not is_a_splitting(S1,S2,n):
         raise TypeError("%s, %s must be a splitting of %s."%(S1,S2,n))
@@ -863,7 +863,7 @@ def QuadraticResidueCodeEvenPair(n,F):
         True
         sage: C3 = codes.QuadraticResidueCodeOddPair(17,GF(2))[0]
         sage: C4 = codes.QuadraticResidueCodeEvenPair(17,GF(2))[1]
-        sage: C3.generator_matrix_systematic() == C4.dual_code().generator_matrix_systematic()
+        sage: C3.systematic_generator_matrix() == C4.dual_code().systematic_generator_matrix()
         True
 
     This is consistent with Theorem 6.6.9 and Exercise 365 in [HP]_.

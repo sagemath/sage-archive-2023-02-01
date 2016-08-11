@@ -417,7 +417,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import absolute_import, print_function
 
-from __builtin__ import object, str
+from six.moves.builtins import object, str
 from importlib import import_module
 from pickle import PicklingError
 import inspect

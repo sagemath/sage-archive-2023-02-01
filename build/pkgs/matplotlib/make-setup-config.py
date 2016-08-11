@@ -1,4 +1,4 @@
-import ConfigParser
+from six.moves import configparser as ConfigParser
 import os
 
 config = ConfigParser.SafeConfigParser()

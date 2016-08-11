@@ -18,6 +18,11 @@ The ``codes.encoders`` object may be used to access the encoders that Sage can b
 
 - :class:`extended_code.ExtendedCodeExtendedMatrixEncoder <sage.coding.extended_code.ExtendedCodeExtendedMatrixEncoder>`
 
+**Cyclic code encoders**
+
+- :func:`cyclic_code.CyclicCodePolynomialEncoder <sage.coding.cyclic_code.CyclicCodePolynomialEncoder>`
+- :func:`cyclic_code.CyclicCodeVectorEncoder <sage.coding.cyclic_code.CyclicCodeVectorEncoder>`
+
 .. NOTE::
 
     To import these names into the global namespace, use:
@@ -43,3 +48,5 @@ _lazy_import('sage.coding.reed_muller_code', ['ReedMullerVectorEncoder', 'ReedMu
 _lazy_import('sage.coding.extended_code', 'ExtendedCodeExtendedMatrixEncoder')
 _lazy_import('sage.coding.punctured_code', 'PuncturedCodePuncturedMatrixEncoder')
 _lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcodeParityCheckEncoder')
+_lazy_import('sage.coding.cyclic_code', ['CyclicCodePolynomialEncoder',
+                                         'CyclicCodeVectorEncoder'])

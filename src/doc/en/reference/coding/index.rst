@@ -25,6 +25,9 @@ Linear codes and related constructions
    :maxdepth: 1
 
    sage/coding/linear_code
+   sage/coding/binary_code
+   sage/coding/cyclic_code
+   sage/coding/bch
    sage/coding/grs
    sage/coding/hamming_code
    sage/coding/guruswami_sudan/gs_decoder
@@ -35,9 +38,9 @@ Linear codes and related constructions
    sage/coding/code_constructions
    sage/coding/punctured_code
    sage/coding/extended_code
+   sage/coding/subfield_subcode
    sage/coding/sd_codes
    sage/coding/guava
-   sage/coding/binary_code
    sage/coding/reed_muller_code
 
 Bounds on codes

@@ -8,10 +8,6 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 - :class:`linear_code.LinearCodeSyndromeDecoder <sage.coding.linear_code.LinearCodeSyndromeDecoder>`
 - :class:`linear_code.LinearCodeNearestNeighborDecoder <sage.coding.linear_code.LinearCodeNearestNeighborDecoder>`
 
-**Subfield subcode decoder**
-
-- :class:`subfield_subcode.SubfieldSubcodeOriginalCodeDecoder <sage.coding.subfield_subcode.SubfieldSubcodeOriginalCodeDecoder>`
-
 **Generalized Reed-Solomon code decoders**
 
 - :class:`grs.GRSBerlekampWelchDecoder <sage.coding.grs.GRSBerlekampWelchDecoder>`
@@ -23,6 +19,14 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 **Extended code decoders**
 
 - :class:`extended_code.ExtendedCodeOriginalCodeDecoder <sage.coding.extended_code.ExtendedCodeOriginalCodeDecoder>`
+
+**Cyclic code decoder**
+
+- :class:`cyclic_code.CyclicCodeSurroundingBCHDecoder <sage.coding.cyclic_code.CyclicCodeSurroundingBCHDecoder>`
+
+**BCH code decoder**
+
+- :class:`bch.BCHUnderlyingGRSDecoder <sage.coding.bch.BCHUnderlyingGRSDecoder>`
 
 **Punctured codes decoders**
 
@@ -54,7 +58,5 @@ from .grs import (GRSBerlekampWelchDecoder,
 from .guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder
 from .extended_code import ExtendedCodeOriginalCodeDecoder
 from .subfield_subcode import SubfieldSubcodeOriginalCodeDecoder
-from .grs import (GRSBerlekampWelchDecoder,
-                 GRSGaoDecoder,
-                 GRSKeyEquationSyndromeDecoder,
-                 GRSErrorErasureDecoder)
+from .bch import BCHUnderlyingGRSDecoder
+from .cyclic_code import CyclicCodeSurroundingBCHDecoder

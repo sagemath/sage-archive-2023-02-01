@@ -332,7 +332,7 @@ class ClusterAlgebraSeed(SageObject):
           seed belongs;
 
         - ``path`` -- list (default []) the mutation sequence from the initial
-          seed of ``parent`` to `self``
+          seed of ``parent`` to ``self``.
 
         WARNING:
 

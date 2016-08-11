@@ -88,6 +88,8 @@ fi
 # parallel sometimes fails (Trac #17774)
 export MAKE="$MAKE -j1"
 
+# Workaround for GCC6: https://trac.sagemath.org/ticket/20926
+export CXXFLAGS="$CXXFLAGS -fno-delete-null-pointer-checks -fno-strict-overflow"
 
 choose_patches()
 {
@@ -106,8 +108,11 @@ choose_patches()
 
 apply_patches()
 {
+    # cd down to the root of src/
+    cd ..
+
     # Apply all patches
-    for patch in "$PATCHES"/*.patch; do
+    for patch in ../patches/*.patch; do
         [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
         echo "Applying $patch"
         patch -p1 <"$patch"
@@ -123,7 +128,10 @@ remove_old_version()
     rm -f "$SAGE_LOCAL"/bin/Singular*
     rm -f "$SAGE_LOCAL/include/factory.h"
     rm -f "$SAGE_LOCAL/include/factoryconf.h"
+    rm -rf "$SAGE_LOCAL/include/factory"
     rm -rf "$SAGE_LOCAL/include/singular"
+    rm -rf "$SAGE_LOCAL"/include/omalloc*
+    rm -f "$SAGE_LOCAL"/lib/*omalloc*
 }
 
 config()
@@ -211,6 +219,11 @@ build_libsingular()
     OLD_CXXFLAGS=$CXXFLAGS
     export CXXFLAGS="$CXXFLAGS -DLIBSINGULAR"
 
+    if [ "$UNAME" = "Darwin" ]; then
+        # on darwin we need to adjust the install name of the library
+	export LIBSINGULAR_LDFLAGS="-install_name ${SAGE_LOCAL}/lib/libsingular.dylib"
+    fi
+
     config || return $?
 
     $MAKE clean
@@ -219,11 +232,6 @@ build_libsingular()
     if [ $? -ne 0 ]; then
         echo >&2 "Unable to build and install libsingular."
         return 1
-    fi
-
-    if [ "$UNAME" = "Darwin" ]; then
-        # on darwin we need to adjust the install name of the library
-        install_name_tool -id "${SAGE_LOCAL}"/lib/libsingular.dylib "${SAGE_LOCAL}"/lib/libsingular.dylib
     fi
 
     # singular does not install this header

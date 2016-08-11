@@ -3,32 +3,28 @@
 Lyndon words
 """
 #*****************************************************************************
-#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
+#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 
 from sage.combinat.composition import Composition, Compositions
-from sage.rings.all import divisors, gcd, moebius, Integer
-from sage.rings.arith import factorial
+from sage.rings.all import Integer
+from sage.arith.all import factorial, divisors, gcd, moebius
 from sage.misc.all import prod
-import __builtin__
-import necklace
-from integer_vector import IntegerVectors
-
+from six.moves import builtins
+from . import necklace
+from .integer_vector import IntegerVectors
 from sage.combinat.words.words import FiniteWords
+
 
 def LyndonWords(e=None, k=None):
     """
@@ -290,7 +286,7 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
             True
         """
         evaluation = self._e
-        le = __builtin__.list(evaluation)
+        le = builtins.list(evaluation)
         if len(evaluation) == 0:
             return 0
 

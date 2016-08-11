@@ -16,6 +16,7 @@ different types.  The hierarchy is as follows:
   - :class:`ManinSymbolList_character`
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
@@ -39,13 +40,13 @@ import sage.modular.cusps as cusps
 import sage.modular.modsym.p1list as p1list
 import sage.modular.modsym.g1list as g1list
 import sage.modular.modsym.ghlist as ghlist
-from sage.rings.arith import xgcd, gcd
+from sage.arith.all import xgcd, gcd
 from sage.rings.all import Integer
 from sage.structure.parent import Parent
 from sage.structure.sage_object import register_unpickle_override
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
-from apply import apply_to_monomial
+from .apply import apply_to_monomial
 
 from sage.modular.modsym.manin_symbol import ManinSymbol
 

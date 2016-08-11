@@ -58,9 +58,6 @@ use ``help(p)``::
     ...
     Methods inherited from FiniteWordPath_all:
     ...
-    This only works on Python classes that derive from SageObject.
-    ...
-    See http://trac.sagemath.org/2536 for details.
 
 Since p is a finite word, many functions from the word library are available::
 
@@ -170,6 +167,7 @@ REFERENCES:
 - [5] http://en.wikipedia.org/wiki/Dyck_word
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Arnaud bergeron <abergeron@gmail.coms>,
 #       Copyrigth (C) 2009 Sebastien Labbe <slabqc@gmail.com>,
@@ -191,12 +189,12 @@ from sage.combinat.words.alphabet import build_alphabet
 from sage.plot.all import arrow, line, polygon, point, Graphics
 from sage.modules.free_module_element import vector
 from sage.rings.all import ZZ, RR, QuadraticField
-from word_datatypes import (WordDatatype_str,
+from .word_datatypes import (WordDatatype_str,
                             WordDatatype_list,
                             WordDatatype_tuple)
                             #WordDatatype_cpp_basic_string)
 
-from word_infinite_datatypes import (
+from .word_infinite_datatypes import (
                             WordDatatype_iter_with_caching,
                             WordDatatype_iter,
                             WordDatatype_callable_with_caching,
@@ -894,7 +892,7 @@ class WordPaths_cube_grid(WordPaths_all):
 
 class WordPaths_dyck(WordPaths_all):
     r"""
-    The combinatorial class of all dyck paths.
+    The combinatorial class of all Dyck paths.
     """
     def __init__(self, alphabet):
         r"""
@@ -1530,7 +1528,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             sage: P('abababAABABB').plot()
             Graphics object consisting of 4 graphics primitives
 
-        A dyck path::
+        A Dyck path::
 
             sage: P = WordPaths('()', steps='dyck')
             sage: P('()()()((()))').plot()

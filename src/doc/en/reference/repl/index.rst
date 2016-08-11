@@ -87,12 +87,11 @@ Miscellaneous
 .. toctree::
    :maxdepth: 2
 
-   sage/ext/interactive_constructors_c
-
    sage/repl/readline_extra_commands
 
    sage/repl/interpreter
    sage/repl/ipython_extension
+   sage/repl/interface_magic
    sage/repl/ipython_kernel/install
    sage/repl/ipython_kernel/kernel
    sage/repl/ipython_tests

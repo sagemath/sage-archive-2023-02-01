@@ -46,6 +46,8 @@ This example illustrates generators for a free module over `\ZZ`.
     ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
 """
 
+from __future__ import division
+
 #*****************************************************************************
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -53,12 +55,13 @@ This example illustrates generators for a free module over `\ZZ`.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-include 'sage/ext/stdsage.pxi'
 cimport generators
 cimport sage_object
 from sage.categories.category import Category
 from sage.structure.debug_options import debug
+from sage.misc.cachefunc import cached_method
 
 
 def guess_category(obj):
@@ -171,7 +174,7 @@ cdef class CategoryObject(sage_object.SageObject):
         """
         if category is None:
             if debug.bad_parent_warnings:
-                print "No category for %s" % type(self)
+                print("No category for %s" % type(self))
             category = guess_category(self) # so generators don't crash
         elif isinstance(category, (list, tuple)):
             category = Category.join(category)
@@ -258,7 +261,7 @@ cdef class CategoryObject(sage_object.SageObject):
 
     def _populate_generators_(self, gens=None, names=None, normalize = True, category=None):
         if category in self._generators:
-            raise ValueError, "Generators cannot be changed after object creation."
+            raise ValueError("Generators cannot be changed after object creation.")
         if category is None:
             category = self._category
         from sage.structure.sequence import Sequence
@@ -290,8 +293,8 @@ cdef class CategoryObject(sage_object.SageObject):
         r"""
         Return a dictionary whose entries are ``{name:variable,...}``,
         where ``name`` stands for the variable names of this
-        object (as strings) and ``variable`` stands for the corresponding
-        generators (as elements of this object).
+        object (as strings) and ``variable`` stands for the
+        corresponding defining generators (as elements of this object).
 
         EXAMPLES::
 
@@ -300,7 +303,7 @@ cdef class CategoryObject(sage_object.SageObject):
             {'a': a, 'b': b, 'c': c, 'd': d}
         """
         cdef dict v = {}
-        for x in self.gens():
+        for x in self._defining_names():
             v[str(x)] = x
         return v
 
@@ -310,8 +313,8 @@ cdef class CategoryObject(sage_object.SageObject):
 
         OUTPUT:
 
-        - a dictionary with string names of generators as keys and generators of
-          ``self`` and its base rings as values.
+        - a dictionary with string names of generators as keys and
+          generators of ``self`` and its base rings as values.
 
         EXAMPLES::
 
@@ -355,9 +358,71 @@ cdef class CategoryObject(sage_object.SageObject):
 
     def _first_ngens(self, n):
         """
-        Used by the preparser for R.<x> = ...
+        Used by the preparser for ``R.<x> = ...``.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: x
+            x
+            sage: parent(x)
+            Univariate Polynomial Ring in x over Rational Field
+
+        For orders, we correctly use the ring generator, see
+        :trac:`15348`::
+
+            sage: A.<i> = ZZ.extension(x^2 + 1)
+            sage: i
+            i
+            sage: parent(i)
+            Order in Number Field in i with defining polynomial x^2 + 1
+
+        ::
+
+            sage: B.<z> = EquationOrder(x^2 + 3)
+            sage: z.minpoly()
+            x^2 + 3
         """
-        return self.gens()[:n]
+        return self._defining_names()[:n]
+
+    @cached_method
+    def _defining_names(self):
+        """
+        The elements used to "define" this object.
+
+        What this means depends on the type of object: for rings, it
+        usually means generators as a ring. The result of this function
+        is not required to generate the object, but it should contain
+        all named elements if the object was constructed using a
+        ``names'' argument.
+
+        This function is used by the preparser to implement
+        ``R.<x> = ...`` and it is also used by :meth:`gens_dict`.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: R._defining_names()
+            (x,)
+
+        For orders, we correctly use the ring generator, see
+        :trac:`15348`::
+
+            sage: B.<z> = EquationOrder(x^2 + 3)
+            sage: B._defining_names()
+            (z,)
+
+        For vector spaces and free modules, we get a basis (which can
+        be different from the given generators)::
+
+            sage: V = ZZ^3
+            sage: V._defining_names()
+            ((1, 0, 0), (0, 1, 0), (0, 0, 1))
+            sage: W = V.span([(0, 1, 0), (1/2, 1, 0)])
+            sage: W._defining_names()
+            ((1/2, 0, 0), (0, 1, 0))
+        """
+        return self.gens()
 
     #################################################################################################
     # Names and Printers
@@ -400,13 +465,13 @@ cdef class CategoryObject(sage_object.SageObject):
                     ngens = self.ngens()
             names = normalize_names(ngens, names)
         if self._names is not None and names != self._names:
-            raise ValueError, 'variable names cannot be changed after object creation.'
+            raise ValueError('variable names cannot be changed after object creation.')
         if isinstance(names, str):
             names = (names, )  # make it a tuple
         elif isinstance(names, list):
             names = tuple(names)
         elif not isinstance(names, tuple):
-            raise TypeError, "names must be a tuple of strings"
+            raise TypeError("names must be a tuple of strings")
         self._names = names
 
     def normalize_names(self, ngens, names):
@@ -517,7 +582,7 @@ cdef class CategoryObject(sage_object.SageObject):
         if scope is None:
             scope = globals()
         if verbose:
-            print "Defining %s"%(', '.join(vs))
+            print("Defining %s" % (', '.join(vs)))
         for v, g in zip(vs, gs):
             scope[v] = g
 
@@ -647,10 +712,10 @@ cdef class CategoryObject(sage_object.SageObject):
             sage: R, x = PolynomialRing(QQ, 'x', 12).objgens()
             sage: x
             (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11)
-            sage: print R.latex_variable_names ()
+            sage: R.latex_variable_names ()
             ['x_{0}', 'x_{1}', 'x_{2}', 'x_{3}', 'x_{4}', 'x_{5}', 'x_{6}', 'x_{7}', 'x_{8}', 'x_{9}', 'x_{10}', 'x_{11}']
             sage: f = x[0]^3 + 15/3 * x[1]^10
-            sage: print latex(f)
+            sage: print(latex(f))
             5 x_{1}^{10} + x_{0}^{3}
         """
         from sage.misc.latex import latex, latex_variable_name
@@ -768,6 +833,31 @@ cdef class CategoryObject(sage_object.SageObject):
         if self._hash_value == -1:
             self._hash_value = hash(repr(self))
         return self._hash_value
+
+    ##############################################################################
+    # For compatibility with Python 2
+    ##############################################################################
+    def __div__(self, other):
+        """
+        Implement Python 2 division as true division.
+
+        EXAMPLES::
+
+            sage: V = QQ^2
+            sage: V.__div__(V.span([(1,3)]))
+            Vector space quotient V/W of dimension 1 over Rational Field where
+            V: Vector space of dimension 2 over Rational Field
+            W: Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 3]
+            sage: V.__truediv__(V.span([(1,3)]))
+            Vector space quotient V/W of dimension 1 over Rational Field where
+            V: Vector space of dimension 2 over Rational Field
+            W: Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 3]
+        """
+        return self / other
 
 
 cpdef normalize_names(Py_ssize_t ngens, names):
@@ -970,8 +1060,7 @@ class localvars:
 
        sage: R.<x,y> = PolynomialRing(QQ,2)
        sage: with localvars(R, 'z,w'):
-       ...       print x^3 + y^3 - x*y
-       ...
+       ....:     print(x^3 + y^3 - x*y)
        z^3 + w^3 - z*w
 
     NOTES: I wrote this because it was needed to print elements of the quotient

@@ -6,9 +6,8 @@ TESTS::
     sage: from sage.tests.gap_packages import all_installed_packages, test_packages
     sage: pkgs = all_installed_packages(ignore_dot_gap=True)
     sage: test_packages(pkgs, only_failures=True)    # optional - gap_packages
-      Status    Package    GAP Output
-    +---------+----------+------------+
-      Failure   HAPcryst   fail
+      Status   Package   GAP Output
+    +--------+---------+------------+
 
 These are packages in the ``database_gap`` package::
 
@@ -83,7 +82,6 @@ def test_packages(packages, only_failures=False):
         rows.append([status, pkg, str(output)])
     from sage.misc.table import table
     return table(rows, header_row=True)
-
 
 
 def all_installed_packages(ignore_dot_gap=False):

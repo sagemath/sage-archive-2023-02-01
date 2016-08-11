@@ -21,6 +21,7 @@ AUTHORS:
 - David Loeffler
 - Jared Weinstein
 """
+from __future__ import absolute_import
 
 import operator
 from sage.structure.sage_object     import SageObject
@@ -31,8 +32,8 @@ from sage.misc.cachefunc            import cached_method
 from sage.misc.abstract_method      import abstract_method
 from sage.structure.sequence        import Sequence
 
-from type_space                     import TypeSpace
-from smoothchar                     import SmoothCharacterGroupQp, SmoothCharacterGroupUnramifiedQuadratic, SmoothCharacterGroupRamifiedQuadratic
+from .type_space                     import TypeSpace
+from .smoothchar                     import SmoothCharacterGroupQp, SmoothCharacterGroupUnramifiedQuadratic, SmoothCharacterGroupRamifiedQuadratic
 
 def LocalComponent(f, p, twist_factor=None):
     r"""
@@ -262,7 +263,7 @@ class LocalComponentBase(SageObject):
             sage: LocalComponent(Newforms(DirichletGroup(24)([1, -1,-1]), 3, names='a')[0], 2).central_character()
             Character of Q_2*, of level 3, mapping 7 |--> 1, 5 |--> -1, 2 |--> -2
         """
-        from sage.rings.arith import crt
+        from sage.arith.all import crt
         chi = self.newform().character()
         f = self.prime() ** self.conductor()
         N = self.newform().level() // f

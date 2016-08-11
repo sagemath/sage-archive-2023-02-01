@@ -21,6 +21,7 @@ EXAMPLES::
     sage: C._points_fast_sqrt()
     [(0 : 1 : 0), (a + 1 : a : 1), (a + 1 : a + 1 : 1), (2 : a + 1 : 1), (2*a : 2*a + 2 : 1), (2*a : 2*a : 1), (1 : a + 1 : 1)]
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
@@ -44,9 +45,9 @@ EXAMPLES::
 #*****************************************************************************
 
 from sage.rings.all import ZZ, RR, QQ, GF
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.rings.power_series_ring import PowerSeriesRing
-import hyperelliptic_generic
+from . import hyperelliptic_generic
 from sage.schemes.hyperelliptic_curves.hypellfrob import hypellfrob
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import identity_matrix, matrix
@@ -747,7 +748,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         $\mathbb{P}(1,3,1)$. The latter model has two points at infinity:
         $(1:1:0)$ and $(1:-1:0)$.
         """
-        from sage.rings.finite_rings.constructor import zech_log_bound
+        from sage.rings.finite_rings.finite_field_constructor import zech_log_bound
         try:
             return self.__points
         except AttributeError: pass

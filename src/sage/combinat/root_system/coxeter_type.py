@@ -375,10 +375,14 @@ class CoxeterType(SageObject):
 
         from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
         UCF = UniversalCyclotomicField()
-        if UCF.has_coerce_map_from(base_ring):
+
+        if R is None:
             R = UCF
-        else:
-            R = base_ring
+        # if UCF.has_coerce_map_from(base_ring):
+        #     R = UCF
+        # else:
+        #     R = base_ring
+
         # Compute the matrix with entries `- \cos( \pi / m_{ij} )`.
         if R is UCF:
             val = lambda x: (R.gen(2*x) + ~R.gen(2*x)) / R(-2) if x > -1 else R.one()*x

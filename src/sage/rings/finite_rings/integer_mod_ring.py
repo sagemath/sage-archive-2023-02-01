@@ -59,16 +59,16 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import, print_function
+
 import sage.misc.prandom as random
 
-from sage.rings.arith import factor, primitive_root
-import sage.rings.commutative_ring as commutative_ring
+from sage.arith.all import factor, primitive_root, CRT_basis
 import sage.rings.ring as ring
-import integer_mod
+from . import integer_mod
 import sage.rings.integer as integer
 import sage.rings.integer_ring as integer_ring
 import sage.rings.quotient_ring as quotient_ring
-from sage.structure.parent_gens import ParentWithGens
 
 from sage.libs.pari.all import pari, PariError
 
@@ -124,7 +124,7 @@ class IntegerModFactory(UniqueFactory):
         Testing whether a quotient ring `\ZZ / n\ZZ` is a field can of
         course be very costly. By default, it is not tested whether `n`
         is prime or not, in contrast to
-        :func:`~sage.rings.finite_rings.constructor.GF`. If the user
+        :func:`~sage.rings.finite_rings.finite_field_constructor.GF`. If the user
         is sure that the modulus is prime and wants to avoid a primality
         test, (s)he can provide ``category=Fields()`` when constructing
         the quotient ring, and then the result will behave like a field.
@@ -289,7 +289,7 @@ def _unit_gens_primepowercase(p, r):
 
 class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     """
-    The ring of integers modulo `N`, with `N` composite.
+    The ring of integers modulo `N`.
 
     INPUT:
 
@@ -781,8 +781,8 @@ In the latter case, please inform the developers.""".format(self.order()))
         except AttributeError:
             if not self.is_field():
                 raise ValueError("self must be a field")
-            import constructor
-            k = constructor.FiniteField(self.order())
+            from . import finite_field_constructor
+            k = finite_field_constructor.FiniteField(self.order())
             self.__field = k
             return k
 
@@ -975,7 +975,6 @@ In the latter case, please inform the developers.""".format(self.order()))
                 vmod.append(w)
                 moduli.append(k)
             # Now combine in all possible ways using the CRT
-            from sage.rings.arith import CRT_basis
             basis = CRT_basis(moduli)
             from sage.misc.mrange import cartesian_product_iterator
             v = []
@@ -1172,7 +1171,7 @@ In the latter case, please inform the developers.""".format(self.order()))
 
             sage: R = IntegerModRing(3)
             sage: for i in R:
-            ...    print i
+            ....:     print(i)
             0
             1
             2
@@ -1209,9 +1208,9 @@ In the latter case, please inform the developers.""".format(self.order()))
               To:   Ring of integers modulo 15
             sage: f(-1)
             14
-            sage: f = R.coerce_map_from(Integers(10)); print f
+            sage: f = R.coerce_map_from(Integers(10)); print(f)
             None
-            sage: f = R.coerce_map_from(QQ); print f
+            sage: f = R.coerce_map_from(QQ); print(f)
             None
 
             sage: R = IntegerModRing(17)
@@ -1420,7 +1419,7 @@ In the latter case, please inform the developers.""".format(self.order()))
             sage: H = A.unit_group(algorithm='pari'); H
             Multiplicative Abelian group isomorphic to C4 x C2 x C2
             sage: H.gens_values()
-            (17, 21, 11)
+            (17, 31, 21)
 
             sage: A = Zmod(192)
             sage: G = A.unit_group(); G
@@ -1430,7 +1429,7 @@ In the latter case, please inform the developers.""".format(self.order()))
             sage: H = A.unit_group(algorithm='pari'); H
             Multiplicative Abelian group isomorphic to C16 x C2 x C2
             sage: H.gens_values()
-            (133, 31, 65)
+            (133, 127, 65)
 
         In the following examples, the cyclic factors are not even
         isomorphic::
@@ -1508,8 +1507,8 @@ In the latter case, please inform the developers.""".format(self.order()))
             sage: R.random_element(2) in [R(16), R(17), R(0), R(1), R(2)]
             True
         """
-        if not (bound is None):
-            return commutative_ring.CommutativeRing.random_element(self, bound)
+        if bound is not None:
+            return ring.CommutativeRing.random_element(self, bound)
         a = random.randint(0,self.order()-1)
         return self(a)
 

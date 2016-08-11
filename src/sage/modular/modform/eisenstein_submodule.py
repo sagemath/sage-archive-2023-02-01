@@ -2,17 +2,20 @@
 """
 The Eisenstein Subspace
 """
+from __future__ import absolute_import
 
 from sage.structure.all import Sequence
 from sage.misc.all import verbose
 import sage.rings.all as rings
 from sage.categories.all import Objects
 from sage.matrix.all import Matrix
+from sage.rings.all import CyclotomicField
+from sage.arith.all import lcm, euler_phi
 
 
-import eis_series
-import element
-import submodule
+from . import eis_series
+from . import element
+from . import submodule
 
 class EisensteinSubmodule(submodule.ModularFormsSubmodule):
     """
@@ -435,7 +438,7 @@ class EisensteinSubmodule_gH_Q(EisensteinSubmodule_params):
             [ 0  0  9  0]
             [ 0  1 -4 10]
         """
-        from cuspidal_submodule import _convert_matrix_from_modsyms
+        from .cuspidal_submodule import _convert_matrix_from_modsyms
         symbs = self.modular_symbols(sign=0)
         d = self.rank()
         wrong_mat, pivs = _convert_matrix_from_modsyms(symbs, A)
@@ -563,8 +566,6 @@ class EisensteinSubmodule_eps(EisensteinSubmodule_params):
         #B = EisensteinSubmodule_params._compute_q_expansion_basis(self, prec)
         #raise NotImplementedError, "must restrict scalars down correctly."
 
-
-from sage.rings.all import CyclotomicField, lcm, euler_phi
 
 def cyclotomic_restriction(L,K):
     r"""

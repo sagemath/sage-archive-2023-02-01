@@ -25,6 +25,7 @@ All of these examples are accessible by typing
 - :meth:`~sage.homology.examples.BrucknerGrunbaumSphere`
 - :meth:`~sage.homology.examples.ChessboardComplex`
 - :meth:`~sage.homology.examples.ComplexProjectivePlane`
+- :meth:`~sage.homology.examples.DunceHat`
 - :meth:`~sage.homology.examples.K3Surface`
 - :meth:`~sage.homology.examples.KleinBottle`
 - :meth:`~sage.homology.examples.MatchingComplex`
@@ -33,13 +34,17 @@ All of these examples are accessible by typing
 - :meth:`~sage.homology.examples.PoincareHomologyThreeSphere`
 - :meth:`~sage.homology.examples.PseudoQuaternionicProjectivePlane`
 - :meth:`~sage.homology.examples.RandomComplex`
+- :meth:`~sage.homology.examples.RandomTwoSphere`
 - :meth:`~sage.homology.examples.RealProjectivePlane`
 - :meth:`~sage.homology.examples.RealProjectiveSpace`
+- :meth:`~sage.homology.examples.RudinBall`
+- :meth:`~sage.homology.examples.ShiftedComplex`
 - :meth:`~sage.homology.examples.Simplex`
 - :meth:`~sage.homology.examples.Sphere`
 - :meth:`~sage.homology.examples.SumComplex`
 - :meth:`~sage.homology.examples.SurfaceOfGenus`
 - :meth:`~sage.homology.examples.Torus`
+- :meth:`~sage.homology.examples.ZieglerBall`
 
 You can also get a list by typing ``simplicial_complexes.`` and hitting the
 TAB key.
@@ -63,4 +68,5 @@ from sage.homology.examples import (Sphere, Simplex, Torus, ProjectivePlane,
         ComplexProjectivePlane, PseudoQuaternionicProjectivePlane,
         PoincareHomologyThreeSphere, RealProjectiveSpace, K3Surface,
         BarnetteSphere, BrucknerGrunbaumSphere, NotIConnectedGraphs,
-        MatchingComplex, ChessboardComplex, RandomComplex, SumComplex)
+        MatchingComplex, ChessboardComplex, RandomComplex, SumComplex,
+        RandomTwoSphere, ShiftedComplex, RudinBall, ZieglerBall, DunceHat)

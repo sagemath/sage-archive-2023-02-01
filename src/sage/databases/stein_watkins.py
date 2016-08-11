@@ -137,8 +137,10 @@ REFERENCE:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-import bz2, os
+import bz2
+import os
 
 from sage.env import SAGE_SHARE
 
@@ -206,7 +208,7 @@ class SteinWatkinsAllData:
             sage: d = SteinWatkinsAllData(0)
             sage: d = d[10:20]                         # optional - database_stein_watkins; long time
             sage: for C in d:                          # optional - database_stein_watkins; long time
-            ....:     print C
+            ....:     print(C)
             Stein-Watkins isogeny class of conductor 11
             Stein-Watkins isogeny class of conductor 14
             Stein-Watkins isogeny class of conductor 15
@@ -290,12 +292,12 @@ class SteinWatkinsAllData:
             sage: next(E)                             # optional - database_stein_watkins
             [Stein-Watkins isogeny class of conductor 100007]
         """
-        iter = iter(self)
+        it = iter(self)
         C = []
         N = 0
         while True:
             try:
-                E = next(iter)
+                E = next(it)
             except StopIteration:
                 if C != []:
                     yield C

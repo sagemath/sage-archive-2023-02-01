@@ -12,7 +12,7 @@ FLINT Arithmetic Functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from .fmpz cimport *
 from .fmpq cimport *
@@ -77,6 +77,32 @@ def bernoulli_number(unsigned long n):
     sig_off()
     fmpq_get_mpq(ans.value, ans_fmpq)
     fmpq_clear(ans_fmpq)
+
+    return ans
+
+
+def euler_number(unsigned long n):
+    """
+    Return the Euler number of index `n`.
+
+    EXAMPLES::
+
+        sage: from sage.libs.flint.arith import euler_number
+        sage: [euler_number(i) for i in range(8)]
+        [1, 0, -1, 0, 5, 0, -61, 0]
+    """
+    cdef fmpz_t ans_fmpz
+    cdef Integer ans = Integer(0)
+
+    fmpz_init(ans_fmpz)
+
+    if n > 1000:
+        sig_on()
+    arith_euler_number(ans_fmpz, n)
+    fmpz_get_mpz(ans.value, ans_fmpz)
+    fmpz_clear(ans_fmpz)
+    if n > 1000:
+        sig_off()
 
     return ans
 

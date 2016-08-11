@@ -142,7 +142,7 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             sage: G.character(0, [1]).multiplicative_order()
             1
         """
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         from sage.rings.infinity import Infinity
         if self._values_on_gens[-1].multiplicative_order() == Infinity:
             return Infinity
@@ -359,7 +359,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             sage: G(GK.character(0, [i])) # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce i to a rational
+            TypeError: unable to convert i to an element of Rational Field
         """
         if x == 1:
             return self.character(0, [1])

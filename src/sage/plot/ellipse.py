@@ -15,7 +15,10 @@ Ellipses
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from primitive import GraphicPrimitive
+from __future__ import print_function
+from __future__ import absolute_import
+
+from .primitive import GraphicPrimitive
 from sage.plot.misc import options, rename_keyword
 from sage.plot.colors import to_mpl_color
 from math import sin, cos, sqrt, pi, fmod
@@ -51,7 +54,7 @@ class Ellipse(GraphicPrimitive):
 
             sage: from sage.plot.ellipse import Ellipse
             sage: e = Ellipse(0, 0, 1, 1, 0, {})
-            sage: print loads(dumps(e))
+            sage: print(loads(dumps(e)))
             Ellipse centered at (0.0, 0.0) with radii (1.0, 1.0) and angle 0.0
             sage: ellipse((0,0),0,1)
             Traceback (most recent call last):

@@ -6,11 +6,13 @@ Routines for computing special values of L-functions
 - :func:`quadratic_L_function__exact` -- Exact values of the Dirichlet L-functions of quadratic characters at critical values
 - :func:`quadratic_L_function__numerical` -- Numerical values of the Dirichlet L-functions of quadratic characters in the domain of convergence
 """
+# python3
+from __future__ import division, print_function
 
 from sage.combinat.combinat import bernoulli_polynomial
 from sage.misc.functional import denominator
 from sage.rings.all import RealField
-from sage.rings.arith import kronecker_symbol, bernoulli, factorial, fundamental_discriminant
+from sage.arith.all import kronecker_symbol, bernoulli, factorial, fundamental_discriminant
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -63,20 +65,18 @@ def gamma__exact(n):
         TypeError: you must give an integer or half-integer argument
     """
     from sage.all import sqrt
-    # SANITY CHECK
-    if (not n in QQ) or (denominator(n) > 2):
-        raise TypeError("you must give an integer or half-integer argument")
+    n = QQ(n)
 
     if denominator(n) == 1:
         if n <= 0:
             return infinity
         if n > 0:
             return factorial(n-1)
-    else:
-        ans = QQ(1)
-        while (n != QQ(1)/2):
+    elif denominator(n) == 2:
+        ans = QQ.one()
+        while n != QQ((1, 2)):
             if n < 0:
-                ans *= QQ(1)/n
+                ans /= n
                 n += 1
             elif n > 0:
                 n += -1
@@ -84,6 +84,8 @@ def gamma__exact(n):
 
         ans *= sqrt(pi)
         return ans
+    else:
+        raise TypeError("you must give an integer or half-integer argument")
 
 # ------------- The Riemann Zeta Function  --------------
 
@@ -102,16 +104,16 @@ def zeta__exact(n):
 
         sage: RR = RealField(100)
         sage: for i in range(1,10):
-        ...       print "zeta(" + str(1-2*i) + "): ", RR(zeta__exact(1-2*i)) - zeta(RR(1-2*i))
-        zeta(-1):  0.00000000000000000000000000000
-        zeta(-3):  0.00000000000000000000000000000
-        zeta(-5):  0.00000000000000000000000000000
-        zeta(-7):  0.00000000000000000000000000000
-        zeta(-9):  0.00000000000000000000000000000
-        zeta(-11):  0.00000000000000000000000000000
-        zeta(-13):  0.00000000000000000000000000000
-        zeta(-15):  0.00000000000000000000000000000
-        zeta(-17):  0.00000000000000000000000000000
+        ....:     print("zeta({}): {}".format(1-2*i, RR(zeta__exact(1-2*i)) - zeta(RR(1-2*i))))
+        zeta(-1): 0.00000000000000000000000000000
+        zeta(-3): 0.00000000000000000000000000000
+        zeta(-5): 0.00000000000000000000000000000
+        zeta(-7): 0.00000000000000000000000000000
+        zeta(-9): 0.00000000000000000000000000000
+        zeta(-11): 0.00000000000000000000000000000
+        zeta(-13): 0.00000000000000000000000000000
+        zeta(-15): 0.00000000000000000000000000000
+        zeta(-17): 0.00000000000000000000000000000
 
     Let us test the accuracy for positive special values::
 
@@ -120,6 +122,12 @@ def zeta__exact(n):
 
     TESTS::
 
+        sage: zeta__exact(4)
+        1/90*pi^4
+        sage: zeta__exact(-3)
+        1/120
+        sage: zeta__exact(0)
+        -1/2
         sage: zeta__exact(5)
         Traceback (most recent call last):
         ...
@@ -135,13 +143,13 @@ def zeta__exact(n):
         return bernoulli(1-n)/(n-1)
     elif n > 1:
         if (n % 2 == 0):
-            return ZZ(-1)**(n/2 + 1) * ZZ(2)**(n-1) * pi**n * bernoulli(n) / factorial(n)
+            return ZZ(-1)**(n//2 + 1) * ZZ(2)**(n-1) * pi**n * bernoulli(n) / factorial(n)
         else:
             raise TypeError("n must be a critical value (i.e. even > 0 or odd < 0)")
-    elif n==1:
+    elif n == 1:
         return infinity
-    elif n==0:
-        return -1/2
+    elif n == 0:
+        return QQ((-1, 2))
 
 # ---------- Dirichlet L-functions with quadratic characters ----------
 
@@ -193,6 +201,8 @@ def quadratic_L_function__exact(n, d):
         1/4*pi
         sage: quadratic_L_function__exact(-4, -4)
         5/2
+        sage: quadratic_L_function__exact(2, 1)
+        1/6*pi^2
 
     TESTS::
 
@@ -227,7 +237,7 @@ def quadratic_L_function__exact(n, d):
             ans = SR(ZZ(-1)**(1+(n-delta)/2))
             ans *= (2*pi/f)**n
             ans *= GS     # Evaluate the Gauss sum here! =0
-            ans *= 1/(2 * I**delta)
+            ans *= QQ.one()/(2 * I**delta)
             ans *= QuadraticBernoulliNumber(n,d)/factorial(n)
             return ans
         else:
@@ -247,12 +257,12 @@ def quadratic_L_function__numerical(n, d, num_terms=1000):
 
         sage: RR = RealField(100)
         sage: for i in range(5):
-        ...       print "L(" + str(1+2*i) + ", (-4/.)): ", RR(quadratic_L_function__exact(1+2*i, -4)) - quadratic_L_function__numerical(RR(1+2*i),-4, 10000)
-        L(1, (-4/.)):  0.000049999999500000024999996962707
-        L(3, (-4/.)):  4.99999970000003...e-13
-        L(5, (-4/.)):  4.99999922759382...e-21
-        L(7, (-4/.)):  ...e-29
-        L(9, (-4/.)):  ...e-29
+        ....:     print("L({}, (-4/.)): {}".format(1+2*i, RR(quadratic_L_function__exact(1+2*i, -4)) - quadratic_L_function__numerical(RR(1+2*i),-4, 10000)))
+        L(1, (-4/.)): 0.000049999999500000024999996962707
+        L(3, (-4/.)): 4.99999970000003...e-13
+        L(5, (-4/.)): 4.99999922759382...e-21
+        L(7, (-4/.)): ...e-29
+        L(9, (-4/.)): ...e-29
 
     This procedure fails for negative special values, as the Dirichlet
     series does not converge here::
@@ -267,7 +277,7 @@ def quadratic_L_function__numerical(n, d, num_terms=1000):
 
         sage: for d in range(-20,0):  # long time (2s on sage.math 2014)
         ....:     if abs(RR(quadratic_L_function__numerical(1, d, 10000) - quadratic_L_function__exact(1, d))) > 0.001:
-        ....:         print "Oops!  We have a problem at d = ", d, "    exact = ", RR(quadratic_L_function__exact(1, d)), "    numerical = ", RR(quadratic_L_function__numerical(1, d))
+        ....:         print("Oops! We have a problem at d = {}: exact = {}, numerical = {}".format(d, RR(quadratic_L_function__exact(1, d)), RR(quadratic_L_function__numerical(1, d))))
     """
     # Set the correct precision if it is given (for n).
     if is_RealField(n.parent()):
@@ -279,7 +289,7 @@ def quadratic_L_function__numerical(n, d, num_terms=1000):
         raise ValueError('the Dirichlet series does not converge here')
 
     d1 = fundamental_discriminant(d)
-    ans = R(0)
+    ans = R.zero()
     for i in range(1,num_terms):
         ans += R(kronecker_symbol(d1,i) / R(i)**n)
     return ans

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+echo "Installing the Jupyter Kernel for the R-Project"
+
+R --vanilla <<EOF
+chooseCRANmirror(ind=1)
+install.packages(c('rzmq','repr','IRkernel','IRdisplay'),
+                 repos = c('http://irkernel.github.io/', getOption('repos')))
+IRkernel::installspec()
+EOF
+

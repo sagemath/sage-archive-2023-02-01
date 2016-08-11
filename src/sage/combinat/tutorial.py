@@ -154,8 +154,8 @@ obtained (this takes about 10 seconds)::
     ....:    hand = Hands.random_element()
     ....:    if is_flush(hand):
     ....:        nflush += 1
-    sage: print n, nflush                               # random
-    10000 18
+    sage: n, nflush                               # random
+    (10000, 18)
 
 .. topic:: Exercises
 
@@ -223,7 +223,7 @@ author, which contains more than 190000 sequences of integers::
 
     sage: oeis([1,1,2,5,14])                            # optional -- internet
     0: A000108: Catalan numbers: C(n) = binomial(2n,n)/(n+1) = (2n)!/(n!(n+1)!). Also called Segner numbers.
-    1: A120588: G.f. satisfies: 3*A(x) = 2 + x + A(x)^2, starting with [1,1,1].
+    1: A120588: G.f. satisfies: 3*A(x) = 2 + x + A(x)^2, with a(0) = 1.
     2: A080937: Number of Catalan paths (nonnegative, starting and ending at 0, step +/-1) of 2*n steps with all values <= 5.
 
 The result suggests that the trees are counted by one of the most famous
@@ -254,7 +254,7 @@ product `C\times C`).
 
 The founding idea of algebraic combinatorics, introduced by Euler in
 a letter to Goldbach of 1751 to treat a similar problem , is to
-manipuate all the numbers `c_n` simultaneously, by encoding them
+manipulate all the numbers `c_n` simultaneously, by encoding them
 as coefficients in a formal power series, called the *generating
 function* of the `c_n`’s:
 
@@ -531,7 +531,7 @@ found, based on the closed form:
 .. math:: c_{n+1}=\frac{(4n-2)}{n+1}c_n
 
 After fixing the correct initial conditions, it becomes possible to
-calculate the coefficents of `C(z)` recursively::
+calculate the coefficients of `C(z)` recursively::
 
     sage: def C(n): return 1 if n <= 1 else (4*n-6)/n * C(n-1)
     sage: [ C(i) for i in range(10) ]
@@ -731,7 +731,7 @@ richer than simple lists::
 
 For example, they can be represented graphically by a Ferrers diagram::
 
-    sage: print p.ferrers_diagram()
+    sage: print(p.ferrers_diagram())
     ****
     **
     *
@@ -843,7 +843,7 @@ Set partitions::
 Partial orders on a set of `8` elements, up to isomorphism::
 
     sage: C = Posets(8); C
-    Posets containing 8 vertices
+    Posets containing 8 elements
     sage: C.cardinality()
     16999
 
@@ -862,7 +862,8 @@ there are 34 simple graphs with 5 vertices::
 
 Here are those with at most `4` edges::
 
-    sage: show(graphs(5, lambda G: G.size() <= 4))
+    sage: up_to_four_edges = list(graphs(5, lambda G: G.size() <= 4))
+    sage: pretty_print(*up_to_four_edges)
 
 .. image:: ../../media/graphs-5.png
 
@@ -1015,7 +1016,7 @@ the iterator is constructed by ``iter(L)``. In practice, the commands
 comprehensions provide a much pleasanter syntax::
 
     sage: for s in Subsets(3):
-    ....:     print s
+    ....:     print(s)
     {}
     {1}
     {2}
@@ -1116,7 +1117,7 @@ Alternatively, we could construct an iterator on the counter-examples::
     sage: next(counter_examples)
     23
 
-.. topic:: Exercice
+.. topic:: Exercise
 
     What do the following commands do?
 
@@ -1124,16 +1125,16 @@ Alternatively, we could construct an iterator on the counter-examples::
 
         sage: cubes = [t**3 for t in range(-999,1000)]
         sage: exists([(x,y) for x in cubes for y in cubes],  # long time (3s, 2012)
-        ....:        lambda (x,y): x+y == 218)
+        ....:        lambda x_y: x_y[0] + x_y[1] == 218)
         (True, (-125, 343))
         sage: exists(((x,y) for x in cubes for y in cubes),  # long time (2s, 2012)
-        ....:        lambda (x,y): x+y == 218)
+        ....:        lambda x_y: x_y[0] + x_y[1] == 218)
         (True, (-125, 343))
 
     Which of the last two is more economical in terms of time? In terms
     of memory? By how much?
 
-.. topic:: Exercice
+.. topic:: Exercise
 
     Try each of the following commands, and explain its result. If
     possible, hide the result first and try to guess it before
@@ -1167,7 +1168,7 @@ Alternatively, we could construct an iterator on the counter-examples::
 
     ::
 
-        sage: for p in GL(2, 2): print p; print
+        sage: for p in GL(2, 2): print(p); print("")
         [1 0]
         [0 1]
         <BLANKLINE>
@@ -1189,7 +1190,7 @@ Alternatively, we could construct an iterator on the counter-examples::
 
     ::
 
-        sage: for p in Partitions(3): print p   # not tested
+        sage: for p in Partitions(3): print(p)   # not tested
         [3]
         [2, 1]
         [1, 1, 1]
@@ -1197,7 +1198,7 @@ Alternatively, we could construct an iterator on the counter-examples::
 
     ::
 
-        sage: for p in Partitions(): print p    # not tested
+        sage: for p in Partitions(): print(p)    # not tested
         []
         [1]
         [2]
@@ -1207,7 +1208,7 @@ Alternatively, we could construct an iterator on the counter-examples::
 
     ::
 
-        sage: for p in Primes(): print p        # not tested
+        sage: for p in Primes(): print(p)        # not tested
         2
         3
         5
@@ -1223,7 +1224,7 @@ Alternatively, we could construct an iterator on the counter-examples::
 
         sage: counter_examples = (p for p in Primes()
         ....:                    if not is_prime(mersenne(p)))
-        sage: for p in counter_examples: print p   # not tested
+        sage: for p in counter_examples: print(p)   # not tested
         11
         23
         29
@@ -1342,7 +1343,7 @@ These words can then be counted by::
 
 Counting the words one by one is clearly not an efficient method in this
 case, since the formula `n^\ell` is also available; note,
-though, that this is not the stupidest possible approach — it does, at
+though, that this is not the stupidest possible approach - it does, at
 least, avoid constructing the entire list in memory.
 
 We now consider Dyck words, which are well-parenthesized words in the
@@ -1410,7 +1411,7 @@ previous section, and to construct the example of sets of cards in
 Consider a large Cartesian product::
 
     sage: C = cartesian_product([Compositions(8), Permutations(20)]); C
-    The cartesian product of (Compositions of 8, Standard permutations of 20)
+    The Cartesian product of (Compositions of 8, Standard permutations of 20)
     sage: C.cardinality()
     311411457046609920000
 
@@ -1470,7 +1471,7 @@ which doesn’t prohibit iteration through its elements, though it will be
 necessary to interrupt it at some point::
 
     sage: for p in U:                # not tested
-    ....:     print p
+    ....:     print(p)
     []
     [1]
     [1, 2]
@@ -1545,7 +1546,7 @@ The strictly decreasing partitions of `5`::
     [[5], [4, 1], [3, 2]]
 
 These sets share the same underlying algorithmic structure, implemented
-in the more general – and slightly more cumbersome – class
+in the more general (and slightly more cumbersome) class
 ``IntegerListsLex``. This class models sets of vectors
 `(\ell_0,\dots,\ell_k)` of non-negative integers, with
 constraints on the sum and the length, and bounds on the parts and on
@@ -1730,9 +1731,8 @@ The Fibonacci sequence is easily recognized here, hence the name::
 
     sage: oeis(L)                                       # optional -- internet
     0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-    1: A185357: Expansion of 1/(1 - x - x^2 + x^18 - x^20).
+    1: A212804: Expansion of (1-x)/(1-x-x^2).
     2: A132636: Fib(n) mod n^3.
-
 
 This is an immediate consequence of the recurrence relation. One can
 also generate immediately all the Fibonacci words of a given length,
@@ -1787,7 +1787,7 @@ graph* is then an equivalence class of labelled graphs.
 In general, testing if two labelled graphs are isomorphic is expensive.
 However, the number of graphs, even unlabelled, grows very
 rapidly.  Nonetheless, it is possible to list unlabelled graphs very efficiently
-considering their number. For example, the program Nauty can list the
+considering their number. For example, the program ``Nauty`` can list the
 `12005168` simple graphs with `10` vertices in
 `20` seconds.
 

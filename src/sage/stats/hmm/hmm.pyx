@@ -27,8 +27,9 @@ AUTHOR:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import print_function
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 cdef extern from "math.h":
     double log(double)
@@ -160,14 +161,14 @@ cdef class HiddenMarkovModel:
 
         OUTPUT:
 
-            - if number is not given, return a single TimeSeries.
-            - if number is given, return a list of TimeSeries.
+        - if number is not given, return a single TimeSeries.
+        - if number is given, return a list of TimeSeries.
 
         EXAMPLES::
 
             sage: set_random_seed(0)
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.1,0.9]], [[1,0],[0,1]], [0,1])
-            sage: print a.sample(10, 3)
+            sage: print(a.sample(10, 3))
             [[1, 0, 1, 1, 1, 1, 0, 1, 1, 1], [1, 1, 0, 0, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 0, 1, 0, 1, 1, 1]]
             sage: a.sample(15)
             [1, 1, 1, 1, 0 ... 1, 1, 1, 1, 1]
@@ -196,7 +197,7 @@ cdef class HiddenMarkovModel:
 
 
     #########################################################
-    # Some internal funcitons used for various general
+    # Some internal functions used for various general
     # HMM algorithms.
     #########################################################
     cdef TimeSeries _baum_welch_gamma(self, TimeSeries alpha, TimeSeries beta):
@@ -335,11 +336,11 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         if not is_Matrix(B):
             B = matrix(B)
         if B.nrows() != self.N:
-            raise ValueError, "number of rows of B must equal number of states"
+            raise ValueError("number of rows of B must equal number of states")
         self.B = TimeSeries(B.list())
         self.n_out = B.ncols()
         if emission_symbols is not None and len(emission_symbols) != self.n_out:
-            raise ValueError, "number of emission symbols must equal number of output states"
+            raise ValueError("number of emission symbols must equal number of output states")
         cdef Py_ssize_t i
         if normalize:
             for i in range(self.N):
@@ -548,7 +549,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             -inf
         """
         if obs.max() > self.N or obs.min() < 0:
-            raise ValueError, "invalid observation sequence, since it includes unknown states"
+            raise ValueError("invalid observation sequence, since it includes unknown states")
 
         cdef Py_ssize_t i, j, t, T = len(obs)
 
@@ -706,7 +707,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             (['up', 'up', 'down', 'down', 'down'], [0, 0, 1, 1, 1])
         """
         if length < 0:
-            raise ValueError, "length must be nonnegative"
+            raise ValueError("length must be nonnegative")
 
         # Create Integer lists for states and observations
         cdef IntList states = IntList(length)
@@ -746,7 +747,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         else:
             q = starting_state
             if q < 0 or q >= self.N:
-                raise ValueError, "starting state must be between 0 and %s"%(self.N-1)
+                raise ValueError("starting state must be between 0 and %s"%(self.N-1))
 
         states._values[0] = q
         # Generate a symbol from state q

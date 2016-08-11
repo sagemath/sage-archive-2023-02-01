@@ -14,10 +14,10 @@ all: build
 debug: build-debug
 
 build: $(OBJS)
-	$(CXX) $(CXXFLAGS)  -o cu2  $(OBJS) $(LIBS)
+	$(CXX) $(CXXFLAGS)  -o cu2  $(OBJS) $(LIBS) $(LDFLAGS)
 
 build-debug: $(DBGOBJS)
-	$(CXX) $(DBGLFLAGS)  -o cu2  $(OBJS) $(DBGLIBS)
+	$(CXX) $(DBGLFLAGS)  -o cu2  $(OBJS) $(DBGLIBS) $(LDFLAGS)
 
 clean:
 	$(RM) $(OBJS)

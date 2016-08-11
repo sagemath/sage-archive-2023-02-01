@@ -164,6 +164,7 @@ AUTHORS:
 
 - Craig Citro, Robert Bradshaw (2008-03): Rewrote with modabvar overhaul
 """
+from __future__ import absolute_import
 
 ###########################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
@@ -177,8 +178,8 @@ from sage.categories.homset import HomsetWithBase, End
 from sage.structure.all import parent
 from sage.misc.lazy_attribute import lazy_attribute
 
-import abvar as abelian_variety
-import morphism
+
+from . import morphism
 
 import sage.rings.integer_ring
 import sage.rings.all
@@ -220,9 +221,10 @@ class Homspace(HomsetWithBase):
             sage: H.homset_category()
             Category of modular abelian varieties over Rational Field
         """
-        if not abelian_variety.is_ModularAbelianVariety(domain):
+        from .abvar import is_ModularAbelianVariety
+        if not is_ModularAbelianVariety(domain):
             raise TypeError("domain must be a modular abelian variety")
-        if not abelian_variety.is_ModularAbelianVariety(codomain):
+        if not is_ModularAbelianVariety(codomain):
             raise TypeError("codomain must be a modular abelian variety")
         self._gens = None
         HomsetWithBase.__init__(self, domain, codomain, category=cat)
@@ -750,7 +752,7 @@ class EndomorphismSubring(Homspace, Ring):
         TESTS:
 
         The following tests against a problem on 32 bit machines that
-        occured while working on trac ticket #9944::
+        occured while working on :trac:`9944`::
 
             sage: sage.modular.abvar.homspace.EndomorphismSubring(J1(12345))
             Endomorphism ring of Abelian variety J1(12345) of dimension 5405473

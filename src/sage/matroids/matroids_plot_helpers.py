@@ -53,7 +53,7 @@ EXAMPLES::
     sage: M1=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1,0,1],
     ....: [0, 1, 0, 1, 0, 1, 1,0,0,1,0], [0, 0, 1, 1, 1, 0, 1,0,0,0,0]])
     sage: pos_dict= {0: (0, 0),  1: (2, 0),  2: (1, 2),  3: (1.5, 1.0),
-    ....: 4: (0.5, 1.0),  5: (1.0, 0.0), 6: (1.0, 0.6666666666666666),
+    ....: 4: (0.5, 1.0),  5: (1.0, 0.0), 6: (1.0, 0.666666666666667),
     ....: 7: (3,3), 8: (4,0), 9: (-1,1), 10: (-2,-2)}
     sage: M1._cached_info={'plot_positions': pos_dict, 'plot_lineorders': None}
     sage: matroids_plot_helpers.geomrep(M1, sp=True)
@@ -69,7 +69,7 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
-
+from __future__ import print_function
 
 import scipy
 import scipy.interpolate
@@ -120,14 +120,14 @@ def it(M, B1, nB1, lps):
         sage: nB1=list(set(M.simplify().groundset())-set(B1))
         sage: pts,trilines,nontripts,curvedlines=mph.it(M,
         ....: B1,nB1,M.loops())
-        sage: print pts
+        sage: print(pts)
         {1: (1.0, 0.0), 2: (1.5, 1.0), 3: (0.5, 1.0), 4: (0, 0), 5: (1, 2),
         6: (2, 0)}
-        sage: print trilines
+        sage: print(trilines)
         [[3, 4, 5], [2, 5, 6], [1, 4, 6]]
-        sage: print nontripts
+        sage: print(nontripts)
         [0]
-        sage: print curvedlines
+        sage: print(curvedlines)
         [[0, 1, 5], [0, 2, 4], [0, 3, 6], [1, 2, 3], [1, 4, 6], [2, 5, 6],
          [3, 4, 5]]
 
@@ -187,7 +187,7 @@ def trigrid(tripts):
     INPUT:
 
     - ``tripts`` -- A list of 3 lists of the form [x,y] where x and y are the
-      cartesian co-ordinates of a point.
+      Cartesian co-ordinates of a point.
 
     OUTPUT:
 
@@ -201,7 +201,7 @@ def trigrid(tripts):
 
         sage: from sage.matroids import matroids_plot_helpers
         sage: points=matroids_plot_helpers.trigrid([[2,1],[4,5],[5,2]])
-        sage: print points
+        sage: print(points)
         [[3.6666666666666665, 2.6666666666666665],
          [3.222222222222222, 2.888888888888889],
          [4.222222222222222, 3.222222222222222],
@@ -329,7 +329,7 @@ def createline(ptsdict, ll, lineorders2=None):
         sage: ptsdict={'a':(1,3),'b':(2,1),'c':(4,5),'d':(5,2)}
         sage: x,y,x_i,y_i=matroids_plot_helpers.createline(ptsdict,
         ....: ['a','b','c','d'])
-        sage: print [len(x),len(y),len(x_i),len(y_i)]
+        sage: [len(x), len(y), len(x_i), len(y_i)]
         [4, 4, 100, 100]
         sage: G = line(zip(x_i, y_i),color='black',thickness=3,zorder=1)
         sage: G+=points(zip(x, y), color='black', size=300,zorder=2)
@@ -337,7 +337,7 @@ def createline(ptsdict, ll, lineorders2=None):
         sage: x,y,x_i,y_i=matroids_plot_helpers.createline(ptsdict,
         ....: ['a','b','c','d'],lineorders2=[['b','a','c','d'],
         ....: ['p','q','r','s']])
-        sage: print [len(x),len(y),len(x_i),len(y_i)]
+        sage: [len(x), len(y), len(x_i), len(y_i)]
         [4, 4, 100, 100]
         sage: G = line(zip(x_i, y_i),color='black',thickness=3,zorder=1)
         sage: G+=points(zip(x, y), color='black', size=300,zorder=2)

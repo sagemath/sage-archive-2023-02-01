@@ -14,13 +14,14 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.sets.cartesian_product import CartesianProduct
 
 
 class CartesianProductPoset(CartesianProduct):
     r"""
-    A class implementing cartesian products of posets (and elements
+    A class implementing Cartesian products of posets (and elements
     thereof). Compared to :class:`CartesianProduct` you are able to
     specify an order for comparison of the elements.
 
@@ -41,7 +42,7 @@ class CartesianProductPoset(CartesianProduct):
 
       - ``'product'`` -- an element is less or equal to another
         element, if less or equal is true for all its components
-        (cartesian projections).
+        (Cartesian projections).
 
       - A function which performs the comparison `\leq`. It takes two
         input arguments and outputs a boolean.
@@ -132,7 +133,7 @@ class CartesianProductPoset(CartesianProduct):
         .. NOTE::
 
             This method uses the order defined on creation of this
-            cartesian product. See :class:`CartesianProductPoset`.
+            Cartesian product. See :class:`CartesianProductPoset`.
 
         EXAMPLES::
 
@@ -176,7 +177,7 @@ class CartesianProductPoset(CartesianProduct):
             sage: for a in T:
             ....:     for b in T:
             ....:         assert(Q.le(a, b) == (a <= b))
-            ....:         print '%s <= %s = %s' % (a, b, a <= b)
+            ....:         print('%s <= %s = %s' % (a, b, a <= b))
             (0, 0) <= (0, 0) = True
             (0, 0) <= (1, 1) = True
             (0, 0) <= (0, 1) = True
@@ -193,6 +194,18 @@ class CartesianProductPoset(CartesianProduct):
             (1, 0) <= (1, 1) = True
             (1, 0) <= (0, 1) = False
             (1, 0) <= (1, 0) = True
+
+        TESTS:
+
+        Check that :trac:`19999` is resolved::
+
+            sage: P = Poset((srange(2), lambda left, right: left <= right))
+            sage: Q = cartesian_product((P, P), order='product')
+            sage: R = cartesian_product((Q, P), order='lex')
+            sage: R(((1, 0), 0)) <= R(((0, 1), 0))
+            False
+            sage: R(((0, 1), 0)) <= R(((1, 0), 0))
+            False
         """
         for l, r, S in \
                 zip(left.value, right.value, self.cartesian_factors()):
@@ -202,6 +215,7 @@ class CartesianProductPoset(CartesianProduct):
                 return True
             if S.le(r, l):
                 return False
+            return False  # incomparable components
         return True  # equal
 
 
@@ -231,7 +245,7 @@ class CartesianProductPoset(CartesianProduct):
             sage: for a in T:
             ....:     for b in T:
             ....:         assert(Q.le(a, b) == (a <= b))
-            ....:         print '%s <= %s = %s' % (a, b, a <= b)
+            ....:         print('%s <= %s = %s' % (a, b, a <= b))
             (0, 0) <= (0, 0) = True
             (0, 0) <= (1, 1) = True
             (0, 0) <= (0, 1) = True
@@ -278,7 +292,7 @@ class CartesianProductPoset(CartesianProduct):
             sage: for a in T:
             ....:     for b in T:
             ....:         assert(Q.le(a, b) == (a <= b))
-            ....:         print '%s <= %s = %s' % (a, b, a <= b)
+            ....:         print('%s <= %s = %s' % (a, b, a <= b))
             (0, 0) <= (0, 0) = True
             (0, 0) <= (1, 1) = True
             (0, 0) <= (0, 1) = True

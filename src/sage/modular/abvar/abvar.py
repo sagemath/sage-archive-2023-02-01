@@ -19,22 +19,27 @@ TESTS::
     sage: loads(dumps(A)) == A
     True
 """
+from __future__ import absolute_import
 
-###########################################################################
-#       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
-#  Distributed under the terms of the GNU General Public License (GPL)    #
-#                  http://www.gnu.org/licenses/                           #
-###########################################################################
+#*****************************************************************************
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.categories.all        import ModularAbelianVarieties
 from sage.structure.sequence    import Sequence, Sequence_generic
 from sage.structure.parent_base import ParentWithBase
-from morphism                   import HeckeOperator, Morphism, DegeneracyMap
-from torsion_subgroup           import RationalTorsionSubgroup, QQbarTorsionSubgroup
-from finite_subgroup            import (FiniteSubgroup_lattice, FiniteSubgroup, TorsionPoint)
-from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup, RationalCuspSubgroup
-from sage.rings.all             import (ZZ, QQ, QQbar, LCM,
-                                        divisors, Integer, prime_range)
+from .morphism                   import HeckeOperator, Morphism, DegeneracyMap
+from .torsion_subgroup           import RationalTorsionSubgroup, QQbarTorsionSubgroup
+from .finite_subgroup            import (FiniteSubgroup_lattice, FiniteSubgroup, TorsionPoint)
+from .cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup, RationalCuspSubgroup
+from sage.rings.all import ZZ, QQ, QQbar, Integer
+from sage.arith.all import LCM, divisors, prime_range, next_prime
 from sage.rings.ring import is_Ring
 from sage.modules.free_module   import is_FreeModule
 from sage.modular.arithgroup.all import is_CongruenceSubgroup, is_Gamma0, is_Gamma1, is_GammaH
@@ -48,9 +53,9 @@ from sage.misc.all              import prod
 
 from copy import copy
 
-import homology
-import homspace
-import lseries
+
+from . import homspace
+from . import lseries
 
 def is_ModularAbelianVariety(x):
     """
@@ -513,7 +518,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 if not (self.lattice().matrix() * mat).is_zero():
                     break
 
-        from constructor import AbelianVariety
+        from .constructor import AbelianVariety
         Af = AbelianVariety(self.newform_label())
         H = A.Hom(Af.ambient_variety())
         m = H(Morphism(H, mat))
@@ -833,7 +838,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         TESTS:
 
-        This exposed a bug in HNF (see trac #4527)::
+        This exposed a bug in HNF (see :trac:`4527`)::
 
             sage: A = J0(206).new_subvariety().decomposition()[3] ; A # long time
             Simple abelian subvariety 206d(1,206) of dimension 4 of J0(206)
@@ -977,9 +982,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: J0(11).direct_product(J1(13))
             Abelian variety J0(11) x J1(13) of dimension 3
         """
-        return self.__div__(other)
+        return self / other
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """
         Compute the quotient of self and other, where other is either an
         abelian subvariety of self or a finite subgroup of self.
@@ -2032,6 +2037,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: J0(389).homology(ZZ)
             Integral Homology of Abelian variety J0(389) of dimension 32
         """
+        from . import homology
         try:
             return self._homology[base_ring]
         except AttributeError:
@@ -2920,7 +2926,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             else:
                 # Decompose each ambient modular symbols factor.
                 #X = [ModularAbelianVariety_modsym(ModularSymbols(G,sign=0).cuspidal_submodule()) for G in self.groups()]
-                from abvar_ambient_jacobian import ModAbVar_ambient_jacobian_class
+                from .abvar_ambient_jacobian import ModAbVar_ambient_jacobian_class
                 X = [ModAbVar_ambient_jacobian_class(G) for G in self.groups()]
                 E = [A.decomposition(simple=simple, bound=bound) for A in X]
                 i = 0
@@ -4513,7 +4519,6 @@ def sqrt_poly(f):
 ####################################################################################################
 # Useful for decomposing exactly the sort of modular symbols spaces that come up here.
 from random import randrange
-from sage.rings.arith import next_prime
 
 def random_hecke_operator(M, t=None, p=2):
     """
@@ -4738,4 +4743,3 @@ def modsym_lattices(M, factors):
         A.echelonize()
         D.append(tuple(list(factors[i]) + [A.row_module()]))
     return Sequence(D, cr=True)
-

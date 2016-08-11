@@ -8,6 +8,7 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2011 Hartmut Monien <monien@th.physik.uni-bonn.de>,
 #                     2015 Stefan Kraemer <skraemer@th.physik.uni-bonn.de>
+#                     2016 Javier Honrubia <jhonrubia6@uned.es>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -20,6 +21,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.plot.bezier_path import BezierPath
 from sage.plot.colors import to_mpl_color
 from sage.plot.misc import options, rename_keyword
@@ -41,12 +44,16 @@ class HyperbolicArc(BezierPath):
 
          sage: from sage.plot.hyperbolic_arc import HyperbolicArc
 
-         sage: print HyperbolicArc(0, 1/2+I*sqrt(3)/2, {})
+         sage: print(HyperbolicArc(0, 1/2+I*sqrt(3)/2, {}))
          Hyperbolic arc (0.000000000000000, 0.500000000000000 + 0.866025403784439*I)
     """
 
     def __init__(self, A, B, options):
         A, B = (CC(A), CC(B))
+        if A.imag()<0:
+            raise ValueError("%s is not a valid point in the UHP model"%(A))
+        if B.imag()<0:
+            raise ValueError("%s is not a valid point in the UHP model"%(B))
         self.path = []
         self._hyperbolic_arc(A, B, True);
         BezierPath.__init__(self, self.path, options)

@@ -96,7 +96,7 @@ knows that having `S` in a sequence means a total cost of at least `c'(S) +
 5`. For this reason, for each set `S` we store the value of `c'(S)`, and replace
 it by `\max (c'(S), \min_{\text{next}})` (where `\min_{\text{next}}` is the
 minimum of the costs of the out-neighbors of `S`) once the costs of these
-out-neighbors have been evaluated by the algrithm.
+out-neighbors have been evaluated by the algorithm.
 
 .. NOTE::
 
@@ -268,9 +268,10 @@ Authors
 Methods
 -------
 """
+from __future__ import print_function
 
-include 'sage/ext/stdsage.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/memory.pxi"
+include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
 from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, compute_out_neighborhood_cardinality, popcount32
 from libc.stdint cimport uint8_t, int8_t
@@ -347,7 +348,7 @@ def lower_bound(G):
     cdef int n = FD.n
 
     # minimums[i] is means to store the value of c'_{i+1}
-    minimums = <uint8_t *> sage_malloc(sizeof(uint8_t)* n)
+    minimums = <uint8_t *> sig_malloc(sizeof(uint8_t)* n)
     cdef unsigned int i
 
     # They are initialized to n
@@ -370,7 +371,7 @@ def lower_bound(G):
 
     cdef int min = minimums[0]
 
-    sage_free(minimums)
+    sig_free(minimums)
 
     return min
 
@@ -551,7 +552,7 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
 
         sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation
         sage: D = digraphs.Path(8)
-        sage: print vertex_separation(D)
+        sage: print(vertex_separation(D))
         (0, [7, 6, 5, 4, 3, 2, 1, 0])
         sage: D = DiGraph( random_DAG(30) )
         sage: vs,L = vertex_separation(D); vs
@@ -559,12 +560,12 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
         sage: K4 = DiGraph( graphs.CompleteGraph(4) )
         sage: D = K4+K4
         sage: D.add_edge(0, 4)
-        sage: print vertex_separation(D)
+        sage: print(vertex_separation(D))
         (3, [4, 5, 6, 7, 0, 1, 2, 3])
         sage: D = K4+K4+K4
         sage: D.add_edge(0, 4)
         sage: D.add_edge(0, 8)
-        sage: print vertex_separation(D)
+        sage: print(vertex_separation(D))
         (3, [8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3])
 
     TESTS:
@@ -732,13 +733,13 @@ def vertex_separation_exp(G, verbose = False):
     cdef FastDigraph g = FastDigraph(G)
 
     if verbose:
-        print "Memory allocation"
+        print("Memory allocation")
         g.print_adjacency_matrix()
 
     sig_on()
 
     cdef unsigned int mem = 1 << g.n
-    cdef uint8_t * neighborhoods = <uint8_t *> sage_malloc(mem)
+    cdef uint8_t * neighborhoods = <uint8_t *> sig_malloc(mem)
 
     if neighborhoods == NULL:
         sig_off()
@@ -749,18 +750,18 @@ def vertex_separation_exp(G, verbose = False):
     cdef int i,j , k
     for k in range(g.n):
         if verbose:
-            print "Looking for a strategy of cost", str(k)
+            print("Looking for a strategy of cost", str(k))
 
         if exists(g, neighborhoods, 0, k) <= k:
             break
 
     if verbose:
-        print "... Found !"
-        print "Now computing the ordering"
+        print("... Found !")
+        print("Now computing the ordering")
 
     cdef list order = find_order(g, neighborhoods, k)
 
-    sage_free(neighborhoods)
+    sig_free(neighborhoods)
     sig_off()
 
     return k, list( g.int_to_vertices[i] for i in order )
@@ -874,7 +875,7 @@ def is_valid_ordering(G, L):
     OUTPUT:
 
     Returns ``True`` if `L` is a valid vertex ordering for `G`, and ``False``
-    oterwise.
+    otherwise.
 
 
     EXAMPLE:
@@ -1093,7 +1094,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
         ...       ve, le = vertex_separation.vertex_separation(G)
         ...       vm, lm = vertex_separation.vertex_separation_MILP(G)
         ...       if ve != vm:
-        ...          print "The solution is not optimal!"
+        ...          print("The solution is not optimal!")
 
     Comparison with different values of the integrality parameter::
 
@@ -1103,7 +1104,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
         ....:     va, la = vertex_separation.vertex_separation_MILP(G, integrality=False)
         ....:     vb, lb = vertex_separation.vertex_separation_MILP(G, integrality=True)
         ....:     if va != vb:
-        ....:        print "The integrality parameter changes the result!"
+        ....:        print("The integrality parameter changes the result!")
 
     Giving anything else than a Graph or a DiGraph::
 
@@ -1384,11 +1385,11 @@ def vertex_separation_BAB(G,
     cdef binary_matrix_t bm_pool
     binary_matrix_init(bm_pool, 3*n+2, n)
 
-    cdef int * prefix    = <int *>sage_malloc(n * sizeof(int))
-    cdef int * positions = <int *>sage_malloc(n * sizeof(int))
+    cdef int * prefix    = <int *>sig_malloc(n * sizeof(int))
+    cdef int * positions = <int *>sig_malloc(n * sizeof(int))
     if prefix==NULL or positions==NULL:
-        sage_free(prefix)
-        sage_free(positions)
+        sig_free(prefix)
+        sig_free(positions)
         binary_matrix_free(H)
         binary_matrix_free(bm_pool)
         raise MemoryError("Unable to allocate data strutures.")
@@ -1429,9 +1430,9 @@ def vertex_separation_BAB(G,
 
     finally:
         if verbose:
-            print 'Stored prefixes: {}'.format(len(prefix_storage))
-        sage_free(prefix)
-        sage_free(positions)
+            print('Stored prefixes: {}'.format(len(prefix_storage)))
+        sig_free(prefix)
+        sig_free(positions)
         binary_matrix_free(H)
         binary_matrix_free(bm_pool)
 
@@ -1522,7 +1523,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
             for i in range(n):
                 best_seq[i] = prefix[i]
             if verbose:
-                print "New upper bound: {}".format(current_cost)
+                print("New upper bound: {}".format(current_cost))
 
         return current_cost
 
@@ -1586,7 +1587,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
             for i in range(n):
                 best_seq[i] = prefix[i]
             if verbose:
-                print "New upper bound: {}".format(current_cost)
+                print("New upper bound: {}".format(current_cost))
 
         return current_cost
 

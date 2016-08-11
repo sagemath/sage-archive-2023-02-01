@@ -21,6 +21,9 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+# Use newer version of config.guess and config.sub (see Trac #19761)
+cp "$SAGE_ROOT"/config/config.* build-aux
+
 ###############################################################################
 # Set up environment variables:
 ###############################################################################
@@ -44,6 +47,8 @@ if [ "$SAGE64" = yes ]; then
     LDFLAGS="$LDFLAGS $CFLAG64"
 fi
 
+# C++11 workaround https://trac.sagemath.org/ticket/20926
+CXXFLAGS="$CXXFLAGS -std=c++98"
 
 ###############################################################################
 # Configure, build and install LinBox:

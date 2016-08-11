@@ -5,9 +5,12 @@ AUTHORS:
 
 - Yoora Yi Tenen (2012-11-16): Add documentation for :meth:`log()` (:trac:`12113`)
 
+- Tomas Kalvoda (2015-04-01): Add :meth:`exp_polar()` (:trac:`18085`)
+
 """
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.constants import e as const_e
+from sage.symbolic.constants import pi as const_pi
 
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.structure.all import parent as s_parent
@@ -39,6 +42,8 @@ class Function_exp(GinacFunction):
             12.182493960703473
             sage: exp(RDF('2.5'))
             12.182493960703473
+            sage: exp(I*pi/12)
+            (1/4*I + 1/4)*sqrt(6) - (1/4*I - 1/4)*sqrt(2)
 
         To prevent automatic evaluation, use the ``hold`` parameter::
 
@@ -117,6 +122,13 @@ class Function_exp(GinacFunction):
 
             sage: 2*sqrt(e)
             2*sqrt(e)
+
+        Check that :trac:`19918` is fixed::
+
+            sage: exp(-x^2).subs(x=oo)
+            0
+            sage: exp(-x).subs(x=-oo)
+            +Infinity
         """
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
                                    conversions=dict(maxima='exp'))
@@ -332,23 +344,35 @@ class Function_polylog(GinacFunction):
     def __init__(self):
         r"""
         The polylog function
-        `\text{Li}_n(z) = \sum_{k=1}^{\infty} z^k / k^n`.
+        `\text{Li}_s(z) = \sum_{k=1}^{\infty} z^k / k^s`.
 
-        INPUT:
-
-        -  ``n`` - object
-        -  ``z`` - object
+        This definition is valid for arbitrary complex order `s` and for
+        all complex arguments `z` with `|z| < 1`; it can be extended to
+        `|z| \ge 1` by the process of analytic continuation. So the
+        function may have a discontinuity at `z=1` which can cause a
+        `NaN` value returned for floating point arguments.
 
         EXAMPLES::
 
+            sage: polylog(2.7, 0)
+            0
+            sage: polylog(2, 1)
+            1/6*pi^2
+            sage: polylog(2, -1)
+            -1/12*pi^2
+            sage: polylog(3, -1)
+            -3/4*zeta(3)
+            sage: polylog(2, I)
+            I*catalan - 1/48*pi^2
+            sage: polylog(4, 1/2)
+            polylog(4, 1/2)
+            sage: polylog(4, 0.5)
+            0.517479061673899
+
             sage: polylog(1, x)
             -log(-x + 1)
-            sage: polylog(2,1)
-            1/6*pi^2
             sage: polylog(2,x^2+1)
             polylog(2, x^2 + 1)
-            sage: polylog(4,0.5)
-            polylog(4, 0.500000000000000)
 
             sage: f = polylog(4, 1); f
             1/90*pi^4
@@ -381,7 +405,16 @@ class Function_polylog(GinacFunction):
             sage: t.operator() == polylog
             True
             sage: t.subs(x=.5).n()
-            0.508400579242269
+            0.50840057924226...
+
+        Check if :trac:`18386` is fixed::
+
+            sage: polylog(2.0, 1)
+            1.64493406684823
+            sage: polylog(2, 1.0)
+            NaN - NaN*I
+            sage: polylog(2.0, 1.0)
+            NaN - NaN*I
         """
         GinacFunction.__init__(self, "polylog", nargs=2)
 
@@ -779,3 +812,107 @@ class Function_lambert_w(BuiltinFunction):
             return r"\operatorname{W_{%s}}({%s})" % (n, z._latex_())
 
 lambert_w = Function_lambert_w()
+
+class Function_exp_polar(BuiltinFunction):
+    def __init__(self):
+        r"""
+        Representation of a complex number in a polar form.
+
+        INPUT:
+
+        - ``z`` - a complex number `z = a + ib`.
+
+        OUTPUT:
+
+        A complex number with modulus `\exp(a)` and argument `b`.
+
+        If `-\pi < b \leq \pi` then `\operatorname{exp\_polar}(z)=\exp(z)`.
+        For other values of `b` the function is left unevaluated.
+
+        EXAMPLES:
+
+        The following expressions are evaluated using the exponential
+        function::
+
+            sage: exp_polar(pi*I/2)
+            I       
+            sage: x = var('x', domain='real')
+            sage: exp_polar(-1/2*I*pi + x)
+            e^(-1/2*I*pi + x)
+
+        The function is left unevaluated when the imaginary part of the
+        input `z` does not satisfy `-\pi < \Im(z) \leq \pi`::
+
+            sage: exp_polar(2*pi*I)
+            exp_polar(2*I*pi)
+            sage: exp_polar(-4*pi*I)
+            exp_polar(-4*I*pi)
+
+        This fixes :trac:`18085`::
+
+            sage: integrate(1/sqrt(1+x^3),x,algorithm='sympy')
+            1/3*x*hypergeometric((1/3, 1/2), (4/3,), -x^3)*gamma(1/3)/gamma(4/3)
+
+        SEEALSO:
+
+            `Examples in Sympy documentation <http://docs.sympy.org/latest/modules/functions/special.html?highlight=exp_polar>`_,
+            `Sympy source code of exp_polar <http://docs.sympy.org/0.7.4/_modules/sympy/functions/elementary/exponential.html>`_
+
+        REFERENCES:
+
+            :wikipedia:`Complex_number#Polar_form`
+        """
+        BuiltinFunction.__init__(self, "exp_polar",
+                                latex_name=r"\operatorname{exp\_polar}",
+                                conversions=dict(sympy='exp_polar'))
+
+    def _evalf_(self, z, parent=None, algorithm=None):
+        r"""
+        EXAMPLES:
+
+        If the imaginary part of `z` obeys `-\pi < z \leq \pi`, then
+        `\operatorname{exp\_polar}(z)` is evaluated as `\exp(z)`::
+
+            sage: exp_polar(1.0 + 2.0*I)
+            -1.13120438375681 + 2.47172667200482*I
+
+        If the imaginary part of `z` is outside of that interval the
+        expression is left unevaluated::
+
+            sage: exp_polar(-5.0 + 8.0*I)
+            exp_polar(-5.00000000000000 + 8.00000000000000*I)
+
+        An attempt to numerically evaluate such an expression raises an error::
+
+            sage: exp_polar(-5.0 + 8.0*I).n()
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid attempt to numerically evaluate exp_polar()
+
+        """
+        from sage.functions.other import imag
+
+        if (not isinstance(z, Expression)
+            and bool(-const_pi < imag(z) <= const_pi)):
+            return exp(z)
+        else:
+            raise ValueError("invalid attempt to numerically evaluate exp_polar()")
+
+    def _eval_(self, z):
+        """
+        EXAMPLES::
+
+            sage: exp_polar(3*I*pi)
+            exp_polar(3*I*pi)
+            sage: x = var('x', domain='real')
+            sage: exp_polar(4*I*pi + x)
+            exp_polar(4*I*pi + x)
+
+        """
+        if (isinstance(z, Expression)
+            and bool(-const_pi < z.imag_part() <= const_pi)):
+            return exp(z)
+        else:
+            return None
+
+exp_polar = Function_exp_polar()

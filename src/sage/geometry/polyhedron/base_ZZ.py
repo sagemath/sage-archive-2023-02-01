@@ -2,22 +2,24 @@ r"""
 Base class for polyhedra over `\ZZ`
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
-
-
-from sage.rings.all import ZZ, QQ, gcd
+from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
 from sage.modules.free_module_element import vector
-from constructor import Polyhedron
-from base import Polyhedron_base
-
+from sage.arith.all import gcd
+from .constructor import Polyhedron
+from .base import Polyhedron_base
 
 
 #########################################################################
@@ -512,7 +514,7 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: X._subpoly_parallel_facets()
             <generator object _subpoly_parallel_facets at 0x...>
             sage: for p in X._subpoly_parallel_facets():
-            ...       print p.Vrepresentation()
+            ....:     print(p.Vrepresentation())
             (A vertex at (0, 0),)
             (A vertex at (0, -1), A vertex at (0, 0))
             (A vertex at (-1, 0), A vertex at (0, 0))

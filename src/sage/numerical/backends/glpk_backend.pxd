@@ -9,7 +9,7 @@
 #*****************************************************************************
 
 from sage.libs.glpk.types cimport glp_prob, glp_iocp, glp_smcp
-from generic_backend cimport GenericBackend
+from .generic_backend cimport GenericBackend
 
 
 # search_tree_data_t:
@@ -26,7 +26,7 @@ cdef class GLPKBackend(GenericBackend):
     cdef glp_smcp * smcp
     cdef int simplex_or_intopt
     cdef search_tree_data_t search_tree_data
-    cpdef GLPKBackend copy(self)
+    cpdef __copy__(self)
     cpdef int print_ranges(self, char * filename = *) except -1
     cpdef double get_row_dual(self, int variable)
     cpdef double get_col_dual(self, int variable)

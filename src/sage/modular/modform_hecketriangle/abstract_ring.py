@@ -6,6 +6,7 @@ AUTHORS:
 - Jonas Jermann (2013): initial version
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
@@ -22,8 +23,8 @@ from sage.algebras.free_algebra import FreeAlgebra
 from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_method
 
-from constructor import FormsRing, FormsSpace
-from series_constructor import MFSeriesConstructor
+from .constructor import FormsRing, FormsSpace
+from .series_constructor import MFSeriesConstructor
 
 
 # Maybe replace Parent by just SageObject?
@@ -35,10 +36,10 @@ class FormsRing_abstract(Parent):
     instantiate one of the derived classes of this class.
     """
 
-    from graded_ring_element import FormsRingElement
+    from .graded_ring_element import FormsRingElement
     Element = FormsRingElement
 
-    from analytic_type import AnalyticType
+    from .analytic_type import AnalyticType
     AT = AnalyticType()
 
     def __init__(self, group, base_ring, red_hom, n):
@@ -84,7 +85,7 @@ class FormsRing_abstract(Parent):
         #    raise NotImplementedError
 
         if (base_ring.characteristic() > 0):
-            raise NotImplementedError("Only characteristic 0 is supported.")
+            raise NotImplementedError("only characteristic 0 is supported")
         self._group               = group
         self._red_hom             = red_hom
         self._base_ring           = base_ring
@@ -161,7 +162,7 @@ class FormsRing_abstract(Parent):
             ModularFormsRing(n=+Infinity) over Integer Ring
         """
 
-        from graded_ring_element import FormsRingElement
+        from .graded_ring_element import FormsRingElement
         if isinstance(el, FormsRingElement):
             if (self.hecke_n() == infinity and el.hecke_n() == ZZ(3)):
                 el_f = el._reduce_d()._rat
@@ -219,8 +220,8 @@ class FormsRing_abstract(Parent):
             True
         """
 
-        from space import FormsSpace_abstract
-        from functors import _common_subgroup
+        from .space import FormsSpace_abstract
+        from .functors import _common_subgroup
         if (    isinstance(S, FormsRing_abstract)\
             and self._group         == _common_subgroup(self._group, S._group)\
             and self._analytic_type >= S._analytic_type\
@@ -527,7 +528,7 @@ class FormsRing_abstract(Parent):
             (ModularFormsRingFunctor(n=3), BaseFacade(Integer Ring))
         """
 
-        from functors import FormsRingFunctor, BaseFacade
+        from .functors import FormsRingFunctor, BaseFacade
         return FormsRingFunctor(self._analytic_type, self._group, self._red_hom), BaseFacade(self._base_ring)
 
     @cached_method
@@ -1312,7 +1313,7 @@ class FormsRing_abstract(Parent):
         NOTE:
 
         If ``n=infinity`` then ``f_inf`` is no longer a cusp form
-        since it doesn't vannish at the cusp ``-1``. The first
+        since it doesn't vanish at the cusp ``-1``. The first
         non-trivial cusp form is given by ``E4*f_inf``.
 
         EXAMPLES::
@@ -1439,17 +1440,17 @@ class FormsRing_abstract(Parent):
             sage: MF.G_inv()
             Traceback (most recent call last):
             ...
-            ArithmeticError: G_inv doesn't exists for odd n(=9).
+            ArithmeticError: G_inv doesn't exist for odd n(=9).
         """
 
         (x,y,z,d) = self._pol_ring.gens()
 
         if (self.hecke_n() == infinity):
-            raise ArithmeticError("G_inv doesn't exists for n={} (it is not meromorphic at -1).".format(self._group.n()))
+            raise ArithmeticError("G_inv doesn't exist for n={} (it is not meromorphic at -1).".format(self._group.n()))
         elif (ZZ(2).divides(self._group.n())):
             return self.extend_type("weak", ring=True)(d*y*x**(self._group.n()/ZZ(2))/(x**self._group.n()-y**2)).reduce()
         else:
-            raise ArithmeticError("G_inv doesn't exists for odd n(={}).".format(self._group.n()))
+            raise ArithmeticError("G_inv doesn't exist for odd n(={}).".format(self._group.n()))
 
     @cached_method
     def g_inv(self):
@@ -1512,16 +1513,16 @@ class FormsRing_abstract(Parent):
             sage: MF.g_inv()
             Traceback (most recent call last):
             ...
-            ArithmeticError: g_inv doesn't exists for odd n(=9).
+            ArithmeticError: g_inv doesn't exist for odd n(=9).
         """
 
         if (self.hecke_n() == infinity):
-            raise ArithmeticError("g_inv doesn't exists for n={} (it is not meromorphic at -1).".format(self._group.n()))
+            raise ArithmeticError("g_inv doesn't exist for n={} (it is not meromorphic at -1).".format(self._group.n()))
         if (ZZ(2).divides(self._group.n())):
             (x,y,z,d) = self._pol_ring.gens()
             return self.extend_type("weak", ring=True)(1/d*y*x**(self._group.n()/ZZ(2))/(x**self._group.n()-y**2)).reduce()
         else:
-           raise ArithmeticError("g_inv doesn't exists for odd n(={}).".format(self._group.n()))
+           raise ArithmeticError("g_inv doesn't exist for odd n(={}).".format(self._group.n()))
 
     @cached_method
     def E4(self):
@@ -1960,7 +1961,7 @@ class FormsRing_abstract(Parent):
         # TODO: the n = infinity case(s) (doable)
         # TODO: the n = 5 case (hard)
         if (not self.group().is_arithmetic() or n == infinity):
-            raise NotImplementedError("Eisenstein series are only supported in the finite arithmetic cases!")
+            raise NotImplementedError("Eisenstein series are only supported in the finite arithmetic cases")
 
         # The arithmetic cases
         prec = reduced_self._l1 + 1

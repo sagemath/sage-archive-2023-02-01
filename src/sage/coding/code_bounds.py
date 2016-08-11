@@ -176,6 +176,7 @@ REFERENCES:
 - C. Huffman, V. Pless, Fundamentals of error-correcting codes,
   Cambridge Univ. Press, 2003.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 David Joyner <wdj@usna.edu>
@@ -188,10 +189,10 @@ REFERENCES:
 
 from sage.interfaces.all import gap
 from sage.rings.all import QQ, RR, ZZ, RDF
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.functions.all import log, sqrt
 from sage.misc.decorators import rename_keyword
-from delsarte_bounds import delsarte_bound_hamming_space, \
+from .delsarte_bounds import delsarte_bound_hamming_space, \
                 delsarte_bound_additive_hamming_space
 
 @rename_keyword(deprecation=6094, method="algorithm")

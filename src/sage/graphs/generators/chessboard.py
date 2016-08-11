@@ -21,6 +21,7 @@ AUTHORS:
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ################################################################################
+from __future__ import print_function
 
 def ChessboardGraphGenerator(dim_list,
                              rook = True,    rook_radius = None,
@@ -82,7 +83,7 @@ def ChessboardGraphGenerator(dim_list,
         sage: G.is_isomorphic( graphs.CompleteGraph(4) )
         True
 
-    A Rook's Graph in 2 dimensions is isomporphic to the cartesian product of 2
+    A Rook's Graph in 2 dimensions is isomporphic to the Cartesian product of 2
     complete graphs::
 
         sage: G, _ = graphs.ChessboardGraphGenerator( [3,4], rook=True, rook_radius=None, bishop=False, knight=False )
@@ -291,7 +292,7 @@ def QueenGraph(dim_list, radius=None, relabel=False):
         ....:         B = graphs.BishopGraph([d,d],radius=r)
         ....:         H.add_edges(B.edges())
         ....:         if not G.is_isomorphic(H):
-        ....:            print "that's not good!"
+        ....:            print("that's not good!")
 
     """
     G, dimstr = ChessboardGraphGenerator(dim_list,
@@ -457,7 +458,7 @@ def RookGraph(dim_list, radius=None, relabel=False):
 
     EXAMPLES:
 
-    The `(n,m)`-Rook's Graph is isomorphic to the cartesian product of two
+    The `(n,m)`-Rook's Graph is isomorphic to the Cartesian product of two
     complete graphs::
 
         sage: G = graphs.RookGraph( [3, 4] )
@@ -525,7 +526,7 @@ def BishopGraph(dim_list, radius=None, relabel=False):
         ....:         B = graphs.BishopGraph([d,d],radius=r)
         ....:         H.add_edges( graphs.KnightGraph([d,d],one=r,two=r).edges() )
         ....:         if not B.is_isomorphic(H):
-        ....:            print "that's not good!"
+        ....:            print("that's not good!")
 
     """
     G, dimstr = ChessboardGraphGenerator(dim_list,

@@ -15,16 +15,19 @@ Class hierarchy:
     - :class:`EisensteinSeries`
 
 """
+from __future__ import absolute_import
 
-#########################################################################
-#       Copyright (C) 2004--2008 William Stein <wstein@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2004-2008 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
-import space
+
 import sage.modular.hecke.element as element
 import sage.rings.all as rings
 
@@ -33,14 +36,15 @@ from sage.rings.morphism import RingHomomorphism
 from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
 from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.modular.modsym.modsym import ModularSymbols
-from sage.modules.module_element import ModuleElement
 from sage.modules.free_module_element import vector
-from sage.misc.misc import verbose, sxrange
+from sage.misc.misc import verbose
+from sage.arith.srange import xsrange
 from sage.modular.dirichlet import DirichletGroup
 from sage.misc.superseded import deprecated_function_alias
-from sage.rings.arith import lcm, divisors, moebius
-from sage.structure.element import get_coercion_model
+from sage.arith.all import lcm, divisors, moebius, sigma, factor
+from sage.structure.element import get_coercion_model, ModuleElement
 from sage.misc.cachefunc import cached_method
+
 
 def is_ModularFormElement(x):
     """
@@ -594,15 +598,15 @@ class ModularForm_abstract(ModuleElement):
 
         The elliptic curve `E` has a pair of modular symbols attached
         to it, which can be computed using the method
-        `:meth:~sage.schemes.elliptic_curves.ell_rational_field.EllipticCurve_rational_field.modular_symbol`.
+        :meth:`sage.schemes.elliptic_curves.ell_rational_field.EllipticCurve_rational_field.modular_symbol`.
         These can be used to express the periods of `f` as exact
-        linear combinations of a basis for the period lattice of `E`::
+        linear combinations of the real and the imaginary period of `E`::
 
             sage: s = E.modular_symbol(sign=+1)
-            sage: t = E.modular_symbol(sign=-1)
+            sage: t = E.modular_symbol(sign=-1, implementation="sage")
             sage: s(3/11), t(3/11)
-            (1/10, 1)
-            sage: s(3/11)*omega1 + t(3/11)*omega2.imag()*I
+            (1/10, 1/2)
+            sage: s(3/11)*omega1 + t(3/11)*2*omega2.imag()*I
             0.634604652139777 + 1.45881661693850*I
 
         ALGORITHM:
@@ -921,7 +925,7 @@ class ModularForm_abstract(ModuleElement):
             sage: phi = K.embeddings(RR)[0]
             sage: L = F.symsquare_lseries(embedding=phi)
             sage: L(5)
-            verbose -1 (370: dokchitser.py, __call__) Warning: Loss of 8 decimal digits due to cancellation
+            verbose -1 (...: dokchitser.py, __call__) Warning: Loss of 8 decimal digits due to cancellation
             -3.57698266793901e19
 
         TESTS::
@@ -975,9 +979,9 @@ class ModularForm_abstract(ModuleElement):
 
         # The Dirichlet series for \zeta(2 s - 2 k + 2)
         riemann_series = [ n**(weight - 1) if n.is_square() else 0
-                       for n in sxrange(1, lcoeffs_prec + 1) ]
+                       for n in xsrange(1, lcoeffs_prec + 1) ]
         # The Dirichlet series for 1 / \zeta(s - k + 1)
-        mu_series = [ moebius(n) * n**(weight - 1) for n in sxrange(1, lcoeffs_prec + 1) ]
+        mu_series = [ moebius(n) * n**(weight - 1) for n in xsrange(1, lcoeffs_prec + 1) ]
         conv_series = dirichlet_convolution(mu_series, riemann_series)
 
         dirichlet_series = dirichlet_convolution(conv_series, F_series)
@@ -1025,7 +1029,7 @@ class ModularForm_abstract(ModuleElement):
         EXAMPLE::
 
             sage: CuspForms(1, 16).0.petersson_norm()
-            verbose -1 (370: dokchitser.py, __call__) Warning: Loss of 2 decimal digits due to cancellation
+            verbose -1 (...: dokchitser.py, __call__) Warning: Loss of 2 decimal digits due to cancellation
             2.16906134759063e-6
 
         The Petersson norm depends on a choice of embedding::
@@ -1077,8 +1081,9 @@ class Newform(ModularForm_abstract):
             sage: f = Newforms(DirichletGroup(5).0, 7,names='a')[0]; f[2].trace(f.base_ring().base_field())
             -5*zeta4 - 5
         """
+        from .space import is_ModularFormsSpace
         if check:
-            if not space.is_ModularFormsSpace(parent):
+            if not is_ModularFormsSpace(parent):
                 raise TypeError("parent must be a space of modular forms")
             if not is_ModularSymbolsSpace(component):
                 raise TypeError("component must be a space of modular symbols")
@@ -1225,12 +1230,23 @@ class Newform(ModularForm_abstract):
             sage: f = Newforms(39,4,names='a')[1] ; f
             q + a1*q^2 - 3*q^3 + (2*a1 + 5)*q^4 + (-2*a1 + 14)*q^5 + O(q^6)
             sage: f._compute([2,3,7])
-            [alpha, -3, -2*alpha + 2]
+            [a1, -3, -2*a1 + 2]
             sage: f._compute([])
             []
+
+        Check that :trac:`20793` is fixed::
+
+            sage: f = Newforms(83, 2, names='a')[1]; f
+            q + a1*q^2 + (1/2*a1^4 - 1/2*a1^3 - 7/2*a1^2 + 3/2*a1 + 4)*q^3 + (a1^2 - 2)*q^4 + (-1/2*a1^5 - 1/2*a1^4 + 9/2*a1^3 + 7/2*a1^2 - 8*a1 - 2)*q^5 + O(q^6)
+            sage: K = f.hecke_eigenvalue_field(); K
+            Number Field in a1 with defining polynomial x^6 - x^5 - 9*x^4 + 7*x^3 + 20*x^2 - 12*x - 8
+            sage: l = f.coefficients(20); l[-1]
+            -a1^4 + 5*a1^2 - 4
+            sage: l[-1].parent() is K
+            True
         """
         M = self.modular_symbols(1)
-        return [M.eigenvalue(x) for x in X]
+        return [M.eigenvalue(x, name=self._name()) for x in X]
 
     def element(self):
         """
@@ -1893,7 +1909,8 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             sage: f.parent()
             Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
         """
-        if not isinstance(parent, space.ModularFormsSpace):
+        from .space import ModularFormsSpace
+        if not isinstance(parent, ModularFormsSpace):
             raise TypeError("First argument must be an ambient space of modular forms.")
         element.HeckeModuleElement.__init__(self, parent, x)
 
@@ -2006,7 +2023,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             verbose("character of product not determined")
 
         # now do the math
-        from constructor import ModularForms
+        from .constructor import ModularForms
         if newchar is not None:
             verbose("creating a parent with char")
             newparent = ModularForms(newchar, self.weight() + other.weight(), base_ring = newchar.base_ring())
@@ -2109,7 +2126,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
             sage: eps = DirichletGroup(3).0
             sage: eps.parent()
-            Group of Dirichlet characters of modulus 3 over Cyclotomic Field of order 2 and degree 1
+            Group of Dirichlet characters modulo 3 with values in Cyclotomic Field of order 2 and degree 1
             sage: f_eps = f.twist(eps)
             sage: f_eps.parent()
             Cuspidal subspace of dimension 9 of Modular Forms space of dimension 16 for Congruence Subgroup Gamma0(99) of weight 2 over Cyclotomic Field of order 2 and degree 1
@@ -2139,7 +2156,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         REFERENCES:
 
-        .. [Atkin-Li] A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists
+        .. [Atkin-Li] \A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists
            of newforms and pseudo-eigenvalues of `W`-operators.
            Inventiones math. 48 (1978), 221-243.
 
@@ -2432,9 +2449,9 @@ class EisensteinSeries(ModularFormElement):
             elif n == 0:
                 v.append(F(t-1)/F(24))
             else:
-                an = rings.sigma(n,1)
-                if n%t==0:
-                    an -= t*rings.sigma(n/t,1)
+                an = sigma(n,1)
+                if n%t == 0:
+                    an -= t * sigma(n/t,1)
                 v.append(an)
         return v
 
@@ -2625,5 +2642,5 @@ class EisensteinSeries(ModularFormElement):
             [[60, 2], [60, 3], [60, 2], [60, 5], [60, 2], [60, 2], [60, 2], [60, 3], [60, 2], [60, 2], [60, 2]]
         """
         if self.__chi.is_trivial() and self.__psi.is_trivial() and self.weight() == 2:
-            return rings.factor(self.__t)[0][0]
+            return factor(self.__t)[0][0]
         return self.L()*self.M()

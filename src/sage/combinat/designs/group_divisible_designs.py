@@ -22,9 +22,19 @@ following functions are available:
 Functions
 ---------
 """
-from sage.rings.arith     import is_prime_power
+from __future__ import absolute_import
+
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from sage.arith.all import is_prime_power
 from sage.misc.unknown    import Unknown
-from incidence_structures import IncidenceStructure
+from .incidence_structures import IncidenceStructure
 
 def group_divisible_design(v,K,G,existence=False,check=False):
     r"""
@@ -83,7 +93,7 @@ def group_divisible_design(v,K,G,existence=False,check=False):
     if (len(G) == 1 and
         len(K) == 1 and
         G[0]+1 in K):
-        from bibd import balanced_incomplete_block_design
+        from .bibd import balanced_incomplete_block_design
         k = K[0]
         if existence:
             return balanced_incomplete_block_design(v+1,k,existence=True)
@@ -108,7 +118,7 @@ def group_divisible_design(v,K,G,existence=False,check=False):
     elif (len(G)    == 1 and
           len(K)    == 1 and
           K[0]*G[0] == v):
-        from orthogonal_arrays import transversal_design
+        from .orthogonal_arrays import transversal_design
         return transversal_design(k=K[0],n=G[0],existence=existence)
 
     if blocks:
@@ -169,7 +179,7 @@ def GDD_4_2(q,existence=False,check=True):
     if existence:
         return True
 
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     G = GF(q,'x')
     w = G.primitive_element()
     e = w**((q-1)/3)
@@ -264,7 +274,7 @@ class GroupDivisibleDesign(IncidenceStructure):
             sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
             Group Divisible Design on 40 points of type 10^4
         """
-        from designs_pyx import is_group_divisible_design
+        from .designs_pyx import is_group_divisible_design
 
         self._lambd = lambd
 

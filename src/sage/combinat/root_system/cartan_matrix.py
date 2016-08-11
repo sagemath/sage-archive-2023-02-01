@@ -411,7 +411,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         iset = self.index_set()
         # The result from is_symmetrizable needs to be scaled
         # to integer coefficients
-        from sage.rings.arith import LCM
+        from sage.arith.all import LCM
         from sage.rings.all import QQ
         scalar = LCM([QQ(x).denominator() for x in sym])
         return Family( {iset[i]: ZZ(val*scalar) for i, val in enumerate(sym)} )
@@ -977,7 +977,7 @@ def find_cartan_type_from_matrix(CM):
         for x in test:
             ct = CartanType(x)
             T = DiGraph(ct.dynkin_diagram()) # We need a simple digraph here
-            iso, match = T.is_isomorphic(S, certify=True, edge_labels=True)
+            iso, match = T.is_isomorphic(S, certificate=True, edge_labels=True)
             if iso:
                 types.append(ct.relabel(match))
                 found = True
@@ -988,7 +988,7 @@ def find_cartan_type_from_matrix(CM):
 
             ct = ct.dual()
             T = DiGraph(ct.dynkin_diagram()) # We need a simple digraph here
-            iso, match = T.is_isomorphic(S, certify=True, edge_labels=True)
+            iso, match = T.is_isomorphic(S, certificate=True, edge_labels=True)
             if iso:
                 types.append(ct.relabel(match))
                 found = True

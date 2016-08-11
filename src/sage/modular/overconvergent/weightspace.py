@@ -57,14 +57,18 @@ AUTHORS:
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #                     2008-9 David Loeffler <d.loeffler.01@cantab.net>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element
 from sage.modular.dirichlet import DirichletGroup, trivial_character
-from sage.rings.all import ZZ, QQ, divisors, IntegerModRing, Qp, Infinity
+from sage.rings.all import ZZ, QQ, IntegerModRing, Qp, Infinity
+from sage.arith.all import divisors
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
 from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method
@@ -572,8 +576,8 @@ class AlgebraicWeight(WeightCharacter):
 
             sage: w = pAdicWeightSpace(23)(12, DirichletGroup(23, QQ).0)
             sage: hash(w)
-            -2363716619315244394 # 64-bit
-            470225558            # 32-bit
+            2363715643371367891  # 64-bit
+            -1456525869          # 32-bit
         """
         if self._chi.is_trivial():
             return hash(self._k)

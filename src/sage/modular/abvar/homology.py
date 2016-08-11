@@ -39,19 +39,23 @@ EXAMPLES::
     sage: a.T(7)
     Hecke operator T_7 on Submodule of rank 2 of Integral Homology of Abelian variety J0(43) of dimension 3
 """
+from __future__ import absolute_import
 
-###########################################################################
-#       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
-#  Distributed under the terms of the GNU General Public License (GPL)    #
-#                  http://www.gnu.org/licenses/                           #
-###########################################################################
+#*****************************************************************************
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 
 from sage.modular.hecke.all import HeckeModule_free_module
-from sage.rings.all import Integer, ZZ, QQ
-from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.all import Integer, ZZ, QQ, CommutativeRing
 
-import abvar
+from .abvar import sqrt_poly
 
 # TODO: we will probably also need homology that is *not* a Hecke module.
 
@@ -109,7 +113,7 @@ class Homology_abvar(Homology):
             sage: loads(dumps(H)) == H
             True
         """
-        if not is_CommutativeRing(base):
+        if not isinstance(base, CommutativeRing):
             raise TypeError("base ring must be a commutative ring")
         HeckeModule_free_module.__init__(
             self, base, abvar.level(), weight=2)
@@ -482,7 +486,7 @@ class RationalHomology(Homology_abvar):
             (x + 2) * (x^2 - 2)
         """
         f = self.hecke_operator(n).matrix().characteristic_polynomial(var)
-        return abvar.sqrt_poly(f)
+        return sqrt_poly(f)
 
         #n = Integer(n)
         #M = self.abelian_variety().modular_symbols(sign=1)

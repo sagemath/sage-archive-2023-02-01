@@ -89,7 +89,7 @@ smallest first. This does not (directly) show more structural
 information. We can overcome this and display a "wiring layout" by
 typing::
 
-    sage: print Q.repr_full(reverse=True)
+    sage: print(Q.repr_full(reverse=True))
     poset((3, 3), (2, 3), (3, 2), (2, 2), (4, 1), (1, 1))
     +-- oo
     |   +-- no successors
@@ -148,6 +148,7 @@ Classes and their Methods
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 
@@ -286,7 +287,7 @@ class MutablePosetShell(SageObject):
         Test the caching of the key::
 
             sage: def k(k):
-            ....:     print 'key %s' % (k,)
+            ....:     print('key %s' % (k,))
             ....:     return k
             sage: R = MP(key=k)
             sage: h = MutablePosetShell(R, (1, 2))
@@ -1089,7 +1090,7 @@ class MutablePosetShell(SageObject):
             return
         marked.add(self)
         S = self.predecessors(reverse)
-        if key is not None:
+        if key is not None and len(S) > 1:
             S = sorted(S, key=key)
         for shell in S:
             for e in shell._iter_topological_visit_(marked, reverse,
@@ -1157,8 +1158,8 @@ class MutablePosetShell(SageObject):
 
             sage: for e in P.shells_topological(include_special=True,
             ....:                               reverse=True):
-            ....:     print e
-            ....:     print list(e.iter_topological(reverse=True, key=repr))
+            ....:     print(e)
+            ....:     print(list(e.iter_topological(reverse=True, key=repr)))
             oo
             [oo]
             (4, 4)
@@ -1180,8 +1181,8 @@ class MutablePosetShell(SageObject):
 
             sage: for e in P.shells_topological(include_special=True,
             ....:                               reverse=True):
-            ....:     print e
-            ....:     print list(e.iter_topological(reverse=False, key=repr))
+            ....:     print(e)
+            ....:     print(list(e.iter_topological(reverse=False, key=repr)))
             oo
             [null, (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4), oo]
             (4, 4)
@@ -1488,7 +1489,7 @@ class MutablePoset(SageObject):
             sage: P.add(42); P
             poset(42)
             sage: P.clear()
-            sage: print P.repr_full()
+            sage: print(P.repr_full())
             poset()
             +-- null
             |   +-- no predecessors
@@ -2083,7 +2084,7 @@ class MutablePoset(SageObject):
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: print MP().repr()
+            sage: print(MP().repr())
             poset()
         """
         s = 'poset('
@@ -2113,7 +2114,7 @@ class MutablePoset(SageObject):
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: print MP().repr_full(reverse=True)
+            sage: print(MP().repr_full(reverse=True))
             poset()
             +-- oo
             |   +-- no successors
@@ -2200,7 +2201,7 @@ class MutablePoset(SageObject):
             ....:         return all(l <= r for l, r in zip(left, right))
             sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
             ....:         T((4, 4)), T((1, 2))])
-            sage: print P.repr_full(reverse=True)
+            sage: print(P.repr_full(reverse=True))
             poset((4, 4), (1, 3), (1, 2), (2, 1), (1, 1))
             +-- oo
             |   +-- no successors
@@ -2224,7 +2225,7 @@ class MutablePoset(SageObject):
             |   +-- successors:   (1, 1)
             |   +-- no predecessors
             sage: P.add(T((2, 2)))
-            sage: reprP = P.repr_full(reverse=True); print reprP
+            sage: reprP = P.repr_full(reverse=True); print(reprP)
             poset((4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1))
             +-- oo
             |   +-- no successors
@@ -2299,7 +2300,7 @@ class MutablePoset(SageObject):
             sage: R = MP([(1, 1, 42), (1, 3, 42), (2, 1, 7),
             ....:         (4, 4, 42), (1, 2, 7), (2, 2, 7)],
             ....:        key=lambda k: T(k[2:3]))
-            sage: print R.repr_full(reverse=True)
+            sage: print(R.repr_full(reverse=True))
             poset((1, 1, 42), (2, 1, 7))
             +-- oo
             |   +-- no successors
@@ -2383,7 +2384,7 @@ class MutablePoset(SageObject):
             ....:         return all(l <= r for l, r in zip(left, right))
             sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
             ....:         T((4, 4)), T((1, 2)), T((2, 2))])
-            sage: print P.repr_full(reverse=True)
+            sage: print(P.repr_full(reverse=True))
             poset((4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1))
             +-- oo
             |   +-- no successors
@@ -2410,7 +2411,7 @@ class MutablePoset(SageObject):
             |   +-- successors:   (1, 1)
             |   +-- no predecessors
             sage: P.remove(T((1, 2)))
-            sage: print P.repr_full(reverse=True)
+            sage: print(P.repr_full(reverse=True))
             poset((4, 4), (1, 3), (2, 2), (2, 1), (1, 1))
             +-- oo
             |   +-- no successors
@@ -2446,7 +2447,7 @@ class MutablePoset(SageObject):
             sage: Q = MP([(1, 1, 42), (1, 3, 42), (2, 1, 7),
             ....:         (4, 4, 42), (1, 2, 7), (2, 2, 7)],
             ....:        key=lambda k: T(k[0:2]))
-            sage: print Q.repr_full(reverse=True)
+            sage: print(Q.repr_full(reverse=True))
             poset((4, 4, 42), (1, 3, 42), (2, 2, 7),
                   (1, 2, 7), (2, 1, 7), (1, 1, 42))
             +-- oo
@@ -2474,7 +2475,7 @@ class MutablePoset(SageObject):
             |   +-- successors:   (1, 1, 42)
             |   +-- no predecessors
             sage: Q.remove((1,1))
-            sage: print Q.repr_full(reverse=True)
+            sage: print(Q.repr_full(reverse=True))
             poset((4, 4, 42), (1, 3, 42), (2, 2, 7), (1, 2, 7), (2, 1, 7))
             +-- oo
             |   +-- no successors
@@ -3272,7 +3273,7 @@ class MutablePoset(SageObject):
             ....:        key=key, merge=add, can_merge=can_add)
             sage: Q = copy(P)
             sage: Q.merge(T((1, 3)))
-            sage: print Q.repr_full(reverse=True)
+            sage: print(Q.repr_full(reverse=True))
             poset((4, 4, 'd'), (1, 3, 'abe'), (2, 2, 'f'), (2, 1, 'c'))
             +-- oo
             |   +-- no successors
@@ -3295,7 +3296,7 @@ class MutablePoset(SageObject):
             sage: for k in P.keys():
             ....:     Q = copy(P)
             ....:     Q.merge(k)
-            ....:     print 'merging %s: %s' % (k, Q)
+            ....:     print('merging %s: %s' % (k, Q))
             merging (1, 2): poset((1, 2, 'ae'), (1, 3, 'b'),
                                   (2, 1, 'c'), (2, 2, 'f'), (4, 4, 'd'))
             merging (1, 3): poset((1, 3, 'abe'), (2, 1, 'c'),
@@ -3451,6 +3452,11 @@ class MutablePoset(SageObject):
             Since this method works inplace, it is not allowed that
             ``function`` alters the key of an element.
 
+        .. NOTE::
+
+            If ``function`` returns ``None``, then the element is
+            removed.
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -3464,6 +3470,11 @@ class MutablePoset(SageObject):
             sage: P
             poset((1, 2, 3), (1, 3, 4), (2, 1, 3), (2, 2, 4), (4, 4, 8))
 
+        TESTS::
+
+            sage: P.map(lambda e: e if e[2] != 4 else None); P
+            poset((1, 2, 3), (2, 1, 3), (4, 4, 8))
+
         .. SEEALSO::
 
             :meth:`copy`,
@@ -3471,8 +3482,13 @@ class MutablePoset(SageObject):
         """
         shells = self.shells_topological(reverse=reverse) \
             if topological else self.shells()
+        remove = []
         for shell in shells:
             shell._element_ = function(shell._element_)
+            if shell._element_ is None:
+                remove.append(shell.key)
+        for key in remove:
+            self.remove(key)
 
 
     def mapped(self, function):

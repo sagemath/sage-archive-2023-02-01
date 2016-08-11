@@ -1,6 +1,7 @@
 """
 Subset Species
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -16,10 +17,10 @@ Subset Species
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from species import GenericCombinatorialSpecies
-from set_species import SetSpecies
-from generating_series import _integers_from, factorial_stream
-from structure import GenericSpeciesStructure
+from .species import GenericCombinatorialSpecies
+from .set_species import SetSpecies
+from .generating_series import _integers_from, factorial_stream
+from .structure import GenericSpeciesStructure
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
@@ -49,13 +50,17 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
         rng = range(1, len(self._list)+1)
         return self.__class__(self.parent(), self._labels, rng)
 
-    def labels(self):
+
+    def label_subset(self):
         """
+        Returns a subset of the labels that "appear" in this
+        structure.
+
         EXAMPLES::
 
             sage: P = species.SubsetSpecies()
             sage: S = P.structures(["a", "b", "c"])
-            sage: [s.labels() for s in S]
+            sage: [s.label_subset() for s in S]
             [[], ['a'], ['b'], ['c'], ['a', 'b'], ['a', 'c'], ['b', 'c'], ['a', 'b', 'c']]
         """
         return [self._relabel(i) for i in self._list]

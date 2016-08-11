@@ -180,7 +180,7 @@ class kRegularSequence(Element):
         """
         from sage.misc.lazy_list import lazy_list_formatter
         return lazy_list_formatter(
-            [self[n] for n in xrange(11)],  # once slicing works, use self
+            self,
             name='{}-regular sequence'.format(self.parent().k),
             opening_delimiter='', closing_delimiter='',
             preview=10)

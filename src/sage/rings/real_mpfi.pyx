@@ -1303,7 +1303,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
     def _latex_(self):
         """
-        Return a latex represention of ``self``.
+        Return a latex representation of ``self``.
 
         EXAMPLES::
 

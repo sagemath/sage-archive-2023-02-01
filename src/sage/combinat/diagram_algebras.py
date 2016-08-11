@@ -2090,7 +2090,7 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra):
 
     def _repr_(self):
         """
-        Return a string represetation of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 

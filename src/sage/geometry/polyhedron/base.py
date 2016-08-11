@@ -1146,7 +1146,7 @@ class Polyhedron_base(Element):
 
     def Hrepresentation(self, index=None):
         """
-        Return the objects of the H-representaton. Each entry is
+        Return the objects of the H-representation. Each entry is
         either an inequality or a equation.
 
         INPUT:
@@ -3033,7 +3033,7 @@ class Polyhedron_base(Element):
         INPUT:
 
         - ``Vindices`` -- a tuple of integers. The indices of the
-          V-represenation objects that span the face.
+          V-representation objects that span the face.
 
         - ``Hindices`` -- a tuple of integers. The indices of the
           H-representation objects that hold as equalities on the

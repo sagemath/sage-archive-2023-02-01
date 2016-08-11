@@ -520,7 +520,7 @@ class Face(SageObject):
 
     def _plot3d(self, face_contour):
         r"""
-        3D reprensentation of a unit face (Jmol).
+        3D representation of a unit face (Jmol).
 
         INPUT:
 

@@ -142,8 +142,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
-from template import PermutationIET, PermutationLI
+from .template import PermutationIET, PermutationLI
 
 def _two_lists(a):
     r"""
@@ -337,13 +338,13 @@ def Permutation(*args,**kargs):
         ...
         ValueError: letters must appear once in each interval
     """
-    from labelled import LabelledPermutation
-    from labelled import LabelledPermutationIET
-    from labelled import FlippedLabelledPermutationIET
+    from .labelled import LabelledPermutation
+    from .labelled import LabelledPermutationIET
+    from .labelled import FlippedLabelledPermutationIET
 
-    from reduced import ReducedPermutation
-    from reduced import ReducedPermutationIET
-    from reduced import FlippedReducedPermutationIET
+    from .reduced import ReducedPermutation
+    from .reduced import ReducedPermutationIET
+    from .reduced import FlippedReducedPermutationIET
 
     if 'reduced' not in kargs :
         reduction = None
@@ -488,13 +489,13 @@ def GeneralizedPermutation(*args,**kargs):
         ...
         ValueError: Letters must reappear twice
     """
-    from labelled import LabelledPermutation
-    from labelled import LabelledPermutationLI
-    from labelled import FlippedLabelledPermutationLI
+    from .labelled import LabelledPermutation
+    from .labelled import LabelledPermutationLI
+    from .labelled import FlippedLabelledPermutationLI
 
-    from reduced import ReducedPermutation
-    from reduced import ReducedPermutationLI
-    from reduced import FlippedReducedPermutationLI
+    from .reduced import ReducedPermutation
+    from .reduced import ReducedPermutationLI
+    from .reduced import FlippedReducedPermutationLI
 
     if 'reduced' not in kargs :
         reduction = None
@@ -663,8 +664,8 @@ def Permutations_iterator(nintervals=None, irreducible=True,
         ...
         ValueError: You must specify a length with infinite alphabet
     """
-    from labelled import LabelledPermutationsIET_iterator
-    from reduced import ReducedPermutationsIET_iterator
+    from .labelled import LabelledPermutationsIET_iterator
+    from .reduced import ReducedPermutationsIET_iterator
     from sage.combinat.words.alphabet import Alphabet
     from sage.rings.infinity import Infinity
 
@@ -905,9 +906,9 @@ def IntervalExchangeTransformation(permutation=None, lengths=None):
         ...
         ValueError: lengths must be positive
     """
-    from iet import IntervalExchangeTransformation as _IET
-    from labelled import LabelledPermutationIET
-    from template import FlippedPermutation
+    from .iet import IntervalExchangeTransformation as _IET
+    from .labelled import LabelledPermutationIET
+    from .template import FlippedPermutation
 
     if isinstance(permutation, FlippedPermutation):
         raise TypeError("flips are not yet implemented")

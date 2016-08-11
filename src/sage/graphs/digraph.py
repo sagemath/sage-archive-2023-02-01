@@ -109,6 +109,7 @@ Methods
 -------
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 from copy import copy
 from sage.rings.integer import Integer
@@ -669,15 +670,15 @@ class DiGraph(GenericGraph):
             if weighted   is None: self._weighted   = False
             self.allow_loops(True if loops else False,check=False)
             self.allow_multiple_edges(True if multiedges else False,check=False)
-            from graph_input import from_dig6
+            from .graph_input import from_dig6
             from_dig6(self, data)
 
         elif format == 'adjacency_matrix':
-            from graph_input import from_adjacency_matrix
+            from .graph_input import from_adjacency_matrix
             from_adjacency_matrix(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'incidence_matrix':
-            from graph_input import from_oriented_incidence_matrix
+            from .graph_input import from_oriented_incidence_matrix
             from_oriented_incidence_matrix(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'DiGraph':
@@ -714,12 +715,12 @@ class DiGraph(GenericGraph):
             self.add_edges(data[1])
 
         elif format == 'dict_of_dicts':
-            from graph_input import from_dict_of_dicts
+            from .graph_input import from_dict_of_dicts
             from_dict_of_dicts(self, data, loops=loops, multiedges=multiedges, weighted=weighted,
                                convert_empty_dict_labels_to_None = False if convert_empty_dict_labels_to_None is None else convert_empty_dict_labels_to_None)
 
         elif format == 'dict_of_lists':
-            from graph_input import from_dict_of_lists
+            from .graph_input import from_dict_of_lists
             from_dict_of_lists(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'NX':

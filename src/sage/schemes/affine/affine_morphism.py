@@ -1123,18 +1123,19 @@ class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynom
 
         P=[]
         for i in range(len(self._fastpolys[0])):
+            r = self._fastpolys[0][i](*x)
             if self._fastpolys[1][i] is R.one():
                 if self._is_prime_finite_field:
                     p = self.base_ring().characteristic()
-                    P.append(self._fastpolys[0][i](*x) % p)
-                else:
-                    P.append(self._fastpolys[0][i](*x))
+                    r = Integer(r) % p
+                P.append(r)
             else:
+                s = self._fastpolys[1][i](*x)
                 if self._is_prime_finite_field:
                     p = self.base_ring().characteristic()
-                    P.append((self._fastpolys[0][i](*x) % p)/(self._fastpolys[1][i](*x) % p))
-                else:
-                    P.append(self._fastpolys[0][i](*x)/self._fastpolys[1][i](*x))
+                    r = Integer(r) % p
+                    s = Integer(s) % p
+                P.append(r/s)
         return P
 
     def cyclegraph(self):
@@ -1194,4 +1195,3 @@ class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynom
         from sage.graphs.digraph import DiGraph
         g = DiGraph(dict(zip(V, E)), loops=True)
         return g
-

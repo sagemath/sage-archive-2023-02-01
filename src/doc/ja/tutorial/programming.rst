@@ -507,11 +507,11 @@ Pythonには集合(set)型が組込まれている．
 ::
 
     sage: v = (n^2 for n in xrange(10000000))
-    sage: v.next()
+    sage: next(v)
     0
-    sage: v.next()
+    sage: next(v)
     1
-    sage: v.next()
+    sage: next(v)
     4
 
 今度は，素数 :math:`p` から :math:`4p+1` の形の素数に関するイテレータを作り，最初の数個を見てみることにする．
@@ -522,11 +522,11 @@ Pythonには集合(set)型が組込まれている．
     sage: w = (4*p + 1 for p in Primes() if is_prime(4*p+1))
     sage: w         # 次の行の 0xb0853d6c はランダムに生成された16進数
     <generator object <genexpr> at ...>
-    sage: w.next()
+    sage: next(w)
     13
-    sage: w.next()
+    sage: next(w)
     29
-    sage: w.next()
+    sage: next(w)
     53
 
 有限体，整数など，ある種の環にはイテレータが付随している:
@@ -536,11 +536,11 @@ Pythonには集合(set)型が組込まれている．
     sage: [x for x in GF(7)]
     [0, 1, 2, 3, 4, 5, 6]
     sage: W = ((x,y) for x in ZZ for y in ZZ)
-    sage: W.next()
+    sage: next(W)
     (0, 0)
-    sage: W.next()
+    sage: next(W)
     (0, 1)
-    sage: W.next()
+    sage: next(W)
     (0, -1)
 
 
@@ -661,7 +661,7 @@ Sageにおける異種オブジェクト間の比較演算では，まず対象�
 
     sage: 1 is 2/2
     False
-    sage: int(1) is int(2)/int(2)
+    sage: int(1) is int(2)/int(2)  # optional - python2
     True
     sage: 1 is 1
     False

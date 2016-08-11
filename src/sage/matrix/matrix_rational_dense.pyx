@@ -93,7 +93,7 @@ cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 from sage.libs.pari.paridecl cimport *
 #########################################################
 
-cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
+cdef class Matrix_rational_dense(Matrix_dense):
 
     ########################################################################
     # LEVEL 1 functionality
@@ -131,7 +131,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
            This is for internal use only, or if you really know what
            you're doing.
         """
-        matrix_dense.Matrix_dense.__init__(self, parent)
+        Matrix_dense.__init__(self, parent)
 
         cdef Py_ssize_t i, k
 
@@ -784,7 +784,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         if self._nrows <= 2:
             # use generic special cased code.
-            return matrix_dense.Matrix_dense.determinant(self)
+            return Matrix_dense.determinant(self)
 
         if algorithm == "default":
             if self._nrows <= 7:
@@ -945,7 +945,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             x = f.parent().gen()
             g = f(x * denom) * (1 / (denom**f.degree()))
         elif algorithm == 'generic':
-            g = matrix_dense.Matrix_dense.charpoly(self, var)
+            g = Matrix_dense.charpoly(self, var)
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
 
@@ -1004,7 +1004,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             x = f.parent().gen()
             g = f(x * denom) * (1 / (denom**f.degree()))
         elif algorithm == 'generic':
-            g = matrix_dense.Matrix_dense.minpoly(self, var)
+            g = Matrix_dense.minpoly(self, var)
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
 
@@ -1352,7 +1352,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             C.subdivide(self.subdivisions())
             return C
         else:
-            D = matrix_dense.Matrix_dense.change_ring(self, R)
+            D = Matrix_dense.change_ring(self, R)
             D.subdivide(self.subdivisions())
             return D
 

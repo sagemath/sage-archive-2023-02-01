@@ -37,10 +37,8 @@ abstract base classes.
                                 PrincipalIdealDomainElement
                                     EuclideanDomainElement
                         FieldElement
-                            FiniteFieldElement
                         CommutativeAlgebraElement
                     AlgebraElement   (note -- can't derive from module, since no multiple inheritance)
-                        CommutativeAlgebra ??? (should be removed from element.pxd)
                         Matrix
                     InfinityElement
                 AdditiveGroupElement
@@ -136,12 +134,12 @@ from cpython.ref cimport PyObject
 from cpython.number cimport PyNumber_TrueDivide
 
 import types
-cdef add, sub, mul, div, truediv, floordiv
+cdef add, sub, mul, div, truediv, floordiv, mod
 cdef iadd, isub, imul, idiv, itruediv, ifloordiv
-from operator import (add, sub, mul, div, truediv, floordiv,
+from operator import (add, sub, mul, div, truediv, floordiv, mod,
         iadd, isub, imul, idiv, itruediv, ifloordiv)
 cdef dict _coerce_op_symbols = dict(
-        add='+', sub='-', mul='*', div='/', truediv='/', floordiv='//',
+        add='+', sub='-', mul='*', div='/', truediv='/', floordiv='//', mod='%',
         iadd='+', isub='-', imul='*', idiv='/', itruediv='/', ifloordiv='//')
 
 cdef MethodType
@@ -154,6 +152,8 @@ from sage.structure.misc import is_extension_type, getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass
+from sage.misc.superseded import deprecated_function_alias
+from sage.arith.numerical_approx cimport digits_to_bits
 
 # Create a dummy attribute error, using some kind of lazy error message,
 # so that neither the error itself not the message need to be created
@@ -604,16 +604,31 @@ cdef class Element(SageObject):
 
     def numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
-        Return a numerical approximation of x with at least prec bits of
-        precision.
+        Return a numerical approximation of ``self`` with ``prec`` bits
+        (or decimal ``digits``) of precision.
+
+        No guarantee is made about the accuracy of the result.
+
+        INPUT:
+
+        - ``prec`` -- precision in bits
+
+        - ``digits`` -- precision in decimal digits (only used if
+          ``prec`` is not given)
+
+        - ``algorithm`` -- which algorithm to use to compute this
+          approximation (the accepted algorithms depend on the object)
+
+        If neither ``prec`` nor ``digits`` is given, the default
+        precision is 53 bits (roughly 16 digits).
 
         EXAMPLES::
 
-            sage: (2/3).n()
+            sage: (2/3).numerical_approx()
             0.666666666666667
-            sage: pi.n(digits=10)  # indirect doctest
+            sage: pi.n(digits=10)
             3.141592654
-            sage: pi.n(prec=20)   # indirect doctest
+            sage: pi.n(prec=20)
             3.1416
 
         TESTS:
@@ -622,12 +637,31 @@ cdef class Element(SageObject):
 
             sage: (0).n(algorithm='foo')
             0.000000000000000
+
+        The ``.N`` method is a deprecated alias::
+
+            sage: 0.N()
+            doctest:...: DeprecationWarning: N is deprecated. Please use n instead.
+            See http://trac.sagemath.org/13055 for details.
+            0.000000000000000
         """
-        from sage.misc.functional import numerical_approx
-        return numerical_approx(self, prec=prec, digits=digits,
-                                algorithm=algorithm)
-    n = numerical_approx
-    N = n
+        from sage.arith.numerical_approx import numerical_approx_generic
+        if prec is None:
+            prec = digits_to_bits(digits)
+        return numerical_approx_generic(self, prec)
+
+    def n(self, prec=None, digits=None, algorithm=None):
+        """
+        Alias for :meth:`numerical_approx`.
+
+        EXAMPLES::
+
+            sage: (2/3).n()
+            0.666666666666667
+        """
+        return self.numerical_approx(prec, digits, algorithm)
+
+    N = deprecated_function_alias(13055, n)
 
     def _mpmath_(self, prec=53, rounding=None):
         """
@@ -827,7 +861,7 @@ cdef class Element(SageObject):
             ...
             NotImplementedError: comparison not implemented for <type '...FloatCmp'>
         """
-        if have_same_parent_c(self, other):
+        if have_same_parent(self, other):
             left = self
             right = other
         else:
@@ -906,7 +940,7 @@ cdef class Element(SageObject):
         ``coercion_model.richcmp()`` for the remaining cases.
         This is done for example in :class:`Integer`.
         """
-        if have_same_parent_c(self, other):
+        if have_same_parent(self, other):
             # Same parents, in particular self and other must both be
             # an instance of Element. The explicit casts below make
             # Cython generate optimized code for this call.
@@ -964,6 +998,55 @@ cdef class Element(SageObject):
             return left_cmp(right)
         msg = LazyFormat("comparison not implemented for %r")%type(left)
         raise NotImplementedError(msg)
+
+    def __mod__(self, other):
+        """
+        Top-level modulo operator for :class:`Element`.
+        See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: 7 % 3
+            1
+            sage: 7 % int(3)
+            1
+            sage: int(7) % 3
+            1
+
+        ::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e % e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '%': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+        """
+        if have_same_parent_c(self, other):
+            return (<Element>self)._mod_(<Element>other)
+        return coercion_model.bin_op(self, other, mod)
+
+    cpdef _mod_(self, other):
+        """
+        Cython classes should override this function to implement
+        remaindering.
+        See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: 23._mod_(5)
+            3
+
+        ::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e._mod_(e)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '%': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+        """
+        raise TypeError(arith_error_message(self, other, mod))
 
 
 def is_ModuleElement(x):
@@ -1271,21 +1354,18 @@ cdef class ModuleElement(Element):
     # rmul -- left * self
     cpdef _rmul_(self, RingElement left):
         """
-        Default module left scalar multiplication, which is to try to
-        canonically coerce the scalar to the integers and do that
-        multiplication, which is always defined.
+        Reversed scalar multiplication for module elements with the
+        module element on the right and the scalar on the left.
 
-        Returning None indicates that this action is not implemented here.
+        By default, we assume commutativity and reverse the arguments.
         """
-        return None
+        return self._lmul_(left)
 
     # lmul -- self * right
-
     cpdef _lmul_(self, RingElement right):
         """
-        Default module left scalar multiplication, which is to try to
-        canonically coerce the scalar to the integers and do that
-        multiplication, which is always defined.
+        Scalar multiplication for module elements with the module
+        element on the left and the scalar on the right.
 
         Returning None indicates that this action is not implemented here.
         """
@@ -1422,18 +1502,6 @@ cdef class AdditiveGroupElement(ModuleElement):
     def __invert__(self):
         raise NotImplementedError("multiplicative inverse not defined for additive group elements")
 
-    cpdef _rmul_(self, RingElement left):
-        return self._lmul_(left)
-
-    cpdef _lmul_(self, RingElement right):
-        """
-        Default module left scalar multiplication, which is to try to
-        canonically coerce the scalar to the integers and do that
-        multiplication, which is always defined.
-
-        Returning None indicates this action is not implemented.
-        """
-        return None
 
 def is_MultiplicativeGroupElement(x):
     """
@@ -1553,14 +1621,6 @@ cdef class RingElement(ModuleElement):
     ##################################
     # Multiplication
     ##################################
-
-    cpdef _lmul_(self, RingElement right):
-        # We return None to invoke the default action of coercing into self
-        return None
-
-    cpdef _rmul_(self, RingElement left):
-        # We return None to invoke the default action of coercing into self
-        return None
 
     def __mul__(left, right):
         """
@@ -1728,7 +1788,7 @@ cdef class RingElement(ModuleElement):
 
         TESTS::
 
-        These aren't testing this code, but they are probably good to have around.
+        These aren't testing this code, but they are probably good to have around::
 
             sage: 2r**(SR(2)-1-1r)
             1
@@ -2054,7 +2114,7 @@ cdef class CommutativeRingElement(RingElement):
             sage: R(120).divides(R(121))
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: reduction modulo right not defined.
+            ArithmeticError: reduction modulo 120 not defined
 
         If ``x`` has different parent than ``self``, they are first coerced to a
         common parent if possible. If this coercion fails, it returns a
@@ -2073,9 +2133,7 @@ cdef class CommutativeRingElement(RingElement):
             sage: Zmod(35)(7).divides(Zmod(7)(1))
             False
         """
-        #Check if the parents are the same:
-
-        if have_same_parent_c(self, x):
+        if have_same_parent(self, x):
             # First we test some generic conditions:
             try:
                 if x.is_zero():
@@ -2253,77 +2311,76 @@ cdef class CommutativeRingElement(RingElement):
 
         EXAMPLES::
 
-                sage: R.<x> = ZZ[]
-                sage: (x^2).sqrt()
-                x
-                sage: f=x^2-4*x+4; f.sqrt(all=True)
-                [x - 2, -x + 2]
-                sage: sqrtx=x.sqrt(name="y"); sqrtx
-                y
-                sage: sqrtx^2
-                x
-                sage: x.sqrt(all=true,name="y")
-                [y, -y]
-                sage: x.sqrt(extend=False,all=True)
-                []
-                sage: x.sqrt()
-                Traceback (most recent call last):
-                ...
-                TypeError: Polynomial is not a square. You must specify the name of the square root when using the default extend = True
-                sage: x.sqrt(extend=False)
-                Traceback (most recent call last):
-                ...
-                ValueError: trying to take square root of non-square x with extend = False
+            sage: R.<x> = ZZ[]
+            sage: (x^2).sqrt()
+            x
+            sage: f=x^2-4*x+4; f.sqrt(all=True)
+            [x - 2, -x + 2]
+            sage: sqrtx=x.sqrt(name="y"); sqrtx
+            y
+            sage: sqrtx^2
+            x
+            sage: x.sqrt(all=true,name="y")
+            [y, -y]
+            sage: x.sqrt(extend=False,all=True)
+            []
+            sage: x.sqrt()
+            Traceback (most recent call last):
+            ...
+            TypeError: Polynomial is not a square. You must specify the name of the square root when using the default extend = True
+            sage: x.sqrt(extend=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: trying to take square root of non-square x with extend = False
 
         TESTS::
 
-                sage: f = (x+3)^2; f.sqrt()
-                x + 3
-                sage: f = (x+3)^2; f.sqrt(all=True)
-                [x + 3, -x - 3]
-                sage: f = (x^2 - x + 3)^2; f.sqrt()
-                x^2 - x + 3
-                sage: f = (x^2 - x + 3)^6; f.sqrt()
-                x^6 - 3*x^5 + 12*x^4 - 19*x^3 + 36*x^2 - 27*x + 27
-                sage: g = (R.random_element(15))^2
-                sage: g.sqrt()^2 == g
-                True
+            sage: f = (x+3)^2; f.sqrt()
+            x + 3
+            sage: f = (x+3)^2; f.sqrt(all=True)
+            [x + 3, -x - 3]
+            sage: f = (x^2 - x + 3)^2; f.sqrt()
+            x^2 - x + 3
+            sage: f = (x^2 - x + 3)^6; f.sqrt()
+            x^6 - 3*x^5 + 12*x^4 - 19*x^3 + 36*x^2 - 27*x + 27
+            sage: g = (R.random_element(15))^2
+            sage: g.sqrt()^2 == g
+            True
 
-                sage: R.<x> = GF(250037)[]
-                sage: f = x^2/(x+1)^2; f.sqrt()
-                x/(x + 1)
-                sage: f = 9 * x^4 / (x+1)^2; f.sqrt()
-                3*x^2/(x + 1)
-                sage: f = 9 * x^4 / (x+1)^2; f.sqrt(all=True)
-                [3*x^2/(x + 1), 250034*x^2/(x + 1)]
+            sage: R.<x> = GF(250037)[]
+            sage: f = x^2/(x+1)^2; f.sqrt()
+            x/(x + 1)
+            sage: f = 9 * x^4 / (x+1)^2; f.sqrt()
+            3*x^2/(x + 1)
+            sage: f = 9 * x^4 / (x+1)^2; f.sqrt(all=True)
+            [3*x^2/(x + 1), 250034*x^2/(x + 1)]
 
-                sage: R.<x> = QQ[]
-                sage: a = 2*(x+1)^2 / (2*(x-1)^2); a.sqrt()
-                (2*x + 2)/(2*x - 2)
-                sage: sqrtx=(1/x).sqrt(name="y"); sqrtx
-                y
-                sage: sqrtx^2
-                1/x
-                sage: (1/x).sqrt(all=true,name="y")
-                [y, -y]
-                sage: (1/x).sqrt(extend=False,all=True)
-                []
-                sage: (1/(x^2-1)).sqrt()
-                Traceback (most recent call last):
-                ...
-                TypeError: Polynomial is not a square. You must specify the name of the square root when using the default extend = True
-                sage: (1/(x^2-3)).sqrt(extend=False)
-                Traceback (most recent call last):
-                ...
-                ValueError: trying to take square root of non-square 1/(x^2 - 3) with extend = False
-
+            sage: R.<x> = QQ[]
+            sage: a = 2*(x+1)^2 / (2*(x-1)^2); a.sqrt()
+            (2*x + 2)/(2*x - 2)
+            sage: sqrtx=(1/x).sqrt(name="y"); sqrtx
+            y
+            sage: sqrtx^2
+            1/x
+            sage: (1/x).sqrt(all=true,name="y")
+            [y, -y]
+            sage: (1/x).sqrt(extend=False,all=True)
+            []
+            sage: (1/(x^2-1)).sqrt()
+            Traceback (most recent call last):
+            ...
+            TypeError: Polynomial is not a square. You must specify the name of the square root when using the default extend = True
+            sage: (1/(x^2-3)).sqrt(extend=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: trying to take square root of non-square 1/(x^2 - 3) with extend = False
         """
         #This code is very general, it works for all integral domains that have the
         #is_square(root = True) option
 
         from sage.rings.ring import IntegralDomain
-        P=self._parent
-        is_sqr, sq_rt = self.is_square( root = True )
+        P = self._parent
+        is_sqr, sq_rt = self.is_square(root=True)
         if is_sqr:
             if all:
                 if not isinstance(P, IntegralDomain):
@@ -2342,10 +2399,10 @@ cdef class CommutativeRingElement(RingElement):
                 return []
             raise ValueError('trying to take square root of non-square %s with extend = False' % self)
 
-        if name == None:
+        if name is None:
             raise TypeError("Polynomial is not a square. You must specify the name of the square root when using the default extend = True")
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        PY = PolynomialRing(P,'y')
+        PY = PolynomialRing(P, 'y')
         y = PY.gen()
         sq_rt = PY.quotient(y**2-self, names = name)(y)
         if all:
@@ -2785,7 +2842,7 @@ cdef class Matrix(ModuleElement):
             [33 36] [39 42]
             [45 48]]
         """
-        if have_same_parent_c(left, right):
+        if have_same_parent(left, right):
             return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
         return coercion_model.bin_op(left, right, mul)
 
@@ -2810,7 +2867,7 @@ cdef class Matrix(ModuleElement):
             [-5/2  3/2]
             [-1/2  5/2]
         """
-        if have_same_parent_c(left, right):
+        if have_same_parent(left, right):
             return left * ~right
         return coercion_model.bin_op(left, right, truediv)
 
@@ -2863,7 +2920,7 @@ cdef class Matrix(ModuleElement):
             [      (t^4 + t^2 - 2*t - 3)/(t^5 - 3*t)               (t^4 - t - 1)/(t^5 - 3*t)]
             [       (-t^3 + t^2 - t - 6)/(t^5 - 3*t) (t^4 + 2*t^3 + t^2 - t - 2)/(t^5 - 3*t)]
         """
-        if have_same_parent_c(left, right):
+        if have_same_parent(left, right):
             return left * ~right
         return coercion_model.bin_op(left, right, div)
 
@@ -2982,7 +3039,7 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
         Q, _ = self.quo_rem(right)
         return Q
 
-    def __mod__(self, other):
+    cpdef _mod_(self, other):
         """
         Remainder of division of ``self`` by other.
 
@@ -3011,6 +3068,7 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
         """
         _, R = self.quo_rem(other)
         return R
+
 
 def is_FieldElement(x):
     """
@@ -3197,31 +3255,18 @@ def coerce(Parent p, x):
     except AttributeError:
         return p(x)
 
-def coerce_cmp(x,y):
-    from sage.misc.superseded import deprecation
-    deprecation(18322, 'the global coerce_cmp() function is deprecated')
-    cdef int c
-    try:
-        x, y = coercion_model.canonical_coercion(x, y)
-        return cmp(x,y)
-    except TypeError:
-        c = cmp(type(x), type(y))
-        if c == 0: c = -1
-        return c
-
-
 # We define this base class here to avoid circular cimports.
 cdef class CoercionModel:
     """
     Most basic coercion scheme. If it doesn't already match, throw an error.
     """
     cpdef canonical_coercion(self, x, y):
-        if parent_c(x) is parent_c(y):
+        if parent(x) is parent(y):
             return x,y
-        raise TypeError("no common canonical parent for objects with parents: '%s' and '%s'"%(parent_c(x), parent_c(y)))
+        raise TypeError("no common canonical parent for objects with parents: '%s' and '%s'"%(parent(x), parent(y)))
 
     cpdef bin_op(self, x, y, op):
-        if parent_c(x) is parent_c(y):
+        if parent(x) is parent(y):
             return op(x,y)
         raise TypeError(arith_error_message(x,y,op))
 
@@ -3230,7 +3275,7 @@ cdef class CoercionModel:
         return PyObject_RichCompare(x, y, op)
 
 
-import coerce
+from . import coerce
 cdef CoercionModel coercion_model = coerce.CoercionModel_cache_maps()
 
 
@@ -3381,7 +3426,7 @@ cdef class NamedBinopMethod:
                 self._func(x, **kwds)
             else:
                 x, y = self._self, x
-        if not have_same_parent_c(x, y):
+        if not have_same_parent(x, y):
             old_x = x
             x,y = coercion_model.canonical_coercion(x, y)
             if old_x is x:
@@ -3450,12 +3495,6 @@ cdef class NamedBinopMethod:
 coerce_binop = NamedBinopMethod
 
 ###############################################################################
-
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.arith.all', ['gcd', 'xgcd', 'lcm'], deprecation=10779)
-
-
-######################
 
 def generic_power(a, n, one=None):
     """

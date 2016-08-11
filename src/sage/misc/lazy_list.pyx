@@ -280,7 +280,7 @@ cdef class lazy_list_generic(object):
         have a list that you want to wrap (without copy) into a lazy list.
         See in the example below.
 
-        INPUT::
+        INPUT:
 
         - ``cache`` -- an optional list to be used as the cache. Be careful that
           there is no copy.

@@ -16,12 +16,13 @@ AUTHORS:
 #*****************************************************************************
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 import os, sys, platform, __builtin__
 
 from sage.env import SAGE_LOCAL, SAGE_SRC, SAGE_LIB, UNAME
-from misc import SPYX_TMP
-from temporary_file import tmp_filename
+from .misc import SPYX_TMP
+from .temporary_file import tmp_filename
 import pkgconfig
 
 

@@ -54,7 +54,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import types, copy_reg
+import types
 
 from sage_object cimport SageObject
 

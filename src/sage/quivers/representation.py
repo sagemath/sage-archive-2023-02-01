@@ -451,7 +451,7 @@ from __future__ import print_function
 
 from sage.structure.factory import UniqueFactory
 from sage.modules.module import Module
-from sage.modules.module_element import ModuleElement
+from sage.structure.element import ModuleElement
 from sage.misc.cachefunc import cached_method
 from sage.misc.fast_methods import WithEqualityById
 

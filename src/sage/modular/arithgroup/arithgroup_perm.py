@@ -126,9 +126,10 @@ AUTHORS:
 #
 ################################################################################
 from __future__ import print_function
+from __future__ import absolute_import
 
-from all import SL2Z
-from arithgroup_generic import ArithmeticSubgroup
+from .all import SL2Z
+from .arithgroup_generic import ArithmeticSubgroup
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import verbose
@@ -1326,7 +1327,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         else:
             N = 2*self.generalised_level()
 
-        from congroup_generic import CongruenceSubgroup_constructor as CS
+        from .congroup_generic import CongruenceSubgroup_constructor as CS
         return CS(N, [x.matrix() for x in self.gens()])
 
     def is_congruence(self):
@@ -1390,7 +1391,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             sage: a.is_congruence()
             True
 
-        This example is congruence -- it is `\Gamma_0(3)` in disguise: ::
+        This example is congruence -- it is `\Gamma_0(3)` in disguise::
 
             sage: S2 = SymmetricGroup(4)
             sage: l = S2((2,3,4))

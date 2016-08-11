@@ -19,6 +19,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import sys
@@ -28,8 +29,8 @@ import doctest
 from sage.repl.preparse import preparse
 from sage.repl.load import load
 from sage.misc.lazy_attribute import lazy_attribute
-from parsing import SageDocTestParser
-from util import NestedName
+from .parsing import SageDocTestParser
+from .util import NestedName
 from sage.structure.dynamic_class import dynamic_class
 from sage.env import SAGE_SRC, SAGE_LOCAL
 

@@ -848,6 +848,39 @@ def plot(funcs, *args, **kwds):
     - ``ymax`` - ending y value in the rendered figure. This parameter is passed
       directly to the ``show`` procedure and it could be overwritten.
 
+    - ``detect_poles`` - (Default: False) If set to True poles are detected.
+      If set to "show" vertical asymptotes are drawn.
+
+    - ``legend_label`` - a (TeX) string serving as the label for `X` in the legend.
+      If `X` is a list, then this option can be a single string, or a list or dictionary
+      with strings as entries/values. If a dictionary, keys taken from ``range(len(X))``.
+
+    .. note::
+
+        - If the ``scale`` is ``"linear"``, then irrespective of what
+          ``base`` is set to, it will default to 10 and will remain unused.
+
+        - If you want to limit the plot along the horizontal axis in the
+          final rendered figure, then pass the ``xmin`` and ``xmax``
+          keywords to the :meth:`~sage.plot.graphics.Graphics.show` method.
+          To limit the plot along the vertical axis, ``ymin`` and ``ymax``
+          keywords can be provided to either this ``plot`` command or to
+          the ``show`` command.
+
+        - This function does NOT simply sample equally spaced points
+          between xmin and xmax. Instead it computes equally spaced points
+          and adds small perturbations to them. This reduces the possibility
+          of, e.g., sampling `\sin` only at multiples of `2\pi`, which would
+          yield a very misleading graph.
+
+        - If there is a range of consecutive points where the function has
+          no value, then those points will be excluded from the plot. See
+          the example below on automatic exclusion of points.
+
+        - For the other keyword options that the ``plot`` function can
+          take, refer to the method :meth:`~sage.plot.graphics.Graphics.show`
+          and the further options below.
+
     COLOR OPTIONS:
 
     - ``color`` - (Default: 'blue') One of:
@@ -863,29 +896,13 @@ def plot(funcs, *args, **kwds):
         the entries/values of the list/dictonary may be any of the options above.
 
       - 'automatic' -- maps to blue if `X` is a single Sage object; and
-        maps to ``golden_rainbow()`` if `X` is a list.
+        maps to a fixed sequence of regularly spaced colors if `X` is a list.
 
-    - ``detect_poles`` - (Default: False) If set to True poles are detected.
-      If set to "show" vertical asymptotes are drawn.
+    - ``legend_color`` - the color of the text for `X` (or each item in `X`)
+        in the legend; follows the same usage convention as ``color``.
 
-    - ``legend_color`` - the color of the text for this item in the legend
-
-    - ``legend_label`` - the label for this item in the legend
-
-    .. note::
-
-        - If the ``scale`` is ``"linear"``, then irrespective of what
-          ``base`` is set to, it will default to 10 and will remain unused.
-
-        - If you want to limit the plot along the horizontal axis in the
-          final rendered figure, then pass the ``xmin`` and ``xmax``
-          keywords to the :meth:`~sage.plot.graphics.Graphics.show` method.
-          To limit the plot along the vertical axis, ``ymin`` and ``ymax``
-          keywords can be provided to either this ``plot`` command or to
-          the ``show`` command.
-
-        - For the other keyword options that the ``plot`` function can
-          take, refer to the method :meth:`~sage.plot.graphics.Graphics.show`.
+    - ``fillcolor`` - The color of the fill for the plot of `X` (or each item in `X`);
+        follows the same usage convention as ``color``.
 
     APPEARANCE OPTIONS:
 
@@ -926,9 +943,9 @@ def plot(funcs, *args, **kwds):
       - ``"steps-post"`` (step function; horizontal line is to the
         right of point)
 
-      If `X` is a list, then ``linestyle`` may also be a list, with entries
-      taken from the strings above, or a dictionary, with keys in ``range(len(X))``
-      and values taken from the strings above.
+      If `X` is a list, then ``linestyle`` may be a list (with entries
+      taken from the strings above) or a dictionary (with keys in ``range(len(X))``
+      and values taken from the strings above).
 
     - ``marker``  - The style of the markers, which is one of
 
@@ -981,28 +998,8 @@ def plot(funcs, *args, **kwds):
         the j-th function in the list.  (But if ``d[i] == j``: Fill the area
         between the i-th function in the list and the horizontal line y = j.)
 
-    - ``fillcolor`` - The color of the fill. One of:
-
-      - 'automatic' -- default
-      - a color, in RGB, color name, or HTML format
-      - a list or dictionary (valid in the event that `X` is a list),
-        with values taken from the options above.
-
     - ``fillalpha`` - (default: 0.5) How transparent the fill is.
       A number between 0 and 1.
-
-    .. note::
-
-        - this function does NOT simply sample equally spaced points
-          between xmin and xmax. Instead it computes equally spaced points
-          and adds small perturbations to them. This reduces the possibility
-          of, e.g., sampling `\sin` only at multiples of `2\pi`, which would
-          yield a very misleading graph.
-
-        - if there is a range of consecutive points where the function has
-          no value, then those points will be excluded from the plot. See
-          the example below on automatic exclusion of points.
-
 
     EXAMPLES:
 
@@ -1069,22 +1066,27 @@ def plot(funcs, *args, **kwds):
     We plot several functions together by passing a list of functions
     as input::
 
-        sage: plot([sin(n*x) for n in [1..4]], (0, pi))
-        Graphics object consisting of 4 graphics primitives
+        sage: plot([x*exp(-n*x^2)/.4 for n in [1..5]], (0, 2), aspect_ratio=.8)
+        Graphics object consisting of 5 graphics primitives
 
     .. PLOT::
 
-        g=plot([sin(n*x) for n in range(1,5)], (0, pi))
+        g = plot([x*exp(-n*x**2)/.4 for n in range(1,6)], (0, 2), aspect_ratio=.8)
         sphinx_plot(g)
 
     By default, color will change from one primitive to the next.
     This may be controlled by modifying ``color`` option::
 
-        sage: plot([sin(n*x)+n for n in [1..4]], (0, pi), color='blue')
-        Graphics object consisting of 4 graphics primitives
+        sage: g1 = plot([x*exp(-n*x^2)/.4 for n in [1..3]], (0, 2), color='blue', aspect_ratio=.8); g1
+        Graphics object consisting of 3 graphics primitives
+        sage: g2 = plot([x*exp(-n*x^2)/.4 for n in [1..3]], (0, 2), color=['red','red','green'], linestyle=['-','--','-.'], aspect_ratio=.8); g2
+        Graphics object consisting of 3 graphics primitives
 
-        sage: plot([sin(n*x)+n for n in [1..4]], (0, pi), color=['red','orange','green','purple'], linestyle=['-','-','--','-.'])
-        Graphics object consisting of 4 graphics primitives
+    .. PLOT::
+
+        g1 = plot([x*exp(-n*x**2)/.4 for n in range(1,4)], (0, 2), color='blue', aspect_ratio=.8)
+        g2 = plot([x*exp(-n*x**2)/.4 for n in range(1,4)], (0, 2), color=['red','red','green'], linestyle=['-','--','-.'], aspect_ratio=.8)
+        sphinx_plot(graphics_array([g1,g2]))
 
     We can also build a plot step by step from an empty plot::
 
@@ -1187,7 +1189,7 @@ def plot(funcs, *args, **kwds):
 
     .. PLOT::
 
-        g = plot(sin,legend_label='$sin$')
+        g = plot(sin,legend_label='sin')
         sphinx_plot(g)
 
     ::
@@ -1495,25 +1497,36 @@ def plot(funcs, *args, **kwds):
     The basic options for filling a plot::
 
         sage: p1 = plot(sin(x), -pi, pi, fill='axis')
-        sage: p2 = plot(sin(x), -pi, pi, fill='min')
+        sage: p2 = plot(sin(x), -pi, pi, fill='min', fillalpha=1)
         sage: p3 = plot(sin(x), -pi, pi, fill='max')
-        sage: p4 = plot(sin(x), -pi, pi, fill=0.5 + cos(x))
-        sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False) # long time
-
-    The basic options for filling a list of plots::
-
-        sage: p1 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill={1: [0]}, fillcolor='blue', fillalpha=.25, color='blue')
-        sage: p2 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill={0: 1, 1:[0]}, color=['blue'])
-        sage: p3 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill=[0, [0]], fillcolor=['#f60'], fillalpha=1, color={1: 'blue'})
-        sage: p4 = plot([sin(x), cos(2*x)*sin(x)], (x,-pi, pi), fill=[0, x/pi], fillcolor='grey', color=['red', 'blue'])
+        sage: p4 = plot(sin(x), -pi, pi, fill=(1-x)/3, fillcolor='blue', fillalpha=.2)
         sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False) # long time
 
     .. PLOT::
 
-        p1 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill={1: [0]}, fillcolor='blue', fillalpha=.25, color='blue')
-        p2 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill={0: 1, 1:[0]}, color=['blue'])
-        p3 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill=[0, [0]], fillcolor=['#f60'], fillalpha=1, color={1: 'blue'})
-        p4 = plot([sin(x), cos(2*x)*sin(x)], (x,-pi, pi), fill=[0, x/pi], fillcolor='grey', color=['red', 'blue'])
+        p1 = plot(sin(x), -pi, pi, fill='axis'); print p1
+        p2 = plot(sin(x), -pi, pi, fill='min', fillalpha=1)
+        p3 = plot(sin(x), -pi, pi, fill='max')
+        p4 = plot(sin(x), -pi, pi, fill=(1-x)/3, fillcolor='blue', fillalpha=.2)
+        g = graphics_array([[p1, p2], [p3, p4]])
+        sphinx_plot(g) # Needs to accept options 'frame', 'axes', ...
+
+    The basic options for filling a list of plots::
+
+        sage: (f1, f2) = x*exp(-1*x^2)/.35, x*exp(-2*x^2)/.35
+        sage: p1 = plot([f1, f2], -pi, pi, fill={1: [0]}, fillcolor='blue', fillalpha=.25, color='blue')
+        sage: p2 = plot([f1, f2], -pi, pi, fill={0: x/3, 1:[0]}, color=['blue'])
+        sage: p3 = plot([f1, f2], -pi, pi, fill=[0, [0]], fillcolor=['orange','red'], fillalpha=1, color={1: 'blue'})
+        sage: p4 = plot([f1, f2], (x,-pi, pi), fill=[x/3, 0], fillcolor=['grey'], color=['red', 'blue'])
+        sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False) # long time
+
+    .. PLOT::
+
+        (f1, f2) = x*exp(-1*x**2)/.35, x*exp(-2*x**2)/.35
+        p1 = plot([f1, f2], -pi, pi, fill={1: [0]}, fillcolor='blue', fillalpha=.25, color='blue')
+        p2 = plot([f1, f2], -pi, pi, fill={0: x/3, 1:[0]}, color=['blue'])
+        p3 = plot([f1, f2], -pi, pi, fill=[0, [0]], fillcolor=['orange','red'], fillalpha=1, color={1: 'blue'})
+        p4 = plot([f1, f2], (x,-pi, pi), fill=[x/3, 0], fillcolor=['grey'], color=['red', 'blue'])
         g = graphics_array([[p1, p2], [p3, p4]])
         sphinx_plot(g) # Needs to accept options 'frame', 'axes', ...
 
@@ -1557,18 +1570,19 @@ def plot(funcs, *args, **kwds):
     like ``i:j`` will fill between the ith function and the line y=j::
 
         sage: def b(n): return lambda x: bessel_J(n, x) + 0.5*(n-1)
-        sage: plot([b(c) for c in [1..5]], 0, 40, fill={i:[i+1] for i in [0..3]}, color='blue')
+        sage: plot([b(c) for c in [1..5]], 0, 20, fill={i:[i-1] for i in [1..4]}, color='blue', aspect_ratio=4); p1.ymax(3)
         Graphics object consisting of 9 graphics primitives
-        sage: plot([b(c) for c in [1..5]], 0, 40, fill={i:i+1 for i in [0..3]}, color='blue', linestyle='-') # long time
+        sage: plot([b(c) for c in [1..5]], 0, 20, fill={i:i-1 for i in [1..4]}, color='blue', aspect_ratio=4) # long time
         Graphics object consisting of 9 graphics primitives
 
-        .. PLOT::
+    .. PLOT::
 
-            def b(n): return lambda x: bessel_J(n, x) + 0.5*(n-1)
-            p1 = plot([b(c) for c in [1..5]], 0, 40, fill={i:[i+1] for i in [0..3]}, color='blue')
-            p2 = plot([b(c) for c in [1..5]], 0, 40, fill={i:i+1 for i in [0..3]}, color='blue', linestyle='-') # long time
-            g = graphics_array([p1,p2])
-            sphinx_plot(g) # Needs to accept options 'frame', 'axes', ...
+        def b(n): return lambda x: bessel_J(n, x) + 0.5*(n-1)
+        p1 = plot([b(n) for n in range(1,6)], 0, 20, fill={i:[i-1] for i in range(1,5)}, color='blue', aspect_ratio=4)
+        p2 = plot([b(n) for n in range(1,6)], 0, 20, fill={i:i-1 for i in range(1,5)}, color='blue', aspect_ratio=4) # long time
+        p1.ymax(3)
+        g = graphics_array([p1,p2])
+        sphinx_plot(g)
 
     Extra options will get passed on to :meth:`~sage.plot.graphics.Graphics.show`,
     as long as they are valid::
@@ -2030,11 +2044,12 @@ def _plot(funcs, xrange, parametric=False,
         G = Graphics()
         for i, h in enumerate(funcs):
             options_temp = options.copy()
-            fill_temp = options_temp.pop('fill', fill)
-            fillcolor_temp = options_temp.pop('fillcolor', 'automatic')
             color_temp = options_temp.pop('rgbcolor', 'automatic')
+            fill_temp = options_temp.pop('fill', fill)
+            fillcolor_temp = options_temp.pop('fillcolor', 'automatic') # perhaps the 2nd argument should be ``options_temp['color']``
             linestyle_temp = options_temp.pop('linestyle', None)
             legend_label_temp = options_temp.pop('legend_label', None)
+            legend_color_temp = options_temp.pop('legend_color', None)
 
             # passed more than one fill directive?
             if isinstance(fill_temp, dict):
@@ -2122,9 +2137,9 @@ def _plot(funcs, xrange, parametric=False,
                     # create only one legend entry if plots are one color and only one legend_label is given.
                     # give subsequent entries no label (show only their colored `linestyle` markers)
                     if isinstance(color_entry, str) or (isinstance(color_entry, tuple) and not isinstance(color_entry[0], str)):
-                        legend_label_entry = None 
+                        legend_label_entry = None
                     else:
-                        legend_label_entry = ' ' 
+                        legend_label_entry = ' '
             elif legend_label_temp is not None:
                 legend_label_entry = orig_funcs[i].__repr__() # the 'automatic' choice
                 if isinstance(legend_label_temp, dict):
@@ -2136,9 +2151,27 @@ def _plot(funcs, xrange, parametric=False,
             else:
                 legend_label_entry = None
 
+            # passed more than one legend_color directive?
+            if isinstance(legend_color_temp, dict):
+                if i in legend_color_temp:
+                    legend_color_entry = legend_color_temp[i]
+                else:
+                    legend_color_entry = 'black'
+            elif isinstance(legend_color_temp, (list, tuple)) and isinstance(legend_color_temp[0], (str, list, tuple)):
+                if i < len(legend_color_temp):
+                    legend_color_entry = legend_color_temp[i]
+                else:
+                    legend_color_entry = 'black'
+            elif legend_color_temp == 'automatic':
+                legend_color_entry = golden_rainbow(i)
+            elif legend_color_temp == None:
+                legend_color_entry = 'black'
+            else:
+                legend_color_entry = legend_color_temp
+
             G += plot(h, xrange, polar=polar, fill=fill_entry, fillcolor=fillcolor_entry, \
                       rgbcolor=color_entry, linestyle=linestyle_entry, \
-                      legend_label=legend_label_entry, **options_temp)
+                      legend_label=legend_label_entry, legend_color=legend_color_entry, **options_temp)
         return G
 
     adaptive_tolerance = options.pop('adaptive_tolerance')

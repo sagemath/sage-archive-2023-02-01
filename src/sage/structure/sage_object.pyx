@@ -5,7 +5,7 @@ Abstract base class for Sage objects
 
 from __future__ import absolute_import, print_function
 
-import cPickle
+from six.moves import cPickle
 import os
 import sys
 from six.moves import cStringIO as StringIO

@@ -3909,43 +3909,25 @@ class StandardTableauTuples(RowStandardTableauTuples):
         sage: tabs=StandardTableauTuples([[2],[1],[1,1]]); tabs
         Standard tableau tuples of shape ([2], [1], [1, 1])
         sage: tabs.cardinality()
-        30
-        sage: tabs.list()
-        [([[1, 2]], [[3]], [[4], [5]]),
-         ([[1, 3]], [[2]], [[4], [5]]),
-         ([[2, 3]], [[1]], [[4], [5]]),
-         ([[1, 2]], [[4]], [[3], [5]]),
-         ([[1, 3]], [[4]], [[2], [5]]),
-         ([[2, 3]], [[4]], [[1], [5]]),
-         ([[1, 4]], [[2]], [[3], [5]]),
-         ([[2, 4]], [[1]], [[3], [5]]),
-         ([[1, 4]], [[3]], [[2], [5]]),
-         ([[2, 4]], [[3]], [[1], [5]]),
-         ([[3, 4]], [[1]], [[2], [5]]),
-         ([[3, 4]], [[2]], [[1], [5]]),
-         ([[1, 2]], [[5]], [[3], [4]]),
-         ([[1, 3]], [[5]], [[2], [4]]),
-         ([[2, 3]], [[5]], [[1], [4]]),
-         ([[1, 4]], [[5]], [[2], [3]]),
-         ([[2, 4]], [[5]], [[1], [3]]),
-         ([[3, 4]], [[5]], [[1], [2]]),
-         ([[1, 5]], [[2]], [[3], [4]]),
-         ([[2, 5]], [[1]], [[3], [4]]),
-         ([[1, 5]], [[3]], [[2], [4]]),
-         ([[2, 5]], [[3]], [[1], [4]]),
-         ([[3, 5]], [[1]], [[2], [4]]),
-         ([[3, 5]], [[2]], [[1], [4]]),
-         ([[1, 5]], [[4]], [[2], [3]]),
-         ([[2, 5]], [[4]], [[1], [3]]),
-         ([[3, 5]], [[4]], [[1], [2]]),
-         ([[4, 5]], [[1]], [[2], [3]]),
-         ([[4, 5]], [[2]], [[1], [3]]),
-         ([[4, 5]], [[3]], [[1], [2]])]
+        12
+        sage: tabs[:]
+        [([[3, 4]], [[2], [1]]),
+         ([[2, 4]], [[3], [1]]),
+         ([[2, 3]], [[4], [1]]),
+         ([[3, 4]], [[1], [2]]),
+         ([[2, 4]], [[1], [3]]),
+         ([[2, 3]], [[1], [4]]),
+         ([[1, 4]], [[3], [2]]),
+         ([[1, 3]], [[4], [2]]),
+         ([[1, 4]], [[2], [3]]),
+         ([[1, 3]], [[2], [4]]),
+         ([[1, 2]], [[4], [3]]),
+         ([[1, 2]], [[3], [4]])]
 
         sage: tabs=StandardTableauTuples(level=3); tabs
         Standard tableau tuples of level 3
         sage: tabs[100]
-        ([[1, 2], [3]], [], [[4]])
+        ([], [], [[2, 3], [1]])
 
         sage: StandardTableauTuples()[0]
         ()
@@ -4092,14 +4074,7 @@ class StandardTableauTuples(RowStandardTableauTuples):
             sage: StandardTableauTuples()[10:20]
             [([[1, 2], [3]]),
              ([[1], [2], [3]]),
-             ([[1, 2]], []),
-             ([[1], [2]], []),
-             ([[1]], [[2]]),
-             ([[2]], [[1]]),
-             ([], [[1, 2]]),
-             ([], [[1], [2]]),
-             ([[1]], [], []),
-             ([], [[1]], [])]
+             ([[1, 2]], [])]
 
         .. TODO::
 
@@ -4656,7 +4631,7 @@ class StandardTableauTuples_shape(StandardTableauTuples):
             sage: STT
             Standard tableau tuples of shape ([2, 1], [2, 1, 1])
             sage: STT.cardinality()
-            210
+            1260
         """
         super(StandardTableauTuples_shape, self).__init__(category = FiniteEnumeratedSets())
         from sage.combinat.partition_tuple import PartitionTuple
@@ -4734,18 +4709,26 @@ class StandardTableauTuples_shape(StandardTableauTuples):
              ([[1, 4], [2]], [[3, 5]]),
              ([[1, 4], [3]], [[2, 5]]),
              ([[2, 4], [3]], [[1, 5]]),
-             ([[1, 2], [5]], [[3, 4]]),
-             ([[1, 3], [5]], [[2, 4]]),
              ([[2, 3], [5]], [[1, 4]]),
-             ([[1, 4], [5]], [[2, 3]]),
-             ([[2, 4], [5]], [[1, 3]]),
-             ([[3, 4], [5]], [[1, 2]]),
-             ([[1, 5], [2]], [[3, 4]]),
-             ([[1, 5], [3]], [[2, 4]]),
-             ([[2, 5], [3]], [[1, 4]]),
+             ([[2, 3], [4]], [[1, 5]]),
+             ([[4, 5], [1]], [[2, 3]]),
+             ([[3, 5], [1]], [[2, 4]]),
+             ([[3, 4], [1]], [[2, 5]]),
+             ([[2, 5], [1]], [[3, 4]]),
+             ([[2, 4], [1]], [[3, 5]]),
+             ([[2, 3], [1]], [[4, 5]]),
              ([[1, 5], [4]], [[2, 3]]),
-             ([[2, 5], [4]], [[1, 3]]),
-             ([[3, 5], [4]], [[1, 2]])]
+             ([[1, 4], [5]], [[2, 3]]),
+             ([[1, 5], [3]], [[2, 4]]),
+             ([[1, 4], [3]], [[2, 5]]),
+             ([[1, 3], [5]], [[2, 4]]),
+             ([[1, 3], [4]], [[2, 5]]),
+             ([[1, 5], [2]], [[3, 4]]),
+             ([[1, 4], [2]], [[3, 5]]),
+             ([[1, 3], [2]], [[4, 5]]),
+             ([[1, 2], [5]], [[3, 4]]),
+             ([[1, 2], [4]], [[3, 5]]),
+             ([[1, 2], [3]], [[4, 5]])]
 
         TESTS::
 
@@ -4929,7 +4912,6 @@ class StandardTableauTuples_shape(StandardTableauTuples):
             sage: StandardTableauTuples([[10],[],[]]).an_element()
             ([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], [], [])
         """
-
         c=self.cardinality()
         return self[c>3 and 4 or (c>1 and -1 or 0)]
 
@@ -5020,6 +5002,7 @@ class StandardTableaux_residue(StandardTableauTuples):
         self._multicharge=residue.multicharge()
         self._level=residue.level()
         self._size=residue.size()
+        self._base_ring = residue.base_ring()
 
     def __contains__(self, t):
         """
@@ -5033,6 +5016,8 @@ class StandardTableaux_residue(StandardTableauTuples):
             sage: [[[1,2],[3]],[[4,5]]] in tabs
             True
             sage: [[[1,2],[3]],[[4,5]]] in tabs
+            False
+            sage: [[[4,5],[3]],[[1,2]]] in tabs
             True
             sage: [[[1,2],[4,5]],[[3]]] in tabs
             False
@@ -5101,6 +5086,18 @@ class StandardTableaux_residue(StandardTableauTuples):
         # all done!
         return
 
+    def residue_sequence(self):
+        r"""
+        Return the residue sequence of ``self``.
+
+        EXAMPLES::
+
+            sage: T = RowStandardTableau([[1,2],[3]]).residue_sequence(3,(0,1)).row_standard_tableaux()
+            sage: T.residue_sequence()
+            3-residue sequence (0,1,2) with multicharge (0,1)
+        """
+        return self._residue
+
     def an_element(self):
         r"""
         Return a particular element of ``self``.
@@ -5135,21 +5132,13 @@ class StandardTableaux_residue_shape(StandardTableauTuples):
         ([2, 1], [2, 1, 1])
         sage: tabs.level()
         2
-        sage: tabs.cardinality()
-        12
-        sage: tabs.list()
-        [([[2, 7], [6]], [[1, 3], [4], [5]]),
-         ([[1, 7], [6]], [[2, 3], [4], [5]]),
-         ([[2, 3], [6]], [[1, 7], [4], [5]]),
-         ([[1, 3], [6]], [[2, 7], [4], [5]]),
-         ([[2, 5], [6]], [[1, 3], [4], [7]]),
-         ([[1, 5], [6]], [[2, 3], [4], [7]]),
-         ([[2, 3], [6]], [[1, 5], [4], [7]]),
-         ([[1, 3], [6]], [[2, 5], [4], [7]]),
-         ([[2, 5], [4]], [[1, 3], [6], [7]]),
-         ([[1, 5], [4]], [[2, 3], [6], [7]]),
-         ([[2, 3], [4]], [[1, 5], [6], [7]]),
-         ([[1, 3], [4]], [[2, 5], [6], [7]])]
+        sage: tabs[:6]
+        [([[5, 7], [4]], [[3, 6], [1], [2]]),
+         ([[5, 7], [1]], [[3, 6], [4], [2]]),
+         ([[3, 7], [4]], [[5, 6], [1], [2]]),
+         ([[3, 7], [1]], [[5, 6], [4], [2]]),
+         ([[5, 6], [4]], [[3, 7], [1], [2]]),
+         ([[5, 6], [1]], [[3, 7], [4], [2]])]
     """
 
     def __init__(self, residue, shape):
@@ -5176,7 +5165,32 @@ class StandardTableaux_residue_shape(StandardTableauTuples):
         self._multicharge=residue.multicharge()
         self._residue=residue
         self._shape=shape
-        self._size=residue.size()
+
+        # The _standard_tableaux attribute is used to generate the tableaux in
+        # this class. The key observation is that any row standard tableau is
+        # standard if we stretch it out to a tableau with one row in each
+        # component
+        multicharge=residue.multicharge()
+        if shape.level() == 1:
+            standard_shape = [ [r] for r in shape ]
+            charge = [multicharge[0] - r for r in range(len(shape))]
+        else:
+            standard_shape = [ [r] for mu in shape for r in mu]
+            charge = [multicharge[c] - r for c in range(len(shape)) for r in range(len(shape[c]))]
+
+        from sage.combinat.tableau_residues import ResidueSequence
+        res=ResidueSequence(residue.quantum_characteristic(), charge, residue.residues())
+        self._standard_tableaux = res.standard_tableaux(standard_shape)
+
+        # to convert the tableaux in self._standard_tableaux  to row standard
+        # tableau we use the following list that keeps track of the cumulative
+        # lengths of each component
+        if shape.level() == 1:
+            self._cumulative_lengths = [0, len(shape)]
+        else:
+            self._cumulative_lengths = [0]*(shape.level()+1)
+            for c in range(len(shape)):
+                self._cumulative_lengths[c+1] = self._cumulative_lengths[c] + len(shape[c])
 
     def __contains__(self, t):
         """
@@ -5208,12 +5222,12 @@ class StandardTableaux_residue_shape(StandardTableauTuples):
             sage: StandardTableau([[1,3],[2,4]]).residue_sequence(3).standard_tableaux([2,2])
             Standard (2^2)-tableaux with 3-residue sequence (0,2,1,0) and multicharge (0)
         """
-        return 'Standard ({})-tableaux with {}'.format(self._shape._repr_compact_high(),
+        return 'Row standard ({})-tableaux with {}'.format(self._shape._repr_compact_high(),
                                                        self._residue.__str__('and'))
 
     def __iter__(self):
         r"""
-        Iterate through ``self``.
+        Iterate through the row standard tableaux in ``self``.
 
         We construct this sequence of tableaux recursively, as it is easier
         (and more useful for applications to graded Specht modules).

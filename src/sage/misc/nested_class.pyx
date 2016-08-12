@@ -58,11 +58,11 @@ EXAMPLES::
 All of this is not perfect. In the following scenario::
 
     sage: class A1:
-    ...       class A2:
-    ...           pass
+    ....:     class A2:
+    ....:         pass
     sage: class B1:
-    ...       A2 = A1.A2
-    ...
+    ....:     A2 = A1.A2
+    ....:
 
 The name for ``"A1.A2"`` could potentially be set to ``"B1.A2"``. But that will work anyway.
 """
@@ -71,8 +71,7 @@ from __future__ import print_function
 import sys
 cdef dict sys_modules = sys.modules
 
-import types
-from types import ClassType
+from six import class_types as ClassType
 
 __all__ = ['modify_for_nested_pickle', 'nested_pickle',
            'NestedClassMetaclass', 'MainClass'

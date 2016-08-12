@@ -464,7 +464,9 @@ this data.
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
-from types import ClassType as classobj
+from six.moves.builtins import sorted
+from six import class_types as classobj
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_import import LazyImport
@@ -475,7 +477,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.global_options import GlobalOptions
 from sage.sets.family import Family
 from sage.misc.decorators import rename_keyword
-from six.moves.builtins import sorted
 
 # TODO:
 # Implement the Kac conventions by relabeling/dual/... of the above

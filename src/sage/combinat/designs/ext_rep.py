@@ -50,6 +50,7 @@ import sys
 
 # import compatible with py2 and py3
 from six.moves.urllib.request import urlopen
+from six import string_types as StringType
 
 XML_NAMESPACE   = 'http://designtheory.org/xml-namespace'
 DTRS_PROTOCOL   = '2.0'
@@ -715,7 +716,7 @@ class XTree(object):
                             # need this to get an empty Xtree, for append
                             return XTree(child)
                         grandchild = children[0]
-                        if isinstance(grandchild, TupleType):
+                        if isinstance(grandchild, tuple):
                             if len(grandchild[1]) == 0 and \
                                 len(grandchild[2]) == 0:
                                 return grandchild[0]
@@ -751,13 +752,13 @@ class XTree(object):
             child = self.xt_children[i]
         except IndexError:
             raise IndexError('{!r} has no index {}'.format(self, i))
-        if isinstance(child, TupleType):
+        if isinstance(child, tuple):
             name, attributes, children = child
             if len(attributes) > 0:
                 return XTree(child)
             else:
                 grandchild = children[0]
-                if isinstance(grandchild, TupleType):
+                if isinstance(grandchild, tuple):
                     if len(grandchild[1]) == 0 and len(grandchild[2]) == 0:
                         return grandchild[0]
                     else:
@@ -901,7 +902,7 @@ class XTreeProcessor(object):
 
         if self.in_item:
             children = self.current_node[2]
-            if len(children) > 0 and isinstance(children[0], TupleType):
+            if len(children) > 0 and isinstance(children[0], tuple):
                 if children[0][0] == 'z' or children[0][0] == 'd' \
                    or children[0][0] == 'q':
                     if children[0][0] == 'z':

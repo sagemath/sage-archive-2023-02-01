@@ -800,17 +800,21 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     def minimal_vanishing_polynomial(self, eval_pts, check=True):
         """
-        Return the minimal vanishing polynomial. Given the elements
-        `a_1, ..., a_s`, it is defined as the unique minimal degree polynomial
-        `p` such that `p` is monic and `p(a_i) = 0`, for `i = 1, ..., s`.
+        Return the minimal vanishing polynomial.
+
+        Given the elements `a_1, ..., a_s`, it is defined as the
+        unique minimal degree polynomial `p` such that `p` is monic
+        and `p(a_i) = 0`, for `i = 1, ..., s`.
 
         INPUT:
 
         - ``eval_pts`` -- list of evaluation points which are linearly
-          independent over the fixed field of the twist map of ``self``.
+          independent over the fixed field of the twist map of the associated
+          skew polynomial ring
 
         - ``check`` -- boolean (default: ``True``) that verifies whether the
-          `eval_pts` are linearly independent in the fixed field of twist map of ``self``.
+          `eval_pts` are linearly independent in the fixed field of twist map of
+          the associated skew polynomial ring
 
         OUTPUT:
 
@@ -892,21 +896,24 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     def interpolation_polynomial(self, eval_pts, values, check=True):
         """
-        Return the interpolation polynomial. Given `s` pairs of evaluation points
-        and values `{(x_1, y_1), ..., (x_s, y_s)}`, where each `x_i` is distinct
-        and non-zero, there exists a unique interpolation polynomial `I` such that
-        `I(x_i) = y_i`, for all `i = 1,...,s`.
+        Return the interpolation polynomial.
+
+        Given `s` pairs of evaluation points and values `{(x_1, y_1), ..., (x_s, y_s)}`,
+        where each `x_i` is distinct and non-zero, there exists a unique interpolation
+        polynomial `I` such that `I(x_i) = y_i`, for all `i = 1,...,s`.
 
         INPUT:
 
         - ``eval_pts`` -- list of evaluation points which are linearly
-          independent over the fixed field of the twist map of ``self``.
+          independent over the fixed field of the twist map of the associated
+          skew polynomial ring
 
         - ``values`` -- list of values that the interpolation polynomial `I` takes
           at the respective `eval_pts`
 
         - ``check`` -- boolean (default: ``True``) that verifies whether the
-          `eval_pts` are linearly independent in the fixed field of twist map of ``self``.
+          `eval_pts` are linearly independent in the fixed field of twist map of
+          the associated skew polynomial ring
 
         OUTPUT:
 

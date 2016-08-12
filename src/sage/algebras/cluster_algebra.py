@@ -980,7 +980,7 @@ class ClusterAlgebra(Parent):
 
     def __eq__(self, other):
         r"""
-        Test equality of two cluster algebras.
+        Test equality of two Cluster Algebras.
 
         INPUT:
 
@@ -990,8 +990,8 @@ class ClusterAlgebra(Parent):
 
             ``self`` and ``other`` are deemed to be equal if they have the same
             initial exchange matrix and their ambients coincide. In
-            particular we do not keep track of how much each algebra has been
-            explored.
+            particular we do not keep track of how much each Cluster Algebra has
+            been explored.
 
         EXAMPLES::
 
@@ -1331,7 +1331,7 @@ class ClusterAlgebra(Parent):
 
         - ``g_vector`` -- a tuple: the g-vector to find.
 
-        - ``depth`` -- a positive integer: the maximum distance from ``self.current_seed`` to reach.
+        - ``depth`` -- a positive integer or infinity (default ``infinity``): the maximum distance from ``self.current_seed`` to reach.
 
         OUTPUT:
 
@@ -1517,7 +1517,7 @@ class ClusterAlgebra(Parent):
 
     def initial_cluster_variable_names(self):
         r"""
-        Return the list of initial variable names.
+        Return the list of initial cluster variable names.
 
         EXAMPLES::
 
@@ -1542,10 +1542,10 @@ class ClusterAlgebra(Parent):
         - ``mutating_F`` -- bool (default True): whether to compute F-polynomials also;
           for speed considerations you may want to disable this.
 
-        - ``allowed_directions`` -- a tuple of integers (default
-          ``range(self.rk())``): the directions in which to mutate.
+        - ``allowed_directions`` -- a tuple of integers (default ``range(self.rk())``): the
+          directions in which to mutate.
 
-        - ``depth`` -- (defaulf ``infinity``):  the maximum depth at which to stop searching.
+        - ``depth`` -- a positive integer or infinity (default ``infinity``):  the maximum depth at which to stop searching.
 
         ALGORITHM:
 
@@ -1648,7 +1648,7 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``depth`` -- the maximum depth at which to stop searching.
+        - ``depth`` -- a positive integer or infinity: the maximum depth at which to stop searching.
 
         EXAMPLES::
 
@@ -1670,7 +1670,7 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``depth`` -- (default ``infinity``): the maximum depth at which to compute.
+        - ``depth`` -- a positive integer or infinity (default ``infinity``): the maximum depth at which to compute.
 
         EXAMPLES::
 

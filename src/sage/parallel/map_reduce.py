@@ -1142,13 +1142,12 @@ class RESetMapReduce(object):
                              (active_proc, timeout, self._aborted.value))
                 newres = self._results.get(timeout=timeout)
             except Empty:
-                aborted = self._aborted.value
-                logger.debug('Timed out waiting for results; aborted: %s' %
-                             aborted)
-                if aborted:
-                    return
-
-                continue
+                logger.debug('Timed out waiting for results; aborting')
+                # If we timed out here then the abort timer should have
+                # already fired, but just in case it didn't (or is in
+                # progress) wait for it to finish
+                self._timer.join()
+                return
 
             if newres is not None:
                 logger.debug("Got one result")

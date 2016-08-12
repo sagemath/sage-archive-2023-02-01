@@ -44,31 +44,29 @@ class RecognizableSeries(Element):
         r"""
         A recognizable series.
 
-        TODO-INPUT:
+        - ``parent`` -- an instance of :class:`RecognizableSeriesSpace`.
 
-        - ``parent`` -- an instance of :class:`kRegularSequenceSpace`.
+        - ``mu`` -- a family of square matrices, all of which have the
+          same dimension. The indices of this family are the alphabet.
+          ``mu`` may be a list or tuple of the same cardinality as the
+          alphabet as well. See :meth:`mu` for more details.
 
-        - ``matrices`` -- a tuple or other iterable of square matrices,
-          all of which have the same dimension.
+        - ``left`` -- (default: ``None``) a vector.  When evaluating a
+          coefficient, this vector is multiplied from the left to the
+          matrix obtained from :meth:`mu` applying on a word. If
+          ``None``, then this multiplication is skipped.
+          See :meth:`left` for more details.
 
-        - ``initial`` -- (default: ``None``) a vector.
-          When evaluating the sequence, this vector is multiplied
-          from the left to the matrix product. If ``None``, then this
-          multiplication is skipped.
+        - ``right`` -- (default: ``None``) a vector.  When evaluating a
+          coefficient, this vector is multiplied from the right to the
+          matrix obtained from :meth:`mu` applying on a word. If
+          ``None``, then this multiplication is skipped.
+          See :meth:`right` for more details.
 
-        - ``selection`` -- (default: ``None``) a vector.
-          When evaluating the sequence, this vector is multiplied
-          from the left to the matrix product. If ``None``, then this
-          multiplication is skipped.
-
-        - ``output_function`` -- (default: ``None``) a function, which is
-          applied after evaluating the sequence. This may be used to
-          extract the value of a 1x1 matrix.
-
-        - ``transpose`` -- (default: ``False``) a boolean. If set, then
-          each of the ``matrices``. Additionally the vectors ``initial``
-          and ``selection`` are switched and (if possible)
-          transposed as well.
+        - ``transpose`` -- (default: ``False``) a boolean. If set,
+          then each of the ``matrices`` is transposed.  Additionally
+          the vectors ``left`` and ``right`` are switched and (if
+          possible) transposed as well.
 
         EXAMPLES::
 
@@ -89,24 +87,18 @@ class RecognizableSeries(Element):
 
         .. SEEALSO::
 
-            :doc:`k-regular sequence <k_regular_sequence>`,
-            :class:`kRegularSequenceSpace`.
+            :doc:`recognizable series <recognizable_series>`,
+            :class:`RecognizableSeriesSpace`.
 
         TESTS::
 
             sage: M0 = Matrix([[1, 0], [0, 1]])
             sage: M1 = Matrix([[0, -1], [1, 2]])
-            sage: S = Rec(mu=(M0, M1))  # not tested
+            sage: S = Rec(mu=(M0, M1))  # not tested TODO
         """
         super(RecognizableSeries, self).__init__(parent=parent)
 
         from sage.sets.family import Family
-
-        def tr(M):
-            try:
-                return M.transpose()
-            except AttributeError:
-                return M
 
         A = self.parent().alphabet()
         if isinstance(mu, (list, tuple)):
@@ -124,13 +116,50 @@ class RecognizableSeries(Element):
         #    raise ValueError  # TODO
 
         if not transpose:
-            self.left = left
-            self.mu = mu
-            self.right = right
+            self._left_ = left
+            self._mu_ = mu
+            self._right_ = right
         else:
-            self.left = tr(right)
-            self.mu = mu.map(tr)
-            self.right = tr(left)
+            def tr(M):
+                try:
+                    return M.transpose()
+                except AttributeError:
+                    return M
+
+            self._left_ = tr(right)
+            self._mu_ = mu.map(tr)
+            self._right_ = tr(left)
+
+
+    @property
+    def mu(self):
+        r"""
+        When evaluating a coefficient, this is applied on each letter
+        of a word; the result is a matrix.
+        This extends :meth:`mu` to words over the parent's
+        :meth:`~RecognizableSeriesSpace.alphabet`.
+        """
+        return self._mu_
+
+
+    @property
+    def left(self):
+        r"""
+        When evaluating a coefficient, this vector is multiplied from
+        the left to the matrix obtained from :meth:`mu` applied on a
+        word.
+        """
+        return self._left_
+
+
+    @property
+    def right(self):
+        r"""
+        When evaluating a coefficient, this vector is multiplied from
+        the right to the matrix obtained from :meth:`mu` applied on a
+        word.
+        """
+        return self._right_
 
 
     def _repr_(self):
@@ -139,7 +168,7 @@ class RecognizableSeries(Element):
 
         OUTPUT:
 
-        A string
+        A string.
 
         TESTS::
 
@@ -159,15 +188,17 @@ class RecognizableSeries(Element):
     @cached_method
     def __getitem__(self, w):
         r"""
-        Return the coefficient to word `w` of this sequence.
+        Return the coefficient to word `w` of this series.
 
         INPUT:
 
-        - ``n`` -- a nonnegative integer.
+        - ``w`` -- a word over the parent's
+          :meth:`~RecognizableSeriesSpace.alphabet`.
 
         OUTPUT:
 
-        An element of the universe of the sequence.
+        An element in the parent's
+        :meth:`~RecognizableSeriesSpace.coefficients`.
 
         EXAMPLES::
 
@@ -178,7 +209,7 @@ class RecognizableSeries(Element):
             sage: S[W(7.digits(2))]
             3
         """
-        result = self._product_of_matrices_(w)
+        result = self._mu_of_word_(w)
         if self.left is not None:
             result = self.left * result
         if self.right is not None:
@@ -187,23 +218,48 @@ class RecognizableSeries(Element):
 
 
     @cached_method
-    def _mu_empty_(self):
+    def _mu_of_empty_word_(self):
+        r"""
+        Return :meth:`mu` applied on the empty word.
+
+        OUTPUT:
+
+        A matrix.
+
+        TESTS::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: W = Rec.indices()
+            sage: M0 = Matrix([[1, 0], [0, 1]])
+            sage: M1 = Matrix([[0, -1], [1, 2]])
+            sage: S = Rec({W([0]): M0, W([1]): M1})
+            sage: S._mu_of_empty_word_()
+            [1 0]
+            [0 1]
+            sage: I = Matrix([[1, 0], [0, 1]])
+            sage: T = Rec({W([]): I, W([0]): M0, W([1]): M1})
+            sage: T._mu_of_empty_word_()
+            [1 0]
+            [0 1]
+            sage: _ is I
+            True
+        """
         eps = self.parent().indices()()
         try:
             return self.mu[eps]
         except KeyError:
-            return next(iter(self.mu.values())).parent().one()
+            return next(iter(self.mu)).parent().one()
 
 
     @cached_method
-    def _product_of_matrices_(self, w):
+    def _mu_of_word_(self, w):
         r"""
-        Return the product of matrices according to the `k`-ary
-        digit expansion of `m`.
+        Return :meth:`mu` applied on the word `w`.
 
         INPUT:
 
-        - ``m`` -- a nonnegative integer.
+        - ``w`` -- a word over the parent's
+          :meth:`~RecognizableSeriesSpace.alphabet`.
 
         OUTPUT:
 
@@ -216,16 +272,16 @@ class RecognizableSeries(Element):
             sage: M0 = Matrix([[1, 0], [0, 1]])
             sage: M1 = Matrix([[0, -1], [1, 2]])
             sage: S = Rec((M0, M1))
-            sage: S._product_of_matrices_(W([0])) == M0
+            sage: S._mu_of_word_(W([0])) == M0
             True
-            sage: S._product_of_matrices_(W([1])) == M1
+            sage: S._mu_of_word_(W([1])) == M1
             True
-            sage: S._product_of_matrices_(W(3.digits(2))) == M1^2
+            sage: S._mu_of_word_(W(3.digits(2))) == M1^2
             True
 
         ::
 
-            sage: S._product_of_matrices_(-1)
+            sage: S._mu_of_word_(-1)
             Traceback (most recent call last):
             ...
             ValueError: m=-1 is not a nonnegative integer.
@@ -233,12 +289,12 @@ class RecognizableSeries(Element):
         if w not in self.parent().indices():
             raise ValueError('TODO')
         from sage.misc.misc_c import prod
-        return prod(tuple(self.mu[a] for a in w), z=self._mu_empty_())
+        return prod(tuple(self.mu[a] for a in w), z=self._mu_of_empty_word_())
 
 
     def __iter__(self):
         r"""
-        Return an iterator.
+        Return an iterator over pairs ``(coefficient, basis(index))``.
 
         EXAMPLES::
 
@@ -280,6 +336,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
     Element = RecognizableSeries
 
+
     @staticmethod
     def __classcall__(cls,
                       coefficients=None, alphabet=None, 
@@ -289,7 +346,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         Normalizes the input in order to ensure a unique
         representation.
 
-        For more information see :class:`kRegularSequenceSpace`.
+        For more information see :class:`ReconizableSeriesSpace`.
 
         TESTS::
 
@@ -324,19 +381,29 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
     def __init__(self, algebra, output_function, category):
         r"""
-        The space of `k`-regular Sequences over the given ``universe``.
+        The space of recognizable series on the given alphabet and
+        with the given coefficients.
 
         INPUT:
 
-        - ``k`` -- an integer at least `2` specifying the base.
+        - ``coefficients`` -- a (semi-)ring.
 
-        - ``universe`` -- (default: ``None``) a object (e.g. a SageMath parent)
-          in which the entries of a sequence live.
-          If ``None``, then the integer ring `\ZZ` is used.
+        - ``alphabet`` -- a tuple, list or totally ordered set.
+          If specified, then the ``indices`` are the
+          finite words over this ``alphabet``.
 
-        - ``category`` -- (default: ``None``) the category of the
-          sequence space. If ``None``, then the category of
-          :class:`~sage.categories.sets_cat.Sets` is used.
+        - ``indices`` -- a SageMath parent.
+
+        - ``algebra`` -- a SageMath parent.
+          If specified, then ``coefficients``
+          and ``indices`` are determined by this ``algebra``.
+
+        - ``output_function`` -- (default: ``None'') If specified,
+          then this is applied on each coefficient.
+
+        - ``category`` -- (default: ``None``) the category of this
+          space. If ``None``, then the category of the ``algebra``
+          is used.
 
         EXAMPLES::
 
@@ -355,11 +422,10 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             sage: S1 is S2 is S3 is S4
             True
 
-
         .. SEEALSO::
 
-            :doc:`k-regular sequence <k_regular_sequence>`,
-            :class:`kRegularSequence`.
+            :doc:`recognizable series <recognizable_series>`,
+            :class:`RecognizableSeries`.
         """
         self._algebra_ = algebra
         if output_function is None:
@@ -371,21 +437,66 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
 
     def alphabet(self):
-        return self._algebra_.indices().alphabet()
-
-    def indices(self):
-        return self._algebra_.indices()
-
-    def coefficients(self):
-        return self.base()
-
-    def _repr_(self):
         r"""
-        Return a representation string of this `k`-regular sequence space.
+        Return the alphabet of this recognizable series space.
 
         OUTPUT:
 
-        A string
+        A totally ordered set.
+
+        EXAMPLES::
+
+            sage: RecognizableSeriesSpace(ZZ, [0, 1]).alphabet()
+            {0, 1}
+
+        TESTS::
+
+            sage: type(RecognizableSeriesSpace(ZZ, [0, 1]).alphabet())
+            <class 'sage.sets.totally_ordered_finite_set.TotallyOrderedFiniteSet_with_category'>
+        """
+        return self._algebra_.indices().alphabet()
+
+
+    def indices(self):
+        r"""
+        Return the indices of the recognizable series.
+
+        OUTPUT:
+
+        The set of finite words over the alphabet.
+
+        EXAMPLES::
+
+            sage: RecognizableSeriesSpace(ZZ, [0, 1]).indices()
+            Finite words over {0, 1}
+        """
+        return self._algebra_.indices()
+
+
+    def coefficients(self):
+        r"""
+        Return the coefficients of this recognizable series space.
+
+        OUTPUT:
+
+        A (semi-)ring.
+
+        EXAMPLES::
+
+            sage: RecognizableSeriesSpace(ZZ, [0, 1]).coefficients()
+            Integer Ring
+        """
+        return self.base()
+
+
+    def _repr_(self):
+        r"""
+        Return a representation string of this recognizable sequence
+        space.
+
+        OUTPUT:
+
+        A string.
 
         TESTS::
 
@@ -394,5 +505,5 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         """
         return 'Space of recognizable series on {} ' \
                'with coefficients in {}'.format(self.alphabet(),
-                                                 self.coefficients())
+                                                self.coefficients())
 

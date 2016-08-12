@@ -472,9 +472,9 @@ cdef class WeakValueDictionary(dict):
         ....:     def __init__(self, n):
         ....:         self.n = n
         ....:     def __lt__(self, other):
-        ....:         if type(self) != type(other):
-        ....:             return NotImplemented
         ....:         return self.n < other.n
+        ....:     def __eq__(self, other):
+        ....:         return self.n == other.n
         sage: B = 100
         sage: L = [None]*B
         sage: D1 = WeakValueDictionary()
@@ -1031,9 +1031,9 @@ cdef class WeakValueDictionary(dict):
             ....:     def __repr__(self):
             ....:         return "<%s>" % self.n
             ....:     def __lt__(self, other):
-            ....:         if type(self) != type(other):
-            ....:             return NotImplemented
             ....:         return self.n < other.n
+            ....:     def __eq__(self, other):
+            ....:         return self.n == other.n
             sage: L = [Vals(n) for n in range(10)]
             sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(L))
 
@@ -1080,9 +1080,9 @@ cdef class WeakValueDictionary(dict):
             ....:     def __repr__(self):
             ....:         return "<%s>" % self.n
             ....:     def __lt__(self, other):
-            ....:         if type(self) != type(other):
-            ....:             return NotImplemented
             ....:         return self.n < other.n
+            ....:     def __eq__(self, other):
+            ....:         return self.n == other.n
             sage: L = [Vals(n) for n in range(10)]
             sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(L))
 
@@ -1116,9 +1116,9 @@ cdef class WeakValueDictionary(dict):
             ....:     def __repr__(self):
             ....:         return "<%s>" % self.n
             ....:     def __lt__(self, other):
-            ....:         if type(self) != type(other):
-            ....:             return NotImplemented
             ....:         return self.n < other.n
+            ....:     def __eq__(self, other):
+            ....:         return self.n == other.n
             sage: class Keys(object):
             ....:     def __init__(self, n):
             ....:         self.n = n
@@ -1129,9 +1129,9 @@ cdef class WeakValueDictionary(dict):
             ....:     def __repr__(self):
             ....:         return "[%s]" % self.n
             ....:     def __lt__(self, other):
-            ....:         if type(self) != type(other):
-            ....:             return NotImplemented
             ....:         return self.n < other.n
+            ....:     def __eq__(self, other):
+            ....:         return self.n == other.n
             sage: L = [(Keys(n), Vals(n)) for n in range(10)]
             sage: D = sage.misc.weak_dict.WeakValueDictionary(L)
 
@@ -1178,9 +1178,9 @@ cdef class WeakValueDictionary(dict):
             ....:     def __repr__(self):
             ....:         return "<%s>" % self.n
             ....:     def __lt__(self, other):
-            ....:         if type(self) != type(other):
-            ....:             return NotImplemented
             ....:         return self.n < other.n
+            ....:     def __eq__(self, other):
+            ....:         return self.n == other.n
             sage: class Keys(object):
             ....:     def __init__(self, n):
             ....:         self.n = n
@@ -1191,9 +1191,9 @@ cdef class WeakValueDictionary(dict):
             ....:     def __repr__(self):
             ....:         return "[%s]" % self.n
             ....:     def __lt__(self, other):
-            ....:         if type(self) != type(other):
-            ....:             return NotImplemented
             ....:         return self.n < other.n
+            ....:     def __eq__(self, other):
+            ....:         return self.n == other.n
             sage: L = [(Keys(n), Vals(n)) for n in range(10)]
             sage: D = sage.misc.weak_dict.WeakValueDictionary(L)
 

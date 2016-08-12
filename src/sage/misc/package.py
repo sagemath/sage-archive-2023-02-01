@@ -335,17 +335,11 @@ def package_versions(package_type, local=False):
     EXAMPLES::
 
         sage: std = package_versions('standard', local=True)
-        doctest:...: DeprecationWarning: package_versions is deprecated. Use
-        list_packages from sage.misc.package
-        See http://trac.sagemath.org/19213 for details.
         sage: 'gap' in std
         True
         sage: std['zn_poly']
         ('0.9.p11', '0.9.p11')
     """
-    from sage.misc.superseded import deprecation
-    deprecation(19213, "package_versions is deprecated. Use list_packages "
-            "from sage.misc.package")
     return {pkg['name']: (pkg['installed_version'], pkg['remote_version']) for pkg in list_packages(package_type, local=local).values()}
 
 def standard_packages():
@@ -369,15 +363,9 @@ def standard_packages():
 
         sage: from sage.misc.package import standard_packages
         sage: installed, not_installed = standard_packages()
-        doctest:...: DeprecationWarning: standard_packages is deprecated. Use
-        list_packages from sage.misc.package
-        See http://trac.sagemath.org/19213 for details.
         sage: installed[0], installed[-1]
         ('alabaster', 'zope_interface')
     """
-    from sage.misc.superseded import deprecation
-    deprecation(19213, "standard_packages is deprecated. Use list_packages "
-            "from sage.misc.package")
     pkgs = list_packages('standard', local=True).values()
     return (sorted(pkg['name'] for pkg in pkgs if pkg['installed']),
             sorted(pkg['name'] for pkg in pkgs if not pkg['installed']))
@@ -403,9 +391,6 @@ def optional_packages():
 
         sage: from sage.misc.package import optional_packages
         sage: installed, not_installed = optional_packages()
-        doctest:...: DeprecationWarning: optional_packages is deprecated. Use
-        list_packages from sage.misc.package
-        See http://trac.sagemath.org/19213 for details.
         sage: 'ore_algebra' in installed+not_installed
         True
         sage: 'beautifulsoup' in installed+not_installed
@@ -416,9 +401,6 @@ def optional_packages():
         sage: 'ore_algebra' in installed     # optional - ore_algebra
         True
     """
-    from sage.misc.superseded import deprecation
-    deprecation(19213, "optional_packages is deprecated. Use list_packages "
-            "from sage.misc.package")
     pkgs = list_packages('optional', local=True)
     pkgs.update(list_packages('pip', local=True))
     pkgs = pkgs.values()
@@ -446,13 +428,7 @@ def experimental_packages():
 
         sage: from sage.misc.package import experimental_packages
         sage: installed, not_installed = experimental_packages()
-        doctest:...: DeprecationWarning: experimental_packages is deprecated. Use
-        list_packages from sage.misc.package
-        See http://trac.sagemath.org/19213 for details.
     """
-    from sage.misc.superseded import deprecation
-    deprecation(19213, "experimental_packages is deprecated. Use list_packages "
-            "from sage.misc.package")
     pkgs = list_packages('experimental', local=True).values()
     return (sorted(pkg['name'] for pkg in pkgs if pkg['installed']),
             sorted(pkg['name'] for pkg in pkgs if not pkg['installed']))

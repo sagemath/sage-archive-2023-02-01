@@ -46,11 +46,13 @@ import stat
 import sys
 import time
 import resource
+import subprocess
 import sage.misc.prandom as random
 from .lazy_string import lazy_string
 
+from sage.misc.decorators import sage_wraps
 
-from sage.env import DOT_SAGE, HOSTNAME
+from sage.env import DOT_SAGE, HOSTNAME, SAGE_LOCAL
 
 LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())
 
@@ -1858,3 +1860,34 @@ def inject_variable_test(name, value, depth):
         inject_variable(name, value)
     else:
         inject_variable_test(name, value, depth - 1)
+
+
+#################################################################
+# Replacements (as needed) for Python stdlib functions to provide
+# better platform compatibility
+#################################################################
+from ctypes.util import find_library
+if sys.platform == 'cygwin':
+    # find_library that works in cygwin adapted from
+    # http://cygwin-ports.svn.sourceforge.net/viewvc/cygwin-ports/ports/trunk/lang/python/2.5.2-ctypes-util-find_library.patch?revision=8245&view=markup
+    @sage_wraps(find_library)
+    def find_library(name):
+        for libdir in [os.path.join(SAGE_LOCAL, 'lib'),
+                       '/usr/local/lib', '/usr/lib']:
+            for libext in ['dll.a', 'a']:
+                implib = os.path.join(libdir,
+                                      'lib{0}.{1}'.format(name, libext))
+                if not os.path.exists(implib):
+                    continue
+
+                cmd = ['dlltool', '-I', implib]
+
+                p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                          stderr=subprocess.PIPE)
+                p.wait()
+
+                if p.returncode == 0:
+                    ret = p.stdout.read()
+                    if sys.version_info[0] >= 3:
+                        ret = ret.decode('latin1')
+                    return ret.rstrip()

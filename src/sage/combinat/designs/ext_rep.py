@@ -40,7 +40,6 @@ Functions
 
 import sys
 import xml.parsers.expat
-from types import *
 import re
 import os.path
 import gzip
@@ -50,7 +49,7 @@ import sys
 
 # import compatible with py2 and py3
 from six.moves.urllib.request import urlopen
-from six import string_types as StringType
+from six import string_types
 
 XML_NAMESPACE   = 'http://designtheory.org/xml-namespace'
 DTRS_PROTOCOL   = '2.0'
@@ -669,7 +668,7 @@ class XTree(object):
         """
 
 
-        if isinstance(node, StringType):
+        if isinstance(node, string_types):
             node = (node, {}, [])
         name, attributes, children = node
         self.xt_node = node
@@ -999,10 +998,11 @@ class XTreeProcessor(object):
         p.CharacterDataHandler = self._char_data
         p.returns_unicode = 0
 
-        if isinstance(xml_source, StringType):
+        if isinstance(xml_source, string_types):
             p.Parse(xml_source)
         else:
             p.ParseFile(xml_source)
+
 
 def designs_from_XML(fname):
     """
@@ -1068,4 +1068,3 @@ def designs_from_XML_url(url):
     proc.parse(s)
 
     return proc.list_of_designs
-

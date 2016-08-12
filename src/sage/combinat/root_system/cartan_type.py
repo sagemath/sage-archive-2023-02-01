@@ -987,8 +987,8 @@ class CartanType_abstract(object):
 
             sage: C = CartanType(["A",3,1])
             sage: class MyCartanType:
-            ...       def my_method(self):
-            ...           return 'I am here!'
+            ....:     def my_method(self):
+            ....:         return 'I am here!'
             sage: C._add_abstract_superclass(MyCartanType)
             sage: C.__class__
             <class 'sage.combinat.root_system.type_A_affine.CartanType_with_superclass_with_superclass'>
@@ -1001,7 +1001,7 @@ class CartanType_abstract(object):
         .. TODO:: Generalize to :class:`SageObject`?
         """
         from sage.structure.dynamic_class import dynamic_class
-        assert isinstance(classes, (tuple, type, class_types))
+        assert isinstance(classes, (tuple, class_types))
         if not isinstance(classes, tuple):
             classes = (classes,)
         bases = (self.__class__,) + classes

@@ -904,11 +904,13 @@ exp_polar = Function_exp_polar()
 class Function_harmonic_number_generalized(BuiltinFunction):
     r"""
     Harmonic and generalized harmonic number functions,
-    defined by
+    defined by:
 
     .. math::
 
-        H_{n}=H_{n,1}=\sum_{k=1}^n\frac1k,\qquad H_{n,m}=\sum_{k=1}^n\frac1{k^m}
+        H_{n}=H_{n,1}=\sum_{k=1}^n\frac1k
+        
+        H_{n,m}=\sum_{k=1}^n\frac1{k^m}
 
     They are also well-defined for complex argument, through:
 
@@ -919,7 +921,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
         H_{s,m}=\zeta(m)-\zeta(m,s-1)
 
     If called with a single argument, that argument is ``s`` and ``m`` is
-    assumed to be 1 (the normal harmonic numbers ``H_m``).
+    assumed to be 1 (the normal harmonic numbers ``H_s``).
 
     ALGORITHM:
 
@@ -1035,10 +1037,6 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             0.386627621982332
             sage: harmonic_number(3,5/2)
             1/27*sqrt(3) + 1/8*sqrt(2) + 1
-            sage: harmonic_number(Qp(5)(10),1)
-            4*5^-1 + 2 + 2*5 + 4*5^2 + 3*5^3 + 5^4 + ...
-            sage: harmonic_number(Qp(5)(10),2)
-            4*5^-1 + 3 + 5 + 3*5^2 + 2*5^3 + 3*5^5 + ...
         """
         if m == 0:
             return z
@@ -1167,7 +1165,7 @@ register_symbol(_swap_harmonic,{'maple':'harmonic'})
 
 class Function_harmonic_number(BuiltinFunction):
     r"""
-    Harmonic number function, defined by
+    Harmonic number function, defined by:
 
     .. math::
 
@@ -1207,8 +1205,6 @@ class Function_harmonic_number(BuiltinFunction):
             -2*log(2) + 46/15
             sage: harmonic_number(2*x)
             harmonic_number(2*x)
-            sage: harmonic_number(Qp(5)(3))
-            1 + 5 + 4*5^2 + 4*5^4 + 4*5^6 + ...
         """
         from sage.symbolic.ring import SR
         P = s_parent(z)

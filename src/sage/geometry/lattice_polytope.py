@@ -2333,7 +2333,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             M(0, 1)
             in 2-d lattice M
 
-        ... or you can see indices of the vertices of the orginal polytope that
+        ... or you can see indices of the vertices of the original polytope that
         correspond to the above ones::
 
             sage: face.ambient_vertex_indices()

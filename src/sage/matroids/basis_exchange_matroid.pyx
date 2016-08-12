@@ -144,7 +144,7 @@ cdef class BasisExchangeMatroid(Matroid):
         general, methods of ``BasisExchangeMatroid`` having a name starting
         with two underscores deal with such encoded subsets.
 
-        A second task of this initializer is to store the rank and intialize
+        A second task of this initializer is to store the rank and initialize
         the 'current' basis.
 
         EXAMPLES::

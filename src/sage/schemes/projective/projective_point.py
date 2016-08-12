@@ -1485,7 +1485,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             # error, then we suspect preperiodic so check
             # either we can find the cycle or the height is
             # larger than the difference between the canonical height
-            # and the height, so the cannonical height cannot be 0
+            # and the height, so the canonical height cannot be 0
             B = f.height_difference_bound()
             orbit = [self]
             n = 1 # to compute period

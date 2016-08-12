@@ -422,7 +422,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
 
         AUTHORS:
 
-        - Julian Rueth (2012-10-18): intial version
+        - Julian Rueth (2012-10-18): initial version
 
         EXAMPLES:
 

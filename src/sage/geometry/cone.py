@@ -2450,7 +2450,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             N(1, 0)
             in 2-d lattice N
 
-        ... or you can see indices of the rays of the orginal cone that
+        ... or you can see indices of the rays of the original cone that
         correspond to the above ray::
 
             sage: face.ambient_ray_indices()

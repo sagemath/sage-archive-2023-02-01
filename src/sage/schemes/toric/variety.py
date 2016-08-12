@@ -1504,7 +1504,7 @@ class ToricVariety_field(AmbientSpace):
             * The ``i``-th entry in each Mori vector is the intersection
               number of the curve corresponding to the generator of the
               ``i``-th ray of the fan with the corresponding divisor class.
-              The very last entry is associated to the orgin of the fan
+              The very last entry is associated to the origin of the fan
               lattice.
 
             * The Mori vectors are also known as the gauged linear sigma model

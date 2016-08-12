@@ -1289,7 +1289,7 @@ class InfinityCrystalOfAlcovePaths(UniqueRepresentation, Parent):
                 sage: x = mg.f_string([2,3,1,4,4,2,3,1])
                 sage: TestSuite(x).run()
             """
-            CrystalOfAlcovePathsElement.__init__(self, parent, elt)
+            ElementWrapper.__init__(self, parent, elt)
             self._shift = shift
 
         def e(self, i):

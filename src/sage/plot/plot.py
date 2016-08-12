@@ -853,7 +853,7 @@ def plot(funcs, *args, **kwds):
 
     - ``legend_label`` - a (TeX) string serving as the label for `X` in the legend.
       If `X` is a list, then this option can be a single string, or a list or dictionary
-      with strings as entries/values. If a dictionary, keys taken from ``range(len(X))``.
+      with strings as entries/values. If a dictionary, then keys are taken from ``range(len(X))``.
 
     .. note::
 
@@ -895,14 +895,14 @@ def plot(funcs, *args, **kwds):
         if a dictionary, keys are taken from ``range(len(X))``;
         the entries/values of the list/dictonary may be any of the options above.
 
-      - 'automatic' -- maps to blue if `X` is a single Sage object; and
+      - 'automatic' -- maps to default ('blue') if `X` is a single Sage object; and
         maps to a fixed sequence of regularly spaced colors if `X` is a list.
 
-    - ``legend_color`` - the color of the text for `X` (or each item in `X`)
-        in the legend; follows the same usage convention as ``color``.
+    - ``legend_color`` - the color of the text for `X` (or each item in `X`) in the legend.
+        Default color is 'black'. Options are as in ``color`` above, except that the choice 'automatic' maps to 'black' if `X` is a single Sage object.
 
-    - ``fillcolor`` - The color of the fill for the plot of `X` (or each item in `X`);
-        follows the same usage convention as ``color``.
+    - ``fillcolor`` - The color of the fill for the plot of `X` (or each item in `X`).
+        Default color is 'gray' if `X` is a single Sage object or if ``color`` is a single color. Otherwise, options are as in ``color`` above.
 
     APPEARANCE OPTIONS:
 
@@ -1086,7 +1086,7 @@ def plot(funcs, *args, **kwds):
 
         g1 = plot([x*exp(-n*x**2)/.4 for n in range(1,4)], (0, 2), color='blue', aspect_ratio=.8)
         g2 = plot([x*exp(-n*x**2)/.4 for n in range(1,4)], (0, 2), color=['red','red','green'], linestyle=['-','--','-.'], aspect_ratio=.8)
-        sphinx_plot(graphics_array([g1,g2]))
+        sphinx_plot(graphics_array([[g1], [g2]]))
 
     We can also build a plot step by step from an empty plot::
 
@@ -1237,6 +1237,28 @@ def plot(funcs, *args, **kwds):
 
         g = plot(sin(x), legend_label='$\sin(x)$')
         g.set_legend_options(back_color=(0.9,0.9,0.9), shadow=False)
+        sphinx_plot(g)
+
+    If `X` is a list of Sage objects and ``legend_label`` is 'automatic', then Sage will
+    create labels for each function according to their internal representation::
+
+        sage: plot([sin(x), tan(x), 1-x^2], legend_label='automatic')
+        Graphics object consisting of 3 graphics primitives
+
+    .. PLOT::
+
+        g = plot([sin(x), tan(x), 1-x**2], legend_label='automatic')
+        sphinx_plot(g)
+
+    If ``legend_label`` is any single string other than 'automatic',
+    then it is repeated for all members of `X`::
+
+        sage: plot([sin(x), tan(x)], color='blue', legend_label='trig')
+        Graphics object consisting of 2 graphics primitives
+
+    .. PLOT::
+
+        g = plot([sin(x), tan(x)], color='blue', legend_label='trig')
         sphinx_plot(g)
 
     Note that the independent variable may be omitted if there is no
@@ -1565,23 +1587,23 @@ def plot(funcs, *args, **kwds):
         g = plot([b(n) for n in range(1,6)], 0, 20, fill='axis')
         sphinx_plot(g)
 
-    Note that to fill between the ith and jth functions, you
-    must use dictionary key-value pairs ``i:[j]``; key-value pairs
+    Note that to fill between the ith and jth functions, you must use
+    the dictionary key-value syntax ``i:[j]``; using key-value pairs
     like ``i:j`` will fill between the ith function and the line y=j::
 
         sage: def b(n): return lambda x: bessel_J(n, x) + 0.5*(n-1)
-        sage: plot([b(c) for c in [1..5]], 0, 20, fill={i:[i-1] for i in [1..4]}, color='blue', aspect_ratio=4); p1.ymax(3)
+        sage: plot([b(c) for c in [1..5]], 0, 20, fill={i:[i-1] for i in [1..4]}, color={i:'blue' for i in [1..5]}, aspect_ratio=3, ymax=3);
         Graphics object consisting of 9 graphics primitives
-        sage: plot([b(c) for c in [1..5]], 0, 20, fill={i:i-1 for i in [1..4]}, color='blue', aspect_ratio=4) # long time
+        sage: plot([b(c) for c in [1..5]], 0, 20, fill={i:i-1 for i in [1..4]}, color='blue', aspect_ratio=3) # long time
         Graphics object consisting of 9 graphics primitives
 
     .. PLOT::
 
         def b(n): return lambda x: bessel_J(n, x) + 0.5*(n-1)
-        p1 = plot([b(n) for n in range(1,6)], 0, 20, fill={i:[i-1] for i in range(1,5)}, color='blue', aspect_ratio=4)
-        p2 = plot([b(n) for n in range(1,6)], 0, 20, fill={i:i-1 for i in range(1,5)}, color='blue', aspect_ratio=4) # long time
-        p1.ymax(3)
-        g = graphics_array([p1,p2])
+        g1 = plot([b(n) for n in range(1,6)], 0, 20, fill={i:[i-1] for i in range(1,5)}, color={i:'blue' for i in range(1,6)}, aspect_ratio=3)
+        g2 = plot([b(n) for n in range(1,6)], 0, 20, fill={i:i-1 for i in range(1,5)}, color='blue', aspect_ratio=3) # long time
+        g1.ymax(3)
+        g = graphics_array([[g1], [g2]])
         sphinx_plot(g)
 
     Extra options will get passed on to :meth:`~sage.plot.graphics.Graphics.show`,
@@ -1981,12 +2003,12 @@ def _plot(funcs, xrange, parametric=False,
         sage: len((p1+p2).matplotlib().axes[0].legend().texts)
         2
         sage: q1 = plot([sin(x), tan(x)], color='blue', legend_label='trig')
-        sage: len((q1).matplotlib().axes[0].legend().texts) # used to raise AttributeError
-        1
+        sage: len(q1.matplotlib().axes[0].legend().texts)
+        2
         sage: q1
         Graphics object consisting of 2 graphics primitives
-        sage: q2 = plot([sin(x), tan(x)], legend_label='trig')
-        sage: len((q2).matplotlib().axes[0].legend().texts)
+        sage: q2 = plot([sin(x), tan(x)], legend_label={1:'tan'})
+        sage: len(q2.matplotlib().axes[0].legend().texts)
         2
         sage: q2
         Graphics object consisting of 2 graphics primitives
@@ -2051,6 +2073,25 @@ def _plot(funcs, xrange, parametric=False,
             legend_label_temp = options_temp.pop('legend_label', None)
             legend_color_temp = options_temp.pop('legend_color', None)
 
+            # passed more than one color directive?
+            one_plot_color = False
+            if isinstance(color_temp, dict):
+                if i in color_temp:
+                    color_entry = color_temp[i]
+                else:
+                    color_entry = golden_rainbow(i)
+            elif isinstance(color_temp, (list, tuple)) and isinstance(color_temp[0], (str, list, tuple)):
+                if i < len(color_temp):
+                    color_entry = color_temp[i]
+                else:
+                    color_entry = golden_rainbow(i)
+            elif color_temp == 'automatic':
+                color_entry = golden_rainbow(i)
+            else:
+                # assume a single color was assigned for all plots
+                one_plot_color = True
+                color_entry = color_temp
+
             # passed more than one fill directive?
             if isinstance(fill_temp, dict):
                 if i in fill_temp:
@@ -2080,6 +2121,7 @@ def _plot(funcs, xrange, parametric=False,
                 fill_entry = fill_temp
 
             # passed more than one fillcolor directive?
+            fillcolor_entry = 'gray' # the default choice
             if isinstance(fillcolor_temp, dict):
                 if i in fillcolor_temp:
                     fillcolor_entry = fillcolor_temp[i]
@@ -2091,25 +2133,11 @@ def _plot(funcs, xrange, parametric=False,
                 else:
                     fillcolor_entry = golden_rainbow(i,0.85)
             elif fillcolor_temp == 'automatic':
-                fillcolor_entry = golden_rainbow(i,0.85)
-            else:
+                # check that we haven't overwritten automatic multi-colors in color_temp
+                if len(funcs) > 1 and not one_plot_color:
+                    fillcolor_entry = golden_rainbow(i,0.85)
+            elif fillcolor_temp is not None:
                 fillcolor_entry = fillcolor_temp
-
-            # passed more than one color directive?
-            if isinstance(color_temp, dict):
-                if i in color_temp:
-                    color_entry = color_temp[i]
-                else:
-                    color_entry = golden_rainbow(i)
-            elif isinstance(color_temp, (list, tuple)) and isinstance(color_temp[0], (str, list, tuple)):
-                if i < len(color_temp):
-                    color_entry = color_temp[i]
-                else:
-                    color_entry = golden_rainbow(i)
-            elif color_temp == 'automatic':
-                color_entry = golden_rainbow(i)
-            else:
-                color_entry = color_temp
 
             # passed more than one linestyle directive?
             if isinstance(linestyle_temp, dict):
@@ -2130,43 +2158,29 @@ def _plot(funcs, xrange, parametric=False,
                 linestyle_entry = linestyle_temp
 
             # passed more than one legend_label directive?
-            if isinstance(legend_label_temp, str):
-                if i == 0:
-                    legend_label_entry = legend_label_temp
-                else:
-                    # create only one legend entry if plots are one color and only one legend_label is given.
-                    # give subsequent entries no label (show only their colored `linestyle` markers)
-                    if isinstance(color_entry, str) or (isinstance(color_entry, tuple) and not isinstance(color_entry[0], str)):
-                        legend_label_entry = None
-                    else:
-                        legend_label_entry = ' '
-            elif legend_label_temp is not None:
-                legend_label_entry = orig_funcs[i].__repr__() # the 'automatic' choice
-                if isinstance(legend_label_temp, dict):
-                    if i in legend_label_temp:
-                        legend_label_entry = legend_label_temp[i]
-                elif isinstance(legend_label_temp, (list, tuple)):
-                    if i < len(legend_label_temp):
-                        legend_label_entry = legend_label_temp[i]
-            else:
-                legend_label_entry = None
+            legend_label_entry = orig_funcs[i].__repr__() # the 'automatic' choice
+            if isinstance(legend_label_temp, dict):
+                if i in legend_label_temp:
+                    legend_label_entry = legend_label_temp[i]
+            elif isinstance(legend_label_temp, (list, tuple)):
+                if i < len(legend_label_temp):
+                    legend_label_entry = legend_label_temp[i]
+            elif legend_label_temp is not 'automatic':
+                # assume it is None or str.
+                legend_label_entry = legend_label_temp
 
             # passed more than one legend_color directive?
+            legend_color_entry = 'black'  # the default choice
             if isinstance(legend_color_temp, dict):
                 if i in legend_color_temp:
                     legend_color_entry = legend_color_temp[i]
-                else:
-                    legend_color_entry = 'black'
             elif isinstance(legend_color_temp, (list, tuple)) and isinstance(legend_color_temp[0], (str, list, tuple)):
                 if i < len(legend_color_temp):
                     legend_color_entry = legend_color_temp[i]
-                else:
-                    legend_color_entry = 'black'
             elif legend_color_temp == 'automatic':
-                legend_color_entry = golden_rainbow(i)
-            elif legend_color_temp == None:
-                legend_color_entry = 'black'
-            else:
+                if len(funcs)>1:
+                    legend_color_entry = golden_rainbow(i)
+            elif legend_color_temp is not None:
                 legend_color_entry = legend_color_temp
 
             G += plot(h, xrange, polar=polar, fill=fill_entry, fillcolor=fillcolor_entry, \

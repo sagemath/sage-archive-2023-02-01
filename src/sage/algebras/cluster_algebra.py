@@ -108,11 +108,11 @@ def _mutation_parse(mutate):
     if mutate.__name__ == "mutate":
         doc[0] += r"""
 
-        - ``inplace`` -- bool (default True) whether to mutate in place or to return a new object
+        - ``inplace`` -- bool (default ``True``): whether to mutate in place or to return a new object.
     """
     doc[0] += r"""
 
-        - ``direction`` -- in which direction(s) to mutate. It can be
+        - ``direction`` -- in which direction(s) to mutate, it can be:
             - an integer in ``range(self.rk())`` to mutate in one direction only;
             - an iterable of such integers to mutate along a sequence;
             - a string "sinks" or "sources" to mutate at all sinks or sources simultaneously.
@@ -159,7 +159,7 @@ class ClusterAlgebraElement(ElementWrapper):
 
         INPUT:
 
-        - ``parent`` -- a :class:`ClusterAlgebra`: the algebra to which the element belongs;
+        - ``parent`` -- a :class:`ClusterAlgebra`: the algebra to which the element belongs.
 
         - ``value`` -- the value of the element.
 
@@ -185,7 +185,7 @@ class ClusterAlgebraElement(ElementWrapper):
 
         INPUT:
 
-        - ``other`` - an element of ``self.parent()``
+        - ``other`` - an element of ``self.parent()``.
 
         EXAMPLES::
 
@@ -268,7 +268,7 @@ def g_vector(self):
 
 def is_homogeneous(self):
     r"""
-    Return ``True`` if ``self`` is an homogeneous element of ``self.parent()``.
+    Return ``True`` if ``self`` is a homogeneous element of ``self.parent()``.
 
     EXAMPLES::
 
@@ -322,14 +322,14 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``B`` -- a skew-symmetrizable integer matrix;
+        - ``B`` -- a skew-symmetrizable integer matrix.
 
-        - ``C`` -- the matrix of c-vectors of ``self``;
+        - ``C`` -- the matrix of c-vectors of ``self``.
 
-        - ``G`` -- the matrix of g-vectors of ``self``;
+        - ``G`` -- the matrix of g-vectors of ``self``.
 
         - ``parent`` -- a :class:`ClusterAlgebra`: the algebra to which the
-          seed belongs;
+          seed belongs.
 
         - ``path`` -- a list (default []): the mutation sequence from the initial
           seed of ``parent`` to ``self``.
@@ -383,7 +383,7 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``other`` -- a :class:`ClusterAlgebraSeed`
+        - ``other`` -- a :class:`ClusterAlgebraSeed`.
 
         ALGORITHM:
 
@@ -412,11 +412,11 @@ class ClusterAlgebraSeed(SageObject):
 
     def __contains__(self, element):
         r"""
-        Test whether ``element`` belong to ``self``
+        Test whether ``element`` belong to ``self``.
 
         INPUT:
 
-        - ``element`` -- either a g-vector or an element of :meth:`parent`
+        - ``element`` -- either a g-vector or an element of :meth:`parent`.
 
         EXAMPLES::
             sage: A = ClusterAlgebra(['A',3])
@@ -555,7 +555,7 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rk())``
+        - ``j`` -- an integer in ``range(self.parent().rk())``: the index of the c-vector to return.
 
         EXAMPLES::
 
@@ -605,7 +605,7 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rk())``
+        - ``j`` -- an integer in ``range(self.parent().rk())``: the index of the g-vector to return.
 
         EXAMPLES::
 
@@ -635,7 +635,7 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rk())``
+        - ``j`` -- an integer in ``range(self.parent().rk())``: the index of the F-polynomial to return.
 
         EXAMPLES::
 
@@ -665,7 +665,7 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rk())``
+        - ``j`` -- an integer in ``range(self.parent().rk())``: the index of the cluster variable to return.
 
         EXAMPLES::
 
@@ -699,7 +699,7 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``mutating_F`` -- bool (default True): whether to compute F-polynomials
+        - ``mutating_F`` -- bool (default ``True``): whether to compute F-polynomials
           also. While knowing F-polynomials is essential to computing
           cluster variables, the process of mutating them is quite slow. If you
           care only about combinatorial data like g-vectors and c-vectors,
@@ -770,10 +770,10 @@ class ClusterAlgebraSeed(SageObject):
         INPUT:
 
         - ``k`` --  an integer in ``range(self.parent().rk())``: the direction
-          in which we are mutating
+          in which we are mutating.
 
         - ``old_g_vector`` -- tuple: the k-th g-vector of ``self`` before
-          mutating
+          mutating.
 
         NOTE:
 
@@ -821,24 +821,22 @@ class ClusterAlgebra(Parent):
         - ``data`` -- some data defining a cluster algebra: it can be anything
           that can be parsed by :class:`ClusterQuiver`.
 
-        - ``scalars`` -- a ring (default ZZ): the scalars over which the cluster algebra
+        - ``scalars`` -- a ring (default ``ZZ``): the scalars over which the cluster algebra
           is defined.
 
         - ``cluster_variable_prefix`` -- string (default 'x'): it needs to be
           a valid variable name.
 
-        - ``cluster_variable_names`` -- a list of strings: supersedes
-          ``cluster_variable_prefix``. Each element needs to be a valid
-          variable name.
+        - ``cluster_variable_names`` -- a list of strings: each element needs
+          to be a valid variable name;  supersedes ``cluster_variable_prefix``.
 
         - ``coefficient_prefix`` -- string (default 'y'): it needs to be
           a valid variable name.
 
-        - ``coefficient_names`` -- a list of strings: supersedes
-          ``cluster_variable_prefix``. Each element needs to be a valid
-          variable name.
+        - ``coefficient_names`` -- a list of strings: each element needs
+          to be a valid variable name; supersedes ``cluster_variable_prefix``.
 
-        - ``principal_coefficients`` -- bool (default False): supersedes any
+        - ``principal_coefficients`` -- bool (default ``False``): supersedes any
           coefficient defined by ``data``.
 
         ALGORITHM:
@@ -958,7 +956,6 @@ class ClusterAlgebra(Parent):
             True
             sage: A2 is not A1
             True
-
             sage: S1 = A1.current_seed()
             sage: S2 = A2.current_seed()
             sage: S1 == S2
@@ -985,7 +982,7 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``other`` -- a :class:`ClusterAlgebra`
+        - ``other`` -- a :class:`ClusterAlgebra`.
 
         ALGORITHM:
 
@@ -1120,7 +1117,7 @@ class ClusterAlgebra(Parent):
 
     def rk(self):
         r"""
-        Return the rank of ``self`` i.e. the number of cluster variables in any seed.
+        Return the rank of ``self``, i.e. the number of cluster variables in any seed.
 
         EXAMPLES::
 
@@ -1145,11 +1142,11 @@ class ClusterAlgebra(Parent):
 
     def set_current_seed(self, seed):
         r"""
-        Set the value reported by :meth:`current_seed`  to ``seed`` if it makes sense.
+        Set the value reported by :meth:`current_seed` to ``seed``, if it makes sense.
 
         INPUT:
 
-        - ``seed`` -- an instance of :class:`ClusterAlgebraSeed`
+        - ``seed`` -- an instance of :class:`ClusterAlgebraSeed`.
 
         EXAMPLES::
 
@@ -1161,6 +1158,11 @@ class ClusterAlgebra(Parent):
             sage: A.set_current_seed(S)
             sage: A.current_seed() == S
             True
+            sage: B = ClusterAlgebra(['B',2])
+            sage: A.set_current_seed(B.initial_seed())
+            Traceback (most recent call last):
+            ...
+            ValueError: This is not a seed in this cluster algebra.
         """
         if self.contains_seed(seed):
             self._seed = seed
@@ -1173,7 +1175,7 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``seed`` -- an instance of :class:`ClusterAlgebraSeed`
+        - ``seed`` -- an instance of :class:`ClusterAlgebraSeed`.
 
         EXAMPLES::
 
@@ -1205,7 +1207,7 @@ class ClusterAlgebra(Parent):
 
     def initial_seed(self):
         r"""
-        Return the initial seed of ``self``
+        Return the initial seed of ``self``.
 
         EXAMPLES::
 
@@ -1269,7 +1271,7 @@ class ClusterAlgebra(Parent):
         ALGORITHM:
 
             This function computes cluster variables from their g-vectors and
-            and F-polynomials using the "separation of additions" formula of
+            F-polynomials using the "separation of additions" formula of
             Theorem 3.7 in [FZ07]_.
 
         EXAMPLE::
@@ -1349,8 +1351,8 @@ class ClusterAlgebra(Parent):
         OUTPUT:
 
             This function returns a list of integers if it can find
-            ``g_vector`` otherwise it returns ``None``.  If the exploring
-            iterator stops it means that the algebra is of finite type and
+            ``g_vector``, otherwise it returns ``None``.  If the exploring
+            iterator stops, it means that the algebra is of finite type and
             ``g_vector`` is not the g-vector of any cluster variable. In this
             case the function resets the iterator and raises an error.
 
@@ -1393,7 +1395,7 @@ class ClusterAlgebra(Parent):
 
     def scalars(self):
         r"""
-        Return the scalars over which ``self`` is defined.
+        Return the ring of scalars over which ``self`` is defined.
 
         EXAMPLES::
 
@@ -1451,7 +1453,7 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``j`` -- an integer: the index of the coefficient to return.
+        - ``j`` -- an integer in ``range(self.parent().rk())``: the index of the coefficient to return.
 
         EXAMPLES::
 
@@ -1506,7 +1508,7 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rk())``
+        - ``j`` -- an integer in ``range(self.parent().rk())``: the index of the cluster variable to return.
 
         EXAMPLES::
 
@@ -1549,10 +1551,10 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``from_current_seed`` -- bool (default False): whether to start the
+        - ``from_current_seed`` -- bool (default ``False``): whether to start the
           iterator from :meth:`current_seed` or :meth:`initial_seed`.
 
-        - ``mutating_F`` -- bool (default True): whether to compute F-polynomials also;
+        - ``mutating_F`` -- bool (default ``True``): whether to compute F-polynomials also;
           for speed considerations you may want to disable this.
 
         - ``allowed_directions`` -- a tuple of integers (default ``range(self.rk())``): the
@@ -1639,7 +1641,7 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``mutating_F`` -- bool (default True): whether to also compute
+        - ``mutating_F`` -- bool (default ``True``): whether to also compute
           F-polynomials; for speed considerations you may want to disable this.
 
         EXAMPLES::

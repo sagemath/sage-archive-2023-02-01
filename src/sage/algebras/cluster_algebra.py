@@ -331,7 +331,7 @@ class ClusterAlgebraSeed(SageObject):
         - ``parent`` -- a :class:`ClusterAlgebra`: the algebra to which the
           seed belongs.
 
-        - ``path`` -- a list (default []): the mutation sequence from the initial
+        - ``path`` -- a list (default ``[]``): the mutation sequence from the initial
           seed of ``parent`` to ``self``.
 
         WARNING:
@@ -551,7 +551,7 @@ class ClusterAlgebraSeed(SageObject):
 
     def c_vector(self, j):
         r"""
-        Return the j-th c-vector of ``self``.
+        Return the ``j``-th c-vector of ``self``.
 
         INPUT:
 
@@ -601,7 +601,7 @@ class ClusterAlgebraSeed(SageObject):
 
     def g_vector(self, j):
         r"""
-        Return the j-th g-vector of ``self``.
+        Return the ``j``-th g-vector of ``self``.
 
         INPUT:
 
@@ -631,7 +631,7 @@ class ClusterAlgebraSeed(SageObject):
 
     def F_polynomial(self, j):
         r"""
-        Return the j-th F-polynomial of ``self``.
+        Return the ``j``-th F-polynomial of ``self``.
 
         INPUT:
 
@@ -661,7 +661,7 @@ class ClusterAlgebraSeed(SageObject):
 
     def cluster_variable(self, j):
         r"""
-        Return the j-th cluster variable of ``self``.
+        Return the ``j``-th cluster variable of ``self``.
 
         INPUT:
 
@@ -824,13 +824,13 @@ class ClusterAlgebra(Parent):
         - ``scalars`` -- a ring (default ``ZZ``): the scalars over which the cluster algebra
           is defined.
 
-        - ``cluster_variable_prefix`` -- string (default 'x'): it needs to be
+        - ``cluster_variable_prefix`` -- string (default ``'x'``): it needs to be
           a valid variable name.
 
         - ``cluster_variable_names`` -- a list of strings: each element needs
           to be a valid variable name;  supersedes ``cluster_variable_prefix``.
 
-        - ``coefficient_prefix`` -- string (default 'y'): it needs to be
+        - ``coefficient_prefix`` -- string (default ``'y'``): it needs to be
           a valid variable name.
 
         - ``coefficient_names`` -- a list of strings: each element needs
@@ -1449,7 +1449,7 @@ class ClusterAlgebra(Parent):
 
     def coefficient(self, j):
         r"""
-        Return the j-th coefficient of ``self``.
+        Return the ``j``-th coefficient of ``self``.
 
         INPUT:
 
@@ -1504,7 +1504,7 @@ class ClusterAlgebra(Parent):
 
     def initial_cluster_variable(self, j):
         r"""
-        Return the j-th initial cluster variable of ``self``.
+        Return the ``j``-th initial cluster variable of ``self``.
 
         INPUT:
 

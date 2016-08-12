@@ -35,11 +35,14 @@ AUTHOR:
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
+from sage.functions.all import log
+from sage.misc.cachefunc import cached_method
 import sage.algebras.algebra
 import sage.categories.basic as categories
 from sage.rings.integer import Integer
 from sage.structure.category_object import normalize_names
 from sage.misc.prandom import randint
+from sage.rings.ring import Field
 from sage.categories.morphism import Morphism
 from sage.categories.morphism import IdentityMorphism
 import sage.misc.latex as latex
@@ -101,7 +104,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         Traceback (most recent call last):
         ...
         ValueError: variable name 'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring\n
-        Defn: t |--> t + 1' is not alphanumeric
+            Defn: t |--> t + 1' is not alphanumeric
 
     As for polynomials, skew polynomial rings with different variable names
     are not equal::
@@ -140,22 +143,6 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
     """
     @staticmethod
     def __classcall__(cls, base_ring, map, name=None, sparse=False, element_class=None):
-        """
-        Input name mangling for `SkewPolynomialRing_general` class into
-        the `SkewPolynomialRing_general_with_category` class so that it
-        inherit all the methods from the super class. Sets the default
-        values for `name`, `sparse` and `element_class`.
-
-        EXAMPLES:
-
-            sage: R.<t> = ZZ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = SkewPolynomialRing(R,sigma)
-            sage: S.__class__(R, sigma, x)
-            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
-            sage: type(S)
-            <class 'sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general_with_category'>
-        """
         if not element_class:
             if sparse:
                 raise NotImplementedError("sparse skew polynomials are not implemented")
@@ -220,18 +207,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
     def __reduce__(self):
         """
         Return the globally unique skew polynomial ring based on
-        given arguments.
-
-        TESTS:
-
-            sage: R.<t> = ZZ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = SkewPolynomialRing(R,sigma); S
-            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
-            sage: T.<x> = SkewPolynomialRing(R,sigma); T
-            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
-            sage: S is T
-            True
+        given arguments
         """
         import sage.rings.polynomial.skew_polynomial_ring_constructor
         return (sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing,
@@ -342,15 +318,15 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
             sage: S.coerce_map_from(ZZ)
             Composite map:
-              From: Integer Ring
-              To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
-              Defn:   Polynomial base injection morphism:
-                      From: Integer Ring
-                      To:   Univariate Polynomial Ring in t over Integer Ring
+                From: Integer Ring
+                To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+                Defn:   Polynomial base injection morphism:
+                        From: Integer Ring
+                        To:   Univariate Polynomial Ring in t over Integer Ring
                     then
-                      Skew Polynomial base injection morphism:
-                      From: Univariate Polynomial Ring in t over Integer Ring
-                      To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+                        Skew Polynomial base injection morphism:
+                        From: Univariate Polynomial Ring in t over Integer Ring
+                        To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
             sage: S.coerce_map_from(S)
             Identity endomorphism of Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
         """
@@ -558,15 +534,6 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         Return the generator of this skew polynomial ring.
 
         This is the same as ``self.gen()``.
-
-        EXAMPLES::
-
-            sage: R.<t> = QQ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]; S
-            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
-            sage: y = S.parameter(); y
-            x
         """
         return self.gen()
 
@@ -735,6 +702,251 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             True
         """
         return self.twist_map().is_identity()
+
+    def _base_ring_to_fraction_field(self):
+        """
+        Return the indeterminate generator, one and twist map of
+        ``self``, or of the skew polynomial ring `S` associated
+        with the fraction field of the base ring of ``self`` if
+        the base ring of ``self`` is not a field (internal method).
+
+        OUTPUT:
+
+        - ``x`` -- indeterminate generator of ``self`` or `S`
+
+        - ``one`` -- one of ``self`` or `S`
+
+        - ``sigma`` -- twist map of ``self`` or `S`
+
+        EXAMPLES:
+
+            sage: R.<t> = ZZ[]
+            sage: sigma = R.hom([t+1])
+            sage: T.<x> = R['x', sigma]
+            sage: eval_pts = [1, t, t^2]
+            sage: values = [t^2 + 3*t + 4, 2*t^2 + 3*t + 1, t^2 + 3*t + 4]
+            sage: p = T.interpolation_polynomial(eval_pts, values); p #indirect doctest
+            ((-t^4 - 2*t - 3)/-2)*x^2 + (-t^4 - t^3 - t^2 - 3*t - 2)*x + (-t^4 - 2*t^3 - 4*t^2 - 10*t - 9)/-2
+        """
+        R = self.base_ring()
+        sigma = self.twist_map()
+        if not isinstance(R, Field):
+            Q = R.fraction_field()
+            gens = R.gens()
+            try:
+                sigma = Q.hom([ Q(sigma(g)) for g in gens ])
+                S = Q[self.variable_name(), sigma]
+                one = S.one()
+                x = S.gen()
+            except:
+                raise ValueError("unable to lift the twist map to a twist map over %s" % Q)
+        else:
+            one = self.one()
+            x = self.gen()
+        return x, one, sigma
+
+    def _minimum_vanishing_polynomial(self, x, one, sigma, eval_pts, check=True):
+        """
+        Return the minimum vanishing polynomial (internal method).
+
+        INPUT:
+
+        - ``x`` -- the generator of the associated skew polynomial ring
+
+        - ``one`` -- the one of the associated skew polynomial ring
+
+        - ``sigma`` -- the twist map of the associated skew polynomial ring
+
+        - ``eval_pts`` -- list of evaluation points which are linearly
+          independent over the fixed field of the twist map of the associated
+          skew polynomial ring
+
+        - ``check`` -- boolean (default: ``True``) that verifies whether the
+          `eval_pts` are linearly independent in the fixed field of twist map
+          of the associated skew polynomial ring
+
+        OUTPUT:
+
+        The minimum vanishing polynomial.
+
+        EXAMPLES:
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: eval_pts = [1, t, t^2]
+            sage: b = S.minimal_vanishing_polynomial(eval_pts); b #indirect doctest
+            x^3 + 4
+       """
+        l = len(eval_pts)
+        if l == 0:
+            return one
+        elif l == 1:
+            if eval_pts[0] == 0:
+                return one
+            else:
+                return x - (sigma(eval_pts[0]) / eval_pts[0])
+        else:
+            t = l//2
+            A = eval_pts[:t]
+            B = eval_pts[t:]
+            M_A = self._minimum_vanishing_polynomial(x, one, sigma, A, check)
+            M_A_B = M_A.multi_point_evaluation(B)
+            if check:
+                if 0 in M_A_B:
+                    raise ValueError("evaluation points must be linearly independent over the fixed field of the twist map")
+            M_M_A_B = self._minimum_vanishing_polynomial(x, one, sigma, M_A_B, check)
+            return M_M_A_B * M_A
+
+    def minimal_vanishing_polynomial(self, eval_pts, check=True):
+        """
+        Return the minimal vanishing polynomial. Given the elements
+        `a_1, ..., a_s`, it is defined as the unique minimal degree polynomial
+        `p` such that `p` is monic and `p(a_i) = 0`, for `i = 1, ..., s`.
+
+        INPUT:
+
+        - ``eval_pts`` -- list of evaluation points which are linearly
+          independent over the fixed field of the twist map of ``self``.
+
+        - ``check`` -- boolean (default: ``True``) that verifies whether the
+          `eval_pts` are linearly independent in the fixed field of twist map of ``self``.
+
+        OUTPUT:
+
+        The minimal vanishing polynomial.
+
+        EXAMPLES:
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: eval_pts = [1, t, t^2]
+            sage: b = S.minimal_vanishing_polynomial(eval_pts); b
+            x^3 + 4
+
+        The minimum vanishing polynomial evaluates to 0 at each of the evaluation points::
+
+            sage: eval = [b(eval_pts[y]) for y in range(len(eval_pts))]; eval
+            [0, 0, 0]
+
+       If the evaluation points are not linearly independent over the given fixed
+       field of the twist map, an error is raised::
+
+            sage: eval_pts_ld = [1, t, 2*t]
+            sage: c = S.minimal_vanishing_polynomial(eval_pts_ld)
+            Traceback (most recent call last):
+            ...
+            ValueError: evaluation points must be linearly independent over the fixed field of the twist map
+        """
+        x, one, sigma = self._base_ring_to_fraction_field()
+        return self._minimum_vanishing_polynomial(x, one, sigma, eval_pts, check)
+
+    def _interpolate(self, x, one, sigma, eval_pts, values):
+        """
+        Return the interpolation polynomial (internal method).
+
+        INPUT:
+
+        - ``x`` -- the generator of the associated skew polynomial ring
+
+        - ``one`` -- the one of the associated skew polynomial ring
+
+        - ``sigma`` -- the twist map of the associated skew polynomial ring
+
+        - ``eval_pts`` -- list of evaluation points which are linearly
+          independent over the fixed field of the twist map of the associated
+          skew polynomial ring
+
+        - ``values`` -- list of values that the interpolation polynomial takes
+          at the respective `eval_pts`
+
+        OUTPUT:
+
+        The interpolation polynomial.
+
+        EXAMPLES:
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: eval_pts = [t, t^2]
+            sage: values = [3*t^2 + 4*t + 4, 4*t]
+            sage: d = S.interpolation_polynomial(eval_pts, values); d #indirect doctest
+            x + t
+        """
+        l = len(eval_pts)
+        if l == 1:
+            return (values[0]/eval_pts[0])*one
+        else:
+            t = l//2
+            A = eval_pts[:t]
+            B = eval_pts[t:]
+            M_A = self._minimum_vanishing_polynomial(x, one, sigma, A)
+            M_B = self._minimum_vanishing_polynomial(x, one, sigma, B)
+            A_ = M_B.multi_point_evaluation(A)
+            B_ = M_A.multi_point_evaluation(B)
+            I_1 = self._interpolate(x, one, sigma, A_, values[:t])
+            I_2 = self._interpolate(x, one, sigma, B_, values[t:])
+            return I_1 * M_B + I_2 * M_A
+
+    def interpolation_polynomial(self, eval_pts, values, check=True):
+        """
+        Return the interpolation polynomial. Given `s` pairs of evaluation points
+        and values `{(x_1, y_1), ..., (x_s, y_s)}`, where each `x_i` is distinct
+        and non-zero, there exists a unique interpolation polynomial `I` such that
+        `I(x_i) = y_i`, for all `i = 1,...,s`.
+
+        INPUT:
+
+        - ``eval_pts`` -- list of evaluation points which are linearly
+          independent over the fixed field of the twist map of ``self``.
+
+        - ``values`` -- list of values that the interpolation polynomial `I` takes
+          at the respective `eval_pts`
+
+        - ``check`` -- boolean (default: ``True``) that verifies whether the
+          `eval_pts` are linearly independent in the fixed field of twist map of ``self``.
+
+        OUTPUT:
+
+        The interpolation polynomial.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: eval_pts = [t, t^2]
+            sage: values = [3*t^2 + 4*t + 4, 4*t]
+            sage: d = S.interpolation_polynomial(eval_pts, values); d
+            x + t
+
+            sage: R.<t> = ZZ[]
+            sage: sigma = R.hom([t+1])
+            sage: T.<x> = R['x', sigma]
+            sage: eval_pts = [1, t, t^2]
+            sage: values = [t^2 + 3*t + 4, 2*t^2 + 3*t + 1, t^2 + 3*t + 4]
+            sage: p = T.interpolation_polynomial(eval_pts, values); p
+            ((-t^4 - 2*t - 3)/-2)*x^2 + (-t^4 - t^3 - t^2 - 3*t - 2)*x + (-t^4 - 2*t^3 - 4*t^2 - 10*t - 9)/-2
+        """
+        l = len(eval_pts)
+        if l != len(values):
+            raise TypeError("number of evaluation points and values must be equal")
+        if l > len(set(eval_pts)):
+            raise TypeError("the evaluation points must be distinct")
+        if 0 in eval_pts:
+            raise TypeError("evaluation points must be non-zero")
+
+        x, one, sigma = self._base_ring_to_fraction_field()
+        interpolation_polynomial = self._interpolate(x, one, sigma, eval_pts, values)
+
+        if check:
+            for i in range(l):
+                if interpolation_polynomial(eval_pts[i]) != values[i]:
+                    return ValueError("evaluation points must be linearly independent over the fixed field of the twist map")
+
+        return interpolation_polynomial
 
 class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
     """

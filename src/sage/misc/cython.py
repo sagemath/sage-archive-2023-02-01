@@ -18,7 +18,10 @@ AUTHORS:
 from __future__ import print_function
 from __future__ import absolute_import
 
-import os, sys, platform, __builtin__
+import os
+import sys
+import platform
+from six.moves import builtins
 
 from sage.env import SAGE_LOCAL, SAGE_SRC, SAGE_LIB, UNAME
 from .misc import SPYX_TMP
@@ -684,7 +687,7 @@ def cython_import(filename, verbose=False, compile_message=False,
                              create_local_c_file=create_local_c_file,
                              **kwds)
     sys.path.append(build_dir)
-    return __builtin__.__import__(name)
+    return builtins.__import__(name)
 
 
 def cython_import_all(filename, globals, verbose=False, compile_message=False,

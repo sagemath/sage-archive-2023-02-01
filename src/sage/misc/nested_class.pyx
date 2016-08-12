@@ -5,8 +5,8 @@ As of Python 2.6, names for nested classes are set by Python in  a
 way which is incompatible with the pickling of such classes (pickling by name)::
 
     sage: class A:
-    ...       class B:
-    ...            pass
+    ....:     class B:
+    ....:         pass
     sage: A.B.__name__
     'B'
 
@@ -186,7 +186,7 @@ cpdef modify_for_nested_pickle(cls, str name_prefix, module, first_run=True):
                     v.__name__ = dotted_name
     else:
         for (name, v) in cls.__dict__.iteritems():
-            if isinstance(v, (class_types, NestedClassMetaclass)):
+            if isinstance(v, class_types):
                 v_name = v.__name__
                 if v_name == cls_name+name and v.__module__ == mod_name:
                     # OK, probably this is a nested class.

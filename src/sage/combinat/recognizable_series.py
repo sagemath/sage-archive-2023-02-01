@@ -38,63 +38,6 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.element import Element
 
 
-def lazy_dict(data, **kwds):
-    if isinstance(data, dict):
-        return lazy_dict_from_dict(data, **kwds)
-    elif isinstance(data, (tuple, list)):
-        return lazy_dict_from_list(data, **kwds)
-    else:
-        raise NotImplementedError('TODO')
-
-class lazy_dict_generic(object):
-
-    def __init__(self, cache=None, value=None, keys=None):
-        if cache is None:
-            cache = dict()
-        self.cache = cache
-        if value is not None:
-            self.value = value
-        if keys is not None:
-            self.keys = keys
-
-    def __repr__(self):
-        if hasattr(self, 'keys'):
-            return '{' + ', '.join('{}: {}'.format(key, self.cache[key])
-                                   for key in keys) + '}'
-        else:
-            return repr(self.cache)
-
-    def __getitem__(self, key):
-        # TODO: reload...
-        if hasattr(self, 'value'):
-            return self.value(self.cache[key])
-        else:
-            return self.cache[key]
-
-    def __iter__(self):
-        return iter(self.cache)
-
-    def items(self):
-        return iter(self.cache.iteritems())
-
-    def values(self):
-        return iter(self.cache.itervalues())
-
-class lazy_dict_from_dict(lazy_dict_generic):
-    def __init__(self, data, key=None, **kwds):
-        super(lazy_dict_from_dict, self).__init__(**kwds)
-        if key is None:
-            key = lambda k: k
-        self.cache.update((key(k), v) for k, v in data.iteritems())  # TODO: make lazy
-
-class lazy_dict_from_list(lazy_dict_generic):
-    def __init__(self, data, key=None, **kwds):
-        super(lazy_dict_from_list, self).__init__(**kwds)
-        if key is None:
-            key = lambda k: k
-        self.cache.update((key(k), v) for k, v in enumerate(data))  # TODO: make lazy
-
-
 class RecognizableSeries(Element):
 
     def __init__(self, parent, mu, left=None, right=None, transpose=False):

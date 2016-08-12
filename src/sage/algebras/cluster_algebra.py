@@ -1106,8 +1106,8 @@ class ClusterAlgebra(Parent):
             if f is not None:
                 perm = Permutation([ gen_s.index(self(f(v)))+1 for v in gen_o ])
                 n = self.rk()
-                m = len(perm) - n
                 M = self._B0[n:,:]
+                m = M.nrows()
                 B = block_matrix([[self.b_matrix(),-M.transpose()],[M,matrix(m)]])
                 B.permute_rows_and_columns(perm,perm)
                 return B.matrix_from_columns(range(other.rk())) == other._B0

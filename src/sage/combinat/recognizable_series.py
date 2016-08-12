@@ -38,6 +38,143 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.element import Element
 
 
+class PrefixClosedSet(object):
+
+    def __init__(self, alphabet=None, words=None):
+        r"""
+        A prefix-closed set.
+
+        Creation of this prefix-closed sets is interactive
+        iteratively.
+
+        INPUT:
+
+        - ``alphabet`` -- finite words over this ``alphabet``
+          will be created.
+
+        - ``words`` -- specify the finite words directly
+          (instead of via ``alphabet``).
+
+        EXAMPLES::
+
+            sage: from sage.combinat.recognizable_series import PrefixClosedSet
+            sage: P = PrefixClosedSet(alphabet=[0, 1]); P
+            [word: ]
+
+        See :meth:`populate_interactive` for further examples.
+        """
+        if alphabet is not None:
+            from sage.combinat.words.words import Words
+            self.words = Words(alphabet, infinite=False)
+        else:
+            self.words = words
+        self.elements = [self.words([])]
+
+
+    def __repr__(self):
+        r"""
+        A representation string of this prefix-closed set
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.recognizable_series import PrefixClosedSet
+            sage: P = PrefixClosedSet(alphabet=[0, 1])
+            sage: repr(P)  # indirect doctest
+            '[word: ]'
+        """
+        return repr(self.elements)
+
+
+    def add(self, w, check=True):
+        r"""
+        Add a word to this prefix-closed set.
+
+        INPUT:
+
+        - ``w`` -- a word.
+
+        - ``check`` -- (default: ``True``) if set, then it is verified
+          whether all proper prefixes of ``w`` are already in this
+          prefix-closed set.
+
+        OUTPUT:
+
+        Nothing, but a
+        :python:`RuntimeError<library/exceptions.html#exceptions.ValueError>`
+        is raised if the check fails.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.recognizable_series import PrefixClosedSet
+            sage: P = PrefixClosedSet(alphabet=[0, 1])
+            sage: W = P.words
+            sage: P.add(W([0])); P
+            [word: , word: 0]
+            sage: P.add(W([0, 1])); P
+            [word: , word: 0, word: 01]
+            sage: P.add(W([1, 1]))
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot add as not all prefixes of 11 are included yet.
+        """
+        if check and any(p not in self.elements
+                         for p in w.prefixes_iterator()
+                         if p != w):
+            raise ValueError('Cannot add as not all prefixes of '
+                             '{} are included yet.'.format(w))
+        self.elements.append(w)
+
+
+    def populate_interactive(self):
+        r"""
+        Return an iterator over possible new elements.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.recognizable_series import PrefixClosedSet
+            sage: P = PrefixClosedSet(alphabet=[0, 1]); P
+            [word: ]
+            sage: for n, p in enumerate(P.populate_interactive()):
+            ....:     print('{}?'.format(p))
+            ....:     if n in (0, 2, 3, 5):
+            ....:         P.add(p)
+            ....:         print('...added')
+            0?
+            ...added
+            1?
+            00?
+            ...added
+            01?
+            ...added
+            000?
+            001?
+            ...added
+            010?
+            011?
+            0010?
+            0011?
+            sage: P.elements
+            [word: , word: 0, word: 00, word: 01, word: 001]
+        """
+        n = 0
+        it = iter(self.words.iterate_by_length(1))
+        while n < len(self.elements):
+            try:
+                nn = next(it)
+                yield self.elements[n] + nn #next(it)
+            except StopIteration:
+                n += 1
+                it = iter(self.words.iterate_by_length(1))
+
+
 class RecognizableSeries(Element):
 
     def __init__(self, parent, mu, left=None, right=None, transpose=False):

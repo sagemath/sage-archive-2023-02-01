@@ -1,7 +1,7 @@
 r"""
 Cluster algebras
 
-Implementation of cluster algebras as an algebra using mainly structural theorems from [FZ07]_
+Implementation of cluster algebras as an algebra mainly using structural theorems from [FZ07]_
 
 TODO: We should write a nice paragraph here.
 
@@ -199,7 +199,7 @@ class ClusterAlgebraElement(ElementWrapper):
         r"""
         Return the quotient of ``self`` and ``other``.
 
-        WARNING::
+        WARNING:
 
             This method returns an element of ``self.parent().ambient()``
             rather than an element of ``self.parent()`` because, a priori,
@@ -331,7 +331,7 @@ class ClusterAlgebraSeed(SageObject):
         - ``parent`` -- a :class:`ClusterAlgebra`: the algebra to which the
           seed belongs;
 
-        - ``path`` -- list (default []) the mutation sequence from the initial
+        - ``path`` -- a list (default []): the mutation sequence from the initial
           seed of ``parent`` to ``self``.
 
         WARNING:
@@ -473,6 +473,7 @@ class ClusterAlgebraSeed(SageObject):
         Return the length of a mutation sequence from the initial seed of :meth:`parent` to ``self``.
 
         WARNING:
+
             This is the length of the mutation sequence returned by
             :meth:`path_from_initial_seed` which need not be the shortest
             possible.
@@ -698,7 +699,7 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``mutating_F`` -- bool (default True) whether to compute F-polynomials
+        - ``mutating_F`` -- bool (default True): whether to compute F-polynomials
           also. While knowing F-polynomials is essential to computing
           cluster variables, the process of mutating them is quite slow. If you
           care only about combinatorial data like g-vectors and c-vectors,
@@ -817,27 +818,27 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``data`` -- some data defining a cluster algebra. It can be anything
+        - ``data`` -- some data defining a cluster algebra: it can be anything
           that can be parsed by :class:`ClusterQuiver`.
 
-        - ``scalars`` -- (default ZZ) the scalars on which the cluster algebra
+        - ``scalars`` -- a ring (default ZZ): the scalars over which the cluster algebra
           is defined.
 
-        - ``cluster_variable_prefix`` -- string (default 'x'); it needs to be
+        - ``cluster_variable_prefix`` -- string (default 'x'): it needs to be
           a valid variable name.
 
-        - ``cluster_variable_names`` -- a list of strings.  Supersedes
+        - ``cluster_variable_names`` -- a list of strings: supersedes
           ``cluster_variable_prefix``. Each element needs to be a valid
           variable name.
 
-        - ``coefficient_prefix`` -- string (default 'y'); it needs to be
+        - ``coefficient_prefix`` -- string (default 'y'): it needs to be
           a valid variable name.
 
-        - ``coefficient_names`` -- a list of strings. Supersedes
+        - ``coefficient_names`` -- a list of strings: supersedes
           ``cluster_variable_prefix``. Each element needs to be a valid
           variable name.
 
-        - ``principal_coefficients`` -- bool (default False). Supersedes any
+        - ``principal_coefficients`` -- bool (default False): supersedes any
           coefficient defined by ``data``.
 
         ALGORITHM:
@@ -865,7 +866,7 @@ class ClusterAlgebra(Parent):
             ValueError: cluster_variable_names should be a list of 3 valid variable names
             sage: A = ClusterAlgebra(['A',3], principal_coefficients=True, coefficient_names=['a','b','c']); A.gens()
             [x0, x1, x2, a, b, c]
-            sage: A = ClusterAlgebra(['A',3], principal_coefficients=True, coefficient_names=['a','b']); A.gens()
+            sage: A = ClusterAlgebra(['A',3], principal_coefficients=True, coefficient_names=['a','b'])
             Traceback (most recent call last):
             ...
             ValueError: coefficient_names should be a list of 3 valid variable names
@@ -1073,9 +1074,21 @@ class ClusterAlgebra(Parent):
             sage: S = A1.initial_seed(); S.mutate([0, 2, 1])
             sage: S.cluster_variable(1) == f(A2.cluster_variable((-1, 1, -1)))
             True
-            sage: B3 = B1.matrix_from_columns([1,2,3])
+            sage: B3 = B1.matrix_from_columns([1,2,3]); B3
+            [ 1  0  0]
+            [ 0 -1  0]
+            [ 1  0  1]
+            [ 0 -2  0]
+            [ 0  0  0]
+            [-1  0  0]
             sage: G = PermutationGroup(['(1,2,3,4)'])
-            sage: B3.permute_rows(G.gen(0))
+            sage: B3.permute_rows(G.gen(0)); B3
+            [ 0 -1  0]
+            [ 1  0  1]
+            [ 0 -2  0]
+            [ 1  0  0]
+            [ 0  0  0]
+            [-1  0  0]
             sage: A3 = ClusterAlgebra(B3, cluster_variable_names=['x1','x2','x3'], coefficient_names=['x0','x4','x5'])
             sage: A1.has_coerce_map_from(A3)
             True

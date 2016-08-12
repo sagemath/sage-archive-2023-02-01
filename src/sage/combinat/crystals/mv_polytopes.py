@@ -75,12 +75,23 @@ class MVPolytope(PBWCrystalElement):
             \draw[fill=black] (-2, -2) circle (0.1);
             \end{tikzpicture}
 
-        ::
-
             sage: MV = crystals.infinity.MVPolytopes(['D',4])
             sage: b = MV.module_generators[0].f_string([1,2,1,2])
             sage: latex(b)
             \text{\texttt{MV{ }polytope{ }...}}
+
+        TESTS::
+
+            sage: MV = crystals.infinity.MVPolytopes(['A',2])
+            sage: u = MV.highest_weight_vector()
+            sage: b = u.f_string([1,2,2,1])
+            sage: latex(b)
+            \begin{tikzpicture}
+            \draw (0, 0) -- (3/2, -989/1142) -- (3/2, -2967/1142) -- (0, -1978/571);
+            \draw (0, 0) -- (-3/2, -989/1142) -- (-3/2, -2967/1142) -- (0, -1978/571);
+            \draw[fill=black] (0, 0) circle (0.1);
+            \draw[fill=black] (0, -1978/571) circle (0.1);
+            \end{tikzpicture}
         """
         latex_options = self.parent()._latex_options
         P = latex_options['P']
@@ -118,7 +129,7 @@ class MVPolytope(PBWCrystalElement):
         if latex_options["mark_endpoints"]:
             circle_size = latex_options["circle_size"]
             ret += "\\draw[fill=black] {} circle ({});\n".format(proj(P.zero()), circle_size)
-            ret += "\\draw[fill=black] {} circle ({});\n".format(proj(final), circle_size)
+            ret += "\\draw[fill=black] {} circle ({});\n".format(final, circle_size)
         ret += "\\end{tikzpicture}"
         return ret
 

@@ -36,10 +36,10 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
     Return the globally unique skew polynomial ring with given
     properties and variable name.
 
-    Given a ring `R` and a ring automorphism `\base_ring_automorphism` of `R`, the ring of
-    skew polynomials `R[X,\base_ring_automorphism]` is the usual abelian group polynomial
+    Given a ring `R` and a ring automorphism `base_ring_automorphism` of `R`, the ring of
+    skew polynomials `R[X, base_ring_automorphism]` is the usual abelian group polynomial
     `R[X]` equipped with the modification multiplication deduced from the
-    rule `X*a = \base_ring_automorphism(a)*X`.
+    rule `X*a = base_ring_automorphism(a)*X`.
 
     .. SEEALSO::
 
@@ -70,7 +70,7 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
 
     ``SkewPolynomialRing(base_ring, base_ring_automorphism, names, sparse=False)``
     returns a univariate skew polynomial ring over `base_ring` twisted by
-    `\base_ring_automorphism`.
+    `base_ring_automorphism`.
 
     UNIQUENESS and IMMUTABILITY:
 
@@ -98,7 +98,7 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
     SQUARE BRACKETS NOTATION:
 
     You can alternatively create a skew polynomial ring over `R`
-    twisted by `\base_ring_automorphism` by writing ``R['varname', base_ring_automorphism]``.
+    twisted by `base_ring_automorphism` by writing ``R['varname', base_ring_automorphism]``.
 
     EXAMPLES:
 

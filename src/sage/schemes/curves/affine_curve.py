@@ -35,7 +35,8 @@ AUTHORS:
 from __future__ import absolute_import
 
 from sage.categories.fields import Fields
-from sage.categories.homset import Hom
+from sage.categories.number_fields import NumberFields
+from sage.categories.homset import Hom, End
 from sage.interfaces.all import singular
 import sage.libs.singular
 
@@ -44,6 +45,7 @@ from sage.misc.all import add
 from sage.rings.all import degree_lowest_rational_function
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.qqbar import number_field_elements_from_algebraics, QQbar
 
 from sage.schemes.affine.affine_space import (is_AffineSpace,
                                               AffineSpace)
@@ -150,10 +152,6 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         from .constructor import Curve
         return Curve(AlgebraicScheme_subscheme_affine.projective_closure(self, i, PP))
 
-class AffinePlaneCurve(AffineCurve):
-
-    _point = point.AffinePlaneCurvePoint_field
-
     def blowup(self):
         r"""
         Return the blow up of this affine curve at the origin.
@@ -164,11 +162,11 @@ class AffinePlaneCurve(AffineCurve):
         OUTPUT:
 
         - a tuple consisting of three elements. The first is a tuple of curves in affine space of
-          the same dimension as the ambient space of this subscheme, which define the blow up in
+          the same dimension as the ambient space of this curve, which define the blow up in
           each affine chart. The second is a tuple of tuples such that the jth element of the ith
           tuple is the transition map from the ith affine patch to the jth affine patch. Lastly,
           the third element is a tuple consisting of the restrictions of the projection map from
-          the blow up back to the original subscheme, restricted to each affine patch. There the
+          the blow up back to the original curve, restricted to each affine patch. There the
           ith element will be the projection from the ith affine patch.
 
         EXAMPLES::
@@ -300,6 +298,245 @@ class AffinePlaneCurve(AffineCurve):
             coords.insert(i, p_A.gens()[0])
             proj_maps.append(H(coords))
         return tuple([tuple(patches), tuple(t_maps), tuple(proj_maps)])
+
+    def resolution_of_singularities(self, extend=False):
+        r"""
+        Return a nonsingular model for this affine curve created by blowing up its singular points.
+
+        The nonsingular model is given as a collection of affine patches that cover it. If ``extend`` is ``False``
+        and if the base field is a number field, or if the base field is a finite field, the model returned may have
+        singularities with coordinates not contained in the base field.
+
+        INPUT:
+
+        - ``extend`` -- (default: False) specifies whether to extend the base field when necessary to find all
+          singular points when this curve is defined over a number field. If ``extend`` is ``False``, then only
+          singularities with coordinates in the base field of this curve will be resolved. However, setting
+          ``extend`` to ``True`` will slow down computations.
+
+        OUTPUT:
+
+        - a tuple consisting of three elements. The first is a tuple of curves in affine space of
+          the same dimension as the ambient space of this curve, which represent affine patches
+          of the resolution of singularities. The second is a tuple of tuples such that the jth
+          element of the ith tuple is the transition map from the ith patch to the jth patch. Lastly,
+          the third element is a tuple consisting of birational maps from the patches back to the
+          original curve that were created by composing the projection maps generated from the blow up
+          computations. There the ith element will be a map from the ith patch.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([y^2 - x^3], A)
+            sage: C.resolution_of_singularities()
+            ((Affine Plane Curve over Rational Field defined by z1^2 - z0,
+              Affine Plane Curve over Rational Field defined by -z0*z1^3 + 1),
+             ((Scheme endomorphism of Affine Space of dimension 2 over Rational
+            Field
+                 Defn: Defined on coordinates by sending (z0, z1) to
+                       (z0, z1),
+               Scheme endomorphism of Affine Space of dimension 2 over Rational
+            Field
+                 Defn: Defined on coordinates by sending (z0, z1) to
+                       (z0*z1, 1/z1)),
+              (Scheme endomorphism of Affine Space of dimension 2 over Rational
+            Field
+                 Defn: Defined on coordinates by sending (z0, z1) to
+                       (z0*z1, 1/z1),
+               Scheme endomorphism of Affine Space of dimension 2 over Rational
+            Field
+                 Defn: Defined on coordinates by sending (z0, z1) to
+                       (z0, z1))),
+             (Scheme morphism:
+                From: Affine Plane Curve over Rational Field defined by z1^2 - z0
+                To:   Affine Space of dimension 2 over Rational Field
+                Defn: Defined on coordinates by sending (z0, z1) to
+                      (z0, z0*z1), Scheme morphism:
+                From: Affine Plane Curve over Rational Field defined by -z0*z1^3 + 1
+                To:   Affine Space of dimension 2 over Rational Field
+                Defn: Defined on coordinates by sending (z0, z1) to
+                      (z0*z1, z0)))
+
+        ::
+
+            sage: set_verbose(-1)
+            sage: K.<a> = QuadraticField(3)
+            sage: A.<x,y> = AffineSpace(K, 2)
+            sage: C = Curve([(x^2 + y^2 - y - 2)*(y - x^2 + 2) + a*y^3], A)
+            sage: R = C.resolution_of_singularities(True) # long time (3 seconds)
+            sage: R[0]
+            (Affine Plane Curve over Number Field in a with defining polynomial y^4
+            - 4*y^2 + 1 defined by (a^2 - 1)*z0^2*z1^3 - z0^2*z1^2 + (-4*a)*z0*z1^3
+            + (2*a^3 - 6*a)*z0*z1^2 - z1^2 + 2*z1 - 1, Affine Plane Curve over
+            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 defined by
+            -z0^2*z1^2 + (a^2 - 1)*z0^2*z1 + (2*a^3 - 6*a)*z0*z1 - z1^2 + (-4*a)*z0
+            + 2*z1 - 1, Affine Plane Curve over Number Field in a with defining
+            polynomial y^4 - 4*y^2 + 1 defined by -z0^2*z1^4 - z0^2*z1^2 + (-4*a^3 +
+            12*a)*z0*z1^3 + 2*z0*z1^2 + (-2*a^3 + 6*a)*z0*z1 - 8*z1^2 + (a^2 - 1)*z0
+            + (4*a^3 - 12*a)*z1 - 1)
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(GF(5), 3)
+            sage: C = Curve([y - x^3, (z - 2)^2 - y^3 - x^3], A)
+            sage: R = C.resolution_of_singularities()
+            sage: R[0]
+            (Affine Curve over Finite Field of size 5 defined by -z0^2 + z1,
+            -z0*z1^3 + z2^2 - z0,
+              Affine Curve over Finite Field of size 5 defined by -z0^2*z1^3 + 1,
+            -z0*z1^3 + z2^2 - z0,
+              Affine Curve over Finite Field of size 5 defined by -z0^2*z1^3 + z2,
+            -z0*z1^3 - z0*z2^3 + 1)
+        """
+        # helper function for extending the base field (in the case of working over a number field)
+        def extension(self):
+            psi = self.base_ring().embeddings(QQbar)[0]
+            pts = self.change_ring(psi).rational_points()
+            L = [pt[j] for j in range(len(self.ambient_space().gens())) for pt in pts]
+            L.extend([psi(g) for g in self.base_ring().gens()])
+            K = number_field_elements_from_algebraics(L)[0]
+            return [K, self.base_ring().embeddings(K)[0]]
+        # find the set of singular points of this curve
+        # in the case that the base field is a number field, extend it as needed (if extend == True)
+        C = self
+        n = C.ambient_space().dimension_relative()
+        if C.base_ring() in NumberFields() and extend:
+            C = C.change_ring(extension(C.singular_subscheme())[1])
+        H = End(C.ambient_space())
+        placeholder = H(C.ambient_space().gens())
+        # the list res holds the data for the patches of the resolution of singularities
+        # each element is a list consisting of the curve defining the patch, a list
+        # of the transition maps from that patch to the other patches, a projection
+        # map from the patch to the original curve, and the set of singular points
+        # of the patch
+        res = [[C, [placeholder], placeholder, C.singular_points()]]
+        not_resolved = True
+        t = 0
+        # loop through the patches and blow up each until no patch has singular points
+        while not_resolved:
+            [BC, t_maps, pi, pts] = [res[t][0], res[t][1], res[t][2], res[t][3]]
+            # check if there are any singular points in this patch
+            if len(pts) == 0:
+                t = t + 1
+                if t == len(res):
+                    not_resolved = False
+                continue
+            # the identity map should be replaced for each of the charts of the blow up
+            t_maps.pop(t)
+            # translate pts[0] to the origin
+            H = End(BC.ambient_space())
+            # translation map and inverse
+            phi = H([BC.ambient_space().gens()[i] - pts[0][i] for i in range(n)])
+            phi_inv = H([BC.ambient_space().gens()[i] + pts[0][i] for i in range(n)])
+            # create the translated curve
+            BC = BC.ambient_space().curve([f(phi_inv.defining_polynomials()) for f in BC.defining_polynomials()])
+            # translate the singular points
+            pts = [phi(BC.ambient_space()(pts[i])) for i in range(len(pts))]
+            # blow up the origin
+            B = list(BC.blowup())
+            B = [list(B[0]), [list(B[1][i]) for i in range(len(B[1]))], list(B[2])]
+            # the t-th element of res will be replaced with the new data corresponding to the charts
+            # of the blow up
+            res.pop(t)
+            # take out the transition maps from the other resolution patches to the t-th patch
+            old_maps = [res[i][1].pop(t) for i in range(len(res))]
+            patches_to_add = []
+            # generate the needed data for each patch of the blow up
+            for i in range(len(B[0])):
+                # check if there are any singular points where this patch meets the exceptional divisor
+                AA = AffineSpace(B[0][i].base_ring(), n - 1, 'x')
+                coords = [0]
+                coords.extend(list(AA.gens()))
+                H = Hom(B[0][i].ambient_space().coordinate_ring(), AA.coordinate_ring())
+                poly_hom = H(coords)
+                X = AA.subscheme([poly_hom(f) for f in B[0][i].defining_polynomials()])
+                # in the case of working over a number field, it might be necessary to extend the base
+                # field in order to find all intersection points
+                if B[0][i].base_ring() in NumberFields() and extend:
+                    emb = extension(X)[1]
+                    # coerce everything to the new base field
+                    phi = phi.change_ring(emb)
+                    phi_inv = phi_inv.change_ring(emb)
+                    BC = BC.change_ring(emb)
+                    t_maps = [t_maps[j].change_ring(emb) for j in range(len(t_maps))]
+                    old_maps = [old_maps[j].change_ring(emb) for j in range(len(old_maps))]
+                    pi = pi.change_ring(emb)
+                    pts = [pt.change_ring(emb) for pt in pts]
+                    # coerce the current blow up data
+                    X = X.change_ring(emb)
+                    for j in range(len(B[0])):
+                        B[0][j] = B[0][j].change_ring(emb)
+                    for j in range(len(B[1])):
+                        for k in range(len(B[1])):
+                            B[1][j][k] = B[1][j][k].change_ring(emb)
+                    for j in range(len(B[2])):
+                        B[2][j] = B[2][j].change_ring(emb)
+                    # coerce the other data in res
+                    for j in range(len(res)):
+                        res[j][0] = res[j][0].change_ring(emb)
+                        for k in range(len(res[j][1])):
+                            res[j][1][k] = res[j][1][k].change_ring(emb)
+                        res[j][2].change_ring(emb)
+                        for k in range(len(res[j][3])):
+                            res[j][3][k] = res[j][3][k].change_ring(emb)
+                b_data = []
+                # add the curve that defines this patch
+                b_data.append(B[0][i])
+                # compose the current transition maps from the original curve to the other patches
+                # with the projection map
+                H = Hom(B[0][i].ambient_space(), BC.ambient_space())
+                t_pi = H([phi_inv.defining_polynomials()[j](B[2][i].defining_polynomials()) for j in range(n)])
+                coords = [BC.ambient_space().gens()[j]/BC.ambient_space().gens()[i] for j in range(n)]
+                coords.pop(i)
+                coords.insert(0, BC.ambient_space().gens()[i])
+                H = Hom(BC.ambient_space(), B[0][i].ambient_space())
+                tmp_pi_inv = H(coords)
+                t_pi_inv = H([tmp_pi_inv.defining_polynomials()[j](phi.defining_polynomials()) for j in range(n)])
+                L = list(t_maps)
+                for j in range(len(t_maps)):
+                    H = Hom(B[0][i].ambient_space(), L[j].codomain())
+                    L[j] = H([L[j].defining_polynomials()[k](t_pi.defining_polynomials()) for k in range(n)])
+                for j in range(len(B[1][i])):
+                    L.insert(t + j, B[1][i][j])
+                b_data.append(L)
+                # update transition maps of each other element of res
+                for j in range(len(res)):
+                    H = Hom(res[j][0].ambient_space(), B[0][i].ambient_space())
+                    new_t_map = H([t_pi_inv.defining_polynomials()[k](old_maps[j].defining_polynomials()) for k in\
+                                   range(n)])
+                    res[j][1].insert(t + i, new_t_map)
+                # create the projection map
+                tmp_pi = B[2][i]
+                H = Hom(tmp_pi.domain(), pi.codomain())
+                coords = [phi_inv.defining_polynomials()[j](tmp_pi.defining_polynomials()) for j in range(n)]
+                coords = [pi.defining_polynomials()[j](coords) for j in range(n)]
+                b_data.append(H(coords))
+                # singular points
+                # translate the singular points of the parent patch (other than that which was the center of the
+                # blow up) by the inverse of the first projection map
+                n_pts = []
+                for j in range(1, len(pts)):
+                    # make sure this point is in this chart before attempting to map it
+                    if pts[j][i] != 0:
+                        n_pts.append(tmp_pi_inv(pts[j]))
+                # add in the points found from the exceptional divisor
+                for pt in X.rational_points():
+                    tmp_pt = B[0][i].ambient_space()([0] + list(pt))
+                    if B[0][i].is_singular(tmp_pt):
+                        n_pts.append(tmp_pt)
+                b_data.append(n_pts)
+                patches_to_add.append(b_data)
+            for i in range(len(patches_to_add)):
+                res.insert(t + i, patches_to_add[i])
+            t = 0
+        patches = [res[i][0] for i in range(len(res))]
+        t_maps = [tuple(res[i][1]) for i in range(len(res))]
+        p_maps = [res[i][2] for i in range(len(res))]
+        return tuple([tuple(patches), tuple(t_maps), tuple(p_maps)])
+
+class AffinePlaneCurve(AffineCurve):
+
+    _point = point.AffinePlaneCurvePoint_field
 
     def __init__(self, A, f):
         r"""

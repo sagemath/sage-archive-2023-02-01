@@ -1,11 +1,8 @@
-from sage.rings.integer cimport Integer
 from skew_polynomial_element cimport SkewPolynomial_generic_dense
 from sage.matrix.matrix_dense cimport Matrix_dense
-from polynomial_element cimport Polynomial
-from sage.structure.element cimport RingElement
 
 cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
-    
+
     cdef SkewPolynomial_finite_field_dense _rgcd(self,SkewPolynomial_finite_field_dense other)
     cdef void _inplace_lrem(self, SkewPolynomial_finite_field_dense other)
     cdef void _inplace_rrem(self, SkewPolynomial_finite_field_dense other)

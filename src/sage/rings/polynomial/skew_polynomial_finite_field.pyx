@@ -7,23 +7,30 @@ Endomorphism.
 
 AUTHOR::
 
-- Xavier Caruso (2012-06-29)
+- Xavier Caruso (2012-06-29): initial version
+
+- Arpit Merchant (2016-08-04): improved docstrings, fixed doctests and refactored classes and methods
+
 """
 
 #############################################################################
 #    Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 2 of the License, or
+#    (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
-
-include "../../ext/stdsage.pxi"
 
 import copy
 import cysignals
 from sage.matrix.constructor import zero_matrix
 from sage.rings.ring cimport Ring
+from sage.matrix.matrix_dense cimport Matrix_dense
+from polynomial_element cimport Polynomial
+from sage.rings.integer cimport Integer
+from sage.structure.element cimport RingElement
 from polynomial_ring_constructor import PolynomialRing
 from skew_polynomial_element cimport SkewPolynomial_generic_dense
 
@@ -51,9 +58,9 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_generic_dense):
     and it is an additive group.
 
     .. NOTE::
-    
+
         #. `S` is a left (resp. right) euclidean noncommutative ring
-        
+
         #. in particular, every left (resp. right) ideal is principal
 
     EXAMPLES::
@@ -199,7 +206,6 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_generic_dense):
         cdef RingElement c, inv
         parent = self._parent
         if db < 0:
-            sig_off()
             raise ZeroDivisionError
         if da < db:
             (<SkewPolynomial_finite_field_dense>self)._coeffs = [ ]
@@ -324,7 +330,6 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_generic_dense):
         cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
         cdef Py_ssize_t val = 0
         if len(a) < 0:
-            sig_off()
             return -1
         while a[0].is_zero():
             del a[0]
@@ -360,6 +365,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_generic_dense):
                 for k from deb <= k <= d by r:
                     pol.append(l[k])
                 M.set_unsafe(i,j,Polk(pol))
+
             for i from 0 <= i <= d:
                 l[i] = self._parent.twist_map()(l[i])
         return M

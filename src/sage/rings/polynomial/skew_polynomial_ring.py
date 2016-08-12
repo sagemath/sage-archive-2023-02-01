@@ -1,12 +1,17 @@
 r"""
 Skew Univariate Polynomial Rings
 
-This module provides the :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general``
+This module provides the :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general`
 which constructs a general dense skew univariate polynomials over commutative base rings with
 automorphisms over the base rings. This is the set of formal polynomials where the coefficients
 are written on the left of the variable of the skew polynomial ring. The modified multiplication
 operation over elements of the base ring is extended to all elements of the skew poynomial ring
 by associativity and distributivity.
+
+This module also provides :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field`
+which is a specialized class for skew polynomial rings over finite fields. It inherits from
+:class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general` but allows for
+the more efficient computations in the case of finite fields.
 
 AUTHOR:
 
@@ -100,7 +105,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     As for polynomials, skew polynomial rings with different variable names
     are not equal::
-    
+
         sage: R['x',sigma] == R['y',sigma]
         False
 
@@ -743,7 +748,8 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
 
     .. TODO::
 
-        Add center, irreducibility, karatsuba multiplication methods and factorization.
+        Add methods related to center of skew polynomial ring, irreducibility, karatsuba
+        multiplication and factorization.
     """
     @staticmethod
     def __classcall__(cls, base_ring, map, name=None, sparse=False, element_class=None):

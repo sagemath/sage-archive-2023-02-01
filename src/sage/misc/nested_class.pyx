@@ -66,7 +66,7 @@ All of this is not perfect. In the following scenario::
 
 The name for ``"A1.A2"`` could potentially be set to ``"B1.A2"``. But that will work anyway.
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import sys
 cdef dict sys_modules = sys.modules
@@ -176,9 +176,9 @@ cpdef modify_for_nested_pickle(cls, str name_prefix, module, first_run=True):
                     setattr(module, dotted_name, v)
                     modify_for_nested_pickle(v, name_prefix, module, False)
                     v.__name__ = dotted_name
-            elif isinstance(v, (type, class_types)):
+            elif isinstance(v, class_types):
                 v_name = v.__name__
-                if v_name==name and v.__module__ == mod_name and getattr(module, v_name, None) is not v:
+                if v_name == name and v.__module__ == mod_name and getattr(module, v_name, None) is not v:
                     # OK, probably this is a nested class.
                     dotted_name = name_prefix + '.' + v_name
                     setattr(module, dotted_name, v)
@@ -186,9 +186,9 @@ cpdef modify_for_nested_pickle(cls, str name_prefix, module, first_run=True):
                     v.__name__ = dotted_name
     else:
         for (name, v) in cls.__dict__.iteritems():
-            if isinstance(v, (type, class_types, NestedClassMetaclass)):
+            if isinstance(v, (class_types, NestedClassMetaclass)):
                 v_name = v.__name__
-                if v_name==cls_name+name and v.__module__ == mod_name:
+                if v_name == cls_name+name and v.__module__ == mod_name:
                     # OK, probably this is a nested class.
                     dotted_name = name_prefix + '.' + v_name
                     setattr(module, dotted_name, v)

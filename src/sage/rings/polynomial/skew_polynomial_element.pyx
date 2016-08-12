@@ -227,6 +227,25 @@ cdef class SkewPolynomial(AlgebraElement):
         AlgebraElement.__init__(self, parent)
         self._is_gen = is_gen
 
+    def __reduce__(self):
+        """
+        Return the generic dense skew polynomial corresponding to the
+        current parameters provided ``self``.
+
+        EXAMPLES:
+
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: loads(dumps(x)) == x
+            True
+            sage: loads(dumps(x))
+            x
+        """
+        import sage.rings.polynomial.skew_polynomial_element
+        return (sage.rings.polynomial.skew_polynomial_element.SkewPolynomial_generic_dense,
+                (self._parent, self._coeffs))
+
     cdef long _hash_c(self):
         """
         This hash incorporates the name of the variable.

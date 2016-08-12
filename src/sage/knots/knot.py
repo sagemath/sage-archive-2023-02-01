@@ -228,7 +228,33 @@ class Knot(Link):
 
         return 1
 
-    def connect_sum(K1,K2):
+    def connected_sum(K1,K2):
+        """
+        Return the oriented connected sum of two knots.
+
+        INPUT:
+
+        - ``K1`` -- A knot
+        - ``K2`` -- A knot
+
+        OUTPUT:
+
+        A knot equivalent to the connected sum of K1 and K2
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(2)
+            sage: trefoil = Knot(B([1,1,1]))
+            sage: K = trefoil.connected_sum(trefoil)
+            sage: K
+            Knot represented by 7 crossings
+            sage: K.braid()
+            s0^3*s2^3*s1    
+        
+        REFERENCES:
+
+        - :wikipedia:`Connected_sum`
+        """
         from sage.groups.braid import BraidGroup
         b1 = K1.braid()
         b2 = K2.braid()

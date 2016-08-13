@@ -1,9 +1,38 @@
 r"""
 Cluster algebras
 
-Implementation of cluster algebras as an algebra mainly using structural theorems from [FZ07]_
+This file implements cluster algebras using the algebra-element framework.
+This implementation mainly utilizes structural theorems from [FZ07]_.
 
-TODO: We should write a nice paragraph here.
+The class structure has been chosen to closely mirror the mutation process
+in the theory of cluster algebras.  Thus a cluster algebra is determined by
+an initial seed from which all other seeds are computed.  Seeds are a separate
+class whose parent is an instance of the cluster algebra class.
+
+The task of mutating seeds is delegated to the seeds themselves since they
+carry all the data for mutation, seeds also track a mutation path by which
+they can be obtained from the initial seed of their parent.  Although cluster
+algebras themselves are independent of the choice of initial seed, in order to
+maintain consistency of mutation path data in seeds, cluster algebras in this
+implementation are considered to be equal only if their initial seed data
+coincides.  Following this, the task of mutating the initial cluster is
+delegated to the cluster algebra and this process returns a new cluster
+algebra.
+
+Seeds are considered equal if they have the same parent cluster
+algebra and they can be obtained from each other by a permutation of their
+data.  Cluster algebras whose initial seeds are equal in the above sense are
+not considered equal but are endowed with coercion maps to each other.
+More generally, a cluster algebra is endowed with coercion maps from any
+cluster algebra which is obtained by freezing a collection of cluster variables
+and possibly permuting the remaining cluster variables and coefficients.
+
+The cluster algebra keeps track of all cluster variable data obtained so far,
+in particular all g-vectors and all F-polynomials of known cluster variables
+as well as a mutation path by which they can be obtained.  When the cluster
+algebra has principal coefficients, any of its homogeneous elements know their
+own g-vector and F-polynomial.  Following the Laurent Phenomenon, each element
+of a cluster algebra also knows its own denominator vector.
 
 REFERENCES:
 
@@ -265,6 +294,14 @@ def g_vector(self):
         return components.keys()[0]
     else:
         raise ValueError("This element is not homogeneous.")
+
+def F_polynomoial(self):
+    r"""
+    Return the F-polynomial of ``self``.
+    # A homogeneous element of a cluster algebra with principal coefficients
+    # should know its own F-polynomial
+    """
+    pass
 
 def is_homogeneous(self):
     r"""

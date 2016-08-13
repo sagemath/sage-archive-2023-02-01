@@ -1,21 +1,24 @@
 r"""
 Skew Univariate Polynomial Rings
 
-This module provides the :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general``
-which constructs a general dense skew univariate polynomials over commutative base rings with
-automorphisms over the base rings. This is the set of formal polynomials where the coefficients
-are written on the left of the variable of the skew polynomial ring. The modified multiplication
-operation over elements of the base ring is extended to all elements of the skew poynomial ring
-by associativity and distributivity.
+This module provides the
+:class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general``,
+which constructs a general dense skew univariate polynomials over commutative
+base rings with automorphisms over the base rings. This is the set of formal
+polynomials where the coefficients are written on the left of the variable
+of the skew polynomial ring. The modified multiplication operation over
+elements of the base ring is extended to all elements of the skew poynomial
+ring by associativity and distributivity.
 
 AUTHOR:
 
 - Xavier Caruso (2012-06-29): initial version
 
-- Arpit Merchant (2016-08-04): improved docstrings, fixed doctests and refactored classes and methods
+- Arpit Merchant (2016-08-04): improved docstrings, fixed doctests
+  and refactored classes and methods
 
-- Johan Rosenkilde (2016-08-03): changes for bug fixes, docstring and doctest errors
-
+- Johan Rosenkilde (2016-08-03): changes for bug fixes, docstring and
+  doctest errors
 """
 
 #############################################################################
@@ -28,40 +31,35 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
+from sage.misc.prandom import randint
+from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
-import sage.algebras.algebra
-import sage.categories.basic as categories
+from sage.rings.ring import Algebra
+from sage.categories.rings import Rings
 from sage.rings.integer import Integer
 from sage.structure.category_object import normalize_names
-from sage.misc.prandom import randint
 from sage.categories.morphism import Morphism
 from sage.categories.morphism import IdentityMorphism
-import sage.misc.latex as latex
-from sage.rings.polynomial.skew_polynomial_element import SkewPolynomial
+from sage.rings.polynomial.skew_polynomial_element import (SkewPolynomial,
+                                                           SkewPolynomialBaseringInjection)
 
 #########################################################################################
 
-class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentation):
-    """
-    Skew Univariate polynomial ring over a ring.
+class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
+    r"""
+    A skew Univariate polynomial ring over a commutative ring.
 
-    DEFINITION:
+    Let `R` be a commutative ring, and let `\sigma` be an automorphism of
+    `R`.  The ring of skew polynomials `R[X, \sigma]` is the polynomial
+    ring `R[X]`, where the addition is the usual polynomial addition, but
+    the multiplication operation is defined by the modified rule
 
-    Let `R` be a commutative ring and let `\sigma` be an automorphism over `R`. An
-    automorphism (also called twist map) is a structure preserving map from a
-    mathematical object (in this case, R) onto itself that also admits an inverse.
-    The ring of skew polynomials over an indeterminate variable `X` is defined then,
-    as the ring structure on the set `R` as:
-    `R[X, \sigma] = { a_{n-1}X^{n-1} + ... + a_{1}X + a_{0} | a_{i} \in R and n \in N }`
-    where the addition operation on `R[X, \sigma]` is given by the usual abelian
-    group polynomial addition rule and the multiplication operation is defined
-    by the modified rule `X*a = \sigma(a)X`.
+    .. MATH::
 
-    This ring is non-commutative and its elements are all such skew polynomials whose
-    coefficients come from `R`.
+        X*a = \sigma(a) X.
 
-    Reference: "Theory of Non-Commutative Polynomials" - Oystein Ore
+    Note that `R[X, \sigma]` is a non-commutative ring.
 
     .. TODO::
 
@@ -72,19 +70,22 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         sage: R.<t> = ZZ[]
         sage: sigma = R.hom([t+1])
         sage: S.<x> = SkewPolynomialRing(R,sigma); S
-        Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+        Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring
+         twisted by t |--> t + 1
 
     One can also use a shorter syntax::
 
         sage: S.<x> = R['x',sigma]; S
-        Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+        Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring
+         twisted by t |--> t + 1
 
     Be careful, with the latter syntax, one cannot omit the name of the
     variable neither in LHS nor in RHS. If we omit it in LHS, the variable
     is not created::
 
         sage: Sy = R['y',sigma]; Sy
-        Skew Polynomial Ring in y over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+        Skew Polynomial Ring in y over Univariate Polynomial Ring in t over Integer Ring
+         twisted by t |--> t + 1
         sage: y.parent()
         Traceback (most recent call last):
         ...
@@ -120,7 +121,8 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         sage: S.has_coerce_map_from(R)
         True
         sage: x.parent()
-        Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+        Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring
+         twisted by t |--> t + 1
         sage: t.parent()
         Univariate Polynomial Ring in t over Integer Ring
         sage: y = x+t; y
@@ -128,28 +130,32 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         sage: y.parent() is S
         True
 
-    .. SEE ALSO::
+    .. SEEALSO::
 
         :meth:`sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing`
         :mod:`sage.rings.polynomial.skew_polynomial_element`
+
+    REFERENCES:
+
+    .. [Ore33] Oystein Ore.
+       *Theory of Non-Commutative Polynomials*
+       Annals of Mathematics, Second Series, Volume 34,
+       Issue 3 (Jul., 1933), 480-508.
     """
     @staticmethod
-    def __classcall__(cls, base_ring, map, name=None, sparse=False, element_class=None):
+    def __classcall__(cls, base_ring, twist_map=None, name=None, sparse=False,
+                      element_class=None):
         """
-        Input name mangling for `SkewPolynomialRing_general` class into
-        the `SkewPolynomialRing_general_with_category` class so that it
-        inherit all the methods from the super class. Sets the default
-        values for `name`, `sparse` and `element_class`.
+        Set the default values for ``name``, ``sparse`` and ``element_class``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R.<t> = ZZ[]
             sage: sigma = R.hom([t+1])
-            sage: S.<x> = SkewPolynomialRing(R,sigma)
+            sage: S.<x> = SkewPolynomialRing(R, sigma)
             sage: S.__class__(R, sigma, x)
-            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
-            sage: type(S)
-            <class 'sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general_with_category'>
+            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring
+             twisted by t |--> t + 1
         """
         if not element_class:
             if sparse:
@@ -157,94 +163,69 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             else:
                 from sage.rings.polynomial import skew_polynomial_element
                 element_class = skew_polynomial_element.SkewPolynomial_generic_dense
-        return super(SkewPolynomialRing_general,cls).__classcall__(cls,base_ring,map,name,sparse,element_class)
+        if twist_map is None:
+            twist_map = IdentityMorphism(base_ring)
+        else:
+            if not isinstance(twist_map, Morphism):
+                raise TypeError("given map is not a ring homomorphism")
+            if twist_map.domain() != base_ring or twist_map.codomain() != base_ring:
+                raise TypeError("given map is not an automorphism of %s" % base_ring)
+        return super(SkewPolynomialRing_general,cls).__classcall__(cls,
+                         base_ring, twist_map, name, sparse, element_class)
 
-    def __init__(self, base_ring, map, name, sparse, element_class):
+    def __init__(self, base_ring, twist_map, name, sparse, element_class):
         """
-        This method is a constructor for a general, dense univariate skew polynomial ring.
+        Initialize ``self``.
 
         INPUT::
 
         - ``base_ring`` -- a commutative ring
-
-        - ``map`` -- an automorphism of the base ring
-
-        - ``name`` -- string or list of strings representing the name of the variables of ring
-
+        - ``twist_map`` -- an automorphism of the base ring
+        - ``name`` -- string or list of strings representing the name of
+          the variables of ring
         - ``sparse`` -- boolean (default: ``False``)
-
-        - ``element_class`` -- class representing the type of element to be used in ring
+        - ``element_class`` -- class representing the type of element to
+          be used in ring
 
         EXAMPLES::
 
             sage: R.<t> = ZZ[]
             sage: sigma = R.hom([t+1])
-            sage: S.<x> = SkewPolynomialRing(R,sigma); S
-            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+            sage: S.<x> = SkewPolynomialRing(R,sigma)
             sage: S([1]) + S([-1])
             0
+            sage: TestSuite(S).run()
+
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: T.<x> = k['x', Frob]; T
-            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            Skew Polynomial Ring in x over Finite Field in t of size 5^3
+             twisted by t |--> t^5
+            sage: TestSuite(T).run()
         """
-        category = categories.Rings()
         self.__is_sparse = sparse
         self._polynomial_class = element_class
-        if map is None:
-            self._map = IdentityMorphism(base_ring)
-        else:
-            if isinstance (map, Morphism):
-                if map.domain () == base_ring and map.codomain () == base_ring:
-                    self._map = map
-                else:
-                    raise TypeError("given map is not an automorphism of %s" % base_ring)
-            else:
-                raise TypeError("given map is not a ring homomorphism")
-        self._maps = { 0:IdentityMorphism(base_ring), 1:self._map }
-        self._center = { }
-        self._center_variable = None
+        self._map = twist_map
+        self._maps = {0: IdentityMorphism(base_ring), 1: self._map}
         self._no_generic_basering_coercion = True
-        sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
-        self.__generator = self._polynomial_class(self, [0,1], is_gen=True)
-        base_inject = sage.rings.polynomial.skew_polynomial_element.SkewPolynomialBaseringInjection(base_ring,self)
+        Algebra.__init__(self, base_ring, names=name,
+                         normalize=True, category=Rings())
+        base_inject = SkewPolynomialBaseringInjection(base_ring, self)
         self._populate_coercion_lists_(
                 coerce_list = [base_inject],
                 convert_list = [list, base_inject])
 
-    def __reduce__(self):
-        """
-        Return the globally unique skew polynomial ring based on
-        given arguments.
-
-        TESTS:
-
-            sage: R.<t> = ZZ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = SkewPolynomialRing(R,sigma); S
-            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
-            sage: T.<x> = SkewPolynomialRing(R,sigma); T
-            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
-            sage: S is T
-            True
-        """
-        import sage.rings.polynomial.skew_polynomial_ring_constructor
-        return (sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing,
-                (self.base_ring(), self.twist_map(), self.variable_name(), self.is_sparse()))
-
-    def _element_constructor_(self, x=None, check=True, is_gen = False, construct=False, **kwds):
+    def _element_constructor_(self, x=None, check=True, construct=False, **kwds):
         """
         Convert ``x`` into an element of this univariate skew polynomial ring,
         possibly non-canonically.
 
         INPUT:
 
-        - ``x`` -- an element of the base ring of ``self`` or a ring that
-          has a coerce map from ``self`` (default: ``None``).
+        - ``x`` -- (default: ``None``) an element of the base ring
+          of ``self`` or a ring that has a coerce map from ``self``
 
         - ``check`` -- boolean (default: ``True``)
-
-        - ``is_gen`` -- boolean (default: ``False``)
 
         - ``construct`` -- boolean (default: ``False``)
 
@@ -268,14 +249,14 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         """
         C = self._polynomial_class
         if isinstance(x, list):
-            return C(self, x, check=check, is_gen=False,construct=construct)
+            return C(self, x, check=check, construct=construct)
         if isinstance(x, Element):
             P = x.parent()
             def build(check):
                 if x.is_zero():
                     return P.zero()
                 else:
-                    return C(self, [x], check=check, is_gen=False, construct=construct)
+                    return C(self, [x], check=check, construct=construct)
             if P is self:
                 return x
             elif P is self.base_ring():
@@ -286,7 +267,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             return x._polynomial_(self)
         except AttributeError:
             pass
-        if isinstance(x,str):
+        if isinstance(x, str):
             try:
                 from sage.misc.parser import Parser, LookupNameMaker
                 R = self.base_ring()
@@ -294,7 +275,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
                 return self(p.parse(x))
             except NameError:
                 raise TypeError("unable to coerce string")
-        return C(self, x, check, is_gen, construct=construct, **kwds)
+        return C(self, x, check, construct=construct, **kwds)
 
     def _coerce_map_from_(self, P):
         """
@@ -311,11 +292,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
         INPUT:
 
-        - ``P`` -- a ring.
-
-        OUTPUT:
-
-        Return ``True`` or ``False``.
+        - ``P`` -- a ring
 
         .. NOTE::
 
@@ -360,8 +337,8 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
                 if self.__is_sparse and not P.is_sparse():
                     return False
                 if P.variable_name() == self.variable_name():
-                    if P.base_ring() is self.base_ring() and \
-                            self.base_ring() is ZZ_sage:
+                    if (P.base_ring() is self.base_ring()
+                            and self.base_ring() is ZZ_sage):
                        if self._implementation_names == ('NTL',):
                             return False
                     return self.base_ring().has_coerce_map_from(P.base_ring())
@@ -380,13 +357,15 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             sage: S
             Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
         """
-        s = "Skew Polynomial Ring in %s over %s twisted by %s"%(self.variable_name(), self.base_ring(), self._map._repr_short())
+        s = "Skew Polynomial Ring in %s over %s twisted by %s" % (self.variable_name(),
+                                                                  self.base_ring(),
+                                                                  self._map._repr_short())
         if self.is_sparse():
             s = "Sparse " + s
         return s
 
     def _latex_(self):
-        """
+        r"""
         Return latex representation of ``self``.
 
         EXAMPLES::
@@ -396,20 +375,22 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             sage: S.<x> = SkewPolynomialRing(R,sigma)
             sage: latex(S)
             \Bold{Z}[t][x,\begin{array}{l}
-            \text{\texttt{Ring{ }endomorphism{ }of{ }Univariate{ }Polynomial{ }Ring{ }in{ }t{ }over{ }Integer{ }Ring}}\\
-            \text{\texttt{{ }{ }Defn:{ }t{ }|{-}{-}>{ }t{ }+{ }1}}
+            \text{\texttt{Ring...}}
             \end{array}]
         """
-        return "%s[%s,%s]"%(latex.latex(self.base_ring()), self.latex_variable_names()[0], latex.latex(self._map))
+        from sage.misc.latex import latex
+        return "%s[%s,%s]" % (latex(self.base_ring()), self.latex_variable_names()[0],
+                              latex(self._map))
 
     def change_var(self, var):
         r"""
-        Return the skew polynomial ring in variable ``var`` over the same base
-        ring.
+        Return the skew polynomial ring in variable ``var`` over the
+        same base ring.
 
         INPUT:
 
-        - ``var`` -- a string representing the name of the new variable of ``self``
+        - ``var`` -- a string representing the name of the new variable
+          of ``self``
 
         OUTPUT:
 
@@ -425,11 +406,12 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             Skew Polynomial Ring in y over Finite Field in t of size 5^3 twisted by t |--> t^5
         """
         from sage.rings.polynomial.skew_polynomial_ring_constructor import SkewPolynomialRing
-        return SkewPolynomialRing(self.base_ring(), self.twist_map(), names = var, sparse=self.is_sparse())
+        return SkewPolynomialRing(self.base_ring(), self._map, names=var,
+                                  sparse=self.__is_sparse)
 
     def characteristic(self):
         """
-        Return the characteristic of the base ring of this skew polynomial ring.
+        Return the characteristic of the base ring of ``self``.
 
         EXAMPLES::
 
@@ -447,16 +429,16 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     def twist_map(self, n=1):
         """
-        Return the twist map, otherwise known as the automorphism over the base ring of
-        ``self``, iterated multiple times.
+        Return the twist map, the automorphism of the base ring of
+        ``self``, iterated ``n`` times.
 
         INPUT:
 
-        -  ``n`` - a relative integer (default: 1)
+        -  ``n`` - an integer (default: 1)
 
         OUTPUT:
 
-        -  The `n`-th iterative of the twist map of this skew polynomial ring.
+        ``n``-th iterative of the twist map of this skew polynomial ring.
 
         EXAMPLES::
 
@@ -472,38 +454,39 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
               Defn: t |--> t + 10
 
-        If `n` in negative, Sage tries to compute the inverse of the twist map.
-        Sometimes it fails (even if the twist map is actually invertible)::
-
-            sage: S.twist_map(-1)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
-                  Defn: t |--> t + 1
-
-        Sometimes it succeeds::
+        If ``n`` in negative, Sage tries to compute the inverse of the
+        twist map::
 
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: T.<y> = k['y',Frob]
             sage: T.twist_map(-1)
             Frobenius endomorphism t |--> t^(5^2) on Finite Field in t of size 5^3
+
+        Sometimes it fails, even if the twist map is actually invertible::
+
+            sage: S.twist_map(-1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
+                  Defn: t |--> t + 1
         """
         try:
             return self._maps[n]
         except KeyError:
             if n >= 0:
-                map = self._map**n
-                self._maps[n] = map
-                return map
+                twist_map = self._map**n
+                self._maps[n] = twist_map
+                return twist_map
             else:
                 try:
-                    map = self._map**n
+                    twist_map = self._map**n
                 except TypeError:
                     raise NotImplementedError("inversion of the twist map %s" % self._map)
-                self._maps[n] = map
-                return map
+                self._maps[n] = twist_map
+                return twist_map
 
+    @cached_method
     def gen(self, n=0):
         """
         Return the indeterminate generator of this skew polynomial ring.
@@ -524,12 +507,17 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             True
             sage: y is x
             True
-            sage: y.is_gen()
+
+        This is also known as the parameter::
+
+            sage: S.parameter() is S.gen()
             True
         """
         if n != 0:
-            raise IndexError("generator n not defined")
-        return self.__generator
+            raise IndexError("generator %s not defined" % n)
+        return self._polynomial_class(self, [0,1])
+
+    parameter = gen
 
     def gens_dict(self):
         """
@@ -548,27 +536,10 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         """
         return dict(zip(self.variable_names(), self.gens()))
 
-    def parameter(self):
-        """
-        Return the generator of this skew polynomial ring.
-
-        This is the same as ``self.gen()``.
-
-        EXAMPLES::
-
-            sage: R.<t> = QQ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]; S
-            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
-            sage: y = S.parameter(); y
-            x
-        """
-        return self.gen()
-
     def is_finite(self):
         """
-        Return ``False`` since skew polynomial rings are not finite (unless the
-        base ring is 0.)
+        Return ``False`` since skew polynomial rings are not finite
+        (unless the base ring is 0.)
 
         EXAMPLES::
 
@@ -581,14 +552,12 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             False
         """
         R = self.base_ring()
-        if R.is_finite() and R.order() == 1:
-            return True
-        return False
+        return R.is_finite() and R.order() == 1
 
     def is_exact(self):
         """
         Return ``True`` if elements of this skew polynomial ring are exact.
-        It happens if and only if elements of the base ring are exact.
+        This happens if and only if elements of the base ring are exact.
 
         EXAMPLES::
 
@@ -630,7 +599,8 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
     def ngens(self):
         """
-        Return the number of generators of this skew polynomial ring, which is 1.
+        Return the number of generators of this skew polynomial ring,
+        which is 1.
 
         EXAMPLES::
 
@@ -648,26 +618,26 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
         INPUT:
 
-        -  ``degree`` - Integer with degree (default: 2)
-           or a tuple of integers with minimum and maximum degrees
+        - ``degree`` -- (default: 2) integer with degree
+          or a tuple of integers with minimum and maximum degrees
 
-        -  ``monic`` - if True, returns a monic skew polynomial
-           (default: ``False``)
+        - ``monic`` -- (default: ``False``) if ``True``, return a monic
+          skew polynomial
 
-        -  ``*args, **kwds`` - Passed on to the ``random_element`` method for
-           the base ring
+        - ``*args, **kwds`` -- passed on to the ``random_element`` method
+          for the base ring
 
         OUTPUT:
 
-        -  Skew polynomial such that the coefficients of `x^i`, for `i` up
-           to ``degree``, are random elements from the base ring, randomized
-           subject to the arguments ``*args`` and ``**kwds``
+        Skew polynomial such that the coefficients of `x^i`, for `i` up
+        to ``degree``, are random elements from the base ring, randomized
+        subject to the arguments ``*args`` and ``**kwds``.
 
         EXAMPLES::
 
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
+            sage: S.<x> = k['x', Frob]
             sage: S.random_element()  # random
             (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 2
             sage: S.random_element(monic=True)  # random
@@ -678,27 +648,31 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         tuple as the degree::
 
             sage: S.random_element(degree=(2,7))  # random
-            (3*t^2 + 1)*x^4 + (4*t + 2)*x^3 + (4*t + 1)*x^2 + (t^2 + 3*t + 3)*x + 3*t^2 + 2*t + 2
+            (3*t^2 + 1)*x^4 + (4*t + 2)*x^3 + (4*t + 1)*x^2
+             + (t^2 + 3*t + 3)*x + 3*t^2 + 2*t + 2
 
-        If the minimal degree is greater than the maximal degree, sage raises
-        a ValueError::
+        If the minimal degree is greater than the maximal degree, then
+        this raises a ``ValueError``::
 
             sage: S.random_element(degree=(5,4))
             Traceback (most recent call last):
             ...
             ValueError: minimum degree must be less or equal than maximum degree
 
-        When ``monic`` is false, the returned skew polynomial may have a degree
-        less than ``degree`` (it happens when the random ``leading coefficient``
-        is zero)::
+        When ``monic`` is ``False``, the returned skew polynomial may have
+        a degree less than ``degree`` (it happens when the random leading
+        coefficient is zero)::
 
             sage: S.random_element(degree=4) #random
             (3*t^2 + t)*x^3 + (2*t + 2)*x^2 + (3*t^2 + 2*t + 2)*x + t
 
-        However, if ``monic`` is true, this can't happen::
+        However, if ``monic`` is ``True``, this can't happen::
 
-            sage: S.random_element(degree=4,monic=True)  # random
-            x^4 + (t^2 + 3*t + 3)*x^3 + (t^2 + 4*t + 3)*x^2 + (2*t^2 + 4*t + 4)*x + 2*t^2 + 2*t
+            sage: p = S.random_element(degree=4, monic=True)
+            sage: p.leading_coefficient() == S.base_ring().one()
+            True
+            sage: p.degree() == 4
+            True
         """
         R = self.base_ring()
         if isinstance(degree, (list, tuple)):
@@ -708,9 +682,9 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
                 raise ValueError("minimum degree must be less or equal than maximum degree")
             degree = randint(*degree)
         if monic:
-            return self ([ R.random_element (*args, **kwds) for _ in range (degree) ] + [ R.one() ])
+            return self([R.random_element(*args, **kwds) for _ in range(degree)] + [R.one()])
         else:
-            return self ([ R.random_element (*args, **kwds) for _ in range (degree+1) ])
+            return self([R.random_element(*args, **kwds) for _ in range(degree+1)])
 
     def is_commutative(self):
         """
@@ -730,3 +704,4 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             True
         """
         return self.twist_map().is_identity()
+

@@ -6,13 +6,13 @@ The implementation mainly utilizes structural theorems from [FZ07]_.
 
 The key points being used here are these:
 
-    * cluster variables are parametrized by their g-vector;
+    * cluster variables are parametrized by their g-vectors;
 
     * g-vectors (together with c-vectors) provide a self-standing model for the
       combinatorics behind any cluster algebra;
 
-    * cluster variables in any cluster algebra can be computed, by the
-      separation of additions formula, from their g-vector and F-polynomial.
+    * each cluster variable in any cluster algebra can be computed, by the
+      separation of additions formula, from its g-vector and F-polynomial.
 
 Accordingly this file provides three classes:
 
@@ -24,21 +24,21 @@ Accordingly this file provides three classes:
 
 :class:`ClusterAlgebra`, constructed as a subobject of
 :class:`sage.rings.polynomial.laurent_polynomial_ring.LaurentPolynomialRing_generic`,
-is the fronted of this implementation. It provides all the algebraic features
+is the frontend of this implementation. It provides all the algebraic features
 (like ring morphisms), it computes cluster variables, it is responsible for
-controlling the exploration of the exchange graph and serves as repository for all
-the data recursively computed so far.
-In particular all g-vectors and all F-polynomials of known cluster variables as
+controlling the exploration of the exchange graph and serves as the repository for
+all the data recursively computed so far.
+In particular, all g-vectors and all F-polynomials of known cluster variables as
 well as a mutation path by which they can be obtained are recorded. In the optic
 of efficiency, this implementation does not store directly the exchange graph
 nor the exchange relations. Both of these could be added to
 :class:`ClusterAlgebra` with minimal effort.
 
 :class:`ClusterAlgebraSeed` provides the combinatorial backbone for :class:`ClusterAlgebra`.
-It is an auxiliary class and therefore  its instances should **not** be directly
+It is an auxiliary class and therefore its instances should **not** be directly
 created by the user.  Rather it should be accessed via
 :meth:`ClusterAlgebra.current_seed` and :meth:`ClusterAlgebra.initial_seed`.
-To this class it is delegated the task of performing current seed mutations.
+The task of performing current seed mutations is delegated to this class.
 Seeds are considered equal if they have the same parent cluster
 algebra and they can be obtained from each other by a permutation of their
 data (i.e. if they coincide as unlabelled seeds).  Cluster algebras whose
@@ -54,12 +54,12 @@ providing all the functions specific to cluster variables.
 
 One more remark about this implementation.  Instances of
 :class:`ClusterAlgebra` are built by identifying the initial cluster variables
-with the generators of :meth:`ClusterAlgebra.ambient`. In particular this
+with the generators of :meth:`ClusterAlgebra.ambient`. In particular, this
 forces a specific embedding into the ambient field of rational expressions.  In
 view of this, although cluster algebras themselves are independent of the
 choice of initial seed, :meth:`ClusterAlgebra.mutate_initial` is forced to
 return a different instance of :class:`ClusterAlgebra`. At the moment there is
-no coercion implemented among the two instances but this could be in principle
+no coercion implemented among the two instances but this could in principle be
 added to :meth:`ClusterAlgebra.mutate_initial`.
 
 REFERENCES:
@@ -138,7 +138,7 @@ We can compute denominator vectors of any element of ``A``::
     sage: (t*s).d_vector()
     (1, 1)
 
-and since we are in rank 2 and we do not have coefficients we can compute the
+Since we are in rank 2 and we do not have coefficients we can compute the
 greedy element associated to any denominator vector::
 
     sage: A.rk() == 2 and A.coefficients() == []
@@ -161,8 +161,8 @@ indeed::
     True
 
 Disabling F-polynomials in the computation just done was redundant because we
-already explored the whole exchange graph before. In different circumstances it
-could have saved us a long time though.
+already explored the whole exchange graph before. Though in different circumstances it
+could have saved us considerable time.
 
 g-vectors and F-polynomials can be computed from elements of ``A`` only if
 ``A`` has principal coefficients at the initial seed::
@@ -246,8 +246,8 @@ Walking around by mutating ``S`` updates the informations stored in ``A``::
     sage: A.current_seed() == S
     True
 
-Starting from ``A.initial_seed()``  still records data in ``A`` but does not
-uptate ``A.current_seed()``::
+Starting from ``A.initial_seed()`` still records data in ``A`` but does not
+update ``A.current_seed()``::
 
     sage: S1 = A.initial_seed()
     sage: S1.mutate([2,1,3])

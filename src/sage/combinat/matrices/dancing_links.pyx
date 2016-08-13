@@ -284,7 +284,7 @@ cdef class dancing_linksWrapper:
             [[0, 1], [2, 3], [4, 5]]
 
         After the split each subproblem has the same number of columns and
-        rows as the orginal one::
+        rows as the original one::
 
             sage: D = d.split(0)
             sage: D

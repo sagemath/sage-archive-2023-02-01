@@ -302,7 +302,9 @@ def F_polynomial(self):
 
     EXAMPLES::
         sage: A = ClusterAlgebra(['B',2],principal_coefficients=True)
-        sage: A.cluster_variable((1,0)).F_polynomial() == A.F_polynomial((1,0))
+        sage: S = A.initial_seed()
+        sage: S.mutate([0,1,0])
+        sage: S.cluster_variable(0).F_polynomial() == S.F_polynomial(0)
         True
     """
     subs_dict = dict()

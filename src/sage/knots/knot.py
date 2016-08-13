@@ -246,8 +246,17 @@ class Knot(Link):
             sage: B = BraidGroup(2)
             sage: trefoil = Knot(B([1,1,1]))
             sage: K = trefoil.connected_sum(trefoil)
-            sage: K
-            Knot represented by 7 crossings
+
+        .. PLOT::
+            :width: 300 px
+
+            B = BraidGroup(2)
+            trefoil = Knot(B([1,1,1]))
+            K = trefoil.connected_sum(trefoil)
+            sphinx_plot(K.plot())
+
+        ::
+        
             sage: K.braid()
             s0^3*s2^3*s1    
         

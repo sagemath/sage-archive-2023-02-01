@@ -5,7 +5,7 @@ This file constructs cluster algebras using the Parent-Element framework.
 The implementation mainly utilizes structural theorems from [FZ07]_.
 
 The key points being used here are these:
-    
+
     * cluster variables are parametrized by their g-vector;
 
     * g-vectors (together with c-vectors) provide a self-standing model for the
@@ -13,7 +13,7 @@ The key points being used here are these:
 
     * cluster variables in any cluster algebra can be computed, by the
       separation of additions formula, from their g-vector and F-polynomial.
-    
+
 Accordingly this file provides three classes:
 
     * :class:`ClusterAlgebra`
@@ -24,13 +24,13 @@ Accordingly this file provides three classes:
 
 :class:`ClusterAlgebra`, constructed as a subobject of
 :class:`sage.rings.polynomial.laurent_polynomial_ring.LaurentPolynomialRing_generic`,
-is the frontend of this implementation. It provides all the algebraic features
+is the fronted of this implementation. It provides all the algebraic features
 (like ring morphisms), it computes cluster variables, it is responsible for
-controlling the exploration of the exchage graph and serves as repository for all
-the data recursively computed so far.  
+controlling the exploration of the exchange graph and serves as repository for all
+the data recursively computed so far.
 In particular all g-vectors and all F-polynomials of known cluster variables as
 well as a mutation path by which they can be obtained are recorded. In the optic
-of efficiency, this implementationd does not store directly the exchange graph
+of efficiency, this implementation does not store directly the exchange graph
 nor the exchange relations. Both of these could be added to
 :class:`ClusterAlgebra` with minimal effort.
 
@@ -50,7 +50,7 @@ cluster variables and coefficients.
 
 :class:`ClusterAlgebraElement` is a thin wrapper around
 :class:`sage.rings.polynomial.laurent_polynomial_ring.LaurentPolynomial_mpair`
-providing all the fucntions specific to cluster variables.
+providing all the functions specific to cluster variables.
 
 One more remark about this implementation.  Instances of
 :class:`ClusterAlgebra` are built by identifying the initial cluster variables

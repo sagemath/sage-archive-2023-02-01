@@ -282,7 +282,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             raise ValueError("the given index set is not valid")
 
         # We can do the Cartan type initialization later as this is not
-        #   a unqiue representation
+        #   a unique representation
         mat = typecall(cls, MatrixSpace(ZZ, n, sparse=True), data, False, False)
         # FIXME: We have to initialize the CartanMatrix part separately because
         #   of the __cinit__ of the matrix. We should get rid of this workaround

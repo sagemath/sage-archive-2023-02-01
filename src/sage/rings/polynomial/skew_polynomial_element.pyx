@@ -2699,7 +2699,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: S.<x> = k['x',Frob]
             sage: a = x + t
             sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
-            sage: a.power_left_mod(100,modulus)  # indirect doctest
+            sage: a.left_power_mod(100,modulus)  # indirect doctest
             (4*t^2 + t + 1)*x^2 + (t^2 + 4*t + 1)*x + 3*t^2 + 3*t
         """
         cdef list x = (<SkewPolynomial_generic_dense>self)._coeffs
@@ -2735,7 +2735,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: S.<x> = k['x',Frob]
             sage: a = x + t
             sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
-            sage: a.power_left_mod(100,modulus)  # indirect doctest
+            sage: a.left_power_mod(100,modulus)  # indirect doctest
             (4*t^2 + t + 1)*x^2 + (t^2 + 4*t + 1)*x + 3*t^2 + 3*t
         """
         while n & 1 == 0:
@@ -2749,7 +2749,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                 self._inplace_rmul(selfpow)
             n = n >> 1
 
-    cpdef power_left_mod(self, exp, modulus):
+    cpdef left_power_mod(self, exp, modulus):
         """
         Return the remainder of ``self**exp`` in the left euclidean division
         by ``modulus``.
@@ -2793,7 +2793,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: S.<x> = k['x',Frob]
             sage: a = x + t
             sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
-            sage: a.power_left_mod(100,modulus)  # quite fast
+            sage: a.left_power_mod(100,modulus)  # quite fast
             (4*t^2 + t + 1)*x^2 + (t^2 + 4*t + 1)*x + 3*t^2 + 3*t
         """
         cdef SkewPolynomial_generic_dense r
@@ -2809,7 +2809,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         if exp == 0:
             return self.parent().one()
         if exp < 0:
-            return (~self).power_left_mod(-exp,modulus)
+            return (~self).left_power_mod(-exp,modulus)
 
         if self == self.parent().gen():
             P = self.parent()
@@ -2824,7 +2824,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             _, r = r.left_quo_rem(modulus)
         return r
 
-    cpdef power_right_mod(self, exp, modulus):
+    cpdef right_power_mod(self, exp, modulus):
         """
         Return the remainder of ``self**exp`` in the right euclidean division
         by ``modulus``.
@@ -2871,12 +2871,12 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: b == a*a*a*a*a*a*a*a*a*a
             True
             sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
-            sage: br = a.power_right_mod(10,modulus); br
+            sage: br = a.right_power_mod(10,modulus); br
             (t^2 + t)*x^2 + (3*t^2 + 1)*x + t^2 + t
             sage: rq, rr = b.right_quo_rem(modulus)
             sage: br == rr
             True
-            sage: a.power_right_mod(100,modulus)  # quite fast
+            sage: a.right_power_mod(100,modulus)  # quite fast
             (2*t^2 + 3)*x^2 + (t^2 + 4*t + 2)*x + t^2 + 2*t + 1
         """
         cdef SkewPolynomial_generic_dense r
@@ -2892,7 +2892,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         if exp == 0:
             return self.parent().one()
         if exp < 0:
-            return (~self).power_right_mod(-exp,modulus)
+            return (~self).right_power_mod(-exp,modulus)
 
         if self == self.parent().gen():
             P = self.parent()
@@ -2937,13 +2937,13 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: b == a*a*a*a*a*a*a*a*a*a
             True
             sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
-            sage: bmod = a.power_right_mod(10,modulus); bmod
+            sage: bmod = a.right_power_mod(10,modulus); bmod
             (t^2 + t)*x^2 + (3*t^2 + 1)*x + t^2 + t
             sage: rq, rr = b.right_quo_rem(modulus)
             sage: bmod == rr
             True
         """
-        return self.power_right_mod(exp,modulus)
+        return self.right_power_mod(exp,modulus)
 
 cdef class ConstantSkewPolynomialSection(Map):
     """

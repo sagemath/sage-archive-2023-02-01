@@ -26,6 +26,8 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
+from __future__ import print_function, absolute_import, division
+
 import cysignals
 from sage.structure.category_object import normalize_names
 import sage.rings.ring as ring

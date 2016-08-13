@@ -534,6 +534,10 @@ def g_vector(self):
         sage: A = ClusterAlgebra(['B',2],principal_coefficients=True)
         sage: A.cluster_variable((1,0)).g_vector() == (1,0)
         True
+        sage: sum(A.initial_cluster_variables()).g_vector()
+        Traceback (most recent call last):                                                                                      
+        ...
+        ValueError: This element is not homogeneous.
     """
     components = self.homogeneous_components()
     if len(components) == 1:
@@ -551,14 +555,21 @@ def F_polynomial(self):
         sage: S.mutate([0,1,0])
         sage: S.cluster_variable(0).F_polynomial() == S.F_polynomial(0)
         True
+        sage: sum(A.initial_cluster_variables()).F_polynomial()
+        Traceback (most recent call last):                                                                                      
+        ...
+        ValueError: This element is not homogeneous.
     """
-    subs_dict = dict()
-    A = self.parent()
-    for x in A.initial_cluster_variables():
-        subs_dict[x.lift()] = A._U(1)
-    for i in xrange(A.rk()):
-        subs_dict[A.coefficient(i).lift()] = A._U.gen(i)
-    return self.lift().substitute(subs_dict)
+    if self.is_homogeneous():
+        subs_dict = dict()
+        A = self.parent()
+        for x in A.initial_cluster_variables():
+            subs_dict[x.lift()] = A._U(1)
+        for i in xrange(A.rk()):
+            subs_dict[A.coefficient(i).lift()] = A._U.gen(i)
+        return self.lift().substitute(subs_dict)
+    else:
+        raise ValueError("This element is not homogeneous.")
 
 def is_homogeneous(self):
     r"""

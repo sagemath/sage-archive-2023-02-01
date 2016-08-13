@@ -1007,7 +1007,7 @@ class ClusterQuiver(SageObject):
                 dg_component = dg.subgraph( component )
                 dg_component.relabel()
                 # turning dg_component into a canonical form
-                iso, orbits = _dg_canonical_form( dg_component, range(dg_component.num_verts()), [] )
+                iso, orbits = _dg_canonical_form( dg_component, dg_component.num_verts(), 0 )
                 # turning dg_component into a canonical form
                 dig6 = _digraph_to_dig6( dg_component, hashable=True )
                 # and getting the corresponding matrix
@@ -1245,7 +1245,7 @@ class ClusterQuiver(SageObject):
 
         # computing the canonical form respecting the frozen variables
         dg = copy( self._digraph )
-        iso, orbits = _dg_canonical_form( dg, range(n), range(n,n+m) )
+        iso, orbits = _dg_canonical_form( dg, n, m )
         Q = ClusterQuiver( dg )
         # getting the new ordering for the mutation type if necessary
         if self._mutation_type:
@@ -1785,7 +1785,12 @@ class ClusterQuiver(SageObject):
             [ 0  0  1]
             [-1 -1  0], []
             )
-
+            
+            sage: S = ClusterQuiver(DiGraph([['a','b'],['b','c']]),frozen=['b'])
+            sage: S.mutation_class()
+            [Quiver on 3 vertices with 1 frozen vertex,
+             Quiver on 3 vertices with 1 frozen vertex,
+             Quiver on 3 vertices with 1 frozen vertex]
         """
         if data_type == 'path':
             return_paths = False
@@ -1793,14 +1798,17 @@ class ClusterQuiver(SageObject):
             return_dig6 = True
         else:
             return_dig6 = False
-        dg = DiGraph( self._digraph )
+        #dg = DiGraph( self._digraph )
+        dg = DiGraph( ClusterQuiver(self._M)._digraph )        
         MC_iter = _mutation_class_iter( dg, self._n, self._m, depth=depth, return_dig6=return_dig6, show_depth=show_depth, up_to_equivalence=up_to_equivalence, sink_source=sink_source )
         for data in MC_iter:
             if data_type == "quiver":
-                next_element = ClusterQuiver( data[0], frozen=self._mlist )
+                #next_element = ClusterQuiver( data[0], frozen=self._mlist )
+                next_element = ClusterQuiver( data[0], frozen = range(self._m) )
                 next_element._mutation_type = self._mutation_type
             elif data_type == "matrix":
-                next_element = ClusterQuiver( data[0], frozen=self._mlist )._M
+                #next_element = ClusterQuiver( data[0], frozen=self._mlist )._M
+                next_element = ClusterQuiver( data[0], frozen = range(self._m) )._M                
             elif data_type == "digraph":
                 next_element = data[0]
             elif data_type == "dig6":

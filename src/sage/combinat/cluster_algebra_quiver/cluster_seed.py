@@ -3616,6 +3616,28 @@ class ClusterSeed(SageObject):
             [(x1^2 + 1)/x0, (x1^4 + x0^2 + 2*x1^2 + 1)/(x0^2*x1)]
             [(x0^4 + 2*x0^2 + x1^2 + 1)/(x0*x1^2), (x0^6 + 3*x0^4 + 2*x0^2*x1^2 + x1^4 + 3*x0^2 + 2*x1^2 + 1)/(x0^2*x1^3)]
             [(x1^6 + x0^4 + 2*x0^2*x1^2 + 3*x1^4 + 2*x0^2 + 3*x1^2 + 1)/(x0^3*x1^2), (x1^4 + x0^2 + 2*x1^2 + 1)/(x0^2*x1)]
+
+        For a cluster seed from an arbitrarily labelled digraph::
+            sage: S = ClusterSeed(DiGraph([['a','b'],['b','c']]),frozen=['b'])
+            sage: S.cluster_class()
+            [[a, c], [a, (b + 1)/c], [(b + 1)/a, c], [(b + 1)/a, (b + 1)/c]]
+
+            sage: S2 = ClusterSeed(DiGraph([['a','b'],['b','c']]),frozen=[])
+            sage: S2.cluster_class()
+            [[a, b, c],
+             [a, b, (b + 1)/c],
+             [a, (a + c)/b, c],
+             [(b + 1)/a, b, c],
+             [a, (a + c)/b, (a*b + a + c)/(b*c)],
+             [(b*c + a + c)/(a*b), (a + c)/b, c],
+             [a, (a*b + a + c)/(b*c), (b + 1)/c],
+             [(b + 1)/a, b, (b + 1)/c],
+             [(b + 1)/a, (b*c + a + c)/(a*b), c],
+             [(a*b + b*c + a + c)/(a*b*c), (a*b + a + c)/(b*c), (b + 1)/c],
+             [(b + 1)/a, (a*b + b*c + a + c)/(a*b*c), (b + 1)/c],
+             [(b + 1)/a, (b*c + a + c)/(a*b), (a*b + b*c + a + c)/(a*b*c)],
+             [(b*c + a + c)/(a*b), (a + c)/b, (a*b + b*c + a + c)/(a*b*c)],
+             [(a*b + b*c + a + c)/(a*b*c), (a + c)/b, (a*b + a + c)/(b*c)]]
         """
         mc_iter = self.mutation_class_iter( depth=depth, show_depth=show_depth, up_to_equivalence=up_to_equivalence )
         for c in mc_iter:
@@ -3768,6 +3790,15 @@ class ClusterSeed(SageObject):
             sage: it = S.b_matrix_class_iter(depth=3)
             sage: len ( [T for T in it] )
             266
+            
+        For a cluster seed from an arbitrarily labelled digraph::
+            sage: S = ClusterSeed(DiGraph([['a','b'],['b','c']]),frozen=['b'])
+            sage: S.b_matrix_class()
+            [
+            [ 0  0]  [ 0  0]  [0 0]
+            [ 0  0]  [ 0  0]  [0 0]
+            [-1  1], [-1 -1], [1 1]
+            ]            
         """
         Q = self.quiver()
         for M in Q.mutation_class_iter( depth=depth, up_to_equivalence=up_to_equivalence, data_type='matrix' ):

@@ -49,7 +49,7 @@ freezing a collection of initial cluster variables and/or permuting both
 cluster variables and coefficients.
 
 :class:`ClusterAlgebraElement` is a thin wrapper around
-:class:`sage.rings.polynomial.laurent_polynomial_ring.LaurentPolynomial_mpair`
+:class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_generic`
 providing all the functions specific to cluster variables.
 
 One more remark about this implementation.  Instances of

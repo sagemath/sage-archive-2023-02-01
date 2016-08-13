@@ -83,7 +83,7 @@ FriCAS would print out.
 
     sage: print(fricas.eval('factor(x^5 - y^5)'))   # optional - fricas
                4      3    2 2    3     4
-    - (y - x)(y  + x y  + x y  + x y + x )    Type: Factored(Polynomial(Integer))
+    - (y - x)(y  + x y  + x y  + x y + x )
 
 We can create the polynomial `f` as a FriCAS polynomial,
 then call the factor method on it. Notice that the notation
@@ -93,10 +93,10 @@ works.
 ::
 
     sage: f = fricas('x^5 - y^5')                  # optional - fricas
-    sage: f^2                                     # optional - fricas
+    sage: f^2                                      # optional - fricas
        10     5 5    10
       y   - 2x y  + x
-    sage: f.factor()                              # optional - fricas
+    sage: f.factor()                               # optional - fricas
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )
 
@@ -152,12 +152,15 @@ Python floats.
 #
 #                  http://www.gnu.org/licenses/
 ###########################################################################
-from axiom import PanAxiomElement, PanAxiomFunctionElement, PanAxiomExpectFunction
+# from __future__ import print_function
+# from __future__ import absolute_import
+
+from sage.interfaces.axiom import PanAxiomElement, PanAxiomFunctionElement, PanAxiomExpectFunction
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
+from sage.interfaces.expect import Expect, ExpectElement, FunctionElement, ExpectFunction
+from sage.env import DOT_SAGE
 import re
 import six
-from sage.rings.all import RealField, ZZ, QQ
 
 FRICAS_SINGLE_LINE_START = 3      # where the output starts
 FRICAS_MULTI_LINE_START = 2
@@ -404,7 +407,7 @@ class FriCASElement(ExpectElement):
         raise NotImplementedError
 
     def __int__(self):
-        raise NotImplementedError
+        return int(self.sage())
 
     def bool(self):
         raise NotImplementedError
@@ -416,7 +419,7 @@ class FriCASElement(ExpectElement):
         raise NotImplementedError
 
     def __float__(self):
-        raise NotImplementedError
+        return float(self.sage())
 
     def _integer_(self, ZZ=None):
         raise NotImplementedError
@@ -447,6 +450,13 @@ class FriCASElement(ExpectElement):
         P = self._check_valid()
         return P.eval('unparse(%s::InputForm)' %self._name).replace("\r\n", "")[1:-1]
 
+    def type(self):
+        """
+        Return the type of the object in FriCAS as a FriCAS object.
+        """
+        P = self._check_valid()
+        return P(self._get_type_str())
+        
     def _get_type_str(self):
         P = self._check_valid()
         output = P._eval_line(self._name + ";")
@@ -455,6 +465,7 @@ class FriCASElement(ExpectElement):
         return m.groups()[0]
 
     def _get_type(self):
+        import ast
         def to_list_of_lists(node):
             if isinstance(node, ast.Name):
                 return node.id
@@ -472,6 +483,12 @@ class FriCASElement(ExpectElement):
         return to_list_of_lists(A.body[0].value)
 
     def _get_sage_type(self, type):
+        from sage.rings.all import ZZ, QQ, QQbar, PolynomialRing, RDF
+        from sage.rings.fraction_field import FractionField
+        from sage.rings.finite_rings.integer_mod_ring import Integers
+        from sage.rings.real_mpfr import RealField
+        from sage.symbolic.ring import SR
+        
         if type in ["Integer", "NonNegativeInteger", "PositiveInteger"]:
             return ZZ
         elif type == "String":
@@ -574,6 +591,13 @@ class FriCASElement(ExpectElement):
                 x  + x - 1
 
         """
+        from sage.rings.all import ZZ, QQ, QQbar, PolynomialRing, RDF
+        from sage.rings.fraction_field import FractionField
+        from sage.rings.finite_rings.integer_mod_ring import Integers
+        from sage.rings.real_mpfr import RealField
+        from sage.symbolic.ring import SR
+        from sage.misc.sage_eval import sage_eval
+        
         type = self._get_type()
         if type in ["Integer", "NonNegativeInteger", "PositiveInteger"]:
             return ZZ(self._get_1d_output())
@@ -588,13 +612,11 @@ class FriCASElement(ExpectElement):
             return R(ZZ(x)*ZZ(b)**ZZ(e))
 
         elif type == "DoubleFloat":
-            from sage.rings.all import RDF
             return RDF(self._get_1d_output())
 
         elif type == "AlgebraicNumber":
-            from sage.rings.all import QQbar
             s = self._get_1d_output()[:-len("::AlgebraicNumber()")]
-            return sage.misc.sage_eval.sage_eval("QQbar(" + s + ")")
+            return sage_eval("QQbar(" + s + ")")
 
         elif isinstance(type, list):
             if type[0] == "List":
@@ -614,7 +636,6 @@ class FriCASElement(ExpectElement):
                 return self.numer().sage()/self.denom().sage()
 
             elif type[0] == "Polynomial":
-                from sage.rings.all import PolynomialRing
                 base_ring = self._get_sage_type(type[1])
                 vars = self.variables()._get_1d_output()[1:-1]
                 R = PolynomialRing(base_ring, vars)
@@ -626,7 +647,6 @@ class FriCASElement(ExpectElement):
                     return SR(s)
 
             elif type[0] == 'DistributedMultivariatePolynomial':
-                from sage.rings.all import PolynomialRing
                 base_ring = self._get_sage_type(type[2])
                 vars = type[1]
                 R = PolynomialRing(base_ring, vars)

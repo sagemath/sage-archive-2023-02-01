@@ -1,38 +1,66 @@
 r"""
 Cluster algebras
 
-This file implements cluster algebras using the algebra-element framework.
-This implementation mainly utilizes structural theorems from [FZ07]_.
+This file constructs cluster algebras using the Parent-Element framework.
+The implementation mainly utilizes structural theorems from [FZ07]_.
 
-The class structure has been chosen to closely mirror the mutation process
-in the theory of cluster algebras.  Thus a cluster algebra is determined by
-an initial seed from which all other seeds are computed.  Seeds are a separate
-class whose parent is an instance of the cluster algebra class.
+The key points being used here are these:
+    
+    * cluster variables are parametrized by their g-vector;
 
-The task of mutating seeds is delegated to the seeds themselves since they
-carry all the data for mutation, seeds also track a mutation path by which
-they can be obtained from the initial seed of their parent.  Although cluster
-algebras themselves are independent of the choice of initial seed, in order to
-maintain consistency of mutation path data in seeds, cluster algebras in this
-implementation are considered to be equal only if their initial seed data
-coincides.  Following this, the task of mutating the initial cluster is
-delegated to the cluster algebra and this process returns a new cluster
-algebra.
+    * g-vectors (together with c-vectors) provide a self-standing model for the
+      combinatorics behind any cluster algebra;
 
+    * cluster variables in any cluster algebra can be computed, by the
+      separation of additions formula, from their g-vector and F-polynomial.
+    
+Accordingly this file provides three classes:
+
+    * :class:`ClusterAlgebra`
+
+    * :class:`ClusterAlgebraSeed`
+
+    * :class:`ClusterAlgebraElement`
+
+:class:`ClusterAlgebra`, constructed as a subobject of
+:class:`sage.rings.polynomial.laurent_polynomial_ring.LaurentPolynomialRing_generic`,
+is the frontend of this implementation. It provides all the algebraic features
+(like ring morphisms), it computes cluster variables, it is responsible for
+controlling the exploration of the exchage graph and serves as repository for all
+the data recursively computed so far.  
+In particular all g-vectors and all F-polynomials of known cluster variables as
+well as a mutation path by which they can be obtained are recorded. In the optic
+of efficiency, this implementationd does not store directly the exchange graph
+nor the exchange relations. Both of these could be added to
+:class:`ClusterAlgebra` with minimal effort.
+
+:class:`ClusterAlgebraSeed` provides the combinatorial backbone for :class:`ClusterAlgebra`.
+It is an auxiliary class and therefore  its instances should **not** be directly
+created by the user.  Rather it should be accessed via
+:meth:`ClusterAlgebra.current_seed` and :meth:`ClusterAlgebra.initial_seed`.
+To this class it is delegated the task of performing current seed mutations.
 Seeds are considered equal if they have the same parent cluster
 algebra and they can be obtained from each other by a permutation of their
-data.  Cluster algebras whose initial seeds are equal in the above sense are
-not considered equal but are endowed with coercion maps to each other.
-More generally, a cluster algebra is endowed with coercion maps from any
-cluster algebra which is obtained by freezing a collection of cluster variables
-and possibly permuting the remaining cluster variables and coefficients.
+data (i.e. if they coincide as unlabelled seeds).  Cluster algebras whose
+initial seeds are equal in the above sense are not considered equal but are
+endowed with coercion maps to each other.  More generally, a cluster algebra is
+endowed with coercion maps from any cluster algebra which is obtained by
+freezing a collection of initial cluster variables and/or permuting both
+cluster variables and coefficients.
 
-The cluster algebra keeps track of all cluster variable data obtained so far,
-in particular all g-vectors and all F-polynomials of known cluster variables
-as well as a mutation path by which they can be obtained.  When the cluster
-algebra has principal coefficients, any of its homogeneous elements know their
-own g-vector and F-polynomial.  Following the Laurent Phenomenon, each element
-of a cluster algebra also knows its own denominator vector.
+:class:`ClusterAlgebraElement` is a thin wrapper around
+:class:`sage.rings.polynomial.laurent_polynomial_ring.LaurentPolynomial_mpair`
+providing all the fucntions specific to cluster variables.
+
+One more remark about this implementation.  Instances of
+:class:`ClusterAlgebra` are built by identifying the initial cluster variables
+with the generators of :meth:`ClusterAlgebra.ambient`. In particular this
+forces a specific embedding into the ambient field of rational expressions.  In
+view of this, although cluster algebras themselves are independent of the
+choice of initial seed, :meth:`ClusterAlgebra.mutate_initial` is forced to
+return a different instance of :class:`ClusterAlgebra`. At the moment there is
+no coercion implemented among the two instances but this could be in principle
+added to :meth:`ClusterAlgebra.mutate_initial`.
 
 REFERENCES:
 
@@ -870,8 +898,8 @@ class ClusterAlgebra(Parent):
         - ``data`` -- some data defining a cluster algebra: it can be anything
           that can be parsed by :class:`ClusterQuiver`.
 
-        - ``scalars`` -- a ring (default ``ZZ``): the scalars over which the cluster algebra
-          is defined.
+        - ``scalars`` -- a ring (default `\ZZ`): the scalars over
+          which the cluster algebra is defined.
 
         - ``cluster_variable_prefix`` -- string (default ``'x'``): it needs to be
           a valid variable name.

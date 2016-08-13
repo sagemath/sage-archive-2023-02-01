@@ -360,7 +360,7 @@ As a third alternative, use the raw suffix::
     array([  7.5,  10.5])
 
 You can also disable the preprocessor in your code via
-``preparse(False)``. You can may start IPython alone from the command
+``preparser(False)``. You can may start IPython alone from the command
 line ``sage -ipython`` which does not pre-load anything
 Sage-specific. Or switching the Notebook language to "Python".
 

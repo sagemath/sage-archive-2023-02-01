@@ -19,8 +19,8 @@ cdef class SkewPolynomial(AlgebraElement):
     cdef void _inplace_pow(self, Py_ssize_t n)
 
 cdef class SkewPolynomial_generic_dense(SkewPolynomial):
-    cpdef power_right_mod(self,right,modulus)
-    cpdef power_left_mod(self,right,modulus)
+    cpdef right_power_mod(self, exp, modulus)
+    cpdef left_power_mod(self, exp, modulus)
 
 cdef class SkewPolynomialBaseringInjection(Morphism):
     cdef RingElement _an_element

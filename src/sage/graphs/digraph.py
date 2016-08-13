@@ -492,7 +492,7 @@ class DiGraph(GenericGraph):
             sage: DiGraph({1:{2:0}})
             Digraph on 2 vertices
 
-        An empty list or dictionary defines a simple graph (trac #10441 and #12910)::
+        An empty list or dictionary defines a simple graph (:trac:`10441` and :trac:`12910`)::
 
             sage: DiGraph([])
             Digraph on 0 vertices

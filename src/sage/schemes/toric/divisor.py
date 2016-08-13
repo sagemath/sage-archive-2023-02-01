@@ -1606,7 +1606,7 @@ class ToricDivisor_generic(Divisor_generic):
             sage: D._sheaf_cohomology( SimplicialComplex([[1,2],[2,3],[3,1]]) )
             (0, 0, 1)
 
-        A more complicated example to test that trac #10731 is fixed::
+        A more complicated example to test that :trac:`10731` is fixed::
 
             sage: cell24 = Polyhedron(vertices=[
             ...    (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),

@@ -1726,7 +1726,7 @@ class Polyhedron_base(Element):
             sage: simplex.ambient_dim()
             4
 
-        The empty set is a special case (Trac #12193)::
+        The empty set is a special case (:trac:`12193`)::
 
             sage: P1=Polyhedron(vertices=[[1,0,0],[0,1,0],[0,0,1]])
             sage: P2=Polyhedron(vertices=[[2,0,0],[0,2,0],[0,0,2]])

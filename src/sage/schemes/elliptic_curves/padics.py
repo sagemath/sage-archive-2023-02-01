@@ -294,7 +294,7 @@ def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
         ....:     assert E.padic_regulator(5, prec) == full   # long time
 
     A case where the generator belongs to the formal group already
-    (trac #3632)::
+    (:trac:`3632`)::
 
         sage: E = EllipticCurve([37,0])
         sage: E.padic_regulator(5,10)
@@ -488,7 +488,7 @@ def _multiply_point(E, R, P, m):
         sage: -67387681.sqrt() % 625     # sign is flipped here too
         541
 
-    Trivial cases (trac 3632)::
+    Trivial cases (:trac:`3632`)::
 
         sage: _multiply_point(E, R, P, 1)
         (0, 624, 1)

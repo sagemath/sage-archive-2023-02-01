@@ -1184,7 +1184,7 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1.inject_coefficients()
             Defining a, b
 
-        We check that we can use names ``a`` and ``b``, Trac #10498 is fixed::
+        We check that we can use names ``a`` and ``b``, :trac:`10498` is fixed::
 
             sage: a + b
             a + b

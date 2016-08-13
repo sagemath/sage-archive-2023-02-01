@@ -80,29 +80,234 @@ AUTHORS:
 
 - Salvatore Stella (2015-06-15): initial version
 
-EXAMPLES::
+EXAMPLES:
 
-    sage: A = ClusterAlgebra(['A',2])
+We begin by creating a simple cluster algebra and printing its initial exchange
+matrix::
+
+    sage: A = ClusterAlgebra(['A',2]); A
+    A Cluster Algebra with cluster variables x0, x1 and no coefficients over Integer Ring
     sage: A.b_matrix()
     [ 0  1]
     [-1  0]
-    sage: A.explore_to_depth(2)
+
+``A`` is of finite type so we can explore all its exchange graph::
+
+    sage: A.explore_to_depth(infinity)
+
+and get all its g-vectors, F-polynomials, and cluster variables::
+
     sage: A.g_vectors_so_far()
     [(0, 1), (0, -1), (1, 0), (-1, 1), (-1, 0)]
     sage: A.F_polynomials_so_far()
     [1, u1 + 1, 1, u0 + 1, u0*u1 + u0 + 1]
     sage: A.cluster_variables_so_far()
     [x1, (x0 + 1)/x1, x0, (x1 + 1)/x0, (x0 + x1 + 1)/(x0*x1)]
-    sage: B = A.mutate_initial(0)
-    sage: B.b_matrix()
-    [ 0 -1]
-    [ 1  0]
-    sage: B.g_vectors_so_far()
-    [(0, 1), (0, -1), (1, 0), (1, -1), (-1, 0)]
-    sage: B.F_polynomials_so_far()
-    [1, u0*u1 + u1 + 1, 1, u1 + 1, u0 + 1]
-    sage: B.cluster_variables_so_far()
-    [x1, (x0 + x1 + 1)/(x0*x1), x0, (x0 + 1)/x1, (x1 + 1)/x0]
+
+Simple operations among cluster variables behave as expected::
+
+    sage: s = A.cluster_variable((0,-1)); s
+    (x0 + 1)/x1
+    sage: t = A.cluster_variable((-1,1)); t
+    (x1 + 1)/x0
+    sage: t + s
+    (x0^2 + x1^2 + x0 + x1)/(x0*x1)
+    sage: _.parent() == A
+    True
+    sage: t - s
+    (-x0^2 + x1^2 - x0 + x1)/(x0*x1)
+    sage: _.parent() == A
+    True
+    sage: t*s
+    (x0*x1 + x0 + x1 + 1)/(x0*x1)
+    sage: _.parent() == A
+    True
+    sage: t/s
+    (x1^2 + x1)/(x0^2 + x0)
+    sage: _.parent() == A
+    False
+
+Division is not guaranteed to yield an element of ``A`` so it returns an
+element of ``A.ambient().fraction_field()`` instead::
+
+    sage: (t/s).parent() == A.ambient().fraction_field()
+    True
+
+We can compute denominator vectors of any element of ``A``::
+
+    sage: (t*s).d_vector()
+    (1, 1)
+
+and since we are in rank 2 and we do not have coefficients we can compute the
+greedy element associated to any denominator vector::
+
+    sage: A.rk() == 2 and A.coefficients() == []
+    True
+    sage: A.greedy_element((1,1))
+    (x0 + x1 + 1)/(x0*x1)
+    sage: _ == t*s
+    False
+
+... not surprising since there is no cluster in ``A`` containing both ``t`` and
+``s``::
+
+    sage: seeds = A.seeds(mutating_F=false)
+    sage: [ S for S in seeds if (0,-1) in S and (-1,1) in S ]
+    []
+
+indeed::
+
+    sage: A.greedy_element((1,1)) == A.cluster_variable((-1,0))
+    True
+
+Disabling F-polynomials in the computation just done was redundant because we
+already explored the whole exchange graph before. In different circumstances it
+could have saved us a long time though.
+
+g-vectors and F-polynomials can be computed from elements of ``A`` only if
+``A`` has principal coefficients at the initial seed::
+
+    sage: (t*s).g_vector()
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'ClusterAlgebra_with_category.element_class' object has no attribute 'g_vector'
+    sage: A = ClusterAlgebra(['A',2], principal_coefficients=True)
+    sage: A.explore_to_depth(infinity)
+    sage: s = A.cluster_variable((0,-1)); s
+    (x0*y1 + 1)/x1
+    sage: t = A.cluster_variable((-1,1)); t
+    (x1 + y0)/x0
+    sage: (t*s).g_vector()
+    (-1, 0)
+    sage: (t*s).F_polynomial()
+    u0*u1 + u0 + u1 + 1
+    sage: (t*s).is_homogeneous()
+    True
+    sage: (t+s).is_homogeneous()
+    False
+    sage: (t+s).homogeneous_components()
+    {(-1, 1): (x1 + y0)/x0, (0, -1): (x0*y1 + 1)/x1}
+
+Each cluster algebra is endowed with a reference to a current seed; it could be
+useful to assign a name to it::
+
+    sage: A = ClusterAlgebra(['F',4])
+    sage: len(A.g_vectors_so_far())
+    4
+    sage: A.current_seed()
+    The initial seed of a Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring
+    sage: A.current_seed() == A.initial_seed()
+    True
+    sage: S = A.current_seed()
+    sage: S.b_matrix()
+    [ 0  1  0  0]
+    [-1  0 -1  0]
+    [ 0  2  0  1]
+    [ 0  0 -1  0]
+    sage: S.g_matrix()
+    [1 0 0 0]
+    [0 1 0 0]
+    [0 0 1 0]
+    [0 0 0 1]
+    sage: S.cluster_variables()
+    [x0, x1, x2, x3]
+
+and use ``S`` to walk around the exchange graph of ``A``::
+
+    sage: S.mutate(0); S
+    The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring obtained from the initial by mutating in direction 0
+    sage: S.b_matrix()
+    [ 0 -1  0  0]
+    [ 1  0 -1  0]
+    [ 0  2  0  1]
+    [ 0  0 -1  0]
+    sage: S.g_matrix()
+    [-1  0  0  0]
+    [ 1  1  0  0]
+    [ 0  0  1  0]
+    [ 0  0  0  1]
+    sage: S.cluster_variables()
+    [(x1 + 1)/x0, x1, x2, x3]
+    sage: S.mutate('sinks'); S
+    The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring obtained from the initial by mutating along the sequence [0, 2]
+    sage: S.mutate([2,3,2,1,0]); S
+    The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring obtained from the initial by mutating along the sequence [0, 3, 2, 1, 0]
+    sage: S.g_vectors()
+    [(0, 1, -2, 0), (-1, 2, -2, 0), (0, 1, -1, 0), (0, 0, 0, -1)]
+    sage: S.cluster_variable(3)
+    (x2 + 1)/x3
+
+Walking around by mutating ``S`` updates the informations stored in ``A``::
+
+    sage: len(A.g_vectors_so_far())
+    10
+    sage: A.current_seed().path_from_initial_seed()
+    [0, 3, 2, 1, 0]
+    sage: A.current_seed() == S
+    True
+
+Starting from ``A.initial_seed()``  still records data in ``A`` but does not
+uptate ``A.current_seed()``::
+
+    sage: S1 = A.initial_seed()
+    sage: S1.mutate([2,1,3])
+    sage: len(A.g_vectors_so_far())
+    11
+    sage: S1 == A.current_seed()
+    False
+
+Given a cluster algebra ``A`` we may be looking for a specific cluster
+variable::
+
+    sage: A = ClusterAlgebra(['E', 8, 1])
+    sage: A.find_g_vector((-1, 1, -1, 1, -1, 1, 0, 0, 1), depth=2)
+    sage: A.find_g_vector((-1, 1, -1, 1, -1, 1, 0, 0, 1))
+    [0, 1, 2, 4, 3]
+
+This also performs mutations of F-polynomials::
+
+    sage: A.F_polynomial((-1, 1, -1, 1, -1, 1, 0, 0, 1))
+    u0*u1*u2*u3*u4 + u0*u1*u2*u4 + u0*u2*u3*u4 + u0*u1*u2 + u0*u2*u4 + u2*u3*u4 + u0*u2 + u0*u4 + u2*u4 + u0 + u2 + u4 + 1
+
+which might not be a good idea in algebras that are too big. One workaround is
+to first disable F-polynomials and then recompute only the desired mutations::
+
+    sage: A.reset_exploring_iterator(mutating_F=False)  # long time
+    sage: A.find_g_vector((-1, 1, -2, 2, -1, 1, -1, 1, 1))  # long time
+    [1, 0, 2, 6, 5, 4, 3, 8, 1]
+    sage: A.current_seed().mutate(_)    # long time
+    sage: A.F_polynomial((-1, 1, -2, 2, -1, 1, -1, 1, 1))   # long time
+    u0*u1^2*u2^2*u3*u4*u5*u6*u8 +
+    ...
+    2*u2 + u4 + u6 + 1
+
+We can manually freeze cluster variables and get coercions in between the two
+algebras::
+
+    sage: A = ClusterAlgebra(['F',4]); A
+    A Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring
+    sage: B = ClusterAlgebra(A.b_matrix().matrix_from_columns([0,1,2]),coefficient_prefix='x'); B
+    A Cluster Algebra with cluster variables x0, x1, x2 and coefficient x3 over Integer Ring
+    sage: A.has_coerce_map_from(B)
+    True
+
+and we also have an immersion of ``A.base()`` into ``A`` and of ``A`` into
+``A.ambient()``::
+
+    sage: A.has_coerce_map_from(A.base())
+    True
+    sage: A.ambient().has_coerce_map_from(A)
+    True
+
+but there is currently no coercion in between algebras obtained by mutating at
+the initial seed::
+
+    sage: B = A.mutate_initial(0); B
+    A Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring
+    sage: A.b_matrix() == B.b_matrix()
+    False
+    sage: map(lambda (X,Y): X.has_coerce_map_from(Y), [(A,B),(B,A)])
+    [False, False]
 """
 
 #*****************************************************************************
@@ -252,6 +457,18 @@ class ClusterAlgebraElement(ElementWrapper):
             2*x0
         """
         return self.parent().retract(self.lift() + other.lift())
+
+    def _neg_(self):
+        r"""
+        Return  the negative of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['F',4])
+            sage: -A.an_element()
+            -x0
+        """
+        return self.parent().retract(-self.lift())
 
     def _div_(self, other):
         r"""
@@ -1570,10 +1787,10 @@ class ClusterAlgebra(Parent):
             sage: A = ClusterAlgebra(['A',3])
             sage: A.coefficient_names()
             ()
-            sage: B = ClusterAlgebra(['B',2],principal_coefficients=True)
+            sage: B = ClusterAlgebra(['B',2], principal_coefficients=True)
             sage: B.coefficient_names()
             ('y0', 'y1')
-            sage: C = ClusterAlgebra(['C',3],coefficient_prefix='x')
+            sage: C = ClusterAlgebra(['C',3], principal_coefficients=True, coefficient_prefix='x')
             sage: C.coefficient_names()
             ('x3', 'x4', 'x5')
         """
@@ -1618,7 +1835,7 @@ class ClusterAlgebra(Parent):
             ('x0', 'x1')
             sage: B = ClusterAlgebra(['B',2],cluster_variable_prefix='a')
             sage: B.initial_cluster_variable_names()
-            ('a0','a1')
+            ('a0', 'a1')
         """
         return self.variable_names()[:self.rk()]
 

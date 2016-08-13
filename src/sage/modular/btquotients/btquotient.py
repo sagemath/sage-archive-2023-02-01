@@ -3297,7 +3297,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         OUTPUT:
 
           If the objects are equivalent, returns an element of
-          the arithemtic group Gamma that takes ``v1`` to ``v2``.
+          the arithmetic group Gamma that takes ``v1`` to ``v2``.
           Otherwise returns False.
 
         EXAMPLES::

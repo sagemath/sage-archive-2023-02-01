@@ -366,7 +366,7 @@ Tests
 -----
 
 Options classes can only be pickled if they are the options for some standard
-sage class. In this case the class is specified using the arguements to
+sage class. In this case the class is specified using the arguments to
 :class:`GlobalOptions`. For example
 :meth:`~sage.combinat.partition.Partitions.options` is defined as:
 

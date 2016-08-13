@@ -710,9 +710,9 @@ def cospin_polynomial(part, weight, length):
     R = ZZ['t']
     t = R.gen()
 
-    #The power in the spin polynomial are all half integers
-    #or all integers.  Manipulation of expressions need to
-    #seperate cases
+    # The power in the spin polynomial are all half integers
+    # or all integers.  Manipulation of expressions need to
+    # separate cases
     sp = spin_polynomial_square(part, weight, length)
     if sp == 0:
         return R(0)

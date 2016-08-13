@@ -535,7 +535,7 @@ def g_vector(self):
         sage: A.cluster_variable((1,0)).g_vector() == (1,0)
         True
         sage: sum(A.initial_cluster_variables()).g_vector()
-        Traceback (most recent call last):                                                                                      
+        Traceback (most recent call last):
         ...
         ValueError: This element is not homogeneous.
     """
@@ -556,7 +556,7 @@ def F_polynomial(self):
         sage: S.cluster_variable(0).F_polynomial() == S.F_polynomial(0)
         True
         sage: sum(A.initial_cluster_variables()).F_polynomial()
-        Traceback (most recent call last):                                                                                      
+        Traceback (most recent call last):
         ...
         ValueError: This element is not homogeneous.
     """

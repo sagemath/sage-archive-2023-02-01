@@ -204,6 +204,7 @@ class ClusterAlgebraElement(ElementWrapper):
         # setup methods defined only in special cases
         if parent._is_principal:
             self.g_vector = MethodType(g_vector, self, self.__class__)
+            self.F_polynomial = MethodType(F_polynomial, self, self.__class__)
             self.is_homogeneous = MethodType(is_homogeneous, self, self.__class__)
             self.homogeneous_components = MethodType(homogeneous_components, self, self.__class__)
 
@@ -295,13 +296,22 @@ def g_vector(self):
     else:
         raise ValueError("This element is not homogeneous.")
 
-def F_polynomoial(self):
+def F_polynomial(self):
     r"""
     Return the F-polynomial of ``self``.
-    # A homogeneous element of a cluster algebra with principal coefficients
-    # should know its own F-polynomial
+
+    EXAMPLES::
+        sage: A = ClusterAlgebra(['B',2],principal_coefficients=True)
+        sage: A.cluster_variable((1,0)).F_polynomial() == A.F_polynomial((1,0))
+        True
     """
-    pass
+    subs_dict = dict()
+    A = self.parent()
+    for x in A.initial_cluster_variables():
+        subs_dict[x.lift()] = A._U(1)
+    for i in xrange(A.rk()):
+        subs_dict[A.coefficient(i).lift()] = A._U.gen(i)
+    return self.lift().substitute(subs_dict)
 
 def is_homogeneous(self):
     r"""

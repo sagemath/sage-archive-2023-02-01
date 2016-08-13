@@ -73,7 +73,6 @@ class Knot(Link):
 
     .. TODO::
 
-        - Implement the connect sum of two knots.
         - Make a class Knots for the monoid of all knots and have this be an
           element in that monoid.
     """
@@ -228,24 +227,31 @@ class Knot(Link):
 
         return 1
 
-    def connected_sum(K1,K2):
-        """
-        Return the oriented connected sum of two knots.
+    def connected_sum(self, other):
+        r"""
+        Return the oriented connected sum of ``self`` and ``other``.
+
+        .. NOTE::
+
+            We give the knots an orientation based upon the braid
+            representation.
 
         INPUT:
 
-        - ``K1`` -- A knot
-        - ``K2`` -- A knot
+        - ``other`` -- a knot
 
         OUTPUT:
 
-        A knot equivalent to the connected sum of K1 and K2
+        A knot equivalent to the connected sum of ``self`` and ``other``.
 
         EXAMPLES::
 
             sage: B = BraidGroup(2)
             sage: trefoil = Knot(B([1,1,1]))
-            sage: K = trefoil.connected_sum(trefoil)
+            sage: K = trefoil.connected_sum(trefoil); K
+            Knot represented by 7 crossings
+            sage: K.braid()
+            s0^3*s2^3*s1
 
         .. PLOT::
             :width: 300 px
@@ -256,17 +262,29 @@ class Knot(Link):
             sphinx_plot(K.plot())
 
         ::
-        
+
+            sage: rev_trefoil = Knot(B([-1,-1,-1]))
+            sage: K = trefoil.connected_sum(rev_trefoil); K
+            Knot represented by 7 crossings
             sage: K.braid()
-            s0^3*s2^3*s1    
-        
+            s0^3*s2^-3*s1
+
+        .. PLOT::
+            :width: 300 px
+
+            B = BraidGroup(2)
+            t = Knot(B([1,1,1]))
+            tr = Knot(B([-1,-1,-1]))
+            K = t.connected_sum(tr)
+            sphinx_plot(K.plot())
+
         REFERENCES:
 
         - :wikipedia:`Connected_sum`
         """
         from sage.groups.braid import BraidGroup
-        b1 = K1.braid()
-        b2 = K2.braid()
+        b1 = self.braid()
+        b2 = other.braid()
 
         b1s = b1.strands()
         b2s = b2.strands()
@@ -276,3 +294,4 @@ class Knot(Link):
         return Knot(B(list(b1.Tietze())
                       + [(abs(i) + b2s) * Integer(i).sign() for i in b2.Tietze()]
                       + [b1s]))
+

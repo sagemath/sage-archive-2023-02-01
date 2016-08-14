@@ -20,8 +20,9 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
-def Krawtchouk(n,q,l,x,check=True):
-    """
+
+def Krawtchouk(n, q, l, x, check=True):
+    r"""
     Compute ``K^{n,q}_l(x)``, the Krawtchouk (a.k.a. Kravchuk) polynomial.
 
     See :wikipedia:`Kravchuk_polynomials`; It is defined by the generating function

@@ -964,7 +964,7 @@ def implicit_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         def f(x,y): return x**2 + y**2 - 2
-        g = implicit_plot(f, (-3,3), (-3,3), fill=True, plot_points=500) # long time
+        g = implicit_plot(f, (-3,3), (-3,3), fill=True, plot_points=500)
         sphinx_plot(g)
 
     The same circle but with a different line width::
@@ -1000,7 +1000,7 @@ def implicit_plot(f, xrange, yrange, **options):
 
         def f(x,y): return x**2 + y**2 - 2
         g = implicit_plot(f, (-3,3), (-3,3), color='red', fill=True, fillcolor='green',
-                                             plot_points=500) # long time
+                                             plot_points=500)
         sphinx_plot(g)
 
     You can also plot an equation::
@@ -1054,7 +1054,7 @@ def implicit_plot(f, xrange, yrange, **options):
         x, y = var("x y")
         G = Graphics()
         counter = 0
-        for col in colors.keys():  # long time
+        for col in colors.keys():
             G += implicit_plot(x**2 + y**2 == 1 + counter*.1, (x,-4,4), (y,-4,4), color=col)
             counter += 1
         sphinx_plot(G)
@@ -1138,15 +1138,15 @@ def implicit_plot(f, xrange, yrange, **options):
     symbolic expression the user should increase the number of plot points to
     avoid artifacts::
 
-        sage: implicit_plot(lambda x, y: x^2 + y^2-2, (x,-3,3), (y,-3,3),
+        sage: implicit_plot(lambda x, y: x^2 + y^2 - 2, (x,-3,3), (y,-3,3),
         ....:               fill=True, plot_points=500) # long time
         Graphics object consisting of 2 graphics primitives
 
     .. PLOT::
 
         x, y = var("x y")
-        g = implicit_plot(lambda x, y: x**2 + y**2-2, (x,-3,3), (y,-3,3),
-                          fill=True, plot_points=500) # long time
+        g = implicit_plot(lambda x, y: x**2 + y**2 - 2, (x,-3,3), (y,-3,3),
+                          fill=True, plot_points=500)
         sphinx_plot(g)
 
     An example of an implicit plot on 'loglog' scale::

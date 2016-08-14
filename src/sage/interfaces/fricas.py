@@ -465,6 +465,10 @@ class FriCASElement(ExpectElement):
         return m.groups()[0]
 
     def _get_type(self):
+        """
+        TODO: use fricas.eval("dom(%s)") instead.  Then we can also use
+        ")set message type off" to get very clean communication!
+        """
         import ast
         def to_list_of_lists(node):
             if isinstance(node, ast.Name):
@@ -571,6 +575,9 @@ class FriCASElement(ExpectElement):
         sage: _.parent()                                          # optional - fricas
         Multivariate Polynomial Ring in y, x over Rational Field
 
+        sage: a = fricas("1$Polynomial Integer").sage()           # optional - fricas
+        1
+
         Rational functions:
 
         sage: fricas("x^2 + 1/z").sage()                          # optional - fricas
@@ -638,8 +645,11 @@ class FriCASElement(ExpectElement):
             elif type[0] == "Polynomial":
                 base_ring = self._get_sage_type(type[1])
                 vars = self.variables()._get_1d_output()[1:-1]
-                R = PolynomialRing(base_ring, vars)
-                return R(self._get_1d_output())
+                if vars == "":
+                    return base_ring(self._get_1d_output())
+                else:
+                    R = PolynomialRing(base_ring, vars)
+                    return R(self._get_1d_output())
 
             elif type[0] == "Expression":
                 if type[1] == "Integer":

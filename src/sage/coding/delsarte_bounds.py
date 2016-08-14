@@ -29,7 +29,7 @@ def Krawtchouk(n,q,l,x,check=True):
 
     .. math::
 
-        K^{n,q}_l(x)=\sum_{j=0}^l (-1)^j(q-1)^{(l-j)}{x \choose j}{n-x \choose l-j},
+        K^{n,q}_l(x)=\sum_{j=0}^l (-1)^j(q-1)^{(l-j)}\binom{x}{j}\binom{n-x}{l-j},
 
     INPUT:
 

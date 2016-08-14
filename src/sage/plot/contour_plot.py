@@ -944,13 +944,13 @@ def implicit_plot(f, xrange, yrange, **options):
 
         sage: var("x y")
         (x, y)
-        sage: implicit_plot(x^2 + y^2-2, (x,-3,3), (y,-3,3))
+        sage: implicit_plot(x^2 + y^2 - 2, (x,-3,3), (y,-3,3))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x, y =var("x y")
-        g = implicit_plot(x**2 + y**2-2, (x,-3,3), (y,-3,3))
+        g = implicit_plot(x**2 + y**2 - 2, (x,-3,3), (y,-3,3))
         sphinx_plot(g)
 
     We can do the same thing, but using a callable function so we don't
@@ -958,8 +958,14 @@ def implicit_plot(f, xrange, yrange, **options):
     the inside::
 
         sage: f(x,y) = x^2 + y^2 - 2
-        sage: implicit_plot(f, (-3, 3), (-3, 3), fill=True)
+        sage: implicit_plot(f, (-3,3), (-3,3), fill=True, plot_points=500) # long time
         Graphics object consisting of 2 graphics primitives
+
+    .. PLOT::
+
+        def f(x,y): return x**2 + y**2 - 2
+        g = implicit_plot(f, (-3,3), (-3,3), fill=True, plot_points=500) # long time
+        sphinx_plot(g)
 
     The same circle but with a different line width::
 
@@ -968,7 +974,7 @@ def implicit_plot(f, xrange, yrange, **options):
 
     .. PLOT::
 
-        def f(x,y): return x**2 + y**2 -2
+        def f(x,y): return x**2 + y**2 - 2
         g = implicit_plot(f, (-3,3), (-3,3), linewidth=6)
         sphinx_plot(g)
 
@@ -980,14 +986,22 @@ def implicit_plot(f, xrange, yrange, **options):
     .. PLOT::
 
         x, y =var("x y")
-        def f(x,y): return x**2 + y**2 -2
+        def f(x,y): return x**2 + y**2 - 2
         g = implicit_plot(f, (-3,3), (-3,3), linestyle='dashdot')
         sphinx_plot(g)
 
     The same circle with different line and fill colors::
 
-        sage: implicit_plot(f, (-3,3), (-3,3), color='red', fill=True, fillcolor='green')
+        sage: implicit_plot(f, (-3,3), (-3,3), color='red', fill=True, fillcolor='green',
+        ....:                                  plot_points=500) # long time
         Graphics object consisting of 2 graphics primitives
+
+    .. PLOT::
+
+        def f(x,y): return x**2 + y**2 - 2
+        g = implicit_plot(f, (-3,3), (-3,3), color='red', fill=True, fillcolor='green',
+                                             plot_points=500) # long time
+        sphinx_plot(g)
 
     You can also plot an equation::
 
@@ -1015,8 +1029,14 @@ def implicit_plot(f, xrange, yrange, **options):
 
     The color of the fill region can be changed::
 
-        sage: implicit_plot(f, (-3, 3), (-3, 3), fill=True, fillcolor='red')
+        sage: implicit_plot(x**2 + y**2 == 2, (x,-3,3), (y,-3,3), fill=True, fillcolor='red')
         Graphics object consisting of 2 graphics primitives
+
+    .. PLOT::
+
+        x, y =var("x y")
+        g = implicit_plot(x**2 + y**2 == 2, (x,-3,3), (y,-3,3), fill=True, fillcolor="red")
+        sphinx_plot(g)
 
     Here is a beautiful (and long) example which also tests that all
     colors work with this::

@@ -2016,8 +2016,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def height_difference_bound(self, prec=None):
         r"""
-        Returns an upper bound on the different bewtween the canonical height of a point with
-        respect to this map and the absolute height of the point.
+        Return an upper bound on the different between the canonical
+        height of a point with respect to this map and the absolute
+        height of the point.
 
         This map must be a morphism.
 

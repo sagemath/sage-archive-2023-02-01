@@ -301,17 +301,17 @@ def cython(filename, verbose=False, compile_message=False,
 
     TESTS:
 
-    Before :trac:`12975`, it would have beeen needed to write ``#clang c++``,
+    Before :trac:`12975`, it would have been needed to write ``#clang c++``,
     but upper case ``C++`` has resulted in an error::
 
         sage: code = [
-        ... "#clang C++",
-        ... "#cinclude %s/include/singular %s/include/factory"%(SAGE_LOCAL, SAGE_LOCAL),
-        ... "#clib m readline singular givaro ntl gmpxx gmp",
-        ... "from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular",
-        ... "from sage.libs.singular.polynomial cimport singular_polynomial_pow",
-        ... "def test(MPolynomial_libsingular p):",
-        ... "    singular_polynomial_pow(&p._poly, p._poly, 2, p._parent_ring)"]
+        ....: "#clang C++",
+        ....: "#cinclude %s/include/singular %s/include/factory"%(SAGE_LOCAL, SAGE_LOCAL),
+        ....: "#clib m readline singular givaro ntl gmpxx gmp",
+        ....: "from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular",
+        ....: "from sage.libs.singular.polynomial cimport singular_polynomial_pow",
+        ....: "def test(MPolynomial_libsingular p):",
+        ....: "    singular_polynomial_pow(&p._poly, p._poly, 2, p._parent_ring)"]
         sage: cython(os.linesep.join(code))
 
     The function ``test`` now manipulates internal C data of polynomials,

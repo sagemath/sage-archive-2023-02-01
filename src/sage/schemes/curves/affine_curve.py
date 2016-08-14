@@ -44,9 +44,10 @@ from sage.misc.all import add
 
 from sage.rings.all import degree_lowest_rational_function
 
+from sage.rings.number_field.number_field import NumberField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar import number_field_elements_from_algebraics, QQbar
-
+from sage.rings.rational_field import is_RationalField
 from sage.schemes.affine.affine_space import (is_AffineSpace,
                                               AffineSpace)
 
@@ -251,6 +252,15 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             x^2 - 2 defined by (-a)*x^5 + y^2, x - z
                Defn: Defined on coordinates by sending (z, s0, s1) to
                      (z*s0, z*s1, z))
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QuadraticField(-1), 2)
+            sage: C = A.curve([y^2 + x^2])
+            sage: C.blowup()
+            Traceback (most recent call last):
+            ...
+            TypeError: this curve must be irreducible
         """
         A = self.ambient_space()
         n = A.dimension_relative()
@@ -260,7 +270,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             raise TypeError("the origin must be a point on this curve")
         if not self.base_ring() in Fields():
             raise TypeError("the base ring of this curve must be a field")
-        if not self.defining_ideal().is_prime():
+        if not self.is_irreducible():
             raise TypeError("this curve must be irreducible")
         # attempt to make the variable names more organized
         # the convention used here is to have the homogeneous coordinates for the projective component of the
@@ -344,7 +354,8 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
 
         The nonsingular model is given as a collection of affine patches that cover it. If ``extend`` is ``False``
         and if the base field is a number field, or if the base field is a finite field, the model returned may have
-        singularities with coordinates not contained in the base field.
+        singularities with coordinates not contained in the base field. An error is returned if this curve is already
+        nonsingular, or if it has no singular points over its base field.
 
         INPUT:
 
@@ -401,19 +412,15 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: set_verbose(-1)
             sage: K.<a> = QuadraticField(3)
             sage: A.<x,y> = AffineSpace(K, 2)
-            sage: C = Curve([(x^2 + y^2 - y - 2)*(y - x^2 + 2) + a*y^3], A)
-            sage: R = C.resolution_of_singularities(True) # long time (3 seconds)
+            sage: C = A.curve(x^4 + 2*x^2 + a*y^3 + 1)
+            sage: R = C.resolution_of_singularities(extend=True) # long time (2 seconds)
             sage: R[0]
-            (Affine Plane Curve over Number Field in a with defining polynomial y^4
-            - 4*y^2 + 1 defined by (a^2 - 1)*x^2*ss1^3 - x^2*ss1^2 + (-4*a)*x*ss1^3
-            + (2*a^3 - 6*a)*x*ss1^2 - ss1^2 + 2*ss1 - 1,
-             Affine Plane Curve over Number Field in a with defining polynomial y^4
-            - 4*y^2 + 1 defined by -s1^2*ss0^2 + (a^2 - 1)*s1^2*ss0 + (2*a^3 -
-            6*a)*s1*ss0 - ss0^2 + (-4*a)*s1 + 2*ss0 - 1,
-             Affine Plane Curve over Number Field in a with defining polynomial y^4
-            - 4*y^2 + 1 defined by -y^2*s0^4 - y^2*s0^2 + (-4*a^3 + 12*a)*y*s0^3 +
-            2*y*s0^2 + (-2*a^3 + 6*a)*y*s0 - 8*s0^2 + (a^2 - 1)*y + (4*a^3 -
-            12*a)*s0 - 1)
+            (Affine Plane Curve over Number Field in a0 with defining polynomial y^4
+            - 4*y^2 + 16 defined by (1/8*a0^3 - a0)*x^2*ss1^3 + (-a0^2 + 2)*x*ss1^3 + 1,
+             Affine Plane Curve over Number Field in a0 with defining polynomial y^4
+            - 4*y^2 + 16 defined by (1/8*a0^3 - a0)*s1^2*ss0 + ss0^2 + (-a0^2 + 2)*s1,
+             Affine Plane Curve over Number Field in a0 with defining polynomial y^4
+            - 4*y^2 + 16 defined by y^2*s0^4 + (-1/2*a0^3)*y*s0^3 - 4*s0^2 + (1/8*a0^3 - a0)*y)
 
         ::
 
@@ -427,21 +434,47 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             -y*s0^3 + s2^2 - y,
              Affine Curve over Finite Field of size 5 defined by -z^2*s0^3 + s1,
             -z*s0^3 - z*s1^3 + 1)
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([y - x^2 + 1], A)
+            sage: C.resolution_of_singularities()
+            Traceback (most recent call last):
+            ...
+            TypeError: this curve is already nonsingular
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = A.curve([(x^2 + y^2 - y - 2)*(y - x^2 + 2) + y^3])
+            sage: C.resolution_of_singularities()
+            Traceback (most recent call last):
+            ...
+            TypeError: this curve has no singular points over its base field. If
+            working over a number field use extend=True
         """
         # helper function for extending the base field (in the case of working over a number field)
         def extension(self):
-            psi = self.base_ring().embeddings(QQbar)[0]
-            pts = self.change_ring(psi).rational_points()
-            L = [pt[j] for j in range(len(self.ambient_space().gens())) for pt in pts]
-            L.extend([psi(g) for g in self.base_ring().gens()])
+            F = self.base_ring()
+            pts = self.change_ring(F.embeddings(QQbar)[0]).rational_points()
+            L = [t for pt in pts for t in pt]
             K = number_field_elements_from_algebraics(L)[0]
-            return [K, self.base_ring().embeddings(K)[0]]
+            if is_RationalField(K):
+                return F.embeddings(F)[0]
+            else:
+                if is_RationalField(F):
+                    return F.embeddings(K)[0]
+                else:
+                    # make sure the defining polynomial variable names are the same for K, N
+                    N = NumberField(K.defining_polynomial().parent()(F.defining_polynomial()), str(K.gen()))
+                    return N.composite_fields(K, both_maps=True)[0][1]*F.embeddings(N)[0]
         # find the set of singular points of this curve
         # in the case that the base field is a number field, extend it as needed (if extend == True)
         C = self
         n = C.ambient_space().dimension_relative()
         if C.base_ring() in NumberFields() and extend:
-            C = C.change_ring(extension(C.singular_subscheme())[1])
+            C = C.change_ring(extension(C.singular_subscheme()))
         H = End(C)
         placeholder = H(C.ambient_space().gens())
         # the list res holds the data for the patches of the resolution of singularities
@@ -450,6 +483,12 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         # map from the patch to the original curve, and the set of singular points
         # of the patch
         res = [[C, [placeholder], placeholder, C.singular_points()]]
+        if len(res[0][3]) == 0:
+            if C.is_smooth():
+                raise TypeError("this curve is already nonsingular")
+            else:
+                raise TypeError("this curve has no singular points over its base field. If working over"\
+                                " a number field use extend=True")
         not_resolved = True
         t = 0
         # loop through the patches and blow up each until no patch has singular points
@@ -499,7 +538,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                 # in the case of working over a number field, it might be necessary to extend the base
                 # field in order to find all intersection points
                 if B[0][i].base_ring() in NumberFields() and extend:
-                    emb = extension(X)[1]
+                    emb = extension(X)
                     # coerce everything to the new base field
                     phi = phi.change_ring(emb)
                     phi_inv = phi_inv.change_ring(emb)

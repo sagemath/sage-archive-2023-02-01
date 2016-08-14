@@ -656,7 +656,6 @@ cdef extern from "sage/libs/pari/parisage.h":
     int     F2x_is_irred(GEN f)
     void    F2xV_to_FlxV_inplace(GEN v)
     void    F2xV_to_ZXV_inplace(GEN v)
-    GEN     F2xqX_roots(GEN x, GEN T)
     int     Flx_is_irred(GEN f, ulong p)
     GEN     Flx_degfact(GEN f, ulong p)
     GEN     Flx_factor(GEN f, ulong p)

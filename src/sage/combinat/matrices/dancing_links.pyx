@@ -339,7 +339,7 @@ cdef class dancing_linksWrapper:
         - ``column`` -- integer (default: ``0``), the column used to split
           the problem
 
-        OUPUT:
+        OUTPUT:
 
             iterator of tuples (row number, number of solutions)
 
@@ -383,9 +383,9 @@ cdef class dancing_linksWrapper:
         - ``column`` -- integer (default: ``0``), the column used to split
           the problem (ignored if ``ncpus`` is ``1``)
 
-        OUPUT:
+        OUTPUT:
 
-            integer
+        integer
 
         EXAMPLES::
 

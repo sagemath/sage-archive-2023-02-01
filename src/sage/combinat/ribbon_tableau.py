@@ -194,7 +194,7 @@ class RibbonTableaux(UniqueRepresentation, Parent):
           2  0  0
         <BLANKLINE>
 
-    REFRENCES:
+    REFERENCES:
 
     .. [vanLeeuwen91] Marc. A. A. van Leeuwen, *Edge sequences, ribbon tableaux,
        and an action of affine permutations*. Europe J. Combinatorics. **20**

@@ -579,7 +579,7 @@ class ProductProjectiveSpaces_point_field(ProductProjectiveSpaces_point_ring):
         This uses the subscheme implementation of multiplicity. This point must be a point
         on a subscheme of a product of projective spaces.
 
-        OUPUT: an integer.
+        OUTPUT: an integer.
 
         EXAMPLES::
 

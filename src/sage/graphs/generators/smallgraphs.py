@@ -15,6 +15,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -345,8 +346,8 @@ def WellsGraph():
       Distance-Regular Graphs,
       Springer, 1989.
     """
-    from platonic_solids import DodecahedralGraph
-    from basic import CompleteBipartiteGraph
+    from .platonic_solids import DodecahedralGraph
+    from .basic import CompleteBipartiteGraph
 
     # Following the construction from the book "Distance-regular graphs"
     dodecahedron = DodecahedralGraph()
@@ -1951,9 +1952,8 @@ def DejterGraph():
     from sage.coding.hamming_code import HammingCode
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
-    from string import join
     g = CubeGraph(7)
-    g.delete_vertices([join(map(str,x),"")
+    g.delete_vertices(["".join(map(str, x))
                        for x in HammingCode(FiniteField(2), 3)])
     g.name("Dejter Graph")
     return g

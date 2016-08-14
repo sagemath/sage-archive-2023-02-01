@@ -447,7 +447,7 @@ cdef class Polynomial_template(Polynomial):
         celement_floordiv(&r.x, &(<Polynomial_template>self).x, &(<Polynomial_template>right).x, (<Polynomial_template>self)._cparent)
         return r
 
-    def __mod__(self, other):
+    cpdef _mod_(self, other):
         """
         EXAMPLE::
 
@@ -458,18 +458,12 @@ cdef class Polynomial_template(Polynomial):
 
         TESTS::
 
-        We test that #10578 is fixed::
+        We test that :trac:`10578` is fixed::
 
             sage: P.<x> = GF(2)[]
             sage: x % 1r
             0
-
         """
-        # We can't use @coerce_binop for operators in cython classes,
-        # so we use sage.structure.element.bin_op to handle coercion.
-        if type(self) is not type(other) or \
-                (<Polynomial_template>self)._parent is not (<Polynomial_template>other)._parent:
-            return bin_op(self, other, operator.mod)
         cdef Polynomial_template _other = <Polynomial_template>other
 
         if celement_is_zero(&_other.x, (<Polynomial_template>self)._cparent):

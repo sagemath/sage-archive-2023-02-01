@@ -1,6 +1,7 @@
 """
 Hecke operators
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
@@ -24,8 +25,8 @@ from sage.categories.homset import End
 import sage.arith.all as arith
 from   sage.rings.integer import Integer
 
-import algebra
-import morphism
+from . import algebra
+from . import morphism
 
 
 def is_HeckeOperator(x):

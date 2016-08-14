@@ -37,10 +37,8 @@ abstract base classes.
                                 PrincipalIdealDomainElement
                                     EuclideanDomainElement
                         FieldElement
-                            FiniteFieldElement
                         CommutativeAlgebraElement
                     AlgebraElement   (note -- can't derive from module, since no multiple inheritance)
-                        CommutativeAlgebra ??? (should be removed from element.pxd)
                         Matrix
                     InfinityElement
                 AdditiveGroupElement
@@ -136,12 +134,12 @@ from cpython.ref cimport PyObject
 from cpython.number cimport PyNumber_TrueDivide
 
 import types
-cdef add, sub, mul, div, truediv, floordiv
+cdef add, sub, mul, div, truediv, floordiv, mod
 cdef iadd, isub, imul, idiv, itruediv, ifloordiv
-from operator import (add, sub, mul, div, truediv, floordiv,
+from operator import (add, sub, mul, div, truediv, floordiv, mod,
         iadd, isub, imul, idiv, itruediv, ifloordiv)
 cdef dict _coerce_op_symbols = dict(
-        add='+', sub='-', mul='*', div='/', truediv='/', floordiv='//',
+        add='+', sub='-', mul='*', div='/', truediv='/', floordiv='//', mod='%',
         iadd='+', isub='-', imul='*', idiv='/', itruediv='/', ifloordiv='//')
 
 cdef MethodType
@@ -964,6 +962,55 @@ cdef class Element(SageObject):
             return left_cmp(right)
         msg = LazyFormat("comparison not implemented for %r")%type(left)
         raise NotImplementedError(msg)
+
+    def __mod__(self, other):
+        """
+        Top-level modulo operator for :class:`Element`.
+        See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: 7 % 3
+            1
+            sage: 7 % int(3)
+            1
+            sage: int(7) % 3
+            1
+
+        ::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e % e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '%': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+        """
+        if have_same_parent_c(self, other):
+            return (<Element>self)._mod_(<Element>other)
+        return coercion_model.bin_op(self, other, mod)
+
+    cpdef _mod_(self, other):
+        """
+        Cython classes should override this function to implement
+        remaindering.
+        See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: 23._mod_(5)
+            3
+
+        ::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e._mod_(e)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '%': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+        """
+        raise TypeError(arith_error_message(self, other, mod))
 
 
 def is_ModuleElement(x):
@@ -2054,7 +2101,7 @@ cdef class CommutativeRingElement(RingElement):
             sage: R(120).divides(R(121))
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: reduction modulo right not defined.
+            ArithmeticError: reduction modulo 120 not defined
 
         If ``x`` has different parent than ``self``, they are first coerced to a
         common parent if possible. If this coercion fails, it returns a
@@ -2982,7 +3029,7 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
         Q, _ = self.quo_rem(right)
         return Q
 
-    def __mod__(self, other):
+    cpdef _mod_(self, other):
         """
         Remainder of division of ``self`` by other.
 
@@ -3011,6 +3058,7 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
         """
         _, R = self.quo_rem(other)
         return R
+
 
 def is_FieldElement(x):
     """

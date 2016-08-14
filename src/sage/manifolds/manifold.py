@@ -328,6 +328,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.categories.fields import Fields
 from sage.categories.manifolds import Manifolds
@@ -344,65 +345,9 @@ from sage.manifolds.structure import(
                             TopologicalStructure, RealTopologicalStructure,
                             DifferentialStructure, RealDifferentialStructure)
 
+
 #############################################################################
 ## Global options
-
-ManifoldOptions=GlobalOptions(name='manifolds',
-    doc=r"""
-    Sets and displays the global options for manifolds. If no parameters
-    are set, then the function returns a copy of the options dictionary.
-
-    The ``options`` to manifolds can be accessed as the method
-    :obj:`Manifold.global_options`.
-    """,
-    end_doc=r"""
-    EXAMPLES::
-
-        sage: M = Manifold(2, 'M', structure='topological')
-        sage: X.<x,y> = M.chart()
-        sage: g = function('g')(x, y)
-
-    For coordinate functions, the display is more "textbook" like::
-
-        sage: f = X.function(diff(g, x) + diff(g, y))
-        sage: f
-        d(g)/dx + d(g)/dy
-
-        sage: latex(f)
-        \frac{\partial\,g}{\partial x} + \frac{\partial\,g}{\partial y}
-
-    One can switch to Pynac notation by changing ``textbook_output``
-    to ``False``::
-
-        sage: Manifold.global_options(textbook_output=False)
-        sage: f
-        D[0](g)(x, y) + D[1](g)(x, y)
-        sage: latex(f)
-        D[0]\left(g\right)\left(x, y\right) + D[1]\left(g\right)\left(x, y\right)
-        sage: Manifold.global_options.reset()
-
-    If there is a clear understanding that `u` and `v` are functions of
-    `(x,y)`, the explicit mention of the latter can be cumbersome in lengthy
-    tensor expressions::
-
-        sage: f = X.function(function('u')(x, y) * function('v')(x, y))
-        sage: f
-        u(x, y)*v(x, y)
-
-    We can switch it off by::
-
-        sage: M.global_options(omit_function_arguments=True)
-        sage: f
-        u*v
-        sage: M.global_options.reset()
-    """,
-    textbook_output=dict(default=True,
-                         description='textbook-like output instead of the Pynac output for derivatives',
-                         checker=lambda x: isinstance(x, bool)),
-    omit_function_arguments=dict(default=False,
-                                 description='Determine if the arguments of symbolic functions are printed',
-                                 checker=lambda x: isinstance(x, bool)),
-)
 
 #############################################################################
 ## Class
@@ -1333,7 +1278,7 @@ class TopologicalManifold(ManifoldSubset):
             Chart (M, (u, v))
 
         """
-        from chart import Chart
+        from .chart import Chart
         if not isinstance(chart, Chart):
             raise TypeError("{} is not a chart".format(chart))
         if chart._domain is not self:
@@ -1829,7 +1774,62 @@ class TopologicalManifold(ManifoldSubset):
         """
         return self._one_scalar_field
 
-    global_options = ManifoldOptions
+    options = GlobalOptions(name='manifolds',
+        module = 'sage.manifolds', option_class = 'TopologicalManifold',
+        doc=r"""
+        Sets and displays the options for manifolds. If no parameters
+        are set, then the function returns a copy of the options dictionary.
+
+        The ``options`` to manifolds can be accessed as the method
+        :obj:`Manifold.options`.
+        """,
+        end_doc=r"""
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: g = function('g')(x, y)
+
+        For coordinate functions, the display is more "textbook" like::
+
+            sage: f = X.function(diff(g, x) + diff(g, y))
+            sage: f
+            d(g)/dx + d(g)/dy
+            sage: latex(f)
+            \frac{\partial\,g}{\partial x} + \frac{\partial\,g}{\partial y}
+
+        One can switch to Pynac notation by changing ``textbook_output``
+        to ``False``::
+
+            sage: Manifold.options.textbook_output=False
+            sage: f
+            D[0](g)(x, y) + D[1](g)(x, y)
+            sage: latex(f)
+            D[0]\left(g\right)\left(x, y\right) + D[1]\left(g\right)\left(x, y\right)
+            sage: Manifold.options._reset()
+
+        If there is a clear understanding that `u` and `v` are functions of
+        `(x,y)`, the explicit mention of the latter can be cumbersome in lengthy
+        tensor expressions::
+
+            sage: f = X.function(function('u')(x, y) * function('v')(x, y))
+            sage: f
+            u(x, y)*v(x, y)
+
+        We can switch it off by::
+
+            sage: M.options.omit_function_arguments=True
+            sage: f
+            u*v
+            sage: M.options._reset()
+        """,
+        textbook_output=dict(default=True,
+                             description='textbook-like output instead of the Pynac output for derivatives',
+                             checker=lambda x: isinstance(x, bool)),
+        omit_function_arguments=dict(default=False,
+                                     description='Determine if the arguments of symbolic functions are printed',
+                                     checker=lambda x: isinstance(x, bool)),
+    )
 
     def _Hom_(self, other, category=None):
         r"""
@@ -2133,6 +2133,7 @@ class TopologicalManifold(ManifoldSubset):
         """
         return Hom(self, self).one()
 
+
 ##############################################################################
 ## Constructor function
 
@@ -2369,4 +2370,10 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
     raise NotImplementedError("manifolds of type {} are ".format(structure) +
                               "not implemented")
 
-Manifold.global_options = ManifoldOptions
+Manifold.options = TopologicalManifold.options
+
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+Manifold.global_options=deprecated_function_alias(18555, TopologicalManifold.options)
+ManifoldOptions = deprecated_function_alias(18555, TopologicalManifold.options)
+TopologicalManifold.global_options=deprecated_function_alias(18555, TopologicalManifold.options)

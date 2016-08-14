@@ -16,6 +16,7 @@ More interestingly, one can get the list of all graphs that Sage knows how to
 build by typing ``graphs.`` in Sage and then hitting tab.
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 # This method appends a list of methods to the doc as a 3xN table.
 
@@ -403,7 +404,7 @@ Functions and methods
 # import from Python standard library
 
 # import from Sage library
-import graph
+from . import graph
 import sage.graphs.strongly_regular_db
 
 class GraphGenerators():
@@ -2255,12 +2256,12 @@ def check_aut(aut_gens, cut_vert, n):
     an element of the auto- morphism group that sends cut_vert to n,
     and check_aut generates these for the canaug_traverse function.
 
-    EXAMPLE: Note that the last two entries indicate that none of the
+    EXAMPLE:
+
+    Note that the last two entries indicate that none of the
     automorphism group has yet been searched - we are starting at the
     identity [0, 1, 2, 3] and so far that is all we have seen. We
-    return automorphisms mapping 2 to 3.
-
-    ::
+    return automorphisms mapping 2 to 3::
 
         sage: from sage.graphs.graph_generators import check_aut
         sage: list( check_aut( [ [0, 3, 2, 1], [1, 0, 3, 2], [2, 1, 0, 3] ], 2, 3))
@@ -2459,12 +2460,12 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
     j}, and check_aut generates these for the canaug_traverse
     function.
 
-    EXAMPLE: Note that the last two entries indicate that none of the
+    EXAMPLE:
+
+    Note that the last two entries indicate that none of the
     automorphism group has yet been searched - we are starting at the
     identity [0, 1, 2, 3] and so far that is all we have seen. We
-    return automorphisms mapping 2 to 3.
-
-    ::
+    return automorphisms mapping 2 to 3::
 
         sage: from sage.graphs.graph_generators import check_aut
         sage: list( check_aut( [ [0, 3, 2, 1], [1, 0, 3, 2], [2, 1, 0, 3] ], 2, 3))

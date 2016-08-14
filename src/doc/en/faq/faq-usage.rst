@@ -588,22 +588,22 @@ libraries. Here is a small example::
     # Construct a finite field of order 11.
     cdef sage.rings.finite_field_givaro.FiniteField_givaro K
     K = sage.rings.finite_field_givaro.FiniteField_givaro(11)
-    print "K is a", type(K)
-    print "K cardinality =", K.cardinality()
+    print("K is a {}".format(type(K)))
+    print("K cardinality = {}".format(K.cardinality()))
     # Construct two values in the field:
     cdef sage.rings.finite_field_givaro.FiniteField_givaroElement x
     cdef sage.rings.finite_field_givaro.FiniteField_givaroElement y
     x = K(3)
     y = K(6)
-    print "x is a", type(x)
-    print "x =", x
-    print "y =", y
-    print "x has multiplicative order =", x.multiplicative_order()
-    print "y has multiplicative order =", y.multiplicative_order()
-    print "x*y =", x*y
+    print("x is a {}".format(type(x)))
+    print("x = {}".format(x))
+    print("y = {}".format(y))
+    print("x has multiplicative order = {}".format(x.multiplicative_order()))
+    print("y has multiplicative order = {}".format(y.multiplicative_order()))
+    print("x*y = {}".format(x * y))
     # Show that x behaves like a finite field element:
     for i in range(1, x.multiplicative_order() + 1):
-        print i, x**i
+        print("{} {}".format(i, x**i))
     assert x*(1/x) == K.one()
 
 To find out more, type ::

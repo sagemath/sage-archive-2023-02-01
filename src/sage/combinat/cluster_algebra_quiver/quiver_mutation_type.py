@@ -17,6 +17,7 @@ AUTHORS:
 #*****************************************************************************
 # python3
 from __future__ import division, print_function
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
 from copy import copy
@@ -825,7 +826,7 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
             sage: mut_type.standard_quiver()
             Quiver on 12 vertices of type [ ['A', 3], ['B', 3], ['X', 6] ]
         """
-        from quiver import ClusterQuiver
+        from .quiver import ClusterQuiver
         Q = ClusterQuiver(self._digraph)
         Q._mutation_type = self
         return Q

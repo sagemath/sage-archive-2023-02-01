@@ -147,6 +147,7 @@ We can also make mutable copies of an immutable simplicial complex
     True
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 # possible future directions for SimplicialComplex:
 #
@@ -2415,7 +2416,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
              1: Vector space of dimension 2 over Rational Field,
              2: Vector space of dimension 1 over Rational Field}
         """
-        from algebraic_topological_model import algebraic_topological_model
+        from .algebraic_topological_model import algebraic_topological_model
         if base_ring is None:
             base_ring = QQ
         return algebraic_topological_model(self, base_ring)
@@ -3427,7 +3428,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: T.homology() == Td.homology()
             True
         """
-        from delta_complex import DeltaComplex
+        from .delta_complex import DeltaComplex
         data = {}
         dim = self.dimension()
         n_cells = self.n_cells(dim)

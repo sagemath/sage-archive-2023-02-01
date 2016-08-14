@@ -12,6 +12,7 @@ Hecke modules
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import sage.rings.all
 import sage.arith.all as arith
@@ -23,9 +24,9 @@ from sage.structure.parent import Parent
 
 import sage.misc.prandom as random
 
-import algebra
-import element
-import hecke_operator
+from . import algebra
+from . import element
+from . import hecke_operator
 
 from sage.modules.all import FreeModule
 

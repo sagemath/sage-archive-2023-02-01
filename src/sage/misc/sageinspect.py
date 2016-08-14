@@ -1999,7 +1999,7 @@ def sage_getsourcelines(obj):
         ...
         '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 35)
 
-    Here are some cases that were covered in :trac`11298`;
+    Here are some cases that were covered in :trac:`11298`;
     note that line numbers may easily change, and therefore we do
     not test them::
 

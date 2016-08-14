@@ -286,8 +286,9 @@ AUTHORS:
 #
 ##########################################################################
 from __future__ import print_function
+from __future__ import absolute_import
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, AsciiArtString
+from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement, AsciiArtString
 from sage.misc.all import prod
 from sage.env import DOT_SAGE, SAGE_LOCAL
 from sage.interfaces.tab_completion import ExtraTabCompletion

@@ -109,6 +109,7 @@ Root system data and code for specific Cartan types
 - :ref:`sage.combinat.root_system.type_F_affine`
 - :ref:`sage.combinat.root_system.type_G_affine`
 - :ref:`sage.combinat.root_system.type_BC_affine`
+- :ref:`sage.combinat.root_system.type_A_infinity`
 """
 # currently needed to activate the backward compatibility
 # register_unpickle_override

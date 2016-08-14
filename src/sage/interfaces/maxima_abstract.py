@@ -49,6 +49,7 @@ and library interfaces to Maxima.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import re
@@ -64,7 +65,7 @@ import sage.server.support
 
 ##import sage.rings.all
 
-from interface import (Interface, InterfaceElement, InterfaceFunctionElement,
+from .interface import (Interface, InterfaceElement, InterfaceFunctionElement,
   InterfaceFunction, AsciiArtString)
 from sage.interfaces.tab_completion import ExtraTabCompletion
 

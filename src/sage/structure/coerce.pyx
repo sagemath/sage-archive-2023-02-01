@@ -87,12 +87,12 @@ from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
 
 from .sage_object cimport SageObject, rich_to_bool
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
-from .element cimport arith_error_message, parent_c
+from .element cimport arith_error_message, parent_c, Element
 from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
 from .coerce_exceptions import CoercionException
 from sage.categories.map cimport Map
 from sage.categories.morphism import IdentityMorphism
-from sage.categories.action cimport InverseAction, PrecomposedAction
+from sage.categories.action cimport Action, InverseAction, PrecomposedAction
 
 from sage.misc.lazy_import import LazyImport
 parent = LazyImport('sage.structure.all', 'parent', deprecation=17533)
@@ -427,9 +427,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         EXAMPLES::
 
-            sage: 1 + 1/2
-            3/2
             sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.canonical_coercion(1,2/3)
+            (1, 2/3)
             sage: maps, actions = cm.get_cache()
 
         Now let us see what happens when we do a binary operations with

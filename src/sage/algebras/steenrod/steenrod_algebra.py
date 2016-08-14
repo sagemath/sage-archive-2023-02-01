@@ -472,6 +472,7 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.combinat.free_module import CombinatorialFreeModule, \
     CombinatorialFreeModuleElement
@@ -515,7 +516,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: SteenrodAlgebra(p=5) is SteenrodAlgebra(p=5, generic=True)
             True
         """
-        from steenrod_algebra_misc import get_basis_name, normalize_profile
+        from .steenrod_algebra_misc import get_basis_name, normalize_profile
         profile = kwds.get('profile', None)
         precision = kwds.get('precision', None)
         truncation_type = kwds.get('truncation_type', 'auto')
@@ -586,7 +587,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         from sage.rings.infinity import Infinity
         from sage.sets.set_from_iterator import EnumeratedSetFromIterator
         from functools import partial
-        from steenrod_algebra_bases import steenrod_algebra_basis
+        from .steenrod_algebra_bases import steenrod_algebra_basis
         from sage.rings.all import GF
         profile = kwds.get('profile', None)
         truncation_type = kwds.get('truncation_type', 'auto')
@@ -647,7 +648,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             >  9 (0, 2, 1)            P^2 beta
             > 10 (1, 2, 1)            beta P^2 beta
         """
-        from steenrod_algebra_bases import steenrod_algebra_basis
+        from .steenrod_algebra_bases import steenrod_algebra_basis
         from sage.sets.integer_range import IntegerRange
         from sage.rings.integer import Integer
         from sage.rings.infinity import Infinity
@@ -858,7 +859,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: SteenrodAlgebra(2, generic=True, basis='pst').P(0,0,2)
             P^1_3
         """
-        from steenrod_algebra_misc import milnor_mono_to_string, \
+        from .steenrod_algebra_misc import milnor_mono_to_string, \
             serre_cartan_mono_to_string, wood_mono_to_string, \
             wall_mono_to_string, wall_long_mono_to_string, \
             arnonA_mono_to_string, arnonA_long_mono_to_string, \
@@ -1217,14 +1218,14 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         basis = self.basis_name()
         if basis == 'milnor':
             if not self._generic:
-                from steenrod_algebra_mult import milnor_multiplication
+                from .steenrod_algebra_mult import milnor_multiplication
                 d = milnor_multiplication(t1, t2)
             else:
-                from steenrod_algebra_mult import milnor_multiplication_odd
+                from .steenrod_algebra_mult import milnor_multiplication_odd
                 d = milnor_multiplication_odd(t1, t2, p)
             return self._from_dict(d, coerce=True)
         elif basis == 'serre-cartan':
-            from steenrod_algebra_mult import make_mono_admissible
+            from .steenrod_algebra_mult import make_mono_admissible
             if self._generic:
                 # make sure output has an odd number of terms.  if both t1
                 # and t2 have an odd number, concatenate them, adding the
@@ -1314,7 +1315,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 ans.extend([[i] + x for x in coprod_list(t[1:])])
             return ans
 
-        from steenrod_algebra_misc import get_basis_name
+        from .steenrod_algebra_misc import get_basis_name
         p = self.prime()
         basis = self.basis_name()
         if algorithm is None:
@@ -1346,7 +1347,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                     return self.tensor_square()._from_dict(tens, coerce=True)
                 else: # p odd
                     from sage.combinat.permutation import Permutation
-                    from steenrod_algebra_misc import convert_perm
+                    from .steenrod_algebra_misc import convert_perm
                     from sage.sets.set import Set
                     left_p = coprod_list(t[1])
                     right_p = [[x-y for (x,y) in zip(t[1], m)] for m in left_p]
@@ -1807,9 +1808,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         """
         from sage.matrix.constructor import matrix
         from sage.rings.all import GF
-        from steenrod_algebra_bases import steenrod_algebra_basis,\
+        from .steenrod_algebra_bases import steenrod_algebra_basis,\
             convert_from_milnor_matrix
-        from steenrod_algebra_misc import get_basis_name
+        from .steenrod_algebra_misc import get_basis_name
         basis = get_basis_name(basis, self.prime(), generic=self._generic)
         if basis == self.basis_name():
             return self({t: 1})
@@ -2081,7 +2082,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                          for i in range(1, max(self_prec, S_prec)+1)]))
         if (isinstance(S, CombinatorialFreeModule)
             and S.dimension() < Infinity and p == S.base_ring().characteristic()):
-            from steenrod_algebra_misc import get_basis_name
+            from .steenrod_algebra_misc import get_basis_name
             try:
                 get_basis_name(S.prefix(), S.base_ring().characteristic())
                 # return all([a in self for a in S.basis()])

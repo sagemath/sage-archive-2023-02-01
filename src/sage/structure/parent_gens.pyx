@@ -177,7 +177,7 @@ def is_ParentWithMultiplicativeAbelianGens(x):
 ##         new_object.__dict__ = _dict
 ##     return new_object
 
-cdef class ParentWithGens(parent_base.ParentWithBase):
+cdef class ParentWithGens(ParentWithBase):
     # Derived class *must* call __init__ and set the base!
     def __init__(self, base, names=None, normalize=True, category = None):
         """
@@ -195,8 +195,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         self._has_coerce_map_from = MonoDict(23)
         self._assign_names(names=names, normalize=normalize)
 
-        # Why does not this call ParentWithBase.__init__ ?
-        parent_base.ParentWithBase.__init__(self, base, category=category)
+        ParentWithBase.__init__(self, base, category=category)
         #if category is not None:
         #    self._init_category_(category)
 

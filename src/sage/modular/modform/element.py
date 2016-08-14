@@ -2,6 +2,7 @@
 """
 Elements of modular forms spaces
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2004-2008 William Stein <wstein@gmail.com>
@@ -13,7 +14,7 @@ Elements of modular forms spaces
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import space
+
 import sage.modular.hecke.element as element
 import sage.rings.all as rings
 
@@ -571,12 +572,12 @@ class ModularForm_abstract(ModuleElement):
 
         The elliptic curve `E` has a pair of modular symbols attached
         to it, which can be computed using the method
-        `:meth:~sage.schemes.elliptic_curves.ell_rational_field.EllipticCurve_rational_field.modular_symbol`.
+        :meth:`sage.schemes.elliptic_curves.ell_rational_field.EllipticCurve_rational_field.modular_symbol`.
         These can be used to express the periods of `f` as exact
         linear combinations of the real and the imaginary period of `E`::
 
             sage: s = E.modular_symbol(sign=+1)
-            sage: t = E.modular_symbol(sign=-1)
+            sage: t = E.modular_symbol(sign=-1, implementation="sage")
             sage: s(3/11), t(3/11)
             (1/10, 1/2)
             sage: s(3/11)*omega1 + t(3/11)*2*omega2.imag()*I
@@ -595,7 +596,7 @@ class ModularForm_abstract(ModuleElement):
 
         REFERENCE:
 
-        .. [Cremona] \J. E. Cremona, Algorithms for Modular Elliptic
+        .. [Cremona] J. E. Cremona, Algorithms for Modular Elliptic
            Curves.  Cambridge University Press, 1997.
 
         TESTS::
@@ -1056,8 +1057,9 @@ class Newform(ModularForm_abstract):
             sage: f = Newforms(DirichletGroup(5).0, 7,names='a')[0]; f[2].trace(f.base_ring().base_field())
             -5*zeta4 - 5
         """
+        from .space import is_ModularFormsSpace
         if check:
-            if not space.is_ModularFormsSpace(parent):
+            if not is_ModularFormsSpace(parent):
                 raise TypeError("parent must be a space of modular forms")
             if not is_ModularSymbolsSpace(component):
                 raise TypeError("component must be a space of modular symbols")
@@ -1505,7 +1507,8 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             sage: f.parent()
             Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
         """
-        if not isinstance(parent, space.ModularFormsSpace):
+        from .space import ModularFormsSpace
+        if not isinstance(parent, ModularFormsSpace):
             raise TypeError("First argument must be an ambient space of modular forms.")
         element.HeckeModuleElement.__init__(self, parent, x)
 
@@ -1618,7 +1621,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             verbose("character of product not determined")
 
         # now do the math
-        from constructor import ModularForms
+        from .constructor import ModularForms
         if newchar is not None:
             verbose("creating a parent with char")
             newparent = ModularForms(newchar, self.weight() + other.weight(), base_ring = newchar.base_ring())

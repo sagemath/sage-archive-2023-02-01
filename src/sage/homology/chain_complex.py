@@ -230,8 +230,7 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
         sage: ChainComplex([matrix(GF(125, 'a'), 3, 1)], base_ring=QQ)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce 0 (<type 
-        'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'>) to Rational
+        TypeError: unable to convert 0 to a rational
     """
     if grading_group is None:
         grading_group = ZZ

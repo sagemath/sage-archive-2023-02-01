@@ -917,7 +917,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         sig_off()
         return q
 
-    def __mod__(self, right):
+    cpdef _mod_(self, right):
         """
         EXAMPLES::
 
@@ -928,9 +928,6 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: g * x^4 + r
             x^7 + x + 1
         """
-        if not have_same_parent_c(self, right):
-            self, right = canonical_coercion(self, right)
-            return self % right
         cdef Polynomial_dense_modn_ntl_zz numer = <Polynomial_dense_modn_ntl_zz>self
         cdef Polynomial_dense_modn_ntl_zz denom = <Polynomial_dense_modn_ntl_zz>right
         cdef Polynomial_dense_modn_ntl_zz r = numer._new()
@@ -1453,7 +1450,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         sig_off()
         return q
 
-    def __mod__(self, right):
+    cpdef _mod_(self, right):
         """
         EXAMPLES::
 
@@ -1464,9 +1461,6 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: g * (x^4 + x) + r
             x^7 + x + 1
         """
-        if not have_same_parent_c(self, right):
-            self, right = canonical_coercion(self, right)
-            return self % right
         cdef Polynomial_dense_modn_ntl_ZZ numer = <Polynomial_dense_modn_ntl_ZZ>self
         cdef Polynomial_dense_modn_ntl_ZZ denom = <Polynomial_dense_modn_ntl_ZZ>right
         cdef Polynomial_dense_modn_ntl_ZZ r = numer._new()

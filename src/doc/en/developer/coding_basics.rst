@@ -368,7 +368,7 @@ information. You can use the existing functions of Sage as templates.
       REFERENCES:
 
       .. [SC] Conventions for coding in sage.
-         http://www.sagemath.org/doc/developer/conventions.html.
+         http://doc.sagemath.org/html/en/developer/conventions.html.
 
   When abbreviating the first name of an author, be sure to put a
   backslash in front of it. This ensures that the letter (``C.``

@@ -125,6 +125,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ######################################################################
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
 import sage.arith.all as arith
@@ -366,7 +367,7 @@ class GaloisRepresentation(SageObject):
 
         E = self._E
         j = E.j_invariant()
-        from isogeny_small_degree import sporadic_j
+        from .isogeny_small_degree import sporadic_j
         if j in sporadic_j: # includes all CM j-invariants
             R = [sporadic_j[j]]
         else:

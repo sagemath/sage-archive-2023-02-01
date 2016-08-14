@@ -6,6 +6,7 @@ AUTHORS:
 - Jonas Jermann (2013): initial version
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
@@ -29,8 +30,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
-from constructor import rational_type, FormsSpace, FormsRing
-from series_constructor import MFSeriesConstructor
+from .constructor import rational_type, FormsSpace, FormsRing
+from .series_constructor import MFSeriesConstructor
 
 
 # Warning: We choose CommutativeAlgebraElement because we want the
@@ -43,7 +44,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
     """
     __metaclass__ = InheritComparisonClasscallMetaclass
 
-    from analytic_type import AnalyticType
+    from .analytic_type import AnalyticType
     AT = AnalyticType()
 
     @staticmethod

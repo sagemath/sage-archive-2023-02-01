@@ -22,6 +22,11 @@ from __future__ import print_function
 
 include 'data_structures_pyx.pxi' # includes bitsets
 
+from sage.graphs.base.sparse_graph cimport SparseGraph
+from sage.graphs.base.dense_graph cimport DenseGraph
+from .double_coset cimport double_coset
+
+
 def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=False):
     """
     Tests whether two graphs are isomorphic.

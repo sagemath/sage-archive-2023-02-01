@@ -35,7 +35,7 @@ from .yang_baxter_graph import YangBaxterGraph
 #from hall_littlewood import HallLittlewood_qp, HallLittlewood_q, HallLittlewood_p
 
 #Permutations
-from .permutation import Permutation, Permutations, Arrangements, PermutationOptions, CyclicPermutations, CyclicPermutationsOfPartition
+from .permutation import Permutation, Permutations, Arrangements, CyclicPermutations, CyclicPermutationsOfPartition
 from .affine_permutation import AffinePermutationGroup
 lazy_import('sage.combinat.colored_permutations', ['ColoredPermutations',
                                                    'SignedPermutations'])

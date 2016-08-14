@@ -524,6 +524,7 @@ The components on the basis are returned by the square bracket operator for
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -899,7 +900,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
              in Category of finite dimensional modules over Integer Ring
 
         """
-        from free_module_homset import FreeModuleHomset
+        from .free_module_homset import FreeModuleHomset
         return FreeModuleHomset(self, other)
 
     def tensor_module(self, k, l):
@@ -1193,7 +1194,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         :class:`~sage.tensor.modules.free_module_basis.FreeModuleBasis`.
 
         """
-        from free_module_basis import FreeModuleBasis
+        from .free_module_basis import FreeModuleBasis
         for other in self._known_bases:
             if symbol == other._symbol:
                 return other
@@ -1361,7 +1362,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             4 e^0/\e^1 + 5 e^1/\e^2
 
         """
-        from comp import CompWithSym, CompFullySym, CompFullyAntiSym
+        from .comp import CompWithSym, CompFullySym, CompFullyAntiSym
         #
         # 0/ Compatibility checks:
         if comp._ring is not self._ring:
@@ -1949,7 +1950,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring
 
         """
-        from free_module_basis import FreeModuleBasis
+        from .free_module_basis import FreeModuleBasis
         if not isinstance(basis, FreeModuleBasis):
             raise TypeError("the argument is not a free module basis")
         if basis._fmodule is not self:

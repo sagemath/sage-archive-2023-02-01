@@ -1,6 +1,7 @@
 """
 Generic curves.
 """
+from __future__ import absolute_import
 
 from sage.categories.finite_fields import FiniteFields
 from sage.categories.fields import Fields
@@ -192,7 +193,7 @@ class Curve_generic(AlgebraicScheme_subscheme):
             sage: C1.union(C2).defining_polynomial()
             x^2 - x*y - x*z + y*z
         """
-        from constructor import Curve
+        from .constructor import Curve
         return Curve(AlgebraicScheme_subscheme.union(self, other))
 
     __add__ = union

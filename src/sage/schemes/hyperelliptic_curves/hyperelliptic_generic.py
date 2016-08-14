@@ -21,6 +21,7 @@ EXAMPLE::
     sage: D.defining_polynomials()[0].parent()
     Multivariate Polynomial Ring in x0, x1 over Rational Field
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
@@ -94,7 +95,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             sage: H.base_extend(FiniteField(7^2, 'a'))
             Hyperelliptic Curve over Finite Field in a of size 7^2 defined by y^2 = x^8 + x + 5
         """
-        from constructor import HyperellipticCurve
+        from .constructor import HyperellipticCurve
         f, h = self._hyperelliptic_polynomials
         y = self._printing_ring.variable_name()
         x = self._printing_ring.base_ring().variable_name()
@@ -229,7 +230,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         return self._genus
 
     def jacobian(self):
-        import jacobian_generic
+        from . import jacobian_generic
         return jacobian_generic.HyperellipticJacobian_generic(self)
 
     def odd_degree_model(self):
@@ -302,7 +303,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         x = f.parent().gen()
         fnew =  f((x*rt + 1)/x).numerator() # move rt to "infinity"
 
-        from constructor import HyperellipticCurve
+        from .constructor import HyperellipticCurve
         return HyperellipticCurve(fnew, 0, names=self._names, PP=self._PP)
 
     def has_odd_degree_model(self):

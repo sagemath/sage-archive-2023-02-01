@@ -1654,12 +1654,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: get_plot_labels(P1.plot(label_elements=False))
             []
             sage: get_plot_labels(P1.plot(label_elements=True))
-            ['0', '1', '2', '3', '4']
+            [u'0', u'1', u'2', u'3', u'4']
             sage: element_labels = {0:'a', 1:'b', 2:'c', 3:'d', 4:'e'}
             sage: get_plot_labels(P1.plot(element_labels=element_labels))
-            ['a', 'b', 'c', 'd', 'e']
+            [u'a', u'b', u'c', u'd', u'e']
             sage: get_plot_labels(P2.plot(element_labels=element_labels))
-            ['a', 'b', 'c', 'd', 'e']
+            [u'a', u'b', u'c', u'd', u'e']
 
         The following checks that :trac:`18936` has been fixed and labels still work::
 

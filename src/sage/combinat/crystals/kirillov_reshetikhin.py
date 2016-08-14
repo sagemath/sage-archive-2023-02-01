@@ -743,6 +743,66 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         """
         return self.classical_decomposition().q_dimension(q, prec, use_product)
 
+    @cached_method
+    def local_energy_function(self, B):
+        r"""
+        Return the local energy function of ``self`` and ``B``.
+
+        See
+        :class:`~sage.combinat.crystals.tensor_product.LocalEnergyFunction`
+        for a definition.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A',6,2], 2,1)
+            sage: Kp = crystals.KirillovReshetikhin(['A',6,2], 1,1)
+            sage: H = K.local_energy_function(Kp); H
+            Local energy function of
+             Kirillov-Reshetikhin crystal of type ['BC', 3, 2] with (r,s)=(2,1)
+            tensor
+             Kirillov-Reshetikhin crystal of type ['BC', 3, 2] with (r,s)=(1,1)
+        """
+        from sage.combinat.crystals.tensor_product import LocalEnergyFunction
+        return LocalEnergyFunction(self, B)
+
+    @cached_method
+    def b_sharp(self):
+        r"""
+        Return the element `b^{\sharp}` of ``self``.
+
+        Let `B` be a KR crystal. The element `b^{\sharp}` is the unique
+        element such that `\varphi(b^{\sharp}) = \ell \Lambda_0` with
+        `\ell = \min \{ \langle c, \varphi(b) \mid b \in B \}`.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A',6,2], 2,1)
+            sage: K.b_sharp()
+            []
+            sage: K.b_sharp().Phi()
+            Lambda[0]
+
+            sage: K = crystals.KirillovReshetikhin(['C',3,1], 1,3)
+            sage: K.b_sharp()
+            [[-1]]
+            sage: K.b_sharp().Phi()
+            2*Lambda[0]
+
+            sage: K = crystals.KirillovReshetikhin(['D',6,2], 2,2)
+            sage: K.b_sharp() # long time
+            []
+            sage: K.b_sharp().Phi() # long time
+            2*Lambda[0]
+        """
+        ell = float('inf')
+        bsharp = None
+        for b in self:
+            phi = b.Phi()
+            if phi.support() == [0] and phi[0] < ell:
+                bsharp = b
+                ell = phi[0]
+        return bsharp
+
 class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement):
     """
     Abstract class for all Kirillov-Reshetikhin crystal elements.
@@ -833,6 +893,47 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
         """
         li = self.lift().lusztig_involution()
         return self.parent().retract(li)
+
+    @cached_method
+    def energy_function(self):
+        r"""
+        Return the energy function of ``self``.
+
+        Let `B` be a KR crystal. Let `b^{\sharp}` denote the unique
+        element such that `\varphi(b^{\sharp}) = \ell \Lambda_0` with
+        `\ell = \min \{ \langle c, \varphi(b) \mid b \in B \}`. Let
+        `u_B` denote the maximal element of `B`. The *energy* of
+        `b \in B` is given by
+
+        .. MATH::
+
+            D(b) = H(b \otimes b^{\sharp}) - H(u_B \otimes b^{\sharp}),
+
+        where `H` is the :meth:`local energy function
+        <sage.categories.affine_derived_crystals.KirillovReshetikhinCrystals.ParentMethods.local_energy_function>`.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['D',4,1], 2,1)
+            sage: for x in K:
+            ....:    if x.is_highest_weight([1,2,3,4]):
+            ....:        x, x.energy_function()
+            ([], 1)
+            ([[1], [2]], 0)
+
+            sage: K = crystals.KirillovReshetikhin(['D',4,3], 1,2)
+            sage: for x in K:
+            ....:    if x.is_highest_weight([1,2]):
+            ....:        x, x.energy_function()
+            ([], 2)
+            ([[1]], 1)
+            ([[1, 1]], 0)
+        """
+        B = self.parent()
+        bsharp = B.b_sharp()
+        T = B.tensor(B)
+        H = B.local_energy_function(B)
+        return H(T(self, bsharp)) - H(T(B.module_generator(), bsharp))
 
 KirillovReshetikhinGenericCrystal.Element = KirillovReshetikhinGenericCrystalElement
 

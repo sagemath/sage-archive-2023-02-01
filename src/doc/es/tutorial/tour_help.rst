@@ -312,7 +312,7 @@ cualquier objeto (los índices deben ser immutables):
 También puedes definir nuevos tipos de datos usando clases. El encapsulado
 de objetos matemáticos con clases es una técnica potente que puede
 ayudar a simplificar y organizar tus programas en Sage. Abajo, definimos una
-clase que representa la lista de enteros positivos pares hasta *n*;
+clase que representa la lista de enteros positivos pares hasta ``n``;
 se deriva de el tipo básico ``list``.
 
 ::

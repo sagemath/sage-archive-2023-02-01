@@ -406,8 +406,8 @@ class sage_build_ext(build_ext):
             # ignore build-lib -- put the compiled extension into
             # the source tree along with pure Python modules
 
-            modpath = string.split(fullname, '.')
-            package = string.join(modpath[0:-1], '.')
+            modpath = fullname.split('.')
+            package = '.'.join(modpath[0:-1])
             base = modpath[-1]
 
             build_py = self.get_finalized_command('build_py')

@@ -4280,7 +4280,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         TESTS:
 
         We should be able to compute the rank of a matrix whose
-        entries are polynomials over a finite field (trac:`5014`)::
+        entries are polynomials over a finite field (:trac:`5014`)::
 
             sage: P.<x> = PolynomialRing(GF(17))
             sage: m = matrix(P, [ [ 6*x^2 + 8*x + 12, 10*x^2 + 4*x + 11],

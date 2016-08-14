@@ -1,6 +1,7 @@
 r"""
 Semigroups
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -301,8 +302,8 @@ class Semigroups(CategoryWithAxiom):
               ``side``, ``simple``, and ``elements`` options, ...
             """
             from sage.graphs.digraph import DiGraph
-            from monoids import Monoids
-            from groups import Groups
+            from .monoids import Monoids
+            from .groups import Groups
             if not side in ["left", "right", "twosided"]:
                 raise ValueError("option 'side' must be 'left', 'right' or 'twosided'")
             if elements is None:

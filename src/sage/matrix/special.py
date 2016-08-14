@@ -12,6 +12,7 @@ Constructors for special matrices
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import sage.rings.all as rings
 from sage.rings.ring import is_Ring
@@ -20,7 +21,7 @@ from sage.modules.free_module_element import vector
 from sage.structure.element import is_Vector
 from sage.rings.all import ZZ, QQ
 from sage.misc.misc_c import running_total
-from matrix import is_Matrix
+from .matrix import is_Matrix
 from copy import copy
 from .constructor import matrix
 

@@ -299,7 +299,7 @@ def save_session(name='sage_session', verbose=False):
     for k in show_identifiers(hidden = True):
         try:
             x = state[k]
-            if isinstance(x, (types.FunctionType, types.BuiltinFunctionType, types.BuiltinMethodType, types.TypeType, types.ClassType)):
+            if isinstance(x, (types.FunctionType, types.BuiltinFunctionType, types.BuiltinMethodType, type)):
                 raise TypeError('{} is a function, method, class or type'.format(k))
 
             # We attempt to pickle *and* unpickle every variable to

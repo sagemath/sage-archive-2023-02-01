@@ -18,10 +18,13 @@ import operator
 include "cysignals/signals.pxi"
 from cpython.int cimport *
 from cpython.number cimport *
-from sage.structure.element cimport parent_c, coercion_model
 
-from sage.categories.action import InverseAction, PrecomposedAction
-from coerce_exceptions import CoercionException
+from .element cimport (parent_c, coercion_model,
+        Element, ModuleElement, RingElement)
+from .parent cimport Parent
+from .coerce_exceptions import CoercionException
+from sage.categories.action cimport InverseAction, PrecomposedAction
+
 
 cdef _record_exception():
     coercion_model._record_exception()

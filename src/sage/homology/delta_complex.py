@@ -55,6 +55,7 @@ REFERENCES:
 .. [EZ] \S. Eilenberg and J. Zilber, "Semi-Simplicial Complexes and Singular
         Homology", Ann. Math. (2) 51 (1950), 499-513.
 """
+from __future__ import absolute_import
 
 from copy import copy
 from sage.homology.cell_complex import GenericCellComplex, Chains
@@ -1594,7 +1595,7 @@ class DeltaComplex(GenericCellComplex):
              1: Vector space of dimension 2 over Rational Field,
              2: Vector space of dimension 1 over Rational Field}
         """
-        from algebraic_topological_model import algebraic_topological_model_delta_complex
+        from .algebraic_topological_model import algebraic_topological_model_delta_complex
         if base_ring is None:
             base_ring = QQ
         return algebraic_topological_model_delta_complex(self, base_ring)

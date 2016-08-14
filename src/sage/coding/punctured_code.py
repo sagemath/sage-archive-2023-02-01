@@ -5,6 +5,7 @@ Let `C` be a linear code. Let `C_i` be the set of all words of `C` with the
 `i`-th coordinate being removed. `C_i` is the punctured code of `C`
 on the `i`-th position.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2015 David Lucas <david.lucas@inria.fr>
@@ -16,9 +17,9 @@ on the `i`-th position.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from linear_code import AbstractLinearCode
-from encoder import Encoder
-from decoder import Decoder, DecodingError
+from .linear_code import AbstractLinearCode
+from .encoder import Encoder
+from .decoder import Decoder, DecodingError
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.modules.free_module import VectorSpace

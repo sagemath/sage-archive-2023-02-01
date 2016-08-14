@@ -176,11 +176,12 @@ Python floats.
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import re
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
+from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.misc.all import verbose
 from sage.env import DOT_SAGE
 from pexpect import EOF

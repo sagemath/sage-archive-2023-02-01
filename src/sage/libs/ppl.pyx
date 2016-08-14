@@ -3633,7 +3633,7 @@ cdef class Variable(object):
         r"""
         Return the dimension of the vector space enclosing ``self``.
 
-        OUPUT:
+        OUTPUT:
 
         Integer. The returned value is ``self.id()+1``.
 
@@ -3901,7 +3901,7 @@ cdef class Variables_Set(object):
         r"""
         Returns the dimension of the smallest vector space enclosing all the variables whose indexes are in the set.
 
-        OUPUT:
+        OUTPUT:
 
         Integer.
 

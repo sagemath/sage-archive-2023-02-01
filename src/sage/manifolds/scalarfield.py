@@ -1487,7 +1487,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         - ``other`` -- a scalar field
 
-        OUPUT:
+        OUTPUT:
 
         - list of common charts; if no common chart is found, ``None`` is
           returned (instead of an empty list)
@@ -1767,7 +1767,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         - ``other`` -- a scalar field (in the same algebra as ``self``)
 
-        OUPUT:
+        OUTPUT:
 
         - the scalar field resulting from the addition of ``self`` and
           ``other``
@@ -1818,7 +1818,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         - ``other`` -- a scalar field (in the same algebra as ``self``)
 
-        OUPUT:
+        OUTPUT:
 
         - the scalar field resulting from the subtraction of ``other`` from
           ``self``
@@ -1870,7 +1870,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         - ``other`` -- a scalar field (in the same algebra as ``self``)
 
-        OUPUT:
+        OUTPUT:
 
         - the scalar field resulting from the multiplication of ``self`` by
           ``other``
@@ -1920,7 +1920,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         - ``other`` -- a scalar field (in the same algebra as self)
 
-        OUPUT:
+        OUTPUT:
 
         - the scalar field resulting from the division of ``self`` by
           ``other``
@@ -1982,7 +1982,7 @@ class ScalarField(CommutativeAlgebraElement):
           field on which the manifold is constructed (possibly represented
           by a symbolic expression)
 
-        OUPUT:
+        OUTPUT:
 
         - the scalar field ``number * self``
 

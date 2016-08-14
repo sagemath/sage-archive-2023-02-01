@@ -372,7 +372,7 @@ class AffinePlaneCurve(AffineCurve):
 
         - ``P`` -- a point in the intersection of both curves.
 
-        OUPUT: Boolean.
+        OUTPUT: Boolean.
 
         EXAMPLES::
 

@@ -1650,7 +1650,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
     cpdef discover_action(self, R, S, op, r=None, s=None):
         """
-        INPUT
+        INPUT:
 
         - ``R`` - the left Parent (or type)
         - ``S`` - the right Parent (or type)

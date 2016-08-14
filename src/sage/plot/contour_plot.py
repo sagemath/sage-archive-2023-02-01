@@ -959,7 +959,7 @@ def implicit_plot(f, xrange, yrange, **options):
 
         sage: f(x,y) = x^2 + y^2 - 2
         sage: implicit_plot(f, (-3, 3), (-3, 3), fill=True)
-        Graphics object consisting of 2 graphics primitive
+        Graphics object consisting of 2 graphics primitives
 
     The same circle but with a different line width::
 
@@ -1120,7 +1120,7 @@ def implicit_plot(f, xrange, yrange, **options):
 
         sage: implicit_plot(lambda x, y: x^2 + y^2-2, (x,-3,3), (y,-3,3),
         ....:               fill=True, plot_points=500) # long time
-        Graphics object consisting of 1 graphics primitive
+        Graphics object consisting of 2 graphics primitives
 
     .. PLOT::
 
@@ -1177,7 +1177,7 @@ def implicit_plot(f, xrange, yrange, **options):
 
     if options['fill'] is True:
         options.pop('fill')
-        options.pop('contours',None)
+        options.pop('contours', None)
         incol = options.pop('fillcolor', 'blue')
         bordercol = options.pop('cmap', [None])[0]
         from sage.symbolic.expression import is_Expression

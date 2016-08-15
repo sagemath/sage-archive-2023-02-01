@@ -316,6 +316,7 @@ see :trac:`11645`::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import re
@@ -323,7 +324,7 @@ import sys
 import pexpect
 from time import sleep
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
+from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.sequence import Sequence

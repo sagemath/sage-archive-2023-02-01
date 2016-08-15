@@ -445,12 +445,12 @@ class DynamicInheritComparisonClasscallMetaclass(DynamicMetaclass, InheritCompar
     pass
 
 # This registers the appropriate reduction methods (see Trac #5985)
-import copy_reg
+from six.moves import copyreg
 for M in [DynamicMetaclass,
           DynamicClasscallMetaclass,
           DynamicInheritComparisonMetaclass,
           DynamicInheritComparisonClasscallMetaclass]:
-    copy_reg.pickle(M, M.__reduce__)
+    copyreg.pickle(M, M.__reduce__)
 
 
 class TestClass:

@@ -16,6 +16,7 @@ quaternion algebras.
 # mm TODO longer docstring at the start.
 
 from __future__ import print_function
+from __future__ import absolute_import
 from sage.rings.integer import Integer
 from sage.matrix.constructor import Matrix
 from sage.matrix.matrix_space import MatrixSpace
@@ -3663,7 +3664,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             sage: T31(f) == E.ap(31) * f
             True
         """
-        from pautomorphicform import BruhatTitsHarmonicCocycles
+        from .pautomorphicform import BruhatTitsHarmonicCocycles
         M = BruhatTitsHarmonicCocycles(self, 2, prec=prec)
         q = ZZ.one()
         F = E.base_ring()
@@ -3716,7 +3717,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             sage: H.basis()[0]
             Harmonic cocycle with values in Sym^0 Q_31^2
         """
-        from pautomorphicform import BruhatTitsHarmonicCocycles
+        from .pautomorphicform import BruhatTitsHarmonicCocycles
         return BruhatTitsHarmonicCocycles(self, k, prec=prec, basis_matrix=basis_matrix, base_field=base_field)
 
     def padic_automorphic_forms(self, U, prec=None, t=None, R=None, overconvergent=False):
@@ -3746,5 +3747,5 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             sage: X.padic_automorphic_forms(2,prec=10)
             Space of automorphic forms on Quotient of the Bruhat Tits tree of GL_2(QQ_11) with discriminant 5 and level 1 with values in Sym^0 Q_11^2
         """
-        from pautomorphicform import pAdicAutomorphicForms
+        from .pautomorphicform import pAdicAutomorphicForms
         return pAdicAutomorphicForms(self, U, prec=prec, t=t, R=R, overconvergent=overconvergent)

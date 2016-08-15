@@ -1501,7 +1501,7 @@ cdef class NCPolynomial_plural(RingElement):
                                 _ring)
         return new_NCP((<NCPolynomialRing_plural>left._parent), _p)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _lmul_(self, RingElement left):
         """
         Multiply ``self`` with a base ring element.
 
@@ -1513,20 +1513,8 @@ cdef class NCPolynomial_plural(RingElement):
             Defining x, z, y
             sage: 3/2*x # indirect doctest
             3/2*x
-        """
 
-        cdef ring *_ring = (<NCPolynomialRing_plural>self._parent)._ring
-        if not left:
-            return (<NCPolynomialRing_plural>self._parent)._zero_element
-        cdef poly *_p
-        singular_polynomial_rmul(&_p, self._poly, left, _ring)
-        return new_NCP((<NCPolynomialRing_plural>self._parent),_p)
-
-    cpdef _lmul_(self, RingElement right):
-        """
-        Multiply ``self`` with a base ring element.
-
-        EXAMPLES::
+        ::
 
             sage: A.<x,z,y> = FreeAlgebra(QQ, 3)
             sage: P = A.g_algebra(relations={y*x:-x*y + z},  order='lex')
@@ -1535,7 +1523,13 @@ cdef class NCPolynomial_plural(RingElement):
             sage: x* (2/3) # indirect doctest
             2/3*x
         """
-        return self._rmul_(right)
+
+        cdef ring *_ring = (<NCPolynomialRing_plural>self._parent)._ring
+        if not left:
+            return (<NCPolynomialRing_plural>self._parent)._zero_element
+        cdef poly *_p
+        singular_polynomial_rmul(&_p, self._poly, left, _ring)
+        return new_NCP((<NCPolynomialRing_plural>self._parent),_p)
 
     cpdef _mul_(left, right):
         """

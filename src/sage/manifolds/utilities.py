@@ -502,12 +502,12 @@ class ExpressionNice(Expression):
         sage: fun = fun*f
         sage: ExpressionNice(fun)
         f(x, y)*(d(f)/dy)^2
-        sage: Manifold.global_options(omit_function_arguments=True)
+        sage: Manifold.options.omit_function_arguments=True
         sage: ExpressionNice(fun)
         f*(d(f)/dy)^2
         sage: latex(ExpressionNice(fun))
         f \left(\frac{\partial\,f}{\partial y}\right)^{2}
-        sage: Manifold.global_options.reset()
+        sage: Manifold.options._reset()
         sage: ExpressionNice(fun)
         f(x, y)*(d(f)/dy)^2
         sage: latex(ExpressionNice(fun))
@@ -601,8 +601,8 @@ class ExpressionNice(Expression):
 
             d = d.replace(o, res)
 
-        from sage.manifolds.manifold import ManifoldOptions
-        if ManifoldOptions('omit_function_arguments'):
+        from sage.manifolds.manifold import TopologicalManifold
+        if TopologicalManifold.options.omit_function_arguments:
             list_f = []
             _list_functions(self, list_f)
 
@@ -700,8 +700,8 @@ class ExpressionNice(Expression):
 
             d = d.replace(o, res)
 
-        from sage.manifolds.manifold import ManifoldOptions
-        if ManifoldOptions('omit_function_arguments'):
+        from sage.manifolds.manifold import TopologicalManifold
+        if TopologicalManifold.options.omit_function_arguments:
             list_f = []
             _list_functions(self, list_f)
 

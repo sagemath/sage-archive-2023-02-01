@@ -155,7 +155,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: imag(a)
             1.00000000000000
         """
-        cdef real_mpfr.RealNumber rr, ii
+        cdef RealNumber rr, ii
         self._parent = parent
         self._prec = self._parent._prec
         self._multiplicative_order = None
@@ -694,9 +694,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return self.norm_c()
 
-    cdef real_mpfr.RealNumber norm_c(ComplexNumber self):
-        cdef real_mpfr.RealNumber x
-        x = real_mpfr.RealNumber(self._parent._real_field(), None)
+    cdef RealNumber norm_c(ComplexNumber self):
+        cdef RealNumber x
+        x = RealNumber(self._parent._real_field(), None)
 
         cdef mpfr_t t0, t1
         mpfr_init2(t0, self._prec)
@@ -711,9 +711,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_clear(t1)
         return x
 
-    cdef real_mpfr.RealNumber abs_c(ComplexNumber self):
-        cdef real_mpfr.RealNumber x
-        x = real_mpfr.RealNumber(self._parent._real_field(), None)
+    cdef RealNumber abs_c(ComplexNumber self):
+        cdef RealNumber x
+        x = RealNumber(self._parent._real_field(), None)
 
         cdef mpfr_t t0, t1
         mpfr_init2(t0, self._prec)
@@ -899,8 +899,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: z.real_part()
             2.0000000000000000000000000000
         """
-        cdef real_mpfr.RealNumber x
-        x = real_mpfr.RealNumber(self._parent._real_field(), None)
+        cdef RealNumber x
+        x = RealNumber(self._parent._real_field(), None)
         mpfr_set(x.value, self.__re, rnd)
         return x
 
@@ -921,8 +921,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: z.imag_part()
             3.0000000000000000000000000000
         """
-        cdef real_mpfr.RealNumber x
-        x = real_mpfr.RealNumber(self._parent._real_field(), None)
+        cdef RealNumber x
+        x = RealNumber(self._parent._real_field(), None)
         mpfr_set(x.value, self.__im, rnd)
         return x
 
@@ -1885,8 +1885,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: (RR('-0.001') - i).argument()
             -1.57179632646156
         """
-        cdef real_mpfr.RealNumber x
-        x = real_mpfr.RealNumber(self._parent._real_field(), None)
+        cdef RealNumber x
+        x = RealNumber(self._parent._real_field(), None)
         mpfr_atan2(x.value, self.__im, self.__re, rnd)
         return x
 
@@ -2208,7 +2208,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         cdef ComplexNumber z
         z = self._new()
 
-        cdef real_mpfr.RealNumber arg, rho
+        cdef RealNumber arg, rho
         cdef mpfr_t r
         rho = abs(self)
         arg = self.argument() / n
@@ -2224,7 +2224,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             return z
 
         R = self._parent._real_field()
-        cdef real_mpfr.RealNumber theta
+        cdef RealNumber theta
         theta = R.pi()*2/n
         zlist = [z]
         for k in range(1, n):

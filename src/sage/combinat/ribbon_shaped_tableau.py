@@ -17,7 +17,7 @@ Ribbon Shaped Tableaux
 #*****************************************************************************
 
 from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux
-from sage.combinat.tableau import TableauOptions
+from sage.combinat.tableau import Tableaux
 from sage.combinat.permutation import Permutation, descents_composition_first, descents_composition_list, descents_composition_last
 from sage.rings.integer import Integer
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -204,7 +204,7 @@ class RibbonShapedTableaux(SkewTableaux):
         return "Ribbon shaped tableaux"
 
     Element = RibbonShapedTableau
-    global_options = TableauOptions
+    options = Tableaux.options
 
     def from_shape_and_word(self, shape, word):
         """
@@ -298,7 +298,7 @@ class StandardRibbonShapedTableaux(StandardSkewTableaux):
                 yield self.element_class(self, r)
 
     Element = RibbonShapedTableau
-    global_options = TableauOptions
+    options = Tableaux.options
 
     def from_shape_and_word(self, shape, word):
         """
@@ -465,3 +465,7 @@ from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.ribbon', 'Ribbon_class', Ribbon_class)
 register_unpickle_override('sage.combinat.ribbon', 'StandardRibbons_shape', StandardRibbonShapedTableaux)
 
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+RibbonShapedTableaux.global_options = deprecated_function_alias(18555, RibbonShapedTableaux.options)
+StandardRibbonShapedTableaux.global_options = deprecated_function_alias(18555, StandardRibbonShapedTableaux.options)

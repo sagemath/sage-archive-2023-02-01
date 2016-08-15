@@ -4,6 +4,7 @@ Interface to Sage
 This is an expect interface to *another* copy of the Sage
 interpreter.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -17,8 +18,9 @@ interpreter.
 
 import cPickle
 import os
+import re
 
-from expect import Expect, ExpectElement, FunctionElement
+from .expect import Expect, ExpectElement, FunctionElement
 import sage.repl.preparse
 
 from sage.interfaces.tab_completion import ExtraTabCompletion
@@ -145,10 +147,17 @@ class Sage(ExtraTabCompletion, Expect):
             if init_code is None:
                 init_code = ['from sage.all import *', 'import cPickle']
         else:
-            # Disable the IPython history (implemented as SQLite database)
-            # to avoid problems with locking.
-            command = "sage-ipython --HistoryManager.hist_file=:memory: --colors=NoColor"
-            prompt = "sage: "
+            command = ' '.join([
+                'sage-ipython',
+                # Disable the IPython history (implemented as SQLite database)
+                # to avoid problems with locking.
+                '--HistoryManager.hist_file=:memory:',
+                # Disable everything that prints ANSI codes
+                '--colors=NoColor',
+                '--no-term-title',
+                '--simple-prompt',
+            ])
+            prompt = re.compile('In \[\d+\]: ')
             if init_code is None:
                 init_code = ['import cPickle']
 

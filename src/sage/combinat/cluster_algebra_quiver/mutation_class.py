@@ -171,7 +171,7 @@ def _dg_canonical_form( dg, n, m ):
         partition = [ vertices ]
     partition_add, edges = _graph_without_edge_labels(dg,vertices)
     partition += partition_add
-    automorphism_group, obsolete, iso = search_tree(dg, partition=partition, lab=True, dig=True, certify=True)
+    automorphism_group, obsolete, iso = search_tree(dg, partition=partition, lab=True, dig=True, certificate=True)
     orbits = get_orbits( automorphism_group, n+m )
     orbits = [ [ iso[i] for i in orbit] for orbit in orbits ]
     for v in iso.keys():

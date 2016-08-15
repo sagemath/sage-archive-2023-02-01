@@ -22,11 +22,12 @@ save member functions and commands.
 
 -  Objects are zlib compressed for space efficiency.
 """
+from __future__ import absolute_import
 
 from sage.structure.sage_object import save, load, \
      loads, dumps, SageObject
 
-from misc import SAGE_DB
+from .misc import SAGE_DB
 
 def load_sage_object(cls, dic):   # not used
     X = cls.__new__(cls)

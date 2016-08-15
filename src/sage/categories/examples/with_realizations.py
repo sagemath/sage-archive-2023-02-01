@@ -176,20 +176,18 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
         In  = self.In()
         Out = self.Out()
 
-        # TODO: Have module_morphism use keys instead of cmp
-        #   and remove the call to cmp_to_key here.
-        key_cmp = lambda x,y: cmp(self.indices_key(x), self.indices_key(y))
+        key = lambda x: self.indices_key(x)
         In_to_F = In.module_morphism(F.sum_of_monomials * Subsets,
-                                     codomain = F, category = category,
-                                     triangular = 'upper', unitriangular = True,
-                                     cmp = key_cmp)
+                                     codomain=F, category=category,
+                                     triangular='upper', unitriangular=True,
+                                     key=key)
         In_to_F   .register_as_coercion()
         (~In_to_F).register_as_coercion()
 
         F_to_Out = F.module_morphism(Out.sum_of_monomials * self.supsets,
-                                     codomain = Out, category = category,
-                                     triangular = 'lower', unitriangular = True,
-                                     cmp = key_cmp)
+                                     codomain=Out, category=category,
+                                     triangular='lower', unitriangular=True,
+                                     key=key)
         F_to_Out   .register_as_coercion()
         (~F_to_Out).register_as_coercion()
 

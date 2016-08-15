@@ -16,6 +16,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.rings.all import ZZ, QQ, AA, AlgebraicField, infinity, PolynomialRing, NumberField
 from sage.functions.all import cos,exp,sec
@@ -29,7 +30,7 @@ from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGro
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 
-from hecke_triangle_group_element import HeckeTriangleGroupElement, cyclic_representative, coerce_AA
+from .hecke_triangle_group_element import HeckeTriangleGroupElement, cyclic_representative, coerce_AA
 
 class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
     r"""

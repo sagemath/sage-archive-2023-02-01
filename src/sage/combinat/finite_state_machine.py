@@ -4263,7 +4263,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
             sage: A = Automaton([(0, 0, -1)])
             sage: map(A.format_letter_negative, [-1, 0, 1, 'a', None])
-             ['\\overline{1}', 0, 1, \text{\texttt{a}}, \mbox{\rm None}]
+            ['\\overline{1}', 0, 1, \text{\texttt{a}}, \mathrm{None}]
             sage: A.latex_options(format_letter=A.format_letter_negative)
             sage: print(latex(A))
             \begin{tikzpicture}[auto, initial text=, >=latex]
@@ -6472,7 +6472,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             :meth:`~FiniteStateMachine.__call__`,
             :class:`FSMProcessIterator`.
         """
-        if automatic_output_type and kwargs.has_key('format_output'):
+        if automatic_output_type and 'format_output' in kwargs:
             raise ValueError("Parameter 'automatic_output_type' set, but "
                              "'format_output' specified as well.")
         if automatic_output_type:

@@ -55,18 +55,14 @@ from __future__ import print_function
 
 import operator
 
-from infinity import infinity
+from .infinity import infinity
 
-import laurent_series_ring
-import power_series_ring_element
-import power_series_ring
 import sage.rings.polynomial.polynomial_element as polynomial
 import sage.misc.latex
 from sage.rings.integer import Integer
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_univariate
-
+from .power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement, AlgebraElement
-
 from sage.misc.derivative import multi_derivative
 
 

@@ -977,7 +977,7 @@ def find_cartan_type_from_matrix(CM):
         for x in test:
             ct = CartanType(x)
             T = DiGraph(ct.dynkin_diagram()) # We need a simple digraph here
-            iso, match = T.is_isomorphic(S, certify=True, edge_labels=True)
+            iso, match = T.is_isomorphic(S, certificate=True, edge_labels=True)
             if iso:
                 types.append(ct.relabel(match))
                 found = True
@@ -988,7 +988,7 @@ def find_cartan_type_from_matrix(CM):
 
             ct = ct.dual()
             T = DiGraph(ct.dynkin_diagram()) # We need a simple digraph here
-            iso, match = T.is_isomorphic(S, certify=True, edge_labels=True)
+            iso, match = T.is_isomorphic(S, certificate=True, edge_labels=True)
             if iso:
                 types.append(ct.relabel(match))
                 found = True

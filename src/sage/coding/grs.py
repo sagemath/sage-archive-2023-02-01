@@ -19,6 +19,7 @@ This file contains the following elements:
     - :class:`GRSErrorErasureDecoder`, a decoder which corrects both errors and erasures
     - :class:`GRSKeyEquationSyndromeDecoder`, a decoder which corrects errors using the key equation on syndrome polynomials
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2015 David Lucas <david.lucas@inria.fr>
@@ -38,9 +39,9 @@ from sage.modules.free_module import VectorSpace
 from sage.rings.integer import Integer
 from sage.misc.cachefunc import cached_method
 from copy import copy
-from linear_code import AbstractLinearCode
-from encoder import Encoder
-from decoder import Decoder, DecodingError
+from .linear_code import AbstractLinearCode
+from .encoder import Encoder
+from .decoder import Decoder, DecodingError
 from sage.rings.arith import xgcd
 from sage.misc.misc_c import prod
 from sage.functions.other import binomial, floor, sqrt

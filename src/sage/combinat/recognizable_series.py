@@ -165,14 +165,14 @@ class PrefixClosedSet(object):
             [word: , word: 0, word: 00, word: 01, word: 001]
         """
         n = 0
-        it = iter(self.words.iterate_by_length(1))
+        it = self.words.iterate_by_length(1)
         while n < len(self.elements):
             try:
                 nn = next(it)
                 yield self.elements[n] + nn #next(it)
             except StopIteration:
                 n += 1
-                it = iter(self.words.iterate_by_length(1))
+                it = self.words.iterate_by_length(1)
 
 
 class RecognizableSeries(Element):

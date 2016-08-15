@@ -45,7 +45,7 @@ interpreter.
 The underlying FriCAS type of a is also available, via the type
 method::
 
-    sage: a.type()                           # optional - fricas
+    sage: a.typeOf()                             # optional - fricas
     PositiveInteger
 
 We factor `x^5 - y^5` in FriCAS in several different ways.
@@ -58,7 +58,7 @@ The first way yields a FriCAS object.
     - (y - x)(y  + x y  + x y  + x y + x )
     sage: type(F)                               # optional - fricas
     <class 'sage.interfaces.fricas.FriCASElement'>
-    sage: F.type()                              # optional - fricas
+    sage: F.typeOf()                              # optional - fricas
     Factored(Polynomial(Integer))
 
 Note that FriCAS objects are normally displayed using "ASCII art".
@@ -403,8 +403,35 @@ class FriCAS(ExtraTabCompletion, Expect):
 
 class FriCASElement(ExpectElement):
 
+
+    def __len__(self):
+        """
+        Return the length of a list.
+
+        EXAMPLES::
+
+            sage: v = axiom('[x^i for i in 0..5]')            # optional - axiom
+            sage: len(v)                                      # optional - axiom
+            6
+        """
+        P = self._check_valid()
+        l = P('# %s ' %self._name)
+        return l.sage()
+
     def __getitem__(self, n):
-        raise NotImplementedError
+        """
+        We implement the sage conventions here!
+
+        TODO: should we really check the length?
+
+        TODO: we should also implement negative arguments and tuples
+        """
+        n = int(n)
+        if n < 0 or n >= len(self):
+            raise IndexError("index out of range")
+        P = self._check_valid()
+        # in FriCAS, retrieving an item is the same as calling it with an integer
+        return P('%s(%s)'%(self._name, n+1))
 
     def __int__(self):
         return int(self.sage())
@@ -433,6 +460,15 @@ class FriCASElement(ExpectElement):
     def _get_1d_output(self):
         """Return the output from FriCAS as a string without the quotes.
 
+        TODO:
+
+        - catch errors, especially when InputForm is not available:
+
+        -- for example when integration returns "failed"
+        -- UnivariatePolynomial
+
+        should we provide workarounds, too?
+
         TESTS:
 
         We test that strings are returned properly:
@@ -450,76 +486,56 @@ class FriCASElement(ExpectElement):
         P = self._check_valid()
         return P.eval('unparse(%s::InputForm)' %self._name).replace("\r\n", "")[1:-1]
 
-    def type(self):
-        """
-        Return the type of the object in FriCAS as a FriCAS object.
-        """
-        P = self._check_valid()
-        return P(self._get_type_str())
-        
-    def _get_type_str(self):
-        P = self._check_valid()
-        output = P._eval_line(self._name + ";")
-
-        m = re.match("\r\n\|startTypeTime\|\r\n *Type: (.*)\r\n\|endOfTypeTime\|", output, flags = re.DOTALL)
-        return m.groups()[0]
-
-    def _get_type(self):
-        """
-        TODO: use fricas.eval("dom(%s)") instead.  Then we can also use
-        ")set message type off" to get very clean communication!
-        """
-        import ast
-        def to_list_of_lists(node):
-            if isinstance(node, ast.Name):
-                return node.id
-            elif isinstance(node, ast.Num):
-                return node.n
-            elif isinstance(node, ast.List):
-                return [to_list_of_lists(arg) for arg in node.elts]
-            elif isinstance(node, ast.Call):
-                return [node.func.id] + [to_list_of_lists(arg) for arg in node.args]
-
-        # the fricas union type displays as Union(domain, ...), or Union(fail: failed, ...)
-        # for ast.parse this would be a syntax error
-        A = ast.parse(self._get_type_str().replace("...", "_").replace(": ", "_"))
-        assert len(A.body) == 1
-        return to_list_of_lists(A.body[0].value)
-
     def _get_sage_type(self, type):
+        """
+        INPUT:
+
+        - type, a FriCAS SExpression
+
+        OUTPUT:
+
+        - a corresponding Sage type
+        """
         from sage.rings.all import ZZ, QQ, QQbar, PolynomialRing, RDF
         from sage.rings.fraction_field import FractionField
         from sage.rings.finite_rings.integer_mod_ring import Integers
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
-        
-        if type in ["Integer", "NonNegativeInteger", "PositiveInteger"]:
+
+        # first implement domains without arguments
+        head = str(type.car())
+        if head in ["Integer", "NonNegativeInteger", "PositiveInteger"]:
             return ZZ
-        elif type == "String":
+        if head == "String":
             return str
-        elif type == "Float":
+        if head == "Float":
             prec = max(self.mantissa().length()._sage_(), 53)
             return RealField(prec)
-        elif type == "DoubleFloat":
+        if head == "DoubleFloat":
             return RDF
-        elif type == "AlgebraicNumber":
+        if head == "AlgebraicNumber":
             return QQbar
-        elif isinstance(type, list):
-            if type[0] == "Union":
-                return self._get_sage_type(type[1])
 
-            elif type[0] == "IntegerMod":
-                return Integers(ZZ(type[1]))
+        # now implement "functorial" types
+        if head == "Union":
+            return self._get_sage_type(type[1][2])
 
-            elif type[0] == "Fraction":
-                return FractionField(self._get_sage_type(type[1]))
+        if head == "OrderedCompletion":
+            # this is a workaround, I don't know how translate this
+            return SR
+        
+        if head == "IntegerMod":
+            return Integers(type[1].integer().sage())
 
-            elif type[0] == "Expression":
-                return SR
+        if head == "Fraction":
+            return FractionField(self._get_sage_type(type[1]))
 
-            elif type[0] == "Polynomial":
-                # this is a workaround, since in sage we always have to specify the variables
-                return SR
+        if head == "Expression":
+            return SR
+
+        if head == "Polynomial":
+            # this is a workaround, since in sage we always have to specify the variables
+            return SR
 
         raise NotImplementedError
 
@@ -564,8 +580,8 @@ class FriCASElement(ExpectElement):
 
         We can also convert Fricas's polynomials to Sage polynomials.
 
-        sage: a = fricas(x^2 + 1); a._get_type()                  # optional - fricas
-        ['Polynomial', 'Integer']
+        sage: a = fricas(x^2 + 1); a.typeOf()                     # optional - fricas
+        Polynomial(Integer)
         sage: a.sage()                                            # optional - fricas
         x^2 + 1
         sage: _.parent()                                          # optional - fricas
@@ -575,8 +591,11 @@ class FriCASElement(ExpectElement):
         sage: _.parent()                                          # optional - fricas
         Multivariate Polynomial Ring in y, x over Rational Field
 
-        sage: a = fricas("1$Polynomial Integer").sage()           # optional - fricas
+        sage: fricas("1$Polynomial Integer").sage()               # optional - fricas
         1
+
+        sage: fricas("x^2/2").sage()                              # optional - fricas
+        1/2*x^2
 
         Rational functions:
 
@@ -591,6 +610,11 @@ class FriCASElement(ExpectElement):
         sage: fricas("factorial(n)").sage()                       # optional - fricas
         factorial(n)
 
+        sage: fricas("integrate(sin(x+y), x=0..1)").sage()        # optional - fricas
+        -cos(y + 1) + cos(y)
+
+        sage: fricas("integrate(x*sin(1/x), x=0..1)").sage()      # optional - fricas
+
         sage: fricas("guessPade [1,1,2,3,5,8]")                   # optional - fricas
             n        1
         [[[x ]- ----------]]
@@ -604,63 +628,78 @@ class FriCASElement(ExpectElement):
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
         from sage.misc.sage_eval import sage_eval
-        
-        type = self._get_type()
-        if type in ["Integer", "NonNegativeInteger", "PositiveInteger"]:
+
+        domain = self.dom() # type is now a fricas SExpression
+        head = str(domain.car())
+        # the special domain Union needs special treatment
+        if head == "Union":
+            domain = domain[1][2]
+            head = str(domain.car())
+
+        # first implement domains without arguments
+        if head in ["Integer", "NonNegativeInteger", "PositiveInteger"]:
             return ZZ(self._get_1d_output())
 
-        elif type == "String":
+        if head == "String":
             return self._get_1d_output()
 
-        elif type == "Float":
+        if head == "Float":
             prec = max(self.mantissa().length().sage(), 53)
             R = RealField(prec)
             x, e, b = self._get_1d_output().lstrip('float(').rstrip(')').split(',')
             return R(ZZ(x)*ZZ(b)**ZZ(e))
 
-        elif type == "DoubleFloat":
+        if head == "DoubleFloat":
             return RDF(self._get_1d_output())
 
-        elif type == "AlgebraicNumber":
+        if head == "AlgebraicNumber":
             s = self._get_1d_output()[:-len("::AlgebraicNumber()")]
             return sage_eval("QQbar(" + s + ")")
 
-        elif isinstance(type, list):
-            if type[0] == "List":
-                P = self._check_valid()
-                n = P.new('# %s'%self.name()).sage()
-                return [P.new('%s(%s)'%(self._name, k)).sage() for k in range(1, n+1)]
+        # now implement "functorial" types
+        
+        if head == "List":
+            P = self._check_valid()
+            n = P.new('# %s'%self.name()).sage()
+            return [P.new('%s(%s)'%(self._name, k)).sage() for k in range(1, n+1)]
 
-            elif type[0] == "IntegerMod":
-                # one might be tempted not to go via unparse and
-                # InputForm here, but it turns out to be safer to do
-                # it.
-                n = self._get_1d_output()[len("index("):]
-                n = n[:n.find(")")]
-                return self._get_sage_type(type)(n)
+        if head == "IntegerMod":
+            # one might be tempted not to go via unparse and
+            # InputForm here, but it turns out to be safer to do
+            # it.
+            n = self._get_1d_output()[len("index("):]
+            n = n[:n.find(")")]
+            return self._get_sage_type(domain)(n)
 
-            elif type[0] == "Fraction":
-                return self.numer().sage()/self.denom().sage()
+        if head == "Fraction":
+            return self.numer().sage()/self.denom().sage()
 
-            elif type[0] == "Polynomial":
-                base_ring = self._get_sage_type(type[1])
-                vars = self.variables()._get_1d_output()[1:-1]
-                if vars == "":
-                    return base_ring(self._get_1d_output())
-                else:
-                    R = PolynomialRing(base_ring, vars)
-                    return R(self._get_1d_output())
-
-            elif type[0] == "Expression":
-                if type[1] == "Integer":
-                    s = self._get_1d_output()
-                    return SR(s)
-
-            elif type[0] == 'DistributedMultivariatePolynomial':
-                base_ring = self._get_sage_type(type[2])
-                vars = type[1]
+        if head == "Polynomial":
+            base_ring = self._get_sage_type(domain[1])
+            vars = self.variables()._get_1d_output()[1:-1]
+            if vars == "":
+                return base_ring(self._get_1d_output())
+            else:
                 R = PolynomialRing(base_ring, vars)
                 return R(self._get_1d_output())
+
+        if head == "OrderedCompletion":
+            # this is a workaround, I don't know how translate this
+            if str(domain[1].car()) == "Expression":
+                s = self._get_1d_output()
+                return SR(s)
+            
+        if head == "Expression":
+            # TODO: we also have Expression Complex Integer and the like
+            if str(domain[1].car()) == "Integer":
+                s = self._get_1d_output()
+                return SR(s)
+
+        if head == 'DistributedMultivariatePolynomial':
+            base_ring = self._get_sage_type(domain[2])
+            vars = domain[1].car()
+            R = PolynomialRing(base_ring, vars)
+            return R(self._get_1d_output())
 
 
 

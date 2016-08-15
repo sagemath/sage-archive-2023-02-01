@@ -38,7 +38,7 @@ import numpy as np
 cimport numpy as np
 
 from sage.rings.all import CIF
-from cpython.object cimport Py_EQ
+from cpython.object cimport Py_EQ, Py_NE
 
 
 cdef class PeriodicRegion:
@@ -546,19 +546,20 @@ cdef class PeriodicRegion:
             sage: S2 == S3
             False
         """
-        if type(left) is not type(right):
+        if type(left) is not type(right) or op not in [Py_EQ, Py_NE]:
             return NotImplemented
-        if op is not Py_EQ:
-            return NotImplemented
+
         if (left.w1, left.w2) != (right.w1, right.w2):
-            return False
-        if left.full ^ right.full:
-            left._ensure_full()
-            right._ensure_full()
-        if (left.data == right.data).all():
-            return True
+            equal = False
         else:
-            return False
+            if left.full ^ right.full:
+                left._ensure_full()
+                right._ensure_full()
+            equal = (left.data == right.data).all()
+
+        if op is Py_EQ:
+            return equal
+        return not equal
 
     def border(self, raw=True):
         """

@@ -788,22 +788,53 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         return self._hasse_diagram.is_semidistributive('join') is None
 
-    def is_complemented(self):
+    def is_complemented(self, certificate=False):
         r"""
-        Returns ``True`` if ``self`` is a complemented lattice, and
+        Return ``True`` if the lattice is complemented, and
         ``False`` otherwise.
+
+        A lattice is complemented if every element has at least one
+        complement.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, e)``, where ``e`` is an element without a complement.
+          If ``certificate=False`` return ``True`` or ``False``.
+
+        .. SEEALSO::
+
+            :meth:`complements`
 
         EXAMPLES::
 
-            sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
+            sage: L = LatticePoset({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
             sage: L.is_complemented()
             True
 
-            sage: L = LatticePoset({0:[1,2],1:[3],2:[3],3:[4]})
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5, 6], 3: [5], 4: [6],
+            ....:                   5: [7], 6: [7]})
             sage: L.is_complemented()
             False
+            sage: L.is_complemented(certificate=True)
+            (False, 2)
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_complemented() for i in range(5)]
+            [True, True, True, False, False]
         """
-        return self._hasse_diagram.is_complemented_lattice()
+        e = self._hasse_diagram.is_complemented()
+        if not certificate:
+            return e is None
+        if e is None:
+            return (True, None)
+        return (False, self._vertex_to_element(e))
 
     def is_relatively_complemented(self, certificate=False):
         """

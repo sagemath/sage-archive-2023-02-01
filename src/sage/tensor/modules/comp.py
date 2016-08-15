@@ -254,7 +254,6 @@ from sage.rings.integer import Integer
 from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
 from operator import itemgetter
-import time
 
 class Components(SageObject):
     r"""

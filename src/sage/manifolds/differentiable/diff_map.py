@@ -188,6 +188,35 @@ class DiffMap(ContinuousMap):
         sage: Phi(sp).coord() # Cartesian coordinates
         (0, 0, -1)
 
+    The differential `\mathrm{d}\Phi` of the map `\Phi` at the North pole and
+    at the South pole::
+
+        sage: Phi.differential(np)
+        Generic morphism:
+          From: Tangent space at Point N on the 2-dimensional differentiable manifold S^2
+          To:   Tangent space at Point Phi(N) on the 3-dimensional differentiable manifold R^3
+        sage: Phi.differential(sp)
+        Generic morphism:
+          From: Tangent space at Point S on the 2-dimensional differentiable manifold S^2
+          To:   Tangent space at Point Phi(S) on the 3-dimensional differentiable manifold R^3
+
+    The matrix of the linear map `\mathrm{d}\Phi_N` with respect to the default
+    bases of `T_N S^2` and `T_{\Phi(N)} \RR^3`::
+
+        sage: Phi.differential(np).matrix()
+        [2 0]
+        [0 2]
+        [0 0]
+
+    the default bases being::
+
+        sage: Phi.differential(np).domain().default_basis()
+        Basis (d/du,d/dv) on the Tangent space at Point N on the 2-dimensional
+         differentiable manifold S^2
+        sage: Phi.differential(np).codomain().default_basis()
+        Basis (d/dX,d/dY,d/dZ) on the Tangent space at Point Phi(N) on the
+         3-dimensional differentiable manifold R^3
+
     Differentiable maps can be composed by means of the operator ``*``: let
     us introduce the map `\RR^3\rightarrow \RR^2` corresponding to
     the projection from the point `(X,Y,Z)=(0,0,1)` onto the equatorial plane
@@ -482,6 +511,134 @@ class DiffMap(ContinuousMap):
         ContinuousMap._del_derived(self)  # derived quantities of the mother
                                           # class
         self._diff.clear()
+
+    def differential(self, point):
+        r"""
+        Return the differential of the differentiable map at a given point.
+
+        If the differentiable map is
+
+        .. MATH::
+
+            \Phi: M \longrightarrow N
+
+        where `M` and `N` are differentiable manifolds, the *differential* of
+        `\Phi` at a point `p\in M` is the tangent space linear map:
+
+        .. MATH::
+
+            \mathrm{d}\Phi_p: T_p M \longrightarrow T_{\Phi(p)} N
+
+        defined by
+
+        .. MATH::
+
+            \begin{array}{rccc}
+            \forall v\in T_p M,\quad \mathrm{d}\Phi_p(v) : & C^k(N) &
+                                                \longrightarrow & \mathbb{R} \\
+                                & f & \longmapsto & v(f\circ \Phi)
+            \end{array}
+
+        INPUT:
+
+        - ``point`` -- point `p` in the domain `M` of the differentiable map
+          `\Phi`
+
+        OUTPUT:
+
+        - `\mathrm{d}\Phi_p`, the differential of `\Phi` at `p`, as an
+          instance of
+          :class:`~sage.tensor.modules.free_module_morphism.FiniteRankFreeModuleMorphism`
+
+        EXAMPLES:
+
+        Differential of a differentiable map between a 2-dimensional manifold
+        and a 3-dimensional one::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: N = Manifold(3, 'N')
+            sage: Y.<u,v,w> = N.chart()
+            sage: Phi = M.diff_map(N, {(X,Y): (x-2*y, x*y, x^2-y^3)}, name='Phi',
+            ....:                  latex_name = r'\Phi')
+            sage: p = M.point((2,-1), name='p')
+            sage: dPhip = Phi.differential(p) ; dPhip
+            Generic morphism:
+              From: Tangent space at Point p on the 2-dimensional differentiable manifold M
+              To:   Tangent space at Point Phi(p) on the 3-dimensional differentiable manifold N
+            sage: latex(dPhip)
+            \mathrm{d}\Phi_{p}
+            sage: dPhip.parent()
+            Set of Morphisms from Tangent space at Point p on the 2-dimensional
+             differentiable manifold M to Tangent space at Point Phi(p) on the
+             3-dimensional differentiable manifold N in Category of finite
+             dimensional vector spaces over Symbolic Ring
+
+        The matrix of `\mathrm{d}\Phi_p` w.r.t. to the default bases of
+        `T_p M` and `T_{\Phi(p)} N`::
+
+            sage: dPhip.matrix()
+            [ 1 -2]
+            [-1  2]
+            [ 4 -3]
+
+        """
+        image_point = self(point)
+        tsp_image = image_point._manifold.tangent_space(image_point)
+        tsp_source = point._manifold.tangent_space(point)
+        # Search for a common chart to perform the computation
+        chartp = None
+        # 1/ Search without any extra computation
+        for chart in point._coordinates:
+            for chart_pair in self._diff:
+                if chart == chart_pair[0]:
+                    chartp = chart_pair
+                    break
+            if chartp is not None:
+                break
+        else:
+            # 2/ Search with a coordinate transformation on the point
+            for chart_pair in self._diff:
+                try:
+                    point.coord(chart_pair[0])
+                    chartp = chart_pair
+                except ValueError:
+                    pass
+        if chartp is None:
+            # 3/ Search with a coordinate evaluation of self
+            for chart1 in point._coordinates:
+                for chart2 in self._codomain.atlas():
+                    try:
+                        self.differential_functions(chart1, chart2)
+                        chartp = (chart1, chart2)
+                        break
+                    except ValueError:
+                        pass
+                if chartp is not None:
+                    break
+        if chartp is None:
+            raise ValueError("no common chart have been found for the " +
+                     "coordinate expressions of {} and {}".format(self, point))
+        diff_funct = self.differential_functions(*chartp)
+        chart1 = chartp[0]
+        chart2 = chartp[1]
+        coord_point = point.coord(chart1)
+        n1 = self._domain.dim()
+        n2 = self._codomain.dim()
+        matrix = [[diff_funct[i][j](*coord_point) for j in range(n1)]
+                                                            for i in range(n2)]
+        bases = (chart1.frame().at(point), chart2.frame().at(image_point))
+        if self._name is not None and point._name is not None:
+            name = 'd' + self._name + '_' + point._name
+        else:
+            name = None
+        if self._latex_name is not None and point._latex_name is not None:
+            latex_name = r'\mathrm{d}' + self._latex_name + r'_{' + \
+                         point._latex_name + '}'
+        else:
+            latex_name = None
+        return tsp_source.hom(tsp_image, matrix, bases=bases, name=name,
+                              latex_name=latex_name)
 
     def differential_functions(self, chart1=None, chart2=None):
         r"""

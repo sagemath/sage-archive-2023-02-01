@@ -1126,11 +1126,20 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             ....:     for v_c in v_complements:
             ....:         assert L.meet(v,v_c) == L.bottom()
             ....:         assert L.join(v,v_c) == L.top()
+
+            sage: Posets.ChainPoset(0).complements()
+            {}
+            sage: Posets.ChainPoset(1).complements()
+            {0: [0]}
+            sage: Posets.ChainPoset(2).complements()
+            {0: [1], 1: [0]}
         """
         if element is None:
+            n = self.cardinality()
+            if n == 1:
+                return {self[0]: [self[0]]}
             jn = self.join_matrix()
             mt = self.meet_matrix()
-            n = self.cardinality()
             zero = 0
             one = n-1
             c = [[] for x in range(n)]

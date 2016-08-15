@@ -45,13 +45,11 @@ from sage.rings.all import degree_lowest_rational_function
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-from sage.schemes.affine.affine_space import is_AffineSpace
-
 from . import point
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
 
-from sage.schemes.affine.affine_space import AffineSpace
+from sage.schemes.affine.affine_space import AffineSpace, is_AffineSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace
 
 from .curve import Curve_generic
@@ -150,7 +148,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         from .constructor import Curve
         return Curve(AlgebraicScheme_subscheme_affine.projective_closure(self, i, PP))
 
-    def projection(self, indices, newvariables=True):
+    def projection(self, indices, AS=None):
         r"""
         Return the projection of this curve onto the coordinates specified by ``indices``.
 
@@ -159,11 +157,12 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         - ``indices`` -- a list or tuple of distinct integers specifying the indices of the coordinates to use
           in the projection. Can also be a list or tuple consisting of variables of the coordinate ring of the
           ambient space of this curve. If integers are used to specify the coordinates, 0 denotes the first
-          coordinate.
+          coordinate. The length of ``indices`` must be between two and one less than the dimension of the ambient
+          space of this curve, inclusive.
 
-        - ``newvariables`` -- Boolean, (default: True). If True, uses new variables when creating the ambient
-          space to project into. If False, the variables of the coordinate ring of the ambient space of this curve
-          are used.
+        - ``AS`` -- (default: None) the affine space the projected curve will be defined in. This space must be
+          defined over the same base field as this curve, and must have dimension equal to the length of ``indices``.
+          This space is constructed if not specified.
 
         OUTPUT:
 
@@ -184,12 +183,18 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                      (x, y),
              Affine Plane Curve over Rational Field defined by x1^14 + 2*x0^3*x1^7 -
             2*x0^2*x1^7 - 4*x0^7 + x0^6 - 2*x0^5 + x0^4 - 4*x1^2)
+            sage: C.projection([0,1,3,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: (=[0, 1, 3, 4]) must be a list or tuple of length between 2
+            and (=2), inclusive
 
         ::
 
             sage: A.<x,y,z,w> = AffineSpace(QQ, 4)
             sage: C = Curve([x - 2, y - 3, z - 1], A)
-            sage: C.projection([0,1,2])
+            sage: B.<a,b,c> = AffineSpace(QQ, 3)
+            sage: C.projection([0,1,2], AS=B)
             (Scheme morphism:
                From: Affine Curve over Rational Field defined by x - 2, y - 3, z - 1
                To:   Affine Space of dimension 3 over Rational Field
@@ -197,40 +202,61 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                      (x, y, z),
              Closed subscheme of Affine Space of dimension 3 over Rational Field
             defined by:
-               x2 - 1,
-               x1 - 3,
-               x0 - 2)
+               c - 1,
+               b - 3,
+               a - 2)
 
         ::
 
             sage: A.<x,y,z,w,u> = AffineSpace(GF(11), 5)
             sage: C = Curve([x^3 - 5*y*z + u^2, x - y^2 + 3*z^2, w^2 + 2*u^3*y, y - u^2 + z*x], A)
-            sage: C.projection([1,2,4], False)
+            sage: B.<a,b,c> = AffineSpace(GF(11), 3)
+            sage: C.projection([1,2,4], AS=B)
             (Scheme morphism:
                From: Affine Curve over Finite Field of size 11 defined by x^3 -
             5*y*z + u^2, -y^2 + 3*z^2 + x, 2*y*u^3 + w^2, x*z - u^2 + y
                To:   Affine Space of dimension 3 over Finite Field of size 11
                Defn: Defined on coordinates by sending (x, y, z, w, u) to
                      (y, z, u),
-             Affine Curve over Finite Field of size 11 defined by y^2*z - 3*z^3 -
-            u^2 + y, u^6 - 5*y*z^4 + z^3*u^2 - 3*y*u^4 + 3*y^2*u^2 - y^3, y^2*u^4 -
-            3*z^2*u^4 - 2*y^3*u^2 - 5*y*z^2*u^2 + y^4 - 5*y*z^3 + 2*z^4 + z^2*u^2 -
-            3*z*u^2 + 3*y*z, y^4*u^2 + 2*z^4*u^2 - y^5 - 2*y*z^4 + 5*z*u^4 + y*z*u^2
-            - 5*y*z^2 + 4*z^3 + z*u^2 + 5*u^2 - 5*y, y^6 - 5*z^6 - 5*z^3*u^2 +
-            5*y*z^3 + 2*u^4 - 4*y*u^2 + 2*y^2 - 5*y*z + u^2)
+             Affine Curve over Finite Field of size 11 defined by a^2*b - 3*b^3 -
+            c^2 + a, c^6 - 5*a*b^4 + b^3*c^2 - 3*a*c^4 + 3*a^2*c^2 - a^3, a^2*c^4 -
+            3*b^2*c^4 - 2*a^3*c^2 - 5*a*b^2*c^2 + a^4 - 5*a*b^3 + 2*b^4 + b^2*c^2 -
+            3*b*c^2 + 3*a*b, a^4*c^2 + 2*b^4*c^2 - a^5 - 2*a*b^4 + 5*b*c^4 + a*b*c^2
+            - 5*a*b^2 + 4*b^3 + b*c^2 + 5*c^2 - 5*a, a^6 - 5*b^6 - 5*b^3*c^2 +
+            5*a*b^3 + 2*c^4 - 4*a*c^2 + 2*a^2 - 5*a*b + c^2)
+            sage: C.projection([1,2,3,5], AS=B)
+            Traceback (most recent call last):
+            ...
+            TypeError: (=Affine Space of dimension 3 over Finite Field of size 11)
+            must have dimension (=4)
 
         ::
 
             sage: A.<x,y,z,w> = AffineSpace(QQ, 4)
             sage: C = A.curve([x*y - z^3, x*z - w^3, w^2 - x^3])
-            sage: C.projection([y,z], False)
+            sage: C.projection([y,z])
             (Scheme morphism:
                From: Affine Curve over Rational Field defined by -z^3 + x*y, -w^3 +
             x*z, -x^3 + w^2
                To:   Affine Space of dimension 2 over Rational Field
                Defn: Defined on coordinates by sending (x, y, z, w) to
                      (y, z),
-             Affine Plane Curve over Rational Field defined by z^23 - y^7*z^4)
+             Affine Plane Curve over Rational Field defined by x1^23 - x0^7*x1^4)
+            sage: B.<x,y,z> = AffineSpace(QQ, 3)
+            sage: C.projection([x,y,z], AS=B)
+            (Scheme morphism:
+               From: Affine Curve over Rational Field defined by -z^3 + x*y, -w^3 +
+            x*z, -x^3 + w^2
+               To:   Affine Space of dimension 3 over Rational Field
+               Defn: Defined on coordinates by sending (x, y, z, w) to
+                     (x, y, z),
+             Affine Curve over Rational Field defined by z^3 - x*y, x^8 - x*z^2,
+            x^7*z^2 - x*y*z)
+            sage: C.projection([y,z,z])
+            Traceback (most recent call last):
+            ...
+            ValueError: (=[y, z, z]) must be a list or tuple of distinct indices or
+            variables
         """
         AA = self.ambient_space()
         n = AA.dimension_relative()
@@ -238,8 +264,17 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             raise TypeError("this curve is already a plane curve")
         if self.base_ring() not in Fields():
             raise TypeError("this curve must be defined over a field")
-        if len(indices) < 2 or len(indices) > AA.dimension_relative() or len(set(indices)) < len(indices):
+        if len(indices) < 2 or len(indices) >= n:
+            raise ValueError("(=%s) must be a list or tuple of length between 2 and (=%s), inclusive"%(indices,n - 1))
+        if len(set(indices)) < len(indices):
             raise ValueError("(=%s) must be a list or tuple of distinct indices or variables"%indices)
+        if not AS is None:
+            if not is_AffineSpace(AS):
+                raise TypeError("(=%s) must be an affine space"%AS)
+            if AS.dimension_relative() != len(indices):
+                raise TypeError("(=%s) must have dimension (=%s)"%(AS, len(indices)))
+            if AS.base_ring() != AA.base_ring():
+                raise TypeError("(=%s) must be defined over the same base field as this curve"%AS)
         indices = list(indices)
         if all([f in AA.gens() for f in indices]):
             indices = [AA.gens().index(f) for f in indices]
@@ -251,10 +286,10 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                 raise ValueError("index values must be between 0 and one minus the dimension of the ambient space " \
                                  "of this curve")
         # construct the projection map
-        if newvariables:
+        if AS is None:
             AA2 = AffineSpace(self.base_ring(), len(indices))
         else:
-            AA2 = AffineSpace(self.base_ring(), len(indices), [AA.gens()[i] for i in indices])
+            AA2 = AS
         H = Hom(self, AA2)
         psi = H([AA.gens()[i] for i in indices])
         # compute the image via elimination
@@ -274,16 +309,16 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             C = AA2.subscheme(G)
         return tuple([psi, C])
 
-    def plane_projection(self, newvariables=True):
+    def plane_projection(self, AP=None):
         r"""
         Return a projection of this curve into an affine plane so that the image of the projection is
         a plane curve.
 
         INPUT:
 
-        - ``newvariables`` -- Boolean, (default: True). If True, uses new variables when creating the ambient
-          space to project into. If False, the variables of the coordinate ring of the ambient space of this curve
-          are used.
+        - ``AP`` -- (default: None) the affine plane to project this curve into. This space must be defined over
+          the same base field as this curve, and must have dimension two. This space will be constructed if not
+          specified.
 
         OUTPUT:
 
@@ -309,7 +344,8 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: K.<b> = NumberField(a^2 + 2)
             sage: A.<x,y,z> = AffineSpace(K, 3)
             sage: C = A.curve([x - b, y - 2])
-            sage: C.plane_projection(False)
+            sage: B.<a,b> = AffineSpace(K, 2)
+            sage: C.plane_projection(AP=B)
             (Scheme morphism:
                From: Affine Curve over Number Field in b with defining polynomial
             a^2 + 2 defined by x + (-b), y - 2
@@ -318,15 +354,15 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                Defn: Defined on coordinates by sending (x, y, z) to
                      (x, z),
              Affine Plane Curve over Number Field in b with defining polynomial a^2
-            + 2 defined by x + (-b))
+            + 2 defined by a + (-b))
         """
         n = self.ambient_space().dimension_relative()
         # finds a projection that will have a plane curve as its image
         # the following iterates over all pairs (i,j) with j > i to test all
         # possible projections
-        for i in range(0,n-1):
+        for i in range(0, n - 1):
             for j in range(i + 1, n):
-                L = self.projection([i,j], newvariables)
+                L = self.projection([i,j], AP)
                 if isinstance(L[1], Curve_generic):
                     return L
 

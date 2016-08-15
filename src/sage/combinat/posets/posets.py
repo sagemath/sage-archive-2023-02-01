@@ -2429,7 +2429,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) whether to return
-          a certificate.
+          a certificate
 
         OUTPUT:
 
@@ -3644,7 +3644,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) whether to return
-          a certificate.
+          a certificate
 
         OUTPUT:
 

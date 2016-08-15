@@ -3011,7 +3011,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         cur_complex = SimplicialComplex([])
         while facets:
             try:
-                F = it[-1].next()
+                F = next(it[-1])
             except StopIteration:
                 # Backtrace
                 if not cur_order:
@@ -3868,13 +3868,14 @@ class SimplicialComplex(Parent, GenericCellComplex):
         else:
             return FG.quotient(rels)
 
-    def is_isomorphic(self, other, certify=False):
+    @rename_keyword(deprecation=21111, certify='certificate')
+    def is_isomorphic(self, other, certificate=False):
         r"""
         Check whether two simplicial complexes are isomorphic.
 
         INPUT:
 
-        - ``certify`` -- if ``True``, then output is ``(a, b)``, where ``a``
+        - ``certificate`` -- if ``True``, then output is ``(a, b)``, where ``a``
           is a boolean and ``b`` is either a map or ``None``
 
         This is done by creating two graphs and checking whether they
@@ -3887,7 +3888,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: Z3 = SimplicialComplex([[1,2,3]])
             sage: Z1.is_isomorphic(Z2)
             True
-            sage: Z1.is_isomorphic(Z2, certify=True)
+            sage: Z1.is_isomorphic(Z2, certificate=True)
             (True, {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f'})
             sage: Z3.is_isomorphic(Z2)
             False
@@ -3896,8 +3897,17 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: C1 = SimplicialComplex([[1,2,3], [1,2,4], [1,3,4]])
             sage: C2 = SimplicialComplex([['j','k','l'], ['j','l','m'], ['j','k','m']])
-            sage: C1.is_isomorphic(C2,certify=True)
+            sage: C1.is_isomorphic(C2, certificate=True)
             (True, {1: 'j', 2: 'k', 3: 'l', 4: 'm'})
+
+        TESTS::
+
+            sage: Z1 = SimplicialComplex([[0,1],[1,2],[2,3,4],[4,5]])
+            sage: Z2 = SimplicialComplex([['a','b'],['b','c'],['c','d','e'],['e','f']])
+            sage: Z1.is_isomorphic(Z2, certify=True)
+            doctest...: DeprecationWarning: use the option 'certificate' instead of 'certify'
+            See http://trac.sagemath.org/21111 for details.
+            (True, {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f'})
         """
         # Check easy invariants agree
         if (sorted(x.dimension() for x in self._facets)
@@ -3912,9 +3922,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
                      for v in self._vertex_set)
         g2.add_edges(("fake_vertex", v, "special_edge")
                      for v in other._vertex_set)
-        if not certify:
+        if not certificate:
             return g1.is_isomorphic(g2, edge_labels=True)
-        isisom, tr = g1.is_isomorphic(g2, edge_labels=True, certify=True)
+        isisom, tr = g1.is_isomorphic(g2, edge_labels=True, certificate=True)
 
         if isisom:
             for f in self.facets():

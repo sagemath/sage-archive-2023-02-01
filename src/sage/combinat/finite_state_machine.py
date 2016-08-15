@@ -6472,7 +6472,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             :meth:`~FiniteStateMachine.__call__`,
             :class:`FSMProcessIterator`.
         """
-        if automatic_output_type and kwargs.has_key('format_output'):
+        if automatic_output_type and 'format_output' in kwargs:
             raise ValueError("Parameter 'automatic_output_type' set, but "
                              "'format_output' specified as well.")
         if automatic_output_type:

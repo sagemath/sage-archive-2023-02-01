@@ -24,6 +24,7 @@ from sage.numerical.mip import MIPSolverException
 from sage.libs.ppl import MIP_Problem, Variable, Variables_Set, Linear_Expression, Constraint, Generator
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
+from .generic_backend cimport GenericBackend
 from copy import copy
 
 cdef class PPLBackend(GenericBackend):

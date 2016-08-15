@@ -2418,24 +2418,20 @@ class CartanType_standard(UniqueRepresentation, SageObject):
         """
         EXAMPLES::
 
-            sage: t = CartanType(['A', 3, 1])
+            sage: t = CartanType(['B', 3])
             sage: t[0]
-            'A'
+            'B'
             sage: t[1]
             3
             sage: t[2]
-            1
-            sage: t[3]
             Traceback (most recent call last):
             ...
             IndexError: index out of range
         """
         if i == 0:
             return self.letter
-        elif i==1:
+        elif i == 1:
             return self.n
-        elif hasattr(self, 'affine') and i==2:
-            return self.affine
         else:
             raise IndexError("index out of range")
 
@@ -2738,7 +2734,7 @@ class CartanType_standard_affine(CartanType_standard, CartanType_affine):
         """
         if i == 0:
             return self.letter
-        elif i==1:
+        elif i == 1:
             return self.n
         elif i == 2:
             return self.affine

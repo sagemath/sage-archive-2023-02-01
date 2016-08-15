@@ -1927,6 +1927,11 @@ class Function_beta(GinacFunction):
 
             sage: loads(dumps(beta))
             beta
+
+        Check that :trac:`15196` is fixed::
+
+            sage: beta(-1.3,-0.4)
+            -4.92909641669610
         """
         GinacFunction.__init__(self, "beta", nargs=2,
                 conversions=dict(maxima='beta',

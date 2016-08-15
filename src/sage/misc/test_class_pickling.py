@@ -1,5 +1,9 @@
+from __future__ import absolute_import
+
+
 class bar:
     pass
+
 
 def metaclass(name, bases):
     """
@@ -34,9 +38,10 @@ class Metaclass(type):
     It requires a slightly patched version of cPickle.
 
     See:
-     - http://docs.python.org/library/copy_reg.html#module-copy_reg
-     - http://groups.google.com/group/comp.lang.python/browse_thread/thread/66c282afc04aa39c/
-     - http://groups.google.com/group/sage-devel/browse_thread/thread/583048dc7d373d6a/
+
+    - https://docs.python.org/3/library/copyreg.html#module-copyreg
+    - http://groups.google.com/group/comp.lang.python/browse_thread/thread/66c282afc04aa39c/
+    - http://groups.google.com/group/sage-devel/browse_thread/thread/583048dc7d373d6a/
 
     EXAMPLES::
 
@@ -74,5 +79,5 @@ class Metaclass(type):
         return (metaclass, self.reduce_args)
 
 
-import copy_reg
-copy_reg.pickle(Metaclass, Metaclass.__reduce__)
+from six.moves import copyreg
+copyreg.pickle(Metaclass, Metaclass.__reduce__)

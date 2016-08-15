@@ -37,7 +37,7 @@ import os
 from functools import reduce
 from random import randint
 import zipfile
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 
 from sage.misc.misc import sage_makedirs
 from sage.env import SAGE_LOCAL

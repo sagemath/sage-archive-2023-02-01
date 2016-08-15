@@ -1391,7 +1391,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             sage: a.is_congruence()
             True
 
-        This example is congruence -- it is `\Gamma_0(3)` in disguise: ::
+        This example is congruence -- it is `\Gamma_0(3)` in disguise::
 
             sage: S2 = SymmetricGroup(4)
             sage: l = S2((2,3,4))

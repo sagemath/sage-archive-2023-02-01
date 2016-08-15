@@ -982,7 +982,7 @@ class HasseDiagram(DiGraph):
     @lazy_attribute
     def _meet(self):
         r"""
-        Computes the matrix of meets of ``self``. The ``(x,y)``-entry of
+        Return the matrix of meets of ``self``. The ``(x,y)``-entry of
         this matrix is the meet of ``x`` and ``y`` in ``self``.
 
         EXAMPLES::
@@ -1024,19 +1024,18 @@ class HasseDiagram(DiGraph):
             return matrix(0)
         if not self.has_bottom():
             raise ValueError("Not a meet-semilattice: no bottom element.")
-        le = self._leq_matrix
         meet = [[0 for x in range(n)] for x in range(n)]
-        lc = [self.neighbors_in(x) for x in range(n)]
+        lc = [self.neighbors_in(x) for x in range(n)]  # Lc = lower covers
 
-        for x in range(n): # x=x_k
+        for x in range(n):
             meet[x][x] = x
             for y in range(x):
-                T = [meet[y][z] for z in lc[x]] # T = {x_i \wedge z : z>-x_k}
+                T = [meet[y][z] for z in lc[x]]
 
                 q = max(T)
                 for z in T:
-                    if not le[z,q]:
-                        raise ValueError("No meet for x=%s y=%s"%(x,y))
+                    if meet[z][q] != z:
+                        raise ValueError("No meet for x=%s y=%s" % (x,y))
                 meet[x][y] = q
                 meet[y][x] = q
 
@@ -1575,7 +1574,7 @@ class HasseDiagram(DiGraph):
         if n % 2 == 1:
             raise(StopIteration)
 
-        dual_isomorphism = self.is_isomorphic(self.reverse(), certify=True)[1]
+        dual_isomorphism = self.is_isomorphic(self.reverse(), certificate=True)[1]
         if dual_isomorphism is None:  # i.e. if the lattice is not self-dual.
             raise(StopIteration)
 
@@ -1861,9 +1860,9 @@ class HasseDiagram(DiGraph):
             sage: H = HasseDiagram({0: [1, 2], 1:[3], 2:[3]})
             sage: it = H.sublattices_iterator(set(), 0); it
             <generator object sublattices_iterator at ...>
-            sage: it.next()
+            sage: next(it)
             set()
-            sage: it.next()
+            sage: next(it)
             {0}
         """
         # Python3-note: "yield from" would be simpler.

@@ -167,7 +167,8 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: P.<x,y,z,w> = ProjectiveSpace(K, 3)
             sage: C = Curve([y*w - x^2, z*w^2 - a*x^3], P)
             sage: L.<a,b,c> = ProjectiveSpace(K, 2)
-            sage: C.projection(PS=L)
+            sage: proj1 = C.projection(PS=L)
+            sage: proj1
             (Scheme morphism:
                From: Projective Curve over Cyclotomic Field of order 3 and degree 2
             defined by -x^2 + y*w, (-a)*x^3 + z*w^2
@@ -177,6 +178,11 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
                      (x : y : -z + w),
              Projective Plane Curve over Cyclotomic Field of order 3 and degree 2
             defined by a^6 + (-a)*a^3*b^3 - a^4*b*c)
+            sage: proj1[1].ambient_space() is L
+            True
+            sage: proj2 = C.projection()
+            sage: proj2[1].ambient_space() is L
+            False
 
         ::
 
@@ -370,8 +376,9 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
 
             sage: P.<x,y,z,w,u,v> = ProjectiveSpace(QQ, 5)
             sage: C = P.curve([x*u - z*v, w - y, w*y - x^2, y^3*u*2*z - w^4*w])
-            sage: Q.<a,b,c> = ProjectiveSpace(QQ, 2)
-            sage: C.plane_projection(PP=Q)
+            sage: L.<a,b,c> = ProjectiveSpace(QQ, 2)
+            sage: proj1 = C.plane_projection(PP=L)
+            sage: proj1
             (Scheme morphism:
                From: Projective Curve over Rational Field defined by x*u - z*v, -y +
             w, -x^2 + y*w, -w^5 + 2*y^3*z*u
@@ -380,6 +387,11 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
                      (x : -z + u : -z + v),
              Projective Plane Curve over Rational Field defined by a^8 + 6*a^7*b +
             4*a^5*b^3 - 4*a^7*c - 2*a^6*b*c - 4*a^5*b^2*c + 2*a^6*c^2)
+            sage: proj1[1].ambient_space() is L
+            True
+            sage: proj2 = C.projection()
+            sage: proj2[1].ambient_space() is L
+            False
 
         ::
 

@@ -211,7 +211,8 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: A.<x,y,z,w,u> = AffineSpace(GF(11), 5)
             sage: C = Curve([x^3 - 5*y*z + u^2, x - y^2 + 3*z^2, w^2 + 2*u^3*y, y - u^2 + z*x], A)
             sage: B.<a,b,c> = AffineSpace(GF(11), 3)
-            sage: C.projection([1,2,4], AS=B)
+            sage: proj1 = C.projection([1,2,4], AS=B)
+            sage: proj1
             (Scheme morphism:
                From: Affine Curve over Finite Field of size 11 defined by x^3 -
             5*y*z + u^2, -y^2 + 3*z^2 + x, 2*y*u^3 + w^2, x*z - u^2 + y
@@ -224,6 +225,11 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             3*b*c^2 + 3*a*b, a^4*c^2 + 2*b^4*c^2 - a^5 - 2*a*b^4 + 5*b*c^4 + a*b*c^2
             - 5*a*b^2 + 4*b^3 + b*c^2 + 5*c^2 - 5*a, a^6 - 5*b^6 - 5*b^3*c^2 +
             5*a*b^3 + 2*c^4 - 4*a*c^2 + 2*a^2 - 5*a*b + c^2)
+            sage: proj1[1].ambient_space() is B
+            True
+            sage: proj2 = C.projection([1,2,4])
+            sage: proj2[1].ambient_space() is B
+            False
             sage: C.projection([1,2,3,5], AS=B)
             Traceback (most recent call last):
             ...
@@ -345,7 +351,8 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: A.<x,y,z> = AffineSpace(K, 3)
             sage: C = A.curve([x - b, y - 2])
             sage: B.<a,b> = AffineSpace(K, 2)
-            sage: C.plane_projection(AP=B)
+            sage: proj1 = C.plane_projection(AP=B)
+            sage: proj1
             (Scheme morphism:
                From: Affine Curve over Number Field in b with defining polynomial
             a^2 + 2 defined by x + (-b), y - 2
@@ -355,6 +362,11 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                      (x, z),
              Affine Plane Curve over Number Field in b with defining polynomial a^2
             + 2 defined by a + (-b))
+            sage: proj1[1].ambient_space() is B
+            True
+            sage: proj2 = C.plane_projection()
+            sage: proj2[1].ambient_space() is B
+            False
         """
         n = self.ambient_space().dimension_relative()
         # finds a projection that will have a plane curve as its image

@@ -2428,7 +2428,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``certificate`` -- (default: ``False``) Whether to return
+        - ``certificate`` -- (default: ``False``) whether to return
           a certificate.
 
         OUTPUT:
@@ -2451,13 +2451,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             0
         """
         if not certificate:
-            return self.rank()+1
+            return self.rank() + 1
 
         levels = self.level_sets()
         height = len(levels)
         if height == 0:
             return (0, [])
-        n = height-2
+        n = height - 2
         previous = levels[-1][0]
         max_chain = [previous]
         
@@ -3643,7 +3643,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``certificate`` -- (default: ``False``) Whether to return
+        - ``certificate`` -- (default: ``False``) whether to return
           a certificate.
 
         OUTPUT:

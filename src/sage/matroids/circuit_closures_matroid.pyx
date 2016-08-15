@@ -65,9 +65,12 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from matroid cimport Matroid
-from set_system cimport SetSystem
-from utilities import setprint_s
+from __future__ import absolute_import
+
+from .matroid cimport Matroid
+from .set_system cimport SetSystem
+from .utilities import setprint_s
+
 
 cdef class CircuitClosuresMatroid(Matroid):
     """

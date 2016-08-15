@@ -13,8 +13,9 @@ Testing Arithmetic subgroup
 #
 ################################################################################
 from __future__ import print_function
+from __future__ import absolute_import
 
-from arithgroup_perm import ArithmeticSubgroup_Permutation, EvenArithmeticSubgroup_Permutation, OddArithmeticSubgroup_Permutation
+from .arithgroup_perm import ArithmeticSubgroup_Permutation, EvenArithmeticSubgroup_Permutation, OddArithmeticSubgroup_Permutation
 from sage.modular.arithgroup.all import Gamma, Gamma0, Gamma1, GammaH
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 
@@ -345,8 +346,8 @@ class Test:
             sage: Test().test_spanning_trees() #random
         """
         from sage.all import prod
-        from all import SL2Z
-        from arithgroup_perm import S2m,S3m,Lm
+        from .all import SL2Z
+        from .arithgroup_perm import S2m,S3m,Lm
 
         G = random_even_arithgroup(self.index)
 
@@ -383,8 +384,8 @@ class Test:
             sage: from sage.modular.arithgroup.tests import Test
             sage: Test().test_todd_coxeter() #random
         """
-        from all import SL2Z
-        from arithgroup_perm import S2m,S3m,Lm,Rm
+        from .all import SL2Z
+        from .arithgroup_perm import S2m,S3m,Lm,Rm
 
         G = random_even_arithgroup(self.index)
 

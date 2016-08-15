@@ -1327,7 +1327,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         sig_off()
         return res
 
-    def __mod__(Polynomial_rational_flint self, right):
+    cpdef _mod_(self, right):
         """
         Returns the remainder of self and right obtain by Euclidean division.
 
@@ -1354,9 +1354,6 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         if right == 0:
             raise ZeroDivisionError("division by zero polynomial")
-
-        if not isinstance(right, Polynomial_rational_flint):
-            right = self._parent(right)
 
         res = self._new()
         sig_str("FLINT exception")

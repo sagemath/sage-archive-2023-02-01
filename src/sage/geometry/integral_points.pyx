@@ -315,13 +315,6 @@ def simplex_points(vertices):
         b = abs(RtR.det())
         A = RtR.solve_left(vector([b]*len(rays))) * Rt
 
-    # e, d, VDinv = ray_matrix_normal_form(R)
-    #    print origin
-    #    print rays
-    #    print parallelotope_points(rays, origin.parent())
-    #    print 'A = ', A
-    #    print 'b = ', b
-
     e, d, VDinv = ray_matrix_normal_form(R)
     lattice = origin.parent()
     points = loop_over_parallelotope_points(e, d, VDinv, R, lattice, A, b) + tuple(rays)
@@ -1152,13 +1145,22 @@ cdef class InequalityCollection:
             The collection of inequalities
             integer: (3, 7) x + 2 >= 0
             integer: (-3, -7) x + -2 >= 0
+
+        TESTS:
+
+        Check that :trac:`21037` is fixed::
+
+            sage: P = Polyhedron(vertices=((0, 0), (17,3)))
+            sage: P += 1/1000*polytopes.regular_polygon(5)
+            sage: P.integral_points()
+            ((0, 0), (17, 3))
         """
         for Hrep_obj in polyhedron.inequality_generator():
             A, b = self._make_A_b(Hrep_obj, permutation)
             try:
                 H = Inequality_int(A, b, max_abs_coordinates, Hrep_obj.index())
                 self.ineqs_int.append(H)
-            except (OverflowError, ValueError):
+            except (OverflowError, ValueError, TypeError):
                 H = Inequality_generic(A, b, Hrep_obj.index())
                 self.ineqs_generic.append(H)
         for Hrep_obj in polyhedron.equation_generator():
@@ -1167,7 +1169,7 @@ cdef class InequalityCollection:
             try:
                 H = Inequality_int(A, b, max_abs_coordinates, Hrep_obj.index())
                 self.ineqs_int.append(H)
-            except (OverflowError, ValueError):
+            except (OverflowError, ValueError, TypeError):
                 H = Inequality_generic(A, b, Hrep_obj.index())
                 self.ineqs_generic.append(H)
             # add sign-reversed inequality
@@ -1176,7 +1178,7 @@ cdef class InequalityCollection:
             try:
                 H = Inequality_int(A, b, max_abs_coordinates, Hrep_obj.index())
                 self.ineqs_int.append(H)
-            except (OverflowError, ValueError):
+            except (OverflowError, ValueError, TypeError):
                 H = Inequality_generic(A, b, Hrep_obj.index())
                 self.ineqs_generic.append(H)
 

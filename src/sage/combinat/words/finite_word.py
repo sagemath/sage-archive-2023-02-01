@@ -192,6 +192,7 @@ Left-special and bispecial factors::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from collections import defaultdict
 from itertools import islice, izip, cycle
@@ -6908,7 +6909,7 @@ class CallableFromListOfWords(tuple):
         """
         l = []
         for w in words:
-            from word_infinite_datatypes import WordDatatype_callable
+            from .word_infinite_datatypes import WordDatatype_callable
             if isinstance(w, WordDatatype_callable) and \
                     isinstance(w._func, CallableFromListOfWords):
                 l.extend(w._func)

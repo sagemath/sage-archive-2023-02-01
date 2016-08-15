@@ -1,6 +1,15 @@
 r"""
 Base class for elements of multivariate polynomial rings
 """
+
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from __future__ import print_function
 
 from sage.rings.integer cimport Integer
@@ -8,6 +17,7 @@ from sage.rings.integer_ring import ZZ
 from sage.structure.element cimport coercion_model
 from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import infinity
+from sage.structure.element cimport Element
 
 from sage.misc.all import prod
 
@@ -797,7 +807,7 @@ cdef class MPolynomial(CommutativeRingElement):
         else:
             return True
 
-    def __mod__(self, other):
+    cpdef _mod_(self, other):
         """
         EXAMPLES::
 

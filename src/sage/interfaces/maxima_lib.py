@@ -85,12 +85,13 @@ Maxima has some flags that affect how the result gets simplified(By default, bes
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.symbolic.ring import SR
 
 from sage.libs.ecl import EclObject, ecl_eval
 
-from maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
+from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
   MaximaAbstractElement, MaximaAbstractFunctionElement,
   MaximaAbstractElementFunction)
 

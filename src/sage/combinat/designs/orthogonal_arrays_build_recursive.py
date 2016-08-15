@@ -31,8 +31,9 @@ Functions
 ---------
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
-from orthogonal_arrays import orthogonal_array, wilson_construction, is_orthogonal_array
+from .orthogonal_arrays import orthogonal_array, wilson_construction, is_orthogonal_array
 
 def construction_3_3(k,n,m,i,explain_construction=False):
     r"""
@@ -74,7 +75,7 @@ def construction_3_3(k,n,m,i,explain_construction=False):
            Vol. 15, n.3, pp. 255-261,
            Journal of Combinatorial Designs, 2007
     """
-    from orthogonal_arrays import wilson_construction, OA_relabel, incomplete_orthogonal_array
+    from .orthogonal_arrays import wilson_construction, OA_relabel, incomplete_orthogonal_array
     if explain_construction:
         return (("Construction 3.3 with n={},m={},i={} from:\n"
                  "  Julian R. Abel, Nicholas Cavenagh\n"+
@@ -151,7 +152,7 @@ def construction_3_4(k,n,m,r,s,explain_construction=False):
                  "  Vol. 15, n.3, pp. 255-261,\n"+
                  "  Journal of Combinatorial Designs, 2007").format(n,m,r,s)
 
-    from orthogonal_arrays import wilson_construction, OA_relabel
+    from .orthogonal_arrays import wilson_construction, OA_relabel
     assert s<n
     master_design = orthogonal_array(k+r+1,n)
 
@@ -220,7 +221,7 @@ def construction_3_5(k,n,m,r,s,t,explain_construction=False):
            Journal of Combinatorial Designs, 2007
 
     """
-    from orthogonal_arrays import wilson_construction, OA_relabel
+    from .orthogonal_arrays import wilson_construction, OA_relabel
     assert r <= s
     q = n
     assert (q-r-1)*(q-s) >= (q-s-1)*(q-r)
@@ -318,7 +319,7 @@ def construction_3_6(k,n,m,i,explain_construction=False):
                  "  Vol. 15, n.3, pp. 255-261,\n"+
                  "  Journal of Combinatorial Designs, 2007").format(n,m,i))
 
-    from orthogonal_arrays import wilson_construction
+    from .orthogonal_arrays import wilson_construction
     OA = OA_and_oval(n)
     OA = [B[:k+i] for B in OA]
     OA = [B[:k] + [x if x==0 else None for x in B[k:]] for B in OA]
@@ -356,7 +357,7 @@ def OA_and_oval(q):
     """
     from sage.arith.all import is_prime_power
     from sage.combinat.designs.block_design import projective_plane
-    from orthogonal_arrays import OA_relabel
+    from .orthogonal_arrays import OA_relabel
 
     assert is_prime_power(q)
     B = projective_plane(q, check=False)
@@ -787,7 +788,7 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
     from sage.combinat.designs.designs_pyx import is_orthogonal_array
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.arith.all import is_prime_power
-    from block_design import DesarguesianProjectivePlaneDesign
+    from .block_design import DesarguesianProjectivePlaneDesign
     from itertools import chain
 
     if explain_construction:
@@ -1376,8 +1377,8 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
            European Journal of Combinatorics, 1980
     """
     from sage.combinat.designs.orthogonal_arrays import OA_from_PBD
-    from difference_family import difference_family
-    from orthogonal_arrays import incomplete_orthogonal_array
+    from .difference_family import difference_family
+    from .orthogonal_arrays import incomplete_orthogonal_array
     from sage.arith.all import is_prime_power
 
     if explain_construction:

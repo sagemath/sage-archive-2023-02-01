@@ -801,7 +801,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         INPUT:
 
-        - ``indices`` (list of integers) -- this list constains the
+        - ``indices`` (list of integers) -- this list contains the
           indices of the constraints in which the variable's
           coefficient is nonzero
 
@@ -889,7 +889,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.solve()                                                      # optional - CPLEX
             Traceback (most recent call last):
             ...
-            MIPSolverException: CPLEX: The primal has no feasible solution
+            MIPSolverException: CPLEX: The problem is infeasible or unbounded
         """
         cdef int status
         cdef int ptype
@@ -906,16 +906,27 @@ cdef class CPLEXBackend(GenericBackend):
 
         check(status)
 
+        stat = CPXgetstat(self.env, self.lp)
+        if stat == CPX_STAT_OPTIMAL or stat == CPXMIP_OPTIMAL:
+            return 0
+        elif stat == CPX_STAT_INFEASIBLE or stat == CPXMIP_INFEASIBLE:
+            raise MIPSolverException("CPLEX: The problem has no feasible solution")
+        elif stat == CPX_STAT_UNBOUNDED or stat == CPXMIP_UNBOUNDED:
+            raise MIPSolverException("CPLEX: The problem is unbounded")
+        elif stat == CPX_STAT_INForUNBD or stat == CPXMIP_INForUNBD:
+            raise MIPSolverException("CPLEX: The problem is infeasible or unbounded")
+        else:
+            # TODO: Many more stats to be handled.
+            pass
+
+        # No exception should be raised when CPX_STAT_ABORT_... or CPXMIP_ABORT_...
+        # This is so that when a time limit etc. is reached, we obtain meaningful information.
+
         status = CPXsolninfo(self.env, self.lp, &solnmethod_p, &solntype_p, &pfeasind_p, &dfeasind_p)
         check(status)
 
-        if solntype_p == CPX_NO_SOLN:
-            if not pfeasind_p:
-                raise MIPSolverException("CPLEX: The primal has no feasible solution")
-            elif not dfeasind_p:
-                raise MIPSolverException("CPLEX: The problem is unbounded")
-            else:
-                raise MIPSolverException("CPLEX: No solution has been found, but no idea why")
+        if solntype_p == CPX_NO_SOLN or not pfeasind_p:
+            raise MIPSolverException("CPLEX: No solution known to be primal feasible is available")
 
         return 0
 

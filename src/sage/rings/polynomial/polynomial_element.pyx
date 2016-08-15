@@ -78,13 +78,13 @@ from sage.rings.complex_double import is_ComplexDoubleField, CDF
 from sage.rings.real_mpfi import is_RealIntervalField
 
 from sage.structure.element import generic_power
-from sage.structure.element cimport parent_c as parent, have_same_parent_c
-from sage.structure.element cimport (Element, RingElement,
-        ModuleElement, MonoidElement, coercion_model)
+from sage.structure.element cimport (parent, have_same_parent,
+        Element, RingElement, coercion_model)
 
 from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer cimport Integer, smallInteger
+from sage.libs.gmp.mpz cimport *
 from sage.rings.fraction_field import is_FractionField
 from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
 
@@ -1561,6 +1561,31 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return (self.truncate(n) * right.truncate(n)).truncate(n)
 
+    def multiplication_trunc(self, other, n):
+        r"""
+        Truncated multiplication
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: (x^10 + 5*x^5 + x^2 - 3).multiplication_trunc(x^7 - 3*x^3 + 1, 11)
+            x^10 + x^9 - 15*x^8 - 3*x^7 + 2*x^5 + 9*x^3 + x^2 - 3
+
+        Check that coercion is working::
+
+            sage: R2 = QQ['x']
+            sage: x2 = R2.gen()
+            sage: p1 = (x^3 + 1).multiplication_trunc(x2^3 - 2, 5); p1
+            -x^3 - 2
+            sage: p2 = (x2^3 + 1).multiplication_trunc(x^3 - 2, 5); p2
+            -x^3 - 2
+            sage: parent(p1) == parent(p2) == R2
+            True
+        """
+        if not have_same_parent(self, other):
+            self, other = coercion_model.canonical_coercion(self, other)
+        return self._mul_trunc_(other, pyobject_to_long(n))
+
     def square(self):
         """
         Returns the square of this polynomial.
@@ -2079,6 +2104,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ....:     for R in [R1, R2, R3, R3]:
             ....:         a = R.random_element()
             ....:         assert a^d == generic_power(a,d)
+
+        Test the powering modulo ``x^n`` (calling :meth:`power_trunc`)::
+
+            sage: R.<x> = GF(3)[]
+            sage: pow(x + 1, 51, x^7)
+            x^6 + 2*x^3 + 1
+
+            sage: S.<y> = QQ[]
+            sage: R.<x> = S[]
+            sage: pow(y*x+1, 51, x^7)
+            18009460*y^6*x^6 + 2349060*y^5*x^5 + ... + 51*y*x + 1
         """
         if type(right) is not Integer:
             try:
@@ -2091,6 +2127,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if right < 0:
             return (~self)**(-right)
         if modulus:
+            if right > 0 and \
+               parent(modulus) == self.parent() and \
+               modulus.number_of_terms() == 1 and \
+               modulus.leading_coefficient().is_one():
+                return self.power_trunc(right, modulus.degree())
             return power_mod(self, right, modulus)
         if (<Polynomial>self).is_gen():   # special case x**n should be faster!
             P = self.parent()
@@ -2128,6 +2169,92 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return ret
 
         return generic_power(self,right)
+
+    def power_trunc(self, n, prec):
+        r"""
+        Truncated ``n``-th power of this polynomial up to precision ``prec``
+
+        INPUT:
+
+        - ``n`` -- (non-negative integer) power to be taken
+
+        - ``prec`` -- (integer) the precision
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: (3*x^2 - 2*x + 1).power_trunc(5, 8)
+            -1800*x^7 + 1590*x^6 - 1052*x^5 + 530*x^4 - 200*x^3 + 55*x^2 - 10*x + 1
+            sage: ((3*x^2 - 2*x + 1)^5).truncate(8)
+            -1800*x^7 + 1590*x^6 - 1052*x^5 + 530*x^4 - 200*x^3 + 55*x^2 - 10*x + 1
+
+            sage: S.<y> = R[]
+            sage: (x+y).power_trunc(5,5)
+            5*x*y^4 + 10*x^2*y^3 + 10*x^3*y^2 + 5*x^4*y + x^5
+            sage: ((x+y)^5).truncate(5)
+            5*x*y^4 + 10*x^2*y^3 + 10*x^3*y^2 + 5*x^4*y + x^5
+
+            sage: R.<x> = GF(3)[]
+            sage: p = x^2 - x + 1
+            sage: q = p.power_trunc(80, 20)
+            sage: q
+            x^19 + x^18 + ... + 2*x^4 + 2*x^3 + x + 1
+            sage: (p^80).truncate(20) == q
+            True
+
+            sage: R.<x> = GF(7)[]
+            sage: p = (x^2 + x + 1).power_trunc(2^100, 100)
+            sage: p
+            2*x^99 + x^98 + x^95 + 2*x^94 + ... + 3*x^2 + 2*x + 1
+
+            sage: for i in range(100):
+            ....:    q1 = (x^2 + x + 1).power_trunc(2^100 + i, 100)
+            ....:    q2 = p * (x^2 + x + 1).power_trunc(i, 100)
+            ....:    q2 = q2.truncate(100)
+            ....:    assert q1 == q2, "i = {}".format(i)
+
+        TESTS::
+
+            sage: x = polygen(QQ)
+            sage: (3*x-5).power_trunc(2^200, 0)
+            0
+            sage: x.power_trunc(-1, 10)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a non-negative integer
+            sage: R.<y> = QQ['x']
+            sage: y.power_trunc(2**32-1, 2)
+            0
+            sage: y.power_trunc(2**64-1, 2)
+            0
+        """
+        cdef Integer ZZn = ZZ(n)
+        if mpz_fits_ulong_p(ZZn.value):
+            return self._power_trunc(mpz_get_ui(ZZn.value), prec)
+        return generic_power_trunc(self, ZZn, pyobject_to_long(prec))
+
+    cpdef Polynomial _power_trunc(self, unsigned long n, long prec):
+        r"""
+        Truncated ``n``-th power of this polynomial up to precision ``prec``
+
+        This method is overriden for certain subclasses when a library function
+        is available.
+
+        INPUT:
+
+        - ``n`` -- (non-negative integer) power to be taken
+
+        - ``prec`` -- (integer) the precision
+
+        TESTS::
+
+            sage: R.<x> = QQ['y'][]
+            sage: for p in [R.one(), x, x+1, x-1, x^2 - 1]:
+            ....:     for n in range(0, 20):
+            ....:         for prec in [1, 2, 3, 10]:
+            ....:             assert p._power_trunc(n, prec) == (p**n).truncate(prec)
+        """
+        return generic_power_trunc(self, Integer(n), prec)
 
     def _pow(self, right):
         # TODO: fit __pow__ into the arithmetic structure
@@ -8456,9 +8583,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             from sage.misc.misc import newton_method_sizes
             x = p.parent().gen()
             for i in newton_method_sizes(p.degree()//m+1):
-                # NOTE: if we had a _power_trunc_ we might preferably use it
-                # rather than the generic power modulo below
-                qi = pow(q, m-1, x**i).inverse_series_trunc(i)
+                qi = q._power_trunc(m-1, i).inverse_series_trunc(i)
                 q = ((m-1) * q + qi._mul_trunc_(p,i)) / m
 
                 # NOTE: if we knew that p was a n-th power we could remove the check
@@ -8933,7 +9058,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             ...
             AttributeError: type object 'int' has no attribute 'base_ring'
         """
-        if have_same_parent_c(self, right):
+        if have_same_parent(self, right):
             return (<Polynomial_generic_dense>self)._floordiv_(<Polynomial_generic_dense>right)
         P = parent(self)
         d = P.base_ring()(right)
@@ -9271,6 +9396,85 @@ def universal_discriminant(n):
     pr2 = PolynomialRing(pr1, 'x')
     p = pr2(list(pr1.gens()))
     return (1 - (n&2))*p.resultant(p.derivative())//pr1.gen(n)
+
+cpdef Polynomial generic_power_trunc(Polynomial p, Integer n, long prec):
+    r"""
+    Generic truncated power algorithm
+
+    INPUT:
+
+    - ``p`` - a polynomial
+
+    - ``n`` - an integer (of type :class:`sage.rings.integer.Integer`)
+
+    - ``prec`` - a precision (should fit into a C long)
+
+    TESTS:
+
+    Comparison with flint for polynomials over integers and finite field::
+
+        sage: from sage.rings.polynomial.polynomial_element import generic_power_trunc
+
+        sage: for S in [ZZ, GF(3)]:
+        ....:     R = PolynomialRing(S, 'x')
+        ....:     for _ in range(100):
+        ....:         p = R.random_element()
+        ....:         n = ZZ.random_element(0, 100)
+        ....:         prec = ZZ.random_element(0, 100)
+        ....:         assert p.power_trunc(n, prec) == generic_power_trunc(p, n, prec), "p = {} n = {} prec = {}".format(p, n, prec)
+    """
+    if mpz_sgn(n.value) < 0:
+        raise ValueError("n must be a non-negative integer")
+    elif prec <= 0:
+        return p._parent.zero()
+
+    if mpz_cmp_ui(n.value, 4) < 0:
+        # These cases will probably be called often
+        # and don't benefit from the code below
+        if mpz_cmp_ui(n.value, 0) == 0:
+            return p.parent().one()
+        elif mpz_cmp_ui(n.value, 1) == 0:
+            return p.truncate(prec)
+        elif mpz_cmp_ui(n.value, 2) == 0:
+            return p._mul_trunc_(p, prec)
+        elif mpz_cmp_ui(n.value, 3) == 0:
+            return p._mul_trunc_(p, prec)._mul_trunc_(p, prec)
+
+    # check for idempotence, and store the result otherwise
+    cdef Polynomial a = p.truncate(prec)
+    cdef Polynomial aa = a._mul_trunc_(a, prec)
+    if aa == a:
+        return a
+
+    # since we've computed a^2, let's start squaring there
+    # so, let's keep the least-significant bit around, just
+    # in case.
+    cdef int mul_to_do = mpz_tstbit(n.value, 0)
+    cdef mp_bitcnt_t i = 1
+    cdef mp_bitcnt_t size = mpz_sizeinbase(n.value, 2)
+
+    # One multiplication can be saved by starting with
+    # the second-smallest power needed rather than with 1
+    # we've already squared a, so let's start there.
+    cdef Polynomial apow = aa
+    while not mpz_tstbit(n.value, i):
+        apow = apow._mul_trunc_(apow, prec)
+        i += 1
+    cdef Polynomial power = apow
+    i += 1
+
+    # now multiply that least-significant bit in...
+    if mul_to_do:
+        power = power._mul_trunc_(a, prec)
+
+    # and this is straight from the book.
+    while i < size:
+        apow = apow._mul_trunc_(apow, prec)
+        if mpz_tstbit(n.value, i):
+            power = power._mul_trunc_(apow, prec)
+        i += 1
+
+    return power
 
 
 cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):

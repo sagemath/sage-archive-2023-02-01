@@ -26,7 +26,7 @@ cpdef inline parent(x):
 
     .. SEEALSO::
 
-        `Parents, Conversion and Coercion <http://www.sagemath.org/doc/tutorial/tour_coercion.html>`_
+        `Parents, Conversion and Coercion <http://doc.sagemath.org/html/en/tutorial/tour_coercion.html>`_
         Section in the Sage Tutorial
 
     EXAMPLES::
@@ -179,6 +179,9 @@ cdef class Element(SageObject):
 
     cpdef _act_on_(self, x, bint self_on_left)
     cpdef _acted_upon_(self, x, bint self_on_left)
+
+    cpdef _mod_(self, right)
+
 
 cdef class ElementWithCachedMethod(Element):
     cdef public dict __cached_methods

@@ -151,13 +151,14 @@ Functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.misc.all import prod
-from linear_code import LinearCodeFromVectorSpace, LinearCode
+from .linear_code import LinearCodeFromVectorSpace, LinearCode
 from sage.modules.free_module import span
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.structure.sequence import Sequence, Sequence_generic
@@ -936,7 +937,7 @@ def LinearCodeFromCheckMatrix(H):
         [0 1 1 0 0 1 1]
         [0 0 0 1 1 1 1]
         sage: Gh = codes.LinearCodeFromCheckMatrix(H).generator_matrix()
-        sage: Gc = C.generator_matrix_systematic()
+        sage: Gc = C.systematic_generator_matrix()
         sage: Gh == Gc
         True
         sage: C = codes.HammingCode(GF(3), 2)
@@ -944,7 +945,7 @@ def LinearCodeFromCheckMatrix(H):
         [1 0 1 1]
         [0 1 1 2]
         sage: Gh = codes.LinearCodeFromCheckMatrix(H).generator_matrix()
-        sage: Gc = C.generator_matrix_systematic()
+        sage: Gc = C.systematic_generator_matrix()
         sage: Gh == Gc
         True
         sage: C = codes.RandomLinearCode(10,5,GF(4,"a"))

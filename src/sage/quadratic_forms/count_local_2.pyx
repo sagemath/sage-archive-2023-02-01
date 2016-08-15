@@ -1,6 +1,7 @@
 r"""
 Optimised Cython code for counting congruence solutions
 """
+from __future__ import print_function
 
 from sage.arith.all import valuation, kronecker_symbol, is_prime
 from sage.rings.finite_rings.integer_mod import IntegerMod, Mod
@@ -299,14 +300,13 @@ cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
 
 
     ## DIAGNOSTIC
-    #print "IsLocalSolutionType: Finished the Zero congruence condition test \n"
+    #print("IsLocalSolutionType: Finished the Zero congruence condition test \n")
 
-    if (zero_flag == False):
+    if (zero_flag is False):
         return <long> 0
 
     ## DIAGNOSTIC
-    #print "IsLocalSolutionType: Passed the Zero congruence condition test \n"
-
+    #print("IsLocalSolutionType: Passed the Zero congruence condition test \n")
 
     ## Check if the solution satisfies the nzvec "nonzero" congruence conditions
     ## (nzvec is non-empty and its components index a non-zero vector mod p)
@@ -367,18 +367,13 @@ cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
         if ((val == 1) and ((w[i] % p) != 0)):
             wS1_nonzero_flag = True
 
-
     ## 4: Check Bad-type I
-    if (wS1_nonzero_flag == True):
-        #print " Bad I Soln :  " + str(w)
+    if (wS1_nonzero_flag is True):
         return <long> 4
 
-
     ## 5: Check Bad-type II
-    if (wS1_nonzero_flag == False):
-        #print " Bad II Soln :  " + str(w)
+    if (wS1_nonzero_flag is False):
         return <long> 5
-
 
     ## Error if we get here! =o
     print("   Solution vector is " + str(w))

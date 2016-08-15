@@ -1541,7 +1541,7 @@ class NumberField_generic(number_field_base.NumberField):
             x = self.absolute_polynomial().parent()(x)
             return self._element_class(self, x)
         elif sage.interfaces.gap.is_GapElement(x):
-            s = repr(x)
+            s = x._sage_repr()
             if self.variable_name() in s:
                 return self._coerce_from_str(s)
             return self._coerce_from_str(s.replace('!',''))
@@ -9245,7 +9245,7 @@ class NumberField_cyclotomic(NumberField_absolute):
               To:   Cyclotomic Field of order 15 and degree 8
               Defn: zeta6 -> zeta15^5 + 1
 
-        Check that #12632 is fixed::
+        Check that :trac:`12632` is fixed::
 
             sage: K1 = CyclotomicField(1); K2 = CyclotomicField(2)
             sage: K1.coerce_map_from(K2)
@@ -9281,6 +9281,19 @@ class NumberField_cyclotomic(NumberField_absolute):
               From: Cyclotomic Field of order 6 and degree 2
               To:   Cyclotomic Field of order 15 and degree 8
               Defn: zeta6 -> -zeta15^5
+
+        Check transitivity of coercion embeddings (:trac:`20513`)::
+
+            sage: K60.<zeta60> = CyclotomicField(60)
+            sage: K30.<zeta30> = CyclotomicField(30, embedding=zeta60**14)
+            sage: K15.<zeta15> = CyclotomicField(15, embedding=zeta30**26)
+            sage: K5.<zeta5> = CyclotomicField(5, embedding=zeta15**12)
+            sage: K60.has_coerce_map_from(K5)
+            True
+            sage: K60(zeta5)
+            -zeta60^14 - zeta60^12 + zeta60^6 + zeta60^4 - 1
+            sage: _ == zeta60**(14*26*12)
+            True
         """
         if isinstance(K, NumberField_cyclotomic):
             if (self.coerce_embedding() is None or K.coerce_embedding() is None):
@@ -9352,22 +9365,45 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: K.<a> = CyclotomicField(5, embedding=zeta5^2)
             sage: K._log_gen(zeta5)
             3
+
+            sage: K60.<zeta60> = CyclotomicField(60)
+            sage: K30.<zeta30> = CyclotomicField(30, embedding=zeta60**2)
+            sage: K15.<zeta15> = CyclotomicField(15, embedding=zeta30**2)
+            sage: K5.<zeta5> = CyclotomicField(5, embedding=zeta15**12)
+            sage: K60._log_gen(zeta30)
+            2
+            sage: K60._log_gen(zeta15)
+            4
+            sage: K60._log_gen(zeta5)
+            48
+            sage: K5._log_gen(zeta15**3)
+            4
         """
-        if not x.parent().has_coerce_map_from(self):
-            return None
-        if CDF.has_coerce_map_from(x.parent()):
-            x = CDF(x)
-        gen = x.parent().coerce(self.gen())
+        X = x.parent()
+        gen = self.gen()
+
+        if self.has_coerce_map_from(X):
+            Y = self
+            x = self(x)
+        elif X.has_coerce_map_from(self):
+            Y = X
+            gen = X(self.gen())
+        else:
+            return
+
         n = self._n()
-        two_pi = 2*RDF.pi()
-        if x.parent() is CDF:
+        if CDF.has_coerce_map_from(Y):
+            x = CDF(x)
+            gen = CDF(gen)
             # Let zeta = e^(2*pi*i/n)
-            a = (n * x.arg() / two_pi).round()         # x = zeta^a
+            two_pi = 2*RDF.pi()
+            a = (n * x.arg() / two_pi).round()        # x = zeta^a
             b = (n * gen.arg() / two_pi).round()      # gen = zeta^b
             e = mod(a/b, n).lift()          # e is the expected result
-            if abs(gen**e-x) < 1/n:        # a sanity check
+            if abs(gen**e-x) < 1/n:         # a sanity check
                 return e
         else:
+            # NOTE: this can be *very* slow!
             gen_pow_e = 1
             for e in range(n):
                 if gen_pow_e == x:
@@ -9610,16 +9646,16 @@ class NumberField_cyclotomic(NumberField_absolute):
         It may be that GAP uses a name for the generator of the cyclotomic field.
         We can deal with this case, if this name coincides with the name in Sage::
 
-            sage: F=CyclotomicField(8)
-            sage: z=F.gen()
-            sage: a=gap(z+1/z); a
+            sage: F = CyclotomicField(8)
+            sage: z = F.gen()
+            sage: a = gap(z+1/z); a
             E(8)-E(8)^3
             sage: F(a)
             -zeta8^3 + zeta8
 
         Matrices over cyclotomic fields are correctly dealt with it as well::
 
-            sage: b=gap(Matrix(F,[[z^2,1],[0,a+1]])); b
+            sage: b = gap(Matrix(F,[[z^2,1],[0,a+1]])); b
             [ [ E(4), 1 ], [ 0, 1+E(8)-E(8)^3 ] ]
             sage: b[1,2]
             1
@@ -9636,34 +9672,11 @@ class NumberField_cyclotomic(NumberField_absolute):
             [             zeta8^2                    1]
             [                   0 -zeta8^3 + zeta8 + 1]
         """
-        s = str(x)
-        i = s.find('E(')
-        if i == -1:
-            try:
-                # it may be that a number field element's string representation
-                # in GAP has an exclamation mark in it.
-                return self(QQ(s.replace('!','')))
-            except TypeError:
-                # There is no 'E(...)' in the string representation. But it may
-                # be that 'E(...)' was overwritten in GAP. We can only hope that
-                # by coincidence the name in GAP is the same as the name in self
-                return self._coerce_from_str(s.replace('!',''))
-        j = i + s[i:].find(')')
-        n = int(s[i+2:j])
-        if n == self.zeta_order():
-            K = self
-        else:
-            K = CyclotomicField(n)
-        zeta = K.gen()
-        zeta_name = K.variable_name()
-        while zeta_name in s: # could be that gap uses the generator name for a different purpose
-            zeta_name = zeta_name+'_'
-        s = s.replace('E(%s)'%n,zeta_name)
-        s = sage.misc.all.sage_eval(s, locals={zeta_name:zeta})
-        if K is self:
-            return s
-        else:
-            return self(s)
+        if x.IsRat():
+            return self(QQ(x))
+        coeffs = x.CoeffsCyc(self.__n)
+        zeta = self.gen()
+        return sum(QQ(c)*zeta**i for i,c in enumerate(coeffs))
 
     def _Hom_(self, codomain, cat=None):
         """

@@ -123,6 +123,7 @@ Functions
 ---------
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
@@ -197,7 +198,7 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
                 print("Matrix {} is not column latin".format(i))
             return False
 
-    from designs_pyx import is_orthogonal_array
+    from .designs_pyx import is_orthogonal_array
     return is_orthogonal_array(zip(*[[x for R in M for x in R] for M in l]),k,n, verbose=verbose, terminology="MOLS")
 
 def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, existence=False):
@@ -350,7 +351,7 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
     from sage.combinat.designs.orthogonal_arrays import orthogonal_array
     from sage.matrix.constructor import Matrix
     from sage.arith.all import factor
-    from database import MOLS_constructions
+    from .database import MOLS_constructions
 
     # Is k is None we find the largest available
     if k is None:
@@ -531,7 +532,7 @@ def MOLS_table(start,stop=None,compare=False,width=None):
          60|   +
          80|
     """
-    from orthogonal_arrays import largest_available_k
+    from .orthogonal_arrays import largest_available_k
     if stop is None:
         start,stop = 0,start
     # make start and stop be congruent to 0 mod 20

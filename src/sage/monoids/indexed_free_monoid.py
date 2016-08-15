@@ -20,7 +20,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import MonoidElement
 from sage.structure.indexed_generators import IndexedGenerators
-from sage.structure.sage_object import op_EQ, op_NE, py_rich_to_bool
+from sage.structure.sage_object import op_EQ, op_NE, richcmp, rich_to_bool
 from sage.combinat.dict_addition import dict_addition
 
 from sage.categories.monoids import Monoids
@@ -259,11 +259,13 @@ class IndexedMonoidElement(MonoidElement):
             sage: a*b*c^3*b*d != a*d*(b^2*c^2)*c
             False
         """
-        if op == op_EQ:
-            return self._monomial == other._monomial
-        elif op == op_NE:
-            return self._monomial != other._monomial
-        return py_rich_to_bool(op, cmp(self.to_word_list(), other.to_word_list()))
+        if self._monomial == other._monomial:
+            # Equal
+            return rich_to_bool(op, 0)
+        if op == op_EQ or op == op_NE:
+            # Not equal
+            return rich_to_bool(op, 1)
+        return richcmp(self.to_word_list(), other.to_word_list(), op)
 
     def support(self):
         """

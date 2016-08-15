@@ -545,6 +545,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 from functools import reduce
@@ -566,7 +567,7 @@ from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
 
 from sage.misc.decorators import options, rename_keyword
 
-from graphics import Graphics, GraphicsArray
+from .graphics import Graphics, GraphicsArray
 
 #Currently not used - see comment immediately above about
 #figure.canvas.mpl_connect('draw_event', pad_for_tick_labels)
@@ -3693,15 +3694,15 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
     return data
 
 #Lovely cruft to keep the pickle jar working
-from line import line, line2d, Line as GraphicPrimitive_Line
-from arrow import arrow, Arrow as GraphicPrimitive_Arrow
-from bar_chart import bar_chart, BarChart as GraphicPrimitive_BarChart
-from disk import disk, Disk as GraphicPrimitive_Disk
-from point import point, points, point2d, Point as GraphicPrimitive_Point
-from matrix_plot import matrix_plot, MatrixPlot as GraphicPrimitive_MatrixPlot
-from plot_field import plot_vector_field, plot_slope_field, PlotField as GraphicPrimitive_PlotField
-from text import text, Text as GraphicPrimitive_Text
-from polygon import polygon, Polygon as GraphicPrimitive_Polygon
-from circle import circle, Circle as GraphicPrimtive_Circle
-from contour_plot import contour_plot, implicit_plot, ContourPlot as GraphicPrimitive_ContourPlot
+from .line import line, line2d, Line as GraphicPrimitive_Line
+from .arrow import arrow, Arrow as GraphicPrimitive_Arrow
+from .bar_chart import bar_chart, BarChart as GraphicPrimitive_BarChart
+from .disk import disk, Disk as GraphicPrimitive_Disk
+from .point import point, points, point2d, Point as GraphicPrimitive_Point
+from .matrix_plot import matrix_plot, MatrixPlot as GraphicPrimitive_MatrixPlot
+from .plot_field import plot_vector_field, plot_slope_field, PlotField as GraphicPrimitive_PlotField
+from .text import text, Text as GraphicPrimitive_Text
+from .polygon import polygon, Polygon as GraphicPrimitive_Polygon
+from .circle import circle, Circle as GraphicPrimtive_Circle
+from .contour_plot import contour_plot, implicit_plot, ContourPlot as GraphicPrimitive_ContourPlot
 

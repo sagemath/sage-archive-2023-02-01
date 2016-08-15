@@ -506,7 +506,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             #endfor
             if min_row != -1:
                 r = min_row
-                #print "min number of entries in a pivoting row = ", min
+                # print("min number of entries in a pivoting row = ", min)
                 pivots.append(c)
                 # Since we can use row r to clear column c, the
                 # entry in position c in row r must be the first nonzero entry.

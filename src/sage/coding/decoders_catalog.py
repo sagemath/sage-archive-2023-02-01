@@ -8,6 +8,10 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 - :class:`linear_code.LinearCodeSyndromeDecoder <sage.coding.linear_code.LinearCodeSyndromeDecoder>`
 - :class:`linear_code.LinearCodeNearestNeighborDecoder <sage.coding.linear_code.LinearCodeNearestNeighborDecoder>`
 
+**Subfield subcode decoder**
+
+- :class:`subfield_subcode.SubfieldSubcodeOriginalCodeDecoder <sage.coding.subfield_subcode.SubfieldSubcodeOriginalCodeDecoder>`
+
 **Generalized Reed-Solomon code decoders**
 
 - :class:`grs.GRSBerlekampWelchDecoder <sage.coding.grs.GRSBerlekampWelchDecoder>`
@@ -30,6 +34,7 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 
         sage: from sage.coding.decoders_catalog import *
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2009 David Joyner <wdjoyner@gmail.com>
 #                     2015 David Lucas <david.lucas@inria.fr>
@@ -40,15 +45,16 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from linear_code import (LinearCodeSyndromeDecoder, LinearCodeNearestNeighborDecoder)
-from punctured_code import PuncturedCodeOriginalCodeDecoder
-from grs import (GRSBerlekampWelchDecoder,
+from .linear_code import (LinearCodeSyndromeDecoder, LinearCodeNearestNeighborDecoder)
+from .punctured_code import PuncturedCodeOriginalCodeDecoder
+from .grs import (GRSBerlekampWelchDecoder,
                  GRSGaoDecoder,
                  GRSKeyEquationSyndromeDecoder,
                  GRSErrorErasureDecoder)
-from guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder
-from extended_code import ExtendedCodeOriginalCodeDecoder
-from grs import (GRSBerlekampWelchDecoder,
+from .guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder
+from .extended_code import ExtendedCodeOriginalCodeDecoder
+from .subfield_subcode import SubfieldSubcodeOriginalCodeDecoder
+from .grs import (GRSBerlekampWelchDecoder,
                  GRSGaoDecoder,
                  GRSKeyEquationSyndromeDecoder,
                  GRSErrorErasureDecoder)

@@ -41,6 +41,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 # TODO: check off this todo list:
 # - methods to cryptanalyze the Hill, substitution, transposition, and
@@ -60,8 +61,8 @@ from sage.arith.all import xgcd, gcd, inverse_mod
 from random import randint
 from sage.matrix.matrix_space import MatrixSpace
 
-from cryptosystem import SymmetricKeyCryptosystem
-from classical_cipher import (
+from .cryptosystem import SymmetricKeyCryptosystem
+from .classical_cipher import (
     AffineCipher,
     HillCipher,
     ShiftCipher,

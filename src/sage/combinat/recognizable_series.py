@@ -175,6 +175,35 @@ class PrefixClosedSet(object):
                 it = self.words.iterate_by_length(1)
 
 
+    def prefix_set(self):
+        r"""
+        Return the prefix set corresponding to this prefix
+        closed set.
+
+        OUTPUT:
+
+        A list.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.recognizable_series import PrefixClosedSet
+            sage: P = PrefixClosedSet(alphabet=[0, 1]); P
+            [word: ]
+            sage: for n, p in enumerate(P.populate_interactive()):
+            ....:     if n in (0, 1, 2, 4, 6):
+            ....:         P.add(p)
+            sage: P
+            [word: , word: 0, word: 1, word: 00, word: 10, word: 000]
+            sage: P.prefix_set()
+            [word: 01, word: 11, word: 001, word: 100,
+             word: 101, word: 0000, word: 0001]
+        """
+        return [p + a
+                for p in self.elements
+                for a in self.words.iterate_by_length(1)
+                if p + a not in self.elements]
+
+
 class RecognizableSeries(Element):
 
     def __init__(self, parent, mu, left=None, right=None, transpose=False):

@@ -85,7 +85,7 @@ from sage.structure.element import Element
 
 class kRegularSequence(Element):
 
-    def __init__(self, parent, matrices, initial=None, selection=None,
+    def __init__(self, parent, mu, initial=None, selection=None,
                  output_function=None, transpose=False):
         r"""
         A `k`-regular sequence.
@@ -94,7 +94,7 @@ class kRegularSequence(Element):
 
         - ``parent`` -- an instance of :class:`kRegularSequenceSpace`.
 
-        - ``matrices`` -- a tuple or other iterable of square matrices,
+        - ``mu`` -- a tuple or other iterable of square matrices,
           all of which have the same dimension.
 
         - ``initial`` -- (default: ``None``) a vector.
@@ -112,7 +112,7 @@ class kRegularSequence(Element):
           extract the value of a 1x1 matrix.
 
         - ``transpose`` -- (default: ``False``) a boolean. If set, then
-          each of the ``matrices``. Additionally the vectors ``initial``
+          each of the ``mu``. Additionally the vectors ``initial``
           and ``selection`` are switched and (if possible)
           transposed as well.
 
@@ -144,10 +144,10 @@ class kRegularSequence(Element):
             except AttributeError:
                 return M
 
-        self.matrices = tuple(tr(M) for M in matrices)
-        self.k = len(self.matrices)
-        self.d = self.matrices[0].nrows()
-        if not all(M.dimensions() == (self.d, self.d) for M in self.matrices):
+        self.mu = tuple(tr(M) for M in mu)
+        self.k = len(self.mu)
+        self.d = self.mu[0].nrows()
+        if not all(M.dimensions() == (self.d, self.d) for M in self.mu):
             raise ValueError  # TODO
 
         if not transpose:
@@ -213,7 +213,7 @@ class kRegularSequence(Element):
         """
         from sys import displayhook
         print('matrices:')
-        displayhook(self.matrices)
+        displayhook(self.mu)
         print('initial:')
         displayhook(self.initial)
         print('selection:')
@@ -241,7 +241,7 @@ class kRegularSequence(Element):
             sage: S[7]
             3
         """
-        result = self._product_of_matrices_(n)
+        result = self._product_of_mu_(n)
         if self.initial is not None:
             result = self.initial * result
         if self.selection is not None:
@@ -250,7 +250,7 @@ class kRegularSequence(Element):
 
 
     @cached_method
-    def _product_of_matrices_(self, m):
+    def _product_of_mu_(self, m):
         r"""
         Return the product of matrices according to the `k`-ary
         digit expansion of `m`.
@@ -269,16 +269,16 @@ class kRegularSequence(Element):
             sage: M0 = Matrix([[1, 0], [0, 1]])
             sage: M1 = Matrix([[0, -1], [1, 2]])
             sage: S = Seq2((M0, M1))
-            sage: S._product_of_matrices_(0) == M0
+            sage: S._product_of_mu_(0) == M0
             True
-            sage: S._product_of_matrices_(1) == M1
+            sage: S._product_of_mu_(1) == M1
             True
-            sage: S._product_of_matrices_(3) == M1^2
+            sage: S._product_of_mu_(3) == M1^2
             True
 
         ::
 
-            sage: S._product_of_matrices_(-1)
+            sage: S._product_of_mu_(-1)
             Traceback (most recent call last):
             ...
             ValueError: m=-1 is not a nonnegative integer.
@@ -287,10 +287,10 @@ class kRegularSequence(Element):
         if m < 0:
             raise ValueError('m={} is not a nonnegative integer.'.format(m))
         if 0 <= m < k:
-            return self.matrices[m]
+            return self.mu[m]
         n = m // k
         r = m - n*k
-        return self.matrices[r] * self._product_of_matrices_(n)
+        return self.mu[r] * self._product_of_mu_(n)
 
 
     def __iter__(self):

@@ -318,15 +318,20 @@ class RecognizableSeries(Element):
         return self._right_
 
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
-        Return a representation string of this recognizable series.
+        A representation string for this recognizable series.
+
+        INPUT:
+
+        - ``latex`` -- (default: ``False``) a boolean. If set, then
+          LaTeX-output is returned.
 
         OUTPUT:
 
         A string.
 
-        TESTS::
+        EXAMPLES::
 
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
             sage: S = Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
@@ -336,11 +341,40 @@ class RecognizableSeries(Element):
         """
         if not self:
             return '0'
+
         from itertools import islice
-        A = self.parent()._algebra_
-        B = A.basis()
-        return repr(sum((c * w for c, w in islice(self, 10)),
-                        A.zero())) + ' + ...'
+
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+            times = ' '
+        else:
+            f = repr
+            times = '*'
+
+        def summand(c, w):
+            if c == 1:
+                return f(w)
+            return f(c) + times + f(w)
+
+        s = ' + '.join(summand(c, w)
+                       for c, w in islice(self, 10))
+        s = s.replace('+ -', '- ')
+        return s + ' + ...'
+
+
+    def _latex_(self):
+        r"""
+        A LaTeX-representation string for this recognizable series.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+        """
+        return self._repr_(latex=True)
 
 
     @cached_method

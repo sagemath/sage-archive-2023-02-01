@@ -710,6 +710,25 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
     def _element_constructor_(self, mu,
                               left=None, right=None,
                               transpose=False):
+        r"""
+
+        TESTS::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: Rec.zero()
+            0
+            sage: type(_)
+            <class 'sage.combinat.recognizable_series.RecognizableSeriesSpace_with_category.element_class'>
+        """
+        if isinstance(mu, int) and mu == 0:
+            from sage.matrix.constructor import Matrix
+            from sage.modules.free_module_element import vector
+            from sage.sets.family import Family
+
+            return self.element_class(
+                self, Family(self.alphabet(), lambda a: Matrix()),
+                vector([]), vector([]))
+
         element = self.element_class(self, mu, left, right)
         if transpose:
             return element.transposed()

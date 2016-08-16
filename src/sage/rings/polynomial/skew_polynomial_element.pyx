@@ -2542,7 +2542,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def multi_point_evaluation(self, eval_pts):
         """
-        Evaluate skew polynomial at multiple evaluation points.
+        Evaluate ``self`` at list of evaluation points.
 
         INPUT:
 
@@ -2560,7 +2560,7 @@ cdef class SkewPolynomial(AlgebraElement):
             conquer techniques and
             :meth:`SkewPolynomialRing.minimal_vanishing_polynomial`.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()

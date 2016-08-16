@@ -90,7 +90,7 @@ def _base_ring_to_fraction_field(S):
 
 def _minimal_vanishing_polynomial(R, eval_pts):
     """
-    Return the minimal vanishing polynomial (internal method).
+    Return the minimal vanishing polynomial (internal function).
 
     See the documentation for
     :meth:`SkewPolynomialRing.minimal_vanishing_polynomial` for a description.
@@ -99,9 +99,7 @@ def _minimal_vanishing_polynomial(R, eval_pts):
 
     - ``R`` -- A skew polynomial ring over a field.
 
-    - ``eval_pts`` -- a frozen set TODO of evaluation points which are linearly
-        independent over the fixed field of the twist map of the associated
-        skew polynomial ring
+    - ``eval_pts`` -- a list of evaluation points
 
     OUTPUT:
 
@@ -109,29 +107,31 @@ def _minimal_vanishing_polynomial(R, eval_pts):
 
     EXAMPLES:
 
+        sage: from sage.rings.polynomial.skew_polynomial_ring import _minimal_vanishing_polynomial
         sage: k.<t> = GF(5^3)
         sage: Frob = k.frobenius_endomorphism()
         sage: S.<x> = k['x',Frob]
         sage: eval_pts = [1, t, t^2]
-        sage: b = S.minimal_vanishing_polynomial(eval_pts); b #indirect doctest
+        sage: b = _minimal_vanishing_polynomial(S, eval_pts); b
         x^3 + 4
     """
     l = len(eval_pts)
     if l == 0:
         return R.one()
     elif l == 1:
-        if eval_pts[0].is_zero():
+        e = eval_pts[0]
+        if e.is_zero():
             return R.one()
         else:
-            return R.gen() - (R.twist_map()(eval_pts[0]) / eval_pts[0])
+            return R.gen() - R.twist_map()(e)/e
     else:
         t = l//2
         A = eval_pts[:t]
         B = eval_pts[t:]
         M_A = _minimal_vanishing_polynomial(R, A)
-        M_A_B = M_A.multi_point_evaluation(B)
-        M_M_A_B = _minimal_vanishing_polynomial(R, M_A_B)
-        return M_M_A_B * M_A
+        B_moved = M_A.multi_point_evaluation(B)
+        M_at_B_moved = _minimal_vanishing_polynomial(R, B_moved)
+        return M_at_B_moved * M_A
 
 
 def _lagrange_polynomial(R, eval_pts, values):
@@ -873,7 +873,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
         The minimal vanishing polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
@@ -889,7 +889,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
         If the evaluation points are linearly dependent over the fixed field of
         the twist map, then the returned polynomial has lower degree than the
-        number of evaluation points:
+        number of evaluation points::
 
             sage: S.minimal_vanishing_polynomial([t])
             x + 3*t^2 + 3*t
@@ -953,9 +953,8 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         l = len(points)
         if not all( len(pair) == 2 for pair in points ):
             raise TypeError("supplied points must be pairs of elements of base ring")
-        eval_pts, values = zip(*points) #unzip
-        eval_pts = list(eval_pts)
-        values = list(values)
+        eval_pts = [ x for (x,_) in points ]
+        values   = [ y for (_,y) in points ]
         
         if l > len(set(eval_pts)):
             raise TypeError("the evaluation points must be distinct")

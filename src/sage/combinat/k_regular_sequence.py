@@ -78,9 +78,10 @@ Classes and Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.combinat.recognizable_series import RecognizableSeries
+from sage.combinat.recognizable_series import RecognizableSeriesSpace
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import Element
-
 
 class kRegularSequence(Element):
 

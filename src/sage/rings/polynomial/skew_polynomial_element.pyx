@@ -2555,9 +2555,10 @@ cdef class SkewPolynomial(AlgebraElement):
         .. TODO::
 
             This method currently trivially calls the evaluation function
-            repeatedly and should be updated to the recursive algorithm
-            from the paper "Fast Operations on Linearized Polynomials
-            and their Applications in Coding Theory" by Puchinger, et al.
+            repeatedly. If fast skew polynomial multiplication is available, an
+            asymptotically faster method is possible using standard divide and
+            conquer techniques and
+            :meth:`SkewPolynomialRing.minimal_vanishing_polynomial`.
 
         EXAMPLES:
 
@@ -2568,6 +2569,8 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: eval_pts = [1, t, t^2]
             sage: c = a.multi_point_evaluation(eval_pts); c
             [t + 1, 3*t^2 + 4*t + 4, 4*t]
+            sage: c == [ a(e) for e in eval_pts ]
+            True
         """
         return [ self(e) for e in eval_pts ]
 

@@ -781,7 +781,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
             sage: R.<x> = PolynomialRing(Integers(3), 1)
             sage: R.random_element()
-            -x^2 + x
+            2*x^2 + x
 
         To produce a dense polynomial, pick ``terms=Infinity``::
 

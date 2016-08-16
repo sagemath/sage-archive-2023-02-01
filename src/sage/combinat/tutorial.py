@@ -1270,7 +1270,8 @@ apply a function to all the elements::
 
 or select the elements satisfying a certain condition::
 
-    sage: list(itertools.ifilter(lambda z: z.has_pattern([1,2]),
+    sage: from six.moves import filter
+    sage: list(filter(lambda z: z.has_pattern([1,2]),
     ....:                        Permutations(3)))
     [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
 

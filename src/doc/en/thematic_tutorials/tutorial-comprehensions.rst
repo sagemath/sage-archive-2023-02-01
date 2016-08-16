@@ -232,7 +232,8 @@ The functions :func:`map` and :func:`filter` also have an analogue::
     sage: list(itertools.imap(lambda z: z.cycle_type(), Permutations(3)))
     [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
 
-    sage: list(itertools.ifilter(lambda z: z.has_pattern([1,2]), Permutations(3)))
+    sage: from six.moves import filter
+    sage: list(filter(lambda z: z.has_pattern([1,2]), Permutations(3)))
     [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
 
 

@@ -5522,7 +5522,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: [s.label() for s in F.iter_initial_states()]
             ['A']
         """
-        return itertools.ifilter(lambda s:s.is_initial, self.iter_states())
+        from six.moves import filter
+        return filter(lambda s:s.is_initial, self.iter_states())
 
 
     def final_states(self):
@@ -5572,8 +5573,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: [s.label() for s in F.iter_final_states()]
             ['A', 'C']
         """
-        return itertools.ifilter(lambda s:s.is_final, self.iter_states())
-
+        from six.moves import filter
+        return filter(lambda s:s.is_final, self.iter_states())
 
     def state(self, state):
         """
@@ -9082,8 +9083,10 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
              Transition from 1 to 0: 0|0,
              Transition from 1 to 1: 1|1,(0, 0)]
         """
+        from six.moves import filter
+
         def find_common_output(state):
-            if any(itertools.ifilter(
+            if any(filter(
                     lambda transition: not transition.word_out,
                     self.transitions(state))) \
                    or state.is_final and not state.final_word_out:

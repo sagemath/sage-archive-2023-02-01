@@ -2789,8 +2789,8 @@ class RauzyDiagram(SageObject):
         ::
 
             sage: r = iet.RauzyDiagram('a b c d','d c b a')
-            sage: from itertools import ifilter
-            sage: r_1n = ifilter(lambda x: x.is_cylindric(), r)
+            sage: from six.moves import filter
+            sage: r_1n = filter(lambda x: x.is_cylindric(), r)
             sage: for p in r_1n: print(p)
             a b c d
             d c b a

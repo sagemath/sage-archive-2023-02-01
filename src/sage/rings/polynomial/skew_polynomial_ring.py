@@ -831,7 +831,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
         The minimal vanishing polynomial evaluates to 0 at each of the evaluation points::
 
-            sage: eval = [b(eval_pts[y]) for y in range(len(eval_pts))]; eval
+            sage: eval = b.multi_point_evaluation(eval_pts); eval
             [0, 0, 0]
 
        If the evaluation points are not linearly independent over the given fixed

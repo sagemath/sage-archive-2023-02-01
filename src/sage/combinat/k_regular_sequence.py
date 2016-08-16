@@ -16,7 +16,7 @@ Binary sum of digits
 
     sage: Seq2 = kRegularSequenceSpace(2, ZZ)
     sage: S = Seq2((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
-    ....:          initial=vector([0, 1]), selection=vector([1, 0]))
+    ....:          left=vector([0, 1]), right=vector([1, 0]))
     sage: S
     2-regular sequence 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, ...
     sage: all(S[n] == sum(n.digits(2)) for n in srange(10))
@@ -36,7 +36,7 @@ Number of odd entries in Pascal's triangle
     (0, 1, 3, 5, 9, 11, 15, 19, 27, 29)
 
     sage: U = Seq2((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-    ....:          initial=vector([0, 1]), selection=vector([1, 0]), transpose=True)
+    ....:          left=vector([0, 1]), right=vector([1, 0]), transpose=True)
     sage: all(U[n] == u(n) for n in srange(30))
     True
 
@@ -85,7 +85,7 @@ from sage.structure.element import Element
 
 class kRegularSequence(Element):
 
-    def __init__(self, parent, mu, initial=None, selection=None,
+    def __init__(self, parent, mu, left=None, right=None,
                  output_function=None, transpose=False):
         r"""
         A `k`-regular sequence.
@@ -97,12 +97,12 @@ class kRegularSequence(Element):
         - ``mu`` -- a tuple or other iterable of square matrices,
           all of which have the same dimension.
 
-        - ``initial`` -- (default: ``None``) a vector.
+        - ``left`` -- (default: ``None``) a vector.
           When evaluating the sequence, this vector is multiplied
           from the left to the matrix product. If ``None``, then this
           multiplication is skipped.
 
-        - ``selection`` -- (default: ``None``) a vector.
+        - ``right`` -- (default: ``None``) a vector.
           When evaluating the sequence, this vector is multiplied
           from the left to the matrix product. If ``None``, then this
           multiplication is skipped.
@@ -112,8 +112,8 @@ class kRegularSequence(Element):
           extract the value of a 1x1 matrix.
 
         - ``transpose`` -- (default: ``False``) a boolean. If set, then
-          each of the ``mu``. Additionally the vectors ``initial``
-          and ``selection`` are switched and (if possible)
+          each of the ``mu``. Additionally the vectors ``left``
+          and ``right`` are switched and (if possible)
           transposed as well.
 
         EXAMPLES::
@@ -151,11 +151,11 @@ class kRegularSequence(Element):
             raise ValueError  # TODO
 
         if not transpose:
-            self.initial = initial
-            self.selection = selection
+            self.left = left
+            self.right = right
         else:
-            self.initial = tr(selection)
-            self.selection = tr(initial)
+            self.left = tr(right)
+            self.right = tr(left)
 
         if output_function is None:
             self.output_function = lambda o: o
@@ -189,8 +189,8 @@ class kRegularSequence(Element):
 
     def info(self):
         r"""
-        Displays the matrices of the `k`-linear representation, the initial
-        vector and the selection vector.
+        Displays the matrices of the `k`-linear representation, the left
+        vector and the right vector.
 
         OUTPUT:
 
@@ -200,24 +200,24 @@ class kRegularSequence(Element):
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: Seq2((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
-            ....:      initial=vector([0, 1]), selection=vector([1, 0])).info()
+            ....:      left=vector([0, 1]), right=vector([1, 0])).info()
             matrices:
             (
             [1 0]  [ 0 -1]
             [0 1], [ 1  2]
             )
-            initial:
+            left:
             (0, 1)
-            selection:
+            right:
             (1, 0)
         """
         from sys import displayhook
         print('matrices:')
         displayhook(self.mu)
-        print('initial:')
-        displayhook(self.initial)
-        print('selection:')
-        displayhook(self.selection)
+        print('left:')
+        displayhook(self.left)
+        print('right:')
+        displayhook(self.right)
 
 
     @cached_method
@@ -237,15 +237,15 @@ class kRegularSequence(Element):
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: S = Seq2((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
-            ....:          initial=vector([0, 1]), selection=vector([1, 0]))
+            ....:          left=vector([0, 1]), right=vector([1, 0]))
             sage: S[7]
             3
         """
         result = self._product_of_mu_(n)
-        if self.initial is not None:
-            result = self.initial * result
-        if self.selection is not None:
-            result = result * self.selection
+        if self.left is not None:
+            result = self.left * result
+        if self.right is not None:
+            result = result * self.right
         return self.output_function(result)
 
 
@@ -301,7 +301,7 @@ class kRegularSequence(Element):
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: S = Seq2((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
-            ....:          initial=vector([0, 1]), selection=vector([1, 0]))
+            ....:          left=vector([0, 1]), right=vector([1, 0]))
             sage: from itertools import islice
             sage: tuple(islice(S, 10))
              (0, 1, 1, 2, 1, 2, 2, 3, 1, 2)

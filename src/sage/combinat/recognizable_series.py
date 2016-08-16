@@ -528,6 +528,37 @@ class RecognizableSeries(Element):
         return self.parent()(self.mu.map(tr),
                              left=tr(self.right),
                              right=tr(self.left))
+
+
+    def minimized(self):
+        r"""
+
+        EXAMPLES::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: S = Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
+            ....:         vector([0, 1]), vector([1, 0]),
+            ....:         transpose=True)
+            sage: S
+            [1] + 3*[01] + [10] + 5*[11] + 9*[001] + 3*[010]
+                + 15*[011] + [100] + 11*[101] + 5*[110] + ...
+            sage: M = S.minimized()
+            sage: M
+            sage: M.mu[0], M.mu[1], M.left, M.right
+            (
+            [3 0]  [ 0  1]
+            [6 1], [-6  5], (1, 0), (0, 1)
+            )
+        """
+        if self.left is None or self.right is None:
+            raise ValueError("Cannot minmize as 'left' or 'right' is None.")
+        return self._minimized_right_()._minimized_left_()
+
+
+    def _minimized_right_(self):
+        return self.transposed()._minimized_left_().transposed()
+
+
     def _minimized_left_(self):
         r"""
 

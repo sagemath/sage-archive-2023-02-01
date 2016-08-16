@@ -91,27 +91,20 @@ def _base_ring_to_fraction_field(S):
         #     raise ValueError("unable to lift the twist map to a twist map over %s (error was: %s)" % (Q, e))
 
 
-def _minimal_vanishing_polynomial(R, eval_pts, check=True):
+def _minimal_vanishing_polynomial(R, eval_pts):
     """
     Return the minimal vanishing polynomial (internal method).
 
-    TODO
+    See the documentation for
+    :meth:`SkewPolynomialRing.minimal_vanishing_polynomial` for a description.
 
     INPUT:
 
-    - ``x`` -- the generator of the associated skew polynomial ring
+    - ``R`` -- A skew polynomial ring over a field.
 
-    - ``one`` -- the one of the associated skew polynomial ring
-
-    - ``sigma`` -- the twist map of the associated skew polynomial ring
-
-    - ``eval_pts`` -- a frozen set of evaluation points which are linearly
+    - ``eval_pts`` -- a frozen set TODO of evaluation points which are linearly
         independent over the fixed field of the twist map of the associated
         skew polynomial ring
-
-    - ``check`` -- boolean (default: ``True``) that verifies whether the
-        `eval_pts` are linearly independent in the fixed field of twist map
-        of the associated skew polynomial ring
 
     OUTPUT:
 
@@ -130,7 +123,7 @@ def _minimal_vanishing_polynomial(R, eval_pts, check=True):
     if l == 0:
         return R.one()
     elif l == 1:
-        if eval_pts[0] == 0:
+        if eval_pts[0].is_zero():
             return R.one()
         else:
             return R.gen() - (R.twist_map()(eval_pts[0]) / eval_pts[0])
@@ -138,12 +131,9 @@ def _minimal_vanishing_polynomial(R, eval_pts, check=True):
         t = l//2
         A = eval_pts[:t]
         B = eval_pts[t:]
-        M_A = _minimal_vanishing_polynomial(R, A, check)
+        M_A = _minimal_vanishing_polynomial(R, A)
         M_A_B = M_A.multi_point_evaluation(B)
-        if check:
-            if 0 in M_A_B:
-                raise ValueError("evaluation points must be linearly independent over the fixed field of the twist map")
-        M_M_A_B = _minimal_vanishing_polynomial(R, M_A_B, check)
+        M_M_A_B = _minimal_vanishing_polynomial(R, M_A_B)
         return M_M_A_B * M_A
 
 
@@ -856,25 +846,20 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         """
         return self.twist_map().is_identity()
 
-    def minimal_vanishing_polynomial(self, eval_pts, check=True):
+    def minimal_vanishing_polynomial(self, eval_pts):
         """
-        Return the minimal vanishing polynomial.
+        Return the minimal-degree, monic skew polynomial which vanishes at all
+        the given evaluation points.
 
-        Given the elements `a_1, ..., a_s`, it is defined as the
-        unique minimal degree polynomial `p` such that `p` is monic
-        and `p(a_i) = 0`, for `i = 1, ..., s`.
+        The degree of the vanishing polynomial is at most the length of
+        ``eval_pts``. Equality holds if and only if the elements of ``eval_pts``
+        are linearly independent over the fixed field of ``self.twist_map()``.
 
         INPUT:
 
         - ``eval_pts`` -- list of evaluation points which are linearly
           independent over the fixed field of the twist map of the associated
           skew polynomial ring
-
-        - ``check`` -- boolean (default: ``True``) that verifies whether the
-          `eval_pts` are linearly independent in the fixed field of twist map of
-          the associated skew polynomial ring
-
-        TODO Don't check?
 
         OUTPUT:
 
@@ -894,16 +879,16 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             sage: eval = b.multi_point_evaluation(eval_pts); eval
             [0, 0, 0]
 
-       If the evaluation points are not linearly independent over the given fixed
-       field of the twist map, an error is raised::
+        If the evaluation points are linearly dependent over the fixed field of
+        the twist map, then the returned polynomial has lower degree than the
+        number of evaluation points:
 
-            sage: eval_pts_ld = [1, t, 2*t]
-            sage: c = S.minimal_vanishing_polynomial(eval_pts_ld)
-            Traceback (most recent call last):
-            ...
-            ValueError: evaluation points must be linearly independent over the fixed field of the twist map
+            sage: S.minimal_vanishing_polynomial([t])
+            x + 3*t^2 + 3*t
+            sage: S.minimal_vanishing_polynomial([t, 3*t])
+            x + 3*t^2 + 3*t
         """
-        return _minimal_vanishing_polynomial(_base_ring_to_fraction_field(self), eval_pts, check)
+        return _minimal_vanishing_polynomial(_base_ring_to_fraction_field(self), eval_pts)
 
     def interpolation_polynomial(self, eval_pts, values, check=True):
         """

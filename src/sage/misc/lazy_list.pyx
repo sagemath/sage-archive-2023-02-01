@@ -365,8 +365,7 @@ def lazy_list_formatter(L, name=None, separator=None, more=None,
         s += ' '
     s += opening_delimiter
     cdef list P = list(islice(L, preview+1))
-    cdef list E = list('{!r}'.format(e)
-                       for e in P[:preview])
+    cdef list E = list(repr(e) for e in P[:preview])
     if len(P) > preview:
         E.append(more)
     s += separator.join(E)

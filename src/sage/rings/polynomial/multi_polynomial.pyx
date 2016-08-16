@@ -27,13 +27,10 @@ def is_MPolynomial(x):
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.categories.map cimport Map
 from sage.categories.morphism cimport Morphism
-#from sage.calculus.functions import jacobian
-#from sage.modules.free_module_element import vector
-#from sage.rings.rational_field import QQ
-# from sage.matrix.constructor import matrix
-#from sage.arith.misc import gcd
-#from sage.rings.complex_interval_field import ComplexIntervalField
-
+from sage.modules.free_module_element import vector
+from sage.rings.rational_field import QQ
+from sage.arith.misc import gcd
+from sage.rings.complex_interval_field import ComplexIntervalField
 
 cdef class MPolynomial(CommutativeRingElement):
 
@@ -1841,10 +1838,8 @@ cdef class MPolynomial(CommutativeRingElement):
         Returns reduced binary form of a polynomial.
 
         Implimented algorithim from Stoll and Cremona's "On the Reduction Theory of Binary Forms" _[SC].
-        This takes a degree two homogenous polynomial and finds it's roots. Then it finds a unique Q_0 which is
-        in quadratic form, we apply the quadratic folrmula to this in order to find our z. This s is them moved into
-        the fundamental domain. We keep track f the elements of PGL(2) used to move our z. This z gives us a new Q and through
-        the same process a new z. We then apply this element of PGL(2) to our original polynomial, this puts it in reduced form.
+        This takes a two variable homogenous polynomial and finds a reduced form. This is a `SL(Z)`-equivalent
+        binary form with smallest coefficients.
 
         Implimented by Rebecca Lauren Miller as part of GSOC 2016.
 
@@ -1852,12 +1847,13 @@ cdef class MPolynomial(CommutativeRingElement):
 
         -``prec`` --  sets the precision (default:100)
 
-        - ``conjugation`` -- A booolean. Returns element of PGL(2) (default:True)
+        - ``conjugation`` -- A booolean. Returns element of PGL(2, `ZZ`) (default:True)
 
         OUTPUT:
-            - reduced binary form
 
-            - element of PFL(2)
+            - a polynomial (reduced binary form)
+
+            - a matrix (element of PGL(2, ZZ))
 
         REFERENCES:
 
@@ -1867,29 +1863,25 @@ cdef class MPolynomial(CommutativeRingElement):
 
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: F = - 8*x^4 - 3933*x^3*y - 725085*x^2*y^2 - 59411592*x*y^3 - 1825511633*y^4
-            sage: F.reduced_form(prec=120, return_conjugation=False)
+            sage: F.reduced_form(return_conjugation=False)
             x^4 + 9*x^3*y - 3*x*y^3 - 8*y^4
 
         ::
 
-#sage: R.<x,y,z> = PolynomialRing(QQ)
-# sage: F = x^4 + x^3*y*z + y^2*z
-#sage: F.reduced_form(prec=200, return_conjugation=False)
-#ValueError: need two variable polynomial
-#Failing not sure why?
+            sage: R.<x,y,z> = PolynomialRing(QQ)
+            sage: F = x^4 + x^3*y*z + y^2*z
+            sage: F.reduced_form()
+            Traceback (most recent call last):
+            ...
+            ValueError: (=x^3*y*z + x^4 + y^2*z) must have two variables
         """
-        # need to have error example  with  non-homogenous
-        from sage.calculus.functions import jacobian
-        from sage.modules.free_module_element import vector
-        from sage.rings.rational_field import QQ
         from sage.matrix.constructor import matrix
-        from sage.arith.misc import gcd
-        from sage.rings.complex_interval_field import ComplexIntervalField
-
+        from sage.calculus.functions import jacobian
+        # need to have error example  with  non-homogenous
         if self.parent().ngens() != 2:
-            raise ValueError("need two variable polynomial")
+            raise ValueError("(=%s) must have two variables"%self)
         if self.is_homogeneous() != True:
-            raise ValueError("polynomial must be homogenous")
+            raise ValueError("(=%s) must be homogenous"%self)
         KK = ComplexIntervalField(prec=prec)
         R = self.parent()
         S = PolynomialRing(R.base_ring(),'z')
@@ -1910,40 +1902,41 @@ cdef class MPolynomial(CommutativeRingElement):
         B = q.monomial_coefficient(x*y)
         C = q.monomial_coefficient(y**2)
         try:
-            z=(-B + ((B**2)-(4*A*C)).sqrt())/(2*A)# this is z_o
+            z = (-B + ((B**2)-(4*A*C)).sqrt())/(2*A)# this is z_o
         except ValueError:
             raise  ValueError("not enough precision")
         if z.imag()<0:
-            z=(-B - ((B**2)-(4*A*C)).sqrt())/(2*A)
-        M=matrix(QQ,[[1,0],[0,1]])# this moves Z to fundamental domain
-        while z.real()<-0.5 or z.real()>=0.5 or (z.real()<=0 and z.abs()<1) or (z.real()>0 and z.abs()<=1):
-            if z.real()<-0.5:
+            z = (-B - ((B**2)-(4*A*C)).sqrt())/(2*A)
+        M = matrix(QQ, [[1,0], [0,1]])# this moves Z to fundamental domain
+        while z.real() < -0.5 or z.real() >= 0.5 or (z.real() <= 0 and z.abs() < 1)\
+         or (z.real() > 0 and z.abs() <= 1):
+            if z.real() < -0.5:
                 m = z.real().abs().round() # member abs
                 Qm = QQ(m.center())
-                M = M*matrix(QQ,[[1,-Qm],[0,1]]) # move
+                M = M * matrix(QQ, [[1,-Qm], [0,1]]) # move
                 z += m  # M.inverse()*Z is supposed to move z by m
             elif z.real()>=(0.5): #else if
                 m = z.real().round()
                 Qm = QQ(m.center())
-                M = M*matrix(QQ,[[1,Qm],[0,1]])  #move z
+                M = M * matrix(QQ, [[1,Qm], [0,1]])  #move z
                 z -= m
-            elif (z.real()<=0 and z.abs()<1) or (z.real()>0 and z.abs()<=1):
+            elif (z.real() <= 0 and z.abs() < 1) or (z.real() > 0 and z.abs() <= 1):
                 z = -1/z
-                M = M*matrix(QQ,[[0,-1],[1,0]])
-        q = q(tuple((M*vector([x,y]))))
+                M = M * matrix(QQ, [[0,-1], [1,0]])
+        q = q(tuple((M * vector([x, y]))))
         A = q.monomial_coefficient(x**2)
         B = q.monomial_coefficient(x*y)
         C = q.monomial_coefficient(y**2)
         try:
-            z0=(-B + ((B**2)-(4*A*C)).sqrt())/(2*A)# this is z_o
+            z0 = (-B + ((B**2)-(4*A*C)).sqrt())/(2*A)# this is z_o
         except ValueError:
             raise ValueError("not enough precision")
-        if z.imag()<0:
-            z0=(-B - ((B**2)-(4*A*C)).sqrt())/(2*A)
-        L = [ (-B + ((B**2)-(4*A*C)).sqrt())/(2*A), (-B - ((B**2)-(4*A*C)).sqrt())/(2*A)] # if highr than quadratic need to change?
+        if z.imag() < 0:
+            z0 = (-B - ((B**2)-(4*A*C)).sqrt())/(2*A)
+        L = [(-B + ((B**2)-(4*A*C)).sqrt())/(2*A), (-B - ((B**2)-(4*A*C)).sqrt())/(2*A)] # if highr than quadratic need to change?
         a = 0
         c = 0
-        RR = PolynomialRing(KK,'u,t')
+        RR = PolynomialRing(KK, 'u,t')
         u,t = RR.gens()
         for j in range(len(L)):
             b= u**2/((t-(L[j]))*(t-(L[j].conjugate()))+ u**2)
@@ -1953,16 +1946,16 @@ cdef class MPolynomial(CommutativeRingElement):
         # return "A"broke here
         #Newton's Method, error bound is while less than diameter of our z instaed of solve use newtons method
         err = z0.diameter()
-        zz =  z0.diameter()
+        zz = z0.diameter()
         n = q.degree()
         g1 = a.numerator() - n/2*a.denominator()
         g2 = c.numerator()
-        G = vector([g1,g2])
-        J = jacobian(G,[u,t])
-        v0 = vector([z0.imag(),z0.real()]) #z0 as starting point
+        G = vector([g1, g2])
+        J = jacobian(G, [u,t])
+        v0 = vector([z0.imag(), z0.real()]) #z0 as starting point
         z = z0
         while err <= zz:
-            NJ = J.subs({u:v0[0],t:v0[1]})
+            NJ = J.subs({u:v0[0], t:v0[1]})
             NJinv = NJ.inverse()
             for ii in range(2):
                 for jj in range(2):
@@ -1976,29 +1969,30 @@ cdef class MPolynomial(CommutativeRingElement):
             z = v0[1].coefficients()[0] + v0[0].coefficients()[0]*KK.gen(0)
             err = z.diameter() # prec
             zz = (w - z).abs() #diff in w and z
-        while z.real()<-0.5 or z.real()>=0.5or (z.real()<=0 and z.abs()<1) or (z.real()>0 and z.abs()<=1):
-            if z.real()<-0.5:
+        while z.real() < -0.5 or z.real() >= 0.5 or (z.real() <= 0 and z.abs() < 1)\
+         or (z.real() > 0 and z.abs() <= 1):
+            if z.real() < -0.5:
                 m = z.real().abs().round() # member abs
                 Qm = QQ(m.center())
-                M = M*matrix(QQ,[[1,-Qm],[0,1]]) # move
+                M = M*matrix(QQ, [[1,-Qm], [0,1]]) # move
                 z += m  # M.inverse()*Z is supposed to move z by m
-            elif z.real()>=(0.5): #else if
+            elif z.real() >= (0.5): #else if
                 m = z.real().round()
                 Qm = QQ(m.center())
-                M = M*matrix(QQ,[[1,Qm],[0,1]])  #move z
+                M = M * matrix(QQ, [[1,Qm], [0,1]])  #move z
                 z -= m
-            elif (z.real()<=0 and z.abs()<1) or (z.real()>0 and z.abs()<=1):
+            elif (z.real() <= 0 and z.abs() < 1) or (z.real() > 0 and z.abs() <= 1):
                 z = -1/z
-                M = M*matrix(QQ,[[0,-1],[1,0]])
+                M = M * matrix(QQ, [[0,-1],[ 1,0]])
         err = z.diameter()
         zc = z.center()
         zr = zc.real()
-        if (zr.abs()-1/2).abs() <= err or (zc.abs()-1).abs() <= err:
+        if (zr.abs() - KK(0.5)).abs() <= err or (zc.abs() - 1).abs() <= err:
             raise ValueError("not enough precision")
         x,y = self.parent().gens()
         if return_conjugation:
-            return (self(tuple(M*vector([x,y]))), M)
-        return self(tuple(M*vector([x,y])))
+            return (self(tuple(M * vector([x,y]))), M)
+        return self(tuple(M * vector([x,y])))
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

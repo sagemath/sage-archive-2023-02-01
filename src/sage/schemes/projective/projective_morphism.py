@@ -3518,41 +3518,53 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def reduced_form(self, prec=100, return_conjugation=True):  # add bool for matrices, set prec? author ref?
         r"""
-        Returns reduced form of a Projective Morphism.
+        Returns reduced form of a projective morphism.
 
-        Implimeting Reduced fuction from Stoll and Cremona's paper "On the Reduction theory of Binary Forms" _[SC].
-
-        Takes Projective morphism and calles reduced_form fuction on the Dynatomic polynomial in order to return the reduced formof the mapping.
+        The reduced form is the `PGL(ZZ)` equivalent element in the conjugacy class with
+        the smallest coefficients. This is done by applying
+        the binary form reduction algorithm from Stoll and Cremona _[SC]
+        to the periodic points (the dynatomic polynomial).
 
         INPUT::
 
         - ``prec`` -- desired precision (default: 100)
 
-        -``return_conjuagtion`` -- A Boolean. Returns element of PGL(2). (default: True)
+        - ``return_conjuagtion`` -- A Boolean. Returns element of PGL(2). (default: True)
 
         OUTPUT:
 
-        Reduced mapping
+        - a projective morphism
 
-        Conjuagtion element of PGL(2)
+        - a matrix
 
         EXAMPLES:
 
-            #sage: PS.<x,y> = ProjectiveSpace(QQ,1)
-            #sage: H = End(PS)
-            #sage: f=H([x^3+x*y^2,y^3])
-            #sage: m=matrix(QQ,2,2,[1,13,0,1])*matrix(QQ,2,2,[0,-1,1,0])*matrix(QQ,2,2,[1,0,234,1])
-            #sage: f=f.conjugate(m)
-            #sage: f.reduced_form(prec=200) #needs 2 periodic
-            #ValueError: not enough precision
+            sage: PS.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(PS)
+            sage: f = H([x^3 + x*y^2, y^3])
+            sage: m = matrix(QQ, 2, 2,[-221, -1, 1, 0])
+            sage: f = f.conjugate(m)
+            sage: f.reduced_form() #needs 2 periodic
+            Traceback (most recent call last):
+            ...
+            ValueError: not enough precision
+            sage: f.reduced_form(prec=200)
+            (
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^3 + x*y^2 : y^3)
+            ,
+            [  0  -1]
+            [  1 221]
+            )
 
         ::
 
             sage: PS.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(PS)
-            sage: f=H([x^2+ x*y,y^2]) #needs 3 periodic
-            sage: m=matrix(QQ,2,2,[1,13,0,1])*matrix(QQ,2,2,[0,-1,1,0])*matrix(QQ,2,2,[1,0,234,1])
-            sage: f=f.conjugate(m)
+            sage: f = H([x^2+ x*y,y^2]) #needs 3 periodic
+            sage: m = matrix(QQ, 2, 2,[-221, -1, 1, 0])
+            sage: f = f.conjugate(m)
             sage: f.reduced_form(prec=200)
             (
             Scheme endomorphism of Projective Space of dimension 1 over Rational
@@ -3564,12 +3576,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [  1 220]
             )
 
-
         ::
 
             sage: PS.<X,Y> = ProjectiveSpace(QQ,1)
             sage: H = End(PS)
-            sage: f = H([7365/2*X^4 + 6282*X^3*Y + 4023*X^2*Y^2 + 1146*X*Y^3 + 245/2*Y^4,-12329/2*X^4 - 10506*X^3*Y - 6723*X^2*Y^2 - 1914*X*Y^3 - 409/2*Y^4])
+            sage: f = H([7365/2*X^4 + 6282*X^3*Y + 4023*X^2*Y^2 + 1146*X*Y^3 + 245/2*Y^4,\
+            -12329/2*X^4 - 10506*X^3*Y - 6723*X^2*Y^2 - 1914*X*Y^3 - 409/2*Y^4])
             sage: f.reduced_form()
             (
             Scheme endomorphism of Projective Space of dimension 1 over Rational
@@ -3580,24 +3592,23 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [-1  2]
             [ 2 -5]
             )
-
-
         """
         R = self.coordinate_ring()
         F = R(self.dynatomic_polynomial(1))
         x,y = R.gens()
         #F.parent() == R #needs ticket 21097,
         F = R(F/gcd(F,F.derivative(x))) #remove multiple roots
-        n=2
+        n = 2
         while F.degree() <= 2: # checks to have enough distinct roots need at least 3
             F = self.dynatomic_polynomial(n) # n period fix points
             F = R(F/gcd(F,F.derivative(x)))#remove multiple roots
-            n+=1
+            n += 1
         G,m = F.reduced_form( prec=prec, return_conjugation=return_conjugation)
         if return_conjugation:
             return (self.conjugate(m), m)
         return self.conjugate(m)
             # answers to examples have fractions?, 1st example now doenst have enough prec!, problem raising value error
+
 class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial_projective_space):
 
     def lift_to_rational_periodic(self, points_modp, B=None):

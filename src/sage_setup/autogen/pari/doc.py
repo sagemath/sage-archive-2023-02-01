@@ -107,6 +107,7 @@ def raw_to_rest(doc):
     doc = doc.replace("@[pm]", "±")
     doc = doc.replace("@[nbrk]", unichr(0xa0))
     doc = doc.replace("@[agrave]", "à")
+    doc = doc.replace("@[aacute]", "á")
     doc = doc.replace("@[eacute]", "é")
     doc = doc.replace("@[ouml]", "ö")
     doc = doc.replace("@[uuml]", "ü")

@@ -1,6 +1,7 @@
 """
 Witt symmetric functions
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -17,7 +18,7 @@ Witt symmetric functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import multiplicative
+from . import multiplicative
 from sage.matrix.all import matrix
 
 class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_multiplicative):

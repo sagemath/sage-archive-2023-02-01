@@ -45,7 +45,7 @@ from sage.libs.gmp.mpz cimport mpz_sgn, mpz_cmpabs_ui
 from sage.libs.flint.fmpz cimport *
 
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
-from complex_number cimport ComplexNumber
+from .complex_number cimport ComplexNumber
 
 import complex_interval_field
 from complex_field import ComplexField
@@ -620,8 +620,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(RIF(1, 2), RIF(3, 4)).center()
             1.50000000000000 + 3.50000000000000*I
         """
-        cdef complex_number.ComplexNumber center
-        center = complex_number.ComplexNumber(self._parent._middle_field(), None)
+        cdef ComplexNumber center
+        center = ComplexNumber(self._parent._middle_field(), None)
         mpfi_mid(center.__re, self.__re)
         mpfi_mid(center.__im, self.__im)
 
@@ -652,7 +652,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         return mpfi_has_zero(self.__re) and mpfi_has_zero(self.__im)
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add ``self`` and ``right``.
 
@@ -667,7 +667,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_add(x.__im, self.__im, (<ComplexIntervalFieldElement>right).__im)
         return x
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract ``self`` by ``right``.
 
@@ -682,7 +682,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_sub(x.__im, self.__im, (<ComplexIntervalFieldElement>right).__im)
         return x
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply ``self`` and ``right``.
 
@@ -777,7 +777,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_clear(t1)
         return x
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide ``self`` by ``right``.
 
@@ -1406,7 +1406,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         return self.real().__nonzero__() or self.imag().__nonzero__()
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         r"""
         As with the real interval fields this never returns false positives.
         Thus, `a == b` is ``True`` iff both `a` and `b` represent the same
@@ -1475,7 +1475,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             elif op == 5: #>=
                 return real_diff > 0 or (real_diff == 0 and imag_diff >= 0)
 
-    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Intervals are compared lexicographically on the 4-tuple:
         ``(x.real().lower(), x.real().upper(),

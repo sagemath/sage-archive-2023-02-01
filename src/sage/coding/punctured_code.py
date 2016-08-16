@@ -5,6 +5,7 @@ Let `C` be a linear code. Let `C_i` be the set of all words of `C` with the
 `i`-th coordinate being removed. `C_i` is the punctured code of `C`
 on the `i`-th position.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2015 David Lucas <david.lucas@inria.fr>
@@ -16,11 +17,9 @@ on the `i`-th position.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from linear_code import (AbstractLinearCode,
-                         LinearCodeSyndromeDecoder,
-                         LinearCodeNearestNeighborDecoder)
-from encoder import Encoder
-from decoder import Decoder, DecodingError
+from .linear_code import AbstractLinearCode
+from .encoder import Encoder
+from .decoder import Decoder, DecodingError
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.modules.free_module import VectorSpace
@@ -662,7 +661,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             for i in list_pts:
                 yl.insert(i + shift, zero)
                 shift += 1
-            values = I.next()
+            values = next(I)
             while not end:
                 try:
                     shift = 0
@@ -670,7 +669,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
                         yl[i + shift] =  values[shift]
                         shift += 1
                     y = A(yl)
-                    values = I.next()
+                    values = next(I)
                     try:
                         c_or = self.original_decoder().decode_to_code(y)
                         end = True
@@ -718,5 +717,3 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
 PuncturedCode._registered_encoders["PuncturedMatrix"] = PuncturedCodePuncturedMatrixEncoder
 PuncturedCode._registered_decoders["OriginalCode"] = PuncturedCodeOriginalCodeDecoder
 PuncturedCodeOriginalCodeDecoder._decoder_type = {"dynamic"}
-PuncturedCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
-PuncturedCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder

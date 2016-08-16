@@ -28,6 +28,7 @@ some bit shuffling.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 from cpython.int cimport PyInt_AS_LONG
@@ -70,7 +71,7 @@ cpdef integer_to_gen(x):
         sage: for i in range(10000):
         ....:     x = 3**i
         ....:     if pari(long(x)) != pari(x):
-        ....:         print x
+        ....:         print(x)
     """
     if isinstance(x, int):
         sig_on()
@@ -130,7 +131,7 @@ cpdef gen_to_integer(gen x):
         sage: for i in range(10000):
         ....:     x = 3**i
         ....:     if long(pari(x)) != long(x):
-        ....:         print x
+        ....:         print(x)
         sage: gen_to_integer(pari("1.0 - 2^64"))
         -18446744073709551615L
         sage: gen_to_integer(pari("1 - 2^64"))

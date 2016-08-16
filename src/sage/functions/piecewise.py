@@ -283,7 +283,7 @@ class PiecewiseFunction(BuiltinFunction):
         raise NotImplementedError
 
 
-    class EvaluationMethods:
+    class EvaluationMethods(object):
 
         def expression_at(cls, self, parameters, variable, point):
             """

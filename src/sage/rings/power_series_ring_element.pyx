@@ -313,7 +313,7 @@ cdef class PowerSeries(AlgebraElement):
         S = self._parent.change_ring(R)
         return S(self)
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         r"""
         Comparison of self and ``right``.
 
@@ -1005,7 +1005,7 @@ cdef class PowerSeries(AlgebraElement):
                     v[k-n] = x
         return self._parent(v, self.prec()-n)
 
-    cpdef RingElement _div_(self, RingElement denom_r):
+    cpdef _div_(self, denom_r):
         """
         EXAMPLES::
 
@@ -1039,7 +1039,7 @@ cdef class PowerSeries(AlgebraElement):
             num = self
         return num*inv
 
-    cpdef RingElement _floordiv_(self, RingElement denom):
+    cpdef _floordiv_(self, denom):
         """
         Euclidean division (over fields) or ordinary division (over
         other rings; deprecated).

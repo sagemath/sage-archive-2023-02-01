@@ -73,6 +73,7 @@ import os
 import six
 import time
 from sage.repl.load import load, load_wrap
+import sage.repl.inputhook
 import sage.env
 
 # The attached files as a dict of {filename:mtime}
@@ -265,6 +266,13 @@ def attach(*files):
     Attach a file or files to a running instance of Sage and also load
     that file.
 
+    .. NOTE::
+
+        Attaching files uses the Python inputhook, which will conflict
+        with other inputhook users. This generally includes GUI main loop
+        integrations, for example tkinter. So you can only use tkinter or
+        attach, but not both at the same time.
+
     INPUT:
 
     - ``files`` -- a list of filenames (strings) to attach.
@@ -363,6 +371,7 @@ def add_attached_file(filename):
         sage: af.attached_files()
         []
     """
+    sage.repl.inputhook.install()
     fpath = os.path.abspath(filename)
     attached[fpath] = os.path.getmtime(fpath)
 
@@ -465,6 +474,8 @@ def detach(filename):
             attached.pop(fpath)
         else:
             raise ValueError("file '{0}' is not attached, see attached_files()".format(filename))
+    if not attached:
+        sage.repl.inputhook.uninstall()
 
 def reset():
     """

@@ -169,6 +169,9 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                                             #each dictionary entry
                                             P.update({R.gen(varindex):-pol.constant_coefficient() / pol.monomial_coefficient(r)})
                                             new_points.append(copy(P))
+                                else:
+                                    new_points.append(P)
+                                    good = 1
                             if good:
                                 points = new_points
                         #the dictionary entries now have values for all coordinates

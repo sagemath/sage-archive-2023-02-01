@@ -1795,50 +1795,36 @@ cdef object py_atanh(object x) except +:
 
 cdef object py_lgamma(object x) except +:
     """
-    Return the value of the log gamma function at the given value.
+    Return the value of the principal branch of the log gamma function at the
+    given value.
 
-    The value is expected to be a numerical object, in RR, CC, RDF or CDF.
+    The value is expected to be a numerical object, in RR, CC, RDF or CDF, or
+    of the Python ``float`` or ``complex`` type.
 
     EXAMPLES::
 
         sage: from sage.symbolic.pynac import py_lgamma_for_doctests as py_lgamma
         sage: py_lgamma(4)
         1.79175946922805
-        sage: py_lgamma(4.r)  # abs tol 2e-16
-        1.7917594692280552
-        sage: py_lgamma(4r)  # abs tol 2e-16
-        1.7917594692280552
+        sage: py_lgamma(4.r)  # abs tol 2e-14
+        1.79175946922805
+        sage: py_lgamma(4r)  # abs tol 2e-14
+        1.79175946922805
         sage: py_lgamma(CC.0)
         -0.650923199301856 - 1.87243664726243*I
         sage: py_lgamma(ComplexField(100).0)
         -0.65092319930185633888521683150 - 1.8724366472624298171188533494*I
     """
-    cdef gsl_sf_result lnr, arg
-    cdef gsl_complex res
-    if type(x) is int or type(x) is long:
-        x = float(x)
-    if type(x) is float:
-         return math.lgamma(PyFloat_AS_DOUBLE(x))
-    elif type(x) is complex:
-        gsl_sf_lngamma_complex_e(PyComplex_RealAsDouble(x),PyComplex_ImagAsDouble(x), &lnr, &arg)
-        res = gsl_complex_polar(lnr.val, arg.val)
-        return PyComplex_FromDoubles(res.dat[0], res.dat[1])
-    elif isinstance(x, Integer):
-        return x.gamma().log().n()
+    from mpmath import loggamma
 
-    # try / except blocks are faster than
-    # if hasattr(x, 'log_gamma')
     try:
         return x.log_gamma()
     except AttributeError:
         pass
-
     try:
-        return x.gamma().log()
-    except AttributeError:
-        pass
-
-    return CC(x).gamma().log()
+        return RR(x).log_gamma()
+    except TypeError:
+        return mpmath_utils.call(loggamma, x, parent=parent_c(x))
 
 def py_lgamma_for_doctests(x):
     """

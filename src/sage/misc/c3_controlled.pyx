@@ -831,9 +831,9 @@ cpdef tuple C3_sorted_merge(list lists, key=identity):
     cdef dict holder = {}
 
     # def print_state():
-    #     print "-- %s -- %s ------"%(out,suggestion)
+    #     print("-- %s -- %s ------"%(out,suggestion))
     #     for i in range(nbheads):
-    #         print [heads[i]] + list(reversed(tails[i]))
+    #         print([heads[i]] + list(reversed(tails[i])))
 
     # def check_state():
     #     for i in range(nbheads):

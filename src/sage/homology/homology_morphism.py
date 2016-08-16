@@ -79,38 +79,38 @@ class InducedHomologyMorphism(Morphism):
         sage: y.to_cycle()
         (0, 2) - (0, 5) + (2, 5)
 
-    Since `(0,3) - (0,6) + (3,6)` is a cycle representing a homology
+    Since `(0,2) - (0,5) + (2,5)` is a cycle representing a homology
     class in the torus, we can define a map `S^1 \to T` inducing an
     inclusion on `H_1`::
 
-        sage: Hom(S1, T)({0:0, 1:3, 2:6})
+        sage: Hom(S1, T)({0:0, 1:2, 2:5})
         Simplicial complex morphism:
           From: Minimal triangulation of the 1-sphere
           To: Minimal triangulation of the torus
           Defn: 0 |--> 0
-                1 |--> 3
-                2 |--> 6
-        sage: g = Hom(S1, T)({0:0, 1:3, 2: 6})
+                1 |--> 2
+                2 |--> 5
+        sage: g = Hom(S1, T)({0:0, 1:2, 2: 5})
         sage: g_star = g.induced_homology_morphism(QQ)
         sage: g_star.to_matrix(0)
         [1]
         sage: g_star.to_matrix(1)
-        [ 0]
-        [-1]
+        [0]
+        [1]
         sage: g_star.to_matrix()
-        [ 1| 0]
-        [--+--]
-        [ 0| 0]
-        [ 0|-1]
-        [--+--]
-        [ 0| 0]
+        [1|0]
+        [-+-]
+        [0|0]
+        [0|1]
+        [-+-]
+        [0|0]
 
     We can evaluate such a map on (co)homology classes::
 
         sage: H = S1.homology_with_basis(QQ)
         sage: a = H.basis()[(1,0)]
         sage: g_star(a)
-        -h_{1,1}
+        h_{1,1}
 
         sage: T = S1.product(S1, is_mutable=False)
         sage: diag = Hom(S1,T).diagonal_morphism()

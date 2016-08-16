@@ -1167,7 +1167,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         rnd = (<MPComplexField_class>self._parent).__rnd
         return complex(mpfr_get_d(self.value.re, rnd_re(rnd)), mpfr_get_d(self.value.im, rnd_im(rnd)))
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef int _cmp_(self, other) except -2:
         r"""
         Compare ``self`` to ``other``.
 
@@ -1293,7 +1293,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
     # Basic Arithmetic
     ################################
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two complex numbers with the same parent.
 
@@ -1308,7 +1308,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         mpc_add(z.value, self.value, (<MPComplexNumber>right).value, (<MPComplexField_class>self._parent).__rnd)
         return z
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract two complex numbers with the same parent.
 
@@ -1323,7 +1323,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         mpc_sub(z.value, self.value, (<MPComplexNumber>right).value, (<MPComplexField_class>self._parent).__rnd)
         return z
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply two complex numbers with the same parent.
 
@@ -1338,7 +1338,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         mpc_mul(z.value, self.value, (<MPComplexNumber>right).value, (<MPComplexField_class>self._parent).__rnd)
         return z
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide two complex numbers with the same parent.
 
@@ -1357,7 +1357,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             mpc_div(z.value, self.value, x.value, (<MPComplexField_class>self._parent).__rnd)
         return z
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Return the negative of this complex number.
 

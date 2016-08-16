@@ -181,6 +181,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.ext.stdsage cimport PY_NEW
 include "cysignals/signals.pxi"
@@ -1766,7 +1767,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 return ans
         return self._rshift_c(mpz_get_si((<Integer>shift).value))
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Returns ``-self``.
 
@@ -2047,7 +2048,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         sig_off()
         return ans
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         """
         Computes the sum of ``self`` and ``right``.
 
@@ -2103,8 +2104,6 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         cdef long rrprec = right.relprec
         if rrprec < 0:
             rrprec = -rrprec
-        #print "self.ordp = %s\nright.ordp = %s"%(self.ordp, right.ordp)
-        #print "self = %s\nright = %s"%(self, right)
         if self.ordp == right.ordp:
             # The relative precision of the sum is the minimum of the relative precisions in this case, possibly decreasing if we got cancellation
             # Since the valuations are the same, we could just add the units, if they had the same modulus.
@@ -2166,7 +2165,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 ans.relprec = -ans.relprec
         return ans
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Returns the difference of ``self`` and ``right``.
 
@@ -2192,7 +2191,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         # For now, a simple implementation
         return self + (-right)
 
-    cpdef RingElement _mul_(self, RingElement _right):
+    cpdef _mul_(self, _right):
         """
         Returns the product of ``self`` and ``right``.
 
@@ -2246,7 +2245,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sig_off()
         return ans
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Returns the quotient of ``self`` by ``right``.
 

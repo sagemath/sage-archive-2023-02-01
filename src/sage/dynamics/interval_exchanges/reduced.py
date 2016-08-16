@@ -52,6 +52,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
 
@@ -60,12 +61,12 @@ from copy import copy
 from sage.combinat.words.alphabet import Alphabet
 from sage.rings.integer import Integer
 
-from template import PermutationIET, PermutationLI   # permutations
-from template import FlippedPermutationIET, FlippedPermutationLI   # flipped permutations
-from template import twin_list_iet, twin_list_li
-from template import RauzyDiagram, FlippedRauzyDiagram
+from .template import PermutationIET, PermutationLI   # permutations
+from .template import FlippedPermutationIET, FlippedPermutationLI   # flipped permutations
+from .template import twin_list_iet, twin_list_li
+from .template import RauzyDiagram, FlippedRauzyDiagram
 
-from template import interval_conversion, side_conversion
+from .template import interval_conversion, side_conversion
 
 class ReducedPermutation(SageObject) :
     r"""

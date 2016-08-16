@@ -1457,8 +1457,9 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
                 def la(vv):
                     from sage.combinat.designs.twographs import twograph_descendant
                     g = strongly_regular_graph(vv, k, l - 2*mu + k)
-                    return twograph_descendant(g, g.vertex_iterator().next(), name=True)
-                return(la, v+1)
+                    return twograph_descendant(g, next(g.vertex_iterator()),
+                                               name=True)
+                return(la, v + 1)
     return
 
 @cached_function

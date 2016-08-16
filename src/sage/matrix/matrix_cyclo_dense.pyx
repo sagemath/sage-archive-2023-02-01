@@ -469,7 +469,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Return the sum of two dense cyclotomic matrices.
 
@@ -497,7 +497,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         A._matrix = self._matrix + (<Matrix_cyclo_dense>right)._matrix
         return A
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Return the difference of two dense cyclotomic matrices.
 
@@ -524,7 +524,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         A._matrix = self._matrix - (<Matrix_cyclo_dense>right)._matrix
         return A
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         Multiply a dense cyclotomic matrix by a scalar.
 
@@ -566,7 +566,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             A._matrix = T * self._matrix
         return A
 
-    cdef baseMatrix _matrix_times_matrix_(self, baseMatrix right):
+    cdef _matrix_times_matrix_(self, baseMatrix right):
         """
         Return the product of two cyclotomic dense matrices.
 
@@ -708,7 +708,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         else:
             raise TypeError("mutable matrices are unhashable")
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         """
         Implements comparison of two cyclotomic matrices with
         identical parents.

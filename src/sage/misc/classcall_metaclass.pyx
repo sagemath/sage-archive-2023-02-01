@@ -342,7 +342,7 @@ cdef class ClasscallMetaclass(NestedClassMetaclass):
         delegating it to ``cls.__classget__(Outer, obj, owner)`` if available.
         Otherwise, ``obj.cls`` results in ``cls``, as usual.
 
-        Similarily, a class binding as in ``Outer.cls`` is delegated
+        Similarly, a class binding as in ``Outer.cls`` is delegated
         to ``cls.__classget__(Outer, None, owner)`` if available and
         to ``cls`` if not.
 

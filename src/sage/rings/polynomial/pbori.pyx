@@ -204,10 +204,8 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 
 from sage.rings.ideal import FieldIdeal
 
-from sage.structure.element cimport Element
-from sage.structure.element cimport RingElement
-from sage.structure.element cimport ModuleElement
-from sage.structure.element cimport have_same_parent_c, coercion_model
+from sage.structure.element cimport (Element, RingElement,
+        have_same_parent, coercion_model)
 
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
@@ -2216,7 +2214,7 @@ cdef class BooleanMonomial(MonoidElement):
         gens = self._parent.gens()
         return self._parent, (tuple([gens.index(x) for x in self.variables()]),)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare BooleanMonomial objects.
 
@@ -2583,7 +2581,7 @@ cdef class BooleanMonomial(MonoidElement):
         """
         return new_BMI_from_BooleanMonomial(self)
 
-    cpdef MonoidElement _mul_(left, MonoidElement right):
+    cpdef _mul_(left, right):
         """
         Multiply this boolean monomial with another boolean monomial.
 
@@ -2650,8 +2648,8 @@ cdef class BooleanMonomial(MonoidElement):
             raise TypeError("BooleanMonomial.__add__ called with not supported types %s and %s" % (type(right), type(left)))
 
         res = new_BP_from_PBMonom(monom._ring, monom._pbmonom)
-        return res.__iadd__(monom._ring._coerce_c(other))
-
+        res += monom._ring._coerce_c(other)
+        return res
 
     def __floordiv__(BooleanMonomial left, right):
         """
@@ -2969,7 +2967,7 @@ cdef class BooleanPolynomial(MPolynomial):
         R = self.parent().cover_ring()
         return R(self)._latex_()
 
-    cpdef ModuleElement _add_(left, ModuleElement right):
+    cpdef _add_(left, right):
         """
         EXAMPLE::
 
@@ -2984,7 +2982,7 @@ cdef class BooleanPolynomial(MPolynomial):
         p._pbpoly.iadd( (<BooleanPolynomial>right)._pbpoly )
         return p
 
-    cpdef ModuleElement _sub_(left, ModuleElement right):
+    cpdef _sub_(left, right):
         """
         EXAMPLE::
 
@@ -2996,7 +2994,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return left._add_(right)
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _lmul_(self, RingElement left):
         """
         EXAMPLE::
 
@@ -3005,15 +3003,8 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f = a*z + b + 1
             sage: f*k(1)  # indirect doctest
             a*z + b + 1
-        """
-        if left:
-            return new_BP_from_PBPoly(self._parent, self._pbpoly)
-        else:
-            return self._parent.zero()
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
-        """
-        EXAMPLE::
+        ::
 
             sage: B.<a,b,z> = BooleanPolynomialRing(3)
             sage: k = B.base_ring()
@@ -3021,9 +3012,12 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: k(0)*f # indirect doctest
             0
         """
-        return self._rmul_(right)
+        if left:
+            return new_BP_from_PBPoly(self._parent, self._pbpoly)
+        else:
+            return self._parent.zero()
 
-    cpdef RingElement _mul_(left, RingElement right):
+    cpdef _mul_(left, right):
         """
         EXAMPLE::
 
@@ -3038,7 +3032,7 @@ cdef class BooleanPolynomial(MPolynomial):
         p._pbpoly.imul( (<BooleanPolynomial>right)._pbpoly )
         return p
 
-    cpdef RingElement _div_(left, RingElement right):
+    cpdef _div_(left, right):
         """
         EXAMPLE::
 
@@ -3110,12 +3104,12 @@ cdef class BooleanPolynomial(MPolynomial):
                 return (br or bl) == (op == Py_NE)
 
         # Copy from Element.__richcmp__
-        if have_same_parent_c(left, right):
+        if have_same_parent(left, right):
             return (<Element>left)._richcmp_(<Element>right, op)
         else:
             return coercion_model.richcmp(left, right, op)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare left and right and return -1, 0, 1 for ``less than``,
         ``equal``, and ``greater than`` respectively.
@@ -4175,7 +4169,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         M = self.set()
         try: # 0
-            d = iter(M).next().degree()
+            d = next(iter(M)).degree()
         except StopIteration:
             return True
         for m in M:

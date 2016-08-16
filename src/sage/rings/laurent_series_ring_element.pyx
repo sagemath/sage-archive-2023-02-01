@@ -55,18 +55,14 @@ from __future__ import print_function
 
 import operator
 
-from infinity import infinity
+from .infinity import infinity
 
-import laurent_series_ring
-import power_series_ring_element
-import power_series_ring
 import sage.rings.polynomial.polynomial_element as polynomial
 import sage.misc.latex
 from sage.rings.integer import Integer
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_univariate
-
+from .power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement, AlgebraElement
-
 from sage.misc.derivative import multi_derivative
 
 
@@ -549,7 +545,7 @@ cdef class LaurentSeries(AlgebraElement):
                 self.__u = self.__u._parent(coeffs)
         self.__normalize()
 
-    cpdef ModuleElement _add_(self, ModuleElement right_m):
+    cpdef _add_(self, right_m):
         """
         Add two power series with the same parent.
 
@@ -599,7 +595,7 @@ cdef class LaurentSeries(AlgebraElement):
         # 3. Add
         return LaurentSeries(self._parent, f1 + f2, m)
 
-    cpdef ModuleElement _sub_(self, ModuleElement right_m):
+    cpdef _sub_(self, right_m):
         """
         Subtract two power series with the same parent.
 
@@ -684,7 +680,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return LaurentSeries(self._parent, -self.__u, self.__n)
 
-    cpdef RingElement _mul_(self, RingElement right_r):
+    cpdef _mul_(self, right_r):
         """
         EXAMPLES::
 
@@ -699,10 +695,10 @@ cdef class LaurentSeries(AlgebraElement):
                              self.__u * right.__u,
                              self.__n + right.__n)
 
-    cpdef ModuleElement _rmul_(self, RingElement c):
+    cpdef _rmul_(self, RingElement c):
         return LaurentSeries(self._parent, self.__u._rmul_(c), self.__n)
 
-    cpdef ModuleElement _lmul_(self, RingElement c):
+    cpdef _lmul_(self, RingElement c):
         return LaurentSeries(self._parent, self.__u._lmul_(c), self.__n)
 
     def __pow__(_self, r, dummy):
@@ -809,7 +805,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return LaurentSeries(self._parent, self.__u >> (n - self.__n), n)
 
-    cpdef RingElement _div_(self, RingElement right_r):
+    cpdef _div_(self, right_r):
         """
         EXAMPLES::
 
@@ -930,7 +926,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return min(self.valuation(), other.valuation())
 
-    cpdef int _cmp_(self, Element right_r) except -2:
+    cpdef int _cmp_(self, right_r) except -2:
         r"""
         Comparison of self and right.
 

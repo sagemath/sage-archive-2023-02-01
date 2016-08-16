@@ -634,7 +634,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         else:
             return self._new_c(zero, max(-self._mantissa, self._mantissa + self._diameter))
 
-    cpdef ModuleElement _add_(self, ModuleElement _other):
+    cpdef _add_(self, _other):
         """
         TESTS::
 
@@ -652,7 +652,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         cdef RealIntervalAbsoluteElement other = <RealIntervalAbsoluteElement>_other
         return self._new_c(self._mantissa + other._mantissa, self._diameter + other._diameter)
 
-    cpdef ModuleElement _sub_(self, ModuleElement _other):
+    cpdef _sub_(self, _other):
         """
         TESTS::
 
@@ -672,7 +672,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         cdef RealIntervalAbsoluteElement other = <RealIntervalAbsoluteElement>_other
         return self._new_c(self._mantissa - other._mantissa - other._diameter, self._diameter + other._diameter)
 
-    cpdef RingElement _mul_(self, RingElement _other):
+    cpdef _mul_(self, _other):
         """
         TESTS::
 
@@ -832,7 +832,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
             res = -res
         return res
 
-    cpdef RingElement _div_(self, RingElement _other):
+    cpdef _div_(self, _other):
         """
         TESTS::
 

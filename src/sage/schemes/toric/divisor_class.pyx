@@ -209,7 +209,7 @@ cdef class ToricRationalDivisorClass(Vector_rational_dense):
         # Now let the standard framework work...
         return Vector_rational_dense._act_on_(self, other, self_on_left)
 
-    cpdef Element _dot_product_(self, Vector right):
+    cpdef _dot_product_(self, Vector right):
         r"""
         Raise a ``TypeError`` exception.
 

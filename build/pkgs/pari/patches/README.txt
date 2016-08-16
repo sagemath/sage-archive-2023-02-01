@@ -12,7 +12,5 @@ Patches to configuration files:
   the flag unconditionally.
 
 C files:
-* do_QXQ_eval.patch (Peter Bruin, #20749): avoid unnecessary
-  computations in do_QXQ_eval, relevant for nf_nfzk (PARI bug 1822).
 * stackwarn.patch (Jeroen Demeyer, #19883): do not display warnings
   regarding the stack size (unless DEBUGMEM is set).

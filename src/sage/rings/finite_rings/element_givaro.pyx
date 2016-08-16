@@ -1088,7 +1088,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         else:
             raise ValueError("must be a perfect square.")
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two elements.
 
@@ -1103,7 +1103,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
                                               (<FiniteField_givaroElement>right).element )
         return make_FiniteField_givaroElement(self._cache,r)
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply two elements.
 
@@ -1121,7 +1121,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         return make_FiniteField_givaroElement(self._cache,r)
 
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide two elements
 
@@ -1143,7 +1143,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(self._cache,r)
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract two elements.
 
@@ -1295,7 +1295,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             return make_FiniteField_givaroElement(cache, cache.objectptr.one)
         return make_FiniteField_givaroElement(cache, r)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Comparison of finite field elements is correct or equality
         tests and somewhat random for ``<`` and ``>`` type of

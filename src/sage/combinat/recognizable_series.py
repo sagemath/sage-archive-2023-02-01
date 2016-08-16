@@ -212,7 +212,7 @@ class PrefixClosedSet(object):
 
 class RecognizableSeries(Element):
 
-    def __init__(self, parent, mu, left=None, right=None, transpose=False):
+    def __init__(self, parent, mu, left=None, right=None):
         r"""
         A recognizable series.
 
@@ -234,11 +234,6 @@ class RecognizableSeries(Element):
           matrix obtained from :meth:`mu` applying on a word. If
           ``None``, then this multiplication is skipped.
           See :meth:`right` for more details.
-
-        - ``transpose`` -- (default: ``False``) a boolean. If set,
-          then each of the ``matrices`` is transposed.  Additionally
-          the vectors ``left`` and ``right`` are switched and (if
-          possible) transposed as well.
 
         EXAMPLES::
 
@@ -287,20 +282,9 @@ class RecognizableSeries(Element):
         #if not all(M.dimensions() == (self.d, self.d) for M in self.matrices):
         #    raise ValueError  # TODO
 
-        if not transpose:
-            self._left_ = left
-            self._mu_ = mu
-            self._right_ = right
-        else:
-            def tr(M):
-                try:
-                    return M.transpose()
-                except AttributeError:
-                    return M
-
-            self._left_ = tr(right)
-            self._mu_ = mu.map(tr)
-            self._right_ = tr(left)
+        self._left_ = left
+        self._mu_ = mu
+        self._right_ = right
 
 
     @property

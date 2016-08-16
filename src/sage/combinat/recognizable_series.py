@@ -334,6 +334,8 @@ class RecognizableSeries(Element):
             sage: repr(S)  # indirect doctest
             '[1] + 3*[01] + [10] + 5*[11] + 9*[001] + 3*[010] + ...'
         """
+        if not self:
+            return '0'
         from itertools import islice
         A = self.parent()._algebra_
         B = A.basis()
@@ -478,7 +480,8 @@ class RecognizableSeries(Element):
             sage: iter(S) is not it
             True
         """
-        # TODO self == 0: return iter()
+        if not self:
+            return iter([])
         A = self.parent()._algebra_
         B = A.basis()
         return iter((self[w], B[w])

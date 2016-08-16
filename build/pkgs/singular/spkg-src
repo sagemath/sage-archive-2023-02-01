@@ -18,16 +18,16 @@ umask 0022
 SAGEVERSION=`cat $(dirname "$0")/package-version.txt`
 VERSION=`echo "$SAGEVERSION" | sed 's/[.]p[0-9]*$//'`
 PKGNAME="singular-$VERSION"
-DOTVERSION=`echo "$SAGEVERSION" | sed 's/p.*//'`
+DOTVERSION=`echo "$VERSION" | sed 's/p.*//'`
 DASHVERSION=`echo "$DOTVERSION" | sed 's/[.]/-/g'`
-TARBALL1="singular-${VERSION}.tar.gz"
-TARBALL2="singular-${DOTVERSION}-share.tar.gz"
+TARBALL_SRC="singular-${VERSION}.tar.gz"
+TARBALL_SHR="singular-${DOTVERSION}-share.tar.gz"
 TARGET="$SAGE_DISTFILES/$PKGNAME.tar.bz2"
 
 echo >&2 "Creating tarball $TARGET..."
 
 # Remove old sources and download new
-SPKG_ROOT="$SAGE_ROOT/tmp/singular"
+SPKG_ROOT="$SAGE_ROOT/local/var/tmp/singular"
 
 rm -rf "$SPKG_ROOT"
 mkdir -p "$SPKG_ROOT/$PKGNAME"
@@ -35,11 +35,11 @@ cd "$SPKG_ROOT/$PKGNAME"
 
 URL="http://www.mathematik.uni-kl.de/ftp/pub/Math/Singular/SOURCES/$DASHVERSION"
 if [ -z "$UPSTREAM_SOURCE_DIRECTORY" ]; then
-    tar xzf <( curl -L "$URL/$TARBALL1" )
-    tar xzf <( curl -L "$URL/$TARBALL2" )
+    tar xzf <( curl -L "$URL/$TARBALL_SRC" )
+    tar xzf <( curl -L "$URL/$TARBALL_SHR" )
 else
-    tar xzf "$UPSTREAM_SOURCE_DIRECTORY/$TARBALL1"
-    tar xzf "$UPSTREAM_SOURCE_DIRECTORY/$TARBALL2"
+    tar xzf "$UPSTREAM_SOURCE_DIRECTORY/$TARBALL_SRC"
+    tar xzf "$UPSTREAM_SOURCE_DIRECTORY/$TARBALL_SHR"
 fi
 
 # Make everything writable
@@ -51,8 +51,8 @@ if [ ! -d share/singular ]; then
     exit 1
 fi
 mkdir shared
-mv "share/singular/doc/singular.idx" shared/
-mv "share/singular/info/singular.hlp" shared/
+mv "share/singular/singular.idx" shared/
+mv "share/info/singular.hlp" shared/
 rm -r share
 
 
@@ -71,4 +71,4 @@ tar c "$PKGNAME" | bzip2 -c --best >"$TARGET"
 cd "$SAGE_ROOT"
 rm -rf "$SPKG_ROOT"
 
-sage-fix-pkg-checksums "$TARGET"
+sage --package fix-checksum singular

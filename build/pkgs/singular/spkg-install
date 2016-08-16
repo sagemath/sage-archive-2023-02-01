@@ -102,9 +102,6 @@ choose_patches()
 
 apply_patches()
 {
-    # cd down to the root of src/
-    cd ..
-
     # Apply all patches
     for patch in ../patches/*.patch; do
         [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches

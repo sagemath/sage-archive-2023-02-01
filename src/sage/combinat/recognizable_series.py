@@ -623,8 +623,7 @@ class RecognizableSeries(Element):
         A :class:`RecognizableSeries`.
 
         Each of the ``matrices`` is transposed. Additionally
-        the vectors ``left`` and ``right`` are switched and (if
-        possible) transposed as well.
+        the vectors ``left`` and ``right`` are switched.
 
         EXAMPLES::
 

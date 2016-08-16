@@ -165,6 +165,25 @@ FriCAS can solve linear ordinary differential equations::
     sage: fricas.eval(")clear values y deq sol")                                # optional - fricas
     ''
 
+FriCAS can expand expressions into series::
+
+    sage: a = fricas("series(sqrt(cos(x)),x=0)"); a                             # optional - fricas
+        1  2    1  4    19   6     559   8     29161    10      11
+    1 - - x  - -- x  - ---- x  - ------ x  - --------- x   + O(x  )
+        4      96      5760      645120      116121600
+
+    sage: a.coefficients()[38].sage()                                           # optional - fricas
+    -29472026335337227150423659490832640468979/274214482066329363682430667508979749984665600000000
+
+    sage: a = fricas("series(sqrt(cos(x)/x),x=0)"); a                           # optional - fricas
+       1      3       7
+     - -      -       -
+       2   1  2    1  2      5
+    x    - - x  - -- x  + O(x )
+           4      96
+
+    sage: a.coefficient(3/2).sage()                                             # optional - fricas
+    -1/4
 """
 
 ###########################################################################
@@ -386,8 +405,7 @@ class FriCAS(ExtraTabCompletion, Expect):
                 return "\r\n".join(line[FRICAS_MULTI_LINE_START:] for line in lines)
 
         else:
-            print(output)
-            return
+            raise RuntimeError("FriCAS has not recognized '%s' as a valid operation: %s" % (code, output))
 
     def set(self, var, value):
         """Set the variable var to the given value.
@@ -541,19 +559,18 @@ class FriCASElement(ExpectElement):
         return l.sage()
 
     def __getitem__(self, n):
-        """
-        We implement the sage conventions here!
+        """We implement the sage conventions here, translating to 0-based iterables.
 
-        TODO: should we really check the length?
+        We do not check validity, since many objects in FriCAS are
+        iterable, in particular Streams
 
         TODO: we should also implement negative arguments and tuples
+
         """
         n = int(n)
-        if n < 0 or n >= len(self):
+        if n < 0:
             raise IndexError("index out of range")
-        P = self._check_valid()
-        # in FriCAS, retrieving an item is the same as calling it with an integer
-        return P('%s(%s)'%(self._name, n+1))
+        return self.elt(n+1)
 
     def __int__(self):
         return int(self.sage())

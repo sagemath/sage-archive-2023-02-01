@@ -62,6 +62,12 @@ class PrefixClosedSet(object):
             [word: ]
 
         See :meth:`populate_interactive` for further examples.
+
+        TESTS::
+
+            sage: P = PrefixClosedSet(
+            ....:         words=Words([0, 1], infinite=False)); P
+            [word: ]
         """
         if alphabet is not None:
             from sage.combinat.words.words import Words

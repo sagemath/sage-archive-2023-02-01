@@ -276,9 +276,10 @@ def slice_unpickle(master, start, stop, step):
     return master[start:stop:step]
 
 
-def lazy_list_formatter(L, name=None, separator=None, more=None,
-        opening_delimiter=None, closing_delimiter=None,
-        preview=None):
+def lazy_list_formatter(L, name='lazy list',
+                        separator=', ', more='...',
+                        opening_delimiter='[', closing_delimiter=']',
+                        preview=3):
     r"""
     Return a string representation of ``L``.
 
@@ -346,19 +347,6 @@ def lazy_list_formatter(L, name=None, separator=None, more=None,
         'iterator count [0, 1, 2, ...]'
     """
     from itertools import islice
-
-    if name is None:
-        name = 'lazy list'
-    if opening_delimiter is None:
-        opening_delimiter = '['
-    if separator is None:
-        separator = ', '
-    if more is None:
-        more = '...'
-    if closing_delimiter is None:
-        closing_delimiter = ']'
-    if preview is None:
-        preview = 3
 
     cdef str s = name
     if s:

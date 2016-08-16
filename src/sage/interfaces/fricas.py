@@ -190,6 +190,7 @@ FRICAS_SINGLE_LINE_START = 3 # where the output starts when it fits next to the 
 FRICAS_MULTI_LINE_START = 2  # and when it doesn't
 FRICAS_LINE_LENGTH = 80      # length of a line, should match the line length in sage
 FRICAS_LINE_BREAK = "\r\n"   # line ending character
+FRICAS_WHAT_OPERATIONS_STRING = "Operations whose names satisfy the above pattern\(s\):"
 # only the last command should be necessary to make the interface
 # work, the other are optimizations.  Beware that lisp distinguishes
 # between ' and ".
@@ -233,6 +234,7 @@ class FriCAS(ExtraTabCompletion, Expect):
         assert max(len(c) for c in FRICAS_INIT_CODE) < eval_using_file_cutoff
         self.__eval_using_file_cutoff = eval_using_file_cutoff
         self._COMMANDS_CACHE = '%s/%s_commandlist_cache.sobj'%(DOT_SAGE, name)
+        # we run the init code in _start to avoid spurious output
         Expect.__init__(self,
                         name = name,
                         prompt = FRICAS_FIRST_PROMPT,
@@ -242,7 +244,7 @@ class FriCAS(ExtraTabCompletion, Expect):
                         server_tmpdir=server_tmpdir,
                         restart_on_ctrlc = False,
                         verbose_start = False,
-                        init_code = FRICAS_INIT_CODE,
+                        init_code = [],
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
 
@@ -260,12 +262,14 @@ class FriCAS(ExtraTabCompletion, Expect):
             True
             sage: a.quit()                                                      # optional - fricas
         """
-        # this is necessary for restarting FriCAS
+        # setting the prompt properly is necessary for restarting FriCAS
         self._prompt = FRICAS_FIRST_PROMPT
         Expect._start(self)
+        for line in FRICAS_INIT_CODE:
+            Expect.eval(self, line)
         # switching off the line numbers also modified the prompt
         self._prompt = FRICAS_LINENUMBER_OFF_PROMPT
-        self.eval(FRICAS_LINENUMBER_OFF_CODE)
+        Expect.eval(self, FRICAS_LINENUMBER_OFF_CODE)
 
     def _quit_string(self):
         """
@@ -274,13 +278,13 @@ class FriCAS(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: fricas._quit_string()                                         # optional - fricas
-            ')quit'                                                             
+            ')quit'
             sage: a = FriCAS()                                                  # optional - fricas
             sage: a.is_running()                                                # optional - fricas
-            False                                                               
+            False
             sage: a._start()                                                    # optional - fricas
             sage: a.is_running()                                                # optional - fricas
-            True                                                                  
+            True
             sage: a.quit()                                                      # optional - fricas
             sage: a.is_running()                                                # optional - fricas
             False
@@ -296,19 +300,16 @@ class FriCAS(ExtraTabCompletion, Expect):
 
             sage: cmds = fricas._commands()                                     # optional - fricas
             sage: len(cmds) > 100                                               # optional - fricas
-            True                                                                             
+            True
             sage: '<' in cmds                                                   # optional - fricas
-            True                                                                             
+            True
             sage: 'factor' in cmds                                              # optional - fricas
             True
         """
-        s = self.eval(")what things")
-        start = '\r\n\r\n#'
-        i = s.find(start)
-        end = "To get more information about"
-        j = s.find(end)
-        s = s[i+len(start):j].split()
-        return s
+        output = Expect.eval(self, ")what operations")
+        m = re.search(FRICAS_WHAT_OPERATIONS_STRING + "\r\n(.*)\r\n\|startKeyedMsg\|", output, flags = re.DOTALL)
+        l = m.groups()[0].split()
+        return l
 
     def _tab_completion(self, verbose=True, use_disk_cache=True):
         """
@@ -319,15 +320,15 @@ class FriCAS(ExtraTabCompletion, Expect):
 
             sage: c = fricas._tab_completion(use_disk_cache=False, verbose=False)         # optional - fricas
             sage: len(c) > 100                                                  # optional - fricas
-            True                                                             
+            True
             sage: 'factor' in c                                                 # optional - fricas
-            True                                                                
+            True
             sage: '**' in c                                                     # optional - fricas
-            False                                                               
+            False
             sage: 'upperCase?' in c                                             # optional - fricas
-            False                                                               
+            False
             sage: 'upperCase_q' in c                                            # optional - fricas
-            True                                                                
+            True
             sage: 'upperCase_e' in c                                            # optional - fricas
             True
         """
@@ -362,7 +363,7 @@ class FriCAS(ExtraTabCompletion, Expect):
                 # Fricas is actually installed.
                 sage.misc.persist.save(v, self._COMMANDS_CACHE)
             return names
-        
+
     def eval(self, code, strip=True, synchronize=False, locals=None, allow_use_file=True,
              split_lines="nofile", **kwds):
         """Send the code to the FriCAS interpreter and return the pretty
@@ -376,8 +377,6 @@ class FriCAS(ExtraTabCompletion, Expect):
         output = Expect.eval(self, code, strip=strip, synchronize=synchronize,
                              locals=locals, allow_use_file=allow_use_file, split_lines=split_lines,
                              **kwds)
-#        print "running eval", code
-#        print output
         m = re.match("\r\n\|startAlgebraOutput\|\r\n(.*)\r\n\|endOfAlgebraOutput\|", output, flags = re.DOTALL)
         if m:
             lines = m.groups()[0].split(FRICAS_LINE_BREAK)
@@ -387,8 +386,8 @@ class FriCAS(ExtraTabCompletion, Expect):
                 return "\r\n".join(line[FRICAS_MULTI_LINE_START:] for line in lines)
 
         else:
-#            print "TODO"
-            return output
+            print(output)
+            return
 
     def set(self, var, value):
         """Set the variable var to the given value.
@@ -859,14 +858,14 @@ class FriCASElement(ExpectElement):
 class FriCASFunctionElement(FunctionElement):
     def __init__(self, object, name):
         """Make FriCAS operation names valid python function identifiers.
-        
+
         TESTS::
 
         sage: a = fricas('"Hello"')                                             # optional - fricas
         sage: a.upperCase_q                                                     # optional - fricas
-        upperCase?                                                              
+        upperCase?
         sage: a.upperCase_e                                                     # optional - fricas
-        upperCase!                                                              
+        upperCase!
         sage: a.upperCase_e()                                                   # optional - fricas
         "HELLO"
 
@@ -897,7 +896,7 @@ class FriCASExpectFunction(ExpectFunction):
         elif name.endswith("_e"):
             name = name[:-2] + "!"
         ExpectFunction.__init__(self, parent, name)
-    
+
     pass
 
 def is_FriCASElement(x):

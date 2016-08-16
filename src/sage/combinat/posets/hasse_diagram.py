@@ -1403,14 +1403,14 @@ class HasseDiagram(DiGraph):
         """
         mt = self.meet_matrix()
         jn = self.join_matrix()
-        top = self.cardinality()-1
-        has_complement = [False]*top
+        top = self.cardinality() - 1
+        has_complement = [False] * top
 
         for i in xrange(1, top):
             if has_complement[i]:
                 continue
             for j in xrange(top, 0, -1):
-                if jn[i,j] == top and mt[i,j] == 0:
+                if jn[i, j] == top and mt[i, j] == 0:
                     has_complement[j] = True
                     break
             else:

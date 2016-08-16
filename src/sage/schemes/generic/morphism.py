@@ -1510,6 +1510,18 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                   x - 2*y
                   Defn: Defined on coordinates by sending (x : y) to
                         (x^2 : 2*y^2)
+
+        ::
+
+            sage: R.<c> = QQ[]
+            sage: P.<x,y> = ProjectiveSpace(R,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + c*y^2, y^2])
+            sage: F = f.dynatomic_polynomial(3)
+            sage: g = F.specialization({c:1}); g
+            x^6 + x^5*y + 4*x^4*y^2 + 3*x^3*y^3 + 7*x^2*y^4 + 4*x*y^5 + 5*y^6
+            sage: g == f.specialization({c:1}).dynatomic_polynomial(3)
+            True
         """
         if D is None:
             if phi is None:

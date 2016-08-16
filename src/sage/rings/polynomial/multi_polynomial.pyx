@@ -1830,6 +1830,37 @@ cdef class MPolynomial(CommutativeRingElement):
 
             return ans
 
+    def specialization(self, D=None, phi=None):
+        r"""
+        Specialization of this polynomial.
+
+        Given a family of polynomials defined over a polynomial ring. A specialization
+        is a particular member of that family. The specialization can be specified either
+        by a dictionary or a :class:`SpecializationMorphism`.
+
+        INPUT:
+
+        - ``D`` -- dictionary (optional)
+
+        - ``phi`` -- SpecializationMorphism (optional)
+
+        OUTPUT: a new polynomial
+
+        EXAMPLES::
+
+            sage: R.<c> = PolynomialRing(QQ)
+            sage: S.<x,y> = PolynomialRing(R)
+            sage: F = x^2 + c*y^2
+            sage: F.specialization(dict({c:2}))
+            x^2 + 2*y^2
+        """
+        if D is None:
+            if phi is None:
+                raise ValueError("either the dictionary or the specialization must be provided")
+        else:
+            from sage.rings.polynomial.flatten import SpecializationMorphism
+            phi = SpecializationMorphism(self.parent(),D)
+        return phi(self)
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

@@ -35,7 +35,16 @@ cd "$SPKG_ROOT/$PKGNAME"
 
 URL="http://www.mathematik.uni-kl.de/ftp/pub/Math/Singular/SOURCES/$DASHVERSION"
 if [ -z "$UPSTREAM_SOURCE_DIRECTORY" ]; then
-    tar xzf <( curl -L "$URL/$TARBALL_SRC" )
+    if [ -z "$SINGULAR_GIT" ]; then
+        tar xzf <( curl -L "$URL/$TARBALL_SRC" )
+    else
+        git clone https://github.com/Singular/Sources/ singular.git
+        cd singular.git
+        sh make_tar.sh
+        cd ..
+        tar xzf "singular.git/$TARBALL_SRC"
+        rm -rf singular.git
+    fi
     tar xzf <( curl -L "$URL/$TARBALL_SHR" )
 else
     tar xzf "$UPSTREAM_SOURCE_DIRECTORY/$TARBALL_SRC"
@@ -71,4 +80,4 @@ tar c "$PKGNAME" | bzip2 -c --best >"$TARGET"
 cd "$SAGE_ROOT"
 rm -rf "$SPKG_ROOT"
 
-sage --package fix-checksum singular
+echo "Now run `sage --package fix-checksum singular`"

@@ -485,6 +485,65 @@ class RecognizableSeries(Element):
                     for w in self.parent().indices() if self[w] != 0)
 
 
+    def is_trivial_zero(self):
+        r"""
+        Return whether this recognizable series is trivially equal to
+        zero (without any :meth:`minimization <minmized>`).
+
+        EXAMPLES::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [0, 1]])),
+            ....:     left=vector([0, 1]), right=vector([1, 0])).is_trivial_zero()
+            False
+            sage: Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [0, 1]])),
+            ....:     left=vector([0, 0]), right=vector([1, 0])).is_trivial_zero()
+            True
+            sage: Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [0, 1]])),
+            ....:     left=vector([0, 1]), right=vector([0, 0])).is_trivial_zero()
+            True
+
+        The following two differ in the coefficient of the empty word::
+
+            sage: Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])),
+            ....:     left=vector([0, 1]), right=vector([1, 0])).is_trivial_zero()
+            True
+            sage: Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])),
+            ....:     left=vector([1, 1]), right=vector([1, 1])).is_trivial_zero()
+            False
+
+        TESTS::
+
+            sage: Rec.zero().is_trivial_zero()
+            True
+
+        The following are nonzero as the coefficient of the empty word
+        is nonzero::
+
+            sage: Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])),
+            ....:     left=None, right=vector([1, 0])).is_trivial_zero()
+            False
+            sage: Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])),
+            ....:     left=None, right=None).is_trivial_zero()
+            False
+            sage: Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])),
+            ....:     left=vector([0, 1]), right=None).is_trivial_zero()
+            False
+
+        The following is zero, but not trivially zero::
+
+            sage: S = Rec((Matrix([[1, 0], [0, 0]]), Matrix([[1, 0], [0, 0]])),
+            ....:         left=vector([0, 1]), right=vector([1, 0]))
+            sage: S.is_trivial_zero()
+            False
+            sage: S.is_zero()
+            True
+        """
+        return (self.left is not None and not self.left) or \
+            (self.right is not None and not self.right) or \
+            (all(not self.mu[a] for a in self.parent().alphabet()) and
+             not self[self.parent().indices()()])
+
     def transposed(self):
         r"""
         Return the transposed series.

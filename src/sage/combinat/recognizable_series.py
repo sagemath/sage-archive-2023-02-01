@@ -528,6 +528,100 @@ class RecognizableSeries(Element):
         return self.parent()(self.mu.map(tr),
                              left=tr(self.right),
                              right=tr(self.left))
+    def _minimized_left_(self):
+        r"""
+
+        TESTS::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: S = Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])),
+            ....:         vector([1, 1]), vector([1, 1]))
+            sage: M = S._minimized_left_()
+            sage: M.mu[0], M.mu[1], M.left, M.right
+            ([0], [0], (1), (2))
+            sage: M = S.minimized()
+            sage: M.mu[0], M.mu[1], M.left, M.right
+            ([0], [0], (1), (2))
+
+        ::
+
+            sage: S = Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [0, 1]])),
+            ....:         vector([1, -1]), vector([1, 1]))._minimized_left_()
+            sage: S.mu[0], S.mu[1], S.left, S.right
+            ([1], [1], (1), (0))
+            sage: M = S.minimized()
+            sage: M.mu[0], M.mu[1], M.left, M.right
+            ([], [], (), ())
+
+            sage: S = Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [0, 1]])),
+            ....:         vector([1, 1]), vector([1, -1]))
+            sage: M = S._minimized_left_()
+            sage: M.mu[0], M.mu[1], M.left, M.right
+            ([1], [1], (1), (0))
+            sage: M = S.minimized()
+            sage: M.mu[0], M.mu[1], M.left, M.right
+            ([], [], (), ())
+
+            sage: S = Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [0, 1]])),
+            ....:         left=vector([0, 1]), right=vector([1, 0]))
+            sage: M = S._minimized_left_()
+            sage: M.mu[0], M.mu[1], M.left, M.right
+            ([1], [1], (1), (0))
+            sage: M = S.minimized()
+            sage: M.mu[0], M.mu[1], M.left, M.right
+            ([], [], (), ())
+        """
+        from sage.matrix.constructor import Matrix
+        from sage.modules.free_module_element import vector
+        from sage.rings.integer_ring import ZZ
+
+        pcs = PrefixClosedSet(self.parent().indices())
+        left = self.left * self._mu_of_word_(pcs.elements[0])
+        if left.is_zero():
+            return self.parent().zero()
+        Left = [left]
+        for p in pcs.populate_interactive():
+            left = self.left * self._mu_of_word_(p)
+            try:
+                Matrix(Left).solve_left(left)
+            except ValueError:
+                # no solution found
+                pcs.add(p)
+                Left.append(left)
+        P = pcs.elements
+        C = pcs.prefix_set()
+
+        ML = Matrix(Left)
+
+        def alpha(c):
+            return ML.solve_left(self.left * self._mu_of_word_(c))
+
+        def mu_prime_entry(a, p, q, iq):
+            c = p + a
+            if c == q:
+                return ZZ(1)
+            elif c in C:
+                return alpha(c)[iq]
+            else:
+                return ZZ(0)
+
+        mu_prime = []
+        for a in self.parent().alphabet():
+            a = self.parent().indices()([a])
+            M = [[mu_prime_entry(a, p, q, iq) for iq, q in enumerate(P)]
+                 for p in P]
+            mu_prime.append(Matrix(M))
+
+        left_prime = vector([ZZ(1)] + (len(P)-1)*[ZZ(0)])
+        if self.right is None:
+            right_prime = None
+        else:
+            right_prime = vector(self[p] for p in P)
+
+        return self.parent().element_class(
+            self.parent(), mu_prime, left_prime, right_prime)
+
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 

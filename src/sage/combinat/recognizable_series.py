@@ -706,3 +706,13 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
                'with coefficients in {}'.format(self.alphabet(),
                                                 self.coefficients())
 
+
+    def _element_constructor_(self, mu,
+                              left=None, right=None,
+                              transpose=False):
+        element = self.element_class(self, mu, left, right)
+        if transpose:
+            return element.transposed()
+        else:
+            return element
+

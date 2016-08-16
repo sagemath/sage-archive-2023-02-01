@@ -488,7 +488,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
             sage: aa = fricas(a); aa #optional - fricas
             4
-            sage: aa.type()          #optional - fricas
+            sage: aa.typeOf()        #optional - fricas
             IntegerMod(15)
 
         """

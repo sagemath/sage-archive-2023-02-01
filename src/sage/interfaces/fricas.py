@@ -27,9 +27,9 @@ EXAMPLES: We evaluate a very simple expression in FriCAS.
 
 ::
 
-    sage: fricas('3 * 5')                     # optional - fricas
+    sage: fricas('3 * 5')                                                       # optional - fricas
     15
-    sage: a = fricas(3) * fricas(5); a        # optional - fricas
+    sage: a = fricas(3) * fricas(5); a                                          # optional - fricas
     15
 
 The type of a is FriCASElement, i.e., an element of the FriCAS
@@ -37,15 +37,15 @@ interpreter.
 
 ::
 
-    sage: type(a)                            # optional - fricas
+    sage: type(a)                                                               # optional - fricas
     <class 'sage.interfaces.fricas.FriCASElement'>
-    sage: a.parent()                          # optional - fricas
+    sage: a.parent()                                                            # optional - fricas
     FriCAS
 
 The underlying FriCAS type of a is also available, via the type
 method::
 
-    sage: a.typeOf()                             # optional - fricas
+    sage: a.typeOf()                                                            # optional - fricas
     PositiveInteger
 
 We factor `x^5 - y^5` in FriCAS in several different ways.
@@ -53,23 +53,23 @@ The first way yields a FriCAS object.
 
 ::
 
-    sage: F = fricas.factor('x^5 - y^5'); F      # optional - fricas
+    sage: F = fricas.factor('x^5 - y^5'); F                                     # optional - fricas
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )
-    sage: type(F)                               # optional - fricas
+    sage: type(F)                                                               # optional - fricas
     <class 'sage.interfaces.fricas.FriCASElement'>
-    sage: F.typeOf()                              # optional - fricas
+    sage: F.typeOf()                                                            # optional - fricas
     Factored(Polynomial(Integer))
 
 Note that FriCAS objects are normally displayed using "ASCII art".
 
 ::
 
-    sage: a = fricas(2/3); a          # optional - fricas
+    sage: a = fricas(2/3); a                                                    # optional - fricas
       2
       -
       3
-    sage: a = fricas('x^2 + 3/7'); a      # optional - fricas
+    sage: a = fricas('x^2 + 3/7'); a                                            # optional - fricas
        2   3
       x  + -
            7
@@ -81,7 +81,7 @@ FriCAS would print out.
 
 ::
 
-    sage: print(fricas.eval('factor(x^5 - y^5)'))   # optional - fricas
+    sage: print(fricas.eval('factor(x^5 - y^5)'))                               # optional - fricas
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )
 
@@ -92,11 +92,11 @@ works.
 
 ::
 
-    sage: f = fricas('x^5 - y^5')                  # optional - fricas
-    sage: f^2                                      # optional - fricas
+    sage: f = fricas('x^5 - y^5')                                               # optional - fricas
+    sage: f^2                                                                   # optional - fricas
        10     5 5    10
       y   - 2x y  + x
-    sage: f.factor()                               # optional - fricas
+    sage: f.factor()                                                            # optional - fricas
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )
 
@@ -106,40 +106,65 @@ control-C.
 
 ::
 
-    sage:  f = fricas('(x^5 - y^5)^10000')       # not tested - fricas
+    sage:  f = fricas('(x^5 - y^5)^10000')                                      # not tested - fricas
     Interrupting FriCAS...
     ...
     <type 'exceptions.TypeError'>: Ctrl-c pressed while running FriCAS
 
 ::
 
-    sage: fricas('1/100 + 1/101')                  # optional - fricas
+    sage: fricas('1/100 + 1/101')                                               # optional - fricas
        201
       -----
       10100
-    sage: a = fricas('(1 + sqrt(2))^5'); a         # optional - fricas
+    sage: a = fricas('(1 + sqrt(2))^5'); a                                      # optional - fricas
          +-+
       29\|2  + 41
 
-TESTS:
+Let us demonstrate some features of FriCAS.  FriCAS can guess a
+differential equation for the generating function for integer
+partitions::
 
-We check to make sure the subst method works with keyword
-arguments.
+    sage: fricas("guessADE([partition n for n in 0..40], homogeneous==4)")      # optional - fricas
+     [
+       [
+           n
+         [x ]f(x):
+              2    3 (iv)          2    2 ,             3  ,,,         2    2 ,,   2
+             x f(x) f    (x) + (20x f(x) f (x) + 5x f(x) )f   (x) - 39x f(x) f  (x)
+    <BLANKLINE>
+           +
+                 2     ,   2           2 ,           3  ,,        2 ,   4
+             (12x f(x)f (x)  - 15x f(x) f (x) + 4f(x) )f  (x) + 6x f (x)
+    <BLANKLINE>
+           +
+                      ,   3         2 ,   2
+             10x f(x)f (x)  - 16f(x) f (x)
+    <BLANKLINE>
+             =
+             0
+         ,
+                        2     3      4
+        f(x)= 1 + x + 2x  + 3x  + O(x )]
+       ]
 
-::
+FriCAS can solve linear ordinary differential equations::
 
-    sage: a = fricas(x+2); a  #optional - fricas
-    x + 2
-    sage: a.subst(x=3)       #optional - fricas
-    5
+    sage: fricas.set("y", "operator y")                                         # optional - fricas
+    sage: fricas.set("deq", "x^3*D(y x, x, 3) + x^2*D(y x, x, 2) - 2*x*D(y x, x) + 2*y x - 2*x^4")  # optional - fricas
+    sage: fricas.set("sol", "solve(deq, y, x)"); fricas("sol")                  # optional - fricas
+                  5      3      2               3     2      3      3     2
+                 x  - 10x  + 20x  + 4         2x  - 3x  + 1 x  - 1 x  - 3x  - 1
+    [particular= --------------------,basis= [-------------,------,------------]]
+                          15x                       x          x         x
 
-We verify that FriCAS floating point numbers can be converted to
-Python floats.
+    sage: fricas("sol.particular").sage()                                       # optional - fricas
+    1/15*(x^5 - 10*x^3 + 20*x^2 + 4)/x
+    sage: fricas("sol.basis").sage()                                            # optional - fricas
+    [(2*x^3 - 3*x^2 + 1)/x, (x^3 - 1)/x, (x^3 - 3*x^2 - 1)/x]
+    sage: fricas.eval(")clear values y deq sol")                                # optional - fricas
+    ''
 
-::
-
-    sage: float(fricas(2))     #optional - fricas
-    2.0
 """
 
 ###########################################################################
@@ -152,26 +177,27 @@ Python floats.
 #
 #                  http://www.gnu.org/licenses/
 ###########################################################################
-# from __future__ import print_function
+from __future__ import print_function
 # from __future__ import absolute_import
 
-from sage.interfaces.axiom import PanAxiomElement, PanAxiomFunctionElement, PanAxiomExpectFunction
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.interfaces.expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.env import DOT_SAGE
 import re
 import six
 
-FRICAS_SINGLE_LINE_START = 3      # where the output starts
-FRICAS_MULTI_LINE_START = 2
-FRICAS_LINE_LENGTH = 245   # length of a line
-FRICAS_LINE_BREAK = "\r\n" # line ending
-# beware that lisp distinguishes between ' and ".
+FRICAS_SINGLE_LINE_START = 3 # where the output starts when it fits next to the line number
+FRICAS_MULTI_LINE_START = 2  # and when it doesn't
+FRICAS_LINE_LENGTH = 80      # length of a line, should match the line length in sage
+FRICAS_LINE_BREAK = "\r\n"   # line ending character
+# only the last command should be necessary to make the interface
+# work, the other are optimizations.  Beware that lisp distinguishes
+# between ' and ".
 FRICAS_INIT_CODE = (
-")lisp (princ \"running FriCAS intialisation code\")",
 ")set functions compile on",
-")set output length " + str(FRICAS_LINE_LENGTH),
 ")set message autoload off",
+")set message type off",
+")set output length " + str(FRICAS_LINE_LENGTH),
 ")lisp (setf |$ioHook|"
 "            (lambda (x &optional args)"
 "              (when (member x '(|startAlgebraOutput| |endOfAlgebraOutput|"
@@ -226,19 +252,117 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: a = FriCAS()
-            sage: a.is_running()
+            sage: a = FriCAS()                                                  # optional - fricas
+            sage: a.is_running()                                                # optional - fricas
             False
-            sage: a._start()     #optional - axiom
-            sage: a.is_running() #optional - axiom
+            sage: a._start()                                                    # optional - fricas
+            sage: a.is_running()                                                # optional - fricas
             True
-            sage: a.quit()       #optional - axiom
+            sage: a.quit()                                                      # optional - fricas
         """
+        # this is necessary for restarting FriCAS
+        self._prompt = FRICAS_FIRST_PROMPT
         Expect._start(self)
         # switching off the line numbers also modified the prompt
         self._prompt = FRICAS_LINENUMBER_OFF_PROMPT
         self.eval(FRICAS_LINENUMBER_OFF_CODE)
 
+    def _quit_string(self):
+        """
+        Returns the string used to quit FriCAS.
+
+        EXAMPLES::
+
+            sage: fricas._quit_string()                                         # optional - fricas
+            ')quit'                                                             
+            sage: a = FriCAS()                                                  # optional - fricas
+            sage: a.is_running()                                                # optional - fricas
+            False                                                               
+            sage: a._start()                                                    # optional - fricas
+            sage: a.is_running()                                                # optional - fricas
+            True                                                                  
+            sage: a.quit()                                                      # optional - fricas
+            sage: a.is_running()                                                # optional - fricas
+            False
+        """
+        return ')quit'
+
+    def _commands(self):
+        """
+        Returns a list of commands available. This is done by parsing the
+        result of the first section of the output of ')what things'.
+
+        EXAMPLES::
+
+            sage: cmds = fricas._commands()                                     # optional - fricas
+            sage: len(cmds) > 100                                               # optional - fricas
+            True                                                                             
+            sage: '<' in cmds                                                   # optional - fricas
+            True                                                                             
+            sage: 'factor' in cmds                                              # optional - fricas
+            True
+        """
+        s = self.eval(")what things")
+        start = '\r\n\r\n#'
+        i = s.find(start)
+        end = "To get more information about"
+        j = s.find(end)
+        s = s[i+len(start):j].split()
+        return s
+
+    def _tab_completion(self, verbose=True, use_disk_cache=True):
+        """
+        Returns a list of all the commands defined in Fricas and optionally
+        (per default) store them to disk.
+
+        EXAMPLES::
+
+            sage: c = fricas._tab_completion(use_disk_cache=False, verbose=False)         # optional - fricas
+            sage: len(c) > 100                                                  # optional - fricas
+            True                                                             
+            sage: 'factor' in c                                                 # optional - fricas
+            True                                                                
+            sage: '**' in c                                                     # optional - fricas
+            False                                                               
+            sage: 'upperCase?' in c                                             # optional - fricas
+            False                                                               
+            sage: 'upperCase_q' in c                                            # optional - fricas
+            True                                                                
+            sage: 'upperCase_e' in c                                            # optional - fricas
+            True
+        """
+        try:
+            return self.__tab_completion
+        except AttributeError:
+            import sage.misc.persist
+            if use_disk_cache:
+                try:
+                    self.__tab_completion = sage.misc.persist.load(self._COMMANDS_CACHE)
+                    return self.__tab_completion
+                except IOError:
+                    pass
+            if verbose:
+                print("\nBuilding %s command completion list (this takes" % self)
+                print("a few seconds only the first time you do it).")
+                print("To force rebuild later, delete %s." % self._COMMANDS_CACHE)
+            v = self._commands()
+
+            #Process we now need process the commands to strip out things which
+            #are not valid Python identifiers.
+            valid = re.compile('[^a-zA-Z0-9_]+')
+            names = [x for x in v if valid.search(x) is None]
+
+            #Change everything that ends with ? to _q and
+            #everything that ends with ! to _e
+            names += [x[:-1]+"_q" for x in v if x.endswith("?")]
+            names += [x[:-1]+"_e" for x in v if x.endswith("!")]
+
+            self.__tab_completion = names
+            if len(v) > 200:
+                # Fricas is actually installed.
+                sage.misc.persist.save(v, self._COMMANDS_CACHE)
+            return names
+        
     def eval(self, code, strip=True, synchronize=False, locals=None, allow_use_file=True,
              split_lines="nofile", **kwds):
         """Send the code to the FriCAS interpreter and return the pretty
@@ -278,8 +402,8 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: fricas.set('xx', '2')    #optional - fricas
-            sage: fricas.get('xx')         #optional - fricas
+            sage: fricas.set('xx', '2')                                         # optional - fricas
+            sage: fricas.get('xx')                                              # optional - fricas
             '2'
 
         """
@@ -297,11 +421,11 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: fricas.set('xx', '2')    #optional - fricas
-            sage: fricas.get('xx')         #optional - fricas
+            sage: fricas.set('xx', '2')                                         # optional - fricas
+            sage: fricas.get('xx')                                              # optional - fricas
             '2'
-            sage: a = fricas('(1 + sqrt(2))^5') #optional - fricas
-            sage: fricas.get(a.name())          #optional - fricas
+            sage: a = fricas('(1 + sqrt(2))^5')                                 # optional - fricas
+            sage: fricas.get(a.name())                                          # optional - fricas
             '   +-+\r\n29\\|2  + 41'
         """
 #        print "running get", var
@@ -320,7 +444,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: a = fricas(x==6); a   #optional fricas
+            sage: a = fricas(x==6); a                                           # optional - fricas
             x= 6
         """
         return "="
@@ -329,7 +453,7 @@ class FriCAS(ExtraTabCompletion, Expect):
         """
         EXAMPLES::
 
-            sage: fricas
+            sage: fricas                                                        # optional - fricas
             FriCAS
         """
         return "FriCAS"
@@ -338,10 +462,10 @@ class FriCAS(ExtraTabCompletion, Expect):
         """
         EXAMPLES::
 
-            sage: fricas.__reduce__()
+            sage: fricas.__reduce__()                                           # optional - fricas
             (<function reduce_load_fricas at 0x...>, ())
-            sage: f, args = _
-            sage: f(*args)
+            sage: f, args = _                                                   # optional - fricas
+            sage: f(*args)                                                      # optional - fricas
             FriCAS
         """
         return reduce_load_fricas, tuple([])
@@ -352,9 +476,9 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: fricas._function_class()
+            sage: fricas._function_class()                                      # optional - fricas
             <class 'sage.interfaces.fricas.FriCASExpectFunction'>
-            sage: type(fricas.gcd)
+            sage: type(fricas.gcd)                                              # optional - fricas
             <class 'sage.interfaces.fricas.FriCASExpectFunction'>
         """
         return FriCASExpectFunction
@@ -363,9 +487,9 @@ class FriCAS(ExtraTabCompletion, Expect):
         """
         EXAMPLES::
 
-            sage: fricas._object_class()
+            sage: fricas._object_class()                                        # optional - fricas
             <class 'sage.interfaces.fricas.FriCASElement'>
-            sage: type(fricas(2)) #optional - fricas
+            sage: type(fricas(2))                                               # optional - fricas
             <class 'sage.interfaces.fricas.FriCASElement'>
         """
         return FriCASElement
@@ -376,9 +500,9 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: fricas._function_element_class()
+            sage: fricas._function_element_class()                              # optional - fricas
             <class 'sage.interfaces.fricas.FriCASFunctionElement'>
-            sage: type(fricas(2).gcd) #optional - fricas
+            sage: type(fricas(2).gcd) #optional - fricas                        # optional - fricas
             <class 'sage.interfaces.fricas.FriCASFunctionElement'>
         """
         return FriCASFunctionElement
@@ -389,7 +513,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: fricas.console() #not tested
+            sage: fricas.console()                                              # not tested
                              FriCAS (AXIOM fork) Computer Algebra System
                                     Version: FriCAS 1.0.5
                      Timestamp: Thursday February 19, 2009 at 06:57:33
@@ -403,15 +527,14 @@ class FriCAS(ExtraTabCompletion, Expect):
 
 class FriCASElement(ExpectElement):
 
-
     def __len__(self):
         """
         Return the length of a list.
 
         EXAMPLES::
 
-            sage: v = axiom('[x^i for i in 0..5]')            # optional - axiom
-            sage: len(v)                                      # optional - axiom
+            sage: v = fricas('[x^i for i in 0..5]')                             # optional - fricas
+            sage: len(v)                                                        # optional - fricas
             6
         """
         P = self._check_valid()
@@ -446,6 +569,11 @@ class FriCASElement(ExpectElement):
         raise NotImplementedError
 
     def __float__(self):
+        """
+        TEST::
+        sage: float(fricas(2))                                                  # optional - fricas
+        2.0
+        """
         return float(self.sage())
 
     def _integer_(self, ZZ=None):
@@ -457,7 +585,7 @@ class FriCASElement(ExpectElement):
     def gen(self, n):
         raise NotImplementedError
 
-    def _get_1d_output(self):
+    def _unparsed_InputForm(self):
         """Return the output from FriCAS as a string without the quotes.
 
         TODO:
@@ -473,24 +601,25 @@ class FriCASElement(ExpectElement):
 
         We test that strings are returned properly:
 
-        sage: r = fricas('concat([concat(string(i)," ") for i in 0..299])')._get_1d_output()
-        sage: r == " ".join([str(i) for i in range(300)]) + ' '
+        sage: r = fricas('concat([concat(string(i)," ") for i in 0..299])')._unparsed_InputForm()   # optional - fricas
+        sage: r == " ".join([str(i) for i in range(300)]) + ' '                                     # optional - fricas
         True
 
-        sage: fricas('concat([string(1) for i in 1..5])')._get_1d_output() == "1"*5
+        sage: fricas('concat([string(1) for i in 1..5])')._unparsed_InputForm() == "1"*5            # optional - fricas
         True
 
-        sage: fricas('concat([string(1) for i in 1..10000])')._get_1d_output() == "1"*10000
+        sage: fricas('concat([string(1) for i in 1..10000])')._unparsed_InputForm() == "1"*10000    # optional - fricas
         True
         """
         P = self._check_valid()
         return P.eval('unparse(%s::InputForm)' %self._name).replace("\r\n", "")[1:-1]
 
-    def _get_sage_type(self, type):
+
+    def _get_sage_type(self, domain):
         """
         INPUT:
 
-        - type, a FriCAS SExpression
+        - domain, a FriCAS SExpression
 
         OUTPUT:
 
@@ -501,9 +630,10 @@ class FriCASElement(ExpectElement):
         from sage.rings.finite_rings.integer_mod_ring import Integers
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
+        from sage.matrix.constructor import matrix
 
         # first implement domains without arguments
-        head = str(type.car())
+        head = str(domain.car())
         if head in ["Integer", "NonNegativeInteger", "PositiveInteger"]:
             return ZZ
         if head == "String":
@@ -517,18 +647,15 @@ class FriCASElement(ExpectElement):
             return QQbar
 
         # now implement "functorial" types
-        if head == "Union":
-            return self._get_sage_type(type[1][2])
-
         if head == "OrderedCompletion":
             # this is a workaround, I don't know how translate this
             return SR
-        
+
         if head == "IntegerMod":
-            return Integers(type[1].integer().sage())
+            return Integers(domain[1].integer().sage())
 
         if head == "Fraction":
-            return FractionField(self._get_sage_type(type[1]))
+            return FractionField(self._get_sage_type(domain[1]))
 
         if head == "Expression":
             return SR
@@ -547,30 +674,30 @@ class FriCASElement(ExpectElement):
 
         Floats:
 
-        sage: fricas(2.1234).sage()                               # optional - fricas
+        sage: fricas(2.1234).sage()                                             # optional - fricas
         2.12340000000000
-        sage: _.parent()                                          # optional - fricas
+        sage: _.parent()                                                        # optional - fricas
         Real Field with 53 bits of precision
         sage: a = RealField(100)(pi)
-        sage: fricas(a).sage()                                    # optional - fricas
+        sage: fricas(a).sage()                                                  # optional - fricas
         3.1415926535897932384626433833
-        sage: _.parent()                                          # optional - fricas
+        sage: _.parent()                                                        # optional - fricas
         Real Field with 100 bits of precision
-        sage: fricas(a).sage() == a                               # optional - fricas
+        sage: fricas(a).sage() == a                                             # optional - fricas
         True
-        sage: fricas(2.0).sage()                                  # optional - fricas
+        sage: fricas(2.0).sage()                                                # optional - fricas
         2.00000000000000
-        sage: _.parent()                                          # optional  - fricas
+        sage: _.parent()                                                        # optional  - fricas
         Real Field with 53 bits of precision
 
         Algebraic numbers:
 
-        sage: a = fricas('(1 + sqrt(2))^5'); a                    # optional - fricas
+        sage: a = fricas('(1 + sqrt(2))^5'); a                                  # optional - fricas
            +-+
         29\|2  + 41
-        sage: b = a.sage(); b                                     # optional - fricas
+        sage: b = a.sage(); b                                                   # optional - fricas
         82.0121933088198?
-        sage: b.radical_expression()                              # optional - fricas
+        sage: b.radical_expression()                                            # optional - fricas
         29*sqrt(2) + 41
 
         Integers modulo n:
@@ -578,48 +705,59 @@ class FriCASElement(ExpectElement):
         sage: fricas("((42^17)^1783)::IntegerMod(5^(5^5))").sage() == Integers(5^(5^5))((42^17)^1783) # optional - fricas
         True
 
-        We can also convert Fricas's polynomials to Sage polynomials.
+        We can also convert FriCAS's polynomials to Sage polynomials.
 
-        sage: a = fricas(x^2 + 1); a.typeOf()                     # optional - fricas
+        sage: a = fricas(x^2 + 1); a.typeOf()                                   # optional - fricas
         Polynomial(Integer)
-        sage: a.sage()                                            # optional - fricas
+        sage: a.sage()                                                          # optional - fricas
         x^2 + 1
-        sage: _.parent()                                          # optional - fricas
+        sage: _.parent()                                                        # optional - fricas
         Univariate Polynomial Ring in x over Integer Ring
-        sage: fricas('x^2 + y^2 + 1/2').sage()                    # optional - fricas
+        sage: fricas('x^2 + y^2 + 1/2').sage()                                  # optional - fricas
         y^2 + x^2 + 1/2
-        sage: _.parent()                                          # optional - fricas
+        sage: _.parent()                                                        # optional - fricas
         Multivariate Polynomial Ring in y, x over Rational Field
 
-        sage: fricas("1$Polynomial Integer").sage()               # optional - fricas
+        sage: fricas("1$Polynomial Integer").sage()                             # optional - fricas
         1
 
-        sage: fricas("x^2/2").sage()                              # optional - fricas
+        sage: fricas("x^2/2").sage()                                            # optional - fricas
         1/2*x^2
 
         Rational functions:
 
-        sage: fricas("x^2 + 1/z").sage()                          # optional - fricas
+        sage: fricas("x^2 + 1/z").sage()                                        # optional - fricas
         x^2 + 1/z
 
         Expressions:
 
-        sage: fricas("sin(x+y)/exp(z)*log(1+%e)").sage()          # optional - fricas
+        sage: fricas("sin(x+y)/exp(z)*log(1+%e)").sage()                        # optional - fricas
         e^(-z)*log(e + 1)*sin(x + y)
 
-        sage: fricas("factorial(n)").sage()                       # optional - fricas
+        sage: fricas("factorial(n)").sage()                                     # optional - fricas
         factorial(n)
 
-        sage: fricas("integrate(sin(x+y), x=0..1)").sage()        # optional - fricas
+        sage: fricas("integrate(sin(x+y), x=0..1)").sage()                      # optional - fricas
         -cos(y + 1) + cos(y)
 
-        sage: fricas("integrate(x*sin(1/x), x=0..1)").sage()      # optional - fricas
+        sage: fricas("integrate(x*sin(1/x), x=0..1)").sage()                    # optional - fricas
+        'failed'
 
-        sage: fricas("guessPade [1,1,2,3,5,8]")                   # optional - fricas
-            n        1
-        [[[x ]- ----------]]
-                 2
-                x  + x - 1
+        Matrices:
+
+        sage: fricas("matrix [[x^n/2^m for n in 0..5] for m in 0..3]").sage()   # optional - fricas
+        [      1       x     x^2     x^3     x^4     x^5]
+        [    1/2   1/2*x 1/2*x^2 1/2*x^3 1/2*x^4 1/2*x^5]
+        [    1/4   1/4*x 1/4*x^2 1/4*x^3 1/4*x^4 1/4*x^5]
+        [    1/8   1/8*x 1/8*x^2 1/8*x^3 1/8*x^4 1/8*x^5]
+
+        Lists:
+
+        sage: fricas("[2^n/x^n for n in 0..5]").sage()                          # optional - fricas
+        [1, 2/x, 4/x^2, 8/x^3, 16/x^4, 32/x^5]
+
+        sage: fricas("[matrix [[i for i in 1..n]] for n in 0..5]").sage()       # optional - fricas
+        [[], [1], [1 2], [1 2 3], [1 2 3 4], [1 2 3 4 5]]
 
         """
         from sage.rings.all import ZZ, QQ, QQbar, PolynomialRing, RDF
@@ -627,47 +765,62 @@ class FriCASElement(ExpectElement):
         from sage.rings.finite_rings.integer_mod_ring import Integers
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
+        from sage.matrix.constructor import matrix
         from sage.misc.sage_eval import sage_eval
 
-        domain = self.dom() # type is now a fricas SExpression
-        head = str(domain.car())
-        # the special domain Union needs special treatment
-        if head == "Union":
-            domain = domain[1][2]
-            head = str(domain.car())
+        # TODO: perhaps we should translate the type first?
+        # TODO: perhaps we should get the InputForm as SExpression?
 
-        # first implement domains without arguments
+        # the coercion to Any gets rid of the Union domain
+        P = self._check_valid()
+        domain = P.new("dom(%s::Any)" % self._name) # domain is now a fricas SExpression
+
+        # first translate dummy domains such as "failed"
+        # we must not recurse here!
+        if P.eval("string?(%s)" % domain._name) == "true":
+            return P.eval("string(%s)" % domain._name)[1:-1]
+
+        # now translate domains without arguments
+        head = str(domain.car())
+        if head == "Boolean":
+            return self._unparsed_InputForm() == "true"
+
         if head in ["Integer", "NonNegativeInteger", "PositiveInteger"]:
-            return ZZ(self._get_1d_output())
+            return ZZ(self._unparsed_InputForm())
 
         if head == "String":
-            return self._get_1d_output()
+            return self._unparsed_InputForm()
 
         if head == "Float":
+            # Warning: precision$Float gives the current precision,
+            # whereas length(mantissa(self)) gives the precision of
+            # self.
             prec = max(self.mantissa().length().sage(), 53)
             R = RealField(prec)
-            x, e, b = self._get_1d_output().lstrip('float(').rstrip(')').split(',')
+            x, e, b = self._unparsed_InputForm().lstrip('float(').rstrip(')').split(',')
             return R(ZZ(x)*ZZ(b)**ZZ(e))
 
         if head == "DoubleFloat":
-            return RDF(self._get_1d_output())
+            return RDF(self._unparsed_InputForm())
 
         if head == "AlgebraicNumber":
-            s = self._get_1d_output()[:-len("::AlgebraicNumber()")]
+            s = self._unparsed_InputForm()[:-len("::AlgebraicNumber()")]
             return sage_eval("QQbar(" + s + ")")
 
-        # now implement "functorial" types
-        
+        # finally implement "functorial" types
         if head == "List":
-            P = self._check_valid()
-            n = P.new('# %s'%self.name()).sage()
+            n = int(P.eval('# %s'%self._name))
             return [P.new('%s(%s)'%(self._name, k)).sage() for k in range(1, n+1)]
 
+        if head == "Matrix":
+            base_ring = self._get_sage_type(domain[1])
+            rows = P.new('listOfLists(%s)' %self._name).sage()
+            return matrix(base_ring, rows)
+
         if head == "IntegerMod":
-            # one might be tempted not to go via unparse and
-            # InputForm here, but it turns out to be safer to do
-            # it.
-            n = self._get_1d_output()[len("index("):]
+            # one might be tempted not to go via InputForm here, but
+            # it turns out to be safer to do it.
+            n = self._unparsed_InputForm()[len("index("):]
             n = n[:n.find(")")]
             return self._get_sage_type(domain)(n)
 
@@ -676,37 +829,75 @@ class FriCASElement(ExpectElement):
 
         if head == "Polynomial":
             base_ring = self._get_sage_type(domain[1])
-            vars = self.variables()._get_1d_output()[1:-1]
+            vars = self.variables()._unparsed_InputForm()[1:-1]
             if vars == "":
-                return base_ring(self._get_1d_output())
+                return base_ring(self._unparsed_InputForm())
             else:
                 R = PolynomialRing(base_ring, vars)
-                return R(self._get_1d_output())
+                return R(self._unparsed_InputForm())
 
         if head == "OrderedCompletion":
             # this is a workaround, I don't know how translate this
             if str(domain[1].car()) == "Expression":
-                s = self._get_1d_output()
-                return SR(s)
-            
+                s = self._unparsed_InputForm()
+                return SR(s.replace("pi()", "pi"))
+
         if head == "Expression":
             # TODO: we also have Expression Complex Integer and the like
             if str(domain[1].car()) == "Integer":
-                s = self._get_1d_output()
-                return SR(s)
+                s = self._unparsed_InputForm()
+                return SR(s.replace("pi()", "pi"))
 
         if head == 'DistributedMultivariatePolynomial':
             base_ring = self._get_sage_type(domain[2])
             vars = domain[1].car()
             R = PolynomialRing(base_ring, vars)
-            return R(self._get_1d_output())
+            return R(self._unparsed_InputForm())
 
 
 
-class FriCASFunctionElement(PanAxiomFunctionElement):
+class FriCASFunctionElement(FunctionElement):
+    def __init__(self, object, name):
+        """Make FriCAS operation names valid python function identifiers.
+        
+        TESTS::
+
+        sage: a = fricas('"Hello"')                                             # optional - fricas
+        sage: a.upperCase_q                                                     # optional - fricas
+        upperCase?                                                              
+        sage: a.upperCase_e                                                     # optional - fricas
+        upperCase!                                                              
+        sage: a.upperCase_e()                                                   # optional - fricas
+        "HELLO"
+
+        """
+        if name.endswith("_q"):
+            name = name[:-2] + "?"
+        elif name.endswith("_e"):
+            name = name[:-2] + "!"
+        FunctionElement.__init__(self, object, name)
+
     pass
 
-class FriCASExpectFunction(PanAxiomExpectFunction):
+class FriCASExpectFunction(ExpectFunction):
+    def __init__(self, parent, name):
+        """Translate the pythonized function identifier back to a FriCAS
+        operation name.
+
+        TESTS::
+
+        sage: fricas.upperCase_q                                                # optional - fricas
+        upperCase?
+        sage: fricas.upperCase_e                                                # optional - fricas
+        upperCase!
+
+        """
+        if name.endswith("_q"):
+            name = name[:-2] + "?"
+        elif name.endswith("_e"):
+            name = name[:-2] + "!"
+        ExpectFunction.__init__(self, parent, name)
+    
     pass
 
 def is_FriCASElement(x):
@@ -715,10 +906,10 @@ def is_FriCASElement(x):
 
     EXAMPLES::
 
-        sage: from sage.interfaces.fricas import is_FriCASElement #optional - fricas
-        sage: is_FriCASElement(fricas(2))  #optional - fricas
+        sage: from sage.interfaces.fricas import is_FriCASElement               # optional - fricas
+        sage: is_FriCASElement(fricas(2))                                       # optional - fricas
         True
-        sage: is_FriCASElement(2)  #optional - fricas
+        sage: is_FriCASElement(2)                                               # optional - fricas
         False
     """
     return isinstance(x, FriCASElement)
@@ -732,8 +923,8 @@ def reduce_load_fricas():
 
     EXAMPLES::
 
-        sage: from sage.interfaces.fricas import reduce_load_fricas
-        sage: reduce_load_fricas()
+        sage: from sage.interfaces.fricas import reduce_load_fricas             # optional - fricas
+        sage: reduce_load_fricas()                                              # optional - fricas
         FriCAS
     """
     return fricas
@@ -746,7 +937,7 @@ def fricas_console():
 
     EXAMPLES::
 
-        sage: fricas_console() #not tested
+        sage: fricas_console()                                                  # not tested
                          FriCAS (AXIOM fork) Computer Algebra System
                                     Version: FriCAS 1.0.5
                      Timestamp: Thursday February 19, 2009 at 06:57:33
@@ -765,13 +956,13 @@ def __doctest_cleanup():
     """
     EXAMPLES::
 
-        sage: from sage.interfaces.fricas import __doctest_cleanup #optional - fricas
-        sage: a = FriCAS()   #optional - fricas
-        sage: two = a(2)     #optional - fricas
-        sage: a.is_running() #optional - fricas
+        sage: from sage.interfaces.fricas import __doctest_cleanup              # optional - fricas
+        sage: a = FriCAS()                                                      # optional - fricas
+        sage: two = a(2)                                                        # optional - fricas
+        sage: a.is_running()                                                    # optional - fricas
         True
-        sage: __doctest_cleanup()   #optional - fricas
-        sage: a.is_running()   #optional - fricas
+        sage: __doctest_cleanup()                                               # optional - fricas
+        sage: a.is_running()                                                    # optional - fricas
         False
     """
     import sage.interfaces.quit

@@ -639,7 +639,9 @@ class RecognizableSeries(Element):
 
         EXAMPLES::
 
+            sage: from itertools import islice, izip
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+
             sage: S = Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
             ....:         vector([0, 1]), vector([1, 0]),
             ....:         transpose=True)
@@ -647,12 +649,26 @@ class RecognizableSeries(Element):
             [1] + 3*[01] + [10] + 5*[11] + 9*[001] + 3*[010]
                 + 15*[011] + [100] + 11*[101] + 5*[110] + ...
             sage: M = S.minimized()
-            sage: M
             sage: M.mu[0], M.mu[1], M.left, M.right
             (
             [3 0]  [ 0  1]
             [6 1], [-6  5], (1, 0), (0, 1)
             )
+            sage: all(c == d and v == w
+            ....:     for (c, v), (d, w) in islice(izip(iter(S), iter(M)), 20))
+            True
+
+            sage: S = Rec((Matrix([[2, 0], [1, 1]]), Matrix([[2, 0], [2, 1]])),
+            ....:         vector([1, 0]), vector([1, 1]))
+            sage: S
+            [] + 2*[0] + 2*[1] + 4*[00] + 4*[01] + 4*[10] + 4*[11]
+               + 8*[000] + 8*[001] + 8*[010] + ...
+            sage: M = S.minimized()
+            sage: M.mu[0], M.mu[1], M.left, M.right
+            ([2], [2], (1), (1))
+            sage: all(c == d and v == w
+            ....:     for (c, v), (d, w) in islice(izip(iter(S), iter(M)), 20))
+            True
         """
         if self.left is None or self.right is None:
             raise ValueError("Cannot minmize as 'left' or 'right' is None.")

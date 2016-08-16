@@ -72,10 +72,9 @@ def _base_ring_to_fraction_field(S):
         sage: R.<t> = ZZ[]
         sage: sigma = R.hom([t+1])
         sage: T.<x> = R['x', sigma]
-        sage: eval_pts = [1, t, t^2]
-        sage: values = [t^2 + 3*t + 4, 2*t^2 + 3*t + 1, t^2 + 3*t + 4]
-        sage: p = T.interpolation_polynomial(eval_pts, values); p #indirect doctest
-        ((-t^4 - 2*t - 3)/-2)*x^2 + (-t^4 - t^3 - t^2 - 3*t - 2)*x + (-t^4 - 2*t^3 - 4*t^2 - 10*t - 9)/-2
+        sage: points = [ (t, 3*t^2 + 4*t + 4) , (t^2, 4*t) ]
+        sage: p = T.lagrange_polynomial(points); p #indirect doctest
+        ((3*t^3 + 4*t^2)/(-t - 1))*x + (-3*t^3 - 7*t^2 - 4*t - 4)/-t
     """
     R = S.base_ring()
     if isinstance(R, Field):
@@ -137,9 +136,9 @@ def _minimal_vanishing_polynomial(R, eval_pts):
         return M_M_A_B * M_A
 
 
-def _interpolate(R, eval_pts, values):
+def _lagrange_interpolation(R, eval_pts, values):
     """
-    Return the interpolation polynomial (internal method).
+    Return the lagrange polynomial (internal method).
 
     TODO
 
@@ -157,21 +156,20 @@ def _interpolate(R, eval_pts, values):
         independent over the fixed field of the twist map of the associated
         skew polynomial ring
 
-    - ``values`` -- list of values that the interpolation polynomial takes
+    - ``values`` -- list of values that the lagrange polynomial takes
         at the respective `eval_pts`
 
     OUTPUT:
 
-    The interpolation polynomial.
+    The lagrange polynomial.
 
     EXAMPLES:
 
         sage: k.<t> = GF(5^3)
         sage: Frob = k.frobenius_endomorphism()
         sage: S.<x> = k['x',Frob]
-        sage: eval_pts = [t, t^2]
-        sage: values = [3*t^2 + 4*t + 4, 4*t]
-        sage: d = S.interpolation_polynomial(eval_pts, values); d #indirect doctest
+        sage: points = [ (t, 3*t^2 + 4*t + 4) , (t^2, 4*t) ]
+        sage: d = S.lagrange_polynomial(points); d #indirect doctest
         x + t
     """
     l = len(eval_pts)
@@ -185,8 +183,8 @@ def _interpolate(R, eval_pts, values):
         M_B = _minimal_vanishing_polynomial(R, B)
         A_ = M_B.multi_point_evaluation(A)
         B_ = M_A.multi_point_evaluation(B)
-        I_1 = _interpolate(R, A_, values[:t])
-        I_2 = _interpolate(R, B_, values[t:])
+        I_1 = _lagrange_interpolation(R, A_, values[:t])
+        I_2 = _lagrange_interpolation(R, B_, values[t:])
         return I_1 * M_B + I_2 * M_A
 
 
@@ -890,67 +888,74 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         """
         return _minimal_vanishing_polynomial(_base_ring_to_fraction_field(self), eval_pts)
 
-    def interpolation_polynomial(self, eval_pts, values, check=True):
+    def lagrange_polynomial(self, points, check=True):
         """
-        Return the interpolation polynomial.
+        Return the minimal-degree polynomial which interpolates the given
+        points, if one exists.
 
-        Given `s` pairs of evaluation points and values `{(x_1, y_1), ..., (x_s, y_s)}`,
-        where each `x_i` is distinct and non-zero, there exists a unique interpolation
-        polynomial `I` such that `I(x_i) = y_i`, for all `i = 1,...,s`.
+        More precisely, given `n` pairs `(x_1, y_1), ..., (x_n, y_n) \in R^2`,
+        where `R` is ``self.base_ring()``, determine whether a skew polynomial
+        `p(x)` such that `p(x_i) = y_i` for each `i` exists, and return it if
+        it does.
+
+        If the `x_i` are linearly independent over the fixed field of
+        ``self.twist_map()`` then such a polynomial is guaranteed to exist.
 
         INPUT:
 
-        - ``eval_pts`` -- list of evaluation points which are linearly
-          independent over the fixed field of the twist map of the associated
-          skew polynomial ring
+        - ``points`` -- a list of pairs ``(x_1, y_1),..., (x_n, y_n)`` of
+          elements of the base ring of ``self``.
 
-        - ``values`` -- list of values that the interpolation polynomial `I` takes
-          at the respective `eval_pts`
-
-        - ``check`` -- boolean (default: ``True``) that verifies whether the
-          `eval_pts` are linearly independent in the fixed field of twist map of
-          the associated skew polynomial ring
+        # - ``check`` -- boolean (default: ``True``): if ``True`` then the computed polynomial is 
+        # that verifies whether the
+        #   `eval_pts` are linearly independent in the fixed field of twist map of
+        #   the associated skew polynomial ring
 
         TODO Better doc of ``check`` etc.
 
+        TODO Example showing linear dependence
+
         OUTPUT:
 
-        The interpolation polynomial.
+        The lagrange polynomial.
 
         EXAMPLES::
 
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
-            sage: eval_pts = [t, t^2]
-            sage: values = [3*t^2 + 4*t + 4, 4*t]
-            sage: d = S.interpolation_polynomial(eval_pts, values); d
+            sage: points = [(t, 3*t^2 + 4*t + 4), (t^2, 4*t)]
+            sage: d = S.lagrange_polynomial(points); d
             x + t
 
             sage: R.<t> = ZZ[]
             sage: sigma = R.hom([t+1])
             sage: T.<x> = R['x', sigma]
-            sage: eval_pts = [1, t, t^2]
-            sage: values = [t^2 + 3*t + 4, 2*t^2 + 3*t + 1, t^2 + 3*t + 4]
-            sage: p = T.interpolation_polynomial(eval_pts, values); p
+            sage: points = [ (1, t^2 + 3*t + 4), (t, 2*t^2 + 3*t + 1), (t^2, t^2 + 3*t + 4) ]
+            sage: p = T.lagrange_polynomial(points); p
             ((-t^4 - 2*t - 3)/-2)*x^2 + (-t^4 - t^3 - t^2 - 3*t - 2)*x + (-t^4 - 2*t^3 - 4*t^2 - 10*t - 9)/-2
+            sage: p.multi_point_evaluation([1, t, t^2]) == [ t^2 + 3*t + 4, 2*t^2 + 3*t + 1, t^2 + 3*t + 4 ]
+            True
         """
-        l = len(eval_pts)
-        if l != len(values):
-            raise TypeError("number of evaluation points and values must be equal")
+        l = len(points)
+        if not all( len(pair) == 2 for pair in points ):
+            raise TypeError("supplied points must be pairs of elements of base ring")
+        eval_pts, values = zip(*points) #unzip
+        eval_pts = list(eval_pts)
+        values = list(values)
+        
         if l > len(set(eval_pts)):
             raise TypeError("the evaluation points must be distinct")
-        if 0 in eval_pts:
-            raise TypeError("evaluation points must be non-zero")
+        zero_i = [ i for i in range(l) if eval_pts[i].is_zero() ]
+        if zero_i and not values[zero_i[0]].is_zero():
+            raise TypeError("a skew polynomial always evaluates to 0 at 0, but a non-zero value was requested.")
 
-        interpolation_polynomial = _interpolate(_base_ring_to_fraction_field(self), eval_pts, values)
+        p = _lagrange_interpolation(_base_ring_to_fraction_field(self), eval_pts, values)
 
-        if check:
-            for i in range(l):
-                if interpolation_polynomial(eval_pts[i]) != values[i]:
-                    return ValueError("evaluation points must be linearly independent over the fixed field of the twist map")
+        if check and p.multi_point_evaluation(eval_pts) != values:
+            raise ValueError("the requested Lagrange polynomial does not exist (the evaluation points are linearly dependent over the fixed field of the twist map and the sought values do not match.)")
 
-        return interpolation_polynomial
+        return p
 
 class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
     """

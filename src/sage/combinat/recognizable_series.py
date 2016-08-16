@@ -495,6 +495,49 @@ class RecognizableSeries(Element):
                     for w in self.parent().indices() if self[w] != 0)
 
 
+    def transposed(self):
+        r"""
+        Return the transposed series.
+
+        OUTPUT:
+
+        A :class:`RecognizableSeries`.
+
+        Each of the ``matrices`` is transposed. Additionally
+        the vectors ``left`` and ``right`` are switched and (if
+        possible) transposed as well.
+
+        EXAMPLES::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: S = Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
+            ....:         vector([0, 1]), vector([1, 0]), transpose=True)
+            sage: S
+            [1] + 3*[01] + [10] + 5*[11] + 9*[001] + 3*[010]
+                + 15*[011] + [100] + 11*[101] + 5*[110] + ...
+            sage: S.mu[0], S.mu[1], S.left, S.right
+            (
+            [3 0]  [ 0  1]
+            [6 1], [-6  5], (1, 0), (0, 1)
+            )
+            sage: T = S.transposed()
+            sage: T
+            [1] + [01] + 3*[10] + 5*[11] + [001] + 3*[010]
+                + 5*[011] + 9*[100] + 11*[101] + 15*[110] + ...
+            sage: T.mu[0], T.mu[1], T.left, T.right
+            (
+            [3 6]  [ 0 -6]
+            [0 1], [ 1  5], (0, 1), (1, 0)
+            )
+        """
+        def tr(M):
+            try:
+                return M.transpose()
+            except AttributeError:
+                return M
+        return self.parent()(self.mu.map(tr),
+                             left=tr(self.right),
+                             right=tr(self.left))
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 

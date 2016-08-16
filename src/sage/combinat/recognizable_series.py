@@ -243,15 +243,6 @@ class RecognizableSeries(Element):
             ....:     transpose=True)
             [1] + 3*[01] + [10] + 5*[11] + 9*[001] + 3*[010] + ...
 
-        Using an output function::
-
-            sage: Rec = RecognizableSeriesSpace(
-            ....:           ZZ, [0, 1], output_function=lambda o: o[0, 0])
-            sage: Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-            ....:     Matrix([[0, 1]]), Matrix([[1], [0]]),
-            ....:     transpose=True)
-            [1] + 3*[01] + [10] + 5*[11] + 9*[001] + 3*[010] + ...
-
         .. SEEALSO::
 
             :doc:`recognizable series <recognizable_series>`,
@@ -406,7 +397,7 @@ class RecognizableSeries(Element):
             result = self.left * result
         if self.right is not None:
             result = result * self.right
-        return self.parent()._output_function_(result)
+        return result
 
 
     @cached_method
@@ -819,7 +810,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
     def __classcall__(cls,
                       coefficients=None, alphabet=None, 
                       indices=None, algebra=None,
-                      output_function=None, category=None):
+                      category=None):
         r"""
         Normalizes the input in order to ensure a unique
         representation.
@@ -854,10 +845,10 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         category = category or algebra.category()
 
         return super(RecognizableSeriesSpace, cls).__classcall__(
-            cls, algebra, output_function, category)
+            cls, algebra, category)
 
 
-    def __init__(self, algebra, output_function, category):
+    def __init__(self, algebra, category):
         r"""
         The space of recognizable series on the given alphabet and
         with the given coefficients.
@@ -875,9 +866,6 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         - ``algebra`` -- a SageMath parent.
           If specified, then ``coefficients``
           and ``indices`` are determined by this ``algebra``.
-
-        - ``output_function`` -- (default: ``None'') If specified,
-          then this is applied on each coefficient.
 
         - ``category`` -- (default: ``None``) the category of this
           space. If ``None``, then the category of the ``algebra``
@@ -906,10 +894,6 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             :class:`RecognizableSeries`.
         """
         self._algebra_ = algebra
-        if output_function is None:
-            self._output_function_ = lambda o: o
-        else:
-            self._output_function_ = output_function
         super(RecognizableSeriesSpace, self).__init__(
             category=category, base=algebra.base())
 

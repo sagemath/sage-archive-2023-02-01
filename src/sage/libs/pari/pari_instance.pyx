@@ -478,6 +478,8 @@ cdef class PariInstance(PariInstance_auto):
 
         pari_init_opts(size, maxprime, INIT_DFTm)
         
+        sizemax = mem.virtual_memory_limit() // 4
+
         if CYGWIN_VERSION and CYGWIN_VERSION < (2, 5, 2):
             # Cygwin's mmap is broken for large mmaps (>~ 4GB)
             # See http://trac.sagemath.org/ticket/20463
@@ -485,11 +487,9 @@ cdef class PariInstance(PariInstance_auto):
             # it grows beyond 4GB this issue could still be triggered
             #
             # The underlying issue is fixed in Cygwin v2.5.2
-            stacksize = 0x3fffffff
-        else:
-            stacksize = mem.virtual_memory_limit() // 4
+            sizemax = min(sizemax, 0x3fffffff)
 
-        paristack_setsize(size, stacksize)
+        paristack_setsize(size, sizemax)
 
         # Disable PARI's stack overflow checking which is incompatible
         # with multi-threading.

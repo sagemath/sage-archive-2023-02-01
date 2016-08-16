@@ -53,28 +53,26 @@ from sage.rings.polynomial.skew_polynomial_element import SkewPolynomial
 
 def _base_ring_to_fraction_field(S):
     """
-    TODO
-    Return the indeterminate generator, one and twist map of
-    ``self``, or of the skew polynomial ring `S` associated
-    with the fraction field of the base ring of ``self`` if
-    the base ring of ``self`` is not a field (internal method).
+    Return the unique skew polynomial ring over the fraction field of
+    ``S.base_ring()`` which has ``S`` a sub-ring (internal method).
+
+    INPUT:
+
+    - ``S`` -- a skew polynomial ring.
 
     OUTPUT:
 
-    - ``x`` -- indeterminate generator of ``self`` or `S`
-
-    - ``one`` -- one of ``self`` or `S`
-
-    - ``sigma`` -- twist map of ``self`` or `S`
+    - ``Q`` -- the skew polynomial ring over the fraction field of
+      ``S.base_ring``.
 
     EXAMPLES:
 
+        sage: from sage.rings.polynomial.skew_polynomial_ring import _base_ring_to_fraction_field
         sage: R.<t> = ZZ[]
         sage: sigma = R.hom([t+1])
-        sage: T.<x> = R['x', sigma]
-        sage: points = [ (t, 3*t^2 + 4*t + 4) , (t^2, 4*t) ]
-        sage: p = T.lagrange_polynomial(points); p #indirect doctest
-        ((3*t^3 + 4*t^2)/(-t - 1))*x + (-3*t^3 - 7*t^2 - 4*t - 4)/-t
+        sage: S.<x> = R['x', sigma]
+        sage: _base_ring_to_fraction_field(S)
+        Skew Polynomial Ring in x over Fraction Field of Univariate Polynomial Ring in t over Integer Ring twisted by t |-->  t + 1
     """
     R = S.base_ring()
     if isinstance(R, Field):

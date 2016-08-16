@@ -745,9 +745,9 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             x = self.gen()
         return x, one, sigma
 
-    def _minimum_vanishing_polynomial(self, x, one, sigma, eval_pts, check=True):
+    def _minimal_vanishing_polynomial(self, x, one, sigma, eval_pts, check=True):
         """
-        Return the minimum vanishing polynomial (internal method).
+        Return the minimal vanishing polynomial (internal method).
 
         INPUT:
 
@@ -767,7 +767,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
 
         OUTPUT:
 
-        The minimum vanishing polynomial.
+        The minimal vanishing polynomial.
 
         EXAMPLES:
 
@@ -790,12 +790,12 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             t = l//2
             A = eval_pts[:t]
             B = eval_pts[t:]
-            M_A = self._minimum_vanishing_polynomial(x, one, sigma, A, check)
+            M_A = self._minimal_vanishing_polynomial(x, one, sigma, A, check)
             M_A_B = M_A.multi_point_evaluation(B)
             if check:
                 if 0 in M_A_B:
                     raise ValueError("evaluation points must be linearly independent over the fixed field of the twist map")
-            M_M_A_B = self._minimum_vanishing_polynomial(x, one, sigma, M_A_B, check)
+            M_M_A_B = self._minimal_vanishing_polynomial(x, one, sigma, M_A_B, check)
             return M_M_A_B * M_A
 
     def minimal_vanishing_polynomial(self, eval_pts, check=True):
@@ -829,7 +829,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             sage: b = S.minimal_vanishing_polynomial(eval_pts); b
             x^3 + 4
 
-        The minimum vanishing polynomial evaluates to 0 at each of the evaluation points::
+        The minimal vanishing polynomial evaluates to 0 at each of the evaluation points::
 
             sage: eval = [b(eval_pts[y]) for y in range(len(eval_pts))]; eval
             [0, 0, 0]
@@ -844,7 +844,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             ValueError: evaluation points must be linearly independent over the fixed field of the twist map
         """
         x, one, sigma = self._base_ring_to_fraction_field()
-        return self._minimum_vanishing_polynomial(x, one, sigma, eval_pts, check)
+        return self._minimal_vanishing_polynomial(x, one, sigma, eval_pts, check)
 
     def _interpolate(self, x, one, sigma, eval_pts, values):
         """
@@ -886,8 +886,8 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             t = l//2
             A = eval_pts[:t]
             B = eval_pts[t:]
-            M_A = self._minimum_vanishing_polynomial(x, one, sigma, A)
-            M_B = self._minimum_vanishing_polynomial(x, one, sigma, B)
+            M_A = self._minimal_vanishing_polynomial(x, one, sigma, A)
+            M_B = self._minimal_vanishing_polynomial(x, one, sigma, B)
             A_ = M_B.multi_point_evaluation(A)
             B_ = M_A.multi_point_evaluation(B)
             I_1 = self._interpolate(x, one, sigma, A_, values[:t])

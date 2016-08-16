@@ -940,7 +940,8 @@ cdef class lazy_list_generic(object):
             sage: L._info()
             cache length 5
             start        2
-            stop         9223372036854775807
+            stop         9223372036854775807    # 64-bit
+            stop         2147483647             # 32-bit
             step         1
         """
         if self.master is not None:    # this is a slice
@@ -1047,7 +1048,8 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
             sage: L._info()
             cache length 5
             start        2
-            stop         9223372036854775807
+            stop         9223372036854775807    # 64-bit
+            stop         2147483647             # 32-bit
             step         1
         """
         while len(self.cache) <= i:
@@ -1131,7 +1133,8 @@ cdef class lazy_list_from_function(lazy_list_generic):
             sage: L._info()
             cache length 5
             start        2
-            stop         9223372036854775807
+            stop         9223372036854775807    # 64-bit
+            stop         2147483647             # 32-bit
             step         1
         """
         while len(self.cache) <= i:
@@ -1210,7 +1213,8 @@ cdef class lazy_list_from_update_function(lazy_list_generic):
             sage: L._info()
             cache length 7
             start        2
-            stop         9223372036854775807
+            stop         9223372036854775807    # 64-bit
+            stop         2147483647             # 32-bit
             step         1
         """
         cdef Py_ssize_t l,ll

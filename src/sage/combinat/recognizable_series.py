@@ -544,6 +544,48 @@ class RecognizableSeries(Element):
             (all(not self.mu[a] for a in self.parent().alphabet()) and
              not self[self.parent().indices()()])
 
+
+
+    def __nonzero__(self):
+        r"""
+        Return whether this recognizable series is nonzero.
+
+        TESTS::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: bool(Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [0, 1]])),
+            ....:          left=vector([0, 1]), right=vector([1, 0])))
+            False
+            sage: bool(Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])),
+            ....:          left=vector([0, 1]), right=vector([1, 0])))
+            False
+            sage: bool(Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [0, 1]])),
+            ....:          left=vector([0, 0]), right=vector([1, 0])))
+            False
+            sage: bool(Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [0, 1]])),
+            ....:          left=vector([0, 1]), right=vector([0, 0])))
+            False
+
+        ::
+
+            sage: S = Rec((Matrix([[1, 0], [0, 0]]), Matrix([[1, 0], [0, 0]])),
+            ....:         left=vector([0, 1]), right=vector([1, 0]))
+            sage: bool(S)
+            False
+            sage: S  # not tested
+        """
+        if self.is_trivial_zero():
+            return False
+        try:
+            M = self.minimized()
+        except ValueError:
+            pass
+        else:
+            if M.is_trivial_zero():
+                return False
+        return True
+
+
     def transposed(self):
         r"""
         Return the transposed series.

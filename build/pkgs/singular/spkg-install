@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 ###########################################
 ## Singular
 ###########################################
@@ -13,18 +15,6 @@ if [ "$SAGE_LOCAL" = "" ]; then
     echo >&2 "Maybe run 'sage -sh'?"
     exit 1
 fi
-
-if [ "$UNAME" = "Darwin" ]; then
-    # Singular needs $LD set to "libtool", not "ld" on Darwin.
-    # If we unset it, Singular will figure it out correctly.
-    unset LD
-fi
-
-# On SPARC, we need 8-byte alignment for 64-bit integers
-if uname -p | grep sparc >/dev/null; then
-    SINGULAR_CONFIGURE="--with-align=8 $SINGULAR_CONFIGURE"
-fi
-
 
 if [ "x$SAGE_DEBUG" = "xyes" ]; then
     WITH_DEBUG="--enable-debug --disable-optimizationflags"
@@ -43,10 +33,8 @@ else
     # Increasing the optimization level to -O3 has caused various
     # problems in the past either with specific compilers or on specific
     # platforms.
-    OPTIMIZATION_FLAGS="-O2"
-
-    CFLAGS="$OPTIMIZATION_FLAGS -g $CFLAGS"
-    CXXFLAGS="$OPTIMIZATION_FLAGS -g $CXXFLAGS"
+    CFLAGS="-O2 -g $CFLAGS"
+    CXXFLAGS="-O2 -g $CXXFLAGS"
 fi
 
 if [ "x$SAGE64" = xyes ]; then
@@ -61,33 +49,10 @@ if [ "x$SAGE64" = xyes ]; then
     fi
 fi
 
-export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
-
-export LDFLAGS=" -L$SAGE_LOCAL/lib $LDFLAGS"
-
-
 # we are building everything fPIC, this might impose a slight
 # performance hit, need to evaluate:
 export CXXFLAGS="$CXXFLAGS -fPIC"
 export CFLAGS="$CFLAGS -fPIC"
-
-# Singular does not respect LDFLAGS; Ugly hack:
-# Used on Linux and Darwin (see singular-3.1.7-use_cxx_for_linking.patch)
-export CXX="$CXX $LDFLAGS"
-
-# The Sun assembler has problems with -pipe, so disable it.
-# This only affects compile time, not the compiled programs/libraries.
-if [ "$UNAME" = "SunOS" ]; then
-    MAKE="$MAKE PIPE="
-fi
-
-
-# There is a race condition in the Singular Makefiles, building in
-# parallel sometimes fails (Trac #17774)
-export MAKE="$MAKE -j1"
-
-# Workaround for GCC6: https://trac.sagemath.org/ticket/20926
-export CXXFLAGS="$CXXFLAGS -fno-delete-null-pointer-checks -fno-strict-overflow"
 
 choose_patches()
 {
@@ -96,14 +61,17 @@ choose_patches()
     if [ "x$SAGE_DEBUG" = "xyes" ]; then
         # Remove old omalloc files, except for configure
         mv "$SRC/omalloc/configure" configure_omalloc
+        rm -r "$SRC/omalloc"/*
         mv configure_omalloc "$SRC/omalloc/configure"
+        mv conditional/singular_xalloc.patch . || return $?
+        #mv conditional/cygwin64_debug.patch ./cygwin64.patch || return $?
     fi
 }
 
 apply_patches()
 {
     # Apply all patches
-    for patch in ../patches/*.patch; do
+    for patch in "$PATCHES"/*.patch; do
         [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
         echo "Applying $patch"
         patch -p1 <"$patch"
@@ -134,14 +102,12 @@ config()
     #    omalloc/configure).  Not all of these configure scripts
     #    support all options given here, leading to warnings which
     #    may be ignored.
-    # 3) --without-debug doesn't work:
-    #    http://www.singular.uni-kl.de:8002/trac/ticket/438
-    #    Replace --with-debug by $WITH_DEBUG if this is fixed.
     ./configure --prefix="$SAGE_LOCAL" \
                 --exec-prefix="$SAGE_LOCAL" \
                 --bindir="$SAGE_LOCAL"/bin \
                 --libdir="$SAGE_LOCAL"/lib \
                 --with-malloc=system \
+                --with-gmp="$SAGE_LOCAL" \
                 --with-ntl="$SAGE_LOCAL" \
                 --with-flint="$SAGE_LOCAL" \
                 --enable-Singular \
@@ -159,11 +125,15 @@ config()
 
 build_singular()
 {
-    # Singular doesn't have separate build and install steps. So we
-    # directly need to install.
+    $MAKE
+    if [ $? -ne 0 ]; then
+        echo >&2 "Unable to build Singular"
+        return 1
+    fi
+
     $MAKE install
     if [ $? -ne 0 ]; then
-        echo >&2 "Unable to build and install Singular"
+        echo >&2 "Unable to install Singular"
         return 1
     fi
 
@@ -182,20 +152,14 @@ build_factory()
                 --with-gmp="$SAGE_LOCAL" \
                 --with-ntl="$SAGE_LOCAL" \
                 --with-flint="$SAGE_LOCAL" \
-                --with-gmp="$SAGE_LOCAL" \
                 $WITH_DEBUG
-
-
-#                --enable-streamio --without-Singular
-
-#                --enable-debugoutput
 
     if [ $? -ne 0 ]; then
         echo >&2 "Error configuring the standalone factory."
         return 1
     fi
 
-    $MAKE all
+    $MAKE
     if [ $? -ne 0 ]; then
         echo >&2 "Error building the standalone factory."
         return 1
@@ -230,7 +194,7 @@ create_singular_script()
 install_docs()
 {
     cd "$SHARED" || return $?
-    cp -p singular.hlp singular.idx "$SAGE_LOCAL/share/singular/"
+    $CP -p singular.hlp singular.idx "$SAGE_LOCAL/share/singular/"
 }
 
 

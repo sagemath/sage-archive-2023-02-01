@@ -415,7 +415,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
 
     if (_ring is NULL):
-        print "Failed to allocate Singular ring."
+        #print "Failed to allocate Singular ring."
         raise ValueError("Failed to allocate Singular ring.")
 
     #  assert( _ring.cf.ch == characteristic )

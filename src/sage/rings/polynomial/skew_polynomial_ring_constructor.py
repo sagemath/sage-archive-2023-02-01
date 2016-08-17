@@ -98,7 +98,7 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
         block using the localvars context::
 
             sage: with localvars(S, ['y']):
-            ....:     print S
+            ....:     print(S)
             Skew Polynomial Ring in y over Univariate Polynomial Ring in t over Integer Ring
              twisted by t |--> t + 1
 

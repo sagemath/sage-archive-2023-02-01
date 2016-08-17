@@ -2028,7 +2028,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         """
         This method constructs a generic dense skew polynomial.
 
-        INPUT::
+        INPUT:
 
         - ``parent`` -- parent of ``self``
 

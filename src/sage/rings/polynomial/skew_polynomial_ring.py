@@ -19,6 +19,7 @@ AUTHOR:
 
 - Johan Rosenkilde (2016-08-03): changes for bug fixes, docstring and
   doctest errors
+
 """
 
 #############################################################################
@@ -179,7 +180,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         """
         Initialize ``self``.
 
-        INPUT::
+        INPUT:
 
         - ``base_ring`` -- a commutative ring
         - ``twist_map`` -- an automorphism of the base ring

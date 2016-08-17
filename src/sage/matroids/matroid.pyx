@@ -6138,9 +6138,21 @@ cdef class Matroid(SageObject):
 
     # matroid chordality
 
-    cpdef _is_circuit_chordal(self, frozenset C):
+    cpdef _is_circuit_chordal(self, frozenset C, bint certificate=False):
         """
         Check if the circuit ``C`` has a chord.
+
+        INPUT:
+
+        - ``C`` -- a circuit
+        - ``certificate`` -- (default: ``False``) a boolean, if ``True``
+          return ``True, (x, Ax, Bx)``, where ``x`` is a chord and ``Ax`` and
+          ``Bx`` are circuits whose union is the elements of ``C``
+          together with ``x``, if ``False`` return ``False, None``
+
+        OUTPUT:
+
+        - boolean or tuple
 
         EXAMPLES::
 
@@ -6150,8 +6162,12 @@ cdef class Matroid(SageObject):
             sage: M = matroids.named_matroids.Fano()
             sage: M._is_circuit_chordal(frozenset(['b','c','d']))
             False
+            sage: M._is_circuit_chordal(frozenset(['b','c','d']), certificate=True)
+            (False, None)
             sage: M._is_circuit_chordal(frozenset(['a','b','d','e']))
             True
+            sage: M._is_circuit_chordal(frozenset(['a','b','d','e']), certificate=True)
+            (True, ('c', frozenset({'b', 'c', 'd'}), frozenset({'a', 'c', 'e'})))
         """
         cdef set X
         cdef frozenset Ax, Bx
@@ -6165,10 +6181,14 @@ cdef class Matroid(SageObject):
             if not self._is_independent(Bx):
                 # If x is spanned by C, then A+x is the unique circuit in C-e+x;
                 #    so x is a chord iff the complementary B is a circuit.
+                if certificate:
+                    return True, (x, frozenset(Ax), frozenset(Bx))
                 return True
+        if certificate:
+            return False, None
         return False
 
-    cpdef is_circuit_chordal(self, C):
+    cpdef is_circuit_chordal(self, C, bint certificate=False):
         r"""
         Check if the circuit ``C`` has a chord.
 
@@ -6176,19 +6196,35 @@ cdef class Matroid(SageObject):
         exists sets `A, B` such that `C = A \sqcup B` and `A + x` and
         `B + x` are circuits.
 
+        INPUT:
+
+        - ``C`` -- a circuit
+        - ``certificate`` -- (default: ``False``) a boolean, if ``True``
+          return ``True, (x, Ax, Bx)``, where ``x`` is a chord and ``Ax`` and
+          ``Bx`` are circuits whose union is the elements of ``C``
+          together with ``x``, if ``False`` return ``False, None``
+
+        OUTPUT:
+
+        - boolean or tuple
+
         EXAMPLES::
 
             sage: M = matroids.named_matroids.Fano()
             sage: M.is_circuit_chordal(['b','c','d'])
             False
+            sage: M.is_circuit_chordal(['b','c','d'], certificate=True)
+            (False, None)
             sage: M.is_circuit_chordal(['a','b','d','e'])
             True
+            sage: M.is_circuit_chordal(['a','b','d','e'], certificate=True)
+            (True, ('c', frozenset({'b', 'c', 'd'}), frozenset({'a', 'c', 'e'})))
         """
         if not self.is_circuit(C):
             raise ValueError("input C is not a circuit")
-        return self._is_circuit_chordal(frozenset(C))
+        return self._is_circuit_chordal(frozenset(C), certificate)
 
-    cpdef is_chordal(self, k1=4, k2=None):
+    cpdef is_chordal(self, k1=4, k2=None, bint certificate=False):
         r"""
         Return if a matroid is ``[k1, k2]``-chordal.
 
@@ -6203,6 +6239,13 @@ cdef class Matroid(SageObject):
         - ``k1`` -- (optional) the integer `k_1`
         - ``k2`` -- (optional) the integer `k_2`; if not specified,
           then this method returns if ``self`` is `k_1`-chordal
+        - ``certificate`` -- (default: ``False``) boolean;  if
+          ``True`` return ``True, C``, where ``C`` is a non
+          ``k1`` ``k2`` circuit
+
+        Output:
+
+        - boolean or tuple
 
         .. SEEALSO::
 
@@ -6221,6 +6264,8 @@ cdef class Matroid(SageObject):
             [False, False, False, False, True, True]
             sage: M.is_chordal(4, 5)
             False
+            sage: M.is_chordal(4, 5, certificate=True)
+            (False, frozenset({'a', 'b', 'e', 'f', 'g'}))
         """
         cdef frozenset C
         if k2 is None:
@@ -6229,6 +6274,8 @@ cdef class Matroid(SageObject):
             if len(C) < k1 or len(C) > k2:
                 continue
             if not self._is_circuit_chordal(C):
+                if certificate:
+                    return False, frozenset(C)
                 return False
         return True
 

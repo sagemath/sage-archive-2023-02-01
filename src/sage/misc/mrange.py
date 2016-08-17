@@ -694,7 +694,7 @@ def cantor_product(*args, **kwds):
     elif repeat < 0:
         raise ValueError("repeat argument cannot be negative")
     if kwds:
-        raise TypeError("'{}' is an invalid keyword argument for this function".format(next(kwds.iterkeys())))
+        raise TypeError("'{}' is an invalid keyword argument for this function".format(list(kwds)[0]))
     mm = m * repeat
 
     for n in count(0):

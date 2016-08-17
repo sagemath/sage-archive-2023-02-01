@@ -156,7 +156,7 @@ cdef class CircuitClosuresMatroid(Matroid):
         else:
             self._groundset = frozenset(groundset)
             self._circuit_closures = {}
-            for k in circuit_closures.iterkeys():
+            for k in circuit_closures:
                 self._circuit_closures[k] = frozenset([frozenset(X) for X in circuit_closures[k]])
         self._matroid_rank = self.rank(self._groundset)
 

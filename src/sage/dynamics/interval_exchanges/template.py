@@ -3313,7 +3313,7 @@ class RauzyDiagram(SageObject):
             H(0, 0)
             H(0, 0)
         """
-        for data in self._succ.iterkeys():
+        for data in self._succ:
             yield self._vertex_to_permutation(data)
 
     def __contains__(self, element):
@@ -3335,7 +3335,7 @@ class RauzyDiagram(SageObject):
             sage: q in s
             True
         """
-        for p in self._succ.iterkeys():
+        for p in self._succ:
             if self._vertex_to_permutation(p) == element:
                 return True
 

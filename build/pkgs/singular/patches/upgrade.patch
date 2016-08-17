@@ -37,3 +37,14 @@ diff -dru a/gfanlib/gfanlib_z.h b/gfanlib/gfanlib_z.h
  #include "gmp.h"
  
  namespace gfan{
+diff --git a/libpolys/coeffs/longrat.h b/libpolys/coeffs/longrat.h
+--- a/libpolys/coeffs/longrat.h
++++ b/libpolys/coeffs/longrat.h
+@@ -110,6 +110,7 @@ static FORCE_INLINE BOOLEAN nlIsInteger(number q, const coeffs r)
+ number nlModP(number q, const coeffs Q, const coeffs Zp);
+ void   nlNormalize(number &x, const coeffs r);
+ void   nlInpGcd(number &a, number b, const coeffs r);
++void   nlDelete(number *a, const coeffs r);
+ 
+ 
+ /// create a rational i/j (implicitly) over Q

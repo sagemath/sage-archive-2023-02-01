@@ -1103,17 +1103,21 @@ cdef class Matroid(SageObject):
         from . import minor_matroid
         return minor_matroid.MinorMatroid(self, contractions, deletions)
 
-    cpdef _has_minor(self, N):
+    cpdef _has_minor(self, N, bint certificate=False):
         """
-        Test if matroid has the specified minor.
+        Test if matroid has the specified minor,
+        and optionally return frozensets ``X`` and ``Y`` so that ``N`` is isomorphic to ``self.minor(X, Y)``.
 
         INPUT:
 
-        - ``N`` -- An instance of a ``Matroid`` object.
+        - ``N`` -- An instance of a ``Matroid`` object,
+        - ``certificate`` -- Boolean (Defalt: ``False``) If ``True``, returns
+          ``True, (X, Y, dic) where ``N`` is isomorphic to ``self.minor(X, Y)``,
+          and ``dic`` is an isomorphism between ``N`` and ``self.minor(X, Y)``.
 
         OUTPUT:
 
-        Boolean.
+        boolean or tuple.
 
         EXAMPLES::
 
@@ -1122,6 +1126,9 @@ cdef class Matroid(SageObject):
             False
             sage: M._has_minor(matroids.Uniform(2, 4))
             True
+            sage: M._has_minor(matroids.Uniform(2, 4), certificate=True)
+            (True, (frozenset({'a', 'c'}), frozenset({'b', 'e'}),
+                {0: 'h', 1: 'd', 2: 'g', 3: 'f'}))
 
         .. TODO::
 
@@ -1129,17 +1136,25 @@ cdef class Matroid(SageObject):
             See [Hlineny]_ p.1219 for hints to that end.
         """
         if self is N:
+            if certificate:
+               return True, (frozenset(), frozenset(), {x: x for x in self.groundset()})
             return True
         rd = self.full_rank() - N.full_rank()
         cd = self.full_corank() - N.full_corank()
         if rd < 0 or cd < 0:
+            if certificate:
+                return False, None
             return False
         YY = self.dual().independent_r_sets(cd)
         for X in self.independent_r_sets(rd):
             for Y in YY:
                 if X.isdisjoint(Y):
                     if N._is_isomorphic(self._minor(contractions=X, deletions=Y)):
+                        if certificate:
+                            return True, (X, Y, N._isomorphism(self._minor(contractions=X, deletions=Y)))
                         return True
+        if certificate:
+            return False, None
         return False
 
     cpdef _line_length(self, F):
@@ -3902,17 +3917,21 @@ cdef class Matroid(SageObject):
         return self._extension(l, [])._minor(contractions=frozenset([l]),
                                              deletions=frozenset([]))
 
-    cpdef has_minor(self, N):
+    cpdef has_minor(self, N, bint certificate=False):
         """
-        Check if ``self`` has a minor isomorphic to ``N``.
+        Check if ``self`` has a minor isomorphic to ``N``,
+        and optionally return frozensets ``X`` and ``Y`` so that ``N`` is isomorphic to ``self.minor(X, Y)``.
 
         INPUT:
 
-        - ``N`` -- A matroid.
+        - ``N`` -- An instance of a ``Matroid`` object,
+        - ``certificate`` -- Boolean (Defalt: ``False``) If ``True``, returns
+          ``True, (X, Y, dic) where ``N`` is isomorphic to ``self.minor(X, Y)``,
+          and ``dic`` is an isomorphism between ``N`` and ``self.minor(X, Y)``.
 
         OUTPUT:
 
-        Boolean.
+        boolean or tuple.
 
         .. SEEALSO::
 
@@ -3931,10 +3950,19 @@ cdef class Matroid(SageObject):
             False
             sage: matroids.named_matroids.NonFano().has_minor(M)
             True
+            sage: matroids.named_matroids.NonFano().has_minor(M, certificate=True)
+            (True, (frozenset(), frozenset({'g'}),
+                {0: 'b', 1: 'c', 2: 'a', 3: 'd', 4: 'e', 5: 'f'}))
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.has_minor(M, True)
+            (True,
+             (frozenset(),
+              frozenset(),
+              {'a': 'a', 'b': 'b', 'c': 'c', 'd': 'd', 'e': 'e', 'f': 'f', 'g': 'g'}))
         """
         if not isinstance(N, Matroid):
             raise ValueError("N must be a matroid.")
-        return self._has_minor(N)
+        return self._has_minor(N, certificate)
 
     cpdef has_line_minor(self, k, hyperlines=None):
         """

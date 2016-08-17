@@ -1186,6 +1186,7 @@ cdef class SingularFunction(SageObject):
             currRingHdl = ggetid("my_awesome_sage_ring")
             if currRingHdl == NULL:
                 currRingHdl = enterid("my_awesome_sage_ring", 0, RING_CMD, &IDROOT, 1)
+                currRingHdl.data.uring = <ring *>omAlloc0Bin(sip_sring_bin)
             currRingHdl.data.uring.ref += 1
 
     cdef BaseCallHandler get_call_handler(self):

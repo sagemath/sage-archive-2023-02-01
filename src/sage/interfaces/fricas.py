@@ -11,6 +11,9 @@ Interface to FriCAS
 
     - Interactive help.
 
+    - `fricas(dilog(x))` should be `dilog(-(x-1))`, and some more
+      conversions in `sage.functions` are missing
+
 FriCAS is a free GPL-compatible (modified BSD license) general
 purpose computer algebra system based on Axiom.  The FriCAS
 website can be found at http://fricas.sourceforge.net/.
@@ -20,8 +23,9 @@ AUTHORS:
 - Mike Hansen (2009-02): Split off the FriCAS interface from
   the Axiom interface.
 
-If the string "error" (case insensitive) occurs in the output of
-anything from FriCAS, a RuntimeError exception is raised.
+- Martin Rubey, Bill Page (2016-08): Completely separate from Axiom,
+  implement more complete translation from FriCAS to SageMath types.
+
 
 EXAMPLES: We evaluate a very simple expression in FriCAS.
 
@@ -48,10 +52,18 @@ method::
     sage: a.typeOf()                                                            # optional - fricas
     PositiveInteger
 
-We factor `x^5 - y^5` in FriCAS in several different ways.
-The first way yields a FriCAS object.
+FriCAS objects are normally displayed using "ASCII art"::
 
-::
+    sage: fricas(2/3)                                                           # optional - fricas
+      2
+      -
+      3
+    sage: fricas('x^2 + 3/7')                                                   # optional - fricas
+       2   3
+      x  + -
+           7
+
+Functions defined in FriCAS are available as methods of the `fricas` object::
 
     sage: F = fricas.factor('x^5 - y^5'); F                                     # optional - fricas
                4      3    2 2    3     4
@@ -61,39 +73,9 @@ The first way yields a FriCAS object.
     sage: F.typeOf()                                                            # optional - fricas
     Factored(Polynomial(Integer))
 
-Note that FriCAS objects are normally displayed using "ASCII art".
-
-::
-
-    sage: a = fricas(2/3); a                                                    # optional - fricas
-      2
-      -
-      3
-    sage: a = fricas('x^2 + 3/7'); a                                            # optional - fricas
-       2   3
-      x  + -
-           7
-
-The ``fricas.eval`` command evaluates an expression in FriCAS and
-returns the result as a string. This is exact as if we typed in the
-given line of code to FriCAS; the return value is what FriCAS would
-print out, except that type information and line number are stripped
-away.
-
-::
-
-    sage: print(fricas.eval('factor(x^5 - y^5)'))                               # optional - fricas
-    |startAlgebraOutput|
-               4      3    2 2    3     4
-    - (y - x)(y  + x y  + x y  + x y + x )
-    |endOfAlgebraOutput|
-
-We can create the polynomial `f` as a FriCAS polynomial,
-then call the factor method on it. Notice that the notation
-``f.factor()`` is consistent with how the rest of Sage
-works.
-
-::
+We can also create a FriCAS polynomial and apply the function
+`factor` from FriCAS.  The notation ``f.factor()`` is consistent with
+how the rest of SageMath works::
 
     sage: f = fricas('x^5 - y^5')                                               # optional - fricas
     sage: f^2                                                                   # optional - fricas
@@ -103,26 +85,20 @@ works.
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )
 
+For many FriCAS types, translation to an appropriate SageMath type is
+available::
+
+    sage: f.factor().sage()                                                     # optional - fricas
+    (y - x) * (y^4 + y^3*x + y^2*x^2 + y*x^3 + x^4)
+
 Control-C interruption works well with the FriCAS interface. For
 example, try the following sum but with a much bigger range, and hit
-control-C.
-
-::
+control-C::
 
     sage:  f = fricas('(x^5 - y^5)^10000')                                      # not tested - fricas
     Interrupting FriCAS...
     ...
-    <type 'exceptions.TypeError'>: Ctrl-c pressed while running FriCAS
-
-::
-
-    sage: fricas('1/100 + 1/101')                                               # optional - fricas
-       201
-      -----
-      10100
-    sage: a = fricas('(1 + sqrt(2))^5'); a                                      # optional - fricas
-         +-+
-      29\|2  + 41
+    KeyboardInterrupt: Ctrl-c pressed while running FriCAS
 
 Let us demonstrate some features of FriCAS.  FriCAS can guess a
 differential equation for the generating function for integer
@@ -170,7 +146,7 @@ FriCAS can solve linear ordinary differential equations::
 
 FriCAS can expand expressions into series::
 
-    sage: a = fricas("series(sqrt(cos(x)),x=0)"); a                             # optional - fricas
+    sage: ex = sqrt(cos(x)); a = fricas(ex).series(x=0); a                      # optional - fricas
         1  2    1  4    19   6     559   8     29161    10      11
     1 - - x  - -- x  - ---- x  - ------ x  - --------- x   + O(x  )
         4      96      5760      645120      116121600
@@ -178,19 +154,19 @@ FriCAS can expand expressions into series::
     sage: a.coefficients()[38].sage()                                           # optional - fricas
     -29472026335337227150423659490832640468979/274214482066329363682430667508979749984665600000000
 
-    sage: a = fricas("series(sqrt(cos(x)/x),x=0)"); a                           # optional - fricas
-       1      3       7
-     - -      -       -
-       2   1  2    1  2      5
-    x    - - x  - -- x  + O(x )
-           4      96
+    sage: ex = sqrt(atan(x)); a = fricas(ex).series(x=0); a                     # optional - fricas
+     1      5        9
+     -      -        -
+     2   1  2    31  2      6
+    x  - - x  + --- x  + O(x )
+         6      360
 
-    sage: a.coefficient(3/2).sage()                                             # optional - fricas
-    -1/4
+    sage: a.coefficient(9/2).sage()                                             # optional - fricas
+    31/360
 
-FriCAS does some limits right:
+FriCAS does some limits right::
 
-    sage: fricas("limit(x^2*exp(-x)*Ei(x) - x, x=%plusInfinity)")               # optional - fricas
+    sage: ex = x^2*exp(-x)*Ei(x) - x; fricas(ex).limit(x=oo)                    # optional - fricas
     1
 
 """
@@ -211,6 +187,7 @@ from __future__ import print_function
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.interfaces.expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.env import DOT_SAGE
+from sage.misc.multireplace import multiple_replace
 import re
 import six
 
@@ -589,6 +566,7 @@ class FriCASElement(ExpectElement):
     def __float__(self):
         """
         TEST::
+
         sage: float(fricas(2))                                                  # optional - fricas
         2.0
         """
@@ -602,6 +580,31 @@ class FriCASElement(ExpectElement):
 
     def gen(self, n):
         raise NotImplementedError
+
+    def _latex_(self):
+        r"""
+        EXAMPLES::
+
+        sage: latex(fricas("sin(x+y)/exp(z)*log(1+%e)"))                        # optional - fricas
+        {{\log  \left( {{e+1}}  \right)} \  {\sin  \left( {{y+x}}  \right)}} \over {{e}^{z}}
+
+        """
+        # for some strange reason, outputAsTex does not generate
+        # |startAlgebraOutput| and |endOfAlgebraOutput| markers.
+        P = self._check_valid()
+        s = P.eval('outputAsTex(%s)'%self.name())
+        if not '$$' in s:
+            raise RuntimeError("Error texing axiom object.")
+        i = s.find('$$')
+        j = s.rfind('$$')
+        s = s[i+2:j]
+        s = multiple_replace({'\r':'', '\n':' ',
+                              ' \\sp ':'^',
+                              '\\arcsin ':'\\sin^{-1} ',
+                              '\\arccos ':'\\cos^{-1} ',
+                              '\\arctan ':'\\tan^{-1} '},
+            re.sub(r'\\leqno\(.*?\)','',s)) # no eq number!
+        return s
 
     def _unparsed_InputForm(self):
         """Return the output from FriCAS as a string without the quotes.
@@ -784,6 +787,7 @@ class FriCASElement(ExpectElement):
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
         from sage.matrix.constructor import matrix
+        from sage.structure.factorization import Factorization
         from sage.misc.sage_eval import sage_eval
 
         # TODO: perhaps we should translate the type first?
@@ -792,7 +796,7 @@ class FriCASElement(ExpectElement):
         # remember: fricas.get gives a str and should only used if
         # you know what you are doing, whereas fricas.new gives a
         # FriCASElement
-        
+
         # the coercion to Any gets rid of the Union domain
         P = self._check_valid()
         domain = P.new("dom(%s::Any)" % self._name) # domain is now a fricas SExpression
@@ -869,6 +873,10 @@ class FriCASElement(ExpectElement):
             if str(domain[1].car()) == "Integer":
                 s = self._unparsed_InputForm()
                 return SR(s.replace("pi()", "pi"))
+
+        if head == "Factored":
+            l = P.new('[[f.factor, f.exponent] for f in factors(%s)]' %self._name).sage()
+            return Factorization([(p, e) for p,e in l])
 
         if head == 'DistributedMultivariatePolynomial':
             base_ring = self._get_sage_type(domain[2])

@@ -420,7 +420,8 @@ class Function_log_integral(BuiltinFunction):
         BuiltinFunction.__init__(self, "log_integral", nargs=1,
                                  latex_name=r'log_integral',
                                  conversions=dict(maxima='expintegral_li',
-                                                  sympy='li'))
+                                                  sympy='li',
+                                                  fricas='li'))
 
     def _eval_(self, z):
         """
@@ -777,7 +778,8 @@ class Function_sin_integral(BuiltinFunction):
         BuiltinFunction.__init__(self, "sin_integral", nargs=1,
                                  latex_name=r'\operatorname{Si}',
                                  conversions=dict(maxima='expintegral_si',
-                                                  sympy='Si'))
+                                                  sympy='Si',
+                                                  fricas='Si'))
 
     def _eval_(self, z):
         """
@@ -949,7 +951,8 @@ class Function_cos_integral(BuiltinFunction):
         BuiltinFunction.__init__(self, "cos_integral", nargs=1,
                                  latex_name=r'\operatorname{Ci}',
                                  conversions=dict(maxima='expintegral_ci',
-                                                  sympy='Ci'))
+                                                  sympy='Ci',
+                                                  fricas='Ci'))
 
     def _evalf_(self, z, parent=None, algorithm=None):
         """
@@ -1081,7 +1084,8 @@ class Function_sinh_integral(BuiltinFunction):
         BuiltinFunction.__init__(self, "sinh_integral", nargs=1,
                                  latex_name=r'\operatorname{Shi}',
                                  conversions=dict(maxima='expintegral_shi',
-                                                  sympy='Shi'))
+                                                  sympy='Shi',
+                                                  fricas='Shi'))
 
     def _eval_(self, z):
         """
@@ -1228,7 +1232,8 @@ class Function_cosh_integral(BuiltinFunction):
         BuiltinFunction.__init__(self, "cosh_integral", nargs=1,
                                  latex_name=r'\operatorname{Chi}',
                                  conversions=dict(maxima='expintegral_chi',
-                                                  sympy='Chi'))
+                                                  sympy='Chi',
+                                                  fricas='Chi'))
 
     def _evalf_(self, z, parent=None, algorithm=None):
         """
@@ -1340,7 +1345,8 @@ class Function_exp_integral(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "Ei",
                                  conversions=dict(maxima='expintegral_ei',
-                                                  sympy='Ei'))
+                                                  sympy='Ei',
+                                                  fricas='Ei'))
 
     def _evalf_(self, x, parent=None, algorithm=None):
         """

@@ -394,7 +394,8 @@ class EllipticE(BuiltinFunction):
                                  # k instead of m as the second argument
                                  conversions=dict(mathematica='EllipticE',
                                                   maxima='elliptic_e',
-                                                  sympy='elliptic_e'))
+                                                  sympy='elliptic_e',
+                                              ))
 
     def _eval_(self, z, m):
         """
@@ -505,7 +506,8 @@ class EllipticEC(BuiltinFunction):
         BuiltinFunction.__init__(self, 'elliptic_ec', nargs=1, latex_name='E',
                                  conversions=dict(mathematica='EllipticE',
                                                   maxima='elliptic_ec',
-                                                  sympy='elliptic_e'))
+                                                  sympy='elliptic_e',
+                                                  fricas='ellipticE'))
  
     def _eval_(self, x):
         """
@@ -820,7 +822,8 @@ class EllipticKC(BuiltinFunction):
         BuiltinFunction.__init__(self, 'elliptic_kc', nargs=1, latex_name='K',
                                  conversions=dict(mathematica='EllipticK',
                                                   maxima='elliptic_kc',
-                                                  sympy='elliptic_k'))
+                                                  sympy='elliptic_k',
+                                                  fricas='ellipticK'))
  
     def _eval_(self, z):
         """

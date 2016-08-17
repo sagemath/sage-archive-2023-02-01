@@ -340,7 +340,8 @@ class Function_Bessel_J(BuiltinFunction):
         BuiltinFunction.__init__(self, "bessel_J", nargs=2,
                                  conversions=dict(mathematica='BesselJ',
                                                   maxima='bessel_j',
-                                                  sympy='besselj'))
+                                                  sympy='besselj',
+                                                  fricas='besselJ'))
 
     def _eval_(self, n, x):
         """
@@ -553,7 +554,8 @@ class Function_Bessel_Y(BuiltinFunction):
         BuiltinFunction.__init__(self, "bessel_Y", nargs=2,
                                  conversions=dict(mathematica='BesselY',
                                                   maxima='bessel_y',
-                                                  sympy='bessely'))
+                                                  sympy='bessely',
+                                                  fricas='besselY'))
 
     def _eval_(self, n, x):
         """
@@ -750,7 +752,8 @@ class Function_Bessel_I(BuiltinFunction):
         BuiltinFunction.__init__(self, "bessel_I", nargs=2,
                                  conversions=dict(mathematica='BesselI',
                                                   maxima='bessel_i',
-                                                  sympy='besseli'))
+                                                  sympy='besseli',
+                                                  fricas='besselI'))
 
     def _eval_(self, n, x):
         """
@@ -947,7 +950,8 @@ class Function_Bessel_K(BuiltinFunction):
         BuiltinFunction.__init__(self, "bessel_K", nargs=2,
                                  conversions=dict(mathematica='BesselK',
                                                   maxima='bessel_k',
-                                                  sympy='besselk'))
+                                                  sympy='besselk',
+                                                  fricas='besselK'))
 
     def _eval_(self, n, x):
         """
@@ -1235,7 +1239,8 @@ class Function_Struve_H(BuiltinFunction):
                                  conversions=dict(maple='StruveH',
                                                   mathematica='StruveH',
                                                   maxima='struve_h',
-                                                  sympy='struveh'))
+                                                  sympy='struveh',
+                                                  fricas='struveH'))
 
     def _eval_(self, a, z):
         """
@@ -1349,7 +1354,8 @@ class Function_Struve_L(BuiltinFunction):
                                  conversions=dict(maple='StruveL',
                                                   mathematica='StruveL',
                                                   maxima='struve_l',
-                                                  sympy='struvel'))
+                                                  sympy='struvel',
+                                                  fricas='struveL'))
 
     def _eval_(self, a, z):
         """
@@ -1459,7 +1465,8 @@ class Function_Hankel1(BuiltinFunction):
                                  conversions=dict(maple='HankelH1',
                                                   mathematica='HankelH1',
                                                   maxima='hankel1',
-                                                  sympy='hankel1'))
+                                                  sympy='hankel1',
+                                                  fricas='hankelH1'))
 
     def _evalf_(self, nu, z, parent, algorithm=None):
         r"""
@@ -1545,7 +1552,8 @@ class Function_Hankel2(BuiltinFunction):
                                  conversions=dict(maple='HankelH2',
                                                   mathematica='HankelH2',
                                                   maxima='hankel2',
-                                                  sympy='hankel2'))
+                                                  sympy='hankel2',
+                                                  fricas='hankelH2'))
 
     def _evalf_(self, nu, z, parent, algorithm=None):
         r"""

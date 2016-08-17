@@ -50,6 +50,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import division
 
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
@@ -854,7 +855,7 @@ class Link(object):
         ncross = len(crossings)
         smoothings = []
         nmax = max(flatten(crossings)) + 1
-        for i in range(2** ncross):
+        for i in range(2 ** ncross):
             v = Integer(i).bits()
             v = v + (ncross - len(v))*[0]
             G = Graph()
@@ -872,7 +873,7 @@ class Link(object):
                     G.add_edge((cr[2], cr[3], n), cr[3])
             sm = set(tuple(sorted(x for x in b if isinstance(x, tuple)))
                      for b in G.connected_components())
-            iindex = (writhe - ncross + 2 * sum(v)) / 2
+            iindex = (writhe - ncross + 2 * sum(v)) // 2
             jmin = writhe + iindex - len(sm)
             jmax = writhe + iindex + len(sm)
             smoothings.append((tuple(v), sm, iindex, jmin, jmax))
@@ -1644,7 +1645,7 @@ class Link(object):
         f = (seifert_matrix - t * seifert_matrix.transpose()).determinant()
         if f != 0:
             exp = f.exponents()
-            return t ** ((-max(exp) - min(exp)) / 2) * f
+            return t ** ((-max(exp) - min(exp)) // 2) * f
         return f
 
     def determinant(self):

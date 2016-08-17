@@ -369,3 +369,792 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_generic_dense):
             for i from 0 <= i <= d:
                 l[i] = self._parent.twist_map()(l[i])
         return M
+
+    def _mul_karatsuba(self,right,cutoff=None):
+        """
+        Karatsuba multiplication
+
+        INPUT:
+
+        - ``right`` -- an other skew polynomial in the same ring
+
+        - ``cutoff`` -- ``None``, an integer or Infinity (default: None)
+
+        .. WARNING::
+
+            ``cutoff`` need to be greater than or equal to the order of the
+            twist map acting on the base ring of the underlying skew polynomial
+            ring.
+
+        OUTPUT:
+
+        The result of the product self*right (computed by a variant of
+        Karatsuba`s algorithm)
+
+        .. NOTE::
+
+            if ``cutoff`` is None, use the default cutoff which is the
+            maximum between 150 and the order of the twist map.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = S.random_element(5000)
+            sage: b = S.random_element(5000)
+            sage: timeit("c = a._mul_karatsuba(b)")  # random, long time
+            5 loops, best of 3: 659 ms per loop
+            sage: timeit("c = a._mul_classical(b)")  # random, long time
+            5 loops, best of 3: 1.9 s per loop
+            sage: a._mul_karatsuba(b) == a._mul_classical(b)
+            True
+
+        The operator ``*`` performs Karatsuba multiplication::
+
+            sage: timeit("c = a*b")  # random, long time
+            5 loops, best of 3: 653 ms per loop
+        """
+        karatsuba_class = self._parent._karatsuba_class
+        if cutoff != None:
+            save_cutoff = karatsuba_class.get_cutoff()
+            karatsuba_class.set_cutoff(cutoff)
+        res = karatsuba_class.mul(self,right)
+        if cutoff != None:
+            karatsuba_class.set_cutoff(save_cutoff)
+        return res
+
+
+    def _mul_karatsuba_matrix(self,right):
+        """
+        Karatsuba multiplication with multiplication step based
+        on an isomorphism between a quotient of the underlying
+        skew polynomial ring and a ring of matrices.
+
+        INPUT:
+
+        - ``right`` -- an other skew polynomial in the same ring
+
+        OUTPUT:
+
+        The result of the product self*right
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = S.random_element(degree=20)
+            sage: b = S.random_element(degree=20)
+            sage: a._mul_karatsuba_matrix(b) == a*b
+            True
+
+        This routine is only efficient when the twisting map (here
+        ``Frob``) has a large order `r` and the degrees of ``self``
+        and ``other`` have a very special shape (just below a power
+        of `2` times `r * floor(r/2)`)::
+
+            sage: k.<t> = GF(5^40)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = S.random_element(degree=799)
+            sage: b = S.random_element(degree=799)
+            sage: timeit("c = a*b")  # random, long time
+            5 loops, best of 3: 23.1 s per loop
+            sage: timeit("c = a._mul_karatsuba_matrix(b)")  # random, long time
+            5 loops, best of 3: 12.2 s per loop
+        """
+        karatsuba_class = self._parent._karatsuba_class
+        return karatsuba_class.mul_matrix(self,right)
+
+    cpdef SkewPolynomial_finite_field_dense _mul_central(self, SkewPolynomial_finite_field_dense right):
+        r"""
+        Return self * right
+
+        .. WARNING::
+
+            Do you use this function! It is very slow due to a quite
+            slow interface with ``polynomial_zz_pex``.
+
+        ALGORITHM::
+
+        Notations::
+
+        -  `S` is the underlyling skew polynomial ring
+
+        -  `x` is the variable on `S`
+
+        -  `k` is the base ring of `S` (it is a finite field)
+
+        -  `\sigma` is the twisting automorphism acting on `k`
+
+        -  `r` is the order of `\sigma`
+
+        -  `t` is a generator of `k` over `k^\sigma`
+
+        #. We decompose the polynomial ``right`` as follows::
+
+           .. MATH::
+
+               right = \sum_{i=0}^{r-1} \sum_{j=0}^{r-1} y_{i,j} t^j x^i
+
+           where `y_{i,j}` are polynomials in the center `k^\sigma[x^r]`.
+
+        #. We compute all products `z_{i,j} = left * y_{i,j}`; since
+           all `y_{i,j}` lie in the center, we can compute all these
+           products as if `left` was a commutative polynomial (and we
+           can therefore use fast algorithms like FFT and/or fast
+           implementations)
+
+        #. We compute and return the sum
+
+           .. MATH::
+
+               \sum_{i=0}^{r-1} \sum_{j=0}^{r-1} z_{i,j} t^j x^i
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = S.random_element(degree=10)
+            sage: b = S.random_element(degree=10)
+            sage: a._mul_central(b) == a*b
+            True
+
+        TESTS::
+
+        Here is an example where `k^\sigma` is not a prime field::
+
+            sage: k.<t> = GF(5^6)
+            sage: Frob = k.frobenius_endomorphism(2)
+            sage: S.<x> = k['x',Frob]
+            sage: a = S.random_element(degree=10)
+            sage: b = S.random_element(degree=10)
+            sage: a._mul_central(b) == a*b
+            True
+        """
+        skew_ring = self._parent
+        base_ring = skew_ring.base_ring()
+        commutative_ring = PolynomialRing(skew_ring.base_ring(),name='x')
+        cdef RingElement c
+        cdef RingElement zero = base_ring(0)
+        cdef Py_ssize_t i, j, k
+        cdef Py_ssize_t order = skew_ring._order
+        cdef Py_ssize_t degree = base_ring.degree()
+
+        left = commutative_ring(self.__coeffs)
+        cdef list y = [ c.polynomial() for c in right.__coeffs ]
+        cdef Py_ssize_t leny = len(y)
+        cdef list yc = leny * [zero]
+        cdef list res = (leny + len(self.__coeffs) - 1) * [zero]
+        cdef list term
+        cdef list twist = [ base_ring.gen() ]
+        for i from 0 <= i < order-1:
+            twist.append(skew_ring.twist_map(1)(twist[i]))
+        for i from 0 <= i < order:
+            for j from 0 <= j < degree:
+                for k from i <= k < leny by order:
+                    yc[k] = y[k][j]
+                term = (left * commutative_ring(yc)).list()
+                for k from i <= k < len(term):
+                    res[k] += term[k] * twist[(k-i)%order]**j
+            for k from i <= k < leny by order:
+                yc[k] = zero
+        return self._new_c(res,skew_ring,1)
+
+
+    cpdef RingElement _mul_(self, RingElement right):
+        """
+        Compute self * right (in this order)
+
+        .. NOTE::
+
+            Use skew Karatsuba's algorithm for skew
+            polynomials of large degrees.
+
+        INPUT:
+
+        -  right -- a skew polynomial in the same ring
+
+        TESTS::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = x^2 + t; a
+            x^2 + t
+            sage: b = x^2 + (t + 1)*x; b
+            x^2 + (t + 1)*x
+            sage: a * b
+            x^4 + (3*t^2 + 2)*x^3 + t*x^2 + (t^2 + t)*x
+            sage: a * b == b * a
+            False
+        """
+        return self._parent._karatsuba_class.mul(self,right)
+
+
+    def _mul_classical(self,right):
+        """
+        Compute self * right (in this order) using the
+        skew SchoolBook algorithm.
+
+        INPUT:
+
+        -  ``right`` -- a skew polynomial in the same ring
+
+        TESTS::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = x^2 + t; a
+            x^2 + t
+            sage: b = x^2 + (t + 1)*x; b
+            x^2 + (t + 1)*x
+            sage: a._mul_classical(b)
+            x^4 + (3*t^2 + 2)*x^3 + t*x^2 + (t^2 + t)*x
+            sage: a * b == b * a
+            False
+        """
+        karatsuba_class = self._parent._karatsuba_class
+        save_cutoff = karatsuba_class.get_cutoff()
+        karatsuba_class.set_cutoff(Infinity)
+        res = karatsuba_class.mul(self,right)
+        karatsuba_class.set_cutoff(save_cutoff)
+        return res
+
+
+    cpdef rquo_rem_karatsuba(self, RingElement other, cutoff=None):
+        """
+        Right euclidean division based on Karatsuba's algorithm.
+
+        DO NOT USE THIS! It is not efficient for usual degrees!
+
+        .. TODO::
+
+            Try to understand why...
+
+        TESTS::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+
+            sage: a = S.random_element(2000)
+            sage: b = S.random_element(1000)
+            sage: timeit("q,r = a.rquo_rem_karatsuba(b)")  # random, long time
+            5 loops, best of 3: 104 ms per loop
+            sage: timeit("q,r = a.rquo_rem(b)")  # random, long time
+            5 loops, best of 3: 79.6 ms per loop
+            sage: a.rquo_rem(b) == a.rquo_rem_karatsuba(b)
+            True
+
+            sage: a = S.random_element(10000)
+            sage: b = S.random_element(5000)
+            sage: timeit("q,r = a.rquo_rem_karatsuba(b)")  # random, long time
+            5 loops, best of 3: 1.79 s per loop
+            sage: timeit("q,r = a.rquo_rem(b)")  # random, long time
+            5 loops, best of 3: 1.93 s per loop
+            sage: a.rquo_rem(b) == a.rquo_rem_karatsuba(b)
+            True
+        """
+        karatsuba_class = self._parent._karatsuba_class
+        if cutoff != None:
+            save_cutoff = karatsuba_class.get_cutoff()
+            karatsuba_class.set_cutoff(cutoff)
+        res = karatsuba_class.div(self,other)
+        if cutoff != None:
+            karatsuba_class.set_cutoff(save_cutoff)
+        return res
+
+# Karatsuba class
+#################
+
+cdef class SkewPolynomial_finite_field_karatsuba:
+    """
+    A special class implementing Karatsuba multiplication and
+    euclidean division on skew polynomial rings over finite fields.
+
+    Only for internal use!
+
+    TESTS::
+
+        sage: k.<t> = GF(5^3)
+        sage: Frob = k.frobenius_endomorphism()
+        sage: S.<x> = k['x',Frob]
+
+    An instance of this class is automatically created when the skew
+    ring is created. It is accessible via the key work ``_karatsuba_class``::
+
+        sage: KarClass = S._karatsuba_class; KarClass
+        Special class for Karatsuba multiplication and euclidean division on
+        Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+
+    Each instance of this class is equipped with a ``cutoff`` variable. The
+    default value is the maximum between 150 and the order of the twist map
+    acting on the finite field::
+
+        sage: KarClass.get_cutoff()
+        150
+
+    We can set a new value to this variable as follows::
+
+        sage: KarClass.set_cutoff(27)
+        sage: KarClass.get_cutoff()
+        27
+    """
+    def __init__(self,parent,cutoff=0):
+        """
+        Initialize a new instance of this class.
+        """
+        self._parent = parent
+        self._order = parent._order
+        self._zero = parent.base_ring()(0)
+        self.set_cutoff(cutoff)
+        self._algo_matrix = 0
+        self._t = None
+        self._T = None
+        self._Tinv = None
+
+
+    def __repr__(self):
+        """
+        Return a representation of ``self``
+        """
+        return "Special class for Karatsuba multiplication and euclidean division on\n%s" % self._parent
+
+
+    def set_cutoff(self,cutoff=0):
+        """
+        Set a new cutoff for all Karatsuba multiplications
+        and euclidean divisions performed by this class.
+
+        INPUT:
+
+        -  ``cutoff`` -- a nonnegative integer or +Infinity
+           (default: 0)
+
+        .. NOTE::
+
+            If ``cutoff`` is `0`, the new cutoff is set to the
+            default value which is the maximum between 150 and
+            the order of the twist map acting on the underlying
+            finite field.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: KarClass = S._karatsuba_class
+
+            sage: KarClass.set_cutoff(27)
+            sage: KarClass.get_cutoff()
+            27
+
+            sage: KarClass.set_cutoff(Infinity)
+            sage: KarClass.get_cutoff()
+            +Infinity
+
+            sage: KarClass.set_cutoff(0)  # set the default value
+            sage: KarClass.get_cutoff()
+            150
+
+        The cutoff can't be less than the order of the twist map::
+
+            sage: KarClass.set_cutoff(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: cutoff must be 0 or >= 3
+        """
+        if cutoff == 0:
+            self._cutoff = max(150,self._order)
+        else:
+            if cutoff < self._order:
+                raise ValueError("cutoff must be 0 or >= %s" % self._order)
+            if cutoff == Infinity:
+                self._cutoff = -1
+            else:
+                self._cutoff = cutoff
+
+
+    def get_cutoff(self):
+        """
+        Return the current cutoff
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: KarClass = S._karatsuba_class
+            sage: KarClass.get_cutoff()
+            150
+            sage: KarClass.set_cutoff(27)
+            sage: KarClass.get_cutoff()
+            27
+        """
+        if self._cutoff < 0:
+            return Infinity
+        else:
+            return self._cutoff
+
+
+    def mul(self,left,right):
+        """
+        INPUT:
+
+        -  ``left`` -- a skew polynomial in the skew polynomial
+           right attached to the class
+
+        -  ``right`` -- a skew polynomial in the skew polynomial
+           right attached to the class
+
+        OUTPUT:
+
+        The product left * right (computed by Karatsuba's algorithm)
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: KarClass = S._karatsuba_class
+
+            sage: a = S.random_element(degree=500)
+            sage: b = S.random_element(degree=500)
+            sage: c = KarClass.mul(a,b)
+            sage: c == a*b
+            True
+
+        .. NOTE::
+
+            Behind the scene, the operator ``*`` calls actually
+            the function ``KarClass.mul()``.
+        """
+        cdef Py_ssize_t dx = left.degree(), dy = right.degree()
+        cdef list x = left.list()
+        cdef list y = right.list()
+        cdef list res
+        if self._cutoff < 0:
+            res = self.mul_step(x,y)
+        else:
+            if dx < dy:
+                res = self.mul_iter(y,x,1)
+            else:
+                res = self.mul_iter(x,y,0)
+        return self._parent(res)
+
+
+    def mul_matrix(self,left,right):
+        """
+        INPUT:
+
+        -  ``left`` -- an element in the skew polynomial ring
+           attached to the class
+
+        -  ``right`` -- an element in the skew polynomial ring
+           attached to the class
+
+        OUTPUT:
+
+        The product left * right (computed by Karatsuba-matrix
+        algorithm)
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: KarClass = S._karatsuba_class
+
+            sage: a = S.random_element(degree=500)
+            sage: b = S.random_element(degree=500)
+            sage: c = KarClass.mul_matrix(a,b)
+            sage: c == a*b
+            True
+        """
+        cdef Py_ssize_t dx = left.degree(), dy = right.degree()
+        cdef list x = left.list()
+        cdef list y = right.list()
+        cdef list res
+        cdef Py_ssize_t save_cutoff = self._cutoff
+        cdef Py_ssize_t i, j
+        self._cutoff = int(self._order * self._order / 2)
+        self._algo_matrix = 1
+        if self._t is None:
+            self._t = self._parent.base_ring().gen()
+        if self._T is None:
+            self._T = <Matrix_dense>zero_matrix(self._parent.base_ring(),self._order)
+            for i from 0 <= i < self._order:
+                map = self._parent.twist_map(-i)
+                for j from 0 <= j < self._order:
+                    self._T.set_unsafe(i,j,map(self._t**j))
+        if self._Tinv is None:
+            self._Tinv = <Matrix_dense>self._T.inverse()
+        if dx < dy:
+            res = self.mul_iter(y,x,1)
+        else:
+            res = self.mul_iter(x,y,0)
+        self._cutoff = save_cutoff
+        self._algo_matrix = 0
+        return self._parent(res)
+
+
+    def mul_list(self,x,y):
+        """
+        INPUT:
+
+        -  ``x`` -- a list of coefficients
+
+        -  ``y`` -- a list of coefficients
+
+        OUTPUT:
+
+        The list of coefficients of the product `a * b`
+        where `a` (resp. `b`) is the skew polynomial whose
+        coefficients are given by `x` (resp. `y`).
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<u> = k['u',Frob]
+            sage: KarClass = S._karatsuba_class
+
+            sage: x = [ k.random_element() for _ in range(500) ]
+            sage: y = [ k.random_element() for _ in range(500) ]
+            sage: z = KarClass.mul_list(x,y)
+            sage: S(z) == S(x)*S(y)
+            True
+        """
+        if self._cutoff < 0:
+            return self.mul_step(x,y)
+        cdef Py_ssize_t dx = len(x)-1, dy = len(y)-1
+        if dx < dy:
+            return self.mul_iter(y,x,1)
+        else:
+            return self.mul_iter(x,y,0)
+
+
+    cdef list mul_step(self, list x, list y):
+        """
+        Multiplication step in Karatsuba algorithm
+        """
+        cdef Py_ssize_t dx = len(x)-1, dy = len(y) - 1
+        if dx < 0 or dy < 0: return [ ]
+        cdef Py_ssize_t i, j, start, end = dx if dx < self._order else self._order-1
+        cdef list twists = [ y ]
+        for i from 0 <= i < end:
+            twists.append([ self._parent.twist_map()(a) for a in twists[i] ])
+        cdef list res = [ ]
+        for j from 0 <= j <= dx+dy:
+            start = 0 if j <= dy else j-dy
+            end = j if j <= dx else dx
+            sum = x[start] * twists[start % self._order][j-start]
+            for i from start < i <= end:
+                sum += x[i] * twists[i % self._order][j-i]
+            res.append(sum)
+        return res
+
+
+    cdef list mul_step_matrix(self, list x, list y):
+        r"""
+        Multiplication step in Karatsuba-matrix algorithm. It
+        is based on the ring isomorphism:
+
+        .. MATH::
+
+            S / NS \simeq M_r(k^\sigma)
+
+        with the standard notations::
+
+        -  `S` is the underlying skew polynomial ring
+
+        -  `k` is the base ring of `S` (it's a finite field)
+
+        -  `\sigma` is the twisting automorphism on `k`
+
+        -  `r` is the order of `\sigma`
+
+        -  `N` is a polynomial of definition of the extension
+           `k / k^\sigma`
+
+        .. WARNING::
+
+            The polynomials `x` and `y` must have degree
+            at most `r^2/2`
+        """
+        cdef Py_ssize_t dx = len(x)-1, dy = len(y) - 1
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t r = self._order
+        cdef Mx, My, M
+        cdef list row
+        cdef RingElement c
+        k = self._parent.base_ring()
+        Mx = self._T * matrix(k, r, r, x + [self._zero] * (r*r-len(x)))
+        My = self._T * matrix(k, r, r, y + [self._zero] * (r*r-len(y)))
+        for i from 0 <= i < r:
+            frob = self._parent.twist_map(i)
+            row = Mx.row(i).list()
+            row = map(frob,row)
+            row = [ self._t*c for c in row[r-i:] ] + row[:r-i]
+            Mx.set_row(i,row)
+            row = My.row(i).list()
+            row = map(frob,row)
+            row = [ self._t*c for c in row[r-i:] ] + row[:r-i]
+            My.set_row(i,row)
+        M = Mx * My
+        for i from 0 <= i < r:
+            frob = self._parent.twist_map(-i)
+            row = M.row(i).list()
+            row = row[i:] + [ c/self._t for c in row[:i] ]
+            row = map(frob,row)
+            M.set_row(i,row)
+        M = self._Tinv * M
+        return M.list()[:dx+dy+1]
+
+
+    cdef list mul_iter(self, list x, list y, char flag): # Assume dx >= dy
+        """
+        Karatsuba's recursive iteration
+
+        .. WARNING::
+
+            This function assumes that len(x) >= len(y).
+        """
+        cdef Py_ssize_t i, j, k
+        cdef Py_ssize_t dx = len(x)-1, dy = len(y)-1
+        if self._algo_matrix:
+            if dx < self._cutoff:
+                if flag:
+                    return self.mul_step_matrix(y,x)
+                else:
+                    return self.mul_step_matrix(x,y)
+        else:
+            if dy < self._cutoff:
+                if flag:
+                    return self.mul_step(y,x)
+                else:
+                    return self.mul_step(x,y)
+        cdef Py_ssize_t dp = self._order * (1 + ceil(dx/self._order/2))
+        cdef list x1 = x[:dp], x2 = x[dp:]
+        cdef list y1 = y[:dp], y2 = y[dp:]
+        cdef list p1, p2, res
+        res = self.mul_iter(x1,y1,flag)
+        if dy >= dp:
+            res.append(self._zero)
+            p1 = self.mul_iter(x2,y2,flag)
+            res.extend(p1)
+            for i from 0 <= i <= dx-dp: x1[i] += x2[i]
+            for i from 0 <= i <= dy-dp: y1[i] += y2[i]
+            p2 = self.mul_iter(x1,y1,flag)
+            j = dx + dy - 2*dp
+            k = min(2*dp-2, len(res)-dp-1)
+            for i from k >= i > j:
+                res[i+dp] += p2[i] - res[i]
+            for i from j >= i >= 0:
+                res[i+dp] += p2[i] - p1[i] - res[i]
+        else:
+            if dx-dp < dy:
+                p2 = self.mul_iter(y1,x2,not flag)
+            else:
+                p2 = self.mul_iter(x2,y1,flag)
+            for i from 0 <= i < dy:
+                res[i+dp] += p2[i]
+            res.extend(p2[dy:])
+        return res
+
+
+    def div(self,left,right):
+        """
+        INPUT:
+
+        -  ``left`` -- a skew polynomial in the skew polynomial
+           right attached to the class
+
+        -  ``right`` -- a skew polynomial in the skew polynomial
+           right attached to the class
+
+        OUTPUT:
+
+        The quotient and the remainder of the right euclidien division
+        of left by right (computed by Karatsuba's algorithm).
+
+        .. WARNING::
+
+            This algorithm is only efficient for very very large
+            degrees. Do not use it!
+
+        .. TODO::
+
+            Try to understand why...
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: KarClass = S._karatsuba_class
+
+            sage: a = S.random_element(degree=1000)
+            sage: b = S.random_element(degree=500)
+            sage: q,r = KarClass.div(a,b)
+            sage: q2,r2 = a.quo_rem(b)
+            sage: q == q2
+            True
+            sage: r == r2
+            True
+        """
+        cdef list a = left.list()
+        cdef list b = right.list()
+        cdef Py_ssize_t da = len(a)-1, db = len(b)-1, i
+        cdef list q
+        self._twinv = [ ~b[db] ]
+        for i from 0 <= i < min(da-db,self._order-1):
+            self._twinv.append(self._parent.twist_map()(self._twinv[i]))
+        if self._cutoff < 0:
+            q = self.div_step(a,0,da,b,0,db)
+        else:
+            q = self.div_iter(a,0,da,b,0,db)
+        return self._parent(q), self._parent(a[:db])
+
+
+    cdef list div_step(self, list a, Py_ssize_t ia, Py_ssize_t da, list b, Py_ssize_t ib, Py_ssize_t db):
+        """
+        Division step in Karatsuba's algorithm
+        """
+        cdef Py_ssize_t i, j
+        cdef list q = [ ]
+        cdef list twb = [ b[ib:ib+db] ]
+        for i from 0 <= i < min(da-db,self._order-1):
+            twb.append([ self._parent.twist_map()(x) for x in twb[i] ])
+        for i from da-db >= i >= 0:
+            c = self._twinv[i%self._order] * a[ia+i+db]
+            for j from 0 <= j < db:
+                a[ia+i+j] -= c * twb[i%self._order][j]
+            q.append(c)
+        q.reverse()
+        return q
+
+
+    cdef list div_iter(self, list a, Py_ssize_t ia, Py_ssize_t da, list b, Py_ssize_t ib, Py_ssize_t db):
+        """
+        Karatsuba recursive iteration
+        """
+        cdef Py_ssize_t delta = da - db
+        if delta < self._cutoff:
+            return self.div_step(a,ia,da,b,ib,db)
+        cdef Py_ssize_t i
+        cdef Py_ssize_t dp = self._order * (1 + int(delta/self._order/2))
+        cdef list q = self.div_iter(a,ia+db,delta,b,ib+db-dp,dp), pr
+        if db < delta:
+            pr = self.mul_iter(q,b[ib:ib+db-dp],0)
+        else:
+            pr = self.mul_iter(b[ib:ib+db-dp],q,1)
+        for i from 0 <= i < len(pr):
+            a[i+ia+dp] -= pr[i]
+        cdef list qq = self.div_iter(a,ia,db+dp-1,b,ib,db)
+        qq.extend(q)
+        return qq

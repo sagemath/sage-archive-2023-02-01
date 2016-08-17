@@ -1772,13 +1772,10 @@ class Permutation(CombinatorialElement):
             sage: Permutation([2, 1]).number_of_noninversions(3)
             0
         """
-        from six.moves import filter
         if k > len(self):
             return 0
-        incr_iterator = filter( lambda pos: all( pos[i] < pos[i+1]
-                                                 for i in range(k-1) ),
-                                           itertools.combinations(self, k) )
-        return sum(1 for _ in incr_iterator)
+        return sum(1 for pos in itertools.combinations(self, k)
+                   if all(pos[i] < pos[i + 1] for i in range(k - 1)))
 
     def length(self):
         r"""

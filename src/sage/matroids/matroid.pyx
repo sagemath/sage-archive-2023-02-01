@@ -6132,7 +6132,7 @@ cdef class Matroid(SageObject):
         - ``certificate`` -- (default: ``False``) a boolean, if ``True``
           return ``True, (x, Ax, Bx)``, where ``x`` is a chord and ``Ax`` and
           ``Bx`` are circuits whose union is the elements of ``C``
-          together with ``x``, if ``False`` return ``False, None``.
+          together with ``x``, if ``False`` return ``False, None``
 
         OUTPUT:
 
@@ -6186,7 +6186,7 @@ cdef class Matroid(SageObject):
         - ``certificate`` -- (default: ``False``) a boolean, if ``True``
           return ``True, (x, Ax, Bx)``, where ``x`` is a chord and ``Ax`` and
           ``Bx`` are circuits whose union is the elements of ``C``
-          together with ``x``, if ``False`` return ``False, None``.
+          together with ``x``, if ``False`` return ``False, None``
 
         OUTPUT:
 

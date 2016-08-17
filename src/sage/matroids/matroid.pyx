@@ -326,15 +326,17 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations, product
-from set_system cimport SetSystem
+from .set_system cimport SetSystem
 from sage.graphs.spanning_tree import kruskal
 from sage.graphs.graph import Graph
 from sage.matrix.constructor import matrix
 from sage.misc.superseded import deprecation
 
-from utilities import newlabel, sanitize_contractions_deletions, spanning_forest, spanning_stars
+from .utilities import newlabel, sanitize_contractions_deletions, spanning_forest, spanning_stars
 from sage.rings.all import ZZ
 from sage.numerical.mip import MixedIntegerLinearProgram
 
@@ -1098,7 +1100,7 @@ cdef class Matroid(SageObject):
             {'e', 'f', 'g', 'h'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}},
             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         """
-        import minor_matroid
+        from . import minor_matroid
         return minor_matroid.MinorMatroid(self, contractions, deletions)
 
     cpdef _has_minor(self, N):
@@ -1194,7 +1196,7 @@ cdef class Matroid(SageObject):
             sage: [sorted(C) for C in N.circuits() if len(C) == 3]
             [[0, 1, 6]]
         """
-        import basis_matroid
+        from . import basis_matroid
         return basis_matroid.BasisMatroid(self)._extension(element, hyperplanes)
 
     # ** user-facing methods **
@@ -3454,8 +3456,8 @@ cdef class Matroid(SageObject):
             sage: M._is_isomorphism(N, morphism)
             True
         """
-        import basis_exchange_matroid
-        import basis_matroid
+        from . import basis_exchange_matroid
+        from . import basis_matroid
         sf = basis_matroid.BasisMatroid(self)
         if not isinstance(other, basis_exchange_matroid.BasisExchangeMatroid):
             ot = basis_matroid.BasisMatroid(other)
@@ -3530,7 +3532,7 @@ cdef class Matroid(SageObject):
             sage: M1 == M3  # indirect doctest
             True
         """
-        import basis_matroid
+        from . import basis_matroid
         if op in [0, 1, 4, 5]:  # <, <=, >, >=
             return NotImplemented
         if left.__class__ != right.__class__:
@@ -3866,7 +3868,7 @@ cdef class Matroid(SageObject):
             {'a', 'e', 'i'}, {'b', 'd', 'i'}, {'g', 'h', 'i'}},
             3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}}}'
         """
-        import dual_matroid
+        from . import dual_matroid
         return dual_matroid.DualMatroid(self)
 
     cpdef truncation(self):
@@ -4323,7 +4325,7 @@ cdef class Matroid(SageObject):
             sage: len(list(M.linear_subclasses(line_length=5)))
             44
         """
-        import extension
+        from . import extension
         return extension.LinearSubclasses(self, line_length=line_length, subsets=subsets)
 
     cpdef extensions(self, element=None, line_length=None, subsets=None):
@@ -4382,7 +4384,7 @@ cdef class Matroid(SageObject):
             5
 
         """
-        import extension
+        from . import extension
         if element is None:
             element = newlabel(self.groundset())
         else:
@@ -7546,7 +7548,7 @@ cdef class Matroid(SageObject):
             sage: G.show()
 
         """
-        import matroids_plot_helpers
+        from . import matroids_plot_helpers
         if pos_method == 1  and pos_dict != None:
         # check sanity of pos_dict and add it to cached info if sane
             if matroids_plot_helpers.posdict_is_sane(self, pos_dict) == True: 
@@ -7652,8 +7654,8 @@ cdef class Matroid(SageObject):
         if self.rank() > 3:
             raise NotImplementedError
         # check sanity of pos_dict and add it to cached info if sane
-        if(pos_dict!=None):
-            import matroids_plot_helpers
+        if pos_dict is not None:
+            from . import matroids_plot_helpers
             if matroids_plot_helpers.posdict_is_sane(self,pos_dict) ==True:
                 self._cached_info={'plot_positions':pos_dict,'lineorders':lineorders}
         return
@@ -7686,4 +7688,3 @@ cdef class Matroid(SageObject):
         """
         from sage.homology.simplicial_complex import SimplicialComplex
         return SimplicialComplex(self.no_broken_circuits_sets(ordering))
-

@@ -71,15 +71,20 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 include 'sage/data_structures/bitset.pxi'
-from matroid cimport Matroid
-from basis_exchange_matroid cimport BasisExchangeMatroid
-from itertools import permutations
+
+from .matroid cimport Matroid
+from .basis_exchange_matroid cimport BasisExchangeMatroid
+from .set_system cimport SetSystem
+
 from sage.arith.all import binomial
-from set_system cimport SetSystem
-from itertools import combinations
+
+from itertools import permutations, combinations
 
 # class of general matroids, represented by their list of bases
+
 
 cdef class BasisMatroid(BasisExchangeMatroid):
     """

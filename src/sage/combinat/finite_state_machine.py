@@ -932,6 +932,7 @@ from __future__ import print_function
 
 import collections
 import itertools
+from six.moves import zip_longest
 import sage
 
 
@@ -5521,7 +5522,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: [s.label() for s in F.iter_initial_states()]
             ['A']
         """
-        return itertools.ifilter(lambda s:s.is_initial, self.iter_states())
+        from six.moves import filter
+        return filter(lambda s:s.is_initial, self.iter_states())
 
 
     def final_states(self):
@@ -5571,8 +5573,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: [s.label() for s in F.iter_final_states()]
             ['A', 'C']
         """
-        return itertools.ifilter(lambda s:s.is_final, self.iter_states())
-
+        from six.moves import filter
+        return filter(lambda s:s.is_final, self.iter_states())
 
     def state(self, state):
         """
@@ -9081,8 +9083,10 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
              Transition from 1 to 0: 0|0,
              Transition from 1 to 1: 1|1,(0, 0)]
         """
+        from six.moves import filter
+
         def find_common_output(state):
-            if any(itertools.ifilter(
+            if any(filter(
                     lambda transition: not transition.word_out,
                     self.transitions(state))) \
                    or state.is_final and not state.final_word_out:
@@ -9755,7 +9759,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: F.state(0).final_word_out
             []
         """
-        from itertools import cycle, izip_longest
+        from itertools import cycle
 
         if not isinstance(letters, list):
             letters = [letters]
@@ -12753,14 +12757,14 @@ class Transducer(FiniteStateMachine):
         def function(*transitions):
             if equal(t.word_in for t in transitions):
                 return (transitions[0].word_in,
-                        list(itertools.izip_longest(
+                        list(zip_longest(
                             *(t.word_out for t in transitions)
                              )))
             else:
                 raise LookupError
 
         def final_function(*states):
-            return list(itertools.izip_longest(*(s.final_word_out
+            return list(zip_longest(*(s.final_word_out
                                                  for s in states)))
 
         return self.product_FiniteStateMachine(
@@ -14072,7 +14076,7 @@ def tupleofwords_to_wordoftuples(tupleofwords):
         ....:     ([1, 2], [3, 4, 5, 6], [7]))
         [(1, 3, 7), (2, 4, None), (None, 5, None), (None, 6, None)]
     """
-    return list(itertools.izip_longest(*tupleofwords, fillvalue=None))
+    return list(zip_longest(*tupleofwords, fillvalue=None))
 
 
 def wordoftuples_to_tupleofwords(wordoftuples):

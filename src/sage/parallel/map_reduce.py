@@ -508,7 +508,7 @@ from multiprocessing import Process, Value, Semaphore, Lock
 from multiprocessing.queues import Pipe, Queue, SimpleQueue
 from multiprocessing.sharedctypes import RawArray
 from threading import Thread
-from Queue import Empty
+from six.moves import queue
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet # _generic
 from sage.misc.lazy_attribute import lazy_attribute
 import collections
@@ -1141,7 +1141,7 @@ class RESetMapReduce(object):
                              'timeout: %s, aborted: %s' %
                              (active_proc, timeout, self._aborted.value))
                 newres = self._results.get(timeout=timeout)
-            except Empty:
+            except queue.Empty:
                 logger.debug('Timed out waiting for results; aborting')
                 # If we timed out here then the abort timer should have
                 # already fired, but just in case it didn't (or is in

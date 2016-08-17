@@ -370,6 +370,272 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_generic_dense):
                 l[i] = self._parent.twist_map()(l[i])
         return M
 
+    def reduced_norm(self):
+        r"""
+        Return the reduced norm of this skew polynomial.
+
+        .. NOTE::
+
+            The result is cached.
+
+        ALGORITHM:
+
+        If `r` (= the order of the twist map) is small compared
+        to `d` (= the degree of this skew polynomial), the reduced
+        norm is computed as the determinant of the multiplication
+        by `P` (= this skew polynomial) acting on `K[X,\sigma]`
+        (= the underlying skew ring) viewed as a free module of
+        rank `r` over `K[X^r]`.
+
+        Otherwise, the reduced norm is computed as the characteristic
+        polynomial (considered as a polynomial of the variable `X^r`)
+        of the left multiplication by `X` on the quotient
+        `K[X,\sigma] / K[X,\sigma]*P` (which is a `K`-vector space
+        of dimension `d`).
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = S.random_element(degree=3,monic=True); a
+            x^3 + (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 2
+            sage: N = a.reduced_norm(); N
+            (x^3)^3 + 4*(x^3)^2 + 4
+
+        Note that the parent of `N` is the center of the `S`
+        (and not `S` itself)::
+
+            sage: N.parent()
+            Center of Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5:
+            Univariate Polynomial Ring in (x^3) over Finite Field of size 5
+            sage: N.parent() == S.center()
+            True
+
+        In any case, coercion works fine::
+
+            sage: S(N)
+            x^9 + 4*x^6 + 4
+            sage: N + a
+            x^9 + 4*x^6 + x^3 + (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 1
+
+        We check that `N` is a multiple of `a`::
+
+            sage: S(N).is_divisible_by(a)
+            True
+            sage: S(N).is_divisible_by(a,side=Left)
+            True
+
+        .. NOTE::
+
+            We really need to coerce first `N` into `S`. Otherwise an
+            error occurs::
+
+                 sage: N.is_divisible_by(a)
+                 Traceback (most recent call last):
+                 ...
+                 AttributeError: 'sage.rings.polynomial.skew_polynomial_element.CenterSkewPolynomial_generic_dense' object has no attribute 'is_divisible_by'
+
+        We check that the reduced norm is a multiplicative map::
+
+            sage: a = S.random_element(degree=5)
+            sage: b = S.random_element(degree=7)
+            sage: a.reduced_norm() * b.reduced_norm() == (a*b).reduced_norm()
+            True
+        """
+        if self._norm is None:
+            center = self.parent().center()
+            if self.is_zero():
+                self._norm = center(0)
+            else:
+                section = center._embed_basering.section()
+                exp = (self.parent().base_ring().cardinality() - 1) / (center.base_ring().cardinality() - 1)
+                order = self.parent()._order
+                lc = section(self.leading_coefficient()**exp)
+                if order < self.degree():
+                    M = self._matmul_c()
+                    self._norm = center([ lc*section(x) for x in M.determinant().monic().list() ])
+                else:
+                    charpoly = self._matphir_c().characteristic_polynomial()
+                    self._norm = center([ lc*section(x) for x in charpoly.list() ])
+        return self._norm
+
+
+    def reduced_norm_factor(self):
+        """
+        Return the reduced norm of this polynomial
+        factorized in the centre.
+
+        EXAMPLES:
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+
+            sage: a = (x^2 + 1) * (x+3)
+            sage: a.reduced_norm_factor()
+            ((x^3) + 3) * ((x^3) + 2)^2
+        """
+        if self._norm_factor is None:
+            self._norm_factor = self.reduced_norm().factor()
+        return self._norm_factor
+
+
+    def is_central(self):
+        """
+        Return True if this skew polynomial lies in the center.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+
+            sage: x.is_central()
+            False
+            sage: (t*x^3).is_central()
+            False
+            sage: (x^6 + x^3).is_central()
+            True
+        """
+        center = self.parent().center()
+        try:
+            center(self)
+            return True
+        except ValueError:
+            return False
+
+
+    def bound(self):
+        """
+        Return a bound of this skew polynomial (i.e. a multiple
+        of this skew polynomial lying in the center).
+
+        .. NOTE::
+
+            Since `b` is central, it divides a skew polynomial
+            on the left iff it divides it on the right
+
+        ALGORITHM:
+
+        #. Sage first checks whether ``self`` is itself in the
+           center. It if is, it returns ``self``
+
+        #. If an optimal bound was previously computed and
+           cached, Sage returns it
+
+        #. Otherwise, Sage returns the reduced norm of ``self``
+
+        As a consequence, the output of this function may depend
+        on previous computations (an example is given below).
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: Z = S.center()
+
+            sage: a = x^2 + (4*t + 2)*x + 4*t^2 + 3
+            sage: b = a.bound(); b
+            (x^3)^2 + (x^3) + 4
+
+        Note that the parent of `b` is the center of the `S`
+        (and not `S` itself)::
+
+            sage: b.parent()
+            Center of Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5:
+            Univariate Polynomial Ring in (x^3) over Finite Field of size 5
+            sage: b.parent() == Z
+            True
+
+        We check that `b` is divisible by `a`::
+
+            sage: S(b).is_divisible_by(a)
+            True
+            sage: S(b).is_divisible_by(a,side=Left)
+            True
+
+        Actually, `b` is the reduced norm of `a`::
+
+            sage: b == a.reduced_norm()
+            True
+
+        Now, we compute the optimal bound of `a` and see that
+        it affects the behaviour of ``bound()``::
+
+            sage: a.optimal_bound()
+            (x^3) + 3
+            sage: a.bound()
+            (x^3) + 3
+
+        We finally check that if `a` is a central skew polynomial,
+        then ``a.bound()`` returns simply `a`::
+
+            sage: a = S(Z.random_element(degree=4)); a
+            2*x^12 + x^9 + 2*x^3
+            sage: b = a.bound(); b
+            2*(x^3)^4 + (x^3)^3 + 2*(x^3)
+            sage: a == b
+            True
+        """
+        center = self.parent().center()
+        try:
+            return center(self)
+        except ValueError:
+            pass
+        if not self._optbound is None:
+            return center(self._optbound)
+        return self.reduced_norm()
+
+
+    def optimal_bound(self):
+        """
+        Return the optimal bound of this skew polynomial (i.e.
+        the monic multiple of this skew polynomial of minimal
+        degree lying in the center).
+
+        .. NOTE::
+
+            The result is cached.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: Z = S.center()
+
+            sage: a = x^2 + (4*t + 2)*x + 4*t^2 + 3
+            sage: b = a.optimal_bound(); b
+            (x^3) + 3
+
+        Note that the parent of `b` is the center of the `S`
+        (and not `S` itself)::
+
+            sage: b.parent()
+            Center of Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5:
+            Univariate Polynomial Ring in (x^3) over Finite Field of size 5
+            sage: b.parent() == Z
+            True
+
+        We check that `b` is divisible by `a`::
+
+            sage: S(b).is_divisible_by(a)
+            True
+            sage: S(b).is_divisible_by(a,side=Left)
+            True
+        """
+        center = self.parent().center()
+        if self._optbound is None:
+            try:
+                self._optbound = center(self).monic()
+            except ValueError:
+                bound = self._matphir_c().minimal_polynomial()
+                section = center._embed_basering.section()
+                self._optbound = [ section(x) for x in bound.list() ]
+        return center(self._optbound)
+
     def _mul_karatsuba(self,right,cutoff=None):
         """
         Karatsuba multiplication

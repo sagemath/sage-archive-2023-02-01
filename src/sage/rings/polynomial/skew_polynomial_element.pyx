@@ -47,6 +47,12 @@ from cpython.object cimport PyObject_RichCompare
 from sage.categories.map cimport Map
 from sage.rings.morphism cimport Morphism, RingHomomorphism
 
+cdef class CenterSkewPolynomial_generic_dense(Polynomial_generic_dense):
+    """
+    A class for elements in the center of a skew polynomial ring.
+    """
+    pass
+
 cdef class SkewPolynomial(AlgebraElement):
     """
     A skew polynomial.

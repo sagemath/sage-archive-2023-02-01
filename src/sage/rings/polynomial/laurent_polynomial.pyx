@@ -1327,9 +1327,33 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             4*w*z^3 + w^-1*z^-1
             sage: L(1/2)
             1/2
+
+        TESTS::
+
+        Check that :trac:`19538` is fixed
+            
+            sage: R = LaurentPolynomialRing(QQ,'x2,x0')
+            sage: S = LaurentPolynomialRing(QQ,'x',3)
+            sage: f = S.coerce_map_from(R)
+            sage: f(R.gen(0) + R.gen(1)^2)
+            x0^2 + x2
+            sage: _.parent()
+            Multivariate Laurent Polynomial Ring in x0, x1, x2 over Rational Field
         """
         if isinstance(x, LaurentPolynomial_mpair):
-            x = x.dict()
+            # check if parent contains all the generators of x.parent() for coercions
+            try: 
+                inject_dict = dict(enumerate([parent.variable_names().index(v) for v in x.parent().variable_names()]))
+                tmp_x = x.dict()
+                x = dict()
+                n = int(parent.ngens())
+                m = len(inject_dict)
+                for k in tmp_x.keys():
+                    img_k = ETuple(dict([(inject_dict[a],k[a]) for a in xrange(m)]),n)
+                    x[img_k] = tmp_x[k]
+            # otherwise just pass along a dict for conversions 
+            except:
+                x = x.dict()
         elif isinstance(x, PolyDict):
             x = x.dict()
         if isinstance(x, dict):

@@ -31,6 +31,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.rational_field import QQ
 from sage.arith.misc import gcd
 from sage.rings.complex_interval_field import ComplexIntervalField
+from sage.rings.real_mpfr import RealField_class,RealField
 
 cdef class MPolynomial(CommutativeRingElement):
 
@@ -1874,6 +1875,16 @@ cdef class MPolynomial(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             ValueError: (=x^3*y*z + x^4 + y^2*z) must have two variables
+
+        ::
+
+            sage: R.<x,y> = PolynomialRing(ZZ)
+            sage: F = - 8*x^6 - 3933*x^3*y - 725085*x^2*y^2 - 59411592*x*y^3 - 99*y^6
+            sage: F.reduced_form(return_conjugation=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: (=-8*x^6 - 99*y^6 - 3933*x^3*y - 725085*x^2*y^2 -
+            59411592*x*y^3) must be homogenous
         """
         from sage.matrix.constructor import matrix
         from sage.calculus.functions import jacobian
@@ -1882,7 +1893,8 @@ cdef class MPolynomial(CommutativeRingElement):
             raise ValueError("(=%s) must have two variables"%self)
         if self.is_homogeneous() != True:
             raise ValueError("(=%s) must be homogenous"%self)
-        KK = ComplexIntervalField(prec=prec)
+        KK = ComplexIntervalField(prec=prec) # keeps trac of our precision error
+        JJ=RealField()
         R = self.parent()
         S = PolynomialRing(R.base_ring(),'z')
         phi = R.hom([S.gen(0),1],S)# dehomogenization
@@ -1893,6 +1905,7 @@ cdef class MPolynomial(CommutativeRingElement):
         R=PolynomialRing(KK,'x,y')
         x,y = R.gens()
         Q  =[]
+        # finds Stoll and Cremona's Q_0'
         for j in range(len(roots)):
             k = (1/(dF(roots[j]).abs()**(2/(n-2))))*((x-(roots[j]*y))*(x-(roots[j].conjugate()*y)))
             Q.append(k)
@@ -1901,13 +1914,15 @@ cdef class MPolynomial(CommutativeRingElement):
         A = q.monomial_coefficient(x**2)
         B = q.monomial_coefficient(x*y)
         C = q.monomial_coefficient(y**2)
+        # need positive root
         try:
             z = (-B + ((B**2)-(4*A*C)).sqrt())/(2*A)# this is z_o
         except ValueError:
             raise  ValueError("not enough precision")
         if z.imag()<0:
             z = (-B - ((B**2)-(4*A*C)).sqrt())/(2*A)
-        M = matrix(QQ, [[1,0], [0,1]])# this moves Z to fundamental domain
+        M = matrix(QQ, [[1,0], [0,1]]) # used to keep track of how our z is moved.
+        # this moves Z to our fundamental domain using the three steps laid out in the algorithim
         while z.real() < -0.5 or z.real() >= 0.5 or (z.real() <= 0 and z.abs() < 1)\
          or (z.real() > 0 and z.abs() <= 1):
             if z.real() < -0.5:
@@ -1923,7 +1938,7 @@ cdef class MPolynomial(CommutativeRingElement):
             elif (z.real() <= 0 and z.abs() < 1) or (z.real() > 0 and z.abs() <= 1):
                 z = -1/z
                 M = M * matrix(QQ, [[0,-1], [1,0]])
-        q = q(tuple((M * vector([x, y]))))
+        q = q(tuple((M * vector([x, y])))) #our new Q
         A = q.monomial_coefficient(x**2)
         B = q.monomial_coefficient(x*y)
         C = q.monomial_coefficient(y**2)
@@ -1944,7 +1959,7 @@ cdef class MPolynomial(CommutativeRingElement):
             d = (t-(L[j].real()))/((t-(L[j]))*(t-(L[j].conjugate()))+ u**2)
             c += d
         # return "A"broke here
-        #Newton's Method, error bound is while less than diameter of our z instaed of solve use newtons method
+        #Newton's Method, error bound is while less than diameter of our z
         err = z0.diameter()
         zz = z0.diameter()
         n = q.degree()
@@ -1954,6 +1969,7 @@ cdef class MPolynomial(CommutativeRingElement):
         J = jacobian(G, [u,t])
         v0 = vector([z0.imag(), z0.real()]) #z0 as starting point
         z = z0
+        #finds our correct z
         while err <= zz:
             NJ = J.subs({u:v0[0], t:v0[1]})
             NJinv = NJ.inverse()
@@ -1967,8 +1983,9 @@ cdef class MPolynomial(CommutativeRingElement):
             w = z
             v0 = v0 - NJinv*G.subs({u:v0[0],t:v0[1]})
             z = v0[1].coefficients()[0] + v0[0].coefficients()[0]*KK.gen(0)
-            err = z.diameter() # prec
-            zz = (w - z).abs() #diff in w and z
+            err = z.diameter() # precision
+            zz = (w - z).abs() #difference in w and z
+        # moves our z ro fundamental domain as before
         while z.real() < -0.5 or z.real() >= 0.5 or (z.real() <= 0 and z.abs() < 1)\
          or (z.real() > 0 and z.abs() <= 1):
             if z.real() < -0.5:
@@ -1987,7 +2004,7 @@ cdef class MPolynomial(CommutativeRingElement):
         err = z.diameter()
         zc = z.center()
         zr = zc.real()
-        if (zr.abs() - KK(0.5)).abs() <= err or (zc.abs() - 1).abs() <= err:
+        if (zr.abs() - JJ(0.5)).abs() <= err or (zc.abs() - 1).abs() <= err:
             raise ValueError("not enough precision")
         x,y = self.parent().gens()
         if return_conjugation:

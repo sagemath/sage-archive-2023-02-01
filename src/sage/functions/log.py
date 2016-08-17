@@ -1042,20 +1042,9 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             return z
         elif m == 1:
             return harmonic_m1._eval_(z)
-        from sage.symbolic.ring import SR
-        P = s_parent(z)
-        if not hasattr(z, 'operator') and not self._is_numerical(z):
-            try:
-                z = ZZ(z)
-            except TypeError:
-                pass
-            else:
-                if (isinstance(m, (Integer, int))):
-                    if P in (ZZ, int):
-                        P = QQ
-                    return SR(P(sum(1/(k**m) for k in range(1,z+1))))
-                elif isinstance(m, Rational):
-                    return sum(1/(k**m) for k in range(1,z+1))
+
+        if z in ZZ and z >= 0:
+            return sum(1/(k**m) for k in xrange(1,z+1))
 
     def _evalf_(self, z, m, parent=None, algorithm=None):
         """
@@ -1071,9 +1060,12 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             2.36889632899995 - 3.51181956521611*I
         """
         if m == 0:
+            if parent is None:
+                return z
             return parent(z)
         elif m == 1:
-            return harmonic_m1._evalf_(z, parent)
+            return harmonic_m1._evalf_(z, parent, algorithm)
+
         from sage.functions.transcendental import zeta, hurwitz_zeta
         return zeta(m) - hurwitz_zeta(m,z+1)
 
@@ -1206,28 +1198,17 @@ class Function_harmonic_number(BuiltinFunction):
             sage: harmonic_number(2*x)
             harmonic_number(2*x)
         """
-        from sage.symbolic.ring import SR
-        P = s_parent(z)
-        if P in (ZZ, int):
-            P = QQ
-        if not hasattr(z, 'operator') and not self._is_numerical(z):
-            try:
-                z = ZZ(QQ(z))
-            except TypeError:
-                pass
-        if isinstance(z, Integer):
+        if z in ZZ:
             if z == 0:
                 return Integer(0)
             elif z == 1:
                 return Integer(1)
-            else:
+            elif z > 1:
                 import sage.libs.flint.arith as flint_arith
-                return SR(P(flint_arith.harmonic_number(z)))
-        elif isinstance(z, Rational):
-            from sage.calculus.calculus import symbolic_sum
-            from sage.rings.infinity import infinity
-            x = SR.var('x')
-            return z*symbolic_sum(1/x/(z+x),x,1,infinity)
+                return flint_arith.harmonic_number(z)
+        elif z in QQ:
+            from sage.functions.other import psi1
+            return psi1(z+1) - psi1(1)
 
     def _evalf_(self, z, parent=None, algorithm='mpmath'):
         """

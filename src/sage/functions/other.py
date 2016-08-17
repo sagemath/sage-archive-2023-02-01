@@ -707,6 +707,8 @@ class Function_frac(BuiltinFunction):
             frac(x + 5.40000000000000)
             sage: frac(cos(8)/cos(2))
             cos(8)/cos(2)
+            sage: latex(frac(x))
+            \operatorname{frac}\left(x\right)
 
         Test pickling::
 
@@ -714,16 +716,8 @@ class Function_frac(BuiltinFunction):
             floor
         """
         BuiltinFunction.__init__(self, "frac",
-                                 conversions=dict(sympy='frac'))
-
-    def _print_latex_(self, x):
-        r"""
-        EXAMPLES::
-
-            sage: latex(frac(x))
-            \left\{ x \right\}
-        """
-        return r"\left\{ %s \right\}"%latex(x)
+                                 conversions=dict(sympy='frac'),
+                                 latex_name=r"\operatorname{frac}")
 
     def _evalf_(self, x, **kwds):
         """
@@ -749,7 +743,7 @@ class Function_frac(BuiltinFunction):
             return x - x.floor()
         except AttributeError:
             if isinstance(x, (int, long)):
-                return x - Integer(x)
+                return Integer(0)
             elif isinstance(x, (float, complex)):
                 return x - Integer(int(math.floor(x)))
             elif isinstance(x, sage.symbolic.expression.Expression):

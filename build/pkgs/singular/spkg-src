@@ -80,4 +80,4 @@ tar c "$PKGNAME" | bzip2 -c --best >"$TARGET"
 cd "$SAGE_ROOT"
 rm -rf "$SPKG_ROOT"
 
-echo "Now run `sage --package fix-checksum singular`"
+echo "Now run 'sage --package fix-checksum singular'"

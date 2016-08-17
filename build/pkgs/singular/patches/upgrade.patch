@@ -1,3 +1,4 @@
+Debug???
 diff -rupN a/Singular/ipprint.cc b/Singular/ipprint.cc
 --- a/Singular/ipprint.cc	2015-08-23 16:41:08.243790168 +0200
 +++ b/Singular/ipprint.cc	2015-08-23 16:41:42.179806546 +0200
@@ -26,25 +27,3 @@ diff -rupN a/Singular/ipprint.cc b/Singular/ipprint.cc
    rWrite(r, TRUE);
    return FALSE;
  }
-diff -dru a/gfanlib/gfanlib_z.h b/gfanlib/gfanlib_z.h
---- a/gfanlib/gfanlib_z.h 2016-02-16 00:00:00.666666666 +0200
-+++ b/gfanlib/gfanlib_z.h 2016-02-16 00:00:00.666666666 +0200
-@@ -13,6 +13,7 @@ 
- 
- #define OLD 1
- #if OLD
-+#include <cstddef>
- #include "gmp.h"
- 
- namespace gfan{
-diff --git a/libpolys/coeffs/longrat.h b/libpolys/coeffs/longrat.h
---- a/libpolys/coeffs/longrat.h
-+++ b/libpolys/coeffs/longrat.h
-@@ -110,6 +110,7 @@ static FORCE_INLINE BOOLEAN nlIsInteger(number q, const coeffs r)
- number nlModP(number q, const coeffs Q, const coeffs Zp);
- void   nlNormalize(number &x, const coeffs r);
- void   nlInpGcd(number &a, number b, const coeffs r);
-+void   nlDelete(number *a, const coeffs r);
- 
- 
- /// create a rational i/j (implicitly) over Q

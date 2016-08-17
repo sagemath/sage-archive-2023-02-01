@@ -74,16 +74,19 @@ Note that FriCAS objects are normally displayed using "ASCII art".
       x  + -
            7
 
-The ``fricas.eval`` command evaluates an expression in
-FriCAS and returns the result as a string. This is exact as if we
-typed in the given line of code to FriCAS; the return value is what
-FriCAS would print out.
+The ``fricas.eval`` command evaluates an expression in FriCAS and
+returns the result as a string. This is exact as if we typed in the
+given line of code to FriCAS; the return value is what FriCAS would
+print out, except that type information and line number are stripped
+away.
 
 ::
 
     sage: print(fricas.eval('factor(x^5 - y^5)'))                               # optional - fricas
+    |startAlgebraOutput|
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )
+    |endOfAlgebraOutput|
 
 We can create the polynomial `f` as a FriCAS polynomial,
 then call the factor method on it. Notice that the notation
@@ -184,6 +187,12 @@ FriCAS can expand expressions into series::
 
     sage: a.coefficient(3/2).sage()                                             # optional - fricas
     -1/4
+
+FriCAS does some limits right:
+
+    sage: fricas("limit(x^2*exp(-x)*Ei(x) - x, x=%plusInfinity)")               # optional - fricas
+    1
+
 """
 
 ###########################################################################
@@ -222,11 +231,7 @@ FRICAS_INIT_CODE = (
 "            (lambda (x &optional args)"
 "              (when (member x '(|startAlgebraOutput| |endOfAlgebraOutput|"
 "                                |startKeyedMsg|      |endOfKeyedMsg|))"
-"               (let ((typetime (member (car args) '(S2GL0012 S2GL0013 S2GL0014))))"
-"                 (cond"
-"                   ((and (eq x '|startKeyedMsg|) typetime) (princ \"|startTypeTime|\"))"
-"                   ((and (eq x '|endOfKeyedMsg|) typetime) (princ \"|endOfTypeTime|\"))"
-"                   (t (prin1 x))))"
+"               (prin1 x)"
 "               (princ #\\Newline))))")
 
 FRICAS_LINENUMBER_OFF_CODE = ")lisp (setf |$IOindex| NIL)"
@@ -285,10 +290,10 @@ class FriCAS(ExtraTabCompletion, Expect):
         self._prompt = FRICAS_FIRST_PROMPT
         Expect._start(self)
         for line in FRICAS_INIT_CODE:
-            Expect.eval(self, line)
+            self.eval(line)
         # switching off the line numbers also modified the prompt
         self._prompt = FRICAS_LINENUMBER_OFF_PROMPT
-        Expect.eval(self, FRICAS_LINENUMBER_OFF_CODE)
+        self.eval(FRICAS_LINENUMBER_OFF_CODE)
 
     def _quit_string(self):
         """
@@ -325,7 +330,7 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: 'factor' in cmds                                              # optional - fricas
             True
         """
-        output = Expect.eval(self, ")what operations")
+        output = self.eval(")what operations")
         m = re.search(FRICAS_WHAT_OPERATIONS_STRING + "\r\n(.*)\r\n\|startKeyedMsg\|", output, flags = re.DOTALL)
         l = m.groups()[0].split()
         return l
@@ -383,29 +388,20 @@ class FriCAS(ExtraTabCompletion, Expect):
                 sage.misc.persist.save(v, self._COMMANDS_CACHE)
             return names
 
-    def eval(self, code, strip=True, synchronize=False, locals=None, allow_use_file=True,
-             split_lines="nofile", **kwds):
-        """Send the code to the FriCAS interpreter and return the pretty
-        printed output as a string.
+# what I expect from FriCAS:
 
-        INPUT:
-
-        -  ``code``       -- text to evaluate
-
-        """
-        output = Expect.eval(self, code, strip=strip, synchronize=synchronize,
-                             locals=locals, allow_use_file=allow_use_file, split_lines=split_lines,
-                             **kwds)
-        m = re.match("\r\n\|startAlgebraOutput\|\r\n(.*)\r\n\|endOfAlgebraOutput\|", output, flags = re.DOTALL)
-        if m:
-            lines = m.groups()[0].split(FRICAS_LINE_BREAK)
-            if max(len(line) for line in lines) < FRICAS_LINE_LENGTH:
-                return "\r\n".join(line[FRICAS_SINGLE_LINE_START:] for line in lines)
-            else:
-                return "\r\n".join(line[FRICAS_MULTI_LINE_START:] for line in lines)
-
-        else:
-            raise RuntimeError("FriCAS has not recognized '%s' as a valid operation: %s" % (code, output))
+# 1.) in set(self, var, value)
+#
+# no markers:
+# there could be some "debugging" output, as in fricas("guessADE([1,1,1,1], debug==true)")
+#
+# startKeyedMsg: an error happened
+#
+# 2.) in get(self, var)
+#
+# |startAlgebraOutput\|...|endOfAlgebraOutput\|
+#
+# 3.) I also need a routine to send a system command and get its output.
 
     def set(self, var, value):
         """Set the variable var to the given value.
@@ -424,17 +420,16 @@ class FriCAS(ExtraTabCompletion, Expect):
             '2'
 
         """
-#        print "running set", var, value
-        if not isinstance(var, str) or not isinstance(value, str):
-            raise TypeError
-
-        self._eval_line('%s := %s;'%(var, value))
+        # print("fricas.set %s := %s" %(var, value))
+        cmd = '%s%s%s;'%(var,self._assign_symbol(), value)
+        output = self.eval(cmd)
+        m = re.search("\r\n\|startKeyedMsg\|\r\n(.*)\r\n\|endOfKeyedMsg\|\r", output, flags = re.DOTALL)
+        if m:
+            raise RuntimeError("An error occurred when FriCAS evaluated '%s': %s" % (value, output))
 
     def get(self, var):
         r"""
         Get the string representation of the value of a variable.
-
-        This is only used for display.
 
         EXAMPLES::
 
@@ -445,8 +440,15 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: fricas.get(a.name())                                          # optional - fricas
             '   +-+\r\n29\\|2  + 41'
         """
-#        print "running get", var
-        return self.eval(str(var))
+        # print("fricas.get %s" %var)
+        output = self.eval(str(var))
+        m = re.search("\r\n\|startAlgebraOutput\|\r\n(.*)\r\n\|endOfAlgebraOutput\|\r", output, flags = re.DOTALL)
+        if m:
+            lines = m.groups()[0].split(FRICAS_LINE_BREAK)
+            if max(len(line) for line in lines) < FRICAS_LINE_LENGTH:
+                return "\r\n".join(line[FRICAS_SINGLE_LINE_START:] for line in lines)
+            else:
+                return "\r\n".join(line[FRICAS_MULTI_LINE_START:] for line in lines)
 
     def _assign_symbol(self):
         """Returns the symbol used for setting a variable.
@@ -628,7 +630,7 @@ class FriCASElement(ExpectElement):
         True
         """
         P = self._check_valid()
-        return P.eval('unparse(%s::InputForm)' %self._name).replace("\r\n", "")[1:-1]
+        return P.get('unparse(%s::InputForm)' %self._name).replace("\r\n", "")[1:-1]
 
 
     def _get_sage_type(self, domain):
@@ -787,14 +789,18 @@ class FriCASElement(ExpectElement):
         # TODO: perhaps we should translate the type first?
         # TODO: perhaps we should get the InputForm as SExpression?
 
+        # remember: fricas.get gives a str and should only used if
+        # you know what you are doing, whereas fricas.new gives a
+        # FriCASElement
+        
         # the coercion to Any gets rid of the Union domain
         P = self._check_valid()
         domain = P.new("dom(%s::Any)" % self._name) # domain is now a fricas SExpression
 
         # first translate dummy domains such as "failed"
         # we must not recurse here!
-        if P.eval("string?(%s)" % domain._name) == "true":
-            return P.eval("string(%s)" % domain._name)[1:-1]
+        if P.get("string?(%s)" % domain._name) == "true":
+            return P.get("string(%s)" % domain._name)[1:-1]
 
         # now translate domains without arguments
         head = str(domain.car())
@@ -825,7 +831,7 @@ class FriCASElement(ExpectElement):
 
         # finally implement "functorial" types
         if head == "List":
-            n = int(P.eval('# %s'%self._name))
+            n = int(P.get('# %s'%self._name))
             return [P.new('%s(%s)'%(self._name, k)).sage() for k in range(1, n+1)]
 
         if head == "Matrix":

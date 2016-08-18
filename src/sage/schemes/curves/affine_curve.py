@@ -47,6 +47,7 @@ from sage.rings.all import degree_lowest_rational_function
 from sage.rings.number_field.number_field import NumberField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar import number_field_elements_from_algebraics, QQbar
+from sage.rings.rational_field import is_RationalField
 from sage.schemes.affine.affine_space import (AffineSpace,
                                               is_AffineSpace)
 
@@ -488,8 +489,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: K.<a> = QuadraticField(3)
             sage: A.<x,y> = AffineSpace(K, 2)
             sage: C = A.curve(x^4 + 2*x^2 + a*y^3 + 1)
-            sage: R = C.resolution_of_singularities(extend=True) # long time (2 seconds)
-            sage: R[0]
+            sage: R = C.resolution_of_singularities(extend=True)[0] # long time (2 seconds)
             (Affine Plane Curve over Number Field in a0 with defining polynomial y^4 - 4*y^2 + 16 defined by
             24*x*s1^3 + (3*a0^3)*s1^3 + (a0^3 - 8*a0)*x^2 + (8*a0^2 - 16)*x + (-a0^3 + 8*a0), Affine Plane Curve
             over Number Field in a0 with defining polynomial y^4 - 4*y^2 + 16 defined by 8*y^2*s0^4 +

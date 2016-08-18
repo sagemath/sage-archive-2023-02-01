@@ -253,7 +253,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         return (k,) + nargs
 
 
-    def __init__(self, k, algebra, category):
+    def __init__(self, k, coefficients, indices, category):
         r"""
         The space of `k`-regular Sequences over the given ``universe``.
 
@@ -261,9 +261,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         - ``k`` -- an integer at least `2` specifying the base.
 
-        - ``universe`` -- (default: ``None``) a object (e.g. a SageMath parent)
-          in which the entries of a sequence live.
-          If ``None``, then the integer ring `\ZZ` is used.
+        - ``coefficients`` -- a (semi-)ring.
 
         - ``category`` -- (default: ``None``) the category of the
           sequence space. If ``None``, then the category of
@@ -282,7 +280,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             :class:`kRegularSequence`.
         """
         self.k = k
-        super(kRegularSequenceSpace, self).__init__(algebra, category)
+        super(kRegularSequenceSpace, self).__init__(coefficients, indices, category)
 
 
     def _repr_(self):

@@ -12,11 +12,24 @@ from sage.interfaces.all import gap
 
 def best_linear_code_in_guava(n, k, F):
     r"""
-    Returns the best linear code of length ``n``, dimension ``k`` over field
-    ``F`` that is known to the GAP package GUAVA.
+    Returns the linear code of length ``n``, dimension ``k`` over field ``F``
+    with the maximal minimum distance which is known to the GAP package GUAVA.
 
     The function uses the tables described in ``bounds_on_minimum_distance_in_guava`` to
     construct this code. This requires the optional GAP package GUAVA.
+
+    INPUT:
+
+    - ``n`` -- the length of the code to look up
+
+    - ``k`` -- the dimension of the code to look up
+
+    - ``F`` -- the base field of the code to look up
+
+
+    OUTPUT:
+
+    - A :class:`LinearCode` which is a best linear code of the given parameters known to GUAVA.
 
     EXAMPLES::
 
@@ -59,7 +72,17 @@ def bounds_on_minimum_distance_in_guava(n, k, F):
     11 May 2006.) For codes over other fields and for larger word lengths,
     trivial bounds are used.
 
-    The format of the output is a GAP record object. See below for an example.
+    INPUT:
+
+    - ``n`` -- the length of the code to look up
+
+    - ``k`` -- the dimension of the code to look up
+
+    - ``F`` -- the base field of the code to look up
+
+    OUTPUT:
+
+    - A GAP record object. See below for an example.
 
     EXAMPLES::
 

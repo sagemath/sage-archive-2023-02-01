@@ -2422,24 +2422,55 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self._hasse_diagram.has_top()
 
-    def height(self):
+    def height(self, certificate=False):
         """
         Return the height (number of elements in a longest chain) of the poset.
 
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return ``(h, c)``, where ``h`` is the 
+          height and ``c`` is a chain of maximum cardinality.
+          If ``certificate=False`` return only the height.
+
         EXAMPLES::
 
-            sage: P = Poset({0:[1],2:[3,4],4:[5,6]})
+            sage: P = Poset({0: [1], 2: [3, 4], 4: [5, 6]})
             sage: P.height()
             3
-            sage: Posets.PentagonPoset().height()
-            4
+            sage: Posets.PentagonPoset().height(certificate=True)
+            (4, [0, 2, 3, 4])
 
         TESTS::
 
             sage: Poset().height()
             0
         """
-        return self.rank()+1
+        if not certificate:
+            return self.rank() + 1
+
+        levels = self.level_sets()
+        height = len(levels)
+        if height == 0:
+            return (0, [])
+        n = height - 2
+        previous = levels[-1][0]
+        max_chain = [previous]
+        
+        while n >= 0:
+            for i in levels[n]:
+                if self.covers(i, previous):
+                    break
+            max_chain.append(i)
+            previous = i
+            n -= 1
+
+        max_chain.reverse()
+        return (height, max_chain)
 
     def has_isomorphic_subposet(self, other):
         """
@@ -3602,7 +3633,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         for antichain in self._hasse_diagram.antichains_iterator():
             yield [vertex_to_element(_) for _ in antichain]
 
-    def width(self):
+    def width(self, certificate=False):
         r"""
         Return the width of the poset (the size of its longest antichain).
 
@@ -3610,17 +3641,38 @@ class FinitePoset(UniqueRepresentation, Parent):
         :wikipedia:`Dilworth's_theorem` for more information. The width is
         also called Dilworth number.
 
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return ``(w, a)``, where `w` is the
+          width of a poset and `a` is an antichain of maximum cardinality.
+          If ``certificate=False`` return only width of the poset.
+
         EXAMPLES::
 
             sage: P = posets.BooleanLattice(4)
             sage: P.width()
             6
 
+            sage: w, max_achain = P.width(certificate=True)
+            sage: sorted(max_achain)
+            [3, 5, 6, 9, 10, 12]
+
         TESTS::
 
             sage: Poset().width()
             0
+            sage: Poset().width(certificate=True)
+            (0, [])
         """
+        if certificate:
+            max_achain = self.incomparability_graph().clique_maximum()
+            return (len(max_achain), max_achain)
+
         # See the doc of dilworth_decomposition for an explanation of what is
         # going on.
         from sage.graphs.graph import Graph

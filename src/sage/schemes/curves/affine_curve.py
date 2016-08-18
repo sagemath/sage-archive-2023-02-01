@@ -45,7 +45,8 @@ from sage.rings.all import degree_lowest_rational_function
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-from sage.schemes.affine.affine_space import is_AffineSpace
+from sage.schemes.affine.affine_space import (AffineSpace,
+                                              is_AffineSpace)
 
 from . import point
 
@@ -371,7 +372,7 @@ class AffinePlaneCurve(AffineCurve):
 
         - ``P`` -- a point in the intersection of both curves.
 
-        OUPUT: Boolean.
+        OUTPUT: Boolean.
 
         EXAMPLES::
 
@@ -587,6 +588,69 @@ class AffinePlaneCurve(AffineCurve):
 
         # otherwise they are distinct
         return True
+
+    def rational_parameterization(self):
+        r"""
+        Return a rational parameterization of this curve.
+
+        This curve must have rational coefficients and be absolutely irreducible (i.e. irreducible
+        over the algebraic closure of the rational field). The curve must also be rational (have
+        geometric genus zero).
+
+        The rational parameterization may have coefficients in a quadratic extension of the rational
+        field.
+
+        OUTPUT:
+
+        - a birational map between `\mathbb{A}^{1}` and this curve, given as a scheme morphism.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([y^2 - x], A)
+            sage: C.rational_parameterization()
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Rational Field
+              To:   Affine Plane Curve over Rational Field defined by y^2 - x
+              Defn: Defined on coordinates by sending (t) to
+                    (t^2, t)
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([(x^2 + y^2 - 2*x)^2 - x^2 - y^2], A)
+            sage: C.rational_parameterization()
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Rational Field
+              To:   Affine Plane Curve over Rational Field defined by x^4 +
+            2*x^2*y^2 + y^4 - 4*x^3 - 4*x*y^2 + 3*x^2 - y^2
+              Defn: Defined on coordinates by sending (t) to
+                    ((-12*t^4 + 6*t^3 + 4*t^2 - 2*t)/(-25*t^4 + 40*t^3 - 26*t^2 +
+            8*t - 1), (-9*t^4 + 12*t^3 - 4*t + 1)/(-25*t^4 + 40*t^3 - 26*t^2 + 8*t - 1))
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([x^2 + y^2 + 7], A)
+            sage: C.rational_parameterization()
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Number Field in a with defining polynomial a^2 + 7
+              To:   Affine Plane Curve over Number Field in a with defining
+            polynomial a^2 + 7 defined by x^2 + y^2 + 7
+              Defn: Defined on coordinates by sending (t) to
+                    (((7*a)*t^2 + (a))/(-7*t^2 + 1), (-14*t)/(-7*t^2 + 1))
+        """
+        para = self.projective_closure(i=0).rational_parameterization().defining_polynomials()
+        # these polynomials are homogeneous in two indeterminants, so dehomogenize wrt one of the variables
+        R = para[0].parent()
+        A_line = AffineSpace(R.base_ring(), 1, 't')
+        para = [A_line.coordinate_ring()(para[i].substitute({R.gens()[0]: 1})) for i in range(3)]
+        C = self.change_ring(R.base_ring())
+        # because of the parameter i=0, the projective closure is constructed with respect to the
+        # affine patch corresponding to the first coordinate being nonzero. Thus para[0] will not be
+        # the zero polynomial, and dehomogenization won't change this
+        H = Hom(A_line, C)
+        return H([para[1]/para[0], para[2]/para[0]])
 
 class AffinePlaneCurve_finite_field(AffinePlaneCurve):
 

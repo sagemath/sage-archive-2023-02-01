@@ -2291,7 +2291,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         r"""
         Sets the maximum value of a variable.
 
-        INPUT
+        INPUT:
 
         - ``v`` -- a variable.
 

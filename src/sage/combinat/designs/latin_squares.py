@@ -312,7 +312,7 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
         sage: designs.orthogonal_arrays.exists(4+2,6) # 4 MOLS of order 6
         Unknown
 
-    If you ask for such a MOLS then you will respecively get an informative
+    If you ask for such a MOLS then you will respectively get an informative
     ``EmptySetError`` or ``NotImplementedError``::
 
         sage: designs.mutually_orthogonal_latin_squares(5, 5)

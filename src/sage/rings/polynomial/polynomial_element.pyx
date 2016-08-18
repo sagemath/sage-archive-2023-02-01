@@ -5689,16 +5689,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
         v = ','.join([a._magma_init_(magma) for a in self.list()])
         return '%s![%s]'%(R.name(), v)
 
-    def _gap_init_(self):
-        return repr(self)
-
-    def _gap_(self, G):
+    def _gap_(self, gap):
         """
+        Return this polynomial in GAP.
+
+        INPUT:
+
+        - ``gap`` -- a GAP or libgap instance
+
         EXAMPLES::
 
             sage: R.<y> = ZZ[]
             sage: f = y^3 - 17*y + 5
-            sage: g = gap(f); g
+            sage: g = gap(f); g   # indirect doctest
             y^3-17*y+5
             sage: f._gap_init_()
             'y^3 - 17*y + 5'
@@ -5709,23 +5712,40 @@ cdef class Polynomial(CommutativeAlgebraElement):
             y^3-17*y+5
             sage: gap(z^2 + z)
             z^2+z
+            sage: libgap(z^2 + z)
+            z^2+z
 
-        We coerce a polynomial with coefficients in a finite field::
+        Coefficients in a finite field::
 
             sage: R.<y> = GF(7)[]
             sage: f = y^3 - 17*y + 5
             sage: g = gap(f); g
             y^3+Z(7)^4*y+Z(7)^5
+            sage: h = libgap(f); h
+            y^3+Z(7)^4*y+Z(7)^5
             sage: g.Factors()
+            [ y+Z(7)^0, y+Z(7)^0, y+Z(7)^5 ]
+            sage: h.Factors()
             [ y+Z(7)^0, y+Z(7)^0, y+Z(7)^5 ]
             sage: f.factor()
             (y + 5) * (y + 1)^2
         """
-        if G is None:
-            import sage.interfaces.gap
-            G = sage.interfaces.gap.gap
-        self.parent()._gap_(G)
-        return G(self._gap_init_())
+        R = gap(self.parent())
+        var = list(R.IndeterminatesOfPolynomialRing())[0]
+        return self(var)
+
+    def _libgap_(self):
+        r"""
+        TESTS::
+
+            sage: R.<x> = ZZ[]
+            sage: libgap(-x^3 + 3*x)   # indirect doctest
+            -x^3+3*x
+            sage: libgap(R.zero())     # indirect doctest
+            0
+        """
+        from sage.libs.gap.libgap import libgap
+        return self._gap_(libgap)
 
     ######################################################################
 
@@ -6223,8 +6243,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Return polynomial but with the coefficients reversed.
 
         If an optional degree argument is given the coefficient list will be
-        truncated or zero padded as necessary and the reverse polynomial will
-        have the specified degree.
+        truncated or zero padded as necessary before reversing it. Assuming
+        that the constant coefficient of ``self`` is nonzero, the reverse
+        polynomial will have the specified degree.
 
         EXAMPLES::
 
@@ -6244,11 +6265,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: degree argument must be a non-negative integer, got 1.5
+
+            sage: f.reverse(0)
+            -3*x
+            sage: f
+            y^3 + x*y - 3*x
         """
-        v = list(self.list())
+        v = self.list()
 
         cdef unsigned long d
-        if degree:
+        if degree is not None:
             d = degree
             if d != degree:
                 raise ValueError("degree argument must be a non-negative integer, got %s"%(degree))

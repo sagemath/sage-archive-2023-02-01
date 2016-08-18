@@ -575,7 +575,7 @@ class CompositionTableaux_size(CompositionTableaux):
     - ``n`` -- a nonnegative integer.
     - ``max_entry`` -- a nonnegative integer. This keyword argument defaults to ``n``.
 
-    OUTUT:
+    OUTPUT:
 
     - The class of composition tableaux of size ``n``.
     """

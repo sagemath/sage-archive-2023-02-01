@@ -621,6 +621,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x : y : z) to
                     (2*y^2 : y^2 : z^2)
 
+        ::
+
+            sage: R.<a,b> = QQ[]
+            sage: P.<x,y,z> = ProjectiveSpace(R, 2)
+            sage: H = End(P)
+            sage: f = H([a*(x*z+y^2)*x^2, a*b*(x*z+y^2)*y^2, a*(x*z+y^2)*z^2])
+            sage: f.normalize_coordinates(); f
+            Scheme endomorphism of Projective Space of dimension 2 over Multivariate
+            Polynomial Ring in a, b over Rational Field
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (x^2 : b*y^2 : z^2)
+
         .. NOTE:: gcd raises an error if the base_ring does not support gcds.
         """
         GCD = gcd(self[0], self[1])
@@ -2016,8 +2028,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def height_difference_bound(self, prec=None):
         r"""
-        Returns an upper bound on the different bewtween the canonical height of a point with
-        respect to this map and the absolute height of the point.
+        Return an upper bound on the different between the canonical
+        height of a point with respect to this map and the absolute
+        height of the point.
 
         This map must be a morphism.
 

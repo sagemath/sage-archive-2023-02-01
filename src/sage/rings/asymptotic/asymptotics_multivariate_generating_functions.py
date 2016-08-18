@@ -3332,7 +3332,7 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
                 raise TypeError('factored denominator is not well-formed '
                                 'or of wrong type')
 
-        # From now on we only have one input arguement;
+        # From now on we only have one input argument;
         # it's called x and has parent P.
 
         elif isinstance(P, FractionWithFactoredDenominatorRing):
@@ -3383,7 +3383,7 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
                         # Singular's factor() needs 'proof=False'.
                         df = q.factor(proof=False)
                     numerator = p / df.unit()
-                    df = sorted(tuple(t) for t in df)  # sort for consitency
+                    df = sorted(tuple(t) for t in df)  # sort for consistency
                     denominator_factored = df
             else:
                 # At this point, denominator could not be factored.

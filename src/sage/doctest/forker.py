@@ -1933,7 +1933,7 @@ class DocTestWorker(multiprocessing.Process):
             sage: len(W.output) > 0
             True
         """
-        from Queue import Empty
+        from six.moves.queue import Empty
         try:
             self.result = self.result_queue.get(block=False)
         except Empty:

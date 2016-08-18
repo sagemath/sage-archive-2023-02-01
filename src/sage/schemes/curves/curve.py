@@ -429,7 +429,7 @@ class Curve_generic(AlgebraicScheme_subscheme):
 
         INPUT:
 
-        - ``R`` -- ring or morphism.
+        - ``R`` -- ring or embedding.
 
         OUTPUT:
 

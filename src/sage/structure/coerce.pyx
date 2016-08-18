@@ -293,6 +293,26 @@ cpdef bint is_numpy_type(t):
         return True
     return False
 
+cpdef bint is_mpmath_type(t):
+    r"""
+    Check whether the type ``t`` is a type whose name starts with either
+    ``mpmath.`` or ``sage.libs.mpmath.``.
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce import is_mpmath_type
+        sage: is_mpmath_type(int)
+        False
+        sage: import mpmath
+        sage: is_mpmath_type(mpmath.mpc(2))
+        False
+        sage: is_mpmath_type(type(mpmath.mpc(2)))
+        True
+        sage: is_mpmath_type(type(mpmath.mpf(2)))
+        True
+    """
+    return isinstance(t, type) and \
+           strncmp((<PyTypeObject*>t).tp_name, "sage.libs.mpmath.", 17) == 0
 
 cdef object _Integer
 cdef bint is_Integer(x):
@@ -1630,7 +1650,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
     cpdef discover_action(self, R, S, op, r=None, s=None):
         """
-        INPUT
+        INPUT:
 
         - ``R`` - the left Parent (or type)
         - ``S`` - the right Parent (or type)

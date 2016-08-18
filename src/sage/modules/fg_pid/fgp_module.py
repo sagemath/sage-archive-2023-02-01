@@ -1524,7 +1524,7 @@ class FGP_Module_class(Module):
             sage: len(z)
             24
 
-        We test that the trivial module is handled correctly (cf. trac #6561)::
+        We test that the trivial module is handled correctly (:trac:`6561`)::
 
             sage: A = (ZZ**1)/(ZZ**1); list(A) == [A(0)]
             True

@@ -217,9 +217,9 @@ This basic implementation is formed by the following steps:
 
   .. end of output
 
-  We are implementing a seperate method returning the base ring.
+  We are implementing a separate method returning the base ring.
 
-- Python uses double\--underscore methods for arithemetic methods and string
+- Python uses double\--underscore methods for arithmetic methods and string
   representations. Sage's base classes often have a default implementation,
   and it is requested to **implement SINGLE underscore methods _repr_, and
   similarly _add_, _mul_ etc.**

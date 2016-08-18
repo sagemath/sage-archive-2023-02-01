@@ -25,11 +25,6 @@ from .quatalg.all import *
 
 # Algebra base classes
 from .algebra import Algebra
-
-# Ring element base classes
-from .algebra_element import AlgebraElement
-
-
 from .free_algebra import FreeAlgebra
 from .free_algebra_quotient import FreeAlgebraQuotient
 

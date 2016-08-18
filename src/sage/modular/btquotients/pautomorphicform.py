@@ -230,7 +230,7 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
         # weight and on the same curve
         return self.parent()(self.element() - g.element())
 
-    def _rmul_(self, a):
+    def _lmul_(self, a):
         r"""
         Multiply a cocycle by a scalar.
 
@@ -1649,7 +1649,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
         return self.parent()._Sigma0(tmp, check=False) * self._value[u.label]
         # Warning! Should remove check=False...
 
-    def _rmul_(self, a):
+    def _lmul_(self, a):
         r"""
         Multiply the automorphic form by a scalar.
 

@@ -1481,7 +1481,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: E = EllipticCurve(j=GF(17)(0))
             sage: phi = EllipticCurveIsogeny(E,  E((-1,0)))
 
-        The constructor calls this funcion itself, so the fields it
+        The constructor calls this function itself, so the fields it
         sets are already defined::
 
             sage: phi._EllipticCurveIsogeny__E1

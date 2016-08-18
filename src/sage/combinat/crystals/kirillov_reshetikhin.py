@@ -684,7 +684,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
             sage: K2 = crystals.KirillovReshetikhin(['A',2,1],2,1)
             sage: T1 = crystals.TensorProduct(K1,K2)
             sage: T2 = crystals.TensorProduct(K2,K1)
-            sage: T1.digraph().is_isomorphic(T2.digraph(), edge_labels = True, certify = True) #todo: not implemented (see #10904 and #10549)
+            sage: T1.digraph().is_isomorphic(T2.digraph(), edge_labels = True, certificate = True) #todo: not implemented (see #10904 and #10549)
             (True, {[[[1]], [[2], [3]]]: [[[1], [3]], [[2]]], [[[3]], [[2], [3]]]: [[[2], [3]], [[3]]],
             [[[3]], [[1], [3]]]: [[[1], [3]], [[3]]], [[[1]], [[1], [3]]]: [[[1], [3]], [[1]]], [[[1]],
             [[1], [2]]]: [[[1], [2]], [[1]]], [[[2]], [[1], [2]]]: [[[1], [2]], [[2]]], [[[3]],
@@ -1963,7 +1963,7 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
 class KR_type_A2Element(KirillovReshetikhinGenericCrystalElement):
     r"""
     Class for the elements in the Kirillov-Reshetikhin crystals `B^{r,s}` of type `A_{2n}^{(2)}` for `r<n`
-    with underlying classcial algebra `B_n`.
+    with underlying classical algebra `B_n`.
 
     EXAMPLES::
 

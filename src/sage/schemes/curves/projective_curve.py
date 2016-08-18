@@ -43,12 +43,14 @@ from sage.categories.homset import Hom
 from sage.interfaces.all import singular
 from sage.misc.all import add, sage_eval
 from sage.rings.all import degree_lowest_rational_function
+from sage.rings.rational_field import is_RationalField
 from sage.schemes.affine.affine_space import AffineSpace
 
 from . import point
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
-from sage.schemes.projective.projective_space import is_ProjectiveSpace
+from sage.schemes.projective.projective_space import (is_ProjectiveSpace,
+                                                      ProjectiveSpace)
 
 from .curve import Curve_generic
 
@@ -74,7 +76,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         r"""
         Initialization function.
 
-        EXMAPLES::
+        EXAMPLES::
 
             sage: P.<x,y,z,w,u> = ProjectiveSpace(GF(7), 4)
             sage: C = Curve([y*u^2 - x^3, z*u^2 - x^3, w*u^2 - x^3, y^3 - x^3], P); C
@@ -518,7 +520,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: E.is_singular()
             False
 
-        Showing that ticket #12187 is fixed::
+        Showing that :trac:`12187` is fixed::
 
             sage: F.<X,Y,Z> = GF(2)[]
             sage: G = Curve(X^2+Y*Z)
@@ -669,7 +671,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         - ``P`` -- a point in the intersection of both curves.
 
-        OUPUT: Boolean.
+        OUTPUT: Boolean.
 
         EXAMPLES::
 
@@ -706,6 +708,68 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         # there is only one tangent at a nonsingular point of a plane curve
         return not self.tangents(P)[0] == C.tangents(P)[0]
+
+    def rational_parameterization(self):
+        r"""
+        Return a rational parameterization of this curve.
+
+        This curve must have rational coefficients and be absolutely irreducible (i.e. irreducible
+        over the algebraic closure of the rational field). The curve must also be rational (have
+        geometric genus zero).
+
+        The rational parameterization may have coefficients in a quadratic extension of the rational
+        field.
+
+        OUTPUT:
+
+        - a birational map between `\mathbb{P}^{1}` and this curve, given as a scheme morphism.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([y^2*z - x^3], P)
+            sage: C.rational_parameterization()
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Rational Field
+              To:   Projective Plane Curve over Rational Field defined by -x^3 + y^2*z
+              Defn: Defined on coordinates by sending (s : t) to
+                    (s^2*t : s^3 : t^3)
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([x^3 - 4*y*z^2 + x*z^2 - x*y*z], P)
+            sage: C.rational_parameterization()
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Rational Field
+              To:   Projective Plane Curve over Rational Field defined by x^3 - x*y*z + x*z^2 - 4*y*z^2
+              Defn: Defined on coordinates by sending (s : t) to
+                    (4*s^2*t + s*t^2 : s^2*t + t^3 : 4*s^3 + s^2*t)
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([x^2 + y^2 + z^2], P)
+            sage: C.rational_parameterization()
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Number Field in a with defining polynomial a^2 + 1
+              To:   Projective Plane Curve over Number Field in a with defining
+              polynomial a^2 + 1 defined by x^2 + y^2 + z^2
+              Defn: Defined on coordinates by sending (s : t) to
+                    (s^2 - t^2 : (a)*s^2 + (a)*t^2 : -2*s*t)
+        """
+        if self.genus() != 0:
+            raise TypeError("this curve must have geometric genus zero")
+        if not is_RationalField(self.base_ring()):
+            raise TypeError("this curve must be defined over the rational field")
+        singular.lib("paraplanecurves.lib")
+        R = singular.paraPlaneCurve(self.defining_polynomial())
+        singular.setring(R)
+        param = singular('PARA').sage().gens()
+        R = R.sage()
+        C = self.change_ring(R.base_ring())
+        H = Hom(ProjectiveSpace(R.base_ring(), 1, R.gens()), C)
+        return H(param)
 
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
 

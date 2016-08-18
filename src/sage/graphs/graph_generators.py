@@ -1036,10 +1036,10 @@ class GraphGenerators():
         EXAMPLES:
 
         The following example creates a small planar code file in memory and
-        reads it using the ``_read_planar_code`` method:  ::
+        reads it using the ``_read_planar_code`` method::
 
-            sage: import StringIO
-            sage: code_input = StringIO.StringIO('>>planar_code<<')
+            sage: from six import StringIO
+            sage: code_input = StringIO('>>planar_code<<')
             sage: code_input.write('>>planar_code<<')
             sage: for c in [4,2,3,4,0,1,4,3,0,1,2,4,0,1,3,2,0]:
             ....:     code_input.write('{:c}'.format(c))
@@ -1142,14 +1142,14 @@ class GraphGenerators():
         EXAMPLES:
 
         There are 1812 isomers of `\textrm{C}_{60}`, i.e., 1812 fullerene graphs
-        on 60 vertices:  ::
+        on 60 vertices::
 
             sage: gen = graphs.fullerenes(60)  # optional buckygen
             sage: len(list(gen))  # optional buckygen
             1812
 
         However, there is only one IPR fullerene graph on 60 vertices: the famous
-        Buckminster Fullerene:  ::
+        Buckminster Fullerene::
 
             sage: gen = graphs.fullerenes(60, ipr=True)  # optional buckygen
             sage: next(gen)  # optional buckygen
@@ -1251,7 +1251,7 @@ class GraphGenerators():
 
         EXAMPLES:
 
-        There is a unique fusene with 2 hexagons:  ::
+        There is a unique fusene with 2 hexagons::
 
             sage: gen = graphs.fusenes(2)  # optional benzene
             sage: len(list(gen))  # optional benzene
@@ -1259,7 +1259,7 @@ class GraphGenerators():
 
         This fusene is naphtalene (`\textrm{C}_{10}\textrm{H}_{8}`).
         In the fusene graph the H-atoms are not stored, so this is
-        a graph on just 10 vertices:  ::
+        a graph on just 10 vertices::
 
             sage: gen = graphs.fusenes(2)  # optional benzene
             sage: next(gen)  # optional benzene
@@ -1269,7 +1269,7 @@ class GraphGenerators():
             ...
             StopIteration
 
-        There are 6505 benzenoids with 9 hexagons:  ::
+        There are 6505 benzenoids with 9 hexagons::
 
             sage: gen = graphs.fusenes(9, benzenoids=True)  # optional benzene
             sage: len(list(gen))  # optional benzene
@@ -2230,7 +2230,7 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
                 if property(z):
                     z_s.append(z)
             for z in z_s:
-                z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certify=True, dig=(dig or loops))
+                z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certificate=True, dig=(dig or loops))
                 cut_vert = 0
                 while canonical_relabeling[cut_vert] != n:
                     cut_vert += 1
@@ -2425,7 +2425,7 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implemen
             z.add_edge(i, j)
             if not property(z):
                 continue
-            z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certify=True, dig=(dig or loops))
+            z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certificate=True, dig=(dig or loops))
             relabel_inverse = [0]*n
             for ii in xrange(n):
                 relabel_inverse[canonical_relabeling[ii]] = ii

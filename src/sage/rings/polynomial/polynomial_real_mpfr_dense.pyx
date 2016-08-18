@@ -442,9 +442,6 @@ cdef class PolynomialRealDense(Polynomial):
         f._normalize()
         return f
 
-    cpdef _rmul_(self, RingElement c):
-        return self._lmul_(c)
-
     cpdef _lmul_(self, RingElement c):
         """
         EXAMPLES::

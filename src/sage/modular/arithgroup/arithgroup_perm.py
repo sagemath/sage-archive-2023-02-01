@@ -442,7 +442,7 @@ def ArithmeticSubgroup_Permutation(
                 L = ~S3 * ~R * S3
             if S2 is None:
                 S2 = ~S3 * R
-    else: # intialize from S2, S3
+    else: # initialize from S2, S3
         if L is None:
             L = ~S3 * ~S2
         if R is None:
@@ -953,7 +953,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         waiting = []
 
         while True:
-            # intialize at j0
+            # initialize at j0
             mapping[j0] = k
             waiting.append(j0)
             k += 1
@@ -1391,7 +1391,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             sage: a.is_congruence()
             True
 
-        This example is congruence -- it is `\Gamma_0(3)` in disguise: ::
+        This example is congruence -- it is `\Gamma_0(3)` in disguise::
 
             sage: S2 = SymmetricGroup(4)
             sage: l = S2((2,3,4))

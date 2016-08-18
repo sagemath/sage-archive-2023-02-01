@@ -45,7 +45,6 @@ import polynomial_singular_interface
 from sage.interfaces.all import singular as singular_default
 
 from sage.structure.element import generic_power, canonical_coercion, bin_op, coerce_binop
-from sage.structure.element cimport have_same_parent_c
 
 from sage.libs.ntl.types cimport NTL_SP_BOUND
 from sage.libs.ntl.ZZ_p cimport *
@@ -231,12 +230,6 @@ cdef class Polynomial_dense_mod_n(Polynomial):
             x^3 + 90*x^2 + 32*x + 68
         """
         return self.parent()(self.__poly * (<Polynomial_dense_mod_n>right).__poly, construct=True)
-
-    cpdef _rmul_(self, RingElement c):
-        try:
-            return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
-        except RuntimeError as msg: # should this really be a TypeError
-            raise TypeError(msg)
 
     cpdef _lmul_(self, RingElement c):
         try:

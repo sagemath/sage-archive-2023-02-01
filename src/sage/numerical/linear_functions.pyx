@@ -957,9 +957,9 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         P = self.parent()
         return P(e)
 
-    cpdef _rmul_(self, RingElement b):
+    cpdef _lmul_(self, RingElement b):
         r"""
-        Left multiplication by scalars
+        Multiplication by scalars
 
         EXAMPLE::
 
@@ -967,22 +967,11 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
             sage: LF = p.linear_functions_parent()
             sage: LF({2 : 5, 3 : 2}) * 3
             15*x_2 + 6*x_3
-        """
-        P = self.parent()
-        return P(dict([(id,b*coeff) for (id, coeff) in self._f.iteritems()]))
-
-    cpdef _lmul_(self, RingElement b):
-        r"""
-        Right multiplication by scalars
-
-        EXAMPLE::
-
-            sage: p = MixedIntegerLinearProgram()
-            sage: LF = p.linear_functions_parent()
             sage: 3 * LF({2 : 5, 3 : 2})
             15*x_2 + 6*x_3
         """
-        return self._rmul_(b)
+        P = self.parent()
+        return P(dict([(id,b*coeff) for (id, coeff) in self._f.iteritems()]))
 
     cpdef _acted_upon_(self, x, bint self_on_left):
        """
@@ -1115,13 +1104,13 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
 
         if -1 in d:
             coeff = d.pop(-1)
-            if coeff!=0:
+            if coeff:
                 t = self._coeff_formatter(coeff, constant_term=True)
                 first = False
 
         cdef list l = sorted(d.items())
-        for id,coeff in l:
-            sign = cmp(coeff,0)
+        for id, coeff in l:
+            sign = coeff.sign()
             if sign == 0:
                 continue
             if not first:

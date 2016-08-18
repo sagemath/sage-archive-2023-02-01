@@ -153,12 +153,15 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         from .constructor import Curve
         return Curve(AlgebraicScheme_subscheme_affine.projective_closure(self, i, PP))
 
-    def blowup(self):
+    def blowup(self, P):
         r"""
-        Return the blow up of this affine curve at the origin.
+        Return the blow up of this affine curve at the point ``P``.
 
-        An error is returned if the origin is not a point on this curve. The blow up is described
-        by affine charts.
+        The blow up is described by affine charts. This curve must be irreducible.
+
+        INPUT:
+
+        - ``P`` -- a point on this curve at which to blow up.
 
         OUTPUT:
 
@@ -174,90 +177,154 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
 
             sage: A.<x,y> = AffineSpace(QQ, 2)
             sage: C = Curve([y^2 - x^3], A)
-            sage: C.blowup()
+            sage: Q = A([0,0])
+            sage: C.blowup(Q)
             ((Affine Plane Curve over Rational Field defined by s1^2 - x,
-              Affine Plane Curve over Rational Field defined by -y*s0^3 + 1),
-             ([Scheme endomorphism of Affine Plane Curve over Rational Field defined
-            by s1^2 - x
-                 Defn: Defined on coordinates by sending (x, s1) to
-                       (x, s1), Scheme morphism:
-                 From: Affine Plane Curve over Rational Field defined by s1^2 - x
-                 To:   Affine Plane Curve over Rational Field defined by -y*s0^3 + 1
-                 Defn: Defined on coordinates by sending (x, s1) to
-                       (x*s1, 1/s1)], [Scheme morphism:
-                 From: Affine Plane Curve over Rational Field defined by -y*s0^3 + 1
-                 To:   Affine Plane Curve over Rational Field defined by s1^2 - x
-                 Defn: Defined on coordinates by sending (y, s0) to
-                       (y*s0, 1/s0),
-               Scheme endomorphism of Affine Plane Curve over Rational Field defined
-            by -y*s0^3 + 1
-                 Defn: Defined on coordinates by sending (y, s0) to
-                       (y, s0)]),
-             (Scheme morphism:
-                From: Affine Plane Curve over Rational Field defined by s1^2 - x
-                To:   Affine Plane Curve over Rational Field defined by -x^3 + y^2
+             Affine Plane Curve over Rational Field defined by y*s0^3 - 1),
+            ([Scheme endomorphism of Affine Plane Curve over Rational Field defined by s1^2 - x
                 Defn: Defined on coordinates by sending (x, s1) to
-                      (x, x*s1), Scheme morphism:
-                From: Affine Plane Curve over Rational Field defined by -y*s0^3 + 1
-                To:   Affine Plane Curve over Rational Field defined by -x^3 + y^2
+                      (x, s1), Scheme morphism:
+                From: Affine Plane Curve over Rational Field defined by s1^2 - x
+                To:   Affine Plane Curve over Rational Field defined by y*s0^3 - 1
+                Defn: Defined on coordinates by sending (x, s1) to
+                      (x*s1, 1/s1)], [Scheme morphism:
+                From: Affine Plane Curve over Rational Field defined by y*s0^3 - 1
+                To:   Affine Plane Curve over Rational Field defined by s1^2 - x
                 Defn: Defined on coordinates by sending (y, s0) to
-                      (y*s0, y)))
+                      (y*s0, 1/s0),
+              Scheme endomorphism of Affine Plane Curve over Rational Field defined by y*s0^3 - 1
+                Defn: Defined on coordinates by sending (y, s0) to
+                      (y, s0)]),
+            (Scheme morphism:
+               From: Affine Plane Curve over Rational Field defined by s1^2 - x
+               To:   Affine Plane Curve over Rational Field defined by -x^3 + y^2
+               Defn: Defined on coordinates by sending (x, s1) to
+                     (x, x*s1), Scheme morphism:
+               From: Affine Plane Curve over Rational Field defined by y*s0^3 - 1
+               To:   Affine Plane Curve over Rational Field defined by -x^3 + y^2
+               Defn: Defined on coordinates by sending (y, s0) to
+                     (y*s0, y)))
 
         ::
 
             sage: K.<a> = QuadraticField(2)
             sage: A.<x,y,z> = AffineSpace(K, 3)
             sage: C = Curve([y^2 - a*x^5, x - z], A)
-            sage: B = C.blowup()
+            sage: Q = A([0,0,0])
+            sage: B = C.blowup(Q)
             sage: B[0]
-            (Affine Curve over Number Field in a with defining polynomial x^2 - 2
-            defined by (-a)*x^3 + s1^2, -s2 + 1,
-             Affine Curve over Number Field in a with defining polynomial x^2 - 2
-            defined by (-a)*y^3*s0^5 + 1, s0 - s2,
-             Affine Curve over Number Field in a with defining polynomial x^2 - 2
-            defined by (-a)*z^3*s0^5 + s1^2, s0 - 1)
+            (Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s2 - 1,
+            2*x^3 + (-a)*s1^2,
+             Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s0 - s2,
+             2*y^3*s2^5 + (-a),
+             Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s0 - 1,
+             2*z^3 + (-a)*s1^2)
             sage: B[1][0][2]
             Scheme morphism:
-              From: Affine Curve over Number Field in a with defining polynomial x^2
-            - 2 defined by (-a)*x^3 + s1^2, -s2 + 1
-              To:   Affine Curve over Number Field in a with defining polynomial x^2
-            - 2 defined by (-a)*z^3*s0^5 + s1^2, s0 - 1
-              Defn: Defined on coordinates by sending (x, s1, s2) to
-                    (x*s2, 1/s2, s1/s2)
+            From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s2 - 1,
+            2*x^3 + (-a)*s1^2
+            To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s0 - 1, 
+            2*z^3 + (-a)*s1^2
+            Defn: Defined on coordinates by sending (x, s1, s2) to
+                  (x*s2, 1/s2, s1/s2)
             sage: B[1][2][0]
             Scheme morphism:
-              From: Affine Curve over Number Field in a with defining polynomial x^2
-            - 2 defined by (-a)*z^3*s0^5 + s1^2, s0 - 1
-              To:   Affine Curve over Number Field in a with defining polynomial x^2
-            - 2 defined by (-a)*x^3 + s1^2, -s2 + 1
-              Defn: Defined on coordinates by sending (z, s0, s1) to
-                    (z*s0, s1/s0, 1/s0)
+            From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s0 - 1,
+            2*z^3 + (-a)*s1^2
+            To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s2 - 1,
+            2*x^3 + (-a)*s1^2
+            Defn: Defined on coordinates by sending (z, s0, s1) to
+                  (z*s0, s1/s0, 1/s0)
             sage: B[2]
             (Scheme morphism:
-               From: Affine Curve over Number Field in a with defining polynomial
-            x^2 - 2 defined by (-a)*x^3 + s1^2, -s2 + 1
-               To:   Affine Curve over Number Field in a with defining polynomial
-            x^2 - 2 defined by (-a)*x^5 + y^2, x - z
-               Defn: Defined on coordinates by sending (x, s1, s2) to
-                     (x, x*s1, x*s2), Scheme morphism:
-               From: Affine Curve over Number Field in a with defining polynomial
-            x^2 - 2 defined by (-a)*y^3*s0^5 + 1, s0 - s2
-               To:   Affine Curve over Number Field in a with defining polynomial
-            x^2 - 2 defined by (-a)*x^5 + y^2, x - z
-               Defn: Defined on coordinates by sending (y, s0, s2) to
-                     (y*s0, y, y*s2), Scheme morphism:
-               From: Affine Curve over Number Field in a with defining polynomial
-            x^2 - 2 defined by (-a)*z^3*s0^5 + s1^2, s0 - 1
-               To:   Affine Curve over Number Field in a with defining polynomial
-            x^2 - 2 defined by (-a)*x^5 + y^2, x - z
-               Defn: Defined on coordinates by sending (z, s0, s1) to
-                     (z*s0, z*s1, z))
+            From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by
+            s2 - 1, 2*x^3 + (-a)*s1^2
+            To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by
+            (-a)*x^5 + y^2, x - z
+            Defn: Defined on coordinates by sending (x, s1, s2) to
+                  (x, x*s1, x*s2), Scheme morphism:
+            From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by
+            s0 - s2, 2*y^3*s2^5 + (-a)
+            To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by
+            (-a)*x^5 + y^2, x - z
+            Defn: Defined on coordinates by sending (y, s0, s2) to
+                  (y*s0, y, y*s2), Scheme morphism:
+            From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by
+            s0 - 1, 2*z^3 + (-a)*s1^2
+            To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by
+            (-a)*x^5 + y^2, x - z
+            Defn: Defined on coordinates by sending (z, s0, s1) to
+                  (z*s0, z*s1, z))
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = A.curve((y - 3/2)^3 - (x + 2)^5 - (x + 2)^6)
+            sage: Q = A([-2,3/2])
+            sage: C.blowup(Q)
+            ((Affine Plane Curve over Rational Field defined by x^3 - s1^3 + 7*x^2 + 16*x + 12,
+              Affine Plane Curve over Rational Field defined by 8*y^3*s0^6 - 36*y^2*s0^6 + 8*y^2*s0^5 +
+              54*y*s0^6 - 24*y*s0^5 - 27*s0^6 + 18*s0^5 - 8),
+             ([Scheme endomorphism of Affine Plane Curve over Rational Field defined by x^3 - s1^3 + 7*x^2 +
+             16*x + 12
+                 Defn: Defined on coordinates by sending (x, s1) to
+                       (x, s1), Scheme morphism:
+                 From: Affine Plane Curve over Rational Field defined by x^3 - s1^3 + 7*x^2 + 16*x + 12
+                 To:   Affine Plane Curve over Rational Field defined by 8*y^3*s0^6 - 36*y^2*s0^6 + 8*y^2*s0^5 +
+                 54*y*s0^6 - 24*y*s0^5 - 27*s0^6 + 18*s0^5 - 8
+                 Defn: Defined on coordinates by sending (x, s1) to
+                       (x*s1 + 2*s1 + 3/2, 1/s1)], [Scheme morphism:
+                 From: Affine Plane Curve over Rational Field defined by 8*y^3*s0^6 - 36*y^2*s0^6 + 8*y^2*s0^5 +
+                 54*y*s0^6 - 24*y*s0^5 - 27*s0^6 + 18*s0^5 - 8
+                 To:   Affine Plane Curve over Rational Field defined by x^3 - s1^3 + 7*x^2 + 16*x + 12
+                 Defn: Defined on coordinates by sending (y, s0) to
+                       (y*s0 - 3/2*s0 - 2, 1/s0),
+               Scheme endomorphism of Affine Plane Curve over Rational Field defined by 8*y^3*s0^6 - 36*y^2*s0^6 +
+               8*y^2*s0^5 + 54*y*s0^6 - 24*y*s0^5 - 27*s0^6 + 18*s0^5 - 8
+                 Defn: Defined on coordinates by sending (y, s0) to
+                       (y, s0)]),
+             (Scheme morphism:
+                From: Affine Plane Curve over Rational Field defined by x^3 - s1^3 + 7*x^2 + 16*x + 12
+                To:   Affine Plane Curve over Rational Field defined by -x^6 - 13*x^5 - 70*x^4 - 200*x^3 + y^3 -
+                320*x^2 - 9/2*y^2 - 272*x + 27/4*y - 795/8
+                Defn: Defined on coordinates by sending (x, s1) to
+                      (x, x*s1 + 2*s1 + 3/2), Scheme morphism:
+                From: Affine Plane Curve over Rational Field defined by 8*y^3*s0^6 - 36*y^2*s0^6 + 8*y^2*s0^5 +
+                54*y*s0^6 - 24*y*s0^5 - 27*s0^6 + 18*s0^5 - 8
+                To:   Affine Plane Curve over Rational Field defined by -x^6 - 13*x^5 - 70*x^4 - 200*x^3 + y^3 -
+                320*x^2 - 9/2*y^2 - 272*x + 27/4*y - 795/8
+                Defn: Defined on coordinates by sending (y, s0) to
+                      (y*s0 - 3/2*s0 - 2, y)))
+
+        ::
+
+            sage: A.<x,y,z,w> = AffineSpace(QQ, 4)
+            sage: C = A.curve([((x + 1)^2 + y^2)^3 - 4*(x + 1)^2*y^2, y - z, w - 4])
+            sage: Q = A([-1,0,0,4])
+            sage: B = C.blowup(Q)
+            sage: B[0]
+            (Affine Curve over Rational Field defined by s3, s1 - s2, x^2*s2^6 +
+            2*x*s2^6 + 3*x^2*s2^4 + s2^6 + 6*x*s2^4 + 3*x^2*s2^2 + 3*s2^4 + 6*x*s2^2
+            + x^2 - s2^2 + 2*x + 1,
+             Affine Curve over Rational Field defined by s3, s2 - 1, y^2*s0^6 +
+            3*y^2*s0^4 + 3*y^2*s0^2 + y^2 - 4*s0^2,
+             Affine Curve over Rational Field defined by s3, s1 - 1, z^2*s0^6 +
+            3*z^2*s0^4 + 3*z^2*s0^2 + z^2 - 4*s0^2,
+             Closed subscheme of Affine Space of dimension 4 over Rational Field
+            defined by:
+               1)
+            sage: Q = A([0,0,0,0])
+            sage: B = C.blowup(Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: (=(0, 0, 0, 0)) must be a point on this curve
 
         ::
 
             sage: A.<x,y> = AffineSpace(QuadraticField(-1), 2)
             sage: C = A.curve([y^2 + x^2])
-            sage: C.blowup()
+            sage: Q = A([0,0])
+            sage: C.blowup(Q)
             Traceback (most recent call last):
             ...
             TypeError: this curve must be irreducible
@@ -265,9 +332,9 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         A = self.ambient_space()
         n = A.dimension_relative()
         try:
-            self([0]*n)
+            self(P)
         except TypeError:
-            raise TypeError("the origin must be a point on this curve")
+            raise TypeError("(=%s) must be a point on this curve"%P)
         if not self.base_ring() in Fields():
             raise TypeError("the base ring of this curve must be a field")
         if not self.is_irreducible():
@@ -286,19 +353,19 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         H = Hom(A.coordinate_ring(), R)
         psi = H([R.gens()[i] for i in range(n)])
         n_polys = [psi(f) for f in self.defining_polynomials()]
-        # the blow up ideal of A at the origin is the ideal generated by
-        # z_i*s_j - z_j*s_i for i != j from 0,...,n-1
+        # the blow up ideal of A at P is the ideal generated by
+        # (z_i - p_i)*s_j - (z_j - p_j)*s_i for i != j from 0,...,n-1
         # in the mixed product space of A^n and P^{n-1} where the z_i are the gens
-        # of A^n, and the s_i are the gens for P^{n-1}. We describe the blow up of
-        # this curve at the origin in each affine chart
+        # of A^n, the s_i are the gens for P^{n-1}, and P = (p_1,...,p_n). We describe the
+        # blow up of this curve at P in each affine chart
         patches = []
         for i in range(n):
             # in this chart, s_i is assumed to be 1
-            # substitute in z_j = z_i*s_j for each j != i
+            # substitute in z_j = (z_i - p_i)*s_j + p_j for each j != i
             coords = list(R.gens())
             for j in range(n):
                 if j != i:
-                    coords[j] = R.gens()[i]*R.gens()[j + n]
+                    coords[j] = (R.gens()[i] - P[i])*R.gens()[j + n] + P[j]
             c_polys = [f(coords) for f in n_polys]
             var_names = list(R.gens())[n:2*n]
             var_names.pop(i)
@@ -316,11 +383,21 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                     coords[j + n] = 1
             psi = H(coords)
             c_polys = [psi(f) for f in c_polys]
-            # remove the component corresponding to the exceptional divisor
-            for j in range(len(c_polys)):
-                while c_A.gens()[0].divides(c_polys[j]):
-                    c_polys[j] = c_A.coordinate_ring()(c_polys[j]/c_A.gens()[0])
-            patches.append(c_A.curve(c_polys))
+            # choose the component of the subscheme defined by these polynomials
+            # that corresponds to the proper transform
+            irr_comps = c_A.subscheme(c_polys).irreducible_components()
+            for j in range(len(irr_comps)):
+                proper_transform = True
+                for f in irr_comps[j].defining_polynomials():
+                    if (c_A.gens()[0] - P[i]).divides(f):
+                        proper_transform = False
+                        break
+                if proper_transform:
+                    patches.append(c_A.curve(irr_comps[j].defining_polynomials()))
+                    break
+                elif j + 1 == len(irr_comps):
+                    # patch of blowup in this chart is empty
+                    patches.append(c_A.subscheme(1))
         # create the transition maps between the charts
         t_maps = []
         for i in range(n):
@@ -332,7 +409,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                 homvars = list(AA.gens())
                 homvars.pop(0)
                 homvars.insert(i, 1)
-                coords = [vars[0]*homvars[j]]
+                coords = [(vars[0] - P[i])*homvars[j] + P[j]]
                 for t in range(n):
                     if t != j:
                         coords.append(homvars[t]/homvars[j])
@@ -343,8 +420,9 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         for i in range(n):
             p_A = patches[i].ambient_space()
             H = Hom(patches[i], self)
-            coords = [p_A.gens()[0]*p_A.gens()[j] for j in range(1,n)]
-            coords.insert(i, p_A.gens()[0])
+            homvars = list(p_A.gens())[1:n]
+            homvars.insert(i, 1)
+            coords = [(p_A.gens()[0] - P[i])*homvars[j] + P[j] for j in range(n)]
             proj_maps.append(H(coords))
         return tuple([tuple(patches), tuple(t_maps), tuple(proj_maps)])
 
@@ -355,7 +433,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         The nonsingular model is given as a collection of affine patches that cover it. If ``extend`` is ``False``
         and if the base field is a number field, or if the base field is a finite field, the model returned may have
         singularities with coordinates not contained in the base field. An error is returned if this curve is already
-        nonsingular, or if it has no singular points over its base field.
+        nonsingular, or if it has no singular points over its base field. This curve must be irreducible.
 
         INPUT:
 
@@ -380,21 +458,19 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: C = Curve([y^2 - x^3], A)
             sage: C.resolution_of_singularities()
             ((Affine Plane Curve over Rational Field defined by s1^2 - x,
-              Affine Plane Curve over Rational Field defined by -y*s0^3 + 1),
-             ((Scheme endomorphism of Affine Plane Curve over Rational Field defined
-            by s1^2 - x
+              Affine Plane Curve over Rational Field defined by y*s0^3 - 1),
+             ((Scheme endomorphism of Affine Plane Curve over Rational Field defined by s1^2 - x
                  Defn: Defined on coordinates by sending (x, s1) to
                        (x, s1), Scheme morphism:
                  From: Affine Plane Curve over Rational Field defined by s1^2 - x
-                 To:   Affine Plane Curve over Rational Field defined by -y*s0^3 + 1
+                 To:   Affine Plane Curve over Rational Field defined by y*s0^3 - 1
                  Defn: Defined on coordinates by sending (x, s1) to
                        (x*s1, 1/s1)), (Scheme morphism:
-                 From: Affine Plane Curve over Rational Field defined by -y*s0^3 + 1
+                 From: Affine Plane Curve over Rational Field defined by y*s0^3 - 1
                  To:   Affine Plane Curve over Rational Field defined by s1^2 - x
                  Defn: Defined on coordinates by sending (y, s0) to
                        (y*s0, 1/s0),
-               Scheme endomorphism of Affine Plane Curve over Rational Field defined
-            by -y*s0^3 + 1
+               Scheme endomorphism of Affine Plane Curve over Rational Field defined by y*s0^3 - 1
                  Defn: Defined on coordinates by sending (y, s0) to
                        (y, s0))),
              (Scheme morphism:
@@ -402,7 +478,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                 To:   Affine Plane Curve over Rational Field defined by -x^3 + y^2
                 Defn: Defined on coordinates by sending (x, s1) to
                       (x, x*s1), Scheme morphism:
-                From: Affine Plane Curve over Rational Field defined by -y*s0^3 + 1
+                From: Affine Plane Curve over Rational Field defined by y*s0^3 - 1
                 To:   Affine Plane Curve over Rational Field defined by -x^3 + y^2
                 Defn: Defined on coordinates by sending (y, s0) to
                       (y*s0, y)))
@@ -415,12 +491,10 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: C = A.curve(x^4 + 2*x^2 + a*y^3 + 1)
             sage: R = C.resolution_of_singularities(extend=True) # long time (2 seconds)
             sage: R[0]
-            (Affine Plane Curve over Number Field in a0 with defining polynomial y^4
-            - 4*y^2 + 16 defined by (1/8*a0^3 - a0)*x^2*ss1^3 + (-a0^2 + 2)*x*ss1^3 + 1,
-             Affine Plane Curve over Number Field in a0 with defining polynomial y^4
-            - 4*y^2 + 16 defined by (1/8*a0^3 - a0)*s1^2*ss0 + ss0^2 + (-a0^2 + 2)*s1,
-             Affine Plane Curve over Number Field in a0 with defining polynomial y^4
-            - 4*y^2 + 16 defined by y^2*s0^4 + (-1/2*a0^3)*y*s0^3 - 4*s0^2 + (1/8*a0^3 - a0)*y)
+            (Affine Plane Curve over Number Field in a0 with defining polynomial y^4 - 4*y^2 + 16 defined by
+            24*x*s1^3 + (3*a0^3)*s1^3 + (a0^3 - 8*a0)*x^2 + (8*a0^2 - 16)*x + (-a0^3 + 8*a0), Affine Plane Curve
+            over Number Field in a0 with defining polynomial y^4 - 4*y^2 + 16 defined by 8*y^2*s0^4 +
+            (-4*a0^3)*y*s0^3 - 32*s0^2 + (a0^3 - 8*a0)*y)
 
         ::
 
@@ -428,12 +502,27 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: C = Curve([y - x^3, (z - 2)^2 - y^3 - x^3], A)
             sage: R = C.resolution_of_singularities()
             sage: R[0]
-            (Affine Curve over Finite Field of size 5 defined by -x^2 + s1, -x*s1^3
-            + s2^2 - x,
-             Affine Curve over Finite Field of size 5 defined by -y^2*s0^3 + 1,
-            -y*s0^3 + s2^2 - y,
-             Affine Curve over Finite Field of size 5 defined by -z^2*s0^3 + s1,
-            -z*s0^3 - z*s1^3 + 1)
+            (Affine Curve over Finite Field of size 5 defined by x^2 - s1, s1^4 - x*s2^2 + s1, x*s1^3 - s2^2 + x,
+             Affine Curve over Finite Field of size 5 defined by y*s2^2 - y^2 - 1, s2^4 - s0^3 - y^2 - 2, y*s0^3
+             - s2^2 + y, Affine Curve over Finite Field of size 5 defined by s0^3*s1 + z*s1^3 + s1^4 - 2*s1^3 - 1,
+             z*s0^3 + z*s1^3 - 2*s0^3 - 2*s1^3 - 1, z^2*s1^3 + z*s1^3 - s1^3 - z + s1 + 2)
+
+        ::
+
+            sage: A.<x,y,z,w> = AffineSpace(QQ, 4)
+            sage: C = A.curve([((x - 2)^2 + y^2)^2 - (x - 2)^2 - y^2 + (x - 2)^3, z - y - 7, w - 4])
+            sage: B = C.resolution_of_singularities()
+            sage: B[0]
+            (Affine Curve over Rational Field defined by s3, s1 - s2, x^2*s2^4 -
+            4*x*s2^4 + 2*x^2*s2^2 + 4*s2^4 - 8*x*s2^2 + x^2 + 7*s2^2 - 3*x + 1,
+             Affine Curve over Rational Field defined by s3, s2 - 1, y^2*s0^4 +
+            2*y^2*s0^2 + y*s0^3 + y^2 - s0^2 - 1,
+             Affine Curve over Rational Field defined by s3, s1 - 1, z^2*s0^4 -
+            14*z*s0^4 + 2*z^2*s0^2 + z*s0^3 + 49*s0^4 - 28*z*s0^2 - 7*s0^3 + z^2 +
+            97*s0^2 - 14*z + 48,
+             Closed subscheme of Affine Space of dimension 4 over Rational Field
+            defined by:
+               1)
 
         ::
 
@@ -473,6 +562,8 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         # in the case that the base field is a number field, extend it as needed (if extend == True)
         C = self
         n = C.ambient_space().dimension_relative()
+        if not self.is_irreducible():
+            raise TypeError("this curve must be irreducible")
         if C.base_ring() in NumberFields() and extend:
             C = C.change_ring(extension(C.singular_subscheme()))
         H = End(C)
@@ -493,7 +584,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         t = 0
         # loop through the patches and blow up each until no patch has singular points
         while not_resolved:
-            [old_BC, t_maps, pi, pts] = [res[t][0], res[t][1], res[t][2], res[t][3]]
+            [BC, t_maps, pi, pts] = [res[t][0], res[t][1], res[t][2], res[t][3]]
             # check if there are any singular points in this patch
             if len(pts) == 0:
                 t = t + 1
@@ -502,23 +593,8 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                 continue
             # the identity map should be replaced for each of the charts of the blow up
             t_maps.pop(t)
-            # translate pts[0] to the origin
-            H = End(old_BC.ambient_space())
-            # translation map and inverse
-            phi = H([old_BC.ambient_space().gens()[i] - pts[0][i] for i in range(n)])
-            phi_inv = H([old_BC.ambient_space().gens()[i] + pts[0][i] for i in range(n)])
-            # create the translated curve
-            BC = old_BC.ambient_space().curve([f(phi_inv.defining_polynomials()) for f in\
-                                               old_BC.defining_polynomials()])
-            # restrict the domain and codomain of phi, phi_inv for compatibility with future maps
-            H = Hom(old_BC, BC)
-            phi = H(phi.defining_polynomials())
-            H = Hom(BC, old_BC)
-            phi_inv = H(phi_inv.defining_polynomials())
-            # translate the singular points
-            pts = [phi(old_BC(pts[i])) for i in range(len(pts))]
-            # blow up the origin
-            B = list(BC.blowup())
+            # blow up pts[0]
+            B = list(BC.blowup(pts[0]))
             B = [list(B[0]), [list(B[1][i]) for i in range(len(B[1]))], list(B[2])]
             # the t-th element of res will be replaced with the new data corresponding to the charts
             # of the blow up
@@ -530,7 +606,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             for i in range(len(B[0])):
                 # check if there are any singular points where this patch meets the exceptional divisor
                 AA = AffineSpace(B[0][i].base_ring(), n - 1, 'x')
-                coords = [0]
+                coords = [pts[0][i]]
                 coords.extend(list(AA.gens()))
                 H = Hom(B[0][i].ambient_space().coordinate_ring(), AA.coordinate_ring())
                 poly_hom = H(coords)
@@ -540,8 +616,6 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                 if B[0][i].base_ring() in NumberFields() and extend:
                     emb = extension(X)
                     # coerce everything to the new base field
-                    phi = phi.change_ring(emb)
-                    phi_inv = phi_inv.change_ring(emb)
                     BC = BC.change_ring(emb)
                     t_maps = [t_maps[j].change_ring(emb) for j in range(len(t_maps))]
                     old_maps = [old_maps[j].change_ring(emb) for j in range(len(old_maps))]
@@ -569,13 +643,13 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                 b_data.append(B[0][i])
                 # compose the current transition maps from the original curve to the other patches
                 # with the projection map
-                t_pi = phi_inv*B[2][i]
-                coords = [BC.ambient_space().gens()[j]/BC.ambient_space().gens()[i] for j in range(n)]
+                t_pi = B[2][i]
+                coords = [(BC.ambient_space().gens()[j] - pts[0][j])/(BC.ambient_space().gens()[i] - pts[0][i]) for\
+                          j in range(n)]
                 coords.pop(i)
                 coords.insert(0, BC.ambient_space().gens()[i])
                 H = Hom(BC, B[0][i])
-                tmp_pi_inv = H(coords)
-                t_pi_inv = tmp_pi_inv*phi
+                t_pi_inv = H(coords)
                 L = list(t_maps)
                 for j in range(len(t_maps)):
                     L[j] = L[j]*t_pi
@@ -587,19 +661,20 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                     new_t_map = t_pi_inv*old_maps[j]
                     res[j][1].insert(t + i, new_t_map)
                 # create the projection map
-                tmp_pi = B[2][i]
-                b_data.append(pi*phi_inv*tmp_pi)
+                b_data.append(pi*t_pi)
                 # singular points
                 # translate the singular points of the parent patch (other than that which was the center of the
                 # blow up) by the inverse of the first projection map
                 n_pts = []
                 for j in range(1, len(pts)):
                     # make sure this point is in this chart before attempting to map it
-                    if pts[j][i] != 0:
-                        n_pts.append(tmp_pi_inv(pts[j]))
+                    try:
+                        n_pts.append(t_pi_inv(pts[j]))
+                    except (TypeError, ZeroDivisionError):
+                        pass
                 # add in the points found from the exceptional divisor
                 for pt in X.rational_points():
-                    tmp_pt = B[0][i].ambient_space()([0] + list(pt))
+                    tmp_pt = B[0][i].ambient_space()([pts[0][i]] + list(pt))
                     if B[0][i].is_singular(tmp_pt):
                         n_pts.append(tmp_pt)
                 b_data.append(n_pts)

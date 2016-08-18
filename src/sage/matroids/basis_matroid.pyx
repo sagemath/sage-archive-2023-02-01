@@ -328,7 +328,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
     # dual and minors
 
     cpdef dual(self):
-        """
+        r"""
         Return the dual of the matroid.
 
         Let `M` be a matroid with ground set `E`. If `B` is the set of bases

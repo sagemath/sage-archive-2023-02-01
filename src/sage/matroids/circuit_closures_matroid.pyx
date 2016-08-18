@@ -70,7 +70,7 @@ from set_system cimport SetSystem
 from utilities import setprint_s
 
 cdef class CircuitClosuresMatroid(Matroid):
-    """
+    r"""
     A general matroid `M` is characterized by its rank `r(M)` and the set of
     pairs
 

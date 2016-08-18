@@ -344,6 +344,14 @@ cdef class SkewPolynomial(AlgebraElement):
 
         The value of the polynomial at the point specified by the argument.
 
+        .. NOTE::
+
+            Currently, only "operator evaluation" of skew polynomials is implemented.
+            There are two other common notions of evaluation of `f(x)` at some `a`
+            from the base ring, namely the remainder after left or right modulo by `x-a`.
+            The current calling convention might change in the future to accommodate these.
+            Therefore, the current method has been marked with an "@experimental" decorator.
+
         EXAMPLES::
 
             sage: R.<t> = QQ[]
@@ -367,6 +375,33 @@ cdef class SkewPolynomial(AlgebraElement):
             Traceback (most recent call last):
             ...
             TypeError: evaluation point must be a ring element
+        """
+        from sage.misc.superseded import experimental
+        expr_call = experimental(trac_number=13215)(self._call)
+        return expr_call(eval_pt)
+
+    def _call(self, eval_pt):
+        """
+        Evaluate ``self`` at ``eval_pt``. This is a private
+        method only for internal purposes.
+
+        INPUT:
+
+        - ``eval_pt`` -- ring element; need not be in the coefficient ring
+          of the skew polynomial
+
+        OUTPUT:
+
+        The value of the polynomial at the point specified by the argument.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: T.<x> = k['x',Frob]
+            sage: a = 3*t^2*x^2 + (t + 1)*x + 2
+            sage: a(t) #indirect test
+            2*t^2 + 2*t + 3
         """
         if eval_pt not in self._parent:
             raise TypeError("evaluation point must be a ring element")

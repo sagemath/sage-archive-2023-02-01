@@ -29,9 +29,9 @@ def best_linear_code_in_guava(n, k, F):
 
     EXAMPLES::
 
-        sage: sage.coding.databases.best_linear_code_in_guava(10,5,GF(2))    # long time; optional - gap_packages (Guava package)
+        sage: codes.databases.best_linear_code_in_guava(10,5,GF(2))    # long time; optional - gap_packages (Guava package)
         Linear code of length 10, dimension 5 over Finite Field of size 2
-        sage: gap.eval("C:=BestKnownLinearCode(10,5,GF(2))")     # long time; optional - gap_packages (Guava package)
+        sage: gap.eval("C:=BestKnownLinearCode(10,5,GF(2))")           # long time; optional - gap_packages (Guava package)
         'a linear [10,5,4]2..4 shortened code'
 
     This means that the best possible binary linear code of length 10 and
@@ -42,14 +42,8 @@ def best_linear_code_in_guava(n, k, F):
     from sage.interfaces.all import gap
     q = F.order()
     C = gap("BestKnownLinearCode(%s,%s,GF(%s))"%(n,k,q))
-    G = C.GeneratorMat()
-    k = G.Length()
-    n = G[1].Length()
-    Gs = G._matrix_(F)
-    from sage.matrix.matrix_space import MatrixSpace
-    MS = MatrixSpace(F,k,n)
     from .linear_code import LinearCode
-    return LinearCode(MS(Gs))
+    return LinearCode(C.GeneratorMat()._matrix_(F))
 
 
 
@@ -85,7 +79,8 @@ def bounds_on_minimum_distance_in_guava(n, k, F):
 
     EXAMPLES::
 
-        sage: print(bounds_minimum_distance(10,5,GF(2))) # optional - gap_packages (Guava package)
+        sage: gap_rec = codes.databases.bounds_on_minimum_distance_in_guava(10,5,GF(2))  # optional - gap_packages (Guava package)
+        sage: print(gap_rec)                                                             # optional - gap_packages (Guava package)
         rec(
           construction :=
            [ <Operation "ShortenedCode">,
@@ -140,8 +135,8 @@ def best_linear_code_in_codetables_dot_de(n, k, F, verbose=False):
 
     EXAMPLES::
 
-        sage: L = best_known_linear_code_www(72, 36, GF(2)) # optional - internet
-        sage: print(L)                                      # optional - internet
+        sage: L = codes.databases.best_linear_code_in_codetables_dot_de(72, 36, GF(2))    # optional - internet
+        sage: print(L)                                                                    # optional - internet
         Construction of a linear code
         [72,36,15] over GF(2):
         [1]:  [73, 36, 16] Cyclic Linear Code over GF(2)

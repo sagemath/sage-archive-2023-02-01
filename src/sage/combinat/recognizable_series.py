@@ -343,13 +343,13 @@ class RecognizableSeries(Element):
             f = repr
             times = '*'
 
-        def summand(c, w):
+        def summand(w, c):
             if c == 1:
                 return '[{w}]'.format(w=f(w))
             return '{c}{times}[{w}]'.format(c=f(c), times=times, w=f(w))
 
-        s = ' + '.join(summand(c, w)
-                       for c, w in islice(self, 10))
+        s = ' + '.join(summand(w, c)
+                       for w, c in islice(self, 10))
         s = s.replace('+ -', '- ')
         return s + ' + ...'
 
@@ -477,7 +477,7 @@ class RecognizableSeries(Element):
 
     def __iter__(self):
         r"""
-        Return an iterator over pairs ``(coefficient, basis(index))``.
+        Return an iterator over pairs ``(index, coefficient)``.
 
         EXAMPLES::
 
@@ -485,17 +485,17 @@ class RecognizableSeries(Element):
             sage: S = Rec((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
             ....:         left=vector([0, 1]), right=vector([1, 0]))
             sage: from itertools import islice
-            sage: tuple(islice(S, 10))
-            ((1, [1]),
-             (1, [01]),
-             (1, [10]),
-             (2, [11]),
-             (1, [001]),
-             (1, [010]),
-             (2, [011]),
-             (1, [100]),
-             (2, [101]),
-             (2, [110]))
+            sage: list(islice(S, 10))
+            [(1, 1),
+             (01, 1),
+             (10, 1),
+             (11, 2),
+             (001, 1),
+             (010, 1),
+             (011, 2),
+             (100, 1),
+             (101, 2),
+             (110, 2)]
 
         TESTS::
 
@@ -509,7 +509,7 @@ class RecognizableSeries(Element):
             return iter([])
         A = self.parent()._algebra_
         B = A.basis()
-        return iter((self[w], w)
+        return iter((w, self[w])
                     for w in self.parent().indices() if self[w] != 0)
 
 

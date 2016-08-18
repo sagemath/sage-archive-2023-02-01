@@ -507,8 +507,6 @@ class RecognizableSeries(Element):
         """
         if not self:
             return iter([])
-        A = self.parent()._algebra_
-        B = A.basis()
         return iter((w, self[w])
                     for w in self.parent().indices() if self[w] != 0)
 
@@ -571,7 +569,6 @@ class RecognizableSeries(Element):
             (self.right is not None and not self.right) or \
             (all(not self.mu[a] for a in self.parent().alphabet()) and
              not self[self.parent().indices()()])
-
 
 
     def __nonzero__(self):

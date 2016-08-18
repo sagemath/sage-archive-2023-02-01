@@ -343,13 +343,13 @@ class RecognizableSeries(Element):
             f = repr
             times = '*'
 
-        def summand(c, w):
+        def summand(w, c):
             if c == 1:
-                return f(w)
-            return f(c) + times + f(w)
+                return '[{w}]'.format(w=f(w))
+            return '{c}{times}[{w}]'.format(c=f(c), times=times, w=f(w))
 
-        s = ' + '.join(summand(c, w)
-                       for c, w in islice(self, 10))
+        s = ' + '.join(summand(w, c)
+                       for w, c in islice(self, 10))
         s = s.replace('+ -', '- ')
         return s + ' + ...'
 
@@ -477,7 +477,7 @@ class RecognizableSeries(Element):
 
     def __iter__(self):
         r"""
-        Return an iterator over pairs ``(coefficient, basis(index))``.
+        Return an iterator over pairs ``(index, coefficient)``.
 
         EXAMPLES::
 
@@ -485,17 +485,17 @@ class RecognizableSeries(Element):
             sage: S = Rec((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
             ....:         left=vector([0, 1]), right=vector([1, 0]))
             sage: from itertools import islice
-            sage: tuple(islice(S, 10))
-            ((1, [1]),
-             (1, [01]),
-             (1, [10]),
-             (2, [11]),
-             (1, [001]),
-             (1, [010]),
-             (2, [011]),
-             (1, [100]),
-             (2, [101]),
-             (2, [110]))
+            sage: list(islice(S, 10))
+            [(1, 1),
+             (01, 1),
+             (10, 1),
+             (11, 2),
+             (001, 1),
+             (010, 1),
+             (011, 2),
+             (100, 1),
+             (101, 2),
+             (110, 2)]
 
         TESTS::
 
@@ -507,9 +507,7 @@ class RecognizableSeries(Element):
         """
         if not self:
             return iter([])
-        A = self.parent()._algebra_
-        B = A.basis()
-        return iter((self[w], B[w])
+        return iter((w, self[w])
                     for w in self.parent().indices() if self[w] != 0)
 
 
@@ -571,7 +569,6 @@ class RecognizableSeries(Element):
             (self.right is not None and not self.right) or \
             (all(not self.mu[a] for a in self.parent().alphabet()) and
              not self[self.parent().indices()()])
-
 
 
     def __nonzero__(self):
@@ -820,8 +817,8 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
     @classmethod
     def __normalize__(cls,
-                      coefficients=None, alphabet=None, 
-                      indices=None, algebra=None,
+                      coefficients=None,
+                      alphabet=None, indices=None,
                       category=None):
         r"""
         Normalizes the input in order to ensure a unique
@@ -833,33 +830,27 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
             sage: Rec.category()
-            Category of set algebras over Integer Ring
+            Category of sets
 
         """
-        if algebra is None:
-            if indices is None:
-                if alphabet is None:
-                    raise ValueError('TODO')
-                from sage.combinat.words.words import Words
-                indices = Words(alphabet, infinite=False)
-                from sage.combinat.words.word_options import WordOptions
-                WordOptions(identifier='')
-            if coefficients is None:
+        if indices is None:
+            if alphabet is None:
                 raise ValueError('TODO')
-            algebra = indices.algebra(coefficients)
-            def key_to_cmp(a, b, key):
-                return (key(a) > key(b)) - (key(a) < key(b))
-            algebra.print_options(
-                prefix='',
-                generator_cmp=lambda a, b: key_to_cmp(a, b, key=lambda k: (len(k), k)))
+            from sage.combinat.words.words import Words
+            indices = Words(alphabet, infinite=False)
+            from sage.combinat.words.word_options import WordOptions
+            WordOptions(identifier='')
+
+        if coefficients is None:
+            raise ValueError('TODO')
 
         from sage.categories.sets_cat import Sets
-        category = category or algebra.category()
+        category = category or Sets()
 
-        return (algebra, category)
+        return (coefficients, indices, category)
 
 
-    def __init__(self, algebra, category):
+    def __init__(self, coefficients, indices, category):
         r"""
         The space of recognizable series on the given alphabet and
         with the given coefficients.
@@ -868,19 +859,19 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
         - ``coefficients`` -- a (semi-)ring.
 
-        - ``alphabet`` -- a tuple, list or totally ordered set.
+        - ``alphabet`` -- a tuple, list or
+          :class:`~sage.sets.totally_ordered_finite_set.TotallyOrderedFiniteSet`.
           If specified, then the ``indices`` are the
           finite words over this ``alphabet``.
+          ``alphabet`` and ``indices`` cannot be specified
+          at the same time.
 
-        - ``indices`` -- a SageMath parent.
-
-        - ``algebra`` -- a SageMath parent.
-          If specified, then ``coefficients``
-          and ``indices`` are determined by this ``algebra``.
+        - ``indices`` -- a SageMath-parent of finite words over an alphabet.
+          ``alphabet`` and ``indices`` cannot be specified
+          at the same time.
 
         - ``category`` -- (default: ``None``) the category of this
-          space. If ``None``, then the category of the ``algebra``
-          is used.
+          space.
 
         EXAMPLES::
 
@@ -893,10 +884,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             sage: S3 = RecognizableSeriesSpace(ZZ, indices=Words([0, 1], infinite=False))
             sage: S3
             Space of recognizable series on {0, 1} with coefficients in Integer Ring
-            sage: S4 = RecognizableSeriesSpace(algebra=Words([0, 1], infinite=False).algebra(ZZ))
-            sage: S4
-            Space of recognizable series on {0, 1} with coefficients in Integer Ring
-            sage: S1 is S2 is S3 is S4
+            sage: S1 is S2 is S3
             True
 
         .. SEEALSO::
@@ -904,9 +892,9 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             :doc:`recognizable series <recognizable_series>`,
             :class:`RecognizableSeries`.
         """
-        self._algebra_ = algebra
+        self._indices_ = indices
         super(RecognizableSeriesSpace, self).__init__(
-            category=category, base=algebra.base())
+            category=category, base=coefficients)
 
 
     def alphabet(self):
@@ -927,7 +915,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             sage: type(RecognizableSeriesSpace(ZZ, [0, 1]).alphabet())
             <class 'sage.sets.totally_ordered_finite_set.TotallyOrderedFiniteSet_with_category'>
         """
-        return self._algebra_.indices().alphabet()
+        return self.indices().alphabet()
 
 
     def indices(self):
@@ -943,7 +931,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             sage: RecognizableSeriesSpace(ZZ, [0, 1]).indices()
             Finite words over {0, 1}
         """
-        return self._algebra_.indices()
+        return self._indices_
 
 
     def coefficients(self):
@@ -979,6 +967,22 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         return 'Space of recognizable series on {} ' \
                'with coefficients in {}'.format(self.alphabet(),
                                                 self.coefficients())
+
+
+    def zero(self):
+        """
+        Return the zero of this recognizable series space.
+
+        This can be removed once this recognizable series space is
+        at least an additive magma.
+
+        EXAMPLES::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: Rec.zero()
+            0
+        """
+        return self(0)
 
 
     def _element_constructor_(self, mu,

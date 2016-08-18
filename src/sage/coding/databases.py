@@ -3,11 +3,7 @@ r"""
 Databases and accessors of online databases for coding theory
 """
 
-from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-from sage.matrix.matrix_space import MatrixSpace
-from sage.matrix.constructor import Matrix
-from .linear_code import LinearCode
-from sage.interfaces.all import gap
+#Don't put any global imports here since this module is accessible as sage.codes.databases.<tab>
 
 
 def best_linear_code_in_guava(n, k, F):
@@ -43,13 +39,16 @@ def best_linear_code_in_guava(n, k, F):
     between 2 and 4. Use ``bounds_on_minimum_distance_in_guava(10,5,GF(2))``
     for further details.
     """
+    from sage.interfaces.all import gap
     q = F.order()
     C = gap("BestKnownLinearCode(%s,%s,GF(%s))"%(n,k,q))
     G = C.GeneratorMat()
     k = G.Length()
     n = G[1].Length()
     Gs = G._matrix_(F)
+    from sage.matrix.matrix_space import MatrixSpace
     MS = MatrixSpace(F,k,n)
+    from .linear_code import LinearCode
     return LinearCode(MS(Gs))
 
 
@@ -111,6 +110,7 @@ def bounds_on_minimum_distance_in_guava(n, k, F):
           upperBound := 4,
           upperBoundExplanation := ... )
     """
+    from sage.interfaces.all import gap
     q = F.order()
     gap.eval("data := BoundsMinimumDistance(%s,%s,GF(%s))"%(n,k,q))
     Ldata = gap.eval("Display(data)")
@@ -279,9 +279,15 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
         ...
         ValueError: b (1) must be a positive even integer.
     """
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
+    from sage.matrix.constructor import Matrix
+
+
+    
     d=int(b)
     if d!=b or d%2==1 or d <= 0:
         raise ValueError("b (%s) must be a positive even integer."%b)
+    from .linear_code import LinearCode
     from .binary_code import BinaryCode, BinaryCodeClassifier
     if k < 1 or n < 2:
         return
@@ -295,7 +301,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
         BC = BinaryCodeClassifier()
     if parent is None:
         for j in xrange(d, n+1, d):
-            M = Matrix(GF(2), [[1]*j])
+            M = Matrix(FiniteField(2), [[1]*j])
             if in_test(M):
                 for N in self_orthogonal_binary_codes(n, k, d, M, BC, in_test=in_test):
                     if out_test(N): yield N

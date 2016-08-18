@@ -806,7 +806,20 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
 
     @staticmethod
-    def __classcall__(cls,
+    def __classcall__(cls, *args, **kwds):
+        r"""
+        Prepare normalizing the input in order to ensure a
+        unique representation.
+
+        For more information see :class:`ReconizableSeriesSpace`
+        and :meth:`__normalize__'.
+        """
+        return super(RecognizableSeriesSpace, cls).__classcall__(
+            cls, *cls.__normalize__(*args, **kwds))
+
+
+    @classmethod
+    def __normalize__(cls,
                       coefficients=None, alphabet=None, 
                       indices=None, algebra=None,
                       category=None):
@@ -843,8 +856,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         from sage.categories.sets_cat import Sets
         category = category or algebra.category()
 
-        return super(RecognizableSeriesSpace, cls).__classcall__(
-            cls, algebra, category)
+        return (algebra, category)
 
 
     def __init__(self, algebra, category):

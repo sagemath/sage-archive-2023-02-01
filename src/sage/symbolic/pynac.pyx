@@ -588,9 +588,15 @@ cdef stdstring* py_print_fderivative(unsigned id, object params,
       derivative.
     - args -- arguments of the function.
     """
-    ostr = ''.join(['D[', ', '.join([repr(int(x)) for x in params]), ']'])
-    fstr = py_print_function_pystring(id, args, True)
-    py_res = ostr + fstr
+    if len(args)==1:
+        py_res = ''.join(['diff(',py_print_function_pystring(id,args,False),', ',repr(args[0]),')'])
+    elif all([a.is_symbol() for a in args]) and len(set(args))==len(args):
+        diffvarstr = ', '.join([repr(args[i]) for i in params])
+        py_res = ''.join(['diff(',py_print_function_pystring(id,args,False),', ',diffvarstr,')'])
+    else:
+        ostr = ''.join(['D[', ', '.join([repr(int(x)) for x in params]), ']'])
+        fstr = py_print_function_pystring(id, args, True)
+        py_res = ostr + fstr
     return string_from_pystr(py_res)
 
 def py_print_fderivative_for_doctests(id, params, args):

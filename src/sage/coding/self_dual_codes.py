@@ -1,5 +1,5 @@
 r"""
-Binary self-dual codes
+Enumerating binary self-dual codes
 
 This module implements functions useful for studying binary
 self-dual codes.

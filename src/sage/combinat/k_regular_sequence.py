@@ -147,7 +147,7 @@ class kRegularSequence(RecognizableSeries):
             preview=10)
 
 
-    @cached_method
+
     def __getitem__(self, n):
         r"""
         Return the `n`th entry of this sequence.
@@ -193,19 +193,7 @@ class kRegularSequence(RecognizableSeries):
         n = ZZ(n)
         W = self.parent().indices()
         w = W(n.digits(self.parent().k))
-
-        # We would like the line of code
-        #     return super(kRegularSequence, self).__getitem__(w)
-        # to determine the return value. Unfortunately, the
-        # @cached_method of RecognizableSeries.__getitem__ makes
-        # troubles. (See :trac:`21281` for details). We simply
-        # copy and use the code of the inherited class:
-        result = self._mu_of_word_(w)
-        if self.left is not None:
-            result = self.left * result
-        if self.right is not None:
-            result = result * self.right
-        return result
+        return super(kRegularSequence, self).__getitem__(w)
 
 
     def __iter__(self):

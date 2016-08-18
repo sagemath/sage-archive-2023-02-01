@@ -287,4 +287,6 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
                     for N in self_orthogonal_binary_codes(n, k, d, child, BC, in_test=in_test):
                         if out_test(N): yield N
 
+# Import the following function so that it is available as sage.codes.databases.self_dual_binary_codes
+# sage.codes.databases functions somewhat like a catalog in this respect.
 from sage.coding.self_dual_codes import self_dual_binary_codes

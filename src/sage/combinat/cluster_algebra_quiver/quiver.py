@@ -68,8 +68,8 @@ class ClusterQuiver(SageObject):
         * List of edges - must be the edge list of a digraph for a quiver
 
     - ``frozen`` -- (default:``None``) sets the list of frozen variables if the input type is a DiGraph, it is ignored otherwise.  Use set_frozen in these other cases to freeze vertices.
-    
-    - ``user_labels'' -- (default:``None'') sets the names of the labels for the vertices of the quiver if the input type is not a DiGraph.  When the input type is a DiGraph, the input user_labels is ignored.
+
+    - ``user_labels`` -- (default:``None``) sets the names of the labels for the vertices of the quiver if the input type is not a DiGraph.  When the input type is a DiGraph, the input user_labels is ignored.
 
     EXAMPLES:
 

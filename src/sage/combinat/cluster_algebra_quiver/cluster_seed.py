@@ -2251,15 +2251,16 @@ class ClusterSeed(SageObject):
         - ``"urban_renewal"`` or ``"urban"``: mutates at first urban renewal vertex,
         - ``"all_urban_renewals"`` or ``"all_urban"``: mutates at all urban renewal vertices.
         
-       - ``input_type`` -- (default: None) indicates the type of data contained in the sequence.  If no value is given,
-         preference will be given to vertex names, then indices, then cluster variables.  If all input is not of the same type,
-         an error is given.
+        - ``input_type`` -- (default: None) indicates the type of data contained in the sequence.  If no value is given,
+          preference will be given to vertex names, then indices, then cluster variables.  If all input is not of the same type,
+          an error is given.
        
-       Possible values for ``input_type`` are:
-       - ``"vertices"``: interprets the input sequence as vertices
-       - ``"indices"``: interprets the input sequence as indices
-       - ``"cluster_vars"``: interprets the input sequence as cluster variables - this must be selected if inputing a sequence
-         of cluster variables.
+        Possible values for ``input_type`` are:
+
+        - ``"vertices"``: interprets the input sequence as vertices
+        - ``"indices"``: interprets the input sequence as indices
+        - ``"cluster_vars"``: interprets the input sequence as cluster variables - this must be selected if inputing a sequence
+          of cluster variables.
 
         EXAMPLES::
 
@@ -3625,19 +3626,19 @@ class ClusterSeed(SageObject):
             sage: S2 = ClusterSeed(DiGraph([['a','b'],['b','c']]),frozen=[])
             sage: S2.cluster_class()
             [[a, b, c],
-             [a, b, (b + 1)/c],
-             [a, (a + c)/b, c],
-             [(b + 1)/a, b, c],
-             [a, (a + c)/b, (a*b + a + c)/(b*c)],
-             [(b*c + a + c)/(a*b), (a + c)/b, c],
-             [a, (a*b + a + c)/(b*c), (b + 1)/c],
-             [(b + 1)/a, b, (b + 1)/c],
-             [(b + 1)/a, (b*c + a + c)/(a*b), c],
-             [(a*b + b*c + a + c)/(a*b*c), (a*b + a + c)/(b*c), (b + 1)/c],
-             [(b + 1)/a, (a*b + b*c + a + c)/(a*b*c), (b + 1)/c],
-             [(b + 1)/a, (b*c + a + c)/(a*b), (a*b + b*c + a + c)/(a*b*c)],
-             [(b*c + a + c)/(a*b), (a + c)/b, (a*b + b*c + a + c)/(a*b*c)],
-             [(a*b + b*c + a + c)/(a*b*c), (a + c)/b, (a*b + a + c)/(b*c)]]
+            [a, b, (b + 1)/c],
+            [a, (a + c)/b, c],
+            [(b + 1)/a, b, c],
+            [a, (a + c)/b, (a*b + a + c)/(b*c)],
+            [(b*c + a + c)/(a*b), (a + c)/b, c],
+            [a, (a*b + a + c)/(b*c), (b + 1)/c],
+            [(b + 1)/a, b, (b + 1)/c],
+            [(b + 1)/a, (b*c + a + c)/(a*b), c],
+            [(a*b + b*c + a + c)/(a*b*c), (a*b + a + c)/(b*c), (b + 1)/c],
+            [(b + 1)/a, (a*b + b*c + a + c)/(a*b*c), (b + 1)/c],
+            [(b + 1)/a, (b*c + a + c)/(a*b), (a*b + b*c + a + c)/(a*b*c)],
+            [(b*c + a + c)/(a*b), (a + c)/b, (a*b + b*c + a + c)/(a*b*c)],
+            [(a*b + b*c + a + c)/(a*b*c), (a + c)/b, (a*b + a + c)/(b*c)]]
         """
         mc_iter = self.mutation_class_iter( depth=depth, show_depth=show_depth, up_to_equivalence=up_to_equivalence )
         for c in mc_iter:

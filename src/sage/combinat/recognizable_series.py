@@ -345,8 +345,8 @@ class RecognizableSeries(Element):
 
         def summand(c, w):
             if c == 1:
-                return f(w)
-            return f(c) + times + f(w)
+                return '[{w}]'.format(w=f(w))
+            return '{c}{times}[{w}]'.format(c=f(c), times=times, w=f(w))
 
         s = ' + '.join(summand(c, w)
                        for c, w in islice(self, 10))
@@ -509,7 +509,7 @@ class RecognizableSeries(Element):
             return iter([])
         A = self.parent()._algebra_
         B = A.basis()
-        return iter((self[w], B[w])
+        return iter((self[w], w)
                     for w in self.parent().indices() if self[w] != 0)
 
 

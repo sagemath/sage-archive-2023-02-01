@@ -11939,7 +11939,7 @@ class GenericGraph(GenericGraph_pyx):
              0
 
         If we count instead the number of `T_3` in `T_5`, we expect
-        the answer to be `{5 \choose 3}`::
+        the answer to be `\binom{5}{3}`::
 
              sage: T3 = T5.subgraph([0,1,2])
              sage: T5.subgraph_search_count(T3)

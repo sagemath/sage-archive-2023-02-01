@@ -240,7 +240,7 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: fricas == loads(dumps(fricas))
             True
         """
-        eval_using_file_cutoff = 4096-5 # magic number from Expect.eval_line (there might be a bug)
+        eval_using_file_cutoff = 4096-5 # magic number from Expect._eval_line (there might be a bug)
         assert max(len(c) for c in FRICAS_INIT_CODE) < eval_using_file_cutoff
         self.__eval_using_file_cutoff = eval_using_file_cutoff
         self._COMMANDS_CACHE = '%s/%s_commandlist_cache.sobj'%(DOT_SAGE, name)
@@ -276,10 +276,10 @@ class FriCAS(ExtraTabCompletion, Expect):
         self._prompt = FRICAS_FIRST_PROMPT
         Expect._start(self)
         for line in FRICAS_INIT_CODE:
-            self.eval(line)
+            self.eval(line, reformat=False)
         # switching off the line numbers also modified the prompt
         self._prompt = FRICAS_LINENUMBER_OFF_PROMPT
-        self.eval(FRICAS_LINENUMBER_OFF_CODE)
+        self.eval(FRICAS_LINENUMBER_OFF_CODE, reformat=False)
 
     def _quit_string(self):
         """
@@ -316,7 +316,7 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: 'factor' in cmds                                              # optional - fricas
             True
         """
-        output = self.eval(")what operations")
+        output = self.eval(")what operations", reformat=False)
         m = re.search(FRICAS_WHAT_OPERATIONS_STRING + "\r\n(.*)\r\n\|startKeyedMsg\|", output, flags = re.DOTALL)
         l = m.groups()[0].split()
         return l
@@ -447,10 +447,10 @@ class FriCAS(ExtraTabCompletion, Expect):
         None
         """
         # otherwise there might be a message
-        m = re.search("\r\n\|startKeyedMsg\|\r\n(.*)\r\n\|endOfKeyedMsg\|\r", output, flags = re.DOTALL)
+        m = re.search("\|startKeyedMsg\|\r\n(.*)\r\n\|endOfKeyedMsg\|\r", output, flags = re.DOTALL)
         if m:
             replacements = [('|startKeyedMsg|\r\n', ''),
-                            ('|endOfKeyedMsg|\r\n', '')]
+                            ('|endOfKeyedMsg|\r', '')]
             for old, new in replacements:
                 output = output.replace(old, new)
             raise RuntimeError("An error occurred when FriCAS evaluated '%s':\n%s" % (line, output))
@@ -507,7 +507,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         """
         cmd = '%s%s%s;'%(var,self._assign_symbol(), value)
-        output = self.eval(cmd)
+        output = self.eval(cmd, reformat=False)
         self._check_errors(value, output)
 
     def get(self, var):
@@ -524,9 +524,9 @@ class FriCAS(ExtraTabCompletion, Expect):
             '   +-+\r\n29\\|2  + 41'
         """
         # print("fricas.get %s" %var)
-        output = self.eval(str(var))
+        output = self.eval(str(var), reformat=False)
         # if there is AlgebraOutput we ask no more
-        m = re.search("\r\n\|startAlgebraOutput\|\r\n(.*)\r\n\|endOfAlgebraOutput\|\r", output, flags = re.DOTALL)
+        m = re.search("\|startAlgebraOutput\|\r\n(.*)\r\n\|endOfAlgebraOutput\|\r", output, flags = re.DOTALL)
         if m:
             lines = m.groups()[0].split("\r\n")
             if max(len(line) for line in lines) < FRICAS_LINE_LENGTH:
@@ -584,6 +584,30 @@ class FriCAS(ExtraTabCompletion, Expect):
             FriCAS
         """
         return reduce_load_fricas, tuple([])
+
+    def eval(self, code, strip=True, synchronize=False, locals=None, allow_use_file=True,
+             split_lines="nofile", reformat=True, **kwds):
+        """Evaluate code using FriCAS.
+
+        INPUT:
+
+        - ``reformat`` -- bool; remove the output markers when True.
+
+        """
+        output = Expect.eval(self, code, strip=strip,
+                             synchronize=synchronize, locals=locals,
+                             allow_use_file=allow_use_file, split_lines=split_lines,
+                             **kwds)
+        if reformat:
+            replacements = [('|startAlgebraOutput|\r\n', ''),
+                            ('|endOfAlgebraOutput|\r', ''),
+                            ('|startKeyedMsg|\r\n', ''),
+                            ('|endOfKeyedMsg|\r', '')]
+            for old, new in replacements:
+                output = output.replace(old, new)
+
+        return output
+
 
     def _function_class(self):
         """
@@ -666,14 +690,18 @@ class FriCASElement(ExpectElement):
 
             - can we somehow implement negative arguments?
 
-            - can we raise
-
-
         TEST:
 
             sage: fricas("[1,2,3]")[0]                                          # optional - fricas
             1
 
+            sage: fricas("[1,2,3]")[3]                                          # optional - fricas
+            Traceback (most recent call last):
+            ...
+            TypeError: An error occurred when FriCAS evaluated 'elt(...,...)':
+            <BLANKLINE>
+            >> Error detected within library code:
+            index out of range
         """
         n = int(n)
         if n < 0:
@@ -747,7 +775,7 @@ class FriCASElement(ExpectElement):
         # for some strange reason, outputAsTex does not generate
         # |startAlgebraOutput| and |endOfAlgebraOutput| markers.
         P = self._check_valid()
-        s = P.eval('outputAsTex(%s)'%self._name)
+        s = P.eval('outputAsTex(%s)'%self._name, reformat=False)
 
         if not '$$' in s:
             raise RuntimeError("Error texing FriCAS object %s." %s)

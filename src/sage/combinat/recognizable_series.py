@@ -817,8 +817,8 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
     @classmethod
     def __normalize__(cls,
-                      coefficients=None, alphabet=None, 
-                      indices=None, algebra=None,
+                      coefficients=None,
+                      alphabet=None, indices=None,
                       category=None):
         r"""
         Normalizes the input in order to ensure a unique
@@ -833,30 +833,24 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             Category of sets
 
         """
-        if algebra is None:
-            if indices is None:
-                if alphabet is None:
-                    raise ValueError('TODO')
-                from sage.combinat.words.words import Words
-                indices = Words(alphabet, infinite=False)
-                from sage.combinat.words.word_options import WordOptions
-                WordOptions(identifier='')
-            if coefficients is None:
+        if indices is None:
+            if alphabet is None:
                 raise ValueError('TODO')
-            algebra = indices.algebra(coefficients)
-            def key_to_cmp(a, b, key):
-                return (key(a) > key(b)) - (key(a) < key(b))
-            algebra.print_options(
-                prefix='',
-                generator_cmp=lambda a, b: key_to_cmp(a, b, key=lambda k: (len(k), k)))
+            from sage.combinat.words.words import Words
+            indices = Words(alphabet, infinite=False)
+            from sage.combinat.words.word_options import WordOptions
+            WordOptions(identifier='')
+
+        if coefficients is None:
+            raise ValueError('TODO')
 
         from sage.categories.sets_cat import Sets
         category = category or Sets()
 
-        return (algebra, category)
+        return (coefficients, indices, category)
 
 
-    def __init__(self, algebra, category):
+    def __init__(self, coefficients, indices, category):
         r"""
         The space of recognizable series on the given alphabet and
         with the given coefficients.
@@ -865,19 +859,19 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
         - ``coefficients`` -- a (semi-)ring.
 
-        - ``alphabet`` -- a tuple, list or totally ordered set.
+        - ``alphabet`` -- a tuple, list or
+          :class:`~sage.sets.totally_ordered_finite_set.TotallyOrderedFiniteSet`.
           If specified, then the ``indices`` are the
           finite words over this ``alphabet``.
+          ``alphabet`` and ``indices`` cannot be specified
+          at the same time.
 
-        - ``indices`` -- a SageMath parent.
-
-        - ``algebra`` -- a SageMath parent.
-          If specified, then ``coefficients``
-          and ``indices`` are determined by this ``algebra``.
+        - ``indices`` -- a SageMath-parent of finite words over an alphabet.
+          ``alphabet`` and ``indices`` cannot be specified
+          at the same time.
 
         - ``category`` -- (default: ``None``) the category of this
-          space. If ``None``, then the category of the ``algebra``
-          is used.
+          space.
 
         EXAMPLES::
 
@@ -890,10 +884,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             sage: S3 = RecognizableSeriesSpace(ZZ, indices=Words([0, 1], infinite=False))
             sage: S3
             Space of recognizable series on {0, 1} with coefficients in Integer Ring
-            sage: S4 = RecognizableSeriesSpace(algebra=Words([0, 1], infinite=False).algebra(ZZ))
-            sage: S4
-            Space of recognizable series on {0, 1} with coefficients in Integer Ring
-            sage: S1 is S2 is S3 is S4
+            sage: S1 is S2 is S3
             True
 
         .. SEEALSO::
@@ -901,9 +892,9 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             :doc:`recognizable series <recognizable_series>`,
             :class:`RecognizableSeries`.
         """
-        self._algebra_ = algebra
+        self._indices_ = indices
         super(RecognizableSeriesSpace, self).__init__(
-            category=category, base=algebra.base())
+            category=category, base=coefficients)
 
 
     def alphabet(self):
@@ -924,7 +915,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             sage: type(RecognizableSeriesSpace(ZZ, [0, 1]).alphabet())
             <class 'sage.sets.totally_ordered_finite_set.TotallyOrderedFiniteSet_with_category'>
         """
-        return self._algebra_.indices().alphabet()
+        return self.indices().alphabet()
 
 
     def indices(self):
@@ -940,7 +931,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             sage: RecognizableSeriesSpace(ZZ, [0, 1]).indices()
             Finite words over {0, 1}
         """
-        return self._algebra_.indices()
+        return self._indices_
 
 
     def coefficients(self):

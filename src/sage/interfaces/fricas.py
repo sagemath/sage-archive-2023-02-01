@@ -187,7 +187,6 @@ from __future__ import print_function
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.interfaces.expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.env import DOT_SAGE
-from sage.misc.multireplace import multiple_replace
 import re
 import six
 
@@ -593,17 +592,21 @@ class FriCASElement(ExpectElement):
         # |startAlgebraOutput| and |endOfAlgebraOutput| markers.
         P = self._check_valid()
         s = P.eval('outputAsTex(%s)'%self.name())
+        
         if not '$$' in s:
             raise RuntimeError("Error texing axiom object.")
         i = s.find('$$')
         j = s.rfind('$$')
         s = s[i+2:j]
-        s = multiple_replace({'\r':'', '\n':' ',
-                              ' \\sp ':'^',
-                              '\\arcsin ':'\\sin^{-1} ',
-                              '\\arccos ':'\\cos^{-1} ',
-                              '\\arctan ':'\\tan^{-1} '},
-            re.sub(r'\\leqno\(.*?\)','',s)) # no eq number!
+        replacements = [('\r', ''),
+                        ('\n', ' '),
+                        ('\leqno(NIL)', ''), # no eq number!
+                        ('\sp ', '^'),
+                        ('\sp{', '^{'),
+                        ('\sb ', '_'),
+                        ('\sb{', '_{')]
+        for old, new in replacements:
+            s = s.replace(old, new)
         return s
 
     def _unparsed_InputForm(self):

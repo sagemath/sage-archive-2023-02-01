@@ -184,6 +184,10 @@ cdef class SkewPolynomial(AlgebraElement):
 
         sage: a = x^2
         sage: a(t)
+        doctest:...: FutureWarning: This class/method/function is marked as
+        experimental. It, its functionality or its interface might change
+        without a formal deprecation.
+        See http://trac.sagemath.org/13215 for details.
         t + 2
 
     Here is a working example over a finite field::
@@ -359,6 +363,10 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S.<x> = R['x',sigma]
             sage: a = t*x + 1
             sage: a(t^2)
+            doctest:...: FutureWarning: This class/method/function is marked as
+            experimental. It, its functionality or its interface might change
+            without a formal deprecation.
+            See http://trac.sagemath.org/13215 for details.
             t^3 + 3*t^2 + t
             sage: b = x + t
             sage: b = x^2 + t*x^3 + t^2*x + 1
@@ -401,6 +409,10 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: T.<x> = k['x',Frob]
             sage: a = 3*t^2*x^2 + (t + 1)*x + 2
             sage: a(t) #indirect test
+            doctest:...: FutureWarning: This class/method/function is marked as
+            experimental. It, its functionality or its interface might change
+            without a formal deprecation.
+            See http://trac.sagemath.org/13215 for details.
             2*t^2 + 2*t + 3
         """
         if eval_pt not in self._parent:

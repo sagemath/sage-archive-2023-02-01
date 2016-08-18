@@ -5499,7 +5499,7 @@ class Graph(GenericGraph):
             {0: 1, 1: 1, 2: 1, 3: 1, 4: 2}
             sage: F = graphs.Grid2dGraph(2,3)
             sage: X = F.cliques_number_of()
-            sage: for v in sorted(X.iterkeys()):
+            sage: for v in sorted(X):
             ....:     print("{} {}".format(v, X[v]))
             (0, 0) 2
             (0, 1) 3
@@ -5992,7 +5992,7 @@ class Graph(GenericGraph):
             {0: 2, 1: 4, 2: 4, 3: 4, 4: 4}
             sage: F = graphs.Grid2dGraph(2,3)
             sage: X = F.cliques_vertex_clique_number(algorithm="networkx")
-            sage: for v in sorted(X.iterkeys()):
+            sage: for v in sorted(X):
             ....:     print("{} {}".format(v, X[v]))
             (0, 0) 2
             (0, 1) 2
@@ -6056,7 +6056,7 @@ class Graph(GenericGraph):
             {0: [[0, 4]], 1: [[1, 2, 3, 4]], 2: [[1, 2, 3, 4]], 3: [[1, 2, 3, 4]], 4: [[0, 4], [1, 2, 3, 4]]}
             sage: F = graphs.Grid2dGraph(2,3)
             sage: X = F.cliques_containing_vertex()
-            sage: for v in sorted(X.iterkeys()):
+            sage: for v in sorted(X):
             ....:     print("{} {}".format(v, X[v]))
             (0, 0) [[(0, 1), (0, 0)], [(1, 0), (0, 0)]]
             (0, 1) [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]]

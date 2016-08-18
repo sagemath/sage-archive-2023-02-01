@@ -83,10 +83,9 @@ from sage.combinat.recognizable_series import RecognizableSeriesSpace
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import Element
 
-class kRegularSequence(Element):
+class kRegularSequence(RecognizableSeries):
 
-    def __init__(self, parent, mu, left=None, right=None,
-                 output_function=None, transpose=False):
+    def __init__(self, parent, mu, left=None, right=None):
         r"""
         A `k`-regular sequence.
 
@@ -107,15 +106,6 @@ class kRegularSequence(Element):
           from the left to the matrix product. If ``None``, then this
           multiplication is skipped.
 
-        - ``output_function`` -- (default: ``None``) a function, which is
-          applied after evaluating the sequence. This may be used to
-          extract the value of a 1x1 matrix.
-
-        - ``transpose`` -- (default: ``False``) a boolean. If set, then
-          each of the ``mu``. Additionally the vectors ``left``
-          and ``right`` are switched and (if possible)
-          transposed as well.
-
         EXAMPLES::
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
@@ -124,43 +114,13 @@ class kRegularSequence(Element):
             ....:      transpose=True)
             2-regular sequence 0, 1, 3, 5, 9, 11, 15, 19, 27, 29, ...
 
-        Using an output function::
-
-            sage: Seq2((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-            ....:      Matrix([[0, 1]]), Matrix([[1], [0]]),
-            ....:      lambda o: o[0, 0], transpose=True)
-            2-regular sequence 0, 1, 3, 5, 9, 11, 15, 19, 27, 29, ...
-
         .. SEEALSO::
 
             :doc:`k-regular sequence <k_regular_sequence>`,
             :class:`kRegularSequenceSpace`.
         """
-        super(kRegularSequence, self).__init__(parent=parent)
-
-        def tr(M):
-            try:
-                return M.transpose() if transpose else M
-            except AttributeError:
-                return M
-
-        self.mu = tuple(tr(M) for M in mu)
-        self.k = len(self.mu)
-        self.d = self.mu[0].nrows()
-        if not all(M.dimensions() == (self.d, self.d) for M in self.mu):
-            raise ValueError  # TODO
-
-        if not transpose:
-            self.left = left
-            self.right = right
-        else:
-            self.left = tr(right)
-            self.right = tr(left)
-
-        if output_function is None:
-            self.output_function = lambda o: o
-        else:
-            self.output_function = output_function
+        super(kRegularSequence, self).__init__(
+            parent=parent, mu=mu, left=left, right=right)
 
 
     def _repr_(self):
@@ -187,39 +147,6 @@ class kRegularSequence(Element):
             preview=10)
 
 
-    def info(self):
-        r"""
-        Displays the matrices of the `k`-linear representation, the left
-        vector and the right vector.
-
-        OUTPUT:
-
-        Nothing; printing to standard output.
-
-        EXAMPLES::
-
-            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
-            sage: Seq2((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
-            ....:      left=vector([0, 1]), right=vector([1, 0])).info()
-            matrices:
-            (
-            [1 0]  [ 0 -1]
-            [0 1], [ 1  2]
-            )
-            left:
-            (0, 1)
-            right:
-            (1, 0)
-        """
-        from sys import displayhook
-        print('matrices:')
-        displayhook(self.mu)
-        print('left:')
-        displayhook(self.left)
-        print('right:')
-        displayhook(self.right)
-
-
     @cached_method
     def __getitem__(self, n):
         r"""
@@ -240,40 +167,19 @@ class kRegularSequence(Element):
             ....:          left=vector([0, 1]), right=vector([1, 0]))
             sage: S[7]
             3
-        """
-        result = self._product_of_mu_(n)
-        if self.left is not None:
-            result = self.left * result
-        if self.right is not None:
-            result = result * self.right
-        return self.output_function(result)
-
-
-    @cached_method
-    def _product_of_mu_(self, m):
-        r"""
-        Return the product of matrices according to the `k`-ary
-        digit expansion of `m`.
-
-        INPUT:
-
-        - ``m`` -- a nonnegative integer.
-
-        OUTPUT:
-
-        A matrix.
 
         TESTS::
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: W = Seq2.indices()
             sage: M0 = Matrix([[1, 0], [0, 1]])
             sage: M1 = Matrix([[0, -1], [1, 2]])
             sage: S = Seq2((M0, M1))
-            sage: S._product_of_mu_(0) == M0
+            sage: S._mu_of_word_(W(0.digits(2))) == M0
             True
-            sage: S._product_of_mu_(1) == M1
+            sage: S._mu_of_word_(W(1.digits(2))) == M1
             True
-            sage: S._product_of_mu_(3) == M1^2
+            sage: S._mu_of_word_(W(3.digits(2))) == M1^2
             True
 
         ::
@@ -282,15 +188,24 @@ class kRegularSequence(Element):
             Traceback (most recent call last):
             ...
             ValueError: m=-1 is not a nonnegative integer.
-         """
-        k = self.parent().k
-        if m < 0:
-            raise ValueError('m={} is not a nonnegative integer.'.format(m))
-        if 0 <= m < k:
-            return self.mu[m]
-        n = m // k
-        r = m - n*k
-        return self.mu[r] * self._product_of_mu_(n)
+        """
+        from sage.rings.integer_ring import ZZ
+        n = ZZ(n)
+        W = self.parent().indices()
+        w = W(n.digits(self.parent().k))
+
+        # We would like the line of code
+        #     return super(kRegularSequence, self).__getitem__(w)
+        # to determine the return value. Unfortunately, the
+        # @cached_method of RecognizableSeries.__getitem__ makes
+        # troubles. (See :trac:`21281` for details). We simply
+        # copy and use the code of the inherited class:
+        result = self._mu_of_word_(w)
+        if self.left is not None:
+            result = self.left * result
+        if self.right is not None:
+            result = result * self.right
+        return result
 
 
     def __iter__(self):
@@ -318,15 +233,12 @@ class kRegularSequence(Element):
         return iter(self[n] for n in count())
 
 
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
-
-class kRegularSequenceSpace(UniqueRepresentation, Parent):
+class kRegularSequenceSpace(RecognizableSeriesSpace):
 
     Element = kRegularSequence
 
-    @staticmethod
-    def __classcall__(cls, k, universe=None, category=None):
+    @classmethod
+    def __normalize__(cls, k, coefficients=None, **kwds):
         r"""
         Normalizes the input in order to ensure a unique
         representation.
@@ -344,18 +256,16 @@ class kRegularSequenceSpace(UniqueRepresentation, Parent):
             sage: Seq2 is kRegularSequenceSpace(2)
             True
         """
-        if universe is None:
-            from sage.rings.integer_ring import ZZ
-            universe = ZZ
-
-        from sage.categories.sets_cat import Sets
-        category = category or Sets()
-
-        return super(kRegularSequenceSpace, cls).__classcall__(
-            cls, k, universe, category)
+        from sage.arith.srange import srange
+        from sage.rings.integer_ring import ZZ
+        if coefficients is None:
+            coefficients = ZZ
+        nargs = super(kRegularSequenceSpace, cls).__normalize__(
+            coefficients, alphabet=srange(k), **kwds)
+        return (k,) + nargs
 
 
-    def __init__(self, k, universe, category):
+    def __init__(self, k, algebra, category):
         r"""
         The space of `k`-regular Sequences over the given ``universe``.
 
@@ -384,9 +294,7 @@ class kRegularSequenceSpace(UniqueRepresentation, Parent):
             :class:`kRegularSequence`.
         """
         self.k = k
-        self.universe = universe
-        super(kRegularSequenceSpace, self).__init__(
-            category=category, base=universe)
+        super(kRegularSequenceSpace, self).__init__(algebra, category)
 
 
     def _repr_(self):

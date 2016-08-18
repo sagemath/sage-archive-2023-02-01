@@ -360,9 +360,9 @@ As a third alternative, use the raw suffix::
     array([  7.5,  10.5])
 
 You can also disable the preprocessor in your code via
-``preparse(False)``. You can may start IPython alone from the command
+``preparser(False)``. You can start IPython alone from the command
 line ``sage -ipython`` which does not pre-load anything
-Sage-specific. Or switching the Notebook language to "Python".
+Sage-specific. Or switch the Notebook language to "Python".
 
 
 How do I save an object so I don't have to compute it each time I open a worksheet?

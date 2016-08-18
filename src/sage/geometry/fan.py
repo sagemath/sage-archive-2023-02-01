@@ -2940,7 +2940,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         TESTS:
 
-        We check that Trac #11902 is fixed::
+        We check that :trac:`11902` is fixed::
 
             sage: fan = toric_varieties.P2().fan()
             sage: fan.subdivide(new_rays=[(0,0)])

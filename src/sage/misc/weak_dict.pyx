@@ -26,6 +26,8 @@ value that is being garbage collected::
     ....:         return hash(self.val())
     ....:     def __eq__(self, other):
     ....:         return self.val() == other.val()
+    ....:     def __ne__(self, other):
+    ....:         return self.val() != other.val()
     sage: ValList = [Vals() for _ in range(10)]
     sage: D = weakref.WeakValueDictionary()
     sage: for v in ValList:
@@ -136,7 +138,7 @@ cdef extern from "Python.h":
         Py_ssize_t ma_mask
         PyDictEntry* ma_table
         PyDictEntry* (*ma_lookup)(PyDictObject *mp, PyObject *key, long hash) except NULL
-        
+
     PyObject* Py_None
     #we need this redefinition because we want to be able to call
     #PyWeakref_GetObject with borrowed references. This is the recommended
@@ -428,6 +430,8 @@ cdef class WeakValueDictionary(dict):
         ....:         return hash(self.val())
         ....:     def __eq__(self, other):
         ....:         return self.val() == other.val()
+        ....:     def __ne__(self, other):
+        ....:         return self.val() != other.val()
         sage: ValList = [Vals() for _ in range(10)]
         sage: import sage.misc.weak_dict
         sage: D = sage.misc.weak_dict.WeakValueDictionary()
@@ -471,8 +475,12 @@ cdef class WeakValueDictionary(dict):
         sage: class C(object):
         ....:     def __init__(self, n):
         ....:         self.n = n
-        ....:     def __cmp__(self, other):
-        ....:         return cmp(type(self),type(other)) or cmp(self.n, other.n)
+        ....:     def __lt__(self, other):
+        ....:         return self.n < other.n
+        ....:     def __eq__(self, other):
+        ....:         return self.n == other.n
+        ....:     def __ne__(self, other):
+        ....:         return self.val() != other.val()
         sage: B = 100
         sage: L = [None]*B
         sage: D1 = WeakValueDictionary()
@@ -1027,12 +1035,13 @@ cdef class WeakValueDictionary(dict):
             ....:     def __init__(self, n):
             ....:         self.n = n
             ....:     def __repr__(self):
-            ....:         return "<%s>"%self.n
-            ....:     def __cmp__(self, other):
-            ....:         c = cmp(type(self),type(other))
-            ....:         if c:
-            ....:             return c
-            ....:         return cmp(self.n,other.n)
+            ....:         return "<%s>" % self.n
+            ....:     def __lt__(self, other):
+            ....:         return self.n < other.n
+            ....:     def __eq__(self, other):
+            ....:         return self.n == other.n
+            ....:     def __ne__(self, other):
+            ....:         return self.val() != other.val()
             sage: L = [Vals(n) for n in range(10)]
             sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(L))
 
@@ -1077,12 +1086,13 @@ cdef class WeakValueDictionary(dict):
             ....:     def __init__(self, n):
             ....:         self.n = n
             ....:     def __repr__(self):
-            ....:         return "<%s>"%self.n
-            ....:     def __cmp__(self, other):
-            ....:         c = cmp(type(self),type(other))
-            ....:         if c:
-            ....:             return c
-            ....:         return cmp(self.n,other.n)
+            ....:         return "<%s>" % self.n
+            ....:     def __lt__(self, other):
+            ....:         return self.n < other.n
+            ....:     def __eq__(self, other):
+            ....:         return self.n == other.n
+            ....:     def __ne__(self, other):
+            ....:         return self.val() != other.val()
             sage: L = [Vals(n) for n in range(10)]
             sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(L))
 
@@ -1114,12 +1124,13 @@ cdef class WeakValueDictionary(dict):
             ....:     def __init__(self, n):
             ....:         self.n = n
             ....:     def __repr__(self):
-            ....:         return "<%s>"%self.n
-            ....:     def __cmp__(self, other):
-            ....:         c = cmp(type(self),type(other))
-            ....:         if c:
-            ....:             return c
-            ....:         return cmp(self.n,other.n)
+            ....:         return "<%s>" % self.n
+            ....:     def __lt__(self, other):
+            ....:         return self.n < other.n
+            ....:     def __eq__(self, other):
+            ....:         return self.n == other.n
+            ....:     def __ne__(self, other):
+            ....:         return self.val() != other.val()
             sage: class Keys(object):
             ....:     def __init__(self, n):
             ....:         self.n = n
@@ -1128,12 +1139,13 @@ cdef class WeakValueDictionary(dict):
             ....:             return 5
             ....:         return 3
             ....:     def __repr__(self):
-            ....:         return "[%s]"%self.n
-            ....:     def __cmp__(self, other):
-            ....:         c = cmp(type(self),type(other))
-            ....:         if c:
-            ....:             return c
-            ....:         return cmp(self.n,other.n)
+            ....:         return "[%s]" % self.n
+            ....:     def __lt__(self, other):
+            ....:         return self.n < other.n
+            ....:     def __eq__(self, other):
+            ....:         return self.n == other.n
+            ....:     def __ne__(self, other):
+            ....:         return self.val() != other.val()
             sage: L = [(Keys(n), Vals(n)) for n in range(10)]
             sage: D = sage.misc.weak_dict.WeakValueDictionary(L)
 
@@ -1178,12 +1190,13 @@ cdef class WeakValueDictionary(dict):
             ....:     def __init__(self, n):
             ....:         self.n = n
             ....:     def __repr__(self):
-            ....:         return "<%s>"%self.n
-            ....:     def __cmp__(self, other):
-            ....:         c = cmp(type(self),type(other))
-            ....:         if c:
-            ....:             return c
-            ....:         return cmp(self.n,other.n)
+            ....:         return "<%s>" % self.n
+            ....:     def __lt__(self, other):
+            ....:         return self.n < other.n
+            ....:     def __eq__(self, other):
+            ....:         return self.n == other.n
+            ....:     def __ne__(self, other):
+            ....:         return self.val() != other.val()
             sage: class Keys(object):
             ....:     def __init__(self, n):
             ....:         self.n = n
@@ -1192,12 +1205,13 @@ cdef class WeakValueDictionary(dict):
             ....:             return 5
             ....:         return 3
             ....:     def __repr__(self):
-            ....:         return "[%s]"%self.n
-            ....:     def __cmp__(self, other):
-            ....:         c = cmp(type(self),type(other))
-            ....:         if c:
-            ....:             return c
-            ....:         return cmp(self.n,other.n)
+            ....:         return "[%s]" % self.n
+            ....:     def __lt__(self, other):
+            ....:         return self.n < other.n
+            ....:     def __eq__(self, other):
+            ....:         return self.n == other.n
+            ....:     def __ne__(self, other):
+            ....:         return self.val() != other.val()
             sage: L = [(Keys(n), Vals(n)) for n in range(10)]
             sage: D = sage.misc.weak_dict.WeakValueDictionary(L)
 

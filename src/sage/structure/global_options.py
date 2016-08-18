@@ -366,7 +366,7 @@ Tests
 -----
 
 Options classes can only be pickled if they are the options for some standard
-sage class. In this case the class is specified using the arguements to
+sage class. In this case the class is specified using the arguments to
 :class:`GlobalOptions`. For example
 :meth:`~sage.combinat.partition.Partitions.options` is defined as:
 
@@ -417,7 +417,6 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import absolute_import, print_function
 
-from __builtin__ import object, str
 from importlib import import_module
 from pickle import PicklingError
 import inspect

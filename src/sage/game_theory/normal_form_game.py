@@ -1393,13 +1393,11 @@ class NormalFormGame(SageObject, MutableMapping):
         game1_str, game2_str = self._Hrepresentation(m1, m2)
 
         g1_name = tmp_filename()
+        with open(g1_name, 'w') as g1_file:
+            g1_file.write(game1_str)
         g2_name = tmp_filename()
-        g1_file = file(g1_name, 'w')
-        g2_file = file(g2_name, 'w')
-        g1_file.write(game1_str)
-        g1_file.close()
-        g2_file.write(game2_str)
-        g2_file.close()
+        with open(g2_name, 'w') as g2_file:
+            g2_file.write(game2_str)
 
         try:
             process = Popen(['lrsnash', g1_name, g2_name],

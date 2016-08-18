@@ -1963,7 +1963,7 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
 class KR_type_A2Element(KirillovReshetikhinGenericCrystalElement):
     r"""
     Class for the elements in the Kirillov-Reshetikhin crystals `B^{r,s}` of type `A_{2n}^{(2)}` for `r<n`
-    with underlying classcial algebra `B_n`.
+    with underlying classical algebra `B_n`.
 
     EXAMPLES::
 

@@ -2744,7 +2744,7 @@ def random_subspaces_matrix(parent, rank=None):
         [  0   0   0   0   0   0   0   0   0   1   0   0   3   1]
         [  0   0   0   0   0   0   0   0   0   0   1  -3  -4   2]
 
-    Check that we fixed Trac #10543 (echelon forms should be immutable)::
+    Check that we fixed :trac:`10543` (echelon forms should be immutable)::
 
         sage: B_expanded.is_immutable()
         True

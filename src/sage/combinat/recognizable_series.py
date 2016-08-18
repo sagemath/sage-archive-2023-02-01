@@ -830,7 +830,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
             sage: Rec.category()
-            Category of set algebras over Integer Ring
+            Category of sets
 
         """
         if algebra is None:
@@ -851,7 +851,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
                 generator_cmp=lambda a, b: key_to_cmp(a, b, key=lambda k: (len(k), k)))
 
         from sage.categories.sets_cat import Sets
-        category = category or algebra.category()
+        category = category or Sets()
 
         return (algebra, category)
 
@@ -976,6 +976,22 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         return 'Space of recognizable series on {} ' \
                'with coefficients in {}'.format(self.alphabet(),
                                                 self.coefficients())
+
+
+    def zero(self):
+        """
+        Return the zero of this recognizable series space.
+
+        This can be removed once this recognizable series space is
+        at least an additive magma.
+
+        EXAMPLES::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: Rec.zero()
+            0
+        """
+        return self(0)
 
 
     def _element_constructor_(self, mu,

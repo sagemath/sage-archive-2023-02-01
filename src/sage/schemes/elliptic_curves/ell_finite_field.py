@@ -1228,7 +1228,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         - if the group is trivial: an empty tuple.
 
-        - if the group is cyclic: a tuple with a generator.
+        - if the group is cyclic: a tuple with 1 point, a generator.
 
         - if the group is not cyclic: a tuple with 2 points, where the
           order of the first point equals the exponent of the group.
@@ -1249,9 +1249,28 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             ((0 : 7 : 1),)
             sage: E = EllipticCurve(GF(41),[2,5])
             sage: E.gens()
-            ((4 : 35 : 1), (25 : 31 : 1))
+            ((30 : 13 : 1), (32 : 23 : 1))
+            sage: E.cardinality()
+            44
             sage: E.gens()[0].order()
             22
+            sage: E.gens()[1].order()
+            22
+
+        If the abelian group has been computed, return those generators
+        instead::
+
+            sage: E.abelian_group()
+            Additive abelian group isomorphic to Z/22 + Z/2 embedded in Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 2*x + 5 over Finite Field of size 41
+            sage: E.abelian_group().gens()
+            ((30 : 28 : 1), (23 : 0 : 1))
+            sage: E.gens()
+            ((30 : 28 : 1), (23 : 0 : 1))
+            sage: E.gens()[0].order()
+            22
+            sage: E.gens()[1].order()
+            2
+
             sage: F.<a> = GF(3^6)
             sage: E = EllipticCurve([a,a+1])
             sage: pts = E.gens()
@@ -1278,7 +1297,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             48186763221577974844753957243534456657630
         """
         G = self._pari_().ellgroup(flag=1)
-        k = self.base_ring()
         return tuple(self.point(list(pt)) for pt in G[2])
 
     def __iter__(self):
@@ -1325,6 +1343,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         """
         return self.points()[n]
 
+    @cached_method
     def abelian_group(self, debug=False):
         r"""
         Returns the abelian group structure of the group of points on this
@@ -1354,7 +1373,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         -  ``debug`` - (default: False): if True, print
            debugging messages
-
 
         OUTPUT:
 
@@ -1427,13 +1445,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             (Multiplicative Abelian group isomorphic to C50067594 x C2,
             ((3152*ibar + 7679 : 7330*ibar + 7913 : 1), (8466*ibar + 1770 : 0 : 1)))
         """
-        if not debug:
-            # if we're in debug mode, always recalculate
-            try:
-                return self.__abelian_group
-            except AttributeError:
-                pass
-
         k = self.base_field()
         q = k.order()
         p = k.characteristic()
@@ -1608,14 +1619,18 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         from sage.groups.additive_abelian.additive_abelian_wrapper import AdditiveAbelianGroupWrapper
         self._order = n1*n2
-        if n1==1:
-            self.__abelian_group = AdditiveAbelianGroupWrapper(self.point_homset(), [], [])
+        if n1 == 1:
+            gens = orders = tuple()
+            return AdditiveAbelianGroupWrapper(self.point_homset(), [], [])
+        elif n2 == 1:
+            gens = (P1,)
+            orders = (n1,)
         else:
-            if n2==1:
-                self.__abelian_group = AdditiveAbelianGroupWrapper(self.point_homset(), [P1], [n1])
-            else:
-                self.__abelian_group = AdditiveAbelianGroupWrapper(self.point_homset(), [P1, P2], [n1, n2])
-        return self.__abelian_group
+            gens = (P1, P2)
+            orders = (n1, n2)
+        # Cache these gens as self.gens()
+        self.gens.set_cache(gens)
+        return AdditiveAbelianGroupWrapper(self.point_homset(), gens, orders)
 
     def is_isogenous(self, other, field=None, proof=True):
         """

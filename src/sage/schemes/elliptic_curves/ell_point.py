@@ -3545,8 +3545,9 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         if 2*N > bounds[1]:  # then we have a generator, so cache this
             if not hasattr(E, '_order'):
                 E._order = N
-            if not hasattr(E, '__abelian_group'):
-                E.__abelian_group = AbelianGroup([N]), (self, )
+            if not E.abelian_group.is_in_cache():
+                g = AbelianGroup([N]), (self,)
+                E.abelian_group.set_cache(g)
 
         self._order = N
         return self._order

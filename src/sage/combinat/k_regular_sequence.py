@@ -111,7 +111,7 @@ class kRegularSequence(RecognizableSeries):
           from the left to the matrix product. If ``None``, then this
           multiplication is skipped.
 
-        When created via the parent :class:`kRegularSequence`, then
+        When created via the parent :class:`kRegularSequenceSpace`, then
         the following option is available.
 
         - ``transpose`` -- (default: ``False``) a boolean. If set, then

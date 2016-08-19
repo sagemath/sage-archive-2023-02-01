@@ -4503,11 +4503,16 @@ class FinitePoset(UniqueRepresentation, Parent):
                            elements=elements, category=self.category(),
                            facade=self._is_facade)
 
-    def canonical_label(self):
+    def canonical_label(self, algorithm=None):
         """
         Return the unique poset on the labels `\{0, \ldots, n-1\}` (where `n`
         is the number of elements in the poset) that is isomorphic to this
         poset and invariant in the isomorphism class.
+
+        INPUT:
+
+        - ``algorithm``, a string or ``None`` -- a parameter forwarded
+          to underlying graph function to select the algorithm to use
 
         .. SEEALSO::
 
@@ -4552,8 +4557,14 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: Poset().canonical_label()  # Test the empty poset
             Finite poset containing 0 elements
+
+            sage: D2 = Posets.DiamondPoset(4).canonical_label(algorithm='bliss')  # optional: bliss
+            sage: B2 = Posets.BooleanLattice(2).canonical_label(algorithm='bliss')  # optional: bliss
+            sage: D2 == B2  # optional: bliss
+            True
         """
-        canonical_label = self._hasse_diagram.canonical_label(certificate=True)[1]
+        canonical_label = self._hasse_diagram.canonical_label(certificate=True,
+                                                              algorithm=algorithm)[1]
         canonical_label = {self._elements[v]:i for v,i in canonical_label.iteritems()}
         return self.relabel(canonical_label)
 

@@ -81,7 +81,7 @@ Classes and Methods
 from sage.combinat.recognizable_series import RecognizableSeries
 from sage.combinat.recognizable_series import RecognizableSeriesSpace
 from sage.misc.cachefunc import cached_method
-from sage.structure.element import Element
+
 
 class kRegularSequence(RecognizableSeries):
 
@@ -93,8 +93,12 @@ class kRegularSequence(RecognizableSeries):
 
         - ``parent`` -- an instance of :class:`kRegularSequenceSpace`.
 
-        - ``mu`` -- a tuple or other iterable of square matrices,
-          all of which have the same dimension.
+        - ``mu`` -- a family of square matrices, all of which have the
+          same dimension. The indices of this family are `0,...,k-1`.
+          ``mu`` may be a list or tuple of cardinality `k`
+          as well. See
+          :meth:`~sage.combinat.recognizable_series.RecognizableSeries.mu`
+          for more details.
 
         - ``left`` -- (default: ``None``) a vector.
           When evaluating the sequence, this vector is multiplied

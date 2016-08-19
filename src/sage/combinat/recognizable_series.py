@@ -36,6 +36,8 @@ Classes and Methods
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import Element
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
 
 
 class PrefixClosedSet(object):
@@ -870,9 +872,6 @@ class RecognizableSeries(Element):
         return self.parent().element_class(
             self.parent(), mu_prime, left_prime, right_prime)
 
-
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
 
 class RecognizableSeriesSpace(UniqueRepresentation, Parent):
     r"""

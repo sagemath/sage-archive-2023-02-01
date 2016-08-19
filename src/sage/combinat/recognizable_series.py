@@ -800,6 +800,47 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 
 class RecognizableSeriesSpace(UniqueRepresentation, Parent):
+    r"""
+    The space of recognizable series on the given alphabet and
+    with the given coefficients.
+
+    INPUT:
+
+    - ``coefficients`` -- a (semi-)ring.
+
+    - ``alphabet`` -- a tuple, list or
+      :class:`~sage.sets.totally_ordered_finite_set.TotallyOrderedFiniteSet`.
+      If specified, then the ``indices`` are the
+      finite words over this ``alphabet``.
+      ``alphabet`` and ``indices`` cannot be specified
+      at the same time.
+
+    - ``indices`` -- a SageMath-parent of finite words over an alphabet.
+      ``alphabet`` and ``indices`` cannot be specified
+      at the same time.
+
+    - ``category`` -- (default: ``None``) the category of this
+      space.
+
+    EXAMPLES:
+
+    All of the following examples create the same space::
+
+        sage: S1 = RecognizableSeriesSpace(ZZ, [0, 1])
+        sage: S1
+        Space of recognizable series on {0, 1} with coefficients in Integer Ring
+        sage: S2 = RecognizableSeriesSpace(coefficients=ZZ, alphabet=[0, 1])
+        sage: S2
+        Space of recognizable series on {0, 1} with coefficients in Integer Ring
+        sage: S3 = RecognizableSeriesSpace(ZZ, indices=Words([0, 1], infinite=False))
+        sage: S3
+        Space of recognizable series on {0, 1} with coefficients in Integer Ring
+
+    .. SEEALSO::
+
+        :doc:`recognizable series <recognizable_series>`,
+        :class:`RecognizableSeries`.
+    """
 
     Element = RecognizableSeries
 
@@ -812,6 +853,20 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
         For more information see :class:`ReconizableSeriesSpace`
         and :meth:`__normalize__'.
+
+        TESTS::
+
+            sage: S1 = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: S1
+            Space of recognizable series on {0, 1} with coefficients in Integer Ring
+            sage: S2 = RecognizableSeriesSpace(coefficients=ZZ, alphabet=[0, 1])
+            sage: S2
+            Space of recognizable series on {0, 1} with coefficients in Integer Ring
+            sage: S3 = RecognizableSeriesSpace(ZZ, indices=Words([0, 1], infinite=False))
+            sage: S3
+            Space of recognizable series on {0, 1} with coefficients in Integer Ring
+            sage: S1 is S2 is S3
+            True
         """
         return super(RecognizableSeriesSpace, cls).__classcall__(
             cls, *cls.__normalize__(*args, **kwds))
@@ -830,19 +885,49 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])  # indirect doctest
             sage: Rec.category()
             Category of sets
+            sage: RecognizableSeriesSpace([0, 1], [0, 1])
+            Traceback (most recent call last):
+            ...
+            ValueError: Coefficients [0, 1] are not a semiring.
 
+        ::
+
+            sage: W = Words([0, 1], infinite=False)
+            sage: RecognizableSeriesSpace(ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: Specify either 'alphabet' or 'indices'.
+            sage: RecognizableSeriesSpace(ZZ, alphabet=[0, 1], indices=W)
+            Traceback (most recent call last):
+            ...
+            ValueError: Specify either 'alphabet' or 'indices'.
+            sage: RecognizableSeriesSpace(alphabet=[0, 1])
+            Traceback (most recent call last):
+            ...
+            ValueError: No coefficients speficied.
+            sage: RecognizableSeriesSpace(ZZ, indices=Words(ZZ))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Alphabet is not finite.
         """
+        if (alphabet is None) == (indices is None):
+            raise ValueError("Specify either 'alphabet' or 'indices'.")
+
         if indices is None:
-            if alphabet is None:
-                raise ValueError('TODO')
             from sage.combinat.words.words import Words
             indices = Words(alphabet, infinite=False)
+        if not indices.alphabet().is_finite():
+            raise NotImplementedError('Alphabet is not finite.')
 
         if coefficients is None:
-            raise ValueError('TODO')
+            raise ValueError('No coefficients speficied.')
+        from sage.categories.semirings import Semirings
+        if coefficients not in Semirings:
+            raise ValueError(
+                'Coefficients {} are not a semiring.'.format(coefficients))
 
         from sage.categories.sets_cat import Sets
         category = category or Sets()
@@ -852,45 +937,21 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
     def __init__(self, coefficients, indices, category):
         r"""
-        The space of recognizable series on the given alphabet and
-        with the given coefficients.
+        See :class`RecognizableSeriesSpace` for details.
 
         INPUT:
 
         - ``coefficients`` -- a (semi-)ring.
 
-        - ``alphabet`` -- a tuple, list or
-          :class:`~sage.sets.totally_ordered_finite_set.TotallyOrderedFiniteSet`.
-          If specified, then the ``indices`` are the
-          finite words over this ``alphabet``.
-          ``alphabet`` and ``indices`` cannot be specified
-          at the same time.
-
         - ``indices`` -- a SageMath-parent of finite words over an alphabet.
-          ``alphabet`` and ``indices`` cannot be specified
-          at the same time.
 
         - ``category`` -- (default: ``None``) the category of this
           space.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: S1 = RecognizableSeriesSpace(ZZ, [0, 1])
-            sage: S1
+            sage: RecognizableSeriesSpace(ZZ, [0, 1])
             Space of recognizable series on {0, 1} with coefficients in Integer Ring
-            sage: S2 = RecognizableSeriesSpace(coefficients=ZZ, alphabet=[0, 1])
-            sage: S2
-            Space of recognizable series on {0, 1} with coefficients in Integer Ring
-            sage: S3 = RecognizableSeriesSpace(ZZ, indices=Words([0, 1], infinite=False))
-            sage: S3
-            Space of recognizable series on {0, 1} with coefficients in Integer Ring
-            sage: S1 is S2 is S3
-            True
-
-        .. SEEALSO::
-
-            :doc:`recognizable series <recognizable_series>`,
-            :class:`RecognizableSeries`.
         """
         self._indices_ = indices
         super(RecognizableSeriesSpace, self).__init__(

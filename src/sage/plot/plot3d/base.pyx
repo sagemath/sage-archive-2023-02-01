@@ -1232,7 +1232,7 @@ end_scene""" % (render_params.antialiasing,
 
         # Remove all of the keys that are viewing options, since the remaining
         # kwds might be passed on.
-        for key_to_remove in SHOW_DEFAULTS.keys():
+        for key_to_remove in SHOW_DEFAULTS:
             kwds.pop(key_to_remove, None)
 
         # deal with any aspect_ratio instances passed from the default options to plot

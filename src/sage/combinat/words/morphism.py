@@ -2537,7 +2537,7 @@ class WordMorphism(SageObject):
         if translate is not None:
 
             if isinstance(translate, dict):
-                for a in translate.keys():
+                for a in translate:
                     translate[a] = [vector(RealField_prec, v) for v in translate[a]]
 
             else:
@@ -2784,7 +2784,7 @@ class WordMorphism(SageObject):
         elif isinstance(colormap, str):
             from matplotlib import cm
 
-            if not colormap in cm.datad.keys():
+            if not colormap in cm.datad:
                 raise RuntimeError("Color map %s not known (type sorted(colors) for valid names)" % colormap)
 
             colormap = cm.__dict__[colormap]
@@ -2817,9 +2817,9 @@ class WordMorphism(SageObject):
         # 1D plots
         if dim_fractal == 1:
             from sage.all import plot
-            for a in col_dict.keys():
+            for a in col_dict:
                 # We plot only the points with a color in col_dict and with positive opacity
-                if (a in col_dict.keys()) and (opacity[a] > 0):
+                if (a in col_dict) and (opacity[a] > 0):
                     G += plot([x[0] for x in orbit_points[a]], color=col_dict[a], alpha=opacity[a], thickness=point_size)
             if plot_basis:
                 from matplotlib import cm
@@ -2836,9 +2836,9 @@ class WordMorphism(SageObject):
             elif point_size is None and dim_fractal == 3:
                 point_size = 8
 
-            for a in col_dict.keys():
+            for a in col_dict:
                 # We plot only the points with a color in col_dict and with positive opacity
-                if (a in col_dict.keys()) and (opacity[a] > 0):
+                if (a in col_dict) and (opacity[a] > 0):
                     G += points(orbit_points[a], color=col_dict[a], alpha=opacity[a], size=point_size)
 
             if plot_basis:

@@ -260,18 +260,10 @@ class RecognizableSeries(Element):
 
         A = self.parent().alphabet()
         if isinstance(mu, (list, tuple)):
-            if len(A) != len(mu):
-                raise ValueError('TODO')
             mu = dict(zip(A, mu))
         mu = Family(mu)
-        # TODO some check that alphabet is correct
-        #if A != self.mu:
-        #    raise ValueError('TODO')
-
-        #self.k = len(self.matrices)
-        #self.d = self.matrices[0].nrows()
-        #if not all(M.dimensions() == (self.d, self.d) for M in self.matrices):
-        #    raise ValueError  # TODO
+        if not mu.is_finite():
+            raise NotImplementedError('mu is not a finite family of matrices.')
 
         self._left_ = left
         self._mu_ = mu

@@ -1,6 +1,23 @@
 r"""
 Recognizable Series
 
+Let `A` be an alphabet and `K` a semiring. Then a formal series `S`
+with coefficients in `K` and indices in the words `A^*` is called
+recognizable if it has a linear representation, i.e., there exists
+
+- a nonnegative integer `n`
+
+and there exists
+
+- two vectors `\mathit{left}` and `\mathit{right}` of dimension `n` and
+
+- a morphism of monoids `\mu` from `A^*` to `n\times n` matrices over `K`
+
+such that the coefficient corresponing to a word `w\in A^*` equals
+
+.. MATH::
+
+    \mathit{left} \, \mu(w) \, \mathit{right}.
 
 Various
 =======
@@ -223,19 +240,19 @@ class RecognizableSeries(Element):
         - ``mu`` -- a family of square matrices, all of which have the
           same dimension. The indices of this family are the alphabet.
           ``mu`` may be a list or tuple of the same cardinality as the
-          alphabet as well. See :meth:`mu` for more details.
+          alphabet as well. See :meth:`mu <mu>` for more details.
 
         - ``left`` -- (default: ``None``) a vector.  When evaluating a
           coefficient, this vector is multiplied from the left to the
-          matrix obtained from :meth:`mu` applying on a word. If
+          matrix obtained from :meth:`mu <mu>` applying on a word. If
           ``None``, then this multiplication is skipped.
-          See :meth:`left` for more details.
+          See :meth`left <left>` for more details.
 
         - ``right`` -- (default: ``None``) a vector.  When evaluating a
           coefficient, this vector is multiplied from the right to the
-          matrix obtained from :meth:`mu` applying on a word. If
+          matrix obtained from :meth:`mu <mu>` applying on a word. If
           ``None``, then this multiplication is skipped.
-          See :meth:`right` for more details.
+          See :meth:`right <right>` for more details.
 
         EXAMPLES::
 
@@ -271,7 +288,7 @@ class RecognizableSeries(Element):
         r"""
         When evaluating a coefficient, this is applied on each letter
         of a word; the result is a matrix.
-        This extends :meth:`mu` to words over the parent's
+        This extends :meth:`mu <mu>` to words over the parent's
         :meth:`~RecognizableSeriesSpace.alphabet`.
 
         TESTS::
@@ -290,7 +307,7 @@ class RecognizableSeries(Element):
     def left(self):
         r"""
         When evaluating a coefficient, this vector is multiplied from
-        the left to the matrix obtained from :meth:`mu` applied on a
+        the left to the matrix obtained from :meth:`mu <mu>` applied on a
         word.
 
         TESTS::
@@ -308,7 +325,7 @@ class RecognizableSeries(Element):
     def right(self):
         r"""
         When evaluating a coefficient, this vector is multiplied from
-        the right to the matrix obtained from :meth:`mu` applied on a
+        the right to the matrix obtained from :meth:`mu <mu>` applied on a
         word.
 
         TESTS::
@@ -424,7 +441,7 @@ class RecognizableSeries(Element):
     @cached_method
     def _mu_of_empty_word_(self):
         r"""
-        Return :meth:`mu` applied on the empty word.
+        Return :meth:`mu <mu>` applied on the empty word.
 
         OUTPUT:
 
@@ -458,7 +475,7 @@ class RecognizableSeries(Element):
     @cached_method
     def _mu_of_word_(self, w):
         r"""
-        Return :meth:`mu` applied on the word `w`.
+        Return :meth:`mu <mu>` applied on the word `w`.
 
         INPUT:
 
@@ -536,7 +553,7 @@ class RecognizableSeries(Element):
     def is_trivial_zero(self):
         r"""
         Return whether this recognizable series is trivially equal to
-        zero (without any :meth:`minimization <minmized>`).
+        zero (without any :meth:`minimization <minimized>`).
 
         EXAMPLES::
 
@@ -641,8 +658,8 @@ class RecognizableSeries(Element):
 
         A :class:`RecognizableSeries`.
 
-        Each of the ``matrices`` is transposed. Additionally
-        the vectors ``left`` and ``right`` are switched.
+        Each of the matrices in :meth:`mu <mu>` is transposed. Additionally
+        the vectors :meth`left <left>` and :meth:`right <right>` are switched.
 
         EXAMPLES::
 
@@ -677,6 +694,7 @@ class RecognizableSeries(Element):
                              right=tr(self.left))
 
 
+    @cached_method
     def minimized(self):
         r"""
         Return a recognizable series equivalent to this series, but
@@ -895,6 +913,11 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
     - ``category`` -- (default: ``None``) the category of this
       space.
+
+    - ``transpose`` -- (default: ``False``) a boolean. If set, then
+        each of the matrices in :meth:`mu <RecognizableSeries.mu>` is transposed. Additionally
+        the vectors :meth`left <RecognizableSeries.left>` and :meth:`right <RecognizableSeries.right>` are switched.
+        (This is done by calling :meth:`~RecognizableSeries.transposed`.)
 
     EXAMPLES:
 
@@ -1124,6 +1147,9 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
                               left=None, right=None,
                               transpose=False):
         r"""
+        Return a recognizable series.
+
+        See :class:`RecognizableSeriesSpace` for details.
 
         TESTS::
 

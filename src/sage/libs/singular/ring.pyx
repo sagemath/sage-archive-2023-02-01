@@ -261,7 +261,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
         #print "polynomial ring over integers created"
 
-    elif isinstance(base_ring, FiniteField_generic) and base_ring.is_prime_field():
+    elif (isinstance(base_ring, FiniteField_generic) and base_ring.is_prime_field()) or (is_IntegerModRing(base_ring) and base_ring.characteristic().is_prime()):
 
         if base_ring.characteristic() <= 2147483647:
             characteristic = base_ring.characteristic()
@@ -344,7 +344,8 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         #print  " creating IntegerModRing "
 
         ch = base_ring.characteristic()
-        if ch != 2 and ch.is_power_of(2):
+        # ch assumed not to be a prime
+        if ch.is_power_of(2):
             #print  " creating IntegerModRing : char is power of 2"
             exponent = ch.nbits() -1
 
@@ -379,7 +380,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
                 _cf = nInitChar( n_Z2m, <void *>cexponent )
 
 
-        elif ch.is_prime_power()  and ch < ZZ(2)**160:
+        elif ch.is_prime_power() and ch < ZZ(2)**160:
             #print  " creating IntegerModRing : char is prime power, using n_Znm"
             F = ch.factor()
             #print "base_ring.characteristic().is_prime_power()"

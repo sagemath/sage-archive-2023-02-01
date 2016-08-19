@@ -125,7 +125,7 @@ def init_sage():
     stringPict.terminal_width = lambda self:0
 
 
-def showwarning_with_traceback(message, category, filename, lineno, file=sys.stderr, line=None):
+def showwarning_with_traceback(message, category, filename, lineno, file=sys.stdout, line=None):
     r"""
     Displays a warning message with a traceback.
 

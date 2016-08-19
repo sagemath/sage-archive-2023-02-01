@@ -1846,7 +1846,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         """
         cdef int i
         if verts is None:
-            S = set(self.vertex_ints.iterkeys())
+            S = set(self.vertex_ints)
             for i in range((<CGraph>self._cg).active_vertices.size):
                 if (i not in self.vertex_labels and
                     bitset_in((<CGraph>self._cg).active_vertices, i)):

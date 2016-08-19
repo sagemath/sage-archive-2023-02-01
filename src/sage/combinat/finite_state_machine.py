@@ -4696,7 +4696,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             self.format_transition_label = format_transition_label
 
         if loop_where is not None:
-            permissible = list(tikz_automata_where.iterkeys())
+            permissible = list(tikz_automata_where)
             for state in self.states():
                 if hasattr(loop_where, '__call__'):
                     where = loop_where(state.label())
@@ -4715,7 +4715,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                                      (state.label(), permissible))
 
         if initial_where is not None:
-            permissible = list(tikz_automata_where.iterkeys())
+            permissible = list(tikz_automata_where)
             for state in self.iter_initial_states():
                 if hasattr(initial_where, '__call__'):
                     where = initial_where(state.label())
@@ -4746,7 +4746,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             self.accepting_distance = accepting_distance
 
         if accepting_where is not None:
-            permissible = list(tikz_automata_where.iterkeys())
+            permissible = list(tikz_automata_where)
             for state in self.iter_final_states():
                 if hasattr(accepting_where, '__call__'):
                     where = accepting_where(state.label())
@@ -14945,7 +14945,6 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
             return self._finished_
         return [r[:2] + (format_output(r[2]),) for r in self._finished_]
 
-
     def preview_word(self, track_number=None, length=1, return_word=False):
         """
         Reads a word from the input tape.
@@ -14998,140 +14997,6 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
         """
         return self._current_branch_input_tape_.preview_word(
             track_number, length, return_word)
-
-
-    @property
-    def current_state(self):
-        """
-        The current/reached state in the process.
-
-        .. WARNING::
-
-            This attribute is deprecated and should not be used any
-            longer (it may return a wrong result for non-deterministic
-            finite state machines).
-
-        TESTS::
-
-            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:     initial_states=['A'], final_states=['A'])
-            sage: it = inverter.iter_process(input_tape=[0, 1, 1])
-            sage: for current in it:
-            ....:     s = it.current_state
-            ....:     print(current)
-            ....:     print('current state: {}'.format(s))
-            doctest:...: DeprecationWarning: This attribute will be
-            removed in future releases. Use result() at the end of our
-            iteration or the output of next().
-            See http://trac.sagemath.org/16538 for details.
-            process (1 branch)
-            + at state 'A'
-            +-- tape at 1, [[1]]
-            current state: 'A'
-            process (1 branch)
-            + at state 'A'
-            +-- tape at 2, [[1, 0]]
-            current state: 'A'
-            process (1 branch)
-            + at state 'A'
-            +-- tape at 3, [[1, 0, 0]]
-            current state: 'A'
-            process (0 branches)
-            current state: None
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(16538, 'This attribute will be removed in future '
-                    'releases. Use result() at the end of our '
-                    'iteration or the output of next().')
-        if not self._current_:
-            return None
-        return next(next(self._current_.itervalues()).iterkeys())
-
-
-    @property
-    def output_tape(self):
-        """
-        The written output.
-
-        .. WARNING::
-
-            This attribute is deprecated and should not be used any
-            longer (it may return a wrong result for non-deterministic
-            finite state machines).
-
-        TESTS::
-
-            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:     initial_states=['A'], final_states=['A'])
-            sage: it = inverter.iter_process(input_tape=[0, 1, 1])
-            sage: for current in it:
-            ....:     t = it.output_tape
-            ....:     print(current)
-            ....:     print('output: {}'.format(t))
-            doctest:...: DeprecationWarning: This attribute will be removed
-            in future releases. Use result() at the end of our iteration
-            or the output of next().
-            See http://trac.sagemath.org/16538 for details.
-            process (1 branch)
-            + at state 'A'
-            +-- tape at 1, [[1]]
-            output: [1]
-            process (1 branch)
-            + at state 'A'
-            +-- tape at 2, [[1, 0]]
-            output: [1, 0]
-            process (1 branch)
-            + at state 'A'
-            +-- tape at 3, [[1, 0, 0]]
-            output: [1, 0, 0]
-            process (0 branches)
-            output: None
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(16538, 'This attribute will be removed in future '
-                    'releases. Use result() at the end of our iteration '
-                    'or the output of next().')
-        if not self._current_:
-            return None
-        return next(next(self._current_.itervalues()).itervalues()).outputs[0]
-
-
-    @property
-    def accept_input(self):
-        """
-        Is ``True`` if the reached state is accepted. This is only available
-        at the end of the iteration process.
-
-        .. WARNING::
-
-            This attribute is deprecated and should not be used any
-            longer (it may return a wrong result for non-deterministic
-            finite state machines).
-
-        TESTS::
-
-            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:     initial_states=['A'], final_states=['A'])
-            sage: it = inverter.iter_process(input_tape=[0, 1, 1])
-            sage: for _ in it:
-            ....:     pass
-            sage: it.result()
-            [Branch(accept=True, state='A', output=[1, 0, 0])]
-            sage: it.accept_input
-            doctest:...: DeprecationWarning: This attribute will be removed
-            in future releases. Use result() at the end of our iteration
-            or the output of next().
-            See http://trac.sagemath.org/16538 for details.
-            True
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(16538, 'This attribute will be removed in future '
-                    'releases. Use result() at the end of our iteration '
-                    'or the output of next().')
-        try:
-            return self._finished_[0].accept
-        except KeyError:
-            raise AttributeError
 
 
 #*****************************************************************************

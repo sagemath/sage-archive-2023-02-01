@@ -134,7 +134,7 @@ cdef void gasman_callback():
     Callback before each GAP garbage collection
     """
     global owned_objects_refcount
-    for obj in owned_objects_refcount.iterkeys():
+    for obj in owned_objects_refcount:
         libGAP_MARK_BAG((<ObjWrapper>obj).value)
 
 

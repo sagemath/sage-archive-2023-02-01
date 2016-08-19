@@ -512,8 +512,8 @@ def evalunitdict():
     for k, v in unitdict.iteritems():
         for a in v: unit_to_type[a] = k
 
-    for w in unitdict.iterkeys():
-        for j in unitdict[w].iterkeys():
+    for w in unitdict:
+        for j in unitdict[w]:
             if isinstance(unitdict[w][j], tuple): unitdict[w][j] = unitdict[w][j][0]
         value_to_unit[w] = dict(zip(unitdict[w].itervalues(), unitdict[w].iterkeys()))
 

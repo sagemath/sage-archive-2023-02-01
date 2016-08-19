@@ -9776,7 +9776,7 @@ class GenericGraph(GenericGraph_pyx):
             100000 loops, best of 3: 8.85 [micro]s per loop
             sage: timeit V = list(P.vertex_iterator())      # not tested
             100000 loops, best of 3: 5.74 [micro]s per loop
-            sage: timeit V = list(P._nxg.adj.iterkeys())    # not tested
+            sage: timeit V = list(P._nxg.adj)    # not tested
             100000 loops, best of 3: 3.45 [micro]s per loop
 
         In other words, if you want a fast vertex iterator, call the
@@ -9855,7 +9855,7 @@ class GenericGraph(GenericGraph_pyx):
             100000 loops, best of 3: 8.85 [micro]s per loop
             sage: timeit V = list(P.vertex_iterator())        # not tested
             100000 loops, best of 3: 5.74 [micro]s per loop
-            sage: timeit V = list(P._nxg.adj.iterkeys())      # not tested
+            sage: timeit V = list(P._nxg.adj)      # not tested
             100000 loops, best of 3: 3.45 [micro]s per loop
 
         We illustrate various ways to use a ``key`` to sort the list::
@@ -17341,14 +17341,14 @@ class GenericGraph(GenericGraph_pyx):
         The default output is a dictionary assigning edges to colors::
 
             sage: G._color_by_label()
-            {'#0000ff': [((1,3,2,4), (1,4)(2,3), 3), ..., ((1,3), (1,4,3), 3)],
-             '#00ff00': [((1,3,2,4), (1,2,4), 2), ..., ((1,3), (1,2,3), 2)],
-             '#ff0000': [((1,3,2,4), (1,3)(2,4), 1), ..., ((1,3), (1,3,2), 1)]}
+            {'#0000ff': [((1,3,2,4), (1,4)(2,3), 3), ...],
+             '#00ff00': [((1,3,2,4), (1,2,4), 2), ...],
+             '#ff0000': [((1,3,2,4), (1,3)(2,4), 1), ...]}
 
             sage: G._color_by_label({1: "blue", 2: "red", 3: "green"})
-            {'blue': [((1,3,2,4), (1,3)(2,4), 1), ..., ((1,3), (1,3,2), 1)],
-             'green': [((1,3,2,4), (1,4)(2,3), 3), ..., ((1,3), (1,4,3), 3)],
-             'red': [((1,3,2,4), (1,2,4), 2), ..., ((1,3), (1,2,3), 2)]}
+            {'blue': [((1,3,2,4), (1,3)(2,4), 1), ...],
+             'green': [((1,3,2,4), (1,4)(2,3), 3), ...],
+             'red': [((1,3,2,4), (1,2,4), 2), ...]}
 
         TESTS:
 
@@ -19831,7 +19831,7 @@ class GenericGraph(GenericGraph_pyx):
             if len(set(perm.values())) < len(perm):
                 raise NotImplementedError("Non injective relabeling")
 
-            for v in perm.iterkeys():
+            for v in perm:
                 if v in self:
                     try:
                         hash(perm[v])

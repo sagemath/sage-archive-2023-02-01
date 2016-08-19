@@ -247,12 +247,6 @@ class RecognizableSeries(Element):
 
             :doc:`recognizable series <recognizable_series>`,
             :class:`RecognizableSeriesSpace`.
-
-        TESTS::
-
-            sage: M0 = Matrix([[1, 0], [0, 1]])
-            sage: M1 = Matrix([[0, -1], [1, 2]])
-            sage: S = Rec(mu=(M0, M1))  # not tested TODO
         """
         super(RecognizableSeries, self).__init__(parent=parent)
 
@@ -277,6 +271,15 @@ class RecognizableSeries(Element):
         of a word; the result is a matrix.
         This extends :meth:`mu` to words over the parent's
         :meth:`~RecognizableSeriesSpace.alphabet`.
+
+        TESTS::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: M0 = Matrix([[1, 0], [0, 1]])
+            sage: M1 = Matrix([[0, -1], [1, 2]])
+            sage: S = Rec((M0, M1), [0, 1])
+            sage: S.mu[0] == M0 and S.mu[1] == M1
+            True
         """
         return self._mu_
 
@@ -287,6 +290,14 @@ class RecognizableSeries(Element):
         When evaluating a coefficient, this vector is multiplied from
         the left to the matrix obtained from :meth:`mu` applied on a
         word.
+
+        TESTS::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
+            ....:     vector([0, 1]), vector([1, 0]),
+            ....:     transpose=True).left
+            (1, 0)
         """
         return self._left_
 
@@ -297,6 +308,14 @@ class RecognizableSeries(Element):
         When evaluating a coefficient, this vector is multiplied from
         the right to the matrix obtained from :meth:`mu` applied on a
         word.
+
+        TESTS::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
+            ....:     vector([0, 1]), vector([1, 0]),
+            ....:     transpose=True).right
+            (0, 1)
         """
         return self._right_
 
@@ -461,10 +480,11 @@ class RecognizableSeries(Element):
             sage: S._mu_of_word_(-1)
             Traceback (most recent call last):
             ...
-            ValueError: m=-1 is not a nonnegative integer.
+            ValueError: Index -1 is not in Finite words over {0, 1}.
         """
-        if w not in self.parent().indices():
-            raise ValueError('TODO')
+        W = self.parent().indices()
+        if w not in W:
+            raise ValueError('Index {} is not in {}.'.format(w, W))
         from sage.misc.misc_c import prod
         return prod(tuple(self.mu[a] for a in w), z=self._mu_of_empty_word_())
 

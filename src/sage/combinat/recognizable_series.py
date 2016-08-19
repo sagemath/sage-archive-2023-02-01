@@ -260,6 +260,14 @@ class RecognizableSeries(Element):
           ``None``, then this multiplication is skipped.
           See :meth:`right <right>` for more details.
 
+        When created via the parent :class:`RecognizableSeriesSpace`, then
+        the following option is available.
+
+        - ``transpose`` -- (default: ``False``) a boolean. If set, then
+            each of the matrices in :meth:`mu <mu>` is transposed. Additionally
+            the vectors :meth`left <left>` and :meth:`right <right>` are switched.
+            (This is done by calling :meth:`transposed`.)
+
         EXAMPLES::
 
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
@@ -919,11 +927,6 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
     - ``category`` -- (default: ``None``) the category of this
       space.
-
-    - ``transpose`` -- (default: ``False``) a boolean. If set, then
-        each of the matrices in :meth:`mu <RecognizableSeries.mu>` is transposed. Additionally
-        the vectors :meth`left <RecognizableSeries.left>` and :meth:`right <RecognizableSeries.right>` are switched.
-        (This is done by calling :meth:`~RecognizableSeries.transposed`.)
 
     EXAMPLES:
 

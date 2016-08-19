@@ -35,6 +35,7 @@ AUTHORS:
 from __future__ import absolute_import
 
 from sage.categories.fields import Fields
+from sage.categories.finite_fields import FiniteFields
 from sage.categories.number_fields import NumberFields
 from sage.categories.homset import Hom, End
 from sage.interfaces.all import singular
@@ -153,7 +154,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         from .constructor import Curve
         return Curve(AlgebraicScheme_subscheme_affine.projective_closure(self, i, PP))
 
-    def blowup(self, P):
+    def blowup(self, P=None):
         r"""
         Return the blow up of this affine curve at the point ``P``.
 
@@ -161,7 +162,8 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
 
         INPUT:
 
-        - ``P`` -- a point on this curve at which to blow up.
+        - ``P`` -- (default: None) a point on this curve at which to blow up. If ``None``, then ``P`` is
+          taken to be the origin.
 
         OUTPUT:
 
@@ -177,8 +179,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
 
             sage: A.<x,y> = AffineSpace(QQ, 2)
             sage: C = Curve([y^2 - x^3], A)
-            sage: Q = A([0,0])
-            sage: C.blowup(Q)
+            sage: C.blowup()
             ((Affine Plane Curve over Rational Field defined by s1^2 - x,
              Affine Plane Curve over Rational Field defined by y*s0^3 - 1),
             ([Scheme endomorphism of Affine Plane Curve over Rational Field defined by s1^2 - x
@@ -210,8 +211,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: K.<a> = QuadraticField(2)
             sage: A.<x,y,z> = AffineSpace(K, 3)
             sage: C = Curve([y^2 - a*x^5, x - z], A)
-            sage: Q = A([0,0,0])
-            sage: B = C.blowup(Q)
+            sage: B = C.blowup()
             sage: B[0]
             (Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s2 - 1,
             2*x^3 + (-a)*s1^2,
@@ -300,7 +300,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
 
             sage: A.<x,y,z,w> = AffineSpace(QQ, 4)
             sage: C = A.curve([((x + 1)^2 + y^2)^3 - 4*(x + 1)^2*y^2, y - z, w - 4])
-            sage: Q = A([-1,0,0,4])
+            sage: Q = C([-1,0,0,4])
             sage: B = C.blowup(Q)
             sage: B[0]
             (Affine Curve over Rational Field defined by s3, s1 - s2, x^2*s2^6 +
@@ -313,24 +313,25 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
              Closed subscheme of Affine Space of dimension 4 over Rational Field
             defined by:
                1)
-            sage: Q = A([0,0,0,0])
+            sage: Q = A([6,2,3,1])
             sage: B = C.blowup(Q)
             Traceback (most recent call last):
             ...
-            TypeError: (=(0, 0, 0, 0)) must be a point on this curve
+            TypeError: (=(6, 2, 3, 1)) must be a point on this curve
 
         ::
 
             sage: A.<x,y> = AffineSpace(QuadraticField(-1), 2)
             sage: C = A.curve([y^2 + x^2])
-            sage: Q = A([0,0])
-            sage: C.blowup(Q)
+            sage: C.blowup()
             Traceback (most recent call last):
             ...
             TypeError: this curve must be irreducible
         """
         A = self.ambient_space()
         n = A.dimension_relative()
+        if P is None:
+            P = A([0]*n)
         try:
             self(P)
         except TypeError:
@@ -433,7 +434,8 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         The nonsingular model is given as a collection of affine patches that cover it. If ``extend`` is ``False``
         and if the base field is a number field, or if the base field is a finite field, the model returned may have
         singularities with coordinates not contained in the base field. An error is returned if this curve is already
-        nonsingular, or if it has no singular points over its base field. This curve must be irreducible.
+        nonsingular, or if it has no singular points over its base field. This curve must be irreducible, and must be
+        defined over a number field or finite field.
 
         INPUT:
 
@@ -489,11 +491,13 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: K.<a> = QuadraticField(3)
             sage: A.<x,y> = AffineSpace(K, 2)
             sage: C = A.curve(x^4 + 2*x^2 + a*y^3 + 1)
-            sage: R = C.resolution_of_singularities(extend=True)[0] # long time (2 seconds)
+            sage: C.resolution_of_singularities(extend=True)[0] # long time (2 seconds)
             (Affine Plane Curve over Number Field in a0 with defining polynomial y^4 - 4*y^2 + 16 defined by
-            24*x*s1^3 + (3*a0^3)*s1^3 + (a0^3 - 8*a0)*x^2 + (8*a0^2 - 16)*x + (-a0^3 + 8*a0), Affine Plane Curve
-            over Number Field in a0 with defining polynomial y^4 - 4*y^2 + 16 defined by 8*y^2*s0^4 +
-            (-4*a0^3)*y*s0^3 - 32*s0^2 + (a0^3 - 8*a0)*y)
+            24*x^2*ss1^3 + 24*ss1^3 + (a0^3 - 8*a0),
+             Affine Plane Curve over Number Field in a0 with defining polynomial y^4 - 4*y^2 + 16 defined by
+             24*s1^2*ss0 + (a0^3 - 8*a0)*ss0^2 + (6*a0^3)*s1,
+             Affine Plane Curve over Number Field in a0 with defining polynomial y^4 - 4*y^2 + 16 defined by
+             8*y^2*s0^4 + (-4*a0^3)*y*s0^3 - 32*s0^2 + (a0^3 - 8*a0)*y)
 
         ::
 
@@ -563,6 +567,8 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         n = C.ambient_space().dimension_relative()
         if not self.is_irreducible():
             raise TypeError("this curve must be irreducible")
+        if not (self.base_ring() in NumberFields() or self.base_ring() in FiniteFields()):
+            raise NotImplementedError("this curve must be defined over either a number field or a finite field")
         if C.base_ring() in NumberFields() and extend:
             C = C.change_ring(extension(C.singular_subscheme()))
         H = End(C)
@@ -612,36 +618,46 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                 X = AA.subscheme([poly_hom(f) for f in B[0][i].defining_polynomials()])
                 # in the case of working over a number field, it might be necessary to extend the base
                 # field in order to find all intersection points
+                n_pts = []
                 if B[0][i].base_ring() in NumberFields() and extend:
                     emb = extension(X)
-                    # coerce everything to the new base field
-                    BC = BC.change_ring(emb)
-                    t_maps = [t_maps[j].change_ring(emb) for j in range(len(t_maps))]
-                    old_maps = [old_maps[j].change_ring(emb) for j in range(len(old_maps))]
-                    pi = pi.change_ring(emb)
-                    pts = [pt.change_ring(emb) for pt in pts]
-                    # coerce the current blow up data
                     X = X.change_ring(emb)
-                    for j in range(len(B[0])):
-                        B[0][j] = B[0][j].change_ring(emb)
-                    for j in range(len(B[1])):
-                        for k in range(len(B[1])):
-                            B[1][j][k] = B[1][j][k].change_ring(emb)
-                    for j in range(len(B[2])):
-                        B[2][j] = B[2][j].change_ring(emb)
-                    # coerce the other data in res
-                    for j in range(len(res)):
-                        res[j][0] = res[j][0].change_ring(emb)
-                        for k in range(len(res[j][1])):
-                            res[j][1][k] = res[j][1][k].change_ring(emb)
-                        res[j][2].change_ring(emb)
-                        for k in range(len(res[j][3])):
-                            res[j][3][k] = res[j][3][k].change_ring(emb)
-                b_data = []
-                # add the curve that defines this patch
-                b_data.append(B[0][i])
-                # compose the current transition maps from the original curve to the other patches
-                # with the projection map
+                    tmp_curve = B[0][i].change_ring(emb)
+                    for pt in X.rational_points():
+                        tmp_pt = tmp_curve([pts[0][i]] + list(pt))
+                        if tmp_curve.is_singular(tmp_pt):
+                            n_pts.append(tmp_pt)
+                    # avoid needlessly extending the base field
+                    if len(n_pts) > 0:
+                        # coerce everything to the new base field
+                        BC = BC.change_ring(emb)
+                        t_maps = [t_maps[j].change_ring(emb) for j in range(len(t_maps))]
+                        old_maps = [old_maps[j].change_ring(emb) for j in range(len(old_maps))]
+                        pi = pi.change_ring(emb)
+                        pts = [pt.change_ring(emb) for pt in pts]
+                        # coerce the current blow up data
+                        for j in range(len(B[0])):
+                            B[0][j] = B[0][j].change_ring(emb)
+                        for j in range(len(B[1])):
+                            for k in range(len(B[1])):
+                                B[1][j][k] = B[1][j][k].change_ring(emb)
+                        for j in range(len(B[2])):
+                            B[2][j] = B[2][j].change_ring(emb)
+                        # coerce the other data in res
+                        for j in range(len(res)):
+                            res[j][0] = res[j][0].change_ring(emb)
+                            for k in range(len(res[j][1])):
+                                res[j][1][k] = res[j][1][k].change_ring(emb)
+                            res[j][2].change_ring(emb)
+                            for k in range(len(res[j][3])):
+                                res[j][3][k] = res[j][3][k].change_ring(emb)
+                else:
+                    for pt in X.rational_points():
+                        tmp_pt = B[0][i]([pts[0][i]] + list(pt))
+                        if B[0][i].is_singular(tmp_pt):
+                            n_pts.append(tmp_pt)
+                b_data = [B[0][i]]
+                # projection map and its inverse
                 t_pi = B[2][i]
                 coords = [(BC.ambient_space().gens()[j] - pts[0][j])/(BC.ambient_space().gens()[i] - pts[0][i]) for\
                           j in range(n)]
@@ -649,6 +665,8 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                 coords.insert(0, BC.ambient_space().gens()[i])
                 H = Hom(BC, B[0][i])
                 t_pi_inv = H(coords)
+                # compose the current transition maps from the original curve to the other patches
+                # with the projection map
                 L = list(t_maps)
                 for j in range(len(t_maps)):
                     L[j] = L[j]*t_pi
@@ -664,18 +682,12 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
                 # singular points
                 # translate the singular points of the parent patch (other than that which was the center of the
                 # blow up) by the inverse of the first projection map
-                n_pts = []
                 for j in range(1, len(pts)):
                     # make sure this point is in this chart before attempting to map it
                     try:
-                        n_pts.append(t_pi_inv(pts[j]))
+                        n_pts.append(t_pi_inv(BC(pts[j])))
                     except (TypeError, ZeroDivisionError):
                         pass
-                # add in the points found from the exceptional divisor
-                for pt in X.rational_points():
-                    tmp_pt = B[0][i].ambient_space()([pts[0][i]] + list(pt))
-                    if B[0][i].is_singular(tmp_pt):
-                        n_pts.append(tmp_pt)
                 b_data.append(n_pts)
                 patches_to_add.append(b_data)
             for i in range(len(patches_to_add)):

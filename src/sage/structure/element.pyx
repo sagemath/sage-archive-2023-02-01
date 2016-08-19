@@ -1810,7 +1810,7 @@ cdef class RingElement(ModuleElement):
             sage: (x^12345)^54321
             Traceback (most recent call last):
             ...
-            OverflowError: Exponent overflow (670592745).
+            OverflowError: exponent overflow (670592745)
 
         """
         if dummy is not None:

@@ -187,10 +187,10 @@ when the system has no solutions over the rationals.
         sage: I.change_ring(P.change_ring( GF(11777 ))).groebner_basis()
         [x + 5633, y - 3007, z - 2626]
 
-    The Groebner basis modulo any product of the prime factors is also non-trivial. ::
+    The Groebner basis modulo any product of the prime factors is also non-trivial::
 
         sage: I.change_ring(P.change_ring( IntegerModRing(2*7) )).groebner_basis()
-        [x + y + z, y^2 + 3*y, y*z + 11*y + 4, 2*y + 6, z^2 + 3, 2*z + 10]
+        [x + 3*y + 11*z, y^2 + 3*y, y*z + 11*y + 4, 2*y + 6, z^2 + 3, 2*z + 10]
 
     Modulo any other prime the Groebner basis is trivial so there are
     no other solutions. For example::
@@ -3623,9 +3623,12 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: P.<a,b,c> = PolynomialRing(ZZ,3)
             sage: I = P * (a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, 2*a*b + 2*b*c - b)
             sage: I.groebner_basis()
-            [b^3 - 23*b*c^2 + 3*b^2 + 5*b*c, 2*b*c^2 - 6*c^3 - b^2 - b*c + 2*c^2,
-             42*c^3 + 5*b^2 + 4*b*c - 14*c^2, 2*b^2 + 6*b*c + 6*c^2 - b - 2*c,
-             10*b*c + 12*c^2 - b - 4*c, a + 2*b + 2*c - 1]
+            [b^3 - 181*b*c^2 + 222*c^3 - 26*b*c - 146*c^2 + 19*b + 24*c,
+             2*b*c^2 - 48*c^3 + 3*b*c + 22*c^2 - 2*b - 2*c,
+             42*c^3 + 45*b^2 + 54*b*c + 22*c^2 - 13*b - 12*c,
+             2*b^2 + 6*b*c + 6*c^2 - b - 2*c,
+             10*b*c + 12*c^2 - b - 4*c,
+             a + 2*b + 2*c - 1]
 
         ::
 
@@ -3642,7 +3645,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I = P * (a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, 2*a*b + 2*b*c - b)
             sage: I.groebner_basis()
             [b*c^2 + 992*b*c + 712*c^2 + 332*b + 96*c,
-             2*c^3 + 589*b*c + 862*c^2 + 762*b + 268*c,
+             2*c^3 + 214*b*c + 862*c^2 + 762*b + 268*c,
              b^2 + 438*b*c + 281*b,
              5*b*c + 156*c^2 + 112*b + 948*c,
              50*c^2 + 600*b + 650*c, a + 2*b + 2*c + 999, 125*b]

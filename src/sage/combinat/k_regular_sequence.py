@@ -110,6 +110,19 @@ class kRegularSequence(RecognizableSeries):
           from the left to the matrix product. If ``None``, then this
           multiplication is skipped.
 
+        When created via the parent :class:`kRegularSequence`, then
+        the following option is available.
+
+        - ``transpose`` -- (default: ``False``) a boolean. If set, then
+            each of the matrices in
+            :meth:`mu <sage.combinat.recognizable_series.RecognizableSeries.mu>`
+            is transposed. Additionally the vectors
+            :meth`left <sage.combinat.recognizable_series.RecognizableSeries.left>`
+            and
+            :meth:`right <sage.combinat.recognizable_series.RecognizableSeries.right>`
+            are switched.
+            (This is done by calling :meth:`~sage.combinat.recognizable_series.RecognizableSeries.transposed`.)
+
         EXAMPLES::
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
@@ -133,7 +146,7 @@ class kRegularSequence(RecognizableSeries):
 
         OUTPUT:
 
-        A string
+        A string.
 
         TESTS::
 
@@ -172,7 +185,14 @@ class kRegularSequence(RecognizableSeries):
             sage: S[7]
             3
 
-        TESTS::
+        TESTS
+
+            sage: S[-1]
+            Traceback (most recent call last):
+            ...
+            OverflowError: can't convert negative value to unsigned char
+
+        ::
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: W = Seq2.indices()
@@ -185,13 +205,6 @@ class kRegularSequence(RecognizableSeries):
             True
             sage: S._mu_of_word_(W(3.digits(2))) == M1^2
             True
-
-        ::
-
-            sage: S._product_of_mu_(-1)
-            Traceback (most recent call last):
-            ...
-            ValueError: m=-1 is not a nonnegative integer.
         """
         from sage.rings.integer_ring import ZZ
         n = ZZ(n)
@@ -226,8 +239,34 @@ class kRegularSequence(RecognizableSeries):
 
 
 class kRegularSequenceSpace(RecognizableSeriesSpace):
+    r"""
+    The space of `k`-regular Sequences over the given ``coefficients``.
+
+    INPUT:
+
+    - ``k`` -- an integer at least `2` specifying the base.
+
+    - ``coefficients`` -- a (semi-)ring. If not specified (``None``),
+      then the integer ring is used.
+
+    - ``category`` -- (default: ``None``) the category of this
+      space.
+
+    EXAMPLES::
+
+        sage: kRegularSequenceSpace(2, ZZ)
+        Space of 2-regular sequences over Integer Ring
+        sage: kRegularSequenceSpace(3, ZZ)
+        Space of 3-regular sequences over Integer Ring
+
+    .. SEEALSO::
+
+        :doc:`k-regular sequence <k_regular_sequence>`,
+        :class:`kRegularSequence`.
+    """
 
     Element = kRegularSequence
+
 
     @classmethod
     def __normalize__(cls, k, coefficients=None, **kwds):
@@ -257,21 +296,18 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         return (k,) + nargs
 
 
-    def __init__(self, k, coefficients, indices, category):
+    def __init__(self, k, *args, **kwds):
         r"""
-        The space of `k`-regular Sequences over the given ``universe``.
+        See :class:`kRegularSequenceSpace` for details.
 
         INPUT:
 
         - ``k`` -- an integer at least `2` specifying the base.
 
-        - ``coefficients`` -- a (semi-)ring.
+        Other input arguments are passed on to
+        :meth:`~sage.combinat.recognizable_series.RecognizableSeriesSpace.__init__`.
 
-        - ``category`` -- (default: ``None``) the category of the
-          sequence space. If ``None``, then the category of
-          :class:`~sage.categories.sets_cat.Sets` is used.
-
-        EXAMPLES::
+        TESTS::
 
             sage: kRegularSequenceSpace(2, ZZ)
             Space of 2-regular sequences over Integer Ring
@@ -284,7 +320,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             :class:`kRegularSequence`.
         """
         self.k = k
-        super(kRegularSequenceSpace, self).__init__(coefficients, indices, category)
+        super(kRegularSequenceSpace, self).__init__(*args, **kwds)
 
 
     def _repr_(self):
@@ -293,7 +329,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         OUTPUT:
 
-        A string
+        A string.
 
         TESTS::
 

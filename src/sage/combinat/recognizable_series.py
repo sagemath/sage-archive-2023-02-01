@@ -337,16 +337,18 @@ class RecognizableSeries(Element):
 
         if latex:
             from sage.misc.latex import latex as latex_repr
-            f = latex_repr
+            fr = latex_repr
+            fs = latex_repr
             times = ' '
         else:
-            f = repr
+            fr = repr
+            fs = str
             times = '*'
 
         def summand(w, c):
             if c == 1:
-                return '[{w}]'.format(w=f(w))
-            return '{c}{times}[{w}]'.format(c=f(c), times=times, w=f(w))
+                return '[{w}]'.format(w=fs(w))
+            return '{c}{times}[{w}]'.format(c=fr(c), times=times, w=fs(w))
 
         s = ' + '.join(summand(w, c)
                        for w, c in islice(self, 10))
@@ -486,16 +488,16 @@ class RecognizableSeries(Element):
             ....:         left=vector([0, 1]), right=vector([1, 0]))
             sage: from itertools import islice
             sage: list(islice(S, 10))
-            [(1, 1),
-             (01, 1),
-             (10, 1),
-             (11, 2),
-             (001, 1),
-             (010, 1),
-             (011, 2),
-             (100, 1),
-             (101, 2),
-             (110, 2)]
+            [(word: 1, 1),
+             (word: 01, 1),
+             (word: 10, 1),
+             (word: 11, 2),
+             (word: 001, 1),
+             (word: 010, 1),
+             (word: 011, 2),
+             (word: 100, 1),
+             (word: 101, 2),
+             (word: 110, 2)]
 
         TESTS::
 
@@ -838,8 +840,6 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
                 raise ValueError('TODO')
             from sage.combinat.words.words import Words
             indices = Words(alphabet, infinite=False)
-            from sage.combinat.words.word_options import WordOptions
-            WordOptions(identifier='')
 
         if coefficients is None:
             raise ValueError('TODO')

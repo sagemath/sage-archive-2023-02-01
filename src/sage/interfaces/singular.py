@@ -611,6 +611,7 @@ class Singular(ExtraTabCompletion, Expect):
             // dimension (affine) = 0
             // degree (affine)  = 8
             // ** right side is not a datum, assignment ignored
+            ...
 
         rather than ignored
 
@@ -1864,7 +1865,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         ::
 
             sage: singular.eval('ring R = integer, (x,y,z),lp')
-            '// ** redefining R **'
+            '// ** redefining R (ring R = integer, (x,y,z),lp;)'
             sage: I = singular.ideal(['x^2','y*z','z+x'])
             sage: I.sage()
             Ideal (x^2, y*z, x + z) of Multivariate Polynomial Ring in x, y, z over Integer Ring
@@ -1886,7 +1887,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         Note that the current base ring has not been changed by asking for another ring::
 
             sage: singular('basering')
-            //   coeff. ring is : Integers
+            //   coeff. ring is : integer
             //   number of vars : 3
             //        block   1 : ordering lp
             //                  : names    x y z

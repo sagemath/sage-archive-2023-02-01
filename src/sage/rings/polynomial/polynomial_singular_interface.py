@@ -89,7 +89,7 @@ class PolynomialRing_singular_repr:
             //        block   2 : ordering C
             sage: R.<x,y> = PolynomialRing(RealField(100),'x',2)
             sage: singular(R)
-            //   characteristic : 0 (real:29 digits, additional 0 digits)
+            //   characteristic : 0 (real)
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -159,7 +159,7 @@ class PolynomialRing_singular_repr:
 
             sage: R = IntegerModRing(15)['x,y']
             sage: singular(R)
-            //   coeff. ring is : Z/15
+            //   coeff. ring is : ZZ/15
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -167,7 +167,7 @@ class PolynomialRing_singular_repr:
 
             sage: R = ZZ['x,y']
             sage: singular(R)
-            //   coeff. ring is : Integers
+            //   coeff. ring is : integer
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y

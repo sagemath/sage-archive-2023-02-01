@@ -1229,19 +1229,18 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             [True, True, True, False]
         """
         it = self._hasse_diagram.orthocomplementations_iterator()
-        n = 0
         try:
             _ = it.next()
-            n = 1
-            _ = it.next()
-            n = 2
+            if not unique:
+                return True
         except StopIteration:
-            pass
-        if unique and n == 1:
+            return False
+        try:
+            _ = it.next()
+            return False
+        except StopIteration:
             return True
-        if not unique and n > 0:
-            return True
-        return False
+        raise AssertionError("bug in is_orthocomplemented()")
 
     def is_atomic(self):
         r"""

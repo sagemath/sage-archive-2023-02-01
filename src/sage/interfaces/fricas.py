@@ -3,8 +3,8 @@ Interface to FriCAS
 
 .. TODO::
 
-    - `fricas(dilog(x))` should be `dilog(-(x-1))`, and some more
-      conversions in `sage.functions` are missing
+    - ``fricas(dilog(x))`` should be ``dilog(-(x-1))``, and some
+      more conversions in ``sage.functions`` are missing
 
 FriCAS is a free GPL-compatible (modified BSD license) general
 purpose computer algebra system based on Axiom.  The FriCAS
@@ -28,10 +28,8 @@ EXAMPLES:
     sage: a = fricas(3) * fricas(5); a                                          # optional - fricas
     15
 
-The type of a is FriCASElement, i.e., an element of the FriCAS
-interpreter.
-
-::
+The type of a is :class:`FriCASElement`, i.e., an element of the
+FriCAS interpreter::
 
     sage: type(a)                                                               # optional - fricas
     <class 'sage.interfaces.fricas.FriCASElement'>
@@ -55,7 +53,7 @@ FriCAS objects are normally displayed using "ASCII art"::
       x  + -
            7
 
-Functions defined in FriCAS are available as methods of the `fricas` object::
+Functions defined in FriCAS are available as methods of the :class:`fricas<FriCAS>` object::
 
     sage: F = fricas.factor('x^5 - y^5'); F                                     # optional - fricas
                4      3    2 2    3     4
@@ -66,8 +64,8 @@ Functions defined in FriCAS are available as methods of the `fricas` object::
     Factored(Polynomial(Integer))
 
 We can also create a FriCAS polynomial and apply the function
-`factor` from FriCAS.  The notation ``f.factor()`` is consistent with
-how the rest of SageMath works::
+``factor`` from FriCAS.  The notation ``f.factor()`` is consistent
+with how the rest of SageMath works::
 
     sage: f = fricas('x^5 - y^5')                                               # optional - fricas
     sage: f^2                                                                   # optional - fricas
@@ -376,11 +374,11 @@ class FriCAS(ExtraTabCompletion, Expect):
 
     def _read_in_file_command(self, filename):
         """
-        Return the FriCAS command to read the file `filename`.
+        Return the FriCAS command to read the file ``filename``.
 
         INPUT:
 
-        - filename, a string ending in '.input'.
+        - ``filename``, a string ending in '.input'.
 
         OUTPUT:
 
@@ -438,9 +436,9 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         INPUT:
 
-        - line, a string that was sent to FriCAS.
+        - ``line``, a string that was sent to FriCAS.
 
-        - output, a string returned by FriCAS
+        - ``output``, a string returned by FriCAS
 
         OUTPUT:
 
@@ -460,12 +458,12 @@ class FriCAS(ExtraTabCompletion, Expect):
             raise RuntimeError("An error occurred when FriCAS evaluated '%s':\n%s" % (line, output))
 
     def set(self, var, value):
-        """Set the variable var to the given value.
+        """Set a variable to a value in FriCAS.
 
         INPUT:
 
-        - var, value: strings, the first representing a valid FriCAS
-          variable identifier, the second a FriCAS expression.
+        - ``var``, ``value``: strings, the first representing a valid
+          FriCAS variable identifier, the second a FriCAS expression.
 
         OUTPUT: None
 
@@ -512,7 +510,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
     def get(self, var):
         r"""
-        Get the string representation of the value of a variable.
+        Get the string representation of the value of a variable in FriCAS.
 
         EXAMPLES::
 
@@ -538,10 +536,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
 
     def _assign_symbol(self):
-        """Returns the symbol used for setting a variable.
-
-        This would be used if `self.set` from Interface would not be
-        overloaded.
+        """Returns the symbol used for setting a variable in FriCAS.
         """
         return ":="
 
@@ -587,7 +582,10 @@ class FriCAS(ExtraTabCompletion, Expect):
 
     def eval(self, code, strip=True, synchronize=False, locals=None, allow_use_file=True,
              split_lines="nofile", reformat=True, **kwds):
-        """Evaluate code using FriCAS.
+        """Evaluate ``code`` using FriCAS.
+
+        Except ``reformat``, all arguments are passed to
+        :meth:`sage.interfaces.expect.Expect.eval`.
 
         INPUT:
 
@@ -828,7 +826,7 @@ class FriCASElement(ExpectElement):
         """
         INPUT:
 
-        - domain, a FriCAS SExpression
+        - ``domain``, a FriCAS SExpression
 
         OUTPUT:
 
@@ -1185,7 +1183,7 @@ class FriCASExpectFunction(ExpectFunction):
 
 def is_FriCASElement(x):
     """
-    Return True if x is of type FriCASElement.
+    Return ``True`` if ``x`` is of type :class:`FriCASElement`.
 
     EXAMPLES::
 
@@ -1202,7 +1200,7 @@ fricas = FriCAS()
 def reduce_load_fricas():
     """
     Returns the FriCAS interface object defined in
-    sage.interfaces.fricas.
+    :sage.interfaces.fricas.
 
     EXAMPLES::
 

@@ -48,7 +48,7 @@ class Metaclass(type):
         sage: from sage.misc.test_class_pickling import metaclass, bar
         sage: c = metaclass("foo", (object, bar,))
         constructing class
-        sage: import cPickle
+        sage: from six.moves import cPickle
         sage: s = cPickle.dumps(c)
         reducing a class
         sage: c2 = cPickle.loads(s)

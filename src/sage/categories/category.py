@@ -69,7 +69,7 @@ A parent ``P`` is in a category ``C`` if ``P.category()`` is a subcategory of
     Any object of a category should be an instance of
     :class:`~sage.structure.category_object.CategoryObject`.
 
-    For backward compatibilty this is not yet enforced::
+    For backward compatibility this is not yet enforced::
 
         sage: class A:
         ....:   def category(self):

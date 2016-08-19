@@ -114,9 +114,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             ...
             ValueError: [0, 0, 0, 0] does not define a valid point since all entries are 0
 
-        ::
-
-        It is possible to avoid the possibly time consuming checks, but be careful!!
+        It is possible to avoid the possibly time-consuming checks, but be careful!! ::
 
             sage: P = ProjectiveSpace(3, QQ)
             sage: P.point([0,0,0,0], check=False)
@@ -1485,7 +1483,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             # error, then we suspect preperiodic so check
             # either we can find the cycle or the height is
             # larger than the difference between the canonical height
-            # and the height, so the cannonical height cannot be 0
+            # and the height, so the canonical height cannot be 0
             B = f.height_difference_bound()
             orbit = [self]
             n = 1 # to compute period

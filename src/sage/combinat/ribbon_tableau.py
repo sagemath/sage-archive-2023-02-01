@@ -194,7 +194,7 @@ class RibbonTableaux(UniqueRepresentation, Parent):
           2  0  0
         <BLANKLINE>
 
-    REFRENCES:
+    REFERENCES:
 
     .. [vanLeeuwen91] Marc. A. A. van Leeuwen, *Edge sequences, ribbon tableaux,
        and an action of affine permutations*. Europe J. Combinatorics. **20**
@@ -710,9 +710,9 @@ def cospin_polynomial(part, weight, length):
     R = ZZ['t']
     t = R.gen()
 
-    #The power in the spin polynomial are all half integers
-    #or all integers.  Manipulation of expressions need to
-    #seperate cases
+    # The power in the spin polynomial are all half integers
+    # or all integers.  Manipulation of expressions need to
+    # separate cases
     sp = spin_polynomial_square(part, weight, length)
     if sp == 0:
         return R(0)

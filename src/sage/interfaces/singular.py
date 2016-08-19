@@ -1523,6 +1523,15 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: R.base_ring()('I')
             1.00000000000000*I
 
+        An example where the base ring is a polynomial ring over an extension of the rational field::
+
+            sage: singular.eval('ring r7 = (0,a), (x,y), dp')
+            ''
+            sage: singular.eval('minpoly = a2 + 1')
+            ''
+            sage: singular('r7').sage_global_ring()
+            Multivariate Polynomial Ring in x, y over Number Field in a with defining polynomial a^2 + 1
+
         In our last example, the base ring is a quotient ring::
 
             sage: singular.eval('ring r6 = (9,a), (x,y,z),lp')
@@ -1583,7 +1592,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
                     singular.eval('short=%s'%is_short)
                 else:
                     minpoly = ZZ[charstr[1]](minpoly)
-                BR = br.extension(minpoly,name=charstr[1])
+                BR = br.extension(minpoly,names=charstr[1])
         else:
             BR = br
 

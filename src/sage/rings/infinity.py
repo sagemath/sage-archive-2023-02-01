@@ -283,7 +283,7 @@ class AnInfinity(object):
         TESTS::
 
             sage: fricas(-oo)           # optional - fricas
-            %minusInfinity
+            - infinity
             sage: [x._fricas_init_() for x in [unsigned_infinity, oo, -oo]]   # optional - fricas
             ['%infinity', '%plusInfinity', '%minusInfinity']
         """
@@ -481,7 +481,7 @@ class AnInfinity(object):
             sage: SR(infinity) / unsigned_infinity
             Traceback (most recent call last):
             ...
-            ValueError: unsigned oo times smaller number not defined
+            RuntimeError: indeterminate expression: 0 * infinity encountered.
         """
         return self * ~other
 

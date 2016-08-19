@@ -192,7 +192,7 @@ def mrange_iter(iter_list, typ=list):
         sage: mrange_iter([range(5),range(3),range(0)])
         []
 
-    This example isn't empty, and shouldn't be. See trac #6561.
+    This example is not empty, and should not be. See :trac:`6561`.
 
     ::
 
@@ -280,7 +280,7 @@ class xmrange_iter:
         sage: list(xmrange_iter([xrange(5),xrange(3),xrange(0)]))
         []
 
-    This example isn't empty, and shouldn't be. See trac #6561.
+    This example is not empty, and should not be. See :trac:`6561`.
 
     ::
 
@@ -451,7 +451,7 @@ def mrange(sizes, typ=list):
         sage: mrange([5,3,0])
         []
 
-    This example isn't empty, and shouldn't be. See trac #6561.
+    This example is not empty, and should not be. See :trac:`6561`.
 
     ::
 
@@ -537,7 +537,7 @@ class xmrange:
         sage: list(xmrange([5,3,0]))
         []
 
-    This example isn't empty, and shouldn't be. See trac #6561.
+    This example is not empty, and should not be. See :trac:`6561`.
 
     ::
 

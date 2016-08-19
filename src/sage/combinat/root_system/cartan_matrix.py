@@ -10,7 +10,7 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #       Copyright (C) 2012,2013 Travis Scrimshaw <tscrim at ucdavis.edu>,
-#       Copyright (C) 2013 Chrisitan Stump,
+#       Copyright (C) 2013 Christian Stump,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -282,7 +282,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             raise ValueError("the given index set is not valid")
 
         # We can do the Cartan type initialization later as this is not
-        #   a unqiue representation
+        #   a unique representation
         mat = typecall(cls, MatrixSpace(ZZ, n, sparse=True), data, False, False)
         # FIXME: We have to initialize the CartanMatrix part separately because
         #   of the __cinit__ of the matrix. We should get rid of this workaround

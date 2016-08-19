@@ -2926,8 +2926,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         A *jump* in a linear extension `[e_1, \ldots, e_n]` of a poset `P`
         is a pair `(e_i, e_{i+1})` so that `e_{i+1}` does not cover `e_i`
-	in `P`. The jump number of a poset is the minimal number of jumps
-	in linear extensions of a poset.
+        in `P`. The jump number of a poset is the minimal number of jumps
+        in linear extensions of a poset.
 
         INPUT:
 

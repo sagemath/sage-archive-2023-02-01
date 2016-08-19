@@ -377,6 +377,12 @@ class RecognizableSeries(Element):
 
         TESTS::
 
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: S = Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
+            ....:         vector([0, 1]), vector([1, 0]), transpose=True)
+            sage: latex(S)  # indirect doctest
+            [1] + 3 [01] + [10] + 5 [11] + 9 [001] + 3 [010]
+                + 15 [011] + [100] + 11 [101] + 5 [110] + ...
         """
         return self._repr_(latex=True)
 
@@ -671,6 +677,17 @@ class RecognizableSeries(Element):
 
     def minimized(self):
         r"""
+        Return a recognizable series equivalent to this series, but
+        with a minimized linear representation.
+
+        OUTPUT:
+
+        A :class:`RecognizableSeries`.
+
+        ALOGRITHM:
+
+        This method implements the minimization algorithm presented in
+        Chapter 2 of [BR2010]_.
 
         EXAMPLES::
 
@@ -705,17 +722,52 @@ class RecognizableSeries(Element):
             ....:     for (c, v), (d, w) in islice(izip(iter(S), iter(M)), 20))
             True
         """
-        if self.left is None or self.right is None:
-            raise ValueError("Cannot minmize as 'left' or 'right' is None.")
         return self._minimized_right_()._minimized_left_()
 
 
     def _minimized_right_(self):
+        r"""
+        Return a recognizable series equivalent to this series, but
+        with a right minimized linear representation.
+
+        OUTPUT:
+
+        A :class:`RecognizableSeries`.
+
+        See :meth:`minimized` for details.
+
+        TESTS::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: S = Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])),
+            ....:         vector([1, 1]), vector([1, 1]))
+            sage: M = S._minimized_right_()
+            sage: M.mu[0], M.mu[1], M.left, M.right
+            ([0], [0], (2), (1))
+
+        ::
+
+            sage: S = Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])))
+            sage: S._minimized_right_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot minmize as 'right' is None.
+        """
+        if self.right is None:
+            raise ValueError("Cannot minmize as 'right' is None.")
         return self.transposed()._minimized_left_().transposed()
 
 
     def _minimized_left_(self):
         r"""
+        Return a recognizable series equivalent to this series, but
+        with a left minimized linear representation.
+
+        OUTPUT:
+
+        A :class:`RecognizableSeries`.
+
+        See :meth:`minimized` for details.
 
         TESTS::
 
@@ -756,7 +808,18 @@ class RecognizableSeries(Element):
             sage: M = S.minimized()
             sage: M.mu[0], M.mu[1], M.left, M.right
             ([], [], (), ())
+
+        ::
+
+            sage: S = Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])))
+            sage: S._minimized_left_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot minmize as 'left' is None.
         """
+        if self.left is None:
+            raise ValueError("Cannot minmize as 'left' is None.")
+
         from sage.matrix.constructor import Matrix
         from sage.modules.free_module_element import vector
         from sage.rings.integer_ring import ZZ

@@ -275,7 +275,7 @@ def interred_libsingular(I):
         sage: P.<x,y,z> = PolynomialRing(ZZ)
         sage: I = ideal( x^2 - 3*y, y^3 - x*y, z^3 - x, x^4 - y*z + 1 )
         sage: I.interreduced_basis()
-        [y^3 - x*y, z^3 - x, x^2 - 3*y, 9*y^2 - y*z + 1]
+        [y*z^2 - 81*x*y - 9*y - z, z^3 - x, x^2 - 3*y, 9*y^2 - y*z + 1]
 
         sage: P.<x,y,z> = PolynomialRing(QQ)
         sage: I = ideal( x^2 - 3*y, y^3 - x*y, z^3 - x, x^4 - y*z + 1 )

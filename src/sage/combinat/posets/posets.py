@@ -1757,7 +1757,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                                for (element, label) in element_labels.items())
             graph = graph.relabel(relabeling, inplace = False)
             if heights is not None:
-                for key in heights.keys():
+                for key in heights:
                     heights[key] = [relabeling[i] for i in heights[key]]
 
         if cover_labels is not None:
@@ -6775,7 +6775,7 @@ def _ford_fulkerson_chronicle(G, s, t, a):
         # X: list of vertices of G' reachable from s, along with
         # the shortest paths from s to them.
         X = Gprime.shortest_paths(s)
-        if t in X.keys():
+        if t in X:
             # Step MC2a in Britz-Fomin, Algorithm 7.2.
             shortest_path = X[t]
             shortest_path_in_edges = zip(shortest_path[:-1],shortest_path[1:])

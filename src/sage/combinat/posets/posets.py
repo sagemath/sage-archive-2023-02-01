@@ -2951,6 +2951,14 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: N.jump_number(certificate=True)
             (1, [1, 4, 2, 3])
 
+        REFERENCES:
+
+        .. [BIANCO] L. Bianco, P. Dell‘Olmo, S. Giordani
+           An Optimal Algorithm to Find the Jump Number of Partially Ordered Sets
+           Computational Optimization and Applications,
+           1997, Volume 8, Issue 2, pp 197--210,
+           http://link.springer.com/article/10.1023/A%3A1008625405476
+
         TESTS::
 
             sage: E = Poset()

@@ -147,7 +147,7 @@ class kRegularSequence(RecognizableSeries):
             preview=10)
 
 
-
+    @cached_method
     def __getitem__(self, n):
         r"""
         Return the `n`th entry of this sequence.
@@ -193,7 +193,7 @@ class kRegularSequence(RecognizableSeries):
         n = ZZ(n)
         W = self.parent().indices()
         w = W(n.digits(self.parent().k))
-        return super(kRegularSequence, self).__getitem__(w)
+        return RecognizableSeries.__getitem__.f(self, w)
 
 
     def __iter__(self):

@@ -29,9 +29,9 @@ def lifting(p,t,A,G):
     FpX = PolynomialRing(Fp, name=X)
 
     ARb = AR.change_ring(FpX)
-    starting = time()
+    #starting = time()
     (Db, Sb, Tb) = ARb.smith_form()
-    print "(SNF: %s sec)" % str(time()-starting)
+    #print "(SNF: %s sec)" % str(time()-starting)
     assert Sb * ARb * Tb == Db
     assert all(i == j or Db[i, j].is_zero()
                for i in range(Db.nrows())
@@ -43,7 +43,7 @@ def lifting(p,t,A,G):
     F1 = matrix.block([[p**(t-1) * matrix.identity(d), G]])*T
     F = F1.matrix_from_columns(range(r, F1.ncols()))
     assert (A*F % (p**t)).is_zero(), "A*F=%s" % str(A*F)
-    
+
     return F
   
 
@@ -206,6 +206,7 @@ class Compute_nu(SageObject):
         generators = self.find_monic_replacements(p,t, pt_generators, prev_nu)
 
         print "------------------------------------------"
+        print pt_generators
         print "Generators with (p^t)-generating property:"
         print generators
 
@@ -216,16 +217,11 @@ class Compute_nu(SageObject):
           if f.degree() < g.degree():
             g=f
         
-        print "g = %s" % str(g)
         # find nu	
         while len(generators)>1: 
           f = list(set(generators) - set([g]))[0]  #take first element in generators not equal g
-          print "f = %s" % str(f)
           generators.remove(f)
           r = (f.quo_rem(g)[1]) % p**t
-          print "---------------"
-          print "---------------"
-          print "r = %s" % str(r)
           generators = generators + self.find_monic_replacements(p,t,[r],prev_nu)
           print generators  
 
@@ -252,7 +248,7 @@ class Compute_nu(SageObject):
       
    
    
-    def p_minimal_polynomials(self,p, upto=None):
+    def p_minimal_polynomials(self,p, upto=None,steps=False):
        r"""
        Returns index set `\mathcal{S}` and monic polynomials `\nu_s` for `s\in \mathcal{S}` such that
        `N_{p^t}(B) = \mu_B \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in \mathcal{S}} p^{t-s}\nu_s \mathbb{Z}[X]`
@@ -264,7 +260,7 @@ class Compute_nu(SageObject):
        - ``upto`` -- a nonnegative integer
                      - Default is  ``None``: Returns `\mathcal{S}` such that `N_{p^t}(B) = \mu_B \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in \mathcal{S}} p^{t-s}\nu_s \mathbb{Z}[X]` holds for all `t \ge \max\{s\in \mathcal{S}\}`.
                       
-                    
+       - ``steps`` -- show computation steps                    
                               
        OUTPUT:
        
@@ -286,15 +282,18 @@ class Compute_nu(SageObject):
        while True:
          deg_prev_nu = nu.degree()
          t= t+1
-         #print "------------------------------------------"
-         #print "p=%s, t=%s:" % (str(p),str(t))
+         if steps:
+           print "------------------------------------------"
+           print "p=%s, t=%s:" % (str(p),str(t))
 
-         tmp = list(lifting(p, t, self._A,G)[0])
-         for h in tmp:
-	    print h
-         
+         if steps: 
+           print "Result of lifting:"
+           print "F="
+           print lifting(p, t, self._A,G)
+    
          nu = self.current_nu(p,t, list(lifting(p, t, self._A,G)[0]), nu)
-         print "p=%s, t=%s, nu=%s" % (str(p),str(t),str(nu))
+         if steps:
+           print "nu=%s" % str(nu)
          if nu.degree() >= deg_mu:
            return calS, p_min_polys
                
@@ -304,6 +303,10 @@ class Compute_nu(SageObject):
            G = G.matrix_from_columns(range(G.ncols()-1))
            del p_min_polys[t-1]
 
+         if steps: 
+	   print "corresponding columns for G"
+	   print self.compute_mccoy_column(p,t,nu)
+	   
          G = matrix.block([[p * G, self.compute_mccoy_column(p,t,nu)]])
          calS.append(t)
          p_min_polys[t] = nu

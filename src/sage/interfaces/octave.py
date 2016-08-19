@@ -157,49 +157,6 @@ import os
 from .expect import Expect, ExpectElement
 from sage.misc.misc import verbose
 
-def get_octave_version(command=None, server=None):
-    r"""
-    Get the octave version given the ``command`` and ``server``.
-
-    This does *not* launch the interface (since the latter needs configuration
-    options that actually depend on the version).
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.octave import get_octave_version
-        sage: octave.version() # optional - octave # indirect doctest
-        '...'
-    """
-    import re
-    from subprocess import Popen, PIPE
-
-    version_string = re.compile("GNU Octave, version (\d+\.\d+\.\d+)")
-
-    if command is None:
-        raise ValueError("a command must be provided")
-
-    if server:
-        cmd = [server, command, "--version"]
-    else:
-        cmd = [command, "--version"]
-
-    try:
-        proc = Popen(cmd, stdout=PIPE)
-    except OSError:
-        raise ValueError("octave not available")
-
-    s = proc.communicate()
-    if proc.poll():
-        raise ValueError("octave sent a non-zero signal (={})".format(proc.poll()))
-
-    first_line = s[0].split('\n')[0]
-    m = version_string.match(first_line)
-    if m is None:
-        raise ValueError("Octave first line of output does not fit with what "
-                "was expected:\n{}".format(first_line))
-
-    return m.group(1)
-
 class Octave(Expect):
     r"""
     Interface to the Octave interpreter.
@@ -230,23 +187,12 @@ class Octave(Expect):
         if server is None:
             import os
             server = os.getenv('SAGE_OCTAVE_SERVER') or None
-
-        version = get_octave_version(command=command, server=server)
-        major = int(version.split('.')[0])
-
-        if major < 4:
-            prompt = '>'
-            options = " --no-line-editing --silent"
-        else:
-            prompt = '>>'
-            options = " --no-gui --no-line-editing --silent"
-
         Expect.__init__(self,
                         name = 'octave',
                         # We want the prompt sequence to be unique to avoid confusion with syntax error messages containing >>>
                         prompt = 'octave\:\d+> ',
                         # We don't want any pagination of output
-                        command = command + options + " --eval 'PS2(PS1());more off' --persist",
+                        command = command + " --no-line-editing --silent --eval 'PS2(PS1());more off' --persist",
                         maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,

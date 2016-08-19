@@ -1892,7 +1892,7 @@ def plot(funcs, *args, **kwds):
         sage: plot(x, x, 0, 1, legend_label=label)
         Graphics object consisting of 1 graphics primitive
 
-    Extra kwds should be saved if object has a plot method, :trac:`20924`::
+    Extra keywords should be saved if object has a plot method, :trac:`20924`::
 
         sage: G = graphs.PetersenGraph()
         sage: p = G.plot()
@@ -1919,11 +1919,11 @@ def plot(funcs, *args, **kwds):
     if hasattr(funcs, 'plot'):
         G = funcs.plot(*args, **original_opts)
 
-        # If we already have certain items already set, then update them
+        # If we have extra keywords already set, then update them
         for ext in G._extra_kwds:
             if ext in G_kwds:
                 G_kwds[ext] = G._extra_kwds[ext]
-                
+
     # if we are using the generic plotting method
     else:
         n = len(args)

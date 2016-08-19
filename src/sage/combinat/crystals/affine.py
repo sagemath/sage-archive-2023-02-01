@@ -463,7 +463,7 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
         else:
             return self.lift().phi(i)
 
-    def __richcmp__(self, other, op):
+    def _richcmp_(self, other, op):
         """
         Elements of this crystal are compared using the comparison in
         the underlying classical crystal.
@@ -515,8 +515,6 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             sage: b>=c
             False
         """
-        if parent(self) is not parent(other):
-            return NotImplemented
         return richcmp(self.value, other.value, op)
 
 

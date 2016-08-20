@@ -1,6 +1,5 @@
-diff -ru src/src/scripts/R.sh.in src.new/src/scripts/R.sh.in
---- src/src/scripts/R.sh.in	2011-10-03 00:02:35.000000000 +0200
-+++ src.new/src/scripts/R.sh.in	2012-03-30 17:17:12.409254535 +0200
+--- R-3.3.1_original/src/scripts/R.sh.in	2015-03-19 00:04:01.000000000 +0100
++++ R-3.3.1_patched/src/scripts/R.sh.in	2016-08-20 11:00:30.903135744 +0200
 @@ -26,6 +26,14 @@
    esac
  fi

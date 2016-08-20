@@ -1,5 +1,5 @@
---- src/src/scripts/Makefile.in	2012-03-01 15:02:25.000000000 -0800
-+++ src/src/scripts/Makefile.in	2013-03-17 08:48:56.000000000 -0700
+--- R-3.3.1_original/src/scripts/Makefile.in	2013-08-05 00:05:05.000000000 +0200
++++ R-3.3.1_patched/src/scripts/Makefile.in	2016-08-20 11:06:19.103189078 +0200
 @@ -90,10 +90,7 @@
  install: installdirs install-cmds
  	@rm -f $(DESTDIR)$(bindir)/R

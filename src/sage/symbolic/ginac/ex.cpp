@@ -533,12 +533,40 @@ void ex::coefficients(const ex & s, expairvec & vec) const
 
 }
 
+ex ex::deep_combine_fractions(ex e)
+{
+        if (is_a<expairseq>(e)) {
+                combine_map_function func;
+                e = e.map(func);
+        }
+        else {
+                if (is_exactly_a<symbol>(e) or
+                                is_exactly_a<constant>(e) or
+                                is_exactly_a<numeric>(e))
+                        return e;
+                else
+                        for (unsigned int i=0; i<e.nops(); ++i) {
+                                e.let_op(i) = deep_combine_fractions(e.op(i));
+                        }
+        }
+
+        if (is_exactly_a<add>(e)) {
+                ex t = ex_to<add>(e).combine_fractions();
+                return t;
+        }
+        else
+                return e;
+}
+
 ex ex::combine_fractions(bool deep) const
 {
-        if (is_exactly_a<add>(*this))
-                return ex_to<add>(*this).combine_fractions();
-        else
-                return *this;
+        if (not deep) {
+                if (is_exactly_a<add>(*this))
+                        return ex_to<add>(*this).combine_fractions();
+                else
+                        return *this;
+        }
+        return deep_combine_fractions(*this);
 }
 
 // private

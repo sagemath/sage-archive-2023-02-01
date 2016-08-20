@@ -266,6 +266,11 @@ private:
 	static ptr<basic> construct_from_string_and_lst(const std::string &s, const ex &l);
 	void makewriteable();
 	void share(const ex & other) const;
+        static ex deep_combine_fractions(ex e);
+        struct combine_map_function : public map_function {
+                ex operator()(const ex & e) override { return deep_combine_fractions(e); }
+        };
+
 
 // member variables
 

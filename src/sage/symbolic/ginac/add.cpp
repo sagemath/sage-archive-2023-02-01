@@ -673,6 +673,7 @@ ex add::combine_fractions() const
 {
         epvector rseq;
         exmap map;
+        ex oc = overall_coeff;
         for (const auto& pair : seq) {
                 const ex &e = recombine_pair_to_ex(pair);
                 if (is_exactly_a<power>(e)) {
@@ -716,7 +717,7 @@ ex add::combine_fractions() const
         for (const auto& t : map)
                 rseq.push_back(split_ex_to_pair(mul(t.first, t.second)));
         add rex(rseq);
-        return rex;
+        return add(rex, oc);
 }
 
 } // namespace GiNaC

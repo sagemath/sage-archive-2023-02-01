@@ -40,7 +40,7 @@ from __future__ import absolute_import
 
 from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
-from sage.categories.homset import Hom
+from sage.categories.homset import Hom, End
 from sage.interfaces.all import singular
 from sage.matrix.constructor import matrix
 from sage.misc.all import add, sage_eval
@@ -680,42 +680,50 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         Q = [1/t*Q[j] for j in range(self.ambient_space().dimension_relative())]
         return C.is_ordinary_singularity(C.ambient_space()(Q))
 
-    def quadratic_transformation(self):
+    def quadratic_transform(self):
         r"""
-        Return the quadratic transformation of this curve created from applying the standard Cremona
-        transformation.
+        Return the proper transform of this curve with respect to the standard Cremona transformation.
 
         The standard Cremona transformation is the birational automorphism of `\mathbb{P}^{2}` defined
-        `(x : y : z)\mapsto (yz : xz : xy)`. The map is not defined at the points `(0 : 0 : 1)`, `(0 : 1 : 0)`,
-        and `(1 : 0 : 0)`. The transformed curve is created by applying the map to this curve, and then dividing
-        out by any common powers of the variables `x,y,z` in the resulting defining polynomial.
+        `(x : y : z)\mapsto (yz : xz : xy)`.
 
         OUTPUT:
 
-        - a tuple consisting of two elements: a scheme morphism from this curve into its ambient space, and the
-          quadratic transform of this curve. A restriction of the map defines a birational map between the curves.
+        - a scheme morphism representing the restriction of the standard Cremona transformation from this curve
+          to the proper transform.
 
         EXAMPLES::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: C = Curve(x^3*y - z^4 - z^2*x^2, P)
-            sage: C.quadratic_transformation()
-            (Scheme morphism:
-               From: Projective Plane Curve over Rational Field defined by x^3*y - x^2*z^2 - z^4
-               To:   Projective Space of dimension 2 over Rational Field
-               Defn: Defined on coordinates by sending (x : y : z) to
-                     (y*z : x*z : x*y),
-             Projective Plane Curve over Rational Field defined by -x^3*y - x*y*z^2
-            + z^4)
+            sage: C.quadratic_transform()
+            Scheme morphism:
+              From: Projective Plane Curve over Rational Field defined by x^3*y -
+            x^2*z^2 - z^4
+              To:   Projective Plane Curve over Rational Field defined by -x^3*y -
+            x*y*z^2 + z^4
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (y*z : x*z : x*y)
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(17), 2)
+            sage: C = P.curve([y^7*z^2 - 16*x^9 + x*y*z^7 + 2*z^9])
+            sage: C.quadratic_transform()
+            Scheme morphism:
+              From: Projective Plane Curve over Finite Field of size 17 defined by
+            x^9 + y^7*z^2 + x*y*z^7 + 2*z^9
+              To:   Projective Plane Curve over Finite Field of size 17 defined by
+            2*x^9*y^7 + x^8*y^6*z^2 + x^9*z^7 + y^7*z^9
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (y*z : x*z : x*y)
         """
         PP = self.ambient_space()
         R = PP.coordinate_ring()
         L = R.gens()
         coords = [L[1]*L[2], L[0]*L[2], L[0]*L[1]]
-        H = Hom(self, PP)
-        phi = H(coords)
         G = self.defining_polynomial()(coords)
-        # divide out by any common powers of the generators of R
+        # remove the component of the curve corresponding to the exceptional divisor
         degs = [G.degree()]*len(L)
         for F in G.monomials():
             for i in range(len(L)):
@@ -726,8 +734,9 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             tup = tuple([item[0][i] - degs[i] for i in range(len(L))])
             T.append(tuple([tup, item[1]]))
         G = R(dict(T))
-        from constructor import Curve
-        return tuple([phi, Curve(G, PP)])
+        H = Hom(self, PP.curve(G))
+        phi = H(coords)
+        return phi
 
     def excellent_position(self, Q):
         r"""
@@ -746,8 +755,8 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         OUPUT:
 
-        - a tuple consisting of two elements: a scheme morphism from this curve into its ambient space, and
-          the transformed curve that is the image of that morphism.
+        - a scheme morphism from this curve to a curve in excellent position that is a restriction of a
+          change of coordinates map of the projective plane.
 
         EXAMPLES::
 
@@ -755,13 +764,12 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: C = Curve([x*y - z^2], P)
             sage: Q = P([1,1,1])
             sage: C.excellent_position(Q)
-            (Scheme morphism:
-               From: Projective Plane Curve over Rational Field defined by x*y - z^2
-               To:   Projective Space of dimension 2 over Rational Field
-               Defn: Defined on coordinates by sending (x : y : z) to
-                     (-x + 1/2*y + 1/2*z : -1/2*y + 1/2*z : x + 1/2*y - 1/2*z),
-             Projective Plane Curve over Rational Field defined by -x^2 - 3*x*y -
-            4*y^2 - x*z - 3*y*z)
+            Scheme morphism:
+              From: Projective Plane Curve over Rational Field defined by x*y - z^2
+              To:   Projective Plane Curve over Rational Field defined by -x^2 -
+            3*x*y - 4*y^2 - x*z - 3*y*z
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (-x + 1/2*y + 1/2*z : -1/2*y + 1/2*z : x + 1/2*y - 1/2*z)
 
         ::
 
@@ -773,27 +781,25 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             2*z^2*y^7 + 3*z^4*y^5 + 4*z^6*y^3 + 2*z^8*y])
             sage: Q = P([1,0,0])
             sage: C.excellent_position(Q)
-            (Scheme morphism:
-               From: Projective Plane Curve over Number Field in b with defining
+            Scheme morphism:
+              From: Projective Plane Curve over Number Field in b with defining
             polynomial a^2 - 3 defined by -x^3*y^6 + 3*x^2*y^7 - 3*x*y^8 + y^9 +
             x^4*y^3*z^2 - 4*x^3*y^4*z^2 + 10*x^2*y^5*z^2 - 9*x*y^6*z^2 + 2*y^7*z^2 -
             4*x^3*y^2*z^4 + 9*x^2*y^3*z^4 - 11*x*y^4*z^4 + 3*y^5*z^4 + 5*x^2*y*z^6 -
             7*x*y^2*z^6 + 4*y^3*z^6 - 2*x*z^8 + 2*y*z^8
-               To:   Projective Space of dimension 2 over Number Field in b with
-            defining polynomial a^2 - 3
-               Defn: Defined on coordinates by sending (x : y : z) to
-                     (1/4*y + 1/2*z : -1/4*y + 1/2*z : x + 1/4*y - 1/2*z),
-             Projective Plane Curve over Number Field in b with defining polynomial
-            a^2 - 3 defined by 900*x^9 - 7410*x^8*y + 29282*x^7*y^2 - 69710*x^6*y^3
-            + 110818*x^5*y^4 - 123178*x^4*y^5 + 96550*x^3*y^6 - 52570*x^2*y^7 +
-            18194*x*y^8 - 3388*y^9 - 1550*x^8*z + 9892*x^7*y*z - 30756*x^6*y^2*z +
-            58692*x^5*y^3*z - 75600*x^4*y^4*z + 67916*x^3*y^5*z - 42364*x^2*y^6*z +
-            16844*x*y^7*z - 3586*y^8*z + 786*x^7*z^2 - 3958*x^6*y*z^2 +
-            9746*x^5*y^2*z^2 - 14694*x^4*y^3*z^2 + 15174*x^3*y^4*z^2 -
-            10802*x^2*y^5*z^2 + 5014*x*y^6*z^2 - 1266*y^7*z^2 - 144*x^6*z^3 +
-            512*x^5*y*z^3 - 912*x^4*y^2*z^3 + 1024*x^3*y^3*z^3 - 816*x^2*y^4*z^3 +
-            512*x*y^5*z^3 - 176*y^6*z^3 + 8*x^5*z^4 - 8*x^4*y*z^4 - 16*x^3*y^2*z^4 +
-            16*x^2*y^3*z^4 + 8*x*y^4*z^4 - 8*y^5*z^4)
+              To:   Projective Plane Curve over Number Field in b with defining
+            polynomial a^2 - 3 defined by 900*x^9 - 7410*x^8*y + 29282*x^7*y^2 -
+            69710*x^6*y^3 + 110818*x^5*y^4 - 123178*x^4*y^5 + 96550*x^3*y^6 -
+            52570*x^2*y^7 + 18194*x*y^8 - 3388*y^9 - 1550*x^8*z + 9892*x^7*y*z -
+            30756*x^6*y^2*z + 58692*x^5*y^3*z - 75600*x^4*y^4*z + 67916*x^3*y^5*z -
+            42364*x^2*y^6*z + 16844*x*y^7*z - 3586*y^8*z + 786*x^7*z^2 -
+            3958*x^6*y*z^2 + 9746*x^5*y^2*z^2 - 14694*x^4*y^3*z^2 +
+            15174*x^3*y^4*z^2 - 10802*x^2*y^5*z^2 + 5014*x*y^6*z^2 - 1266*y^7*z^2 -
+            144*x^6*z^3 + 512*x^5*y*z^3 - 912*x^4*y^2*z^3 + 1024*x^3*y^3*z^3 -
+            816*x^2*y^4*z^3 + 512*x*y^5*z^3 - 176*y^6*z^3 + 8*x^5*z^4 - 8*x^4*y*z^4
+            - 16*x^3*y^2*z^4 + 16*x^2*y^3*z^4 + 8*x*y^4*z^4 - 8*y^5*z^4
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (1/4*y + 1/2*z : -1/4*y + 1/2*z : x + 1/4*y - 1/2*z)
 
         REFERENCES:
 
@@ -920,28 +926,22 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             # coords for map
             M = M.inverse()
             accoords2 = [sum([M.row(j)[k]*PP.gens()[k] for k in range(3)]) for j in range(3)]
-            H = Hom(self, PP)
+            H = Hom(self, C)
             phi = H([f(accoords) for f in accoords2])
-        return tuple([phi, C])
+        return phi
 
-    def ordinary_model(self, sing=None):
+    def ordinary_model(self):
         r"""
         Return an ordinary plane curve model of this curve.
 
         Currently only implemented over number fields. If not all of the coordinates of the non-ordinary
         singularities of this curve are contained in its base field, then the curve returned will be
-        defined over an extension.
-
-        INPUT:
-
-        - ``sing`` -- (default: None) the set of singular points of this curve. If not given, this is constructed.
-          For higher degree curves construction can be expensive. This curve must be irreducible.
+        defined over an extension. This curve must be irreducible.
 
         OUPUT:
 
-        - a tuple consisting of two elements: a scheme morphism from this curve into its ambient space, and a
-          plane curve with only ordinary singularities. A restriction of this map defines a birational map between
-          the curves.
+        - a scheme morphism from this curve to a curve with only ordinary singularities, such that a restriction
+          of the morphism defines a birational map between the curves.
 
         EXAMPLES::
 
@@ -950,43 +950,33 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: P.<x,y,z> = ProjectiveSpace(K, 2)
             sage: C = Curve([x^5 - K.0*y*z^4], P)
             sage: C.ordinary_model()
-            (Scheme morphism:
-               From: Projective Plane Curve over Number Field in a with defining
+            Scheme morphism:
+              From: Projective Plane Curve over Number Field in a with defining
             polynomial x^2 - 3 defined by x^5 + (-a)*y*z^4
-               To:   Projective Space of dimension 2 over Number Field in a with
-            defining polynomial x^2 - 3
-               Defn: Defined on coordinates by sending (x : y : z) to
-                     (-1/4*x^2 - 1/2*x*y + 1/2*x*z + 1/2*y*z - 1/4*z^2 : 1/4*x^2 +
-            1/2*x*y + 1/2*y*z - 1/4*z^2 : -1/4*x^2 + 1/4*z^2),
-             Projective Plane Curve over Number Field in a with defining polynomial
-            x^2 - 3 defined by (-a)*x^5*y + (-4*a)*x^4*y^2 + (-6*a)*x^3*y^3 +
-            (-4*a)*x^2*y^4 + (-a)*x*y^5 + (-a - 1)*x^5*z + (-4*a + 5)*x^4*y*z +
-            (-6*a - 10)*x^3*y^2*z + (-4*a + 10)*x^2*y^3*z + (-a - 5)*x*y^4*z +
-            y^5*z)
+              To:   Projective Plane Curve over Number Field in a with defining
+            polynomial x^2 - 3 defined by (-a)*x^5*y + (-4*a)*x^4*y^2 +
+            (-6*a)*x^3*y^3 + (-4*a)*x^2*y^4 + (-a)*x*y^5 + (-a - 1)*x^5*z + (-4*a +
+            5)*x^4*y*z + (-6*a - 10)*x^3*y^2*z + (-4*a + 10)*x^2*y^3*z + (-a -
+            5)*x*y^4*z + y^5*z
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (-1/4*x^2 - 1/2*x*y + 1/2*x*z + 1/2*y*z - 1/4*z^2 : 1/4*x^2 +
+            1/2*x*y + 1/2*y*z - 1/4*z^2 : -1/4*x^2 + 1/4*z^2)
 
         ::
 
             sage: set_verbose(-1)
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: C = Curve([y^2*z^2 - x^4 - x^3*z], P)
-            sage: C.ordinary_model([P([0,0,1]), P([0,1,0])]) # long time (1 second)
-            (Scheme morphism:
-               From: Projective Plane Curve over Rational Field defined by -x^4 -
+            sage: C.ordinary_model() # long time (1 second)
+            Scheme morphism:
+              From: Projective Plane Curve over Rational Field defined by -x^4 -
             x^3*z + y^2*z^2
-               To:   Projective Space of dimension 2 over Rational Field
-               Defn: Defined on coordinates by sending (x : y : z) to
-                     (-3/64*x^4 + 9/64*x^2*y^2 - 3/32*x*y^3 - 1/16*x^3*z -
-            1/8*x^2*y*z + 1/4*x*y^2*z - 1/16*y^3*z - 1/8*x*y*z^2 + 1/16*y^2*z^2 :
-            -1/64*x^4 + 3/64*x^2*y^2 - 1/32*x*y^3 + 1/16*x*y^2*z - 1/16*y^3*z +
-            1/16*y^2*z^2 : 3/64*x^4 - 3/32*x^3*y + 3/64*x^2*y^2 + 1/16*x^3*z -
-            3/16*x^2*y*z + 1/8*x*y^2*z - 1/8*x*y*z^2 + 1/16*y^2*z^2),
-             Projective Plane Curve over Rational Field defined by 4*x^6*y^3 -
-            24*x^5*y^4 + 36*x^4*y^5 + 8*x^6*y^2*z - 40*x^5*y^3*z + 24*x^4*y^4*z +
-            72*x^3*y^5*z - 4*x^6*y*z^2 + 8*x^5*y^2*z^2 - 56*x^4*y^3*z^2 +
-            104*x^3*y^4*z^2 + 44*x^2*y^5*z^2 + 8*x^6*z^3 - 16*x^5*y*z^3 -
-            24*x^4*y^2*z^3 + 40*x^3*y^3*z^3 + 48*x^2*y^4*z^3 + 8*x*y^5*z^3 -
-            8*x^5*z^4 + 36*x^4*y*z^4 - 56*x^3*y^2*z^4 + 20*x^2*y^3*z^4 +
-            40*x*y^4*z^4 - 16*y^5*z^4)
+              To:   Projective Plane Curve over Rational Field defined by x^4*y^2 +
+            2*x^3*y^3 + x^2*y^4 + 3*x^4*y*z + x^3*y^2*z + 5*x^2*y^3*z - x*y^4*z +
+            x^4*z^2 + 3*x^3*y*z^2 - 2*x^2*y^2*z^2 + 3*x*y^3*z^2 - y^4*z^2
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (-1/4*x^2 + 1/2*x*y - 1/4*y^2 - 1/2*x*z + 1/2*y*z : 1/4*x^2 -
+            1/4*y^2 + 1/2*x*z + 1/2*y*z : -1/4*x^2 + 1/4*y^2)
 
         ::
 
@@ -1027,6 +1017,21 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             (95*a - 135)*x^3*y^3*z^4 + (60*a - 145)*x^2*y^4*z^4 + (15*a -
             50)*x*y^5*z^4 - 5*y^6*z^4)
         """
+        # helper function for extending the base field
+        def extension(self):
+            F = self.base_ring()
+            pts = self.change_ring(F.embeddings(QQbar)[0]).rational_points()
+            L = [t for pt in pts for t in pt]
+            K = number_field_elements_from_algebraics(L)[0]
+            if is_RationalField(K):
+                return F.embeddings(F)[0]
+            else:
+                if is_RationalField(F):
+                    return F.embeddings(K)[0]
+                else:
+                    # make sure the defining polynomial variable names are the same for K, N
+                    N = NumberField(K.defining_polynomial().parent()(F.defining_polynomial()), str(K.gen()))
+                    return N.composite_fields(K, both_maps=True)[0][1]*F.embeddings(N)[0]
         if not self.base_ring() in NumberFields():
             raise NotImplementedError("the base ring of this curve must be a number field")
         if not self.is_irreducible():
@@ -1034,29 +1039,14 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         C_orig = self
         C = self
         PP = C.ambient_space()
-        coords = [C.ambient_space().gens()[i] for i in range(3)]
-        if sing is None:
-            pts = C.singular_subscheme().change_ring(C.base_ring().embeddings(QQbar)[0]).rational_points()
-            # if any points have coordinates not in the base field of this curve,
-            # extend the base field and repeat
-            L = [pt[j] for j in range(3) for pt in pts]
-            for el in L:
-                temp = number_field_elements_from_algebraics(el)
-                if is_RationalField(temp[0]):
-                    continue
-                try:
-                    tempF = C.base_ring().extension(temp[0].defining_polynomial(), C.base_ring().variable_name()\
-                                                    + 'z')
-                    K = tempF.absolute_field(temp[0].variable_name())
-                    PP = PP.change_ring(K)
-                    psi = C.base_ring().embeddings(K)[0]
-                    C = PP.curve(PP.coordinate_ring()(C.defining_polynomial().map_coefficients(psi)))
-                    C_orig = PP.curve(PP.coordinate_ring()(C_orig.defining_polynomial().map_coefficients(psi)))
-                except ValueError:
-                    pass
-            pts = C.singular_points()
-        else:
-            pts = list(sing)
+        # extend the base field if necessary to find all singular points
+        emb = extension(C.singular_subscheme())
+        PP = PP.change_ring(emb)
+        C = C.change_ring(emb)
+        C_orig = C_orig.change_ring(emb)
+        pts = C.singular_points()
+        H = End(C)
+        phi = H(list(C.ambient_space().gens()))
         while len(pts) > 0:
             for i in range(len(pts) - 1, -1, -1):
                 try:
@@ -1066,15 +1056,14 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                     pts.pop(i)
             if len(pts) > 0:
                 temp_exc = C.excellent_position(pts[0])
-                temp_qua = temp_exc[1].quadratic_transformation()
-                C = temp_qua[1]
-                tmp_coords = [temp_exc[0].defining_polynomials()[i](coords) for i in range(3)]
-                coords = [temp_qua[0].defining_polynomials()[i](tmp_coords) for i in range(3)]
+                temp_qua = temp_exc.codomain().quadratic_transform()
+                C = temp_qua.codomain()
+                phi = temp_qua*temp_exc*phi
                 # transform the old points
                 for i in range(len(pts) - 1, -1, -1):
                     # find image if it is a point the composition map is defined on
                     try:
-                        temp_pt = temp_qua[0](temp_exc[0](pts[i]))
+                        temp_pt = temp_qua*temp_exc(temp_exc.domain()(pts[i]))
                         pts.pop(i)
                         if not PP(list(temp_pt)) in [PP(list(tpt)) for tpt in pts]:
                             pts.append(temp_pt)
@@ -1086,35 +1075,19 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                 ringH = Hom(PP.coordinate_ring(), PPline.coordinate_ring())
                 psi = ringH(list(PPline.gens()) + [0])
                 X = PPline.subscheme([psi(f) for f in C.singular_subscheme().defining_polynomials()])
-                qqbar_pts = X.change_ring(X.base_ring().embeddings(QQbar)[0]).rational_points()
-                L = [pt[j] for j in range(2) for pt in qqbar_pts]
-                for el in L:
-                    temp = number_field_elements_from_algebraics(el)
-                    if is_RationalField(temp[0]):
-                        continue
-                    try:
-                        tempF = C.base_ring().extension(temp[0].defining_polynomial(), C.base_ring().variable_name()\
-                                                        + 'z')
-                        K = tempF.absolute_field(temp[0].variable_name())
-                        PP = PP.change_ring(K)
-                        psi = C.base_ring().embeddings(K)[0]
-                        C = PP.curve(PP.coordinate_ring()(C.defining_polynomial().map_coefficients(psi)))
-                        C_orig = PP.curve(PP.coordinate_ring()(C_orig.defining_polynomial().map_coefficients(psi)))
-                    except ValueError:
-                        pass
-                # convert points
-                psi = PPline.base_ring().embeddings(PP.base_ring())[0]
-                PPline.change_ring(PP.base_ring())
-                X = X.change_ring(psi)
-                pts = [PP(pt.change_ring(psi)) for pt in pts]
-                coords = [PP.coordinate_ring()(f.map_coefficients(psi)) for f in coords]
+                emb = extension(X)
+                PP = PP.change_ring(emb)
+                phi = phi.change_ring(emb)
+                C = C.change_ring(emb)
+                C_orig = C_orig.change_ring(emb)
+                X = X.change_ring(emb)
+                pts = [PP(pt.change_ring(emb)) for pt in pts]
                 newpts = [PP(list(pt) + [0]) for pt in X.rational_points()]
+                # avoid duplicates
                 for pt in newpts:
                     if not PP(list(pt)) in [PP(list(tpt)) for tpt in pts]:
                         pts.append(pt)
-        H = Hom(C_orig, PP)
-        phi = H(coords)
-        return tuple([phi, C])
+        return phi
 
     def is_transverse(self, C, P):
         r"""

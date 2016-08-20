@@ -418,12 +418,22 @@ class SpecializationMorphism(Morphism):
         new_vars = [[t for t in v if t not in newD.keys()] for v in old_vars]
         new_vars.reverse()
         R = ring.base_ring()
+        new_gens=[]
         for i in range(len(new_vars)):
             if new_vars[i] != []:
                 R = PolynomialRing(R, new_vars[i])
+                new_gens.extend(list(R.gens()))
+        old_gens = [t for v in new_vars for t in v]
 
         #unflattening eval
-        vals = [t.subs(newD) for t in phi.codomain().gens()]
+        vals = []
+        ind = 0
+        for t in phi.codomain().gens():
+            if t in newD.keys():
+                vals.append(newD[t])
+            else:
+                vals.append(new_gens[ind])
+                ind += 1
         psi = phi.codomain().hom(vals, R)
         self._unflattening_morph = psi
 

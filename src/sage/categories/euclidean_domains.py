@@ -101,6 +101,14 @@ class EuclideanDomains(Category_singleton):
                 ....:     (x+1)^3*(x+2)^3*(x+3), (x+1)*(x+2)*(x+3),
                 ....:     (x+1)*(x+2)*(x+4)])
                 [x + 3, x + 4, x^2 + 3*x + 2]
+
+            TESTS::
+
+                sage: R.<x> = QQ[]
+                sage: QQ.gcd_free_basis([x+1,x+2])
+                Traceback (most recent call last):
+                ...
+                TypeError: unable to convert x + 1 to an element of Rational Field
             """
             def refine(a, b):
                 g = a.gcd(b)
@@ -263,7 +271,9 @@ class EuclideanDomains(Category_singleton):
 
             - ``other`` -- an element in the same euclidean domain
 
-            OUTPUT
+            OUTPUT:
+
+            a pair of elements
 
             EXAMPLES::
 

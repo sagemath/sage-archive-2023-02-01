@@ -949,7 +949,7 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
 
     def fraction_field(self):
         r"""
-        Return the faction field used to represent the elements of ``self``.
+        Return the fraction field used to represent the elements of ``self``.
 
         EXAMPLES::
 

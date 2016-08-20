@@ -937,11 +937,6 @@ in a separate file::
     sage: x._mul_.__module__
     'sage.categories.coercion_methods'
 
-But we can check that it is indeed provided by the Magmas category::
-
-    sage: x.__mul__.im_func is Magmas.ElementMethods.__mul__.im_func
-    True
-
 ``_mul_`` is a default implementation, also provided by the
 :class:`Magmas` category, that delegates the work to the method
 ``product`` of the parent (following the advice: if you do not know

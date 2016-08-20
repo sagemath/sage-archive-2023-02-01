@@ -37,11 +37,11 @@ implemented here.
 
    .. math::
 
-       {\frac{1}{r^2}}{\frac{\partial}{\partial r}}
-       \left(r^2 {\frac{\partial f}{\partial r}}\right) +
-       {\frac{1}{r^2}\sin\theta}{\frac{\partial}{\partial \theta}}
-       \left(\sin\theta {\frac{\partial f}{\partial \theta}}\right) +
-       {\frac{1}{r^2\sin^2\theta}}{\frac{\partial^2 f}{\partial \varphi^2}} = 0.
+       \frac{1}{r^2} \frac{\partial}{\partial r}
+       \left( r^2 \frac{\partial f}{\partial r} \right) +
+       \frac{1}{r^2\sin\theta} \frac{\partial}{\partial \theta}
+       \left( \sin\theta \frac{\partial f}{\partial \theta} \right) +
+       \frac{1}{r^2\sin^2\theta} \frac{\partial^2 f}{\partial \varphi^2} = 0.
 
 
    Note that the spherical coordinates `\theta` and
@@ -84,9 +84,9 @@ implemented here.
 
    .. math::
 
-         Y_\ell^m( \theta , \varphi ) =
-         \sqrt{{\frac{(2\ell+1)}{4\pi}}{\frac{(\ell-m)!}{(\ell+m)!}}}
-         \cdot e^{i m \varphi } \cdot P_\ell^m ( \cos{\theta} ) .
+         Y_\ell^m( \theta , \varphi ) = (-1)^m
+         \sqrt{ \frac{(2\ell+1)}{4\pi} \frac{(\ell-m)!}{(\ell+m)!} }
+         \, e^{i m \varphi } \, P_\ell^m ( \cos{\theta} ) .
 
 
 

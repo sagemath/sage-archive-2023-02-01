@@ -732,7 +732,7 @@ class DiGraphGenerators():
         EXAMPLE::
 
             sage: GB = digraphs.GeneralizedDeBruijn(8, 2)
-            sage: GB.is_isomorphic(digraphs.DeBruijn(2, 3), certify = True)
+            sage: GB.is_isomorphic(digraphs.DeBruijn(2, 3), certificate = True)
             (True, {0: '000', 1: '001', 2: '010', 3: '011', 4: '100', 5: '101', 6: '110', 7: '111'})
 
         TESTS:
@@ -800,11 +800,11 @@ class DiGraphGenerators():
         EXAMPLES::
 
             sage: II = digraphs.ImaseItoh(8, 2)
-            sage: II.is_isomorphic(digraphs.DeBruijn(2, 3), certify = True)
+            sage: II.is_isomorphic(digraphs.DeBruijn(2, 3), certificate = True)
             (True, {0: '010', 1: '011', 2: '000', 3: '001', 4: '110', 5: '111', 6: '100', 7: '101'})
 
             sage: II = digraphs.ImaseItoh(12, 2)
-            sage: II.is_isomorphic(digraphs.Kautz(2, 3), certify = True)
+            sage: II.is_isomorphic(digraphs.Kautz(2, 3), certificate = True)
             (True, {0: '010', 1: '012', 2: '021', 3: '020', 4: '202', 5: '201', 6: '210', 7: '212', 8: '121', 9: '120', 10: '102', 11: '101'})
 
 
@@ -883,7 +883,7 @@ class DiGraphGenerators():
         EXAMPLES::
 
             sage: K = digraphs.Kautz(2, 3)
-            sage: K.is_isomorphic(digraphs.ImaseItoh(12, 2), certify = True)
+            sage: K.is_isomorphic(digraphs.ImaseItoh(12, 2), certificate = True)
             (True,
              {'010': 0,
               '012': 1,

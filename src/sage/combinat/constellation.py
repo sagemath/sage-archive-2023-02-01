@@ -252,7 +252,7 @@ class Constellation_class(Element):
     def switch(self, i, j0, j1):
         r"""
         Perform the multiplication by the transposition `(j0, j1)` between the
-        permutationgs `g_i` and `g_{i+1}`.
+        permutations `g_i` and `g_{i+1}`.
 
         The modification is local in the sense that it modifies `g_i`
         and `g_{i+1}` but does not modify the product `g_i g_{i+1}`. The new

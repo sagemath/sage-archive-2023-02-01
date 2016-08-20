@@ -1121,8 +1121,8 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             M = Integer(m)/2 - Integer(1)/2
 
 
-        # boolian determining when to move a folding in KR case
-        KR_test = finite_cartan_type and i==0
+        # boolean determining when to move a folding in KR case
+        KR_test = finite_cartan_type and i == 0
         KR_test = KR_test and M > 1
 
         # In the KR case, we return a value other than None when

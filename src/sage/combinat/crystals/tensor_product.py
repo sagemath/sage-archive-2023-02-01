@@ -1471,7 +1471,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: T = crystals.TensorProduct(K,K,K)
             sage: hw = sorted([x for x in T if x.is_highest_weight([1,2])])
             sage: for b in hw:
-            ....:     print "{} {}".format(b, b.energy_function())
+            ....:     print("{} {}".format(b, b.energy_function()))
             [[[1]], [[1]], [[1]]] 0
             [[[1]], [[2]], [[1]]] 2
             [[[2]], [[1]], [[1]]] 1
@@ -1481,7 +1481,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: T = crystals.TensorProduct(K,K)
             sage: hw = [x for x in T if x.is_highest_weight([1,2])]
             sage: for b in hw:
-            ....:     print "{} {}".format(b, b.energy_function())
+            ....:     print("{} {}".format(b, b.energy_function()))
             [[], []] 4
             [[], [[1, 1]]] 1
             [[[1, 1]], []] 3

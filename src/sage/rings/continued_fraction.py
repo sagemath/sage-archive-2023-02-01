@@ -1094,18 +1094,20 @@ class ContinuedFraction_base(SageObject):
 
     def numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
-        Return a numerical approximation of this continued fraction.
+        Return a numerical approximation of this continued fraction with
+        ``prec`` bits (or decimal ``digits``) of precision.
 
         INPUT:
 
-        - ``prec`` - the precision
+        - ``prec`` -- precision in bits
 
-        - ``digits`` - the number of digits
+        - ``digits`` -- precision in decimal digits (only used if
+          ``prec`` is not given)
 
-        - ``algorithm`` - the algorithm to use
+        - ``algorithm`` -- ignored for continued fractions
 
-        See :func:`sage.misc.functional.numerical_approx` for more information
-        on the input.
+        If neither ``prec`` nor ``digits`` is given, the default
+        precision is 53 bits (roughly 16 digits).
 
         EXAMPLES::
 
@@ -1123,10 +1125,12 @@ class ContinuedFraction_base(SageObject):
             sage: cf.n(digits=33)
             1.28102513329556981555293038097590
         """
-        import sage.misc.functional
-        return sage.misc.functional.numerical_approx(self, prec=prec,
-                                                     digits=digits,
-                                                     algorithm=algorithm)
+        from sage.arith.numerical_approx import (digits_to_bits,
+                numerical_approx_generic)
+        if prec is None:
+            prec = digits_to_bits(digits)
+        return numerical_approx_generic(self, prec)
+
     n = numerical_approx
 
 

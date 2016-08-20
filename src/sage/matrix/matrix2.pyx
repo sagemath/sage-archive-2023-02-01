@@ -47,6 +47,7 @@ from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.misc.derivative import multi_derivative
+from sage.arith.numerical_approx cimport digits_to_bits
 from copy import copy
 
 import sage.modules.free_module
@@ -7577,7 +7578,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         M_B = self.as_bipartite_graph()
         N_B = N.as_bipartite_graph()
         if check:
-            truth, perm = N_B.is_isomorphic(M_B, certify=True, edge_labels=True)
+            truth, perm = N_B.is_isomorphic(M_B, certificate=True, edge_labels=True)
             from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
             if perm:
                 s = sorted(perm.items(), key=lambda x:x[0])
@@ -7586,7 +7587,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                 perm = (PermutationGroupElement(row_perms), PermutationGroupElement(col_perms))
             return truth, perm
         else:
-            return N_B.is_isomorphic(M_B, certify=False, edge_labels=True)
+            return N_B.is_isomorphic(M_B, certificate=False, edge_labels=True)
 
     #####################################################################################
     # Windowed Strassen Matrix Multiplication and Echelon
@@ -8291,12 +8292,12 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         """
         Return True if this matrix is a scalar matrix.
 
-        INPUT
+        INPUT:
 
         - base_ring element a, which is chosen as self[0][0] if
           a = None
 
-        OUTPUT
+        OUTPUT:
 
         - whether self is a scalar matrix (in fact the scalar matrix
           aI if a is input)
@@ -8780,9 +8781,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [  -2    1]
             [ 3/2 -1/2]
             sage: ~m
-            [  -2    1]
-            [ 3/2 -1/2]
-            sage: m.I
             [  -2    1]
             [ 3/2 -1/2]
 
@@ -12932,23 +12930,21 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         if p == 'frob':
             return sum([i**2 for i in A.list()]).sqrt()
 
-    def _numerical_approx(self, prec=None, digits=None, algorithm=None):
+    def numerical_approx(self, prec=None, digits=None, algorithm=None):
         r"""
-        Return a numerical approximation of ``self`` as either
-        a real or complex number with at least the requested number of bits
-        or digits of precision.
+        Return a numerical approximation of ``self`` with ``prec`` bits
+        (or decimal ``digits``) of precision.
 
         INPUT:
 
+        - ``prec`` -- precision in bits
 
-        -  ``prec`` - an integer: the number of bits of
-           precision
+        - ``digits`` -- precision in decimal digits (only used if
+          ``prec`` is not given)
 
-        -  ``digits`` - an integer: digits of precision
+        - ``algorithm`` -- ignored for matrices
 
-
-        OUTPUT: A matrix coerced to a real or complex field with prec bits
-        of precision.
+        OUTPUT: A matrix converted to a real or complex field
 
         EXAMPLES::
 
@@ -13004,25 +13000,15 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [0.750000000000000 0.800000000000000 0.833333333333333]
             [0.857142857142857 0.875000000000000 0.888888888888889]
             [0.900000000000000 0.909090909090909 0.916666666666667]
-
         """
-
         if prec is None:
-            if digits is None:
-                prec = 53
-            else:
-                prec = int(digits * 3.4) + 2
+            prec = digits_to_bits(digits)
 
         try:
             return self.change_ring(sage.rings.real_mpfr.RealField(prec))
         except TypeError:
             # try to return a complex result
             return self.change_ring(sage.rings.complex_field.ComplexField(prec))
-
-    #This line is added so the doctest are visible
-    numerical_approx=_numerical_approx
-    n=_numerical_approx
-    N=_numerical_approx
 
     def plot(self, *args, **kwds):
         """
@@ -13063,9 +13049,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         """
         from sage.plot.plot import matrix_plot
         return matrix_plot(self, *args, **kwds)
-
-    #added this to make doctests visible to users
-    numerical_approx=_numerical_approx
 
     def derivative(self, *args):
         """
@@ -13775,7 +13758,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         If ``transformation`` is ``True``, then the output is a pair of
         matrices.  The first is the form ``Z`` and the second is an invertible
         matrix ``U`` such that ``U.inverse()*self*U`` equals ``Z``.  In other
-        words, the repsentation of ``self`` with respect to the columns
+        words, the representation of ``self`` with respect to the columns
         of ``U`` will be ``Z``.
 
         If subdivide is ``True`` then the matrix returned as the form is
@@ -14509,6 +14492,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         """
         return self.conjugate().transpose()
 
+
     @property
     def I(self):
         r"""
@@ -14521,6 +14505,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ...                   [-1, -2, -2,  0],
             ...                   [-2, -1,  0, -4]])
             sage: A.I
+            doctest:...: DeprecationWarning: The I property on matrices has been deprecated. Please use the inverse() method instead.
+            See http://trac.sagemath.org/20904 for details.
             [ 0  2  1  0]
             [-4 -8 -2  7]
             [ 4  7  1 -7]
@@ -14535,6 +14521,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ...
             ZeroDivisionError: input matrix must be nonsingular
         """
+        from sage.misc.superseded import deprecation
+        deprecation(20904, "The I property on matrices has been deprecated. Please use the inverse() method instead.")
         return ~self
 
 

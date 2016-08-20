@@ -1828,7 +1828,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
         - ``k`` - Integer of type ``long``
 
-        OUTPUT
+        OUTPUT:
 
         - Result of type ``IntegerMod_gmp``
 

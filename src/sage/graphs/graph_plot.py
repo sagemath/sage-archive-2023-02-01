@@ -386,7 +386,7 @@ class GraphPlot(SageObject):
                 GP = g.graphplot(vertex_size=100, edge_labels=True, color_by_label=True,
                                  edge_style='dashed')
                 GP.set_vertices(talk=True)
-                GP.set_vertices(vertex_colors='pink', vertex_shape='^')
+                GP.set_vertices(vertex_color='green', vertex_shape='^')
                 sphinx_plot(GP)
 
         """

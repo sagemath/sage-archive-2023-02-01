@@ -205,7 +205,14 @@ size_t relational::nops() const
 	return 2;
 }
 
-ex relational::op(size_t i) const
+const ex relational::op(size_t i) const
+{
+	GINAC_ASSERT(i<2);
+
+	return i==0 ? lh : rh;
+}
+
+ex & relational::let_op(size_t i)
 {
 	GINAC_ASSERT(i<2);
 

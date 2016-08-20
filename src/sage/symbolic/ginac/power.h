@@ -57,7 +57,8 @@ public:
 	unsigned precedence() const override {return 60;}
 	bool info(unsigned inf) const override;
 	size_t nops() const override;
-	ex op(size_t i) const override;
+	const ex op(size_t i) const override;
+	ex & let_op(size_t i) override;
 	ex map(map_function & f) const override;
 	bool is_polynomial(const ex & var) const override;
 	int degree(const ex & s) const override;

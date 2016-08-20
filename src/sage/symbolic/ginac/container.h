@@ -365,7 +365,7 @@ public:
 	bool info(unsigned inf) const override { return inherited::info(inf); }
 	unsigned precedence() const { return 10; }
 	size_t nops() const { return this->seq.size(); }
-	ex op(size_t i) const;
+	const ex op(size_t i) const;
 	ex & let_op(size_t i);
 	ex eval(int level = 0) const;
 	ex subs(const exmap & m, unsigned options = 0) const;
@@ -544,7 +544,7 @@ void container<C>::do_print_python_repr(const print_python_repr & c, unsigned) c
 }
 
 template <template <class T, class = std::allocator<T> > class C>
-ex container<C>::op(size_t i) const
+const ex container<C>::op(size_t i) const
 {
 	GINAC_ASSERT(i < nops());
 

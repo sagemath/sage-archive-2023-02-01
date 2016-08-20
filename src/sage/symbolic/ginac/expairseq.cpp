@@ -299,7 +299,7 @@ size_t expairseq::nops() const
 		return seq.size()+1;
 }
 
-ex expairseq::op(size_t i) const
+const ex expairseq::op(size_t i) const
 {
 	if (i < seq.size())
 		return recombine_pair_to_ex(seq[i]);

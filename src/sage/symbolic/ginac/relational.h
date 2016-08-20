@@ -61,7 +61,8 @@ public:
 	unsigned precedence() const override {return 20;}
 	bool info(unsigned inf) const override;
 	size_t nops() const override;
-	ex op(size_t i) const override;
+	const ex op(size_t i) const override;
+        ex & let_op(size_t i) override;
 	ex map(map_function & f) const override;
 	ex subs(const exmap & m, unsigned options = 0) const override;
 	ex eval(int level=0) const override;

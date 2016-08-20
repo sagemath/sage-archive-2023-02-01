@@ -188,7 +188,7 @@ size_t matrix::nops() const
 }
 
 /** returns matrix entry at position (i/col, i%col). */
-ex matrix::op(size_t i) const
+const ex matrix::op(size_t i) const
 {
 	GINAC_ASSERT(i<nops());
 	

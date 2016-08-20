@@ -50,7 +50,7 @@ public:
 public:
 	bool info(unsigned inf) const override;
 	size_t nops() const override;
-	ex op(size_t i) const override;
+	const ex op(size_t i) const override;
 	ex map(map_function & f) const override;
 	ex evalf(int level = 0, PyObject* parent = nullptr) const override;
 	ex subs(const exmap & m, unsigned options = 0) const override;

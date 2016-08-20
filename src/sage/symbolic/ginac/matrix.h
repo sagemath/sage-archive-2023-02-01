@@ -112,7 +112,7 @@ public:
 	// functions overriding virtual functions from base classes
 public:
 	size_t nops() const override;
-	ex op(size_t i) const override;
+	const ex op(size_t i) const override;
 	ex & let_op(size_t i) override;
 	ex eval(int level=0) const override;
 	ex evalm() const override {return *this;}

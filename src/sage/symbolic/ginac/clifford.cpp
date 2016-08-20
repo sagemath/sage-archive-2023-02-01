@@ -196,7 +196,7 @@ bool clifford::same_metric(const ex & other) const
 // functions overriding virtual functions from base classes
 //////////
 
-ex clifford::op(size_t i) const
+const ex clifford::op(size_t i) const
 {
 	GINAC_ASSERT(i<nops());
 	if (nops()-i == 1)

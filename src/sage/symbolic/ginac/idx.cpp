@@ -248,7 +248,7 @@ size_t idx::nops() const
 	return 1;
 }
 
-ex idx::op(size_t i) const
+const ex idx::op(size_t i) const
 {
 	GINAC_ASSERT(i == 0);
 	return value;

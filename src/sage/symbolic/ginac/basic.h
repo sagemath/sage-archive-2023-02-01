@@ -173,7 +173,7 @@ public:
 
 	// operand access
 	virtual size_t nops() const;
-	virtual ex op(size_t i) const;
+	virtual const ex op(size_t i) const;
 	virtual ex operator[](const ex & index) const;
 	virtual ex operator[](size_t i) const;
 	virtual ex & let_op(size_t i);

@@ -82,7 +82,7 @@ public:
 	unsigned precedence() const override {return 10;}
 	bool info(unsigned inf) const override;
 	size_t nops() const override;
-	ex op(size_t i) const override;
+	const ex op(size_t i) const override;
 	virtual ex stable_op(size_t i) const;
 	ex map(map_function & f) const override;
 	ex eval(int level=0) const override;

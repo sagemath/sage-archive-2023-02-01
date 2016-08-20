@@ -346,7 +346,7 @@ size_t integral::nops() const
 	return 4;
 }
 
-ex integral::op(size_t i) const
+const ex integral::op(size_t i) const
 {
 	GINAC_ASSERT(i<4);
 

@@ -267,7 +267,7 @@ size_t pseries::nops() const
 }
 
 /** Return the ith term in the series when represented as a sum. */
-ex pseries::op(size_t i) const
+const ex pseries::op(size_t i) const
 {
 	if (i >= seq.size())
 		throw (std::out_of_range("op() out of range"));

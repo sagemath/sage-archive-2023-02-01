@@ -46,7 +46,7 @@ public:
 	int ldegree(const ex & s) const override;
 	ex eval_ncmul(const exvector & v) const override;
 	size_t nops() const override;
-	ex op(size_t i) const override;
+	const ex op(size_t i) const override;
 	ex & let_op(size_t i) override;
 	ex expand(unsigned options = 0) const override;
 	exvector get_free_indices() const override;

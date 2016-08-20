@@ -246,7 +246,7 @@ size_t basic::nops() const
 }
 
 /** Return operand/member at position i. */
-ex basic::op(size_t /*unused*/) const
+const ex basic::op(size_t /*unused*/) const
 {
 	throw(std::range_error(std::string("basic::op(): ") + class_name() + std::string(" has no operands")));
 }

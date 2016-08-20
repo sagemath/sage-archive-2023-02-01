@@ -149,7 +149,7 @@ public:
 	size_t nsymbols() const;
         bool get_first_symbol(ex &x) const;
         symbolset symbols() const;
-	ex op(size_t i) const { return bp->op(i); }
+	const ex op(size_t i) const { return bp->op(i); }
 	ex sorted_op(size_t i) const;
 	ex operator[](const ex & index) const { return (*bp)[index]; }
 	ex operator[](size_t i) const { return (*bp)[i]; }

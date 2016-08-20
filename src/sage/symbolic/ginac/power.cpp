@@ -355,7 +355,14 @@ size_t power::nops() const
 	return 2;
 }
 
-ex power::op(size_t i) const
+const ex power::op(size_t i) const
+{
+	GINAC_ASSERT(i<2);
+
+	return i==0 ? basis : exponent;
+}
+
+ex & power::let_op(size_t i)
 {
 	GINAC_ASSERT(i<2);
 

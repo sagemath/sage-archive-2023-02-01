@@ -73,7 +73,7 @@ public:
 	int get_commutator_sign() const { return commutator_sign; } //**< See the member variable commutator_sign */
 
 	inline size_t nops() const override {return inherited::nops() + 1; }
-	ex op(size_t i) const override;
+	const ex op(size_t i) const override;
 	ex & let_op(size_t i) override;
 	ex subs(const exmap & m, unsigned options = 0) const override;
 

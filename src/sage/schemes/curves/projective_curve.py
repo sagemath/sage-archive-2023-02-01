@@ -45,6 +45,7 @@ from sage.interfaces.all import singular
 from sage.matrix.constructor import matrix
 from sage.misc.all import add, sage_eval
 from sage.rings.all import degree_lowest_rational_function
+from sage.rings.number_field.number_field import NumberField
 from sage.rings.qqbar import (number_field_elements_from_algebraics,
                               QQbar)
 from sage.rings.rational_field import is_RationalField
@@ -967,31 +968,56 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: set_verbose(-1)
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: C = Curve([y^2*z^2 - x^4 - x^3*z], P)
-            sage: C.ordinary_model() # long time (1 second)
+            sage: C.ordinary_model() # long time (2 seconds)
             Scheme morphism:
               From: Projective Plane Curve over Rational Field defined by -x^4 -
             x^3*z + y^2*z^2
-              To:   Projective Plane Curve over Rational Field defined by x^4*y^2 +
-            2*x^3*y^3 + x^2*y^4 + 3*x^4*y*z + x^3*y^2*z + 5*x^2*y^3*z - x*y^4*z +
-            x^4*z^2 + 3*x^3*y*z^2 - 2*x^2*y^2*z^2 + 3*x*y^3*z^2 - y^4*z^2
+              To:   Projective Plane Curve over Rational Field defined by 4*x^6*y^3
+            - 24*x^5*y^4 + 36*x^4*y^5 + 8*x^6*y^2*z - 40*x^5*y^3*z + 24*x^4*y^4*z +
+            72*x^3*y^5*z - 4*x^6*y*z^2 + 8*x^5*y^2*z^2 - 56*x^4*y^3*z^2 +
+            104*x^3*y^4*z^2 + 44*x^2*y^5*z^2 + 8*x^6*z^3 - 16*x^5*y*z^3 -
+            24*x^4*y^2*z^3 + 40*x^3*y^3*z^3 + 48*x^2*y^4*z^3 + 8*x*y^5*z^3 -
+            8*x^5*z^4 + 36*x^4*y*z^4 - 56*x^3*y^2*z^4 + 20*x^2*y^3*z^4 +
+            40*x*y^4*z^4 - 16*y^5*z^4
               Defn: Defined on coordinates by sending (x : y : z) to
-                    (-1/4*x^2 + 1/2*x*y - 1/4*y^2 - 1/2*x*z + 1/2*y*z : 1/4*x^2 -
-            1/4*y^2 + 1/2*x*z + 1/2*y*z : -1/4*x^2 + 1/4*y^2)
+                    (-3/64*x^4 + 9/64*x^2*y^2 - 3/32*x*y^3 - 1/16*x^3*z -
+            1/8*x^2*y*z + 1/4*x*y^2*z - 1/16*y^3*z - 1/8*x*y*z^2 + 1/16*y^2*z^2 :
+            -1/64*x^4 + 3/64*x^2*y^2 - 1/32*x*y^3 + 1/16*x*y^2*z - 1/16*y^3*z +
+            1/16*y^2*z^2 : 3/64*x^4 - 3/32*x^3*y + 3/64*x^2*y^2 + 1/16*x^3*z -
+            3/16*x^2*y*z + 1/8*x*y^2*z - 1/8*x*y*z^2 + 1/16*y^2*z^2)
 
         ::
 
             sage: set_verbose(-1)
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
-            sage: C = Curve([(x^2 + y^2 - y*z - 2*z^2)*(y*z - x^2 + 2*z^2) + y^4], P)
-            sage: C.ordinary_model() # long time (3 seconds)
-            (Scheme morphism:
-               From: Projective Plane Curve over Number Field in a with defining
-            polynomial y^2 - 2 defined by -x^4 - x^2*y^2 + y^4 + 2*x^2*y*z + y^3*z +
-            4*x^2*z^2 + y^2*z^2 - 4*y*z^3 - 4*z^4
-               To:   Projective Space of dimension 2 over Number Field in a with
-            defining polynomial y^2 - 2
-               Defn: Defined on coordinates by sending (x : y : z) to
-                     ((-5/128*a - 5/128)*x^4 + (-5/32*a + 5/32)*x^3*y + (-1/16*a +
+            sage: C = Curve([(x^2 + y^2 - y*z - 2*z^2)*(y*z - x^2 + 2*z^2)*z + y^5], P)
+            sage: C.ordinary_model() # long time (5 seconds)
+            Scheme morphism:
+              From: Projective Plane Curve over Number Field in a with defining
+            polynomial y^2 - 2 defined by y^5 - x^4*z - x^2*y^2*z + 2*x^2*y*z^2 +
+            y^3*z^2 + 4*x^2*z^3 + y^2*z^3 - 4*y*z^4 - 4*z^5
+              To:   Projective Plane Curve over Number Field in a with defining
+            polynomial y^2 - 2 defined by (-29*a + 1)*x^8*y^6 + (10*a + 158)*x^7*y^7
+            + (-109*a - 31)*x^6*y^8 + (-80*a - 198)*x^8*y^5*z + (531*a +
+            272)*x^7*y^6*z + (170*a - 718)*x^6*y^7*z + (19*a - 636)*x^5*y^8*z +
+            (-200*a - 628)*x^8*y^4*z^2 + (1557*a - 114)*x^7*y^5*z^2 + (2197*a -
+            2449)*x^6*y^6*z^2 + (1223*a - 3800)*x^5*y^7*z^2 + (343*a -
+            1329)*x^4*y^8*z^2 + (-323*a - 809)*x^8*y^3*z^3 + (1630*a -
+            631)*x^7*y^4*z^3 + (4190*a - 3126)*x^6*y^5*z^3 + (3904*a -
+            7110)*x^5*y^6*z^3 + (1789*a - 5161)*x^4*y^7*z^3 + (330*a -
+            1083)*x^3*y^8*z^3 + (-259*a - 524)*x^8*y^2*z^4 + (720*a -
+            605)*x^7*y^3*z^4 + (3082*a - 2011)*x^6*y^4*z^4 + (4548*a -
+            5462)*x^5*y^5*z^4 + (2958*a - 6611)*x^4*y^6*z^4 + (994*a -
+            2931)*x^3*y^7*z^4 + (117*a - 416)*x^2*y^8*z^4 + (-108*a - 184)*x^8*y*z^5
+            + (169*a - 168)*x^7*y^2*z^5 + (831*a - 835)*x^6*y^3*z^5 + (2225*a -
+            1725)*x^5*y^4*z^5 + (1970*a - 3316)*x^4*y^5*z^5 + (952*a -
+            2442)*x^3*y^6*z^5 + (217*a - 725)*x^2*y^7*z^5 + (16*a - 77)*x*y^8*z^5 +
+            (-23*a - 35)*x^8*z^6 + (43*a + 24)*x^7*y*z^6 + (21*a - 198)*x^6*y^2*z^6
+            + (377*a - 179)*x^5*y^3*z^6 + (458*a - 537)*x^4*y^4*z^6 + (288*a -
+            624)*x^3*y^5*z^6 + (100*a - 299)*x^2*y^6*z^6 + (16*a - 67)*x*y^7*z^6 -
+            5*y^8*z^6
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    ((-5/128*a - 5/128)*x^4 + (-5/32*a + 5/32)*x^3*y + (-1/16*a +
             3/32)*x^2*y^2 + (1/16*a - 1/16)*x*y^3 + (1/32*a - 1/32)*y^4 - 1/32*x^3*z
             + (3/16*a - 5/8)*x^2*y*z + (1/8*a - 5/16)*x*y^2*z + (1/8*a +
             5/32)*x^2*z^2 + (-3/16*a + 5/16)*x*y*z^2 + (-3/16*a - 1/16)*y^2*z^2 +
@@ -1004,18 +1030,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             1/32)*x^3*y + (3/32*a - 9/32)*x^2*y^2 + (1/16*a - 3/16)*x*y^3 - 1/32*y^4
             + (3/32*a + 1/8)*x^2*y*z + (-1/8*a + 1/8)*x*y^2*z + (-1/16*a)*y^3*z +
             (-1/16*a - 3/32)*x^2*z^2 + (1/16*a + 1/16)*x*y*z^2 + (3/16*a +
-            3/16)*y^2*z^2 + (-3/16*a - 1/4)*y*z^3 + (1/16*a + 3/32)*z^4),
-             Projective Plane Curve over Number Field in a with defining polynomial
-            y^2 - 2 defined by (30*a - 59)*x^6*y^4 + (148*a - 138)*x^5*y^5 + (78*a -
-            187)*x^4*y^6 + (30*a - 141)*x^6*y^3*z + (432*a - 297)*x^5*y^4*z + (422*a
-            - 743)*x^4*y^5*z + (140*a - 355)*x^3*y^6*z + (-25*a - 149)*x^6*y^2*z^2 +
-            (413*a - 203)*x^5*y^3*z^2 + (673*a - 817)*x^4*y^4*z^2 + (395*a -
-            905)*x^3*y^5*z^2 + (80*a - 230)*x^2*y^6*z^2 + (-30*a - 71)*x^6*y*z^3 +
-            (127*a - 87)*x^5*y^2*z^3 + (422*a - 273)*x^4*y^3*z^3 + (350*a -
-            665)*x^3*y^4*z^3 + (140*a - 380)*x^2*y^5*z^3 + (15*a - 60)*x*y^6*z^3 +
-            (-5*a - 9)*x^6*z^4 + (-2*a - 33)*x^5*y*z^4 + (93*a - 7)*x^4*y^2*z^4 +
-            (95*a - 135)*x^3*y^3*z^4 + (60*a - 145)*x^2*y^4*z^4 + (15*a -
-            50)*x*y^5*z^4 - 5*y^6*z^4)
+            3/16)*y^2*z^2 + (-3/16*a - 1/4)*y*z^3 + (1/16*a + 3/32)*z^4)
         """
         # helper function for extending the base field
         def extension(self):
@@ -1063,7 +1078,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                 for i in range(len(pts) - 1, -1, -1):
                     # find image if it is a point the composition map is defined on
                     try:
-                        temp_pt = temp_qua*temp_exc(temp_exc.domain()(pts[i]))
+                        temp_pt = (temp_qua*temp_exc)(temp_exc.domain()(pts[i]))
                         pts.pop(i)
                         if not PP(list(temp_pt)) in [PP(list(tpt)) for tpt in pts]:
                             pts.append(temp_pt)

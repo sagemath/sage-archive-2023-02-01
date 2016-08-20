@@ -2957,7 +2957,7 @@ class FinitePoset(UniqueRepresentation, Parent):
            An Optimal Algorithm to Find the Jump Number of Partially Ordered Sets
            Computational Optimization and Applications,
            1997, Volume 8, Issue 2, pp 197--210,
-           http://link.springer.com/article/10.1023/A%3A1008625405476
+           :doi:`10.1023/A:1008625405476`
 
         TESTS::
 

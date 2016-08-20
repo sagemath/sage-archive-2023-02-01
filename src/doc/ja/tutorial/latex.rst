@@ -1,5 +1,5 @@
 *********************************
-Sage，LaTexと仲間たち
+Sage，LaTeXと仲間たち
 *********************************
 
 著者: Rob Beezer (2010-05-23)
@@ -206,12 +206,12 @@ LaTeXで使われるバックスラッシュには，Pythonの文字列内でエ
     sage: latex.extra_macros('')
     sage: latex.extra_preamble('')
     sage: from sage.misc.latex import latex_extra_preamble
-    sage: print latex_extra_preamble()
+    sage: print(latex_extra_preamble())
     \newcommand{\ZZ}{\Bold{Z}}
     ...
     \newcommand{\Bold}[1]{\mathbf{#1}}
     sage: latex.add_macro("\\newcommand{\\foo}{bar}")
-    sage: print latex_extra_preamble()
+    sage: print(latex_extra_preamble())
     \newcommand{\ZZ}{\Bold{Z}}
     ...
     \newcommand{\Bold}[1]{\mathbf{#1}}
@@ -235,7 +235,7 @@ LaTeXで使われるバックスラッシュには，Pythonの文字列内でエ
     sage: latex.add_to_preamble('\\geometry{letterpaper,total={8in,10in}}')
     sage: latex.extra_preamble()
     '\\usepackage{geometry}\\geometry{letterpaper,total={8in,10in}}'
-    sage: print latex_extra_preamble()
+    sage: print(latex_extra_preamble())
     \usepackage{geometry}\geometry{letterpaper,total={8in,10in}}
     \newcommand{\ZZ}{\Bold{Z}}
     ...
@@ -302,8 +302,8 @@ LaTeX処理のカスタマイズ
 変換が実際にどう実行されるかについては，いくつもの要因が影響している．
 しかし大勢は，TeX実行形式として何が指定されているか，そして利用可能な変換ユーティリティは何かによって決まるようだ．
 ``dvips``, ``ps2pdf``, ``dvipng`` そして ``ImageMagick`` に含まれる ``convert`` の四種の優秀な変換ユーティリティがあれば，あらゆる状況に対処できるだろう．
-目標はワークシートに挿入して表示可能なPNGファイルを生成することで，LaTeX表式からdvi形式へのLatexエンジンによる変換が成功していれば，dvipngが変換を仕上げてくれる．
-LaTeX表式とLatexエンジンの生成するdvi形式にdvipngが扱えないspecial命令が入っている場合には，dvipsでポストスクリプトファイルへ変換する．
+目標はワークシートに挿入して表示可能なPNGファイルを生成することで，LaTeX表式からdvi形式へのLaTeXエンジンによる変換が成功していれば，dvipngが変換を仕上げてくれる．
+LaTeX表式とLaTeXエンジンの生成するdvi形式にdvipngが扱えないspecial命令が入っている場合には，dvipsでポストスクリプトファイルへ変換する．
 ポストスクリプトあるいは ``pdflatex`` エンジンによって出力されたPDFファイルは  ``convert`` ユーティリティによってPNG形式へ変換される．
 ここで紹介した二つの変換ユーティリティは ``have_dvipng()`` と ``have_convert()`` ルーチンを使って存在を確認することができる．
 

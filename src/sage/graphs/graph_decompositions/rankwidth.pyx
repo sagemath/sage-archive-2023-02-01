@@ -121,9 +121,9 @@ Methods
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 from libc.string cimport memset
@@ -191,7 +191,7 @@ def rank_decomposition(G, verbose = False):
     for 0 <= i < n+1:
 
         if verbose:
-            print "Calculating for subsets of size ", i, "/",(n+1)
+            print("Calculating for subsets of size ", i, "/", n + 1)
 
         # We want to properly deal with exceptions, in particular
         # KeyboardInterrupt. Whatever happens, when this code fails the memory
@@ -284,9 +284,9 @@ cdef void print_rank_dec(subset_t s, int l):
     """
     global cslots
 
-    print ('\t'*l),
+    print('\t' * l, end="")
 
-    print "cslot: ", <unsigned int> s
+    print("cslot: ", <unsigned int> s)
     if cslots[s] == 0:
         return
     print_rank_dec(cslots[s], l + 1)
@@ -313,7 +313,7 @@ def mkgraph(int num_vertices):
     from sage.graphs.graph import Graph
     g = Graph()
 
-    cdef subset_t * tab = <subset_t *> sage_malloc(sizeof(subset_t) * (2*num_vertices -1))
+    cdef subset_t * tab = <subset_t *> sig_malloc(sizeof(subset_t) * (2*num_vertices -1))
     tab[0] = 0x7ffffffful >> (31 - num_vertices)
 
     cdef int beg = 0
@@ -335,7 +335,7 @@ def mkgraph(int num_vertices):
         tab[end] = cslots[s]
         end += 1
 
-    sage_free(tab)
+    sig_free(tab)
     return g
 
 cdef bitset_to_vertex_set(subset_t s):

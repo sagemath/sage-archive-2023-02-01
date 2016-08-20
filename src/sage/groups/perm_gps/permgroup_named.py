@@ -82,6 +82,7 @@ NOTE:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.rings.all      import Integer
 from sage.interfaces.all import gap
@@ -91,7 +92,7 @@ from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even
 from sage.misc.cachefunc import cached_method, weak_cached_function
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
-from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+from sage.groups.perm_gps.permgroup_element import SymmetricGroupElement
 from sage.structure.unique_representation import CachedRepresentation
 from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -275,7 +276,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         gens = [tuple(self._domain)]
         if len(self._domain) > 2:
             gens.append(tuple(self._domain[:2]))
-        self._gens = [PermutationGroupElement(g, self, check=False)
+        self._gens = [self._element_class()(g, self, check=False)
                       for g in gens]
 
     def _gap_init_(self, gap=None):
@@ -351,6 +352,19 @@ class SymmetricGroup(PermutationGroup_symalt):
         from sage.combinat.root_system.cartan_type import CartanType
         return CartanType(['A', max(self.degree() - 1,0)])
 
+    def coxeter_matrix(self):
+        r"""
+        Return the Coxeter matrix of ``self``.
+
+        EXAMPLES::
+
+            sage: A = SymmetricGroup([2,3,7,'a']); A.coxeter_matrix()
+            [1 3 2]
+            [3 1 3]
+            [2 3 1]
+        """
+        return self.cartan_type().coxeter_matrix()
+
     def simple_reflection(self, i):
         r"""
         For `i` in the index set of ``self``, this returns the
@@ -367,6 +381,20 @@ class SymmetricGroup(PermutationGroup_symalt):
             Finite family {2: (2,3), 3: (3,7)}
         """
         return self([(i, self._domain[self._domain.index(i)+1])], check=False)
+
+    def reflections(self):
+        """
+        Return the list of all reflections in ``self``.
+
+        EXAMPLES::
+
+            sage: A = SymmetricGroup(3)
+            sage: A.reflections()
+            [(1,2), (1,3), (2,3)]
+        """
+        from itertools import combinations
+        dom = self._domain
+        return [self([(i, j)], check=False) for i, j in combinations(dom, 2)]
 
     def young_subgroup(self, comp):
         """
@@ -590,6 +618,17 @@ class SymmetricGroup(PermutationGroup_symalt):
             return SymmetricGroupAlgebra(base_ring, self, category=category)
         else:
             return super(SymmetricGroup, self).algebra(base_ring)
+
+    def _element_class(self):
+        r"""
+        Return the class to be used for creating elements of this group.
+
+        EXAMPLE::
+
+            sage: SymmetricGroup(17)._element_class()
+            <type 'sage.groups.perm_gps.permgroup_element.SymmetricGroupElement'>
+        """
+        return SymmetricGroupElement
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):
@@ -1263,7 +1302,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
 
     REFERENCES:
 
-    .. [1] A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva Publishing, 1980)
+    .. [1] \A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva Publishing, 1980)
 
     AUTHOR:
 
@@ -1946,7 +1985,7 @@ class TransitiveGroupsOfDegree(CachedRepresentation, Parent):
     We write the cardinality of all transitive groups of degree 5::
 
         sage: for G in TransitiveGroups(5):    # optional - database_gap
-        ...       print G.cardinality()
+        ....:     print(G.cardinality())
         5
         10
         20
@@ -2343,7 +2382,7 @@ class PrimitiveGroupsOfDegree(CachedRepresentation, Parent):
     We write the cardinality of all primitive groups of degree 5::
 
         sage: for G in PrimitiveGroups(5):    # optional - database_gap
-        ...       print G.cardinality()
+        ....:     print(G.cardinality())
         5
         10
         20
@@ -2543,7 +2582,7 @@ class PGL(PermutationGroup_plg):
 
             sage: G = PGL(2,3); G
             Permutation Group with generators [(3,4), (1,2,4)]
-            sage: print G
+            sage: print(G)
             The projective general linear group of degree 2 over Finite Field of size 3
             sage: G.base_ring()
             Finite Field of size 3
@@ -2576,7 +2615,7 @@ class PGL(PermutationGroup_plg):
 
             sage: G = PGL(2,3); G
             Permutation Group with generators [(3,4), (1,2,4)]
-            sage: print G
+            sage: print(G)
             The projective general linear group of degree 2 over Finite Field of size 3
         """
         return "The projective general linear group of degree %s over %s"%(self._n, self.base_ring())
@@ -2608,7 +2647,7 @@ class PSL(PermutationGroup_plg):
             12
             sage: G.base_ring()
             Finite Field of size 3
-            sage: print G
+            sage: print(G)
             The projective special linear group of degree 2 over Finite Field of size 3
 
         We create two groups over nontrivial finite fields::
@@ -2662,7 +2701,7 @@ class PSL(PermutationGroup_plg):
         EXAMPLES::
 
             sage: G = PSL(2,3)
-            sage: print G
+            sage: print(G)
             The projective special linear group of degree 2 over Finite Field of size 3
         """
         return "The projective special linear group of degree %s over %s"%(self._n, self.base_ring())
@@ -2787,7 +2826,7 @@ class PSp(PermutationGroup_plg):
             Permutation Group with generators [(3,4)(6,7)(9,10)(12,13)(17,20)(18,21)(19,22)(23,32)(24,33)(25,34)(26,38)(27,39)(28,40)(29,35)(30,36)(31,37), (1,5,14,17,27,22,19,36,3)(2,6,32)(4,7,23,20,37,13,16,26,40)(8,24,29,30,39,10,33,11,34)(9,15,35)(12,25,38)(21,28,31)]
             sage: G.order()
             25920
-            sage: print G
+            sage: print(G)
             The projective symplectic linear group of degree 4 over Finite Field of size 3
             sage: G.base_ring()
             Finite Field of size 3
@@ -2816,7 +2855,7 @@ class PSp(PermutationGroup_plg):
         EXAMPLES::
 
             sage: G = PSp(4,3)
-            sage: print G
+            sage: print(G)
             The projective symplectic linear group of degree 4 over Finite Field of size 3
         """
         return "The projective symplectic linear group of degree %s over %s"%(self._n, self.base_ring())
@@ -2965,7 +3004,7 @@ class SuzukiGroup(PermutationGroup_unique):
             sage: SuzukiGroup(8)
             Permutation Group with generators [(1,2)(3,10)(4,42)(5,18)(6,50)(7,26)(8,58)(9,34)(12,28)(13,45)(14,44)(15,23)(16,31)(17,21)(19,39)(20,38)(22,25)(24,61)(27,60)(29,65)(30,55)(32,33)(35,52)(36,49)(37,59)(40,54)(41,62)(43,53)(46,48)(47,56)(51,63)(57,64),
             (1,28,10,44)(3,50,11,42)(4,43,53,64)(5,9,39,52)(6,36,63,13)(7,51,60,57)(8,33,37,16)(12,24,55,29)(14,30,48,47)(15,19,61,54)(17,59,22,62)(18,23,34,31)(20,38,49,25)(21,26,45,58)(27,32,41,65)(35,46,40,56)]
-            sage: print SuzukiGroup(8)
+            sage: print(SuzukiGroup(8))
             The Suzuki group over Finite Field in a of size 2^3
 
             sage: G = SuzukiGroup(32, name='alpha')
@@ -3010,7 +3049,7 @@ class SuzukiGroup(PermutationGroup_unique):
         EXAMPLES::
 
             sage: G = SuzukiGroup(32, name='alpha')
-            sage: print G
+            sage: print(G)
             The Suzuki group over Finite Field in alpha of size 2^5
 
         """

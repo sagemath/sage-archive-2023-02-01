@@ -13,7 +13,7 @@ multiplication algorithms.
 #
 #                  http://www.gnu.org/licenses/
 ################################################################################
-
+from __future__ import print_function
 
 from matrix_window cimport MatrixWindow
 
@@ -44,7 +44,7 @@ def strassen_window_multiply(C, A,B, cutoff):
     AUTHORS:
 
     - David Harvey
-    - Simon King (2011-07): Improve memory efficiency; trac ticket #11610
+    - Simon King (2011-07): Improve memory efficiency; :trac:`11610`
     """
     strassen_window_multiply_c(C, A, B, cutoff)
 
@@ -307,7 +307,7 @@ def strassen_echelon(MatrixWindow A, cutoff):
     - Robert Bradshaw
     """
     if cutoff < 1:
-        raise ValueError, "cutoff must be at least 1"
+        raise ValueError("cutoff must be at least 1")
     sig_on()
     strassen_echelon_c(A, cutoff, A._matrix._strassen_default_cutoff(A._matrix))
     sig_off()
@@ -793,7 +793,8 @@ def test(n, m, R, c=2):
     EXAMPLES::
 
         sage: from sage.matrix.strassen import test
-        sage: for n in range(5): print n, test(2*n,n,Frac(QQ['x']),2)
+        sage: for n in range(5):
+        ....:     print("{} {}".format(n, test(2*n,n,Frac(QQ['x']),2)))
         0 True
         1 True
         2 True

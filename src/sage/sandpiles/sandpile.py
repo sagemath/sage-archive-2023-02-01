@@ -317,8 +317,8 @@ Working with sandpile divisors::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-from string import join
 from collections import Counter
 from copy import deepcopy
 from inspect import getdoc
@@ -339,7 +339,6 @@ from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator
 from sage.arith.srange import xsrange
-from sage.misc.sagedoc import detex
 from sage.misc.superseded import deprecation
 from sage.modules.free_module_element import vector
 from sage.plot.colors import rainbow
@@ -372,7 +371,7 @@ class Sandpile(DiGraph):
             sage: S.version()
             Sage Sandpiles Version 2.4
         """
-        print 'Sage Sandpiles Version 2.4'
+        print('Sage Sandpiles Version 2.4')
 
     @staticmethod
     def help(verbose=True):
@@ -452,6 +451,7 @@ class Sandpile(DiGraph):
         # occurrence of a period or question mark.  If neither of these appear
         # in the string, take the sentence to be the empty string.  If the
         # latter occurs, something should be changed.
+        from sage.misc.sagedoc import detex
         methods = []
         for i in sorted(Sandpile.__dict__.keys()):
             if i[0]!='_':
@@ -472,16 +472,16 @@ class Sandpile(DiGraph):
                         s = s.split('?')[0]
                         s = detex(s).strip() + '?'
                 methods.append([i,s])
-        print 'For detailed help with any method FOO listed below,'
-        print 'enter "Sandpile.FOO?" or enter "S.FOO?" for any Sandpile S.'
-        print ''
+        print('For detailed help with any method FOO listed below,')
+        print('enter "Sandpile.FOO?" or enter "S.FOO?" for any Sandpile S.')
+        print('')
         mlen = max([len(i[0]) for i in methods])
         if verbose:
             for i in methods:
-                print i[0].ljust(mlen), '--', i[1]
+                print(i[0].ljust(mlen), '--', i[1])
         else:
             for i in methods:
-                print i[0]
+                print(i[0])
 
     def __init__(self, g, sink=None):
         r"""
@@ -607,7 +607,7 @@ class Sandpile(DiGraph):
         # create digraph and initialize some variables
         DiGraph.__init__(self,g,weighted=True)
         self._dict = deepcopy(g)
-        if sink==None:
+        if sink is None:
             sink = self.vertices()[0]
         self._sink = sink  # key for sink
         self._sink_ind = self.vertices().index(sink)
@@ -2136,7 +2136,7 @@ class Sandpile(DiGraph):
 
             sage: s = sandpiles.Complete(3)
             sage: a = s.stable_configs()
-            sage: a.next()
+            sage: next(a)
             {1: 0, 2: 0}
             sage: [i.values() for i in a]
             [[0, 1], [1, 0], [1, 1]]
@@ -2144,7 +2144,7 @@ class Sandpile(DiGraph):
             sage: list(b)
             [{1: 0, 2: 0}, {1: 1, 2: 0}]
         """
-        if smax==None:
+        if smax is None:
             smax = self.max_stable().values()
         else:
             c = SandpileConfig(self,smax)
@@ -2174,42 +2174,42 @@ class Sandpile(DiGraph):
 
             sage: s = sandpiles.Complete(4)
             sage: m = s.markov_chain([0,0,0])
-            sage: m.next()          # random
+            sage: next(m)          # random
             {1: 0, 2: 0, 3: 0}
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 1, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 2, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 2, 1]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 2, 1]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [2, 2, 1]
             sage: m = s.markov_chain(s.zero_div(), [0.1,0.1,0.1,0.7])
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 0, 1]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 1, 1]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 1, 2]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 2, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 2, 1]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 2, 2]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 2, 3]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 2, 4]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 3, 4]
 
         .. NOTE::
@@ -2244,7 +2244,7 @@ class Sandpile(DiGraph):
                 st = SandpileDivisor(self,st)
             else:
                 raise SyntaxError(state)
-        if distrib==None:  # default = uniform distribution
+        if distrib is None:  # default = uniform distribution
             distrib = [1/n]*n
         X = GeneralDiscreteDistribution(distrib)
         if isinstance(st,SandpileConfig):
@@ -2728,7 +2728,7 @@ class Sandpile(DiGraph):
             [1, 6, 9, 4]
         """
         if verbose:
-            print singular.eval('print(betti(%s),"betti")'%self._singular_resolution.name())
+            print(singular.eval('print(betti(%s),"betti")' % self._singular_resolution.name()))
         else:
             return self._betti
 
@@ -2932,6 +2932,7 @@ class SandpileConfig(dict):
         # occurrence of a period or question mark.  If neither of these appear
         # in the string, take the sentence to be the empty string.  If the
         # latter occurs, something should be changed.
+        from sage.misc.sagedoc import detex
         methods = []
         for i in sorted(SandpileConfig.__dict__.keys()):
             if i[0]!='_':
@@ -2952,23 +2953,23 @@ class SandpileConfig(dict):
                         s = s.split('?')[0]
                         s = detex(s).strip() + '?'
                 methods.append([i,s])
-        print 'Shortcuts for SandpileConfig operations:'
-        print '~c    -- stabilize'
-        print 'c & d -- add and stabilize'
-        print 'c * c -- add and find equivalent recurrent'
-        print 'c^k   -- add k times and find equivalent recurrent'
-        print '         (taking inverse if k is negative)'
-        print
-        print 'For detailed help with any method FOO listed below,'
-        print 'enter "SandpileConfig.FOO?" or enter "c.FOO?" for any SandpileConfig c.'
-        print ''
+        print('Shortcuts for SandpileConfig operations:')
+        print('~c    -- stabilize')
+        print('c & d -- add and stabilize')
+        print('c * c -- add and find equivalent recurrent')
+        print('c^k   -- add k times and find equivalent recurrent')
+        print('         (taking inverse if k is negative)')
+        print("")
+        print('For detailed help with any method FOO listed below,')
+        print('enter "SandpileConfig.FOO?" or enter "c.FOO?" for any SandpileConfig c.')
+        print('')
         mlen = max([len(i[0]) for i in methods])
         if verbose:
             for i in methods:
-                print i[0].ljust(mlen), '--', i[1]
+                print(i[0].ljust(mlen), '--', i[1])
         else:
             for i in methods:
-                print i[0]
+                print(i[0])
 
     def __init__(self, S, c):
         r"""
@@ -3822,7 +3823,7 @@ class SandpileConfig(dict):
         c = deepcopy(self)
         ind = self._sandpile._sink_ind
         n = self._sandpile.num_verts()
-        if distrib==None:  # default = uniform distribution on nonsink vertices
+        if distrib is None:  # default = uniform distribution on nonsink vertices
             distrib = [1/(n-1)]*(n-1)
         if len(distrib)==n-1: # prob. dist. on nonsink vertices
             X = GeneralDiscreteDistribution(distrib)
@@ -4285,6 +4286,7 @@ class SandpileDivisor(dict):
         # occurrence of a period or question mark.  If neither of these appear
         # in the string, take the sentence to be the empty string.  If the
         # latter occurs, something should be changed.
+        from sage.misc.sagedoc import detex
         methods = []
         for i in sorted(SandpileDivisor.__dict__.keys()):
             if i[0]!='_':
@@ -4305,16 +4307,16 @@ class SandpileDivisor(dict):
                         s = s.split('?')[0]
                         s = detex(s).strip() + '?'
                 methods.append([i,s])
-        print 'For detailed help with any method FOO listed below,'
-        print 'enter "SandpileDivisor.FOO?" or enter "D.FOO?" for any SandpileDivisor D.'
-        print ''
+        print('For detailed help with any method FOO listed below,')
+        print('enter "SandpileDivisor.FOO?" or enter "D.FOO?" for any SandpileDivisor D.')
+        print('')
         mlen = max([len(i[0]) for i in methods])
         if verbose:
             for i in methods:
-                print i[0].ljust(mlen), '--', i[1]
+                print(i[0].ljust(mlen), '--', i[1])
         else:
             for i in methods:
-                print i[0]
+                print(i[0])
 
     def __init__(self, S, D):
         r"""
@@ -5148,7 +5150,7 @@ class SandpileDivisor(dict):
         S = E.sandpile()
         V = S.vertices()
         n = S.num_verts()
-        if distrib==None:  # default = uniform distribution
+        if distrib is None:  # default = uniform distribution
             distrib = [1/n]*n
         X = GeneralDiscreteDistribution(distrib)
         while not E.is_alive():
@@ -5231,11 +5233,11 @@ class SandpileDivisor(dict):
             # process the results
             zhom_file = open(lin_sys_zhom,'r')
         except IOError:
-            print """
+            print("""
                  **********************************
                  *** This method requires 4ti2. ***
                  **********************************
-            """
+            """)
             return
         ## first, the cone generators (the homogeneous points)
         a = zhom_file.read()
@@ -5642,7 +5644,7 @@ class SandpileDivisor(dict):
             while True:
                 r += 1
                 if verbose:
-                    print r
+                    print(r)
                 new_level = []
                 for v in level:
                     for i in range(n):
@@ -6032,7 +6034,7 @@ class SandpileDivisor(dict):
         D = deepcopy(self)
         S = self.sandpile()
         V = S.vertices()
-        if distrib==None:  # default = uniform distribution
+        if distrib is None:  # default = uniform distribution
             n = S.num_verts()
             distrib = [1/n]*n
         X = GeneralDiscreteDistribution(distrib)
@@ -6297,13 +6299,13 @@ def sandlib(selector=None):
                   },
     }
     if selector is None:
-        print
-        print '  Sandpiles in the sandlib:'
+        print('')
+        print('  Sandpiles in the sandlib:')
         for i in sandpiles:
-            print '    ', i, ':', sandpiles[i]['description']
-        print
+            print('    ', i, ':', sandpiles[i]['description'])
+        print("")
     elif selector not in sandpiles.keys():
-        print selector, 'is not in the sandlib.'
+        print(selector, 'is not in the sandlib.')
     else:
         return Sandpile(sandpiles[selector]['graph'], 0)
 
@@ -6992,7 +6994,7 @@ def firing_vector(S, D, E):
         w = vector(E.values())
         return tuple(S.laplacian().solve_left(v-w))
     except ValueError:
-        print "Error. Are the divisors linearly equivalent?"
+        print("Error. Are the divisors linearly equivalent?")
         return
 
 def min_cycles(G, v):

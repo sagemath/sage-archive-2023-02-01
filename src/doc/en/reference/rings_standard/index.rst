@@ -14,7 +14,7 @@ Integers
    sage/rings/factorint
    sage/rings/fast_arith
    sage/rings/sum_of_squares
-   sage/ext/multi_modular
+   sage/arith/multi_modular
    sage/arith/misc
 
 .. SEEALSO::

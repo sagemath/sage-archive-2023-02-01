@@ -26,6 +26,7 @@ from cpython.sequence cimport *
 
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer cimport Integer
+from sage.libs.flint.fmpz_poly cimport *
 
 cdef class Fmpz_poly(SageObject):
 
@@ -118,7 +119,7 @@ cdef class Fmpz_poly(SageObject):
         """
         cdef char* ss = fmpz_poly_get_str(self.poly)
         cdef object s = ss
-        sage_free(ss)
+        sig_free(ss)
         return s
 
     def degree(self):

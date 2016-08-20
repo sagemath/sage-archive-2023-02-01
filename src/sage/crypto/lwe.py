@@ -88,7 +88,7 @@ REFERENCES:
    http://dx.doi.org/10.1007/978-3-642-19074-2_21
 
 .. [LPR10] Vadim Lyubashevsky, Chris Peikert, and Oded Regev. On Ideal Lattices
-   and Learning with Errors over Rings. in Advances in Cryptology – EUROCRYPT
+   and Learning with Errors over Rings. in Advances in Cryptology -- EUROCRYPT
    2010. Springer 2010. http://dx.doi.org/10.1007/978-3-642-13190-5_1
 
 .. [CGW13] Daniel Cabarcas, Florian Göpfert, and Patrick Weiden. Provably Secure

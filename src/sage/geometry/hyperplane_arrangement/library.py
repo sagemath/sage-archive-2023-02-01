@@ -137,7 +137,7 @@ class HyperplaneArrangementLibrary(object):
 
         REFERENCES:
 
-        ..  [BigraphicalArrangements] S. Hopkins, D. Perkinson.
+        ..  [BigraphicalArrangements] \S. Hopkins, D. Perkinson.
             "Bigraphical Arrangements".
             :arxiv:`1212.4398`
         """
@@ -399,7 +399,7 @@ class HyperplaneArrangementLibrary(object):
 
         REFERENCES:
 
-        ..  [AR] D. Armstrong, B. Rhoades
+        ..  [AR] \D. Armstrong, B. Rhoades
             "The Shi arrangement and the Ish arrangement"
             :arxiv:`1009.1655`
         """

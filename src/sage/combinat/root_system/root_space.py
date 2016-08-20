@@ -7,11 +7,13 @@ Root lattices and root spaces
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.rings.all import ZZ
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
-from root_lattice_realizations import RootLatticeRealizations
+from .root_lattice_realizations import RootLatticeRealizations
 from sage.misc.cachefunc import cached_in_parent_method
 import functools
 
@@ -346,7 +348,7 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
             sage: Q = RootSystem(['C',2]).root_lattice()
             sage: positive_roots = Q.positive_roots()
             sage: for x in positive_roots:
-            ....:     print x, x.quantum_root()
+            ....:     print("{} {}".format(x, x.quantum_root()))
             alpha[1] True
             alpha[2] True
             2*alpha[1] + alpha[2] True

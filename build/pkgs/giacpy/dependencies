@@ -1,4 +1,4 @@
-cython giac | sympy maxima
+cython giac cysignals | sympy maxima
 
 The doctest suite (SAGE_CHECK=yes)  also uses Sympy and Maxima
 ----------

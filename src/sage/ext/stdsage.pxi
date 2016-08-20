@@ -10,11 +10,15 @@ Standard C helper code for Cython modules
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
+include "cysignals/memory.pxi"
 
-from sage.ext.stdsage cimport PY_NEW, HAS_DICTIONARY
-from sage.ext.memory cimport (
-        sage_free, sage_realloc, sage_malloc, sage_calloc,
+from cysignals.memory cimport sig_malloc as sage_malloc
+from cysignals.memory cimport sig_realloc as sage_realloc
+from cysignals.memory cimport sig_calloc as sage_calloc
+from cysignals.memory cimport sig_free as sage_free
+from cysignals.memory cimport (
         check_allocarray, check_reallocarray,
         check_malloc, check_realloc, check_calloc)
+
+from sage.ext.stdsage cimport PY_NEW, HAS_DICTIONARY
 from sage.ext.memory import init_memory_functions

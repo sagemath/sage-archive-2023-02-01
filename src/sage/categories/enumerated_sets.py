@@ -217,7 +217,7 @@ class EnumeratedSets(Category_singleton):
                 [5, 6, 7]
 
             """
-            #Check to see if .first() and .next() are overridden in the subclass
+            # Check if .first() and .next(x) are overridden in the subclass
             if ( self.first != self._first_from_iterator and
                  self.next  != self._next_from_iterator ):
                 return self._iterator_from_next()
@@ -703,7 +703,8 @@ class EnumeratedSets(Category_singleton):
 
                 sage: F = FiniteSemigroups().example(('a','b','c'))
                 sage: L = list(F); L
-                ['a', 'c', 'ac', 'b', 'ba', 'bc', 'cb', 'ca', 'bca', 'ab', 'bac', 'cab', 'acb', 'cba', 'abc']
+                ['a', 'b', 'c', 'ac', 'ab', 'ba', 'bc', 'cb', 'ca',
+                 'acb', 'abc', 'bca', 'cba', 'bac', 'cab']
                 sage: L[7].rank()
                 7
             """

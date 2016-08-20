@@ -22,8 +22,8 @@ AUTHORS:
 
 REFERENCES:
 
-.. [CW2005] J. E. Cremona and M. Watkins. Computing isogenies of elliptic curves. preprint, 2005.
-.. [KT2013] K. Tsukazaki, Explicit Isogenies of Elliptic Curves,
+.. [CW2005] \J. E. Cremona and M. Watkins. Computing isogenies of elliptic curves. preprint, 2005.
+.. [KT2013] \K. Tsukazaki, Explicit Isogenies of Elliptic Curves,
    PhD thesis, University of Warwick, 2013.
 
 

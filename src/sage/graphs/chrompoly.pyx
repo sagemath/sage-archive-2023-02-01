@@ -23,7 +23,6 @@ from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.misc.all import prod
 include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
 
 def chromatic_polynomial(G, return_tree_basis = False):
     """

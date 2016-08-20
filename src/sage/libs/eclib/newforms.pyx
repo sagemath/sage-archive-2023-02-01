@@ -162,7 +162,7 @@ cdef class ECModularSymbol:
             sage: M("garbage")
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert garbage to a Cusp
+            TypeError: unable to convert 'garbage' to a cusp
             sage: M(7/5)
             3
         """

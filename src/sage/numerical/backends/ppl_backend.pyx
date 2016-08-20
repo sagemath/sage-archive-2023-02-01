@@ -18,13 +18,27 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.numerical.mip import MIPSolverException
-from sage.libs.ppl import MIP_Problem, Variable, Linear_Expression, Constraint, Generator
+from sage.libs.ppl import MIP_Problem, Variable, Variables_Set, Linear_Expression, Constraint, Generator
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
+from .generic_backend cimport GenericBackend
+from copy import copy
 
 cdef class PPLBackend(GenericBackend):
+
+    """
+    MIP Backend that uses the exact MIP solver from the Parma Polyhedra Library.
+
+    General backend testsuite::
+
+        sage: from sage.numerical.backends.generic_backend import get_solver
+        sage: p = get_solver(solver = "PPL")
+        sage: TestSuite(p).run(skip="_test_pickling")
+    """
+
     cdef object mip
     cdef list Matrix
     cdef list row_lower_bound
@@ -36,17 +50,33 @@ cdef class PPLBackend(GenericBackend):
     cdef list col_name_var
     cdef int is_maximize
     cdef str name
+    cdef object integer_variables
+
     # Common denominator for objective function in self.mip (not for the constant term)
     cdef Integer obj_denominator
 
-    def __cinit__(self, maximization = True):
+    def __cinit__(self, maximization = True, base_ring = None):
         """
         Constructor
 
         EXAMPLE::
 
             sage: p = MixedIntegerLinearProgram(solver = "PPL")
+
+        TESTS:
+
+        Raise an error if a ``base_ring`` is requested that is not supported::
+
+            sage: p = MixedIntegerLinearProgram(solver = "PPL", base_ring=AA)
+            Traceback (most recent call last):
+            ...
+            TypeError: The PPL backend only supports rational data.
         """
+
+        if base_ring is not None:
+            from sage.rings.all import QQ
+            if base_ring is not QQ:
+                raise TypeError('The PPL backend only supports rational data.')
 
         self.Matrix = []
         self.row_lower_bound = []
@@ -59,6 +89,7 @@ cdef class PPLBackend(GenericBackend):
         self.name = ''
         self.obj_constant_term = Rational(0)
         self.obj_denominator = Integer(1)
+        self.integer_variables = set()
 
         if maximization:
             self.set_sense(+1)
@@ -71,6 +102,39 @@ cdef class PPLBackend(GenericBackend):
 
     cpdef zero(self):
         return self.base_ring()(0)
+
+    cpdef __copy__(self):
+        """
+        Returns a copy of self.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = MixedIntegerLinearProgram(solver = "PPL")
+            sage: b = p.new_variable()
+            sage: p.add_constraint(b[1] + b[2] <= 6)
+            sage: p.set_objective(b[1] + b[2])
+            sage: cp = copy(p.get_backend())
+            sage: cp.solve()
+            0
+            sage: cp.get_objective_value()
+            6
+        """
+        cdef PPLBackend cp = type(self)()
+        cp.Matrix = [row[:] for row in self.Matrix]
+        cp.row_lower_bound = self.row_lower_bound[:]
+        cp.row_upper_bound = self.row_upper_bound[:]
+        cp.col_lower_bound = self.col_lower_bound[:]
+        cp.col_upper_bound = self.col_upper_bound[:]
+        cp.objective_function = self.objective_function[:]
+        cp.row_name_var = self.row_name_var[:]
+        cp.col_name_var = self.col_name_var[:]
+        cp.name = self.name
+        cp.obj_constant_term = self.obj_constant_term
+        cp.obj_denominator = self.obj_denominator
+        cp.integer_variables = copy(self.integer_variables)
+        cp.is_maximize = self.is_maximize
+        return cp
 
     def init_mip(self):
         """
@@ -93,6 +157,13 @@ cdef class PPLBackend(GenericBackend):
         cdef Integer denom, newdenom
 
         self.mip.add_space_dimensions_and_embed(len(self.objective_function))
+
+        # Integrality
+
+        ivar = Variables_Set()
+        for i in self.integer_variables:
+            ivar.insert(Variable(i))
+        self.mip.add_to_integer_space_dimensions(ivar)
 
         # Objective function
         mip_obj = Linear_Expression(0)
@@ -133,7 +204,7 @@ cdef class PPLBackend(GenericBackend):
         else:
             self.mip.set_optimization_mode('minimization')
 
-    cpdef int add_variable(self, lower_bound=0, upper_bound=None, binary=False, continuous=True, integer=False, obj=0, name=None) except -1:
+    cpdef int add_variable(self, lower_bound=0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0, name=None) except -1:
         """
         Add a variable.
 
@@ -178,14 +249,29 @@ cdef class PPLBackend(GenericBackend):
             'x'
             sage: p.objective_coefficient(2)
             2/3
+            sage: p.add_variable(integer=True)
+            3
         """
+        cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
+        if  vtype == 0:
+            continuous = True
+        elif vtype != 1:
+            raise ValueError("Exactly one parameter of 'binary', 'integer' and 'continuous' must be 'True'.")
+
         for i in range(len(self.Matrix)):
             self.Matrix[i].append(0)
         self.col_lower_bound.append(lower_bound)
         self.col_upper_bound.append(upper_bound)
         self.objective_function.append(obj)
         self.col_name_var.append(name)
-        return len(self.objective_function) - 1
+
+        n = len(self.objective_function) - 1
+        if binary:
+            self.set_variable_type(n,0)
+        elif integer:
+            self.set_variable_type(n,1)
+
+        return n
 
     cpdef int add_variables(self, int n, lower_bound=0, upper_bound=None, binary=False, continuous=True, integer=False, obj=0, names=None) except -1:
         """
@@ -226,9 +312,22 @@ cdef class PPLBackend(GenericBackend):
             4
             sage: p.ncols()
             5
-            sage: p.add_variables(2, lower_bound=-2.0, names=['a','b'])
+            sage: p.add_variables(2, lower_bound=-2.0, obj=42.0, names=['a','b'])
             6
+
+        TESTS:
+
+        Check that arguments are used::
+
+            sage: p.col_bounds(5) # tol 1e-8
+            (-2.0, None)
+            sage: p.col_name(5)
+            'a'
+            sage: p.objective_coefficient(5) # tol 1e-8
+            42.0
         """
+        if binary or integer:
+            raise NotImplementedError("The PPL backend in Sage only supports continuous variables")
         for k in range(n):
             for i in range(len(self.Matrix)):
                 self.Matrix[i].append(0)
@@ -245,20 +344,54 @@ cdef class PPLBackend(GenericBackend):
         """
         Set the type of a variable.
 
+        INPUT:
+
+        - ``variable`` (integer) -- the variable's id
+
+        - ``vtype`` (integer) :
+
+            *  1  Integer
+            *  0  Binary
+            *  -1  Continuous
+
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "PPL")
             sage: p.add_variables(5)
             4
+            sage: p.set_variable_type(0,1)
+            sage: p.is_variable_integer(0)
+            True
+            sage: p.set_variable_type(3,0)
+            sage: p.is_variable_integer(3) or p.is_variable_binary(3)
+            True
+            sage: p.col_bounds(3) # tol 1e-6
+            (0, 1)
             sage: p.set_variable_type(3, -1)
+            sage: p.is_variable_continuous(3)
+            True
+
+        TESTS:
+
+        Test that an exception is raised when an invalid type is passed::
+
             sage: p.set_variable_type(3, -2)
             Traceback (most recent call last):
             ...
-            Exception: ...
+            ValueError: ...
         """
-        if vtype != -1:
-            raise Exception('This backend does not handle integer variables ! Read the doc !')
+        if vtype == -1:
+            if variable in self.integer_variables:
+                self.integer_variables.remove(variable)
+        elif vtype == 0:
+            self.integer_variables.add(variable)
+            self.variable_lower_bound(variable, 0)
+            self.variable_upper_bound(variable, 1)
+        elif vtype == 1:
+            self.integer_variables.add(variable)
+        else:
+            raise ValueError("Invalid variable type: {}".format(vtype))
 
     cpdef set_sense(self, int sense):
         """
@@ -500,11 +633,12 @@ cdef class PPLBackend(GenericBackend):
             self.row_lower_bound.append(lower_bound)
             self.row_upper_bound.append(upper_bound)
             if names is not None:
-                self.row_name_var.append(names)
+                self.row_name_var.append(names[i])
             else:
                 self.row_name_var.append(None)
 
     cpdef int solve(self) except -1:
+        # integer example copied from cplex_backend.pyx
         """
         Solve the problem.
 
@@ -512,9 +646,11 @@ cdef class PPLBackend(GenericBackend):
 
             This method raises ``MIPSolverException`` exceptions when
             the solution can not be computed for any reason (none
-            exists, or the LP solver was not able to find it, etc...)
+            exists, or the solver was not able to find it, etc...)
 
-        EXAMPLE::
+        EXAMPLES:
+
+        A linear optimization problem::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "PPL")
@@ -522,11 +658,24 @@ cdef class PPLBackend(GenericBackend):
             sage: p.add_col(range(5), range(5))
             sage: p.solve()
             0
+
+        An unbounded problem::
+
             sage: p.objective_coefficient(0,1)
             sage: p.solve()
             Traceback (most recent call last):
             ...
             MIPSolverException: ...
+
+        An integer optimization problem::
+
+            sage: p = MixedIntegerLinearProgram(solver='PPL')
+            sage: x = p.new_variable(integer=True, nonnegative=True)
+            sage: p.add_constraint(2*x[0] + 3*x[1], max = 6)
+            sage: p.add_constraint(3*x[0] + 2*x[1], max = 6)
+            sage: p.set_objective(x[0] + x[1] + 7)
+            sage: p.solve()
+            9
         """
         self.init_mip()
 
@@ -573,7 +722,6 @@ cdef class PPLBackend(GenericBackend):
             sage: p.get_variable_value(1)
             3/2
         """
-        self.init_mip()
         ans = self.mip.optimal_value()
         return ans / self.obj_denominator + self.obj_constant_term
 
@@ -602,7 +750,6 @@ cdef class PPLBackend(GenericBackend):
             sage: p.get_variable_value(1)
             3/2
         """
-        self.init_mip()
         g = self.mip.optimizing_point()
         return g.coefficient(Variable(variable)) / g.divisor()
 
@@ -672,7 +819,7 @@ cdef class PPLBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "PPL")
             sage: p.problem_name("There once was a french fry")
-            sage: print p.problem_name()
+            sage: print(p.problem_name())
             There once was a french fry
         """
         if name == NULL:
@@ -790,7 +937,7 @@ cdef class PPLBackend(GenericBackend):
             sage: p.is_variable_binary(0)
             False
         """
-        return False
+        return index in self.integer_variables and self.col_bounds(index) == (0, 1)
 
     cpdef bint is_variable_integer(self, int index):
         """
@@ -811,7 +958,7 @@ cdef class PPLBackend(GenericBackend):
             sage: p.is_variable_integer(0)
             False
         """
-        return False
+        return index in self.integer_variables and self.col_bounds(index) != (0, 1)
 
     cpdef bint is_variable_continuous(self, int index):
         """
@@ -832,7 +979,7 @@ cdef class PPLBackend(GenericBackend):
             sage: p.is_variable_continuous(0)
             True
         """
-        return True
+        return index not in self.integer_variables
 
     cpdef row_name(self, int index):
         """
@@ -846,7 +993,7 @@ cdef class PPLBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "PPL")
-            sage: p.add_linear_constraints(1, 2, None, names="Empty constraint 1")
+            sage: p.add_linear_constraints(1, 2, None, names=["Empty constraint 1"])
             sage: p.row_name(0)
             'Empty constraint 1'
         """

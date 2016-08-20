@@ -13,7 +13,7 @@ The symbolic ring
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from ginac cimport *
+from .ginac cimport *
 
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr cimport RealNumber
@@ -96,6 +96,8 @@ cdef class SymbolicRing(CommutativeRing):
             2
             sage: SR.coerce(-infinity)
             -Infinity
+            sage: SR.coerce(unsigned_infinity)
+            Infinity
             sage: SR.has_coerce_map_from(ZZ['t'])
             True
             sage: SR.has_coerce_map_from(ZZ['t,u,v'])
@@ -109,6 +111,12 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR.has_coerce_map_from(Integers(8))
             True
             sage: SR.has_coerce_map_from(GF(9, 'a'))
+            True
+            sage: SR.has_coerce_map_from(RealBallField())
+            True
+            sage: SR.has_coerce_map_from(ComplexBallField())
+            True
+            sage: SR.has_coerce_map_from(UnsignedInfinityRing)
             True
 
         TESTS:
@@ -133,6 +141,11 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR.has_coerce_map_from(SR.subring(rejecting_variables=('r',)))
             True
             sage: SR.has_coerce_map_from(SR.subring(no_variables=True))
+            True
+
+            sage: SR.has_coerce_map_from(AA)
+            True
+            sage: SR.has_coerce_map_from(QQbar)
             True
         """
         if isinstance(R, type):
@@ -161,11 +174,15 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             from sage.rings.real_mpfi import is_RealIntervalField
             from sage.rings.complex_interval_field import is_ComplexIntervalField
+            from sage.rings.real_arb import RealBallField
+            from sage.rings.complex_arb import ComplexBallField
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+            from sage.rings.polynomial.laurent_polynomial_ring import is_LaurentPolynomialRing
 
             from sage.rings.all import (ComplexField,
-                                        RLF, CLF, AA, QQbar, InfinityRing)
+                                        RLF, CLF, AA, QQbar, InfinityRing,
+                                        UnsignedInfinityRing)
             from sage.rings.finite_rings.finite_field_base import is_FiniteField
 
             from sage.interfaces.maxima import Maxima
@@ -173,19 +190,15 @@ cdef class SymbolicRing(CommutativeRing):
             from subring import GenericSymbolicSubring
 
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
-                # Anything with a coercion into any precision of CC
-
-                # In order to have coercion from SR to AA or QQbar,
-                # we disable coercion in the reverse direction.
-                # This makes the following work:
-                # sage: QQbar(sqrt(2)) + sqrt(3)
-                # 3.146264369941973?
-                return R not in (RLF, CLF, AA, QQbar)
-            elif is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R):
+                # Almost anything with a coercion into any precision of CC
+                return R not in (RLF, CLF)
+            elif is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R) or is_LaurentPolynomialRing(R):
                 base = R.base_ring()
                 return base is not self and self.has_coerce_map_from(base)
-            elif (R is InfinityRing
+            elif (R is InfinityRing or R is UnsignedInfinityRing
                   or is_RealIntervalField(R) or is_ComplexIntervalField(R)
+                  or isinstance(R, RealBallField)
+                  or isinstance(R, ComplexBallField)
                   or is_IntegerModRing(R) or is_FiniteField(R)):
                 return True
             elif isinstance(R, (Maxima, PariInstance)):
@@ -286,6 +299,25 @@ cdef class SymbolicRing(CommutativeRing):
             3*x^5*log(y)
             sage: t.operator(), t.operands()
             (<function mul_vararg at 0x...>, [x^5, log(y), 3])
+
+        Check that :trac:`20162` is fixed::
+
+            sage: k.<a> = GF(9)
+            sage: SR(a).is_real()
+            False
+            sage: SR(a).is_positive()
+            False
+
+        We get a sensible error message if conversion fails::
+
+            sage: SR(int)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert <type 'int'> to a symbolic expression
+            sage: r^(1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert R Interpreter to a symbolic expression
         """
         cdef GEx exp
         if is_Expression(x):
@@ -323,7 +355,7 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.misc.all import prod
             return prod([SR(p)**e for p,e in x], SR(x.unit()))
         else:
-            raise TypeError
+            raise TypeError(f"unable to convert {x!r} to a symbolic expression")
 
         return new_Expression_from_GEx(self, exp)
 

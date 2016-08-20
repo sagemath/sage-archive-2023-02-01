@@ -11,6 +11,7 @@ Hecke algebras", which include Hecke operators coprime to the level. Morphisms
 in the category of Hecke modules are not required to commute with the action of
 the full Hecke algebra, only with the anemic algebra.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
@@ -240,6 +241,7 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
             TypeError: Don't know how to construct an element of Anemic Hecke algebra acting on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field from Hecke operator T_11 on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
 
         """
+        from . import hecke_operator
         try:
             if not isinstance(x, Element):
                 x = self.base_ring()(x)

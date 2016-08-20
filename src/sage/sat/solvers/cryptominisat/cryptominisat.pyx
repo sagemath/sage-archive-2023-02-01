@@ -26,9 +26,10 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 from libc.stdint cimport uint32_t
 from decl cimport lbool, Var, Lit, Clause, l_Undef, l_False, RetClause
@@ -413,7 +414,7 @@ cdef class CryptoMiniSat(SatSolver):
         r = []
         for i in range(num):
             r.append( (-1)**int(learnt1[i]&1) * (int(learnt1[i]>>1)+1) )
-        sage_free(learnt1)
+        sig_free(learnt1)
 
         if unitary_only:
              return tuple(r)
@@ -425,9 +426,9 @@ cdef class CryptoMiniSat(SatSolver):
         for i in range(num):
             clause = learnt[i]
             C = [(-1)**int(clause[j]&1) * (int(clause[j]>>1)+1) for j in range(1,clause[0]+1)]
-            sage_free(clause)
+            sig_free(clause)
             r.append(tuple(C))
-        sage_free(learnt)
+        sig_free(learnt)
         return tuple(r)
 
     def clauses(self, filename=None):
@@ -481,7 +482,7 @@ cdef class CryptoMiniSat(SatSolver):
             sage: cms.add_clause((1,2))                      # optional - cryptominisat
             sage: fn = tmp_filename()                        # optional - cryptominisat
             sage: cms.clauses(fn)                            # optional - cryptominisat
-            sage: print open(fn).read()                      # optional - cryptominisat
+            sage: print(open(fn).read())                     # optional - cryptominisat
             p cnf 2 4
             x2 1 0
             -1 -2 0

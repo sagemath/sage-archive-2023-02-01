@@ -8,9 +8,6 @@ fi
 
 cd src/
 
-rm -rf sympy/mpmath
-rm -rf doc/src/modules/mpmath
-
 for patch in ../patches/*.patch; do
     [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
     patch -p1 <"$patch"
@@ -20,13 +17,8 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-# sympy imports itself, and therefore it indirectly imports sage in
-# setup.py.  We need to set PYTHONPATH=. and use the -S option to avoid
-# importing the currently installed version of sympy, and to avoid
-# importing sage.
-export PYTHONPATH="."
 echo "building sympy"
-python -S setup.py build
+python setup.py build
 
 if [ $? -ne 0 ]; then
     echo >&2 "Error building sympy"
@@ -39,7 +31,7 @@ echo "Deleting $SAGE_LOCAL/lib/python*/site-packages/sympy*"
 rm -rf "$SAGE_LOCAL"/lib/python*/site-packages/sympy*
 
 echo "installing sympy"
-python -S setup.py install
+python setup.py install
 
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing sympy"

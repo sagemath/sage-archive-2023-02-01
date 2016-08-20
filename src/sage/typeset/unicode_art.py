@@ -86,10 +86,9 @@ def unicode_art(*obj, **kwds):
 
         sage: unicode_art(integral(exp(sqrt(x))/(x+pi), x))
             ⌠
-            ⎮    ___
-            ⎮  ╲╱ x
-            ⎮ ℯ
-            ⎮ ────── dx
+            ⎮   √x
+            ⎮  ℯ
+            ⎮ ───── dx
             ⎮ x + π
             ⌡
         sage: ident = lambda n: identity_matrix(ZZ, n)

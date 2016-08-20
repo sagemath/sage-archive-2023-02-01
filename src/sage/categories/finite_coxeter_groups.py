@@ -20,20 +20,19 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
     EXAMPLES::
 
-        sage: FiniteCoxeterGroups()
+        sage: CoxeterGroups.Finite()
         Category of finite coxeter groups
         sage: FiniteCoxeterGroups().super_categories()
-        [Category of coxeter groups,
-         Category of finite groups,
-         Category of finite finitely generated semigroups]
+        [Category of finite generalized coxeter groups,
+         Category of coxeter groups]
 
-        sage: G = FiniteCoxeterGroups().example()
+        sage: G = CoxeterGroups().Finite().example()
         sage: G.cayley_graph(side = "right").plot()
         Graphics object consisting of 40 graphics primitives
 
     Here are some further examples::
 
-        sage: FiniteWeylGroups().example()
+        sage: WeylGroups().Finite().example()
         The symmetric group on {0, ..., 3}
 
         sage: WeylGroup(["B", 3])
@@ -46,9 +45,18 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         sage: DihedralGroup(5)
         Dihedral group of order 10 as a permutation group
     """
+    def extra_super_categories(self):
+        r"""
+        EXAMPLES::
+
+            sage: CoxeterGroups().Finite().super_categories()
+            [Category of finite generalized coxeter groups,
+             Category of coxeter groups]
+        """
+        from sage.categories.complex_reflection_groups import ComplexReflectionGroups
+        return [ComplexReflectionGroups().Finite().WellGenerated()]
 
     class ParentMethods:
-
         """
         Ambiguity resolution: the implementation of ``some_elements``
         is preferable to that of :class:`FiniteGroups`. The same holds
@@ -61,7 +69,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             sage: W = FiniteCoxeterGroups().example(3)
 
             sage: W.some_elements.__module__
-            'sage.categories.coxeter_groups'
+            'sage.categories.complex_reflection_or_generalized_coxeter_groups'
             sage: W.__iter__.__module__
             'sage.categories.coxeter_groups'
 
@@ -70,8 +78,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             sage: list(W)
             [(), (1,), (2,), (1, 2), (2, 1), (1, 2, 1)]
         """
-        some_elements = CoxeterGroups.ParentMethods.__dict__["some_elements"]
-        __iter__      = CoxeterGroups.ParentMethods.__dict__["__iter__"]
+        __iter__ = CoxeterGroups.ParentMethods.__dict__["__iter__"]
 
         @lazy_attribute
         def w0(self):
@@ -202,8 +209,83 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             covers = tuple([u, v] for v in self for u in v.bruhat_lower_covers() )
             return Poset((self, covers), cover_relations = True, facade=facade)
 
+        def degrees(self):
+            """
+            Return the degrees of the Coxeter group.
+
+            The output is an increasing list of integers.
+
+            EXAMPLES::
+
+                sage: CoxeterGroup(['A', 4]).degrees()
+                (2, 3, 4, 5)
+                sage: CoxeterGroup(['B', 4]).degrees()
+                (2, 4, 6, 8)
+                sage: CoxeterGroup(['D', 4]).degrees()
+                (2, 4, 4, 6)
+                sage: CoxeterGroup(['F', 4]).degrees()
+                (2, 6, 8, 12)
+                sage: CoxeterGroup(['E', 8]).degrees()
+                (2, 8, 12, 14, 18, 20, 24, 30)
+                sage: CoxeterGroup(['H', 3]).degrees()
+                (2, 6, 10)
+
+                sage: WeylGroup([["A",3], ["A",3], ["B",2]]).degrees()
+                (2, 3, 4, 2, 3, 4, 2, 4)
+
+            TESTS::
+
+                sage: CoxeterGroup(['A', 4]).degrees()
+                (2, 3, 4, 5)
+                sage: SymmetricGroup(3).degrees()
+                (2, 3)
+            """
+            from sage.rings.qqbar import QQbar
+            from sage.rings.integer_ring import ZZ
+            def degrees_of_irreducible_component(I):
+                """Return the degrees for the irreducible component indexed by I"""
+                # A Coxeter element
+                s = self.simple_reflections()
+                c = self.prod(s[i] for i in I)
+                roots = c.matrix().change_ring(QQbar).charpoly().roots()
+                args = [(z.rational_argument(), m) for z, m in roots]
+                args = [(z if z >=0 else 1 + z, m) for z, m in args]
+                h = max(z.denominator() for z, m in args)
+                return tuple(sorted(ZZ(z * h + 1)
+                                    for z, m in args if z
+                                    for i in range(m)))
+
+            return sum((degrees_of_irreducible_component(I)
+                        for I in self.irreducible_component_index_sets()), ())
+
+        def codegrees(self):
+            """
+            Return the codegrees of the Coxeter group.
+
+            These are just the degrees minus 2.
+
+            EXAMPLES::
+
+                sage: CoxeterGroup(['A', 4]).codegrees()
+                (0, 1, 2, 3)
+                sage: CoxeterGroup(['B', 4]).codegrees()
+                (0, 2, 4, 6)
+                sage: CoxeterGroup(['D', 4]).codegrees()
+                (0, 2, 2, 4)
+                sage: CoxeterGroup(['F', 4]).codegrees()
+                (0, 4, 6, 10)
+                sage: CoxeterGroup(['E', 8]).codegrees()
+                (0, 6, 10, 12, 16, 18, 22, 28)
+                sage: CoxeterGroup(['H', 3]).codegrees()
+                (0, 4, 8)
+
+                sage: WeylGroup([["A",3], ["A",3], ["B",2]]).codegrees()
+                (0, 1, 2, 0, 1, 2, 0, 2)
+            """
+            return tuple(d - 2 for d in self.degrees())
+
         @cached_method
-        def weak_poset(self, side = "right", facade = False):
+        def weak_poset(self, side="right", facade=False):
             """
             INPUT:
 
@@ -612,3 +694,4 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             G.add_vertices(R)
             G.add_edges([v,vp] for v in R for vp in self.coxeter_knuth_neighbor(v))
             return G
+

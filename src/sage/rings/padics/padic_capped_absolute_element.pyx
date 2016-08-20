@@ -28,6 +28,25 @@ from sage.libs.pari.pari_instance cimport PariInstance
 cdef PariInstance P = sage.libs.pari.pari_instance.pari
 from sage.rings.finite_rings.integer_mod import Mod
 
+cdef class PowComputer_(PowComputer_base):
+    """
+    A PowComputer for a capped-absolute padic ring.
+    """
+    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R = ZpCA(5)
+            sage: type(R.prime_pow)
+            <type 'sage.rings.padics.padic_capped_absolute_element.PowComputer_'>
+            sage: R.prime_pow._prec_type
+            'capped-abs'
+        """
+        self._prec_type = 'capped-abs'
+        PowComputer_base.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field)
+
 cdef class pAdicCappedAbsoluteElement(CAElement):
     """
     Constructs new element with given parent and value.

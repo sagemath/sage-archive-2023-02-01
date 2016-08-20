@@ -21,11 +21,11 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 
 from sage.symbolic.ring import SR
-from sage.structure.element import RingElement
-from sage.algebras.algebra_element import AlgebraElement
+from sage.structure.element import RingElement, AlgebraElement
 from sage.rings.integer import Integer
 from sage.combinat.permutation import Permutation
 
@@ -756,7 +756,7 @@ class DifferentialForm(AlgebraElement):
             {(1, 2): x + y + z}
 
         """
-        print self._components
+        print(self._components)
 
 
     def diff(self):
@@ -1005,7 +1005,7 @@ class DifferentialForm(AlgebraElement):
             sage: f = DifferentialForm(F, 1)
             sage: f[1] = exp(z); f
             e^z*dy
-            sage: print f
+            sage: print(f)
             e^z*dy
             sage: f._repr_()
             'e^z*dy'

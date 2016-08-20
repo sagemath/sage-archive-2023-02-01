@@ -1860,8 +1860,8 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: P.<x,y,z> = PolynomialRing(S)
             sage: RR.<c,d> = PolynomialRing(P)
             sage: f = a*x^2 + b*y^3 + c*y^2 - b*a*d + d^2 - a*c*b*z^2
-            sage: f.specialization(dict({a:2, y:4, d:2}))
-            ((-2*b)*z^2 + 16)*c + 2*x^2 + 60*b + 4
+            sage: f.specialization(dict({a:2, z:4, d:2}))
+            (y^2 - 32*b)*c + b*y^3 + 2*x^2 - 4*b + 4
         """
         if D is None:
             if phi is None:

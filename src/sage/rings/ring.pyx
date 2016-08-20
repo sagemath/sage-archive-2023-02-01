@@ -1098,7 +1098,7 @@ cdef class Ring(ParentWithGens):
             ValueError: ring is not an integral domain
         """
         if all and not self.is_integral_domain():
-            raise ValueError, "ring is not an integral domain"
+            raise ValueError("ring is not an integral domain")
         if n == 2:
             if all:
                 return [self(-1)]

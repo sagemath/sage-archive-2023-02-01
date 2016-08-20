@@ -1072,91 +1072,326 @@ ex power::expand(unsigned options) const
 // non-virtual functions in this class
 //////////
 
+namespace {  // anonymous namespace for power::expand_add() helpers
+
+/** Helper class to generate all bounded combinatorial partitions of an integer
+ *  n with exactly m parts (including zero parts) in non-decreasing order.
+ */
+class partition_generator {
+private:
+	// Partitions n into m parts, not including zero parts.
+	// (Cf. OEIS sequence A008284; implementation adapted from Jörg Arndt's
+	// FXT library)
+	struct mpartition2
+	{
+		// partition: x[1] + x[2] + ... + x[m] = n and sentinel x[0] == 0
+		std::vector<int> x;
+		int n;   // n>0
+		int m;   // 0<m<=n
+		mpartition2(unsigned n_, unsigned m_)
+		  : x(m_+1), n(n_), m(m_)
+		{
+			for (int k=1; k<m; ++k)
+				x[k] = 1;
+			x[m] = n - m + 1;
+		}
+		bool next_partition()
+		{
+			int u = x[m];  // last element
+			int k = m;
+			int s = u;
+			while (--k) {
+				s += x[k];
+				if (x[k] + 2 <= u)
+					break;
+			}
+			if (k==0)
+				return false;  // current is last
+			int f = x[k] + 1;
+			while (k < m) {
+				x[k] = f;
+				s -= f;
+				++k;
+			}
+			x[m] = s;
+			return true;
+		}
+	} mpgen;
+	int m;  // number of parts 0<m<=n
+	mutable std::vector<int> partition;  // current partition
+public:
+	partition_generator(unsigned n_, unsigned m_)
+	  : mpgen(n_, 1), m(m_), partition(m_)
+	{ }
+	// returns current partition in non-decreasing order, padded with zeros
+	const std::vector<int>& current() const
+	{
+		for (int i = 0; i < m - mpgen.m; ++i)
+			partition[i] = 0;  // pad with zeros
+
+		for (int i = m - mpgen.m; i < m; ++i)
+			partition[i] = mpgen.x[i - m + mpgen.m + 1];
+
+		return partition;
+	}
+	bool next()
+	{
+		if (!mpgen.next_partition()) {
+			if (mpgen.m == m || mpgen.m == mpgen.n)
+				return false;  // current is last
+			// increment number of parts
+			mpgen = mpartition2(mpgen.n, mpgen.m + 1);
+		}
+		return true;
+	}
+};
+
+/** Helper class to generate all compositions of a partition of an integer n,
+ *  starting with the compositions which has non-decreasing order.
+ */
+class composition_generator {
+private:
+	// Generates all distinct permutations of a multiset.
+	// (Based on Aaron Williams' algorithm 1 from "Loopless Generation of
+	// Multiset Permutations using a Constant Number of Variables by Prefix
+	// Shifts." <http://webhome.csc.uvic.ca/~haron/CoolMulti.pdf>)
+	struct coolmulti {
+		// element of singly linked list
+		struct element {
+			int value;
+			element* next;
+			element(int val, element* n)
+			  : value(val), next(n) {}
+			~element()
+			{   // recurses down to the end of the singly linked list
+				delete next;
+			}
+		};
+		element *head, *i, *after_i;
+		// NB: Partition must be sorted in non-decreasing order.
+		explicit coolmulti(const std::vector<int>& partition)
+		  : head(nullptr), i(nullptr), after_i(nullptr)
+		{
+			for (unsigned n = 0; n < partition.size(); ++n) {
+				head = new element(partition[n], head);
+				if (n <= 1)
+					i = head;
+			}
+			after_i = i->next;
+		}
+		~coolmulti()
+		{   // deletes singly linked list
+			delete head;
+		}
+		void next_permutation()
+		{
+			element *before_k;
+			if (after_i->next != nullptr && i->value >= after_i->next->value)
+				before_k = after_i;
+			else
+				before_k = i;
+			element *k = before_k->next;
+			before_k->next = k->next;
+			k->next = head;
+			if (k->value < head->value)
+				i = k;
+			after_i = i->next;
+			head = k;
+		}
+		bool finished() const
+		{
+			return after_i->next == nullptr && after_i->value >= head->value;
+		}
+	} cmgen;
+	bool atend;  // needed for simplifying iteration over permutations
+	bool trivial;  // likewise, true if all elements are equal
+	mutable std::vector<int> composition;  // current compositions
+public:
+	explicit composition_generator(const std::vector<int>& partition)
+	  : cmgen(partition), atend(false), trivial(true), composition(partition.size())
+	{
+		for (unsigned i=1; i<partition.size(); ++i)
+			trivial = trivial && (partition[0] == partition[i]);
+	}
+	const std::vector<int>& current() const
+	{
+		coolmulti::element* it = cmgen.head;
+		size_t i = 0;
+		while (it != nullptr) {
+			composition[i] = it->value;
+			it = it->next;
+			++i;
+		}
+		return composition;
+	}
+	bool next()
+	{
+		// This ugly contortion is needed because the original coolmulti
+		// algorithm requires code duplication of the payload procedure,
+		// one before the loop and one inside it.
+		if (trivial || atend)
+			return false;
+		cmgen.next_permutation();
+		atend = cmgen.finished();
+		return true;
+	}
+};
+
+/** Helper function to compute the multinomial coefficient n!/(p1!*p2!*...*pk!)
+ *  where n = p1+p2+...+pk, i.e. p is a partition of n.
+ */
+const numeric
+multinomial_coefficient(const std::vector<int> & p)
+{
+	numeric n = 0, d = 1;
+	for (auto & it : p) {
+		n += numeric(it);
+		d *= factorial(numeric(it));
+	}
+	return factorial(n) / d;
+}
+
+}  // anonymous namespace
+
 /** expand a^n where a is an add and n is a positive integer.
  *  @see power::expand */
-ex power::expand_add(const add & a, int n, unsigned options) const
+ex power::expand_add(const add & a, long n, unsigned options) const
 {
+	// The special case power(+(x,...y;x),2) can be optimized better.
 	if (n==2)
 		return expand_add_2(a, options);
 
-	const size_t m = a.nops();
-	exvector result;
+	// method:
+	//
+	// Consider base as the sum of all symbolic terms and the overall numeric
+	// coefficient and apply the binomial theorem:
+	// S = power(+(x,...,z;c),n)
+	//   = power(+(+(x,...,z;0);c),n)
+	//   = sum(binomial(n,k)*power(+(x,...,z;0),k)*c^(n-k), k=1..n) + c^n
+	// Then, apply the multinomial theorem to expand all power(+(x,...,z;0),k):
+	// The multinomial theorem is computed by an outer loop over all
+	// partitions of the exponent and an inner loop over all compositions of
+	// that partition. This method makes the expansion a combinatorial
+	// problem and allows us to directly construct the expanded sum and also
+	// to re-use the multinomial coefficients (since they depend only on the
+	// partition, not on the composition).
+	// 
+	// multinomial power(+(x,y,z;0),3) example:
+	// partition : compositions                : multinomial coefficient
+	// [0,0,3]   : [3,0,0],[0,3,0],[0,0,3]     : 3!/(3!*0!*0!) = 1
+	// [0,1,2]   : [2,1,0],[1,2,0],[2,0,1],... : 3!/(2!*1!*0!) = 3
+	// [1,1,1]   : [1,1,1]                     : 3!/(1!*1!*1!) = 6
+	//  =>  (x + y + z)^3 =
+	//        x^3 + y^3 + z^3
+	//      + 3*x^2*y + 3*x*y^2 + 3*y^2*z + 3*y*z^2 + 3*x*z^2 + 3*x^2*z
+	//      + 6*x*y*z
+	//
+	// multinomial power(+(x,y,z;0),4) example:
+	// partition : compositions                : multinomial coefficient
+	// [0,0,4]   : [4,0,0],[0,4,0],[0,0,4]     : 4!/(4!*0!*0!) = 1
+	// [0,1,3]   : [3,1,0],[1,3,0],[3,0,1],... : 4!/(3!*1!*0!) = 4
+	// [0,2,2]   : [2,2,0],[2,0,2],[0,2,2]     : 4!/(2!*2!*0!) = 6
+	// [1,1,2]   : [2,1,1],[1,2,1],[1,1,2]     : 4!/(2!*1!*1!) = 12
+	// (no [1,1,1,1] partition since it has too many parts)
+	//  =>  (x + y + z)^4 =
+	//        x^4 + y^4 + z^4
+	//      + 4*x^3*y + 4*x*y^3 + 4*y^3*z + 4*y*z^3 + 4*x*z^3 + 4*x^3*z
+	//      + 6*x^2*y^2 + 6*y^2*z^2 + 6*x^2*z^2
+	//      + 12*x^2*y*z + 12*x*y^2*z + 12*x*y*z^2
+	//
+	// Summary:
+	// r = 0
+	// for k from 0 to n:
+	//     f = c^(n-k)*binomial(n,k)
+	//     for p in all partitions of n with m parts (including zero parts):
+	//         h = f * multinomial coefficient of p
+	//         for c in all compositions of p:
+	//             t = 1
+	//             for e in all elements of c:
+	//                 t = t * a[e]^e
+	//             r = r + h*t
+	// return r
+
+	epvector result;
 	// The number of terms will be the number of combinatorial compositions,
 	// i.e. the number of unordered arrangements of m nonnegative integers
 	// which sum up to n.  It is frequently written as C_n(m) and directly
-	// related with binomial coefficients:
-	result.reserve(numeric(py_funcs.py_binomial_int(n+m-1, m-1)).to_int());
-	//result.reserve(binomial(numeric(n+m-1), numeric(m-1)).to_int());
-	intvector k(m-1);
-	intvector k_cum(m-1); // k_cum[l]:=sum(i=0,l,k[l]);
-	intvector upper_limit(m-1);
-
-	for (size_t l=0; l<m-1; ++l) {
-		k[l] = 0;
-		k_cum[l] = 0;
-		upper_limit[l] = n;
+	// related with binomial coefficients: binomial(n+m-1,m-1).
+	size_t result_size = binomial(numeric(n+a.nops()-1), numeric(a.nops()-1)).to_long();
+	if (!a.overall_coeff.is_zero()) {
+		// the result's overall_coeff is one of the terms
+		--result_size;
 	}
+	result.reserve(result_size);
 
-	while (true) {
-		exvector term;
-		term.reserve(m+1);
-		for (size_t l=0; l<m-1; ++l) {
-			const ex & b = a.op(l);
-			GINAC_ASSERT(!is_exactly_a<add>(b));
-			GINAC_ASSERT(!is_exactly_a<power>(b) ||
-			             !is_exactly_a<numeric>(ex_to<power>(b).exponent) ||
-			             !ex_to<numeric>(ex_to<power>(b).exponent).is_pos_integer() ||
-			             !is_exactly_a<add>(ex_to<power>(b).basis) ||
-			             !is_exactly_a<mul>(ex_to<power>(b).basis) ||
-			             !is_exactly_a<power>(ex_to<power>(b).basis));
-			if (is_exactly_a<mul>(b))
-				term.push_back(expand_mul(ex_to<mul>(b), numeric(k[l]), options, true));
-			else
-				term.push_back(power(b,k[l]));
+	// Iterate over all terms in binomial expansion of
+	// S = power(+(x,...,z;c),n)
+	//   = sum(binomial(n,k)*power(+(x,...,z;0),k)*c^(n-k), k=1..n) + c^n
+	for (int k = 1; k <= n; ++k) {
+		numeric binomial_coefficient;  // binomial(n,k)*c^(n-k)
+		if (a.overall_coeff.is_zero()) {
+			// degenerate case with zero overall_coeff:
+			// apply multinomial theorem directly to power(+(x,...z;0),n)
+			binomial_coefficient = 1;
+			if (k < n) {
+				continue;
+			}
+		} else {
+			binomial_coefficient = binomial(numeric(n), numeric(k)) * pow(ex_to<numeric>(a.overall_coeff), numeric(n-k));
 		}
 
-		const ex & b = a.op(m-1);
-		GINAC_ASSERT(!is_exactly_a<add>(b));
-		GINAC_ASSERT(!is_exactly_a<power>(b) ||
-		             !is_exactly_a<numeric>(ex_to<power>(b).exponent) ||
-		             !ex_to<numeric>(ex_to<power>(b).exponent).is_pos_integer() ||
-		             !is_exactly_a<add>(ex_to<power>(b).basis) ||
-		             !is_exactly_a<mul>(ex_to<power>(b).basis) ||
-		             !is_exactly_a<power>(ex_to<power>(b).basis));
-		if (is_exactly_a<mul>(b))
-			term.push_back(expand_mul(ex_to<mul>(b), numeric(n-k_cum[m-2]), options, true));
-		else
-			term.push_back(power(b,n-k_cum[m-2]));
+		// Multinomial expansion of power(+(x,...,z;0),k)*c^(n-k):
+		// Iterate over all partitions of k with exactly as many parts as
+		// there are symbolic terms in the basis (including zero parts).
+		partition_generator partitions(k, a.seq.size());
+		do {
+			const std::vector<int>& partition = partitions.current();
+			// All monomials of this partition have the same number of terms and the same coefficient.
+			const unsigned msize = std::count_if(partition.begin(), partition.end(), [](int i) { return i > 0; });
+			const numeric coeff = multinomial_coefficient(partition) * binomial_coefficient;
 
-
-		numeric f = py_funcs.py_binomial_int(n,k[0]);
-		for (size_t l=1; l<m-1; ++l)
-		  f *= py_funcs.py_binomial_int(n-k_cum[l-1], k[l]);
-
-		term.push_back(f);
-
-		result.push_back(ex((new mul(term))->setflag(status_flags::dynallocated)).expand(options));
-
-		// increment k[]
-		int l = m-2;
-		while ((l>=0) && ((++k[l])>upper_limit[l])) {
-			k[l] = 0;
-			--l;
-		}
-		if (l<0) break;
-
-		// recalc k_cum[] and upper_limit[]
-		k_cum[l] = (l==0 ? k[0] : k_cum[l-1]+k[l]);
-
-		for (size_t i=l+1; i<m-1; ++i)
-			k_cum[i] = k_cum[i-1]+k[i];
-
-		for (size_t i=l+1; i<m-1; ++i)
-			upper_limit[i] = n-k_cum[i-1];
+			// Iterate over all compositions of the current partition.
+			composition_generator compositions(partition);
+			do {
+				const std::vector<int>& the_exponent = compositions.current();
+				epvector monomial;
+				monomial.reserve(msize);
+				numeric factor = coeff;
+				for (unsigned i = 0; i < the_exponent.size(); ++i) {
+					const ex & r = a.seq[i].rest;
+					GINAC_ASSERT(!is_exactly_a<add>(r));
+					GINAC_ASSERT(!is_exactly_a<power>(r) ||
+						     !is_exactly_a<numeric>(ex_to<power>(r).exponent) ||
+						     !ex_to<numeric>(ex_to<power>(r).exponent).is_pos_integer() ||
+						     !is_exactly_a<add>(ex_to<power>(r).basis) ||
+						     !is_exactly_a<mul>(ex_to<power>(r).basis) ||
+						     !is_exactly_a<power>(ex_to<power>(r).basis));
+					GINAC_ASSERT(is_exactly_a<numeric>(a.seq[i].coeff));
+					const numeric & c = ex_to<numeric>(a.seq[i].coeff);
+					if (the_exponent[i] == 0) {
+						// optimize away
+					} else if (the_exponent[i] == 1) {
+						// optimized
+						monomial.push_back(expair(r, _ex1));
+						if (c != *_num1_p)
+							factor = factor.mul(c);
+					} else { // general case exponent[i] > 1
+						monomial.push_back(expair(r, the_exponent[i]));
+						if (c != *_num1_p)
+							factor = factor.mul(c.power(the_exponent[i]));
+					}
+				}
+				result.push_back(expair(mul(std::move(monomial)).expand(options), factor));
+			} while (compositions.next());
+		} while (partitions.next());
 	}
 
-	return (new add(result))->setflag(status_flags::dynallocated |
-	                                  status_flags::expanded);
+	GINAC_ASSERT(result.size() == result_size);
+	if (a.overall_coeff.is_zero()) {
+		return dynallocate<add>(std::move(result)).setflag(status_flags::expanded);
+	} else {
+		return dynallocate<add>(std::move(result), ex_to<numeric>(a.overall_coeff).power(n)).setflag(status_flags::expanded);
+	}
 }
 
 
@@ -1164,9 +1399,14 @@ ex power::expand_add(const add & a, int n, unsigned options) const
  *  @see power::expand_add */
 ex power::expand_add_2(const add & a, unsigned options) const
 {
-	epvector sum;
-	size_t a_nops = a.nops();
-	sum.reserve((a_nops*(a_nops+1))/2);
+	epvector result;
+	size_t result_size = (a.nops() * (a.nops()+1)) / 2;
+	if (!a.overall_coeff.is_zero()) {
+		// the result's overall_coeff is one of the terms
+		--result_size;
+	}
+	result.reserve(result_size);
+
 	auto last = a.seq.end();
 
 	// power(+(x,...,z;c),2)=power(+(x,...,z;0),2)+2*c*+(x,...,z;0)+c*c
@@ -1185,42 +1425,43 @@ ex power::expand_add_2(const add & a, unsigned options) const
 		
 		if (c.is_equal(_ex1)) {
 			if (is_exactly_a<mul>(r)) {
-				sum.push_back(a.combine_ex_with_coeff_to_pair(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
-				                                              _ex1));
+				result.push_back(a.combine_ex_with_coeff_to_pair(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
+				                        _ex1));
 			} else {
-				sum.push_back(a.combine_ex_with_coeff_to_pair((new power(r,_ex2))->setflag(status_flags::dynallocated),
-				                                              _ex1));
+				result.push_back(a.combine_ex_with_coeff_to_pair(dynallocate<power>(r, _ex2),
+				                        _ex1));
 			}
 		} else {
 			if (is_exactly_a<mul>(r)) {
-				sum.push_back(a.combine_ex_with_coeff_to_pair(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
-				                     ex_to<numeric>(c).power_dyn(*_num2_p)));
+				result.push_back(expair(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
+				                        ex_to<numeric>(c).power_dyn(*_num2_p)));
 			} else {
-				sum.push_back(a.combine_ex_with_coeff_to_pair((new power(r,_ex2))->setflag(status_flags::dynallocated),
-				                     ex_to<numeric>(c).power_dyn(*_num2_p)));
+				result.push_back(expair(dynallocate<power>(r, _ex2),
+				                        ex_to<numeric>(c).power_dyn(*_num2_p)));
 			}
 		}
 
 		for (auto cit1=cit0+1; cit1!=last; ++cit1) {
 			const ex & r1 = cit1->rest;
 			const ex & c1 = cit1->coeff;
-			sum.push_back(a.combine_ex_with_coeff_to_pair(mul(r,r1).expand(options),
-			                                              _num2_p->mul(ex_to<numeric>(c)).mul_dyn(ex_to<numeric>(c1))));
+			result.push_back(expair(mul(r,r1).expand(options),
+			                        _num2_p->mul(ex_to<numeric>(c)).mul_dyn(ex_to<numeric>(c1))));
 		}
 	}
 	
-	GINAC_ASSERT(sum.size()==(a.seq.size()*(a.seq.size()+1))/2);
-	
 	// second part: add terms coming from overall_coeff (if != 0)
 	if (!a.overall_coeff.is_zero()) {
-                for (const auto & elem : a.seq)
-			sum.push_back(a.combine_pair_with_coeff_to_pair(elem, ex_to<numeric>(a.overall_coeff).mul_dyn(*_num2_p)));
-		sum.push_back(expair(ex_to<numeric>(a.overall_coeff).power_dyn(*_num2_p),_ex1));
+		for (auto & i : a.seq)
+			result.push_back(a.combine_pair_with_coeff_to_pair(i, ex_to<numeric>(a.overall_coeff).mul_dyn(*_num2_p)));
 	}
-	
-	GINAC_ASSERT(sum.size()==(a_nops*(a_nops+1))/2);
-	
-	return (new add(sum))->setflag(status_flags::dynallocated | status_flags::expanded);
+
+	GINAC_ASSERT(result.size() == result_size);
+
+	if (a.overall_coeff.is_zero()) {
+		return dynallocate<add>(std::move(result)).setflag(status_flags::expanded);
+	} else {
+		return dynallocate<add>(std::move(result), ex_to<numeric>(a.overall_coeff).power(2)).setflag(status_flags::expanded);
+	}
 }
 
 /** Expand factors of m in m^n where m is a mul and n is an integer.

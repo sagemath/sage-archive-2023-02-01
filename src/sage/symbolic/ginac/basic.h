@@ -331,6 +331,31 @@ inline bool is_exactly_a(const basic & obj)
 	return obj.tinfo() == &T::tinfo_static;
 }
 
+/** Constructs a new (class basic or derived) B object on the heap.
+ *
+ *  This function picks the object's ctor based on the given argument types.
+ *
+ *  This helps the constructor of ex from basic (or a derived class B) because
+ *  then the constructor doesn't have to duplicate the object onto the heap.
+ *  See ex::construct_from_basic(const basic &) for more information.
+ */
+template<class B, typename... Args>
+inline B & dynallocate(Args &&... args)
+{
+	return const_cast<B &>(static_cast<const B &>((new B(std::forward<Args>(args)...))->setflag(status_flags::dynallocated)));
+}
+/** Constructs a new (class basic or derived) B object on the heap.
+ *
+ *  This function is needed for GiNaC classes which have public ctors from
+ *  initializer lists of expressions (which are not a type and not captured
+ *  by the variadic template version).
+ */
+template<class B>
+inline B & dynallocate(std::initializer_list<ex> il)
+{
+	return const_cast<B &>(static_cast<const B &>((new B(il))->setflag(status_flags::dynallocated)));
+}
+
 } // namespace GiNaC
 
 #endif // ndef __GINAC_BASIC_H__

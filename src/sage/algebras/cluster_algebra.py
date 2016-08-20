@@ -1661,6 +1661,17 @@ class ClusterAlgebra(Parent):
             ``g_vector`` is not the g-vector of any cluster variable. In this
             case the function resets the iterator and raises an error.
 
+        WARNING: 
+            
+            This method, like some other in this class, manipulate an internal
+            data structure to minimize computation time. Should it be
+            interrupted before it returns, this data will be left in a
+            corrupted state that will cripple future executions of all methods
+            that depend on it.
+
+            If you interrupt this method remember to sanitize the internal data
+            structure by calling :meth:`reset_exploring_iterator`.
+
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['G',2],principal_coefficients=True)
@@ -1969,6 +1980,17 @@ class ClusterAlgebra(Parent):
         INPUT:
 
         - ``depth`` -- a positive integer or infinity: the maximum depth at which to stop searching.
+
+        WARNING: 
+            
+            This method, like some other in this class, manipulate an internal
+            data structure to minimize computation time. Should it be
+            interrupted before it returns, this data will be left in a
+            corrupted state that will cripple future executions of all methods
+            that depend on it.
+
+            If you interrupt this method remember to sanitize the internal data
+            structure by calling :meth:`reset_exploring_iterator`.
 
         EXAMPLES::
 

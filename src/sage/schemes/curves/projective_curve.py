@@ -36,20 +36,29 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import division
+from __future__ import absolute_import
 
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
 from sage.interfaces.all import singular
 from sage.misc.all import add, sage_eval
 from sage.rings.all import degree_lowest_rational_function
+from sage.rings.rational_field import is_RationalField
 from sage.schemes.affine.affine_space import AffineSpace
 
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
-from sage.schemes.projective.projective_space import is_ProjectiveSpace
+from . import point
 
-from curve import Curve_generic
+from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
+from sage.schemes.projective.projective_space import (is_ProjectiveSpace,
+                                                      ProjectiveSpace)
+
+from .curve import Curve_generic
+
 
 class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
+
+    _point = point.ProjectiveCurvePoint_field
+
     def _repr_type(self):
         r"""
         Return a string representation of the type of this curve.
@@ -67,7 +76,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         r"""
         Initialization function.
 
-        EXMAPLES::
+        EXAMPLES::
 
             sage: P.<x,y,z,w,u> = ProjectiveSpace(GF(7), 4)
             sage: C = Curve([y*u^2 - x^3, z*u^2 - x^3, w*u^2 - x^3, y^3 - x^3], P); C
@@ -127,7 +136,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: C.affine_patch(1, A).ambient_space() == A
             True
         """
-        from constructor import Curve
+        from .constructor import Curve
         return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i, AA))
 
     def arithmetic_genus(self):
@@ -157,82 +166,6 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         if not self.is_irreducible():
             raise TypeError("this curve must be irreducible")
         return 1 - self.defining_ideal().hilbert_polynomial()(0)
-
-    def multiplicity(self, P):
-        r"""
-        Return the multiplicity of this projective curve at the point ``P``.
-
-        This is computed as the corresponding multiplicity of an affine patch of this curve that
-        contains the point. This curve must be defined over a field. An error is returned if ``P``
-        not a point on this curve.
-
-        INPUT:
-
-        - ``P`` -- a point in the ambient space of this curve.
-
-        OUTPUT:
-
-        An integer.
-
-        EXAMPLES::
-
-            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
-            sage: C = Curve([y^4 - x^3*z - x^2*z^2], P)
-            sage: Q = P([0,0,1])
-            sage: C.multiplicity(Q)
-            2
-
-        ::
-
-            sage: P.<x,y,z,w> = ProjectiveSpace(RR, 3)
-            sage: C = Curve([y^8 - x^2*z*w^5, w^2 - 2*y^2 - x*z], P)
-            sage: Q1 = P([-1,-1,1,1])
-            sage: C.multiplicity(Q1)
-            1
-            sage: Q2 = P([1,0,0,0])
-            sage: C.multiplicity(Q2)
-            7
-            sage: Q3 = P([0,0,1,0])
-            sage: C.multiplicity(Q3)
-            8
-
-        ::
-
-            sage: P.<x,y,z,w> = ProjectiveSpace(GF(29), 3)
-            sage: C = Curve([y^17 - x^5*w^4*z^8, x*y - z^2], P)
-            sage: Q = P([3,0,0,1])
-            sage: C.multiplicity(Q)
-            8
-
-        ::
-
-            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
-            sage: C = P.curve([y^2*z^5 - x^7])
-            sage: Q = P([-1,-1,1])
-            sage: C.multiplicity(Q)
-            Traceback (most recent call last):
-            ...
-            TypeError: (=(-1 : -1 : 1)) is not a point on (=Projective Plane Curve
-            over Rational Field defined by -x^7 + y^2*z^5)
-        """
-        if not self.base_ring() in Fields():
-            raise TypeError("curve must be defined over a field")
-
-        # Check whether P is a point on this curve
-        try:
-            P = self(P)
-        except TypeError:
-            raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
-
-        # Find an affine chart of the ambient space of self that contains P
-        i = 0
-        while(P[i] == 0):
-            i = i + 1
-        C = self.affine_patch(i)
-        Q = list(P)
-        t = Q.pop(i)
-        Q = [1/t*Q[j] for j in range(self.ambient_space().dimension_relative())]
-        return C.multiplicity(C.ambient_space()(Q))
 
     def is_complete_intersection(self):
         r"""
@@ -265,6 +198,9 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         return len(self.ambient_space().gens()) - len(I.sage().gens()) == L[-1]
 
 class ProjectivePlaneCurve(ProjectiveCurve):
+
+    _point = point.ProjectivePlaneCurvePoint_field
+
     def __init__(self, A, f):
         r"""
         Initialization function.
@@ -524,7 +460,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         # one avoiding "infinity", i.e. the one corresponding to the
         # last projective coordinate being nonzero
         patch = kwds.pop('patch', self.ngens() - 1)
-        from constructor import Curve
+        from .constructor import Curve
         C = Curve(self.affine_patch(patch))
         return C.plot(*args, **kwds)
 
@@ -584,7 +520,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: E.is_singular()
             False
 
-        Showing that ticket #12187 is fixed::
+        Showing that :trac:`12187` is fixed::
 
             sage: F.<X,Y,Z> = GF(2)[]
             sage: G = Curve(X^2+Y*Z)
@@ -735,7 +671,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         - ``P`` -- a point in the intersection of both curves.
 
-        OUPUT: Boolean.
+        OUTPUT: Boolean.
 
         EXAMPLES::
 
@@ -773,7 +709,72 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         # there is only one tangent at a nonsingular point of a plane curve
         return not self.tangents(P)[0] == C.tangents(P)[0]
 
+    def rational_parameterization(self):
+        r"""
+        Return a rational parameterization of this curve.
+
+        This curve must have rational coefficients and be absolutely irreducible (i.e. irreducible
+        over the algebraic closure of the rational field). The curve must also be rational (have
+        geometric genus zero).
+
+        The rational parameterization may have coefficients in a quadratic extension of the rational
+        field.
+
+        OUTPUT:
+
+        - a birational map between `\mathbb{P}^{1}` and this curve, given as a scheme morphism.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([y^2*z - x^3], P)
+            sage: C.rational_parameterization()
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Rational Field
+              To:   Projective Plane Curve over Rational Field defined by -x^3 + y^2*z
+              Defn: Defined on coordinates by sending (s : t) to
+                    (s^2*t : s^3 : t^3)
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([x^3 - 4*y*z^2 + x*z^2 - x*y*z], P)
+            sage: C.rational_parameterization()
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Rational Field
+              To:   Projective Plane Curve over Rational Field defined by x^3 - x*y*z + x*z^2 - 4*y*z^2
+              Defn: Defined on coordinates by sending (s : t) to
+                    (4*s^2*t + s*t^2 : s^2*t + t^3 : 4*s^3 + s^2*t)
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([x^2 + y^2 + z^2], P)
+            sage: C.rational_parameterization()
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Number Field in a with defining polynomial a^2 + 1
+              To:   Projective Plane Curve over Number Field in a with defining
+              polynomial a^2 + 1 defined by x^2 + y^2 + z^2
+              Defn: Defined on coordinates by sending (s : t) to
+                    (s^2 - t^2 : (a)*s^2 + (a)*t^2 : -2*s*t)
+        """
+        if self.genus() != 0:
+            raise TypeError("this curve must have geometric genus zero")
+        if not is_RationalField(self.base_ring()):
+            raise TypeError("this curve must be defined over the rational field")
+        singular.lib("paraplanecurves.lib")
+        R = singular.paraPlaneCurve(self.defining_polynomial())
+        singular.setring(R)
+        param = singular('PARA').sage().gens()
+        R = R.sage()
+        C = self.change_ring(R.base_ring())
+        H = Hom(ProjectiveSpace(R.base_ring(), 1, R.gens()), C)
+        return H(param)
+
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
+
+    _point = point.ProjectivePlaneCurvePoint_finite_field
+
     def rational_points_iterator(self):
         r"""
         Return a generator object for the rational points on this curve.

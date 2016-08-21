@@ -319,7 +319,6 @@ Working with sandpile divisors::
 #*****************************************************************************
 from __future__ import print_function
 
-from string import join
 from collections import Counter
 from copy import deepcopy
 from inspect import getdoc

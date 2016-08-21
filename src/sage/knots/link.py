@@ -1412,12 +1412,12 @@ class Link(object):
         h = self._homology_generators()
         hl = len(h)
         A = matrix(ZZ, hl, hl)
-        indices = [i for i,hi in enumerate(h) if hi != 0]
+        indices = [i for i, hi in enumerate(h) if hi]
         for i in indices:
             hi = h[i]
             for j in range(i, hl):
                 if i == j:
-                    A[i, j] = cmp(0, x[i] + x[hi])
+                    A[i, j] = -(x[i] + x[hi]).sign()
                 elif hi > h[j]:
                     A[i, j] = 0
                     A[j, i] = 0
@@ -1527,7 +1527,6 @@ class Link(object):
         B = self.braid().parent()
         x = self._braid_word_components()
         q = []
-        genus = 0
         s_tmp = []
         for xi in x:
             tmp = []
@@ -1551,9 +1550,7 @@ class Link(object):
             q2 = max(abs(k) + 1 for k in i)
             q.append(q2)
         g = [((2 - t[i]) + len(x[i]) - q[i]) / 2 for i in range(len(x))]
-        for i in range(len(g)):
-            genus = genus + g[i]
-        return Integer(genus)
+        return sum(g, ZZ.zero())
 
     def signature(self):
         """
@@ -1574,13 +1571,7 @@ class Link(object):
             -2
         """
         m = 2 * (self.seifert_matrix() + self.seifert_matrix().transpose())
-        e = m.eigenvalues()
-        tot = ZZ.zero()
-        s = []
-        for i, j in enumerate(e):
-            s.append(cmp(j, 0))
-            tot = tot + s[i]
-        return tot
+        return sum([j.real().sign() for j in m.eigenvalues()], ZZ.zero())
 
     def alexander_polynomial(self, var='t'):
         """
@@ -1720,7 +1711,7 @@ class Link(object):
         if not self.is_knot():
             return False
         x = self.gauss_code()
-        s = [cmp(i, 0) for i in x[0]]
+        s = [Integer(i).sign() for i in x[0]]
         return (s == [(-1) ** (i + 1) for i in range(len(x[0]))]
                 or s == [(-1) ** i for i in range(len(x[0]))])
 
@@ -2118,8 +2109,8 @@ class Link(object):
             sage: B = BraidGroup(4)
             sage: K11n42 = Link(B([1, -2, 3, -2, 3, -2, -2, -1, 2, -3, -3, 2, 2]))
             sage: K11n34 = Link(B([1, 1, 2, -3, 2, -3, 1, -2, -2, -3, -3]))
-            sage: cmp(K11n42.jones_polynomial(), K11n34.jones_polynomial())
-            0
+            sage: bool(K11n42.jones_polynomial() == K11n34.jones_polynomial())
+            True
 
         The two algorithms for computation give the same result when the
         trace closure of the braid representation is the link itself::
@@ -2128,8 +2119,8 @@ class Link(object):
             ....:           [-1, -1, -1, -1, 1, -1, 1]])
             sage: jonesrep = L.jones_polynomial(algorithm='jonesrep')
             sage: statesum = L.jones_polynomial(algorithm='statesum')
-            sage: cmp(jonesrep, statesum)
-            0
+            sage: bool(jonesrep == statesum)
+            True
 
         When we have thrown away unknots so that the trace closure of the
         braid is not necessarily the link itself, this is only true up to a

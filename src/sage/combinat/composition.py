@@ -157,13 +157,13 @@ class Composition(CombinatorialElement):
             [ *  **   *        *                 ]
             [ *  *   **  ***   *   **    *       ]
             [ *, * , * , *  , **, ** , ***, **** ]
-            sage: Partitions.global_options(diagram_str='#', convention="French")
+            sage: Partitions.options(diagram_str='#', convention="French")
             sage: ascii_art(Compositions(4).list())
             [ #                                  ]
             [ #  #   #        ##                 ]
             [ #  #   ##  #     #  ##   ###       ]
             [ #, ##,  #, ###,  #,  ##,   #, #### ]
-            sage: Partitions.global_options.reset()
+            sage: Partitions.options._reset()
         """
         from sage.typeset.ascii_art import ascii_art
         return ascii_art(self.to_skew_partition())
@@ -178,14 +178,14 @@ class Composition(CombinatorialElement):
             ⎢ ├┤  ├┼┘  ┌┼┤  ┌┬┬┐   ├┤   ┌┬┐    ┌┐        ⎥
             ⎢ ├┤  ├┤   ├┼┘  ├┼┴┘  ┌┼┤  ┌┼┼┘  ┌┬┼┤  ┌┬┬┬┐ ⎥
             ⎣ └┘, └┘ , └┘ , └┘  , └┴┘, └┴┘ , └┴┴┘, └┴┴┴┘ ⎦
-            sage: Partitions.global_options(diagram_str='#', convention="French")
+            sage: Partitions.options(diagram_str='#', convention="French")
             sage: unicode_art(Compositions(4).list())
             ⎡ ┌┐                                         ⎤
             ⎢ ├┤  ┌┐   ┌┐         ┌┬┐                    ⎥
             ⎢ ├┤  ├┤   ├┼┐  ┌┐    └┼┤  ┌┬┐   ┌┬┬┐        ⎥
             ⎢ ├┤  ├┼┐  └┼┤  ├┼┬┐   ├┤  └┼┼┐  └┴┼┤  ┌┬┬┬┐ ⎥
             ⎣ └┘, └┴┘,  └┘, └┴┴┘,  └┘,  └┴┘,   └┘, └┴┴┴┘ ⎦
-            sage: Partitions.global_options.reset()
+            sage: Partitions.options._reset()
         """
         from sage.typeset.unicode_art import unicode_art
         return unicode_art(self.to_skew_partition())
@@ -571,7 +571,7 @@ class Composition(CombinatorialElement):
             True
 
         Let us check that the join of `I` and `J` is indeed the
-        conctenation of `I_1, I_2, \cdots , I_m`, where
+        concatenation of `I_1, I_2, \cdots , I_m`, where
         `I = I_1 \bullet I_2 \bullet \ldots \bullet I_m` is the ribbon
         decomposition of `I` with respect to `J`::
 

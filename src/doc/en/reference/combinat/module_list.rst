@@ -230,6 +230,7 @@ Comprehensive Module list
     sage/combinat/root_system/root_system
     sage/combinat/root_system/type_A
     sage/combinat/root_system/type_A_affine
+    sage/combinat/root_system/type_A_infinity
     sage/combinat/root_system/type_B
     sage/combinat/root_system/type_BC_affine
     sage/combinat/root_system/type_B_affine
@@ -328,6 +329,7 @@ Comprehensive Module list
     sage/combinat/symmetric_group_algebra
     sage/combinat/symmetric_group_representations
     sage/combinat/tableau
+    sage/combinat/tableau_residues
     sage/combinat/tableau_tuple
     sage/combinat/tamari_lattices
     sage/combinat/tiling

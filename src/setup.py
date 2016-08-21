@@ -406,8 +406,8 @@ class sage_build_ext(build_ext):
             # ignore build-lib -- put the compiled extension into
             # the source tree along with pure Python modules
 
-            modpath = string.split(fullname, '.')
-            package = string.join(modpath[0:-1], '.')
+            modpath = fullname.split('.')
+            package = '.'.join(modpath[0:-1])
             base = modpath[-1]
 
             build_py = self.get_finalized_command('build_py')
@@ -610,9 +610,9 @@ python_packages, python_modules = find_python_sources(
 python_data_files = find_extra_files(python_packages,
     ".", SAGE_CYTHONIZED, SAGE_LIB, ["ntlwrap.cpp"])
 
-print('python_packages = {0}'.format(python_packages))
-print('python_modules = {0}'.format(python_modules))
-print('python_data_files = {0}'.format(python_data_files))
+log.info('python_packages = {0}'.format(python_packages))
+log.info('python_modules = {0}'.format(python_modules))
+log.info('python_data_files = {0}'.format(python_data_files))
 
 print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
 

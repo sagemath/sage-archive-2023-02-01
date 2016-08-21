@@ -469,7 +469,7 @@ class BinaryRecurrenceSequence(SageObject):
                     #otherwise it will divide (p+1)(p-1)
                     else :
                         M = (p+1)*(p-1)
-                        p2fac = list((p+1).factor())        #factor the (p+1) and (p-1) terms seperately and then combine for speed
+                        p2fac = list((p+1).factor())        #factor the (p+1) and (p-1) terms separately and then combine for speed
                         Mfac_dic = {}
                         for i in list(p1fac + p2fac):
                             if i[0] not in Mfac_dic:

@@ -13,6 +13,7 @@ AUTHOR:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function
 
 include "sage/libs/ntl/decl.pxi"
 
@@ -717,7 +718,7 @@ cdef init_libsingular():
             if not handle:
                 err = dlerror()
                 if err:
-                    print err
+                    print(err)
             break
 
     if handle == NULL:

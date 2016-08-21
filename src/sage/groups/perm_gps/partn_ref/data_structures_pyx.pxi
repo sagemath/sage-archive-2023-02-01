@@ -78,7 +78,7 @@ cdef inline OrbitPartition *OP_copy(OrbitPartition *OP):
     """
     cdef OrbitPartition *OP2 = OP_new(OP.degree)
     if OP is NULL:
-        raise MemoryError, "MemoryError allocating OrbitPartition in copy method"
+        raise MemoryError("MemoryError allocating OrbitPartition in copy method")
 
     OP_copy_from_to(OP, OP2)
     return OP2
@@ -535,14 +535,14 @@ cdef int PS_all_new_cells(PartitionStack *PS, bitset_t** nonsingletons_ptr):
                 count +=1
                 nonsingletons = <bitset_t*> sig_realloc(nonsingletons, count * sizeof(bitset_t))
                 if nonsingletons is NULL:
-                    raise MemoryError, "Memory error in PS_all_new_cells"
+                    raise MemoryError("Memory error in PS_all_new_cells")
                 bitset_init(nonsingletons[count-1], n)
                 bitset_copy(nonsingletons[count-1], scratch)
         else:
             if beg==0:
                 nonsingletons = <bitset_t*> sig_realloc(nonsingletons, sizeof(bitset_t))
                 if nonsingletons is NULL:
-                    raise MemoryError, "Memory error in PS_all_new_cells"
+                    raise MemoryError("Memory error in PS_all_new_cells")
                 bitset_init(nonsingletons[0], n)
                 bitset_zero(scratch)
                 bitset_complement(nonsingletons[0], scratch)

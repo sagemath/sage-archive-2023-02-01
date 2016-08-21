@@ -33,10 +33,11 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 from __future__ import print_function
+from __future__ import absolute_import
 
 import pexpect
 import time
-import cleaner
+from . import cleaner
 
 from sage.groups.perm_gps.cubegroup import index2singmaster
 

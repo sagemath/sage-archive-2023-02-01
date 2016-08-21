@@ -22,13 +22,19 @@ REFERENCES:
    University Press, (1999).
 
 .. [Bo39] \R. C. Bose, "On the construction of balanced incomplete block
-   designs", Ann. Eugenics, vol. 9, (1939), 353--399.
+   designs", Ann. Eugenics, 9 (1939), 353--399.
 
-.. [Bu95] \M. Buratti "On simple radical difference families", J. of
-   Combinatorial Designs, vol. 3, no. 2 (1995)
+.. [Bu95] \M. Buratti "On simple radical difference families", J.
+   Combinatorial Designs, 3 (1995) 161--168.
+
+.. [Tu1965] \R. J. Turyn "Character sum and difference sets"
+   Pacific J. Math. 15 (1965) 319--346.
+
+.. [Tu1984] \R. J. Turyn "A special class of Williamson matrices and
+   difference sets" J. Combinatorial Theory (A) 36 (1984) 111--115.
 
 .. [Wi72] \R. M. Wilson "Cyclotomy and difference families in elementary Abelian
-   groups", J. of Num. Th., 4 (1972), pp. 17-47.
+   groups", J. Number Theory, 4 (1972) 17--47.
 
 Functions
 ---------
@@ -43,6 +49,9 @@ Functions
 #*****************************************************************************
 # python3
 from __future__ import division, print_function
+from __future__ import absolute_import
+
+from sage.misc.cachefunc import cached_method
 
 from sage.categories.sets_cat import EmptySetError
 import sage.arith.all as arith
@@ -278,7 +287,7 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
 
         if sum(tmp_counter.itervalues()) != k*(k-1):
             if verbose:
-                print("repeated element in the {}-th block {}".format(i, dd))
+                print("repeated element in the {}-th block {}".format(i,d))
             return False
 
         # Normalized number of occurrences added to counter
@@ -1080,7 +1089,7 @@ def mcfarland_1973_construction(q, s):
 
     .. [McF1973] Robert L. McFarland
        "A family of difference sets in non-cyclic groups"
-       Journal of Combinatorial Theory (A) vol 15 (1973).
+       J. Combinatorial Theory (A) 15 (1973) 1--10.
        http://dx.doi.org/10.1016/0097-3165(73)90031-9
 
     EXAMPLES::
@@ -1113,6 +1122,149 @@ def mcfarland_1973_construction(q, s):
             D.append(G((tuple(v) + (k,))))
 
     return G,[D]
+
+def are_hadamard_difference_set_parameters(v, k, lmbda):
+    r"""
+    Check whether ``(v,k,lmbda)`` is of the form ``(4N^2, 2N^2 - N, N^2 - N)``.
+
+    INPUT:
+
+    - ``(v,k,lmbda)`` -- parameters of a difference set
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import are_hadamard_difference_set_parameters
+        sage: are_hadamard_difference_set_parameters(36, 15, 6)
+        True
+        sage: are_hadamard_difference_set_parameters(60, 13, 5)
+        False
+    """
+    N = k - 2*lmbda
+    N2 = N*N
+    return v == 4*N2 and k == 2*N2 - N and lmbda == N2 - N
+
+@cached_method
+def hadamard_difference_set_product_parameters(N):
+    r"""
+    Check whether a product construction is available for Hadamard difference
+    set with parameter ``N``.
+
+    This function looks for two integers `N_1` and `N_2`` greater than `1`
+    and so that `N = 2 N_1 N_2` and there exists Hadamard difference set with
+    parameters `(4 N_i^2, 2N_i^2 - N_i, N_i^2 - N_i)`. If such pair exists,
+    the output is the pair ``(N_1, N_2)`` otherwise it is ``None``.
+
+    INPUT:
+
+    - ``N`` -- positive integer
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import hadamard_difference_set_product_parameters
+        sage: hadamard_difference_set_product_parameters(8)
+        (2, 2)
+    """
+    if N % 2:
+        return False
+
+    for N1 in (N//2).divisors()[1:]:
+        if 4*N1 > N:
+            break
+        v1 = 4*N1*N1
+        k1 = 2*N1*N1 - N1
+        l1 = N1*N1 - N1
+        if not difference_family(v1, k1, l1, existence=True):
+            continue
+        N2 = N // (2*N1)
+        v2 = 4*N2*N2
+        k2 = 2*N2*N2 - N2
+        l2 = N2*N2 - N2
+        if not difference_family(v2, k2, l2, existence=True):
+            continue
+
+        return (N1,N2)
+
+    return None
+
+def hadamard_difference_set_product(G1, D1, G2, D2):
+    r"""
+    Make a product of two Hadamard difference sets.
+
+    This product construction appears in [Tu1984]_.
+
+    INPUT:
+
+    - ``G1,D1``, ``G2,D2`` -- two Hadamard difference sets
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import hadamard_difference_set_product
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+
+        sage: G1,D1 = designs.difference_family(16,6,2)
+        sage: G2,D2 = designs.difference_family(36,15,6)
+
+        sage: G11,D11 = hadamard_difference_set_product(G1,D1,G1,D1)
+        sage: assert is_difference_family(G11, D11, 256, 120, 56)
+        sage: assert designs.difference_family(256, 120, 56, existence=True)
+
+        sage: G12,D12 = hadamard_difference_set_product(G1,D1,G2,D2)
+        sage: assert is_difference_family(G12, D12, 576, 276, 132)
+        sage: assert designs.difference_family(576, 276, 132, existence=True)
+    """
+    from sage.categories.cartesian_product import cartesian_product
+
+    G = cartesian_product([G1,G2])
+    D1 = set(D1[0])
+    D1c = set(s for s in G1 if s not in D1)
+    D2 = set(D2[0])
+    D2c = set(s for s in G2 if s not in D2)
+
+    D = set().union((G((s1,s2)) for s1 in D1 for s2 in D2),
+                    (G((s1,s2)) for s1 in D1c for s2 in D2c))
+
+    return G, [[s for s in G if s not in D]]
+
+def turyn_1965_3x3xK(k=4):
+    r"""
+    Return a difference set in either `C_3 \times C_3 \times C_4` or `C_3 \times
+    C_3 \times C_2 \times C_2` with parameters `v=36`, `k=15`, `\lambda=6`.
+
+    This example appears in [Tu1965]_.
+
+    INPUT:
+
+    - ``k`` -- either ``2`` (to get a difference set in `C_3 \times C_3 \times
+      C_2 \times C_2`) or ``4`` (to get a difference set in `C_3 \times C_3
+      \times C_3 \times C_4`).
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import turyn_1965_3x3xK
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G,D = turyn_1965_3x3xK(4)
+        sage: assert is_difference_family(G, D, 36, 15, 6)
+        sage: G,D = turyn_1965_3x3xK(2)
+        sage: assert is_difference_family(G, D, 36, 15, 6)
+    """
+    from sage.categories.cartesian_product import cartesian_product
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+
+    if k == 2:
+        G = cartesian_product([Zmod(3), Zmod(3), Zmod(2), Zmod(2)])
+        K = [(0,0), (0,1), (1,0), (1,1)]
+    elif k == 4:
+        G = cartesian_product([Zmod(3), Zmod(3), Zmod(4)])
+        K = [(0,), (1,), (2,), (3,)]
+    else:
+        raise ValueError("k must be 2 or 4")
+
+    L = [[(0,1),(1,1),(2,1),(0,2),(1,2),(2,2)], # complement of y=0
+         [(0,0),(1,1),(2,2)],                   # x-y=0
+         [(0,0),(1,2),(2,1)],                   # x+y=0
+         [(0,0),(0,1),(0,2)]]                   # x=0
+
+    return G, [[G(v+k) for l,k in zip(L,K) for v in l]]
 
 def difference_family(v, k, l=1, existence=False, explain_construction=False, check=True):
     r"""
@@ -1183,6 +1335,8 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         Singer difference set
         sage: print(designs.difference_family(64,28,12, explain_construction=True))
         McFarland 1973 construction
+        sage: print(designs.difference_family(576, 276, 132, explain_construction=True))
+        Hadamard difference set product from N1=2 and N2=3
 
     For `k=6,7` we look at the set of small prime powers for which a
     construction is available::
@@ -1327,6 +1481,32 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         ....:         assert designs.difference_family(v,k,1,existence=True) is True
         ....:         df = designs.difference_family(v,k,1,check=True)
 
+    Check the known Hadamard parameters::
+
+        sage: for N in range(2,21):
+        ....:     v = 4*N^2; k = 2*N^2-N; l = N^2-N
+        ....:     status = designs.difference_family(v,k,l,existence=True)
+        ....:     print("{:2} {}".format(N,designs.difference_family(v,k,l,explain_construction=True) if status else status))
+        2 McFarland 1973 construction
+        3 Turyn 1965 construction
+        4 McFarland 1973 construction
+        5 False
+        6 Unknown
+        7 False
+        8 McFarland 1973 construction
+        9 Unknown
+        10 Unknown
+        11 False
+        12 Hadamard difference set product from N1=2 and N2=3
+        13 False
+        14 Unknown
+        15 Unknown
+        16 McFarland 1973 construction
+        17 False
+        18 Hadamard difference set product from N1=3 and N2=3
+        19 False
+        20 Unknown
+
     Check a failing construction (:trac:`17528`)::
 
         sage: designs.difference_family(9,3)
@@ -1340,9 +1520,13 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         matrices and relative difference families" (1998) and Jungnickel
         "Composition theorems for difference families and regular planes" (1978)
     """
-    from block_design import are_hyperplanes_in_projective_geometry_parameters
+    from .block_design import are_hyperplanes_in_projective_geometry_parameters
 
-    from database import DF, EDS
+    from .database import DF, EDS
+
+    v = ZZ(v)
+    k = ZZ(k)
+    l = ZZ(l)
 
     if (v,k,l) in DF:
         if existence:
@@ -1427,6 +1611,34 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         else:
             _, (q,d) = are_hyperplanes_in_projective_geometry_parameters(v,k,l,True)
             G,D = singer_difference_set(q,d)
+
+    elif are_hadamard_difference_set_parameters(v,k,l) and k-2*l == 3:
+        if existence:
+            return True
+        elif explain_construction:
+            return "Turyn 1965 construction"
+        else:
+            G,D = turyn_1965_3x3xK(4)
+
+    elif are_hadamard_difference_set_parameters(v,k,l) and hadamard_difference_set_product_parameters(k-2*l):
+        N1,N2 = hadamard_difference_set_product_parameters(k-2*l)
+        if existence:
+            return True
+        elif explain_construction:
+            return "Hadamard difference set product from N1={} and N2={}".format(N1,N2)
+        else:
+            v1 = 4*N1*N1; v2 = 4*N2*N2
+            k1 = 2*N1*N1 - N1; k2 = 2*N2*N2 - N2
+            l1 = N1*N1 - N1; l2 = N2*N2 - N2
+            G1,D1 = difference_family(v1,k1,l1)
+            G2,D2 = difference_family(v2,k2,l2)
+            G,D = hadamard_difference_set_product(G1,D1,G2,D2)
+
+    elif are_hadamard_difference_set_parameters(v,k,l) and (k-2*l).is_prime():
+        if existence:
+            return False
+        else:
+            raise EmptySetError("by McFarland 1989 such difference family does not exist")
 
     elif len(factorization) == 1 and radical_difference_family(K, k, l, existence=True):
         if existence:

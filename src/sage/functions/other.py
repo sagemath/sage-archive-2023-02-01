@@ -776,7 +776,7 @@ class Function_gamma(GinacFunction):
             sage: latex(gamma1(z))
             \Gamma\left(z\right)
 
-        Test that Trac ticket 5556 is fixed::
+        Test that :trac:`5556` is fixed::
 
             sage: gamma1(3/4)
             gamma(3/4)
@@ -806,6 +806,15 @@ class Function_gamma(GinacFunction):
 
             sage: loads(dumps(gamma(x)))
             gamma(x)
+
+        Check that the implementations roughly agrees (note there might be
+        difference of several ulp on more complicated entries)::
+
+            sage: import mpmath
+            sage: float(gamma(10.)) == gamma(10.r) == float(gamma(mpmath.mpf(10)))
+            True
+            sage: float(gamma(8.5)) == gamma(8.5r) == float(gamma(mpmath.mpf(8.5)))
+            True
 
         .. SEEALSO::
 
@@ -1927,6 +1936,11 @@ class Function_beta(GinacFunction):
 
             sage: loads(dumps(beta))
             beta
+
+        Check that :trac:`15196` is fixed::
+
+            sage: beta(-1.3,-0.4)
+            -4.92909641669610
         """
         GinacFunction.__init__(self, "beta", nargs=2,
                 conversions=dict(maxima='beta',
@@ -2291,7 +2305,8 @@ class Function_real_part(GinacFunction):
         """
         GinacFunction.__init__(self, "real_part",
                                conversions=dict(maxima='realpart',
-                                                sympy='re'))
+                                                sympy='re'),
+                               alt_name="real")
 
     def __call__(self, x, **kwargs):
         r"""
@@ -2304,18 +2319,6 @@ class Function_real_part(GinacFunction):
             return x.real
         else:
             return GinacFunction.__call__(self, x, **kwargs)
-
-    def _eval_numpy_(self, x):
-        """
-        EXAMPLES::
-
-            sage: import numpy
-            sage: a = numpy.array([1+2*I, -2-3*I], dtype=numpy.complex)
-            sage: real_part(a)
-            array([ 1., -2.])
-        """
-        import numpy
-        return numpy.real(x)
 
 real = real_part = Function_real_part()
 
@@ -2361,7 +2364,8 @@ class Function_imag_part(GinacFunction):
         """
         GinacFunction.__init__(self, "imag_part",
                                conversions=dict(maxima='imagpart',
-                                                sympy='im'))
+                                                sympy='im'),
+                               alt_name="imag")
 
     def __call__(self, x, **kwargs):
         r"""
@@ -2374,18 +2378,6 @@ class Function_imag_part(GinacFunction):
             return x.imag
         else:
             return GinacFunction.__call__(self, x, **kwargs)
-
-    def _eval_numpy_(self, x):
-        """
-        EXAMPLES::
-
-            sage: import numpy
-            sage: a = numpy.array([1+2*I, -2-3*I], dtype=numpy.complex)
-            sage: imag_part(a)
-            array([ 2., -3.])
-        """
-        import numpy
-        return numpy.imag(x)
 
 imag = imag_part = imaginary = Function_imag_part()
 

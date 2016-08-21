@@ -25,10 +25,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function
+from __future__ import absolute_import
 
 import six
 from sage.structure.sage_object import SageObject
-import constructor
+from . import constructor
 import sage.databases.cremona
 from sage.rings.all import ZZ, QQ
 from sage.rings.number_field.all import QuadraticField

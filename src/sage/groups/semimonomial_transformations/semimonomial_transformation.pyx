@@ -38,7 +38,7 @@ AUTHORS:
 
 - Thomas Feulner (2012-11-15): initial version
 - Thomas Feulner (2013-12-27): :trac:`15576` dissolve dependency on 
-    Permutations().global_options()['mul']
+    Permutations.options.mul
 
 EXAMPLES::
 

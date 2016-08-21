@@ -586,9 +586,9 @@ class AffinePermutationTypeA(AffinePermutation):
             sage: p.has_left_descent(0)
             True
         """
-        #This is much faster thant he default method of taking the inverse and
-        #then finding right descents...
-        return self.position(i)>self.position(i+1)
+        # This is much faster than the default method of taking the inverse and
+        # then finding right descents...
+        return self.position(i) > self.position(i + 1)
 
     def to_type_a(self):
         r"""
@@ -1214,9 +1214,9 @@ class AffinePermutationTypeC(AffinePermutation):
             False
             True
         """
-        #This is much faster thant he default method of taking the inverse and
-        #then finding right descents...
-        return self.position(i)>self.position(i+1)
+        # This is much faster than the default method of taking the inverse and
+        # then finding right descents...
+        return self.position(i) > self.position(i + 1)
 
     def to_type_a(self):
         r"""

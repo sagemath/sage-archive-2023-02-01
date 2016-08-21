@@ -2,10 +2,11 @@
 Coercion via Construction Functors
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 import six
 from sage.misc.lazy_import import lazy_import
-from functor import Functor, IdentityFunctor_generic
+from .functor import Functor, IdentityFunctor_generic
 
 lazy_import('sage.categories.commutative_additive_groups', 'CommutativeAdditiveGroups')
 lazy_import('sage.categories.commutative_rings', 'CommutativeRings')
@@ -773,7 +774,7 @@ class PolynomialFunctor(ConstructionFunctor):
             True
 
         """
-        from rings import Rings
+        from .rings import Rings
         Functor.__init__(self, Rings(), Rings())
         self.var = var
         self.multi_variate = multi_variate

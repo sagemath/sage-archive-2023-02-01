@@ -92,6 +92,7 @@ The above is consistent with the following analytic computation::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.all import verbose, prod
 from sage.misc.cachefunc import cached_method
@@ -3207,10 +3208,6 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         E = self.curve()
         return E.modular_parametrization()(tau)
 
-    #This line is added to resolve ticket 9032, because both top-level function
-    #and method call _numerical_approx instead of numerical_approx
-    _numerical_approx=numerical_approx
-
     def tau(self):
         r"""
         Return `\tau` in the upper half plane that maps via the
@@ -5570,7 +5567,7 @@ def kolyvagin_reduction_data(E, q, first_only=True):
         sage: kolyvagin_reduction_data(EllipticCurve('2350g1'),5, first_only=False)
         (19, 239, -311, 19, 6480, 85680)
     """
-    from ell_generic import is_EllipticCurve
+    from .ell_generic import is_EllipticCurve
     if not is_EllipticCurve(E):
         raise TypeError("E must be an elliptic curve")
 
@@ -6545,7 +6542,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
     c = h/(min_p**2) + B
     verbose("Search would have to be up to height = %s"%c)
 
-    from ell_rational_field import _MAX_HEIGHT
+    from .ell_rational_field import _MAX_HEIGHT
 
     IR = rings.RealIntervalField(20)  # todo: 20?
 
@@ -6666,7 +6663,7 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
         sage: E.heegner_index_bound()
         ([2], -7, 2)
     """
-    from ell_rational_field import _MAX_HEIGHT
+    from .ell_rational_field import _MAX_HEIGHT
     if max_height is None:
         max_height = _MAX_HEIGHT
     else:

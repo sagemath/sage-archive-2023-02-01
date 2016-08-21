@@ -27,7 +27,7 @@ REFERENCES:
 .. [Hanani60] Haim Hanani,
   On quadruple systems,
   pages 145--157, vol. 12,
-  Canadadian Journal of Mathematics,
+  Canadian Journal of Mathematics,
   1960
   http://cms.math.ca/cjm/v12/cjm1960v12.0145-0157.pdf
 

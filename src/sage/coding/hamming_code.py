@@ -10,6 +10,7 @@ REFERENCES:
 
     .. [R] Introduction to Coding Theory, Ron Roth, Cambridge University Press, 2006
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2016 David Lucas <david.lucas@inria.fr>
@@ -21,7 +22,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from linear_code import (AbstractLinearCode,
+from .linear_code import (AbstractLinearCode,
                          LinearCodeParityCheckEncoder)
 from sage.matrix.matrix_space import MatrixSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace
@@ -79,7 +80,7 @@ class HammingCode(AbstractLinearCode):
 
         q = base_field.order()
         length = Integer((q ** order - 1) / (q - 1))
-        super(HammingCode, self).__init__(base_field, length, "ParityCheck", "Syndrome")
+        super(HammingCode, self).__init__(base_field, length, "Systematic", "Syndrome")
         self._dimension = length - order
 
     def __eq__(self, other):

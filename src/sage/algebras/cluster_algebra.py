@@ -1661,8 +1661,8 @@ class ClusterAlgebra(Parent):
             ``g_vector`` is not the g-vector of any cluster variable. In this
             case the function resets the iterator and raises an error.
 
-        WARNING: 
-            
+        WARNING:
+
             This method, like some other in this class, manipulate an internal
             data structure to minimize computation time. Should it be
             interrupted before it returns, this data will be left in a
@@ -1981,8 +1981,8 @@ class ClusterAlgebra(Parent):
 
         - ``depth`` -- a positive integer or infinity: the maximum depth at which to stop searching.
 
-        WARNING: 
-            
+        WARNING:
+
             This method, like some other in this class, manipulate an internal
             data structure to minimize computation time. Should it be
             interrupted before it returns, this data will be left in a

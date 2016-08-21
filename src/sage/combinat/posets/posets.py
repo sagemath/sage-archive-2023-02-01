@@ -63,6 +63,7 @@ List of Poset methods
     :meth:`~FinitePoset.width` | Return the number of elements in a longest antichain of the poset.
     :meth:`~FinitePoset.relations_number` | Return the number of relations in the poset.
     :meth:`~FinitePoset.dimension` | Return the dimension of the poset.
+    :meth:`~FinitePoset.jump_number` | Return the jump number of the poset.
     :meth:`~FinitePoset.has_bottom` | Return ``True`` if the poset has a unique minimal element.
     :meth:`~FinitePoset.has_top` | Return ``True`` if the poset has a unique maximal element.
     :meth:`~FinitePoset.is_bounded` | Return ``True`` if the poset has both unique minimal and unique maximal element.
@@ -2918,6 +2919,76 @@ class FinitePoset(UniqueRepresentation, Parent):
             return [[self._list[i] for i in l]
                     for l in linear_extensions]
         return k
+
+    def jump_number(self, certificate=False):
+        """
+        Return the jump number of the poset.
+
+        A *jump* in a linear extension `[e_1, \ldots, e_n]` of a poset `P`
+        is a pair `(e_i, e_{i+1})` so that `e_{i+1}` does not cover `e_i`
+        in `P`. The jump number of a poset is the minimal number of jumps
+        in linear extensions of a poset.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) Whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return a pair `(n, l)` where
+          `n` is the jump number and `l` is a linear extension
+          with `n` jumps. If ``certificate=False`` return only
+          the jump number.
+
+        EXAMPLES::
+
+            sage: B3 = Posets.BooleanLattice(3)
+            sage: B3.jump_number()
+            3
+
+            sage: N = Poset({1: [3, 4], 2: [3]})
+            sage: N.jump_number(certificate=True)
+            (1, [1, 4, 2, 3])
+
+        REFERENCES:
+
+        .. [BIANCO] L. Bianco, P. Dell‘Olmo, S. Giordani
+           An Optimal Algorithm to Find the Jump Number of Partially Ordered Sets
+           Computational Optimization and Applications,
+           1997, Volume 8, Issue 2, pp 197--210,
+           :doi:`10.1023/A:1008625405476`
+
+        TESTS::
+
+            sage: E = Poset()
+            sage: E.jump_number(certificate=True)
+            (0, [])
+
+            sage: C4 = Posets.ChainPoset(4)
+            sage: A4 = Posets.AntichainPoset(4)
+            sage: C4.jump_number()
+            0
+            sage: A4.jump_number()
+            3
+        """
+        H = self._hasse_diagram
+        jumps_min = H.order()  # = "Infinity"
+
+        for lin_ext in H.topological_sort_generator():
+            jumpcount = 0
+            for a, b in zip(lin_ext, lin_ext[1:]):
+                if not H.has_edge(a, b):
+                    jumpcount += 1
+                    if jumpcount >= jumps_min:
+                        break
+            else:
+                jumps_min = jumpcount
+                best_le = lin_ext
+
+        if certificate:
+            return (jumps_min, [self._vertex_to_element(v) for v in best_le])
+        return jumps_min
 
     def rank_function(self):
         r"""

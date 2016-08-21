@@ -1337,7 +1337,10 @@ ex power::expand_add(const add & a, long n, unsigned options) const
 				continue;
 			}
 		} else {
-			binomial_coefficient = binomial(numeric(n), numeric(k)) * pow(ex_to<numeric>(a.overall_coeff), numeric(n-k));
+                        if (n == k)
+                                binomial_coefficient = *_num1_p;
+                        else
+                                binomial_coefficient = binomial(numeric(n), numeric(k)) * pow(ex_to<numeric>(a.overall_coeff), numeric(n-k));
 		}
 
 		// Multinomial expansion of power(+(x,...,z;0),k)*c^(n-k):
@@ -1385,6 +1388,7 @@ ex power::expand_add(const add & a, long n, unsigned options) const
 			} while (compositions.next());
 		} while (partitions.next());
 	}
+
 
 	GINAC_ASSERT(result.size() == result_size);
 	if (a.overall_coeff.is_zero()) {

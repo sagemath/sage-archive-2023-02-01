@@ -3170,7 +3170,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         Define the action by linear fractional transformation of Hecke triangle group
         elements on complex points (using :meth:`acton`).
 
-        For the action on matrices by conjugation :meth:`acton` has to be used explicitely
+        For the action on matrices by conjugation :meth:`acton` has to be used explicitly
         (to avoid confusion/ambiguity in expressions of the form gamma1*gamma2*z).
 
         EXAMPLES::

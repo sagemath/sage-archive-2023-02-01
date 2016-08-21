@@ -3065,7 +3065,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x*unsigned_infinity
             Traceback (most recent call last):
             ...
-            ValueError: oo times number < oo not defined
+            RuntimeError: indeterminate expression: infinity * f(x) encountered.
 
             sage: SR(oo)*SR(oo)
             +Infinity
@@ -9372,7 +9372,7 @@ cdef class Expression(CommutativeRingElement):
 
         With ``map=True`` each term in a sum is simplified separately
         and thus the resuls are shorter for functions which are
-        combination of rational and nonrational funtions. In the
+        combination of rational and nonrational functions. In the
         following example, we use this option if we want not to
         combine logarithm and the rational function into one
         fraction::
@@ -11199,7 +11199,7 @@ cdef class Expression(CommutativeRingElement):
 
         You can embed 2d plots in 3d space as follows::
 
-            sage: plot(sin(x^2), (x,-pi, pi), thickness=2).plot3d(z = 1)
+            sage: plot(sin(x^2), (x,-pi, pi), thickness=2).plot3d(z = 1)  # long time
             Graphics3d Object
 
         A more complicated family::

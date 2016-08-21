@@ -96,8 +96,8 @@ def is_gale_ryser(r,s):
     generic-sounding) term ''realizable sequence''.
     """
 
-    # The sequences only contan non-negative integers
-    if [x for x in r if x<0] or [x for x in s if x<0]:
+    # The sequences only contain non-negative integers
+    if [x for x in r if x < 0] or [x for x in s if x < 0]:
         return False
 
     # builds the corresponding partitions, i.e.

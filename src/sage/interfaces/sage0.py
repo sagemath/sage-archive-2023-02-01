@@ -16,7 +16,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import cPickle
+from six.moves import cPickle
 import os
 import re
 
@@ -145,7 +145,8 @@ class Sage(ExtraTabCompletion, Expect):
             command = "python -u"
             prompt = ">>>"
             if init_code is None:
-                init_code = ['from sage.all import *', 'import cPickle']
+                init_code = ['from sage.all import *',
+                             'from six.moves import cPickle']
         else:
             command = ' '.join([
                 'sage-ipython',
@@ -159,7 +160,7 @@ class Sage(ExtraTabCompletion, Expect):
             ])
             prompt = re.compile('In \[\d+\]: ')
             if init_code is None:
-                init_code = ['import cPickle']
+                init_code = ['from six.moves import cPickle']
 
         Expect.__init__(self,
                         name = 'sage',

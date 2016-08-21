@@ -160,7 +160,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
         sage: R.quotient(f)
         Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
 
-    This shows that the issue at trac 5482 is solved::
+    This shows that the issue at :trac:`5482` is solved::
 
         sage: R.<x> = PolynomialRing(QQ)
         sage: f = x^2-1

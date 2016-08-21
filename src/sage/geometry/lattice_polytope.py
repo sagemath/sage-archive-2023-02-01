@@ -760,7 +760,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: "_faces" in o.__dict__
             True
 
-        Check that Trac 8934 is fixed::
+        Check that :trac:`8934` is fixed::
 
             sage: p = LatticePolytope([(1,0,0), (0,1,0), (0,0,0),
             ...         (-1,0,0), (0,-1,0), (0,0,0), (0,0,0)])
@@ -2333,7 +2333,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             M(0, 1)
             in 2-d lattice M
 
-        ... or you can see indices of the vertices of the orginal polytope that
+        ... or you can see indices of the vertices of the original polytope that
         correspond to the above ones::
 
             sage: face.ambient_vertex_indices()
@@ -3701,7 +3701,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             None
 
         Now we make sure that the origin of non-full-dimensional polytopes can
-        be identified correctly (Trac #10661)::
+        be identified correctly (:trac:`10661`)::
 
             sage: LatticePolytope([(1,0,0), (-1,0,0)]).origin()
             2

@@ -2239,7 +2239,7 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
         sage: save_quiver_data(2,up_to=False, verbose=False) # indirect doctest
     """
     import os.path
-    import cPickle
+    from six.moves import cPickle
     data = {}
     possible_types = ['Classical', 'ClassicalExceptional', 'Exceptional']
     if types not in possible_types:

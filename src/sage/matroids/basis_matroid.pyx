@@ -333,7 +333,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
     # dual and minors
 
     cpdef dual(self):
-        """
+        r"""
         Return the dual of the matroid.
 
         Let `M` be a matroid with ground set `E`. If `B` is the set of bases
@@ -353,7 +353,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         ALGORITHM:
 
         A BasisMatroid on `n` elements and of rank `r` is stored as a
-        bitvector of length `n \choose r`. The `i`-th bit in this vector
+        bitvector of length `\binom{n}{r}`. The `i`-th bit in this vector
         indicates that the `i`-th `r`-set in the lexicographic enumeration of
         `r`-subsets of the groundset is a basis. Reversing this bitvector
         yields a bitvector that indicates whether the complement of an

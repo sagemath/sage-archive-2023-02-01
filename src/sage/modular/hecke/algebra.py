@@ -34,8 +34,6 @@ import weakref
 import sage.arith.all as arith
 import sage.rings.infinity
 import sage.misc.latex as latex
-import module
-import hecke_operator
 import sage.rings.commutative_algebra
 from sage.matrix.constructor import matrix
 from sage.arith.all import lcm
@@ -178,6 +176,7 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
         """
         if isinstance(M, tuple):
             M = M[0]
+        from . import module
         if not module.is_HeckeModule(M):
             raise TypeError("M (=%s) must be a HeckeModule"%M)
         self.__M = M

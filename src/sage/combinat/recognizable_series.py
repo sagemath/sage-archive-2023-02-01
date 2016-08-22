@@ -19,6 +19,22 @@ such that the coefficient corresponing to a word `w\in A^*` equals
 
     \mathit{left} \, \mu(w) \, \mathit{right}.
 
+
+.. WARNING::
+
+    As this code is experimental, warnings are thrown when a a
+    recognizable series space is created for the first time in a
+    session (see :class:`sage.misc.superseded.experimental`).
+
+    TESTS::
+
+        sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+        doctest:...: FutureWarning: This class/method/function is
+        marked as experimental. It, its functionality or its interface
+        might change without a formal deprecation.
+        See http://trac.sagemath.org/21202 for details.
+
+
 Various
 =======
 
@@ -52,6 +68,7 @@ Classes and Methods
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import experimental
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -985,6 +1002,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         return (coefficients, indices, category)
 
 
+    @experimental(trac_number=21202)
     def __init__(self, coefficients, indices, category):
         r"""
         See :class`RecognizableSeriesSpace` for details.

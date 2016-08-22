@@ -17948,6 +17948,18 @@ class GenericGraph(GenericGraph_pyx):
 
             Use the graphviz functionality of Networkx 1.0 once it
             will be merged into Sage.
+
+        TESTS:
+
+        Make sure that :trac:`12364` is fixed::
+
+            sage: m = WordMorphism('a->abb,b->ba')
+            sage: w = m.fixed_point('a')
+            sage: prefix = Word(list(w[:100]))
+            sage: pals = prefix.palindromes()
+            sage: poset = Poset((pals, lambda x,y: x.is_factor(y)))
+            sage: H = poset.hasse_diagram()
+            sage: d = H.layout_graphviz()     # optional - dot2tex graphviz
         """
         assert_have_dot2tex()
         assert dim == 2, "3D graphviz layout not implemented"

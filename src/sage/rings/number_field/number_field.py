@@ -607,7 +607,8 @@ class NumberFieldFactory(UniqueFactory):
                 raise TypeError("embedding must be a list of length 1")
             embedding = embedding[0]
         if embedding is not None:
-            embedding = number_field_morphisms.root_from_approx(polynomial, embedding)
+            x = number_field_morphisms.root_from_approx(polynomial, embedding)
+            embedding = (x.parent(), x)
 
         # normalize latex_name
         if isinstance(latex_name, (list, tuple)):
@@ -1095,9 +1096,10 @@ class CyclotomicFieldFactory(UniqueFactory):
         if n > 0:
             bracket = None
             if embedding is True:
-                embedding = (2 * CLF.pi() * CLF.gen() / n).exp()
+                embedding = (CLF, (2 * CLF.pi() * CLF.gen() / n).exp())
             elif embedding is not None:
-                embedding = number_field_morphisms.root_from_approx(QQ['x'].cyclotomic_polynomial(n), embedding)
+                x = number_field_morphisms.root_from_approx(QQ['x'].cyclotomic_polynomial(n), embedding)
+                embedding = (x.parent(), x)
             if names is None:
                 names = "zeta%s"%n
             names = normalize_names(1, names)
@@ -1341,7 +1343,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         self._pari_bnf_certified = False
         self._integral_basis_dict = {}
         if embedding is not None:
-            embedding = number_field_morphisms.NumberFieldEmbedding(self, embedding.parent(), embedding)
+            embedding = number_field_morphisms.NumberFieldEmbedding(self, embedding[0], embedding[1])
         self._populate_coercion_lists_(embedding=embedding)
 
     def _convert_map_from_(self, other):

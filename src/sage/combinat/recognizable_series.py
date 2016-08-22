@@ -1096,7 +1096,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         return self(0)
 
 
-    def _element_constructor_(self, mu,
+    def _element_constructor_(self, data,
                               left=None, right=None,
                               transpose=False):
         r"""
@@ -1107,12 +1107,38 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         TESTS::
 
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+
             sage: Rec.zero()
             0
             sage: type(_)
             <class 'sage.combinat.recognizable_series.RecognizableSeriesSpace_with_category.element_class'>
+
+        ::
+
+            sage: M0 = Matrix([[1, 0], [0, 1]])
+            sage: M1 = Matrix([[0, -1], [1, 2]])
+            sage: S = Rec((M0, M1), [0, 1], [1, 1])
+            sage: Rec(S) is S
+            True
+
+            sage: Rec((M0, M1))
+            Traceback (most recent call last):
+            ...
+            ValueError: Left or right vector is None.
+            sage: Rec((M0, M1), [0, 1])
+            Traceback (most recent call last):
+            ...
+            ValueError: Left or right vector is None.
+            sage: Rec((M0, M1), left=[0, 1])
+            Traceback (most recent call last):
+            ...
+            ValueError: Left or right vector is None.
+            sage: Rec((M0, M1), right=[0, 1])
+            Traceback (most recent call last):
+            ...
+            ValueError: Left or right vector is None.
         """
-        if isinstance(mu, int) and mu == 0:
+        if isinstance(data, int) and data == 0:
             from sage.matrix.constructor import Matrix
             from sage.modules.free_module_element import vector
             from sage.sets.family import Family
@@ -1121,7 +1147,19 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
                 self, Family(self.alphabet(), lambda a: Matrix()),
                 vector([]), vector([]))
 
-        element = self.element_class(self, mu, left, right)
+        if type(data) == self.element_class and data.parent() == self:
+            element = data
+
+        elif isinstance(data, RecognizableSeries):
+            element = self.element_class(self, data.mu, data.left, data.right)
+
+        else:
+            mu = data
+            if left is None or right is None:
+                raise ValueError('Left or right vector is None.')
+
+            element = self.element_class(self, mu, left, right)
+
         if transpose:
             return element.transposed()
         else:

@@ -231,7 +231,7 @@ class PrefixClosedSet(object):
 
 class RecognizableSeries(Element):
 
-    def __init__(self, parent, mu, left=None, right=None):
+    def __init__(self, parent, mu, left, right):
         r"""
         A recognizable series.
 
@@ -242,16 +242,14 @@ class RecognizableSeries(Element):
           ``mu`` may be a list or tuple of the same cardinality as the
           alphabet as well. See :meth:`mu <mu>` for more details.
 
-        - ``left`` -- (default: ``None``) a vector.  When evaluating a
+        - ``left`` -- a vector. When evaluating a
           coefficient, this vector is multiplied from the left to the
-          matrix obtained from :meth:`mu <mu>` applying on a word. If
-          ``None``, then this multiplication is skipped.
+          matrix obtained from :meth:`mu <mu>` applying on a word.
           See :meth`left <left>` for more details.
 
-        - ``right`` -- (default: ``None``) a vector.  When evaluating a
+        - ``right`` -- a vector. When evaluating a
           coefficient, this vector is multiplied from the right to the
-          matrix obtained from :meth:`mu <mu>` applying on a word. If
-          ``None``, then this multiplication is skipped.
+          matrix obtained from :meth:`mu <mu>` applying on a word.
           See :meth:`right <right>` for more details.
 
         When created via the parent :class:`RecognizableSeriesSpace`, then
@@ -304,7 +302,7 @@ class RecognizableSeries(Element):
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
             sage: M0 = Matrix([[1, 0], [0, 1]])
             sage: M1 = Matrix([[0, -1], [1, 2]])
-            sage: S = Rec((M0, M1), [0, 1])
+            sage: S = Rec((M0, M1), [0, 1], [1, 1])
             sage: S.mu[0] == M0 and S.mu[1] == M1
             True
         """
@@ -438,12 +436,7 @@ class RecognizableSeries(Element):
             sage: S[W(7.digits(2))]
             3
         """
-        result = self._mu_of_word_(w)
-        if self.left is not None:
-            result = self.left * result
-        if self.right is not None:
-            result = result * self.right
-        return result
+        return self.left * self._mu_of_word_(w) * self.right
 
 
     @cached_method
@@ -461,12 +454,12 @@ class RecognizableSeries(Element):
             sage: W = Rec.indices()
             sage: M0 = Matrix([[1, 0], [0, 1]])
             sage: M1 = Matrix([[0, -1], [1, 2]])
-            sage: S = Rec({W([0]): M0, W([1]): M1})
+            sage: S = Rec({W([0]): M0, W([1]): M1}, [0, 1], [1, 1])
             sage: S._mu_of_empty_word_()
             [1 0]
             [0 1]
             sage: I = Matrix([[1, 0], [0, 1]])
-            sage: T = Rec({W([]): I, W([0]): M0, W([1]): M1})
+            sage: T = Rec({W([]): I, W([0]): M0, W([1]): M1}, [0, 1], [1, 1])
             sage: T._mu_of_empty_word_()
             [1 0]
             [0 1]
@@ -500,7 +493,7 @@ class RecognizableSeries(Element):
             sage: W = Rec.indices()
             sage: M0 = Matrix([[1, 0], [0, 1]])
             sage: M1 = Matrix([[0, -1], [1, 2]])
-            sage: S = Rec((M0, M1))
+            sage: S = Rec((M0, M1), [0, 1], [1, 1])
             sage: S._mu_of_word_(W([0])) == M0
             True
             sage: S._mu_of_word_(W([1])) == M1
@@ -590,19 +583,6 @@ class RecognizableSeries(Element):
             sage: Rec.zero().is_trivial_zero()
             True
 
-        The following are nonzero as the coefficient of the empty word
-        is nonzero::
-
-            sage: Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])),
-            ....:     left=None, right=vector([1, 0])).is_trivial_zero()
-            False
-            sage: Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])),
-            ....:     left=None, right=None).is_trivial_zero()
-            False
-            sage: Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])),
-            ....:     left=vector([0, 1]), right=None).is_trivial_zero()
-            False
-
         The following is zero, but not trivially zero::
 
             sage: S = Rec((Matrix([[1, 0], [0, 0]]), Matrix([[1, 0], [0, 0]])),
@@ -612,8 +592,7 @@ class RecognizableSeries(Element):
             sage: S.is_zero()
             True
         """
-        return (self.left is not None and not self.left) or \
-            (self.right is not None and not self.right) or \
+        return not self.left or not self.right or \
             (all(not self.mu[a] for a in self.parent().alphabet()) and
              not self[self.parent().indices()()])
 
@@ -692,14 +671,9 @@ class RecognizableSeries(Element):
             [0 1], [ 1  5], (0, 1), (1, 0)
             )
         """
-        def tr(M):
-            try:
-                return M.transpose()
-            except AttributeError:
-                return M
-        return self.parent()(self.mu.map(tr),
-                             left=tr(self.right),
-                             right=tr(self.left))
+        return self.parent()(self.mu.map(lambda M: M.transpose()),
+                             left=self.right,
+                             right=self.left)
 
 
     @cached_method
@@ -772,17 +746,7 @@ class RecognizableSeries(Element):
             sage: M = S._minimized_right_()
             sage: M.mu[0], M.mu[1], M.left, M.right
             ([0], [0], (2), (1))
-
-        ::
-
-            sage: S = Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])))
-            sage: S._minimized_right_()
-            Traceback (most recent call last):
-            ...
-            ValueError: Cannot minmize as 'right' is None.
         """
-        if self.right is None:
-            raise ValueError("Cannot minmize as 'right' is None.")
         return self.transposed()._minimized_left_().transposed()
 
 
@@ -836,18 +800,7 @@ class RecognizableSeries(Element):
             sage: M = S.minimized()
             sage: M.mu[0], M.mu[1], M.left, M.right
             ([], [], (), ())
-
-        ::
-
-            sage: S = Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])))
-            sage: S._minimized_left_()
-            Traceback (most recent call last):
-            ...
-            ValueError: Cannot minmize as 'left' is None.
         """
-        if self.left is None:
-            raise ValueError("Cannot minmize as 'left' is None.")
-
         from sage.matrix.constructor import Matrix
         from sage.modules.free_module_element import vector
         from sage.rings.integer_ring import ZZ
@@ -890,10 +843,7 @@ class RecognizableSeries(Element):
             mu_prime.append(Matrix(M))
 
         left_prime = vector([ZZ(1)] + (len(P)-1)*[ZZ(0)])
-        if self.right is None:
-            right_prime = None
-        else:
-            right_prime = vector(self[p] for p in P)
+        right_prime = vector(self[p] for p in P)
 
         return self.parent().element_class(
             self.parent(), mu_prime, left_prime, right_prime)

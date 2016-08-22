@@ -1332,7 +1332,7 @@ ex power::expand_add(const add & a, long n, unsigned options) const
 		if (a.overall_coeff.is_zero()) {
 			// degenerate case with zero overall_coeff:
 			// apply multinomial theorem directly to power(+(x,...z;0),n)
-			binomial_coefficient = 1;
+			binomial_coefficient = *_num1_p;
 			if (k < n) {
 				continue;
 			}
@@ -1392,9 +1392,9 @@ ex power::expand_add(const add & a, long n, unsigned options) const
 
 	GINAC_ASSERT(result.size() == result_size);
 	if (a.overall_coeff.is_zero()) {
-		return dynallocate<add>(std::move(result)).setflag(status_flags::expanded);
+		return dynallocate<add>(std::move(result)).setflag(status_flags::expanded).eval();
 	} else {
-		return dynallocate<add>(std::move(result), ex_to<numeric>(a.overall_coeff).power(n)).setflag(status_flags::expanded);
+		return dynallocate<add>(std::move(result), ex_to<numeric>(a.overall_coeff).power(n)).setflag(status_flags::expanded).eval();
 	}
 }
 

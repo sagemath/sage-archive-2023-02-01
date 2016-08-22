@@ -1129,7 +1129,7 @@ class Units(ExtraTabCompletion):
             sage: dir(units.force)
             ['_Units__data', ..., 'dyne', ..., 'ton_force']
         """
-        return sorted([x for x in self.__data.keys() if '/' not in x])
+        return sorted([x for x in self.__data if '/' not in x])
 
     def __getattr__(self, name):
         """

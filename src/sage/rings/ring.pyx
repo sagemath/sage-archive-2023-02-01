@@ -1094,6 +1094,7 @@ cdef class Ring(ParentWithGens):
             ...
             ValueError: no 3rd root of unity in Rational Field
             sage: IntegerModRing(8).zeta(2, all = True)
+            Traceback (most recent call last):
             ...
             ValueError: ring is not an integral domain
         """

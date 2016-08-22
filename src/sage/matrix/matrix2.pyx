@@ -6319,9 +6319,15 @@ cdef class Matrix(matrix1.Matrix):
             0
         
         """
+        if not self.is_square():
+            msg = 'matrix must be square, not {0} x {1}'
+            raise TypeError(msg.format(self.nrows(), self.ncols()))
+
+        r = self.dimensions()[0]
+        if self.dimensions()[1] != r:
+            raise 
         n = 0
         m1 = self - s
-        r = self.dimensions()[0]
         while True:
             m2 = m1.extended_echelon_form(subdivide=True)
             t = r - m2.subdivisions()[0][0]

@@ -1331,7 +1331,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
             sage: R = ZZ['x,y']
             sage: singular(R)
-            //   coeff. ring is : Integers
+            //   coeff. ring is : integer
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -1347,7 +1347,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
             sage: R = IntegerModRing(15)['x,y']
             sage: singular(R)
-            //   coeff. ring is : Z/15
+            //   coeff. ring is : ZZ/15
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y

@@ -472,7 +472,7 @@ def df_q_6_1(K, existence=False, check=True):
 def radical_difference_set(K, k, l=1, existence=False, check=True):
     r"""
     Return a difference set made of a cyclotomic coset in the finite field
-    ``K`` and with paramters ``k`` and ``l``.
+    ``K`` and with parameters ``k`` and ``l``.
 
     Most of these difference sets appear in chapter VI.18.48 of the Handbook of
     combinatorial designs.

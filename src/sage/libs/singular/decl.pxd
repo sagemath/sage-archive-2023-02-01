@@ -189,7 +189,7 @@ cdef extern from "singular/Singular/libsingular.h":
 
     ctypedef struct poly "polyrec":
         poly *next
-        number coef
+        number *coef
         unsigned long exp[1]
 
     # ideals

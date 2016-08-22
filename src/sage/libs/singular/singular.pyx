@@ -55,7 +55,7 @@ from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libs
 
 _saved_options = (int(0),0,0)
 
-cdef Rational si2sa_QQ(number *n, ring *_ring):
+cdef Rational si2sa_QQ(number *n, number **nn, ring *_ring):
     """
     TESTS::
 
@@ -106,6 +106,7 @@ cdef Rational si2sa_QQ(number *n, ring *_ring):
     nlDelete(&denom,_ring.cf)
     mpz_clear(denom_z)
 
+    nn[0] = n
     z = Rational()
     z.set_from_mpq(_z)
     mpq_clear(_z)
@@ -285,8 +286,16 @@ cdef object si2sa_NF(number *n, ring *_ring, object base):
     ret = base(0)
 
     while z:
+        # p_GetCoeff returns a reference
         c = p_GetCoeff(z, cfRing)
-        coeff = si2sa_QQ(c, cfRing)
+        # si2sa_QQ might modify c
+        coeff = si2sa_QQ(c, &c, cfRing)
+        # so we force it back.
+        z.coef = c
+        #pSetCoeff0(z,c)
+        #p_SetCoeff(z, c, cfRing)
+        # rather than trying to let Cython and C++ automagically modify it
+        #coeff = si2sa_QQ(p_GetCoeff(z, cfRing), cfRing)
         e = p_GetExp(z, 1, cfRing)
         if e == 0:
             ret = ret + coeff
@@ -652,7 +661,7 @@ cdef object si2sa(number *n, ring *_ring, object base):
         return base(_ring.cf.cfInt(n, _ring.cf))
 
     elif isinstance(base, RationalField):
-        return si2sa_QQ(n,_ring)
+        return si2sa_QQ(n,&n,_ring)
 
     elif isinstance(base, IntegerRing_class):
         return si2sa_ZZ(n,_ring)

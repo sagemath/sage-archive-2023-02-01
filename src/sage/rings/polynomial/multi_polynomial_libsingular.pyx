@@ -987,7 +987,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         if is_Macaulay2Element(element):
             return self(element.external_string())
-
         try:
             return self(str(element))
         except TypeError:

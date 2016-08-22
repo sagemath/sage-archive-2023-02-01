@@ -594,11 +594,11 @@ class RationalField(Singleton, number_field_base.NumberField):
 
     def automorphisms(self):
         r"""
-        Return all Galois automorphisms of self.
+        Return all Galois automorphisms of ``self``.
 
         OUTPUT:
 
-            - a sequence containing just the identity morphism
+        - a sequence containing just the identity morphism
 
         EXAMPLES::
 
@@ -609,7 +609,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             ]
         """
         return Sequence([self.hom(1, self)], cr=True, immutable=False,
-                check=False)
+                        check=False)
 
     def places(self, all_complex=False, prec=None):
         r"""

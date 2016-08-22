@@ -1,0 +1,26 @@
+= thebejs =
+
+== Description ==
+
+Jupyter javascript plugin for static sites. Thebe takes the Jupyter front end,
+and make it work outside of the notebook context.
+
+== License ==
+
+MIT
+
+== Upstream Contact ==
+
+Home page: https://oreillymedia.github.io/thebe/
+Source: https://github.com/oreillymedia/thebe/
+
+== Dependencies ==
+
+None.
+
+== Special Update/Build Instructions ==
+
+There are no release numbers, hence pick
+https://github.com/oreillymedia/thebe/archive/master.zip and rename it
+thebejs-$(date '+%Y%m%d').zip
+

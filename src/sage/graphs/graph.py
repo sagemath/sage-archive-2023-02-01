@@ -6840,9 +6840,9 @@ class Graph(GenericGraph):
 
         The value of the magnitude function at `q=0` is the
         cardinality of the graph. The value of the magnitude function
-        at `q=0` is always `1`. The magnitude function of a disjoint
-        union is the sum of the magnitudes functions of the connected
-        components.
+        at `q=1` is the number of connected components. The magnitude
+        function of a disjoint union is the sum of the magnitudes
+        functions of the connected components.
 
         EXAMPLES::
 

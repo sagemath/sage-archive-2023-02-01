@@ -430,7 +430,7 @@ class RecognizableSeries(Element):
 
 
     @cached_method
-    def __getitem__(self, w):
+    def coefficient_of_word(self, w):
         r"""
         Return the coefficient to word `w` of this series.
 
@@ -454,6 +454,9 @@ class RecognizableSeries(Element):
             3
         """
         return self.left * self._mu_of_word_(w) * self.right
+
+
+    __getitem__ = coefficient_of_word
 
 
     @cached_method
@@ -860,7 +863,7 @@ class RecognizableSeries(Element):
             mu_prime.append(Matrix(M))
 
         left_prime = vector([ZZ(1)] + (len(P)-1)*[ZZ(0)])
-        right_prime = vector(self[p] for p in P)
+        right_prime = vector(self.coefficient_of_word(p) for p in P)
 
         return self.parent().element_class(
             self.parent(), mu_prime, left_prime, right_prime)

@@ -222,8 +222,7 @@ class kRegularSequence(RecognizableSeries):
             sage: S._mu_of_word_(W(3.digits(2))) == M1^2
             True
         """
-        return RecognizableSeries.__getitem__.f(
-            self, self.parent()._n_to_index_(n))
+        return self.coefficient_of_word(self.parent()._n_to_index_(n))
 
 
     def __iter__(self):

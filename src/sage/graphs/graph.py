@@ -6842,7 +6842,9 @@ class Graph(GenericGraph):
         cardinality of the graph. The value of the magnitude function
         at `q=1` is the number of connected components. The magnitude
         function of a disjoint union is the sum of the magnitudes
-        functions of the connected components.
+        functions of the connected components. The magnitude function
+        of a Cartesian product is the product of the magnitudes
+        functions of the factors.
 
         EXAMPLES::
 
@@ -6889,7 +6891,8 @@ class Graph(GenericGraph):
 
         REFERENCES:
 
-        TODO
+        .. [Lein] Tom Leinster, *The magnitude of metric spaces*.
+           Doc. Math. 18 (2013), 857-905.
         """
         from sage.matrix.constructor import matrix
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

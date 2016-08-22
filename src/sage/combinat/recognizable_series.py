@@ -22,7 +22,7 @@ such that the coefficient corresponing to a word `w\in A^*` equals
 
 .. WARNING::
 
-    As this code is experimental, warnings are thrown when a a
+    As this code is experimental, warnings are thrown when a
     recognizable series space is created for the first time in a
     session (see :class:`sage.misc.superseded.experimental`).
 

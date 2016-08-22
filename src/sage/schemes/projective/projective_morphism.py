@@ -3561,7 +3561,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             )
 
         ::
-            # failing why?
+        
             sage: PS.<x,y> = ProjectiveSpace(ZZ,1)
             sage: H = End(PS)
             sage: f = H([x^2+ x*y,y^2]) #needs 3 periodic

@@ -1862,6 +1862,18 @@ cdef class MPolynomial(CommutativeRingElement):
 
         EXAMPLES::
 
+            sage: R.<x,h> = PolynomialRing(QQ)
+            sage: f = 19*x^8 - 262*x^7*h + 1507*x^6*h^2 - 4784*x^5*h^3 + 9202*x^4*h^4 -10962*x^3*h^5 + 7844*x^2*h^6 - 3040*x*h^7 + 475*h^8
+            sage: f.reduced_form(prec=500)
+            (
+            -x^8 - 2*x^7*h + 7*x^6*h^2 + 16*x^5*h^3 + 2*x^4*h^4 - 2*x^3*h^5 + 4*x^2*h^6 - 5*h^8,
+
+            [ 1 -2]
+            [ 1 -1]
+            )
+
+        ::
+
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: F = - 8*x^4 - 3933*x^3*y - 725085*x^2*y^2 - 59411592*x*y^3 - 1825511633*y^4
             sage: F.reduced_form(return_conjugation=False)
@@ -1888,13 +1900,13 @@ cdef class MPolynomial(CommutativeRingElement):
         """
         from sage.matrix.constructor import matrix
         from sage.calculus.functions import jacobian
-        # need to have error example  with  non-homogenous
+
         if self.parent().ngens() != 2:
             raise ValueError("(=%s) must have two variables"%self)
         if self.is_homogeneous() != True:
             raise ValueError("(=%s) must be homogenous"%self)
         KK = ComplexIntervalField(prec=prec) # keeps trac of our precision error
-        JJ=RealField()
+        JJ = RealField()
         R = self.parent()
         S = PolynomialRing(R.base_ring(),'z')
         phi = R.hom([S.gen(0),1],S)# dehomogenization
@@ -1902,7 +1914,7 @@ cdef class MPolynomial(CommutativeRingElement):
         roots = FF.roots(ring=KK, multiplicities=False)
         dF = FF.derivative()
         n = FF.degree()
-        R=PolynomialRing(KK,'x,y')
+        R = PolynomialRing(KK,'x,y')
         x,y = R.gens()
         Q  =[]
         # finds Stoll and Cremona's Q_0'
@@ -1938,17 +1950,9 @@ cdef class MPolynomial(CommutativeRingElement):
             elif (z.real() <= 0 and z.abs() < 1) or (z.real() > 0 and z.abs() <= 1):
                 z = -1/z
                 M = M * matrix(QQ, [[0,-1], [1,0]])
-        q = q(tuple((M * vector([x, y])))) #our new Q
-        A = q.monomial_coefficient(x**2)
-        B = q.monomial_coefficient(x*y)
-        C = q.monomial_coefficient(y**2)
-        try:
-            z0 = (-B + ((B**2)-(4*A*C)).sqrt())/(2*A)# this is z_o
-        except ValueError:
-            raise ValueError("not enough precision")
-        if z.imag() < 0:
-            z0 = (-B - ((B**2)-(4*A*C)).sqrt())/(2*A)
-        L = [(-B + ((B**2)-(4*A*C)).sqrt())/(2*A), (-B - ((B**2)-(4*A*C)).sqrt())/(2*A)] # if highr than quadratic need to change?
+        x,y = self.parent().gens()
+        FF = S(phi(self(tuple((M * vector([x, y])))))) # New self, S pushes it to polyomial ring
+        L = FF.roots(ring=KK, multiplicities=False)
         a = 0
         c = 0
         RR = PolynomialRing(KK, 'u,t')
@@ -1958,17 +1962,15 @@ cdef class MPolynomial(CommutativeRingElement):
             a += b
             d = (t-(L[j].real()))/((t-(L[j]))*(t-(L[j].conjugate()))+ u**2)
             c += d
-        # return "A"broke here
         #Newton's Method, error bound is while less than diameter of our z
-        err = z0.diameter()
-        zz = z0.diameter()
-        n = q.degree()
+        err = z.diameter()
+        zz = z.diameter()
+        n = FF.degree()
         g1 = a.numerator() - n/2*a.denominator()
         g2 = c.numerator()
         G = vector([g1, g2])
         J = jacobian(G, [u,t])
-        v0 = vector([z0.imag(), z0.real()]) #z0 as starting point
-        z = z0
+        v0 = vector([z.imag(), z.real()]) #z0 as starting point
         #finds our correct z
         while err <= zz:
             NJ = J.subs({u:v0[0], t:v0[1]})
@@ -1982,7 +1984,7 @@ cdef class MPolynomial(CommutativeRingElement):
                         pass
             w = z
             v0 = v0 - NJinv*G.subs({u:v0[0],t:v0[1]})
-            z = v0[1].coefficients()[0] + v0[0].coefficients()[0]*KK.gen(0)
+            z = v0[1].numerator().coefficients()[0] + v0[0].numerator().coefficients()[0]*KK.gen(0)
             err = z.diameter() # precision
             zz = (w - z).abs() #difference in w and z
         # moves our z ro fundamental domain as before

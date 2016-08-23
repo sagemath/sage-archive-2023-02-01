@@ -1081,7 +1081,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])  # indirect doctest
             sage: Rec.category()
-            Category of sets
+            Category of modules over Integer Ring
             sage: RecognizableSeriesSpace([0, 1], [0, 1])
             Traceback (most recent call last):
             ...
@@ -1123,8 +1123,8 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             raise ValueError(
                 'Coefficients {} are not a semiring.'.format(coefficients))
 
-        from sage.categories.sets_cat import Sets
-        category = category or Sets()
+        from sage.categories.modules import Modules
+        category = category or Modules(coefficients)
 
         return (coefficients, indices, category)
 

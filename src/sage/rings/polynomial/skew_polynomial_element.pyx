@@ -17,6 +17,25 @@ along with
 and :class:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomialBaseringInjection`
 for conversion from a skew polynomial ring to its base ring and vice versa respectively.
 
+.. WARNING::
+
+    As `__call__` method is experimental, a warning is thrown when a
+    skew polynomial is evaluated for the first time in a session
+    (see :class:`sage.misc.superseded.experimental`).
+
+    TESTS::
+
+        sage: R.<t> = QQ[]
+        sage: sigma = R.hom([t+1])
+        sage: S.<x> = R['x',sigma]
+        sage: a = 2*(t + x) + 1
+        sage: a(t^2)
+        doctest:...: FutureWarning: This class/method/function is marked as
+        experimental. It, its functionality or its interface might change
+        without a formal deprecation.
+        See http://trac.sagemath.org/13215 for details.
+        2*t^3 + 3*t^2 + 4*t + 2
+
 AUTHORS:
 
 - Xavier Caruso (2012-06-29): initial version
@@ -55,6 +74,8 @@ from sage.rings.integer cimport Integer
 from cpython.object cimport PyObject_RichCompare
 from sage.categories.map cimport Map
 from sage.rings.morphism cimport Morphism, RingHomomorphism
+from sage.structure.element import coerce_binop
+from sage.misc.superseded import experimental
 
 cdef class SkewPolynomial(AlgebraElement):
     r"""
@@ -184,10 +205,6 @@ cdef class SkewPolynomial(AlgebraElement):
 
         sage: a = x^2
         sage: a(t)
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/13215 for details.
         t + 2
 
     Here is a working example over a finite field::
@@ -350,8 +367,9 @@ cdef class SkewPolynomial(AlgebraElement):
 
         .. NOTE::
 
-            Currently, only "operator evaluation" of skew polynomials is implemented.
-            There are two other common notions of evaluation of `f(x)` at some `a`
+            Currently, only "operator evaluation" of skew polynomials is implemented
+            (see :meth:`.operator_eval`).
+            There are two other common notions of evaluation of `f(x)` at some element `a`
             from the base ring, namely the remainder after left or right modulo by `x-a`.
             The current calling convention might change in the future to accommodate these.
             Therefore, the current method has been marked with an "@experimental" decorator.
@@ -363,10 +381,6 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: S.<x> = R['x',sigma]
             sage: a = t*x + 1
             sage: a(t^2)
-            doctest:...: FutureWarning: This class/method/function is marked as
-            experimental. It, its functionality or its interface might change
-            without a formal deprecation.
-            See http://trac.sagemath.org/13215 for details.
             t^3 + 3*t^2 + t
             sage: b = x + t
             sage: b = x^2 + t*x^3 + t^2*x + 1
@@ -384,14 +398,29 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             TypeError: evaluation point must be a ring element
         """
-        from sage.misc.superseded import experimental
-        expr_call = experimental(trac_number=13215)(self._call)
-        return expr_call(eval_pt)
+        return self._call(eval_pt)
 
+    @experimental(trac_number=13215)
     def _call(self, eval_pt):
         """
-        Evaluate ``self`` at ``eval_pt``. This is a private
-        method only for internal purposes.
+        Helper function for the `__call__` method to accommodate
+        operator evaluation.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: T.<x> = k['x',Frob]
+            sage: a = 3*t^2*x^2 + (t + 1)*x + 2
+            sage: a(t) #indirect test
+            2*t^2 + 2*t + 3
+        """
+        return self.operator_eval(eval_pt)
+
+    def operator_eval(self, eval_pt):
+        """
+        Evaluate ``self`` at ``eval_pt`` by the operator evaluation
+        method.
 
         INPUT:
 
@@ -409,10 +438,8 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: T.<x> = k['x',Frob]
             sage: a = 3*t^2*x^2 + (t + 1)*x + 2
             sage: a(t) #indirect test
-            doctest:...: FutureWarning: This class/method/function is marked as
-            experimental. It, its functionality or its interface might change
-            without a formal deprecation.
-            See http://trac.sagemath.org/13215 for details.
+            2*t^2 + 2*t + 3
+            sage: a.operator_eval(t)
             2*t^2 + 2*t + 3
         """
         if eval_pt not in self._parent:
@@ -981,14 +1008,17 @@ cdef class SkewPolynomial(AlgebraElement):
         _, r = other.right_quo_rem(self)
         return r.is_zero()
 
-    def left_xgcd(self, other, monic=True):
+    @coerce_binop
+    def left_xgcd(self, other, *, monic=True):
         """
         Return the left gcd of ``self`` and ``other``.
 
         INPUT:
 
         - ``other`` -- an other skew polynomial over the same base
-        - ``monic`` -- boolean (default: ``True``)
+
+        - ``monic`` -- boolean (default: ``True``). This parameter
+          must be passed as a named argument.
 
         OUTPUT:
 
@@ -1028,7 +1058,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         Specifying ``monic=False``, we *can* get a nonmonic gcd::
 
-            sage: g,u,v = a.left_xgcd(b,monic=False); g
+            sage: g,u,v = a.left_xgcd(b, monic=False); g
             2*t*x + 4*t + 2
             sage: a*u + b*v == g
             True
@@ -1057,6 +1087,18 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             NotImplementedError: inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
                 Defn: t |--> t^2
+
+        TESTS::
+        
+        If the `monic` argument to the method is not passed
+        as a named argument, an error is raised:
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = (x + t) * (x^2 + t*x + 1)
+            sage: b = 2 * (x + t) * (x^3 + (t+1)*x^2 + t^2)
+            sage: a.left_xgcd(b, False)
         """
         if self.base_ring() not in Fields:
             raise TypeError("the base ring must be a field")
@@ -2667,6 +2709,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         """
         return self._new_c(self._coeffs[:n], self._parent, 1)
 
+    @coerce_binop
     def left_quo_rem(self, other):
         """
         Return the quotient and remainder of the left euclidean
@@ -2737,6 +2780,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         q.reverse()
         return (self._new_c(q, parent), self._new_c(a[:db], parent, 1))
 
+    @coerce_binop
     def right_quo_rem(self, other):
         """
         Return the quotient and remainder of the right euclidean

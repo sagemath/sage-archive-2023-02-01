@@ -1343,7 +1343,17 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         self._pari_bnf_certified = False
         self._integral_basis_dict = {}
         if embedding is not None:
-            embedding = number_field_morphisms.NumberFieldEmbedding(self, embedding[0], embedding[1])
+            # Since Trac #20827, an embedding is specified as a pair
+            # (parent, x) with x the image of the distinguished
+            # generator (previously, it was just given as x).  This
+            # allows the UniqueFactory to distinguish embeddings into
+            # different fields with "the same" image of the generator.
+            # We allow both formats to support old pickles.
+            if isinstance(embedding, tuple):
+                parent, x = embedding
+            else:
+                parent, x = embedding.parent(), embedding
+            embedding = number_field_morphisms.NumberFieldEmbedding(self, parent, x)
         self._populate_coercion_lists_(embedding=embedding)
 
     def _convert_map_from_(self, other):

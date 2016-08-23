@@ -756,8 +756,17 @@ class RecognizableSeries(Element):
             [3 6]  [ 0 -6]
             [0 1], [ 1  5], (0, 1), (1, 0)
             )
+
+        TESTS::
+
+            sage: T.mu[0].is_immutable(), T.mu[1].is_immutable(), T.left.is_immutable(), T.right.is_immutable()
+            (True, True, True, True)
         """
-        return self.parent()(self.mu.map(lambda M: M.transpose()),
+        def tr(M):
+            T = M.transpose()
+            T.set_immutable()
+            return T
+        return self.parent()(self.mu.map(tr),
                              left=self.right,
                              right=self.left)
 

@@ -891,6 +891,124 @@ class RecognizableSeries(Element):
         return P.element_class(P, mu_prime, left_prime, right_prime)
 
 
+    def dimension(self):
+        r"""
+        Return the dimension of this recognizable series.
+
+        EXAMPLES::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [0, 1]])),
+            ....:     left=vector([0, 1]), right=vector([1, 0])).dimension()
+            2
+        """
+        return self.mu.first().nrows()
+
+
+    def _add_(self, other, minimize=True):
+        r"""
+        Return the sum of this recognizable series and the ``other``
+        recognizable series.
+
+        INPUT:
+
+        - ``other`` -- a :class:`RecognizableSeries` with the same parent
+          as this recognizable series.
+
+        - ``minimize`` -- (default: ``True``) a boolean. If set, then
+          :meth:`minimized` is called after the addition.
+
+        OUTPUT:
+
+        A :class:`RecognizableSeries`.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: E = Seq2((Matrix([[0, 1], [0, 1]]), Matrix([[0, 0], [0, 1]])),
+            ....:          vector([1, 0]), vector([1, 1]))
+            sage: E
+            2-regular sequence 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, ...
+            sage: O = Seq2((Matrix([[0, 0], [0, 1]]), Matrix([[0, 1], [0, 1]])),
+            ....:          vector([1, 0]), vector([0, 1]))
+            sage: O
+            2-regular sequence 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, ...
+            sage: I = E + O  # indirect doctest
+            sage: I
+            2-regular sequence 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+            sage: I.mu[0], I.mu[1], I.left, I.right
+            ([1], [1], (1), (1))
+        """
+        from sage.modules.free_module_element import vector
+        P = self.parent()
+
+        result = P.element_class(
+            P,
+            dict((a, self.mu[a].block_sum(other.mu[a])) for a in P.alphabet()),
+            vector(tuple(self.left) + tuple(other.left)),
+            vector(tuple(self.right) + tuple(other.right)))
+
+        if minimize:
+            return result.minimized()
+        else:
+            return result
+
+
+    def _neg_(self):
+        r"""
+        Return the additive inverse of this recognizable series.
+
+        OUTPUT:
+
+        A :class:`RecognizableSeries`.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: E = Seq2((Matrix([[0, 1], [0, 1]]), Matrix([[0, 0], [0, 1]])),
+            ....:          vector([1, 0]), vector([1, 1]))
+            sage: -E
+            2-regular sequence -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, ...
+            sage: Z = E - E
+            sage: Z.mu[0], Z.mu[1], Z.left, Z.right
+            ([], [], (), ())
+        """
+        P = self.parent()
+        return P.element_class(P, self.mu, -self.left, self.right)
+
+
+    def _rmul_(self, other):
+        r"""
+        Multiply this recognizable series from the right
+        by an element ``other`` of its coefficient (semi-)ring.
+
+        INPUT:
+
+        - ``other`` -- an element of the coefficient (semi-)ring.
+
+        OUTPUT:
+
+        A :class:`RecognizableSeries`.
+        """
+        P = self.parent()
+        return P.element_class(P, self.mu, self.left, self.right*other)
+
+
+    def _lmul_(self, other):
+        r"""
+        Multiply this recognizable series from the left
+        by an element ``other`` of its coefficient (semi-)ring.
+
+        INPUT:
+
+        - ``other`` -- an element of the coefficient (semi-)ring.
+
+        OUTPUT:
+
+        A :class:`RecognizableSeries`.
+        """
+        P = self.parent()
+        return P.element_class(P, self.mu, other*self.left, self.right)
 class RecognizableSeriesSpace(UniqueRepresentation, Parent):
     r"""
     The space of recognizable series on the given alphabet and
@@ -979,7 +1097,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])  # indirect doctest
             sage: Rec.category()
-            Category of sets
+            Category of modules over Integer Ring
             sage: RecognizableSeriesSpace([0, 1], [0, 1])
             Traceback (most recent call last):
             ...
@@ -1021,8 +1139,8 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             raise ValueError(
                 'Coefficients {} are not a semiring.'.format(coefficients))
 
-        from sage.categories.sets_cat import Sets
-        category = category or Sets()
+        from sage.categories.modules import Modules
+        category = category or Modules(coefficients)
 
         return (coefficients, indices, category)
 

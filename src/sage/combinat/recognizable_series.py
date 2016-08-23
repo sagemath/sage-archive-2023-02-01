@@ -936,6 +936,29 @@ class RecognizableSeries(Element):
             return result.minimized()
         else:
             return result
+
+
+    def _neg_(self):
+        r"""
+        Return the additive inverse of this recognizable series.
+
+        OUTPUT:
+
+        A :class:`RecognizableSeries`.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: E = Seq2((Matrix([[0, 1], [0, 1]]), Matrix([[0, 0], [0, 1]])),
+            ....:          vector([1, 0]), vector([1, 1]))
+            sage: -E
+            2-regular sequence -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, ...
+            sage: Z = E - E
+            sage: Z.mu[0], Z.mu[1], Z.left, Z.right
+            ([], [], (), ())
+        """
+        P = self.parent()
+        return P.element_class(P, self.mu, -self.left, self.right)
 class RecognizableSeriesSpace(UniqueRepresentation, Parent):
     r"""
     The space of recognizable series on the given alphabet and

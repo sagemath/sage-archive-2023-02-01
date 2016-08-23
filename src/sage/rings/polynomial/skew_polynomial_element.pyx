@@ -1087,18 +1087,6 @@ cdef class SkewPolynomial(AlgebraElement):
             ...
             NotImplementedError: inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
                 Defn: t |--> t^2
-
-        TESTS::
-        
-        If the `monic` argument to the method is not passed
-        as a named argument, an error is raised:
-
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
-            sage: a = (x + t) * (x^2 + t*x + 1)
-            sage: b = 2 * (x + t) * (x^3 + (t+1)*x^2 + t^2)
-            sage: a.left_xgcd(b, False)
         """
         if self.base_ring() not in Fields:
             raise TypeError("the base ring must be a field")
@@ -1125,6 +1113,7 @@ cdef class SkewPolynomial(AlgebraElement):
             V = V * lc
         return G,U,V
 
+    @coerce_binop
     def right_xgcd(self, other, monic=True):
         """
         Return the right gcd of ``self`` and ``other``.
@@ -1277,6 +1266,7 @@ cdef class SkewPolynomial(AlgebraElement):
             A = A.right_monic()
         return A
 
+    @coerce_binop
     def left_gcd(self, other, monic=True):
         """
         Return the left gcd of ``self`` and ``other``.
@@ -1358,6 +1348,7 @@ cdef class SkewPolynomial(AlgebraElement):
             A = A.left_monic()
         return A
 
+    @coerce_binop
     def left_lcm(self, other, monic=True):
         """
         Return the left lcm of ``self`` and ``other``.
@@ -1436,6 +1427,7 @@ cdef class SkewPolynomial(AlgebraElement):
             V1 = V1.right_monic()
         return V1
 
+    @coerce_binop
     def right_lcm(self, other, monic=True):
         """
         Return the right lcm of ``self`` and ``other``.
@@ -1982,6 +1974,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return self.degree() == 0 and self[0].is_one()
 
+    @coerce_binop
     def mod(self, other):
         """
         Return remainder of division of ``self`` by ``other``.

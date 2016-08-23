@@ -1002,6 +1002,20 @@ class RecognizableSeries(Element):
         OUTPUT:
 
         A :class:`RecognizableSeries`.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: E = Seq2((Matrix([[0, 1], [0, 1]]), Matrix([[0, 0], [0, 1]])),
+            ....:          vector([1, 0]), vector([1, 1]))
+            sage: M = E * 2  # indirect doctest
+            sage: M
+            2-regular sequence 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, ...
+            sage: M.mu[0], M.mu[1], M.left, M.right
+            (
+            [0 1]  [0 0]
+            [0 1], [0 1], (1, 0), (2, 2)
+            )
         """
         P = self.parent()
         return P.element_class(P, self.mu, self.left, self.right*other)
@@ -1019,6 +1033,28 @@ class RecognizableSeries(Element):
         OUTPUT:
 
         A :class:`RecognizableSeries`.
+
+        EXAMPLES:
+
+        The following is not tested, as `MS^i` for integers `i` does
+        not work, thus ``vector([m])`` fails. (See :trac:`21317` for
+        details.)
+        ::
+
+            sage: MS = MatrixSpace(ZZ,2,2)
+            sage: Rec = RecognizableSeriesSpace(MS, [0, 1])
+            sage: m = MS.an_element()
+            sage: S = Rec((Matrix([[m]]), Matrix([[m]])),  # not tested
+            ....:         vector([m]), vector([m]))
+            sage: S  # not tested
+            sage: M = m * S  # not tested indirect doctest
+            sage: M  # not tested
+            2-regular sequence 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, ...
+            sage: M.mu[0], M.mu[1], M.left, M.right  # not tested
+            (
+            [0 1]  [0 0]
+            [0 1], [0 1], (1, 0), (2, 2)
+            )
         """
         P = self.parent()
         return P.element_class(P, self.mu, other*self.left, self.right)
@@ -1372,7 +1408,29 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         return self(0)
 
 
+    @cached_method
     def one_hadamard(self):
+        r"""
+        Return the identity with respect to the
+        :meth:`~RecognizableSeries.hadamard_product`, i.e. the
+        coefficient-wise multiplication.
+
+        OUTPUT:
+
+        A :class:`RecognizableSeries`.
+
+        EXAMPLES::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: Rec.one_hadamard()
+            [] + [0] + [1] + [00] + [01] + [10]
+               + [11] + [000] + [001] + [010] + ...
+
+        TESTS::
+
+            sage: Rec.one_hadamard() is Rec.one_hadamard()
+            True
+        """
         from sage.matrix.constructor import Matrix
         from sage.modules.free_module_element import vector
         from sage.rings.integer_ring import ZZ

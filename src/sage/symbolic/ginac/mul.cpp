@@ -639,13 +639,6 @@ ex mul::coeff(const ex & s, int n) const
  *  @param level cut-off in recursive evaluation */
 ex mul::eval(int level) const
 {
-	std::unique_ptr<epvector> evaled_seqp = evalchildren(level);
-	if (unlikely(evaled_seqp != nullptr)) {
-		// do more evaluation later
-		return (new mul(*evaled_seqp, overall_coeff))->
-		           setflag(status_flags::dynallocated);
-	}
-	
 #ifdef DO_GINAC_ASSERT
         for (const auto & elem : seq) {
 		GINAC_ASSERT((!is_exactly_a<mul>(elem.rest)) ||
@@ -664,12 +657,19 @@ ex mul::eval(int level) const
 	}
 #endif // def DO_GINAC_ASSERT
 	
-	if ((flags & status_flags::evaluated) != 0u) {
+	if ((level == 1) and (flags & status_flags::evaluated) != 0u) {
 		GINAC_ASSERT(seq.size()>0);
 		GINAC_ASSERT(seq.size()>1 || !overall_coeff.is_integer_one());
 		return *this;
 	}
 
+	std::unique_ptr<epvector> evaled_seqp = evalchildren(level);
+	if (unlikely(evaled_seqp != nullptr)) {
+		// do more evaluation later
+		return (new mul(*evaled_seqp, overall_coeff))->
+		           setflag(status_flags::dynallocated);
+	}
+	
 	// handle infinity and handle exp(a)*exp(b) -> exp(a+b) and
 	unsigned exp_count = 0;
 	for (auto i = seq.begin(); i != seq.end(); i++) {
@@ -863,9 +863,8 @@ ex mul::evalf(int level, PyObject* parent) const
 
 	--level;
         for (const auto & elem : seq)
-		s.push_back(combine_ex_with_coeff_to_pair(
-                elem.rest.evalf(level, parent), elem.coeff));
-	return mul(s, overall_coeff.evalf(level, parent));
+		s.push_back(expair(elem.rest.evalf(level, parent), elem.coeff));
+	return dynallocate<mul>(std::move(s), overall_coeff.evalf(level, parent));
 }
 
 void mul::find_real_imag(ex & rp, ex & ip) const
@@ -1221,7 +1220,13 @@ expair mul::split_ex_to_pair(const ex & e) const
 expair mul::combine_ex_with_coeff_to_pair(const ex & e,
                                           const ex & c) const
 {
-	// to avoid duplication of power simplification rules,
+        GINAC_ASSERT(is_exactly_a<numeric>(c));
+
+        // First, try a common shortcut:
+        if (is_exactly_a<symbol>(e))
+                return expair(e, c);
+
+        // to avoid duplication of power simplification rules,
 	// we create a temporary power object
 	// otherwise it would be hard to correctly evaluate
 	// expression like (4^(1/3))^(3/2)
@@ -1234,6 +1239,9 @@ expair mul::combine_ex_with_coeff_to_pair(const ex & e,
 expair mul::combine_pair_with_coeff_to_pair(const expair & p,
                                             const ex & c) const
 {
+        GINAC_ASSERT(is_exactly_a<numeric>(p.coeff));
+        GINAC_ASSERT(is_exactly_a<numeric>(c));
+
         if (is_exactly_a<symbol>(p.rest))
                 return expair(p.rest, p.coeff*c);
 	if (c.is_integer_one())

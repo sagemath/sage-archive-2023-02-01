@@ -1601,33 +1601,29 @@ std::unique_ptr<epvector> expairseq::expandchildren(unsigned options) const
 	auto cit = seq.begin();
 	auto last = seq.end();
 	while (cit!=last) {
-		const ex &expanded_ex = cit->rest.expand(options);
+		const ex expanded_ex = cit->rest.expand(options);
 		if (!are_ex_trivially_equal(cit->rest,expanded_ex)) {
 			
 			// something changed, copy seq, eval and return it
-			std::unique_ptr<epvector> s(new epvector);
+                        std::unique_ptr<epvector> s(new epvector);
 			s->reserve(seq.size());
 			
 			// copy parts of seq which are known not to have changed
-			auto cit2 = seq.begin();
-			while (cit2!=cit) {
-				s->push_back(*cit2);
-				++cit2;
-			}
+                        s->insert(s->begin(), seq.begin(), cit);
 
 			// copy first changed element
-			s->push_back(combine_ex_with_coeff_to_pair(expanded_ex,
-			                                           cit2->coeff));
-			++cit2;
+			s->push_back(expair(expanded_ex, cit->coeff));
+			++cit;
 
 			// copy rest
-			while (cit2!=last) {
-				s->push_back(combine_ex_with_coeff_to_pair(cit2->rest.expand(options),
-				                                           cit2->coeff));
-				++cit2;
+			while (cit != last) {
+				s->push_back(expair(cit->rest.expand(options),
+				                         cit->coeff));
+				++cit;
 			}
 			return std::move(s);
 		}
+
 		++cit;
 	}
 	
@@ -1642,44 +1638,33 @@ std::unique_ptr<epvector> expairseq::expandchildren(unsigned options) const
  *  if no members were changed. */
 std::unique_ptr<epvector> expairseq::evalchildren(int level) const
 {
-	// returns a NULL pointer if nothing had to be evaluated
-	// returns a pointer to a newly created epvector otherwise
-	// (which has to be deleted somewhere else)
-
-	if (likely(level==1))
-		return std::unique_ptr<epvector>(nullptr);
-	
 	if (level == -max_recursion_level)
 		throw(std::runtime_error("max recursion level reached"));
 	
-	--level;
 	auto last = seq.end();
 	auto cit = seq.begin();
 	while (cit!=last) {
-		const ex &evaled_ex = cit->rest.eval(level);
-		if (!are_ex_trivially_equal(cit->rest,evaled_ex)) {
-			
-			// something changed, copy seq, eval and return it
-			std::unique_ptr<epvector> s(new epvector);
+                const ex evaled_rest = level==1 ? cit->rest : cit->rest.eval(level-1);
+                const expair evaled_pair = combine_ex_with_coeff_to_pair(evaled_rest, cit->coeff);
+                if (unlikely(!evaled_pair.is_equal(*cit))) {
+
+			// something changed: copy seq, eval, and return it
+                        std::unique_ptr<epvector> s(new epvector);
 			s->reserve(seq.size());
-			
+
 			// copy parts of seq which are known not to have changed
-			auto cit2=seq.begin();
-			while (cit2!=cit) {
-				s->push_back(*cit2);
-				++cit2;
-			}
+                        s->insert(s->begin(), seq.begin(), cit);
 
 			// copy first changed element
-			s->push_back(combine_ex_with_coeff_to_pair(evaled_ex,
-			                                           cit2->coeff));
-			++cit2;
+			s->push_back(evaled_pair);
+			++cit;
 
 			// copy rest
-			while (cit2!=last) {
-				s->push_back(combine_ex_with_coeff_to_pair(cit2->rest.eval(level),
-				                                           cit2->coeff));
-				++cit2;
+			while (cit != last) {
+                                const ex evaled_rest1 = level==1 ? cit->rest : cit->rest.eval(level-1);
+				s->push_back(combine_ex_with_coeff_to_pair(evaled_rest1,
+				                                       cit->coeff));
+				++cit;
 			}
 			return std::move(s);
 		}
@@ -1716,13 +1701,13 @@ std::unique_ptr<epvector> expairseq::subschildren(const exmap & m, unsigned opti
 
 		// Substitute in the recombined pairs
 		auto cit = seq.begin(), last = seq.end();
-		while (cit != last) {
+                while (cit != last) {
 
-			const ex &orig_ex = recombine_pair_to_ex(*cit);
-			const ex &subsed_ex = orig_ex.subs(m, options);
-			if (!are_ex_trivially_equal(orig_ex, subsed_ex)) {
+                        const ex &orig_ex = recombine_pair_to_ex(*cit);
+                        const ex &subsed_ex = orig_ex.subs(m, options);
+                        if (!are_ex_trivially_equal(orig_ex, subsed_ex)) {
 
-				// Something changed, copy seq, subs and return it
+				// Something changed: copy seq, subs, and return it
 				std::unique_ptr<epvector> s(new epvector);
 				s->reserve(seq.size());
 
@@ -1749,11 +1734,10 @@ std::unique_ptr<epvector> expairseq::subschildren(const exmap & m, unsigned opti
 		// Substitute only in the "rest" part of the pairs
 		auto cit = seq.begin(), last = seq.end();
 		while (cit != last) {
-
 			const ex &subsed_ex = cit->rest.subs(m, options);
 			if (!are_ex_trivially_equal(cit->rest, subsed_ex)) {
-			
-				// Something changed, copy seq, subs and return it
+
+                                // Something changed, copy seq, subs and return it
 				std::unique_ptr<epvector> s(new epvector);
 				s->reserve(seq.size());
 

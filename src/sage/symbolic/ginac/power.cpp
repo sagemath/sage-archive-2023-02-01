@@ -802,7 +802,7 @@ ex power::subs(const exmap & m, unsigned options) const
 	const ex &subsed_basis = basis.subs(m, options);
 	const ex &subsed_exponent = exponent.subs(m, options);
 
-	if (!are_ex_trivially_equal(basis, subsed_basis)
+        if (!are_ex_trivially_equal(basis, subsed_basis)
 	 || !are_ex_trivially_equal(exponent, subsed_exponent)) 
 		return power(subsed_basis, subsed_exponent).subs_one_level(m, options);
 
@@ -1429,10 +1429,10 @@ ex power::expand_add_2(const add & a, unsigned options) const
 		
 		if (c.is_equal(_ex1)) {
 			if (is_exactly_a<mul>(r)) {
-				result.push_back(a.combine_ex_with_coeff_to_pair(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
+				result.push_back(expair(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
 				                        _ex1));
 			} else {
-				result.push_back(a.combine_ex_with_coeff_to_pair(dynallocate<power>(r, _ex2),
+				result.push_back(expair(dynallocate<power>(r, _ex2),
 				                        _ex1));
 			}
 		} else {

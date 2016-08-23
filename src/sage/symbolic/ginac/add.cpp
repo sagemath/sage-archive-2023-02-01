@@ -338,13 +338,13 @@ ex add::coeff(const ex & s, int n) const
  		if (!restcoeff.is_zero()) {
  			if (do_clifford) {
  				if (clifford_max_label(restcoeff) == -1) {
- 					coeffseq_cliff.push_back(combine_ex_with_coeff_to_pair(ncmul(restcoeff, dirac_ONE(rl)), elem.coeff));
+                                        coeffseq_cliff.push_back(expair(ncmul(restcoeff, dirac_ONE(rl)), elem.coeff));
 				} else {
- 					coeffseq_cliff.push_back(combine_ex_with_coeff_to_pair(restcoeff, elem.coeff));
+                                        coeffseq_cliff.push_back(expair(restcoeff, elem.coeff));
 					nonscalar = true;
  				}
 			}
-			coeffseq.push_back(combine_ex_with_coeff_to_pair(restcoeff, elem.coeff));
+			coeffseq.push_back(expair(restcoeff, elem.coeff));
 		}
 	}
 
@@ -361,9 +361,15 @@ ex add::coeff(const ex & s, int n) const
  *  @param level cut-off in recursive evaluation */
 ex add::eval(int level) const
 {
+        if ((level == 1) && (flags & status_flags::evaluated)) {
+                GINAC_ASSERT(seq.size()>0);
+                GINAC_ASSERT(seq.size()>1 || !overall_coeff.is_zero());
+                return *this;
+        }
+
 	std::unique_ptr<epvector> evaled_seqp = evalchildren(level);
 	if (unlikely(evaled_seqp != nullptr)) {
-		// do more evaluation later
+		// start over evaluating a new object
 		return (new add(*evaled_seqp, overall_coeff))->
 		       setflag(status_flags::dynallocated);
 	}
@@ -377,12 +383,6 @@ ex add::eval(int level) const
 	}
 #endif // def DO_GINAC_ASSERT
 	
-	if ((flags & status_flags::evaluated) != 0u) {
-		GINAC_ASSERT(seq.size()>0);
-		GINAC_ASSERT(seq.size()>1 || !overall_coeff.is_zero());
-		return *this;
-	}
-		
 	// handle infinity
         for (auto i = seq.begin(); i != seq.end(); i++)
                 if (unlikely(is_exactly_a<infinity>(i->rest)))
@@ -533,7 +533,7 @@ ex add::derivative(const symbol & y) const
 	// than the default implementation in basic::derivative() although
 	// if performs the same function (differentiate each term).
 	for (const auto & elem : seq)
-		s.push_back(combine_ex_with_coeff_to_pair(elem.rest.diff(y), elem.coeff));
+		s.push_back(expair(elem.rest.diff(y), elem.coeff));
 	return (new add(s, _ex0))->setflag(status_flags::dynallocated);
 }
 
@@ -594,7 +594,7 @@ expair add::combine_ex_with_coeff_to_pair(const ex & e,
 	if (is_exactly_a<mul>(e)) {
 		const mul &mulref(ex_to<mul>(e));
 		const ex &numfactor = mulref.overall_coeff;
-		if (numfactor.is_integer_one())
+		if (likely(numfactor.is_integer_one()))
                         return expair(e, c);
 		auto mulcopyp = new mul(mulref);
 		mulcopyp->overall_coeff = _ex1;

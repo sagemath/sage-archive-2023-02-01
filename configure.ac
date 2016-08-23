@@ -683,7 +683,7 @@ AC_ARG_WITH([blas],
     [use ATLAS as BLAS library (default)])]
 [AS_HELP_STRING([--with-blas=openblas],
     [use OpenBLAS as BLAS library])],,
-    [with_blas=atlas]  # default
+    [with_blas=openblas]  # default
 )
 
 case "$with_blas" in

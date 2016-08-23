@@ -876,8 +876,8 @@ class RecognizableSeries(Element):
         left_prime = vector([ZZ(1)] + (len(P)-1)*[ZZ(0)])
         right_prime = vector(self.coefficient_of_word(p) for p in P)
 
-        return self.parent().element_class(
-            self.parent(), mu_prime, left_prime, right_prime)
+        P = self.parent()
+        return P.element_class(P, mu_prime, left_prime, right_prime)
 
 
 class RecognizableSeriesSpace(UniqueRepresentation, Parent):

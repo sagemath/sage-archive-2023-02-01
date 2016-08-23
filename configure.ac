@@ -687,8 +687,8 @@ AC_ARG_WITH([blas],
 )
 
 case "$with_blas" in
-    atlas) true;;
-    openblas) need_to_install_atlas=no;;
+    openblas) true;;
+    atlas) need_to_install_openblas=no;;
     *) AC_MSG_ERROR([allowed values for --with-blas are 'atlas' and 'openblas']);;
 esac
 

@@ -361,7 +361,7 @@ class RecognizableSeries(Element):
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
             sage: M0 = Matrix([[1, 0], [0, 1]])
             sage: M1 = Matrix([[0, -1], [1, 2]])
-            sage: S = Rec((M0, M1), [0, 1], [1, 1])
+            sage: S = Rec((M0, M1), vector([0, 1]), vector([1, 1]))
             sage: S.mu[0] == M0 and S.mu[1] == M1
             True
         """
@@ -540,12 +540,12 @@ class RecognizableSeries(Element):
             sage: W = Rec.indices()
             sage: M0 = Matrix([[1, 0], [0, 1]])
             sage: M1 = Matrix([[0, -1], [1, 2]])
-            sage: S = Rec({W([0]): M0, W([1]): M1}, [0, 1], [1, 1])
+            sage: S = Rec({W([0]): M0, W([1]): M1}, vector([0, 1]), vector([1, 1]))
             sage: S._mu_of_empty_word_()
             [1 0]
             [0 1]
-            sage: I = Matrix([[1, 0], [0, 1]])
-            sage: T = Rec({W([]): I, W([0]): M0, W([1]): M1}, [0, 1], [1, 1])
+            sage: I = Matrix([[1, 0], [0, 1]]); I.set_immutable()
+            sage: T = Rec({W([]): I, W([0]): M0, W([1]): M1}, vector([0, 1]), vector([1, 1]))
             sage: T._mu_of_empty_word_()
             [1 0]
             [0 1]
@@ -579,7 +579,7 @@ class RecognizableSeries(Element):
             sage: W = Rec.indices()
             sage: M0 = Matrix([[1, 0], [0, 1]])
             sage: M1 = Matrix([[0, -1], [1, 2]])
-            sage: S = Rec((M0, M1), [0, 1], [1, 1])
+            sage: S = Rec((M0, M1), vector([0, 1]), vector([1, 1]))
             sage: S._mu_of_word_(W([0])) == M0
             True
             sage: S._mu_of_word_(W([1])) == M1
@@ -1492,7 +1492,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
             sage: M0 = Matrix([[1, 0], [0, 1]])
             sage: M1 = Matrix([[0, -1], [1, 2]])
-            sage: S = Rec((M0, M1), [0, 1], [1, 1])
+            sage: S = Rec((M0, M1), vector([0, 1]), vector([1, 1]))
             sage: Rec(S) is S
             True
 

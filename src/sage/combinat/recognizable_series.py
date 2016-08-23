@@ -723,6 +723,20 @@ class RecognizableSeries(Element):
         return True
 
 
+    def __hash__(self):
+        r"""
+        A hash value of this recognizable series.
+
+        TESTS::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: S = Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [0, 1]])),
+            ....:          left=vector([0, 1]), right=vector([1, 0]))
+            sage: hash(S)  # random
+            42
+        """
+        return hash((self.mu, self.left, self.right))
+
     def transposed(self):
         r"""
         Return the transposed series.

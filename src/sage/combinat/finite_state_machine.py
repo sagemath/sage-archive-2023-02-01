@@ -930,6 +930,8 @@ Methods
 #*****************************************************************************
 from __future__ import print_function
 
+from six import itervalues
+
 import collections
 import itertools
 import sage
@@ -6727,7 +6729,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 if is_FSMTransition(d):
                     return self._add_fsm_transition_(d)
             else:
-                d = next(kwargs.itervalues())
+                d = next(itervalues(kwargs))
             if hasattr(d, 'iteritems'):
                 args = []
                 kwargs = d

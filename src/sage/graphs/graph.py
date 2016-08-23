@@ -6839,12 +6839,10 @@ class Graph(GenericGraph):
         (for two vertices not path connected) then `Z_{i,j}=0`.
 
         The value of the magnitude function at `q=0` is the
-        cardinality of the graph. The value of the magnitude function
-        at `q=1` is the number of connected components. The magnitude
-        function of a disjoint union is the sum of the magnitudes
-        functions of the connected components. The magnitude function
-        of a Cartesian product is the product of the magnitudes
-        functions of the factors.
+        cardinality of the graph. The magnitude function of a disjoint
+        union is the sum of the magnitudes functions of the connected
+        components. The magnitude function of a Cartesian product is
+        the product of the magnitudes functions of the factors.
 
         EXAMPLES::
 
@@ -6866,7 +6864,7 @@ class Graph(GenericGraph):
             sage: m(q)
             5 - 10*q + 10*q^2 - 20*q^4 + 40*q^5 - 40*q^6 + ...
 
-        One can use the substitution `q = exp(-t)` to obtain
+        One can also use the substitution `q = exp(-t)` to obtain
         the magnitude function as a function of `t`::
 
             sage: g = graphs.CycleGraph(6)

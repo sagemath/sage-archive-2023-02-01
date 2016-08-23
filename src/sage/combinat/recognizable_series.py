@@ -875,6 +875,20 @@ class RecognizableSeries(Element):
             self.parent(), mu_prime, left_prime, right_prime)
 
 
+    def dimension(self):
+        r"""
+        Return the dimension of this recognizable series.
+
+        EXAMPLES::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [0, 1]])),
+            ....:     left=vector([0, 1]), right=vector([1, 0])).dimension()
+            2
+        """
+        return self.mu.first().nrows()
+
+
 class RecognizableSeriesSpace(UniqueRepresentation, Parent):
     r"""
     The space of recognizable series on the given alphabet and

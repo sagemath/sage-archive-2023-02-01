@@ -467,8 +467,21 @@ class RecognizableSeries(Element):
             sage: W = Rec.indices()
             sage: S = Rec((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
             ....:          left=vector([0, 1]), right=vector([1, 0]))
-            sage: S[W(7.digits(2))]
+            sage: S[W(7.digits(2))]  # indirect doctest
             3
+
+        TESTS::
+
+            sage: w = W(6.digits(2))
+            sage: S.coefficient_of_word(w)
+            2
+            sage: S.coefficient_of_word(w, multiply_left=False)
+            (-1, 2)
+            sage: S.coefficient_of_word(w, multiply_right=False)
+            (2, 3)
+            sage: S.coefficient_of_word(w, multiply_left=False, multiply_right=False)
+            [-1 -2]
+            [ 2  3]
         """
         result = self._mu_of_word_(w)
         if multiply_left:

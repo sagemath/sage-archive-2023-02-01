@@ -1509,6 +1509,42 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
         from sage.algebras.weyl_algebra import DifferentialWeylAlgebra
         return DifferentialWeylAlgebra(self)
 
+    def _roots_univariate_polynomial(self, p, ring=None, multiplicities=True, algorithm=None, degree_bound=None):
+        """
+        Return the list of roots of ``p``.
+
+        INPUT:
+
+        - ``p`` -- the polynomial whose roots are computed
+        - ``ring`` -- the ring to find roots (default is the base ring of ``p``)
+        - ``multiplicities`` -- bool (default: True): if ``True``, return a list of pairs ``(root, multiplicity)``; if ``False`` return a list of roots
+        - ``algorithm`` -- ignored (TODO: remove)
+        - ``degree_bound``-- if not ``None``, return only roots of degree at most ``degree_bound``
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: S.<y> = R[]
+            sage: p = y^3 + (-x^2 - 3)*y^2 + (2*x^3 - x^2 + 3)*y - x^4 + 2*x^2 - 1
+            sage: p.roots()
+            [(x^2 - 2*x + 1, 1), (x + 1, 2)]
+            sage: p.roots(multiplicities=False)
+            [x^2 - 2*x + 1, x + 1]
+            sage: p.roots(degree_bound=1)
+            [(x + 1, 2)]
+        """
+        if ring is not None and ring is not self:
+            p = p.change_ring(ring)
+            return p.roots(multiplicities, algorithm, degree_bound)
+        roots = p._roots_from_factorization(p.factor(), multiplicities)
+        if degree_bound is not None:
+            if multiplicities:
+                roots = [(r,m) for (r,m) in roots if r.degree() <= degree_bound]
+            else:
+                roots = [r for r in roots if r.degree() <= degree_bound]
+        return roots
+
+
 class PolynomialRing_integral_domain(PolynomialRing_commutative, ring.IntegralDomain):
     def __init__(self, base_ring, name="x", sparse=False, implementation=None,
             element_class=None, category=None):

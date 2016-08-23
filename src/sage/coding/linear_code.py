@@ -2202,7 +2202,7 @@ class AbstractLinearCode(module.Module):
         INPUT:
 
         - ``systematic_positions`` -- (default: ``None``) if supplied, the set
-          of systematic positions in the systematic generator matrix. See the 
+          of systematic positions in the systematic generator matrix. See the
           documentation for :class:`LinearCodeSystematicEncoder` details.
 
         EXAMPLES::
@@ -2348,7 +2348,7 @@ class AbstractLinearCode(module.Module):
             return True
         except ValueError:
             return False
-            
+
 
     def is_permutation_automorphism(self,g):
         r"""
@@ -2977,6 +2977,18 @@ class AbstractLinearCode(module.Module):
         c = E.encode(m)
         c.set_immutable()
         return c
+
+    def rate(self):
+        r"""
+        Return the ratio of information symbols to code length.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(10, 5, GF(3))
+            sage: C.rate()
+            1/2
+        """
+        return self.dimension() / self.length()
 
     def redundancy_matrix(self):
         r"""
@@ -4150,11 +4162,11 @@ class LinearCodeSystematicEncoder(Encoder):
       ``systematic_positions[0]``, the 1st index at position
       ``systematic_positions[1]``, etc. A ``ValueError`` is raised at
       construction time if the supplied indices do not form an information set.
-    
+
     EXAMPLES:
 
     The following demonstrates the basic usage of :class:`LinearCodeSystematicEncoder`::
-    
+
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0,0],\
                                      [1,0,0,1,1,0,0,0],\
                                      [0,1,0,1,0,1,0,0],\
@@ -4341,7 +4353,7 @@ class LinearCodeSystematicEncoder(Encoder):
             [1 1 0 0 0 1 0]
             [0 0 1 0 0 1 0]
             [0 0 0 0 1 1 0]
-            [0 0 0 0 0 0 1]            
+            [0 0 0 0 0 0 1]
         """
         C = self.code()
         # This if statement detects if this encoder is itself the default encoder.

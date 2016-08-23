@@ -436,7 +436,7 @@ class RecognizableSeries(Element):
 
 
     @cached_method
-    def coefficient_of_word(self, w):
+    def coefficient_of_word(self, w, multiply_left=True, multiply_right=True):
         r"""
         Return the coefficient to word `w` of this series.
 
@@ -444,6 +444,12 @@ class RecognizableSeries(Element):
 
         - ``w`` -- a word over the parent's
           :meth:`~RecognizableSeriesSpace.alphabet`.
+
+        - ``multiply_left`` -- (default: ``True``) a boolean. If ``False``,
+          then multiplication by :meth:`left <left>` is skipped.
+
+        - ``multiply_right`` -- (default: ``True``) a boolean. If ``False``,
+          then multiplication by :meth:`right <right>` is skipped.
 
         OUTPUT:
 
@@ -459,7 +465,12 @@ class RecognizableSeries(Element):
             sage: S[W(7.digits(2))]
             3
         """
-        return self.left * self._mu_of_word_(w) * self.right
+        result = self._mu_of_word_(w)
+        if multiply_left:
+            result = self.left * result
+        if multiply_right:
+            result = result * self.right
+        return result
 
 
     __getitem__ = coefficient_of_word
@@ -832,12 +843,12 @@ class RecognizableSeries(Element):
         from sage.rings.integer_ring import ZZ
 
         pcs = PrefixClosedSet(self.parent().indices())
-        left = self.left * self._mu_of_word_(pcs.elements[0])
+        left = self.coefficient_of_word(pcs.elements[0], multiply_right=False)
         if left.is_zero():
             return self.parent().zero()
         Left = [left]
         for p in pcs.populate_interactive():
-            left = self.left * self._mu_of_word_(p)
+            left = self.coefficient_of_word(p, multiply_right=False)
             try:
                 Matrix(Left).solve_left(left)
             except ValueError:
@@ -850,7 +861,7 @@ class RecognizableSeries(Element):
         ML = Matrix(Left)
 
         def alpha(c):
-            return ML.solve_left(self.left * self._mu_of_word_(c))
+            return ML.solve_left(self.coefficient_of_word(c, multiply_right=False))
 
         def mu_prime_entry(a, p, q, iq):
             c = p + a
@@ -871,8 +882,8 @@ class RecognizableSeries(Element):
         left_prime = vector([ZZ(1)] + (len(P)-1)*[ZZ(0)])
         right_prime = vector(self.coefficient_of_word(p) for p in P)
 
-        return self.parent().element_class(
-            self.parent(), mu_prime, left_prime, right_prime)
+        P = self.parent()
+        return P.element_class(P, mu_prime, left_prime, right_prime)
 
 
 class RecognizableSeriesSpace(UniqueRepresentation, Parent):

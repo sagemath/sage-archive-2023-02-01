@@ -737,6 +737,94 @@ class RecognizableSeries(Element):
         """
         return hash((self.mu, self.left, self.right))
 
+
+    def __eq__(self, other):
+        r"""
+        Return whether this recognizable series is equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- an object.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+        EXAMPLES::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: S = Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [0, 1]])),
+            ....:          left=vector([1, 1]), right=vector([1, 0]))
+            sage: S
+            [] + [0] + [1] + [00] + [01] + [10]
+               + [11] + [000] + [001] + [010] + ...
+            sage: Z1 = Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [0, 1]])),
+            ....:          left=vector([0, 1]), right=vector([1, 0]))
+            sage: Z1
+            0
+            sage: Z2 = Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])),
+            ....:          left=vector([0, 1]), right=vector([1, 0]))
+            sage: Z2
+            0
+            sage: S == Z1
+            False
+            sage: S == Z2
+            False
+            sage: Z1 == Z2
+            True
+
+        TESTS::
+
+            sage: S == S
+            True
+            sage: x == None
+            False
+        """
+        if other is None:
+            return False
+        try:
+            return not bool(self - other)
+        except (TypeError, ValueError):
+            return False
+
+
+    def __ne__(self, other):
+        r"""
+        Return whether this recognizable series is equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- an object.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+        EXAMPLES::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: Z1 = Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [0, 1]])),
+            ....:          left=vector([0, 1]), right=vector([1, 0]))
+            sage: Z2 = Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])),
+            ....:          left=vector([0, 1]), right=vector([1, 0]))
+            sage: Z1 != Z2
+            False
+            sage: Z1 != Z1
+            False
+        """
+        return not self == other
+
+
     def transposed(self):
         r"""
         Return the transposed series.

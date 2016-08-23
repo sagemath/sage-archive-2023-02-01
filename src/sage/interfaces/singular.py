@@ -1686,6 +1686,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         from sage.rings.quotient_ring import QuotientRing_generic
         from sage.rings.quotient_ring_element import QuotientRingElement
+        from sage.rings.real_mpfr import RealField_class
 
         ring_is_fine = False
         if R is None:
@@ -1753,7 +1754,10 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
                         exp[var_dict[var]]=power
 
                 if kcache is None:
-                    sage_repr[ETuple(exp,ngens)]=k(singular_poly_list[coeff_start+i])
+                    coef = singular_poly_list[coeff_start+i]
+                    if isinstance(k, RealField_class):
+                        coef = coef.lstrip('(').rstrip(')')
+                    sage_repr[ETuple(exp,ngens)]=k(coef)
                 else:
                     elem = singular_poly_list[coeff_start+i]
                     if elem not in kcache:
@@ -1782,7 +1786,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
                         exp = int(1)
 
                 if kcache is None:
-                    sage_repr[exp]=k(singular_poly_list[coeff_start+i])
+                    sage_repr[exp] = k(singular_poly_list[coeff_start+i])
                 else:
                     elem = singular_poly_list[coeff_start+i]
                     if elem not in kcache:

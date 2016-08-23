@@ -1009,6 +1009,108 @@ class RecognizableSeries(Element):
         """
         P = self.parent()
         return P.element_class(P, self.mu, other*self.left, self.right)
+
+
+    def hadamard_product(self, other, minimize=True):
+        r"""
+        Return the Hadamard product of this recognizable series
+        and the ``other`` recognizable series, i.e., multiply the two
+        series coefficient-wise.
+
+        INPUT:
+
+        - ``other`` -- a :class:`RecognizableSeries` with the same parent
+          as this recognizable series.
+
+        - ``minimize`` -- (default: ``True``) a boolean. If set, then
+          :meth:`minimized` is called after the addition.
+
+        OUTPUT:
+
+        A :class:`RecognizableSeries`.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+
+            sage: E = Seq2((Matrix([[0, 1], [0, 1]]), Matrix([[0, 0], [0, 1]])),
+            ....:          vector([1, 0]), vector([1, 1]))
+            sage: E
+            2-regular sequence 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, ...
+
+            sage: O = Seq2((Matrix([[0, 0], [0, 1]]), Matrix([[0, 1], [0, 1]])),
+            ....:          vector([1, 0]), vector([0, 1]))
+            sage: O
+            2-regular sequence 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, ...
+
+            sage: C = Seq2((Matrix([[2, 0], [2, 1]]), Matrix([[0, 1], [-2, 3]])),
+            ....:          vector([1, 0]), vector([0, 1]))
+            sage: C
+            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
+
+        ::
+
+            sage: CE = C.hadamard_product(E)
+            sage: CE
+            2-regular sequence 0, 0, 2, 0, 4, 0, 6, 0, 8, 0, ...
+            sage: CE.mu[0], CE.mu[1], CE.left, CE.right
+            (
+            [0 1 0]  [ 0  0  0]
+            [0 2 0]  [ 0  0  1]
+            [0 2 1], [ 0 -2  3], (1, 0, 0), (0, 0, 2)
+            )
+
+            sage: Z = E.hadamard_product(O)
+            sage: Z
+            2-regular sequence 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
+            sage: Z.mu[0], Z.mu[1], Z.left, Z.right
+            ([], [], (), ())
+
+        TESTS::
+
+            sage: EC = E.hadamard_product(C, minimize=False)
+            sage: EC
+            2-regular sequence 0, 0, 2, 0, 4, 0, 6, 0, 8, 0, ...
+            sage: EC.mu[0], EC.mu[1], EC.left, EC.right
+            (
+            [0 0 2 0]  [ 0  0  0  0]
+            [0 0 2 1]  [ 0  0  0  0]
+            [0 0 2 0]  [ 0  0  0  1]
+            [0 0 2 1], [ 0  0 -2  3], (1, 0, 0, 0), (0, 1, 0, 1)
+            )
+            sage: MEC = EC.minimized()
+            sage: MEC
+            2-regular sequence 0, 0, 2, 0, 4, 0, 6, 0, 8, 0, ...
+            sage: MEC.mu[0], MEC.mu[1], MEC.left, MEC.right
+            (
+            [0 1 0]  [ 0  0  0]
+            [0 2 0]  [ 0  0  1]
+            [0 2 1], [ 0 -2  3], (1, 0, 0), (0, 0, 2)
+            )
+
+        """
+        from sage.matrix.constructor import Matrix
+        from sage.modules.free_module_element import vector
+        P = self.parent()
+
+        result = P.element_class(
+            P,
+            dict((a,
+                  Matrix(tuple(
+                      srow.outer_product(orow).list()
+                      for srow in self.mu[a].rows()
+                      for orow in other.mu[a].rows())))
+                 for a in P.alphabet()),
+            vector(self.left.outer_product(other.left).list()),
+            vector(self.right.outer_product(other.right).list()))
+
+        if minimize:
+            return result.minimized()
+        else:
+            return result
+
+
+
 class RecognizableSeriesSpace(UniqueRepresentation, Parent):
     r"""
     The space of recognizable series on the given alphabet and
@@ -1255,6 +1357,16 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             0
         """
         return self(0)
+
+
+    def one_hadamard(self):
+        from sage.matrix.constructor import Matrix
+        from sage.modules.free_module_element import vector
+        from sage.rings.integer_ring import ZZ
+
+        one = ZZ(1)
+        return self(dict((a, Matrix([[one]])) for a in self.alphabet()),
+                    vector([one]), vector([one]))
 
 
     def _element_constructor_(self, data,

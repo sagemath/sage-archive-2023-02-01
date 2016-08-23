@@ -331,18 +331,21 @@ For a typical category, few bases, if any, need to be added to force
     100
 
 The following can be used to search through the Sage named categories
-for any that requires the addition of some bases::
+for any that requires the addition of some bases. The output may
+change a bit when the category hierarchy is changed. As long as the
+list below does not change radically, it's fine to just update this
+doctest::
 
     sage: from sage.categories.category import category_sample
     sage: sorted([C for C in category_sample()
     ....:         if len(C._super_categories_for_classes) != len(C.super_categories())],
     ....:        key=str)
     [Category of affine weyl groups,
-     Category of coxeter groups,
      Category of fields,
      Category of finite dimensional algebras with basis over Rational Field,
      Category of finite dimensional hopf algebras with basis over Rational Field,
      Category of finite permutation groups,
+     Category of finite weyl groups,
      Category of graded hopf algebras with basis over Rational Field]
 
 AUTHOR:
@@ -649,7 +652,7 @@ def C3_merge(list lists):
                 break
         if not next_item_found:
             # No head is available
-            raise ValueError, "Can not merge the items %s."%', '.join([repr(head) for head in heads])
+            raise ValueError("Can not merge the items %s."%', '.join([repr(head) for head in heads]))
     return out
 
 cpdef identity(x):
@@ -828,9 +831,9 @@ cpdef tuple C3_sorted_merge(list lists, key=identity):
     cdef dict holder = {}
 
     # def print_state():
-    #     print "-- %s -- %s ------"%(out,suggestion)
+    #     print("-- %s -- %s ------"%(out,suggestion))
     #     for i in range(nbheads):
-    #         print [heads[i]] + list(reversed(tails[i]))
+    #         print([heads[i]] + list(reversed(tails[i])))
 
     # def check_state():
     #     for i in range(nbheads):

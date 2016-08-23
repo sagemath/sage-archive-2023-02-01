@@ -126,7 +126,7 @@ cdef class PrimePi(BuiltinFunction):
 
         REFERENCES:
 
-        .. [RAO2011] R.A. Ohana. On Prime Counting in Abelian Number Fields.
+        .. [RAO2011] \R.A. Ohana. On Prime Counting in Abelian Number Fields.
            http://wstein.org/home/ohanar/papers/abelian_prime_counting/main.pdf.
 
         AUTHOR:

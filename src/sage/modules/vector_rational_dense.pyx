@@ -50,6 +50,7 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
@@ -108,10 +109,10 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             ....:     # fails.  # We catch this with the ... in the
             ....:     # doctest result. The * is needed because a
             ....:     # result cannot start with ...
-            ....:     print "*"
+            ....:     print("*")
             ....:     Vector_rational_dense(QQ^(2^56))
             ....: except (MemoryError, OverflowError):
-            ....:     print "allocation failed"
+            ....:     print("allocation failed")
             *...
             allocation failed
         """
@@ -150,7 +151,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
                 mpq_clear(self._entries[i])
             sig_free(self._entries)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         EXAMPLES::
 
@@ -241,7 +242,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
     def __reduce__(self):
         return (unpickle_v1, (self._parent, self.list(), self._degree, self._is_mutable))
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         cdef Vector_rational_dense z, r
         r = right
         z = self._new_c()
@@ -252,7 +253,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
         return z
 
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         cdef Vector_rational_dense z, r
         r = right
         z = self._new_c()
@@ -262,7 +263,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             mpq_sub(z._entries[i], self._entries[i], r._entries[i])
         return z
 
-    cpdef Element _dot_product_(self, Vector right):
+    cpdef _dot_product_(self, Vector right):
         """
         Dot product of dense vectors over the rationals.
 
@@ -288,7 +289,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
         return z
 
 
-    cpdef Vector _pairwise_product_(self, Vector right):
+    cpdef _pairwise_product_(self, Vector right):
         """
         EXAMPLES::
 
@@ -305,7 +306,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             mpq_mul(z._entries[i], self._entries[i], r._entries[i])
         return z
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         cdef Vector_rational_dense z
         cdef Rational a
         if isinstance(left, Rational):
@@ -324,7 +325,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
         return z
 
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         cdef Vector_rational_dense z
         cdef Rational a
         if isinstance(right, Rational):
@@ -342,7 +343,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             mpq_mul(z._entries[i], self._entries[i], a.value)
         return z
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         cdef Vector_rational_dense z
         z = self._new_c()
         cdef Py_ssize_t i

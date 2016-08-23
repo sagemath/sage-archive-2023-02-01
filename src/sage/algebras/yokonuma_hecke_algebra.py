@@ -119,14 +119,14 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
        *Cell structures for the Yokonuma-Hecke algebra and the algebra
        of braids and ties*. (2015) :arxiv:`1506.00715`.
 
-    .. [JPdA15] N. Jacon and L. Poulain d'Andecy.
+    .. [JPdA15] \N. Jacon and L. Poulain d'Andecy.
        *An isomorphism theorem for Yokonuma-Hecke algebras and
        applications to link invariants*. (2015) :arxiv:`1501.06389v3`.
     """
     @staticmethod
     def __classcall_private__(cls, d, n, q=None, R=None):
         """
-        Standardize input to ensure a unqiue representation.
+        Standardize input to ensure a unique representation.
 
         TESTS::
 

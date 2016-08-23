@@ -76,11 +76,11 @@ WARNING:
 
 REFERENCES:
 
-.. [KKS07] S.-J. Kang, J.-A. Kim, and D.-U. Shin.
+.. [KKS07] \S.-J. Kang, J.-A. Kim, and D.-U. Shin.
    Modified Nakajima Monomials and the Crystal `B(\infty)`.
    J. Algebra **308**, pp. 524--535, 2007.
 
-.. [Kash03] M. Kashiwara.
+.. [Kash03] \M. Kashiwara.
    Realizations of Crystals.
    Combinatorial and geometric representation theory (Seoul, 2001),
    Contemp. Math. **325**, Amer. Math. Soc., pp. 133--139, 2003.

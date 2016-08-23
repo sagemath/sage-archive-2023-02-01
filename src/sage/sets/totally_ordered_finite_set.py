@@ -19,6 +19,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 from sage.structure.element import Element
 from sage.structure.parent import Parent
@@ -34,7 +35,7 @@ class TotallyOrderedFiniteSetElement(Element):
 
         sage: S = TotallyOrderedFiniteSet([2,7], facade=False)
         sage: x = S(2)
-        sage: print x
+        sage: print(x)
         2
         sage: x.parent()
         {2, 7}
@@ -220,13 +221,14 @@ class TotallyOrderedFiniteSet(FiniteEnumeratedSet):
     and comparisons are comparisons of types::
 
         sage: for e in [1,'a',(0, 0)]:
-        ...      f = A(e)
-        ...      print e == f,
-        ...      print cmp(e,f) == cmp(type(e),type(f)),
-        ...      print cmp(f,e) == cmp(type(f),type(e))
-        False True True
-        False True True
-        False True True
+        ....:     f = A(e)
+        ....:     l = (e == f,
+        ....:          cmp(e,f) == cmp(type(e),type(f)),
+        ....:          cmp(f,e) == cmp(type(f),type(e)))
+        ....:     print(l)
+        (False, True, True)
+        (False, True, True)
+        (False, True, True)
 
     This behavior of comparison is the same as the one of
     :class:`~sage.structure.element.Element`.

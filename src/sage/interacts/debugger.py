@@ -8,6 +8,7 @@ AUTHOR:
 
 - William Stein (2012)
 """
+from __future__ import print_function
 # Below all tests are done using sage0, which is a pexpect interface
 # to Sage itself.  This allows us to test exploring a stack traceback
 # using the doctest framework.
@@ -116,8 +117,8 @@ class Debug:
 
              sage: _ = sage0.eval("sage.interacts.debugger.test_function('n', 'm')")
              sage: _ = sage0.eval('d = sage.interacts.debugger.Debug()')
-             sage: sage0.eval("d.evaluate('print a, b')")
-             'm n'
+             sage: sage0.eval("d.evaluate('print(a);print(b)')")
+             'm\nn'
        """
         locals = self.curframe().f_locals
         globals = self.curframe().f_globals
@@ -131,7 +132,7 @@ class Debug:
                 exc_type_name = t
             else:
                 exc_type_name = t.__name__
-            print '***', exc_type_name + ':', v
+            print('*** {}: {}'.format(exc_type_name, v))
 
     def listing(self, n=5):
         """
@@ -151,12 +152,12 @@ class Debug:
 
              sage: _ = sage0.eval("sage.interacts.debugger.test_function('n', 'm')")
              sage: _ = sage0.eval('d = sage.interacts.debugger.Debug()')
-             sage: print sage0("d.listing(1)")
+             sage: print(sage0("d.listing(1)"))
                  2...      x = a + b
              --&gt; ...      y = a * b
                  ...      return x, y, x&lt;y, x&gt;y   # &lt; to ensure HTML is properly escaped
              <hr>> <a href="/src/interacts/debugger.py" target="_new">src/sage/interacts/debugger.py</a>
-             sage: print sage0("d.listing()")
+             sage: print(sage0("d.listing()"))
                  2...
                  ...
                  ...      x = a + b
@@ -164,7 +165,7 @@ class Debug:
                  ...      return x, y, x&lt;y, x&gt;y   # &lt; to ensure HTML is properly escaped
                  ...
              sage: _ = sage0.eval('d._curframe_index -= 1')
-             sage: print sage0("d.listing(1)")
+             sage: print(sage0("d.listing(1)"))
                  4...       else:
              --&gt; ...      test_function2(m, n)
                  ...
@@ -253,7 +254,7 @@ class Debug:
                 # must have hit the evaluate button
                 self.evaluate(command)
 
-            print '<html><hr>' + self.listing(lines//2) + '</html>'
+            print('<html><hr>{}</html>'.format(self.listing(lines//2)))
             # save control state for next time around
             self._last = {'command':command, 'button':button, 'lines':lines, 'frame':frame}
 
@@ -285,7 +286,7 @@ def debug():
     from sage.plot.plot import EMBEDDED_MODE
     if not EMBEDDED_MODE:
         # Must be the command line, so suggest using the IPython debugger.
-        print "You should use %debug on the command line."
+        print("You should use %debug on the command line.")
     else:
         # Create the Debug object and make it interactive.
         Debug().interact()

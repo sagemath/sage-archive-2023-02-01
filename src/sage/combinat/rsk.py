@@ -77,7 +77,7 @@ REFERENCES:
    Advances in Mathematics 63 (1987), pp. 42-99.
    http://www.sciencedirect.com/science/article/pii/0001870887900636
 
-.. [BKSTY06] A. Buch, A. Kresch, M. Shimozono, H. Tamvakis, and A. Yong.
+.. [BKSTY06] \A. Buch, A. Kresch, M. Shimozono, H. Tamvakis, and A. Yong.
    *Stable Grothendieck polynomials and* `K`-*theoretic factor sequences*.
    Math. Ann. **340** Issue 2, (2008), pp. 359--382.
    :arxiv:`math/0601514v1`.

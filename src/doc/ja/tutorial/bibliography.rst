@@ -31,9 +31,8 @@ Bibliography
     Reference Manual http://docs.python.org/ref/ref.html.
     日本Pythonユーザ会のサイト http://www.python.jp/ で日本語版ドキュメントが公開されている．感謝．
 
-..  [PyDev] Guido, Some Guys, and a Mailing List: How Python is
-    Developed,
-    http://www.python.org/dev/dev_intro.html.
+..  [PyDev] Python Developer's Guide
+    https://docs.python.org/devguide/.
 
 ..  [Pyr] Pyrex,
     http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/.
@@ -42,7 +41,7 @@ Bibliography
 
 ..  [SA] Sage web site http://www.sagemath.org/.
 
-..  [Si] G.-M. Greuel, G. Pfister, and H. Schönemann. Singular
+..  [Si] \G.-M. Greuel, G. Pfister, and H. Schönemann. Singular
     3.0. A Computer Algebra System for Polynomial Computations. Center
     for Computer Algebra, University of Kaiserslautern (2005).
     http://www.singular.uni-kl.de.

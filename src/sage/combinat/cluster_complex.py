@@ -163,7 +163,7 @@ class ClusterComplex(SubwordComplex):
 
     REFERENCES:
 
-    .. [CLS] C. Ceballos, J.-P. Labbe, C. Stump, *Subword complexes,
+    .. [CLS] \C. Ceballos, J.-P. Labbe, C. Stump, *Subword complexes,
        cluster complexes, and generalized multi-associahedra*,
        J. Algebr. Comb. **39** (2014) pp. 17-51.
        :doi:`10.1007/s10801-013-0437-x`, :arxiv:`1108.1776`.
@@ -273,7 +273,7 @@ class ClusterComplex(SubwordComplex):
         """
         name = self.__custom_name
         name += ( ' of type %s with %s vertices and %s facets'
-                  % (self.cartan_type(), self.vertices().dimension() + 1,
+                  % (self.cartan_type(), len(self.vertices()),
                      len(self._facets)) )
         return name
 

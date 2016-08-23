@@ -65,15 +65,15 @@ class DescentAlgebra(UniqueRepresentation, Parent):
 
     REFERENCES:
 
-    .. [GR1989] C. Reutenauer, A. M. Garsia. *A decomposition of Solomon's
+    .. [GR1989] \C. Reutenauer, A. M. Garsia. *A decomposition of Solomon's
        descent algebra.* Adv. Math. **77** (1989).
        http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1989/Decomposition%20Solomon.pdf
 
-    .. [Atkinson] M. D. Atkinson. *Solomon's descent algebra revisited.*
+    .. [Atkinson] \M. D. Atkinson. *Solomon's descent algebra revisited.*
        Bull. London Math. Soc. 24 (1992) 545-551.
        http://www.cs.otago.ac.nz/staffpriv/mike/Papers/Descent/DescAlgRevisited.pdf
 
-    .. [MR-Desc] C. Malvenuto, C. Reutenauer, *Duality between
+    .. [MR-Desc] \C. Malvenuto, C. Reutenauer, *Duality between
        quasi-symmetric functions and the Solomon descent algebra*,
        Journal of Algebra 177 (1995), no. 3, 967-982.
        http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1995/Duality.pdf

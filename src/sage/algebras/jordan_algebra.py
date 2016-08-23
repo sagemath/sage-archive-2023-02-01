@@ -144,16 +144,16 @@ class JordanAlgebra(Parent, UniqueRepresentation):
 
     - :wikipedia:`Jordan_algebra`
 
-    .. [Jacobson71] N. Jacobson. *Exceptional Lie Algebras*.
+    .. [Jacobson71] \N. Jacobson. *Exceptional Lie Algebras*.
        Marcel Dekker, Inc. New York. 1971. IBSN No. 0-8247-1326-5.
 
     .. [Chu2012] Cho-Ho Chu. *Jordan Structures in Geometry and Analysis*.
        Cambridge University Press, New York. 2012. IBSN 978-1-107-01617-0.
 
-    .. [McCrimmon78] K. McCrimmon. *Jordan algebras and their applications*.
+    .. [McCrimmon78] \K. McCrimmon. *Jordan algebras and their applications*.
        Bull. Amer. Math. Soc. **84** 1978.
 
-    .. [Albert47] A. A. Albert, *A Structure Theory for Jordan Algebras*.
+    .. [Albert47] \A. A. Albert, *A Structure Theory for Jordan Algebras*.
        Annals of Mathematics, Second Series, Vol. 48, No. 3
        (Jul., 1947), pp. 546--567.
     """

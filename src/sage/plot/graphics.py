@@ -27,6 +27,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 from math import isnan
@@ -36,7 +38,7 @@ from sage.misc.temporary_file import tmp_filename
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 from sage.misc.decorators import suboptions
-from colors import rgbcolor
+from .colors import rgbcolor
 
 ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.pgf', '.png', '.ps', '.sobj', '.svg']
 DEFAULT_DPI = 100
@@ -94,10 +96,10 @@ class Graphics(WithEqualityById, SageObject):
 
     EXAMPLES::
 
-        sage: G = Graphics(); print G
+        sage: G = Graphics(); print(G)
         Graphics object consisting of 0 graphics primitives
         sage: c = circle((1,1), 1)
-        sage: G+=c; print G
+        sage: G+=c; print(G)
         Graphics object consisting of 1 graphics primitive
 
     Here we make a graphic of embedded isosceles triangles, coloring
@@ -919,7 +921,7 @@ class Graphics(WithEqualityById, SageObject):
             'Graphics object consisting of 1 graphics primitive'
             sage: str(S)
             'Graphics object consisting of 1 graphics primitive'
-            sage: print S
+            sage: print(S)
             Graphics object consisting of 1 graphics primitive
         """
         s = "Graphics object consisting of %s graphics primitives"%(len(self))
@@ -933,7 +935,7 @@ class Graphics(WithEqualityById, SageObject):
 
         EXAMPLE::
 
-            sage: G = circle((1,1),2) + circle((2,2),5); print G
+            sage: G = circle((1,1),2) + circle((2,2),5); print(G)
             Graphics object consisting of 2 graphics primitives
             sage: G[1]
             Circle defined by (2.0,2.0) with r=5.0
@@ -947,7 +949,7 @@ class Graphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print G
+            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print(G)
             Graphics object consisting of 3 graphics primitives
             sage: len(G)
             3
@@ -961,12 +963,12 @@ class Graphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print G
+            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print(G)
             Graphics object consisting of 3 graphics primitives
             sage: len(G)
             3
             sage: del(G[2])
-            sage: print G
+            sage: print(G)
             Graphics object consisting of 2 graphics primitives
             sage: len(G)
             2
@@ -980,12 +982,12 @@ class Graphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print G
+            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print(G)
             Graphics object consisting of 3 graphics primitives
 
         ::
 
-            sage: p = polygon([[1,3],[2,-2],[1,1],[1,3]]); print p
+            sage: p = polygon([[1,3],[2,-2],[1,1],[1,3]]); print(p)
             Graphics object consisting of 1 graphics primitive
 
         ::
@@ -1010,15 +1012,15 @@ class Graphics(WithEqualityById, SageObject):
         EXAMPLES::
 
             sage: S = circle((0,0), 2)
-            sage: print int(0) + S
+            sage: print(int(0) + S)
             Graphics object consisting of 1 graphics primitive
-            sage: print S + int(0)
+            sage: print(S + int(0))
             Graphics object consisting of 1 graphics primitive
 
         The following would fail were it not for this function::
 
             sage: v = [circle((0,0), 2), circle((2,3), 1)]
-            sage: print sum(v)
+            sage: print(sum(v))
             Graphics object consisting of 2 graphics primitives
         """
         if isinstance(other, (int, long)) and other == 0:
@@ -2301,7 +2303,7 @@ class Graphics(WithEqualityById, SageObject):
             else:
                 x_formatter = OldScalarFormatter()
         elif x_formatter in SR:
-            from misc import _multiple_of_constant
+            from .misc import _multiple_of_constant
             x_const = x_formatter
             x_formatter = FuncFormatter(lambda n,pos:
                                         _multiple_of_constant(n,pos,x_const))
@@ -2327,7 +2329,7 @@ class Graphics(WithEqualityById, SageObject):
             else:
                 y_formatter = OldScalarFormatter()
         elif y_formatter in SR:
-            from misc import _multiple_of_constant
+            from .misc import _multiple_of_constant
             y_const = y_formatter
             y_formatter = FuncFormatter(lambda n,pos:
                                         _multiple_of_constant(n,pos,y_const))
@@ -2504,7 +2506,7 @@ class Graphics(WithEqualityById, SageObject):
         EXAMPLES::
 
             sage: c = circle((1,1),1)
-            sage: print c.matplotlib()
+            sage: print(c.matplotlib())
             Figure(640x480)
 
         To obtain the first matplotlib axes object inside of the
@@ -3278,7 +3280,7 @@ class Graphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: print polytopes.hypercube(2).plot().description()
+            sage: print(polytopes.hypercube(2).plot().description())
             Polygon defined by 4 points: [(1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)]
             Line defined by 2 points: [(-1.0, -1.0), (-1.0, 1.0)]
             Line defined by 2 points: [(-1.0, -1.0), (1.0, -1.0)]

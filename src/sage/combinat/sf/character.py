@@ -8,7 +8,7 @@ of `S_n` when the group is realized as the permutation matrices.
 
 REFERENCES:
 
-.. [OZ2015] R. Orellana, M. Zabrocki, *Symmetric group characters
+.. [OZ2015] \R. Orellana, M. Zabrocki, *Symmetric group characters
    as symmetric functions*, :arxiv:`1510.00438`.
 """
 

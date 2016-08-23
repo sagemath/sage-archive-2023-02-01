@@ -53,7 +53,7 @@ latex_elements['preamble'] += r'''
 '''
 
 #Ignore all .rst in the _sage subdirectory
-exclude_trees = exclude_trees + ['_sage']
+exclude_patterns = exclude_patterns + ['_sage']
 
 multidocs_is_master = True
 
@@ -67,6 +67,6 @@ multidocs_subdoc_list = sorted([x for x in os.listdir(ref_src)
 
 # List of directories, relative to source directory, that shouldn't be
 # searched for source files.
-exclude_trees += multidocs_subdoc_list + [
+exclude_patterns += multidocs_subdoc_list + [
     'sage', 'sagenb', 'options'
     ]

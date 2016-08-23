@@ -66,7 +66,7 @@ Another colored example::
 
     actually remove unused points, fix the below code::
 
-        S = ParametricSurface(f=(lambda (x,y):(x,y,0)), domain=(range(10),range(10)))
+        S = ParametricSurface(f=lambda xy: (xy[0],xy[1],0), domain=(range(10),range(10)))
 """
 #*****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -85,15 +85,16 @@ Another colored example::
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
-include "point_c.pxi"
-
 from math import cos, sin
 from sage.rings.all import RDF
 
-from base import RenderParams
+from .base import RenderParams
+from .transform cimport point_c, face_c
 from sage.ext.fast_eval cimport FastDoubleFunc
 from sage.ext.interpreters.wrapper_rdf cimport Wrapper_rdf
-from sage.ext.fast_eval import fast_float
+
+include "point_c.pxi"
+
 
 cdef inline bint smash_edge(point_c* vs, face_c* f, int a, int b):
     if point_c_eq(vs[f.vertices[a]], vs[f.vertices[b]]):
@@ -518,7 +519,6 @@ cdef class ParametricSurface(IndexFaceSet):
 
         self.render_grid = urange, vrange
 
-
     def get_grid(self, ds):
         """
         TEST::
@@ -673,6 +673,20 @@ cdef class ParametricSurface(IndexFaceSet):
         """
         raise NotImplementedError
 
+    def plot(self):
+        """
+        Draw a 3D plot of this graphics object, which just returns this
+        object since this is already a 3D graphics object.
+        Needed to support PLOT in doctrings, see :trac:`17498`
+        
+        EXAMPLES::
+
+            sage: S = parametric_plot3d( (sin, cos, lambda u: u/10), (0, 20))
+            sage: S.plot() is S
+            True
+
+        """
+        return self
 
 class MoebiusStrip(ParametricSurface):
     """

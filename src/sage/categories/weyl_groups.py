@@ -439,15 +439,15 @@ class WeylGroups(Category_singleton):
 
             REFERENCES:
 
-            .. [BH1994] S. Billey, M. Haiman. *Schubert polynomials for the
+            .. [BH1994] \S. Billey, M. Haiman. *Schubert polynomials for the
                classical groups*. J. Amer. Math. Soc., 1994.
-            .. [Lam2008] T. Lam. *Schubert polynomials for the affine
+            .. [Lam2008] \T. Lam. *Schubert polynomials for the affine
                Grassmannian*. J. Amer. Math. Soc., 2008.
-            .. [LSS2009] T. Lam, A. Schilling, M. Shimozono. *Schubert
+            .. [LSS2009] \T. Lam, A. Schilling, M. Shimozono. *Schubert
                polynomials for the affine Grassmannian of the symplectic
                group*. Mathematische Zeitschrift 264(4) (2010) 765-811
                (:arxiv:`0710.2720`)
-            .. [Pon2010] S. Pon. *Types B and D affine Stanley symmetric
+            .. [Pon2010] \S. Pon. *Types B and D affine Stanley symmetric
                functions*, unpublished PhD Thesis, UC Davis, 2010.
             """
             import sage.combinat.sf

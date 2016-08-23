@@ -988,7 +988,6 @@ class KleberTree(UniqueRepresentation, Parent):
 
         if have_dot2tex():
             G.set_latex_options(format="dot2tex", edge_labels=True)
-                                # edge_options = lambda (u,v,label): ({"backward":label ==0}))
         return G
 
     def plot(self, **options):

@@ -8,7 +8,7 @@ example, we derive the quadratic formula as follows::
     sage: qe = (a*x^2 + b*x + c == 0)
     sage: qe
     a*x^2 + b*x + c == 0
-    sage: print solve(qe, x)
+    sage: print(solve(qe, x))
     [
     x == -1/2*(b + sqrt(b^2 - 4*a*c))/a,
     x == -1/2*(b - sqrt(b^2 - 4*a*c))/a
@@ -247,8 +247,8 @@ LaTeX output::
     sage: latex(x^(3/5) >= pi)
     x^{\frac{3}{5}} \geq \pi
 
-When working with the symbolic complex number `I`, notice that comparison do not
-automatically simplifies even in trivial situations::
+When working with the symbolic complex number `I`, notice that comparisons do not
+automatically simplify even in trivial situations::
 
     sage: I^2 == -1
     -1 == -1
@@ -328,6 +328,8 @@ AUTHORS:
 - William Stein (2007-07-16): added arithmetic with symbolic equations
 
 """
+from __future__ import print_function
+
 import operator
 
 
@@ -596,7 +598,7 @@ def solve(f, *args, **kwds):
         sage: solve([sqrt(x) + sqrt(y) == 5, x + y == 10], x, y)
         [[x == -5/2*I*sqrt(5) + 5, y == 5/2*I*sqrt(5) + 5], [x == 5/2*I*sqrt(5) + 5, y == -5/2*I*sqrt(5) + 5]]
         sage: solutions=solve([x^2+y^2 == 1, y^2 == x^3 + x + 1], x, y, solution_dict=True)
-        sage: for solution in solutions: print solution[x].n(digits=3), ",", solution[y].n(digits=3)
+        sage: for solution in solutions: print("{} , {}".format(solution[x].n(digits=3), solution[y].n(digits=3)))
         -0.500 - 0.866*I , -1.27 + 0.341*I
         -0.500 - 0.866*I , 1.27 - 0.341*I
         -0.500 + 0.866*I , -1.27 - 0.341*I
@@ -664,7 +666,7 @@ def solve(f, *args, **kwds):
         sage: solve([x^2-4*x+4],x,solution_dict=True)
         [{x: 2}]
         sage: res = solve([x^2 == y, y == 4],x,y,solution_dict=True)
-        sage: for soln in res: print "x: %s, y: %s"%(soln[x], soln[y])
+        sage: for soln in res: print("x: %s, y: %s" % (soln[x], soln[y]))
         x: 2, y: 4
         x: -2, y: 4
 

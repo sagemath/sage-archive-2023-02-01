@@ -29,6 +29,7 @@ Methods
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import print_function
 
 include "sage/data_structures/bitset.pxi"
 from sage.numerical.backends.generic_backend cimport GenericBackend
@@ -423,7 +424,7 @@ cdef class ConvexityProperties:
 
         REFERENCE:
 
-        .. [CHZ02] F. Harary, E. Loukakis, C. Tsouros
+        .. [CHZ02] \F. Harary, E. Loukakis, C. Tsouros
           The geodetic number of a graph
           Mathematical and computer modelling
           vol. 17 n11 pp.89--95, 1993
@@ -463,8 +464,9 @@ cdef class ConvexityProperties:
             self._greedy_increase(current_hull)
 
             if verbose:
-                print "Adding a constraint corresponding to convex set ",
-                print bitset_list(current_hull)
+                print("Adding a constraint corresponding to convex set ",
+                      end="")
+                print(bitset_list(current_hull))
 
             # Building the corresponding constraint
             constraint = []

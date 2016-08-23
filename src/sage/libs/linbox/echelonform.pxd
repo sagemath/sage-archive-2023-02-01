@@ -1,6 +1,7 @@
 # distutils: extra_compile_args = LINBOX_CFLAGS
 # distutils: libraries = LINBOX_LIBRARIES
 # distutils: library_dirs = LINBOX_LIBDIR
+# distutils: language = c++
 
 from sage.libs.linbox.modular cimport ModDoubleField, ModDoubleFieldElement, ModFloatField, ModFloatFieldElement
 from libc.stdint cimport uint64_t

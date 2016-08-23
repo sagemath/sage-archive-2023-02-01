@@ -110,28 +110,28 @@ AUTHOR:
 
 REFERENCE:
 
-.. [KRG96b] S. Klavzar, A. Rajapakse, and I. Gutman. The Szeged and the
+.. [KRG96b] \S. Klavzar, A. Rajapakse, and I. Gutman. The Szeged and the
   Wiener index of graphs. *Applied Mathematics Letters*, 9(5):45--49, 1996.
 
-.. [GYLL93c] I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
+.. [GYLL93c] \I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
   results in the theory of the Wiener number. *Indian Journal of
   Chemistry*, 32A:651--661, 1993.
 
-.. [CGH+13] P. Crescenzi, R. Grossi, M. Habib, L. Lanzi, A. Marino. On computing
+.. [CGH+13] \P. Crescenzi, R. Grossi, M. Habib, L. Lanzi, A. Marino. On computing
   the diameter of real-world undirected graphs. *Theor. Comput. Sci.* 514: 84-95
   (2013) http://dx.doi.org/10.1016/j.tcs.2012.09.018
 
-.. [CGI+10] P. Crescenzi, R. Grossi, C. Imbrenda, L. Lanzi, and A. Marino.
+.. [CGI+10] \P. Crescenzi, R. Grossi, C. Imbrenda, L. Lanzi, and A. Marino.
   Finding the Diameter in Real-World Graphs: Experimentally Turning a Lower
   Bound into an Upper Bound. Proceedings of *18th Annual European Symposium on
   Algorithms*. Lecture Notes in Computer Science, vol. 6346, 302-313. Springer
   (2010).
 
-.. [MLH08] C. Magnien, M. Latapy, and M. Habib. Fast computation of empirically
+.. [MLH08] \C. Magnien, M. Latapy, and M. Habib. Fast computation of empirically
   tight bounds for the diameter of massive graphs. *ACM Journal of Experimental
   Algorithms* 13 (2008) http://dx.doi.org/10.1145/1412228.1455266
 
-.. [TK13] F. W. Takes and W. A. Kosters. Computing the eccentricity distribution
+.. [TK13] \F. W. Takes and W. A. Kosters. Computing the eccentricity distribution
   of large graphs. *Algorithms* 6:100-118 (2013)
   http://dx.doi.org/10.3390/a6010100
 
@@ -148,6 +148,7 @@ Functions
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "sage/data_structures/binary_matrix.pxi"
 from libc.string cimport memset
@@ -1325,13 +1326,13 @@ def diameter(G, algorithm='iFUB', source=None):
         sage: d1 = diameter(G, algorithm='standard')
         sage: d2 = diameter(G, algorithm='iFUB')
         sage: d3 = diameter(G, algorithm='iFUB', source=G.random_vertex())
-        sage: if d1!=d2 or d1!=d3: print "Something goes wrong!"
+        sage: if d1!=d2 or d1!=d3: print("Something goes wrong!")
 
     Comparison of lower bound algorithms::
 
         sage: lb2 = diameter(G, algorithm='2sweep')
         sage: lbm = diameter(G, algorithm='multi-sweep')
-        sage: if not (lb2<=lbm and lbm<=d3): print "Something goes wrong!"
+        sage: if not (lb2<=lbm and lbm<=d3): print("Something goes wrong!")
 
     TEST:
 
@@ -1595,7 +1596,7 @@ def floyd_warshall(gg, paths = True, distances = False):
 
         sage: g = graphs.Grid2dGraph(2,2)
         sage: from sage.graphs.distances_all_pairs import floyd_warshall
-        sage: print floyd_warshall(g)
+        sage: print(floyd_warshall(g))
         {(0, 1): {(0, 1): None, (1, 0): (0, 0), (0, 0): (0, 1), (1, 1): (0, 1)},
         (1, 0): {(0, 1): (0, 0), (1, 0): None, (0, 0): (1, 0), (1, 1): (1, 0)},
         (0, 0): {(0, 1): (0, 0), (1, 0): (0, 0), (0, 0): None, (1, 1): (0, 1)},

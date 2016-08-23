@@ -10,6 +10,7 @@ Bimodules
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 from sage.categories.category import Category, CategoryWithParameters
 from sage.categories.left_modules import LeftModules
@@ -145,7 +146,7 @@ class Bimodules(CategoryWithParameters):
 
         EXAMPLES::
 
-            sage: print Bimodules(QQ, ZZ)._latex_()
+            sage: print(Bimodules(QQ, ZZ)._latex_())
             {\mathbf{Bimodules}}_{\Bold{Q}, \Bold{Z}}
         """
         from sage.misc.latex import latex

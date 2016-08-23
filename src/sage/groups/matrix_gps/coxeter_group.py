@@ -266,7 +266,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                                            for j in range(n)},
                               coerce=True, copy=True)
                 for i in range(n)]
-        # Make the generators dense matrices for consistancy and speed
+        # Make the generators dense matrices for consistency and speed
         gens = [g.dense_matrix() for g in gens]
         category = CoxeterGroups()
         # Now we shall see if the group is finite, and, if so, refine
@@ -646,6 +646,18 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         return {i: simple_weights[k]
                 for k, i in enumerate(self.index_set())}
 
+    def fundamental_weight(self, i):
+        r"""
+        Return the fundamental weight with index ``i``.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A',3], implementation='reflection')
+            sage: W.fundamental_weight(1)
+            (3/2, 1, 1/2)
+        """
+        return self.fundamental_weights()[i]
+
     class Element(MatrixGroupElement_generic):
         """
         A Coxeter group element.
@@ -779,7 +791,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             return self.matrix()
 
         @cached_method
-        def action_on_root_indices(self, i):
+        def action_on_root_indices(self, i, side="left"):
             """
             Return the action on the set of roots.
 
@@ -792,10 +804,15 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                 sage: w.action_on_root_indices(0)
                 11
             """
+            if side == "left":
+                w = self
+            elif side == "right":
+                w = ~self
+            else:
+                raise ValueError('side must be "left" or "right"')
             roots = self.parent().roots()
             rt = self * roots[i]
             return roots.index(rt)
-
 
 def _matrix_test_right_descent(M, i, n, zero):
     """

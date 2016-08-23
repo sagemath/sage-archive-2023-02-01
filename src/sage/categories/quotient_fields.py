@@ -7,6 +7,7 @@ Quotient fields
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 from sage.categories.category_singleton import Category_singleton
 from sage.misc.abstract_method import abstract_method
@@ -392,7 +393,7 @@ class QuotientFields(Category_singleton):
                 sage: q = 2*t / (t + 3)^2
                 sage: q.partial_fraction_decomposition()
                 (0, [2/(t + 3), -6/(t^2 + 6*t + 9)])
-                sage: for p in q.partial_fraction_decomposition()[1]: print p.factor()
+                sage: for p in q.partial_fraction_decomposition()[1]: print(p.factor())
                 (2) * (t + 3)^-1
                 (-6) * (t + 3)^-2
                 sage: q.partial_fraction_decomposition(decompose_powers=False)

@@ -7,6 +7,7 @@ TESTS::
     sage: m = matrix(R,2,[0,a,b,b^2])
     sage: TestSuite(m).run()
 """
+from __future__ import print_function
 
 cimport matrix
 
@@ -64,7 +65,7 @@ cdef class Matrix_dense(matrix.Matrix):
         if not x is None: return x
 
         if not self._is_immutable:
-            raise TypeError, "mutable matrices are unhashable"
+            raise TypeError("mutable matrices are unhashable")
 
         v = self._list()
         cdef Py_ssize_t i
@@ -98,9 +99,9 @@ cdef class Matrix_dense(matrix.Matrix):
                     self.set_unsafe(i, j, data[k])
                     k = k + 1
         else:
-            raise RuntimeError, "unknown matrix version (=%s)"%version
+            raise RuntimeError("unknown matrix version (=%s)" % version)
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         """
         EXAMPLES::
 
@@ -137,10 +138,10 @@ cdef class Matrix_dense(matrix.Matrix):
             sage: M = MatrixSpace(QQ,  2)
             sage: A = M([1,2,3,4])
             sage: B = A.transpose()
-            sage: print B
+            sage: print(B)
             [1 3]
             [2 4]
-            sage: print A
+            sage: print(A)
             [1 2]
             [3 4]
 

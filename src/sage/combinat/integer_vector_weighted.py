@@ -19,17 +19,19 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
+
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_with_grading import SetsWithGrading
-from __builtin__ import list as builtinlist
+from six.moves.builtins import list as builtinlist
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.combinat.words.word import Word
-from permutation import Permutation
+from .permutation import Permutation
 
 def WeightedIntegerVectors(n = None, weight = None):
     """
@@ -105,7 +107,7 @@ class WeightedIntegerVectors_all(DisjointUnionEnumeratedSets):
         [0, 12, 0, 0, 0]
         sage: W12.cardinality()
         441
-        sage: for w in W12: print w
+        sage: for w in W12: print(w)
         [4, 0, 0, 0, 0]
         [3, 0, 0, 1, 1]
         [3, 0, 1, 1, 0]
@@ -297,6 +299,11 @@ def iterator_fast(n, l):
         [[1, 1, 0], [1, 0, 1], [0, 3, 0], [0, 2, 1], [0, 1, 2], [0, 0, 3]]
         sage: list(iterator_fast(2, [2]))
         [[1]]
+
+    Test that :trac:`20491` is fixed::
+
+        sage: type(list(iterator_fast(2, [2]))[0][0])
+        <type 'sage.rings.integer.Integer'>
     """
     if n < 0:
         return
@@ -310,7 +317,7 @@ def iterator_fast(n, l):
         return
     if len(l) == 1:
         if n % l[0] == 0:
-            yield [n / l[0]]
+            yield [n // l[0]]
         return
 
     k = 0

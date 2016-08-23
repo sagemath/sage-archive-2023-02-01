@@ -11,11 +11,11 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Bruin-Molnar] N. Bruin and A. Molnar, *Minimal models for rational
+.. [Bruin-Molnar] \N. Bruin and A. Molnar, *Minimal models for rational
    functions in a dynamical setting*, 
    LMS Journal of Computation and Mathematics, Volume 15 (2012), pp 400-417.
 
-.. [Molnar] A. Molnar, *Fractional Linear Minimal Models of Rational Functions*,
+.. [Molnar] \A. Molnar, *Fractional Linear Minimal Models of Rational Functions*,
    M.Sc. Thesis.
 """
 
@@ -243,7 +243,7 @@ def affine_minimal(vp, return_transformation=False, D=None, quick=False):
         R = R.ring()
     F = R(Affvp[0].numerator())
     G = R(Affvp[0].denominator())
-    if G.degree() == 0 or F.degree() == 0:
+    if R(G.degree()) == 0 or R(F.degree()) == 0:
         raise TypeError("affine minimality is only considered for maps not of the form f or 1/f for a polynomial f")
     z = F.parent().gen(0)
     minF,minG = F,G

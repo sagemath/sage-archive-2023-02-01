@@ -44,6 +44,7 @@ Comprehensive Module list
     sage/combinat/composition
     sage/combinat/composition_signed
     sage/combinat/composition_tableau
+    sage/combinat/constellation
     sage/combinat/core
     sage/combinat/counting
     sage/combinat/crystals/__init__
@@ -221,12 +222,15 @@ Comprehensive Module list
     sage/combinat/root_system/non_symmetric_macdonald_polynomials
     sage/combinat/root_system/pieri_factors
     sage/combinat/root_system/plot
+    sage/combinat/root_system/reflection_group_complex
+    sage/combinat/root_system/reflection_group_real
     sage/combinat/root_system/root_lattice_realization_algebras
     sage/combinat/root_system/root_lattice_realizations
     sage/combinat/root_system/root_space
     sage/combinat/root_system/root_system
     sage/combinat/root_system/type_A
     sage/combinat/root_system/type_A_affine
+    sage/combinat/root_system/type_A_infinity
     sage/combinat/root_system/type_B
     sage/combinat/root_system/type_BC_affine
     sage/combinat/root_system/type_B_affine
@@ -325,6 +329,7 @@ Comprehensive Module list
     sage/combinat/symmetric_group_algebra
     sage/combinat/symmetric_group_representations
     sage/combinat/tableau
+    sage/combinat/tableau_residues
     sage/combinat/tableau_tuple
     sage/combinat/tamari_lattices
     sage/combinat/tiling

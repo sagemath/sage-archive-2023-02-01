@@ -1,3 +1,8 @@
+# distutils: extra_compile_args = GIVARO_CFLAGS
+# distutils: libraries = GIVARO_LIBRARIES
+# distutils: library_dirs = GIVARO_LIBDIR
+# distutils: language = c++
+
 cdef extern from "givaro/modular.h":
     # double
 

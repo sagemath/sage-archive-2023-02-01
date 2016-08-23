@@ -30,6 +30,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
@@ -366,7 +367,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             self.vcount = ix
         sig_free(point_map)
 
-    def _seperate_creases(self, threshold):
+    def _separate_creases(self, threshold):
         """
         Some rendering engines Gouraud shading, which is great for smooth
         surfaces but looks bad if one actually has a polyhedron.
@@ -685,7 +686,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         A basic test with a triangle::
 
             sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
-            sage: print G.x3d_geometry()
+            sage: print(G.x3d_geometry())
             <BLANKLINE>
             <IndexedFaceSet coordIndex='0,1,2,-1'>
               <Coordinate point='0.0 0.0 1.0,1.0 1.0 1.0,2.0 0.0 1.0'/>
@@ -701,7 +702,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: col = rainbow(10, 'rgbtuple')
             sage: t_list=[Texture(col[i]) for i in range(10)]
             sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
-            sage: print S.x3d_geometry()
+            sage: print(S.x3d_geometry())
             <BLANKLINE>
             <IndexedFaceSet solid='False' colorPerVertex='False' coordIndex='0,4,5,-1,3,4,5,-1,2,3,4,-1,1,3,5,-1'>
               <Coordinate point='2.0 0.0 0.0,0.0 2.0 0.0,0.0 0.0 2.0,0.0 1.0 1.0,1.0 0.0 1.0,1.0 1.0 0.0'/>
@@ -1003,7 +1004,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         cdef Py_ssize_t i
         cdef point_c res
 
-        self._seperate_creases(render_params.crease_threshold)
+        self._separate_creases(render_params.crease_threshold)
 
         sig_on()
         if transform is None:

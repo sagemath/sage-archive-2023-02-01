@@ -108,6 +108,8 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 include 'sage/data_structures/bitset.pxi'
 
 from sage.matroids.matroid cimport Matroid
@@ -2625,7 +2627,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 3-connected,
+          then return ``True, None`` if the matroid is 3-connected,
           and ``False,`` `X` otherwise, where `X` is a `<3`-separation
 
         OUTPUT:
@@ -2703,7 +2705,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 4-connected,
+          then return ``True, None`` if the matroid is 4-connected,
           and ``False,`` `X` otherwise, where `X` is a `<4`-separation
 
         OUTPUT:
@@ -3263,7 +3265,7 @@ cdef class BinaryMatroid(LinearMatroid):
 
     # isomorphism
 
-    cpdef _is_isomorphic(self, other):
+    cpdef _is_isomorphic(self, other, certificate=False):
         """
         Test if ``self`` is isomorphic to ``other``.
 
@@ -3271,11 +3273,17 @@ cdef class BinaryMatroid(LinearMatroid):
 
         INPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- A matroid,
+        - optional parameter ``certificate`` -- Boolean.
 
         OUTPUT:
 
-        Boolean.
+        Boolean,
+        and, if certificate = True, a dictionary giving the isomophism or None
+
+        .. NOTE::
+
+            Internal version that does no input checking.
 
         EXAMPLES::
 
@@ -3284,14 +3292,23 @@ cdef class BinaryMatroid(LinearMatroid):
             ....:   reduced_matrix=[[1, 0, 1, 1], [0, 1, 1, 1], [1, 1, 0, 1]])
             sage: M1._is_isomorphic(M2)
             True
+            sage: M1._is_isomorphic(M2, certificate=True)
+            (True, {'a': 0, 'b': 1, 'c': 2, 'd': 4, 'e': 3, 'f': 5, 'g': 6})
 
             sage: M1 = matroids.named_matroids.Fano().delete('a')
             sage: M2 = matroids.Whirl(3)
             sage: M1._is_isomorphic(M2)
             False
+            sage: M1._is_isomorphic(M2, certificate=True)
+            (False, None)
             sage: M1._is_isomorphic(matroids.Wheel(3))
             True
+            sage: M1._is_isomorphic(matroids.Wheel(3), certificate=True)
+            (True, {'b': 1, 'c': 2, 'd': 4, 'e': 3, 'f': 5, 'g': 0})
+
         """
+        if certificate:
+            return self._is_isomorphic(other), self._isomorphism(other)
         if isinstance(other, BinaryMatroid):
             return self.is_field_isomorphic(other)
         else:
@@ -3528,13 +3545,13 @@ cdef class BinaryMatroid(LinearMatroid):
         EXAMPLES::
 
             sage: M = matroids.named_matroids.S8()
-            sage: for F in M._principal_tripartition(): print sorted(F)
+            sage: for F in M._principal_tripartition(): print(sorted(F))
             ['a', 'b', 'c', 'e', 'f', 'g']
             ['d']
             ['h']
             sage: M.bicycle_dimension()
             2
-            sage: for i in [-1, 0, 1]: print sorted([e for e in M.groundset() if (M\e).bicycle_dimension() == 2 + i])
+            sage: for i in [-1, 0, 1]: print(sorted([e for e in M.groundset() if (M\e).bicycle_dimension() == 2 + i]))
             ['a', 'b', 'c', 'e', 'f', 'g']
             ['d']
             ['h']
@@ -4310,18 +4327,24 @@ cdef class TernaryMatroid(LinearMatroid):
 
     # isomorphism
 
-    cpdef _is_isomorphic(self, other):
+    cpdef _is_isomorphic(self, other, certificate=False):
         """
         Test if ``self`` is isomorphic to ``other``. Internal version that
         performs no checks on input.
 
         INPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- A matroid,
+        - optional parameter ``certificate`` -- Boolean.
 
         OUTPUT:
 
-        Boolean.
+        Boolean,
+        and, if certificate = True, a dictionary giving the isomophism or None
+
+        .. NOTE::
+
+            Internal version that does no input checking.
 
         EXAMPLES::
 
@@ -4334,6 +4357,8 @@ cdef class TernaryMatroid(LinearMatroid):
             sage: M1._is_isomorphic(M2)
             False
         """
+        if certificate:
+            return self._is_isomorphic(other), self._isomorphism(other)
         if type(other) == TernaryMatroid:
             return self.is_field_isomorphic(other)
         else:
@@ -4502,19 +4527,19 @@ cdef class TernaryMatroid(LinearMatroid):
         EXAMPLES::
 
             sage: M = matroids.named_matroids.N1()
-            sage: print M
+            sage: print(M)
             N1: Ternary matroid of rank 5 on 10 elements, type 0+
             sage: P = M._principal_quadripartition()
-            sage: for e in sorted(P[0]): print e, M/e
-            sage: for e in sorted(P[1]): print e, M/e
+            sage: for e in sorted(P[0]): print("{} {}".format(e, M/e))
+            sage: for e in sorted(P[1]): print("{} {}".format(e, M/e))
             a Ternary matroid of rank 4 on 9 elements, type 1-
             b Ternary matroid of rank 4 on 9 elements, type 1-
             e Ternary matroid of rank 4 on 9 elements, type 1-
             f Ternary matroid of rank 4 on 9 elements, type 1-
-            sage: for e in sorted(P[2]): print e, M/e
+            sage: for e in sorted(P[2]): print("{} {}".format(e, M/e))
             d Ternary matroid of rank 4 on 9 elements, type 0-
             i Ternary matroid of rank 4 on 9 elements, type 0-
-            sage: for e in sorted(P[3]): print e, M/e
+            sage: for e in sorted(P[3]): print("{} {}".format(e, M/e))
             c Ternary matroid of rank 4 on 9 elements, type 0+
             g Ternary matroid of rank 4 on 9 elements, type 0+
             h Ternary matroid of rank 4 on 9 elements, type 0+
@@ -5326,13 +5351,13 @@ cdef class QuaternaryMatroid(LinearMatroid):
         EXAMPLES::
 
             sage: M = matroids.named_matroids.Q10()\'a'
-            sage: for F in M._principal_tripartition(): print sorted(F)
+            sage: for F in M._principal_tripartition(): print(sorted(F))
             ['b', 'c', 'd', 'e', 'h', 'i']
             ['f', 'g', 'j']
             []
             sage: M.bicycle_dimension()
             1
-            sage: for i in [-1, 0, 1]: print sorted([e for e in M.groundset() if (M\e).bicycle_dimension() == 1 + i])
+            sage: for i in [-1, 0, 1]: print(sorted([e for e in M.groundset() if (M\e).bicycle_dimension() == 1 + i]))
             ['b', 'c', 'd', 'e', 'h', 'i']
             ['f', 'g', 'j']
             []
@@ -5939,7 +5964,7 @@ cdef class RegularMatroid(LinearMatroid):
         #     self._r_hypergraph = self._r_hypergraph.max_refined()
         # return self._r_hypergraph
 
-    cpdef _is_isomorphic(self, other):
+    cpdef _is_isomorphic(self, other, certificate=False):
         """
         Test if ``self`` is isomorphic to ``other``.
 
@@ -5947,11 +5972,17 @@ cdef class RegularMatroid(LinearMatroid):
 
         INPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- A matroid,
+        - optional parameter ``certificate`` -- Boolean.
 
         OUTPUT:
 
-        Boolean.
+        Boolean,
+        and, if certificate = True, a dictionary giving the isomophism or None
+
+        .. NOTE::
+
+            Internal version that does no input checking.
 
         EXAMPLES::
 
@@ -5959,6 +5990,8 @@ cdef class RegularMatroid(LinearMatroid):
             sage: M2 = matroids.CompleteGraphic(4)
             sage: M1._is_isomorphic(M2)
             True
+            sage: M1._is_isomorphic(M2, certificate=True)
+            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
 
             sage: M1 = matroids.Wheel(3)
             sage: M2 = matroids.named_matroids.Fano()
@@ -5966,6 +5999,8 @@ cdef class RegularMatroid(LinearMatroid):
             False
             sage: M1._is_isomorphic(M2.delete('a'))
             True
+            sage: M1._is_isomorphic(M2.delete('a'), certificate=True)
+            (True, {0: 'g', 1: 'b', 2: 'c', 3: 'e', 4: 'd', 5: 'f'})
 
         Check that :trac:`17316` was fixed::
 
@@ -5989,6 +6024,8 @@ cdef class RegularMatroid(LinearMatroid):
             sage: len(Mnew.circuits()) == len(Nnew.circuits())
             False
         """
+        if certificate:
+            return self._is_isomorphic(other), self._isomorphism(other)
         if type(other) == RegularMatroid:
             return self.is_field_isomorphic(other)
         else:

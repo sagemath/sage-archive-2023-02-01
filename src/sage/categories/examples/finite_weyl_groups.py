@@ -68,35 +68,7 @@ class SymmetricGroup(UniqueRepresentation, Parent):
 
     TESTS::
 
-        sage: TestSuite(S).run(verbose = True)
-        running ._test_an_element() . . . pass
-        running ._test_associativity() . . . pass
-        running ._test_cardinality() . . . pass
-        running ._test_category() . . . pass
-        running ._test_elements() . . .
-          Running the test suite of self.an_element()
-          running ._test_category() . . . pass
-          running ._test_eq() . . . pass
-          running ._test_not_implemented_methods() . . . pass
-          running ._test_pickling() . . . pass
-          pass
-        running ._test_elements_eq_reflexive() . . . pass
-        running ._test_elements_eq_symmetric() . . . pass
-        running ._test_elements_eq_transitive() . . . pass
-        running ._test_elements_neq() . . . pass
-        running ._test_enumerated_set_contains() . . . pass
-        running ._test_enumerated_set_iter_cardinality() . . . pass
-        running ._test_enumerated_set_iter_list() . . . pass
-        running ._test_eq() . . . pass
-        running ._test_has_descent() . . . pass
-        running ._test_inverse() . . . pass
-        running ._test_not_implemented_methods() . . . pass
-        running ._test_one() . . . pass
-        running ._test_pickling() . . . pass
-        running ._test_prod() . . . pass
-        running ._test_reduced_word() . . . pass
-        running ._test_simple_projections() . . . pass
-        running ._test_some_elements() . . . pass
+        sage: TestSuite(S).run()
     """
 
     def __init__(self, n = 4):
@@ -179,14 +151,9 @@ class SymmetricGroup(UniqueRepresentation, Parent):
             sage: W = FiniteWeylGroups().example()
             sage: W.degrees()
             (2, 3, 4)
-
-        TESTS::
-
-            sage: W = FiniteWeylGroups().example()
-            sage: prod(W.degrees()) == W.cardinality()
-            True
         """
-        return tuple(range(2, self.n + 1))
+        from sage.rings.integer_ring import ZZ
+        return tuple(ZZ(i) for i in range(2, self.n + 1))
 
     class Element(ElementWrapper):
 

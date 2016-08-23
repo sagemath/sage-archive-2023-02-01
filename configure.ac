@@ -679,10 +679,10 @@ fi
 # BLAS library
 AC_MSG_CHECKING([BLAS library])
 AC_ARG_WITH([blas],
-[AS_HELP_STRING([--with-blas=atlas],
-    [use ATLAS as BLAS library (default)])]
 [AS_HELP_STRING([--with-blas=openblas],
-    [use OpenBLAS as BLAS library])],,
+    [use OpenBLAS as BLAS library (default)])]
+[AS_HELP_STRING([--with-blas=atlas],
+    [use ATLAS as BLAS library])],,
     [with_blas=openblas]  # default
 )
 

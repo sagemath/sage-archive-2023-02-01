@@ -300,21 +300,52 @@ class RecognizableSeries(Element):
 
             :doc:`recognizable series <recognizable_series>`,
             :class:`RecognizableSeriesSpace`.
+
+        TESTS::
+
+            sage: M0 = Matrix([[3, 6], [0, 1]])
+            sage: M1 = Matrix([[0, -6], [1, 5]])
+            sage: L = vector([0, 1])
+            sage: R = vector([1, 0])
+            sage: S = Rec((M0, M1), L, R)
+            sage: S.mu[0] is M0, S.mu[1] is M1, S.left is L, S.right is R
+            (False, False, False, False)
+            sage: S.mu[0].is_immutable(), S.mu[1].is_immutable(), S.left.is_immutable(), S.right.is_immutable()
+            (True, True, True, True)
+            sage: M0.set_immutable()
+            sage: M1.set_immutable()
+            sage: L.set_immutable()
+            sage: R.set_immutable()
+            sage: S = Rec((M0, M1), L, R)
+            sage: S.mu[0] is M0, S.mu[1] is M1, S.left is L, S.right is R
+            (True, True, True, True)
         """
         super(RecognizableSeries, self).__init__(parent=parent)
 
+        from copy import copy
         from sage.sets.family import Family
 
         A = self.parent().alphabet()
         if isinstance(mu, (list, tuple)):
             mu = dict(zip(A, mu))
+
+        def immutable(m):
+            if m.is_immutable():
+                return m
+            m = copy(m)
+            m.set_immutable()
+            return m
+
+        if isinstance(mu, dict):
+            mu = dict((a, immutable(M)) for a, M in mu.iteritems())
         mu = Family(mu)
+
         if not mu.is_finite():
             raise NotImplementedError('mu is not a finite family of matrices.')
 
-        self._left_ = left
+        self._left_ = immutable(left)
         self._mu_ = mu
-        self._right_ = right
+        self._right_ = immutable(right)
 
 
     @property

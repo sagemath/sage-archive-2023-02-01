@@ -936,13 +936,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             d = self.gens_dict()
             if self.base_ring().gen() != 1:
                 d[str(self.base_ring().gen())]=self.base_ring().gen()
-            # a hack for singular gens beginning with '1*'
-            origd = d.copy()
-            for key in origd.keys():
-                if len(key)>2:
-                    if key[0]=='1' and key[1]=='*' and key[2]!='*':
-                        key2 = key[2:]
-                        d[key2] = d[key]
             try:
                 if '/' in element:
                     element = sage_eval(element,d)

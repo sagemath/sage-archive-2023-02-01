@@ -1281,9 +1281,10 @@ class Graph(GenericGraph):
     @doc_index("Basic methods")
     def graph6_string(self):
         """
-        Returns the graph6 representation of the graph as an ASCII string.
-        Only valid for simple (no loops, multiple edges) graphs on 0 to
-        262143 vertices.
+        Return the graph6 representation of the graph as an ASCII string.
+
+        This is only valid for simple (no loops, no multiple edges) graphs
+        with maximum of 262143 vertices.
 
         .. NOTE::
 
@@ -1292,11 +1293,21 @@ class Graph(GenericGraph):
             <sage.graphs.generic_graph.GenericGraph.relabel>` of your graph will
             be encoded if necessary.
 
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.digraph.DiGraph.dig6_string` --
+              similar string format for directed graphs
+
         EXAMPLES::
 
             sage: G = graphs.KrackhardtKiteGraph()
             sage: G.graph6_string()
             'IvUqwK@?G'
+
+        TESTS::
+
+            sage: Graph().graph6_string()
+            '?'
         """
         n = self.order()
         if n > 262143:

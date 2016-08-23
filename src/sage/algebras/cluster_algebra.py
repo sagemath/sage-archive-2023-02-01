@@ -740,6 +740,26 @@ class ClusterAlgebraSeed(SageObject):
             cluster = self.g_vectors()
         return element in cluster
 
+    def __hash__(self):
+        r"""
+        Return the hash of ``self``.
+
+        ALGORITHM:
+
+            For speed purposes the hash is computed on :meth:`self.g_vectors`.
+            In particular it is guaranteed to be unique only within a given
+            instance of :class:`ClusterAlgebra`. Moreover unlabelled seeds that
+            have the same set of g-vectors have the same hash.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',3])
+            sage: S = A.initial_seed()
+            sage: hash(S)
+            610855963840905253
+        """
+        return hash(frozenset(self.g_vectors()))
+
     def _repr_(self):
         r"""
         Return the string representation of ``self``.

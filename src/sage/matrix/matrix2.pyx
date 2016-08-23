@@ -7857,11 +7857,13 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             col_lines = []
         elif not isinstance(col_lines, list):
             col_lines = [col_lines]
-        row_lines = [0] + [int(ZZ(x)) for x in row_lines] + [self._nrows]
-        col_lines = [0] + [int(ZZ(x)) for x in col_lines] + [self._ncols]
+        l_row = sorted(row_lines)
+        l_col = sorted(col_lines)
+        l_row = [0] + [int(ZZ(x)) for x in l_row] + [self._nrows]
+        l_col = [0] + [int(ZZ(x)) for x in l_col] + [self._ncols]
         if self._subdivisions is not None:
             self.clear_cache()
-        self._subdivisions = (row_lines, col_lines)
+        self._subdivisions = (l_row, l_col)
 
     def subdivision(self, i, j):
         """

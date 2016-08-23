@@ -2980,7 +2980,8 @@ class AbstractLinearCode(module.Module):
 
     def rate(self):
         r"""
-        Return the ratio of information symbols to code length.
+        Return the ratio of the number of information symbols to
+        the code length.
 
         EXAMPLES::
 

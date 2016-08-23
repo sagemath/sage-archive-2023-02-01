@@ -889,6 +889,53 @@ class RecognizableSeries(Element):
         return self.mu.first().nrows()
 
 
+    def _add_(self, other, minimize=True):
+        r"""
+        Return the sum of this recognizable series and the ``other``
+        recognizable series.
+
+        INPUT:
+
+        - ``other`` -- a :class:`RecognizableSeries` with the same parent
+          as this recognizable series.
+
+        - ``minimize`` -- (default: ``True``) a boolean. If set, then
+          :meth:`minimized` is called after the addition.
+
+        OUTPUT:
+
+        A :class:`RecognizableSeries`.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: E = Seq2((Matrix([[0, 1], [0, 1]]), Matrix([[0, 0], [0, 1]])),
+            ....:          vector([1, 0]), vector([1, 1]))
+            sage: E
+            2-regular sequence 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, ...
+            sage: O = Seq2((Matrix([[0, 0], [0, 1]]), Matrix([[0, 1], [0, 1]])),
+            ....:          vector([1, 0]), vector([0, 1]))
+            sage: O
+            2-regular sequence 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, ...
+            sage: I = E + O  # indirect doctest
+            sage: I
+            2-regular sequence 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+            sage: I.mu[0], I.mu[1], I.left, I.right
+            ([1], [1], (1), (1))
+        """
+        from sage.modules.free_module_element import vector
+        P = self.parent()
+
+        result = P.element_class(
+            P,
+            dict((a, self.mu[a].block_sum(other.mu[a])) for a in P.alphabet()),
+            vector(tuple(self.left) + tuple(other.left)),
+            vector(tuple(self.right) + tuple(other.right)))
+
+        if minimize:
+            return result.minimized()
+        else:
+            return result
 class RecognizableSeriesSpace(UniqueRepresentation, Parent):
     r"""
     The space of recognizable series on the given alphabet and

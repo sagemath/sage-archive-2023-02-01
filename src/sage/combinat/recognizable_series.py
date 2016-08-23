@@ -959,6 +959,40 @@ class RecognizableSeries(Element):
         """
         P = self.parent()
         return P.element_class(P, self.mu, -self.left, self.right)
+
+
+    def _rmul_(self, other):
+        r"""
+        Multiply this recognizable series from the right
+        by an element ``other`` of its coefficient (semi-)ring.
+
+        INPUT:
+
+        - ``other`` -- an element of the coefficient (semi-)ring.
+
+        OUTPUT:
+
+        A :class:`RecognizableSeries`.
+        """
+        P = self.parent()
+        return P.element_class(P, self.mu, self.left, self.right*other)
+
+
+    def _lmul_(self, other):
+        r"""
+        Multiply this recognizable series from the left
+        by an element ``other`` of its coefficient (semi-)ring.
+
+        INPUT:
+
+        - ``other`` -- an element of the coefficient (semi-)ring.
+
+        OUTPUT:
+
+        A :class:`RecognizableSeries`.
+        """
+        P = self.parent()
+        return P.element_class(P, self.mu, other*self.left, self.right)
 class RecognizableSeriesSpace(UniqueRepresentation, Parent):
     r"""
     The space of recognizable series on the given alphabet and

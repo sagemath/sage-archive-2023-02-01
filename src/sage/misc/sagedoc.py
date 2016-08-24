@@ -21,9 +21,9 @@ see :trac:`12849`::
     sage: from sage.env import SAGE_DOC
     sage: docfilename = os.path.join(SAGE_DOC, 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
     sage: for line in open(docfilename):
-    ....:     if "#sage.symbolic.expression.Expression.N" in line:
+    ....:     if "#sage.symbolic.expression.Expression.numerical_approx" in line:
     ....:         print(line)
-    <code class="descname">N</code><span class="sig-paren">(</span><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><span class="sig-paren">)</span>...
+    <code class="descname">numerical_approx</code><span class="sig-paren">(</span><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><span class="sig-paren">)</span>...
 
 Check that sphinx is not imported at Sage start-up::
 
@@ -40,6 +40,7 @@ Check that sphinx is not imported at Sage start-up::
 #*****************************************************************************
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os, re, sys
 import pydoc
 from sage.misc.temporary_file import tmp_dir
@@ -434,7 +435,7 @@ def process_extlinks(s, embedded=False):
 
     In docstrings at the command line, process markup related to the
     Sphinx extlinks extension. For example, replace ``:trac:`NUM```
-    with ``http://trac.sagemath.org/NUM``, and similarly with
+    with ``https://trac.sagemath.org/NUM``, and similarly with
     ``:python:TEXT`` and ``:wikipedia:TEXT``, looking up the url from
     the dictionary ``extlinks`` in SAGE_DOC_SRC/common/conf.py.
     If ``TEXT`` is of the form ``blah <LINK>``, then it uses ``LINK``
@@ -454,7 +455,7 @@ def process_extlinks(s, embedded=False):
 
         sage: from sage.misc.sagedoc import process_extlinks
         sage: process_extlinks('See :trac:`1234`, :wikipedia:`Wikipedia <Sage_(mathematics_software)>`, and :trac:`4321` ...')
-        'See http://trac.sagemath.org/1234, https://en.wikipedia.org/wiki/Sage_(mathematics_software), and http://trac.sagemath.org/4321 ...'
+        'See https://trac.sagemath.org/1234, https://en.wikipedia.org/wiki/Sage_(mathematics_software), and https://trac.sagemath.org/4321 ...'
         sage: process_extlinks('See :trac:`1234` for more information.', embedded=True)
         'See :trac:`1234` for more information.'
         sage: process_extlinks('see :python:`Implementing Descriptors <reference/datamodel.html#implementing-descriptors>` ...')
@@ -921,7 +922,7 @@ You can build this with 'sage -docbuild {} html'.""".format(s))
                           extra2, extra3, extra4, extra5] if s])
         print(format_search_as_html(title, results, terms))
     else:
-        import pager
+        from . import pager
         pager.pager()(results)
 
 
@@ -1244,7 +1245,7 @@ def format_search_as_html(what, r, search):
 #######################################
 ## Add detex'ing of documentation
 #######################################
-import sageinspect
+from . import sageinspect
 
 def my_getsource(obj, oname=''):
     """

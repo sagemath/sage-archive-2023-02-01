@@ -63,7 +63,7 @@ optional and experimental ones:
 Directory Structure
 ===================
 
-Third-party packages in Sage consists of two parts:
+Third-party packages in Sage consist of two parts:
 
 #. The tarball as it is distributed by the third party, or as close as
    possible. Valid reasons for modifying the tarball are deleting

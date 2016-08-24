@@ -8,6 +8,7 @@ Plane curves
    sage/schemes/curves/affine_curve
    sage/schemes/curves/projective_curve
    sage/schemes/curves/curve
+   sage/schemes/curves/point
 
    sage/schemes/plane_conics/constructor
    sage/schemes/plane_conics/con_field

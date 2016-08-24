@@ -991,7 +991,7 @@ cdef class ReductionMap(Map):
         # Assertions for debugging!
         # assert nx.valuation(p) == 0 and dx.valuation(p) == 0 and x == nx/dx
         # assert nx.is_integral() and dx.is_integral()
-        # print "nx = ",nx,"; dx = ",dx, ": recursing"
+        # print("nx = ",nx,"; dx = ",dx, ": recursing")
 
         # NB at this point nx and dx are in the ring of integers and
         # both are p-units.  Recursion is now safe, since integral

@@ -478,7 +478,7 @@ def CompleteBipartiteGraph(n1, n2):
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
-    Trac ticket #12155::
+    :trac:`12155`::
 
         sage: graphs.CompleteBipartiteGraph(5,6).complement()
         complement(Complete bipartite graph): Graph on 11 vertices

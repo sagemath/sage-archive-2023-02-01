@@ -1,5 +1,5 @@
 """
-Randomized tests of GiNaC / PyNaC.
+Randomized tests of GiNaC / PyNaC
 """
 
 ###############################################################################

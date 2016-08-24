@@ -36,6 +36,7 @@ described throughout the file.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from libc.string cimport memcpy
 
@@ -256,18 +257,18 @@ cdef class simple_connected_genus_backtracker:
 #   good for debugging
 #    def dump(self):
 #        cdef int v, j
-#        print "vertex darts:",
+#        print("vertex darts:", end="")
 #        for v in range(self.num_verts):
-#            print '(',
+#            print('(', end="")
 #            for j in range(self.degree[v] + 1):
-#                print self.vertex_darts[v][j],
-#            print ')',
-#        print "\n"
+#                print(self.vertex_darts[v][j], end="")
+#            print(')', end="")
+#        print("\n")
 
-#        print "face map: [",
+#        print("face map: [", end="")
 #        for v in range(self.num_darts):
-#            print self.face_map[v],
-#        print ']'
+#            print(self.face_map[v], end="")
+#        print(']')
 
 
     cdef inline void freeze_face(self):
@@ -688,9 +689,9 @@ def simple_connected_graph_genus(G, set_embedding = False, check = True, minimal
         sage: genus(G)
         1
 
-    REFERENCS::
+    REFERENCES:
 
-        [1] http://www.springerlink.com/content/0776127h0r7548v7/
+    [1] http://www.springerlink.com/content/0776127h0r7548v7/
 
     """
     cdef int style, cutoff

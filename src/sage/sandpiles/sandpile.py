@@ -319,7 +319,6 @@ Working with sandpile divisors::
 #*****************************************************************************
 from __future__ import print_function
 
-from string import join
 from collections import Counter
 from copy import deepcopy
 from inspect import getdoc
@@ -6304,7 +6303,7 @@ def sandlib(selector=None):
         print('  Sandpiles in the sandlib:')
         for i in sandpiles:
             print('    ', i, ':', sandpiles[i]['description'])
-        print
+        print("")
     elif selector not in sandpiles.keys():
         print(selector, 'is not in the sandlib.')
     else:

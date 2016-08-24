@@ -1,10 +1,11 @@
 """
 Generic curves.
 """
+from __future__ import absolute_import
 
+from sage.categories.finite_fields import FiniteFields
 from sage.categories.fields import Fields
 from sage.misc.all import latex
-
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 
@@ -192,7 +193,7 @@ class Curve_generic(AlgebraicScheme_subscheme):
             sage: C1.union(C2).defining_polynomial()
             x^2 - x*y - x*z + y*z
         """
-        from constructor import Curve
+        from .constructor import Curve
         return Curve(AlgebraicScheme_subscheme.union(self, other))
 
     __add__ = union
@@ -309,3 +310,157 @@ class Curve_generic(AlgebraicScheme_subscheme):
             True
         """
         return not self.is_smooth(P)
+
+    def intersects_at(self, C, P):
+        r"""
+        Return whether the point ``P`` is or is not in the intersection of this curve with the curve ``C``.
+
+        INPUT:
+
+        - ``C`` -- a curve in the same ambient space as this curve.
+
+        - ``P`` -- a point in the ambient space of this curve.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([x^2 - z^2, y^3 - w*x^2], P)
+            sage: D = Curve([w^2 - 2*x*y + z^2, y^2 - w^2], P)
+            sage: Q1 = P([1,1,-1,1])
+            sage: C.intersects_at(D, Q1)
+            True
+            sage: Q2 = P([0,0,1,-1])
+            sage: C.intersects_at(D, Q2)
+            False
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(GF(13), 2)
+            sage: C = Curve([y + 12*x^5 + 3*x^3 + 7], A)
+            sage: D = Curve([y^2 + 7*x^2 + 8], A)
+            sage: Q1 = A([9,6])
+            sage: C.intersects_at(D, Q1)
+            True
+            sage: Q2 = A([3,7])
+            sage: C.intersects_at(D, Q2)
+            False
+        """
+        if C.ambient_space() != self.ambient_space():
+            raise TypeError("(=%s) must be a curve in the same ambient space as (=%s)"%(C,self))
+        if not isinstance(C, Curve_generic):
+            raise TypeError("(=%s) must be a curve"%C)
+        try:
+            P = self.ambient_space()(P)
+        except TypeError:
+            raise TypeError("(=%s) must be a point in the ambient space of this curve"%P)
+        try:
+            P = self(P)
+            P = C(P)
+        except TypeError:
+            return False
+        return True
+
+    def intersection_points(self, C, F=None):
+        r"""
+        Return the points in the intersection of this curve and the curve ``C``.
+
+        If the intersection of these two curves has dimension greater than zero, and if
+        the base ring of this curve is not a finite field, then an error is returned.
+
+        INPUT:
+
+        - ``C`` -- a curve in the same ambient space as this curve.
+
+        - ``F`` -- (default: None). Field over which to compute the intersection points. If not specified,
+          the base ring of this curve is used.
+
+        OUTPUT:
+
+        - a list of points in the ambient space of this curve.
+
+        EXAMPLES::
+
+            sage: R.<a> = QQ[]
+            sage: K.<b> = NumberField(a^2 + a + 1)
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([y^2 - w*z, w^3 - y^3], P)
+            sage: D = Curve([x*y - w*z, z^3 - y^3], P)
+            sage: C.intersection_points(D, F=K)
+            [(-b - 1 : -b - 1 : b : 1), (b : b : -b - 1 : 1), (1 : 0 : 0 : 0), (1 : 1 : 1 : 1)]
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(GF(7), 2)
+            sage: C = Curve([y^3 - x^3], A)
+            sage: D = Curve([-x*y^3 + y^4 - 2*x^3 + 2*x^2*y], A)
+            sage: C.intersection_points(D)
+            [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 3), (5, 5), (5, 6), (6, 6)]
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([y^3 - x^3], A)
+            sage: D = Curve([-x*y^3 + y^4 - 2*x^3 + 2*x^2*y], A)
+            sage: C.intersection_points(D)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the intersection must have dimension zero or
+            (=Rational Field) must be a finite field
+        """
+        if C.ambient_space() != self.ambient_space():
+            raise TypeError("(=%s) must be a curve in the same ambient space as (=%s)"%(C,self))
+        if not isinstance(C, Curve_generic):
+            raise TypeError("(=%s) must be a curve"%C)
+        X = self.intersection(C)
+        if F is None:
+            F = self.base_ring()
+        if X.dimension() == 0 or F in FiniteFields():
+            return X.rational_points(F=F)
+        else:
+            raise NotImplementedError("the intersection must have dimension zero or (=%s) must be a finite field"%F)
+
+    def change_ring(self, R):
+        r"""
+        Return a new curve which is this curve coerced to ``R``.
+
+        INPUT:
+
+        - ``R`` -- ring or embedding.
+
+        OUTPUT:
+
+        - a new curve which is this curve coerced to ``R``.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([x^2 - y^2, z*y - 4/5*w^2], P)
+            sage: C.change_ring(QuadraticField(-1))
+            Projective Curve over Number Field in a with defining polynomial x^2 + 1
+            defined by x^2 - y^2, y*z - 4/5*w^2
+
+        ::
+
+            sage: R.<a> = QQ[]
+            sage: K.<b> = NumberField(a^3 + a^2 - 1)
+            sage: A.<x,y> = AffineSpace(K, 2)
+            sage: C = Curve([K.0*x^2 - x + y^3 - 11], A)
+            sage: L = K.embeddings(QQbar)
+            sage: C.change_ring(L[0])
+            Affine Plane Curve over Algebraic Field defined by y^3 +
+            (-0.8774388331233464? - 0.744861766619745?*I)*x^2 - x - 11
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = P.curve([y*x - 18*x^2 + 17*z^2])
+            sage: C.change_ring(GF(17))
+            Projective Plane Curve over Finite Field of size 17 defined by -x^2 + x*y
+        """
+        new_AS = self.ambient_space().change_ring(R)
+        I = [f.change_ring(R) for f in self.defining_polynomials()]
+        return(new_AS.curve(I))

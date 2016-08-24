@@ -1412,12 +1412,12 @@ class Link(object):
         h = self._homology_generators()
         hl = len(h)
         A = matrix(ZZ, hl, hl)
-        indices = [i for i,hi in enumerate(h) if hi != 0]
+        indices = [i for i, hi in enumerate(h) if hi]
         for i in indices:
             hi = h[i]
             for j in range(i, hl):
                 if i == j:
-                    A[i, j] = cmp(0, x[i] + x[hi])
+                    A[i, j] = -(x[i] + x[hi]).sign()
                 elif hi > h[j]:
                     A[i, j] = 0
                     A[j, i] = 0
@@ -1527,7 +1527,6 @@ class Link(object):
         B = self.braid().parent()
         x = self._braid_word_components()
         q = []
-        genus = 0
         s_tmp = []
         for xi in x:
             tmp = []
@@ -1551,9 +1550,7 @@ class Link(object):
             q2 = max(abs(k) + 1 for k in i)
             q.append(q2)
         g = [((2 - t[i]) + len(x[i]) - q[i]) / 2 for i in range(len(x))]
-        for i in range(len(g)):
-            genus = genus + g[i]
-        return Integer(genus)
+        return sum(g, ZZ.zero())
 
     def signature(self):
         """
@@ -1574,13 +1571,7 @@ class Link(object):
             -2
         """
         m = 2 * (self.seifert_matrix() + self.seifert_matrix().transpose())
-        e = m.eigenvalues()
-        tot = ZZ.zero()
-        s = []
-        for i, j in enumerate(e):
-            s.append(cmp(j, 0))
-            tot = tot + s[i]
-        return tot
+        return sum([j.real().sign() for j in m.eigenvalues()], ZZ.zero())
 
     def alexander_polynomial(self, var='t'):
         """
@@ -1720,7 +1711,7 @@ class Link(object):
         if not self.is_knot():
             return False
         x = self.gauss_code()
-        s = [cmp(i, 0) for i in x[0]]
+        s = [Integer(i).sign() for i in x[0]]
         return (s == [(-1) ** (i + 1) for i in range(len(x[0]))]
                 or s == [(-1) ** i for i in range(len(x[0]))])
 
@@ -1906,6 +1897,78 @@ class Link(object):
             regions.append(region)
         return regions
 
+    def mirror_image(self):
+        r"""
+        Return the mirror image of ``self``.
+
+        EXAMPLES::
+
+            sage: g = BraidGroup(2).gen(0)
+            sage: K = Link(g^3)
+            sage: K2 = K.mirror_image(); K2
+            Link with 1 component represented by 3 crossings
+            sage: K2.braid()
+            s^-3
+
+        .. PLOT::
+            :width: 300 px
+
+            g = BraidGroup(2).gen(0)
+            K = Link(g**3)
+            sphinx_plot(K.plot())
+
+        .. PLOT::
+            :width: 300 px
+
+            g = BraidGroup(2).gen(0)
+            K = Link(g**3)
+            sphinx_plot(K.mirror_image().plot())
+
+        ::
+
+            sage: K = Knot([[[1, -2, 3, -1, 2, -3]], [1, 1, 1]])
+            sage: K2 = K.mirror_image(); K2
+            Knot represented by 3 crossings
+            sage: K.pd_code()
+            [[4, 1, 5, 2], [2, 5, 3, 6], [6, 3, 1, 4]]
+            sage: K2.pd_code()
+            [[4, 2, 5, 1], [2, 6, 3, 5], [6, 4, 1, 3]]
+
+        .. PLOT::
+            :width: 300 px
+
+            K = Link([[[1,-2,3,-1,2,-3]],[1,1,1]])
+            sphinx_plot(K.plot())
+
+        .. PLOT::
+            :width: 300 px
+
+            K = Link([[[1,-2,3,-1,2,-3]],[1,1,1]])
+            K2 = K.mirror_image()
+            sphinx_plot(K2.plot())
+        """
+        # Use the braid information if it is the shortest version
+        #   of what we have already computed
+        if self._braid:
+            lb = len(self._braid.Tietze())
+
+            if self._pd_code:
+                lpd = len(self.pd_code())
+            else:
+                lpd = float('inf')
+
+            if self._oriented_gauss_code:
+                logc = len(self.oriented_gauss_code()[-1])
+            else:
+                logc = float('inf')
+
+            if lb <= logc and lb <= lpd:
+                return type(self)(~self._braid)
+
+        # Otherwise we fallback to the PD code
+        pd = [[a[0], a[3], a[2], a[1]] for a in self.pd_code()]
+        return type(self)(pd)
+
     def writhe(self):
         """
         Return the writhe of ``self``.
@@ -2046,8 +2109,8 @@ class Link(object):
             sage: B = BraidGroup(4)
             sage: K11n42 = Link(B([1, -2, 3, -2, 3, -2, -2, -1, 2, -3, -3, 2, 2]))
             sage: K11n34 = Link(B([1, 1, 2, -3, 2, -3, 1, -2, -2, -3, -3]))
-            sage: cmp(K11n42.jones_polynomial(), K11n34.jones_polynomial())
-            0
+            sage: bool(K11n42.jones_polynomial() == K11n34.jones_polynomial())
+            True
 
         The two algorithms for computation give the same result when the
         trace closure of the braid representation is the link itself::
@@ -2056,8 +2119,8 @@ class Link(object):
             ....:           [-1, -1, -1, -1, 1, -1, 1]])
             sage: jonesrep = L.jones_polynomial(algorithm='jonesrep')
             sage: statesum = L.jones_polynomial(algorithm='statesum')
-            sage: cmp(jonesrep, statesum)
-            0
+            sage: bool(jonesrep == statesum)
+            True
 
         When we have thrown away unknots so that the trace closure of the
         braid is not necessarily the link itself, this is only true up to a

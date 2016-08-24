@@ -26,7 +26,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 
 import itertools
 from . import misc
@@ -96,8 +96,8 @@ def is_gale_ryser(r,s):
     generic-sounding) term ''realizable sequence''.
     """
 
-    # The sequences only contan non-negative integers
-    if [x for x in r if x<0] or [x for x in s if x<0]:
+    # The sequences only contain non-negative integers
+    if [x for x in r if x < 0] or [x for x in s if x < 0]:
         return False
 
     # builds the corresponding partitions, i.e.
@@ -1014,7 +1014,7 @@ class IntegerVectors_nkconstraints(IntegerListsLex):
                     return binomial(self.n+self.k-1,self.n)
                 else: #do by inclusion / exclusion on the number
                       #i of parts greater than m
-                    return sum( [(-1)**i * binomial(self.n+self.k-1-i*(m+1), self.k-1)*binomial(self.k,i) for i in range(0, self.n/(m+1)+1)])
+                    return sum( [(-1)**i * binomial(self.n+self.k-1-i*(m+1), self.k-1)*binomial(self.k,i) for i in range(self.n // (m+1)+1)])
             else:
                 return super(IntegerVectors_nkconstraints, self).cardinality()
 

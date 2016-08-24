@@ -250,7 +250,7 @@ def _extract_embedded_signature(docstring, name):
         sage: from sage.misc.sageinspect import _extract_embedded_signature
         sage: from sage.misc.nested_class import MainClass
         sage: print(_extract_embedded_signature(MainClass.NestedClass.NestedSubClass.dummy.__doc__, 'dummy')[0])
-        File: sage/misc/nested_class.pyx (starting at line 315)
+        File: sage/misc/nested_class.pyx (starting at line 314)
         ...
         sage: _extract_embedded_signature(MainClass.NestedClass.NestedSubClass.dummy.__doc__, 'dummy')[1]
         ArgSpec(args=['self', 'x', 'r'], varargs='args', keywords='kwds', defaults=((1, 2, 3.4),))
@@ -1997,9 +1997,9 @@ def sage_getsourcelines(obj):
         sage: sage_getsourcelines(obj)
         (['def create_set_partition_function(letter, k):\n',
         ...
-        '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 34)
+        '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 35)
 
-    Here are some cases that were covered in :trac`11298`;
+    Here are some cases that were covered in :trac:`11298`;
     note that line numbers may easily change, and therefore we do
     not test them::
 

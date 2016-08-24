@@ -423,8 +423,10 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         cdef int i
         for i in range(4):
-            c = cmp(self[i], right[i])
-            if c: return c
+            if self[i] < right[i]:
+                return -1
+            elif self[i] > right[i]:
+                return 1
         return 0
 
     cpdef conjugate(self):

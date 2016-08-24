@@ -55,16 +55,16 @@ Changed besselexpand to true in init_code -- automatically simplify bessel funct
 For some infinite sums, a closed expression can be found. By default, "maxima" is used for that::
 
     sage: x,n,k = var("x","n","k")
-    sage: sum(((-1)^n)*((x)^(2*n+1))/factorial(2*n+1),n,0,oo)
-    sin(x)
+    sage: sum((-x)^n/(factorial(n)*factorial(n+3/2)),n,0,oo)
+    -1/2*(2*x*cos(2*sqrt(x)) - sqrt(x)*sin(2*sqrt(x)))/(sqrt(pi)*x^2)
 
 Maxima has some flags that affect how the result gets simplified(By default, besselexpand was set to false in Maxima)::
 
     sage: maxima_calculus("besselexpand:false")
     false
     sage: x,n,k = var("x","n","k")
-    sage: sum(((-1)^n)*((x)^(2*n+1))/factorial(2*n+1),n,0,oo)
-    1/2*sqrt(2)*sqrt(pi)*sqrt(x)*bessel_J(1/2, x)
+    sage: sum((-x)^n/(factorial(n)*factorial(n+3/2)),n,0,oo)
+    bessel_J(3/2, 2*sqrt(x))/x^(3/4)
     sage: maxima_calculus("besselexpand:true")
     true
 
@@ -85,12 +85,13 @@ Maxima has some flags that affect how the result gets simplified(By default, bes
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.symbolic.ring import SR
 
 from sage.libs.ecl import EclObject, ecl_eval
 
-from maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
+from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
   MaximaAbstractElement, MaximaAbstractFunctionElement,
   MaximaAbstractElementFunction)
 

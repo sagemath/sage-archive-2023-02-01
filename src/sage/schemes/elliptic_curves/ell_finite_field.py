@@ -28,18 +28,19 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.randstate import current_randstate
 
 from sage.schemes.curves.projective_curve import Hasse_bounds
-from ell_field import EllipticCurve_field
-from constructor import EllipticCurve, EllipticCurve_from_j
+from .ell_field import EllipticCurve_field
+from .constructor import EllipticCurve, EllipticCurve_from_j
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
 import sage.rings.ring as ring
 from sage.rings.all import Integer, ZZ, PolynomialRing, GF, polygen
 from sage.rings.finite_rings.element_base import is_FiniteFieldElement
 import sage.groups.generic as generic
-import ell_point
+from . import ell_point
 from sage.arith.all import gcd, lcm, binomial
 from sage.structure.sequence import Sequence
 
@@ -125,7 +126,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: len(S)
             100
 
-        See trac #4687, where the following example did not work::
+        See :trac:`4687`, where the following example did not work::
 
             sage: E=EllipticCurve(GF(2),[0, 0, 1, 1, 1])
             sage: E.points()
@@ -341,7 +342,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         TESTS:
 
-        See trac #8311::
+        See :trac:`8311`::
 
             sage: E = EllipticCurve(GF(3), [0,0,0,2,2])
             sage: E.random_element()
@@ -399,7 +400,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.trace_of_frobenius()
             802
 
-        The following shows that the issue from trac #2849 is fixed::
+        The following shows that the issue from :trac:`2849` is fixed::
 
             sage: E=EllipticCurve(GF(3^5,'a'),[-1,-1])
             sage: E.trace_of_frobenius()
@@ -1372,7 +1373,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.cardinality(extension_degree=100)
             1267650600228231653296516890625
 
-        This tests the patch for trac #3111, using 10 primes randomly
+        This tests the patch for :trac:`3111`, using 10 primes randomly
         selected::
 
             sage: E = EllipticCurve('389a')
@@ -1382,7 +1383,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             ...       if p != 389:
             ...           G = E.change_ring(GF(p)).abelian_group()
 
-        This tests that the bug reported in trac #3926 has been fixed::
+        This tests that the bug reported in :trac:`3926` has been fixed::
 
             sage: K.<i> = QuadraticField(-1)
             sage: OK = K.ring_of_integers()
@@ -1670,7 +1671,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E1.is_isogenous(E7,GF(13^30,'j'))
             False
         """
-        from ell_generic import is_EllipticCurve
+        from .ell_generic import is_EllipticCurve
         if not is_EllipticCurve(other):
             raise ValueError("Second argument is not an Elliptic Curve.")
         if self.is_isomorphic(other):

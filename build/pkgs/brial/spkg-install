@@ -22,7 +22,8 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-touch aclocal.m4 configure Makefile.in
+# C++11 workaround https://trac.sagemath.org/ticket/20926
+export CXXFLAGS="$CXXFLAGS -std=c++98"
 
 ./configure \
     --prefix="$SAGE_LOCAL" \

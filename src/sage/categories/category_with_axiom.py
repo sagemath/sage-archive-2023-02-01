@@ -1396,7 +1396,7 @@ and any axiom `A` satisfied by `J`.
 
 The join `J` is naturally computed as a closure in the lattice of
 constructible categories: it starts with the `C_i`'s, gathers the set
-`S` of all the axioms satisfied by them, and repeteadly adds each
+`S` of all the axioms satisfied by them, and repeatedly adds each
 axiom `A` to those categories that do not yet satisfy `A` using
 :meth:`Category._with_axiom`. Due to deduction rules or (extra) super
 categories, new categories or new axioms may appear in the

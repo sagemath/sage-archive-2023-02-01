@@ -57,6 +57,7 @@ In contrast, input to the ``%time`` magic command is preparsed::
     2 * 3^3 * 11
     sage: shell.quit()
 """
+from __future__ import absolute_import
 
 from IPython.core.magic import Magics, magics_class, line_magic, cell_magic
 
@@ -331,7 +332,7 @@ class SageMagics(Magics):
         This is syntactic sugar on the
         :func:`~sage.misc.cython_c.cython` function.
 
-        INPUT::
+        INPUT:
 
         - ``line`` -- ignored.
 
@@ -372,9 +373,6 @@ class SageCustomizations(object):
 
         self.init_inspector()
         self.init_line_transforms()
-
-        import inputhook
-        inputhook.install()
 
         import sage.all # until sage's import hell is fixed
 
@@ -438,7 +436,7 @@ class SageCustomizations(object):
         """
         Set up transforms (like the preparser).
         """
-        from interpreter import (SagePreparseTransformer,
+        from .interpreter import (SagePreparseTransformer,
                                  SagePromptTransformer)
 
         for s in (self.shell.input_splitter, self.shell.input_transformer_manager):

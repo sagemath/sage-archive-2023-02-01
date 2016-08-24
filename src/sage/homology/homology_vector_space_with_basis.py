@@ -18,6 +18,7 @@ AUTHORS:
 
 - John H. Palmieri, Travis Scrimshaw (2015-09)
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2015 John H. Palmieri <palmieri@math.washington.edu>
@@ -35,7 +36,7 @@ from sage.categories.algebras import Algebras
 from sage.categories.modules import Modules
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from sage.sets.family import Family
-from simplicial_complex import SimplicialComplex
+from .simplicial_complex import SimplicialComplex
 
 class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
     r"""

@@ -15,6 +15,7 @@ REFERENCES:
        University Press
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2016 David Lucas <david.lucas@inria.fr>
@@ -26,12 +27,12 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from linear_code import (AbstractLinearCode,\
+from .linear_code import (AbstractLinearCode,\
         LinearCodeGeneratorMatrixEncoder,\
         LinearCodeSyndromeDecoder,\
         LinearCodeNearestNeighborDecoder)
-from encoder import Encoder
-from decoder import Decoder
+from .encoder import Encoder
+from .decoder import Decoder
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector

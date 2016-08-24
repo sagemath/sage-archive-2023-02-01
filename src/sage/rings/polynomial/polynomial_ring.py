@@ -138,6 +138,7 @@ Check that :trac:`5562` has been fixed::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.element import Element
 from sage.structure.category_object import check_default_category
@@ -159,17 +160,17 @@ from sage.misc.prandom import randint
 from sage.misc.cachefunc import cached_method
 
 from sage.rings.real_mpfr import is_RealField
-from polynomial_real_mpfr_dense import PolynomialRealDense
+from .polynomial_real_mpfr_dense import PolynomialRealDense
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.finite_rings.element_base import FiniteRingElement
 
-from polynomial_element import PolynomialBaseringInjection
+from .polynomial_element import PolynomialBaseringInjection
 
 from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
 
-import cyclotomic
+from . import cyclotomic
 
 ZZ_sage = IntegerRing()
 
@@ -704,28 +705,41 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         s = 'PolynomialRing(%s)'%(Bref)
         return magma._with_names(s, self.variable_names())
 
-    def _gap_(self, G=None):
+    def _gap_init_(self, gap=None):
         """
-        Used in converting this ring to the corresponding ring in GAP.
+        String for representing this polynomial ring in GAP.
+
+        INPUT:
+
+        - ``gap`` -- (optional GAP instance) used for representing the base ring
 
         EXAMPLES::
 
             sage: R.<z> = ZZ[]
             sage: gap(R)
             PolynomialRing( Integers, ["z"] )
+            sage: gap(R) is gap(R)
+            True
             sage: gap(z^2 + z)
             z^2+z
-        """
-        if G is None:
-            import sage.interfaces.gap
-            G = sage.interfaces.gap.gap
-        R = G(self._gap_init_())
-        v = self.variable_name()
-        G.eval('%s := IndeterminatesOfPolynomialRing(%s)[1]'%(v, R.name()))
-        return R
 
-    def _gap_init_(self):
-        return 'PolynomialRing(%s, ["%s"])'%(self.base_ring()._gap_init_(), self.variable_name())
+        A univariate polynomial ring over a multivariate polynomial
+        ring over a number field::
+
+            sage: Q.<t> = QQ[]
+            sage: K.<tau> = NumberField(t^2+t+1)
+            sage: P.<x,y> = K[]
+            sage: S.<z> = P[]
+            sage: gap(S)
+            PolynomialRing( PolynomialRing( <algebraic extension over the Rationals of degree 2>, ["x", "y"] ), ["z"] )
+            sage: gap(S) is gap(S)
+            True
+        """
+        if gap is not None:
+            base_ring = gap(self.base_ring()).name()
+        else:
+            base_ring = self.base_ring()._gap_init_()
+        return 'PolynomialRing(%s, ["%s"])'%(base_ring, self.variable_name())
 
     def _sage_input_(self, sib, coerced):
         r"""
@@ -2488,7 +2502,7 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
         from sage.libs.pari.all import pari
         from sage.rings.finite_rings.conway_polynomials import (conway_polynomial,
                                                                 exists_conway_polynomial)
-        from polynomial_gf2x import (GF2X_BuildIrred_list,
+        from .polynomial_gf2x import (GF2X_BuildIrred_list,
                                      GF2X_BuildSparseIrred_list,
                                      GF2X_BuildRandomIrred_list)
 

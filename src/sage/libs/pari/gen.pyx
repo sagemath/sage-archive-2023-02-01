@@ -4633,8 +4633,8 @@ cpdef gen objtogen(s):
         set_gel(g, 2, dbltor(PyComplex_ImagAsDouble(s)))
         return P.new_gen(g)
 
-    if isinstance(s, (types.ListType, types.XRangeType,
-                        types.TupleType, types.GeneratorType)):
+    if isinstance(s, (list, types.XRangeType,
+                        tuple, types.GeneratorType)):
         length = len(s)
         v = P._empty_vector(length)
         for i from 0 <= i < length:

@@ -84,7 +84,9 @@ cdef class GurobiBackend(GenericBackend):
         self.set_verbosity(0)
         self.obj_constant_term = 0.0
 
-    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
+    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None, coefficients=None) except -1:
+        ## coefficients is an extension in this backend,
+        ## and a proposed addition to the interface, to unify this with add_col.
         """
         Add a variable.
 
@@ -163,14 +165,67 @@ cdef class GurobiBackend(GenericBackend):
         if lower_bound is None:
             lower_bound = -GRB_INFINITY
 
+        nonzeros = 0
+        cdef int * c_indices = NULL
+        cdef double * c_coeff = NULL
 
-        error = GRBaddvar(self.model, 0, NULL, NULL, obj, <double> lower_bound, <double> upper_bound, vtype, c_name)
+        if coefficients is not None:
+
+            nonzeros = len(coefficients)
+            c_indices = <int *> sig_malloc(nonzeros * sizeof(int))
+            c_coeff = <double *> sig_malloc(nonzeros * sizeof(double))
+
+            for i, (index, coeff) in enumerate(coefficients):
+                c_indices[i] = index
+                c_coeff[i] = coeff
+
+        error = GRBaddvar(self.model, nonzeros, c_indices, c_coeff, obj, <double> lower_bound, <double> upper_bound, vtype, c_name)
+
+        if coefficients is not None:
+            sig_free(c_coeff)
+            sig_free(c_indices)
 
         check(self.env,error)
 
         check(self.env,GRBupdatemodel(self.model))
 
         return self.ncols()-1
+
+    cpdef add_col(self, list indices, list coeffs):
+        """
+        Add a column.
+
+        INPUT:
+
+        - ``indices`` (list of integers) -- this list contains the
+          indices of the constraints in which the variable's
+          coefficient is nonzero
+
+        - ``coeffs`` (list of real values) -- associates a coefficient
+          to the variable in each of the constraints in which it
+          appears. Namely, the i-th entry of ``coeffs`` corresponds to
+          the coefficient of the variable in the constraint
+          represented by the i-th entry in ``indices``.
+
+        .. NOTE::
+
+            ``indices`` and ``coeffs`` are expected to be of the same
+            length.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "InteractiveLP")
+            sage: p.ncols()
+            0
+            sage: p.nrows()
+            0
+            sage: p.add_linear_constraints(5, 0, None)
+            sage: p.add_col(range(5), range(5))
+            sage: p.nrows()
+            5
+        """
+        self.add_variable(coefficients = zip(indices, coeffs))
 
     cpdef set_variable_type(self, int variable, int vtype):
         """
@@ -618,8 +673,8 @@ cdef class GurobiBackend(GenericBackend):
         error = GRBgetdblattrelement(self.model, "UB", index, <double *> ub)
         check(self.env, error)
 
-        return (None if lb[0] <= -2147483647 else lb[0],
-                None if  ub[0] >= 2147483647 else ub[0])
+        return (None if lb[0] <= -GRB_INFINITY else lb[0],
+                None if  ub[0] >= GRB_INFINITY else ub[0])
 
     cpdef int solve(self) except -1:
         """
@@ -939,7 +994,7 @@ cdef class GurobiBackend(GenericBackend):
         else:
             error = GRBgetdblattrelement(self.model, "UB", index, <double *> b)
             check(self.env, error)
-            return None if b[0] >= 2147483647 else b[0]
+            return None if b[0] >= GRB_INFINITY else b[0]
 
     cpdef variable_lower_bound(self, int index, value = False):
         """
@@ -979,7 +1034,7 @@ cdef class GurobiBackend(GenericBackend):
         else:
             error = GRBgetdblattrelement(self.model, "LB", index, <double *> b)
             check(self.env, error)
-            return None if b[0] <= -2147483647 else b[0]
+            return None if b[0] <= -GRB_INFINITY else b[0]
 
     cpdef write_lp(self, char * filename):
         """

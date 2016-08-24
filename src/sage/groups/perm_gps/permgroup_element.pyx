@@ -424,7 +424,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         We check that :trac:`16678` is fixed::
 
-            sage: Permutations.global_options(display='cycle')
+            sage: Permutations.options.display='cycle'
             sage: p = Permutation((1,2))
             sage: PermutationGroupElement(p)
             (1,2)

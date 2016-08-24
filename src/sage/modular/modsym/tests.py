@@ -25,10 +25,11 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import random
 
-import modsym
+from . import modsym
 import sage.modular.dirichlet as dirichlet
 import sage.modular.arithgroup.all as arithgroup
 from sage.misc.misc import cputime

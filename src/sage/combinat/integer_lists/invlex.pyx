@@ -114,8 +114,8 @@ class IntegerListsLex(IntegerLists):
 
     - ``name`` -- a string or ``None`` (default: ``None``) if set,
       this will be passed down to :meth:`Parent.rename` to specify the
-      name of ``self``. It is recommented to use directly the rename
-      method as this feature may become deprecated.
+      name of ``self``. It is recommented to use rename method directly
+      because this feature may become deprecated.
 
     - ``element_constructor`` -- a function (or callable) that creates
       elements of ``self`` from a list. See also :class:`Parent`.
@@ -123,11 +123,6 @@ class IntegerListsLex(IntegerLists):
     - ``element_class`` -- a class for the elements of ``self``
       (default: `ClonableArray`). This merely sets the attribute
       ``self.Element``. See the examples for details.
-
-    - ``global_options`` -- a :class:`~sage.structure.global_options.GlobalOptions`
-      object that will be assigned to the attribute
-      ``_global_options``; for internal use only (subclasses, ...).
-
 
     .. NOTE::
 
@@ -518,19 +513,7 @@ class IntegerListsLex(IntegerLists):
 
     A variant is to specify a class for the elements. With the default
     element constructor, this class should take as input the parent
-    ``self`` and a list. Here we want the elements to be constructed
-    in the class :class:`Partition`::
-
-        sage: IntegerListsLex(3, max_slope=0, element_class=Partition, global_options=Partitions.global_options).list()
-        doctest:...: DeprecationWarning: the global_options argument is
-         deprecated since, in general, pickling is broken;
-         create your own class instead
-        See http://trac.sagemath.org/15525 for details.
-        [[3], [2, 1], [1, 1, 1]]
-
-    Note that the :class:`Partition` further assumes the existence of
-    an attribute ``_global_options`` in the parent, hence the use of the
-    ``global_options`` parameter.
+    ``self`` and a list. 
 
     .. WARNING::
 

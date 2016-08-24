@@ -7,6 +7,7 @@ AUTHORS:
 
 - David Kohel (2006-01)
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -39,12 +40,12 @@ from sage.schemes.affine.all import AffineSpace
 from sage.schemes.projective.all import ProjectiveSpace
 
 
-from projective_curve import (ProjectivePlaneCurve,
+from .projective_curve import (ProjectivePlaneCurve,
                               ProjectiveCurve,
                               ProjectivePlaneCurve_finite_field,
                               ProjectivePlaneCurve_prime_finite_field)
 
-from affine_curve import (AffinePlaneCurve,
+from .affine_curve import (AffinePlaneCurve,
                           AffineCurve,
                           AffinePlaneCurve_finite_field,
                           AffinePlaneCurve_prime_finite_field)

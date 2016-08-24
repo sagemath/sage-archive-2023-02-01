@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 r"""
 Generic structures for linear codes
@@ -2977,6 +2978,18 @@ class AbstractLinearCode(module.Module):
         c = E.encode(m)
         c.set_immutable()
         return c
+
+    def relative_distance(self):
+        r"""
+        Return the ratio of the minimum distance to the code length.
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(GF(2),3)
+            sage: C.relative_distance()
+            3/7
+        """
+        return self.minimum_distance() / self.length()
 
     def redundancy_matrix(self):
         r"""

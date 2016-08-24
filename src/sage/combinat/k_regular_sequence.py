@@ -346,8 +346,8 @@ class kRegularSequence(RecognizableSeries):
             [-4  4  1], [ 12 -12   5], (1, 0, 0), (0, 0, 1)
             )
 
-        We can build backwards differences by passing a dictionary for
-        the parameter ``b``::
+        We can build :meth:`backward_differences` manually by passing
+        a dictionary for the parameter ``b``::
 
             sage: C.subsequence(1, {0: 1, -1: -1})
             2-regular sequence 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
@@ -473,7 +473,7 @@ class kRegularSequence(RecognizableSeries):
             return result
 
 
-    def backward_difference(self, **kwds):
+    def backward_differences(self, **kwds):
         r"""
         Return the sequence of backward differences of this
         `k`-regular sequence.
@@ -498,7 +498,7 @@ class kRegularSequence(RecognizableSeries):
             ....:          vector([1, 0]), vector([0, 1]))
             sage: C
             2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
-            sage: C.backward_difference()
+            sage: C.backward_differences()
             2-regular sequence 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
 
         ::
@@ -507,13 +507,13 @@ class kRegularSequence(RecognizableSeries):
             ....:          vector([1, 0]), vector([1, 1]))
             sage: E
             2-regular sequence 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, ...
-            sage: E.backward_difference()
+            sage: E.backward_differences()
             2-regular sequence 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, ...
         """
         return self.subsequence(1, {0: 1, -1: -1}, **kwds)
 
 
-    def forward_difference(self, **kwds):
+    def forward_differences(self, **kwds):
         r"""
         Return the sequence of forward differences of this
         `k`-regular sequence.
@@ -534,7 +534,7 @@ class kRegularSequence(RecognizableSeries):
             ....:          vector([1, 0]), vector([0, 1]))
             sage: C
             2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
-            sage: C.forward_difference()
+            sage: C.forward_differences()
             2-regular sequence 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
 
         ::
@@ -543,7 +543,7 @@ class kRegularSequence(RecognizableSeries):
             ....:          vector([1, 0]), vector([1, 1]))
             sage: E
             2-regular sequence 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, ...
-            sage: E.forward_difference()
+            sage: E.forward_differences()
             2-regular sequence -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, ...
         """
         return self.subsequence(1, {1: 1, 0: -1}, **kwds)

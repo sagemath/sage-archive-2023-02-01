@@ -489,7 +489,8 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
         INPUT:
 
-        - ``n`` -- an integer (default: 0)
+        - ``n`` -- index of generator to return (default: 0). Exists for
+          compatibility with other polynomial rings.
 
         EXAMPLES::
 
@@ -503,6 +504,8 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             True
             sage: y is x
             True
+            sage: S.gen(0)
+            x
 
         This is also known as the parameter::
 
@@ -517,10 +520,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
     def gens_dict(self):
         """
-        Return a dictionary whose entries are ``{name:variable,...}``,
-        where ``name`` stands for the variable names of this
-        object (as strings) and ``variable`` stands for the corresponding
-        generators (as elements of this object).
+        Return a {name: variable} dictionary of the generators of ``self``.
 
         EXAMPLES::
 
@@ -577,8 +577,8 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
     def is_sparse(self):
         """
-        Return ``True`` if elements of this polynomial ring have a sparse
-        representation.
+        Return ``True`` if the elements of this polynomial ring are sparsely
+        represented.
 
         Since sparse skew polynomials are not yet implemented, this
         function always returns ``False``.
@@ -610,7 +610,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
     def random_element(self, degree=2, monic=False, *args, **kwds):
         r"""
-        Return a random skew polynomial.
+        Return a random skew polynomial in ``self``.
 
         INPUT:
 
@@ -639,43 +639,44 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             sage: S.random_element(monic=True)  # random
             x^2 + (2*t^2 + t + 1)*x + 3*t^2 + 3*t + 2
 
-        If a tuple of two integers is given for the degree argument, a random
-        integer will be chosen between the first and second element of the
-        tuple as the degree::
-
-            sage: S.random_element(degree=(2,7))  # random
-            (3*t^2 + 1)*x^4 + (4*t + 2)*x^3 + (4*t + 1)*x^2
-             + (t^2 + 3*t + 3)*x + 3*t^2 + 2*t + 2
-
-        If the minimal degree is greater than the maximal degree, then
-        this raises a ``ValueError``::
-
-            sage: S.random_element(degree=(5,4))
-            Traceback (most recent call last):
-            ...
-            ValueError: minimum degree must be less or equal than maximum degree
+        Use ``degree`` to obtain polynomials of higher degree
+        
+            sage: p = S.random_element(degree=5)   # random
+            (t^2 + 3*t)*x^4 + (4*t + 4)*x^3 + (4*t^2 + 4*t)*x^2 + (2*t^2 + 1)*x + 3
 
         When ``monic`` is ``False``, the returned skew polynomial may have
         a degree less than ``degree`` (it happens when the random leading
-        coefficient is zero)::
-
-            sage: S.random_element(degree=4) #random
-            (3*t^2 + t)*x^3 + (2*t + 2)*x^2 + (3*t^2 + 2*t + 2)*x + t
-
-        However, if ``monic`` is ``True``, this can't happen::
+        coefficient is zero). However, if ``monic`` is ``True``, this can't
+        happen::
 
             sage: p = S.random_element(degree=4, monic=True)
             sage: p.leading_coefficient() == S.base_ring().one()
             True
             sage: p.degree() == 4
             True
+
+        If a tuple of two integers is given for the degree argument, a random
+        integer will be chosen between the first and second element of the
+        tuple as the degree, both inclusive::
+
+            sage: S.random_element(degree=(2,7))  # random
+            (3*t^2 + 1)*x^4 + (4*t + 2)*x^3 + (4*t + 1)*x^2
+             + (t^2 + 3*t + 3)*x + 3*t^2 + 2*t + 2
+
+        If the first tuple element is greater than the second, a a
+        ``ValueError`` is raised::
+
+            sage: S.random_element(degree=(5,4))
+            Traceback (most recent call last):
+            ...
+            ValueError: first degree argument must be less or equal to the second
         """
         R = self.base_ring()
         if isinstance(degree, (list, tuple)):
             if len(degree) != 2:
                 raise ValueError("degree argument must be an integer or a tuple of 2 integers (min_degree, max_degree)")
             if degree[0] > degree[1]:
-                raise ValueError("minimum degree must be less or equal than maximum degree")
+                raise ValueError("first degree argument must be less or equal to the second")
             degree = randint(*degree)
         if monic:
             return self([R.random_element(*args, **kwds) for _ in range(degree)] + [R.one()])
@@ -684,8 +685,8 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
     def is_commutative(self):
         """
-        Return ``True`` if this skew polynomial ring is commutative
-        (i.e. if the twist map is the identity).
+        Return ``True`` if this skew polynomial ring is commutative, i.e. if the
+        twist map is the identity.
 
         EXAMPLES::
 

@@ -7768,10 +7768,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
 
         -  ``row_lines`` - None, an integer, or a list of
-           integers
+           integers (lines at which self must be split).
 
         -  ``col_lines`` - None, an integer, or a list of
-           integers
+           integers (columns at which self must be split).
 
 
         OUTPUT: changes self

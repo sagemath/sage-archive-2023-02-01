@@ -80,7 +80,9 @@ from sage.misc.superseded import experimental
 
 cdef class SkewPolynomial(AlgebraElement):
     r"""
-    A skew polynomial.
+    Abstract base class for skew polynomials.
+
+    This class must be inherited from and have key methods overridden.
 
     .. RUBRIC:: Definition
 
@@ -2051,8 +2053,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def is_constant(self):
         """
-        Return ``True`` if ``self`` is a constant polynomial and
-        ``False`` otherwise.
+        Return whether ``self`` is a constant polynomial.
 
         EXAMPLES::
 
@@ -2083,9 +2084,10 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def prec(self):
         """
-        Return the precision of ``self``. This is always infinity,
-        since polynomials are of infinite precision by definition (there is
-        no big-oh).
+        Return the precision of ``self``.
+
+        This is always infinity, since polynomials are of infinite precision by
+        definition (there is no big-oh).
 
         EXAMPLES::
 
@@ -2102,8 +2104,8 @@ cdef class SkewPolynomial(AlgebraElement):
         Return list of coefficients of ``self`` up to (but not including)
         degree `n`.
 
-        Includes 0's in the list on the right so that the list has length
-        `n`.
+        Includes 0's in the list on the right so that the list always has length
+        exactly `n`.
 
         INPUT:
 
@@ -2144,7 +2146,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def variable_name(self):
         """
-        Return name of variable used in ``self`` as a string.
+        Return the string name of the variable used in ``self``.
 
         EXAMPLES::
 
@@ -2160,11 +2162,14 @@ cdef class SkewPolynomial(AlgebraElement):
 
 cdef class SkewPolynomial_generic_dense(SkewPolynomial):
     """
-    A generic dense skew polynomial.
+    Generic implementation of dense skew polynomial supporting any valid base
+    ring and twist map.
     """
+
     def __init__(self, parent, x=None, int check=1, int construct=0, **kwds):
         """
-        This method constructs a generic dense skew polynomial.
+        Construct a skew polynomial over the given parent with the given
+        coefficients.
 
         INPUT:
 
@@ -2318,7 +2323,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
     def __iter__(self):
         """
-        Iterate over ``self``.
+        Iterate over the list of coefficients of ``self``.
 
         EXAMPLES::
 
@@ -2362,7 +2367,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
     cpdef list list(self):
         """
-        Return a new copy of the list of the underlying elements of ``self``.
+        Return a list of the coefficients of ``self``.
 
         EXAMPLES::
 
@@ -2408,8 +2413,9 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
     cpdef int degree(self):
         r"""
-        Return the degree of ``self``. The zero skew polynomial has
-        degree `-1`.
+        Return the degree of ``self``.
+
+        By convention, the zero skew polynomial has degree `-1`.
 
         EXAMPLES::
 
@@ -2569,7 +2575,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         INPUT:
 
-        - ``right`` -- a skew polynomial in the same ring
+        - ``right`` -- a skew polynomial in the same ring as ``self``
 
         EXAMPLES::
 
@@ -2616,7 +2622,10 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
     cdef SkewPolynomial _new_c(self, list coeffs, Parent P, char check=0):
         """
-        Fast creation of a new generic dense skew polynomial.
+        Fast creation of a new skew polynomial given a list of coefficients.
+
+        The list ``coeffs`` is stored internally in the newly created skew
+        polynomial, so this must not be modified after calling this method.
 
         TESTS::
 
@@ -2682,7 +2691,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
     cdef void _inplace_rmul(self, SkewPolynomial_generic_dense right):
         """
-        Replace ``self`` by `self*right` (only for internal use).
+        Replace ``self`` by ``self*right`` (only for internal use).
 
         TESTS::
 
@@ -2718,7 +2727,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
     cdef void _inplace_pow(self, Py_ssize_t n):
         """
-        Replace ``self`` by `self**n` (only for internal use).
+        Replace ``self`` by ``self**n`` (only for internal use).
 
         TESTS::
 
@@ -2743,8 +2752,9 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
     def truncate(self, n):
         r"""
-        Return the polynomial of degree `< n` which is equivalent
-        to ``self`` modulo `x^n`.
+        Return the polynomial resulting from discarding all monomials of degree
+        at least `n`.
+
 
         EXAMPLES::
 
@@ -2776,8 +2786,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         .. NOTE::
 
-            Doesn't work if the leading coefficient of the divisor
-            is not a unit or if Sage can't invert the twist map.
+            This will fail if the leading coefficient of ``other`` is not a unit
+            or if Sage can't invert the twist map.
 
         EXAMPLES::
 
@@ -2846,7 +2856,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         .. NOTE::
 
-            Doesn't work if the leading coefficient of the divisor
+            This will fail if the leading coefficient of the divisor
             is not a unit.
 
         EXAMPLES::
@@ -2920,18 +2930,6 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         As a consequence, Sage first computes exactly ``self**exp``
         and then reduce it modulo ``modulus``.
 
-        However, if the base ring is a finite field, Sage uses the
-        following optimized algorithm:
-
-        #. One first compute a central skew polynomial `N` which is
-           divisible by ``modulus``. (Since `N` lies in center, the
-           quotient `K[X,\sigma]/N` inherits a ring structure.)
-
-        #. One compute ``self**exp`` in the quotient ring `K[X,\sigma]/N`
-
-        #. One reduce modulo ``modulus`` the result computed in the
-           previous step
-
         EXAMPLES::
 
             sage: k.<t> = GF(5^3)
@@ -2939,7 +2937,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: S.<x> = k['x',Frob]
             sage: a = x + t
             sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
-            sage: a.left_power_mod(100,modulus)  # quite fast
+            sage: a.left_power_mod(100,modulus)
             (4*t^2 + t + 1)*x^2 + (t^2 + 4*t + 1)*x + 3*t^2 + 3*t
         """
         cdef SkewPolynomial_generic_dense r
@@ -2994,18 +2992,6 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         As a consequence, Sage first computes exactly ``self**exp``
         and then reduce it modulo ``modulus``.
 
-        However, if the base ring is a finite field, Sage uses the
-        following optimized algorithm:
-
-        #. One first compute a central skew polynomial `N` which is
-           divisible by ``modulus``. (Since `N` lies in center, the
-           quotient `K[X,\sigma]/N` inherits a ring structure.)
-
-        #. One compute ``self**exp`` in the quotient ring `K[X,\sigma]/N`
-
-        #. One reduce modulo ``modulus`` the result computed in the
-           previous step
-
         EXAMPLES::
 
             sage: k.<t> = GF(5^3)
@@ -3021,7 +3007,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: rq, rr = b.right_quo_rem(modulus)
             sage: br == rr
             True
-            sage: a.right_power_mod(100,modulus)  # quite fast
+            sage: a.right_power_mod(100,modulus)
             (2*t^2 + 3)*x^2 + (t^2 + 4*t + 2)*x + t^2 + 2*t + 1
         """
         cdef SkewPolynomial_generic_dense r
@@ -3094,10 +3080,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         """
         Return the coefficients of the monomials appearing in ``self``.
 
-        If ``sparse=True`` (the default), it returns only the non-zero
-        coefficients. Otherwise, it returns the same value as ``self.list()``.
-        (In this case, it may be slightly faster to invoke ``self.list()``
-        directly.)
+        If ``sparse=True`` (the default), return only the non-zero coefficients.
+        Otherwise, return the same value as ``self.list()``.
 
         EXAMPLES::
 
@@ -3120,6 +3104,9 @@ cdef class ConstantSkewPolynomialSection(Map):
     """
     Representation of the canonical homomorphism from the constants of a skew
     polynomial ring to the base ring.
+
+    This class is necessary for automatic coercion from zero-degree skew
+    polynomial ring into the base ring.
 
     EXAMPLES::
 
@@ -3165,6 +3152,9 @@ cdef class SkewPolynomialBaseringInjection(Morphism):
     Representation of the canonical homomorphism from a ring `R` into a skew
     polynomial ring over `R`.
 
+    This class is necessary for automatic coercion from the base ring to the skew
+    polynomial ring.
+
     .. SEEALSO::
 
         :class:~sage.rings.polynomial.polynomial_element.PolynomialBaseringInjection`
@@ -3182,15 +3172,14 @@ cdef class SkewPolynomialBaseringInjection(Morphism):
 
     def __init__(self, domain, codomain):
         """
-        This method is a constructor for Skew Polynomial Basering Injection.
+        Construct a Skew Polynomial Basering Injection.
 
         INPUT:
 
-        - ``domain`` -- a ring `R` which is the domain of the canonical
-          homomorphism.
+        - ``domain`` -- a ring `R`. This will be the domain of the injection.
 
-        - ``codomain`` -- a ring of skew polynomials over ``domain`` which is
-          the codomain of the canonical homomorphism.
+        - ``codomain`` -- a skew polynomial ring over ``domain``. This will be
+          the codomain.
 
         TESTS::
 
@@ -3280,3 +3269,4 @@ cdef class SkewPolynomialBaseringInjection(Morphism):
         """
         return ConstantSkewPolynomialSection(self._codomain, self.domain())
 
+    

@@ -473,6 +473,82 @@ class kRegularSequence(RecognizableSeries):
             return result
 
 
+    def backward_difference(self, **kwds):
+        r"""
+        Return the sequence of backward differences of this
+        `k`-regular sequence.
+
+        INPUT:
+
+        - ``minimize`` -- (default: ``True``) a boolean. If set, then
+          :meth:`minimized` is called after the addition.
+
+        OUTPUT:
+
+        A :class:`kRegularSequence`.
+
+        .. NOTE::
+
+            The coefficient to the index `-1` is `0`.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: C = Seq2((Matrix([[2, 0], [2, 1]]), Matrix([[0, 1], [-2, 3]])),
+            ....:          vector([1, 0]), vector([0, 1]))
+            sage: C
+            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
+            sage: C.backward_difference()
+            2-regular sequence 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+
+        ::
+
+            sage: E = Seq2((Matrix([[0, 1], [0, 1]]), Matrix([[0, 0], [0, 1]])),
+            ....:          vector([1, 0]), vector([1, 1]))
+            sage: E
+            2-regular sequence 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, ...
+            sage: E.backward_difference()
+            2-regular sequence 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, ...
+        """
+        return self.subsequence(1, {0: 1, -1: -1}, **kwds)
+
+
+    def forward_difference(self, **kwds):
+        r"""
+        Return the sequence of forward differences of this
+        `k`-regular sequence.
+
+        INPUT:
+
+        - ``minimize`` -- (default: ``True``) a boolean. If set, then
+          :meth:`minimized` is called after the addition.
+
+        OUTPUT:
+
+        A :class:`kRegularSequence`.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: C = Seq2((Matrix([[2, 0], [2, 1]]), Matrix([[0, 1], [-2, 3]])),
+            ....:          vector([1, 0]), vector([0, 1]))
+            sage: C
+            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
+            sage: C.forward_difference()
+            2-regular sequence 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+
+        ::
+
+            sage: E = Seq2((Matrix([[0, 1], [0, 1]]), Matrix([[0, 0], [0, 1]])),
+            ....:          vector([1, 0]), vector([1, 1]))
+            sage: E
+            2-regular sequence 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, ...
+            sage: E.forward_difference()
+            2-regular sequence -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, ...
+        """
+        return self.subsequence(1, {1: 1, 0: -1}, **kwds)
+
+
 class kRegularSequenceSpace(RecognizableSeriesSpace):
     r"""
     The space of `k`-regular Sequences over the given ``coefficients``.

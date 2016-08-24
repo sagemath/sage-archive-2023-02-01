@@ -54,4 +54,3 @@ from .grs import (GRSBerlekampWelchDecoder,
                  GRSGaoDecoder,
                  GRSKeyEquationSyndromeDecoder,
                  GRSErrorErasureDecoder)
-from guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder

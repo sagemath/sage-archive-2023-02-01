@@ -1,21 +1,24 @@
 r"""
 Cyclic Code
 
-Let `F` be a field. A `[n ,k]` code `C` over `F` is called cyclic if every cyclic shift
+Let `F` be a field. A `[n, k]` code `C` over `F` is called cyclic if every cyclic shift
 of a codeword in `C` is also a codeword [R06]_:
 
     .. MATH::
 
         \forall c \in C,
         c = (c_{0}, c_{1}, \dots , c_{n-1}) \in C
-        \Rightarrow (c_{n-1}, c_{0}, \dots , c_{n-2})
+        \Rightarrow (c_{n-1}, c_{0}, \dots , c_{n-2}) \in C
 
-Let `c = (c_0, c_2, \dots, c_{n-1})` be a codeword of `C`.
-This codeword can be seen as a polynomial over `F_n[x]`, as follows:
+Let `c = (c_0, c_1, \dots, c_{n-1})` be a codeword of `C`.
+This codeword can be seen as a polynomial over `F_q[x]`, as follows:
 `\Sigma_{i=0}^{n-1} c_i \times x^i`.
-There is a unique, monic polynomial `g(x)` such that for every
-`c(x) \in F_n[x]`, `c(x) \in C \Leftrightarrow g(x) | c(x)`.
+There is a unique monic polynomial `g(x)` such that for every
+`c(x) \in F_q[x]`, `c(x) \in C \Leftrightarrow g(x) | c(x)`.
 This polynomial is called the generator polynomial of `C`.
+
+For now, only single-root cyclic codes are implemented. That is, only cyclic
+codes such that its length `n` and field order `q` are coprimes.
 
 
 REFERENCES:
@@ -62,6 +65,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.rings.all import Zmod
 from sage.functions.log import log
 from sage.categories.homset import Hom
 from copy import copy
@@ -69,41 +73,30 @@ from sage.groups.generic import discrete_log
 from sage.misc.functional import multiplicative_order
 from relative_finite_field_extension import RelativeFiniteFieldExtension
 
-def find_generator_polynomial(code, probabilistic = False):
+def find_generator_polynomial(code, check=True):
     r"""
     Returns a possible generator polynomial for ``code``.
 
-    It works as follows: as the generator polynomial of a cyclic code `C`
-    divides every word in `C`, we consider the generator matrix of `C` as
-    its rows form a basis of `C`. We denote by `n` [resp: `k`] the length
-    [resp: dimension] of `C`.
+    If the code is cyclic, the generator polynomial is the gcd of all the
+    polynomial forms of the codewords. Conversely, if this gcd exactly generates
+    the code `code`, then `code` is cyclic.
 
-    Then, we take the first row as temporary generator polynomial, and
-    compute a gcd between this temporary generator polynomial and the next row.
-    The result of this gcd is now our temporary generator polynomial.
-    We iterate over all rows, and if the the last temporary generator polynomial
-    divides `x^{n} - 1` and has degree `n-k` it is the generator polynoial of `C`.
-
-    The probabilistic version of this algorithm works as above, but instead of
-    considering every row of a generator matrix we take random codewords.
-    If a gcd of degree less than `n-k` is found, we take it as our generator polynomial.
-    If it fails at fidning such a polynomial in less than `k` attemps, the algorithm stops.
+    If `check` is set to `True`, then it also checks that the code is indeed
+    cyclic. Otherwise it doesn't.
 
     INPUT:
 
     - ``code`` -- a linear code
 
-    - ``probabilistic`` -- (default : ``False``) enables the probabilistic version of
-      the algorithm
-
     OUTPUT:
 
-    - a polynomial
+    - the generator polynomial (if the code is cyclic).
 
     EXAMPLES::
 
+        sage: from sage.coding.cyclic_code import find_generator_polynomial
         sage: C = codes.GeneralizedReedSolomonCode(GF(2^3, 'a').list()[1:2^3], 2^2)
-        sage: sage.coding.cyclic_code.find_generator_polynomial(C)
+        sage: find_generator_polynomial(C)
         x^3 + (a^2 + 1)*x^2 + a*x + a^2 + 1
     """
     G = code.generator_matrix()
@@ -111,56 +104,29 @@ def find_generator_polynomial(code, probabilistic = False):
     k = code.dimension()
     F = code.base_ring()
     R = F['x']
+    x = R.gen()
     g = R(G.row(0).list())
 
-    if probabilistic:
+    i = 1
+    while(g.degree() > n - k and i < k):
+        p = R(G.row(i).list())
+        g = gcd(g, p)
+        i += 1
+
+    if check:
+        if g.degree() != n - k :
+            raise ValueError("The code is not cyclic.")
+        if not g.divides(x ** n - 1):
+            raise ValueError("The code is not cyclic.")
         i = 0
-        while i < k or g.degree() > n - k:
-            p = R(code.random_element().list())
-            while(p == R.zero()):
-                p = R(code.random_element().list())
-            g = gcd(g, p)
+        c = g.coefficients(sparse = False)
+        c = _complete_list(c, n)
+        while (vector(c) in code and i < k):
+            c = [c[n-1]] + c[:n-1]
             i += 1
-    else:
-        i = 1
-        while(g.degree() > k - 1 and i < k):
-            p = R(G.row(i).list())
-            g = gcd(g, p)
-            i += 1
-    if g.degree() != n - k :
-        raise ValueError("Impossible to find a generator polynomial")
-    if not g.divides(R.gen() ** n - 1):
-         raise ValueError("Impossible to find a generator polynomial")
+        if (i != k):
+            raise ValueError("The code is not cyclic.")
     return g
-
-def _cyclotomic_coset(n, r, q):
-    r"""
-    Returns the ``q``-cyclotomic coset of ``r`` modulo ``n``.
-
-    INPUT:
-
-    - ``n``, ``r``, ``q`` -- integers
-
-    OUTPUT:
-
-    - a list of integers
-
-    AUTHORS:
-
-    This function is taken from codinglib [Nielsen]_
-
-    EXAMPLES::
-
-        sage.coding.cyclic_code._cyclotomic_coset(11, 7, 3)
-        [8, 10, 2, 6, 7]
-    """
-    r = r%n
-    cyc = set([r])
-    rem = (r*q) % n
-    while not rem in cyc:
-        cyc.add(rem)
-        rem = (rem*q) % n
-    return list(cyc)
 
 def _complete_list(l, length):
     r"""
@@ -191,7 +157,7 @@ def _complete_list(l, length):
 
 def _build_chain_dictionary(D, n):
     r"""
-    Returns the dictionnary containing the length of the arithmetic chain for each couple
+    Returns the dictionary containing the length of the arithmetic chain for each couple
     ``(d, delta)`` where ``d`` is in ``D`` and ``delta`` is the step of the chain.
 
     Let `D` be a list of integers, `n` a positive integer. For each `d` in `D`, for each `\delta`
@@ -377,7 +343,10 @@ class CyclicCode(AbstractLinearCode):
     - the generator polynomial and the length (1)
     - an existing linear code. In that case, a generator polynomial will be computed
        from the provided linear code's parameters (2)
-    - the defining set of the cyclic code (3)
+    - (a subset of) the defining set of the cyclic code (3)
+
+    For now, only single-root cyclic codes are implemented. That is, only cyclic
+    codes such that its length `n` and field order `q` are coprimes.
 
     Depending on which behaviour you want, you need to specify the names of the arguments to
     `CyclicCode`. See EXAMPLES section below for details.
@@ -392,11 +361,11 @@ class CyclicCode(AbstractLinearCode):
 
     - ``code`` -- (default: ``None``) a linear code.
 
-    - ``probabilistic`` -- (default: ``False``) enables probabilistic version of the
-      generator polynomial from any linear code lookup algorithm.
+    - ``check`` -- (default: ``False``) a boolean to check if the code is cyclic.
       See :meth:`sage.find_generator_polynomial` for details.
 
-    - ``D`` -- (default: ``None``) the set of powers of ``primitive element``. It can be partial.
+    - ``D`` -- (default: ``None``) a subset of a defining set. Can be modified if it is not
+    cyclotomic-closed.
 
     - ``field`` -- (default: ``None``) the base field of ``self``.
 
@@ -427,14 +396,6 @@ class CyclicCode(AbstractLinearCode):
         sage: Cc
         [7, 4] Cyclic Code over Finite Field in a of size 2^3 with x^3 + (a^2 + 1)*x^2 + a*x + a^2 + 1 as generator polynomial
 
-    In that case, it is possible to choose between a probabilistic algorithm and a deterministic
-    one to extract a generator polynomial, using the keyword ``probabilistic``::
-
-        sage: C = codes.GeneralizedReedSolomonCode(GF(2 ** 3, 'a').list()[1:2 ** 3], 2 ** 2)
-        sage: Cc = codes.CyclicCode(code = C, probabilistic = True)
-        sage: Cc
-        [7, 4] Cyclic Code over Finite Field in a of size 2^3 with x^3 + (a^2 + 1)*x^2 + a*x + a^2 + 1 as generator polynomial
-
     We can also provide a defining set for the code (3). In that case, the generator polynomial
     will be computed::
 
@@ -448,12 +409,12 @@ class CyclicCode(AbstractLinearCode):
     _registered_encoders = {}
     _registered_decoders = {}
 
-    def __init__(self, generator_pol=None, length=None, code=None, probabilistic = False, D = None, field = None, primitive_element = None):
+    def __init__(self, generator_pol=None, length=None, code=None, check=True, D = None, field = None, primitive_element = None):
         r"""
         TESTS:
 
-        If one provides a polynomial and the dimension, we check that provided length
-        is bigger than provided polynomial's degree::
+        If one provides a generator polynomial and a length, we check that
+        the length is bigger than the degree of the polynomial::
 
             sage: F.<x> = GF(2)[]
             sage: n = 2
@@ -461,9 +422,9 @@ class CyclicCode(AbstractLinearCode):
             sage: C = codes.CyclicCode(generator_pol = g, length = n)
             Traceback (most recent call last):
             ...
-            ValueError: Length must be bigger than generator polynomial's degree
+            ValueError: Only cyclic codes whose length and field order are coprimes are implemented.
 
-        We check that provided polynomial is defined over a finite field::
+        We also check that the polynomial is defined over a finite field::
 
             sage: F.<x> = RR[]
             sage: n = 7
@@ -473,7 +434,8 @@ class CyclicCode(AbstractLinearCode):
             ...
             ValueError: Generator polynomial must be defined over a finite field
 
-        And we check that the provided polynomial divides `x^{n} - 1`, where `n` is provided length::
+        And we check that the generator polynomial divides `x^{n} - 1`,
+        where `n` is provided length::
 
             sage: F.<x> = GF(2)[]
             sage: n = 7
@@ -483,33 +445,44 @@ class CyclicCode(AbstractLinearCode):
             ...
             ValueError: Provided polynomial must divide x^n - 1, where n is the provided length
 
-        In the case of a code is passed as argument, if it's not possible to extract a
-        generator polynomial, an exception is raised::
+        In the case of a code is passed as argument, if it's not possible
+        to extract a generator polynomial, an exception is raised::
 
-            sage: C = codes.GeneralizedReedSolomonCode(GF(2 ** 4, 'a').list()[1:2 ** 4], 2 ** 4 - 1)
+            sage: G = matrix(GF(2), [[1, 1, 1], [0, 1, 1]])
+            sage: C = codes.LinearCode(G)
             sage: Cc = codes.CyclicCode(code = C)
             Traceback (most recent call last):
             ...
-            ValueError: Impossible to find a generator polynomial
+            ValueError: The code is not cyclic.
         """
+        # Case (1) : generator polynomial and length are provided.
         if generator_pol is not None and length is not None:
             F = generator_pol.base_ring()
+            if not F.is_finite():
+                raise ValueError("Generator polynomial must be defined over a finite field")
+            if not gcd(length, F.cardinality()) == 1:
+                raise ValueError("Only cyclic codes whose length and field order are coprimes are implemented.")
             R = F[generator_pol.variable_name()]
             deg = generator_pol.degree()
             if not isinstance(length, Integer):
                 length = Integer(length)
             if length <= deg:
                 raise ValueError("Length must be bigger than generator polynomial's degree")
-            if not generator_pol.base_ring().is_finite():
-                raise ValueError("Generator polynomial must be defined over a finite field")
             if not generator_pol.divides(R.gen() ** length - 1):
                 raise ValueError("Provided polynomial must divide x^n - 1, where n is the provided length")
             self._dimension = length - deg
             self._generator_polynomial = generator_pol
             super(CyclicCode, self).__init__(F, length, "Vector", "Syndrome")
+
+        # Case (2) : a code is provided.
         elif code is not None:
+            if not isinstance(code, AbstractLinearCode):
+                raise ValueError("code must be an AbstractLinearCode")
+            q = code.base_ring().cardinality()
+            if not gcd(code.length(), q) == 1:
+                raise ValueError("Only cyclic codes whose length and field order are coprimes are implemented.")
             try:
-                g = find_generator_polynomial(code, probabilistic)
+                g = find_generator_polynomial(code, check)
             except ValueError, e:
                 raise ValueError(e)
             if not g.is_monic():
@@ -517,45 +490,40 @@ class CyclicCode(AbstractLinearCode):
             self._generator_polynomial = g
             self._dimension = code.dimension()
             super(CyclicCode, self).__init__(code.base_ring(), code.length(), "Vector", "Syndrome")
+
+        # Case (3) : a defining set, a length and a field are provided
         elif D is not None and length is not None and field is not None:
             F = field
             n = length
             q = F.cardinality()
-            #basic checks over the input
             if not gcd(n, q) == 1:
-                raise ValueError("n and q must be coprimes")
-            #creation of the extension field (the splitting field)
+                raise ValueError("Only cyclic codes whose length and field order are coprimes are implemented.")
+            
             R = F['x']
             x = R.gen()
             s = 1
-            while not n.divides(q ** s - 1):
+            while not (q ** s - 1) % n == 0:
                 s += 1
 
-            #If s equals to 1, then Fsplit is the same field that F, so we do not need to build
-            #the extension field to compute the generator polynomial
-            if s == 1:
-                pows = set()
-                for r in D:
-                    if not r in pows:
-                        pows = pows.union(_cyclotomic_coset(n, r, q))
-
+            if s == 1: # splitting field is F
                 if primitive_element is not None and (primitive_element not in F or
                         multiplicative_order(primitive_element) != n):
-                    raise ValueError("primitive_element has to be an element of multplicative order n in the extension field used to compute the generator polynomial")
+                    raise ValueError("primitive_element has to be an element of multiplicative order n in the extension field used to compute the generator polynomial")
                 elif primitive_element is not None:
                     alpha = primitive_element
                 else:
                     alpha = F.zeta(n)
                 self._primitive_element = alpha
-                alpha = F.gen() ** ((q - 1) // n)
+                pows = Zmod(n).cyclotomic_cosets(q, D)
+                pows = [ item for l in pows for item in l ]
                 g = R(prod(x - alpha ** p for p in pows))
 
-            else:
+            else: # must compute a splitting field
                 Fsplit, F_to_Fsplit = F.extension(Integer(s), map = True)
                 FE = RelativeFiniteFieldExtension(Fsplit, F, embedding = F_to_Fsplit)
                 if primitive_element is not None and (primitive_element not in Fsplit or
                         multiplicative_order(primitive_element) != n):
-                    raise ValueError("primitive_element has to be an element of multplicative order n in the extension field used to compute the generator polynomial")
+                    raise ValueError("primitive_element has to be an element of multiplicative order n in the extension field used to compute the generator polynomial")
                 elif primitive_element is not None:
                     beta = primitive_element
                 else:
@@ -564,18 +532,8 @@ class CyclicCode(AbstractLinearCode):
                 Rsplit = Fsplit['xx']
                 xx = Rsplit.gen()
 
-                #we compute the generator polynomial over the large field (Fsplit)
-                #for this, we need the powers of the roots, so we build the cyclotomic cosets
-                pows = set()
-                gsplit = Rsplit(1)
-                cosets = []
-                for r in D:
-                    if not r in pows:
-                        current = _cyclotomic_coset(n, r, q)
-                        cosets.append(current)
-                        pows = pows.union(current)
-
-                # then we compute the minimal polynomial to each coset
+                cosets = Zmod(n).cyclotomic_cosets(q, D)
+                pows = [ item for l in cosets for item in l ]
                 min_pols = []
                 for i in cosets:
                     pol = Rsplit.one()
@@ -583,27 +541,24 @@ class CyclicCode(AbstractLinearCode):
                         pol = pol * (xx - beta**j)
                     min_pols.append(pol)
 
-                #finally, we get back to the small field and compute the generator polynomial
                 R = F['x']
                 pols_coeffs = []
+                g = R.one()
                 for i in min_pols:
                     tmp = []
                     for j in i:
                         tmp.append(sum(FE.relative_field_representation(j)))
-                    pols_coeffs.append(tmp)
-                g = R.one()
-                for i in pols_coeffs:
-                    g = g * R(i)
-            #we set class variables (and store some of the things we computed before)
-            self._defining_set = list(pows)
+                    g *= R(tmp)
+            
+            # we set class variables (and store some of the things we computed before)
+            self._defining_set = pows
             self._defining_set.sort()
             self._generator_polynomial = g
             self._dimension = n - g.degree()
             super(CyclicCode, self).__init__(F, n, "Vector", "Syndrome")
 
         else:
-            raise AttributeError("You must provide either a code, or a list of powers and the length\
-                    and the field, or a generator polynomial and the code length")
+            raise AttributeError("You must provide either a code, or a list of powers and the length and the field, or a generator polynomial and the code length")
 
     def __contains__(self, word):
         r"""
@@ -719,7 +674,7 @@ class CyclicCode(AbstractLinearCode):
             q = F.cardinality()
             n = self.length()
             s = 1
-            while not n.divides(q ** s - 1):
+            while not (q ** s - 1) % n == 0:
                 s += 1
 
             Fsplit = F.extension(Integer(s))
@@ -844,7 +799,7 @@ class CyclicCode(AbstractLinearCode):
             #creation of the extension field (the splitting field)
             #and embeddings
             s = 1
-            while not n.divides(q ** s - 1):
+            while not (q ** s - 1) % n == 0:
                 s += 1
 
             Fsplit, F_to_Fsplit = F.extension(Integer(s), 'b', map = True)

@@ -97,6 +97,7 @@ Classes and Methods
 from sage.combinat.recognizable_series import RecognizableSeries
 from sage.combinat.recognizable_series import RecognizableSeriesSpace
 from sage.misc.cachefunc import cached_method
+from six import iteritems
 
 
 def pad_right(T, length, zero=0):
@@ -294,6 +295,10 @@ class kRegularSequence(RecognizableSeries):
 
         - ``b`` -- an integer.
 
+          Alternatively, this is allowed to be a dictionary
+          `b_j \mapsto c_j`. If so, the result will be the sum
+          of all `c_j(an+b_j)`.
+
         - ``minimize`` -- (default: ``True``) a boolean. If set, then
           :meth:`minimized` is called after the addition.
 
@@ -340,6 +345,12 @@ class kRegularSequence(RecognizableSeries):
             [-2  3  0]  [  0   0   1]
             [-4  4  1], [ 12 -12   5], (1, 0, 0), (0, 0, 1)
             )
+
+        We can build backwards differences by passing a dictionary for
+        the parameter ``b``::
+
+            sage: C.subsequence(1, {0: 1, -1: -1})
+            2-regular sequence 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
 
         TESTS::
 
@@ -399,12 +410,14 @@ class kRegularSequence(RecognizableSeries):
         from sage.rings.integer_ring import ZZ
         zero = ZZ(0)
         a = ZZ(a)
-        b = ZZ(b)
+        if not isinstance(b, dict):
+            b = {ZZ(b): ZZ(1)}
 
         if a == 0:
-            return self[b] * self.parent().one_hadamard()
-        elif a == 1 and b == 0:
-            return self
+            return sum(c_j * self[b_j] * self.parent().one_hadamard()
+                       for b_j, c_j in iteritems(b))
+        elif a == 1 and len(b) == 1 and zero in b:
+            return b[zero] * self
         elif a < 0:
             raise ValueError('a={} is not nonnegative.'.format(a))
 
@@ -414,7 +427,6 @@ class kRegularSequence(RecognizableSeries):
         P = self.parent()
         k = self.parent().k
         dim = self.dimension()
-        kernel = [b]
 
         # Below, we use a dynamic approach to find the shifts of the
         # sequences in the kernel. According to [AS2003]_, the static range
@@ -443,13 +455,14 @@ class kRegularSequence(RecognizableSeries):
             ci += 1
 
         ndim = len(kernel) * dim
-
         result = P.element_class(
             P,
             dict((r, Matrix([pad_right(row, ndim, zero=zero)
                              for row in lines[r]]))
                  for r in srange(k)),
-            vector(pad_right(pad(tuple(self.left), b), ndim, zero=zero)),
+            sum(c_j * vector(
+                    pad_right(pad(tuple(self.left), b_j), ndim, zero=zero))
+                for b_j, c_j in iteritems(b)),
             vector(sum((tuple(self.__getitem__(c, multiply_left=False))
                         if c >= 0 else dim*(zero,)
                         for c in kernel), tuple())))

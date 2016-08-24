@@ -5,23 +5,22 @@ This module provides the
 :class:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomial`,
 which constructs a single univariate skew polynomial over commutative
 base rings and an automorphism over the base ring. Skew polynomials are
-non-commutative and so principal properties such as left and right gcd,
-lcm, monic, multiplication, division are provided by means of the left
-and right Euclidean algorithm.
+non-commutative and so principal methods such as gcd, lcm, monic,
+multiplication, and division are given in left and right forms.
 
-This module also supports the creation of a generic dense skew polynomial
-through
-:class:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomial_generic_dense`
-along with
+The generic implementation of dense skew polynomials is
+:class:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomial_generic_dense`.
+The classes 
 :class:`~sage.rings.polynomial.skew_polynomial_element.ConstantSkewPolynomialSection`
 and :class:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomialBaseringInjection`
-for conversion from a skew polynomial ring to its base ring and vice versa respectively.
+handle conversion from a skew polynomial ring to its base ring and vice versa respectively.
 
 .. WARNING::
 
-    As `__call__` method is experimental, a warning is thrown when a
-    skew polynomial is evaluated for the first time in a session
-    (see :class:`sage.misc.superseded.experimental`).
+    The current semantics of `__call__` are experimental, so a warning is thrown
+    when a skew polynomial is evaluated for the first time in a session. See
+    :meth:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomial.__call__`
+    for details.
 
     TESTS::
 
@@ -35,6 +34,8 @@ for conversion from a skew polynomial ring to its base ring and vice versa respe
         without a formal deprecation.
         See http://trac.sagemath.org/13215 for details.
         2*t^3 + 3*t^2 + 4*t + 2
+        sage: a(t)
+        2*t^2 + 3*t + 2
 
 AUTHORS:
 
@@ -100,8 +101,8 @@ cdef class SkewPolynomial(AlgebraElement):
     degrees of the factors.
 
     Let `a` and `b` be two skew polynomials in the same ring `S`.
-    The *left (resp. right) euclidean division* of `a` by `b` is
-    a couple `(q,r)` of elements in `S` such that
+    The *left (resp. right) euclidean division* of `a` by `b` is a couple
+    `(q,r)` of elements in `S` such that
 
     -  `a = q b + r` (resp. `a = b q + r`)
 
@@ -112,7 +113,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     .. RUBRIC:: Properties
 
-    Keeping the previous notations, if the leading coefficient of `b`
+    Keeping the previous notation, if the leading coefficient of `b`
     is a unit (e.g. if `b` is monic) then the quotient and the remainder
     in the *right* euclidean division exist and are unique.
 
@@ -172,8 +173,8 @@ cdef class SkewPolynomial(AlgebraElement):
         sage: b^2 == b*b
         True
 
-    Sage implements also some arithmetics over skew polynomial rings.
-    You will find below a short panorama::
+    Sage also implements arithmetic over skew polynomial rings. You will find
+    below a short panorama::
 
         sage: q,r = c.right_quo_rem(b)
         sage: q
@@ -184,15 +185,15 @@ cdef class SkewPolynomial(AlgebraElement):
         True
 
     The operators ``//`` and ``%`` give respectively the quotient
-    and the remainder of the right euclidean division::
+    and the remainder of the *right* euclidean division::
 
         sage: q == c // b
         True
         sage: r == c % b
         True
 
-    Left euclidean division won't work over our current
-    `S` because Sage can't invert the twist map::
+    Left euclidean division won't work over our current `S` because Sage can't
+    invert the twist map::
 
         sage: q,r = c.left_quo_rem(b)
         Traceback (most recent call last):
@@ -200,8 +201,8 @@ cdef class SkewPolynomial(AlgebraElement):
         NotImplementedError: inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
             Defn: t |--> t + 1
 
-    Here we can see the effect of the operator evaluation compared
-    to the usual polynomial evaluation::
+    Here we can see the effect of the operator evaluation compared to the usual
+    polynomial evaluation::
 
         sage: a = x^2
         sage: a(t)
@@ -223,8 +224,7 @@ cdef class SkewPolynomial(AlgebraElement):
         True
 
     Once we have euclidean divisions, we have for free gcd and lcm
-    (at least if the base ring is a field).
-    This class provides an implementation of gcd and lcm::
+    (at least if the base ring is a field)::
 
         sage: a = (x + t) * (x + t^2)^2
         sage: b = (x + t) * (t*x + t + 1) * (x + t^2)
@@ -233,9 +233,9 @@ cdef class SkewPolynomial(AlgebraElement):
         sage: a.left_gcd(b)
         x + t
 
-    For lcm, the default side is left but be very careful: by
-    convention, a left (resp. right) lcm is common multiple on
-    the right (resp. left)::
+    The left lcm has the following meaning: given skew polynomials `a` and `b`,
+    their left lcm is the least degree polynomial `c = ua = vb` for some skew
+    polynomials `u, v`. Such a `c` always exist if the base ring is a field::
 
         sage: c = a.left_lcm(b); c
         x^5 + (4*t^2 + t + 3)*x^4 + (3*t^2 + 4*t)*x^3 + 2*t^2*x^2 + (2*t^2 + t)*x + 4*t^2 + 4
@@ -243,6 +243,9 @@ cdef class SkewPolynomial(AlgebraElement):
         True
         sage: c.is_right_divisible_by(b)
         True
+
+    The right lcm is defined similarly as the least degree polynomial `c = au =
+    bv` for some `u,v`::
 
         sage: d = a.right_lcm(b); d
         x^5 + (t^2 + 1)*x^4 + (3*t^2 + 3*t + 3)*x^3 + (3*t^2 + t + 2)*x^2 + (4*t^2 + 3*t)*x + 4*t + 4
@@ -302,8 +305,9 @@ cdef class SkewPolynomial(AlgebraElement):
 
     cpdef int degree(self):
         r"""
-        Return the degree of ``self``. The zero skew polynomial has
-        degree `-1`.
+        Return the degree of ``self``.
+
+        By convention, the zero skew polynomial has degree `-1`.
 
         EXAMPLES::
 

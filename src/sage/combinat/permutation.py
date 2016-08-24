@@ -228,6 +228,8 @@ Classes and methods
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
+from six import itervalues
+
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -5480,7 +5482,7 @@ class Permutations_mset(Permutations):
             d[i] = d.get(i, 0) + 1
 
         c = factorial(len(lmset))
-        for i in d.itervalues():
+        for i in itervalues(d):
             if i != 1:
                 c //= factorial(i)
         return ZZ(c)

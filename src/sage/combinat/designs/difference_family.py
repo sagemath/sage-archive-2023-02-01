@@ -51,6 +51,8 @@ Functions
 from __future__ import division, print_function
 from __future__ import absolute_import
 
+from six import itervalues
+
 from sage.misc.cachefunc import cached_method
 
 from sage.categories.sets_cat import EmptySetError
@@ -285,7 +287,7 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
                 where[gg].add(i)
                 tmp_counter[gg] += 1
 
-        if sum(tmp_counter.itervalues()) != k*(k-1):
+        if sum(itervalues(tmp_counter)) != k * (k - 1):
             if verbose:
                 print("repeated element in the {}-th block {}".format(i,d))
             return False

@@ -244,6 +244,8 @@ Classes and functions
 # python3
 from __future__ import division, print_function, absolute_import
 
+from six import itervalues
+
 import copy
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -6003,8 +6005,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             d = {}
             for y in self.upper_covers(x):
                 for c in self.upper_covers(y):
-                    d[c] = d.get(c,0) + 1
-            if not all( y < 3 for y in d.itervalues() ):
+                    d[c] = d.get(c, 0) + 1
+            if not all(y < 3 for y in itervalues(d)):
                 return False
         return True
 

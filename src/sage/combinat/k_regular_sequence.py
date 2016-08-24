@@ -411,38 +411,53 @@ class kRegularSequence(RecognizableSeries):
         from sage.matrix.constructor import Matrix
         from sage.modules.free_module_element import vector
         P = self.parent()
+        zero = ZZ(0)
 
         k = self.parent().k
         dim = self.dimension()
-        min_c = min(b, 0)
-        max_c = max(a, a + (b-1)//k + 1)
-        range_c = srange(min_c, max_c)
-        # We use the 'if' below instead of the less efficient
-        #   max_c = max(a, a + b)
-        # or
-        #   max_c = max(a, a + (b-1)//k + 1, b + 1)
-        # above.
-        if b not in range_c:
-            range_c.append(b)
-            b = max_c
-        kernel = tuple((i, c) for c in range_c for i in srange(dim))
+        #min_c = min(b, 0)
+        #max_c = max(a, a + (b-1)//k + 1)
+        #range_c = srange(min_c, max_c)
+        ## We use the 'if' below instead of the less efficient
+        ##   max_c = max(a, a + b)
+        ## or
+        ##   max_c = max(a, a + (b-1)//k + 1, b + 1)
+        ## above.
+        #if b not in range_c:
+        #    range_c.append(b)
+        #    b = max_c
+
+        kernel = [b]
 
         def pad(T, d):
-            dd = d - min_c
-            return dd*dim*(0,) + T + (len(range_c)-1-dd)*dim*(0,)
+            di = kernel.index(d)
+            return (di*dim)*(0,) + T
         def mu_line(r, i, c):
             d, f = (a*r + c).quo_rem(k)
-            assert d in range_c
+            if d not in kernel:
+                kernel.append(d)
             return pad(tuple(self.mu[f].rows()[i]), d)
+
+        lines = dict((r, []) for r in srange(k))
+        ci = 0
+        while ci < len(kernel):
+            c = kernel[ci]
+            for r in srange(k):
+                for i in srange(dim):
+                    lines[r].append(mu_line(r, i, c))
+            ci += 1
+
+        ndim = len(kernel) * dim
 
         result = P.element_class(
             P,
-            dict((r, Matrix(tuple(mu_line(r, i, c) for i, c in kernel)))
+            dict((r, Matrix([pad_right(row, ndim, zero=zero)
+                             for row in lines[r]]))
                  for r in srange(k)),
-            vector(pad(tuple(self.left), b)),
+            vector(pad_right(pad(tuple(self.left), b), ndim, zero=zero)),
             vector(sum((tuple(self.__getitem__(c, multiply_left=False))
-                        if c >= 0 else dim*(ZZ(0),)
-                        for c in range_c), tuple())))
+                        if c >= 0 else dim*(zero,)
+                        for c in kernel), tuple())))
 
         if minimize:
             return result.minimized()

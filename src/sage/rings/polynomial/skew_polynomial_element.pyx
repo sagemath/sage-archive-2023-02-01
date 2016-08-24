@@ -362,8 +362,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``eval_pt`` -- ring element; need not be in the coefficient ring
-          of the skew polynomial
+        - ``eval_pt`` -- element of the base ring of ``self``
 
         OUTPUT:
 
@@ -428,8 +427,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``eval_pt`` -- ring element; need not be in the coefficient ring
-          of the skew polynomial
+        - ``eval_pt`` -- element of the base ring of ``self``
 
         OUTPUT:
 
@@ -445,9 +443,14 @@ cdef class SkewPolynomial(AlgebraElement):
             2*t^2 + 2*t + 3
             sage: a.operator_eval(t)
             2*t^2 + 2*t + 3
+
+        Evaluation points outside the base ring is usually not possible due to the twist map::
+
+            sage: a.operator_eval(1/t)
+            Traceback (most recent call last):
+            ...
+            TypeError: 1/t fails to convert into the map's domain Univariate Polynomial Ring in t over Rational Field, but a `pushforward` method is not properly implemented
         """
-        if eval_pt not in self._parent:
-            raise TypeError("evaluation point must be a ring element")
         cdef RingHomomorphism sigma = self._parent.twist_map()
         cdef list coefficients = self.list()
         cdef RingElement ret = self.base_ring().zero()

@@ -615,6 +615,8 @@ cdef class SkewPolynomial(AlgebraElement):
         r"""
         Check if ``self`` is nilpotent.
 
+        This is currently not implemented.
+
         Given a commutative ring `R` and a base ring automorphism `\sigma`
         of order `n`, an element `f` of `R[X, \sigma]` is nilpotent if
         and only if all coefficients of `f^n` are nilpotent in `R`.
@@ -624,11 +626,17 @@ cdef class SkewPolynomial(AlgebraElement):
             The paper "Nilpotents and units in skew polynomial rings
             over commutative rings" by M. Rimmer and K.R. Pearson describes
             the method to check whether a given skew polynomial is nilpotent.
-            That method requires the order of the automorphism which is not
-            supported in Sage yet.
+            That method requires the order of the automorphism.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: t.is_nilpotent()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
-        raise NotImplementedError("support for determining if skew polynomial"
-                                  " is nilpotent is not available yet")
+        raise NotImplementedError
 
     def is_monic(self):
         """

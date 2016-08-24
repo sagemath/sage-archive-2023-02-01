@@ -3,7 +3,7 @@ Skew Univariate Polynomial Rings
 
 This module provides the
 :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general``,
-which constructs a general dense skew univariate polynomials over commutative
+which constructs a general dense univariate skew polynomials over commutative
 base rings with automorphisms over the base rings. This is the set of formal
 polynomials where the coefficients are written on the left of the variable
 of the skew polynomial ring. The modified multiplication operation over
@@ -51,7 +51,7 @@ from sage.rings.polynomial.skew_polynomial_element import (SkewPolynomial,
 
 class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
     r"""
-    A skew Univariate polynomial ring over a commutative ring.
+    A general implementation of univariate skew polynomial ring over a commutative ring.
 
     Let `R` be a commutative ring, and let `\sigma` be an automorphism of
     `R`.  The ring of skew polynomials `R[X, \sigma]` is the polynomial
@@ -63,10 +63,6 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         X*a = \sigma(a) X.
 
     Note that `R[X, \sigma]` is a non-commutative ring.
-
-    .. TODO::
-
-        Add derivations.
 
     EXAMPLES::
 

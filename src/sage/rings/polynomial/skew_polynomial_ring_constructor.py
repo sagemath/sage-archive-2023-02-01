@@ -43,6 +43,7 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
     `R[X]` equipped with the modification multiplication deduced from the
     rule `X a = \sigma(a) X`.
 
+
     .. SEEALSO::
 
         - :class:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general`
@@ -62,12 +63,8 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
     .. NOTE::
 
         The current implementation of skew polynomial rings does not
-        support derivations and the ring thus created is actually a
-        special case of skew polynomials where the derivation is taken to
-        be zero. Such skew polynomials are called Linearized Polynomials.
-
-        Sparse skew polynomials and multivariate skew polynomials are
-        currently not implemented.
+        support derivations. Sparse skew polynomials and multivariate skew
+        polynomials are also not implemented.
 
     OUTPUT:
 

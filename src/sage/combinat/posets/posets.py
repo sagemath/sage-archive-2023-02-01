@@ -4259,6 +4259,32 @@ class FinitePoset(UniqueRepresentation, Parent):
             [(0, 'a'), (0, 'b'), (1, 'y'), (1, 'z')]
             sage: ABC.star_product(XYZ, labels='integers').list()
             [0, 1, 2, 3]
+
+        TESTS::
+
+            sage: C0 = Poset()
+            sage: C1 = Poset({0: []})
+            sage: C2 = Poset({0: [1]})
+            sage: C2.star_product(42)
+            Traceback (most recent call last):
+            ...
+            TypeError: the input is not a finite poset
+            sage: C2.star_product(C0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the poset and 'other' should be bounded
+            sage: C0.star_product(C2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the poset and 'other' should be bounded
+            sage: C2.star_product(C1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the poset and 'other' should have at least two elements
+            sage: C1.star_product(C2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the poset and 'other' should have at least two elements
         """
         if not hasattr(other, 'hasse_diagram'):
             raise TypeError('the input is not a finite poset')

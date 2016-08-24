@@ -358,7 +358,11 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def __call__(self, eval_pt):
         """
-        Evaluate ``self`` at ``eval_pt``.
+        Evaluate ``self`` at ``eval_pt`` using operator evaluation.
+
+        Given a skew polynomial `p(x) = \sum_{i=0}^d a_i x^i`, then we define
+        the evaluation `p(r)` to be `\sum_{i=0}^d a_i \sigma^i(r)`, where
+        `\sigma` is the twist map of the skew polynomial ring.
 
         INPUT:
 
@@ -366,16 +370,14 @@ cdef class SkewPolynomial(AlgebraElement):
 
         OUTPUT:
 
-        The value of the polynomial at the point specified by the argument.
+        The operator evaluation of ``self`` at ``eval_pt``.
 
         .. NOTE::
 
-            Currently, only "operator evaluation" of skew polynomials is implemented
-            (see :meth:`.operator_eval`).
             There are two other common notions of evaluation of `f(x)` at some element `a`
             from the base ring, namely the remainder after left or right modulo by `x-a`.
             The current calling convention might change in the future to accommodate these.
-            Therefore, the current method has been marked with an "@experimental" decorator.
+            Therefore, the current method has been marked as experimental.
 
         EXAMPLES::
 
@@ -385,7 +387,6 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a = t*x + 1
             sage: a(t^2)
             t^3 + 3*t^2 + t
-            sage: b = x + t
             sage: b = x^2 + t*x^3 + t^2*x + 1
             sage: b(2*t + 3)
             2*t^3 + 7*t^2 + 13*t + 10

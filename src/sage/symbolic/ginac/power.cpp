@@ -1047,9 +1047,26 @@ ex power::expand(unsigned options) const
 	const numeric & num_exponent = ex_to<numeric>(expanded_exponent);
 	int int_exponent = num_exponent.to_int();
 	
-	// (x+y)^n, n>0
-	if (int_exponent > 0 && is_exactly_a<add>(expanded_basis))
-		return expand_add(ex_to<add>(expanded_basis), int_exponent, options);
+	// (x+y)^n
+	if (is_exactly_a<add>(expanded_basis)) {
+                if (int_exponent == 1)
+                        return expanded_basis;
+                if ((options & expand_options::expand_only_numerators) == 0 and
+                        int_exponent == -1)
+                        return dynallocate<power>(expanded_basis, _ex_1).
+                             setflag(status_flags::expanded|status_flags::evaluated);
+                if ((options & expand_options::expand_only_numerators) != 0 and
+                        int_exponent < 0)
+                        return this->hold();
+                if (int_exponent >= 0 or
+                        (options & expand_options::expand_only_numerators) != 0)
+		        return expand_add(ex_to<add>(expanded_basis),
+                                        int_exponent, options);
+                else
+                        return dynallocate<power>(expand_add(ex_to<add>(expanded_basis),
+                                        -int_exponent, options), _ex_1).
+                        setflag(status_flags::expanded|status_flags::evaluated);
+        }
 	
 	// (x*y)^n -> x^n * y^n
 	if (is_exactly_a<mul>(expanded_basis))

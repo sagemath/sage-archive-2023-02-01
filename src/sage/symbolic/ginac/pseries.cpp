@@ -609,7 +609,7 @@ ex basic::series(const relational & r, int order, unsigned options) const
 		// We need to test for zero in order to see if the series terminates.
 		// The problem is that there is no such thing as a perfect test for
 		// zero.  Expanding the term occasionally helps a little...
-		deriv = deriv.diff(s).expand();
+		deriv = deriv.diff(s).expand(expand_options::expand_only_numerators);
 		if (deriv.is_zero())  // Series terminates
 			return pseries(r, seq);
 
@@ -620,7 +620,7 @@ ex basic::series(const relational & r, int order, unsigned options) const
 	
 	// Higher-order terms, if present
 	deriv = deriv.diff(s);
-	if (!deriv.expand().is_zero())
+        if (!deriv.expand(expand_options::expand_only_numerators).is_zero())
 		seq.push_back(expair(Order(_ex1), n));
 	return pseries(r, seq);
 }

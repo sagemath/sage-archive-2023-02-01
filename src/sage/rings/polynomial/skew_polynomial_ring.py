@@ -220,14 +220,14 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
                 coerce_list = [base_inject],
                 convert_list = [list, base_inject])
 
-    def _element_constructor_(self, x=None, check=True, construct=False, **kwds):
+    def _element_constructor_(self, a=None, check=True, construct=False, **kwds):
         """
-        Convert ``x`` into an element of this univariate skew polynomial ring,
-        possibly non-canonically.
+        Convert a base ring element ``a`` into a constant of this univariate
+        skew polynomial ring, possibly non-canonically.
 
         INPUT:
 
-        - ``x`` -- (default: ``None``) an element of the base ring
+        - ``a`` -- (default: ``None``) an element of the base ring
           of ``self`` or a ring that has a coerce map from ``self``
 
         - ``check`` -- boolean (default: ``True``)
@@ -236,7 +236,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
         OUTPUT:
 
-        An element of ``self``.
+        An zero-degree skew polynomial in ``self``, equal to ``a``.
 
         EXAMPLES::
 
@@ -253,34 +253,34 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             []
         """
         C = self._polynomial_class
-        if isinstance(x, list):
-            return C(self, x, check=check, construct=construct)
-        if isinstance(x, Element):
-            P = x.parent()
+        if isinstance(a, list):
+            return C(self, a, check=check, construct=construct)
+        if isinstance(a, Element):
+            P = a.parent()
             def build(check):
-                if x.is_zero():
+                if a.is_zero():
                     return P.zero()
                 else:
-                    return C(self, [x], check=check, construct=construct)
+                    return C(self, [a], check=check, construct=construct)
             if P is self:
-                return x
+                return a
             elif P is self.base_ring():
                 build(False)
             elif P == self.base_ring() or self.base_ring().has_coerce_map_from(P):
                 build(True)
         try:
-            return x._polynomial_(self)
+            return a._polynomial_(self)
         except AttributeError:
             pass
-        if isinstance(x, str):
+        if isinstance(a, str):
             try:
                 from sage.misc.parser import Parser, LookupNameMaker
                 R = self.base_ring()
                 p = Parser(Integer, R, LookupNameMaker({self.variable_name(): self.gen()}, R))
-                return self(p.parse(x))
+                return self(p.parse(a))
             except NameError:
                 raise TypeError("unable to coerce string")
-        return C(self, x, check, construct=construct, **kwds)
+        return C(self, a, check, construct=construct, **kwds)
 
     def _coerce_map_from_(self, P):
         """

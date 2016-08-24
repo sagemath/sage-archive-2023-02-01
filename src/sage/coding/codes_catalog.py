@@ -12,6 +12,15 @@ The ``codes`` object may be used to access the codes that Sage can build.
         sage: from sage.coding.codes_catalog import *
 
 """
+#*****************************************************************************
+#       Copyright (C) 2009 David Lucas <david.lucas@inria.fr>
+#
+#  Distributed under the terms of the GNU General Public License (GPL),
+#  version 2 or later (at your preference).
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 
 # Implementation note:
 #

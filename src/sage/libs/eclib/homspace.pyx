@@ -3,8 +3,13 @@ from __future__ import print_function
 
 include "cysignals/signals.pxi"
 
-from ..eclib cimport mat
+from ..eclib cimport mat, vec
 from .mat cimport MatrixFactory
+
+from sage.matrix.all import MatrixSpace
+from sage.matrix.matrix_integer_sparse cimport Matrix_integer_sparse
+from sage.rings.all import ZZ
+from sage.rings.integer cimport Integer
 
 cdef MatrixFactory MF = MatrixFactory()
 
@@ -205,3 +210,63 @@ cdef class ModularSymbols:
         cdef mat M = self.H.heckeop(p, dual, verbose)
         sig_off()
         return MF.new_matrix(M)
+
+    def sparse_Hecke_matrix(self, long p, dual=False, verbose=False):
+        """
+        Return the matrix of the ``p``-th Hecke operator acting on
+        this space of modular symbols, as a sparse Sage integer matrix.
+        This is more memory-efficient than creating a Cremona matrix and then
+        applying sage_matrix_over_ZZ with sparse=True.
+
+        The result of this command is not cached.
+
+        INPUT:
+
+        - ``p`` -- a prime number
+
+        - ``dual`` -- (default: False) whether to compute the Hecke
+                    operator acting on the dual space, i.e., the
+                    transpose of the Hecke operator
+
+        - ``verbose`` -- (default: False) print verbose output
+
+        OUTPUT:
+
+        (matrix) If ``p`` divides the level, the matrix of the
+        Atkin-Lehner involution `W_p` at ``p``; otherwise the matrix of the
+        Hecke operator `T_p`,
+
+        EXAMPLES::
+
+            sage: M = CremonaModularSymbols(37)
+            sage: t = M.sparse_hecke_matrix(2); type(t)
+            <type 'sage.matrix.matrix_integer_sparse.Matrix_integer_sparse'>
+            5 x 5 sparse matrix over Integer Ring
+            sage: print(t)
+            [ 3  0  0  0  0]
+            [-1 -1  1  1  0]
+            [ 0  0 -1  0  1]
+            [-1  1  0 -1 -1]
+            [ 0  0  1  0 -1]
+            sage: M = CremonaModularSymbols(5001)
+            sage: T = M.sparse_hecke_matrix(2)
+            sage: U = M.hecke_matrix(2).sage_matrix_over_ZZ(sparse=True)
+            sage: print T == U
+            True
+        """
+        cdef long n = self.dimension()
+        cdef long i=0
+        cdef long j=0
+        cdef vec v
+        cdef Matrix_integer_sparse Ts
+        Ts = MatrixSpace(ZZ, n, sparse=True).zero_matrix().__copy__()
+        sig_on()
+        for i from 1 <= i <= n:
+            v = self.H.heckeop_col(p, i, verbose)
+            for j from 1 <= j <= n:
+                if v[j]:
+                    Ts.set_unsafe(j-1, i-1, Integer(v[j]))
+        sig_off()
+        if dual: Ts = Ts.transpose()
+        return Ts
+        

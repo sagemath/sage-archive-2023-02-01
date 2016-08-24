@@ -6,6 +6,12 @@
 # in a specific order. That explains the various empty
 # "cdef extern from" blocks below.
 
+cdef extern from "eclib/vector.h":
+    ctypedef int scalar
+
+    cdef cppclass vec:
+        scalar operator[](long)
+
 cdef extern from "eclib/matrix.h":
     ctypedef int scalar
 
@@ -88,6 +94,7 @@ cdef extern from "eclib/homspace.h":
         int h1dim()
         int h1cuspdim()
         mat heckeop(long p, int dual, int display)
+        vec heckeop_col(long p, int j, int display)
         long h1ncusps()
 
 cdef extern from "eclib/oldforms.h":

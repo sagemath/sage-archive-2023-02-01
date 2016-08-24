@@ -4,11 +4,12 @@ Skew Univariate Polynomial Rings
 This module provides the
 :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general``,
 which constructs a general dense univariate skew polynomials over commutative
-base rings with automorphisms over the base rings. This is the set of formal
-polynomials where the coefficients are written on the left of the variable
-of the skew polynomial ring. The modified multiplication operation over
-elements of the base ring is extended to all elements of the skew poynomial
-ring by associativity and distributivity.
+base rings with automorphisms over the base rings. This is usual accessed only
+indirectly through the constructor
+:func:`sage.rings.polynomial.skew_polynomial_constructor.SkewPolynomialRing`.
+
+See :class:`SkewPolynomialRing_general` for a definition of a univariate skew
+polynomial ring.
 
 AUTHOR:
 
@@ -62,7 +63,8 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
         X*a = \sigma(a) X.
 
-    Note that `R[X, \sigma]` is a non-commutative ring.
+    This means that `R[X, \sigma]` is a non-commutative ring. Skew polynomials
+    were first introduced by Ore [Ore33].
 
     EXAMPLES::
 
@@ -78,19 +80,19 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring
          twisted by t |--> t + 1
 
-    Be careful, with the latter syntax, one cannot omit the name of the
-    variable neither in LHS nor in RHS. If we omit it in LHS, the variable
-    is not created::
+    If we omit the diamond notation, the variable holding the indeterminate is
+    not assigned::
 
-        sage: Sy = R['y',sigma]; Sy
-        Skew Polynomial Ring in y over Univariate Polynomial Ring in t over Integer Ring
-         twisted by t |--> t + 1
-        sage: y.parent()
+        sage: Sy = R['y',sigma]
+        sage: y
         Traceback (most recent call last):
         ...
         NameError: name 'y' is not defined
+        sage: Sy.gen()
+        y
 
-    If we omit it in RHS, sage tries to create a polynomial ring and fails::
+    Note however that contrary to usual polynomial rings, we cannot omit the
+    variable name on the RHS, since this collides with the notation for creating polynomial rings::
 
         sage: Sz.<z> = R[sigma]
         Traceback (most recent call last):
@@ -105,7 +107,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         False
 
     Of course, skew polynomial rings with different twist maps are not
-    equal as well
+    equal either::
 
         sage: R['x',sigma] == R['x',sigma^2]
         False

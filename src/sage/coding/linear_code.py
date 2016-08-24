@@ -704,7 +704,7 @@ class AbstractLinearCode(module.Module):
 
         - ``base_field`` -- the base field of ``self``
 
-        - ``length`` -- the length of ``self``
+        - ``length`` -- the length of ``self`` (a Python int or a Sage Integer, must be > 0)
 
         - ``default_encoder_name`` -- the name of the default encoder of ``self``
 
@@ -813,6 +813,8 @@ class AbstractLinearCode(module.Module):
 
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")
+        if length <= 0:
+			raise ValueError("length must be a non-zero positive integer")
         if not base_field.is_field():
             raise ValueError("'base_field' must be a field (and {} is not one)".format(base_field))
         if not default_encoder_name in self._registered_encoders:

@@ -179,7 +179,7 @@ def list_packages(*pkg_types, **opts):
         sage: sorted(L.keys())
         ['alabaster',
          'arb',
-         'atlas',
+         'babel',
          ...
          'zn_poly',
          'zope_interface']

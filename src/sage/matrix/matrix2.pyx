@@ -7809,9 +7809,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [53|59 61|67 71]
             [73|79 83|89 97]
 
-        Degenerate cases work too.
-
-        ::
+        Degenerate cases work too::
 
             sage: M.subdivide([2,5], [0,1,3]); M
             [| 2| 3  5| 7 11]
@@ -7839,6 +7837,18 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             []
             sage: M.subdivision(2,4)
             [37 41 43 47]
+        
+        Indices do not need to be in the right order (:trac:`14064`)::
+
+            sage: M.subdivide([4, 2], [3, 1]); M
+            [ 2| 3  5| 7 11]
+            [13|17 19|23 29]
+            [--+-----+-----]
+            [31|37 41|43 47]
+            [53|59 61|67 71]
+            [--+-----+-----]
+            [73|79 83|89 97]
+
 
         AUTHORS:
 

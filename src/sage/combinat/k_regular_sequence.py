@@ -250,7 +250,7 @@ class kRegularSequence(RecognizableSeries):
         return iter(self[n] for n in count())
 
 
-    def subsequence(self, a, b, missing_value=None, minimize=True):
+    def subsequence(self, a, b, minimize=True):
         r"""
         Return the subsequence with indices `an+b` of this
         `k`-regular sequence.
@@ -261,17 +261,17 @@ class kRegularSequence(RecognizableSeries):
 
         - ``b`` -- an integer.
 
-        - ``missing_value`` -- (default: ``None`` which translates to `0`)
-          an element of the coefficient (semi-)ring. This value is as
-          the coefficient when accessing negative indices. (This happens
-          when `b<0`.)
-
         - ``minimize`` -- (default: ``True``) a boolean. If set, then
           :meth:`minimized` is called after the addition.
 
         OUTPUT:
 
         A :class:`kRegularSequence`.
+
+        .. NOTE::
+
+            If `b` is negative (i.e., right-shift), then the
+            coefficients when accessing negative indices are `0`.
 
         EXAMPLES::
 
@@ -362,12 +362,6 @@ class kRegularSequence(RecognizableSeries):
             Traceback (most recent call last):
             ...
             ValueError: a=-1 is not nonnegative.
-
-        ::
-
-            sage: C.subsequence(4, -1, missing_value=-1)
-            2-regular sequence 0, 9, 19, 29, 39, 49, 59, 69, 79, 89, ...
-            sage: C.subsequence(4, -6, missing_value=-1)
         """
         from sage.rings.integer_ring import ZZ
         a = ZZ(a)
@@ -380,8 +374,6 @@ class kRegularSequence(RecognizableSeries):
         elif a < 0:
             raise ValueError('a={} is not nonnegative.'.format(a))
 
-        if missing_value is None:
-            missing_value = ZZ(0)
         from sage.arith.srange import srange
         from sage.matrix.constructor import Matrix
         from sage.modules.free_module_element import vector
@@ -416,7 +408,7 @@ class kRegularSequence(RecognizableSeries):
                  for r in srange(k)),
             vector(pad(tuple(self.left), b)),
             vector(sum((tuple(self.__getitem__(c, multiply_left=False))
-                        if c >= 0 else dim*(missing_value,)
+                        if c >= 0 else dim*(ZZ(0),)
                         for c in range_c), tuple())))
 
         if minimize:

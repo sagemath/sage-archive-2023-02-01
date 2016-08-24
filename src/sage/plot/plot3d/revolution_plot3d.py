@@ -141,7 +141,7 @@ def revolution_plot3d(curve,trange,phirange=None,parallel_axis='z',axis=(0,0),pr
     else:
         phirange = (phi, phirange[0], phirange[1])
         
-    if isinstance(curve, [tuple, list]):
+    if isinstance(curve, (tuple, list)):
         #this if-else provides a vector v to be plotted
         #if curve is a tuple or a list of length 2, it is interpreted as a parametric curve
         #in the x-z plane.

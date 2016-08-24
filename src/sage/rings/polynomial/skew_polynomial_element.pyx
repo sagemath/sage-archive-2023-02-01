@@ -2013,9 +2013,9 @@ cdef class SkewPolynomial(AlgebraElement):
         return self.degree() == 0 and self[0].is_one()
 
     @coerce_binop
-    def mod(self, other):
+    def right_mod(self, other):
         """
-        Return remainder of division of ``self`` by ``other``.
+        Return the remainder of right division of ``self`` by ``other``.
 
         EXAMPLES::
 
@@ -2026,10 +2026,28 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: b = x + 1
             sage: a % b
             t + 1
-            sage: (x^3 + x - 1).mod(x^2 - 1)
+            sage: (x^3 + x - 1).right_mod(x^2 - 1)
             2*x - 1
         """
         return self % other
+
+    @coerce_binop
+    def left_mod(self, other):
+        """
+        Return the remainder of left division of ``self`` by ``other``.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = 1 + t*x^2
+            sage: b = x + 1
+            sage: a.left_mod(b)
+            2*t^2 + 4*t
+        """
+        (_,r) = self.left_quo_rem(other)
+        return r
 
     def is_constant(self):
         """

@@ -250,8 +250,9 @@ class EuclideanDomains(Category_singleton):
 
             EXAMPLES::
 
-                sage: EuclideanDomains().ElementMethods().gcd(6,4)
-                2
+                sage: R.<x> = PolynomialRing(Integers(5), sparse=True)
+                sage: x.gcd(x+1)  # indirect doctest
+                1
             """
             A = self
             B = other

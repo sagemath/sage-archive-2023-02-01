@@ -3359,7 +3359,7 @@ def coerce_binop(method):
         sage: g = x
         sage: f.gcd(g)  #indirect doctest 
         x
-        sage: T = PolynomialRing(QQ, sparse=True)
+        sage: T = PolynomialRing(QQ, name='x', sparse=True)
         sage: h = 1/2*T(x)
         sage: u = f.gcd(h); u  #indirect doctest 
         x
@@ -3415,7 +3415,7 @@ def coerce_binop(method):
         sage: x.test_add(CC(2))
         Traceback (most recent call last):
         ...
-        MonkeyError
+        AttributeError: 'sage.rings.complex_number.ComplexNumber' object has no attribute 'test_add'
 
     TESTS:
 
@@ -3425,7 +3425,7 @@ def coerce_binop(method):
         sage: f.gcd(g, 1)
         Traceback (most recent call last):
         ...
-        MonkeyError
+        TypeError: algorithm 1 not supported
     """
     @sage_wraps(method)
     def new_method(self, other, *args, **kwargs):

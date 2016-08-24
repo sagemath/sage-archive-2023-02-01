@@ -463,8 +463,10 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def __setitem__(self, n, value):
         """
-        Set the ```n`-th coefficient of this skew polynomial. This always
-        raises an ``IndexError``, since polynomials are immutable in Sage.
+        Set the ```n`-th coefficient of this skew polynomial.
+
+        This always raises an ``IndexError``, since polynomials are immutable in
+        Sage.
 
         EXAMPLES::
 
@@ -499,8 +501,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def conjugate(self, n):
         """
-        Return ``self`` conjugated by `x^n` (where `x` is the
-        variable of ``self``).
+        Return ``self`` conjugated by `x^n`, where `x` is the
+        variable of ``self``.
 
         INPUT:
 
@@ -523,8 +525,8 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: x^2*a == b*x^2
             True
 
-        In principle, negative values for `n` are allowed... but Sage
-        needs to be able to invert the twist map::
+        In principle, negative values for `n` are allowed, but Sage needs to be
+        able to invert the twist map::
 
             sage: b = a.conjugate(-1)
             Traceback (most recent call last):
@@ -569,16 +571,16 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def leading_coefficient(self):
         """
-        Return the leading coefficient of this skew polynomial.
+        Return the coefficient of the highest-degree monomial of ``self``.
 
         EXAMPLES::
 
             sage: R.<t> = ZZ[]
             sage: sigma = R.hom([t+1])
             sage: S.<x> = R['x',sigma]
-            sage: a = x + (t+1)*x^5 + t^2*x^3 - x^5
+            sage: a = (t+1)*x^5 + t^2*x^3 + x
             sage: a.leading_coefficient()
-            t
+            t + 1
         """
         cdef int d = self.degree()
         if d == -1:
@@ -589,12 +591,11 @@ cdef class SkewPolynomial(AlgebraElement):
         r"""
         Return ``True`` if this skew polynomial is a unit.
 
-        .. NOTE::
+        When the base ring `R` is an integral domain, then a skew polynomial `f`
+        is a unit if and only if degree of `f` is `0` and `f` is then a unit in
+        `R`.
 
-            When the base ring `R` is an integral domain, then a skew
-            polynomial `f` is a unit if and only if degree of `f` is
-            `0` and `f` is then a unit in `R`. The general case is not
-            yet implemented.
+        The case when `R` is not an integral domain is not yet implemented.
 
         EXAMPLES::
 
@@ -605,7 +606,7 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a.is_unit()
             False
         """
-        # todo: Sage does not yet have support for finding order of
+        # TODO: Sage does not yet have support for finding order of
         #       automorphisms. Once that is available, general case can
         #       be implemented. Reference: http://bit.ly/29Vidu7
         if self._parent.base_ring().is_integral_domain():
@@ -614,10 +615,7 @@ cdef class SkewPolynomial(AlgebraElement):
             else:
                 return False
         else:
-            raise NotImplementedError("support for determining if skew polynomial"
-                                      " is a unit is not available when the base"
-                                      " ring of the parent skew polynomial"
-                                      " ring is not an integral domain")
+            raise NotImplementedError("is_unit is not implemented for skew polynomial rings over base rings which are not integral domains.")
 
     def is_nilpotent(self):
         r"""
@@ -650,8 +648,9 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def is_monic(self):
         """
-        Return ``True`` if this skew polynomial is monic. The zero polynomial
-        is by definition not monic.
+        Return ``True`` if this skew polynomial is monic
+
+        The zero polynomial is by definition not monic.
 
         EXAMPLES::
 
@@ -675,15 +674,12 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def left_monic(self):
         """
-        Return the unique monic skew polynomial `a` of the same
-        degree which divides this skew polynomial on the left.
+        Return the unique monic skew polynomial `m` which divides ``self`` on
+        the left and has the same degree.
 
-        .. NOTE::
-
-            This skew polynomial is self dividing on the
-            *right* by the `n`-th iterative (`n` is the degree of
-            self) of the inverse of the twist map applied to the
-            leading coefficient.
+        If `p` is ``self`` has degree `n`, then `m = p \sigma^{-n}(1/k)`, where `k`
+        is the leading coefficient of ``self``, i.e. by the appropriate scalar
+        multiplication on the right.
 
         EXAMPLES::
 
@@ -706,7 +702,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         Note that `b` does not divide `a` on the right::
 
-            sage: b.is_right_divisible_by(a)
+            sage: a.is_right_divisible_by(b)
             False
 
         This function does not work if the leading coefficient is not a
@@ -730,13 +726,13 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def right_monic(self):
         """
-        Return the unique monic skew polynomial `a` of the same
-        degree which divides this skew polynomial on the right.
+        Return the unique monic skew polynomial `m` which divides ``self`` on
+        the right and has the same degree.
 
-        .. NOTE::
+        If `p` is ``self`` has degree `n`, then `m = (1/k) p`, where `k`
+        is the leading coefficient of ``self``, i.e. by the appropriate scalar
+        multiplication on the left.
 
-            This skew polynomial is self dividing on the *left*
-            by its leading coefficient.
 
         EXAMPLES::
 
@@ -758,7 +754,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         Note that `b` does not divide `a` on the right::
 
-            sage: b.is_left_divisible_by(a)
+            sage: a.is_left_divisible_by(b)
             False
 
         This function does not work if the leading coefficient is not a
@@ -805,7 +801,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     cpdef _floordiv_(self, right):
         """
-        Return the quotient of the right euclidean division of
+        Return the quotient of the *right* euclidean division of
         ``self`` by ``right``.
 
         The algorithm fails if the leading coefficient of the divisor
@@ -832,8 +828,10 @@ cdef class SkewPolynomial(AlgebraElement):
 
     cpdef _div_(self, right):
         """
-        Not Implemented (since localization of Ore rings is
-        not yet implemented, see :trac: `13215`).
+        Not Implemented
+
+        To implement this, localization of Ore rings is needed, see :trac:
+        `13215`.
 
         Use the operator `//` even for exact division.
 
@@ -860,7 +858,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     def is_left_divisible_by(self, other):
         """
-        Check if ``self`` is divisible by ``other`` on the left.
+        Return whether ``self`` is divisible by ``other`` on the left.
 
         INPUT:
 

@@ -2003,7 +2003,7 @@ class AbstractLinearCode(module.Module):
 
         TESTS:
 
-        If one passes a vector whose length is ``self.length()``, it has to be a codeword.
+        If one passes a vector which belongs to the ambient space, it has to be a codeword.
         Otherwise, an exception is raised::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
@@ -2015,7 +2015,7 @@ class AbstractLinearCode(module.Module):
             ValueError: If the input is a vector whose length is equal to self.length(), it has to be a codeword
         """
         if m in self.ambient_space() and m not in self:
-            raise ValueError("If the input is a vector whose length is equal to self.length(), it has to be a codeword")
+            raise ValueError("If the input is a vector which belongs to the ambient space, it has to be a codeword")
         if m in self:
             return m
         else:

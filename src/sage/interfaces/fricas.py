@@ -235,7 +235,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         TESTS::
 
-            sage: fricas == loads(dumps(fricas))
+            sage: fricas == loads(dumps(fricas))                                # optional - fricas
             True
         """
         eval_using_file_cutoff = 4096-5 # magic number from Expect._eval_line (there might be a bug)
@@ -901,30 +901,30 @@ class FriCASElement(ExpectElement):
 
         Floats::
 
-            sage: fricas(2.1234).sage()                                             # optional - fricas
+            sage: fricas(2.1234).sage()                                         # optional - fricas
             2.12340000000000
-            sage: _.parent()                                                        # optional - fricas
+            sage: _.parent()                                                    # optional - fricas
             Real Field with 53 bits of precision
-            sage: a = RealField(100)(pi)
-            sage: fricas(a).sage()                                                  # optional - fricas
+            sage: a = RealField(100)(pi)                                        # optional - fricas
+            sage: fricas(a).sage()                                              # optional - fricas
             3.1415926535897932384626433833
-            sage: _.parent()                                                        # optional - fricas
+            sage: _.parent()                                                    # optional - fricas
             Real Field with 100 bits of precision
-            sage: fricas(a).sage() == a                                             # optional - fricas
+            sage: fricas(a).sage() == a                                         # optional - fricas
             True
-            sage: fricas(2.0).sage()                                                # optional - fricas
+            sage: fricas(2.0).sage()                                            # optional - fricas
             2.00000000000000
-            sage: _.parent()                                                        # optional  - fricas
+            sage: _.parent()                                                    # optional - fricas
             Real Field with 53 bits of precision
 
         Algebraic numbers::
 
-            sage: a = fricas('(1 + sqrt(2))^5'); a                                  # optional - fricas
+            sage: a = fricas('(1 + sqrt(2))^5'); a                              # optional - fricas
                +-+
             29\|2  + 41
-            sage: b = a.sage(); b                                                   # optional - fricas
+            sage: b = a.sage(); b                                               # optional - fricas
             82.0121933088198?
-            sage: b.radical_expression()                                            # optional - fricas
+            sage: b.radical_expression()                                        # optional - fricas
             29*sqrt(2) + 41
 
         Integers modulo n::

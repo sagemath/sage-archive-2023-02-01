@@ -114,7 +114,7 @@ def _multivariate_polynomial_interpolation(evaluation, order, polynomial_ring):
             iterator = iter(base_field)
             points = []
             for i in range(d):
-                xcoordinate = iterator.next()
+                xcoordinate = next(iterator)
                 points.append((xcoordinate, evaluation[k + i * n_by_q]))
             polyVector = uni_poly_ring.lagrange_polynomial(
                 points).coefficients(sparse=False)

@@ -68,7 +68,7 @@ from integer_ring import ZZ
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 
 from sage.structure.coerce cimport is_numpy_type
-from sage.structure.element cimport Element, RingElement, ModuleElement
+from sage.structure.element cimport Element, RingElement, ModuleElement, coercion_model
 from sage.structure.element import bin_op, coerce_binop
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
@@ -78,6 +78,7 @@ import sage.structure.factorization
 import sage.rings.real_mpfr
 import sage.rings.real_double
 from libc.stdint cimport uint64_t
+from sage.libs.gmp.binop cimport mpq_add_z, mpq_mul_z, mpq_div_zz
 
 cimport sage.rings.fast_arith
 import  sage.rings.fast_arith
@@ -522,7 +523,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                         raise TypeError("unable to convert {!r} to a rational".format(x))
                     mpq_canonicalize(self.value)
 
-        elif isinstance(x, str):
+        elif isinstance(x, basestring):
             n = mpq_set_str(self.value, x, base)
             if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
                 raise TypeError("unable to convert {!r} to a rational".format(x))
@@ -576,10 +577,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             elif isinstance(x, numpy.floating):
                 self.__set_value(sage.rings.real_mpfr.RR(x), base)
             else:
-                raise TypeError("Unable to coerce {} ({}) to Rational".format(x,type(x)))
+                raise TypeError("unable to convert {!r} to a rational".format(x))
 
         else:
-            raise TypeError("Unable to coerce {} ({}) to Rational".format(x,type(x)))
+            raise TypeError("unable to convert {!r} to a rational".format(x))
 
     cdef void set_from_mpq(Rational self, mpq_t value):
         mpq_set(self.value, value)
@@ -2077,15 +2078,40 @@ cdef class Rational(sage.structure.element.FieldElement):
     ################################################################
     # Optimized arithmetic
     ################################################################
+    def __add__(left, right):
+        """
+        Return ``left`` plus ``right``
+
+        EXAMPLES::
+
+            sage: (2/3) + (1/6)
+            5/6
+            sage: (1/3) + (1/2)
+            5/6
+            sage: (1/3) + 2
+            7/3
+        """
+        cdef Rational x
+        if type(left) is type(right):
+            x = <Rational> Rational.__new__(Rational)
+            mpq_add(x.value, (<Rational>left).value, (<Rational>right).value)
+            return x
+        elif type(right) is Integer:
+            x = <Rational> Rational.__new__(Rational)
+            mpq_add_z(x.value, (<Rational>left).value, (<Integer>right).value)
+            return x
+
+        return coercion_model.bin_op(left, right, operator.add)
+
     cpdef _add_(self, right):
         """
         Return ``right`` plus ``self``.
 
         EXAMPLES::
 
-            sage: (2/3) + (1/6) # indirect doctest
+            sage: (2/3)._add_(1/6)
             5/6
-            sage: (1/3) + (1/2) # indirect doctest
+            sage: (1/3)._add_(1/2)
             5/6
         """
         cdef Rational x
@@ -2093,16 +2119,51 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_add(x.value, self.value, (<Rational>right).value)
         return x
 
+    def __sub__(left, right):
+        """
+        Return ``left`` minus ``right``
+
+        EXAMPLES::
+
+            sage: 11/3 - 5/4
+            29/12
+
+            sage: (2/3) - 2
+            -4/3
+            sage: (-2/3) - 1
+            -5/3
+            sage: (2/3) - (-3)
+            11/3
+            sage: (-2/3) - (-3)
+            7/3
+            sage: 2/3 - polygen(QQ)
+            -x + 2/3
+        """
+        cdef Rational x
+        if type(left) is type(right):
+            x = <Rational> Rational.__new__(Rational)
+            mpq_sub(x.value, (<Rational>left).value, (<Rational>right).value)
+            return x
+        elif type(right) is Integer:
+            x = <Rational> Rational.__new__(Rational)
+            mpz_mul(mpq_numref(x.value), mpq_denref((<Rational>left).value),
+                    (<Integer>right).value)
+            mpz_sub(mpq_numref(x.value), mpq_numref((<Rational>left).value),
+                    mpq_numref(x.value))
+            mpz_set(mpq_denref(x.value), mpq_denref((<Rational>left).value))
+            return x
+
+        return coercion_model.bin_op(left, right, operator.sub)
+
     cpdef _sub_(self, right):
         """
         Return ``self`` minus ``right``.
 
         EXAMPLES::
 
-            sage: (2/3) - (1/6) # indirect doctest
+            sage: (2/3)._sub_(1/6)
             1/2
         """
-        # self and right are guaranteed to be Integers
         cdef Rational x
         x = <Rational> Rational.__new__(Rational)
         mpq_sub(x.value, self.value, (<Rational>right).value)
@@ -2122,14 +2183,39 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_neg(x.value, self.value)
         return x
 
+    def __mul__(left, right):
+        """
+        Return ``left`` times ``right``.
+
+        EXAMPLES::
+
+            sage: (3/14) * 2/3
+            1/7
+            sage: (3/14) * 10
+            15/7
+            sage: 3/14 * polygen(QQ)
+            3/14*x
+        """
+        cdef Rational x
+        if type(left) is type(right):
+            x = <Rational> Rational.__new__(Rational)
+            mpq_mul(x.value, (<Rational>left).value, (<Rational>right).value)
+            return x
+        elif type(right) is Integer:
+            x = <Rational> Rational.__new__(Rational)
+            mpq_mul_z(x.value, (<Rational>left).value, (<Integer>right).value)
+            return x
+
+        return coercion_model.bin_op(left, right, operator.mul)
+
     cpdef _mul_(self, right):
         """
         Return ``self`` times ``right``.
 
         EXAMPLES::
 
-            sage: (3/14) * 2 # indirect doctest
-            3/7
+            sage: (3/14)._mul_(2/3)
+            1/7
         """
         cdef Rational x
         x = <Rational> Rational.__new__(Rational)
@@ -2143,6 +2229,41 @@ cdef class Rational(sage.structure.element.FieldElement):
         else:
             mpq_mul(x.value, self.value, (<Rational>right).value)
         return x
+
+    def __div__(left, right):
+        """
+        Return ``left`` divided by ``right``
+
+        EXAMPLES::
+
+            sage: QQ((2,3)) / QQ((-5,4))
+            -8/15
+            sage: QQ((22,3)) / 4
+            11/6
+            sage: QQ((-2,3)) / (-4)
+            1/6
+            sage: QQ((2,3)) / QQ.zero()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
+        """
+        cdef Rational x
+        if type(left) is type(right):
+            if mpq_cmp_si((<Rational> right).value, 0, 1) == 0:
+                raise ZeroDivisionError('rational division by zero')
+            x = <Rational> Rational.__new__(Rational)
+            mpq_div(x.value, (<Rational>left).value, (<Rational>right).value)
+            return x
+        elif type(right) is Integer:
+            if mpz_cmp_si((<Integer> right).value, 0) == 0:
+                raise ZeroDivisionError('rational division by zero')
+            x = <Rational> Rational.__new__(Rational)
+            mpq_div_zz(x.value, mpq_numref((<Rational>left).value), (<Integer>right).value)
+            mpz_mul(mpq_denref(x.value), mpq_denref(x.value),
+                    mpq_denref((<Rational>left).value))
+            return x
+
+        return coercion_model.bin_op(left, right, operator.div)
 
     cpdef _div_(self, right):
         """

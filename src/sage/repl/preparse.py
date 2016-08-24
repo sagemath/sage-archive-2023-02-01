@@ -1377,10 +1377,11 @@ def _strip_quotes(s):
 
 
 def handle_encoding_declaration(contents, out):
-    r"""Find a PEP 263-style Python encoding declaration in the first or
-    second line of `contents`. If found, output it to `out` and return
-    `contents` without the encoding line; otherwise output a default
-    UTF-8 declaration and return `contents`.
+    r"""
+    Find a PEP 263-style Python encoding declaration in the first or
+    second line of ``contents``. If found, output it to ``out`` and return
+    ``contents`` without the encoding line; otherwise output a default
+    UTF-8 declaration and return ``contents``.
 
     EXAMPLES::
 

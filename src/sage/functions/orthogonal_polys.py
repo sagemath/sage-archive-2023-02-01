@@ -834,7 +834,6 @@ class Func_chebyshev_T(ChebyshevFunction):
         else:
             return 2*a*b - x, both and 2*b*b - 1
 
-
     def _eval_numpy_(self, n, x):
         """
         Evaluate ``self`` using numpy.

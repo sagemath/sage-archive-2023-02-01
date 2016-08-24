@@ -21,9 +21,9 @@ see :trac:`12849`::
     sage: from sage.env import SAGE_DOC
     sage: docfilename = os.path.join(SAGE_DOC, 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
     sage: for line in open(docfilename):
-    ....:     if "#sage.symbolic.expression.Expression.N" in line:
+    ....:     if "#sage.symbolic.expression.Expression.numerical_approx" in line:
     ....:         print(line)
-    <code class="descname">N</code><span class="sig-paren">(</span><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><span class="sig-paren">)</span>...
+    <code class="descname">numerical_approx</code><span class="sig-paren">(</span><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><span class="sig-paren">)</span>...
 
 Check that sphinx is not imported at Sage start-up::
 
@@ -40,6 +40,7 @@ Check that sphinx is not imported at Sage start-up::
 #*****************************************************************************
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os, re, sys
 import pydoc
 from sage.misc.temporary_file import tmp_dir
@@ -921,7 +922,7 @@ You can build this with 'sage -docbuild {} html'.""".format(s))
                           extra2, extra3, extra4, extra5] if s])
         print(format_search_as_html(title, results, terms))
     else:
-        import pager
+        from . import pager
         pager.pager()(results)
 
 
@@ -1244,7 +1245,7 @@ def format_search_as_html(what, r, search):
 #######################################
 ## Add detex'ing of documentation
 #######################################
-import sageinspect
+from . import sageinspect
 
 def my_getsource(obj, oname=''):
     """

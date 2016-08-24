@@ -225,7 +225,7 @@ class BipartiteGraph(Graph):
     TESTS:
 
     Make sure we can create a ``BipartiteGraph`` with keywords but no
-    positional arguments (trac #10958).
+    positional arguments (:trac:`10958`).
 
     ::
 
@@ -234,7 +234,7 @@ class BipartiteGraph(Graph):
         True
 
     Ensure that we can construct a ``BipartiteGraph`` with isolated vertices
-    via the reduced adjacency matrix (trac #10356)::
+    via the reduced adjacency matrix (:trac:`10356`)::
 
         sage: a=BipartiteGraph(matrix(2,2,[1,0,1,0]))
         sage: a

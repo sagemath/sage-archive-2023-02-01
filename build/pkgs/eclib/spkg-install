@@ -32,9 +32,6 @@ else
     CXXFLAGS="-g -O3 $CXXFLAGS"
 fi
 
-# C++11 workaround https://trac.sagemath.org/ticket/20926
-CXXFLAGS="$CXXFLAGS -std=c++98"
-
 export CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
 
 

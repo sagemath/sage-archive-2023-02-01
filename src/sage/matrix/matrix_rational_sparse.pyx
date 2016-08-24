@@ -47,7 +47,7 @@ from matrix_rational_dense cimport Matrix_rational_dense
 
 from sage.misc.misc import verbose
 
-cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
+cdef class Matrix_rational_sparse(Matrix_sparse):
 
     ########################################################################
     # LEVEL 1 functionality
@@ -60,7 +60,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
         # set the parent, nrows, ncols, etc.
-        matrix_sparse.Matrix_sparse.__init__(self, parent)
+        Matrix_sparse.__init__(self, parent)
 
         self._matrix = <mpq_vector*> sig_malloc(parent.nrows()*sizeof(mpq_vector))
         if self._matrix == NULL:
@@ -331,7 +331,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE:::
+        EXAMPLE::
 
             sage: M = Matrix(QQ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]

@@ -3208,10 +3208,6 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         E = self.curve()
         return E.modular_parametrization()(tau)
 
-    #This line is added to resolve ticket 9032, because both top-level function
-    #and method call _numerical_approx instead of numerical_approx
-    _numerical_approx=numerical_approx
-
     def tau(self):
         r"""
         Return `\tau` in the upper half plane that maps via the

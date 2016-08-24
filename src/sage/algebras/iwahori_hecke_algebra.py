@@ -205,6 +205,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         sage: T(C[1])
         (u^-1*v^-1)*T[1] + (-u*v^-1)
         sage: Cp(C[1])
+        doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
+        See http://trac.sagemath.org/21043 for details.
         Cp[1] + (-u*v^-1-u^-1*v)
         sage: elt = Cp[2]*Cp[3]+C[1]; elt
         Cp[2,3] + Cp[1] + (-u*v^-1-u^-1*v)
@@ -1084,6 +1086,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     sage: elt.goldman_involution().goldman_involution() == elt
                     True
                     sage: H.A()(elt).goldman_involution()==elt.goldman_involution()
+                    doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
+                    See http://trac.sagemath.org/21043 for details.
                     True
 
                 With different parameters::

@@ -271,8 +271,8 @@ def get_fn_serial():
 
 cdef object subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExVector& seq):
     """
-    Convert arguments from ``GiNaC::subs()`` to a PyTuple. 
-    
+    Convert arguments from ``GiNaC::subs()`` to a PyTuple.
+
     EXAMPLES::
 
         sage: from sage.symbolic.function import BuiltinFunction
@@ -285,7 +285,7 @@ cdef object subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExV
         ....:         return args[-1]
         sage: tfunc = TFunc()
         sage: tfunc(x).subs(x=1)
-        len(args): 3, types: [<type 'sage.symbolic.substitution_map.SubstitutionMap'>, 
+        len(args): 3, types: [<type 'sage.symbolic.substitution_map.SubstitutionMap'>,
           <type 'int'>,        # 64-bit
           <type 'long'>,       # 32-bit
           <type 'sage.symbolic.expression.Expression'>]
@@ -747,11 +747,39 @@ cdef unsigned py_get_serial_for_new_sfunction(stdstring &s,
 # Modular helpers
 #################################################################
 
-cdef int py_get_parent_char(object o) except -1:
-    if isinstance(o, Element):
-        return (<Element>o)._parent.characteristic()
-    else:
+cdef int py_get_parent_char(o) except -1:
+    """
+    TESTS:
+
+    We check that :trac:`21187` is resolved::
+
+        sage: p = next_prime(2^100)
+        sage: R.<y> = FiniteField(p)[]
+        sage: y = SR(y)
+        sage: x + y
+        x + y
+        sage: p * y
+        0
+    """
+    if not isinstance(o, Element):
         return 0
+
+    c = (<Element>o)._parent.characteristic()
+
+    # Pynac only differentiates between
+    # - characteristic 0
+    # - characteristic 2
+    # - characteristic > 0 but not 2
+    #
+    # To avoid integer overflow in the last case, we just return 3
+    # instead of the actual characteristic.
+    if not c:
+        return 0
+    elif c == 2:
+        return 2
+    else:
+        return 3
+
 
 #################################################################
 # power helpers

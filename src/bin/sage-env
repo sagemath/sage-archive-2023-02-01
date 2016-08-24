@@ -146,6 +146,18 @@ if [ "$SAGE_ROOT" != "$NEW_SAGE_ROOT" -a -n "$SAGE_ROOT" ]; then
     echo >&2 "New SAGE_ROOT=$NEW_SAGE_ROOT"
 fi
 
+# Display the Sage startup banner, used in src/bin/sage
+sage_banner() {
+    if [ "$SAGE_BANNER" = "bare" ]; then
+        cat "$SAGE_ROOT/VERSION.txt"
+    elif [ "$SAGE_BANNER" != "no" ]; then
+        # This file sage-banner is not yet available during the build
+        # of Sage, so we ignore errors from cat.
+        cat "$SAGE_LOCAL/bin/sage-banner" 2>/dev/null
+    fi
+}
+
+
 # Don't execute the commands more than once for the same version of
 # sage-env.  Check this after checking the validity of SAGE_ROOT, but
 # before modifying its value.
@@ -260,12 +272,6 @@ if [ -z "${SAGE_ORIG_PATH_SET}" ]; then
     SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET 
 fi 
 export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
-
-if [ "$SAGE_BANNER" = "bare" ]; then
-    export SAGE_BANNER_TEXT=$(cat "$SAGE_ROOT/VERSION.txt")
-elif [ "$SAGE_BANNER" != "no" ]; then
-    export SAGE_BANNER_TEXT=$(cat "$SAGE_LOCAL/bin/sage-banner")
-fi
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
 # Since the user might do something crazy we do not do any checks, but hope for the best.

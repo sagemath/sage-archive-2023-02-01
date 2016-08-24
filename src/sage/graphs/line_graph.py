@@ -252,7 +252,7 @@ def is_line_graph(g, certificate = False):
             RR, _ = root_graph(gg)
             R = R + RR
 
-        _, isom = g.is_isomorphic(R.line_graph(labels = False), certify = True)
+        _, isom = g.is_isomorphic(R.line_graph(labels = False), certificate = True)
 
     return (True, R, isom)
 
@@ -488,14 +488,14 @@ def root_graph(g, verbose = False):
         from sage.graphs.graph import Graph
         root = Graph([(0,1),(1,2),(2,0),(0,3)])
         return (root,
-                g.is_isomorphic(root.line_graph(labels = False), certify = True)[1])
+                g.is_isomorphic(root.line_graph(labels = False), certificate = True)[1])
 
     # Wheel on 5 vertices ?
     elif g.order() == 5 and g.size() == 8 and min(g.degree()) == 3:
         from sage.graphs.generators.basic import DiamondGraph
         root = DiamondGraph()
         return (root,
-                g.is_isomorphic(root.line_graph(labels = False), certify = True)[1])
+                g.is_isomorphic(root.line_graph(labels = False), certificate = True)[1])
 
     # Octahedron ?
     elif g.order() == 6 and g.size() == 12 and g.is_regular(k=4):
@@ -504,7 +504,7 @@ def root_graph(g, verbose = False):
             from sage.graphs.generators.basic import CompleteGraph
             root = CompleteGraph(4)
             return (root,
-                    g.is_isomorphic(root.line_graph(labels = False), certify = True)[1])
+                    g.is_isomorphic(root.line_graph(labels = False), certificate = True)[1])
 
     # From now on we can assume (thanks to Beineke) that no edge belongs to two
     # even triangles at once.
@@ -637,7 +637,7 @@ def root_graph(g, verbose = False):
     #
     # It's actually "just to make sure twice". This can be removed later if it
     # turns out to be too costly.
-    is_isom, isom = g.is_isomorphic(R.line_graph(labels = False), certify = True)
+    is_isom, isom = g.is_isomorphic(R.line_graph(labels = False), certificate = True)
 
     if not is_isom:
         raise Exception(error_message)

@@ -8,6 +8,9 @@ dimension `k=\frac{q^{r}-1}{q-1} - r` and minimum distance
 
 REFERENCES:
 
+    .. [HP] W. C. Huffman and V. Pless, Fundamentals of error-correcting codes,
+       Cambridge Univ. Press, 2003.
+
     .. [R] Introduction to Coding Theory, Ron Roth, Cambridge University Press, 2006
 """
 from __future__ import absolute_import

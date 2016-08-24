@@ -404,7 +404,7 @@ cdef class SkewPolynomial(AlgebraElement):
     def _call(self, eval_pt):
         """
         Helper function for the `__call__` method to accommodate
-        operator evaluation.
+        the ``@experimental`` decorator`.
 
         EXAMPLES::
 
@@ -417,7 +417,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return self.operator_eval(eval_pt)
 
-    def operator_eval(self, eval_pt):
+    cpdef operator_eval(self, eval_pt):
         """
         Evaluate ``self`` at ``eval_pt`` by the operator evaluation
         method.
@@ -449,7 +449,7 @@ cdef class SkewPolynomial(AlgebraElement):
         cdef RingElement ret = self.base_ring().zero()
         cdef RingElement a = eval_pt
         for c in coefficients:
-            ret += (<RingElement> c)*a
+            ret += c * a
             a = sigma(a)
         return ret
 

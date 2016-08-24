@@ -15,6 +15,8 @@ cdef class SkewPolynomial(AlgebraElement):
     cpdef bint is_zero(self)
     cpdef bint is_one(self)
 
+    cpdef operator_eval(self, eval_pt)
+
     # Abstract methods
     cdef void _inplace_rmul(self, SkewPolynomial_generic_dense right)
     cdef void _inplace_pow(self, Py_ssize_t n)

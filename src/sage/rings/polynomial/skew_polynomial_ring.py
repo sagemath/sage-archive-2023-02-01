@@ -432,6 +432,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         """
         return self.base_ring().characteristic()
 
+    @cached_method
     def twist_map(self, n=1):
         """
         Return the twist map, the automorphism of the base ring of
@@ -477,19 +478,12 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
                   Defn: t |--> t + 1
         """
         try:
-            return self._maps[n]
-        except KeyError:
-            if n >= 0:
-                twist_map = self._map**n
-                self._maps[n] = twist_map
-                return twist_map
+            return self._map ** n
+        except TypeError, e:
+            if n < 0:
+                raise NotImplementedError("inversion of the twist map %s" % self._map)
             else:
-                try:
-                    twist_map = self._map**n
-                except TypeError:
-                    raise NotImplementedError("inversion of the twist map %s" % self._map)
-                self._maps[n] = twist_map
-                return twist_map
+                raise ValueError("Unexpected error in iterating the twist map: %s", e)
 
     @cached_method
     def gen(self, n=0):

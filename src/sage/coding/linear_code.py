@@ -1962,10 +1962,11 @@ class AbstractLinearCode(module.Module):
             ...
             ValueError: If the input is a vector which belongs to the ambient space, it has to be a codeword
         """
-        if m in self.ambient_space() and m not in self:
-            raise ValueError("If the input is a vector which belongs to the ambient space, it has to be a codeword")
-        if m in self:
-            return m
+        if m in self.ambient_space():
+            if m in self:
+                return m
+            else:
+                raise ValueError("If the input is a vector which belongs to the ambient space, it has to be a codeword")
         else:
             return self.encode(m)
 

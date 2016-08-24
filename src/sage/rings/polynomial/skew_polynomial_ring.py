@@ -299,10 +299,6 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
         - ``P`` -- a ring
 
-        .. NOTE::
-
-            Sparse skew polynomials are not implemented.
-
         EXAMPLES::
 
             sage: R.<t> = ZZ[]
@@ -352,7 +348,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
     def _repr_(self):
         """
-        Return string representation of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -371,7 +367,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
     def _latex_(self):
         r"""
-        Return latex representation of ``self``.
+        Return a latex representation of ``self``.
 
         EXAMPLES::
 
@@ -380,7 +376,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             sage: S.<x> = SkewPolynomialRing(R,sigma)
             sage: latex(S)
             \Bold{Z}[t][x,\begin{array}{l}
-            \text{\texttt{Ring...}}
+        \text{\texttt{Ring{}endomorphism...}}
             \end{array}]
         """
         from sage.misc.latex import latex
@@ -389,13 +385,12 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
     def change_var(self, var):
         r"""
-        Return the skew polynomial ring in variable ``var`` over the
-        same base ring.
+        Return the skew polynomial ring in variable ``var`` with the same base
+        ring and twist map as ``self``.
 
         INPUT:
 
-        - ``var`` -- a string representing the name of the new variable
-          of ``self``
+        - ``var`` -- a string representing the name of the new variable.
 
         OUTPUT:
 
@@ -407,8 +402,10 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             sage: Frob = k.frobenius_endomorphism()
             sage: R.<x> = SkewPolynomialRing(k,Frob); R
             Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
-            sage: R.change_var('y')
+            sage: Ry = R.change_var('y'); Ry
             Skew Polynomial Ring in y over Finite Field in t of size 5^3 twisted by t |--> t^5
+            sage: Ry is R.change_var('y')
+            True
         """
         from sage.rings.polynomial.skew_polynomial_ring_constructor import SkewPolynomialRing
         return SkewPolynomialRing(self.base_ring(), self._map, names=var,

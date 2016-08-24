@@ -862,7 +862,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a skew polynomial over the same base
+        - ``other`` -- a skew polynomial in the same ring as ``self``
 
         OUTPUT:
 
@@ -897,7 +897,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a skew polynomial over the same base
+        - ``other`` -- a skew polynomial in the same ring as ``self``
 
         OUTPUT:
 
@@ -946,7 +946,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a skew polynomial over the same base
+        - ``other`` -- a skew polynomial in the same ring as ``self``
 
         OUTPUT:
 
@@ -981,7 +981,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a skew polynomial over the same base
+        - ``other`` -- a skew polynomial in the same ring as ``self``
 
         OUTPUT:
 
@@ -1031,7 +1031,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- an other skew polynomial over the same base
+        - ``other`` -- a skew polynomial in the same ring as ``self``
 
         - ``monic`` -- boolean (default: ``True``). This parameter
           must be passed as a named argument.
@@ -1136,8 +1136,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- another skew polynomial over the same
-          base
+        - ``other`` -- a skew polynomial in the same ring as ``self``
 
         - ``monic`` -- boolean (default: ``True``)
 
@@ -1224,8 +1223,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- another skew polynomial over the same
-          base
+
+        - ``other`` -- a skew polynomial in the same ring as ``self``
 
         - ``monic`` -- boolean (default: ``True``)
 
@@ -1289,8 +1288,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- another skew polynomial over the same
-          base
+
+        - ``other`` -- a skew polynomial in the same ring as ``self``
 
         - ``monic`` -- boolean (default: ``True``)
 
@@ -1371,8 +1370,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- another skew polynomial over the same
-          base
+        - ``other`` -- a skew polynomial in the same ring as ``self``
 
         - ``monic`` -- boolean (default: ``True``)
 
@@ -1450,7 +1448,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- another skew polynomial over the same base
+        - ``other`` -- a skew polynomial in the same ring as ``self``
+        
         - ``monic`` -- boolean (default: ``True``)
 
         OUTPUT:
@@ -2726,8 +2725,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         INPUT:
 
-        - ``other`` -- a skew polynomial ring over the same
-          base ring
+        - ``other`` -- a skew polynomial in the same ring as ``self``
 
         OUTPUT:
 
@@ -2797,8 +2795,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         INPUT:
 
-        - ``other`` -- a skew polynomial ring over the same
-          base ring
+        - ``other`` -- a skew polynomial in the same ring as ``self``
 
         OUTPUT:
 
@@ -2865,7 +2862,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         - ``exp`` -- an Integer
 
-        - ``modulus`` -- a skew polynomial over the same ring
+        - ``modulus`` -- a skew polynomial in the same ring as ``self``
 
         OUTPUT:
 
@@ -2939,7 +2936,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         - ``exp`` -- an Integer
 
-        - ``modulus`` -- a skew polynomial over the same ring
+        - ``modulus`` -- a skew polynomial in the same ring as ``self``
 
         OUTPUT:
 
@@ -3021,7 +3018,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         - ``exp`` -- an Integer
 
-        - ``modulus`` -- a skew polynomial over the same ring
+
+        - ``modulus`` -- a skew polynomial in the same ring as ``self``
 
         OUTPUT:
 

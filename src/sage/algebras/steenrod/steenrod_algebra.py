@@ -3560,7 +3560,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             If we let `F_* (A)` be the May filtration of the Steenrod
             algebra, the weight of an element `x` is the integer `k` so
             that `x` is in `F_k(A)` and not in `F_{k+1}(A)`. According to
-            Theorem 2.6 in May's thesis [May]_, the weight of a Milnor
+            Theorem 2.6 in May's thesis [May64]_, the weight of a Milnor
             basis element is computed as follows: first, to compute the
             weight of `P(r_1,r_2, ...)`, write each `r_i` in base `p` as
             `r_i = \sum_j p^j r_{ij}`. Then each nonzero binary digit
@@ -3581,7 +3581,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
             REFERENCES:
 
-            .. [May] \J. P. May, "The cohomology of restricted Lie algebras
+            .. [May64] \J. P. May, "The cohomology of restricted Lie algebras
                and of Hopf algebras; application to the Steenrod algebra."
                Thesis, Princeton Univ., 1964.
 

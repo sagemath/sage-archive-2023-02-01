@@ -27,7 +27,7 @@ satisfying the *simplicial identities*:
     d_i s_j &= s_{j} d_{i-1} \ \  \text{if } i>j+1 \\
     s_i s_j &= s_{j+1} s_{i} \ \  \text{if } i<j+1
 
-See :wikipedia:`Simplicial_set`, Peter May's seminal book [May]_, or
+See :wikipedia:`Simplicial_set`, Peter May's seminal book [May67]_, or
 Greg Friedman's "Illustrated introduction" :arxiv:`0809.4221` for more
 information.
 
@@ -237,7 +237,7 @@ copy of the integers::
 
 REFERENCES:
 
-.. [May] \J. P. May, Simplicial Objects in Algebraic Topology,
+.. [May67] \J. P. May, Simplicial Objects in Algebraic Topology,
    University of Chicago Press (1967)
 """
 #*****************************************************************************

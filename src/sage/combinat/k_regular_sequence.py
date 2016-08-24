@@ -397,6 +397,7 @@ class kRegularSequence(RecognizableSeries):
             ValueError: a=-1 is not nonnegative.
         """
         from sage.rings.integer_ring import ZZ
+        zero = ZZ(0)
         a = ZZ(a)
         b = ZZ(b)
 
@@ -411,23 +412,17 @@ class kRegularSequence(RecognizableSeries):
         from sage.matrix.constructor import Matrix
         from sage.modules.free_module_element import vector
         P = self.parent()
-        zero = ZZ(0)
-
         k = self.parent().k
         dim = self.dimension()
-        #min_c = min(b, 0)
-        #max_c = max(a, a + (b-1)//k + 1)
-        #range_c = srange(min_c, max_c)
-        ## We use the 'if' below instead of the less efficient
-        ##   max_c = max(a, a + b)
-        ## or
-        ##   max_c = max(a, a + (b-1)//k + 1, b + 1)
-        ## above.
-        #if b not in range_c:
-        #    range_c.append(b)
-        #    b = max_c
-
         kernel = [b]
+
+        # Below, we use a dynamic approach to find the shifts of the
+        # sequences in the kernel. According to [AS2003]_, the static range
+        #    [min(b, 0), max(a, a + b))
+        # suffices. However, it seems that the smaller set
+        #    [min(b, 0), max(a, a + (b-1)//k + 1)) \cup {b}
+        # suffices as well.
+        kernel = list(b)
 
         def pad(T, d):
             di = kernel.index(d)

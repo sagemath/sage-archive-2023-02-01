@@ -1230,13 +1230,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         it = self._hasse_diagram.orthocomplementations_iterator()
         try:
-            _ = it.next()
+            _ = next(it)
             if not unique:
                 return True
         except StopIteration:
             return False
         try:
-            _ = it.next()
+            _ = next(it)
             return False
         except StopIteration:
             return True

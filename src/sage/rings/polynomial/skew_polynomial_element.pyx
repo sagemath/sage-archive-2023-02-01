@@ -631,7 +631,9 @@ cdef class SkewPolynomial(AlgebraElement):
         EXAMPLES::
 
             sage: R.<t> = ZZ[]
-            sage: t.is_nilpotent()
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: x.is_nilpotent()
             Traceback (most recent call last):
             ...
             NotImplementedError

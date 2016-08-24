@@ -376,7 +376,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             sage: S.<x> = SkewPolynomialRing(R,sigma)
             sage: latex(S)
             \Bold{Z}[t][x,\begin{array}{l}
-        \text{\texttt{Ring{}endomorphism...}}
+            \text{\texttt{Ring{ }endomorphism...}}
             \end{array}]
         """
         from sage.misc.latex import latex

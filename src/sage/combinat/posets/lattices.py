@@ -1437,7 +1437,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: all(Posets.ChainPoset(i).is_upper_semimodular() for i in range(5))
             True
         """
-        nonmodular = self._hasse_diagram.is_semimodular(upper=True)
+        nonmodular = self._hasse_diagram.find_nonsemimodular_pair(upper=True)
         if nonmodular is None:
             return (True, None) if certificate else True
         if certificate:

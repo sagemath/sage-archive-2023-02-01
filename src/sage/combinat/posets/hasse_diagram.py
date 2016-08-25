@@ -1643,7 +1643,7 @@ class HasseDiagram(DiGraph):
         for i_want_python3_yield_from in recursive_fit(start, start_unbinded):
             yield i_want_python3_yield_from
 
-    def is_semimodular(self, upper):
+    def find_nonsemimodular_pair(self, upper):
         """
         Return pair of elements showing the lattice is not modular.
 
@@ -1662,15 +1662,15 @@ class HasseDiagram(DiGraph):
     
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1, 2], 1:[3, 4], 2:[4, 5], 3:[6], 4:[6], 5:[6]})
-            sage: H.is_semimodular(upper=True) is None
+            sage: H.find_nonsemimodular_pair(upper=True) is None
             True
-            sage: H.is_semimodular(upper=False)
+            sage: H.find_nonsemimodular_pair(upper=False)
             (5, 3)
 
             sage: H_ = HasseDiagram(H.reverse().relabel(lambda x: 6-x, inplace=False))
-            sage: H_.is_semimodular(upper=True)
+            sage: H_.find_nonsemimodular_pair(upper=True)
             (3, 1)
-            sage: H_.is_semimodular(upper=False) is None
+            sage: H_.find_nonsemimodular_pair(upper=False) is None
             True
         """
         if upper:

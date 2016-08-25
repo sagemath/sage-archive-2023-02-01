@@ -164,7 +164,9 @@ class GolayCode(AbstractLinearCode):
         r"""
         Return the dual code of ``self``.
 
-        As Golay Codes are self-dual codes, it just returns ``self``.
+        If ``self`` is an extended Golay code, ``self`` is returned.
+        Otherwise, it returns the output of
+        :meth:`sage.coding.linear_code.AbstractLinearCode.dual_code`
 
         EXAMPLES::
 
@@ -172,7 +174,10 @@ class GolayCode(AbstractLinearCode):
             sage: Cd = C.dual_code(); Cd
             [24, 12, 8] Golay Code over Finite Field of size 2
         """
-        return self
+        n = self.length()
+        if n % 2 == 0:
+            return self
+        return super(GolayCode, self).dual_code()
 
     def minimum_distance(self):
         r"""

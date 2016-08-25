@@ -1919,53 +1919,6 @@ cdef class SkewPolynomial(AlgebraElement):
     # alias hamming_weight for number_of_terms:
     hamming_weight = number_of_terms
 
-    def reverse(self, degree=None):
-        r"""
-        Return the skew polynomial whose coefficients are the same as those
-        of ``self`` in reverse order.
-
-        If an optional degree argument is given the coefficient list will be
-        truncated or zero padded as necessary and the reverse skew polynomial
-        will have the specified degree.
-
-        EXAMPLES::
-
-            sage: R.<t> = QQ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
-            sage: a = 1 + x^4 + (t+1)*x^2 + t^2
-            sage: a.reverse()
-            (t^2 + 1)*x^4 + (t + 1)*x^2 + 1
-            sage: a.reverse(degree=2)
-            (t^2 + 1)*x^2 + t + 1
-            sage: a.reverse(degree=6)
-            (t^2 + 1)*x^6 + (t + 1)*x^4 + x^2
-
-        TESTS::
-
-            sage: a.reverse(degree=1.5r)
-            Traceback (most recent call last):
-            ...
-            ValueError: degree argument must be a non-negative integer, got 1.5
-        """
-        cdef list v = self.list()
-        cdef unsigned long d
-        if degree:
-            d = degree
-            if d != degree:
-                raise ValueError("degree argument must be a non-negative integer, got %s"%(degree))
-            if len(v) < degree + 1:
-                v.reverse()
-                v = [0]*(degree + 1 - len(v)) + v
-            elif len(v) > degree + 1:
-                v = v[:degree+1]
-                v.reverse()
-            else:
-                v.reverse()
-        else:
-            v.reverse()
-        return self.parent()(v)
-
     def __copy__(self):
         r"""
         Return a "copy" of ``self``.

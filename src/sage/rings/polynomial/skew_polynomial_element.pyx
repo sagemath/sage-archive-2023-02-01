@@ -134,7 +134,7 @@ cdef class SkewPolynomial(AlgebraElement):
     where `\sigma` is the base ring automorphism. This is called
     the *operator evaluation* method.
 
-    EXAMPLES:
+    EXAMPLES::
 
     We illustrate some functionalities implemented in this class.
 
@@ -262,12 +262,13 @@ cdef class SkewPolynomial(AlgebraElement):
         - :mod:`sage.rings.polynomial.skew_polynomial_ring_constructor`
     """
     def __init__(self, parent, construct=False):
-        """
+        r"""
         Initialize ``self``.
 
         INPUT:
 
         - ``parent`` -- parent of ``self``
+
         - ``construct`` -- boolean (default: ``False``)
 
         TESTS::
@@ -286,7 +287,7 @@ cdef class SkewPolynomial(AlgebraElement):
         raise NotImplementedError
 
     def __hash__(self):
-        """
+        r"""
         Return hash of ``self``.
 
         EXAMPLES::
@@ -326,7 +327,7 @@ cdef class SkewPolynomial(AlgebraElement):
         """
 
     cdef SkewPolynomial _new_c(self, list coeffs, Parent P, char check=0):
-        """
+        r"""
         Fast creation of a new skew polynomial
 
         .. NOTE::
@@ -338,7 +339,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return l
 
     cpdef SkewPolynomial _new_constant_poly(self, RingElement a, Parent P, char check=0):
-        """
+        r"""
         Fast creation of a new constant skew polynomial
 
         EXAMPLES::
@@ -359,11 +360,11 @@ cdef class SkewPolynomial(AlgebraElement):
         return n
 
     def __call__(self, eval_pt):
-        """
+        r"""
         Evaluate ``self`` at ``eval_pt`` using operator evaluation.
 
-        Given a skew polynomial `p(x) = \sum_{i=0}^d a_i x^i`, then we define
-        the evaluation `p(r)` to be `\sum_{i=0}^d a_i \sigma^i(r)`, where
+        Given a skew polynomial `p(x) = \sum_{i=0}^d a_i * x^i`, we define
+        the evaluation `p(r)` to be `\sum_{i=0}^d a_i * \sigma^i(r)`, where
         `\sigma` is the twist map of the skew polynomial ring.
 
         INPUT:
@@ -376,10 +377,19 @@ cdef class SkewPolynomial(AlgebraElement):
 
         .. NOTE::
 
-            There are two other common notions of evaluation of `f(x)` at some element `a`
-            from the base ring, namely the remainder after left or right modulo by `x-a`.
-            The current calling convention might change in the future to accommodate these.
-            Therefore, the current method has been marked as experimental.
+            There are two other notions of evaluation of a skew polynomial
+            `p(x)` at some element `a` of the base ring. First, the value
+            of the polynomial can be defined as the remainder of the right
+            division of `p(x)` by `x-a`. Second, the value can be given by
+            the formula, `p(a) = \sum_{i=0}^{m-1} B_{i} * p(\beta_{i})`
+            where `m` is the degree of the base ring (`F_{q^m}`) of the skew
+            polynomial ring, `B_{i}` is the `i`-th element in the vector
+            representation of `a` in `F_{q}` and`\beta_{i}` is the `i`-th
+            element of the corresponding basis of `F_{q^m}` over `F_{q}`.
+            
+            The current calling convention might change in the future to
+            accommodate these. Therefore, the current method has been
+            marked as experimental.
 
         EXAMPLES::
 
@@ -397,9 +407,9 @@ cdef class SkewPolynomial(AlgebraElement):
 
     @experimental(trac_number=13215)
     def _call(self, eval_pt):
-        """
+        r"""
         Helper function for the :meth:`__call__` method to accommodate
-        the ``@experimental`` decorator`.
+        the ``@experimental`` decorator.
 
         EXAMPLES::
 
@@ -413,7 +423,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return self.operator_eval(eval_pt)
 
     cpdef operator_eval(self, eval_pt):
-        """
+        r"""
         Evaluate ``self`` at ``eval_pt`` by the operator evaluation
         method.
 
@@ -457,7 +467,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return ret
 
     def __setitem__(self, n, value):
-        """
+        r"""
         Set the ``n``-th coefficient of ``self``.
 
         This always raises an ``IndexError``, since polynomials are immutable in
@@ -477,7 +487,7 @@ cdef class SkewPolynomial(AlgebraElement):
         raise IndexError("skew polynomials are immutable")
 
     def square(self):
-        """
+        r"""
         Return the square of ``self``.
 
         EXAMPLES::
@@ -495,7 +505,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return self * self
 
     def conjugate(self, n):
-        """
+        r"""
         Return ``self`` conjugated by `x^n`, where `x` is the
         variable of ``self``.
 
@@ -543,9 +553,9 @@ cdef class SkewPolynomial(AlgebraElement):
         return r
 
     def constant_coefficient(self):
-        """
-        Return the constant coefficient (i.e. the coefficient of degree
-        `0`) of ``self``.
+        r"""
+        Return the constant coefficient (i.e. the coefficient of term
+        of degree `0`) of ``self``.
 
         EXAMPLES::
 
@@ -562,7 +572,7 @@ cdef class SkewPolynomial(AlgebraElement):
             return self[0]
 
     def leading_coefficient(self):
-        """
+        r"""
         Return the coefficient of the highest-degree monomial of ``self``.
 
         EXAMPLES::
@@ -615,18 +625,18 @@ cdef class SkewPolynomial(AlgebraElement):
         r"""
         Check if ``self`` is nilpotent.
 
-        This is currently not implemented.
-
         Given a commutative ring `R` and a base ring automorphism `\sigma`
         of order `n`, an element `f` of `R[X, \sigma]` is nilpotent if
         and only if all coefficients of `f^n` are nilpotent in `R`.
 
-        .. TODO::
+        .. NOTE::
 
             The paper "Nilpotents and units in skew polynomial rings
             over commutative rings" by M. Rimmer and K.R. Pearson describes
             the method to check whether a given skew polynomial is nilpotent.
-            That method requires the order of the automorphism.
+            That method however, requires one to know the order of the
+            automorphism which is not available in Sage. This method is thus
+            not yet implemented. 
 
         EXAMPLES::
 
@@ -641,8 +651,8 @@ cdef class SkewPolynomial(AlgebraElement):
         raise NotImplementedError
 
     def is_monic(self):
-        """
-        Return ``True`` if this skew polynomial is monic
+        r"""
+        Return ``True`` if this skew polynomial is monic.
 
         The zero polynomial is by definition not monic.
 
@@ -667,13 +677,13 @@ cdef class SkewPolynomial(AlgebraElement):
         return not self.is_zero() and self[self.degree()] == 1
 
     def left_monic(self):
-        """
+        r"""
         Return the unique monic skew polynomial `m` which divides ``self`` on
         the left and has the same degree.
 
-        If `p` is ``self`` has degree `n`, then `m = p \sigma^{-n}(1/k)`, where `k`
-        is the leading coefficient of ``self``, i.e. by the appropriate scalar
-        multiplication on the right.
+        Given a skew polynomial `p` of degree `n`, its left monic is given by
+        `m = p \sigma^{-n}(1/k)`, where `k` is the leading coefficient of
+        `p`, i.e. by the appropriate scalar multiplication on the right.
 
         EXAMPLES::
 
@@ -719,14 +729,13 @@ cdef class SkewPolynomial(AlgebraElement):
         return r
 
     def right_monic(self):
-        """
+        r"""
         Return the unique monic skew polynomial `m` which divides ``self`` on
         the right and has the same degree.
 
-        If `p` is ``self`` has degree `n`, then `m = (1/k) p`, where `k`
-        is the leading coefficient of ``self``, i.e. by the appropriate scalar
-        multiplication on the left.
-
+        Given a skew polynomial `p` of degree `n`, its left monic is given by
+        `m = (1/k) * p`, where `k` is the leading coefficient of `p`, i.e. by
+        the appropriate scalar multiplication on the left.
 
         EXAMPLES::
 
@@ -771,9 +780,9 @@ cdef class SkewPolynomial(AlgebraElement):
         return r
 
     cpdef _mod_(self, other):
-        """
+        r"""
         Return the remainder in the *right* euclidean division of
-        this skew polynomial by ``other``
+        ``self`` by ``other```.
 
         TESTS::
 
@@ -794,7 +803,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return r
 
     cpdef _floordiv_(self, right):
-        """
+        r"""
         Return the quotient of the *right* euclidean division of
         ``self`` by ``right``.
 
@@ -821,8 +830,8 @@ cdef class SkewPolynomial(AlgebraElement):
         return q
 
     cpdef _div_(self, right):
-        """
-        Not Implemented
+        r"""
+        Not Implemented.
 
         To implement this, localization of Ore rings is needed, see
         :trac:`13215`.
@@ -851,8 +860,8 @@ cdef class SkewPolynomial(AlgebraElement):
         raise NotImplementedError("localization of Ore rings not yet implemented")
 
     def is_left_divisible_by(self, other):
-        """
-        Return whether ``self`` is divisible by ``other`` on the left.
+        r"""
+        Check if ``self`` is divisible by ``other`` on the left.
 
         INPUT:
 
@@ -886,7 +895,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return r.is_zero()
 
     def is_right_divisible_by(self, other):
-        """
+        r"""
         Check if ``self`` is divisible by ``other`` on the right.
 
         INPUT:
@@ -935,7 +944,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return r.is_zero()
 
     def left_divides(self, other):
-        """
+        r"""
         Check if ``self`` divides ``other`` on the left.
 
         INPUT:
@@ -970,7 +979,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return r.is_zero()
 
     def right_divides(self, other):
-        """
+        r"""
         Check if ``self`` divides ``other`` on the right.
 
         INPUT:
@@ -1020,7 +1029,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     @coerce_binop
     def left_xgcd(self, other, monic=True):
-        """
+        r"""
         Return the left gcd of ``self`` and ``other`` along with the
         coefficients for the linear combination.
 
@@ -1054,7 +1063,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         .. NOTE::
 
-            Works only if two following conditions are fulfilled
+            Works only if following two conditions are fulfilled
             (otherwise left gcd do not exist in general):
             1) the base ring is a field and 2) the twist map on
             this field is bijective.
@@ -1130,7 +1139,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     @coerce_binop
     def right_xgcd(self, other, monic=True):
-        """
+        r"""
         Return the right gcd of ``self`` and ``other`` along with the
         coefficients for the linear combination.
 
@@ -1222,12 +1231,12 @@ cdef class SkewPolynomial(AlgebraElement):
             V = lc * V
         return G,U,V
 
+    @coerce_binop
     def right_gcd(self, other, monic=True):
-        """
+        r"""
         Return the right gcd of ``self`` and ``other``.
 
         INPUT:
-
 
         - ``other`` -- a skew polynomial in the same ring as ``self``
 
@@ -1289,11 +1298,10 @@ cdef class SkewPolynomial(AlgebraElement):
 
     @coerce_binop
     def left_gcd(self, other, monic=True):
-        """
+        r"""
         Return the left gcd of ``self`` and ``other``.
 
         INPUT:
-
 
         - ``other`` -- a skew polynomial in the same ring as ``self``
 
@@ -1372,7 +1380,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     @coerce_binop
     def left_lcm(self, other, monic=True):
-        """
+        r"""
         Return the left lcm of ``self`` and ``other``.
 
         INPUT:
@@ -1451,7 +1459,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     @coerce_binop
     def right_lcm(self, other, monic=True):
-        """
+        r"""
         Return the right lcm of ``self`` and ``other``.
 
         INPUT:
@@ -1546,7 +1554,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return V1
 
     def _repr_(self, name=None):
-        """
+        r"""
         Return string representation of this skew polynomial.
 
         INPUT:
@@ -1647,10 +1655,9 @@ cdef class SkewPolynomial(AlgebraElement):
         return s[1:].lstrip().rstrip()
 
     def _is_atomic(self):
-        """
-        Returns whether ``self`` is a single monomial whose leading coefficient
+        r"""
+        Check ``self`` is a single monomial whose leading coefficient
         is atomic in the base ring.
-
 
         EXAMPLES::
 
@@ -1666,7 +1673,7 @@ cdef class SkewPolynomial(AlgebraElement):
                 self.leading_coefficient()._is_atomic())
 
     def __nonzero__(self):
-        """
+        r"""
         Test whether ``self`` is nonzero.
 
         EXAMPLES::
@@ -1684,7 +1691,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return not self.is_zero()
 
     def base_ring(self):
-        """
+        r"""
         Return the base ring of ``self``.
 
         EXAMPLES::
@@ -1767,11 +1774,11 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: a = x^5 + t^4*x^4 + t^2*x^2 + t^10
             sage: a >> 2
             x^3 + t^4*x^2 + t^2
-       """
+        """
         return self.shift(-k)
 
     def change_variable_name(self, var):
-        """
+        r"""
         Change the name of the variable of ``self``.
 
         This will create the skew polynomial ring with the new name but same
@@ -1802,7 +1809,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return R(self.list())
 
     def is_term(self):
-        """
+        r"""
         Return ``True`` if ``self`` is an element of the base ring times a
         power of the generator.
 
@@ -1829,7 +1836,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return len(self.exponents()) == 1
 
     def is_monomial(self):
-        """
+        r"""
         Return ``True`` if ``self`` is a monomial, i.e., a power of
         the generator.
 
@@ -1864,13 +1871,15 @@ cdef class SkewPolynomial(AlgebraElement):
         return self.is_term() and self.leading_coefficient() == 1
 
     cpdef list coefficients(self, sparse=True):
-        """
+        r"""
         Return the coefficients of the monomials appearing in ``self``.
 
         If ``sparse=True`` (the default), return only the non-zero coefficients.
         Otherwise, return the same value as ``self.list()``.
 
-        This should be overridden in subclasses.
+        .. NOTE::
+
+            This should be overridden in subclasses.
 
         EXAMPLES::
 
@@ -1886,7 +1895,7 @@ cdef class SkewPolynomial(AlgebraElement):
         raise NotImplementedError
 
     def number_of_terms(self):
-        """
+        r"""
         Return the number of non-zero coefficients of ``self``.
 
         This is also known as the weight, hamming weight or sparsity.
@@ -1911,9 +1920,9 @@ cdef class SkewPolynomial(AlgebraElement):
     hamming_weight = number_of_terms
 
     def reverse(self, degree=None):
-        """
-        Return the skew polynomial whose coefficients are those of ``self`` in
-        reverse order.
+        r"""
+        Return the skew polynomial whose coefficients are the same as those
+        of ``self`` in reverse order.
 
         If an optional degree argument is given the coefficient list will be
         truncated or zero padded as necessary and the reverse skew polynomial
@@ -1958,7 +1967,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return self.parent()(v)
 
     def __copy__(self):
-        """
+        r"""
         Return a "copy" of ``self``.
 
         In Sage, since skew polynomials are immutable, this just returns
@@ -1977,7 +1986,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return self
 
     cpdef bint is_zero(self):
-        """
+        r"""
         Return ``True`` if ``self`` is the zero polynomial.
 
         EXAMPLES::
@@ -1995,7 +2004,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return self.degree() == -1
 
     cpdef bint is_one(self):
-        """
+        r"""
         Test whether this polynomial is `1`.
 
         EXAMPLES::
@@ -2012,7 +2021,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     @coerce_binop
     def right_mod(self, other):
-        """
+        r"""
         Return the remainder of right division of ``self`` by ``other``.
 
         EXAMPLES::
@@ -2031,7 +2040,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     @coerce_binop
     def left_mod(self, other):
-        """
+        r"""
         Return the remainder of left division of ``self`` by ``other``.
 
         EXAMPLES::
@@ -2048,7 +2057,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return r
 
     def is_constant(self):
-        """
+        r"""
         Return whether ``self`` is a constant polynomial.
 
         EXAMPLES::
@@ -2064,7 +2073,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return self.degree() <= 0
 
     def exponents(self):
-        """
+        r"""
         Return the exponents of the monomials appearing in ``self``.
 
         EXAMPLES::
@@ -2079,7 +2088,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return [i for i in range(self.degree()+1) if bool(self[i])]
 
     def prec(self):
-        """
+        r"""
         Return the precision of ``self``.
 
         This is always infinity, since polynomials are of infinite precision by
@@ -2096,17 +2105,17 @@ cdef class SkewPolynomial(AlgebraElement):
         return infinity
 
     def padded_list(self, n=None):
-        """
+        r"""
         Return list of coefficients of ``self`` up to (but not including)
         degree `n`.
 
-        Includes 0's in the list on the right so that the list always has length
+        Includes `0`s in the list on the right so that the list always has length
         exactly `n`.
 
         INPUT:
 
         - ``n`` -- (default: ``None``); if given, an integer that
-          is at least 0
+          is at least `0`
 
         EXAMPLES::
 
@@ -2141,7 +2150,7 @@ cdef class SkewPolynomial(AlgebraElement):
             return v[:int(n)]
 
     def variable_name(self):
-        """
+        r"""
         Return the string name of the variable used in ``self``.
 
         EXAMPLES::
@@ -2157,13 +2166,13 @@ cdef class SkewPolynomial(AlgebraElement):
 
 
 cdef class SkewPolynomial_generic_dense(SkewPolynomial):
-    """
+    r"""
     Generic implementation of dense skew polynomial supporting any valid base
     ring and twist map.
     """
 
     def __init__(self, parent, x=None, int check=1, int construct=0, **kwds):
-        """
+        r"""
         Construct a skew polynomial over the given parent with the given
         coefficients.
 
@@ -2247,7 +2256,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             self._coeffs = x
 
     def __reduce__(self):
-        """
+        r"""
         Return the generic dense skew polynomial corresponding to the
         current parameters provided ``self``.
 
@@ -2264,7 +2273,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return (self._parent, (self._coeffs,))
 
     cdef long _hash_c(self):
-        """
+        r"""
         This hash incorporates the name of the variable.
 
         .. NOTE::
@@ -2295,7 +2304,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return result
 
     cpdef _richcmp_(left, right, int op):
-        """
+        r"""
         Compare the two skew polynomials ``self`` and ``other``.
 
         We order polynomials first by degree, then in dictionary order
@@ -2318,7 +2327,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return PyObject_RichCompare(x, y, op)
 
     def __iter__(self):
-        """
+        r"""
         Iterate over the list of coefficients of ``self``.
 
         EXAMPLES::
@@ -2333,7 +2342,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return iter((<SkewPolynomial_generic_dense>self)._coeffs)
 
     def __getitem__(self, n):
-        """
+        r"""
         Return the `n`-th coefficient of ``self``.
 
         INPUT:
@@ -2362,7 +2371,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             return self.base_ring().zero()
 
     cpdef list list(self):
-        """
+        r"""
         Return a list of the coefficients of ``self``.
 
         EXAMPLES::
@@ -2386,7 +2395,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return list((<SkewPolynomial_generic_dense>self)._coeffs) # This creates a shallow copy
 
     cpdef dict dict(self):
-        """
+        r"""
         Return a dictionary representation of ``self``.
 
         EXAMPLES::
@@ -2430,7 +2439,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return len(self._coeffs) - 1
 
     cpdef _add_(self, right):
-        """
+        r"""
         Add two polynomials.
 
         EXAMPLES::
@@ -2461,7 +2470,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return r
 
     cpdef _sub_(self, right):
-        """
+        r"""
         Subtract polynomial ``right`` from ``self``.
 
         EXAMPLES::
@@ -2493,7 +2502,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return r
 
     cpdef _neg_(self):
-        """
+        r"""
         Return the negative of ``self``.
 
         EXAMPLES::
@@ -2510,7 +2519,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return c
 
     cpdef ModuleElement _lmul_(self, RingElement right):
-        """
+        r"""
         Multiply ``self`` on the right by scalar.
 
         INPUT:
@@ -2539,7 +2548,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return r
 
     cpdef ModuleElement _rmul_(self, RingElement left):
-        """
+        r"""
         Multiply ``self`` on the left by scalar.
 
         INPUT:
@@ -2566,7 +2575,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return r
 
     cpdef _mul_(self, right):
-        """
+        r"""
         Multiply ``self`` on the right by a skew polynomial.
 
         INPUT:
@@ -2617,11 +2626,13 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return r
 
     cdef SkewPolynomial _new_c(self, list coeffs, Parent P, char check=0):
-        """
+        r"""
         Fast creation of a new skew polynomial given a list of coefficients.
 
-        The list ``coeffs`` is stored internally in the newly created skew
-        polynomial, so this must not be modified after calling this method.
+        .. WARNING::
+
+            The list ``coeffs`` is stored internally in the newly created skew
+            polynomial, so this must not be modified after calling this method.
 
         TESTS::
 
@@ -2641,8 +2652,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return f
 
     cdef void __normalize(self):
-        """
-        Remove higher order 0-coefficients from the representation of ``self``.
+        r"""
+        Remove higher order `0`-coefficients from the representation of ``self``.
 
         TESTS::
 
@@ -2686,7 +2697,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return v
 
     cdef void _inplace_rmul(self, SkewPolynomial_generic_dense right):
-        """
+        r"""
         Replace ``self`` by ``self*right`` (only for internal use).
 
         TESTS::
@@ -2722,7 +2733,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                 x[k] = sum
 
     cdef void _inplace_pow(self, Py_ssize_t n):
-        """
+        r"""
         Replace ``self`` by ``self**n`` (only for internal use).
 
         TESTS::
@@ -2751,7 +2762,6 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         Return the polynomial resulting from discarding all monomials of degree
         at least `n`.
 
-
         EXAMPLES::
 
             sage: R.<t> = ZZ[]
@@ -2767,7 +2777,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
     @coerce_binop
     def left_quo_rem(self, other):
-        """
+        r"""
         Return the quotient and remainder of the left euclidean
         division of ``self`` by ``other``.
 
@@ -2837,7 +2847,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
     @coerce_binop
     def right_quo_rem(self, other):
-        """
+        r"""
         Return the quotient and remainder of the right euclidean
         division of ``self`` by ``other``.
 
@@ -2902,7 +2912,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return (self._new_c(q, parent), self._new_c(a[:db], parent, 1))
 
     cpdef left_power_mod(self, exp, modulus):
-        """
+        r"""
         Return the remainder of ``self**exp`` in the left euclidean division
         by ``modulus``.
 
@@ -2964,7 +2974,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return r
 
     cpdef right_power_mod(self, exp, modulus):
-        """
+        r"""
         Return the remainder of ``self**exp`` in the right euclidean division
         by ``modulus``.
 
@@ -3034,7 +3044,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return r
 
     def __pow__(self, exp, modulus):
-        """
+        r"""
         Return the remainder of ``self**exp`` in the left euclidean
         division by ``modulus``.
 
@@ -3042,13 +3052,21 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
 
         - ``exp`` -- an Integer
 
-
         - ``modulus`` -- a skew polynomial in the same ring as ``self``
 
         OUTPUT:
 
         Remainder of ``self**exp`` in the right euclidean division
         by ``modulus``.
+
+        REMARK:
+
+        The quotient of the underlying skew polynomial ring by the
+        principal ideal generated by ``modulus`` is in general *not*
+        a ring.
+
+        As a consequence, Sage first computes exactly ``self**exp``
+        and then reduce it modulo ``modulus``.
 
         .. SEEALSO::
 
@@ -3073,7 +3091,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         return self.right_power_mod(exp, modulus)
 
     cpdef list coefficients(self, sparse=True):
-        """
+        r"""
         Return the coefficients of the monomials appearing in ``self``.
 
         If ``sparse=True`` (the default), return only the non-zero coefficients.
@@ -3097,7 +3115,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             return self._coeffs
 
 cdef class ConstantSkewPolynomialSection(Map):
-    """
+    r"""
     Representation of the canonical homomorphism from the constants of a skew
     polynomial ring to the base ring.
 
@@ -3116,24 +3134,28 @@ cdef class ConstantSkewPolynomialSection(Map):
             To:   Univariate Polynomial Ring in t over Rational Field
     """
     cpdef Element _call_(self, x):
-        """
+        r"""
+        Return the corresponding element of the base ring if ``self`` is a
+        constant skew polynomial. Otherwise, it fails.
+        
         TESTS::
-        sage: from sage.rings.polynomial.skew_polynomial_element import ConstantSkewPolynomialSection
-        sage: R.<t> = QQ[]
-        sage: sigma = R.hom([t+1])
-        sage: S.<x> = R['x',sigma]
-        sage: m = ConstantSkewPolynomialSection(S, R); m
-        Generic map:
-            From: Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
-            To:   Univariate Polynomial Ring in t over Rational Field
-        sage: m(S([0,1])-S([0,1]))
-        0
-        sage: m(S([3,1])-S([0,1]))
-        3
-        sage: m(S([0,1])-S([0,t]))
-        Traceback (most recent call last):
-        ...
-        TypeError: not a constant polynomial
+            
+            sage: from sage.rings.polynomial.skew_polynomial_element import ConstantSkewPolynomialSection
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: m = ConstantSkewPolynomialSection(S, R); m
+            Generic map:
+                From: Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
+                To:   Univariate Polynomial Ring in t over Rational Field
+            sage: m(S([0,1])-S([0,1]))
+            0
+            sage: m(S([3,1])-S([0,1]))
+            3
+            sage: m(S([0,1])-S([0,t]))
+            Traceback (most recent call last):
+            ...
+            TypeError: not a constant polynomial
         """
         if x.degree() <= 0:
             try:
@@ -3144,7 +3166,7 @@ cdef class ConstantSkewPolynomialSection(Map):
             raise TypeError("not a constant polynomial")
 
 cdef class SkewPolynomialBaseringInjection(Morphism):
-    """
+    r"""
     Representation of the canonical homomorphism from a ring `R` into a skew
     polynomial ring over `R`.
 
@@ -3167,7 +3189,7 @@ cdef class SkewPolynomialBaseringInjection(Morphism):
     """
 
     def __init__(self, domain, codomain):
-        """
+        r"""
         Construct a Skew Polynomial Basering Injection.
 
         INPUT:
@@ -3201,7 +3223,7 @@ cdef class SkewPolynomialBaseringInjection(Morphism):
         self._new_constant_poly_ = self._an_element._new_constant_poly
 
     def an_element(self):
-        """
+        r"""
         Return an element of the codomain of the ring homomorphism.
 
         EXAMPLES::
@@ -3217,7 +3239,7 @@ cdef class SkewPolynomialBaseringInjection(Morphism):
         return self._an_element
 
     cpdef Element _call_(self, e):
-        """
+        r"""
         Return the corresponding skew polynomial to the element from the
         base ring according to ``self``.
 
@@ -3247,7 +3269,7 @@ cdef class SkewPolynomialBaseringInjection(Morphism):
             return self._codomain(e)
 
     def section(self):
-        """
+        r"""
         Return the canonical homomorphism from the constants of a skew
         polynomial ring to the base ring according to ``self``.
 
@@ -3264,5 +3286,3 @@ cdef class SkewPolynomialBaseringInjection(Morphism):
             To:   Finite Field in t of size 5^3
         """
         return ConstantSkewPolynomialSection(self._codomain, self.domain())
-
-    

@@ -1803,8 +1803,21 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: P2 = P1.dual()
             sage: P1.is_sublattice(P2)
             False
+
+            sage: P = MeetSemilattice({0: [1]})
+            sage: E.is_sublattice(P)
+            Traceback (most recent call last):
+            ...
+            TypeError: other is not a lattice
+            sage: P = JoinSemilattice({0: [1]})
+            sage: E.is_sublattice(P)
+            Traceback (most recent call last):
+            ...
+            TypeError: other is not a lattice
         """
-        if not hasattr(other, 'meet') or not hasattr(other, 'join'):
+        try:
+            _ = other.meet; _ = other.join
+        except (AttributeError):
             raise TypeError('other is not a lattice')
         if not self.is_induced_subposet(other):
             return False

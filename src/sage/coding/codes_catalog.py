@@ -38,6 +38,7 @@ from .subfield_subcode import SubfieldSubcode
 from .guava import QuasiQuadraticResidueCode, RandomLinearCodeGuava
 _lazy_import('sage.coding.punctured_code', 'PuncturedCode')
 from .hamming_code import HammingCode
+from .golay_code import GolayCode
 from . import decoders_catalog as decoders
 from . import encoders_catalog as encoders
 from . import bounds_catalog as bounds

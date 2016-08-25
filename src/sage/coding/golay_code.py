@@ -219,7 +219,7 @@ class GolayCode(AbstractLinearCode):
             return 3
         elif n == 24:
             return 4
-        elif n = 11:
+        elif n == 11:
             return 2
         elif n == 12:
             return 3
@@ -287,7 +287,7 @@ class GolayCode(AbstractLinearCode):
 ####################### encoders ###############################
 
 
-class GolayGeneratorMatrixEncoder(Encoder):
+class GolayCodeGeneratorMatrixEncoder(Encoder):
     r"""
     Encoder for Golay codes which encodes vectors into codewords.
 
@@ -385,7 +385,7 @@ class GolayGeneratorMatrixEncoder(Encoder):
         """
         C = self.code()
         if C.base_field() == GF(2):
-        G = matrix(GF(2),
+            G = matrix(GF(2),
             [[1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
              [0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],

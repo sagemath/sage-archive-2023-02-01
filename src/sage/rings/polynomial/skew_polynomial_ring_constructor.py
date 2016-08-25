@@ -28,6 +28,7 @@ AUTHOR:
 
 from __future__ import print_function, absolute_import, division
 
+from sage import categories
 import cysignals
 from sage.structure.category_object import normalize_names
 import sage.rings.ring as ring
@@ -189,7 +190,7 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
         - Multivariate Skew Polynomial Ring
         - Add derivations.
     """
-    if not isinstance(base_ring, ring.CommutativeRing):
+    if base_ring not in categories.rings.Rings().Commutative():
         raise TypeError("base_ring must be a commutative ring")
     if base_ring_automorphism is None:
         base_ring_automorphism = IdentityMorphism(base_ring)

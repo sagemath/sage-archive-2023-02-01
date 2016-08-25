@@ -702,9 +702,8 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
 
     def canonicalize_radical(self):
         r"""
-        Choose a canonical branch of each element of self.
-        See '/src/sage/symbolic/expression.pyx' for more details about 
-        'canonicalize_radical()' method on an expression.
+        Choose a canonical branch of each entrie of ``self`` by calling
+        :meth:`Expression.canonicalize_radical()` componentwise.
 
         EXAMPLES::
 

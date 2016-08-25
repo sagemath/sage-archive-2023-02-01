@@ -1529,6 +1529,77 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
                                                 self.coefficients())
 
 
+    def _an_element_(self):
+        r"""
+        Return an element of this recognizable series.
+
+        OUTPUT:
+
+        A :class:`recognizable_series`.
+
+        EXAMPLES::
+
+            sage: RecognizableSeriesSpace(ZZ, [0, 1]).an_element()  # indirect doctest
+            [1] + [01] + [10] + 2*[11] + [001] + [010]
+                + 2*[011] + [100] + 2*[101] + 2*[110] + ...
+        """
+        from sage.matrix.constructor import Matrix
+        from sage.modules.free_module_element import vector
+        z = self.coefficients().zero()
+        o = self.coefficients().one()
+        e = self.coefficients().an_element()
+        return self(list(Matrix([[o, z], [i*o, o]])
+                         for i, _ in enumerate(self.alphabet())),
+                    vector([z, e]), right=vector([e, z]))
+
+
+    def some_elements(self):
+        r"""
+        Return some elements of this free module.
+
+        See :class:`TestSuite` for a typical use case.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: tuple(RecognizableSeriesSpace(ZZ, [0, 1]).some_elements())
+            ([1] + [01] + [10] + 2*[11] + [001] + [010]
+                 + 2*[011] + [100] + 2*[101] + 2*[110] + ...,
+             [] + [0] + [1] + [00] + [01] + [10]
+                + [11] + [000] + [001] + [010] + ...,
+             0,
+             -2*[] + 2*[0] - 4*[1] - 2*[00] + 4*[01] + 4*[10]
+                   - 8*[11] + 2*[000] - 4*[001] - 4*[010] + ...,
+             [] + [0] + 2*[1] + [00] + 2*[01] + [10]
+                + 4*[11] + [000] + 2*[001] + [010] + ...,
+             2*[] + 5*[0] + 11*[1] + 8*[00] + 14*[01] + 14*[10]
+                  + 20*[11] + 11*[000] + 17*[001] + 17*[010] + ...,
+             ...
+             [] + [0] + 10*[1] + [00] + 10*[01] + [10]
+                + 100*[11] + [000] + 10*[001] + [010] + ...)
+        """
+        from itertools import count, islice
+        from sage.matrix.matrix_space import MatrixSpace
+        from sage.modules.free_module import FreeModule
+        yield self.an_element()
+
+        C = self.coefficients()
+        some_elements_base = iter(C.some_elements())
+        k = len(self.alphabet())
+        for dim in range(1, 11):
+            elements_M = MatrixSpace(C, dim).some_elements()
+            elements_V = FreeModule(C, dim).some_elements()
+            for _ in range(3):
+                mu = list(islice(elements_M, k))
+                LR = list(islice(elements_V, 2))
+                if len(mu) != k or len(LR) != 2:
+                    break
+                yield self(mu, *LR)
+
+
     def zero(self):
         """
         Return the zero of this recognizable series space.

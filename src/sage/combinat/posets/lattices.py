@@ -1816,6 +1816,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                     other.join(self[i], self[j]) not in self):
                     return False
         return True
+
     def sublattices(self):
         """
         Return all sublattices of the lattice.

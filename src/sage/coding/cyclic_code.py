@@ -365,7 +365,7 @@ class CyclicCode(AbstractLinearCode):
       See :meth:`sage.find_generator_polynomial` for details.
 
     - ``D`` -- (default: ``None``) a subset of a defining set. Can be modified if it is not
-    cyclotomic-closed.
+      cyclotomic-closed.
 
     - ``field`` -- (default: ``None``) the base field of ``self``.
 
@@ -470,6 +470,7 @@ class CyclicCode(AbstractLinearCode):
                 raise ValueError("Length must be bigger than generator polynomial's degree")
             if not generator_pol.divides(R.gen() ** length - 1):
                 raise ValueError("Provided polynomial must divide x^n - 1, where n is the provided length")
+            self._polynomial_ring = R
             self._dimension = length - deg
             self._generator_polynomial = generator_pol
             super(CyclicCode, self).__init__(F, length, "Vector", "Syndrome")
@@ -487,6 +488,7 @@ class CyclicCode(AbstractLinearCode):
                 raise ValueError(e)
             if not g.is_monic():
                 g = g.monic()
+            self._polynomial_ring = g.parent()
             self._generator_polynomial = g
             self._dimension = code.dimension()
             super(CyclicCode, self).__init__(code.base_ring(), code.length(), "Vector", "Syndrome")
@@ -553,6 +555,7 @@ class CyclicCode(AbstractLinearCode):
             # we set class variables (and store some of the things we computed before)
             self._defining_set = pows
             self._defining_set.sort()
+            self._polynomial_ring = R
             self._generator_polynomial = g
             self._dimension = n - g.degree()
             super(CyclicCode, self).__init__(F, n, "Vector", "Syndrome")
@@ -575,8 +578,8 @@ class CyclicCode(AbstractLinearCode):
             True
         """
         g = self.generator_polynomial()
-        R = g.parent()
-        return g.divides(R(word.list()))
+        R = self._polynomial_ring
+        return (g.divides(R(word.list())) and word in self.ambient_space())
 
     def __eq__(self, other):
         r"""
@@ -592,10 +595,13 @@ class CyclicCode(AbstractLinearCode):
             sage: C1 == C2
             True
         """
-        return isinstance(other, CyclicCode) \
-                and self.base_field() == other.base_field() \
+        if not isinstance(other, CyclicCode):
+            return False
+        else:
+            R = self._polynomial_ring
+            return self.base_field() == other.base_field() \
                 and self.length() == other.length() \
-                and self.generator_polynomial() == other.generator_polynomial() \
+                and self.generator_polynomial() == R(other.generator_polynomial())
 
     def _repr_(self):
         r"""
@@ -703,7 +709,7 @@ class CyclicCode(AbstractLinearCode):
         """
         if hasattr(self, "_check_polynomial"):
             return self._check_polynomial
-        R = self.base_ring()['x']
+        R = self._polynomial_ring
         n = self.length()
         self._check_polynomial = (R.gen() ** n - 1) // self.generator_polynomial()
         return self._check_polynomial
@@ -729,7 +735,7 @@ class CyclicCode(AbstractLinearCode):
         """
         k = self.dimension()
         n = self.length()
-        R = self.base_ring()['x']
+        R = self._polynomial_ring
         h = self.check_polynomial()
         l = h.coefficients(sparse = False)
         l.reverse()
@@ -906,7 +912,7 @@ class CyclicCodePolynomialEncoder(Encoder):
 
         """
         super(CyclicCodePolynomialEncoder, self).__init__(code)
-        self._R = code.base_field()['x']
+        self._polynomial_ring = code._polynomial_ring
 
     def __eq__(self, other):
         r"""
@@ -1050,7 +1056,7 @@ class CyclicCodePolynomialEncoder(Encoder):
             sage: E.message_space()
             Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
         """
-        return self._R
+        return self._polynomial_ring
 
 
 
@@ -1103,6 +1109,7 @@ class CyclicCodeVectorEncoder(Encoder):
             Vector-style encoder for [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
 
         """
+        self._polynomial_ring = code.base_ring()['x']
         super(CyclicCodeVectorEncoder, self).__init__(code)
 
     def __eq__(self, other):
@@ -1184,7 +1191,7 @@ class CyclicCodeVectorEncoder(Encoder):
         k = self.code().dimension()
         n = self.code().length()
         F  = self.code().base_field()
-        R = F['x']
+        R = self._polynomial_ring
         p = R(m.list())
         if p.degree() > k:
             raise ValueError("Degree of the message must be at most %s" % k)
@@ -1217,7 +1224,7 @@ class CyclicCodeVectorEncoder(Encoder):
             (1, 0, 1, 0)
         """
 
-        R = self.message_space().base_ring()['x']
+        R = self._polynomial_ring
         g = self.code().generator_polynomial()
         p = R(c.list())
         l = (p//g).coefficients(sparse = False)

@@ -375,7 +375,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         The operator evaluation of ``self`` at ``eval_pt``.
 
-        .. NOTE::
+        .. TODO::
 
             There are two other notions of evaluation of a skew polynomial
             `p(x)` at some element `a` of the base ring. First, the value

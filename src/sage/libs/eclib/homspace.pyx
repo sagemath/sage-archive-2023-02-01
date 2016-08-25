@@ -211,7 +211,7 @@ cdef class ModularSymbols:
         sig_off()
         return MF.new_matrix(M)
 
-    def sparse_Hecke_matrix(self, long p, dual=False, verbose=False, base_ring=ZZ):
+    def sparse_hecke_matrix(self, long p, dual=False, verbose=False, base_ring=ZZ):
         """
         Return the matrix of the ``p``-th Hecke operator acting on
         this space of modular symbols, as a sparse Sage integer matrix.
@@ -241,7 +241,6 @@ cdef class ModularSymbols:
             sage: M = CremonaModularSymbols(37)
             sage: t = M.sparse_hecke_matrix(2); type(t)
             <type 'sage.matrix.matrix_integer_sparse.Matrix_integer_sparse'>
-            5 x 5 sparse matrix over Integer Ring
             sage: print(t)
             [ 3  0  0  0  0]
             [-1 -1  1  1  0]

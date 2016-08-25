@@ -1697,11 +1697,11 @@ class ClusterAlgebra(Parent):
         while g_vector not in self.g_vectors_so_far() and self._explored_depth <= depth:
             try:
                 seed = next(self._sd_iter)
-                if seed:
+                if isinstance(seed, ClusterAlgebraSeed)
                     self._explored_depth = seed.depth()
                 else:
-                    # We got None because self._sd_iter caught a KeyboardInterrupt, let's raise it again
-                    raise KeyboardInterrupt
+                    # We got an exception because self._sd_iter caught a KeyboardInterrupt, let's raise it again
+                    raise seed
             except StopIteration:
                 # Unless self._sd_iter has been manually altered, we checked
                 # all the seeds of self and did not find g_vector.
@@ -1889,16 +1889,17 @@ class ClusterAlgebra(Parent):
         - ``allowed_directions`` -- a tuple of integers (default ``range(self.rk())``): the
           directions in which to mutate.
 
-        - ``depth`` -- a positive integer or infinity (default ``infinity``):  the maximum depth at which to stop searching.
+        - ``depth`` -- a positive integer or infinity (default ``infinity``):
+          the maximum depth at which to stop searching.
+
+        - ``catch_KeyboardInterrupt`` -- bool (default ``False``):  whether to
+          catch ``KeyboardInterrupt`` and return it rather then raising an
+          exception. This allows the iterator returned by this method to be
+          resumed after being interrupted.
 
         ALGORITHM:
 
             This function traverses the exchange graph in a breadth-first search.
-
-            Note that upon catching a ``KeyboardInterrupt`` the iterators this
-            function produce will yield ``None`` rather then raising the
-            exception. This is done in order to be able to resume the
-            exploration from where it was interrupted.
 
         EXAMPLES::
 
@@ -1967,12 +1968,15 @@ class ClusterAlgebra(Parent):
                             new_directions = [ j for j in allowed_dirs if j > i or new_sd.b_matrix()[j,i] != 0 ]
                             clusters[new_cl] = [ new_sd, new_directions ]
                             yield new_sd
-                    except KeyboardInterrupt:
-                        print("Caught a KeyboardInterrupt; cleaning up before returning.")
-                        # mutation in direction i was not completed; put it back in for next round
-                        directions.append(i)
-                        yield
-                        continue
+                    except KeyboardInterrupt as e:
+                        if kwargs.get('catch_KeyboardInterrupt', False):
+                            print("Caught a KeyboardInterrupt; cleaning up before returning.")
+                            # mutation in direction i was not completed; put it back in for next round
+                            directions.append(i)
+                            yield e
+                            continue
+                        else:
+                            raise e
             # we went one step deeper
             depth_counter += 1
 
@@ -1995,7 +1999,7 @@ class ClusterAlgebra(Parent):
             sage: len(A.F_polynomials_so_far())
             4
         """
-        self._sd_iter = self.seeds(mutating_F=mutating_F)
+        self._sd_iter = self.seeds(mutating_F=mutating_F, catch_KeyboardInterrupt=True)
         self._explored_depth = 0
 
     def explore_to_depth(self, depth):
@@ -2016,11 +2020,11 @@ class ClusterAlgebra(Parent):
         while self._explored_depth <= depth:
             try:
                 seed = next(self._sd_iter)
-                if seed:
+                if isinstance(seed, ClusterAlgebraSeed)
                     self._explored_depth = seed.depth()
                 else:
-                    # We got None because self._sd_iter caught a KeyboardInterrupt, let's raise it again
-                    raise KeyboardInterrupt
+                    # We got an exception because self._sd_iter caught a KeyboardInterrupt, let's raise it again
+                    raise seed
             except StopIteration:
                 break
 

@@ -5639,6 +5639,7 @@ class SemistandardTableaux_size_inf(SemistandardTableaux):
                 if i != 1:
                     for k in range(1, self.size+1):
                         for c in IntegerVectors(self.size - k, i-1):
+                            c = list(c)
                             c.append(k)
                             for sst in SemistandardTableaux_shape_weight(part, Composition(c)):
                                 yield self.element_class(self, sst)
@@ -5741,6 +5742,7 @@ class SemistandardTableaux_shape_inf(SemistandardTableaux):
             if i != 1:
                 for k in range(1, n+1):
                     for c in IntegerVectors(n - k, i-1):
+                        c = list(c)
                         c.append(k)
                         for sst in SemistandardTableaux_shape_weight(self.shape, Composition(c)):
                             yield self.element_class(self, sst)
@@ -5863,8 +5865,9 @@ class SemistandardTableaux_size(SemistandardTableaux):
             pos += 1
             tot += weights[pos]
         # we now have pos elements over the diagonal and n - 2 * pos on it
-        m = diagonal_matrix(IntegerVectors(self.size - 2 * pos, self.max_entry).random_element())
-        above_diagonal = IntegerVectors(pos, kchoose2m1 + 1).random_element()
+        m = diagonal_matrix( list(IntegerVectors(self.size - 2 * pos,
+                                                 self.max_entry).random_element()) )
+        above_diagonal = list(IntegerVectors(pos, kchoose2m1 + 1).random_element())
         index = 0
         for i in range(self.max_entry - 1):
             for j in range(i + 1, self.max_entry):

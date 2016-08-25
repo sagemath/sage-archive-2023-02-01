@@ -724,6 +724,7 @@ class ClusterAlgebraSeed(SageObject):
         - ``element`` -- either a g-vector or an element of :meth:`parent`.
 
         EXAMPLES::
+
             sage: A = ClusterAlgebra(['A',3])
             sage: S = A.initial_seed()
             sage: (1,0,0) in S
@@ -1359,6 +1360,7 @@ class ClusterAlgebra(Parent):
         Return an element of ``self``.
 
         EXAMPLES::
+
             sage: A = ClusterAlgebra(['A',2])
             sage: A.an_element()
             x0

@@ -8,7 +8,6 @@ This file contains the following elements:
 
     - :class:`GolayCode`, the class for Golay codes
     - :class:`GolayGeneratorMatrixEncoder`, an encoder that uses the generator matrix
-    - :class:`GolaySyndromeDecoder`, a decoder which corrects errors using the syndrome
 """
 
 #*****************************************************************************
@@ -31,7 +30,6 @@ from .linear_code import (AbstractLinearCode,
                          LinearCodeSyndromeDecoder,
                          LinearCodeNearestNeighborDecoder)
 from .encoder import Encoder
-from .decoder import Decoder, DecodingError
 from sage.rings.arith import xgcd
 from sage.misc.misc_c import prod
 from sage.functions.other import binomial, floor, sqrt
@@ -45,72 +43,50 @@ class GolayCode(AbstractLinearCode):
 
     INPUT:
 
-    - ``alphabet`` -- Either ``"binary"``, ``"ternary"``, ``GF(2)`` or ``GF(3)``.
-      The created Golay code will be defined over the specified alphabet.
+    - ``base_field`` -- The base field over which the code is defined.
+      Can only be ``GF(2)`` or ``GF(3)``.
 
     - ``extended`` -- (default: ``True``) if set to ``True``, creates an extended Golay
       code.
 
     EXAMPLES::
 
-    A Golay Code can be constructed by specifying the alphabet and type parameters.
+        sage: codes.GolayCode(GF(2))
+        [24, 6] extended Golay code over GF(2)
 
-        sage: C = GolayCode(binary, true)
-        sage: C
-        [24, 12, 8] Extended Binary Golay Code over Finite Field of size 2.
+    Another example with the perfect binary Golay code::
 
-        sage: C = GolayCode(binary, false)
-        sage: C
-        [23, 12, 7] Binary Golay Code over Finite Field of size 2.
-
-        sage: C = GolayCode(ternary, true)
-        sage: C
-        [12, 6, 6] Extended Ternary Golay Code over Finite Field of size 3.
-
-        sage: C = GolayCode(ternary, false)
-        sage: C
-        [11, 6, 5] Ternary Golay Code over Finite Field of size 3.
+        sage: codes.GolayCode(GF(2), False)
+        [23, 6] Golay code over GF(2)
     """
 
     _registered_encoders = {}
     _registered_decoders = {}
 
-    def __init__(self, alphabet, extended=True):
+    def __init__(self, base_field, extended=True):
         r"""
         TESTS:
 
-        If the alphabet is not binary or ternary, it raises an error:
-            sage: C = codes.GolayCode(quaternary, true)
+        If ``base_field`` is not ``GF(2)`` or ``GF(3)``, it raises an error:
+            sage: C = codes.GolayCode(ZZ, true)
             Traceback (most recent call last):
             ...
-            ValueError: Finite field must be set to 'binary' or 'ternary'
-
-        If the parameter ``extended`` is not "true" or "false", it raises an error:
-            sage: C = codes.GolayCode(binary, yes)
-            Traceback (most recent call last):
-            ...
-            ValueError: Extension parameter of the code must be set to 'true' or 'false'
+            ValueError: finite_field must be either GF(2) or GF(3)
         """
-        if alphabet != "binary" or alphabet != "ternary":
-            raise ValueError("Finite field must be set to 'binary' or 'ternary'")
-        if extended != "true" or extended != "false":
-            raise ValueError("Extension parameter of the code must be set to 'true' or 'false'")
+        if base_field not in [GF(2), GF(3)]:
+            raise ValueError("finite_field must be either GF(2) or GF(3)")
+        if extended not in [True, False]:
+            raise ValueError("extension must be either True or False")
 
-        if alphabet == "binary":
-            F = GF(2)
+        if base_field is GF(2):
+            length = 23
             self._dimension = 12
-            if extended == "true":
-                length = 24
-            elif extended == "false":
-                length = 23
-        elif alphabet == "ternary":
-            F = GF(3)
+        else:
+            length = 11
             self._dimension = 6
-            if extended == "true":
-                length = 12
-            elif extended == "false":
-                length = 11
-        super(GolayCode, self).__init__(F, length, "GolayGeneratorMatrixEncoder", "GolaySyndromeDecoder")
+        if extended:
+            length += 1
+        super(GolayCode, self).__init__(base_field, length, "GeneratorMatrix", "Syndrome")
 
     def __eq__(self, other):
         r"""
@@ -406,3 +382,6 @@ class GolayCodeGeneratorMatrixEncoder(Encoder):
 
 
 
+####################### registration ###############################
+
+GolayCode._registered_encoders["GeneratorMatrix"] = GolayCodeGeneratorMatrixEncoder

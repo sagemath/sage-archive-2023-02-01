@@ -27,11 +27,11 @@ from sage.categories.cartesian_product import cartesian_product
 from sage.modules.free_module_element import vector
 from sage.modules.free_module import VectorSpace
 from sage.rings.integer import Integer
-from linear_code import (AbstractLinearCode,
+from .linear_code import (AbstractLinearCode,
                          LinearCodeSyndromeDecoder,
                          LinearCodeNearestNeighborDecoder)
-from encoder import Encoder
-from decoder import Decoder, DecodingError
+from .encoder import Encoder
+from .decoder import Decoder, DecodingError
 from sage.rings.arith import xgcd
 from sage.misc.misc_c import prod
 from sage.functions.other import binomial, floor, sqrt
@@ -112,7 +112,7 @@ class GolayCode(AbstractLinearCode):
 
     def __eq__(self, other):
         r"""
-        Tests equality between Golay Code objects.
+        Test equality between Golay Code objects.
 
         EXAMPLES::
 
@@ -129,11 +129,10 @@ class GolayCode(AbstractLinearCode):
         return isinstance(other, GolayCode) \
                 and self.base_field() == other.base_field() \
                 and self.length() == other.length() \
-                and self.dimension() == other.dimension() \
 
     def _repr_(self):
         r"""
-        Returns a string representation of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -147,7 +146,7 @@ class GolayCode(AbstractLinearCode):
 
     def _latex_(self):
         r"""
-        Returns a latex representation of ``self``.
+        Return a latex representation of ``self``.
 
         EXAMPLES::
 
@@ -161,7 +160,9 @@ class GolayCode(AbstractLinearCode):
 
     def dual_code(self):
         r"""
-        Returns the dual code of ``self``, which is ``self`` itself. Golay Codes are self-dual.
+        Return the dual code of ``self``.
+
+        As Golay Codes are self-dual codes, it just returns ``self``.
 
         EXAMPLES::
 
@@ -173,7 +174,10 @@ class GolayCode(AbstractLinearCode):
 
     def minimum_distance(self):
         r"""
-        Returns the minimum distance of ``self``.
+        Return the minimum distance of ``self``.
+
+        The minimum distance of Golay codes is already known,
+        and is thus returned immediately without computing anything.
 
         EXAMPLES::
 
@@ -181,38 +185,75 @@ class GolayCode(AbstractLinearCode):
             sage: C.minimum_distance()
             8
         """
-        if self.length() == 24:
-            minimum_distance = 8
-        elif self.length() == 23:
-            minimum_distance == 7
-        elif self.length() == 12:
-            minimum_distance == 6
-        elif self.length() == 11:
-            minimum_distance == 5
-        return minimum_distance
-
-    def parity_check_matrix(self):
-        r"""
-        To be completed...
-        """
+        n = self.length()
+        if n == 24:
+            return 8
+        elif n == 23:
+            return 7
+        elif n == 12:
+            return 6
+        elif n == 11:
+            return 5
 
     def covering_radius(self):
         r"""
-        To be completed...
+        Return the covering radius of ``self``.
+
+        The covering radius of a linear code `C` is the smallest
+        integer `r` s.t. any element of the ambient space of `C` is at most at
+        distance `r` to `C`.
+
+        The covering radii of all Golay codes are known, and are thus returned
+        by this method without performing any computation
+
+        EXAMPLES::
+
+            sage: C = codes.GolayCode("ternary", False)
+            sage: C.covering_radius()
+            2
         """
+        n = self.length()
+        if n == 23:
+            return 3
+        elif n == 24:
+            return 4
+        elif n = 11:
+            return 2
+        elif n == 12:
+            return 3
 
     def weight_distribution(self):
         r"""
         To be completed...
-        """
 
-    def decode_to_message(self, r):
+        MWS (67, 69)
+        """
+        n = self.length()
+        if n == 23:
+            return ([1]+[0]*6+[253]+[506]+[0]*2+[1288]*[1288]+[0]*2+[506]
+                    +[253]+[0]*6+[1])
+        if n == 24:
+            return ([1]+[0]*7+[759]+[0]*3+[2576]+[0]*3+[759]+[0]*7+[1])
+        if n == 11:
+            return [1]*[0]*4+[132]*2+[0]+[330]+[110]+[0]+[24]
+        if n == 12:
+            return [1]+[0]*5+[264]+[0]*2+[440]+[0]*2+[24]
+
+    def weight_enumerator(self):
         r"""
         To be completed...
+
+        MWS
         """
+        n = self.length()
+        if n == 24:
+            return 42
 
 
-####################### encoders ###############################
+
+
+
+
 
 
 ####################### encoders ###############################
@@ -314,10 +355,21 @@ class GolayGeneratorMatrixEncoder(Encoder):
             [0 0 0 0 0 0 0 0 0 0 1 0 1 1 0 1 1 0 1 1 1 0 0 0]
             [0 0 0 0 0 0 0 0 0 0 0 1 1 0 1 1 0 1 1 1 0 0 0 1]
         """
-        #To be completed...
+        C = self.code()
+        if C.base_field() == GF(2):
+        G = matrix(GF(2),
+            [[1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+             [0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1]])
 
 
-####################### decoders ###############################
 
-
-####################### decoders ###############################

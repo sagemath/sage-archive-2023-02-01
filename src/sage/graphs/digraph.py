@@ -817,19 +817,19 @@ class DiGraph(GenericGraph):
         Return the dig6 representation of the digraph as an ASCII string.
 
         This is only valid for single (no multiple edges) digraphs
-        with maximum of 262143 vertices.
+        on at most `2^{18}-1=262143` vertices.
 
         .. NOTE::
 
-            As the dig6 format only handles graphs whose vertex set is
+            As the dig6 format only handles graphs with vertex set
             `\{0,...,n-1\}`, a :meth:`relabelled copy
-            <sage.graphs.generic_graph.GenericGraph.relabel>` of your graph will
-            be encoded if necessary.
+            <sage.graphs.generic_graph.GenericGraph.relabel>` will
+            be encoded, if necessary.
 
         .. SEEALSO::
 
             * :meth:`~sage.graphs.graph.Graph.graph6_string` --
-              similar string format for undirected graphs
+              a similar string format for undirected graphs
 
         EXAMPLES::
 

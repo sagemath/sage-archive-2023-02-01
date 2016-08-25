@@ -1284,19 +1284,19 @@ class Graph(GenericGraph):
         Return the graph6 representation of the graph as an ASCII string.
 
         This is only valid for simple (no loops, no multiple edges) graphs
-        with maximum of 262143 vertices.
+        on at most `2^{18}-1=262143` vertices.
 
         .. NOTE::
 
-            As the graph6 format only handles graphs whose vertex set is
+            As the graph6 format only handles graphs with vertex set
             `\{0,...,n-1\}`, a :meth:`relabelled copy
-            <sage.graphs.generic_graph.GenericGraph.relabel>` of your graph will
-            be encoded if necessary.
+            <sage.graphs.generic_graph.GenericGraph.relabel>` will
+            be encoded, if necessary.
 
         .. SEEALSO::
 
             * :meth:`~sage.graphs.digraph.DiGraph.dig6_string` --
-              similar string format for directed graphs
+              a similar string format for directed graphs
 
         EXAMPLES::
 

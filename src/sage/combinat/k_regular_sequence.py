@@ -425,7 +425,8 @@ class kRegularSequence(RecognizableSeries):
         from sage.matrix.constructor import Matrix
         from sage.modules.free_module_element import vector
         P = self.parent()
-        k = self.parent().k
+        A = P.alphabet()
+        k = P.k
         dim = self.dimension()
 
         # Below, we use a dynamic approach to find the shifts of the
@@ -445,11 +446,11 @@ class kRegularSequence(RecognizableSeries):
                 kernel.append(d)
             return pad(tuple(self.mu[f].rows()[i]), d)
 
-        lines = dict((r, []) for r in srange(k))
+        lines = dict((r, []) for r in A)
         ci = 0
         while ci < len(kernel):
             c = kernel[ci]
-            for r in srange(k):
+            for r in A:
                 for i in srange(dim):
                     lines[r].append(mu_line(r, i, c))
             ci += 1
@@ -459,7 +460,7 @@ class kRegularSequence(RecognizableSeries):
             P,
             dict((r, Matrix([pad_right(row, ndim, zero=zero)
                              for row in lines[r]]))
-                 for r in srange(k)),
+                 for r in A),
             sum(c_j * vector(
                     pad_right(pad(tuple(self.left), b_j), ndim, zero=zero))
                 for b_j, c_j in iteritems(b)),
@@ -608,17 +609,16 @@ class kRegularSequence(RecognizableSeries):
             [ 0  0  0  1], [0 0 0 1], (1, 0, -1, 0), (1, 1, 1, 1)
             )
         """
-        from sage.arith.srange import srange
         from sage.matrix.constructor import Matrix
         from sage.matrix.special import zero_matrix
         from sage.modules.free_module_element import vector
 
         P = self.parent()
-        k = self.parent().k
+        A = P.alphabet()
+        k = P.k
         dim = self.dimension()
 
-        B = dict((r, sum(self.mu[a] for a in srange(r, k)))
-                 for r in srange(k))
+        B = dict((r, sum(self.mu[a] for a in A[r:])) for r in A)
         Z = zero_matrix(dim)
         B[k] = Z
         W = B[0].stack(Z)
@@ -626,7 +626,7 @@ class kRegularSequence(RecognizableSeries):
         result = P.element_class(
             P,
             dict((r, W.augment((-B[r+1]).stack(self.mu[r])))
-                 for r in srange(k)),
+                 for r in A),
             vector(tuple(self.left) +
                    (dim*(0,) if include_n else tuple(-self.left))),
             vector(2*tuple(self.right)))

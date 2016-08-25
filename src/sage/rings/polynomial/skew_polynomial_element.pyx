@@ -1017,7 +1017,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return r.is_zero()
 
     @coerce_binop
-    def left_xgcd(self, other, *, monic=True):
+    def left_xgcd(self, other, monic=True):
         """
         Return the left gcd of ``self`` and ``other`` along with the
         coefficients for the linear combination.
@@ -1031,8 +1031,7 @@ cdef class SkewPolynomial(AlgebraElement):
         - ``other`` -- a skew polynomial in the same ring as ``self``
 
         - ``monic`` -- boolean (default: ``True``). Return whether the left gcd
-          should be normalized to be monic. This parameter must be passed as a
-          named argument.
+          should be normalized to be monic.
 
         OUTPUT:
 
@@ -1142,8 +1141,7 @@ cdef class SkewPolynomial(AlgebraElement):
         - ``other`` -- a skew polynomial in the same ring as ``self``
 
         - ``monic`` -- boolean (default: ``True``). Return whether the right gcd
-          should be normalized to be monic. This parameter must be passed as a
-          named argument.
+          should be normalized to be monic.
 
         OUTPUT:
 
@@ -1232,8 +1230,7 @@ cdef class SkewPolynomial(AlgebraElement):
         - ``other`` -- a skew polynomial in the same ring as ``self``
 
         - ``monic`` -- boolean (default: ``True``). Return whether the right gcd
-          should be normalized to be monic. This parameter must be passed as a
-          named argument.
+          should be normalized to be monic.
 
         OUTPUT:
 
@@ -1299,8 +1296,7 @@ cdef class SkewPolynomial(AlgebraElement):
         - ``other`` -- a skew polynomial in the same ring as ``self``
 
         - ``monic`` -- boolean (default: ``True``). Return whether the left gcd
-          should be normalized to be monic. This parameter must be passed as a
-          named argument.
+          should be normalized to be monic.
 
         OUTPUT:
 
@@ -1382,8 +1378,7 @@ cdef class SkewPolynomial(AlgebraElement):
         - ``other`` -- a skew polynomial in the same ring as ``self``
 
         - ``monic`` -- boolean (default: ``True``). Return whether the left lcm
-          should be normalized to be monic. This parameter must be passed as a
-          named argument.
+          should be normalized to be monic.
 
         OUTPUT:
 
@@ -1462,8 +1457,7 @@ cdef class SkewPolynomial(AlgebraElement):
         - ``other`` -- a skew polynomial in the same ring as ``self``
         
         - ``monic`` -- boolean (default: ``True``). Return whether the right lcm
-          should be normalized to be monic. This parameter must be passed as a
-          named argument.
+          should be normalized to be monic.
 
         OUTPUT:
 

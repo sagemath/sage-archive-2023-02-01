@@ -5,9 +5,6 @@
 This package adds numerical linear algebra and other numerical computing
 capabilities to python.
 
-== Maintainers ==
- * Josh Kantor
-
 == Upstream Contact ==
  * Travis Oliphant
  * Fernando Perez

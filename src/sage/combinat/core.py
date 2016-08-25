@@ -27,17 +27,15 @@ Authors:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.structure.element import Element
 from sage.combinat.partition import Partitions, Partition
-from sage.combinat.combinat import CombinatorialObject
+from sage.combinat.combinat import CombinatorialElement
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.functions.other import floor
 from sage.combinat.combinatorial_map import combinatorial_map
 
-class Core(CombinatorialObject, Element):
+class Core(CombinatorialElement):
     r"""
     A `k`-core is an integer partition from which no rim hook of size `k`
     can be removed.
@@ -51,9 +49,6 @@ class Core(CombinatorialObject, Element):
         ...
         ValueError: [3, 1] is not a 4-core
     """
-
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, part, k):
         r"""
@@ -105,8 +100,7 @@ class Core(CombinatorialObject, Element):
         part = Partition(core)
         if not part.is_core(k):
             raise ValueError("%s is not a %s-core"%(part, k))
-        CombinatorialObject.__init__(self, core)
-        Element.__init__(self, parent)
+        CombinatorialElement.__init__(self, parent, core)
 
     def __eq__(self, other):
         """
@@ -123,7 +117,7 @@ class Core(CombinatorialObject, Element):
             False
         """
         if isinstance(other, Core):
-            return self._list.__eq__(other._list) and self.parent().k == other.parent().k
+            return self._list == other._list and self.parent().k == other.parent().k
         else:
             return False
 
@@ -155,9 +149,10 @@ class Core(CombinatorialObject, Element):
         return self._hash
 
     def _latex_(self):
-        """
-        Outputs the LaTeX representation of this core as a partition. See the
-        ``_latex_()`` method of :class:`Partition`.
+        r"""
+        Output the LaTeX representation of this core as a partition.
+
+        See the ``_latex_`` method of :class:`Partition`.
 
         EXAMPLES::
 
@@ -427,7 +422,7 @@ class Core(CombinatorialObject, Element):
             ...
             ValueError: The two cores do not have the same k
         """
-        if isinstance(self, type(other)):
+        if type(self) is type(other):
             if self.k() != other.k():
                 raise ValueError("The two cores do not have the same k")
         else:
@@ -482,7 +477,7 @@ class Core(CombinatorialObject, Element):
             ...
             ValueError: The two cores do not have the same k
         """
-        if isinstance(self, type(other)):
+        if type(self) is type(other):
             if self.k()!=other.k():
                 raise ValueError("The two cores do not have the same k")
         else:

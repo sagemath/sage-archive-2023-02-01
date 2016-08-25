@@ -33,12 +33,13 @@ This works as expected for more than two entries::
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import absolute_import
 
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.symbolic.ring import SR
 
-from __builtin__ import max as builtin_max, min as builtin_min
+from six.moves.builtins import max as builtin_max, min as builtin_min
 
 class MinMax_base(BuiltinFunction):
     def eval_helper(self, this_f, builtin_f, initial_val, args):
@@ -189,8 +190,11 @@ class MaxSymbolic(MinMax_base):
             max(x, 5)
             sage: latex(max_symbolic(x,5))
             \max\left(x, 5\right)
+            sage: max_symbolic(x, 5)._sympy_()
+            Max(5, x)
         """
-        BuiltinFunction.__init__(self, 'max', nargs=0, latex_name="\max")
+        BuiltinFunction.__init__(self, 'max', nargs=0, latex_name="\max",
+                                 conversions=dict(sympy='Max'))
 
     def _eval_(self, *args):
         """
@@ -275,8 +279,11 @@ class MinSymbolic(MinMax_base):
             min(x, 5)
             sage: latex(min_symbolic(x,5))
             \min\left(x, 5\right)
+            sage: min_symbolic(x, 5)._sympy_()
+            Min(5, x)
         """
-        BuiltinFunction.__init__(self, 'min', nargs=0, latex_name="\min")
+        BuiltinFunction.__init__(self, 'min', nargs=0, latex_name="\min",
+                                 conversions=dict(sympy='Min'))
 
     def _eval_(self, *args):
         """

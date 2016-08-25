@@ -1,3 +1,5 @@
+"Interpreter reset"
+
 import sys
 
 # Exclude these from the reset command.
@@ -47,7 +49,7 @@ def reset(vars=None, attached=False):
 
     TESTS:
 
-    Confirm that assumptions don't survive a reset (trac #10855)::
+    Confirm that assumptions don't survive a reset (:trac:`10855`)::
 
         sage: assume(x > 3)
         sage: assumptions()
@@ -77,8 +79,8 @@ def reset(vars=None, attached=False):
     forget()
     reset_interfaces()
     if attached:
-        import sage.misc.attached_files
-        sage.misc.attached_files.reset()
+        import sage.repl.attach
+        sage.repl.attach.reset()
 
 def restore(vars=None):
     """

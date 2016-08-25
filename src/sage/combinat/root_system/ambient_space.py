@@ -1,6 +1,7 @@
 r"""
 Ambient lattices and ambient spaces
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
 #       Copyright (C) 2008-2013 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -10,11 +11,11 @@ Ambient lattices and ambient spaces
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
-from weight_lattice_realizations import WeightLatticeRealizations
+from .weight_lattice_realizations import WeightLatticeRealizations
 from sage.rings.all import ZZ, QQ
-from sage.misc.cachefunc import ClearCacheOnPickle
+from sage.categories.homset import End
 
-class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
+class AmbientSpace(CombinatorialFreeModule):
     r"""
     Abstract class for ambient spaces
 
@@ -335,6 +336,27 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
                 x = x.coerce_to_sl()
         return x
 
+    def to_ambient_space_morphism(self):
+        r"""
+        Return the identity map on ``self``.
+
+        This is present for uniformity of use; the corresponding method
+        for abstract root and weight lattices/spaces, is not trivial.
+
+        EXAMPLES::
+
+            sage: P = RootSystem(['A',2]).ambient_space()
+            sage: f = P.to_ambient_space_morphism()
+            sage: p = P.an_element()
+            sage: p
+            (2, 2, 3)
+            sage: f(p)
+            (2, 2, 3)
+            sage: f(p)==p
+            True
+        """
+        return End(self).identity()
+
 class AmbientSpaceElement(CombinatorialFreeModuleElement):
     # For backward compatibility
     def _repr_(self):
@@ -471,3 +493,19 @@ class AmbientSpaceElement(CombinatorialFreeModuleElement):
         x = x - (x.inner_product(v0)/2)*v0
         return  x - (x.inner_product(v1)/6)*v1
 
+    def to_ambient(self):
+        r"""
+        Map ``self`` to the ambient space.
+
+        This exists for uniformity. Its analogue for root and weight lattice realizations,
+        is not trivial.
+
+        EXAMPLES::
+
+            sage: v = CartanType(['C',3]).root_system().ambient_space().an_element(); v
+            (2, 2, 3)
+            sage: v.to_ambient()
+            (2, 2, 3)
+
+        """
+        return self

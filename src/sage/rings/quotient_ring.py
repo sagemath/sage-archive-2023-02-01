@@ -29,15 +29,16 @@ form of an element `x` with respect to `I` (i.e., we have
 ``x - I.reduce(x) in I``). Here is a toy example::
 
     sage: from sage.rings.noncommutative_ideals import Ideal_nc
+    sage: from itertools import product
     sage: class PowerIdeal(Ideal_nc):
-    ...    def __init__(self, R, n):
-    ...        self._power = n
-    ...        self._power = n
-    ...        Ideal_nc.__init__(self,R,[R.prod(m) for m in CartesianProduct(*[R.gens()]*n)])
-    ...    def reduce(self,x):
-    ...        R = self.ring()
-    ...        return add([c*R(m) for m,c in x if len(m)<self._power],R(0))
-    ...
+    ....:     def __init__(self, R, n):
+    ....:         self._power = n
+    ....:         self._power = n
+    ....:         Ideal_nc.__init__(self, R, [R.prod(m) for m in product(R.gens(), repeat=n)])
+    ....:     def reduce(self,x):
+    ....:         R = self.ring()
+    ....:         return add([c*R(m) for m,c in x if len(m)<self._power],R(0))
+    ....:
     sage: F.<x,y,z> = FreeAlgebra(QQ, 3)
     sage: I3 = PowerIdeal(F,3); I3
     Twosided Ideal (x^3, x^2*y, x^2*z, x*y*x, x*y^2, x*y*z, x*z*x, x*z*y,
@@ -45,7 +46,7 @@ form of an element `x` with respect to `I` (i.e., we have
     z*x^2, z*x*y, z*x*z, z*y*x, z*y^2, z*y*z, z^2*x, z^2*y, z^3) of
     Free Algebra on 3 generators (x, y, z) over Rational Field
 
-Free algebras have a custom quotient method that seves at creating
+Free algebras have a custom quotient method that serves at creating
 finite dimensional quotients defined by multiplication matrices. We
 are bypassing it, so that we obtain the default quotient::
 
@@ -83,36 +84,37 @@ based on Singular's implementation of the Letterplace Algebra. Our
 letterplace wrapper allows to provide the above toy example more
 easily::
 
+    sage: from itertools import product
     sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
-    sage: Q3 = F.quo(F*[F.prod(m) for m in CartesianProduct(*[F.gens()]*3)]*F)
+    sage: Q3 = F.quo(F*[F.prod(m) for m in product(F.gens(), repeat=3)]*F)
     sage: Q3
     Quotient of Free Associative Unital Algebra on 3 generators (x, y, z) over Rational Field by the ideal (x*x*x, x*x*y, x*x*z, x*y*x, x*y*y, x*y*z, x*z*x, x*z*y, x*z*z, y*x*x, y*x*y, y*x*z, y*y*x, y*y*y, y*y*z, y*z*x, y*z*y, y*z*z, z*x*x, z*x*y, z*x*z, z*y*x, z*y*y, z*y*z, z*z*x, z*z*y, z*z*z)
     sage: Q3.0*Q3.1-Q3.1*Q3.0
     xbar*ybar - ybar*xbar
     sage: Q3.0*(Q3.1*Q3.2)-(Q3.1*Q3.2)*Q3.0
     0
-    sage: Q2 = F.quo(F*[F.prod(m) for m in CartesianProduct(*[F.gens()]*2)]*F)
+    sage: Q2 = F.quo(F*[F.prod(m) for m in product(F.gens(), repeat=2)]*F)
     sage: Q2.is_commutative()
     True
 
 """
+from __future__ import absolute_import
 
-###########################################################################
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
+#*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###########################################################################
+#*****************************************************************************
 
-import quotient_ring_element
+
 import sage.misc.latex as latex
-import commutative_ring, ring
-import ideal
+from . import ring, ideal, quotient_ring_element
 import sage.rings.polynomial.multi_polynomial_ideal
+from sage.structure.category_object import normalize_names
 import sage.structure.parent_gens
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
 from sage.misc.cachefunc import cached_method
@@ -276,7 +278,7 @@ def QuotientRing(R, I, names=None):
         except ValueError: # no names are assigned
             pass
     else:
-        names = sage.structure.parent_gens.normalize_names(R.ngens(), names)
+        names = normalize_names(R.ngens(), names)
     if not isinstance(I, ideal.Ideal_generic) or I.ring() != R:
         I = R.ideal(I)
     if I.is_zero():
@@ -301,7 +303,7 @@ def QuotientRing(R, I, names=None):
         if S == ZZ:
             return Integers((I_lift+J).gen())
         return R.__class__(S, I_lift + J, names=names)
-    if isinstance(R, sage.rings.commutative_ring.CommutativeRing):
+    if isinstance(R, ring.CommutativeRing):
         return QuotientRing_generic(R, I, names)
     return QuotientRing_nc(R, I, names)
 
@@ -483,7 +485,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         """
         from sage.categories.pushout import QuotientFunctor
         # Is there a better generic way to distinguish between things like Z/pZ as a field and Z/pZ as a ring?
-        from sage.rings.field import Field
+        from sage.rings.ring import Field
         try:
             names = self.variable_names()
         except ValueError:
@@ -616,7 +618,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         try:
             return self.__cover
         except AttributeError:
-            import morphism
+            from . import morphism
             pi = morphism.RingHomomorphism_cover(self.__R.Hom(self))
             lift = self.lifting_map()
             pi._set_lift(lift)
@@ -682,7 +684,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             return self.__lift
         except AttributeError:
             pass
-        from morphism import RingMap_lift
+        from .morphism import RingMap_lift
         m = RingMap_lift(self, self.__R)
         self.__lift = m
         return m
@@ -934,7 +936,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         if not isinstance(self.__R, MPolynomialRing_libsingular) and \
                (not hasattr(self.__R, '_has_singular') or not self.__R._has_singular):
             # pass through
-            return commutative_ring.CommutativeRing.ideal(self, gens, **kwds)
+            return ring.CommutativeRing.ideal(self, gens, **kwds)
         if is_SingularElement(gens):
             gens = list(gens)
             coerce = True
@@ -994,7 +996,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
     def _coerce_map_from_(self, R):
         """
-        Returns ``True`` if there is a coercion map from ``R`` to ``self``.
+        Return ``True`` if there is a coercion map from ``R`` to ``self``.
 
         EXAMPLES::
 
@@ -1009,8 +1011,53 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             False
             sage: T.has_coerce_map_from(R)
             True
+
+        TESTS:
+
+        We check that :trac:`13682` is fixed::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: I = R.ideal(x^2+y^2)
+            sage: J = R.ideal(x^2+y^2, x^3 - y)
+            sage: I < J
+            True
+            sage: S = R.quotient(I)
+            sage: T = R.quotient(J)
+            sage: T.has_coerce_map_from(S)
+            True
+            sage: S.quotient_ring(x^4-x*y+1).has_coerce_map_from(S)
+            True
+            sage: S.has_coerce_map_from(T)
+            False
+
+        We also allow coercions with the cover rings::
+
+            sage: Rp.<x,y> = PolynomialRing(ZZ)
+            sage: Ip = Rp.ideal(x^2+y^2)
+            sage: Jp = Rp.ideal(x^2+y^2, x^3 - y)
+            sage: Sp = Rp.quotient(Ip)
+            sage: Tp = Rp.quotient(Jp)
+            sage: R.has_coerce_map_from(Rp)
+            True
+            sage: Sp.has_coerce_map_from(Sp)
+            True
+            sage: T.has_coerce_map_from(Sp)
+            True
+            sage: Sp.has_coerce_map_from(T)
+            False
         """
-        return self.cover_ring().has_coerce_map_from(R)
+        C = self.cover_ring()
+        if isinstance(R, QuotientRing_nc):
+            if C == R.cover_ring():
+                if R.defining_ideal() <= self.defining_ideal():
+                    return True
+            elif C.has_coerce_map_from(R.cover_ring()):
+                try:
+                    if R.defining_ideal().change_ring(C) <= self.defining_ideal():
+                        return True
+                except AttributeError: # Not all ideals have a change_ring
+                    pass
+        return C.has_coerce_map_from(R)
 
     def __cmp__(self, other):
         r"""
@@ -1206,7 +1253,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         """
         return self.__R.term_order()
 
-class QuotientRing_generic(QuotientRing_nc, sage.rings.commutative_ring.CommutativeRing):
+class QuotientRing_generic(QuotientRing_nc, ring.CommutativeRing):
     r"""
     Creates a quotient ring of a *commutative* ring `R` by the ideal `I`.
 
@@ -1235,7 +1282,7 @@ class QuotientRing_generic(QuotientRing_nc, sage.rings.commutative_ring.Commutat
             sage: isinstance(ZZ.quo(2), sage.rings.ring.CommutativeRing)  # indirect doctest
             True
         """
-        if not isinstance(R, sage.rings.commutative_ring.CommutativeRing):
+        if not isinstance(R, ring.CommutativeRing):
             raise TypeError("This class is for quotients of commutative rings only.\n    For non-commutative rings, use <sage.rings.quotient_ring.QuotientRing_nc>")
         if not self._is_category_initialized():
             category = check_default_category(_CommutativeRingsQuotients,category)

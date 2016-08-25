@@ -20,15 +20,19 @@ EXAMPLES::
     15340593152
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
+
 
 import subprocess
+from sys import maxsize
 from sage.structure.sage_object import SageObject
 
 memory_info_instance = None
@@ -100,16 +104,20 @@ class MemoryInfo_base(SageObject):
         """
         import resource
         try:
-            return resource.getrlimit(resource.RLIMIT_AS)[1]
+            limit = resource.getrlimit(resource.RLIMIT_AS)[0]
         except resource.error:
             return -1
+        if limit == resource.RLIM_INFINITY:
+            return -1
+        return limit
 
     def virtual_memory_limit(self):
         """
         Return the upper limit for virtual memory usage
 
-        This is the value set by ``ulimit -v`` at the command line or
-        a practical limit if no limit is set.
+        This is the value set by ``ulimit -v`` at the command line
+        (bounded by ``sys.maxsize``) or a practical limit if no limit
+        is set.
 
         OUTPUT:
 
@@ -121,18 +129,15 @@ class MemoryInfo_base(SageObject):
             sage: mem = MemoryInfo()
             sage: mem.virtual_memory_limit() > 0
             True
+            sage: mem.virtual_memory_limit() <= sys.maxsize
+            True
         """
         limit = self.rlimit_address_space()
-        if limit >=0:
-            return limit
-        else:
-            avail = self.total_swap() + self.total_ram()
-            import platform
-            if platform.architecture()[0] == '32bit':
-                # 2GB is likely the single-process address space limit
-                return min(avail, 2 * 1024**3)
-            else:
-                return avail
+        if limit < 0:
+            limit = self.total_swap() + self.total_ram()
+
+        # Use less than half of the addressable memory
+        return min(maxsize, limit)
 
 
 class MemoryInfo_proc(MemoryInfo_base):

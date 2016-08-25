@@ -1,6 +1,7 @@
 """
 Ambient Hecke modules
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
@@ -19,9 +20,9 @@ Ambient Hecke modules
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import degenmap
-import module
-import submodule
+from . import degenmap
+from . import module
+from . import submodule
 
 import sage.modules.all
 
@@ -29,7 +30,7 @@ import sage.rings.all
 
 import sage.misc.misc as misc
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 
 import sage.matrix.matrix_space as matrix_space
 from   sage.matrix.constructor import matrix
@@ -61,7 +62,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
     is the base class for ambient spaces of modular forms and modular symbols,
     and for Brandt modules.
     """
-    def __init__(self, base_ring, rank, level, weight):
+    def __init__(self, base_ring, rank, level, weight, category=None):
         r"""
         Create an ambient Hecke module.
 
@@ -76,7 +77,8 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         if rank < 0:
             raise ValueError("rank (=%s) must be nonnegative"%rank)
         self.__rank = rank
-        module.HeckeModule_free_module.__init__(self, base_ring, level, weight)
+        module.HeckeModule_free_module.__init__(self, base_ring, level,
+                                                weight, category=category)
 
     def rank(self):
         """
@@ -165,11 +167,9 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             sage: sage.modular.hecke.ambient_module.AmbientHeckeModule(QQ, 3, 2, 4)._hecke_image_of_ith_basis_element(4, 2)
             Traceback (most recent call last):
             ...
-            NotImplementedError
-
+            NotImplementedError: Derived class <class 'sage.modular.hecke.ambient_module.AmbientHeckeModule_with_category'> should implement __cmp__
         """
         return self.hecke_operator(n)(self.gen(i))
-
 
     def _set_dual_free_module(self, V):
         r"""
@@ -351,7 +351,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             Domain: Modular Symbols subspace of dimension 4 of Modular Symbols space ...
             Codomain: Modular Symbols space of dimension 4 for Gamma_0(5) of weight ...
 
-        We check for a subtle caching bug that came up in work on trac #10453::
+        We check for a subtle caching bug that came up in work on :trac:`10453`::
 
             sage: loads(dumps(J0(33).decomposition()[0].modular_symbols()))
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field
@@ -846,7 +846,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             sage: M.old_submodule()
             Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 4 and level 16, weight 3, character [-1, 1], sign 1, over Rational Field
 
-        Illustrate that trac 10664 is fixed::
+        Illustrate that :trac:`10664` is fixed::
 
             sage: ModularSymbols(DirichletGroup(42)[7], 6, sign=1).old_subspace(3)
             Modular Symbols subspace of dimension 0 of Modular Symbols space of dimension 40 and level 42, weight 6, character [-1, -1], sign 1, over Rational Field

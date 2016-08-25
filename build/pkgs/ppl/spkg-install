@@ -18,7 +18,6 @@ if [ "x$SAGE64" = xyes ]; then
 fi
 
 # Make sure that we prefer Sage's mpir library over system-wide gmp/mpir installs
-export LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
 export CXXFLAGS="$CXXFLAGS -I$SAGE_LOCAL/include"
 
 cd src

@@ -1,5 +1,5 @@
 r"""
-Canonical forms and automorphisms for linear codes over finite fields.
+Canonical forms and automorphisms for linear codes over finite fields
 
 We implemented the algorithm described in [Feu2009]_ which computes, a unique
 code (canonical form) in the equivalence class of a given
@@ -40,39 +40,39 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Feu2009] T. Feulner. The Automorphism Groups of Linear Codes and
+.. [Feu2009] \T. Feulner. The Automorphism Groups of Linear Codes and
   Canonical Representatives of Their Semilinear Isometry Classes.
   Advances in Mathematics of Communications 3 (4), pp. 363-383, Nov 2009
 
 EXAMPLES::
 
     sage: from sage.coding.codecan.autgroup_can_label import LinearCodeAutGroupCanLabel
-    sage: C = codes.HammingCode(3, GF(3)).dual_code()
+    sage: C = codes.HammingCode(GF(3), 3).dual_code()
     sage: P = LinearCodeAutGroupCanLabel(C)
-    sage: P.get_canonical_form().gen_mat()
+    sage: P.get_canonical_form().generator_matrix()
     [1 0 0 0 0 1 1 1 1 1 1 1 1]
     [0 1 0 1 1 0 0 1 1 2 2 1 2]
     [0 0 1 1 2 1 2 1 2 1 2 0 0]
-    sage: LinearCode(P.get_transporter()*C.gen_mat()) == P.get_canonical_form()
+    sage: LinearCode(P.get_transporter()*C.generator_matrix()) == P.get_canonical_form()
     True
     sage: A = P.get_autom_gens()
-    sage: all( [ LinearCode(a*C.gen_mat()) == C for a in A])
+    sage: all( [ LinearCode(a*C.generator_matrix()) == C for a in A])
     True
     sage: P.get_autom_order() == GL(3, GF(3)).order()
     True
 
 If the dimension of the dual code is smaller, we will work on this code::
 
-    sage: C2 = codes.HammingCode(3, GF(3))
+    sage: C2 = codes.HammingCode(GF(3), 3)
     sage: P2 = LinearCodeAutGroupCanLabel(C2)
-    sage: P2.get_canonical_form().check_mat() == P.get_canonical_form().gen_mat()
+    sage: P2.get_canonical_form().parity_check_matrix() == P.get_canonical_form().generator_matrix()
     True
 
 There is a specialization of this algorithm to pass a coloring on the
 coordinates. This is just a list of lists, telling the algorithm which
 columns do share the same coloring::
 
-    sage: C = codes.HammingCode(3, GF(4, 'a')).dual_code()
+    sage: C = codes.HammingCode(GF(4, 'a'), 3).dual_code()
     sage: P = LinearCodeAutGroupCanLabel(C, P=[ [0], [1], range(2, C.length()) ])
     sage: P.get_autom_order()
     864
@@ -169,16 +169,16 @@ class LinearCodeAutGroupCanLabel:
     EXAMPLES::
 
         sage: from sage.coding.codecan.autgroup_can_label import LinearCodeAutGroupCanLabel
-        sage: C = codes.HammingCode(3, GF(3)).dual_code()
+        sage: C = codes.HammingCode(GF(3), 3).dual_code()
         sage: P = LinearCodeAutGroupCanLabel(C)
-        sage: P.get_canonical_form().gen_mat()
+        sage: P.get_canonical_form().generator_matrix()
         [1 0 0 0 0 1 1 1 1 1 1 1 1]
         [0 1 0 1 1 0 0 1 1 2 2 1 2]
         [0 0 1 1 2 1 2 1 2 1 2 0 0]
-        sage: LinearCode(P.get_transporter()*C.gen_mat()) == P.get_canonical_form()
+        sage: LinearCode(P.get_transporter()*C.generator_matrix()) == P.get_canonical_form()
         True
         sage: a = P.get_autom_gens()[0]
-        sage: (a*C.gen_mat()).echelon_form() == C.gen_mat().echelon_form()
+        sage: (a*C.generator_matrix()).echelon_form() == C.generator_matrix().echelon_form()
         True
         sage: P.get_autom_order() == GL(3, GF(3)).order()
         True
@@ -206,27 +206,27 @@ class LinearCodeAutGroupCanLabel:
         EXAMPLES::
 
             sage: from sage.coding.codecan.autgroup_can_label import LinearCodeAutGroupCanLabel
-            sage: C = codes.HammingCode(3, GF(2)).dual_code()
+            sage: C = codes.HammingCode(GF(2), 3).dual_code()
             sage: P = LinearCodeAutGroupCanLabel(C)
-            sage: P.get_canonical_form().gen_mat()
+            sage: P.get_canonical_form().generator_matrix()
             [1 0 0 0 1 1 1]
             [0 1 0 1 0 1 1]
             [0 0 1 1 1 1 0]
             sage: P2 = LinearCodeAutGroupCanLabel(C, P=[[0,3,5],[1,2,4,6]],
             ....:      algorithm_type="permutational")
-            sage: P2.get_canonical_form().gen_mat()
+            sage: P2.get_canonical_form().generator_matrix()
             [1 1 1 0 0 0 1]
             [0 1 0 1 1 0 1]
             [0 0 1 0 1 1 1]
         """
         from sage.groups.semimonomial_transformations.semimonomial_transformation_group import SemimonomialTransformationGroup
-        from sage.coding.linear_code import LinearCode
+        from sage.coding.linear_code import LinearCode, AbstractLinearCode
 
-        if not isinstance(C, LinearCode):
+        if not isinstance(C, AbstractLinearCode):
             raise TypeError("%s is not a linear code"%C)
 
         self.C = C
-        mat = C.gen_mat()
+        mat = C.generator_matrix()
         F = mat.base_ring()
         S = SemimonomialTransformationGroup(F, mat.ncols())
 
@@ -344,7 +344,7 @@ class LinearCodeAutGroupCanLabel:
                 P=P_refined, algorithm_type=algorithm_type)
             can_transp = agcl.get_transporter()
             can_transp.invert_v()
-            can_col_set = agcl.get_canonical_form().check_mat().columns()
+            can_col_set = agcl.get_canonical_form().parity_check_matrix().columns()
             A = agcl.get_autom_gens()
             for a in A:
                 a.invert_v()
@@ -372,7 +372,7 @@ class LinearCodeAutGroupCanLabel:
         for p in P:
             while len(p) > 0:
                 pos = p.pop()
-                perm[pos] = it.next() + 1
+                perm[pos] = next(it) + 1
 
         self._canonical_form = LinearCode(canonical_form.transpose())
         self._transporter = S(perm=Permutation(perm), v=mult, autom=can_transp.get_autom()) * normalization
@@ -519,7 +519,7 @@ class LinearCodeAutGroupCanLabel:
                 c = col2pos[i]
                 img_iter = iter(col2pos[short_perm(i + 1) - 1])
                 for x in c:
-                    perm[x] = img_iter.next() + 1
+                    perm[x] = next(img_iter) + 1
                     mult[x] = short_mult[i]
             A.append(normalization_inverse * S(perm=perm, v=mult, autom=g.get_autom()) * normalization)
         return A
@@ -531,10 +531,10 @@ class LinearCodeAutGroupCanLabel:
         EXAMPLES::
 
             sage: from sage.coding.codecan.autgroup_can_label import LinearCodeAutGroupCanLabel
-            sage: C = codes.HammingCode(3, GF(3)).dual_code()
+            sage: C = codes.HammingCode(GF(3), 3).dual_code()
             sage: CF1 = LinearCodeAutGroupCanLabel(C).get_canonical_form()
             sage: s = SemimonomialTransformationGroup(GF(3), C.length()).an_element()
-            sage: C2 = LinearCode(s*C.gen_mat())
+            sage: C2 = LinearCode(s*C.generator_matrix())
             sage: CF2 = LinearCodeAutGroupCanLabel(C2).get_canonical_form()
             sage: CF1 == CF2
             True
@@ -548,11 +548,11 @@ class LinearCodeAutGroupCanLabel:
         EXAMPLES::
 
             sage: from sage.coding.codecan.autgroup_can_label import LinearCodeAutGroupCanLabel
-            sage: C = codes.HammingCode(3, GF(2)).dual_code()
+            sage: C = codes.HammingCode(GF(2), 3).dual_code()
             sage: P = LinearCodeAutGroupCanLabel(C)
             sage: g = P.get_transporter()
             sage: D = P.get_canonical_form()
-            sage: (g*C.gen_mat()).echelon_form() == D.gen_mat().echelon_form()
+            sage: (g*C.generator_matrix()).echelon_form() == D.generator_matrix().echelon_form()
             True
         """
         return self._transporter
@@ -564,9 +564,9 @@ class LinearCodeAutGroupCanLabel:
         EXAMPLES::
 
             sage: from sage.coding.codecan.autgroup_can_label import LinearCodeAutGroupCanLabel
-            sage: C = codes.HammingCode(3, GF(2)).dual_code()
+            sage: C = codes.HammingCode(GF(2), 3).dual_code()
             sage: A = LinearCodeAutGroupCanLabel(C).get_autom_gens()
-            sage: Gamma = C.gen_mat().echelon_form()
+            sage: Gamma = C.generator_matrix().echelon_form()
             sage: all([(g*Gamma).echelon_form() == Gamma for g in A])
             True
         """
@@ -579,7 +579,7 @@ class LinearCodeAutGroupCanLabel:
         EXAMPLES::
 
             sage: from sage.coding.codecan.autgroup_can_label import LinearCodeAutGroupCanLabel
-            sage: C = codes.HammingCode(3, GF(2)).dual_code()
+            sage: C = codes.HammingCode(GF(2), 3).dual_code()
             sage: LinearCodeAutGroupCanLabel(C).get_autom_order()
             168
         """
@@ -599,14 +599,14 @@ class LinearCodeAutGroupCanLabel:
         EXAMPLES::
 
             sage: from sage.coding.codecan.autgroup_can_label import LinearCodeAutGroupCanLabel
-            sage: C = codes.HammingCode(3, GF(4, 'a')).dual_code()
+            sage: C = codes.HammingCode(GF(4, 'a'), 3).dual_code()
             sage: A = LinearCodeAutGroupCanLabel(C).get_PGammaL_gens()
-            sage: Gamma = C.gen_mat()
+            sage: Gamma = C.generator_matrix()
             sage: N = [ x.monic() for x in Gamma.columns() ]
             sage: all([ (g[0]*n.apply_map(g[1])).monic() in N for n in N for g in A])
             True
         """
-        Gamma = self.C.gen_mat()
+        Gamma = self.C.generator_matrix()
         res = []
         for a in self._PGammaL_autom_gens:
             B = Gamma.solve_left(a * Gamma, check=True)
@@ -628,7 +628,7 @@ class LinearCodeAutGroupCanLabel:
         EXAMPLES::
 
             sage: from sage.coding.codecan.autgroup_can_label import LinearCodeAutGroupCanLabel
-            sage: C = codes.HammingCode(3, GF(4, 'a')).dual_code()
+            sage: C = codes.HammingCode(GF(4, 'a'), 3).dual_code()
             sage: LinearCodeAutGroupCanLabel(C).get_PGammaL_order() == GL(3, GF(4, 'a')).order()*2/3
             True
         """

@@ -94,7 +94,7 @@ instead of SymPy.
     [    2*y x*y + 1]
     sage: R.<x,y> = QQ[]
     sage: A = matrix([[1,x], [y,1]])
-    sage: print A^10
+    sage: A^10
     [x^5*y^5 + 45*x^4*y^4 + 210*x^3*y^3 + 210*x^2*y^2 + 45*x*y + 1     10*x^5*y^4 + 120*x^4*y^3 + 252*x^3*y^2 + 120*x^2*y + 10*x]
     [    10*x^4*y^5 + 120*x^3*y^4 + 252*x^2*y^3 + 120*x*y^2 + 10*y x^5*y^5 + 45*x^4*y^4 + 210*x^3*y^3 + 210*x^2*y^2 + 45*x*y + 1]
     sage: var('x y')
@@ -184,4 +184,16 @@ Mixing SymPy with Sage::
     2
     sage: sympify(-2)
     -2
+
+TESTS:
+
+This was fixed in Sympy, see :trac:`14437`::
+
+    sage: from sympy import Function, Symbol, rsolve
+    sage: u = Function('u')
+    sage: n = Symbol('n', integer=True)
+    sage: f = u(n+2) - u(n+1) + u(n)/4
+    sage: rsolve(f,u(n))
+    2**(-n)*(C0 + C1*n)
+
 """

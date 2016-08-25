@@ -5,10 +5,11 @@ Notation used in the definitions follows mainly [Mac1995]_.
 
 REFERENCES:
 
-.. [Mac1995] I. G. Macdonald, Symmetric functions and Hall polynomials, second ed.,
+.. [Mac1995] \I. G. Macdonald, Symmetric functions and Hall polynomials, second ed.,
    The Clarendon Press, Oxford University Press, New York, 1995, With contributions
    by A. Zelevinsky, Oxford Science Publications.
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -25,9 +26,8 @@ REFERENCES:
 #*****************************************************************************
 
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.calculus.var import var
 from sage.libs.symmetrica.all import hall_littlewood
-import sfa
+from . import sfa
 import sage.combinat.partition
 from sage.matrix.all import matrix
 from sage.categories.morphism import SetMorphism
@@ -90,8 +90,6 @@ class HallLittlewood(UniqueRepresentation):
             sage: TestSuite(HL).run()
         """
         self._sym = Sym
-        if not (t in Sym.base_ring() or var(t) in Sym.base_ring()):
-            raise ValueError("parameter t must be in the base ring")
         self.t = Sym.base_ring()(t)
         self._name_suffix = ""
         if str(t) !='t':
@@ -491,7 +489,7 @@ class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
         m = []
         for row_part in Plist:
             z = basis(self(row_part))
-            m.append( map( lambda col_part: z.coefficient(col_part), Plist ) )
+            m.append( [z.coefficient(col_part) for col_part in Plist] )
         return matrix(m)
 
     def _multiply(self, left, right):

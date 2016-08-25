@@ -275,7 +275,35 @@ def sage_relocate():
     write_location_file()
 
 
+RELOCATION_ERROR = """
+ERROR:  The Sage installation tree has moved
+
+from {OLD_SAGE_ROOT}
+  to {SAGE_ROOT}
+
+This is not supported, and Sage will not work. To install Sage from a
+binary package:
+
+1. Open the .tar.bz2 archive (or .dmg on OSX)
+
+2. Move the SageMath folder/app to where you want it to be. You can
+   also rename the directory now.
+
+3. Start sage for the first time. This will then automatically patch
+   paths in binaries.
+
+After starting Sage for the first time you cannot change the
+installation any more. To install Sage elsewhere, start over from the
+binary package. Or recompile Sage from scratch in the new location
+("make distclean && make")
+"""
+
+
 if __name__ == '__main__':
+
+    if SAGE_ROOT is None:
+        print('You must run this script from within a Sage shell')
+        sys.exit(1)
 
     # Previous SAGE_ROOT, read from "sage-location.txt".
     # OLD_SAGE_ROOT is None if this is a first-time install.
@@ -292,12 +320,16 @@ if __name__ == '__main__':
     if OLD_SAGE_ROOT != SAGE_ROOT or force_relocate:
         if OLD_SAGE_ROOT is None:
             print("This looks like the first time you are running Sage.")
+        elif OLD_SAGE_ROOT != SAGE_ROOT:
+            print(RELOCATION_ERROR.format(OLD_SAGE_ROOT=OLD_SAGE_ROOT, SAGE_ROOT=SAGE_ROOT))
+            sys.exit(1)
         elif force_relocate:
             print("Forcing sage-location, probably because a new package was installed.")
         else:
             print("The Sage installation tree has moved")
             print("from %s" % OLD_SAGE_ROOT)
             print("  to %s" % SAGE_ROOT)
+            assert(False)
         print("Updating various hardcoded paths...")
         print("(Please wait at most a few minutes.)")
         print("DO NOT INTERRUPT THIS.")

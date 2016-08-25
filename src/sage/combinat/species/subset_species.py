@@ -1,6 +1,7 @@
 """
 Subset Species
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -16,9 +17,10 @@ Subset Species
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from species import GenericCombinatorialSpecies
-from generating_series import _integers_from, factorial_stream
-from structure import GenericSpeciesStructure
+from .species import GenericCombinatorialSpecies
+from .set_species import SetSpecies
+from .generating_series import _integers_from, factorial_stream
+from .structure import GenericSpeciesStructure
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
@@ -48,13 +50,17 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
         rng = range(1, len(self._list)+1)
         return self.__class__(self.parent(), self._labels, rng)
 
-    def labels(self):
+
+    def label_subset(self):
         """
+        Returns a subset of the labels that "appear" in this
+        structure.
+
         EXAMPLES::
 
             sage: P = species.SubsetSpecies()
             sage: S = P.structures(["a", "b", "c"])
-            sage: [s.labels() for s in S]
+            sage: [s.label_subset() for s in S]
             [[], ['a'], ['b'], ['c'], ['a', 'b'], ['a', 'c'], ['b', 'c'], ['a', 'b', 'c']]
         """
         return [self._relabel(i) for i in self._list]
@@ -208,12 +214,11 @@ class SubsetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
     def _cis(self, series_ring, base_ring):
         r"""
-        The cycle index series for the species of subsets is given by
+        The cycle index series for the species of subsets satisfies
 
         .. math::
 
-             exp \left( 2 \cdot \sum_{n=1}^\infty \frac{x_n}{n} \right).
-
+             Z_{\mathfrak{p}} = Z_{\mathcal{E}} \cdot Z_{\mathcal{E}}
 
 
         EXAMPLES::
@@ -226,22 +231,11 @@ class SubsetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
              4/3*p[1, 1, 1] + 2*p[2, 1] + 2/3*p[3],
              2/3*p[1, 1, 1, 1] + 2*p[2, 1, 1] + 1/2*p[2, 2] + 4/3*p[3, 1] + 1/2*p[4]]
         """
-        return series_ring(self._cis_gen(base_ring)).exponential()
-
-    def _cis_gen(self, base_ring):
-        """
-        EXAMPLES::
-
-            sage: S = species.SubsetSpecies()
-            sage: g = S._cis_gen(QQ)
-            sage: [g.next() for i in range(5)]
-            [0, 2*p[1], p[2], 2/3*p[3], 1/2*p[4]]
-        """
-        from sage.combinat.sf.sf import SymmetricFunctions
-        p = SymmetricFunctions(base_ring).power()
-        yield base_ring(0)
-        for n in _integers_from(ZZ(1)):
-            yield 2*p([n])/n
+        ciset = SetSpecies().cycle_index_series(base_ring)
+        res = ciset**2
+        if self.is_weighted():
+            res *= self._weight
+        return res
 
 #Backward compatibility
 SubsetSpecies_class = SubsetSpecies

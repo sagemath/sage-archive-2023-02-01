@@ -13,11 +13,11 @@ multiplication algorithms.
 #
 #                  http://www.gnu.org/licenses/
 ################################################################################
-
+from __future__ import print_function
 
 from matrix_window cimport MatrixWindow
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 
 def strassen_window_multiply(C, A,B, cutoff):
@@ -44,7 +44,7 @@ def strassen_window_multiply(C, A,B, cutoff):
     AUTHORS:
 
     - David Harvey
-    - Simon King (2011-07): Improve memory efficiency; trac ticket #11610
+    - Simon King (2011-07): Improve memory efficiency; :trac:`11610`
     """
     strassen_window_multiply_c(C, A, B, cutoff)
 
@@ -307,7 +307,7 @@ def strassen_echelon(MatrixWindow A, cutoff):
     - Robert Bradshaw
     """
     if cutoff < 1:
-        raise ValueError, "cutoff must be at least 1"
+        raise ValueError("cutoff must be at least 1")
     sig_on()
     strassen_echelon_c(A, cutoff, A._matrix._strassen_default_cutoff(A._matrix))
     sig_off()
@@ -653,16 +653,16 @@ class int_range:
             sage: from sage.matrix.strassen import int_range
             sage: I = int_range([6,20,21,4,5,22,23])
             sage: it = iter(I)
-            sage: it.next()
+            sage: next(it)
             (4, 3)
-            sage: it.next()
+            sage: next(it)
             (20, 4)
-            sage: it.next()
+            sage: next(it)
             Traceback (most recent call last):
             ...
             StopIteration
         """
-        return self._intervals.__iter__()
+        return iter(self._intervals)
 
     def __len__(self):
         r"""
@@ -793,7 +793,8 @@ def test(n, m, R, c=2):
     EXAMPLES::
 
         sage: from sage.matrix.strassen import test
-        sage: for n in range(5): print n, test(2*n,n,Frac(QQ['x']),2)
+        sage: for n in range(5):
+        ....:     print("{} {}".format(n, test(2*n,n,Frac(QQ['x']),2)))
         0 True
         1 True
         2 True

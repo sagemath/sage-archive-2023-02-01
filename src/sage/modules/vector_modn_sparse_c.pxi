@@ -5,19 +5,20 @@
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
+include "cysignals/memory.pxi"
 include 'vector_modn_sparse_h.pxi'
 
 cdef int allocate_c_vector_modint(c_vector_modint* v, Py_ssize_t num_nonzero) except -1:
     """
     Allocate memory for a c_vector_modint -- most user code won't call this.
     """
-    v.entries = <int*>sage_malloc(num_nonzero*sizeof(int))
+    v.entries = <int*>sig_malloc(num_nonzero*sizeof(int))
     if v.entries == NULL:
-        raise MemoryError, "Error allocating memory"
-    v.positions = <Py_ssize_t*>sage_malloc(num_nonzero*sizeof(Py_ssize_t))
+        raise MemoryError("Error allocating memory")
+    v.positions = <Py_ssize_t*>sig_malloc(num_nonzero*sizeof(Py_ssize_t))
     if v.positions == NULL:
-        sage_free(v.entries)
-        raise MemoryError, "Error allocating memory"
+        sig_free(v.entries)
+        raise MemoryError("Error allocating memory")
     return 0
 
 cdef int init_c_vector_modint(c_vector_modint* v, int p, Py_ssize_t degree,
@@ -26,18 +27,18 @@ cdef int init_c_vector_modint(c_vector_modint* v, int p, Py_ssize_t degree,
     Initialize a c_vector_modint.
     """
     if (allocate_c_vector_modint(v, num_nonzero) == -1):
-        raise MemoryError, "Error allocating memory for sparse vector."
+        raise MemoryError("Error allocating memory for sparse vector.")
     if p > 46340:
         clear_c_vector_modint(v)
-        raise OverflowError, "The prime must be <= 46340."
+        raise OverflowError("The prime must be <= 46340.")
     v.num_nonzero = num_nonzero
     v.degree = degree
     v.p = p
     return 0
 
 cdef void clear_c_vector_modint(c_vector_modint* v):
-    sage_free(v.entries)
-    sage_free(v.positions)
+    sig_free(v.entries)
+    sig_free(v.positions)
 
 cdef Py_ssize_t binary_search0_modn(Py_ssize_t* v, Py_ssize_t n, int x):
     """
@@ -106,8 +107,7 @@ cdef int get_entry(c_vector_modint* v, Py_ssize_t n) except -1:
     would be v[n] in Python syntax.
     """
     if n >= v.degree or n < 0:
-        raise IndexError, "Index must be between 0 and the degree minus 1."
-        return -1
+        raise IndexError("Index must be between 0 and the degree minus 1.")
     cdef Py_ssize_t m
     m = binary_search0_modn(v.positions, v.num_nonzero, n)
     if m == -1:
@@ -132,8 +132,7 @@ cdef int set_entry(c_vector_modint* v, Py_ssize_t n, int x) except -1:
     This would be v[n] = x in Python syntax.
     """
     if n < 0 or n >= v.degree:
-        raise IndexError, "Index (=%s) must be between 0 and %s."%(n, v.degree-1)
-        return -1
+        raise IndexError("Index (=%s) must be between 0 and %s."%(n, v.degree-1))
     cdef Py_ssize_t i, m, ins
     cdef Py_ssize_t m2, ins2
     cdef Py_ssize_t *pos
@@ -162,8 +161,8 @@ cdef int set_entry(c_vector_modint* v, Py_ssize_t n, int x) except -1:
             for i from m < i < v.num_nonzero:
                 v.entries[i-1] = e[i]
                 v.positions[i-1] = pos[i]
-            sage_free(e)
-            sage_free(pos)
+            sig_free(e)
+            sig_free(pos)
             v.num_nonzero = v.num_nonzero - 1
     else:
         # Allocate new memory and copy over elements from the
@@ -188,8 +187,8 @@ cdef int set_entry(c_vector_modint* v, Py_ssize_t n, int x) except -1:
         for i from ins < i < v.num_nonzero:
             v.entries[i] = e[i-1]
             v.positions[i] = pos[i-1]
-        sage_free(e)
-        sage_free(pos)
+        sig_free(e)
+        sig_free(pos)
 
 cdef int add_c_vector_modint_init(c_vector_modint* sum, c_vector_modint* v,
                                   c_vector_modint* w, int multiple) except -1:
@@ -197,11 +196,9 @@ cdef int add_c_vector_modint_init(c_vector_modint* sum, c_vector_modint* v,
     Set sum = v + multiple*w.
     """
     if v.p != w.p:
-        raise ArithmeticError, "The vectors must be modulo the same prime."
-        return -1
+        raise ArithmeticError("The vectors must be modulo the same prime.")
     if v.degree != w.degree:
-        raise ArithmeticError, "The vectors must have the same degree."
-        return -1
+        raise ArithmeticError("The vectors must have the same degree.")
 
     cdef int s
     cdef Py_ssize_t nz, i, j, k

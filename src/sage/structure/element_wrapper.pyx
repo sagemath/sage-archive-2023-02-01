@@ -8,15 +8,18 @@ AUTHORS:
 - Nicolas Thiery (2008-2010): Initial version
 - Travis Scrimshaw (2013-05-04): Cythonized version
 """
-#*****************************************************************************
-#  Copyright (C) 2008-2010 Nicolas M. Thiery <nthiery at users.sf.net>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
 
-include "../ext/python.pxi"
-from cpython cimport bool
+#*****************************************************************************
+#       Copyright (C) 2008-2010 Nicolas M. Thiery <nthiery at users.sf.net>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE
 
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
@@ -80,8 +83,6 @@ cdef class ElementWrapper(Element):
         Versions before :trac:`14519` had parent as the second argument and
         the value as the first.
     """
-    cdef public object value
-
     def __init__(self, parent, value):
         """
         EXAMPLES::
@@ -212,6 +213,21 @@ cdef class ElementWrapper(Element):
         from sage.misc.latex import latex
         return latex(self.value)
 
+    def _ascii_art_(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.structure.element_wrapper import DummyParent
+            sage: ElementWrapper(DummyParent("A parent"), 1)._ascii_art_()
+            1
+            sage: x = var('x')
+            sage: ElementWrapper(DummyParent("A parent"), x^2 + x)._ascii_art_()
+             2
+            x  + x
+        """
+        from sage.typeset.ascii_art import ascii_art
+        return ascii_art(self.value)
+
     def __hash__(self):
         """
         Return the same hash as for the wrapped element.
@@ -312,7 +328,7 @@ cdef class ElementWrapper(Element):
             return self.value != (<ElementWrapper>right).value
         return False
 
-    cpdef bool _lt_by_value(self, other):
+    cpdef bint _lt_by_value(self, other):
         """
         Return whether ``self`` is strictly smaller than ``other``.
 
@@ -380,11 +396,9 @@ cdef class ElementWrapper(Element):
             sage: cmp(l11, 1) in [-1,1]          # class differ
             True
         """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
-        if self.parent() != other.parent():
-            return cmp(self.parent(), other.parent())
-        return cmp(self.value, other.value)
+        return cmp(self.__class__, other.__class__) or \
+               cmp(self.parent(), other.parent()) or \
+               cmp(self.value, other.value)
 
     def __copy__(self):
         """
@@ -510,4 +524,49 @@ class ElementWrapperTester(ElementWrapper):
             [n=0, value=[2, 32]]
         """
         return "[n=%s, value=%s]"%(self.n, self.value)
+
+cdef class ElementWrapperCheckWrappedClass(ElementWrapper):
+    """
+    An :class:`element wrapper <ElementWrapper>` such that comparison
+    operations are done against subclasses of ``wrapped_class``.
+    """
+    wrapped_class = object
+
+    def __richcmp__(left, right, int op):
+        """
+        Return ``True`` if ``left`` compares with ``right`` based on ``op``.
+
+        .. SEEALSO::
+
+            :meth:`ElementWrapper.__richcmp__`
+
+        TESTS::
+
+            sage: A = cartesian_product([ZZ, ZZ])
+            sage: elt = A((1,1))
+            sage: (1, 1) == elt
+            True
+            sage: elt == (1, 1)
+            True
+            sage: A((1, 2)) == elt
+            False
+        """
+        cdef ElementWrapperCheckWrappedClass self
+        self = left
+
+        if self.__class__ != right.__class__:
+            if isinstance(right, self.wrapped_class):
+                if op == Py_EQ or op == Py_LE or op == Py_GE:
+                    return self.value == right
+                if op == Py_NE:
+                    return self.value != right
+                return False
+            return op == Py_NE
+        if self._parent != (<ElementWrapper>right)._parent:
+            return op == Py_NE
+        if op == Py_EQ or op == Py_LE or op == Py_GE:
+            return self.value == (<ElementWrapper>right).value
+        if op == Py_NE:
+            return self.value != (<ElementWrapper>right).value
+        return False
 

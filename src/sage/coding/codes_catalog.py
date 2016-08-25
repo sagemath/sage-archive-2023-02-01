@@ -1,48 +1,46 @@
 r"""
-Index of Codes
+Index of codes
 
 The ``codes`` object may be used to access the codes that Sage can build.
 
-- :func:`codes.BCHCode <sage.coding.code_constructions.BCHCode>`
-- :func:`codes.BinaryGolayCode <sage.coding.code_constructions.BinaryGolayCode>`
-- :func:`codes.BinaryReedMullerCode <sage.coding.guava.BinaryReedMullerCode>`
-- :func:`codes.CyclicCode <sage.coding.code_constructions.CyclicCode>`
-- :func:`codes.CyclicCodeFromGeneratingPolynomial <sage.coding.code_constructions.CyclicCodeFromGeneratingPolynomial>`
-- :func:`codes.CyclicCodeFromCheckPolynomial <sage.coding.code_constructions.CyclicCodeFromCheckPolynomial>`
-- :func:`codes.DuadicCodeEvenPair <sage.coding.code_constructions.DuadicCodeEvenPair>`
-- :func:`codes.DuadicCodeOddPair <sage.coding.code_constructions.DuadicCodeOddPair>`
-- :func:`codes.ExtendedBinaryGolayCode <sage.coding.code_constructions.ExtendedBinaryGolayCode>`
-- :func:`codes.ExtendedQuadraticResidueCode <sage.coding.code_constructions.ExtendedQuadraticResidueCode>`
-- :func:`codes.ExtendedTernaryGolayCode <sage.coding.code_constructions.ExtendedTernaryGolayCode>`
-- :func:`codes.HammingCode <sage.coding.code_constructions.HammingCode>`
-- :func:`codes.LinearCodeFromCheckMatrix <sage.coding.code_constructions.LinearCodeFromCheckMatrix>`
-- :func:`codes.QuadraticResidueCode <sage.coding.code_constructions.QuadraticResidueCode>`
-- :func:`codes.QuadraticResidueCodeEvenPair <sage.coding.code_constructions.QuadraticResidueCodeEvenPair>`
-- :func:`codes.QuadraticResidueCodeOddPair <sage.coding.code_constructions.QuadraticResidueCodeOddPair>`
-- :func:`codes.QuasiQuadraticResidueCode <sage.coding.guava.QuasiQuadraticResidueCode>`
-- :func:`codes.RandomLinearCode <sage.coding.code_constructions.RandomLinearCode>`
-- :func:`codes.RandomLinearCodeGuava <sage.coding.guava.RandomLinearCodeGuava>`
-- :func:`codes.ReedSolomonCode <sage.coding.code_constructions.ReedSolomonCode>`
-- :func:`codes.TernaryGolayCode <sage.coding.code_constructions.TernaryGolayCode>`
-- :func:`codes.ToricCode <sage.coding.code_constructions.ToricCode>`
-- :func:`codes.TrivialCode <sage.coding.code_constructions.TrivialCode>`
-- :func:`codes.WalshCode <sage.coding.code_constructions.WalshCode>`
+{INDEX_OF_FUNCTIONS}
+
+.. NOTE::
+
+    To import these names into the global namespace, use:
+
+        sage: from sage.coding.codes_catalog import *
 
 """
+from __future__ import absolute_import
 
 # Implementation note:
 #
 # This module is imported as "codes" in all.py so that codes.<tab> is available
 # in the global namespace.
 
-from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
+from sage.misc.lazy_import import lazy_import as _lazy_import
+from .code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
                                 CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
                                 DuadicCodeOddPair, ExtendedBinaryGolayCode,
                                 ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
-                                HammingCode, LinearCodeFromCheckMatrix,
+                                LinearCode, LinearCodeFromCheckMatrix,
                                 QuadraticResidueCode, QuadraticResidueCodeEvenPair,
                                 QuadraticResidueCodeOddPair, RandomLinearCode,
                                 ReedSolomonCode, TernaryGolayCode,
                                 ToricCode, TrivialCode, WalshCode)
 
-from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
+from .grs import GeneralizedReedSolomonCode
+from .reed_muller_code import ReedMullerCode, BinaryReedMullerCode
+from .extended_code import ExtendedCode
+from .subfield_subcode import SubfieldSubcode
+
+from .guava import QuasiQuadraticResidueCode, RandomLinearCodeGuava
+_lazy_import('sage.coding.punctured_code', 'PuncturedCode')
+from .hamming_code import HammingCode
+from . import decoders_catalog as decoders
+from . import encoders_catalog as encoders
+from . import bounds_catalog as bounds
+from sage.misc.rest_index_of_methods import gen_rest_table_index as _gen_rest_table_index
+import sys as _sys
+__doc__ = __doc__.format(INDEX_OF_FUNCTIONS=_gen_rest_table_index(_sys.modules[__name__], only_local_functions=False))

@@ -21,6 +21,7 @@ AUTHORS:
 - David Loeffler
 - Jared Weinstein
 """
+from __future__ import absolute_import
 
 import operator
 from sage.structure.sage_object     import SageObject
@@ -31,8 +32,8 @@ from sage.misc.cachefunc            import cached_method
 from sage.misc.abstract_method      import abstract_method
 from sage.structure.sequence        import Sequence
 
-from type_space                     import TypeSpace
-from smoothchar                     import SmoothCharacterGroupQp, SmoothCharacterGroupUnramifiedQuadratic, SmoothCharacterGroupRamifiedQuadratic
+from .type_space                     import TypeSpace
+from .smoothchar                     import SmoothCharacterGroupQp, SmoothCharacterGroupUnramifiedQuadratic, SmoothCharacterGroupRamifiedQuadratic
 
 def LocalComponent(f, p, twist_factor=None):
     r"""
@@ -262,7 +263,7 @@ class LocalComponentBase(SageObject):
             sage: LocalComponent(Newforms(DirichletGroup(24)([1, -1,-1]), 3, names='a')[0], 2).central_character()
             Character of Q_2*, of level 3, mapping 7 |--> 1, 5 |--> -1, 2 |--> -2
         """
-        from sage.rings.arith import crt
+        from sage.arith.all import crt
         chi = self.newform().character()
         f = self.prime() ** self.conductor()
         N = self.newform().level() // f
@@ -275,7 +276,7 @@ class LocalComponentBase(SageObject):
         else:
             return SmoothCharacterGroupQp(self.prime(), self.coefficient_field()).character(chip.conductor().valuation(self.prime()), list((~chip).values_on_gens()) + [chi(a) * self.prime()**self.twist_factor()])
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
         Comparison function.
 
@@ -293,10 +294,31 @@ class LocalComponentBase(SageObject):
             sage: Pi == loads(dumps(Pi))
             True
         """
-        return (cmp(type(self), type(other))
-            or cmp(self.prime(), other.prime())
-            or cmp(self.newform(), other.newform())
-            or cmp(self.twist_factor(), other.twist_factor()))
+        return (isinstance(other, LocalComponentBase)
+                and self.prime() == other.prime()
+                and self.newform() == other.newform()
+                and self.twist_factor() == other.twist_factor())
+
+    def __ne__(self, other):
+        """
+        Return True if ``self != other``.
+
+        EXAMPLE::
+
+            sage: Pi = LocalComponent(Newform("50a"), 5)
+            sage: Pi != LocalComponent(Newform("50a"), 3)
+            True
+            sage: Pi != LocalComponent(Newform("50b"), 5)
+            True
+            sage: Pi != QQ
+            True
+            sage: Pi != None
+            True
+            sage: Pi != loads(dumps(Pi))
+            False
+        """
+        return not (self == other)
+
 
 class PrincipalSeries(LocalComponentBase):
     r"""

@@ -142,7 +142,7 @@ Sage example in ./domaines.tex, line 340::
 Sage example in ./domaines.tex, line 355::
 
     sage: cartesian_product([QQ, QQ])
-    The cartesian product of (Rational Field, Rational Field)
+    The Cartesian product of (Rational Field, Rational Field)
 
 Sage example in ./domaines.tex, line 360::
 
@@ -174,7 +174,7 @@ Sage example in ./domaines.tex, line 383::
 Sage example in ./domaines.tex, line 415::
 
     sage: QQ.category()
-    Category of quotient fields
+    Join of Category of quotient fields and Category of metric spaces
 
 Sage example in ./domaines.tex, line 421::
 
@@ -255,7 +255,7 @@ Sage example in ./domaines.tex, line 613::
 Sage example in ./domaines.tex, line 623::
 
     sage: z = 3 * exp(I*pi/4)
-    sage: z.real(), z.imag(), z.abs().simplify_exp()
+    sage: z.real(), z.imag(), z.abs().canonicalize_radical()
     (3/2*sqrt(2), 3/2*sqrt(2), 3)
 
 Sage example in ./domaines.tex, line 679::

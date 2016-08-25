@@ -25,9 +25,6 @@ Benchmarks are included in this paper: http://arxiv.org/abs/cs/0612085
 == License ==
 GPL v3+
 
-== SPKG Maintainers ==
-* Volker Braun
-
 == Upstream Contact ==
 http://www.cs.unipr.it/ppl/
 BUGSENG srl (http://bugseng.com)
@@ -42,7 +39,7 @@ Enea Zaffanella (University of Parma)
 
 == Special Update/Build Instructions ==
 
-Patches:
-
+=== Patches ===
 * ptrdiff_t-ppl-1.1.patch: Fixes to compile with gcc 4.9; C++ name
   lookup issue.
+* weak.patch: disable use of weak symbols on Cygwin64.

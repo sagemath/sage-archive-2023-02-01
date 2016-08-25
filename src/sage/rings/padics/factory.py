@@ -18,6 +18,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import, print_function
 
 from sage.structure.factory import UniqueFactory
 from sage.rings.integer import Integer
@@ -26,10 +27,11 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.structure.element import is_Element
-from padic_base_leaves import pAdicRingCappedRelative, \
-                              pAdicRingCappedAbsolute, \
-                              pAdicRingFixedMod, \
-                              pAdicFieldCappedRelative
+from .padic_base_leaves import (pAdicRingCappedRelative,
+                                pAdicRingCappedAbsolute,
+                                pAdicRingFixedMod,
+                                pAdicFieldCappedRelative)
+from . import padic_printing
 
 ######################################################
 # ext_table --
@@ -37,7 +39,7 @@ from padic_base_leaves import pAdicRingCappedRelative, \
 # factory when it finds a given class in the ground ring of the tower.
 ######################################################
 
-from padic_extension_leaves import *
+from .padic_extension_leaves import *
 from functools import reduce
 #This imports all of the classes used in the ext_table below.
 
@@ -153,7 +155,7 @@ def get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, pr
     elif type == 'lazy':
         key = (p, prec, halt, print_mode, name, print_pos, print_sep, tuple(print_alphabet), print_max_terms)
     else:
-        print type
+        print(type)
         raise ValueError("type must be %s or lazy"%(", ".join(valid_non_lazy_types)))
     return key
 
@@ -166,7 +168,7 @@ def get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, pr
 #
 #######################################################################################################
 
-import padic_printing
+
 padic_field_cache = {}
 DEFAULT_PREC = Integer(20)
 DEFAULT_HALT = Integer(40)
@@ -457,7 +459,9 @@ class Qp_class(UniqueFactory):
         sage: K = Qp(15, check=False); a = K(999); a
         9 + 6*15 + 4*15^2 + O(15^20)
     """
-    def create_key(self, p, prec = DEFAULT_PREC, type = 'capped-rel', print_mode = None, halt = DEFAULT_HALT, names = None, ram_name = None, print_pos = None, print_sep = None, print_alphabet = None, print_max_terms = None, check = True):
+    def create_key(self, p, prec = DEFAULT_PREC, type = 'capped-rel', print_mode = None,
+                   halt = DEFAULT_HALT, names = None, ram_name = None, print_pos = None,
+                   print_sep = None, print_alphabet = None, print_max_terms = None, check = True):
         """
         Creates a key from input parameters for ``Qp``.
 
@@ -489,9 +493,12 @@ class Qp_class(UniqueFactory):
         if isinstance(type, Integer):
             # lazy
             raise NotImplementedError("lazy p-adics need more work.  Sorry.")
-        if version[0] < 4 or (len(version) > 1 and version[0] == 4 and version[1] < 5) or (len(version) > 2 and version[0] == 4 and version[1] == 5 and version[2] < 3):
-            # keys changed in order to reduce irrelevant duplications: e.g. two Qps with print_mode 'series' that are identical except for different 'print_alphabet' now return the same object.
-            key = get_key_base(p, prec, type, print_mode, 0, name, None, print_pos, print_sep, print_alphabet, print_max_terms, False, ['capped-rel', 'fixed-mod', 'capped-abs'])
+        if (version[0] < 4 or (len(version) > 1 and version[0] == 4 and version[1] < 5) or
+            (len(version) > 2 and version[0] == 4 and version[1] == 5 and version[2] < 3)):
+            # keys changed in order to reduce irrelevant duplications: e.g. two Qps with print_mode 'series'
+            # that are identical except for different 'print_alphabet' now return the same object.
+            key = get_key_base(p, prec, type, print_mode, 0, name, None, print_pos, print_sep, print_alphabet,
+                               print_max_terms, False, ['capped-rel', 'fixed-mod', 'capped-abs'])
             try:
                 obj = self._cache[version, key]()
                 if obj is not None:
@@ -502,9 +509,11 @@ class Qp_class(UniqueFactory):
 
         if type == 'capped-rel':
             if print_mode == 'terse':
-                return pAdicFieldCappedRelative(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'ram_name': name, 'max_terse_terms': print_max_terms}, name)
+                return pAdicFieldCappedRelative(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
+                                                          'ram_name': name, 'max_terse_terms': print_max_terms}, name)
             else:
-                return pAdicFieldCappedRelative(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'ram_name': name, 'max_ram_terms': print_max_terms}, name)
+                return pAdicFieldCappedRelative(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
+                                                          'ram_name': name, 'max_ram_terms': print_max_terms}, name)
         else:
             raise ValueError("unexpected type")
 
@@ -518,7 +527,7 @@ Qp = Qp_class("Qp")
 def Qq(q, prec = DEFAULT_PREC, type = 'capped-rel', modulus = None, names=None,
           print_mode=None, halt = DEFAULT_HALT, ram_name = None, res_name = None, print_pos = None,
        print_sep = None, print_max_ram_terms = None,
-       print_max_unram_terms = None, print_max_terse_terms = None, check = True):
+       print_max_unram_terms = None, print_max_terse_terms = None, check = True, implementation = 'FLINT'):
     """
     Given a prime power `q = p^n`, return the unique unramified
     extension of `\mathbb{Q}_p` of degree `n`.
@@ -985,7 +994,8 @@ def Qq(q, prec = DEFAULT_PREC, type = 'capped-rel', modulus = None, names=None,
     if not isinstance(prec, Integer): prec = Integer(prec)
     if not isinstance(halt, Integer): halt = Integer(halt)
 
-    base = Qp(p=p, prec=prec, type=type, print_mode=print_mode, halt=halt, names=ram_name, print_pos=print_pos, print_sep=print_sep, print_max_terms=print_max_ram_terms, check=check)
+    base = Qp(p=p, prec=prec, type=type, print_mode=print_mode, halt=halt, names=ram_name, print_pos=print_pos,
+              print_sep=print_sep, print_max_terms=print_max_ram_terms, check=check)
 
     if k == 1:
         return base
@@ -1003,10 +1013,14 @@ def Qq(q, prec = DEFAULT_PREC, type = 'capped-rel', modulus = None, names=None,
         res_name = names + '0'
 
     if modulus is None:
-        from sage.rings.finite_rings.constructor import FiniteField as GF
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
         modulus = PolynomialRing(base, 'x')(GF(p**k, res_name).modulus().change_ring(ZZ))
-
-    return ExtensionFactory(base=base, premodulus=modulus, prec=prec, print_mode=print_mode, halt=halt, names=names, res_name=res_name, ram_name=ram_name, print_pos=print_pos, print_sep=print_sep, print_max_ram_terms=print_max_ram_terms, print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms, check=check, unram=True)
+    return ExtensionFactory(base=base, premodulus=modulus, prec=prec, print_mode=print_mode, halt=halt,
+                            names=names, res_name=res_name, ram_name=ram_name, print_pos=print_pos,
+                            print_sep=print_sep, print_max_ram_terms=print_max_ram_terms,
+                            print_max_unram_terms=print_max_unram_terms,
+                            print_max_terse_terms=print_max_terse_terms, check=check,
+                            unram=True, implementation=implementation)
 
 ######################################################
 # Short constructor names for different types
@@ -1047,7 +1061,7 @@ def QpCR(p, prec = DEFAULT_PREC, print_mode = None, halt = DEFAULT_HALT, names =
 def QqCR(q, prec = DEFAULT_PREC, modulus = None, names=None,
           print_mode=None, halt = DEFAULT_HALT, ram_name = None, print_pos = None,
        print_sep = None, print_alphabet = None, print_max_ram_terms = None,
-       print_max_unram_terms = None, print_max_terse_terms = None, check = True):
+       print_max_unram_terms = None, print_max_terse_terms = None, check = True, implementation = 'FLINT'):
     """
     A shortcut function to create capped relative unramified `p`-adic
     fields.
@@ -1062,8 +1076,8 @@ def QqCR(q, prec = DEFAULT_PREC, modulus = None, names=None,
     """
     return Qq(q, prec=prec, modulus=modulus, names=names, print_mode=print_mode,
               halt=halt, ram_name=ram_name, print_pos=print_pos, print_max_ram_terms=print_max_ram_terms,
-              print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms, check=check,
-              type = 'capped-rel')
+              print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms,
+              check=check, implementation=implementation, type = 'capped-rel')
 
 #def QqL(q, prec = DEFAULT_PREC, modulus = None, names=None,
 #          print_mode=None, halt = DEFAULT_HALT, ram_name = None, print_pos = None,
@@ -1441,7 +1455,9 @@ class Zp_class(UniqueFactory):
         sage: a + b
         1 + 5 + O(5^10)
     """
-    def create_key(self, p, prec = DEFAULT_PREC, type = 'capped-rel', print_mode = None, halt = DEFAULT_HALT, names = None, ram_name = None, print_pos = None, print_sep = None, print_alphabet = None, print_max_terms = None, check = True):
+    def create_key(self, p, prec = DEFAULT_PREC, type = 'capped-rel', print_mode = None, halt = DEFAULT_HALT,
+                   names = None, ram_name = None, print_pos = None, print_sep = None, print_alphabet = None,
+                   print_max_terms = None, check = True):
         """
         Creates a key from input parameters for ``Zp``.
 
@@ -1454,7 +1470,8 @@ class Zp_class(UniqueFactory):
             sage: Zp.create_key(5,40,print_mode='digits')
             (5, 40, 'capped-rel', 'digits', '5', True, '|', ('0', '1', '2', '3', '4'), -1)
         """
-        return get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, check, ['capped-rel', 'fixed-mod', 'capped-abs'])
+        return get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, print_sep, print_alphabet,
+                            print_max_terms, check, ['capped-rel', 'fixed-mod', 'capped-abs'])
 
     def create_object(self, version, key):
         """
@@ -1467,7 +1484,8 @@ class Zp_class(UniqueFactory):
             sage: Zp.create_object((3,4,2),(5, 41, 'capped-rel', 'series', '5', True, '|', (), -1))
             5-adic Ring with capped relative precision 41
         """
-        if version[0] < 3 or (len(version) > 1 and version[0] == 3 and version[1] < 2) or (len(version) > 2 and version[0] == 3 and version[1] == 2 and version[2] < 3):
+        if (version[0] < 3 or (len(version) > 1 and version[0] == 3 and version[1] < 2) or
+            (len(version) > 2 and version[0] == 3 and version[1] == 2 and version[2] < 3)):
             p, prec, type, print_mode, name = key
             print_pos, print_sep, print_alphabet, print_max_terms = None, None, None, None
         else:
@@ -1475,9 +1493,12 @@ class Zp_class(UniqueFactory):
         if isinstance(type, Integer):
             # lazy
             raise NotImplementedError("lazy p-adics need more work.  Sorry.")
-        if version[0] < 4 or (len(version) > 1 and version[0] == 4 and version[1] < 5) or (len(version) > 2 and version[0] == 4 and version[1] == 5 and version[2] < 3):
-            # keys changed in order to reduce irrelevant duplications: e.g. two Zps with print_mode 'series' that are identical except for different 'print_alphabet' now return the same object.
-            key = get_key_base(p, prec, type, print_mode, 0, name, None, print_pos, print_sep, print_alphabet, print_max_terms, False, ['capped-rel', 'fixed-mod', 'capped-abs'])
+        if (version[0] < 4 or (len(version) > 1 and version[0] == 4 and version[1] < 5) or
+            (len(version) > 2 and version[0] == 4 and version[1] == 5 and version[2] < 3)):
+            # keys changed in order to reduce irrelevant duplications: e.g. two Zps with print_mode 'series'
+            # that are identical except for different 'print_alphabet' now return the same object.
+            key = get_key_base(p, prec, type, print_mode, 0, name, None, print_pos, print_sep, print_alphabet,
+                               print_max_terms, False, ['capped-rel', 'fixed-mod', 'capped-abs'])
             try:
                 obj = self._cache[version, key]()
                 if obj is not None:
@@ -1486,11 +1507,14 @@ class Zp_class(UniqueFactory):
                 pass
             p, prec, type, print_mode, name, print_pos, print_sep, print_alphabet, print_max_terms = key
         if type == 'capped-rel':
-            return pAdicRingCappedRelative(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'ram_name': name, 'max_ram_terms': print_max_terms}, name)
+            return pAdicRingCappedRelative(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
+                                                     'ram_name': name, 'max_ram_terms': print_max_terms}, name)
         elif type == 'fixed-mod':
-            return pAdicRingFixedMod(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'ram_name': name, 'max_ram_terms': print_max_terms}, name)
+            return pAdicRingFixedMod(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
+                                               'ram_name': name, 'max_ram_terms': print_max_terms}, name)
         elif type == 'capped-abs':
-            return pAdicRingCappedAbsolute(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'ram_name': name, 'max_ram_terms': print_max_terms}, name)
+            return pAdicRingCappedAbsolute(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
+                                                     'ram_name': name, 'max_ram_terms': print_max_terms}, name)
         else:
             raise ValueError("unexpected type")
 
@@ -1504,7 +1528,7 @@ Zp = Zp_class("Zp")
 def Zq(q, prec = DEFAULT_PREC, type = 'capped-abs', modulus = None, names=None,
           print_mode=None, halt = DEFAULT_HALT, ram_name = None, res_name = None, print_pos = None,
        print_sep = None, print_max_ram_terms = None,
-       print_max_unram_terms = None, print_max_terse_terms = None, check = True):
+       print_max_unram_terms = None, print_max_terse_terms = None, check = True, implementation = 'FLINT'):
     """
     Given a prime power `q = p^n`, return the unique unramified
     extension of `\mathbb{Z}_p` of degree `n`.
@@ -1562,6 +1586,9 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-abs', modulus = None, names=None,
       (using ``'terse'``).  See PRINTING below.
 
     - ``check`` -- bool (default ``True``) whether to check inputs.
+
+    - ``implementation`` -- string (default ``FLINT``) which
+      implementation to use.  ``NTL`` is the other option.
 
     OUTPUT:
 
@@ -1991,11 +2018,12 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-abs', modulus = None, names=None,
         q = Integer(q)
         F = q.factor()
         if len(F) != 1:
-            raise ValueError, "q must be a prime power"
+            raise ValueError("q must be a prime power")
     else:
         F = q
         q = F[0][0]**F[0][1]
-    base = Zp(p=F[0][0], prec=prec, type=type, print_mode=print_mode, halt=halt, names=ram_name, print_pos=print_pos, print_sep=print_sep, print_max_terms=print_max_ram_terms, check=False)
+    base = Zp(p=F[0][0], prec=prec, type=type, print_mode=print_mode, halt=halt, names=ram_name,
+              print_pos=print_pos, print_sep=print_sep, print_max_terms=print_max_ram_terms, check=False)
     if F[0][1] == 1:
         return base
     elif names is None:
@@ -2003,11 +2031,16 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-abs', modulus = None, names=None,
     if res_name is None:
         res_name = names + '0'
     if modulus is None:
-        from sage.rings.finite_rings.constructor import FiniteField as GF
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
         if ram_name is None:
             ram_name = str(F[0][0])
         modulus = PolynomialRing(base, 'x')(GF(q, res_name).modulus().change_ring(ZZ))
-    return ExtensionFactory(base=base, premodulus=modulus, prec=prec, print_mode=print_mode, halt=halt, names=names, res_name=res_name, ram_name=ram_name, print_pos=print_pos, print_sep=print_sep, print_max_ram_terms=print_max_ram_terms, print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms, check=check, unram=True)
+    return ExtensionFactory(base=base, premodulus=modulus, prec=prec, print_mode=print_mode, halt=halt,
+                            names=names, res_name=res_name, ram_name=ram_name, print_pos=print_pos,
+                            print_sep=print_sep, print_max_ram_terms=print_max_ram_terms,
+                            print_max_unram_terms=print_max_unram_terms,
+                            print_max_terse_terms=print_max_terse_terms, check=check,
+                            unram=True, implementation=implementation)
 
 ######################################################
 # Short constructor names for different types
@@ -2079,7 +2112,7 @@ def ZpFM(p, prec = DEFAULT_PREC, print_mode = None, halt = DEFAULT_HALT, names =
 def ZqCR(q, prec = DEFAULT_PREC, modulus = None, names=None,
           print_mode=None, halt = DEFAULT_HALT, ram_name = None, print_pos = None,
        print_sep = None, print_alphabet = None, print_max_ram_terms = None,
-       print_max_unram_terms = None, print_max_terse_terms = None, check = True):
+       print_max_unram_terms = None, print_max_terse_terms = None, check = True, implementation = 'FLINT'):
     """
     A shortcut function to create capped relative unramified `p`-adic rings.
 
@@ -2093,13 +2126,13 @@ def ZqCR(q, prec = DEFAULT_PREC, modulus = None, names=None,
     """
     return Zq(q, prec=prec, modulus=modulus, names=names, print_mode=print_mode,
               halt=halt, ram_name=ram_name, print_pos=print_pos, print_max_ram_terms=print_max_ram_terms,
-              print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms, check=check,
-              type = 'capped-rel')
+              print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms,
+              check=check, implementation=implementation, type = 'capped-rel')
 
 def ZqCA(q, prec = DEFAULT_PREC, modulus = None, names=None,
           print_mode=None, halt = DEFAULT_HALT, ram_name = None, print_pos = None,
        print_sep = None, print_alphabet = None, print_max_ram_terms = None,
-       print_max_unram_terms = None, print_max_terse_terms = None, check = True):
+       print_max_unram_terms = None, print_max_terse_terms = None, check = True, implementation='FLINT'):
     """
     A shortcut function to create capped absolute unramified `p`-adic rings.
 
@@ -2112,13 +2145,13 @@ def ZqCA(q, prec = DEFAULT_PREC, modulus = None, names=None,
     """
     return Zq(q, prec=prec, modulus=modulus, names=names, print_mode=print_mode,
               halt=halt, ram_name=ram_name, print_pos=print_pos, print_max_ram_terms=print_max_ram_terms,
-              print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms, check=check,
-              type = 'capped-abs')
+              print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms,
+              check=check, implementation=implementation, type = 'capped-abs')
 
 def ZqFM(q, prec = DEFAULT_PREC, modulus = None, names=None,
           print_mode=None, halt = DEFAULT_HALT, ram_name = None, print_pos = None,
        print_sep = None, print_alphabet = None, print_max_ram_terms = None,
-       print_max_unram_terms = None, print_max_terse_terms = None, check = True):
+       print_max_unram_terms = None, print_max_terse_terms = None, check = True, implementation='FLINT'):
     """
     A shortcut function to create fixed modulus unramified `p`-adic rings.
 
@@ -2131,8 +2164,8 @@ def ZqFM(q, prec = DEFAULT_PREC, modulus = None, names=None,
     """
     return Zq(q, prec=prec, modulus=modulus, names=names, print_mode=print_mode,
               halt=halt, ram_name=ram_name, print_pos=print_pos, print_max_ram_terms=print_max_ram_terms,
-              print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms, check=check,
-              type = 'fixed-mod')
+              print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms,
+              check=check, implementation=implementation, type = 'fixed-mod')
 
 #def ZqL(q, prec = DEFAULT_PREC, modulus = None, names=None,
 #          print_mode=None, halt = DEFAULT_HALT, ram_name = None, print_pos = None,
@@ -2171,7 +2204,12 @@ class pAdicExtension_class(UniqueFactory):
         sage: W.precision_cap()
         12
     """
-    def create_key_and_extra_args(self, base, premodulus, prec = None, print_mode = None, halt = None, names = None, var_name = None, res_name = None, unram_name = None, ram_name = None, print_pos = None, print_sep = None, print_alphabet = None, print_max_ram_terms = None, print_max_unram_terms = None, print_max_terse_terms = None, check = True, unram = False):
+    def create_key_and_extra_args(self, base, premodulus, prec = None, print_mode = None,
+                                  halt = None, names = None, var_name = None, res_name = None,
+                                  unram_name = None, ram_name = None, print_pos = None,
+                                  print_sep = None, print_alphabet = None, print_max_ram_terms = None,
+                                  print_max_unram_terms = None, print_max_terse_terms = None,
+                                  check = True, unram = False, implementation='FLINT'):
         """
         Creates a key from input parameters for pAdicExtension.
 
@@ -2182,7 +2220,7 @@ class pAdicExtension_class(UniqueFactory):
             sage: R = Zp(5,3)
             sage: S.<x> = ZZ[]
             sage: pAdicExtension.create_key_and_extra_args(R, x^4-15,names='w')
-            (('e', 5-adic Ring with capped relative precision 3, x^4 - 15, (1 + O(5^3))*x^4 + (O(5^4))*x^3 + (O(5^4))*x^2 + (O(5^4))*x + (2*5 + 4*5^2 + 4*5^3 + O(5^4)), ('w', None, None, 'w'), 12, None, 'series', True, '|', (), -1, -1, -1), {'shift_seed': (3 + O(5^3))})
+            (('e', 5-adic Ring with capped relative precision 3, x^4 - 15, (1 + O(5^3))*x^4 + (O(5^4))*x^3 + (O(5^4))*x^2 + (O(5^4))*x + (2*5 + 4*5^2 + 4*5^3 + O(5^4)), ('w', None, None, 'w'), 12, None, 'series', True, '|', (), -1, -1, -1, 'NTL'), {'shift_seed': (3 + O(5^3))})
         """
         if print_mode is None:
             print_mode = base.print_mode()
@@ -2236,7 +2274,7 @@ class pAdicExtension_class(UniqueFactory):
                 names = str(names)
         else:
             modulus = premodulus
-        #print type(base)
+
         # We now decide on the extension class: unramified, Eisenstein, two-step or general
         if unram or is_unramified(modulus):
             if unram_name is None:
@@ -2277,7 +2315,7 @@ class pAdicExtension_class(UniqueFactory):
             # the information needed to shift right with full precision from the premodulus.
             if is_Expression(premodulus):
                 # Here we assume that the output of coeffs is sorted in increasing order by exponent:
-                coeffs = premodulus.coeffs()
+                coeffs = premodulus.coefficients()
                 preseed = premodulus / coeffs[-1][0]
                 preseed -= preseed.variables()[0]**coeffs[-1][1]
                 preseed /= base.prime() # here we assume that the base is unramified over Qp
@@ -2305,9 +2343,11 @@ class pAdicExtension_class(UniqueFactory):
                         shift_seed = -preseed.change_ring(base)
                         shift_seed /= base.uniformizer()
             if prec is None:
-                prec = min([c.precision_absolute() for c in shift_seed.list() if not c._is_exact_zero()] + [modulus.leading_coefficient().precision_absolute()] + [base.precision_cap()]) * e
+                prec = min([c.precision_absolute() for c in shift_seed.list() if not c._is_exact_zero()] +
+                           [modulus.leading_coefficient().precision_absolute()] + [base.precision_cap()]) * e
             else:
-                prec = min([c.precision_absolute() * e for c in shift_seed.list() if not c._is_exact_zero()] + [modulus.leading_coefficient().precision_absolute() * e] + [base.precision_cap() * e] + [prec])
+                prec = min([c.precision_absolute() * e for c in shift_seed.list() if not c._is_exact_zero()] +
+                           [modulus.leading_coefficient().precision_absolute() * e] + [base.precision_cap() * e] + [prec])
             modulus = truncate_to_prec(modulus, (prec/e).ceil() + 1)
         else:
             if unram_name is None:
@@ -2318,12 +2358,18 @@ class pAdicExtension_class(UniqueFactory):
                 ram_name = names + '_p'
             names = (names, res_name, unram_name, ram_name)
             polytype = 'p'
-        #print "polytype = %s"%polytype
+
         if polytype == 'u' or polytype == 'e':
-            key = (polytype, base, premodulus, modulus, names, prec, halt, print_mode, print_pos, print_sep, tuple(print_alphabet), print_max_ram_terms, print_max_unram_terms, print_max_terse_terms)
+            if polytype == 'e':
+                implementation = "NTL" # for testing - FLINT ramified extensions not implemented yet
+            key = (polytype, base, premodulus, modulus, names, prec, halt, print_mode, print_pos,
+                   print_sep, tuple(print_alphabet), print_max_ram_terms, print_max_unram_terms,
+                   print_max_terse_terms, implementation)
         else:
             upoly, epoly, prec = split(modulus, prec)
-            key = (polytype, base, premodulus, upoly, epoly, names, prec, halt, print_mode, print_pos, print_sep, tuple(print_alphabet), print_max_ram_terms, print_max_unram_terms, print_max_terse_terms)
+            key = (polytype, base, premodulus, upoly, epoly, names, prec, halt, print_mode, print_pos,
+                   print_sep, tuple(print_alphabet), print_max_ram_terms, print_max_unram_terms,
+                   print_max_terse_terms, implementation)
         return key, {'shift_seed': shift_seed}
 
     def create_object(self, version, key, shift_seed):
@@ -2336,17 +2382,30 @@ class pAdicExtension_class(UniqueFactory):
 
             sage: R = Zp(5,3)
             sage: S.<x> = R[]
-            sage: pAdicExtension.create_object(version = (3,4,2), key = ('e', R, x^4 - 15, x^4 - 15, ('w', None, None, 'w'), 12, None, 'series', True, '|', (),-1,-1,-1), shift_seed = S(3 + O(5^3)))
+            sage: pAdicExtension.create_object(version = (6,4,2), key = ('e', R, x^4 - 15, x^4 - 15, ('w', None, None, 'w'), 12, None, 'series', True, '|', (),-1,-1,-1,'NTL'), shift_seed = S(3 + O(5^3)))
             Eisenstein Extension of 5-adic Ring with capped relative precision 3 in w defined by (1 + O(5^3))*x^4 + (2*5 + 4*5^2 + 4*5^3 + O(5^4))
         """
         polytype = key[0]
+        if version[0] < 6 or version[0] == 6 and version[1] < 1:
+            key = list(key)
+            key.append('NTL')
         if polytype == 'u' or polytype == 'e':
-            polytype, base, premodulus, modulus, names, prec, halt, print_mode, print_pos, print_sep, print_alphabet, print_max_ram_terms, print_max_unram_terms, print_max_terse_terms = key
-            return ext_table[polytype, type(base.ground_ring_of_tower()).__base__](premodulus, modulus, prec, halt, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'max_ram_terms': print_max_ram_terms, 'max_unram_terms': print_max_unram_terms, 'max_terse_terms': print_max_terse_terms}, shift_seed, names)
+            (polytype, base, premodulus, modulus, names, prec, halt, print_mode, print_pos, print_sep,
+             print_alphabet, print_max_ram_terms, print_max_unram_terms, print_max_terse_terms, implementation) = key
+            T = ext_table[polytype, type(base.ground_ring_of_tower()).__base__]
+            return T(premodulus, modulus, prec, halt,
+                     {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
+                      'max_ram_terms': print_max_ram_terms, 'max_unram_terms': print_max_unram_terms, 'max_terse_terms': print_max_terse_terms},
+                     shift_seed, names, implementation)
         elif polytype == 'p':
-            polytype, base, premodulus, upoly, epoly, names, prec, halt, print_mode, print_pos, print_sep, print_alphabet, print_max_ram_terms, print_max_unram_terms, print_max_terse_terms = key
+            (polytype, base, premodulus, upoly, epoly, names, prec, halt, print_mode, print_pos, print_sep,
+             print_alphabet, print_max_ram_terms, print_max_unram_terms, print_max_terse_terms, implementation) = key
             precmult = epoly.degree()
-            return ext_table['p', type(base.ground_ring_of_tower()).__base__](premodulus, upoly, epoly, prec*precmult, halt, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'max_ram_terms': print_max_ram_terms, 'max_unram_terms': print_max_unram_terms, 'max_terse_terms': print_max_terse_terms}, names)
+            T = ext_table['p', type(base.ground_ring_of_tower()).__base__]
+            return T(premodulus, upoly, epoly, prec*precmult, halt,
+                     {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
+                      'max_ram_terms': print_max_ram_terms, 'max_unram_terms': print_max_unram_terms, 'max_terse_terms': print_max_terse_terms},
+                     names, implementation)
 
 ExtensionFactory = pAdicExtension = pAdicExtension_class("pAdicExtension")
 
@@ -2377,7 +2436,7 @@ def split(poly, prec):
 
     TESTS:
 
-    This checks that ticket #6186 is still fixed:
+    This checks that :trac:`6186` is still fixed::
 
         sage: k = Qp(13)
         sage: x = polygen(k)

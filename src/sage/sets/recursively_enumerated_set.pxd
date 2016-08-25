@@ -25,4 +25,3 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
 
 cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
     cdef set _get_next_graded_component(self, set B)
-

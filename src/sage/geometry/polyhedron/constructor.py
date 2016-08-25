@@ -94,7 +94,7 @@ but only one generating line::
     sage: strip.faces(1)
     (<0,1>, <0,2>)
     sage: for face in strip.faces(1):
-    ...      print face, '=', face.as_polyhedron().Vrepresentation()
+    ....:      print("{} = {}".format(face, face.as_polyhedron().Vrepresentation()))
     <0,1> = (A line in the direction (0, 1), A vertex at (-1, 0))
     <0,2> = (A line in the direction (0, 1), A vertex at (1, 0))
 
@@ -103,7 +103,7 @@ EXAMPLES::
     sage: trunc_quadr = Polyhedron(vertices=[[1,0],[0,1]], rays=[[1,0],[0,1]])
     sage: trunc_quadr
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 2 rays
-    sage: v = trunc_quadr.vertex_generator().next()  # the first vertex in the internal enumeration
+    sage: v = next(trunc_quadr.vertex_generator())  # the first vertex in the internal enumeration
     sage: v
     A vertex at (0, 1)
     sage: v.vector()
@@ -122,7 +122,7 @@ EXAMPLES::
     <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
     sage: v.polyhedron()
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 2 rays
-    sage: r = trunc_quadr.ray_generator().next()
+    sage: r = next(trunc_quadr.ray_generator())
     sage: r
     A ray in the direction (0, 1)
     sage: r.vector()
@@ -216,11 +216,13 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.rings.all import QQ, ZZ, RDF, RR
 from sage.misc.decorators import rename_keyword
 
-from misc import _make_listlist, _common_length_of
+from .misc import _make_listlist, _common_length_of
 
 
 #########################################################################
@@ -406,7 +408,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         if all(is_Integer(x) for x in values):
             if got_Vrep:
                 base_ring = ZZ
-            else:   # integral inequalities usually do not determine a latice polytope!
+            else:   # integral inequalities usually do not determine a lattice polytope!
                 base_ring = QQ
             convert = False
         elif all(is_Rational(x) for x in values):
@@ -417,7 +419,8 @@ def Polyhedron(vertices=None, rays=None, lines=None,
             convert = False
         else:
             try:
-                map(ZZ, values)
+                for v in values:
+                    ZZ(v)
                 if got_Vrep:
                     base_ring = ZZ
                 else:
@@ -446,14 +449,11 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     parent = Polyhedra(base_ring, ambient_dim, backend=backend)
     base_ring = parent.base_ring()
 
-    # Convert into base_ring if necessary
-    def convert_base_ring(lstlst):
-        return [ [base_ring(x) for x in lst] for lst in lstlst]
+
+    # finally, construct the Polyhedron
     Hrep = Vrep = None
     if got_Hrep:
         Hrep = [ieqs, eqns]
     if got_Vrep:
         Vrep = [vertices, rays, lines]
-
-    # finally, construct the Polyhedron
     return parent(Vrep, Hrep, convert=convert, verbose=verbose)

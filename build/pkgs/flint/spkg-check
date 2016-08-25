@@ -13,7 +13,7 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 cd src
-$MAKE check
+$MAKE check AT= QUIET_CC= QUIET_CXX= QUIET_AR=
 
 if [ $? -ne 0 ]; then
     echo >&2 "Error: FLINT failed to pass its test suite."

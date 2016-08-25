@@ -1,15 +1,15 @@
 r"""
 Interface to FriCAS
 
-TODO:
+.. TODO::
 
-- Evaluation using a file is not done. Any input line with more than a
-  few thousand characters would hang the system, so currently it
-  automatically raises an exception.
+    - Evaluation using a file is not done. Any input line with more
+      than a few thousand characters would hang the system, so currently it
+      automatically raises an exception.
 
-- All completions of a given command.
+    - All completions of a given command.
 
-- Interactive help.
+    - Interactive help.
 
 FriCAS is a free GPL-compatible (modified BSD license) general
 purpose computer algebra system based on Axiom.  The FriCAS
@@ -81,7 +81,7 @@ FriCAS would print out.
 
 ::
 
-    sage: print fricas.eval('factor(x^5 - y^5)')   # optional - fricas
+    sage: print(fricas.eval('factor(x^5 - y^5)'))   # optional - fricas
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )    Type: Factored(Polynomial(Integer))
 
@@ -121,7 +121,9 @@ control-C.
          +-+
       29\|2  + 41
 
-TESTS: We check to make sure the subst method works with keyword
+TESTS:
+
+We check to make sure the subst method works with keyword
 arguments.
 
 ::
@@ -150,7 +152,10 @@ Python floats.
 #
 #                  http://www.gnu.org/licenses/
 ###########################################################################
-from axiom import PanAxiom, PanAxiomElement, PanAxiomFunctionElement, PanAxiomExpectFunction
+from __future__ import print_function
+from __future__ import absolute_import
+
+from .axiom import PanAxiom, PanAxiomElement, PanAxiomFunctionElement, PanAxiomExpectFunction
 
 
 class FriCAS(PanAxiom):
@@ -289,14 +294,14 @@ class FriCASExpectFunction(PanAxiomExpectFunction):
 
 def is_FriCASElement(x):
     """
-    Returns True of x is of type FriCASElement.
+    Return True if x is of type FriCASElement.
 
     EXAMPLES::
 
-        sage: from sage.interfaces.fricas import is_FriCASElement
-        sage: is_FriCASElement(fricas(2)) #optional - fricas
+        sage: from sage.interfaces.fricas import is_FriCASElement #optional - fricas
+        sage: is_FriCASElement(fricas(2))  #optional - fricas
         True
-        sage: is_FriCASElement(2)
+        sage: is_FriCASElement(2)  #optional - fricas
         False
     """
     return isinstance(x, FriCASElement)
@@ -334,19 +339,22 @@ def fricas_console():
            Issue )quit to leave AXIOM and return to shell.
         -----------------------------------------------------------------------------
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%fricas magics instead.')
     os.system('fricas -nox')
 
 def __doctest_cleanup():
     """
     EXAMPLES::
 
-        sage: from sage.interfaces.fricas import __doctest_cleanup
-        sage: a = FriCAS()
+        sage: from sage.interfaces.fricas import __doctest_cleanup #optional - fricas
+        sage: a = FriCAS()   #optional - fricas
         sage: two = a(2)     #optional - fricas
         sage: a.is_running() #optional - fricas
         True
-        sage: __doctest_cleanup()
-        sage: a.is_running()
+        sage: __doctest_cleanup()   #optional - fricas
+        sage: a.is_running()   #optional - fricas
         False
     """
     import sage.interfaces.quit

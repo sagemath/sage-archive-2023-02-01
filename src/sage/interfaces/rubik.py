@@ -1,6 +1,5 @@
 r"""
-
-Interface to two Rubik's cube solvers.
+Interface to several Rubik's cube solvers.
 
 The first is by Michael Reid, and tries to find an optimal solution given
 the cube's state, and may take a long time.
@@ -33,11 +32,14 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
+from __future__ import absolute_import
 
-import pexpect, time
-import cleaner
+import pexpect
+import time
+from . import cleaner
 
-from sage.groups.perm_gps.cubegroup import *
+from sage.groups.perm_gps.cubegroup import index2singmaster
 
 
 
@@ -94,9 +96,9 @@ class OptimalSolver:
         self.verbose = verbose
         self.start()
         if wait:
-            print "Initializing tables..."
+            print("Initializing tables...")
             self.ready()
-            print "Done."
+            print("Done.")
 
     def start(self):
         child = pexpect.spawn(self.__cmd)
@@ -106,9 +108,9 @@ class OptimalSolver:
         self._ready = False
 
     def stop(self):
-        if child:
-            self.child.sendline(chr(3)) # send ctrl-c
-            self.child.sendline(chr(4)) # send ctrl-d
+        if self.child:
+            self.child.sendline(chr(3))  # send ctrl-c
+            self.child.sendline(chr(4))  # send ctrl-d
             self.child.close(True)
             self.child = None
 

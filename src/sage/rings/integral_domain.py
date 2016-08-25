@@ -17,6 +17,9 @@ Abstract base class for integral domains
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.superseded import deprecation
+deprecation(20011, "the module sage.rings.integral_domain is deprecated and will be removed")
+
 from sage.rings.ring import IntegralDomain
 
 def is_IntegralDomain(R):
@@ -25,6 +28,9 @@ def is_IntegralDomain(R):
 
     EXAMPLES::
 
+        sage: import sage.rings.integral_domain
+        doctest:...: DeprecationWarning: the module sage.rings.integral_domain is deprecated and will be removed
+        See http://trac.sagemath.org/20011 for details.
         sage: sage.rings.integral_domain.is_IntegralDomain(QQ)
         True
         sage: sage.rings.integral_domain.is_IntegralDomain(ZZ)

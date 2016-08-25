@@ -2,7 +2,7 @@
 Wrapper for Boyer's (C) planarity algorithm.
 """
 
-cdef extern from "planarity_c/graph.h":
+cdef extern from "planarity/graph.h":
     ctypedef struct graphNode:
         int v
         int link[2]
@@ -28,17 +28,24 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
     planar.  If kuratowski is False, returns True if g is planar,
     False otherwise.  If kuratowski is True, returns a tuple, first
     entry is a boolean (whether or not the graph is planar) and second
-    entry is a Kuratowski subgraph/minor (if not planar) or None (if
-    planar).  Also, will set an _embedding attribute for the graph g
-    if set_embedding is set to True.
+    entry is a Kuratowski subgraph, i.e. an edge subdivision of
+    `K_5` or `K_{3,3}` (if not planar) or ``None`` (if planar).  Also, will set
+    an ``_embedding`` attribute for the graph ``g`` if ``set_embedding`` is set
+    to True.
 
     INPUT:
-        kuratowski -- If True, return a tuple of a boolean and either None
-        or a Kuratowski subgraph or minor
-        set_pos -- if True, uses Schnyder's algorithm to determine positions
-        set_embedding -- if True, records the combinatorial embedding returned
-        (see g.get_embedding())
-        circular -- if True, test for circular planarity
+
+    - ``kuratowski`` -- If ``True``, return a tuple of a boolean and either
+      ``None`` or a Kuratowski subgraph (i.e. an edge subdivision of `K_5`
+      or `K_{3,3}`)
+
+    - ``set_pos`` -- if ``True``, uses Schnyder's algorithm to determine
+      positions
+
+    - ``set_embedding`` -- if ``True``, records the combinatorial embedding
+      returned (see g.get_embedding())
+
+    - ``circular`` -- if ``True``, test for circular planarity
 
     EXAMPLES::
 

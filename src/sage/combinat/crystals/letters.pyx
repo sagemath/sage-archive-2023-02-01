@@ -8,20 +8,14 @@ Crystals of letters
 #                          Daniel Bump    <bump at match.stanford.edu>
 #                          Brant Jones    <brant at math.ucdavis.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#****************************************************************************
+#*****************************************************************************
 
-include "../../ext/python.pxi"
-
+from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
@@ -30,6 +24,8 @@ from sage.structure.element cimport Element
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.combinat.root_system.cartan_type import CartanType
+from sage.rings.integer import Integer
+
 
 def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
     r"""
@@ -54,7 +50,7 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
 
     REFERENCES:
 
-    .. [KN94] M. Kashiwara and T. Nakashima.
+    .. [KN94] \M. Kashiwara and T. Nakashima.
        Crystal graphs for representations of the `q`-analogue of classical Lie
        algebras.
        J. Algebra **165**, no. 2, pp. 295--345, 1994.
@@ -418,20 +414,7 @@ cdef class Letter(Element):
         """
         return self.value
 
-    def __richcmp__(left, right, int op):
-        """
-        Entry point for rich comparisons. Needed for cython because we are
-        overriding `__hash__()`.
-
-        EXAMPLES::
-
-            sage: C = crystals.Letters(['D', 4])
-            sage: C(4) > C(-4)
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cdef _richcmp_c_impl(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Return ``True`` if ``left`` compares with ``right`` based on ``op``.
 
@@ -552,6 +535,34 @@ cdef class EmptyLetter(Element):
             True
         """
         return hash(self.value)
+
+    cpdef _richcmp_(left, right, int op):
+        """
+        Return ``True`` if ``left`` compares with ``right`` based on ``op``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['C', 3])
+            sage: C('E') == C(2)
+            False
+            sage: C('E') < C(2)
+            False
+            sage: C('E') <= C(2)
+            False
+            sage: C('E') != C(2)
+            True
+            sage: C('E') == C('E')
+            True
+            sage: C('E') != C('E')
+            False
+            sage: C('E') >= C('E')
+            True
+            sage: C('E') < C('E')
+            False
+        """
+        if isinstance(left, EmptyLetter) and isinstance(right, EmptyLetter):
+           return op == Py_EQ or op == Py_LE or op == Py_GE
+        return op == Py_NE
 
     def weight(self):
         """
@@ -1298,20 +1309,7 @@ cdef class LetterTuple(Element):
         """
         return hash(self.value)
 
-    def __richcmp__(left, right, int op):
-        """
-        Entry point for rich comparisons. Needed for cython because we are
-        overriding `__hash__()`.
-
-        EXAMPLES::
-
-            sage: C = crystals.Letters(['E', 6])
-            sage: C((1,)) > C((-1, 3))
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cdef _richcmp_c_impl(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Check comparison between ``left`` and ``right`` based on ``op``
 
@@ -1491,8 +1489,8 @@ cdef class Crystal_of_letters_type_E6_element(LetterTuple):
              (-1/2, -1/2, -1/2, -1/2, -1/2, -1/6, -1/6, 1/6),
              (-1, 0, 0, 0, 0, 1/3, 1/3, -1/3)]
         """
-        R=self._parent.weight_lattice_realization().fundamental_weights()
-        return sum(cmp(i,0)*R[abs(i)] for i in self.value)
+        R = self._parent.weight_lattice_realization().fundamental_weights()
+        return sum(Integer(i).sign() * R[abs(i)] for i in self.value)
 
     cpdef LetterTuple e(self, int i):
         r"""
@@ -1892,8 +1890,8 @@ cdef class Crystal_of_letters_type_E7_element(LetterTuple):
             (-1/2, -1/2, -1/2, -1/2, -1/2, -1/2, 0, 0), (-1, 0, 0, 0, 0, 0, 1/2,
             -1/2)]
         """
-        R=self._parent.weight_lattice_realization().fundamental_weights()
-        return sum(cmp(i,0)*R[abs(i)] for i in self.value)
+        R = self._parent.weight_lattice_realization().fundamental_weights()
+        return sum(Integer(i).sign() * R[abs(i)] for i in self.value)
 
     cpdef LetterTuple e(self, int i):
         r"""

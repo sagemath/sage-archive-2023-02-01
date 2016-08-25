@@ -51,10 +51,14 @@ Methods
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
+from copy import copy
 from sage.combinat.matrices.dlxcpp import DLXCPP
 from sage.plot.colors import rainbow
-from graph_generators import GraphGenerators
+from .graph_generators import GraphGenerators
+
 
 def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dict=False):
     r"""
@@ -73,7 +77,7 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
        for each coloring
 
     * `hex_colors` -- (default: ``False``) when set to ``False``, it labels
-      the colors [0,1,..,``n``-1], otherwise it uses the RGB Hex labeling
+      the colors [0,1,.., ``n`` - 1], otherwise it uses the RGB Hex labeling
 
     * `vertex_color_dict` -- (default: ``False``) when set to ``True``, it
       returns a dictionary {vertex:color}, otherwise it returns a dictionary
@@ -123,40 +127,40 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
         sage: G = Graph({0:[1,2,3],1:[2]})
         sage: n = 0
         sage: for C in all_graph_colorings(G,3,hex_colors=True):
-        ...       parts = [C[k] for k in C]
-        ...       for P in parts:
-        ...           l = len(P)
-        ...           for i in range(l):
-        ...               for j in range(i+1,l):
-        ...                   if G.has_edge(P[i],P[j]):
-        ...                       raise RuntimeError, "Coloring Failed."
-        ...       n+=1
-        sage: print "G has %s 3-colorings."%n
+        ....:     parts = [C[k] for k in C]
+        ....:     for P in parts:
+        ....:         l = len(P)
+        ....:         for i in range(l):
+        ....:             for j in range(i+1,l):
+        ....:                 if G.has_edge(P[i],P[j]):
+        ....:                     raise RuntimeError("Coloring Failed.")
+        ....:     n+=1
+        sage: print("G has %s 3-colorings." % n)
         G has 12 3-colorings.
 
 
     TESTS::
 
         sage: G = Graph({0:[1,2,3],1:[2]})
-        sage: for C in all_graph_colorings(G,0): print C
-        sage: for C in all_graph_colorings(G,-1): print C
+        sage: for C in all_graph_colorings(G,0): print(C)
+        sage: for C in all_graph_colorings(G,-1): print(C)
         Traceback (most recent call last):
         ...
         ValueError: n must be non-negative.
         sage: G = Graph({0:[1],1:[2]})
-        sage: for c in all_graph_colorings(G,2, vertex_color_dict = True): print c
+        sage: for c in all_graph_colorings(G,2, vertex_color_dict = True): print(c)
         {0: 0, 1: 1, 2: 0}
         {0: 1, 1: 0, 2: 1}
-        sage: for c in all_graph_colorings(G,2,hex_colors = True): print c
+        sage: for c in all_graph_colorings(G,2,hex_colors = True): print(c)
         {'#00ffff': [1], '#ff0000': [0, 2]}
         {'#ff0000': [1], '#00ffff': [0, 2]}
-        sage: for c in all_graph_colorings(G,2,hex_colors=True,vertex_color_dict = True): print c
+        sage: for c in all_graph_colorings(G,2,hex_colors=True,vertex_color_dict = True): print(c)
         {0: '#ff0000', 1: '#00ffff', 2: '#ff0000'}
         {0: '#00ffff', 1: '#ff0000', 2: '#00ffff'}
-        sage: for c in all_graph_colorings(G, 2, vertex_color_dict = True): print c
+        sage: for c in all_graph_colorings(G, 2, vertex_color_dict = True): print(c)
         {0: 0, 1: 1, 2: 0}
         {0: 1, 1: 0, 2: 1}
-        sage: for c in all_graph_colorings(G, 2, count_only=True, vertex_color_dict = True): print c
+        sage: for c in all_graph_colorings(G, 2, count_only=True, vertex_color_dict = True): print(c)
         1
         1
     """
@@ -372,7 +376,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- integer (default: ``0``). Sets the level of
-       verbosity. Set to 0 by default, which means quiet.
+      verbosity. Set to 0 by default, which means quiet.
 
 
     OUTPUT:
@@ -530,7 +534,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
 
         # The first vertex is colored with 1. It costs nothing to say
         # it, and it can help.
-        p.add_constraint(color[g.vertex_iterator().next(),0],  max=1, min=1)
+        p.add_constraint(color[next(g.vertex_iterator()),0],  max=1, min=1)
 
         try:
             if value_only:
@@ -948,7 +952,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- integer (default: ``0``). Sets the level of
-       verbosity. Set to 0 by default, which means quiet.
+      verbosity. Set to 0 by default, which means quiet.
 
     OUTPUT:
 
@@ -1031,7 +1035,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
     [p.add_constraint(p.sum([color[R(e),i] for i in xrange(k)]), max=1, min=1)
          for e in g.edge_iterator(labels=False)]
     # anything is good as an objective value as long as it is satisfiable
-    e = g.edge_iterator(labels=False).next()
+    e = next(g.edge_iterator(labels=False))
     p.set_objective(color[R(e),0])
     try:
         if value_only:
@@ -1147,34 +1151,34 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     - ``hex_colors`` (boolean)
 
-        - If ``hex_colors = True``, the function returns a
-          dictionary associating to each color a list
-          of edges (meant as an argument to the ``edge_colors``
-          keyword of the ``plot`` method).
+      - If ``hex_colors = True``, the function returns a
+        dictionary associating to each color a list
+        of edges (meant as an argument to the ``edge_colors``
+        keyword of the ``plot`` method).
 
-        - If ``hex_colors = False`` (default value), returns
-          a list of graphs corresponding to each color class.
+      - If ``hex_colors = False`` (default value), returns
+        a list of graphs corresponding to each color class.
 
     - ``value_only`` (boolean)
 
-        - If ``value_only = True``, only returns the linear
-          arboricity as an integer value.
+      - If ``value_only = True``, only returns the linear
+        arboricity as an integer value.
 
-        - If ``value_only = False``, returns the color classes
-          according to the value of ``hex_colors``
+      - If ``value_only = False``, returns the color classes
+        according to the value of ``hex_colors``
 
     - ``plus_one`` (integer) -- whether to use `\lceil \frac {\Delta(G)} 2
       \rceil` or `\lceil \frac {\Delta(G)+1} 2 \rceil` colors.
 
-        - If ``0``, computes a decomposition of `G` into `\lceil \frac
-          {\Delta(G)} 2 \rceil` forests of paths
+      - If ``0``, computes a decomposition of `G` into `\lceil \frac
+        {\Delta(G)} 2 \rceil` forests of paths
 
-        - If ``1``, computes a decomposition of `G` into `\lceil \frac
-          {\Delta(G)+1} 2 \rceil` colors, which is the conjectured general
-          bound.
+      - If ``1``, computes a decomposition of `G` into `\lceil \frac
+        {\Delta(G)+1} 2 \rceil` colors, which is the conjectured general
+        bound.
 
-        - If ``plus_one = None`` (default), computes a decomposition using the
-          least possible number of colors.
+      - If ``plus_one = None`` (default), computes a decomposition using the
+        least possible number of colors.
 
     - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver to
       be used. If set to ``None``, the default one is used. For more information
@@ -1184,7 +1188,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity. Set
-       to 0 by default, which means quiet.
+      to 0 by default, which means quiet.
 
     ALGORITHM:
 
@@ -1302,12 +1306,14 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     if hex_colors:
         answer = [[] for i in range(k)]
-        add = lambda (u,v),i : answer[i].append((u,v))
+        def add(uv, i):
+            return answer[i].append(uv)
     else:
-        gg = g.copy()
+        gg = copy(g)
         gg.delete_edges(g.edges())
-        answer = [gg.copy() for i in range(k)]
-        add = lambda (u,v),i : answer[i].add_edge((u,v))
+        answer = [copy(gg) for i in range(k)]
+        def add(uv, i):
+            return answer[i].add_edge(uv)
 
     for i in range(k):
         for u,v in g.edges(labels=None):
@@ -1382,7 +1388,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- integer (default: ``0``). Sets the level of
-       verbosity. Set to 0 by default, which means quiet.
+      verbosity. Set to 0 by default, which means quiet.
 
     ALGORITHM:
 
@@ -1507,12 +1513,14 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
 
     if hex_colors:
         answer = [[] for i in range(k)]
-        add = lambda (u,v),i : answer[i].append((u,v))
+        def add(uv, i):
+            return answer[i].append(uv)
     else:
-        gg = g.copy()
+        gg = copy(g)
         gg.delete_edges(g.edges())
-        answer = [gg.copy() for i in range(k)]
-        add = lambda (u,v),i : answer[i].add_edge((u,v))
+        answer = [copy(gg) for i in range(k)]
+        def add(uv, i):
+            return answer[i].add_edge(uv)
 
     for i in range(k):
         for u,v in g.edges(labels=None):

@@ -24,12 +24,12 @@ AUTHORS:
 #*****************************************************************************
 
 from cpython.int cimport *
-include "sage/libs/pari/decl.pxi"
 
+from sage.libs.gmp.all cimport *
 import sage.rings.finite_rings.integer_mod
+from sage.libs.pari.types cimport *
 from sage.libs.pari.gen cimport gen as pari_gen
-cdef extern from "convert.h":
-    cdef void t_INT_to_ZZ( mpz_t value, GEN g )
+from sage.libs.pari.pari_instance cimport INT_to_mpz
 from sage.rings.padics.common_conversion cimport get_ordp, get_preccap
 from sage.rings.integer cimport Integer
 from sage.rings.infinity import infinity
@@ -89,25 +89,56 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             sage: type(a)
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
             sage: TestSuite(a).run()
+
+        TESTS::
+
+            sage: QQq.<zz> = Qq(25,4)
+            sage: FFp = Zp(5,5).residue_field()
+            sage: QQq(FFp.zero())
+            O(5)
+            sage: QQq(FFp.one())
+            1 + O(5)
+            sage: QQq(IntegerModRing(25)(15))
+            3*5 + O(5^2)
+            sage: QQq(IntegerModRing(9)(0))
+            Traceback (most recent call last):
+            ...
+            TypeError: p does not divide modulus 9
+
         """
-        self.prime_pow = <PowComputer_class?>parent.prime_pow
+        self.prime_pow = <PowComputer_?>parent.prime_pow
         pAdicGenericElement.__init__(self, parent)
         cdef long val, xprec
         cdef GEN pari_tmp
         if isinstance(x, (int, long)):
             x = Integer(x)
-        elif PY_TYPE_CHECK(x, pari_gen):
+        elif isinstance(x, pari_gen):
             pari_tmp = (<pari_gen>x).g
             if typ(pari_tmp) == t_INT:
                 x = PY_NEW(Integer)
-                t_INT_to_ZZ((<Integer>x).value, pari_tmp)
+                INT_to_mpz((<Integer>x).value, pari_tmp)
             elif typ(pari_tmp) == t_FRAC:
                 x = Rational(x)
-        elif not (PY_TYPE_CHECK(x, Integer) or \
-                  PY_TYPE_CHECK(x, Rational) or \
-                  PY_TYPE_CHECK(x, pAdicGenericElement) or \
-                  PY_TYPE_CHECK(x, pari_gen) or \
-                  sage.rings.finite_rings.integer_mod.is_IntegerMod(x)):
+        elif isinstance(x, pAdicGenericElement):
+            if not ((<pAdicGenericElement>x)._is_base_elt(self.prime_pow.prime) or x.parent() is self.parent()):
+                raise NotImplementedError("conversion between padic extensions not implemented")
+        elif sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
+            if not Integer(self.prime_pow.prime).divides(x.parent().order()):
+                raise TypeError("p does not divide modulus %s"%x.parent().order())
+        elif sage.rings.finite_rings.element_base.is_FiniteFieldElement(x):
+            k = self.parent().residue_field()
+            if not k.has_coerce_map_from(x.parent()):
+                raise NotImplementedError("conversion from finite fields which do not embed into the residue field not implemented.")
+
+            x = k(x)
+            if not k.is_prime_field():
+                x = [k.prime_subfield()(c) for c in x.polynomial().list()]
+                x = x + [k.prime_subfield().zero()] * (k.degree() - len(x))
+        elif isinstance(x, (Integer, Rational, list, tuple)):
+            pass
+        elif sage.rings.polynomial.polynomial_element.is_Polynomial(x) and x.variable_name() == self.parent().variable_name():
+            x = x.list()
+        else:
             x = Rational(x)
         val = get_ordp(x, self.prime_pow)
         if val < 0 and self.prime_pow.in_field == 0:
@@ -185,10 +216,10 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         # TODO: move this up the hierarchy, perhaps this should go all the way to element?
         # The "verify that shift is an integer" part could be shared
         cdef long s
-        if PyInt_Check(shift):
+        if isinstance(shift, int):
             s = PyInt_AS_LONG(shift)
         else:
-            if not PY_TYPE_CHECK(shift, Integer):
+            if not isinstance(shift, Integer):
                 shift = Integer(shift)
             if mpz_fits_slong_p((<Integer>shift).value) == 0:
                 raise ValueError("valuation overflow")
@@ -233,13 +264,13 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             2*5^5 + 3*5^6 + O(5^25)
         """
         cdef long s
-        if PyInt_Check(shift):
+        if isinstance(shift, int):
             s = PyInt_AS_LONG(shift)
         else:
-            if not PY_TYPE_CHECK(shift, Integer):
+            if not isinstance(shift, Integer):
                 shift = Integer(shift)
             if mpz_fits_slong_p((<Integer>shift).value) == 0:
-                raise ValueError, "valuation overflow"
+                raise ValueError("valuation overflow")
             s = mpz_get_si((<Integer>shift).value)
         check_ordp(s)
         return self._rshift_c(s)
@@ -304,7 +335,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         if absprec is None:
             absprec = maxordp
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_fits_slong_p((<Integer>absprec).value) == 0:
             raise PrecisionError("Precision higher than allowed by the precision cap")
@@ -365,6 +396,12 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
                 n -= self.valuation()
         return L[:n] + [zero] * (n - len(L))
 
+    def _ext_p_list(self, pos):
+        if pos:
+            return self.unit_part().list('simple')
+        else:
+            return self.unit_part().list('smallest')
+
     cpdef pAdicTemplateElement unit_part(self):
         """
         Returns the unit part of this element.
@@ -394,7 +431,88 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         return self.prime_pow.prime == p and self.prime_pow.deg == 1
 
-cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowComputer_class prime_pow):
+    def _prime_pow(self):
+        """
+        Provides access to this element's ``prime_pow``.
+
+        EXAMPLES::
+
+            sage: R = ZpCR(5,5)
+            sage: R(1)._prime_pow()
+            PowComputer for 5
+        """
+        return self.prime_pow
+
+    def residue(self, absprec=1):
+        r"""
+        Reduce this element modulo `p^\mathrm{absprec}`.
+
+        INPUT:
+
+        - ``absprec`` -- ``0`` or ``1``.
+
+        OUTPUT:
+
+        This element reduced modulo `p^\mathrm{absprec}` as an element of the
+        residue field or the null ring.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFM(27, 4)
+            sage: (3 + 3*a).residue()
+            0
+            sage: (a + 1).residue()
+            a0 + 1
+
+        TESTS::
+
+            sage: a.residue(0)
+            0
+            sage: a.residue(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: reduction modulo p^n with n>1.
+            sage: a.residue(10)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: insufficient precision to reduce modulo p^10.
+
+            sage: R.<a> = ZqCA(27, 4)
+            sage: (3 + 3*a).residue()
+            0
+            sage: (a + 1).residue()
+            a0 + 1
+
+            sage: R.<a> = Qq(27, 4)
+            sage: (3 + 3*a).residue()
+            0
+            sage: (a + 1).residue()
+            a0 + 1
+            sage: (a/3).residue()
+            Traceback (most recent call last):
+            ...
+            ValueError: element must have non-negative valuation in order to compute residue.
+            
+        """
+        if absprec < 0:
+            raise ValueError("cannot reduce modulo a negative power of the uniformizer.")
+        if self.valuation() < 0:
+            raise ValueError("element must have non-negative valuation in order to compute residue.")
+        if absprec > self.precision_absolute():
+            raise PrecisionError("insufficient precision to reduce modulo p^%s."%absprec)
+        if absprec == 0:
+            from sage.rings.all import IntegerModRing
+            return IntegerModRing(1).zero()
+        elif absprec == 1:
+            parent = self.parent().residue_field()
+            if self.valuation() > 0:
+                return parent.zero()
+            digits = self.padded_list(1)
+            return parent(digits[0])
+        else:
+            raise NotImplementedError("reduction modulo p^n with n>1.")
+
+cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowComputer_ prime_pow):
     """
     This function is used by exponentiation in both CR_template.pxi
     and CA_template.pxi to determine the extra precision gained from
@@ -422,10 +540,10 @@ cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowCompute
     cdef bint isbase
     if isinstance(_right, (int, long)):
         _right = Integer(_right)
-    if PY_TYPE_CHECK(_right, Integer):
+    if isinstance(_right, Integer):
         right = <Integer> _right
         exp_val = mpz_get_si((<Integer>right.valuation(p)).value)
-    elif PY_TYPE_CHECK(_right, Rational):
+    elif isinstance(_right, Rational):
         raise NotImplementedError
     ansrelprec[0] = relprec + exp_val
     if exp_val > 0 and mpz_cmp_ui(p.value, 2) == 0 and relprec == 1:
@@ -434,7 +552,7 @@ cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowCompute
     return right
 
 cdef long padic_pow_helper(celement result, celement base, long base_val, long base_relprec,
-                           celement right_unit, long right_val, long right_relprec, PowComputer_class prime_pow) except -1:
+                           celement right_unit, long right_val, long right_relprec, PowComputer_ prime_pow) except -1:
     """
     INPUT:
 

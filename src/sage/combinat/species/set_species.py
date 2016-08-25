@@ -1,6 +1,7 @@
 """
 Set Species
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -15,8 +16,8 @@ Set Species
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from species import GenericCombinatorialSpecies
-from generating_series import factorial_stream, _integers_from
+from .species import GenericCombinatorialSpecies
+from .generating_series import factorial_stream, _integers_from
 from sage.combinat.species.structure import GenericSpeciesStructure
 from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
@@ -177,22 +178,13 @@ class SetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
              1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3],
              1/24*p[1, 1, 1, 1] + 1/4*p[2, 1, 1] + 1/8*p[2, 2] + 1/3*p[3, 1] + 1/4*p[4]]
         """
-        return base_ring(self._weight)*series_ring( self._cis_gen(base_ring) ).exponential()
+        from .generating_series import ExponentialCycleIndexSeries
+        res = ExponentialCycleIndexSeries(base_ring)
 
-    def _cis_gen(self, base_ring):
-        """
-        EXAMPLES::
+        if self.is_weighted():
+            res *= self._weight
 
-            sage: S = species.SetSpecies()
-            sage: g = S._cis_gen(QQ)
-            sage: [g.next() for i in range(5)]
-            [0, p[1], 1/2*p[2], 1/3*p[3], 1/4*p[4]]
-        """
-        from sage.combinat.sf.sf import SymmetricFunctions
-        p = SymmetricFunctions(base_ring).power()
-        yield p(0)
-        for n in _integers_from(1):
-            yield p([n])/n
+        return res
 
 
 #Backward compatibility

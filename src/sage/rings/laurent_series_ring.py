@@ -12,26 +12,26 @@ EXAMPLES::
     Finite Field of size 17
     sage: S.base_ring()
     Univariate Polynomial Ring in x over Finite Field of size 17
+
+.. SEEALSO::
+
+    * :func:`sage.misc.defaults.set_series_precision`
 """
+from __future__ import print_function, absolute_import
 
 import weakref
 
-import laurent_series_ring_element
-import power_series_ring
-import polynomial
-import commutative_ring
-import integral_domain
-import field
+from . import laurent_series_ring_element
 
-from sage.structure.parent_gens import ParentWithGens
+from . import polynomial
+from . import ring
+
 from sage.libs.pari.all import pari_gen
-
-from sage.structure.category_object import check_default_category
 from sage.categories.fields import Fields
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
 
 laurent_series = {}
-def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=False):
+def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=None, sparse=False):
     """
     EXAMPLES::
 
@@ -77,10 +77,29 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=
         sage: W.<y> = LaurentSeriesRing(Qp(5,prec=199))
         sage: W is T
         False
+
+    TESTS:
+
+    Check if changing global series precision does it right (and
+    that :trac:`17955` is fixed)::
+
+        sage: set_series_precision(3)
+        sage: R.<x> = LaurentSeriesRing(ZZ)
+        sage: 1/(1 - 2*x)
+        1 + 2*x + 4*x^2 + O(x^3)
+        sage: set_series_precision(5)
+        sage: R.<x> = LaurentSeriesRing(ZZ)
+        sage: 1/(1 - 2*x)
+        1 + 2*x + 4*x^2 + 8*x^3 + 16*x^4 + O(x^5)
+        sage: set_series_precision(20)
     """
     if not names is None: name = names
     if name is None:
         raise TypeError("You must specify the name of the indeterminate of the Laurent series ring.")
+
+    if default_prec is None:
+        from sage.misc.defaults import series_precision
+        default_prec = series_precision()
 
     global laurent_series
     key = (base_ring, name, default_prec, sparse)
@@ -88,11 +107,11 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=
         x = laurent_series[key]()
         if x is not None: return x
 
-    if isinstance(base_ring, field.Field):
+    if isinstance(base_ring, ring.Field):
         R = LaurentSeriesRing_field(base_ring, name, default_prec, sparse)
-    elif isinstance(base_ring, integral_domain.IntegralDomain):
+    elif isinstance(base_ring, ring.IntegralDomain):
         R = LaurentSeriesRing_domain(base_ring, name, default_prec, sparse)
-    elif isinstance(base_ring, commutative_ring.CommutativeRing):
+    elif isinstance(base_ring, ring.CommutativeRing):
         R = LaurentSeriesRing_generic(base_ring, name, default_prec, sparse)
     else:
         raise TypeError("base_ring must be a commutative ring")
@@ -110,13 +129,14 @@ def is_LaurentSeriesRing(x):
     """
     return isinstance(x, LaurentSeriesRing_generic)
 
-class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
+class LaurentSeriesRing_generic(ring.CommutativeRing):
     """
     Univariate Laurent Series Ring
 
     EXAMPLES::
 
-        sage: K, q = LaurentSeriesRing(CC, 'q').objgen(); K
+        sage: K = LaurentSeriesRing(CC, 'q')
+        sage: K
         Laurent Series Ring in q over Complex Field with 53 bits of precision
         sage: loads(K.dumps()) == K
         True
@@ -136,7 +156,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         sage: TestSuite(F).run()
     """
 
-    def __init__(self, base_ring, name=None, default_prec=20, sparse=False, category=None):
+    def __init__(self, base_ring, name=None, default_prec=None, sparse=False, category=None):
         """
         Initialization
 
@@ -147,15 +167,16 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             sage: 1 / (q-q^2)
             q^-1 + 1 + q + q^2 + O(q^3)
         """
-        commutative_ring.CommutativeRing.__init__(self, base_ring, names=name, 
+        from .power_series_ring import PowerSeriesRing
+        ring.CommutativeRing.__init__(self, base_ring, names=name,
                                                   category=getattr(self, '_default_category', Fields()))
         self._polynomial_ring = polynomial.polynomial_ring_constructor.PolynomialRing(self.base_ring(),
                                                                                       self.variable_name(),
                                                                                       sparse=sparse)
-        self._power_series_ring = power_series_ring.PowerSeriesRing(self.base_ring(),
-                                                                    self.variable_name(),
-                                                                    default_prec=default_prec,
-                                                                    sparse=sparse)
+        self._power_series_ring = PowerSeriesRing(self.base_ring(),
+                                                  self.variable_name(),
+                                                  default_prec=default_prec,
+                                                  sparse=sparse)
 
     def base_extend(self, R):
         """
@@ -260,7 +281,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
             sage: R.<u> = LaurentSeriesRing(Qp(5, 10))
             sage: S.<t> = LaurentSeriesRing(RationalField())
-            sage: print R(t + t^2 + O(t^3))
+            sage: R(t + t^2 + O(t^3))
             (1 + O(5^10))*u + (1 + O(5^10))*u^2 + O(u^3)
 
         Note that coercing an element into its own parent just produces
@@ -303,21 +324,23 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
             sage: L.<q> = LaurentSeriesRing(QQ)
             sage: L.set_default_prec(10)
+            doctest:...: DeprecationWarning: This method is deprecated.
+            See http://trac.sagemath.org/16201 for details.
             sage: L(pari('1/x'))
             q^-1
-            sage: L(pari('poltchebi(5)'))
+            sage: L(pari('polchebyshev(5)'))
             5*q - 20*q^3 + 16*q^5
-            sage: L(pari('poltchebi(5) - 1/x^4'))
+            sage: L(pari('polchebyshev(5) - 1/x^4'))
             -q^-4 + 5*q - 20*q^3 + 16*q^5
-            sage: L(pari('1/poltchebi(5)'))
+            sage: L(pari('1/polchebyshev(5)'))
             1/5*q^-1 + 4/5*q + 64/25*q^3 + 192/25*q^5 + 2816/125*q^7 + O(q^9)
-            sage: L(pari('poltchebi(5) + O(x^40)'))
+            sage: L(pari('polchebyshev(5) + O(x^40)'))
             5*q - 20*q^3 + 16*q^5 + O(q^40)
-            sage: L(pari('poltchebi(5) - 1/x^4 + O(x^40)'))
+            sage: L(pari('polchebyshev(5) - 1/x^4 + O(x^40)'))
             -q^-4 + 5*q - 20*q^3 + 16*q^5 + O(q^40)
-            sage: L(pari('1/poltchebi(5) + O(x^10)'))
+            sage: L(pari('1/polchebyshev(5) + O(x^10)'))
             1/5*q^-1 + 4/5*q + 64/25*q^3 + 192/25*q^5 + 2816/125*q^7 + 8192/125*q^9 + O(q^10)
-            sage: L(pari('1/poltchebi(5) + O(x^10)'), -10)  # Multiply by q^-10
+            sage: L(pari('1/polchebyshev(5) + O(x^10)'), -10)  # Multiply by q^-10
             1/5*q^-11 + 4/5*q^-9 + 64/25*q^-7 + 192/25*q^-5 + 2816/125*q^-3 + 8192/125*q^-1 + O(1)
             sage: L(pari('O(x^-10)'))
             O(q^-10)
@@ -465,7 +488,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         ## field, since you can always (mathematically!) construct
         ## some power series that doesn't converge.
         ## Note that 0 is not a *ring* homomorphism.
-        from power_series_ring import is_PowerSeriesRing
+        from .power_series_ring import is_PowerSeriesRing
         if is_PowerSeriesRing(codomain) or is_LaurentSeriesRing(codomain):
             return im_gens[0].valuation() > 0 and codomain.has_coerce_map_from(self.base_ring())
         return False
@@ -506,24 +529,27 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
     def set_default_prec(self, n):
         """
-        Sets the default precision.
+        Set the default precision.
 
-        This operation should be discouraged: parents should be
-        immutable and this function may be deprecated in the future.
+        This method is deprecated.
 
         TESTS::
 
             sage: R.<x> = LaurentSeriesRing(QQ)
             sage: R.set_default_prec(3)
+            doctest:...: DeprecationWarning: This method is deprecated.
+            See http://trac.sagemath.org/16201 for details.
             sage: 1/(x^5-x^7)
             x^-5 + x^-3 + O(x^-2)
         """
+        from sage.misc.superseded import deprecation
+        deprecation(16201, "This method is deprecated.")
         self.power_series_ring().set_default_prec(n)
 
     def default_prec(self):
         """
-        Sets the precision to which exact elements are truncated when
-        necessary (most frequently when inverting)
+        Get the precision to which exact elements are truncated when
+        necessary (most frequently when inverting).
 
         EXAMPLES::
 
@@ -566,13 +592,13 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         Return a uniformizer of this Laurent series field if it is
         a discrete valuation field (i.e. if the base ring is actually
         a field). Otherwise, an error is raised.
-        
+
         EXAMPLES::
-        
+
             sage: R.<t> = LaurentSeriesRing(QQ)
             sage: R.uniformizer()
             t
-                 
+
             sage: R.<t> = LaurentSeriesRing(ZZ)
             sage: R.uniformizer()
             Traceback (most recent call last):
@@ -640,8 +666,8 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         """
         return self._power_series_ring
 
-class LaurentSeriesRing_domain(LaurentSeriesRing_generic, integral_domain.IntegralDomain):
-    def __init__(self, base_ring, name=None, default_prec=20, sparse=False):
+class LaurentSeriesRing_domain(LaurentSeriesRing_generic, ring.IntegralDomain):
+    def __init__(self, base_ring, name=None, default_prec=None, sparse=False):
         """
         Initialization
 
@@ -651,10 +677,10 @@ class LaurentSeriesRing_domain(LaurentSeriesRing_generic, integral_domain.Integr
         """
         LaurentSeriesRing_generic.__init__(self, base_ring, name, default_prec, sparse)
 
-class LaurentSeriesRing_field(LaurentSeriesRing_generic, field.Field):
+class LaurentSeriesRing_field(LaurentSeriesRing_generic, ring.Field):
     _default_category = CompleteDiscreteValuationFields()
 
-    def __init__(self, base_ring, name=None, default_prec=20, sparse=False):
+    def __init__(self, base_ring, name=None, default_prec=None, sparse=False):
         """
         Initialization
 
@@ -663,4 +689,3 @@ class LaurentSeriesRing_field(LaurentSeriesRing_generic, field.Field):
             sage: TestSuite(LaurentSeriesRing(QQ,'t')).run()
         """
         LaurentSeriesRing_generic.__init__(self, base_ring, name, default_prec, sparse)
-

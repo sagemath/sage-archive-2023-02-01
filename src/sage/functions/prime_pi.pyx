@@ -28,26 +28,16 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
-include 'sage/ext/interrupt.pxi'
-include 'sage/libs/pari/decl.pxi' # also declares diffptr (as extern char* [sic!])
+include "cysignals/memory.pxi"
+include "cysignals/signals.pxi"
+from sage.libs.pari.paridecl cimport *
 
 from libc.stdint cimport int_fast8_t, uint_fast16_t, uint8_t, uint32_t, uint64_t
 from sage.rings.integer cimport Integer
 from sage.libs.pari.all import pari
 from sage.symbolic.function cimport BuiltinFunction
+from sage.libs.gmp.mpz cimport *
 
-cdef extern from "pari/pari.h":
-    cdef void NEXT_PRIME_VIADIFF(uint32_t, uint8_t *)
-    # Note that this is a generic (i.e. polymorphic) and somewhat ill-defined
-    # PARI macro (as it uses some kind of "call by name"), whose true signature
-    # cannot be expressed by a C prototype declaration, since its first para-
-    # meter can be of any (integral) number type, and both parameters are
-    # effectively passed *by reference* (i.e., get altered).
-    # We here use uint32_t for the first argument, while in effect a reference
-    # to a uint32_t is passed. Declaring it more correctly with uint32_t* as
-    # the type of its first parameter (and uint8_t** as the type of the second)
-    # would require changing the macro definition.
 
 cdef uint64_t arg_to_uint64(x, str s1, str s2) except -1:
     if not isinstance(x, Integer):
@@ -105,7 +95,7 @@ cdef class PrimePi(BuiltinFunction):
         These examples test a variety of odd inputs::
 
             sage: prime_pi(3.5)
-            2.00000000000000
+            2
             sage: prime_pi(sqrt(2357))
             15
             sage: prime_pi(mod(30957, 9750979))
@@ -118,7 +108,7 @@ cdef class PrimePi(BuiltinFunction):
             sage: prime_pi(500509, 50051)
             41581
 
-        The following test is to verify that ticket #4670 has been essentially
+        The following test is to verify that :trac:`4670` has been essentially
         resolved::
 
             sage: prime_pi(10^10)
@@ -136,7 +126,7 @@ cdef class PrimePi(BuiltinFunction):
 
         REFERENCES:
 
-        .. [RAO2011] R.A. Ohana. On Prime Counting in Abelian Number Fields.
+        .. [RAO2011] \R.A. Ohana. On Prime Counting in Abelian Number Fields.
            http://wstein.org/home/ohanar/papers/abelian_prime_counting/main.pdf.
 
         AUTHOR:
@@ -146,20 +136,21 @@ cdef class PrimePi(BuiltinFunction):
         super(PrimePi, self).__init__('prime_pi', latex_name=r"\pi",
                 conversions={'mathematica':'PrimePi', 'pari':'primepi'})
 
-    cdef uint32_t *__primes, __numPrimes, __maxSieve, __primeBound
+    cdef uint32_t *__primes
+    cdef uint32_t __numPrimes, __maxSieve, __primeBound
     cdef int_fast8_t *__tabS
     cdef uint_fast16_t *__smallPi
-    cdef uint8_t *__pariPrimePtr
+    cdef byteptr __pariPrimePtr
 
     def __dealloc__(self):
         if self.__smallPi != NULL:
-            sage_free(self.__smallPi)
-            sage_free(self.__tabS)
+            sig_free(self.__smallPi)
+            sig_free(self.__tabS)
 
     cdef void _init_tables(self):
         pari.init_primes(0xffffu)
-        self.__pariPrimePtr = <uint8_t *>diffptr
-        self.__smallPi = <uint_fast16_t *>sage_malloc(
+        self.__pariPrimePtr = diffptr
+        self.__smallPi = <uint_fast16_t *>sig_malloc(
                 0x10000u * sizeof(uint_fast16_t))
         cdef uint32_t p=0u, i=0u, k=0u
         while i < 0xfff1u: # 0xfff1 is the last prime up to 0xffff
@@ -172,7 +163,7 @@ cdef class PrimePi(BuiltinFunction):
             self.__smallPi[i] = k
             i += 1u
 
-        self.__tabS = <int_fast8_t *>sage_malloc(2310*sizeof(int_fast8_t))
+        self.__tabS = <int_fast8_t *>sig_malloc(2310*sizeof(int_fast8_t))
         for i in range(2310u):
             self.__tabS[i] = ((i+1u)/2u - (i+3u)/6u - (i+5u)/10u + (i+15u)/30u
                     - (i+7u)/14u + (i+21u)/42u + (i+35u)/70u - (i+105u)/210u
@@ -314,7 +305,7 @@ cdef class PrimePi(BuiltinFunction):
 
     cdef void _clean_cache(self):
         if self.__numPrimes:
-            sage_free(self.__primes)
+            sig_free(self.__primes)
             self.__numPrimes = 0u
             self.__maxSieve = 0u
 
@@ -322,15 +313,16 @@ cdef class PrimePi(BuiltinFunction):
         """
         Populates ``self.__primes`` with all primes < b
         """
-        cdef uint32_t *prime, newNumPrimes, i
+        cdef uint32_t *prime
+        cdef uint32_t newNumPrimes, i
         pari.init_primes(b+1u)
-        self.__pariPrimePtr = <uint8_t *>diffptr
+        self.__pariPrimePtr = diffptr
         newNumPrimes = self._pi(b, 0ull)
         if self.__numPrimes:
-            prime = <uint32_t *>sage_realloc(self.__primes,
+            prime = <uint32_t *>sig_realloc(self.__primes,
                     newNumPrimes * sizeof(uint32_t))
         else:
-            prime = <uint32_t *>sage_malloc(newNumPrimes*sizeof(uint32_t))
+            prime = <uint32_t *>sig_malloc(newNumPrimes*sizeof(uint32_t))
         if not sig_on_no_except():
             self.__numPrimes = newNumPrimes
             self._clean_cache()
@@ -414,7 +406,8 @@ cdef class PrimePi(BuiltinFunction):
         # Laigle-Chapuy
         if i == 5u: return ((x/77u)<<4u) + self.__tabS[x%2310u]
         cdef uint32_t s = ((x/77u)<<4u) + self.__tabS[x%2310u]
-        cdef uint32_t y=x/13u, j=5u, *prime=self.__primes+5
+        cdef uint32_t y = x/13u, j = 5u
+        cdef uint32_t *prime = self.__primes+5
         while y > self.__maxSieve:
             s -= self._phi32(y, j)
             j += 1u
@@ -459,7 +452,9 @@ cdef class PrimePi(BuiltinFunction):
         EXAMPLES::
 
             sage: plot(prime_pi, 1, 100)
+            Graphics object consisting of 1 graphics primitive
             sage: prime_pi.plot(-2, sqrt(2501), thickness=2, vertical_lines=False)
+            Graphics object consisting of 16 graphics primitives
         """
         from sage.plot.step import plot_step_function
         if xmax < xmin:
@@ -548,7 +543,7 @@ cpdef Integer legendre_phi(x, a):
     # Deal with the general case
     if (<PrimePi>prime_pi).__smallPi == NULL:
         (<PrimePi>prime_pi)._init_tables()
-    cdef uint32_t z = pari.nth_prime(a)
+    cdef uint32_t z = pari.prime(a)
     if z >= y: return Integer(1)
     (<PrimePi>prime_pi)._init_primes(z)
     if not sig_on_no_except():

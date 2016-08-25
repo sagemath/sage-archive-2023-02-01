@@ -1,7 +1,15 @@
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/interrupt.pxi'
+# distutils: libraries = GSL_LIBRARIES
+# distutils: library_dirs = GSL_LIBDIR
+# distutils: include_dirs = GSL_INCDIR
+from sage.libs.gsl.types cimport gsl_function
 
-include 'gsl.pxi'
+cdef extern from "gsl/gsl_diff.h":
+  int gsl_diff_central ( gsl_function *f, double x,
+                        double *result, double *abserr)
+
+
+from sage.misc.superseded import deprecation
+deprecation(20135, "the module sage.gsl.callback is deprecated")
 
 
 foo = None

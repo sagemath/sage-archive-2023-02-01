@@ -13,8 +13,8 @@ arith_llong = sage.rings.fast_arith.arith_llong()
 
 ctypedef long long llong
 
-include 'sage/ext/interrupt.pxi'
-include 'sage/ext/stdsage.pxi'
+include "cysignals/signals.pxi"
+include "cysignals/memory.pxi"
 
 ###############################################################
 #
@@ -62,9 +62,8 @@ cdef int c_p1_normalize_int(int N, int u, int v,
         ss[0] = 1
         return 0
 
-    if N<=0 or N > 46340:
-        raise OverflowError, "Modulus is too large (must be < 46340)"
-        return -1
+    if N <= 0 or 46340 < N:
+        raise OverflowError("Modulus is too large (must be <= 46340)")
 
     u = u % N
     v = v % N
@@ -305,7 +304,7 @@ cdef int c_p1_normalize_llong(int N, int u, int v,
     ll_N = <long> N
 
     #if N<=0 or N >= 2**31:
-    #    raise OverflowError, "Modulus is too large (must be < 46340)"
+    #    raise OverflowError("Modulus is too large (must be < 46340)")
     #    return -1
 
     u = u % N
@@ -486,13 +485,13 @@ def p1list(N):
 
     """
     if N <= 0:
-        raise ValueError, "N must be a positive integer"
+        raise ValueError("N must be a positive integer")
     if N <= 46340:
         return p1list_int(N)
     if N <= 2147483647:
         return p1list_llong(N)
     else:
-        raise OverflowError, "p1list not defined for such large N."
+        raise OverflowError("p1list not defined for such large N.")
 
 def p1_normalize(int N, int u, int v):
     r"""
@@ -578,9 +577,8 @@ cdef int p1_normalize_xgcdtable(int N, int u, int v,
         ss[0] = 1
         return 0
 
-    if N<=0 or N > 46340:
-        raise OverflowError, "Modulus is too large (must be < 46340)"
-        return -1
+    if N <= 0 or 46340 < N:
+        raise OverflowError("Modulus is too large (must be <= 46340)")
 
     u = u % N
     v = v % N
@@ -686,17 +684,17 @@ cdef class P1List:
             self.__list = p1list_llong(N)
             self.__normalize = c_p1_normalize_llong
         else:
-            raise OverflowError, "p1list not defined for such large N."
+            raise OverflowError("p1list not defined for such large N.")
         self.__list.sort()
         self.__end_hash = dict([(x,i) for i, x in enumerate(self.__list[N+1:])])
 
         # Allocate memory for xgcd table.
         self.g = NULL; self.s = NULL; self.t = NULL
-        self.g = <int*> sage_malloc(sizeof(int)*N)
+        self.g = <int*> sig_malloc(sizeof(int)*N)
         if not self.g: raise MemoryError
-        self.s = <int*> sage_malloc(sizeof(int)*N)
+        self.s = <int*> sig_malloc(sizeof(int)*N)
         if not self.s: raise MemoryError
-        self.t = <int*> sage_malloc(sizeof(int)*N)
+        self.t = <int*> sig_malloc(sizeof(int)*N)
         if not self.t: raise MemoryError
 
         # Initialize xgcd table
@@ -715,9 +713,9 @@ cdef class P1List:
         """
         Deallocates memory for an object of the class P1List.
         """
-        if self.g: sage_free(self.g)
-        if self.s: sage_free(self.s)
-        if self.t: sage_free(self.t)
+        if self.g: sig_free(self.g)
+        if self.s: sig_free(self.s)
+        if self.t: sig_free(self.t)
 
 
     def __cmp__(self, other):
@@ -766,8 +764,8 @@ cdef class P1List:
         return sage.modular.modsym.p1list._make_p1list, (self.__N, )
 
     def __getitem__(self, n):
-        """
-        Standard indexing/slicing function for the class P1List.
+        r"""
+        Standard indexing/slicing function for the class ``P1List``.
 
         EXAMPLES::
 
@@ -853,7 +851,7 @@ cdef class P1List:
         elif N <= 2147483647:
             return lift_to_sl2z_llong(c, d, self.__N)
         else:
-            raise OverflowError, "N too large"
+            raise OverflowError("N too large")
 
     def apply_I(self, int i):
         r"""
@@ -1217,7 +1215,7 @@ def lift_to_sl2z_int(int c, int d, int N):
     cdef int z1, z2, g, m
 
     if c == 0 and d == 0:
-        raise AttributeError, "Element (%s, %s) not in P1." % (c,d)
+        raise AttributeError("Element (%s, %s) not in P1." % (c,d))
     g = arith_int.c_xgcd_int(c, d, &z1, &z2)
 
     # We're lucky: z1*c + z2*d = 1.
@@ -1248,7 +1246,7 @@ def lift_to_sl2z_int(int c, int d, int N):
     g = arith_int.c_xgcd_int(c, d, &z1, &z2)
 
     if g != 1:
-        raise ValueError, "input must have gcd 1"
+        raise ValueError("input must have gcd 1")
 
     return [z2, -z1, c, d]
 
@@ -1284,7 +1282,7 @@ def lift_to_sl2z_llong(llong c, llong d, int N):
     cdef llong z1, z2, g, m
 
     if c == 0 and d == 0:
-        raise AttributeError, "Element (%s, %s) not in P1." % (c,d)
+        raise AttributeError("Element (%s, %s) not in P1." % (c,d))
     g = arith_llong.c_xgcd_longlong(c, d, &z1, &z2)
 
     # We're lucky: z1*c + z2*d = 1.
@@ -1315,7 +1313,7 @@ def lift_to_sl2z_llong(llong c, llong d, int N):
     g = arith_llong.c_xgcd_longlong(c, d, &z1, &z2)
 
     if g != 1:
-        raise ValueError, "input must have gcd 1"
+        raise ValueError("input must have gcd 1")
 
     return [z2, -z1, c, d]
 
@@ -1357,7 +1355,7 @@ def lift_to_sl2z(c, d, N):
     elif N <= 2147483647:
         return lift_to_sl2z_llong(c,d,N)
     else:
-        raise NotImplementedError, "N too large"
+        raise NotImplementedError("N too large")
 
 
 def _make_p1list(n):

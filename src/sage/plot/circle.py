@@ -1,6 +1,7 @@
 """
 Circles
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
 #                          William Stein <wstein@gmail.com>,
@@ -17,7 +18,7 @@ Circles
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from primitive import GraphicPrimitive
+from .primitive import GraphicPrimitive
 from sage.misc.decorators import options, rename_keyword
 from sage.plot.colors import to_mpl_color
 from math import sin, cos, pi
@@ -176,11 +177,13 @@ class Circle(GraphicPrimitive):
         EXAMPLES::
 
             sage: circle((0,0), 1).plot3d()
+            Graphics3d Object
 
         This example uses this method implicitly, but does not pass
         the optional parameter z to this method::
 
             sage: sum([circle((random(),random()), random()).plot3d(z=random()) for _ in range(20)])
+            Graphics3d Object
 
         These examples are explicit, and pass z to this method::
 
@@ -188,7 +191,7 @@ class Circle(GraphicPrimitive):
             sage: c = C[0]
             sage: d = c.plot3d(z=2)
             sage: d.texture.opacity
-            0.300000000000000
+            0.3
 
         ::
 
@@ -211,10 +214,10 @@ class Circle(GraphicPrimitive):
         xdata = [x+r*cos(t*dt) for t in range(n+1)]
         ydata = [y+r*sin(t*dt) for t in range(n+1)]
         if fill:
-            from polygon import Polygon
+            from .polygon import Polygon
             return Polygon(xdata, ydata, options).plot3d(z)
         else:
-            from line import Line
+            from .line import Line
             return Line(xdata, ydata, options).plot3d().translate((0,0,z))
 
 @rename_keyword(color='rgbcolor')
@@ -256,17 +259,20 @@ def circle(center, radius, **options):
 
         sage: c = circle((1,1), 1)
         sage: c
+        Graphics object consisting of 1 graphics primitive
 
     ::
 
         sage: c = circle((1,1), 1, rgbcolor=(1,0,0), linestyle='-.')
         sage: c
+        Graphics object consisting of 1 graphics primitive
 
     We can also use this command to plot three-dimensional circles parallel
     to the `xy`-plane::
 
         sage: c = circle((1,1,3), 1, rgbcolor=(1,0,0))
         sage: c
+        Graphics3d Object
         sage: type(c)
         <class 'sage.plot.plot3d.base.TransformGroup'>
 
@@ -292,15 +298,18 @@ def circle(center, radius, **options):
     This produces red fill in a blue circle::
 
         sage: circle((2,3), 1, fill=True, edgecolor='blue')
+        Graphics object consisting of 1 graphics primitive
 
     This produces an all-green filled circle::
 
         sage: circle((2,3), 1, fill=True, edgecolor='blue', rgbcolor='green')
+        Graphics object consisting of 1 graphics primitive
 
     The option ``hue`` overrides *all* other options, so be careful with its use.
     This produces a purplish filled circle::
 
         sage: circle((2,3), 1, fill=True, edgecolor='blue', rgbcolor='green', hue=.8)
+        Graphics object consisting of 1 graphics primitive
 
     And circles with legends::
 
@@ -313,6 +322,7 @@ def circle(center, radius, **options):
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: circle((0, 0), 2, figsize=[10,10]) # That circle is huge!
+        Graphics object consisting of 1 graphics primitive
 
     ::
 

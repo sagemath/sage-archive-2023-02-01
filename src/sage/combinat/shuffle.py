@@ -57,7 +57,7 @@ Author:
 import collections
 import itertools
 
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.structure.sage_object import SageObject
 
 ## TODO: Think about Parent/Element for this and the category
@@ -124,10 +124,10 @@ class SetShuffleProduct(SageObject):
             self._element_constructor_ = element_constructor
         else:
             try:
-                e = iter(l1).next()
-                if hasattr(e, "parent") and hasattr(e.parent(), "_element_constructor_"):
+                e = next(iter(l1))
+                try:
                     self._element_constructor_ = e.parent()._element_constructor_
-                else:
+                except AttributeError:
                     self._element_constructor_ = list
             except StopIteration:
                 self._element_constructor_ = list
@@ -154,16 +154,15 @@ class SetShuffleProduct(SageObject):
             sage: ascii_art(SetShuffleProduct([[BinaryTree()], [BinaryTree([]), BinaryTree([[],[]])]],
             ....: [[1,4]]))
             Set shuffle product of:
-            [       [          ] ]
             [       [ o,   o   ] ]
-            [       [     / \  ] ]     [ [      ] ]
+            [       [     / \  ] ]
             [ [  ], [    o   o ] ] and [ [ 1, 4 ] ]
 
         """
-        from sage.misc.ascii_art import ascii_art, ascii_art_list
+        from sage.typeset.ascii_art import ascii_art
         return ascii_art("Set shuffle product of:") * \
-            (ascii_art_list(self._l1) + ascii_art(" and ") +
-             ascii_art_list(self._l2))
+            (ascii_art(self._l1) + ascii_art(" and ") +
+             ascii_art(self._l2))
 
     def __iter__(self):
         """
@@ -175,18 +174,18 @@ class SetShuffleProduct(SageObject):
             sage: list(SetShuffleProduct([[1,2],[3]], [[4]]))
             [[1, 2, 4], [4, 1, 2], [1, 4, 2], [3, 4], [4, 3]]
             sage: list(SetShuffleProduct([[1,2],[3,4]], [[1,4]], element_constructor=set))  #rando
-            [set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4])]
+            [{1, 2, 4},
+             {1, 2, 4},
+             {1, 2, 4},
+             {1, 2, 4},
+             {1, 2, 4},
+             {1, 2, 4},
+             {1, 3, 4},
+             {1, 3, 4},
+             {1, 3, 4},
+             {1, 3, 4},
+             {1, 3, 4},
+             {1, 3, 4}]
         """
         def shuffle_elements(pair):
             return ShuffleProduct(*pair, element_constructor=self._element_constructor_)
@@ -265,9 +264,9 @@ class ShuffleProduct(SageObject):
         self._l2 = list(l2)
 
         if element_constructor is None:
-            if hasattr(l1, "parent") and hasattr(l1.parent(), "_element_constructor_"):
+            try:
                 self._element_constructor_ = l1.parent()._element_constructor_
-            else:
+            except AttributeError:
                 self._element_constructor_ = list
         else:
             self._element_constructor_ = element_constructor
@@ -292,22 +291,21 @@ class ShuffleProduct(SageObject):
             sage: from sage.combinat.shuffle import ShuffleProduct
             sage: ascii_art(ShuffleProduct([1,2,3],[4,5]))
             Shuffle product of:
-            [         ]     [      ]
             [ 1, 2, 3 ] and [ 4, 5 ]
             sage: B = BinaryTree
             sage: ascii_art(ShuffleProduct([B([]), B([[],[]])],
             ....:   [B([[[],[]],[[],None]])]))
             Shuffle product of:
                              [     __o__   ]
-            [          ]     [    /     \  ]
+                             [    /     \  ]
             [ o,   o   ]     [   o       o ]
             [     / \  ]     [  / \     /  ]
             [    o   o ] and [ o   o   o   ]
         """
-        from sage.misc.ascii_art import ascii_art, ascii_art_list
+        from sage.typeset.ascii_art import ascii_art
         return ascii_art("Shuffle product of:") * \
-            (ascii_art_list(self._l1) + ascii_art(" and ") +
-             ascii_art_list(self._l2))
+            (ascii_art(self._l1) + ascii_art(" and ") +
+             ascii_art(self._l2))
 
     def __iter__(self):
         r"""
@@ -324,20 +322,17 @@ class ShuffleProduct(SageObject):
             sage: B = BinaryTree
             sage: ascii_art(list(ShuffleProduct([B([]), B([[],[]])],
             ....:   [B([[[],[]],[[],None]])])))
-            [ [                       ]                             [
-            [ [ o,   o        __o__   ]  [     __o__    o    o   ]  [ o,     __o__      o
-            [ [     / \      /     \  ]  [    /     \       / \  ]  [       /     \    / \
-            [ [    o   o,   o       o ]  [   o       o     o   o ]  [      o       o  o   o
+            [ [ o,   o  ,     __o__   ]  [     __o__  , o,   o   ]  [ o,     __o__  , 
+            [ [     / \      /     \  ]  [    /     \       / \  ]  [       /     \   
+            [ [    o   o    o       o ]  [   o       o     o   o ]  [      o       o 
             [ [            / \     /  ]  [  / \     /            ]  [     / \     /
-            [ [           o   o   o   ], [ o   o   o  ,  ,       ], [    o   o   o  ,
+            [ [           o   o   o   ], [ o   o   o             ], [    o   o   o   
             <BLANKLINE>
-             ] ]
-             ] ]
-             ] ]
-             ] ]
-             ] ]
-             ] ]
-
+               o   ] ]
+              / \  ] ]
+             o   o ] ]
+                   ] ]
+                   ] ]
         """
 
         ############ Gray code #############

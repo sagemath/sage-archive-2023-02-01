@@ -61,19 +61,18 @@ ex g_function_eval3(unsigned serial, const ex& arg1, const ex& arg2,
     return function(serial, arg1, arg2, arg3);
 }
 
-
-bool relational_to_bool(const ex& e) {
-    if (ex_to<relational>(e))
-        return 1;
-    else
-        return 0;
-}
-
 bool g_is_a_terminating_series(const ex& e) {
     if (is_a<pseries>(e)) {
         return (ex_to<pseries>(e)).is_terminating();
     }
     return false;
+}
+
+ex g_series_var(const ex& e) {
+    if (is_a<pseries>(e)) {
+        return (ex_to<pseries>(e)).get_var();
+    }
+    return 0;
 }
 
 relational::operators relational_operator(const ex& e) {
@@ -94,6 +93,10 @@ relational::operators switch_operator(relational::operators o) {
     default:
         return o;
     }
+}
+
+relational::result decide_relational(const ex& e) {
+    return (ex_to<relational>(e)).decide();
 }
 
 bool is_negative(ex x) {

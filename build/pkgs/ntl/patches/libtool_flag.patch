@@ -1,26 +1,20 @@
---- src.orig/src/DoConfig	2012-08-07 12:15:52.820361339 +0200
-+++ src/src/DoConfig	2012-08-07 12:17:12.828358360 +0200
-@@ -21,11 +21,12 @@
- 'RANLIB'      => 'ranlib',
- 'LIBTOOL'     => 'libtool',
- 
--'LDFLAGS'     => '',
--'LDFLAGS_CXX' => '$(LDFLAGS)',
--'LDLIBS'      => '-lm',
--'LDLIBS_CXX'  => '$(LDLIBS)',
--'CPPFLAGS'    => '',
-+'LDFLAGS'            => '',
-+'LDFLAGS_CXX'        => '$(LDFLAGS)',
-+'LDLIBS'             => '-lm -lstdc++',
-+'LDLIBS_CXX'         => '$(LDLIBS)',
-+'CPPFLAGS'           => '',
+Let libtool build a shared lib on Cygwin.
+
+diff -druN a/ntl/src/DoConfig b/ntl/src/DoConfig
+--- a/ntl/src/DoConfig	2015-05-23 07:44:51.000000000 -0700
++++ b/ntl/src/DoConfig	2015-07-03 01:25:35.820272305 -0700
+@@ -39,6 +39,7 @@
+ 'LDFLAGS'     => '',
+ 'LDLIBS'      => '-lm',
+ 'CPPFLAGS'    => '',
 +'LIBTOOL_LINK_FLAGS' => '',
  
  'DEF_PREFIX'  => '/usr/local',
  
---- src/src/mfile	2009-08-14 14:53:11.000000000 +0200
-+++ src/src/mfile	2013-06-05 20:43:25.845240069 +0200
-@@ -68,6 +68,9 @@
+diff -druN a/ntl/src/mfile b/ntl/src/mfile
+--- a/ntl/src/mfile	2015-05-23 07:44:51.000000000 -0700
++++ b/ntl/src/mfile	2015-07-03 01:26:13.120365725 -0700
+@@ -36,6 +36,9 @@
  LIBTOOL=@{LIBTOOL}
  # libtool command
  
@@ -30,12 +24,12 @@
  DEF_PREFIX=@{DEF_PREFIX}
  
  PREFIX=@{PREFIX}
-@@ -370,7 +373,7 @@ 
+@@ -365,7 +368,7 @@
  ntl.a:	$(OBJ) 
  @{LSTAT}	$(AR) $(ARFLAGS) ntl.a $(OBJ) #LSTAT
  @{LSTAT}	- $(RANLIB) ntl.a #LSTAT
--@{LSHAR}	$(LIBTOOL) --mode=link $(LINK_CXX) -o libntl.la $(OBJ:.o=.lo) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(GF2X_OPT_LIBDIR) $(GF2X_OPT_LIB) $(LDLIBS_CXX) -rpath $(LIBDIR) -version-info `cat VERSION_INFO` #LSHAR
-+@{LSHAR}	$(LIBTOOL) --mode=link $(LINK_CXX) $(LIBTOOL_LINK_FLAGS) -o libntl.la $(OBJ:.o=.lo) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(GF2X_OPT_LIBDIR) $(GF2X_OPT_LIB) $(LDLIBS_CXX) -rpath $(LIBDIR) -version-info `cat VERSION_INFO` #LSHAR
+-@{LSHAR}	$(LIBTOOL) --tag=CXX --mode=link $(LINK) -o libntl.la $(OBJ:.o=.lo) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(GF2X_OPT_LIBDIR) $(GF2X_OPT_LIB) $(LDLIBS) -rpath $(LIBDIR) -version-info `cat VERSION_INFO` #LSHAR
++@{LSHAR}	$(LIBTOOL) --tag=CXX --mode=link $(LINK) $(LIBTOOL_LINK_FLAGS) -o libntl.la $(OBJ:.o=.lo) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(GF2X_OPT_LIBDIR) $(GF2X_OPT_LIB) $(LDLIBS) -rpath $(LIBDIR) -version-info `cat VERSION_INFO` #LSHAR
  
  @{LSTAT}LCOMP= #LSTAT
- @{LSHAR}LCOMP=$(LIBTOOL) --mode=compile #LSHAR
+ @{LSHAR}LCOMP=$(LIBTOOL) --tag=CXX --mode=compile #LSHAR

@@ -1,4 +1,7 @@
-include "sage/ext/cdefs.pxi"
+# distutils: language = c++ 
+# distutils: extra_compile_args = -std=c++98 
+
+from sage.libs.gmp.types cimport mpz_t
 
 include 'sage/modules/vector_modn_sparse_h.pxi'
 

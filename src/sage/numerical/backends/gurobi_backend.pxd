@@ -5,16 +5,8 @@
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-from generic_backend cimport GenericBackend
-include 'sage/ext/stdsage.pxi'
+from .generic_backend cimport GenericBackend
 
-
-#cdef extern from *:
-#    ctypedef double* const_double_ptr "const double*"
-#    ctypedef char * const_char_ptr "const char*"
-
-#cdef extern from "float.h":
-#    cdef double DBL_MAX
 
 cdef extern from "gurobi_c.h":
      ctypedef struct GRBmodel:
@@ -37,7 +29,7 @@ cdef extern from "gurobi_c.h":
      int GRBaddrangeconstr(GRBmodel *model, int numnz, int *cind, double *cval, double lower, double upper, char *constrnames)
 
 
-     void GRBfreemodel(GRBmodel *model)
+     int GRBfreemodel(GRBmodel *model)
      void GRBfreeenv(GRBenv *env)
      int GRBupdatemodel(GRBmodel *model)
      int GRBoptimize(GRBmodel *model)
@@ -76,7 +68,7 @@ cdef extern from "gurobi_c.h":
      int GRB_BINARY
      int GRB_CONTINUOUS
      int GRB_INTEGER
-     int GRB_INFINITY
+     double GRB_INFINITY
 
      char GRB_LESS_EQUAL
      char GRB_GREATER_EQUAL
@@ -104,7 +96,7 @@ cdef class GurobiBackend(GenericBackend):
     cdef GRBenv * env
     cdef GRBenv * env_master
     cdef GRBmodel * model
-    cpdef GurobiBackend copy(self)
+    cpdef __copy__(self)
 
     cdef int num_vars
 

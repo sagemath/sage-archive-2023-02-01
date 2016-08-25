@@ -64,17 +64,21 @@ REFERENCES:
    forms", LMS J. of Comput. Math. 14 (2011), 214-231.
 
 """
-#########################################################################
+
+#*****************************************************************************
 #       Copyright (C) 2011 Alan Lauder <lauder@maths.ox.ac.uk>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
 from sage.functions.all import floor, ceil
-from sage.rings.all import ZZ,Zmod,valuation,Infinity,Integer
-from sage.rings.finite_rings.constructor import GF
+from sage.arith.all import valuation
+from sage.rings.all import ZZ, Zmod, Infinity, Integer
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.modular.modform.all import ModularForms, ModularFormsRing, delta_qexp, eisenstein_series_qexp
 from sage.modular.dims import dimension_modular_forms
 from sage.misc.functional import dimension,transpose,charpoly
@@ -857,7 +861,7 @@ def compute_Wi(k,p,h,hj,E4,E6):
     # call here somehow.
     r = E6**(2*d + b) * E4**a
 
-    prec = E4.prec() # everything gets trucated to this precision
+    prec = E4.prec() # everything gets truncated to this precision
 
     # Construct basis for Wi
     Wi = []

@@ -10,12 +10,11 @@ Utility functions for libGAP
 #   the License, or (at your option) any later version.
 #                   http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function
 
 from sage.env import SAGE_LOCAL
-from sage.misc.misc import is_64_bit
 from libc.stdint cimport uintptr_t
 from element cimport *
-
 
 
 ############################################################################
@@ -161,7 +160,7 @@ def gap_root():
     gapdir = os.path.join(SAGE_LOCAL, 'gap', 'latest')
     if os.path.exists(gapdir):
         return gapdir
-    print 'The gap-4.5.5.spkg (or later) seems to be not installed!'
+    print('The gap-4.5.5.spkg (or later) seems to be not installed!')
     gap_sh = open(os.path.join(SAGE_LOCAL, 'bin', 'gap')).read().splitlines()
     gapdir = filter(lambda dir:dir.strip().startswith('GAP_DIR'), gap_sh)[0]
     gapdir = gapdir.split('"')[1]
@@ -185,7 +184,7 @@ cdef initialize():
     # Define argv and environ variables, which we will pass in to
     # initialize GAP. Note that we must pass define the memory pool
     # size!
-    cdef char* argv[12]
+    cdef char* argv[14]
     argv[0] = "sage"
     argv[1] = "-l"
     s = gap_root()
@@ -205,6 +204,14 @@ cdef initialize():
     argv[10] = "-T"    # no debug loop
     argv[11] = NULL
     cdef int argc = 11   # argv[argc] must be NULL
+
+    from .saved_workspace import workspace
+    workspace, workspace_is_up_to_date = workspace()
+    if workspace_is_up_to_date:
+        argv[11] = "-L"
+        argv[12] = workspace
+        argv[13] = NULL
+        argc = 13
 
     # Initialize GAP and capture any error messages
     # The initialization just prints error and does not use the error handler
@@ -227,6 +234,9 @@ cdef initialize():
     # Finished!
     _gap_is_initialized = True
 
+    # Save a new workspace if necessary
+    if not workspace_is_up_to_date:
+        gap_eval('SaveWorkspace("{0}")'.format(workspace))
 
 
 ############################################################################
@@ -271,7 +281,7 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
         libgap_start_interaction(cmd)
         try:
             sig_on()
-            status = libGAP_ReadEvalCommand(libGAP_BottomLVars)
+            status = libGAP_ReadEvalCommand(libGAP_BottomLVars, NULL)
             if status != libGAP_STATUS_END:
                 libgap_call_error_handler()
             sig_off()
@@ -321,7 +331,7 @@ cdef void hold_reference(libGAP_Obj obj):
 ### Error handler ##########################################################
 ############################################################################
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 from cpython.exc cimport PyErr_SetObject
 
 cdef void error_handler(char* msg):
@@ -353,7 +363,7 @@ cdef inline void DEBUG_CHECK(libGAP_Obj obj):
     libGAP_CheckMasterPointers()
     libgap_exit()
     if obj == NULL:
-        print 'DEBUG_CHECK: Null pointer!'
+        print('DEBUG_CHECK: Null pointer!')
 
 
 
@@ -455,7 +465,7 @@ def command(command_string):
         libgap_start_interaction(cmd)
         try:
             sig_on()
-            status = libGAP_ReadEvalCommand(libGAP_BottomLVars)
+            status = libGAP_ReadEvalCommand(libGAP_BottomLVars, NULL)
             if status != libGAP_STATUS_END:
                 libgap_call_error_handler()
             sig_off()
@@ -470,10 +480,10 @@ def command(command_string):
         if libGAP_ReadEvalResult:
             libGAP_ViewObjHandler(libGAP_ReadEvalResult)
             s = libgap_get_output()
-            print 'Output follows...'
-            print s.strip()
+            print('Output follows...')
+            print(s.strip())
         else:
-            print 'No output.'
+            print('No output.')
 
     finally:
         libgap_exit()

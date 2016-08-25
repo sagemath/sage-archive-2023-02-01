@@ -1,3 +1,5 @@
+"Operands"
+
 ###############################################################################
 #   Sage: Open Source Mathematical Software
 #       Copyright (C) 2011 Burcin Erocal <burcin@erocal.org>
@@ -5,7 +7,7 @@
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
-from ginac cimport GEx, GEx_construct_ex
+from .ginac cimport GEx, GEx_construct_ex
 from sage.symbolic.expression cimport new_Expression_from_GEx
 
 cdef inline int normalize_index(object arg, int nops, object err_msg) except -1:
@@ -126,7 +128,7 @@ cdef class OperandsWrapper(SageObject):
             if arg.step:
                 step = arg.step
                 if step != arg.step:
-                    raise ValueError, "step value must be an integer"
+                    raise ValueError("step value must be an integer")
             else:
                 step = 1
             return [new_Expression_from_GEx(self._expr._parent,
@@ -137,12 +139,12 @@ cdef class OperandsWrapper(SageObject):
         if isinstance(arg, (list, tuple)):
             # handle nested index
             if len(arg) == 0: # or not all(lambda x: x in ZZ for t in args):
-                raise TypeError, ind_err_msg
+                raise TypeError(ind_err_msg)
             GEx_construct_ex(&cur_ex, self._expr._gobj)
             for x in arg:
                 nops = cur_ex.nops()
                 if nops == 0:
-                    raise TypeError, "expressions containing only a numeric coefficient, constant or symbol have no operands"
+                    raise TypeError("expressions containing only a numeric coefficient, constant or symbol have no operands")
                 ind = normalize_index(x, nops, ind_err_msg)
                 cur_ex = cur_ex.op(ind)
             return new_Expression_from_GEx(self._expr._parent, cur_ex)

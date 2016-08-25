@@ -5,8 +5,14 @@ Packaging Old-Style SPKGs
 =========================
 
 This chapter explains old-style spkgs; It applies only to legacy
-optional spkgs and experimental spkgs. See :ref:`chapter-packaging`
-for the modern way of packaging third-party software.
+optional spkgs and experimental spkgs.
+
+.. WARNING::
+
+    Old-style packages are **deprecated**, it is strongly
+    suggested that you make a new-style package instead.
+    See :ref:`chapter-packaging`
+    for the modern way of packaging third-party software.
 
 
 Creating an Old-Style SPKG
@@ -32,8 +38,8 @@ to discourage confusion. Although Sage packages are packed using tar
 and/or bzip2, note that ``.spkg`` files contain control information
 (installation scripts and metadata) that are necessary for building
 and installing them.  When you compile Sage from a source distribution
-(or when you run ``sage -i <pkg>`` or ``sage -f <pkg>``), the file
-``SAGE_ROOT/src/bin/sage-spkg`` takes care of the unpacking,
+(or when you run ``sage -p <pkg>``), the file
+``SAGE_ROOT/build/bin/sage-spkg`` takes care of the unpacking,
 compilation, and installation of Sage packages for you. You can type::
 
     tar -jxvf mypackage-version.spkg
@@ -124,11 +130,11 @@ More precisely, the directory should contain the following:
 - ``patches/``: this directory contains patches to source files in
   ``src/``.  See :ref:`section-old-spkg-patching-overview`.  Patches
   to files in ``src/`` should be applied in ``spkg-install``, and all
-  patches must be documented in ``SPKG.txt``, i.e. what they do, if
-  they are platform specific, if they should be pushed upstream,
-  etc. To ensure that all patched versions of upstream source files
-  under ``src/`` are under revision control, the whole directory
-  ``patches/`` must be under revision control.
+  patches must be self-documenting, i.e. the header must contain what
+  they do, if they are platform specific, if they should be pushed
+  upstream, etc. To ensure that all patched versions of upstream
+  source files under ``src/`` are under revision control, the whole
+  directory ``patches/`` must be under revision control.
 
 **Never** apply patches to upstream source files under ``src/`` and
 then package up an spkg. Such a mixture of upstream source with Sage
@@ -166,10 +172,6 @@ package. In this script, you may make the following assumptions:
 
 - The environment variable ``SAGE_LOCAL`` points to the
   ``SAGE_ROOT/local`` directory of the Sage installation.
-
-- The environment variables ``LD_LIBRARY_PATH`` and
-  ``DYLD_LIBRARY_PATH`` both have ``SAGE_ROOT/local/lib`` at the
-  front.
 
 The ``spkg-install`` script should copy your files to the appropriate
 place after doing any build that is necessary.  Here is a template::
@@ -309,7 +311,7 @@ refereed.  Do not post the spkg itself to the trac server: you only
 need to provide a link to your spkg.  If your spkg gets a positive
 review, it might be included into the core Sage library, or it might
 become an optional download from the Sage website, so anybody can
-automatically install it by typing ``sage -i mypackage-version.spkg``.
+automatically install it by typing ``sage -p mypackage-version.spkg``.
 
 .. note::
 
@@ -530,11 +532,11 @@ command line options ``--pkg`` or ``--pkg_nc`` (or tar and bzip2).
 
 To install your replacement spkg, you use::
 
-    sage -f http://URL/to/package-x.y.z.spkg
+    sage -p http://URL/to/package-x.y.z.spkg
 
 or::
 
-    sage -f /path/to/package-x.y.z.spkg
+    sage -p /path/to/package-x.y.z.spkg
 
 To compile Sage from source with the replacement (standard) spkg,
 untar a Sage source tarball, remove the existing spkg under

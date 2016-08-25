@@ -114,6 +114,7 @@ class IndexedGroup(IndexedMonoid):
         """
         return self.group_generators().cardinality()
 
+    @cached_method
     def group_generators(self):
         """
         Return the group generators of ``self``.
@@ -206,33 +207,6 @@ class IndexedFreeGroup(IndexedGroup, Group):
             return self.element_class(self, ((x,1),))
 
     class Element(IndexedFreeMonoidElement):
-        def __lt__(self, other):
-            """
-            Return whether ``self`` is smaller than ``y``.
-
-            This is done by comparing lexicographically the words for
-            ``self`` and ``y``. In particular this assumes that the
-            (index of) the generators are totally ordered.
-
-            EXAMPLES::
-
-                sage: G = Groups().free(index_set=ZZ)
-                sage: a,b,c,d,e = [G.gen(i) for i in range(5)]
-                sage: a < b
-                True
-                sage: a^-1*b < b^-1*a
-                True
-                sage: a*b < a*a^-1
-                False
-                sage: a^-1*a < a^2
-                True
-                sage: a^2*b < a*b^-1*a*b
-                True
-            """
-            if not isinstance(other, IndexedMonoidElement):
-                return False
-            return self.to_word_list() < other.to_word_list()
-
         def __len__(self):
             """
             Return the length of ``self``.
@@ -374,7 +348,7 @@ class IndexedFreeAbelianGroup(IndexedGroup, AbelianGroup):
             sage: G(-5)
             Traceback (most recent call last):
             ...
-            ValueError: unable to convert -5, use gen() instead
+            TypeError: unable to convert -5, use gen() instead
         """
         if isinstance(x, (list, tuple, dict)):
             x = dict(x)
@@ -444,7 +418,7 @@ class IndexedFreeAbelianGroup(IndexedGroup, AbelianGroup):
                 sage: x * ~x
                 1
             """
-            return self.__pow__(-1)
+            return self ** -1
 
         def __floordiv__(self, a):
             """

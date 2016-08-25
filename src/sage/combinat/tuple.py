@@ -15,13 +15,14 @@ Tuples
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-
-from combinat import CombinatorialClass
+from .combinat import CombinatorialClass
 from sage.interfaces.all import gap
 from sage.rings.all import ZZ
 
-def Tuples(S,k):
+
+def Tuples(S, k):
     """
     Returns the combinatorial class of ordered tuples of S of length
     k.
@@ -62,7 +63,7 @@ class Tuples_sk(CombinatorialClass):
         """
         self.S = S
         self.k = k
-        self._index_list = map(S.index, S)
+        self._index_list = [S.index(_) for _ in S]
 
     def __repr__(self):
         """
@@ -151,7 +152,7 @@ class UnorderedTuples_sk(CombinatorialClass):
         """
         self.S = S
         self.k = k
-        self._index_list = map(S.index, S)
+        self._index_list = [S.index(_) for _ in S]
 
     def __repr__(self):
         """
@@ -173,7 +174,7 @@ class UnorderedTuples_sk(CombinatorialClass):
             [['a', 'a'], ['a', 'b'], ['a', 'c'], ['b', 'b'], ['b', 'c'], ['c', 'c']]
         """
         ans=gap.eval("UnorderedTuples(%s,%s)"%(self._index_list,ZZ(self.k)))
-        return map(lambda l: map(lambda i: self.S[i], l), eval(ans))
+        return [[self.S[i] for i in l] for l in eval(ans)]
 
     def cardinality(self):
         """

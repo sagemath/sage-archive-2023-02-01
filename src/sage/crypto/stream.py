@@ -1,23 +1,25 @@
 """
 Stream Cryptosystems
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cryptosystem import SymmetricKeyCryptosystem
-from stream_cipher import LFSRCipher, ShrinkingGeneratorCipher
+from .cryptosystem import SymmetricKeyCryptosystem
+from .stream_cipher import LFSRCipher, ShrinkingGeneratorCipher
 
 from sage.crypto.util import random_blum_prime
 from sage.monoids.string_monoid import BinaryStrings
-from sage.rings.arith import gcd
-from sage.rings.arith import power_mod
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.arith.all import gcd, power_mod
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModFactory
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -62,7 +64,7 @@ class LFSRCryptosystem(SymmetricKeyCryptosystem):
         self._field = field
 
     def __eq__(self,right):
-        return isinstance(self, type(right)) and self._field == right._field
+        return type(self) is type(right) and self._field == right._field
 
     def __call__(self, key):
         """
@@ -344,12 +346,12 @@ def blum_blum_shub(length, seed=None, p=None, q=None,
 
     REFERENCES:
 
-    .. [BlumBlumShub1982] L. Blum, M. Blum, and M. Shub.
+    .. [BlumBlumShub1982] \L. Blum, M. Blum, and M. Shub.
       Comparison of Two Pseudo-Random Number Generators.
       *Advances in Cryptology: Proceedings of Crypto '82*,
       pp.61--78, 1982.
 
-    .. [BlumBlumShub1986] L. Blum, M. Blum, and M. Shub.
+    .. [BlumBlumShub1986] \L. Blum, M. Blum, and M. Shub.
       A Simple Unpredictable Pseudo-Random Number Generator.
       *SIAM Journal on Computing*, 15(2):364--383, 1986.
     """

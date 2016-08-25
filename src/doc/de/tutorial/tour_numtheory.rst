@@ -82,10 +82,10 @@ Als nächstes verifizieren wir ein Beispiel des :math:`3n+1` Problems.
 
     sage: n = 2005
     sage: for i in range(1000):
-    ...       n = 3*odd_part(n) + 1
-    ...       if odd_part(n)==1:
-    ...           print i
-    ...           break
+    ....:     n = 3*odd_part(n) + 1
+    ....:     if odd_part(n)==1:
+    ....:         print(i)
+    ....:         break
     38
 
 Schließlich illustrieren wir den chinesischen Restsatz.

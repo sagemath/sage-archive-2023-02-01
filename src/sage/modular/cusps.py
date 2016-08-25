@@ -27,6 +27,7 @@ EXAMPLES::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.rings.all import Rational, Integer, ZZ, QQ
 
@@ -36,6 +37,7 @@ from sage.structure.element import Element, is_InfinityElement
 from sage.modular.modsym.p1list import lift_to_sl2z_llong
 from sage.matrix.matrix import is_Matrix
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 
 class Cusps_class(ParentWithBase):
     """
@@ -123,7 +125,7 @@ class Cusps_class(ParentWithBase):
             sage: Cusps(I)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert I to a Cusp
+            TypeError: unable to convert I to a cusp
         """
         return Cusp(x, parent=self)
 
@@ -152,7 +154,7 @@ class Cusps_class(ParentWithBase):
             return self._coerce_try(x, QQ)
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         """
         Return the zero cusp.
 
@@ -163,11 +165,13 @@ class Cusps_class(ParentWithBase):
 
         EXAMPLE::
 
-            sage: Cusps.zero_element()
+            sage: Cusps.zero()
             0
 
         """
         return Cusp(0, parent=self)
+
+    zero_element = deprecated_function_alias(17694, zero)
 
 Cusps = Cusps_class()
 
@@ -227,7 +231,7 @@ class Cusp(Element):
             sage: Cusp(I)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert I to a Cusp
+            TypeError: unable to convert I to a cusp
 
         ::
 
@@ -262,21 +266,21 @@ class Cusp(Element):
             sage: Cusp(0,0)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert (0, 0) to a Cusp
+            TypeError: unable to convert (0, 0) to a cusp
 
         ::
 
             sage: Cusp(oo,oo)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert (+Infinity, +Infinity) to a Cusp
+            TypeError: unable to convert (+Infinity, +Infinity) to a cusp
 
         ::
 
             sage: Cusp(Cusp(oo),oo)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert (Infinity, +Infinity) to a Cusp
+            TypeError: unable to convert (Infinity, +Infinity) to a cusp
         """
         if parent is None:
             parent = Cusps
@@ -304,7 +308,7 @@ class Cusp(Element):
                 self.__b = ZZ(1)
             elif isinstance(a, (tuple, list)):
                 if len(a) != 2:
-                    raise TypeError("Unable to convert %s to a Cusp"%a)
+                    raise TypeError("unable to convert %r to a cusp"%a)
                 if ZZ(a[1]) == 0:
                     self.__a = ZZ(1)
                     self.__b = ZZ(0)
@@ -314,25 +318,25 @@ class Cusp(Element):
                     self.__a = r.numer()
                     self.__b = r.denom()
                 except (ValueError, TypeError):
-                    raise TypeError("Unable to convert %s to a Cusp"%a)
+                    raise TypeError("unable to convert %r to a cusp"%a)
             else:
                 try:
                     r = QQ(a)
                     self.__a = r.numer()
                     self.__b = r.denom()
                 except (ValueError, TypeError):
-                    raise TypeError("Unable to convert %s to a Cusp"%a)
+                    raise TypeError("unable to convert %r to a cusp"%a)
             return
 
         if is_InfinityElement(b):
             if is_InfinityElement(a) or (isinstance(a, Cusp) and a.is_infinity()):
-                raise TypeError("Unable to convert (%s, %s) to a Cusp"%(a, b))
+                raise TypeError("unable to convert (%r, %r) to a cusp"%(a, b))
             self.__a = ZZ(0)
             self.__b = ZZ(1)
             return
         elif not b:
             if not a:
-                raise TypeError("Unable to convert (%s, %s) to a Cusp"%(a, b))
+                raise TypeError("unable to convert (%r, %r) to a cusp"%(a, b))
             self.__a = ZZ(1)
             self.__b = ZZ(0)
             return
@@ -354,13 +358,13 @@ class Cusp(Element):
             r = ZZ(a) / b
         elif isinstance(a, (tuple, list)):
             if len(a) != 2:
-                raise TypeError("Unable to convert (%s, %s) to a Cusp"%(a, b))
+                raise TypeError("unable to convert (%r, %r) to a cusp"%(a, b))
             r = ZZ(a[0]) / (ZZ(a[1]) * b)
         else:
             try:
                 r = QQ(a) / b
             except (ValueError, TypeError):
-                raise TypeError("Unable to convert (%s, %s) to a Cusp"%(a, b))
+                raise TypeError("unable to convert (%r, %r) to a cusp"%(a, b))
 
         self.__a = r.numer()
         self.__b = r.denom()
@@ -678,8 +682,8 @@ class Cusp(Element):
         u2 = other.__a
         v2 = other.__b
 
-        zero = ZZ.zero_element()
-        one = ZZ.one_element()
+        zero = ZZ.zero()
+        one = ZZ.one()
 
         if transformation == "matrix":
             from sage.matrix.constructor import matrix
@@ -763,7 +767,7 @@ class Cusp(Element):
         x = -x0 * ZZ(a/g)
         # now  x*v1*v2 + a = 0 (mod N)
 
-        # the rest is all added in trac 10926
+        # the rest is all added in trac #10926
         s1p = s1+x*v1
         M = N//g
 
@@ -1063,12 +1067,19 @@ class Cusp(Element):
 
             sage: N = 50; t=3; G = Gamma0(N); C = G.cusps()
             sage: cl = lambda z: exists(C, lambda y:y.is_gamma0_equiv(z, N))[1]
-            sage: for i in range(5): print i, t^i, [cl(alpha.galois_action(t^i,N)) for alpha in C]
-            0 1 [0, 1/25, 1/10, 1/5, 3/10, 2/5, 1/2, 3/5, 7/10, 4/5, 9/10, Infinity]
-            1 3 [0, 1/25, 7/10, 2/5, 1/10, 4/5, 1/2, 1/5, 9/10, 3/5, 3/10, Infinity]
-            2 9 [0, 1/25, 9/10, 4/5, 7/10, 3/5, 1/2, 2/5, 3/10, 1/5, 1/10, Infinity]
-            3 27 [0, 1/25, 3/10, 3/5, 9/10, 1/5, 1/2, 4/5, 1/10, 2/5, 7/10, Infinity]
-            4 81 [0, 1/25, 1/10, 1/5, 3/10, 2/5, 1/2, 3/5, 7/10, 4/5, 9/10, Infinity]
+            sage: for i in range(5):
+            ....:     print((i, t^i))
+            ....:     print([cl(alpha.galois_action(t^i,N)) for alpha in C])
+            (0, 1)
+            [0, 1/25, 1/10, 1/5, 3/10, 2/5, 1/2, 3/5, 7/10, 4/5, 9/10, Infinity]
+            (1, 3)
+            [0, 1/25, 7/10, 2/5, 1/10, 4/5, 1/2, 1/5, 9/10, 3/5, 3/10, Infinity]
+            (2, 9)
+            [0, 1/25, 9/10, 4/5, 7/10, 3/5, 1/2, 2/5, 3/10, 1/5, 1/10, Infinity]
+            (3, 27)
+            [0, 1/25, 3/10, 3/5, 9/10, 1/5, 1/2, 4/5, 1/10, 2/5, 7/10, Infinity]
+            (4, 81)
+            [0, 1/25, 1/10, 1/5, 3/10, 2/5, 1/2, 3/5, 7/10, 4/5, 9/10, Infinity]
 
         TESTS:
 

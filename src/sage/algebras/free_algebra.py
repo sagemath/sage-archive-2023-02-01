@@ -43,7 +43,7 @@ two-sided ideals, and thus provide ideal containment tests::
     True
 
 Positive integral degree weights for the letterplace implementation
-was introduced in trac ticket #...::
+was introduced in :trac:`7797`::
 
     sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace', degrees=[2,1,3])
     sage: x.degree()
@@ -118,6 +118,7 @@ Note that the letterplace implementation can only be used if the corresponding
     NotImplementedError: The letterplace implementation is not available for the free algebra you requested
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
@@ -128,6 +129,7 @@ Note that the letterplace implementation can only be used if the corresponding
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import six
 from sage.categories.rings import Rings
 
 from sage.monoids.free_monoid import FreeMonoid
@@ -145,6 +147,8 @@ from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_l
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from sage.combinat.words.word import Word
+from sage.structure.category_object import normalize_names
+
 
 class FreeAlgebraFactory(UniqueFactory):
     """
@@ -298,7 +302,7 @@ class FreeAlgebraFactory(UniqueFactory):
             arg1 = name
         if arg2 is None:
             arg2 = len(arg1)
-        names = sage.structure.parent_gens.normalize_names(arg2, arg1)
+        names = normalize_names(arg2, arg1)
         return base_ring, names
 
     def create_object(self, version, key):
@@ -469,7 +473,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         """
         return self.__ngens <= 1 and self.base_ring().is_commutative()
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Two free algebras are considered the same if they have the same
         base ring, number of generators and variable names, and the same
@@ -497,14 +501,14 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
         """
         if not isinstance(other, FreeAlgebra_generic):
-            return -1
-        c = cmp(self.base_ring(), other.base_ring())
-        if c: return c
-        c = cmp(self.__ngens, other.ngens())
-        if c: return c
-        c = cmp(self.variable_names(), other.variable_names())
-        if c: return c
-        return 0
+            return False
+        if self.base_ring() != other.base_ring():
+            return False
+        if self.__ngens != other.ngens():
+            return False
+        if self.variable_names() != other.variable_names():
+            return False
+        return True
 
     def _repr_(self):
         """
@@ -594,7 +598,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
                     return M(out)
                 return self.element_class(self, dict([(exp_to_monomial(T),c) for T,c in x.letterplace_polynomial().dict().iteritems()]))
         # ok, not a free algebra element (or should not be viewed as one).
-        if isinstance(x, basestring):
+        if isinstance(x, six.string_types):
             from sage.all import sage_eval
             G = self.gens()
             d = {str(v): G[i] for i,v in enumerate(self.variable_names())}
@@ -778,7 +782,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         """
         if mats is None:
             return super(FreeAlgebra_generic, self).quotient(mons, names)
-        import free_algebra_quotient
+        from . import free_algebra_quotient
         return free_algebra_quotient.FreeAlgebraQuotient(self, mons, mats, names)
 
     quo = quotient
@@ -983,8 +987,6 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             ret = ret * (self(x * y) - self(y * x))
         return ret
 
-from sage.misc.cache import Cache
-cache = Cache(FreeAlgebra_generic)
 
 class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
     """

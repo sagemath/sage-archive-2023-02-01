@@ -68,17 +68,18 @@ C. \code{all_children_are_equivalent}:
     indeed the case, it still may return False. This function is originally used
     as a consequence of Lemma 2.25 in [1].
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.double_coset
 
 REFERENCE:
 
-    [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
-        Vol. 30 (1981), pp. 45-87.
+- [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
+  Vol. 30 (1981), pp. 45-87.
 
-    [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
-        Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
-        533-583.
+- [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
+  Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
+  533-583.
 
 """
 
@@ -169,14 +170,14 @@ def coset_eq(list perm1=[0,1,2,3,4,5], list perm2=[1,2,3,4,5,0], list gens=[[1,2
     cdef int i, n = len(perm1)
     assert all(len(g) == n for g in gens+[perm2])
     cdef PartitionStack *part = PS_new(n, 1)
-    cdef int *c_perm = <int *> sage_malloc(n * sizeof(int))
+    cdef int *c_perm = <int *> sig_malloc(n * sizeof(int))
     cdef StabilizerChain *group = SC_new(n, 1)
-    cdef int *isomorphism = <int *> sage_malloc(n * sizeof(int))
+    cdef int *isomorphism = <int *> sig_malloc(n * sizeof(int))
     if part is NULL or c_perm is NULL or group is NULL or isomorphism is NULL:
-        sage_free(c_perm)
+        sig_free(c_perm)
         PS_dealloc(part)
         SC_dealloc(group)
-        sage_free(isomorphism)
+        sig_free(isomorphism)
         raise MemoryError
     for g in gens:
         for i from 0 <= i < n:
@@ -185,14 +186,14 @@ def coset_eq(list perm1=[0,1,2,3,4,5], list perm2=[1,2,3,4,5,0], list gens=[[1,2
     for i from 0 <= i < n:
         c_perm[i] = i
     cdef bint isomorphic = double_coset(<void *> perm1, <void *> perm2, part, c_perm, n, &all_children_are_equivalent_trivial, &refine_and_return_invariant_trivial, &compare_perms, group, NULL, isomorphism)
-    sage_free(c_perm)
+    sig_free(c_perm)
     PS_dealloc(part)
     SC_dealloc(group)
     if isomorphic:
         x = [isomorphism[i] for i from 0 <= i < n]
     else:
         x = False
-    sage_free(isomorphism)
+    sig_free(isomorphism)
     return x
 
 cdef dc_work_space *allocate_dc_work_space(int n):
@@ -204,19 +205,19 @@ cdef dc_work_space *allocate_dc_work_space(int n):
     cdef int *int_array
 
     cdef dc_work_space *work_space
-    work_space = <dc_work_space *> sage_malloc(sizeof(dc_work_space))
+    work_space = <dc_work_space *> sig_malloc(sizeof(dc_work_space))
     if work_space is NULL:
         return NULL
 
     work_space.degree = n
-    int_array = <int *> sage_malloc((n*n + # for perm_stack
+    int_array = <int *> sig_malloc((n*n + # for perm_stack
                                      5*n   # for int_array
                                     )*sizeof(int))
     work_space.group1 = SC_new(n)
     work_space.group2 = SC_new(n)
     work_space.current_ps = PS_new(n,0)
     work_space.first_ps   = PS_new(n,0)
-    work_space.bitset_array = <bitset_t *> sage_calloc((n + 2*len_of_fp_and_mcr + 1), sizeof(bitset_t))
+    work_space.bitset_array = <bitset_t *> sig_calloc((n + 2*len_of_fp_and_mcr + 1), sizeof(bitset_t))
     work_space.orbits_of_subgroup = OP_new(n)
     work_space.perm_stack = NULL
 
@@ -227,7 +228,7 @@ cdef dc_work_space *allocate_dc_work_space(int n):
        work_space.first_ps              is NULL or \
        work_space.bitset_array          is NULL or \
        work_space.orbits_of_subgroup    is NULL:
-        sage_free(int_array)
+        sig_free(int_array)
         deallocate_dc_work_space(work_space)
         return NULL
 
@@ -255,14 +256,14 @@ cdef void deallocate_dc_work_space(dc_work_space *work_space):
     if work_space.bitset_array is not NULL:
         for i from 0 <= i < n + 2*len_of_fp_and_mcr + 1:
             bitset_free(work_space.bitset_array[i])
-    sage_free(work_space.perm_stack)
+    sig_free(work_space.perm_stack)
     SC_dealloc(work_space.group1)
     SC_dealloc(work_space.group2)
     PS_dealloc(work_space.current_ps)
     PS_dealloc(work_space.first_ps)
-    sage_free(work_space.bitset_array)
+    sig_free(work_space.bitset_array)
     OP_dealloc(work_space.orbits_of_subgroup)
-    sage_free(work_space)
+    sig_free(work_space)
 
 cdef int double_coset(void *S1, void *S2, PartitionStack *partition1, int *ordering2,
     int n, bint (*all_children_are_equivalent)(PartitionStack *PS, void *S),
@@ -317,14 +318,17 @@ cdef int double_coset(void *S1, void *S2, PartitionStack *partition1, int *order
     1 if S1 and S2 are isomorphic, otherwise 0.
 
     """
-    cdef PartitionStack *current_ps, *first_ps, *left_ps
+    cdef PartitionStack *current_ps
+    cdef PartitionStack *first_ps
+    cdef PartitionStack *left_ps
     cdef int first_meets_current = -1
     cdef int current_kids_are_same = 1
     cdef int first_kids_are_same
 
     cdef int *indicators
 
-    cdef OrbitPartition *orbits_of_subgroup, *orbits_of_supergroup
+    cdef OrbitPartition *orbits_of_subgroup
+    cdef OrbitPartition *orbits_of_supergroup
     cdef int subgroup_primary_orbit_size = 0
     cdef int minimal_in_primary_orbit
 
@@ -335,10 +339,14 @@ cdef int double_coset(void *S1, void *S2, PartitionStack *partition1, int *order
 
     cdef bitset_t *vertices_to_split
     cdef bitset_t *vertices_have_been_reduced
-    cdef int *permutation, *id_perm, *cells_to_refine_by
+    cdef int *permutation
+    cdef int *id_perm
+    cdef int *cells_to_refine_by
     cdef int *vertices_determining_current_stack
     cdef int *perm_stack
-    cdef StabilizerChain *group, *old_group, *tmp_gp
+    cdef StabilizerChain *group
+    cdef StabilizerChain *old_group
+    cdef StabilizerChain *tmp_gp
 
     cdef int i, j, k, ell, b
     cdef bint discrete, automorphism, update_label

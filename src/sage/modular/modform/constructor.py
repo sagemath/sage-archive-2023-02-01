@@ -18,14 +18,17 @@ EXAMPLES::
     ]
 
 """
+from __future__ import absolute_import
 
-#########################################################################
-#       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2004-2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
 import weakref
 import re
@@ -34,13 +37,11 @@ import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.all as rings
 
-from sage.rings.commutative_ring import is_CommutativeRing
-
-import ambient_eps
-import ambient_g0
-import ambient_g1
-import ambient_R
-import defaults
+from .ambient_eps import ModularFormsAmbient_eps
+from .ambient_g0 import ModularFormsAmbient_g0_Q
+from .ambient_g1 import ModularFormsAmbient_g1_Q, ModularFormsAmbient_gH_Q
+from . import ambient_R
+from . import defaults
 
 
 def canonical_parameters(group, level, weight, base_ring):
@@ -123,7 +124,7 @@ def canonical_parameters(group, level, weight, base_ring):
             raise ValueError("group and level do not match.")
         group = arithgroup.Gamma0(m)
 
-    if not is_CommutativeRing(base_ring):
+    if not isinstance(base_ring, rings.CommutativeRing):
         raise TypeError("base_ring (=%s) must be a commutative ring"%base_ring)
 
     # it is *very* important to include the level as part of the data
@@ -243,12 +244,12 @@ def ModularForms(group  = 1,
         sage: m.T(2).charpoly('x')
         x^4 - 917*x^2 - 42284
 
-    This came up in a subtle bug (trac #5923)::
+    This came up in a subtle bug (:trac:`5923`)::
 
         sage: ModularForms(gp(1), gap(12))
         Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
 
-    This came up in another bug (related to trac #8630)::
+    This came up in another bug (related to :trac:`8630`)::
 
         sage: chi = DirichletGroup(109, CyclotomicField(3)).0
         sage: ModularForms(chi, 2, base_ring = CyclotomicField(15))
@@ -278,9 +279,7 @@ def ModularForms(group  = 1,
         sage: M = ModularForms(Gamma1(57), 1); M
         Modular Forms space of dimension (unknown) for Congruence Subgroup Gamma1(57) of weight 1 over Rational Field
         sage: M.basis()
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
+        <repr(<sage.structure.sequence.Sequence_generic at 0x...>) failed: NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general>
         sage: M.cuspidal_subspace().basis()
         Traceback (most recent call last):
         ...
@@ -316,17 +315,17 @@ def ModularForms(group  = 1,
 
     M = None
     if arithgroup.is_Gamma0(group):
-        M = ambient_g0.ModularFormsAmbient_g0_Q(group.level(), weight)
+        M = ModularFormsAmbient_g0_Q(group.level(), weight)
         if base_ring != rings.QQ:
             M = ambient_R.ModularFormsAmbient_R(M, base_ring)
 
     elif arithgroup.is_Gamma1(group):
-        M = ambient_g1.ModularFormsAmbient_g1_Q(group.level(), weight)
+        M = ModularFormsAmbient_g1_Q(group.level(), weight)
         if base_ring != rings.QQ:
             M = ambient_R.ModularFormsAmbient_R(M, base_ring)
 
     elif arithgroup.is_GammaH(group):
-        M = ambient_g1.ModularFormsAmbient_gH_Q(group, weight)
+        M = ModularFormsAmbient_gH_Q(group, weight)
         if base_ring != rings.QQ:
             M = ambient_R.ModularFormsAmbient_R(M, base_ring)
 
@@ -342,7 +341,7 @@ def ModularForms(group  = 1,
             return ModularForms(eps.modulus(), weight, base_ring,
                                 use_cache = use_cache,
                                 prec = prec)
-        M = ambient_eps.ModularFormsAmbient_eps(eps, weight)
+        M = ModularFormsAmbient_eps(eps, weight)
         if base_ring != eps.base_ring():
             M = M.base_extend(base_ring) # ambient_R.ModularFormsAmbient_R(M, base_ring)
 
@@ -430,7 +429,7 @@ def Newforms(group, weight=2, base_ring=None, names=None):
     base field that is not minimal for that character::
 
         sage: K.<i> = QuadraticField(-1)
-        sage: chi = DirichletGroup(5, K)[3]
+        sage: chi = DirichletGroup(5, K)[1]
         sage: len(Newforms(chi, 7, names='a'))
         1
         sage: x = polygen(K); L.<c> = K.extension(x^2 - 402*i)
@@ -439,11 +438,19 @@ def Newforms(group, weight=2, base_ring=None, names=None):
         sage: sorted([N[0][2], N[1][2]]) == sorted([1/2*c - 5/2*i - 5/2, -1/2*c - 5/2*i - 5/2])
         True
 
+    TESTS:
+
     We test that :trac:`8630` is fixed::
 
         sage: chi = DirichletGroup(109, CyclotomicField(3)).0
         sage: CuspForms(chi, 2, base_ring = CyclotomicField(9))
         Cuspidal subspace of dimension 8 of Modular Forms space of dimension 10, character [zeta3 + 1] and weight 2 over Cyclotomic Field of order 9 and degree 6
+
+    Check that :trac:`15486` is fixed (this used to take over a day)::
+
+        sage: N = Newforms(719, names='a'); len(N)  # long time (3 s)
+        3
+
     """
     return CuspForms(group, weight, base_ring).newforms(names)
 
@@ -499,6 +506,11 @@ def parse_label(s):
         (Congruence Subgroup Gamma1(11), 0)
         sage: sage.modular.modform.constructor.parse_label('11wG1')
         (Congruence Subgroup Gamma1(11), 22)
+
+    GammaH labels should also return the group and index (:trac:`20823`)::
+
+        sage: sage.modular.modform.constructor.parse_label('389cGH[16]')
+        (Congruence Subgroup Gamma_H(389) with H generated by [16], 2)
     """
     m = re.match(r'(\d+)([a-z]+)((?:G.*)?)$', s)
     if not m:
@@ -516,9 +528,7 @@ def parse_label(s):
         if G[2] != '[' or G[-1] != ']':
             raise ValueError("Invalid congruence subgroup label: %s" % G)
         gens = [int(g.strip()) for g in G[3:-1].split(',')]
-        return arithgroup.GammaH(N, gens)
+        return arithgroup.GammaH(N, gens), index
     else:
         raise ValueError("Invalid congruence subgroup label: %s" % G)
     return G, index
-
-

@@ -14,11 +14,10 @@ public setting on `the Sage Trac server <http://trac.sagemath.org>`_
 (the Sage bug and enhancement tracker).
 
 One can use ``git`` :ref:`the hard way <chapter-manual-git>` for this,
-but this section presumes use of the helper ``git trac`` command, which
-simplifies many of the most common actions in collaboration on Sage.
-Sage itself has a more limited set of actions built in to work with
-(see :ref:`chapter-devscript`), but the recommended path is using
-this section of the manual to get started.
+but this section explains how to use the helper ``git trac`` command, which
+simplifies many of the most common actions in collaboration on Sage. Some
+of the :ref:`tutorials <section-git-tutorials>` we suggest may be helpful
+in navigating what they are for.
 
 Most of the commands in the following section will not work unless
 you have an account on Trac. If you want to contribute to Sage, it
@@ -59,7 +58,8 @@ do this by symlinking::
     [user@localhost git-trac-command]$ ln -s `pwd`/git-trac ~/bin/
 
 See the `git-trac README <https://github.com/sagemath/git-trac-command>`_ for
-more details.
+more details. At this point you leave ``git-trac-command`` subdirectory, and only go 
+there whenever you need to update the ``git-trac`` command.
 
 
 
@@ -90,7 +90,7 @@ to the Sage directory and tell ``git trac`` about your trac account::
     Password: PASSWORD
     Retrieving SSH keys...
         1024 ab:1b:7c:c9:9b:48:fe:dd:59:56:1e:9d:a4:a6:51:9d  My SSH Key
-    
+
 where you have to replace USERNAME with your trac user name and
 PASSWORD with your trac password. If you don't have a trac account,
 use ``git trac config`` without any arguments. The single quotes in
@@ -103,12 +103,14 @@ is not already private.
 If there is no SSH key listed then you haven't uploaded your SSH
 public key to the trac server. You should do that now following the
 instructions to :ref:`section-trac-ssh-key`, if you want to upload
-any changes.
+any changes. You may have to add your private key to your authentication agent::
+
+    [user@localhost sage]$ ssh-add
 
 .. note::
 
    The ``git trac config`` command will automatically add a ``trac``
-   remote git repository to your list of remotes if necessary. 
+   remote git repository to your list of remotes if necessary.
 
 If you followed the above instructions then you will have two remote
 repositories set up::
@@ -129,8 +131,8 @@ then you can set up the remote by hand as described in the section on
 :ref:`section-git-trac`.
 
 
-Trac Tickets to Local Branches
-==============================
+Trac Tickets and Git Branches
+=============================
 
 Now let's start adding code to Sage!
 
@@ -186,26 +188,19 @@ one if there is none yet. Just like the create command, you can
 specify the remote branch name explicitly using the ``-b`` switch if
 you want.
 
-
-
 .. _section-git_trac-branch-names:
 
 Note on Branch Names
 --------------------
 
-Trac tickets that are finished or in the process of being worked on
-can have a git branch attached to them. This is the "Branch:" field in
-the ticket description. The branch name is generally of the form
-``u/user/description``, where ``user`` is the name of the user who
-made the branch and ``description`` is some free-form short
-description (and can include further slashes, but not whitespace). Our
-git server implements the following access restrictions for **remote
-branch names**:
+The "Branch:" field of a trac ticket (see :ref:`section-trac-fields`) indicates
+the git branch containing its code. Our git server implements the following
+access restrictions for **remote branch names**:
 
-* Only the developer with the ``user`` trac account can create
-  branches starting with ``u/user/``.
+* You can read/write/create a branch named
+  ``u/your_username/whatever_you_like``. Everybody else can read.
 
-* Everybody can write to branches named ``public/description``.
+* Everybody can read/write/create a branch named ``public/whatever_you_like``.
 
 Depending on your style of collaboration, you can use one or the
 other. The ``git trac`` subcommands defaults to the former.
@@ -218,6 +213,15 @@ if you want, but if they don't contain the ticket number then you will
 have to specify the ticket number manually when you are uploading your
 changes.
 
+.. _section-git_trac-editing:
+
+Making Changes
+--------------
+
+Once you have checked out a ticket, edit the appropriate files and
+commit your changes to the branch as described in
+:ref:`section-walkthrough-add-edit` and
+:ref:`section-walkthrough-commit`.
 
 .. _section-git_trac-push:
 
@@ -252,7 +256,7 @@ the following logic to find out the remote branch name:
 
 * If there is no remote branch yet, the branch will be called
   ``u/user/description`` (``u/user/last_twin_prime`` in the example).
-  
+
 * You can use the ``--branch`` option to specify the remote branch
   name explicitly, but it needs to follow the naming convention from
   :ref:`section-git_trac-branch-names` for you to have write
@@ -271,7 +275,7 @@ to specify the ticket number (since there is no way to tell which
 ticket you have in mind). That is::
 
     [user@localhost sage]$ git trac push TICKETNUM
-    
+
 where you have to replace ``TICKETNUM`` with the number of the trac
 ticket.
 
@@ -363,8 +367,8 @@ you need a new feature or if your branch conflicts.
 
 .. _section-git_trac-collaborate:
 
-Collaboration
-=============
+Collaboration and conflict resolution
+=====================================
 
 Exchanging Branches
 -------------------
@@ -386,7 +390,7 @@ more on it::
     [bob@home sage]$ git trac checkout TICKET_NUMBER
     ... EDIT EDIT ...
     [bob@home sage]$ git add .
-    [bob@home sage]$ git commit 
+    [bob@home sage]$ git commit
     [bob@home sage]$ git trac push
 
 The trac ticket now has "Branch:" set to ``u/bob/a_and_b_ticket``,
@@ -396,18 +400,18 @@ pull/push in their collaboration::
     [alice@laptop sage]$ git trac pull
     ... EDIT EDIT ...
     [alice@laptop sage]$ git add .
-    [alice@laptop sage]$ git commit 
+    [alice@laptop sage]$ git commit
     [alice@laptop sage]$ git trac push
 
     [bob@home sage]$ git trac pull
     ... EDIT EDIT ...
     [bob@home sage]$ git add .
-    [bob@home sage]$ git commit 
+    [bob@home sage]$ git commit
     [bob@home sage]$ git trac push
 
 Alice and Bob need not alternate, they can also add further commits on
 top of their own remote branch.  As long as their changes do not
-conflict (edit the same lines simultaneously), this is fine. 
+conflict (edit the same lines simultaneously), this is fine.
 
 
 .. _section-git_trac-conflict:
@@ -494,7 +498,7 @@ recent common parent of both.
 
 It is now Alice's job to resolve the conflict by reconciling their
 changes, for example by editing the file. Her result is::
-    
+
     def fibonacci(i):
         """
         Return the `i`-th Fibonacci number
@@ -502,22 +506,22 @@ changes, for example by editing the file. Her result is::
         if i > 1:
             return fibonacci(i-1) + fibonacci(i-2)
         return [0, 1][i]
-    
+
 And then upload both her original change *and* her merge commit to trac::
 
     [alice@laptop sage]$ git add fibonacci.py
     [alice@laptop sage]$ git commit -m "merged Bob's changes with mine"
 
 The resulting commit graph now has a loop::
-    
+
     [alice@laptop sage]$ git log --graph --oneline
     *   6316447 merged Bob's changes with mine
-    |\  
+    |\
     | * 41675df corrected recursion formula, must be + instead of *
     * | 14ae1d3 return correct seed values
-    |/  
+    |/
     * 14afe53 initial commit
-    
+
 If Bob decides to do further work on the ticket then he will have to
 pull Alice's changes. However, this time there is no conflict on his
 end: git downloads both Alice's conflicting commit and her resolution.
@@ -528,13 +532,14 @@ end: git downloads both Alice's conflicting commit and her resolution.
 Reviewing
 =========
 
-This section gives an example how to review using the ``sage``
-command.  For a detailed discussion of Sage's review process, see
-:ref:`Reviewing Patches <section-review-patches>`. If you go to the
-`web interface to the Sage trac development server
-<http://trac.sagemath.org>`_ then you can click on the "Branch:" field
-and see the code that is added by combining all commits of the
-ticket. This is what needs to be reviewed.
+This section gives an example how to review using the ``sage`` command. For an
+explanation of what should be checked by the reviewer, see
+:ref:`chapter-review`.
+
+If you go to the `web interface to the Sage trac development server
+<http://trac.sagemath.org>`_ then you can click on the "Branch:" field and see
+the code that is added by combining all commits of the ticket. This is what
+needs to be reviewed.
 
 The ``git trac`` command gives you two commands that might be handy
 (replace ``12345`` with the actual ticket number) if you do not want

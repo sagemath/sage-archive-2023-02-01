@@ -1,6 +1,7 @@
 """
 Permutation species
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -15,9 +16,9 @@ Permutation species
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from species import GenericCombinatorialSpecies
-from structure import GenericSpeciesStructure
-from generating_series import _integers_from
+from .species import GenericCombinatorialSpecies
+from .structure import GenericSpeciesStructure
+from .generating_series import _integers_from
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_function
@@ -248,7 +249,7 @@ class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
             sage: P = species.PermutationSpecies()
             sage: g = P._cis_gen(QQ, 2)
-            sage: [g.next() for i in range(10)]
+            sage: [next(g) for i in range(10)]
             [p[], 0, p[2], 0, p[2, 2], 0, p[2, 2, 2], 0, p[2, 2, 2, 2], 0]
         """
         from sage.combinat.sf.sf import SymmetricFunctions

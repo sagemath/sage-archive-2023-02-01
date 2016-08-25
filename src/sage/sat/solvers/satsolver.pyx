@@ -1,5 +1,5 @@
 """
-Abstract SAT Solver.
+Abstract SAT Solver
 
 All SAT solvers must inherit from this class.
 
@@ -14,6 +14,7 @@ AUTHORS:
 
 - Martin Albrecht (2012): first version
 """
+from sage.misc.package import PackageNotFoundError
 
 cdef class SatSolver:
     def __cinit__(self, *args, **kwds):
@@ -33,7 +34,7 @@ cdef class SatSolver:
 
         INPUT:
 
-        - ``decision`` - is this variable a deicison variable?
+        - ``decision`` - is this variable a decision variable?
 
         EXAMPLE::
 
@@ -85,6 +86,55 @@ cdef class SatSolver:
             NotImplementedError
         """
         raise NotImplementedError
+
+    def read(self, filename):
+        r"""
+        Reads DIMAC files.
+
+        Reads in DIMAC formatted lines (lazily) from a
+        file or file object and adds the corresponding
+        clauses into this solver instance. Note that the
+        DIMACS format is not well specified, see
+        http://people.sc.fsu.edu/~jburkardt/data/cnf/cnf.html,
+        http://www.satcompetition.org/2009/format-benchmarks2009.html,
+        and http://elis.dvo.ru/~lab_11/glpk-doc/cnfsat.pdf.
+        The differences were summarized in the discussion on
+        the ticket :trac:`16924`. This method assumes the following
+        DIMACS format
+
+        - Any line starting with "c" is a comment
+        - Any line starting with "p" is a header
+        - Any variable 1-n can be used
+        - Every line containing a clause must end with a "0"
+
+        INPUT:
+
+        - ``filename`` - The name of a file as a string or a file object
+
+        EXAMPLE::
+
+            sage: from six import StringIO # for python 2/3 support
+            sage: file_object = StringIO("c A sample .cnf file.\np cnf 3 2\n1 -3 0\n2 3 -1 0 ")
+            sage: from sage.sat.solvers.dimacs import DIMACS
+            sage: solver = DIMACS()
+            sage: solver.read(file_object)
+            sage: solver.clauses()
+            [((1, -3), False, None), ((2, 3, -1), False, None)]
+        """
+        if isinstance(filename,str):
+            file_object = open(filename,"r")
+        else:
+            file_object = filename
+        for line in file_object:
+            if line.startswith("c"):
+                continue # comment
+            if line.startswith("p"):
+                continue # header
+            line = line.split(" ")
+            clause = map(int,[e for e in line if e])
+            clause = clause[:-1] # strip trailing zero
+            self.add_clause(clause)
+
 
     def __call__(self, assumptions=None):
         """
@@ -160,10 +210,10 @@ cdef class SatSolver:
         """
         TESTS::
 
-        sage: from sage.sat.solvers.satsolver import SatSolver
-        sage: solver = SatSolver()
-        sage: solver
-        a generic SAT solver (don't use me, inherit from me)
+            sage: from sage.sat.solvers.satsolver import SatSolver
+            sage: solver = SatSolver()
+            sage: solver
+            a generic SAT solver (don't use me, inherit from me)
         """
         return "a generic SAT solver (don't use me, inherit from me)"
 
@@ -226,3 +276,60 @@ cdef class SatSolver:
         """
         return ["gens"]
 
+def SAT(solver=None):
+    r"""
+    Return a :class:`SatSolver` instance.
+
+    Through this class, one can define and solve `SAT
+    <https://en.wikipedia.org/wiki/Boolean_satisfiability_problem>`__ problems.
+
+    INPUT:
+
+    - ``solver`` (string) -- select a solver. Admissible values are:
+
+        - ``"cryptominisat"`` -- note that the cryptominisat package must be
+          installed.
+
+        - ``"LP"`` -- use :class:`~sage.sat.solvers.sat_lp.SatLP` to solve the
+          SAT instance.
+
+        - ``None`` (default) -- use CryptoMiniSat if available, and a LP solver
+          otherwise.
+
+    EXAMPLE::
+
+        sage: SAT(solver="LP")
+        an ILP-based SAT Solver
+
+    TESTS::
+
+        sage: SAT(solver="Wouhouuuuuu")
+        Traceback (most recent call last):
+        ...
+        ValueError: Solver 'Wouhouuuuuu' is not available
+
+    Forcing CryptoMiniSat::
+
+        sage: SAT(solver="cryptominisat") # optional - cryptominisat
+        CryptoMiniSat
+        #vars:       0, #lits:       0, #clauses:       0, #learnt:       0, #assigns:       0
+
+    """
+    if solver is None:
+        try:
+            from sage.sat.solvers.cryptominisat.cryptominisat import CryptoMiniSat
+            solver = "cryptominisat"
+        except ImportError:
+            solver = "LP"
+
+    if solver == 'cryptominisat':
+        try:
+            from sage.sat.solvers.cryptominisat.cryptominisat import CryptoMiniSat
+        except ImportError:
+            raise PackageNotFoundError("cryptominisat")
+        return CryptoMiniSat()
+    elif solver == "LP":
+        from sat_lp import SatLP
+        return SatLP()
+    else:
+        raise ValueError("Solver '{}' is not available".format(solver))

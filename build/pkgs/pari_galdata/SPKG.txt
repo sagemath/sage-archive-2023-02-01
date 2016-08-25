@@ -9,10 +9,6 @@ degrees 8 through 11.
 
 GPL version 2+
 
-== SPKG Maintainers ==
-
-* Jeroen Demeyer
-
 == Upstream Contact ==
 
 http://pari.math.u-bordeaux.fr/

@@ -20,6 +20,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.plot.plot3d.parametric_plot3d import parametric_plot3d
 def revolution_plot3d(curve,trange,phirange=None,parallel_axis='z',axis=(0,0),print_vector=False,show_curve=False,**kwds):
@@ -104,7 +105,7 @@ def revolution_plot3d(curve,trange,phirange=None,parallel_axis='z',axis=(0,0),pr
         sage: curve=(sin(3*u),.8*cos(4*u),cos(u))
         sage: revolution_plot3d(curve,(u,0,pi),(0,pi/2),show_curve=True,parallel_axis='z',opacity=0.5).show(aspect_ratio=(1,1,1),frame=False)
     """
-    from sage.symbolic.ring import var
+    from sage.symbolic.ring import SR
     from sage.symbolic.constants import pi
     from sage.functions.other import sqrt
     from sage.functions.trig import sin
@@ -119,9 +120,9 @@ def revolution_plot3d(curve,trange,phirange=None,parallel_axis='z',axis=(0,0),pr
 
 
     if str(vart)=='phi':
-        phi=var('fi')
+        phi = SR.var('fi')
     else:
-        phi=var('phi')
+        phi = SR.var('phi')
 
 
     if phirange is None:#this if-else provides a phirange
@@ -180,7 +181,7 @@ def revolution_plot3d(curve,trange,phirange=None,parallel_axis='z',axis=(0,0),pr
         v=(R*cos(phi+phase)+x0,y,R*sin(phi+phase)+z0)
 
     if print_vector:
-        print v
+        print(v)
     if show_curve:
         curveplot=parametric_plot3d((x,y,z),trange,thickness=2,rgbcolor=(1,0,0))
         return parametric_plot3d(v,trange,phirange,**kwds)+curveplot

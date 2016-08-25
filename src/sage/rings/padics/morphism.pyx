@@ -1,10 +1,16 @@
-#############################################################################
-#    Copyright (C) 2013 Xavier Caruso <xavier.caruso@normalesup.org>
+"""
+Frobenius endomorphisms on p-adic fields
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2013 Xavier Caruso <xavier.caruso@normalesup.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#****************************************************************************
+#*****************************************************************************
 
 from sage.rings.integer cimport Integer
 from sage.rings.infinity import Infinity
@@ -286,10 +292,7 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
         codomain = self.codomain()
         return hash((domain,codomain,('Frob',self._power)))
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare left and right
         """ 

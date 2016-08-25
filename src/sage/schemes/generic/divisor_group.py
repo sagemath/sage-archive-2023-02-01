@@ -1,4 +1,6 @@
 """
+Divisor groups
+
 AUTHORS:
 
 - David Kohel (2006): Initial version
@@ -47,7 +49,7 @@ def DivisorGroup(scheme, base_ring=None):
     if base_ring is None:
         base_ring = ZZ
 
-    from sage.schemes.plane_curves.curve import Curve_generic
+    from sage.schemes.curves.curve import Curve_generic
     if isinstance(scheme, Curve_generic):
         DG = DivisorGroup_curve(scheme, base_ring)
     else:
@@ -292,5 +294,3 @@ class DivisorGroup_curve(DivisorGroup_generic):
             return Divisor_curve([], check=False, reduce=False, parent=self)
         else:
             return Divisor_curve([(self.base_ring()(1), x)], check=False, reduce=False, parent=self)
-
-

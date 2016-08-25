@@ -32,10 +32,10 @@ The implementation works over any exact field that is embedded in
     ....:                 (-AA(3).sqrt(),-AA(2).sqrt(),1)])
     sage: alg = StandardAlgorithm(A)
     sage: alg.run().R
-    ((-0.4177376677004119?, 0.5822623322995881?, 0.4177376677004119?),
+    [(-0.4177376677004119?, 0.5822623322995881?, 0.4177376677004119?),
      (-0.2411809548974793?, -0.2411809548974793?, 0.2411809548974793?),
      (0.07665629029830300?, 0.07665629029830300?, 0.2411809548974793?),
-     (0.5822623322995881?, -0.4177376677004119?, 0.4177376677004119?))
+     (0.5822623322995881?, -0.4177376677004119?, 0.4177376677004119?)]
 
 REFERENCES:
 
@@ -48,6 +48,7 @@ REFERENCES:
 
 #*****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
+#                     2015 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -75,14 +76,16 @@ REFERENCES:
 # Compare with PPL if the base ring is QQ. Can be left enabled since
 # we don't use the Python fallback for polyhedra over QQ unless you
 # construct one by hand.
+from __future__ import division, absolute_import
+
 VERIFY_RESULT = True
 
-from sage.structure.sage_object import SageObject
-from sage.misc.cachefunc import cached_method
-from sage.matrix.constructor import matrix, identity_matrix
-from sage.modules.free_module_element import vector
-from sage.rings.all import QQ
+import itertools
 
+from sage.misc.cachefunc import cached_method
+from sage.rings.all import QQ
+from sage.modules.free_module_element import vector
+from sage.matrix.matrix_space import MatrixSpace
 
 def random_inequalities(d, n):
     """
@@ -112,7 +115,7 @@ def random_inequalities(d, n):
     return StandardAlgorithm(A)
 
 
-class DoubleDescriptionPair(SageObject):
+class DoubleDescriptionPair:
 
     def __init__(self, problem, A_rows, R_cols):
         r"""
@@ -150,8 +153,13 @@ class DoubleDescriptionPair(SageObject):
                 [-1 -1  1]        [ 1/3  1/3  1/3]
         """
         self.problem = problem
-        self.A = tuple(A_rows)
-        self.R = tuple(R_cols)
+        self.A = list(A_rows)
+        self.R = list(R_cols)
+        self.one  = problem._field.one()
+        self.zero = problem._field.zero()
+
+        # a cache for scalar products (see the method zero_set)
+        self.zero_set_cache = {}
 
     def _make_new(self, A_rows, R_cols):
         r"""
@@ -188,7 +196,7 @@ class DoubleDescriptionPair(SageObject):
         """
         return self.__class__(self.problem, A_rows, R_cols)
 
-    def _repr_(self):
+    def __repr__(self):
         r"""
         Return string representation.
 
@@ -202,19 +210,20 @@ class DoubleDescriptionPair(SageObject):
             ....:     DoubleDescriptionPair, StandardAlgorithm
             sage: A = matrix(QQ, [(1,0,1), (0,1,1), (-1,-1,1)])
             sage: DD = StandardAlgorithm(A).run()
-            sage: DD._repr_()
+            sage: DD.__repr__()
             'Double description pair (A, R) defined by\n    [ 1  0  1]
              [ 2/3 -1/3 -1/3]\nA = [ 0  1  1],   R = [-1/3  2/3 -1/3]\n
              [-1 -1  1]        [ 1/3  1/3  1/3]'
         """
-        from sage.misc.ascii_art import ascii_art
+        from sage.typeset.ascii_art import ascii_art
+        from sage.matrix.constructor import matrix
         s = ascii_art('Double description pair (A, R) defined by')
         A = ascii_art(matrix(self.A))
-        A._baseline = (len(self.A) / 2)
+        A._baseline = (len(self.A) // 2)
         A = ascii_art('A = ') + A
         R = ascii_art(matrix(self.R).transpose())
         if len(self.R) > 0:
-            R._baseline = (len(self.R[0]) / 2)
+            R._baseline = (len(self.R[0]) // 2)
         else:
             R._baseline = 0
         R = ascii_art('R = ') + R
@@ -241,13 +250,8 @@ class DoubleDescriptionPair(SageObject):
             [0 1 0]
             [0 0 1]
         """
-        result = []
-        for a in self.A:
-            line = []
-            for r in self.R:
-                line.append(a.inner_product(r))
-            result.append(line)
-        return matrix(self.problem.base_ring(), result)
+        from sage.matrix.constructor import matrix
+        return matrix(self.problem.base_ring(), [[a.inner_product(r) for r in self.R] for a in self.A])
 
     def cone(self):
         """
@@ -275,7 +279,7 @@ class DoubleDescriptionPair(SageObject):
         from sage.geometry.polyhedron.constructor import Polyhedron
         assert self.problem.base_ring() == QQ    # required for PPL backend
 
-        if len(self.A) == 0:
+        if not self.A:
             return Polyhedron(vertices=[[0] * self.problem.dim()], backend='ppl')
         else:
             ieqs = [[0] + list(a) for a in self.A]
@@ -305,11 +309,10 @@ class DoubleDescriptionPair(SageObject):
             AssertionError
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
-        from sage.rings.all import QQ
         if self.problem.base_ring() is not QQ:
             return
         A_cone = self.cone()
-        R_cone = Polyhedron(vertices=[[0] * self.problem.dim()], rays=self.R,
+        R_cone = Polyhedron(vertices=[[self.zero] * self.problem.dim()], rays=self.R,
                             base_ring=self.problem.base_ring(), backend='ppl')
         assert A_cone == R_cone
         assert A_cone.n_inequalities() <= len(self.A)
@@ -343,15 +346,14 @@ class DoubleDescriptionPair(SageObject):
         neg = []
         for r in self.R:
             sgn = a * r
-            if sgn > 0:
-                pos.append(r)
-            elif sgn < 0:
-                neg.append(r)
-            else:
+            if sgn == self.zero:
                 nul.append(r)
+            elif sgn > self.zero:
+                pos.append(r)
+            else:
+                neg.append(r)
         return pos, nul, neg
 
-    @cached_method
     def zero_set(self, ray):
         """
         Return the zero set (active set) `Z(r)`.
@@ -362,7 +364,7 @@ class DoubleDescriptionPair(SageObject):
 
         OUTPUT:
 
-        A tuple containing the inequality vectors that are zero on ``ray``.
+        A set containing the inequality vectors that are zero on ``ray``.
 
         EXAMPLES::
 
@@ -372,9 +374,15 @@ class DoubleDescriptionPair(SageObject):
             sage: r = DD.R[0];  r
             (2/3, -1/3, 1/3)
             sage: DD.zero_set(r)
-            ((0, 1, 1), (-1, -1, 1))
+            {(-1, -1, 1), (0, 1, 1)}
         """
-        return tuple(a for a in self.A if a.inner_product(ray) == 0)
+        if ray not in self.zero_set_cache:
+            self.zero_set_cache[ray] = (0, set())
+        n, t = self.zero_set_cache[ray]
+        if n != len(self.A):
+            t.update(self.A[i] for i in range(n,len(self.A)) if self.A[i].inner_product(ray) == self.zero)
+            self.zero_set_cache[ray] = (len(self.A), t)
+        return t
 
     def is_extremal(self, ray):
         """
@@ -388,8 +396,37 @@ class DoubleDescriptionPair(SageObject):
             sage: DD.is_extremal(DD.R[0])
             True
         """
-        A_Zray = matrix(self.problem.base_ring(), self.zero_set(ray))
+        from sage.matrix.constructor import matrix
+        A_Zray = matrix(self.problem.base_ring(), list(self.zero_set(ray)))
         return A_Zray.rank() == self.problem.dim() - 1
+
+    @cached_method
+    def matrix_space(self, nrows, ncols):
+        r"""
+        Return a matrix space of size ``nrows`` and ``ncols`` over the base ring
+        of ``self``.
+
+        These matrix spaces are cached to avoid the their creation in the very
+        demanding :meth:`add_inequality` and more precisely :meth:`are_adjacent`.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.double_description import Problem
+            sage: A = matrix(QQ, [(1,0,1), (0,1,1), (-1,-1,1)])
+            sage: DD, _ = Problem(A).initial_pair()
+            sage: DD.matrix_space(2,2)
+            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: DD.matrix_space(3,2)
+            Full MatrixSpace of 3 by 2 dense matrices over Rational Field
+
+            sage: K.<sqrt2> = QuadraticField(2)
+            sage: A = matrix([[1,sqrt2],[2,0]])
+            sage: DD, _  = Problem(A).initial_pair()
+            sage: DD.matrix_space(1,2)
+            Full MatrixSpace of 1 by 2 dense matrices over Number Field in sqrt2
+            with defining polynomial x^2 - 2
+        """
+        return MatrixSpace(self.problem.base_ring(), nrows, ncols)
 
     def are_adjacent(self, r1, r2):
         """
@@ -415,10 +452,14 @@ class DoubleDescriptionPair(SageObject):
             sage: DD.are_adjacent(DD.R[0], DD.R[3])
             False
         """
-        Z_r1 = self.zero_set(r1)
-        Z_r2 = self.zero_set(r2)
-        Z_12 = set(Z_r1).intersection(Z_r2)
-        A_Z12 = matrix(self.problem.base_ring(), list(Z_12))
+        Z = self.zero_set(r1).intersection(self.zero_set(r2))
+        if not Z:
+            return self.problem.dim() == 2
+        Z = list(Z)
+
+        # here we try to create a matrix as fast as possible
+        # since the generic matrix constructor is very slow (trac #18231)
+        A_Z12 = self.matrix_space(len(Z), len(Z[0])).matrix(Z, coerce=False)
         return A_Z12.rank() == self.problem.dim() - 2
 
     def dual(self):
@@ -475,12 +516,15 @@ class DoubleDescriptionPair(SageObject):
         """
         R = self.problem.base_ring()
         d = self.problem.dim()
-        a_neg = vector(R, [-1] + [0] * (d - 1))
-        a_pos = vector(R, [+1] + [0] * (d - 1))
-        return self.add_inequality(a_neg).add_inequality(a_pos)
+        a_neg = vector(R, [-self.one] + [self.zero] * (d - 1))
+        a_pos = vector(R, [+self.one] + [self.zero] * (d - 1))
+        new = self._make_new(self.A, self.R)
+        new.add_inequality(a_neg)
+        new.add_inequality(a_pos)
+        return new
 
 
-class Problem(SageObject):
+class Problem:
 
     pair_class = DoubleDescriptionPair
 
@@ -506,6 +550,9 @@ class Problem(SageObject):
             (-1, 1)
         """
         assert A.rank() == A.ncols()    # implementation assumes maximal rank
+        if A.is_mutable():
+            A = A.__copy__()
+            A.set_immutable()
         self._A = A
         self._field = A.base_ring().fraction_field()
 
@@ -526,10 +573,9 @@ class Problem(SageObject):
             ((1, 1), (-1, 1))
         """
         rows = [a.change_ring(self._field) for a in self._A.rows()]
-        map(lambda a: a.set_immutable(), rows)
+        for a in rows: a.set_immutable()
         return tuple(rows)
 
-    @cached_method
     def A_matrix(self):
         """
         Return the defining matrix `A`.
@@ -546,7 +592,7 @@ class Problem(SageObject):
             [ 1  1]
             [-1  1]
         """
-        return matrix(self.base_ring(), self.A())
+        return self._A
 
     def base_ring(self):
         """
@@ -581,11 +627,10 @@ class Problem(SageObject):
             sage: Problem(A).dim()
             2
         """
-
         return self._A.ncols()
 
-    def _repr_(self):
-        """
+    def __repr__(self):
+        r"""
         Return a string representation.
 
         OUTPUT:
@@ -596,7 +641,7 @@ class Problem(SageObject):
 
             sage: A = matrix(QQ, [(1, 1), (-1, 1)])
             sage: from sage.geometry.polyhedron.double_description import Problem
-            sage: Problem(A)._repr_()
+            sage: Problem(A).__repr__()
             'Pointed cone with inequalities\n(1, 1)\n(-1, 1)'
         """
         return 'Pointed cone with inequalities\n' + '\n'.join(map(str, self.A()))
@@ -630,8 +675,9 @@ class Problem(SageObject):
         pivot_rows = self.A_matrix().pivot_rows()
         A0 = [self.A()[pivot] for pivot in pivot_rows]
         Ac = [self.A()[i] for i in range(len(self.A())) if i not in pivot_rows]
+        from sage.matrix.constructor import identity_matrix, matrix
         I = identity_matrix(self.base_ring(), self.dim())
-        R = matrix(A0).solve_right(I)
+        R = matrix(self.base_ring(), A0).solve_right(I)
         return self.pair_class(self, A0, R.columns()), list(Ac)
 
 
@@ -646,49 +692,41 @@ class StandardDoubleDescriptionPair(DoubleDescriptionPair):
         sage: A = matrix([(-1, 1, 0), (-1, 2, 1), (1/2, -1/2, -1)])
         sage: from sage.geometry.polyhedron.double_description import StandardAlgorithm
         sage: DD, _ = StandardAlgorithm(A).initial_pair()
-        sage: type(DD)
-        <class 'sage.geometry.polyhedron.double_description.StandardDoubleDescriptionPair'>
     """
 
     def add_inequality(self, a):
         """
-        Return a new double description pair with the inequality `a` added.
+        Add the inequality ``a`` to the matrix `A` of the double description.
 
         INPUT:
 
         - ``a`` -- vector. An inequality.
-
-        OUTPUT:
-
-        A new :class:`StandardDoubleDescriptionPair` instance.
 
         EXAMPLES::
 
             sage: A = matrix([(-1, 1, 0), (-1, 2, 1), (1/2, -1/2, -1)])
             sage: from sage.geometry.polyhedron.double_description import StandardAlgorithm
             sage: DD, _ = StandardAlgorithm(A).initial_pair()
-            sage: newDD = DD.add_inequality(vector([1,0,0]));  newDD
+            sage: DD.add_inequality(vector([1,0,0]))
+            sage: DD
             Double description pair (A, R) defined by
                 [  -1    1    0]        [   1    1    0    0]
             A = [  -1    2    1],   R = [   1    1    1    1]
                 [ 1/2 -1/2   -1]        [   0   -1 -1/2   -2]
                 [   1    0    0]
         """
-        from sage.combinat.cartesian_product import CartesianProduct
         R_pos, R_nul, R_neg = self.R_by_sign(a)
-        if len(R_neg) == 0:
-            return self
+        if not R_neg:
+            return
         R_new = []
-        for rp, rn in CartesianProduct(R_pos, R_neg):
+        for rp, rn in itertools.product(R_pos, R_neg):
             if not self.are_adjacent(rp, rn):
                 continue
             r = a.inner_product(rp) * rn - a.inner_product(rn) * rp
             r.set_immutable()
             R_new.append(r)
-        R_new = tuple(R_pos + R_nul + R_new)
-        A_new = self.A + (a,)
-        return self._make_new(A_new, R_new)
-
+        self.R = R_pos + R_nul + R_new
+        self.A.append(a)
 
 class StandardAlgorithm(Problem):
     """
@@ -703,7 +741,7 @@ class StandardAlgorithm(Problem):
         sage: from sage.geometry.polyhedron.double_description import StandardAlgorithm
         sage: DD = StandardAlgorithm(A).run()
         sage: DD.R    # the extremal rays
-        ((1/2, 1/2), (-1/2, 1/2))
+        [(1/2, 1/2), (-1/2, 1/2)]
     """
     pair_class = StandardDoubleDescriptionPair
 
@@ -731,7 +769,7 @@ class StandardAlgorithm(Problem):
         """
         DD, remaining = self.initial_pair()
         for a in remaining:
-            DD = DD.add_inequality(a)
+            DD.add_inequality(a)
             if VERIFY_RESULT:
                 DD.verify()
         return DD

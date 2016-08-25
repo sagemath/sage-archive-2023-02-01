@@ -51,6 +51,8 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
 
@@ -59,12 +61,12 @@ from copy import copy
 from sage.combinat.words.alphabet import Alphabet
 from sage.rings.integer import Integer
 
-from template import PermutationIET, PermutationLI   # permutations
-from template import FlippedPermutationIET, FlippedPermutationLI   # flipped permutations
-from template import twin_list_iet, twin_list_li
-from template import RauzyDiagram, FlippedRauzyDiagram
+from .template import PermutationIET, PermutationLI   # permutations
+from .template import FlippedPermutationIET, FlippedPermutationLI   # flipped permutations
+from .template import twin_list_iet, twin_list_li
+from .template import RauzyDiagram, FlippedRauzyDiagram
 
-from template import interval_conversion, side_conversion
+from .template import interval_conversion, side_conversion
 
 class ReducedPermutation(SageObject) :
     r"""
@@ -209,17 +211,17 @@ class ReducedPermutation(SageObject) :
         TESTS::
 
             sage: p = iet.Permutation('a b', 'b a', reduced=True)
-            sage: print p[0]
+            sage: p[0]
             ['a', 'b']
-            sage: print p[1]
+            sage: p[1]
             ['b', 'a']
             sage: p.alphabet([0,1])
-            sage: print p[0]
+            sage: p[0]
             [0, 1]
-            sage: print p[1]
+            sage: p[1]
             [1, 0]
         """
-        return self.list().__getitem__(i)
+        return self.list()[i]
 
     def __copy__(self) :
         r"""
@@ -379,8 +381,8 @@ def alphabetized_atwin(twin, alphabet):
     """
     l = [[],[]]
 
-    l[0] = map(lambda x: alphabet.unrank(x), range(len(twin[0])))
-    l[1] = map(lambda x: alphabet.unrank(x), twin[1])
+    l[0] = [alphabet.unrank(x) for x in range(len(twin[0]))]
+    l[1] = [alphabet.unrank(x) for x in twin[1]]
 
     return l
 
@@ -403,7 +405,7 @@ def ReducedPermutationsIET_iterator(
     TESTS::
 
         sage: for p in iet.Permutations_iterator(3,reduced=True,alphabet="abc"):
-        ....:     print p  #indirect doctest
+        ....:     print(p)  #indirect doctest
         a b c
         b c a
         a b c
@@ -466,7 +468,7 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
         sage: p = iet.Permutation('a b c', 'c b a', reduced = True)
         sage: p.has_rauzy_move(1)
         True
-        sage: print p.rauzy_move(1)
+        sage: p.rauzy_move(1)
         a b c
         b c a
 
@@ -478,8 +480,8 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
         sage: d_red = p_red.rauzy_diagram()
         sage: p.rauzy_move(0) in d
         True
-        sage: print d.cardinality(), d_red.cardinality()
-        12 6
+        sage: d.cardinality(), d_red.cardinality()
+        (12, 6)
     """
     def _init_twin(self, a):
         r"""
@@ -511,8 +513,8 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
             sage: iet.GeneralizedPermutation(p.list(),reduced=True) == p
             True
         """
-        a0 = map(self._alphabet.unrank, range(0,len(self)))
-        a1 = map(self._alphabet.unrank, self._twin[1])
+        a0 = [self._alphabet.unrank(_) for _ in range(0,len(self))]
+        a1 = [self._alphabet.unrank(_) for _ in self._twin[1]]
         return [a0,a1]
 
     def is_identity(self):
@@ -536,6 +538,7 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
         Returns a hash value (does not depends of the alphabet).
 
         TESTS::
+
             sage: p = iet.Permutation([1,2],[1,2], reduced=True)
             sage: q = iet.Permutation([1,2],[2,1], reduced=True)
             sage: r = iet.Permutation([2,1],[1,2], reduced=True)
@@ -582,7 +585,7 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
             sage: q4 < q5 and q5 > q4
             True
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             raise ValueError("Permutations must be of the same type")
 
         if len(self) > len(other):
@@ -839,7 +842,7 @@ def alphabetized_qtwin(twin, alphabet):
 
         sage: twin = [[(1,0),(1,1)],[(0,0),(0,1)]]
         sage: alphabet = Alphabet("ab")
-        sage: print alphabetized_qtwin(twin,alphabet)
+        sage: alphabetized_qtwin(twin,alphabet)
         [['a', 'b'], ['a', 'b']]
 
     ::
@@ -856,14 +859,14 @@ def alphabetized_qtwin(twin, alphabet):
 
         sage: twin = [[(0,1),(0,0)],[(1,1),(1,0)]]
         sage: alphabet=Alphabet("ab")
-        sage: print alphabetized_qtwin(twin,alphabet)
+        sage: alphabetized_qtwin(twin,alphabet)
         [['a', 'a'], ['b', 'b']]
 
     ::
 
         sage: twin = [[(0,2),(1,1),(0,0)],[(1,2),(0,1),(1,0)]]
         sage: alphabet=Alphabet("abc")
-        sage: print alphabetized_qtwin(twin,alphabet)
+        sage: alphabetized_qtwin(twin,alphabet)
         [['a', 'b', 'a'], ['c', 'b', 'c']]
     """
     i_a = 0
@@ -962,13 +965,14 @@ class ReducedPermutationLI(ReducedPermutation, PermutationLI):
             sage: p == r
             True
         """
-        return isinstance(self, type(other)) and self._twin == other._twin
+        return type(self) is type(other) and self._twin == other._twin
 
     def __ne__(self, other) :
         """
         Tests difference.
 
         TESTS::
+
             sage: p = iet.GeneralizedPermutation('a b b', 'c c a', reduced = True)
             sage: q = iet.GeneralizedPermutation('b b a', 'c c a', reduced = True)
             sage: r = iet.GeneralizedPermutation('i j j', 'k k i', reduced = True)
@@ -977,7 +981,7 @@ class ReducedPermutationLI(ReducedPermutation, PermutationLI):
             sage: p != r
             False
         """
-        return not isinstance(self, type(other)) or (self._twin != other._twin)
+        return type(self) is not type(other) or (self._twin != other._twin)
 
     def _get_loser_to(self, winner) :
         r"""
@@ -1406,7 +1410,7 @@ class FlippedReducedPermutationIET(
             sage: p1 < r and p2 < r and p3 < r
             True
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return -1
 
         if len(self) > len(other):
@@ -1437,9 +1441,8 @@ class FlippedReducedPermutationIET(
         - ``flips`` - boolean (default: False) if True the output contains
            2-uple of (label, flip)
 
-        EXAMPLES:
+        EXAMPLES::
 
-        ::
             sage: p = iet.Permutation('a b','b a',reduced=True,flips='b')
             sage: p.list(flips=True)
             [[('a', 1), ('b', -1)], [('b', -1), ('a', 1)]]
@@ -1458,12 +1461,12 @@ class FlippedReducedPermutationIET(
             True
         """
         if flips:
-            a0 = zip(map(self.alphabet().unrank, range(0,len(self))), self._flips[0])
-            a1 = zip(map(self.alphabet().unrank, self._twin[1]), self._flips[1])
+            a0 = zip([self.alphabet().unrank(_) for _ in range(0,len(self))], self._flips[0])
+            a1 = zip([self.alphabet().unrank(_) for _ in self._twin[1]], self._flips[1])
 
         else:
-            a0 = map(self.alphabet().unrank, range(0,len(self)))
-            a1 = map(self.alphabet().unrank, self._twin[1])
+            a0 = [self.alphabet().unrank(_) for _ in range(0,len(self))]
+            a1 = [self.alphabet().unrank(_) for _ in self._twin[1]]
 
         return [a0,a1]
 
@@ -1675,7 +1678,7 @@ class FlippedReducedPermutationLI(
             sage: p == r or q == r
             False
         """
-        return (isinstance(self, type(other)) and
+        return (type(self) is type(other) and
             self._twin == other._twin and
             self._flips == other._flips)
 
@@ -1696,7 +1699,7 @@ class FlippedReducedPermutationLI(
             sage: p != r and q != r
             True
         """
-        return (not isinstance(self, type(other)) or
+        return (type(self) is not type(other) or
             self._twin != other._twin or
             self._flips != other._flips)
 

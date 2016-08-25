@@ -124,7 +124,7 @@ later use. This can be done in Sage with the ``=`` symbol as in::
 
     sage: a = 3
     sage: b = 2
-    sage: print a+b
+    sage: a+b
     5
 
 This can be understood as Sage evaluating the expression to the right
@@ -134,15 +134,17 @@ the foreword of :ref:`tutorial-objects-and-classes` for
 details). Multiple assignments can be done at once::
 
     sage: a,b = 2,3
-    sage: print a,b
-    2 3
+    sage: a
+    2
+    sage: b
+    3
 
 This allows us to swap the values of two variables directly::
 
     sage: a,b = 2,3
     sage: a,b = b,a
-    sage: print a,b
-    3 2
+    sage: a,b
+    (3, 2)
 
 We can also assign a common value to several variables simultaneously::
 
@@ -297,6 +299,7 @@ Here is a simple example::
     sage: var('x')   # make sure x is a symbolic variable
     x
     sage: plot(sin(x^2), (x,0,10))
+    Graphics object consisting of 1 graphics primitive
 
 Here is a more complicated plot. Try to change every single input to the plot
 command in some way, evaluating to see what happens::
@@ -323,6 +326,7 @@ Plotting multiple functions at once is as easy as adding them together::
     sage: P1 = plot(sin(x), (x,0,2*pi))
     sage: P2 = plot(cos(x), (x,0,2*pi), rgbcolor='red')
     sage: P1 + P2
+    Graphics object consisting of 2 graphics primitives
 
 Symbolic Expressions
 ====================

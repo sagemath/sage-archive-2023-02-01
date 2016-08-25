@@ -52,6 +52,8 @@ An example in characteristic `7`::
 #
 #                  http://www.gnu.org/licenses/
 #########################################################################
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.all import Sequence
 
@@ -62,15 +64,15 @@ import sage.modular.dirichlet as dirichlet
 import sage.rings.all as rings
 from sage.rings.power_series_ring_element import is_PowerSeries
 
-import defaults
-import element
-import hecke_operator_on_qexp
-import submodule
+from .element import ModularFormElement, Newform
+from . import defaults
+from . import hecke_operator_on_qexp
+
 
 import sage.modular.modform.constructor
 
 from sage.matrix.constructor import zero_matrix
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 from sage.rings.infinity import PlusInfinity
 
 WARN=False
@@ -95,7 +97,9 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
     """
     A generic space of modular forms.
     """
-    def __init__(self, group, weight, character, base_ring):
+    Element = ModularFormElement
+
+    def __init__(self, group, weight, character, base_ring, category=None):
         r"""
         Generic spaces of modular forms. For spaces of modular forms for
         `\Gamma_0(N)` or `\Gamma_1(N)`, the default base
@@ -124,7 +128,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         """
         global WARN
         if WARN:
-            print "Modular forms -- under development -- do not trust yet."
+            print("Modular forms -- under development -- do not trust yet.")
             WARN=False
         if not arithgroup.is_CongruenceSubgroup(group):
             raise TypeError("group (=%s) must be a congruence subgroup"%group)
@@ -137,7 +141,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             raise TypeError("base_ring must be a ring")
         self.__sturm_bound = None
         self.__weight, self.__group, self.__character = weight, group, character
-        hecke.HeckeModule_generic.__init__(self, base_ring, group.level())
+        hecke.HeckeModule_generic.__init__(self, base_ring, group.level(), category=category)
 
     def prec(self, new_prec=None):
         """
@@ -233,19 +237,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         """
         self.ambient().set_precision(new_prec)
 
-    def change_ring(self, R):
-        """
-        Change the base ring of this space of modular forms. To be implemented in derived classes.
-
-        EXAMPLES::
-
-            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,QQ).change_ring(GF(7))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: This function has not yet been implemented.
-        """
-        raise NotImplementedError("This function has not yet been implemented.")
-
     def weight(self):
         """
         Return the weight of this space of modular forms.
@@ -319,7 +310,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         A space of forms with no particular character (hence None is
         returned)::
 
-            sage: print ModularForms(Gamma1(11),2).character()
+            sage: print(ModularForms(Gamma1(11),2).character())
             None
 
         If the level is one then the character is trivial.
@@ -327,7 +318,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         ::
 
             sage: ModularForms(Gamma1(1),12).character()
-            Dirichlet character modulo 1 of conductor 1 mapping 0 |--> 1
+            Dirichlet character modulo 1 of conductor 1
         """
         return self.__character
 
@@ -400,40 +391,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         if prec < 0:
             raise ValueError("prec (=%s) must be at least 0"%prec)
         return prec
-
-    def base_extend(self, base_ring):
-        """
-        Return the base extension of self to base_ring. This first checks
-        whether there is a canonical coercion defined, and if so it calls the
-        change_ring method.
-
-        EXAMPLE::
-
-            sage: N = ModularForms(6, 4)
-            sage: N.base_extend(CyclotomicField(7))
-            Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Cyclotomic Field of order 7 and degree 6
-
-            sage: m = ModularForms(DirichletGroup(13).0^2,2); m
-            Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 6 and degree 2
-            sage: m.base_extend(CyclotomicField(12))
-            Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 12 and degree 4
-
-            sage: chi = DirichletGroup(109, CyclotomicField(3)).0
-            sage: S3 = CuspForms(chi, 2)
-            sage: S9 = S3.base_extend(CyclotomicField(9))
-            sage: S9
-            Cuspidal subspace of dimension 8 of Modular Forms space of dimension 10, character [zeta3 + 1] and weight 2 over Cyclotomic Field of order 9 and degree 6
-            sage: S9.has_coerce_map_from(S3) # not implemented
-            True
-            sage: S9.base_extend(CyclotomicField(3))
-            Traceback (most recent call last):
-            ...
-            ValueError: No coercion defined
-        """
-        if not base_ring.has_coerce_map_from(self.base_ring()):
-            raise ValueError("No coercion defined")
-        else:
-            return self.change_ring(base_ring)
 
     def echelon_form(self):
         r"""
@@ -752,7 +709,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 tries += 1
                 current_prec += d
             if tries > 5:
-                print "WARNING: possible bug in q_expansion_basis for modular forms space %s"%self
+                print("WARNING: possible bug in q_expansion_basis for modular forms space %s" % self)
         B = Sequence(B, immutable=True, cr=True)
         self.__q_expansion_basis = (current_prec, B)
         if current_prec == prec:
@@ -763,7 +720,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         """
         EXAMPLES::
 
-            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,QQ)._compute_q_expansion_basis(5)
+            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], QQ)._compute_q_expansion_basis(5)
             Traceback (most recent call last):
             ...
             NotImplementedError: this must be implemented in the derived class
@@ -1006,14 +963,14 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             return f.parent()(e) == f
         raise NotImplementedError
 
-    def has_coerce_map_from_impl(self, from_par):
+    def _coerce_map_from_(self, from_par):
         """
         Code to make ModularFormsSpace work well with coercion framework.
 
         EXAMPLES::
 
             sage: M = ModularForms(22,2)
-            sage: M.has_coerce_map_from_impl(M.cuspidal_subspace())
+            sage: M.has_coerce_map_from(M.cuspidal_subspace())
             True
             sage: M.has_coerce_map_from(ModularForms(22,4))
             False
@@ -1026,39 +983,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         return False
 
-    def _coerce_impl(self, x):
-        """
-        Code to coerce an element into self.
-
-        EXAMPLES::
-
-            sage: M = ModularForms(22,2) ; S = CuspForms(22,2)
-            sage: sum(S.basis())
-            q + q^2 - q^3 - 4*q^4 + q^5 + O(q^6)
-            sage: sum(S.basis() + M.basis())
-            1 + 3*q + 3*q^2 + 2*q^3 - 7*q^4 + 8*q^5 + O(q^6)
-            sage: M._coerce_impl(S.basis()[0])
-            q - q^3 - 2*q^4 + q^5 + O(q^6)
-
-        ::
-
-            sage: M = ModularForms(Gamma0(22)) ; N = ModularForms(Gamma0(44))
-            sage: M.basis()[0]
-            q - q^3 - 2*q^4 + q^5 + O(q^6)
-            sage: N(M.basis()[0])
-            q - q^3 - 2*q^4 + q^5 + O(q^6)
-        """
-        if isinstance(x, element.ModularFormElement):
-            if x.parent().ambient() == self:
-                return self(x.element())
-            elif self.group().is_subgroup(x.parent().group()):
-                ## This is a coercion M_k(Gamma) --> M_k(Gamma'),
-                ## where Gamma' is contained in Gamma.
-                return self(x.q_expansion(self._q_expansion_module().degree()))
-
-        raise TypeError("no known coercion to modular form")
-
-    def __call__(self, x, check=True):
+    def _element_constructor_(self, x, check=True):
         """
         Try to coerce x into self. If x is a vector of length
         self.dimension(), interpret it as a list of coefficients for
@@ -1136,8 +1061,27 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: g=f-f
             sage: g.is_old()
             True
+
+        ::
+
+            sage: M = ModularForms(22,2) ; S = CuspForms(22,2)
+            sage: sum(S.basis())
+            q + q^2 - q^3 - 4*q^4 + q^5 + O(q^6)
+            sage: sum(S.basis() + M.basis())
+            1 + 3*q + 3*q^2 + 2*q^3 - 7*q^4 + 8*q^5 + O(q^6)
+            sage: M.coerce(S.basis()[0])
+            q - q^3 - 2*q^4 + q^5 + O(q^6)
+
+        ::
+
+            sage: M = ModularForms(Gamma0(22)) ; N = ModularForms(Gamma0(44))
+            sage: M.basis()[0]
+            q - q^3 - 2*q^4 + q^5 + O(q^6)
+            sage: N(M.basis()[0])
+            q - q^3 - 2*q^4 + q^5 + O(q^6)
+
         """
-        if isinstance(x, element.ModularFormElement):
+        if isinstance(x, self.element_class):
             if x.parent() is self:
                 return x
 
@@ -1147,18 +1091,15 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 f._set_parent(self)
                 return f
 
-            try:
-                if x.parent()._has_natural_inclusion_map_to(self.ambient()):
-                    W = self._q_expansion_module()
-                    return self(x.q_expansion(W.degree()))
-            except NotImplementedError:
-                pass
-            raise TypeError("unable to coerce x (= %s) into %s"%(x, self))
+            if x.parent().ambient() == self:
+                return self(x.element())
+
+            return self(x.q_expansion(self._q_expansion_module().degree()))
 
         elif is_PowerSeries(x):
             if x.prec() == PlusInfinity():
                 if x == 0:
-                    return element.ModularFormElement(self, self.free_module().zero_element())
+                    return self.element_class(self, self.free_module().zero())
                 else:
                     raise TypeError("unable to create modular form from exact non-zero polynomial")
             W = self._q_expansion_module()
@@ -1168,14 +1109,18 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 except ArithmeticError:
                     raise ValueError("q-expansion does not correspond to a form in self")
                 x_potential = self.free_module().linear_combination_of_basis(x_potential)
-                x_potential = element.ModularFormElement(self, x_potential)
+                x_potential = self.element_class(self, x_potential)
                 for i in range(int(W.degree()), x.prec()):
                     if x_potential[i] != x[i]:
                         raise ValueError("q-expansion does not correspond to a form in self")
                 return x_potential
             else:
-                raise TypeError("q-expansion needed to at least precision %s"%W.degree())
-        return element.ModularFormElement(self, self.free_module()(x,check))
+                raise TypeError("q-expansion needed to at least precision %s" % W.degree())
+
+        if isinstance(x, ModularFormElement):
+            x = x.element()
+
+        return self.element_class(self, self.free_module()(x, check))
 
     def __cmp__(self, x):
         """
@@ -1244,12 +1189,13 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: N.span_of_basis( N.basis() )
             Modular Forms subspace of dimension 5 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
         """
+        from .submodule import ModularFormsSubmoduleWithBasis
         W = self._q_expansion_module()
         F = self.free_module()
         prec = W.degree()
         C = [F.linear_combination_of_basis(W.coordinates(f.padded_list(prec))) for f in B]
         S = F.span_of_basis(C)
-        return submodule.ModularFormsSubmoduleWithBasis(self.ambient(), S)
+        return ModularFormsSubmoduleWithBasis(self.ambient(), S)
 
     span = span_of_basis
 
@@ -1384,7 +1330,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         try:
             return self.__basis
         except AttributeError:
-            self.__basis = Sequence([element.ModularFormElement(self, x) for \
+            self.__basis = Sequence([self.element_class(self, x) for \
                                   x in self.free_module().basis()], immutable=True,
                                     cr = True)
         return self.__basis
@@ -1471,10 +1417,10 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: CuspForms(Gamma0(144), 3).sturm_bound()
             73
 
-        REFERENCE:
+        REFERENCES:
 
-        - [Sturm] J. Sturm, On the congruence of modular forms, Number theory
-          (New York, 1984-1985), Springer, Berlin, 1987, pp. 275-280.
+        .. [Sturm] \J. Sturm, On the congruence of modular forms, Number theory
+           (New York, 1984-1985), Springer, Berlin, 1987, pp. 275-280.
 
         NOTE:
 
@@ -1551,7 +1497,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: N.cuspidal_submodule().dimension()
             1
 
-        We check that a bug noticed on trac #10450 is fixed::
+        We check that a bug noticed on :trac:`10450` is fixed::
 
             sage: M = ModularForms(6, 10)
             sage: W = M.span_of_basis(M.basis()[0:2])
@@ -1649,7 +1595,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
          EXAMPLES::
 
-             sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.new_submodule()
+             sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], base_ring=QQ); M.new_submodule()
              Traceback (most recent call last):
              ...
              NotImplementedError: computation of new submodule not yet implemented
@@ -1662,7 +1608,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         EXAMPLES::
 
-            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.new_subspace()
+            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], base_ring=QQ); M.new_subspace()
             Traceback (most recent call last):
             ...
             NotImplementedError: computation of new submodule not yet implemented
@@ -1679,7 +1625,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         EXAMPLES::
 
-            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.eisenstein_series()
+            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], base_ring=QQ); M.eisenstein_series()
             Traceback (most recent call last):
             ...
             NotImplementedError: computation of Eisenstein series in this space not yet implemented
@@ -1733,7 +1679,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             # In this case, we don't need a variable name, so insert
             # something to get passed along below
             names = 'a'
-        return [ element.Newform(self, factors[i], names=(names+str(i)) )
+        return [ Newform(self, factors[i], names=(names+str(i)) )
                  for i in range(len(factors)) ]
 
     def eisenstein_submodule(self):
@@ -1746,7 +1692,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: M.eisenstein_submodule()
             Eisenstein subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
 
-        We check that a bug noticed on trac #10450 is fixed::
+        We check that a bug noticed on :trac:`10450` is fixed::
 
             sage: M = ModularForms(6, 10)
             sage: W = M.span_of_basis(M.basis()[0:2])
@@ -1881,7 +1827,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         EXAMPLES::
 
-            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.modular_symbols()
+            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], base_ring=QQ); M.modular_symbols()
             Traceback (most recent call last):
             ...
             NotImplementedError: computation of associated modular symbols space not yet implemented

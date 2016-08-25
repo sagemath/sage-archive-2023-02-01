@@ -7,17 +7,17 @@ Root lattices and root spaces
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
-from sage.misc.cachefunc import ClearCacheOnPickle, cached_method, cached_in_parent_method
+from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.rings.all import ZZ
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
-from root_lattice_realizations import RootLatticeRealizations
+from .root_lattice_realizations import RootLatticeRealizations
 from sage.misc.cachefunc import cached_in_parent_method
+import functools
 
-# TODO: inheriting from ClearCacheOnPickle is a technical detail unrelated to root spaces
-# could we abstract this somewhere higher?
-
-class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule):
+class RootSpace(CombinatorialFreeModule):
     r"""
     The root space of a root system over a given base ring
 
@@ -209,6 +209,29 @@ class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule):
         else:
             return self.classical().simple_root(i)
 
+    @cached_method
+    def to_ambient_space_morphism(self):
+        r"""
+        The morphism from ``self`` to its associated ambient space.
+
+        EXAMPLES::
+
+            sage: CartanType(['A',2]).root_system().root_lattice().to_ambient_space_morphism()
+            Generic morphism:
+            From: Root lattice of the Root system of type ['A', 2]
+            To:   Ambient space of the Root system of type ['A', 2]
+
+        """
+        if self.root_system.dual_side:
+            L = self.cartan_type().dual().root_system().ambient_space()
+            basis = L.simple_coroots()
+        else:
+            L = self.cartan_type().root_system().ambient_space()
+            basis = L.simple_roots()
+        def basis_value(basis, i):
+            return basis[i]
+        return self.module_morphism(on_basis = functools.partial(basis_value, basis) , codomain=L)
+
 class RootSpaceElement(CombinatorialFreeModuleElement):
     def scalar(self, lambdacheck):
         """
@@ -325,7 +348,7 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
             sage: Q = RootSystem(['C',2]).root_lattice()
             sage: positive_roots = Q.positive_roots()
             sage: for x in positive_roots:
-            ....:     print x, x.quantum_root()
+            ....:     print("{} {}".format(x, x.quantum_root()))
             alpha[1] True
             alpha[2] True
             2*alpha[1] + alpha[2] True
@@ -421,5 +444,23 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
             self = self - beta.associated_coroot()
         W = self.parent().weyl_group()
         return (W.demazure_product(word)).reduced_word()
+
+    def to_ambient(self):
+        r"""
+        Map ``self`` to the ambient space.
+
+        EXAMPLES::
+
+            sage: alpha = CartanType(['B',2]).root_system().root_lattice().an_element(); alpha
+            2*alpha[1] + 2*alpha[2]
+            sage: alpha.to_ambient()
+            (2, 0)
+            sage: alphavee = CartanType(['B',2]).root_system().coroot_lattice().an_element(); alphavee
+            2*alphacheck[1] + 2*alphacheck[2]
+            sage: alphavee.to_ambient()
+            (2, 2)
+
+        """
+        return self.parent().to_ambient_space_morphism()(self)
 
 RootSpace.Element = RootSpaceElement

@@ -16,9 +16,12 @@ Interface to mwrank
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
-import os, weakref
-from expect import Expect
+import os
+import weakref
+from .expect import Expect
 
 instances={}
 def Mwrank(options="", server=None, server_tmpdir=None):
@@ -49,7 +52,7 @@ def Mwrank(options="", server=None, server_tmpdir=None):
     EXAMPLES::
 
         sage: M = Mwrank('-v 0 -l')
-        sage: print M('0 0 1 -1 0')
+        sage: print(M('0 0 1 -1 0'))
         Curve [0,0,1,-1,0] :    Rank = 1
         Generator 1 is [0:-1:1]; height 0.0511114082399688
         Regulator = 0.0511114082399688
@@ -189,7 +192,6 @@ class Mwrank_class(Expect):
                         command = "mwrank %s"%options,
                         server = server,
                         server_tmpdir = server_tmpdir,
-                        maxread = 10000,
                         restart_on_ctrlc = True,
                         verbose_start = False)
 
@@ -241,7 +243,7 @@ class Mwrank_class(Expect):
 
         TESTS:
 
-        Invalid input raises an ValueError (see #10108); this includes
+        Invalid input raises an ValueError (see :trac:`10108`); this includes
         syntactically valid input which defines a singular curve::
 
             sage: mwrank(10)
@@ -332,27 +334,6 @@ class Mwrank_class(Expect):
         """
         mwrank_console()
 
-    def quit(self, verbose=False):
-        """
-        Quit the mwrank process using kill -9 (so exit doesn't dump core, etc.).
-
-        INPUT:
-
-        - ``verbose`` -- ignored
-
-        EXAMPLES::
-
-            sage: m = Mwrank()
-            sage: e = m('1 2 3 4 5')
-            sage: m.quit()
-        """
-        if self._expect is None: return
-        try:
-            os.kill(self._expect.pid, 9)
-        except OSError:
-            pass
-        self._expect = None
-
 
 # An instance
 mwrank = Mwrank()
@@ -369,7 +350,7 @@ def _reduce_load_mwrank():
     """
     return mwrank
 
-import os
+
 def mwrank_console():
     """
     Start the mwrank console.
@@ -379,5 +360,8 @@ def mwrank_console():
         sage: mwrank_console() # not tested: expects console input
         Program mwrank: ...
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%mwrank magics instead.')
     os.system('mwrank')
 

@@ -12,18 +12,12 @@
 To define a new class of words, one should inherit from Words_all (or any
 class that inherits from it) and implement the following methods.
 
-    - self.alphabet() -- return the alphabet (by default, self._alphabet)
-
-    - size_of_alphabet -- number of letters in the underlying alphabet (can
-      by Infinity)
+    - self.alphabet() -- return the alphabet
 
     - cmp_letters(x,y) -- a function to compare letters in the alphabet;
       should behave like Python's cmp function (that is, it returns -1, 0
       or 1, if x < y, x == y, x > y, respectively). By default, this points
       to Python's cmp function.
-
-    - has_letter(x) -- returns True or False according to whether the
-      alphabet contains x or not. Default implementation: x in self._alphabet.
 
 By implementing the above methods, almost anything can be used as an
 alphabet.

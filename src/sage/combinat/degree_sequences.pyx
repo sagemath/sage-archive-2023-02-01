@@ -20,7 +20,7 @@ With the object ``DegreeSequences(n)``, one can :
     * List all the possible degree sequences of length `n`::
 
         sage: for seq in DegreeSequences(4):
-        ...       print seq
+        ....:     print(seq)
         [0, 0, 0, 0]
         [1, 1, 0, 0]
         [2, 1, 1, 0]
@@ -48,8 +48,9 @@ Definitions
 
 A sequence of integers `d_1,...,d_n` is said to be a *degree sequence* (or
 *graphic* sequence) if there exists a graph in which vertex `i` is of degree
-`d_i`. It is often required to be *non-increasing*, i.e. that `d_1 \geq ... \geq
-d_n`.
+`d_i`. It is often required to be *non-increasing*, i.e. that
+`d_1 \geq ... \geq d_n`. Finding a graph with given degree sequence is
+known as *graph realization problem*.
 
 An integer sequence need not necessarily be a degree sequence. Indeed, in a
 degree sequence of length `n` no integer can be larger than `n-1` -- the degree
@@ -224,9 +225,9 @@ The sequences produced by random graphs *are* degree sequences::
     sage: n = 30
     sage: DS = DegreeSequences(30)
     sage: for i in range(10):
-    ...      g = graphs.RandomGNP(n,.2)
-    ...      if not g.degree_sequence() in DS:
-    ...          print "Something is very wrong !"
+    ....:     g = graphs.RandomGNP(n,.2)
+    ....:     if not g.degree_sequence() in DS:
+    ....:         print("Something is very wrong !")
 
 Checking that we indeed enumerate *all* the degree sequences for `n=5`::
 
@@ -247,24 +248,25 @@ Checking the consistency of enumeration and test::
     list of them first, then iterate on this list.  This is obviously bad, as it
     requires uselessly a **lot** of memory for large values of `n`.
 
-    As soon as the ``yield`` keyword is available in Cython this should be
-    changed. Updating the code does not require more than a couple of minutes.
-
+    This should be changed. Updating the code does not require more
+    than a couple of minutes.
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
-from sage.libs.gmp.all cimport mpz_t
-from sage.libs.gmp.all cimport *
+
+from libc.string cimport memset
 from sage.rings.integer cimport Integer
-include 'sage/ext/stdsage.pxi'
-include 'sage/ext/cdefs.pxi'
-include "sage/ext/interrupt.pxi"
+include "cysignals/memory.pxi"
+include "cysignals/signals.pxi"
 
 
 cdef unsigned char * seq
@@ -381,7 +383,7 @@ class DegreeSequences:
         Freeing the memory
         """
         if seq != NULL:
-            sage_free(seq)
+            sig_free(seq)
 
 cdef init(int n):
     """
@@ -397,7 +399,7 @@ cdef init(int n):
         return [[0]]
 
     sig_on()
-    seq = <unsigned char *> sage_malloc((n+1)*sizeof(unsigned char))
+    seq = <unsigned char *> sig_malloc((n+1)*sizeof(unsigned char))
     memset(seq,0,(n+1)*sizeof(unsigned char))
     sig_off()
 
@@ -407,7 +409,7 @@ cdef init(int n):
     N = n
     sequences = []
     enum(1,0)
-    sage_free(seq)
+    sig_free(seq)
     return sequences
 
 cdef inline add_seq():

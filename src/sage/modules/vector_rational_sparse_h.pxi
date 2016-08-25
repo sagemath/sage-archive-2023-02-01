@@ -4,7 +4,7 @@
 #
 #############################################################
 
-include "sage/ext/cdefs.pxi"
+from sage.libs.gmp.types cimport mpq_t
 
 cdef struct mpq_vector:
     mpq_t *entries      # array of nonzero entries

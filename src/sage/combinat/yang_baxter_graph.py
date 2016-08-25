@@ -82,6 +82,7 @@ def YangBaxterGraph(partition=None, root=None, operators=None):
         sage: Y = YangBaxterGraph(root=(1,2,3,4), operators=swappers); Y
         Yang-Baxter graph with root vertex (1, 2, 3, 4)
         sage: Y.plot()
+        Graphics object consisting of 97 graphics primitives
 
     The Cayley graph of a finite group can be realized as a Yang-Baxter graph.
 
@@ -94,12 +95,14 @@ def YangBaxterGraph(partition=None, root=None, operators=None):
         sage: Y = YangBaxterGraph(root=G.identity(), operators=operators); Y
         Yang-Baxter graph with root vertex ()
         sage: Y.plot(edge_labels=False)
+        Graphics object consisting of 9 graphics primitives
 
         sage: G = SymmetricGroup(4)
         sage: operators = [left_multiplication_by(gen) for gen in G.gens()]
         sage: Y = YangBaxterGraph(root=G.identity(), operators=operators); Y
         Yang-Baxter graph with root vertex ()
         sage: Y.plot(edge_labels=False)
+        Graphics object consisting of 96 graphics primitives
 
     AUTHORS:
 
@@ -204,6 +207,21 @@ class YangBaxterGraph_generic(SageObject):
                 digraph.add_edge(u, v, l)
         return digraph
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.combinat.yang_baxter_graph import SwapIncreasingOperator
+            sage: ops = [SwapIncreasingOperator(i) for i in range(2)]
+            sage: Y = YangBaxterGraph(root=(1,2,3), operators=ops)
+            sage: hash(Y)
+            1028420699          # 32-bit
+            7656306018247013467 # 64-bit
+        """
+        # TODO: this is ugly but unavoidable: the Yang Baxter graphs are being
+        # used in containers but are mutable.
+        return hash(self._digraph.copy(immutable=True))
+
     def __eq__(self, other):
         r"""
         EXAMPLES::
@@ -224,7 +242,7 @@ class YangBaxterGraph_generic(SageObject):
             sage: Y3.__eq__(Y2)
             False
         """
-        return isinstance(self, type(other)) and self._digraph.__eq__(other._digraph)
+        return type(self) is type(other) and self._digraph == other._digraph
 
     def __ne__(self, other):
         r"""
@@ -248,7 +266,7 @@ class YangBaxterGraph_generic(SageObject):
             sage: Y3.__ne__(Y2)
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __iter__(self):
         r"""
@@ -368,7 +386,7 @@ class YangBaxterGraph_generic(SageObject):
             sage: Y.successors(Y.root())
             [(1, 2, 0, 1, 0)]
             sage: Y.successors((1, 2, 0, 1, 0))
-            [(2, 1, 0, 1, 0), (1, 2, 1, 0, 0)]
+            [(1, 2, 1, 0, 0), (2, 1, 0, 1, 0)]
         """
         return [a for (a,b) in self._successors(v)]
 
@@ -382,7 +400,9 @@ class YangBaxterGraph_generic(SageObject):
             sage: ops = [SwapIncreasingOperator(i) for i in range(4)]
             sage: Y = YangBaxterGraph(root=(1,0,2,1,0), operators=ops)
             sage: Y.plot()
+            Graphics object consisting of 16 graphics primitives
             sage: Y.plot(edge_labels=False)
+            Graphics object consisting of 11 graphics primitives
         """
         if "edge_labels" not in kwds:
             kwds["edge_labels"] = True
@@ -445,7 +465,9 @@ class YangBaxterGraph_generic(SageObject):
             ...       i = op.position()
             ...       return u[:i] + u[i:i+2][::-1] + u[i+2:]
             sage: Y.vertex_relabelling_dict((1,2,3,4), relabel_operator)
-            {(2, 0, 1, 0): (2, 1, 3, 4), (2, 1, 0, 0): (2, 3, 1, 4), (0, 2, 1, 0): (1, 2, 3, 4)}
+            {(0, 2, 1, 0): (1, 2, 3, 4),
+             (2, 0, 1, 0): (2, 1, 3, 4),
+             (2, 1, 0, 0): (2, 3, 1, 4)}
         """
         relabelling = {self._root:v}
         for (u,w,i) in self._edges_in_bfs():
@@ -635,7 +657,8 @@ class YangBaxterGraph_partition(YangBaxterGraph_generic):
 
             The vertices are first sorted using Python's sorted command.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Y = YangBaxterGraph(partition=[3,2])
             sage: list(Y.__iter__())
             [(1, 0, 2, 1, 0), (1, 2, 0, 1, 0), (1, 2, 1, 0, 0), (2, 1, 0, 1, 0), (2, 1, 1, 0, 0)]
@@ -687,9 +710,13 @@ class YangBaxterGraph_partition(YangBaxterGraph_generic):
 
             sage: Y = YangBaxterGraph(partition=[3,1])
             sage: Y.vertex_relabelling_dict((1,2,3,4))
-            {(2, 0, 1, 0): (2, 1, 3, 4), (2, 1, 0, 0): (2, 3, 1, 4), (0, 2, 1, 0): (1, 2, 3, 4)}
+            {(0, 2, 1, 0): (1, 2, 3, 4),
+             (2, 0, 1, 0): (2, 1, 3, 4),
+             (2, 1, 0, 0): (2, 3, 1, 4)}
             sage: Y.vertex_relabelling_dict((4,3,2,1))
-            {(2, 0, 1, 0): (3, 4, 2, 1), (2, 1, 0, 0): (3, 2, 4, 1), (0, 2, 1, 0): (4, 3, 2, 1)}
+            {(0, 2, 1, 0): (4, 3, 2, 1),
+             (2, 0, 1, 0): (3, 4, 2, 1),
+             (2, 1, 0, 0): (3, 2, 4, 1)}
         """
         return super(YangBaxterGraph_partition, self).vertex_relabelling_dict(v, self._swap_operator)
 
@@ -747,6 +774,17 @@ class SwapOperator(SageObject):
         """
         self._position = i
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.combinat.yang_baxter_graph import SwapOperator
+            sage: s = [SwapOperator(i) for i in range(3)]
+            sage: map(hash, s)
+            [0, 1, 2]
+        """
+        return hash(self._position)
+
     def __cmp__(self, other):
         r"""
         Compare two swap operators. The comparison is done by comparing the
@@ -763,7 +801,7 @@ class SwapOperator(SageObject):
             sage: s[1] < s[2]
             True
         """
-        if isinstance(self, type(other)):
+        if type(self) is type(other):
             return cmp(self._position, other._position)
         else:
             return cmp(type(self), type(other))

@@ -11,7 +11,7 @@ AUTHOR:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 cdef extern from *: # hack to get at cython macro
     int unlikely(int)
@@ -27,6 +27,7 @@ from sage.libs.singular.decl cimport n_Delete, idInit, fast_map, id_Delete
 from sage.libs.singular.decl cimport omAlloc0, omStrDup, omFree
 from sage.libs.singular.decl cimport p_GetComp, p_SetComp
 from sage.libs.singular.decl cimport pSubst
+from sage.libs.singular.decl cimport p_Normalize
 
 
 from sage.libs.singular.singular cimport sa2si, si2sa, overflow_check
@@ -144,6 +145,49 @@ cdef int singular_polynomial_call(poly **ret, poly *p, ring *r, list args, poly 
 
         sage: (3*x*z)(x,x,x)
         3*x^2
+
+    TESTS:
+
+    Test that there is no memory leak in evaluating polynomials. Note
+    that (lib)Singular has pre-allocated buckets, so we have to run a
+    lot of iterations to fill those up first::
+
+        sage: import resource
+        sage: import gc
+        sage: F.<a> = GF(7^2)
+        sage: R.<x,y> = F[]
+        sage: p = x+2*y
+        sage: def leak(N):
+        ....:     before = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        ....:     gc.collect()
+        ....:     for i in range(N):
+        ....:         _ = p(a, a)
+        ....:     after = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        ....:     return (after - before) * 1024   # ru_maxrss is in kilobytes
+
+    Loop (at most 30 times) until we have 6 consecutive zeros when
+    calling ``leak(10000)``. Depending on the operating system, it is
+    possible to have several non-zero leak values in the beginning, but
+    after a while we should get only zeros. The fact that we require 6
+    zeros also means that Singular's pre-allocated buckets should not
+    be sufficient if there really would be a memory leak. ::
+
+        sage: zeros = 0
+        sage: for i in range(30):  # long time
+        ....:     n = leak(10000)
+        ....:     print("Leaked {} bytes".format(n))
+        ....:     if n == 0:
+        ....:         zeros += 1
+        ....:         if zeros >= 6:
+        ....:             break
+        ....:     else:
+        ....:         zeros = 0
+        Leaked...
+        Leaked 0 bytes
+        Leaked 0 bytes
+        Leaked 0 bytes
+        Leaked 0 bytes
+        Leaked 0 bytes
     """
     cdef long l = len(args)
     cdef ideal *to_id = idInit(l,1)
@@ -156,6 +200,9 @@ cdef int singular_polynomial_call(poly **ret, poly *p, ring *r, list args, poly 
     rChangeCurrRing(r)
     cdef ideal *res_id = fast_map(from_id, r, to_id, r)
     ret[0] = res_id.m[0]
+
+    # Unsure why we have to normalize here. See #16958
+    p_Normalize(ret[0], r)
 
     from_id.m[0] = NULL
     res_id.m[0] = NULL
@@ -398,8 +445,9 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
         sage: latex(10*x^2 + 1/2*y)
         10 x^{2} + \frac{1}{2} y
 
-      Demonstrate that coefficients over non-atomic representated rings are
-      properly parenthesized (Trac 11186)
+    Demonstrate that coefficients over non-atomic representated rings are
+    properly parenthesized (:trac:`11186`)::
+
         sage: x = var('x')
         sage: K.<z> = QQ.extension(x^2 + x + 1)
         sage: P.<v,w> = K[]

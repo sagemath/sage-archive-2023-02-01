@@ -20,16 +20,9 @@ Installation Guide for more about those.)
   executed every time Sage starts.  The default value is
   ``$DOT_SAGE/init.sage``.
 
-- :envvar:`SAGE_SERVER` -- if you want to install a Sage package using
-  ``sage -i PKG_NAME``, Sage downloads the file from the web, using
-  the address ``http://www.sagemath.org/`` by default, or the address
-  given by :envvar:`SAGE_SERVER` if it is set.  If you wish to set up
-  your own server, then note that Sage will search the directories
-  ``SAGE_SERVER/packages/standard/``,
-  ``SAGE_SERVER/packages/optional/``,
-  ``SAGE_SERVER/packages/experimental/``, and
-  ``SAGE_SERVER/packages/archive/`` for packages.  See the script
-  :file:`$SAGE_ROOT/spkg/bin/sage-spkg` for the implementation.
+- :envvar:`SAGE_SERVER` -- only used for installing
+  packages. Alternative mirror from which to download sources, see the
+  Installation Guide for details.
 
 - :envvar:`SAGE_PATH` -- a colon-separated list of directories which
   Sage searches when trying to locate Python libraries.
@@ -38,15 +31,8 @@ Installation Guide for more about those.)
   command to run a web browser, but if this doesn't seem to work on
   your machine, set this variable to the appropriate command.
 
-- :envvar:`SAGE_ORIG_LD_LIBRARY_PATH_SET` -- set this to something
-  non-empty to force Sage to set the :envvar:`LD_LIBRARY_PATH` before
-  executing system commands.
-
-- :envvar:`SAGE_ORIG_DYLD_LIBRARY_PATH_SET` -- similar, but only used
-  on Mac OS X to set the :envvar:`DYLD_LIBRARY_PATH`.
-
 - :envvar:`SAGE_CBLAS` -- used in the file
-  :file:`SAGE_ROOT/devel/sage/sage/misc/cython.py`.  Set this to the
+  :file:`SAGE_ROOT/src/sage/misc/cython.py`.  Set this to the
   base name of the BLAS library file on your system if you want to
   override the default setting.  That is, if the relevant file is
   called :file:`libcblas_new.so` or :file:`libcblas_new.dylib`, then

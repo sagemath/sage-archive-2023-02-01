@@ -21,6 +21,7 @@ from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options, rename_keyword
 from sage.plot.colors import to_mpl_color
 
+
 class Text(GraphicPrimitive):
     """
     Base class for Text graphics primitive.
@@ -30,6 +31,12 @@ class Text(GraphicPrimitive):
     We test creating some text::
 
         sage: text("I like Fibonacci",(3,5))
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(text("I like Fibonacci",(3,5)))
+
     """
     def __init__(self, string, point, options):
         """
@@ -88,21 +95,30 @@ class Text(GraphicPrimitive):
 
             sage: T = text("ABC",(1,1),zorder=3)
             sage: T[0]._allowed_options()['fontsize']
-            'How big the text is.'
+            "How big the text is. Either the size in points or a relative size, e.g. 'smaller', 'x-large', etc"
             sage: T[0]._allowed_options()['zorder']
             'The layer level in which to draw'
             sage: T[0]._allowed_options()['rotation']
-            'how to rotate the text: angle in degrees, vertical, horizontal'
+            'How to rotate the text: angle in degrees, vertical, horizontal'
+
         """
-        return {'fontsize': 'How big the text is.',
-                'rgbcolor':'The color as an RGB tuple.',
-                'hue':'The color given as a hue.',
-                'axis_coords':'Uses axis coordinates -- (0,0) lower left and (1,1) upper right',
-                'rotation': 'how to rotate the text: angle in degrees, vertical, horizontal',
-                'vertical_alignment': 'how to align vertically: top, center, bottom',
-                'horizontal_alignment':'how to align horizontally: left, center, right',
-                'zorder':'The layer level in which to draw',
-                'clip': 'Whether to clip or not.'}
+        return {'fontsize': 'How big the text is. Either the size in points or a relative size, e.g. \'smaller\', \'x-large\', etc',
+                'fontstyle': 'A string either \'normal\', \'italic\' or \'oblique\'',
+                'fontweight': 'A numeric value in the range 0-1000 or a string'
+                              '\'ultralight\', \'light\', \'normal\', \'regular\', \'book\','
+                              '\'medium\', \'roman\', \'semibold\', \'demibold\', \'demi\','
+                              '\'bold,\', \'heavy\', \'extra bold\', \'black\'',
+                'rgbcolor': 'The color as an RGB tuple',
+                'background_color': 'The background color',
+                'bounding_box': 'A dictionary specifying a bounding box',
+                'hue': 'The color given as a hue',
+                'alpha': 'A float (0.0 transparent through 1.0 opaque)',
+                'axis_coords': 'If True use axis coordinates: (0,0) lower left and (1,1) upper right',
+                'rotation': 'How to rotate the text: angle in degrees, vertical, horizontal',
+                'vertical_alignment': 'How to align vertically: top, center, bottom',
+                'horizontal_alignment': 'How to align horizontally: left, center, right',
+                'zorder': 'The layer level in which to draw',
+                'clip': 'Whether to clip or not'}
 
     def _plot3d_options(self, options=None):
         """
@@ -117,13 +133,14 @@ class Text(GraphicPrimitive):
             sage: s=t.plot3d()
             sage: s.jmol_repr(s.testing_render_params())[0][1]
             'color atom  [0,0,255]'
+
         """
         if options is None:
             options = dict(self.options())
         options_3d = {}
         # TODO: figure out how to implement rather than ignore
         for s in ['axis_coords', 'clip', 'fontsize', 'horizontal_alignment',
-                'rotation', 'vertical_alignment' ]:
+                  'rotation', 'vertical_alignment']:
             if s in options:
                 del options[s]
         options_3d.update(GraphicPrimitive._plot3d_options(self, options))
@@ -142,6 +159,7 @@ class Text(GraphicPrimitive):
             'label "ABC"'
             sage: s._trans
             (1.0, 1.0, 0)
+
         """
         from sage.plot.plot3d.shapes2 import text3d
         options = self._plot3d_options()
@@ -153,28 +171,46 @@ class Text(GraphicPrimitive):
         TESTS::
 
             sage: t1 = text("Hello",(1,1), vertical_alignment="top", fontsize=30, rgbcolor='black')
-            sage: t2 = text("World", (1,1), horizontal_alignment="left",fontsize=20, zorder=-1)
+            sage: t2 = text("World", (1,1), horizontal_alignment="left", fontsize=20, zorder=-1)
             sage: t1 + t2   # render the sum
+            Graphics object consisting of 2 graphics primitives
+
         """
         options = self.options()
         opts = {}
         opts['color'] = options['rgbcolor']
-        opts['fontsize'] = int(options['fontsize'])
         opts['verticalalignment'] = options['vertical_alignment']
         opts['horizontalalignment'] = options['horizontal_alignment']
+        if 'background_color' in options:
+            opts['backgroundcolor'] = options['background_color']
+        if 'fontweight' in options:
+            opts['fontweight'] = options['fontweight']
+        if 'alpha' in options:
+            opts['alpha'] = options['alpha']
+        if 'fontstyle' in options:
+            opts['fontstyle'] = options['fontstyle']
+        if 'bounding_box' in options:
+            opts['bbox'] = options['bounding_box']
         if 'zorder' in options:
             opts['zorder'] = options['zorder']
         if options['axis_coords']:
             opts['transform'] = subplot.transAxes
+        if 'fontsize' in options:
+            val = options['fontsize']
+            if isinstance(val, str):
+                opts['fontsize'] = val
+            else:
+                opts['fontsize'] = int(val)
         if 'rotation' in options:
             val = options['rotation']
             if isinstance(val, str):
                 opts['rotation'] = options['rotation']
             else:
                 opts['rotation'] = float(options['rotation'])
-        p=subplot.text(self.x, self.y, self.string, clip_on=options['clip'], **opts)
+
+        p = subplot.text(self.x, self.y, self.string, clip_on=options['clip'], **opts)
         if not options['clip']:
-            self._bbox_extra_artists=[p]
+            self._bbox_extra_artists = [p]
 
 
 @rename_keyword(color='rgbcolor')
@@ -188,11 +224,23 @@ def text(string, xy, **options):
 
     2D OPTIONS:
 
-    - ``fontsize`` - How big the text is
+    - ``fontsize`` - How big the text is. Either an integer that
+      specifies the size in points or a string which specifies a size (one of
+      'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large')
+
+    - ``fontstyle`` - A string either 'normal', 'italic' or 'oblique'
+
+    - ``fontweight`` - A numeric value in the range 0-1000 or a string (one of
+      'ultralight', 'light', 'normal', 'regular', 'book',' 'medium', 'roman',
+      'semibold', 'demibold', 'demi', 'bold', 'heavy', 'extra bold', 'black')
 
     - ``rgbcolor`` - The color as an RGB tuple
 
     - ``hue`` - The color given as a hue
+
+    - ``alpha`` - A float (0.0 transparent through 1.0 opaque)
+
+    - ``background_color`` - The background color
 
     - ``rotation`` - How to rotate the text: angle in degrees, vertical, horizontal
 
@@ -200,39 +248,115 @@ def text(string, xy, **options):
 
     - ``horizontal_alignment`` - How to align horizontally: left, center, right
 
-    - ``axis_coords`` - (default: False) if True, use axis coordinates, so that
+    - ``zorder`` - The layer level in which to draw
+
+    - ``clip`` - (default: False) Whether to clip or not
+
+    - ``axis_coords`` - (default: False) If True, use axis coordinates, so that
       (0,0) is the lower left and (1,1) upper right, regardless of the x and y
       range of plotted values.
 
+    - ``bounding_box`` - A dictionary specifying a bounding box. Currently the text location.
+
     EXAMPLES::
 
-        sage: text("Sage is really neat!!",(2,12))
+        sage: text("Sage graphics are really neat because they use matplotlib!", (2,12))
+        Graphics object consisting of 1 graphics primitive
 
-    The same text in larger font and colored red::
+    .. PLOT::
 
-        sage: text("Sage is really neat!!",(2,12),fontsize=20,rgbcolor=(1,0,0))
+        t = "Sage graphics are really neat because they use matplotlib!"
+        sphinx_plot(text(t,(2,12)))
 
-    Same text but guaranteed to be in the lower left no matter what::
+    Larger font, bold, colored red and transparent text::
 
-        sage: text("Sage is really neat!!",(0,0), axis_coords=True, horizontal_alignment='left')
+        sage: text("I had a dream!", (2,12), alpha=0.3, fontsize='large', fontweight='bold', color='red')
+        Graphics object consisting of 1 graphics primitive
 
-    Same text rotated around the left, bottom corner of the text::
+    .. PLOT::
 
-        sage: text("Sage is really neat!!",(0,0), rotation=45.0, horizontal_alignment='left', vertical_alignment='bottom')
+        sphinx_plot(text("I had a dream!", (2,12), alpha=0.3, fontsize='large', fontweight='bold', color='red'))
 
-    Same text oriented vertically::
+    By setting ``horizontal_alignment`` to 'left' the text is guaranteed to be
+    in the lower left no matter what::
+
+        sage: text("I got a horse and he lives in a tree", (0,0), axis_coords=True, horizontal_alignment='left')
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        t = "I got a horse and he lives in a tree"
+        sphinx_plot(text(t, (0,0), axis_coords=True, horizontal_alignment='left'))
+
+    Various rotations::
+
+        sage: text("noitator", (0,0), rotation=45.0, horizontal_alignment='left', vertical_alignment='bottom')
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(text("noitator", (0,0), rotation=45.0, horizontal_alignment='left', vertical_alignment='bottom'))
+
+    ::
 
         sage: text("Sage is really neat!!",(0,0), rotation="vertical")
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(text("Sage is really neat!!",(0,0), rotation="vertical"))
 
     You can also align text differently::
 
         sage: t1 = text("Hello",(1,1), vertical_alignment="top")
         sage: t2 = text("World", (1,0.5), horizontal_alignment="left")
         sage: t1 + t2   # render the sum
+        Graphics object consisting of 2 graphics primitives
+
+    .. PLOT::
+
+        t1 = text("Hello",(1,1), vertical_alignment="top")
+        t2 = text("World", (1,0.5), horizontal_alignment="left")
+        sphinx_plot(t1 + t2)
 
     You can save text as part of PDF output::
 
         sage: text("sage", (0,0), rgbcolor=(0,0,0)).save(os.path.join(SAGE_TMP, 'a.pdf'))
+
+    Some examples of bounding box::
+
+        sage: bbox = {'boxstyle':"rarrow,pad=0.3", 'fc':"cyan", 'ec':"b", 'lw':2}
+        sage: text("I feel good", (1,2), bounding_box=bbox)
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+         bbox = {'boxstyle':"rarrow,pad=0.3", 'fc':"cyan", 'ec':"b", 'lw':2}
+         sphinx_plot(text("I feel good", (1,2), bounding_box=bbox))
+
+    ::
+
+        sage: text("So good", (0,0), bounding_box={'boxstyle':'round', 'fc':'w'})
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        bbox = {'boxstyle':'round', 'fc':'w'}
+        sphinx_plot(text("So good", (0,0), bounding_box=bbox))
+
+    The possible options of the bounding box are 'boxstyle' (one of 'larrow',
+    'rarrow', 'round', 'round4', 'roundtooth', 'sawtooth', 'square'), 'fc' or
+    'facecolor', 'ec' or 'edgecolor', 'ha' or 'horizontalalignment', 'va' or
+    'verticalalignment', 'lw' or 'linewidth'.
+
+    A text with a background color::
+
+        sage: text("So good", (-2,2), background_color='red')
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(text("So good", (-2,2), background_color='red'))
 
     Text must be 2D (use the text3d command for 3D text)::
 
@@ -245,6 +369,7 @@ def text(string, xy, **options):
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: text("MATH IS AWESOME", (0, 0), fontsize=40, axes=False)
+        Graphics object consisting of 1 graphics primitive
         sage: text("MATH IS AWESOME", (0, 0), fontsize=40).show(axes=False) # These are equivalent
     """
     try:

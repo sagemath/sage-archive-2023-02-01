@@ -4,17 +4,13 @@ cd src
 
 # Apply patches
 for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'"
         exit 1
     fi
 done
-
-# use 2to3 if we are running on python3
-if python -c 'import sys; sys.exit(sys.version_info.major != 3)'; then
-    2to3 -n -w --no-diffs pexpect.py
-fi
 
 # On some systems pexpect doesn't upgrade correctly without
 # first removing the old version.

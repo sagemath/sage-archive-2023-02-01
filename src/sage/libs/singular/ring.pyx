@@ -13,8 +13,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-include "sage/ext/stdsage.pxi"
+from __future__ import print_function
 
 from sage.libs.gmp.types cimport __mpz_struct
 from sage.libs.gmp.mpz cimport mpz_init_set_ui, mpz_init_set
@@ -36,9 +35,6 @@ from sage.rings.finite_rings.finite_field_base import FiniteField as FiniteField
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-
-
-from sage.misc.misc_c import is_64_bit
 
 
 # mapping str --> SINGULAR representation
@@ -157,36 +153,36 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         if base_ring.characteristic() <= 2147483647:
             characteristic = base_ring.characteristic()
         else:
-            raise TypeError, "Characteristic p must be <= 2147483647."
+            raise TypeError("Characteristic p must be <= 2147483647.")
 
-    elif PY_TYPE_CHECK(base_ring, RationalField):
+    elif isinstance(base_ring, RationalField):
         characteristic = 0
 
-    elif PY_TYPE_CHECK(base_ring, IntegerRing_class):
+    elif isinstance(base_ring, IntegerRing_class):
         ringflaga = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
         mpz_init_set_ui(ringflaga, 0)
         characteristic = 0
         ringtype = 4 # integer ring
 
-    elif PY_TYPE_CHECK(base_ring, FiniteField_generic):
+    elif isinstance(base_ring, FiniteField_generic):
         if base_ring.characteristic() <= 2147483647:
             characteristic = -base_ring.characteristic() # note the negative characteristic
         else:
-            raise TypeError, "characteristic must be <= 2147483647."
+            raise TypeError("characteristic must be <= 2147483647.")
         # TODO: This is lazy, it should only call Singular stuff not MPolynomial stuff
         try:
             k = PolynomialRing(base_ring.prime_subfield(), 1, [base_ring.variable_name()], 'lex')
         except TypeError:
-            raise TypeError, "The multivariate polynomial ring in a single variable %s in lex order over %s is supposed to be of type %s"%(base_ring.variable_name(), base_ring,MPolynomialRing_libsingular)
+            raise TypeError("The multivariate polynomial ring in a single variable %s in lex order over %s is supposed to be of type %s" % (base_ring.variable_name(), base_ring,MPolynomialRing_libsingular))
         minpoly = base_ring.polynomial()(k.gen())
         is_extension = True
 
-    elif PY_TYPE_CHECK(base_ring, NumberField) and base_ring.is_absolute():
+    elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
         characteristic = 1
         try:
             k = PolynomialRing(RationalField(), 1, [base_ring.variable_name()], 'lex')
         except TypeError:
-            raise TypeError, "The multivariate polynomial ring in a single variable %s in lex order over Rational Field is supposed to be of type %s"%(base_ring.variable_name(), MPolynomialRing_libsingular)
+            raise TypeError("The multivariate polynomial ring in a single variable %s in lex order over Rational Field is supposed to be of type %s" % (base_ring.variable_name(), MPolynomialRing_libsingular))
         minpoly = base_ring.polynomial()(k.gen())
         is_extension = True
 
@@ -194,14 +190,12 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         ch = base_ring.characteristic()
         if ch.is_power_of(2):
             exponent = ch.nbits() -1
-            if is_64_bit:
-                # it seems Singular uses ints somewhere
-                # internally, cf. #6051 (Sage) and #138 (Singular)
-                if exponent <= 30: ringtype = 1
-                else: ringtype = 3
+            # it seems Singular uses ints somewhere
+            # internally, cf. #6051 (Sage) and #138 (Singular)
+            if exponent <= 30:
+                ringtype = 1
             else:
-                if exponent <= 30: ringtype = 1
-                else: ringtype = 3
+                ringtype = 3
             characteristic = exponent
             ringflaga = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
             mpz_init_set_ui(ringflaga, 2)
@@ -222,7 +216,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             try:
                 characteristic = ch
             except OverflowError:
-                raise NotImplementedError("Characteristic %d too big."%ch)
+                raise NotImplementedError("Characteristic %d too big." % ch)
             ringtype = 2
             ringflaga = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
             mpz_init_set_ui(ringflaga, characteristic)
@@ -452,12 +446,14 @@ cdef ring *singular_ring_reference(ring *existing_ring) except NULL:
 
     INPUT:
 
-    - ``existing_ring`` -- an existing Singular ring.
+    - ``existing_ring`` -- a Singular ring.
 
     OUTPUT:
 
-    The same ring with its refcount increased. After calling this
-    function `n` times, you need to call :func:`singular_ring_delete`
+    The same ring with its refcount increased. If ``existing_ring``
+    has not been refcounted yet, it will be after calling this function.
+    If initially ``existing_ring`` was refcounted once, then after
+    calling this function `n` times, you need to call :func:`singular_ring_delete`
     `n+1` times to actually deallocate the ring.
 
     EXAMPLE::
@@ -493,8 +489,7 @@ cdef ring *singular_ring_reference(ring *existing_ring) except NULL:
     if existing_ring==NULL:
         raise ValueError('singular_ring_reference(ring*) called with NULL pointer.')
     cdef object r = wrap_ring(existing_ring)
-    refcount = ring_refcount_dict.pop(r)
-    ring_refcount_dict[r] = refcount+1
+    ring_refcount_dict[r] = ring_refcount_dict.get(r,0)+1
     return existing_ring
 
 
@@ -526,7 +521,7 @@ cdef void singular_ring_delete(ring *doomed):
         sage: _ = gc.collect()
     """
     if doomed==NULL:
-        print 'singular_ring_delete(ring*) called with NULL pointer.'
+        print('singular_ring_delete(ring*) called with NULL pointer.')
         # this function is typically called in __deallocate__, so we can't raise an exception
         import traceback
         traceback.print_stack()
@@ -584,7 +579,6 @@ cpdef poison_currRing(frame, event, arg):
         <built-in function poison_currRing>
         sage: sys.settrace(previous_trace_func)  # switch it off again
     """
-    #print "poisoning currRing"
     global currRing
     currRing = <ring*>NULL
     return poison_currRing
@@ -606,7 +600,7 @@ cpdef print_currRing():
         DEBUG: currRing == 0x0
     """
     cdef size_t addr = <size_t>currRing
-    print "DEBUG: currRing == "+str(hex(addr))
+    print("DEBUG: currRing == " + str(hex(addr)))
 
 def currRing_wrapper():
     """

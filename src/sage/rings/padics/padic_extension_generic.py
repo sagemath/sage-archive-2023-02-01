@@ -7,6 +7,7 @@ AUTHORS:
 
 - David Roe
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
@@ -19,8 +20,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from padic_generic import pAdicGeneric
-from padic_base_generic import pAdicBaseGeneric
+from .padic_generic import pAdicGeneric
+from .padic_base_generic import pAdicBaseGeneric
 from functools import reduce
 
 class pAdicExtensionGeneric(pAdicGeneric):
@@ -72,7 +73,13 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         # Far more functionality needs to be added here later.
         if isinstance(R, pAdicExtensionGeneric) and R.fraction_field() is self:
-            return True
+            if self._implementation == 'NTL':
+                return True
+            elif R._prec_type() == 'capped-abs':
+                from sage.rings.padics.qadic_flint_CA import pAdicCoercion_CA_frac_field as coerce_map
+            elif R._prec_type() == 'capped-rel':
+                from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field as coerce_map
+            return coerce_map(R, self)
 
     def __cmp__(self, other):
         """
@@ -259,9 +266,9 @@ class pAdicExtensionGeneric(pAdicGeneric):
         #we don't want to set the print options due to the ground ring since
         #different extension fields (with different options) can share the same ground ring.
         if self.is_lazy():
-            return K.extension(self._pre_poly, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), print_mode=print_mode)
+            return K.extension(self._pre_poly, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), print_mode=print_mode, implementation=self._implementation)
         else:
-            return K.extension(self._pre_poly, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), print_mode=print_mode)
+            return K.extension(self._pre_poly, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), print_mode=print_mode, implementation=self._implementation)
 
     def integer_ring(self, print_mode=None):
         r"""
@@ -321,12 +328,9 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: W.random_element()
             3 + 4*w + 3*w^2 + w^3 + 4*w^4 + w^5 + w^6 + 3*w^7 + w^8 + 2*w^10 + 4*w^11 + w^12 + 2*w^13 + 4*w^14 + O(w^15)
         """
-        return reduce(lambda x,y: x+y, \
-                      map(lambda a,b: a*b, \
-                          [self.ground_ring().random_element() for _ in \
-                           range(self.modulus().degree())], \
-                          [self.gen()**i for i in \
-                           range(self.modulus().degree())]),
+        return reduce(lambda x,y: x+y,
+                      [self.ground_ring().random_element() * self.gen()**i for i in
+                           range(self.modulus().degree())],
                       0)
 
     #def unit_group(self):

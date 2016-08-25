@@ -1,28 +1,27 @@
 r"""
 Congruence Subgroup `\Gamma(N)`
 """
+from __future__ import absolute_import
 
-################################################################################
-#
-#       Copyright (C) 2009, The Sage Group -- http://www.sagemath.org/
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
-################################################################################
+#*****************************************************************************
 
-from congroup_generic import CongruenceSubgroup
-from sage.misc.misc import prod
-from sage.rings.all import ZZ, Zmod, gcd, QQ
+
+from .congroup_generic import CongruenceSubgroup
+from sage.misc.all import prod
+from sage.rings.all import ZZ, Zmod, QQ
 from sage.rings.integer import GCD_list
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.matrix.constructor import matrix
 from sage.modular.cusps import Cusp
+from sage.arith.all import gcd
 
-from congroup_sl2z import SL2Z
+from .congroup_sl2z import SL2Z
 
 _gamma_cache = {}
 def Gamma_constructor(N):
@@ -127,7 +126,8 @@ class Gamma_class(CongruenceSubgroup):
 
           \prod_{\substack{p \mid N \\ \text{$p$ prime}}}\left(p^{3e}-p^{3e-2}\right).
 
-        EXAMPLE::
+        EXAMPLES::
+
             sage: [Gamma(n).index() for n in [1..19]]
             [1, 6, 24, 48, 120, 144, 336, 384, 648, 720, 1320, 1152, 2184, 2016, 2880, 3072, 4896, 3888, 6840]
             sage: Gamma(32041).index()

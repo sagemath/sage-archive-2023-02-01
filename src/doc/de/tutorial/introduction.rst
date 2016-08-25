@@ -65,7 +65,7 @@ Falls Sie Sage auf Ihrem Computer nicht installiert haben und nur ein
 paar Befehle ausführen möchten, können Sie es online unter
 http://www.sagenb.org benutzen.
 
-Schauen Sie sich den `Sage Installation Guide <http://www.sagemath.org/doc/installation/index.html>`_ an, um Anleitungen
+Schauen Sie sich den `Sage Installation Guide <http://doc.sagemath.org/html/en/installation/index.html>`_ an, um Anleitungen
 zur Installation von Sage auf Ihrem Computer zu erhalten.
 Hier geben wir nur ein paar Kommentare ab.
 
@@ -93,7 +93,7 @@ Hier geben wir nur ein paar Kommentare ab.
    die Ergebnisse von Sage Berechnungen in eine LaTeX-Datei
    einbauen können), müssen Sie SageTeX Ihrer TeX-Distribution bekannt
    machen. Um dies zu tun, lesen Sie den Abschnitt `Make SageTeX known
-   to TeX <http://www.sagemath.org/doc/installation/sagetex.html>`_ im
+   to TeX <http://doc.sagemath.org/html/en/installation/sagetex.html>`_ im
    Sage Installation Guide
    (`Dieser Link <../../en/installation/index.html>`_ sollte Sie zu
    eine lokalen Kopie des Installation Guides führen). Es ist ziemlich
@@ -147,7 +147,7 @@ Langfristige Ziele von Sage
    Quellcode lesen. Falls Sie Sage verwenden, um Berechnungen für ein
    Paper durchzuführen, welches Sie veröffentlichen, können Sie
    sicher sein, dass Ihre Leser immer freien Zugang zu Sage und
-   seinem Quellcode haben und Sie dürfen sogar Ihre Sage Version
+   seinem Quellcode haben und Sie dürfen sogar Ihre SageMath Version
    archivieren und weiterverteilen.
 
 -  **einfach zu kompilieren:** Sage sollte für GNU/Linux, Mac OS X und

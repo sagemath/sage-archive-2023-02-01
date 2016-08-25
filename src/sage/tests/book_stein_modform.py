@@ -2,12 +2,6 @@
 This file contains a bunch of tests extracted from the published book
 'Modular Forms: a Computational Approach' by William Stein, AMS 2007.
 
-One doctest is commented out below, because it does not work in
-Sage currently. The original answer in the book is wrong, but the
-correct answer has been put in below. This is trac #4357.
-"""
-
-"""
 sage: G = SL(2,ZZ); G
 Special Linear Group of degree 2 over Integer Ring
 sage: S, T = G.gens()
@@ -73,7 +67,7 @@ sage: S = M.cuspidal_submodule()
 sage: S.integral_basis()     # basis over ZZ.
 ({-1/8, 0}, {-1/9, 0})
 sage: set_modsym_print_mode ('manin')    # set it back
-sage: convergents(4/7)
+sage: continued_fraction(4/7).convergents()
 [0, 1, 1/2, 4/7]
 sage: M = ModularSymbols(2,2)
 sage: M
@@ -92,7 +86,7 @@ sage: M.manin_generators()
  (2,3), (2,5), (3,1), (3,2)]
 sage: M = ModularSymbols(2,2)
 sage: [x.lift_to_sl2z(2) for x in M.manin_generators()]
-[[1, 0, 0, 1], [0, -1, 1, 0], [0, -1, 1, 1]]
+[[1, 0, 0, 1], [0, -1, 1, 0], [1, 0, 1, 1]]
 sage: M = ModularSymbols(6,2)
 sage: x = M.manin_generators()[9]
 sage: x
@@ -318,8 +312,7 @@ sage: list(DirichletGroup(5, QQ))
 [Dirichlet character modulo 5 of conductor 1 mapping 2 |--> 1, Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -1]
 sage: G = DirichletGroup(200)
 sage: G
-Group of Dirichlet characters of modulus 200 over
-Cyclotomic Field of order 20 and degree 8
+Group of Dirichlet characters modulo 200 with values in Cyclotomic Field of order 20 and degree 8
 sage: G.exponent()
 20
 sage: G.gens()
@@ -344,18 +337,17 @@ sage: kronecker(177,200)
 sage: G = DirichletGroup(20)
 sage: G.galois_orbits()
 [
-[Dirichlet character modulo 20 of conductor 1 mapping 11 |--> 1, 17 |--> 1],
-[Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4,
-Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -zeta4],
-[Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -1],
+[Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -1],
+[Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -zeta4,
+ Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> zeta4],
 [Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1],
-[Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> zeta4,
-Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -zeta4],
-[Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -1]
+[Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -1],
+[Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -zeta4,
+ Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4],
+[Dirichlet character modulo 20 of conductor 1 mapping 11 |--> 1, 17 |--> 1]
 ]
 sage: G = DirichletGroup(11, QQ); G
-Group of Dirichlet characters of modulus 11 over
-Rational Field
+Group of Dirichlet characters modulo 11 with values in Rational Field
 sage: list(G)
 [Dirichlet character modulo 11 of conductor 1 mapping 2 |--> 1,
 Dirichlet character modulo 11 of conductor 11 mapping 2 |--> -1]
@@ -375,8 +367,7 @@ sage: CyclotomicField(4)
 Cyclotomic Field of order 4 and degree 2
 sage: G = DirichletGroup(15, R)
 sage: G
-Group of Dirichlet characters of modulus 15 over
-Cyclotomic Field of order 4 and degree 2
+Group of Dirichlet characters modulo 15 with values in Cyclotomic Field of order 4 and degree 2
 sage: list(G)
 [Dirichlet character modulo 15 of conductor 1 mapping 11 |--> 1, 7 |--> 1,
 Dirichlet character modulo 15 of conductor 3 mapping 11 |--> -1, 7 |--> 1,
@@ -397,8 +388,7 @@ sage: [e(n) for n in range(15)]
 [0, 1, zeta4, 0, -1, 0, 0, zeta4, -zeta4,
     0, 0, 1, 0, -zeta4, -1]
 sage: G = DirichletGroup(15, GF(5)); G
-Group of Dirichlet characters of modulus 15
-      over Finite Field of size 5
+Group of Dirichlet characters modulo 15 with values in Finite Field of size 5
 sage: list(G)
 [Dirichlet character modulo 15 of conductor 1 mapping 11 |--> 1, 7 |--> 1,
 Dirichlet character modulo 15 of conductor 3 mapping 11 |--> 4, 7 |--> 1,
@@ -415,7 +405,7 @@ sage: e(2)
 2
 sage: e(5)
 0
-sage: print [e(n) for n in range(15)]
+sage: [e(n) for n in range(15)]
 [0, 1, 2, 0, 4, 0, 0, 2, 3, 0, 0, 1, 0, 3, 4]
 sage: G = DirichletGroup(5)
 sage: e = G.0
@@ -442,8 +432,7 @@ q + (-zeta6 + 3)*q^2 + (zeta6 + 2)*q^3 + (-3*zeta6 + 6)*q^4 + 4*q^5 + O(q^6)
 ]
 sage: e = E.eisenstein_series()
 sage: for e in E.eisenstein_series():
-...       print e.parameters()
-...
+....:     print(e.parameters())
 (Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1, Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1, 13)
 (Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1, Dirichlet character modulo 13 of conductor 13 mapping 2 |--> zeta6, 1)
 (Dirichlet character modulo 13 of conductor 13 mapping 2 |--> zeta6, Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1, 1)
@@ -521,16 +510,14 @@ Symbols space of dimension 3 for Gamma_0(6) of weight
 2 with sign 0 over Rational Field
 sage: G = DirichletGroup(13)
 sage: G
-Group of Dirichlet characters of modulus 13 over
-Cyclotomic Field of order 12 and degree 4
+Group of Dirichlet characters modulo 13 with values in Cyclotomic Field of order 12 and degree 4
 sage: dimension_modular_forms(Gamma1(13),2)
 13
 sage: [dimension_modular_forms(e,2) for e in G]
 [1, 0, 3, 0, 2, 0, 2, 0, 2, 0, 3, 0]
 sage: G = DirichletGroup(100)
 sage: G
-Group of Dirichlet characters of modulus 100 over
-Cyclotomic Field of order 20 and degree 8
+Group of Dirichlet characters modulo 100 with values in Cyclotomic Field of order 20 and degree 8
 sage: dimension_modular_forms(Gamma1(100),2)
 370
 sage: v = [dimension_modular_forms(e,2) for e in G]; v
@@ -549,9 +536,10 @@ q - q^4 - q^10 - 2*q^13 + O(q^14),
 q^2 - q^5 - 3*q^8 + 4*q^11 + O(q^14),
 q^3 - q^6 - q^9 - q^12 + O(q^14)
 ]
-
-sage: S.new_subspace().basis() # not tested
-(q + q^2 - q^4 -q^5 - 3*q^8 - q^10 + 4*q^11 - 2*q^13 + O(q^14),)
+sage: S.new_subspace().basis()
+[
+q + q^2 - q^4 - q^5 - 3*q^8 - q^10 + 4*q^11 - 2*q^13 + O(q^14)
+]
 sage: CuspForms(Gamma0(9),2)
 Cuspidal subspace of dimension 0 of Modular Forms space
 of dimension 3 for Congruence Subgroup Gamma0(9) of

@@ -17,7 +17,9 @@ TOP=`pwd`
 #######################################################################
 cd src
 for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
+    # Use --no-backup-if-mismatch to prevent .orig files (these confuse
+    # PARI's Perl script which creates pari.desc).
+    patch --no-backup-if-mismatch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'"
         exit 1
@@ -53,6 +55,10 @@ set_environment()
         CC="$CC $CFLAG64" && export CC
     fi
 
+    # Pari ignores LDFLAGS when linking libpari-gmp.so, so we trick it:
+    DLLDFLAGS="$LDFLAGS"
+    export DLLDFLAGS
+    
     # PARI does not build correctly with LD set (which is set by
     # sage-env).  PARI actually needs LD set to a compiler to do the
     # linking, not to the linker directly.
@@ -156,6 +162,7 @@ build()
     # Note that "--graphic=none" is (usually) added to PARI_CONFIGURE:
     bash ./Configure --prefix="$SAGE_LOCAL" \
         --with-readline="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" \
+        --with-runtime-perl="/usr/bin/env perl" \
         --kernel=gmp $PARI_CONFIGURE
 
     if [ $? -ne 0 ]; then
@@ -187,33 +194,14 @@ install()
         exit 1
     fi
 
-    cd "$CUR"
-
-    if [ "$UNAME" = "Darwin" ]; then
-        # The following is a hack to get the library installed correctly
-        # on Mac OS X:
-        echo "Applying Mac OS X hack -- deleting and reinstalling libpari.a ..."
-        rm -f Odarwin-ppc/*lib*
-        $MAKE install-lib-sta
-        if [ $? -ne 0 ]; then
-            echo >&2 "Error reinstalling PARI's static libraries (OS X trick)"
-            exit 1
-        fi
-
-        cd "`config/objdir`" && cp -f libpari* "$SAGE_LOCAL/lib"
-        if [ $? -ne 0 ]; then
-            echo >&2 "Error copying PARI's libraries (OS X trick)"
-            exit 1
-        fi
-        cd "$CUR"
-    fi
-
-    # Copy gprc.expect to $SAGE_LOCAL/etc
-    cp -f "$TOP/gprc.expect" "$SAGE_LOCAL/etc"
+    # Copy anal.h
+    cp -f "src/language/anal.h" "$SAGE_LOCAL/include/pari/anal.h"
     if [ $? -ne 0 ]; then
-        echo >&2 "Error installing gprc.expect"
+        echo >&2 "Error copying anal.h"
         exit 1
     fi
+
+    cd "$CUR"
 }
 
 
@@ -222,7 +210,14 @@ set_environment
 # Set CFLAGS
 if [ "$SAGE_DEBUG" = yes ]; then
     # Disable optimisation, add debug symbols.
-    CFLAGS="$CFLAGS -O0 -g"
+    CFLAGS="-O0 -g $CFLAGS"
+
+    # Compile kernel files with -O1 instead of -funroll-loops; -O0 gives
+    # a segmentation fault on some OS X systems when doing
+    # factor(10356613*10694706299664611221)
+    # See #13921, also reported upstream:
+    # - http://pari.math.u-bordeaux.fr/archives/pari-dev-1301/msg00000.html
+    PARI_MAKEFLAGS="KERNELCFLAGS=-O1 $PARI_MAKEFLAGS"
 else
     # Use PARI's default CFLAGS (with -g added).
     # PARI's Configure adds -O3 to the CFLAGS, so we don't need to add

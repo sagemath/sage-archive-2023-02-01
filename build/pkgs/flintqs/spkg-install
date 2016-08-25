@@ -8,32 +8,23 @@ fi
 
 cd src
 
-# Apply patches.
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+export CXXFLAGS="-fomit-frame-pointer -O3 -Wno-sign-compare -Wno-write-strings -I$SAGE_LOCAL/include $CXXFLAGS"
 
-if [ "x$SAGE64" = xyes ]; then
-    # Despite being called makefile.osx64, this is a pretty generic
-    # makefile, which should build 64-bit on many platforms, not just
-    # OS X.
-    echo "Building a 64-bit version of William Hart's Quadratic Sieve"
-    cp makefile.osx64 makefile
-else
-    cp makefile.sage makefile
+./configure \
+    --libdir="$SAGE_LOCAL/lib" \
+    --prefix="$SAGE_LOCAL"
+if [ $? -ne 0 ]; then
+    echo "Error configuring Quadratic Sieve"
+    exit 1
 fi
 
 $MAKE
 if [ $? -ne 0 ]; then
-    echo "Error building William Hart's Quadratic Sieve"
+    echo "Error building Quadratic Sieve"
     exit 1
 fi
 
-$CP QuadraticSieve "$SAGE_LOCAL"/bin/
+$MAKE install
 if [ $? -ne 0 ]; then
     echo "Error copying QuadraticSieve file"
     exit 1

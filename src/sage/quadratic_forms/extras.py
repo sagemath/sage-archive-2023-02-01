@@ -1,7 +1,8 @@
+"Quadratic form extras"
 
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
-from sage.rings.arith import legendre_symbol
+from sage.arith.all import legendre_symbol
 from sage.rings.integer_ring import ZZ
 
 def is_triangular_number(n, return_value=False):
@@ -81,12 +82,15 @@ def extend_to_primitive(A_input):
     Author(s): Gonzalo Tornaria and Jonathan Hanke.
 
     INPUT:
-        a matrix, or a list of length n vectors (in the same space)
+
+    a matrix, or a list of length n vectors (in the same space)
 
     OUTPUT:
-        a square matrix, or a list of n vectors (resp.)
 
-    EXAMPLES:
+    a square matrix, or a list of n vectors (resp.)
+
+    EXAMPLES::
+
         sage: A = Matrix(ZZ, 3, 2, range(6))
         sage: extend_to_primitive(A)
         [ 0  1  0]
@@ -196,7 +200,7 @@ def least_quadratic_nonresidue(p):
     ## default case (first needed for p=71):
     if not p.is_prime():
         raise ValueError("Oops!  p must be a prime number > 2.")
-    from sage.misc.misc import xsrange
+    from sage.arith.srange import xsrange
     for r in xsrange(7,p):
         if legendre_symbol(r, p) == -1:
             return ZZ(r)

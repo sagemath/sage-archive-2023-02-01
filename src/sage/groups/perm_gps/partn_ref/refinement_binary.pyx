@@ -1,17 +1,18 @@
 """
 Partition backtrack functions for binary codes
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.refinement_binary
 
 REFERENCE:
 
-    [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
-        Vol. 30 (1981), pp. 45-87.
+- [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
+  Vol. 30 (1981), pp. 45-87.
 
-    [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
-        Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
-        533-583.
+- [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
+  Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
+  533-583.
 
 """
 
@@ -21,10 +22,13 @@ REFERENCE:
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include 'data_structures_pyx.pxi' # includes bitsets
 
 from sage.matrix.matrix import is_Matrix
+from .double_coset cimport double_coset
+
 
 cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
 
@@ -37,22 +41,22 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
             # By the time the dimension gets this big, the computation is infeasible anyway...
         self.nwords = 1<<self.dimension
 
-        self.basis = <bitset_s *> sage_malloc(self.dimension * sizeof(bitset_s))
-        self.scratch_bitsets = <bitset_s *> sage_malloc((2*self.dimension+2) * sizeof(bitset_s))
-        self.alpha_is_wd = <bitset_s *> sage_malloc(sizeof(bitset_s))
+        self.basis = <bitset_s *> sig_malloc(self.dimension * sizeof(bitset_s))
+        self.scratch_bitsets = <bitset_s *> sig_malloc((2*self.dimension+2) * sizeof(bitset_s))
+        self.alpha_is_wd = <bitset_s *> sig_malloc(sizeof(bitset_s))
         self.word_ps = PS_new(self.nwords, 1)
-        self.alpha = <int *> sage_malloc((self.nwords+self.degree) * sizeof(int))
-        self.scratch = <int *> sage_malloc((3*self.nwords+3*self.degree+2) * sizeof(int))
+        self.alpha = <int *> sig_malloc((self.nwords+self.degree) * sizeof(int))
+        self.scratch = <int *> sig_malloc((3*self.nwords+3*self.degree+2) * sizeof(int))
 
         if self.basis       is NULL or self.scratch_bitsets is NULL \
         or self.alpha_is_wd is NULL or self.word_ps         is NULL \
         or self.alpha       is NULL or self.scratch         is NULL:
-            sage_free(self.basis)
-            sage_free(self.scratch_bitsets)
-            sage_free(self.alpha_is_wd)
+            sig_free(self.basis)
+            sig_free(self.scratch_bitsets)
+            sig_free(self.alpha_is_wd)
             PS_dealloc(self.word_ps)
-            sage_free(self.alpha)
-            sage_free(self.scratch)
+            sig_free(self.alpha)
+            sig_free(self.scratch)
             raise MemoryError
 
         cdef bint memerr = 0
@@ -82,9 +86,9 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
                     bitset_free(&self.basis[j])
                 memerr = 1
         if memerr:
-            sage_free(self.basis); sage_free(self.scratch_bitsets)
-            sage_free(self.alpha_is_wd); PS_dealloc(self.word_ps)
-            sage_free(self.alpha); sage_free(self.scratch)
+            sig_free(self.basis); sig_free(self.scratch_bitsets)
+            sig_free(self.alpha_is_wd); PS_dealloc(self.word_ps)
+            sig_free(self.alpha); sig_free(self.scratch)
             raise MemoryError
         else:
             bitset_zero(self.alpha_is_wd)
@@ -302,15 +306,16 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
 
         """
         cdef int i, n = self.degree
-        cdef int *output, *ordering
+        cdef int *output
+        cdef int *ordering
         cdef PartitionStack *part
         part = PS_new(n, 1)
-        ordering = <int *> sage_malloc(self.degree * sizeof(int))
-        output = <int *> sage_malloc(self.degree * sizeof(int))
+        ordering = <int *> sig_malloc(self.degree * sizeof(int))
+        output = <int *> sig_malloc(self.degree * sizeof(int))
         if part is NULL or ordering is NULL or output is NULL:
             PS_dealloc(part)
-            sage_free(ordering)
-            sage_free(output)
+            sig_free(ordering)
+            sig_free(output)
             raise MemoryError
         for i from 0 <= i < n:
             ordering[i] = i
@@ -320,12 +325,12 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
         cdef bint isomorphic = double_coset(<void *> self, <void *> other, part, ordering, n, &all_children_are_equivalent, &refine_by_bip_degree, &compare_linear_codes, NULL, NULL, output)
 
         PS_dealloc(part)
-        sage_free(ordering)
+        sig_free(ordering)
         if isomorphic:
             output_py = [output[i] for i from 0 <= i < n]
         else:
             output_py = False
-        sage_free(output)
+        sig_free(output)
         return output_py
 
     def __dealloc__(self):
@@ -335,9 +340,9 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
             bitset_free(&self.scratch_bitsets[j])
         for j from 0 <= j < self.dimension:
             bitset_free(&self.basis[j])
-        sage_free(self.basis); sage_free(self.scratch_bitsets)
-        sage_free(self.alpha_is_wd); PS_dealloc(self.word_ps)
-        sage_free(self.alpha); sage_free(self.scratch)
+        sig_free(self.basis); sig_free(self.scratch_bitsets)
+        sig_free(self.alpha_is_wd); PS_dealloc(self.word_ps)
+        sig_free(self.alpha); sig_free(self.scratch)
         if self.output is not NULL:
             deallocate_agcl_output(self.output)
 
@@ -363,21 +368,21 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
         else:
             raise NotImplementedError
 
-        self.words = <bitset_s *> sage_malloc(self.nwords * sizeof(bitset_s))
-        self.scratch_bitsets = <bitset_s *> sage_malloc((4*self.nwords+1) * sizeof(bitset_s))
-        self.alpha_is_wd = <bitset_s *> sage_malloc(sizeof(bitset_s))
+        self.words = <bitset_s *> sig_malloc(self.nwords * sizeof(bitset_s))
+        self.scratch_bitsets = <bitset_s *> sig_malloc((4*self.nwords+1) * sizeof(bitset_s))
+        self.alpha_is_wd = <bitset_s *> sig_malloc(sizeof(bitset_s))
         self.word_ps = PS_new(self.nwords, 1)
-        self.alpha = <int *> sage_malloc((self.nwords+self.degree) * sizeof(int))
-        self.scratch = <int *> sage_malloc((3*self.nwords+3*self.degree+2) * sizeof(int))
+        self.alpha = <int *> sig_malloc((self.nwords+self.degree) * sizeof(int))
+        self.scratch = <int *> sig_malloc((3*self.nwords+3*self.degree+2) * sizeof(int))
         if self.words       is NULL or self.scratch_bitsets is NULL \
         or self.alpha_is_wd is NULL or self.word_ps         is NULL \
         or self.alpha       is NULL or self.scratch         is NULL:
-            sage_free(self.words)
-            sage_free(self.scratch_bitsets)
-            sage_free(self.alpha_is_wd)
+            sig_free(self.words)
+            sig_free(self.scratch_bitsets)
+            sig_free(self.alpha_is_wd)
             PS_dealloc(self.word_ps)
-            sage_free(self.alpha)
-            sage_free(self.scratch)
+            sig_free(self.alpha)
+            sig_free(self.scratch)
             raise MemoryError
 
         cdef bint memerr = 0
@@ -415,9 +420,9 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
                     bitset_free(&self.words[j])
                 memerr = 1
         if memerr:
-            sage_free(self.words); sage_free(self.scratch_bitsets)
-            sage_free(self.alpha_is_wd); PS_dealloc(self.word_ps)
-            sage_free(self.alpha); sage_free(self.scratch)
+            sig_free(self.words); sig_free(self.scratch_bitsets)
+            sig_free(self.alpha_is_wd); PS_dealloc(self.word_ps)
+            sig_free(self.alpha); sig_free(self.scratch)
             raise MemoryError
         else:
             bitset_zero(self.alpha_is_wd)
@@ -438,9 +443,9 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
             bitset_free(&self.scratch_bitsets[j])
         for j from 0 <= j < self.nwords:
             bitset_free(&self.words[j])
-        sage_free(self.words); sage_free(self.scratch_bitsets)
-        sage_free(self.alpha_is_wd); PS_dealloc(self.word_ps)
-        sage_free(self.alpha); sage_free(self.scratch)
+        sig_free(self.words); sig_free(self.scratch_bitsets)
+        sig_free(self.alpha_is_wd); PS_dealloc(self.word_ps)
+        sig_free(self.alpha); sig_free(self.scratch)
         if self.output is not NULL:
             deallocate_agcl_output(self.output)
 
@@ -562,15 +567,16 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
 
         """
         cdef int i, n = self.degree
-        cdef int *output, *ordering
+        cdef int *output
+        cdef int *ordering
         cdef PartitionStack *part
         part = PS_new(n, 1)
-        ordering = <int *> sage_malloc(n * sizeof(int))
-        output = <int *> sage_malloc(n * sizeof(int))
+        ordering = <int *> sig_malloc(n * sizeof(int))
+        output = <int *> sig_malloc(n * sizeof(int))
         if part is NULL or ordering is NULL or output is NULL:
             PS_dealloc(part)
-            sage_free(ordering)
-            sage_free(output)
+            sig_free(ordering)
+            sig_free(output)
             raise MemoryError
         for i from 0 <= i < n:
             ordering[i] = i
@@ -580,12 +586,12 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
         cdef bint isomorphic = double_coset(<void *> self, <void *> other, part, ordering, n, &all_children_are_equivalent, &refine_by_bip_degree, &compare_nonlinear_codes, NULL, NULL, output)
 
         PS_dealloc(part)
-        sage_free(ordering)
+        sig_free(ordering)
         if isomorphic:
             output_py = [output[i] for i from 0 <= i < n]
         else:
             output_py = False
-        sage_free(output)
+        sig_free(output)
         return output_py
 
 cdef int ith_word_nonlinear(BinaryCodeStruct self, int i, bitset_s *word):
@@ -811,7 +817,10 @@ cdef int compare_nonlinear_codes(int *gamma_1, int *gamma_2, void *S1, void *S2,
     cdef bitset_s *B_2_0 = &BCS1.scratch_bitsets[2*BCS1.nwords]    # nwords of len degree
     cdef bitset_s *B_2_1 = &BCS1.scratch_bitsets[3*BCS1.nwords]    # nwords of len degree
     cdef bitset_s *dividers = &BCS1.scratch_bitsets[4*BCS1.nwords] # 1 of len nwords
-    cdef bitset_s *B_1_this, *B_1_other, *B_2_this, *B_2_other
+    cdef bitset_s *B_1_this
+    cdef bitset_s *B_1_other
+    cdef bitset_s *B_2_this
+    cdef bitset_s *B_2_other
     for i from 0 <= i < BCS1.nwords:
         bitset_copy(&B_1_0[i], &BCS1.words[i])
         bitset_copy(&B_2_0[i], &BCS2.words[i])
@@ -1046,7 +1055,7 @@ def random_tests(num=50, n_max=50, k_max=6, nwords_max=200, perms_per_code=10, d
     from sage.misc.prandom import random, randint
     from sage.combinat.permutation import Permutations
     from sage.matrix.constructor import random_matrix, matrix
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     cdef int h, i, j, n, k, num_tests = 0, num_codes = 0
     cdef LinearBinaryCodeStruct B, C
     cdef NonlinearBinaryCodeStruct B_n, C_n
@@ -1094,37 +1103,37 @@ def random_tests(num=50, n_max=50, k_max=6, nwords_max=200, perms_per_code=10, d
                     B_n_M[j,B_n_relab[h]] = bitset_check(&B_n.words[j], h)
                     C_n_M[j,C_n_relab[h]] = bitset_check(&C_n.words[j], h)
             if B_M.row_space() != C_M.row_space():
-                print "can_lab error -- B:"
+                print("can_lab error -- B:")
                 for j from 0 <= j < B.dimension:
-                    print bitset_string(&B.basis[j])
-                print perm
+                    print(bitset_string(&B.basis[j]))
+                print(perm)
                 return
             if sorted(B_n_M.rows()) != sorted(C_n_M.rows()):
-                print "can_lab error -- B_n:"
+                print("can_lab error -- B_n:")
                 for j from 0 <= j < B_n.nwords:
-                    print bitset_string(&B_n.words[j])
-                print perm
+                    print(bitset_string(&B_n.words[j]))
+                print(perm)
                 return
             isom = B.is_isomorphic(C)
             if not isom:
-                print "isom -- B:"
+                print("isom -- B:")
                 for j from 0 <= j < B.dimension:
-                    print bitset_string(&B.basis[j])
-                print perm
-                print isom
+                    print(bitset_string(&B.basis[j]))
+                print(perm)
+                print(isom)
                 return
             isom = B_n.is_isomorphic(C_n)
             if not isom:
-                print "isom -- B_n:"
+                print("isom -- B_n:")
                 for j from 0 <= j < B_n.nwords:
-                    print bitset_string(&B_n.words[j])
-                print perm
-                print isom
+                    print(bitset_string(&B_n.words[j]))
+                print(perm)
+                print(isom)
                 return
 
         num_tests += 4*perms_per_code
         num_codes += 2
 
-    print "All passed: %d random tests on %d codes."%(num_tests, num_codes)
+    print("All passed: %d random tests on %d codes." % (num_tests, num_codes))
 
 

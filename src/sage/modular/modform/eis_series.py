@@ -2,29 +2,26 @@
 """
 Eisenstein Series
 """
+from __future__ import absolute_import
 
-#########################################################################
-#       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2004-2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
 import sage.misc.all as misc
-
 import sage.modular.dirichlet as dirichlet
-
 from sage.modular.arithgroup.congroup_gammaH import GammaH_class
-
-from sage.rings.all import Integer
-
-from sage.rings.all import (bernoulli, CyclotomicField,
-                            ZZ, QQ, Integer, divisors,
-                            LCM, is_squarefree)
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.all import Integer, CyclotomicField, ZZ, QQ, Integer
+from sage.arith.all import bernoulli, divisors, is_squarefree, lcm
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.power_series_ring import PowerSeriesRing
-from eis_series_cython import eisenstein_series_poly, Ek_ZZ
+from .eis_series_cython import eisenstein_series_poly, Ek_ZZ
 
 def eisenstein_series_qexp(k, prec = 10, K=QQ, var='q', normalization='linear'):
     r"""
@@ -176,8 +173,8 @@ def __common_minimal_basering(chi, psi):
 
     EXAMPLES::
 
-        sage: sage.modular.modform.eis_series.__common_minimal_basering(DirichletGroup(1).0, DirichletGroup(1).0)
-        (Dirichlet character modulo 1 of conductor 1 mapping 0 |--> 1, Dirichlet character modulo 1 of conductor 1 mapping 0 |--> 1)
+        sage: sage.modular.modform.eis_series.__common_minimal_basering(DirichletGroup(1)[0], DirichletGroup(1)[0])
+        (Dirichlet character modulo 1 of conductor 1, Dirichlet character modulo 1 of conductor 1)
 
         sage: sage.modular.modform.eis_series.__common_minimal_basering(DirichletGroup(3).0, DirichletGroup(5).0)
         (Dirichlet character modulo 3 of conductor 3 mapping 2 |--> -1, Dirichlet character modulo 5 of conductor 5 mapping 2 |--> zeta4)
@@ -187,7 +184,7 @@ def __common_minimal_basering(chi, psi):
     """
     chi = chi.minimize_base_ring()
     psi = psi.minimize_base_ring()
-    n = LCM(chi.base_ring().zeta().multiplicative_order(),\
+    n = lcm(chi.base_ring().zeta().multiplicative_order(),
                   psi.base_ring().zeta().multiplicative_order())
     if n <= 2:
         K = QQ

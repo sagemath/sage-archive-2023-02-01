@@ -39,7 +39,7 @@ Methods
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 
 cdef inline int has_edge(bitset_t bs, int u, int v, int n):
     return bitset_in(bs, u*n+v)
@@ -109,6 +109,9 @@ def is_long_hole_free(g, certificate=False):
     """
     g._scream_if_not_simple()
     cdef int a,b,c,i,u,v,d
+
+    if g.is_immutable():
+        g = g.copy(immutable=False)
 
     # relabel the graph on 0...n-1
     cdef dict label_id = g.relabel(return_map = True)
@@ -278,6 +281,9 @@ def is_long_antihole_free(g, certificate = False):
     """
     g._scream_if_not_simple()
     cdef int a,b,c,i,u,v,d
+
+    if g.is_immutable():
+        g = g.copy(immutable=False)
 
     # relabel the graph on 0...n-1
     cdef dict label_id = g.relabel(return_map = True)

@@ -17,6 +17,9 @@ Abstract base class for principal ideal domains
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.superseded import deprecation
+deprecation(20011, "the module sage.rings.principal_ideal_domain is deprecated and will be removed")
+
 from sage.rings.ring import PrincipalIdealDomain
 
 def is_PrincipalIdealDomain(R):
@@ -25,6 +28,9 @@ def is_PrincipalIdealDomain(R):
 
     EXAMPLES::
 
+        sage: import sage.rings.principal_ideal_domain
+        doctest:...: DeprecationWarning: the module sage.rings.principal_ideal_domain is deprecated and will be removed
+        See http://trac.sagemath.org/20011 for details.
         sage: sage.rings.principal_ideal_domain.is_PrincipalIdealDomain(ZZ)
         True
         sage: R.<x,y> = QQ[]

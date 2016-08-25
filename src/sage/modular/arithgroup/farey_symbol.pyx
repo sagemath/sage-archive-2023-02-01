@@ -1,3 +1,4 @@
+# distutils: language = c++
 r"""
 Farey Symbol for arithmetic subgroups of `{\rm PSL}_2(\ZZ)`
 
@@ -8,35 +9,28 @@ AUTHORS:
 based on the *KFarey* package by Chris Kurth. Implemented as C++ module
 for speed.
 """
+
 #*****************************************************************************
 #       Copyright (C) 2011 Hartmut Monien <monien@th.physik.uni-bonn.de>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
-include 'sage/ext/stdsage.pxi'
+include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
 
-include "farey.pxd"
-
-import sage.rings.arith
+from .farey cimport *
 from sage.rings.all import CC, RR
 from sage.rings.integer cimport Integer
 from sage.rings.infinity import infinity
 from congroup_gammaH import is_GammaH
 from congroup_gamma1 import is_Gamma1
 from congroup_gamma0 import is_Gamma0
-from congroup_gamma  import is_Gamma
+from congroup_gamma import is_Gamma
 from congroup_sl2z import SL2Z
 from sage.modular.cusps import Cusp
 
@@ -46,11 +40,16 @@ from sage.plot.misc import options, rename_keyword
 from sage.plot.all import hyperbolic_arc, hyperbolic_triangle, text
 
 from sage.misc.latex import latex
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.cachefunc import cached_method
+from itertools import groupby
 
 cdef class Farey:
     r"""
     A class for calculating Farey symbols of arithmetics subgroups of
-    `{\rm PSL}_2(\ZZ)`. The arithmetic subgroup can be either any of
+    `{\rm PSL}_2(\ZZ)`.
+
+    The arithmetic subgroup can be either any of
     the congruence subgroups implemented in Sage, i.e. Gamma, Gamma0,
     Gamma1 and GammaH or a subgroup of `{\rm PSL}_2(\ZZ)` which is
     given by a user written helper class defining membership in that
@@ -62,7 +61,7 @@ cdef class Farey:
       subgroups of the modular group'', `Amer. J. Math., 113(6):1053--1133,
       1991. <http://www.jstor.org/stable/2374900>`_
 
-    INPUTS:
+    INPUT:
 
     - `G` - an arithmetic subgroup of `{\rm PSL}_2(\ZZ)`
 
@@ -115,9 +114,9 @@ cdef class Farey:
     \Gamma_0(8)\cap\Gamma_1(4)` using a helper class to define group membership::
 
          sage: class GPrime:
-         ...     def __contains__(self, M):
-         ...         return M in Gamma0(8) and M in Gamma1(4)
-         ...
+         ....:   def __contains__(self, M):
+         ....:       return M in Gamma0(8) and M in Gamma1(4)
+         ....:
 
          sage: FareySymbol(GPrime()).generators()
          [
@@ -167,7 +166,8 @@ cdef class Farey:
         ## of SL2Z is in the group the python __contains__ attribute
         ## of the group is called
         cdef int p
-        if hasattr(group, "level"): p=group.level()
+        if hasattr(group, "level"):
+            p = group.level()
         if group == SL2Z:
             sig_on()
             self.this_ptr = new cpp_farey()
@@ -204,6 +204,268 @@ cdef class Farey:
 
         """
         del self.this_ptr
+
+    @cached_method
+    def pairing_matrices_to_tietze_index(self):
+        r"""
+        Obtain the translation table from pairing matrices
+        to generators.
+
+        The result is cached.
+
+        OUTPUT:
+
+        a list where the `i`-th entry is a nonzero integer `k`,
+        such that if `k > 0` then the `i`-th pairing matrix is (up to sign)
+        the `(k-1)`-th generator and, if `k < 0`, then the `i`-th pairing
+        matrix is (up to sign) the inverse of the `(-k-1)`-th generator.
+
+        EXAMPLES::
+
+            sage: F = Gamma0(40).farey_symbol()
+            sage: table = F.pairing_matrices_to_tietze_index()
+            sage: table[12]
+            (-2, -1)
+            sage: F.pairing_matrices()[12]
+            [  3  -1]
+            [ 40 -13]
+            sage: F.generators()[1]**-1
+            [ -3   1]
+            [-40  13]
+        """
+        gens_dict = {g:i+1 for i,g in enumerate(self.generators())}
+        ans = []
+        for pm in self.pairing_matrices():
+            a, b, c, d = pm.matrix().list()
+            newval = gens_dict.get(SL2Z([a, b, c, d]))
+            if newval is not None:
+                ans.append((newval,1))
+                continue
+            newval = gens_dict.get(SL2Z([-a, -b, -c, -d]))
+            if newval is not None:
+                ans.append((newval,-1))
+                continue
+            newval = gens_dict.get(SL2Z([d, -b, -c, a]))
+            if newval is not None:
+                ans.append((-newval,1))
+                continue
+            newval = gens_dict.get(SL2Z([-d, b, c, -a]))
+            if newval is not None:
+                ans.append((-newval,-1))
+                continue
+            raise RuntimeError("This should have not happened")
+        return ans
+
+    @cached_method
+    def _get_minus_one(self):
+        r"""
+        If -I belongs to self, return a Tietze word representing it.
+
+        OUTPUT:
+
+        A Tietze word representing the element -I if it belongs to self.
+        Otherwise return []
+
+        EXAMPLES::
+
+            sage: Gamma1(30).farey_symbol()._get_minus_one()
+            []
+            sage: G = Gamma0(30).farey_symbol()
+            sage: G._get_minus_one()
+            [14]
+            sage: g = G.generators()[13]
+            sage: (-g.matrix()).is_one()
+            True
+            sage: G = Gamma(1).farey_symbol()
+            sage: G._get_minus_one()
+            [1, 1]
+            sage: g = G.generators()[0]**2
+            sage: (-g.matrix()).is_one()
+            True
+            sage: G = Gamma0(3).farey_symbol()
+            sage: G._get_minus_one()
+            [2, 2, 2]
+            sage: g = G.generators()[1]**3
+            sage: (-g.matrix()).is_one()
+            True
+        """
+        for i,g in enumerate(self.generators()):
+            m = g.matrix()
+            if (-m).is_one():
+                return [i+1]
+            t = m.trace()
+            if t == 0: # order = 4
+                return 2 * [i+1]
+            elif t == 1: # order = 6
+                return 3 * [i+1]
+        return []
+
+    def word_problem(self, M, output = 'standard', check = True):
+        r"""
+        Solve the word problem (up to sign) using this Farey symbol.
+
+        INPUT:
+
+        - ``M`` -- An element `M` of `{\rm SL}_2(\ZZ)`.
+        - ``output`` -- (default: ``'standard'``) Should be one of ``'standard'``,
+          ``'syllables'``, ``'gens'``.
+        - ``check`` -- (default: ``True``) Whether to check for correct input and output.
+
+        OUTPUT:
+
+        A solution to the word problem for the matrix `M`.
+        The format depends on the ``output`` parameter, as follows.
+
+        - ``standard`` returns the so called the Tietze representation,
+          consists of a tuple of nonzero integers `i`, where if `i` > 0
+          then it indicates the `i`th generator (that is, ``self.generators()[0]``
+          would correspond to `i` = 1), and if `i` < 0 then it indicates
+          the inverse of the `i`-th generator.
+        - ``syllables`` returns a tuple of tuples of the form `(i,n)`, where
+          `(i,n)` represents ``self.generators()[i] ^ n``,
+          whose product equals `M` up to sign.
+        - ``gens`` returns tuple of tuples of the form `(g,n)`,
+          `(g,n)` such that the product of the matrices `g^n`
+          equals `M` up to sign.
+
+        EXAMPLES::
+
+            sage: F = Gamma0(30).farey_symbol()
+            sage: gens = F.generators()
+            sage: g = gens[3] * gens[10] * gens[8]^-1 * gens[5]
+            sage: g
+            [-628597   73008]
+            [-692130   80387]
+            sage: F.word_problem(g)
+            (4, 11, -9, 6)
+            sage: g = gens[3] * gens[10]^2 * gens[8]^-1 * gens[5]
+            sage: g
+            [-5048053   586303]
+            [-5558280   645563]
+            sage: F.word_problem(g, output = 'gens')
+            ((
+            [109 -10]
+            [120 -11], 1
+            ),
+             (
+            [ 19  -7]
+            [ 30 -11], 2
+            ),
+             (
+            [ 49  -9]
+            [ 60 -11], -1
+            ),
+             (
+            [17 -2]
+            [60 -7], 1
+            ))
+            sage: F.word_problem(g, output = 'syllables')
+            ((3, 1), (10, 2), (8, -1), (5, 1))
+
+        TESTS:
+
+        Check that problem with forgotten generator is fixed::
+
+            sage: from sage.misc.misc_c import prod
+            sage: G = Gamma0(10)
+            sage: F = G.farey_symbol()
+            sage: g = G([-701,-137,4600,899])
+            sage: g1 = prod(F.generators()[i]**a for i,a in F.word_problem(g, output = 'syllables'))
+            sage: g == g1
+            True
+
+        Check that it works for GammaH as well (:trac:`19660`)::
+
+            sage: G = GammaH(147, [8])
+            sage: G.farey_symbol().word_problem(G([1,1,0,1]))
+            (1,)
+
+        Check that :trac:`20347` is solved::
+
+            sage: from sage.misc.misc_c import prod
+            sage: G = ArithmeticSubgroup_Permutation(S2="(1,2)(3,4)",S3="(1,2,3)")
+            sage: S = G.farey_symbol()
+            sage: g1,g2 = S.generators()
+            sage: g = g1^3 * g2^-2 * g1 * g2
+            sage: S.word_problem(g)
+            (2, 2, 2, 1, 1, 1, 2, 1, 2)
+            sage: h = prod(S.generators()[i]**a for i,a in S.word_problem(g, output = 'syllables'))
+            sage: g == h
+            True
+        """
+        if output not in ['standard', 'syllables', 'gens']:
+            raise ValueError('Unrecognized output format')
+        if check:
+            if M not in self.group:
+                raise ValueError("Matrix ( %s ) is not in group ( %s )"%(M,self.group))
+        cdef Integer a = M.d()
+        cdef Integer b = -M.b()
+        cdef Integer c = -M.c()
+        cdef Integer d = M.a()
+        cdef cpp_SL2Z *cpp_beta = new cpp_SL2Z(1,0,0,1)
+        E = SL2Z([-1,0,0,-1])
+        sig_on()
+        result = self.this_ptr.word_problem(a.value, b.value, c.value, d.value, cpp_beta)
+        sig_off()
+        beta = convert_to_SL2Z(cpp_beta[0])**-1
+        mbeta = SL2Z([-beta.a(),-beta.b(),-beta.c(),-beta.d()])
+        V = self.pairing_matrices_to_tietze_index()
+        sgn = 1
+        tietze = []
+        for o in result:
+            if o > 0:
+                tietze.append(V[o-1][0])
+                sgn *= V[o-1][1]
+            else:
+                tietze.append(-V[-o-1][0])
+                sgn *= V[-o-1][1]
+        if sgn == -1:
+            beta, mbeta = mbeta, beta
+
+        gens_dict = {g:i+1 for i,g in enumerate(self.generators())}
+        extra_tietze = []
+        if beta.is_one():
+            found = True
+        elif mbeta.is_one():
+            found = True
+            extra_tietze = self._get_minus_one()
+        else:
+            found = False
+        if not found:
+            newval = gens_dict.get(beta)
+            if newval is not None:
+                found = True
+                extra_tietze = [newval]
+        if not found:
+            newval = gens_dict.get(beta**-1)
+            if newval is not None:
+                found = True
+                extra_tietze = [-newval]
+        if not found:
+            newval = gens_dict.get(mbeta)
+            if newval is not None:
+                found = True
+                extra_tietze = [newval] + self._get_minus_one()
+        if not found:
+            newval = gens_dict.get(mbeta**-1)
+            if newval is not None:
+                found = True
+                extra_tietze = [-newval] + self._get_minus_one()
+        tietze.extend(extra_tietze)
+        tietze.reverse()
+        gens = self.generators()
+        if check:
+            tmp = SL2Z([1,0,0,1])
+            for i in range(len(tietze)):
+                t = tietze[i]
+                tmp = tmp * gens[t-1] if t > 0 else tmp * gens[-t-1]**-1
+            assert tmp.matrix() == M.matrix(),'%s %s %s'%(tietze, tmp.matrix(),M.matrix())
+        if output == 'standard':
+            return tuple(tietze)
+        if output == 'syllables':
+            return tuple((a-1,len(list(g))) if a > 0 else (-a-1,-len(list(g))) for a,g in groupby(tietze))
+        else: # output == 'gens'
+            return tuple((gens[a-1],len(list(g))) if a > 0 else (gens[-a-1],-len(list(g))) for a,g in groupby(tietze))
 
     def __contains__(self, M):
         r"""
@@ -245,7 +507,8 @@ cdef class Farey:
 
         for cf in cmp_fcts:
             c = cmp(cf(self), cf(other))
-            if c != 0: return c
+            if c != 0:
+                return c
 
         return c
 
@@ -261,7 +524,7 @@ cdef class Farey:
 
     def __repr__(self):
         r"""
-        Return the string representation of self.
+        Return the string representation of ``self``.
 
         EXAMPLES::
 
@@ -271,13 +534,13 @@ cdef class Farey:
         if hasattr(self.group, "_repr_"):
             return "FareySymbol(%s)" % self.group._repr_()
         elif hasattr(self.group, "__repr__"):
-            return "FareySymbol(%s)" % self.group.__repr__()
+            return "FareySymbol(%r)" % self.group
         else:
             return "FareySymbol(?)"
 
-    def _latex_(self, forced_format = None):
+    def _latex_(self, forced_format=None):
         r"""
-        Return the LaTeX representation of self.
+        Return the LaTeX representation of ``self``.
 
         INPUT:
 
@@ -292,9 +555,9 @@ cdef class Farey:
             '\\begin{xy}\\xymatrix{& -\\infty \\ar@{-}@/_1pc/[r]_{1}& 0 \\ar@{-}@/_1pc/[r]_{2}& \\frac{1}{3} \\ar@{-}@/_1pc/[r]_{3}& \\frac{1}{2} \\ar@{-}@/_1pc/[r]_{2}& \\frac{2}{3} \\ar@{-}@/_1pc/[r]_{3}& 1 \\ar@{-}@/_1pc/[r]_{1}& \\infty }\\end{xy}'
 
             sage: if '\\xymatrix' in sage.misc.latex.latex.mathjax_avoid_list():
-            ...        'xymatrix' not in FareySymbol(Gamma0(11))._latex_()
-            ... else:
-            ...       'xymatrix' in FareySymbol(Gamma0(11))._latex_()
+            ....:      'xymatrix' not in FareySymbol(Gamma0(11))._latex_()
+            ....: else:
+            ....:     'xymatrix' in FareySymbol(Gamma0(11))._latex_()
             True
         """
         if forced_format == 'plain' or \
@@ -305,9 +568,11 @@ cdef class Farey:
             b = self.pairings()
             for i in xrange(len(a)):
                 u = b[i]
-                if u == -3: u = r'\bullet'
-                elif u == -2: u = r'\circ'
-                s += r'\underbrace{\quad}_{%s} %s' % (u,a[i])
+                if u == -3:
+                    u = r'\bullet'
+                elif u == -2:
+                    u = r'\circ'
+                s += r'\underbrace{\quad}_{%s} %s' % (u, a[i])
             return s + r'\right)'
         else:
             # output using xymatrix
@@ -357,7 +622,7 @@ cdef class Farey:
             sage: [FareySymbol(Gamma0(n)).level() for n in range(1, 16)]
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
         """
-        return self.this_ptr.level();
+        return self.this_ptr.level()
 
     def nu2(self):
         r"""
@@ -401,7 +666,7 @@ cdef class Farey:
 
     def generators(self):
         r"""
-        Minmal set of generators of the group of the FareySymbol.
+        Minimal set of generators of the group of the FareySymbol.
 
         EXAMPLES:
 
@@ -447,11 +712,12 @@ cdef class Farey:
         """
         return self.this_ptr.get_fractions()
 
-
     def pairings(self):
         r"""
         Pairings of the sides of the fundamental domain of the Farey symbol
-        of the arithmetic group. The sides of the hyperbolic polygon are
+        of the arithmetic group.
+
+        The sides of the hyperbolic polygon are
         numbered 0, 1, ... from left to right. Conventions: even pairings are
         denoted by -2, odd pairings by -3 while free pairings are denoted by
         an integer number greater than zero.
@@ -524,7 +790,7 @@ cdef class Farey:
         Cusps widths of the FareySymbol.
 
         EXAMPLES::
-        
+
             sage: FareySymbol(Gamma0(6)).cusp_widths()
             [6, 2, 3, 1]
         """
@@ -533,6 +799,10 @@ cdef class Farey:
     def cusp_class(self, c):
         r"""
         Cusp class of a cusp in the FareySymbol.
+
+        INPUT:
+
+        ``c`` -- a cusp
 
         EXAMPLES::
 
@@ -550,6 +820,10 @@ cdef class Farey:
     def reduce_to_cusp(self, r):
         r"""
         Transformation of a rational number to cusp representative.
+
+        INPUT:
+
+        ``r`` -- a rational number
 
         EXAMPLES::
 
@@ -577,11 +851,10 @@ cdef class Farey:
         return result
 
     @rename_keyword(rgbcolor='color')
-    @options(alpha=1, fill=True, thickness=1, color='lightgray', \
-             color_even='white', \
-             zorder=2, linestyle='solid', show_pairing=True, \
-             tesselation='Dedekind', ymax=1
-        )
+    @options(alpha=1, fill=True, thickness=1, color='lightgray',
+             color_even='white',
+             zorder=2, linestyle='solid', show_pairing=True,
+             tesselation='Dedekind', ymax=1)
     def fundamental_domain(self, **options):
         r"""
         Plot a fundamental domain of an arithmetic subgroup of
@@ -596,18 +869,17 @@ cdef class Farey:
           ':', '-', '-.', respectively
 
         - ``color`` -- (default: 'lightgray') fill color; fill
-                       color for odd part of Dedekind tesselation.
+          color for odd part of Dedekind tesselation.
 
         - ``show_pairing`` -- boolean (default: ``True``) flag for pairing
 
         - ``tesselation`` -- (default: 'Dedekind') The type of
-                             hyperbolic tesselation which is one of
-                             'coset', 'Dedekind' or None respectively
+          hyperbolic tesselation which is one of
+          'coset', 'Dedekind' or ``None`` respectively
 
         - ``color_even`` -- fill color for even parts of Dedekind
-                            tesselation (default 'white'); ignored for
-                            other tesselations
-  
+          tesselation (default 'white'); ignored for other tesselations
+
         - ``thickness`` -- float (default: `1`) the thickness of the line
 
         - ``ymax`` -- float (default: `1`) maximal height
@@ -618,6 +890,7 @@ cdef class Farey:
         with pairings use the following command::
 
             sage: FareySymbol(Gamma0(11)).fundamental_domain()
+            Graphics object consisting of 54 graphics primitives
 
         indicating that side 1 is paired with side 3 and side 2 is
         paired with side 4, see also :meth:`.paired_sides`.
@@ -626,15 +899,18 @@ cdef class Farey:
         use the following command::
 
             sage: FareySymbol(Gamma(3)).fundamental_domain(show_pairing=False)
+            Graphics object consisting of 48 graphics primitives
 
         Plot the fundamental domain of `\Gamma_0(23)` showing the left
         coset representatives::
 
             sage: FareySymbol(Gamma0(23)).fundamental_domain(tesselation='coset')
+            Graphics object consisting of 58 graphics primitives
 
         The same as above but with a custom linestyle::
 
             sage: FareySymbol(Gamma0(23)).fundamental_domain(tesselation='coset', linestyle=':', thickness='2')
+            Graphics object consisting of 58 graphics primitives
 
         """
         from sage.plot.colors import rainbow
@@ -646,8 +922,10 @@ cdef class Farey:
         for x in self.coset_reps():
             a, b, c, d = x[1, 1], -x[0, 1], -x[1, 0], x[0, 0]
             A, B = CC(0, L), CC(0, L)
-            if d!=0: A = b/d
-            if c!=0: B = a/c
+            if d != 0:
+                A = b / d
+            if c != 0:
+                B = a / c
             C = (a*c+b*d+(a*d+b*c)/2+I*w/2)/(c*c+c*d+d*d)
             D = (a*c+b*d + CC(0, 1))/(c*c+d*d)
             if options['tesselation'] == 'Dedekind':
@@ -717,18 +995,22 @@ cdef public object convert_to_Integer(mpz_class a):
     return A
 
 cdef public object convert_to_rational(mpq_class r):
-    a = Integer(); a.set_from_mpz(r.get_num_mpz_t())
-    b = Integer(); b.set_from_mpz(r.get_den_mpz_t())
+    a = Integer()
+    a.set_from_mpz(r.get_num_mpz_t())
+    b = Integer()
+    b.set_from_mpz(r.get_den_mpz_t())
     return a/b
 
 cdef public object convert_to_cusp(mpq_class r):
-    a = Integer(); a.set_from_mpz(r.get_num_mpz_t())
-    b = Integer(); b.set_from_mpz(r.get_den_mpz_t())
+    a = Integer()
+    a.set_from_mpz(r.get_num_mpz_t())
+    b = Integer()
+    b.set_from_mpz(r.get_den_mpz_t())
     return Cusp(a/b)
 
 cdef public object convert_to_SL2Z(cpp_SL2Z M):
-   a = convert_to_Integer(M.a())
-   b = convert_to_Integer(M.b())
-   c = convert_to_Integer(M.c())
-   d = convert_to_Integer(M.d())
-   return SL2Z([a, b, c, d])
+    a = convert_to_Integer(M.a())
+    b = convert_to_Integer(M.b())
+    c = convert_to_Integer(M.c())
+    d = convert_to_Integer(M.d())
+    return SL2Z([a, b, c, d])

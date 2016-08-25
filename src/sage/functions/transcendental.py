@@ -1,5 +1,5 @@
 """
-Transcendental Functions
+Number-Theoretic Functions
 """
 
 #*****************************************************************************
@@ -18,19 +18,14 @@ Transcendental Functions
 #*****************************************************************************
 
 import sys
-import sage.libs.pari.all
-from sage.libs.pari.all import pari
 import sage.rings.complex_field as complex_field
-from sage.structure.coerce import parent
-from sage.structure.element import get_coercion_model
-from sage.symbolic.expression import Expression
 from sage.functions.other import factorial, psi
 
 from sage.rings.all import (ComplexField, ZZ, RR, RDF)
 from sage.rings.complex_number import is_ComplexNumber
 from sage.rings.real_mpfr import (RealField, is_RealNumber)
 
-from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
+from sage.symbolic.function import GinacFunction, BuiltinFunction
 
 import sage.libs.mpmath.utils as mpmath_utils
 from sage.misc.superseded import deprecation
@@ -68,6 +63,10 @@ class Function_zeta(GinacFunction):
             zeta(I)
             sage: zeta(I).n()
             0.00330022368532410 - 0.418155449141322*I
+            sage: zeta(sqrt(2))
+            zeta(sqrt(2))
+            sage: zeta(sqrt(2)).n()  # rel tol 1e-10
+            3.02073767948603
 
         It is possible to use the ``hold`` argument to prevent
         automatic evaluation::
@@ -81,6 +80,21 @@ class Function_zeta(GinacFunction):
             sage: a = zeta(2,hold=True); a.simplify()
             1/6*pi^2
 
+        The Laurent expansion of `\zeta(s)` at `s=1` is
+        implemented by means of the
+        :wikipedia:`Stieltjes constants <Stieltjes_constants>`::
+
+            sage: s = SR('s')
+            sage: zeta(s).series(s==1, 2)
+            1*(s - 1)^(-1) + (euler_gamma) + (-1/2*stieltjes(1))*(s - 1) + Order((s - 1)^2)
+
+        Generally, the Stieltjes constants occur in the Laurent
+        expansion of `\zeta`-type singularities::
+
+            sage: zeta(2*s/(s+1)).series(s==1, 2)
+            2*(s - 1)^(-1) + (euler_gamma + 1) + (-1/4*stieltjes(1))*(s - 1) + Order((s - 1)^2)
+
+
         TESTS::
 
             sage: latex(zeta(x))
@@ -93,10 +107,77 @@ class Function_zeta(GinacFunction):
             Infinity
             sage: zeta(x).subs(x=1)
             Infinity
+
+        Check that :trac:`19799` is resolved::
+
+            sage: zeta(pi)
+            zeta(pi)
+            sage: zeta(pi).n()  # rel tol 1e-10
+            1.17624173838258
+
+        Check that :trac:`20082` is fixed::
+
+            sage: zeta(x).series(x==pi, 2)
+            (zeta(pi)) + (zetaderiv(1, pi))*(-pi + x) + Order((pi - x)^2)
+            sage: (zeta(x) * 1/(1 - exp(-x))).residue(x==2*pi*I)
+            zeta(2*I*pi)
         """
         GinacFunction.__init__(self, "zeta")
 
 zeta = Function_zeta()
+
+
+class Function_stieltjes(GinacFunction):
+    def __init__(self):
+        r"""
+        Stieltjes constant of index ``n``.
+
+        ``stieltjes(0)`` is identical to the Euler-Mascheroni constant
+        (:class:`sage.symbolic.constants.EulerGamma`). The Stieltjes
+        constants are used in the series expansions of `\zeta(s)`.
+
+        INPUT:
+
+        -  ``n`` - non-negative integer
+
+        EXAMPLES::
+
+            sage: _ = var('n')
+            sage: stieltjes(n)
+            stieltjes(n)
+            sage: stieltjes(0)
+            euler_gamma
+            sage: stieltjes(2)
+            stieltjes(2)
+            sage: stieltjes(int(2))
+            stieltjes(2)
+            sage: stieltjes(2).n(100)
+            -0.0096903631928723184845303860352
+            sage: RR = RealField(200)
+            sage: stieltjes(RR(2))
+            -0.0096903631928723184845303860352125293590658061013407498807014
+
+        It is possible to use the ``hold`` argument to prevent
+        automatic evaluation::
+
+            sage: stieltjes(0,hold=True)
+            stieltjes(0)
+
+            sage: latex(stieltjes(n))
+            \gamma_{n}
+            sage: a = loads(dumps(stieltjes(n)))
+            sage: a.operator() == stieltjes
+            True
+
+            sage: stieltjes(x).subs(x==0)
+            euler_gamma
+        """
+        GinacFunction.__init__(self, "stieltjes", nargs=1,
+                            conversions=dict(mathematica='StieltjesGamma',
+                                sympy='stieltjes'),
+                            latex_name='\gamma')
+
+stieltjes = Function_stieltjes()
 
 
 class Function_HurwitzZeta(BuiltinFunction):
@@ -127,9 +208,6 @@ class Function_HurwitzZeta(BuiltinFunction):
             sage: hurwitz_zeta(3, 0.5)
             8.41439832211716
         """
-        co = get_coercion_model().canonical_coercion(s, x)[0]
-        if is_inexact(co) and not isinstance(co, Expression):
-            return self._evalf_(s, x, parent=parent(co))
         if x == 1:
             return zeta(s)
         if s in ZZ and s > 1:
@@ -367,6 +445,7 @@ class DickmanRho(BuiltinFunction):
         sage: dickman_rho(10.00000000000000000000000000000000000000)
         2.77017183772595898875812120063434232634e-11
         sage: plot(log(dickman_rho(x)), (x, 0, 15))
+        Graphics object consisting of 1 graphics primitive
 
     AUTHORS:
 

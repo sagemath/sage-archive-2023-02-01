@@ -9,7 +9,10 @@ Root system data for type F
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import ambient_space
+from __future__ import print_function
+from __future__ import absolute_import
+
+from . import ambient_space
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ
 from sage.combinat.family import Family
@@ -197,7 +200,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
                         3: v*(3*self.monomial(0)+self.monomial(1)+self.monomial(2)+self.monomial(3)),
                         4: self.monomial(0)})
 
-from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic
+from .cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic
 class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystallographic):
     def __init__(self):
         """
@@ -280,30 +283,33 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             [(1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
 
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         g = DynkinDiagram_class(self)
         for i in range(1, 4):
             g.add_edge(i, i+1)
         g.set_edge_label(2,3,2)
         return g
 
-    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2, dual=False):
+    def _latex_dynkin_diagram(self, label=lambda i: i, node=None, node_dist=2, dual=False):
         r"""
         Return a latex representation of the Dynkin diagram.
 
         EXAMPLES::
 
-            sage: print CartanType(['F',4])._latex_dynkin_diagram()
+            sage: print(CartanType(['F',4])._latex_dynkin_diagram())
             \draw (0 cm,0) -- (2 cm,0);
             \draw (2 cm, 0.1 cm) -- +(2 cm,0);
             \draw (2 cm, -0.1 cm) -- +(2 cm,0);
             \draw (4.0 cm,0) -- +(2 cm,0);
             \draw[shift={(3.2, 0)}, rotate=0] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
-            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
-            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
-            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
-            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0 cm) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0 cm) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (6 cm, 0 cm) circle (.25cm) node[below=4pt]{$4$};
+            <BLANKLINE>
         """
+        if node is None:
+            node = self._latex_draw_node
         ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%node_dist
         ret += "\\draw (%s cm, 0.1 cm) -- +(%s cm,0);\n"%(node_dist, node_dist)
         ret += "\\draw (%s cm, -0.1 cm) -- +(%s cm,0);\n"%(node_dist, node_dist)
@@ -312,22 +318,29 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             ret += self._latex_draw_arrow_tip(1.5*node_dist-0.2, 0, 180)
         else:
             ret += self._latex_draw_arrow_tip(1.5*node_dist+0.2, 0, 0)
-        for i in range(3):
-            ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+1))
-        ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};"%(3*node_dist, label(4))
+        for i in range(4):
+            ret += node(i*node_dist, 0, label(i+1))
         return ret
 
-    def ascii_art(self, label = lambda x: x):
+    def ascii_art(self, label=lambda i: i, node=None):
         """
         Return an ascii art representation of the extended Dynkin diagram.
 
         EXAMPLES::
 
-            sage: print CartanType(['F',4]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['F',4]).ascii_art(label = lambda x: x+2))
             O---O=>=O---O
             3   4   5   6
+            sage: print(CartanType(['F',4]).ascii_art(label = lambda x: x-2))
+            O---O=>=O---O
+            -1  0   1   2
         """
-        return "O---O=>=O---O\n%s   %s   %s   %s"%tuple(label(i) for i in (1,2,3,4))
+        if node is None:
+            node = self._ascii_art_node
+        ret = "{}---{}=>={}---{}\n".format(node(label(1)), node(label(2)),
+                                           node(label(3)), node(label(4)))
+        ret += ("{!s:4}"*4).format(label(1), label(2), label(3), label(4))
+        return ret
 
     def dual(self):
         r"""

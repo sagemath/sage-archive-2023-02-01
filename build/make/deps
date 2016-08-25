@@ -1,0 +1,238 @@
+###############################################################################
+# This file ($SAGE_ROOT/build/make/deps) will be copied into
+# $SAGE_ROOT/build/make/Makefile by $SAGE_ROOT/build/make/install
+###############################################################################
+
+# We need to be able to override this to support ./sage -i -c PKG
+SAGE_SPKG = sage-spkg
+
+STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
+
+# Tell make not to look for files with these names:
+.PHONY: all all-sage all-toolchain all-build start \
+	base toolchain toolchain-deps sagelib \
+	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
+	doc-clean doc-src-clean doc-output-clean \
+	clean sagelib-clean build-clean
+
+# Build everything and start Sage.
+# Note that we put the "doc" target first in the rule below because
+# the doc build takes the most time and should be started as soon as
+# possible.
+all: all-toolchain
+	$(MAKE) doc all-sage
+	$(MAKE) '$(STARTED)'
+
+# Build everything except the documentation
+all-build: all-toolchain
+	$(MAKE) all-sage
+
+
+# Make the 3 preliminary build phases:
+# base, toolchain, toolchain-deps.
+# During the toolchain build, we export SAGE_BUILD_TOOLCHAIN=yes
+# such that packages can do different things when they are built
+# as prerequisite of GCC.
+all-toolchain:
+	$(MAKE) base
+	env SAGE_BUILD_TOOLCHAIN=yes $(MAKE) toolchain
+	$(MAKE) toolchain-deps
+
+# All targets except for the base packages
+all-sage: \
+		sagelib \
+		$(STANDARD_PACKAGES) \
+		$(OPTIONAL_INSTALLED_PACKAGES) \
+		$(EXTCODE) \
+		$(SCRIPTS)
+
+# Download all packages which should be inside an sdist tarball (the -B
+# option to make forces all targets to be built unconditionally)
+download-for-sdist: base
+	env SAGE_INSTALL_FETCH_ONLY=yes $(MAKE) -B SAGERUNTIME= \
+		$(SDIST_PACKAGES)
+
+# TOOLCHAIN consists of dependencies determined by configure.
+# These are built after the "base" target but before anything else.
+toolchain: $(TOOLCHAIN)
+
+# Build all packages that GCC links against serially, otherwise this
+# leads to race conditions where some library which is used by GCC gets
+# reinstalled. Since system GCCs might use Sage's libraries, we do this
+# unconditionally. We still use the dependency checking from $(MAKE),
+# so this will not trigger useless rebuilds.
+# See #14168 and #14232.
+toolchain-deps:
+	$(MAKE) $(inst_zlib)
+	$(MAKE) $(MP_LIBRARY)
+	$(MAKE) $(inst_mpfr)
+	$(MAKE) $(inst_mpc)
+
+# Everything needed to start up Sage using "./sage".  Of course, not
+# every part of Sage will work.  It does not include Maxima for example.
+SAGERUNTIME = sagelib $(SCRIPTS) $(inst_ipython) $(inst_pexpect)
+
+
+# Start Sage at least once to check that it works
+# (i.e. when we just installed Sage for the first time).
+start: all-build
+	$(MAKE) '$(STARTED)'
+
+# We make this depend on all standard packages because running
+# sage-starts runs sage-location, which should be run after installing
+# any package.
+$(STARTED): $(STANDARD_PACKAGES)
+	"$(SAGE_LOCAL)/bin/sage-starts"
+
+
+###############################################################################
+# Building the base system
+#
+# This consists of packages which are required for the Sage build system.
+###############################################################################
+base: $(inst_bzip2) $(inst_patch) $(inst_pkgconf)
+
+###############################################################################
+# Building normal packages
+###############################################################################
+
+# List all *build-time* dependencies of the Sage library.  These are,
+# on the one hand, programs needed for the build/install process of the
+# Sage library (e.g. CYTHON, JINJA2), and on the other hand all
+# dependencies for Cython files (e.g. PARI, NTL, MP_LIBRARY).
+sagelib: \
+		$(inst_arb) \
+		$(BLAS) \
+		$(inst_brial) \
+		$(inst_cephes) \
+		$(inst_cliquer) \
+		$(inst_cysignals) \
+		$(inst_cython) \
+		$(inst_ecl) \
+		$(inst_eclib) \
+		$(inst_ecm) \
+		$(inst_flint) \
+		$(inst_libfplll) \
+		$(inst_libgd) \
+		$(inst_givaro) \
+		$(inst_glpk) \
+		$(inst_gsl) \
+		$(inst_iml) \
+		$(inst_jinja2) \
+		$(inst_jupyter_core) \
+		$(inst_lcalc) \
+		$(inst_lrcalc) \
+		$(inst_libgap) \
+		$(inst_libpng) \
+		$(inst_linbox) \
+		$(inst_m4ri) \
+		$(inst_m4rie) \
+		$(inst_mpc) \
+		$(inst_mpfi) \
+		$(inst_mpfr) \
+		$(MP_LIBRARY) \
+		$(inst_ntl) \
+		$(inst_numpy) \
+		$(inst_pari) \
+		$(inst_pkgconfig) \
+		$(inst_planarity) \
+		$(inst_ppl) \
+		$(inst_pynac) \
+		$(PYTHON) \
+		$(inst_ratpoints) \
+		$(inst_readline) \
+		$(inst_rw) \
+		$(inst_singular) \
+		$(inst_six) \
+		$(inst_symmetrica) \
+		$(inst_zn_poly) \
+		$(EXTCODE)
+	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
+		cd $(SAGE_SRC) && source bin/sage-env && \
+		sage-logger -p 'time $(MAKE) sage' '$(SAGE_LOGS)/sagelib-$(SAGE_VERSION).log'; \
+	fi
+
+
+###############################################################################
+# Building scripts and extcode
+###############################################################################
+
+# Don't just use "install" since we don't want to change permissions
+$(SAGE_LOCAL)/bin/%: $(SAGE_SRC)/bin/%
+	cp $< $@
+
+# Don't just use "install -D" since we don't want to change permissions.
+# cp won't correctly setup the SAGE_EXTCODE directory structure
+# (unlike install), so we need a mkdir here such that cp can copy into
+# an existing folder.
+$(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
+	@mkdir -p "$(@D)"
+	cp $< $@
+
+
+###############################################################################
+# Building the documentation
+###############################################################################
+
+# You can choose to have the built HTML version of the documentation link to
+# the PDF version. To do so, you need to build both the HTML and PDF versions.
+# To have the HTML version link to the PDF version, do
+#
+# $ ./sage --docbuild all html
+# $ ./sage --docbuild all pdf
+#
+# For more information on the docbuild utility, do
+#
+# $ ./sage --docbuild -H
+
+# Building the documentation has many dependencies, because all
+# documented modules are imported and because we use matplotlib to
+# produce plots.
+DOC_DEPENDENCIES = sagelib $(inst_sphinx) $(inst_sagenb) \
+	| $(SAGERUNTIME) $(inst_maxima) $(inst_networkx) $(inst_scipy) \
+	$(inst_matplotlib) $(inst_pillow) $(inst_mathjax) $(inst_mpmath) \
+	$(inst_ipykernel) $(inst_jupyter_client) $(inst_conway_polynomials) \
+	$(inst_tachyon) $(inst_jmol)
+
+doc: doc-html
+
+doc-html: $(DOC_DEPENDENCIES)
+	cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
+
+# 'doc-html-no-plot': build docs without building the graphics coming
+# from the '.. plot' directive, in case you want to save a few
+# megabytes of disk space. 'doc-clean' is a prerequisite because the
+# presence of graphics is cached in src/doc/output.
+doc-html-no-plot: doc-clean $(DOC_DEPENDENCIES)
+	cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links --no-plot all html $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
+
+doc-html-mathjax: $(DOC_DEPENDENCIES)
+	cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
+
+# Keep target 'doc-html-jsmath' for backwards compatibility.
+doc-html-jsmath: doc-html-mathjax
+
+doc-pdf: $(DOC_DEPENDENCIES)
+	cd ../.. && sage-logger -p './sage --docbuild all pdf $(SAGE_DOCBUILD_OPTS)' logs/docpdf.log
+
+doc-clean: doc-src-clean doc-output-clean
+
+doc-src-clean:
+	cd "$(SAGE_SRC)/doc" && $(MAKE) clean
+
+doc-output-clean:
+	rm -rf "$(SAGE_SHARE)/doc/sage"
+
+
+###############################################################################
+# Cleaning up
+###############################################################################
+
+clean:
+	@echo "Deleting package build directories..."
+	rm -rf "$(SAGE_LOCAL)/var/tmp/sage/build"
+
+sagelib-clean:
+	cd "$(SAGE_SRC)" && $(MAKE) clean
+
+build-clean: clean doc-clean sagelib-clean

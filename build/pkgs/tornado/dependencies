@@ -1,0 +1,5 @@
+$(PYTHON) setuptools backports_abc backports_ssl_match_hostname certifi singledispatch
+
+----------
+All lines of this file are ignored except the first.
+It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.

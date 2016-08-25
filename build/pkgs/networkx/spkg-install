@@ -15,4 +15,4 @@ rm -rf "$SAGE_LOCAL"/spkg/network*
 
 cd src
 
-python setup.py install --home="$SAGE_LOCAL" --force
+python setup.py install

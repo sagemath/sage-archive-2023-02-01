@@ -8,7 +8,7 @@ the entries.  The systems supported are Sage and Magma.
 The basic command syntax is as follows::
 
     sage: import sage.matrix.benchmark as b
-    sage: print "starting"; import sys; sys.stdout.flush(); b.report([b.det_ZZ], 'Test', systems=['sage'])
+    sage: print("starting"); import sys; sys.stdout.flush(); b.report([b.det_ZZ], 'Test', systems=['sage'])
     starting...
     ======================================================================
               Test
@@ -16,10 +16,13 @@ The basic command syntax is as follows::
     ...
     ======================================================================
 """
-from constructor import random_matrix, Matrix
+from __future__ import print_function
+from __future__ import absolute_import
+
+from .constructor import random_matrix, Matrix
 from sage.rings.all import ZZ, QQ, GF
-from sage.misc.misc import alarm, cancel_alarm, cputime
-from sage.ext.c_lib import AlarmInterrupt
+from sage.misc.misc import cputime
+from cysignals.alarm import AlarmInterrupt, alarm, cancel_alarm
 
 from sage.interfaces.all import magma
 
@@ -41,7 +44,7 @@ def report(F, title, systems = ['sage', 'magma'], **kwds):
     EXAMPLES::
 
         sage: import sage.matrix.benchmark as b
-        sage: print "starting"; import sys; sys.stdout.flush(); b.report([b.det_ZZ], 'Test', systems=['sage'])
+        sage: print("starting"); import sys; sys.stdout.flush(); b.report([b.det_ZZ], 'Test', systems=['sage'])
         starting...
         ======================================================================
                   Test
@@ -52,15 +55,15 @@ def report(F, title, systems = ['sage', 'magma'], **kwds):
     import os
     if len(systems) > 2:
         raise NotImplementedError("at most two systems ('sage' or 'magma')")
-    print '='*70
-    print ' '*10 + title
-    print '='*70
+    print('=' * 70)
+    print(' ' * 10 + title)
+    print('=' * 70)
     os.system('uname -a')
-    print '\n'
+    print('\n')
     for f in F:
-        print "-"*70
-        print f.__doc__.strip()
-        print ('%15s'*len(systems))%tuple(systems)
+        print("-"*70)
+        print(f.__doc__.strip())
+        print(('%15s' * len(systems)) % tuple(systems))
         w = []
         for s in systems:
             alarm(timeout)
@@ -77,8 +80,8 @@ def report(F, title, systems = ['sage', 'magma'], **kwds):
                 w.append(w[0]/w[1])
 
         w = tuple(w)
-        print ('%15.3f'*len(w))%w
-    print '='*70
+        print(('%15.3f'*len(w)) % w)
+    print('=' * 70)
 
 
 #######################################################################
@@ -97,7 +100,7 @@ def report_ZZ(**kwds):
     EXAMPLES::
 
         sage: import sage.matrix.benchmark as b
-        sage: print "starting"; import sys; sys.stdout.flush(); b.report_ZZ(systems=['sage'])  # long time (15s on sage.math, 2012)
+        sage: print("starting"); import sys; sys.stdout.flush(); b.report_ZZ(systems=['sage'])  # long time (15s on sage.math, 2012)
         starting...
         ======================================================================
         Dense benchmarks over ZZ
@@ -147,7 +150,7 @@ t := Cputime();
 K := Kernel(A);
 s := Cputime(t);
 """%(n,min,max)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
     else:
@@ -186,7 +189,7 @@ t := Cputime();
 K := CharacteristicPolynomial(A);
 s := Cputime(t);
 """%(n,min,max)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
     else:
@@ -225,7 +228,7 @@ t := Cputime();
 K := Rank(A);
 s := Cputime(t);
 """%(n,min,max)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
     else:
@@ -263,7 +266,7 @@ t := Cputime();
 K := Rank(A);
 s := Cputime(t);
 """%(n,min,max)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
     else:
@@ -303,7 +306,7 @@ t := Cputime();
 K := ElementaryDivisors(A);
 s := Cputime(t);
 """%(n,min,max)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
     else:
@@ -348,7 +351,7 @@ for z in [1..%s] do
 end for;
 s := Cputime(t);
 """%(n,min,max,times)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))/times
     else:
@@ -394,7 +397,7 @@ for z in [1..%s] do
 end for;
 s := Cputime(t);
 """%(n,min,max,times)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))/times
     else:
@@ -454,7 +457,7 @@ t := Cputime();
 d := Determinant(A);
 s := Cputime(t);
 """%(n,min,max)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
     else:
@@ -494,7 +497,7 @@ t := Cputime();
 d := Determinant(A);
 s := Cputime(t);
 """%(n,-num_bound, num_bound, den_bound)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
     else:
@@ -541,7 +544,7 @@ for z in [1..%s] do
 end for;
 s := Cputime(t);
 """%(n,min,max,times)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))/times
     else:
@@ -572,7 +575,7 @@ def report_GF(p=16411, **kwds):
     EXAMPLES::
 
         sage: import sage.matrix.benchmark as b
-        sage: print "starting"; import sys; sys.stdout.flush(); b.report_GF(systems=['sage'])
+        sage: print("starting"); import sys; sys.stdout.flush(); b.report_GF(systems=['sage'])
         starting...
         ======================================================================
         Dense benchmarks over GF with prime 16411
@@ -617,7 +620,7 @@ t := Cputime();
 K := Kernel(A);
 s := Cputime(t);
 """%(n,p)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return magma.eval('s')
     else:
@@ -656,7 +659,7 @@ t := Cputime();
 K := CharacteristicPolynomial(A);
 s := Cputime(t);
 """%(n,p)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return magma.eval('s')
     else:
@@ -697,7 +700,7 @@ for z in [1..%s] do
 end for;
 s := Cputime(t);
 """%(n,p,p,times)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return magma.eval('s')
     else:
@@ -743,7 +746,7 @@ for z in [1..%s] do
 end for;
 s := Cputime(t);
 """%(n,p,times)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))/times
     else:
@@ -780,7 +783,7 @@ t := Cputime();
 K := Rank(A);
 s := Cputime(t);
 """%(n,p)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
     else:
@@ -816,7 +819,7 @@ t := Cputime();
 K := Rank(A);
 s := Cputime(t);
 """%(n,p)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
     else:
@@ -853,7 +856,7 @@ t := Cputime();
 d := Determinant(A);
 s := Cputime(t);
 """%(n,p)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
     else:
@@ -915,7 +918,7 @@ t := Cputime();
 K := EchelonForm(A);
 s := Cputime(t);
 """%(n,min,max)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
     else:
@@ -954,7 +957,7 @@ t := Cputime();
 K := A^(-1);
 s := Cputime(t);
 """%(n,min,max)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
     else:
@@ -1000,7 +1003,7 @@ for z in [1..%s] do
 end for;
 s := Cputime(t);
 """%(n, A.name(), times)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))/times
     else:
@@ -1037,7 +1040,7 @@ d := Determinant(h);
 s := Cputime(tinit);
 delete h;
 """%n
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
 
@@ -1071,7 +1074,7 @@ d := h^(-1);
 s := Cputime(tinit);
 delete h;
 """%n
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
 
@@ -1114,7 +1117,7 @@ def MatrixVector_QQ(n=1000,h=100,system='sage',times=1):
             end for;
             s := Cputime(t);
         """%(n,h,times)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
     else:
@@ -1162,7 +1165,7 @@ t := Cputime();
 K := Kernel(A);
 s := Cputime(t);
 """%(n,min,max)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
     else:
@@ -1202,7 +1205,7 @@ t := Cputime();
 K := Kernel(A);
 s := Cputime(t);
 """%(n,min,max)
-        if verbose: print code
+        if verbose: print(code)
         magma.eval(code)
         return float(magma.eval('s'))
     else:

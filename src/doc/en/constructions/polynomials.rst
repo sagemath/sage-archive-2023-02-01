@@ -42,23 +42,23 @@ Another approach to this:
     sage: a = S.gen()
     sage: a^20062006
     80*a
-    sage: print gap.eval("R:= PolynomialRing( GF(97))")
+    sage: print(gap.eval("R:= PolynomialRing( GF(97))"))
     GF(97)[x_1]
-    sage: print gap.eval("i:= IndeterminatesOfPolynomialRing(R)")
+    sage: print(gap.eval("i:= IndeterminatesOfPolynomialRing(R)"))
     [ x_1 ]
     sage: gap.eval("x:= i[1];; f:= x;;")
     ''
-    sage: print gap.eval("PowerMod( R, x, 20062006, x^3+7 );")
+    sage: print(gap.eval("PowerMod( R, x, 20062006, x^3+7 );"))
     Z(97)^41*x_1
-    sage: print gap.eval("PowerMod( R, x, 20062006, x^3+7 );")
+    sage: print(gap.eval("PowerMod( R, x, 20062006, x^3+7 );"))
     Z(97)^41*x_1
-    sage: print gap.eval("PowerMod( R, x, 2006200620062006, x^3+7 );")
+    sage: print(gap.eval("PowerMod( R, x, 2006200620062006, x^3+7 );"))
     Z(97)^4*x_1^2
     sage: a^2006200620062006
     43*a^2
-    sage: print gap.eval("PowerMod( R, x, 2006200620062006, x^3+7 );")
+    sage: print(gap.eval("PowerMod( R, x, 2006200620062006, x^3+7 );"))
     Z(97)^4*x_1^2
-    sage: print gap.eval("Int(Z(97)^4)")
+    sage: print(gap.eval("Int(Z(97)^4)"))
     43
 
 .. index::
@@ -89,8 +89,8 @@ polynomials.
 ::
 
     sage: x, y = PolynomialRing(RationalField(), 2, ['x','y']).gens()
-    sage: f =  9*y^6 - 9*x^2*y^5 - 18*x^3*y^4 - 9*x^5*y^4 + 9*x^6*y^2 + 9*x^7*y^3\
-    ...   + 18*x^8*y^2 - 9*x^11
+    sage: f =  (9*y^6 - 9*x^2*y^5 - 18*x^3*y^4 - 9*x^5*y^4 + 9*x^6*y^2 + 9*x^7*y^3
+    ....:     + 18*x^8*y^2 - 9*x^11)
     sage: f.factor()
     (9) * (-x^5 + y^2) * (x^6 - 2*x^3*y^2 - x^2*y^3 + y^4)
 

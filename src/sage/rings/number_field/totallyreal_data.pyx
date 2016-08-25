@@ -2,51 +2,43 @@
 Enumeration of Totally Real Fields
 
 AUTHORS:
-    -- Craig Citro and John Voight (2007-11-04):
-        * Type checking and other polishing.
-    -- John Voight (2007-10-09):
-        * Improvements: Smyth bound, Lagrange multipliers for b.
-    -- John Voight (2007-09-19):
-        * Various optimization tweaks.
-    -- John Voight (2007-09-01):
-        * Initial version.
+
+- Craig Citro and John Voight (2007-11-04):
+  Type checking and other polishing.
+- John Voight (2007-10-09):
+  Improvements: Smyth bound, Lagrange multipliers for b.
+- John Voight (2007-09-19):
+  Various optimization tweaks.
+- John Voight (2007-09-01):
+  Initial version.
 """
 
-#**************************************************************************************
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein and John Voight
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#**************************************************************************************
+#*****************************************************************************
+from __future__ import print_function
 
-from sage.rings.arith import binomial, gcd
+include "sage/ext/cdefs.pxi"
+include "cysignals/memory.pxi"
+
+from sage.arith.all import binomial, gcd
 from sage.rings.rational_field import RationalField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.real_mpfi import RealIntervalField
 from sage.rings.real_mpfr import RealField
 from sage.rings.integer_ring import ZZ
-
-from sage.rings.integer import Integer
 from sage.rings.integer cimport Integer
 
 # Other global variables
 ZZx = PolynomialRing(ZZ, 'x')
 
-cdef extern from "math.h":
-    cdef long lrint(double x)
-    cdef double floor(double x)
-    cdef double ceil(double x)
-    cdef double fabs(double x)
-    cdef double round(double x)
-    cdef int abs(int x)
+from libc.math cimport lrint, floor, ceil, fabs, round
 
 
 #*********************************************************************
@@ -59,12 +51,17 @@ def hermite_constant(n):
     r"""
     This function returns the nth Hermite constant
 
-    The nth Hermite constant (typically denoted $gamma_n$), is defined
-    to be $$ \max_L \min_{0 \neq x \in L} ||x||^2 $$ where $L$ runs
-    over all lattices of dimension $n$ and determinant $1$.
+    The nth Hermite constant (typically denoted `\gamma_n`), is defined
+    to be
 
-    For $n \leq 8$ it returns the exact value of $\gamma_n$, and for
-    $n > 9$ it returns an upper bound on $\gamma_n$.
+    .. math::
+
+        \max_L \min_{0 \neq x \in L} ||x||^2
+
+    where `L` runs over all lattices of dimension `n` and determinant `1`.
+
+    For `n \leq 8` it returns the exact value of `\gamma_n`, and for
+    `n > 9` it returns an upper bound on `\gamma_n`.
 
     INPUT:
 
@@ -94,7 +91,7 @@ def hermite_constant(n):
     .. [CE] Henry Cohn and Noam Elkies, New upper bounds on sphere
        packings I, Ann. Math. 157 (2003), 689--714.
 
-    .. [CS] J.H. Conway and N.J.A. Sloane, Sphere packings, lattices
+    .. [CS] \J.H. Conway and N.J.A. Sloane, Sphere packings, lattices
        and groups, 3rd. ed., Grundlehren der Mathematischen
        Wissenschaften, vol. 290, Springer-Verlag, New York, 1999.
 
@@ -127,7 +124,10 @@ def hermite_constant(n):
 cdef double eval_seq_as_poly(int *f, int n, double x):
     r"""
     Evaluates the sequence a, thought of as a polynomial with
-        $$ f[n]*x^n + f[n-1]*x^(n-1) + ... + f[0]. $$
+
+    .. math::
+
+        f[n]*x^n + f[n-1]*x^(n-1) + ... + f[0].
     """
     cdef double s, xp
 
@@ -144,7 +144,11 @@ cdef double newton(int *f, int *df, int n, double x0, double eps):
     with provable precision eps, i.e. |x-z| < eps where z is the actual
     root.
     The sequence a corresponds to the polynomial f with
-        $$ f(x) = x^n + a[n-1]*x^(n-1) + ... + a[0]. $$
+
+    .. math::
+
+        f(x) = x^n + a[n-1]*x^(n-1) + ... + a[0].
+
     This function (for speed reasons) has no error checking and no
     guarantees are made as to the convergence; a naive Newton-Raphson
     method is used.
@@ -182,7 +186,9 @@ cdef void newton_in_intervals(int *f, int *df, int n, double *beta,
                               double eps, double *rts):
     r"""
     Find the real roots of f in the intervals specified by beta:
+
         (beta[0],beta[1]), (beta[1],beta[2]), ..., (beta[n-1], beta[n])
+
     Calls newton_kernel, so same provisos apply---in particular,
     each interval should contain a unique simple root.
     Note the derivative *df is passed but is recomputed--this is
@@ -199,7 +205,9 @@ cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
     r"""
     Private function.  Solves the equations which arise in the Lagrange multiplier
     for degree 3: for each 1 <= r <= n-2, we solve
+
         r*x^i + (n-1-r)*y^i + z^i = s_i (i = 1,2,3)
+
     where the s_i are the power sums determined by the coefficients a.
     We output the largest value of z which occurs.
     We use a precomputed elimination ideal.
@@ -324,7 +332,8 @@ def int_has_small_square_divisor(sage.rings.integer.Integer d):
     r"""
     Returns the largest a such that a^2 divides d and a has prime divisors < 200.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.number_field.totallyreal_data import int_has_small_square_divisor
         sage: int_has_small_square_divisor(500)
         100
@@ -350,7 +359,10 @@ def int_has_small_square_divisor(sage.rings.integer.Integer d):
 cdef int eval_seq_as_poly_int(int *f, int n, int x):
     r"""
     Evaluates the sequence a, thought of as a polynomial with
-        $$ f[n]*x^n + f[n-1]*x^(n-1) + ... + f[0]. $$
+
+    .. math::
+
+        f[n]*x^n + f[n-1]*x^(n-1) + ... + f[0].
     """
     cdef int s, xp
 
@@ -411,7 +423,8 @@ def easy_is_irreducible_py(f):
     """
     Used solely for testing easy_is_irreducible.
 
-    EXAMPLES:
+    EXAMPLES::
+
       sage: sage.rings.number_field.totallyreal_data.easy_is_irreducible_py(pari('x^2+1'))
       1
       sage: sage.rings.number_field.totallyreal_data.easy_is_irreducible_py(pari('x^2-1'))
@@ -455,17 +468,20 @@ cdef class tr_data:
         Initialization routine (constructor).
 
         INPUT:
+
         n -- integer, the degree
         B -- integer, the discriminant bound
         a -- list (default: []), the coefficient list to begin with, where
              a[len(a)]*x^n + ... + a[0]x^(n-len(a))
 
         OUTPUT:
+
         the data initialized to begin enumeration of totally real fields
         with degree n, discriminant bounded by B, and starting with
         coefficients a.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: T = sage.rings.number_field.totallyreal_data.tr_data(2,100)
             sage: T.printa()
             k = 0
@@ -483,13 +499,13 @@ cdef class tr_data:
         self.gamma = hermite_constant(n-1)
 
         # Declare the coefficients of the polynomials (and max such).
-        self.a = <int*>sage_malloc(sizeof(int)*(n+1))
+        self.a = <int*>sig_malloc(sizeof(int)*(n+1))
         if self.a == NULL: raise MemoryError
-        self.amax = <int*>sage_malloc(sizeof(int)*(n+1))
+        self.amax = <int*>sig_malloc(sizeof(int)*(n+1))
         if self.amax == NULL: raise MemoryError
         # df is memory set aside for the derivative, as
         # used in Newton iteration above.
-        self.df = <int*>sage_malloc(sizeof(int)*(n+1))
+        self.df = <int*>sig_malloc(sizeof(int)*(n+1))
         if self.df == NULL: raise MemoryError
 
         for i from 0 <= i < n+1:
@@ -499,10 +515,10 @@ cdef class tr_data:
 
         # beta is an array of arrays (of length n) which list the
         # roots of the derivatives.
-        self.beta = <double*>sage_malloc(sizeof(double)*n*(n+1))
+        self.beta = <double*>sig_malloc(sizeof(double)*n*(n+1))
         if self.beta == NULL: raise MemoryError
         # gnk is the collection of (normalized) derivatives.
-        self.gnk = <int*>sage_malloc(sizeof(int)*(n+1)*n)
+        self.gnk = <int*>sig_malloc(sizeof(int)*(n+1)*n)
         if self.gnk == NULL: raise MemoryError
 
         for i from 0 <= i < (n+1)*n:
@@ -526,7 +542,7 @@ cdef class tr_data:
             # currently unknown; e.g., if k == -1, then we can iterate
             # over polynomials, and if k == n-1, then we have finished iterating.
             if a[len(a)-1] != 1:
-                raise ValueError, "a[len(a)-1](=%s) must be 1 so polynomial is monic"%a[len(a)-1]
+                raise ValueError("a[len(a)-1](=%s) must be 1 so polynomial is monic" % a[len(a)-1])
 
             k = n-len(a)
             self.k = k
@@ -561,17 +577,17 @@ cdef class tr_data:
                 self.gnk[(k+1)*n+i] = gnk[i]
         else:
             # Bad input!
-            raise ValueError, "a has length %s > n+1"%len(a)
+            raise ValueError("a has length %s > n+1" % len(a))
 
     def __dealloc__(self):
         r"""
         Destructor.
         """
-        sage_free(self.df)
-        sage_free(self.a)
-        sage_free(self.amax)
-        sage_free(self.beta)
-        sage_free(self.gnk)
+        sig_free(self.df)
+        sig_free(self.a)
+        sig_free(self.amax)
+        sig_free(self.beta)
+        sig_free(self.gnk)
 
     def increment(self, verbose=False, haltk=0, phc=False):
         r"""
@@ -588,16 +604,19 @@ cdef class tr_data:
         polynomial.
 
         INPUT:
-            verbose -- boolean to print verbosely computational details
-            haltk -- integer, the level at which to halt the inductive
-                     coefficient bounds
-            phc -- boolean, if PHCPACK is available, use it when k == n-5 to
-                   compute an improved Lagrange multiplier bound
+
+        - verbose -- boolean to print verbosely computational details
+        - haltk -- integer, the level at which to halt the inductive
+          coefficient bounds
+        - phc -- boolean, if PHCPACK is available, use it when k == n-5 to
+          compute an improved Lagrange multiplier bound
 
         OUTPUT:
-            The next polynomial, as a sequence of integers
 
-        EXAMPLES:
+        The next polynomial, as a sequence of integers
+
+        EXAMPLES::
+
             sage: T = sage.rings.number_field.totallyreal_data.tr_data(2,100)
             sage: T.increment()
             [-24, -1, 1]
@@ -610,9 +629,9 @@ cdef class tr_data:
         cdef int *f_out
         cdef int i
 
-        f_out = <int *>sage_malloc(sizeof(int) * (self.n + 1))
+        f_out = <int *>sig_malloc(sizeof(int) * (self.n + 1))
         if f_out == NULL:
-            raise MemoryError, "unable to allocate coefficient list"
+            raise MemoryError("unable to allocate coefficient list")
         for i from 0 <= i < self.n:
             f_out[i] = 0
         f_out[self.n] = 1
@@ -622,7 +641,7 @@ cdef class tr_data:
         g = [0] * (1 + self.n)
         for i from 0 <= i <= self.n:
             g[i] = f_out[i]
-        sage_free(f_out)
+        sig_free(f_out)
 
         return g
 
@@ -641,21 +660,25 @@ cdef class tr_data:
         polynomial.
 
         INPUT:
-            f_out -- an integer sequence, to be written with the
-                     coefficients of the next polynomial
-            verbose -- boolean to print verbosely computational details
-            haltk -- integer, the level at which to halt the inductive
-                     coefficient bounds
-            phc -- boolean, if PHCPACK is available, use it when k == n-5 to
-                   compute an improved Lagrange multiplier bound
+
+        - f_out -- an integer sequence, to be written with the coefficients of
+          the next polynomial
+        - verbose -- boolean to print verbosely computational details
+        - haltk -- integer, the level at which to halt the inductive
+          coefficient bounds
+        - phc -- boolean, if PHCPACK is available, use it when k == n-5 to
+          compute an improved Lagrange multiplier bound
 
         OUTPUT:
+
             None. The return value is stored in the variable f_out.
         """
 
         cdef int n, np1, k, i, j, nk, kz
-        cdef int *gnkm, *gnkm1
-        cdef double *betak, bl, br, akmin, akmax, tmp_dbl
+        cdef int *gnkm
+        cdef int *gnkm1
+        cdef double *betak
+        cdef double bl, br, akmin, akmax, tmp_dbl
         cdef bint maxoutflag
 
         n = self.n
@@ -674,13 +697,13 @@ cdef class tr_data:
                 return
             else:
                 if verbose:
-                    print " ",
+                    print(" ", end="")
                     for i from 0 <= i < np1:
-                        print self.a[i],
-                    print ">",
+                        print(self.a[i], end="")
+                    print(">", end="")
                     for i from 0 <= i < np1:
-                        print self.amax[i],
-                    print ""
+                        print(self.amax[i], end="")
+                    print("")
 
                 # Already reached maximum, so "carry the 1" to find the next value of k.
                 k += 1
@@ -710,10 +733,10 @@ cdef class tr_data:
             # Recall k == -1 means all coefficients are good to go.
             while k >= 0 and (not haltk or k >= haltk):
                 if verbose:
-                    print k, ":",
+                    print(k, ":", end="")
                     for i from 0 <= i < np1:
-                        print self.a[i],
-                    print ""
+                        print(self.a[i], end="")
+                    print("")
 
                 if k == n-2:
                     # We only know the value of a[n-1], the trace.  Need to apply
@@ -728,13 +751,13 @@ cdef class tr_data:
                     # If maximum is already greater than the minimum, break!
                     if self.a[k] > self.amax[k]:
                         if verbose:
-                            print " ",
+                            print(" ", end="")
                             for i from 0 <= i < np1:
-                                print self.a[i],
-                            print ">",
+                                print(self.a[i], end="")
+                            print(">", end="")
                             for i from 0 <= i < np1:
-                                print self.amax[i],
-                            print ""
+                                print(self.amax[i], end="")
+                            print("")
                         maxoutflag = 1
                         break
 
@@ -753,7 +776,7 @@ cdef class tr_data:
                     self.gnk[k*n+2] = n*(n-1)/2
 
                     if verbose:
-                        print " ", '%.2f'%self.beta[k*np1+1]
+                        print(" ", '%.2f' % self.beta[k * np1 + 1])
                 else:
                     # Compute the roots of the derivative.
                     self.gnk[(k+1)*n+0] += self.a[k+1]
@@ -761,10 +784,10 @@ cdef class tr_data:
                                         &self.beta[(k+1)*np1],
                                         eps_global, &self.beta[k*np1+1])
                     if verbose:
-                        print " ",
+                        print(" ", end="")
                         for i from 0 <= i < n-k-1:
-                             print '%.2f'%self.beta[k*np1+1+i],
-                        print ""
+                             print('%.2f' % self.beta[k * np1 + 1 + i], end="")
+                        print("")
 
                     for i from 0 <= i < n-k-1:
                         if fabs(self.beta[k*np1+i]
@@ -776,7 +799,7 @@ cdef class tr_data:
                             df = ZZx([i*self.gnk[(k+1)*n+i] for i in range(1,n-(k+1)+1)])
                             if gcd(f,df) != 1:
                                 if verbose:
-                                    print "  gnk has multiple factor!"
+                                    print("  gnk has multiple factor!")
                                 maxoutflag = 1
                                 break
                     if maxoutflag:
@@ -803,9 +826,10 @@ cdef class tr_data:
                             break
 
                     if verbose:
-                        print "  [LM bounds:", '%.2f'%self.b_lower, '%.2f'%self.b_upper,
+                        print("  [LM bounds:", '%.2f' % self.b_lower,
+                              '%.2f' % self.b_upper, end="")
                         tb = sqrt((1.*self.a[n-1])**2 - 2.*self.a[n-2])
-                        print "vs. +/-", '%.2f'%tb, ']'
+                        print("vs. +/-", '%.2f' % tb, ']')
 
                     self.beta[k*np1+0] = self.b_lower
                     self.beta[k*np1+n-k] = self.b_upper
@@ -862,13 +886,13 @@ cdef class tr_data:
 
                     if self.a[k] > self.amax[k]:
                         if verbose:
-                            print " ",
+                            print(" ", end="")
                             for i from 0 <= i < np1:
-                                print self.a[i],
-                            print ">",
+                                print(self.a[i], end="")
+                            print(">", end="")
                             for i from 0 <= i < np1:
-                                print self.amax[i],
-                            print ""
+                                print(self.amax[i], end="")
+                            print("")
                         maxoutflag = 1
                         break
 
@@ -897,7 +921,8 @@ cdef class tr_data:
         """
         Print relevant data for self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: T = sage.rings.number_field.totallyreal_data.tr_data(3,2^10)
             sage: T.printa()
             k = 1
@@ -907,8 +932,8 @@ cdef class tr_data:
             gnk =  [...]
 
         """
-        print "k =", self.k
-        print "a =", [self.a[i] for i in range(self.n+1)]
-        print "amax =", [self.amax[i] for i in range(self.n+1)]
-        print "beta = ", [self.beta[i] for i in range(self.n*(self.n+1))]
-        print "gnk = ", [self.gnk[i] for i in range(self.n*(self.n+1))]
+        print("k =", self.k)
+        print("a =", [self.a[i] for i in range(self.n + 1)])
+        print("amax =", [self.amax[i] for i in range(self.n + 1)])
+        print("beta = ", [self.beta[i] for i in range(self.n * (self.n + 1))])
+        print("gnk = ", [self.gnk[i] for i in range(self.n * (self.n + 1))])

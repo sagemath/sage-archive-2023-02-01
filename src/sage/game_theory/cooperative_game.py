@@ -158,7 +158,7 @@ class CooperativeGame(SageObject):
     To compute the Shapley value in Sage is simple::
 
         sage: letter_game.shapley_value()
-        {'A': 2, 'C': 35, 'B': 5}
+        {'A': 2, 'B': 5, 'C': 35}
 
     The following example implements a (trivial) 10 player characteristic
     function game with `v(c) = |c|` for all `c \in 2^{\Omega}`.
@@ -230,7 +230,7 @@ class CooperativeGame(SageObject):
         ....:                    ('B', 'A', 'C',): 42}
         sage: letter_game = CooperativeGame(letter_function)
         sage: letter_game.shapley_value()
-        {'A': 2, 'C': 35, 'B': 5}
+        {'A': 2, 'B': 5, 'C': 35}
         sage: letter_game.is_monotone()
         True
         sage: letter_game.is_superadditive()
@@ -404,7 +404,7 @@ class CooperativeGame(SageObject):
         for player in self.player_list:
             weighted_contribution = 0
             for coalition in powerset(self.player_list):
-                if coalition: # If non-empty
+                if coalition:  # If non-empty
                     k = Integer(len(coalition))
                     weight = 1 / (n.binomial(k) * k)
                     t = tuple(p for p in coalition if p != player)
@@ -617,7 +617,7 @@ class CooperativeGame(SageObject):
         cf = self.ch_f
         output = "v(c) = \\begin{cases}\n"
         for key in sorted(cf.keys(), key=lambda key: len(key)):
-            if not key: # == ()
+            if not key:  # == ()
                 coalition = "\\emptyset"
             else:
                 coalition = "\\{" + ", ".join(str(player) for player in key) + "\\}"
@@ -860,4 +860,3 @@ class CooperativeGame(SageObject):
             if all(results) and payoff_vector[c1[0]] != payoff_vector[c2[0]]:
                 return False
         return True
-

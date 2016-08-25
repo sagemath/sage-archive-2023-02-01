@@ -11,10 +11,6 @@ http://linalg.org/projects/fflas-ffpack
 
 LGPL V2.1 or later
 
-== Maintainers ==
-
- * Martin Albrecht
-
 == SPKG Repository ==
 
  https://bitbucket.org/malb/fflas-ffpack-spkg

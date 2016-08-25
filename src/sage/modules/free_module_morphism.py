@@ -19,6 +19,7 @@ TESTS::
     sage: loads(dumps(f)) == f
     True
 """
+from __future__ import absolute_import
 
 ####################################################################################
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
@@ -42,10 +43,10 @@ TESTS::
 
 import sage.misc.misc as misc
 import sage.modules.free_module as free_module
-import matrix_morphism
+from . import matrix_morphism
 from sage.structure.sequence import Sequence
 
-import free_module_homspace
+from . import free_module_homspace
 
 def is_FreeModuleMorphism(x):
     """
@@ -82,44 +83,21 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         A = parent._matrix_space()(A)
         matrix_morphism.MatrixMorphism.__init__(self, parent, A)
 
-    def __call__(self, x):
+    def pushforward(self, x):
         """
-        Evaluate this matrix morphism at x, which is either an element
-        that can be coerced into the domain or a submodule of the domain.
+        Compute the image of a sub-module of the domain.
 
         EXAMPLES::
 
             sage: V = QQ^3; W = span([[1,2,3],[-1,2,5/3]], QQ)
             sage: phi = V.hom(matrix(QQ,3,[1..9]))
-
-        We compute the image of some elements::
-
-            sage: phi(V.0)
-            (1, 2, 3)
-            sage: phi(V.1)
-            (4, 5, 6)
-            sage: phi(V.0  - 1/4*V.1)
-            (0, 3/4, 3/2)
-
-        We compute the image of a *subspace*::
-
-            sage: V = QQ^3; W = span([[1,2,3],[-1,2,5/3]], QQ)
-            sage: phi = V.hom(matrix(QQ,3,[1..9]))
             sage: phi.rank()
             2
-            sage: phi(V)
+            sage: phi(V)   #indirect doctest
             Vector space of degree 3 and dimension 2 over Rational Field
             Basis matrix:
             [ 1  0 -1]
             [ 0  1  2]
-
-        We restrict phi to W and compute the image of an element::
-
-            sage: psi = phi.restrict_domain(W)
-            sage: psi(W.0) == phi(W.0)
-            True
-            sage: psi(W.1) == phi(W.1)
-            True
 
         We compute the image of a submodule of a ZZ-module embedded in
         a rational vector space::
@@ -139,7 +117,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         if free_module.is_FreeModule(x):
             V = self.domain().submodule(x)
             return self.restrict_domain(V).image()
-        return matrix_morphism.MatrixMorphism.__call__(self, x)
+        raise TypeError("`pushforward` is only defined for submodules")
 
     def _repr_(self):
         r"""
@@ -375,7 +353,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             sage: f.lift([1/24])
             Traceback (most recent call last):
             ...
-            TypeError: element (= [1/24]) is not in free module
+            TypeError: element [1/24] is not in free module
 
         This works for vector spaces, too::
 
@@ -402,7 +380,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             sage: f.preimage_representative(vector(ZZ, [10, 20]))
             (0, 0, 10)
         """
-        from free_module_element import vector
+        from .free_module_element import vector
         x = self.codomain()(x)
         A = self.matrix()
         R = self.base_ring()
@@ -513,13 +491,70 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
                 resu=[]
                 for i in seigenvec:
                     V=self.domain().base_extend(i[0].parent())
-                    svectors=Sequence(map(lambda j: V(j * V.basis_matrix()),i[1]), cr=True)
+                    svectors=Sequence([V(j * V.basis_matrix()) for j in i[1]], cr=True)
                     resu.append((i[0],svectors,i[2]))
                 return resu
             else:
                 raise TypeError("not an endomorphism")
         else:
             raise NotImplementedError("module must be a vector space")
+
+    def eigenspaces(self,extend=True):
+        """
+        Compute a list of subspaces formed by eigenvectors of ``self``.
+
+        INPUT:
+
+        - ``extend`` -- (default: ``True``) determines if field
+          extensions should be considered
+
+        OUTPUT:
+
+        - a list of pairs ``(eigenvalue, eigenspace)``
+
+        EXAMPLES::
+
+            sage: V = QQ^3
+            sage: h = V.hom([[1,0,0],[0,0,1],[0,-1,0]], V)
+            sage: h.eigenspaces()
+            [(1,
+              Vector space of degree 3 and dimension 1 over Rational Field
+              Basis matrix:
+              [1 0 0]),
+             (-1*I,
+              Vector space of degree 3 and dimension 1 over Algebraic Field
+              Basis matrix:
+              [  0   1 1*I]),
+             (1*I,
+              Vector space of degree 3 and dimension 1 over Algebraic Field
+              Basis matrix:
+              [   0    1 -1*I])]
+
+            sage: h.eigenspaces(extend=False)
+            [(1,
+              Vector space of degree 3 and dimension 1 over Rational Field
+              Basis matrix:
+              [1 0 0])]
+
+            sage: h = V.hom([[2,1,0], [0,2,0], [0,0,-1]], V)
+            sage: h.eigenspaces()
+            [(-1, Vector space of degree 3 and dimension 1 over Rational Field
+              Basis matrix:
+              [0 0 1]),
+             (2, Vector space of degree 3 and dimension 1 over Rational Field
+              Basis matrix:
+              [0 1 0])]
+
+            sage: h = V.hom([[2,1,0], [0,2,0], [0,0,2]], V)
+            sage: h.eigenspaces()
+            [(2, Vector space of degree 3 and dimension 2 over Rational Field
+              Basis matrix:
+              [0 1 0]
+              [0 0 1])]
+        """
+        ev = self.eigenvectors(extend)
+        return [(vec[0], Sequence(vec[1]).universe().subspace(vec[1]))
+                for vec in ev]
 
     def minimal_polynomial(self,var='x'):
         r"""

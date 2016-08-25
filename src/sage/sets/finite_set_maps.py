@@ -16,16 +16,17 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
+import itertools
 
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets, EmptySetError
-from sage.categories.finite_monoids import FiniteMonoids
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.monoids import Monoids
+from sage.categories.enumerated_sets import EnumeratedSets
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.sets.integer_range import IntegerRange
 from sage.sets.finite_set_map_cy import (
     FiniteSetMap_MN, FiniteSetMap_Set,
@@ -83,7 +84,7 @@ class FiniteSetMaps(UniqueRepresentation, Parent):
         {'a', 'b'}
         sage: M.codomain()
         {3, 4, 5}
-        sage: for f in M: print f
+        sage: for f in M: print(f)
         map: a -> 3, b -> 3
         map: a -> 3, b -> 4
         map: a -> 3, b -> 5
@@ -117,7 +118,7 @@ class FiniteSetMaps(UniqueRepresentation, Parent):
     This makes `M` into a monoid::
 
         sage: M.category()
-        Category of finite monoids
+        Join of Category of finite monoids and Category of finite enumerated sets
         sage: M.one()
         map: 1 -> 1, 2 -> 2, 3 -> 3
 
@@ -216,7 +217,7 @@ class FiniteSetMaps_MN(FiniteSetMaps):
 
     - ``category`` -- the category in which the sets of maps is
       constructed. It must be a sub-category of
-      ``FiniteEnumeratedSets()`` which is the default value.
+      ``EnumeratedSets().Finite()`` which is the default value.
     """
 
     def __init__(self, m, n, category=None):
@@ -231,7 +232,7 @@ class FiniteSetMaps_MN(FiniteSetMaps):
             sage: TestSuite(M).run()
         """
         Parent.__init__(self,
-                        category=FiniteEnumeratedSets().or_subcategory(category))
+                        category=EnumeratedSets().Finite().or_subcategory(category))
         self._m = Integer(m)
         self._n = Integer(n)
 
@@ -338,7 +339,7 @@ class FiniteSetMaps_MN(FiniteSetMaps):
             sage: FiniteSetMaps(1,1).list()
             [[0]]
         """
-        for v in CartesianProduct(*([range(self._n)]*self._m)):
+        for v in itertools.product(range(self._n), repeat=self._m):
             yield self._from_list_(v)
 
     def _from_list_(self, v):
@@ -378,8 +379,8 @@ class FiniteSetMaps_Set(FiniteSetMaps_MN):
     - ``codomain`` -- an object in the category ``FiniteSets()``.
 
     - ``category`` -- the category in which the sets of maps is
-      constructed. It must be a sub-category of ``FiniteEnumeratedSets()``
-      which is the default value.
+      constructed. It must be a sub-category of
+      ``EnumeratedSets().Finite()`` which is the default value.
     """
     def __init__(self, domain, codomain, category=None):
         """
@@ -390,7 +391,7 @@ class FiniteSetMaps_Set(FiniteSetMaps_MN):
             Maps from {'a', 'b'} to {3, 4, 5}
             sage: M.cardinality()
             9
-            sage: for f in M: print f
+            sage: for f in M: print(f)
             map: a -> 3, b -> 3
             map: a -> 3, b -> 4
             map: a -> 3, b -> 5
@@ -488,8 +489,8 @@ class FiniteSetEndoMaps_N(FiniteSetMaps_MN):
     - ``n`` -- an integer.
 
     - ``category`` -- the category in which the sets of maps is
-      constructed. It must be a sub-category of ``FiniteMonoids()``
-      which is the default value.
+      constructed. It must be a sub-category of ``Monoids().Finite()``
+      and ``EnumeratedSets().Finite()`` which is the default value.
     """
 
     def __init__(self, n, action, category=None):
@@ -498,14 +499,13 @@ class FiniteSetEndoMaps_N(FiniteSetMaps_MN):
 
             sage: M = FiniteSetMaps(3)
             sage: M.category()
-            Category of finite monoids
+            Join of Category of finite monoids and Category of finite enumerated sets
             sage: M.__class__
             <class 'sage.sets.finite_set_maps.FiniteSetEndoMaps_N_with_category'>
             sage: TestSuite(M).run()
         """
-        Parent.__init__(self, category=FiniteMonoids().or_subcategory(category))
-        self._m = n
-        self._n = n
+        category = (EnumeratedSets() & Monoids().Finite()).or_subcategory(category)
+        FiniteSetMaps_MN.__init__(self, n, n, category=category)
         self._action = action
 
     @cached_method
@@ -554,8 +554,8 @@ class FiniteSetEndoMaps_Set(FiniteSetMaps_Set, FiniteSetEndoMaps_N):
     - ``domain`` -- an object in the category ``FiniteSets()``.
 
     - ``category`` -- the category in which the sets of maps is
-      constructed. It must be a sub-category of ``FiniteMonoids()``
-      which is the default value.
+      constructed. It must be a sub-category of ``Monoids().Finite()``
+      and ``EnumeratedSets().Finite()`` which is the default value.
      """
     def __init__(self, domain, action, category=None):
         """
@@ -563,13 +563,14 @@ class FiniteSetEndoMaps_Set(FiniteSetMaps_Set, FiniteSetEndoMaps_N):
 
             sage: M = FiniteSetMaps(["a", "b", "c"])
             sage: M.category()
-            Category of finite monoids
+            Join of Category of finite monoids and Category of finite enumerated sets
             sage: M.__class__
             <class 'sage.sets.finite_set_maps.FiniteSetEndoMaps_Set_with_category'>
             sage: TestSuite(M).run()
         """
+        category = (EnumeratedSets() & Monoids().Finite()).or_subcategory(category)
         FiniteSetMaps_MN.__init__(self, domain.cardinality(), domain.cardinality(),
-                                 category=FiniteMonoids().or_subcategory(category))
+                                 category=category)
 
         self._domain = domain
         self._codomain = domain

@@ -62,14 +62,15 @@ REFERENCES:
 #  the License, or (at your option) any later version.                       #
 #                 http://www.gnu.org/licenses/                               #
 #****************************************************************************#
+from __future__ import division
 
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix, vector
 from sage.rings.number_field.number_field import QuadraticField
 from sage.rings.finite_rings.integer_mod_ring import Integers
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.integer import Integer
-from sage.rings.arith import gcd, lcm, next_prime, is_prime, next_prime_power, legendre_symbol
+from sage.arith.all import gcd, lcm, next_prime, is_prime, next_prime_power, legendre_symbol
 from sage.functions.log import log
 from sage.functions.other import sqrt
 
@@ -362,7 +363,7 @@ class BinaryRecurrenceSequence(SageObject):
 
         #Test if u_1-u_0 = u_2-u_1 = u_3-u_2
 
-        return bool(self(1) - self(0) == self(2) - self(1) ==  self(3) - self(2))
+        return bool(self(1) - self(0) == self(2) - self(1) == self(3) - self(2))
 
 
     def period(self, m):
@@ -468,7 +469,7 @@ class BinaryRecurrenceSequence(SageObject):
                     #otherwise it will divide (p+1)(p-1)
                     else :
                         M = (p+1)*(p-1)
-                        p2fac = list((p+1).factor())        #factor the (p+1) and (p-1) terms seperately and then combine for speed
+                        p2fac = list((p+1).factor())        #factor the (p+1) and (p-1) terms separately and then combine for speed
                         Mfac_dic = {}
                         for i in list(p1fac + p2fac):
                             if i[0] not in Mfac_dic:
@@ -710,9 +711,9 @@ class BinaryRecurrenceSequence(SageObject):
 
                             CongNew = []        #makes a new list from cong that is now mod M = lcm(M1, modu) instead of M1
                             M = lcm(M1, modu)
-                            for k in xrange(M/M1):
+                            for k in xrange(M // M1):
                                 for i in cong:
-                                    CongNew.append(k*M1+i)
+                                    CongNew.append(k * M1 + i)
                             cong = set(CongNew)
 
                             M1 = M
@@ -792,9 +793,9 @@ def _prime_powers(N):
         [65537]
 
     """
-
-    output =  sorted([i**j for i,j in N.factor()])
+    output = sorted([i ** j for i, j in N.factor()])
     return output
+
 
 #This function finds the largest prime power divisor of an integer N
 def _largest_ppower_divisor(N):
@@ -1036,7 +1037,7 @@ def _is_p_power_mod(a,p,N):
 
         #If q = p and ee = 1, then everything is a pth power p by Fermat's little theorem.
 
-        elif ee >  1:
+        elif ee > 1:
 
             #We use the strong statement of Hensel's lemma, which implies that if p is odd
             #and aa is a pth power mod p^2, then aa is a pth power mod any higher power of p

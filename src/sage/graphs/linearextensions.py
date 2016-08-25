@@ -50,8 +50,12 @@ the graph, the linear extensions are known as topological sorts ::
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.combinat.combinat import CombinatorialClass
+from __future__ import print_function
+
 import sys
+from copy import copy
+from sage.combinat.combinat import CombinatorialClass
+
 
 class LinearExtensions(CombinatorialClass):
     def __init__(self, dag):
@@ -79,7 +83,7 @@ class LinearExtensions(CombinatorialClass):
         ################
         #Precomputation#
         ################
-        dag_copy = dag.copy(immutable=False)
+        dag_copy = copy(dag)
         le = []
         a  = []
         b  = []
@@ -204,7 +208,7 @@ class LinearExtensions(CombinatorialClass):
             self.le[index] = self.le[index-1]
             self.le[index-1] = element
         else:
-            print "Bad direction!"
+            print("Bad direction!")
             sys.exit()
         if self.is_plus:
             self.linear_extensions.append(self.le[:])

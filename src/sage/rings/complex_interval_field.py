@@ -32,14 +32,15 @@ heavily modified:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-import complex_double
-import field
-import integer
+from . import complex_double
+from . import ring
+from . import integer
 import weakref
-import real_mpfi
-import complex_interval
-import complex_field
+from . import real_mpfi
+from . import complex_interval
+from . import complex_field
 from sage.misc.sage_eval import sage_eval
 
 from sage.structure.parent_gens import ParentWithGens
@@ -103,7 +104,7 @@ def ComplexIntervalField(prec=53, names=None):
     return C
 
 
-class ComplexIntervalField_class(field.Field):
+class ComplexIntervalField_class(ring.Field):
     """
     The field of complex (interval) numbers.
 
@@ -172,12 +173,30 @@ class ComplexIntervalField_class(field.Field):
         sage: CIF.category()
         Category of fields
         sage: TestSuite(CIF).run()
+
+    TESTS:
+
+    This checks that :trac:`15355` is fixed::
+
+        sage: x + CIF(RIF(-2,2), 0)
+        x + 0.?e1
+        sage: x + CIF(RIF(-2,2), RIF(-2,2))
+        x + 0.?e1 + 0.?e1*I
+        sage: x + RIF(-2,2)
+        x + 0.?e1
+        sage: x + CIF(RIF(3.14,3.15), RIF(3.14, 3.15))
+        x + 3.15? + 3.15?*I
+        sage: CIF(RIF(-2,2), RIF(-2,2))
+        0.?e1 + 0.?e1*I
+        sage: x + CIF(RIF(3.14,3.15), 0)
+        x + 3.15?
     """
     def __init__(self, prec=53):
         """
         Initialize ``self``.
 
         EXAMPLES::
+
             sage: ComplexIntervalField()
             Complex Interval Field with 53 bits of precision
             sage: ComplexIntervalField(200)
@@ -197,6 +216,39 @@ class ComplexIntervalField_class(field.Field):
             True
         """
         return ComplexIntervalField, (self._prec, )
+
+    def construction(self):
+        """
+        Returns the functorial construction of this complex interval field,
+        namely as the algebraic closure of the real interval field with
+        the same precision.
+
+        EXAMPLES::
+
+            sage: c, S = CIF.construction(); c, S
+            (AlgebraicClosureFunctor,
+             Real Interval Field with 53 bits of precision)
+            sage: CIF == c(S)
+            True
+
+        TESTS:
+
+        Test that :trac:`19922` is fixed::
+
+            sage: c = ComplexIntervalField(128).an_element()
+            sage: r = RealIntervalField(64).an_element()
+            sage: c + r
+            1 + 1*I
+            sage: r + c
+            1 + 1*I
+            sage: parent(c+r)
+            Complex Interval Field with 64 bits of precision
+            sage: R = ComplexIntervalField(128)['x']
+            sage: (R.gen() * RIF.one()).parent()
+            Univariate Polynomial Ring in x over Complex Interval Field with 53 bits of precision
+        """
+        from sage.categories.pushout import AlgebraicClosureFunctor
+        return (AlgebraicClosureFunctor(), self._real_field())
 
     def is_exact(self):
         """
@@ -359,10 +411,15 @@ class ComplexIntervalField_class(field.Field):
             2 + 3*I
             sage: CIF(pi, e)
             3.141592653589794? + 2.718281828459046?*I
+            sage: ComplexIntervalField(100)(CIF(RIF(2,3)))
+            3.?
         """
         if im is None:
-            if isinstance(x, complex_interval.ComplexIntervalFieldElement) and x.parent() is self:
-                return x
+            if isinstance(x, complex_interval.ComplexIntervalFieldElement):
+                if x.parent() is self:
+                    return x
+                else:
+                    return complex_interval.ComplexIntervalFieldElement(self, x)
             elif isinstance(x, complex_double.ComplexDoubleElement):
                 return complex_interval.ComplexIntervalFieldElement(self, x.real(), x.imag())
             elif isinstance(x, str):
@@ -566,7 +623,7 @@ class ComplexIntervalField_class(field.Field):
             sage: CIF.zeta(5)
             0.309016994374948? + 0.9510565162951536?*I
         """
-        from integer import Integer
+        from .integer import Integer
         n = Integer(n)
         if n == 1:
             x = self(1)

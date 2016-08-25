@@ -15,6 +15,7 @@ Affine Crystals
 from sage.misc.abstract_method import abstract_method
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.finite_crystals import FiniteCrystals
+from sage.structure.element import parent
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
@@ -114,7 +115,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         self._cartan_type = cartan_type
         Parent.__init__(self, category = category)
         self.classical_crystal = classical_crystal;
-        self.module_generators = map( self.retract, self.classical_crystal.module_generators )
+        self.module_generators = [self.retract(_) for _ in self.classical_crystal.module_generators]
         self.element_class._latex_ = lambda x: x.lift()._latex_()
 
     def _repr_(self):
@@ -164,7 +165,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
             sage: A.list()
             [[[1]], [[2]], [[3]]]
         """
-        return map( self.retract, self.classical_crystal.list() )
+        return [self.retract(_) for _ in self.classical_crystal.list()]
 
     def lift(self, affine_elt):
         """
@@ -212,7 +213,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         r"""
         Coerces ``value`` into ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: n=2
             sage: C=crystals.Tableaux(['A',n],shape=[1])
@@ -236,7 +237,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         r"""
         Checks whether ``x`` is an element of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: n=2
             sage: C=crystals.Tableaux(['A',n],shape=[1])
@@ -349,7 +350,7 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             [[3]]
             sage: b.e(1)
         """
-        if i == 0:
+        if i == self.parent()._cartan_type.special_node():
             return self.e0()
         else:
             x = self.lift().e(i)
@@ -374,7 +375,7 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             [[1]]
             sage: b.f(2)
         """
-        if i == 0:
+        if i == self.parent()._cartan_type.special_node():
             return self.f0()
         else:
             x = self.lift().f(i)
@@ -417,7 +418,7 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             sage: [x.epsilon(1) for x in A.list()]
             [0, 1, 0]
         """
-        if i == 0:
+        if i == self.parent()._cartan_type.special_node():
             return self.epsilon0()
         else:
             return self.lift().epsilon(i)
@@ -455,18 +456,50 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             sage: [x.phi(1) for x in A.list()]
             [1, 0, 0]
         """
-        if i == 0:
+        if i == self.parent()._cartan_type.special_node():
             return self.phi0()
         else:
             return self.lift().phi(i)
 
-    def __lt__(self, other):
+    def __eq__(self, other):
         """
         Non elements of the crystal are incomparable with elements of the
         crystal (or should it return ``NotImplemented``?). Elements of this
         crystal are compared using the comparison in the underlying
         classical crystal.
 
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
+            sage: b = K(rows=[[1]])
+            sage: c = K(rows=[[2]])
+            sage: b==c
+            False
+            sage: b==b
+            True
+            sage: b==1
+            False
+        """
+        return parent(self) is parent(other) and self.value == other.value
+
+    def __ne__(self, other):
+        """"
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
+            sage: b = K(rows=[[1]])
+            sage: c = K(rows=[[2]])
+            sage: b!=c
+            True
+            sage: b!=b
+            False
+            sage: b!=1
+            True
+        """
+        return not self == other
+
+    def __lt__(self, other):
+        """"
         EXAMPLES::
 
             sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
@@ -479,9 +512,74 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             sage: b<c
             True
         """
-        if self.parent() is not other.parent():
-            return False
-        return self.lift() < other.lift()
+        return parent(self) is parent(other) and self.value < other.value
+
+    def __gt__(self, other):
+        """"
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
+            sage: b = K(rows=[[1]])
+            sage: c = K(rows=[[2]])
+            sage: b>c
+            False
+            sage: b>b
+            False
+            sage: c>b
+            True
+        """
+        return parent(self) is parent(other) and self.value > other.value
+
+    def __le__(self, other):
+        """"
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
+            sage: b = K(rows=[[1]])
+            sage: c = K(rows=[[2]])
+            sage: b<=c
+            True
+            sage: b<=b
+            True
+            sage: c<=b
+            False
+        """
+        return parent(self) is parent(other) and self.value <= other.value
+ 
+    def __ge__(self, other):
+        """"
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
+            sage: b = K(rows=[[1]])
+            sage: c = K(rows=[[2]])
+            sage: c>=b
+            True
+            sage: b>=b
+            True
+            sage: b>=c
+            False
+        """
+        return parent(self) is parent(other) and self.value >= other.value
+
+    def __cmp__(self, other):
+        """"
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
+            sage: b = K(rows=[[1]])
+            sage: c = K(rows=[[2]])
+            sage: cmp(b,c)
+            -1
+            sage: cmp(b,b)
+            0
+
+        If the parent are different, it uses comparison of the parents::
+
+            sage: cmp(b,1) == cmp(b.parent(), ZZ)
+            True
+        """
+        return cmp(parent(self), parent(other)) or cmp(self.value, other.value)
 
 AffineCrystalFromClassical.Element = AffineCrystalFromClassicalElement
 

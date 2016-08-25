@@ -57,8 +57,8 @@ be the morphism defined by `a\mapsto ab, b\mapsto ba`::
 
 Infinite words in a specific combinatorial class::
 
-    sage: W = Words("ab"); W
-    Words over {'a', 'b'}
+    sage: W = InfiniteWords("ab"); W
+    Infinite words over {'a', 'b'}
     sage: f = lambda n : 'a' if n % 2 == 1 else 'b'
     sage: W(f)
     word: babababababababababababababababababababa...

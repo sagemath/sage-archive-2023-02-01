@@ -34,10 +34,14 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 # TODO: check off this todo list:
 # - methods to cryptanalyze the Hill, substitution, transposition, and
@@ -53,12 +57,12 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
-from sage.rings.arith import xgcd
+from sage.arith.all import xgcd, gcd, inverse_mod
 from random import randint
 from sage.matrix.matrix_space import MatrixSpace
 
-from cryptosystem import SymmetricKeyCryptosystem
-from classical_cipher import (
+from .cryptosystem import SymmetricKeyCryptosystem
+from .classical_cipher import (
     AffineCipher,
     HillCipher,
     ShiftCipher,
@@ -273,7 +277,6 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
             raise TypeError("A (= %s) is not supported as a cipher domain of this affine cryptosystem." % A)
         # List L of invertible linear coefficients modulo n, where n is the
         # alphabet size. Each e in L satisfies gcd(e, n) = 1.
-        from sage.rings.arith import gcd
         n = A.ngens()
         self._invertible_A = [i for i in xrange(n) if gcd(i, n) == 1]
         # Initialize the affine cryptosystem with the plaintext, ciphertext,
@@ -1236,7 +1239,6 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
             ValueError: (a, b) = (0, 1) is outside the range of acceptable values for a key of this affine cipher.
         """
         try:
-            from sage.rings.arith import inverse_mod
             from sage.rings.finite_rings.integer_mod import Mod
             n = self.alphabet_size()
             aInv = inverse_mod(a, n)
@@ -2482,9 +2484,8 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             sage: C = S.enciphering(K, P)
             sage: Dict = S.brute_force(C)
             sage: for k in xrange(len(Dict)):
-            ...       if Dict[k] == P:
-            ...           print "key =", k
-            ...
+            ....:     if Dict[k] == P:
+            ....:         print("key = " + str(k))
             key = 7
 
         Over the hexadecimal number system::
@@ -2495,9 +2496,8 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             sage: C = S.enciphering(K, P)
             sage: Dict = S.brute_force(C)
             sage: for k in xrange(len(Dict)):
-            ...       if Dict[k] == P:
-            ...           print "key =", k
-            ...
+            ....:     if Dict[k] == P:
+            ....:         print("key = " + str(k))
             key = 5
 
         And over the binary number system::
@@ -2508,9 +2508,8 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             sage: C = S.enciphering(K, P)
             sage: Dict = S.brute_force(C)
             sage: for k in xrange(len(Dict)):
-            ...       if Dict[k] == P:
-            ...           print "key =", k
-            ...
+            ....:     if Dict[k] == P:
+            ....:         print("key = " + str(k))
             key = 1
 
         Don't use any ranking functions, i.e. ``ranking="none"``::

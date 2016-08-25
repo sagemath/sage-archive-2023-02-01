@@ -29,17 +29,22 @@ AUTHORS:
 - David Roe (2008-2-23): created
 - David Loeffler (2009-07-10): cleaned up docstrings
 """
+from __future__ import absolute_import
 
-#################################################################################
+#*****************************************************************************
 #       Copyright (C) 2008 David Roe <roed@math.harvard.edu>,
 #                          William Stein <wstein@gmail.com>,
 #                          Mike Hansen <mhansen@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.structure.parent_gens import normalize_names
+
+
+from sage.structure.category_object import normalize_names
 from sage.structure.element import is_Element
 from sage.rings.ring import is_Ring
 from sage.rings.integer import Integer
@@ -356,7 +361,7 @@ def _multi_variate(base_ring, names, n, sparse, order):
     # For now, I'm going to use a name mangling with checking method.
     names = normalize_names(n, names)
 
-    from term_order import TermOrder
+    from .term_order import TermOrder
     order = TermOrder(order, n)
 
     if isinstance(names, list):
@@ -389,7 +394,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
     EXAMPLES:
 
     This base class inherits from :class:`~sage.rings.ring.CommutativeRing`.
-    Since trac ticket #11900, it is also initialised as such::
+    Since :trac:`11900`, it is also initialised as such::
 
         sage: R.<x1,x2> = LaurentPolynomialRing(QQ)
         sage: R.category()
@@ -479,7 +484,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             sage: LaurentPolynomialRing(QQ,2,'x').is_integral_domain()
             True
 
-        The following used to fail; see #7530::
+        The following used to fail; see :trac:`7530`::
 
             sage: L = LaurentPolynomialRing(ZZ, 'X')
             sage: L['Y']
@@ -540,7 +545,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             from sage.rings.laurent_series_ring import LaurentSeriesRing
             return LaurentSeriesRing(self.base_ring(), name=self._names[0])
         else:
-            raise TypeError, "Cannot complete %s with respect to %s" % (self, p)
+            raise TypeError("Cannot complete %s with respect to %s" % (self, p))
 
 
 

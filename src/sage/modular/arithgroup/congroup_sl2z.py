@@ -3,9 +3,10 @@ The modular group `{\rm SL}_2(\ZZ)`
 
 AUTHORS:
 
-- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+- Niles Johnson (2010-08): :trac:`3893`: ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
 """
+from __future__ import absolute_import
 
 ################################################################################
 #
@@ -19,11 +20,11 @@ AUTHORS:
 #
 ################################################################################
 
-from congroup_gamma0 import Gamma0_class
-from arithgroup_element import ArithmeticSubgroupElement
+from .congroup_gamma0 import Gamma0_class
+from .arithgroup_element import ArithmeticSubgroupElement
 from sage.rings.integer_ring import ZZ
 from sage.modular.cusps import Cusp
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 from sage.modular.modsym.p1list import lift_to_sl2z
 
 def is_SL2Z(x):
@@ -107,7 +108,8 @@ class SL2Z_class(Gamma0_class):
             sage: SL2Z([1, QQ, False], check=False) # don't do this either!
             Traceback (most recent call last):
             ...
-            TypeError: entries has the wrong length
+            TypeError: cannot construct an element of Full MatrixSpace of 2 by 2
+            dense matrices over Integer Ring from [1, Rational Field, False]!
         """
         return ArithmeticSubgroupElement(self, x, check=check)
 

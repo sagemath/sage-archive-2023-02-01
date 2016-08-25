@@ -15,12 +15,10 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-from sage.misc.misc import prod
+from sage.misc.all import prod
 
-include 'sage/ext/interrupt.pxi'
-include 'sage/ext/cdefs.pxi'
-include "sage/ext/stdsage.pxi"
 
 cpdef julia(ff_j, z, int iterations):
     """
@@ -28,9 +26,9 @@ cpdef julia(ff_j, z, int iterations):
 
     INPUT:
 
-        - `ff_j` -- fast callable for the inner iteration
-        - `z` -- complex number
-        - `iterations` -- number of loops
+    - ``ff_j`` -- fast callable for the inner iteration
+    - ``z`` -- complex number
+    - ``iterations`` -- number of loops
 
     TESTS::
 
@@ -53,9 +51,9 @@ cpdef mandel(ff_m, z, int iterations):
 
     INPUT:
 
-        - `ff_m` -- fast callable for the inner iteration
-        - `z` -- complex number
-        - `iterations` -- number of loops
+    - ``ff_m`` -- fast callable for the inner iteration
+    - ``z`` -- complex number
+    - ``iterations`` -- number of loops
 
     TESTS::
 
@@ -77,21 +75,23 @@ cpdef mandel(ff_m, z, int iterations):
 cpdef cellular(rule, int N):
     """
     Cythonized helper function for the cellular_automata fractal.
+
     Yields a matrix showing the evolution of a Wolfram's cellular automaton.
     Based on work by Pablo Angulo.
     http://wiki.sagemath.org/interact/misc#CellularAutomata
 
     INPUT:
 
-        - `rule` -- determines how a cell's value is updated, depending on its neighbors
-        - `N` -- number of iterations
+    - ``rule`` -- determines how a cell's value is updated, depending
+      on its neighbors
+    - ``N`` -- number of iterations
 
     TESTS::
 
         sage: from sage.interacts.library_cython import cellular
         sage: rule = [1, 0, 1, 0, 0, 1, 1, 0]
         sage: N = 3
-        sage: print cellular(rule, N)
+        sage: print(cellular(rule, N))
         [[0 0 0 1 0 0 0 0]
          [1 1 0 1 0 1 0 0]
          [0 1 1 1 1 1 0 0]]

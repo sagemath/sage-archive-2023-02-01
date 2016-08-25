@@ -1,8 +1,7 @@
-include "sage/ext/cdefs.pxi"
-include "sage/libs/ntl/decl.pxi"
-
+from sage.libs.gmp.types cimport mpq_t
 from sage.rings.padics.padic_ZZ_pX_element cimport pAdicZZpXElement
 from sage.structure.element cimport RingElement, ModuleElement
+from sage.libs.ntl.types cimport ZZ_pX_c
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
 from sage.rings.padics.padic_ZZ_pX_CR_element cimport pAdicZZpXCRElement
 
@@ -18,7 +17,6 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
     cdef pAdicZZpXCAElement _new_c(self, long absprec)
     cdef pAdicZZpXCAElement _lshift_c(self, long n)
     cdef pAdicZZpXCAElement _rshift_c(self, long n)
-    cpdef RingElement _invert_c_impl(self)
     cpdef pAdicZZpXCAElement unit_part(self)
     cpdef _ntl_rep_abs(self)
     cpdef ntl_ZZ_pX _ntl_rep(self)

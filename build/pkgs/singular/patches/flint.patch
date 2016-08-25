@@ -1,20 +1,20 @@
-diff -druN latest.orig/Singular/configure latest/Singular/configure
---- latest.orig/Singular/configure	2012-12-19 13:01:16.000000000 -0800
-+++ latest/Singular/configure	2014-02-19 05:46:21.061190243 -0800
-@@ -8989,6 +8989,7 @@
+diff -druN a/latest/Singular/configure b/latest/Singular/configure
+--- a/latest/Singular/configure	2014-08-06 08:59:15.000000000 -0700
++++ b/latest/Singular/configure	2014-10-21 02:26:41.030021194 -0700
+@@ -9939,6 +9939,7 @@
+ 
  if test "x$flint_found" = "xyes"; then
-   includedir= "${FLINT_HOME}/include ${includedir}"
    LDFLAGS="${LDFLAGS} ${FLINT_LIBS}"
 +  SLDFLAGS="${SLDFLAGS} ${FLINT_LIBS}"
    NEED_LIBS="-lflint -lmpfr ${NEED_LIBS}"
  fi
  
-diff -druN latest.orig/Singular/configure.in latest/Singular/configure.in
---- latest.orig/Singular/configure.in	2012-12-19 13:01:16.000000000 -0800
-+++ latest/Singular/configure.in	2014-02-19 05:45:48.911187028 -0800
-@@ -1406,6 +1406,7 @@
+diff -druN a/latest/Singular/configure.in b/latest/Singular/configure.in
+--- a/latest/Singular/configure.in	2014-08-06 08:59:15.000000000 -0700
++++ b/latest/Singular/configure.in	2014-10-21 02:26:41.030021194 -0700
+@@ -1431,6 +1431,7 @@
+ 
  if test "x$flint_found" = "xyes"; then
-   includedir= "${FLINT_HOME}/include ${includedir}"
    LDFLAGS="${LDFLAGS} ${FLINT_LIBS}"
 +  SLDFLAGS="${SLDFLAGS} ${FLINT_LIBS}"
    NEED_LIBS="-lflint -lmpfr ${NEED_LIBS}"

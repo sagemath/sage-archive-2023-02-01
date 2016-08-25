@@ -48,6 +48,7 @@ sage: prime_pi(100)
 sage: prime_pi(3000000)
 216816
 sage: plot(prime_pi, 1,1000, rgbcolor=(0,0,1))
+Graphics object consisting of 1 graphics primitive
 sage: P = plot(Li, 2,10000, rgbcolor='purple')
 sage: Q = plot(prime_pi, 2,10000, rgbcolor='black')
 sage: R = plot(sqrt(x)*log(x),2,10000,rgbcolor='red')
@@ -69,7 +70,7 @@ sage: k = euler_phi(n); k
 sage: [Mod(x,n)^k for x in range(n) if gcd(x,n) == 1]
 [1, 1, 1, 1, 1, 1, 1, 1]
 sage: for n in range(1,10):
-...    print n, factorial(n-1) % n, -1 % n
+....:     print("{} {} {}".format(n, factorial(n-1) % n, -1 % n))
 1 0 0
 2 1 1
 3 2 2
@@ -107,8 +108,8 @@ sage: n = 95468093486093450983409583409850934850938459083
 sage: is_prime(n)
 False
 sage: for p in primes(100):
-...   if is_prime(2^p - 1):
-...       print p, 2^p - 1
+....:     if is_prime(2^p - 1):
+....:         print("{} {}".format(p, 2^p - 1))
 2 3
 3 7
 5 31
@@ -131,7 +132,7 @@ sage: # Check primality of 2^next_prime(1000)-1
 sage: is_prime_lucas_lehmer(next_prime(1000))
 False
 sage: for p in primes(20):
-...    print p, primitive_root(p)
+....:     print("{} {}".format(p, primitive_root(p)))
 2 1
 3 2
 5 2
@@ -157,6 +158,7 @@ sage: log(3.0)
 sage: log(19683.0) / log(3.0)
 9.00000000000000
 sage: plot(log, 0.1,10, rgbcolor=(0,0,1))
+Graphics object consisting of 1 graphics primitive
 sage: p = 53
 sage: R = Integers(p)
 sage: a = R.multiplicative_generator()
@@ -164,6 +166,7 @@ sage: v = sorted([(a^n, n) for n in range(p-1)])
 sage: G = plot(point(v,pointsize=50,rgbcolor=(0,0,1)))
 sage: H = plot(line(v,rgbcolor=(0.5,0.5,0.5)))
 sage: G + H
+Graphics object consisting of 2 graphics primitives
 sage: q = 93450983094850938450983409623
 sage: q.is_prime()
 True
@@ -305,7 +308,7 @@ sage: def kr(a, p):
 ...    else:
 ...       return -1
 sage: for a in range(1,5):
-...    print a, kr(a,5)
+....:     print("{} {}".format(a, kr(a,5)))
 1 1
 2 -1
 3 -1
@@ -314,16 +317,16 @@ sage: p = 726377359
 sage: Mod(3, p)^((p-1)//2)
 726377358
 sage: def gauss(a, p):
-...    # make the list of numbers reduced modulo p
-...    v = [(n*a)%p for n in range(1, (p-1)//2 + 1)]
-...    # normalize them to be in the range -p/2 to p/2
-...    v = [(x if (x < p/2) else x - p) for x in v]
-...    # sort and print the resulting numbers
-...    v.sort()
-...    print v
-...    # count the number that are negative
-...    num_neg = len([x for x in v if x < 0])
-...    return (-1)^num_neg
+....:     # make the list of numbers reduced modulo p
+....:     v = [(n*a)%p for n in range(1, (p-1)//2 + 1)]
+....:     # normalize them to be in the range -p/2 to p/2
+....:     v = [(x if (x < p/2) else x - p) for x in v]
+....:     # sort and print the resulting numbers
+....:     v.sort()
+....:     print(v)
+....:     # count the number that are negative
+....:     num_neg = len([x for x in v if x < 0])
+....:     return (-1)^num_neg
 sage: gauss(2, 13)
 [-5, -3, -1, 2, 4, 6]
 -1
@@ -389,46 +392,40 @@ sage: find_sqrt(5,389)         # see, it's random
 86
 
 # Several of the examples below had to be changed due to improved
-# behavior of the continued_fraction function #8017.
+# behavior of the continued_fraction function #8017 and #14567.
 
 sage: continued_fraction(17/23)
-[0, 1, 2, 1, 5]
+[0; 1, 2, 1, 5]
 sage: reset('e')
 sage: continued_fraction(e)
-[2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1]
-sage: continued_fraction(e, bits=21)
+[2; 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, ...]
+sage: continued_fraction_list(e, bits=21)
 [2, 1, 2, 1, 1, 4, 1, 1, 6]
-sage: continued_fraction(e, bits=30)
+sage: continued_fraction_list(e, bits=30)
 [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8]
 sage: a = continued_fraction(17/23); a
-[0, 1, 2, 1, 5]
+[0; 1, 2, 1, 5]
 sage: a.value()
 17/23
 sage: b = continued_fraction(6/23); b
-[0, 3, 1, 5]
-sage: a + b
-[1]
-sage: c = continued_fraction(pi,bits=35); c
-[3, 7, 15, 1, 292, 1]
-sage: c.convergents()
-[3, 22/7, 333/106, 355/113, 103993/33102, 104348/33215]
+[0; 3, 1, 5]
 sage: c = continued_fraction(pi); c
-[3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14]
-sage: for n in range(-1, len(c)):
-...    print c.pn(n)*c.qn(n-1) - c.qn(n)*c.pn(n-1),
-1 -1 1 -1 1 -1 1 -1 1 -1 1 -1 1 -1
-sage: for n in range(len(c)):
-...    print c.pn(n)*c.qn(n-2) - c.qn(n)*c.pn(n-2),
-3 -7 15 -1 292 -1 1 -1 2 -1 3 -1 14
+[3; 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1, 2, 2, 2, 2, ...]
+sage: [c.convergent(i) for i in xrange(5)]
+[3, 22/7, 333/106, 355/113, 103993/33102]
+sage: [c.p(n)*c.q(n-1) - c.q(n)*c.p(n-1) for n in range(-1, 13)]
+[1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1]
+sage: [c.p(n)*c.q(n-2) - c.q(n)*c.p(n-2) for n in range(13)]
+[3, -7, 15, -1, 292, -1, 1, -1, 2, -1, 3, -1, 14]
 sage: c = continued_fraction([1,2,3,4,5])
 sage: c.convergents()
 [1, 3/2, 10/7, 43/30, 225/157]
-sage: [c.pn(n) for n in range(len(c))]
+sage: [c.p(n) for n in range(len(c))]
 [1, 3, 10, 43, 225]
-sage: [c.qn(n) for n in range(len(c))]
+sage: [c.q(n) for n in range(len(c))]
 [1, 2, 7, 30, 157]
 sage: c = continued_fraction([1,1,1,1,1,1,1,1])
-sage: v = [(i, c.pn(i)/c.qn(i)) for i in range(len(c))]
+sage: v = [(i, c.p(i)/c.q(i)) for i in range(len(c))]
 sage: P = point(v, rgbcolor=(0,0,1), pointsize=40)
 sage: L = line(v, rgbcolor=(0.5,0.5,0.5))
 sage: L2 = line([(0,c.value()),(len(c)-1,c.value())], \
@@ -438,18 +435,18 @@ sage: def cf(bits):
 ...   x = (1 + sqrt(RealField(bits)(5))) / 2
 ...   return continued_fraction(x)
 sage: cf(10)
-[1, 1, 1, 1, 1, 1, 1]
+[1; 1, 1, 1, 1, 1, 1, 2]
 sage: cf(30)
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+[1; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2]
 sage: cf(50)
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+ [1; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2]
 sage: def cf_sqrt_d(d, bits):
 ...   x = sqrt(RealField(bits)(d))
 ...   return continued_fraction(x)
 sage: cf_sqrt_d(389,50)
-[19, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 2]
+[19; 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38]
 sage: cf_sqrt_d(389,100)
-[19, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1]
+[19; 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 2]
 sage: def newton_root(f, iterates=2, x0=0, prec=53):
 ...    x = RealField(prec)(x0)
 ...    R = PolynomialRing(ZZ,'x')
@@ -462,9 +459,9 @@ sage: reset('x')
 sage: a = newton_root(3847*x^2 - 14808904*x + 36527265); a
 2.46815700480740
 sage: cf = continued_fraction(a); cf
-[2, 2, 7, 2, 1, 5, 1, 1, 1, 1, 1, 1, 103, 8, 1, 2, 3]
+[2; 2, 7, 2, 1, 5, 1, 1, 1, 1, 1, 1, 103, 8, 1, 2, 3, 2]
 sage: c = cf[:12]; c
-[2, 2, 7, 2, 1, 5, 1, 1, 1, 1, 1, 1]
+[2; 2, 7, 2, 1, 5, 1, 1, 1, 1, 2]
 sage: c.value()
 9495/3847
 sage: def sum_of_two_squares_naive(n):
@@ -512,6 +509,7 @@ sage: E
 Elliptic Curve defined by y^2  = x^3 + x over
 Finite Field of size 37
 sage: E.plot(pointsize=45)
+Graphics object consisting of 1 graphics primitive
 sage: E = EllipticCurve([-5,4])
 sage: P = E([1,0]); Q = E([0,2])
 sage: P + Q

@@ -8,10 +8,6 @@ TIDES is a library for integration of ODE's with high precission.
 
 GPLv3+
 
-== SPKG Maintainers ==
-
-* Miguel Marco
-
 == Upstream Contact ==
 
 * Marcos Rodriguez (marcos@unizar.es)
@@ -24,7 +20,6 @@ GPLv3+
 
 == Special Update/Build Instructions ==
 
-
-minc_tides.patch changes the size of the name of the temporal files, so there is
-no problem in systems that use long names. Also solves a bug in the inverse
-function
+minc_tides.patch changes the size of the name of the temporal files, so
+there is no problem in systems that use long names. Also solves a bug
+in the inverse function.

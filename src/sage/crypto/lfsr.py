@@ -148,7 +148,7 @@ import copy
 
 from sage.structure.all import Sequence
 from sage.rings.all import Integer, PolynomialRing
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 
 def lfsr_sequence(key, fill, n):

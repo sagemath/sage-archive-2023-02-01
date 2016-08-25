@@ -9,7 +9,7 @@ AUTHORS:
 
 - Robert Bradshaw (2008-08): fast float integration
 
-- Jeroen Demeyer (2011-11-23): Trac #12047: return 0 when the
+- Jeroen Demeyer (2011-11-23): :trac:`12047`: return 0 when the
   integration interval is a point; reformat documentation and add to
   the reference manual.
 """
@@ -23,12 +23,12 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/interrupt.pxi'
-include 'gsl.pxi'
-
+include "cysignals/signals.pxi"
+from sage.libs.gsl.all cimport *
 from sage.ext.fast_eval cimport FastDoubleFunc
+
 
 cdef class PyFunctionWrapper:
    cdef object the_function
@@ -48,7 +48,7 @@ cdef double c_f(double t,void *params):
       else:
          value=wrapper.the_function(t)
    except Exception as msg:
-      print msg
+      print(msg)
       return 0
 
    return value
@@ -75,6 +75,7 @@ def numerical_integral(func, a, b=None,
     - ``algorithm`` -- valid choices are:
 
       * 'qag' -- for an adaptive integration
+      * 'qags' -- for an adaptive integration with (integrable) singularities
       * 'qng' -- for a non-adaptive Gauss-Kronrod (samples at a maximum of 87pts)
 
     - ``max_points`` -- sets the maximum number of sample points
@@ -145,6 +146,13 @@ def numerical_integral(func, a, b=None,
          (0.10806674191683065, 1.1997818507228991e-15),
          (0.09745444625548845, 1.0819617008493815e-15),
          (0.088750683050217577, 9.8533051773561173e-16)]
+        sage: y = var('y')
+        sage: numerical_integral(x*y, 0, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The function to be integrated depends on 2 variables (x, y),
+        and so cannot be integrated in one dimension. Please fix additional
+        variables with the 'params' argument
 
     Note the parameters are always a tuple even if they have one component.
 
@@ -181,12 +189,22 @@ def numerical_integral(func, a, b=None,
 
     If the interval of integration is a point, then the result is
     always zero (this makes sense within the Lebesgue theory of
-    integration), see Trac ticket #12047::
+    integration), see :trac:`12047`::
 
         sage: numerical_integral(log, 0, 0)
         (0.0, 0.0)
         sage: numerical_integral(lambda x: sqrt(x), (-2.0, -2.0) )
         (0.0, 0.0)
+
+    In the presence of integrable singularity, the default adaptive method might
+    fail and it is advised to use ``'qags'``::
+
+        sage: b = 1.81759643554688
+        sage: F(x) = sqrt((-x + b)/((x - 1.0)*x))
+        sage: numerical_integral(F, 1, b)
+        (inf, nan)
+        sage: numerical_integral(F, 1, b, algorithm='qags')    # abs tol 1e-10
+        (1.1817104238446596, 3.387268288079781e-07)
 
     AUTHORS:
 
@@ -200,7 +218,7 @@ def numerical_integral(func, a, b=None,
     TESTS:
 
     Make sure that constant Expressions, not merely uncallable arguments,
-    can be integrated (trac #10088), at least if we can coerce them
+    can be integrated (:trac:`10088`), at least if we can coerce them
     to float::
 
         sage: f, g = x, x-1
@@ -249,7 +267,12 @@ def numerical_integral(func, a, b=None,
                return (((<double>b - <double>a) * <double>func), 0.0)
             if len(vars) != 1:
                 if len(params) + 1 != len(vars):
-                    raise ValueError, "Integrand has wrong number of parameters"
+                   raise ValueError(("The function to be integrated depends on "
+                                     "{} variables {}, and so cannot be "
+                                     "integrated in one dimension. Please fix "
+                                     "additional variables with the 'params' "
+                                     "argument").format(len(vars),tuple(vars)))
+
                 to_sub = dict(zip(vars[1:], params))
                 func = func.subs(to_sub)
             func = func._fast_float_(str(vars[0]))
@@ -265,12 +288,12 @@ def numerical_integral(func, a, b=None,
       if not func is None:
          wrapper.the_function = func
       else:
-         raise ValueError, "No integrand defined"
+         raise ValueError("No integrand defined")
       try:
          if params==[] and len(inspect.getargspec(wrapper.the_function)[0])==1:
             wrapper.the_parameters=[]
          elif params==[] and len(inspect.getargspec(wrapper.the_function)[0])>1:
-            raise ValueError, "Integrand has parameters but no parameters specified"
+            raise ValueError("Integrand has parameters but no parameters specified")
          elif params!=[]:
             wrapper.the_parameters = params
       except TypeError:
@@ -323,8 +346,18 @@ def numerical_integral(func, a, b=None,
          gsl_integration_qag(&F,_a,_b,eps_abs,eps_rel,n,rule,W,&result,&abs_err)
          sig_off()
 
+
+   elif algorithm == "qags":
+
+        W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
+        sig_on()
+        _a=a
+        _b=b
+        gsl_integration_qags(&F,_a,_b,eps_abs,eps_rel,n,W,&result,&abs_err)
+        sig_off()
+
    else:
-      raise TypeError, "invalid integration algorithm"
+      raise TypeError("invalid integration algorithm")
 
    if W != NULL:
       gsl_integration_workspace_free(W)

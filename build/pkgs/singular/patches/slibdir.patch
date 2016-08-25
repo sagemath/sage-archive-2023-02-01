@@ -1,6 +1,6 @@
-diff -ru a/IntegerProgramming/Makefile.in b/IntegerProgramming/Makefile.in
---- a/IntegerProgramming/Makefile.in	2012-12-19 22:01:16.000000000 +0100
-+++ b/IntegerProgramming/Makefile.in	2013-08-26 22:44:59.909607832 +0200
+diff -druN a/latest/IntegerProgramming/Makefile.in b/latest/IntegerProgramming/Makefile.in
+--- a/latest/IntegerProgramming/Makefile.in	2014-10-21 05:59:54.327560770 -0700
++++ b/latest/IntegerProgramming/Makefile.in	2014-10-21 05:59:36.327521758 -0700
 @@ -5,7 +5,7 @@
  ##
  bindir          = @bindir@
@@ -10,9 +10,9 @@ diff -ru a/IntegerProgramming/Makefile.in b/IntegerProgramming/Makefile.in
  install_bindir  = ${install_prefix}/${SINGUNAME}
  libdir          = @libdir@
  
-diff -ru a/Singular/Makefile.in b/Singular/Makefile.in
---- a/Singular/Makefile.in	2012-12-19 22:01:16.000000000 +0100
-+++ b/Singular/Makefile.in	2013-08-26 22:44:59.909607832 +0200
+diff -druN a/latest/Singular/Makefile.in b/latest/Singular/Makefile.in
+--- a/latest/Singular/Makefile.in	2014-10-21 05:58:50.087421525 -0700
++++ b/latest/Singular/Makefile.in	2014-10-21 05:59:36.327521758 -0700
 @@ -48,7 +48,7 @@
  bindir		= @bindir@
  # includes are taken from here
@@ -21,5 +21,4 @@ diff -ru a/Singular/Makefile.in b/Singular/Makefile.in
 +slibdir		= @datarootdir@/singular
  install_bindir  = ${install_prefix}/${SINGUNAME}
  install_slibdir = ${install_prefix}/LIB
- ifeq (${PYOBJECT_MODULE},)
-Only in b/Singular: Makefile.in.orig
+ dir_mod		= MOD

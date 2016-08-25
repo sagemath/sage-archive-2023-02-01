@@ -6,15 +6,16 @@ Sage Development Process
 
 This section is a concise overview of the Sage development process. In
 it, we will see how to make changes to the Sage source code and record
-them in the git revision control system. In the following section on
-:ref:`chapter-git_trac` we will look at communicating these changes
-back to the Sage project.
+them in the git revision control system.
 
-
-We also have a handy `one-page "cheat sheet"
+In the following section on :ref:`chapter-git_trac` we will look at
+communicating these changes back to the Sage project.  We also have a handy
+`one-page "cheat sheet"
 <http://github.com/sagemath/git-trac-command/raw/master/doc/git-cheat-sheet.pdf>`_
 of commonly used git commands that you can print out and leave on your
-desk.
+desk.  We have some :ref:`recommended references and tutorials
+<section-git-tutorials>` as well.
+
 You can alternatively fork and create a pull request at
 `github <http://github.com/sagemath/sage>`_ which will automatically fetch
 your code and open a ticket on our trac server.
@@ -28,7 +29,7 @@ Configuring Git
 One way or another, ``git`` is what Sage uses for tracking changes.
 So first, open a shell (for instance, Terminal on Mac) and check that
 ``git`` works::
-    
+
     [user@localhost]$ git
     usage: git [--version] [--help] [-C <path>] [-c name=value]
     ...
@@ -36,7 +37,7 @@ So first, open a shell (for instance, Terminal on Mac) and check that
        add        Add file contents to the index
     ...
        tag        Create, list, delete or verify a tag object signed with GPG
-    
+
     'git help -a' and 'git help -g' lists available subcommands and some
     concept guides. See 'git help <command>' or 'git help <concept>'
     to read about a specific subcommand or concept.
@@ -69,19 +70,35 @@ local installation of Sage, or (to start without Sage) download it
 from github which is a public read-only mirror (=faster) of our
 internal git repository::
 
-    [user@localhost]$ git clone git://github.com/sagemath/sage.git
+    [user@localhost ~]$ git clone git://github.com/sagemath/sage.git
     Cloning into 'sage'...
     [...]
     Checking connectivity... done.
-    
-This creates a directory named ``sage`` containing the sources for the
-current stable and development releases of Sage.  You will need to
-`compile Sage <http://www.sagemath.org/doc/installation/source.html>`_
-in order to use it.
 
-(For the experts, note that the repository at
+This creates a directory named ``sage`` containing the sources for the
+current stable and development releases of Sage. You next need to switch
+to the develop branch (latest development release)::
+
+    [user@localhost ~]$ cd sage
+    [user@localhost sage]$ git checkout develop
+
+You will then need to `compile Sage
+<http://doc.sagemath.org/html/en/installation/source.html>`_ in order to use it. If
+you cloned, you will need to remain on the internet for it to download various
+packages of Sage::
+
+    [user@localhost sage]$ make
+
+.. NOTE::
+
+    Mac OS X allows changing directories without using exact capitalization.
+    Beware of this convenience when compiling for OS X. Ignoring exact
+    capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
+    errors for dependencies requiring exact capitalization in path names.
+
+For the experts, note that the repository at
 `git.sagemath.org <http://git.sagemath.org>`_ is where development
-actually takes place .)
+actually takes place.
 
 
 .. _section-walkthrough-branch:
@@ -125,7 +142,7 @@ you have to use ``git checkout``::
 
 Note that, unless you explicitly upload ("push") a branch to remote
 git repository, the local branch will only be on your computer and not
-visible to anyone else. 
+visible to anyone else.
 
 To avoid typing the new branch name twice you can use the shortcut
 ``git checkout -b my_new_branch`` to create and switch to the new
@@ -148,12 +165,13 @@ To dig deeper, you can inspect the log::
 
     [user@localhost sage]$ git log
 
-By default, this lists all commits in reverse chronological order. If
-you find your branch to be in the wrong place, you can use the ``git
-reset --hard`` command to reset it to something else; see
-:ref:`section-git-recovery` for details.
+By default, this lists all commits in reverse chronological order.
 
+- If you find your branch to be in the wrong place, see the
+  :ref:`section-git-recovery` section.
 
+- Many programs are available to help you visualize the history tree
+  better. ``tig`` is a very nice text-mode such tool.
 
 .. _section-walkthrough-add-edit:
 
@@ -174,15 +192,15 @@ changes::
     Changes not staged for commit:
       (use "git add <file>..." to update what will be committed)
       (use "git checkout -- <file>..." to discard changes in working directory)
-    
+
         modified:   some_file.py
         modified:   src/sage/primes/all.py
-    
+
     Untracked files:
       (use "git add <file>..." to include in what will be committed)
-    
+
         src/sage/primes/last_pair.py
-    
+
     no changes added to commit (use "git add" and/or "git commit -a")
 
 To dig deeper into what was changed in the files you can use::
@@ -206,15 +224,16 @@ have to run::
     [user@localhost sage]$ ./sage -br
 
 to rebuild the Sage library and then start Sage. This should be quite
-fast. If you made changes to third-party packages then you have to
-run::
+fast. If you made changes to
+:ref:`third-party packages <chapter-packaging>`, then you have to run ::
 
     [user@localhost sage]$ make
 
 as if you were `installing Sage from scratch
-<http://www.sagemath.org/doc/installation/source.html>`_.
-However, simply running ``make`` will only recompile packages
-that were changed, so it shoud be much faster than compiling Sage
+<http://doc.sagemath.org/html/en/installation/source.html>`_.
+However, this time only packages which were changed (or which depend
+on a changed package) will be recompiled,
+so it shoud be much faster than compiling Sage
 the first time. Rarely there are conflicts with other packages,
 or with the already-installed older version of the package that you
 changed, in that case you do have to recompile everything using::

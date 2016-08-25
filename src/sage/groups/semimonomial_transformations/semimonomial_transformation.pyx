@@ -38,7 +38,7 @@ AUTHORS:
 
 - Thomas Feulner (2012-11-15): initial version
 - Thomas Feulner (2013-12-27): :trac:`15576` dissolve dependency on 
-    Permutations().global_options()['mul']
+    Permutations.options.mul
 
 EXAMPLES::
 
@@ -52,7 +52,6 @@ TESTS::
 
     sage: TestSuite(G[0]).run()
 """
-include "../../ext/stdsage.pxi"
 
 
 def _is_id(f, R):
@@ -137,7 +136,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
     cdef _new_c(self):
         # Create a copy of self.
         cdef SemimonomialTransformation x
-        x = PY_NEW(SemimonomialTransformation)
+        x = SemimonomialTransformation.__new__(SemimonomialTransformation)
         x._parent = self._parent
         x.v = self.v
         x.perm = self.perm
@@ -172,7 +171,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         """
         return hash(self.v) + hash(self.perm) + hash(self.get_autom())
 
-    cpdef MonoidElement _mul_(left, MonoidElement _right):
+    cpdef _mul_(left, _right):
         r"""
         Multiplication of elements.
         
@@ -246,7 +245,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         return "(%s; %s, %s)"%(self.v, self.perm.cycle_string(),
                                self.get_autom())
 
-    def __cmp__(self, right):
+    cpdef int _cmp_(left, _right) except -2:
         """
         Compare group elements ``self`` and ``right``.
 
@@ -259,9 +258,6 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
             sage: g[1] != g[2] # indirect doctest
             True
         """
-        return (<Element> self)._cmp(right)
-
-    cdef int _cmp_c_impl(left, Element _right) except -2:
         cdef SemimonomialTransformation right = <SemimonomialTransformation> _right
         return cmp([left.v, left.perm, left.get_autom()],
                    [right.v, right.perm, right.get_autom()])

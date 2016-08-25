@@ -1,6 +1,7 @@
 r"""
 Parents for Polyhedra
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
@@ -14,12 +15,11 @@ from sage.structure.element import get_coercion_model
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module import is_FreeModule
 from sage.misc.cachefunc import cached_method
-from sage.rings.commutative_ring import is_CommutativeRing
-from sage.rings.all import ZZ, QQ, RDF
+from sage.rings.all import ZZ, QQ, RDF, CommutativeRing
 from sage.categories.fields import Fields
 
 from sage.geometry.polyhedron.base import Polyhedron_base, is_Polyhedron
-from representation import Inequality, Equation, Vertex, Ray, Line
+from .representation import Inequality, Equation, Vertex, Ray, Line
 
 
 def Polyhedra(base_ring, ambient_dim, backend=None):
@@ -155,7 +155,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
             sage: p = Polyhedron([(0,0),(1,0),(0,1)])
             sage: n = len(p.parent()._Vertex_pool)
-            sage: p.delete()
+            sage: p._delete()
             sage: len(p.parent()._Vertex_pool) - n
             3
         """
@@ -196,11 +196,13 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: Polyhedra(QQ, 4).an_element()
             A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 5 vertices
         """
-        p = [0] * self.ambient_dim()
+        zero = self.base_ring().zero()
+        one  = self.base_ring().one()
+        p = [zero] * self.ambient_dim()
         points = [p]
         for i in range(0,self.ambient_dim()):
-            p = [0] * self.ambient_dim()
-            p[i] = 1
+            p = [zero] * self.ambient_dim()
+            p[i] = one
             points.append(p)
         return self.element_class(self, [points,[],[]], None)
 
@@ -226,8 +228,9 @@ class Polyhedra_base(UniqueRepresentation, Parent):
                 self.element_class(self, None, None),
                 self.element_class(self, None, [[],[]]) ]
         points = []
+        R = self.base_ring()
         for i in range(0,self.ambient_dim()+5):
-            points.append([i*j^2 for j in range(0,self.ambient_dim())])
+            points.append([R(i*j^2) for j in range(0,self.ambient_dim())])
         return [
             self.element_class(self, [points[0:self.ambient_dim()+1], [], []], None),
             self.element_class(self, [points[0:1], points[1:self.ambient_dim()+1], []], None),
@@ -235,7 +238,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             self.element_class(self, None, None) ]
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         r"""
         Return the polyhedron consisting of the origin, which is the
         neutral element for Minkowski addition.
@@ -243,7 +246,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.geometry.polyhedron.parent import Polyhedra
-            sage: p = Polyhedra(QQ, 4).zero_element();  p
+            sage: p = Polyhedra(QQ, 4).zero();  p
             A 0-dimensional polyhedron in QQ^4 defined as the convex hull of 1 vertex
             sage: p+p == p
             True
@@ -279,7 +282,8 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: P.universe().is_universe()
             True
         """
-        return self(None, [[[1]+[0]*self.ambient_dim()], []], convert=True)
+        R = self.base_ring()
+        return self(None, [[[R.one()]+[R.zero()]*self.ambient_dim()], []], convert=True)
 
     @cached_method
     def Vrepresentation_space(self):
@@ -417,16 +421,16 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             def convert_base_ring(lstlst):
                 return [ [self.base_ring()(x) for x in lst] for lst in lstlst]
             if convert and Hrep:
-                Hrep = map(convert_base_ring, Hrep)
+                Hrep = [convert_base_ring(_) for _ in Hrep]
             if convert and Vrep:
-                Vrep = map(convert_base_ring, Vrep)
+                Vrep = [convert_base_ring(_) for _ in Vrep]
             return self.element_class(self, Vrep, Hrep, **kwds)
         if nargs==1 and is_Polyhedron(args[0]):
             polyhedron = args[0]
             Hrep = [ polyhedron.inequality_generator(), polyhedron.equation_generator() ]
             return self.element_class(self, None, Hrep, **kwds)
         if nargs==1 and args[0]==0:
-            return self.zero_element()
+            return self.zero()
         raise ValueError('Cannot convert to polyhedron object.')
 
     def base_extend(self, base_ring, backend=None):
@@ -553,7 +557,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         """
         Register actions with the coercion model.
 
-        The monoid actions are Minkowski sum and cartesian product. In
+        The monoid actions are Minkowski sum and Cartesian product. In
         addition, we want multiplication by a scalar to be dilation
         and addition by a vector to be translation. This is
         implemented as an action in the coercion model.
@@ -574,17 +578,19 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.geometry.polyhedron.parent import Polyhedra
-            sage: Polyhedra(ZZ,2).get_action(ZZ)   # indirect doctest
+            sage: PZZ2 = Polyhedra(ZZ, 2)
+            sage: PZZ2.get_action(ZZ)   # indirect doctest
             Right action by Integer Ring on Polyhedra in ZZ^2
-            sage: Polyhedra(ZZ,2).get_action(QQ)
+            sage: PZZ2.get_action(QQ)
             Right action by Rational Field on Polyhedra in QQ^2
             with precomposition on left by Conversion map:
               From: Polyhedra in ZZ^2
               To:   Polyhedra in QQ^2
             with precomposition on right by Identity endomorphism of Rational Field
-            sage: Polyhedra(QQ,2).get_action(ZZ)
+            sage: PQQ2 = Polyhedra(QQ, 2)
+            sage: PQQ2.get_action(ZZ)
             Right action by Integer Ring on Polyhedra in QQ^2
-            sage: Polyhedra(QQ,2).get_action(QQ)
+            sage: PQQ2.get_action(QQ)
             Right action by Rational Field on Polyhedra in QQ^2
 
             sage: Polyhedra(ZZ,2).an_element() * 2
@@ -606,7 +612,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices
 
             sage: from sage.geometry.polyhedron.parent import Polyhedra
-            sage: Polyhedra(ZZ,2).get_action( ZZ^2, op=operator.add)
+            sage: PZZ2.get_action(ZZ^2, op=operator.add)
             Right action by Ambient free module of rank 2 over the principal ideal domain Integer Ring on Polyhedra in ZZ^2
             with precomposition on left by Identity endomorphism of Polyhedra in ZZ^2
             with precomposition on right by Generic endomorphism of Ambient free module of rank 2 over the principal ideal domain Integer Ring
@@ -631,7 +637,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
                                            extended_self._internal_coerce_map_from(self).__copy__())
             return action
 
-        if op is operator.mul and is_CommutativeRing(other):
+        if op is operator.mul and isinstance(other, CommutativeRing):
             ring = self._coerce_base_ring(other)
             if ring is self.base_ring():
                 return ActedUponAction(other, self, not self_is_left)
@@ -664,7 +670,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: p = Polyhedron([(1,2,3),(2/3,3/4,4/5)])   # indirect doctest
-            sage: p.inequality_generator().next()
+            sage: next(p.inequality_generator())
             An inequality (0, 0, -1) x + 3 >= 0
         """
         try:
@@ -691,7 +697,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: p = Polyhedron([(1,2,3),(2/3,3/4,4/5)])   # indirect doctest
-            sage: p.equation_generator().next()
+            sage: next(p.equation_generator())
             An equation (0, 44, -25) x - 13 == 0
         """
         try:
@@ -718,7 +724,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: p = Polyhedron([(1,2,3),(2/3,3/4,4/5)], rays=[(5/6,6/7,7/8)])   # indirect doctest
-            sage: p.vertex_generator().next()
+            sage: next(p.vertex_generator())
             A vertex at (1, 2, 3)
         """
         try:
@@ -745,7 +751,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: p = Polyhedron([(1,2,3),(2/3,3/4,4/5)], rays=[(5/6,6/7,7/8)])   # indirect doctest
-            sage: p.ray_generator().next()
+            sage: next(p.ray_generator())
             A ray in the direction (140, 144, 147)
         """
         try:
@@ -772,7 +778,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: p = Polyhedron([(1,2,3),(2/3,3/4,4/5)], lines=[(5/6,6/7,7/8)])   # indirect doctest
-            sage: p.line_generator().next()
+            sage: next(p.line_generator())
             A line in the direction (140, 144, 147)
         """
         try:

@@ -1950,24 +1950,31 @@ class ClusterAlgebra(Parent):
             for key in clusters.keys():
                 sd, directions = clusters[key]
                 while directions:
-                    # we can mutate in some direction
-                    i = directions.pop()
-                    new_sd  = sd.mutate(i, inplace=False, mutating_F=mutating_F)
-                    new_cl = frozenset(new_sd.g_vectors())
-                    if new_cl in clusters:
-                        # we already had new_sd, make sure it does not mutate to sd during next round
-                        j = map(tuple,clusters[new_cl][0].g_vectors()).index(new_sd.g_vector(i))
-                        try:
-                            clusters[new_cl][1].remove(j)
-                        except ValueError:
-                            pass
-                    else:
-                        # we got a new seed
-                        gets_bigger = True
-                        # next round do not mutate back to sd and do commuting mutations only in directions j > i
-                        new_directions = [ j for j in allowed_dirs if j > i or new_sd.b_matrix()[j,i] != 0 ]
-                        clusters[new_cl] = [ new_sd, new_directions ]
-                        yield new_sd
+                    try:
+                        # we can mutate in some direction
+                        i = directions.pop()
+                        new_sd  = sd.mutate(i, inplace=False, mutating_F=mutating_F)
+                        new_cl = frozenset(new_sd.g_vectors())
+                        if new_cl in clusters:
+                            # we already had new_sd, make sure it does not mutate to sd during next round
+                            j = map(tuple,clusters[new_cl][0].g_vectors()).index(new_sd.g_vector(i))
+                            try:
+                                clusters[new_cl][1].remove(j)
+                            except ValueError:
+                                pass
+                        else:
+                            # we got a new seed
+                            gets_bigger = True
+                            # next round do not mutate back to sd and make sure we only walk three sides of squares
+                            new_directions = [ j for j in allowed_dirs if j > i or new_sd.b_matrix()[j,i] != 0 ]
+                            clusters[new_cl] = [ new_sd, new_directions ]
+                            yield new_sd
+                    except KeyboardInterrupt:
+                        print("Caught a KeyboardInterrupt; cleaning up before returning.")
+                        # mutation in direction i was not completed; put it back in for next round
+                        directions.append(i)
+                        yield
+                        continue
             # we went one step deeper
             depth_counter += 1
 

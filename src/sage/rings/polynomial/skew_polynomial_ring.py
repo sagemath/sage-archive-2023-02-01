@@ -146,7 +146,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
     @staticmethod
     def __classcall__(cls, base_ring, twist_map=None, name=None, sparse=False,
                       element_class=None):
-        """
+        r"""
         Set the default values for ``name``, ``sparse`` and ``element_class``.
 
         EXAMPLES::
@@ -175,16 +175,20 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
                          base_ring, twist_map, name, sparse, element_class)
 
     def __init__(self, base_ring, twist_map, name, sparse, element_class):
-        """
+        r"""
         Initialize ``self``.
 
         INPUT:
 
         - ``base_ring`` -- a commutative ring
+
         - ``twist_map`` -- an automorphism of the base ring
+
         - ``name`` -- string or list of strings representing the name of
           the variables of ring
+
         - ``sparse`` -- boolean (default: ``False``)
+
         - ``element_class`` -- class representing the type of element to
           be used in ring
 
@@ -221,7 +225,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
                 convert_list = [list, base_inject])
 
     def _element_constructor_(self, a=None, check=True, construct=False, **kwds):
-        """
+        r"""
         Convert a base ring element ``a`` into a constant of this univariate
         skew polynomial ring, possibly non-canonically.
 
@@ -283,7 +287,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         return C(self, a, check, construct=construct, **kwds)
 
     def _coerce_map_from_(self, P):
-        """
+        r"""
         Check whether ``self`` has a coerce map from ``P``.
 
         The rings that canonically coerce into this ring are:
@@ -347,7 +351,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             pass
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of ``self``.
 
         EXAMPLES::
@@ -412,7 +416,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
                                   sparse=self.__is_sparse)
 
     def characteristic(self):
-        """
+        r"""
         Return the characteristic of the base ring of ``self``.
 
         EXAMPLES::
@@ -431,7 +435,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
     @cached_method
     def twist_map(self, n=1):
-        """
+        r"""
         Return the twist map, the automorphism of the base ring of
         ``self``, iterated ``n`` times.
 
@@ -484,7 +488,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
     @cached_method
     def gen(self, n=0):
-        """
+        r"""
         Return the indeterminate generator of this skew polynomial ring.
 
         INPUT:
@@ -519,7 +523,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
     parameter = gen
 
     def gens_dict(self):
-        """
+        r"""
         Return a {name: variable} dictionary of the generators of ``self``.
 
         EXAMPLES::
@@ -533,9 +537,9 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         return dict(zip(self.variable_names(), self.gens()))
 
     def is_finite(self):
-        """
+        r"""
         Return ``False`` since skew polynomial rings are not finite
-        (unless the base ring is 0.)
+        (unless the base ring is `0`.)
 
         EXAMPLES::
 
@@ -551,7 +555,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         return R.is_finite() and R.order() == 1
 
     def is_exact(self):
-        """
+        r"""
         Return ``True`` if elements of this skew polynomial ring are exact.
         This happens if and only if elements of the base ring are exact.
 
@@ -576,12 +580,14 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         return self.base_ring().is_exact()
 
     def is_sparse(self):
-        """
+        r"""
         Return ``True`` if the elements of this polynomial ring are sparsely
         represented.
 
-        Since sparse skew polynomials are not yet implemented, this
-        function always returns ``False``.
+        .. WARNING::
+
+            Since sparse skew polynomials are not yet implemented, this
+            function always returns ``False``.
 
         EXAMPLES:
 
@@ -594,7 +600,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         return self.__is_sparse
 
     def ngens(self):
-        """
+        r"""
         Return the number of generators of this skew polynomial ring,
         which is 1.
 
@@ -640,7 +646,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             x^2 + (2*t^2 + t + 1)*x + 3*t^2 + 3*t + 2
 
         Use ``degree`` to obtain polynomials of higher degree
-        
+
             sage: p = S.random_element(degree=5)   # random
             (t^2 + 3*t)*x^4 + (4*t + 4)*x^3 + (4*t^2 + 4*t)*x^2 + (2*t^2 + 1)*x + 3
 
@@ -684,7 +690,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             return self([R.random_element(*args, **kwds) for _ in range(degree+1)])
 
     def is_commutative(self):
-        """
+        r"""
         Return ``True`` if this skew polynomial ring is commutative, i.e. if the
         twist map is the identity.
 
@@ -701,4 +707,3 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             True
         """
         return self.twist_map().is_identity()
-

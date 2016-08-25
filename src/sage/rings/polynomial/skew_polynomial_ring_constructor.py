@@ -43,7 +43,6 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
     `R[X]` equipped with the modification multiplication deduced from the
     rule `X a = \sigma(a) X`.
 
-
     .. SEEALSO::
 
         - :class:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general`
@@ -105,7 +104,7 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
     twisted by ``base_ring_automorphism`` by writing
     ``R['varname', base_ring_automorphism]``.
 
-    EXAMPLES:
+    EXAMPLES::
 
     We first define the base ring::
 
@@ -142,7 +141,7 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
         sage: R['x', base_ring_automorphism] == R['y', base_ring_automorphism]
         False
 
-    TESTS:
+    TESTS::
 
     You must specify a variable name::
 
@@ -190,7 +189,6 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
         - Multivariate Skew Polynomial Ring
         - Add derivations.
     """
-
     if not isinstance(base_ring, ring.CommutativeRing):
         raise TypeError("base_ring must be a commutative ring")
     if base_ring_automorphism is None:
@@ -211,4 +209,3 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
 
     from sage.rings.polynomial.skew_polynomial_ring import SkewPolynomialRing_general
     return SkewPolynomialRing_general(base_ring, base_ring_automorphism, names, sparse)
-

@@ -1196,7 +1196,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         An orthocomplementation of a lattice is a function defined for
         every element `e` and marked as `e^{\\bot}` such that
         1) they are complements, i.e. `e \\vee e^{\\bot}` is the top element
-        and `e \wedge e^{\\bot}` is the bottom element, 2) it is involution,
+        and `e \\wedge e^{\\bot}` is the bottom element, 2) it is involution,
         i.e. `{(e^{\\bot})}^{\\bot} = e`, and 3) it is order-reversing, i.e.
         if `a < b` then `b^{\\bot} < a^{\\bot}`.
 

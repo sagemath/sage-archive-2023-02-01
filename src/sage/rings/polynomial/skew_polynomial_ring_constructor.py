@@ -104,7 +104,7 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
     twisted by ``base_ring_automorphism`` by writing
     ``R['varname', base_ring_automorphism]``.
 
-    EXAMPLES::
+    EXAMPLES:
 
     We first define the base ring::
 
@@ -141,7 +141,7 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
         sage: R['x', base_ring_automorphism] == R['y', base_ring_automorphism]
         False
 
-    TESTS::
+    TESTS:
 
     You must specify a variable name::
 

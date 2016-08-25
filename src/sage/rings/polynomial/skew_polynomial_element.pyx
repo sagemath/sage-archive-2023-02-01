@@ -134,7 +134,7 @@ cdef class SkewPolynomial(AlgebraElement):
     where `\sigma` is the base ring automorphism. This is called
     the *operator evaluation* method.
 
-    EXAMPLES::
+    EXAMPLES:
 
     We illustrate some functionalities implemented in this class.
 

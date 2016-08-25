@@ -1733,10 +1733,10 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
 
         coeff_start = len(singular_poly_list) // 2
 
-        # Singular 4 puts parentheses around floats
+        # Singular 4 puts parentheses around floats and sign outside them
         if isinstance(k, RealField_class):
               for i in range(coeff_start, 2*coeff_start):
-		   singular_poly_list[i] = singular_poly_list[i].lstrip('(').rstrip(')')
+		   singular_poly_list[i] = singular_poly_list[i].replace('(','').replace(')','')
 
         if isinstance(R,(MPolynomialRing_polydict,QuotientRing_generic)) and (ring_is_fine or can_convert_to_singular(R)):
             # we need to lookup the index of a given variable represented

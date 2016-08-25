@@ -378,7 +378,7 @@ class CyclicCode(AbstractLinearCode):
 
     EXAMPLES:
 
-    We can construct a Cyclic Code using three different methods.
+    We can construct a `CyclicCode` object using three different methods.
     First (1), we provide a generator_polynomial and a length for the code::
 
         sage: F.<x> = GF(2)[]
@@ -583,7 +583,7 @@ class CyclicCode(AbstractLinearCode):
 
     def __eq__(self, other):
         r"""
-        Tests equality between Cyclic Code objects.
+        Tests equality between CyclicCode objects.
 
         EXAMPLES::
 
@@ -802,14 +802,15 @@ class CyclicCode(AbstractLinearCode):
             n = self.length()
             q = F.cardinality()
             g = self.generator_polynomial()
+
             #creation of the extension field (the splitting field)
             #and embeddings
             s = 1
             while not (q ** s - 1) % n == 0:
                 s += 1
-
             Fsplit, F_to_Fsplit = F.extension(Integer(s), 'b', map = True)
             beta = Fsplit.zeta(n)
+            self._primitive_element = beta
 
             #computation of the roots of the generator polynomial
             #over Fsplit
@@ -911,8 +912,8 @@ class CyclicCodePolynomialEncoder(Encoder):
             Polynomial-style encoder for [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
 
         """
-        super(CyclicCodePolynomialEncoder, self).__init__(code)
         self._polynomial_ring = code._polynomial_ring
+        super(CyclicCodePolynomialEncoder, self).__init__(code)
 
     def __eq__(self, other):
         r"""
@@ -930,7 +931,7 @@ class CyclicCodePolynomialEncoder(Encoder):
             True
         """
         return isinstance(other, CyclicCodePolynomialEncoder) \
-                and self.code() == other.code()
+            and self.code() == other.code()
 
     def __ne__(self, other):
         r"""
@@ -1007,8 +1008,8 @@ class CyclicCodePolynomialEncoder(Encoder):
         """
         k = self.code().dimension()
         n = self.code().length()
-        if p.degree() > k:
-            raise ValueError("Degree of the message must be at most %s" % k)
+        if p.degree() >= k:
+            raise ValueError("Degree of the message must be at most %s" % k-1)
         res = (p * self.code().generator_polynomial()).coefficients(sparse = False)
         res = _complete_list(res, n)
         return  vector(self.code().base_field(), res)
@@ -1074,11 +1075,11 @@ class CyclicCodeVectorEncoder(Encoder):
     Let `C` be a cyclic code over some finite field `F`,
     and let `g` be its generator polynomial.
 
-    Let `m = (m_1, m_2, \dots, m_{k-1})` be a vector in `F^{k}`.
-    This codeword can be seen as a polynomial over `F_k[x]`, as follows:
-    `m_p = \Sigma_{i=0}^{k-1} m_i \times x^i`.
+    Let `m = (m_1, m_2, \dots, m_k)` be a vector in `F^{k}`.
+    This codeword can be seen as a polynomial over `F[x]`, as follows:
+    `P_m = \Sigma_{i=0}^{k-1} m_i \times x^i`.
 
-    To encode m, this encoder does the following multiplication: `m_p \times g`.
+    To encode `m`, this encoder does the following multiplication: `P_m \times g`.
 
     INPUT:
 
@@ -1109,7 +1110,7 @@ class CyclicCodeVectorEncoder(Encoder):
             Vector-style encoder for [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
 
         """
-        self._polynomial_ring = code.base_ring()['x']
+        self._polynomial_ring = code._polynomial_ring
         super(CyclicCodeVectorEncoder, self).__init__(code)
 
     def __eq__(self, other):
@@ -1193,8 +1194,8 @@ class CyclicCodeVectorEncoder(Encoder):
         F  = self.code().base_field()
         R = self._polynomial_ring
         p = R(m.list())
-        if p.degree() > k:
-            raise ValueError("Degree of the message must be at most %s" % k)
+        if p.degree() >= k
+            raise ValueError("Degree of the message must be at most %s" % k-1)
         res = (p * self.code().generator_polynomial()).coefficients(sparse = False)
         res = _complete_list(res, n)
         return vector(F, res)
@@ -1256,7 +1257,7 @@ class CyclicCodeVectorEncoder(Encoder):
         n = C.length()
         l = C.generator_polynomial().coefficients(sparse = False)
         l = _complete_list(l, n)
-        G = matrix(C.base_ring(), k, C.length())
+        G = matrix(C.base_ring(), k, n)
         for i in range(k):
             G.set_row(i, l)
             l = l[n-1:] + l[:n-1]

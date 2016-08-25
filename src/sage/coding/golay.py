@@ -44,12 +44,14 @@ class GolayCode(AbstractLinearCode):
     Representation of a Golay Code.
 
     INPUT:
-    - ``alphabet`` -- Finite field parameter of the resulting code. Parameter values
-        can be "binary" or "ternary" for GF(2) and GF(3) respectively.
-    - ``extended`` -- Extension parameter of the resulting code. Parameter values can be
-        "true" or "false".
 
-    EXAMPLES:
+    - ``alphabet`` -- Either ``"binary"``, ``"ternary"``, ``GF(2)`` or ``GF(3)``.
+      The created Golay code will be defined over the specified alphabet.
+
+    - ``extended`` -- (default: ``True``) if set to ``True``, creates an extended Golay
+      code.
+
+    EXAMPLES::
 
     A Golay Code can be constructed by specifying the alphabet and type parameters.
 
@@ -73,7 +75,7 @@ class GolayCode(AbstractLinearCode):
     _registered_encoders = {}
     _registered_decoders = {}
 
-    def __init__(self, alphabet, extended):
+    def __init__(self, alphabet, extended=True):
         r"""
         TESTS:
 
@@ -230,6 +232,12 @@ class GolayCode(AbstractLinearCode):
         The weight distribution of all Golay codes are known, and are thus returned
         by this method without performing any computation
         MWS (67, 69)
+
+        EXAMPLES::
+
+            sage: C = codes.GolayCode(GF(3))
+            sage: C.weight_distribution()
+            [1, 0, 0, 0, 0, 0, 264, 0, 0, 440, 0, 0, 24]
         """
         n = self.length()
         if n == 23:
@@ -244,22 +252,30 @@ class GolayCode(AbstractLinearCode):
 
     def weight_enumerator(self):
         r"""
-        To be completed...
+        Return the polynomial whose coefficient to `x^i` is the number of
+        codewords of weight `i` in ``self``.
 
-        MWS
+        The weight distribution of all Golay codes are known, and are thus returned
+        by this method without performing any computation
+
+        EXAMPLES::
+
+            sage: C = codes.GolayCode(GF(3))
+            sage: C.weight_enumerator()
+            1 + 264*x**6 + 440*x**9 + 24*x**12
         """
-        R = PolynomialRing(ZZ, ("x", "y"))
-        x, y = R.gens()
+        R = PolynomialRing(ZZ, "x")
+        x = R.gen()
         n = self.length()
         if n == 23:
-            return (x^23 + 253*x^16*y^7 + 506*x^15*y^8 + 1288*x^12*y^11 +
-                1288*x^11*y^12 + 506*x^8*y^15 + 253*x^7*y^16 + y^23)
+            return (1 + 253*x**7 + 506*x**8 + 1288*x**11 +
+                1288*x**12 + 506*x**15 + 253*x**16 + x**23)
         if n == 24:
-            return x^24 + 759*x^16*y^8 + 2576*x^12*y^12 + 759*x^8*y^16 + y^24
+            return 1 + 759*x**8 + 2576*x**12 + 759*x**16 + x**24
         if n == 11:
-            return x^11 + 132*x^6*y^5 + 132*x^5*y^6 + 330*x^3*y^8 + 110*x^2*y^9 + 24*y^11
+            return 1 + 132*x**5 + 132*x**6 + 330*x**8 + 110*x**9 + 24*x**11
         if n == 12:
-            return x^12 + 264*x^6*y^6 + 440*x^3*y^9 + 24*y^12
+            return 1 + 264*x**6 + 440*x**9 + 24*x**12
 
 
 

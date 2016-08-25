@@ -8,10 +8,11 @@ are written on the left of the variable of the skew polynomial ring. The modifie
 operation over elements of the base ring is extended to all elements of the skew poynomial ring
 by associativity and distributivity.
 
-This module also provides :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field`
-which is a specialized class for skew polynomial rings over finite fields. It inherits from
-:class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general` but allows for
-the more efficient computations in the case of finite fields.
+This module also provides :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_order`
+which is a specialized class for skew polynomial rings over fields equipped with an automorphism of
+finite order. It inherits from
+:class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general` but contains more
+methods and provides better algorithms.
 
 AUTHOR:
 
@@ -33,6 +34,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
+from sage.rings.infinity import Infinity
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
 import sage.algebras.algebra
@@ -40,9 +42,14 @@ import sage.categories.basic as categories
 from sage.rings.integer import Integer
 from sage.structure.category_object import normalize_names
 from sage.misc.prandom import randint
+from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism
 from sage.categories.morphism import IdentityMorphism
+from sage.categories.map import Section
+from sage.rings.morphism import RingHomomorphism
+from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
 import sage.misc.latex as latex
+from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.polynomial.skew_polynomial_element import SkewPolynomial
 
 #########################################################################################
@@ -93,16 +100,15 @@ class CenterSkewPolynomialRing(PolynomialRing_general):
     """
     A specific class for the center of a skew polynomial ring.
     """
-
     def __init__ (self, skew_ring, names=None, sparse=False, element_class=None):
         if not isinstance (skew_ring, SkewPolynomialRing_general):
             raise TypeError("%s is not a Skew Polynomial Ring" % skew_ring)
         self._skew_ring = skew_ring
         base_ring = skew_ring.base_ring()
-        kfixed, embed = skew_ring._map.fixed_points()
+        kfixed, embed = skew_ring._map.fixed_field()
         self._embed_basering = embed
         order = skew_ring._map.order()
-        if order == Infinity:
+        if order is Infinity:
             raise NotImplementedError
         self.__is_sparse = sparse
         self._PolynomialRing_general__is_sparse = sparse
@@ -113,6 +119,7 @@ class CenterSkewPolynomialRing(PolynomialRing_general):
                 raise NotImplementedError("sparse skew polynomials are not implemented")
             else:
                 self._polynomial_class = sage.rings.polynomial.skew_polynomial_element.CenterSkewPolynomial_generic_dense
+        self.Element = self._polynomial_class
 
         # Algebra.__init__ also calls __init_extra__ of Algebras(...).parent_class, which
         # tries to provide a conversion from the base ring, if it does not exist.
@@ -952,7 +959,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         .. WARNING::
 
             This function assumes that `\sigma` has a method order() (which
-            returns its order) and a method fixed_points() (which returns
+            returns its order) and a method fixed_field() (which returns
             the subring `F` together with the embedding of `F` into `R`).
             The case where `\sigma` has infinite order is not implemented
             yet.
@@ -1045,7 +1052,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         .. WARNING::
 
             This function assumes that `\sigma` has a method order() (which
-            returns its order) and a method fixed_points() (which returns
+            returns its order) and a method fixed_field() (which returns
             the subring `F` together with the embedding of `F` into `R`).
             The case where `\sigma` has infinite order is not implemented
             yet.
@@ -1109,7 +1116,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         """
         return self.center(name=name,names=names)    
 
-class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
+class SkewPolynomialRing_finite_order(SkewPolynomialRing_general):
     """
     A specialized class for skew polynomial rings over finite fields.
 
@@ -1117,7 +1124,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
 
         :meth:`sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing`
         :class:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general`
-        :mod:`sage.rings.polynomial.skew_polynomial_finite_field`
+        :mod:`sage.rings.polynomial.skew_polynomial_finite_order`
 
     .. TODO::
 
@@ -1130,8 +1137,8 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
             if sparse:
                 raise NotImplementedError("sparse skew polynomials are not implemented")
             else:
-                from sage.rings.polynomial import skew_polynomial_finite_field
-                element_class = skew_polynomial_finite_field.SkewPolynomial_finite_field_dense
+                from sage.rings.polynomial import skew_polynomial_finite_order
+                element_class = skew_polynomial_finite_order.SkewPolynomial_finite_order_dense
                 return super(SkewPolynomialRing_general,cls).__classcall__(cls,base_ring,map,name,sparse,element_class)
 
     def __init__(self, base_ring, map, name, sparse, element_class):

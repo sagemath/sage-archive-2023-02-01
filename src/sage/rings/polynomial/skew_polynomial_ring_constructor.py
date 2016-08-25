@@ -29,8 +29,11 @@ AUTHOR:
 import cysignals
 import sage.rings.ring as ring
 from sage.structure.category_object import normalize_names
-from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.categories.morphism import Morphism, IdentityMorphism
+from sage.rings.infinity import Infinity
+from sage.categories.fields import Fields
+from sage.categories.commutative_rings import CommutativeRings
+
 
 def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, sparse=False):
     r"""
@@ -184,7 +187,7 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
     - Add derivations.
     """
 
-    if not isinstance(base_ring, ring.CommutativeRing):
+    if base_ring not in CommutativeRings():
         raise TypeError('base_ring must be a commutative ring')
     if base_ring_automorphism is None:
         base_ring_automorphism = IdentityMorphism(base_ring)
@@ -202,9 +205,16 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
     except IndexError:
         raise NotImplementedError("multivariate skew polynomials rings not supported.")
 
-    import sage.rings.polynomial.skew_polynomial_ring
-    if is_FiniteField(base_ring):
-        R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field(base_ring, base_ring_automorphism, names, sparse)
-    else:
-        R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general(base_ring, base_ring_automorphism, names, sparse)
-    return R
+    import sage.rings.polynomial.skew_polynomial_ring as spr
+
+    # We check whether sigma has finite order
+    if base_ring in Fields():
+        try:
+            order = base_ring_automorphism.order()
+            if order is not Infinity:
+                return spr.SkewPolynomialRing_finite_order(base_ring, base_ring_automorphism, names, sparse)
+        except AttributeError:
+            pass
+
+    # Generic implementation
+    return spr.SkewPolynomialRing_general(base_ring, base_ring_automorphism, names, sparse)

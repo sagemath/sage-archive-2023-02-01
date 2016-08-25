@@ -1,9 +1,5 @@
 r"""
-Univariate Dense Skew Polynomials over Finite Fields
-
-This module provides the :class:`~sage.rings.polynomial.skew_polynomial_finite_field.SkewPolynomial_finite_field_dense`
-which constructs a single univariate skew polynomial over a finite field equipped with the Frobenius
-Endomorphism.
+Univariate Dense Skew Polynomials over a field equipped with a finite order automorphism
 
 AUTHOR::
 
@@ -35,54 +31,7 @@ from sage.structure.element cimport RingElement
 from polynomial_ring_constructor import PolynomialRing
 from skew_polynomial_element cimport SkewPolynomial_generic_dense
 
-cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_generic_dense):
-    """
-    A generic, dense, univariate skew polynomial over a finite field.
-
-    DEFINITION:
-
-    Let `R` be a commutative ring and let `\sigma` be the Frobenius
-    Endomorphism over `R` defined by `\sigma(r) = r^p` where `r` is
-    an element of `R` and `p` is the prime characteristic of `R`.
-
-    Then, a formal skew polynomial is given by the equation:
-    `F(X) = a_{n}X^{n} + ... + a_0`
-    where the coefficients `a_{i}` belong to `R` and `X` is a formal variable.
-
-    Addition between two skew polynomials is defined by the usual addition
-    operation and the modified multiplication is defined by the rule
-    `X a = \sigma(a) X` for all `a` in `R`.
-
-    Skew polynomials are thus non-commutative and the degree of a product
-    is equal to the sum of the degree of its factors. The ring of such skew
-    polynomials over `R` equipped with `\sigma` is denoted by `S = R[X, \sigma]`
-    and it is an additive group.
-
-    .. NOTE::
-
-        #. `S` is a left (resp. right) euclidean noncommutative ring
-
-        #. in particular, every left (resp. right) ideal is principal
-
-    EXAMPLES::
-
-        sage: k.<t> = GF(5^3)
-        sage: Frob = k.frobenius_endomorphism()
-        sage: S.<x> = k['x',Frob]; S
-        Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
-
-    .. SEE ALSO::
-
-        :mod:`sage.rings.polynomial.skew_polynomial_element.SkewPolynomial_generic_dense`
-        :mod:`sage.rings.polynomial.skew_polynomial_element.SkewPolynomial`
-        :mod:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field`
-
-    .. TODO::
-
-        Try to replace as possible ``finite field`` by ``field
-        endowed with a finite order twist morphism``. It may cause
-        new phenomena due to the non trivality of the Brauer group.
-    """
+cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
     def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
         """
         This method constructs a generic dense skew polynomial over a finite field.
@@ -123,9 +72,59 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_generic_dense):
             sage: x.parent() is S
             True
 
-       """
+        """
         SkewPolynomial_generic_dense.__init__ (self, parent, x, check, is_gen, construct, **kwds)
+        self._norm = None
+        self._optbound = None
 
+
+    cdef Matrix_dense _matphir_c(self):
+        r"""
+        Return the matrix of the multiplication by `X^r` on
+        the quotient `K[X,\sigma] / K[X,\sigma]*self`.
+        """
+        cdef Py_ssize_t i, j, col, exp, n
+        cdef Py_ssize_t d = self.degree()
+        cdef Py_ssize_t r = self.parent()._order
+        parent = self._parent
+        cdef k = parent.base_ring()
+        cdef Matrix_dense phir = <Matrix_dense?>zero_matrix(k,d,d)
+        cdef RingElement zero = k(0)
+        cdef RingElement one = k(1)
+        if r < d:
+            for i from 0 <= i < d-r:
+                phir.set_unsafe(r+i,i,one)
+            col = d-r
+            exp = d
+        else:
+            col = 0
+            exp = r
+        cdef SkewPolynomial_finite_order_dense powx = <SkewPolynomial_finite_order_dense>self._new_c([zero,one], parent)
+        cdef SkewPolynomial_finite_order_dense v
+        if (exp % 2 == 1):
+            v = <SkewPolynomial_finite_order_dense>self._new_c([zero,one], parent)
+            if self.degree() == 1:
+                v %= self
+        else:
+            v = <SkewPolynomial_finite_order_dense>self._new_c([one], parent)
+        exp = exp >> 1
+        n = 1
+        while exp != 0:
+            powx = (powx.conjugate(n) * powx) % self
+            n = n << 1
+            if (exp % 2 == 1):
+                v = v.conjugate(n)
+                v = (v * powx) % self
+            exp = exp >> 1
+        l = v.list()
+        for i from 0 <= i < len(l):
+            phir.set_unsafe(i,col,l[i])
+        for j from col+1 <= j < d:
+            v <<= 1
+            v = v.conjugate(1) % self
+            for i from 0 <= i <= v.degree():
+                phir.set_unsafe(i,j,v._coeffs[i])
+        return phir
 
     cdef Matrix_dense _matmul_c(self):
         r"""
@@ -426,3 +425,8 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_generic_dense):
                 section = center._embed_basering.section()
                 self._optbound = [ section(x) for x in bound.list() ]
         return center(self._optbound)
+
+
+     # TODO:
+     # fast multiplication
+     # reduced trace, reduced characteristic polynomial     

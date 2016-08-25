@@ -120,6 +120,7 @@ class CenterSkewPolynomialRing(PolynomialRing_general):
             else:
                 self._polynomial_class = sage.rings.polynomial.skew_polynomial_element.CenterSkewPolynomial_generic_dense
         self.Element = self._polynomial_class
+        self._Karatsuba_threshold = 8
 
         # Algebra.__init__ also calls __init_extra__ of Algebras(...).parent_class, which
         # tries to provide a conversion from the base ring, if it does not exist.

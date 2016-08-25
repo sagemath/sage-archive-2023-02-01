@@ -34,7 +34,8 @@ from skew_polynomial_element cimport SkewPolynomial_generic_dense
 cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
     def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
         """
-        This method constructs a generic dense skew polynomial over a finite field.
+        This method constructs a generic dense skew polynomial over a field equipped
+        with an automorphism of finite order.
 
         INPUT::
 
@@ -160,6 +161,48 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
                 l[i] = self._parent.twist_map()(l[i])
         return M
 
+
+    def reduced_trace(self):
+        r"""
+        Return the reduced trace of this skew polynomial.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = S.random_element(degree=3,monic=True); a  #random
+            x^3 + (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 2
+            sage: T = a.reduced_trace(); T                      #random
+            3*(x^3) + 4
+
+        Note that the parent of `T` is the center of the `S`
+        (and not `S` itself)::
+
+            sage: T.parent()
+            Center of Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5:
+            Univariate Polynomial Ring in (x^3) over Finite Field of size 5
+            sage: T.parent() == S.center()
+            True
+
+        We check that the reduced trace is additive:
+
+            sage: a = S.random_element(degree=5)
+            sage: b = S.random_element(degree=7)
+            sage: a.reduced_trace() + b.reduced_trace() == (a+b).reduced_trace()
+            True
+        """
+        order = self.parent()._order
+        twist_map = self.parent().twist_map()
+        coeffs = [ ]
+        for i in range(0, self.degree()+1, order):
+            tr = c = self._coeffs[i]
+            for _ in range(order-1):
+                tr = c + twist_map(tr)
+            coeffs.append(tr)
+        return self.parent().center()(coeffs)
+
+
     def reduced_norm(self):
         r"""
         Return the reduced norm of this skew polynomial.
@@ -211,9 +254,9 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
         We check that `N` is a multiple of `a`::
 
-            sage: S(N).is_divisible_by(a)
+            sage: S(N).is_right_divisible_by(a)
             True
-            sage: S(N).is_divisible_by(a,side=Left)
+            sage: S(N).is_left_divisible_by(a)
             True
 
         .. NOTE::
@@ -221,10 +264,10 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             We really need to coerce first `N` into `S`. Otherwise an
             error occurs::
 
-                 sage: N.is_divisible_by(a)
+                 sage: N.is_right_divisible_by(a)
                  Traceback (most recent call last):
                  ...
-                 AttributeError: 'sage.rings.polynomial.skew_polynomial_element.CenterSkewPolynomial_generic_dense' object has no attribute 'is_divisible_by'
+                 AttributeError: 'sage.rings.polynomial.skew_polynomial_element.CenterSkewPolynomial_generic_dense' object has no attribute 'is_right_divisible_by'
 
         We check that the reduced norm is a multiplicative map::
 
@@ -249,26 +292,6 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
                     charpoly = self._matphir_c().characteristic_polynomial()
                     self._norm = center([ lc*section(x) for x in charpoly.list() ])
         return self._norm
-
-
-    def reduced_norm_factor(self):
-        """
-        Return the reduced norm of this polynomial
-        factorized in the centre.
-
-        EXAMPLES:
-
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
-
-            sage: a = (x^2 + 1) * (x+3)
-            sage: a.reduced_norm_factor()
-            ((x^3) + 3) * ((x^3) + 2)^2
-        """
-        if self._norm_factor is None:
-            self._norm_factor = self.reduced_norm().factor()
-        return self._norm_factor
 
 
     def is_central(self):
@@ -341,9 +364,9 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
         We check that `b` is divisible by `a`::
 
-            sage: S(b).is_divisible_by(a)
+            sage: S(b).is_right_divisible_by(a)
             True
-            sage: S(b).is_divisible_by(a,side=Left)
+            sage: S(b).is_left_divisible_by(a)
             True
 
         Actually, `b` is the reduced norm of `a`::
@@ -411,9 +434,9 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
         We check that `b` is divisible by `a`::
 
-            sage: S(b).is_divisible_by(a)
+            sage: S(b).is_right_divisible_by(a)
             True
-            sage: S(b).is_divisible_by(a,side=Left)
+            sage: S(b).is_left_divisible_by(a)
             True
         """
         center = self.parent().center()

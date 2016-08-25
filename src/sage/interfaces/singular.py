@@ -1727,10 +1727,16 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             singular_poly_list = self.parent().eval("string(coef(%s,%s))"%(\
                     self.name(),variable_str)).split(",")
 
-        if singular_poly_list == ['1','0'] :
-            return R(0)
+        # Directly treat constants
+        if singular_poly_list[0] in ['1', '(1.000e+00)']:
+            return R(singular_poly_list[1])
 
         coeff_start = len(singular_poly_list) // 2
+
+        # Singular 4 puts parentheses around floats
+        if isinstance(k, RealField_class):
+              for i in range(coeff_start, 2*coeff_start):
+		   singular_poly_list[i] = singular_poly_list[i].lstrip('(').rstrip(')')
 
         if isinstance(R,(MPolynomialRing_polydict,QuotientRing_generic)) and (ring_is_fine or can_convert_to_singular(R)):
             # we need to lookup the index of a given variable represented
@@ -1754,10 +1760,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
                         exp[var_dict[var]]=power
 
                 if kcache is None:
-                    coef = singular_poly_list[coeff_start+i]
-                    if isinstance(k, RealField_class):
-                        coef = coef.lstrip('(').rstrip(')')
-                    sage_repr[ETuple(exp,ngens)]=k(coef)
+                    sage_repr[ETuple(exp,ngens)]=k(singular_poly_list[coeff_start+i])
                 else:
                     elem = singular_poly_list[coeff_start+i]
                     if elem not in kcache:

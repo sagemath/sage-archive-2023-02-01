@@ -34,6 +34,7 @@ from .grs import GeneralizedReedSolomonCode
 from .reed_muller_code import ReedMullerCode, BinaryReedMullerCode
 from .extended_code import ExtendedCode
 from .subfield_subcode import SubfieldSubcode
+from .golay import GolayCode
 
 from .guava import QuasiQuadraticResidueCode, RandomLinearCodeGuava
 _lazy_import('sage.coding.punctured_code', 'PuncturedCode')

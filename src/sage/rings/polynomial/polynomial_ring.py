@@ -2090,7 +2090,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         else:
             raise ValueError("no such algorithm for finding an irreducible polynomial: %s" % algorithm)
 
-    def _roth_ruckenstein(self, Q, degree_bound, precision):
+    def _roth_ruckenstein(self, p, degree_bound, precision):
         r"""
         Returns all polynomials which are a solution to the, possibly modular,
         root-finding problem.
@@ -2100,22 +2100,22 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
 
         INPUT:
 
-        - ``Q`` -- a nonzero polynomial over ``F[x][y]``, represented as an ``F[x]``
-          list. The polynomial ``Q`` should be first truncated to ``precision``
+        - ``p`` -- a nonzero polynomial over ``F[x][y]``. The polynomial ``p``
+          should be first truncated to ``precision``
 
-        - ``degree_bound`` -- a bound on the degree of the roots of ``Q`` that
+        - ``degree_bound`` -- a bound on the degree of the roots of ``p`` that
           the algorithm computes
 
         - ``precision`` -- a non-negative integer or `None`. If given, it is the
-          sought precision for modular roots of `Q`. Otherwise, the algorithm
+          sought precision for modular roots of `p`. Otherwise, the algorithm
           computes unconditional roots.
 
         OUTPUT:
 
-        - a list containing all `F[x]` roots of `Q(y)`, possibly modular. If
+        - a list containing all `F[x]` roots of `p(y)`, possibly modular. If
         ``precision`` is given, the algorithm returns a list of pairs `(f, h)`,
         where `f` is a polynomial and `h` is a non-negative integer such that
-        `Q(f + x^{h}*g) \equiv 0 \mod x^{d}` for any `g \in F[x]`, where `d` is
+        `p(f + x^{h}*g) \equiv 0 \mod x^{d}` for any `g \in F[x]`, where `d` is
         ``precision``.
 
         EXAMPLES::
@@ -2124,76 +2124,58 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
             sage: Px.<x> = F[]
             sage: Pxy.<y> = Px[]
             sage: p = (y - (x**2 + x + 1)) * (y**2 - x + 1) * (y - (x**3 + 4*x + 16))
-            sage: Q = p.coefficients()
-            sage: Px._roth_ruckenstein(Q, 3, None)
+            sage: Px._roth_ruckenstein(p, 3, None)
             [x^3 + 4*x + 16, x^2 + x + 1]
-            sage: Px._roth_ruckenstein(Q, 2, None)
+            sage: Px._roth_ruckenstein(p, 2, None)
             [x^2 + x + 1]
-            sage: Px._roth_ruckenstein(Q, 1, 2)
+            sage: Px._roth_ruckenstein(p, 1, 2)
             [(4*x + 16, 2), (2*x + 13, 2), (15*x + 4, 2), (x + 1, 2)]
         """
-        def roth_rec(Q, lam, k):
+        def roth_rec(p, lam, k, g):
             r"""
             Recursive core method for Roth-Ruckenstein algorithm.
 
             INPUT:
 
-            - ``Q`` -- the current value of the polynomial
+            - ``p`` -- the current value of the polynomial
             - ``lam`` -- is the power of x whose coefficient is being computed
             - ``k`` -- the remaining precision to handle (if ``precision`` is given)
+            - ``g`` -- the root being computed
             """
-            def pascal_triangle(n, gamma):
-                """
-                Compute a modified Pascal triangle, where the entry ``(i,j)``
-                equals ``binomial(j,i) * gamma^(j-i)``.
-                """
-                res = [[F.one()]]
-                for _ in range(1, n+1):
-                    res.append([gamma * res[-1][0]])
-                for i in range(1, n+1):
-                    for j in range(1, i):
-                        res[i].append(res[i-1][j-1] + gamma * res[i-1][j])
-                    res[i].append(F.one())
-                return res
-
             if precision and k <= 0:
-                solutions.append((self(g[:lam]), lam))
+                solutions.append((g, lam))
                 return
-            val = min(c.valuation() for c in Q)
-            T = [c.shift(-val) for c in Q]
+            val = min(c.valuation() for c in p)
             if precision:
                 k = k - val
-            Ty = self([ p[0] for p in T ])
+            T = p.map_coefficients(lambda c:c.shift(-val))
+            Ty = T.map_coefficients(lambda c:c[0]).change_ring(F)
             if Ty.is_zero() or (precision and k <= 0):
                 if precision:
-                    solutions.append((self(g[:lam]), lam))
+                    solutions.append((g, lam))
                 else:
-                    solutions.append(self(g[:lam]))
+                    solutions.append(g)
                 return
             roots = Ty.roots(multiplicities=False)
             for gamma in roots:
-                g[lam] = gamma
+                g_new = g + gamma*x**lam
                 if lam < degree_bound:
-                    # Construct T(y=x*y + gamma)
-                    ell = len(T)-1
-                    yc = pascal_triangle(ell + 1, gamma)
-                    Tg = []
-                    for t in range(ell+1):
-                        Tg.append(sum(yc[s][t] * T[s] for s in range(t, ell+1)).shift(t))
-                    roth_rec(Tg , lam+1, k)
+                    Tg = T(x*y + gamma)
+                    roth_rec(Tg , lam+1, k, g_new)
                 else:
                     if precision:
-                        solutions.append((self(g[:lam+1]), lam+1))
-                    elif sum( Q[t] * gamma**t for t in range(len(Q)) ).is_zero():
-                        solutions.append(self(g[:lam+1]))
+                        solutions.append((g_new, lam+1))
+                    elif p(gamma).is_zero():
+                        solutions.append(g_new)
             return
 
         x = self.gen()
+        y = p.parent().gen()
         F = self.base_ring()
         solutions = []
-        g = [F.zero()] * (degree_bound+1)
+        g = self.zero()
 
-        roth_rec(Q, 0, precision)
+        roth_rec(p, 0, precision, g)
         return solutions
 
     def _roots_univariate_polynomial(self, p, ring=None, multiplicities=False, algorithm=None, degree_bound=None):
@@ -2224,19 +2206,18 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         if multiplicities:
             raise NotImplementedError("Use multiplicities=False")
 
-        Q = p.list()
+#        Q = p.list()
 
         if degree_bound is None:
-            l = len(Q) - 1
-            dl = Q[l].degree()
-            degree_bound = max((Q[i].degree() - dl)//(l - i) for i in range(l) if Q[i])
+            l = p.degree()
+            dl = p[l].degree()
+            degree_bound = max((p[i].degree() - dl)//(l - i) for i in range(l) if p[i])
 
         if algorithm is None:
             algorithm = "Roth-Ruckenstein"
 
         if algorithm == "Roth-Ruckenstein":
-            Q = p.list()
-            return self._roth_ruckenstein(Q, degree_bound, None)
+            return self._roth_ruckenstein(p, degree_bound, None)
 
         elif algorithm == "Alekhnovich":
             raise NotImplementedError("Alekhnovich algorithm is not implemented yet")

@@ -609,7 +609,8 @@ cdef class SkewPolynomial(AlgebraElement):
             else:
                 return False
         else:
-            raise NotImplementedError("is_unit is not implemented for skew polynomial rings over base rings which are not integral domains.")
+            raise NotImplementedError("is_unit is not implemented for skew polynomial rings "
+                                      "over base rings which are not integral domains.")
 
     def is_nilpotent(self):
         r"""

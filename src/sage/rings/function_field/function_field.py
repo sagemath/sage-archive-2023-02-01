@@ -1725,6 +1725,12 @@ class RationalFunctionField(FunctionField):
             sage: f.factor().prod() == f
             True
         """
+        old_variable_name = f.variable_name()
+        # the variables of the bivariate polynomial must be distinct
+        if self.variable_name() == f.variable_name():
+            # replace x with xx to make the variable names distinct
+            f = f.change_variable_name(old_variable_name + old_variable_name)
+
         F, d = self._to_bivariate_polynomial(f)
         fac = F.factor()
         x = f.parent().gen()
@@ -1736,6 +1742,9 @@ class RationalFunctionField(FunctionField):
         for a, e in v:
             c = a.leading_coefficient()
             a = a/c
+            # undo any variable substitution that we introduced for the bivariate polynomial
+            if old_variable_name != a.variable_name():
+                a = a.change_variable_name(old_variable_name)
             unit *= (c**e)
             w.append((a,e))
         from sage.structure.factorization import Factorization

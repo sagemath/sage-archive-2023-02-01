@@ -1681,17 +1681,6 @@ class ClusterAlgebra(Parent):
             ``g_vector`` is not the g-vector of any cluster variable. In this
             case the function resets the iterator and raises an error.
 
-        WARNING:
-
-            This method, like some other in this class, manipulate an internal
-            data structure to minimize computation time. Should it be
-            interrupted before it returns, this data will be left in a
-            corrupted state that will cripple future executions of all methods
-            that depend on it.
-
-            If you interrupt this method remember to sanitize the internal data
-            structure by calling :meth:`reset_exploring_iterator`.
-
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['G',2],principal_coefficients=True)
@@ -1708,7 +1697,11 @@ class ClusterAlgebra(Parent):
         while g_vector not in self.g_vectors_so_far() and self._explored_depth <= depth:
             try:
                 seed = next(self._sd_iter)
-                self._explored_depth = seed.depth()
+                if seed:
+                    self._explored_depth = seed.depth()
+                else:
+                    # We got None because self._sd_iter caught a KeyboardInterrupt, let's raise it again
+                    raise KeyboardInterrupt
             except StopIteration:
                 # Unless self._sd_iter has been manually altered, we checked
                 # all the seeds of self and did not find g_vector.
@@ -1902,6 +1895,11 @@ class ClusterAlgebra(Parent):
 
             This function traverses the exchange graph in a breadth-first search.
 
+            Note that upon catching a ``KeyboardInterrupt`` the iterators this
+            function produce will yield ``None`` rather then raising the
+            exception. This is done in order to be able to resume the
+            exploration from where it was interrupted.
+
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A',4])
@@ -2008,17 +2006,6 @@ class ClusterAlgebra(Parent):
 
         - ``depth`` -- a positive integer or infinity: the maximum depth at which to stop searching.
 
-        WARNING:
-
-            This method, like some other in this class, manipulate an internal
-            data structure to minimize computation time. Should it be
-            interrupted before it returns, this data will be left in a
-            corrupted state that will cripple future executions of all methods
-            that depend on it.
-
-            If you interrupt this method remember to sanitize the internal data
-            structure by calling :meth:`reset_exploring_iterator`.
-
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A',4])
@@ -2029,7 +2016,11 @@ class ClusterAlgebra(Parent):
         while self._explored_depth <= depth:
             try:
                 seed = next(self._sd_iter)
-                self._explored_depth = seed.depth()
+                if seed:
+                    self._explored_depth = seed.depth()
+                else:
+                    # We got None because self._sd_iter caught a KeyboardInterrupt, let's raise it again
+                    raise KeyboardInterrupt
             except StopIteration:
                 break
 

@@ -549,6 +549,94 @@ class kRegularSequence(RecognizableSeries):
         return self.subsequence(1, {1: 1, 0: -1}, **kwds)
 
 
+    def partial_sums(self, include_n=False, minimize=True):
+        r"""
+        Return the sequence of partial sums of this
+        `k`-regular sequence. That is, the `n`th entry of the result
+        is the sum of the first `n` entries in the original sequence.
+
+        INPUT:
+
+        - ``include_n`` -- (default: ``False``) a boolean. If set, then
+          the `n`th entry of the result is the sum of the entries up
+          to index `n` (included).
+
+        - ``minimize`` -- (default: ``True``) a boolean. If set, then
+          :meth:`minimized` is called after the addition.
+
+        OUTPUT:
+
+        A :class:`kRegularSequence`.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+
+            sage: E = Seq2((Matrix([[0, 1], [0, 1]]), Matrix([[0, 0], [0, 1]])),
+            ....:          vector([1, 0]), vector([1, 1]))
+            sage: E
+            2-regular sequence 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, ...
+            sage: E.partial_sums()
+            2-regular sequence 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, ...
+            sage: E.partial_sums(include_n=True)
+            2-regular sequence 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, ...
+
+        ::
+
+            sage: C = Seq2((Matrix([[2, 0], [2, 1]]), Matrix([[0, 1], [-2, 3]])),
+            ....:          vector([1, 0]), vector([0, 1]))
+            sage: C
+            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
+            sage: C.partial_sums()
+            2-regular sequence 0, 0, 1, 3, 6, 10, 15, 21, 28, 36, ...
+            sage: C.partial_sums(include_n=True)
+            2-regular sequence 0, 1, 3, 6, 10, 15, 21, 28, 36, 45, ...
+
+        TESTS::
+
+            sage: E.mu[0], E.mu[1], E.left, E.right
+            (
+            [0 1]  [0 0]
+            [0 1], [0 1], (1, 0), (1, 1)
+            )
+            sage: P = E.partial_sums(minimize=False)
+            sage: P.mu[0], P.mu[1], P.left, P.right
+            (
+            [ 0  1  0  0]  [0 1 0 0]
+            [ 0  2  0 -1]  [0 2 0 0]
+            [ 0  0  0  1]  [0 0 0 0]
+            [ 0  0  0  1], [0 0 0 1], (1, 0, -1, 0), (1, 1, 1, 1)
+            )
+        """
+        from sage.arith.srange import srange
+        from sage.matrix.constructor import Matrix
+        from sage.matrix.special import zero_matrix
+        from sage.modules.free_module_element import vector
+
+        P = self.parent()
+        k = self.parent().k
+        dim = self.dimension()
+
+        B = dict((r, sum(self.mu[a] for a in srange(r, k)))
+                 for r in srange(k))
+        Z = zero_matrix(dim)
+        B[k] = Z
+        W = B[0].stack(Z)
+
+        result = P.element_class(
+            P,
+            dict((r, W.augment((-B[r+1]).stack(self.mu[r])))
+                 for r in srange(k)),
+            vector(tuple(self.left) +
+                   (dim*(0,) if include_n else tuple(-self.left))),
+            vector(2*tuple(self.right)))
+
+        if minimize:
+            return result.minimized()
+        else:
+            return result
+
+
 class kRegularSequenceSpace(RecognizableSeriesSpace):
     r"""
     The space of `k`-regular Sequences over the given ``coefficients``.

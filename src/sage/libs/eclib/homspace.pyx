@@ -255,6 +255,9 @@ cdef class ModularSymbols:
             sage: T = M.sparse_hecke_matrix(2, dual=True)
             sage: print T == U.transpose()
             True
+            sage: T = M.sparse_hecke_matrix(2, base_ring=GF(7))
+            sage: print T == U.change_ring(GF(7))
+            True
         """
         cdef long n = self.dimension()
         cdef long i=0
@@ -262,13 +265,21 @@ cdef class ModularSymbols:
         cdef vec v
         d = {}
         sig_on()
-        for i from 1 <= i <= n:
-            v = self.H.heckeop_col(p, i, verbose)
-            for j from 1 <= j <= n:
-                if v[j]:
-                    d[(j-1,i-1)] = base_ring(v[j])
+        if dual:
+            for i from 1 <= i <= n:
+                v = self.H.heckeop_col(p, i, verbose)
+                for j from 1 <= j <= n:
+                    if v[j]:
+                        d[(i-1,j-1)] = base_ring(v[j])
+        else: 
+            for i from 1 <= i <= n:
+                v = self.H.heckeop_col(p, i, verbose)
+                for j from 1 <= j <= n:
+                    if v[j]:
+                        d[(j-1,i-1)] = base_ring(v[j])
         sig_off()
-        ans = MatrixSpace(base_ring, n, sparse=True)(entries=d)
-        if dual: return ans.transpose()
+        M = MatrixSpace(base_ring, n, sparse=True)
+        # The next step is the bottleneck.
+        ans = M(entries=d)
         return ans
         

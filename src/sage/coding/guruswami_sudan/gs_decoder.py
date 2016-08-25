@@ -88,6 +88,15 @@ def roth_ruckenstein_root_finder(p, maxd=None, precision=None):
     """
     Wrapper for Roth-Ruckenstein algorithm to compute the roots of a polynomial
     with coefficients in ``F[x]``.
+
+    TESTS::
+
+        sage: from sage.coding.guruswami_sudan.gs_decoder import roth_ruckenstein_root_finder
+        sage: R.<x> = GF(13)[]
+        sage: S.<y> = R[]
+        sage: p = (y - x^2 - x - 1) * (y + x + 1)
+        sage: roth_ruckenstein_root_finder(p, maxd = 2)
+        [12*x + 12, x^2 + x + 1]
     """
     gens = p.parent().gens()
     if len(gens) == 2:

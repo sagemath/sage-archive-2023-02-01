@@ -211,7 +211,7 @@ cdef class ModularSymbols:
         sig_off()
         return MF.new_matrix(M)
 
-    def sparse_Hecke_matrix(self, long p, dual=False, verbose=False):
+    def sparse_Hecke_matrix(self, long p, dual=False, verbose=False, base_ring=ZZ):
         """
         Return the matrix of the ``p``-th Hecke operator acting on
         this space of modular symbols, as a sparse Sage integer matrix.
@@ -253,20 +253,23 @@ cdef class ModularSymbols:
             sage: U = M.hecke_matrix(2).sage_matrix_over_ZZ(sparse=True)
             sage: print T == U
             True
+            sage: T = M.sparse_hecke_matrix(2, dual=True)
+            sage: print T == U.transpose()
+            True
         """
         cdef long n = self.dimension()
         cdef long i=0
         cdef long j=0
         cdef vec v
-        cdef Matrix_integer_sparse Ts
-        Ts = MatrixSpace(ZZ, n, sparse=True).zero_matrix().__copy__()
+        d = {}
         sig_on()
         for i from 1 <= i <= n:
             v = self.H.heckeop_col(p, i, verbose)
             for j from 1 <= j <= n:
                 if v[j]:
-                    Ts.set_unsafe(j-1, i-1, Integer(v[j]))
+                    d[(j-1,i-1)] = base_ring(v[j])
         sig_off()
-        if dual: Ts = Ts.transpose()
-        return Ts
+        ans = MatrixSpace(base_ring, n, sparse=True)(entries=d)
+        if dual: return ans.transpose()
+        return ans
         

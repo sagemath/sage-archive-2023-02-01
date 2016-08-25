@@ -256,9 +256,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
         sage: parametric_plot3d([f_x, f_y, f_z], (u, -pi, pi), (v, -pi, pi), frame=False, color="green")
         Graphics3d Object
 
-    Boy's surface (:wikipedia:`Boy's_surface`)
-
-    ::
+    Boy's surface (see :wikipedia:`Boy's_surface`)::
 
         sage: u, v = var('u,v')
         sage: fx = 2/3* (cos(u)* cos(2*v) + sqrt(2)* sin(u)* cos(v))* cos(u) / (sqrt(2) - sin(2*u)* sin(3*v))

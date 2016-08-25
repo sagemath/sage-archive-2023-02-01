@@ -398,7 +398,7 @@ cdef class SkewPolynomial(AlgebraElement):
     @experimental(trac_number=13215)
     def _call(self, eval_pt):
         """
-        Helper function for the `__call__` method to accommodate
+        Helper function for the :meth:`__call__` method to accommodate
         the ``@experimental`` decorator`.
 
         EXAMPLES::
@@ -587,7 +587,9 @@ cdef class SkewPolynomial(AlgebraElement):
         is a unit if and only if degree of `f` is `0` and `f` is then a unit in
         `R`.
 
-        The case when `R` is not an integral domain is not yet implemented.
+        .. NOTE::
+
+            The case when `R` is not an integral domain is not yet implemented.
 
         EXAMPLES::
 
@@ -822,8 +824,8 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         Not Implemented
 
-        To implement this, localization of Ore rings is needed, see :trac:
-        `13215`.
+        To implement this, localization of Ore rings is needed, see
+        :trac:`13215`.
 
         Use the operator `//` even for exact division.
 

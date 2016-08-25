@@ -35,7 +35,8 @@ from sage.categories.morphism import Morphism, IdentityMorphism
 
 def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, sparse=False):
     r"""
-    Return the globally unique skew polynomial ring.
+    Return the globally unique skew polynomial ring with the given properties
+    and variable names.
 
     Given a ring `R` and a ring automorphism `\sigma` of `R`, the ring of
     skew polynomials `R[X, \sigma]` is the usual abelian group polynomial

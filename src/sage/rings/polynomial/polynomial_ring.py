@@ -2227,10 +2227,9 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         Q = p.list()
 
         if degree_bound is None:
-            degree_bound = p.degree() # TODO; replace this by next lines once fixed
-            #l = len(Q) - 1
-            #dl = Q[l].degree()
-            #degree_bound = min((Q[i].degree() - dl)//(l - i) for i in range(l) if Q[i])
+            l = len(Q) - 1
+            dl = Q[l].degree()
+            degree_bound = max((Q[i].degree() - dl)//(l - i) for i in range(l) if Q[i])
 
         if algorithm is None:
             algorithm = "Roth-Ruckenstein"

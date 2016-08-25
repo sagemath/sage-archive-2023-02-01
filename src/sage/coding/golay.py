@@ -224,8 +224,11 @@ class GolayCode(AbstractLinearCode):
 
     def weight_distribution(self):
         r"""
-        To be completed...
+        Return the list whose `i`'th entry is the number of words of weight `i`
+        in ``self``.
 
+        The weight distribution of all Golay codes are known, and are thus returned
+        by this method without performing any computation
         MWS (67, 69)
         """
         n = self.length()
@@ -245,9 +248,18 @@ class GolayCode(AbstractLinearCode):
 
         MWS
         """
+        R = PolynomialRing(ZZ, ("x", "y"))
+        x, y = R.gens()
         n = self.length()
+        if n == 23:
+            return (x^23 + 253*x^16*y^7 + 506*x^15*y^8 + 1288*x^12*y^11 +
+                1288*x^11*y^12 + 506*x^8*y^15 + 253*x^7*y^16 + y^23)
         if n == 24:
-            return 42
+            return x^24 + 759*x^16*y^8 + 2576*x^12*y^12 + 759*x^8*y^16 + y^24
+        if n == 11:
+            return x^11 + 132*x^6*y^5 + 132*x^5*y^6 + 330*x^3*y^8 + 110*x^2*y^9 + 24*y^11
+        if n == 12:
+            return x^12 + 264*x^6*y^6 + 440*x^3*y^9 + 24*y^12
 
 
 

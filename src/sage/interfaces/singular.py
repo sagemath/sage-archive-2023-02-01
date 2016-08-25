@@ -1734,7 +1734,8 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         coeff_start = len(singular_poly_list) // 2
 
         # Singular 4 puts parentheses around floats and sign outside them
-        if isinstance(k, RealField_class):
+        charstr = self.parent().eval('charstr(basering)').split(',',1)
+        if charstr[0] in ['real', 'complex']:
               for i in range(coeff_start, 2*coeff_start):
 		   singular_poly_list[i] = singular_poly_list[i].replace('(','').replace(')','')
 

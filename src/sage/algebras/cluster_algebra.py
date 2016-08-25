@@ -1697,7 +1697,7 @@ class ClusterAlgebra(Parent):
         while g_vector not in self.g_vectors_so_far() and self._explored_depth <= depth:
             try:
                 seed = next(self._sd_iter)
-                if isinstance(seed, ClusterAlgebraSeed)
+                if isinstance(seed, ClusterAlgebraSeed):
                     self._explored_depth = seed.depth()
                 else:
                     # We got an exception because self._sd_iter caught a KeyboardInterrupt, let's raise it again
@@ -2020,7 +2020,7 @@ class ClusterAlgebra(Parent):
         while self._explored_depth <= depth:
             try:
                 seed = next(self._sd_iter)
-                if isinstance(seed, ClusterAlgebraSeed)
+                if isinstance(seed, ClusterAlgebraSeed):
                     self._explored_depth = seed.depth()
                 else:
                     # We got an exception because self._sd_iter caught a KeyboardInterrupt, let's raise it again

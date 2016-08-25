@@ -1194,7 +1194,7 @@ class CyclicCodeVectorEncoder(Encoder):
         F  = self.code().base_field()
         R = self._polynomial_ring
         p = R(m.list())
-        if p.degree() >= k
+        if p.degree() >= k:
             raise ValueError("Degree of the message must be at most %s" % k-1)
         res = (p * self.code().generator_polynomial()).coefficients(sparse = False)
         res = _complete_list(res, n)

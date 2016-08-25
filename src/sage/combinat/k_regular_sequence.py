@@ -61,7 +61,7 @@ Various
 
 .. SEEALSO::
 
-    :doc:`sage/combinat/recognizable_series`,
+    :mod:`recognizable series <sage.combinat.recognizable_series>`,
     :doc:`sage/rings/cfinite_sequence`,
     :doc:`sage/combinat/binary_recurrence_sequences`.
 
@@ -248,86 +248,6 @@ class kRegularSequence(RecognizableSeries):
         """
         from itertools import count
         return iter(self[n] for n in count())
-
-
-    def subsequence(self, a, b, minimize=True):
-        r"""
-        Return the subsequence with indices `an+b` of this
-        `k`-regular sequence.
-
-        INPUT:
-
-        - ``a``, ``b`` -- integers.
-
-        - ``minimize`` -- (default: ``True``) a boolean. If set, then
-          :meth:`minimized` is called after the addition.
-
-        OUTPUT:
-
-        A :class:`kRegularSequence`.
-
-        EXAMPLES::
-
-            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
-            sage: C = Seq2((Matrix([[2, 0], [2, 1]]), Matrix([[0, 1], [-2, 3]])),
-            ....:          vector([1, 0]), vector([0, 1]))
-            sage: C
-            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
-
-            sage: C.subsequence(2, 0)
-            2-regular sequence 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, ...
-
-            sage: S = C.subsequence(3, 1)
-            sage: S
-            2-regular sequence 1, 4, 7, 10, 13, 16, 19, 22, 25, 28, ...
-            sage: S.mu[0], S.mu[1], S.left, S.right
-            (
-            [ 0  1]  [ 6 -2]
-            [-2  3], [10 -3], (1, 0), (1, 1)
-            )
-
-            sage: C.subsequence(3, 2)
-            2-regular sequence 2, 5, 8, 11, 14, 17, 20, 23, 26, 29, ...
-
-        TESTS::
-
-            sage: C.subsequence(0, 4)
-            2-regular sequence 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, ...
-            sage: C.subsequence(1, 0) is C
-            True
-
-        """
-        if a == 0:
-            return self[b] * self.parent().one_hadamard()
-        if a == 1 and b == 0:
-            return self
-
-        from sage.arith.srange import srange
-        from sage.matrix.constructor import Matrix
-        from sage.modules.free_module_element import vector
-        P = self.parent()
-
-        k = self.parent().k
-        dim = self.dimension()
-        kernel = tuple((i, c) for c in srange(a+b) for i in srange(dim))
-        def pad(T, d):
-            return d*dim*(0,) + T + (a+b-1-d)*dim*(0,)
-        def mu_line(r, i, c):
-            d, f = (a*r + c).quo_rem(k)
-            return pad(tuple(self.mu[f].rows()[i]), d)
-
-        result = P.element_class(
-            P,
-            dict((r, Matrix(tuple(mu_line(r, i, c) for i, c in kernel)))
-                 for r in srange(k)),
-            vector(pad(tuple(self.left), b)),
-            vector(sum((tuple(self.__getitem__(c, multiply_left=False))
-                        for c in srange(a+b)), tuple())))
-
-        if minimize:
-            return result.minimized()
-        else:
-            return result
 
 
 class kRegularSequenceSpace(RecognizableSeriesSpace):

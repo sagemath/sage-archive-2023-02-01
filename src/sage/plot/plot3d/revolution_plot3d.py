@@ -111,10 +111,16 @@ def revolution_plot3d(curve,trange,phirange=None,parallel_axis='z',axis=(0,0),pr
         sage: u, phi = var('u,phi')
         sage: def cf(u,phi): return sin(phi+u) ** 2
         sage: curve = (1+u**2/4, 0, u)
-        sage: revolution_plot3d(curve,(u,-2,2),(0,2*pi),parallel_axis='z',color=(cf, colormaps.PiYG)).show(aspect_ratio=(1,1,1),viewer='tachyon')
+        sage: revolution_plot3d(curve,(u,-2,2),(0,2*pi),parallel_axis='z',color=(cf, colormaps.PiYG)).show(aspect_ratio=(1,1,1))
 
     The first parameter of the coloring function will be identified with the
     parameter of the curve, and the second with the angle parameter.
+
+    .. WARNING::
+
+        This kind of coloring using a colormap can be visualized using
+        Jmol, Tachyon (option ``viewer='tachyon'``) and Canvas3D
+        (option ``viewer='canvas3d'`` in the notebook).
     """
     from sage.symbolic.ring import SR
     from sage.symbolic.constants import pi

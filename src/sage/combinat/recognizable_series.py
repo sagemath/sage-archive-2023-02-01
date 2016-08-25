@@ -1296,6 +1296,20 @@ class RecognizableSeries(Element):
             return result
 
 
+def _pickle_RecognizableSeriesSpace(coefficients, indices, category):
+    r"""
+    Pickle helper.
+
+    TESTS::
+
+        sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+        sage: from sage.combinat.recognizable_series import _pickle_RecognizableSeriesSpace
+        sage: _pickle_RecognizableSeriesSpace(
+        ....:     Rec.coefficients(), Rec.indices(), Rec.category())
+        Space of recognizable series on {0, 1} with coefficients in Integer Ring
+    """
+    return RecognizableSeriesSpace(coefficients, indices=indices, category=category)
+
 
 class RecognizableSeriesSpace(UniqueRepresentation, Parent):
     r"""
@@ -1455,6 +1469,20 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         self._indices_ = indices
         super(RecognizableSeriesSpace, self).__init__(
             category=category, base=coefficients)
+
+
+    def __reduce__(self):
+        r"""
+        Pickling support.
+
+        TESTS::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: loads(dumps(Rec))  # indirect doctest
+            Space of recognizable series on {0, 1} with coefficients in Integer Ring
+        """
+        return _pickle_RecognizableSeriesSpace, \
+            (self.coefficients(), self.indices(), self.category())
 
 
     def alphabet(self):

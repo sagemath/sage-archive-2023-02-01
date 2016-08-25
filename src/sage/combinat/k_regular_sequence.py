@@ -250,6 +250,21 @@ class kRegularSequence(RecognizableSeries):
         return iter(self[n] for n in count())
 
 
+def _pickle_kRegularSequenceSpace(k, coefficients, category):
+    r"""
+    Pickle helper.
+
+    TESTS::
+
+        sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+        sage: from sage.combinat.k_regular_sequence import _pickle_kRegularSequenceSpace
+        sage: _pickle_kRegularSequenceSpace(
+        ....:     Seq2.k, Seq2.coefficients(), Seq2.category())
+        Space of 2-regular sequences over Integer Ring
+    """
+    return kRegularSequenceSpace(k, coefficients, category=category)
+
+
 class kRegularSequenceSpace(RecognizableSeriesSpace):
     r"""
     The space of `k`-regular Sequences over the given ``coefficients``.
@@ -333,6 +348,20 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         """
         self.k = k
         super(kRegularSequenceSpace, self).__init__(*args, **kwds)
+
+
+    def __reduce__(self):
+        r"""
+        Pickling support.
+
+        TESTS::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: loads(dumps(Seq2))  # indirect doctest
+            Space of 2-regular sequences over Integer Ring
+        """
+        return _pickle_kRegularSequenceSpace, \
+            (self.k, self.coefficients(), self.category())
 
 
     def _repr_(self):

@@ -103,13 +103,17 @@ class GolayCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.GolayCode(binary, true)
+            sage: C = codes.GolayCode(GF(2))
             sage: C
-            [24, 12, 8] Golay Code over Finite Field of size 2
+            [24, 12, 8] Extended Golay code over Finite Field of size 2
         """
-        return "[%s, %s, %s] Golay Code over %s"\
-                % (self.length(), self.dimension(),\
-                self.minimum_distance(), self.base_field())
+        n = self.length()
+        ext = ""
+        if n % 2 == 0:
+            ext = "Extended"
+        return "[%s, %s, %s] %s Golay code over %s"\
+                % (n, self.dimension(), self.minimum_distance(),
+                ext, self.base_field())
 
     def _latex_(self):
         r"""
@@ -117,12 +121,16 @@ class GolayCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.GolayCode(binary, true)
+            sage: C = codes.GolayCode(GF(2))
             sage: latex(C)
-            [24, 12, 8] \textnormal{ Golay Code over } \Bold{F}_{2}
+            [24, 12, 8] \textnormal{ Extended Golay Code over } \Bold{F}_{2}
         """
-        return "[%s, %s, %s] \\textnormal{ Golay Code over } %s"\
-                % (self.length(), self.dimension() ,self.minimum_distance(),
+        n = self.length()
+        ext = ""
+        if n % 2 == 0:
+            ext = "Extended"
+        return "[%s, %s, %s] \\textnormal{ %s Golay Code over } %s"\
+                % (n, self.dimension(), self.minimum_distance(), ext,
                 self.base_field()._latex_())
 
     def dual_code(self):

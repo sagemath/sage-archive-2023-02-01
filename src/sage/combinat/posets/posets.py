@@ -1983,7 +1983,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = posets.PentagonPoset()
             sage: P.intervals_poset()
-            Finite poset containing 13 elements
+            Finite lattice containing 13 elements
 
         TESTS::
 
@@ -1999,12 +1999,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.intervals_poset().is_isomorphic(P)
             True
         """
-        # from sage.combinat.posets.lattices import (LatticePoset,
-        #                                            FiniteLatticePoset)
-        # if isinstance(self, FiniteLatticePoset):
-        #     constructor = FiniteLatticePoset
-        # else:
-        #     constructor = FinitePoset
+        from sage.combinat.posets.lattices import (LatticePoset,
+                                                   FiniteLatticePoset)
+        if isinstance(self, FiniteLatticePoset):
+            constructor = LatticePoset
+        else:
+            constructor = Poset
 
         ints = [tuple(u) for u in self.relations()]
 
@@ -2016,7 +2016,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                                if self.le(aa, b)])
 
         dg = DiGraph([ints, covers], format="vertices_and_edges")
-        return Poset(dg, cover_relations=True)
+        return constructor(dg, cover_relations=True)
 
     def relations_iterator(self, strict=False):
         r"""

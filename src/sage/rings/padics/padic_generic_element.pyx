@@ -27,9 +27,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include "cysignals/signals.pxi"
+include "sage/ext/stdsage.pxi"
+
 from sage.ext.stdsage cimport PY_NEW
 cimport sage.rings.padics.local_generic_element
-from sage.libs.gmp.mpz cimport mpz_set_si
+from sage.libs.gmp.mpz cimport mpz_set_si, mpz_fits_slong_p, mpz_get_si,mpz_mul_si, mpz_mul, mpz_set
+from sage.libs.gmp.mpq cimport mpq_init, mpq_set_si, mpq_clear, mpq_add, mpq_set, mpq_canonicalize, mpq_denref, mpq_numref
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.rational cimport Rational
@@ -38,6 +42,24 @@ from sage.rings.infinity import infinity
 from sage.structure.element import coerce_binop
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
+
+
+cdef long floorlogp(long x, long b):
+    """
+    a fast way to find the floor of the log base b of x
+    """
+    cdef long t
+    cdef long n
+    if x < b:
+        return 0
+    else:        
+        t = b
+        n = 0
+        while t <= x:
+            t = t * b
+            n += 1
+        return n
+
 
 cdef class pAdicGenericElement(LocalGenericElement):
     cpdef int _cmp_(left, right) except -2:
@@ -541,6 +563,129 @@ cdef class pAdicGenericElement(LocalGenericElement):
             return Integer(1)
         else:
             return infinity
+
+    def artin_hasse_exp(self, long prec=0):
+        r"""
+        Return the Artin-Hasse exponential of a p-adic integer.
+
+        INPUT:
+
+        - ``self`` -- the p-adic integer
+
+        - ``prec`` -- the desired level of precision
+          (Default: retrieve from ``self``)
+
+        OUTPUT:
+
+        p-adic number -- the Artin-Hasse exponential of ``self``
+
+        EXAMPLES:
+
+        Plugging in a p-adic integer::
+
+            sage: x = Zp(5)(45/7)
+            sage: x.artin_hasse_exp()
+            1 + 2*5 + 4*5^2 + 3*5^3 + 5^7 + 2*5^8 + 3*5^10 + 2*5^11 + 2*5^12 +
+            2*5^13 + 5^14 + 3*5^17 + 2*5^18 + 2*5^19 + O(5^20)
+
+        The function respects your precision::
+
+            sage: x = Zp(3,30)(45/7)
+            sage: x.artin_hasse_exp()
+            1 + 2*3^2 + 3^4 + 2*3^5 + 3^6 + 2*3^7 + 2*3^8 + 3^9 + 2*3^10 + 3^11 +
+            3^13 + 2*3^15 + 2*3^16 + 2*3^17 + 3^19 + 3^20 + 2*3^21 + 3^23 + 3^24 +
+            3^26 + 3^27 + 2*3^28 + O(3^30)
+
+        Unless you tell it not to::
+
+            sage: x = Zp(3,30)(45/7)
+            sage: x.artin_hasse_exp()
+            1 + 2*3^2 + 3^4 + 2*3^5 + 3^6 + 2*3^7 + 2*3^8 + 3^9 + 2*3^10 + 3^11 +
+            3^13 + 2*3^15 + 2*3^16 + 2*3^17 + 3^19 + 3^20 + 2*3^21 + 3^23 + 3^24 +
+            3^26 + 3^27 + 2*3^28 + O(3^30)
+            sage: x.artin_hasse_exp(10)
+            1 + 2*3^2 + 3^4 + 2*3^5 + 3^6 + 2*3^7 + 2*3^8 + 3^9 + O(3^10)
+
+        For precision 1 the function just returns 1 since the
+        exponential is always a 1-unit::
+
+            sage: x = Zp(3).random_element()
+            sage: x.artin_hasse_exp(1)
+            1 + O(3)
+
+        AUTHORS:
+
+        - Mitchell Owen (2012-02-21)
+        - Sebastian Pancrantz (2012-02-21)
+        """
+        if self.valuation() < 1:
+            raise ValueError("series does not converge")
+
+        cdef long hi, q, qpow, r, s
+        cdef Rational c = PY_NEW(Rational)
+        cdef mpq_t *a
+
+        if prec == 0:
+            # assumes computing up to the precision of the parent field,
+            # unless otherwise specified
+            prec = self.precision_absolute()
+        elif prec < 0:
+            raise ValueError("prec must be nonnegative")
+        a = <mpq_t *> sig_malloc(prec * sizeof(mpq_t))
+        # build a c list for coefficients, put variables in nice types
+        for r in range(prec):
+            mpq_init(a[r])
+        if mpz_fits_slong_p(self.prime_pow.prime.value) == 0:
+            q = prec + 1
+            # if your prime is really big, it does not come up in the
+            # computation except to notice that it's really big
+        else:
+            q = mpz_get_si(self.prime_pow.prime.value)
+
+        cdef Integer z = <Integer> self.lift()
+
+        mpq_set_si(a[0], 1, 1)
+        # compute the coefficients
+        for r in range(1, prec):
+            hi = floorlogp(r, q) + 1
+            if hi == 1:
+                # if p is low, do it fast
+                mpz_set(mpq_numref(a[r]), mpq_numref(a[r - 1]))
+                mpz_mul_si(mpq_denref(a[r]), mpq_denref(a[r - 1]), r)
+                mpq_canonicalize(a[r])
+            else:
+                qpow = 1
+                mpq_set(c.value, a[r - 1])
+                # otherwise do it recursively
+                for s in range(1,hi):
+                    qpow = qpow * q
+                    mpq_add(c.value, c.value, a[r - qpow])
+                    #n*c_{n} = sum_{j=0}^{hi} c_{n-p^j}
+                mpz_set(mpq_numref(a[r]), mpq_numref(c.value))
+                mpz_mul_si(mpq_denref(a[r]), mpq_denref(c.value), r)
+                mpq_canonicalize(a[r])
+
+        if prec == 1:
+        # do it fast for trivial precision
+            mpq_set(c.value, a[0])
+            for r in range(prec):
+                mpq_clear(a[r])
+                # clear memory
+            sig_free(a)
+            return self.parent(c)
+        else:
+            mpq_set(c.value, a[prec - 1])
+            # evaluate the polynomial
+            for i in range (prec-2, -1, -1):
+                mpz_mul(mpq_numref(c.value), mpq_numref(c.value), (<Integer> z).value)
+                mpq_canonicalize(c.value)
+                mpq_add(c.value, c.value, a[i])
+            for r in range(prec):
+                mpq_clear(a[r])
+            sig_free(a)
+            #clear memory
+            return self.parent()(c, prec)
+        #return the value as a p-adic
 
     def minimal_polynomial(self, name):
         """

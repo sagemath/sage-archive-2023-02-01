@@ -1387,22 +1387,6 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
                                                 self.coefficients())
 
 
-    def zero(self):
-        """
-        Return the zero of this recognizable series space.
-
-        This can be removed once this recognizable series space is
-        at least an additive magma.
-
-        EXAMPLES::
-
-            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
-            sage: Rec.zero()
-            0
-        """
-        return self(0)
-
-
     @cached_method
     def one_hadamard(self):
         r"""

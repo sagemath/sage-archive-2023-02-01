@@ -27,8 +27,7 @@ from sage.modules.free_module_element import vector
 from sage.modules.free_module import VectorSpace
 from sage.rings.integer import Integer
 from .linear_code import (AbstractLinearCode,
-                         LinearCodeSyndromeDecoder,
-                         LinearCodeNearestNeighborDecoder)
+                          LinearCodeGeneratorMatrixEncoder)
 from .encoder import Encoder
 from sage.rings.arith import xgcd
 from sage.misc.misc_c import prod
@@ -258,93 +257,9 @@ class GolayCode(AbstractLinearCode):
         if n == 12:
             return 1 + 264*x**6 + 440*x**9 + 24*x**12
 
-
-
-
-
-
-
-
-####################### encoders ###############################
-
-
-class GolayCodeGeneratorMatrixEncoder(Encoder):
-    r"""
-    Encoder for Golay codes which encodes vectors into codewords.
-
-    INPUT:
-
-    - ``code`` -- The associated code of this encoder.
-
-    EXAMPLES::
-
-        sage: C = codes.GolayCode(binary, true)
-        sage: E = codes.encoders.GolayGeneratorMatrixEncoder(C)
-        sage: E
-        Generator matrix-style encoder for [24, 12, 8] Golay Code over Finite Field of size 2
-
-    Alternatively, we can construct the encoder from ``C`` directly::
-
-        sage: E = C.encoder("GeneratorMatrix")
-        sage: E
-        Generator matrix-style encoder for [24, 12, 8] Golay Code over Finite Field of size 2
-    """
-    def __init__(self, code):
-        r"""
-        EXAMPLES::
-
-            sage: C = codes.GolayCode(binary, true)
-            sage: E = codes.encoders.GolayGeneratorMatrixEncoder(C)
-            sage: E
-            Generator matrix-style encoder for [24, 12, 8] Golay Code over Finite Field of size 2
-        """
-        super(GolayGeneratorMatrixEncoder, self).__init__(code)
-        self._R = code.base_field()['x']
-
-    def __eq__(self, other):
-        r"""
-        Tests equality between GolayGeneratorMatrixEncoder objects.
-
-        EXAMPLES::
-
-            sage: C = codes.GolayCode(binary, true)
-            sage: E1 = codes.encoders.GolayGeneratorMatrixEncoder(C)
-            sage: E2 = codes.encoders.GolayGeneratorMatrixEncoder(C)
-            sage: E1.__eq__(E2)
-            True
-        """
-        return isinstance(other, GolayGeneratorMatrixEncoder) \
-                and self.code() == other.code()
-
-    def _repr_(self):
-        r"""
-        Returns a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: C = codes.GolayCode(binary, true)
-            sage: E = codes.encoders.GolayGeneratorMatrixEncoder(C)
-            sage: E
-            Generator matrix-style encoder for [24, 12, 8] Golay Code over Finite Field of size 2
-        """
-        return "Generator matrix-style encoder for %s" % self.code()
-
-    def _latex_(self):
-        r"""
-        Returns a latex representation of ``self``.
-
-        EXAMPLES::
-
-            sage: C = codes.GolayCode(binary, true)
-            sage: E = codes.encoders.GolayGeneratorMatrixEncoder(C)
-            sage: latex(E)
-            \textnormal{Generator matrix-style encoder for }[24, 12, 8] \textnormal{ Golay Code over } \Bold{F}_{2}
-        """
-        return "\\textnormal{Generator matrix-style encoder for }%s" % self.code()._latex_()
-
     def generator_matrix(self):
         r"""
-        Returns a generator matrix of ``self``
+        Return a generator matrix of ``self``
 
         EXAMPLES::
 
@@ -364,8 +279,8 @@ class GolayCodeGeneratorMatrixEncoder(Encoder):
             [0 0 0 0 0 0 0 0 0 0 1 0 1 1 0 1 1 0 1 1 1 0 0 0]
             [0 0 0 0 0 0 0 0 0 0 0 1 1 0 1 1 0 1 1 1 0 0 0 1]
         """
-        C = self.code()
-        if C.base_field() == GF(2):
+        n = self.length()
+        if n == 23:
             G = matrix(GF(2),
             [[1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
              [0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -379,9 +294,40 @@ class GolayCodeGeneratorMatrixEncoder(Encoder):
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1]])
+        elif n == 24:
+            G = matrix(GF(2),
+            [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1],
+             [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0],
+             [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1],
+             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0],
+             [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1],
+             [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1],
+             [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1],
+             [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1]])
+        elif n == 11:
+            G = matrix(GF(3),
+            [[2, 0, 1, 2, 1, 1, 0, 0, 0, 0, 0],
+             [0, 2, 0, 1, 2, 1, 1, 0, 0, 0, 0],
+             [0, 0, 2, 0, 1, 2, 1, 1, 0, 0, 0],
+             [0, 0, 0, 2, 0, 1, 2, 1, 1, 0, 0],
+             [0, 0, 0, 0, 2, 0, 1, 2, 1, 1, 0],
+             [0, 0, 0, 0, 0, 2, 0, 1, 2, 1, 1]])
+        else:
+            G = matrix(GF(3),
+            [[1, 0, 0, 0, 0, 0, 2, 0, 1, 2, 1, 2],
+             [0, 1, 0, 0, 0, 0, 1, 2, 2, 2, 1, 0],
+             [0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1],
+             [0, 0, 0, 1, 0, 0, 1, 1, 0, 2, 2, 2],
+             [0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 0, 1],
+             [0, 0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 1]])
+        return G
 
 
 
 ####################### registration ###############################
 
-GolayCode._registered_encoders["GeneratorMatrix"] = GolayCodeGeneratorMatrixEncoder
+GolayCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder

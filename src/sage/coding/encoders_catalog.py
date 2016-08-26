@@ -43,4 +43,3 @@ _lazy_import('sage.coding.reed_muller_code', ['ReedMullerVectorEncoder', 'ReedMu
 _lazy_import('sage.coding.extended_code', 'ExtendedCodeExtendedMatrixEncoder')
 _lazy_import('sage.coding.punctured_code', 'PuncturedCodePuncturedMatrixEncoder')
 _lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcodeParityCheckEncoder')
-_lazy_import('sage.coding.golay_code', 'GolayGeneratorMatrixEncoder')

@@ -772,6 +772,17 @@ class GRSGuruswamiSudanDecoder(Decoder):
             2
             sage: c in codewords
             True
+
+        TESTS:
+
+        Check that :trac:`21347` is fixed::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(13).list()[:10], 3)
+            sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau = 4)
+            sage: c = vector(GF(13), [6, 8, 2, 1, 5, 1, 2, 8, 6, 9])
+            sage: e = vector(GF(13), [1, 0, 0, 1, 1, 0, 0, 1, 0, 1])
+            sage: D.decode_to_code(c+e)
+            []
         """
         C = self.code()
         n, k, d, alphas, colmults, s, l = C.length(), C.dimension(), C.minimum_distance(),\
@@ -791,7 +802,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
         except TypeError:
             raise ValueError("The provided root-finding algorithm has a wrong signature. See the documentation of `codes.decoders.GRSGuruswamiSudanDecoder.rootfinding_algorithm()` for details")
         if not polynomials:
-            return None
+            return []
 
         E = self.connected_encoder()
         codewords = [ E.encode(f) for f in polynomials]

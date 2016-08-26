@@ -458,7 +458,7 @@ class CyclicCode(AbstractLinearCode):
         # Case (1) : generator polynomial and length are provided.
         if generator_pol is not None and length is not None:
             F = generator_pol.base_ring()
-            if not F.is_finite():
+            if not F.is_finite() or not F.is_field():
                 raise ValueError("Generator polynomial must be defined over a finite field")
             if not gcd(length, F.cardinality()) == 1:
                 raise ValueError("Only cyclic codes whose length and field order are coprimes are implemented.")

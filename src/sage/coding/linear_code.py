@@ -761,6 +761,15 @@ class AbstractLinearCode(module.Module):
             ...
             ValueError: length must be a Python int or a Sage Integer
 
+        If the length of the code is not a non-zero positive integer 
+        (See :trac:`21326`), it will raise an exception::
+
+            sage: empty_generator_matrix = Matrix(GF(17),0,1)
+            sage: C = CodeExample(GF(17), 0, 1, empty_generator_matrix)
+            Traceback (most recent call last)
+            ...
+            ValueError: length must be a non-zero positive integer
+
         If the name of the default decoder is not known by the class, it will raise
         a exception::
 
@@ -814,7 +823,7 @@ class AbstractLinearCode(module.Module):
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")
         if length <= 0:
-			raise ValueError("length must be a non-zero positive integer")
+            raise ValueError("length must be a non-zero positive integer")
         if not base_field.is_field():
             raise ValueError("'base_field' must be a field (and {} is not one)".format(base_field))
         if not default_encoder_name in self._registered_encoders:

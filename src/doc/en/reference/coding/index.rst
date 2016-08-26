@@ -30,7 +30,6 @@ Linear codes and related constructions
    sage/coding/hamming_code
    sage/coding/guruswami_sudan/gs_decoder
    sage/coding/guruswami_sudan/interpolation
-   sage/coding/guruswami_sudan/rootfinding
    sage/coding/guruswami_sudan/utils
    sage/coding/subfield_subcode
    sage/coding/code_constructions

@@ -30,14 +30,7 @@ http://www.singular.uni-kl.de/
 See spkg-src to create the source tarball.
 
 Other notes:
- * Due to http://www.singular.uni-kl.de:8002/trac/ticket/438, we
-   currently always build Singular with its debug code.  Change
-   --with-debug to $WITH_DEBUG in the configure call if this is fixed.
  * If the environment variable SAGE_DEBUG is set to "yes", then
    omalloc will be replaced by xalloc. The resulting Singular executable
    and libsingular library will be slower than with omalloc, but allow
    for easier debugging of memory corruptions.
-
-== Patches ==
-
- * Currently none

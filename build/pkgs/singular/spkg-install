@@ -17,24 +17,15 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 if [ "x$SAGE_DEBUG" = "xyes" ]; then
-    WITH_DEBUG="--enable-debug --disable-optimizationflags"
-    ENABLE_DEBUGOUTPUT="--enable-debugoutput"
+    SINGULAR_CONFIGURE="$SINGULAR_CONFIGURE --enable-debug --disable-optimizationflags"
+    SINGULAR_CONFIGURE="$SINGULAR_CONFIGURE --disable-omalloc"
+    # Replace omalloc by xalloc in places unaffected by --disable-omalloc
+    # See xalloc/README, altough here we just replace the folder for simplicity
+    rm -rf "$SRC/omalloc"
+    mv "$SRC/xalloc" "$SRC/omalloc"
 
     CFLAGS="-O0 -g $CFLAGS"
     CXXFLAGS="-O0 -g $CXXFLAGS"
-else
-    WITH_DEBUG="--disable-debug"
-    ENABLE_DEBUGOUTPUT="--disable-debugoutput"
-
-    # By default, parts of Singular are compiled with -O2 and parts
-    # with -O3.  If we do set any CFLAGS, this always overrides the
-    # default CFLAGS set by upstream.  In order to be compatible, we
-    # set the optimization to -O2.
-    # Increasing the optimization level to -O3 has caused various
-    # problems in the past either with specific compilers or on specific
-    # platforms.
-    CFLAGS="-O2 -g $CFLAGS"
-    CXXFLAGS="-O2 -g $CXXFLAGS"
 fi
 
 if [ "x$SAGE64" = xyes ]; then
@@ -48,25 +39,6 @@ if [ "x$SAGE64" = xyes ]; then
         export CXX="$CXX -m64"
     fi
 fi
-
-# we are building everything fPIC, this might impose a slight
-# performance hit, need to evaluate:
-export CXXFLAGS="$CXXFLAGS -fPIC"
-export CFLAGS="$CFLAGS -fPIC"
-
-choose_patches()
-{
-    cd "$PATCHES" || return $?
-
-    if [ "x$SAGE_DEBUG" = "xyes" ]; then
-        # Remove old omalloc files, except for configure
-        mv "$SRC/omalloc/configure" configure_omalloc
-        rm -r "$SRC/omalloc"/*
-        mv configure_omalloc "$SRC/omalloc/configure"
-        mv conditional/singular_xalloc.patch . || return $?
-        #mv conditional/cygwin64_debug.patch ./cygwin64.patch || return $?
-    fi
-}
 
 apply_patches()
 {
@@ -98,7 +70,7 @@ config()
 {
     # configure notes:
     # 1) We really need to add --exec-prefix and --bindir as Singular
-    #    uses some wierd defaults.
+    #    uses some weird defaults.
     # 2) configure calls other configure scripts (for example
     #    omalloc/configure).  Not all of these configure scripts
     #    support all options given here, leading to warnings which
@@ -107,15 +79,13 @@ config()
                 --exec-prefix="$SAGE_LOCAL" \
                 --bindir="$SAGE_LOCAL"/bin \
                 --libdir="$SAGE_LOCAL"/lib \
-                --with-malloc=system \
                 --with-gmp="$SAGE_LOCAL" \
                 --with-ntl="$SAGE_LOCAL" \
                 --with-flint="$SAGE_LOCAL" \
                 --enable-Singular \
                 --enable-factory \
                 --disable-doc \
-                $SINGULAR_CONFIGURE \
-                $WITH_DEBUG
+                $SINGULAR_CONFIGURE
 
     if [ $? -ne 0 ]; then
         echo >&2 "Unable to configure Singular."
@@ -152,8 +122,7 @@ build_factory()
                 --libdir="$SAGE_LOCAL"/lib \
                 --with-gmp="$SAGE_LOCAL" \
                 --with-ntl="$SAGE_LOCAL" \
-                --with-flint="$SAGE_LOCAL" \
-                $WITH_DEBUG
+                --with-flint="$SAGE_LOCAL"
 
     if [ $? -ne 0 ]; then
         echo >&2 "Error configuring the standalone factory."
@@ -169,12 +138,6 @@ build_factory()
     $MAKE install
     if [ $? -ne 0 ]; then
         echo >&2 "Error installing the standalone factory."
-        return 1
-    fi
-
-    $CP -p factoryconf.h "$SAGE_LOCAL"/include/
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error copying factory/factoryconf.h to include directory."
         return 1
     fi
 }
@@ -217,7 +180,7 @@ fix_includes()
 
 
 # Actually run all the functions defined above
-for i in choose_patches apply_patches remove_old_version config \
+for i in apply_patches remove_old_version config \
   build_singular build_factory fix_includes \
   create_singular_script install_docs ; do
     echo "### Singular spkg-install: $i ###"

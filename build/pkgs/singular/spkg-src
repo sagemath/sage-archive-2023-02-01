@@ -35,11 +35,16 @@ cd "$SPKG_ROOT/$PKGNAME"
 
 URL="http://www.mathematik.uni-kl.de/ftp/pub/Math/Singular/SOURCES/$DASHVERSION"
 if [ -z "$UPSTREAM_SOURCE_DIRECTORY" ]; then
-    if [ -z "$SINGULAR_GIT" ]; then
+    if [ -z "$SINGULAR_GIT_COMMIT" ]; then
         tar xzf <( curl -L "$URL/$TARBALL_SRC" )
     else
         git clone https://github.com/Singular/Sources/ singular.git
         cd singular.git
+        git checkout "$SINGULAR_GIT_COMMIT"
+        cd xalloc
+        autoreconf -fiv
+        rm -rf autom4te.cache
+        cd ..
         sh make_tar.sh
         cd ..
         tar xzf "singular.git/$TARBALL_SRC"

@@ -1867,7 +1867,6 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.reduced_form(prec=500)
             (
             -x^8 - 2*x^7*h + 7*x^6*h^2 + 16*x^5*h^3 + 2*x^4*h^4 - 2*x^3*h^5 + 4*x^2*h^6 - 5*h^8,
-
             [ 1 -2]
             [ 1 -1]
             )
@@ -1926,7 +1925,7 @@ cdef class MPolynomial(CommutativeRingElement):
         A = q.monomial_coefficient(x**2)
         B = q.monomial_coefficient(x*y)
         C = q.monomial_coefficient(y**2)
-        # need positive root
+        # need positive root this will be our first z
         try:
             z = (-B + ((B**2)-(4*A*C)).sqrt())/(2*A)# this is z_o
         except ValueError:
@@ -1937,17 +1936,17 @@ cdef class MPolynomial(CommutativeRingElement):
         # this moves Z to our fundamental domain using the three steps laid out in the algorithim
         while z.real() < -0.5 or z.real() >= 0.5 or (z.real() <= 0 and z.abs() < 1)\
          or (z.real() > 0 and z.abs() <= 1):
-            if z.real() < -0.5:
-                m = z.real().abs().round() # member abs
+            if z.real() < -0.5: # moves z into fundamental domain by m
+                m = z.real().abs().round() # finds amount to move z's real part by
                 Qm = QQ(m.center())
                 M = M * matrix(QQ, [[1,-Qm], [0,1]]) # move
-                z += m  # M.inverse()*Z is supposed to move z by m
-            elif z.real()>=(0.5): #else if
+                z += m  # M.inverse()*z is supposed to move z by m
+            elif z.real()>=(0.5): #moves z into fundamnetal domain by m
                 m = z.real().round()
                 Qm = QQ(m.center())
                 M = M * matrix(QQ, [[1,Qm], [0,1]])  #move z
                 z -= m
-            elif (z.real() <= 0 and z.abs() < 1) or (z.real() > 0 and z.abs() <= 1):
+            elif (z.real() <= 0 and z.abs() < 1) or (z.real() > 0 and z.abs() <= 1): # flipsz
                 z = -1/z
                 M = M * matrix(QQ, [[0,-1], [1,0]])
         x,y = self.parent().gens()
@@ -1955,6 +1954,7 @@ cdef class MPolynomial(CommutativeRingElement):
         L = FF.roots(ring=KK, multiplicities=False)
         a = 0
         c = 0
+        # creates system of equations which we solve to find out new z
         RR = PolynomialRing(KK, 'u,t')
         u,t = RR.gens()
         for j in range(len(L)):
@@ -1975,30 +1975,25 @@ cdef class MPolynomial(CommutativeRingElement):
         while err <= zz:
             NJ = J.subs({u:v0[0], t:v0[1]})
             NJinv = NJ.inverse()
-            for ii in range(2):
-                for jj in range(2):
-                    tt = NJinv[ii,jj]
-                    try:
-                        NJinv[ii,jj] = (tt.numerator()/tt.denominator()).numerator()
-                    except:
-                        pass
+            if NJinv.base_ring()!= KK:
+                NJinv = matrix(KK,2,2,[KK(zw.numerator()/zw.denominator()) for zw in NJinv.list()])
             w = z
             v0 = v0 - NJinv*G.subs({u:v0[0],t:v0[1]})
-            z = v0[1].numerator().coefficients()[0] + v0[0].numerator().coefficients()[0]*KK.gen(0)
+            z = v0[1].coefficients()[0] + v0[0].coefficients()[0]*KK.gen(0)
             err = z.diameter() # precision
             zz = (w - z).abs() #difference in w and z
-        # moves our z ro fundamental domain as before
+        # moves our z to fundamental domain as before
         while z.real() < -0.5 or z.real() >= 0.5 or (z.real() <= 0 and z.abs() < 1)\
          or (z.real() > 0 and z.abs() <= 1):
             if z.real() < -0.5:
-                m = z.real().abs().round() # member abs
+                m = z.real().abs().round()
                 Qm = QQ(m.center())
-                M = M*matrix(QQ, [[1,-Qm], [0,1]]) # move
+                M = M*matrix(QQ, [[1,-Qm], [0,1]])
                 z += m  # M.inverse()*Z is supposed to move z by m
             elif z.real() >= (0.5): #else if
                 m = z.real().round()
                 Qm = QQ(m.center())
-                M = M * matrix(QQ, [[1,Qm], [0,1]])  #move z
+                M = M * matrix(QQ, [[1,Qm], [0,1]])
                 z -= m
             elif (z.real() <= 0 and z.abs() < 1) or (z.real() > 0 and z.abs() <= 1):
                 z = -1/z

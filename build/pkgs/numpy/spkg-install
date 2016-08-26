@@ -54,13 +54,15 @@ export NUMPY_FCONFIG="config_fc --noopt --noarch"
 
 ################################################
 
+rm -rf "$SAGE_LOCAL/lib/python/site-packages/numpy"
+
 # Program around a bug in SciPY's distutils.
 unset CFLAGS
 
-# Split NUMPY_FCONFIG into --global-option flags for pip
-PIP_INSTALL_FLAGS=$(echo $NUMPY_FCONFIG | sed -e 's/\(\S*\)/--global-option \1/g')
-
-$PIP_INSTALL $PIP_INSTALL_FLAGS .
+python setup.py install \
+       --single-version-externally-managed \
+       --record /dev/null \
+       ${NUMPY_FCONFIG}
 
 # Touch all includes such that dependency checking works properly:
 # the timestamp of the includes should be *now*, not the time when

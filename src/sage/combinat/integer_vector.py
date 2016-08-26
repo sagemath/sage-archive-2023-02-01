@@ -707,7 +707,7 @@ class IntegerVectors_all(UniqueRepresentation, IntegerVectors):
 
             sage: IV = IntegerVectors()
             sage: it = IV.__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[], [1], [2], [2, 0], [1, 1], [0, 2], [3], [3, 0], [2, 1], [1, 2]]
         """
         yield self.element_class(self, [])
@@ -749,7 +749,7 @@ class IntegerVectors_n(UniqueRepresentation, IntegerVectors):
         EXAMPLES::
 
             sage: it = IntegerVectors(3).__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[3],
              [3, 0],
              [2, 1],
@@ -820,7 +820,7 @@ class IntegerVectors_k(UniqueRepresentation, IntegerVectors):
         EXAMPLES::
 
             sage: it = IntegerVectors(k=2).__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[0, 0],
              [1, 0],
              [0, 1],
@@ -1056,7 +1056,7 @@ class IntegerVectors_nnondescents(UniqueRepresentation, IntegerVectors):
     - `c` -- the non descents composition of `v`.
 
     In other words: the length of `v` equals `c_1 + \cdots + c_k`, and `v`
-    is decreasing in the consecutive blocs of length ``c_1, \ldots, c_k`,
+    is decreasing in the consecutive blocs of length `c_1, \ldots, c_k`,
 
     INPUT:
 

@@ -61,7 +61,7 @@ We start with the example type `B_2`::
 Most importantly, observe that the group elements are usually represented
 by permutations of the roots::
 
-    sage: for w in W: print w                                           # optional - gap3
+    sage: for w in W: print(w)                                          # optional - gap3
     ()
     (1,3)(2,6)(5,7)
     (1,5)(2,4)(6,8)
@@ -194,6 +194,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -314,10 +315,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 raise ValueError("the given hyperplane index set (= %s) does not have the right size"%self._index_set.values())
         self._hyperplane_index_set_inverse = {i: ii for ii,i in enumerate(self._hyperplane_index_set)}
 
-        # storing the number of reflections for later use in descents
-        self._number_of_reflections = self.number_of_reflections()
-
-        N_set = range(1, self._number_of_reflections+1)
+        N_set = range(1, self.number_of_reflections()+1)
         if self._reflection_index_set is None:
             self._reflection_index_set = tuple(N_set)
         else:
@@ -945,7 +943,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: W.degrees()                                           # optional - gap3
             (2, 3, 4, 3, 6)
 
-            sage: W = ReflectionGroup((1,1,4), (6,1,12), 23)            # optional - gap3 # fails in GAP3    
+            sage: W = ReflectionGroup((1,1,4), (6,1,12), 23)            # optional - gap3 # fails in GAP3
             sage: W.degrees()                                           # optional - gap3
             (2, 3, 4, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 72, 2, 6, 10)
         """
@@ -1020,7 +1018,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup((3,1,2))                          # optional - gap3
             sage: reflection_eigenvalues = W.reflection_eigenvalues_family()    # optional - gap3
-            sage: for elt in sorted(reflection_eigenvalues.keys()):     # optional - gap3
+            sage: for elt in sorted(reflection_eigenvalues):     # optional - gap3
             ....:     print('%s %s'%(elt, reflection_eigenvalues[elt])) # optional - gap3
             () [0, 0]
             (1,3,9)(2,4,10)(6,11,17)(8,12,18)(14,19,23)(15,16,20)(21,22,24) [1/3, 0]
@@ -1034,7 +1032,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup(23)                               # optional - gap3
             sage: reflection_eigenvalues = W.reflection_eigenvalues_family()    # optional - gap3
-            sage: for elt in sorted(reflection_eigenvalues.keys()):     # optional - gap3
+            sage: for elt in sorted(reflection_eigenvalues):     # optional - gap3
             ....:     print('%s %s'%(elt, reflection_eigenvalues[elt])) # optional - gap3
             () [0, 0, 0]
             (1,8,4)(2,21,3)(5,10,11)(6,18,17)(7,9,12)(13,14,15)(16,23,19)(20,25,26)(22,24,27)(28,29,30) [1/3, 2/3, 0]
@@ -1479,7 +1477,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             ....:     W = ReflectionGroup(ty)                           # optional - gap3
             ....:     A = W.invariant_form()                            # optional - gap3
             ....:     B = W.invariant_form(brute_force=True)            # optional - gap3
-            ....:     print ty, A == B/B[0,0]                           # optional - gap3
+            ....:     print("{} {}".format(ty, A == B/B[0,0]))          # optional - gap3
             ['A', 3] True
             ['B', 3] True
             ['F', 4] True
@@ -1503,7 +1501,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         C = self.cartan_matrix()
         if not self.is_well_generated():
-            indep_inds = sorted(self._index_set_inverse[key] for key in self.independent_roots().keys())
+            indep_inds = sorted(self._index_set_inverse[key] for key in self.independent_roots())
             C = C.matrix_from_rows_and_columns(indep_inds,indep_inds)
 
         for j in range(n):
@@ -1637,7 +1635,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             -----
             sage: W.set_reflection_representation()                     # optional - gap3
         """
-        if refl_repr is None or set(refl_repr.keys()) == set(self.index_set()):
+        if refl_repr is None or set(refl_repr) == set(self.index_set()):
             self._reflection_representation = refl_repr
         else:
             raise ValueError("the reflection representation must be defined for the complete index set")
@@ -1662,7 +1660,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 [1, 2, 1] [1]
             """
             W = self.parent()
-            for w in W._conjugacy_classes.keys():
+            for w in W._conjugacy_classes:
                 if self in W._conjugacy_classes[w]:
                     return w
             return W.conjugacy_classes_representatives()[ gap3("PositionClass(%s,%s)"%(W._gap_group._name,self)).sage()-1 ]
@@ -1685,7 +1683,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             W = self.parent()
             if self not in W.conjugacy_classes_representatives():
                 self = self.conjugacy_class_representative()
-            if self in W._conjugacy_classes.keys():
+            if self in W._conjugacy_classes:
                 return W._conjugacy_classes[self]
             gens = W.simple_reflections()
             count = 0
@@ -1765,7 +1763,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             EXAMPLES::
 
                 sage: W = ReflectionGroup(4)                            # optional - gap3
-                sage: for w in W: print w.reduced_word(), w.length()    # optional - gap3
+                sage: for w in W:         # optional - gap3
+                ....:     print("{} {}".format(w.reduced_word(), w.length()))
                 [] 0
                 [1] 1
                 [2] 1
@@ -1950,7 +1949,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             if W._reflection_representation is None:
                 Delta = W.independent_roots()
                 Phi = W.roots()
-                inds = [ W._index_set_inverse[i] for i in W.independent_roots().keys() ]
+                inds = [W._index_set_inverse[i] for i in W.independent_roots()]
                 M = Matrix([Phi[self(i+1)-1] for i in inds])
                 mat = W.base_change_matrix() * M
             else:
@@ -2100,7 +2099,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             EXAMPLES::
 
                 sage: W = ReflectionGroup((1,1,3))                      # optional - gap3
-                sage: for w in W: perm = w.to_permutation_of_roots(); print perm, perm==w   # optional - gap3
+                sage: for w in W:       # optional - gap3
+                ....:     perm = w.to_permutation_of_roots()
+                ....:     print("{} {}".format(perm, perm == w))
                 () True
                 (1,3)(2,5)(4,6) True
                 (1,4)(2,3)(5,6) True
@@ -2672,7 +2673,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
 
                 sage: W = ReflectionGroup((1,1,3)); h = W.coxeter_number()  # optional - gap3
                 sage: for w in W:                                       # optional - gap3
-                ....:     print w.reduced_word(), w.is_regular(h)       # optional - gap3
+                ....:     print("{} {}".format(w.reduced_word(), w.is_regular(h)))
                 [] False
                 [2] False
                 [1] False

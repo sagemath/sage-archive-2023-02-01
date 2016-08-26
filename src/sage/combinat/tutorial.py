@@ -154,8 +154,8 @@ obtained (this takes about 10 seconds)::
     ....:    hand = Hands.random_element()
     ....:    if is_flush(hand):
     ....:        nflush += 1
-    sage: print n, nflush                               # random
-    10000 18
+    sage: n, nflush                               # random
+    (10000, 18)
 
 .. topic:: Exercises
 
@@ -731,7 +731,7 @@ richer than simple lists::
 
 For example, they can be represented graphically by a Ferrers diagram::
 
-    sage: print p.ferrers_diagram()
+    sage: print(p.ferrers_diagram())
     ****
     **
     *
@@ -843,7 +843,7 @@ Set partitions::
 Partial orders on a set of `8` elements, up to isomorphism::
 
     sage: C = Posets(8); C
-    Posets containing 8 vertices
+    Posets containing 8 elements
     sage: C.cardinality()
     16999
 
@@ -862,7 +862,8 @@ there are 34 simple graphs with 5 vertices::
 
 Here are those with at most `4` edges::
 
-    sage: show(graphs(5, lambda G: G.size() <= 4))
+    sage: up_to_four_edges = list(graphs(5, lambda G: G.size() <= 4))
+    sage: pretty_print(*up_to_four_edges)
 
 .. image:: ../../media/graphs-5.png
 
@@ -1015,7 +1016,7 @@ the iterator is constructed by ``iter(L)``. In practice, the commands
 comprehensions provide a much pleasanter syntax::
 
     sage: for s in Subsets(3):
-    ....:     print s
+    ....:     print(s)
     {}
     {1}
     {2}
@@ -1167,7 +1168,7 @@ Alternatively, we could construct an iterator on the counter-examples::
 
     ::
 
-        sage: for p in GL(2, 2): print p; print
+        sage: for p in GL(2, 2): print(p); print("")
         [1 0]
         [0 1]
         <BLANKLINE>
@@ -1189,7 +1190,7 @@ Alternatively, we could construct an iterator on the counter-examples::
 
     ::
 
-        sage: for p in Partitions(3): print p   # not tested
+        sage: for p in Partitions(3): print(p)   # not tested
         [3]
         [2, 1]
         [1, 1, 1]
@@ -1197,7 +1198,7 @@ Alternatively, we could construct an iterator on the counter-examples::
 
     ::
 
-        sage: for p in Partitions(): print p    # not tested
+        sage: for p in Partitions(): print(p)    # not tested
         []
         [1]
         [2]
@@ -1207,7 +1208,7 @@ Alternatively, we could construct an iterator on the counter-examples::
 
     ::
 
-        sage: for p in Primes(): print p        # not tested
+        sage: for p in Primes(): print(p)        # not tested
         2
         3
         5
@@ -1223,7 +1224,7 @@ Alternatively, we could construct an iterator on the counter-examples::
 
         sage: counter_examples = (p for p in Primes()
         ....:                    if not is_prime(mersenne(p)))
-        sage: for p in counter_examples: print p   # not tested
+        sage: for p in counter_examples: print(p)   # not tested
         11
         23
         29
@@ -1241,6 +1242,9 @@ are in the ``itertools`` library, which can be imported by::
 
     sage: import itertools
 
+The behaviour of this library has changed a lot between Python 2 and
+Python 3. What follows is mostly written for Python 2.
+
 We will demonstrate some applications, taking as a starting point the
 permutations of `3`::
 
@@ -1254,23 +1258,25 @@ We can list the elements of a set by numbering them::
     [(0, [1, 2, 3]), (1, [1, 3, 2]), (2, [2, 1, 3]),
      (3, [2, 3, 1]), (4, [3, 1, 2]), (5, [3, 2, 1])]
 
-select only the elements in positions 2, 3, and 4 (analogue of
+or select only the elements in positions 2, 3, and 4 (analogue of
 ``l[1:4]``)::
 
     sage: import itertools
     sage: list(itertools.islice(Permutations(3), 1, 4))
     [[1, 3, 2], [2, 1, 3], [2, 3, 1]]
 
-apply a function to all the elements::
+The itertools methods ``imap`` and ``ifilter`` have been renamed to
+``map`` and ``filter`` in Python 3. You should rather avoid using them,
+as follows.
 
-    sage: list(itertools.imap(lambda z: z.cycle_type(),
-    ....:                     Permutations(3)))
+To apply a function to all the elements, one can do::
+
+    sage: [z.cycle_type() for z in Permutations(3)]
     [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
 
-or select the elements satisfying a certain condition::
+and similarly to select the elements satisfying a certain condition::
 
-    sage: list(itertools.ifilter(lambda z: z.has_pattern([1,2]),
-    ....:                        Permutations(3)))
+    sage: [z for z in Permutations(3) if z.has_pattern([1,2])]
     [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
 
 In all these situations, ``attrcall`` can be an advantageous alternative
@@ -1470,7 +1476,7 @@ which doesn’t prohibit iteration through its elements, though it will be
 necessary to interrupt it at some point::
 
     sage: for p in U:                # not tested
-    ....:     print p
+    ....:     print(p)
     []
     [1]
     [1, 2]

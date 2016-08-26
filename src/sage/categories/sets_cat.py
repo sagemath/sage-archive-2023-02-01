@@ -11,6 +11,7 @@ Sets
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.sage_unittest import TestSuite
@@ -1732,7 +1733,8 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                 TESTS::
 
-                    sage: C.is_finite.im_func is sage.categories.sets_cat.Sets.Infinite.ParentMethods.is_finite.im_func
+                    sage: from six import get_method_function as gmf
+                    sage: gmf(C.is_finite) is gmf(sage.categories.sets_cat.Sets.Infinite.ParentMethods.is_finite)
                     True
                 """
                 return False
@@ -2034,9 +2036,9 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                  An example of an infinite enumerated set: the non negative integers,
                  An example of a finite enumerated set: {1,2,3})
             """
-            from finite_enumerated_sets import FiniteEnumeratedSets
-            from infinite_enumerated_sets import InfiniteEnumeratedSets
-            from cartesian_product import cartesian_product
+            from .finite_enumerated_sets import FiniteEnumeratedSets
+            from .infinite_enumerated_sets import InfiniteEnumeratedSets
+            from .cartesian_product import cartesian_product
             S1 = Sets().example()
             S2 = InfiniteEnumeratedSets().example()
             S3 = FiniteEnumeratedSets().example()

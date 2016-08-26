@@ -50,18 +50,34 @@ elif [ $UNAME = "CYGWIN" ]; then
         exit 1
     fi
     LINBOX_BLAS="-lblas"
+    LINBOX_BLAS_CFLAGS=""
 else
     LINBOX_BLAS="$(pkg-config --libs cblas)"
+    BLAS_CFLAGS="$(pkg-config --cflags cblas)"
+    if [ "$BLAS_CFLAGS" != "" ]; then
+        LINBOX_BLAS_CFLAGS="--with-blas-cflags=$BLAS_CFLAGS"
+    else
+        LINBOX_BLAS_CFLAGS=""
+    fi
 fi
 
 echo "*************************************************"
-echo " Using --with-blas=$LINBOX_BLAS"
+echo " Using --with-blas=$LINBOX_BLAS $LINBOX_BLAS_CFLAGS"
 echo "*************************************************"
 
+# If SAGE_FAT_BINARY is set, disable all processor-specific optimizations
+if [ "$SAGE_FAT_BINARY" = yes ]; then
+    FFLAS_FFPACK_CONFIGURE="--disable-sse --disable-avx $FFLAS_FFPACK_CONFIGURE"
+fi
+
+# We disable openmp because of build failures, see
+# http://trac.sagemath.org/ticket/17635#comment:67
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
     --with-default="$SAGE_LOCAL" \
-    --with-blas="$LINBOX_BLAS" \
-    --enable-optimization --disable-static
+    --with-blas-libs="$LINBOX_BLAS" \
+    "$LINBOX_BLAS_CFLAGS" \
+    --enable-optimization --disable-static --enable-precompilation \
+    --disable-openmp $FFLAS_FFPACK_CONFIGURE
 if [ $? -ne 0 ]; then
     echo "Error configuring fflas-ffpack"
     exit 1
@@ -70,6 +86,7 @@ fi
 $MAKE
 if [ $? -ne 0 ]; then
     echo "Error building fflas-ffpack"
+    exit 1
 fi
 
 $MAKE install

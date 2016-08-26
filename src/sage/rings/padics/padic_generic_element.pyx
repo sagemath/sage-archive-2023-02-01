@@ -635,6 +635,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
         cdef long hi, q, qpow, r, s
         cdef Rational c = PY_NEW(Rational)
         cdef mpq_t *a
+        cdef sage.rings.integer.Integer p_as_Integer
+        from sage.rings.integer_ring import ZZ
 
         if prec == 0:
             # assumes computing up to the precision of the parent field,
@@ -646,12 +648,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
         # build a c list for coefficients, put variables in nice types
         for r in range(prec):
             mpq_init(a[r])
-        if mpz_fits_slong_p(self.prime_pow.prime.value) == 0:
+
+        p_as_Integer = ZZ.coerce(self.prime_pow.prime)
+        if not mpz_fits_slong_p(p_as_Integer.value):
             q = prec + 1
             # if your prime is really big, it does not come up in the
             # computation except to notice that it's really big
         else:
-            q = mpz_get_si(self.prime_pow.prime.value)
+            q = mpz_get_si(p_as_Integer.value)
 
         cdef Integer z = <Integer> self.lift()
 

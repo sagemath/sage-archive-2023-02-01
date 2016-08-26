@@ -23,8 +23,7 @@ codes such that its length `n` and field order `q` are coprimes.
 
 REFERENCES:
 
-.. [HT] C. Hartmann and K.K. Tzeng. Generalizations of the BCH Bound.
-   Information and Control, 20(5):489-498, June 1972
+.. [R06] Ron Roth, Introduction to Coding Theory, Cambridge University Press, 2006
 
 TESTS:
 

@@ -1841,6 +1841,7 @@ cdef class MPolynomial(CommutativeRingElement):
         Implimented algorithim from Stoll and Cremona's "On the Reduction Theory of Binary Forms" _[SC].
         This takes a two variable homogenous polynomial and finds a reduced form. This is a `SL(Z)`-equivalent
         binary form with smallest coefficients.
+        If Newton's method fails to converge to a point in the upper half plane function will return Matrix as it stands. Has a namein s and c'
 
         Implimented by Rebecca Lauren Miller as part of GSOC 2016.
 
@@ -1856,6 +1857,9 @@ cdef class MPolynomial(CommutativeRingElement):
 
             - a matrix (element of PGL(2, ZZ))
 
+        TODO: When Newton's Method doesnt converge to a root in the upper half plane. Now we just return z0.'
+
+
         REFERENCES:
 
         .. [SC] Michael Stoll and John E. Cremona. On The Reduction Theory of Binary Forms. Journal für die reine und angewandte Mathematik, 565 (2003), 79-99.
@@ -1865,11 +1869,24 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: R.<x,h> = PolynomialRing(QQ)
             sage: f = 19*x^8 - 262*x^7*h + 1507*x^6*h^2 - 4784*x^5*h^3 + 9202*x^4*h^4 -10962*x^3*h^5 + 7844*x^2*h^6 - 3040*x*h^7 + 475*h^8
             sage: f.reduced_form(prec=500)
-            (
-            -x^8 - 2*x^7*h + 7*x^6*h^2 + 16*x^5*h^3 + 2*x^4*h^4 - 2*x^3*h^5 + 4*x^2*h^6 - 5*h^8,
-            [ 1 -2]
-            [ 1 -1]
-            )
+            (-x^8 - 2*x^7*h + 7*x^6*h^2 + 16*x^5*h^3 + 2*x^4*h^4 - 2*x^3*h^5 + 4*x^2*h^6 - 5*h^8,
+
+            [ -1 2]
+            [ -1 1])
+
+
+An example where Newton's Method doesnt find th right root::
+
+            sage: R.<x,h> = PolynomialRing(QQ)
+            sage: f=234*x^11*h + 104832*x^10*h^2 + 21346884*x^9*h^3 + 2608021728*x^8*h^4 + 212413000410*x^7*h^5\
+                + 12109691106162*x^6*h^6 + 493106447396862*x^5*h^7 + 14341797993350646*x^4*h^8\
+                + 291976289803277118*x^3*h^9 +3962625618555930456*x^2*h^10 + 32266526239647689652*x*h^11 \
+                + 119421058057217196228*h^12
+            sage: f.reducedform(prec=300) # long test
+            (234*x^11*h - 702*x^10*h^2 + 234*x^9*h^3 - 1638*x^8*h^4 + 17550*x^7*h^5 - 35568*x^6*h^6 - 42120*x^5*h^7 - 248508*x^4*h^8 + 35802*x^3*h^9 + 23868*x^2*h^10 - 936*x*h^11 - 468*h^12,
+
+            [  1 -41]
+            [  0   1])
 
         ::
 
@@ -1904,6 +1921,7 @@ cdef class MPolynomial(CommutativeRingElement):
             raise ValueError("(=%s) must have two variables"%self)
         if self.is_homogeneous() != True:
             raise ValueError("(=%s) must be homogenous"%self)
+        #getting a numerical approximation of the roots of our polynomial
         KK = ComplexIntervalField(prec=prec) # keeps trac of our precision error
         JJ = RealField()
         R = self.parent()
@@ -1911,6 +1929,8 @@ cdef class MPolynomial(CommutativeRingElement):
         phi = R.hom([S.gen(0),1],S)# dehomogenization
         FF = S(phi(self)/gcd(phi(self),phi(self).derivative())) # removes multiple roots
         roots = FF.roots(ring=KK, multiplicities=False)
+
+        #finding our Q0 see eq _in paper, gives us a convariant, z
         dF = FF.derivative()
         n = FF.degree()
         R = PolynomialRing(KK,'x,y')
@@ -1921,7 +1941,6 @@ cdef class MPolynomial(CommutativeRingElement):
             k = (1/(dF(roots[j]).abs()**(2/(n-2))))*((x-(roots[j]*y))*(x-(roots[j].conjugate()*y)))
             Q.append(k)
         q = sum([Q[i] for i in range(len(Q))]) # this is q_o , always positive def as long as F HAS DISTINCT ROOTS
-
         A = q.monomial_coefficient(x**2)
         B = q.monomial_coefficient(x*y)
         C = q.monomial_coefficient(y**2)
@@ -1932,8 +1951,9 @@ cdef class MPolynomial(CommutativeRingElement):
             raise  ValueError("not enough precision")
         if z.imag()<0:
             z = (-B - ((B**2)-(4*A*C)).sqrt())/(2*A)
-        M = matrix(QQ, [[1,0], [0,1]]) # used to keep track of how our z is moved.
+
         # this moves Z to our fundamental domain using the three steps laid out in the algorithim
+        M = matrix(QQ, [[1,0], [0,1]]) # used to keep track of how our z is moved.
         while z.real() < -0.5 or z.real() >= 0.5 or (z.real() <= 0 and z.abs() < 1)\
          or (z.real() > 0 and z.abs() <= 1):
             if z.real() < -0.5: # moves z into fundamental domain by m
@@ -1948,13 +1968,15 @@ cdef class MPolynomial(CommutativeRingElement):
                 z -= m
             elif (z.real() <= 0 and z.abs() < 1) or (z.real() > 0 and z.abs() <= 1): # flipsz
                 z = -1/z
-                M = M * matrix(QQ, [[0,-1], [1,0]])
+                M = M * matrix(QQ, [[0,1], [-1,0]])
+        z0=z
+
+        # creates and solves equationsx 4.4 in [SC], gives us a new z
         x,y = self.parent().gens()
         FF = S(phi(self(tuple((M * vector([x, y])))))) # New self, S pushes it to polyomial ring
         L = FF.roots(ring=KK, multiplicities=False)
         a = 0
         c = 0
-        # creates system of equations which we solve to find out new z
         RR = PolynomialRing(KK, 'u,t')
         u,t = RR.gens()
         for j in range(len(L)):
@@ -1962,7 +1984,7 @@ cdef class MPolynomial(CommutativeRingElement):
             a += b
             d = (t-(L[j].real()))/((t-(L[j]))*(t-(L[j].conjugate()))+ u**2)
             c += d
-        #Newton's Method, error bound is while less than diameter of our z
+        #Newton's Method, to to find solutions. Error bound is while less than diameter of our z
         err = z.diameter()
         zz = z.diameter()
         n = FF.degree()
@@ -1982,22 +2004,28 @@ cdef class MPolynomial(CommutativeRingElement):
             z = v0[1].coefficients()[0] + v0[0].coefficients()[0]*KK.gen(0)
             err = z.diameter() # precision
             zz = (w - z).abs() #difference in w and z
+
+        # if z is not in the uper half plane uses z0
+        if  z.imag() > z.diameter() or z.imag() < 0:
         # moves our z to fundamental domain as before
-        while z.real() < -0.5 or z.real() >= 0.5 or (z.real() <= 0 and z.abs() < 1)\
-         or (z.real() > 0 and z.abs() <= 1):
-            if z.real() < -0.5:
-                m = z.real().abs().round()
-                Qm = QQ(m.center())
-                M = M*matrix(QQ, [[1,-Qm], [0,1]])
-                z += m  # M.inverse()*Z is supposed to move z by m
-            elif z.real() >= (0.5): #else if
-                m = z.real().round()
-                Qm = QQ(m.center())
-                M = M * matrix(QQ, [[1,Qm], [0,1]])
-                z -= m
-            elif (z.real() <= 0 and z.abs() < 1) or (z.real() > 0 and z.abs() <= 1):
-                z = -1/z
-                M = M * matrix(QQ, [[0,-1],[ 1,0]])
+            while z.real() < -0.5 or z.real() >= 0.5 or (z.real() <= 0 and z.abs() < 1)\
+            or (z.real() > 0 and z.abs() <= 1):
+                if z.real() < -0.5:
+                    m = z.real().abs().round()
+                    Qm = QQ(m.center())
+                    M = M*matrix(QQ, [[1,-Qm], [0,1]])
+                    z += m  # M.inverse()*Z is supposed to move z by m
+                elif z.real() >= (0.5): #else if
+                    m = z.real().round()
+                    Qm = QQ(m.center())
+                    M = M * matrix(QQ, [[1,Qm], [0,1]])
+                    z -= m
+                elif (z.real() <= 0 and z.abs() < 1) or (z.real() > 0 and z.abs() <= 1):
+                    z = -1/z
+                    M = M * matrix(QQ, [[0,1],[ -1,0]])
+        else:
+            #verbose("Warning: Newton's method converged to z not in the upper half plane.", level=1)
+            z = z0
         err = z.diameter()
         zc = z.center()
         zr = zc.real()

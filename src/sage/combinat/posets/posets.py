@@ -1999,10 +1999,14 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.intervals_poset().is_isomorphic(P)
             True
         """
-        ints = [tuple(u) for u in self.relations()]
+        # from sage.combinat.posets.lattices import (LatticePoset,
+        #                                            FiniteLatticePoset)
+        # if isinstance(self, FiniteLatticePoset):
+        #     constructor = FiniteLatticePoset
+        # else:
+        #     constructor = FinitePoset
 
-#        def int_le(a, b):
- #           return self.le(a[0], b[0]) and self.le(a[1], b[1])
+        ints = [tuple(u) for u in self.relations()]
 
         covers = []
         for (a, b) in ints:
@@ -2011,7 +2015,6 @@ class FinitePoset(UniqueRepresentation, Parent):
                 covers.extend([[(a, b), (aa, b)] for aa in self.upper_covers(a)
                                if self.le(aa, b)])
 
-        # dg = DiGraph([ints, int_le], loops=False)
         dg = DiGraph([ints, covers], format="vertices_and_edges")
         return Poset(dg, cover_relations=True)
 

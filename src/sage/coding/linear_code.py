@@ -766,7 +766,7 @@ class AbstractLinearCode(module.Module):
 
             sage: empty_generator_matrix = Matrix(GF(17),0,1)
             sage: C = CodeExample(GF(17), 0, 1, empty_generator_matrix)
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             ValueError: length must be a non-zero positive integer
 

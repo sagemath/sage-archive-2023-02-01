@@ -10811,7 +10811,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def edge_labels(self):
         """
-        Returns a list of edge labels.
+        Return a list of edge labels.
 
         EXAMPLES::
 
@@ -10822,10 +10822,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edge_labels()
             ['x', 'z', 'a', 'out']
         """
-        labels = []
-        for u,v,l in self.edges():
-            labels.append(l)
-        return labels
+        return [l for u, v, l in self.edges()]
 
     def remove_multiple_edges(self):
         """

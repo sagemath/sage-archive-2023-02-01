@@ -35,16 +35,18 @@ _lazy_import('sage.coding.code_constructions',
          'CyclicCode', 'CyclicCodeFromCheckPolynomial', 'DuadicCodeEvenPair',
          'DuadicCodeOddPair', 'ExtendedBinaryGolayCode',
          'ExtendedQuadraticResidueCode', 'ExtendedTernaryGolayCode',
-         'LinearCode', 'LinearCodeFromCheckMatrix',
+         'from_parity_check_matrix',
+         'LinearCodeFromCheckMatrix', #deprecated
          'QuadraticResidueCode', 'QuadraticResidueCodeEvenPair',
-         'QuadraticResidueCodeOddPair', 'RandomLinearCode',
+         'QuadraticResidueCodeOddPair',
+         'random_linear_code',
+         'RandomLinearCode', #deprecated
          'ReedSolomonCode', 'TernaryGolayCode',
-         'ToricCode', 'TrivialCode', 'WalshCode'])
+         'ToricCode', 'WalshCode'])
 
 _lazy_import('sage.coding.extended_code', 'ExtendedCode')
 _lazy_import('sage.coding.grs', 'GeneralizedReedSolomonCode')
-_lazy_import('sage.coding.guava', ['BinaryReedMullerCode',
-                                    'QuasiQuadraticResidueCode',
+_lazy_import('sage.coding.guava', ['QuasiQuadraticResidueCode',
                                     'RandomLinearCodeGuava'])
 _lazy_import('sage.coding.hamming_code', 'HammingCode')
 _lazy_import('sage.coding.punctured_code', 'PuncturedCode')
@@ -55,6 +57,10 @@ _lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcode')
 from . import decoders_catalog as decoders
 from . import encoders_catalog as encoders
 from . import bounds_catalog as bounds
+
+_lazy_import('sage.coding','databases')
+
+del _lazy_import
 from sage.misc.rest_index_of_methods import gen_rest_table_index as _gen_rest_table_index
 import sys as _sys
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=_gen_rest_table_index(_sys.modules[__name__], only_local_functions=False))

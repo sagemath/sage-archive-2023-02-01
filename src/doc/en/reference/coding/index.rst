@@ -3,7 +3,7 @@
 Coding Theory
 =============
 
-Coding Theory objects
+Basic Coding Theory objects
 ---------------------
 
 
@@ -25,6 +25,8 @@ Catalogs
    sage/coding/codes_catalog
    sage/coding/decoders_catalog
    sage/coding/encoders_catalog
+   sage/coding/databases
+   sage/coding/two_weight_db
 
 Code constructions
 ------------------
@@ -53,14 +55,11 @@ matrix and has no other a priori knowledge on them:
    sage/coding/code_constructions
    sage/coding/guava
    sage/coding/two_weight_db
-   sage/coding/sd_codes
+   sage/coding/self_dual_codes
    sage/coding/binary_code
 
 Derived Code Constructions
 ------------------
-
-.. toctree::
-   :maxdepth: 2
 
 Sage supports the following derived code constructions. If the constituent code
 is from a special code family, the derived codes inherit e.g. decoding or
@@ -69,6 +68,7 @@ minimum distance capabilities:
 .. toctree::
    :maxdepth: 2
 
+   sage/coding/subfield_subcode
    sage/coding/punctured_code
    sage/coding/extended_code
 
@@ -91,5 +91,15 @@ Source coding
    :maxdepth: 1
 
    sage/coding/source_coding/huffman
+
+Deprecated modules and other
+----------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/coding/relative_finite_field_extension
+   sage/coding/sd_codes
+
 
 .. include:: ../footer.txt

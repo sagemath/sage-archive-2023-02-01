@@ -900,7 +900,7 @@ class GRSBerlekampWelchDecoder(Decoder):
 
         If ``code`` is not a GRS code, an error is raised::
 
-            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: C  = codes.random_linear_code(GF(11), 10, 4)
             sage: codes.decoders.GRSBerlekampWelchDecoder(C)
             Traceback (most recent call last):
             ...
@@ -1215,7 +1215,7 @@ class GRSGaoDecoder(Decoder):
 
         If ``code`` is not a GRS code, an error is raised::
 
-            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: C  = codes.random_linear_code(GF(11), 10, 4)
             sage: codes.decoders.GRSGaoDecoder(C)
             Traceback (most recent call last):
             ...
@@ -1588,7 +1588,7 @@ class GRSErrorErasureDecoder(Decoder):
 
         If ``code`` is not a GRS code, an error is raised::
 
-            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: C  = codes.random_linear_code(GF(11), 10, 4)
             sage: codes.decoders.GRSErrorErasureDecoder(C)
             Traceback (most recent call last):
             ...
@@ -1835,7 +1835,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
         If ``code`` is not a GRS code, an error is raised::
 
-            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: C  = codes.random_linear_code(GF(11), 10, 4)
             sage: codes.decoders.GRSKeyEquationSyndromeDecoder(C)
             Traceback (most recent call last):
             ...

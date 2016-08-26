@@ -543,7 +543,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
         If ``code`` is not a GRS code, an error is raised::
 
-            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: C  = codes.random_linear_code(GF(11), 10, 4)
             sage: codes.decoders.GRSGuruswamiSudanDecoder(C, tau = 2)
             Traceback (most recent call last):
             ...

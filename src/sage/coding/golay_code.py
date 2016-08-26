@@ -12,6 +12,7 @@ This file contains the following elements:
 
 #*****************************************************************************
 #       Copyright (C) 2016 Arpit Merchant <arpitdm@gmail.com>
+#                     2016 David Lucas    <david.lucas@inria.fr>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,19 +23,8 @@ This file contains the following elements:
 
 from sage.matrix.constructor import matrix
 from sage.rings.finite_rings.finite_field_constructor import GF
-from sage.categories.cartesian_product import cartesian_product
-from sage.modules.free_module_element import vector
-from sage.modules.free_module import VectorSpace
-from sage.rings.integer import Integer
 from .linear_code import (AbstractLinearCode,
                           LinearCodeGeneratorMatrixEncoder)
-from .encoder import Encoder
-from sage.rings.arith import xgcd
-from sage.misc.misc_c import prod
-from sage.functions.other import binomial, floor, sqrt
-from sage.calculus.var import var
-from sage.misc.functional import symbolic_sum
-from sage.rings.integer_ring import ZZ
 
 class GolayCode(AbstractLinearCode):
     r"""

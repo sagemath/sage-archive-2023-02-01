@@ -351,6 +351,14 @@ cdef class Cache_givaro(SageObject):
             sage: k(-2^100)
             2
 
+        Check coercion of incompatible fields::
+
+            sage: x=GF(7).random_element()
+            sage: k(x)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to coerce from a finite field other than the prime subfield
+
         For more examples, see
         ``finite_field_givaro.FiniteField_givaro._element_constructor_``
         """
@@ -375,9 +383,11 @@ cdef class Cache_givaro(SageObject):
         elif isinstance(e, int) or \
              isinstance(e, Integer) or \
              isinstance(e, long) or is_IntegerMod(e):
-            e_int = e % self.characteristic()
-            res = self.objectptr.initi(res, e_int)
-
+            try:
+                e_int = e % self.characteristic()
+                res = self.objectptr.initi(res, e_int)
+            except ArithmeticError:
+                raise TypeError("unable to coerce from a finite field other than the prime subfield")
         elif e is None:
             e_int = 0
             res = self.objectptr.initi(res, e_int)

@@ -20276,7 +20276,8 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError("bliss cannot be used when edge_labels is True")
 
             if not have_bliss:
-                raise ImportError("You must install the 'bliss' package to run this command.")
+                from sage.misc.package import PackageNotFoundError
+                raise PackageNotFoundError("bliss")
 
             A = automorphism_group(self, partition)
 
@@ -20949,7 +20950,9 @@ class GenericGraph(GenericGraph_pyx):
             if edge_labels:
                 raise ValueError("bliss cannot be used when edge_labels is True")
             if not have_bliss:
-                raise ImportError("You must install the 'bliss' package to run this command.")
+                from sage.misc.package import PackageNotFoundError
+                raise PackageNotFoundError("bliss")
+
             return canonical_form(self, partition, return_graph, certificate)
 
         if (algorithm is not None and

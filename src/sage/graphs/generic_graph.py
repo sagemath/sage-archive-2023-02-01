@@ -10822,7 +10822,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edge_labels()
             ['x', 'z', 'a', 'out']
         """
-        return [l for _, _, l in self.edges()]
+        return [l for _, _, l in self.edge_iterator()]
 
     def remove_multiple_edges(self):
         """

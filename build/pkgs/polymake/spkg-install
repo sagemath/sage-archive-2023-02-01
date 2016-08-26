@@ -18,6 +18,10 @@ done
 
 more_configure_options=
 
+if [ `uname` = Darwin ]; then
+    more_configure_options="$more_configure_options --without-fink"
+fi
+
 ./configure --without-java \
             --without-javaview \
             --prefix="$SAGE_LOCAL" \

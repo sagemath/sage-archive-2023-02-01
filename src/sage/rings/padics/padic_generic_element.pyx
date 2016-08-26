@@ -566,27 +566,38 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def artin_hasse_exp(self, long prec=0):
         r"""
-        Return the Artin-Hasse exponential of a p-adic integer.
+        Return the Artin-Hasse exponential of a `p`-adic integer.
 
         INPUT:
-
-        - ``self`` -- the p-adic integer
 
         - ``prec`` -- the desired level of precision
           (Default: retrieve from ``self``)
 
         OUTPUT:
 
-        p-adic number -- the Artin-Hasse exponential of ``self``
+        `p`-adic number -- the Artin-Hasse exponential of ``self``
+
+        The Artin-Hasse exponential is defined by the power series
+
+        .. MATH::
+
+            E_p(x) = exp(x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots
+
+        See :wikipedia:`Artin-Hasse_exponential` for more information.
 
         EXAMPLES:
 
-        Plugging in a p-adic integer::
+        Plugging in a `p`-adic integer::
 
             sage: x = Zp(5)(45/7)
-            sage: x.artin_hasse_exp()
+            sage: y = x.artin_hasse_exp(); y
             1 + 2*5 + 4*5^2 + 3*5^3 + 5^7 + 2*5^8 + 3*5^10 + 2*5^11 + 2*5^12 +
             2*5^13 + 5^14 + 3*5^17 + 2*5^18 + 2*5^19 + O(5^20)
+
+        One can check that it matches the product formula::
+
+            sage: prod((1-x**n)**(-mobius(n)/n) for n in range(100) if gcd(n, 5) == 1)
+            1 + ?
 
         The function respects your precision::
 

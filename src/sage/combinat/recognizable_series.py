@@ -924,7 +924,7 @@ class RecognizableSeries(Element):
           as this recognizable series.
 
         - ``minimize`` -- (default: ``True``) a boolean. If set, then
-          :meth:`minimized` is called after the addition.
+          :meth:`minimized` is called after the operation.
 
         OUTPUT:
 
@@ -1067,7 +1067,7 @@ class RecognizableSeries(Element):
           as this recognizable series.
 
         - ``minimize`` -- (default: ``True``) a boolean. If set, then
-          :meth:`minimized` is called after the addition.
+          :meth:`minimized` is called after the operation.
 
         OUTPUT:
 

@@ -1955,7 +1955,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def intervals_poset(self):
         """
-        Return the natural partial order on the set of intervals in ``self``.
+        Return the natural partial order on the set of intervals of the poset.
 
         OUTPUT:
 
@@ -1970,6 +1970,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         the poset of poset-morphisms from the 2-chain to `P`.
 
         If `P` is a lattice, the result is also a lattice.
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.posets.lattices.FiniteLatticePoset.sublattices_lattice`
 
         EXAMPLES::
 
@@ -1990,13 +1994,26 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset({0:[]})
             sage: P.intervals_poset()
             Finite poset containing 1 elements
+
+            sage: P = Poset({0:[], 1:[]})
+            sage: P.intervals_poset().is_isomorphic(P)
+            True
         """
         ints = [tuple(u) for u in self.relations()]
 
-        def int_le(a, b):
-            return self.le(b[0], a[0]) and self.le(b[1], a[1])
-        dg = DiGraph([ints, int_le], loops=False)
-        return Poset(dg, cover_relations=False)
+#        def int_le(a, b):
+ #           return self.le(a[0], b[0]) and self.le(a[1], b[1])
+
+        covers = []
+        for (a, b) in ints:
+            covers.extend([[(a, b), (a, bb)] for bb in self.upper_covers(b)])
+            if a != b:
+                covers.extend([[(a, b), (aa, b)] for aa in self.upper_covers(a)
+                               if self.le(aa, b)])
+
+        # dg = DiGraph([ints, int_le], loops=False)
+        dg = DiGraph([ints, covers], format="vertices_and_edges")
+        return Poset(dg, cover_relations=True)
 
     def relations_iterator(self, strict=False):
         r"""

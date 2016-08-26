@@ -725,6 +725,12 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
         r"""
         Iterate on the elements of ``self`` (breadth first).
 
+        This code remembers only elements needed by the graded component iterator
+        to generate the next graded component.
+
+        This method is the default breadth first search iterator when the
+        structure is symmetric or graded.
+
         INPUT:
 
         - ``max_depth`` -- (Default: ``None``) specifies the maximal depth
@@ -733,9 +739,9 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
 
         .. NOTE::
 
-            It should be slower than the other one since it must generates
-            the whole graded component before yielding the first element of
-            each graded component. It is used for test only.
+            Calling next in this iterator will be either quite slow or very fast
+            since it generates the whole graded component before yielding the
+            elements of each graded component.
 
         EXAMPLES::
 

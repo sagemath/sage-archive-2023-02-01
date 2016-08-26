@@ -3,7 +3,8 @@ from __future__ import absolute_import
 
 def arithmetic(t=None):
     """
-    Controls the default proof strategy for integer arithmetic algorithms (such as primality testing).
+    Controls the default proof strategy for integer arithmetic algorithms
+    (such as primality testing).
 
     INPUT:
 
@@ -11,9 +12,16 @@ def arithmetic(t=None):
 
     OUTPUT:
 
-    If t is ``True``, requires integer arithmetic operations to (by default) return results that are true unconditionally: the correctness will not depend on an algorithm with a nonzero probability of returning an incorrect answer or on the truth of any unproven conjectures.
+    If t is ``True``, requires integer arithmetic operations to (by
+    default) return results that are true unconditionally: the
+    correctness will not depend on an algorithm with a nonzero
+    probability of returning an incorrect answer or on the truth of
+    any unproven conjectures.
 
-    If t is ``False``, allows integer arithmetic operations to (by default) return results that may depend on unproven conjectures or on probabilistic algorithms.  Such algorithms often have a substantial speed improvement over those requiring proof.
+    If t is ``False``, allows integer arithmetic operations to (by
+    default) return results that may depend on unproven conjectures or
+    on probabilistic algorithms.  Such algorithms often have a
+    substantial speed improvement over those requiring proof.
 
     If t is ``None``, returns the integer arithmetic proof status.
 
@@ -42,9 +50,16 @@ def elliptic_curve(t=None):
 
     OUTPUT:
 
-    If t is ``True``, requires elliptic curve algorithms to (by default) return results that are true unconditionally: the correctness will not depend on an algorithm with a nonzero probability of returning an incorrect answer or on the truth of any unproven conjectures.
+    If t is ``True``, requires elliptic curve algorithms to (by
+    default) return results that are true unconditionally: the
+    correctness will not depend on an algorithm with a nonzero
+    probability of returning an incorrect answer or on the truth of
+    any unproven conjectures.
 
-    If t is ``False``, allows elliptic curve algorithms to (by default) return results that may depend on unproven conjectures or on probabilistic algorithms.  Such algorithms often have a substantial speed improvement over those requiring proof.
+    If t is ``False``, allows elliptic curve algorithms to (by
+    default) return results that may depend on unproven conjectures or
+    on probabilistic algorithms.  Such algorithms often have a
+    substantial speed improvement over those requiring proof.
 
     If t is ``None``, returns the current elliptic curve proof status.
 
@@ -73,9 +88,16 @@ def linear_algebra(t=None):
 
     OUTPUT:
 
-    If t is ``True``, requires linear algebra algorithms to (by default) return results that are true unconditionally: the correctness will not depend on an algorithm with a nonzero probability of returning an incorrect answer or on the truth of any unproven conjectures.
+    If t is ``True``, requires linear algebra algorithms to (by
+    default) return results that are true unconditionally: the
+    correctness will not depend on an algorithm with a nonzero
+    probability of returning an incorrect answer or on the truth of
+    any unproven conjectures.
 
-    If t is ``False``, allows linear algebra algorithms to (by default) return results that may depend on unproven conjectures or on probabilistic algorithms.  Such algorithms often have a substantial speed improvement over those requiring proof.
+    If t is ``False``, allows linear algebra algorithms to (by
+    default) return results that may depend on unproven conjectures or
+    on probabilistic algorithms.  Such algorithms often have a
+    substantial speed improvement over those requiring proof.
 
     If t is ``None``, returns the current linear algebra proof status.
 
@@ -104,9 +126,15 @@ def number_field(t=None):
 
     OUTPUT:
 
-    If t is ``True``, requires number field algorithms to (by default) return results that are true unconditionally: the correctness will not depend on an algorithm with a nonzero probability of returning an incorrect answer or on the truth of any unproven conjectures.
+    If t is ``True``, requires number field algorithms to (by default)
+    return results that are true unconditionally: the correctness will
+    not depend on an algorithm with a nonzero probability of returning
+    an incorrect answer or on the truth of any unproven conjectures.
 
-    If t is ``False``, allows number field algorithms to (by default) return results that may depend on unproven conjectures or on probabilistic algorithms.  Such algorithms often have a substantial speed improvement over those requiring proof.
+    If t is ``False``, allows number field algorithms to (by default)
+    return results that may depend on unproven conjectures or on
+    probabilistic algorithms.  Such algorithms often have a
+    substantial speed improvement over those requiring proof.
 
     If t is ``None``, returns the current number field proof status.
 
@@ -135,9 +163,15 @@ def polynomial(t=None):
 
     OUTPUT:
 
-    If t is ``True``, requires polynomial algorithms to (by default) return results that are true unconditionally: the correctness will not depend on an algorithm with a nonzero probability of returning an incorrect answer or on the truth of any unproven conjectures.
+    If t is ``True``, requires polynomial algorithms to (by default)
+    return results that are true unconditionally: the correctness will
+    not depend on an algorithm with a nonzero probability of returning
+    an incorrect answer or on the truth of any unproven conjectures.
 
-    If t is ``False``, allows polynomial algorithms to (by default) return results that may depend on unproven conjectures or on probabilistic algorithms.  Such algorithms often have a substantial speed improvement over those requiring proof.
+    If t is ``False``, allows polynomial algorithms to (by default)
+    return results that may depend on unproven conjectures or on
+    probabilistic algorithms.  Such algorithms often have a
+    substantial speed improvement over those requiring proof.
 
     If t is ``None``, returns the current polynomial proof status.
 
@@ -166,9 +200,15 @@ def all(t=None):
 
     OUTPUT:
 
-    If t is ``True``, requires Sage algorithms to (by default) return results that are true unconditionally: the correctness will not depend on an algorithm with a nonzero probability of returning an incorrect answer or on the truth of any unproven conjectures.
+    If t is ``True``, requires Sage algorithms to (by default) return
+    results that are true unconditionally: the correctness will not
+    depend on an algorithm with a nonzero probability of returning an
+    incorrect answer or on the truth of any unproven conjectures.
 
-    If t is ``False``, allows Sage algorithms to (by default) return results that may depend on unproven conjectures or on probabilistic algorithms.  Such algorithms often have a substantial speed improvement over those requiring proof.
+    If t is ``False``, allows Sage algorithms to (by default) return
+    results that may depend on unproven conjectures or on
+    probabilistic algorithms.  Such algorithms often have a
+    substantial speed improvement over those requiring proof.
 
     If t is ``None``, returns the current global Sage proof status.
 

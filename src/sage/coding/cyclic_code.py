@@ -496,6 +496,8 @@ class CyclicCode(AbstractLinearCode):
         # Case (3) : a defining set, a length and a field are provided
         elif D is not None and length is not None and field is not None:
             F = field
+            if not F.is_finite() or not F.is_field():
+                raise ValueError("Generator polynomial must be defined over a finite field")
             n = length
             q = F.cardinality()
             if not gcd(n, q) == 1:

@@ -300,7 +300,7 @@ class kRegularSequence(RecognizableSeries):
           of all `c_j(an+b_j)`.
 
         - ``minimize`` -- (default: ``True``) a boolean. If set, then
-          :meth:`minimized` is called after the addition.
+          :meth:`minimized` is called after the operation.
 
         OUTPUT:
 
@@ -482,7 +482,7 @@ class kRegularSequence(RecognizableSeries):
         INPUT:
 
         - ``minimize`` -- (default: ``True``) a boolean. If set, then
-          :meth:`minimized` is called after the addition.
+          :meth:`minimized` is called after the operation.
 
         OUTPUT:
 
@@ -522,7 +522,7 @@ class kRegularSequence(RecognizableSeries):
         INPUT:
 
         - ``minimize`` -- (default: ``True``) a boolean. If set, then
-          :meth:`minimized` is called after the addition.
+          :meth:`minimized` is called after the operation.
 
         OUTPUT:
 
@@ -563,7 +563,7 @@ class kRegularSequence(RecognizableSeries):
           to index `n` (included).
 
         - ``minimize`` -- (default: ``True``) a boolean. If set, then
-          :meth:`minimized` is called after the addition.
+          :meth:`minimized` is called after the operation.
 
         OUTPUT:
 

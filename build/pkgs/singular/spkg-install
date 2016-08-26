@@ -30,7 +30,10 @@ done
 
 if [ "x$SAGE_DEBUG" = "xyes" ]; then
     SINGULAR_CONFIGURE="$SINGULAR_CONFIGURE --enable-debug --disable-optimizationflags"
-    SINGULAR_CONFIGURE="$SINGULAR_CONFIGURE --disable-omalloc"
+
+    # --disable-omalloc is broken: linking fails because of missing flags
+    #SINGULAR_CONFIGURE="$SINGULAR_CONFIGURE --disable-omalloc"
+
     # Replace omalloc by xalloc in places unaffected by --disable-omalloc
     # See xalloc/README, altough here we just replace the folder for simplicity
     rm -rf "$SRC/omalloc"

@@ -40,14 +40,34 @@ if [ -z "$UPSTREAM_SOURCE_DIRECTORY" ]; then
     else
         git clone https://github.com/Singular/Sources/ singular.git
         cd singular.git
-        git checkout "$SINGULAR_GIT_COMMIT"
+        # The following is inspired from make_tar.sh
+        #sh make_tar.sh
+        #begin make_tar.sh
+        git checkout "$SINGULAR_GIT_COMMIT" 
+        git checkout-index -a -f --prefix=singular-$DOTVERSION/
+        rm singular-$DOTVERSION/.gdbinit singular-$DOTVERSION/*/.gdbinit singular-$DOTVERSION/*/*/.gdbinit singular-$DOTVERSION/*/*/*/.gdbinit
+        rm singular-$DOTVERSION/IntegerProgramming/README
+        rm -rf singular-$DOTVERSION/modules
+        rm -rf singular-$DOTVERSION/factory/old
+        cd singular-$DOTVERSION
+        autoreconf -fiv
         cd xalloc
         autoreconf -fiv
-        rm -rf autom4te.cache
         cd ..
-        sh make_tar.sh
         cd ..
-        tar xzf "singular.git/$TARBALL_SRC"
+        rm -rf singular-$DOTVERSION/autom4te.cache
+        rm -rf singular-$DOTVERSION/*/autom4te.cache
+        rm -rf singular-$DOTVERSION/*/*/autom4te.cache
+        rm -rf singular-$DOTVERSION/omalloc/Misc
+        rm -rf singular-$DOTVERSION/Singular/LIB/surfex
+        rm -rf singular-$DOTVERSION/Singular/cnf2ideal.py
+        rm -rf singular-$DOTVERSION/kernel/old singular-$DOTVERSION/kernel/sample
+        rm -rf singular-$DOTVERSION/dox/Doxyfile.html.all singular-$DOTVERSION/dox/Doxyfile.in1 singular-$DOTVERSION/dox/Doxyfile.latex.short singular-$DOTVERSION/dox/readme
+        rm -rf singular-$DOTVERSION/factory/ConwayList.txt
+        rm -rf singular-$DOTVERSION/logo  singular-$DOTVERSION/standalone.test  singular-$DOTVERSION/templates  singular-$DOTVERSION/tests
+        #end make_tar.sh
+        mv singular-$DOTVERSION ../
+        cd ..
         rm -rf singular.git
     fi
     tar xzf <( curl -L "$URL/$TARBALL_SHR" )

@@ -16,6 +16,7 @@ Abstract classes, catalogs and databases
    sage/coding/codes_catalog
    sage/coding/decoders_catalog
    sage/coding/encoders_catalog
+   sage/coding/databases
    sage/coding/two_weight_db
 
 Linear codes and related constructions
@@ -35,7 +36,7 @@ Linear codes and related constructions
    sage/coding/code_constructions
    sage/coding/punctured_code
    sage/coding/extended_code
-   sage/coding/sd_codes
+   sage/coding/self_dual_codes
    sage/coding/guava
    sage/coding/binary_code
    sage/coding/reed_muller_code
@@ -81,5 +82,14 @@ Other tools
    :maxdepth: 1
 
    sage/coding/relative_finite_field_extension
+
+Deprecated modules
+------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/coding/sd_codes
+
 
 .. include:: ../footer.txt

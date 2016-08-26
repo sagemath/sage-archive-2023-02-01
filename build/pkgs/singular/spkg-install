@@ -16,6 +16,18 @@ if [ "$SAGE_LOCAL" = "" ]; then
     exit 1
 fi
 
+# Apply all patches
+cd "$SRC"
+for patch in "$PATCHES"/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    echo "Applying $patch"
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        return 1
+    fi
+done
+
 if [ "x$SAGE_DEBUG" = "xyes" ]; then
     SINGULAR_CONFIGURE="$SINGULAR_CONFIGURE --enable-debug --disable-optimizationflags"
     SINGULAR_CONFIGURE="$SINGULAR_CONFIGURE --disable-omalloc"
@@ -39,20 +51,6 @@ if [ "x$SAGE64" = xyes ]; then
         export CXX="$CXX -m64"
     fi
 fi
-
-apply_patches()
-{
-    # Apply all patches
-    for patch in "$PATCHES"/*.patch; do
-        [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-        echo "Applying $patch"
-        patch -p1 <"$patch"
-        if [ $? -ne 0 ]; then
-            echo >&2 "Error applying '$patch'"
-            return 1
-        fi
-    done
-}
 
 remove_old_version()
 {
@@ -180,7 +178,7 @@ fix_includes()
 
 
 # Actually run all the functions defined above
-for i in apply_patches remove_old_version config \
+for i in remove_old_version config \
   build_singular build_factory fix_includes \
   create_singular_script install_docs ; do
     echo "### Singular spkg-install: $i ###"

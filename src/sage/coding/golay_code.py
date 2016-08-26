@@ -261,6 +261,9 @@ class GolayCode(AbstractLinearCode):
         r"""
         Return a generator matrix of ``self``
 
+        Generator matrices of all Golay codes are known, and are thus returned
+        by this method without performing any computation
+
         EXAMPLES::
 
             sage: C = codes.GolayCode(binary, true)
@@ -282,7 +285,7 @@ class GolayCode(AbstractLinearCode):
         n = self.length()
         if n == 23:
             G = matrix(GF(2),
-            [[1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            [[1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -325,6 +328,52 @@ class GolayCode(AbstractLinearCode):
              [0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 0, 1],
              [0, 0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 1]])
         return G
+
+    def parity_check_matrix(self):
+        r"""
+        Return the parity check matrix of ``self``.
+
+        The parity check matrix of a linear code `C` corresponds to the
+        generator matrix of the dual code of `C`.
+
+        Parity check matrices of all Golay codes are known, and are thus returned
+        by this method without performing any computation.
+
+        EXAMPLES::
+
+            sage: C = codes.GolayCode(GF(3), False)
+            sage: C.parity_check_matrix()
+            [1 0 0 0 0 1 2 2 2 1 0]
+            [0 1 0 0 0 0 1 2 2 2 1]
+            [0 0 1 0 0 2 1 2 0 1 2]
+            [0 0 0 1 0 1 1 0 1 1 1]
+            [0 0 0 0 1 2 2 2 1 0 1]
+        """
+        n = self.length()
+        if n == 23:
+            H = matrix(GF(2),
+                [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0],
+                 [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1],
+                 [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0],
+                 [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1],
+                 [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1],
+                 [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1],
+                 [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1],
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1]])
+        elif n == 11:
+            H = matrix(GF(3),
+                [[1, 0, 0, 0, 0, 1, 2, 2, 2, 1, 0],
+                 [0, 1, 0, 0, 0, 0, 1, 2, 2, 2, 1],
+                 [0, 0, 1, 0, 0, 2, 1, 2, 0, 1, 2],
+                 [0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1],
+                 [0, 0, 0, 0, 1, 2, 2, 2, 1, 0, 1]])
+        else:
+            H = self.generator_matrix()
+        return H
+
 
 
 

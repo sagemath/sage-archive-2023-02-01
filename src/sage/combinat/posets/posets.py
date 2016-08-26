@@ -4241,7 +4241,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES:
 
-        This is mostly used to combine two eulerian posets to third one,
+        This is mostly used to combine two Eulerian posets to third one,
         and makes sense for graded posets only::
 
             sage: B2 = Posets.BooleanLattice(2)
@@ -5979,7 +5979,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         A poset is Eulerian if every non-trivial interval has the same
         number of elements of even rank as of odd rank. A poset is
         `k`-eulerian if every non-trivial interval up to rank `k`
-        is eulerian.
+        is Eulerian.
 
         See :wikipedia:`Eulerian_poset`.
 
@@ -5994,7 +5994,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - If ``certificate=True`` return either ``True, None`` or
           ``False, (a, b)``, where the inteval ``(a, b)`` is not
-          eulerian. If ``certificate=False`` return ``True`` or ``False``.
+          Eulerian. If ``certificate=False`` return ``True`` or ``False``.
 
         EXAMPLES::
 

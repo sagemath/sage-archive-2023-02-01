@@ -403,10 +403,11 @@ ex ex::sorted_op(size_t i) const
 		return bp->op(i);
 }
 
+// Helper function: Return True if term is a monomial in symb.
+// If so, fill vec (applying map at the same time) with (coeff, expo) pairs.
 static bool match_monom(const ex& term, const symbol& symb,
                 expairvec& vec, const exmap& map)
 {
-//    std::cerr << "mm(" << term << "," << symb << ")\n";
         if (not has_free_symbol(term, symb)) {
                 return false;
         }
@@ -416,19 +417,26 @@ static bool match_monom(const ex& term, const symbol& symb,
         }
         if (is_exactly_a<power>(term)) {
                 const power& p = ex_to<power>(term);
-                if (has_symbol(p.op(1), symb))
-                        return false;
+                const ex& expo = p.op(1);
                 if (p.op(0).is_equal(symb)) {
-                        vec.push_back(std::make_pair(_ex1, p.op(1)));
+                        vec.push_back(std::make_pair(_ex1, expo.subs(map)));
                         return true;
                 }
                 else {
-                        expairvec tmpvec;
-                        expand(term).coefficients(symb, tmpvec);
-                        for (const auto& pair : tmpvec)
-                                vec.push_back(std::make_pair(pair.first.subs(map),
-                                                        pair.second));
-                        return true;
+                        // of form (...+...)^expo
+                        // we expand only those with integer exponent
+                        if (is_exactly_a<numeric>(expo)
+                                        and has_free_symbol(p.op(0), symb)) {
+                                numeric ee = ex_to<numeric>(expo);
+                                if (ee.is_integer() and ee.to_int() > 1) {
+                                        expairvec tmpvec;
+                                        expand(term).coefficients(symb, tmpvec);
+                                        for (const auto& pair : tmpvec)
+                                                vec.push_back(std::make_pair(pair.first.subs(map),
+                                                                        pair.second));
+                                        return true;
+                                }
+                        }
                 }
         }
         if (is_exactly_a<mul>(term)) {
@@ -437,29 +445,46 @@ static bool match_monom(const ex& term, const symbol& symb,
                         if (mterm.is_equal(symb)) {
                                 ex oth = ex_to<mul>(term).without_known_factor(symb);
                                 if (not has_free_symbol(oth, symb)) {
-                                        vec.push_back(std::make_pair(oth, _ex1));
+                                        vec.push_back(std::make_pair(oth.subs(map), _ex1));
                                         return true;
                                 }
                         }
                         if (is_exactly_a<power>(mterm)) {
                                 const power& p = ex_to<power>(mterm);
-                                if (has_symbol(p.op(1), symb))
-                                        return false;
                                 if (p.op(0).is_equal(symb)) {
                                         ex oth = ex_to<mul>(term).without_known_factor(mterm);
-                                        if (not has_free_symbol(oth, symb)) {
-                                                vec.push_back(std::make_pair(oth, p.op(1)));
+                                        if (not has_free_symbol(oth.subs(map), symb)) {
+                                                vec.push_back(std::make_pair(oth, p.op(1).subs(map)));
                                                 return true;
                                         }
                                 }
                         }
                 }
-                expairvec tmpvec;
-                expand(term).coefficients(symb, tmpvec);
-                for (const auto& pair : tmpvec)
-                        vec.push_back(std::make_pair(pair.first.subs(map),
+                // Handle C*(...+...)^c
+                for (const auto& mterm : term) {
+                        if (is_exactly_a<power>(mterm)
+                                        and is_exactly_a<numeric>(mterm.op(1))
+                                        and has_free_symbol(mterm.op(0), symb)) {
+                                numeric ee = ex_to<numeric>(mterm.op(1));
+                                if (ee.is_integer() and ee.to_int() > 1) {
+                                        expairvec tmpvec;
+                                        expand(term).coefficients(symb, tmpvec);
+                                        for (const auto& pair : tmpvec)
+                                                vec.push_back(std::make_pair(pair.first.subs(map),
                                                         pair.second));
-                return true;
+                                        return true;
+                                }
+                        }
+                        if (is_exactly_a<add>(mterm)
+                                        and has_free_symbol(mterm.op(0), symb)) {
+                                expairvec tmpvec;
+                                expand(term).coefficients(symb, tmpvec);
+                                for (const auto& pair : tmpvec)
+                                        vec.push_back(std::make_pair(pair.first.subs(map),
+                                                pair.second));
+                                return true;
+                        }
+                }
         }
         return false;
 }
@@ -474,11 +499,13 @@ static bool match_monom(const ex& term, const symbol& symb,
 void ex::coefficients(const ex & s, expairvec & vec) const
 {
         vec.clear();
+
         if (is_exactly_a<add>(s)) {
                 vec.push_back(std::make_pair(*this, _ex0));
                 return;
         }
 
+        // Replace any s with a new anonymous symbol
         symbol symb;
         exmap submap {{s, symb}}, revmap {{symb, s}};
         ex sub = subs(submap);
@@ -511,15 +538,12 @@ void ex::coefficients(const ex & s, expairvec & vec) const
         auto tmp_it = vec.end();
         for (auto it = vec.end(); it != vec.begin(); ) {
                 --it;
-        //        std::cerr<<it-vec.begin()<<"/"<<tmp_it-vec.begin()<<": "<<it->first<<","<<it->second<<"\n";
                 if ((it->first).is_zero()) {
-                //        std::cerr<<"#1#\n";
                         vec.erase(it);
                         tmp_it = vec.end();
                         continue;
                 }
                 if (tmp_it != vec.end() and (tmp_it->second).is_equal(it->second)) {
-                //        std::cerr<<"#2#\n";
                         it->first += tmp_it->first;
                         vec.erase(tmp_it);
                         if ((it->first).is_zero()) {

@@ -143,7 +143,7 @@ cdef extern from "iml.h":
 
 fplll_fp_map = {None: None,
                 'fp': 'double',
-                'qd': 'long double',
+                'ld': 'long double',
                 'xd': 'dpe',
                 'rr': 'mpfr'}
 
@@ -2663,7 +2663,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         return U
 
     def BKZ(self, delta=None, algorithm="fpLLL", fp=None, block_size=10, prune=0, use_givens=False,
-            precision=0, max_loops=0, max_time=0, auto_abort=False):
+            precision=0, proof=True, **kwds):
         """
         Block Korkin-Zolotarev reduction.
 
@@ -2675,57 +2675,59 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         - ``fp`` -- floating point number implementation
 
-          - ``None`` -- NTL's exact reduction or fpLLL's wrapper (default)
+            - ``None`` -- NTL's exact reduction or fpLLL's wrapper (default)
 
-          - ``'fp'`` -- double precision: NTL's FP or fpLLL's double
+            - ``'fp'`` -- double precision: NTL's FP or fpLLL's double
 
-          - ``'qd'`` -- NTL's QP or fpLLL's long doubles
+            - ``'ld'`` -- long doubles (fpLLL only)
 
-          - ``'qd1'`` -- quad doubles: Uses ``quad_float`` precision to compute
-            Gram-Schmidt, but uses double precision in the search phase of the
-            block reduction algorithm. This seems adequate for most purposes,
-            and is faster than ``'qd'``, which uses quad_float precision
-            uniformly throughout (NTL only).
+            - ``'qd'`` -- NTL's QP
 
-          - ``'xd'`` -- extended exponent: NTL's XD or fpLLL's dpe
+            -``'qd1'`` -- quad doubles: Uses ``quad_float`` precision
+              to compute Gram-Schmidt, but uses double precision in
+              the search phase of the block reduction algorithm. This
+              seems adequate for most purposes, and is faster than
+              ``'qd'``, which uses quad_float precision uniformly
+              throughout (NTL only).
 
-          - ``'rr'`` -- arbitrary precision: NTL'RR or fpLLL's MPFR
+            - ``'xd'`` -- extended exponent: NTL's XD or fpLLL's dpe
 
-        - ``block_size`` -- (default: ``10``) Specifies the size of the blocks
-          in the reduction. High values yield shorter vectors, but the running
-          time increases double exponentially with ``block_size``.
-          ``block_size`` should be between 2 and the number of rows
-          of ``self``.
+            - ``'rr'`` -- arbitrary precision: NTL'RR or fpLLL's MPFR
+
+        - ``block_size`` -- (default: ``10``) Specifies the size
+          of the blocks in the reduction.  High values yield
+          shorter vectors, but the running time increases double
+          exponentially with ``block_size``.  ``block_size``
+          should be between 2 and the number of rows of ``self``.
+
+        - ``proof`` -- (default: ``True``) Insist on full BKZ
+          reduction.  If disabled and fplll us called, reduction
+          is much faster but the result is not fully BKZ reduced.
 
         NLT SPECIFIC INPUT:
 
-        - ``prune`` -- (default: ``0``) The optional parameter ``prune`` can
-          be set to any positive number to invoke the Volume Heuristic from
-          [SH95]_. This can significantly reduce the running time, and hence
-          allow much bigger block size, but the quality of the reduction is
-          of course not as good in general. Higher values of ``prune`` mean
-          better quality, and slower running time. When ``prune`` is ``0``,
-          pruning is disabled. Recommended usage: for ``block_size==30``, set
+        - ``prune`` -- (default: ``0``) The optional parameter
+          ``prune`` can be set to any positive number to invoke the
+          Volume Heuristic from [SH95]_. This can significantly reduce
+          the running time, and hence allow much bigger block size,
+          but the quality of the reduction is of course not as good in
+          general. Higher values of ``prune`` mean better quality, and
+          slower running time. When ``prune`` is ``0``, pruning is
+          disabled. Recommended usage: for ``block_size==30``, set
           ``10 <= prune <=15``.
 
-        - ``use_givens`` -- Use Given's orthogonalization.  This is a bit
-          slower, but generally much more stable, and is really the preferred
-          orthogonalization strategy. For a nice description of this, see
-          Chapter 5 of [GL96]_.
+        - ``use_givens`` -- Use Given's orthogonalization. This is a
+          bit slower, but generally much more stable, and is really
+          the preferred orthogonalization strategy. For a nice
+          description of this, see Chapter 5 of [GL96]_.
 
         fpLLL SPECIFIC INPUT:
 
         - ``precision`` -- (default: ``0`` for automatic choice) bit
           precision to use if ``fp='rr'`` is set
 
-        - ``max_loops`` -- (default: ``0`` for no restriction) maximum
-          number of full loops
-
-        - ``max_time`` -- (default: ``0`` for no restricion) stop after
-          time seconds (up to loop completion)
-
-        - ``auto_abort`` -- (default: ``False``) heuristic, stop when the
-          average slope of `\log(||b_i^*||)` does not decrease fast enough
+        - ``**kwds`` -- kwds are passed through to fpylll. See
+          `fpylll.fplll.BKZ.Param` for details.
 
         EXAMPLES::
 
@@ -2753,13 +2755,13 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         REFERENCES:
 
-        .. [SH95] \C. P. Schnorr and H. H. Hörner. *Attacking the Chor-Rivest
-           Cryptosystem by Improved Lattice Reduction*. Advances in Cryptology
-           - EUROCRYPT '95. LNCS Volume 921, 1995, pp 1-12.
+        .. [SH95] \C. P. Schnorr and H. H. Hörner. *Attacking the
+            Chor-Rivest Cryptosystem by Improved Lattice Reduction*.
+            Advances in Cryptology - EUROCRYPT '95. LNCS Volume 921,
+            1995, pp 1-12.
 
         .. [GL96] \G. Golub and C. van Loan. *Matrix Computations*.
-           3rd edition, Johns Hopkins Univ. Press, 1996.
-
+            3rd edition, Johns Hopkins Univ. Press, 1996.
         """
         if delta is None:
             delta = 0.99
@@ -2840,21 +2842,32 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             R = <Matrix_integer_dense>self.new_matrix(entries=map(ZZ,A.list()))
 
         elif algorithm == "fpLLL":
-            from sage.libs.fplll.fplll import FP_LLL
+            from fpylll import BKZ, IntegerMatrix, load_strategies_json
             fp = fplll_fp_map[fp]
-            A = FP_LLL(self)
-            A.BKZ(block_size=block_size,
-                  delta=delta,
-                  float_type=fp,
-                  precision=precision,
-                  verbose=verbose,
-                  max_time=max_time,
-                  max_loops=max_loops,
-                  auto_abort=auto_abort)
-            R = A._sage_()
-        return R
+            if verbose:
+                kwds["flags"] = kwds.get("flags", BKZ.DEFAULT) | BKZ.VERBOSE
 
-    def LLL(self, delta=None, eta=None, algorithm="fpLLL:wrapper", fp=None, prec=0, early_red=False, use_givens=False, use_siegel=False):
+            # enable performance improvements unless
+            # 1. provable results are requested or
+            # 2. the user has specified the relevant parameters already
+            if "strategies" not in kwds:
+                if get_proof_flag(proof, "linear_algebra") is False:
+                    kwds["strategies"] = load_strategies_json(BKZ.DEFAULT_STRATEGY)
+
+            if "auto_abort" not in kwds:
+                if get_proof_flag(proof, "linear_algebra") is False:
+                    kwds["flags"] = kwds.get("flags", BKZ.DEFAULT) | BKZ.AUTO_ABORT
+                    kwds["auto_abort"] = True
+
+            A = IntegerMatrix.from_matrix(self)
+            BKZ.reduction(A, BKZ.Param(block_size=block_size, delta=delta, **kwds),
+                          float_type=fp,
+                          precision=precision)
+
+            R = A.to_matrix(self.new_matrix())
+        return R, kwds
+
+    def LLL(self, delta=None, eta=None, algorithm="fpLLL:wrapper", fp=None, prec=0, early_red=False, use_givens=False, use_siegel=False, **kwds):
         r"""
         Return LLL reduced or approximated LLL reduced lattice `R` for this
         matrix interpreted as a lattice.
@@ -2912,6 +2925,10 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         - ``use_siegel`` -- (default: ``False``) use Siegel's condition
           instead of Lovasz's condition, ignored by NTL
+
+        - ``**kwds`` -- kwds are passed through to fpylll.  See
+          `fpylll.fplll.LLL.reduction` for details.
+
 
         Also, if the verbose level is at least `2`, some more verbose output
         is printed during the computation.
@@ -3006,8 +3023,6 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
           the used algorithms.
 
         """
-        from sage.libs.fplll.fplll import FP_LLL
-
         if self.ncols() == 0 or self.nrows() == 0:
             verbose("Trivial matrix, nothing to do")
             return self
@@ -3099,16 +3114,18 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             self.cache("rank",r)
 
         elif algorithm.startswith('fpLLL:'):
-            A = FP_LLL(self)
+            from fpylll import LLL, IntegerMatrix
+            A = IntegerMatrix.from_matrix(self)
             method = algorithm.replace("fpLLL:","")
-            A.LLL(delta=delta, eta=eta,
-                  algorithm=method,
-                  float_type=fp,
-                  precision=prec,
-                  verbose=verb,
-                  siegel=use_siegel,
-                  early_red=early_red)
-            R = A._sage_()
+            if verb:
+                kwds["flags"] = kwds.get("flags", LLL.DEFAULT) | LLL.VERBOSE
+            if use_siegel:
+                kwds["flags"] = kwds.get("flags", LLL.DEFAULT) | LLL.SIEGEL
+            if early_red:
+                kwds["flags"] = kwds.get("flags", LLL.DEFAULT) | LLL.EARLY_RED
+
+            LLL.reduction(A, delta=delta, eta=eta, method=method, float_type=fp, precision=prec)
+            R = A.to_matrix(self.new_matrix())
         else:
             raise TypeError("algorithm %s not supported"%algorithm)
 
@@ -5711,4 +5728,3 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     sig_free(tmp)
     sig_off()
     return M
-

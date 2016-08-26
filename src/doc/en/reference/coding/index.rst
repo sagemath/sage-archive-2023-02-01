@@ -4,7 +4,7 @@ Coding Theory
 =============
 
 Basic Coding Theory objects
----------------------
+---------------------------
 
 
 .. toctree::
@@ -54,12 +54,11 @@ matrix and has no other a priori knowledge on them:
 
    sage/coding/code_constructions
    sage/coding/guava
-   sage/coding/two_weight_db
    sage/coding/self_dual_codes
    sage/coding/binary_code
 
 Derived Code Constructions
-------------------
+--------------------------
 
 Sage supports the following derived code constructions. If the constituent code
 is from a special code family, the derived codes inherit e.g. decoding or

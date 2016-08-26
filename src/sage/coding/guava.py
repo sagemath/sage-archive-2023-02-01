@@ -1,7 +1,7 @@
 r"""
-Guava error-correcting code constructions
+Constructions of generator matrices using the GUAVA package for GAP
 
-This module only contains Guava wrappers (Guava is an optional GAP package).
+This module only contains Guava wrappers (GUAVA is an optional GAP package).
 
 AUTHORS:
 

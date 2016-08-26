@@ -1,5 +1,5 @@
 r"""
-Linear code constructors that do not preserve the structural information.
+Linear code constructors that do not preserve the structural information
 
 This file contains a variety of constructions which builds the generator matrix
 of special (or random) linear codes and wraps them in a

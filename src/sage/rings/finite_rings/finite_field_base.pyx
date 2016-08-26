@@ -1553,7 +1553,7 @@ cdef class FiniteField(Field):
         entries = [(basis[i] * basis[j]).trace() for i in range(self.degree())
                     for j in range(self.degree())]
         B = matrix(self.base_ring(), self.degree(), entries).inverse()
-        db = [sum(map(lambda x: x[0] * x[1], zip(col, basis)))
+        db = [sum(x: x[0] * x[1] for x in zip(col, basis))
               for col in B.columns()]
         return db
 

@@ -20936,16 +20936,19 @@ class GenericGraph(GenericGraph_pyx):
             See http://trac.sagemath.org/21111 for details.
             (Graph on 2 vertices, {'a': 0, 'b': 1})
         """
-        from sage.misc.package import is_package_installed
+        try:
+            from sage.graphs.bliss import canonical_form
+            have_bliss = True
+        except ImportError:
+            have_bliss = False
+
         if (algorithm == 'bliss'           or  # explicit request; or
             (algorithm is None             and # default choice
-             is_package_installed('bliss') and
+             have_bliss and
              not edge_labels)):
             if edge_labels:
                 raise ValueError("bliss cannot be used when edge_labels is True")
-            try:
-                from sage.graphs.bliss import canonical_form
-            except ImportError:
+            if not have_bliss:
                 raise ImportError("You must install the 'bliss' package to run this command.")
             return canonical_form(self, partition, return_graph, certificate)
 

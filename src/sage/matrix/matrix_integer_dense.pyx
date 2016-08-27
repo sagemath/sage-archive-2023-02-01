@@ -2663,7 +2663,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         return U
 
     def BKZ(self, delta=None, algorithm="fpLLL", fp=None, block_size=10, prune=0, use_givens=False,
-            precision=0, proof=True, **kwds):
+            precision=0, proof=None, **kwds):
         """
         Block Korkin-Zolotarev reduction.
 
@@ -2700,9 +2700,10 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
           exponentially with ``block_size``.  ``block_size``
           should be between 2 and the number of rows of ``self``.
 
-        - ``proof`` -- (default: ``True``) Insist on full BKZ
-          reduction.  If disabled and fplll us called, reduction
-          is much faster but the result is not fully BKZ reduced.
+        - ``proof`` -- (default: same as ``proof.linear_algebra()``)
+          Insist on full BKZ reduction. If disabled and fplll is
+          called, reduction is much faster but the result is not fully
+          BKZ reduced.
 
         NLT SPECIFIC INPUT:
 
@@ -2728,6 +2729,9 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         - ``**kwds`` -- kwds are passed through to fpylll. See
           `fpylll.fplll.BKZ.Param` for details.
+
+        Also, if the verbose level is at least `2`, some output
+        is printed during the computation.
 
         EXAMPLES::
 
@@ -2843,29 +2847,31 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         elif algorithm == "fpLLL":
             from fpylll import BKZ, IntegerMatrix, load_strategies_json
-            fp = fplll_fp_map[fp]
+            fp_ = fplll_fp_map[fp]
             if verbose:
                 kwds["flags"] = kwds.get("flags", BKZ.DEFAULT) | BKZ.VERBOSE
+
+            proof = get_proof_flag(proof, "linear_algebra")
 
             # enable performance improvements unless
             # 1. provable results are requested or
             # 2. the user has specified the relevant parameters already
             if "strategies" not in kwds:
-                if get_proof_flag(proof, "linear_algebra") is False:
+                if proof is False:
                     kwds["strategies"] = load_strategies_json(BKZ.DEFAULT_STRATEGY)
 
             if "auto_abort" not in kwds:
-                if get_proof_flag(proof, "linear_algebra") is False:
+                if proof is False:
                     kwds["flags"] = kwds.get("flags", BKZ.DEFAULT) | BKZ.AUTO_ABORT
                     kwds["auto_abort"] = True
 
             A = IntegerMatrix.from_matrix(self)
             BKZ.reduction(A, BKZ.Param(block_size=block_size, delta=delta, **kwds),
-                          float_type=fp,
+                          float_type=fp_,
                           precision=precision)
 
             R = A.to_matrix(self.new_matrix())
-        return R, kwds
+        return R
 
     def LLL(self, delta=None, eta=None, algorithm="fpLLL:wrapper", fp=None, prec=0, early_red=False, use_givens=False, use_siegel=False, **kwds):
         r"""
@@ -2910,7 +2916,8 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
           - ``None`` -- NTL's exact reduction or fpLLL's wrapper
           - ``'fp'`` -- double precision: NTL's FP or fpLLL's double
-          - ``'qd'`` -- NTL's QP or fpLLL's long doubles
+          - ``'ld'`` -- long doubles (fpLLL only)
+          - ``'qd'`` -- NTL's QP
           - ``'xd'`` -- extended exponent: NTL's XD or fpLLL's dpe
           - ``'rr'`` -- arbitrary precision: NTL's RR or fpLLL's MPFR
 
@@ -2929,8 +2936,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         - ``**kwds`` -- kwds are passed through to fpylll.  See
           `fpylll.fplll.LLL.reduction` for details.
 
-
-        Also, if the verbose level is at least `2`, some more verbose output
+        Also, if the verbose level is at least `2`, some output
         is printed during the computation.
 
         AVAILABLE ALGORITHMS:
@@ -3019,7 +3025,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         .. NOTE::
 
-          See ``ntl.mat_ZZ`` or ``sage.libs.fplll.fplll`` for details on
+          See ``ntl.mat_ZZ`` or ``fpylll.fplll.lll`` for details on
           the used algorithms.
 
         """

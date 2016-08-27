@@ -154,11 +154,13 @@ def IntegerLattice(basis, lll_reduce=True):
         [0 0 0 0 0 0 0 0 0 1]
 
 
-    Sage also interfaces with fpLLL's lattice generator::
+    Sage also interfaces with fpylll's lattice generator::
 
         sage: from sage.modules.free_module_integer import IntegerLattice
-        sage: from sage.libs.fplll.fplll import gen_simdioph
-        sage: IntegerLattice(gen_simdioph(8, 20, 10), lll_reduce=False)
+        sage: from fpylll import IntegerMatrix
+        sage: A = IntegerMatrix.random(8, "simdioph", bits=20, bits2=10)
+        sage: A = A.to_matrix(matrix(ZZ, 8, 8))
+        sage: IntegerLattice(A, lll_reduce=False)
         Free module of degree 8 and rank 8 over Integer Ring
         User basis matrix:
         [   1024  829556  161099   11567  521155  769480  639201  689979]
@@ -629,9 +631,10 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             v = vectors.python().columns()[0]
             w = v*B
         elif algorithm == "fplll":
-            from sage.libs.fplll.fplll import FP_LLL
-            L = FP_LLL(self.reduced_basis)
-            w = L.shortest_vector(*args, **kwds)
+            from fpylll import IntegerMatrix, SVP
+            L = IntegerMatrix.from_matrix(self.reduced_basis)
+            w = vector(ZZ, SVP.shortest_vector(L, *args, **kwds))
+
         else:
             raise ValueError("algorithm '{}' unknown".format(algorithm))
 

@@ -5540,9 +5540,8 @@ class SandpileDivisor(dict):
         else:
             rk = -1
             while True:
-                IV = IntegerVectors(rk+1,S.num_verts())
-                for e in IV:
-                    E = SandpileDivisor(S,e)
+                for e in IntegerVectors(rk+1,S.num_verts()):
+                    E = SandpileDivisor(S,list(e))
                     if (self - E).effective_div()==[]:
                         self._rank = rk
                         self._rank_witness = E

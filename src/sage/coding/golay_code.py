@@ -1,13 +1,17 @@
 r"""
 Golay code
 
-Given the parmeters, alphabet ["binary"/GF(2), "ternary"/GF(3)], and extended ["true"/"false"],
-returns the corresponding Golay code.
+Golay codes are a set of four specific codes (binary Golay code, extended binary
+Golay code, ternary Golay and extended ternary Golay code), known to have some
+very interesting properties: for example, binary and ternary Golay codes are
+perfect codes, while their extended versions are self-dual codes.
 
-This file contains the following elements:
+REFERENCES:
 
-    - :class:`GolayCode`, the class for Golay codes
-    - :class:`GolayGeneratorMatrixEncoder`, an encoder that uses the generator matrix
+    - [HP03]_ pp. 31-33 for a definition of Golay codes.
+
+    - .. [WS] F.J. MacWilliams, N.J.A. Sloane, The Theory of Error-Correcting
+         Codes, North-Holland, Amsterdam, 1977
 """
 
 #*****************************************************************************
@@ -25,6 +29,8 @@ from sage.matrix.constructor import matrix
 from sage.rings.finite_rings.finite_field_constructor import GF
 from .linear_code import (AbstractLinearCode,
                           LinearCodeGeneratorMatrixEncoder)
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.integer_ring import ZZ
 
 class GolayCode(AbstractLinearCode):
     r"""
@@ -41,12 +47,12 @@ class GolayCode(AbstractLinearCode):
     EXAMPLES::
 
         sage: codes.GolayCode(GF(2))
-        [24, 6] extended Golay code over GF(2)
+        [24, 12, 8] Extended Golay code over Finite Field of size 2
 
     Another example with the perfect binary Golay code::
 
         sage: codes.GolayCode(GF(2), False)
-        [23, 6] Golay code over GF(2)
+        [23, 12, 7]  Golay code over Finite Field of size 2
     """
 
     _registered_encoders = {}
@@ -56,7 +62,8 @@ class GolayCode(AbstractLinearCode):
         r"""
         TESTS:
 
-        If ``base_field`` is not ``GF(2)`` or ``GF(3)``, it raises an error:
+        If ``base_field`` is not ``GF(2)`` or ``GF(3)``, an error is raised::
+
             sage: C = codes.GolayCode(ZZ, true)
             Traceback (most recent call last):
             ...
@@ -83,15 +90,10 @@ class GolayCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C1 = codes.GolayCode(binary, true)
-            sage: C2 = codes.GolayCode(binary, true)
+            sage: C1 = codes.GolayCode(GF(2))
+            sage: C2 = codes.GolayCode(GF(2))
             sage: C1.__eq__(C2)
             True
-
-            sage: C1 = codes.GolayCode(binary, true)
-            sage: C2 = codes.GolayCode(ternary, true)
-            sage: C1.__eq__(C2)
-            False
         """
         return isinstance(other, GolayCode) \
                 and self.base_field() == other.base_field() \
@@ -143,9 +145,12 @@ class GolayCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.GolayCode(binary, true)
+            sage: C = codes.GolayCode(GF(2))
             sage: Cd = C.dual_code(); Cd
-            [24, 12, 8] Golay Code over Finite Field of size 2
+            [24, 12, 8] Extended Golay code over Finite Field of size 2
+
+            sage: Cd == C
+            True
         """
         n = self.length()
         if n % 2 == 0:
@@ -161,7 +166,7 @@ class GolayCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.GolayCode(binary, true)
+            sage: C = codes.GolayCode(GF(2))
             sage: C.minimum_distance()
             8
         """
@@ -188,9 +193,9 @@ class GolayCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.GolayCode("ternary", False)
+            sage: C = codes.GolayCode(GF(2))
             sage: C.covering_radius()
-            2
+            4
         """
         n = self.length()
         if n == 23:
@@ -240,7 +245,7 @@ class GolayCode(AbstractLinearCode):
 
             sage: C = codes.GolayCode(GF(3))
             sage: C.weight_enumerator()
-            1 + 264*x**6 + 440*x**9 + 24*x**12
+            24*x^12 + 440*x^9 + 264*x^6 + 1
         """
         R = PolynomialRing(ZZ, "x")
         x = R.gen()
@@ -264,21 +269,20 @@ class GolayCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.GolayCode(binary, true)
-            sage: E = codes.encoders.GolayGeneratorMatrixEncoder(C)
-            sage: E.generator_matrix()
-            [1 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1]
-            [0 1 0 0 0 0 0 0 0 0 0 0 1 1 1 0 1 1 1 0 0 0 1 0]
-            [0 0 1 0 0 0 0 0 0 0 0 0 1 1 0 1 1 1 0 0 0 1 0 1]
-            [0 0 0 1 0 0 0 0 0 0 0 0 1 0 1 1 1 0 0 0 1 0 1 1]
-            [0 0 0 0 1 0 0 0 0 0 0 0 1 1 1 1 0 0 0 1 0 1 1 0]
-            [0 0 0 0 0 1 0 0 0 0 0 0 1 1 1 0 0 0 1 0 1 1 0 1]
-            [0 0 0 0 0 0 1 0 0 0 0 0 1 1 0 0 0 1 0 1 1 0 1 1]
-            [0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0 1 1 0 1 1 1]
-            [0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 1 0 1 1 0 1 1 1 0]
-            [0 0 0 0 0 0 0 0 0 1 0 0 1 0 1 0 1 1 0 1 1 1 0 0]
-            [0 0 0 0 0 0 0 0 0 0 1 0 1 1 0 1 1 0 1 1 1 0 0 0]
-            [0 0 0 0 0 0 0 0 0 0 0 1 1 0 1 1 0 1 1 1 0 0 0 1]
+            sage: C = codes.GolayCode(GF(2))
+            sage: C.generator_matrix()
+            [1 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 1 1 1 0 0 0 1 1]
+            [0 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 0 0 1 0 0 1 0]
+            [0 0 1 0 0 0 0 0 0 0 0 0 1 1 0 1 0 0 1 0 1 0 1 1]
+            [0 0 0 1 0 0 0 0 0 0 0 0 1 1 0 0 0 1 1 1 0 1 1 0]
+            [0 0 0 0 1 0 0 0 0 0 0 0 1 1 0 0 1 1 0 1 1 0 0 1]
+            [0 0 0 0 0 1 0 0 0 0 0 0 0 1 1 0 0 1 1 0 1 1 0 1]
+            [0 0 0 0 0 0 1 0 0 0 0 0 0 0 1 1 0 0 1 1 0 1 1 1]
+            [0 0 0 0 0 0 0 1 0 0 0 0 1 0 1 1 0 1 1 1 1 0 0 0]
+            [0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 1 1 0 1 1 1 1 0 0]
+            [0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 1 1 0 1 1 1 1 0]
+            [0 0 0 0 0 0 0 0 0 0 1 0 1 0 1 1 1 0 0 0 1 1 0 1]
+            [0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 1 1 1 0 0 0 1 1 1]
         """
         n = self.length()
         if n == 23:

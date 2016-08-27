@@ -198,7 +198,7 @@ class Encoder(SageObject):
             EncodingError: Given word is not in the code
 
         Note that since ticket :trac: `21326`, codes cannot be of length zero::
-            
+
             sage: G = Matrix(GF(17), [])
             sage: C = LinearCode(G)
             Traceback (most recent call last):

@@ -761,7 +761,7 @@ class AbstractLinearCode(module.Module):
             ...
             ValueError: length must be a Python int or a Sage Integer
 
-        If the length of the code is not a non-zero positive integer 
+        If the length of the code is not a non-zero positive integer
         (See :trac:`21326`), it will raise an exception::
 
             sage: empty_generator_matrix = Matrix(GF(17),0,1)
@@ -2213,7 +2213,7 @@ class AbstractLinearCode(module.Module):
         INPUT:
 
         - ``systematic_positions`` -- (default: ``None``) if supplied, the set
-          of systematic positions in the systematic generator matrix. See the 
+          of systematic positions in the systematic generator matrix. See the
           documentation for :class:`LinearCodeSystematicEncoder` details.
 
         EXAMPLES::
@@ -2359,7 +2359,7 @@ class AbstractLinearCode(module.Module):
             return True
         except ValueError:
             return False
-            
+
 
     def is_permutation_automorphism(self,g):
         r"""
@@ -4161,11 +4161,11 @@ class LinearCodeSystematicEncoder(Encoder):
       ``systematic_positions[0]``, the 1st index at position
       ``systematic_positions[1]``, etc. A ``ValueError`` is raised at
       construction time if the supplied indices do not form an information set.
-    
+
     EXAMPLES:
 
     The following demonstrates the basic usage of :class:`LinearCodeSystematicEncoder`::
-    
+
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0,0],\
                                      [1,0,0,1,1,0,0,0],\
                                      [0,1,0,1,0,1,0,0],\
@@ -4352,7 +4352,7 @@ class LinearCodeSystematicEncoder(Encoder):
             [1 1 0 0 0 1 0]
             [0 0 1 0 0 1 0]
             [0 0 0 0 1 1 0]
-            [0 0 0 0 0 0 1]            
+            [0 0 0 0 0 0 1]
         """
         C = self.code()
         # This if statement detects if this encoder is itself the default encoder.

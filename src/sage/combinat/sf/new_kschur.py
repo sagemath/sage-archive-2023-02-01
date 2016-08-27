@@ -35,7 +35,7 @@ from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.constant_function import ConstantFunction
 from sage.matrix.constructor import matrix
-from sage.misc.misc import srange
+from sage.arith.srange import srange
 from sage.combinat.partition import Partitions_all_bounded
 from sage.misc.misc_c import prod
 
@@ -209,10 +209,10 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
 
         REFERENCES:
 
-        .. [Morse11] J. Morse, Combinatorics of the K-theory of affine Grassmannians,
+        .. [Morse11] \J. Morse, Combinatorics of the K-theory of affine Grassmannians,
            Adv. in Math., Volume 229, Issue 5, pp. 2950--2984.
 
-        .. [LamSchillingShimozono10] T. Lam, A. Schilling, M.Shimozono, K-theory Schubert calculus of the affine Grassmannian,
+        .. [LamSchillingShimozono10] \T. Lam, A. Schilling, M.Shimozono, K-theory Schubert calculus of the affine Grassmannian,
            Compositio Math. 146 (2010), 811-852.
 
 
@@ -663,7 +663,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
 
             REFERENCES:
 
-            .. [SZ.2001] M. Shimozono, M. Zabrocki,
+            .. [SZ.2001] \M. Shimozono, M. Zabrocki,
                Hall-Littlewood vertex operators and generalized Kostka polynomials.
                Adv. Math. 158 (2001), no. 1, 66-85.
 
@@ -1243,10 +1243,10 @@ class K_kSchur(CombinatorialFreeModule):
 
     REFERENCES:
 
-    .. [Morse2011] J. Morse, Combinatorics of the K-theory of affine Grassmannians,
+    .. [Morse2011] \J. Morse, Combinatorics of the K-theory of affine Grassmannians,
         Adv. in Math., Volume 229, Issue 5, pp. 2950--2984.
 
-    .. [LamSchillingShimozono2010] T. Lam, A. Schilling, M.Shimozono, K-theory Schubert calculus of the affine Grassmannian,
+    .. [LamSchillingShimozono2010] \T. Lam, A. Schilling, M.Shimozono, K-theory Schubert calculus of the affine Grassmannian,
         Compositio Math. 146 (2010), 811-852.
     """
 

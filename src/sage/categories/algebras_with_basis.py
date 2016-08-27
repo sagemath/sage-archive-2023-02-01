@@ -1,6 +1,7 @@
 r"""
 Algebras With Basis
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2013 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -15,7 +16,7 @@ from sage.misc.lazy_import import LazyImport
 from sage.categories.tensor import TensorProductsCategory, tensor
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from unital_algebras import UnitalAlgebras
+from .unital_algebras import UnitalAlgebras
 
 class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -195,6 +196,28 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         #    tester = self._tester(**options)
         #    tester.assert_(self.product is not None)
         #    could check that self.product is in Hom( self x self, self)
+
+        def hochschild_complex(self, M):
+            """
+            Return the Hochschild complex of ``self`` with coefficients
+            in ``M``.
+
+            .. SEEALSO::
+
+                :class:`~sage.homology.hochschild_complex.HochschildComplex`
+
+            EXAMPLES::
+
+                sage: R.<x> = QQ[]
+                sage: A = algebras.DifferentialWeyl(R)
+                sage: H = A.hochschild_complex(A)
+
+                sage: SGA = SymmetricGroupAlgebra(QQ, 3)
+                sage: T = SGA.trivial_representation()
+                sage: H = SGA.hochschild_complex(T)
+            """
+            from sage.homology.hochschild_complex import HochschildComplex
+            return HochschildComplex(self, M)
 
     class ElementMethods:
 

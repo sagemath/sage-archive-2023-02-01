@@ -47,6 +47,7 @@ EXAMPLES::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
 
@@ -509,8 +510,8 @@ class BackendBase(SageObject):
             sage: _     # indirect doctest
             'foo'
         """
-        import __builtin__
-        __builtin__._ = obj
+        from six.moves import builtins
+        builtins._ = obj
 
     def displayhook(self, plain_text, rich_output):
         """

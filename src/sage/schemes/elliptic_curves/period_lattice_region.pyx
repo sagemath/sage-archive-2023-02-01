@@ -16,7 +16,7 @@ AUTHORS:
 
 REFERENCES:
 
-.. [T] T. Thongjunthug, Computing a lower bound for the canonical
+.. [T] \T. Thongjunthug, Computing a lower bound for the canonical
    height on elliptic curves over number fields, Math. Comp. 79
    (2010), pages 2431-2449.
 

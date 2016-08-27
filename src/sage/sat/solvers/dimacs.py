@@ -202,7 +202,7 @@ class DIMACS(SatSolver):
             sage: solver.add_clause( (1, -2 , 3) )
             sage: _ = solver.write()
             sage: for line in open(fn).readlines():
-            ...      print line,
+            ....:     print(line)
             p cnf 3 1
             1 -2 3 0
 
@@ -212,7 +212,7 @@ class DIMACS(SatSolver):
             sage: solver.add_clause( (1, -2 , 3) )
             sage: _ = solver.write(fn)
             sage: for line in open(fn).readlines():
-            ...      print line,
+            ....:      print(line)
             p cnf 3 1
             1 -2 3 0
         """
@@ -263,7 +263,7 @@ class DIMACS(SatSolver):
 
             sage: solver.add_clause( (1, 2, -3) )
             sage: solver.clauses(fn)
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 3 2
             1 2 3 0
             1 2 -3 0
@@ -313,7 +313,7 @@ class DIMACS(SatSolver):
             sage: solver = DIMACS()
             sage: solver.add_clause( (1, 2, -3) )
             sage: DIMACS.render_dimacs(solver.clauses(), fn, solver.nvars())
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 3 1
             1 2 -3 0
             <BLANKLINE>
@@ -321,7 +321,7 @@ class DIMACS(SatSolver):
         This is equivalent to::
 
             sage: solver.clauses(fn)
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 3 1
             1 2 -3 0
             <BLANKLINE>
@@ -329,7 +329,7 @@ class DIMACS(SatSolver):
         This function also accepts a "simple" format::
 
             sage: DIMACS.render_dimacs([ (1,2), (1,2,-3) ], fn, 3)
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 3 2
             1 2 0
             1 2 -3 0
@@ -401,7 +401,7 @@ class DIMACS(SatSolver):
             while process.poll() is None:
                 for line in iter(process.stdout.readline,''):
                     if get_verbose() or self._verbosity:
-                        print line,
+                        print(line)
                         sys.stdout.flush()
                     self._output.append(line)
                 sleep(0.1)

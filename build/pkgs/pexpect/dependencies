@@ -1,4 +1,4 @@
-$(INST)/$(PYTHON) $(INST)/$(PTYPROCESS)
+$(PYTHON) ptyprocess
 
 ----------
 All lines of this file are ignored except the first.

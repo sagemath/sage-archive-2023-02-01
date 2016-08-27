@@ -10,7 +10,7 @@ import os
 import errno
 
 from sage.env import (
-    SAGE_ROOT, SAGE_DOC, SAGE_DOC_OUTPUT, SAGE_LOCAL, SAGE_EXTCODE,
+    SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, SAGE_EXTCODE,
     SAGE_VERSION
 )
 from jupyter_core.paths import ENV_JUPYTER_PATH
@@ -214,7 +214,7 @@ class SageKernelSpec(object):
                 os.path.join(self.kernel_dir, filename)
             )
         self.symlink(
-            os.path.join(SAGE_DOC_OUTPUT, 'html', 'en'),
+            os.path.join(SAGE_DOC, 'html', 'en'),
             os.path.join(self.kernel_dir, 'doc')
         )
 

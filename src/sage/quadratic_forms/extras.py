@@ -200,7 +200,7 @@ def least_quadratic_nonresidue(p):
     ## default case (first needed for p=71):
     if not p.is_prime():
         raise ValueError("Oops!  p must be a prime number > 2.")
-    from sage.misc.misc import xsrange
+    from sage.arith.srange import xsrange
     for r in xsrange(7,p):
         if legendre_symbol(r, p) == -1:
             return ZZ(r)

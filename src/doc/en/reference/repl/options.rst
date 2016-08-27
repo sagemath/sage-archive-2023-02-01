@@ -17,7 +17,7 @@ Command-line options for Sage
 - ``-v``, ``--version`` -- print the Sage version
 - ``--advanced`` -- print (essentially this) list of Sage options
 - ``-c cmd`` -- evaluate ``cmd`` as sage code.  For example, ``sage
-  -c 'print factor(35)'`` will print "5 * 7".
+  -c 'print(factor(35))'`` will print "5 * 7".
 
 .. rubric:: Running Sage, other options
 
@@ -205,8 +205,6 @@ Command-line options for Sage
   directory ``dir``
 - ``--pkg_nc dir`` -- as ``--pkg``, but do not compress the package
 - ``--merge`` -- run Sage's automatic merge and test script
-- ``--bdist VER`` -- build a binary distribution of Sage, with
-  version ``VER``
 - ``--sdist`` -- build a source distribution of Sage
 
 .. rubric:: Valgrind memory debugging

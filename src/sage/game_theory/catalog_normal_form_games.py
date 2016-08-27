@@ -228,7 +228,7 @@ def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
         TypeError: the input values for a Coordination game must
                         be of the form A > B, D > C, a > c and d > b
     """
-    if not (A > B  and  D > C and a > c and d > b):
+    if not (A > B and D > C and a > c and d > b):
         raise TypeError("the input values for a Coordination game must be of the form A > B, D > C, a > c and d > b")
     from sage.matrix.constructor import matrix
     A = matrix([[A, C], [B, D]])
@@ -414,7 +414,7 @@ def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
         ...
         TypeError: the input values for an Anti coordination game must be of the form A < B, D < C, a < c and d < b
     """
-    if not (A < B  and  D < C and a < c and d < b):
+    if not (A < B and D < C and a < c and d < b):
         raise TypeError("the input values for an Anti coordination game must be of the form A < B, D < C, a < c and d < b")
     from sage.matrix.constructor import matrix
     A = matrix([[A, C], [B, D]])
@@ -506,9 +506,10 @@ def HawkDove(v=2, c=3):
         ...
         TypeError: the input values for a Hawk Dove game must be of the form c > v
     """
-    if not (c>v):
+    if not (c > v):
         raise TypeError("the input values for a Hawk Dove game must be of the form c > v")
-    g = AntiCoordinationGame(A=v/2-c, a=v/2-c, B=0, b=v, C=v, c=0, D=v/2, d=v/2)
+    g = AntiCoordinationGame(A=v/2-c, a=v/2-c, B=0, b=v,
+                             C=v, c=0, D=v/2, d=v/2)
     g.rename('Hawk-Dove - ' + repr(g))
     return g
 
@@ -656,6 +657,7 @@ def RPS():
     g.rename('Rock-Paper-Scissors - ' + repr(g))
     return g
 
+
 def RPSLS():
     r"""
     Return a Rock-Paper-Scissors-Lizard-Spock game.
@@ -716,7 +718,7 @@ def RPSLS():
     from sage.matrix.constructor import matrix
     A = matrix([[0, -1, 1, 1, -1],
                 [1, 0, -1, -1, 1],
-                [-1, 1, 0, 1 , -1],
+                [-1, 1, 0, 1, -1],
                 [-1, 1, -1, 0, 1],
                 [1, -1, 1, -1, 0]])
     g = NormalFormGame([A])
@@ -813,6 +815,7 @@ def Chicken(A=0, a=0, B=1, b=-1, C=-1, c=1, D=-10, d=-10):
     g = AntiCoordinationGame(A=A, a=a, B=B, b=b, C=C, c=c, D=D, d=d)
     g.rename('Chicken - ' + repr(g))
     return g
+
 
 def TravellersDilemma(max_value=10):
     r"""
@@ -929,7 +932,7 @@ def TravellersDilemma(max_value=10):
     from sage.matrix.constructor import matrix
     from sage.functions.generalized import sign
     A = matrix([[min(i, j) + 2 * sign(j - i) for j in range(max_value, 1, -1)]
-                                             for i in range(max_value, 1, -1)])
+                for i in range(max_value, 1, -1)])
     g = NormalFormGame([A, A.transpose()])
     g.rename('Travellers dilemma - ' + repr(g))
     return g

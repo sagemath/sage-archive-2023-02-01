@@ -81,7 +81,7 @@ You can find critical points of a piecewise defined function:
     sage: f2 = 1-x
     sage: f3 = 2*x
     sage: f4 = 10*x-x^2
-    sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+    sage: f = piecewise([((0,1),f1), ((1,2),f2), ((2,3),f3), ((3,10),f4)])
     sage: f.critical_points()
     [5.0]
 
@@ -177,9 +177,10 @@ where :math:`f(x)=1`, :math:`0<x<1`:
 ::
 
     sage: x = PolynomialRing(QQ, 'x').gen()
-    sage: f = Piecewise([[(0,1),1*x^0]])
+    sage: f = piecewise([((0,1),1*x^0)])
     sage: g = f.convolution(f)
     sage: h = f.convolution(g)
+    sage: set_verbose(-1)
     sage: P = f.plot(); Q = g.plot(rgbcolor=(1,1,0)); R = h.plot(rgbcolor=(0,1,1))
 
 To view this, type ``show(P+Q+R)``.
@@ -212,18 +213,13 @@ where :math:`f` is a piecewise defined function, can
 
     sage: f1(x) = x^2
     sage: f2(x) = 5-x^2
-    sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
-    sage: f.trapezoid(4)
-    Piecewise defined function with 4 parts, [[(0, 1/2), 1/2*x],
-    [(1/2, 1), 9/2*x - 2], [(1, 3/2), 1/2*x + 2],
-    [(3/2, 2), -7/2*x + 8]]
-    sage: f.riemann_sum_integral_approximation(6,mode="right")
-    19/6
-    sage: f.integral()
-    Piecewise defined function with 2 parts,
-    [[(0, 1), x |--> 1/3*x^3], [(1, 2), x |--> -1/3*x^3 + 5*x - 13/3]]
-    sage: f.integral(definite=True)
-    3
+    sage: f = piecewise([[[0,1], f1], [RealSet.open_closed(1,2), f2]])
+    sage: t = f.trapezoid(2); t
+    piecewise(x|-->1/2*x on (0, 1/2), x|-->3/2*x - 1/2 on (1/2, 1), x|-->7/2*x - 5/2 on (1, 3/2), x|-->-7/2*x + 8 on (3/2, 2); x)
+    sage: t.integral()
+    piecewise(x|-->1/4*x^2 on (0, 1/2), x|-->3/4*x^2 - 1/2*x + 1/8 on (1/2, 1), x|-->7/4*x^2 - 5/2*x + 9/8 on (1, 3/2), x|-->-7/4*x^2 + 8*x - 27/4 on (3/2, 2); x)
+    sage: t.integral(definite=True)
+    9/4
 
 .. index: Laplace transform
 
@@ -242,7 +238,7 @@ computation.
     (x, s)
     sage: f1(x) = 1
     sage: f2(x) = 1-x
-    sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+    sage: f = piecewise([((0,1),f1), ((1,2),f2)])
     sage: f.laplace(x, s)
     -e^(-s)/s + (s + 1)*e^(-2*s)/s^2 + 1/s - e^(-s)/s^2
 
@@ -382,7 +378,7 @@ illustrating how the Gibbs phenomenon is mollified).
 
     sage: f1 = lambda x: -1
     sage: f2 = lambda x: 2
-    sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+    sage: f = piecewise([((0,pi/2),f1), ((pi/2,pi),f2)])
     sage: f.fourier_series_cosine_coefficient(5,pi)
     -3/5/pi
     sage: f.fourier_series_sine_coefficient(2,pi)

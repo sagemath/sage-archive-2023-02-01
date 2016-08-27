@@ -35,6 +35,7 @@ We verify Lagrange's four squares identity::
     sage: (a0^2 + a1^2 + a2^2 + a3^2)*(b0^2 + b1^2 + b2^2 + b3^2) == (a0*b0 - a1*b1 - a2*b2 - a3*b3)^2 + (a0*b1 + a1*b0 + a2*b3 - a3*b2)^2 + (a0*b2 - a1*b3 + a2*b0 + a3*b1)^2 + (a0*b3 + a1*b2 - a2*b1 + a3*b0)^2
     True
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #
@@ -56,21 +57,14 @@ We verify Lagrange's four squares identity::
 
 
 from sage.structure.element import CommutativeRingElement, canonical_coercion, coerce_binop
-
-
 from sage.misc.all import prod
 import sage.rings.integer
-
-import polydict
-
+from . import polydict
 from sage.structure.factorization import Factorization
-
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
-
 from sage.structure.sequence import Sequence
-
-
-from multi_polynomial import MPolynomial
+from .multi_polynomial import MPolynomial
+from sage.categories.morphism import Morphism
 
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
@@ -302,7 +296,37 @@ class MPolynomial_element(MPolynomial):
         return self.__element
 
     def change_ring(self, R):
-        return self.parent().change_ring(R)(self)
+        r"""
+        Change the base ring of this polynomial to ``R``.
+
+        INPUT:
+
+        - ``R`` -- ring or morphism.
+
+        OUTPUT: a new polynomial converted to ``R``.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: f = x^2 + 5*y
+            sage: f.change_ring(GF(5))
+            x^2
+
+        ::
+
+            sage: K.<w> = CyclotomicField(5)
+            sage: R.<x,y> = K[]
+            sage: f = x^2 + w*y
+            sage: f.change_ring(K.embeddings(QQbar)[1])
+            x^2 + (-0.8090169943749474? + 0.5877852522924731?*I)*y
+        """
+        if isinstance(R, Morphism):
+            #if we're given a hom of the base ring extend to a poly hom
+            if R.domain() == self.base_ring():
+                R = self.parent().hom(R, self.parent().change_ring(R.codomain()))
+            return R(self)
+        else:
+            return self.parent().change_ring(R)(self)
 
 
 class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
@@ -535,6 +559,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f.degree(std_grading=True)
             3
             sage: R(0).degree()
+            -1
+
+        Degree of zero polynomial for other implementation :trac:`20048` ::
+
+            sage: R.<x,y> = GF(3037000453)[]
+            sage: R.zero().degree(x)
             -1
         """
         if x is None:
@@ -1006,7 +1036,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         product of generators times some coefficient, which need
         not be 1.
 
-        Use is_monomial to require that the coefficent be 1.
+        Use :meth:`is_monomial` to require that the coefficient be 1.
 
         EXAMPLES::
 

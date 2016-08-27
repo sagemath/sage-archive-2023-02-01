@@ -26,7 +26,7 @@ AUTHORS:
 
 
 from cpython.int cimport PyInt_FromLong
-from cpython.long cimport PyLong_CheckExact, PyLong_FromLong
+from cpython.long cimport PyLong_FromLong
 from mpz cimport *
 
 # Unused bits in every PyLong digit

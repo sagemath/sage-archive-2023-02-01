@@ -23,7 +23,7 @@
 import cPickle, os, sys, shutil, re, tempfile
 import sphinx
 from sphinx.util.console import bold
-from sage.env import SAGE_DOC_OUTPUT
+from sage.env import SAGE_DOC
 from sage.misc.misc import sage_makedirs
 
 
@@ -34,6 +34,7 @@ def merge_environment(app, env):
     """
     Merges the following attributes of the sub-docs environment into the main
     environment:
+    - titles                      # Titles
     - todo_all_todos              # ToDo's
     - indexentries                # global python index
     - all_docs                    # needed by the js index
@@ -53,35 +54,37 @@ def merge_environment(app, env):
                     len(docenv.citations)
                     ), nonl=1)
 
+            # merge titles
+            for t in docenv.titles:
+                env.titles[fixpath(t)] = docenv.titles[t]
             # merge the todo links
             for dct in docenv.todo_all_todos:
-                dct['docname']=fixpath(dct['docname'])
+                dct['docname'] = fixpath(dct['docname'])
             env.todo_all_todos += docenv.todo_all_todos
             # merge the html index links
             newindex = {}
             for ind in docenv.indexentries:
                 if ind.startswith('sage/'):
-                    newind = fixpath(ind)
-                    newindex[newind] = docenv.indexentries[ind]
+                    newindex[fixpath(ind)] = docenv.indexentries[ind]
                 else:
                     newindex[ind] = docenv.indexentries[ind]
             env.indexentries.update(newindex)
             # merge the all_docs links, needed by the js index
             newalldoc = {}
             for ind in docenv.all_docs:
-                newalldoc[fixpath(ind)]=docenv.all_docs[ind]
+                newalldoc[fixpath(ind)] = docenv.all_docs[ind]
             env.all_docs.update(newalldoc)
             # needed by env.check_consistency (sphinx.environement, line 1734)
             for ind in newalldoc:
                 # treat subdocument source as orphaned file and don't complain
-                md = env.metadata.get(ind, set())
-                md.add('orphan')
+                md = env.metadata.get(ind, dict())
+                md['orphan'] = 1
                 env.metadata[ind] = md
             # merge the citations
             newcite = {}
             for ind, (path, tag) in docenv.citations.iteritems():
                 # TODO: Warn on conflicts
-                newcite[ind]=(fixpath(path), tag)
+                newcite[ind] = (fixpath(path), tag)
             env.citations.update(newcite)
             # merge the py:module indexes
             newmodules = {}
@@ -197,17 +200,17 @@ def fix_path_html(app, pagename, templatename, ctx, event_arg):
 
 
 def citation_dir(app):
-    # Split app.outdir in 3 parts: SAGE_DOC_OUTPUT/TYPE/TAIL where TYPE
+    # Split app.outdir in 3 parts: SAGE_DOC/TYPE/TAIL where TYPE
     # is a single directory and TAIL can contain multiple directories.
-    # The citation dir is then SAGE_DOC_OUTPUT/inventory/TAIL.
-    assert app.outdir.startswith(SAGE_DOC_OUTPUT)
-    rel = app.outdir[len(SAGE_DOC_OUTPUT):]
+    # The citation dir is then SAGE_DOC/inventory/TAIL.
+    assert app.outdir.startswith(SAGE_DOC)
+    rel = app.outdir[len(SAGE_DOC):]
     dirs = rel.split(os.sep)
-    # If SAGE_DOC_OUTPUT does not end with a slash, rel will start with
+    # If SAGE_DOC does not end with a slash, rel will start with
     # a slash giving an empty dirs[0]. Remove this:
     if not dirs[0]:
         dirs.pop(0)
-    dirs = [SAGE_DOC_OUTPUT, "inventory"] + dirs[1:]
+    dirs = [SAGE_DOC, "inventory"] + dirs[1:]
     citedir = os.path.join(*dirs)
     sage_makedirs(citedir)
     return citedir

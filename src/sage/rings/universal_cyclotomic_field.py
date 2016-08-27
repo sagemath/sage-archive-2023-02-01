@@ -23,7 +23,7 @@ number fields, such as calculations with matrices of cyclotomics.
 
 REFERENCES:
 
-.. [Bre97] T. Breuer "Integral bases for subfields of cyclotomic fields" AAECC 8, 279--289 (1997).
+.. [Bre97] \T. Breuer "Integral bases for subfields of cyclotomic fields" AAECC 8, 279--289 (1997).
 
 EXAMPLES::
 

@@ -24,9 +24,9 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
@@ -533,9 +533,9 @@ cdef class FP_LLL:
         if r:
             if r in (RED_BKZ_LOOPS_LIMIT, RED_BKZ_TIME_LIMIT):
                 if verbose:
-                    print str(getRedStatusStr(r))
+                    print(str(getRedStatusStr(r)))
             else:
-                raise RuntimeError( str(getRedStatusStr(r)) )
+                raise RuntimeError(str(getRedStatusStr(r)))
 
 
     def HKZ(self):

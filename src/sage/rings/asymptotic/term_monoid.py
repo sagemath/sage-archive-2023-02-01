@@ -188,6 +188,7 @@ AUTHORS:
 
 - Benjamin Hackl (2015)
 - Daniel Krenn (2015)
+- Clemens Heuberger (2016)
 
 ACKNOWLEDGEMENT:
 
@@ -208,6 +209,7 @@ ACKNOWLEDGEMENT:
 Classes and Methods
 ===================
 """
+from __future__ import absolute_import
 
 # *****************************************************************************
 # Copyright (C) 2014--2015 Benjamin Hackl <benjamin.hackl@aau.at>
@@ -522,7 +524,7 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
         try:
             zero ** exponent
         except (TypeError, ValueError, ZeroDivisionError) as e:
-            from misc import combine_exceptions
+            from .misc import combine_exceptions
             raise combine_exceptions(
                 ZeroDivisionError('Cannot take %s to exponent %s.' %
                                   (self, exponent)), e)
@@ -570,7 +572,7 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
         try:
             g = self.growth ** exponent
         except (ValueError, TypeError, ZeroDivisionError) as e:
-            from misc import combine_exceptions
+            from .misc import combine_exceptions
             raise combine_exceptions(
                 ValueError('Cannot take %s to the exponent %s.' % (self, exponent)), e)
 
@@ -1202,6 +1204,28 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
         return 'Generic Term with growth ' + repr(self.growth)
 
 
+    def _latex_(self):
+        r"""
+        A LaTeX-representation string for this generic term.
+
+        OUTPUT:
+
+        A NotImplementedError is raised.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T = GenericTermMonoid(G, QQ)
+            sage: latex(T(x))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+
     def _substitute_(self, rules):
         r"""
         Substitute the given ``rules`` in this generic term.
@@ -1229,10 +1253,93 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
             > *previous* TypeError: Cannot substitute in the abstract base class
             Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
         """
-        from misc import substitute_raise_exception
+        from .misc import substitute_raise_exception
         substitute_raise_exception(self, TypeError(
             'Cannot substitute in the abstract '
             'base class %s.' % (self.parent(),)))
+
+
+    def variable_names(self):
+        r"""
+        Return the names of the variables of this term.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('exact', 'QQ^m * m^QQ * log(n)^ZZ', QQ)
+            sage: T('4 * 2^m * m^4 * log(n)').variable_names()
+            ('m', 'n')
+            sage: T('4 * 2^m * m^4').variable_names()
+            ('m',)
+            sage: T('4 * log(n)').variable_names()
+            ('n',)
+            sage: T('4 * m^3').variable_names()
+            ('m',)
+            sage: T('4 * m^0').variable_names()
+            ()
+        """
+        return self.growth.variable_names()
+
+
+    def _factorial_(self):
+        r"""
+        Return the factorial of this generic term.
+
+        OUTPUT:
+
+        A term.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: T = GenericTermMonoid(GrowthGroup('x^QQ'), QQ)
+            sage: T.an_element()._factorial_()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot build the factorial of
+            Generic Term with growth x^(1/2).
+        """
+        raise NotImplementedError(
+            'Cannot build the factorial of {}.'.format(self))
+
+
+    def _singularity_analysis_(self, var, zeta, precision):
+        r"""
+        Perform singularity analysis on this term.
+
+        INPUT:
+
+        - ``var`` -- a string denoting the variable
+
+        - ``zeta`` -- a number
+
+        - ``precision`` -- an integer
+
+        OUTPUT:
+
+        An asymptotic expansion for `[z^n] f` where `n` is ``var``
+        and `f` has this term as a singular expansion
+        in `T=\frac{1}{1-\frac{z}{\zeta}}\to \infty` where this element
+        is a monomial in `T`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: t = GenericTermMonoid(GrowthGroup('x^ZZ'), ZZ).an_element()
+            sage: t._singularity_analysis_('n', 2, precision=3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: singularity analysis of Generic Term with growth x
+            not implemented
+        """
+        raise NotImplementedError('singularity analysis of {} '
+                                  'not implemented '.format(self))
 
 
 class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentation,
@@ -1645,7 +1752,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             raise ValueError('No input specified. Cannot continue '
                              'creating an element of %s.' % (self,))
 
-        from misc import combine_exceptions
+        from .misc import combine_exceptions
         if coefficient is not None:
             try:
                 data = self.growth_group(data)
@@ -1720,7 +1827,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
            (coefficient is None or coefficient.parent() is self.coefficient_ring):
             parent = self
         else:
-            from misc import underlying_class
+            from .misc import underlying_class
             parent = underlying_class(self)(growth.parent(),
                                             coefficient.parent()
                                             if coefficient is not None
@@ -1833,7 +1940,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             (x^2, log(x))
         """
         if isinstance(data, str):
-            from misc import split_str_by_op
+            from .misc import split_str_by_op
             return split_str_by_op(data, '*')
 
         try:
@@ -1971,13 +2078,14 @@ class OTerm(GenericTerm):
         O(x^17)
     """
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this `O`-term.
 
         INPUT:
 
-        Nothing.
+        - ``latex`` -- (default: ``False``) a boolean. If set, then
+          LaTeX-output is returned.
 
         OUTPUT:
 
@@ -1989,13 +2097,48 @@ class OTerm(GenericTerm):
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: OT = TermMonoid('O', G, QQ)
-            sage: t1 = OT(x); t2 = OT(x^2); t3 = OT(x^3)
-            sage: t1._repr_(), t2._repr_()
-            ('O(x)', 'O(x^2)')
-            sage: t3
+            sage: OT(x)._repr_()
+            'O(x)'
+            sage: OT(x^2)._repr_()
+            'O(x^2)'
+            sage: OT(x^3)
             O(x^3)
         """
-        return 'O(%s)' % self.growth
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
+
+        if latex:
+            s = r'O\!\left({g}\right)'
+        else:
+            s = 'O({g})'
+        return s.format(g=f(self.growth))
+
+
+    def _latex_(self):
+        r"""
+        A LaTeX-representation string for this `O`-term.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: OT = TermMonoid('O', G, QQ)
+            sage: latex(OT(x))
+            O\!\left(x\right)
+            sage: latex(OT(x^2))
+            O\!\left(x^{2}\right)
+            sage: latex(OT(x^3))
+            O\!\left(x^{3}\right)
+        """
+        return self._repr_(latex=True)
 
 
     def __invert__(self):
@@ -2324,7 +2467,7 @@ class OTerm(GenericTerm):
         try:
             g = self.growth._substitute_(rules)
         except (ArithmeticError, TypeError, ValueError) as e:
-            from misc import substitute_raise_exception
+            from .misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
         try:
@@ -2337,7 +2480,7 @@ class OTerm(GenericTerm):
         except AttributeError:
             pass
         else:
-            from asymptotic_ring import AsymptoticRing
+            from .asymptotic_ring import AsymptoticRing
             from sage.symbolic.ring import SymbolicRing
 
             if isinstance(P, AsymptoticRing):
@@ -2349,8 +2492,70 @@ class OTerm(GenericTerm):
         try:
             return sage.rings.big_oh.O(g)
         except (ArithmeticError, TypeError, ValueError) as e:
-            from misc import substitute_raise_exception
+            from .misc import substitute_raise_exception
             substitute_raise_exception(self, e)
+
+
+    def _factorial_(self):
+        r"""
+        Return the factorial of this O-term if it is constant
+        (i.e., has growth `1`).
+
+        OUTPUT:
+
+        A term.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('O', 'z^QQ', QQ)
+            sage: T(1)._factorial_()
+            O(1)
+            sage: T('z^(3/2)')._factorial_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot build the factorial of O(z^(3/2))
+            since it has growth != 1.
+        """
+        if not self.growth.is_one():
+            raise ValueError(
+                'Cannot build the factorial of {} since it has growth '
+                '!= 1.'.format(self))
+
+        return self
+
+
+    def _singularity_analysis_(self, var, zeta, precision):
+        r"""
+        Perform singularity analysis on this O-term.
+
+        INPUT:
+
+        - ``var`` -- a string denoting the variable
+
+        - ``zeta`` -- a number
+
+        - ``precision`` -- an integer
+
+        OUTPUT:
+
+        An asymptotic expansion for `[z^n] f` where `n` is ``var``
+        and `f` has this term as a singular expansion
+        in `T=\frac{1}{1-\frac{z}{\zeta}}\to \infty` where this element
+        is a monomial in `T`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('O', GrowthGroup('x^ZZ'), ZZ)
+            sage: T('x^1')._singularity_analysis_('n', 2, precision=3)
+            O((1/2)^n)
+            sage: T('x^(-1)')._singularity_analysis_('n', 2, precision=3)
+            O((1/2)^n*n^(-2))
+        """
+        return self.growth._singularity_analysis_(
+            var=var, zeta=zeta, precision=0)
 
 
 class OTermMonoid(GenericTermMonoid):
@@ -2426,7 +2631,7 @@ class OTermMonoid(GenericTermMonoid):
             try:
                 self.coefficient_ring(coefficient)
             except (TypeError, ValueError) as e:
-                from misc import combine_exceptions
+                from .misc import combine_exceptions
                 raise combine_exceptions(
                     ValueError('Cannot create O(%s) since given coefficient %s '
                                'is not valid in %s.' %
@@ -2707,7 +2912,7 @@ class TermWithCoefficient(GenericTerm):
         try:
             c = self.coefficient ** exponent
         except (TypeError, ValueError, ZeroDivisionError) as e:
-            from misc import combine_exceptions
+            from .misc import combine_exceptions
             raise combine_exceptions(
                 ArithmeticError('Cannot take %s to the exponent %s in %s since its '
                                 'coefficient %s cannot be taken to this exponent.' %
@@ -3026,13 +3231,14 @@ class ExactTerm(TermWithCoefficient):
         5*x^2
     """
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this exact term.
 
         INPUT:
 
-        Nothing.
+        - ``latex`` -- (default: ``False``) a boolean. If set, then
+          LaTeX-output is returned.
 
         OUTPUT:
 
@@ -3044,7 +3250,7 @@ class ExactTerm(TermWithCoefficient):
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: ET = TermMonoid('exact', G, ZZ)
-            sage: et1 = ET(x^2, 2); et1
+            sage: ET(x^2, 2)
             2*x^2
 
         TESTS::
@@ -3066,20 +3272,79 @@ class ExactTerm(TermWithCoefficient):
             sage: (1+a)/n
             (a + 1)*n^(-1)
         """
-        g = repr(self.growth)
-        c = repr(self.coefficient)
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
+
+        g = f(self.growth)
+        c = f(self.coefficient)
+
         if g == '1':
             return c
         elif c == '1':
-            return '%s' % (g,)
+            return '{g}'.format(g=g)
         elif c == '-1':
-            return '-%s' % (g,)
+            return '-{g}'.format(g=g)
         elif self.coefficient._is_atomic() or (-self.coefficient)._is_atomic():
             # note that -pi/2 is not atomic, but -5 is. As subtractions are handeled
             # in the asymptotic ring, we ignore such non-atomicity.
-            return '%s*%s' % (c, g)
+            s = '{c} {g}' if latex else '{c}*{g}'
         else:
-            return '(%s)*%s' % (c, g)
+            s = r'\left({c}\right) {g}' if latex else '({c})*{g}'
+        s = s.format(c=c, g=g)
+
+        if latex:
+            import re
+            s = re.sub(r'([0-9])\s+([0-9])', r'\1 \cdot \2', s)
+
+        return s
+
+
+    def _latex_(self):
+        r"""
+        A LaTeX-representation string for this exact term.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: ET = TermMonoid('exact', G, ZZ)
+            sage: latex(ET(x^2, 2))
+            2 x^{2}
+
+        ::
+
+            sage: latex(ET(x^2, 1))
+            x^{2}
+            sage: latex(ET(x^2, -1))
+            -x^{2}
+            sage: latex(ET(x^0, 42))
+            42
+
+        ::
+
+            sage: C.<c> = AsymptoticRing('c^ZZ', SR)
+            sage: latex((1+pi)*c)
+            \left(\pi + 1\right) c
+            sage: R.<a> = QQ[]
+            sage: S.<n> = AsymptoticRing('n^QQ', R)
+            sage: latex((1+a)/n)
+            \left(a + 1\right) n^{-1}
+
+        ::
+
+            sage: D.<d> = AsymptoticRing('QQ^d * d^ZZ', ZZ)
+            sage: latex(42*3^d)
+            42 \cdot 3^{d}
+        """
+        return self._repr_(latex=True)
 
 
     def __invert__(self):
@@ -3500,7 +3765,7 @@ class ExactTerm(TermWithCoefficient):
         try:
             g = self.growth._substitute_(rules)
         except (ArithmeticError, TypeError, ValueError) as e:
-            from misc import substitute_raise_exception
+            from .misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
         c = self.coefficient
@@ -3508,8 +3773,79 @@ class ExactTerm(TermWithCoefficient):
         try:
             return c * g
         except (ArithmeticError, TypeError, ValueError) as e:
-            from misc import substitute_raise_exception
+            from .misc import substitute_raise_exception
             substitute_raise_exception(self, e)
+
+
+    def _factorial_(self):
+        r"""
+        Return the factorial of this exact term if it is constant
+        (i.e., has growth `1`).
+
+        OUTPUT:
+
+        A term.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('exact', 'z^QQ', QQ)
+            sage: T('4')._factorial_()
+            24
+            sage: T('1/2')._factorial_()
+            1/2*sqrt(pi)
+            sage: T('4*z^(3/2)')._factorial_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot build the factorial of 4*z^(3/2)
+            since it has growth != 1.
+        """
+        if not self.growth.is_one():
+            raise ValueError(
+                'Cannot build the factorial of {} since it has growth '
+                '!= 1.'.format(self))
+
+        from sage.functions.other import factorial
+        return self.parent()._create_element_in_extension_(
+            self.growth, factorial(self.coefficient))
+
+
+    def _singularity_analysis_(self, var, zeta, precision):
+        r"""
+        Perform singularity analysis on this exact term.
+
+        INPUT:
+
+        - ``var`` -- a string denoting the variable
+
+        - ``zeta`` -- a number
+
+        - ``precision`` -- an integer
+
+        OUTPUT:
+
+        An asymptotic expansion for `[z^n] f` where `n` is ``var``
+        and `f` has this term as a singular expansion
+        in `T=\frac{1}{1-\frac{z}{\zeta}}\to \infty` where this element
+        is a monomial in `T`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('exact', GrowthGroup('x^QQ'), ZZ)
+            sage: T('5*x^(1/2)')._singularity_analysis_('n', 2, precision=2)
+            5/sqrt(pi)*(1/2)^n*n^(-1/2)
+            - 5/8/sqrt(pi)*(1/2)^n*n^(-3/2)
+            + O((1/2)^n*n^(-5/2))
+            sage: T('2*x^(-1)')._singularity_analysis_('n', 2, precision=3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large n.
+        """
+        return self.coefficient * self.growth._singularity_analysis_(
+            var=var, zeta=zeta, precision=precision)
 
 
 class ExactTermMonoid(TermWithCoefficientMonoid):
@@ -3601,7 +3937,8 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
       Either a string ``'exact'`` or ``'O'`` (capital letter ``O``),
       or an existing instance of a term monoid.
 
-    - ``growth_group`` -- a growth group.
+    - ``growth_group`` -- a growth group or
+      a string describing a growth group.
 
     - ``coefficient_ring`` -- a ring.
 
@@ -3629,6 +3966,10 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         Exact Term Monoid x^ZZ with coefficients in Rational Field
         sage: TermMonoid('O', asymptotic_ring=R)
         O-Term Monoid x^ZZ with implicit coefficients in Rational Field
+
+        sage: TermMonoid('exact', 'QQ^m * m^QQ * log(n)^ZZ', ZZ)
+        Exact Term Monoid QQ^m * m^QQ * log(n)^ZZ
+        with coefficients in Integer Ring
 
     TESTS::
 
@@ -3728,7 +4069,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             ValueError: Integer Ring has to be an asymptotic growth group
         """
         if isinstance(term_monoid, GenericTermMonoid):
-            from misc import underlying_class
+            from .misc import underlying_class
             term_class = underlying_class(term_monoid)
         elif term_monoid == 'O':
             term_class = OTermMonoid
@@ -3748,10 +4089,14 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             growth_group = asymptotic_ring.growth_group
             coefficient_ring = asymptotic_ring.coefficient_ring
 
-        from growth_group import GenericGrowthGroup
+        from .growth_group import GenericGrowthGroup
         if not isinstance(growth_group, GenericGrowthGroup):
-            raise ValueError("%s has to be an asymptotic growth group"
-                             % growth_group)
+            if isinstance(growth_group, str):
+                from .growth_group import GrowthGroup
+                growth_group = GrowthGroup(growth_group)
+            else:
+                raise ValueError('{} has to be an asymptotic growth '
+                                 'group'.format(growth_group))
 
         if coefficient_ring is None:
             raise ValueError("A coefficient ring has to be specified to "

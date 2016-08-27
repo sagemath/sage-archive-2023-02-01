@@ -239,7 +239,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             sage: symbolic_evalue
             1/2*sqrt(5) - 1/2
 
-            sage: qqbar_evalue == symbolic_evalue
+            sage: bool(qqbar_evalue == symbolic_evalue)
             True
 
         A slightly larger matrix with a "nice" spectrum. ::
@@ -364,7 +364,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
 
         """
         if not self.is_square():
-            raise ValueError, "exp only defined on square matrices"
+            raise ValueError("exp only defined on square matrices")
         if self.nrows() == 0:
             return self
         # Maxima's matrixexp function chokes on floating point numbers
@@ -860,7 +860,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             ValueError: the number of arguments must be less than or equal to 3
         """
         if kwargs and args:
-            raise ValueError, "args and kwargs cannot both be specified"
+            raise ValueError("args and kwargs cannot both be specified")
 
         if len(args) == 1 and isinstance(args[0], dict):
             kwargs = dict([(repr(x[0]), x[1]) for x in args[0].iteritems()])
@@ -883,7 +883,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             variables = list( self.arguments() )
 
             if len(args) > self.number_of_arguments():
-                raise ValueError, "the number of arguments must be less than or equal to %s"%self.number_of_arguments()
+                raise ValueError("the number of arguments must be less than or equal to %s" % self.number_of_arguments())
 
             new_entries = []
             for entry in self.list():

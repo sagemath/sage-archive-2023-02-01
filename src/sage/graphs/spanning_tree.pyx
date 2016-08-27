@@ -23,11 +23,11 @@ including minimum spanning trees.
 
 REFERENCES:
 
-.. [Aldous90] D. Aldous, 'The random walk construction of
+.. [Aldous90] \D. Aldous, 'The random walk construction of
   uniform spanning trees', SIAM J Discrete Math 3 (1990),
   450-465.
 
-.. [Broder89] A. Broder, 'Generating random spanning trees',
+.. [Broder89] \A. Broder, 'Generating random spanning trees',
   Proceedings of the 30th IEEE Symposium on Foundations of
   Computer Science, 1989, pp. 442-447. :doi:`10.1109/SFCS.1989.63516`,
   <http://www.cs.cmu.edu/~15859n/RelatedWork/Broder-GenRanSpanningTrees.pdf>_
@@ -71,7 +71,6 @@ Methods
 # http://www.gnu.org/licenses/
 ###########################################################################
 
-include "sage/ext/interrupt.pxi"
 
 cpdef kruskal(G, wfunction=None, bint check=False):
     r"""

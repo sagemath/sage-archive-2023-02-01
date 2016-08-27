@@ -52,7 +52,9 @@ class SageSphinxLogger(object):
             re.compile('^loading pickled environment... done'),
             re.compile('^loading cross citations... done \([0-9]* citations\).'),
             re.compile('WARNING: favicon file \'favicon.ico\' does not exist'),
-            re.compile('.*WARNING: html_static_path entry .* does not exist'),
+            re.compile('WARNING: html_static_path entry .* does not exist'),
+            re.compile('WARNING: while setting up extension'),
+            re.compile('WARNING: Any IDs not assiend for figure node'),
             )
 
         # replacements: pairs of regular expressions and their replacements,
@@ -64,7 +66,7 @@ class SageSphinxLogger(object):
             # When building the inventory, ignore warnings about missing
             # citations and the search index.
             self.useless_chatter += (
-                re.compile('^None:[0-9]*: WARNING: citation not found: '),
+                re.compile('WARNING: citation not found:'),
                 re.compile('WARNING: search index couldn\'t be loaded, but not all documents will be built: the index will be incomplete.')
                 )
 
@@ -95,7 +97,7 @@ class SageSphinxLogger(object):
             return True
         line = re.sub(self.ansi_color, '', line)
         for regex in self.useless_chatter:
-            if regex.match(line) is not None:
+            if regex.search(line) is not None:
                 return True
         return False
 

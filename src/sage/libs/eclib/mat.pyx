@@ -1,6 +1,7 @@
 """
 Cremona matrices
 """
+from __future__ import print_function
 
 from ..eclib cimport scalar, addscalar
 
@@ -34,7 +35,7 @@ cdef class Matrix:
     """
     def __repr__(self):
         """
-        String representation of this matrix.  Use print self.str() to
+        String representation of this matrix.  Use print(self.str()) to
         print out the matrix entries on the screen.
 
         EXAMPLES::
@@ -42,7 +43,7 @@ cdef class Matrix:
             sage: M = CremonaModularSymbols(23)
             sage: t = M.hecke_matrix(2); t
             5 x 5 Cremona matrix over Rational Field
-            sage: print t.str()
+            sage: print(t.str())
             [ 3  0  0  0  0]
             [-1 -1  0  0 -1]
             [ 1  1  0  1  1]
@@ -88,14 +89,14 @@ cdef class Matrix:
             Traceback (most recent call last):
             ...
             IndexError: matrix indices out of range
-            """
+        """
         cdef long i, j
         if self.M:
             i, j = ij
             if 0<i and i<=self.M[0].nrows() and 0<j and j<=self.M[0].ncols():
                 return self.M.sub(i,j)
-            raise IndexError, "matrix indices out of range"
-        raise IndexError, "cannot index into an undefined matrix"
+            raise IndexError("matrix indices out of range")
+        raise IndexError("cannot index into an undefined matrix")
 
     def nrows(self):
         """
@@ -155,10 +156,10 @@ cdef class Matrix:
         EXAMPLES::
 
             sage: M = CremonaModularSymbols(23, cuspidal=True, sign=1)
-            sage: t = M.hecke_matrix(2); print t.str()
+            sage: t = M.hecke_matrix(2); print(t.str())
             [ 0  1]
             [ 1 -1]
-            sage: w = t.add_scalar(3); print w.str()
+            sage: w = t.add_scalar(3); print(w.str())
             [3 1]
             [1 2]
         """

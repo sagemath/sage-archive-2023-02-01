@@ -1,6 +1,7 @@
 """
 Hyperelliptic curves over a padic field.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -9,7 +10,7 @@ Hyperelliptic curves over a padic field.
 #*****************************************************************************
 
 
-import hyperelliptic_generic
+from . import hyperelliptic_generic
 
 from sage.rings.all import PowerSeriesRing, PolynomialRing, ZZ, QQ, O, pAdicField, GF, RR, RationalField, Infinity
 from sage.misc.functional import log
@@ -137,7 +138,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         f, h = self.hyperelliptic_polynomials()
         if h != 0:
             raise NotImplementedError()
-        return [self((0,1,0))] + [self((x, 0, 1)) for x in f.roots()]
+        return [self((0,1,0))] + [self((x, 0, 1)) for x in f.roots(multiplicities=False)]
 
     def is_in_weierstrass_disc(self,P):
         """

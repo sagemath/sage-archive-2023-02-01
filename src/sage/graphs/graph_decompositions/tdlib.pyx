@@ -48,16 +48,16 @@ AUTHOR: Lukas Larisch (10-25-2015): Initial version
 
 REFERENCE:
 
-.. [ST93] P. D. Seymour and Robin Thomas,
+.. [ST93] \P. D. Seymour and Robin Thomas,
    Graph searching and a min-max theorem for tree-width,
    J. Comb. Theory Ser. B 58, 1 (May 1993), 22-33.
 
-.. [AP86] S. Arnborg, A. Proskurowski,
+.. [AP86] \S. Arnborg, A. Proskurowski,
    Characterization and Recognition of Partial 3-Trees,
    SIAM Journal of Alg. and Discrete Methods,
    Vol. 7, pp. 305-314, 1986
 
-.. [Bodlaender93] H. L. Bodlaender,
+.. [Bodlaender93] \H. L. Bodlaender,
    A Tourist Guide through Treewidth, Acta Cybern. 1993
 
 Methods
@@ -69,8 +69,7 @@ from libcpp.vector cimport vector
 from sage.sets.set import Set
 from sage.graphs.graph import Graph
 
-include "sage/ext/interrupt.pxi"
-include 'sage/ext/stdsage.pxi'
+include "cysignals/signals.pxi"
 
 cdef extern from "tdlib/sage_tdlib.cpp":
      int sage_exact_decomposition(vector[unsigned int] &V_G, vector[unsigned int] &E_G, vector[vector[int]] &V_T, vector[unsigned int] &E_T, int lb)

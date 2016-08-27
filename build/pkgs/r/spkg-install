@@ -67,14 +67,10 @@ else
     XSUPPORT=no
 fi
 
-if [ "$UNAME" = "Darwin" ]; then
-    echo "Configuring R without ATLAS for OS X"
-else
-    echo "Configuring R with ATLAS"
-    R_CONFIGURE_BLAS="--with-blas=\"-L$SAGE_LOCAL/lib -lf77blas -latlas\""
-    R_CONFIGURE_LAPACK="--with-lapack=\"-L$SAGE_LOCAL/lib -llapack -lcblas\""
-    echo $R_CONFIGURE_BLAS
-fi
+R_CONFIGURE_BLAS="--with-blas=$(pkg-config --libs blas)"
+R_CONFIGURE_LAPACK="--with-lapack=$(pkg-config --libs lapack)"
+echo "R_CONFIGURE_BLAS=$R_CONFIGURE_BLAS"
+echo "R_CONFIGURE_LAPACK=$R_CONFIGURE_LAPACK"
 
 if [ "$UNAME" = "Darwin" ]; then
     # We don't want to install R as a library framework on OSX

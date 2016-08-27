@@ -9,6 +9,7 @@ AUTHORS:
 
 - John H. Palmieri (2012-11)
 """
+from __future__ import absolute_import
 
 from cStringIO import StringIO
 from sage.structure.sage_object import SageObject
@@ -580,7 +581,7 @@ class table(SageObject):
             \end{array}\right)$ & $5$ & $6$ \\ \hline
             \end{tabular}
         """
-        from latex import latex, LatexExpr
+        from .latex import latex, LatexExpr
         import types
 
         rows = self._rows
@@ -784,8 +785,8 @@ class table(SageObject):
             <td><script type="math/tex">x</script></td>
         """
         from sage.plot.all import Graphics
-        from latex import latex
-        from html import math_parse
+        from .latex import latex
+        from .html import math_parse
         import types
 
         if isinstance(row, types.GeneratorType):

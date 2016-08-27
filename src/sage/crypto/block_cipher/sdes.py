@@ -76,10 +76,10 @@ class SimplifiedDES(SageObject):
 
     REFERENCES:
 
-    .. [Pha02] R. C.-W. Phan. Mini advanced encryption standard (mini-AES): a
+    .. [Pha02] \R. C.-W. Phan. Mini advanced encryption standard (mini-AES): a
       testbed for cryptanalysis students. Cryptologia, 26(4):283--306, 2002.
 
-    .. [Sch96] E. Schaefer. A simplified data encryption algorithm.
+    .. [Sch96] \E. Schaefer. A simplified data encryption algorithm.
       Cryptologia, 20(1):77--84, 1996.
     """
 

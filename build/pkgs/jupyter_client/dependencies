@@ -1,4 +1,4 @@
-$(INST)/$(PYTHON) $(INST)/$(JUPYTER_CORE)
+$(PYTHON) jupyter_core
 
 ----------
 All lines of this file are ignored except the first.

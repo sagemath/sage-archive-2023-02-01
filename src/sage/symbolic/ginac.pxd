@@ -604,7 +604,3 @@ cdef extern from "pynac/order.h":
             (GEx left, GEx right) except +
     bint print_order_compare_mul "GiNaC::print_order_mul().compare" \
             (GEx left, GEx right) except +
-    bint print_order "GiNaC::print_order()" \
-            (GEx left, GEx right) except +
-    bint print_order_mul "GiNaC::print_order_mul()" \
-            (GEx left, GEx right) except +

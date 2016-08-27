@@ -34,9 +34,14 @@ def timestamp():
     return max(map(os.path.getmtime, files))
 
 
-def workspace():
+def workspace(name='workspace'):
     """
     Return the filename of the gap workspace and whether it is up to date.
+
+    INPUT:
+
+    - ``name`` -- string. A name that will become part of the
+      workspace filename.
 
     OUTPUT:
 
@@ -58,8 +63,8 @@ def workspace():
     import os
     import glob
     from sage.env import SAGE_LOCAL, DOT_SAGE
-    workspace = os.path.join(DOT_SAGE, 'gap', 'libgap-workspace-{0}'
-                        .format(abs(hash(SAGE_LOCAL))))
+    workspace = os.path.join(DOT_SAGE, 'gap', 'libgap-{0}-{1}'
+                        .format(name, abs(hash(SAGE_LOCAL))))
     try:
         workspace_mtime = os.path.getmtime(workspace)
     except OSError:

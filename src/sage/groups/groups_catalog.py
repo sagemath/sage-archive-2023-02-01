@@ -57,14 +57,20 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 
 - Miscellaneous Groups (``groups.misc.<tab>``)
 
-  - :func:`groups.misc.AdditiveAbelian <sage.groups.additive_abelian.additive_abelian_group.AdditiveAbelianGroup>`
-  - :class:`groups.misc.AdditiveCyclic <sage.rings.finite_rings.integer_mod_ring.IntegerModFactory>`
-  - :func:`groups.misc.Braid <sage.groups.braid.BraidGroup>`
-  - :func:`groups.misc.CoxeterGroup <sage.combinat.root_system.coxeter_group.CoxeterGroup>`
-  - :func:`groups.misc.Free <sage.groups.free_group.FreeGroup>`
-  - :class:`groups.misc.RightAngledArtin <sage.groups.raag.RightAngledArtinGroup>`
-  - :func:`groups.misc.SemimonomialTransformation <sage.groups.semimonomial_transformations.semimonomial_transformation_group.SemimonomialTransformationGroup>`
-  - :func:`groups.misc.WeylGroup <sage.combinat.root_system.weyl_group.WeylGroup>`
+  - Coxeter, reflection and related groups
+
+    - :func:`groups.misc.Braid <sage.groups.braid.BraidGroup>`
+    - :func:`groups.misc.CoxeterGroup <sage.combinat.root_system.coxeter_group.CoxeterGroup>`
+    - :func:`groups.misc.ReflectionGroup <sage.combinat.root_system.reflection_group_real.ReflectionGroup>`
+    - :class:`groups.misc.RightAngledArtin <sage.groups.raag.RightAngledArtinGroup>`
+    - :func:`groups.misc.WeylGroup <sage.combinat.root_system.weyl_group.WeylGroup>`
+
+  - other miscellanous groups
+
+    - :func:`groups.misc.AdditiveAbelian <sage.groups.additive_abelian.additive_abelian_group.AdditiveAbelianGroup>`
+    - :class:`groups.misc.AdditiveCyclic <sage.rings.finite_rings.integer_mod_ring.IntegerModFactory>`
+    - :func:`groups.misc.Free <sage.groups.free_group.FreeGroup>`
+    - :func:`groups.misc.SemimonomialTransformation <sage.groups.semimonomial_transformations.semimonomial_transformation_group.SemimonomialTransformationGroup>`
 
 """
 

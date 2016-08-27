@@ -28,9 +28,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/libs/ntl/decl.pxi"
+from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
@@ -659,7 +660,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             return test
         return -test
 
-    cpdef _richcmp_(left, Element _right, int op):
+    cpdef _richcmp_(left, _right, int op):
         r"""
         Rich comparison of elements.
 
@@ -788,7 +789,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_clear(j)
         return rich_to_bool_sgn(op, test)
 
-    cpdef int _cmp_(left, Element _right) except -2:
+    cpdef int _cmp_(left, _right) except -2:
         """
         Comparisons of elements.
 
@@ -959,7 +960,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_clear(gcd)
 
 
-    cpdef ModuleElement _add_(self, ModuleElement other_m):
+    cpdef _add_(self, other_m):
         """
         EXAMPLES::
 
@@ -1016,7 +1017,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return res
 
 
-    cpdef ModuleElement _sub_(self, ModuleElement other_m):
+    cpdef _sub_(self, other_m):
         """
         EXAMPLES::
 
@@ -1083,7 +1084,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return res
 
 
-    cpdef RingElement _mul_(self, RingElement other_m):
+    cpdef _mul_(self, other_m):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2+23)
@@ -1140,7 +1141,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return res
 
 
-    cpdef ModuleElement _rmul_(self, RingElement _c):
+    cpdef _rmul_(self, RingElement _c):
         """
         EXAMPLE:
             sage: K.<a> = NumberField(x^2+43)
@@ -1156,7 +1157,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return res
 
 
-    cpdef ModuleElement _lmul_(self, RingElement _c):
+    cpdef _lmul_(self, RingElement _c):
         """
         EXAMPLE:
             sage: K.<a> = NumberField(x^2+43)
@@ -1172,7 +1173,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return res
 
 
-    cpdef RingElement _div_(self, RingElement other):
+    cpdef _div_(self, other):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2-5)
@@ -1370,6 +1371,29 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             mpq_canonicalize(res.value)
             return res
 
+    def _algebraic_(self, parent):
+        r"""
+        Convert this element to an algebraic number, if possible.
+
+        EXAMPLES::
+
+            sage: NF.<i> = QuadraticField(-1)
+            sage: QQbar(1+i)
+            I + 1
+            sage: NF.<sqrt3> = QuadraticField(2)
+            sage: AA(sqrt3)
+            1.414213562373095?
+        """
+        import sage.rings.qqbar as qqbar
+        if (parent is qqbar.QQbar
+                and list(self._parent.polynomial()) == [1, 0, 1]):
+            # AlgebraicNumber.__init__ does a better job than
+            # NumberFieldElement._algebraic_ in this case, but
+            # QQbar._element_constructor_ calls the latter first.
+            return qqbar.AlgebraicNumber(self)
+        else:
+            return NumberFieldElement._algebraic_(self, parent)
+
     cpdef bint is_one(self):
         r"""
         Check whether this number field element is `1`.
@@ -1555,7 +1579,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
                 mpz_neg(q.b, self.b)
             return q
 
-    def _coefficients(self):
+    cpdef list _coefficients(self):
         """
         EXAMPLES::
 
@@ -2060,7 +2084,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         return self._parent.number_field()
 
     # We must override these since the basering is now ZZ not QQ.
-    cpdef ModuleElement _rmul_(self, RingElement _c):
+    cpdef _rmul_(self, RingElement _c):
         """
         EXAMPLE:
             sage: K.<a> = NumberField(x^2-27)
@@ -2079,7 +2103,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         return res
 
 
-    cpdef ModuleElement _lmul_(self, RingElement _c):
+    cpdef _lmul_(self, RingElement _c):
         """
         EXAMPLE:
             sage: K.<a> = NumberField(x^2+43)
@@ -2097,7 +2121,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         res._reduce_c_()
         return res
 
-    cpdef RingElement _div_(self, RingElement other):
+    cpdef _div_(self, other):
         r"""
         Implement division, checking that the result has the
         right parent. It's not so crucial what the parent actually

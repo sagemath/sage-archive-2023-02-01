@@ -49,7 +49,7 @@ Two examples from the Mathematica documentation (done in Sage):
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.libs.singular.decl cimport tHomog, number, IDELEMS, p_Copy, rChangeCurrRing
 from sage.libs.singular.decl cimport idInit, id_Delete, currRing, currQuotient, Sy_bit, OPT_REDSB
@@ -242,7 +242,7 @@ def slimgb_libsingular(I):
 
     if r.OrdSgn!=1 :
         id_Delete(&i, r)
-        raise TypeError, "ordering must be global for slimgb"
+        raise TypeError("ordering must be global for slimgb")
 
     if i.rank < idRankFreeModule(i, r):
         id_Delete(&i, r)

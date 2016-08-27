@@ -1,4 +1,4 @@
-$(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(NTL) $(INST)/$(FLINT) $(INST)/$(READLINE) $(INST)/$(MPFR)
+$(MP_LIBRARY) ntl flint readline mpfr
 
 ----------
 All lines of this file are ignored except the first.

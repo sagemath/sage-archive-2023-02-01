@@ -415,7 +415,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
 
     REFERENCES:
 
-    .. [ZBN97] C. Zhu, R. H. Byrd and J. Nocedal. L-BFGS-B: Algorithm 778:
+    .. [ZBN97] \C. Zhu, R. H. Byrd and J. Nocedal. L-BFGS-B: Algorithm 778:
       L-BFGS-B, FORTRAN routines for large scale bound constrained
       optimization. ACM Transactions on Mathematical Software, Vol 23, Num. 4,
       pp.550--560, 1997.

@@ -176,11 +176,9 @@ class UniqueFactorizationDomains(Category_singleton):
                 if b.is_one():
                     break
 
-            parent = f.parent()
-
             d = a.gcd(b)
-            A = parent(A/a)
-            B = parent(B/b)
+            A = A // a
+            B = B // b
             g = h = 1
 
             delta = A.degree()-B.degree()
@@ -188,9 +186,9 @@ class UniqueFactorizationDomains(Category_singleton):
 
             while R.degree() > 0:
                 A = B
-                B = parent(R/(g*h**delta))
+                B = R // (g*h**delta)
                 g = A.leading_coefficient()
-                h = self(h*g**delta/h**delta)
+                h = h*g**delta // h**delta
                 delta = A.degree() - B.degree()
                 _, R = A.pseudo_quo_rem(B)
 
@@ -201,7 +199,7 @@ class UniqueFactorizationDomains(Category_singleton):
                     if b.is_one():
                         break
 
-                return parent(d*B/b)
+                return d*B // b
 
             return d
 

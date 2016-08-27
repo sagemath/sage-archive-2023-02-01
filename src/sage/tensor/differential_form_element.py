@@ -21,6 +21,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 
 from sage.symbolic.ring import SR
@@ -756,7 +757,7 @@ class DifferentialForm(AlgebraElement):
             {(1, 2): x + y + z}
 
         """
-        print self._components
+        print(self._components)
 
 
     def diff(self):
@@ -1005,7 +1006,7 @@ class DifferentialForm(AlgebraElement):
             sage: f = DifferentialForm(F, 1)
             sage: f[1] = exp(z); f
             e^z*dy
-            sage: print f
+            sage: print(f)
             e^z*dy
             sage: f._repr_()
             'e^z*dy'

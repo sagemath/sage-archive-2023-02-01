@@ -6,6 +6,7 @@ AUTHORS:
 - Florent Hivert (2010-2011): initial revision
 - Frederic Chapoton (2010): contributed some methods
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2010 Florent Hivert <Florent.Hivert@univ-rouen.fr>,
 #
@@ -443,7 +444,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             relabel = True
         roots = [self]
         g.add_vertex(name=self.label())
-        while len(roots) != 0:
+        while roots:
             node = roots.pop()
             for child in node:
                 g.add_vertex(name=child.label())
@@ -489,7 +490,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         relations = []
         elements = [self.label()]
         roots = [self]
-        while len(roots) != 0:
+        while roots:
             node = roots.pop()
             for child in node:
                 elements.append(child.label())
@@ -1022,7 +1023,7 @@ class OrderedTrees_size(OrderedTrees):
         if self._size == 0:
             return Integer(0)
         else:
-            from combinat import catalan_number
+            from .combinat import catalan_number
             return catalan_number(self._size - 1)
 
     def random_element(self):

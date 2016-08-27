@@ -182,7 +182,7 @@ class ClassicalCrystals(Category_singleton):
 
             REFERENCES:
 
-            .. [D1974] M. Demazure, Desingularisation des varietes de Schubert,
+            .. [D1974] \M. Demazure, Desingularisation des varietes de Schubert,
                Ann. E. N. S., Vol. 6, (1974), p. 163-172
 
             .. [M2009] Sarah Mason, An Explicit Construction of Type A Demazure Atoms,

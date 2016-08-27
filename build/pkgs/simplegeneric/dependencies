@@ -1,4 +1,4 @@
-$(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
+$(PYTHON) setuptools
 
 # simplegeneric does not strictly require setuptools, but it does try
 # to use setuptools if it is available. However, there is a problem

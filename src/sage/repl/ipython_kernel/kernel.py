@@ -67,7 +67,7 @@ class SageKernel(IPythonKernel):
             sage: from sage.repl.ipython_kernel.kernel import SageKernel
             sage: sk = SageKernel.__new__(SageKernel)
             sage: sk.banner
-            '\xe2\x94\x8c\xe2...SageMath Version...'
+            '...SageMath version...'
         """
         from sage.misc.banner import banner_text
         return banner_text()
@@ -166,5 +166,5 @@ class SageKernel(IPythonKernel):
         ]
 
     def pre_handler_hook(self):
-        from sage.ext.interrupt.interrupt import init_interrupts
-        self.saved_sigint_handler = init_interrupts()
+        from cysignals import init_cysignals
+        self.saved_sigint_handler = init_cysignals()

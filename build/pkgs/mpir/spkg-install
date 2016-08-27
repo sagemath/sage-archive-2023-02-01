@@ -6,8 +6,6 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-CUR=`pwd`
-
 cd src
 
 ###############################################################################
@@ -214,12 +212,7 @@ export ABI CFLAGS CXXFLAGS LDFLAGS # Partially redundant, but safe(r).
 ###############################################################################
 
 MPIR_CONFIGURE="--enable-shared $MPIR_CONFIGURE"
-
-# Don't install GMP compat headers and symlinks if MPIR is not the default MP
-# library.
-if [ `cat "$SAGE_LOCAL/share/mp_config"` = "MPIR" ]; then
-    MPIR_CONFIGURE="--enable-gmpcompat $MPIR_CONFIGURE"
-fi
+MPIR_CONFIGURE="--enable-gmpcompat $MPIR_CONFIGURE"
 
 # If we're bootstrapping GCC from the GCC spkg, don't build the C++
 # interface (cf. #12782), static libraries and disable fat binary.
@@ -370,12 +363,14 @@ else
     echo "(Libraries with the same version number will get updated though.)"
 fi
 
+# Mark GMP as not installed (since we will overwrite it)
+rm -f "$SAGE_SPKG_INST"/gmp-*
+
 ###############################################################################
 # Now install MPIR:
 ###############################################################################
 
 echo "Now installing MPIR..."
-# The potential race condition in `make install` was fixed in MPIR 2.1.4.
 $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing MPIR."

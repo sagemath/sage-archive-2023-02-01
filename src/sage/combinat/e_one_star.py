@@ -46,11 +46,11 @@ AUTHORS:
 
 REFERENCES:
 
-.. [AI] P. Arnoux, S. Ito,
+.. [AI] \P. Arnoux, S. Ito,
    Pisot substitutions and Rauzy fractals,
    Bull. Belg. Math. Soc. 8 (2), 2001, pp. 181--207
 
-.. [SAI] Y. Sano, P. Arnoux, S. Ito,
+.. [SAI] \Y. Sano, P. Arnoux, S. Ito,
    Higher dimensional extensions of substitutions and their dual maps,
    J. Anal. Math. 83, 2001, pp. 183--206
 
@@ -140,7 +140,7 @@ Plotting with TikZ pictures is possible::
 
     sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
     sage: s = P.plot_tikz()
-    sage: print s                    #not tested
+    sage: print(s)                    #not tested
     \begin{tikzpicture}
     [x={(-0.216506cm,-0.125000cm)}, y={(0.216506cm,-0.125000cm)}, z={(0.000000cm,0.250000cm)}]
     \definecolor{facecolor}{rgb}{0.000,1.000,0.000}
@@ -180,7 +180,7 @@ which only work in dimension two or three)::
     sage: E
     E_1^*(1->12, 10->1,11, 11->1,12, 12->1, 2->13, 3->14, 4->15, 5->16, 6->17, 7->18, 8->19, 9->1,10)
     sage: P = Patch([Face((0,0,0,0,0,0,0,0,0,0,0,0),t) for t in [1,2,3]])
-    sage: for x in sorted(list(E(P)), key=lambda x : (x.vector(),x.type())): print x
+    sage: for x in sorted(list(E(P)), key=lambda x : (x.vector(),x.type())): print(x)
     [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 1]*
     [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 2]*
     [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 12]*
@@ -1214,7 +1214,7 @@ class Patch(SageObject):
             sage: s = P.plot_tikz()
             sage: len(s)
             602
-            sage: print s       #not tested
+            sage: print(s)       #not tested
             \begin{tikzpicture}
             [x={(-0.216506cm,-0.125000cm)}, y={(0.216506cm,-0.125000cm)}, z={(0.000000cm,0.250000cm)}]
             \definecolor{facecolor}{rgb}{0.000,1.000,0.000}
@@ -1272,7 +1272,7 @@ class Patch(SageObject):
             sage: s = cube.plot_tikz(**options)
             sage: len(s)
             986
-            sage: print s   #not tested
+            sage: print(s)   #not tested
             \begin{tikzpicture}
             [x={(-0.433013cm,-0.250000cm)}, y={(0.433013cm,-0.250000cm)}, z={(0.000000cm,0.500000cm)}]
             \draw[->, thick, black] (0,0,0) -- (1.50000000000000, 0, 0);

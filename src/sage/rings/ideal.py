@@ -11,6 +11,7 @@ A more convenient notation may be ``R*[a,b,...]`` or ``[a,b,...]*R``.
 If `R` is non-commutative, the former creates a left and the latter
 a right ideal, and ``R*[a,b,...]*R`` creates a two-sided ideal.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -940,17 +941,15 @@ class Ideal_generic(MonoidElement):
             sage: I = CC['x'].ideal(0)
             sage: I.is_trivial()
             True
+
+        This test addresses ticket :trac:`20514`::
+        
+            sage: R = QQ['x', 'y']
+            sage: I = R.ideal(R.gens())
+            sage: I.is_trivial()
+            False
         """
-        if self.is_zero():
-            return True
-        # If self is principal, can give a complete answer
-        if self.is_principal():
-            return self.gens()[0].is_unit()
-        # If self is not principal, can only give an affirmative answer
-        for g in self.gens():
-            if g.is_unit():
-                return True
-        raise NotImplementedError
+        return self.is_zero() or self == self.ring().unit_ideal()
 
     def category(self):
         """
@@ -1613,7 +1612,7 @@ def Cyclic(R, n=None, homog=False, singular=singular_default):
         sage: len(B)
         45
     """
-    from rational_field import RationalField
+    from .rational_field import RationalField
 
     if n:
         if n > R.ngens():
@@ -1662,7 +1661,7 @@ def Katsura(R, n=None, homog=False, singular=singular_default):
         sage: J = sage.rings.ideal.Katsura(Q,1); J
         Ideal (x - 1) of Multivariate Polynomial Ring in x over Rational Field
     """
-    from rational_field import RationalField
+    from .rational_field import RationalField
     if n:
         if n > R.ngens():
             raise ArithmeticError("n must be <= R.ngens().")

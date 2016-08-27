@@ -24,6 +24,7 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.dodecahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.flow_polytope`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.Gosset_3_21`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.grand_antiprism`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.great_rhombicuboctahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.hypercube`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.hypersimplex`
@@ -57,6 +58,7 @@ REFERENCES:
     "A Polyhedron Full of Surprises",
     Mathematics Magazine 85 (2012), no. 5, 334-342.
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
@@ -75,7 +77,7 @@ from sage.combinat.permutation import Permutations
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 from sage.misc.decorators import rename_keyword
 from sage.misc.superseded import deprecated_function_alias
-from constructor import Polyhedron
+from .constructor import Polyhedron
 from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.associahedron import Associahedron
 
@@ -239,8 +241,8 @@ class Polytopes():
             sage: b3 = polytopes.Birkhoff_polytope(3)
             sage: b3.f_vector()
             (1, 6, 15, 18, 9, 1)
-            sage: print b3.ambient_dim(), b3.dim()
-            9 4
+            sage: b3.ambient_dim(), b3.dim()
+            (9, 4)
             sage: b3.is_lattice_polytope()
             True
             sage: p3 = b3.ehrhart_polynomial()     # optional - latte_int
@@ -252,8 +254,8 @@ class Polytopes():
             [6, 21, 55, 120]
 
             sage: b4 = polytopes.Birkhoff_polytope(4)
-            sage: print b4.n_vertices(), b4.ambient_dim(), b4.dim()
-            24 16 9
+            sage: b4.n_vertices(), b4.ambient_dim(), b4.dim()
+            (24, 16, 9)
         """
         from itertools import permutations
         verts = []
@@ -1338,7 +1340,7 @@ class Polytopes():
             sage: p24.f_vector()
             (1, 24, 96, 96, 24, 1)
             sage: v = next(p24.vertex_generator())
-            sage: for adj in v.neighbors(): print adj
+            sage: for adj in v.neighbors(): print(adj)
             A vertex at (-1/2, -1/2, -1/2, 1/2)
             A vertex at (-1/2, -1/2, 1/2, -1/2)
             A vertex at (-1, 0, 0, 0)
@@ -1408,6 +1410,87 @@ class Polytopes():
         pts = [[s1 * q12, s2*g/2, s3/(2*g), z] for (s1,s2,s3) in itertools.product([1,-1], repeat=3)]
         for p in AlternatingGroup(4):
             verts.extend(p(x) for x in pts)
+        return Polyhedron(vertices=verts, base_ring=base_ring)
+
+    def grand_antiprism(self, exact=True):
+        """
+        Return the grand antiprism.
+
+        The grand antiprism is a 4-dimensional non-Wythoffian uniform polytope.
+        The coordinates were taken from http://eusebeia.dyndns.org/4d/gap. For
+        more information, see the :wikipedia:`Grand_antiprism`.
+
+        .. WARNING::
+
+            The coordinates are exact by default. The computation with exact
+            coordinates is not as fast as with floating point approximations.
+            If you find this method to be too slow, consider using floating
+            point approximations
+
+        INPUT:
+
+        - ``exact`` - (boolean, default ``True``) if ``False`` use floating
+          point approximations instead of exact coordinates
+
+        EXAMPLES::
+
+            sage: gap = polytopes.grand_antiprism()  # not tested - very long time
+            sage: gap                                # not tested - very long time
+            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^4 defined as the convex hull of 100 vertices
+
+        Computation with approximated coordinates is much faster::
+
+            sage: gap = polytopes.grand_antiprism(exact=False)
+            sage: gap
+            A 4-dimensional polyhedron in RDF^4 defined as the convex hull of 100 vertices
+            sage: gap.f_vector()
+            (1, 100, 500, 720, 320, 1)
+            sage: len(list(gap.bounded_edges()))
+            500
+        """
+        from itertools import product
+
+        if exact:
+            from sage.rings.number_field.number_field import QuadraticField
+            K = QuadraticField(5, 'sqrt5')
+            sqrt5 = K.gen()
+            g = (1 + sqrt5) / 2
+            base_ring = K
+        else:
+            g = (1 + RDF(5).sqrt()) / 2
+            base_ring = RDF
+
+        q12 = base_ring(1) / base_ring(2)
+        z   = base_ring.zero()
+        verts = [[s1*q12, s2*q12, s3*q12, s4*q12] for s1,s2,s3,s4 in product([1,-1], repeat=4)]
+        V = (base_ring)**4
+        verts.extend(V.basis()[2:])
+        verts.extend(-v for v in V.basis()[2:])
+
+        verts.extend([s1 * q12, s2/(2*g), s3*g/2, z] for (s1,s2,s3) in product([1,-1], repeat=3))
+        verts.extend([s3*g/2, s1 * q12, s2/(2*g), z] for (s1,s2,s3) in product([1,-1], repeat=3))
+        verts.extend([s2/(2*g), s3*g/2, s1 * q12, z] for (s1,s2,s3) in product([1,-1], repeat=3))
+
+        verts.extend([s1 * q12, s2*g/2, z, s3/(2*g)] for (s1,s2,s3) in product([1,-1], repeat=3))
+        verts.extend([s3/(2*g), s1 * q12, z, s2*g/2] for (s1,s2,s3) in product([1,-1], repeat=3))
+        verts.extend([s2*g/2, s3/(2*g), z, s1 * q12] for (s1,s2,s3) in product([1,-1], repeat=3))
+
+        verts.extend([s1 * q12, z, s2/(2*g), s3*g/2] for (s1,s2,s3) in product([1,-1], repeat=3))
+
+        verts.extend([z, s1 * q12, s2*g/2, s3/(2*g)] for (s1,s2,s3) in product([1,-1], repeat=3))
+
+        verts.extend([z, s1/(2*g), q12, g/2] for s1 in [1,-1])
+        verts.extend([z, s1/(2*g), -q12, -g/2] for s1 in [1,-1])
+
+        verts.extend([z, s1*g/2, 1/(2*g), q12] for s1 in [1,-1])
+        verts.extend([z, s1*g/2, -1/(2*g), -q12] for s1 in [1,-1])
+
+        verts.extend([s1*g/2, z, q12, -1/(2*g)] for s1 in [1,-1])
+        verts.extend([s1*g/2, z, -q12, 1/(2*g)] for s1 in [1,-1])
+
+        verts.extend([s1/(2*g), z, g/2, -q12] for s1 in [1,-1])
+        verts.extend([s1/(2*g), z, -g/2, q12] for s1 in [1,-1])
+
         return Polyhedron(vertices=verts, base_ring=base_ring)
 
     def Gosset_3_21(self):

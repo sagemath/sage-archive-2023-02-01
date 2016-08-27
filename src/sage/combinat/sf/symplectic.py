@@ -5,6 +5,7 @@ AUTHORS:
 
 - Travis Scrimshaw (2013-11-10): Initial version
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
@@ -19,7 +20,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import sfa
+from . import sfa
 import sage.libs.lrcalc.lrcalc as lrcalc
 from sage.combinat.partition import Partitions
 from sage.misc.cachefunc import cached_method
@@ -59,7 +60,7 @@ class SymmetricFunctionAlgebra_symplectic(sfa.SymmetricFunctionAlgebra_generic):
        *Symmetric functions and representations of quantum affine algebras*.
        :arXiv:`math/0011161v1`
 
-    .. [KoikeTerada1987] K. Koike, I. Terada, *Young-diagrammatic methods for
+    .. [KoikeTerada1987] \K. Koike, I. Terada, *Young-diagrammatic methods for
        the representation theory of the classical groups of type Bn, Cn, Dn*.
        J. Algebra 107 (1987), no. 2, 466-511.
 

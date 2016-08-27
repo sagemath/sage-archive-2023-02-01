@@ -67,7 +67,7 @@ scipy=None
 cnumpy.import_array()
 
 
-cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
+cdef class Matrix_double_dense(Matrix_dense):
     """
     Base class for matrices over the Real Double Field and the Complex
     Double Field.  These are supposed to be fast matrix operations
@@ -102,7 +102,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         """
         Set up a new matrix
         """
-        matrix_dense.Matrix_dense.__init__(self,parent)
+        Matrix_dense.__init__(self,parent)
         return
 
     def __create_matrix__(self):
@@ -317,7 +317,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
     # LEVEL 2 functionality
     #   * def _pickle
     #   * def _unpickle
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two matrices together.
 
@@ -340,7 +340,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         M._matrix_numpy = _left._matrix_numpy + _right._matrix_numpy
         return M
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Return self - right
 
@@ -664,7 +664,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         an identity matrix can hit the minimum with the right norm.  ::
 
             sage: A = matrix(RDF, 10, [1/(i+j+1) for i in range(10) for j in range(10)])
-            sage: A.condition()  # tol 3e-5
+            sage: A.condition()  # tol 1e-4
             16332197709146.014
             sage: id = identity_matrix(CDF, 10)
             sage: id.condition(p=1)
@@ -1140,7 +1140,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ 8.0  9.0 10.0 11.0]
             [ 4.0  5.0  6.0  7.0]
 
-        Trac 10839 made this routine available for rectangular matrices.  ::
+        :trac:`10839` made this routine available for rectangular matrices.  ::
 
             sage: A = matrix(RDF, 5, 6, range(30)); A
             [ 0.0  1.0  2.0  3.0  4.0  5.0]
@@ -1183,7 +1183,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         Trivial cases return matrices of the right size and
         characteristics.  ::
 
-            sage: A = matrix(RDF, 5, 0, entries=0)
+            sage: A = matrix(RDF, 5, 0)
             sage: P, L, U = A.LU()
             sage: P.parent()
             Full MatrixSpace of 5 by 5 dense matrices over Real Double Field
@@ -1685,7 +1685,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.solve_right(vector(RDF,[]))
             ()
 
-        The coefficent matrix must be square. ::
+        The coefficient matrix must be square. ::
 
             sage: A = matrix(RDF, 2, 3, range(6))
             sage: b = vector(RDF, [1,2,3])
@@ -1788,7 +1788,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ 7.6  2.3  1.0]
             [ 1.0  2.0 -1.0]
             sage: b = vector(RDF,[1,2,3])
-            sage: x = A.solve_left(b); x.zero_at(1e-18) # fix noisy zeroes
+            sage: x = A.solve_left(b); x.zero_at(1e-17) # fix noisy zeroes
             (0.666666666..., 0.0, 0.333333333...)
             sage: x.parent()
             Vector space of dimension 3 over Real Double Field
@@ -1825,7 +1825,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.solve_left(vector(RDF,[]))
             ()
 
-        The coefficent matrix must be square. ::
+        The coefficient matrix must be square. ::
 
             sage: A = matrix(RDF, 2, 3, range(6))
             sage: b = vector(RDF, [1,2,3])
@@ -3581,7 +3581,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             posdef = self.fetch(cache_str)
         return posdef
 
-    cdef Vector _vector_times_matrix_(self,Vector v):
+    cdef _vector_times_matrix_(self,Vector v):
         if self._nrows == 0 or self._ncols == 0:
             return self._row_ambient_module().zero_vector()
         global numpy
@@ -3594,7 +3594,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         ans = numpy.dot(v_numpy,self._matrix_numpy)
         return M(ans)
 
-    cdef Vector _matrix_times_vector_(self,Vector v):
+    cdef _matrix_times_vector_(self,Vector v):
         if self._nrows == 0 or self._ncols == 0:
             return self._column_ambient_module().zero_vector()
 
@@ -3671,7 +3671,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         if dtype is None or self._numpy_dtype == np.dtype(dtype):
             return self._matrix_numpy.copy()
         else:
-            return matrix_dense.Matrix_dense.numpy(self, dtype=dtype)
+            return Matrix_dense.numpy(self, dtype=dtype)
 
     def _replace_self_with_numpy(self,numpy_matrix):
         """

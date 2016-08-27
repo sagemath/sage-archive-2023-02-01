@@ -4,6 +4,7 @@ Interface to Sage
 This is an expect interface to *another* copy of the Sage
 interpreter.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -18,13 +19,14 @@ interpreter.
 import cPickle
 import os
 
-from expect import Expect, ExpectElement, FunctionElement
+from .expect import Expect, ExpectElement, FunctionElement
 import sage.repl.preparse
 
+from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.sage_object import dumps, load
 
 
-class Sage(Expect):
+class Sage(ExtraTabCompletion, Expect):
     r"""
     Expect interface to the Sage interpreter itself.
 
@@ -184,11 +186,11 @@ class Sage(Expect):
             s = s[i+1:-1]
         return float(s)
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         EXAMPLES::
 
-            sage: t = sage0.trait_names()
+            sage: t = sage0._tab_completion()
             sage: len(t) > 100
             True
             sage: 'gcd' in t
@@ -315,7 +317,7 @@ class Sage(Expect):
         Clear the variable named var.
 
         Note that the exact format of the NameError for a cleared variable
-        is slightly platform dependent, see trac #10539.
+        is slightly platform dependent, see :trac:`10539`.
 
         EXAMPLES::
 
@@ -345,7 +347,7 @@ class Sage(Expect):
 
             sage: sage0.console() #not tested
             ----------------------------------------------------------------------
-            | SageMath Version ..., Release Date: ...                            |
+            | SageMath version ..., Release Date: ...                            |
             | Type notebook() for the GUI, and license() for information.        |
             ----------------------------------------------------------------------
             ...
@@ -357,7 +359,7 @@ class Sage(Expect):
         EXAMPLES::
 
             sage: sage0.version()
-            'SageMath Version ..., Release Date: ...'
+            'SageMath version ..., Release Date: ...'
             sage: sage0.version() == version()
             True
         """
@@ -524,7 +526,7 @@ def sage0_console():
 
         sage: sage0_console() #not tested
         ----------------------------------------------------------------------
-        | SageMath Version ..., Release Date: ...                            |
+        | SageMath version ..., Release Date: ...                            |
         | Type notebook() for the GUI, and license() for information.        |
         ----------------------------------------------------------------------
         ...

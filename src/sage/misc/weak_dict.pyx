@@ -113,6 +113,7 @@ See :trac:`13394` for a discussion of some of the design considerations.
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 import weakref
 from weakref import KeyedRef
@@ -1042,7 +1043,7 @@ cdef class WeakValueDictionary(dict):
             sage: del D[2]
             sage: del L[5]
             sage: for v in sorted(D.itervalues()):
-            ....:     print v
+            ....:     print(v)
             <0>
             <1>
             <3>
@@ -1143,7 +1144,7 @@ cdef class WeakValueDictionary(dict):
             sage: del D[Keys(2)]
             sage: del L[5]
             sage: for k,v in sorted(D.iteritems()):
-            ....:     print k, v
+            ....:     print("{} {}".format(k, v))
             [0] <0>
             [1] <1>
             [3] <3>

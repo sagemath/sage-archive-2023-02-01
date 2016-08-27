@@ -119,8 +119,7 @@ class SomeIPythonRepr(ObjectReprABC):
         .. automethod:: __call__
         """
         type_repr = _type_pprinters.copy()
-        del type_repr[types.TypeType]
-        del type_repr[types.ClassType]
+        del type_repr[type]
         del type_repr[types.BuiltinFunctionType]
         del type_repr[types.FunctionType]
         del type_repr[str]

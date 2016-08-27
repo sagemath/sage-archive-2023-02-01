@@ -610,7 +610,7 @@ class DualPBWBasis(CombinatorialFreeModule):
 
     REFERENCES:
 
-    .. [Reuten1993] C. Reutenauer. *Free Lie Algebras*. Number 7 in
+    .. [Reuten1993] \C. Reutenauer. *Free Lie Algebras*. Number 7 in
        London Math. Soc. Monogr. (N.S.). Oxford University Press. (1993).
 
     EXAMPLES::

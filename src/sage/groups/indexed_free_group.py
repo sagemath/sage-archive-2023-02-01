@@ -348,7 +348,7 @@ class IndexedFreeAbelianGroup(IndexedGroup, AbelianGroup):
             sage: G(-5)
             Traceback (most recent call last):
             ...
-            ValueError: unable to convert -5, use gen() instead
+            TypeError: unable to convert -5, use gen() instead
         """
         if isinstance(x, (list, tuple, dict)):
             x = dict(x)

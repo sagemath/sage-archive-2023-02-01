@@ -53,6 +53,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import operator
 
@@ -233,9 +234,5 @@ class DualAbelianGroupElement(AbelianGroupElementBase):
         if display:
             s = str(g)+" = "+add_strings(["("+str(words[LL2[i]-1])+")^"+str(LL1[i])+"*" for i in range(nn)])
             m = len(s)
-            print "      ",s[:m-1],"\n"
+            print("      ", s[:m-1], "\n")
         return [[words[LL2[i]-1],LL1[i]] for i in range(nn)]
-
-
-
-

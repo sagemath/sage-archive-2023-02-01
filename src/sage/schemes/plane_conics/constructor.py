@@ -8,6 +8,7 @@ AUTHORS:
 - Nick Alexander (2008-01-08)
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Nick Alexander <ncalexander@gmail.com>
 #       Copyright (C) 2009/2010 Marco Streng <marco.streng@gmail.com>
@@ -34,6 +35,9 @@ from sage.rings.ring import IntegralDomain
 from sage.rings.rational_field import is_RationalField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.fraction_field import is_FractionField
 
 from sage.rings.number_field.number_field import is_NumberField
 from sage.schemes.projective.projective_space import ProjectiveSpace
@@ -42,11 +46,12 @@ from sage.schemes.affine.affine_point import SchemeMorphism_point_affine
 from sage.structure.all import Sequence
 from sage.structure.element import is_Matrix
 
-from con_field import ProjectiveConic_field
-from con_finite_field import ProjectiveConic_finite_field
-from con_prime_finite_field import ProjectiveConic_prime_finite_field
-from con_number_field import ProjectiveConic_number_field
-from con_rational_field import ProjectiveConic_rational_field
+from .con_field import ProjectiveConic_field
+from .con_finite_field import ProjectiveConic_finite_field
+from .con_prime_finite_field import ProjectiveConic_prime_finite_field
+from .con_number_field import ProjectiveConic_number_field
+from .con_rational_field import ProjectiveConic_rational_field
+from .con_rational_function_field import ProjectiveConic_rational_function_field
 
 def Conic(base_field, F=None, names=None, unique=True):
     r"""
@@ -237,6 +242,9 @@ def Conic(base_field, F=None, names=None, unique=True):
             return ProjectiveConic_rational_field(P2, F)
         if is_NumberField(base_field):
             return ProjectiveConic_number_field(P2, F)
+        if is_FractionField(base_field) and (is_PolynomialRing(base_field.ring()) or is_MPolynomialRing(base_field.ring())):
+            return ProjectiveConic_rational_function_field(P2, F)
+            
         return ProjectiveConic_field(P2, F)
 
     raise TypeError("Number of variables of F (=%s) must be 2 or 3" % F)

@@ -102,8 +102,9 @@ TESTS::
     True
 
 """
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+from __future__ import print_function
+
+include "cysignals/memory.pxi"
 
 from sage.categories.algebras import Algebras
 
@@ -1407,7 +1408,7 @@ cdef class NCPolynomial_plural(RingElement):
         """
         return self._hash_c()
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare left and right and return -1, 0, and 1 for <,==, and >
         respectively.
@@ -1459,7 +1460,7 @@ cdef class NCPolynomial_plural(RingElement):
         cdef ring *r = (<NCPolynomialRing_plural>left._parent)._ring
         return singular_polynomial_cmp(p, q, r)
 
-    cpdef ModuleElement _add_( left, ModuleElement right):
+    cpdef _add_(left, right):
         """
         Adds left and right.
 
@@ -1478,7 +1479,7 @@ cdef class NCPolynomial_plural(RingElement):
                                  (<NCPolynomialRing_plural>left._parent)._ring)
         return new_NCP((<NCPolynomialRing_plural>left._parent), _p)
 
-    cpdef ModuleElement _sub_( left, ModuleElement right):
+    cpdef _sub_(left, right):
         """
         Subtract left and right.
 
@@ -1500,7 +1501,7 @@ cdef class NCPolynomial_plural(RingElement):
                                 _ring)
         return new_NCP((<NCPolynomialRing_plural>left._parent), _p)
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         Multiply ``self`` with a base ring element.
 
@@ -1521,7 +1522,7 @@ cdef class NCPolynomial_plural(RingElement):
         singular_polynomial_rmul(&_p, self._poly, left, _ring)
         return new_NCP((<NCPolynomialRing_plural>self._parent),_p)
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         Multiply ``self`` with a base ring element.
 
@@ -1536,7 +1537,7 @@ cdef class NCPolynomial_plural(RingElement):
         """
         return self._rmul_(right)
 
-    cpdef RingElement  _mul_(left, RingElement right):
+    cpdef _mul_(left, right):
         """
         Multiply left and right.
 
@@ -1567,7 +1568,7 @@ cdef class NCPolynomial_plural(RingElement):
                                  (<NCPolynomialRing_plural>left._parent)._ring)
         return new_NCP((<NCPolynomialRing_plural>left._parent),_p)
 
-    cpdef RingElement _div_(left, RingElement right):
+    cpdef _div_(left, right):
         """
         Divide left by right
 
@@ -1804,7 +1805,7 @@ cdef class NCPolynomial_plural(RingElement):
             sage: R.inject_variables()
             Defining x, z, y
             sage: f = - 1*x^2*y - 25/27 * y^3 - z^2
-            sage: print f._repr_with_changed_varnames(['FOO', 'BAR', 'FOOBAR'])
+            sage: print(f._repr_with_changed_varnames(['FOO', 'BAR', 'FOOBAR']))
             -FOO^2*FOOBAR - BAR^2 - 25/27*FOOBAR^3
         """
         return  singular_polynomial_str_with_changed_varnames(self._poly, (<NCPolynomialRing_plural>self._parent)._ring, varnames)
@@ -2018,7 +2019,7 @@ cdef class NCPolynomial_plural(RingElement):
         cdef int i
         cdef int flag
         cdef int gens = self._parent.ngens()
-        cdef int *exps = <int*>sage_malloc(sizeof(int)*gens)
+        cdef int *exps = <int*>sig_malloc(sizeof(int)*gens)
         for i from 0<=i<gens:
             exps[i] = -1
 
@@ -2051,7 +2052,6 @@ cdef class NCPolynomial_plural(RingElement):
             flag = 0
             for i from 0<=i<gens:
                 if exps[i] != -1 and p_GetExp(p,i+1,r)!=exps[i]:
-                    #print i, p_GetExp(p,i+1,r), exps[i]
                     flag = 1
             if flag == 0:
                 newptemp = p_LmInit(p,r)
@@ -2063,7 +2063,7 @@ cdef class NCPolynomial_plural(RingElement):
                 newp = p_Add_q(newp,newptemp,r)
             p = pNext(p)
 
-        sage_free(exps)
+        sig_free(exps)
 
         return new_NCP(self.parent(),newp)
 

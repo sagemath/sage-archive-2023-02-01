@@ -1,4 +1,6 @@
-include "sage/ext/interrupt.pxi"
+"""
+Symmetrica library
+"""
 
 include "symmetrica.pxi"
 

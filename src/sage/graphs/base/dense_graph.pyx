@@ -19,21 +19,19 @@ This example initializes a dense graph with room for twenty vertices, the first
 ten of which are in the graph. In general, the first ``nverts`` are "active."
 For example, see that 9 is already in the graph::
 
-    sage: D._num_verts()
-    10
+    sage: D.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     sage: D.add_vertex(9)
     9
-    sage: D._num_verts()
-    10
+    sage: D.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 But 10 is not, until we add it::
 
-    sage: D._num_verts()
-    10
     sage: D.add_vertex(10)
     10
-    sage: D._num_verts()
-    11
+    sage: D.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 You can begin working right away as follows::
 
@@ -56,10 +54,6 @@ You can begin working right away as follows::
     sage: D.del_vertex(7)
     sage: D.has_arc(7,3)
     False
-    sage: D._num_verts()
-    10
-    sage: D._num_arcs()
-    2
 
 Dense graphs do not support multiple or labeled edges.
 
@@ -177,14 +171,14 @@ cdef class DenseGraph(CGraph):
         # self.num_longs = "ceil(total_verts/radix)"
         self.num_longs = total_verts / radix + (0 != (total_verts & radix_mod_mask))
 
-        self.edges = <unsigned long *> sage_calloc(total_verts * self.num_longs, sizeof(unsigned long))
-        self.in_degrees  = <int *> sage_calloc(total_verts, sizeof(int))
-        self.out_degrees = <int *> sage_calloc(total_verts, sizeof(int))
+        self.edges = <unsigned long *> sig_calloc(total_verts * self.num_longs, sizeof(unsigned long))
+        self.in_degrees  = <int *> sig_calloc(total_verts, sizeof(int))
+        self.out_degrees = <int *> sig_calloc(total_verts, sizeof(int))
 
         if not self.edges or not self.in_degrees or not self.out_degrees:
-            sage_free(self.edges)
-            sage_free(self.in_degrees)
-            sage_free(self.out_degrees)
+            sig_free(self.edges)
+            sig_free(self.in_degrees)
+            sig_free(self.out_degrees)
             raise MemoryError
 
         bitset_init(self.active_vertices, total_verts)
@@ -201,9 +195,9 @@ cdef class DenseGraph(CGraph):
         """
         New and dealloc are both tested at class level.
         """
-        sage_free(self.edges)
-        sage_free(self.in_degrees)
-        sage_free(self.out_degrees)
+        sig_free(self.edges)
+        sig_free(self.in_degrees)
+        sig_free(self.out_degrees)
         bitset_free(self.active_vertices)
 
     cpdef realloc(self, int total_verts):
@@ -275,15 +269,15 @@ cdef class DenseGraph(CGraph):
             min_longs = self.num_longs
 
         # Resize of self.edges
-        cdef unsigned long *new_edges = <unsigned long *> sage_calloc(total_verts * self.num_longs, sizeof(unsigned long))
+        cdef unsigned long *new_edges = <unsigned long *> sig_calloc(total_verts * self.num_longs, sizeof(unsigned long))
         for i from 0 <= i < min_verts:
             memcpy(new_edges+i*self.num_longs, self.edges+i*old_longs, min_longs*sizeof(unsigned long))
 
-        sage_free(self.edges)
+        sig_free(self.edges)
         self.edges = new_edges
 
-        self.in_degrees  = <int *> sage_realloc(self.in_degrees , total_verts * sizeof(int))
-        self.out_degrees = <int *> sage_realloc(self.out_degrees, total_verts * sizeof(int))
+        self.in_degrees  = <int *> sig_realloc(self.in_degrees , total_verts * sizeof(int))
+        self.out_degrees = <int *> sig_realloc(self.out_degrees, total_verts * sizeof(int))
 
         for i in range(self.active_vertices.size, total_verts):
             self.in_degrees[i]  = 0
@@ -518,12 +512,12 @@ cdef class DenseGraph(CGraph):
         if self.out_degrees[u] == 0:
             return []
         cdef int size = self.out_degrees[u]
-        cdef int *neighbors = <int *> sage_malloc(size * sizeof(int))
+        cdef int *neighbors = <int *> sig_malloc(size * sizeof(int))
         if not neighbors:
             raise MemoryError
         num_nbrs = self.out_neighbors_unsafe(u, neighbors, size)
         output = [neighbors[i] for i from 0 <= i < num_nbrs]
-        sage_free(neighbors)
+        sig_free(neighbors)
         return output
 
     cdef int in_neighbors_unsafe(self, int v, int *neighbors, int size) except -2:
@@ -577,12 +571,12 @@ cdef class DenseGraph(CGraph):
         if self.in_degrees[v] == 0:
             return []
         cdef int size = self.in_degrees[v]
-        cdef int *neighbors = <int *> sage_malloc(size * sizeof(int))
+        cdef int *neighbors = <int *> sig_malloc(size * sizeof(int))
         if not neighbors:
             raise MemoryError
         num_nbrs = self.in_neighbors_unsafe(v, neighbors, size)
         output = [neighbors[i] for i from 0 <= i < num_nbrs]
-        sage_free(neighbors)
+        sig_free(neighbors)
         return output
 
 ##############################
@@ -609,17 +603,17 @@ def _test_adjacency_sequence_out():
     cdef DenseGraph g = DenseGraph(n,
                                    verts=randg.vertices(),
                                    arcs=randg.edges(labels=False))
-    assert g._num_verts() == randg.order(), (
-        "Graph order mismatch: %s vs. %s" % (g._num_verts(), randg.order()))
-    assert g._num_arcs() == randg.size(), (
-        "Graph size mismatch: %s vs. %s" % (g._num_arcs(), randg.size()))
+    assert g.num_verts == randg.order(), (
+        "Graph order mismatch: %s vs. %s" % (g.num_verts, randg.order()))
+    assert g.num_arcs == randg.size(), (
+        "Graph size mismatch: %s vs. %s" % (g.num_arcs, randg.size()))
     M = randg.adjacency_matrix()
-    cdef int *V = <int *>sage_malloc(n * sizeof(int))
+    cdef int *V = <int *>sig_malloc(n * sizeof(int))
     cdef int i = 0
     for v in randg.vertex_iterator():
         V[i] = v
         i += 1
-    cdef int *seq = <int *> sage_malloc(n * sizeof(int))
+    cdef int *seq = <int *> sig_malloc(n * sizeof(int))
     for 0 <= i < randint(50, 101):
         u = randint(low, n - 1)
         g.adjacency_sequence_out(n, V, u, seq)
@@ -627,11 +621,11 @@ def _test_adjacency_sequence_out():
         try:
             assert A == list(M[u])
         except AssertionError:
-            sage_free(V)
-            sage_free(seq)
+            sig_free(V)
+            sig_free(seq)
             raise AssertionError("Graph adjacency mismatch")
-    sage_free(seq)
-    sage_free(V)
+    sig_free(seq)
+    sig_free(V)
 
 ###########################################
 # Dense Graph Backend

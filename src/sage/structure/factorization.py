@@ -25,8 +25,7 @@ It prints in a nice factored form::
     sage: F
     -1 * 3^2 * 5
 
-There is an underlying list representation, \emph{which ignores the
-unit part}::
+There is an underlying list representation, which ignores the unit part::
 
     sage: list(F)
     [(3, 2), (5, 1)]

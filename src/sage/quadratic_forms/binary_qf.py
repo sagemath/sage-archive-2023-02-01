@@ -672,11 +672,11 @@ class BinaryQF(SageObject):
             [47, 2, 2, 3, 3]
         """
         from sage.sets.all import Set
-        from sage.misc.all import srange
+        from sage.arith.srange import xsrange
         d = self.discriminant()
         B = 10
         while True:
-            llist = list(Set([self(x,y) for x in srange(-B,B) for y in srange(B)]))
+            llist = list(Set([self(x,y) for x in xsrange(-B,B) for y in xsrange(B)]))
             llist = sorted([l for l in llist if l.is_prime()])
             if llist:
                 return llist[0]
@@ -720,8 +720,8 @@ class BinaryQF(SageObject):
         ad = -d
         an4 = 4*a*n
         a2 = 2*a
-        from sage.misc.all import srange
-        for y in srange(0, 1+an4//ad):
+        from sage.arith.srange import xsrange
+        for y in xsrange(0, 1+an4//ad):
             z2 = an4 + d*y**2
             for z in z2.sqrt(extend=False, all=True):
                 if a2.divides(z-b*y):
@@ -817,7 +817,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False):
 
     form_list = []
 
-    from sage.misc.all import xsrange
+    from sage.arith.srange import xsrange
 
     # Only iterate over positive a and over b of the same
     # parity as D such that 4a^2 + D <= b^2 <= a^2

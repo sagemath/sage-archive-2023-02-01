@@ -13,6 +13,8 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 import itertools
 
 from sage.misc.misc import attrcall
@@ -334,12 +336,25 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 sage: c = C.an_element(); c
                 (47, 42, 1)
                 sage: for i in c:
-                ....:     print i
+                ....:     print(i)
                 47
                 42
                 1
             """
             return iter(self.value)
+
+        def __len__(self):
+            r"""
+            Return the number of factors in the cartesian product from which ``self`` comes.
+
+            EXAMPLES::
+
+                sage: C = cartesian_product([ZZ, QQ, CC])
+                sage: e = C.random_element()
+                sage: len(e)
+                3
+            """
+            return len(self.value)
 
         def cartesian_factors(self):
             r"""

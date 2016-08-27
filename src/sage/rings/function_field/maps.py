@@ -29,6 +29,7 @@ EXAMPLES::
     ...
     ValueError: invalid morphism
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2011-2014 Julian Rueth <julian.rueth@gmail.com>
@@ -69,7 +70,7 @@ class FunctionFieldDerivation(Map):
             sage: d = K.derivation() # indirect doctest
 
         """
-        from function_field import is_FunctionField
+        from .function_field import is_FunctionField
         if not is_FunctionField(K):
             raise ValueError("K must be a function field")
         self.__field = K
@@ -139,7 +140,7 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
             sage: d = K.derivation() # indirect doctest
 
         """
-        from function_field import is_RationalFunctionField
+        from .function_field import is_RationalFunctionField
         if not is_RationalFunctionField(K):
             raise ValueError("K must be a rational function field")
         if u.parent() is not K:
@@ -264,16 +265,47 @@ class MapVectorSpaceToFunctionField(FunctionFieldIsomorphism):
 
     def _call_(self, v):
         """
+        Map ``v`` to the function field.
+
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
             sage: V, f, t = L.vector_space()
-            sage: f(x*V.0 + (1/x^3)*V.1)         # indirect doctest
+            sage: f(x*V.0 + (1/x^3)*V.1) # indirect doctest
             1/x^3*y + x
+
+        TESTS:
+
+        Test that this map is a bijection for some random inputs::
+
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^3 - y - x)
+            sage: for F in [K,L,M]:
+            ....:     for base in F._intermediate_fields(K):
+            ....:         V, f, t = F.vector_space(base)
+            ....:         for i in range(100):
+            ....:             a = F.random_element()
+            ....:             assert(f(t(a)) == a)
+
         """
-        f = self._R(self._V(v).list())
-        return self._K(f)
+        fields = self._K._intermediate_fields(self._V.base_field())
+        fields.pop()
+        degrees = [k.degree() for k in fields]
+        gens = [k.gen() for k in fields]
+
+        # construct the basis composed of powers of the generators of all the
+        # intermediate fields, i.e., 1, x, y, x*y, ...
+        from sage.misc.misc_c import prod
+        from itertools import product
+        exponents = product(*[range(d) for d in degrees])
+        basis = [prod(g**e for g,e in zip(gens,es)) for es in exponents]
+
+        # multiply the entries of v with the values in basis
+        coefficients = self._V(v).list()
+        ret = sum([c*b for (c,b) in zip(coefficients,basis)])
+        return self._K(ret)
 
     def domain(self):
         """
@@ -377,18 +409,39 @@ class MapFunctionFieldToVectorSpace(FunctionFieldIsomorphism):
 
     def _call_(self, x):
         """
+        Map ``x`` to the vector space.
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
             sage: V, f, t = L.vector_space()
-            sage: t(x + (1/x^3)*y)                       # indirect doctest
+            sage: t(x + (1/x^3)*y) # indirect doctest
             (x, 1/x^3)
+
+        TESTS:
+
+        Test that this map is a bijection for some random inputs::
+
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^3 - y - x)
+            sage: for F in [K,L,M]:
+            ....:     for base in F._intermediate_fields(K):
+            ....:         V, f, t = F.vector_space(base)
+            ....:         for i in range(100):
+            ....:             a = V.random_element()
+            ....:             assert(t(f(a)) == a)
+
         """
-        y = self._K(x)
-        v = y.list()
-        w = v + [self._zero]*(self._n - len(v))
-        return self._V(w)
+        ret = [x]
+        fields = self._K._intermediate_fields(self._V.base_field())
+        fields.pop()
+        from itertools import chain
+        for k in fields:
+            ret = chain.from_iterable([y.list() for y in ret])
+        ret = list(ret)
+        assert all([t.parent() is self._V.base_field() for t in ret])
+        return self._V(ret)
 
 class FunctionFieldMorphism(RingHomomorphism):
     r"""

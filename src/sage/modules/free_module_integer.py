@@ -18,7 +18,7 @@ TESTS::
 """
 from __future__ import absolute_import
 
-#*****************************************************************************
+##############################################################################
 #       Copyright (C) 2012 Jan Poeschko <jan@poeschko.com>
 #       Copyright (C) 2014 Martin Albrecht <martinralbecht@googlemail.com>
 #
@@ -32,17 +32,15 @@ from __future__ import absolute_import
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+##############################################################################
 
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
-from sage.misc.method_decorator import MethodDecorator
 from sage.modules.free_module import FreeModule_submodule_with_basis_pid, FreeModule_ambient_pid
 from sage.modules.free_module_element import vector
-from sage.modules.vector_integer_dense import Vector_integer_dense
-from sage.structure.parent import Parent
 from sage.rings.number_field.number_field_element import OrderElement_absolute
+
 
 def IntegerLattice(basis, lll_reduce=True):
     r"""
@@ -187,6 +185,7 @@ def IntegerLattice(basis, lll_reduce=True):
     return FreeModule_submodule_with_basis_integer(ZZ**basis.ncols(),
                                                    basis=basis,
                                                    lll_reduce=lll_reduce)
+
 
 class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pid):
     r"""
@@ -517,7 +516,6 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         """
         return self.BKZ(block_size=self.rank())
 
-
     @cached_method
     def volume(self):
         r"""
@@ -584,7 +582,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         INPUT:
 
         - ``update_reduced_basis`` -- (default: ``True``) set this flag if
-          the found vector should be used to improve the basis 
+          the found vector should be used to improve the basis
 
         - ``algorithm`` -- (default: ``"fplll"``) either ``"fplll"`` or
           ``"pari"``
@@ -668,8 +666,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         w = matrix(ZZ, w)
         L = w.stack(self.reduced_basis).LLL()
         assert(L[0] == 0)
-        self._reduced_basis = L.matrix_from_rows(range(1,L.nrows()))
-
+        self._reduced_basis = L.matrix_from_rows(range(1, L.nrows()))
 
     @cached_method
     def voronoi_cell(self, radius=None):
@@ -833,4 +830,3 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             t_new = t_new - CVPP_2V(t_new, V_scaled, ZZ(2 ** (i - 1)) * voronoi_cell)
             i -= 1
         return t - t_new
-

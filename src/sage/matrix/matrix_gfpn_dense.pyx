@@ -456,6 +456,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                 fsock = open(FILE,"rb",0)
                 fsock.close()
             except (OSError,IOError):
+                self.Data = NULL
                 return
             self.Data = MatLoad(FILE)
             FfSetField(self.Data.Field)

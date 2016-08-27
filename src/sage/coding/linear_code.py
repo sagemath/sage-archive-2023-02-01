@@ -1443,8 +1443,7 @@ class AbstractLinearCode(Module):
 
     def divisor(self):
         r"""
-        Returns the divisor of a code, which is the smallest integer `d_0 > 0`
-        such that each `A_i > 0` iff `i` is divisible by `d_0`.
+        Returns the greatest common divisor of the weights of the nonzero codewords.
 
         EXAMPLES::
 

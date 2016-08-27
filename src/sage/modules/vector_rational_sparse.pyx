@@ -7,7 +7,7 @@
 include "cysignals/memory.pxi"
 
 from sage.libs.gmp.mpq cimport *
-from sage.modules.binary_search cimport *
+from sage.data_structures.binary_search cimport *
 
 from sage.rings.rational cimport Rational
 

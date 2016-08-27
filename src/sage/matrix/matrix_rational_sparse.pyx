@@ -21,7 +21,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-from sage.modules.binary_search cimport *
+from sage.data_structures.binary_search cimport *
 from sage.modules.vector_integer_sparse cimport *
 from sage.modules.vector_rational_sparse cimport *
 

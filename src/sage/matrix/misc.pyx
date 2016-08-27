@@ -18,7 +18,7 @@ from sage.ext.mod_int cimport *
 from sage.libs.mpfr cimport *
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 
-from sage.modules.binary_search cimport *
+from sage.data_structures.binary_search cimport *
 from sage.modules.vector_integer_sparse cimport *
 from sage.modules.vector_rational_sparse cimport *
 from sage.modules.vector_modn_sparse cimport *

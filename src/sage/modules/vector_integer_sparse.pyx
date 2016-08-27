@@ -5,7 +5,7 @@
 #############################################################
 
 from sage.libs.gmp.mpz cimport *
-from sage.modules.binary_search cimport *
+from sage.data_structures.binary_search cimport *
 from sage.rings.integer cimport Integer
 
 

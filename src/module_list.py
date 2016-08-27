@@ -1086,9 +1086,6 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.modules.binary_search',
-              sources = ['sage/modules/binary_search.pyx']),
-
     Extension('sage.modules.vector_rational_sparse',
               sources = ['sage/modules/vector_rational_sparse.pyx']),
 

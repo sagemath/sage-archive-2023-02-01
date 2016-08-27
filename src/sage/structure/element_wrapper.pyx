@@ -248,7 +248,7 @@ cdef class ElementWrapper(Element):
         """
         return hash(self.value)
 
-    def __richcmp__(left, right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Return ``True`` if ``left`` compares with ``right`` based on ``op``.
 
@@ -319,9 +319,6 @@ cdef class ElementWrapper(Element):
         """
         cdef ElementWrapper self
         self = left
-        if self.__class__ != right.__class__ \
-                or self._parent != (<ElementWrapper>right)._parent:
-            return op == Py_NE
         if op == Py_EQ or op == Py_LE or op == Py_GE:
             return self.value == (<ElementWrapper>right).value
         if op == Py_NE:

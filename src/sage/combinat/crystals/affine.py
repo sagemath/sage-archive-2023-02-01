@@ -477,42 +477,42 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             sage: b = K(rows=[[1]])
             sage: c = K(rows=[[2]])
 
-            sage: b==c
+            sage: b == c
             False
-            sage: b==b
+            sage: b == b
             True
 
-            sage: b!=c
+            sage: b != c
             True
-            sage: b!=b
+            sage: b != b
             False
 
-            sage: c<b
+            sage: c < b
             False
-            sage: b<b
+            sage: b < b
             False
-            sage: b<c
-            False
-
-            sage: b>c
-            False
-            sage: b>b
-            False
-            sage: c>b
-            False
-
-            sage: b<=c
-            False
-            sage: b<=b
+            sage: b < c
             True
-            sage: c<=b
+
+            sage: b > c
+            False
+            sage: b > b
+            False
+            sage: c > b
+            True
+
+            sage: b <= c
+            True
+            sage: b <= b
+            True
+            sage: c <= b
             False
 
-            sage: c>=b
-            False
-            sage: b>=b
+            sage: c >= b
             True
-            sage: b>=c
+            sage: b >= b
+            True
+            sage: b >= c
             False
         """
         return richcmp(self.value, other.value, op)

@@ -308,10 +308,10 @@ cdef class ElementWrapper(Element):
             sage: parent = DummyParent("A parent")
             sage: x = ElementWrapper(parent, 1)
             sage: y = ElementWrapper(parent, 2)
-            sage: x.__lt__(x), x.__lt__(y), y.__lt__(x), x.__lt__(1)
-            (False, False, False, False)
-            sage: x < x, x < y, y < x, x < 1
-            (False, False, False, False)
+            sage: x.__lt__(x), x.__lt__(y), y.__lt__(x)
+            (False, False, False)
+            sage: x < x, x < y, y < x
+            (False, False, False)
             sage: sorted([x,y])
             [1, 2]
             sage: sorted([y,x])

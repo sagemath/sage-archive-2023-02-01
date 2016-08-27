@@ -10,7 +10,7 @@ REFERENCES:
 
     - [HP03]_ pp. 31-33 for a definition of Golay codes.
 
-    - .. [WS] F.J. MacWilliams, N.J.A. Sloane, The Theory of Error-Correcting
+    .. [WS] F.J. MacWilliams, N.J.A. Sloane, The Theory of Error-Correcting
          Codes, North-Holland, Amsterdam, 1977
 """
 

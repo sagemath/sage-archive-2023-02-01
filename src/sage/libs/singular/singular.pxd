@@ -17,7 +17,7 @@ from sage.rings.number_field.number_field_base cimport NumberField
 # Conversion from Singular to Sage types
 # ======================================
 
-cdef Rational si2sa_QQ(number (*),ring (*))
+cdef Rational si2sa_QQ(number (*), number **, ring (*))
 cdef Integer  si2sa_ZZ(number (*),ring (*))
 
 cdef FFgivE   si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache)
@@ -56,6 +56,3 @@ cdef number *sa2si(Element elem, ring * _ring)
 cdef int overflow_check(long e, ring *_ring) except -1
 
 cdef init_libsingular()
-
-
-

@@ -1665,6 +1665,7 @@ class TermOrder(SageObject):
             sage: T.singular_str()
             '(lp(3),Dp(5),lp(2))'
             sage: P._singular_()
+            polynomial ring, over a field, global ordering
             //   characteristic : 127
             //   number of vars : 10
             //        block   1 : ordering lp
@@ -1692,6 +1693,7 @@ class TermOrder(SageObject):
             sage: T.singular_str()
             '(a(1:2),ls(2),a(1:2),ls(2))'
             sage: P._singular_()
+            polynomial ring, over a field, global ordering
             //   characteristic : 0
             //   number of vars : 4
             //        block   1 : ordering a

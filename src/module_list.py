@@ -115,7 +115,7 @@ except ValueError:
 ### Singular
 #########################################################
 
-singular_libs = ['singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
+singular_libs = ['Singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
 
 #########################################################
 ### Library order
@@ -131,7 +131,7 @@ singular_libs = ['singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
 # their relative order). There is one exception: stdc++ is always put
 # at the very end of the list.
 library_order_list = [
-    "singular", "ec", "ecm",
+    "Singular", "ec", "ecm",
 ] + linbox_libs  + gsl_libs + [
     "pari", "flint", "ratpoints", "ecl", "glpk", "ppl",
     "arb", "fplll", "mpfi", "mpfr", "mpc", "gmp", "gmpxx",
@@ -1582,7 +1582,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.plural',
               sources = ['sage/rings/polynomial/plural.pyx'],
-              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              libraries = ['m', 'readline', 'Singular', 'givaro', 'gmpxx', 'gmp'],
               language="c++"),
 
     Extension('sage.rings.polynomial.multi_polynomial_libsingular',

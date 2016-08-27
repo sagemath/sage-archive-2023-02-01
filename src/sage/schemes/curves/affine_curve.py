@@ -1186,7 +1186,7 @@ class AffinePlaneCurve(AffineCurve):
               To:   Affine Plane Curve over Number Field in a with defining
             polynomial a^2 + 7 defined by x^2 + y^2 + 7
               Defn: Defined on coordinates by sending (t) to
-                    (((7*a)*t^2 + (a))/(-7*t^2 + 1), (-14*t)/(-7*t^2 + 1))
+                    ((-7*t^2 + 7)/((-a)*t^2 + (-a)), 14*t/((-a)*t^2 + (-a)))
         """
         para = self.projective_closure(i=0).rational_parameterization().defining_polynomials()
         # these polynomials are homogeneous in two indeterminants, so dehomogenize wrt one of the variables

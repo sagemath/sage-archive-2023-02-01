@@ -20926,7 +20926,7 @@ class GenericGraph(GenericGraph_pyx):
         TESTS::
 
             sage: G = Graph({'a': ['b']})
-            sage: G.canonical_label(certify=True)
+            sage: G.canonical_label(algorithm='sage', certify=True)
             doctest:...: DeprecationWarning: use the option 'certificate' instead of 'certify'
             See http://trac.sagemath.org/21111 for details.
             (Graph on 2 vertices, {'a': 0, 'b': 1})

@@ -169,6 +169,9 @@ def list_packages(*pkg_types, **opts):
     - ``local`` - if set to ``False`` then do not consult remote upstream version
       of packages (only applicable for 'pip' type)
 
+    - ``exclude_pip`` - if set to ``False`` then pip packages are not
+      considered.
+
     - ``ignore_URLError`` -- if set to ``True`` than connection error will be
       ignored (set to ``False`` by default)
 
@@ -202,18 +205,25 @@ def list_packages(*pkg_types, **opts):
          'installed_version': ...,
          'remote_version': u'...',
          'type': 'pip'}
+
+    Check the option ``exclude_pip``::
+
+        sage: list_packages('pip', exclude_pip=True)
+        {}
     """
     if not pkg_types:
         pkg_types = ('standard', 'optional', 'experimental', 'pip')
     elif any(pkg_type not in ('standard', 'optional', 'experimental', 'pip') for pkg_type in pkg_types):
         raise ValueError("pkg_type must be one of 'standard', 'optional', 'experimental', 'pip'")
 
-    installed = installed_packages()
 
     local = opts.pop('local', False)
     ignore_URLError = opts.pop('ignore_URLError', False)
+    exclude_pip = opts.pop('exclude_pip', False)
     if opts:
         raise ValueError("{} are not valid options".format(sorted(opts)))
+
+    installed = installed_packages(exclude_pip)
 
     pkgs = {}
     for p in os.listdir(SAGE_PKGS):
@@ -233,6 +243,8 @@ def list_packages(*pkg_types, **opts):
         pkg['installed'] = pkg['installed_version'] is not None
 
         if pkg['type'] == 'pip':
+            if exclude_pip:
+                continue
             if not local:
                 pkg['remote_version'] = pip_remote_version(p, ignore_URLError=ignore_URLError)
             else:
@@ -275,9 +287,14 @@ def install_package(package=None, force=None):
     deprecation(16759, "use installed_packages() to list all installed packages")
     return sorted(installed_packages())
 
-def installed_packages():
+def installed_packages(exclude_pip=True):
     """
     Return a dictionary of all installed packages, with version numbers.
+
+    INPUT:
+
+    - ``exclude_pip`` -- (default ``Trure``) whether "pip" packages are excluded
+      from the list
 
     EXAMPLES::
 
@@ -290,12 +307,20 @@ def installed_packages():
     """
     from sage.env import SAGE_SPKG_INST
     installed = dict(pkgname_split(pkgname) for pkgname in os.listdir(SAGE_SPKG_INST))
-    installed.update(pip_installed_packages())
+    if not exclude_pip:
+        installed.update(pip_installed_packages())
     return installed
 
-def is_package_installed(package):
+def is_package_installed(package, exclude_pip=True):
     """
     Return true if ``package`` is installed.
+
+    INPUT:
+
+    - ``package`` - the name of the package
+
+    - ``exclude_pip`` - whether to consider pip type packages
+
 
     EXAMPLES::
 
@@ -309,8 +334,14 @@ def is_package_installed(package):
 
     Otherwise, installing "pillow" will cause this function to think
     that "pil" is installed, for example.
+
+    Check that the option ``exclude_pip`` is turned on by default::
+
+        sage: from sage.misc.package import list_packages
+        sage: for pkg in list_packages('pip', local=True):
+        ....:     assert not is_package_installed(pkg)
     """
-    return any(p.split('-')[0] == package for p in installed_packages())
+    return any(p.split('-')[0] == package for p in installed_packages(exclude_pip))
 
 def package_versions(package_type, local=False):
     r"""

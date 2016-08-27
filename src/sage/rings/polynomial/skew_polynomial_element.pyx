@@ -377,6 +377,8 @@ cdef class SkewPolynomial(AlgebraElement):
 
         .. TODO::
 
+            Currently, only "operator evaluation" of skew polynomials is
+            implemented (see :meth:`.operator_eval`).
             There are two other notions of evaluation of a skew polynomial
             `p(x)` at some element `a` of the base ring. First, the value
             of the polynomial can be defined as the remainder of the right

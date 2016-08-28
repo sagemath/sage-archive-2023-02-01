@@ -849,22 +849,18 @@ def AffineGeometryDesign(n, d, F, point_coordinates=True, check=True):
     n = int(n)
     d = int(d)
 
+    from itertools import islice
+    from sage.combinat.q_analogues import q_binomial
     from sage.matrix.echelon_matrix import reduced_echelon_matrix_iterator
 
     points = {p:i for i,p in enumerate(reduced_echelon_matrix_iterator(F,1,n+1,copy=True,set_immutable=True)) if p[0,0]}
 
     blocks = []
-    for m1 in reduced_echelon_matrix_iterator(F,d+1,n+1,copy=False):
-        if not m1[0,0]:
-            # this is a subspace at infinity
-            # (comes at the end in the iterator)
-            break
+    l1 = q_binomial(n+1, d+1, q) - q_binomial(n, d+1, q)
+    l2 = q_binomial(d+1, 1, q) - q_binomial(d, 1, q)
+    for m1 in islice(reduced_echelon_matrix_iterator(F,d+1,n+1,copy=False), l1):
         b = []
-        for m2 in reduced_echelon_matrix_iterator(F,1,d+1,copy=False):
-            if not m2[0,0]:
-                # this will give a point at infinity
-                # (comes at the end in the iterator)
-                break
+        for m2 in islice(reduced_echelon_matrix_iterator(F,1,d+1,copy=False), l2):
             m = m2*m1
             m.echelonize()
             m.set_immutable()
@@ -879,7 +875,6 @@ def AffineGeometryDesign(n, d, F, point_coordinates=True, check=True):
         B.relabel(rd)
 
     if check:
-        from sage.combinat.q_analogues import q_binomial
         if not B.is_t_design(t=2, v=q**n, k=q**d, l=q_binomial(n-1, d-1, q)):
             raise RuntimeError("error in AffineGeometryDesign "
                     "construction. Please e-mail sage-devel@googlegroups.com")

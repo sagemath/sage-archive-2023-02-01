@@ -1841,7 +1841,9 @@ cdef class MPolynomial(CommutativeRingElement):
         Implimented algorithim from Stoll and Cremona's "On the Reduction Theory of Binary Forms" _[SC].
         This takes a two variable homogenous polynomial and finds a reduced form. This is a `SL(Z)`-equivalent
         binary form with smallest coefficients.
-        If Newton's method fails to converge to a point in the upper half plane function will return Matrix as it stands. Has a namein s and c'
+
+        If Newton's method fails to converge to a point in the upper half plane function will return
+        the matrix M found before that point.
 
         Implimented by Rebecca Lauren Miller as part of GSOC 2016.
 
@@ -1875,7 +1877,7 @@ cdef class MPolynomial(CommutativeRingElement):
             [ -1 1])
 
 
-An example where Newton's Method doesnt find th right root::
+An example where Newton's Method doesnt find the right root::
 
             sage: R.<x,h> = PolynomialRing(QQ)
             sage: f=234*x^11*h + 104832*x^10*h^2 + 21346884*x^9*h^3 + 2608021728*x^8*h^4 + 212413000410*x^7*h^5\
@@ -1921,6 +1923,7 @@ An example where Newton's Method doesnt find th right root::
             raise ValueError("(=%s) must have two variables"%self)
         if self.is_homogeneous() != True:
             raise ValueError("(=%s) must be homogenous"%self)
+
         #getting a numerical approximation of the roots of our polynomial
         KK = ComplexIntervalField(prec=prec) # keeps trac of our precision error
         JJ = RealField()
@@ -1930,7 +1933,7 @@ An example where Newton's Method doesnt find th right root::
         FF = S(phi(self)/gcd(phi(self),phi(self).derivative())) # removes multiple roots
         roots = FF.roots(ring=KK, multiplicities=False)
 
-        #finding our Q0 see eq _in paper, gives us a convariant, z
+        #finding Julia's covariant quadratic Q0', gives us our convariant, z
         dF = FF.derivative()
         n = FF.degree()
         R = PolynomialRing(KK,'x,y')
@@ -1952,7 +1955,8 @@ An example where Newton's Method doesnt find th right root::
         if z.imag()<0:
             z = (-B - ((B**2)-(4*A*C)).sqrt())/(2*A)
 
-        # this moves Z to our fundamental domain using the three steps laid out in the algorithim
+        # this moves z to our fundamental domain using the three steps laid out in the algorithim by [SC]
+        # this is found in section 5 of their paper
         M = matrix(QQ, [[1,0], [0,1]]) # used to keep track of how our z is moved.
         while z.real() < -0.5 or z.real() >= 0.5 or (z.real() <= 0 and z.abs() < 1)\
          or (z.real() > 0 and z.abs() <= 1):
@@ -1971,7 +1975,7 @@ An example where Newton's Method doesnt find th right root::
                 M = M * matrix(QQ, [[0,1], [-1,0]])
         z0=z
 
-        # creates and solves equationsx 4.4 in [SC], gives us a new z
+        # creates and solves equations 4.4 in [SC], gives us a new z
         x,y = self.parent().gens()
         FF = S(phi(self(tuple((M * vector([x, y])))))) # New self, S pushes it to polyomial ring
         L = FF.roots(ring=KK, multiplicities=False)

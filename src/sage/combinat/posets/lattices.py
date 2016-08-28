@@ -1852,10 +1852,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
           * ``'integer'`` - elements are plain integers
 
-        .. SEEALSO::
-
-            :meth:`~sage.combinat.posets.posets.FinitePoset.intervals_poset`
-
         EXAMPLES::
 
             sage: D4 = Posets.DiamondPoset(4)

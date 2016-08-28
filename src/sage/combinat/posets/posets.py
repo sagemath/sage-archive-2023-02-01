@@ -1974,10 +1974,6 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         If `P` is a lattice, the result is also a lattice.
 
-        .. SEEALSO::
-
-            :meth:`~sage.combinat.posets.lattices.FiniteLatticePoset.sublattices_lattice`
-
         EXAMPLES::
 
             sage: P = Poset({0:[1]})

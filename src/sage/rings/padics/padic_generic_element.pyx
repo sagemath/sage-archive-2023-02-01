@@ -596,7 +596,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         One can check that it matches the product formula::
 
-            sage: prod((1-x**n)**(-mobius(n)/n) for n in range(100) if gcd(n, 5) == 1)
+            sage: prod((1-x**n)**(-moebius(n)/n) for n in range(100) if gcd(n, 5) == 1)
             1 + ?
 
         The function respects your precision::
@@ -622,7 +622,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: x = Zp(3).random_element()
             sage: x.artin_hasse_exp(1)
-            1 + O(3)
+            1 + O(3^20)
 
         AUTHORS:
 
@@ -649,7 +649,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         for r in range(prec):
             mpq_init(a[r])
 
-        p_as_Integer = ZZ.coerce(self.prime_pow.prime)
+        p_as_Integer = self.parent().prime()
         if not mpz_fits_slong_p(p_as_Integer.value):
             q = prec + 1
             # if your prime is really big, it does not come up in the

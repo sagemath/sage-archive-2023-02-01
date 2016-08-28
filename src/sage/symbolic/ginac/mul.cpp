@@ -863,8 +863,9 @@ ex mul::evalf(int level, PyObject* parent) const
 
 	--level;
         for (const auto & elem : seq)
-		s.push_back(expair(elem.rest.evalf(level, parent), elem.coeff));
-	return dynallocate<mul>(std::move(s), overall_coeff.evalf(level, parent));
+               s.push_back(combine_ex_with_coeff_to_pair(
+                        elem.rest.evalf(level, parent), elem.coeff));
+        return mul(s, overall_coeff.evalf(level, parent));
 }
 
 void mul::find_real_imag(ex & rp, ex & ip) const

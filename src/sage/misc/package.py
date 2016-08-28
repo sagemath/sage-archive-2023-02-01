@@ -166,13 +166,14 @@ def list_packages(*pkg_types, **opts):
       'pip'. If provided, list only the package with this given type otherwise
       list all packages.
 
-    - ``local`` - if set to ``False`` then do not consult remote upstream version
-      of packages (only applicable for 'pip' type)
+    - ``local`` - (optional, default ``False``) if set to ``True`` then do not
+      consult remote upstream version of packages (only applicable for 'pip'
+      type)
 
-    - ``exclude_pip`` - if set to ``False`` then pip packages are not
-      considered.
+    - ``exclude_pip`` - (optional, default ``False``) if set to ``True`` then
+      pip packages are not considered.
 
-    - ``ignore_URLError`` -- if set to ``True`` than connection error will be
+    - ``ignore_URLError`` - if set to ``True`` than connection error will be
       ignored (set to ``False`` by default)
 
     EXAMPLES::
@@ -293,8 +294,8 @@ def installed_packages(exclude_pip=True):
 
     INPUT:
 
-    - ``exclude_pip`` -- (default ``Trure``) whether "pip" packages are excluded
-      from the list
+    - ``exclude_pip`` - (optional, default ``True``) whether "pip" packages are
+      excluded from the list
 
     EXAMPLES::
 
@@ -319,7 +320,8 @@ def is_package_installed(package, exclude_pip=True):
 
     - ``package`` - the name of the package
 
-    - ``exclude_pip`` - whether to consider pip type packages
+    - ``exclude_pip`` - (optional, ``True`` by default) whether to consider pip
+      type packages
 
 
     EXAMPLES::

@@ -1,5 +1,7 @@
+# distutils: extra_compile_args = LINBOX_CFLAGS
+# distutils: libraries = LINBOX_LIBRARIES
+# distutils: library_dirs = LINBOX_LIBDIR
 # distutils: language = c++ 
-# distutils: extra_compile_args = -std=c++98 
 
 from sage.libs.gmp.types cimport mpz_t
 from sage.modules.vector_modn_sparse cimport *

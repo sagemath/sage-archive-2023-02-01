@@ -306,6 +306,7 @@ Willis of the University of Nebraska at Kearney.
 
 import warnings
 
+from sage.misc.latex import latex
 from sage.misc.sage_eval import sage_eval
 from sage.rings.all import ZZ, QQ, RR, CC
 from sage.rings.polynomial.polynomial_element import Polynomial
@@ -613,9 +614,27 @@ class Func_chebyshev_T(ChebyshevFunction):
             sage: chebyshev_T2(1,x)
             x
         """
-        ChebyshevFunction.__init__(self, "chebyshev_T", nargs=2,
+        ChebyshevFunction.__init__(self, 'chebyshev_T', nargs=2,
                                      conversions=dict(maxima='chebyshev_t',
                                                       mathematica='ChebyshevT'))
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: latex(chebyshev_T)
+            T_n
+        """
+        return r"T_n"
+
+    def _print_latex_(self, n, z):
+        r"""
+        TESTS::
+
+            sage: latex(chebyshev_T(3, x, hold=True))
+            T_{3}\left(x\right)
+        """
+        return r"T_{{{}}}\left({}\right)".format(latex(n), latex(z))
 
     def _eval_special_values_(self, n, x):
         """
@@ -911,9 +930,27 @@ class Func_chebyshev_U(ChebyshevFunction):
             sage: chebyshev_U2(1,x)
             2*x
         """
-        ChebyshevFunction.__init__(self, "chebyshev_U", nargs=2,
+        ChebyshevFunction.__init__(self, 'chebyshev_U', nargs=2,
                                      conversions=dict(maxima='chebyshev_u',
                                                       mathematica='ChebyshevU'))
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: latex(chebyshev_U)
+            U_n
+        """
+        return r"U_n"
+
+    def _print_latex_(self, n, z):
+        r"""
+        TESTS::
+
+            sage: latex(chebyshev_U(3, x, hold=True))
+            U_{3}\left(x\right)
+        """
+        return r"U_{{{}}}\left({}\right)".format(latex(n), latex(z))
 
     def eval_formula(self, n, x):
         """

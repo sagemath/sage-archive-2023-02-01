@@ -17,10 +17,10 @@ handle conversion from a skew polynomial ring to its base ring and vice versa re
 
 .. WARNING::
 
-    The current semantics of `__call__` are experimental, so a warning is thrown
-    when a skew polynomial is evaluated for the first time in a session. See
+    The current semantics of
     :meth:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomial.__call__`
-    for details.
+    are experimental, so a warning is thrown when a skew polynomial is evaluated
+    for the first time in a session. See the method documentation for details.
 
     TESTS::
 

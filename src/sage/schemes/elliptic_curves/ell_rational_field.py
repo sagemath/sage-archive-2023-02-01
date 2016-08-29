@@ -716,7 +716,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__database_curve
         except AttributeError:
-            misc.verbose("Looking up %s in the database."%self)
+            verbose("Looking up %s in the database."%self)
             D = sage.databases.cremona.CremonaDatabase()
             ainvs = list(self.minimal_model().ainvs())
             try:
@@ -837,7 +837,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             True
 
         """
-        misc.verbose("Calling mwrank C++ library.")
+        verbose("Calling mwrank C++ library.")
         C = self.mwrank_curve()
         C.two_descent(verbose, selmer_only,
                         first_limit, second_limit,
@@ -2127,7 +2127,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     return rank
 
         if algorithm == 'mwrank_lib':
-            misc.verbose("using mwrank lib")
+            verbose("using mwrank lib")
             if self.is_integral(): E = self
             else: E = self.integral_model()
             C = E.mwrank_curve()
@@ -2157,7 +2157,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     print(X)
                     raise RuntimeError('rank not provably correct')
                 else:
-                    misc.verbose("Warning -- rank not proven correct", level=1)
+                    verbose("Warning -- rank not proven correct", level=1)
 
                 s = "lower bound of"
                 X = X[X.rfind(s)+len(s)+1:]
@@ -2319,31 +2319,31 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         if not only_use_mwrank:
             try:
-                misc.verbose("Trying to compute rank.")
+                verbose("Trying to compute rank.")
                 r = self.rank(only_use_mwrank = False)
-                misc.verbose("Got r = %s."%r)
+                verbose("Got r = %s."%r)
                 if r == 0:
-                    misc.verbose("Rank = 0, so done.")
+                    verbose("Rank = 0, so done.")
                     return [], True
                 if r == 1 and rank1_search:
-                    misc.verbose("Rank = 1, so using direct search.")
+                    verbose("Rank = 1, so using direct search.")
                     h = 6
                     while h <= rank1_search:
-                        misc.verbose("Trying direct search up to height %s"%h)
+                        verbose("Trying direct search up to height %s"%h)
                         G = self.point_search(h, verbose)
                         G = [P for P in G if P.order() == oo]
                         if G:
                             misc.verbose("Direct search succeeded.")
                             G, _, _ = self.saturation(G, verbose=verbose)
-                            misc.verbose("Computed saturation.")
+                            verbose("Computed saturation.")
                             return G, True
                         h += 2
-                    misc.verbose("Direct search FAILED.")
+                    verbose("Direct search FAILED.")
             except RuntimeError:
                 pass
         # end if (not_use_mwrank)
         if algorithm == "mwrank_lib":
-            misc.verbose("Calling mwrank C++ library.")
+            verbose("Calling mwrank C++ library.")
             if not self.is_integral():
                 xterm = 1
                 yterm = 1
@@ -2385,13 +2385,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             # all for gens() and just use the library. This is in
             # progress (see trac #1949).
             X = self.mwrank('-p 100 -S '+str(sat_bound))
-            misc.verbose("Calling mwrank shell.")
+            verbose("Calling mwrank shell.")
             if not 'The rank and full Mordell-Weil basis have been determined unconditionally' in X:
                 msg = 'Generators not provably computed.'
                 if proof:
                     raise RuntimeError('%s\n%s'%(X,msg))
                 else:
-                    misc.verbose("Warning -- %s"%msg, level=1)
+                    verbose("Warning -- %s"%msg, level=1)
                 proved = False
             else:
                 proved = True

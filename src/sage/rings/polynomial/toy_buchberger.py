@@ -47,6 +47,7 @@ The results are correct::
 
 If ``get_verbose()`` is `\ge 1`, a protocol is provided::
 
+    sage: from sage.misc.verbose import set_verbose
     sage: set_verbose(1)
     sage: P.<a,b,c> = PolynomialRing(GF(127))
     sage: I = sage.rings.ideal.Katsura(P)

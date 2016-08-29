@@ -583,6 +583,7 @@ class Singular(ExtraTabCompletion, Expect):
 
         ::
 
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(1)
             sage: o = singular.eval('hilb(%s)'%(s.name()))
             //         1 t^0

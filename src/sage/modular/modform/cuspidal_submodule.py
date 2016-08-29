@@ -84,6 +84,7 @@ class CuspidalSubmodule(ModularFormsSubmodule):
             sage: S == loads(dumps(S))
             True
         """
+        from sage.misc.verbose import verbose
         verbose('creating cuspidal submodule of %s'%ambient_space)
         d = ambient_space._dim_cuspidal()
         V = ambient_space.module()

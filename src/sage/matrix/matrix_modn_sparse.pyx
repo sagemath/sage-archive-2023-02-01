@@ -407,6 +407,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         TODO: Implement switching to a dense method when the matrix gets
         dense.
         """
+        from sage.misc.verbose import verbose, get_verbose
         x = self.fetch('in_echelon_form')
         if not x is None and x: return  # already known to be in echelon form
         self.check_mutability()

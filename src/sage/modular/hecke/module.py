@@ -16,6 +16,7 @@ from __future__ import print_function, absolute_import
 import sage.rings.all
 import sage.arith.all as arith
 import sage.misc.misc as misc
+from sage.misc.verbose import verbose
 import sage.modules.module
 from sage.structure.all import Sequence
 import sage.matrix.matrix_space as matrix_space
@@ -388,7 +389,7 @@ class HeckeModule_generic(sage.modules.module.Module):
 
         # now compute whether invariant under Hecke operators of index
         # dividing the level
-        misc.verbose("Determining if Hecke module is full.")
+        verbose("Determining if Hecke module is full.")
         N = self.level()
         for p in arith.prime_divisors(N):
             if not self.is_hecke_invariant(p):
@@ -683,7 +684,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             sage: M._is_hecke_equivariant_free_module(M.cuspidal_submodule().free_module())
             True
         """
-        misc.verbose("Determining if free module is Hecke equivariant.")
+        verbose("Determining if free module is Hecke equivariant.")
         bound = self.hecke_bound()
         for p in arith.primes(bound + 1):
             try:

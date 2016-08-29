@@ -54,7 +54,7 @@ def sparse_2term_quotient_only_pm1(rels, n):
     """
     n = int(n)
 
-    tm = misc.verbose("Starting optimized integer sparse 2-term quotient...")
+    tm = verbose("Starting optimized integer sparse 2-term quotient...")
 
     cdef int c0, c1, i, die
     cdef list free = list(xrange(n))

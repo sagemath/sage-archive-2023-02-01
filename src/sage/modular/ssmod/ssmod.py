@@ -736,6 +736,8 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         (There are 4 elliptic curves of conductor 37, but only 2 isogeny
         classes.)
         """
+        from sage.misc.verbose import verbose
+
         # NOTE: The heuristic runtime is *very* roughly `p^2/(2\cdot 10^6)`.
         # ellmax -- (default: 2) use Hecke operators T_ell with ell <= ellmax
         if p is None:

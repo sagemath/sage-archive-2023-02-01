@@ -10298,6 +10298,7 @@ class FiniteStateMachine(SageObject):
 
             This warning can be silenced by :func:`~sage.misc.misc.set_verbose`::
 
+                sage: from sage.misc.verbose import set_verbose
                 sage: set_verbose(-1, "finite_state_machine.py")
                 sage: moments = T.asymptotic_moments()
                 sage: moments['expectation']

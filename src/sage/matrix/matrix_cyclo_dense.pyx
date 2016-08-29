@@ -71,7 +71,7 @@ from sage.rings.number_field.number_field_element cimport NumberFieldElement
 from sage.rings.number_field.number_field_element_quadratic cimport NumberFieldElement_quadratic
 
 from sage.structure.proof.proof import get_flag as get_proof_flag
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 import math
 
 from sage.matrix.matrix_modn_dense_double import MAX_MODULUS as MAX_MODULUS_modn_dense_double

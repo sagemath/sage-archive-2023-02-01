@@ -1365,6 +1365,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: ModularSymbols(37, 2).cuspidal_submodule()._q_expansion_basis_hecke_dual(2)
             [q + O(q^2)]
         """
+        from sage.misc.verbose import verbose
         d = self.dimension_of_associated_cuspform_space()
         prec = Integer(prec)
         if prec < 1:

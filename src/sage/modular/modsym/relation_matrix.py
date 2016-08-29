@@ -114,7 +114,7 @@ def modS_relations(syms):
     """
     if not isinstance(syms, ManinSymbolList):
         raise TypeError("syms must be a ManinSymbolList")
-    tm = misc.verbose()
+    tm = verbose()
     # We will fill in this set with the relations x_i + s*x_j = 0,
     # where the notation is as in _sparse_2term_quotient.
     rels = set()
@@ -180,7 +180,7 @@ def modI_relations(syms, sign):
        1585 paper! Thus our +1 eigenspace is his -1 eigenspace,
        etc. We do this for consistency with MAGMA.
     """
-    tm = misc.verbose()
+    tm = verbose()
     # We will fill in this set with the relations x_i - sign*s*x_j = 0,
     # where the notation is as in _sparse_2term_quotient.
     rels = set()
@@ -224,7 +224,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
         sage: T_relation_matrix_wtk_g0(L, modS, GF(17), True)
         72 x 216 sparse matrix over Finite Field of size 17 (use the '.str()' method to see the entries)
     """
-    tm = misc.verbose()
+    tm = verbose()
     row = 0
     entries = {}
     already_seen = set()
@@ -300,7 +300,7 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
     if not isinstance(mod, list):
         raise TypeError("mod must be a list")
 
-    misc.verbose(str(relation_matrix.parent()))
+    verbose(str(relation_matrix.parent()))
 
     try:
         h = relation_matrix.height()
@@ -313,9 +313,9 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
     else:
         A = relation_matrix.echelon_form()
     A.set_immutable()
-    tm = misc.verbose('finished echelon', tm)
+    tm = verbose('finished echelon', tm)
 
-    tm = misc.verbose("Now creating gens --> basis mapping")
+    tm = verbose("Now creating gens --> basis mapping")
 
     basis_set = set(A.nonpivots())
     pivots = A.pivots()
@@ -329,7 +329,7 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
 
     misc.verbose("done doing setup", tm)
 
-    tm = misc.verbose("now forming quotient matrix")
+    tm = verbose("now forming quotient matrix")
     M = matrix_space.MatrixSpace(field, len(syms), len(basis), sparse=sparse)
 
     B = M(0)
@@ -348,7 +348,7 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
     misc.verbose("done making quotient matrix", tm)
 
     # The following is very fast (over Q at least).
-    tm = misc.verbose('now filling in the rest of the matrix')
+    tm = verbose('now filling in the rest of the matrix')
     k = 0
     for i in range(len(mod)):
         j, s = mod[i]

@@ -165,7 +165,7 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.cpython.string import bytes_to_str
 from sage.rings.integer import Integer
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 from sage.misc.temporary_file import tmp_filename

@@ -9205,6 +9205,7 @@ cdef class Expression(CommutativeRingElement):
             3.17805383034795
             sage: SR(5-1).factorial().log()
             log(24)
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(-1); plot(lambda x: SR(x).log_gamma(), -7,8, plot_points=1000).show()
             sage: math.exp(0.5)
             1.6487212707001282

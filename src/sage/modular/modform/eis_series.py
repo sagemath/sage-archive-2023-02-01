@@ -214,6 +214,8 @@ def __find_eisen_chars(character, k):
         ((-1, 1), (1, 1), 9),
         ((-1, -1), (1, -1), 1)]
     """
+    from sage.misc.verbose import verbose
+
     N = character.modulus()
     if character.is_trivial():
         if k % 2:

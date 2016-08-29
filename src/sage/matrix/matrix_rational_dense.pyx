@@ -110,7 +110,8 @@ from sage.arith.all import gcd
 from .matrix2 import decomp_seq
 from .matrix0 import Matrix as Matrix_base
 
-from sage.misc.all import verbose, get_verbose, prod
+from sage.misc.all import prod
+from sage.misc.verbose import verbose, get_verbose
 
 #########################################################
 # PARI C library

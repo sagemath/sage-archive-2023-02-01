@@ -33,6 +33,7 @@ class EisensteinSubmodule(submodule.ModularFormsSubmodule):
             sage: E == loads(dumps(E))
             True
         """
+        from sage.misc.verbose import verbose
         verbose('creating eisenstein submodule of %s'%ambient_space)
         d = ambient_space._dim_eisenstein()
         V = ambient_space.module()

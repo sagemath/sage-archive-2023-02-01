@@ -462,6 +462,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
           ``splitting_field`` method, moved from ``gal_reps.py``, make
           it work over number fields.
         """
+        from sage.misc.verbose import verbose
         p = Integer(p)
         if not p.is_prime():
             raise ValueError("p must be a prime number")

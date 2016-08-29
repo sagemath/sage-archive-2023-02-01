@@ -58,7 +58,7 @@ from sage.modular.arithgroup.all import Gamma0
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.modular.dirichlet import DirichletGroup
 from sage.modular.arithgroup.congroup_gammaH import GammaH_constructor
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 
 
 class DoubleCosetReduction(SageObject):

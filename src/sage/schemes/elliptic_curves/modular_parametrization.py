@@ -183,6 +183,7 @@ class ModularParameterization:
             `E`, then use the Weierstrass `\wp` function to map it to the
             curve itself.
         """
+        from sage.misc.verbose import verbose
         if isinstance(z, heegner.HeegnerPointOnX0N):
             return z.map_to_curve(self.curve())
         # Map to the CC of CC/PeriodLattice.

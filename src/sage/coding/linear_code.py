@@ -2780,7 +2780,7 @@ class AbstractLinearCode(module.Module):
             Permutation Group with generators [(1,3)(4,5), (1,4)(3,5)]
             sage: C = codes.GolayCode(GF(3), True)
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)
-            Permutation Group with generators [(3,4)(5,7)(6,9)(8,11), (3,5,8)(4,11,7)(6,9,10), (2,3)(4,6)(5,8)(7,10), (1,2)(4,11)(5,8)(9,10)]
+            Permutation Group with generators [(5,7)(6,11)(8,9)(10,12), (4,6,11)(5,8,12)(7,10,9), (3,4)(6,8)(9,11)(10,12), (2,3)(6,11)(8,12)(9,10), (1,2)(5,10)(7,12)(8,9)]
 
         However, the option ``algorithm="gap+verbose"``, will print out::
 

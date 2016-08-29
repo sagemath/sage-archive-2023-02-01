@@ -1,8 +1,8 @@
 r"""
 Cyclic Code
 
-Let `F` be a field. A `[n, k]` code `C` over `F` is called cyclic if every cyclic shift
-of a codeword in `C` is also a codeword [R06]_:
+Let `F` be a field. A `[n, k]` code `C` over `F` is called cyclic if every
+cyclic shift of a codeword is also a codeword [R06]_:
 
     .. MATH::
 
@@ -11,14 +11,15 @@ of a codeword in `C` is also a codeword [R06]_:
         \Rightarrow (c_{n-1}, c_{0}, \dots , c_{n-2}) \in C
 
 Let `c = (c_0, c_1, \dots, c_{n-1})` be a codeword of `C`.
-This codeword can be seen as a polynomial over `F_q[x]`, as follows:
-`\Sigma_{i=0}^{n-1} c_i \times x^i`.
+This codeword can be seen as a polynomial over `F_q[x]` as follows:
+`\Sigma_{i=0}^{n-1} c_i x^i`.
 There is a unique monic polynomial `g(x)` such that for every
-`c(x) \in F_q[x]`, `c(x) \in C \Leftrightarrow g(x) | c(x)`.
+`c(x) \in F_q[x]` of degree less than `n-1`, we have
+`c(x) \in C \Leftrightarrow g(x) | c(x)`.
 This polynomial is called the generator polynomial of `C`.
 
-For now, only single-root cyclic codes are implemented. That is, only cyclic
-codes such that its length `n` and field order `q` are coprimes.
+For now, only single-root cyclic codes (i.e. whose length `n` and field order
+`q` are coprimes) are implemented.
 
 
 REFERENCES:
@@ -115,8 +116,6 @@ def find_generator_polynomial(code, check=True):
     if check:
         if g.degree() != n - k :
             raise ValueError("The code is not cyclic.")
-        if not g.divides(x ** n - 1):
-            raise ValueError("The code is not cyclic.")
         i = 0
         c = g.coefficients(sparse = False)
         c = _complete_list(c, n)
@@ -125,7 +124,7 @@ def find_generator_polynomial(code, check=True):
             i += 1
         if (i != k):
             raise ValueError("The code is not cyclic.")
-    return g
+    return g.monic()
 
 def _complete_list(l, length):
     r"""
@@ -348,37 +347,40 @@ class CyclicCode(AbstractLinearCode):
     codes such that its length `n` and field order `q` are coprimes.
 
     Depending on which behaviour you want, you need to specify the names of the arguments to
-    `CyclicCode`. See EXAMPLES section below for details.
+    CyclicCode. See EXAMPLES section below for details.
 
     INPUT:
 
-    - ``generator_pol`` -- (default: ``None``) the unique monic polynomial which divides every
-      codeword of ``self``.
+    - ``generator_pol`` -- (default: ``None``) the generator polynomial
+      of ``self``. That is, the highest-degree monic polynomial which divides
+      every polynomial representation of a codeword in ``self``.
 
-    - ``length`` -- (default: ``None``) the length of ``self``. It has to be bigger than the degree
-      of ``generator_pol``.
+    - ``length`` -- (default: ``None``) the length of ``self``. It has to be
+      bigger than the degree of ``generator_pol``.
 
     - ``code`` -- (default: ``None``) a linear code.
 
-    - ``check`` -- (default: ``False``) a boolean to check if the code is cyclic.
-      See :meth:`sage.find_generator_polynomial` for details.
+    - ``check`` -- (default: ``False``) a boolean representing whether the
+      cyclicity of ``self`` must be checked while finding the generator
+      polynomial. See :meth:`sage.find_generator_polynomial` for details.
 
-    - ``D`` -- (default: ``None``) a subset of a defining set. Can be modified if it is not
-      cyclotomic-closed.
+    - ``D`` -- (default: ``None``) a list of integers between ``0`` and
+      ``length-1``, corresponding to (a subset of) the defining set of the code.
+      Will be modified if it is not cyclotomic-closed.
 
     - ``field`` -- (default: ``None``) the base field of ``self``.
 
-    - ``primitive_element`` -- (default: ``None``) the primitive element
-      to use when creating the set of roots for the generating polynomial
-      over the splitting field. It has to be of multiplicative order ``length`` over this
-      field. If the splitting field is not ``field``, it also have to be a polynomial in ``zx``,
-      where ``x`` is the degree of the extension field. For instance,
-      over ``GF(16)``, it has to be a polynomial in ``z4``.
+    - ``primitive_element`` -- (default: ``None``) the primitive element of
+      the splitting field which contains the roots of the generator polynomial.
+      It has to be of multiplicative order ``length`` over this field.
+      If the splitting field is not ``field``, it also have to be a polynomial
+      in ``zx``, where ``x`` is the degree of the extension over the prime field.
+      For instance, over ``GF(16)``, it has to be a polynomial in ``z4``.
 
     EXAMPLES:
 
-    We can construct a `CyclicCode` object using three different methods.
-    First (1), we provide a generator_polynomial and a length for the code::
+    We can construct a CyclicCode object using three different methods.
+    First (1), we provide a generator polynomial and a code length::
 
         sage: F.<x> = GF(2)[]
         sage: n = 7
@@ -387,16 +389,17 @@ class CyclicCode(AbstractLinearCode):
         sage: C
         [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
 
-    We can also provide a code (2). In that case, the program will try to extract a generator
-    polynomial for the provided code (see :meth:`find_generator_polynomial` for details)::
+    We can also provide a code (2). In that case, the program will try to
+    extract a generator polynomial (see :meth:`find_generator_polynomial`
+    for details)::
 
         sage: C = codes.GeneralizedReedSolomonCode(GF(2 ** 3, 'a').list()[1:2 ** 3], 2 ** 2)
         sage: Cc = codes.CyclicCode(code = C)
         sage: Cc
         [7, 4] Cyclic Code over Finite Field in a of size 2^3 with x^3 + (a^2 + 1)*x^2 + a*x + a^2 + 1 as generator polynomial
 
-    We can also provide a defining set for the code (3). In that case, the generator polynomial
-    will be computed::
+    Finally, we can give (a subset of) a defining set for the code (3).
+    In this case, the generator polynomial will be computed::
 
         sage: F = GF(16, 'a')
         sage: n = 15
@@ -471,7 +474,10 @@ class CyclicCode(AbstractLinearCode):
                 raise ValueError("Provided polynomial must divide x^n - 1, where n is the provided length")
             self._polynomial_ring = R
             self._dimension = length - deg
-            self._generator_polynomial = generator_pol
+            if not generator_pol.is_monic():
+                self._generator_polynomial = generator_pol.monic()
+            else:
+                self._generator_polynomial = generator_pol
             super(CyclicCode, self).__init__(F, length, "Vector", "Syndrome")
 
         # Case (2) : a code is provided.
@@ -485,8 +491,6 @@ class CyclicCode(AbstractLinearCode):
                 g = find_generator_polynomial(code, check)
             except ValueError, e:
                 raise ValueError(e)
-            if not g.is_monic():
-                g = g.monic()
             self._polynomial_ring = g.parent()
             self._generator_polynomial = g
             self._dimension = code.dimension()
@@ -655,8 +659,11 @@ class CyclicCode(AbstractLinearCode):
 
     def primitive_element(self):
         r"""
-        Returns the primitive element that was used as a root of
-        the generator polynomial over the extension field.
+        Returns the primitive element of the splitting field that is used
+        to build the code.
+
+        If it has not been specified by the user, it is set by default with the
+        output of the ``zeta`` method of the splitting field.
 
         EXAMPLES::
 
@@ -750,7 +757,8 @@ class CyclicCode(AbstractLinearCode):
     def defining_set(self):
         r"""
         Returns the set of powers of the root of ``self``'s generator polynomial
-        over the extension field.
+        over the extension field. It depends on the choice of the primitive
+        element of the splitting field.
 
         EXAMPLES:
 

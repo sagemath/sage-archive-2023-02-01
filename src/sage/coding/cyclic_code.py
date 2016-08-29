@@ -23,7 +23,7 @@ codes such that its length `n` and field order `q` are coprimes.
 
 REFERENCES:
 
-.. [R06] Ron Roth, Introduction to Coding Theory, Cambridge University Press, 2006
+- [R06]_
 
 TESTS:
 

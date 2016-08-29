@@ -563,8 +563,12 @@ ex power::eval(int level) const
 	if (is_exactly_a<function>(ebasis))
 		return ex_to<function>(ebasis).power(eexponent);
 
-	// Turn (x^c)^d into x^(c*d) in the case that x is positive and c is real.
-	if (is_exactly_a<power>(ebasis) && ebasis.op(0).info(info_flags::positive) && ebasis.op(1).info(info_flags::real))
+	// Turn (x^c)^d into x^(c*d) in the case that x is positive and c is real,
+        // or if d is integer (and positive to preserve fraction output).
+	if (is_exactly_a<power>(ebasis) and ((eexponent.info(info_flags::integer)
+                                          and eexponent.info(info_flags::positive))
+                                        or (ebasis.op(0).info(info_flags::positive)
+                                          and ebasis.op(1).info(info_flags::real))))
 		return power(ebasis.op(0), ebasis.op(1) * eexponent);
 
 

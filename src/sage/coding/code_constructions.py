@@ -548,45 +548,14 @@ def BCHCode(n,delta,F,b=0):
 
 
 def BinaryGolayCode():
-    r"""
-    BinaryGolayCode() returns a binary Golay code. This is a perfect
-    [23,12,7] code. It is also (equivalent to) a cyclic code, with
-    generator polynomial
-    `g(x)=1+x^2+x^4+x^5+x^6+x^{10}+x^{11}`. Extending it yields
-    the extended Golay code (see ExtendedBinaryGolayCode).
-
-    EXAMPLE::
-
-        sage: C = codes.BinaryGolayCode()
-        sage: C
-        Linear code of length 23, dimension 12 over Finite Field of size 2
-        sage: C.minimum_distance()
-        7
-        sage: C.minimum_distance(algorithm='gap') # long time, check d=7
-        7
-
-    AUTHORS:
-
-    - David Joyner (2007-05)
     """
-    F = GF(2)
-    B = [[1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\
-          [0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\
-          [0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],\
-          [0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],\
-          [0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],\
-          [0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],\
-          [0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],\
-          [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0],\
-          [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0],\
-          [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0],\
-          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0],\
-          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1]]
-    # MS = MatrixSpace(F,12,23)
-    # V = VectorSpace(F,23)
-    V = span(B, F)
-    return LinearCodeFromVectorSpace(V, d=7)
-
+    This method is now deprecated.
+    Please use :class:`sage.coding.golay_code.GolayCode` instead.
+    """
+    from sage.misc.superseded import deprecation
+    from .golay_code import GolayCode
+    deprecation(20787, "codes.TernayGolayCode is now deprecated. Please use codes.GolayCode instead.")
+    return GolayCode(GF(2), False)
 
 def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
     r"""
@@ -803,39 +772,13 @@ def DuadicCodeOddPair(F,S1,S2):
 
 def ExtendedBinaryGolayCode():
     """
-    ExtendedBinaryGolayCode() returns the extended binary Golay code.
-    This is a perfect [24,12,8] code. This code is self-dual.
-
-    EXAMPLES::
-
-        sage: C = codes.ExtendedBinaryGolayCode()
-        sage: C
-        Linear code of length 24, dimension 12 over Finite Field of size 2
-        sage: C.minimum_distance()
-        8
-        sage: C.minimum_distance(algorithm='gap') # long time, check d=8
-        8
-
-    AUTHORS:
-
-    - David Joyner (2007-05)
+    This method is now deprecated.
+    Please use :class:`sage.coding.golay_code.GolayCode` instead.
     """
-    B = [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1],\
-         [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0],\
-         [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1],\
-         [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0],\
-         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1],\
-         [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1],\
-         [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1],\
-         [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0],\
-         [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0],\
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0],\
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1],\
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1]]
-    V = span(B, GF(2))
-    return LinearCodeFromVectorSpace(V, d=8)
-    # C = BinaryGolayCode()
-    # return C.extended_code()
+    from sage.misc.superseded import deprecation
+    from .golay_code import GolayCode
+    deprecation(20787, "codes.ExtendedBinaryGolayCode is now deprecated. Please use codes.GolayCode instead.")
+    return GolayCode(GF(2))
 
 
 def ExtendedQuadraticResidueCode(n,F):
@@ -882,33 +825,13 @@ def ExtendedQuadraticResidueCode(n,F):
 
 def ExtendedTernaryGolayCode():
     """
-    ExtendedTernaryGolayCode returns a ternary Golay code. This is a
-    self-dual perfect [12,6,6] code.
-
-    EXAMPLES::
-
-        sage: C = codes.ExtendedTernaryGolayCode()
-        sage: C
-        Linear code of length 12, dimension 6 over Finite Field of size 3
-        sage: C.minimum_distance()
-        6
-        sage: C.minimum_distance(algorithm='gap') # long time, check d=6
-        6
-
-    AUTHORS:
-
-    - David Joyner (11-2005)
+    This method is now deprecated.
+    Please use :class:`sage.coding.golay_code.GolayCode` instead.
     """
-    B = [[1, 0, 0, 0, 0, 0, 2, 0, 1, 2, 1, 2],\
-         [0, 1, 0, 0, 0, 0, 1, 2, 2, 2, 1, 0],\
-         [0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1],\
-         [0, 0, 0, 1, 0, 0, 1, 1, 0, 2, 2, 2],\
-         [0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 0, 1],\
-         [0, 0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 1]]
-    V = span(B, GF(3))
-    return LinearCodeFromVectorSpace(V, d=6)
-    # C = TernaryGolayCode()
-    # return C.extended_code()
+    from sage.misc.superseded import deprecation
+    from .golay_code import GolayCode
+    deprecation(20787, "codes.ExtendedTernayGolayCode is now deprecated. Please use codes.GolayCode instead.")
+    return GolayCode(GF(3))
 
 def LinearCodeFromCheckMatrix(H):
     r"""
@@ -1182,34 +1105,14 @@ def ReedSolomonCode(n,k,F,pts = None):
 
 
 def TernaryGolayCode():
-    r"""
-    TernaryGolayCode returns a ternary Golay code. This is a perfect
-    [11,6,5] code. It is also equivalent to a cyclic code, with
-    generator polynomial `g(x)=2+x^2+2x^3+x^4+x^5`.
-
-    EXAMPLES::
-
-        sage: C = codes.TernaryGolayCode()
-        sage: C
-        Linear code of length 11, dimension 6 over Finite Field of size 3
-        sage: C.minimum_distance()
-        5
-        sage: C.minimum_distance(algorithm='gap') # long time, check d=5
-        5
-
-    AUTHORS:
-
-    - David Joyner (2007-5)
     """
-    F = GF(3)
-    B = [[2, 0, 1, 2, 1, 1, 0, 0, 0, 0, 0],\
-         [0, 2, 0, 1, 2, 1, 1, 0, 0, 0, 0],\
-         [0, 0, 2, 0, 1, 2, 1, 1, 0, 0, 0],\
-         [0, 0, 0, 2, 0, 1, 2, 1, 1, 0, 0],\
-         [0, 0, 0, 0, 2, 0, 1, 2, 1, 1, 0],\
-         [0, 0, 0, 0, 0, 2, 0, 1, 2, 1, 1]]
-    V = span(B, F)
-    return LinearCodeFromVectorSpace(V, d=5)
+    This method is now deprecated.
+    Please use :class:`sage.coding.golay_code.GolayCode` instead.
+    """
+    from sage.misc.superseded import deprecation
+    from .golay_code import GolayCode
+    deprecation(20787, "codes.TernayGolayCode is now deprecated. Please use codes.GolayCode instead.")
+    return GolayCode(GF(3), False)
 
 def ToricCode(P,F):
     r"""

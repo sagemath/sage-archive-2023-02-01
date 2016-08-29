@@ -588,9 +588,7 @@ cdef stdstring* py_print_fderivative(unsigned id, object params,
       derivative.
     - args -- arguments of the function.
     """
-    if len(args)==1:
-        py_res = ''.join(['diff(',py_print_function_pystring(id,args,False),', ',repr(args[0]),')'])
-    elif all([a.is_symbol() for a in args]) and len(set(args))==len(args):
+    if len(args)==1 or (all([a.is_symbol() for a in args]) and len(set(args))==len(args)):
         diffvarstr = ', '.join([repr(args[i]) for i in params])
         py_res = ''.join(['diff(',py_print_function_pystring(id,args,False),', ',diffvarstr,')'])
     else:
@@ -644,9 +642,35 @@ cdef stdstring* py_latex_fderivative(unsigned id, object params,
     See documentation of py_print_fderivative for more information.
 
     """
-    ostr = ''.join(['D[', ', '.join([repr(int(x)) for x in params]), ']'])
-    fstr = py_latex_function_pystring(id, args, True)
-    py_res = ostr + fstr
+    if len(args)==1 or (all([a.is_symbol() for a in args]) and len(set(args))==len(args)):
+        diffvarstr = ', '.join([repr(args[i]) for i in params])
+        param_iter=iter(params)
+        v=param_iter.next()
+        nv=1
+        diff_args=[]
+        for next_v in param_iter:
+            if next_v == v:
+                nv+=1
+            else:
+                if nv == 1:
+                    diff_args.append(r"\partial %s"%(repr(args[v]),))
+                else:
+                    diff_args.append(r"(\partial %s)^{%s}"%(repr(args[v]),nv))
+                v=next_v
+                nv=1
+        if nv == 1:
+            diff_args.append(r"\partial %s"%(repr(args[v]),))
+        else:
+            diff_args.append(r"(\partial %s)^{%s}"%(repr(args[v]),nv))
+        if len(params) == 1:
+            operator_string=r"\frac{\partial}{%s}"%(''.join(diff_args),)
+        else:
+            operator_string=r"\frac{\partial^{%s}}{%s}"%(len(params),''.join(diff_args))
+        py_res = operator_string+py_latex_function_pystring(id,args,False)
+    else:
+        ostr = ''.join(['\mathrm{D}_{',', '.join([repr(int(x)) for x in params]), '}'])
+        fstr = py_latex_function_pystring(id, args, True)
+        py_res = ostr + fstr
     return string_from_pystr(py_res)
 
 def py_latex_fderivative_for_doctests(id, params, args):

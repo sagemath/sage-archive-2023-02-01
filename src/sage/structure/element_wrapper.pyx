@@ -22,7 +22,7 @@ AUTHORS:
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE
 
 from sage.structure.parent cimport Parent
-from sage.structure.element cimport Element
+from sage.structure.element cimport Element, coercion_model
 from copy import copy
 
 cdef class ElementWrapper(Element):
@@ -248,12 +248,12 @@ cdef class ElementWrapper(Element):
         """
         return hash(self.value)
 
-    cpdef _richcmp_(left, right, int op):
+    def __richcmp__(left, right, int op):
         """
         Return ``True`` if ``left`` compares with ``right`` based on ``op``.
 
         Default implementation of ``self == other``: two elements are
-        equal if they have the same class, same parent, and same value.
+        equal if they have equal parents and equal values.
 
         Default implementation of ``self < other``: two elements are
         always incomparable.
@@ -263,6 +263,33 @@ cdef class ElementWrapper(Element):
             Another option would be to not define ``__lt__``, but
             given the current implementation of SageObject, sorted(...)
             would break.
+
+        TESTS:
+
+        Check that elements of equal-but-not-identical parents compare
+        properly (see :trac:`19488`)::
+
+            sage: from sage.misc.nested_class_test import TestParent4
+            sage: P = TestParent4()
+            sage: Q = TestParent4()
+            sage: P == Q
+            True
+            sage: P is Q
+            False
+            sage: x = P.an_element(); x
+            '_an_element_'
+            sage: y = Q.an_element(); y
+            '_an_element_'
+            sage: x == y
+            True
+        """
+        if isinstance(right, ElementWrapper) and left.parent() == right.parent():
+            return left._richcmp_(right, op)
+        return coercion_model.richcmp(left, right, op)
+
+    cpdef _richcmp_(left, right, int op):
+        """
+        Return ``True`` if ``left`` compares with ``right`` based on ``op``.
 
         TESTS:
 
@@ -317,8 +344,7 @@ cdef class ElementWrapper(Element):
             sage: sorted([y,x])
             [2, 1]
         """
-        cdef ElementWrapper self
-        self = left
+        cdef ElementWrapper self = left
         if op == Py_EQ or op == Py_LE or op == Py_GE:
             return self.value == (<ElementWrapper>right).value
         if op == Py_NE:

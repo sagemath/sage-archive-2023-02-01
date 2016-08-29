@@ -1005,7 +1005,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: B.rank()
             12
             sage: A = B.change_ring(RDF)
-            sage: A.condition() > 1.6e16 or A.condition()
+            sage: A.condition() > 1.59e16 or A.condition()
             True
 
             sage: A.singular_values(eps=None)  # abs tol 7e-16

@@ -594,10 +594,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             1 + 2*5 + 4*5^2 + 3*5^3 + 5^7 + 2*5^8 + 3*5^10 + 2*5^11 + 2*5^12 +
             2*5^13 + 5^14 + 3*5^17 + 2*5^18 + 2*5^19 + O(5^20)
 
-        A little check::
-
-            sage: y.log() - x - x**5/5
-            O(5^20)
+            sage: y * (-x).artin_hasse_exp()
+            1 + O(5^20)
 
         The function respects your precision::
 
@@ -610,12 +608,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
         Unless you tell it not to::
 
             sage: x = Zp(3,30)(45/7)
-            sage: y = x.artin_hasse_exp(); y
+            sage: x.artin_hasse_exp()
             1 + 2*3^2 + 3^4 + 2*3^5 + 3^6 + 2*3^7 + 2*3^8 + 3^9 + 2*3^10 + 3^11 +
             3^13 + 2*3^15 + 2*3^16 + 2*3^17 + 3^19 + 3^20 + 2*3^21 + 3^23 + 3^24 +
             3^26 + 3^27 + 2*3^28 + O(3^30)
-            sage: (-x).artin_hasse_exp() * y
-            1 + O(3^30)
             sage: x.artin_hasse_exp(10)
             1 + 2*3^2 + 3^4 + 2*3^5 + 3^6 + 2*3^7 + 2*3^8 + 3^9 + O(3^10)
 
@@ -625,6 +621,20 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: x = Zp(3).random_element()
             sage: x.artin_hasse_exp(1)
             1 + O(3^20)
+
+        TESTS::
+
+            sage: x1 = 5*Zp(5).random_element()
+            sage: x2 = 5*Zp(5).random_element()
+            sage: y1 = x1.artin_hasse_exp()
+            sage: y2 = x2.artin_hasse_exp()
+            sage: (y1 - y2).abs() == (x1 - x2).abs()
+            True
+
+            sage: Zp(5)(1).artin_hasse_exp()
+            Traceback (most recent call last):
+            ...
+            ValueError: series does not converge
 
         AUTHORS:
 

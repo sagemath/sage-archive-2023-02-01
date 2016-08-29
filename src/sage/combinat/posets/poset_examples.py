@@ -27,6 +27,7 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
     :meth:`~Posets.IntegerPartitionsDominanceOrder` | Return the poset of integer partitions on the integer `n` ordered by dominance.
     :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
+    :meth:`~Posets.RandomLattice` | Return a random lattice on `n` elements.
     :meth:`~Posets.RandomPoset` | Return a random poset on `n` elements.
     :meth:`~Posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
     :meth:`~Posets.SetPartitions` | Return the poset of set partitions of the set `\{1,\dots,n\}`.
@@ -573,6 +574,110 @@ class Posets(object):
                     D.add_edge(i, j)
         D.relabel(list(Permutations(n).random_element()))
         return Poset(D, cover_relations=False)
+
+    @staticmethod
+    def RandomLattice(n, p, properties=None):
+        r"""
+        Generate a random lattice on ``n`` elements according to a
+        probability ``p``.
+
+        INPUT:
+
+        - ``n`` - number of elements, a non-negative integer
+
+        - ``p`` - a probability, a positive real number less than one
+
+        - ``properties`` - a list of properties for the lattice
+
+        OUTPUT:
+
+        A lattice on `n` elements. The probability `p` roughly measures
+        number of covering relations of the lattice: `p=0` always generates
+        a lattice that is like a tree plus the bottom element.
+        To create interesting examples, make the probability near one,
+        something like `0.98..0.999`.
+
+        If ``properties=['dismantlable']`` (only currently implemented
+        value) return only dismantlable lattices. In that case
+        parameter ``p`` is currently ignored.
+
+        EXAMPLES::
+
+            sage: set_random_seed(0)  # Results are reproducible
+            sage: L = Posets.RandomLattice(8, 0.995); L
+            Finite lattice containing 8 elements
+            sage: L.cover_relations()
+            [[8, 7], [8, 4], [8, 2], ..., [6, 5], [3, 5], [2, 5], [1, 5]]
+            sage: L = Posets.RandomLattice(10, 0, properties=['dismantlable'])
+            sage: L.is_dismantlable()
+            True
+
+        TESTS::
+
+            sage: Posets.RandomLattice('junk', 0.5)
+            Traceback (most recent call last):
+            ...
+            TypeError: number of elements must be an integer, not junk
+
+            sage: Posets.RandomLattice(-6, 0.5)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of elements must be non-negative, not -6
+
+            sage: Posets.RandomLattice(6, 'garbage')
+            Traceback (most recent call last):
+            ...
+            TypeError: probability must be a real number, not garbage
+
+            sage: Posets.RandomLattice(6, -0.5)
+            Traceback (most recent call last):
+            ...
+            ValueError: probability must be a positive real number and below 1, not -0.5
+
+            sage: Posets.RandomLattice(0, 0.5)
+            Finite lattice containing 0 elements
+        """
+        from sage.misc.prandom import randint
+
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
+        try:
+            p = float(p)
+        except Exception:
+            raise TypeError("probability must be a real number, not {0}".format(p))
+        if p < 0 or p >= 1:
+            raise ValueError("probability must be a positive real number and below 1, not {0}".format(p))
+
+        if properties is not None and properties != ['dismantlable']:
+            raise ValueError("unknown value for 'properties'")
+
+        if n <= 3:
+            return Posets.ChainPoset(n)
+
+        if properties == ['dismantlable']:
+            D = DiGraph({0: [n-1]})
+            for i in range(1, n-1):
+                a = randint(0, i//2)
+                b_ = list(D.depth_first_search(a))
+                b = b_[randint(1, len(b_)-1)]
+                D.add_vertex(i)
+                D.add_edge(a, i)
+                D.add_edge(i, b)
+                D.delete_edge(a, b)
+            return LatticePoset(D)
+
+        covers = _random_semilattice(n-1, p)
+        covers_dict = {i:covers[i] for i in range(n-1)}
+        D = DiGraph(covers_dict)
+        D.add_vertex(n-1)
+        for v in D.sources():
+            D.add_edge(n-1, v)
+        D.relabel(list(Permutations(n).random_element()))
+        return LatticePoset(D, cover_relations=False)
 
     @staticmethod
     def SetPartitions(n):
@@ -1139,5 +1244,88 @@ class Posets(object):
         H = DiGraph(dict([[p, lower_covers(p)] for p in ideal]))
         return LatticePoset(H.reverse())
 
+def _random_semilattice(n, p):
+    """
+    Return the covering relations list of a random semilattice.
+
+    INPUT:
+
+    - ``n`` -- number of elements, a non-negative integer
+    - ``p`` -- a number at least zero and less than one; higher number
+      means more covering relations
+
+    OUTPUT:
+
+    A list of lists. If it is interpreted as a list of lower covers
+    for a poset, it is a meet-semilattice with ``0..n-1`` as a linear
+    extension.
+
+    EXAMPLES::
+
+        sage: set_random_seed(42)  # Results are reproducible
+        sage: sage.combinat.posets.poset_examples._random_semilattice(7, 0.4)
+        [[], [0], [0], [1, 2], [1], [0], [2]]
+
+    ALGORITHM::
+
+        We add elements one by one. We check that adding a maximal
+        element `e` to a meet-semilattice `L` with maximal elements
+        `M` will create a semilattice by checking that there is a
+        meet for `e, m` for all `m \in M`. We do that by keeping
+        track of meet matrix and list of maximal elements.
+    """
+    # No argument checking here -- supposed to be
+    # done at calling function.
+
+    from sage.functions.other import floor, sqrt
+    from sage.misc.prandom import random
+
+    meets = [[None]*n for _ in range(n)]
+    meets[0][0] = 0
+    maxs = set([0])
+    lc_all = [[]]  # No lower covers for the bottom element.
+
+    for i in range(1, n):
+
+        # First add some random element as a lower cover.
+        # Alone it can't change a semilattice to non-semilattice,
+        # so we don't check it.
+        new = i-1-floor(i*sqrt(random()))
+        lc_list = [new]
+        maxs.discard(new)
+        max_meets = {m:meets[m][new] for m in maxs}
+
+        while random() < p and 0 not in lc_list:
+            # An ad hoc solution. srqt(random()) instead of randint(0, i)
+            # make number of coatoms closer to number of atoms.
+            new = i-1-floor(i*sqrt(random()))
+
+            # Check that lc_list + new is an antichain.
+            if any(meets[new][lc] in [new, lc] for lc in lc_list):
+                continue
+
+            # Check that new has a unique meet with any maximal element.
+            for m in maxs:
+                meet_m = meets[m][new]
+                if meets[meet_m][max_meets[m]] not in [meet_m, max_meets[m]]:
+                    break
+
+            else:  # So, we found a new lower cover for i.
+                lc_list.append(new)
+                for m in maxs:
+                    max_meets[m] = max(max_meets[m], meets[m][new])
+                maxs.discard(new)
+
+        # Now compute new row and column to meet matrix.
+        meets[i][i] = i
+        for lc in lc_list:
+            meets[i][lc] = meets[lc][i] = lc
+        for e in range(i):
+            meets[i][e] = meets[e][i] = max(meets[e][lc] for lc in lc_list)
+
+        maxs.add(i)
+        lc_all.append(lc_list)
+
+    return lc_all
 
 posets = Posets

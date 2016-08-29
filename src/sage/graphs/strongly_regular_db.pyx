@@ -2077,8 +2077,8 @@ def SRG_243_110_37_60():
        Discrete Mathematics 12, no. 2 (1975): 143-158.
        http://dx.doi.org/10.1016/0012-365X(75)90029-1
     """
-    from sage.coding.code_constructions import TernaryGolayCode
-    M = TernaryGolayCode().generator_matrix()
+    from sage.coding.golay_code import GolayCode
+    M = GolayCode(GF(3), False).generator_matrix()
     V = list(M.right_kernel())
     return Graph([range(len(V)), lambda x,y:(V[x]-V[y]).hamming_weight() == 9 ])
 
@@ -2598,8 +2598,8 @@ def SRG_1288_792_476_504():
       Journal of Algebraic Combinatorics (1992), vol.1, n.4, pp329-346,
       http://dx.doi.org/10.1023/A%3A1022438616684
     """
-    from sage.coding.code_constructions import BinaryGolayCode
-    C = BinaryGolayCode()
+    from sage.coding.golay_code import GolayCode
+    C = GolayCode(GF(2), False)
     C = [[i for i,v in enumerate(c) if v]
          for c in C]
     C = [s for s in C if len(s) == 12]

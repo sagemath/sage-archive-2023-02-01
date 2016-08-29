@@ -1493,9 +1493,8 @@ def Psi2(l):
         t += [(c[n]-(4*n-2)*A*t[n-1]-(4*n-4)*B*t[n-2])*(1/QQ(4*n+2))]
     for n in range(1,d+1):
         s += [(-1/QQ(n))*sum((-1)**i*t[i]*s[n-i] for i in range(1,n+1))]
-    psi = sum((-1)**i*s[i]*x**(d-i) for i in range(0,d+1))
     R = PolynomialRing(QQ,['x','u','v'])
-    return R(psi)
+    return sum(R((-1)**i*s[i]*x**(d-i)) for i in range(0,d+1))
 
 
 def isogenies_prime_degree_genus_plus_0(E, l=None):

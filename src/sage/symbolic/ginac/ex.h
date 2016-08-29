@@ -203,7 +203,8 @@ public:
 	ex series(const ex & r, int order, unsigned options = 0) const;
 
 	// rational functions
-	ex normal(int level = 0) const;
+	ex normal(int level = 0, bool noexpand_combined=false,
+                        bool noexpand_numer=true) const;
 	ex to_rational(exmap & repl) const;
 	ex to_rational(lst & repl_lst) const;
 	ex to_polynomial(exmap & repl) const;
@@ -726,8 +727,9 @@ inline ex denom(const ex & thisex)
 inline ex numer_denom(const ex & thisex)
 { return thisex.numer_denom(); }
 
-inline ex normal(const ex & thisex, int level=0)
-{ return thisex.normal(level); }
+inline ex normal(const ex & thisex, int level=0, bool noexpand_combined=false,
+                bool noexpand_numer=true)
+{ return thisex.normal(level, noexpand_combined, noexpand_numer); }
 
 inline ex to_rational(const ex & thisex, lst & repl_lst)
 { return thisex.to_rational(repl_lst); }

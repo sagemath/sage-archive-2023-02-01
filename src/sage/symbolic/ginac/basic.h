@@ -221,7 +221,7 @@ public:
 	virtual ex series(const relational & r, int order, unsigned options = 0) const;
 
 	// rational functions
-	virtual ex normal(exmap & repl, exmap & rev_lookup, int level = 0) const;
+	virtual ex normal(exmap & repl, exmap & rev_lookup, int level = 0, unsigned options = 0) const;
 	virtual ex to_rational(exmap & repl) const;
 	virtual ex to_polynomial(exmap & repl) const;
 

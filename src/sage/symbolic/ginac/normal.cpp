@@ -321,7 +321,7 @@ struct normal_map_function : public map_function {
 /** Default implementation of ex::normal(). It normalizes the children and
  *  replaces the object with a temporary symbol.
  *  @see ex::normal */
-ex basic::normal(exmap & repl, exmap & rev_lookup, int level) const
+ex basic::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) const
 {
 	if (nops() == 0)
 		return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
@@ -340,7 +340,7 @@ ex basic::normal(exmap & repl, exmap & rev_lookup, int level) const
 
 /** Implementation of ex::normal() for symbols. This returns the unmodified symbol.
  *  @see ex::normal */
-ex symbol::normal(exmap & repl, exmap & rev_lookup, int level) const
+ex symbol::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) const
 {
 	return (new lst(*this, _ex1))->setflag(status_flags::dynallocated);
 }
@@ -350,7 +350,7 @@ ex symbol::normal(exmap & repl, exmap & rev_lookup, int level) const
  *  into re+I*im and replaces I and non-rational real numbers with a temporary
  *  symbol.
  *  @see ex::normal */
-ex numeric::normal(exmap & repl, exmap & rev_lookup, int level) const
+ex numeric::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) const
 {
 	numeric num = numer();
 	ex numex = num;
@@ -434,7 +434,7 @@ static ex frac_cancel(const ex &n, const ex &d)
 /** Implementation of ex::normal() for a sum. It expands terms and performs
  *  fractional addition.
  *  @see ex::normal */
-ex add::normal(exmap & repl, exmap & rev_lookup, int level) const
+ex add::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) const
 {
 	if (level == 1)
 		return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
@@ -480,7 +480,9 @@ ex add::normal(exmap & repl, exmap & rev_lookup, int level) const
 		// the heuristic GCD algorithm computes the cofactors at no extra cost
 		ex co_den1, co_den2;
 		ex g = gcdpoly(den, next_den, &co_den1, &co_den2, false);
-		num = ((num * co_den2) + (next_num * co_den1)).expand();
+		num = ((num * co_den2) + (next_num * co_den1));
+                if ((options & normal_options::no_expand_combined_numer) == 0u)
+                        num = num.expand();
 		den *= co_den2;		// this is the lcm(den, next_den)
 	}
 //std::clog << " common denominator = " << den << std::endl;
@@ -493,7 +495,7 @@ ex add::normal(exmap & repl, exmap & rev_lookup, int level) const
 /** Implementation of ex::normal() for a product. It cancels common factors
  *  from fractions.
  *  @see ex::normal() */
-ex mul::normal(exmap & repl, exmap & rev_lookup, int level) const
+ex mul::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) const
 {
 	if (level == 1)
 		return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
@@ -525,7 +527,7 @@ ex mul::normal(exmap & repl, exmap & rev_lookup, int level) const
  *  distributes integer exponents to numerator and denominator, and replaces
  *  non-integer powers by temporary symbols.
  *  @see ex::normal */
-ex power::normal(exmap & repl, exmap & rev_lookup, int level) const
+ex power::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) const
 {
 	if (level == 1)
 		return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
@@ -580,7 +582,7 @@ ex power::normal(exmap & repl, exmap & rev_lookup, int level) const
 /** Implementation of ex::normal() for pseries. It normalizes each coefficient
  *  and replaces the series by a temporary symbol.
  *  @see ex::normal */
-ex pseries::normal(exmap & repl, exmap & rev_lookup, int level) const
+ex pseries::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) const
 {
 	epvector newseq;
 	auto i = seq.begin(), end = seq.end();
@@ -607,11 +609,17 @@ ex pseries::normal(exmap & repl, exmap & rev_lookup, int level) const
  *
  *  @param level maximum depth of recursion
  *  @return normalized expression */
-ex ex::normal(int level) const
+ex ex::normal(int level, bool noexpand_combined, bool noexpand_numer) const
 {
 	exmap repl, rev_lookup;
 
-	ex e = bp->normal(repl, rev_lookup, level);
+        unsigned options = 0;
+        if (noexpand_combined)
+                options |= normal_options::no_expand_combined_numer;
+        if (noexpand_numer)
+                options |= normal_options::no_expand_fraction_numer;
+        
+	ex e = bp->normal(repl, rev_lookup, level, options);
 	GINAC_ASSERT(is_a<lst>(e));
 
 	// Re-insert replaced symbols
@@ -619,7 +627,10 @@ ex ex::normal(int level) const
 		e = e.subs(repl, subs_options::no_pattern);
 
 	// Convert {numerator, denominator} form back to fraction
-	return e.op(0) / e.op(1);
+        if ((options & normal_options::no_expand_fraction_numer) == 0u)
+                return e.op(0).expand() / e.op(1);
+        else
+        	return e.op(0) / e.op(1);
 }
 
 /** Get numerator of an expression. If the expression is not of the normal

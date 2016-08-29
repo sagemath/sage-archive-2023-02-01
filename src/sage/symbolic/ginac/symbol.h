@@ -65,7 +65,7 @@ public:
 	ex evalf(int level = 0) const { return *this; } // overwrites basic::evalf() for performance reasons
 	ex series(const relational & s, int order, unsigned options = 0) const override;
 	ex subs(const exmap & m, unsigned options = 0) const override { return subs_one_level(m, options); } // overwrites basic::subs() for performance reasons
-	ex normal(exmap & repl, exmap & rev_lookup, int level = 0) const override;
+	ex normal(exmap & repl, exmap & rev_lookup, int level = 0, unsigned options = 0) const override;
 	ex to_rational(exmap & repl) const override;
 	ex to_polynomial(exmap & repl) const override;
 	unsigned return_type() const override { return ret_type; }

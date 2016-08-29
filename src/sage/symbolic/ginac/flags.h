@@ -25,6 +25,15 @@
 
 namespace GiNaC {
 
+/** Flags to control the behavior of normal(). */
+class normal_options {
+public:
+	enum {
+		no_expand_combined_numer = 0x0001,      ///< y/x+1/(x+1) --> (y*(x+1)+y)/x/(x+1)
+		no_expand_fraction_numer = 0x0002,      ///< (x-1)*(x+1)/x --> id
+	};
+};
+
 /** Flags to control the behavior of expand(). */
 class expand_options {
 public:

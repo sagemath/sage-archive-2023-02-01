@@ -3065,7 +3065,7 @@ cdef class Set_PythonType_class(Set_generic):
         sage: sage.structure.parent.Set_PythonType(2)
         Traceback (most recent call last):
         ...
-        TypeError: must be intialized with a type, not 2
+        TypeError: must be initialized with a type, not 2
     """
 
     cdef _type
@@ -3079,7 +3079,7 @@ cdef class Set_PythonType_class(Set_generic):
             Category of sets
         """
         if not isinstance(theType, type):
-            raise TypeError("must be intialized with a type, not %r" % theType)
+            raise TypeError("must be initialized with a type, not %r" % theType)
         Set_generic.__init__(self, element_constructor=theType, category=Sets())
         self._type = theType
 
@@ -3271,7 +3271,7 @@ cdef bint _may_cache_none(x, y, tag) except -1:
     # with the only exception of the path from y to x.
     # See #12969.
     cdef EltPair P
-    for P in _coerce_test_dict.iterkeys():
+    for P in _coerce_test_dict:
         if (P.y is y) and (P.x is not x) and (P.tag is tag):
             return 0
     return 1

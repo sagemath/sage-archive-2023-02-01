@@ -23,14 +23,13 @@ from sage.rings.morphism import RingHomomorphism
 from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
 from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.modular.modsym.modsym import ModularSymbols
-from sage.modules.module_element import ModuleElement
 from sage.modules.free_module_element import vector
 from sage.misc.misc import verbose
 from sage.arith.srange import xsrange
 from sage.modular.dirichlet import DirichletGroup
 from sage.misc.superseded import deprecated_function_alias
 from sage.arith.all import lcm, divisors, moebius, sigma, factor
-from sage.structure.element import get_coercion_model
+from sage.structure.element import get_coercion_model, ModuleElement
 
 
 def is_ModularFormElement(x):
@@ -1189,6 +1188,32 @@ class Newform(ModularForm_abstract):
             Number Field in a1 with defining polynomial x^2 + x - 4
         """
         return self.__hecke_eigenvalue_field
+
+    def coefficient(self, n):
+        """
+        Return the coefficient of `q^n` in the power series of self.
+
+        INPUT:
+
+        - ``n`` - a positive integer
+
+        OUTPUT:
+
+        - the coefficient of `q^n` in the power series of self.
+
+        EXAMPLES::
+
+            sage: f = Newforms(11)[0]; f
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            sage: f.coefficient(100)
+            -8
+
+            sage: g = Newforms(23, names='a')[0]; g
+            q + a0*q^2 + (-2*a0 - 1)*q^3 + (-a0 - 1)*q^4 + 2*a0*q^5 + O(q^6)
+            sage: g.coefficient(3)
+            -2*a0 - 1
+        """
+        return self.modular_symbols(1).eigenvalue(n, self._name())
 
     def _compute(self, X):
         """

@@ -136,13 +136,13 @@ AUTHORS:
 
 - David Kohel (2007, 2008)
 
-- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+- Niles Johnson (2010-08): (:trac:`3893`) ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
 - Simon King (2010-12):
-  Trac #8800: Fixing a bug in ``denominator()``.
+  :trac:`8800` : Fixing a bug in ``denominator()``.
 
 - Simon King (2010-12), Peter Bruin (June 2014):
-  Trac #10513: New coercion model and category framework.
+  :trac:`10513` : New coercion model and category framework.
 
 """
 
@@ -5355,7 +5355,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: M < V
             False
 
-        We test that trac 5525 is fixed::
+        We test that :trac:`5525` is fixed::
 
             sage: A = (QQ^1).span([[1/3]],ZZ); B = (QQ^1).span([[1]],ZZ);
             sage: A.intersection(B)

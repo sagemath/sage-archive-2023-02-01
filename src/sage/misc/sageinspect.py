@@ -250,7 +250,7 @@ def _extract_embedded_signature(docstring, name):
         sage: from sage.misc.sageinspect import _extract_embedded_signature
         sage: from sage.misc.nested_class import MainClass
         sage: print(_extract_embedded_signature(MainClass.NestedClass.NestedSubClass.dummy.__doc__, 'dummy')[0])
-        File: sage/misc/nested_class.pyx (starting at line 315)
+        File: sage/misc/nested_class.pyx (starting at line 314)
         ...
         sage: _extract_embedded_signature(MainClass.NestedClass.NestedSubClass.dummy.__doc__, 'dummy')[1]
         ArgSpec(args=['self', 'x', 'r'], varargs='args', keywords='kwds', defaults=((1, 2, 3.4),))
@@ -654,7 +654,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: import ast, sage.misc.sageinspect as sms
             sage: visitor = sms.SageArgSpecVisitor()
             sage: vis = lambda x: visitor.visit(ast.parse(x).body[0].value)
-            sage: [vis(d) for d in ['(3+(2*4))', '7|8', '5^3', '7/3', '7//3', '3<<4']] #indirect doctest
+            sage: [vis(d) for d in ['(3+(2*4))', '7|8', '5^3', '7/3', '7//3', '3<<4']] #indirect doctest # optional - python2
             [11, 15, 6, 2, 2, 48]
         """
         op = node.op.__class__.__name__

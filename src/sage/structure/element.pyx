@@ -167,6 +167,9 @@ from sage.structure.misc cimport getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass
+from sage.misc.superseded import deprecated_function_alias
+from sage.arith.numerical_approx cimport digits_to_bits
+from sage.misc.decorators import sage_wraps
 
 
 def make_element(_class, _dict, parent):
@@ -609,16 +612,31 @@ cdef class Element(SageObject):
 
     def numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
-        Return a numerical approximation of x with at least prec bits of
-        precision.
+        Return a numerical approximation of ``self`` with ``prec`` bits
+        (or decimal ``digits``) of precision.
+
+        No guarantee is made about the accuracy of the result.
+
+        INPUT:
+
+        - ``prec`` -- precision in bits
+
+        - ``digits`` -- precision in decimal digits (only used if
+          ``prec`` is not given)
+
+        - ``algorithm`` -- which algorithm to use to compute this
+          approximation (the accepted algorithms depend on the object)
+
+        If neither ``prec`` nor ``digits`` is given, the default
+        precision is 53 bits (roughly 16 digits).
 
         EXAMPLES::
 
-            sage: (2/3).n()
+            sage: (2/3).numerical_approx()
             0.666666666666667
-            sage: pi.n(digits=10)  # indirect doctest
+            sage: pi.n(digits=10)
             3.141592654
-            sage: pi.n(prec=20)   # indirect doctest
+            sage: pi.n(prec=20)
             3.1416
 
         TESTS:
@@ -627,12 +645,31 @@ cdef class Element(SageObject):
 
             sage: (0).n(algorithm='foo')
             0.000000000000000
+
+        The ``.N`` method is a deprecated alias::
+
+            sage: 0.N()
+            doctest:...: DeprecationWarning: N is deprecated. Please use n instead.
+            See http://trac.sagemath.org/13055 for details.
+            0.000000000000000
         """
-        from sage.misc.functional import numerical_approx
-        return numerical_approx(self, prec=prec, digits=digits,
-                                algorithm=algorithm)
-    n = numerical_approx
-    N = n
+        from sage.arith.numerical_approx import numerical_approx_generic
+        if prec is None:
+            prec = digits_to_bits(digits)
+        return numerical_approx_generic(self, prec)
+
+    def n(self, prec=None, digits=None, algorithm=None):
+        """
+        Alias for :meth:`numerical_approx`.
+
+        EXAMPLES::
+
+            sage: (2/3).n()
+            0.666666666666667
+        """
+        return self.numerical_approx(prec, digits, algorithm)
+
+    N = deprecated_function_alias(13055, n)
 
     def _mpmath_(self, prec=53, rounding=None):
         """
@@ -3384,170 +3421,115 @@ def coercion_traceback(dump=True):
         return coercion_model.exception_stack()
 
 
-cdef class NamedBinopMethod:
+def coerce_binop(method):
+    r"""
+    Decorator for a binary operator method for applying coercion to the
+    arguments before calling the method.
+
+    Consider a parent class in the category framework, `S`, whose element class
+    expose a method `binop`. If `a` and `b` are elements of `S`, then
+    `a.binop(b)` behaves as expected. If `a` and `b` are not elements of `S`,
+    but rather have a common parent `T` whose element class also exposes
+    `binop`, we would rather expect `a.binop(b)` to compute `aa.binop(bb)`,
+    where `aa = T(a)` and `bb = T(b)`. This decorator ensures that behaviour
+    without having to otherwise modify the implementation of `binop` on the
+    element class of `A`.
+
+    Since coercion will be attempted on the arguments of the decorated method, a
+    `TypeError` will be thrown if there is no common parent between the
+    elements. An `AttributeError` or `NotImplementedError` or similar will be
+    thrown if there is a common parent of the arguments, but its element class
+    does not implement a method of the same name as the decorated method.
+
+    EXAMPLES:
+
+    Sparse polynomial rings uses `@coerce_binop` on `gcd`::
+
+        sage: S.<x> = PolynomialRing(ZZ,sparse=True)
+        sage: f = x^2
+        sage: g = x
+        sage: f.gcd(g)  #indirect doctest 
+        x
+        sage: T = PolynomialRing(QQ, name='x', sparse=True)
+        sage: h = 1/2*T(x)
+        sage: u = f.gcd(h); u  #indirect doctest 
+        x
+        sage: u.parent() == T
+        True
+
+    Another real example::
+
+        sage: R1=QQ['x,y']
+        sage: R2=QQ['x,y,z']
+        sage: f=R1(1)
+        sage: g=R1(2)
+        sage: h=R2(1)
+        sage: f.gcd(g)
+        1
+        sage: f.gcd(g,algorithm='modular')
+        1
+        sage: f.gcd(h)
+        1
+        sage: f.gcd(h,algorithm='modular')
+        1
+        sage: h.gcd(f)
+        1
+        sage: h.gcd(f,'modular')
+        1
+
+    We demonstrate a small class using `@coerce_binop` on a method::
+
+        sage: from sage.structure.element import coerce_binop
+        sage: class MyRational(Rational):
+        ....:     def __init__(self,value):
+        ....:         self.v = value
+        ....:     @coerce_binop
+        ....:     def test_add(self, other, keyword='z'):
+        ....:         return (self.v, other, keyword)
+
+    Calls func directly if the two arguments have the same parent::
+
+        sage: x = MyRational(1)
+        sage: x.test_add(1/2)
+        (1, 1/2, 'z')
+        sage: x.test_add(1/2, keyword=3)
+        (1, 1/2, 3)
+
+    Passes through coercion and does a method lookup if the left operand is not
+    the same. If the common parent's element class does not have a method of the
+    same name, an exception is raised::
+
+        sage: x.test_add(2)
+        (1, 2, 'z')
+        sage: x.test_add(2, keyword=3)
+        (1, 2, 3)
+        sage: x.test_add(CC(2))
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'sage.rings.complex_number.ComplexNumber' object has no attribute 'test_add'
+
+    TESTS:
+
+    Test that additional arguments given to the method does not override the
+    `self` argument, see #21322::
+
+        sage: f.gcd(g, 1)
+        Traceback (most recent call last):
+        ...
+        TypeError: algorithm 1 not supported
     """
-    A decorator to be used on binary operation methods that should operate
-    on elements of the same parent. If the parents of the arguments differ,
-    coercion is performed, then the method is re-looked up by name on the
-    first argument.
-
-    In short, using the ``NamedBinopMethod`` (alias ``coerce_binop``) decorator
-    on a method gives it the exact same semantics of the basic arithmetic
-    operations like ``_add_``, ``_sub_``, etc. in that both operands are
-    guaranteed to have exactly the same parent.
-    """
-    cdef _self
-    cdef _func
-    cdef _name
-
-    def __init__(self, func, name=None, obj=None):
-        """
-        TESTS::
-
-            sage: from sage.structure.element import NamedBinopMethod
-            sage: NamedBinopMethod(gcd)(12, 15)
-            3
-        """
-        self._func = func
-        if name is None:
-            if isinstance(func, types.FunctionType):
-                name = func.__name__
-            if isinstance(func, types.UnboundMethodType):
-                name = func.__func__.__name__
-            else:
-                name = func.__name__
-        self._name = name
-        self._self = obj
-
-    def __call__(self, x, y=None, **kwds):
-        """
-        TESTS::
-
-            sage: from sage.structure.element import NamedBinopMethod
-            sage: test_func = NamedBinopMethod(lambda x, y, **kwds: (x, y, kwds), '_add_')
-            sage: class test_class(Rational):
-            ....:     def __init__(self,value):
-            ....:         self.v = value
-            ....:     @NamedBinopMethod
-            ....:     def test_add(self, other, keyword='z'):
-            ....:         return (self.v, other, keyword)
-
-        Calls func directly if the two arguments have the same parent::
-
-            sage: test_func(1, 2)
-            (1, 2, {})
-            sage: x = test_class(1)
-            sage: x.test_add(1/2)
-            (1, 1/2, 'z')
-            sage: x.test_add(1/2, keyword=3)
-            (1, 1/2, 3)
-
-        Passes through coercion and does a method lookup if the
-        left operand is not the same::
-
-            sage: test_func(0.5, 1)
-            (0.500000000000000, 1.00000000000000, {})
-            sage: test_func(1, 2, algorithm='fast')
-            (1, 2, {'algorithm': 'fast'})
-            sage: test_func(1, 1/2)
-            3/2
-            sage: x.test_add(2)
-            (1, 2, 'z')
-            sage: x.test_add(2, keyword=3)
-            (1, 2, 3)
-
-        A real example::
-
-            sage: R1=QQ['x,y']
-            sage: R2=QQ['x,y,z']
-            sage: f=R1(1)
-            sage: g=R1(2)
-            sage: h=R2(1)
-            sage: f.gcd(g)
-            1
-            sage: f.gcd(g,algorithm='modular')
-            1
-            sage: f.gcd(h)
-            1
-            sage: f.gcd(h,algorithm='modular')
-            1
-            sage: h.gcd(f)
-            1
-            sage: h.gcd(f,algorithm='modular')
-            1
-        """
-        if y is None:
-            if self._self is None:
-                self._func(x, **kwds)
-            else:
-                x, y = self._self, x
-        if not have_same_parent(x, y):
-            old_x = x
-            x,y = coercion_model.canonical_coercion(x, y)
-            if old_x is x:
-                return self._func(x,y, **kwds)
-            else:
-                return getattr(x, self._name)(y, **kwds)
+    @sage_wraps(method)
+    def new_method(self, other, *args, **kwargs):
+        if have_same_parent(self, other):
+            return method(self, other, *args, **kwargs)
         else:
-            return self._func(x,y, **kwds)
+            a, b = coercion_model.canonical_coercion(self, other)
+            if a is self:
+                return method(a, b, *args, **kwargs)
+            else:
+                return getattr(a, method.__name__)(b, *args, **kwargs)
+    return new_method
 
-    def __get__(self, obj, objtype):
-        """
-        Used to transform from an unbound to a bound method.
-
-        TESTS::
-            sage: from sage.structure.element import NamedBinopMethod
-            sage: R.<x> = ZZ[]
-            sage: isinstance(x.quo_rem, NamedBinopMethod)
-            True
-            sage: x.quo_rem(x)
-            (1, 0)
-            sage: type(x).quo_rem(x,x)
-            (1, 0)
-        """
-        return NamedBinopMethod(self._func, self._name, obj)
-
-    def _sage_doc_(self):
-        """
-        Return the docstring of the wrapped object for introspection.
-
-        EXAMPLES::
-
-            sage: from sage.structure.element import NamedBinopMethod
-            sage: g = NamedBinopMethod(gcd)
-            sage: from sage.misc.sageinspect import sage_getdoc
-            sage: sage_getdoc(g) == sage_getdoc(gcd)
-            True
-        """
-        return sageinspect._sage_getdoc_unformatted(self._func)
-
-    def _sage_src_(self):
-        """
-        Return the source of the wrapped object for introspection.
-
-        EXAMPLES::
-
-            sage: from sage.structure.element import NamedBinopMethod
-            sage: g = NamedBinopMethod(gcd)
-            sage: 'def gcd(' in g._sage_src_()
-            True
-        """
-        return sageinspect.sage_getsource(self._func)
-
-    def _sage_argspec_(self):
-        """
-        Return the argspec of the wrapped object for introspection.
-
-        EXAMPLES::
-
-            sage: from sage.structure.element import NamedBinopMethod
-            sage: g = NamedBinopMethod(gcd)
-            sage: g._sage_argspec_()
-            ArgSpec(args=['a', 'b'], varargs=None, keywords='kwargs', defaults=(None,))
-        """
-        return sageinspect.sage_getargspec(self._func)
-
-coerce_binop = NamedBinopMethod
 
 ###############################################################################
 

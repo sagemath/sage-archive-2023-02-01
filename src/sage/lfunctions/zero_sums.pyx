@@ -764,7 +764,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         n = int(1)
 
         # TO DO: Error analysis to make sure this bound is good enough to
-        # avoid non-negligible trucation error
+        # avoid non-negligible truncation error
         while n < expt:
             cn  = self.cn(n)
             if cn != 0:

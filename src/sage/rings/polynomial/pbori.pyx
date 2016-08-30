@@ -4169,7 +4169,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         M = self.set()
         try: # 0
-            d = iter(M).next().degree()
+            d = next(iter(M)).degree()
         except StopIteration:
             return True
         for m in M:

@@ -48,6 +48,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_coatomic` | Return ``True`` if every element of the lattice can be written as a meet of coatoms.
     :meth:`~FiniteLatticePoset.is_geometric` | Return ``True`` if the lattice is atomic and upper semimodular.
     :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if every element of the lattice has at least one complement.
+    :meth:`~FiniteLatticePoset.is_sectionally_complemented` | Return ``True`` if every interval from the bottom is complemented.
     :meth:`~FiniteLatticePoset.is_relatively_complemented` | Return ``True`` if every interval of the lattice is complemented.
     :meth:`~FiniteLatticePoset.is_pseudocomplemented` | Return ``True`` if every element of the lattice has a pseudocomplement.
     :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
@@ -787,22 +788,53 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         return self._hasse_diagram.is_semidistributive('join') is None
 
-    def is_complemented(self):
+    def is_complemented(self, certificate=False):
         r"""
-        Returns ``True`` if ``self`` is a complemented lattice, and
+        Return ``True`` if the lattice is complemented, and
         ``False`` otherwise.
+
+        A lattice is complemented if every element has at least one
+        complement.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, e)``, where ``e`` is an element without a complement.
+          If ``certificate=False`` return ``True`` or ``False``.
+
+        .. SEEALSO::
+
+            :meth:`complements`
 
         EXAMPLES::
 
-            sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
+            sage: L = LatticePoset({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
             sage: L.is_complemented()
             True
 
-            sage: L = LatticePoset({0:[1,2],1:[3],2:[3],3:[4]})
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5, 6], 3: [5], 4: [6],
+            ....:                   5: [7], 6: [7]})
             sage: L.is_complemented()
             False
+            sage: L.is_complemented(certificate=True)
+            (False, 2)
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_complemented() for i in range(5)]
+            [True, True, True, False, False]
         """
-        return self._hasse_diagram.is_complemented_lattice()
+        e = self._hasse_diagram.is_complemented()
+        if not certificate:
+            return e is None
+        if e is None:
+            return (True, None)
+        return (False, self._vertex_to_element(e))
 
     def is_relatively_complemented(self, certificate=False):
         """
@@ -902,6 +934,85 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                     return (False, (self._vertex_to_element(e1),
                                     self._vertex_to_element(e2),
                                     self._vertex_to_element(e3)))
+        return (True, None) if certificate else True
+
+    def is_sectionally_complemented(self, certificate=False):
+        """
+        Return ``True`` if the lattice is sectionally complemented, and
+        ``False`` otherwise.
+
+        A lattice is sectionally complemented if all intervals from
+        the bottom element interpreted as sublattices are complemented
+        lattices.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) Whether to return
+          a certificate if the lattice is not sectionally complemented.
+
+        OUTPUT:
+
+        - If ``certificate=False`` return ``True`` or ``False``.
+          If ``certificate=True`` return either ``(True, None)``
+          or ``(False, (t, e))``, where `t` is an element so that in the
+          sublattice from the bottom element to `t` has no complement
+          for element `e`.
+
+        EXAMPLES:
+
+        Smallest examples of a complemented but not sectionally complemented
+        lattice and a sectionally complemented but not relatively complemented
+        lattice::
+
+            sage: L = Posets.PentagonPoset()
+            sage: L.is_complemented()
+            True
+            sage: L.is_sectionally_complemented()
+            False
+
+            sage: L = LatticePoset({0: [1, 2, 3], 1: [4], 2: [4], 3: [5], 4: [5]})
+            sage: L.is_sectionally_complemented()
+            True
+            sage: L.is_relatively_complemented()
+            False
+
+        Getting a certificate::
+
+            sage: L = LatticePoset(DiGraph('HYOgC?C@?C?G@??'))
+            sage: L.is_sectionally_complemented(certificate=True)
+            (False, (6, 1))
+
+        .. SEEALSO::
+
+            :meth:`is_complemented`, :meth:`is_relatively_complemented`
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_sectionally_complemented() for i in range(5)]
+            [True, True, True, False, False]
+        """
+        # Quick check: every sectionally complemented lattice is atomic.
+        if not certificate and not self.is_atomic():
+            return False
+
+        n = self.cardinality()
+        H = self._hasse_diagram
+        mt = H._meet
+        jn = H._join
+        bottom = 0
+
+        for top in range(n):
+            interval = H.principal_order_ideal(top)
+            for e in interval:
+                for f in interval:
+                    if mt[e, f] == bottom and jn[e, f] == top:
+                        break
+                else:
+                    if certificate:
+                        return (False, (self._vertex_to_element(top),
+                                        self._vertex_to_element(e)))
+                    return False
+
         return (True, None) if certificate else True
 
     def breadth(self, certificate=False):
@@ -1046,11 +1157,20 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             ....:     for v_c in v_complements:
             ....:         assert L.meet(v,v_c) == L.bottom()
             ....:         assert L.join(v,v_c) == L.top()
+
+            sage: Posets.ChainPoset(0).complements()
+            {}
+            sage: Posets.ChainPoset(1).complements()
+            {0: [0]}
+            sage: Posets.ChainPoset(2).complements()
+            {0: [1], 1: [0]}
         """
         if element is None:
+            n = self.cardinality()
+            if n == 1:
+                return {self[0]: [self[0]]}
             jn = self.join_matrix()
             mt = self.meet_matrix()
-            n = self.cardinality()
             zero = 0
             one = n-1
             c = [[] for x in range(n)]

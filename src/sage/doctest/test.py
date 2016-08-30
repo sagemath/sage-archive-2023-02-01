@@ -360,7 +360,7 @@ Test the ``--debug`` option::
         s...: b = 5
         s...: a + b
         8
-    debug:
+    In [1]:
     <BLANKLINE>
     Returning to doctests...
     **********************************************************************

@@ -39,10 +39,9 @@ from sage.misc.misc import repr_lincomb, is_iterator
 from sage.misc.superseded import deprecated_function_alias
 
 from sage.algebras.algebra import Algebra
-from sage.algebras.algebra_element import AlgebraElement
 import sage.structure.parent_base
 from sage.categories.all import Rings
-from sage.structure.element import Element, parent
+from sage.structure.element import Element, parent, AlgebraElement
 
 class LazyPowerSeriesRing(Algebra):
     def __init__(self, R, element_class = None, names=None):

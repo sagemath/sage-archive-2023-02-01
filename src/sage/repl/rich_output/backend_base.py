@@ -265,8 +265,8 @@ class BackendBase(SageObject):
             sage: backend._apply_pretty_printer(SagePrettyPrinter, 1/2)
             '1/2'
         """
-        import StringIO
-        stream = StringIO.StringIO()
+        from six import StringIO
+        stream = StringIO()
         printer = pretty_printer_class(
             stream, self.max_width(), self.newline())
         printer.pretty(obj)

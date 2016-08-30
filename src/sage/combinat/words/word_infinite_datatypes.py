@@ -81,11 +81,12 @@ class WordDatatype_callable(WordDatatype):
             sage: [next(it) for _ in range(10)]
             [10, 11, 12, 10, 11, 12, 10, 11, 12, 10]
         """
+        from builtins import map, range
         if self._len is Infinity:
             domain = itertools.count()
         else:
-            domain = xrange(self._len)
-        return itertools.imap(self._func, domain)
+            domain = range(self._len)
+        return map(self._func, domain)
 
     def __getitem__(self, key):
         r"""

@@ -187,11 +187,13 @@ class SetShuffleProduct(SageObject):
              {1, 3, 4},
              {1, 3, 4}]
         """
+        from builtins import map
+
         def shuffle_elements(pair):
             return ShuffleProduct(*pair, element_constructor=self._element_constructor_)
 
         return itertools.chain.from_iterable(
-                itertools.imap(shuffle_elements, itertools.product(self._l1, self._l2)))
+                map(shuffle_elements, itertools.product(self._l1, self._l2)))
 
     def cardinality(self):
         """

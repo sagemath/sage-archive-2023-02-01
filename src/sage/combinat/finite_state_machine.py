@@ -4406,7 +4406,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: T.default_format_transition_label(iter([]))
             '\\varepsilon'
         """
-        result = " ".join(itertools.imap(self.format_letter, word))
+        from builtins import map
+        result = " ".join(map(self.format_letter, word))
         if result:
             return result
         else:

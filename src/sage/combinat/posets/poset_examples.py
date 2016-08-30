@@ -587,7 +587,8 @@ class Posets(object):
 
         - ``p`` - a probability, a positive real number less than one
 
-        - ``properties`` - a list of properties for the lattice
+        - ``properties`` - a list of properties for the lattice. Currently
+          ``'planar'`` and ``'dismantlable'`` are implemented.
 
         OUTPUT:
 
@@ -652,32 +653,40 @@ class Posets(object):
         if p < 0 or p >= 1:
             raise ValueError("probability must be a positive real number and below 1, not {0}".format(p))
 
-        if properties is not None and properties != ['dismantlable']:
-            raise ValueError("unknown value for 'properties'")
+        if properties is None:
+            # Basic case, no special properties for lattice asked.
+            covers = _random_semilattice(n-1, p)
+            covers_dict = {i:covers[i] for i in range(n-1)}
+            D = DiGraph(covers_dict)
+            D.add_vertex(n-1)
+            for v in D.sources():
+                D.add_edge(n-1, v)
+            D.relabel(list(Permutations(n).random_element()))
+            return LatticePoset(D, cover_relations=False)
+        
+        known_properties = ['planar', 'dismantlable']
+        for p in properties:
+            if p not in known_properties:
+                raise ValueError("unknown value %s for 'properties'" % p)
 
         if n <= 3:
             return Posets.ChainPoset(n)
 
-        if properties == ['dismantlable']:
-            D = DiGraph({0: [n-1]})
-            for i in range(1, n-1):
-                a = randint(0, i//2)
-                b_ = list(D.depth_first_search(a))
-                b = b_[randint(1, len(b_)-1)]
-                D.add_vertex(i)
-                D.add_edge(a, i)
-                D.add_edge(i, b)
-                D.delete_edge(a, b)
-            return LatticePoset(D)
+        properties = set(properties)
 
-        covers = _random_semilattice(n-1, p)
-        covers_dict = {i:covers[i] for i in range(n-1)}
-        D = DiGraph(covers_dict)
-        D.add_vertex(n-1)
-        for v in D.sources():
-            D.add_edge(n-1, v)
-        D.relabel(list(Permutations(n).random_element()))
-        return LatticePoset(D, cover_relations=False)
+        # Handling properties. Every planar lattice is also dismantlable.
+        if 'planar' in properties:
+            properties.discard('dismantlable')
+
+        # Add here tests for property combinations that are not implemented.
+
+        if properties == set(['planar']):
+            return _random_planar_lattice(n)
+
+        if properties == set(['dismantlable']):
+            return _random_dismantlable_lattice(n)
+
+        raise AssertionError("Bug in RandomLattice().")
 
     @staticmethod
     def SetPartitions(n):
@@ -1327,5 +1336,45 @@ def _random_semilattice(n, p):
         lc_all.append(lc_list)
 
     return lc_all
+
+def _random_dismantlable_lattice(n):
+    """
+    Return a random dismantlable lattice on `n` elements.
+    """
+    from sage.misc.prandom import randint
+
+    D = DiGraph({0: [n-1]})
+    for i in range(1, n-1):
+        a = randint(0, i//2)
+        b_ = list(D.depth_first_search(a))
+        b = b_[randint(1, len(b_)-1)]
+        D.add_vertex(i)
+        D.add_edge(a, i)
+        D.add_edge(i, b)
+        D.delete_edge(a, b)
+    return LatticePoset(D)
+
+def _random_planar_lattice(n):
+    """
+    Return a random planar lattice on `n` elements.
+    """
+    from sage.misc.prandom import randint
+
+    G = DiGraph({0: [n-1]})
+    while G.order() < n:
+        i = G.order()-1
+        a = randint(0, i//2)
+        b_ = list(G.depth_first_search(a))
+        b = b_[randint(1, len(b_)-1)]
+        G1 = G.copy()
+        G.add_vertex(i)
+        G.add_edge(a, i)
+        G.add_edge(i, b)
+        G.delete_edge(a, b)
+        G2 = G.copy()
+        G2.add_edge(n-1, 0)
+        if not G2.is_planar():
+            G = G1.copy()
+    return LatticePoset(G)
 
 posets = Posets

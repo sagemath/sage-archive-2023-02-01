@@ -479,14 +479,13 @@ class Subwords_wk(Subwords_w):
             sage: Subwords('abc',0).list()
             ['']
         """
-        from builtins import map
         if self._k > len(self._w):
             return iter([])
         iterator = itertools.combinations(self._w, self._k)
         if self._element_constructor is tuple:
             return iterator
         else:
-            return map(self._build, iterator)
+            return (self._build(x) for x in iterator)
 
 
 def smallest_positions(word, subword, pos=0):

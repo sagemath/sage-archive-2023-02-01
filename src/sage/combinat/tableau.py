@@ -68,6 +68,8 @@ For display options, see :meth:`Tableaux.options`.
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
+from builtins import zip
+
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.non_negative_integers import NonNegativeIntegers
@@ -315,7 +317,7 @@ class Tableau(ClonableList):
         # Check that it has partition shape. That's all we require from a
         # general tableau.
         lens = [len(_) for _ in self]
-        for (a, b) in itertools.izip(lens, lens[1:]):
+        for (a, b) in zip(lens, lens[1:]):
             if a < b:
                 raise ValueError("A tableau must be a list of iterables of weakly decreasing length.")
         if lens and lens[-1] == 0:
@@ -4211,7 +4213,7 @@ class SemistandardTableau(Tableau):
 
         # and strictly increasing down columns
         if t:
-            for row, next in itertools.izip(t, t[1:]):
+            for row, next in zip(t, t[1:]):
                 if not all(row[c] < next[c] for c in xrange(len(next))):
                     raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
 
@@ -5492,7 +5494,7 @@ class SemistandardTableaux(Tableaux):
                     return False
                 if not all(row[i] <= row[i+1] for i in range(len(row)-1)):
                     return False
-            for row, next in itertools.izip(t, t[1:]):
+            for row, next in zip(t, t[1:]):
                 if not all(row[c] < next[c] for c in range(len(next))):
                     return False
             return self.max_entry is None or max(max(row) for row in t) <= self.max_entry

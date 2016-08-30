@@ -228,6 +228,7 @@ Classes and methods
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
+from builtins import zip
 from six import itervalues
 
 from sage.structure.parent import Parent
@@ -4214,7 +4215,7 @@ class Permutation(CombinatorialElement):
             (6, 5)
             (7, 4)
         """
-        return itertools.izip(xrange(1, len(self)+1), self)
+        return zip(xrange(1, len(self)+1), self)
 
     @combinatorial_map(name='Robinson-Schensted insertion tableau')
     def left_tableau(self):

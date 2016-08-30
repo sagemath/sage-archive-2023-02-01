@@ -48,9 +48,9 @@ Functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 # python3
-from __future__ import division, print_function
-from __future__ import absolute_import
+from __future__ import division, print_function, absolute_import
 
+from builtins import zip
 from six import itervalues
 
 from sage.misc.cachefunc import cached_method
@@ -1109,7 +1109,6 @@ def mcfarland_1973_construction(q, s):
     from sage.modules.free_module import VectorSpace
     from sage.rings.finite_rings.integer_mod_ring import Zmod
     from sage.categories.cartesian_product import cartesian_product
-    from itertools import izip
 
     r = (q**(s+1)-1) // (q-1)
     F = GF(q,'a')
@@ -1119,7 +1118,7 @@ def mcfarland_1973_construction(q, s):
     G = cartesian_product([F]*(s+1) + [K])
 
     D = []
-    for k,H in izip(K, V.subspaces(s)):
+    for k, H in zip(K, V.subspaces(s)):
         for v in H:
             D.append(G((tuple(v) + (k,))))
 
@@ -1266,7 +1265,8 @@ def turyn_1965_3x3xK(k=4):
          [(0,0),(1,2),(2,1)],                   # x+y=0
          [(0,0),(0,1),(0,2)]]                   # x=0
 
-    return G, [[G(v+k) for l,k in zip(L,K) for v in l]]
+    return G, [[G(v + k) for l, k in zip(L, K) for v in l]]
+
 
 def difference_family(v, k, l=1, existence=False, explain_construction=False, check=True):
     r"""

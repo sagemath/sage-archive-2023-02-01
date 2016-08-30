@@ -575,6 +575,12 @@ def py_latex_function_pystring(id, args, fname_paren=False):
 cdef stdstring* py_latex_function(unsigned id, object args) except +:
     return string_from_pystr(py_latex_function_pystring(id, args))
 
+def tolerant_is_symbol(a):
+    try:
+        return a.is_symbol()
+    except AttributeError:
+        return False
+
 cdef stdstring* py_print_fderivative(unsigned id, object params,
         object args) except +:
     """
@@ -588,7 +594,7 @@ cdef stdstring* py_print_fderivative(unsigned id, object params,
       derivative.
     - args -- arguments of the function.
     """
-    if len(args)==1 or (all([a.is_symbol() for a in args]) and len(set(args))==len(args)):
+    if all([tolerant_is_symbol(a) for a in args]) and len(set(args))==len(args):
         diffvarstr = ', '.join([repr(args[i]) for i in params])
         py_res = ''.join(['diff(',py_print_function_pystring(id,args,False),', ',diffvarstr,')'])
     else:
@@ -642,8 +648,7 @@ cdef stdstring* py_latex_fderivative(unsigned id, object params,
     See documentation of py_print_fderivative for more information.
 
     """
-    if len(args)==1 or (all([a.is_symbol() for a in args]) and len(set(args))==len(args)):
-        diffvarstr = ', '.join([repr(args[i]) for i in params])
+    if all([tolerant_is_symbol(a) for a in args]) and len(set(args))==len(args):
         param_iter=iter(params)
         v=param_iter.next()
         nv=1
@@ -653,15 +658,15 @@ cdef stdstring* py_latex_fderivative(unsigned id, object params,
                 nv+=1
             else:
                 if nv == 1:
-                    diff_args.append(r"\partial %s"%(repr(args[v]),))
+                    diff_args.append(r"\partial %s"%(args[v]._latex_(),))
                 else:
-                    diff_args.append(r"(\partial %s)^{%s}"%(repr(args[v]),nv))
+                    diff_args.append(r"(\partial %s)^{%s}"%(args[v]._latex_(),nv))
                 v=next_v
                 nv=1
         if nv == 1:
-            diff_args.append(r"\partial %s"%(repr(args[v]),))
+            diff_args.append(r"\partial %s"%(args[v]._latex_(),))
         else:
-            diff_args.append(r"(\partial %s)^{%s}"%(repr(args[v]),nv))
+            diff_args.append(r"(\partial %s)^{%s}"%(args[v]._latex_(),nv))
         if len(params) == 1:
             operator_string=r"\frac{\partial}{%s}"%(''.join(diff_args),)
         else:
@@ -691,7 +696,7 @@ def py_latex_fderivative_for_doctests(id, params, args):
         sage: get_sfunction_from_serial(i) == foo
         True
         sage: py_latex_fderivative(i, (0, 1, 0, 1), (x, y^z))
-        D[0, 1, 0, 1]\left({\rm foo}\right)\left(x, y^{z}\right)
+        \mathrm{D}_{0, 1, 0, 1}\left({\rm foo}\right)\left(x, y^{z}\right)
 
     Test latex_name::
 
@@ -702,7 +707,7 @@ def py_latex_fderivative_for_doctests(id, params, args):
         sage: get_sfunction_from_serial(i) == foo
         True
         sage: py_latex_fderivative(i, (0, 1, 0, 1), (x, y^z))
-        D[0, 1, 0, 1]\left(\mathrm{bar}\right)\left(x, y^{z}\right)
+        \mathrm{D}_{0, 1, 0, 1}\left(\mathrm{bar}\right)\left(x, y^{z}\right)
 
     Test custom func::
 
@@ -714,7 +719,7 @@ def py_latex_fderivative_for_doctests(id, params, args):
         sage: get_sfunction_from_serial(i) == foo
         True
         sage: py_latex_fderivative(i, (0, 1, 0, 1), (x, y^z))
-        D[0, 1, 0, 1]func_with_args(x, y^z)
+        \mathrm{D}_{0, 1, 0, 1}func_with_args(x, y^z)
     """
     cdef stdstring* ostr = py_latex_fderivative(id, params, args)
     print(ostr.c_str())

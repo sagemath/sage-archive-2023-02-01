@@ -4020,7 +4020,7 @@ def diff_all(f, V, n, ending=[], sub=None, sub_final=None,
         sage: f = function('f')(x)
         sage: dd = diff_all(f, [x], 3)
         sage: dd[(x, x, x)]
-        D[0, 0, 0](f)(x)
+        diff(f(x), x, x, x)
 
         sage: d1 = {diff(f, x): 4*x^3}
         sage: dd = diff_all(f, [x], 3, sub=d1)
@@ -4042,17 +4042,17 @@ def diff_all(f, V, n, ending=[], sub=None, sub_final=None,
         sage: f = function('f')(*X)
         sage: dd = diff_all(f, X, 2, ending=[y, y, y])
         sage: dd[(z, y, y, y)]
-        D[1, 1, 1, 2](f)(x, y, z)
+        diff(f(x, y, z), y, y, y, z)
 
     ::
 
         sage: g = function('g')(*X)
         sage: dd = diff_all([f, g], X, 2)
         sage: dd[(0, y, z)]
-        D[1, 2](f)(x, y, z)
+        diff(f(x, y, z), y, z)
 
         sage: dd[(1, z, z)]
-        D[2, 2](g)(x, y, z)
+        diff(g(x, y, z), z, z)
 
         sage: f = exp(x*y*z)
         sage: ff = function('ff')(*X)
@@ -4303,10 +4303,9 @@ def diff_op_simple(A, B, AB_derivs, x, v, a, N):
         sage: AB_derivs = {}
         sage: sorted(diff_op_simple(A, B, AB_derivs, x, 3, 2, 2).items())
         [((0, 0), A(x)),
-         ((1, 0), 1/2*I*2^(2/3)*D[0](A)(x)),
-         ((1, 1), 1/4*2^(2/3)*(B(x)*D[0, 0, 0, 0](A)(x)
-          + 4*D[0, 0, 0](A)(x)*D[0](B)(x) + 6*D[0, 0](A)(x)*D[0, 0](B)(x)
-          + 4*D[0](A)(x)*D[0, 0, 0](B)(x) + A(x)*D[0, 0, 0, 0](B)(x)))]
+         ((1, 0), 1/2*I*2^(2/3)*diff(A(x), x)),
+         ((1, 1),
+          1/4*2^(2/3)*(B(x)*diff(A(x), x, x, x, x) + 4*diff(A(x), x, x, x)*diff(B(x), x) + 6*diff(A(x), x, x)*diff(B(x), x, x) + 4*diff(A(x), x)*diff(B(x), x, x, x) + A(x)*diff(B(x), x, x, x, x)))]
     """
     from sage.functions.other import sqrt
 

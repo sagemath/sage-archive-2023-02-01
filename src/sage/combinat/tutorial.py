@@ -423,7 +423,7 @@ equation with respect to `z`::
     sage: C = function('C')(z)
     sage: equation =  P(x=z, y=C) == 0
     sage: diff(equation, z)
-    D[0](C)(z)*D[1](P)(z, C(z)) + D[0](P)(z, C(z)) == 0
+    diff(C(z), z)*D[1](P)(z, C(z)) + D[0](P)(z, C(z)) == 0
 
 or, in a more readable format,
 
@@ -489,12 +489,12 @@ linear differential equation with coefficients in `\QQ[z]`::
 
     sage: equadiff = diff(C,z) == fraction(x=z, y=C)
     sage: equadiff
-    D[0](C)(z) == 2*C(z)/(4*z - 1) - 1/(4*z - 1)
+    diff(C(z), z) == 2*C(z)/(4*z - 1) - 1/(4*z - 1)
     sage: equadiff = equadiff.simplify_rational()
     sage: equadiff = equadiff * equadiff.rhs().denominator()
     sage: equadiff = equadiff - equadiff.rhs()
     sage: equadiff
-    (4*z - 1)*D[0](C)(z) - 2*C(z) + 1 == 0
+    (4*z - 1)*diff(C(z), z) - 2*C(z) + 1 == 0
 
 or, more legibly,
 

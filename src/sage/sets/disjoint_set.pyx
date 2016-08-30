@@ -158,13 +158,12 @@ cdef class DisjointSet_class(SageObject):
             sage: e.union(4,2); e._repr_()
             '{{0}, {1}, {2, 4}, {3}}'
         """
-        from builtins import map
         res = []
         for l in self.root_to_elements_dict().itervalues():
             l.sort()
-            res.append('{%s}'% ', '.join(map(repr, l)))
+            res.append('{%s}' % ', '.join(repr(u) for u in l))
         res.sort()
-        return '{%s}'% ', '.join(res)
+        return '{%s}' % ', '.join(res)
 
     def __iter__(self):
         """

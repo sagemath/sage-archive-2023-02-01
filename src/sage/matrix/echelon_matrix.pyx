@@ -39,12 +39,12 @@ def reduced_echelon_matrix_iterator(K, k, n, bint sparse=False, bint copy=True, 
 
         We ensure that the iteration order is so that all matrices with given
         pivot columns are generated consecutively. Furthermore, the order in
-        which appear the pivot columns is lexicographic.
+        which the pivot columns appear is lexicographic.
 
         It would be faster to generate the pivots columns following a Gray code.
-        There would be only one pivot changing at a time and would avoid the
-        possibly expensive ``m0.__copy__()``. However that we would modify
-        the generation order that some functions depend on.
+        There would be only one pivot changing at a time, avoiding the possibly
+        expensive ``m0.__copy__()``. However that would modify the generation
+        order some functions depend upon.
 
     EXAMPLES::
 

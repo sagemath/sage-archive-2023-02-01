@@ -640,11 +640,11 @@ class GraphPlot(SageObject):
                                 edges_to_draw[key].append((label[-1], color, head))
                     else:
                         label = edge[2]
+                        if key in edges_to_draw:
+                            edges_to_draw[key].append((label, color, head))
+                        else:
+                            edges_to_draw[key] = [(label, color, head)]
 
-                    if key in edges_to_draw:
-                        edges_to_draw[key].append((label, color, head))
-                    else:
-                        edges_to_draw[key] = [(label, color, head)]
             # add unspecified edges in (default color black)
             if 'edge_color' in self._options:
                 default_edge_color = self._options['edge_color']

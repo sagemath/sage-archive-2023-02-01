@@ -9,14 +9,16 @@ corresponding GRS code of dimension `k` is the set:
 
     \{ (\beta_1 f(\alpha_1), \ldots, \beta_n f(\alpha_n)  \mid  f \in F[x], \deg f < k \}
 
-This file contains the following elements:
+Here is a list of all content related to GRS codes:
 
     - :class:`GeneralizedReedSolomonCode`, the class for GRS codes
-    - :class:`GRSEvaluationVectorEncoder`, an encoder with a vectorial message space
     - :class:`GRSEvaluationPolynomialEncoder`, an encoder with a polynomial message space
+    - :class:`GRSEvaluationVectorEncoder`, an encoder with a vectorial message space
     - :class:`GRSBerlekampWelchDecoder`, a decoder which corrects errors using Berlekamp-Welch algorithm
-    - :class:`GRSGaoDecoder`, a decoder which corrects errors using Gao algorithm
     - :class:`GRSErrorErasureDecoder`, a decoder which corrects both errors and erasures
+    - :class:`GRSGaoDecoder`, a decoder which corrects errors using Gao algorithm
+    - :class:`sage.coding.guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder`,
+      a list decoder using Guruswami-Sudan algorithm
     - :class:`GRSKeyEquationSyndromeDecoder`, a decoder which corrects errors using the key equation on syndrome polynomials
 """
 from __future__ import absolute_import
@@ -898,7 +900,7 @@ class GRSBerlekampWelchDecoder(Decoder):
 
         If ``code`` is not a GRS code, an error is raised::
 
-            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: C  = codes.random_linear_code(GF(11), 10, 4)
             sage: codes.decoders.GRSBerlekampWelchDecoder(C)
             Traceback (most recent call last):
             ...
@@ -1213,7 +1215,7 @@ class GRSGaoDecoder(Decoder):
 
         If ``code`` is not a GRS code, an error is raised::
 
-            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: C  = codes.random_linear_code(GF(11), 10, 4)
             sage: codes.decoders.GRSGaoDecoder(C)
             Traceback (most recent call last):
             ...
@@ -1586,7 +1588,7 @@ class GRSErrorErasureDecoder(Decoder):
 
         If ``code`` is not a GRS code, an error is raised::
 
-            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: C  = codes.random_linear_code(GF(11), 10, 4)
             sage: codes.decoders.GRSErrorErasureDecoder(C)
             Traceback (most recent call last):
             ...
@@ -1833,7 +1835,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
         If ``code`` is not a GRS code, an error is raised::
 
-            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: C  = codes.random_linear_code(GF(11), 10, 4)
             sage: codes.decoders.GRSKeyEquationSyndromeDecoder(C)
             Traceback (most recent call last):
             ...

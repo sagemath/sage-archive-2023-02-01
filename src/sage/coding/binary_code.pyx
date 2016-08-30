@@ -1,5 +1,5 @@
 r"""
-Fast binary code routines
+Optimized low-level binary code representation
 
 Some computations with linear binary codes. Fix a basis for $GF(2)^n$.
 A linear binary code is a linear subspace of $GF(2)^n$, together with
@@ -3871,12 +3871,12 @@ cdef class BinaryCodeClassifier:
 
         .. NOTE::
 
-            The function ``self_orthogonal_binary_codes`` makes heavy
+            The function ``codes.databases.self_orthogonal_binary_codes`` makes heavy
             use of this function.
 
         MORE EXAMPLES::
 
-            sage: soc_iter = self_orthogonal_binary_codes(12, 6, 4)
+            sage: soc_iter = codes.databases.self_orthogonal_binary_codes(12, 6, 4)
             sage: L = list(soc_iter)
             sage: for n in range(0, 13):
             ....:   s = 'n=%2d : '%n

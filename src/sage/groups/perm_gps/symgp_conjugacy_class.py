@@ -302,9 +302,8 @@ def conjugacy_class_iterator(part, S=None):
         [(1, 3), (2, 4)]
         [(1, 4), (2, 3)]
 
-    In order to get permutations, one can use ``imap`` from the Python
-    module ``itertools`` (Python 2 only, to be avoided) or ``map``
-    from the Python module ``builtins`` (Python 2 and Python 3)::
+    In order to get permutations, one can use ``map``
+    from the Python module ``builtins`` (works with Python 2 and Python 3)::
 
         sage: from builtins import map
         sage: S = SymmetricGroup(5)

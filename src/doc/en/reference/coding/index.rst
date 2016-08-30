@@ -25,6 +25,7 @@ Catalogs
    sage/coding/codes_catalog
    sage/coding/decoders_catalog
    sage/coding/encoders_catalog
+   sage/coding/bounds_catalog
    sage/coding/databases
    sage/coding/two_weight_db
 
@@ -78,7 +79,6 @@ Methods and Operations related to Linear Codes
 .. toctree::
    :maxdepth: 2
 
-   sage/coding/bounds_catalog
    sage/coding/delsarte_bounds
    sage/coding/codecan/codecan
    sage/coding/codecan/autgroup_can_label
@@ -91,13 +91,25 @@ Source coding
 
    sage/coding/source_coding/huffman
 
-Deprecated modules and other
-----------------------------
+Other modules
+-------------
 
 .. toctree::
    :maxdepth: 1
 
    sage/coding/relative_finite_field_extension
+   sage/coding/guruswami_sudan/gs_decoder
+   sage/coding/guruswami_sudan/interpolation
+   sage/coding/guruswami_sudan/rootfinding
+   sage/coding/guruswami_sudan/utils
+   sage/coding/code_bounds
+
+Deprecated modules
+----------------------------
+
+.. toctree::
+   :maxdepth: 1
+
    sage/coding/sd_codes
 
 

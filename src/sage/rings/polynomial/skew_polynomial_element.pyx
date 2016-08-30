@@ -296,8 +296,8 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: sigma = R.hom([t+1])
             sage: S.<x> = R['x',sigma]
             sage: a = 1 + x^4 + (t+1)*x^2 + t^2
-            sage: h = hash(a); h
-            -1717348446110052408
+            sage: hash(a) == hash(a)
+            True
         """
         return self._hash_c()
 

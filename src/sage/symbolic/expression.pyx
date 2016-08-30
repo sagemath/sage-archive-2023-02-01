@@ -3579,6 +3579,22 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS::
 
+            sage: (Mod(2,7)*x^2 + Mod(2,7))^7
+            (2*x^2 + 2)^7
+
+        The leading coefficient in the result above is 1 since::
+
+            sage: t = Mod(2,7); gcd(t, t)^7
+            1
+            sage: gcd(t,t).parent()
+            Ring of integers modulo 7
+
+        ::
+
+            sage: k = GF(7)
+            sage: f = expand((k(1)*x^5 + k(1)*x^2 + k(2))^7); f # known bug
+            x^35 + x^14 + 2
+
             sage: x^oo
             Traceback (most recent call last):
             ...

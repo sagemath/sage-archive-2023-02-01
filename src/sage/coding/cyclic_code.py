@@ -462,14 +462,13 @@ class CyclicCode(AbstractLinearCode):
             F = generator_pol.base_ring()
             if not F.is_finite() or not F.is_field():
                 raise ValueError("Generator polynomial must be defined over a finite field")
-            if not gcd(length, F.cardinality()) == 1:
+            q = F.cardinality()
+            if not gcd(length, q) == 1:
                 raise ValueError("Only cyclic codes whose length and field order are coprimes are implemented.")
-            R = F[generator_pol.variable_name()]
+            R = generator_pol.parent()
             deg = generator_pol.degree()
             if not isinstance(length, Integer):
                 length = Integer(length)
-            if length <= deg:
-                raise ValueError("Length must be bigger than generator polynomial's degree")
             if not generator_pol.divides(R.gen() ** length - 1):
                 raise ValueError("Provided polynomial must divide x^n - 1, where n is the provided length")
             self._polynomial_ring = R
@@ -484,8 +483,10 @@ class CyclicCode(AbstractLinearCode):
         elif code is not None:
             if not isinstance(code, AbstractLinearCode):
                 raise ValueError("code must be an AbstractLinearCode")
-            q = code.base_ring().cardinality()
-            if not gcd(code.length(), q) == 1:
+            F = code.base_ring()
+            q = F.cardinality()
+            n = code.length()
+            if not gcd(n, q) == 1:
                 raise ValueError("Only cyclic codes whose length and field order are coprimes are implemented.")
             try:
                 g = find_generator_polynomial(code, check)
@@ -494,7 +495,7 @@ class CyclicCode(AbstractLinearCode):
             self._polynomial_ring = g.parent()
             self._generator_polynomial = g
             self._dimension = code.dimension()
-            super(CyclicCode, self).__init__(code.base_ring(), code.length(), "Vector", "Syndrome")
+            super(CyclicCode, self).__init__(code.base_ring(), n, "Vector", "Syndrome")
 
         # Case (3) : a defining set, a length and a field are provided
         elif D is not None and length is not None and field is not None:
@@ -513,51 +514,37 @@ class CyclicCode(AbstractLinearCode):
                 s += 1
 
             if s == 1: # splitting field is F
-                if primitive_element is not None and (primitive_element not in F or
-                        multiplicative_order(primitive_element) != n):
-                    raise ValueError("primitive_element has to be an element of multiplicative order n in the extension field used to compute the generator polynomial")
-                elif primitive_element is not None:
-                    alpha = primitive_element
-                else:
-                    alpha = F.zeta(n)
-                self._primitive_element = alpha
-                pows = Zmod(n).cyclotomic_cosets(q, D)
-                pows = [ item for l in pows for item in l ]
-                g = R(prod(x - alpha ** p for p in pows))
-
+                Fsplit = F
             else: # must compute a splitting field
                 Fsplit, F_to_Fsplit = F.extension(Integer(s), map = True)
                 FE = RelativeFiniteFieldExtension(Fsplit, F, embedding = F_to_Fsplit)
-                if primitive_element is not None and (primitive_element not in Fsplit or
-                        multiplicative_order(primitive_element) != n):
-                    raise ValueError("primitive_element has to be an element of multiplicative order n in the extension field used to compute the generator polynomial")
-                elif primitive_element is not None:
-                    beta = primitive_element
-                else:
-                    beta = Fsplit.zeta(n)
-                self._primitive_element = beta
                 Rsplit = Fsplit['xx']
                 xx = Rsplit.gen()
 
-                cosets = Zmod(n).cyclotomic_cosets(q, D)
-                pows = [ item for l in cosets for item in l ]
-                min_pols = []
-                for i in cosets:
-                    pol = Rsplit.one()
-                    for j in i:
-                        pol = pol * (xx - beta**j)
-                    min_pols.append(pol)
+            if primitive_element is not None:
+                if (primitive_element not in Fsplit or
+                    multiplicative_order(primitive_element) != n):
+                    raise ValueError("primitive_element has to be an element of multiplicative order n in the extension field used to compute the generator polynomial")
+                else:
+                    alpha = primitive_element
+            else:
+                alpha = Fsplit.zeta(n)
 
-                R = F['x']
-                pols_coeffs = []
-                g = R.one()
-                for i in min_pols:
-                    tmp = []
-                    for j in i:
-                        tmp.append(sum(FE.relative_field_representation(j)))
-                    g *= R(tmp)
+            cosets = Zmod(n).cyclotomic_cosets(q, D)
+            pows = [ item for l in cosets for item in l ]
+
+            g = R.one()
+            for J in cosets:
+                if s == 1:
+                    g *= x - alpha ** J[0]
+                else:
+                    pol = Rsplit.one()
+                    for j in J:
+                        pol *= xx - alpha**j
+                    g *= R([FE.cast_into_relative_field(coeff) for coeff in pol])
             
-            # we set class variables (and store some of the things we computed before)
+            # we set class variables
+            self._primitive_element = alpha
             self._defining_set = pows
             self._defining_set.sort()
             self._polynomial_ring = R
@@ -657,10 +644,95 @@ class CyclicCode(AbstractLinearCode):
         """
         return self._generator_polynomial
 
+    def defining_set(self, primitive_element = None):
+        r"""
+        Returns the set of powers of the root of ``self``'s generator polynomial
+        over the extension field. It depends on the choice of the primitive
+        element of the splitting field.
+
+        EXAMPLES:
+
+        We provide a defining set at construction time::
+
+            sage: F = GF(16, 'a')
+            sage: n = 15
+            sage: C = codes.CyclicCode(length = n, field = F, D = [1,2])
+            sage: C.defining_set()
+            [1, 2]
+
+        If the defining set was provided by the user, it might have been expanded
+        at construction time. In this case, the expanded defining set will be returned::
+
+            sage: C = codes.CyclicCode(length = 13, field = F, D = [1, 2])
+            sage: C.defining_set()
+            [1, 2, 3, 5, 6, 9]
+
+        If a generator polynomial was passed at construction time,
+        the defining set is computed using this polynomial::
+
+            sage: F.<x> = GF(8, 'a')[]
+            sage: n = 7
+            sage: g = x ** 3 + x + 1
+            sage: C = codes.CyclicCode(generator_pol = g, length = n)
+            sage: C.defining_set()
+            [1, 2, 4]
+
+        Both operations give the same result::
+
+            sage: C1 = codes.CyclicCode(length = n, field = GF(8, 'a'), D = [1, 2, 4])
+            sage: C1.generator_polynomial() == g
+            True
+
+        Another one, in the revert order::
+
+            sage: F = GF(16, 'a')
+            sage: n = 13
+            sage: C1 = codes.CyclicCode(length = n, field = F, D = [1, 2])
+            sage: g = C1.generator_polynomial()
+            sage: C2 = codes.CyclicCode(generator_pol = g, length = n)
+            sage: C1.defining_set() == C2.defining_set()
+            True
+        """
+        if (hasattr(self, "_defining_set") and
+            (primitive_element is None or primitive_element == self._primitive_element)):
+            return self._defining_set
+        else:
+            F = self.base_field()
+            n = self.length()
+            q = F.cardinality()
+            g = self.generator_polynomial()
+
+            s = 1
+            while not (q ** s - 1) % n == 0:
+                s += 1
+
+            if primitive_element is None:
+                Fsplit, F_to_Fsplit = F.extension(Integer(s), map = True)
+                alpha = Fsplit.zeta(n)
+            else:
+                try:
+                    alpha = primitive_element
+                    Fsplit = alpha.parent()
+                    FE = RelativeFiniteFieldExtension(Fsplit, F)
+                    F_to_Fsplit = FE.embedding()
+                except ValueError:
+                    raise ValueError("primitive_element does not belong to the right splitting field")
+                if alpha.multiplicative_order() != n:
+                    raise ValueError("primitive_element must have multiplicative order n")
+            self._primitive_element = alpha
+
+            Rsplit = Fsplit['xx']
+            gsplit = Rsplit([F_to_Fsplit(coeff) for coeff in g])
+            roots = gsplit.roots(multiplicities = False)
+            D = [discrete_log(root, alpha) for root in roots]
+            D.sort()
+            self._defining_set = D
+            return D
+
     def primitive_element(self):
         r"""
         Returns the primitive element of the splitting field that is used
-        to build the code.
+        to build the defining set of the code.
 
         If it has not been specified by the user, it is set by default with the
         output of the ``zeta`` method of the splitting field.
@@ -684,17 +756,8 @@ class CyclicCode(AbstractLinearCode):
         if hasattr(self, "_primitive_element"):
             return self._primitive_element
         else:
-            F = self.base_field()
-            q = F.cardinality()
-            n = self.length()
-            s = 1
-            while not (q ** s - 1) % n == 0:
-                s += 1
-
-            Fsplit = F.extension(Integer(s))
-            beta = Fsplit.zeta(n)
-            self._primitive_element = beta
-            return beta
+            _ = self.defining_set()
+            return self._primitive_element
 
     def check_polynomial(self):
         r"""
@@ -754,90 +817,6 @@ class CyclicCode(AbstractLinearCode):
             l = l[n-1:] + l[:n-1]
         return H
 
-    def defining_set(self):
-        r"""
-        Returns the set of powers of the root of ``self``'s generator polynomial
-        over the extension field. It depends on the choice of the primitive
-        element of the splitting field.
-
-        EXAMPLES:
-
-        We provide a defining set at construction time::
-
-            sage: F = GF(16, 'a')
-            sage: n = 15
-            sage: C = codes.CyclicCode(length = n, field = F, D = [1,2])
-            sage: C.defining_set()
-            [1, 2]
-
-        If the defining set was provided by the user, it might have been expanded
-        at construction time. In this case, the expanded defining set will be returned::
-
-            sage: C = codes.CyclicCode(length = 13, field = F, D = [1, 2])
-            sage: C.defining_set()
-            [1, 2, 3, 5, 6, 9]
-
-        If a generator polynomial was passed at construction time,
-        the defining set is computed using this polynomial::
-
-            sage: F.<x> = GF(8, 'a')[]
-            sage: n = 7
-            sage: g = x ** 3 + x + 1
-            sage: C = codes.CyclicCode(generator_pol = g, length = n)
-            sage: C.defining_set()
-            [1, 2, 4]
-
-        Both operations give the same result::
-
-            sage: C1 = codes.CyclicCode(length = n, field = GF(8, 'a'), D = [1, 2, 4])
-            sage: C1.generator_polynomial() == g
-            True
-
-        Another one, in the revert order::
-
-            sage: F = GF(16, 'a')
-            sage: n = 13
-            sage: C1 = codes.CyclicCode(length = n, field = F, D = [1, 2])
-            sage: g = C1.generator_polynomial()
-            sage: C2 = codes.CyclicCode(generator_pol = g, length = n)
-            sage: C1.defining_set() == C2.defining_set()
-            True
-        """
-        if hasattr(self, "_defining_set"):
-            return self._defining_set
-        else:
-            D = []
-            F = self.base_field()
-            n = self.length()
-            q = F.cardinality()
-            g = self.generator_polynomial()
-
-            #creation of the extension field (the splitting field)
-            #and embeddings
-            s = 1
-            while not (q ** s - 1) % n == 0:
-                s += 1
-            Fsplit, F_to_Fsplit = F.extension(Integer(s), 'b', map = True)
-            beta = Fsplit.zeta(n)
-            self._primitive_element = beta
-
-            #computation of the roots of the generator polynomial
-            #over Fsplit
-            gsplit = []
-            Rsplit = Fsplit['xx']
-            for i in g.coefficients(sparse = False):
-                gsplit.append(F_to_Fsplit(i))
-            gsplit = Rsplit(gsplit)
-            roots = gsplit.roots(multiplicities = False)
-
-            #recovering defining set
-            for i in roots:
-                D.append(discrete_log(i, beta))
-
-            D.sort()
-            self._defining_set = D
-            return D
-
     def bch_bound(self, arithmetic = False, bch_parameters = False):
         r"""
         Returns the BCH bound of self which is a bound on ``self``'s minimum distance.
@@ -890,8 +869,8 @@ class CyclicCodePolynomialEncoder(Encoder):
     Let `C` be a cyclic code over some finite field `F`,
     and let `g` be its generator polynomial.
 
-    This encoder encodes any polynomial `p \in F[x]_{<k}`, by doing:
-    `\forall p \in F[x]_{<k}, (p \times g) \in C`
+    This encoder encodes any polynomial `p \in F[x]_{<k}` by computing
+    `c = p \times g` and returning the vector of its coefficients.
 
     INPUT:
 
@@ -921,6 +900,8 @@ class CyclicCodePolynomialEncoder(Encoder):
             Polynomial-style encoder for [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
 
         """
+        if not isinstance(code, CyclicCode):
+            raise ValueError("code has to be a CyclicCode")
         self._polynomial_ring = code._polynomial_ring
         super(CyclicCodePolynomialEncoder, self).__init__(code)
 
@@ -1015,13 +996,14 @@ class CyclicCodePolynomialEncoder(Encoder):
             sage: E.encode(m)
             (1, 1, 1, 0, 0, 1, 0)
         """
-        k = self.code().dimension()
-        n = self.code().length()
+        C = self.code()
+        k = C.dimension()
+        n = C.length()
         if p.degree() >= k:
             raise ValueError("Degree of the message must be at most %s" % k-1)
-        res = (p * self.code().generator_polynomial()).coefficients(sparse = False)
+        res = (p * C.generator_polynomial()).coefficients(sparse = False)
         res = _complete_list(res, n)
-        return  vector(self.code().base_field(), res)
+        return vector(C.base_field(), res)
 
     def unencode_nocheck(self, c):
         r"""
@@ -1119,6 +1101,8 @@ class CyclicCodeVectorEncoder(Encoder):
             Vector-style encoder for [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
 
         """
+        if not isinstance(code, CyclicCode):
+            raise ValueError("code has to be a CyclicCode")
         self._polynomial_ring = code._polynomial_ring
         super(CyclicCodeVectorEncoder, self).__init__(code)
 

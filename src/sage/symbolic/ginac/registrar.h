@@ -106,12 +106,12 @@ private: \
 	static GiNaC::registered_class_info reg_info; \
 public: \
 	static GiNaC::registered_class_info &get_class_info_static() { return reg_info; } \
-	virtual const GiNaC::registered_class_info &get_class_info() const { return classname::get_class_info_static(); } \
-	virtual GiNaC::registered_class_info &get_class_info() { return classname::get_class_info_static(); } \
-	virtual const char *class_name() const { return classname::get_class_info_static().options.get_name(); } \
+	virtual const GiNaC::registered_class_info &get_class_info() const override { return classname::get_class_info_static(); } \
+	virtual GiNaC::registered_class_info &get_class_info() override { return classname::get_class_info_static(); } \
+	virtual const char *class_name() const override { return classname::get_class_info_static().options.get_name(); } \
 	\
 	classname(const GiNaC::archive_node &n, GiNaC::lst &sym_lst); \
-	virtual void archive(GiNaC::archive_node &n) const; \
+	virtual void archive(GiNaC::archive_node &n) const override; \
 	static GiNaC::ex unarchive(const GiNaC::archive_node &n, GiNaC::lst &sym_lst); \
 	\
 	class visitor { \
@@ -128,9 +128,9 @@ public: \
 	GINAC_DECLARE_REGISTERED_CLASS_NO_CTORS(classname, supername) \
 public: \
 	classname(); \
-	virtual classname * duplicate() const { return new classname(*this); } \
+	virtual classname * duplicate() const override { return new classname(*this); } \
 	\
-	virtual void accept(GiNaC::visitor & vis) const \
+	virtual void accept(GiNaC::visitor & vis) const override \
 	{ \
 		if (visitor *p = dynamic_cast<visitor *>(&vis)) \
 			p->visit(*this); \
@@ -138,7 +138,7 @@ public: \
 			inherited::accept(vis); \
 	} \
 protected: \
-	virtual int compare_same_type(const GiNaC::basic & other) const; \
+	virtual int compare_same_type(const GiNaC::basic & other) const override; \
 private:
 
 

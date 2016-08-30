@@ -120,7 +120,26 @@ protected:
 /** This class is the ABC (abstract base class) of GiNaC's class hierarchy. */
 class basic : public refcounted
 {
-	GINAC_DECLARE_REGISTERED_CLASS_NO_CTORS(basic, void)
+public:
+	typedef void inherited;
+        static const tinfo_static_t tinfo_static;
+private:
+	static registered_class_info reg_info;
+public:
+	static registered_class_info &get_class_info_static() { return reg_info; }
+	virtual const registered_class_info &get_class_info() const { return basic::get_class_info_static(); }
+	virtual GiNaC::registered_class_info &get_class_info() { return basic::get_class_info_static(); }
+	virtual const char *class_name() const { return basic::get_class_info_static().options.get_name(); }
+
+	basic(const archive_node &n, lst &sym_lst);
+	virtual void archive(archive_node &n) const;
+	static ex unarchive(const GiNaC::archive_node &n, GiNaC::lst &sym_lst);
+
+	class visitor {
+	public:
+		virtual void visit(const basic &) = 0;
+		virtual ~visitor() {}; \
+	};
 
 	friend class ex;
 	friend struct print_order;

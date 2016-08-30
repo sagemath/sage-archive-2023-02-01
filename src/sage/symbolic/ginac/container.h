@@ -363,15 +363,15 @@ public:
 	// functions overriding virtual functions from base classes
 public:
 	bool info(unsigned inf) const override { return inherited::info(inf); }
-	unsigned precedence() const { return 10; }
-	size_t nops() const { return this->seq.size(); }
-	const ex op(size_t i) const;
-	ex & let_op(size_t i);
-	ex eval(int level = 0) const;
-	ex subs(const exmap & m, unsigned options = 0) const;
+	unsigned precedence() const override { return 10; }
+	size_t nops() const override { return this->seq.size(); }
+	const ex op(size_t i) const override;
+	ex & let_op(size_t i) override;
+	ex eval(int level = 0) const override;
+	ex subs(const exmap & m, unsigned options = 0) const override;
 
 protected:
-	ex conjugate() const
+	ex conjugate() const override
 	{
 		STLT *newcont = nullptr;
 		for (const auto & elem : this->seq) {
@@ -399,7 +399,7 @@ protected:
 		return *this;
 	}
 
-	ex real_part() const
+	ex real_part() const override
 	{
 		STLT cont;
 		this->reserve(cont, nops());
@@ -408,7 +408,7 @@ protected:
 		return thiscontainer(cont);
 	}
 
-	ex imag_part() const
+	ex imag_part() const override
 	{
 		STLT cont;
 		this->reserve(cont, nops());
@@ -417,7 +417,7 @@ protected:
 		return thiscontainer(cont);
 	}
 
-	bool is_equal_same_type(const basic & other) const;
+	bool is_equal_same_type(const basic & other) const override;
 
 	// new virtual functions which can be overridden by derived classes
 protected:
@@ -462,10 +462,10 @@ public:
 	const_reverse_iterator rend() const {return this->seq.rend();}
 
 protected:
-	void do_print(const print_context & c, unsigned level) const;
-	void do_print_tree(const print_tree & c, unsigned level) const;
+	void do_print(const print_context & c, unsigned level) const override;
+	void do_print_tree(const print_tree & c, unsigned level) const override;
 	void do_print_python(const print_python & c, unsigned level) const;
-	void do_print_python_repr(const print_python_repr & c, unsigned level) const;
+	void do_print_python_repr(const print_python_repr & c, unsigned level) const override;
 	STLT evalchildren(int level) const;
 	std::unique_ptr<STLT> subschildren(const exmap & m, unsigned options = 0) const;
 };

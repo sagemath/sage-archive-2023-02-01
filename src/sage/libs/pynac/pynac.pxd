@@ -11,7 +11,7 @@ Check that we can externally cimport this (:trac:`18825`)::
     ....: #clang c++
     ....: #clib pynac
     ....: #cargs --std=c++11
-    ....: cimport sage.symbolic.ginac
+    ....: cimport sage.libs.pynac.pynac
     ....: ''')
 """
 
@@ -35,7 +35,7 @@ from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from sage.libs.gmp.types cimport mpz_t, mpq_t, mpz_ptr, mpq_ptr
 
-cdef extern from "sage/symbolic/ginac_wrap.h":
+cdef extern from "sage/libs/pynac/wrap.h":
     void ginac_pyinit_Integer(object)
     void ginac_pyinit_Float(object)
     void ginac_pyinit_I(object)

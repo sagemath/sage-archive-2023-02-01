@@ -15,7 +15,7 @@ Classes for symbolic functions
 #*****************************************************************************
 from __future__ import division
 
-from .ginac cimport *
+from sage.libs.pynac.pynac cimport *
 
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
@@ -116,7 +116,7 @@ cdef class Function(SageObject):
             global sfunction_serial_dict
             sfunction_serial_dict[self._serial] = self
 
-            from sage.symbolic.pynac import symbol_table, register_symbol
+            from sage.libs.pynac.pynac import symbol_table, register_symbol
             symbol_table['functions'][self._name] = self
 
             register_symbol(self, self._conversions)

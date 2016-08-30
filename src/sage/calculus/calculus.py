@@ -419,7 +419,7 @@ from sage.symbolic.function import Function
 from sage.symbolic.function_factory import function_factory
 from sage.symbolic.integration.integral import (indefinite_integral,
         definite_integral)
-import sage.symbolic.pynac
+from sage.libs.pynac.pynac import symbol_table
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.interfaces.maxima_lib','maxima')
@@ -1793,7 +1793,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: sefms('%inf')
         +Infinity
     """
-    syms = sage.symbolic.pynac.symbol_table.get('maxima', {}).copy()
+    syms = symbol_table.get('maxima', {}).copy()
 
     if len(x) == 0:
         raise RuntimeError("invalid symbolic expression -- ''")
@@ -1886,7 +1886,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         # evaluation of maxima code are assumed pre-simplified
         is_simplified = True
         global _syms
-        _syms = sage.symbolic.pynac.symbol_table['functions'].copy()
+        _syms = symbol_table['functions'].copy()
         try:
             global _augmented_syms
             _augmented_syms = syms
@@ -1947,7 +1947,6 @@ def maxima_options(**kwds):
 # The dictionary _syms is used as a lookup table for the system function
 # registry by _find_func() below. It gets updated by
 # symbolic_expression_from_string() before calling the parser.
-from sage.symbolic.pynac import symbol_table
 _syms = syms_cur = symbol_table.get('functions', {})
 syms_default = dict(syms_cur)
 
@@ -1987,6 +1986,7 @@ def _find_var(name):
 
     # try to find the name in the global namespace
     # needed for identifiers like 'e', etc.
+    import sage.all
     try:
         return SR(sage.all.__dict__[name])
     except (KeyError, TypeError):
@@ -2019,6 +2019,7 @@ def _find_func(name, create_when_missing = True):
             return func
     except KeyError:
         pass
+    import sage.all
     try:
         func = SR(sage.all.__dict__[name])
         if not isinstance(func, Expression):
@@ -2058,7 +2059,7 @@ def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
         [0, 3*y + e^pi]
     """
     global _syms
-    _syms = sage.symbolic.pynac.symbol_table['functions'].copy()
+    _syms = symbol_table['functions'].copy()
     parse_func = SR_parser.parse_sequence if accept_sequence else SR_parser.parse_expression
     if syms is None:
         return parse_func(s)
@@ -2091,6 +2092,7 @@ def _find_Mvar(name):
 
     # try to find the name in the global namespace
     # needed for identifiers like 'e', etc.
+    import sage.all
     try:
         return SR(sage.all.__dict__[name])
     except (KeyError, TypeError):

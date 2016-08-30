@@ -104,9 +104,7 @@ from sage.rings.all      import *
 from sage.arith.all      import *
 from sage.matrix.all     import *
 
-# This must come before Calculus -- it initializes the Pynac library.
-import sage.symbolic.pynac
-
+from sage.symbolic.all   import *
 from sage.modules.all    import *
 from sage.monoids.all    import *
 from sage.algebras.all   import *
@@ -120,8 +118,6 @@ from sage.categories.all import *
 from sage.sets.all       import *
 from sage.probability.all import *
 from sage.interfaces.all import *
-
-from sage.symbolic.all   import *
 
 from sage.functions.all  import *
 from sage.calculus.all   import *

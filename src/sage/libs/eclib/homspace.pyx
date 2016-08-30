@@ -3,7 +3,7 @@ from __future__ import print_function
 
 include "cysignals/signals.pxi"
 
-from ..eclib cimport mat, vec
+from ..eclib cimport vec, svec, mat, smat
 from .mat cimport MatrixFactory
 
 from sage.matrix.all import MatrixSpace
@@ -214,9 +214,9 @@ cdef class ModularSymbols:
     def sparse_hecke_matrix(self, long p, dual=False, verbose=False, base_ring=ZZ):
         """
         Return the matrix of the ``p``-th Hecke operator acting on
-        this space of modular symbols, as a sparse Sage integer matrix.
-        This is more memory-efficient than creating a Cremona matrix and then
-        applying sage_matrix_over_ZZ with sparse=True.
+        this space of modular symbols as a sparse Sage matrix over 
+        ``base_ring``. This is more memory-efficient than creating a 
+        Cremona matrix and then applying sage_matrix_over_ZZ with sparse=True.
 
         The result of this command is not cached.
 
@@ -258,28 +258,31 @@ cdef class ModularSymbols:
             sage: T = M.sparse_hecke_matrix(2, base_ring=GF(7))
             sage: print T == U.change_ring(GF(7))
             True
+
+        This concerns an issue reported on :trac:`21303`::
+            sage: C = CremonaModularSymbols(45, cuspidal=True,sign=-1)
+            sage: T2a = C.hecke_matrix(2).sage_matrix_over_ZZ()
+            sage: T2b = C.sparse_hecke_matrix(2)
+            sage: print T2a == T2b
+            True
         """
         cdef long n = self.dimension()
         cdef long i=0
         cdef long j=0
         cdef vec v
+        cdef svec sv
         d = {}
         sig_on()
-        if dual:
-            for i from 1 <= i <= n:
-                v = self.H.heckeop_col(p, i, verbose)
-                for j from 1 <= j <= n:
-                    if v[j]:
-                        d[(i-1,j-1)] = base_ring(v[j])
-        else: 
-            for i from 1 <= i <= n:
-                v = self.H.heckeop_col(p, i, verbose)
-                for j from 1 <= j <= n:
-                    if v[j]:
-                        d[(j-1,i-1)] = base_ring(v[j])
+        cdef smat M = self.H.s_heckeop(p, dual, verbose)
+        for i from 1 <= i <= n:
+            sv = M.row(i)
+            v = sv.as_vec()
+            for j from 1 <= j <= n:
+                if v[j]:
+                    d[(i-1, j-1)] = v[j]
         sig_off()
-        M = MatrixSpace(base_ring, n, sparse=True)
+        MS = MatrixSpace(base_ring, n, sparse=True)
         # The next step is the bottleneck.
-        ans = M(entries=d)
+        ans = MS(entries=d)
         return ans
         

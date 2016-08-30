@@ -11,6 +11,13 @@ cdef extern from "eclib/vector.h":
 
     cdef cppclass vec:
         scalar operator[](long)
+      
+cdef extern from "eclib/xmod.h":
+    cdef const int DEFAULT_MODULUS
+
+cdef extern from "eclib/svector.h":
+    cdef cppclass svec:
+        vec as_vec()
 
 cdef extern from "eclib/matrix.h":
     ctypedef int scalar
@@ -25,6 +32,20 @@ cdef extern from "eclib/matrix.h":
         long rank()
 
     mat addscalar(mat M, scalar)
+
+cdef extern from "eclib/smatrix.h":
+    ctypedef int scalar
+
+    cdef cppclass smat:
+        smat()
+        smat(smat m)
+        scalar* get_entries()
+        scalar sub(long, long)
+        long nrows()
+        long ncols()
+        long rank()
+        scalar elem(int, int) const
+        svec row(int) const
 
 from sage.libs.ntl.types cimport ZZ_c
 ctypedef ZZ_c bigint
@@ -95,6 +116,7 @@ cdef extern from "eclib/homspace.h":
         int h1cuspdim()
         mat heckeop(long p, int dual, int display)
         vec heckeop_col(long p, int j, int display)
+        smat s_heckeop(long p, int dual, int display)
         long h1ncusps()
 
 cdef extern from "eclib/oldforms.h":

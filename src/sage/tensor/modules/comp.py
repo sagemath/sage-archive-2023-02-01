@@ -2307,7 +2307,7 @@ class Components(SageObject):
             sum = 0
             for perm in sym_group.list():
                 # action of the permutation on [0,1,...,n_sym-1]:
-                perm_action = map(lambda x: x-1, perm.domain())
+                perm_action = [x - 1 for x in perm.domain()]
                 ind_perm = list(ind)
                 for k in range(n_sym):
                     ind_perm[pos[perm_action[k]]] = ind[pos[k]]
@@ -2458,7 +2458,7 @@ class Components(SageObject):
             sum = 0
             for perm in sym_group.list():
                 # action of the permutation on [0,1,...,n_sym-1]:
-                perm_action = map(lambda x: x-1, perm.domain())
+                perm_action = [x - 1 for x in perm.domain()]
                 ind_perm = list(ind)
                 for k in range(n_sym):
                     ind_perm[pos[perm_action[k]]] = ind[pos[k]]
@@ -3921,7 +3921,7 @@ class CompWithSym(Components):
             sum = 0
             for perm in sym_group.list():
                 # action of the permutation on [0,1,...,n_sym-1]:
-                perm_action = map(lambda x: x-1, perm.domain())
+                perm_action = [x - 1 for x in perm.domain()]
                 ind_perm = list(ind)
                 for k in range(n_sym):
                     ind_perm[pos[perm_action[k]]] = ind[pos[k]]
@@ -4185,7 +4185,7 @@ class CompWithSym(Components):
             sum = 0
             for perm in sym_group.list():
                 # action of the permutation on [0,1,...,n_sym-1]:
-                perm_action = map(lambda x: x-1, perm.domain())
+                perm_action = [x - 1 for x in perm.domain()]
                 ind_perm = list(ind)
                 for k in range(n_sym):
                     ind_perm[pos[perm_action[k]]] = ind[pos[k]]

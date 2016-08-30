@@ -250,8 +250,9 @@ class EuclideanDomains(Category_singleton):
 
             EXAMPLES::
 
-                sage: EuclideanDomains().ElementMethods().gcd(6,4)
-                2
+                sage: R.<x> = PolynomialRing(QQ, sparse=True)
+                sage: EuclideanDomains().element_class.gcd(x,x+1)
+                -1
             """
             A = self
             B = other
@@ -271,7 +272,9 @@ class EuclideanDomains(Category_singleton):
 
             - ``other`` -- an element in the same euclidean domain
 
-            OUTPUT
+            OUTPUT:
+
+            a pair of elements
 
             EXAMPLES::
 

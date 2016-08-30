@@ -189,7 +189,7 @@ Orthogonal Polynomials
 
    .. math::
 
-     P_n^{(\alpha,\beta)} (z) = \frac{\Gamma (\alpha+n+1)}{n!\Gamma (\alpha+\beta+n+1)} \sum_{m=0}^n {n\choose m} \frac{\Gamma (\alpha + \beta + n + m + 1)}{\Gamma (\alpha + m + 1)} \left(\frac{z-1}{2}\right)^m .
+     P_n^{(\alpha,\beta)} (z) = \frac{\Gamma (\alpha+n+1)}{n!\Gamma (\alpha+\beta+n+1)} \sum_{m=0}^n \binom{n}{m} \frac{\Gamma (\alpha + \beta + n + m + 1)}{\Gamma (\alpha + m + 1)} \left(\frac{z-1}{2}\right)^m .
 
 
 
@@ -833,7 +833,6 @@ class Func_chebyshev_T(ChebyshevFunction):
             return 2*a*a - 1, both and 2*a*b - x
         else:
             return 2*a*b - x, both and 2*b*b - 1
-
 
     def _eval_numpy_(self, n, x):
         """

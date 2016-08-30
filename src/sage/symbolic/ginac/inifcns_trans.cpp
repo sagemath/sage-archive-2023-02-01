@@ -22,6 +22,7 @@
 
 #include "inifcns.h"
 #include "ex.h"
+#include "lst.h"
 #include "constant.h"
 #include "infinity.h"
 #include "numeric.h"

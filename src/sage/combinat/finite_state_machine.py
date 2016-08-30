@@ -930,6 +930,7 @@ Methods
 #*****************************************************************************
 from __future__ import print_function
 
+from builtins import range
 from six import itervalues
 
 import collections
@@ -10929,7 +10930,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         relabeled = self.relabeled()
         n = len(relabeled.states())
-        assert [s.label() for s in relabeled.states()] == range(n)
+        assert [s.label() for s in relabeled.states()] == list(range(n))
         from sage.rings.integer_ring import ZZ
         entry_vector = vector(ZZ(s.is_initial)
                               for s in relabeled.states())
@@ -13323,7 +13324,7 @@ class _FSMTapeCache_(sage.structure.sage_object.SageObject):
         """
         if not len(tape) == len(position) == len(tape_ended):
             raise TypeError('The lengths of the inputs do not match')
-        if sorted(p[1] for p in position) != range(len(tape)):
+        if sorted(p[1] for p in position) != list(range(len(tape))):
             raise TypeError('Tape position %s wrong.' % (position,))
         self.position = position
         self.tape = tape
@@ -15441,7 +15442,7 @@ class _FSMProcessIteratorAll_(FSMProcessIterator):
         if max_length is None:
             kwargs['input_tape'] = itertools.count()
         else:
-            kwargs['input_tape'] = iter(0 for _ in xrange(max_length))
+            kwargs['input_tape'] = iter(0 for _ in range(max_length))
         self.TapeCache = _FSMTapeCacheDetectAll_
         self.visited_states = {}
         kwargs['check_epsilon_transitions'] = False

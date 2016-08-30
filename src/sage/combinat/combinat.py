@@ -144,6 +144,8 @@ Functions and classes
 #*****************************************************************************
 from __future__ import absolute_import
 
+from builtins import range
+
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity
 from sage.arith.all import bernoulli, binomial, factorial
@@ -2621,7 +2623,7 @@ def unshuffle_iterator(a, one=1):
     n = len(a)
     for I in powerset(range(n)):
         sorted_I = tuple(sorted(I))
-        nonI = range(n)
+        nonI = list(range(n))
         for j in reversed(sorted_I): # probably optimizable
             nonI.pop(j)
         sorted_nonI = tuple(nonI)
@@ -2734,7 +2736,7 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
 
     .. SEEALSO::
 
-       :func:`fibonacci_xrange`
+       :func:`fibonacci_range`
 
     AUTHORS:
 
@@ -2748,13 +2750,13 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
         stop = ZZ(stop)
 
     if algorithm:
-        for n in xrange(start, stop):
+        for n in range(start, stop):
             yield fibonacci(n, algorithm=algorithm)
     else:
-        for n in xrange(start, stop):
+        for n in range(start, stop):
             yield fibonacci(n)
 
-def fibonacci_xrange(start, stop=None, algorithm='pari'):
+def fibonacci_range(start, stop=None, algorithm='pari'):
     r"""
     Return an iterator over all of the Fibonacci numbers in the given
     range, including ``f_n = start`` up to, but not
@@ -2762,7 +2764,7 @@ def fibonacci_xrange(start, stop=None, algorithm='pari'):
 
     EXAMPLES::
 
-        sage: fibs_in_some_range =  [i for i in fibonacci_xrange(10^7, 10^8)]
+        sage: fibs_in_some_range =  [i for i in fibonacci_range(10^7, 10^8)]
         sage: len(fibs_in_some_range)
         4
         sage: fibs_in_some_range
@@ -2770,18 +2772,18 @@ def fibonacci_xrange(start, stop=None, algorithm='pari'):
 
     ::
 
-        sage: fibs = [i for i in fibonacci_xrange(10, 100)]
+        sage: fibs = [i for i in fibonacci_range(10, 100)]
         sage: fibs
         [13, 21, 34, 55, 89]
 
     ::
 
-        sage: list(fibonacci_xrange(13, 34))
+        sage: list(fibonacci_range(13, 34))
         [13, 21]
 
     A solution to the second Project Euler problem::
 
-        sage: sum([i for i in fibonacci_xrange(10^6) if is_even(i)])
+        sage: sum([i for i in fibonacci_range(10^6) if is_even(i)])
         1089154
 
     .. SEEALSO::

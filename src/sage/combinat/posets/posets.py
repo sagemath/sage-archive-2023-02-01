@@ -244,6 +244,7 @@ Classes and functions
 # python3
 from __future__ import division, print_function, absolute_import
 
+from builtins import range
 from six import itervalues
 
 import copy
@@ -6315,7 +6316,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         res = QR.zero()
         tupdict = dict(zip(tup, range(n)))
         for lin in self.linear_extensions(facade=True):
-            descents = [i + 1 for i in xrange(n-1) if tupdict[lin[i]] > tupdict[lin[i+1]]]
+            descents = [i + 1 for i in range(n-1) if tupdict[lin[i]] > tupdict[lin[i+1]]]
             res += QR.Fundamental()(Composition(from_subset=(descents, n)))
         return res
 

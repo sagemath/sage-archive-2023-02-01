@@ -26,6 +26,7 @@ AUTHORS:
 from __future__ import print_function
 from __future__ import absolute_import
 
+from builtins import range
 import copy
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.parent import Parent
@@ -572,7 +573,7 @@ class SkewTableau(ClonableList):
         """
         #Check to make sure that it is filled with 1...size
         w = [i for row in self for i in row if i is not None]
-        if sorted(w) != range(1, len(w)+1):
+        if sorted(w) != list(range(1, len(w) + 1)):
             return False
         else:
             return self.is_semistandard()
@@ -608,12 +609,12 @@ class SkewTableau(ClonableList):
 
         # Is it weakly increasing along the rows?
         for row in self:
-            if any(row[c] is not None and row[c] > row[c+1] for c in xrange(len(row)-1)):
+            if any(row[c] is not None and row[c] > row[c+1] for c in range(len(row)-1)):
                 return False
 
         # Is it strictly increasing down columns?
         for row, next in itertools.izip(self, self[1:]):
-            if any(row[c] is not None and row[c] >= next[c] for c in xrange(len(next))):
+            if any(row[c] is not None and row[c] >= next[c] for c in range(len(next))):
                 return False
 
         return True
@@ -1235,7 +1236,7 @@ class SkewTableau(ClonableList):
         # nonnegative integers. We also subtract 1 from these integers
         # because the i-th row of a tableau T is T[i - 1].
         if rows is None:
-            rows = range(l)
+            rows = list(range(l))
         elif rows in ZZ:
             rows = [rows - 1]
         else:

@@ -24,6 +24,8 @@ AUTHORS:
 - David Kohel (2006-01)
 
 - Moritz Minzlaff (2010-11)
+
+- Grayson Jorgenson (2016-8)
 """
 
 #*****************************************************************************
@@ -546,6 +548,23 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         else:
             return not self.is_smooth(P)
 
+    def degree(self):
+        r"""
+        Return the degree of this projective curve.
+
+        For a plane curve, this is just the degree of its defining polynomial.
+
+        OUTPUT: integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = P.curve([y^7 - x^2*z^5 + 7*z^7])
+            sage: C.degree()
+            7
+        """
+        return self.defining_polynomial().degree()
+
     def tangents(self, P, factor=True):
             r"""
             Return the tangents of this projective plane curve at the point ``P``.
@@ -610,9 +629,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             while(P[i] == 0):
                 i = i + 1
             C = self.affine_patch(i)
-            Q = list(P)
-            t = Q.pop(i)
-            L = C.tangents(C.ambient_space()([1/t*Q[j] for j in range(PP.dimension_relative())]), factor)
+            L = C.tangents(C(P.dehomogenize(i)), factor)
             R = PP.coordinate_ring()
             H = Hom(C.ambient_space().coordinate_ring(), R)
             G = list(R.gens())
@@ -676,14 +693,12 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         while(P[i] == 0):
             i = i + 1
         C = self.affine_patch(i)
-        Q = list(P)
-        t = Q.pop(i)
-        Q = [1/t*Q[j] for j in range(self.ambient_space().dimension_relative())]
-        return C.is_ordinary_singularity(C.ambient_space()(Q))
+        return C.is_ordinary_singularity(C(P.dehomogenize(i)))
 
     def quadratic_transform(self):
         r"""
-        Return the proper transform of this curve with respect to the standard Cremona transformation.
+        Return a birational map from this curve to the proper transform of this curve with respect to the standard
+        Cremona transformation.
 
         The standard Cremona transformation is the birational automorphism of `\mathbb{P}^{2}` defined
         `(x : y : z)\mapsto (yz : xz : xy)`.
@@ -756,8 +771,8 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         OUPUT:
 
-        - a scheme morphism from this curve to a curve in excellent position that is a restriction of a
-          change of coordinates map of the projective plane.
+        - a scheme morphism from this curve to a curve in excellent position that is a restriction of a change
+          of coordinates map of the projective plane.
 
         EXAMPLES::
 
@@ -802,6 +817,23 @@ class ProjectivePlaneCurve(ProjectiveCurve):
               Defn: Defined on coordinates by sending (x : y : z) to
                     (1/4*y + 1/2*z : -1/4*y + 1/2*z : x + 1/4*y - 1/2*z)
 
+        ::
+
+            sage: set_verbose(-1)
+            sage: a = QQbar(sqrt(2))
+            sage: P.<x,y,z> = ProjectiveSpace(QQbar, 2)
+            sage: C = Curve([(-1/4*a)*x^3 + (-3/4*a)*x^2*y + (-3/4*a)*x*y^2 + (-1/4*a)*y^3 - 2*x*y*z], P)
+            sage: Q = P([0,0,1])
+            sage: C.excellent_position(Q)
+            Scheme morphism:
+              From: Projective Plane Curve over Algebraic Field defined by
+            (-0.3535533905932738?)*x^3 + (-1.060660171779822?)*x^2*y +
+            (-1.060660171779822?)*x*y^2 + (-0.3535533905932738?)*y^3 + (-2)*x*y*z
+              To:   Projective Plane Curve over Algebraic Field defined by
+            (-2.828427124746190?)*x^3 + (-2)*x^2*y + 2*y^3 + (-2)*x^2*z + 2*y^2*z
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (1/2*x + 1/2*y : (-1/2)*x + 1/2*y : 1/2*x + (-1/2)*y + z)
+
         REFERENCES:
 
         ..  [Fulton89] \W. Fulton. Algebraic curves: an introduction to algebraic geometry. Addison-Wesley,
@@ -814,7 +846,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         except TypeError:
             raise TypeError("(=%s) must be a point on this curve"%Q)
         r = self.multiplicity(Q)
-        d = self.defining_polynomial().degree()
+        d = self.degree()
         # first move Q to (0 : 0 : 1), (1 : 0 : 0), or (0 : 1 : 0)
         # this makes it easier to construct the main transformation
         i = 0
@@ -857,9 +889,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             C = PP.curve(baseC.defining_polynomial()(coords))
             # check tangents at (0 : 0 : 1)
             T = C.tangents(PP([0,0,1]), factor=False)[0]
-            if all([g.degree(PP.gens()[0]) > 0 for g in T.monomials()]):
-                continue
-            if all([g.degree(PP.gens()[1]) > 0 for g in T.monomials()]):
+            if all([e[0] > 0 for e in T.exponents()]) or all([e[1] > 0 for e in T.exponents()]):
                 continue
             # check that the other intersections of C with the exceptional lines are correct
             need_continue = False
@@ -881,11 +911,13 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                     # since (0 : 0 : 1) has multiplicity r, divide out by the highest
                     # shared power of the corresponding variable before doing the resultant computations
                     if j == 0:
-                        while PP.gens()[1].divides(npoly):
-                            npoly = PP.coordinate_ring()(npoly/PP.gens()[1])
+                        div_pow = min([e[1] for e in npoly.exponents()])
+                        npoly = PP.coordinate_ring()(dict([((v[0],v[1] - div_pow,v[2]),g) for (v,g) in\
+                                                         npoly.dict().items()]))
                     else:
-                        while PP.gens()[0].divides(npoly):
-                            npoly = PP.coordinate_ring()(npoly/PP.gens()[0])
+                        div_pow = min([e[0] for e in npoly.exponents()])
+                        npoly = PP.coordinate_ring()(dict([((v[0] - div_pow,v[1],v[2]),g) for (v,g) in\
+                                                         npoly.dict().items()]))
                     # check the degree again
                     if npoly.degree() != d - r:
                         need_continue = True
@@ -933,16 +965,16 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
     def ordinary_model(self):
         r"""
-        Return an ordinary plane curve model of this curve.
+        Return a birational map from this curve to a plane curve with only ordinary singularities.
 
         Currently only implemented over number fields. If not all of the coordinates of the non-ordinary
-        singularities of this curve are contained in its base field, then the curve returned will be
-        defined over an extension. This curve must be irreducible.
+        singularities of this curve are contained in its base field, then the domain and codomain of the
+        map returned will be defined over an extension. This curve must be irreducible.
 
         OUPUT:
 
-        - a scheme morphism from this curve to a curve with only ordinary singularities, such that a restriction
-          of the morphism defines a birational map between the curves.
+        - a scheme morphism from this curve to a curve with only ordinary singularities that defines a
+          birational map between the two curves.
 
         EXAMPLES::
 
@@ -968,7 +1000,9 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: set_verbose(-1)
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: C = Curve([y^2*z^2 - x^4 - x^3*z], P)
-            sage: C.ordinary_model() # long time (2 seconds)
+            sage: all([C.is_ordinary_singularity(Q) for Q in C.singular_points()])
+            False
+            sage: D = C.ordinary_model(); D # long time (2 seconds)
             Scheme morphism:
               From: Projective Plane Curve over Rational Field defined by -x^4 -
             x^3*z + y^2*z^2
@@ -985,6 +1019,9 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             -1/64*x^4 + 3/64*x^2*y^2 - 1/32*x*y^3 + 1/16*x*y^2*z - 1/16*y^3*z +
             1/16*y^2*z^2 : 3/64*x^4 - 3/32*x^3*y + 3/64*x^2*y^2 + 1/16*x^3*z -
             3/16*x^2*y*z + 1/8*x*y^2*z - 1/8*x*y*z^2 + 1/16*y^2*z^2)
+            sage: D = D.codomain()
+            sage: all([D.is_ordinary_singularity(Q) for Q in D.singular_points()])
+            True
 
         ::
 

@@ -22,6 +22,8 @@ AUTHORS:
 - David Joyner (2005-11-13)
 
 - David Kohel (2006-01)
+
+- Grayson Jorgenson (2016-8)
 """
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -34,6 +36,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import absolute_import
 
+from sage.arith.misc import binomial
 from sage.categories.fields import Fields
 from sage.categories.finite_fields import FiniteFields
 from copy import copy
@@ -1098,26 +1101,19 @@ class AffinePlaneCurve(AffineCurve):
         f = f(coords)
         coords = [vars[0] - P[0], vars[1] - P[1]] # coords to change back with
         deriv = [f.derivative(vars[0],i).derivative(vars[1], r-i)([0,0]) for i in range(r+1)]
-        from sage.arith.misc import binomial
         T = sum([binomial(r,i)*deriv[i]*(vars[0])**i*(vars[1])**(r-i) for i in range(r+1)])
         if not factor:
             return [T(coords)]
         if self.base_ring() == QQbar:
             fact = []
             # first add tangents corresponding to vars[0], vars[1] if they divide T
-            t = T.degree(vars[0])
-            for monom in T.monomials():
-                if monom.degree(vars[0]) < t:
-                    t = monom.degree(vars[0])
+            t = min([e[0] for e in T.exponents()])
             # vars[0] divides T
             if t > 0:
                 fact.append(vars[0])
                 # divide T by that power of vars[0]
                 T = self.ambient_space().coordinate_ring()(dict([((v[0] - t,v[1]), h) for (v,h) in T.dict().items()]))
-            t = T.degree(vars[1])
-            for monom in T.monomials():
-                if monom.degree(vars[1]) < t:
-                    t = monom.degree(vars[1])
+            t = min([e[1] for e in T.exponents()])
             # vars[1] divides T
             if t > 0:
                 fact.append(vars[1])

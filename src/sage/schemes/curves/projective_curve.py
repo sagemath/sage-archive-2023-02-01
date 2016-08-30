@@ -1301,8 +1301,6 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: set_verbose(-1)
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: C = Curve([y^2*z^2 - x^4 - x^3*z], P)
-            sage: all([C.is_ordinary_singularity(Q) for Q in C.singular_points()])
-            False
             sage: D = C.ordinary_model(); D # long time (2 seconds)
             Scheme morphism:
               From: Projective Plane Curve over Rational Field defined by -x^4 -
@@ -1320,8 +1318,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             -1/64*x^4 + 3/64*x^2*y^2 - 1/32*x*y^3 + 1/16*x*y^2*z - 1/16*y^3*z +
             1/16*y^2*z^2 : 3/64*x^4 - 3/32*x^3*y + 3/64*x^2*y^2 + 1/16*x^3*z -
             3/16*x^2*y*z + 1/8*x*y^2*z - 1/8*x*y*z^2 + 1/16*y^2*z^2)
-            sage: D = D.codomain()
-            sage: all([D.is_ordinary_singularity(Q) for Q in D.singular_points()])
+            sage: all([D.codomain().is_ordinary_singularity(Q) for Q in D.codomain().singular_points()]) # long time
             True
 
         ::

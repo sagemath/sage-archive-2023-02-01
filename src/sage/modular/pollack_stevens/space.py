@@ -14,7 +14,50 @@ and the ones in :mod:`sage.modular.modsym`:
 - There is a duality: these modular symbols are functions from
   `Div^0(P^1(\QQ))` (cohomological objects), the others are formal linear
   combinations of `Div^0(P^1(\QQ))` (homological objects).
-"""## mm TODO examples?
+
+EXAMPLES::
+
+First we create the space of modular symbols of weight 0 (k=2) and level 11::
+
+    sage: M = PollackStevensModularSymbols(Gamma0(11), 0); M
+    Space of modular symbols for Congruence Subgroup Gamma0(11) with sign 0 and values in Sym^0 Q^2
+
+One can also create a space of overconvergent modular symbols, by specifying a prime and a precision::
+
+    sage: M = PollackStevensModularSymbols(Gamma0(11), p = 5, prec_cap = 10, weight = 0); M
+    Space of overconvergent modular symbols for Congruence Subgroup Gamma0(11) with sign 0 and values in Space of 5-adic distributions with k=0 action and precision cap 20
+
+Currently not much functionality is available on the whole space, and these
+spaces are mainly used as parents for the modular symbols. These can be constructed from the corresponding
+classical modular symbols (or even elliptic curves) as follows::
+
+
+    sage: A = ModularSymbols(13, sign=1, weight=4).decomposition()[0]
+    sage: A.is_cuspidal()
+    True
+    sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
+    sage: f = ps_modsym_from_simple_modsym_space(A); f
+    Modular symbol of level 13 with values in Sym^2 Q^2
+    sage: f.values()
+    [(-13, 0, -1),
+     (247/2, 13/2, -6),
+     (39/2, 117/2, 42),
+     (-39/2, 39, 111/2),
+     (-247/2, -117, -209/2)]
+    sage: f.parent()
+    Space of modular symbols for Congruence Subgroup Gamma0(13) with sign 1 and values in Sym^2 Q^2
+
+::
+
+    sage: E = EllipticCurve('37a1')
+    sage: phi = E.pollack_stevens_modular_symbol(); phi
+    Modular symbol of level 37 with values in Sym^0 Q^2
+    sage: phi.values()
+    [0, 1, 0, 0, 0, -1, 1, 0, 0]
+    phi.parent()
+    Space of modular symbols for Congruence Subgroup Gamma0(37) with sign 0 and values in Sym^0 Q^2
+
+"""
 #*****************************************************************************
 #       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
 #

@@ -483,7 +483,9 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
         show = True
     else:
         show = False
+        print verbose_files
         for X in verbose_files:
+            print X
             if file_name.find(X) != -1:
                 show = True
                 break

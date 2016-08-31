@@ -44,7 +44,7 @@ class pAdicLseries(SageObject):
         sage: L = E.padic_lseries(p, implementation="pollackstevens", precision=prec) # long time
         sage: L[1]                # long time
         1 + 4*5 + 2*5^2 + O(5^3)
-        sage: L.series(prec,3)    # long time
+        sage: L.series(3)    # long time
         O(5^4) + (1 + 4*5 + 2*5^2 + O(5^3))*T + (3 + O(5^2))*T^2 + O(T^3)
 
     ::
@@ -54,7 +54,7 @@ class pAdicLseries(SageObject):
         sage: phi = E.pollack_stevens_modular_symbol()
         sage: Phi = phi.p_stabilize_and_lift(3, 4) # long time
         sage: L = pAdicLseries(Phi)                # long time
-        sage: L.series(prec, 4)                    # long time
+        sage: L.series(4)                          # long time
         2*3 + O(3^4) + (3 + O(3^2))*T + (2 + O(3))*T^2 + O(3^0)*T^3 + O(T^4)
 
     An example of a `p`-adic `L`-series associated to a modular
@@ -91,7 +91,7 @@ class pAdicLseries(SageObject):
             sage: prec = 3
             sage: Phi = phi.lift(p, prec,eigensymbol=True) # long time
             sage: L = pAdicLseries(Phi)                    # long time
-            sage: L.series(3, prec=3)                      # long time
+            sage: L.series(3)                              # long time
             O(11^3) + (2 + 5*11 + O(11^2))*T + (10 + O(11))*T^2 + O(T^3)
 
             sage: TestSuite(L).run()                       # long time
@@ -239,15 +239,13 @@ class pAdicLseries(SageObject):
         """
         return "%s-adic L-series of %s" % (self.prime(), self.symbol())
 
-    def series(self, n, prec=5):
+    def series(self, prec=5):
         r"""
-        Return the `n`-th approximation to the `p`-adic `L`-series
+        Return the ``prec``-th approximation to the `p`-adic `L`-series
         associated to self, as a power series in `T` (corresponding to
         `\gamma-1` with `\gamma` the chosen generator of `1+p\ZZ_p`).
 
         INPUT:
-
-        - ``n`` -- ## mm TODO
 
         - ``prec`` -- (default 5) is the precision of the power series
 
@@ -257,17 +255,17 @@ class pAdicLseries(SageObject):
             sage: p = 3
             sage: prec = 6
             sage: L = E.padic_lseries(p,implementation="pollackstevens",precision=prec) # long time
-            sage: L.series(prec, 4)          # long time
+            sage: L.series(4)          # long time
             2*3 + 3^4 + 3^5 + O(3^6) + (2*3 + 3^2 + O(3^4))*T + (2*3 + O(3^2))*T^2 + (3 + O(3^2))*T^3 + O(T^4)
 
             sage: E = EllipticCurve("15a3")
             sage: L = E.padic_lseries(5,implementation="pollackstevens",precision=15)  # long time
-            sage: L.series(10, 3)            # long time
+            sage: L.series(3)            # long time
             O(5^15) + (2 + 4*5^2 + 3*5^3 + 5^5 + 2*5^6 + 3*5^7 + 3*5^8 + 2*5^9 + 2*5^10 + 3*5^11 + 5^12 + O(5^13))*T + (4*5 + 4*5^3 + 3*5^4 + 4*5^5 + 3*5^6 + 2*5^7 + 5^8 + 4*5^9 + 3*5^10 + O(5^11))*T^2 + O(T^3)
 
             sage: E = EllipticCurve("79a1")
             sage: L = E.padic_lseries(2,implementation="pollackstevens",precision=10) # not tested
-            sage: L.series(10, 4)  # not tested
+            sage: L.series(4)  # not tested
             O(2^9) + (2^3 + O(2^4))*T + O(2^0)*T^2 + (O(2^-3))*T^3 + O(T^4)
         """
         p = self.prime()
@@ -275,8 +273,7 @@ class pAdicLseries(SageObject):
         K = pAdicField(p, M)
         R = PowerSeriesRing(K, names='T')
         T = R.gens()[0]
-        R.set_default_prec(n)
-        return (sum(self[i] * T ** i for i in range(prec))).add_bigoh(prec)
+        return R([self[i] for i in range(prec)]).add_bigoh(prec)
 
     def interpolation_factor(self, ap, chip=1, psi=None):
         r"""

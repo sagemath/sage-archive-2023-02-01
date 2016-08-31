@@ -1,8 +1,36 @@
 # -*- coding: utf-8 -*-
 """
-Spaces of Distributions for overconvergent modular symbols
+Spaces of Distributions for Pollack-Stevens modular symbols
 
-""" ## mm TODO
+The Pollack-Stevens version of modular symbols take values on a
+`\Sigma_0(N)`-module which can be either a symmetric power of the standard
+representation of GL2, or a finite approximation module to the module of
+overconvergent distributions.
+
+EXAMPLES::
+
+    sage: from sage.modular.pollack_stevens.distributions import Symk
+    sage: S = Symk(6); S
+    Sym^6 Q^2
+    sage: v = S(range(7)); v
+    (0, 1, 2, 3, 4, 5, 6)
+    sage: v.act_right([1,2,3,4])
+    (18432, 27136, 39936, 58752, 86400, 127008, 186624)
+
+    sage: S = Symk(4,Zp(5)); S
+    Sym^4 Z_5^2
+    sage: S([1,2,3,4,5])
+    (1 + O(5^20), 2 + O(5^20), 3 + O(5^20), 4 + O(5^20), 5 + O(5^21)
+
+::
+
+    sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions
+    sage: D = OverconvergentDistributions(3, 11, 5); D
+    Space of 11-adic distributions with k=3 action and precision cap 5
+    sage: D([1,2,3,4,5])
+    (1 + O(11^5), 2 + O(11^4), 3 + O(11^3), 4 + O(11^2), 5 + O(11))
+
+"""
 #*****************************************************************************
 #       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
 #
@@ -56,7 +84,7 @@ class OverconvergentDistributions_factory(UniqueFactory):
         sage: v.act_right([2,1,0,1])
         (8 + O(11^5), 4 + O(11^4), 2 + O(11^3), 1 + O(11^2), 6 + O(11))
 
-    Note that we would expect something more `p`-adic, but fine...::
+    ::
 
         sage: D = OverconvergentDistributions(3, 11, 20, dettwist=1)
         sage: v = D([1,0,0,0,0])
@@ -717,12 +745,18 @@ class Symk_class(OverconvergentDistributions_abstract):
 
 class OverconvergentDistributions_class(OverconvergentDistributions_abstract):
     r"""
+    The class of overconvergent distributions
+
+    This class represents the module of finite approximation modules, which are finite-dimensional
+    spaces with a `\Sigma_0(N)` action which approximate the module of overconvergent distributions.
+    There is a specialization map to the finite-dimensional Symk module as well.
+
     EXAMPLES::
 
         sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions
         sage: D = OverconvergentDistributions(0, 5, 10)
         sage: TestSuite(D).run()
-    """ # mm TODO
+    """
 
     def _repr_(self):
         """

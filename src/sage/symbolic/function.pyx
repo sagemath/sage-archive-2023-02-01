@@ -916,7 +916,7 @@ cdef class BuiltinFunction(Function):
             6.0
             sage: assert type(_) is float
 
-            sage: cos(1jr)
+            sage: cos(1jr)  # abstol 1e-15
             (1.5430806348152437-0j)
             sage: assert type(_) is complex
 

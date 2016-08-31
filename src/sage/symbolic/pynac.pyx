@@ -576,6 +576,24 @@ cdef stdstring* py_latex_function(unsigned id, object args) except +:
     return string_from_pystr(py_latex_function_pystring(id, args))
 
 def tolerant_is_symbol(a):
+    """
+    Utility function to test if something is a symbol.
+
+    Returns False for arguments that do not have an is_symbol attribute.
+    Returns the result of calling the is_symbol method otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import tolerant_is_symbol
+        sage: tolerant_is_symbol(var("x"))
+        True
+        sage: tolerant_is_symbol(None)
+        False
+        sage: None.is_symbol()
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'NoneType' object has no attribute 'is_symbol'
+    """
     try:
         return a.is_symbol()
     except AttributeError:

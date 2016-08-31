@@ -2238,10 +2238,10 @@ class AffinePermutationGroupTypeA(AffinePermutationGroupGeneric):
         #We create a list of cyclically in/decreasing words appearing in
         #the decomposition corresponding to the composition C,
         #and then build the element.
-        listy=[]
-        while sum(D)>0:
-            l=['x' for i in range(self.k+1)]
-            ll=[]
+        listy = []
+        while sum(D) > 0:
+            l = ['x'] * (self.k + 1)
+            ll = []
             #read off a row of C.
             for j in range(self.k+1):
                 pos=(r + s0*t0*j)%(k+1)

@@ -1191,7 +1191,7 @@ cdef class Expression(CommutativeRingElement):
         except TypeError as err:
             # try the evaluation again with the complex field
             # corresponding to the parent R
-            if R in (float, complex):
+            if R is float:
                 R_complex = complex
             else:
                 try:
@@ -1392,7 +1392,6 @@ cdef class Expression(CommutativeRingElement):
             sage: float(sqrt(2)/sqrt(abs(-(I - 1)*sqrt(2) - I - 1)))
             0.9036020036...
         """
-        from sage.functions.other import real, imag
         try:
             return float(self._eval_self(float))
         except TypeError:

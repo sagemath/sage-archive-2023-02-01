@@ -645,11 +645,7 @@ class GraphPlot(SageObject):
                         else:
                             edges_to_draw[key] = [(label, color, head)]
 
-            # add unspecified edges in (default color black)
-            if 'edge_color' in self._options:
-                default_edge_color = self._options['edge_color']
-            else:
-                default_edge_color = 'black'
+            # Add unspecified edges (default color black set in DEFAULT_PLOT_OPTIONS)
             for edge in self._graph.edge_iterator():
                 key = tuple(sorted([edge[0],edge[1]]))
                 label = edge[2]
@@ -662,7 +658,7 @@ class GraphPlot(SageObject):
                 if not specified:
                     if key == (edge[0],edge[1]): head = 1
                     else: head = 0
-                    edges_to_draw[key] = [(label, default_edge_color, head)]
+                    edges_to_draw[key] = [(label, self._options['edge_color'], head)]
         else:
             for edge in self._graph.edges(sort=True):
                 key = tuple(sorted([edge[0],edge[1]]))

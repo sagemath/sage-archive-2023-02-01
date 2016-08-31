@@ -1389,17 +1389,16 @@ cdef class Expression(CommutativeRingElement):
         """
         from sage.functions.other import real, imag
         try:
-            ret = float(self._eval_self(float))
+            return float(self._eval_self(float))
         except TypeError:
             try:
-                c = (self._eval_self(complex))
-                if imag(c) == 0:
-                    ret = real(c)
+                c = complex(self._eval_self(complex))
+                if c.imag == 0:
+                    return c.real
                 else:
                     raise
             except TypeError:
                 raise TypeError("unable to simplify to float approximation")
-        return ret
 
     def __complex__(self):
         """
@@ -9392,8 +9391,9 @@ cdef class Expression(CommutativeRingElement):
         ALIAS: :meth:`rational_simplify` and :meth:`simplify_rational`
         are the same
 
-        DETAILS: We call the Maxima function ``fullratsimp`` and
-        and Pynac's ``normal``, depending on the ``algorithm`` keyword.
+        DETAILS: We call Maxima functions ratsimp, fullratsimp and
+        xthru. If each part of the expression has to be simplified
+        separately, we use Maxima function map.
 
         EXAMPLES::
 
@@ -9447,9 +9447,9 @@ cdef class Expression(CommutativeRingElement):
         if algorithm == 'full':
             maxima_method = 'fullratsimp'
         elif algorithm == 'simple':
-            return new_Expression_from_GEx(self._parent, self._gobj.normal(0, False, False))
+            maxima_method = 'ratsimp'
         elif algorithm == 'noexpand':
-            return new_Expression_from_GEx(self._parent, self._gobj.normal(0, True, True))
+            maxima_method = 'xthru'
         else:
             raise NotImplementedError("unknown algorithm, see the help for available algorithms")
         P = self_m.parent()

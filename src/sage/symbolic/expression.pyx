@@ -4303,6 +4303,15 @@ cdef class Expression(CommutativeRingElement):
 
             sage: ((x+sqrt(2)*x)^2).expand()
             2*sqrt(2)*x^2 + 3*x^2
+
+        Check that :trac:`21360` is fixed::
+
+            sage: ((x^(x/2) + 1)^2).expand()
+            x^x + 2*x^(1/2*x) + 1
+            sage: ((x^(1/2*x))^2).expand()
+            x^x
+            sage: ((x^(2*x))^2).expand()
+            x^(4*x)
         """
         if side is not None:
             if not is_a_relational(self._gobj):

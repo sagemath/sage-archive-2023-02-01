@@ -326,16 +326,17 @@ def dir_with_other_class(self, cls):
     EXAMPLES::
 
         sage: class A(object):
-        ...      a = 1
-        ...      b = 2
-        ...      c = 3
+        ....:    a = 1
+        ....:    b = 2
+        ....:    c = 3
         sage: class B(object):
-        ...      b = 2
-        ...      c = 3
-        ...      d = 4
+        ....:    b = 2
+        ....:    c = 3
+        ....:    d = 4
         sage: x = A()
         sage: x.c = 1; x.e = 1
-        sage: sage.structure.parent.dir_with_other_class(x, B)
+        sage: from sage.structure.misc import dir_with_other_class
+        sage: dir_with_other_class(x, B)
         [..., 'a', 'b', 'c', 'd', 'e']
 
     Check that objects without dicts are well handled::
@@ -346,7 +347,7 @@ def dir_with_other_class(self, cls):
         sage: x.a = 1
         sage: hasattr(x,'__dict__')
         False
-        sage: sage.structure.parent.dir_with_other_class(x, B)
+        sage: dir_with_other_class(x, B)
         [..., 'a', 'b']
 
     TESTS:

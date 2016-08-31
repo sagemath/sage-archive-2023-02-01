@@ -319,7 +319,7 @@ cdef class Element(SageObject):
             sage: dir(1)         # todo: not implemented
             ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
         """
-        from sage.structure.parent import dir_with_other_class
+        from .misc import dir_with_other_class
         return dir_with_other_class(self, self.parent().category().element_class)
 
     def _repr_(self):

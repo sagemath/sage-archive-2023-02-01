@@ -14,6 +14,7 @@ from sage.structure.generators cimport Generators
 cpdef inline check_default_category(default_category, category)
 
 cdef class CategoryObject(SageObject):
+    cdef public dict __cached_methods
     cdef _generators
     cdef _category
     cdef public _base
@@ -21,6 +22,8 @@ cdef class CategoryObject(SageObject):
     cdef public _factory_data
     cdef object __weakref__
     cdef long _hash_value
+
+    cdef getattr_from_category(self, name)
 
 cpdef normalize_names(Py_ssize_t ngens, names)
 cpdef bint certify_names(names) except -1

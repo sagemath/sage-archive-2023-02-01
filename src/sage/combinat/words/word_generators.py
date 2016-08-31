@@ -55,7 +55,7 @@ EXAMPLES::
 #*****************************************************************************
 from __future__ import print_function
 
-from builtins import range
+from six.moves import range
 
 from itertools import cycle, count
 from random import randint

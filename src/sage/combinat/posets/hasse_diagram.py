@@ -18,7 +18,7 @@ Hasse diagrams of posets
 #*****************************************************************************
 from __future__ import print_function
 
-from builtins import range
+from six.moves import range
 
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix

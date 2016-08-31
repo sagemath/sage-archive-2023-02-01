@@ -12,7 +12,7 @@ AUTHORS:
 """
 from __future__ import print_function
 
-from builtins import range
+from six.moves import range
 
 from string import Template
 from sage.combinat.tableau import Tableaux

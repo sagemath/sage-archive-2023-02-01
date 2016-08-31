@@ -36,7 +36,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from builtins import range
+from six.moves import range
 
 import time
 from operator import pos

@@ -73,7 +73,7 @@ Infinite words in a specific combinatorial class::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from builtins import range
+from six.moves import range
 
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.word_options import word_options

@@ -37,7 +37,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from builtins import range
+from six.moves import range
 
 from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableArray

@@ -56,7 +56,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from builtins import range
+from six.moves import range
 
 import itertools
 

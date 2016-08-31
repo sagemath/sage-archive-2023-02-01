@@ -59,7 +59,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from six import itervalues
-from builtins import range
+from six.moves import range
 
 from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError

@@ -148,7 +148,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
-from builtins import range
+from six.moves import range
 
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent

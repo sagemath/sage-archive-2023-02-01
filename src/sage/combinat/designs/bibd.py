@@ -53,7 +53,7 @@ Functions
 from __future__ import division, print_function
 from __future__ import absolute_import
 
-from builtins import range
+from six.moves import range
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown

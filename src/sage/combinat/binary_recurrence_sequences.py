@@ -64,7 +64,7 @@ REFERENCES:
 #****************************************************************************#
 from __future__ import division
 
-from builtins import range
+from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix, vector

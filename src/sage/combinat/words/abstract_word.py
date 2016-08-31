@@ -31,7 +31,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from builtins import range
+from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.combinat.words.word_options import word_options

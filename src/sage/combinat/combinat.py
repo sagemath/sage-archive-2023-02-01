@@ -144,7 +144,7 @@ Functions and classes
 #*****************************************************************************
 from __future__ import absolute_import
 
-from builtins import range
+from six.moves import range
 
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity

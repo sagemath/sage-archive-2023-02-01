@@ -14,7 +14,7 @@ Crystals of letters
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from builtins import range
+from six.moves import range
 
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 from sage.misc.cachefunc import cached_method

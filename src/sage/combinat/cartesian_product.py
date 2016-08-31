@@ -17,7 +17,7 @@ Cartesian Products
 #*****************************************************************************
 from __future__ import absolute_import
 
-from builtins import range
+from six.moves import range
 
 from inspect import isgenerator
 import sage.misc.prandom as rnd

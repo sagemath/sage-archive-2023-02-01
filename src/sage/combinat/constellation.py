@@ -49,7 +49,7 @@ REFERENCES:
 #
 #  The full text of the GPL is available at http://www.gnu.org/licenses/
 # *************************************************************************
-from builtins import range
+from six.moves import range
 
 from sage.structure.element import parent
 from sage.structure.parent import Parent

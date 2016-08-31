@@ -28,7 +28,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import, division
 
-from builtins import range
+from six.moves import range
 import itertools
 from . import misc
 from six.moves.builtins import list as builtinlist

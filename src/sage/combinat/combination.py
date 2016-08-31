@@ -23,7 +23,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-from builtins import range
+from six.moves import range
 
 from sage.interfaces.all import gap
 from sage.rings.all import ZZ, Integer

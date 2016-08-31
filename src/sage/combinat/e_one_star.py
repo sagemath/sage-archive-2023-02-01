@@ -208,7 +208,7 @@ which only work in dimension two or three)::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from builtins import range
+from six.moves import range
 
 from sage.misc.functional import det
 from sage.structure.sage_object import SageObject

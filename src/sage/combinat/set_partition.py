@@ -24,7 +24,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from builtins import range
+from six.moves import range
 
 from sage.sets.set import Set, is_Set
 

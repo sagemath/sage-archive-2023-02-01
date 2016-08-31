@@ -32,7 +32,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from builtins import range
+from six.moves import range
 from sage.categories.sets_cat import Sets
 
 from sage.sets.totally_ordered_finite_set import TotallyOrderedFiniteSet

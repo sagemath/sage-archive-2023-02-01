@@ -87,7 +87,7 @@ Many other functionalities...::
 #*****************************************************************************
 from __future__ import print_function
 
-from builtins import range
+from six.moves import range
 import itertools
 from six.moves import filterfalse
 

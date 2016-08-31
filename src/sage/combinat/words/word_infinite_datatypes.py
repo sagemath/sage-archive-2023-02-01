@@ -11,7 +11,7 @@ Datatypes for words defined by iterators and callables
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from builtins import range
+from six.moves import range
 
 from sage.combinat.words.word_datatypes import WordDatatype
 from sage.rings.all import Infinity

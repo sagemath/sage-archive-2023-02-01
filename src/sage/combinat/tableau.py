@@ -67,7 +67,7 @@ For display options, see :meth:`Tableaux.options`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from builtins import range
+from six.moves import range
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family

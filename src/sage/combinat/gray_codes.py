@@ -13,7 +13,7 @@ Functions
 ---------
 """
 from __future__ import print_function
-from builtins import range
+from six.moves import range
 
 
 def product(m):

@@ -12,7 +12,7 @@ Affine Permutations
 #*****************************************************************************
 from __future__ import print_function
 
-from builtins import range
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod

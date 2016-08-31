@@ -194,7 +194,7 @@ Left-special and bispecial factors::
 from __future__ import print_function
 from __future__ import absolute_import
 
-from builtins import range
+from six.moves import range
 from collections import defaultdict
 from itertools import islice, izip, cycle
 from sage.combinat.words.abstract_word import Word_class

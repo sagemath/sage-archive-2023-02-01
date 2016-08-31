@@ -244,7 +244,7 @@ Classes and functions
 # python3
 from __future__ import division, print_function, absolute_import
 
-from builtins import range
+from six.moves import range
 from six import itervalues
 
 import copy

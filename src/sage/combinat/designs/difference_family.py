@@ -52,7 +52,7 @@ from __future__ import division, print_function
 from __future__ import absolute_import
 
 from six import itervalues
-from builtins import range
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 

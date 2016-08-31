@@ -60,7 +60,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function
-from builtins import range
+from six.moves import range
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.posets import Posets

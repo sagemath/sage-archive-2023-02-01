@@ -12,7 +12,7 @@ Root system data for type F
 from __future__ import print_function
 from __future__ import absolute_import
 
-from builtins import range
+from six.moves import range
 
 from . import ambient_space
 from sage.misc.cachefunc import cached_method

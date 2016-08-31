@@ -26,7 +26,7 @@ AUTHORS:
 from __future__ import print_function
 from __future__ import absolute_import
 
-from builtins import range
+from six.moves import range
 import copy
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.parent import Parent

@@ -221,7 +221,7 @@ REFERENCES:
 # python3
 from __future__ import division
 
-from builtins import range
+from six.moves import range
 import itertools
 from sage.structure.sage_object import SageObject
 from sage.modules.free_module_element import vector

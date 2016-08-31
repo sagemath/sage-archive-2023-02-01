@@ -74,7 +74,7 @@ Functions
 ---------
 """
 from __future__ import print_function
-from builtins import range
+from six.moves import range
 
 from sage.misc.cachefunc import cached_function
 from sage.combinat.designs.incidence_structures import IncidenceStructure

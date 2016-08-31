@@ -41,7 +41,7 @@ Methods
 from __future__ import print_function
 
 from six import itervalues
-from builtins import range
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 

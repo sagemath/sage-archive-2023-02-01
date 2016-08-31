@@ -21,7 +21,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from builtins import range
+from six.moves import range
 
 import time
 from sage.groups.perm_gps.partn_ref.refinement_graphs import *

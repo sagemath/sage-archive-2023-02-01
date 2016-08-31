@@ -280,7 +280,7 @@ We use the lexicographic ordering::
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
-from builtins import range
+from six.moves import range
 
 from sage.interfaces.all import gap
 from sage.libs.all import pari

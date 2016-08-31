@@ -930,7 +930,7 @@ Methods
 #*****************************************************************************
 from __future__ import print_function
 
-from builtins import range
+from six.moves import range
 from six import itervalues
 
 import collections

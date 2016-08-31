@@ -210,7 +210,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from builtins import range
+from six.moves import range
 
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.words.word import Word

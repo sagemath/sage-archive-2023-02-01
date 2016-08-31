@@ -1184,6 +1184,12 @@ cdef class Expression(CommutativeRingElement):
             1.54308063481524
             sage: float(cos(I))
             1.5430806348152437
+
+        TESTS::
+
+            sage: e = sqrt(2)/sqrt(abs(-(I - 1)*sqrt(2) - I - 1))
+            sage: e._eval_self(float)
+            0.9036020036...
         """
         cdef GEx res
         try:
@@ -1200,7 +1206,13 @@ cdef class Expression(CommutativeRingElement):
                     raise err
             res = self._gobj.evalf(0, {'parent':R_complex})
         if is_a_numeric(res):
-            return R(py_object_from_numeric(res))
+            ans = py_object_from_numeric(res)
+            # Convert ans to R.
+            if R is float and isinstance(ans, complex) and not ans.imag:
+                # Python does not automatically convert "real" complex
+                # numbers to floats, so we do this manually:
+                ans = ans.real
+            return R(ans)
         else:
             raise TypeError("Cannot evaluate symbolic expression to a numeric value.")
 
@@ -1395,14 +1407,7 @@ cdef class Expression(CommutativeRingElement):
         try:
             return float(self._eval_self(float))
         except TypeError:
-            try:
-                c = complex(self._eval_self(complex))
-                if c.imag == 0:
-                    return c.real
-                else:
-                    raise
-            except TypeError:
-                raise TypeError("unable to simplify to float approximation")
+            raise TypeError("unable to simplify to float approximation")
 
     def __complex__(self):
         """

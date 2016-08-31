@@ -1071,8 +1071,8 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
         signs = self._folding_data(i)
         positions = sorted(x for x in signs if x != 'infinity')
 
-        if len(positions) == 0:
-            return ( positions, [ signs['infinity'] ] )
+        if not positions:
+            return (positions, [signs['infinity']])
 
         gi = [ signs[ positions[0] ] ]
         for j in range(1,len(positions)):

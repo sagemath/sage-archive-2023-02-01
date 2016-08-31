@@ -81,9 +81,7 @@ def CyclicSievingPolynomial( L, cyc_act=None, order=None, get_order=False):
         else:
             orbit_sizes[l] = 1
 
-    keys = list(orbit_sizes)
-
-    n = lcm(keys)
+    n = lcm(orbit_sizes)
 
     if order:
         if order.mod(n) != 0:
@@ -93,17 +91,18 @@ def CyclicSievingPolynomial( L, cyc_act=None, order=None, get_order=False):
 
     for i in range(n):
         if i == 0:
-            j = sum( orbit_sizes[ l ] for l in keys )
+            j = sum(orbit_sizes.values())
         else:
-            j = sum( orbit_sizes[ l ] for l in keys if ZZ(i).mod(n/l) == 0 )
+            j = sum(orbit_sizes[l] for l in orbit_sizes if ZZ(i).mod(n/l) == 0)
         p += j*q**i
 
     p = p(q**ZZ(order/n))
 
     if get_order:
-        return [p,order]
+        return [p, order]
     else:
         return p
+
 
 def CyclicSievingCheck( L, cyc_act, f, order=None ):
     """

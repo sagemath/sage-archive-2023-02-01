@@ -87,12 +87,6 @@ if [ "$UNAME" = "Darwin" ]; then
     fi
 fi
 
-if [ "$UNAME" = "CYGWIN" ]; then
-    # Cygwin libm does not provide "long double" functions
-    # and we do not install Cephes on Cygwin at the moment
-    R_CONFIGURE="--disable-long-double $R_CONFIGURE"
-fi
-
 if [ "$SAGE_FAT_BINARY" = yes ]; then
     echo "Disabling ICU, OpenMP for a binary build"
     R_CONFIGURE="--without-ICU --disable-openmp $R_CONFIGURE"
@@ -124,12 +118,14 @@ export SAGE_BUILDING_R=yes
 config()
 {
     ./configure \
-        --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-        --with-readline=yes \
-        --with-x=$XSUPPORT \
-        "$R_CONFIGURE_BLAS" \
-        "$R_CONFIGURE_LAPACK" \
-        $R_CONFIGURE
+	--prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
+        --enable-R-shlib \
+        --with-recommended-packages \
+	--with-readline=yes \
+	--with-x=$XSUPPORT \
+	"$R_CONFIGURE_BLAS" \
+	"$R_CONFIGURE_LAPACK" \
+	$R_CONFIGURE
 }
 
 config

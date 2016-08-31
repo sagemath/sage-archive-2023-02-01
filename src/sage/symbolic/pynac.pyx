@@ -650,7 +650,7 @@ cdef stdstring* py_latex_fderivative(unsigned id, object params,
     """
     if all([tolerant_is_symbol(a) for a in args]) and len(set(args))==len(args):
         param_iter=iter(params)
-        v=param_iter.next()
+        v=next(param_iter)
         nv=1
         diff_args=[]
         for next_v in param_iter:

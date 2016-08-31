@@ -9,16 +9,14 @@
 #*****************************************************************************
 
 from sage.structure.sage_object cimport SageObject
-from sage.structure.generators cimport Generators
 
-cpdef inline check_default_category(default_category, category)
+cpdef check_default_category(default_category, category)
 
 cdef class CategoryObject(SageObject):
     cdef public dict __cached_methods
-    cdef _generators
     cdef _category
     cdef public _base
-    cdef public _names # will be _printer
+    cdef public _names
     cdef public _factory_data
     cdef object __weakref__
     cdef long _hash_value

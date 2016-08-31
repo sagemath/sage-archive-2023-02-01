@@ -6568,7 +6568,7 @@ class FiniteWord_class(Word_class):
         - ``height`` -- (default: ``1``) height of the vector
         - ``thickness`` -- (default: ``1``) thickness of the contour
         - ``cmap`` -- (default: ``'hsv'``) color map; for available color map names
-          type: ``import matplotlib.cm; matplotlib.cm.datad.keys()``
+          type: ``import matplotlib.cm; list(matplotlib.cm.datad)``
         - ``label`` -- string (default: ``None``) a label to add on the colored vector
 
         OUTPUT:

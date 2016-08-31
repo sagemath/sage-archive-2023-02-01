@@ -1518,8 +1518,8 @@ class Tableau(ClonableList):
             sage: t = Tableau([[1,3,4,7],[6,2],[2,3]])
             sage: def by_word(T):
             ....:     ed = T.to_word().evaluation_dict()
-            ....:     m = max(ed.keys()) + 1
-            ....:     return [ed.get(k,0) for k in range(1,m)]
+            ....:     m = max(ed) + 1
+            ....:     return [ed.get(k, 0) for k in range(1, m)]
             sage: by_word(t) == t.weight()
             True
             sage: SST = SemistandardTableaux(shape=[3,1,1])
@@ -3666,11 +3666,11 @@ class Tableau(ClonableList):
             [((0, 5), 3), ((1, 4), 2), ((2, 4), 1)]
         """
         segments = {}
-        for r,row in enumerate(self):
+        for r, row in enumerate(self):
             for c in range(len(row)):
-                for j in range(c+1):
-                    if row[j] != r+1 and (r,row[j]) not in segments.keys():
-                        segments[(r,row[j])] = j
+                for j in range(c + 1):
+                    if row[j] != r + 1 and (r, row[j]) not in segments:
+                        segments[(r, row[j])] = j
         return segments
 
     def seg(self):

@@ -902,16 +902,16 @@ cdef class CategoryObject(SageObject):
     cdef getattr_from_category(self, name):
         # Lookup a method or attribute from the category abstract classes.
         # See __getattr__ above for documentation.
-        if self._category is None:
-            # Usually, this will just raise AttributeError in
-            # getattr_from_other_class().
-            cls = type
-        else:
-            cls = self._category.parent_class
-
         try:
             return self.__cached_methods[name]
         except KeyError:
+            if self._category is None:
+                # Usually, this will just raise AttributeError in
+                # getattr_from_other_class().
+                cls = type
+            else:
+                cls = self._category.parent_class
+
             attr = getattr_from_other_class(self, cls, name)
             self.__cached_methods[name] = attr
             return attr

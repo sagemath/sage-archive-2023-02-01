@@ -81,12 +81,11 @@ def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI, ignore_URLError=False):
 
     - ``pkg`` -- the package
 
-    - ``pypi_url`` -- an optional Python package repository to use (default is the
-      standard PyPI url)
+    - ``pypi_url`` -- (string, default: standard PyPI url) an optional Python
+      package repository to use
 
-    - ``ignore_URLError`` -- if set to ``True`` than no error is raised if the
-      connection fails and the function returns ``None`` (set to ``False`` by
-      default).
+    - ``ignore_URLError`` -- (default: ``False``) if set to ``True`` than no
+      error is raised if the connection fails and the function returns ``None``
 
     EXAMPLES:
 
@@ -162,19 +161,19 @@ def list_packages(*pkg_types, **opts):
 
     INPUT:
 
-    - ``pkg_types`` - (optional) a sublist of 'standard', 'optional', 'experimental' or
-      'pip'. If provided, list only the package with this given type otherwise
-      list all packages.
+    - ``pkg_types`` -- (optional) a sublist of 'standard', 'optional',
+      'experimental' or 'pip'. If provided, list only the package with this
+      given type otherwise list all packages.
 
-    - ``local`` - (optional, default ``False``) if set to ``True`` then do not
+    - ``local`` -- (optional, default: ``False``) if set to ``True`` then do not
       consult remote upstream version of packages (only applicable for 'pip'
       type)
 
-    - ``exclude_pip`` - (optional, default ``False``) if set to ``True`` then
+    - ``exclude_pip`` -- (optional, default: ``False``) if set to ``True`` then
       pip packages are not considered.
 
-    - ``ignore_URLError`` - if set to ``True`` than connection error will be
-      ignored (set to ``False`` by default)
+    - ``ignore_URLError`` -- (default: ``False``) if set to ``True`` then
+      connection errors will be ignored
 
     EXAMPLES::
 
@@ -294,8 +293,8 @@ def installed_packages(exclude_pip=True):
 
     INPUT:
 
-    - ``exclude_pip`` - (optional, default ``True``) whether "pip" packages are
-      excluded from the list
+    - ``exclude_pip`` -- (optional, default: ``True``) whether "pip" packages
+      are excluded from the list
 
     EXAMPLES::
 
@@ -318,9 +317,9 @@ def is_package_installed(package, exclude_pip=True):
 
     INPUT:
 
-    - ``package`` - the name of the package
+    - ``package`` -- the name of the package
 
-    - ``exclude_pip`` - (optional, ``True`` by default) whether to consider pip
+    - ``exclude_pip`` -- (optional, default: ``True``) whether to consider pip
       type packages
 
 
@@ -353,10 +352,10 @@ def package_versions(package_type, local=False):
 
     INPUT:
 
-    - ``package_type`` (string) -- one of `"standard"`, `"optional"` or
+    - ``package_type`` -- (string) one of `"standard"`, `"optional"` or
       `"experimental"`
 
-    - ``local`` (boolean) -- only query local data (no internet needed)
+    - ``local`` -- (boolean) only query local data (no internet needed)
 
     For packages of the given type, return a dictionary whose entries
     are of the form ``'package': (installed, latest)``, where

@@ -79,9 +79,9 @@ def find_generator_polynomial(code, check=True):
 
     If the code is cyclic, the generator polynomial is the gcd of all the
     polynomial forms of the codewords. Conversely, if this gcd exactly generates
-    the code `code`, then `code` is cyclic.
+    the code ``code``, then ``code`` is cyclic.
 
-    If `check` is set to `True`, then it also checks that the code is indeed
+    If ``check`` is set to ``True``, then it also checks that the code is indeed
     cyclic. Otherwise it doesn't.
 
     INPUT:
@@ -153,110 +153,21 @@ def _complete_list(l, length):
         l = l + ([F.zero()] * (length - l_len))
     return l
 
-def _build_chain_dictionary(D, n):
-    r"""
-    Returns the dictionary containing the length of the arithmetic chain for each couple
-    ``(d, delta)`` where ``d`` is in ``D`` and ``delta`` is the step of the chain.
-
-    Let `D` be a list of integers, `n` a positive integer. For each `d` in `D`, for each `\delta`
-    smaller than `n` and coprime with `n`, we fill the following dictionary, called `\Phi`, such
-    that: `\Phi[d, \delta] = l`, where `l` is the biggest integer such that
-    `\{d+\delta, d+2\times\delta, \dots, d+l\times\delta\} \subseteq D`.
-
-    INPUT:
-
-    - ``D`` -- a list of integers
-
-    - ``n`` -- an integer
-
-    OUTPUT:
-
-    - a dictionnary
-
-    .. NOTE::
-
-        This is a helper function, used only in :meth:`CyclicCode.bch_bound` and
-        :meth:`CyclicCode.hartmann_tzeng_bound`.
-
-    EXAMPLES::
-
-        sage: D = [0, 1, 2, 4]
-        sage: n = 5
-        sage: sage.coding.cyclic_code._build_chain_dictionary(D, n)
-        {(0, 1): 3,
-         (0, 2): 4,
-         (0, 3): 1,
-         (0, 4): 2,
-         (1, 1): 2,
-         (1, 2): 1,
-         (1, 3): 4,
-         (1, 4): 3,
-         (2, 1): 1,
-         (2, 2): 3,
-         (2, 3): 2,
-         (2, 4): 4,
-         (4, 1): 4,
-         (4, 2): 2,
-         (4, 3): 3,
-         (4, 4): 1}
-    """
-    phi = {}
-    for delta in range(1, n):
-        if gcd(delta, n) == 1:
-            for i in D:
-                phi[i, delta] = _fill_chain_dictionary(phi, D, i, delta, n)
-    return phi
-
-def _fill_chain_dictionary(phi, D, i, delta, n):
-    r"""
-    Returns the associated value of ``(i, delta)`` for ``phi``.
-
-    See :meth:`build_chain_dictionary` for details.
-
-    INPUT:
-
-    - ``phi`` -- a dictionary
-
-    - ``D`` -- a list of integers
-
-    - ``i``, ``delta``, ``n`` -- integers
-
-    OUTPUT:
-
-    - an integer
-
-    .. NOTE::
-
-        This is a helper method, for internal use only
-
-    EXAMPLES::
-
-        sage: phi = {}
-        sage: D = [0, 1, 2, 4]
-        sage: i, delta, n = 0, 1, 5
-        sage: sage.coding.cyclic_code._fill_chain_dictionary(phi, D, i, delta, n)
-        3
-    """
-    if not i % n in D:
-        return 0
-    else:
-        try:
-            return 1 + phi[i + delta, delta]
-        except KeyError:
-            return 1 + _fill_chain_dictionary(phi, D, i + delta, delta, n)
-
 def bch_bound(n, D, arithmetic = False, bch_parameters = False):
     r"""
     Returns the BCH bound obtained for a cyclic code of length ``n`` and defining set ``D``.
 
     Considering a cyclic code `C`, with defining set `D`, length `n`, and minimum
     distance `d`. We have the following bound, called BCH bound, on `d`:
-    `d \geq \delta + 1`, where `\delta` is the length of the longest chain of
-    consecutive elements of `D` modulo `n`.
+    `d \geq \delta + 1`, where `\delta` is the length of the longest arithmetic sequence
+    (modulo `n`) of elements in `D`.
 
-    We can also see the BCH bound as an arithmetic sequence: with the same parameters as above,
-    if `\exists c, \gcd(c,n)=1` such that `\{l, l+c, \dots, l+\delta\times c\} \subseteq D`,
-    `l \in D`, then `d \geq \delta + 1` [1]
+    That is, if `\exists c, \gcd(c,n) = 1` such that
+    `\{l, l+c, \dots, l + (\delta - 1) \times c\} \subseteq D`,
+    then `d \geq \delta + 1` [1]
+
+    The BCH bound is often known in the particular case `c = 1`. The user can
+    specify by setting ``arithmetic = False``.
 
     .. NOTE::
 
@@ -270,8 +181,13 @@ def bch_bound(n, D, arithmetic = False, bch_parameters = False):
 
     - ``D`` -- a list of integers
 
-    - ``arithmetic`` -- (default: ``False``), if it is set to ``True`` it computes the BCH bound using the
-      longest arithmetic sequence definition
+    - ``arithmetic`` -- (default: ``False``), if it is set to ``True``, then it
+      computes the BCH bound using the longest arithmetic sequence definition
+
+    - ``bch_parameters`` -- (default: ``False``), if it is set to ``True``, then
+      the function also returns the parameters of the smallest BCH code that 
+      contains a cyclic code having `D` as defining set. Only works when
+      ``arithmetic = True``
 
     EXAMPLES::
 
@@ -285,52 +201,52 @@ def bch_bound(n, D, arithmetic = False, bch_parameters = False):
         sage: sage.coding.cyclic_code.bch_bound(n, D, True)
         4
     """
-    if arithmetic == True:
-        phi = _build_chain_dictionary(D, n)
-        val = phi.values()
-        longest = 0
-        for i in val:
-            if longest < i:
-                longest = i
-
-        if bch_parameters == True:
-            for i in phi.items():
-                if i[1] == longest:
-                    b = i[0][0]
-                    l = i[0][1]
-                    break
-            bch_params = (b, l)
-
+    # Idea of the algorithm:
+    # We first store a table representing D;
+    # then, for each arithmetic step i:
+    #   - we compute the size of the current sequence in D by
+    #     incrementing a counter (cur_length)
+    #   - we update the maximum size (max_length) if needed
+    #   - we also keep the first and the last of these lengths in
+    #     order to deal with a possible overlapping sequence (i.e.
+    #     which contains 0)
+    # Note: this algorithm has O(n^2) time and O(n) space complexity, assuming
+    # that accessing a table is O(1)
+    table_D = [ 1 if d in D else 0 for d in range(n) ]
+    if arithmetic:
+        max_loops = n
     else:
-        longest = 1
-        length = len(D)
-        stop = False
-        j = 0
-        while not stop:
-            current_len = 1
-            incr = True
-            while (D[j % length] + 1) % n == D[(j+1) % length]:
-                current_len += 1
+        max_loops = 2
+    max_length = 0
+    for i in range(1, max_loops):
+        cur_length = 0
+        if gcd(i, n) == 1:
+            j = 0
+            first_length = 0
+            while table_D[i*j % n] == 1:
+                first_length += 1
                 j += 1
-                incr = False
-            if current_len > longest:
-                longest = current_len
-            if incr:
-                j += 1
-            if j >= length and incr == True:
-                stop = True
-
-    if bch_parameters == True and arithmetic == True:
-        return longest + 1, bch_params
-    return longest + 1
-
-
-
-
-
-
-
-
+            cur_length = first_length
+            if cur_length > max_length:
+                max_length = cur_length
+                bch_parameters = [0, j]
+            cur_length = 0
+            begin = j+1
+            for j in range(begin, n):
+                if table_D[i*j % n] == 1:
+                    cur_length += 1
+                else:
+                    if cur_length > max_length:
+                        max_length = cur_length
+                        bch_parameters = [(j - cur_length * i) % n, i]
+                    cur_length = 0
+            overlap_length = first_length + cur_length
+            if overlap_length > max_length:
+                max_length = overlap_length
+                bch_parameters = [ (- first_length * i) % n, i]
+    if bch_parameters:
+        return max_length + 1, bch_parameters
+    return max_length + 1
 
 class CyclicCode(AbstractLinearCode):
     r"""
@@ -362,7 +278,7 @@ class CyclicCode(AbstractLinearCode):
 
     - ``check`` -- (default: ``False``) a boolean representing whether the
       cyclicity of ``self`` must be checked while finding the generator
-      polynomial. See :meth:`sage.find_generator_polynomial` for details.
+      polynomial. See :meth:`find_generator_polynomial` for details.
 
     - ``D`` -- (default: ``None``) a list of integers between ``0`` and
       ``length-1``, corresponding to (a subset of) the defining set of the code.
@@ -819,20 +735,19 @@ class CyclicCode(AbstractLinearCode):
 
     def bch_bound(self, arithmetic = False, bch_parameters = False):
         r"""
-        Returns the BCH bound of self which is a bound on ``self``'s minimum distance.
+        Returns the BCH bound of ``self`` which is a bound on ``self``'s minimum distance.
 
         See :meth:`sage.coding.cyclic_code.bch_bound` for details.
 
         INPUT:
 
-        - ``F`` -- a finite field
+        - ``arithmetic`` -- (default: ``False``), if it is set to ``True``, then it
+          computes the BCH bound using the longest arithmetic sequence definition
 
-        - ``n`` -- an integer
-
-        - ``D`` -- a list of integers
-
-        - ``arithmetic`` -- (default: ``False``), if it is set to ``True`` it computes the BCH bound
-          using the longest arithmetic sequence definition
+        - ``bch_parameters`` -- (default: ``False``), if it is set to ``True``, then
+          the function also returns the parameters of the smallest BCH code that 
+          contains a cyclic code having `D` as defining set. Only works when
+          ``arithmetic = True``
 
         EXAMPLES::
 
@@ -922,24 +837,6 @@ class CyclicCodePolynomialEncoder(Encoder):
         """
         return isinstance(other, CyclicCodePolynomialEncoder) \
             and self.code() == other.code()
-
-    def __ne__(self, other):
-        r"""
-        Tests difference between CyclicCodePolynomialEncoder objects.
-
-        EXAMPLES::
-
-            sage: F.<x> = GF(2)[]
-            sage: g1 = x ** 3 + x + 1
-            sage: g2 = (x ** 5 + 1) * (x ** 4 + x + 1)
-            sage: C1 = codes.CyclicCode(generator_pol = g1, length = 7)
-            sage: C2 = codes.CyclicCode(generator_pol = g2, length = 15)
-            sage: E1 = codes.encoders.CyclicCodePolynomialEncoder(C1)
-            sage: E2 = codes.encoders.CyclicCodePolynomialEncoder(C2)
-            sage: E1 != E2
-            True
-        """
-        return not self.__eq__(other)
 
     def _repr_(self):
         r"""

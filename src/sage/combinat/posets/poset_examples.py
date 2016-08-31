@@ -675,7 +675,7 @@ class Posets(object):
             return LatticePoset(D, cover_relations=True)
 
         if isinstance(properties, basestring):
-            properties = [properties]
+            properties = set([properties])
         else:
             properties = set(properties)
 

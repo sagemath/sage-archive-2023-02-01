@@ -162,7 +162,7 @@ def Combinations(mset, k=None):
 
     #Check to see if everything in mset is unique
     if isinstance(mset, (int, Integer)):
-        mset = range(mset)
+        mset = list(range(mset))
     else:
         mset = list(mset)
 

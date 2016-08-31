@@ -578,29 +578,35 @@ class Posets(object):
     @staticmethod
     def RandomLattice(n, p, properties=None):
         r"""
-        Generate a random lattice on ``n`` elements according to a
-        probability ``p``.
+        Return a random lattice on ``n`` elements.
 
         INPUT:
 
-        - ``n`` - number of elements, a non-negative integer
+        - ``n`` -- number of elements, a non-negative integer
 
-        - ``p`` - a probability, a positive real number less than one
+        - ``p`` -- a probability, a positive real number less than one
 
-        - ``properties`` - a list of properties for the lattice. Currently
-          ``'planar'`` and ``'dismantlable'`` are implemented.
+        - ``properties`` -- a list of properties for the lattice. Currently
+          implemented:
+
+          * ``None``, no restrictions for lattices to create
+          * ``'planar'``, the lattice has an upward planar drawing
+          * ``'dismantlable'`` (implicated by ``'planar'``)
 
         OUTPUT:
 
-        A lattice on `n` elements. The probability `p` roughly measures
-        number of covering relations of the lattice: `p=0` always generates
-        a lattice that is like a tree plus the bottom element.
-        To create interesting examples, make the probability near one,
-        something like `0.98..0.999`.
+        A lattice on `n` elements. When ``properties`` is ``None``,
+        the probability `p` roughly measures number of covering
+        relations of the lattice. To create interesting examples, make
+        the probability near one, something like `0.98..0.999`.
 
-        If ``properties=['dismantlable']`` (only currently implemented
-        value) return only dismantlable lattices. In that case
-        parameter ``p`` is currently ignored.
+        Currently parameter ``p`` has no effect only when ``properties``
+        is not ``None``.
+
+        .. NOTE::
+
+            Results are reproducible in same Sage version only. Underlying
+            algorithm may change in future versions.
 
         EXAMPLES::
 
@@ -635,6 +641,11 @@ class Posets(object):
             ...
             ValueError: probability must be a positive real number and below 1, not -0.5
 
+            sage: Posets.RandomLattice(10, 0.5, properties=['junk'])
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown value junk for 'properties'
+
             sage: Posets.RandomLattice(0, 0.5)
             Finite lattice containing 0 elements
         """
@@ -655,24 +666,27 @@ class Posets(object):
 
         if properties is None:
             # Basic case, no special properties for lattice asked.
-            covers = _random_semilattice(n-1, p)
-            covers_dict = {i:covers[i] for i in range(n-1)}
+            if n <= 3:
+                return Posets.ChainPoset(n)
+            covers = _random_lattice(n, p)
+            covers_dict = {i:covers[i] for i in range(n)}
             D = DiGraph(covers_dict)
-            D.add_vertex(n-1)
-            for v in D.sources():
-                D.add_edge(n-1, v)
             D.relabel(list(Permutations(n).random_element()))
-            return LatticePoset(D, cover_relations=False)
-        
-        known_properties = ['planar', 'dismantlable']
-        for p in properties:
-            if p not in known_properties:
-                raise ValueError("unknown value %s for 'properties'" % p)
+            return LatticePoset(D, cover_relations=True)
+
+        if isinstance(properties, basestring):
+            properties = [properties]
+        else:
+            properties = set(properties)
+
+        known_properties = set(['planar', 'dismantlable'])
+        errors = properties.difference(known_properties)
+        if errors:
+            raise ValueError("unknown value %s for 'properties'" % errors.pop())
 
         if n <= 3:
+            # Change this, if property='complemented' is added
             return Posets.ChainPoset(n)
-
-        properties = set(properties)
 
         # Handling properties. Every planar lattice is also dismantlable.
         if 'planar' in properties:
@@ -681,10 +695,14 @@ class Posets(object):
         # Add here tests for property combinations that are not implemented.
 
         if properties == set(['planar']):
-            return _random_planar_lattice(n)
+            D = _random_planar_lattice(n)
+            D.relabel(list(Permutations(n).random_element()))
+            return LatticePoset(D)
 
         if properties == set(['dismantlable']):
-            return _random_dismantlable_lattice(n)
+            D = _random_dismantlable_lattice(n)
+            D.relabel(list(Permutations(n).random_element()))
+            return LatticePoset(D)
 
         raise AssertionError("Bug in RandomLattice().")
 
@@ -1253,9 +1271,16 @@ class Posets(object):
         H = DiGraph(dict([[p, lower_covers(p)] for p in ideal]))
         return LatticePoset(H.reverse())
 
-def _random_semilattice(n, p):
+## RANDOM LATTICES
+
+# Following are helper functions for random lattice generation.
+# There is no parameter checking, 0, 1, ..., n may or may not be a
+# linear extension, exact output type may vary, etc. Direct use is
+# discouraged. Use by Posets.RandomLattice(..., properties=[...]).
+
+def _random_lattice(n, p):
     """
-    Return the covering relations list of a random semilattice.
+    Return a random lattice.
 
     INPUT:
 
@@ -1265,15 +1290,15 @@ def _random_semilattice(n, p):
 
     OUTPUT:
 
-    A list of lists. If it is interpreted as a list of lower covers
-    for a poset, it is a meet-semilattice with ``0..n-1`` as a linear
+    A list of lists. Interpreted as a list of lower covers
+    for a poset, it is a lattice with ``0..n-1`` as a linear
     extension.
 
     EXAMPLES::
 
         sage: set_random_seed(42)  # Results are reproducible
-        sage: sage.combinat.posets.poset_examples._random_semilattice(7, 0.4)
-        [[], [0], [0], [1, 2], [1], [0], [2]]
+        sage: sage.combinat.posets.poset_examples._random_lattice(7, 0.4)
+        [[], [0], [0], [1, 2], [1], [0], [3, 4, 5]]
 
     ALGORITHM::
 
@@ -1283,12 +1308,10 @@ def _random_semilattice(n, p):
         meet for `e, m` for all `m \in M`. We do that by keeping
         track of meet matrix and list of maximal elements.
     """
-    # No argument checking here -- supposed to be
-    # done at calling function.
-
     from sage.functions.other import floor, sqrt
     from sage.misc.prandom import random
 
+    n = n-1
     meets = [[None]*n for _ in range(n)]
     meets[0][0] = 0
     maxs = set([0])
@@ -1335,11 +1358,37 @@ def _random_semilattice(n, p):
         maxs.add(i)
         lc_all.append(lc_list)
 
+    lc_all.append(list(maxs))  # Add the top element.
     return lc_all
 
 def _random_dismantlable_lattice(n):
     """
     Return a random dismantlable lattice on `n` elements.
+
+    INPUT:
+
+    - ``n`` -- number of elements, a non-negative integer
+
+    OUTPUT:
+
+    A digraph that can be interpreted as the Hasse diagram of a random
+    dismantlable lattice. It has `0` as the bottom element and `n-1` as
+    the top element, but otherwise `0, \ldots, n-1` *is not* usually a
+    linear extension of the lattice.
+
+    EXAMPLES::
+
+        sage: set_random_seed(78)  # Results are reproducible
+        sage: D = sage.combinat.posets.poset_examples._random_dismantlable_lattice(10); D
+        Digraph on 10 vertices
+        sage: D.neighbors_in(8)
+        [0]
+
+    ALGORITHM::
+
+        We add elements one by one by "de-dismantling", i.e. select
+        a random pair of comparable elements and add a new element
+        between them.
     """
     from sage.misc.prandom import randint
 
@@ -1352,11 +1401,38 @@ def _random_dismantlable_lattice(n):
         D.add_edge(a, i)
         D.add_edge(i, b)
         D.delete_edge(a, b)
-    return LatticePoset(D)
+    return D
 
 def _random_planar_lattice(n):
     """
     Return a random planar lattice on `n` elements.
+
+    INPUT:
+
+    - ``n`` -- number of elements, a non-negative integer
+
+    OUTPUT:
+
+    A random planar lattice. It has `0` as the bottom
+    element and `n-1` as the top element, but otherwise
+    `0, \ldots, n-1` *is not* usually a linear extension of
+    the lattice.
+
+    EXAMPLES::
+
+        sage: set_random_seed(78)  # Results are reproducible
+        sage: D = sage.combinat.posets.poset_examples._random_planar_lattice(10); D
+        Digraph on 10 vertices
+        sage: D.neighbors_in(8)
+        [1]
+
+    ALGORITHM::
+
+        Every planar lattice is dismantlable.
+
+        We add elements one by one like when generating
+        dismantlable lattices, and after every addition
+        check that we still have a planar lattice.
     """
     from sage.misc.prandom import randint
 
@@ -1375,6 +1451,6 @@ def _random_planar_lattice(n):
         G2.add_edge(n-1, 0)
         if not G2.is_planar():
             G = G1.copy()
-    return LatticePoset(G)
+    return G
 
 posets = Posets

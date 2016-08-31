@@ -1386,6 +1386,11 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: unable to simplify to float approximation
+
+        TESTS::
+
+            sage: float(sqrt(2)/sqrt(abs(-(I - 1)*sqrt(2) - I - 1)))
+            0.9036020036...
         """
         from sage.functions.other import real, imag
         try:

@@ -2736,7 +2736,7 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
 
     .. SEEALSO::
 
-       :func:`fibonacci_range`
+       :func:`fibonacci_xrange`
 
     AUTHORS:
 
@@ -2756,7 +2756,7 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
         for n in range(start, stop):
             yield fibonacci(n)
 
-def fibonacci_range(start, stop=None, algorithm='pari'):
+def fibonacci_xrange(start, stop=None, algorithm='pari'):
     r"""
     Return an iterator over all of the Fibonacci numbers in the given
     range, including ``f_n = start`` up to, but not
@@ -2764,7 +2764,7 @@ def fibonacci_range(start, stop=None, algorithm='pari'):
 
     EXAMPLES::
 
-        sage: fibs_in_some_range =  [i for i in fibonacci_range(10^7, 10^8)]
+        sage: fibs_in_some_range =  [i for i in fibonacci_xrange(10^7, 10^8)]
         sage: len(fibs_in_some_range)
         4
         sage: fibs_in_some_range
@@ -2772,18 +2772,18 @@ def fibonacci_range(start, stop=None, algorithm='pari'):
 
     ::
 
-        sage: fibs = [i for i in fibonacci_range(10, 100)]
+        sage: fibs = [i for i in fibonacci_xrange(10, 100)]
         sage: fibs
         [13, 21, 34, 55, 89]
 
     ::
 
-        sage: list(fibonacci_range(13, 34))
+        sage: list(fibonacci_xrange(13, 34))
         [13, 21]
 
     A solution to the second Project Euler problem::
 
-        sage: sum([i for i in fibonacci_range(10^6) if is_even(i)])
+        sage: sum([i for i in fibonacci_xrange(10^6) if is_even(i)])
         1089154
 
     .. SEEALSO::

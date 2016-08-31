@@ -11,7 +11,7 @@ from .combinat import bell_number, catalan_number, euler_number, fibonacci, \
         tuples, number_of_tuples, \
         unordered_tuples, number_of_unordered_tuples, \
         bell_polynomial, fibonacci_sequence, \
-        fibonacci_range, bernoulli_polynomial
+        fibonacci_xrange, bernoulli_polynomial
 
 from .expnums import expnums
 

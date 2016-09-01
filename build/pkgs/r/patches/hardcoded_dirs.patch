@@ -14,7 +14,7 @@ diff -ru src/src/scripts/R.sh.in src.new/src/scripts/R.sh.in
  
 +# Make R_HOME_DIR relative to SAGE_LOCAL
 +# unless SAGE_BUILDING_R is set (as spkg-install does).
-+if -z $SAGE_BUILDING_R; then
++if test -z "$SAGE_BUILDING_R"; then
 +    R_HOME_DIR="$SAGE_LOCAL/lib/R/"
 +fi
 +

@@ -81,7 +81,7 @@ from sage.rings.infinity import PlusInfinity
 from sage.arith.all import factorial, binomial
 from sage.rings.integer import Integer
 from sage.combinat.composition import Composition, Compositions
-from .integer_vector import IntegerVectors
+from sage.combinat.integer_vector import IntegerVectors, integer_vectors_nk_fast_iter
 import sage.libs.symmetrica.all as symmetrica
 import sage.misc.prandom as random
 from . import permutation
@@ -5638,8 +5638,7 @@ class SemistandardTableaux_size_inf(SemistandardTableaux):
             for part in Partitions(self.size):
                 if i != 1:
                     for k in range(1, self.size+1):
-                        for c in IntegerVectors(self.size - k, i-1):
-                            c = list(c)
+                        for c in integer_vectors_nk_fast_iter(self.size - k, i-1):
                             c.append(k)
                             for sst in SemistandardTableaux_shape_weight(part, Composition(c)):
                                 yield self.element_class(self, sst)
@@ -5741,8 +5740,7 @@ class SemistandardTableaux_shape_inf(SemistandardTableaux):
         while(True):
             if i != 1:
                 for k in range(1, n+1):
-                    for c in IntegerVectors(n - k, i-1):
-                        c = list(c)
+                    for c in integer_vectors_nk_fast_iter(n - k, i-1):
                         c.append(k)
                         for sst in SemistandardTableaux_shape_weight(self.shape, Composition(c)):
                             yield self.element_class(self, sst)
@@ -6024,7 +6022,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             sage: sst[0].parent() is sst
             True
         """
-        for c in IntegerVectors(sum(self.shape), self.max_entry):
+        for c in integer_vectors_nk_fast_iter(sum(self.shape), self.max_entry):
             for sst in SemistandardTableaux_shape_weight(self.shape, Composition(c)):
                 yield self.element_class(self, sst)
 
@@ -6167,7 +6165,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             return Integer(num / den)
         elif algorithm == 'sum':
             c = 0
-            for comp in IntegerVectors(sum(self.shape), self.max_entry):
+            for comp in integer_vectors_nk_fast_iter(sum(self.shape), self.max_entry):
                 c += SemistandardTableaux_shape_weight(self.shape, Composition(comp)).cardinality()
             return c
         raise ValueError("unknown algorithm {}".format(algorithm))

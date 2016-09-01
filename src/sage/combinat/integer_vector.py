@@ -45,7 +45,6 @@ from sage.arith.all import binomial
 from sage.rings.all import ZZ
 from sage.rings.semirings.all import NN
 from sage.rings.integer import Integer
-#from sage.combinat.combinat_cython import integer_vectors_nk_fast_iter
 
 def is_gale_ryser(r,s):
     r"""

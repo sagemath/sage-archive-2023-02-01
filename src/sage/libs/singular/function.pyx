@@ -1822,8 +1822,6 @@ def lib(name):
 
     if get_verbose() <= 0:
          si_opt_2 &= ~Sy_bit(V_LOAD_LIB)
-
-    if get_verbose() <= 0:
          si_opt_2 &= ~Sy_bit(V_REDEFINE)
 
     cdef char* cname = omStrDup(name)

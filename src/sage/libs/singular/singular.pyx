@@ -590,11 +590,6 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
         sage: P(3)
         3
     """
-    # failing example:
-    #
-    # sage: sage: R.<a> = Zmod(5)['a', 'b']
-    # sage: R(1)
-
     nr2mModul = d.parent().characteristic()
     if _ring != currRing: rChangeCurrRing(_ring)
 
@@ -604,7 +599,6 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
     cdef char *_name
     cdef char **_ext_names
     varname = "a"
-    #print "_ring.cf.type", _ring.cf.type
 
     cdef nMapFunc nMapFuncPtr = NULL;
 
@@ -613,8 +607,6 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
         return nr2mMapZp(<number *>_d, currRing.cf, _ring.cf)
     elif _ring.cf.type == n_Zn or _ring.cf.type == n_Znm:
         lift = d.lift()
-        #print "lift.base_ring ", lift.base_ring()
-        #print "lift ", lift
 
         # if I understand nrnMapGMP/nMapFuncPtr correctly we need first
         # a source value in ZZr
@@ -628,18 +620,12 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
         ZZr = rDefault (_cf ,1, _ext_names)
         rComplete(ZZr,1)
         ZZr.ShortOut = 0
-        #print "ZZr = rDefault (_cf ,1, _ext_names) ok"
 
         nn = nrzInit(0, ZZr.cf)
-        #print "nn"
         mpz_set(<mpz_ptr>nn, (<Integer>lift).value)
-        #print "nn is set"
         nMapFuncPtr  = nrnSetMap( ZZr.cf, _ring.cf)
-        #print "nMapFuncPtr is set"
 
-        # it did not help. Singular crashes here...
         return nMapFuncPtr(nn, ZZr.cf, _ring.cf)
-        #return nrnMapGMP(nn, ZZr.cf, _ring.cf)
     else:
         raise ValueError
 

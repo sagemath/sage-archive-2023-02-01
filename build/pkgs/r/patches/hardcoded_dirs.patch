@@ -1,4 +1,9 @@
-Make R_HOME_DIR relative to SAGE_LOCAL.
+Make R_HOME_DIR relative to SAGE_LOCAL by setting
+R_HOME_DIR to "${SAGE_LOCAL}/lib/R/" when running R.
+
+Also remove the sed scripts hardcoding R_*_DIR's in the "frontend" R script.
+See Sage trac #9668.
+
 This allows to move Sage install tree.
 diff -ru src/src/scripts/R.sh.in src.new/src/scripts/R.sh.in
 --- src/src/scripts/R.sh.in	2011-10-03 00:02:35.000000000 +0200
@@ -17,7 +22,6 @@ diff -ru src/src/scripts/R.sh.in src.new/src/scripts/R.sh.in
     test "${R_HOME}" != "${R_HOME_DIR}"; then
    echo "WARNING: ignoring environment value of R_HOME"
 
-Remove the sed scripts hardcoding R_*_DIR's in the "frontend" R script.
 --- src/src/scripts/Makefile.in	2012-03-01 15:02:25.000000000 -0800
 +++ src/src/scripts/Makefile.in	2013-03-17 08:48:56.000000000 -0700
 @@ -89,12 +89,7 @@

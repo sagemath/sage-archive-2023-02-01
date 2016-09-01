@@ -39,11 +39,6 @@ if [ "$UNAME" = "Darwin" ]; then
    cp patches/javac "$SAGE_LOCAL"/bin
 fi
 
-
-# Determine special configure options $R_CONFIGURE (don't put paths in
-# this variable as this can cause problems with quoting)
-R_CONFIGURE="--enable-R-shlib $R_CONFIGURE"
-
 # Note by Karl-Dieter Crisman, April 12th 2010. X support would be nice
 # to have in OSX, but see
 # http://CRAN.R-project.org/bin/macosx/RMacOSX-FAQ.html#X11-window-server-_0028optional_0029

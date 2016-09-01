@@ -991,11 +991,9 @@ cdef class NCPolynomialRing_plural(Ring):
         if not g._poly:
             raise ZeroDivisionError
 
-        cdef n_coeffType unknownRingtype = n_unknown
-
         res = pDivide(f._poly,g._poly)
         if coeff:
-            if (r.cf.type == unknownRingtype) or r.cf.cfDivBy(p_GetCoeff(f._poly, r), p_GetCoeff(g._poly, r), r.cf):
+            if (r.cf.type == n_unknown) or r.cf.cfDivBy(p_GetCoeff(f._poly, r), p_GetCoeff(g._poly, r), r.cf):
                 n = r.cf.cfDiv( p_GetCoeff(f._poly, r) , p_GetCoeff(g._poly, r), r.cf)
                 p_SetCoeff0(res, n, r)
             else:

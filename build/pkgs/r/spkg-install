@@ -113,14 +113,14 @@ export SAGE_BUILDING_R=yes
 config()
 {
     ./configure \
-	--prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
+        --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
         --enable-R-shlib \
         --with-recommended-packages \
-	--with-readline=yes \
-	--with-x=$XSUPPORT \
-	"$R_CONFIGURE_BLAS" \
-	"$R_CONFIGURE_LAPACK" \
-	$R_CONFIGURE
+        --with-readline=yes \
+        --with-x=$XSUPPORT \
+        "$R_CONFIGURE_BLAS" \
+        "$R_CONFIGURE_LAPACK" \
+        $R_CONFIGURE
 }
 
 config

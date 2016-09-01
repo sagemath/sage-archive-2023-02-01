@@ -26,20 +26,6 @@ cdef extern from "limits.h":
 import os
 
 from libc.stdint cimport int64_t
-from sage.libs.singular.decl cimport intvec
-from sage.libs.singular.decl cimport SR_HDL, SR_INT, SR_TO_INT
-from sage.libs.singular.decl cimport singular_options, singular_verbose_options
-from sage.libs.singular.decl cimport On, Off, SW_USE_NTL, SW_USE_NTL_GCD_0, SW_USE_EZGCD, SW_USE_NTL_SORT, SW_USE_NTL_GCD_P
-from sage.libs.singular.decl cimport poly, Sy_bit, OPT_REDSB, OPT_INTSTRATEGY, OPT_REDTAIL, OPT_REDTHROUGH
-from sage.libs.singular.decl cimport nlGetNumerator, nlGetDenom, nlDelete, nlInit2gmp
-from sage.libs.singular.decl cimport n_Z2m, n_unknown
-from sage.libs.singular.decl cimport p_GetCoeff, p_GetExp, pNext
-from sage.libs.singular.decl cimport nrzInit, nr2mMapZp, nrnMapGMP, nrnSetMap
-from sage.libs.singular.decl cimport siInit
-from sage.libs.singular.decl cimport n_Init
-from sage.libs.singular.decl cimport rChangeCurrRing, currRing
-from sage.libs.singular.decl cimport WerrorS_callback, const_char_ptr
-from sage.libs.singular.decl cimport wFunctionalBuch
 from sage.libs.singular.decl cimport *
 
 from sage.rings.rational_field import RationalField

@@ -153,7 +153,7 @@ def _complete_list(l, length):
         l = l + ([F.zero()] * (length - l_len))
     return l
 
-def bch_bound(n, D, arithmetic = False, bch_parameters = False):
+def bch_bound(n, D, arithmetic = False):
     r"""
     Returns the BCH bound obtained for a cyclic code of length ``n`` and defining set ``D``.
 
@@ -184,69 +184,53 @@ def bch_bound(n, D, arithmetic = False, bch_parameters = False):
     - ``arithmetic`` -- (default: ``False``), if it is set to ``True``, then it
       computes the BCH bound using the longest arithmetic sequence definition
 
-    - ``bch_parameters`` -- (default: ``False``), if it is set to ``True``, then
-      the function also returns the parameters of the smallest BCH code that 
-      contains a cyclic code having `D` as defining set. Only works when
-      ``arithmetic = True``
+    OUTPUT:
+
+    - ``(delta + 1, (l, c))`` -- such that ``delta + 1`` is the BCH bound, and
+      ``l, c`` are the parameters of the largest arithmetic sequence (see below)
 
     EXAMPLES::
 
         sage: n = 15
         sage: D = [14,1,2,11,12]
         sage: sage.coding.cyclic_code.bch_bound(n, D)
-        3
+        (3, (1, 1))
 
         sage: n = 15
         sage: D = [14,1,2,11,12]
         sage: sage.coding.cyclic_code.bch_bound(n, D, True)
-        4
+        (4, (2, 12))
     """
-    # Idea of the algorithm:
-    # We first store a table representing D;
-    # then, for each arithmetic step i:
-    #   - we compute the size of the current sequence in D by
-    #     incrementing a counter (cur_length)
-    #   - we update the maximum size (max_length) if needed
-    #   - we also keep the first and the last of these lengths in
-    #     order to deal with a possible overlapping sequence (i.e.
-    #     which contains 0)
-    # Note: this algorithm has O(n^2) time and O(n) space complexity, assuming
-    # that accessing a table is O(1)
-    table_D = [ 1 if d in D else 0 for d in range(n) ]
-    if arithmetic:
-        max_loops = n
+    def longest_streak(step):
+        max_len = 1
+        max_offset = 0
+        j = 0
+        while j < n:
+            h = j
+            while isD[h*step % n]:
+                h += 1
+            if h - j > max_len:
+                max_offset = j*step % n
+                max_len = h - j
+            j = h + 1
+        return (max_len, max_offset)
+
+    isD = [ 0 ]*n
+    for d in D:
+        try:
+            isD[d] = 1
+        except IndexError:
+            raise ValueError("%s must contains integers between 0 and %s" % (D, n-1))
+    if not 0 in isD:
+        return (n+1, (1, 0))
+    
+    if not arithmetic:
+        one_len, offset = longest_streak(1)
+        return (one_len + 1, (1, offset))
     else:
-        max_loops = 2
-    max_length = 0
-    for i in range(1, max_loops):
-        cur_length = 0
-        if gcd(i, n) == 1:
-            j = 0
-            first_length = 0
-            while table_D[i*j % n] == 1:
-                first_length += 1
-                j += 1
-            cur_length = first_length
-            if cur_length > max_length:
-                max_length = cur_length
-                bch_parameters = [0, j]
-            cur_length = 0
-            begin = j+1
-            for j in range(begin, n):
-                if table_D[i*j % n] == 1:
-                    cur_length += 1
-                else:
-                    if cur_length > max_length:
-                        max_length = cur_length
-                        bch_parameters = [(j - cur_length * i) % n, i]
-                    cur_length = 0
-            overlap_length = first_length + cur_length
-            if overlap_length > max_length:
-                max_length = overlap_length
-                bch_parameters = [ (- first_length * i) % n, i]
-    if bch_parameters:
-        return max_length + 1, bch_parameters
-    return max_length + 1
+        step, (max_len, offset) = max([ (step, longest_streak(step)) for step in range(1,n//2+1) ],
+                                      key=lambda (step,(step_len,_)): step_len)
+        return (max_len + 1, (step, offset))
 
 class CyclicCode(AbstractLinearCode):
     r"""
@@ -733,7 +717,7 @@ class CyclicCode(AbstractLinearCode):
             l = l[n-1:] + l[:n-1]
         return H
 
-    def bch_bound(self, arithmetic = False, bch_parameters = False):
+    def bch_bound(self, arithmetic = False):
         r"""
         Returns the BCH bound of ``self`` which is a bound on ``self``'s minimum distance.
 
@@ -741,13 +725,14 @@ class CyclicCode(AbstractLinearCode):
 
         INPUT:
 
-        - ``arithmetic`` -- (default: ``False``), if it is set to ``True``, then it
-          computes the BCH bound using the longest arithmetic sequence definition
+        - ``arithmetic`` -- (default: ``False``), if it is set to ``True``,
+          then it computes the BCH bound using the longest arithmetic sequence
+          definition
 
-        - ``bch_parameters`` -- (default: ``False``), if it is set to ``True``, then
-          the function also returns the parameters of the smallest BCH code that 
-          contains a cyclic code having `D` as defining set. Only works when
-          ``arithmetic = True``
+        OUTPUT:
+
+        - ``(delta + 1, (l, c))`` -- such that ``delta + 1`` is the BCH bound,
+          and ``l, c`` are the parameters of the largest arithmetic sequence
 
         EXAMPLES::
 
@@ -756,17 +741,16 @@ class CyclicCode(AbstractLinearCode):
             sage: D = [14,1,2,11,12]
             sage: C = codes.CyclicCode(field = F, length = n, D = D)
             sage: C.bch_bound()
-            3
+            (3, (1, 1))
 
             sage: F = GF(16, 'a')
             sage: n = 15
             sage: D = [14,1,2,11,12]
             sage: C = codes.CyclicCode(field = F, length = n, D = D)
             sage: C.bch_bound(True)
-            4
+            (4, (2, 12))
         """
-        return bch_bound(n = self.length(), D = self.defining_set(), arithmetic = arithmetic,\
-                bch_parameters = bch_parameters)
+        return bch_bound(n = self.length(), D = self.defining_set(), arithmetic = arithmetic)
 
 
 

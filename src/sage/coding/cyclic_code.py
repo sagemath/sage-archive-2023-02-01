@@ -286,7 +286,7 @@ class CyclicCode(AbstractLinearCode):
 
     - ``field`` -- (default: ``None``) the base field of ``self``.
 
-    - ``primitive_element`` -- (default: ``None``) the primitive element of
+    - ``primitive_root`` -- (default: ``None``) the primitive root of
       the splitting field which contains the roots of the generator polynomial.
       It has to be of multiplicative order ``length`` over this field.
       If the splitting field is not ``field``, it also have to be a polynomial
@@ -327,7 +327,7 @@ class CyclicCode(AbstractLinearCode):
     _registered_encoders = {}
     _registered_decoders = {}
 
-    def __init__(self, generator_pol=None, length=None, code=None, check=True, D = None, field = None, primitive_element = None):
+    def __init__(self, generator_pol=None, length=None, code=None, check=True, D = None, field = None, primitive_root = None):
         r"""
         TESTS:
 
@@ -437,12 +437,12 @@ class CyclicCode(AbstractLinearCode):
                 Rsplit = Fsplit['xx']
                 xx = Rsplit.gen()
 
-            if primitive_element is not None:
-                if (primitive_element not in Fsplit or
-                    multiplicative_order(primitive_element) != n):
-                    raise ValueError("primitive_element has to be an element of multiplicative order n in the extension field used to compute the generator polynomial")
+            if primitive_root is not None:
+                if (primitive_root not in Fsplit or
+                    multiplicative_order(primitive_root) != n):
+                    raise ValueError("primitive_root has to be an element of multiplicative order n in the extension field used to compute the generator polynomial")
                 else:
-                    alpha = primitive_element
+                    alpha = primitive_root
             else:
                 alpha = Fsplit.zeta(n)
 
@@ -460,7 +460,7 @@ class CyclicCode(AbstractLinearCode):
                     g *= R([FE.cast_into_relative_field(coeff) for coeff in pol])
             
             # we set class variables
-            self._primitive_element = alpha
+            self._primitive_root = alpha
             self._defining_set = pows
             self._defining_set.sort()
             self._polynomial_ring = R
@@ -560,11 +560,11 @@ class CyclicCode(AbstractLinearCode):
         """
         return self._generator_polynomial
 
-    def defining_set(self, primitive_element = None):
+    def defining_set(self, primitive_root = None):
         r"""
         Returns the set of powers of the root of ``self``'s generator polynomial
         over the extension field. It depends on the choice of the primitive
-        element of the splitting field.
+        root of the splitting field.
 
         EXAMPLES:
 
@@ -610,7 +610,7 @@ class CyclicCode(AbstractLinearCode):
             True
         """
         if (hasattr(self, "_defining_set") and
-            (primitive_element is None or primitive_element == self._primitive_element)):
+            (primitive_root is None or primitive_root == self._primitive_root)):
             return self._defining_set
         else:
             F = self.base_field()
@@ -622,20 +622,20 @@ class CyclicCode(AbstractLinearCode):
             while not (q ** s - 1) % n == 0:
                 s += 1
 
-            if primitive_element is None:
+            if primitive_root is None:
                 Fsplit, F_to_Fsplit = F.extension(Integer(s), map = True)
                 alpha = Fsplit.zeta(n)
             else:
                 try:
-                    alpha = primitive_element
+                    alpha = primitive_root
                     Fsplit = alpha.parent()
                     FE = RelativeFiniteFieldExtension(Fsplit, F)
                     F_to_Fsplit = FE.embedding()
                 except ValueError:
-                    raise ValueError("primitive_element does not belong to the right splitting field")
+                    raise ValueError("primitive_root does not belong to the right splitting field")
                 if alpha.multiplicative_order() != n:
-                    raise ValueError("primitive_element must have multiplicative order n")
-            self._primitive_element = alpha
+                    raise ValueError("primitive_root must have multiplicative order n")
+            self._primitive_root = alpha
 
             Rsplit = Fsplit['xx']
             gsplit = Rsplit([F_to_Fsplit(coeff) for coeff in g])
@@ -645,9 +645,9 @@ class CyclicCode(AbstractLinearCode):
             self._defining_set = D
             return D
 
-    def primitive_element(self):
+    def primitive_root(self):
         r"""
-        Returns the primitive element of the splitting field that is used
+        Returns the primitive root of the splitting field that is used
         to build the defining set of the code.
 
         If it has not been specified by the user, it is set by default with the
@@ -659,21 +659,21 @@ class CyclicCode(AbstractLinearCode):
             sage: n = 7
             sage: g = x ** 3 + x + 1
             sage: C = codes.CyclicCode(generator_pol = g, length = n)
-            sage: C.primitive_element()
+            sage: C.primitive_root()
             z3
 
             sage: F = GF(16, 'a')
             sage: n = 15
             sage: a = F.gen()
-            sage: Cc = codes.CyclicCode(length = n, field = F, D = [1,2], primitive_element = a^2 + 1)
-            sage: Cc.primitive_element()
+            sage: Cc = codes.CyclicCode(length = n, field = F, D = [1,2], primitive_root = a^2 + 1)
+            sage: Cc.primitive_root()
             a^2 + 1
         """
-        if hasattr(self, "_primitive_element"):
-            return self._primitive_element
+        if hasattr(self, "_primitive_root"):
+            return self._primitive_root
         else:
             _ = self.defining_set()
-            return self._primitive_element
+            return self._primitive_root
 
     def check_polynomial(self):
         r"""

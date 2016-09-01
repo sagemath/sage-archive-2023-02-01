@@ -258,17 +258,6 @@ cdef class CategoryObject(SageObject):
     # Generators
     ##############################################################################
 
-    def _populate_generators_(self, gens, names=None, normalize=True):
-        from sage.structure.sequence import Sequence
-        if isinstance(gens, (list, tuple, Sequence)):
-            if names is None:
-                names = tuple([str(x) for x in gens])
-            ngens = len(gens)
-        else:
-            ngens = 1
-        if names is not None and self._names is None:
-            self._assign_names(names, ngens=ngens, normalize=normalize)
-
     def gens_dict(self):
         r"""
         Return a dictionary whose entries are ``{name:variable,...}``,

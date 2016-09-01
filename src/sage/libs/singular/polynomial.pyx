@@ -526,7 +526,6 @@ cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
     cdef int  i
     cdef long _deg, deg
     
-    #print (" ENTERED singular_polynomial_deg")
     deg = -1
     _deg = -1 
     if p == NULL:
@@ -535,13 +534,10 @@ cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
     if x == NULL:
         while p:  
             _deg = p_WTotaldegree(p,r)
-            #print ("p_WTotaldegree", _deg)      
           
             if _deg > deg:
                 deg = _deg
             p = pNext(p)
-        #print ("deg", deg)      
-        #print (" LEAVING singular_polynomial_deg")
         return deg
 
     for i in range(1,r.N+1):
@@ -552,8 +548,6 @@ cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
         if _deg > deg:
             deg = _deg
         p = pNext(p)
-    #print ("deg", deg)  
-    #print (" LEAVING singular_polynomial_deg")    
     return deg
 
 cdef int singular_polynomial_length_bounded(poly *p, int bound):

@@ -62,13 +62,10 @@ from sage.arith.all import gcd
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc_c import prod
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.all import Zmod
-from sage.functions.log import log
 from sage.categories.homset import Hom
-from copy import copy
 from sage.groups.generic import discrete_log
 from sage.misc.functional import multiplicative_order
 from relative_finite_field_extension import RelativeFiniteFieldExtension
@@ -223,7 +220,7 @@ def bch_bound(n, D, arithmetic = False):
             raise ValueError("%s must contains integers between 0 and %s" % (D, n-1))
     if not 0 in isD:
         return (n+1, (1, 0))
-    
+
     if not arithmetic:
         one_len, offset = longest_streak(1)
         return (one_len + 1, (1, offset))

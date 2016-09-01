@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-
 ###########################################
 ## Singular
 ###########################################
@@ -24,7 +22,7 @@ for patch in "$PATCHES"/*.patch; do
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'"
-        return 1
+        exit 1
     fi
 done
 
@@ -69,7 +67,7 @@ remove_old_version()
 
 config()
 {
-    # configure notes:
+    # configure notes (dates from Singular 3.x, maybe outdated for 4.x):
     # 1) We really need to add --exec-prefix and --bindir as Singular
     #    uses some weird defaults.
     # 2) configure calls other configure scripts (for example
@@ -89,8 +87,8 @@ config()
                 $SINGULAR_CONFIGURE
 
     if [ $? -ne 0 ]; then
-        echo >&2 "Unable to configure Singular."
-        return 1
+        echo >&2 "Error configuring Singular."
+        exit 1
     fi
 }
 
@@ -99,21 +97,21 @@ build_singular()
 {
     $MAKE
     if [ $? -ne 0 ]; then
-        echo >&2 "Unable to build Singular"
-        return 1
+        echo >&2 "Error building Singular"
+        exit 1
     fi
 
     $MAKE install
     if [ $? -ne 0 ]; then
-        echo >&2 "Unable to install Singular"
-        return 1
+        echo >&2 "Error installing Singular"
+        exit 1
     fi
 
 }
 
 build_factory()
 {
-    cd factory || return $?
+    cd factory
 
     $MAKE distclean
 
@@ -127,38 +125,36 @@ build_factory()
 
     if [ $? -ne 0 ]; then
         echo >&2 "Error configuring the standalone factory."
-        return 1
+        exit 1
     fi
 
     $MAKE
     if [ $? -ne 0 ]; then
         echo >&2 "Error building the standalone factory."
-        return 1
+        exit 1
     fi
 
     $MAKE install
     if [ $? -ne 0 ]; then
         echo >&2 "Error installing the standalone factory."
-        return 1
+        exit 1
     fi
 }
 
 
 create_singular_script()
 {
-    cd "$SAGE_LOCAL/bin" || return $?
+    cd "$SAGE_LOCAL/bin"
 
     # Lower case version is convenient (this can fail on
     # case-insensitive systems, we ignore the error).
-    ln -sf Singular singular 2>/dev/null
-
-    return 0
+    ln -sf Singular singular 2> /dev/null
 }
 
 
 install_docs()
 {
-    cd "$SHARED" || return $?
+    cd "$SHARED"
     $CP -p singular.hlp singular.idx "$SAGE_LOCAL/share/singular/"
 }
 
@@ -184,10 +180,5 @@ fix_includes()
 for i in remove_old_version config \
   build_singular build_factory fix_includes \
   create_singular_script install_docs ; do
-    echo "### Singular spkg-install: $i ###"
     cd "$SRC" && $i
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error building Singular (error in $i)."
-        exit 1
-    fi
 done

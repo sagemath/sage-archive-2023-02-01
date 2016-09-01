@@ -1694,7 +1694,6 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         from sage.rings.quotient_ring import QuotientRing_generic
         from sage.rings.quotient_ring_element import QuotientRingElement
-        from sage.rings.real_mpfr import RealField_class
 
         ring_is_fine = False
         if R is None:

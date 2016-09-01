@@ -225,8 +225,9 @@ def bch_bound(n, D, arithmetic = False):
         one_len, offset = longest_streak(1)
         return (one_len + 1, (1, offset))
     else:
-        step, (max_len, offset) = max([ (step, longest_streak(step)) for step in range(1,n//2+1) ],
-                                      key=lambda (step,(step_len,_)): step_len)
+        longest_streak_list = [ (longest_streak(step), step) for step in range(1, n//2+1)
+                                if gcd(step, n) == 1 ]
+        (max_len, offset), step = max(longest_streak_list)
         return (max_len + 1, (step, offset))
 
 class CyclicCode(AbstractLinearCode):

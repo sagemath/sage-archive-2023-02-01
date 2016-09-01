@@ -2195,7 +2195,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         def _tensor_of_elements(self, elements):
             """
             Returns the tensor product of the specified elements.
-            The result should be in self.
+            The result should be in ``self``.
 
             EXAMPLES::
 

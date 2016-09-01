@@ -4,6 +4,10 @@ Tensor Algebras
 AUTHORS:
 
 - Travis Scrimshaw (2014-01-24): Initial version
+
+.. TODO::
+
+    - Coerce to/from free algebra.
 """
 
 #*****************************************************************************

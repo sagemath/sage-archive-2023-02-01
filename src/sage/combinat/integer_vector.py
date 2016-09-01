@@ -29,9 +29,8 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import, division
 
-from six.moves.builtins import list as builtinlist
 from sage.combinat.integer_lists import IntegerListsLex
-from itertools import combinations, product
+from itertools import product
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -41,11 +40,12 @@ from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.rings.infinity import PlusInfinity, MinusInfinity
+from sage.rings.infinity import PlusInfinity
 from sage.arith.all import binomial
 from sage.rings.all import ZZ
 from sage.rings.semirings.all import NN
 from sage.rings.integer import Integer
+#from sage.combinat.combinat_cython import integer_vectors_nk_fast_iter
 
 def is_gale_ryser(r,s):
     r"""
@@ -296,7 +296,6 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
     ..  [Gale57] \D. Gale, A theorem on flows in networks, Pacific J. Math.
         7(1957)1073-1082.
     """
-    from sage.combinat.partition import Partition
     from sage.matrix.constructor import matrix
 
     if not is_gale_ryser(p1,p2):
@@ -315,7 +314,6 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
         tmp = sorted(enumerate(p2), reverse=True, key=lambda x:x[1])
         s = [x[1] for x in tmp]
         s_permutation = [x-1 for x in Permutation([x[0]+1 for x in tmp]).inverse()]
-        n = len(s)
 
         # This is the partition equivalent to the sliding algorithm
         cols = []
@@ -461,7 +459,7 @@ class IntegerVector(ClonableIntArray):
             sage: elt.check()
         """
         if any(x < 0 for x in self):
-            raise ValueError("All entries must be non-negative")
+            raise ValueError("all entries must be non-negative")
 
 class IntegerVectors(Parent):
     """
@@ -715,7 +713,7 @@ class IntegerVectors_all(UniqueRepresentation, IntegerVectors):
         while True:
             for k in range(1,n+1):
                 for v in integer_vectors_nk_fast_iter(n, k):
-                    yield self.element_class(self, v)
+                    yield self.element_class(self, v, check=False)
             n += 1
 
 class IntegerVectors_n(UniqueRepresentation, IntegerVectors):
@@ -767,7 +765,7 @@ class IntegerVectors_n(UniqueRepresentation, IntegerVectors):
         k = 1
         while True:
             for iv in integer_vectors_nk_fast_iter(self.n, k):
-                yield self.element_class(self, iv)
+                yield self.element_class(self, iv, check=False)
             k += 1
 
     def __contains__(self, x):
@@ -835,7 +833,7 @@ class IntegerVectors_k(UniqueRepresentation, IntegerVectors):
         n = 0
         while True:
             for iv in integer_vectors_nk_fast_iter(n, self.k):
-                yield self.element_class(self, iv)
+                yield self.element_class(self, iv, check=False)
             n += 1
 
     def __contains__(self, x):
@@ -942,16 +940,16 @@ class IntegerVectors_nk(UniqueRepresentation, IntegerVectors):
 
         if not self.k:
             if not self.n:
-                yield self.element_class(self, [])
+                yield self.element_class(self, [], check=False)
             return
         elif self.k == 1:
-            yield self.element_class(self, [self.n])
+            yield self.element_class(self, [self.n], check=False)
             return
 
         for nbar in range(self.n+1):
             n = self.n - nbar
             for rest in integer_vectors_nk_fast_iter(nbar, self.k-1):
-                yield self.element_class(self, [n] + rest)
+                yield self.element_class(self, [n] + rest, check=False)
 
     def _repr_(self):
         """
@@ -1162,7 +1160,7 @@ class IntegerVectors_nnondescents(UniqueRepresentation, IntegerVectors):
                 res = []
                 for part in parts:
                     res += part
-                yield self.element_class(self, res)
+                yield self.element_class(self, res, check=False)
 
 class IntegerVectorsConstraints(IntegerVectors):
     """
@@ -1385,16 +1383,16 @@ class IntegerVectorsConstraints(IntegerVectors):
             n_list = [self.n]
         for n in n_list:
             for x in IntegerListsLex(n, check=False, **self.constraints):
-                yield self.element_class(self, x)
+                yield self.element_class(self, x, check=False)
 
 def integer_vectors_nk_fast_iter(n, k):
     """
     A fast iterator for integer vectors of ``n`` of length ``k`` which
-    yeilds python lists filled with C int's.
+    yeilds Python lists filled with Sage Integers.
 
     EXAMPLES::
 
-        sage: from sage.combinat.integer_vector import integer_vectors_nk_fast_iter
+        sage: from sage.combinat.combinat_cython import integer_vectors_nk_fast_iter
         sage: list(integer_vectors_nk_fast_iter(3, 2))
         [[3, 0], [2, 1], [1, 2], [0, 3]]
         sage: list(integer_vectors_nk_fast_iter(2, 2))
@@ -1428,26 +1426,21 @@ def integer_vectors_nk_fast_iter(n, k):
         yield [n]
         return
 
-    if not n:
-        yield [0]*k
-        return
-
-    L = n + k - 1
-    for x in combinations(range(L), L-(k-1)):
-        x_complement = []
-        j = 0
-        for i in range(L):
-            if x[j] == i:
-                if j < L-(k-1)-1:
-                    j += 1
-            else:
-                x_complement.append(i)
-        x = x_complement
-        l = [x[i] - x[i-1]-1 for i in range(1,k-1)]
-        l.insert(0, x[0])
-        l.append(L-x[-1]-1)
-        yield l
-    return
+    rem = Integer(-1) # Amount remaining
+    cur = [n+1]
+    k = int(k)
+    while cur:
+        cur[-1] -= 1
+        rem += 1
+        if not rem:
+            yield cur + [ZZ.zero()] * (k - len(cur))
+        elif cur[-1] < 0:
+            rem += cur.pop()
+        elif len(cur) == k - 1:
+            yield cur + [rem]
+        else:
+            cur.append(rem + 1)
+            rem = -1
 
 def IntegerVectors_nconstraints(n, **constraints):
     """

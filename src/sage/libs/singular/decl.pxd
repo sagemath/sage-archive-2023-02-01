@@ -114,24 +114,20 @@ cdef extern from "singular/Singular/libsingular.h":
 
 
     cdef enum n_coeffType:
-        n_unknown=0
-        n_Zp=1 #/**< \F{p < 2^31} */
-        n_Q=2   #/**< rational (GMP) numbers */
-        n_R=3   #/**< single prescision (6,6) real numbers */
-        n_GF=4  #/**< \GF{p^n < 2^16} */
-        n_long_R=5  #/**< real floating point (GMP) numbers */
-        n_algExt=6   #/**< used for all algebraic extensions, i.e.,
-                    #  the top-most extension in an extension tower
-                     # is algebraic */
-        n_transExt=7   #/**< used for all transcendental extensions, i.e.,
-                       # the top-most extension in an extension tower
-                       # is transcendental */
-        n_long_C=8  #/**< complex floating point (GMP) numbers */
-        n_Z=9  #/**< only used if HAVE_RINGS is defined: ? */
-        n_Zn=10  #/**< only used if HAVE_RINGS is defined: ? */
-        n_Znm=11  #/**< only used if HAVE_RINGS is defined: ? */
-        n_Z2m=12  #/**< only used if HAVE_RINGS is defined: ? */
-        n_CF=13  #/**< ? */tons_of_spam = 3
+        n_unknown
+        n_Zp
+        n_Q
+        n_R
+        n_GF
+        n_long_R
+        n_algExt
+        n_transExt
+        n_long_C
+        n_Z
+        n_Zn0
+        n_Znm1
+        n_Z2m2
+        n_CF3
 
     ctypedef struct ring "ip_sring"
     ctypedef struct AlgExtInfo

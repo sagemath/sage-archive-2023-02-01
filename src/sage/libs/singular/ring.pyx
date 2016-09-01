@@ -281,27 +281,6 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             raise TypeError("The multivariate polynomial ring in a single variable %s in lex order over %s is supposed to be of type %s" % (base_ring.variable_name(), base_ring,MPolynomialRing_libsingular))
         minpoly = base_ring.polynomial()(k.gen())
 
-        ###################################### first variant: no control of minpoly
-        # following example passes:
-        # sage: K.<a> = GF(5^3)
-        # sage: R.<x,y,z> = PolynomialRing(K)
-        # sage: K( (4*R(a)^2 + R(a))^3 )
-
-        #_param = <GFInfo *>omAlloc(sizeof(GFInfo))
-
-        #_param.GFChar     = characteristic
-        #_param.GFDegree   = base_ring.degree()
-        #_param.GFPar_name = omStrDup(base_ring.gen())
-
-        #_cf = nInitChar( n_GF, _param )
-        #_ring = rDefault( _cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
-
-        ###################################### second variant: using AlgExt and minpoly:
-        # following example eats all mem:
-        # sage: K.<a> = GF(5^3)
-        # sage: R.<x,y,z> = PolynomialRing(K)
-        # sage: K( (4*R(a)^2 + R(a))^3 )
-
         ch = base_ring.characteristic()
         F = ch.factor()
         assert(len(F)==1)

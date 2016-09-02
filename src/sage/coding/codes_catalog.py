@@ -23,7 +23,7 @@ from sage.misc.lazy_import import lazy_import as _lazy_import
 
 from .linear_code import LinearCode
 from .code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
-                                CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
+                                CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
                                 DuadicCodeOddPair, ExtendedBinaryGolayCode,
                                 ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
                                 from_parity_check_matrix,
@@ -42,6 +42,7 @@ from .subfield_subcode import SubfieldSubcode
 
 from .guava import QuasiQuadraticResidueCode, RandomLinearCodeGuava
 _lazy_import('sage.coding.punctured_code', 'PuncturedCode')
+from .cyclic_code import CyclicCode
 from .hamming_code import HammingCode
 from . import decoders_catalog as decoders
 from . import encoders_catalog as encoders

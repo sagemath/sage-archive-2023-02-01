@@ -492,9 +492,9 @@ class CyclicCode(AbstractLinearCode):
             return False
         else:
             R = self._polynomial_ring
-            return self.base_field() == other.base_field() \
-                and self.length() == other.length() \
-                and self.generator_polynomial() == R(other.generator_polynomial())
+            return (self.base_field() == other.base_field()
+                    and self.length() == other.length()
+                    and self.generator_polynomial() == R(other.generator_polynomial()))
 
     def _repr_(self):
         r"""
@@ -509,9 +509,9 @@ class CyclicCode(AbstractLinearCode):
             sage: C
             [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
         """
-        return "[%s, %s] Cyclic Code over %s with %s as generator polynomial"\
-                % (self.length(), self.dimension(),\
-                self.base_field(), self.generator_polynomial())
+        return ("[%s, %s] Cyclic Code over %s with %s as generator polynomial"
+                % (self.length(), self.dimension(),
+                   self.base_field(), self.generator_polynomial()))
 
     def _latex_(self):
         r"""
@@ -526,9 +526,9 @@ class CyclicCode(AbstractLinearCode):
             sage: latex(C)
             [7, 4] \textnormal{ Cyclic Code over } \Bold{F}_{2} \textnormal{ with } x^{3} + x + 1 \textnormal{ as generator polynomial}
         """
-        return "[%s, %s] \\textnormal{ Cyclic Code over } %s \\textnormal{ with } %s \\textnormal{ as generator polynomial}"\
-                % (self.length(), self.dimension(),\
-                self.base_field()._latex_(), self.generator_polynomial()._latex_())
+        return ("[%s, %s] \\textnormal{ Cyclic Code over } %s \\textnormal{ with } %s \\textnormal{ as generator polynomial}"
+                % (self.length(), self.dimension(),
+                   self.base_field()._latex_(), self.generator_polynomial()._latex_()))
 
     def generator_polynomial(self):
         r"""
@@ -820,8 +820,8 @@ class CyclicCodePolynomialEncoder(Encoder):
             sage: E1 == E2
             True
         """
-        return isinstance(other, CyclicCodePolynomialEncoder) \
-            and self.code() == other.code()
+        return (isinstance(other, CyclicCodePolynomialEncoder)
+                and self.code() == other.code())
 
     def _repr_(self):
         r"""
@@ -1003,8 +1003,8 @@ class CyclicCodeVectorEncoder(Encoder):
             sage: E1 == E2
             True
         """
-        return isinstance(other, CyclicCodeVectorEncoder) \
-                and self.code() == other.code()
+        return (isinstance(other, CyclicCodeVectorEncoder)
+                and self.code() == other.code())
 
     def _repr_(self):
         r"""

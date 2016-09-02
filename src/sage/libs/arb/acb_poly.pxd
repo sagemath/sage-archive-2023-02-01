@@ -22,6 +22,7 @@ cdef extern from "acb_poly.h":
     void acb_poly_set_coeff_si(acb_poly_t poly, long n, long c)
     void acb_poly_set_coeff_acb(acb_poly_t poly, long n, const acb_t c)
     void acb_poly_get_coeff_acb(acb_t v, const acb_poly_t poly, long n)
+    acb_ptr acb_poly_get_coeff_ptr(acb_poly_t, long)
     void _acb_poly_shift_right(acb_ptr res, acb_srcptr poly, long len, long n)
     void acb_poly_shift_right(acb_poly_t res, const acb_poly_t poly, long n)
     void _acb_poly_shift_left(acb_ptr res, acb_srcptr poly, long len, long n)

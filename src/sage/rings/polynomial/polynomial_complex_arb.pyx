@@ -25,11 +25,12 @@ TESTS:
 
 include "cysignals/signals.pxi"
 
+from sage.libs.arb.acb cimport *
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.complex_arb cimport ComplexBall
-from sage.structure.element import coerce_binop
 
 from sage.rings.complex_arb import ComplexBallField
+from sage.structure.element import coerce_binop, have_same_parent
 
 cdef inline long prec(Polynomial_complex_arb pol):
     return pol._parent._base._prec
@@ -454,6 +455,243 @@ cdef class Polynomial_complex_arb(Polynomial):
         cdef Polynomial_complex_arb res = self._new()
         sig_on()
         acb_poly_shift_right(res.__poly, self.__poly, n)
+        sig_off()
+        return res
+
+    # Truncated and power series arithmetic
+
+    cpdef Polynomial _mul_trunc_(self, Polynomial other, long n):
+        r"""
+        Return the product of ``self`` and ``other``, truncated before degree `n`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: (x + 1)._mul_trunc_(x + 2, 2)
+            3.000000000000000*x + 2.000000000000000
+            sage: (x + 1)._mul_trunc_(x + 2, 0)
+            0
+            sage: (x + 1)._mul_trunc_(x + 2, -1)
+            0
+
+        TESTS::
+
+            sage: (x + 1)._mul_trunc_(x + 2, 4)
+            x^2 + 3.000000000000000*x + 2.000000000000000
+        """
+        cdef Polynomial_complex_arb my_other = <Polynomial_complex_arb> other
+        cdef Polynomial_complex_arb res = self._new()
+        if n < 0:
+            n = 0
+        sig_on()
+        acb_poly_mullow(res.__poly, self.__poly, my_other.__poly, n, prec(self))
+        sig_off()
+        return res
+
+    cpdef Polynomial inverse_series_trunc(self, long n):
+        r"""
+        Return the power series expansion at 0 of the inverse of this
+        polynomial, truncated before degree `n`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: (1 - x/3).inverse_series_trunc(3)
+            ([0.1111111111111111 +/- 5.99e-17])*x^2 + ([0.3333333333333333 +/- 7.04e-17])*x + 1.000000000000000
+            sage: x.inverse_series_trunc(1)
+            [+/- inf]
+            sage: Pol(0).inverse_series_trunc(2)
+            (nan + nan*I)*x + nan + nan*I
+
+        TESTS::
+
+            sage: Pol(0).inverse_series_trunc(-1)
+            0
+        """
+        cdef Polynomial_complex_arb res = self._new()
+        if n < 0:
+            n = 0
+        sig_on()
+        acb_poly_inv_series(res.__poly, self.__poly, n, prec(self))
+        sig_off()
+        return res
+
+    cpdef Polynomial _power_trunc(self, unsigned long expo, long n):
+        r"""
+        Return a power of this polynomial, truncated before degree `n`.
+
+        INPUT:
+
+        - ``expo`` - non-negative integer exponent
+        - ``n`` - truncation order
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: (x^2 + 1)._power_trunc(10^10, 3)
+            10000000000.00000*x^2 + 1.000000000000000
+            sage: (x^2 + 1)._power_trunc(10^20, 0)
+            Traceback (most recent call last):
+                ...
+            OverflowError: long int too large to convert
+
+        TESTS::
+
+            sage: (x^2 + 1)._power_trunc(10, -3)
+            0
+            sage: (x^2 + 1)._power_trunc(-1, 0)
+            Traceback (most recent call last):
+            ...
+            OverflowError: can't convert negative value to unsigned long
+        """
+        cdef Polynomial_complex_arb res = self._new()
+        if n < 0:
+            n = 0
+        sig_on()
+        acb_poly_pow_ui_trunc_binexp(res.__poly, self.__poly, expo, n, prec(self))
+        sig_off()
+        return res
+
+    def _log_series(self, long n):
+        r"""
+        Return the power series expansion at 0 of the logarithm of this
+        polynomial, truncated before degree `n`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: (1 + x/3)._log_series(3)
+            ([-0.0555555555555555 +/- 7.10e-17])*x^2 + ([0.3333333333333333 +/- 7.04e-17])*x
+            sage: (-1 + x)._log_series(3)
+            -0.5000000000000000*x^2 - x + [3.141592653589793 +/- 5.61e-16]*I
+
+        An example where the constant term crosses the branch cut of the
+        logarithm::
+
+            sage: pol = CBF(-1, RBF(0, rad=.01)) + x; pol
+            x - 1.000000000000000 + [+/- 0.0101]*I
+            sage: pol._log_series(2)
+            ([-1.000 +/- 1.01e-4] + [+/- 0.0101]*I)*x + [+/- 5.01e-5] + [+/- 3.15]*I
+
+        Some cases where the result is not defined::
+
+            sage: x._log_series(1)
+            nan + nan*I
+            sage: Pol(0)._log_series(1)
+            nan + nan*I
+        """
+        cdef Polynomial_complex_arb res = self._new()
+        if n < 0:
+            n = 0
+        sig_on()
+        acb_poly_log_series(res.__poly, self.__poly, n, prec(self))
+        sig_off()
+        return res
+
+    def _exp_series(self, long n):
+        r"""
+        Return the power series expansion at 0 of the exponential of this
+        polynomial, truncated before degree `n`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: x._exp_series(3)
+            0.5000000000000000*x^2 + x + 1.000000000000000
+            sage: (1 + x/3)._log_series(3)._exp_series(3)
+            ([+/- 5.09e-17])*x^2 + ([0.3333333333333333 +/- 7.04e-17])*x + 1.000000000000000
+            sage: (CBF(0, pi) + x)._exp_series(4)
+            ([-0.166...] + [+/- ...]*I)*x^3 + ([-0.500...] + [+/- ...]*I)*x^2
+            + ([-1.000...] + [+/- ...]*I)*x + [-1.000...] + [+/- ...]*I
+        """
+        cdef Polynomial_complex_arb res = self._new()
+        if n < 0:
+            n = 0
+        sig_on()
+        acb_poly_exp_series(res.__poly, self.__poly, n, prec(self))
+        sig_off()
+        return res
+
+    def _sqrt_series(self, long n):
+        r"""
+        Return the power series expansion at 0 of the square root of this
+        polynomial, truncated before degree `n`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: (1 + x)._sqrt_series(3)
+            -0.1250000000000000*x^2 + 0.5000000000000000*x + 1.000000000000000
+            sage: pol = CBF(-1, RBF(0, rad=.01)) + x; pol
+            x - 1.000000000000000 + [+/- 0.0101]*I
+            sage: pol._sqrt_series(2)
+            ([+/- 7.51e-3] + [+/- 0.501]*I)*x + [+/- 5.01e-3] + [+/- 1.01]*I
+            sage: x._sqrt_series(2)
+            ([+/- inf] + [+/- inf]*I)*x
+        """
+        cdef Polynomial_complex_arb res = self._new()
+        if n < 0:
+            n = 0
+        sig_on()
+        acb_poly_sqrt_series(res.__poly, self.__poly, n, prec(self))
+        sig_off()
+        return res
+
+    def compose_trunc(self, Polynomial other, long n):
+        r"""
+        Return the composition of ``self`` and ``other``, truncated before degree `n`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: Pol.<x> = CBF[]
+            sage: pol = x*(x-1)^2
+            sage: pol.compose_trunc(x + x^2, 4)
+            -3.000000000000000*x^3 - x^2 + x
+            sage: pol.compose_trunc(1 + x, 4)
+            x^3 + x^2
+            sage: pol.compose_trunc(2 + x/3, 2)
+            ([1.666666666666667 +/- 9.81e-16])*x + 2.000000000000000
+            sage: pol.compose_trunc(2 + x/3, 0)
+            0
+            sage: pol.compose_trunc(2 + x/3, -1)
+            0
+        """
+        if n < 0:
+            n = 0
+        if not isinstance(other, Polynomial_complex_arb):
+            return self(other).truncate(n)
+        cdef Polynomial_complex_arb other1 = <Polynomial_complex_arb> other
+        cdef Polynomial_complex_arb res = self._new()
+        cdef acb_poly_t self_ts, other_ts, lin
+        cdef acb_ptr cc
+        if acb_poly_length(other1.__poly) > 0:
+            cc = acb_poly_get_coeff_ptr(other1.__poly, 0)
+            if not acb_is_zero(cc):
+                sig_on()
+                try:
+                    acb_poly_init(self_ts)
+                    acb_poly_init(other_ts)
+                    ### Not yet supported in sage's version of arb
+                    #acb_poly_taylor_shift(self_ts, self.__poly, cc, prec(self))
+                    acb_poly_init(lin)
+                    acb_poly_set_coeff_acb(lin, 0, cc)
+                    acb_poly_set_coeff_si(lin, 1, 1)
+                    acb_poly_compose(self_ts, self.__poly, lin, prec(self))
+                    ###
+                    acb_poly_set(other_ts, other1.__poly)
+                    acb_zero(acb_poly_get_coeff_ptr(other_ts, 0))
+                    acb_poly_compose_series(res.__poly, self_ts, other_ts, n, prec(self))
+                finally:
+                    ###
+                    acb_poly_clear(lin)
+                    ###
+                    acb_poly_clear(other_ts)
+                    acb_poly_clear(self_ts)
+                    sig_off()
+                return res
+        sig_on()
+        acb_poly_compose_series(res.__poly, self.__poly, other1.__poly, n, prec(self))
         sig_off()
         return res
 

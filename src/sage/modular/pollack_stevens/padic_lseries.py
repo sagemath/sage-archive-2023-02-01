@@ -4,8 +4,8 @@ r"""
 
 An overconvergent eigensymbol gives rise to a `p`-adic `L`-series,
 which is essentially defined as the evaluation of the eigensymbol at the
-path `0 \rightarrow \infty`. The resulting distribution on `\Z_p` can be restricted
-to `\Z_p^\times`, thus giving the measure attached to the sought `p`-adic `L`-series.
+path `0 \rightarrow \infty`. The resulting distribution on `\ZZ_p` can be restricted
+to `\ZZ_p^\times`, thus giving the measure attached to the sought `p`-adic `L`-series.
 All this is carefully explained in [PS]_.
 
 """
@@ -38,7 +38,7 @@ class pAdicLseries(SageObject):
     INPUT:
 
     - ``symb`` -- an overconvergent eigensymbol
-    - ``gamma`` -- topological generator of `1 + pZ_p` (default: `1+p` or 5 if `p=2`)
+    - ``gamma`` -- topological generator of `1 + p\ZZ_p` (default: `1+p` or 5 if `p=2`)
     - ``quadratic_twist`` -- conductor of quadratic twist `\chi` (default: 1)
     - ``precision`` -- if None (default) is specified, the correct precision bound is
       computed and the answer is returned modulo that accuracy

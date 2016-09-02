@@ -7,10 +7,10 @@
 #                  http://www.gnu.org/licenses/
 #########################################################################
 r"""
-Spaces of p-adic automorphic forms
+Spaces of `p`-adic automorphic forms
 
-Compute with harmonic cocycles and p-adic automorphic forms, including
-overconvergent p-adic automorphic forms.
+Compute with harmonic cocycles and `p`-adic automorphic forms, including
+overconvergent `p`-adic automorphic forms.
 
 For a discussion of nearly rigid analytic modular forms and
 the rigid analytic Shimura-Maass operator, see [F]_. It is worth also
@@ -155,13 +155,13 @@ def eval_dist_at_powseries(phi, f):
 
 class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
     r"""
-    Gamma-invariant harmonic cocycles on the Bruhat-Tits
-    tree. Gamma-invariance is necessary so that the cocycle can be
+    `\Gamma`-invariant harmonic cocycles on the Bruhat-Tits
+    tree. `\Gamma`-invariance is necessary so that the cocycle can be
     stored in terms of a finite amount of data.
 
-    More precisely, given a ``BruhatTitsQuotient`` T, harmonic cocycles are stored as
+    More precisely, given a ``BruhatTitsQuotient`` `T`, harmonic cocycles are stored as
     a list of values in some coefficient module (e.g. for weight 2 forms
-    can take Cp) indexed by edges of a fundamental domain for T in the
+    can take `\CC_p`) indexed by edges of a fundamental domain for `T` in the
     Bruhat-Tits tree. Evaluate the cocycle at other edges using Gamma
     invariance (although the values may not be equal over an orbit of
     edges as the coefficient module action may be nontrivial).
@@ -474,7 +474,7 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
     def riemann_sum(self, f, center=1, level=0, E=None):
         r"""
         Evaluate the integral of the function ``f`` with respect
-        to the measure determined by ``self`` over `\mathbf{P}_1(\QQ_p)`.
+        to the measure determined by ``self`` over `\mathbf{P}^1(\QQ_p)`.
 
         INPUT:
 
@@ -576,7 +576,7 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
         analytic Shimura-Maass derivatives of the associated modular
         form at `z`.
 
-        If ``z`` = None, a function is returned that encodes the
+        If ``z = None``, a function is returned that encodes the
         derivative of the modular form.
 
         .. NOTE::
@@ -588,8 +588,8 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
         INPUT:
 
         - ``z`` - an element in the quadratic unramified extension of
-          `\QQ_p` that is not contained in `\QQ_p` (default = None). If `z
-          = None` then a function encoding the derivative is returned.
+          `\QQ_p` that is not contained in `\QQ_p` (default = None). If ``z
+          = None`` then a function encoding the derivative is returned.
 
         - ``level`` - an integer. How fine of a mesh should the Riemann
           sum use.
@@ -1483,7 +1483,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
     automorphic form on a definite quaternion algebra over `\QQ`. These
     are required in order to compute moments of measures associated to
     harmonic cocycles on the Bruhat-Tits tree using the overconvergent modules
-    of Darmon-Pollack and Matt Greenberg. See Greenberg's thesis for
+    of Darmon-Pollack and Matt Greenberg. See Greenberg's thesis [G]_ for
     more details.
 
     INPUT:
@@ -1907,7 +1907,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
         INPUT:
 
         - ``z`` - (default: None). If specified, returns the value of
-          the form at the point ``zz`` in the `p`-adic upper half
+          the form at the point ``z`` in the `p`-adic upper half
           plane.
 
         - ``level`` - integer (default: 0). If ``method`` is
@@ -1966,7 +1966,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
         INPUT:
 
         - ``z`` - (default: None). If specified, evaluates the derivative
-           at the point ``z`` in the `p`-adic upper half plane.
+          at the point ``z`` in the `p`-adic upper half plane.
 
         - ``level`` - integer (default: 0). If ``method`` is
           'riemann_sum', will use a covering of `P^1(\QQ_p)` with

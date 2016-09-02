@@ -17,7 +17,7 @@ and the ones in :mod:`sage.modular.modsym`:
 
 EXAMPLES:
 
-First we create the space of modular symbols of weight 0 (k=2) and level 11::
+First we create the space of modular symbols of weight 0 (`k=2`) and level 11::
 
     sage: M = PollackStevensModularSymbols(Gamma0(11), 0); M
     Space of modular symbols for Congruence Subgroup Gamma0(11) with sign 0 and values in Sym^0 Q^2
@@ -116,7 +116,7 @@ class PollackStevensModularSymbols_factory(UniqueFactory):
     They are only relevant if ``coefficients`` is ``None``, in which case the
     coefficient module is inferred from the other data.
 
-    .. WARNING::
+    .. note::
 
         We emphasize that in the Pollack-Stevens notation, the
         ``weight`` is the usual weight minus 2, so a classical weight
@@ -205,7 +205,7 @@ class PollackStevensModularSymbolspace(Module):
     r"""
     A class for spaces of modular symbols that use Glenn Stevens' conventions.
     This class should not be instantiated directly by the user: this is handled
-    by the factory object :class:`PollackStevensModularSymbols`.
+    by the factory object :class:`PollackStevensModularSymbols_factory`.
 
     INPUT:
 
@@ -338,7 +338,7 @@ class PollackStevensModularSymbolspace(Module):
 
         OUTPUT:
 
-        A :class:`sage.modular.pollack_stevens.fund_domain.PollackStevensModularSymbolsDomain`
+        A :class:`sage.modular.pollack_stevens.fund_domain.PollackStevensModularDomain`
 
         EXAMPLES::
 
@@ -871,7 +871,7 @@ def ps_modsym_from_elliptic_curve(E, sign = 0, implementation='eclib'):
       the plus (if ``sign`` == 1) or the minus (if ``sign`` == -1) modular
       symbol. The default of 0 returns the sum of the plus and minus symbols.
 
-    - ``implementation`` --  either 'eclib' (default) or 'sage'. This 
+    - ``implementation`` --  either 'eclib' (default) or 'sage'. This
       determines which implementation of the underlying classical
       modular symbols is used.
 

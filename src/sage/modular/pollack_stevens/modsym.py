@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
-Element class for Pollack-Stevens' Modular Symbols, as in [PS]_.
+Element class for Pollack-Stevens' Modular Symbols
+
+This is the class of elements in the spaces of Pollack-Steven's modular symbols as described in [PS]_.
 
 EXAMPLES::
 
@@ -1042,8 +1044,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
     def completions(self, p, M):
         r"""
         If `K` is the base_ring of self, this function takes all maps
-        `K\to Q_p` and applies them to self return a list of
-        (modular symbol,map: `K\to Q_p`) as map varies over all such maps.
+        `K\to \QQ_p` and applies them to self return a list of
+        (modular symbol,map: `K\to \QQ_p`) as map varies over all such maps.
 
         .. NOTE::
 
@@ -1057,7 +1059,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
         OUTPUT:
 
-        - A list of tuples (modular symbol,map: `K\to Q_p`) as map varies over all such maps
+        - A list of tuples (modular symbol,map: `K\to \QQ_p`) as map varies over all such maps
 
         EXAMPLES::
 
@@ -1124,7 +1126,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
         - ``algorithm`` -- 'stevens' or 'greenberg' (default 'stevens')
 
-        - ``eigensymbol`` -- if True, lifts to Hecke eigensymbol (self must be a `p`-ordinary eigensymbol)
+        - ``eigensymbol`` -- if True, lifts to Hecke eigensymbol (self must
+          be a `p`-ordinary eigensymbol)
 
         (Note: ``eigensymbol = True`` does *not* just indicate to the code that
         self is an eigensymbol; it solves a wholly different problem, lifting
@@ -1176,7 +1179,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: L.symbol() is Phi              # long time
             True
 
-       Examples using Greenberg's algorithm::
+        Examples using Greenberg's algorithm::
 
             sage: E = EllipticCurve('11a')
             sage: phi = E.pollack_stevens_modular_symbol()

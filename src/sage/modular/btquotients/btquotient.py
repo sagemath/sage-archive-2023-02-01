@@ -33,7 +33,7 @@ The rest of functionality can be found in the docstrings below.
 
 REFERENCES:
 
-.. [FM] Computing fundamental domains for the Bruhat-Tits tree for `\textrm{GL}_2(\Q_p)`,
+.. [FM] Computing fundamental domains for the Bruhat-Tits tree for `\textrm{GL}_2(\QQ_p)`,
    `p`-adic automorphic forms, and the canonical embedding of Shimura curves
    Cameron Franc, Marc Masdeu
    LMS Journal of Computation and Mathematics (2014), volume 17, issue 01, pp. 1-23.
@@ -282,13 +282,13 @@ class DoubleCosetReduction(SageObject):
         INPUT:
 
         - ``embedding`` - an integer, or a function (default:
-            none). If ``embedding`` is None, then the image of
-            ``self.gamma`` under the local splitting associated to
-            ``self.Y`` is used. If ``embedding`` is an integer, then
-            the precision of the local splitting of self.Y is raised
-            (if necessary) to be larger than this integer, and this
-            new local splitting is used. If a function is passed, then
-            map ``self.gamma`` under ``embedding``.
+          none). If ``embedding`` is None, then the image of
+          ``self.gamma`` under the local splitting associated to
+          ``self.Y`` is used. If ``embedding`` is an integer, then
+          the precision of the local splitting of self.Y is raised
+          (if necessary) to be larger than this integer, and this
+          new local splitting is used. If a function is passed, then
+          map ``self.gamma`` under ``embedding``.
         - ``scale`` -- (default: 1) scaling factor applied to the output
 
         OUTPUT:
@@ -469,7 +469,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         - ``e`` - a 2x2 matrix with integer entries
 
         - ``normalized`` - boolean (default: false). If True
-            then the input matrix M is assumed to be normalized
+          then the input matrix M is assumed to be normalized
 
         OUTPUT:
 
@@ -800,7 +800,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
     def subdivide(self, edgelist, level):
         r"""
         (Ordered) edges of self may be regarded as open balls in
-        `P_1(\QQ_p)`.  Given a list of edges, this function return a list
+        `P^1(\QQ_p)`.  Given a list of edges, this function return a list
         of edges corresponding to the level-th subdivision of the
         corresponding opens.  That is, each open ball of the input is
         broken up into `p^{\mbox{level}}` subballs of equal radius.
@@ -942,7 +942,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         INPUT:
 
         - ``z`` - an element of an unramified extension of `\QQ_p`
-            that is not contained in `\QQ_p`.
+          that is not contained in `\QQ_p`.
 
         OUTPUT:
 
@@ -1096,24 +1096,24 @@ class Vertex(SageObject):
 
     INPUT:
 
-     - ``p`` - a prime integer.
+    - ``p`` - a prime integer.
 
-     - ``label`` - An integer which uniquely identifies this vertex.
+    - ``label`` - An integer which uniquely identifies this vertex.
 
-     - ``rep`` - A 2x2 matrix in reduced form representing this
-       vertex.
+    - ``rep`` - A 2x2 matrix in reduced form representing this
+      vertex.
 
-     - ``leaving_edges`` - (default: empty list) A list of edges
-       leaving this vertex.
+    - ``leaving_edges`` - (default: empty list) A list of edges
+      leaving this vertex.
 
-     - ``entering_edges`` - (default: empty list) A list of edges
-       entering this vertex.
+    - ``entering_edges`` - (default: empty list) A list of edges
+      entering this vertex.
 
-     - ``determinant`` - (default: None) The determinant of ``rep``,
-       if known.
+    - ``determinant`` - (default: None) The determinant of ``rep``,
+      if known.
 
-     - ``valuation`` - (default: None) The valuation of the
-       determinant of ``rep``, if known.
+    - ``valuation`` - (default: None) The valuation of the
+      determinant of ``rep``, if known.
 
     EXAMPLES::
 
@@ -1213,27 +1213,27 @@ class Edge(SageObject):
 
     INPUT:
 
-     - ``p`` - a prime integer.
+    - ``p`` - a prime integer.
 
-     - ``label`` - An integer which uniquely identifies this edge.
+    - ``label`` - An integer which uniquely identifies this edge.
 
-     - ``rep`` - A 2x2 matrix in reduced form representing this edge.
+    - ``rep`` - A 2x2 matrix in reduced form representing this edge.
 
-     - ``origin`` - The origin vertex of ``self``.
+    - ``origin`` - The origin vertex of ``self``.
 
-     - ``target`` - The target vertex of ``self``.
+    - ``target`` - The target vertex of ``self``.
 
-     - ``links`` - (Default: empty list) A list of elements of
-       `\Gamma` which identify different edges in the Bruhat-Tits tree
-       which are equivalent to ``self``.
+    - ``links`` - (Default: empty list) A list of elements of
+      `\Gamma` which identify different edges in the Bruhat-Tits tree
+      which are equivalent to ``self``.
 
-     - ``opposite`` - (Default: None) The edge opposite to ``self``
+    - ``opposite`` - (Default: None) The edge opposite to ``self``
 
-     - ``determinant`` - (Default: None) The determinant of ``rep``,
-       if known.
+    - ``determinant`` - (Default: None) The determinant of ``rep``,
+      if known.
 
-     - ``valuation`` - (Default: None) The valuation of the
-       determinant of ``rep``, if known.
+    - ``valuation`` - (Default: None) The valuation of the
+      determinant of ``rep``, if known.
 
     EXAMPLES::
 
@@ -1348,7 +1348,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
     group of norm 1 elements in an Eichler `\ZZ[1/p]`-order of some (tame)
     level inside of a definite quaternion algebra that is unramified
     at the prime `p`. Note that this routine relies in Magma in the case
-    `p = 2` or when `Nplus > 1`.
+    `p = 2` or when `N^{+} > 1`.
 
     INPUT:
 
@@ -2323,7 +2323,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             sage: X.get_extra_embedding_matrices()
             []
 
-::
+        ::
 
             sage: f = DirichletGroup(6)[1]
             sage: X = BruhatTitsQuotient(5,2,3, character = f, use_magma=True) # optional - magma
@@ -3676,7 +3676,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         - ``E`` -- an elliptic curve over the rational numbers
 
         - ``prec`` -- (default: None) If specified, the harmonic cocycle will take values
-          in `\Q_p` with precision ``prec``. Otherwise it will take values in `\Z`.
+          in `\QQ_p` with precision ``prec``. Otherwise it will take values in `\ZZ`.
 
         OUTPUT:
 
@@ -3772,14 +3772,14 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
           it automatically from ``prec``, ``U`` and the ``overconvergent`` flag.
 
         - ``R`` -- (default : None). If specified, coefficent field of the automorphic forms.
-          If not speficied it defaults to the base ring of the distributions ``U``, or to `Q_p`
+          If not speficied it defaults to the base ring of the distributions ``U``, or to `\QQ_p`
           with the working precision ``prec``.
 
         - ``overconvergent`` -- Boolean (default = False). If True, will construct overconvergent
           `p`-adic automorhic forms. Otherwise it constructs the finite dimensional space of
           `p`-adic automorphic forms which is isomorphic to the space of harmonic cocycles.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: X = BruhatTitsQuotient(11,5)
             sage: X.padic_automorphic_forms(2,prec=10)

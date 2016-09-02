@@ -119,6 +119,10 @@ cdef class Polynomial_complex_arb(Polynomial):
             1.000000000000000
             sage: Polynomial_complex_arb(Pol, (CBF(i), 1))
             x + I
+            sage: Polynomial_complex_arb(Pol, polygen(QQ,'y')+2)
+            x + 2.000000000000000
+            sage: Polynomial_complex_arb(Pol, QQ['x'](0))
+            0
             sage: Polynomial_complex_arb(Pol, {10: pi})
             ([3.141592653589793 +/- 5.61e-16])*x^10
             sage: Polynomial_complex_arb(Pol, pi)
@@ -144,6 +148,12 @@ cdef class Polynomial_complex_arb(Polynomial):
                 sig_on(); acb_poly_fit_length(self.__poly, length); sig_off()
                 for i in range(length):
                     ball = Coeff(x[i])
+                    acb_poly_set_coeff_acb(self.__poly, i, ball.value)
+            elif isinstance(x, Polynomial):
+                length = x.degree() + 1
+                sig_on(); acb_poly_fit_length(self.__poly, length); sig_off()
+                for i in range(length):
+                    ball = Coeff((<Polynomial> x).get_unsafe(i))
                     acb_poly_set_coeff_acb(self.__poly, i, ball.value)
             elif isinstance(x, dict):
                 if len(x) == 0:

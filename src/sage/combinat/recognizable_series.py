@@ -1612,7 +1612,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
     def some_elements(self):
         r"""
-        Return some elements of this free module.
+        Return some elements of this recognizable series.
 
         See :class:`TestSuite` for a typical use case.
 

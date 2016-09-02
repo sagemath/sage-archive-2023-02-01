@@ -186,7 +186,7 @@ class TensorAlgebra(CombinatorialFreeModule):
              **
              **
              *
-            sage: s = TA([Partition([3,2,2,1])]*2 + [Partition([3])]*3 + [Partition(1)]*2).leading_support()
+            sage: s = TA([Partition([3,2,2,1])]*2 + [Partition([3])]*3 + [Partition([1])]*2).leading_support()
             sage: TA._ascii_art_term(s)
             B    # B    # B    # B    # B    # B  # B
              ***    ***    ***    ***    ***    *    *
@@ -263,9 +263,10 @@ class TensorAlgebra(CombinatorialFreeModule):
             sage: TA._tensor_constructor_([x, x])
             4*B['a'] # B['a'] + 4*B['a'] # B['b']
              + 4*B['b'] # B['a'] + 4*B['b'] # B['b']
-            sage: y = TA(['b', 'a'])
+            sage: y = C.monomial('b') + 3*C.monomial('a')
             sage: TA._tensor_constructor_([x, y])
-            2*B['b', 'b', 'a'] + 2*B['b', 'b', 'b']
+            6*B['a'] # B['a'] + 2*B['a'] # B['b'] + 6*B['b'] # B['a']
+             + 2*B['b'] # B['b']
             sage: TA._tensor_constructor_([y]) == y
             True
             sage: TA._tensor_constructor_([x]) == x
@@ -314,6 +315,8 @@ class TensorAlgebra(CombinatorialFreeModule):
             sage: TAC.has_coerce_map_from(C)
             True
             sage: c = C.monomial(2)
+            sage: TAC(c)
+            B[2]
             sage: d = C.monomial(1)
             sage: TAC(c) * TAC(d)
             B[2] # B[1]
@@ -360,7 +363,7 @@ class TensorAlgebra(CombinatorialFreeModule):
             sage: TAD.has_coerce_map_from(TAC)
             True
             sage: TAD(3 * TAC([1, 2, 2, 1, 1]))
-            3 * B[2] * B[4] * B[4] * B[2] * B[2]
+            3 * B[2] # B[4] # B[4] # B[2] # B[2]
         """
         # Base ring coercions
         self_base_ring = self.base_ring()
@@ -540,8 +543,8 @@ class TensorAlgebra(CombinatorialFreeModule):
             sage: TA.antipode_on_basis(s)
             -B['c'] # B['b'] # B['a']
             sage: t = TA(['a', 'b', 'b', 'b']).leading_support()
-            sage: TA.antipode_on_basis(s)
-            B['b'] * B['b'] * B['b'] * B['a']
+            sage: TA.antipode_on_basis(t)
+            B['b'] # B['b'] # B['b'] # B['a']
         """
         m = self._indices(reversed(m._monomial))
         R = self.base_ring()

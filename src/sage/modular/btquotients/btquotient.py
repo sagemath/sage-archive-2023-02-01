@@ -3772,12 +3772,12 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
           it automatically from ``prec``, ``U`` and the ``overconvergent`` flag.
 
         - ``R`` -- (default : None). If specified, coefficent field of the automorphic forms.
-        If not speficied it defaults to the base ring of the distributions ``U``, or to `Q_p`
-        with the working precision ``prec``.
+          If not speficied it defaults to the base ring of the distributions ``U``, or to `Q_p`
+          with the working precision ``prec``.
 
         - ``overconvergent`` -- Boolean (default = False). If True, will construct overconvergent
-        `p`-adic automorhic forms. Otherwise it constructs the finite dimensional space of
-        `p`-adic automorphic forms which is isomorphic to the space of harmonic cocycles.
+          `p`-adic automorhic forms. Otherwise it constructs the finite dimensional space of
+          `p`-adic automorphic forms which is isomorphic to the space of harmonic cocycles.
 
         EXAMPLES:
 

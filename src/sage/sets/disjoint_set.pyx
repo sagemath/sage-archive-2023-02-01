@@ -162,9 +162,9 @@ cdef class DisjointSet_class(SageObject):
         res = []
         for l in itervalues(self.root_to_elements_dict()):
             l.sort()
-            res.append('{%s}'% ', '.join(itertools.imap(repr, l)))
+            res.append('{%s}' % ', '.join(repr(u) for u in l))
         res.sort()
-        return '{%s}'% ', '.join(res)
+        return '{%s}' % ', '.join(res)
 
     def __iter__(self):
         """

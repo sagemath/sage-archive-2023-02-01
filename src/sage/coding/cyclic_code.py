@@ -446,8 +446,7 @@ class CyclicCode(AbstractLinearCode):
             
             # we set class variables
             self._primitive_root = alpha
-            self._defining_set = pows
-            self._defining_set.sort()
+            self._defining_set = sorted(pows)
             self._polynomial_ring = R
             self._generator_polynomial = g
             self._dimension = n - g.degree()
@@ -626,8 +625,7 @@ class CyclicCode(AbstractLinearCode):
             gsplit = Rsplit([F_to_Fsplit(coeff) for coeff in g])
             roots = gsplit.roots(multiplicities = False)
             D = [discrete_log(root, alpha) for root in roots]
-            D.sort()
-            self._defining_set = D
+            self._defining_set = sorted(D)
             return D
 
     def primitive_root(self):

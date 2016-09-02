@@ -1035,7 +1035,7 @@ class Function_gamma_inc(BuiltinFunction):
             0.0404276819945128
             sage: x,y=var('x,y')
             sage: gamma_inc(x,y).diff(x)
-            D[0](gamma)(x, y)
+            diff(gamma(x, y), x)
             sage: (gamma_inc(x,x+1).diff(x)).simplify()
             -(x + 1)^(x - 1)*e^(-x - 1) + D[0](gamma)(x, x + 1)
 

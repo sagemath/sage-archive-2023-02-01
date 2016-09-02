@@ -180,5 +180,6 @@ fix_includes()
 for i in remove_old_version config \
   build_singular build_factory fix_includes \
   create_singular_script install_docs ; do
+    echo "############### Singular stage $i ###############"
     cd "$SRC" && $i
 done

@@ -3748,7 +3748,7 @@ cdef class Expression(CommutativeRingElement):
 
         .. seealso::
 
-            This is implemented in the `_derivative` method (see the
+            This is implemented in the ``_derivative`` method (see the
             source code).
 
         EXAMPLES::

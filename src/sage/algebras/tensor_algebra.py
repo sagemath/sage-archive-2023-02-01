@@ -321,29 +321,12 @@ class TensorAlgebra(CombinatorialFreeModule):
             sage: TAC(c) * TAC(d)
             B[2] # B[1]
             sage: TAC(c-d) * TAC(c+d)
-            -B[1] # B[1] + B[2] # B[2]
+            -B[1] # B[1] - B[1] # B[2] + B[2] # B[1] + B[2] # B[2]
 
             sage: TCC = tensor((C,C))
             sage: TAC.has_coerce_map_from(TCC)
             True
             sage: TAC(tensor([c, d]))
-            B[2] # B[1]
-
-            sage: CQ = CombinatorialFreeModule(QQ, Set([1,2]))
-            sage: TACQ = TensorAlgebra(CQ)
-            sage: TACQ.has_coerce_map_from(ZZ)
-            True
-            sage: TACQ(1) == TACQ.one()
-            True
-            sage: TACQ.has_coerce_map_from(C)
-            True
-            sage: c = C.monomial(2)
-            sage: d = C.monomial(1)
-            sage: TACQ(c) * TACQ(d)
-            B[2] # B[1]
-            sage: TACQ(c-d) * TACQ(c+d)
-            -B[1] # B[1] + B[2] # B[2]
-            sage: TACQ(TAC(c) * TAC(d))
             B[2] # B[1]
 
         ::
@@ -363,7 +346,7 @@ class TensorAlgebra(CombinatorialFreeModule):
             sage: TAD.has_coerce_map_from(TAC)
             True
             sage: TAD(3 * TAC([1, 2, 2, 1, 1]))
-            3 * B[2] # B[4] # B[4] # B[2] # B[2]
+            3*B[2] # B[4] # B[4] # B[2] # B[2]
         """
         # Base ring coercions
         self_base_ring = self.base_ring()
@@ -389,9 +372,9 @@ class TensorAlgebra(CombinatorialFreeModule):
                                      codomain=self)
 
         # Coercions from tensor products
-        if R in Modules(self_base_ring).WithBasis().TensorProducts() \
-                and isinstance(R, CombinatorialFreeModule_Tensor) \
-                and all(M.has_coerce_map_from(RM) for RM in R._sets):
+        if (R in Modules(self_base_ring).WithBasis().TensorProducts()
+                and isinstance(R, CombinatorialFreeModule_Tensor)
+                and all(M.has_coerce_map_from(RM) for RM in R._sets)):
             modules = R._sets
             vector_map = [M.coerce_map_from(RM) for RM in R._sets]
             return R.module_morphism(lambda x: self._tensor_constructor_(

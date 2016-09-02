@@ -456,3 +456,45 @@ cdef class Polynomial_complex_arb(Polynomial):
         acb_poly_shift_right(res.__poly, self.__poly, n)
         sig_off()
         return res
+
+    # Evaluation
+
+    def __call__(self, *x, **kwds):
+        r"""
+        Evaluate this polynomial.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: pol = x^2 - 1
+            sage: pol(CBF(pi))
+            [8.86960440108936 +/- 8.36e-15]
+            sage: pol(x^3 + 1)
+            x^6 + 2.000000000000000*x^3
+            sage: pol(matrix([[1,2],[3,4]]))
+            [6.000000000000000 10.00000000000000]
+            [15.00000000000000 21.00000000000000]
+        """
+        cdef ComplexBall ball
+        cdef Polynomial_complex_arb poly
+        if len(x) == 1 and not kwds:
+            point = x[0]
+            if isinstance(point, ComplexBall):
+                # parent of result = base ring of self (not parent of point)
+                ball = ComplexBall.__new__(ComplexBall)
+                ball._parent = self._parent._base
+                sig_on()
+                acb_poly_evaluate(ball.value, self.__poly,
+                        (<ComplexBall> point).value, prec(self))
+                sig_off()
+                return ball
+            elif isinstance(point, Polynomial_complex_arb):
+                poly = self._new()
+                sig_on()
+                acb_poly_compose(poly.__poly, self.__poly,
+                        (<Polynomial_complex_arb> point).__poly, prec(self))
+                sig_off()
+                return poly
+            # TODO: perhaps add more special cases, e.g. for real ball,
+            # integers and rationals
+        return Polynomial.__call__(self, *x, **kwds)

@@ -356,7 +356,8 @@ class CyclicCode(AbstractLinearCode):
             ValueError: The code is not cyclic.
         """
         # Case (1) : generator polynomial and length are provided.
-        if generator_pol is not None and length is not None:
+        if (generator_pol is not None and length is not None
+            and code is None and D is None and field is None):
             F = generator_pol.base_ring()
             if not F.is_finite() or not F.is_field():
                 raise ValueError("Generator polynomial must be defined over a finite field")
@@ -378,7 +379,8 @@ class CyclicCode(AbstractLinearCode):
             super(CyclicCode, self).__init__(F, length, "Vector", "Syndrome")
 
         # Case (2) : a code is provided.
-        elif code is not None:
+        elif (code is not None
+              and generator_pol is None and length is None and D is None and field is None):
             if not isinstance(code, AbstractLinearCode):
                 raise ValueError("code must be an AbstractLinearCode")
             F = code.base_ring()
@@ -396,7 +398,8 @@ class CyclicCode(AbstractLinearCode):
             super(CyclicCode, self).__init__(code.base_ring(), n, "Vector", "Syndrome")
 
         # Case (3) : a defining set, a length and a field are provided
-        elif D is not None and length is not None and field is not None:
+        elif (D is not None and length is not None and field is not None
+              and generator_pol is None and code is None):
             F = field
             if not F.is_finite() or not F.is_field():
                 raise ValueError("A finite field must be given in complement to defining set.")

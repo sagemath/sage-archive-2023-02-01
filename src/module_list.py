@@ -1489,6 +1489,9 @@ ext_modules = [
     Extension('sage.rings.polynomial.polydict',
               sources = ['sage/rings/polynomial/polydict.pyx']),
 
+    Extension('sage.rings.polynomial.polynomial_complex_arb',
+               sources = ['sage/rings/polynomial/polynomial_complex_arb.pyx']),
+
     Extension('sage.rings.polynomial.polynomial_compiled',
                sources = ['sage/rings/polynomial/polynomial_compiled.pyx']),
 

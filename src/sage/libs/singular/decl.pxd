@@ -112,7 +112,7 @@ cdef extern from "singular/Singular/libsingular.h":
         mpz_t n
         int s
 
-
+    # See singular/libpolys/coeffs/coeffs.h for documentation
     cdef enum n_coeffType:
         n_unknown
         n_Zp
@@ -124,10 +124,10 @@ cdef extern from "singular/Singular/libsingular.h":
         n_transExt
         n_long_C
         n_Z
-        n_Zn0
-        n_Znm1
-        n_Z2m2
-        n_CF3
+        n_Zn
+        n_Znm
+        n_Z2m
+        n_CF
 
     ctypedef struct ring "ip_sring"
     ctypedef struct AlgExtInfo

@@ -622,7 +622,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: x.artin_hasse_exp(1)
             1 + O(3^20)
 
-        TESTS::
+        TESTS:
+
+        Using Theorem 2.5 of [Conr]_::
 
             sage: x1 = 5*Zp(5).random_element()
             sage: x2 = 5*Zp(5).random_element()
@@ -630,6 +632,19 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: y2 = x2.artin_hasse_exp()
             sage: (y1 - y2).abs() == (x1 - x2).abs()
             True
+
+        Comparing with the formal power series definition::
+
+            sage: x = PowerSeriesRing(QQ, 'x', default_prec=82).gen()
+            sage: AH = sum(x**(3**i)/(3**i) for i in range(5)).O(82).exp()
+            sage: z = Zp(3)(33/7)
+            sage: AH(z)
+            1 + 2*3 + 3^2 + 3^3 + 2*3^5 + 3^6 + 2*3^7 + 3^9 + 3^11 + 3^12 +
+            3^13 + 3^14 + 2*3^15 + 3^16 + 2*3^18 + 2*3^19 + O(3^20)
+            sage: z.artin_hasse_exp()
+            ?
+
+        Out of convergence domain::
 
             sage: Zp(5)(1).artin_hasse_exp()
             Traceback (most recent call last):
@@ -640,6 +655,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         - Mitchell Owen (2012-02-21)
         - Sebastian Pancrantz (2012-02-21)
+
+        REFERENCES:
+
+        .. [Conr] K. Conrad, *Artin-Hasse-Type Series and Roots of Unity*
+           http://www.math.uconn.edu/~kconrad/blurbs/gradnumthy/AHrootofunity.pdf
         """
         if self.valuation() < 1:
             raise ValueError("series does not converge")

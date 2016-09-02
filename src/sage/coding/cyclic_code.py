@@ -658,6 +658,7 @@ class CyclicCode(AbstractLinearCode):
             _ = self.defining_set()
             return self._primitive_root
 
+    @cached_method
     def check_polynomial(self):
         r"""
         Returns the check polynomial of ``self``.
@@ -677,8 +678,6 @@ class CyclicCode(AbstractLinearCode):
             sage: h == (x**n - 1)/C.generator_polynomial()
             True
         """
-        if hasattr(self, "_check_polynomial"):
-            return self._check_polynomial
         R = self._polynomial_ring
         n = self.length()
         self._check_polynomial = (R.gen() ** n - 1) // self.generator_polynomial()
@@ -1059,7 +1058,7 @@ class CyclicCodeVectorEncoder(Encoder):
             sage: E.encode(m)
             (1, 1, 1, 0, 0, 1, 0)
         """
-        if hasattr(self, "_known_generator_matrix"):
+        if self.generator_matrix.cache is not None:
             return super(CyclicCodeVectorEncoder, self).encode(m)
 
         k = self.code().dimension()
@@ -1123,8 +1122,6 @@ class CyclicCodeVectorEncoder(Encoder):
             [0 0 1 1 0 1 0]
             [0 0 0 1 1 0 1]
         """
-
-        self._known_generator_matrix = True
         C = self.code()
         k = C.dimension()
         n = C.length()

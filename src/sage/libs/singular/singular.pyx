@@ -767,7 +767,7 @@ cdef init_libsingular():
     libSingularFound = False
 
     for extension in ["so", "dylib", "dll"]:
-        lib = os.environ['SAGE_LOCAL']+"/lib/libsingular."+extension
+        lib = os.environ['SAGE_LOCAL']+"/lib/libSingular."+extension
         if os.path.exists(lib):
             handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
             if not handle:

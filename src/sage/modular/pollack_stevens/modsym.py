@@ -11,10 +11,10 @@ EXAMPLES::
     0
     sage: phi.values()
     [-1/5, 1, 0]
-    sage: phi.is_ordinary()
+    sage: phi.is_ordinary(11)
     True
     sage: phi_lift = phi.lift(11, 5, eigensymbol = True) # long time
-    sage: phi_lift.padic_lseries().series(5)
+    sage: phi_lift.padic_lseries().series(5) # long time
     O(11^5) + (10 + 3*11 + 6*11^2 + 9*11^3 + O(11^4))*T + (6 + 3*11 + 2*11^2 + O(11^3))*T^2 + (2 + 2*11 + O(11^2))*T^3 + (5 + O(11))*T^4 + O(T^5)
 
 ::
@@ -1569,7 +1569,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
             sage: phi = E.pollack_stevens_modular_symbol()
             sage: L = phi.lift(37, M=6, eigensymbol=True).padic_lseries(); L  # long time
             37-adic L-series of Modular symbol of level 37 with values in Space of 37-adic distributions with k=0 action and precision cap 7
-            sage: L.series(6,2) # long time
+            sage: L.series(2) # long time
             O(37^6) + (4 + 37 + 36*37^2 + 19*37^3 + 21*37^4 + O(37^5))*T + O(T^2)
         """
         from sage.modular.pollack_stevens.padic_lseries import pAdicLseries

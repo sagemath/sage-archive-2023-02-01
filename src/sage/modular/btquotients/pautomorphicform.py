@@ -31,7 +31,7 @@ Declare the corresponding space of harmonic cocycles
 And the space of `p`-adic automorphic forms
 ::
 
-    sage: A2 = X.padic_automorphic_forms(2,prec=5,overconvergent=True)
+    sage: A = X.padic_automorphic_forms(2,prec=5,overconvergent=True)
 
 Harmonic cocycles, unlike `p`-adic automorphic forms, can be used to compute a basis.
 ::
@@ -41,7 +41,8 @@ Harmonic cocycles, unlike `p`-adic automorphic forms, can be used to compute a b
 This can then be lifted to an overconvergent `p`-adic modular form.
 ::
 
-    sage: A2.lift(a) # long time
+    sage: A.lift(a) # long time
+    p-adic automorphic form of cohomological weight 0
 
 REFERENCES:
 
@@ -2405,27 +2406,27 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
         """
         # Code how to coerce x into the space
         # Admissible values of x?
-        if type(x) is list:
-            return self.element_class(self, [self._U(o) for o in x])
+        if type(data) is list:
+            return self.element_class(self, [self._U(o) for o in data])
 
-        if isinstance(x, pAdicAutomorphicFormElement):
-            return self.element_class(self, [self._U(o) for o in x._value])
+        if isinstance(data, pAdicAutomorphicFormElement):
+            return self.element_class(self, [self._U(o) for o in data._value])
 
-        if isinstance(x, BruhatTitsHarmonicCocycleElement):
+        if isinstance(data, BruhatTitsHarmonicCocycleElement):
             E = self._list
             tmp = []
             F = []
-            Uold = x.parent()._U
-            for ii in range(len(x._F)):
-                newtmp = x.parent()._Sigma0(E[ii].rep.inverse(), check=False) * Uold(x._F[ii])  # Warning, should remove check=False!
+            Uold = data.parent()._U
+            for ii in range(len(data._F)):
+                newtmp = data.parent()._Sigma0(E[ii].rep.inverse(), check=False) * Uold(data._F[ii])  # Warning, should remove check=False!
                 tmp.append(newtmp)
                 F.append(newtmp)
             A = Matrix(QQ, 2, 2, [0, -1 / self.prime(), -1, 0])
-            for ii in range(len(x._F)):
-                F.append(-(x.parent()._Sigma0(A.adjoint(), check=False) * tmp[ii]))
+            for ii in range(len(data._F)):
+                F.append(-(data.parent()._Sigma0(A.adjoint(), check=False) * tmp[ii]))
             vals = self._make_invariant([self._U(o) for o in F])
             return self.element_class(self, vals)
-        if x == 0:
+        if data == 0:
             return self.zero_element()
 
     def _an_element_(self):

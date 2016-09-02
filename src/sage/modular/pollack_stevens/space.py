@@ -25,7 +25,7 @@ First we create the space of modular symbols of weight 0 (k=2) and level 11::
 One can also create a space of overconvergent modular symbols, by specifying a prime and a precision::
 
     sage: M = PollackStevensModularSymbols(Gamma0(11), p = 5, prec_cap = 10, weight = 0); M
-    Space of overconvergent modular symbols for Congruence Subgroup Gamma0(11) with sign 0 and values in Space of 5-adic distributions with k=0 action and precision cap 20
+    Space of overconvergent modular symbols for Congruence Subgroup Gamma0(11) with sign 0 and values in Space of 5-adic distributions with k=0 action and precision cap 10
 
 Currently not much functionality is available on the whole space, and these
 spaces are mainly used as parents for the modular symbols. These can be constructed from the corresponding
@@ -53,7 +53,7 @@ classical modular symbols (or even elliptic curves) as follows::
     Modular symbol of level 37 with values in Sym^0 Q^2
     sage: phi.values()
     [0, 1, 0, 0, 0, -1, 1, 0, 0]
-    phi.parent()
+    sage: phi.parent()
     Space of modular symbols for Congruence Subgroup Gamma0(37) with sign 0 and values in Sym^0 Q^2
 
 REFERENCES:
@@ -1049,7 +1049,7 @@ def ps_modsym_from_simple_modsym_space(A, name="alpha"):
         sage: ps_modsym_from_simple_modsym_space(A)
         Traceback (most recent call last):
         ...
-        ValueError: A must positive dimension
+        ValueError: A must have positive dimension
 
     We check that forms of nontrivial character are getting handled correctly::
 

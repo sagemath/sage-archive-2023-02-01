@@ -187,9 +187,9 @@ class DoubleCosetReduction(SageObject):
             sage: Y = BruhatTitsQuotient(5, 13)
             sage: x = Matrix(ZZ,2,2,[123,153,1231,1231])
             sage: DoubleCosetReduction(Y,x)
-            Double coset data: -1, [(4), (5), (-4), (-4)], 8
+            Double coset data (-1, [(4), (5), (-4), (-4)], 8)
         """
-        return "Double coset data: %s, %s, %s"%(d.sign(), list(d.gamma), d.label)
+        return "Double coset data (%s, %s, %s)"%(self.sign(), list(self.gamma), self.label)
 
     def __cmp__(self, other):
         """
@@ -2864,19 +2864,11 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: X = BruhatTitsQuotient(3,7)
-            sage: X._get_Up_data()
-            [[
-            [1/3   0]
-            [  0   1], [DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction]
-            ],
+            sage: [o[0] for o in X._get_Up_data()]
             [
-            [-1/3  1/3]
-            [   1    0], [DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction]
-            ],
-            [
-            [-2/3  1/3]
-            [   1    0], [DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction]
-            ]]
+            [1/3   0]  [-1/3  1/3]  [-2/3  1/3]
+            [  0   1], [   1    0], [   1    0]
+            ]
         """
         E = self.get_edge_list()
         vec_a = self._BT.subdivide([1], 1)
@@ -2899,13 +2891,11 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: X = BruhatTitsQuotient(3,5)
-            sage: X._get_atkin_lehner_data(3)
-            [
+            sage: X._get_atkin_lehner_data(3)[0]
             [ 2]
             [ 4]
             [-3]
-            [-2], [DoubleCosetReduction, DoubleCosetReduction]
-            ]
+            [-2]
         """
         E = self.get_edge_list()
         # self._increase_precision(20)
@@ -3795,5 +3785,5 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             sage: X.padic_automorphic_forms(2,prec=10)
             Space of automorphic forms on Quotient of the Bruhat Tits tree of GL_2(QQ_11) with discriminant 5 and level 1 with values in Sym^0 Q_11^2
         """
-        from pautomorphicform import pAdicAutomorphicForms
+        from .pautomorphicform import pAdicAutomorphicForms
         return pAdicAutomorphicForms(self, U, prec=prec, t=t, R=R, overconvergent=overconvergent)

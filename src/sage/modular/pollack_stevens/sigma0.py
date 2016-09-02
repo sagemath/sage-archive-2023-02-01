@@ -199,6 +199,7 @@ class Sigma0Element(MonoidElement):
 
     EXAMPLES::
 
+        sage: from sage.modular.pollack_stevens.sigma0 import Sigma0
         sage: S = Sigma0(7)
         sage: g = S([2,3,7,1])
         sage: g.det()
@@ -208,7 +209,7 @@ class Sigma0Element(MonoidElement):
         [ 2  7]
         [ 7 15]
         sage: g.inverse()
-        Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
         TypeError: no conversion of this rational to integer
         sage: h.inverse()
@@ -408,7 +409,7 @@ class Sigma0_class(Parent):
         sage: S = Sigma0(5); S
         Monoid Sigma0(5) with coefficients in Integer Ring
         sage: S([1,2,1,1])
-        Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
         TypeError: level 5^1 does not divide 1
         sage: S([1,2,5,1])

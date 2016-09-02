@@ -1090,11 +1090,9 @@ cdef comp_pt(clist, loop=True):
         sage: m.plot_spiderweb()
         Graphics object consisting of 21 graphics primitives
     """
-    list2 = list(range(len(clist) + 1)) if loop else list(range(len(clist)))
-    for i in range(len(clist)):
-        list2[i] = (clist[i].real, clist[i].imag)
+    list2 = [(c.real, c.imag) for c in clist]
     if loop:
-        list2[len(clist)] = list2[0]
+        list2.append(list2[0])
     return list2
 
 cpdef get_derivatives(np.ndarray[COMPLEX_T, ndim=2] z_values, FLOAT_T xstep,

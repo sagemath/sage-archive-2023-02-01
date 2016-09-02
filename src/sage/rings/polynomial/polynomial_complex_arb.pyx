@@ -27,6 +27,7 @@ include "cysignals/signals.pxi"
 
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.complex_arb cimport ComplexBall
+from sage.structure.element import coerce_binop
 
 from sage.rings.complex_arb import ComplexBallField
 
@@ -199,3 +200,129 @@ cdef class Polynomial_complex_arb(Polynomial):
         """
         cdef unsigned long length = acb_poly_length(self.__poly)
         return [self.get_unsafe(n) for n in range(length)]
+
+    # Ring and Euclidean arithmetic
+
+    cpdef _add_(self, other):
+        r"""
+        Return the sum of two polynomials.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: (x + 1) + (x/3 - 2)
+            ([1.333333333333333 +/- 5.37e-16])*x - 1.000000000000000
+        """
+        cdef Polynomial_complex_arb res = self._new()
+        sig_on()
+        acb_poly_add(
+                res.__poly,
+                self.__poly,
+                (<Polynomial_complex_arb> other).__poly,
+                prec(self))
+        sig_off()
+        return res
+
+    cpdef _neg_(self):
+        r"""
+        Return the opposite of this polynomial.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: -(x/3 - 2)
+            ([-0.3333333333333333 +/- 7.04e-17])*x + 2.000000000000000
+        """
+        cdef Polynomial_complex_arb res = self._new()
+        sig_on()
+        acb_poly_neg(res.__poly, self.__poly)
+        sig_off()
+        return res
+
+    cpdef _sub_(self, other):
+        r"""
+        Return the difference of two polynomials.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: (x + 1) - (x/3 - 2)
+            ([0.666666666666667 +/- 5.37e-16])*x + 3.000000000000000
+        """
+        cdef Polynomial_complex_arb res = self._new()
+        sig_on()
+        acb_poly_sub(
+                res.__poly,
+                self.__poly,
+                (<Polynomial_complex_arb> other).__poly,
+                prec(self))
+        sig_off()
+        return res
+
+    cpdef _mul_(self, other):
+        r"""
+        Return the product of two polynomials.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: (x + 1)*(x/3 - 2)
+            ([0.3333333333333333 +/- 7.04e-17])*x^2
+            + ([-1.666666666666667 +/- 7.59e-16])*x - 2.000000000000000
+        """
+        cdef Polynomial_complex_arb res = self._new()
+        sig_on()
+        acb_poly_mul(
+                res.__poly,
+                self.__poly,
+                (<Polynomial_complex_arb> other).__poly,
+                prec(self))
+        sig_off()
+        return res
+
+    @coerce_binop
+    def quo_rem(self, divisor):
+        r"""
+        Compute the Euclidean division of this ball polynomial by ``divisor``.
+
+        Raises a ``ZeroDivisionError`` when the divisor is zero or its leading
+        coefficient contains zero. Returns a pair (quotient, remainder)
+        otherwise.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+
+            sage: (x^3/7 - CBF(i)).quo_rem(x + CBF(pi))
+            (([0.1428571428571428 +/- 7.70e-17])*x^2 +
+            ([-0.448798950512828 +/- 6.74e-16])*x
+            + [1.40994348586991 +/- 3.34e-15],
+            [-4.42946809718569 +/- 9.00e-15] - I)
+
+            sage: Pol(0).quo_rem(x + 1)
+            (0, 0)
+
+            sage: (x + 1).quo_rem(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: ('cannot divide by this polynomial', 0)
+
+            sage: div = (x^2/3 + x + 1) - x^2/3; div
+            ([+/- 1.12e-16])*x^2 + x + 1.000000000000000
+            sage: (x + 1).quo_rem(div)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: ('cannot divide by this polynomial',
+            ([+/- 1.12e-16])*x^2 + x + 1.000000000000000)
+        """
+        cdef Polynomial_complex_arb div = <Polynomial_complex_arb> divisor
+        cdef Polynomial_complex_arb quo = self._new()
+        cdef Polynomial_complex_arb rem = self._new()
+        sig_on()
+        cdef bint success = acb_poly_divrem(quo.__poly, rem.__poly, self.__poly,
+                div.__poly, prec(self))
+        sig_off()
+        if success:
+            return quo, rem
+        else:
+            raise ZeroDivisionError("cannot divide by this polynomial", divisor)

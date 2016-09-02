@@ -312,9 +312,9 @@ class DifferentialForm(AlgebraElement):
         sage: form2
         1/log(y)*dz + dx + e^cos(x)*dy
         sage: d(form2)
-        -(1/y)/log(y)^2*dy/\dz + -e^cos(x)*sin(x)*dx/\dy
+        -1/(y*log(y)^2)*dy/\dz + -e^cos(x)*sin(x)*dx/\dy
         sage: form2.diff()
-        -(1/y)/log(y)^2*dy/\dz + -e^cos(x)*sin(x)*dx/\dy
+        -1/(y*log(y)^2)*dy/\dz + -e^cos(x)*sin(x)*dx/\dy
         sage: d(form1) == form1.diff()
         True
 

@@ -1155,13 +1155,6 @@ class ManinRelations(PollackStevensModularDomain):
         ## Get the level
         N = self.level()
 
-        ## Checks that the level N is > 1
-        # TODO: I'm commenting this out; I see no reason not to allow
-        # level 1, except possibly the bug here that I fixed:
-        # http://trac.sagemath.org/sage_trac/ticket/12772
-        #if not (N > 1):
-        #    raise TypeError("Error in form_list_of_cusps: level should be > 1")
-
         ## Some convenient shortcuts
         P = self.P1()
         sP = len(P.list())   # Size of P^1(Z/NZ)

@@ -11,7 +11,44 @@ Spaces of p-adic automorphic forms
 
 Compute with harmonic cocycles and p-adic automorphic forms, including
 overconvergent p-adic automorphic forms.
-""" ##mm TODO
+
+For a discussion of nearly rigid analytic modular forms and
+the rigid analytic Shimura-Maass operator, see [F]_. It is worth also
+looking at [FM]_ for information on how these are implemented in this code.
+
+EXAMPLES:
+
+Create a quotient of the Bruhat-Tits tree
+::
+
+    sage: X = BruhatTitsQuotient(13,11)
+
+Declare the corresponding space of harmonic cocycles
+::
+
+    sage: H = X.harmonic_cocycles(2,prec=5)
+
+And the space of `p`-adic automorphic forms
+::
+
+    sage: A2 = X.padic_automorphic_forms(2,prec=5,overconvergent=True)
+
+Harmonic cocycles, unlike `p`-adic automorphic forms, can be used to compute a basis.
+::
+
+    sage: a = H.gen(0)
+
+This can then be lifted to an overconvergent `p`-adic modular form.
+::
+
+    sage: A2.lift(a) # long time
+
+REFERENCES:
+
+.. [F] Nearly rigid analytic modular forms and their values at CM points
+   Cameron Franc
+   Ph.D. thesis, McGill University, 2011.
+"""
 from __future__ import print_function
 from sage.modular.btquotients.btquotient import DoubleCosetReduction
 from sage.structure.unique_representation import UniqueRepresentation
@@ -128,12 +165,6 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
     invariance (although the values may not be equal over an orbit of
     edges as the coefficient module action may be nontrivial).
 
-    INPUT:
-
-    - ``vec`` - (default: None) ##mm TODO
-
-    - ``from_values`` -  (default: False)
-
     EXAMPLES:
 
     Harmonic cocycles form a vector space, so they can be added and/or
@@ -163,8 +194,8 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
 
         INPUT:
 
-        - ``_parent`` : the parent ## mm TODO
-        - ``vec`` : Defining data, as a list of coefficient module elements
+        - ``_parent`` : the parent space of harmonic cocycles.
+        - ``vec`` : a list of elements in the coefficient module.
 
         EXAMPLES::
 
@@ -582,12 +613,7 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
             sage: b.derivative(a,level=2,order=1)
             (2*a + 2)*3 + 2*a*3^2 + 3^3 + O(3^4)
 
-        REFERENCES:
-
-        For a discussion of nearly rigid analytic modular forms and
-        the rigid analytic Shimura-Maass operator, see the thesis of
-        C. Franc (2011).
-        """ ## mm TODO better reference
+        """
         def F(z):
             R = PolynomialRing(z.parent(), 'x,y').fraction_field()
             Rx = PolynomialRing(z.parent(), 'x1').fraction_field()
@@ -1475,7 +1501,9 @@ class pAdicAutomorphicFormElement(ModuleElement):
 
     REFERENCES:
 
-    Matthew Greenberg's thesis (available on his webpage as of 02/2012). ##mm TODO give link
+    .. [G] Heegner points and rigid analytic modular forms
+       Matthew Greenberg
+       Ph.D. Thesis, McGill University, 2006.
 
     AUTHORS:
 
@@ -1653,7 +1681,9 @@ class pAdicAutomorphicFormElement(ModuleElement):
         r"""
         Multiply the automorphic form by a scalar.
 
-        INPUT: ##mm TODO
+        INPUT:
+
+        - a scalar
 
         EXAMPLES::
 
@@ -1737,16 +1767,15 @@ class pAdicAutomorphicFormElement(ModuleElement):
 
         REFERENCES:
 
-        For details see Matthew Greenberg's thesis (available on his
-        webpage as of 02/12).  Alternatively check out Darmon-Pollack
-        for the analogous algorithm in the case of modular symbols.
+        For details see [G]_. Alternatively, one can look at
+        [DP]_ for the analogous algorithm in the case of modular symbols.
 
         AUTHORS:
 
         - Cameron Franc (2012-02-20)
         - Marc Masdeu
 
-        """ ## TODO improve refs
+        """
         MMM = self.parent()
         U = MMM._U
         h1 = MMM(self)
@@ -1996,12 +2025,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
             sage: (c*x + d)^4*f(x)-f((a*x + b)/(c*x + d))
             O(7^5)
 
-        REFERENCES:
-
-        For a discussion of nearly rigid analytic modular forms and
-        the rigid analytic Shimura-Maass operator, see the thesis of
-        C. Franc [2011].
-        """ ##mm TODO: reference
+        """
         def F(z, level=level, method=method):
             R = PolynomialRing(z.parent(), 'x,y').fraction_field()
             Rx = PolynomialRing(z.parent(), 'x1').fraction_field()
@@ -2027,7 +2051,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
     # So far we cannot break it into two integrals because of the pole
     # at infinity.
     def coleman(self, t1, t2, E=None, method='moments', mult=False,
-                delta=-1, level=0):
+                delta=-1):
         r"""
         If ``self`` is a `p`-adic automorphic form that
         corresponds to a rigid modular form, then this computes the
@@ -2049,12 +2073,8 @@ class pAdicAutomorphicFormElement(ModuleElement):
           algorithm to use (alternative is 'riemann_sum', which is
           unsuitable for computations requiring high precision)
 
-        - ``mult`` - boolean (default: False). Whether to use the
+        - ``mult`` - boolean (default: False). Whether to compute the
           multiplicative version.
-
-        - ``delta`` - integer (default: -1) ## mm TODO
-
-        - ``level`` - integer (default: 0)
 
         OUTPUT:
 
@@ -2086,9 +2106,6 @@ class pAdicAutomorphicFormElement(ModuleElement):
         - Cameron Franc (2012-02-20)
         - Marc Masdeu (2012-02-20)
         """
-        if mult and delta >= 0:
-            raise NotImplementedError("Need to figure out how to implement"
-                                      " the multiplicative part.")
         p = self.parent().prime()
         K = t1.parent()
         R = PolynomialRing(K, 'x')
@@ -2130,8 +2147,6 @@ class pAdicAutomorphicFormElement(ModuleElement):
                 for jj in range(1, R1.default_prec() + 10):
                     poly += (-1) ** (jj + 1) * ypow / jj
                     ypow *= y
-                if delta >= 0:
-                    poly *= ((r1 - t1) ** delta * (r1 - t2) ** (self.parent()._n - delta))
                 c_e = self.evaluate(e)
                 new = eval_dist_at_powseries(c_e, poly)
                 if hasattr(new, 'degree'):
@@ -2161,20 +2176,25 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
 
         - ``domain`` - A BruhatTitsQuotient.
 
-        - ``U`` - A coefficient module or an integer. If ``U`` is a
-          coefficient module then this creates the relevant space of
-          automorphic forms. If U is an integer then the coefficients
+        - ``U`` -- A distributions module or an integer. If ``U`` is a
+          distributions module then this creates the relevant space of
+          automorphic forms. If ``U`` is an integer then the coefficients
           are the (`U-2`)nd power of the symmetric representation of
           `GL_2(\QQ_p)`.
 
-        - ``prec`` - A precision (default = None). If not None should
-          be a positive integer
+        - ``prec`` -- A precision (default : None). If not None should
+          be a positive integer.
 
-        - ``t`` - (default = None). #mm TODO
+        - ``t`` -- (default : None). The number of additional moments to store. If None, determine
+          it automatically from ``prec``, ``U`` and the ``overconvergent`` flag.
 
-        - ``R`` - (default = None).
+        - ``R`` -- (default : None). If specified, coefficent field of the automorphic forms.
+        If not speficied it defaults to the base ring of the distributions ``U``, or to `Q_p`
+        with the working precision ``prec``.
 
-        - ``overconvergent`` - Boolean (default = False).
+        - ``overconvergent`` -- Boolean (default = False). If True, will construct overconvergent
+        `p`-adic automorhic forms. Otherwise it constructs the finite dimensional space of
+        `p`-adic automorphic forms which is isomorphic to the space of harmonic cocycles.
 
         EXAMPLES:
 
@@ -2361,13 +2381,14 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             return True
         return False
 
-    def _element_constructor_(self, x):
+    def _element_constructor_(self, data):
         r"""
         Construct a `p`-automorphic form.
 
         INPUT:
 
-        - ``x`` - ## mm TODO
+        - ``data`` - defining data. Can be either a harmonic cocycle, or a `p`-adic automorphic form,
+          or a list of elements coercible into the module of coefficients of ``self``.
 
         OUTPUT:
 
@@ -2524,11 +2545,15 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
                 newF.append(self._U(x))
         return newF
 
-    def _apply_Up_operator(self, f, scale=False, hc=None):
+    def _apply_Up_operator(self, f, scale=True, hc=None):
         r"""
         Apply the Up operator to ``f``.
 
-        INPUT: ##mm TODO
+        INPUT:
+
+        - f -- a `p`-adic automorhpic form.
+        - scale -- (default: True) whether to scale by the appropriate power of `p`
+          at each iteration.
 
         EXAMPLES::
 
@@ -2539,7 +2564,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             p-adic automorphic form of cohomological weight 2
         """
         HeckeData = self._source._get_Up_data()
-        if not scale:
+        if scale:
             factor = self._p ** (self._U.weight() / 2)
         else:
             factor = 1

@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
 r"""
 `p`-adic `L`-series attached to overconvergent eigensymbols
-""" ## mm TODO
+
+An overconvergent eigensymbol gives rise to a `p`-adic `L`-series,
+which is essentially defined as the evaluation of the eigensymbol at the
+path `0 \rightarrow \infty`. The resulting distribution on `\Z_p` can be restricted
+to `\Z_p^\times`, thus giving the measure attached to the sought `p`-adic `L`-series.
+All this is carefully explained in [PS]_.
+
+"""
 #*****************************************************************************
 #       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
 #
@@ -279,15 +286,17 @@ class pAdicLseries(SageObject):
         r"""
         Return the interpolation factor associated to self.
         This is the `p`-adic multiplier that which appears in
-        the interpolation formula of the `p`-adic `L`-function.
+        the interpolation formula of the `p`-adic `L`-function. It
+        has the form `(1-\alpha_p^{-1})^2`, where `\alpha_p` is the
+        unit root of `X^2 - \psi(a_p) \chi(p) X + p`.
 
         INPUT:
 
-        - ``ap`` -- ## mm TODO
+        - ``ap`` -- the eigenvalue of the Up operator
 
-        - ``chip`` --
+        - ``chip`` -- the value of the nebentype at p (default: 1)
 
-        - ``psi`` --
+        - ``psi`` -- a twisting character (default: None)
 
         OUTPUT: a `p`-adic number
 

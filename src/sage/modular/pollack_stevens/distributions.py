@@ -357,8 +357,16 @@ class OverconvergentDistributions_abstract(Module):
             [ 0  9 24 48]
             [ 0  0  3 12]
             [ 0  0  0  1]
+
+            sage: from sage.modular.btquotients.pautomorphicform import _btquot_adjuster
+            sage: V = Symk(3, adjuster = _btquot_adjuster())
+            sage: from sage.modular.pollack_stevens.sigma0 import Sigma0
+            sage: V.acting_matrix(Sigma0(1)([3,4,0,1]), 4)
+            [  1   4  16  64]
+            [  0   3  24 144]
+            [  0   0   9 108]
+            [  0   0   0  27]
         """
-        # TODO: Add examples with a non-default action adjuster
         return self._act.acting_matrix(g, M)
 
     def prime(self):

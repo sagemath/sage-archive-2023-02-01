@@ -3,7 +3,7 @@ r"""
 Pollack-Stevens' Modular Symbols Spaces
 
 This module contains a class for spaces of modular symbols that use Glenn
-Stevens' conventions.
+Stevens' conventions, as explained in [PS]_.
 
 There are two main differences between the modular symbols in this directory
 and the ones in :mod:`sage.modular.modsym`:
@@ -12,10 +12,10 @@ and the ones in :mod:`sage.modular.modsym`:
   there.
 
 - There is a duality: these modular symbols are functions from
-  `Div^0(P^1(\QQ))` (cohomological objects), the others are formal linear
-  combinations of `Div^0(P^1(\QQ))` (homological objects).
+  `\textrm{Div}^0(P^1(\QQ))` (cohomological objects), the others are formal linear
+  combinations of `\textrm{Div}^0(P^1(\QQ))` (homological objects).
 
-EXAMPLES::
+EXAMPLES:
 
 First we create the space of modular symbols of weight 0 (k=2) and level 11::
 
@@ -30,7 +30,6 @@ One can also create a space of overconvergent modular symbols, by specifying a p
 Currently not much functionality is available on the whole space, and these
 spaces are mainly used as parents for the modular symbols. These can be constructed from the corresponding
 classical modular symbols (or even elliptic curves) as follows::
-
 
     sage: A = ModularSymbols(13, sign=1, weight=4).decomposition()[0]
     sage: A.is_cuspidal()
@@ -56,6 +55,12 @@ classical modular symbols (or even elliptic curves) as follows::
     [0, 1, 0, 0, 0, -1, 1, 0, 0]
     phi.parent()
     Space of modular symbols for Congruence Subgroup Gamma0(37) with sign 0 and values in Sym^0 Q^2
+
+REFERENCES:
+
+.. [PS] Overconvergent modular symbols and p-adic L-functions
+   Robert Pollack, Glenn Stevens
+   Annales Scientifiques de l'Ecole Normale Superieure, serie 4, 44 fascicule 1 (2011), 1--42.
 
 """
 #*****************************************************************************
@@ -1057,7 +1062,7 @@ def ps_modsym_from_simple_modsym_space(A, name="alpha"):
         [0, 0, 0, 0, 0]
     """
     if A.dimension() == 0:
-        raise ValueError("A must positive dimension")
+        raise ValueError("A must have positive dimension")
 
     if A.sign() == 0:
         raise ValueError("A must have sign +1 or -1 (otherwise it is"

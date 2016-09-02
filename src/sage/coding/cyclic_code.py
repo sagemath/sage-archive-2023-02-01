@@ -626,7 +626,7 @@ class CyclicCode(AbstractLinearCode):
             roots = gsplit.roots(multiplicities = False)
             D = [discrete_log(root, alpha) for root in roots]
             self._defining_set = sorted(D)
-            return D
+            return self._defining_set
 
     def primitive_root(self):
         r"""

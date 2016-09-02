@@ -211,6 +211,21 @@ cdef class Polynomial_complex_arb(Polynomial):
         cdef unsigned long length = acb_poly_length(self.__poly)
         return [self.get_unsafe(n) for n in range(length)]
 
+    def __nonzero__(self):
+        r"""
+        Return ``False`` if this polynomial is exactly zero, ``True`` otherwise.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: bool(Pol(0))
+            False
+            sage: z = Pol(1/3) - 1/3
+            sage: bool(z)
+            True
+        """
+        return acb_poly_length(self.__poly)
+
     # Ring and Euclidean arithmetic
 
     cpdef _add_(self, other):
@@ -336,3 +351,108 @@ cdef class Polynomial_complex_arb(Polynomial):
             return quo, rem
         else:
             raise ZeroDivisionError("cannot divide by this polynomial", divisor)
+
+    # Syntactic transformations
+
+    cpdef Polynomial truncate(self, long n):
+        r"""
+        Return the truncation to degree `n - 1` of this polynomial.
+
+        EXAMPLES::
+
+            sage: pol = CBF['x'](range(1,5)); pol
+            4.000000000000000*x^3 + 3.000000000000000*x^2 + 2.000000000000000*x + 1.000000000000000
+            sage: pol.truncate(2)
+            2.000000000000000*x + 1.000000000000000
+            sage: pol.truncate(0)
+            0
+            sage: pol.truncate(-1)
+            0
+
+        TESTS::
+
+            sage: pol.truncate(6)
+            4.000000000000000*x^3 + 3.000000000000000*x^2 + 2.000000000000000*x + 1.000000000000000
+            sage: pol.truncate(4)
+            4.000000000000000*x^3 + 3.000000000000000*x^2 + 2.000000000000000*x + 1.000000000000000
+        """
+        cdef Polynomial_complex_arb res = self._new()
+        if n < 0:
+            n = 0
+        sig_on()
+        acb_poly_set(res.__poly, self.__poly)
+        acb_poly_truncate(res.__poly, n)
+        sig_off()
+        return res
+
+    cdef _inplace_truncate(self, long n):
+        if n < 0:
+            n = 0
+        acb_poly_truncate(self.__poly, n)
+        return self
+
+    def __lshift__(val, n):
+        r"""
+        Shift ``val`` to the left, i.e. multiply it by `x^n`, throwing away
+        coefficients if `n < 0`.
+
+        EXAMPLES::
+
+            sage: pol = CBF['x'](range(1,5)); pol
+            4.000000000000000*x^3 + 3.000000000000000*x^2 + 2.000000000000000*x + 1.000000000000000
+            sage: pol << 2
+            4.000000000000000*x^5 + 3.000000000000000*x^4 + 2.000000000000000*x^3 + x^2
+            sage: pol << (-2)
+            4.000000000000000*x + 3.000000000000000
+
+        TESTS::
+
+            sage: 1 << pol
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operands for <<: 1, 4.000000000000000*x^3 + 3.000000000000000*x^2 + 2.000000000000000*x + 1.000000000000000
+        """
+        if not isinstance(val, Polynomial_complex_arb):
+            raise TypeError("unsupported operand type(s) for <<: '{}' and '{}'"
+                            .format(type(val).__name__, type(n).__name__))
+        if n < 0:
+            return val.__rshift__(-n)
+        cdef Polynomial_complex_arb self = (<Polynomial_complex_arb> val)
+        cdef Polynomial_complex_arb res = self._new()
+        sig_on()
+        acb_poly_shift_left(res.__poly, self.__poly, n)
+        sig_off()
+        return res
+
+    def __rshift__(val, n):
+        r"""
+        Shift ``val`` to the left, i.e. divide it by `x^n`, throwing away
+        coefficients if `n > 0`.
+
+        EXAMPLES::
+
+            sage: pol = CBF['x'](range(1,5)); pol
+            4.000000000000000*x^3 + 3.000000000000000*x^2 + 2.000000000000000*x + 1.000000000000000
+            sage: pol >> 2
+            4.000000000000000*x + 3.000000000000000
+            sage: pol >> -2
+            4.000000000000000*x^5 + 3.000000000000000*x^4 + 2.000000000000000*x^3 + x^2
+
+        TESTS::
+
+            sage: 1 >> pol
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operands for >>: 1, 4.000000000000000*x^3 + 3.000000000000000*x^2 + 2.000000000000000*x + 1.000000000000000
+        """
+        if not isinstance(val, Polynomial_complex_arb):
+            raise TypeError("unsupported operand type(s) for <<: '{}' and '{}'"
+                            .format(type(val).__name__, type(n).__name__))
+        if n < 0:
+            return val.__lshift__(-n)
+        cdef Polynomial_complex_arb self = (<Polynomial_complex_arb> val)
+        cdef Polynomial_complex_arb res = self._new()
+        sig_on()
+        acb_poly_shift_right(res.__poly, self.__poly, n)
+        sig_off()
+        return res

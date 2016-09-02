@@ -254,6 +254,11 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         sage: q_binomial(4, 2, Zmod(6)(2), algorithm='naive')
         5
 
+    Check that it works with Python integer for ``q``::
+
+        sage: q_binomial(3r, 2r, 1r)
+        3
+
     REFERENCES:
 
     .. [CH2006] William Y.C. Chen and Qing-Hu Hou, *Factors of the Gaussian
@@ -280,8 +285,14 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         is_polynomial = isinstance(q, Polynomial)
 
     R = parent(q)
-    zero = R.zero()
-    one = R.one()
+    try:
+        zero = R.zero()
+    except AttributeError:
+        zero = R('0')
+    try:
+        one = R.one()
+    except AttributeError:
+        one = R('1')
 
     if not(0 <= k and k <= n):
         return zero

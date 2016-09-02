@@ -638,11 +638,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: x = PowerSeriesRing(QQ, 'x', default_prec=82).gen()
             sage: AH = sum(x**(3**i)/(3**i) for i in range(5)).O(82).exp()
             sage: z = Zp(3)(33/7)
-            sage: AH(z)
+            sage: ahz = AH(z); ahz
             1 + 2*3 + 3^2 + 3^3 + 2*3^5 + 3^6 + 2*3^7 + 3^9 + 3^11 + 3^12 +
             3^13 + 3^14 + 2*3^15 + 3^16 + 2*3^18 + 2*3^19 + O(3^20)
-            sage: z.artin_hasse_exp()
-            ?
+            sage: ahz - z.artin_hasse_exp()
+            O(3^20)
 
         Out of convergence domain::
 

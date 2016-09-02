@@ -259,20 +259,10 @@ cdef class CategoryObject(sage_object.SageObject):
     # Generators
     ##############################################################################
 
-    def _populate_generators_(self, gens=None, names=None, normalize = True, category=None):
-        if category in self._generators:
-            raise ValueError("Generators cannot be changed after object creation.")
-        if category is None:
-            category = self._category
+    def _populate_generators_(self, gens, names=None, normalize=True):
+        category = self._category
         from sage.structure.sequence import Sequence
-        if gens is None:
-            n = self._ngens_()
-            from sage.rings.infinity import infinity
-            if n is infinity:
-                gens = generators.Generators_naturals(self, category)
-            else:
-                gens = generators.Generators_finite(self, self._ngens_(), None, category)
-        elif isinstance(gens, Generators):
+        if isinstance(gens, Generators):
             pass
         elif isinstance(gens, (list, tuple, Sequence)):
             if names is None:
@@ -280,14 +270,9 @@ cdef class CategoryObject(sage_object.SageObject):
             gens = generators.Generators_list(self, list(gens), category)
         else:
             gens = generators.Generators_list(self, [gens], category)
+        if names is not None and self._names is None:
+            self._assign_names(names, ngens=gens.count(), normalize=normalize)
         self._generators[category] = gens
-        if category == self._category:
-            if names is not None and self._names is None:
-                self._assign_names(names, ngens=gens.count(), normalize=normalize)
-            self._generators[category] = gens
-
-    def _ngens_(self):
-        return 0
 
     def gens_dict(self):
         r"""

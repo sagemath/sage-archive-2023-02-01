@@ -763,6 +763,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         return pol._compiled.eval(a)
 
+    def compose_trunc(self, Polynomial other, long n):
+        r"""
+        Return the composition of ``self`` and ``other``, truncated to `O(x^n)`.
+        """
+        raise NotImplementedError
+
     def _compile(self):
         # For testing
         self._compiled = CompiledPolynomialFunction(self.list())
@@ -8631,6 +8637,90 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 elif not r.truncate(i).is_zero():
                     raise ValueError("not a %s power"%m.ordinal_str())
             raise ValueError("not a %s power"%m.ordinal_str())
+
+    def _log_series(self, long n):
+        r"""
+        Return the power series expansion of logarithm of this polynomial,
+        truncated to `O(x^n)`.
+        """
+        raise NotImplementedError
+
+    def _exp_series(self, long n):
+        r"""
+        Return the power series expansion of exponential of this polynomial,
+        truncated to `O(x^n)`.
+        """
+        raise NotImplementedError
+
+    def _atan_series(self, long n):
+        r"""
+        Return the power series expansion of arctangent of this polynomial,
+        truncated to `O(x^n)`.
+        """
+        raise NotImplementedError
+
+    def _atanh_series(self, long n):
+        r"""
+        Return the power series expansion of hyperbolic arctangent of this
+        polynomial, truncated to `O(x^n)`.
+        """
+        raise NotImplementedError
+
+    def _asin_series(self, long n):
+        r"""
+        Return the power series expansion of arcsine of this polynomial,
+        truncated to `O(x^n)`.
+        """
+        raise NotImplementedError
+
+    def _asinh_series(self, long n):
+        r"""
+        Return the power series expansion of hyperbolic arcsine of this
+        polynomial, truncated to `O(x^n)`.
+        """
+        raise NotImplementedError
+
+    def _tan_series(self, long n):
+        r"""
+        Return the power series expansion of tangent of this polynomial,
+        truncated to `O(x^n)`.
+        """
+        raise NotImplementedError
+
+    def _sin_series(self, long n):
+        r"""
+        Return the power series expansion of sine of this polynomial, truncated
+        to `O(x^n)`.
+        """
+        raise NotImplementedError
+
+    def _cos_series(self, long n):
+        r"""
+        Return the power series expansion of cosine of this polynomial,
+        truncated to `O(x^n)`.
+        """
+        raise NotImplementedError
+
+    def _sinh_series(self, long n):
+        r"""
+        Return the power series expansion of hyperbolic sine of this
+        polynomial, truncated to `O(x^n)`.
+        """
+        raise NotImplementedError
+
+    def _cosh_series(self, long n):
+        r"""
+        Return the power series expansion of hyperbolic cosine of this
+        polynomial, truncated to `O(x^n)`.
+        """
+        raise NotImplementedError
+
+    def _tanh_series(self, long n):
+        r"""
+        Return the power series expansion of hyperbolic tangent of this
+        polynomial, truncated to `O(x^n)`.
+        """
+        raise NotImplementedError
 
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function

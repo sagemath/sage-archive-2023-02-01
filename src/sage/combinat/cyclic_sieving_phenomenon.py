@@ -81,7 +81,7 @@ def CyclicSievingPolynomial( L, cyc_act=None, order=None, get_order=False):
         else:
             orbit_sizes[l] = 1
 
-    n = lcm(orbit_sizes)
+    n = lcm(list(orbit_sizes))
 
     if order:
         if order.mod(n) != 0:

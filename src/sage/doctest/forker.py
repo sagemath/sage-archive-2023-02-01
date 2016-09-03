@@ -106,7 +106,7 @@ def init_sage():
     import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()
 
-    # Use the rich output backend for doctest 
+    # Use the rich output backend for doctest
     from sage.repl.rich_output import get_display_manager
     dm = get_display_manager()
     from sage.repl.rich_output.backend_doctest import BackendDoctest
@@ -1411,11 +1411,13 @@ class DocTestDispatcher(SageObject):
         for source in self.controller.sources:
             heading = self.controller.reporter.report_head(source)
             self.controller.log(heading)
-            outtmpfile = tempfile.TemporaryFile()
-            result = DocTestTask(source)(self.controller.options,
-                    outtmpfile, self.controller.logger)
-            outtmpfile.seek(0)
-            output = outtmpfile.read()
+
+            with tempfile.TemporaryFile() as outtmpfile:
+                result = DocTestTask(source)(self.controller.options,
+                        outtmpfile, self.controller.logger)
+                outtmpfile.seek(0)
+                output = outtmpfile.read()
+
             self.controller.reporter.report(source, False, 0, result, output)
 
     def parallel_dispatch(self):

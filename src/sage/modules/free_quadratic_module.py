@@ -364,11 +364,8 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
             6
         """
         n = self.rank()
-        if n%2 == 0:
-            r = n//2
-        else:
-            r = (n-1)//2
-        return (-1)^r*self.gram_matrix().determinant()
+        r = n//2
+        return (-1)**r*self.gram_matrix().determinant()
 
     def gram_matrix(self):
         """

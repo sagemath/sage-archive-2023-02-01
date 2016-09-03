@@ -1937,7 +1937,7 @@ class FractionWithFactoredDenominator(RingElement):
             hderivs1.update({diff(h, X[i]): s})
             atP.update({diff(h, X[i]).subs(P): s.subs(P).subs(atP)})
         hderivs = diff_all(h, X[0: d - 1], 2 * N, sub=hderivs1, rekey=h)
-        for k in hderivs.keys():
+        for k in hderivs:
             atP.update({k.subs(P): hderivs[k].subs(atP)})
 
         # Compute the derivatives of U up to order 2 * N and evaluate at P.
@@ -2330,7 +2330,7 @@ class FractionWithFactoredDenominator(RingElement):
             hderivs1.update({diff(h[j], X[i]): s})
             atP.update({diff(h[j], X[i]).subs(P): s.subs(P).subs(atP)})
         hderivs = diff_all(h, X[0:d - 1], 2 * N, sub=hderivs1, rekey=h)
-        for k in hderivs.keys():
+        for k in hderivs:
             atP.update({k.subs(P): hderivs[k].subs(atP)})
 
         # Compute the derivatives of U up to order 2 * N - 2 + min{n, N} - 1 and
@@ -3296,7 +3296,7 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
 
         if kwargs:
             raise ValueError('Unknown keyword arguments '
-                             '%s given' % (kwargs.keys(),))
+                             '%s given' % (kwargs,))
 
         # process arguments
         if len(args) > 2:
@@ -3948,7 +3948,7 @@ def subs_all(f, sub, simplify=False):
     for ff in f:
         for D in sub:
             if isinstance(ff, dict):
-                ff = {k: ff[k].subs(D) for k in ff.keys()}
+                ff = {k: ff[k].subs(D) for k in ff}
             else:
                 ff = ff.subs(D)
         g.append(ff)
@@ -4096,27 +4096,27 @@ def diff_all(f, V, n, ending=[], sub=None, sub_final=None,
     if zero_order:
         # Zero out all the derivatives of order < zero_order
         if singleton:
-            for k in derivs.keys():
+            for k in derivs:
                 if len(k) < zero_order:
                     derivs[k] = ZZ.zero()
         else:
             # Ignore the first of element of k, which is an index.
-            for k in derivs.keys():
+            for k in derivs:
                 if len(k) - 1 < zero_order:
                     derivs[k] = ZZ.zero()
     if sub_final:
         # Substitute sub_final into the values of derivs.
-        for k in derivs.keys():
+        for k in derivs:
             derivs[k] = subs_all(derivs[k], sub_final)
     if rekey:
         # Rekey the derivs dictionary by the value of rekey.
         F = rekey
         if singleton:
             # F must be a singleton.
-            derivs = {diff(F, list(k)): derivs[k] for k in derivs.keys()}
+            derivs = {diff(F, list(k)): derivs[k] for k in derivs}
         else:
             # F must be a list.
-            derivs = {diff(F[k[0]], list(k)[1:]): derivs[k] for k in derivs.keys()}
+            derivs = {diff(F[k[0]], list(k)[1:]): derivs[k] for k in derivs}
     return derivs
 
 
@@ -4172,7 +4172,7 @@ def diff_op(A, B, AB_derivs, V, M, r, N):
         sage: AB_derivs = {}
         sage: M = matrix([[1, 2],[2, 1]])
         sage: DD = diff_op(A, B, AB_derivs, T, M, 1, 2)
-        sage: sorted(DD.keys())
+        sage: sorted(DD)
         [(0, 0, 0), (0, 1, 0), (0, 1, 1), (0, 1, 2)]
         sage: len(DD[(0, 1, 2)])
         246
@@ -4366,20 +4366,19 @@ def coerce_point(R, p):
         sage: FFPD = FractionWithFactoredDenominatorRing(R)
         sage: f = FFPD()
         sage: p = {SR(x): 1, SR(y): 7/8}
-        sage: for k in sorted(p.keys(), key=str):
+        sage: for k in sorted(p, key=str):
         ....:     print("{} {} {}".format(k, k.parent(), p[k]))
         x Symbolic Ring 1
         y Symbolic Ring 7/8
         sage: q = coerce_point(R, p)
-        sage: for k in sorted(q.keys(), key=str):
+        sage: for k in sorted(q, key=str):
         ....:     print("{} {} {}".format(k, k.parent(), q[k]))
         x Multivariate Polynomial Ring in x, y over Rational Field 1
         y Multivariate Polynomial Ring in x, y over Rational Field 7/8
     """
-    if p is not None and p.keys() and p.keys()[0].parent() != R:
+    if p and list(p)[0].parent() != R:
         try:
             return {x: p[SR(x)] for x in R.gens()}
         except TypeError:
             pass
     return p
-

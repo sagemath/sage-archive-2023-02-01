@@ -411,7 +411,7 @@ sage: b = continued_fraction(6/23); b
 [0; 3, 1, 5]
 sage: c = continued_fraction(pi); c
 [3; 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1, 2, 2, 2, 2, ...]
-sage: [c.convergent(i) for i in xrange(5)]
+sage: [c.convergent(i) for i in range(5)]
 [3, 22/7, 333/106, 355/113, 103993/33102]
 sage: [c.p(n)*c.q(n-1) - c.q(n)*c.p(n-1) for n in range(-1, 13)]
 [1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1]

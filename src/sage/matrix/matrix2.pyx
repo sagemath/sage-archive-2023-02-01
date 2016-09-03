@@ -6329,6 +6329,7 @@ cdef class Matrix(matrix1.Matrix):
         n = 0
         m1 = self - s
         while True:
+            m1 *= m1
             m2 = m1.extended_echelon_form(subdivide=True)
             t = r - m2.subdivisions()[0][0]
             n += t

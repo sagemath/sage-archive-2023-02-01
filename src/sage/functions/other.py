@@ -1041,12 +1041,12 @@ class Function_gamma_inc(BuiltinFunction):
 
         TESTS:
 
-            Check that :trac:`21407` is fixed::
+        Check that :trac:`21407` is fixed::
 
-                sage: gamma(-1,5)._sympy_()
-                expint(2, 5)/5
-                sage: gamma(-3/2,5)._sympy_()
-                -6*sqrt(5)*exp(-5)/25 + 4*sqrt(pi)*erfc(sqrt(5))/3
+            sage: gamma(-1,5)._sympy_()
+            expint(2, 5)/5
+            sage: gamma(-3/2,5)._sympy_()
+            -6*sqrt(5)*exp(-5)/25 + 4*sqrt(pi)*erfc(sqrt(5))/3
 
     .. SEEALSO::
 

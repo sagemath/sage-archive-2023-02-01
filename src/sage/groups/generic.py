@@ -336,7 +336,7 @@ class multiples:
         self.indexed = indexed
 
 
-    def next(self):
+    def __next__(self):
         """
         Returns the next item in this multiples iterator.
         """
@@ -350,6 +350,9 @@ class multiples:
             return (i,val)
         else:
             return val
+
+    next = __next__
+
     def __iter__(self):
         """
         Standard member function making this class an iterator.

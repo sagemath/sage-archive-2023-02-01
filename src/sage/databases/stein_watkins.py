@@ -241,8 +241,10 @@ class SteinWatkinsAllData:
                 C.curves.append([eval(w[0]), w[1], w[2], w[3]])
         yield C
 
-    def next(self):
+    def __next__(self):
         return next(self._iter)
+
+    next = __next__
 
     def __getitem__(self, N):
         """

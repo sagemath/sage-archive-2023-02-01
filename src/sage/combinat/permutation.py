@@ -722,7 +722,7 @@ class Permutation(CombinatorialElement):
         else:
             return "".join(["("+",".join([str(l) for l in x])+")" for x in cycles])
 
-    def next(self):
+    def __next__(self):
         r"""
         Return the permutation that follows ``self`` in lexicographic order on
         the symmetric group containing ``self``. If ``self`` is the last
@@ -773,6 +773,8 @@ class Permutation(CombinatorialElement):
         p = first_half + last_half
 
         return Permutations()(p)
+
+    next = __next__
 
     def prev(self):
         r"""

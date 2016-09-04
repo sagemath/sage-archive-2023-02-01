@@ -30,6 +30,8 @@ The ``codes`` object may be used to access the codes that Sage can build.
 from __future__ import absolute_import
 from sage.misc.lazy_import import lazy_import as _lazy_import
 
+from sage.coding.linear_code import LinearCode
+
 _lazy_import('sage.coding.code_constructions',
         ['BCHCode', 'BinaryGolayCode', 'CyclicCodeFromGeneratingPolynomial',
          'CyclicCode', 'CyclicCodeFromCheckPolynomial', 'DuadicCodeEvenPair',

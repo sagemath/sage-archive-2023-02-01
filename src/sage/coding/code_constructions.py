@@ -1,5 +1,5 @@
 r"""
-Linear code constructors that do not preserve the structural information.
+Linear code constructors that do not preserve the structural information
 
 This file contains a variety of constructions which builds the generator matrix
 of special (or random) linear codes and wraps them in a
@@ -14,11 +14,6 @@ All codes available here can be accessed through the ``codes`` object::
 
     sage: codes.BinaryGolayCode()
     Linear code of length 23, dimension 12 over Finite Field of size 2
-
-REFERENCES:
-
-.. [HP] \W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
-   Codes, Cambridge Univ. Press, 2003.
 
 AUTHOR:
 

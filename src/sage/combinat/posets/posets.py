@@ -6074,7 +6074,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             k = height
 
         # Every 2n -eulerian poset is always also 2n+1 -eulerian. Hence
-        # we only check for even rank intervals.
+        # we only check for even rank intervals. See for example
+        # Richard Ehrenborg, k-Eulerian Posets (Order 18: 227-236, 2001)
+        # http://www.ms.uky.edu/~jrge/Papers/k-Eulerian.pdf
         for rank_diff in xrange(2, k+1, 2):
             for level in xrange(0, height-rank_diff):
                 for i in levels[level]:

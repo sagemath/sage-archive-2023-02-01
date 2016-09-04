@@ -102,6 +102,7 @@ List of Poset methods
     :meth:`~FinitePoset.ordinal_sum` | Return the ordinal sum of the poset with other poset.
     :meth:`~FinitePoset.product` | Return the Cartesian product of the poset with other poset.
     :meth:`~FinitePoset.ordinal_product` | Return the ordinal product of the poset with other poset.
+    :meth:`~FinitePoset.star_product` | Return the star product of the poset with other poset.
     :meth:`~FinitePoset.with_bounds` | Return the poset with bottom and top element adjoined.
     :meth:`~FinitePoset.dual` | Return the dual of the poset.
     :meth:`~FinitePoset.completion_by_cuts` | Return the Dedekind-MacNeille completion of the poset.
@@ -4398,6 +4399,101 @@ class FinitePoset(UniqueRepresentation, Parent):
             return JoinSemilattice(G)
         return Poset(G)
 
+    def star_product(self, other, labels='pairs'):
+        """
+        Return a poset isomorphic to the star product of the
+        poset with ``other``.
+
+        Both this poset and ``other`` are expected to be bounded
+        and have at least two elements.
+
+        Let `P` be a poset with top element `\\top_P` and `Q` be a poset
+        with bottom element `\\bot_Q`. The star product of
+        `P` and `Q` is the ordinal sum of `P \setminus \\top_P` and
+        `Q \setminus \\bot_Q`.
+
+        Mathematically, it is only defined when `P` and `Q` have no
+        common elements; here we force that by giving them different
+        names in the resulting poset.
+
+        INPUT:
+
+        - ``other`` -- a poset.
+
+        - ``labels`` -- (defaults to 'pairs') If set to 'pairs', each
+          element ``v`` in this poset will be named ``(0, v)`` and each
+          element ``u`` in ``other`` will be named ``(1, u)`` in the
+          result. If set to 'integers', the elements of the result
+          will be relabeled with consecutive integers.
+
+        EXAMPLES:
+
+        This is mostly used to combine two Eulerian posets to third one,
+        and makes sense for graded posets only::
+
+            sage: B2 = Posets.BooleanLattice(2)
+            sage: B3 = Posets.BooleanLattice(3)
+            sage: P = B2.star_product(B3); P
+            Finite poset containing 10 elements
+            sage: P.is_eulerian()
+            True
+
+        We can get elements as pairs or as integers::
+
+            sage: ABC = Poset({'a': ['b'], 'b': ['c']})
+            sage: XYZ = Poset({'x': ['y'], 'y': ['z']})
+            sage: ABC.star_product(XYZ).list()
+            [(0, 'a'), (0, 'b'), (1, 'y'), (1, 'z')]
+            sage: ABC.star_product(XYZ, labels='integers').list()
+            [0, 1, 2, 3]
+
+        TESTS::
+
+            sage: C0 = Poset()
+            sage: C1 = Poset({0: []})
+            sage: C2 = Poset({0: [1]})
+            sage: C2.star_product(42)
+            Traceback (most recent call last):
+            ...
+            TypeError: the input is not a finite poset
+            sage: C2.star_product(C0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the poset and 'other' should be bounded
+            sage: C0.star_product(C2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the poset and 'other' should be bounded
+            sage: C2.star_product(C1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the poset and 'other' should have at least two elements
+            sage: C1.star_product(C2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the poset and 'other' should have at least two elements
+        """
+        if not hasattr(other, 'hasse_diagram'):
+            raise TypeError('the input is not a finite poset')
+        if not self.is_bounded() or not other.is_bounded():
+            raise ValueError("the poset and 'other' should be bounded")
+        if self.cardinality() < 2 or other.cardinality() < 2:
+            raise ValueError("the poset and 'other' should have at least two elements")
+        if labels not in ['pairs', 'integers']:
+            raise ValueError("labels must be either 'pairs' or 'integers'")
+
+        G = self.hasse_diagram().disjoint_union(other.hasse_diagram())
+        selfmax = self.lower_covers(self.top())
+        othermin = other.upper_covers(other.bottom())
+        G.delete_vertex((0, self.top()))
+        G.delete_vertex((1, other.bottom()))
+        for u in selfmax:
+            for v in othermin:
+                G.add_edge((0, u), (1, v))
+        if labels == 'integers':
+            G.relabel()
+        return Poset(G)
+
     def dual(self):
         """
         Return the dual poset of the given poset.
@@ -6072,25 +6168,40 @@ class FinitePoset(UniqueRepresentation, Parent):
                 return False
         return True
 
-    def is_eulerian(self):
+    def is_eulerian(self, k=None, certificate=False):
         """
         Return ``True`` if the poset is Eulerian, and ``False`` otherwise.
 
         The poset is expected to be graded and bounded.
 
         A poset is Eulerian if every non-trivial interval has the same
-        number of elements of even rank as of odd rank.
+        number of elements of even rank as of odd rank. A poset is
+        `k`-eulerian if every non-trivial interval up to rank `k`
+        is Eulerian.
 
         See :wikipedia:`Eulerian_poset`.
 
+        INPUT:
+
+        - ``k``, an integer -- only check if the poset is `k`-eulerian.
+          If ``None`` (the default), check if the poset is Eulerian.
+        - ``certificate``, a Boolean -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``True, None`` or
+          ``False, (a, b)``, where the inteval ``(a, b)`` is not
+          Eulerian. If ``certificate=False`` return ``True`` or ``False``.
+
         EXAMPLES::
 
-            sage: P = Poset({0:[1, 2, 3], 1:[4, 5], 2:[4, 6], 3:[5, 6],
-            ....: 4:[7, 8], 5:[7, 8], 6:[7, 8], 7:[9], 8:[9]})
+            sage: P = Poset({0: [1, 2, 3], 1: [4, 5], 2: [4, 6], 3: [5, 6],
+            ....:            4: [7, 8], 5: [7, 8], 6: [7, 8], 7: [9], 8: [9]})
             sage: P.is_eulerian()
             True
-            sage: P = Poset({0:[1, 2, 3], 1:[4, 5, 6], 2:[4, 6], 3:[5,6],
-            ....: 4:[7], 5:[7], 6:[7]})
+            sage: P = Poset({0: [1, 2, 3], 1: [4, 5, 6], 2: [4, 6], 3: [5,6],
+            ....:            4: [7], 5:[7], 6:[7]})
             sage: P.is_eulerian()
             False
 
@@ -6101,42 +6212,79 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.is_eulerian()
             True
 
+        A poset that is 3- but not 4-eulerian::
+
+            sage: P = Poset(DiGraph('MWW@_?W?@_?W??@??O@_?W?@_?W?@??O??')); P
+            Finite poset containing 14 elements
+            sage: P.is_eulerian(k=3)
+            True
+            sage: P.is_eulerian(k=4)
+            False
+
+        Getting an interval that is not Eulerian::
+
+            sage: P = Posets.DivisorLattice(12)
+            sage: P.is_eulerian(certificate=True)
+            (False, (1, 4))
+
         TESTS::
 
             sage: Poset().is_eulerian()
             Traceback (most recent call last):
             ...
             TypeError: the poset is not bounded
+
+            sage: Poset({1: []}).is_eulerian()
+            True
+
             sage: Posets.PentagonPoset().is_eulerian()
             Traceback (most recent call last):
             ...
             TypeError: the poset is not graded
-            sage: Poset({1: []}).is_eulerian()
-            True
+
+            sage: Posets.BooleanLattice(3).is_eulerian(k=123, certificate=True)
+            (True, None)
         """
+        if k is not None:
+            try:
+                k = Integer(k)
+            except TypeError:
+                raise TypeError("parameter 'k' must be an integer, not {0}".format(k))
+            if k <= 0:
+                raise ValueError("parameter 'k' must be positive, not {0}".format(k))
+
         if not self.is_bounded():
             raise TypeError("the poset is not bounded")
-        if not self.is_graded():
+        if not self.is_ranked():
             raise TypeError("the poset is not graded")
 
         n = self.cardinality()
         if n == 1:
             return True
-        if n % 2 == 1:
+        if k is None and not certificate and n % 2 == 1:
             return False
 
         H = self._hasse_diagram
         M = H.moebius_function_matrix()
-        for i in range(n):
-            for j in range(i):
-                if H.is_lequal(j, i):
-                    if (H._rank[i] - H._rank[j]) % 2 == 1:
-                        if M[j, i] != -1:
+        levels = H.level_sets()
+        height = len(levels)
+        if k is None or k > height:
+            k = height
+
+        # Every 2n -eulerian poset is always also 2n+1 -eulerian. Hence
+        # we only check for even rank intervals. See for example
+        # Richard Ehrenborg, k-Eulerian Posets (Order 18: 227-236, 2001)
+        # http://www.ms.uky.edu/~jrge/Papers/k-Eulerian.pdf
+        for rank_diff in xrange(2, k+1, 2):
+            for level in xrange(0, height-rank_diff):
+                for i in levels[level]:
+                    for j in levels[level+rank_diff]:
+                        if H.is_lequal(i, j) and M[i, j] != 1:
+                            if certificate:
+                                return (False, (self._vertex_to_element(i),
+                                                self._vertex_to_element(j)))
                             return False
-                    else:
-                        if M[j, i] != +1:
-                            return False
-        return True
+        return (True, None) if certificate else True
 
     def frank_network(self):
         r"""

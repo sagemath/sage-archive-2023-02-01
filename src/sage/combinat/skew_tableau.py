@@ -23,8 +23,9 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+
+from builtins import zip
 
 import copy
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -612,7 +613,7 @@ class SkewTableau(ClonableList):
                 return False
 
         # Is it strictly increasing down columns?
-        for row, next in itertools.izip(self, self[1:]):
+        for row, next in zip(self, self[1:]):
             if any(row[c] is not None and row[c] >= next[c] for c in xrange(len(next))):
                 return False
 

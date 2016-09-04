@@ -32,10 +32,13 @@ EXAMPLES::
 #*****************************************************************************
 from __future__ import print_function
 
+from builtins import zip
+
 from sage.structure.sage_object import SageObject
 from sage.combinat.words.word_options import word_options
-from itertools import islice, izip, groupby
+from itertools import islice, groupby
 from sage.rings.all import Integers, ZZ, Infinity
+
 
 class Word_class(SageObject):
     def parent(self):
@@ -459,7 +462,7 @@ class Word_class(SageObject):
             sage: w = Word(it, length="finite"); w
             word: 0100101001
         """
-        for (b,c) in izip(self, other):
+        for (b, c) in zip(self, other):
             if b == c:
                 yield b
             else:

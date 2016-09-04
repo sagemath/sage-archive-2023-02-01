@@ -755,7 +755,8 @@ def xydata_from_point_list(points):
         ([0.0, 1.0, 2.0, 3.0, 4.0], [0.0, 1.0, 4.0, 9.0, 16.0])
         sage: xydata_from_point_list(enumerate(prime_range(1, 15)))
         ([0.0, 1.0, 2.0, 3.0, 4.0, 5.0], [2.0, 3.0, 5.0, 7.0, 11.0, 13.0])
-        sage: from itertools import izip; xydata_from_point_list(izip([2,3,5,7], [11, 13, 17, 19]))
+        sage: from builtins import zip
+        sage: xydata_from_point_list(zip([2,3,5,7], [11, 13, 17, 19]))
         ([2.0, 3.0, 5.0, 7.0], [11.0, 13.0, 17.0, 19.0])
     """
     from sage.rings.complex_number import ComplexNumber

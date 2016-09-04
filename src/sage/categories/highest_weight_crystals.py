@@ -53,7 +53,6 @@ class HighestWeightCrystals(Category_singleton):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_enumerated_set_contains() . . . pass
-        running ._test_enumerated_set_iter_cardinality() . . . pass
         running ._test_enumerated_set_iter_list() . . . pass
         running ._test_eq() . . . pass
         running ._test_fast_iter() . . . pass
@@ -605,7 +604,7 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
             sage: psi(b)
             1
             sage: c = psi(b.f_string([1,1,1,2,2,1,2,2])); c
-            Y(1,0)^-4 Y(2,0)^4 Y(2,1)^-4 
+            Y(1,0)^-4 Y(2,0)^4 Y(2,1)^-4
             sage: c == C.highest_weight_vector().f_string([1,1,1,2,2,1,2,2])
             True
 

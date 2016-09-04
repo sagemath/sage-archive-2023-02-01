@@ -85,7 +85,6 @@ class Crystals(Category_singleton):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_enumerated_set_contains() . . . pass
-        running ._test_enumerated_set_iter_cardinality() . . . pass
         running ._test_enumerated_set_iter_list() . . . pass
         running ._test_eq() . . . pass
         running ._test_fast_iter() . . . pass

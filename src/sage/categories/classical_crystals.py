@@ -34,33 +34,29 @@ class ClassicalCrystals(Category_singleton):
 
     TESTS::
 
-        sage: TestSuite(C).run()
-        sage: B = ClassicalCrystals().example()
-        sage: TestSuite(B).run(verbose = True)
-        running ._test_an_element() . . . pass
-        running ._test_cardinality() . . . pass
-        running ._test_category() . . . pass
-        running ._test_elements() . . .
-          Running the test suite of self.an_element()
-          running ._test_category() . . . pass
-          running ._test_eq() . . . pass
-          running ._test_not_implemented_methods() . . . pass
-          running ._test_pickling() . . . pass
-          running ._test_stembridge_local_axioms() . . . pass
-          pass
-        running ._test_elements_eq_reflexive() . . . pass
-        running ._test_elements_eq_symmetric() . . . pass
-        running ._test_elements_eq_transitive() . . . pass
-        running ._test_elements_neq() . . . pass
-        running ._test_enumerated_set_contains() . . . pass
-        running ._test_enumerated_set_iter_cardinality() . . . pass
-        running ._test_enumerated_set_iter_list() . . . pass
-        running ._test_eq() . . . pass
-        running ._test_fast_iter() . . . pass
-        running ._test_not_implemented_methods() . . . pass
-        running ._test_pickling() . . . pass
-        running ._test_some_elements() . . . pass
-        running ._test_stembridge_local_axioms() . . . pass
+    running ._test_an_element() . . . pass
+    running ._test_cardinality() . . . pass
+    running ._test_category() . . . pass
+    running ._test_elements() . . .
+      Running the test suite of self.an_element()
+      running ._test_category() . . . pass
+      running ._test_eq() . . . pass
+      running ._test_not_implemented_methods() . . . pass
+      running ._test_pickling() . . . pass
+      running ._test_stembridge_local_axioms() . . . pass
+      pass
+    running ._test_elements_eq_reflexive() . . . pass
+    running ._test_elements_eq_symmetric() . . . pass
+    running ._test_elements_eq_transitive() . . . pass
+    running ._test_elements_neq() . . . pass
+    running ._test_enumerated_set_contains() . . . pass
+    running ._test_enumerated_set_iter_list() . . . pass
+    running ._test_eq() . . . pass
+    running ._test_fast_iter() . . . pass
+    running ._test_not_implemented_methods() . . . pass
+    running ._test_pickling() . . . pass
+    running ._test_some_elements() . . . pass
+    running ._test_stembridge_local_axioms() . . . pass
     """
 
     def super_categories(self):
@@ -295,7 +291,6 @@ class ClassicalCrystals(Category_singleton):
                 running ._test_elements_eq_transitive() . . . pass
                 running ._test_elements_neq() . . . pass
                 running ._test_enumerated_set_contains() . . . pass
-                running ._test_enumerated_set_iter_cardinality() . . . pass
                 running ._test_enumerated_set_iter_list() . . . pass
                 running ._test_eq() . . . pass
                 running ._test_fast_iter() . . . pass
@@ -321,7 +316,6 @@ class ClassicalCrystals(Category_singleton):
                 running ._test_elements_eq_transitive() . . . pass
                 running ._test_elements_neq() . . . pass
                 running ._test_enumerated_set_contains() . . . pass
-                running ._test_enumerated_set_iter_cardinality() . . . pass
                 running ._test_enumerated_set_iter_list() . . . pass
                 running ._test_eq() . . . pass
                 running ._test_fast_iter() . . . pass

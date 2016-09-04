@@ -802,9 +802,9 @@ class SimilarityClassType(CombinatorialElement):
             sage: tau.as_partition_dictionary()
             {[1]: [1, 1]}
         """
-        D = dict()
+        D = {}
         for PT in self:
-            if PT.partition() in D.keys():
+            if PT.partition() in D:
                 D[PT.partition()] = Partition(sorted(D[PT.partition()] + [PT.degree()]))
             else:
                 D[PT.partition()] = Partition([PT.degree()])
@@ -836,8 +836,8 @@ class SimilarityClassType(CombinatorialElement):
         numerator = prod([prod([primitives(d+1, invertible=invertible, q = q)-i for i in range(list_of_degrees.count(d+1))]) for d in range(maximum_degree)])
         tau_list = list(self)
         D = dict((i, tau_list.count(i)) for i in tau_list)
-        denominator = reduce(mul, [factorial(D[primary_type]) for primary_type in D.keys()])
-        return numerator/denominator
+        denominator = reduce(mul, [factorial(D[primary_type]) for primary_type in D])
+        return numerator / denominator
 
     def is_semisimple(self):
         """

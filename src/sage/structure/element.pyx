@@ -148,20 +148,14 @@ from types import MethodType
 from sage.structure.sage_object cimport rich_to_bool
 from sage.structure.coerce cimport py_scalar_to_element
 from sage.structure.parent cimport Parent
-from sage.structure.misc import is_extension_type, getattr_from_other_class
+from sage.structure.misc import is_extension_type
+from sage.structure.misc cimport getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass
 from sage.misc.superseded import deprecated_function_alias
 from sage.arith.numerical_approx cimport digits_to_bits
 from sage.misc.decorators import sage_wraps
-
-# Create a dummy attribute error, using some kind of lazy error message,
-# so that neither the error itself not the message need to be created
-# repeatedly, which would cost time.
-from sage.structure.misc cimport AttributeErrorMessage
-cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage(None, '')
-dummy_attribute_error = AttributeError(dummy_error_message)
 
 
 def make_element(_class, _dict, parent):
@@ -230,7 +224,7 @@ cdef class Element(SageObject):
         """
         self._parent = parent
 
-    def __getattr__(self, str name):
+    def __getattr__(self, name):
         """
         Lookup a method or attribute from the category abstract classes.
 
@@ -238,7 +232,7 @@ cdef class Element(SageObject):
         of ``C.element_class`` are made directly available to elements
         of ``P`` via standard class inheritance. This is not the case
         any more if the elements of ``P`` are instances of an
-        extension type. See :class:`Category`. for details.
+        extension type. See :class:`Category` for details.
 
         The purpose of this method is to emulate this inheritance: for
         ``e`` and element of ``P``, if an attribute or method
@@ -246,10 +240,6 @@ cdef class Element(SageObject):
         looked up manually in ``C.element_class`` and bound to ``e``.
 
         .. NOTES::
-
-            - Attributes beginning with two underscores but not ending
-              with an unnderscore are considered private and are thus
-              exempted from the lookup in ``cat.element_class``.
 
             - The attribute or method is actually looked up in
               ``P._abstract_element_class``. In most cases this is
@@ -296,30 +286,21 @@ cdef class Element(SageObject):
             Traceback (most recent call last):
             ...
             AttributeError: 'LeftZeroSemigroup_with_category.element_class' object has no attribute 'blah_blah'
-
-        We test that "private" attributes are not requested from the element class
-        of the category (:trac:`10467`)::
-
-            sage: C = EuclideanDomains()
-            sage: P.<x> = QQ[]
-            sage: C.element_class.__foo = 'bar'
-            sage: x.parent() in C
-            True
-            sage: x.__foo
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint' object has no attribute '__foo'
         """
-        if (name.startswith('__') and not name.endswith('_')):
-            dummy_error_message.cls = type(self)
-            dummy_error_message.name = name
-            raise dummy_attribute_error
-        cdef Parent P = self._parent or self.parent()
-        if P is None or P._category is None:
-            dummy_error_message.cls = type(self)
-            dummy_error_message.name = name
-            raise dummy_attribute_error
-        return getattr_from_other_class(self, P._abstract_element_class, name)
+        return self.getattr_from_category(name)
+
+    cdef getattr_from_category(self, name):
+        # Lookup a method or attribute from the category abstract classes.
+        # See __getattr__ above for documentation.
+        cdef Parent P = self._parent
+        if P is None:
+            # This is highly unlikely but we deal with it anyway...
+            # Usually, this will just raise AttributeError in
+            # getattr_from_other_class().
+            cls = type
+        else:
+            cls = P._abstract_element_class
+        return getattr_from_other_class(self, cls, name)
 
     def __dir__(self):
         """
@@ -339,7 +320,7 @@ cdef class Element(SageObject):
             sage: dir(1)         # todo: not implemented
             ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
         """
-        from sage.structure.parent import dir_with_other_class
+        from .misc import dir_with_other_class
         return dir_with_other_class(self, self.parent().category().element_class)
 
     def _repr_(self):
@@ -898,9 +879,9 @@ cdef class Element(SageObject):
     def _cache_key(self):
         """
         Provide a hashable key for an element if it is not hashable
-        
+
         EXAMPLES::
-        
+
             sage: a=sage.structure.element.Element(ZZ)
             sage: a._cache_key()
             (Integer Ring, 'Generic element of a structure')
@@ -1214,7 +1195,7 @@ cdef class ElementWithCachedMethod(Element):
         True
 
     """
-    def __getattr__(self, name):
+    cdef getattr_from_category(self, name):
         """
         This getattr method ensures that cached methods and lazy attributes
         can be inherited from the element class of a category.
@@ -1227,27 +1208,28 @@ cdef class ElementWithCachedMethod(Element):
 
         EXAMPLE::
 
-            sage: cython_code = ["from sage.structure.element cimport ElementWithCachedMethod",
-            ... "cdef class MyElement(ElementWithCachedMethod):",
-            ... "    cdef public object x",
-            ... "    def __init__(self,P,x):",
-            ... "        self.x=x",
-            ... "        ElementWithCachedMethod.__init__(self,P)",
-            ... "    def _repr_(self):",
-            ... "        return '<%s>'%self.x",
-            ... "from sage.structure.parent cimport Parent",
-            ... "cdef class MyParent(Parent):",
-            ... "    Element = MyElement",
-            ... "from sage.all import cached_method, lazy_attribute, Category, Objects",
-            ... "class MyCategory(Category):",
-            ... "    @cached_method",
-            ... "    def super_categories(self):",
-            ... "        return [Objects()]",
-            ... "    class ElementMethods:",
-            ... "        @lazy_attribute",
-            ... "        def my_lazy_attr(self):",
-            ... "            return 'lazy attribute of <%d>'%self.x"]
-            sage: cython('\n'.join(cython_code))
+            sage: cython('''
+            ....: from sage.structure.element cimport ElementWithCachedMethod
+            ....: cdef class MyElement(ElementWithCachedMethod):
+            ....:     cdef public object x
+            ....:     def __init__(self, P, x):
+            ....:         self.x = x
+            ....:         ElementWithCachedMethod.__init__(self,P)
+            ....:     def _repr_(self):
+            ....:         return '<%s>'%self.x
+            ....: from sage.structure.parent cimport Parent
+            ....: cdef class MyParent(Parent):
+            ....:     Element = MyElement
+            ....: from sage.all import cached_method, lazy_attribute, Category, Objects
+            ....: class MyCategory(Category):
+            ....:     @cached_method
+            ....:     def super_categories(self):
+            ....:         return [Objects()]
+            ....:     class ElementMethods:
+            ....:         @lazy_attribute
+            ....:         def my_lazy_attr(self):
+            ....:             return 'lazy attribute of <%s>'%self.x
+            ....: ''')
             sage: C = MyCategory()
             sage: P = MyParent(category=C)
             sage: e = MyElement(P,5)
@@ -1255,12 +1237,7 @@ cdef class ElementWithCachedMethod(Element):
             'lazy attribute of <5>'
             sage: e.my_lazy_attr is e.my_lazy_attr
             True
-
         """
-        if name.startswith('__') and not name.endswith('_'):
-            dummy_error_message.cls = type(self)
-            dummy_error_message.name = name
-            raise dummy_attribute_error
         try:
             return self.__cached_methods[name]
         except KeyError:

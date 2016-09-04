@@ -111,11 +111,6 @@ cdef class ElementWrapper(Element):
         Element.__init__(self, parent=parent)
         self.value = value
 
-    # When self is an extension type without a __dict__ attribute,
-    # this prevents self.__dict__ to return whatever crap obtained by
-    # lookup through the categories ...
-    __dict__ = {}
-
     def __getstate__(self):
         """
         Return a tuple describing the state of your object.
@@ -138,7 +133,12 @@ cdef class ElementWrapper(Element):
             sage: a.__getstate__() == (P, {'value': 1, 'x': 2})
             True
         """
-        d = self.__dict__.copy()
+        try:
+            d = self.__dict__
+        except AttributeError:
+            d = {}
+        else:
+            d = d.copy()
         d['value'] = self.value
         return (self._parent, d)
 

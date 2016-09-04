@@ -1,9 +1,12 @@
 /**
  * @overview
- * This file aims at replacing the document's sage code blocks by executable
+ * This file aims at replacing the document's Sage code blocks by executable
  * notebook cells. Users are presented a dedicated button in the top right
  * corner. When they click on it, each code block is appended a "Run" button
  * to execute the corresponding code.
+ *
+ * This is based on the Thebe library (https://github.com/oreillymedia/thebe/)
+ * installed in ${SAGE_ROOT}/local/share/thebe/thebe.js by Sage's thebe package.
  */
 
 $(function() {

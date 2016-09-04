@@ -1536,6 +1536,16 @@ cdef class CommutativeRing(Ring):
         from morphism import FrobeniusEndomorphism_generic
         return FrobeniusEndomorphism_generic(self, n)
 
+    def __truediv__(self,base):
+        """
+        Construct the extension self/base
+        """
+        if isinstance(base,CommutativeRing):
+            from sage.rings.algebra_from_morphism import RingExtension
+            return RingExtension(self,base)
+        else:
+            CommutativeRing.__truediv__(self,base)
+
 
 cdef class IntegralDomain(CommutativeRing):
     """
@@ -2440,7 +2450,7 @@ cdef class CommutativeAlgebra(CommutativeRing):
     """
     Generic commutative algebra
     """
-    def __init__(self, base_ring, names=None, normalize=True, category = None):
+    def __init__(self, base_ring, names=None, normalize=True, category=None):
         r"""
         Standard init function. This just checks that the base is a commutative
         ring and then passes the buck.

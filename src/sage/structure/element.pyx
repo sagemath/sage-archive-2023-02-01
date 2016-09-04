@@ -3557,3 +3557,49 @@ cdef generic_power_c(a, nn, one):
         n = n >> 1
 
     return power
+
+
+# Algebra from morphism
+#######################
+
+cdef class AlgebraFMElement(CommutativeAlgebraElement):
+    def __init__(self, parent, element):
+        from sage.rings.algebra_from_morphism import AlgebraFromMorphism
+        if not isinstance(parent, AlgebraFromMorphism):
+            raise TypeError("%s is not an instance of AlgebraFromMorphism" % parent)
+        Element.__init__(self, parent)
+        ring = parent.ring()
+        self._element = ring(element)
+
+    def _repr_(self):
+        return str(self._element)
+
+    def element_in_ring(self):
+        return self._element
+
+    cpdef _add_(self,other):
+        return self.__class__(self._parent, self._element + other.element_in_ring())
+
+    cpdef _sub_(self,other):
+        return self.__class__(self._parent, self._element - other.element_in_ring())
+
+    cpdef _mul_(self,other):
+        return self.__class__(self._parent, self._element * other.element_in_ring())
+
+    #cpdef _div_(self,other)
+    #cpdef _floordiv_(self,other)
+
+    def additive_order(self):
+        return self._element.additive_order()
+
+    def multiplicative_order(self):
+        return self._element.multiplicative_order()
+
+    def is_unit(self):
+        return self._element.is_unit()
+
+    def is_nilpotent(self):
+        return self._element.is_nilpotent()
+
+    def is_prime(self):
+        return self._element.is_nilpotent()

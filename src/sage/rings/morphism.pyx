@@ -2112,3 +2112,11 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
                 if c: return c
         except (AttributeError, NotImplementedError):
             raise NotImplementedError
+
+
+# Algebra from morphism
+#######################
+
+cdef class AlgebraToRing_coercion(RingHomomorphism_coercion):
+    cpdef Element _call_(self, x):
+        return x.element_in_ring()

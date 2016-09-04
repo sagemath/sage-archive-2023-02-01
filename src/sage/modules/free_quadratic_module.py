@@ -362,6 +362,16 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
             sage: P = M.span([[1,2,3], [1,1,1]])
             sage: P.discriminant()
             6
+        
+        TESTS::
+        
+            sage: M=FreeQuadraticModule(ZZ,2,matrix.identity(2))
+            sage: M.discriminant()
+            -1
+            sage: M=FreeQuadraticModule(QQ,3,matrix.identity(3))
+            sage: M.discriminant()
+            -1
+            
         """
         n = self.rank()
         r = n//2

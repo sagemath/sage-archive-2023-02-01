@@ -313,8 +313,8 @@ def plotkin_upper_bound(n,q,d, algorithm=None):
         192
     """
     if algorithm=="gap":
+        gap.load_package("guava")
         ans=gap.eval("UpperBoundPlotkin(%s,%s,%s)"%(n,d,q))
-        #print "calling Guava ..."
         return QQ(ans)
     else:
         t = 1 - 1/q
@@ -345,7 +345,7 @@ def griesmer_upper_bound(n,q,d,algorithm=None):
         128
     """
     if algorithm=="gap":
-        #print "calling Guava ..."
+        gap.load_package("guava")
         ans=gap.eval("UpperBoundGriesmer(%s,%s,%s)"%(n,d,q))
         return QQ(ans)
     else:
@@ -382,7 +382,7 @@ def elias_upper_bound(n,q,d,algorithm=None):
     """
     r = 1-1/q
     if algorithm=="gap":
-        #print "calling Guava ..."
+        gap.load_package("guava")
         ans=gap.eval("UpperBoundElias(%s,%s,%s)"%(n,d,q))
         return QQ(ans)
     else:

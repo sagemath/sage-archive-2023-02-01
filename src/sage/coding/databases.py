@@ -40,6 +40,7 @@ def best_linear_code_in_guava(n, k, F):
     for further details.
     """
     from sage.interfaces.all import gap
+    gap.load_package("guava")
     q = F.order()
     C = gap("BestKnownLinearCode(%s,%s,GF(%s))"%(n,k,q))
     from .linear_code import LinearCode
@@ -106,6 +107,7 @@ def bounds_on_minimum_distance_in_guava(n, k, F):
           upperBoundExplanation := ... )
     """
     from sage.interfaces.all import gap
+    gap.load_package("guava")
     q = F.order()
     gap.eval("data := BoundsMinimumDistance(%s,%s,GF(%s))"%(n,k,q))
     Ldata = gap.eval("Display(data)")

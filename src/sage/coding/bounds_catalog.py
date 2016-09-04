@@ -30,6 +30,13 @@ _lazy_import("sage.coding.code_bounds", ["codesize_upper_bound",
             "elias_bound_asymp",
             "mrrw1_bound_asymp"])
 
+_lazy_import("sage.coding.delsarte_bounds",
+            ["krawtchouk",
+             "kravchuk",
+             "delsarte_bound_hamming_space",
+             "delsarte_bound_additive_hamming_space"])
+
+
 from sage.misc.rest_index_of_methods import gen_rest_table_index as _gen_rest_table_index
 import sys as _sys
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=_gen_rest_table_index(_sys.modules[__name__], only_local_functions=False))

@@ -48,11 +48,30 @@ lazy_import('sage.coding.databases','self_orthogonal_binary_codes', "self_orthog
 lazy_import('sage.coding.databases','self_dual_binary_codes', "self_dual_codes_binary",
     deprecation=(21165, "self_dual_codes_binary has moved to sage.coding.databases.self_dual_binary_codes"))
 
-lazy_import("sage.coding.delsarte_bounds", [
-            "Krawtchouk",
-            "Kravchuk",
-            "delsarte_bound_hamming_space",
-            "delsarte_bound_additive_hamming_space"])
+deprecated_callable_import(20908,
+            "sage.coding.delsarte_bounds",
+            globals(),
+            locals(),
+            ["Krawtchouk"],
+            ("This function will soon be removed from the global namespace."
+            "Please call it using codes.bounds.krawtchouk instead"))
+deprecated_callable_import(20908,
+            "sage.coding.delsarte_bounds",
+            globals(),
+            locals(),
+            ["Kravchuk"],
+            ("This function will soon be removed from the global namespace."
+            "Please call it using codes.bounds.kravchuk instead"))
+deprecated_callable_import(20908,
+            "sage.coding.delsarte_bounds",
+            globals(),
+            locals(),
+            ["delsarte_bound_hamming_space",
+             "delsarte_bound_additive_hamming_space"],
+            ("This function will soon be removed from the global namespace."
+            "Please call it using codes.bounds.%(name)s instead"))
+
+
 
 lazy_import('sage.coding', 'codes_catalog', 'codes')
 lazy_import('sage.coding', 'channels_catalog', 'channels')

@@ -4703,16 +4703,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: f= x^2 + 2*x*y + 1/2*z
             sage: f.is_squarefree()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: is_squarefree of multivariate polynomials over rings is not implemented.
+            True
             sage: h = f^2
             sage: h.is_squarefree()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: is_squarefree of multivariate polynomials over rings is not implemented.
+            False
         """
-        raise NotImplementedError("is_squarefree of multivariate polynomials over rings is not implemented.")
+        # TODO:  Use Singular (4.x) intrinsics.  (Temporary solution from #17254.)
+        return all([ e == 1 for (f, e) in self.factor() ])
 
     @coerce_binop
     def quo_rem(self, MPolynomial_libsingular right):

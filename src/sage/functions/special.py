@@ -388,6 +388,8 @@ class EllipticE(BuiltinFunction):
 
             sage: loads(dumps(elliptic_e))
             elliptic_e
+            sage: elliptic_e(x, x)._sympy_()
+            elliptic_e(x, x)
         """
         BuiltinFunction.__init__(self, 'elliptic_e', nargs=2,
                                  # Maple conversion left out since it uses

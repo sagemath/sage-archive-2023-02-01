@@ -1,12 +1,13 @@
-= thebejs =
+= thebe =
 
 == Description ==
 
 Jupyter javascript plugin for static sites. Thebe takes the Jupyter front end,
 and make it work outside of the notebook context.
 
-This is used by Sage's Sphinx-based documentation build system to
-produce html documentation that can be turned live (see #20690).
+This is used by Sage's Sphinx-based documentation build system to produce html
+documentation that can be turned live (see
+https://trac.sagemath.org/ticket/20690).
 
 == License ==
 
@@ -23,7 +24,7 @@ None.
 
 == Special Update/Build Instructions ==
 
-There are no release numbers, hence pick
-https://github.com/oreillymedia/thebe/archive/master.zip and rename it
-thebejs-$(date '+%Y%m%d').zip
+There are no release numbers, hence find the latest commit, download
+https://github.com/oreillymedia/thebe/archive/${COMMIT}.zip and rename it
+thebe-${COMMIT:0:8}.zip
 

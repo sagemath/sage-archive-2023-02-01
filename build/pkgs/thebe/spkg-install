@@ -6,7 +6,7 @@ if [ -z "$SAGE_SHARE" ]; then
     exit 1
 fi
 
-TARGET="${SAGE_SHARE}/thebejs"
+TARGET="${SAGE_SHARE}/thebe"
 if [ ! -d "${TARGET}" ]; then
    mkdir "${TARGET}"
 fi

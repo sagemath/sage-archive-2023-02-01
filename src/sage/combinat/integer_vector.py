@@ -1391,7 +1391,7 @@ def integer_vectors_nk_fast_iter(n, k):
 
     EXAMPLES::
 
-        sage: from sage.combinat.combinat_cython import integer_vectors_nk_fast_iter
+        sage: from sage.combinat.integer_vector import integer_vectors_nk_fast_iter
         sage: list(integer_vectors_nk_fast_iter(3, 2))
         [[3, 0], [2, 1], [1, 2], [0, 3]]
         sage: list(integer_vectors_nk_fast_iter(2, 2))

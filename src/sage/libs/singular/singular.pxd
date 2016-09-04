@@ -53,6 +53,6 @@ cdef number *sa2si(Element elem, ring * _ring)
 # Initialisation
 # ==============
 
-cdef int overflow_check(long e, ring *_ring) except -1
+cdef int overflow_check(unsigned long e, ring *_ring) except -1
 
 cdef init_libsingular()

@@ -150,7 +150,7 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
     order = cache.objectptr.cardinality() - 1
 
     while z:
-        c = cache.objectptr.initi(c, <long>p_GetCoeff(z, cfRing))
+        c = cache.objectptr.initi(c, <int64_t>p_GetCoeff(z, cfRing))
         e = p_GetExp(z, 1, cfRing)
         if e == 0:
             ret = cache.objectptr.add(ret, c, ret)
@@ -595,7 +595,7 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
 
     cdef number *nn
 
-    cdef int _d
+    cdef int64_t _d
     cdef char *_name
     cdef char **_ext_names
     varname = "a"
@@ -712,7 +712,7 @@ cdef extern from "dlfcn.h":
     cdef long RTLD_LAZY
     cdef long RTLD_GLOBAL
 
-cdef int overflow_check(long e, ring *_ring) except -1:
+cdef int overflow_check(unsigned long e, ring *_ring) except -1:
     """
     Raise an ``OverflowError`` if e is > max degree per variable.
 

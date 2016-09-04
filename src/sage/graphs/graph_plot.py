@@ -619,6 +619,13 @@ class GraphPlot(SageObject):
 
         # Make dict collection of all edges (keep label and edge color)
         edges_to_draw = {}
+
+        def append_or_set(key, label, color, head):
+            if key in edges_to_draw:
+                edges_to_draw[key].append((label, color, head))
+            else:
+                edges_to_draw[key] = [(label, color, head)]
+
         if self._options['color_by_label'] or isinstance(self._options['edge_colors'], dict):
             if self._options['color_by_label']:
                 edge_colors = self._graph._color_by_label(format=self._options['color_by_label'])
@@ -633,18 +640,14 @@ class GraphPlot(SageObject):
                     if len(edge) < 3:
                         label = self._graph.edge_label(edge[0],edge[1])
                         if isinstance(label, list):
-                            if key in edges_to_draw:
-                                edges_to_draw[key].append((label[-1], color, head))
-                            else:
-                                edges_to_draw[key] = [(label[-1], color, head)]
+                            append_or_set(key, label[-1], color, head)
                             for i in range(len(label)-1):
-                                edges_to_draw[key].append((label[-1], color, head))
+                                edges_to_draw[key].append((label[i], color, head))
+                        else:
+                            append_or_set(key, label, color, head)
                     else:
                         label = edge[2]
-                        if key in edges_to_draw:
-                            edges_to_draw[key].append((label, color, head))
-                        else:
-                            edges_to_draw[key] = [(label, color, head)]
+                        append_or_set(key, label, color, head)
 
                     edges_drawn.append((edge[0],edge[1]))
 
@@ -654,20 +657,14 @@ class GraphPlot(SageObject):
                     key = tuple(sorted([edge[0],edge[1]]))
                     if key == (edge[0],edge[1]): head = 1
                     else: head = 0
-                    if key in edges_to_draw:
-                        edges_to_draw[key].append((edge[2], self._options['edge_color'], head))
-                    else:
-                        edges_to_draw[key] = [(edge[2], self._options['edge_color'], head)]
+                    append_or_set(key, edge[2], self._options['edge_color'], head)
 
         else:
             for edge in self._graph.edges(sort=True):
                 key = tuple(sorted([edge[0],edge[1]]))
                 if key == (edge[0],edge[1]): head = 1
                 else: head = 0
-                if key in edges_to_draw:
-                    edges_to_draw[key].append((edge[2], self._options['edge_color'], head))
-                else:
-                    edges_to_draw[key] = [(edge[2], self._options['edge_color'], head)]
+                append_or_set(key, edge[2], self._options['edge_color'], head)
 
         if edges_to_draw:
             self._plot_components['edges'] = []

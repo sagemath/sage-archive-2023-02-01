@@ -9,6 +9,12 @@ rounding/overflow problems occur.
 AUTHORS:
 
 - Dmitrii V. (Dima) Pasechnik (2012-10): initial implementation. Minor fixes (2015)
+
+REFERENCES:
+
+.. [Dels] \P. Delsarte, An algebraic approach to the association schemes of coding theory,
+        Philips Res. Rep., Suppl., vol. 10, 1973.
+
 """
 #*****************************************************************************
 #       Copyright (C) 2012 Dima Pasechnik <dimpase@gmail.com>
@@ -153,7 +159,7 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
 
 def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isinteger=False):
     """
-    Find the Delsarte bound [1]_ on codes in Hamming space ``H_q^n``
+    Find the Delsarte bound [Dels]_ on codes in Hamming space ``H_q^n``
     of minimal distance ``d``
 
 
@@ -221,12 +227,6 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isint
        sage: codes.bounds.delsarte_bound_hamming_space(11,3,-4)
        Solver exception: PPL : There is no feasible solution
        False
-
-    REFERENCES:
-
-    .. [1] \P. Delsarte, An algebraic approach to the association schemes of coding theory,
-           Philips Res. Rep., Suppl., vol. 10, 1973.
-
     """
     from sage.numerical.mip import MIPSolverException
     A, p = _delsarte_LP_building(n, d, 0, q, isinteger, solver)

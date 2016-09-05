@@ -757,6 +757,26 @@ class Sets(Category_singleton):
 
         @cached_method
         def Enumerated(self):
+            """
+            Return the full subcategory of the enumerated objects of ``self``.
+
+            An enumerated object can be iterated to get its elements.
+
+            EXAMPLES::
+
+                sage: Sets().Enumerated()
+                Category of enumerated sets
+                sage: Rings().Finite().Enumerated()
+                Category of finite enumerated rings
+                sage: Rings().Infinite().Enumerated()
+                Category of infinite enumerated rings
+
+            TESTS::
+
+                sage: TestSuite(Sets().Enumerated()).run()
+                sage: Rings().Enumerated.__module__
+                'sage.categories.sets_cat'
+            """
             return self._with_axiom('Enumerated')
 
         def Facade(self):

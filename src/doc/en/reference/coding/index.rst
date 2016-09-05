@@ -72,6 +72,9 @@ minimum distance capabilities:
    sage/coding/punctured_code
    sage/coding/extended_code
 
+Other derived constructions that simply produce the modified generator matrix
+can be found among the methods of `LinearCode`.
+
 Methods and Operations related to Linear Codes
 ----------------------------------------------
 
@@ -79,7 +82,6 @@ Methods and Operations related to Linear Codes
 .. toctree::
    :maxdepth: 2
 
-   sage/coding/delsarte_bounds
    sage/coding/codecan/codecan
    sage/coding/codecan/autgroup_can_label
 
@@ -102,6 +104,7 @@ Other modules
    sage/coding/guruswami_sudan/interpolation
    sage/coding/guruswami_sudan/utils
    sage/coding/code_bounds
+   sage/coding/delsarte_bounds
 
 Deprecated modules
 ----------------------------

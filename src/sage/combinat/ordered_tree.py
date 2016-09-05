@@ -410,6 +410,9 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         r"""
         Return the undirected graph obtained from the tree nodes and edges.
 
+        The graph is endowed with an embedding, so that it will be displayed
+        correctly.
+
         EXAMPLES::
 
             sage: t = OrderedTree([])
@@ -419,7 +422,8 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             sage: t.to_undirected_graph()
             Graph on 5 vertices
 
-        If the tree is labelled, we use its labelling to label the graph.
+        If the tree is labelled, we use its labelling to label the graph. This
+        will fail if the labels are not all distinct.
         Otherwise, we use the graph canonical labelling which means that
         two different trees can have the same graph.
 
@@ -428,6 +432,9 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             sage: t = OrderedTree([[[]],[],[]])
             sage: t.canonical_labelling().to_undirected_graph()
             Graph on 5 vertices
+
+        TESTS::
+
             sage: t.canonical_labelling().to_undirected_graph() == t.to_undirected_graph()
             False
             sage: OrderedTree([[],[]]).to_undirected_graph() == OrderedTree([[[]]]).to_undirected_graph()
@@ -444,13 +451,18 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             relabel = True
         roots = [self]
         g.add_vertex(name=self.label())
+        emb = {self.label(): []}
         while roots:
             node = roots.pop()
+            children = reversed([child.label() for child in node])
+            emb[node.label()].extend(children)
             for child in node:
                 g.add_vertex(name=child.label())
+                emb[child.label()] = [node.label()]
                 g.add_edge(child.label(), node.label())
                 roots.append(child)
-        if(relabel):
+        g.set_embedding(emb)
+        if relabel:
             g = g.canonical_label()
         return g
 
@@ -528,6 +540,49 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         children = [c.left_right_symmetry() for c in self]
         children.reverse()
         return OrderedTree(children)
+
+    def show(self):
+        """
+        Show the tree ``self``.
+
+        .. WARNING::
+
+            For a labelled tree, this will fail unless all labels are
+            distinct. For unlabelled trees, some arbitrary labels are chosen.
+            Use :meth:`_latex_`, ``view``,
+            :meth:`_ascii_art_` or ``pretty_print`` for more
+            faithful representations of the data of the tree.
+
+        TESTS::
+
+            sage: p = OrderedTree([[[]],[],[]])
+            sage: unicode_art(p)
+            ╭─o─╮
+            │ │ │
+            o o o
+            │  
+            o  
+            sage: p.show()
+            Graphics object consisting of 10 graphics primitives
+
+            sage: g = OrderedTree([[],[[]],[]]).canonical_labelling()
+            sage: unicode_art(g)
+
+            ╭─1─╮
+            │ │ │
+            2 3 5
+              │
+              4
+            sage: g.show()
+            Graphics object consisting of 10 graphics primitives
+        """
+        g = self.to_undirected_graph()
+        try:
+            root = self.label()
+            g.show(layout='tree', tree_root=root, tree_orientation="down")
+        except AttributeError:
+            # how to find back who is the root in this case ?
+            g.show(layout='tree', tree_orientation="down")
 
     def sort_key(self):
         """

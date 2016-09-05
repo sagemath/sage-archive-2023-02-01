@@ -8,9 +8,6 @@ dimension `k=\frac{q^{r}-1}{q-1} - r` and minimum distance
 
 REFERENCES:
 
-    .. [HP] W. C. Huffman and V. Pless, Fundamentals of error-correcting codes,
-       Cambridge Univ. Press, 2003.
-
     .. [R] Introduction to Coding Theory, Ron Roth, Cambridge University Press, 2006
 """
 from __future__ import absolute_import
@@ -137,7 +134,12 @@ class HammingCode(AbstractLinearCode):
         Regarding the choice of projective geometry, one might check:
 
         - the note over section 2.3 in [R]_, pages 47-48
-        - the dedicated paragraph in [HP]_, page 30
+        - the dedicated paragraph in [HP], page 30
+
+        REFERENCES:
+
+        - [HP] W. C. Huffman and V. Pless, Fundamentals of error-correcting codes,
+               Cambridge Univ. Press, 2003.
 
         EXAMPLES::
 
@@ -146,6 +148,7 @@ class HammingCode(AbstractLinearCode):
             [1 0 1 1 0 1 0 1 1 1 0 1 1]
             [0 1 1 2 0 0 1 1 2 0 1 1 2]
             [0 0 0 0 1 1 1 1 1 2 2 2 2]
+
         """
         n = self.length()
         F = self.base_field()

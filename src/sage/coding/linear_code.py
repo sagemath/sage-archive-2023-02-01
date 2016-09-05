@@ -108,10 +108,10 @@ http://doc.sagemath.org/html/en/thematic_tutorials/structures_in_coding_theory.h
 
 REFERENCES:
 
-- [HP] W. C. Huffman and V. Pless, Fundamentals of error-correcting codes,
+- [HP] \W. C. Huffman and V. Pless, Fundamentals of error-correcting codes,
   Cambridge Univ. Press, 2003.
 
-- [Gu] GUAVA manual, http://www.gap-system.org/Packages/guava.html
+- [Gu] \GUAVA manual, http://www.gap-system.org/Packages/guava.html
 
 AUTHORS:
 
@@ -798,7 +798,7 @@ class AbstractLinearCode(Module):
 
     def assmus_mattson_designs(self, t, mode=None):
         r"""
-        Assmus and Mattson Theorem (section 8.4, page 303 of [HP]): Let
+        Assmus and Mattson Theorem (section 8.4, page 303 of [HP]_): Let
         `A_0, A_1, ..., A_n` be the weights of the codewords in a binary
         linear `[n , k, d]` code `C`, and let `A_0^*, A_1^*, ..., A_n^*` be
         the weights of the codewords in its dual `[n, n-k, d^*]` code `C^*`.
@@ -838,7 +838,7 @@ class AbstractLinearCode(Module):
             k =       i   (k not to be confused with dim(C))
             b =       Ai
             lambda = b*binomial(k,t)/binomial(v,t) (by Theorem 8.1.6,
-                                                       p 294, in [HP])
+                                                       p 294, in [HP]_)
 
         Setting the ``mode="verbose"`` option prints out the values of the
         parameters.
@@ -873,10 +873,6 @@ class AbstractLinearCode(Module):
             sage: blocks = [c.support() for c in C if c.hamming_weight()==8]; len(blocks)  # long time computation
             759
 
-        REFERENCE:
-
-        - [HP] W. C. Huffman and V. Pless, Fundamentals of ECC,
-          Cambridge Univ. Press, 2003.
         """
         C = self
         ans = []
@@ -1480,8 +1476,8 @@ class AbstractLinearCode(Module):
 
         A linear code `C` over a field is called *projective* when its dual `Cd`
         has minimum weight `\geq 3`, i.e. when no two coordinate positions of
-        `C` are linearly independent (cf. definition 3 from [BS11] or 9.8.1 from
-        [BH12]).
+        `C` are linearly independent (cf. definition 3 from [BS11]_ or 9.8.1 from
+        [BH12]_).
 
         EXAMPLE::
 
@@ -2993,7 +2989,7 @@ class AbstractLinearCode(Module):
         constructed is actually only isomorphic to the shortened code defined
         in this way.
 
-        By Theorem 1.5.7 in [HP], `C_L` is `((C^\perp)^L)^\perp`. This is used
+        By Theorem 1.5.7 in [HP]_, `C_L` is `((C^\perp)^L)^\perp`. This is used
         in the construction below.
 
         INPUT:

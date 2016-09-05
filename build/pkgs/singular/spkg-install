@@ -70,6 +70,7 @@ remove_old_version()
     rm -rf "$SAGE_LOCAL/include/factory"
     rm -rf "$SAGE_LOCAL/include/singular"
     rm -rf "$SAGE_LOCAL"/include/omalloc*
+    rm -rf "$SAGE_LOCAL/include/omlimits.h"
     rm -f "$SAGE_LOCAL"/lib/*omalloc*
     rm -rf "$SAGE_LOCAL/share/singular"
 }

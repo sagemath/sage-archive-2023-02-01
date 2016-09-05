@@ -1,5 +1,5 @@
 r"""
-Index of bounds
+Index of bounds on the parameters of codes
 
 The ``codes.bounds`` object may be used to access the bounds that Sage can compute.
 

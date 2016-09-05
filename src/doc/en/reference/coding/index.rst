@@ -33,7 +33,7 @@ Code constructions
 ------------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    sage/coding/linear_code
 
@@ -73,7 +73,7 @@ minimum distance capabilities:
    sage/coding/extended_code
 
 Other derived constructions that simply produce the modified generator matrix
-can be found among the methods of `LinearCode`.
+can be found among the methods of a constructed code.
 
 Methods and Operations related to Linear Codes
 ----------------------------------------------

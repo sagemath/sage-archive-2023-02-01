@@ -1,5 +1,5 @@
 r"""
-Index of codes
+Index of code constructions
 
 The ``codes`` object may be used to access the codes that Sage can build.
 

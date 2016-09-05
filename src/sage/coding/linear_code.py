@@ -108,10 +108,10 @@ http://doc.sagemath.org/html/en/thematic_tutorials/structures_in_coding_theory.h
 
 REFERENCES:
 
-- [HP] \W. C. Huffman and V. Pless, Fundamentals of error-correcting codes,
+.. [HP] \W. C. Huffman and V. Pless, Fundamentals of error-correcting codes,
   Cambridge Univ. Press, 2003.
 
-- [Gu] \GUAVA manual, http://www.gap-system.org/Packages/guava.html
+.. [Gu] \GUAVA manual, http://www.gap-system.org/Packages/guava.html
 
 AUTHORS:
 
@@ -975,9 +975,9 @@ class AbstractLinearCode(Module):
 
         REFERENCE:
 
-        - I. Duursma, "Combinatorics of the two-variable zeta function",
-          Finite fields and applications, 109-136, Lecture Notes in
-          Comput. Sci., 2948, Springer, Berlin, 2004.
+        .. [Du04] \I. Duursma, "Combinatorics of the two-variable zeta function",
+           Finite fields and applications, 109-136, Lecture Notes in
+           Comput. Sci., 2948, Springer, Berlin, 2004.
         """
         n = self.length()
         k = self.dimension()
@@ -1127,7 +1127,7 @@ class AbstractLinearCode(Module):
     def characteristic_polynomial(self):
         r"""
         Returns the characteristic polynomial of a linear code, as defined in
-        van Lint's text [vL].
+        van Lint's text [vL]_.
 
         EXAMPLES::
 
@@ -1137,8 +1137,8 @@ class AbstractLinearCode(Module):
 
         REFERENCES:
 
-        - van Lint, Introduction to coding theory, 3rd ed., Springer-Verlag
-          GTM, 86, 1999.
+        .. [vL] \J. van Lint, Introduction to coding theory, 3rd ed., Springer-Verlag
+           GTM, 86, 1999.
         """
         R = PolynomialRing(QQ,"x")
         x = R.gen()
@@ -2808,8 +2808,9 @@ class AbstractLinearCode(Module):
 
         REFERENCES:
 
-        .. [D] \I. Duursma, "Extremal weight enumerators and ultraspherical
-           polynomials"
+        .. [D] \I. Duursma
+           "Extremal weight enumerators and ultraspherical polynomials"
+           Discrete Mathematics 268 (1), 103-127
 
         EXAMPLES::
 
@@ -2860,11 +2861,6 @@ class AbstractLinearCode(Module):
         OUTPUT:
 
         - The polynomial `Q(T)` as in Duursma [D]_
-
-        REFERENCES:
-
-        - [D] - I. Duursma, "Extremal weight enumerators and ultraspherical
-          polynomials"
 
         EXAMPLES::
 
@@ -2955,11 +2951,6 @@ class AbstractLinearCode(Module):
             sage: C = LinearCode(G)  # the "hexacode"
             sage: C.sd_zeta_polynomial(4)
             1
-
-        REFERENCES:
-
-        - [D] I. Duursma, "Extremal weight enumerators and ultraspherical
-          polynomials"
         """
         deprecation(21165, "AbstractLinearCode.sd_zeta_polynomial() will be removed in a future release of Sage. Please use AbstractLinearCode.zeta_polynomial() instead")
         if not self.base_field().cardinality() <= 4:
@@ -3375,8 +3366,8 @@ class AbstractLinearCode(Module):
 
         REFERENCES:
 
-        - I. Duursma, "From weight enumerators to zeta functions", in
-          Discrete Applied Mathematics, vol. 111, no. 1-2, pp. 55-73, 2001.
+        .. [Du01] \I. Duursma, "From weight enumerators to zeta functions", in
+           Discrete Applied Mathematics, vol. 111, no. 1-2, pp. 55-73, 2001.
         """
         n = self.length()
         q = (self.base_ring()).order()

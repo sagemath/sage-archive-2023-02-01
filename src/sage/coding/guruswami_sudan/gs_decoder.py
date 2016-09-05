@@ -3,10 +3,10 @@ Guruswami-Sudan decoder for Generalized Reed-Solomon codes
 
 REFERENCES:
 
-    .. [GS99] Venkatesan Guruswami and Madhu Sudan, Improved Decoding of
+.. [GS99] Venkatesan Guruswami and Madhu Sudan, Improved Decoding of
        Reed-Solomon Codes and Algebraic-Geometric Codes, 1999
 
-    .. [N13] Johan S. R. Nielsen, List Decoding of Algebraic Codes, Ph.D.
+.. [N13] Johan S. R. Nielsen, List Decoding of Algebraic Codes, Ph.D.
        Thesis, Technical University of Denmark, 2013
 
 AUTHORS:
@@ -111,7 +111,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
     The Guruswami-Sudan algorithm is a polynomial time algorithm to decode
     beyond half the minimum distance of the code. It can decode up to the
     Johnson radius which is `n - \sqrt(n(n-d))`, where `n, d` is the length,
-    respectively minimum distance of the RS code. See [GS99] for more details.
+    respectively minimum distance of the RS code. See [GS99]_ for more details.
     It is a list-decoder meaning that it returns a list of all closest codewords
     or their corresponding message polynomials. Note that the output of the
     ``decode_to_code`` and ``decode_to_message`` methods are therefore lists.
@@ -273,7 +273,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
         # We start with l=1 and check if a satisfiable s can be chosen. We keep
         # increasing l by 1 until this is the case. The governing equation is
         #   s*(s+1)/2 * n < (l+1)*s*(n-tau) - l*(l+1)/2*(k-1)
-        # See [GS99]
+        # See [GS99]_
         def try_l(l):
             (mins,maxs) = solve_degree2_to_integer_range(n, n-2*(l+1)*(n-tau), (k-1)*l*(l+1))
             if maxs > 0 and maxs >= mins:

@@ -61,14 +61,18 @@ fi
 
 remove_old_version()
 {
+    # the following is a little verbose but it ensures we leave no trace of 3.x
     rm -f "$SAGE_LOCAL"/bin/Singular*
     rm -f "$SAGE_LOCAL/include/factory.h"
     rm -f "$SAGE_LOCAL/include/factoryconf.h"
     rm -rf "$SAGE_LOCAL/include/factory"
     rm -rf "$SAGE_LOCAL/include/singular"
     rm -rf "$SAGE_LOCAL"/include/omalloc*
-    rm -rf "$SAGE_LOCAL/include/omlimits.h"
-    rm -f "$SAGE_LOCAL"/lib/*omalloc*
+    rm -f "$SAGE_LOCAL/include/omlimits.h"
+    rm -f "$SAGE_LOCAL"/lib/libsingular*
+    rm -f "$SAGE_LOCAL"/lib/libsing*.a
+    rm -f "$SAGE_LOCAL"/lib/libomalloc*
+    rm -f "$SAGE_LOCAL"/lib/libfactory*
     rm -rf "$SAGE_LOCAL/share/singular"
 }
 

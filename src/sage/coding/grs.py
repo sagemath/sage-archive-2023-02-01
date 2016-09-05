@@ -513,11 +513,6 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
 
 
-
-
-####################### encoders ###############################
-
-
 ####################### encoders ###############################
 
 
@@ -734,9 +729,14 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             False
             sage: D1.__eq__(D2)
             True
+            sage: R = PolynomialRing(F, 'y')
+            sage: D3 = codes.encoders.GRSEvaluationPolynomialEncoder(C, polynomial_ring=R)
+            sage: D1.__eq__(D3)
+            False
         """
-        return isinstance(other, GRSEvaluationPolynomialEncoder) \
+        return (isinstance(other, GRSEvaluationPolynomialEncoder)
                 and self.code() == other.code()
+                and self.polynomial_ring() == other.polynomial_ring())
 
     def _repr_(self):
         r"""

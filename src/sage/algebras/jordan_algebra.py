@@ -325,7 +325,13 @@ class SpecialJordanAlgebra(JordanAlgebra):
             ...
             NotImplementedError: cannot list an infinite set
         """
-        return tuple(self.algebra_generators())
+        lst = self.algebra_generators()
+        try:
+            if not lst.is_finite():
+                raise NotImplementedError('cannot list an infinite set')
+        except:
+            raise NotImplementedError('cannot list an infinite set')
+        return tuple(lst)
 
     @cached_method
     def zero(self):

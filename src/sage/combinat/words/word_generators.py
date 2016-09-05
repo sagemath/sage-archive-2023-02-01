@@ -1,6 +1,6 @@
 # coding=utf-8
 r"""
-A collection of constructors of common words
+Common words
 
 AUTHORS:
 
@@ -53,6 +53,8 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from itertools import cycle, count
 from random import randint
 from sage.misc.cachefunc import cached_method
@@ -1818,7 +1820,8 @@ class WordGenerator(object):
         infinite set `S` of morphisms `x_h`::
 
             sage: x = lambda h:WordMorphism({1:[2],2:[3]+[1]*(h+1),3:[3]+[1]*h})
-            sage: for h in [0,1,2,3]: print h, x(h)
+            sage: for h in [0,1,2,3]:
+            ....:     print("{} {}".format(h, x(h)))
             0 1->2, 2->31, 3->3
             1 1->2, 2->311, 3->31
             2 1->2, 2->3111, 3->311

@@ -115,7 +115,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         elif isinstance(x, pari_gen):
             x = [parentbr(w) for w in x.list()]
             check = False
-        #The default behavior if we haven't already figured out what the type is is to assume it coerces into the base_ring as a constant polynomial
+        # The default behavior, if we haven't already figured out what
+        # the type is, is to assume it coerces into the base_ring as a
+        # constant polynomial
         elif not isinstance(x, list):
             x = [x] # constant polynomial
 
@@ -1137,8 +1139,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         from sage.misc.stopgap import stopgap
         stopgap("Extended gcd computations over p-adic fields are performed using the standard Euclidean algorithm which might produce mathematically incorrect results in some cases.", 13439)
 
-        from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_field
-        return Polynomial_generic_field.xgcd(self,right)
+        return Polynomial_generic_cdv.xgcd(self,right)
 
     #def discriminant(self):
     #    raise NotImplementedError

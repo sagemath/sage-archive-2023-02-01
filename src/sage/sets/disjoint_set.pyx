@@ -48,6 +48,7 @@ Disjoint set of hashables objects::
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import itervalues
 
 include '../groups/perm_gps/partn_ref/data_structures_pyx.pxi'
 
@@ -126,7 +127,7 @@ def DisjointSet(arg):
     """
     if isinstance(arg, (Integer, int)):
         if arg < 0:
-            raise ValueError, 'arg (=%s) must be a non negative integer'%arg
+            raise ValueError('arg (=%s) must be a non negative integer' % arg)
         return DisjointSet_of_integers(arg)
     else:
         return DisjointSet_of_hashables(arg)
@@ -159,7 +160,7 @@ cdef class DisjointSet_class(SageObject):
             '{{0}, {1}, {2, 4}, {3}}'
         """
         res = []
-        for l in self.root_to_elements_dict().itervalues():
+        for l in itervalues(self.root_to_elements_dict()):
             l.sort()
             res.append('{%s}'% ', '.join(itertools.imap(repr, l)))
         res.sort()
@@ -180,7 +181,7 @@ cdef class DisjointSet_class(SageObject):
             sage: sorted(d)
             [['a'], ['b'], ['c']]
         """
-        return self.root_to_elements_dict().itervalues()
+        return itervalues(self.root_to_elements_dict())
 
     def __cmp__(self, other):
         r"""
@@ -466,7 +467,7 @@ cdef class DisjointSet_of_integers(DisjointSet_class):
         """
         card = self.cardinality()
         if i < 0 or i>= card:
-            raise ValueError, 'i(=%s) must be between 0 and %s'%(i, card-1)
+            raise ValueError('i(=%s) must be between 0 and %s' % (i, card - 1))
         return OP_find(self._nodes, i)
 
     def union(self, int i, int j):

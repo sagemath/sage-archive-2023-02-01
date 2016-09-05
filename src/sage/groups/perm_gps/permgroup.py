@@ -122,6 +122,7 @@ REFERENCES:
    generators.
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -130,6 +131,7 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from functools import wraps
 
 from sage.misc.randstate import current_randstate
@@ -173,7 +175,7 @@ def hap_decorator(f):
     EXAMPLES::
 
         sage: from sage.groups.perm_gps.permgroup import hap_decorator
-        sage: def foo(self, n, p=0): print "Done"
+        sage: def foo(self, n, p=0): print("Done")
         sage: foo = hap_decorator(foo)
         sage: foo(None, 3)    #optional - gap_packages
         Done
@@ -248,8 +250,8 @@ def from_gap_list(G, src):
 
     # src is a list of list of strings. Each string is a list of
     # integers separated by ','
-    src = [G([tuple(map(lambda x:G._domain_from_gap[int(x)],cycle.split(",")))
-                 for cycle in g])
+    src = [G([tuple(G._domain_from_gap[int(x)] for x in cycle.split(","))
+              for cycle in g])
            for g in src]
 
     # src is now a list of group elements
@@ -700,7 +702,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             ...
             TypeError: no implicit coercion of element into permutation group
         """
-        from permgroup_named import SymmetricGroup
+        from .permgroup_named import SymmetricGroup
         if isinstance(x, PermutationGroupElement):
             x_parent = x.parent()
             if x_parent is self:
@@ -806,7 +808,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             [(), (1,2), (1,2,3), (2,3), (1,3,2), (1,3)]
 
         Test that it is possible to iterate through moderately large groups
-        (trac:`18239`)::
+        (:trac:`18239`)::
 
             sage: p = [(i,i+1) for i in range(1,601,2)]
             sage: q = [tuple(range(1+i,601,3)) for i in range(3)]
@@ -1487,9 +1489,8 @@ class PermutationGroup_generic(group.FiniteGroup):
 
             sage: G = SymmetricGroup(10)
             sage: H = PermutationGroup([G.random_element() for i in range(randrange(1,3,1))])
-            sage: prod(map(lambda x : len(x), H.strong_generating_system()),1) == H.cardinality()
+            sage: prod(len(x) for x in H.strong_generating_system()) == H.cardinality()
             True
-
         """
         sgs = []
         stab = self
@@ -2764,7 +2765,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3)]])
             sage: CT = gap(G).CharacterTable()
 
-        Type ``print gap.eval("Display(%s)"%CT.name())`` to display this
+        Type ``print(gap.eval("Display(%s)"%CT.name()))`` to display this
         nicely.
 
         ::
@@ -2780,7 +2781,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             [ 2  0  0  0 -2]
             sage: CT = gap(G).CharacterTable()
 
-        Again, type ``print gap.eval("Display(%s)"%CT.name())`` to display this
+        Again, type ``print(gap.eval("Display(%s)"%CT.name()))`` to display this
         nicely.
 
         ::
@@ -3389,7 +3390,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         TESTS:
 
-        This shows that the issue at trac ticket 7360 is fixed::
+        This shows that the issue at :trac:`7360` is fixed::
 
             sage: G = KleinFourGroup()
             sage: G.is_simple()
@@ -3520,7 +3521,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         dsts = [right(iso.Image(x), check=False) for x in self.gens()]
 
-        from permgroup_morphism import PermutationGroupMorphism_im_gens
+        from .permgroup_morphism import PermutationGroupMorphism_im_gens
         return PermutationGroupMorphism_im_gens(self, right, dsts)
 
     def is_isomorphic(self, right):
@@ -4146,7 +4147,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         TESTS:
 
         Implementation details should not prevent us from computing
-        large subgroups (trac #5491)::
+        large subgroups (:trac:`5491`)::
 
             sage: PSL(10,2).sylow_subgroup(7)
             Subgroup of...

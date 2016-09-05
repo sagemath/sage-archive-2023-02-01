@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src
+
+perl Makefile.PL --prefix=$SAGE_LOCAL INSTALL_BASE=$SAGE_LOCAL
+$MAKE install

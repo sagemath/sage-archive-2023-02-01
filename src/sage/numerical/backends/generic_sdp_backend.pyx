@@ -26,6 +26,8 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 
 cdef class GenericSDPBackend:
 
@@ -186,7 +188,7 @@ cdef class GenericSDPBackend:
             sage: p.add_variables(5)                                 # optional - Nonexistent_LP_solver
             5
             sage: p.set_objective([1, 1, 2, 1, 3])                   # optional - Nonexistent_LP_solver
-            sage: map(lambda x :p.objective_coefficient(x), range(5))  # optional - Nonexistent_LP_solver
+            sage: [p.objective_coefficient(x) for x in range(5)]  # optional - Nonexistent_LP_solver
             [1.0, 1.0, 2.0, 1.0, 3.0]
 
         Constants in the objective function are respected::
@@ -404,7 +406,7 @@ cdef class GenericSDPBackend:
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "Nonexistent_LP_solver")   # optional - Nonexistent_LP_solver
             sage: p.problem_name("There once was a french fry") # optional - Nonexistent_LP_solver
-            sage: print p.get_problem_name()                        # optional - Nonexistent_LP_solver
+            sage: print(p.get_problem_name())                     # optional - Nonexistent_LP_solver
             There once was a french fry
         """
 

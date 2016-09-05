@@ -217,7 +217,7 @@ Generators
 Use ``graphs(n)`` to iterate through all non-isomorphic graphs of given size::
 
     sage: for g in graphs(4):
-    ....:     print g.spectrum()
+    ....:     print(g.spectrum())
     [0, 0, 0, 0]
     [1, 0, 0, -1]
     [1.4142135623..., 0, 0, -1.4142135623...]
@@ -415,6 +415,8 @@ Methods
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 from copy import copy
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -1129,22 +1131,22 @@ class Graph(GenericGraph):
             if weighted   is None: weighted   = False
             self.allow_loops(loops if loops else False, check=False)
             self.allow_multiple_edges(multiedges if multiedges else False, check=False)
-            from graph_input import from_graph6
+            from .graph_input import from_graph6
             from_graph6(self, data)
 
         elif format == 'sparse6':
             if weighted   is None: weighted   = False
             self.allow_loops(False if loops is False else True, check=False)
             self.allow_multiple_edges(False if multiedges is False else True, check=False)
-            from graph_input import from_sparse6
+            from .graph_input import from_sparse6
             from_sparse6(self, data)
 
         elif format == 'adjacency_matrix':
-            from graph_input import from_adjacency_matrix
+            from .graph_input import from_adjacency_matrix
             from_adjacency_matrix(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'incidence_matrix':
-            from graph_input import from_incidence_matrix
+            from .graph_input import from_incidence_matrix
             from_incidence_matrix(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'seidel_adjacency_matrix':
@@ -1153,7 +1155,7 @@ class Graph(GenericGraph):
             loops = False
             self.allow_loops(False)
             self.allow_multiple_edges(False)
-            from graph_input import from_seidel_adjacency_matrix
+            from .graph_input import from_seidel_adjacency_matrix
             from_seidel_adjacency_matrix(self, data)
         elif format == 'Graph':
             if loops is None:      loops      = data.allows_loops()
@@ -1220,12 +1222,12 @@ class Graph(GenericGraph):
             self.add_edges(data[1])
 
         elif format == 'dict_of_dicts':
-            from graph_input import from_dict_of_dicts
+            from .graph_input import from_dict_of_dicts
             from_dict_of_dicts(self, data, loops=loops, multiedges=multiedges, weighted=weighted,
                                convert_empty_dict_labels_to_None = False if convert_empty_dict_labels_to_None is None else convert_empty_dict_labels_to_None)
 
         elif format == 'dict_of_lists':
-            from graph_input import from_dict_of_lists
+            from .graph_input import from_dict_of_lists
             from_dict_of_lists(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'int':
@@ -1279,22 +1281,33 @@ class Graph(GenericGraph):
     @doc_index("Basic methods")
     def graph6_string(self):
         """
-        Returns the graph6 representation of the graph as an ASCII string.
-        Only valid for simple (no loops, multiple edges) graphs on 0 to
-        262143 vertices.
+        Return the graph6 representation of the graph as an ASCII string.
+
+        This is only valid for simple (no loops, no multiple edges) graphs
+        on at most `2^{18}-1=262143` vertices.
 
         .. NOTE::
 
-            As the graph6 format only handles graphs whose vertex set is
+            As the graph6 format only handles graphs with vertex set
             `\{0,...,n-1\}`, a :meth:`relabelled copy
-            <sage.graphs.generic_graph.GenericGraph.relabel>` of your graph will
-            be encoded if necessary.
+            <sage.graphs.generic_graph.GenericGraph.relabel>` will
+            be encoded, if necessary.
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.digraph.DiGraph.dig6_string` --
+              a similar string format for directed graphs
 
         EXAMPLES::
 
             sage: G = graphs.KrackhardtKiteGraph()
             sage: G.graph6_string()
             'IvUqwK@?G'
+
+        TESTS::
+
+            sage: Graph().graph6_string()
+            '?'
         """
         n = self.order()
         if n > 262143:
@@ -1400,7 +1413,7 @@ class Graph(GenericGraph):
 
         EXAMPLES::
 
-            sage: for x in graphs(3):    print x.to_partition()
+            sage: for x in graphs(3):    print(x.to_partition())
             doctest:...: DeprecationWarning: Please use G.connected_components_sizes() instead
             See http://trac.sagemath.org/17449 for details.
             [1, 1, 1]
@@ -1786,10 +1799,10 @@ class Graph(GenericGraph):
             ...       i = 0
             ...       while i <= n:
             ...           if graphs.CompleteGraph(i).is_overfull():
-            ...               print "A complete graph of even order cannot be overfull."
+            ...               print("A complete graph of even order cannot be overfull.")
             ...               return
             ...           i += 2
-            ...       print "Complete graphs of even order up to %s are not overfull." % n
+            ...       print("Complete graphs of even order up to %s are not overfull." % n)
             ...
             sage: check_overfull_Kn_even(100)  # long time
             Complete graphs of even order up to 100 are not overfull.
@@ -1808,10 +1821,10 @@ class Graph(GenericGraph):
             ...       i = 3
             ...       while i <= n:
             ...           if not graphs.CompleteGraph(i).is_overfull():
-            ...               print "A complete graph of odd order > 1 must be overfull."
+            ...               print("A complete graph of odd order > 1 must be overfull.")
             ...               return
             ...           i += 2
-            ...       print "Complete graphs of odd order > 1 up to %s are overfull." % n
+            ...       print("Complete graphs of odd order > 1 up to %s are overfull." % n)
             ...
             sage: check_overfull_Kn_odd(100)  # long time
             Complete graphs of odd order > 1 up to 100 are overfull.
@@ -1881,12 +1894,12 @@ class Graph(GenericGraph):
             sage: if not g.is_forest():
             ...      cycle = g.is_even_hole_free(certificate = True)
             ...      if cycle.order() % 2 == 1:
-            ...          print "Error !"
+            ...          print("Error !")
             ...      if not cycle.is_isomorphic(
             ...             graphs.CycleGraph(cycle.order())):
-            ...          print "Error !"
+            ...          print("Error !")
             ...
-            sage: print "Everything is Fine !"
+            sage: print("Everything is Fine !")
             Everything is Fine !
 
         TESTS:
@@ -2155,7 +2168,7 @@ class Graph(GenericGraph):
             ...       bm = G.is_triangle_free(algorithm='matrix')
             ...       bb = G.is_triangle_free(algorithm='bitset')
             ...       if bm != bb:
-            ...          print "That's not good!"
+            ...          print("That's not good!")
 
         Asking for an unknown algorithm::
 
@@ -2841,7 +2854,7 @@ class Graph(GenericGraph):
         """
         Returns true if self is a half-transitive graph.
 
-        A graph is is half-transitive if it is both vertex and edge transitive
+        A graph is half-transitive if it is both vertex and edge transitive
         but not arc-transitive.
 
         See :wikipedia:`the wikipedia article on half-transitive graphs
@@ -3132,7 +3145,7 @@ class Graph(GenericGraph):
         Returns an orientation of ``self`` with the smallest possible maximum
         outdegree.
 
-        Given a Graph `G`, is is polynomial to compute an orientation
+        Given a Graph `G`, it is polynomial to compute an orientation
         `D` of the edges of `G` such that the maximum out-degree in
         `D` is minimized. This problem, though, is NP-complete in the
         weighted case [AMOZ06]_.
@@ -3310,7 +3323,7 @@ class Graph(GenericGraph):
 
             sage: try:
             ...      g.bounded_outdegree_orientation(ceil(mad/2-1))
-            ...      print "Error"
+            ...      print("Error")
             ... except ValueError:
             ...       pass
 
@@ -3325,7 +3338,7 @@ class Graph(GenericGraph):
             ...       if not (
             ...            all( D.out_degree(v) <= b(v) for v in g ) or
             ...            D.size() != g.size()):
-            ...           print "Something wrong happened"
+            ...           print("Something wrong happened")
 
         """
         self._scream_if_not_simple()
@@ -3582,13 +3595,13 @@ class Graph(GenericGraph):
             Graphics object consisting of 16 graphics primitives
             sage: H = G.coloring(hex_colors=True, algorithm="MILP")
             sage: for c in sorted(H.keys()):
-            ...       print c, H[c]
+            ....:     print("{} {}".format(c, H[c]))
             #0000ff [4]
             #00ff00 [0, 6, 5]
             #ff0000 [2, 1, 3]
             sage: H = G.coloring(hex_colors=True, algorithm="DLX")
             sage: for c in sorted(H.keys()):
-            ...       print c, H[c]
+            ....:     print("{} {}".format(c, H[c]))
             #0000ff [4]
             #00ff00 [1, 2, 3]
             #ff0000 [0, 5, 6]
@@ -3981,7 +3994,7 @@ class Graph(GenericGraph):
 
                sage: g = graphs.CycleGraph(10)
                sage: mapping = g.has_homomorphism_to(g, core = True)
-               sage: print "The size of the core is",len(set(mapping.values()))
+               sage: print("The size of the core is {}".format(len(set(mapping.values()))))
                The size of the core is 2
 
         OUTPUT:
@@ -4160,7 +4173,7 @@ class Graph(GenericGraph):
             # Otherwise, we add a new constraint
 
             if verbose_constraints:
-                print "Adding a constraint on matching : ",matching
+                print("Adding a constraint on matching : {}".format(matching))
 
             p.add_constraint( p.sum( R(u,v) for u,v,_ in matching), max = 1)
 
@@ -5444,7 +5457,7 @@ class Graph(GenericGraph):
             sage: for i in range(10):                                            # optional - mcqd
             ...       g = graphs.RandomGNP(15,.5)                                # optional - mcqd
             ...       if g.clique_number() != g.clique_number(algorithm="mcqd"): # optional - mcqd
-            ...           print "This is dead wrong !"                           # optional - mcqd
+            ...           print("This is dead wrong !")                          # optional - mcqd
         """
         self._scream_if_not_simple(allow_loops=False)
         if algorithm=="Cliquer":
@@ -5497,8 +5510,8 @@ class Graph(GenericGraph):
             {0: 1, 1: 1, 2: 1, 3: 1, 4: 2}
             sage: F = graphs.Grid2dGraph(2,3)
             sage: X = F.cliques_number_of()
-            sage: for v in sorted(X.iterkeys()):
-            ...    print v, X[v]
+            sage: for v in sorted(X):
+            ....:     print("{} {}".format(v, X[v]))
             (0, 0) 2
             (0, 1) 3
             (0, 2) 2
@@ -5571,7 +5584,7 @@ class Graph(GenericGraph):
             Bipartite graph on 6 vertices
             sage: (G.cliques_get_clique_bipartite()).show(figsize=[2,2])
         """
-        from bipartite_graph import BipartiteGraph
+        from .bipartite_graph import BipartiteGraph
         import networkx
         return BipartiteGraph(networkx.make_clique_bipartite(self.networkx_graph(copy=False), **kwds))
 
@@ -5757,13 +5770,13 @@ class Graph(GenericGraph):
            ...       vc1 = len(vc1_set)
            ...       vc2 = g.vertex_cover(value_only = True, reduction_rules = False)
            ...       if vc1 != vc2:
-           ...           print "Error :", vc1, vc2
-           ...           print "With reduction rules :", vc1
-           ...           print "Without reduction rules :", vc2
+           ...           print("Error :", vc1, vc2)
+           ...           print("With reduction rules :", vc1)
+           ...           print("Without reduction rules :", vc2)
            ...           break
            ...       g.delete_vertices(vc1_set)
            ...       if g.size() != 0:
-           ...           print "This thing is not a vertex cover !"
+           ...           print("This thing is not a vertex cover !")
 
         Then for random GNP graphs::
 
@@ -5773,13 +5786,13 @@ class Graph(GenericGraph):
            ...       vc1 = len(vc1_set)
            ...       vc2 = g.vertex_cover(value_only = True, reduction_rules = False)
            ...       if vc1 != vc2:
-           ...           print "Error :", vc1, vc2
-           ...           print "With reduction rules :", vc1
-           ...           print "Without reduction rules :", vc2
+           ...           print("Error :", vc1, vc2)
+           ...           print("With reduction rules :", vc1)
+           ...           print("Without reduction rules :", vc2)
            ...           break
            ...       g.delete_vertices(vc1_set)
            ...       if g.size() != 0:
-           ...           print "This thing is not a vertex cover !"
+           ...           print("This thing is not a vertex cover !")
 
         Testing mcqd::
 
@@ -5990,8 +6003,8 @@ class Graph(GenericGraph):
             {0: 2, 1: 4, 2: 4, 3: 4, 4: 4}
             sage: F = graphs.Grid2dGraph(2,3)
             sage: X = F.cliques_vertex_clique_number(algorithm="networkx")
-            sage: for v in sorted(X.iterkeys()):
-            ...    print v, X[v]
+            sage: for v in sorted(X):
+            ....:     print("{} {}".format(v, X[v]))
             (0, 0) 2
             (0, 1) 2
             (0, 2) 2
@@ -6054,8 +6067,8 @@ class Graph(GenericGraph):
             {0: [[0, 4]], 1: [[1, 2, 3, 4]], 2: [[1, 2, 3, 4]], 3: [[1, 2, 3, 4]], 4: [[0, 4], [1, 2, 3, 4]]}
             sage: F = graphs.Grid2dGraph(2,3)
             sage: X = F.cliques_containing_vertex()
-            sage: for v in sorted(X.iterkeys()):
-            ...    print v, X[v]
+            sage: for v in sorted(X):
+            ....:     print("{} {}".format(v, X[v]))
             (0, 0) [[(0, 1), (0, 0)], [(1, 0), (0, 0)]]
             (0, 1) [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]]
             (0, 2) [[(0, 1), (0, 2)], [(1, 2), (0, 2)]]
@@ -6681,9 +6694,9 @@ class Graph(GenericGraph):
             sage: g = graphs.CompleteGraph(7)
             sage: classes = g.two_factor_petersen()
             sage: for c in classes:
-            ...     gg = Graph()
-            ...     gg.add_edges(c)
-            ...     print max(gg.degree())<=2
+            ....:     gg = Graph()
+            ....:     gg.add_edges(c)
+            ....:     print(max(gg.degree())<=2)
             True
             True
             True
@@ -6733,7 +6746,7 @@ class Graph(GenericGraph):
 
         .. MATH::
 
-            \Psi_G(t) = \sum_{T\subseteq V\\atop{\\text{a spanning tree}}} \prod_{e \\not\in E(T)} t_e
+            \Psi_G(t) = \sum_{\substack{T\subseteq V \\ \text{a spanning tree}}} \prod_{e \\not\in E(T)} t_e
 
         This is also called the first Symanzik polynomial or the Kirchhoff
         polynomial.
@@ -6822,6 +6835,96 @@ class Graph(GenericGraph):
 
         D = matrix.diagonal(PolynomialRing(ZZ, name, self.size()).gens())
         return (circuit_mtrx.transpose() * D * circuit_mtrx).determinant()
+
+    @doc_index("Leftovers")
+    def magnitude_function(self):
+        """
+        Return the magnitude function of the graph as a rational function.
+
+        This is defined as the sum of all coefficients in the inverse
+        of the matrix `Z` whose coefficient `Z_{i,j}` indexed by a
+        pair of vertices `(i,j)` is `q^d(i,j)` where `d` is the distance
+        function in the graph.
+
+        By convention, if the distance from `i` to `j` is infinite
+        (for two vertices not path connected) then `Z_{i,j}=0`.
+
+        The value of the magnitude function at `q=0` is the
+        cardinality of the graph. The magnitude function of a disjoint
+        union is the sum of the magnitudes functions of the connected
+        components. The magnitude function of a Cartesian product is
+        the product of the magnitudes functions of the factors.
+
+        EXAMPLES::
+
+            sage: g = Graph({1:[], 2:[]})
+            sage: g.magnitude_function()
+            2
+
+            sage: g = graphs.CycleGraph(4)
+            sage: g.magnitude_function()
+            4/(q^2 + 2*q + 1)
+
+            sage: g = graphs.CycleGraph(5)
+            sage: m = g.magnitude_function(); m
+            5/(2*q^2 + 2*q + 1)
+
+        One can expand the magnitude as a power series in `q` as follows::
+
+            sage: q = QQ[['q']].gen()
+            sage: m(q)
+            5 - 10*q + 10*q^2 - 20*q^4 + 40*q^5 - 40*q^6 + ...
+
+        One can also use the substitution `q = exp(-t)` to obtain
+        the magnitude function as a function of `t`::
+
+            sage: g = graphs.CycleGraph(6)
+            sage: m = g.magnitude_function()
+            sage: t = var('t')
+            sage: m(exp(-t))
+            6/(2*e^(-t) + 2*e^(-2*t) + e^(-3*t) + 1)
+
+        TESTS::
+
+            sage: g = Graph()
+            sage: g.magnitude_function()
+            0
+
+            sage: g = Graph({1:[]})
+            sage: g.magnitude_function()
+            1
+
+            sage: g = graphs.PathGraph(4)
+            sage: g.magnitude_function()
+            (-2*q + 4)/(q + 1)
+
+        REFERENCES:
+
+        .. [Lein] Tom Leinster, *The magnitude of metric spaces*.
+           Doc. Math. 18 (2013), 857-905.
+        """
+        from sage.matrix.constructor import matrix
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.graphs.distances_all_pairs import distances_all_pairs
+
+        ring = PolynomialRing(ZZ, 'q')
+        q = ring.gen()
+        N = self.order()
+        if not N:
+            return ring.zero()
+        dist = distances_all_pairs(self)
+        vertices = list(self)
+        Z = matrix(ring, N, N, ring.zero())
+        for i in range(N):
+            Z[i, i] = ring.one()
+        for i in range(N):
+            for j in range(i):
+                dij = dist[vertices[i]][vertices[j]]
+                if dij in ZZ:
+                    Z[i, j] = Z[j, i] = q ** dij
+                else:
+                    Z[i, j] = Z[j, i] = ring.zero()
+        return sum(sum(u) for u in ~Z)
 
     @doc_index("Leftovers")
     def ihara_zeta_function_inverse(self):

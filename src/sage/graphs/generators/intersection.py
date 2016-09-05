@@ -14,6 +14,9 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
+from __future__ import print_function
+
+from six import itervalues
 
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -54,7 +57,7 @@ def IntervalGraph(intervals, points_ordered = False):
         sage: g.get_vertex(3)
         (3, 5)
         sage: neigh = g.neighbors(3)
-        sage: for v in neigh: print g.get_vertex(v)
+        sage: for v in neigh: print(g.get_vertex(v))
         (1, 3)
         (2, 4)
         (4, 6)
@@ -303,7 +306,7 @@ def ToleranceGraph(tolrep):
         sage: g.get_vertex(3)
         (0, 3, 3)
         sage: neigh = g.neighbors(3)
-        sage: for v in neigh: print g.get_vertex(v)
+        sage: for v in neigh: print(g.get_vertex(v))
         (1, 2, 1)
         (2, 3, 1)
         sage: g.is_interval()
@@ -544,8 +547,8 @@ def IntersectionGraph(S):
 
     g = Graph(name="Intersection Graph")
     g.add_vertices(S)
-    for clique in ground_set_to_sets.itervalues():
-        g.add_edges((u,v) for u,v in combinations(clique,2))
+    for clique in itervalues(ground_set_to_sets):
+        g.add_edges((u, v) for u, v in combinations(clique, 2))
 
     return g
 

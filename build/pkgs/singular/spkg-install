@@ -41,11 +41,8 @@ if [ "x$SAGE_DEBUG" = "xyes" ]; then
     CXXFLAGS="$CXXFLAGS -O0 -g"
 else
     # Singular 4.x (mostly) does not longer set defaults for CFLAGS and CXXFLAGS
-
-    OPTIMIZATION_FLAGS="-O2"
-
-    CFLAGS="$OPTIMIZATION_FLAGS -g $CFLAGS"
-    CXXFLAGS="$OPTIMIZATION_FLAGS -g $CXXFLAGS"
+    CFLAGS="-O2 -g $CFLAGS"
+    CXXFLAGS="-O2 -g $CXXFLAGS"
 fi
 
 export CFLAGS CXXFLAGS

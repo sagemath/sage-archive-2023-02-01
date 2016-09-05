@@ -103,10 +103,8 @@ def krawtchouk(n, q, l, x, check=True):
         kraw += jth_term
     return kraw
 
-kravchuk = krawtchouk
-
 Krawtchouk = deprecated_function_alias(20908, krawtchouk)
-Kravchuk   = deprecated_function_alias(20908, kravchuk)
+Kravchuk   = deprecated_function_alias(20908, krawtchouk)
 
 def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
     """

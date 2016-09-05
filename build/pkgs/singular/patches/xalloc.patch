@@ -11,3 +11,16 @@ diff -druN oldest/xalloc/omalloc.h latest/xalloc/omalloc.h
    else return NULL;
  }
  static inline void * omAlloc(size_t s)
+
+Remove non-existing include.
+diff -druN oldest/xalloc/omalloc.h latest/xalloc/omalloc.h
+--- oldest/xalloc/omalloc.h	2016-09-05 11:21:42.037751581 +0000
++++ latest/xalloc/omalloc.h	2016-09-05 11:22:14.837817181 +0000
+@@ -8,7 +8,6 @@
+ */
+ #include <stdlib.h>
+ #include <string.h>
+-#include <omalloc/omConfig.h>
+ 
+ #ifdef __cplusplus
+ extern "C" {

@@ -476,18 +476,22 @@ class ClusterAlgebraElement(ElementWrapper):
 
         WARNING:
 
-            This method returns an element of ``self.parent().ambient()``
-            rather than an element of ``self.parent()`` because, a priori,
-            we cannot guarantee membership.
-
-            You can force the result to be an element of ``self.parent()``
-            by feeding it into ``self.parent().retract``.
+            The result of a division is not guaranteed to remain inside
+            meth:`parent` therefore this method does not return an instance of
+            class:`ClusterAlgebraElelemt`.
 
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['F',4])
-            sage: A.an_element() / A.an_element()
+            sage: x = A.an_element()
+            sage: x/x
             1
+            sage: _.parent()
+            Multivariate Laurent Polynomial Ring in x0, x1, x2, x3 over Integer Ring
+            sage: A.retract(x/x)
+            1
+            sage: _.parent()
+            A Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring
         """
         return self.lift()/other.lift()
 

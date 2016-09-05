@@ -33,8 +33,7 @@ EXAMPLES::
     sage: pari('5! + 10/x')
     (120*x + 10)/x
     sage: pari('intnum(x=0,13,sin(x)+sin(x^2) + x)')
-    83.8179442684285  # 32-bit
-    84.1818153922297  # 64-bit
+    85.6215190762676
     sage: f = pari('x^3-1')
     sage: v = f.factor(); v
     [x - 1, 1; x^2 + x + 1, 1]
@@ -496,12 +495,10 @@ cdef class PariInstance(PariInstance_auto):
         pariOut.puts = sage_puts
         pariOut.flush = sage_flush
 
-        # Display only 15 digits
-        self._real_precision = 15
-        sd_format("g.15", d_SILENT)
+        # Use 15 decimal digits as default precision
+        self.set_real_precision(15)
 
-        # Init global prec variable (PARI's precision is always a
-        # multiple of the machine word size)
+        # Init global prec variable with the precision in words
         global prec
         prec = prec_bits_to_words(64)
 

@@ -476,9 +476,9 @@ class ClusterAlgebraElement(ElementWrapper):
 
         WARNING:
 
-            The result of a division is not guaranteed to remain inside
+            The result of a division is not guaranteed to be inside
             meth:`parent` therefore this method does not return an instance of
-            class:`ClusterAlgebraElelemt`.
+            class:`ClusterAlgebraElement`.
 
         EXAMPLES::
 

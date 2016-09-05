@@ -28,6 +28,11 @@ AUTHOR:
 
 - " (2008-10) small docstring changes to WalshCode and walsh_matrix
 
+
+REFERENCES:
+
+.. [HP] \W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
+   Codes, Cambridge Univ. Press, 2003.
 """
 
 #*****************************************************************************

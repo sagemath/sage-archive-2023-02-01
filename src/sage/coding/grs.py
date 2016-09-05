@@ -646,8 +646,9 @@ class GRSEvaluationPolynomialEncoder(Encoder):
 
     - ``code`` -- The associated code of this encoder.
 
-    - ``variable_name`` -- (default: ``'x'``) The name of the variable used in ``self``'s
-      message space.
+    - ``polynomial_ring`` -- (default: ``None``)  A polynomial ring to specify
+      the message space of ``self``, if needed. It is set to `F[x]` (where `F`
+      is the base field of ``code``) if default value is kept.
 
     EXAMPLES::
 
@@ -665,6 +666,13 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         sage: E = C.encoder("EvaluationPolynomial")
         sage: E
         Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+
+    We can also specify another polynomial ring::
+
+        sage: R = PolynomialRing(F, 'y')
+        sage: E = C.encoder("EvaluationPolynomial", polynomial_ring=R)
+        sage: E.message_space()
+        Univariate Polynomial Ring in y over Finite Field of size 59
     """
 
     def __init__(self, code, polynomial_ring = None):

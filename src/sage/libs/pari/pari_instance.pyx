@@ -487,7 +487,7 @@ cdef class PariInstance(PariInstance_auto):
             # it grows beyond 4GB this issue could still be triggered
             #
             # The underlying issue is fixed in Cygwin v2.5.2
-            sizemax = min(sizemax, 0x3fffffff)
+            sizemax = min(sizemax, 0xf0000000)
 
         paristack_setsize(size, sizemax)
 

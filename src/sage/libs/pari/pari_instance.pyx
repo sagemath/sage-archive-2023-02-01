@@ -481,10 +481,10 @@ cdef class PariInstance(PariInstance_auto):
         sizemax = mem.virtual_memory_limit() // 4
 
         if CYGWIN_VERSION and CYGWIN_VERSION < (2, 5, 2):
-            # Cygwin's mmap is broken for large mmaps (>~ 4GB)
-            # See http://trac.sagemath.org/ticket/20463
-            # So we will just let the pari stack size grow as needed; if
-            # it grows beyond 4GB this issue could still be triggered
+            # Cygwin's mmap is broken for large NORESERVE mmaps (>~ 4GB) See
+            # http://trac.sagemath.org/ticket/20463 So we set the max stack
+            # size to a little below 4GB (putting it right on the margin proves
+            # too fragile)
             #
             # The underlying issue is fixed in Cygwin v2.5.2
             sizemax = min(sizemax, 0xf0000000)

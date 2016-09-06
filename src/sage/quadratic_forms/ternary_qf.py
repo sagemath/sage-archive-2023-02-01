@@ -396,7 +396,7 @@ class TernaryQF(SageObject):
 
     def is_negative_definite(self):
         """
-        Determines if the ternary quadratic form is negatice definite.
+        Determine if the ternary quadratic form is negative definite.
 
         EXAMPLES::
 
@@ -408,9 +408,7 @@ class TernaryQF(SageObject):
             6
             sage: Q.is_negative_definite()
             False
-
         """
-
         d1 = self._a
         if d1 == 0:
             return False

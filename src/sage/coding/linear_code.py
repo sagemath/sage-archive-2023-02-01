@@ -3973,7 +3973,7 @@ class LinearCodeSystematicEncoder(Encoder):
 
 
     We exemplify how to use :class:`LinearCodeSystematicEncoder` as the default
-    encoder. The following class is the dual of the repitition code::
+    encoder. The following class is the dual of the repetition code::
 
         sage: class DualRepetitionCode(sage.coding.linear_code.AbstractLinearCode):
         ....:   def __init__(self, field, length):

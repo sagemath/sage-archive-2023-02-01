@@ -563,7 +563,7 @@ def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
 
     - ``la`` -- type of the ambient group as a :class:`Partition`
     - ``mu`` -- type of the subgroup as a :class:`Partition`
-    - ``q`` -- (default: ``None``) an indeterminat or a prime number; if
+    - ``q`` -- (default: ``None``) an indeterminate or a prime number; if
       ``None``, this defaults to `q \in \ZZ[q]`
     - ``algorithm`` -- (default: ``'birkhoff'``) the algorithm to use can be
       one of the following:

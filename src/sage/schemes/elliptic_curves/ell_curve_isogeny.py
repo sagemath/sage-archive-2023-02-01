@@ -2478,7 +2478,7 @@ class EllipticCurveIsogeny(Morphism):
     #
     def __compute_omega_fast(self, E, psi, psi_pr, phi, phi_pr):
         r"""
-        Returns omega from phi, psi and their deriviates, used when
+        Return omega from phi, psi and their derivatives, used when
         the characteristic field is not 2.
 
         INPUT:
@@ -2530,7 +2530,7 @@ class EllipticCurveIsogeny(Morphism):
 
     def __compute_omega_general(self, E, psi, psi_pr, phi, phi_pr):
         r"""
-        Returns omega from phi, psi and their deriviates, in any
+        Return omega from phi, psi and their derivatives, in any
         characteristic.
 
         INPUT:

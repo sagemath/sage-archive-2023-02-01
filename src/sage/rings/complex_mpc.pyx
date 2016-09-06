@@ -2327,7 +2327,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
                 # self = -right
                 mpc_set_ui(res.value, 0, rnd)
                 return res
-            # Do the computations to a bit higher precicion so rounding error
+            # Do the computations to a bit higher precision so rounding error
             # won't obscure the termination condition.
             a = MPComplexNumber(MPComplexField(prec+5), None)
             b = a._new()

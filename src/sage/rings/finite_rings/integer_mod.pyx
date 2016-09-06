@@ -1405,7 +1405,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         positive representative in `-n/2 < x \leq n/2`.
 
         This is used so that the same square root is always returned,
-        despite the possibly probabalistic nature of the underlying
+        despite the possibly probabilistic nature of the underlying
         algorithm.
         """
         if self.lift() > self.__modulus.sageInteger >> 1:

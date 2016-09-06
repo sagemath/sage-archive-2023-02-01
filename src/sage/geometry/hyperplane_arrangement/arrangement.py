@@ -1283,7 +1283,7 @@ class HyperplaneArrangementElement(Element):
 
         The `d`-th entry is the number of faces of dimension `d`.  A
         *face* is the intersection of a region with a hyperplane of
-        the arrangehment.
+        the arrangement.
 
         EXAMPLES::
 
@@ -2762,7 +2762,7 @@ class HyperplaneArrangementElement(Element):
 
         This gets the reduced syzygy module of the Jacobian ideal of
         the defining polynomial `f` of ``self``. It then checks Saito's
-        criterion that the determinat of the basis matrix is a scalar
+        criterion that the determinant of the basis matrix is a scalar
         multiple of `f`. If the basis matrix is not square or it fails
         Saito's criterion, then we check if the arrangement is free.
         If it is free, then we fall back to the Barakat-Cuntz algorithm.

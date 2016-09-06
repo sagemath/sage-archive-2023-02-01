@@ -12260,7 +12260,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         ALGORITHM:
 
         The algorithm employed only uses field operations,
-        but the compuation of each diagonal entry has the potential
+        but the computation of each diagonal entry has the potential
         for division by zero.  The number of operations is of order
         `n^3/3`, which is half the count for an LU decomposition.
         This makes it an appropriate candidate for solving systems
@@ -13507,7 +13507,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         When ``basis=False`` only three items are returned.  These are
         just as above, but without the change-of-basis matrix.
 
-        The compuation of the change-of-basis matrix has not been optimized.
+        The computation of the change-of-basis matrix has not been optimized.
         As a helper method, no error checking is performed on the inputs -
         that should be performed by the calling method.
 

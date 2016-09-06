@@ -34,7 +34,7 @@ All the code here was first available on Mathematica [ZS]_.
 REFERENCES:
 
 .. [KonZor03] \M. Kontsevich, A. Zorich "Connected components of the moduli space
-   of Abelian differentials with prescripebd singularities" Invent. math. 153,
+   of Abelian differentials with prescribed singularities" Invent. math. 153,
    631-678 (2003)
 
 .. [Lan08] \E. Lanneau "Connected components of the strata of the moduli spaces

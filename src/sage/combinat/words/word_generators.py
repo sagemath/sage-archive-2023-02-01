@@ -1622,7 +1622,7 @@ class WordGenerator(object):
             sage: Word(words._s_adic_iterator(w, repeat('a')))
             word: abbaababbaabbaabbaababbaababbaabbaababba...
 
-        The morphism `\sigma: a \mapsto ba, b \mapsto b` can't satify the
+        The morphism `\sigma: a \mapsto ba, b \mapsto b` cannot satisfy the
         hypothesis of the algorithm (nested prefixes)::
 
             sage: sigma = WordMorphism('a->ba,b->b')

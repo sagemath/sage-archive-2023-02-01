@@ -4319,9 +4319,11 @@ class StandardTableau(SemistandardTableau):
 
     def dominates(self, t):
         r"""
-        Return ``True`` if ``self`` dominates the tableau ``t``. That is,
-        if the shape of the tableau restricted to `k` dominates the shape of
-        ``t`` restrcted to `k`, for `k = 1, 2, \ldots, n`.
+        Return ``True`` if ``self`` dominates the tableau ``t``.
+
+        That is, if the shape of the tableau restricted to `k`
+        dominates the shape of ``t`` restricted to `k`, for `k = 1, 2,
+        \ldots, n`.
 
         When the two tableaux have the same shape, then this ordering
         coincides with the Bruhat ordering for the corresponding permutations.

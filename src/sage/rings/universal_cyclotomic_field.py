@@ -179,7 +179,7 @@ gap = gap3 = None
 def late_import():
     r"""
     This function avoids importing libgap on startup. It is called once through
-    the constrcturo of :class:`UniversalCyclotomicField`.
+    the constructor of :class:`UniversalCyclotomicField`.
 
     EXAMPLES::
 

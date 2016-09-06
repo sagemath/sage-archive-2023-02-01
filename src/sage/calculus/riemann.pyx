@@ -1469,7 +1469,7 @@ cpdef cauchy_kernel(t, args):
 
 cpdef analytic_interior(COMPLEX_T z, int n, FLOAT_T epsilon):
     """
-    Provides a nearly exact compuation of the Riemann Map of an interior
+    Provides a nearly exact computation of the Riemann Map of an interior
     point of the ellipse with axes 1 + epsilon and 1 - epsilon. It is
     primarily useful for testing the accuracy of the numerical Riemann Map.
 

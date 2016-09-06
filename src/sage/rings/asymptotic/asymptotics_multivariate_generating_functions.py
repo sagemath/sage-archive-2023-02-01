@@ -3261,7 +3261,7 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
             from sage.misc.superseded import deprecation
             deprecation(10519, "Keyword argument 'numerator' "
                                "is deprecated. "
-                               "Ignoring non-keyword argumets (if any). "
+                               "Ignoring non-keyword arguments (if any). "
                                "Specify numerator and factored denominator "
                                "as first and second argument, i.e., use "
                                "something like FFPD(n, df).")
@@ -3269,7 +3269,7 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
             from sage.misc.superseded import deprecation
             deprecation(10519, "Keyword argument 'denominator_factored' "
                                "is deprecated. "
-                               "Ignoring non-keyword argumets (if any). "
+                               "Ignoring non-keyword arguments (if any). "
                                "Specify numerator and factored denominator "
                                "as first and second argument, i.e., use "
                                "something like FFPD(n, df).")
@@ -3282,7 +3282,7 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
             from sage.misc.superseded import deprecation
             deprecation(10519, "Keyword argument 'quotient' "
                                "is deprecated. "
-                               "Ignoring non-keyword argumets (if any). "
+                               "Ignoring non-keyword arguments (if any). "
                                "Specify numerator and factored denominator "
                                "as first and second argument, i.e., use "
                                "something like FFPD(q).")

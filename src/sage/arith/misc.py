@@ -136,7 +136,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         sage: algdep(pi.n(), 5, height_bound=10, proof=True) is None
         True
 
-    For stronger results, we need more precicion::
+    For stronger results, we need more precision::
 
         sage: algdep(pi.n(), 5, height_bound=100, proof=True) is None
         Traceback (most recent call last):

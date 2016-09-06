@@ -1020,8 +1020,8 @@ cdef class Element(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.structure.element import RingElement
-            sage: e = RingElement(Parent())
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
             sage: e + e
             Traceback (most recent call last):
             ...
@@ -1037,19 +1037,19 @@ cdef class Element(SageObject):
             sage: int(1) + e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand type(s) for +: 'int' and 'sage.structure.element.RingElement'
+            TypeError: unsupported operand type(s) for +: 'int' and 'sage.structure.element.Element'
             sage: e + int(1)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand type(s) for +: 'sage.structure.element.RingElement' and 'int'
+            TypeError: unsupported operand type(s) for +: 'sage.structure.element.Element' and 'int'
             sage: None + e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand type(s) for +: 'NoneType' and 'sage.structure.element.RingElement'
+            TypeError: unsupported operand type(s) for +: 'NoneType' and 'sage.structure.element.Element'
             sage: e + None
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand type(s) for +: 'sage.structure.element.RingElement' and 'NoneType'
+            TypeError: unsupported operand type(s) for +: 'sage.structure.element.Element' and 'NoneType'
         """
         cdef int cl = classify_elements(left, right)
         if HAVE_SAME_PARENT(cl):
@@ -1077,18 +1077,19 @@ cdef class Element(SageObject):
         """
         Virtual addition method for elements with identical parents.
 
-        This is meant to implement the fact that there is no ``_add_``
-        method: it looks up a Python ``_add_`` method and calls that.
-        This indirectly also looks up ``_add_`` in the category.
-        If there is no Python ``_add_`` method, an exception is raised
-        saying that addition is not implemented.
+        This default Cython implementation of ``_add_`` calls the
+        eponymous Python method in the class of ``self``, if it exists.
+        Otherwise an ``AttributeError`` exception is raised.
+
+        For general context on coercion, see :mod:`sage.structure.element`.
 
         EXAMPLES::
 
-            sage: 23._add_(5)
-            28
-
-        ::
+            sage: class MyElement(Element):
+            ....:     def _add_(self, other): return 42
+            sage: x = MyElement(Parent())
+            sage: x+x
+            42
 
             sage: from sage.structure.element import Element
             sage: e = Element(Parent())
@@ -1115,7 +1116,7 @@ cdef class Element(SageObject):
         Top-level subtraction operator for :class:`Element` invoking
         the coercion model.
 
-        See extensive documentation at the top of element.pyx.
+        See extensive documentation of :mod:`sage.structure.element`.
 
         EXAMPLES::
 

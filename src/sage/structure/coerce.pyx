@@ -474,7 +474,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         To get an actual valid map, we simply copy the weakly referenced
         coercion map::
-                
+
             sage: print(copy(left_morphism_ref()))
             Natural morphism:
               From: Integer Ring
@@ -1768,8 +1768,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         if op is div:
             # Division on right is the same acting on right by inverse, if it is so defined.
-            right_mul = self.get_action(R, S, mul)
-            if right_mul and not right_mul.is_left():
+            right_mul = None
+            try:
+                right_mul = self.get_action(R, S, mul)
+            except NotImplementedError:
+                self._record_exception()
+
+            if right_mul is not None and not right_mul.is_left():
                 try:
                     action = ~right_mul
                     if action.right_domain() != S:
@@ -1780,11 +1785,18 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                     self._record_exception()
 
             # It's possible an action is defined on the fraction field itself.
-            if hasattr(S, '_pseudo_fraction_field'):
+            try:
                 K = S._pseudo_fraction_field()
+            except AttributeError:
+                pass
+            else:
                 if K is not S:
-                    right_mul = self.get_action(R, K, mul)
-                    if right_mul and not right_mul.is_left():
+                    try:
+                        right_mul = self.get_action(R, K, mul)
+                    except NotImplementedError:
+                        self._record_exception()
+
+                    if right_mul is not None and not right_mul.is_left():
                         try:
                             return PrecomposedAction(~right_mul, None, K.coerce_map_from(S))
                         except TypeError: # action may not be invertible

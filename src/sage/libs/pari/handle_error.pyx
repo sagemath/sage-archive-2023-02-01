@@ -19,13 +19,15 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-from .paridecl cimport *
-from .paripriv cimport *
+from __future__ import absolute_import, division, print_function
+
 include "cysignals/signals.pxi"
 
 from cpython cimport PyErr_Occurred
+
+from .paridecl cimport *
+from .paripriv cimport *
 from .stack cimport new_gen_noclear
 
 

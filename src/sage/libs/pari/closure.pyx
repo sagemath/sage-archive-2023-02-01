@@ -27,15 +27,16 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
+
+from __future__ import absolute_import, division, print_function
+
+include "cysignals/signals.pxi"
 
 from cpython.tuple cimport *
 from cpython.object cimport PyObject_Call
 from cpython.ref cimport Py_INCREF
 
-include "cysignals/signals.pxi"
 from .paridecl cimport *
-
 from .stack cimport new_gen, new_gen_noclear
 from .gen cimport objtogen
 

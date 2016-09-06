@@ -36,7 +36,8 @@ some bit shuffling.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, division, print_function
 
 include "cysignals/signals.pxi"
 

@@ -12,13 +12,16 @@ Utility functions to handle the PARI stack and copy objects from it.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import, division, print_function
+
 include "cysignals/signals.pxi"
-cdef extern from *:
-    int sig_on_count "cysigs.sig_on_count"
 include "cysignals/memory.pxi"
 
-from libc.stdio cimport fflush, stdout, printf
+cdef extern from *:
+    int sig_on_count "cysigs.sig_on_count"
+
 from .paridecl cimport pari_mainstack, avma, paristack_setsize, gsizebyte, gcopy_avma, gnil
+
 
 cdef inline void clear_stack():
     """

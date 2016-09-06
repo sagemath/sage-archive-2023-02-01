@@ -63,7 +63,8 @@ Now it takes much less than a second::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, division, print_function
 
 import types
 cimport cython

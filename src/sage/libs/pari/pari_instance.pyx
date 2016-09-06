@@ -194,17 +194,16 @@ Check that ``default()`` works properly::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import, division
 
-from .paridecl cimport *
-from .paripriv cimport *
 include "cysignals/signals.pxi"
 
 import sys
-
-cimport libc.stdlib
 from libc.stdio cimport *
 cimport cython
 
+from .paridecl cimport *
+from .paripriv cimport *
 from .gen cimport gen, objtogen
 from .stack cimport new_gen, new_gen_noclear, clear_stack
 from .convert cimport new_gen_from_double

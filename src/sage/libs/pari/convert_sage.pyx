@@ -20,6 +20,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import, division, print_function
+
 include "cysignals/signals.pxi"
 
 from sage.libs.gmp.all cimport *

@@ -588,14 +588,14 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             P = OrderedTree([[],[[]],[]]).canonical_labelling().plot()
             sphinx_plot(P)
         """
-        g = self.to_undirected_graph()
         try:
             root = self.label()
-            return g.plot(layout='tree', tree_root=root,
-                          tree_orientation="down")
+            g = self.to_undirected_graph()
         except AttributeError:
-            # how to find back who is the root in this case ?
-            return g.plot(layout='tree', tree_orientation="down")
+            root = 1
+            g = self.canonical_labelling().to_undirected_graph()
+        return g.plot(layout='tree', tree_root=root,
+                      tree_orientation="down")
 
     def sort_key(self):
         """

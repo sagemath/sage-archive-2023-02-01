@@ -293,7 +293,7 @@ class Word_class(SageObject):
         if not isinstance(other, Word_class):
             return NotImplemented
         self_it, other_it = iter(self), iter(other)
-        cmp_fcn = self._parent.cmp_letters
+        cmp_key = self._parent.sortkey_letters
         while True:
             try:
                 cs = next(self_it)
@@ -316,7 +316,9 @@ class Word_class(SageObject):
                     # other is a proper prefix of self: return 1.
                     return 1
                 else:
-                    r = cmp_fcn(cs, co)
+                    key_cs = cmp_key(cs)
+                    key_co = cmp_key(co)
+                    r = cmp(key_cs, key_co)
                     if r != 0:
                         return r
 

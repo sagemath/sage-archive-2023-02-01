@@ -932,7 +932,7 @@ class CombinatorialObject(SageObject):
             sage: class Foo(CombinatorialObject, Element): pass
             sage: L = [Foo([4-i]) for i in range(4)]; L
             [[4], [3], [2], [1]]
-            sage: sorted(L, cmp)
+            sage: sorted(L)
             [[1], [2], [3], [4]]
             sage: f = Foo([4])
             sage: f is None
@@ -952,7 +952,7 @@ class CombinatorialObject(SageObject):
                 ....:     def __init__(self, l):
                 ....:         CombinatorialObject.__init__(self, l)
                 sage: L = [Bar([4-i]) for i in range(4)]
-                sage: sorted(L, cmp)
+                sage: sorted(L)
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: comparison not implemented for <class '__main__.Bar'>

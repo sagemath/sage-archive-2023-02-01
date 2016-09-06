@@ -663,7 +663,8 @@ class FiniteWord_class(Word_class):
             word: 3113a1
         """
         s = self.standard_permutation()
-        ordered_alphabet = sorted(self.letters(), cmp=self.parent().cmp_letters)
+        ordered_alphabet = sorted(self.letters(),
+                                  key=self.parent().sortkey_letters)
         eval_dict = self.evaluation_dict()
         weight = [eval_dict[a] for a in ordered_alphabet]
         return (s.foata_bijection()).destandardize(weight, ordered_alphabet=ordered_alphabet)
@@ -777,8 +778,8 @@ class FiniteWord_class(Word_class):
             sage: w.to_integer_list()
             [1, 0, 0, 2]
         """
-        cmp_fcn = self._parent.cmp_letters
-        ordered_alphabet = sorted(self.letters(), cmp=cmp_fcn)
+        cmp_key = self._parent.sortkey_letters
+        ordered_alphabet = sorted(self.letters(), key=cmp_key)
         index = dict((b,a) for (a,b) in enumerate(ordered_alphabet))
         return [index[a] for a in self]
 
@@ -3704,16 +3705,17 @@ class FiniteWord_class(Word_class):
         """
         if self.is_empty():
             return False
-        cmp = self.parent().cmp_letters
+        key = self.parent().sortkey_letters
         n = self.length()
         i, j = 0, 1
         while j < n:
-            c = cmp(self[i], self[j])
-            if c == 0:
+            ki = key(self[i])
+            kj = key(self[j])
+            if ki == kj:
                 # increment i and j
                 i += 1
                 j += 1
-            elif c < 0:
+            elif ki < kj:
                 # reset i, increment j
                 i = 0
                 j += 1
@@ -3776,7 +3778,7 @@ class FiniteWord_class(Word_class):
             MapleTech journal, vol. 4, no. 1, 1997, pp. 34-42.
 
         """
-        cmp = self.parent().cmp_letters
+        key = self.parent().sortkey_letters
         # We compute the indexes of the factorization.
         n = self.length()
         k = -1
@@ -3785,11 +3787,12 @@ class FiniteWord_class(Word_class):
             i = k+1
             j = k+2
             while j < n:
-                c = cmp(self[i], self[j])
-                if c < 0:
+                ki = key(self[i])
+                kj = key(self[j])
+                if ki < kj:
                     i = k+1
                     j += 1
-                elif c == 0:
+                elif ki == kj:
                     i += 1
                     j += 1
                 else:
@@ -3816,11 +3819,13 @@ class FiniteWord_class(Word_class):
             [[0, 1], [0, 2], [0, 4], [3, 4]]
         """
         inversion_list = []
-        cmp_fcn = self._parent.cmp_letters
+        cmp_key = self._parent.sortkey_letters
         for (i1, letter1) in enumerate(self):
-            for (i2, letter2) in enumerate(self[i1+1:]):
-                if cmp_fcn(letter1, letter2) > 0:
-                    inversion_list.append([i1,i1+i2+1])
+            k1 = cmp_key(letter1)
+            for (i2, letter2) in enumerate(self[i1 + 1:]):
+                k2 = cmp_key(letter2)
+                if k1 > k2:
+                    inversion_list.append([i1, i1 + i2 + 1])
         return inversion_list
 
     # TODO: This function should be defined for words of integers, but it
@@ -4884,7 +4889,7 @@ class FiniteWord_class(Word_class):
             raise TypeError("involution (=%s) must be callable"%involution)
         return p
 
-    # TODO: requires a parent with a cmp_letters method
+    # TODO: requires a parent with a sortkey_letters method
     def standard_permutation(self):
         r"""
         Return the standard permutation of the word
@@ -4943,7 +4948,7 @@ class FiniteWord_class(Word_class):
             word: bbbaaa
         """
         from sage.combinat.permutation import to_standard
-        return to_standard(self, cmp=self.parent().cmp_letters)
+        return to_standard(self, key=self.parent().sortkey_letters)
 
     def _s(self, i):
         r"""
@@ -5136,7 +5141,8 @@ class FiniteWord_class(Word_class):
         """
         if check:
             ev_dict = self.evaluation_dict()
-            ordered_alphabet = sorted(ev_dict, cmp=self.parent().cmp_letters)
+            ordered_alphabet = sorted(ev_dict,
+                                      key=self.parent().sortkey_letters)
             evaluation = [ev_dict[a] for a in ordered_alphabet]
             from sage.combinat.partition import Partitions
             if evaluation not in Partitions():
@@ -5860,7 +5866,8 @@ class FiniteWord_class(Word_class):
             sage: Words("ba")("abba").swap_increase(0)
             word: baba
         """
-        if self._parent.cmp_letters(self[i], self[i+1]) > 0:
+        key = self._parent.sortkey_letters
+        if key(self[i]) > key(self[i + 1]):
             return self.swap(i)
         else:
             return self
@@ -5884,7 +5891,8 @@ class FiniteWord_class(Word_class):
             sage: Words("ba")("abba").swap_decrease(0)
             word: abba
         """
-        if self._parent.cmp_letters(self[i], self[i+1]) < 0:
+        key = self._parent.sortkey_letters
+        if key(self[i]) < key(self[i + 1]):
             return self.swap(i)
         else:
             return self
@@ -6685,8 +6693,8 @@ class FiniteWord_class(Word_class):
         #A colored rectangle for each letter
         dim = self.parent().alphabet().cardinality()
         if dim is Infinity:
-            ordered_alphabet = sorted(self.letters(), \
-                    cmp=self.parent().cmp_letters)
+            ordered_alphabet = sorted(self.letters(),
+                                      key=self.parent().sortkey_letters)
             dim = float(len(ordered_alphabet))
         else:
             ordered_alphabet = self.parent().alphabet()

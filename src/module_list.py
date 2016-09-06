@@ -629,10 +629,7 @@ ext_modules = [
                       libraries = ["homfly", "gc"],
                       package="libhomfly"),
 
- #    Extension('sage.libs.linbox.linbox',
- #             sources = ['sage/libs/linbox/linbox.pyx']),
-
-    Extension('*',['sage/libs/linbox/*.pyx']),
+    Extension('*', ['sage/libs/linbox/*.pyx']),
 
     Extension('sage.libs.lcalc.lcalc_Lfunction',
               sources = ['sage/libs/lcalc/lcalc_Lfunction.pyx'],
@@ -650,28 +647,7 @@ ext_modules = [
     Extension('sage.libs.lrcalc.lrcalc',
               sources = ["sage/libs/lrcalc/lrcalc.pyx"]),
 
-    Extension('sage.libs.pari.closure',
-              sources = ["sage/libs/pari/closure.pyx"]),
-
-    Extension('sage.libs.pari.convert',
-              sources = ["sage/libs/pari/convert.pyx"]),
-
-    Extension('sage.libs.pari.convert_sage',
-              sources = ["sage/libs/pari/convert_sage.pyx"]),
-
-    Extension('sage.libs.pari.gen',
-              sources = ["sage/libs/pari/gen.pyx"]),
-
-    Extension('sage.libs.pari.handle_error',
-              sources = ["sage/libs/pari/handle_error.pyx"]),
-
-    Extension('sage.libs.pari.pari_instance',
-              sources = ["sage/libs/pari/pari_instance.pyx"],
-              extra_compile_args = ["-std=c99", "-D_XPG6"],
-              libraries = ['flint']),
-
-    Extension('sage.libs.pari.stack',
-              sources = ["sage/libs/pari/stack.pyx"]),
+    Extension('*', ['sage/libs/pari/*.pyx']),
 
     Extension('sage.libs.ppl',
               sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc']),

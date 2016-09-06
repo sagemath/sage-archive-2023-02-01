@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Ordered Rooted Trees
 
@@ -543,7 +544,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
 
     def plot(self):
         """
-        Show the tree ``self``.
+        Plot the tree ``self``.
 
         .. WARNING::
 
@@ -553,7 +554,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             :meth:`_ascii_art_` or ``pretty_print`` for more
             faithful representations of the data of the tree.
 
-        TESTS::
+        EXAMPLES::
 
             sage: p = OrderedTree([[[]],[],[]])
             sage: unicode_art(p)
@@ -563,11 +564,14 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             │  
             o  
             sage: p.plot()
+            Graphics object consisting of 10 graphics primitives
 
-            .. PLOT::
+        .. PLOT::
 
-                P = OrderedTree([[[]],[],[]]).plot()
-                sphinx_plot(P)
+            P = OrderedTree([[[]],[],[]]).plot()
+            sphinx_plot(P)
+
+        Now a labelled example::
 
             sage: g = OrderedTree([[],[[]],[]]).canonical_labelling()
             sage: unicode_art(g)
@@ -577,19 +581,21 @@ class OrderedTree(AbstractClonableTree, ClonableList):
               │
               4
             sage: g.plot()
+            Graphics object consisting of 10 graphics primitives
 
-            .. PLOT::
+        .. PLOT::
 
-                P = OrderedTree([[],[[]],[]]).canonical_labelling().plot()
-                sphinx_plot(P)
+            P = OrderedTree([[],[[]],[]]).canonical_labelling().plot()
+            sphinx_plot(P)
         """
         g = self.to_undirected_graph()
         try:
             root = self.label()
-            g.show(layout='tree', tree_root=root, tree_orientation="down")
+            return g.plot(layout='tree', tree_root=root,
+                          tree_orientation="down")
         except AttributeError:
             # how to find back who is the root in this case ?
-            g.show(layout='tree', tree_orientation="down")
+            return g.plot(layout='tree', tree_orientation="down")
 
     def sort_key(self):
         """

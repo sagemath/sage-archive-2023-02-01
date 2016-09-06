@@ -541,7 +541,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         children.reverse()
         return OrderedTree(children)
 
-    def show(self):
+    def plot(self):
         """
         Show the tree ``self``.
 
@@ -562,19 +562,26 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             o o o
             │  
             o  
-            sage: p.show()
-            Graphics object consisting of 10 graphics primitives
+            sage: p.plot()
+
+            .. PLOT::
+
+                P = OrderedTree([[[]],[],[]]).plot()
+                sphinx_plot(P)
 
             sage: g = OrderedTree([[],[[]],[]]).canonical_labelling()
             sage: unicode_art(g)
-
             ╭─1─╮
             │ │ │
             2 3 5
               │
               4
-            sage: g.show()
-            Graphics object consisting of 10 graphics primitives
+            sage: g.plot()
+
+            .. PLOT::
+
+                P = OrderedTree([[],[[]],[]]).canonical_labelling().plot()
+                sphinx_plot(P)
         """
         g = self.to_undirected_graph()
         try:

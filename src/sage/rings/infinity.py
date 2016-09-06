@@ -95,9 +95,10 @@ well-defined::
     ...
     ValueError: quotient of number < oo by number < oo not defined
 
-What happened above is that 0 is canonically coerced to "a number
-less than infinity" in the unsigned infinity ring, and the quotient
-is then not well-defined.
+What happened above is that 0 is canonically coerced to "A number less
+than infinity" in the unsigned infinity ring. Next, Sage tries to divide
+by multiplying with its inverse. Finally, this inverse is not
+well-defined.
 
 ::
 

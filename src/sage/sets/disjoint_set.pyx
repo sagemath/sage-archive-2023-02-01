@@ -186,7 +186,7 @@ cdef class DisjointSet_class(SageObject):
         """
         return itervalues(self.root_to_elements_dict())
 
-    def __richcmp__(self, other, op):
+    def __richcmp__(self, other, int op):
         r"""
         Compare the disjoint sets ``self`` and ``other``.
 

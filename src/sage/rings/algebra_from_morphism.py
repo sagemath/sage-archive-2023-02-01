@@ -1,3 +1,13 @@
+r"""
+Extension of rings
+
+See :func:`RingExtension` for documentation.
+
+AUTHOR:
+
+- Xavier Caruso (2016)
+"""
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.decorators import sage_wraps
 from sage.categories.pushout import pushout
@@ -301,6 +311,10 @@ def RingExtension(ring, base=None, defining_morphism=None):
     On the other hand, when computing the product ``x*z2``, both factors x and
     z2 are mapped to L through coercion maps and the product is computed in L.
     The defining morphism here never interferes.
+
+    AUTHOR:
+
+    - Xavier Caruso (2016)
     """
     if defining_morphism is None:
         coerce = True
@@ -337,13 +351,71 @@ def RingExtension(ring, base=None, defining_morphism=None):
 
 
 class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
+    r"""
+    Create a ring extension
+
+    Do not call this function directly
+    Use :func:`RingExtension` instead
+
+    INPUT:
+
+    - ``defining_morphism`` -- a ring homomorphism
+
+    - ``coerce`` -- boolean (specify whether defining_morphism
+    is a coercion map or not)
+
+    OUTPUT:
+
+    The extension defined by ``defining_morphism``
+
+    EXAMPLES::
+
+        sage: K = GF(5^2)
+        sage: L = GF(5^4)
+        sage: E = L/K; E
+
+        sage: from sage.rings.algebra_from_morphism import AlgebraFromMorphism)
+        sage: isinstance(E, AlgebraFromMorphism)
+        True
+
+    See :func:`RingExtension` for more documentation
+
+    AUTHOR:
+
+    - Xavier Caruso (2016)
+    """
     def __init__(self, defining_morphism, coerce):
+        r"""
+        TESTS::
+
+        The attribute _coerce indicates if the defining morphism is
+        a coercion map::
+
+            sage: K = GF(5^2)
+            sage: E = ExtensionRing(K, K, K.frobenius_endomorphism())
+            sage: E._coerce
+            False
+
+            sage: L = GF(5^4)
+            sage: E1 = L/K
+            sage: E1._coerce
+            True
+
+        Creating an extension of extensions is not allowed::
+
+            sage: M = GF(5^8)
+            sage: E2 = M/K
+            sage: E2/E1
+            Traceback (most recent call last):
+            ...
+            TypeError: Creating an extension of extensions is not allowed
+        """
         base = defining_morphism.domain()
         ring = defining_morphism.codomain()
 
         # To avoid problems...
         if isinstance(base, AlgebraFromMorphism) or isinstance(ring, AlgebraFromMorphism):
-            raise NotImplementedError
+            raise TypeError("Creating an extension of extensions is not allowed")
 
         # We do not want to have a coercion map base -> self
         # So we first set the base to ring.base() (which indeed coerces to self)
@@ -366,6 +438,45 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         self.element_class = AlgebraFMElement
 
     def _element_constructor_(self, x, *args, **kwargs):
+        r"""
+        Convert ``x`` into an element of this parent
+
+        EXAMPLES::
+
+            sage: K = GF(5^4)
+            sage: L = GF(5^8)
+            sage: E = L/K
+
+        Conversion of an element of the ring::
+
+            sage: a = L.random_element()
+            sage: a.parent()
+            Finite Field in z8 of size 5^8
+            sage: a.parent() is L
+            True
+
+            sage: aE = E(a)
+            sage: aE.parent()
+            Finite Field in z8 of size 5^8 viewed as an algebra over Finite Field in z4 of size 5^4
+            sage: aE.parent() is E
+            True
+
+        Conversion from another extension::
+
+            sage: k = GF(5^2)
+            sage: F = K/k
+            sage: b = K.gen(); b
+            z4
+            sage: bF = F(b); bF
+            z4
+
+            sage: bE = E(bF)
+            4*z8^7 + z8^6 + 3*z8^4 + z8^3 + z8^2 + 4
+            sage: bE.parent()
+            Finite Field in z8 of size 5^8 viewed as an algebra over Finite Field in z4 of size 5^4
+            sage: bE.parent() is E
+            True
+        """
         from sage.structure.element import AlgebraFMElement
         if isinstance(x, AlgebraFMElement):
             x = x.element_in_ring()

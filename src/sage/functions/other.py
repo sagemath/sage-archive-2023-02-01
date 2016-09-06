@@ -1039,13 +1039,22 @@ class Function_gamma_inc(BuiltinFunction):
             sage: (gamma_inc(x,x+1).diff(x)).simplify()
             -(x + 1)^(x - 1)*e^(-x - 1) + D[0](gamma)(x, x + 1)
 
+        TESTS:
+
+        Check that :trac:`21407` is fixed::
+
+            sage: gamma(-1,5)._sympy_()
+            expint(2, 5)/5
+            sage: gamma(-3/2,5)._sympy_()
+            -6*sqrt(5)*exp(-5)/25 + 4*sqrt(pi)*erfc(sqrt(5))/3
+
     .. SEEALSO::
 
         :meth:`sage.functions.other.gamma`
         """
         BuiltinFunction.__init__(self, "gamma", nargs=2, latex_name=r"\Gamma",
                 conversions={'maxima':'gamma_incomplete', 'mathematica':'Gamma',
-                    'maple':'GAMMA'})
+                    'maple':'GAMMA', 'sympy':'uppergamma'})
 
     def _eval_(self, x, y):
         """

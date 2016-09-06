@@ -1,5 +1,6 @@
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.decorators import sage_wraps
+from sage.categories.pushout import pushout
 from sage.categories.algebras import Algebras
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.ring import CommutativeRing, CommutativeAlgebra
@@ -40,8 +41,8 @@ def coerce_algebras(method):
     return new_method
 
 
-# move the next two classes to element.pyx ???
-class LeftBaseActionOnRing(Action):
+# move the next class to element.pyx ???
+class BaseActionOnRing(Action):
     def __init__(self, algebra):
         if not isinstance(algebra, AlgebraFromMorphism):
             raise TypeError("%s is not an instance of AlgebraFromMorphism" % algebra)
@@ -54,25 +55,47 @@ class LeftBaseActionOnRing(Action):
         result = self._defining_morphism(scalar) * element.element_in_ring()
         return self._algebra(result)
 
-class RightBaseActionOnRing(Action):
-    def __init__(self, algebra):
-        if not isinstance(algebra, AlgebraFromMorphism):
-            raise TypeError("%s is not an instance of AlgebraFromMorphism" % algebra)
-        self._base = algebra.base_ring()
-        self._algebra = algebra
-        self._defining_morphism = algebra.defining_morphism()
-        Action.__init__(self, self._base, algebra, is_left=0, op=operator.mul)
 
-    def _call_(self, element, scalar):
-        result = self._defining_morphism(scalar) * element.element_in_ring()
-        return self._algebra(result)
+# Constructor for AlgebraFromMorphism
+def RingExtension(ring, base=None, defining_morphism=None):
+    if defining_morphism is None:
+        coerce = True
+        if base is None:
+            base = ring.base_ring()
+            if base is None:
+                # ZZ is initial in the category of rings
+                base = IntegerRing()
+        if ring.has_coerce_map_from(base):
+            defining_morphism = ring.coerce_map_from(base)
+        else:
+            raise ValueError("No coercion map from %s to %s" % (base,ring))
+    else:
+        domain = defining_morphism.domain()
+        codomain = defining_morphism.codomain()
+        coerce = (defining_morphism == codomain.coerce_map_from(domain))
+        if base is None:
+            base = domain
+        elif base is domain:
+            pass
+        elif domain.has_coerce_map_from(base):
+            coercion = domain.coerce_map_from(base)
+            defining_morphism = defining_morphism.pre_compose(coercion)
+        else:
+            raise ValueError("No coercion map from %s to %s" % (base,domain))
+        if ring is codomain:
+            pass
+        elif ring.has_coerce_map_from(codomain):
+            coercion = ring.coerce_map_from(codomain)
+            defining_morphism = defining_morphism.post_compose(coercion)
+        else:
+            raise ValueError("No coercion map from %s to %s" % (codomain,ring))
+    return AlgebraFromMorphism(defining_morphism, coerce)
 
 
 class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
-    def __init__(self, defining_morphism):
+    def __init__(self, defining_morphism, coerce):
         base = defining_morphism.domain()
-        self._ring = ring = defining_morphism.codomain()
-        self._defining_morphism = defining_morphism
+        ring = defining_morphism.codomain()
 
         # To avoid problems...
         if isinstance(base, AlgebraFromMorphism) or isinstance(ring, AlgebraFromMorphism):
@@ -83,15 +106,17 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         CommutativeAlgebra.__init__(self, ring.base(), category=Algebras(base)) 
         # and then update the base
         self._base = base
+        self._ring = ring
+        self._defining_morphism = defining_morphism
+        self._coerce = coerce
 
-        # Set left and right actions of base on self
-        # together with a coercion map self -> ring
-        self._unset_coercions_used()
-        left = LeftBaseActionOnRing(self)
-        right = RightBaseActionOnRing(self)
+        # Set left action of base on self
+        # and a coercion map self -> ring
         from sage.rings.morphism import AlgebraToRing_coercion
-        coercion_morphism = AlgebraToRing_coercion(self.Hom(ring), check=False)
-        self._populate_coercion_lists_(action_list=[left,right], embedding=coercion_morphism)
+        self._unset_coercions_used()
+        self._populate_coercion_lists_(
+            action_list = [BaseActionOnRing(self)],
+            embedding = AlgebraToRing_coercion(self.Hom(ring), check=False))
 
         from sage.structure.element import AlgebraFMElement
         self.element_class = AlgebraFMElement
@@ -100,17 +125,44 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         from sage.structure.element import AlgebraFMElement
         if isinstance(x, AlgebraFMElement):
             x = x.element_in_ring()
-        if self._base.has_coerce_map_from(x.parent()):
-            x = self._defining_morphism(self._base(x))
         elt = self._ring(x, *args, **kwargs)
         return self.element_class(self, elt)
+
+    def from_base_ring(self, x):
+        elt = self._ring(x)
+        return self.element_class(self, elt)
+
+    def _pushout_(self, other):
+        base = None
+        if isinstance(other,AlgebraFromMorphism):
+            # TODO: implement pushout when:
+            # - defining_morphism are not coercion maps
+            #   (this implies to check the equality of two morphisms)
+            # - there is no direct coercion map between the bases
+            #   but there exists a third ring which coerces to eash base
+            #   Question: how can one find the greatest such third ring?
+            if self._coerce and other._coerce:
+                sbase = self._base
+                obase = other._base
+                if sbase.has_coerce_map_from(obase):
+                    base = obase
+                elif obase.has_coerce_map_from(sbase):
+                    base = sbase
+            ring = pushout(self._ring, other.ring())
+        else:
+            ring = pushout(self._ring, other)
+        if base is None:
+            return ring
+        else:
+            return RingExtension(ring,base)
 
     def _repr_(self):
         return "%s viewed as an algebra over %s" % (self._ring, self._base)
 
     def _coerce_map_from_(self, other):
         if isinstance(other, AlgebraFromMorphism):
-            return other.base().has_coerce_map_from(self._base) and self._ring.has_coerce_map_from(other.ring())
+            if self._coerce and other._coerce:
+                return other.base().has_coerce_map_from(self._base) and self._ring.has_coerce_map_from(other.ring())                
 
     def defining_morphism(self):
         return self._defining_morphism
@@ -157,25 +209,3 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         extension = AlgebraFromMorphism(defining_morphism=morphism)
         algebra, morphisms = self.tensor_product(extension)
         return AlgebraFromMorphism(defining_morphism=morphisms[1].ring())
-
-
-def RingExtension(arg1, arg2=None):
-    if isinstance(arg1, RingHomomorphism):   # fix this
-        return AlgebraFromMorphism(arg1)
-    elif isinstance(arg1, CommutativeRing):
-        ring = arg1
-        if arg2 is None:
-            base = ring.base_ring()
-            if base is None:
-                # ZZ is initial in the category of rings
-                base = IntegerRing()
-        elif isinstance(arg2, CommutativeRing):
-            base = arg2
-            if not ring.has_coerce_map_from(base):
-                raise ValueError("No coercion map from %s to %s" % (base,ring))
-        else:
-            raise TypeError("The Extension constructor must be called either with a defining morphism or two rings")
-        morphism = ring.coerce_map_from(base)
-        return AlgebraFromMorphism(morphism)
-    else:
-        raise TypeError("The Extension constructor must be called either with a defining morphism or two rings")

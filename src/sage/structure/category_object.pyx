@@ -46,8 +46,6 @@ This example illustrates generators for a free module over `\ZZ`.
     ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
 """
 
-from __future__ import division
-
 #*****************************************************************************
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -55,10 +53,12 @@ from __future__ import division
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-cimport generators
-cimport sage_object
+from __future__ import absolute_import, division, print_function
+
+cimport sage.structure.generators as generators
+from sage.structure.misc import dir_with_other_class
+from sage.structure.misc cimport getattr_from_other_class
 from sage.categories.category import Category
 from sage.structure.debug_options import debug
 from sage.misc.cachefunc import cached_method
@@ -102,7 +102,7 @@ cpdef inline check_default_category(default_category, category):
         return default_category
     return default_category.join([default_category,category])
 
-cdef class CategoryObject(sage_object.SageObject):
+cdef class CategoryObject(SageObject):
     """
     An object in some category.
     """
@@ -140,11 +140,12 @@ cdef class CategoryObject(sage_object.SageObject):
         """
         if base is not None:
             self._base = base
-        self._generators = {}
         if category is not None:
             self._init_category_(category)
 
     def __cinit__(self):
+        self.__cached_methods = {}
+        self._generators = {}
         self._hash_value = -1
 
     def _init_category_(self, category):
@@ -833,6 +834,131 @@ cdef class CategoryObject(sage_object.SageObject):
         if self._hash_value == -1:
             self._hash_value = hash(repr(self))
         return self._hash_value
+
+    ##############################################################################
+    # Getting attributes from the category
+    ##############################################################################
+
+    def __getattr__(self, name):
+        """
+        Let cat be the category of ``self``. This method emulates
+        ``self`` being an instance of both ``CategoryObject`` and
+        ``cat.parent_class``, in that order, for attribute lookup.
+
+        This attribute lookup is cached for speed.
+
+        EXAMPLES:
+
+        We test that ZZ (an extension type) inherits the methods from
+        its categories, that is from ``EuclideanDomains().parent_class``::
+
+            sage: ZZ._test_associativity
+            <bound method JoinCategory.parent_class._test_associativity of Integer Ring>
+            sage: ZZ._test_associativity(verbose = True)
+            sage: TestSuite(ZZ).run(verbose = True)
+            running ._test_additive_associativity() . . . pass
+            running ._test_an_element() . . . pass
+            running ._test_associativity() . . . pass
+            running ._test_cardinality() . . . pass
+            running ._test_category() . . . pass
+            running ._test_characteristic() . . . pass
+            running ._test_distributivity() . . . pass
+            running ._test_elements() . . .
+              Running the test suite of self.an_element()
+              running ._test_category() . . . pass
+              running ._test_eq() . . . pass
+              running ._test_nonzero_equal() . . . pass
+              running ._test_not_implemented_methods() . . . pass
+              running ._test_pickling() . . . pass
+              pass
+            running ._test_elements_eq_reflexive() . . . pass
+            running ._test_elements_eq_symmetric() . . . pass
+            running ._test_elements_eq_transitive() . . . pass
+            running ._test_elements_neq() . . . pass
+            running ._test_enumerated_set_contains() . . . pass
+            running ._test_enumerated_set_iter_cardinality() . . . pass
+            running ._test_enumerated_set_iter_list() . . .Enumerated set too big; skipping test; increase tester._max_runs
+             pass
+            running ._test_eq() . . . pass
+            running ._test_euclidean_degree() . . . pass
+            running ._test_gcd_vs_xgcd() . . . pass
+            running ._test_metric() . . . pass
+            running ._test_not_implemented_methods() . . . pass
+            running ._test_one() . . . pass
+            running ._test_pickling() . . . pass
+            running ._test_prod() . . . pass
+            running ._test_quo_rem() . . . pass
+            running ._test_some_elements() . . . pass
+            running ._test_zero() . . . pass
+            running ._test_zero_divisors() . . . pass
+
+            sage: Sets().example().sadfasdf
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'PrimeNumbers_with_category' object has no attribute 'sadfasdf'
+        """
+        return self.getattr_from_category(name)
+
+    cdef getattr_from_category(self, name):
+        # Lookup a method or attribute from the category abstract classes.
+        # See __getattr__ above for documentation.
+        try:
+            return self.__cached_methods[name]
+        except KeyError:
+            if self._category is None:
+                # Usually, this will just raise AttributeError in
+                # getattr_from_other_class().
+                cls = type
+            else:
+                cls = self._category.parent_class
+
+            attr = getattr_from_other_class(self, cls, name)
+            self.__cached_methods[name] = attr
+            return attr
+
+    def __dir__(self):
+        """
+        Let cat be the category of ``self``. This method emulates
+        ``self`` being an instance of both ``CategoryObject`` and
+        ``cat.parent_class``, in that order, for attribute directory.
+
+        EXAMPLES::
+
+            sage: for s in dir(ZZ):
+            ....:     if s[:6] == "_test_": print(s)
+            _test_additive_associativity
+            _test_an_element
+            _test_associativity
+            _test_cardinality
+            _test_category
+            _test_characteristic
+            _test_distributivity
+            _test_elements
+            _test_elements_eq_reflexive
+            _test_elements_eq_symmetric
+            _test_elements_eq_transitive
+            _test_elements_neq
+            _test_enumerated_set_contains
+            _test_enumerated_set_iter_cardinality
+            _test_enumerated_set_iter_list
+            _test_eq
+            _test_euclidean_degree
+            _test_gcd_vs_xgcd
+            _test_metric
+            _test_not_implemented_methods
+            _test_one
+            _test_pickling
+            _test_prod
+            _test_quo_rem
+            _test_some_elements
+            _test_zero
+            _test_zero_divisors
+            sage: F = GF(9,'a')
+            sage: dir(F)
+            [..., '__class__', ..., '_test_pickling', ..., 'extension', ...]
+
+        """
+        return dir_with_other_class(self, self.category().parent_class)
 
     ##############################################################################
     # For compatibility with Python 2

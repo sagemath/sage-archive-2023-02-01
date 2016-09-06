@@ -373,8 +373,9 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         sage: K = GF(5^2)
         sage: L = GF(5^4)
         sage: E = L/K; E
+        Finite Field in z4 of size 5^4 viewed as an algebra over Finite Field in z2 of size 5^2
 
-        sage: from sage.rings.algebra_from_morphism import AlgebraFromMorphism)
+        sage: from sage.rings.algebra_from_morphism import AlgebraFromMorphism
         sage: isinstance(E, AlgebraFromMorphism)
         True
 
@@ -392,7 +393,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         a coercion map::
 
             sage: K = GF(5^2)
-            sage: E = ExtensionRing(K, K, K.frobenius_endomorphism())
+            sage: E = RingExtension(K, K, K.frobenius_endomorphism())
             sage: E._coerce
             False
 
@@ -470,7 +471,7 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
             sage: bF = F(b); bF
             z4
 
-            sage: bE = E(bF)
+            sage: bE = E(bF); bE
             4*z8^7 + z8^6 + 3*z8^4 + z8^3 + z8^2 + 4
             sage: bE.parent()
             Finite Field in z8 of size 5^8 viewed as an algebra over Finite Field in z4 of size 5^4

@@ -179,33 +179,46 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         return self.element_class(self, elt)
 
     def scalar_restriction(self, morphism):
+        coerce = self._coerce
         if isinstance(morphism, AlgebraFromMorphism):
+            if coerce:
+                coerce = morphism._coerce
             morphism = morphism.defining_morphism()
         elif isinstance(morphism, CommutativeRing):
             if self._base.has_coerce_map_from(morphism):
                 morphism = self._base.coerce_map_from(morphism)
             else:
                 raise TypeError("No coercion map from %s to %s" % (morphism, self._base))
-        elif morphism.codomain() is not self._base:
-            raise TypeError("The codomain of %s is not %s" % (morphism, self._base))
+        else:
+            domain = morphism.domain()
+            codomain = morphism.codomain()
+            if coerce:
+                coerce = (morphism == codomain.coerce_map_from(domain))
+            if self._base.has_coerce_map_from(codomain):
+                morphism = morphism.post_compose(self._base.coerce_map_from(codomain))
+            else:
+                raise TypeError("No coercion map from %s to %s" % (codomain, self._base))
         defining_morphism = self._defining_morphism.pre_compose(morphism)
-        return AlgebraFromMorphism(defining_morphism=defining_morphism)
+        return AlgebraFromMorphism(defining_morphism, coerce)
 
     @coerce_algebras
     def tensor_product(self, other, base=None):
         # Implement this method in subclasses
-        raise NotImplementedError("Tensor product of extensions is not implemented")
+        raise NotImplementedError("Tensor product is not implemented")
 
     def scalar_extension(self, morphism):
         if isinstance(morphism, AlgebraFromMorphism):
-            morphism = morphism.defining_morphism()
+            extension = morphism
         elif isinstance(morphism, CommutativeRing):
-            if morphism.has_coerce_map_from(self._base):
-                morphism = morphism.coerce_map_from(self._base)
+            extension = RingExtension(morphism, self._base)
+        else:
+            domain = morphism.domain()
+            codomain = morphism.codomain()
+            coerce = (morphism == codomain.coerce_map_from(domain))
+            if domain.has_coerce_map_from(self._base):
+                morphism = morphism.pre_compose(domain.coerce_map_from(self._base))
             else:
-                raise TypeError("No coercion map from %s to %s" % (self._base, morphism))
-        elif morphism.domain() is not self._base:
-            raise TypeError("The domain of %s is not %s" % (morphism, self._base))
-        extension = AlgebraFromMorphism(defining_morphism=morphism)
+                raise TypeError("No coercion map from %s to %s" % (self._base, domain))
+            extension = AlgebraFromMorphism(morphism, coerce)
         algebra, morphisms = self.tensor_product(extension)
-        return AlgebraFromMorphism(defining_morphism=morphisms[1].ring())
+        return AlgebraFromMorphism(morphisms[1].ring(), self._coerce)

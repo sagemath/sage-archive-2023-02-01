@@ -17,7 +17,8 @@ def _mul_parent(self, other):
     Return the product of the two elements, calculated using
     the ``product`` method of the parent.
 
-    This is the default implementation of ``_mul_`` if
+    This is inserted by :meth:`Magmas.ParentMethods.__init_extra__` as
+    default implementation of ``Magmas.ElementMethods._mul_`` if
     ``product`` is implemented in the parent.
 
     INPUT:
@@ -37,8 +38,8 @@ def _mul_parent(self, other):
 
     .. SEEALSO::
 
-        - :meth:`Magmas.ElementMethods._mul_`
         - :meth:`Magmas.ElementMethods._mul_parent`
+        - :meth:`Magmas.ElementMethods.__init_extra__`
         - :meth:`Magmas.ParentMethods.product`
 
     This is :meth:`Magmas.ElementMethods._mul_parent`, implemented as

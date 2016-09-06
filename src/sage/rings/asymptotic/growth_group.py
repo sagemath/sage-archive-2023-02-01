@@ -633,8 +633,10 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             sage: Variable('1/x')._substitute_({'x': 'z'})
             Traceback (most recent call last):
             ...
-            TypeError: Cannot substitute in 1/x in <class 'sage.rings.asymptotic.growth_group.Variable'>.
-            > *previous* TypeError: unsupported operand type(s) for /: 'sage.rings.integer.Integer' and 'str'
+            TypeError: Cannot substitute in 1/x in
+            <class 'sage.rings.asymptotic.growth_group.Variable'>.
+            > *previous* TypeError: unsupported operand type(s) for /:
+            'sage.rings.integer.Integer' and 'str'
             sage: Variable('1/x')._substitute_({'x': 0})
             Traceback (most recent call last):
             ...

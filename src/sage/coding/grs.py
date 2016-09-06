@@ -1851,10 +1851,6 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
     This algorithm uses early terminated extended euclidean algorithm
     to solve the key equations, as described in [R06]_, pp. 183-195.
 
-    REFERENCES:
-
-        .. [R06] Ron Roth, Introduction to Coding Theory, Cambridge University Press, 2006
-
     INPUT:
 
     - ``code`` -- The associated code of this decoder.

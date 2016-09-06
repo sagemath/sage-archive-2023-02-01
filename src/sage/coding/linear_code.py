@@ -108,10 +108,10 @@ http://doc.sagemath.org/html/en/thematic_tutorials/structures_in_coding_theory.h
 
 REFERENCES:
 
-- [HP] W. C. Huffman and V. Pless, Fundamentals of error-correcting codes,
+.. [HP] \W. C. Huffman and V. Pless, Fundamentals of error-correcting codes,
   Cambridge Univ. Press, 2003.
 
-- [Gu] GUAVA manual, http://www.gap-system.org/Packages/guava.html
+.. [Gu] \GUAVA manual, http://www.gap-system.org/Packages/guava.html
 
 AUTHORS:
 
@@ -800,7 +800,7 @@ class AbstractLinearCode(Module):
 
     def assmus_mattson_designs(self, t, mode=None):
         r"""
-        Assmus and Mattson Theorem (section 8.4, page 303 of [HP]): Let
+        Assmus and Mattson Theorem (section 8.4, page 303 of [HP]_): Let
         `A_0, A_1, ..., A_n` be the weights of the codewords in a binary
         linear `[n , k, d]` code `C`, and let `A_0^*, A_1^*, ..., A_n^*` be
         the weights of the codewords in its dual `[n, n-k, d^*]` code `C^*`.
@@ -840,7 +840,7 @@ class AbstractLinearCode(Module):
             k =       i   (k not to be confused with dim(C))
             b =       Ai
             lambda = b*binomial(k,t)/binomial(v,t) (by Theorem 8.1.6,
-                                                       p 294, in [HP])
+                                                       p 294, in [HP]_)
 
         Setting the ``mode="verbose"`` option prints out the values of the
         parameters.
@@ -875,10 +875,6 @@ class AbstractLinearCode(Module):
             sage: blocks = [c.support() for c in C if c.hamming_weight()==8]; len(blocks)  # long time computation
             759
 
-        REFERENCE:
-
-        - [HP] W. C. Huffman and V. Pless, Fundamentals of ECC,
-          Cambridge Univ. Press, 2003.
         """
         C = self
         ans = []
@@ -981,9 +977,9 @@ class AbstractLinearCode(Module):
 
         REFERENCE:
 
-        - I. Duursma, "Combinatorics of the two-variable zeta function",
-          Finite fields and applications, 109-136, Lecture Notes in
-          Comput. Sci., 2948, Springer, Berlin, 2004.
+        .. [Du04] \I. Duursma, "Combinatorics of the two-variable zeta function",
+           Finite fields and applications, 109-136, Lecture Notes in
+           Comput. Sci., 2948, Springer, Berlin, 2004.
         """
         n = self.length()
         k = self.dimension()
@@ -1133,7 +1129,7 @@ class AbstractLinearCode(Module):
     def characteristic_polynomial(self):
         r"""
         Returns the characteristic polynomial of a linear code, as defined in
-        van Lint's text [vL].
+        van Lint's text [vL]_.
 
         EXAMPLES::
 
@@ -1143,8 +1139,8 @@ class AbstractLinearCode(Module):
 
         REFERENCES:
 
-        - van Lint, Introduction to coding theory, 3rd ed., Springer-Verlag
-          GTM, 86, 1999.
+        .. [vL] \J. van Lint, Introduction to coding theory, 3rd ed., Springer-Verlag
+           GTM, 86, 1999.
         """
         R = PolynomialRing(QQ,"x")
         x = R.gen()
@@ -1482,8 +1478,8 @@ class AbstractLinearCode(Module):
 
         A linear code `C` over a field is called *projective* when its dual `Cd`
         has minimum weight `\geq 3`, i.e. when no two coordinate positions of
-        `C` are linearly independent (cf. definition 3 from [BS11] or 9.8.1 from
-        [BH12]).
+        `C` are linearly independent (cf. definition 3 from [BS11]_ or 9.8.1 from
+        [BH12]_).
 
         EXAMPLE::
 
@@ -2814,8 +2810,9 @@ class AbstractLinearCode(Module):
 
         REFERENCES:
 
-        .. [D] \I. Duursma, "Extremal weight enumerators and ultraspherical
-           polynomials"
+        .. [D] \I. Duursma
+           "Extremal weight enumerators and ultraspherical polynomials"
+           Discrete Mathematics 268 (1), 103-127
 
         EXAMPLES::
 
@@ -2866,11 +2863,6 @@ class AbstractLinearCode(Module):
         OUTPUT:
 
         - The polynomial `Q(T)` as in Duursma [D]_
-
-        REFERENCES:
-
-        - [D] - I. Duursma, "Extremal weight enumerators and ultraspherical
-          polynomials"
 
         EXAMPLES::
 
@@ -2961,11 +2953,6 @@ class AbstractLinearCode(Module):
             sage: C = LinearCode(G)  # the "hexacode"
             sage: C.sd_zeta_polynomial(4)
             1
-
-        REFERENCES:
-
-        - [D] I. Duursma, "Extremal weight enumerators and ultraspherical
-          polynomials"
         """
         deprecation(21165, "AbstractLinearCode.sd_zeta_polynomial() will be removed in a future release of Sage. Please use AbstractLinearCode.zeta_polynomial() instead")
         if not self.base_field().cardinality() <= 4:
@@ -2995,7 +2982,7 @@ class AbstractLinearCode(Module):
         constructed is actually only isomorphic to the shortened code defined
         in this way.
 
-        By Theorem 1.5.7 in [HP], `C_L` is `((C^\perp)^L)^\perp`. This is used
+        By Theorem 1.5.7 in [HP]_, `C_L` is `((C^\perp)^L)^\perp`. This is used
         in the construction below.
 
         INPUT:
@@ -3381,8 +3368,8 @@ class AbstractLinearCode(Module):
 
         REFERENCES:
 
-        - I. Duursma, "From weight enumerators to zeta functions", in
-          Discrete Applied Mathematics, vol. 111, no. 1-2, pp. 55-73, 2001.
+        .. [Du01] \I. Duursma, "From weight enumerators to zeta functions", in
+           Discrete Applied Mathematics, vol. 111, no. 1-2, pp. 55-73, 2001.
         """
         n = self.length()
         q = (self.base_ring()).order()

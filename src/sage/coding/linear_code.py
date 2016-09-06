@@ -242,8 +242,10 @@ from sage.categories.cartesian_product import cartesian_product
 def _dump_code_in_leon_format(C):
     r"""
     Writes a file in Sage's temp directory representing the code C, returning
-    the absolute path to the file. This is the Sage translation of the
-    GuavaToLeon command in Guava's codefun.gi file.
+    the absolute path to the file.
+
+    This is the Sage translation of the GuavaToLeon command in Guava's
+    codefun.gi file.
 
     INPUT:
 
@@ -3103,7 +3105,7 @@ class AbstractLinearCode(Module):
             # version of the Guava libraries, so gives us the location of the Guava binaries too.
             guava_bin_dir = gap.eval('DirectoriesPackagePrograms("guava")[1]')
             guava_bin_dir = guava_bin_dir[guava_bin_dir.index('"') + 1:guava_bin_dir.rindex('"')]
-            input = code2leon(self) + "::code"
+            input = _dump_code_in_leon_format(self) + "::code"
             import os
             import subprocess
             lines = subprocess.check_output([os.path.join(guava_bin_dir, 'wtdist'), input])
@@ -3362,7 +3364,7 @@ class AbstractLinearCode(Module):
             sage: C = codes.HammingCode(GF(2), 3)
             sage: C.zeta_polynomial()
             2/5*T^2 + 2/5*T + 1/5
-            sage: C = best_known_linear_code(6,3,GF(2))  # optional - gap_packages (Guava package)
+            sage: C = codes.databases.best_linear_code_in_guava(6,3,GF(2))  # optional - gap_packages (Guava package)
             sage: C.minimum_distance()                   # optional - gap_packages (Guava package)
             3
             sage: C.zeta_polynomial()                    # optional - gap_packages (Guava package)

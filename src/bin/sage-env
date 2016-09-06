@@ -370,9 +370,16 @@ if [ "$SAGE_STARTUP_FILE" = "" ]; then
     export SAGE_STARTUP_FILE
 fi
 
-IPYTHONDIR=`find "$SAGE_SPKG_INST" -name "ipython*"`
-if [ -n "$IPYTHONDIR" ]; then
-    export IPYTHONDIR="$DOT_SAGE/${IPYTHONDIR##*/}"
+if [ -z "$IPYTHONDIR" ]; then
+    # Use 5.0.0 in the directory name for all IPython versions
+    # compatible with that version.
+    export IPYTHONDIR="$DOT_SAGE/ipython-5.0.0"
+fi
+
+if [ -z "$JUPYTER_CONFIG_DIR" ]; then
+    # Use 4.1 in the directory name for all jupyter_core versions
+    # compatible with that version.
+    export JUPYTER_CONFIG_DIR="$DOT_SAGE/jupyter-4.1"
 fi
 
 if [ "$PYTHON_EGG_CACHE" = "" ]; then

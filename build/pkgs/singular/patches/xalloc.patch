@@ -12,15 +12,124 @@ diff -druN oldest/xalloc/omalloc.h latest/xalloc/omalloc.h
  }
  static inline void * omAlloc(size_t s)
 
-Remove non-existing include.
-diff -druN oldest/xalloc/omalloc.h latest/xalloc/omalloc.h
---- oldest/xalloc/omalloc.h	2016-09-05 11:21:42.037751581 +0000
-+++ latest/xalloc/omalloc.h	2016-09-05 11:22:14.837817181 +0000
-@@ -8,7 +8,6 @@
- */
- #include <stdlib.h>
- #include <string.h>
--#include <omalloc/omConfig.h>
+Make sure omConfig.h (included by omalloc.h) gets installed.
+diff -dru oldest/xalloc/Makefile.am latest/xalloc/Makefile.am
+--- oldest/xalloc/Makefile.am	2016-09-02 10:16:57.000000000 +0000
++++ latest/xalloc/Makefile.am	2016-09-06 10:35:19.110179459 +0000
+@@ -14,6 +14,8 @@
  
- #ifdef __cplusplus
- extern "C" {
+ libomalloc_la_LDFLAGS    = -release ${PACKAGE_VERSION}
+ 
++nodist_libomalloc_include_HEADERS = omConfig.h
++
+ libomalloc_la_CPPFLAGS  = ${AM_CPPFLAGS}
+ 
+ omTables_CPPFLAGS = ${AM_CPPFLAGS}
+diff -dru oldest/xalloc/Makefile.in latest/xalloc/Makefile.in
+--- oldest/xalloc/Makefile.in	2016-09-02 10:16:57.000000000 +0000
++++ latest/xalloc/Makefile.in	2016-09-06 10:35:19.110179459 +0000
+@@ -138,6 +138,7 @@
+          $(am__cd) "$$dir" && rm -f $$files; }; \
+   }
+ am__installdirs = "$(DESTDIR)$(libdir)" \
++	"$(DESTDIR)$(libomalloc_includedir)" \
+ 	"$(DESTDIR)$(libomalloc_includedir)"
+ LTLIBRARIES = $(lib_LTLIBRARIES)
+ libomalloc_la_LIBADD =
+@@ -210,7 +211,8 @@
+     n|no|NO) false;; \
+     *) (install-info --version) >/dev/null 2>&1;; \
+   esac
+-HEADERS = $(libomalloc_include_HEADERS)
++HEADERS = $(libomalloc_include_HEADERS) \
++	$(nodist_libomalloc_include_HEADERS)
+ am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) \
+ 	$(LISP)_config.h.in
+ # Read a list of newline-separated strings from the standard input,
+@@ -380,6 +382,7 @@
+ AM_CPPFLAGS = -I${top_srcdir}/.. -I${top_builddir}/..
+ libomalloc_la_SOURCES = $(SOURCES) $(noinst_HEADERS)
+ libomalloc_la_LDFLAGS = -release ${PACKAGE_VERSION}
++nodist_libomalloc_include_HEADERS = omConfig.h
+ libomalloc_la_CPPFLAGS = ${AM_CPPFLAGS}
+ omTables_CPPFLAGS = ${AM_CPPFLAGS}
+ CLEANFILES = $(BUILT_SOURCES)
+@@ -577,6 +580,27 @@
+ 	@list='$(libomalloc_include_HEADERS)'; test -n "$(libomalloc_includedir)" || list=; \
+ 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+ 	dir='$(DESTDIR)$(libomalloc_includedir)'; $(am__uninstall_files_from_dir)
++install-nodist_libomalloc_includeHEADERS: $(nodist_libomalloc_include_HEADERS)
++	@$(NORMAL_INSTALL)
++	@list='$(nodist_libomalloc_include_HEADERS)'; test -n "$(libomalloc_includedir)" || list=; \
++	if test -n "$$list"; then \
++	  echo " $(MKDIR_P) '$(DESTDIR)$(libomalloc_includedir)'"; \
++	  $(MKDIR_P) "$(DESTDIR)$(libomalloc_includedir)" || exit 1; \
++	fi; \
++	for p in $$list; do \
++	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
++	  echo "$$d$$p"; \
++	done | $(am__base_list) | \
++	while read files; do \
++	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(libomalloc_includedir)'"; \
++	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(libomalloc_includedir)" || exit $$?; \
++	done
++
++uninstall-nodist_libomalloc_includeHEADERS:
++	@$(NORMAL_UNINSTALL)
++	@list='$(nodist_libomalloc_include_HEADERS)'; test -n "$(libomalloc_includedir)" || list=; \
++	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
++	dir='$(DESTDIR)$(libomalloc_includedir)'; $(am__uninstall_files_from_dir)
+ 
+ ID: $(am__tagged_files)
+ 	$(am__define_uniq_tagged_files); mkid -fID $$unique
+@@ -797,7 +821,7 @@
+ check: check-am
+ all-am: Makefile $(LTLIBRARIES) $(HEADERS) _config.h
+ installdirs:
+-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libomalloc_includedir)"; do \
++	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libomalloc_includedir)" "$(DESTDIR)$(libomalloc_includedir)"; do \
+ 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
+ 	done
+ install: install-am
+@@ -856,7 +880,8 @@
+ 
+ info-am:
+ 
+-install-data-am: install-libomalloc_includeHEADERS
++install-data-am: install-libomalloc_includeHEADERS \
++	install-nodist_libomalloc_includeHEADERS
+ 
+ install-dvi: install-dvi-am
+ 
+@@ -905,7 +930,8 @@
+ ps-am:
+ 
+ uninstall-am: uninstall-libLTLIBRARIES \
+-	uninstall-libomalloc_includeHEADERS
++	uninstall-libomalloc_includeHEADERS \
++	uninstall-nodist_libomalloc_includeHEADERS
+ 
+ .MAKE: all install-am install-strip
+ 
+@@ -920,13 +946,14 @@
+ 	install-dvi install-dvi-am install-exec install-exec-am \
+ 	install-html install-html-am install-info install-info-am \
+ 	install-libLTLIBRARIES install-libomalloc_includeHEADERS \
+-	install-man install-pdf install-pdf-am install-ps \
+-	install-ps-am install-strip installcheck installcheck-am \
+-	installdirs maintainer-clean maintainer-clean-generic \
+-	mostlyclean mostlyclean-compile mostlyclean-generic \
+-	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
+-	uninstall-am uninstall-libLTLIBRARIES \
+-	uninstall-libomalloc_includeHEADERS
++	install-man install-nodist_libomalloc_includeHEADERS \
++	install-pdf install-pdf-am install-ps install-ps-am \
++	install-strip installcheck installcheck-am installdirs \
++	maintainer-clean maintainer-clean-generic mostlyclean \
++	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
++	pdf pdf-am ps ps-am tags tags-am uninstall uninstall-am \
++	uninstall-libLTLIBRARIES uninstall-libomalloc_includeHEADERS \
++	uninstall-nodist_libomalloc_includeHEADERS
+ 
+ 
+ # Tell versions [3.59,3.63) of GNU make to not export all variables.

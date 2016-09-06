@@ -55,8 +55,8 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
     :meth:`~FiniteLatticePoset.is_planar` | Return ``True`` if the lattice has an upward planar drawing.
     :meth:`~FiniteLatticePoset.is_dismantlable` | Return ``True`` if the lattice is dismantlable.
-    :meth:`~FiniteLatticePoset.breadth` | Return the breadth of the lattice.
     :meth:`~FiniteLatticePoset.is_vertically_decomposable` | Return ``True`` if the lattice is vertically decomposable.
+    :meth:`~FiniteLatticePoset.breadth` | Return the breadth of the lattice.
 
 **Elements and sublattices**
 
@@ -86,7 +86,7 @@ List of (semi)lattice methods
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteLatticePoset.moebius_algebra` | Return the quantum Möbius algebra of the lattice.
+    :meth:`~FiniteLatticePoset.moebius_algebra` | Return the Möbius algebra of the lattice.
     :meth:`~FiniteLatticePoset.quantum_moebius_algebra` | Return the quantum Möbius algebra of the lattice.
 """
 #*****************************************************************************

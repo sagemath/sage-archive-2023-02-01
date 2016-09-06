@@ -14764,19 +14764,6 @@ def _smith_onestep(m):
 
     return left_mat, a, right_mat
 
-def _dim_cmp(x,y):
-    """
-    Used internally by matrix functions. Given 2-tuples (x,y), returns
-    their comparison based on the first component.
-
-    EXAMPLES::
-
-        sage: from sage.matrix.matrix2 import _dim_cmp
-        sage: V = [(QQ^3, 2), (QQ^2, 1)]
-        sage: _dim_cmp(V[0], V[1])
-        1
-    """
-    return cmp(x[0].dimension(), y[0].dimension())
 
 def decomp_seq(v):
     """
@@ -14794,7 +14781,7 @@ def decomp_seq(v):
         (Vector space of dimension 3 over Rational Field, 2)
         ]
     """
-    list.sort(v, _dim_cmp)
+    list.sort(v, key=lambda x: x[0].dimension())
     return Sequence(v, universe=tuple, check=False, cr=True)
 
 

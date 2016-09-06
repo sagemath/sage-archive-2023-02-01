@@ -174,9 +174,7 @@ class PariInstanceArgument(PariArgumentObject):
     ``self`` argument for ``PariInstance`` object.
     """
     def __init__(self):
-        PariArgument.__init__(self, iter(["self"]), None, 0)
-    def convert_code(self):
-        return "        cdef PariInstance pari_instance = <PariInstance>self\n"
+        PariArgument.__init__(self, iter(["pari_instance"]), None, 0)
     def _typerepr(self):
         return "PariInstance"
 
@@ -234,11 +232,11 @@ class PariArgumentVariable(PariArgumentObject):
         return "-1"
     def convert_code(self):
         if self.default is None:
-            s  = "        cdef long {tmp} = pari_instance.get_var({name})\n"
+            s  = "        cdef long {tmp} = get_var({name})\n"
         else:
             s  = "        cdef long {tmp} = {default}\n"
             s += "        if {name} is not None:\n"
-            s += "            {tmp} = pari_instance.get_var({name})\n"
+            s += "            {tmp} = get_var({name})\n"
         return s.format(name=self.name, tmp=self.tmpname, default=self.default)
     def call_code(self):
         return self.tmpname

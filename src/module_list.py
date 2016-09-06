@@ -656,6 +656,9 @@ ext_modules = [
     Extension('sage.libs.pari.convert',
               sources = ["sage/libs/pari/convert.pyx"]),
 
+    Extension('sage.libs.pari.convert_sage',
+              sources = ["sage/libs/pari/convert_sage.pyx"]),
+
     Extension('sage.libs.pari.gen',
               sources = ["sage/libs/pari/gen.pyx"]),
 
@@ -666,6 +669,9 @@ ext_modules = [
               sources = ["sage/libs/pari/pari_instance.pyx"],
               extra_compile_args = ["-std=c99", "-D_XPG6"],
               libraries = ['flint']),
+
+    Extension('sage.libs.pari.stack',
+              sources = ["sage/libs/pari/stack.pyx"]),
 
     Extension('sage.libs.ppl',
               sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc']),

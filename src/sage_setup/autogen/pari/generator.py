@@ -130,25 +130,24 @@ class PariFunctionGenerator(object):
                     precision = prec_bits_to_words(precision)
                     sig_on()
                     cdef GEN _ret = bnfinit0(_P, flag, _tech, precision)
-                    return pari_instance.new_gen(_ret)
+                    return new_gen(_ret)
             <BLANKLINE>
             sage: G.handle_pari_function("ellmodulareqn",
             ....:     cname="ellmodulareqn", prototype="LDnDn",
             ....:     help=r"ellmodulareqn(N,{x},{y}): return...",
             ....:     doc=r"return a vector [\kbd{eqn},$t$] where \kbd{eqn} is...",
             ....:     **{"class":"basic", "section":"elliptic_curves"})
-                def ellmodulareqn(self, long N, x=None, y=None):
+                def ellmodulareqn(pari, long N, x=None, y=None):
                     ...
-                    cdef PariInstance pari_instance = <PariInstance>self
                     cdef long _x = -1
                     if x is not None:
-                        _x = pari_instance.get_var(x)
+                        _x = get_var(x)
                     cdef long _y = -1
                     if y is not None:
-                        _y = pari_instance.get_var(y)
+                        _y = get_var(y)
                     sig_on()
                     cdef GEN _ret = ellmodulareqn(N, _x, _y)
-                    return pari_instance.new_gen(_ret)
+                    return new_gen(_ret)
             <BLANKLINE>
             sage: G.handle_pari_function("setrand",
             ....:     cname="setrand", prototype="vG",
@@ -166,7 +165,7 @@ class PariFunctionGenerator(object):
                     cdef GEN _n = n.g
                     sig_on()
                     setrand(_n)
-                    pari_instance.clear_stack()
+                    clear_stack()
             <BLANKLINE>
         """
         try:

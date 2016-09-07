@@ -74,6 +74,9 @@ DECLARE_FUNCTION_1P(exp)
 /** Natural logarithm. */
 DECLARE_FUNCTION_1P(log)
 
+/** General logarithm. */
+DECLARE_FUNCTION_2P(logb)
+
 /** Inverse sine (arc sine). */
 DECLARE_FUNCTION_1P(asin)
 

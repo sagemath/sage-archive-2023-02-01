@@ -26,6 +26,7 @@
 #include "constant.h"
 #include "infinity.h"
 #include "numeric.h"
+#include "mul.h"
 #include "power.h"
 #include "operators.h"
 #include "relational.h"
@@ -417,6 +418,58 @@ REGISTER_FUNCTION(log, eval_func(log_eval).
                        real_part_func(log_real_part).
                        imag_part_func(log_imag_part).
                        conjugate_func(log_conjugate).
+                       latex_name("\\log"));
+
+//////////
+// General logarithm
+// This only has shortcuts and delegates everything else to log(arg)
+//////////
+
+static ex logb_evalf(const ex & x, const ex & base, PyObject* parent)
+{
+        if ((base - exp(_ex1).hold()).is_zero())
+                return log_evalf(x, parent);
+	if (is_exactly_a<numeric>(x) and is_exactly_a<numeric>(base))
+		return log(ex_to<numeric>(x), ex_to<numeric>(base));
+
+	return mul(log(x), pow(log(base), _ex_1));
+}
+
+static ex logb_eval(const ex & x, const ex & base)
+{
+	if (is_exactly_a<numeric>(x) and x.info(info_flags::crational)
+	    and is_exactly_a<numeric>(base) and base.info(info_flags::crational)) {
+                numeric a = ex_to<numeric>(x);
+                numeric b = ex_to<numeric>(base);
+                if (b.info(info_flags::real) and a.info(info_flags::real)) {
+                        bool israt;
+                        numeric ret = a.ratlog(b, israt);
+                        if (israt)
+                                return ret;
+                }
+                return mul(log(x), pow(log(base), _ex_1));
+        }
+
+        if ((base - exp(_ex1).hold()).is_zero())
+                return log_eval(x);
+
+	// log(base^t, base) -> t
+	if (is_exactly_a<power>(x)) {
+                if (x.op(0).is_equal(base) and x.op(1).info(info_flags::real))
+			return x.op(1);
+	}
+
+	// log(oo) -> oo
+	if (x.info(info_flags::infinity)) {
+		return Infinity;
+	}
+
+        // log(x)/log(base)
+	return mul(log(x), pow(log(base), _ex_1));
+}
+
+REGISTER_FUNCTION(logb, eval_func(logb_eval).
+                       evalf_func(logb_evalf).
                        latex_name("\\log"));
 
 //////////////////////////////////////

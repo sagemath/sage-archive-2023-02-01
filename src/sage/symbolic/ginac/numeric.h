@@ -230,6 +230,8 @@ public:
 
 	const numeric exp() const;
 	const numeric log() const;
+	const numeric log(const numeric &b) const;
+	const numeric ratlog(const numeric &b, bool& israt) const;
 	const numeric sin() const;
 	const numeric cos() const;
 	const numeric tan() const;
@@ -304,6 +306,7 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
 
 const numeric exp(const numeric &x);
 const numeric log(const numeric &x);
+const numeric log(const numeric &x, const numeric &b);
 const numeric sin(const numeric &x);
 const numeric cos(const numeric &x);
 const numeric tan(const numeric &x);

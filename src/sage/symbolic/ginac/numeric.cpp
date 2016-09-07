@@ -2232,6 +2232,82 @@ const numeric numeric::log() const {
         PY_RETURN(py_funcs.py_log);
 }
 
+// General log
+const numeric numeric::log(const numeric &b) const {
+        if (b == *_num1_p) {
+                if (*this == *_num1_p)
+		        throw (std::runtime_error("log(1,1) encountered"));
+                else
+                        return py_funcs.py_eval_unsigned_infinity();
+        }
+        if (b.is_zero())
+                return *_num0_p;
+
+        if ((t != MPZ and t != MPQ) or (b.t != MPZ and b.t != MPQ))
+                return log()/b.log();
+        else {
+                bool israt;
+                numeric ret = ratlog(b, israt);
+                if (not israt)
+                        return log()/b.log();
+                else
+                        return ret;
+        }
+}
+
+// General log
+// Handle special cases here that return MPZ/MPQ
+const numeric numeric::ratlog(const numeric &b, bool& israt) const {
+        israt = true;
+        if (b == *_num1_p) {
+                if (*this == *_num1_p)
+		        throw (std::runtime_error("log(1,1) encountered"));
+                else
+                        return py_funcs.py_eval_unsigned_infinity();
+        }
+        if (b.is_zero())
+                return *_num0_p;
+
+        if ((t != MPZ and t != MPQ) or (b.t != MPZ and b.t != MPQ)) {
+                israt = false;
+                return *_num0_p;
+        }
+
+        if (t == MPZ and b.t == MPZ) {
+                if (b > *_num0_p) {
+                        mpz_t ret;
+                        mpz_init(ret);
+                        mp_bitcnt_t r = mpz_remove(ret, v._bigint, b.v._bigint);
+                        if (mpz_cmp_ui(ret, 1) == 0) {
+                                mpz_clear(ret);
+                                return r;
+                        }
+                        mpz_clear(ret);
+                }
+                israt = false;
+                return *_num0_p;
+        }
+
+        if (t == MPZ) {
+                if (b.numer() == *_num1_p)
+                        return -ratlog(b.denom(), israt);
+                else {
+                        israt = false;
+                        return *_num0_p;
+                }
+        }
+        if (b.t == MPZ) {
+                if (numer() == *_num1_p)
+                        return -denom().ratlog(b, israt);
+                else {
+                        israt = false;
+                        return *_num0_p;
+                }
+        }
+
+        return numer().log(b.numer()) / denom().log(b.denom());
+}
+
 const numeric numeric::tan() const {
         PY_RETURN(py_funcs.py_tan);
 }
@@ -2659,6 +2735,11 @@ const numeric log(const numeric &x) {
     throw pole_error("log(): logarithmic pole",0);
          */
         return x.log();
+}
+
+// General log
+const numeric log(const numeric &x, const numeric &b) {
+        return x.log(b);
 }
 
 /** Numeric sine (trigonometric function).

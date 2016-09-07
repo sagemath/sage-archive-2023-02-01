@@ -2140,24 +2140,56 @@ class ClusterAlgebra(Parent):
     def upper_cluster_algebra(self):
         r"""
         Return the upper cluster algebra associated to ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['F',4])
+            sage: A.upper_cluster_algebra()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Not implemented yet.
         """
         raise NotImplementedError("Not implemented yet.")
 
     def upper_bound(self):
         r"""
         Return the upper bound associated to ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['F',4])
+            sage: A.upper_bound()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Not implemented yet.
         """
         raise NotImplementedError("Not implemented yet.")
 
     def lower_bound(self):
         r"""
         Return the lower bound associated to ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['F',4])
+            sage: A.lower_bound()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Not implemented yet.
         """
         raise NotImplementedError("Not implemented yet.")
 
     def theta_basis_element(self, g_vector):
         r"""
         Return the element of the theta basis with g-vector ``g_vetor``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['F',4])
+            sage: A.theta_basis_element((1,0,0,0))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Not implemented yet.
         """
         raise NotImplementedError("Not implemented yet.")
 

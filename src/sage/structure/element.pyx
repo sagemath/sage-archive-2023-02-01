@@ -73,29 +73,30 @@ with assumed properties.
 Arithmetic for Elements
 -----------------------
 
-Sage has a special system in place for handling arithmetic operations
-for all instances of subclasses of :class:`Element`. There are various
-rules that must be followed by both arithmetic implementers and callers.
+Sage has a special system for handling arithmetic operations on Sage
+elements (that is instances of :class:`Element`), in particular to
+manage uniformly mixed arithmetic operations using the :mod:`coercion
+model <sage.structure.coerce>`. We describe here the rules that must
+be followed by both arithmetic implementers and callers.
 
 A quick summary for the impatient
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- When writing pure *Python* code:
+To implement addition for any :class:`Element` subclass, override the
+``def _add_(self, other)`` method instead of the usual Python
+``__add__`` :python:`special method <reference/datamodel.html#special-method-names>`.
+Within ``_add_(self, other)``, you may assume that ``self`` and
+``other`` have the same parent.
 
-  - To implement addition for any :class:`Element` subclass, override
-    ``def _add_(self, other)`` instead of ``__add__``. In ``_add_``,
-    you may assume that ``self`` and ``other`` have the same parent.
+If the implementation is generic across all elements in a given
+category `C`, then this method can be put in ``C.ElementMethods``.
 
-- When writing *Cython* code:
+When writing *Cython* code, ``_add_`` should be a ``cpdef method``:
+``cpdef _add_(self, other)``.
 
-  - To implement addition for any :class:`Element` subclass, override
-    ``cpdef _add_(self, other)`` instead of ``__add__``. In ``_add_``,
-    you may assume that ``self`` and ``other`` have the same parent.
-
-  - If you want to add ``x`` and ``y``, whose parents you know are
-    **identical**, you may call ``x._add_(y)`` in Cython. This will be the
-    fastest way to guarantee that the correct implementation gets called.
-    Of course you can still always use ``x + y``.
+If you want to add ``x`` and ``y``, whose parents you know are
+**identical**, the fastest idiom is ``x+y`` in Python, and
+``x._add_(y)`` in Cython. Of course you can always use ``x + y``.
 
 When doing arithmetic with two elements having different parents,
 the :mod:`coercion model <sage.structure.coerce>` is responsible for
@@ -126,7 +127,7 @@ There are two relevant functions, with differing names
    ``operator.add``). Note that the result of coercion is not required
    to be a Sage :class:`Element`, it could be a plain Python type.
 
-   Note that although this function is declared as ``def``, it doesn't
+   Note that, although this function is declared as ``def``, it doesn't
    have the usual overheads associated with Python functions (either
    for the caller or for ``__add__`` itself). This is because Python
    has optimised calling protocols for such special functions.
@@ -153,6 +154,11 @@ versus ``self, other``) is intentional: ``self`` is guaranteed to be an
 instance of the class in which the method is defined. In Cython, we know
 that at least one of ``left`` or ``right`` is an instance of the class
 but we do not know a priori which one.
+
+.. TODO::
+
+    Briefly mention _add_long and _mul_long, and refer to the
+    detailed documentation about them (in __add__ / __mul__?)
 
 Examples
 ^^^^^^^^
@@ -205,7 +211,7 @@ the parents::
     ...
     TypeError: unsupported operand parent(s) for '+': 'Some parent' and 'Other parent'
 
-We can also implement arithmetic in the category::
+We can also implement arithmetic generically in categories::
 
     sage: class MyCategory(Category):
     ....:     def super_categories(self):
@@ -213,10 +219,36 @@ We can also implement arithmetic in the category::
     ....:     class ElementMethods:
     ....:         def _add_(self, other):
     ....:             return 42
-    sage: p = ExampleParent("Parent with add", category=MyCategory())
+    sage: p = ExampleParent("Parent in my category", category=MyCategory())
     sage: x = Element(p)
     sage: x + x
     42
+
+Implementation details
+^^^^^^^^^^^^^^^^^^^^^^
+
+Implementing the above features actually takes a bit of magic. Casual
+callers and implementers can safely ignore it, but here are the
+details for the curious.
+
+To achieve fast arithmetic, it's critical to have a fast path to call
+from Cython the ``_add_`` method of a Cython object. This is achieved
+by declaring the ``_add_`` method in the class
+:class:`Element`. Remember however that the abstract classes coming
+from categories come after :class:`Element` in the Method Resolution
+Order (or fake Method Resolution Order in case of a Cython
+class). Hence any generic implementation of `_add_` in such an
+abstract class would be in principle shadowed by `Element._add_`.
+
+This is worked around by defining ``Element._add_`` as a ``cdef`` and
+not ``cpdef`` method. Let now see what happens upon calling
+`x.__add__(y)`` when `x` and `y` are instances of a class that does
+not implement `_add_`. In the case of a Python level call,
+``Element._add_`` will be invisible, and the method lookup will
+continue down the MRO and find the `_add_` method in the category.  In
+the case of a Cython level call, `Element._add_` will be called, but
+latter is implemented to trigger a Python level call to `_add_` which
+will succeed as desired.
 """
 
 #*****************************************************************************

@@ -162,8 +162,8 @@ cdef inline parent_c(x):
     return parent(x)
 
 
-cdef un_op_error_message(op, x)
-cdef bin_op_error_message(op, x, y)
+cdef unary_op_exception(op, x)
+cdef bin_op_exception(op, x, y)
 
 
 cdef class Element(SageObject):

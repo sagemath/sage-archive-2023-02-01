@@ -183,17 +183,17 @@ def make_element(_class, _dict, parent):
     return make_element_old(_class, _dict, parent)
 
 
-cdef un_op_error_message(op, x):
+cdef unary_op_exception(op, x):
     try:
         op = op.__name__
         op = _coerce_op_symbols[op]
     except (AttributeError, KeyError):
         pass
     px = parent(x)
-    return f"unsupported operand parent for {op}: '{px}'"
+    return TypeError(f"unsupported operand parent for {op}: '{px}'")
 
 
-cdef bin_op_error_message(op, x, y):
+cdef bin_op_exception(op, x, y):
     try:
         op = op.__name__
         op = _coerce_op_symbols[op]
@@ -201,7 +201,7 @@ cdef bin_op_error_message(op, x, y):
         pass
     px = parent(x)
     py = parent(y)
-    return f"unsupported operand parent(s) for {op!r}: '{px}' and '{py}'"
+    return TypeError(f"unsupported operand parent(s) for {op!r}: '{px}' and '{py}'")
 
 
 def is_Element(x):
@@ -1101,7 +1101,7 @@ cdef class Element(SageObject):
         try:
             python_op = (<object>self)._add_
         except AttributeError:
-            raise TypeError(bin_op_error_message('+', self, other))
+            raise bin_op_exception('+', self, other)
         else:
             return python_op(other)
 
@@ -1144,7 +1144,7 @@ cdef class Element(SageObject):
         try:
             python_op = (<object>self)._sub_
         except AttributeError:
-            raise TypeError(bin_op_error_message('-', self, other))
+            raise bin_op_exception('-', self, other)
         else:
             return python_op(other)
 
@@ -1168,7 +1168,7 @@ cdef class Element(SageObject):
         try:
             python_op = (<object>self)._neg_
         except AttributeError:
-            raise TypeError(un_op_error_message('unary -', self))
+            raise unary_op_exception('unary -', self)
         else:
             return python_op()
 
@@ -1213,7 +1213,7 @@ cdef class Element(SageObject):
         try:
             python_op = (<object>self)._mul_
         except AttributeError:
-            raise TypeError(bin_op_error_message('*', self, other))
+            raise bin_op_exception('*', self, other)
         else:
             return python_op(other)
 
@@ -1304,7 +1304,7 @@ cdef class Element(SageObject):
         try:
             python_op = (<object>self)._div_
         except AttributeError:
-            raise TypeError(bin_op_error_message('/', self, other))
+            raise bin_op_exception('/', self, other)
         else:
             return python_op(other)
 
@@ -1350,7 +1350,7 @@ cdef class Element(SageObject):
         try:
             python_op = (<object>self)._floordiv_
         except AttributeError:
-            raise TypeError(bin_op_error_message('//', self, other))
+            raise bin_op_exception('//', self, other)
         else:
             return python_op(other)
 
@@ -1401,7 +1401,7 @@ cdef class Element(SageObject):
         try:
             python_op = (<object>self)._mod_
         except AttributeError:
-            raise TypeError(bin_op_error_message('%', self, other))
+            raise bin_op_exception('%', self, other)
         else:
             return python_op(other)
 
@@ -1917,7 +1917,7 @@ cdef class RingElement(ModuleElement):
         try:
             frac = self._parent.fraction_field()
         except AttributeError:
-            raise TypeError(bin_op_error_message('/', self, other))
+            raise bin_op_exception('/', self, other)
         return frac(self, other)
 
     def __invert__(self):
@@ -2633,7 +2633,7 @@ cdef class Vector(ModuleElement):
         return left._dot_product_coerce_(right)
 
     cpdef _dot_product_coerce_(Vector left, Vector right):
-        raise TypeError(bin_op_error_message('*', left, right))
+        raise bin_op_exception('*', left, right)
 
     cpdef _pairwise_product_(Vector left, Vector right):
         raise TypeError("unsupported operation for '%s' and '%s'"%(parent(left), parent(right)))
@@ -2655,7 +2655,7 @@ cdef class Vector(ModuleElement):
                     raise ZeroDivisionError("division by zero vector")
                 else:
                     raise ArithmeticError("vector is not in free module")
-        raise TypeError(bin_op_error_message('/', self, right))
+        raise bin_op_exception('/', self, right)
 
     def _magma_init_(self, magma):
         """
@@ -3361,7 +3361,7 @@ cdef class CoercionModel:
     cpdef bin_op(self, x, y, op):
         if parent(x) is parent(y):
             return op(x,y)
-        raise TypeError(bin_op_error_message(op, x, y))
+        raise bin_op_exception(op, x, y)
 
     cpdef richcmp(self, x, y, int op):
         x, y = self.canonical_coercion(x, y)

@@ -363,6 +363,17 @@ def _mutation_parse(mutate):
         - mutate at a g-vector (it is hard to distinguish this case from a generic sequence)
         - urban renewals
         - other?
+
+    EXAMPLES::
+
+        sage: A = ClusterAlgebra(['E',6])
+        sage: S = A.current_seed()
+        sage: S.mutate(1,inplace=False) # indirect doctest
+        The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3, x4, x5 and no coefficients over Integer Ring obtained from the initial by mutating in direction 1
+        sage: S.mutate([1,2,3],inplace=False)   # indirect doctest
+        The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3, x4, x5 and no coefficients over Integer Ring obtained from the initial by mutating along the sequence [1, 2, 3]
+        sage: S.mutate('sinks',inplace=False)   # indirect doctest
+        The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3, x4, x5 and no coefficients over Integer Ring obtained from the initial by mutating along the sequence [0, 2, 4]
     """
     doc = mutate.__doc__.split("INPUT:")
     doc[0] += "INPUT:"

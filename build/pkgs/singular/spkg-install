@@ -64,19 +64,27 @@ remove_old_version()
     # the following is a little verbose but it ensures we leave no trace of 3.x
     # _or_ 4.x
     rm -f "$SAGE_LOCAL"/bin/*Singular*
-    rm -f "$SAGE_LOCAL/include/factory.h"
-    rm -f "$SAGE_LOCAL/include/factoryconf.h"
-    rm -rf "$SAGE_LOCAL/include/factory"
-    rm -rf "$SAGE_LOCAL/include/singular"
-    rm -rf "$SAGE_LOCAL"/include/omalloc*
-    rm -f "$SAGE_LOCAL/include/omlimits.h"
-    rm -f "$SAGE_LOCAL"/lib/libsingular*
-    rm -f "$SAGE_LOCAL"/lib/libsing*.a
-    rm -f "$SAGE_LOCAL"/lib/libSingomalloc*
+    rm -f "$SAGE_LOCAL"/bin/*singular*
+    rm -rf "$SAGE_LOCAL/include/singular" # 3.x and 4.x
+    rm -rf "$SAGE_LOCAL/include/factory" # 3.x and 4.x
+    rm -f "$SAGE_LOCAL/include/factor.h" # 3.x only
+    rm -f "$SAGE_LOCAL/include/factoryconf.h" # 3.x only
+    rm -rf "$SAGE_LOCAL/include/omalloc" #4.x only
+    rm -f "$SAGE_LOCAL/include/omalloc.h" # 3.x only
+    rm -f "$SAGE_LOCAL/include/omlimits.h" # 3.x only
+    rm -rf "$SAGE_LOCAL/include/resources" #4.x only
+    rm -rf "$SAGE_LOCAL/include/gfanlib" #4.x only
+    rm -f "$SAGE_LOCAL"/lib/libsingular* # 3.x with lower case
+    rm -f "$SAGE_LOCAL"/lib/libsingcf*.a # 3.x only additional archives
+    rm -f "$SAGE_LOCAL"/lib/libsingfac*.a # 3.x only additional archives
+    rm -f "$SAGE_LOCAL"/lib/libSingular* # 4.x with upper case
+    # a bunch of additional libraries for 4.x
+    rm -f "$SAGE_LOCAL"/lib/libpolys*
     rm -f "$SAGE_LOCAL"/lib/libfactory*
-    rm -rf "$SAGE_LOCAL/share/singular"
-    rm -f "$SAGE_LOCAL"/lib/libSingular*
+    rm -f "$SAGE_LOCAL"/lib/libomalloc*
+    rm -f "$SAGE_LOCAL"/lib/libresources*
     rm -r "$SAGE_LOCAL"/lib/libgfan*
+    rm -rf "$SAGE_LOCAL/share/singular"
 }
 
 config()

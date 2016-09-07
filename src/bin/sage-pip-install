@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# This command is specifically for pip-installing from a local
+# source directory, as opposed to from a package index via package
+# name.  That is, it is for pip-installing Sage spkgs from their
+# extracted upstream sources.
+#
+# This ensures that any previous installations of the same package
+# are uninstalled first.
+
+# Default arguments for all packages installed with `pip install`
+# --ignore-installed : Force pip to re-install package even if it thinks it's
+#                      already installed (for which it sometimes gets false
+#                      positives for partially-installed packages).
+# --verbose          : Display the output when running setup.py.
+# --no-deps          : Don't install runtime dependencies from PyPI.
+# --no-index         : Don't look at the package index.
+#                      This also disables pip's version self-check.
+pip_install_flags="--ignore-installed --verbose --no-deps --no-index"
+
+# Consume any additional pip install arguments except the last one
+while [ $# -gt 1 ]; do
+    pip_install_flags="$pip_install_flags $1"
+    shift
+done
+
+path=${1:-.}  # '.' by default
+
+pushd "$path"
+
+name="$(python setup.py --name 2>/dev/null)"
+
+if [ $(echo "$name" | wc -l) -gt 1 ]; then
+    name="$(echo "$name" | tail -n 1)"
+    2>&1 echo "Warning: This package has a badly-behaved setup.py which outputs"
+    2>&1 echo "more than the package name for 'setup.py --name'; using the last"
+    2>&1 echo "line as the package name: $name"
+fi
+
+# Uninstall, if necessary
+uninstall="pip uninstall --disable-pip-version-check -y $name 2>&1"
+uninstall_out="$(eval $uninstall)"
+uninstall_err=$?
+
+# Not ideal, but this is the easiest way to check if the package
+# was not installed to begin with.  If it wasn't, then we proceed
+# quietly; if it was installed show the uninstallation output and
+# repeat until definitely all copies have been uninstalled
+while [[ "$uninstall_out" != *"not installed" ]]; do
+    echo "$uninstall_out"
+    # If an error occurred (other than "not installed") don't keep
+    # trying
+    if [ $uninstall_err -ne 0 ]; then
+        popd
+        exit $uninstall_err
+    fi;
+
+    uninstall_out="$(eval $uninstall)"
+done
+
+# Finally actually do the installation
+pip install $pip_install_flags "$path"
+ret=$?
+popd
+exit $ret

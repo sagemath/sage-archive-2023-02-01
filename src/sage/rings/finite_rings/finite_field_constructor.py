@@ -447,12 +447,22 @@ class FiniteFieldFactory(UniqueFactory):
         sage: list(K.polynomial()) == list(L.polynomial())
         True
 
+    TESTS::
+
     Check that :trac:`16934` has been fixed::
 
         sage: k1.<a> = GF(17^14, impl="pari_ffelt")
         sage: _ = a/2
         sage: k2.<a> = GF(17^14, impl="pari_ffelt")
         sage: k1 is k2
+        True
+
+    Check that :trac:`21433` has been fixed::
+
+        sage: K = GF(5^2)
+        sage: L = GF(5^4)
+        sage: from sage.categories.pushout import pushout
+        sage: pushout(K,L) is L
         True
 
     """
@@ -465,6 +475,12 @@ class FiniteFieldFactory(UniqueFactory):
             ((9, ('a',), x^2 + 2*x + 2, 'givaro', '{}', 3, 2, True), {})
             sage: GF.create_key_and_extra_args(9, 'a', foo='value')
             ((9, ('a',), x^2 + 2*x + 2, 'givaro', "{'foo': 'value'}", 3, 2, True), {'foo': 'value'})
+
+        Named attributes whose value is None are removed from the key
+        (see :trac:`21433`)::
+
+            sage: GF.create_key_and_extra_args(9, 'a', foo=None)
+            ((9, ('a',), x^2 + 2*x + 2, 'givaro', '{}', 3, 2, True), {'foo': None})
         """
         import sage.arith.all
         from sage.structure.proof.all import WithProof, arithmetic
@@ -546,7 +562,8 @@ class FiniteFieldFactory(UniqueFactory):
                 if impl == 'modn' and modulus[0] == -1:
                     modulus = None
 
-            return (order, name, modulus, impl, p, n, proof), kwds
+            kwds_key = { key: value for (key,value) in kwds.iteritems() if value is not None }
+            return (order, name, modulus, impl, str(kwds_key), p, n, proof), kwds
 
     def create_object(self, version, key, **kwds):
         """

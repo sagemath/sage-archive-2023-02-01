@@ -92,6 +92,7 @@ config()
                 --with-gmp="$SAGE_LOCAL" \
                 --with-ntl="$SAGE_LOCAL" \
                 --with-flint="$SAGE_LOCAL" \
+                --enable-gfanlib \
                 --enable-Singular \
                 --enable-factory \
                 --disable-doc \

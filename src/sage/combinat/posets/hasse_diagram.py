@@ -2100,7 +2100,7 @@ class HasseDiagram(DiGraph):
                 if b >= s_max or b in S:
                     continue
                 # Now b not in S, b > a and a in S.
-                for c in self.depth_first_search(a, neighbors=lambda v: [v for v in self.neighbor_out_iterator(x) if v < s_max and s not in ok]):
+                for c in self.depth_first_search(a, neighbors=lambda v: [v for v in self.neighbor_out_iterator(b) if v < s_max and s not in ok]):
                     if c in S:  # Now c in S, b not in S, a in S, a < b < c.
                         return False
                     ok.add(c)  # Do not re-check this for being our b.

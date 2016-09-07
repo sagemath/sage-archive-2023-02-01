@@ -124,39 +124,6 @@ build_singular()
 
 }
 
-build_factory()
-{
-    cd factory
-
-    $MAKE distclean
-
-    ./configure --prefix="$SAGE_LOCAL" \
-                --exec-prefix="$SAGE_LOCAL" \
-                --bindir="$SAGE_LOCAL"/bin \
-                --libdir="$SAGE_LOCAL"/lib \
-                --with-gmp="$SAGE_LOCAL" \
-                --with-ntl="$SAGE_LOCAL" \
-                --with-flint="$SAGE_LOCAL"
-
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error configuring the standalone factory."
-        exit 1
-    fi
-
-    $MAKE
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error building the standalone factory."
-        exit 1
-    fi
-
-    $MAKE install
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error installing the standalone factory."
-        exit 1
-    fi
-}
-
-
 create_singular_script()
 {
     cd "$SAGE_LOCAL/bin"
@@ -193,7 +160,7 @@ fix_includes()
 
 # Actually run all the functions defined above
 for i in remove_old_version config \
-  build_singular build_factory fix_includes \
+  build_singular fix_includes \
   create_singular_script install_docs ; do
     echo "############### Singular stage $i ###############"
     cd "$SRC" && $i

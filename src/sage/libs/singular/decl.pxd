@@ -1,3 +1,8 @@
+# distutils: extra_compile_args = SINGULAR_CFLAGS
+# distutils: libraries = SINGULAR_LIBRARIES
+# distutils: library_dirs = SINGULAR_LIBDIR
+# distutils: language = c++
+
 """
 Declarations of Singular's C/C++ Functions
 

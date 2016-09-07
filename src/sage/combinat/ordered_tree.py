@@ -543,7 +543,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         return OrderedTree(children)
 
     def plot(self):
-        """
+        r"""
         Plot the tree ``self``.
 
         .. WARNING::
@@ -557,12 +557,12 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         EXAMPLES::
 
             sage: p = OrderedTree([[[]],[],[]])
-            sage: unicode_art(p)
-            ╭─o─╮
-            │ │ │
+            sage: ascii_art(p)
+              _o__
+             / / /
             o o o
-            │  
-            o  
+            |
+            o
             sage: p.plot()
             Graphics object consisting of 10 graphics primitives
 
@@ -574,11 +574,11 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         Now a labelled example::
 
             sage: g = OrderedTree([[],[[]],[]]).canonical_labelling()
-            sage: unicode_art(g)
-            ╭─1─╮
-            │ │ │
+            sage: ascii_art(g)
+              _1__
+             / / /
             2 3 5
-              │
+              |
               4
             sage: g.plot()
             Graphics object consisting of 10 graphics primitives

@@ -148,8 +148,7 @@ greedy element associated to any denominator vector::
     sage: _ == t*s
     False
 
-... not surprising since there is no cluster in ``A`` containing both ``t`` and
-``s``::
+not surprising since there is no cluster in ``A`` containing both ``t`` and ``s``::
 
     sage: seeds = A.seeds(mutating_F=false)
     sage: [ S for S in seeds if (0,-1) in S and (-1,1) in S ]

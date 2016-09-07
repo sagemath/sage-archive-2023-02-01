@@ -2062,5 +2062,50 @@ class HasseDiagram(DiGraph):
         return [e for e in range(self.cardinality()) if
                 all(e in ms for ms in max_sublats)]
 
+    def is_convex_subset(self, S):
+        """
+        Return ``True`` if `S` is a convex subset of the poset,
+        and ``False`` otherwise.
+
+        A subset `S` is *convex* in the poset if `b \in S` whenever
+        `a, c \in S` and `a \le b \le c`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: B3 = HasseDiagram({0: [1, 2, 4], 1: [3, 5], 2: [3, 6],
+            ....:                    3: [7], 4: [5, 6], 5: [7], 6: [7]})
+            sage: B3.is_convex_subset([1, 3, 5, 4])
+            True
+
+            sage: B3.is_convex_subset([0, 1, 2, 3, 6])  # No, 0 < 4 < 6
+            False
+            sage: B3.is_convex_subset([0, 1, 2, 7])  # Not even connected
+            False
+
+        TESTS::
+
+            sage: B3.is_convex_subset([])
+            True
+            sage: B3.is_convex_subset([6])
+            True
+        """
+        if not S:  # S is empty set
+            return True
+        s_max = max(S)
+        ok = set()  # Already checked elements not less than any element is S.
+
+        for a in S:
+            for b in self.neighbor_out_iterator(a):
+                if b >= s_max or b in S:
+                    continue
+                # Now b not in S, b > a and a in S.
+                for c in self.depth_first_search(a, neighbors=lambda v: [v for v in self.neighbor_out_iterator(x) if v < s_max and s not in ok]):
+                    if c in S:  # Now c in S, b not in S, a in S, a < b < c.
+                        return False
+                    ok.add(c)  # Do not re-check this for being our b.
+
+        return True
+
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))

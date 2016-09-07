@@ -546,7 +546,7 @@ class FiniteFieldFactory(UniqueFactory):
                 if impl == 'modn' and modulus[0] == -1:
                     modulus = None
 
-            return (order, name, modulus, impl, str(kwds), p, n, proof), kwds
+            return (order, name, modulus, impl, p, n, proof), kwds
 
     def create_object(self, version, key, **kwds):
         """

@@ -193,14 +193,7 @@ ext_modules = [
                language='c++',
                libraries = ["flint", "gmp", "gmpxx", "m", "ntl"]),
 
-    Extension('sage.algebras.letterplace.free_algebra_letterplace',
-              sources = ['sage/algebras/letterplace/free_algebra_letterplace.pyx']),
-
-    Extension('sage.algebras.letterplace.free_algebra_element_letterplace',
-              sources = ['sage/algebras/letterplace/free_algebra_element_letterplace.pyx']),
-
-    Extension('sage.algebras.letterplace.letterplace_ideal',
-              sources = ['sage/algebras/letterplace/letterplace_ideal.pyx']),
+    Extension('*', sources = ['sage/algebras/letterplace/*.pyx']),
 
     Extension('sage.algebras.quatalg.quaternion_algebra_cython',
                sources = ['sage/algebras/quatalg/quaternion_algebra_cython.pyx'],
@@ -675,23 +668,7 @@ ext_modules = [
               sources = ['sage/libs/readline.pyx'],
               libraries = ['readline']),
 
-    Extension('sage.libs.singular.singular',
-              sources = ['sage/libs/singular/singular.pyx']),
-
-    Extension('sage.libs.singular.polynomial',
-              sources = ['sage/libs/singular/polynomial.pyx']),
-
-    Extension('sage.libs.singular.ring',
-              sources = ['sage/libs/singular/ring.pyx']),
-
-    Extension('sage.libs.singular.groebner_strategy',
-              sources = ['sage/libs/singular/groebner_strategy.pyx']),
-
-    Extension('sage.libs.singular.function',
-              sources = ['sage/libs/singular/function.pyx']),
-
-    Extension('sage.libs.singular.option',
-              sources = ['sage/libs/singular/option.pyx']),
+    Extension('*', sources = ['sage/libs/singular/*.pyx']),
 
     Extension('sage.libs.symmetrica.symmetrica',
               sources = ["sage/libs/symmetrica/symmetrica.pyx"],

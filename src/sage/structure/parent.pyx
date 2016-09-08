@@ -2717,6 +2717,14 @@ cdef class Set_generic(Parent): # Cannot use Parent because Element._parent is P
 #         return Sets()
 
     def object(self):
+        """
+        Return the underlying object of self.
+
+        EXAMPLES::
+
+            sage: Set(QQ).object()
+            Rational Field
+        """
         return self
 
     def __nonzero__(self):

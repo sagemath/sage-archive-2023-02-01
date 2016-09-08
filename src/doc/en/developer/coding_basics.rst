@@ -392,8 +392,6 @@ information. You can use the existing functions of Sage as templates.
   its own, and ending with an unindented line (that is, the same level
   of indentation as "TESTS") matching one of the following:
 
-  one of the following ways:
-
   - a line which starts with whitespace and then a Sphinx directive
     of the form ".. foo:", optionally followed by other text.
 
@@ -493,17 +491,18 @@ indentation:
 
         .. NOTE::
 
-            This function uses the algorithm of [BCDT]_ to determine
+            This function uses the algorithm of [BCDT2001]_ to determine
             whether an elliptic curve `E` over `Q` is modular.
 
         ...
 
-        REFERENCES:
-
-        .. [BCDT] Breuil, Conrad, Diamond, Taylor,
-           "Modularity ...."
         """
         <body of the function>
+
+The master bibliography file would contain ::
+
+        .. [BCDT2001] Breuil, Conrad, Diamond, Taylor,
+                      "Modularity ...."
 
 You are strongly encouraged to:
 

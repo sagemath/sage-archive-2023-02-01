@@ -157,4 +157,4 @@ from .asymptotic.all import *
 from . import numbers_abc
 
 # Extensions
-from sage.rings.algebra_from_morphism import RingExtension
+from sage.rings.algebra_from_morphism_constructor import RingExtension

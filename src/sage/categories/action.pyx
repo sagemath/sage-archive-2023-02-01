@@ -437,3 +437,18 @@ cdef class ActionEndomorphism(Morphism):
                 return (~self._action)(self._g)
 
 
+cdef class BaseActionOnRing(Action):
+    def __init__(self, algebra):
+        from sage.rings.algebra_from_morphism import AlgebraFromMorphism
+        if not isinstance(algebra, AlgebraFromMorphism):
+            raise TypeError("%s is not an instance of AlgebraFromMorphism" % algebra)
+        self._base = algebra.base_ring()
+        self._algebra = algebra
+        self._defining_morphism = algebra.defining_morphism()
+
+        import operator
+        Action.__init__(self, self._base, algebra, op=operator.mul)
+
+    cpdef _call_(self, scalar, element):
+        result = self._defining_morphism(scalar) * element.element_in_ring()
+        return self._algebra(result)

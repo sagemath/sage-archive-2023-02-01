@@ -636,12 +636,10 @@ cdef class Ring(ParentWithGens):
 
     def __truediv__(self, I):
         """
-        Dividing one ring by another is not supported because there is no good
-        way to specify generator names.
+        TESTS::
 
-        EXAMPLES::
-
-            sage: QQ / ZZ
+            sage: I = ZZ.ideal(3)
+            sage: ZZ / I
             Traceback (most recent call last):
             ...
             TypeError: Use self.quo(I) or self.quotient(I) to construct the quotient ring.
@@ -1538,13 +1536,22 @@ cdef class CommutativeRing(Ring):
 
     def __truediv__(self,base):
         """
-        Construct the extension self/base
+        Construct the extension ``self``/``base``
+
+        See :func:`RingExtension` for more documentation
+
+        EXAMPLES::
+
+            sage: K = GF(5^2)
+            sage: L = GF(5^4)
+            sage: L/K
+            Finite Field in z4 of size 5^4 viewed as an algebra over Finite Field in z2 of size 5^2
         """
         if isinstance(base,CommutativeRing):
-            from sage.rings.algebra_from_morphism import RingExtension
+            from sage.rings.algebra_from_morphism_constructor import RingExtension
             return RingExtension(self,base)
         else:
-            CommutativeRing.__truediv__(self,base)
+            super(CommutativeRing,self).__truediv__(base)
 
 
 cdef class IntegralDomain(CommutativeRing):

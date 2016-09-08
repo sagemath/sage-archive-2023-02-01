@@ -2608,6 +2608,10 @@ class AbstractLinearCode(module.Module):
 
         - Integer, minimum distance of this code
 
+        WARNING::
+
+        Minimum distance calculation only works for codes over fields of size at most 256.
+
         EXAMPLES::
 
             sage: MS = MatrixSpace(GF(3),4,7)
@@ -2651,8 +2655,7 @@ class AbstractLinearCode(module.Module):
             Traceback (most recent call last):
             ...
             NotImplementedError: The GAP algorithms that sage is using
-                        are limited to computing with fields of size
-                        at most 256.
+             are limited to computing with fields of size at most 256.
         """
         # If the minimum distance has already been computed or provided by
         # the user then simply return the stored value.
@@ -2665,8 +2668,7 @@ class AbstractLinearCode(module.Module):
         q = F.order()
         if q > 256:
             raise NotImplementedError("The GAP algorithms that sage is using "
-                        "are limited to computing with fields of size "
-                        "at most 256.")
+                                      "are limited to computing with fields of size at most 256.")
 
         G = self.generator_matrix()
         n = self.length()

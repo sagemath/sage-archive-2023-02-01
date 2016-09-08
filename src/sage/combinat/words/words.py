@@ -251,7 +251,7 @@ class AbstractLanguage(Parent):
 
         INPUT:
 
-        -  ``letter`` - a letter
+        -  ``letter`` -- a letter
 
         EXAMPLES::
 
@@ -316,8 +316,8 @@ class AbstractLanguage(Parent):
 
         INPUT:
 
-        - ``letter1`` - a letter in the alphabet
-        - ``letter2`` - a letter in the alphabet
+        - ``letter1`` -- a letter in the alphabet
+        - ``letter2`` -- a letter in the alphabet
 
         EXAMPLES::
 
@@ -347,7 +347,7 @@ class AbstractLanguage(Parent):
 
         INPUT:
 
-        - ``letter1`` - a letter in the alphabet
+        - ``letter1`` -- a letter in the alphabet
 
         EXAMPLES::
 
@@ -363,7 +363,7 @@ class AbstractLanguage(Parent):
 
         INPUT:
 
-        - ``letter1`` - a letter in the alphabet
+        - ``letter1`` -- a letter in the alphabet
 
         EXAMPLES::
 

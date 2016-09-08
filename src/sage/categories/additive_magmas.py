@@ -199,7 +199,7 @@ class AdditiveMagmas(Category_singleton):
 
             .. TODO:: Add an example.
             """
-            return x._add_(y)
+            return x + y
 
         summation_from_element_class_add = summation
 
@@ -819,7 +819,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: C.one() - C.one()
                     (0, 0)
                 """
-                return left._add_(-right)
+                return left + (-right)
 
             def __neg__(self):
                 """

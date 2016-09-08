@@ -2608,9 +2608,9 @@ class AbstractLinearCode(module.Module):
 
         - Integer, minimum distance of this code
 
-        WARNING::
+        .. WARNING::
 
-        Minimum distance calculation only works for codes over fields of size at most 256.
+            Minimum distance calculation only works for codes over fields of size at most 256.
 
         EXAMPLES::
 

@@ -3565,6 +3565,10 @@ cdef generic_power_c(a, nn, one):
 cdef class AlgebraFMElement(CommutativeAlgebraElement):
     r"""
     Generic class for elements lying in ring extensions
+
+    AUTHOR:
+
+    - Xavier Caruso (2016)
     """
     def __init__(self, parent, element):
         from sage.rings.algebra_from_morphism import AlgebraFromMorphism

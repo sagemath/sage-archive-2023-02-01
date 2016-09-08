@@ -461,6 +461,10 @@ cdef class BaseActionOnRing(Action):
         z4^3 + 2*z4^2 + 4*z4 + 3
         sage: z4 * z2 
         z4^3 + 2*z4^2 + 4*z4 + 3
+
+    AUTHOR:
+
+    - Xavier Caruso (2016)
     """
     def __init__(self, algebra):
         r"""

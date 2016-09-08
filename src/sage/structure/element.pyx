@@ -91,12 +91,8 @@ Within ``_add_(self, other)``, you may assume that ``self`` and
 If the implementation is generic across all elements in a given
 category `C`, then this method can be put in ``C.ElementMethods``.
 
-When writing *Cython* code, ``_add_`` should be a ``cpdef method``:
+When writing *Cython* code, ``_add_`` should be a cpdef method:
 ``cpdef _add_(self, other)``.
-
-If you want to add ``x`` and ``y``, whose parents you know are
-**identical**, the fastest idiom is ``x+y`` in Python, and
-``x._add_(y)`` in Cython. Of course you can always use ``x + y``.
 
 When doing arithmetic with two elements having different parents,
 the :mod:`coercion model <sage.structure.coerce>` is responsible for
@@ -140,14 +136,17 @@ There are two relevant functions, with differing names
    The two arguments to this function are guaranteed to have the **same
    parent**, but not necessarily the same Python type.
 
+   When implementing ``_add_`` in a Cython extension type, use
+   ``cpdef _add_`` instead of ``def _add_``.
+
    In Cython code, if you want to add two elements and you know that
    their parents are identical, you are encouraged to call this
    function directly, instead of using ``x + y``. This only works if
    Cython knows that the left argument is an ``Element``. You can
    always cast explicitly: ``(<Element>x)._add_(y)`` to force this.
-
-   When implementing ``_add_`` in a Cython extension type, use
-   ``cpdef _add_`` instead of ``def _add_``.
+   In plain Python, ``x + y`` is always the fastest way to add two
+   elements because the special method ``__add__`` is optimized
+   unlike the normal method ``_add_``.
 
 The difference in the names of the arguments (``left, right``
 versus ``self, other``) is intentional: ``self`` is guaranteed to be an
@@ -155,10 +154,14 @@ instance of the class in which the method is defined. In Cython, we know
 that at least one of ``left`` or ``right`` is an instance of the class
 but we do not know a priori which one.
 
-.. TODO::
-
-    Briefly mention _add_long and _mul_long, and refer to the
-    detailed documentation about them (in __add__ / __mul__?)
+For addition and multiplication (not for other operators), there is a
+fast path for operations with a Python ``int`` (which corresponds
+to a C ``long``). Implement ``cdef _add_long(self, long n)`` or
+``cdef _mul_long(self, long n)`` with optimized code for ``self + n``
+or ``self * n``. These are assumed to be commutative, so they are also
+called for ``n + self`` or ``n * self``.
+From Cython code, you can also call ``_add_long`` or ``_mul_long``
+directly.
 
 Examples
 ^^^^^^^^
@@ -231,24 +234,31 @@ Implementing the above features actually takes a bit of magic. Casual
 callers and implementers can safely ignore it, but here are the
 details for the curious.
 
-To achieve fast arithmetic, it's critical to have a fast path to call
-from Cython the ``_add_`` method of a Cython object. This is achieved
-by declaring the ``_add_`` method in the class
-:class:`Element`. Remember however that the abstract classes coming
-from categories come after :class:`Element` in the Method Resolution
-Order (or fake Method Resolution Order in case of a Cython
-class). Hence any generic implementation of `_add_` in such an
-abstract class would be in principle shadowed by `Element._add_`.
+To achieve fast arithmetic, it is critical to have a fast path in Cython
+to call the ``_add_`` method of a Cython object. So we would like
+to declare ``_add_`` as a ``cpdef`` method of class :class:`Element`.
+Remember however that the abstract classes coming
+from categories come after :class:`Element` in the method resolution
+order (or fake method resolution order in case of a Cython
+class). Hence any generic implementation of ``_add_`` in such an
+abstract class would in principle be shadowed by ``Element._add_``.
+This is worked around by defining ``Element._add_`` as a ``cdef``
+instead of a ``cpdef`` method. Concrete implementations in subclasses
+should be ``cpdef`` or ``def`` methods.
 
-This is worked around by defining ``Element._add_`` as a ``cdef`` and
-not ``cpdef`` method. Let now see what happens upon calling
-`x.__add__(y)`` when `x` and `y` are instances of a class that does
-not implement `_add_`. In the case of a Python level call,
+Let us now see what happens upon evaluating ``x + y`` when ``x`` and ``y``
+are instances of a class that does not implement ``_add_`` but where
+``_add_`` is implemented in the category.
+First, ``x.__add__(y)`` is called, where ``__add__`` is implemented
+in :class:`Element`.
+Assuming that ``x`` and ``y`` have the same parent, a Cython call to
+``x._add_(y)`` will be done.
+The latter is implemented to trigger a Python level call to ``x._add_(y)``
+which will succeed as desired.
+
+In case that Python code calls ``x._add_(y)`` directly,
 ``Element._add_`` will be invisible, and the method lookup will
-continue down the MRO and find the `_add_` method in the category.  In
-the case of a Cython level call, `Element._add_` will be called, but
-latter is implemented to trigger a Python level call to `_add_` which
-will succeed as desired.
+continue down the MRO and find the ``_add_`` method in the category.
 """
 
 #*****************************************************************************

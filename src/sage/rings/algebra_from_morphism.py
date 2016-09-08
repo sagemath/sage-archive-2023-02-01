@@ -450,6 +450,33 @@ class AlgebraFromMorphism(CommutativeAlgebra, UniqueRepresentation):
         elt = self._ring.an_element()
         return self.element_class(self, elt)
 
+    def gen(self):
+        r"""
+        Return a generator of this extension
+
+        This element is constructed by converting a generator of
+        the ring of this extension to the extension itself
+
+        TESTS::
+
+            sage: K = GF(5^2)
+            sage: L = GF(5^4)
+            sage: E = L/K; E
+            Finite Field in z4 of size 5^4 viewed as an algebra over Finite Field in z2 of size 5^2
+
+            sage: x = E.gen()
+            sage: x
+            z4
+            sage: x.parent()
+            Finite Field in z4 of size 5^4 viewed as an algebra over Finite Field in z2 of size 5^2
+
+            sage: a = E.ring().gen()
+            sage: a == x
+            True
+        """
+        elt = self._ring.gen()
+        return self.element_class(self, elt)
+
     def random_element(self):
         r"""
         Return a random element of this extension

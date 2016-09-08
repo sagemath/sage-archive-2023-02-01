@@ -70,6 +70,7 @@ from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element cimport Element, RingElement, ModuleElement, coercion_model
 from sage.structure.element import bin_op, coerce_binop
+from sage.structure.parent cimport Parent
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
@@ -143,8 +144,7 @@ cdef Rational_sub_(Rational self, Rational other):
 
     return x
 
-cdef object the_rational_ring
-the_rational_ring = sage.rings.rational_field.Q
+cdef Parent the_rational_ring = sage.rings.rational_field.Q
 
 # make sure zero/one elements are set
 cdef set_zero_one_elements():

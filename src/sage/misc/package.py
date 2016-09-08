@@ -84,7 +84,7 @@ def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI, ignore_URLError=False):
     - ``pypi_url`` -- (string, default: standard PyPI url) an optional Python
       package repository to use
 
-    - ``ignore_URLError`` -- (default: ``False``) if set to ``True`` than no
+    - ``ignore_URLError`` -- (default: ``False``) if set to ``True`` then no
       error is raised if the connection fails and the function returns ``None``
 
     EXAMPLES:
@@ -352,8 +352,8 @@ def package_versions(package_type, local=False):
 
     INPUT:
 
-    - ``package_type`` -- (string) one of `"standard"`, `"optional"` or
-      `"experimental"`
+    - ``package_type`` -- (string) one of ``"standard"``, ``"optional"`` or
+      ``"experimental"``
 
     - ``local`` -- (boolean) only query local data (no internet needed)
 

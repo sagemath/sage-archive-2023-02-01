@@ -5,7 +5,7 @@ Construct groups of small order and "named" groups as quotients of free groups. 
 groups are available through tab completion by typing ``groups.presentation.<tab>``
 or by importing the required methods. Tab completion is made available through
 Sage's :ref:`group catalog <sage.groups.groups_catalog>`. Some examples are engineered
-from entries in [THOMAS-WOODS]_.
+from entries in [TW1980]_.
 
 Groups available as finite presentations:
 

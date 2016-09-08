@@ -77,10 +77,7 @@ class HochschildComplex(UniqueRepresentation, CategoryObject):
 
     - :wikipedia:`Hochschild_homology`
     - https://ncatlab.org/nlab/show/Hochschild+cohomology
-
-    .. [Redondo] Maria Julia Redondo.
-       *Hochschild cohomology: some methods for computations*.
-       http://inmabb.criba.edu.ar/gente/mredondo/crasp.pdf
+    - [Red2001]_
     """
     def __init__(self, A, M):
         """

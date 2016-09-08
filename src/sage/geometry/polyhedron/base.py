@@ -3187,17 +3187,6 @@ class Polyhedron_base(Element):
             [[<>], [<0,1>]]
             sage: Polyhedron(lines=[(1,0)], vertices=[(0,0)]).face_lattice().level_sets()
             [[<>], [<0,1>]]
-
-        REFERENCES:
-
-        ..  [KP2002]
-
-            Volker Kaibel and Marc E. Pfetsch, "Computing the Face
-            Lattice of a Polytope from its Vertex-Facet Incidences",
-            Computational Geometry: Theory and Applications, Volume
-            23, Issue 3 (November 2002), 281-290.  Available at
-            http://portal.acm.org/citation.cfm?id=763203 and free of
-            charge at http://arxiv.org/abs/math/0106043
         """
         coatom_to_Hindex = [ h.index() for h in self.inequality_generator() ]
         Hindex_to_coatom = [None] * self.n_Hrepresentation()
@@ -4526,12 +4515,9 @@ class Polyhedron_base(Element):
 
         - For ``output="matrixlist"``: a list of matrices.
 
-        REFERENCES:
+        REFERENCES: 
 
-        ..  [BSS]
-            David Bremner, Mathieu Dutour Sikiric, Achill Schuermann:
-            Polyhedral representation conversion up to symmetries.
-            http://arxiv.org/abs/math/0702239
+        - [BSS2009]_
 
         EXAMPLES::
 

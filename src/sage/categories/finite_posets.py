@@ -441,10 +441,10 @@ class FinitePosets(CategoryWithAxiom):
 
             Let us hold back defining this, and introduce birational
             toggles and birational rowmotion first. These notions have
-            been introduced in [EP13]_ as generalizations of the notions
+            been introduced in [EP2013]_ as generalizations of the notions
             of toggles (:meth:`order_ideal_toggle`) and :meth:`rowmotion
             <rowmotion>` on order ideals of a finite poset. They
-            have been studied further in [GR13]_.
+            have been studied further in [GR2013]_.
 
             Let `\mathbf{K}` be a field, and `P` be a finite poset. Let
             `\widehat{P}` denote the poset obtained from `P` by adding a
@@ -495,9 +495,9 @@ class FinitePosets(CategoryWithAxiom):
             <sage.rings.semirings.tropical_semiring.TropicalSemiring>`,
             in which case birational rowmotion relates to classical
             constructions such as promotion of rectangular semistandard
-            Young tableaux (page 5 of [EP13b]_ and future work, via the
+            Young tableaux (page 5 of [EP2013b]_ and future work, via the
             related notion of birational *promotion*) and rowmotion on
-            order ideals of the poset ([EP13]_).
+            order ideals of the poset ([EP2013]_).
 
             The *birational free labelling* is a special labelling
             defined for every finite poset `P` and every linear extension
@@ -569,22 +569,6 @@ class FinitePosets(CategoryWithAxiom):
             The birational free labelling of the poset ``self`` and the
             linear extension ``linear_extension``. Or, if ``reduced``
             is set to ``True``, the reduced birational free labelling.
-
-            REFERENCES:
-
-            .. [EP13] David Einstein, James Propp.
-               *Combinatorial, piecewise-linear, and birational homomesy
-               for products of two chains*.
-               :arxiv:`1310.5294v1`.
-
-            .. [EP13b] David Einstein, James Propp.
-               *Piecewise-linear and birational toggling*.
-               Extended abstract for FPSAC 2014.
-               http://faculty.uml.edu/jpropp/fpsac14.pdf
-
-            .. [GR13] Darij Grinberg, Tom Roby.
-               *Iterative properties of birational rowmotion I*.
-               http://web.mit.edu/~darij/www/algebra/skeletal.pdf
 
             EXAMPLES:
 
@@ -1145,7 +1129,7 @@ class FinitePosets(CategoryWithAxiom):
                 [(1, a*b/x4), (2, (x1*x2*b + x1*x3*b)/(x2*x4)),
                  (3, (x1*x2*b + x1*x3*b)/(x3*x4)), (4, (x2*b + x3*b)/x4)]
 
-            A result of [GR13]_ states that applying birational rowmotion
+            A result of [GR2013]_ states that applying birational rowmotion
             `n+m` times to a `\mathbf{K}`-labelling `f` of the poset
             `[n] \times [m]` gives back `f`. Let us check this::
 

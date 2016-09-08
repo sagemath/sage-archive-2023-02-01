@@ -38,12 +38,12 @@ have the form
      \text{Sq}^a \text{Sq}^b   = \sum_{c=0}^{[a/2]} \binom{b-c-1}{a-2c} \text{Sq}^{a+b-c} \text{Sq}^c.
 
 At odd primes, they are a bit more complicated; see Steenrod and
-Epstein [SE]_ or :mod:`sage.algebras.steenrod.steenrod_algebra_bases`
+Epstein [SE1962]_ or :mod:`sage.algebras.steenrod.steenrod_algebra_bases`
 for full details. These relations lead to the existence of the
 *Serre-Cartan* basis for `\mathcal{A}_p`.
 
 The mod `p` Steenrod algebra has the structure of a Hopf
-algebra, and Milnor [Mil]_ has a beautiful description of the dual,
+algebra, and Milnor [Mil1958]_ has a beautiful description of the dual,
 leading to a construction of the *Milnor basis* for
 `\mathcal{A}_p`. In this module, elements in the Steenrod
 algebra are represented, by default, using the Milnor basis.
@@ -51,7 +51,7 @@ algebra are represented, by default, using the Milnor basis.
 .. rubric:: Bases for the Steenrod algebra
 
 There are a handful of other bases studied in the literature; the
-paper by Monks [Mon]_ is a good reference.  Here is a quick summary:
+paper by Monks [Mon1998]_ is a good reference.  Here is a quick summary:
 
 - The *Milnor basis*. When `p=2`, the Milnor basis consists of symbols
   of the form `\text{Sq}(m_1, m_2, ..., m_t)`, where each `m_i` is a
@@ -213,7 +213,7 @@ These must satisfy the following conditions:
 - if `k(i+j) = 1`, then either `e(i) \leq j` or `k(j) = 1` for all `i
   \geq 1`, `j \geq 0`.
 
-(See Adams-Margolis [AM]_, for example, for these results on profile
+(See Adams-Margolis [AM1974]_, for example, for these results on profile
 functions.)
 
 This module allows one to construct the Steenrod algebra or any of its
@@ -445,24 +445,6 @@ products of them are represented by tuples of such pairs. ::
 
 See the documentation for :func:`SteenrodAlgebra` for more details and
 examples.
-
-REFERENCES:
-
-.. [AM] \J. F. Adams, and H. R. Margolis, "Sub-Hopf-algebras of the
-   Steenrod algebra," Proc. Cambridge Philos. Soc. 76 (1974), 45-52.
-
-.. [Mil] \J. W. Milnor, "The Steenrod algebra and its dual," Ann. of
-   Math. (2) 67 (1958), 150-171.
-
-.. [Mon] \K. G. Monks, "Change of basis, monomial relations, and
-   `P^s_t` bases for the Steenrod algebra," J. Pure Appl.
-   Algebra 125 (1998), no. 1-3, 235-260.
-
-.. [SE] \N. E. Steenrod and D. B. A. Epstein, Cohomology operations,
-   Ann. of Math. Stud. 50 (Princeton University Press, 1962).
-
-.. [Vo] \V. Voevodsky, Reduced power operations in motivic cohomology,
-   Publ. Math. Inst. Hautes Études Sci. No. 98 (2003), 1-57.
 """
 
 #*****************************************************************************
@@ -3458,12 +3440,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             The excess of a linear combination of Milnor basis elements is
             the minimum of the excesses of those basis elements.
 
-            See [Kra]_ for the proofs of these assertions.
-
-            REFERENCES:
-
-            .. [Kra] \D. Kraines, "On excess in the Milnor basis,"
-               Bull. London Math. Soc. 3 (1971), 363-365.
+            See [Kr1971]_ for the proofs of these assertions.
 
             EXAMPLES::
 
@@ -3560,7 +3537,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             If we let `F_* (A)` be the May filtration of the Steenrod
             algebra, the weight of an element `x` is the integer `k` so
             that `x` is in `F_k(A)` and not in `F_{k+1}(A)`. According to
-            Theorem 2.6 in May's thesis [May]_, the weight of a Milnor
+            Theorem 2.6 in May's thesis [May1964]_, the weight of a Milnor
             basis element is computed as follows: first, to compute the
             weight of `P(r_1,r_2, ...)`, write each `r_i` in base `p` as
             `r_i = \sum_j p^j r_{ij}`. Then each nonzero binary digit
@@ -3578,12 +3555,6 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             adding up the terms in their 'height' - see
             :meth:`wall_height` for documentation. (When `p` is odd, the
             height of an element is not defined.)
-
-            REFERENCES:
-
-            .. [May] \J. P. May, "The cohomology of restricted Lie algebras
-               and of Hopf algebras; application to the Steenrod algebra."
-               Thesis, Princeton Univ., 1964.
 
             EXAMPLES::
 
@@ -3699,18 +3670,12 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
             When `p` is odd, the height of an element is not defined.
 
-            According to Theorem 3 in [Wall]_, the height of the Milnor
+            According to Theorem 3 in [Wal1960]_, the height of the Milnor
             basis element `\text{Sq}(r_1, r_2, ...)` is obtained as
             follows: write each `r_i` in binary as `r_i = \sum_j 2^j
             r_{ij}`. Then each nonzero binary digit `r_{ij}` contributes 1
             to the `k^{th}` entry in the height, for `j \leq k \leq
             i+j-1`.
-
-            REFERENCES:
-
-            .. [Wall] \C. T. C. Wall, "Generators and relations for
-               the Steenrod algebra," Ann. of Math. (2) **72** (1960),
-               429-444.
 
             EXAMPLES::
 
@@ -4142,7 +4107,7 @@ def SteenrodAlgebra(p=2, basis='milnor', generic='auto', **kwds):
     The generic Steenrod algebra is an associated graded algebra of the usual Steenrod algebra
     that is occasionally useful. Its cohomology, for example, is the `E_2`-term of a spectral sequence
     that computes the `E_2`-term of the Novikov spectral sequence. It can also be obtained as a
-    specialisation of Voevodsky's "motivic Steenrod algebra": in the notation of [Vo]_, Remark 12.12,
+    specialisation of Voevodsky's "motivic Steenrod algebra": in the notation of [Voe2003]_, Remark 12.12,
     it corresponds to setting `\rho = \tau = 0`. The usual Steenrod algebra is given by `\rho = 0`
     and `\tau = 1`.
 

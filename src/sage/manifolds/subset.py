@@ -14,7 +14,7 @@ AUTHORS:
 
 REFERENCES:
 
-- [Lee11]_ J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed.,
+- [Lee2011]_ J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed.,
   Springer (New York) (2011)
 
 EXAMPLES:

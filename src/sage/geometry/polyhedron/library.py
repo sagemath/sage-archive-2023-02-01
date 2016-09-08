@@ -50,13 +50,6 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_tetrahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_octahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.twenty_four_cell`
-
-REFERENCES:
-
-..  [Fetter2012]
-    Hans L. Fetter,
-    "A Polyhedron Full of Surprises",
-    Mathematics Magazine 85 (2012), no. 5, 334-342.
 """
 from __future__ import absolute_import
 
@@ -1111,7 +1104,7 @@ class Polytopes():
 
         The Kirkman icosahedron is a 3-polytope with integer coordinates: `(\pm
         9, \pm 6, \pm 6)`, `(\pm 12, \pm 4, 0)`, `(0, \pm 12, \pm 8)`, `(\pm 6,
-        0, \pm 12)`. See [Fetter2012]_ for more information.
+        0, \pm 12)`. See [Fe2012]_ for more information.
 
         EXAMPLES::
 

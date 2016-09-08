@@ -34,8 +34,10 @@ class JordanAlgebra(Parent, UniqueRepresentation):
     - `xy = yx`, and
     - `(xy)(xx) = x(y(xx))` (the Jordan identity).
 
+    See [Ja1971]_, [Ch2012]_, and [McC1978], for example.
+
     These axioms imply that a Jordan algebra is power-associative and the
-    following generalization of Jordan's identity holds [Albert47]_:
+    following generalization of Jordan's identity holds [Al1947]_:
     `(x^m y) x^n = x^m (y x^n)` for all `m, n \in \ZZ_{>0}`.
 
     Let `A` be an associative algebra over a ring `R` in which `2` is
@@ -144,18 +146,13 @@ class JordanAlgebra(Parent, UniqueRepresentation):
 
     - :wikipedia:`Jordan_algebra`
 
-    .. [Jacobson71] \N. Jacobson. *Exceptional Lie Algebras*.
-       Marcel Dekker, Inc. New York. 1971. IBSN No. 0-8247-1326-5.
+    - [Ja1971]_
 
-    .. [Chu2012] Cho-Ho Chu. *Jordan Structures in Geometry and Analysis*.
-       Cambridge University Press, New York. 2012. IBSN 978-1-107-01617-0.
+    - [Ch2012]_
 
-    .. [McCrimmon78] \K. McCrimmon. *Jordan algebras and their applications*.
-       Bull. Amer. Math. Soc. **84** 1978.
+    - [McC1978]_
 
-    .. [Albert47] \A. A. Albert, *A Structure Theory for Jordan Algebras*.
-       Annals of Mathematics, Second Series, Vol. 48, No. 3
-       (Jul., 1947), pp. 546--567.
+    - [Al1947]_
     """
     @staticmethod
     def __classcall_private__(self, arg0, arg1=None, names=None):

@@ -6,14 +6,7 @@ Code to create the Manin Relations class, which solves the "Manin relations".
 That is, a description of `Div^0(P^1(\QQ))` as a `\ZZ[\Gamma_0(N)]`-module in
 terms of generators and relations is found. The method used is geometric,
 constructing a nice fundamental domain for `\Gamma_0(N)` and reading the
-relevant Manin relations off of that picture. The algorithm follows [PS2011].
-
-REFERENCES:
-
-.. [PS2011] R. Pollack, and G. Stevens.
-   *Overconvergent modular symbols and p-adic L-functions.*
-   Annales scientifiques de l'Ecole normale superieure.
-   Vol. 44. No. 1. Elsevier, 2011.
+relevant Manin relations off of that picture. The algorithm follows [PS2011]_.
 
 AUTHORS:
 
@@ -1126,9 +1119,9 @@ class ManinRelations(PollackStevensModularDomain):
         the real axis.
 
         The construction of this fundamental domain follows the arguments of
-        [PS2011] Section 2.  The boundary of this fundamental domain consists
+        [PS2011]_ Section 2.  The boundary of this fundamental domain consists
         entirely of unimodular paths when `\Gamma_0(N)` has no elements of
-        order 3.  (See [PS2011] Section 2.5 for the case when there are
+        order 3.  (See [PS2011]_ Section 2.5 for the case when there are
         elements of order 3.)
 
         OUTPUT:
@@ -1358,7 +1351,7 @@ class ManinRelations(PollackStevensModularDomain):
         Here the fundamental domain is for `\Gamma_0(N)`.  (In the
         case when `\Gamma_0(N)` has elements of order three the shape
         cut out by these unimodular matrices is a little smaller than
-        a fundamental domain.  See Section 2.5 of [PS2011].)
+        a fundamental domain.  See Section 2.5 of [PS2011]_.)
 
         INPUT:
 

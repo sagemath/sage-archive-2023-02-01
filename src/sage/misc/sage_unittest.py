@@ -339,11 +339,6 @@ def instance_tester(instance, tester = None, **options):
 
         sage: instance_tester(ZZ, tester = tester) is tester
         True
-
-    REFERENCES:
-
-    .. [UNITTEST] unittest -- Unit testing framework --
-       http://docs.python.org/library/unittest.html
     """
     if tester is None:
         return InstanceTester(instance, **options)

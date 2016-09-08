@@ -607,8 +607,7 @@ class Braid(FinitelyPresentedGroupElement):
 
         REFERENCES:
 
-        .. [Bigelow] Bigelow, Stephen J. The Lawrence-Krammer representation.
-           :arxiv:`math/0204057v1`
+        - [Big2003]_
         """
         return self.parent()._LKB_matrix_(self.Tietze(), variab=variables)
 
@@ -677,7 +676,7 @@ class Braid(FinitelyPresentedGroupElement):
             True
 
         An element of the kernel of the Burau representation, following
-        [Big99]_::
+        [Big1999]_::
 
             sage: B = BraidGroup(6)
             sage: psi1 = B([4, -5, -2, 1])
@@ -693,10 +692,8 @@ class Braid(FinitelyPresentedGroupElement):
 
         REFERENCES:
 
-        .. [Big99] Stephen J. Bigelow. The Burau representation is
-           not faithful for `n = 5`. Geom. Topol., 3:397--404, 1999.
-        .. [JonesNotes] Vaughan Jones. The Jones Polynomial.
-           https://math.berkeley.edu/~vfr/jones.pdf
+        - [Big1999]_
+        - [Jon2005]_
         """
         if variab is None:
             R = LaurentPolynomialRing(IntegerRing(), 'A')
@@ -735,10 +732,8 @@ class Braid(FinitelyPresentedGroupElement):
 
         REFERENCES:
 
-        .. [Dynnikov07] \I. Dynnikov and B. Wiest, On the complexity of braids,
-           J. Europ. Math. Soc. 9 (2007)
-        .. [Dehornoy] \P. Dehornoy, Le probleme d'isotopie des tresses, in
-           lecons de mathematiques d'aujourd'hui vol. 4
+        - [DW2007]_
+        - [Deh2011]_
         """
         coord = [0, 1] * self.strands()
         for s in self.Tietze():
@@ -865,14 +860,14 @@ class Braid(FinitelyPresentedGroupElement):
         The normalization is so that the unknot has Jones polynomial `1`. If
         ``skein_normalization`` is ``True``, the variable of the result is
         replaced by a itself to the power of `4`, so that the result
-        agrees with the conventions of [Lic]_ (which in particular differs
+        agrees with the conventions of [Lic1997]_ (which in particular differs
         slightly from the conventions used otherwise in this class), had
         one used the conventional Kauffman bracket variable notation directly.
 
         If ``variab`` is ``None`` return a polynomial in the variable `A`
         or `t`, depending on the value ``skein_normalization``. In
         particular, if ``skein_normalization`` is ``False``, return the
-        result in terms of the variable `t`, also used in [Lic]_.
+        result in terms of the variable `t`, also used in [Lic1997]_.
 
         INPUT:
 
@@ -941,12 +936,6 @@ class Braid(FinitelyPresentedGroupElement):
             sage: b11n34 = B([1, 1, 2, -3, 2, -3, 1, -2, -2, -3, -3])
             sage: cmp(b11n42.jones_polynomial(), b11n34.jones_polynomial())
             0
-
-        REFERENCES:
-
-        .. [Lic] William B. Raymond Lickorish. An Introduction to Knot Theory,
-           volume 175 of Graduate Texts in Mathematics. Springer-Verlag,
-           New York, 1997. ISBN 0-387-98254-X
         """
         if skein_normalization:
             if variab is None:
@@ -1878,7 +1867,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
         A basis element is specified as a list of integers obtained by
         considering the pairings as obtained as the 'highest term' of
-        trivalent trees marked by Jones--Wenzl projectors (see e.g. [Wan10]_).
+        trivalent trees marked by Jones--Wenzl projectors (see e.g. [Wan2010]_).
         In practice, this is a list of non-negative integers whose first
         element is ``drain_size``, whose last element is `0`, and satisfying
         that consecutive integers have difference `1`. Moreover, the length
@@ -1915,12 +1904,6 @@ class BraidGroup_class(FinitelyPresentedGroup):
             sage: d = 2
             sage: B.dimension_of_TL_space(d) == len(B.TL_basis_with_drain(d))
             True
-
-        REFERENCES:
-
-        .. [Wan10] Zhenghan Wang. Tolological quantum computation. Providence,
-           RI: American Mathematical Society (AMS), 2010.
-           ISBN 978-0-8218-4930-9
         """
         def fill_out_forest(forest, treesize):
             # The basis elements are built recursively using this function,

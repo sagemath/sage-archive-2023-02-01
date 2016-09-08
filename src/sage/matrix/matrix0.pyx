@@ -4132,7 +4132,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         OUTPUT:
 
         A matrix over an ordered ring is in weak Popov form if all
-        leading positions are different [MulSto]_. A leading position
+        leading positions are different [MS2003]_. A leading position
         is the position `i` in a row with the highest order (for
         polynomials this is the degree), for multiple entries with
         equal but highest order the maximal `i` is chosen (which is
@@ -4200,12 +4200,6 @@ cdef class Matrix(sage.structure.element.Matrix):
         .. SEEALSO::
 
             - :meth:`weak_popov_form <sage.matrix.matrix2.weak_popov_form>`
-
-        REFERENCES:
-
-        .. [MulSto] \T. Mulders, A. Storjohann, "On lattice reduction
-          for polynomial matrices", J. Symbolic Comput. 35 (2003),
-          no. 4, 377--401
 
         AUTHOR:
 

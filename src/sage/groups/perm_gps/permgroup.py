@@ -2151,7 +2151,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: S.gens()
             [(3,4,5,6,7,8,9,10), (1,2)(4,10)(5,9)(6,8)]
 
-        A more complicated example can be drawn from [THOMAS-WOODS]_.
+        A more complicated example can be drawn from [TW1980]_.
         It is there given that a semidirect product of $D_4$ and $C_3$
         is isomorphic to one of $C_2$ and the dicyclic group of order
         12. This nonabelian group of order 24 has very similar
@@ -2225,10 +2225,6 @@ class PermutationGroup_generic(group.FiniteGroup):
             Traceback (most recent call last):
             ...
             ValueError: an element of the automorphism list is not an injection (and is therefore not an automorphism)
-
-        REFERENCES:
-
-        .. [THOMAS-WOODS] \A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva Publishing, 1980)
 
         AUTHOR:
 
@@ -2410,13 +2406,13 @@ class PermutationGroup_generic(group.FiniteGroup):
             True
 
         `D_9` is the only non-Abelian group of order 18
-        with an automorphism group of order 54 [THOMAS-WOODS]_::
+        with an automorphism group of order 54 [TW1980]_::
 
             sage: D = DihedralGroup(9).as_finitely_presented_group().gap()
             sage: D.Order(), D.IsAbelian(), D.AutomorphismGroup().Order()
             (18, false, 54)
 
-        `S_3` is the only non-Abelian group of order 6 [THOMAS-WOODS]_::
+        `S_3` is the only non-Abelian group of order 6 [TW1980]_::
 
             sage: S = SymmetricGroup(3).as_finitely_presented_group().gap()
             sage: S.Order(), S.IsAbelian()

@@ -2075,12 +2075,14 @@ class HasseDiagram(DiGraph):
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: B3 = HasseDiagram({0: [1, 2, 4], 1: [3, 5], 2: [3, 6],
             ....:                    3: [7], 4: [5, 6], 5: [7], 6: [7]})
-            sage: B3.is_convex_subset([1, 3, 5, 4])
+            sage: B3.is_convex_subset([1, 3, 5, 4])  # Also connected
+            True
+            sage: B3.is_convex_subset([1, 3, 4])  # Not connected
             True
 
             sage: B3.is_convex_subset([0, 1, 2, 3, 6])  # No, 0 < 4 < 6
             False
-            sage: B3.is_convex_subset([0, 1, 2, 7])  # Not even connected
+            sage: B3.is_convex_subset([0, 1, 2, 7])  # No, 1 < 3 < 7.
             False
 
         TESTS::
@@ -2100,7 +2102,8 @@ class HasseDiagram(DiGraph):
                 if b >= s_max or b in S:
                     continue
                 # Now b not in S, b > a and a in S.
-                for c in self.depth_first_search(a, neighbors=lambda v: [v for v in self.neighbor_out_iterator(b) if v < s_max and s not in ok]):
+                neighbors = lambda v_: [v for v in self.neighbor_out_iterator(v_) if v <= s_max and v not in ok]
+                for c in self.depth_first_search(b, neighbors=neighbors):
                     if c in S:  # Now c in S, b not in S, a in S, a < b < c.
                         return False
                     ok.add(c)  # Do not re-check this for being our b.

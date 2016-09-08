@@ -2650,6 +2650,7 @@ class AbstractLinearCode(module.Module):
             ...
             ValueError: The algorithm argument must be one of None, 'gap' or 'guava'; got 'something'
 
+            The field must be size at most 256::
             sage: C = codes.RandomLinearCode(5, 2, GF(257,"a"))
             sage: C.minimum_distance()
             Traceback (most recent call last):

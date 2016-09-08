@@ -1258,6 +1258,20 @@ cdef class Element(SageObject):
     cdef _add_long(self, long n):
         """
         Generic path for adding a C long, assumed to commute.
+
+        EXAMPLES::
+
+            sage: cython(  # long time
+            ....: '''
+            ....: from sage.structure.element cimport Element
+            ....: cdef class MyElement(Element):
+            ....:     cdef _add_long(self, long n):
+            ....:         return n
+            ....: ''')
+            sage: e = MyElement(Parent())  # long time
+            sage: i = int(42)
+            sage: i + e, e + i  # long time
+            (42, 42)
         """
         return coercion_model.bin_op(self, n, add)
 
@@ -1517,6 +1531,20 @@ cdef class Element(SageObject):
     cdef _mul_long(self, long n):
         """
         Generic path for multiplying by a C long, assumed to commute.
+
+        EXAMPLES::
+
+            sage: cython(  # long time
+            ....: '''
+            ....: from sage.structure.element cimport Element
+            ....: cdef class MyElement(Element):
+            ....:     cdef _mul_long(self, long n):
+            ....:         return n
+            ....: ''')
+            sage: e = MyElement(Parent())  # long time
+            sage: i = int(42)
+            sage: i * e, e * i  # long time
+            (42, 42)
         """
         return coercion_model.bin_op(self, n, mul)
 

@@ -157,12 +157,13 @@ set_zero_one_elements()
 cpdef Integer integer_rational_power(Integer a, Rational b):
     """
     Compute `a^b` as an integer, if it is integral, or return ``None``.
-    The positive real root is taken for even denominators.
+
+    The nonnegative real root is taken for even denominators.
 
     INPUT:
 
     - a -- an ``Integer``
-    - b -- a positive ``Rational``
+    - b -- a nonnegative ``Rational``
 
     OUTPUT:
 
@@ -197,18 +198,26 @@ cpdef Integer integer_rational_power(Integer a, Rational b):
         True
         sage: integer_rational_power(-1, 9/8) is None
         True
+
+    TESTS (:trac:`11228`)::
+
+        sage: integer_rational_power(-10, QQ(2))
+        100
+        sage: integer_rational_power(0, QQ(0))
+        1
     """
     cdef Integer z = <Integer>PY_NEW(Integer)
     if mpz_sgn(mpq_numref(b.value)) < 0:
         raise ValueError("Only positive exponents supported.")
     cdef int sgn = mpz_sgn(a.value)
     cdef bint exact
-    if sgn == 0:
-        pass # z is 0
-    elif sgn < 0:
-        return None
-    elif mpz_cmp_ui(a.value, 1) == 0:
+    if (mpz_cmp_ui(a.value, 1) == 0 or
+          mpz_cmp_ui(mpq_numref(b.value), 0) == 0):
         mpz_set_ui(z.value, 1)
+    elif sgn == 0:
+        pass # z is 0
+    elif sgn < 0 and mpz_cmp_ui(mpq_denref(b.value), 1):
+        return None
     else:
         if (not mpz_fits_ulong_p(mpq_numref(b.value))
             or not mpz_fits_ulong_p(mpq_denref(b.value))):

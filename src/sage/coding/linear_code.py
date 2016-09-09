@@ -2353,6 +2353,9 @@ class AbstractLinearCode(Module):
         Raises a ``ValueError`` in case there is no non-zero vector in this
         linear code.
 
+        Raises a ``NotImplementedError`` if the base field of the code has size 
+        greater than 256.
+
         The minimum distance of the code is stored once it has been
         computed or provided during the initialization of :class:`LinearCode`.
         If ``algorithm`` is ``None`` and the stored value of minimum
@@ -2367,6 +2370,10 @@ class AbstractLinearCode(Module):
         OUTPUT:
 
         - Integer, minimum distance of this code
+
+        .. WARNING::
+
+            Minimum distance calculation only works for codes over fields of size at most 256.
 
         EXAMPLES::
 
@@ -2405,6 +2412,14 @@ class AbstractLinearCode(Module):
             Traceback (most recent call last):
             ...
             ValueError: The algorithm argument must be one of None, 'gap' or 'guava'; got 'something'
+
+            The field must be size at most 256::
+            sage: C = codes.RandomLinearCode(5, 2, GF(257,"a"))
+            sage: C.minimum_distance()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: The GAP algorithms that sage is using
+             are limited to computing with fields of size at most 256.
         """
         # If the minimum distance has already been computed or provided by
         # the user then simply return the stored value.
@@ -2415,6 +2430,10 @@ class AbstractLinearCode(Module):
 
         F = self.base_ring()
         q = F.order()
+        if q > 256:
+            raise NotImplementedError("The GAP algorithms that sage is using "
+                                      "are limited to computing with fields of size at most 256.")
+
         G = self.generator_matrix()
         n = self.length()
         k = self.dimension()

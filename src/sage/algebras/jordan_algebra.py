@@ -323,15 +323,9 @@ class SpecialJordanAlgebra(JordanAlgebra):
             sage: J.gens()
             Traceback (most recent call last):
             ...
-            NotImplementedError: cannot list an infinite set
+            NotImplementedError: unknown cardinality
         """
-        lst = self.algebra_generators()
-        try:
-            if not lst.is_finite():
-                raise NotImplementedError('cannot list an infinite set')
-        except:
-            raise NotImplementedError('cannot list an infinite set')
-        return tuple(lst)
+        return tuple(self.algebra_generators())
 
     @cached_method
     def zero(self):

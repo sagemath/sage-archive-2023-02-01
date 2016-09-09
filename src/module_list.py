@@ -1276,10 +1276,6 @@ ext_modules = [
     Extension('sage.repl.inputhook',
               sources = ['sage/repl/inputhook.pyx']),
 
-    Extension('sage.repl.readline_extra_commands',
-              sources = ['sage/repl/readline_extra_commands.pyx'],
-              libraries = ['readline']),
-
     ################################
     ##
     ## sage.rings

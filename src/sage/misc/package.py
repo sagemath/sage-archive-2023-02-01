@@ -63,7 +63,9 @@ SAGE_PKGS = os.path.join(SAGE_ROOT, "build", "pkgs")
 
 def pkgname_split(name):
     r"""
-    Split a pkgname to 'name,version'
+    Split a pkgname into a list of strings, 'name, version'.
+
+    For some packages, the version string might be empty.
 
     EXAMPLES::
 
@@ -130,7 +132,7 @@ def pip_installed_packages():
     r"""
     Return a dictionary `name->version` of installed pip packages.
 
-    This command return *all* pip installed packages. Not only Sage packages.
+    This command returns *all* pip-installed packages. Not only Sage packages.
 
     EXAMPLES::
 
@@ -154,25 +156,25 @@ def list_packages(*pkg_types, **opts):
     The keys are package names and values are dictionaries with the following
     keys:
 
-    - 'type': either 'standard', 'optional', 'experimental' or 'pip'
-    - 'installed': boolean
-    - 'installed_version': None or string
-    - 'remote_version': string
+    - ``'type'``: either ``'standard'``, ``'optional'``, ``'experimental'`` or ``'pip'``
+    - ``'installed'``: boolean
+    - ``'installed_version'``: ``None`` or a string
+    - ``'remote_version'``: string
 
     INPUT:
 
-    - ``pkg_types`` -- (optional) a sublist of 'standard', 'optional',
-      'experimental' or 'pip'. If provided, list only the package with this
-      given type otherwise list all packages.
+    - ``pkg_types`` -- (optional) a sublist of ``'standard'``, ``'optional'``,
+      ``'experimental'`` or ``'pip'``.  If provided, list only the packages with the
+      given type(s), otherwise list all packages.
 
-    - ``local`` -- (optional, default: ``False``) if set to ``True`` then do not
-      consult remote upstream version of packages (only applicable for 'pip'
-      type)
+    - ``local`` -- (optional, default: ``False``) if set to ``True``, then do not
+      consult remote (PyPI) repositories for package versions (only applicable for
+      ``'pip'`` type)
 
-    - ``exclude_pip`` -- (optional, default: ``False``) if set to ``True`` then
+    - ``exclude_pip`` -- (optional, default: ``False``) if set to ``True``, then
       pip packages are not considered.
 
-    - ``ignore_URLError`` -- (default: ``False``) if set to ``True`` then
+    - ``ignore_URLError`` -- (default: ``False``) if set to ``True``, then
       connection errors will be ignored
 
     EXAMPLES::
@@ -214,7 +216,7 @@ def list_packages(*pkg_types, **opts):
     if not pkg_types:
         pkg_types = ('standard', 'optional', 'experimental', 'pip')
     elif any(pkg_type not in ('standard', 'optional', 'experimental', 'pip') for pkg_type in pkg_types):
-        raise ValueError("pkg_type must be one of 'standard', 'optional', 'experimental', 'pip'")
+        raise ValueError("Each pkg_type must be one of 'standard', 'optional', 'experimental', 'pip'")
 
 
     local = opts.pop('local', False)
@@ -313,7 +315,7 @@ def installed_packages(exclude_pip=True):
 
 def is_package_installed(package, exclude_pip=True):
     """
-    Return true if ``package`` is installed.
+    Return whether (any version of) ``package`` is installed.
 
     INPUT:
 
@@ -333,7 +335,7 @@ def is_package_installed(package, exclude_pip=True):
         sage: is_package_installed('matplotli')
         False
 
-    Otherwise, installing "pillow" will cause this function to think
+    Otherwise, installing "pillow" would cause this function to think
     that "pil" is installed, for example.
 
     Check that the option ``exclude_pip`` is turned on by default::
@@ -355,7 +357,7 @@ def package_versions(package_type, local=False):
     - ``package_type`` -- (string) one of ``"standard"``, ``"optional"`` or
       ``"experimental"``
 
-    - ``local`` -- (boolean) only query local data (no internet needed)
+    - ``local`` -- (boolean, default: ``False``) only query local data (no internet needed)
 
     For packages of the given type, return a dictionary whose entries
     are of the form ``'package': (installed, latest)``, where
@@ -363,7 +365,7 @@ def package_versions(package_type, local=False):
     installed) and ``latest`` is the latest available version. If the
     package has a directory in ``SAGE_ROOT/build/pkgs/``, then
     ``latest`` is determined by the file ``package-version.txt`` in
-    that directory.  If ``local`` is False, then Sage's servers are
+    that directory.  If ``local`` is ``False``, then Sage's servers are
     queried for package information.
 
     EXAMPLES::
@@ -386,9 +388,9 @@ def standard_packages():
 
     OUTPUT:
 
-    -  installed standard packages (as a list)
+    - installed standard packages (as a list)
 
-    -  NOT installed standard packages (as a list)
+    - NOT installed standard packages (as a list)
 
     Run ``sage -i package_name`` from a shell to install a given
     package or ``sage -f package_name`` to re-install it.
@@ -414,9 +416,9 @@ def optional_packages():
 
     OUTPUT:
 
-    -  installed optional packages (as a list)
+    - installed optional packages (as a list)
 
-    -  NOT installed optional packages (as a list)
+    - NOT installed optional packages (as a list)
 
     Run ``sage -i package_name`` from a shell to install a given
     package or ``sage -f package_name`` to re-install it.
@@ -451,9 +453,9 @@ def experimental_packages():
 
     OUTPUT:
 
-    -  installed experimental packages (as a list)
+    - installed experimental packages (as a list)
 
-    -  NOT installed experimental packages (as a list)
+    - NOT installed experimental packages (as a list)
 
     Run ``sage -i package_name`` from a shell to install a given
     package or ``sage -f package_name`` to re-install it.
@@ -469,7 +471,7 @@ def experimental_packages():
 
 def upgrade():
     """
-    Obsolete function, run 'sage --upgrade' from a shell prompt instead.
+    Obsolete function, run ``sage --upgrade`` from a shell prompt instead.
 
     TESTS::
 
@@ -491,7 +493,7 @@ class PackageNotFoundError(RuntimeError):
     This exception should be raised with a single argument, namely
     the name of the package.
 
-    When an ``PackageNotFoundError`` is raised, this means one of the
+    When a ``PackageNotFoundError`` is raised, this means one of the
     following:
 
     - The required optional package is not installed.

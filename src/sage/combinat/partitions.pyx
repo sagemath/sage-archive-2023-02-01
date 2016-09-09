@@ -26,6 +26,8 @@ AUTHOR:
 #*****************************************************************************
 from __future__ import print_function
 
+from six.moves import range
+
 import sys
 
 from sage.libs.gmp.types cimport mpz_t
@@ -191,7 +193,7 @@ def ZS1_iterator(int n):
                 if t > 1:
                     h += 1
                     x[h] = t
-        #yield [x[i] for i in xrange(m+1)]
+        #yield [x[i] for i in range(m+1)]
         yield x[:m+1]
     #free(x)
 

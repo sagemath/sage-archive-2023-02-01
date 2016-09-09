@@ -904,10 +904,10 @@ def is_generalized_cartan_matrix(M):
     if not M.is_square():
         return False
     n = M.ncols()
-    for i in xrange(n):
+    for i in range(n):
         if M[i,i] != 2:
             return False
-        for j in xrange(i+1, n):
+        for j in range(i+1, n):
             if M[i,j] > 0 or M[j,i] > 0:
                 return False
             elif M[i,j] == 0 and M[j,i] != 0:

@@ -7630,15 +7630,20 @@ def permutohedron_lequal(p1, p2, side="right"):
 ############
 from sage.combinat.words.finite_word import evaluation_dict
 
-def to_standard(p, cmp=None):
+def to_standard(p, cmp=None, key=None):
     r"""
     Return a standard permutation corresponding to the iterable ``p``.
 
     INPUT:
 
     - ``p`` -- an iterable
-    - ``cmp`` -- (optional) a comparison function for the two elements
-      ``x`` and ``y`` of ``p`` (return an integer according to the outcome)
+    - ``key`` -- (optional) a comparison key for the element
+      ``x`` of ``p``
+    - ``cmp`` -- (optional, deprecated) a comparison function for the
+      two elements ``x`` and ``y`` of ``p`` (return an integer
+      according to the outcome)
+
+    Using ``cmp`` is no longer allowed in Python3 and should be avoided.
 
     EXAMPLES::
 
@@ -7649,9 +7654,9 @@ def to_standard(p, cmp=None):
         [1, 2, 3]
         sage: permutation.to_standard([])
         []
-        sage: permutation.to_standard([1,2,3], cmp=lambda x,y: int(-1)*cmp(x,y))
+        sage: permutation.to_standard([1,2,3], key=lambda x: -x)
         [3, 2, 1]
-        sage: permutation.to_standard([5,8,2,5], cmp=lambda x,y: int(-1)*cmp(x,y))
+        sage: permutation.to_standard([5,8,2,5], key=lambda x: -x)
         [2, 1, 4, 3]
 
     TESTS:
@@ -7682,9 +7687,19 @@ def to_standard(p, cmp=None):
         sage: std(p) == permutation.to_standard(p)
         True
 
+    Deprecation of ``cmp`` in favor of ``key``::
+
+        sage: permutation.to_standard([5,8,2,5], cmp=lambda x,y: int(-1)*cmp(x,y))
+        doctest:warning...:
+        DeprecationWarning: do not use 'cmp' but rather 'key' for comparison
+        See http://trac.sagemath.org/21435 for details.
+        [2, 1, 4, 3]
     """
+    if cmp is not None:
+       from sage.misc.superseded import deprecation
+       deprecation(21435, "do not use 'cmp' but rather 'key' for comparison")
     ev_dict = evaluation_dict(p)
-    ordered_alphabet = sorted(ev_dict, cmp=cmp)
+    ordered_alphabet = sorted(ev_dict, cmp=cmp, key=key)
     offset = 0
     for k in ordered_alphabet:
         temp = ev_dict[k]

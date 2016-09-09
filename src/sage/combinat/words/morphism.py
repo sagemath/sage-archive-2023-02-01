@@ -87,6 +87,7 @@ Many other functionalities...::
 #*****************************************************************************
 from __future__ import print_function
 
+from six.moves import range
 import itertools
 from six.moves import filterfalse
 
@@ -2528,7 +2529,7 @@ class WordMorphism(SageObject):
         # Compute orbit points to plot
         S = 0
         orbit_points = dict([(a,[]) for a in alphabet])
-        for _ in xrange(n):
+        for _ in range(n):
             a = next(u)
             S += canonical_basis_proj[a]
             orbit_points[a].append(S)

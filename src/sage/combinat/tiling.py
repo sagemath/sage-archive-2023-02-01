@@ -222,6 +222,7 @@ REFERENCES:
 from __future__ import division
 
 from builtins import zip
+from six.moves import range
 
 import itertools
 from sage.structure.sage_object import SageObject
@@ -1770,9 +1771,9 @@ class TilingSolver(SageObject):
                     common_prefix += 1
                 else:
                     break
-            for i in xrange(1, len(A)-common_prefix):
+            for i in range(1, len(A)-common_prefix):
                 yield A[:-i]
-            for j in xrange(common_prefix, len(B)):
+            for j in range(common_prefix, len(B)):
                 yield B[:j]
 
     def solve(self, partial=None):

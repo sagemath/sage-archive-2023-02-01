@@ -31,6 +31,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from builtins import zip
 
@@ -66,7 +67,7 @@ class Word_class(SageObject):
 
             sage: Word(iter([1,2,3]), length="unknown")._repr_()
             'word: 123'
-            sage: Word(xrange(100), length="unknown")._repr_()
+            sage: Word(range(100), length="unknown")._repr_()
             'word: 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,...'
             sage: Word(lambda x:x%3)._repr_()
             'word: 0120120120120120120120120120120120120120...'
@@ -1583,9 +1584,9 @@ class Word_class(SageObject):
 
         # The alphabet
         if mod is None and base >= 2:
-            alphabet = range(base)
+            alphabet = list(range(base))
         elif mod in ZZ and mod >= 2:
-            alphabet = range(mod)
+            alphabet = list(range(mod))
         else:
             raise ValueError("base (=%s) and mod (=%s) must be integers greater or equal to 2"%(base, mod))
 

@@ -144,6 +144,8 @@ Functions and classes
 #*****************************************************************************
 from __future__ import absolute_import
 
+from six.moves import range
+
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity
 from sage.arith.all import bernoulli, binomial, factorial
@@ -2621,7 +2623,7 @@ def unshuffle_iterator(a, one=1):
     n = len(a)
     for I in powerset(range(n)):
         sorted_I = tuple(sorted(I))
-        nonI = range(n)
+        nonI = list(range(n))
         for j in reversed(sorted_I): # probably optimizable
             nonI.pop(j)
         sorted_nonI = tuple(nonI)
@@ -2748,10 +2750,10 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
         stop = ZZ(stop)
 
     if algorithm:
-        for n in xrange(start, stop):
+        for n in range(start, stop):
             yield fibonacci(n, algorithm=algorithm)
     else:
-        for n in xrange(start, stop):
+        for n in range(start, stop):
             yield fibonacci(n)
 
 def fibonacci_xrange(start, stop=None, algorithm='pari'):

@@ -650,8 +650,15 @@ class GraphPlot(SageObject):
                             edges_drawn.append((edge[0],edge[1],label))
                     else:
                         label = edge[2]
-                        append_or_set(key, label, color, head)
-                        edges_drawn.append((edge[0],edge[1],label))
+                        labelList = self._graph.edge_label(edge[0],edge[1])
+                        if isinstance(labelList, list):
+                            for i in range(len(labelList)):
+                                if labelList[i] == label:
+                                    append_or_set(key, label, color, head)
+                                    edges_drawn.append((edge[0],edge[1],label))
+                        else:
+                            append_or_set(key, label, color, head)
+                            edges_drawn.append((edge[0],edge[1],label))
 
             # Add unspecified edges (default color black set in DEFAULT_PLOT_OPTIONS)
             for edge in self._graph.edge_iterator():

@@ -6325,7 +6325,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.rank(), len(E.S_integral_points([3,5,7]))  # long time (5s on sage.math, 2011)
             (4, 72)
 
-        This is curve "7690e1" which failed until \#4805 was fixed::
+        This is curve "7690e1" which failed until :trac:`4805` was fixed::
 
             sage: EllipticCurve([1,1,1,-301,-1821]).S_integral_points([13,2])
             [(-13 : 16 : 1),

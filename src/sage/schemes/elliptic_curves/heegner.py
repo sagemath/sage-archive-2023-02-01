@@ -91,8 +91,8 @@ The above is consistent with the following analytic computation::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.misc.all import verbose, prod
 from sage.misc.cachefunc import cached_method
@@ -6282,7 +6282,9 @@ def ell_heegner_discriminants(self, bound):
         sage: E.heegner_discriminants(30)                     # indirect doctest
         [-7, -8, -19, -24]
     """
-    return [-D for D in xrange(1,bound) if self.satisfies_heegner_hypothesis(-D)]
+    return [-D for D in range(1, bound)
+            if self.satisfies_heegner_hypothesis(-D)]
+
 
 def ell_heegner_discriminants_list(self, n):
     """

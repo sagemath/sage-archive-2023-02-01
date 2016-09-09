@@ -214,6 +214,7 @@ from sage.libs.flint.fmpz_mat cimport *
 from sage.libs.pari.gen cimport gen, objtogen
 from sage.libs.pari.handle_error cimport _pari_init_error_handling
 from sage.misc.superseded import deprecation, deprecated_function_alias
+from sage.env import CYGWIN_VERSION
 
 # real precision in decimal digits: see documentation for
 # get_real_precision() and set_real_precision().  This variable is used
@@ -476,7 +477,19 @@ cdef class PariInstance(PariInstance_auto):
         mem = MemoryInfo()
 
         pari_init_opts(size, maxprime, INIT_DFTm)
-        paristack_setsize(size, mem.virtual_memory_limit() // 4)
+        
+        sizemax = mem.virtual_memory_limit() // 4
+
+        if CYGWIN_VERSION and CYGWIN_VERSION < (2, 5, 2):
+            # Cygwin's mmap is broken for large NORESERVE mmaps (>~ 4GB) See
+            # http://trac.sagemath.org/ticket/20463 So we set the max stack
+            # size to a little below 4GB (putting it right on the margin proves
+            # too fragile)
+            #
+            # The underlying issue is fixed in Cygwin v2.5.2
+            sizemax = min(sizemax, 0xf0000000)
+
+        paristack_setsize(size, sizemax)
 
         # Disable PARI's stack overflow checking which is incompatible
         # with multi-threading.

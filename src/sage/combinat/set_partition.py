@@ -1042,7 +1042,7 @@ class SetPartitions(UniqueRepresentation, Parent):
 
             sage: S = SetPartitions(4, [2,2])
             sage: SA = SetPartitions()
-            sage: all([sp in SA for sp in S])
+            sage: all(sp in SA for sp in S)
             True
             sage: Set([Set([1,2]),Set([3,7])]) in SA
             True
@@ -1323,7 +1323,7 @@ class SetPartitions_set(SetPartitions):
         TESTS::
 
             sage: S = SetPartitions(4, [2,2])
-            sage: all([sp in S for sp in S])
+            sage: all(sp in S for sp in S)
             True
             sage: SetPartition([[1,3],[2,4]]) in SetPartitions(3)
             False

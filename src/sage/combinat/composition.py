@@ -1964,7 +1964,7 @@ class Compositions_n(Compositions):
 
         TESTS::
 
-            sage: all([Compositions(10).random_element() in Compositions(10) for i in range(20)])
+            sage: all(Compositions(10).random_element() in Compositions(10) for i in range(20))
             True
         """
         from sage.misc.prandom import choice

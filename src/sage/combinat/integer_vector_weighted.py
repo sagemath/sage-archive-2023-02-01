@@ -261,13 +261,13 @@ class WeightedIntegerVectors_nweight(UniqueRepresentation, Parent):
 
             sage: ivw = [ WeightedIntegerVectors(k, [1,1,1]) for k in range(11) ]
             sage: iv  = [ IntegerVectors(k, 3) for k in range(11) ]
-            sage: all( [ sorted(iv[k].list()) == sorted(ivw[k].list()) for k in range(11) ] )
+            sage: all(sorted(iv[k].list()) == sorted(ivw[k].list()) for k in range(11))
             True
 
         ::
 
             sage: ivw = [ WeightedIntegerVectors(k, [2,3,7]) for k in range(11) ]
-            sage: all( [ i.cardinality() == len(i.list()) for i in ivw] )
+            sage: all(i.cardinality() == len(i.list()) for i in ivw)
             True
         """
         if not self._weights:

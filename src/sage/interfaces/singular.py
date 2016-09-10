@@ -2275,13 +2275,15 @@ def generate_docstring_dictionary():
         sage: from sage.interfaces.singular import generate_docstring_dictionary
         sage: generate_docstring_dictionary()
     """
+    form sage.env import SAGE_LOCAL
+
     global nodes
     global node_names
 
     nodes.clear()
     node_names.clear()
 
-    singular_docdir = sage.env.SAGE_LOCAL+"/share/singular/"
+    singular_docdir = SAGE_LOCAL+"/share/singular/"
 
     new_node = re.compile("File: singular\.hlp,  Node: ([^,]*),.*")
     new_lookup = re.compile("\* ([^:]*):*([^.]*)\..*")

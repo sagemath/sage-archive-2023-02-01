@@ -762,6 +762,7 @@ cdef init_libsingular():
     cdef void *handle = NULL
 
     import os
+    from sage.env import SAGE_LOCAL 
     UNAME = os.uname()[0]
     if UNAME[:6] == "CYGWIN":
         extension = "dll"
@@ -771,7 +772,7 @@ cdef init_libsingular():
         extension = "so"
 
     # library name changed from libsingular to libSingular btw 3.x and 4.x
-    lib = sage.env.SAGE_LOCAL+"/lib/libSingular."+extension
+    lib = SAGE_LOCAL+"/lib/libSingular."+extension
 
     if not os.path.exists(lib):
         raise ImportError("cannot locate Singular library ({})".format(lib))

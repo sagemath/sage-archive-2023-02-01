@@ -2275,7 +2275,7 @@ def generate_docstring_dictionary():
         sage: from sage.interfaces.singular import generate_docstring_dictionary
         sage: generate_docstring_dictionary()
     """
-    form sage.env import SAGE_LOCAL
+    from sage.env import SAGE_LOCAL
 
     global nodes
     global node_names

@@ -605,7 +605,7 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
             sage: psi(b)
             1
             sage: c = psi(b.f_string([1,1,1,2,2,1,2,2])); c
-            Y(1,0)^-4 Y(2,0)^4 Y(2,1)^-4
+            Y(1,0)^-4 Y(2,0)^4 Y(2,1)^-4 
             sage: c == C.highest_weight_vector().f_string([1,1,1,2,2,1,2,2])
             True
 

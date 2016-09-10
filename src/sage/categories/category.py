@@ -2755,7 +2755,9 @@ class CategoryWithParameters(Category):
         This is because those two fields do not have the exact same category::
 
             sage: GF(3).category()
-            Join of Category of finite enumerated fields and Category of subquotients of monoids and Category of quotients of semigroups
+            Join of Category of finite enumerated fields
+             and Category of subquotients of monoids
+             and Category of quotients of semigroups
             sage: GF(2^3,'x').category()
             Category of finite enumerated fields
 

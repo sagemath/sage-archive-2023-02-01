@@ -81,17 +81,233 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
     class ParentMethods:
 
-        @cached_method
-        def cardinality(self, *ignored_args, **ignored_kwds):
+        def _cardinality_from_iterator(self, *ignored_args, **ignored_kwds):
             """
-            Return the number of elements in self.
+            Return the cardinality of ``self``.
+
+            This brute force implementation of :meth:`cardinality`
+            iterates through the elements of ``self`` to count them.
 
             EXAMPLES::
-                sage: p=Partitions(3)
-                sage: p.cardinality()
+
+                sage: C = FiniteEnumeratedSets().example(); C
+                An example of a finite enumerated set: {1,2,3}
+                sage: C._cardinality_from_iterator()
+                3
+
+            TESTS:
+
+            This is the default implementation of :meth:`cardinality`
+            from the category ``FiniteEnumeratedSet()``. To test this,
+            we need a fresh example::
+
+                sage: from sage.categories.examples.finite_enumerated_sets import Example
+                sage: class FreshExample(Example): pass
+                sage: C = FreshExample(); C.rename("FreshExample")
+                sage: C.cardinality
+                <bound method FreshExample_with_category._cardinality_from_iterator of FreshExample>
+
+            This method shall return an ``Integer``; we test this
+            here, because :meth:`_test_enumerated_set_iter_cardinality`
+            does not do it for us::
+
+                sage: type(C._cardinality_from_iterator())
+                <type 'sage.rings.integer.Integer'>
+
+            We ignore additional inputs since during doctests classes which
+            override ``cardinality()`` call up to the category rather than
+            their own ``cardinality()`` method (see :trac:`13688`)::
+
+                sage: C = FiniteEnumeratedSets().example()
+                sage: C._cardinality_from_iterator(algorithm='testing')
+                3
+
+            Here is a more complete example::
+
+                sage: class TestParent(Parent):
+                ...     def __init__(self):
+                ...         Parent.__init__(self, category=FiniteEnumeratedSets())
+                ...     def __iter__(self):
+                ...         yield 1
+                ...         return
+                ...     def cardinality(self, dummy_arg):
+                ...         return 1 # we don't want to change the semantics of cardinality()
+                sage: P = TestParent()
+                sage: P.cardinality(-1)
+                1
+                sage: v = P.list(); v
+                [1]
+                sage: P.cardinality()
+                1
+                sage: P.cardinality('use alt algorithm') # Used to break here: see trac #13688
+                1
+                sage: P.cardinality(dummy_arg='use alg algorithm') # Used to break here: see trac #13688
+                1
+            """
+            c = 0
+            for _ in self:
+                c += 1
+            return Integer(c)
+
+        #Set cardinality to the default implementation
+        cardinality = _cardinality_from_iterator
+
+        def _cardinality_from_list(self, *ignored_args, **ignored_kwds):
+            """
+            The cardinality of ``self``.
+
+            This implementation of :meth:`cardinality` computes the
+            cardinality from :meth:`list` (which is
+            cached). Reciprocally, calling ``self.list()`` makes this
+            method the default implementation of :meth:`cardinality`.
+
+            EXAMPLES::
+
+                sage: C = FiniteEnumeratedSets().example()
+                sage: C._cardinality_from_list()
+                3
+
+            We ignore additional inputs since during doctests classes which
+            override ``cardinality()`` call up to the category rather than
+            their own ``cardinality()`` method (see :trac:`13688`)::
+
+                sage: C = FiniteEnumeratedSets().example()
+                sage: C._cardinality_from_list(algorithm='testing')
                 3
             """
-            return Integer(len(self.list()))
+            # We access directly the cache self._list to bypass the
+            # copy that self.list() currently does each time.
+            try:
+                lst = self._list
+            except AttributeError:
+                lst = self.list()
+            return Integer(len(lst))
+
+        def _unrank_from_list(self, r):
+            """
+            The ``r``-th element of ``self``
+
+            INPUT:
+
+              - ``r`` -- an integer between ``0`` and ``n-1``,
+                where ``n`` is the cardinality of ``self``.
+
+            OUTPUT: the ``r``-th element of ``self``
+
+            This implementation of :meth:`unrank` uses the method
+            :meth:`list` (which is cached). Reciprocally, calling
+            ``self.list()`` makes this method the default
+            implementation of :meth:`unrank`.
+
+            EXAMPLES::
+
+                sage: C = FiniteEnumeratedSets().example()
+                sage: C._unrank_from_list(1)
+                2
+            """
+            # We access directly the cache self._list to bypass the
+            # copy that self.list() currently does each time.
+            try:
+                lst = self._list
+            except AttributeError:
+                lst = self.list()
+            try:
+                return lst[r]
+            except IndexError:
+                raise ValueError("the value must be between %s and %s inclusive"%(0,len(lst)-1))
+
+        def list(self):
+            r"""
+            Return a list of the elements of self.
+
+            The elements of set ``x`` is created and cashed on the fist call
+            of ``x.list()``. Then each call of ``x.list()`` returns a new list
+            from the cashed result. Thus in looping, it may be better to do
+            ``for e in x:``, not ``for e in x.list():``.
+
+            EXAMPLES::
+
+                sage: C = FiniteEnumeratedSets().example()
+                sage: C.list()
+                [1, 2, 3]
+            """
+            try: # shortcut
+                if self._list is not None:
+                    return list(self._list)
+            except AttributeError:
+                pass
+            return self._list_from_iterator()
+        _list_default  = list # needed by the check system.
+
+        def _list_from_iterator(self):
+            r"""
+            Return a list of the elements of self after cached.
+
+            It moreover overrides the following methods to use this cache:
+
+            - ``self.__iter__()``
+            - ``self.cardinality()``
+            - ``self.unrank()``
+
+            TESTS:
+
+            Trying to list an infinite vector space raises an error
+            instead of running forever (see :trac:`10470`)::
+
+                sage: (QQ^2).list()  # indirect test
+                Traceback (most recent call last):
+                ...
+                AttributeError: 'FreeModule_ambient_field_with_category' object has no attribute 'list'
+
+            To test if the caching and overriding works, we need a
+            fresh finite enumerated set example, because the caching
+            mechanism has already been triggered::
+
+                sage: from sage.categories.examples.finite_enumerated_sets import Example
+                sage: class FreshExample(Example): pass
+                sage: C = FreshExample(); C.rename("FreshExample")
+                sage: C.list
+                <bound method FreshExample_with_category.list of FreshExample>
+                sage: C.unrank
+                <bound method FreshExample_with_category._unrank_from_iterator of FreshExample>
+                sage: C.cardinality
+                <bound method FreshExample_with_category._cardinality_from_iterator of FreshExample>
+                sage: l1 = C.list(); l1
+                [1, 2, 3]
+                sage: C.list
+                <bound method FreshExample_with_category.list of FreshExample>
+                sage: C.unrank
+                <bound method FreshExample_with_category._unrank_from_list of FreshExample>
+                sage: C.cardinality
+                <bound method FreshExample_with_category._cardinality_from_list of FreshExample>
+                sage: C.__iter__
+                <bound method FreshExample_with_category._iterator_from_list of FreshExample>
+
+            We finally check that nothing breaks before and after
+            calling explicitly the method ``.list()``::
+
+                sage: class FreshExample(Example): pass
+                sage: import __main__; __main__.FreshExample = FreshExample # Fake FreshExample being defined in a python module
+                sage: C = FreshExample()
+                sage: TestSuite(C).run()
+                sage: C.list()
+                [1, 2, 3]
+                sage: TestSuite(C).run()
+            """
+            try:
+                if self._list is not None:
+                    return list(self._list)
+            except AttributeError:
+                pass
+            result = list(self.__iter__())
+            try:
+                self._list = result
+                self.__iter__ = self._iterator_from_list
+                self.cardinality = self._cardinality_from_list
+                self.unrank = self._unrank_from_list
+            except AttributeError:
+                pass
+            return list(result)
 
         def unrank_range(self, start=None, stop=None, step=None):
             r"""
@@ -262,6 +478,59 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 3
             """
             return self.unrank(self.cardinality() -1)
+
+        @cached_method
+        def __len__(self):
+            """
+            Returns the number of elements of self.
+
+            EXAMPLES::
+
+                sage: len(GF(5))
+                5
+                sage: len(MatrixSpace(GF(2), 3, 3))
+                512
+            """
+            return int(self.cardinality())
+
+        def _test_enumerated_set_iter_cardinality(self, **options):
+            """
+            Checks that the methods :meth:`.cardinality` and
+            :meth:`.__iter__` are consistent. Also checks that
+            :meth:`.cardinality` returns an ``Integer``.
+
+            For efficiency reasons, those tests are not run if
+            :meth:`.cardinality` is
+            :meth:`._cardinality_from_iterator`, or if ``self`` is too
+            big.
+
+            .. seealso:: :class:`TestSuite`.
+
+            EXAMPLES::
+
+                sage: C = FiniteEnumeratedSets().example()
+                sage: C._test_enumerated_set_iter_cardinality()
+
+            Let us now break the class::
+
+                sage: from sage.categories.examples.finite_enumerated_sets import Example
+                sage: class CCls(Example):
+                ...       def cardinality(self):
+                ...           return 4
+                sage: CC = CCls()
+                sage: CC._test_enumerated_set_iter_cardinality()
+                Traceback (most recent call last):
+                ...
+                AssertionError: 4 != 3
+            """
+            # isinstance with LazyImported classes is not robust
+            from sage.rings.integer import Integer
+            tester = self._tester(**options)
+            if self.cardinality != self._cardinality_from_iterator:
+                card = self.cardinality()
+                if card <= tester._max_runs:
+                    tester.assertEqual(card,
+                                       self._cardinality_from_iterator())
 
     class CartesianProducts(CartesianProductsCategory):
 

@@ -541,7 +541,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: list(A.basis())
             Traceback (most recent call last):
             ...
-            NotImplementedError: cannot list an infinite set
+            ValueError: the underlying quiver has cycles, thus, there may be an infinity of directed paths
         """
         from sage.all import ZZ
         if self._quiver.is_directed_acyclic() and not self._quiver.has_loops():

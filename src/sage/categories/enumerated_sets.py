@@ -15,6 +15,8 @@ from sage.categories.category_singleton import Category_singleton
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_cat import EmptySetError
 from sage.categories.cartesian_product import CartesianProductsCategory
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.rings.integer", "Integer")
 
 class EnumeratedSets(CategoryWithAxiom):
     """
@@ -458,13 +460,10 @@ class EnumeratedSets(CategoryWithAxiom):
                 return self.list()[i]
             return self.unrank(i)
 
+        @cached_method
         def __len__(self):
             """
             Returns the number of elements of self.
-
-            This naively counts the number of elements of the list from self.
-            If self is not finite, then either NotImplementedError is raised,
-            or it would take forever.
 
             EXAMPLES::
 
@@ -473,7 +472,13 @@ class EnumeratedSets(CategoryWithAxiom):
                 sage: len(MatrixSpace(GF(2), 3, 3))
                 512
             """
-            return len(self.list())
+            from sage.rings.infinity import Infinity
+            try:
+                c = self.cardinality()
+                if c is Infinity:
+                    raise NotImplementedError('an infinite set')
+                return int(c)
+            except AttributeError:
 
         def list(self):
             r"""
@@ -509,10 +514,11 @@ class EnumeratedSets(CategoryWithAxiom):
             except AttributeError:
                 pass
 
+            from sage.rings.infinity import Infinity
             try:
-                if not self.is_finite():
+                if self.cardinality() is Infinity:
                     raise NotImplementedError('cannot list an infinite set')
-            except:
+            except TypeError:
                 pass
             return self._list_from_iterator()
         _list_default  = list # needed by the check system.
@@ -567,7 +573,6 @@ class EnumeratedSets(CategoryWithAxiom):
                 Traceback (most recent call last):
                 ...
                 NotImplementedError
-
             """
             try:
                 if self._list is not None:

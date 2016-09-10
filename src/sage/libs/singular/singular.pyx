@@ -771,7 +771,7 @@ cdef init_libsingular():
         extension = "so"
 
     # library name changed from libsingular to libSingular btw 3.x and 4.x
-    lib = os.environ['SAGE_LOCAL']+"/lib/libSingular."+extension
+    lib = sage.env.SAGE_LOCAL+"/lib/libSingular."+extension
 
     if not os.path.exists(lib):
         raise ImportError("cannot locate Singular library ({})".format(lib))

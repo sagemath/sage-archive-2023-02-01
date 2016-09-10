@@ -2281,7 +2281,7 @@ def generate_docstring_dictionary():
     nodes.clear()
     node_names.clear()
 
-    singular_docdir = os.environ["SAGE_LOCAL"]+"/share/singular/"
+    singular_docdir = sage.env.SAGE_LOCAL+"/share/singular/"
 
     new_node = re.compile("File: singular\.hlp,  Node: ([^,]*),.*")
     new_lookup = re.compile("\* ([^:]*):*([^.]*)\..*")

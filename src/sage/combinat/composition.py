@@ -43,7 +43,6 @@ from .integer_lists import IntegerListsLex
 from six.moves import builtins
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 
 class Composition(CombinatorialElement):

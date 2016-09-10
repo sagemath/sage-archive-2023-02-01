@@ -21,7 +21,6 @@ from sage.rings.all import QQ, PolynomialRing
 from sage.arith.all import factorial
 from sage.matrix.all import matrix
 from sage.modules.all import vector
-from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 import itertools
 from sage.combinat.permutation_cython import (left_action_same_n, right_action_same_n)

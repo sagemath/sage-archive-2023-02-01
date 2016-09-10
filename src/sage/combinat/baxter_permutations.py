@@ -5,7 +5,7 @@ Baxter permutations
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.combinat.permutation import Permutation, Permutations
+from sage.combinat.permutation import Permutations
 
 from sage.rings.integer_ring import ZZ
 

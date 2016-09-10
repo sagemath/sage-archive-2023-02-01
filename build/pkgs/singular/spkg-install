@@ -132,16 +132,6 @@ build_singular()
 
 }
 
-create_singular_script()
-{
-    cd "$SAGE_LOCAL/bin"
-
-    # Lower case version is convenient (this can fail on
-    # case-insensitive systems, we ignore the error).
-    ln -sf Singular singular 2> /dev/null
-}
-
-
 install_docs()
 {
     cd "$SHARED"
@@ -169,7 +159,7 @@ fix_includes()
 # Actually run all the functions defined above
 for i in remove_old_version config \
   build_singular fix_includes \
-  create_singular_script install_docs ; do
+  install_docs ; do
     echo "############### Singular stage $i ###############"
     cd "$SRC" && $i
 done

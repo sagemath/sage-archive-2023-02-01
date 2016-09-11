@@ -1979,7 +1979,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: H == G
             True
 
-        The following doctest verifies that \#4888 is fixed::
+        The following doctest verifies that :trac:`4888` is fixed::
 
             sage: G = DiGraph({0:{}, 1:{0:1}, 2:{0:1}}, weighted = True,sparse=True)
             sage: G.weighted_adjacency_matrix()
@@ -21357,7 +21357,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         sage: G.edges()
         [(0, 4, None), (1, 4, None), (1, 5, None), (2, 3, None), (2, 5, None)]
 
-    Ensure that #14108 is fixed::
+    Ensure that :trac:`14108` is fixed::
 
         sage: G=DiGraph({0:[0,0,0],1:[1,1,1]})
         sage: H=DiGraph({0:[0,0,0,0],1:[1,1]})

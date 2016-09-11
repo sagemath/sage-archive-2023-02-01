@@ -206,8 +206,9 @@ class Small_primes_of_degree_one_iter():
             sage: [ next(it) for i in range(3) ] # random
             [Fractional ideal (2*a + 1), Fractional ideal (-a + 4), Fractional ideal (3*a + 2)]
 
-        We test that #6396 is fixed. Note that the doctest is flagged as random
-        since the string representation of ideals is somewhat unpredictable::
+        We test that :trac:`6396` is fixed. Note that the doctest is
+        flagged as random since the string representation of ideals is
+        somewhat unpredictable::
 
             sage: N.<a,b> = NumberField([x^2 + 1, x^2 - 5])
             sage: ids = N.primes_of_degree_one_list(10); ids  # random

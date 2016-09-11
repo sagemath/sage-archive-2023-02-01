@@ -723,7 +723,8 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         ...
         ValueError: No discrete log of 2 found to base 1
 
-        See trac\#2356:
+    See :trac:`2356`::
+
         sage: F.<w> = GF(121)
         sage: v = w^120
         sage: v.log(w)

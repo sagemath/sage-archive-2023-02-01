@@ -677,7 +677,7 @@ class GammaH_class(CongruenceSubgroup):
             sage: len(v)
             361
 
-        This demonstrates the problem underlying trac \#1220::
+        This demonstrates the problem underlying :trac:`1220`::
 
             sage: G = GammaH(99, [67])
             sage: G._reduce_coset(11,-3)

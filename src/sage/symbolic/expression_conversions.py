@@ -349,7 +349,7 @@ class Converter(object):
 
             sage: from sage.symbolic.expression_conversions import Converter
             sage: a = function('f', x).diff(x); a
-            D[0](f)(x)
+            diff(f(x), x)
             sage: Converter().derivative(a, a.operator())
             Traceback (most recent call last):
             ...
@@ -494,7 +494,7 @@ class InterfaceInit(Converter):
             sage: m = InterfaceInit(maxima)
             sage: f = function('f')
             sage: a = f(x).diff(x); a
-            D[0](f)(x)
+            diff(f(x), x)
             sage: print(m.derivative(a, a.operator()))
             diff('f(_SAGE_VAR_x), _SAGE_VAR_x, 1)
             sage: b = f(x).diff(x, x)
@@ -525,7 +525,7 @@ class InterfaceInit(Converter):
 
             sage: f = function('f', x)
             sage: df = f.diff(x); df
-            D[0](f)(x)
+            diff(f(x), x)
             sage: maxima(df)
             'diff('f(_SAGE_VAR_x),_SAGE_VAR_x,1)
 
@@ -554,7 +554,7 @@ class InterfaceInit(Converter):
             sage: x, y = var('x y')
             sage: f = function('f')(x, y)
             sage: f_x = f.diff(x); f_x
-            D[0](f)(x, y)
+            diff(f(x, y), x)
             sage: maxima(f_x)
             'diff('f(_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)
 
@@ -580,7 +580,7 @@ class InterfaceInit(Converter):
 
             sage: x,y = var('x,y')
             sage: (gamma_inc(x,y).diff(x))
-            D[0](gamma)(x, y)
+            diff(gamma(x, y), x)
             sage: (gamma_inc(x,x+1).diff(x)).simplify()
             -(x + 1)^(x - 1)*e^(-x - 1) + D[0](gamma)(x, x + 1)
         """
@@ -1850,7 +1850,7 @@ class SubstituteFunction(ExpressionTreeWalker):
             sage: s = SubstituteFunction(foo(x), foo, bar)
             sage: f = foo(x).diff(x)
             sage: s.derivative(f, f.operator())
-            D[0](bar)(x)
+            diff(bar(x), x)
 
         TESTS:
 

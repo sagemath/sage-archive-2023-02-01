@@ -482,7 +482,7 @@ Yes ! Here, there are:
 Tests
 -----
 
-Generating series for sum of strictly decreassing list of integer smaller than
+Generating series for sum of strictly decreasing list of integer smaller than
 15::
 
     sage: y = polygen(ZZ, 'y')

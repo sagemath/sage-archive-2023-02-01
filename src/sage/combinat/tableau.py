@@ -68,6 +68,8 @@ For display options, see :meth:`Tableaux.options`.
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
+from builtins import zip
+
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.non_negative_integers import NonNegativeIntegers
@@ -315,7 +317,7 @@ class Tableau(ClonableList):
         # Check that it has partition shape. That's all we require from a
         # general tableau.
         lens = [len(_) for _ in self]
-        for (a, b) in itertools.izip(lens, lens[1:]):
+        for (a, b) in zip(lens, lens[1:]):
             if a < b:
                 raise ValueError("A tableau must be a list of iterables of weakly decreasing length.")
         if lens and lens[-1] == 0:
@@ -1518,8 +1520,8 @@ class Tableau(ClonableList):
             sage: t = Tableau([[1,3,4,7],[6,2],[2,3]])
             sage: def by_word(T):
             ....:     ed = T.to_word().evaluation_dict()
-            ....:     m = max(ed.keys()) + 1
-            ....:     return [ed.get(k,0) for k in range(1,m)]
+            ....:     m = max(ed) + 1
+            ....:     return [ed.get(k, 0) for k in range(1, m)]
             sage: by_word(t) == t.weight()
             True
             sage: SST = SemistandardTableaux(shape=[3,1,1])
@@ -3666,11 +3668,11 @@ class Tableau(ClonableList):
             [((0, 5), 3), ((1, 4), 2), ((2, 4), 1)]
         """
         segments = {}
-        for r,row in enumerate(self):
+        for r, row in enumerate(self):
             for c in range(len(row)):
-                for j in range(c+1):
-                    if row[j] != r+1 and (r,row[j]) not in segments.keys():
-                        segments[(r,row[j])] = j
+                for j in range(c + 1):
+                    if row[j] != r + 1 and (r, row[j]) not in segments:
+                        segments[(r, row[j])] = j
         return segments
 
     def seg(self):
@@ -4211,7 +4213,7 @@ class SemistandardTableau(Tableau):
 
         # and strictly increasing down columns
         if t:
-            for row, next in itertools.izip(t, t[1:]):
+            for row, next in zip(t, t[1:]):
                 if not all(row[c] < next[c] for c in xrange(len(next))):
                     raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
 
@@ -4317,9 +4319,11 @@ class StandardTableau(SemistandardTableau):
 
     def dominates(self, t):
         r"""
-        Return ``True`` if ``self`` dominates the tableau ``t``. That is,
-        if the shape of the tableau restricted to `k` dominates the shape of
-        ``t`` restrcted to `k`, for `k = 1, 2, \ldots, n`.
+        Return ``True`` if ``self`` dominates the tableau ``t``.
+
+        That is, if the shape of the tableau restricted to `k`
+        dominates the shape of ``t`` restricted to `k`, for `k = 1, 2,
+        \ldots, n`.
 
         When the two tableaux have the same shape, then this ordering
         coincides with the Bruhat ordering for the corresponding permutations.
@@ -5492,7 +5496,7 @@ class SemistandardTableaux(Tableaux):
                     return False
                 if not all(row[i] <= row[i+1] for i in range(len(row)-1)):
                     return False
-            for row, next in itertools.izip(t, t[1:]):
+            for row, next in zip(t, t[1:]):
                 if not all(row[c] < next[c] for c in range(len(next))):
                     return False
             return self.max_entry is None or max(max(row) for row in t) <= self.max_entry

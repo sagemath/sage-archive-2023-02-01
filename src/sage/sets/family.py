@@ -33,7 +33,7 @@ Check :trac:`12482` (shall be run in a fresh session)::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
@@ -1168,7 +1168,7 @@ class TrivialFamily(AbstractFamily):
             sage: f.keys()
             [0, 1, 2]
         """
-        return range(len(self._enumeration))
+        return list(range(len(self._enumeration)))
 
     def cardinality(self):
         """
@@ -1267,9 +1267,9 @@ class EnumeratedFamily(LazyFamily):
             sage: TestSuite(f).run()
         """
         if enumset.cardinality() == Infinity:
-            baseset=NonNegativeIntegers()
+            baseset = NonNegativeIntegers()
         else:
-            baseset=xrange(enumset.cardinality())
+            baseset = range(enumset.cardinality())
         LazyFamily.__init__(self, baseset, enumset.unrank)
         self.enumset = enumset
 

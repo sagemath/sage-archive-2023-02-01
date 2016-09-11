@@ -1423,7 +1423,7 @@ categories of `J`. In particular, it is a finite process.
     ... so we would have an infinite increasing chain of constructible
     categories.
 
-    It's reasonnable to assume that there is a finite number of axioms
+    It's reasonable to assume that there is a finite number of axioms
     defined in the code. There remains to use this assumption to argue
     that any infinite execution of the algorithm would give rise to
     such an infinite sequence.

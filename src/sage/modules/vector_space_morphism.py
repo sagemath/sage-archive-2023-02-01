@@ -9,7 +9,7 @@ A vector space morphism is a homomorphism between vector spaces, better known
 as a linear transformation.  These are a specialization of Sage's free module
 homomorphisms.  (A free module is like a vector space, but with scalars from a
 ring that may not be a field.)  So references to free modules in the
-documentation or error messages should be understood as simply reflectng a
+documentation or error messages should be understood as simply reflecting a
 more general situation.
 
 Creation

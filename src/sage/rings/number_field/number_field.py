@@ -129,7 +129,8 @@ from sage.structure.proof.proof import get_flag
 from . import maps
 from . import structure
 from . import number_field_morphisms
-from itertools import count, izip
+from itertools import count
+from builtins import zip
 
 
 def is_NumberFieldHomsetCodomain(codomain):
@@ -3914,7 +3915,7 @@ class NumberField_generic(number_field_base.NumberField):
         proof = proof_flag(proof)
         if all(P.is_principal() for P in S):
             C = self.class_group(proof=proof)
-            Slist = zip([g.ideal() for g in C.gens()], C.invariants())
+            Slist = list(zip([g.ideal() for g in C.gens()], C.invariants()))
         else:
             Slist = self._S_class_group_and_units(tuple(S), proof=proof)[1]
         return SClassGroup(tuple(s[1] for s in Slist), names, self,
@@ -4273,7 +4274,7 @@ class NumberField_generic(number_field_base.NumberField):
         one = self.one()
         from sage.misc.all import cartesian_product_iterator
         for ev in cartesian_product_iterator([range(o) for o in ords]):
-            yield prod([p**e for p,e in zip(KSgens, ev)], one)
+            yield prod([p ** e for p, e in zip(KSgens, ev)], one)
 
     def composite_fields(self, other, names=None, both_maps=False, preserve_embedding=True):
         """
@@ -10762,4 +10763,4 @@ def refine_embedding(e, prec=None):
     # relies on the fact that coercing a high-precision root into a
     # field with lower precision will equal the lower-precision root!
     diffs = [(RC(ee(K.gen()))-old_root).abs() for ee in elist]
-    return elist[min(izip(diffs,count()))[1]]
+    return elist[min(zip(diffs, count()))[1]]

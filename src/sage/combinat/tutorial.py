@@ -423,7 +423,7 @@ equation with respect to `z`::
     sage: C = function('C')(z)
     sage: equation =  P(x=z, y=C) == 0
     sage: diff(equation, z)
-    D[0](C)(z)*D[1](P)(z, C(z)) + D[0](P)(z, C(z)) == 0
+    diff(C(z), z)*D[1](P)(z, C(z)) + D[0](P)(z, C(z)) == 0
 
 or, in a more readable format,
 
@@ -489,12 +489,12 @@ linear differential equation with coefficients in `\QQ[z]`::
 
     sage: equadiff = diff(C,z) == fraction(x=z, y=C)
     sage: equadiff
-    D[0](C)(z) == 2*C(z)/(4*z - 1) - 1/(4*z - 1)
+    diff(C(z), z) == 2*C(z)/(4*z - 1) - 1/(4*z - 1)
     sage: equadiff = equadiff.simplify_rational()
     sage: equadiff = equadiff * equadiff.rhs().denominator()
     sage: equadiff = equadiff - equadiff.rhs()
     sage: equadiff
-    (4*z - 1)*D[0](C)(z) - 2*C(z) + 1 == 0
+    (4*z - 1)*diff(C(z), z) - 2*C(z) + 1 == 0
 
 or, more legibly,
 
@@ -1266,27 +1266,29 @@ or select only the elements in positions 2, 3, and 4 (analogue of
     [[1, 3, 2], [2, 1, 3], [2, 3, 1]]
 
 The itertools methods ``imap`` and ``ifilter`` have been renamed to
-``map`` and ``filter`` in Python 3. You should rather avoid using them,
-as follows.
+``map`` and ``filter`` in Python 3. You can get them also in Python 2 using::
+
+    sage: from builtins import map, filter
 
 To apply a function to all the elements, one can do::
 
-    sage: [z.cycle_type() for z in Permutations(3)]
+    sage: from builtins import map
+    sage: list(map(lambda z: z.cycle_type(), Permutations(3)))
     [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
 
 and similarly to select the elements satisfying a certain condition::
 
-    sage: [z for z in Permutations(3) if z.has_pattern([1,2])]
+    sage: from builtins import filter
+    sage: list(filter(lambda z: z.has_pattern([1,2]), Permutations(3)))
     [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
 
 In all these situations, ``attrcall`` can be an advantageous alternative
 to creating an anonymous function::
 
-    sage: list(itertools.imap(lambda z: z.cycle_type(),
-    ....:                     Permutations(3)))
+    sage: from builtins import map
+    sage: list(map(lambda z: z.cycle_type(), Permutations(3)))
     [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
-    sage: list(itertools.imap(attrcall("cycle_type"),
-    ....:                     Permutations(3)))
+    sage: list(map(attrcall("cycle_type"), Permutations(3)))
     [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
 
 Implementation of new iterators

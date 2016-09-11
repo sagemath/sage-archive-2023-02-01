@@ -7,13 +7,7 @@ Let `C` be a linear code of length `n` over `\mathbb{F}_{q}`. The extended code 
 
     \hat{C} = \{x_{1}x_{2}\dots x_{n+1} \in \mathbb{F}_{q}^{n+1} \,\vert\,  x_{1}x_{2}\dots x_{n} \in C \text{ with } x_{1} + x_{2} + \dots + x_{n+1} = 0 \}.
 
-See [HP03]_ (pp 15-16) for details.
-
-REFERENCES:
-
-    .. [HP03] W. Cary Huffman and Vera Pless, Fundamentals of Error Correcting Codes, Cambridge
-       University Press
-
+See [HP]_ (pp 15-16) for details.
 """
 from __future__ import absolute_import
 

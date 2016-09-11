@@ -77,7 +77,7 @@ def _multivariate_polynomial_interpolation(evaluation, order, polynomial_ring):
     The ordering `i(a)` is the one used by Sage when listing the elements
     of a Finite Field with a call to the method ``list``.
 
-    In case the polynomial `f` does not exist, this method returns an arbitray polynomial.
+    In case the polynomial `f` does not exist, this method returns an arbitrary polynomial.
 
     INPUT:
 

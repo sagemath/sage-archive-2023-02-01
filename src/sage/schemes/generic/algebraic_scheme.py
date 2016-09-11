@@ -3754,7 +3754,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
         from sage.schemes.affine.affine_space import AffineSpace
         AA = AffineSpace(PP.base_ring(),sum(N),'x')
         v = list(AA.gens())
-        #create the proejctive embedding
+        # create the projective embedding
         index = 0
         for i in range(len(I)):
             v.insert(index+I[i],1)

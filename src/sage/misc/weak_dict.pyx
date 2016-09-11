@@ -807,9 +807,9 @@ cdef class WeakValueDictionary(dict):
 
     def get(self, k, d=None):
         """
-        Return the stored value for a key, or a default value for unkown keys.
+        Return the stored value for a key, or a default value for unknown keys.
 
-        The default value defaults to None.
+        The default value defaults to ``None``.
 
         EXAMPLES::
 

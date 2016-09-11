@@ -1217,7 +1217,7 @@ class IntegerVectorsConstraints(IntegerVectors):
             Integer vectors that sum to 2 with constraints: length=3, min_slope=0
         """
         if self.n is not None:
-            base ="Integer vectors that sum to {} with constraints: ".format(self.n)
+            base = "Integer vectors that sum to {} with constraints: ".format(self.n)
         else:
             base = "Integer vectors with constraints: "
         return base + ", ".join("{}={}".format(key, self.constraints[key])

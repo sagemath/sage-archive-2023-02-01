@@ -5127,7 +5127,7 @@ class Partitions(UniqueRepresentation, Parent):
                 return RegularPartitions_n(n, kwargs['regular'])
 
             # FIXME: should inherit from IntegerListLex, and implement repr, or _name as a lazy attribute
-            kwargs['name'] = "Partitions of the integer %s satisfying constraints %s"%(n, ", ".join( ["%s=%s"%(key, kwargs[key]) for key in sorted(kwargs.keys())] ))
+            kwargs['name'] = "Partitions of the integer %s satisfying constraints %s"%(n, ", ".join( ["%s=%s"%(key, kwargs[key]) for key in sorted(kwargs)] ))
 
             # min_part is at least 1, and it is 1 by default
             kwargs['min_part']  = max(1,kwargs.get('min_part',1))

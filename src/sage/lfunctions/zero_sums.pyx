@@ -18,6 +18,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer_ring import ZZ
@@ -209,9 +210,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         """
         if not python_floats:
-            return [self.cn(i) for i in xrange(n+1)]
+            return [self.cn(i) for i in range(n + 1)]
         else:
-            return [float(self.cn(i)) for i in xrange(n+1)]
+            return [float(self.cn(i)) for i in range(n + 1)]
 
     def digamma(self, s, include_constant_term=True):
         r"""

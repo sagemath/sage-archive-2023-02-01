@@ -17,6 +17,7 @@ AUTHORS:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
@@ -423,7 +424,7 @@ def length_and_string_from_graph6(s):
     else: # only first byte is N
         o = ord(s[0])
         if o > 126 or o < 63:
-            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join([chr(i) for i in xrange(63,127)]))
+            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in range(63,127)))
         n = o - 63
         s = s[1:]
     return n, s
@@ -454,7 +455,7 @@ def binary_string_from_graph6(s, n):
     for i from 0 <= i < len(s):
         o = ord(s[i])
         if o > 126 or o < 63:
-            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join([chr(i) for i in xrange(63,127)]))
+            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in range(63, 127)))
         a = int_to_binary_string(o-63)
         l.append( '0'*(6-len(a)) + a )
     m = "".join(l)
@@ -484,7 +485,7 @@ def binary_string_from_dig6(s, n):
     for i from 0 <= i < len(s):
         o = ord(s[i])
         if o > 126 or o < 63:
-            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join([chr(i) for i in xrange(63,127)]))
+            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in range(63, 127)))
         a = int_to_binary_string(o-63)
         l.append( '0'*(6-len(a)) + a )
     m = "".join(l)
@@ -808,7 +809,8 @@ cdef class SubgraphSearch:
                 # We have found our copy !!!
                 if self.active == self.nh-1:
                     sig_off()
-                    return [self.g_vertices[self.stack[l]] for l in xrange(self.nh)]
+                    return [self.g_vertices[self.stack[l]]
+                            for l in range(self.nh)]
 
                 # We are still missing several vertices ...
                 else:

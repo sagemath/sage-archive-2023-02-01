@@ -27,7 +27,7 @@ AUTHOR:
 - Yann Laigle-Chapuy (2009-08-28): first implementation
 
 """
-
+from six.moves import range
 from libc.string cimport memcpy
 
 from sage.structure.sage_object cimport SageObject
@@ -695,7 +695,7 @@ cdef class BooleanFunction(SageObject):
                 temp[i] = (bitset_in(self._truth_table,i)<<1)-1
 
             walsh_hadamard(temp, self._nvariables)
-            self._walsh_hadamard_transform = tuple( [temp[i] for i in xrange(n)] )
+            self._walsh_hadamard_transform = tuple(temp[i] for i in range(n))
             sig_free(temp)
 
         return self._walsh_hadamard_transform
@@ -758,7 +758,7 @@ cdef class BooleanFunction(SageObject):
             True
         """
         cdef list T = [ self(2**i-1) for i in range(self._nvariables+1) ]
-        for i in xrange(2**self._nvariables):
+        for i in range(2**self._nvariables):
             if T[ hamming_weight_int(i) ] != bitset_in(self._truth_table, i):
                 return False
         return True
@@ -870,7 +870,7 @@ cdef class BooleanFunction(SageObject):
                 temp[i] = W[i]*W[i]
 
             walsh_hadamard(temp, self._nvariables)
-            self._autocorrelation = tuple( [temp[i]>>self._nvariables for i in xrange(n)] )
+            self._autocorrelation = tuple(temp[i]>>self._nvariables for i in range(n))
             sig_free(temp)
 
         return self._autocorrelation
@@ -966,9 +966,9 @@ cdef class BooleanFunction(SageObject):
 
         from sage.matrix.constructor import Matrix
         from sage.arith.all import binomial
-        M = Matrix(GF(2),sum([binomial(self._nvariables,i) for i in xrange(d+1)]),len(s))
+        M = Matrix(GF(2),sum(binomial(self._nvariables,i) for i in range(d+1)),len(s))
 
-        for i in xrange(1,d+1):
+        for i in range(1, d + 1):
             C = Combinations(self._nvariables,i)
             for c in C:
                 r.append(prod([G[i] for i in c]))
@@ -1019,8 +1019,8 @@ cdef class BooleanFunction(SageObject):
         """
         f = self
         g = ~self
-        for i in xrange(self._nvariables):
-            for fun in [f,g]:
+        for i in range(self._nvariables):
+            for fun in [f, g]:
                 A = fun.annihilator(i)
                 if A is not None:
                     if annihilator:

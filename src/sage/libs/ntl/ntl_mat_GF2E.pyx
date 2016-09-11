@@ -22,6 +22,7 @@
 #    2006-01: initial version (based on code by William Stein)
 #
 ##############################################################################
+from six.moves import range
 
 include "cysignals/signals.pxi"
 include 'misc.pxi'
@@ -469,7 +470,7 @@ cdef class ntl_mat_GF2E(object):
         EXAMPLES::
 
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
-            sage: m = ntl.mat_GF2E(ctx, 2,2,[ntl.GF2E_random(ctx) for x in xrange(2*2)])
+            sage: m = ntl.mat_GF2E(ctx, 2,2,[ntl.GF2E_random(ctx) for x in range(2*2)])
             sage: ntl.GF2XHexOutput(0)
             sage: m.list()
             [[1 1 0 0 1 0 1 1], [1 1 1 0 1 1 1], [0 1 1 1 1 0 0 1], [0 1 0 1 1 1]]
@@ -693,27 +694,27 @@ cdef class ntl_mat_GF2E(object):
 
         if not nonzero:
             if _density == 1.0:
-                for i in xrange(self.x.NumRows()):
+                for i in range(self.x.NumRows()):
                     for j in xrange(self.x.NumCols()):
                         tmp = GF2E_random()
                         mat_GF2E_setitem(&self.x, i, j, &tmp)
             else:
-                for i in xrange(self.x.NumRows()):
-                    for j in xrange(self.x.NumCols()):
+                for i in range(self.x.NumRows()):
+                    for j in range(self.x.NumCols()):
                         if rstate.c_rand_double() <= _density:
                             tmp = GF2E_random()
                             mat_GF2E_setitem(&self.x, i, j, &tmp)
         else:
             if _density == 1.0:
-                for i in xrange(self.x.NumRows()):
-                    for j in xrange(self.x.NumCols()):
+                for i in range(self.x.NumRows()):
+                    for j in range(self.x.NumCols()):
                         tmp = GF2E_random()
                         while GF2E_IsZero(tmp):
                             tmp = GF2E_random()
                         mat_GF2E_setitem(&self.x, i, j, &tmp)
             else:
-                for i in xrange(self.x.NumRows()):
-                    for j in xrange(self.x.NumCols()):
+                for i in range(self.x.NumRows()):
+                    for j in range(self.x.NumCols()):
                         if rstate.c_rand_double() <= _density:
                             tmp = GF2E_random()
                             while GF2E_IsZero(tmp):

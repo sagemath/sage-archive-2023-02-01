@@ -39,6 +39,7 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 #                         http://www.gnu.org/licenses/
 #**************************************************************************
 from __future__ import print_function, absolute_import
+from six.moves import range
 
 include "sage/data_structures/bitset.pxi"
 
@@ -466,8 +467,8 @@ cdef class CGraph:
             sage: G.add_arc(1, 2)
             sage: G.add_arc(2, 0)
             sage: G.del_vertex(1)
-            sage: for i in xrange(3):
-            ....:     for j in xrange(3):
+            sage: for i in range(3):
+            ....:     for j in range(3):
             ....:         if G.has_arc(i, j):
             ....:             print("{} {}".format(i,j))
             0 2

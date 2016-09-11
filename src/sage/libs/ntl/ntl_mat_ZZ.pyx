@@ -12,6 +12,7 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 include "cysignals/signals.pxi"
 include 'misc.pxi'
@@ -378,14 +379,14 @@ cdef class ntl_mat_ZZ(object):
         1987].
 
         TIMINGS:
-        NTL isn't very good compared to MAGMA, unfortunately:
+
+        NTL is not very good compared to MAGMA, unfortunately::
 
             sage: a = MatrixSpace(ZZ,200).random_element(x=-2, y=2)    # -2 to 2
             sage: A = ntl.mat_ZZ(200,200)
-            sage: for i in xrange(a.nrows()):
-            ...     for j in xrange(a.ncols()):
-            ...         A[i,j] = a[i,j]
-            ...
+            sage: for i in range(a.nrows()):
+            ....:     for j in range(a.ncols()):
+            ....:         A[i,j] = a[i,j]
             sage: t = cputime(); d = A.determinant()
             sage: cputime(t)          # random
             0.33201999999999998
@@ -405,7 +406,8 @@ cdef class ntl_mat_ZZ(object):
         Also, PARI is also faster than NTL if one uses the flag 1 to
         the mathnf routine.  The above takes 16 seconds in PARI.
 
-        TESTS:
+        TESTS::
+
             sage: ntl.mat_ZZ(2,2,[1..4]).HNF()
             [
             [1 0]

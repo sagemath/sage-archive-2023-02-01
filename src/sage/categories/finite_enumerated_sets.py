@@ -81,6 +81,20 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
     class ParentMethods:
 
+        @cached_method
+        def __len__(self):
+            """
+            Returns the number of elements of self.
+
+            EXAMPLES::
+
+                sage: len(GF(5))
+                5
+                sage: len(MatrixSpace(GF(2), 3, 3))
+                512
+            """
+            return int(self.cardinality())
+
         def _cardinality_from_iterator(self, *ignored_args, **ignored_kwds):
             """
             Return the cardinality of ``self``.
@@ -249,15 +263,55 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             - ``self.cardinality()``
             - ``self.unrank()``
 
+            .. seealso:: :meth:`_cardinality_from_list`,
+                :meth:`_iterator_from_list`, and :meth:`_unrank_from_list`
+
+            .. warning::
+
+                The overriding of ``self.__iter__`` to use the cache
+                is ignored upon calls such as ``for x in C:`` or
+                ``list(C)`` (which essentially ruins its purpose).
+                Indeed, Python looks up the ``__iter__`` method
+                directly in the class of ``C``, bypassing ``C``'s
+                dictionary (see the Python reference manual,
+                `Special method lookup for new-style classes <http://docs.python.org/reference/datamodel.html#special-method-lookup-for-new-style-classes>`_)
+
+                Let's take an example::
+
+                    sage: class Example(Parent):
+                    ....:     def __init__(self):
+                    ....:         Parent.__init__(self, category = FiniteEnumeratedSets())
+                    ....:     def __iter__(self):
+                    ....:         print("hello!")
+                    ....:         for x in [1,2,3]: yield x
+                    sage: C = Example()
+                    sage: list(C)
+                    hello!
+                    hello!
+                    [1, 2, 3]
+                    sage: list(C)
+                    hello!
+                    [1, 2, 3]
+
+                Note that ``hello!`` actually gets printed twice in
+                the first call to ``list(C)``. That's because of the
+                current (dubious) implementation of
+                :meth:`Parent.__len__`. Let's call :meth:`list`::
+
+                    sage: C.list()
+                    hello!
+                    [1, 2, 3]
+                    sage: C.list()
+                    [1, 2, 3]
+
+                Now we would want the original iterator of ``C`` not
+                to be called anymore, but that's not the case::
+
+                    sage: list(C)
+                    hello!
+                    [1, 2, 3]
+
             TESTS:
-
-            Trying to list an infinite vector space raises an error
-            instead of running forever (see :trac:`10470`)::
-
-                sage: (QQ^2).list()  # indirect test
-                Traceback (most recent call last):
-                ...
-                AttributeError: 'FreeModule_ambient_field_with_category' object has no attribute 'list'
 
             To test if the caching and overriding works, we need a
             fresh finite enumerated set example, because the caching
@@ -478,20 +532,6 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 3
             """
             return self.unrank(self.cardinality() -1)
-
-        @cached_method
-        def __len__(self):
-            """
-            Returns the number of elements of self.
-
-            EXAMPLES::
-
-                sage: len(GF(5))
-                5
-                sage: len(MatrixSpace(GF(2), 3, 3))
-                512
-            """
-            return int(self.cardinality())
 
         def _test_enumerated_set_iter_cardinality(self, **options):
             """

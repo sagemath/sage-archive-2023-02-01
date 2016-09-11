@@ -2664,7 +2664,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
     @cached_method
     def _2d_echelon_form(self):
         """
-        Return the echelon form of one particular cyclical order of rays of a 2-d fan.
+        Return the echelon form of one particular cyclic order of rays of a 2-d fan.
 
         OUTPUT:
 

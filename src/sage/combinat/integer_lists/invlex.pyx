@@ -116,7 +116,7 @@ class IntegerListsLex(IntegerLists):
 
     - ``name`` -- a string or ``None`` (default: ``None``) if set,
       this will be passed down to :meth:`Parent.rename` to specify the
-      name of ``self``. It is recommented to use rename method directly
+      name of ``self``. It is recommended to use rename method directly
       because this feature may become deprecated.
 
     - ``element_constructor`` -- a function (or callable) that creates

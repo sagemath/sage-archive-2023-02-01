@@ -1,6 +1,6 @@
 # coding=utf-8
 r"""
-A collection of constructors of common words
+Common words
 
 AUTHORS:
 
@@ -1622,7 +1622,7 @@ class WordGenerator(object):
             sage: Word(words._s_adic_iterator(w, repeat('a')))
             word: abbaababbaabbaabbaababbaababbaabbaababba...
 
-        The morphism `\sigma: a \mapsto ba, b \mapsto b` can't satify the
+        The morphism `\sigma: a \mapsto ba, b \mapsto b` cannot satisfy the
         hypothesis of the algorithm (nested prefixes)::
 
             sage: sigma = WordMorphism('a->ba,b->b')
@@ -1635,7 +1635,8 @@ class WordGenerator(object):
 
         - Sebastien Labbe (2009-12-18): initial version
         """
-        from itertools import tee,izip
+        from itertools import tee
+        from builtins import zip
         sequence_it,sequence = tee(sequence)
         m = next(sequence_it)
         codomain = m.codomain()
@@ -1644,7 +1645,7 @@ class WordGenerator(object):
         precedent_letter = m(next(letters_it))[0]
 
         yield precedent_letter
-        for (i,(m,a)) in enumerate(izip(sequence, letters)):
+        for (i,(m,a)) in enumerate(zip(sequence, letters)):
             if not precedent_letter == m(a)[0]:
                 raise ValueError("The hypothesis of the algorithm used is not satisfied: the image of the %s-th letter (=%s) under the %s-th morphism (=%s) should start with the %s-th letter (=%s)."%(i+1,a,i+1,m,i,precedent_letter))
             w = p(m(a)[1:])

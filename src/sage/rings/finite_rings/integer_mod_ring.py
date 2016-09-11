@@ -177,7 +177,7 @@ class IntegerModFactory(UniqueFactory):
         The order 33 is not prime, but this ring has been put
         into the category of fields. This may already have consequences
         in other parts of Sage. Either it was a mistake of the user,
-        or a probabilitstic primality test has failed.
+        or a probabilistic primality test has failed.
         In the latter case, please inform the developers.
 
     However, the mistaken assignment is not automatically corrected::
@@ -735,7 +735,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             The order 21 is not prime, but this ring has been put
             into the category of fields. This may already have consequences
             in other parts of Sage. Either it was a mistake of the user,
-            or a probabilitstic primality test has failed.
+            or a probabilistic primality test has failed.
             In the latter case, please inform the developers.
 
         """
@@ -753,7 +753,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 The order {} is not prime, but this ring has been put
 into the category of fields. This may already have consequences
 in other parts of Sage. Either it was a mistake of the user,
-or a probabilitstic primality test has failed.
+or a probabilistic primality test has failed.
 In the latter case, please inform the developers.""".format(self.order()))
         return is_prime
 

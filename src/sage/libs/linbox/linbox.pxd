@@ -4,8 +4,7 @@
 # distutils: language = c++ 
 
 from sage.libs.gmp.types cimport mpz_t
-
-include 'sage/modules/vector_modn_sparse_h.pxi'
+from sage.modules.vector_modn_sparse cimport *
 
 from sage.matrix.matrix_integer_dense cimport mod_int
 

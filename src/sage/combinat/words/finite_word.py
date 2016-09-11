@@ -83,6 +83,29 @@ Finite word as the image under a morphism::
     sage: m(0, order=3)
     word: 4000445044504450400044504450445044500550...
 
+.. NOTE::
+
+    The following two finite words have the same string representation::
+
+        sage: w = Word('010120')
+        sage: z = Word([0, 1, 0, 1, 2, 0])
+        sage: w
+        word: 010120
+        sage: z
+        word: 010120
+
+    but are not equal::
+
+        sage: w == z
+        False
+
+    Indeed, w and z are defined on different alphabets::
+
+        sage: w[2]
+        '0'
+        sage: z[2]
+        0
+
 ========================
 Functions and algorithms
 ========================
@@ -191,11 +214,12 @@ Left-special and bispecial factors::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+
+from builtins import zip
 
 from collections import defaultdict
-from itertools import islice, izip, cycle
+from itertools import islice, cycle
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.words import Words
 from sage.misc.cachefunc import cached_method
@@ -2134,7 +2158,7 @@ class FiniteWord_class(Word_class):
         if other.is_empty():
             return other
 
-        iter = enumerate(izip(reversed(self), reversed(other)))
+        iter = enumerate(zip(reversed(self), reversed(other)))
         i,(b,c) = next(iter)
         if b != c:
             #In this case, return the empty word
@@ -4842,9 +4866,8 @@ class FiniteWord_class(Word_class):
             raise TypeError("p(=%s) is not a DisjointSet" % p)
 
         #Join the classes of each pair of letters that are one above the other
-        from itertools import islice, izip
         from sage.combinat.words.morphism import WordMorphism
-        S = izip(islice(self, delay, None), other)
+        S = zip(islice(self, delay, None), other)
         if involution is None:
             for (a,b) in S:
                 p.union(a, b)
@@ -5972,8 +5995,7 @@ class FiniteWord_class(Word_class):
             (6, 3)
             (7, 1)
         """
-        from itertools import izip
-        return izip(xrange(1, len(self)+1), self)
+        return zip(xrange(1, len(self) + 1), self)
 
     def shuffle(self, other, overlap=0):
         r"""
@@ -6568,7 +6590,7 @@ class FiniteWord_class(Word_class):
         - ``height`` -- (default: ``1``) height of the vector
         - ``thickness`` -- (default: ``1``) thickness of the contour
         - ``cmap`` -- (default: ``'hsv'``) color map; for available color map names
-          type: ``import matplotlib.cm; matplotlib.cm.datad.keys()``
+          type: ``import matplotlib.cm; list(matplotlib.cm.datad)``
         - ``label`` -- string (default: ``None``) a label to add on the colored vector
 
         OUTPUT:

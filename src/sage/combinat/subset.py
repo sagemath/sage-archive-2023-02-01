@@ -715,7 +715,8 @@ class Subsets_sk(Subsets_s):
             sage: Subsets(3,3).list()
             [{1, 2, 3}]
         """
-        return itertools.imap(self.element_class, self._fast_iterator())
+        for x in self._fast_iterator():
+            yield self.element_class(x)
 
     def random_element(self):
         """
@@ -1233,7 +1234,7 @@ class SubMultiset_sk(SubMultiset_s):
             [[1, 2], [1, 3], [2, 2], [2, 3]]
         """
         from sage.combinat.integer_vector import IntegerVectors
-        elts = self._d.keys()
+        elts = list(self._d)
         for iv in IntegerVectors(self._k, len(self._d), outer=self._d.values()):
             yield sum([[elts[i]] * iv[i] for i in range(len(iv))], [])
 

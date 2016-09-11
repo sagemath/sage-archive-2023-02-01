@@ -30,8 +30,9 @@ called.
 Functions
 ---------
 """
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+
+from builtins import zip
 
 from .orthogonal_arrays import orthogonal_array, wilson_construction, is_orthogonal_array
 
@@ -702,7 +703,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
     # Adding the first two trivial columns
     OA.insert(0,[j for i in range(n) for j in range(n)])
     OA.insert(0,[i for i in range(n) for j in range(n)])
-    OA=sorted(zip(*OA))
+    OA = sorted(zip(*OA))
 
     # Moves the first three columns to the end
     OA = [list(B[3:]+B[:3]) for B in OA]
@@ -987,8 +988,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
       Rolf S. Rees,
       Journal of Combinatorial Designs 1.1 (1993): 15-26.
     """
-    from itertools import izip
-    assert n1<=n2 and n2<=n3
+    assert n1 <= n2 and n2 <= n3
 
     if explain_construction:
         return ("Three-factor product with n={}.{}.{} from:\n"+
@@ -1054,7 +1054,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
                 assert max(shift) < g1
 
                 for B1 in OA1:
-                    copy_of_OA1.append([x2*g1+(x1+sh)%g1 for sh,x1,x2 in izip(shift,B1,B2)])
+                    copy_of_OA1.append([x2*g1+(x1+sh)%g1 for sh,x1,x2 in zip(shift,B1,B2)])
 
                 copies_of_OA1.append(copy_of_OA1)
 
@@ -1062,7 +1062,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
                 for i,x2 in enumerate(B2):
                     count[i][x2] += 1
 
-            new_parallel_classes.extend([list(_) for _ in izip(*copies_of_OA1)])
+            new_parallel_classes.extend([list(_) for _ in zip(*copies_of_OA1)])
 
         # New g1-parallel classes, each one built from the product of a parallel
         # class with a OA1
@@ -1072,7 +1072,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
             disjoint_copies_of_OA1 = []
             for B2 in classs2:
                 for B1 in OA1:
-                    disjoint_copies_of_OA1.append([x2*g1+x1 for x1,x2 in izip(B1,B2)])
+                    disjoint_copies_of_OA1.append([x2*g1+x1 for x1,x2 in zip(B1,B2)])
             new_g1_parallel_classes.append(disjoint_copies_of_OA1)
 
         # Check our stuff before we return it
@@ -1187,7 +1187,7 @@ def _reorder_matrix(matrix):
         matrix.append(col)
         g.delete_edges(matching)
 
-    return zip(*matrix)
+    return list(zip(*matrix))
 
 def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construction=False):
     r"""

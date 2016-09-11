@@ -1057,6 +1057,15 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.modules.vector_rational_sparse',
+              sources = ['sage/modules/vector_rational_sparse.pyx']),
+
+    Extension('sage.modules.vector_integer_sparse',
+              sources = ['sage/modules/vector_integer_sparse.pyx']),
+
+    Extension('sage.modules.vector_modn_sparse',
+              sources = ['sage/modules/vector_modn_sparse.pyx']),
+
     Extension('sage.modules.finite_submodule_iter',
               sources = ['sage/modules/finite_submodule_iter.pyx']),
 
@@ -1622,6 +1631,9 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.symmetric_reduction',
               sources = ['sage/rings/polynomial/symmetric_reduction.pyx']),
+
+    Extension('sage.rings.polynomial.skew_polynomial_element',
+              sources = ['sage/rings/polynomial/skew_polynomial_element.pyx']),
 
 
     ################################

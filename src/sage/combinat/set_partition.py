@@ -1117,7 +1117,7 @@ class SetPartitions(UniqueRepresentation, Parent):
             True
         """
         nonzero = []
-        expo = [0]+part.to_exp()
+        expo = [0] + part.to_exp()
 
         for i in range(len(expo)):
             if expo[i] != 0:
@@ -1129,8 +1129,8 @@ class SetPartitions(UniqueRepresentation, Parent):
 
         for b in blocs:
             lb = [IterableFunctionCall(_listbloc, nonzero[i][0], nonzero[i][1], b[i]) for i in range(len(nonzero))]
-            for x in itertools.imap(lambda x: _union(x), itertools.product( *lb )):
-                yield x
+            for x in itertools.product(*lb):
+                yield _union(x)
 
     def is_less_than(self, s, t):
         r"""

@@ -461,8 +461,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         reference to the coercion maps in this case::
 
             sage: left_morphism_ref
-            <weakref at ...; to 'sage.rings.rational.Z_to_Q' at ...
-            (RingHomset_generic_with_category._abstract_element_class)>
+            <weakref at ...; to 'sage.rings.rational.Z_to_Q' at ...>
 
         Moreover, the weakly referenced coercion map uses only a weak
         reference to the codomain::
@@ -1336,9 +1335,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         garbage collection after being involved in binary operations::
 
             sage: import gc
+            sage: T=type(GF(2))
             sage: gc.collect() #random
             852
-            sage: T=type(GF(2))
             sage: N0=len(list(o for o in gc.get_objects() if type(o) is T))
             sage: L=[ZZ(1)+GF(p)(1) for p in prime_range(2,50)]
             sage: N1=len(list(o for o in gc.get_objects() if type(o) is T))

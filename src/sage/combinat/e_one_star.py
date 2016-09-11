@@ -108,7 +108,7 @@ A list of colors allows us to color the faces sequentially::
     sage: P = E(P, 3)
     sage: P.plot()                   #not tested
 
-All the color schemes from ``matplotlib.cm.datad.keys()`` can be used::
+All the color schemes from ``list(matplotlib.cm.datad)`` can be used::
 
     sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
     sage: P.repaint(cmap='summer')
@@ -1064,7 +1064,7 @@ class Patch(SageObject):
             if not cm:
                 from matplotlib import cm
 
-            if not cmap in cm.datad.keys():
+            if not cmap in cm.datad:
                 raise RuntimeError("Color map %s not known (type sorted(colors) for valid names)" % cmap)
             cmap = cm.__dict__[cmap]
             dim = float(len(self))

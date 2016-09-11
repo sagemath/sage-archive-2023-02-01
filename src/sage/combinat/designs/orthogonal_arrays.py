@@ -55,9 +55,9 @@ Functions
 ---------
 
 """
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
+from builtins import zip
 from six import itervalues
 
 from sage.misc.cachefunc import cached_function
@@ -730,7 +730,7 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
     TD = []
     for X1 in TD1:
         for X2 in TD2:
-            TD.append([x1*n2+(x2%n2) for x1,x2 in zip(X1,X2)])
+            TD.append([x1 * n2 + (x2 % n2) for x1, x2 in zip(X1, X2)])
     if check:
         assert is_transversal_design(TD,k,N)
 
@@ -1330,7 +1330,7 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
             IOA.remove(h2)
 
         holes = sum(holes,[])
-        holes = map(list,zip(*holes))
+        holes = map(list, list(zip(*holes)))
 
         # Building the relabel matrix
         for l in holes:
@@ -1662,7 +1662,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
     """
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.rings.integer import Integer
-    from itertools import izip,combinations
+    from itertools import combinations
     from .designs_pyx import is_difference_matrix
 
     G_card = G.cardinality()
@@ -1682,7 +1682,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
 
     # check that the first part of the matrix A is a (G,k-1,2)-difference matrix
     B = [[G(a) for a,b in R] for R in A]
-    if check and not is_difference_matrix(zip(*B),G,k-1,2):
+    if check and not is_difference_matrix(list(zip(*B)),G,k-1,2):
         raise ValueError("the first part of the matrix A must be a "
                          "(G,k-1,2)-difference matrix")
 
@@ -1717,8 +1717,8 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
                               " the required condition".format(i,s1,j,s1,i,s2,j,s2))
 
     # build the quasi difference matrix and return the associated OA
-    Mb = [[e+GG((G.zero(),x*v)) for v in H for e in R] for x,R in izip(Y,A)]
-    return OA_from_quasi_difference_matrix(zip(*Mb),GG,add_col=True)
+    Mb = [[e+GG((G.zero(),x*v)) for v in H for e in R] for x, R in zip(Y, A)]
+    return OA_from_quasi_difference_matrix(list(zip(*Mb)),GG,add_col=True)
 
 def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
     r"""
@@ -1798,7 +1798,6 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
 
         sage: _ = designs.orthogonal_arrays.build(6,20) # indirect doctest
     """
-    from itertools import izip
     Gn = int(G.cardinality())
     k = len(M[0])+bool(add_col)
 
@@ -1816,7 +1815,7 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
     # Each line is expanded by [g+x for x in line for g in G] then relabeled
     # with integers. Missing values are also handled.
     new_M = []
-    for line in izip(*M):
+    for line in zip(*M):
         inf = Gn
         new_line = []
         for x in line:
@@ -1831,7 +1830,7 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
         new_M.append([i//Gn for i in range(len(new_line))])
 
     # new_M = transpose(new_M)
-    new_M = zip(*new_M)
+    new_M = list(zip(*new_M))
 
     # Filling holes with a smaller orthogonal array
     if inf > Gn and fill_hole:

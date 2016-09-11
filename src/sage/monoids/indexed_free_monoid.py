@@ -871,12 +871,22 @@ class IndexedFreeMonoid(IndexedMonoid):
             F[0]
             sage: F.gen(2)
             F[2]
+
+        TESTS::
+
+            sage: F = FreeMonoid(index_set=[1,2])
+            sage: F.gen(2)
+            F[2]
+            sage: F.gen(0)
+            Traceback (most recent call last):
+            ...
+            IndexError: 0 is not in the index set
         """
         if x not in self._indices:
             raise IndexError("{} is not in the index set".format(x))
         try:
             return self.element_class(self, ((self._indices(x),1),))
-        except TypeError: # Backup (if it is a string)
+        except (TypeError, NotImplementedError): # Backup (e.g., if it is a string)
             return self.element_class(self, ((x,1),))
 
 class IndexedFreeAbelianMonoid(IndexedMonoid):
@@ -959,11 +969,21 @@ class IndexedFreeAbelianMonoid(IndexedMonoid):
             F[0]
             sage: F.gen(2)
             F[2]
+
+        TESTS::
+
+            sage: F = FreeAbelianMonoid(index_set=[1,2])
+            sage: F.gen(2)
+            F[2]
+            sage: F.gen(0)
+            Traceback (most recent call last):
+            ...
+            IndexError: 0 is not in the index set
         """
         if x not in self._indices:
             raise IndexError("{} is not in the index set".format(x))
         try:
             return self.element_class(self, {self._indices(x):1})
-        except TypeError: # Backup (if it is a string)
+        except (TypeError, NotImplementedError): # Backup (e.g., if it is a string)
             return self.element_class(self, {x:1})
 

@@ -5732,7 +5732,7 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
             ])
 
     # Now we actually compute the thing. To avoid recursion (and the
-    # associated "maximum recustion depth exceeded" error), we loop
+    # associated "maximum recursion depth exceeded" error), we loop
     # until we have a valid cone and occasionally throw everything out
     # and start over from scratch.
     while True:

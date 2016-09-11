@@ -1482,7 +1482,7 @@ class PermutationIET(Permutation):
         Acta Arith. 34, no. 3, 203-212, 1980
 
         M. Kontsevich, A. Zorich "Connected components of the moduli space
-        of Abelian differentials with prescripebd singularities" Invent. math.
+        of Abelian differentials with prescribed singularities" Invent. math.
         153, 631-678 (2003)
         """
         test = self.erase_marked_points()
@@ -2795,8 +2795,8 @@ class RauzyDiagram(SageObject):
             a b c d
             d c b a
         """
-        from itertools import imap
-        return imap(
+        from builtins import map
+        return map(
             lambda x: self._vertex_to_permutation(x),
             self._succ.keys())
 

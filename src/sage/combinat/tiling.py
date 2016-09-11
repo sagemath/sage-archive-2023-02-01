@@ -221,6 +221,8 @@ REFERENCES:
 # python3
 from __future__ import division
 
+from builtins import zip
+
 import itertools
 from sage.structure.sage_object import SageObject
 from sage.modules.free_module_element import vector
@@ -676,8 +678,9 @@ class Polyomino(SageObject):
             sage: p.bounding_box()
             [[0, 0, 0], [1, 2, 1]]
         """
-        zipped_coords = zip(*self)
-        return [[min(_) for _ in zipped_coords], [max(_) for _ in zipped_coords]]
+        zipped_coords = list(zip(*self))
+        return [[min(_) for _ in zipped_coords],
+                [max(_) for _ in zipped_coords]]
 
     def canonical(self):
         r"""
@@ -1704,7 +1707,7 @@ class TilingSolver(SageObject):
             yield B
             A, B = B, next(it)
             common_prefix = []
-            for a, b in itertools.izip(A, B):
+            for a, b in zip(A, B):
                 if a == b:
                     common_prefix.append(a)
                 else:
@@ -1762,7 +1765,7 @@ class TilingSolver(SageObject):
             yield B
             A, B = B, next(it)
             common_prefix = 0
-            for a, b in itertools.izip(A, B):
+            for a, b in zip(A, B):
                 if a == b:
                     common_prefix += 1
                 else:

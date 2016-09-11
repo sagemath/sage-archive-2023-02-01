@@ -150,6 +150,8 @@ Classes and their Methods
 #*****************************************************************************
 from __future__ import print_function
 
+from six import itervalues
+
 from sage.structure.sage_object import SageObject
 
 
@@ -1110,7 +1112,7 @@ class MutablePosetShell(SageObject):
           ``True`` searches towards ``'null'``.
 
         - ``key`` -- (default: ``None``) a function used for sorting
-          the direct predeccessors of a shell (used in case of a
+          the direct predecessors of a shell (used in case of a
           tie). If this is ``None``, no sorting occurs.
 
         - ``condition`` -- (default: ``None``) a function mapping a
@@ -1725,10 +1727,8 @@ class MutablePoset(SageObject):
         memo = {}
         self._null_ = other._null_._copy_all_linked_(memo, self, mapping)
         self._oo_ = memo[id(other._oo_)]
-        self._shells_ = dict((f.key, f) for f in
-                             iter(memo[id(e)] for e in
-                                  other._shells_.itervalues()))
-
+        self._shells_ = {f.key: f for f in iter(memo[id(e)] for e in
+                                                itervalues(other._shells_))}
 
     def copy(self, mapping=None):
         r"""

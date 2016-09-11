@@ -956,8 +956,8 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             signs['infinity'] = sign_Beta # tail sign tells something about last step
                                           # in g_alpha
 
-        if finite_cartan_type and i==0:
-            signs = { x : -signs[x] for x in signs.keys() }
+        if finite_cartan_type and i == 0:
+            signs = {x: -signs[x] for x in signs}
 
         return signs
 
@@ -1069,10 +1069,10 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             ([(alpha[2], 0), (alpha[1] + alpha[2], 1)], [1, 3, 5])
         """
         signs = self._folding_data(i)
-        positions = sorted( [ x for x in signs.keys() if x != 'infinity' ] )
+        positions = sorted(x for x in signs if x != 'infinity')
 
-        if len(positions)==0 :
-            return ( positions, [ signs['infinity'] ] )
+        if not positions:
+            return (positions, [signs['infinity']])
 
         gi = [ signs[ positions[0] ] ]
         for j in range(1,len(positions)):

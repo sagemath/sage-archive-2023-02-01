@@ -363,10 +363,10 @@ class GraphPlot(SageObject):
             ...                    edge_style='dashed')
             sage: GP.set_vertices(talk=True)
             sage: GP.plot()
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 26 graphics primitives
             sage: GP.set_vertices(vertex_color='green', vertex_shape='^')
             sage: GP.plot()
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 26 graphics primitives
 
         .. PLOT::
 
@@ -505,7 +505,7 @@ class GraphPlot(SageObject):
             ...    edge_style='dashed')
             sage: GP.set_edges(edge_style='solid')
             sage: GP.plot()
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 26 graphics primitives
 
         .. PLOT::
 
@@ -521,7 +521,7 @@ class GraphPlot(SageObject):
 
             sage: GP.set_edges(edge_color='black')
             sage: GP.plot()
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 26 graphics primitives
 
         .. PLOT::
 
@@ -543,7 +543,7 @@ class GraphPlot(SageObject):
             ...    edge_style='dashed')
             sage: GP.set_edges(edge_style='solid')
             sage: GP.plot()
-            Graphics object consisting of 24 graphics primitives
+            Graphics object consisting of 28 graphics primitives
 
         .. PLOT::
 
@@ -559,7 +559,7 @@ class GraphPlot(SageObject):
 
             sage: GP.set_edges(edge_color='black')
             sage: GP.plot()
-            Graphics object consisting of 24 graphics primitives
+            Graphics object consisting of 28 graphics primitives
 
         .. PLOT::
 
@@ -1177,7 +1177,7 @@ class GraphPlot(SageObject):
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed').plot()
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 26 graphics primitives
 
         .. PLOT::
 
@@ -1189,7 +1189,7 @@ class GraphPlot(SageObject):
         The ``edge_style`` option may be provided in the short format too::
 
             sage: g.graphplot(edge_labels=True, color_by_label=True, edge_style='--').plot()
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 26 graphics primitives
 
         TESTS:
 

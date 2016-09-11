@@ -1388,7 +1388,7 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
                 SVM = AlternatingSignMatrix(generator).to_six_vertex_model()
             except (TypeError, ValueError):
                 SVM = SixVertexModel(self._n, boundary_conditions='ice')(generator)
-
+                SVM.to_alternating_sign_matrix()
         if len(SVM) != self._n:
             raise ValueError("invalid size")
         return self.element_class(self, SVM)

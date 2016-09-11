@@ -1098,7 +1098,7 @@ class Partition(CombinatorialElement):
         res.sort(reverse=True)
         return Partition(res)
 
-    def next(self):
+    def __next__(self):
         """
         Return the partition that lexicographically follows ``self``. If
         ``self`` is the last partition, then return ``False``.
@@ -1157,6 +1157,8 @@ class Partition(CombinatorialElement):
                     next_p[h-1] = t
 
         return self.parent()(next_p[:m])
+
+    next = __next__
 
     def size(self):
         """

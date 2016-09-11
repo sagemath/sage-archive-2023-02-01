@@ -192,7 +192,7 @@ class Small_primes_of_degree_one_iter():
             count += 1
         self._queue.sort() # sorts in ascending order
 
-    def next(self):
+    def __next__(self):
         r"""
         Return a prime of absolute degree one of small prime norm.
 
@@ -235,3 +235,5 @@ class Small_primes_of_degree_one_iter():
         p, n = self._queue.pop(0)
         x = self._field.absolute_generator()
         return self._field.ideal([p, x - n])
+
+    next = __next__

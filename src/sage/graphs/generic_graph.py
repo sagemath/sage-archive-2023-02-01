@@ -4937,7 +4937,7 @@ class GenericGraph(GenericGraph_pyx):
                 c = self.connected_component_containing_vertex(v)
                 seen.update(c)
                 components.append(c)
-        components.sort(lambda comp1, comp2: cmp(len(comp2), len(comp1)))
+        components.sort(key=lambda comp: -len(comp))
         return components
 
     def connected_components_number(self):

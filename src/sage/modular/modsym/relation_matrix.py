@@ -23,8 +23,8 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-SPARSE=True
+from six.moves import range
+SPARSE = True
 
 import sage.matrix.matrix_space as matrix_space
 import sage.matrix.all
@@ -122,7 +122,7 @@ def modS_relations(syms):
     # We will fill in this set with the relations x_i + s*x_j = 0,
     # where the notation is as in _sparse_2term_quotient.
     rels = set()
-    for i in xrange(len(syms)):
+    for i in range(len(syms)):
         j, s = syms.apply_S(i)
         assert j != -1
         if i < j:
@@ -187,7 +187,7 @@ def modI_relations(syms, sign):
     # We will fill in this set with the relations x_i - sign*s*x_j = 0,
     # where the notation is as in _sparse_2term_quotient.
     rels = set()
-    for i in xrange(len(syms)):
+    for i in range(len(syms)):
         j, s = syms.apply_I(i)
         assert j != -1
         rels.add( ((i,1),(j,-sign*s)) )
@@ -231,7 +231,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
     entries = {}
     already_seen = set()
     w = syms.weight()
-    for i in xrange(len(syms)):
+    for i in range(len(syms)):
         if i in already_seen:
             continue
         iT_plus_iTT = syms.apply_T(i) + syms.apply_TT(i)
@@ -556,11 +556,11 @@ def sparse_2term_quotient(rels, n, F):
         raise TypeError("F must be a ring.")
 
     tm = misc.verbose("Starting sparse 2-term quotient...")
-    free = range(n)
-    ONE = F(1)
-    ZERO = F(0)
-    coef = [ONE for i in xrange(n)]
-    related_to_me = [[] for i in xrange(n)]
+    free = list(range(n))
+    ONE = F.one()
+    ZERO = F.zero()
+    coef = [ONE for i in range(n)]
+    related_to_me = [[] for i in range(n)]
     for v0, v1 in rels:
         c0 = coef[v0[0]] * F(v0[1])
         c1 = coef[v1[0]] * F(v1[1])
@@ -596,7 +596,7 @@ def sparse_2term_quotient(rels, n, F):
             free[die] = 0
             coef[die] = ZERO
 
-    mod = [(free[i], coef[i]) for i in xrange(len(free))]
+    mod = [(free[i], coef[i]) for i in range(len(free))]
     misc.verbose("finished",tm)
     return mod
 
@@ -778,7 +778,7 @@ def sparse_2term_quotient(rels, n, F):
 
 ##     ##  The S relations
 ##     already_seen= set([])
-##     for i in xrange(n):
+##     for i in range(n):
 ##         if i in already_seen:
 ##             continue
 ##         j, s = M.apply_S(i)
@@ -796,7 +796,7 @@ def sparse_2term_quotient(rels, n, F):
 ##     if sign != 0:
 ##         SIGN = field(sign)
 ##         already_seen= set([])
-##         for i in xrange(n):
+##         for i in range(n):
 ##             if i in already_seen:
 ##                 continue
 ##             j, s = M.apply_I(i)
@@ -813,7 +813,7 @@ def sparse_2term_quotient(rels, n, F):
 
 ##     ## The T relations
 ##     already_seen = set([])
-##     for i in xrange(n):
+##     for i in range(n):
 ##         if i in already_seen:
 ##             continue
 ##         iT_plus_iTT = M.apply_T(i) + M.apply_TT(i)

@@ -1,8 +1,6 @@
 r"""
 Arithmetic subgroups (finite index subgroups of `{\rm SL}_2(\ZZ)`)
 """
-from __future__ import absolute_import
-
 ################################################################################
 #
 #       Copyright (C) 2009, The Sage Group -- http://www.sagemath.org/
@@ -14,7 +12,8 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #
 ################################################################################
-
+from __future__ import absolute_import
+from six.moves import range
 
 import sage.groups.old as group
 from sage.rings.all import ZZ
@@ -289,36 +288,36 @@ class ArithmeticSubgroup(group.Group):
             sage: reps, gens, l, s = G.todd_coxeter()
             sage: len(reps) == G.index()
             True
-            sage: all(reps[i] * L * ~reps[l[i]] in G for i in xrange(6))
+            sage: all(reps[i] * L * ~reps[l[i]] in G for i in range(6))
             True
-            sage: all(reps[i] * S * ~reps[s[i]] in G for i in xrange(6))
+            sage: all(reps[i] * S * ~reps[s[i]] in G for i in range(6))
             True
 
             sage: G = Gamma0(7)
             sage: reps, gens, l, s = G.todd_coxeter()
             sage: len(reps) == G.index()
             True
-            sage: all(reps[i] * L * ~reps[l[i]] in G for i in xrange(8))
+            sage: all(reps[i] * L * ~reps[l[i]] in G for i in range(8))
             True
-            sage: all(reps[i] * S * ~reps[s[i]] in G for i in xrange(8))
+            sage: all(reps[i] * S * ~reps[s[i]] in G for i in range(8))
             True
 
             sage: G = Gamma1(3)
             sage: reps, gens, l, s = G.todd_coxeter(on_right=False)
             sage: len(reps) == G.index()
             True
-            sage: all(~reps[l[i]] * L * reps[i] in G for i in xrange(8))
+            sage: all(~reps[l[i]] * L * reps[i] in G for i in range(8))
             True
-            sage: all(~reps[s[i]] * S * reps[i] in G for i in xrange(8))
+            sage: all(~reps[s[i]] * S * reps[i] in G for i in range(8))
             True
 
             sage: G = Gamma0(5)
             sage: reps, gens, l, s = G.todd_coxeter(on_right=False)
             sage: len(reps) == G.index()
             True
-            sage: all(~reps[l[i]] * L * reps[i] in G for i in xrange(6))
+            sage: all(~reps[l[i]] * L * reps[i] in G for i in range(6))
             True
-            sage: all(~reps[s[i]] * S * reps[i] in G for i in xrange(6))
+            sage: all(~reps[s[i]] * S * reps[i] in G for i in range(6))
             True
         """
         if G is None:
@@ -353,7 +352,7 @@ class ArithmeticSubgroup(group.Group):
                         y = y*l
                     else:
                         y = l*y
-                    for i in xrange(len(l_wait_back)):
+                    for i in range(len(l_wait_back)):
                         v = l_wait_back[i]
                         if on_right:
                             yy = y*~v
@@ -385,7 +384,7 @@ class ArithmeticSubgroup(group.Group):
                         y = y*s
                     else:
                         y = s*y
-                    for i in xrange(len(s_wait_back)):
+                    for i in range(len(s_wait_back)):
                         v = s_wait_back[i]
                         if on_right:
                             yy = y*~v
@@ -783,7 +782,7 @@ class ArithmeticSubgroup(group.Group):
         vy = lift_to_sl2z(y.numerator(),y.denominator(), 0)
         dy = SL2Z([vy[2], -vy[0], vy[3], -vy[1]])
 
-        for i in xrange(self.index()):
+        for i in range(self.index()):
             # Note that the width of any cusp is bounded above by the index of self.
             # If self is congruence, then the level of self is a much better bound, but
             # this method is written to work with non-congruence subgroups as well,
@@ -819,7 +818,7 @@ class ArithmeticSubgroup(group.Group):
         w = lift_to_sl2z(c.denominator(), c.numerator(), 0)
         g = SL2Z([w[3], w[1], w[2],w[0]])
 
-        for d in xrange(1,1+self.index()):
+        for d in range(1,1+self.index()):
             if g * SL2Z([1,d,0,1]) * (~g) in self:
                 return (g * SL2Z([1,d,0,1]) * (~g), d, 1)
             elif g * SL2Z([-1,-d,0,-1]) * (~g) in self:
@@ -1293,7 +1292,7 @@ class ArithmeticSubgroup(group.Group):
         n = len(l_edges)
         s3_edges = [None] * n
         r_edges = [None] * n
-        for i in xrange(n):
+        for i in range(n):
             ii = s2_edges[l_edges[i]]
             s3_edges[ii] = i
             r_edges[ii] = s2_edges[i]

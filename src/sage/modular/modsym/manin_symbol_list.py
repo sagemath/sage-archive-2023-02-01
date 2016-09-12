@@ -34,7 +34,7 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 import sage.matrix.all
 import sage.modular.cusps as cusps
 import sage.modular.modsym.p1list as p1list
@@ -278,7 +278,7 @@ class ManinSymbolList(Parent):
             sage: m.index(m.symbol_list()[2])
             2
             sage: S = m.symbol_list()
-            sage: all([i == m.index(S[i]) for i in xrange(len(S))])
+            sage: all([i == m.index(S[i]) for i in range(len(S))])
             True
         """
         if x in self._index:
@@ -323,8 +323,8 @@ class ManinSymbolList(Parent):
         try:
             return copy.copy(self.__manin_symbol_list)
         except AttributeError:
-            self.__manin_symbol_list = [self.manin_symbol(i) \
-                                        for i in xrange(len(self))]
+            self.__manin_symbol_list = [self.manin_symbol(i)
+                                        for i in range(len(self))]
         return copy.copy(self.__manin_symbol_list)
 
     list = manin_symbol_list
@@ -484,7 +484,7 @@ class ManinSymbolList_group(ManinSymbolList):
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: m.apply_S(4)
             (40, 1)
-            sage: [m.apply_S(i) for i in xrange(len(m))]
+            sage: [m.apply_S(i) for i in range(len(m))]
             [(37, 1),
             (36, 1),
             (41, 1),
@@ -542,7 +542,7 @@ class ManinSymbolList_group(ManinSymbolList):
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: m.apply_I(4)
             (3, 1)
-            sage: [m.apply_I(i) for i in xrange(10)]
+            sage: [m.apply_I(i) for i in range(10)]
             [(0, 1),
             (1, 1),
             (5, 1),
@@ -577,7 +577,7 @@ class ManinSymbolList_group(ManinSymbolList):
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: m.apply_T(4)
             [(3, 1), (9, -6), (15, 15), (21, -20), (27, 15), (33, -6), (39, 1)]
-            sage: [m.apply_T(i) for i in xrange(10)]
+            sage: [m.apply_T(i) for i in range(10)]
             [[(5, 1), (11, -6), (17, 15), (23, -20), (29, 15), (35, -6), (41, 1)],
             [(0, 1), (6, -6), (12, 15), (18, -20), (24, 15), (30, -6), (36, 1)],
             [(4, 1), (10, -6), (16, 15), (22, -20), (28, 15), (34, -6), (40, 1)],
@@ -620,7 +620,7 @@ class ManinSymbolList_group(ManinSymbolList):
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: m.apply_TT(4)
             [(38, 1)]
-            sage: [m.apply_TT(i) for i in xrange(10)]
+            sage: [m.apply_TT(i) for i in range(10)]
             [[(37, 1)],
             [(41, 1)],
             [(39, 1)],
@@ -1056,7 +1056,7 @@ class ManinSymbolList_character(ManinSymbolList):
             Manin Symbol List of weight 2 for Gamma1(4) with character [-1]
             sage: m.apply_S(4)
             (2, -1)
-            sage: [m.apply_S(i) for i in xrange(len(m))]
+            sage: [m.apply_S(i) for i in range(len(m))]
             [(1, 1), (0, -1), (4, 1), (5, -1), (2, -1), (3, 1)]
         """
         i, u, v = self._symbol_list[j]
@@ -1105,7 +1105,7 @@ class ManinSymbolList_character(ManinSymbolList):
             Manin Symbol List of weight 2 for Gamma1(4) with character [-1]
             sage: m.apply_I(4)
             (2, -1)
-            sage: [m.apply_I(i) for i in xrange(len(m))]
+            sage: [m.apply_I(i) for i in range(len(m))]
             [(0, 1), (1, -1), (4, -1), (3, -1), (2, -1), (5, 1)]
         """
         i, u, v = self._symbol_list[j]
@@ -1138,7 +1138,7 @@ class ManinSymbolList_character(ManinSymbolList):
             Manin Symbol List of weight 2 for Gamma1(4) with character [-1]
             sage: m.apply_T(4)
             [(1, -1)]
-            sage: [m.apply_T(i) for i in xrange(len(m))]
+            sage: [m.apply_T(i) for i in range(len(m))]
             [[(4, 1)], [(0, -1)], [(3, 1)], [(5, 1)], [(1, -1)], [(2, 1)]]
         """
         k = self._weight
@@ -1180,7 +1180,7 @@ class ManinSymbolList_character(ManinSymbolList):
             Manin Symbol List of weight 2 for Gamma1(4) with character [-1]
             sage: m.apply_TT(4)
             [(0, 1)]
-            sage: [m.apply_TT(i) for i in xrange(len(m))]
+            sage: [m.apply_TT(i) for i in range(len(m))]
             [[(1, -1)], [(4, -1)], [(5, 1)], [(2, 1)], [(0, 1)], [(3, 1)]]
         """
         k = self._weight

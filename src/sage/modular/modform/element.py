@@ -13,7 +13,7 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 
 import sage.modular.hecke.element as element
 import sage.rings.all as rings
@@ -301,7 +301,7 @@ class ModularForm_abstract(ModuleElement):
         except AttributeError:
             self.__coefficients = {}
         if isinstance(X, rings.Integer):
-            X = range(1,X+1)
+            X = list(range(1, X + 1))
         Y = [n for n in X   if  not (n in self.__coefficients.keys())]
         v = self._compute(Y)
         for i in range(len(v)):
@@ -950,7 +950,7 @@ class ModularForm_abstract(ModuleElement):
         # utility function for Dirichlet convolution of series
         def dirichlet_convolution(A, B):
             return [sum(A[d-1] * B[n/d - 1] for d in divisors(n))
-                for n in xrange(1, 1 + min(len(A), len(B)))]
+                for n in range(1, 1 + min(len(A), len(B)))]
 
         # The Dirichlet series for \zeta(2 s - 2 k + 2)
         riemann_series = [ n**(weight - 1) if n.is_square() else 0
@@ -1800,7 +1800,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             M = constructor(Gamma1(level), self.weight(), base_ring=R)
         bound = M.sturm_bound() + 1
         S = PowerSeriesRing(R, 'q')
-        f_twist = S([self[i] * chi(i) for i in xrange(bound)], prec=bound)
+        f_twist = S([self[i] * chi(i) for i in range(bound)], prec=bound)
         return M(f_twist)
 
 
@@ -1989,7 +1989,7 @@ class EisensteinSeries(ModularFormElement):
         """
         if prec is None:
             prec = self.parent().prec()
-        F = self._compute(range(prec))
+        F = self._compute(list(range(prec)))
         R = self.parent()._q_expansion_ring()
         return R(F, prec)
 

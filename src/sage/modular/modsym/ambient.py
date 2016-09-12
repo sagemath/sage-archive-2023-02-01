@@ -72,7 +72,7 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 ################################################################################
-
+from six.moves import range
 # Sage packages
 from   sage.misc.search import search
 import sage.misc.latex as latex
@@ -641,7 +641,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         # v, c = arith.continued_fraction_list(alpha._rational_(), partial_convergents=True)
         cf = alpha._rational_().continued_fraction()
         v = list(cf)
-        c = [(cf.p(k),cf.q(k)) for k in xrange(len(cf))]
+        c = [(cf.p(k),cf.q(k)) for k in range(len(cf))]
         a = self(0)
         zero = rings.ZZ(0)
         one = rings.ZZ(1)
@@ -3818,7 +3818,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
             sage: M = ModularSymbols(e^2,2)
             sage: M.dimension()
             15
-            sage: M._hecke_images(8,range(1,5))
+            sage: M._hecke_images(8,list(range(1,5)))
             [ 0  0  0  0  0  0  0  0  1  0  0  0  0  0  0]
             [ 0  0  0  0  0  0  0  1  0  0  0  0  1  0  0]
             [ 0  1  0  2  0 -1  1  1  0  0  0  0  0  0  0]

@@ -75,7 +75,7 @@ cdef extern from "pyx_visit.h":
 #must be a unique sentinel. We could reuse the "dummy" sentinel
 #that is defined in python's dictobject.c
 
-cdef object dummy_object = PyBytes_FromString("dummy")
+cdef object dummy_object = PyBytes_FromString(b"dummy")
 cdef PyObject* dummy = <PyObject*><void *>dummy_object
 
 cdef struct mono_cell:

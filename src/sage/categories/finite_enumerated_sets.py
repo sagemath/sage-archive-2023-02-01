@@ -95,6 +95,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             """
             return int(self.cardinality())
 
+        @cached_method
         def _cardinality_from_iterator(self, *ignored_args, **ignored_kwds):
             """
             Return the cardinality of ``self``.
@@ -119,7 +120,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 sage: class FreshExample(Example): pass
                 sage: C = FreshExample(); C.rename("FreshExample")
                 sage: C.cardinality
-                <bound method FreshExample_with_category._cardinality_from_iterator of FreshExample>
+                Cached version of <function _cardinality_from_iterator at...
 
             This method shall return an ``Integer``; we test this
             here, because :meth:`_test_enumerated_set_iter_cardinality`
@@ -166,6 +167,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
         #Set cardinality to the default implementation
         cardinality = _cardinality_from_iterator
 
+        @cached_method
         def _cardinality_from_list(self, *ignored_args, **ignored_kwds):
             """
             The cardinality of ``self``.
@@ -325,7 +327,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 sage: C.unrank
                 <bound method FreshExample_with_category._unrank_from_iterator of FreshExample>
                 sage: C.cardinality
-                <bound method FreshExample_with_category._cardinality_from_iterator of FreshExample>
+                Cached version of <function _cardinality_from_iterator at...
                 sage: l1 = C.list(); l1
                 [1, 2, 3]
                 sage: C.list
@@ -333,7 +335,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 sage: C.unrank
                 <bound method FreshExample_with_category._unrank_from_list of FreshExample>
                 sage: C.cardinality
-                <bound method FreshExample_with_category._cardinality_from_list of FreshExample>
+                Cached version of <function _cardinality_from_list at...
                 sage: C.__iter__
                 <bound method FreshExample_with_category._iterator_from_list of FreshExample>
 

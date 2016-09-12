@@ -857,8 +857,8 @@ cdef class gen(gen_auto):
 
         elif isinstance(n, slice):
             l = glength(self.g)
-            start,stop,step = n.indices(l)
-            inds = range(start, stop, step)
+            start, stop, step = n.indices(l)
+            inds = xrange(start, stop, step)
             k = len(inds)
             # fast exit
             if k==0:
@@ -1059,7 +1059,7 @@ cdef class gen(gen_auto):
 
             elif isinstance(n, slice):
                 l = glength(self.g)
-                inds = range(*n.indices(l))
+                inds = xrange(*n.indices(l))
                 k = len(inds)
                 if k > len(y):
                     raise ValueError("attempt to assign sequence of size %s to slice of size %s" % (len(y), k))

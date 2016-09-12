@@ -238,7 +238,7 @@ def _my_subgraph(G, vertices, relabel=False, return_map=False):
         return (H,{}) if (relabel and return_map) else H
 
     if relabel:
-        map = dict(zip(iter(vertices), range(len(vertices))))
+        map = dict(zip(iter(vertices), xrange(len(vertices))))
     else:
         map = dict(zip(iter(vertices), iter(vertices)))
 

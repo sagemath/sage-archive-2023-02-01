@@ -975,7 +975,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
         REFERENCES:
 
-        [BSS]_
+        [BSS2009]_
 
         EXAMPLES::
 

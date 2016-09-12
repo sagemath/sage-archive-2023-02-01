@@ -980,7 +980,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         Calls GAP function ``DirectProduct``, which returns the direct
         product of a list of groups of any representation.
 
-        From [JohnsonPG90]_ (pg 45, proposition 4): If `G`, `H` are groups
+        From [Joh1990]_ (pg 45, proposition 4): If `G`, `H` are groups
         presented by `\langle X \mid R \rangle` and `\langle Y \mid S \rangle`
         respectively, then their direct product has the presentation
         `\langle X, Y \mid R, S, [X, Y] \rangle` where `[X, Y]` denotes the
@@ -1064,11 +1064,6 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         AUTHORS:
 
         - Davis Shurbert (2013-07-20): initial version
-
-        REFERENCES:
-
-        .. [JohnsonPG90] \D.L. Johnson. *Presentations of Groups*.
-           Cambridge University Press. (1990).
         """
         from sage.groups.free_group import FreeGroup, _lexi_gen
 

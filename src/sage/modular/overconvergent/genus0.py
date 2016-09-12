@@ -6,8 +6,7 @@ This module implements computations of Hecke operators and `U_p`-eigenfunctions
 on `p`-adic overconvergent modular forms of tame level 1, where `p` is one of
 the primes `\{2, 3, 5, 7, 13\}`, using the algorithms described in [Loe2007]_.
 
-.. [Loe2007] David Loeffler, *Spectral expansions of overconvergent modular functions*,
-   Int. Math. Res. Not 2007 (050).  `Arxiv preprint <http://uk.arxiv.org/abs/math/0701168>`_.
+- [Loe2007]_
 
 AUTHORS:
 

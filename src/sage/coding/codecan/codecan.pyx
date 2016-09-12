@@ -51,6 +51,10 @@ AUTHORS:
 
 - Thomas Feulner (2012-11-15): initial version
 
+REFERENCES:
+
+- [Feu2009]
+
 EXAMPLES:
 
 Get the canonical form of the Simplex code::

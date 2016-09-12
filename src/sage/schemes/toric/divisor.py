@@ -1721,7 +1721,7 @@ class ToricDivisor_generic(Divisor_generic):
         cohomology. For toric divisors, the local sections can be
         chosen to be monomials (instead of general homogeneous
         polynomials), this is the reason for the extra grading by
-        `m\in M`. General refrences would be [Fulton]_, [CLS]_. Here
+        `m\in M`. General refrences would be [Fu1993]_, [CLS]_. Here
         are some salient features of our implementation:
 
         * First, a finite set of `M`-lattice points is identified that

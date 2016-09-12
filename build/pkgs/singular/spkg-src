@@ -94,6 +94,11 @@ if [ ! -d "singular-$DOTVERSION" ]; then
 fi
 mv "singular-$DOTVERSION" latest
 
+# Patching
+for patch in "${SAGE_ROOT}"/build/pkgs/singular/patches/src/*.patch; do
+    patch -p0 <"$patch"
+done
+
 # We need to run autoreconf -fiv in xalloc directory for debug builds
 # To prevent libtool to choke because different versions got used
 # we run it everywhere

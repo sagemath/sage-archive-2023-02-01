@@ -269,7 +269,6 @@ Methods
 -------
 """
 from __future__ import print_function
-from six.moves import range
 
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"

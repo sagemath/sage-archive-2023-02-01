@@ -60,7 +60,6 @@ Now it takes much less than a second::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 import types
 cimport cython

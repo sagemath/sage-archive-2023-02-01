@@ -17,7 +17,6 @@ AUTHORS:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'

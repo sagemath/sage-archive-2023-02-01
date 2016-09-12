@@ -39,7 +39,6 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 #                         http://www.gnu.org/licenses/
 #**************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
 
 include "sage/data_structures/bitset.pxi"
 

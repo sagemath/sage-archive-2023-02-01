@@ -12,7 +12,6 @@ Low level part of the interface to Fokko Ducloux's Coxeter 3 library
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from .decl cimport *
 

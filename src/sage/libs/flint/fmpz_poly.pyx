@@ -17,8 +17,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
-
 include 'sage/ext/stdsage.pxi'
 
 from sage.misc.long cimport pyobject_to_long

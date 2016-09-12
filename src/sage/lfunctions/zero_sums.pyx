@@ -18,7 +18,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
 
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer_ring import ZZ

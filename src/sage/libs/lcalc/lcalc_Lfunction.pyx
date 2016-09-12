@@ -20,8 +20,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
-
 include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 

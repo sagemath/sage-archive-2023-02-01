@@ -22,8 +22,6 @@
 #    2006-01: initial version (based on code by William Stein)
 #
 ##############################################################################
-from six.moves import range
-
 include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'

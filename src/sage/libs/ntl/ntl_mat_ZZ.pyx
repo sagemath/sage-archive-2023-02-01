@@ -12,8 +12,6 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
-
 include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'

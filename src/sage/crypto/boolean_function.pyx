@@ -27,7 +27,6 @@ AUTHOR:
 - Yann Laigle-Chapuy (2009-08-28): first implementation
 
 """
-from six.moves import range
 from libc.string cimport memcpy
 
 from sage.structure.sage_object cimport SageObject

@@ -45,8 +45,6 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
-
 include "cysignals/memory.pxi"
 from cpython.string cimport *
 from libc.math cimport exp, floor, log, pow, sqrt

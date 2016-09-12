@@ -3023,11 +3023,14 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             ...
             TypeError: algorithm NTL:LLL_QD not supported
 
-        .. NOTE::
+        ..  NOTE::
 
-          See ``ntl.mat_ZZ`` or ``fpylll.fplll.lll`` for details on
-          the used algorithms.
+            See ``ntl.mat_ZZ`` or ``fpylll.fplll.lll`` for details on
+            the used algorithms.
 
+            Albeit LLL is a deterministic algorithm, the output for different
+            implementations and on CPUs (32-bit vs. 64-bit) may vary, while
+            still being correct.
         """
         if self.ncols() == 0 or self.nrows() == 0:
             verbose("Trivial matrix, nothing to do")

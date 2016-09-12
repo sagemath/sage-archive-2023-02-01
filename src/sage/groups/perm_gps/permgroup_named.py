@@ -1800,7 +1800,7 @@ class TransitiveGroup(PermutationGroup_unique):
             [(1,2,3,4,5), (1,4)(2,3)]
 
             sage: G.category()                         # optional - database_gap
-            Category of finite permutation groups
+            Category of finite enumerated permutation groups
 
         .. warning:: this follows GAP's naming convention of indexing
           the transitive groups starting from ``1``::
@@ -2133,7 +2133,7 @@ class PrimitiveGroup(PermutationGroup_unique):
         sage: G.gens()                              # optional - database_gap
         [(2,4)(3,5), (1,2,3,5,4)]
         sage: G.category()                          # optional - database_gap
-        Category of finite permutation groups
+        Category of finite enumerated permutation groups
 
     .. warning::
 

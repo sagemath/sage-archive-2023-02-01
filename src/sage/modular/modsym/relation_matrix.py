@@ -216,7 +216,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
 
     EXAMPLE::
 
-        sage: from sage.modular.modsym.relation_matrix import *
+        sage: from sage.modular.modsym.relation_matrix import sparse_2term_quotient, T_relation_matrix_wtk_g0
         sage: L = sage.modular.modsym.manin_symbol_list.ManinSymbolList_gamma_h(GammaH(36, [17,19]), 2)
         sage: modS = sparse_2term_quotient(modS_relations(L), 216, QQ)
         sage: T_relation_matrix_wtk_g0(L, modS, QQ, False)
@@ -286,7 +286,7 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
 
     EXAMPLE::
 
-        sage: from sage.modular.modsym.relation_matrix import *
+        sage: from sage.modular.modsym.relation_matrix import sparse_2term_quotient, T_relation_matrix_wtk_g0, gens_to_basis_matrix
         sage: L = sage.modular.modsym.manin_symbol_list.ManinSymbolList_gamma1(4, 3)
         sage: modS = sparse_2term_quotient(modS_relations(L), 24, GF(3))
         sage: gens_to_basis_matrix(L, T_relation_matrix_wtk_g0(L, modS, GF(3), 24), modS, GF(3), True)

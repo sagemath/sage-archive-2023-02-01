@@ -15,7 +15,7 @@ Arithmetic subgroups (finite index subgroups of `{\rm SL}_2(\ZZ)`)
 from __future__ import absolute_import
 from six.moves import range
 
-from sage.groups.old import Group as group
+from sage.groups.old import Group
 from sage.rings.all import ZZ
 from sage.arith.all import lcm
 from sage.misc.cachefunc import cached_method

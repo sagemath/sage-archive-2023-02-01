@@ -5914,13 +5914,14 @@ class FinitePoset(UniqueRepresentation, Parent):
         Return the chain polynomial of the poset.
 
         The coefficient of `q^k` is the number of chains of `k`
-        elements in the poset.
+        elements in the poset. List of coefficients of this polynomial
+        is also called a *f-vector* of the poset.
 
         .. note::
 
             This is not what has been called the chain polynomial
             in [St1986]_. The latter is identical with the order
-            polynomial is SageMath (:meth:`order_polynomial`).
+            polynomial in SageMath (:meth:`order_polynomial`).
 
         EXAMPLES::
 

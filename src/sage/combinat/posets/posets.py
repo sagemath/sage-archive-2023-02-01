@@ -5789,7 +5789,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         r"""
         Return the flag `h`-polynomial of the poset.
 
-        The poset is expacted to be bounded and ranked.
+        The poset is expected to be bounded and ranked.
 
         If `P` is a bounded ranked poset whose maximal element has
         rank `n` (where the minimal element is set to have rank `0`),

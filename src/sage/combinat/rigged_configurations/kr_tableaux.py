@@ -342,7 +342,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         - ``weight`` -- the weight
         - ``classical_weight`` -- the classical weight
 
-        If no arugments are specified, then return the unique module generator
+        If no arguments are specified, then return the unique module generator
         of classical weight `s \Lambda_r`.
 
         EXAMPLES::

@@ -50,6 +50,9 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
     .. SEEALSO::
 
        - :func:`Sets().WithRealizations <sage.categories.with_realizations.WithRealizations>`
+       - the `Implementing Algebraic Structures
+         <../../../../../thematic_tutorials/tutorial-implementing-algebraic-structures>`_
+         thematic tutorial.
 
     EXAMPLES::
 
@@ -167,29 +170,27 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
         assert(R in Rings())
         self._base = R # Won't be needed when CategoryObject won't override anymore base_ring
         self._S = S
-        Parent.__init__(self, category = Algebras(R).WithRealizations())
+        Parent.__init__(self, category = Algebras(R).Commutative().WithRealizations())
 
         # Initializes the bases and change of bases of ``self``
 
-        category   = self.Bases()
         F   = self.F()
         In  = self.In()
         Out = self.Out()
 
-        # TODO: Have module_morphism use keys instead of cmp
-        #   and remove the call to cmp_to_key here.
-        key_cmp = lambda x,y: cmp(self.indices_key(x), self.indices_key(y))
+        category = self.Bases()
+        key = lambda x: self.indices_key(x)
         In_to_F = In.module_morphism(F.sum_of_monomials * Subsets,
-                                     codomain = F, category = category,
-                                     triangular = 'upper', unitriangular = True,
-                                     cmp = key_cmp)
+                                     codomain=F, category=category,
+                                     triangular='upper', unitriangular=True,
+                                     key=key)
         In_to_F   .register_as_coercion()
         (~In_to_F).register_as_coercion()
 
         F_to_Out = F.module_morphism(Out.sum_of_monomials * self.supsets,
-                                     codomain = Out, category = category,
-                                     triangular = 'lower', unitriangular = True,
-                                     cmp = key_cmp)
+                                     codomain=Out, category=category,
+                                     triangular='lower', unitriangular=True,
+                                     key=key)
         F_to_Out   .register_as_coercion()
         (~F_to_Out).register_as_coercion()
 
@@ -318,12 +319,16 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
                 sage: C = A.Bases(); C
                 Category of bases of The subset algebra of {1, 2, 3} over Rational Field
                 sage: C.super_categories()
-                [Join of Category of algebras over Rational Field and Category of realizations of unital magmas,
-                 Category of realizations of The subset algebra of {1, 2, 3} over Rational Field,
-                 Category of algebras with basis over Rational Field]
+                [Category of realizations of The subset algebra of {1, 2, 3} over Rational Field,
+                 Join of Category of algebras with basis over Rational Field and
+                         Category of commutative algebras over Rational Field and
+                         Category of realizations of unital magmas]
             """
-            R = self.base().base_ring()
-            return [Algebras(R).Realizations(), self.base().Realizations(), AlgebrasWithBasis(R)]
+            A = self.base()
+            category = Algebras(A.base_ring()).Commutative()
+            return [A.Realizations(),
+                    category.Realizations().WithBasis()]
+
 
         class ParentMethods:
 

@@ -1,6 +1,8 @@
 """
 Hyperbolic Functions
 """
+from __future__ import division
+
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.rings.infinity import Infinity
 from sage.symbolic.expression import Expression
@@ -235,6 +237,8 @@ class Function_coth(GinacFunction):
             1.0037418731973213
             sage: RR(coth(pi))
             1.00374187319732
+            sage: coth(complex(1, 2))  # abs tol 1e-15
+            (0.8213297974938518+0.17138361290918508j)
 
             sage: bool(diff(coth(x), x) == diff(1/tanh(x), x))
             True
@@ -254,7 +258,7 @@ class Function_coth(GinacFunction):
             sage: coth(a)
             array([ 1.03731472,  1.00496982,  1.00067115])
         """
-        return 1 / tanh(x)
+        return 1.0 / tanh(x)
 
 coth = Function_coth()
 
@@ -305,7 +309,7 @@ class Function_sech(GinacFunction):
             sage: sech(a)
             array([ 0.26580223,  0.09932793,  0.03661899])
         """
-        return 1 / cosh(x)
+        return 1.0 / cosh(x)
 
 sech = Function_sech()
 
@@ -354,7 +358,7 @@ class Function_csch(GinacFunction):
             sage: csch(a)
             array([ 0.27572056,  0.09982157,  0.03664357])
         """
-        return 1 / sinh(x)
+        return 1.0 / sinh(x)
 
 csch = Function_csch()
 
@@ -437,6 +441,8 @@ class Function_arccosh(GinacFunction):
             1.3169578969248168
             sage: cosh(float(arccosh(2)))
             2.0
+            sage: arccosh(complex(1, 2))  # abs tol 1e-15
+            (1.5285709194809982+1.1437177404024204j)
 
         .. warning::
 
@@ -646,7 +652,7 @@ class Function_arcsech(GinacFunction):
             sage: import numpy
             sage: a = numpy.linspace(0,1,3)
             sage: arcsech(a)
-            doctest:...: RuntimeWarning: divide by zero encountered in divide
+            doctest:...: RuntimeWarning: divide by zero encountered in ...divide
             array([       inf,  1.3169579,  0.       ])
         """
         return arccosh(1.0 / x)
@@ -695,7 +701,7 @@ class Function_arccsch(GinacFunction):
             sage: import numpy
             sage: a = numpy.linspace(0,1,3)
             sage: arccsch(a)
-            doctest:...: RuntimeWarning: divide by zero encountered in divide
+            doctest:...: RuntimeWarning: divide by zero encountered in ...divide
             array([        inf,  1.44363548,  0.88137359])
         """
         return arcsinh(1.0 / x)

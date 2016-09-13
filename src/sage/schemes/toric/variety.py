@@ -340,7 +340,6 @@ from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.toric.homset import SchemeHomset_points_toric_field
 from sage.structure.category_object import certify_names
 from sage.categories.fields import Fields
-from sage.misc.cachefunc import ClearCacheOnPickle
 _Fields = Fields()
 
 
@@ -531,7 +530,7 @@ def AffineToricVariety(cone, *args, **kwds):
     return ToricVariety(fan, *args, **kwds)
 
 
-class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
+class ToricVariety_field(AmbientSpace):
     r"""
     Construct a toric variety associated to a rational polyhedral fan.
 
@@ -759,7 +758,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         return r"\mathbb{X}_{%s}" % latex(self.fan())
 
     def _latex_generic_point(self, coordinates=None):
-        """
+        r"""
         Return a LaTeX representation of a point of ``self``.
 
         INPUT:
@@ -769,7 +768,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
 
         OUTPUT:
 
-        - string.
+        string.
 
         EXAMPLES::
 
@@ -1185,7 +1184,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             sage: P1xP1.inject_coefficients()
             Defining a, b
 
-        We check that we can use names ``a`` and ``b``, Trac #10498 is fixed::
+        We check that we can use names ``a`` and ``b``, :trac:`10498` is fixed::
 
             sage: a + b
             a + b
@@ -1505,7 +1504,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             * The ``i``-th entry in each Mori vector is the intersection
               number of the curve corresponding to the generator of the
               ``i``-th ray of the fan with the corresponding divisor class.
-              The very last entry is associated to the orgin of the fan
+              The very last entry is associated to the origin of the fan
               lattice.
 
             * The Mori vectors are also known as the gauged linear sigma model
@@ -3500,7 +3499,7 @@ class CohomologyClass(QuotientRingElement):
             cohomology class without constant term can be
             exponentiated.
 
-        OUTPUT
+        OUTPUT:
 
         The cohomology class `\exp(` ``self`` `)` if the constant part
         vanishes, otherwise a ``ValueError`` is raised.

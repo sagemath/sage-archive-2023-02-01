@@ -44,30 +44,31 @@ TESTS::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import math
 
 import sage.rings.real_double
 import sage.rings.complex_double
 
-from matrix cimport Matrix
+from .matrix cimport Matrix
 from sage.structure.element cimport ModuleElement,Vector
-from constructor import matrix
+from .constructor import matrix
 from sage.modules.free_module_element import vector
 cimport sage.structure.element
-from matrix_space import MatrixSpace
+from .matrix_space import MatrixSpace
 from sage.misc.decorators import rename_keyword
 
 cimport numpy as cnumpy
 
-numpy=None
-scipy=None
+numpy = None
+scipy = None
 
 # This is for the Numpy C API to work
 cnumpy.import_array()
 
 
-cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
+cdef class Matrix_double_dense(Matrix_dense):
     """
     Base class for matrices over the Real Double Field and the Complex
     Double Field.  These are supposed to be fast matrix operations
@@ -102,7 +103,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         """
         Set up a new matrix
         """
-        matrix_dense.Matrix_dense.__init__(self,parent)
+        Matrix_dense.__init__(self,parent)
         return
 
     def __create_matrix__(self):
@@ -2466,7 +2467,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.is_unitary(algorithm='orthonormal')
             False
 
-        The QR decoposition will produce a unitary matrix as Q and the
+        The QR decomposition will produce a unitary matrix as Q and the
         SVD decomposition will create two unitary matrices, U and V. ::
 
             sage: A = matrix(CDF, [[   1 - I,   -3*I,  -2 + I,        1, -2 + 3*I],
@@ -3671,7 +3672,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         if dtype is None or self._numpy_dtype == np.dtype(dtype):
             return self._matrix_numpy.copy()
         else:
-            return matrix_dense.Matrix_dense.numpy(self, dtype=dtype)
+            return Matrix_dense.numpy(self, dtype=dtype)
 
     def _replace_self_with_numpy(self,numpy_matrix):
         """
@@ -3758,7 +3759,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A=matrix(CDF, 2, [1,2+I,3*I,4]); A
             [        1.0 2.0 + 1.0*I]
             [      3.0*I         4.0]
-            sage: A.exp()  # tol 1e-14
+            sage: A.exp()  # tol 1.1e-14
             [-19.614602953804912 + 12.517743846762578*I   3.7949636449582176 + 28.88379930658099*I]
             [ -32.383580980922254 + 21.88423595789845*I   2.269633004093535 + 44.901324827684824*I]
 

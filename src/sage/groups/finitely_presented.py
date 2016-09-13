@@ -571,7 +571,7 @@ class RewritingSystem(object):
 
     def rules(self):
         """
-        Return the rules that form the rewritig system.
+        Return the rules that form the rewriting system.
 
         OUTPUT:
 

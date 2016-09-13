@@ -19,7 +19,7 @@ AUTHORS:
 
 - Martin Albrecht (2007-09): initial version
 
-- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+- Niles Johnson (2010-08): (:trac:`3893`) ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
 EXAMPLES:
 
@@ -312,6 +312,7 @@ REFERENCES:
 """
 # python3
 from __future__ import division, print_function
+from __future__ import absolute_import
 
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.rings.integer_ring import ZZ
@@ -327,7 +328,7 @@ from sage.misc.flatten import flatten
 from sage.modules.vector_modn_dense import Vector_modn_dense
 
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
-from mpolynomialsystemgenerator import MPolynomialSystemGenerator
+from .mpolynomialsystemgenerator import MPolynomialSystemGenerator
 
 from sage.rings.polynomial.term_order import TermOrder
 

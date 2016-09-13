@@ -195,6 +195,7 @@ AUTHORS:
 - Darij Grinberg (2013) Sym over rings that are not characteristic 0
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Anne Schilling <anne at math.ucdavis.edu>
@@ -2527,7 +2528,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: p([2,1]).scalar(q([1,1,1]))
             0
         """
-        import dual
+        from . import dual
         if scalar is None:
             if basis_name is None and prefix is None:
                 return self._dual_basis_default()
@@ -4950,7 +4951,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             conditions like ``lambda part: max(part) < 3`` which
             would require extra work to handle the empty partition.
         """
-        import classical
+        from . import classical
         parent = self.parent()
         resPR = PolynomialRing(parent.base_ring(), n, alphabet)
         if self == parent.zero():

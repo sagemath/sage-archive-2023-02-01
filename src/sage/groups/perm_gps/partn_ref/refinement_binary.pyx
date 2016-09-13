@@ -27,6 +27,8 @@ from __future__ import print_function
 include 'data_structures_pyx.pxi' # includes bitsets
 
 from sage.matrix.matrix import is_Matrix
+from .double_coset cimport double_coset
+
 
 cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
 

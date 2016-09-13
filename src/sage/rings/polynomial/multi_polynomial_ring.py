@@ -357,7 +357,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: P('pi')
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce pi (<class 'sage.symbolic.constants.Pi'>) to Rational
+            TypeError: unable to convert pi to a rational
 
         Check that it is possible to convert strings to iterated
         polynomial rings (see :trac:`13327`)::

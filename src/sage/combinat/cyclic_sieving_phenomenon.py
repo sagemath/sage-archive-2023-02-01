@@ -64,7 +64,6 @@ def CyclicSievingPolynomial( L, cyc_act=None, order=None, get_order=False):
         sage: CyclicSievingPolynomial( S42, cyc_act, order=8, get_order=True )
         [q^6 + 2*q^4 + q^2 + 2, 8]
     """
-
     if cyc_act:
         orbits = orbit_decomposition( L, cyc_act )
     else:
@@ -76,15 +75,13 @@ def CyclicSievingPolynomial( L, cyc_act=None, order=None, get_order=False):
 
     orbit_sizes = {}
     for orbit in orbits:
-        l = len( orbit )
+        l = len(orbit)
         if l in orbit_sizes:
-            orbit_sizes[ l ] += 1
+            orbit_sizes[l] += 1
         else:
-            orbit_sizes[ l ] = 1
+            orbit_sizes[l] = 1
 
-    keys = orbit_sizes.keys()
-
-    n = lcm( keys )
+    n = lcm(list(orbit_sizes))
 
     if order:
         if order.mod(n) != 0:
@@ -94,17 +91,18 @@ def CyclicSievingPolynomial( L, cyc_act=None, order=None, get_order=False):
 
     for i in range(n):
         if i == 0:
-            j = sum( orbit_sizes[ l ] for l in keys )
+            j = sum(orbit_sizes.values())
         else:
-            j = sum( orbit_sizes[ l ] for l in keys if ZZ(i).mod(n/l) == 0 )
+            j = sum(orbit_sizes[l] for l in orbit_sizes if ZZ(i).mod(n/l) == 0)
         p += j*q**i
 
     p = p(q**ZZ(order/n))
 
     if get_order:
-        return [p,order]
+        return [p, order]
     else:
         return p
+
 
 def CyclicSievingCheck( L, cyc_act, f, order=None ):
     """

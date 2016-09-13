@@ -800,7 +800,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
                             # found some elements of order 'order'
                             # if an element of Aut_{F_p} has been lifted to QQ
                             # remove that element from Aut_{F_p} so we don't
-                            # attempt to lift that element again unecessarily
+                            # attempt to lift that element again unnecessarily
                             automorphisms=remove_redundant_automorphisms(automorphisms,
                                 orderelts, primepowers, temp)
                             if order == 4: #have some elements of order 4
@@ -1032,7 +1032,7 @@ def rational_function_coerce(rational_function, sigma, S_polys):
 
     INPUT:
 
-    - ``rational_funtion``-- rational function with coefficients in `R`.
+    - ``rational_function``-- rational function with coefficients in `R`.
 
     - ``sigma`` -- a ring homomorphism sigma: `R` -> ``S_polys``.
 

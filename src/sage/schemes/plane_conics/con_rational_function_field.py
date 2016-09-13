@@ -39,6 +39,7 @@ Points can be found using :meth:`has_rational_point`::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import division
+from __future__ import absolute_import
 
 from sage.rings.all import PolynomialRing
 from sage.matrix.constructor import diagonal_matrix, matrix, block_matrix
@@ -241,7 +242,7 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             (True,
              ((-2/117*t^8 + 304/1053*t^7 + 40/117*t^6 - 1/27*t^5 - 110/351*t^4 - 2/195*t^3 + 11/351*t^2 + 1/117)/(t^4 + 2/39*t^3 + 4/117*t^2 + 2/39*t + 14/39) : -5/3*t^4 + 19*t^3 : 1))
         """
-        from constructor import Conic
+        from .constructor import Conic
         
         if read_cache:
             if self._rational_point is not None:

@@ -17,6 +17,7 @@ AUTHORS:
 #*****************************************************************************
 # python3
 from __future__ import division, print_function
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
 from copy import copy
@@ -825,7 +826,7 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
             sage: mut_type.standard_quiver()
             Quiver on 12 vertices of type [ ['A', 3], ['B', 3], ['X', 6] ]
         """
-        from quiver import ClusterQuiver
+        from .quiver import ClusterQuiver
         Q = ClusterQuiver(self._digraph)
         Q._mutation_type = self
         return Q
@@ -2238,7 +2239,7 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
         sage: save_quiver_data(2,up_to=False, verbose=False) # indirect doctest
     """
     import os.path
-    import cPickle
+    from six.moves import cPickle
     data = {}
     possible_types = ['Classical', 'ClassicalExceptional', 'Exceptional']
     if types not in possible_types:

@@ -26,7 +26,7 @@ echo "Deleting $SAGE_LOCAL/lib/python/site-packages/giacpy_sage*"
 rm -f "$SAGE_LOCAL"/lib/python/site-packages/giacpy_sage*
 
 
-sage setup.py install
+$PIP_INSTALL .
 
 if [ $? -ne 0 ]; then
     exit 1

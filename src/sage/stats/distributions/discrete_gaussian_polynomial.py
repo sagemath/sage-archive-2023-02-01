@@ -16,11 +16,12 @@ EXAMPLE::
     sage: from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianDistributionPolynomialSampler
     sage: sigma = 3.0; n=1000
     sage: l = [DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], 64, sigma)() for _ in xrange(n)]
-    sage: l = map(lambda f: vector(f).norm().n(), l)
+    sage: l = [vector(f).norm().n() for f in l]
     sage: mean(l), sqrt(64)*sigma
     (23.83..., 24.0...)
 
 """
+from __future__ import absolute_import
 #******************************************************************************
 #
 #                        DGS - Discrete Gaussian Samplers
@@ -54,7 +55,7 @@ EXAMPLE::
 #*****************************************************************************/
 
 from sage.rings.all import RealField, RR, ZZ
-from discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
+from .discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
 from sage.structure.sage_object import SageObject
 
 class DiscreteGaussianDistributionPolynomialSampler(SageObject):

@@ -791,4 +791,3 @@ sage: G2 = SymQ3.AffineGrothendieckPolynomial([2],6)
 sage: (G1*G2).lift().scalar(Kks3[3,1])
 -1
 """
-

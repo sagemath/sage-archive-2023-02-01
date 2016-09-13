@@ -117,11 +117,12 @@ class CartesianProduct(UniqueRepresentation, Parent):
             ...
             ValueError: (1, 3, 4) should be of length 2
         """
+        from builtins import zip
         x = tuple(x)
         if len(x) != len(self._sets):
             raise ValueError(
                 "{} should be of length {}".format(x, len(self._sets)))
-        x = tuple(c(xx) for c,xx in itertools.izip(self._sets,x))
+        x = tuple(c(xx) for c, xx in zip(self._sets, x))
         return self.element_class(self, x)
 
     def _repr_(self):
@@ -342,6 +343,19 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 1
             """
             return iter(self.value)
+
+        def __len__(self):
+            r"""
+            Return the number of factors in the cartesian product from which ``self`` comes.
+
+            EXAMPLES::
+
+                sage: C = cartesian_product([ZZ, QQ, CC])
+                sage: e = C.random_element()
+                sage: len(e)
+                3
+            """
+            return len(self.value)
 
         def cartesian_factors(self):
             r"""

@@ -129,10 +129,10 @@ from sage.numerical.mip import MixedIntegerLinearProgram
 
 from copy import copy
 import collections
-import copy_reg
+from six.moves import copyreg
 import os
 import subprocess
-import StringIO
+from six import StringIO
 from functools import reduce
 
 
@@ -293,7 +293,7 @@ def LatticePolytope(data, compute_vertices=True, n=0, lattice=None):
         skip_palp_matrix(f, n)
         data = read_palp_matrix(data)
         f.close()
-    if isinstance(data, (file, StringIO.StringIO)):
+    if isinstance(data, (file, StringIO)):
         data = read_palp_matrix(data)
     if not is_PointCollection(data) and not isinstance(data, (list, tuple)):
         try:
@@ -324,7 +324,7 @@ def LatticePolytope(data, compute_vertices=True, n=0, lattice=None):
     return LatticePolytopeClass(data, compute_vertices)
 
 
-copy_reg.constructor(LatticePolytope)   # "safe for unpickling"
+copyreg.constructor(LatticePolytope)   # "safe for unpickling"
 
 
 def ReflexivePolytope(dim, n):
@@ -760,7 +760,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: "_faces" in o.__dict__
             True
 
-        Check that Trac 8934 is fixed::
+        Check that :trac:`8934` is fixed::
 
             sage: p = LatticePolytope([(1,0,0), (0,1,0), (0,0,0),
             ...         (-1,0,0), (0,-1,0), (0,0,0), (0,0,0)])
@@ -1196,7 +1196,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             (2, 2, 3)
         """
         if isinstance(data, str):
-            f = StringIO.StringIO(data)
+            f = StringIO(data)
             self._read_equations(f)
             f.close()
             return
@@ -1293,7 +1293,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             ValueError: Cannot read face structure for a polytope constructed as polar, use _compute_faces!
         """
         if isinstance(data, str):
-            f = StringIO.StringIO(data)
+            f = StringIO(data)
             self._read_faces(f)
             f.close()
             return
@@ -1368,7 +1368,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             ]
         """
         if isinstance(data, str):
-            f = StringIO.StringIO(data)
+            f = StringIO(data)
             self._read_nef_partitions(f)
             f.close()
             return
@@ -1924,7 +1924,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: o.distances([1,2,sqrt(2)])
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert sqrt(2) to a rational
+            TypeError: unable to convert sqrt(2) to an element of Rational Field
 
         Now we create a non-spanning polytope::
 
@@ -2333,7 +2333,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             M(0, 1)
             in 2-d lattice M
 
-        ... or you can see indices of the vertices of the orginal polytope that
+        ... or you can see indices of the vertices of the original polytope that
         correspond to the above ones::
 
             sage: face.ambient_vertex_indices()
@@ -3701,7 +3701,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             None
 
         Now we make sure that the origin of non-full-dimensional polytopes can
-        be identified correctly (Trac #10661)::
+        be identified correctly (:trac:`10661`)::
 
             sage: LatticePolytope([(1,0,0), (-1,0,0)]).origin()
             2
@@ -5823,7 +5823,7 @@ def _read_nef_x_partitions(data):
         [[2, 4, 5], [3, 4, 5], [4, 5]]
     """
     if isinstance(data, str):
-        f = StringIO.StringIO(data)
+        f = StringIO(data)
         partitions = _read_nef_x_partitions(f)
         f.close()
         return partitions
@@ -6411,7 +6411,7 @@ def read_palp_matrix(data, permutation=False):
         [2 4 6]
     """
     if isinstance(data,str):
-        f = StringIO.StringIO(data)
+        f = StringIO(data)
         mat = read_palp_matrix(f, permutation=permutation)
         f.close()
         return mat

@@ -114,9 +114,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             ...
             ValueError: [0, 0, 0, 0] does not define a valid point since all entries are 0
 
-        ::
-
-        It is possible to avoid the possibly time consuming checks, but be careful!!
+        It is possible to avoid the possibly time-consuming checks, but be careful!! ::
 
             sage: P = ProjectiveSpace(3, QQ)
             sage: P.point([0,0,0,0], check=False)
@@ -1485,7 +1483,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             # error, then we suspect preperiodic so check
             # either we can find the cycle or the height is
             # larger than the difference between the canonical height
-            # and the height, so the cannonical height cannot be 0
+            # and the height, so the canonical height cannot be 0
             B = f.height_difference_bound()
             orbit = [self]
             n = 1 # to compute period
@@ -1725,8 +1723,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
 
     def intersection_multiplicity(self, X):
         r"""
-        Return the intersection multiplicity of the intersection of the codomain of this point and
-        the subscheme ``X`` at this point.
+        Return the intersection multiplicity of the codomain of this point and ``X`` at this point.
 
         This uses the intersection_multiplicity implementations for projective/affine subschemes. This
         point must be a point of a projective subscheme.
@@ -1766,6 +1763,31 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
         if is_ProjectiveSpace(self.codomain()):
             raise TypeError("this point must be a point on a projective subscheme")
         return self.codomain().intersection_multiplicity(X, self)
+
+    def multiplicity(self):
+        r"""
+        Return the multiplicity of this point on its codomain.
+
+        Uses the subscheme multiplicity implementation. This point must be a point on
+        a projective subscheme.
+
+        OUTPUT: an integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w,t> = ProjectiveSpace(QQ, 4)
+            sage: X = P.subscheme([y^6 - x^3*w^2*t + t^5*w, x^2 - t^2])
+            sage: Q1 = X([1,0,2,1,1])
+            sage: Q1.multiplicity()
+            1
+            sage: Q2 = X([0,0,-2,1,0])
+            sage: Q2.multiplicity()
+            8
+        """
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        if is_ProjectiveSpace(self.codomain()):
+            raise TypeError("this point must be a point on a projective subscheme")
+        return self.codomain().multiplicity(self)
 
 class SchemeMorphism_point_projective_finite_field(SchemeMorphism_point_projective_field):
 

@@ -225,7 +225,7 @@ class BipartiteGraph(Graph):
     TESTS:
 
     Make sure we can create a ``BipartiteGraph`` with keywords but no
-    positional arguments (trac #10958).
+    positional arguments (:trac:`10958`).
 
     ::
 
@@ -234,7 +234,7 @@ class BipartiteGraph(Graph):
         True
 
     Ensure that we can construct a ``BipartiteGraph`` with isolated vertices
-    via the reduced adjacency matrix (trac #10356)::
+    via the reduced adjacency matrix (:trac:`10356`)::
 
         sage: a=BipartiteGraph(matrix(2,2,[1,0,1,0]))
         sage: a
@@ -794,6 +794,23 @@ class BipartiteGraph(Graph):
         # add the edge
         Graph.add_edge(self, u, v, label)
         return
+
+    def complement(self):
+        """
+        Return a complement of this graph.
+
+        EXAMPLES::
+
+            sage: B = BipartiteGraph({1: [2, 4], 3: [4, 5]})
+            sage: G = B.complement(); G
+            Graph on 5 vertices
+            sage: G.edges(labels=False)
+            [(1, 3), (1, 5), (2, 3), (2, 4), (2, 5), (4, 5)]
+        """
+        # This is needed because complement() of generic graph
+        # would return a graph of class BipartiteGraph that is
+        # not bipartite. See ticket #12376.
+        return Graph(self).complement()
 
     def to_undirected(self):
         """

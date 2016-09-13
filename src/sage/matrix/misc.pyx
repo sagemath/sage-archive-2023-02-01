@@ -9,6 +9,7 @@ existence of this file -- is now a non-issue, since some bugs in
 Cython were fixed.  Probably all this code should be moved into the
 relevant classes and this file deleted.
 """
+from __future__ import absolute_import
 
 include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
@@ -17,19 +18,16 @@ from sage.ext.mod_int cimport *
 from sage.libs.mpfr cimport *
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 
-include 'sage/modules/binary_search.pxi'
-include 'sage/modules/vector_integer_sparse_h.pxi'
-include 'sage/modules/vector_integer_sparse_c.pxi'
-include 'sage/modules/vector_rational_sparse_h.pxi'
-include 'sage/modules/vector_rational_sparse_c.pxi'
-include 'sage/modules/vector_modn_sparse_h.pxi'
-include 'sage/modules/vector_modn_sparse_c.pxi'
+from sage.data_structures.binary_search cimport *
+from sage.modules.vector_integer_sparse cimport *
+from sage.modules.vector_rational_sparse cimport *
+from sage.modules.vector_modn_sparse cimport *
 
-from matrix0 cimport Matrix
-from matrix_integer_dense cimport Matrix_integer_dense
-from matrix_integer_sparse cimport Matrix_integer_sparse
-from matrix_rational_dense cimport Matrix_rational_dense
-from matrix_rational_sparse cimport Matrix_rational_sparse
+from .matrix0 cimport Matrix
+from .matrix_integer_dense cimport Matrix_integer_dense
+from .matrix_integer_sparse cimport Matrix_integer_sparse
+from .matrix_rational_dense cimport Matrix_rational_dense
+from .matrix_rational_sparse cimport Matrix_rational_sparse
 
 from sage.rings.integer_ring   import ZZ
 from sage.rings.rational_field import QQ

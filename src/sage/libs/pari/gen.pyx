@@ -574,7 +574,7 @@ cdef class gen(gen_auto):
             sage: K.<a> = QuadraticField(-65)
             sage: G = K.pari_bnf().bnf_get_gen(); G
             [[3, 2; 0, 1], [2, 1; 0, 1]]
-            sage: map(lambda J: K.ideal(J), G)
+            sage: [K.ideal(J) for J in G]
             [Fractional ideal (3, a + 2), Fractional ideal (2, a + 1)]
         """
         sig_on()
@@ -4633,8 +4633,8 @@ cpdef gen objtogen(s):
         set_gel(g, 2, dbltor(PyComplex_ImagAsDouble(s)))
         return P.new_gen(g)
 
-    if isinstance(s, (types.ListType, types.XRangeType,
-                        types.TupleType, types.GeneratorType)):
+    if isinstance(s, (list, types.XRangeType,
+                        tuple, types.GeneratorType)):
         length = len(s)
         v = P._empty_vector(length)
         for i from 0 <= i < length:

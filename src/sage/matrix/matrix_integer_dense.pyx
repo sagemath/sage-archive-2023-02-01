@@ -126,20 +126,7 @@ USE_LINBOX_POLY = True
 
 
 ########## iml -- integer matrix library ###########
-
-cdef extern from "iml.h":
-
-    enum SOLU_POS:
-        LeftSolu = 101
-        RightSolu = 102
-
-    long nullspaceMP(long n, long m,
-                     mpz_t *A, mpz_t * *mp_N_pass)
-
-    void nonsingSolvLlhsMM (SOLU_POS solupos, long n, \
-                       long m, mpz_t *mp_A, mpz_t *mp_B, mpz_t *mp_N, \
-                       mpz_t mp_D)
-
+from sage.libs.iml cimport *
 
 fplll_fp_map = {None: None,
                 'fp': 'double',
@@ -147,7 +134,7 @@ fplll_fp_map = {None: None,
                 'xd': 'dpe',
                 'rr': 'mpfr'}
 
-cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
+cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
     r"""
     Matrix over the integers, implemented using FLINT.
 
@@ -1302,7 +1289,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if algorithm == 'linbox':
             g = self._minpoly_linbox(var)
         elif algorithm == 'generic':
-            g = matrix_dense.Matrix_dense.minpoly(self, var)
+            g = Matrix_dense.minpoly(self, var)
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
         self.cache(key, g)
@@ -1331,7 +1318,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._nrows != self._ncols:
             raise ArithmeticError("self must be a square matrix")
         if self._nrows <= 1:
-            return matrix_dense.Matrix_dense.charpoly(self, var)
+            return Matrix_dense.charpoly(self, var)
         self._init_linbox()
         if typ == 'minpoly':
             sig_on()

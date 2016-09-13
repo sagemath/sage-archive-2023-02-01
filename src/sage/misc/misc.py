@@ -65,6 +65,7 @@ Test deprecation::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "generic_cmp", "to_gmp_hex", "todo",
@@ -74,7 +75,7 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
 from warnings import warn
 import os, stat, sys, signal, time, resource, math
 import sage.misc.prandom as random
-from lazy_string import lazy_string
+from .lazy_string import lazy_string
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.arith.srange', ('xsrange', 'srange', 'ellipsis_range', 'ellipsis_iter'), deprecation=20094)
@@ -134,12 +135,18 @@ def sage_makedirs(dir):
 
 sage_makedirs(DOT_SAGE)
 
-_mode = os.stat(DOT_SAGE)[stat.ST_MODE]
-_desired_mode = 0o40700     # drwx------
-if _mode != _desired_mode:
-    print("Setting permissions of DOT_SAGE directory so only you can read and write it.")
-    # Change mode of DOT_SAGE.
-    os.chmod(DOT_SAGE, _desired_mode)
+if hasattr(os, 'chmod'):
+    _mode = os.stat(DOT_SAGE)[stat.ST_MODE]
+    _desired_mode = 0o40700     # drwx------
+    if _mode != _desired_mode:
+        # On Cygwin, if the sage directory is not in a filesystem mounted with
+        # 'acl' support, setting the permissions may fail silently, so only
+        # print the message after we've changed the permissions and confirmed
+        # that the change succeeded
+        os.chmod(DOT_SAGE, _desired_mode)
+        if os.stat(DOT_SAGE)[stat.ST_MODE] == _desired_mode:
+            print("Setting permissions of DOT_SAGE directory so only you "
+                  "can read and write it.")
 
 
 #################################################

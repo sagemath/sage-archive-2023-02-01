@@ -52,6 +52,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
 
@@ -60,12 +61,12 @@ from copy import copy
 from sage.combinat.words.alphabet import Alphabet
 from sage.rings.integer import Integer
 
-from template import PermutationIET, PermutationLI   # permutations
-from template import FlippedPermutationIET, FlippedPermutationLI   # flipped permutations
-from template import twin_list_iet, twin_list_li
-from template import RauzyDiagram, FlippedRauzyDiagram
+from .template import PermutationIET, PermutationLI   # permutations
+from .template import FlippedPermutationIET, FlippedPermutationLI   # flipped permutations
+from .template import twin_list_iet, twin_list_li
+from .template import RauzyDiagram, FlippedRauzyDiagram
 
-from template import interval_conversion, side_conversion
+from .template import interval_conversion, side_conversion
 
 class ReducedPermutation(SageObject) :
     r"""
@@ -412,7 +413,8 @@ def ReducedPermutationsIET_iterator(
         a b c
         c b a
     """
-    from itertools import imap,ifilter
+    from builtins import map
+    from six.moves import filter
     from sage.combinat.permutation import Permutations
 
     if irreducible is False:
@@ -427,9 +429,9 @@ def ReducedPermutationsIET_iterator(
         a0 = range(1,nintervals+1)
         f = lambda x: ReducedPermutationIET([a0,list(x)],
             alphabet=alphabet)
-        return imap(f, Permutations(nintervals))
+        return map(f, Permutations(nintervals))
     else:
-        return ifilter(lambda x: x.is_irreducible(),
+        return filter(lambda x: x.is_irreducible(),
         ReducedPermutationsIET_iterator(nintervals,False,alphabet))
 
 class ReducedPermutationIET(ReducedPermutation, PermutationIET):

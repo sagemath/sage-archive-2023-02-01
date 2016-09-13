@@ -37,6 +37,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
@@ -273,7 +274,7 @@ class Chart(UniqueRepresentation, SageObject):
         if len(coord_list) != self._manifold.dim():
             raise ValueError("the list of coordinates must contain " +
                              "{} elements".format(self._manifold.dim()))
-        # The treatment of coordinates is performed by a seperate method,
+        # The treatment of coordinates is performed by a separate method,
         # _init_coordinates, which sets self._xx and
         # which may be redefined for subclasses (for instance RealChart).
         self._init_coordinates(coord_list)
@@ -2167,7 +2168,7 @@ class RealChart(Chart):
         from sage.plot.graphics import Graphics
         from sage.plot.line import line
         from sage.manifolds.continuous_map import ContinuousMap
-        from utilities import set_axes_labels
+        from .utilities import set_axes_labels
 
         # Extract the kwds options
         color = kwds['color']

@@ -1637,7 +1637,7 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
 def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16, digits=50):
     r"""
     Solve numerically a system of first order differential equations using the
-    taylor series integrator in arbitrary precission implemented in tides.
+    taylor series integrator in arbitrary precision implemented in tides.
 
     INPUT:
 
@@ -1656,7 +1656,7 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
 
     - ``tolabs`` -- the absolute tolerance for the method.
 
-    - ``digits`` -- the digits of precission used in the computation.
+    - ``digits`` -- the digits of precision used in the computation.
 
 
     OUTPUT:
@@ -1667,7 +1667,7 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     EXAMPLES:
 
     We integrate the Lorenz equations with Salztman values for the parameters
-    along 10 periodic orbits with 100 digits of precission::
+    along 10 periodic orbits with 100 digits of precision::
 
         sage: var('t,x,y,z')
         (t, x, y, z)

@@ -130,6 +130,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.matrix.all import matrix
 from sage.rings.all import ZZ
@@ -148,7 +149,7 @@ from sage.misc.flatten import flatten
 #load "dancing_links.spyx"
 #load "dancing_links.sage"
 
-from dlxcpp import DLXCPP
+from .dlxcpp import DLXCPP
 from functools import reduce
 
 class LatinSquare:
@@ -789,7 +790,7 @@ class LatinSquare:
                     # in the previous for-loop.
                     pass
 
-        return vals.keys()
+        return list(vals)
 
     def random_empty_cell(self):
         """
@@ -820,9 +821,10 @@ class LatinSquare:
                 if self[r, c] < 0:
                     cells[ (r,c) ] = True
 
-        cells = cells.keys()
+        cells = list(cells)
 
-        if len(cells) == 0: return None
+        if not cells:
+            return None
 
         rc = cells[ ZZ.random_element(len(cells)) ]
 
@@ -2837,7 +2839,7 @@ def dlxcpp_find_completions(P, nr_to_find = None):
 
     comps = []
 
-    for i in SOLUTIONS.keys():
+    for i in SOLUTIONS:
         soln = list(i)
 
         from copy import deepcopy

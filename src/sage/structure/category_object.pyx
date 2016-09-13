@@ -1,3 +1,4 @@
+# cython: old_style_globals=True
 r"""
 Base class for objects of a category
 

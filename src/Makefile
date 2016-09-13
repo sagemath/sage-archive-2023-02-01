@@ -2,8 +2,10 @@
 
 all: sage
 
+# SAGE_VERSION set by build/make/install.
+# SAGE_BUILD_DIR set by build/bin/sage-spkg
 sage: sage/libs/pari/auto_gen.pxi sage/ext/interpreters/__init__.py
-	python -u setup.py install
+	python -u setup.py --build-base=$SAGE_BUILD_DIR/sagelib-$SAGE_VERSION install
 
 clean:
 	@echo "Deleting Sage library build artifacts..."

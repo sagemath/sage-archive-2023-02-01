@@ -15,9 +15,9 @@ Arithmetic subgroups (finite index subgroups of `{\rm SL}_2(\ZZ)`)
 from __future__ import absolute_import
 from six.moves import range
 
-import sage.groups.old as group
+from sage.groups.old import Group as group
 from sage.rings.all import ZZ
-import sage.arith.all as arith
+from sage.arith.all import lcm
 from sage.misc.cachefunc import cached_method
 from copy import copy # for making copies of lists of cusps
 from sage.modular.modsym.p1list import lift_to_sl2z
@@ -45,7 +45,7 @@ def is_ArithmeticSubgroup(x):
     return isinstance(x, ArithmeticSubgroup)
 
 
-class ArithmeticSubgroup(group.Group):
+class ArithmeticSubgroup(Group):
     r"""
     Base class for arithmetic subgroups of `{\rm SL}_2(\ZZ)`. Not
     intended to be used directly, but still includes quite a few
@@ -65,7 +65,7 @@ class ArithmeticSubgroup(group.Group):
             sage: G.category() # indirect doctest
             Category of groups
         """
-        group.Group.__init__(self)
+        Group.__init__(self)
 
     def _repr_(self):
         r"""
@@ -900,7 +900,7 @@ class ArithmeticSubgroup(group.Group):
             sage: G.generalised_level()
             4
         """
-        return arith.lcm([self.cusp_width(c) for c in self.cusps()])
+        return lcm([self.cusp_width(c) for c in self.cusps()])
 
     def projective_index(self):
         r"""

@@ -1084,9 +1084,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
             ...
             NotImplementedError: Characters must be from the same Dirichlet Group.
 
-            sage: all_jacobi_sums = [(DP[i].values_on_gens(),DP[j].values_on_gens(),DP[i].jacobi_sum(DP[j])) \
-            ...                       for i in range(p-1) for j in range(p-1)[i:]]
-            ...
+            sage: all_jacobi_sums = [(DP[i].values_on_gens(),DP[j].values_on_gens(),DP[i].jacobi_sum(DP[j]))
+            ....:                   for i in range(p-1) for j in range(i, p-1)]
             sage: for s in all_jacobi_sums:
             ....:     print(s)
             ((1,), (1,), 5)

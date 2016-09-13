@@ -5,8 +5,6 @@ This file contains functions that are used by the various ambient modular
 symbols classes to compute presentations of spaces in terms of generators and
 relations, using the standard methods based on Manin symbols.
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
 #
@@ -23,13 +21,13 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from six.moves import range
 SPARSE = True
 
 import sage.matrix.matrix_space as matrix_space
-import sage.matrix.all
-import sage.rings.all as rings
-from   sage.misc.search import search
+from sage.rings.all import Ring
+from sage.misc.search import search
 from sage.rings.rational_field import is_RationalField
 
 
@@ -552,7 +550,7 @@ def sparse_2term_quotient(rels, n, F):
     if not isinstance(rels, set):
         raise TypeError("rels must be a set")
     n = int(n)
-    if not isinstance(F, rings.Ring):
+    if not isinstance(F, Ring):
         raise TypeError("F must be a ring.")
 
     tm = misc.verbose("Starting sparse 2-term quotient...")

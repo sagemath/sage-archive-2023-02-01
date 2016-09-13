@@ -148,19 +148,14 @@ from types import MethodType
 from sage.structure.sage_object cimport rich_to_bool
 from sage.structure.coerce cimport py_scalar_to_element
 from sage.structure.parent cimport Parent
-from sage.structure.misc import is_extension_type, getattr_from_other_class
+from sage.structure.misc import is_extension_type
+from sage.structure.misc cimport getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass
 from sage.misc.superseded import deprecated_function_alias
 from sage.arith.numerical_approx cimport digits_to_bits
-
-# Create a dummy attribute error, using some kind of lazy error message,
-# so that neither the error itself not the message need to be created
-# repeatedly, which would cost time.
-from sage.structure.misc cimport AttributeErrorMessage
-cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage(None, '')
-dummy_attribute_error = AttributeError(dummy_error_message)
+from sage.misc.decorators import sage_wraps
 
 
 def make_element(_class, _dict, parent):
@@ -229,7 +224,7 @@ cdef class Element(SageObject):
         """
         self._parent = parent
 
-    def __getattr__(self, str name):
+    def __getattr__(self, name):
         """
         Lookup a method or attribute from the category abstract classes.
 
@@ -237,7 +232,7 @@ cdef class Element(SageObject):
         of ``C.element_class`` are made directly available to elements
         of ``P`` via standard class inheritance. This is not the case
         any more if the elements of ``P`` are instances of an
-        extension type. See :class:`Category`. for details.
+        extension type. See :class:`Category` for details.
 
         The purpose of this method is to emulate this inheritance: for
         ``e`` and element of ``P``, if an attribute or method
@@ -245,10 +240,6 @@ cdef class Element(SageObject):
         looked up manually in ``C.element_class`` and bound to ``e``.
 
         .. NOTES::
-
-            - Attributes beginning with two underscores but not ending
-              with an unnderscore are considered private and are thus
-              exempted from the lookup in ``cat.element_class``.
 
             - The attribute or method is actually looked up in
               ``P._abstract_element_class``. In most cases this is
@@ -295,30 +286,21 @@ cdef class Element(SageObject):
             Traceback (most recent call last):
             ...
             AttributeError: 'LeftZeroSemigroup_with_category.element_class' object has no attribute 'blah_blah'
-
-        We test that "private" attributes are not requested from the element class
-        of the category (:trac:`10467`)::
-
-            sage: C = EuclideanDomains()
-            sage: P.<x> = QQ[]
-            sage: C.element_class.__foo = 'bar'
-            sage: x.parent() in C
-            True
-            sage: x.__foo
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint' object has no attribute '__foo'
         """
-        if (name.startswith('__') and not name.endswith('_')):
-            dummy_error_message.cls = type(self)
-            dummy_error_message.name = name
-            raise dummy_attribute_error
-        cdef Parent P = self._parent or self.parent()
-        if P is None or P._category is None:
-            dummy_error_message.cls = type(self)
-            dummy_error_message.name = name
-            raise dummy_attribute_error
-        return getattr_from_other_class(self, P._abstract_element_class, name)
+        return self.getattr_from_category(name)
+
+    cdef getattr_from_category(self, name):
+        # Lookup a method or attribute from the category abstract classes.
+        # See __getattr__ above for documentation.
+        cdef Parent P = self._parent
+        if P is None:
+            # This is highly unlikely but we deal with it anyway...
+            # Usually, this will just raise AttributeError in
+            # getattr_from_other_class().
+            cls = type
+        else:
+            cls = P._abstract_element_class
+        return getattr_from_other_class(self, cls, name)
 
     def __dir__(self):
         """
@@ -338,7 +320,7 @@ cdef class Element(SageObject):
             sage: dir(1)         # todo: not implemented
             ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
         """
-        from sage.structure.parent import dir_with_other_class
+        from .misc import dir_with_other_class
         return dir_with_other_class(self, self.parent().category().element_class)
 
     def _repr_(self):
@@ -897,9 +879,9 @@ cdef class Element(SageObject):
     def _cache_key(self):
         """
         Provide a hashable key for an element if it is not hashable
-        
+
         EXAMPLES::
-        
+
             sage: a=sage.structure.element.Element(ZZ)
             sage: a._cache_key()
             (Integer Ring, 'Generic element of a structure')
@@ -1213,7 +1195,7 @@ cdef class ElementWithCachedMethod(Element):
         True
 
     """
-    def __getattr__(self, name):
+    cdef getattr_from_category(self, name):
         """
         This getattr method ensures that cached methods and lazy attributes
         can be inherited from the element class of a category.
@@ -1226,27 +1208,28 @@ cdef class ElementWithCachedMethod(Element):
 
         EXAMPLE::
 
-            sage: cython_code = ["from sage.structure.element cimport ElementWithCachedMethod",
-            ... "cdef class MyElement(ElementWithCachedMethod):",
-            ... "    cdef public object x",
-            ... "    def __init__(self,P,x):",
-            ... "        self.x=x",
-            ... "        ElementWithCachedMethod.__init__(self,P)",
-            ... "    def _repr_(self):",
-            ... "        return '<%s>'%self.x",
-            ... "from sage.structure.parent cimport Parent",
-            ... "cdef class MyParent(Parent):",
-            ... "    Element = MyElement",
-            ... "from sage.all import cached_method, lazy_attribute, Category, Objects",
-            ... "class MyCategory(Category):",
-            ... "    @cached_method",
-            ... "    def super_categories(self):",
-            ... "        return [Objects()]",
-            ... "    class ElementMethods:",
-            ... "        @lazy_attribute",
-            ... "        def my_lazy_attr(self):",
-            ... "            return 'lazy attribute of <%d>'%self.x"]
-            sage: cython('\n'.join(cython_code))
+            sage: cython('''
+            ....: from sage.structure.element cimport ElementWithCachedMethod
+            ....: cdef class MyElement(ElementWithCachedMethod):
+            ....:     cdef public object x
+            ....:     def __init__(self, P, x):
+            ....:         self.x = x
+            ....:         ElementWithCachedMethod.__init__(self,P)
+            ....:     def _repr_(self):
+            ....:         return '<%s>'%self.x
+            ....: from sage.structure.parent cimport Parent
+            ....: cdef class MyParent(Parent):
+            ....:     Element = MyElement
+            ....: from sage.all import cached_method, lazy_attribute, Category, Objects
+            ....: class MyCategory(Category):
+            ....:     @cached_method
+            ....:     def super_categories(self):
+            ....:         return [Objects()]
+            ....:     class ElementMethods:
+            ....:         @lazy_attribute
+            ....:         def my_lazy_attr(self):
+            ....:             return 'lazy attribute of <%s>'%self.x
+            ....: ''')
             sage: C = MyCategory()
             sage: P = MyParent(category=C)
             sage: e = MyElement(P,5)
@@ -1254,12 +1237,7 @@ cdef class ElementWithCachedMethod(Element):
             'lazy attribute of <5>'
             sage: e.my_lazy_attr is e.my_lazy_attr
             True
-
         """
-        if name.startswith('__') and not name.endswith('_'):
-            dummy_error_message.cls = type(self)
-            dummy_error_message.name = name
-            raise dummy_attribute_error
         try:
             return self.__cached_methods[name]
         except KeyError:
@@ -3329,170 +3307,115 @@ def coercion_traceback(dump=True):
         return coercion_model.exception_stack()
 
 
-cdef class NamedBinopMethod:
+def coerce_binop(method):
+    r"""
+    Decorator for a binary operator method for applying coercion to the
+    arguments before calling the method.
+
+    Consider a parent class in the category framework, `S`, whose element class
+    expose a method `binop`. If `a` and `b` are elements of `S`, then
+    `a.binop(b)` behaves as expected. If `a` and `b` are not elements of `S`,
+    but rather have a common parent `T` whose element class also exposes
+    `binop`, we would rather expect `a.binop(b)` to compute `aa.binop(bb)`,
+    where `aa = T(a)` and `bb = T(b)`. This decorator ensures that behaviour
+    without having to otherwise modify the implementation of `binop` on the
+    element class of `A`.
+
+    Since coercion will be attempted on the arguments of the decorated method, a
+    `TypeError` will be thrown if there is no common parent between the
+    elements. An `AttributeError` or `NotImplementedError` or similar will be
+    thrown if there is a common parent of the arguments, but its element class
+    does not implement a method of the same name as the decorated method.
+
+    EXAMPLES:
+
+    Sparse polynomial rings uses `@coerce_binop` on `gcd`::
+
+        sage: S.<x> = PolynomialRing(ZZ,sparse=True)
+        sage: f = x^2
+        sage: g = x
+        sage: f.gcd(g)  #indirect doctest 
+        x
+        sage: T = PolynomialRing(QQ, name='x', sparse=True)
+        sage: h = 1/2*T(x)
+        sage: u = f.gcd(h); u  #indirect doctest 
+        x
+        sage: u.parent() == T
+        True
+
+    Another real example::
+
+        sage: R1=QQ['x,y']
+        sage: R2=QQ['x,y,z']
+        sage: f=R1(1)
+        sage: g=R1(2)
+        sage: h=R2(1)
+        sage: f.gcd(g)
+        1
+        sage: f.gcd(g,algorithm='modular')
+        1
+        sage: f.gcd(h)
+        1
+        sage: f.gcd(h,algorithm='modular')
+        1
+        sage: h.gcd(f)
+        1
+        sage: h.gcd(f,'modular')
+        1
+
+    We demonstrate a small class using `@coerce_binop` on a method::
+
+        sage: from sage.structure.element import coerce_binop
+        sage: class MyRational(Rational):
+        ....:     def __init__(self,value):
+        ....:         self.v = value
+        ....:     @coerce_binop
+        ....:     def test_add(self, other, keyword='z'):
+        ....:         return (self.v, other, keyword)
+
+    Calls func directly if the two arguments have the same parent::
+
+        sage: x = MyRational(1)
+        sage: x.test_add(1/2)
+        (1, 1/2, 'z')
+        sage: x.test_add(1/2, keyword=3)
+        (1, 1/2, 3)
+
+    Passes through coercion and does a method lookup if the left operand is not
+    the same. If the common parent's element class does not have a method of the
+    same name, an exception is raised::
+
+        sage: x.test_add(2)
+        (1, 2, 'z')
+        sage: x.test_add(2, keyword=3)
+        (1, 2, 3)
+        sage: x.test_add(CC(2))
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'sage.rings.complex_number.ComplexNumber' object has no attribute 'test_add'
+
+    TESTS:
+
+    Test that additional arguments given to the method does not override the
+    `self` argument, see #21322::
+
+        sage: f.gcd(g, 1)
+        Traceback (most recent call last):
+        ...
+        TypeError: algorithm 1 not supported
     """
-    A decorator to be used on binary operation methods that should operate
-    on elements of the same parent. If the parents of the arguments differ,
-    coercion is performed, then the method is re-looked up by name on the
-    first argument.
-
-    In short, using the ``NamedBinopMethod`` (alias ``coerce_binop``) decorator
-    on a method gives it the exact same semantics of the basic arithmetic
-    operations like ``_add_``, ``_sub_``, etc. in that both operands are
-    guaranteed to have exactly the same parent.
-    """
-    cdef _self
-    cdef _func
-    cdef _name
-
-    def __init__(self, func, name=None, obj=None):
-        """
-        TESTS::
-
-            sage: from sage.structure.element import NamedBinopMethod
-            sage: NamedBinopMethod(gcd)(12, 15)
-            3
-        """
-        self._func = func
-        if name is None:
-            if isinstance(func, types.FunctionType):
-                name = func.__name__
-            if isinstance(func, types.UnboundMethodType):
-                name = func.__func__.__name__
-            else:
-                name = func.__name__
-        self._name = name
-        self._self = obj
-
-    def __call__(self, x, y=None, **kwds):
-        """
-        TESTS::
-
-            sage: from sage.structure.element import NamedBinopMethod
-            sage: test_func = NamedBinopMethod(lambda x, y, **kwds: (x, y, kwds), '_add_')
-            sage: class test_class(Rational):
-            ....:     def __init__(self,value):
-            ....:         self.v = value
-            ....:     @NamedBinopMethod
-            ....:     def test_add(self, other, keyword='z'):
-            ....:         return (self.v, other, keyword)
-
-        Calls func directly if the two arguments have the same parent::
-
-            sage: test_func(1, 2)
-            (1, 2, {})
-            sage: x = test_class(1)
-            sage: x.test_add(1/2)
-            (1, 1/2, 'z')
-            sage: x.test_add(1/2, keyword=3)
-            (1, 1/2, 3)
-
-        Passes through coercion and does a method lookup if the
-        left operand is not the same::
-
-            sage: test_func(0.5, 1)
-            (0.500000000000000, 1.00000000000000, {})
-            sage: test_func(1, 2, algorithm='fast')
-            (1, 2, {'algorithm': 'fast'})
-            sage: test_func(1, 1/2)
-            3/2
-            sage: x.test_add(2)
-            (1, 2, 'z')
-            sage: x.test_add(2, keyword=3)
-            (1, 2, 3)
-
-        A real example::
-
-            sage: R1=QQ['x,y']
-            sage: R2=QQ['x,y,z']
-            sage: f=R1(1)
-            sage: g=R1(2)
-            sage: h=R2(1)
-            sage: f.gcd(g)
-            1
-            sage: f.gcd(g,algorithm='modular')
-            1
-            sage: f.gcd(h)
-            1
-            sage: f.gcd(h,algorithm='modular')
-            1
-            sage: h.gcd(f)
-            1
-            sage: h.gcd(f,algorithm='modular')
-            1
-        """
-        if y is None:
-            if self._self is None:
-                self._func(x, **kwds)
-            else:
-                x, y = self._self, x
-        if not have_same_parent(x, y):
-            old_x = x
-            x,y = coercion_model.canonical_coercion(x, y)
-            if old_x is x:
-                return self._func(x,y, **kwds)
-            else:
-                return getattr(x, self._name)(y, **kwds)
+    @sage_wraps(method)
+    def new_method(self, other, *args, **kwargs):
+        if have_same_parent(self, other):
+            return method(self, other, *args, **kwargs)
         else:
-            return self._func(x,y, **kwds)
+            a, b = coercion_model.canonical_coercion(self, other)
+            if a is self:
+                return method(a, b, *args, **kwargs)
+            else:
+                return getattr(a, method.__name__)(b, *args, **kwargs)
+    return new_method
 
-    def __get__(self, obj, objtype):
-        """
-        Used to transform from an unbound to a bound method.
-
-        TESTS::
-            sage: from sage.structure.element import NamedBinopMethod
-            sage: R.<x> = ZZ[]
-            sage: isinstance(x.quo_rem, NamedBinopMethod)
-            True
-            sage: x.quo_rem(x)
-            (1, 0)
-            sage: type(x).quo_rem(x,x)
-            (1, 0)
-        """
-        return NamedBinopMethod(self._func, self._name, obj)
-
-    def _sage_doc_(self):
-        """
-        Return the docstring of the wrapped object for introspection.
-
-        EXAMPLES::
-
-            sage: from sage.structure.element import NamedBinopMethod
-            sage: g = NamedBinopMethod(gcd)
-            sage: from sage.misc.sageinspect import sage_getdoc
-            sage: sage_getdoc(g) == sage_getdoc(gcd)
-            True
-        """
-        return sageinspect._sage_getdoc_unformatted(self._func)
-
-    def _sage_src_(self):
-        """
-        Return the source of the wrapped object for introspection.
-
-        EXAMPLES::
-
-            sage: from sage.structure.element import NamedBinopMethod
-            sage: g = NamedBinopMethod(gcd)
-            sage: 'def gcd(' in g._sage_src_()
-            True
-        """
-        return sageinspect.sage_getsource(self._func)
-
-    def _sage_argspec_(self):
-        """
-        Return the argspec of the wrapped object for introspection.
-
-        EXAMPLES::
-
-            sage: from sage.structure.element import NamedBinopMethod
-            sage: g = NamedBinopMethod(gcd)
-            sage: g._sage_argspec_()
-            ArgSpec(args=['a', 'b'], varargs=None, keywords='kwargs', defaults=(None,))
-        """
-        return sageinspect.sage_getargspec(self._func)
-
-coerce_binop = NamedBinopMethod
 
 ###############################################################################
 

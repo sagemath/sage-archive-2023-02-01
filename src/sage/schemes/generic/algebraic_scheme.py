@@ -700,7 +700,7 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
                 % (t, latex(self.ambient_space()), X, Y))
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of this algebraic scheme.
 
         EXAMPLES::
@@ -1052,7 +1052,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
                 % (latex(self.ambient_space()), polynomials))
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of this scheme.
 
         EXAMPLES::
@@ -3800,7 +3800,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
         from sage.schemes.affine.affine_space import AffineSpace
         AA = AffineSpace(PP.base_ring(),sum(N),'x')
         v = list(AA.gens())
-        #create the proejctive embedding
+        # create the projective embedding
         index = 0
         for i in range(len(I)):
             v.insert(index+I[i],1)
@@ -3900,7 +3900,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
 
         - ``P`` -- a point on this subscheme.
 
-        OUPUT: an integer.
+        OUTPUT: an integer.
 
         EXAMPLES::
 
@@ -4346,7 +4346,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
         - ``point`` -- a point of the toric algebraic scheme.
 
-        OUTPUT
+        OUTPUT:
 
         An affine toric algebraic scheme (polynomial equations in an
         affine toric variety) with fixed

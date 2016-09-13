@@ -1786,7 +1786,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
                 mpfr_set_ui(res.__im, 0, rnd)
                 return res
 
-            # Do the computations to a bit higher precicion so rounding error
+            # Do the computations to a bit higher precision so rounding error
             # won't obscure the termination condition.
             a = ComplexNumber(self._parent.to_prec(self._prec+5), None)
             b = a._new()

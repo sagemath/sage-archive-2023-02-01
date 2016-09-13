@@ -27,7 +27,7 @@ $MAKE CC="$CC" || die "Error building LiE. Did you install bison?"
 # "install" the LiE package by moving over the complete build
 # directory to $SAGE_LOCAL/lib/lie
 cd ..
-sed -e "s'$PWD/LiE'$SAGE_LOCAL/lib/LiE'" src/lie > src/lie~
+sed -e "s'$PWD/src'$SAGE_LOCAL/lib/LiE'" src/lie > src/lie~
 mv src/lie~ src/lie
 chmod +x src/lie
 rm -rf "$SAGE_LOCAL"/lib/lie # clean up old versions

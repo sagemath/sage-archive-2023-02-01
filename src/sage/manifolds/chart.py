@@ -274,7 +274,7 @@ class Chart(UniqueRepresentation, SageObject):
         if len(coord_list) != self._manifold.dim():
             raise ValueError("the list of coordinates must contain " +
                              "{} elements".format(self._manifold.dim()))
-        # The treatment of coordinates is performed by a seperate method,
+        # The treatment of coordinates is performed by a separate method,
         # _init_coordinates, which sets self._xx and
         # which may be redefined for subclasses (for instance RealChart).
         self._init_coordinates(coord_list)

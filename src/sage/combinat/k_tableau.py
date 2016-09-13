@@ -1029,7 +1029,7 @@ class WeakTableau_core(WeakTableau_abstract):
             for v in range(1,mu[i]):
                 D = self.dictionary_of_coordinates_at_residues(v+1)
                 new_D = {a:b for (a,b) in D.iteritems() if all(x not in already_used for x in b)}
-                r = (r - min([self.k+1 - (x-r)%(self.k+1) for x in new_D.keys()]))%(self.k+1)
+                r = (r - min([self.k+1 - (x-r)%(self.k+1) for x in new_D]))%(self.k+1)
                 standard_cells.append(new_D[r][-1])
                 already_used += new_D[r]
             out.append(standard_cells)
@@ -2989,7 +2989,7 @@ class StrongTableau(ClonableList):
             []
         """
         dout = self.cells_head_dictionary()
-        if v in dout.keys():
+        if v in dout:
             return dout[v]
         else:
             return []
@@ -4454,16 +4454,16 @@ class StrongTableaux(UniqueRepresentation, Parent):
              sage: StrongTableaux.cells_head_dictionary([])
              {}
         """
-        if T==[]:
+        if T == []:
             return {}
         ST = SkewTableau(T)
         dout = {}
-        for i in range(-len(T),len(T[0])):
-            nextv = ST.entries_by_content(i+1)
+        for i in range(-len(T), len(T[0])):
+            nextv = ST.entries_by_content(i + 1)
             for c in ST.cells_by_content(i):
                 v = T[c[0]][c[1]]
                 if not v in nextv:
-                    if v in dout.keys():
+                    if v in dout:
                         dout[v] += [c]
                     else:
                         dout[v] = [c]

@@ -8292,12 +8292,12 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         """
         Return True if this matrix is a scalar matrix.
 
-        INPUT
+        INPUT:
 
         - base_ring element a, which is chosen as self[0][0] if
           a = None
 
-        OUTPUT
+        OUTPUT:
 
         - whether self is a scalar matrix (in fact the scalar matrix
           aI if a is input)
@@ -8781,9 +8781,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [  -2    1]
             [ 3/2 -1/2]
             sage: ~m
-            [  -2    1]
-            [ 3/2 -1/2]
-            sage: m.I
             [  -2    1]
             [ 3/2 -1/2]
 
@@ -12263,7 +12260,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         ALGORITHM:
 
         The algorithm employed only uses field operations,
-        but the compuation of each diagonal entry has the potential
+        but the computation of each diagonal entry has the potential
         for division by zero.  The number of operations is of order
         `n^3/3`, which is half the count for an LU decomposition.
         This makes it an appropriate candidate for solving systems
@@ -13510,7 +13507,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         When ``basis=False`` only three items are returned.  These are
         just as above, but without the change-of-basis matrix.
 
-        The compuation of the change-of-basis matrix has not been optimized.
+        The computation of the change-of-basis matrix has not been optimized.
         As a helper method, no error checking is performed on the inputs -
         that should be performed by the calling method.
 
@@ -13761,7 +13758,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         If ``transformation`` is ``True``, then the output is a pair of
         matrices.  The first is the form ``Z`` and the second is an invertible
         matrix ``U`` such that ``U.inverse()*self*U`` equals ``Z``.  In other
-        words, the repsentation of ``self`` with respect to the columns
+        words, the representation of ``self`` with respect to the columns
         of ``U`` will be ``Z``.
 
         If subdivide is ``True`` then the matrix returned as the form is
@@ -14495,6 +14492,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         """
         return self.conjugate().transpose()
 
+
     @property
     def I(self):
         r"""
@@ -14507,6 +14505,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ...                   [-1, -2, -2,  0],
             ...                   [-2, -1,  0, -4]])
             sage: A.I
+            doctest:...: DeprecationWarning: The I property on matrices has been deprecated. Please use the inverse() method instead.
+            See http://trac.sagemath.org/20904 for details.
             [ 0  2  1  0]
             [-4 -8 -2  7]
             [ 4  7  1 -7]
@@ -14521,6 +14521,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ...
             ZeroDivisionError: input matrix must be nonsingular
         """
+        from sage.misc.superseded import deprecation
+        deprecation(20904, "The I property on matrices has been deprecated. Please use the inverse() method instead.")
         return ~self
 
 
@@ -14762,19 +14764,6 @@ def _smith_onestep(m):
 
     return left_mat, a, right_mat
 
-def _dim_cmp(x,y):
-    """
-    Used internally by matrix functions. Given 2-tuples (x,y), returns
-    their comparison based on the first component.
-
-    EXAMPLES::
-
-        sage: from sage.matrix.matrix2 import _dim_cmp
-        sage: V = [(QQ^3, 2), (QQ^2, 1)]
-        sage: _dim_cmp(V[0], V[1])
-        1
-    """
-    return cmp(x[0].dimension(), y[0].dimension())
 
 def decomp_seq(v):
     """
@@ -14792,7 +14781,7 @@ def decomp_seq(v):
         (Vector space of dimension 3 over Rational Field, 2)
         ]
     """
-    list.sort(v, _dim_cmp)
+    list.sort(v, key=lambda x: x[0].dimension())
     return Sequence(v, universe=tuple, check=False, cr=True)
 
 

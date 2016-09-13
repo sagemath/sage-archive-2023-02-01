@@ -453,7 +453,7 @@ class Sandpile(DiGraph):
         # latter occurs, something should be changed.
         from sage.misc.sagedoc import detex
         methods = []
-        for i in sorted(Sandpile.__dict__.keys()):
+        for i in sorted(Sandpile.__dict__):
             if i[0]!='_':
                 s = eval('getdoc(Sandpile.' + i +')')
                 period = s.find('.')
@@ -1969,9 +1969,8 @@ class Sandpile(DiGraph):
         """
 
         # first order the vertices according to their distance from the sink
-        verts = self.vertices()
-        verts = sorted(verts, self._compare_vertices)
-        verts.reverse()
+        verts = sorted(self.vertices(),
+                       key=lambda v: self.distance(v, self._sink), reverse=True)
         perm = {}
         for i in range(len(verts)):
             perm[verts[i]]=i
@@ -2440,30 +2439,6 @@ class Sandpile(DiGraph):
 ######### Algebraic Geometry ##########
 #######################################
 
-    def _compare_vertices(self, v, w):
-        r"""
-        Compare vertices based on their distance from the sink.
-
-        INPUT:
-
-        ``v``, ``w`` -- vertices
-
-        OUTPUT:
-
-        integer
-
-        EXAMPLES::
-
-            sage: S = sandpiles.House()
-            sage: S.distance(1, S.sink())
-            1
-            sage: S.distance(3, S.sink())
-            2
-            sage: S._compare_vertices(1,3)
-            -1
-        """
-        return self.distance(v, self._sink) - self.distance(w, self._sink)
-
     def _set_ring(self):
         r"""
         Set up polynomial ring for the sandpile.
@@ -2476,12 +2451,11 @@ class Sandpile(DiGraph):
             True
         """
         # first order the vertices according to their distance from the sink
-        verts = self.vertices()
-        verts = sorted(verts, self._compare_vertices)
-        verts.reverse()
+        verts = sorted(self.vertices(),
+                       key=lambda v: self.distance(v, self._sink))
 
         # variable i refers to the i-th vertex in self.vertices()
-        names = [self.vertices().index(v) for v in verts]
+        names = [self.vertices().index(v) for v in reversed(verts)]
 
         vars = ''
         for i in names:
@@ -2934,7 +2908,7 @@ class SandpileConfig(dict):
         # latter occurs, something should be changed.
         from sage.misc.sagedoc import detex
         methods = []
-        for i in sorted(SandpileConfig.__dict__.keys()):
+        for i in sorted(SandpileConfig.__dict__):
             if i[0]!='_':
                 s = eval('getdoc(SandpileConfig.' + i +')')
                 period = s.find('.')
@@ -3057,7 +3031,7 @@ class SandpileConfig(dict):
             In the example, above, changing the value of ``c`` at some vertex makes
             a call to setitem, which resets some of the stored variables for ``c``.
         """
-        if key in self.keys():
+        if key in self:
             dict.__setitem__(self,key,item)
             S = self._sandpile
             V = self._vertices
@@ -3754,7 +3728,7 @@ class SandpileConfig(dict):
             sage: c.support()
             [1, 2]
         """
-        return [i for i in self.keys() if self[i] !=0]
+        return [i for i in self if self[i] !=0]
 
 
     def add_random(self, distrib=None):
@@ -4288,7 +4262,7 @@ class SandpileDivisor(dict):
         # latter occurs, something should be changed.
         from sage.misc.sagedoc import detex
         methods = []
-        for i in sorted(SandpileDivisor.__dict__.keys()):
+        for i in sorted(SandpileDivisor.__dict__):
             if i[0]!='_':
                 s = eval('getdoc(SandpileDivisor.' + i +')')
                 period = s.find('.')
@@ -4408,7 +4382,7 @@ class SandpileDivisor(dict):
             In the example, above, changing the value of `D` at some vertex makes
             a call to setitem, which resets some of the stored variables for `D`.
         """
-        if key in self.keys():
+        if key in self:
             dict.__setitem__(self,key,item)
             S = self._sandpile
             V = self._vertices
@@ -5920,7 +5894,7 @@ class SandpileDivisor(dict):
             sage: S.vertices()
             [0, 1, 2, 3]
         """
-        return [i for i in self.keys() if self[i] !=0]
+        return [i for i in self if self[i] !=0]
 
     def _set_Dcomplex(self):
         r"""
@@ -6304,7 +6278,7 @@ def sandlib(selector=None):
         for i in sandpiles:
             print('    ', i, ':', sandpiles[i]['description'])
         print("")
-    elif selector not in sandpiles.keys():
+    elif selector not in sandpiles:
         print(selector, 'is not in the sandlib.')
     else:
         return Sandpile(sandpiles[selector]['graph'], 0)
@@ -6313,91 +6287,7 @@ def sandlib(selector=None):
 ########## Some useful functions ################
 #################################################
 
-def complete_sandpile(n):
-    r"""
-    The sandpile on the complete graph with n vertices.
 
-    INPUT:
-
-    ``n`` -- positive integer
-
-    OUTPUT:
-
-    Sandpile
-
-    EXAMPLES::
-
-        sage: K = sandpiles.Complete(5)
-        sage: K.betti(verbose=False)
-        [1, 15, 50, 60, 24]
-    """
-    deprecation(18618,'May 25, 2015:  Replaced by sandpiles.Complete.')
-    return Sandpile(graphs.CompleteGraph(n), 0)
-
-def grid_sandpile(m, n):
-    r"""
-    The `m\times n` grid sandpile.  Each nonsink vertex has degree 4.
-
-    INPUT:
-
-    ``m``, ``n`` -- positive integers
-
-    OUTPUT:
-
-    Sandpile with sink named ``sink``.
-
-    EXAMPLES::
-
-        sage: G = grid_sandpile(3,4)
-        doctest:...: DeprecationWarning: grid_sandpile() will soon be removed.  Use sandpile.Grid() instead.
-        See http://trac.sagemath.org/18618 for details.
-        doctest:...: DeprecationWarning: May 25, 2015: Replaced by sandpiles.Grid.
-        See http://trac.sagemath.org/18618 for details.
-        sage: G.dict()
-        {'sink': {},
-         (1, 1): {'sink': 2, (1, 2): 1, (2, 1): 1},
-         (1, 2): {'sink': 1, (1, 1): 1, (1, 3): 1, (2, 2): 1},
-         (1, 3): {'sink': 1, (1, 2): 1, (1, 4): 1, (2, 3): 1},
-         (1, 4): {'sink': 2, (1, 3): 1, (2, 4): 1},
-         (2, 1): {'sink': 1, (1, 1): 1, (2, 2): 1, (3, 1): 1},
-         (2, 2): {(1, 2): 1, (2, 1): 1, (2, 3): 1, (3, 2): 1},
-         (2, 3): {(1, 3): 1, (2, 2): 1, (2, 4): 1, (3, 3): 1},
-         (2, 4): {'sink': 1, (1, 4): 1, (2, 3): 1, (3, 4): 1},
-         (3, 1): {'sink': 2, (2, 1): 1, (3, 2): 1},
-         (3, 2): {'sink': 1, (2, 2): 1, (3, 1): 1, (3, 3): 1},
-         (3, 3): {'sink': 1, (2, 3): 1, (3, 2): 1, (3, 4): 1},
-         (3, 4): {'sink': 2, (2, 4): 1, (3, 3): 1}}
-        sage: G.group_order()
-        4140081
-        sage: G.invariant_factors()
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1380027]
-    """
-    deprecation(18618,'May 25, 2015: Replaced by sandpiles.Grid.')
-    g = {}
-    # corners first
-    g[(1,1)] = {(1,2):1, (2,1):1, 'sink':2}
-    g[(m,1)] = {(m-1,1):1, (m,2):1, 'sink':2}
-    g[(1,n)] = {(1,n-1):1, (2,n):1, 'sink':2}
-    g[(m,n)] = {(m-1,n):1, (m,n-1):1, 'sink':2}
-    # top edge
-    for col in range(2,n):
-        g[(1,col)] = {(1,col-1):1, (1,col+1):1, (2,col):1, 'sink':1}
-    # left edge
-    for row in range (2,m):
-        g[(row,1)] = {(row-1,1):1, (row+1,1):1, (row,2):1, 'sink':1}
-    # right edge
-    for row in range (2,m):
-        g[(row,n)] = {(row-1,n):1, (row+1,n):1, (row,n-1):1, 'sink':1}
-    # bottom edge
-    for col in range(2,n):
-        g[(m,col)] = {(m,col-1):1, (m,col+1):1, (m-1,col):1, 'sink':1}
-    # inner vertices
-    for row in range(2,m):
-        for col in range(2,n):
-            g[(row,col)] ={(row-1,col):1, (row+1,col):1, (row,col-1):1, (row,col+1):1}
-    # the sink vertex
-    g['sink'] = {}
-    return Sandpile(g, 'sink')
 
 def triangle_sandpile(n):
     r"""
@@ -6504,7 +6394,7 @@ def aztec_sandpile(n):
             aztec_sandpile[(-half-i,half+j)] = {}
             aztec_sandpile[(half+i,-half-j)] = {}
             aztec_sandpile[(-half-i,-half-j)] = {}
-    non_sinks = aztec_sandpile.keys()
+    non_sinks = list(aztec_sandpile)
     aztec_sandpile['sink'] = {}
     for vert in non_sinks:
         weight = abs(vert[0]) + abs(vert[1])
@@ -6513,13 +6403,13 @@ def aztec_sandpile(n):
         if weight < n:
             aztec_sandpile[vert] = {(x+1,y):1, (x,y+1):1, (x-1,y):1, (x,y-1):1}
         else:
-            if (x+1,y) in aztec_sandpile.keys():
+            if (x+1,y) in aztec_sandpile:
                 aztec_sandpile[vert][(x+1,y)] = 1
-            if (x,y+1) in aztec_sandpile.keys():
+            if (x,y+1) in aztec_sandpile:
                 aztec_sandpile[vert][(x,y+1)] = 1
-            if (x-1,y) in aztec_sandpile.keys():
+            if (x-1,y) in aztec_sandpile:
                 aztec_sandpile[vert][(x-1,y)] = 1
-            if (x,y-1) in aztec_sandpile.keys():
+            if (x,y-1) in aztec_sandpile:
                 aztec_sandpile[vert][(x,y-1)] = 1
             if len(aztec_sandpile[vert]) < 4:
                 out_degree = 4 - len(aztec_sandpile[vert])
@@ -6641,48 +6531,6 @@ def random_DAG(num_verts, p=0.5, weight_max=1):
         g[i] = out_edges
     return g
 
-def random_tree(n, d):
-    r"""
-    A random undirected tree with `n` nodes, no node having
-    degree higher than `d`.
-
-    INPUT:
-
-    ``n``, ``d`` -- integers
-
-    OUTPUT:
-
-    Graph
-
-    EXAMPLES::
-
-        sage: T = random_tree(15,3)
-        doctest:...: DeprecationWarning: random_tree will be removed soon.  Use graphs.RandomTree() instead.
-        See http://trac.sagemath.org/18618 for details.
-        sage: T.show()
-        sage: S = Sandpile(T,0)
-        sage: U = S.reorder_vertices()
-        sage: U.show()
-    """
-    deprecation(18618,'random_tree will be removed soon.  Use graphs.RandomTree() instead.')
-    g = Graph()
-    # active vertices
-    active = [0]
-    g.add_vertex(0)
-    next_vertex = 1
-    while g.num_verts()<n:
-        node = randint(0,g.num_verts()-1)
-        if g.degree(node)>d:
-            active.remove(node)
-            break
-        r = randint(0,d)
-        if r>0:
-            for i in range(r):
-                g.add_vertex(next_vertex)
-                g.add_edge((node,next_vertex))
-                active.append(next_vertex)
-                next_vertex+=1
-    return g
 
 def glue_graphs(g, h, glue_g, glue_h):
     r"""
@@ -7022,7 +6870,7 @@ def min_cycles(G, v):
     """
     pr = G.neighbors_in(v)
     sp = G.shortest_paths(v)
-    return [sp[i] for i in pr if i in sp.keys()]
+    return [sp[i] for i in pr if i in sp]
 
 def wilmes_algorithm(M):
     r"""

@@ -430,9 +430,9 @@ class PanAxiom(ExtraTabCompletion, Expect):
             sage: print(fricas._eval_line("2+2"))  # optional - fricas
             $$
             4 
-            \leqno(11)
+            \leqno(3)
             $$
-                                                       Type: PositiveInteger
+                                                                                                                                                                                                                                    Type: PositiveInteger
             sage: fricas._eval_line(")set output tex off")  #optional - fricas
             ''
             sage: fricas._eval_line(")set output algebra on")  #optional - fricas
@@ -832,8 +832,14 @@ class PanAxiomElement(ExpectElement):
             sage: gp(axiom(1/2))    #optional - axiom
             1/2
 
-            sage: fricas(1/2).sage() #optional - fricas
+            sage: fricas(1).sage()          #optional - fricas
+            1
+            sage: fricas(-1).sage()         #optional - fricas
+            -1
+            sage: fricas(1/2).sage()        #optional - fricas
             1/2
+            sage: fricas(x^2/(x-1)).sage()  #optional - fricas
+            x^2/(x - 1)
 
         DoubleFloat's in Axiom are converted to be in RDF in Sage.
 
@@ -892,12 +898,17 @@ class PanAxiomElement(ExpectElement):
         elif type == "DoubleFloat":
             from sage.rings.all import RDF
             return RDF(repr(self))
+        elif type in ["PositiveInteger", "Integer"]:
+            from sage.rings.all import ZZ
+            return ZZ(repr(self))
         elif type.startswith('Polynomial'):
             from sage.rings.all import PolynomialRing
             base_ring = P(type.lstrip('Polynomial '))._sage_domain()
             vars = str(self.variables())[1:-1]
             R = PolynomialRing(base_ring, vars)
             return R(self.unparsed_input_form())
+        elif type.startswith('Fraction'):
+            return self.numer().sage()/self.denom().sage()
 
          #If all else fails, try using the unparsed input form
         try:

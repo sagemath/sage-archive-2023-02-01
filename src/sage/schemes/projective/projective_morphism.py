@@ -621,6 +621,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x : y : z) to
                     (2*y^2 : y^2 : z^2)
 
+        ::
+
+            sage: R.<a,b> = QQ[]
+            sage: P.<x,y,z> = ProjectiveSpace(R, 2)
+            sage: H = End(P)
+            sage: f = H([a*(x*z+y^2)*x^2, a*b*(x*z+y^2)*y^2, a*(x*z+y^2)*z^2])
+            sage: f.normalize_coordinates(); f
+            Scheme endomorphism of Projective Space of dimension 2 over Multivariate
+            Polynomial Ring in a, b over Rational Field
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (x^2 : b*y^2 : z^2)
+
         .. NOTE:: gcd raises an error if the base_ring does not support gcds.
         """
         GCD = gcd(self[0], self[1])
@@ -2016,8 +2028,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def height_difference_bound(self, prec=None):
         r"""
-        Returns an upper bound on the different bewtween the canonical height of a point with
-        respect to this map and the absolute height of the point.
+        Return an upper bound on the different between the canonical
+        height of a point with respect to this map and the absolute
+        height of the point.
 
         This map must be a morphism.
 
@@ -2979,11 +2992,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def critical_point_portrait(self, check=True, embedding=None):
         r"""
-        If this map is post-critically finite, return it's critical point portrait.
+        If this map is post-critically finite, return its critical point portrait.
 
         This is the directed graph of iterates starting with the critical points. Must be
         dimension 1. If ``check`` is True, then the map is first checked to see if it is
-        postcrtically finite.
+        postcritically finite.
 
         INPUT:
 
@@ -4289,13 +4302,13 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                         pt = [sum([P[i]*w**i for i in range(d)])]
                         pt.insert(k,1)
                         Q = PS(pt)
-                        #for each preperidic point get the entire connected component
+                        #for each preperiodic point get the entire connected component
                         if not Q in preper:
                             for t in self.connected_rational_component(Q):
                                 preper.add(t)
                 preper = list(preper)
             else:
-                #input error checking done in possible_periods and rational_peridic_points
+                #input error checking done in possible_periods and rational_periodic_points
                 badprimes = kwds.pop("bad_primes", None)
                 periods = kwds.pop("periods", None)
                 primebound = kwds.pop("prime_bound", [1, 20])

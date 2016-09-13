@@ -957,11 +957,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         """
         if len(self.summands) != len(other.summands):
             return False
-        from itertools import izip
+        from builtins import zip
         return all(s == o for s, o in
-                   izip(self.summands.elements_topological(),
-                        other.summands.elements_topological()))
-
+                   zip(self.summands.elements_topological(),
+                       other.summands.elements_topological()))
 
     def _simplify_(self):
         r"""

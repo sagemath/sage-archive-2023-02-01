@@ -24,6 +24,8 @@ from sage.structure.element cimport Element
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.combinat.root_system.cartan_type import CartanType
+from sage.rings.integer import Integer
+
 
 def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
     r"""
@@ -1487,8 +1489,8 @@ cdef class Crystal_of_letters_type_E6_element(LetterTuple):
              (-1/2, -1/2, -1/2, -1/2, -1/2, -1/6, -1/6, 1/6),
              (-1, 0, 0, 0, 0, 1/3, 1/3, -1/3)]
         """
-        R=self._parent.weight_lattice_realization().fundamental_weights()
-        return sum(cmp(i,0)*R[abs(i)] for i in self.value)
+        R = self._parent.weight_lattice_realization().fundamental_weights()
+        return sum(Integer(i).sign() * R[abs(i)] for i in self.value)
 
     cpdef LetterTuple e(self, int i):
         r"""
@@ -1888,8 +1890,8 @@ cdef class Crystal_of_letters_type_E7_element(LetterTuple):
             (-1/2, -1/2, -1/2, -1/2, -1/2, -1/2, 0, 0), (-1, 0, 0, 0, 0, 0, 1/2,
             -1/2)]
         """
-        R=self._parent.weight_lattice_realization().fundamental_weights()
-        return sum(cmp(i,0)*R[abs(i)] for i in self.value)
+        R = self._parent.weight_lattice_realization().fundamental_weights()
+        return sum(Integer(i).sign() * R[abs(i)] for i in self.value)
 
     cpdef LetterTuple e(self, int i):
         r"""

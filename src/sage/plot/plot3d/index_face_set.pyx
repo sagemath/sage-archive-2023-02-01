@@ -31,6 +31,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import itervalues
 
 include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
@@ -367,7 +368,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             self.vcount = ix
         sig_free(point_map)
 
-    def _seperate_creases(self, threshold):
+    def _separate_creases(self, threshold):
         """
         Some rendering engines Gouraud shading, which is great for smooth
         surfaces but looks bad if one actually has a polyhedron.
@@ -1004,7 +1005,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         cdef Py_ssize_t i
         cdef point_c res
 
-        self._seperate_creases(render_params.crease_threshold)
+        self._separate_creases(render_params.crease_threshold)
 
         sig_on()
         if transform is None:
@@ -1118,7 +1119,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             if face.n == 0: # skip unused vertices
                 continue
             face.vertices = &dual.face_indices[ix]
-            ff, next_ = next(dd.itervalues())
+            ff, next_ = next(itervalues(dd))
             face.vertices[0] = ff
             for j from 1 <= j < face.n:
                 ff, next_ = dd[next_]

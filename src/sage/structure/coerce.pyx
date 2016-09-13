@@ -293,6 +293,26 @@ cpdef bint is_numpy_type(t):
         return True
     return False
 
+cpdef bint is_mpmath_type(t):
+    r"""
+    Check whether the type ``t`` is a type whose name starts with either
+    ``mpmath.`` or ``sage.libs.mpmath.``.
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce import is_mpmath_type
+        sage: is_mpmath_type(int)
+        False
+        sage: import mpmath
+        sage: is_mpmath_type(mpmath.mpc(2))
+        False
+        sage: is_mpmath_type(type(mpmath.mpc(2)))
+        True
+        sage: is_mpmath_type(type(mpmath.mpf(2)))
+        True
+    """
+    return isinstance(t, type) and \
+           strncmp((<PyTypeObject*>t).tp_name, "sage.libs.mpmath.", 17) == 0
 
 cdef object _Integer
 cdef bint is_Integer(x):
@@ -441,8 +461,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         reference to the coercion maps in this case::
 
             sage: left_morphism_ref
-            <weakref at ...; to 'sage.rings.rational.Z_to_Q' at ...
-            (RingHomset_generic_with_category._abstract_element_class)>
+            <weakref at ...; to 'sage.rings.rational.Z_to_Q' at ...>
 
         Moreover, the weakly referenced coercion map uses only a weak
         reference to the codomain::
@@ -1316,9 +1335,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         garbage collection after being involved in binary operations::
 
             sage: import gc
+            sage: T=type(GF(2))
             sage: gc.collect() #random
             852
-            sage: T=type(GF(2))
             sage: N0=len(list(o for o in gc.get_objects() if type(o) is T))
             sage: L=[ZZ(1)+GF(p)(1) for p in prime_range(2,50)]
             sage: N1=len(list(o for o in gc.get_objects() if type(o) is T))
@@ -1630,7 +1649,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
     cpdef discover_action(self, R, S, op, r=None, s=None):
         """
-        INPUT
+        INPUT:
 
         - ``R`` - the left Parent (or type)
         - ``S`` - the right Parent (or type)

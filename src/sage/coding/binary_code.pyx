@@ -40,6 +40,7 @@ from __future__ import print_function
 
 include 'sage/ext/cdefs.pxi'
 from cpython.mem cimport *
+from cpython.object cimport PyObject_RichCompare
 include "cysignals/memory.pxi"
 from sage.structure.element import is_Matrix
 from sage.misc.misc import cputime
@@ -829,7 +830,7 @@ cdef class BinaryCode:
         """
         return BinaryCode, (self.matrix(),)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
         Comparison of BinaryCodes.
 
@@ -841,9 +842,10 @@ cdef class BinaryCode:
             sage: C = BinaryCode(B.matrix())
             sage: B == C
             True
-
         """
-        return cmp(self.matrix(), other.matrix())
+        if type(self) is not type(other):
+            return NotImplemented
+        return PyObject_RichCompare(self.matrix(), other.matrix(), op)
 
     def matrix(self):
         """
@@ -3869,12 +3871,12 @@ cdef class BinaryCodeClassifier:
 
         .. NOTE::
 
-            The function ``self_orthogonal_binary_codes`` makes heavy
+            The function ``codes.databases.self_orthogonal_binary_codes`` makes heavy
             use of this function.
 
         MORE EXAMPLES::
 
-            sage: soc_iter = self_orthogonal_binary_codes(12, 6, 4)
+            sage: soc_iter = codes.databases.self_orthogonal_binary_codes(12, 6, 4)
             sage: L = list(soc_iter)
             sage: for n in range(0, 13):
             ....:   s = 'n=%2d : '%n

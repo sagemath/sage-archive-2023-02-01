@@ -44,6 +44,8 @@ EXAMPLES::
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six import itervalues
+
 from sage.rings.continued_fraction import convergents
 from sage.misc.misc import verbose
 from .sigma0 import Sigma0
@@ -688,10 +690,8 @@ class ManinMap(object):
             (17, -34, 69)
         """
         D = {}
-        sd = self._dict
         # we should eventually replace the for loop with a call to apply_many
-        keys = [ky for ky in sd.iterkeys()]
-        for ky in keys:
+        for ky in self._dict:
             D[ky] = self(gamma * ky) * gamma
         return self.__class__(self._codomain, self._manin, D, check=False)
 
@@ -714,7 +714,7 @@ class ManinMap(object):
             (1 + O(11^2), 2 + O(11))
         """
         sd = self._dict
-        for val in sd.itervalues():
+        for val in itervalues(sd):
             val.normalize()
         return self
 

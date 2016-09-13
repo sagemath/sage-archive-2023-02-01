@@ -2664,7 +2664,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
     @cached_method
     def _2d_echelon_form(self):
         """
-        Return the echelon form of one particular cyclical order of rays of a 2-d fan.
+        Return the echelon form of one particular cyclic order of rays of a 2-d fan.
 
         OUTPUT:
 
@@ -2940,7 +2940,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         TESTS:
 
-        We check that Trac #11902 is fixed::
+        We check that :trac:`11902` is fixed::
 
             sage: fan = toric_varieties.P2().fan()
             sage: fan.subdivide(new_rays=[(0,0)])

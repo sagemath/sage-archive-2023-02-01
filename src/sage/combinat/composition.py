@@ -571,7 +571,7 @@ class Composition(CombinatorialElement):
             True
 
         Let us check that the join of `I` and `J` is indeed the
-        conctenation of `I_1, I_2, \cdots , I_m`, where
+        concatenation of `I_1, I_2, \cdots , I_m`, where
         `I = I_1 \bullet I_2 \bullet \ldots \bullet I_m` is the ribbon
         decomposition of `I` with respect to `J`::
 
@@ -1594,7 +1594,7 @@ class Compositions(UniqueRepresentation, Parent):
                     raise ValueError("n must be an integer")
             else:
                 # FIXME: should inherit from IntegerListLex, and implement repr, or _name as a lazy attribute
-                kwargs['name'] = "Compositions of the integer %s satisfying constraints %s"%(n, ", ".join( ["%s=%s"%(key, kwargs[key]) for key in sorted(kwargs.keys())] ))
+                kwargs['name'] = "Compositions of the integer %s satisfying constraints %s"%(n, ", ".join( ["%s=%s"%(key, kwargs[key]) for key in sorted(kwargs)] ))
                 kwargs['element_class'] = Composition
                 if 'min_part' not in kwargs:
                     kwargs['min_part'] = 1

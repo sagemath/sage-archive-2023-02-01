@@ -308,8 +308,9 @@ can be applied on both. Here is what it can do:
 Methods
 -------
 """
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import, division
+
+from six import itervalues
 
 from copy import copy
 from sage.misc.decorators import options
@@ -3289,8 +3290,9 @@ class GenericGraph(GenericGraph_pyx):
 
 
         # list of vertices of odd degree
-        from itertools import izip
-        odd=[x for (x,deg) in izip(g.vertex_iterator(),g.degree_iterator()) if deg%2==1]
+        from builtins import zip
+        odd = [x for (x, deg) in zip(g.vertex_iterator(), g.degree_iterator())
+               if deg % 2 == 1]
 
         # Picks the first vertex, which is preferably an odd one
         if len(odd)>0:
@@ -9777,7 +9779,7 @@ class GenericGraph(GenericGraph_pyx):
             100000 loops, best of 3: 8.85 [micro]s per loop
             sage: timeit V = list(P.vertex_iterator())      # not tested
             100000 loops, best of 3: 5.74 [micro]s per loop
-            sage: timeit V = list(P._nxg.adj.iterkeys())    # not tested
+            sage: timeit V = list(P._nxg.adj)    # not tested
             100000 loops, best of 3: 3.45 [micro]s per loop
 
         In other words, if you want a fast vertex iterator, call the
@@ -9856,7 +9858,7 @@ class GenericGraph(GenericGraph_pyx):
             100000 loops, best of 3: 8.85 [micro]s per loop
             sage: timeit V = list(P.vertex_iterator())        # not tested
             100000 loops, best of 3: 5.74 [micro]s per loop
-            sage: timeit V = list(P._nxg.adj.iterkeys())      # not tested
+            sage: timeit V = list(P._nxg.adj)      # not tested
             100000 loops, best of 3: 3.45 [micro]s per loop
 
         We illustrate various ways to use a ``key`` to sort the list::
@@ -10812,7 +10814,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def edge_labels(self):
         """
-        Returns a list of edge labels.
+        Return a list of edge labels.
 
         EXAMPLES::
 
@@ -10823,10 +10825,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edge_labels()
             ['x', 'z', 'a', 'out']
         """
-        labels = []
-        for u,v,l in self.edges():
-            labels.append(l)
-        return labels
+        return [l for _, _, l in self.edge_iterator()]
 
     def remove_multiple_edges(self):
         """
@@ -11939,7 +11938,7 @@ class GenericGraph(GenericGraph_pyx):
              0
 
         If we count instead the number of `T_3` in `T_5`, we expect
-        the answer to be `{5 \choose 3}`::
+        the answer to be `\binom{5}{3}`::
 
              sage: T3 = T5.subgraph([0,1,2])
              sage: T5.subgraph_search_count(T3)
@@ -14698,10 +14697,10 @@ class GenericGraph(GenericGraph_pyx):
                 return Integer(tr//6)
             elif algorithm=="sparse_copy":
                 from sage.graphs.base.static_sparse_graph import triangles_count
-                return sum(triangles_count(self).itervalues())/3
+                return sum(itervalues(triangles_count(self)))/3
             elif algorithm=="dense_copy":
                 from sage.graphs.base.static_dense_graph import triangles_count
-                return sum(triangles_count(self).itervalues())/3
+                return sum(itervalues(triangles_count(self)))/3
             elif algorithm=='matrix':
                 return (self.adjacency_matrix()**3).trace() // 6
             else:
@@ -15909,9 +15908,9 @@ class GenericGraph(GenericGraph_pyx):
                     check_weight=check_weight)[0]
         total = 0
         for u in distances.values():
-            total = total + sum(u.values())
+            total += sum(u.values())
 
-        return total / 2
+        return total // 2
 
     def average_distance(self, by_weight=False, algorithm=None,
                          weight_function=None):
@@ -17342,14 +17341,14 @@ class GenericGraph(GenericGraph_pyx):
         The default output is a dictionary assigning edges to colors::
 
             sage: G._color_by_label()
-            {'#0000ff': [((1,3,2,4), (1,4)(2,3), 3), ..., ((1,3), (1,4,3), 3)],
-             '#00ff00': [((1,3,2,4), (1,2,4), 2), ..., ((1,3), (1,2,3), 2)],
-             '#ff0000': [((1,3,2,4), (1,3)(2,4), 1), ..., ((1,3), (1,3,2), 1)]}
+            {'#0000ff': [((1,3,2,4), (1,4)(2,3), 3), ...],
+             '#00ff00': [((1,3,2,4), (1,2,4), 2), ...],
+             '#ff0000': [((1,3,2,4), (1,3)(2,4), 1), ...]}
 
             sage: G._color_by_label({1: "blue", 2: "red", 3: "green"})
-            {'blue': [((1,3,2,4), (1,3)(2,4), 1), ..., ((1,3), (1,3,2), 1)],
-             'green': [((1,3,2,4), (1,4)(2,3), 3), ..., ((1,3), (1,4,3), 3)],
-             'red': [((1,3,2,4), (1,2,4), 2), ..., ((1,3), (1,2,3), 2)]}
+            {'blue': [((1,3,2,4), (1,3)(2,4), 1), ...],
+             'green': [((1,3,2,4), (1,4)(2,3), 3), ...],
+             'red': [((1,3,2,4), (1,2,4), 2), ...]}
 
         TESTS:
 
@@ -17727,9 +17726,10 @@ class GenericGraph(GenericGraph_pyx):
             pos[verts[i]] = [x,y]
         return pos
 
-    def layout_tree(self, tree_orientation = "down", tree_root = None, dim = 2, **options):
+    def layout_tree(self, tree_orientation="down", tree_root=None,
+                    dim=2, **options):
         r"""
-        Computes an ordered tree layout for this graph, which should
+        Compute an ordered tree layout for this graph, which should
         be a tree (no non-oriented cycles).
 
         INPUT:
@@ -17739,8 +17739,13 @@ class GenericGraph(GenericGraph_pyx):
           tree.
 
         - ``tree_orientation`` -- the direction in which the tree is
-          growing, can be 'up', 'down', 'left' or 'right' (default is
-          'down')
+          growing, can be ``'up'``, ``'down'``, ``'left'`` or
+          ``'right'`` (default is ``'down'``)
+
+        If the tree has been given a planar embedding (fixed circular
+        order on the set of neighbors of every vertex) using
+        ``set_embedding``, the algorithm will create a layout that
+        respects this embedding.
 
         OUTPUT: a dictionary mapping vertices to positions
 
@@ -17755,7 +17760,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: T.show(layout='tree', tree_root=0)
 
             sage: G = graphs.BalancedTree(2, 2)
-            sage: G.layout_tree(tree_root = 0)
+            sage: G.layout_tree(tree_root=0)
             {0: (1.5, 0),
              1: (2.5, -1),
              2: (0.5, -1),
@@ -17772,6 +17777,24 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.plot(layout="tree", tree_orientation = "right")
             Graphics object consisting of 160 graphics primitives
 
+        Using the embedding when it exists::
+
+            sage: T = Graph([[0,1],[0,6],[0,3],[1,2],[1,5],[3,4],[3,7],[3,8]])
+            sage: T.set_embedding({0:[1,6,3],1:[2,5,0],2:[1],3:[4,7,8,0],
+            ....:     4:[3],5:[1],6:[0],7:[3],8:[3]})
+            sage: T.layout_tree()
+            {0: (2.166..., 0),
+             1: (3.5, -1),
+             2: (4.0, -2),
+             3: (1.0, -1),
+             4: (2.0, -2),
+             5: (3.0, -2),
+             6: (2.0, -1),
+             7: (1.0, -2),
+             8: (0.0, -2)}
+            sage: T.plot(layout="tree", tree_root=3)
+            Graphics object consisting of 18 graphics primitives
+
         TESTS::
 
             sage: G = graphs.CycleGraph(3)
@@ -17780,12 +17803,19 @@ class GenericGraph(GenericGraph_pyx):
             ...
             RuntimeError: Cannot use tree layout on this graph: self.is_tree() returns False.
         """
-        if not(dim == 2):
+        if dim != 2:
             raise ValueError('only implemented in 2D')
 
         from sage.graphs.all import Graph
         if not Graph(self).is_tree():
-            raise RuntimeError("Cannot use tree layout on this graph: self.is_tree() returns False.")
+            raise RuntimeError("Cannot use tree layout on this graph: "
+                               "self.is_tree() returns False.")
+
+        try:
+            emb = self.get_embedding()
+            use_embedding = True
+        except ValueError:
+            use_embedding = False
 
         n = self.order()
         vertices = self.vertices()
@@ -17798,8 +17828,11 @@ class GenericGraph(GenericGraph_pyx):
         pos = {}
 
         # The children and parent of each vertex
-        children = {root:self.neighbors(root)}
-        parent = {u:root for u in children[root]}
+        if not use_embedding:
+            children = {root: self.neighbors(root)}
+        else:
+            children = {root: emb[root]}
+        parent = {u: root for u in children[root]}
 
         # stack[i] is the list of children of stick[i] which have not been given
         # a position yet.
@@ -17809,7 +17842,7 @@ class GenericGraph(GenericGraph_pyx):
         # obstruction[y] is the smallest value of x to which a vertex at height
         # y can be assigned. All vertices at height y which have already been
         # assigned are on the left of (x-1,y).
-        obstruction = [0.0]*self.num_verts()
+        obstruction = [0.0] * self.num_verts()
 
         if tree_orientation in ['down', 'left']:
             o = -1
@@ -17820,9 +17853,9 @@ class GenericGraph(GenericGraph_pyx):
 
         def slide(v, dx):
             """
-            shift the vertex v and its descendants to the right by dx
+            shift the vertex ``v`` and its descendants to the right by ``dx``
 
-            Precondition: v and its descendents have already had their
+            Precondition: ``v`` and its descendants have already had their
             positions computed.
             """
             level = [v]
@@ -17831,7 +17864,7 @@ class GenericGraph(GenericGraph_pyx):
                 for u in level:
                     x, y = pos[u]
                     x += dx
-                    obstruction[y] = max(x+1, obstruction[y])
+                    obstruction[y] = max(x + 1, obstruction[y])
                     pos[u] = x, y
                     nextlevel += children[u]
 
@@ -17841,13 +17874,13 @@ class GenericGraph(GenericGraph_pyx):
             C = stack[-1]
 
             # If all the children of stick[-1] have been given a position
-            if len(C) == 0:
+            if not C:
                 p = stick.pop()
                 stack.pop()
                 cp = children[p]
-                y = o*len(stack)
+                y = o * len(stack)
 
-                if len(cp) == 0:
+                if not cp:
                     # If p has no children, we draw it at the leftmost position
                     # which has not been forbidden
                     x = obstruction[y]
@@ -17855,16 +17888,16 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     # If p has children, we put v on a vertical line going
                     # through the barycenter of its children
-                    x = sum([pos[c][0] for c in cp])/len(cp)
+                    x = sum([pos[c][0] for c in cp]) / len(cp)
                     pos[p] = x, y
                     ox = obstruction[y]
                     if x < ox:
-                        slide(p, ox-x)
+                        slide(p, ox - x)
                         x = ox
 
                 # If the vertex to the right of p has not children, we want it
                 # at distance 1 from p
-                obstruction[y] = x+1
+                obstruction[y] = x + 1
 
             # Otherwise, we take one of the children and add it to the
             # stack. Note that this vertex is removed from the list C.
@@ -17872,17 +17905,23 @@ class GenericGraph(GenericGraph_pyx):
                 t = C.pop()
 
                 pt = parent[t]
-                ct = [u for u in self.neighbors(t) if u != pt]
-                children[t] = ct
 
+                if not use_embedding:
+                    ct = [u for u in self.neighbors(t) if u != pt]
+                else:
+                    ct = emb[t]
+                    idx = ct.index(pt)
+                    ct = ct[idx + 1:] + ct[:idx]
+
+                children[t] = ct
                 for c in ct:
                     parent[c] = t
 
-                stack.append([c for c in ct])
+                stack.append(list(ct))
                 stick.append(t)
 
         if tree_orientation in ['right', 'left']:
-            return {p:(py,px) for p,(px,py) in pos.iteritems()}
+            return {p: (py, px) for p, (px, py) in pos.iteritems()}
 
         return pos
 
@@ -17948,6 +17987,18 @@ class GenericGraph(GenericGraph_pyx):
 
             Use the graphviz functionality of Networkx 1.0 once it
             will be merged into Sage.
+
+        TESTS:
+
+        Make sure that :trac:`12364` is fixed::
+
+            sage: m = WordMorphism('a->abb,b->ba')
+            sage: w = m.fixed_point('a')
+            sage: prefix = Word(list(w[:100]))
+            sage: pals = prefix.palindromes()
+            sage: poset = Poset((pals, lambda x,y: x.is_factor(y)))
+            sage: H = poset.hasse_diagram()
+            sage: d = H.layout_graphviz()     # optional - dot2tex graphviz
         """
         assert_have_dot2tex()
         assert dim == 2, "3D graphviz layout not implemented"
@@ -19832,7 +19883,7 @@ class GenericGraph(GenericGraph_pyx):
             if len(set(perm.values())) < len(perm):
                 raise NotImplementedError("Non injective relabeling")
 
-            for v in perm.iterkeys():
+            for v in perm:
                 if v in self:
                     try:
                         hash(perm[v])
@@ -20251,17 +20302,22 @@ class GenericGraph(GenericGraph_pyx):
             Subgroup of (Permutation Group with generators [(0,7)(1,4)(2,3)(6,8)]) generated by [(0,7)(1,4)(2,3)(6,8)]]
 
         """
-        from sage.misc.package import is_package_installed
+        try:
+            from sage.graphs.bliss import automorphism_group
+            have_bliss = True
+        except ImportError:
+            have_bliss = False
+
         if (algorithm == 'bliss'           or   # explicit choice from the user; or
             (algorithm is None             and  # by default
              not edge_labels               and
-             is_package_installed('bliss'))):
+             have_bliss)):
             if edge_labels:
                 raise ValueError("bliss cannot be used when edge_labels is True")
-            try:
-                from sage.graphs.bliss import automorphism_group
-            except ImportError:
-                raise ImportError("You must install the 'bliss' package to run this command.")
+
+            if not have_bliss:
+                from sage.misc.package import PackageNotFoundError
+                raise PackageNotFoundError("bliss")
 
             A = automorphism_group(self, partition)
 
@@ -20916,22 +20972,27 @@ class GenericGraph(GenericGraph_pyx):
         TESTS::
 
             sage: G = Graph({'a': ['b']})
-            sage: G.canonical_label(certify=True)
+            sage: G.canonical_label(algorithm='sage', certify=True)
             doctest:...: DeprecationWarning: use the option 'certificate' instead of 'certify'
             See http://trac.sagemath.org/21111 for details.
             (Graph on 2 vertices, {'a': 0, 'b': 1})
         """
-        from sage.misc.package import is_package_installed
+        try:
+            from sage.graphs.bliss import canonical_form
+            have_bliss = True
+        except ImportError:
+            have_bliss = False
+
         if (algorithm == 'bliss'           or  # explicit request; or
             (algorithm is None             and # default choice
-             is_package_installed('bliss') and
+             have_bliss and
              not edge_labels)):
             if edge_labels:
                 raise ValueError("bliss cannot be used when edge_labels is True")
-            try:
-                from sage.graphs.bliss import canonical_form
-            except ImportError:
-                raise ImportError("You must install the 'bliss' package to run this command.")
+            if not have_bliss:
+                from sage.misc.package import PackageNotFoundError
+                raise PackageNotFoundError("bliss")
+
             return canonical_form(self, partition, return_graph, certificate)
 
         if (algorithm is not None and

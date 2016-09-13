@@ -36,6 +36,8 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from six import itervalues
+
 from sage.structure.element import CommutativeAlgebraElement
 from sage.symbolic.expression import Expression
 from sage.manifolds.coord_func import CoordFunction
@@ -690,7 +692,7 @@ class ScalarField(CommutativeAlgebraElement):
             # undefined scalar field
             return True
         iszero = True
-        for funct in self._express.itervalues():
+        for funct in itervalues(self._express):
             iszero = iszero and funct.is_zero()
         self._is_zero = iszero
         return not iszero
@@ -1487,7 +1489,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         - ``other`` -- a scalar field
 
-        OUPUT:
+        OUTPUT:
 
         - list of common charts; if no common chart is found, ``None`` is
           returned (instead of an empty list)
@@ -1767,7 +1769,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         - ``other`` -- a scalar field (in the same algebra as ``self``)
 
-        OUPUT:
+        OUTPUT:
 
         - the scalar field resulting from the addition of ``self`` and
           ``other``
@@ -1818,7 +1820,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         - ``other`` -- a scalar field (in the same algebra as ``self``)
 
-        OUPUT:
+        OUTPUT:
 
         - the scalar field resulting from the subtraction of ``other`` from
           ``self``
@@ -1870,7 +1872,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         - ``other`` -- a scalar field (in the same algebra as ``self``)
 
-        OUPUT:
+        OUTPUT:
 
         - the scalar field resulting from the multiplication of ``self`` by
           ``other``
@@ -1920,7 +1922,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         - ``other`` -- a scalar field (in the same algebra as self)
 
-        OUPUT:
+        OUTPUT:
 
         - the scalar field resulting from the division of ``self`` by
           ``other``
@@ -1982,7 +1984,7 @@ class ScalarField(CommutativeAlgebraElement):
           field on which the manifold is constructed (possibly represented
           by a symbolic expression)
 
-        OUPUT:
+        OUTPUT:
 
         - the scalar field ``number * self``
 

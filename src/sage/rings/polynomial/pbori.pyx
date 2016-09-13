@@ -3139,8 +3139,8 @@ cdef class BooleanPolynomial(MPolynomial):
             0
         """
         cdef int res
-        from itertools import izip
-        for lm, rm in izip(left, right):
+        from builtins import zip
+        for lm, rm in zip(left, right):
             res = cmp(lm, rm)
             if res != 0:
                 return res

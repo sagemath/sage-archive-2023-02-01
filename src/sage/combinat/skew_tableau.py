@@ -23,8 +23,9 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+
+from builtins import zip
 
 import copy
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -532,8 +533,8 @@ class SkewTableau(ClonableList):
             sage: t = SkewTableau([[None,None,4,7,15],[6,2,16],[2,3,19],[4,5],[7]])
             sage: def by_word(T):
             ....:     ed = T.to_word().evaluation_dict()
-            ....:     m = max(ed.keys()) + 1
-            ....:     return [ed.get(k,0) for k in range(1,m)]
+            ....:     m = max(ed) + 1
+            ....:     return [ed.get(k, 0) for k in range(1, m)]
             sage: by_word(t) == t.weight()
             True
             sage: SST = SemistandardTableaux(shape=[3,1,1])
@@ -612,7 +613,7 @@ class SkewTableau(ClonableList):
                 return False
 
         # Is it strictly increasing down columns?
-        for row, next in itertools.izip(self, self[1:]):
+        for row, next in zip(self, self[1:]):
             if any(row[c] is not None and row[c] >= next[c] for c in xrange(len(next))):
                 return False
 

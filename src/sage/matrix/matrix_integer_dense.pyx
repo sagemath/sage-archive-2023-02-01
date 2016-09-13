@@ -126,20 +126,7 @@ USE_LINBOX_POLY = True
 
 
 ########## iml -- integer matrix library ###########
-
-cdef extern from "iml.h":
-
-    enum SOLU_POS:
-        LeftSolu = 101
-        RightSolu = 102
-
-    long nullspaceMP(long n, long m,
-                     mpz_t *A, mpz_t * *mp_N_pass)
-
-    void nonsingSolvLlhsMM (SOLU_POS solupos, long n, \
-                       long m, mpz_t *mp_A, mpz_t *mp_B, mpz_t *mp_N, \
-                       mpz_t mp_D)
-
+from sage.libs.iml cimport *
 
 fplll_fp_map = {None: None,
                 'fp': 'double',

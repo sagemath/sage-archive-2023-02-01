@@ -3903,8 +3903,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                     ...
                     ValueError: -2*alpha[1] - 2*alpha[2] - 2*alpha[3] is not a positive root
 
-                For an infinite root systems, this method may run into
-                an infinite reccursion if the input is not a positive
+                For an infinite root system, this method may run into
+                an infinite recursion if the input is not a positive
                 root.
             """
             F = self.parent().simple_roots().inverse_family()

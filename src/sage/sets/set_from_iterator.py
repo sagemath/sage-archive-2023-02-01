@@ -61,6 +61,7 @@ The module also provides decorator for functions and methods::
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from sage.structure.parent import Parent
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -247,7 +248,7 @@ class EnumeratedSetFromIterator(Parent):
         """
         l = []
         i = iter(self)
-        for _ in xrange(6):
+        for _ in range(6):
             try:
                 l.append(next(i))
             except StopIteration:

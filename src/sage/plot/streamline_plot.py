@@ -151,10 +151,10 @@ class StreamlinePlot(GraphicPrimitive):
 @options(plot_points=20, frame=True)
 def streamline_plot(f_g, xrange, yrange, **options):
     r"""
-    ``streamline_plot`` takes two functions of two variables xvar and yvar
+    ``streamline_plot`` takes two functions of two variables ``xvar`` and ``yvar``
     (for instance, if the variables are `x` and `y`, take `(f(x,y), g(x,y))`)
     and plots vector steamlines of the function over the specified ranges, with
-    xrange being of xvar between xmin and xmax, and yrange similarly
+    ``xrange`` being of ``xvar`` between ``xmin`` and ``xmax``, and ``yrange`` similarly
     (see below).
 
     ``streamline_plot((f, g), (xvar,xmin,xmax), (yvar,ymin,ymax))``

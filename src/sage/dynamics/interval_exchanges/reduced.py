@@ -53,6 +53,7 @@ TESTS::
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six.moves import range
 
 from sage.structure.sage_object import SageObject
 
@@ -1114,7 +1115,7 @@ class ReducedPermutationLI(ReducedPermutation, PermutationLI):
         self._twin = [self._twin[1], self._twin[0]]
 
         for interval in (0,1):
-            for j in xrange(self.length(interval)):
+            for j in range(self.length(interval)):
                 self._twin[interval][j] = (1-self._twin[interval][j][0],
                     self._twin[interval][j][1])
 

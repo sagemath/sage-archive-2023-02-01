@@ -206,6 +206,7 @@ TESTS::
 # python3
 from __future__ import division, print_function
 from __future__ import absolute_import
+from six.moves import range
 
 from sage.modules.module import Module
 from sage.categories.modules import Modules
@@ -1878,7 +1879,7 @@ class AbstractLinearCode(Module):
             sage: C = random_matrix(GF(25,'a'), 2, 7).row_space()
             sage: C = LinearCode(C.basis_matrix())
             sage: Clist = C.list()
-            sage: all([C[i]==Clist[i] for i in xrange(len(C))])
+            sage: all([C[i]==Clist[i] for i in range(len(C))])
             True
 
         Check that only the indices less than the size of the code are
@@ -1913,7 +1914,7 @@ class AbstractLinearCode(Module):
         a = F.primitive_element()
         m = F.degree()
         p = F.prime_subfield().order()
-        A = [a**k for k in xrange(m)]
+        A = [a ** k for k in range(m)]
         G = self.generator_matrix()
         N = self.dimension()*F.degree() # the total length of p-adic vector
         Z = Zp(p, N)
@@ -1922,7 +1923,7 @@ class AbstractLinearCode(Module):
         codeword = 0
         row = 0
         for g in G:
-            codeword += sum([ivec[j+row*m]*A[j] for j in xrange(m)])*g
+            codeword += sum(ivec[j+row*m]*A[j] for j in range(m)) * g
             row += 1
 
         # The codewords for a specific code can not change. So, we set them

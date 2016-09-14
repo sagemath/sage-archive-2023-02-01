@@ -2,6 +2,7 @@
 r"""
 Databases and accessors of online databases for coding theory
 """
+from six.moves import range
 
 #Don't put any global imports here since this module is accessible as sage.codes.databases.<tab>
 
@@ -297,7 +298,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     if BC is None:
         BC = BinaryCodeClassifier()
     if parent is None:
-        for j in xrange(d, n+1, d):
+        for j in range(d, n+1, d):
             M = Matrix(FiniteField(2), [[1]*j])
             if in_test(M):
                 for N in self_orthogonal_binary_codes(n, k, d, M, BC, in_test=in_test):
@@ -307,7 +308,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
         if out_test(C): yield C
         if k == parent.nrows():
             return
-        for nn in xrange(parent.ncols()+1, n+1):
+        for nn in range(parent.ncols()+1, n+1):
             if in_test(parent):
                 for child in BC.generate_children(BinaryCode(parent), nn, d):
                     for N in self_orthogonal_binary_codes(n, k, d, child, BC, in_test=in_test):

@@ -1567,7 +1567,7 @@ class WordGenerator(object):
             \sigma_k(a_k).
 
         Given a set of substitutions `S`, we say that the representation is
-        `S`-adic standard if the subtitutions are chosen in `S`.
+        `S`-adic standard if the substitutions are chosen in `S`.
 
         INPUT:
 
@@ -1672,7 +1672,7 @@ class WordGenerator(object):
             \sigma_k(a_k).
 
         Given a set of substitutions `S`, we say that the representation is
-        `S`-adic standard if the subtitutions are chosen in `S`.
+        `S`-adic standard if the substitutions are chosen in `S`.
 
         INPUT:
 

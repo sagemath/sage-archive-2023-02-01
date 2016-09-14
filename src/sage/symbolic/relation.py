@@ -1166,7 +1166,7 @@ def solve_ineq_univar(ineq):
 
 def solve_ineq_fourier(ineq,vars=None):
     """
-    Solves sytem of inequalities using Maxima and fourier elimination
+    Solves system of inequalities using Maxima and fourier elimination
 
     Can be used for system of linear inequalities and for some types
     of nonlinear inequalities. For examples see the section EXAMPLES

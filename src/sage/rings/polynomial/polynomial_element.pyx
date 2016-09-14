@@ -766,8 +766,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def compose_trunc(self, Polynomial other, long n):
         r"""
         Return the composition of ``self`` and ``other``, truncated to `O(x^n)`.
+
+        This method currently works for some specific coefficient rings only.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: (1 + x + x^2/2 + x^3/6 + x^4/24 + x^5/120).compose_trunc(1 + x, 2)
+            ([2.708333333333333 +/- 6.64e-16])*x + [2.71666666666667 +/- 4.29e-15]
+
+            sage: Pol.<x> = QQ['y'][]
+            sage: (1 + x + x^2/2 + x^3/6 + x^4/24 + x^5/120).compose_trunc(1 + x, 2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: truncated composition is not implemented for this subclass of polynomials
         """
-        raise NotImplementedError
+        raise NotImplementedError("truncated composition is not implemented "
+                                  "for this subclass of polynomials")
 
     def _compile(self):
         # For testing

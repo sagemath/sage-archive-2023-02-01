@@ -83,6 +83,14 @@ if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shel
     extra_compile_args.append('-fno-tree-copyrename')
 
 #########################################################
+### Generate some Python/Cython sources
+#########################################################
+
+status = subprocess.call("make -f generate_py_source.mk", shell=True)
+if status != 0:
+    raise DistutilsSetupError("make -f generate_py_source.mk failed")
+
+#########################################################
 ### Testing related stuff
 #########################################################
 

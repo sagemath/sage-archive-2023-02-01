@@ -739,17 +739,28 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             sage: LatticePoset().is_meet_semidistributive()
             True
+
+        Smallest lattice that fails the quick check::
+
+            sage: L = LatticePoset(DiGraph('IY_T@A?CC_@?W?O@??'))
+            sage: L.is_join_semidistributive()
+            False
+
+        Confirm that :trac:`21340` is fixed::
+
+            sage: Posets.BooleanLattice(4).is_join_semidistributive()
+            True
         """
         # See http://www.math.hawaii.edu/~ralph/Preprints/algorithms-survey.pdf
         # for explanation of this
-        from sage.misc.functional import log
         n = self.cardinality()
         if n == 0:
             return True
-        if self._hasse_diagram.size() > n*log(n, 2)/2:
+        if self._hasse_diagram.size()*2 > n*_log_2(n):
             return False
 
-        return self._hasse_diagram.is_semidistributive('meet') is None
+        return (self._hasse_diagram.find_nonsemidistributive_elements('meet')
+                is None)
 
     def is_join_semidistributive(self):
         r"""
@@ -778,17 +789,28 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             sage: LatticePoset().is_join_semidistributive()
             True
+
+        Smallest lattice that fails the quick check::
+
+            sage: L = LatticePoset(DiGraph('IY_T@A?CC_@?W?O@??'))
+            sage: L.is_join_semidistributive()
+            False
+
+        Confirm that :trac:`21340` is fixed::
+
+            sage: Posets.BooleanLattice(3).is_join_semidistributive()
+            True
         """
         # See http://www.math.hawaii.edu/~ralph/Preprints/algorithms-survey.pdf
         # for explanation of this
-        from sage.misc.functional import log
         n = self.cardinality()
         if n == 0:
             return True
-        if self._hasse_diagram.size() > n*log(n, 2)/2:
+        if self._hasse_diagram.size()*2 > n*_log_2(n):
             return False
 
-        return self._hasse_diagram.is_semidistributive('join') is None
+        return (self._hasse_diagram.find_nonsemidistributive_elements('join')
+                is None)
 
     def is_complemented(self, certificate=False):
         r"""
@@ -2228,6 +2250,35 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if not certificate:
             return True
         return (True, [self[e] for e in cert])
+
+def _log_2(n):
+    """
+    Return the 2-based logarithm of `n` rounded up.
+
+    `n` is assumed to be a positive integer.
+
+    EXAMPLES::
+
+        sage: sage.combinat.posets.lattices._log_2(10)
+        4
+
+    TESTS::
+
+        sage: sage.combinat.posets.lattices._log_2(15)
+        4
+        sage: sage.combinat.posets.lattices._log_2(16)
+        4
+        sage: sage.combinat.posets.lattices._log_2(17)
+        5
+    """
+    bits = -1
+    i = n
+    while i:
+        i = i >> 1
+        bits += 1
+    if 1 << bits == n:
+        return bits
+    return bits+1
 
 ############################################################################
 

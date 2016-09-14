@@ -27,29 +27,34 @@ class StreamlinePlot(GraphicPrimitive):
     """
     def __init__(self, xpos_array, ypos_array, xvec_array, yvec_array, options):
         """
-        Create the graphics primitive StreamlinePlot.  This sets options
+        Create the graphics primitive StreamlinePlot. This sets options
         and the array to be plotted as attributes.
 
         EXAMPLES::
 
-            sage: x,y = var('x,y')
-            sage: R=plot_slope_field(x + y, (x,0,1), (y,0,1), plot_points=2)
-            sage: r=R[0]
-            sage: r.options()['headaxislength']
-            0
+            sage: x, y = var('x y')
+            sage: R = streamline_plot((sin(x), cos(y)), (x,0,1), (y,0,1), plot_points=2)
+            sage: r = R[0]
+            sage: r.options()['plot_points']
+            2
             sage: r.xpos_array
-            [0.0, 0.0, 1.0, 1.0]
+            array([ 0.,  1.])
             sage: r.yvec_array
-            masked_array(data = [0.0 0.70710678118... 0.70710678118... 0.89442719...],
-                         mask = [False False False False],
+            masked_array(data =
+             [[1.0 1.0]
+             [0.5403023058681398 0.5403023058681398]],
+                         mask =
+             [[False False]
+             [False False]],
                    fill_value = 1e+20)
+            <BLANKLINE>
 
         TESTS:
 
         We test dumping and loading a plot::
 
-            sage: x,y = var('x,y')
-            sage: P = plot_vector_field((sin(x),cos(y)), (x,-3,3), (y,-3,3))
+            sage: x, y = var('x y')
+            sage: P = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3))
             sage: Q = loads(dumps(P))
 
         """
@@ -65,8 +70,8 @@ class StreamlinePlot(GraphicPrimitive):
 
         EXAMPLES::
 
-            sage: x,y = var('x,y')
-            sage: d = plot_vector_field((.01*x,x+y), (x,10,20), (y,10,20))[0].get_minmax_data()
+            sage: x, y = var('x y')
+            sage: d = streamline_plot((.01*x, x+y), (x,10,20), (y,10,20))[0].get_minmax_data()
             sage: d['xmin']
             10.0
             sage: d['ymin']
@@ -81,9 +86,9 @@ class StreamlinePlot(GraphicPrimitive):
 
         EXAMPLES::
 
-            sage: x,y = var('x,y')
-            sage: P=plot_vector_field((sin(x),cos(y)), (x,-3,3), (y,-3,3))
-            sage: d=P[0]._allowed_options()
+            sage: x, y = var('x y')
+            sage: P = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3))
+            sage: d = P[0]._allowed_options()
             sage: d['pivot']
             'Where the arrow should be placed in relation to the point (tail, middle, tip)'
         """
@@ -101,18 +106,15 @@ class StreamlinePlot(GraphicPrimitive):
 
         EXAMPLES::
 
-            sage: x,y = var('x,y')
-            sage: P=plot_vector_field((sin(x),cos(y)), (x,-3,3), (y,-3,3))
+            sage: x, y = var('x y')
+            sage: P = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3))
             sage: P[0]
             StreamlinePlot defined by a 20 x 20 vector grid
 
         TESTS:
 
-        We check that :trac:`15052` is fixed
-        (note that in general :trac:`15002` should be fixed)::
-
-            sage: x,y=var('x,y')
-            sage: P=plot_vector_field((sin(x), cos(y)), (x,-3,3), (y,-3,3), wrong_option='nonsense')
+            sage: x, y = var('x y')
+            sage: P = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3), wrong_option='nonsense')
             sage: P[0].options()['plot_points']
             verbose 0 (...: primitive.py, options) WARNING: Ignoring option 'wrong_option'=nonsense
             verbose 0 (...: primitive.py, options)
@@ -128,15 +130,15 @@ class StreamlinePlot(GraphicPrimitive):
             20
 
         """
-        return "StreamlinePlot defined by a %s x %s vector grid"%(
+        return "StreamlinePlot defined by a {} x {} vector grid".format(
                self._options['plot_points'], self._options['plot_points'])
 
     def _render_on_subplot(self, subplot):
         """
         TESTS::
 
-            sage: x,y = var('x,y')
-            sage: P=plot_vector_field((sin(x),cos(y)), (x,-3,3), (y,-3,3))
+            sage: x, y = var('x y')
+            sage: P = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3))
         """
         options = self.options()
         streamplot_options = options.copy()
@@ -149,101 +151,61 @@ class StreamlinePlot(GraphicPrimitive):
 @options(plot_points=20, frame=True)
 def streamline_plot(f_g, xrange, yrange, **options):
     r"""
-    ``plot_vector_field`` takes two functions of two variables xvar and yvar
+    ``streamline_plot`` takes two functions of two variables xvar and yvar
     (for instance, if the variables are `x` and `y`, take `(f(x,y), g(x,y))`)
-    and plots vector arrows of the function over the specified ranges, with
+    and plots vector steamlines of the function over the specified ranges, with
     xrange being of xvar between xmin and xmax, and yrange similarly
     (see below).
 
-    ``plot_vector_field((f,g), (xvar,xmin,xmax), (yvar,ymin,ymax))``
+    ``streamline_plot((f, g), (xvar,xmin,xmax), (yvar,ymin,ymax))``
 
     EXAMPLES:
 
     Plot some vector fields involving sin and cos::
 
-        sage: x,y = var('x y')
-        sage: plot_vector_field((sin(x),cos(y)), (x,-3,3), (y,-3,3))
+        sage: x, y = var('x y')
+        sage: streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x, y = var('x y')
-        g = plot_vector_field((sin(x),cos(y)), (x,-3,3), (y,-3,3))
+        g = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3))
         sphinx_plot(g)
 
     ::
 
-        sage: plot_vector_field((y,(cos(x)-2) * sin(x)), (x,-pi,pi), (y,-pi,pi))
+        sage: streamline_plot((y, (cos(x)-2) * sin(x)), (x,-pi,pi), (y,-pi,pi))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x, y = var('x y')
-        g = plot_vector_field((y,(cos(x)-2) * sin(x)), (x,-pi,pi), (y,-pi,pi))
+        g = streamline_plot((y, (cos(x)-2) * sin(x)), (x,-pi,pi), (y,-pi,pi))
         sphinx_plot(g)
-
-    Plot a gradient field::
-
-        sage: u, v = var('u v')
-        sage: f = exp(-(u^2 + v^2))
-        sage: plot_vector_field(f.gradient(), (u,-2,2), (v,-2,2), color='blue')
-        Graphics object consisting of 1 graphics primitive
-
-    .. PLOT::
-
-        u, v = var('u v')
-        f = exp(-(u**2 + v**2))
-        g = plot_vector_field(f.gradient(), (u,-2,2), (v,-2,2), color='blue')
-        sphinx_plot(g)
-
-    Plot two orthogonal vector fields::
-
-        sage: x,y = var('x,y')
-        sage: a = plot_vector_field((x,y), (x,-3,3), (y,-3,3), color='blue')
-        sage: b = plot_vector_field((y,-x), (x,-3,3), (y,-3,3), color='red')
-        sage: show(a + b)
-
-    .. PLOT::
-
-        x,y = var('x,y')
-        a = plot_vector_field((x,y), (x,-3,3), (y,-3,3), color='blue')
-        b = plot_vector_field((y,-x), (x,-3,3), (y,-3,3), color='red')
-        sphinx_plot(a + b)
 
     We ignore function values that are infinite or NaN::
 
-        sage: x,y = var('x,y')
-        sage: plot_vector_field((-x/sqrt(x^2+y^2),-y/sqrt(x^2+y^2)), (x,-10,10), (y,-10,10))
+        sage: x, y = var('x y')
+        sage: streamline_plot((-x/sqrt(x^2+y^2), -y/sqrt(x^2+y^2)), (x,-10,10), (y,-10,10))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
-        x,y = var('x,y')
-        g = plot_vector_field((-x/sqrt(x**2+y**2),-y/sqrt(x**2+y**2)), (x,-10,10), (y,-10,10))
-        sphinx_plot(g)
-
-    ::
-
-        sage: x,y = var('x,y')
-        sage: plot_vector_field((-x/sqrt(x+y),-y/sqrt(x+y)), (x,-10, 10), (y,-10,10))
-        Graphics object consisting of 1 graphics primitive
-
-    .. PLOT::
-
-        x,y = var('x,y')
-        g = plot_vector_field((-x/sqrt(x+y),-y/sqrt(x+y)), (x,-10,10), (y,-10,10))
+        x, y = var('x y')
+        g = streamline_plot((-x/sqrt(x**2+y**2), -y/sqrt(x**2+y**2)), (x,-10,10), (y,-10,10))
         sphinx_plot(g)
 
     Extra options will get passed on to show(), as long as they are valid::
 
-        sage: plot_vector_field((x,y), (x,-2,2), (y,-2,2), xmax=10)
+        sage: streamline_plot((x, y), (x,-2,2), (y,-2,2), xmax=10)
         Graphics object consisting of 1 graphics primitive
-        sage: plot_vector_field((x,y), (x,-2,2), (y,-2,2)).show(xmax=10) # These are equivalent
+        sage: streamline_plot((x, y), (x,-2,2), (y,-2,2)).show(xmax=10) # These are equivalent
 
     .. PLOT::
 
-        x,y = var('x,y')
-        g = plot_vector_field((x,y), (x,-2,2), (y,-2,2), xmax=10)
+        x, y = var('x y')
+        g = streamline_plot((x, y), (x,-2,2), (y,-2,2), xmax=10)
         sphinx_plot(g)
 
     """
@@ -266,8 +228,8 @@ def streamline_plot(f_g, xrange, yrange, **options):
         yvec_array.append(yvec_row)
 
     import numpy
-    xpos_array = numpy.ma.masked_invalid(numpy.array(xpos_array, dtype=float))
-    ypos_array = numpy.ma.masked_invalid(numpy.array(ypos_array, dtype=float))
+    xpos_array = numpy.array(xpos_array, dtype=float)
+    ypos_array = numpy.array(ypos_array, dtype=float)
     xvec_array = numpy.ma.masked_invalid(numpy.array(xvec_array, dtype=float))
     yvec_array = numpy.ma.masked_invalid(numpy.array(yvec_array, dtype=float))
     g = Graphics()

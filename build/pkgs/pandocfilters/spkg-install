@@ -8,8 +8,10 @@ fi
 
 cd src
 
-python setup.py install
+$PIP_INSTALL .
+
 if [ $? -ne 0 ]; then
     echo "Error installing pandocfilters ... exiting"
     exit 1
 fi
+

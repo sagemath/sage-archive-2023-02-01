@@ -1042,7 +1042,7 @@ class HasseDiagram(DiGraph):
             sage: H.meet_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Not a meet-semilattice: no bottom element.
+            ValueError: not a meet-semilattice: no bottom element
 
             sage: H = HasseDiagram({0:[1,2],1:[3,4],2:[3,4]})
             sage: H.meet_matrix()
@@ -1059,7 +1059,7 @@ class HasseDiagram(DiGraph):
         if n == 0:
             return matrix(0)
         if not self.has_bottom():
-            raise ValueError("Not a meet-semilattice: no bottom element.")
+            raise ValueError("not a meet-semilattice: no bottom element")
         meet = [[0 for x in range(n)] for x in range(n)]
         lc = [self.neighbors_in(x) for x in range(n)]  # Lc = lower covers
 
@@ -1120,7 +1120,7 @@ class HasseDiagram(DiGraph):
             sage: H.meet_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Not a meet-semilattice: no bottom element.
+            ValueError: not a meet-semilattice: no bottom element
 
             sage: H = HasseDiagram({0:[1,2],1:[3,4],2:[3,4]})
             sage: H.meet_matrix()
@@ -1184,7 +1184,7 @@ class HasseDiagram(DiGraph):
             sage: H.join_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Not a join-semilattice: no top element.
+            ValueError: not a join-semilattice: no top element
 
             sage: H = HasseDiagram({0:[2,3],1:[2,3],2:[4],3:[4]})
             sage: H.join_matrix()
@@ -1201,7 +1201,7 @@ class HasseDiagram(DiGraph):
         if n == 0:
             return matrix(0)
         if not self.has_top():
-            raise ValueError("Not a join-semilattice: no top element.")
+            raise ValueError("not a join-semilattice: no top element")
         join = [[0 for x in range(n)] for x in range(n)]
         le = self.lequal_matrix()
         uc = [sorted([n-1-y for y in self.neighbors_out(x)]) for
@@ -1258,7 +1258,7 @@ class HasseDiagram(DiGraph):
             sage: H.join_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Not a join-semilattice: no top element.
+            ValueError: not a join-semilattice: no top element
 
             sage: H = HasseDiagram({0:[2,3],1:[2,3],2:[4],3:[4]})
             sage: H.join_matrix()

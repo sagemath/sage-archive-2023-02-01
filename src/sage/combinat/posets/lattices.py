@@ -150,7 +150,7 @@ def MeetSemilattice(data=None, *args, **options):
         ....:                  'c': ['d', 'e'], 'd': ['f'], 'e': ['f']})
         Traceback (most recent call last):
         ...
-        ValueError: not a meet semilattice: no meet for e and d
+        LatticeError: no meet for e and d
     """
     if isinstance(data,FiniteMeetSemilattice) and len(args) == 0 and len(options) == 0:
         return data
@@ -158,9 +158,9 @@ def MeetSemilattice(data=None, *args, **options):
     try:
         P._hasse_diagram.meet_matrix()
     except LatticeError as error:
-        raise ValueError("not a meet semilattice: no meet for %s and %s" %
-                         (P._vertex_to_element(error.x),
-                         P._vertex_to_element(error.y)))
+        error.x = P._vertex_to_element(error.x)
+        error.y = P._vertex_to_element(error.y)
+        raise
     return FiniteMeetSemilattice(P)
 
 class FiniteMeetSemilattice(FinitePoset):
@@ -347,9 +347,9 @@ def JoinSemilattice(data=None, *args, **options):
 
     - ``data``, ``*args``, ``**options`` -- data and options that will
       be passed down to :func:`Poset` to construct a poset that is
-      also a join semilattice.
+      also a join semilattice
 
-    .. seealso:: :func:`Poset`, :func:`MeetSemilattice`, :func:`LatticePoset`
+    .. SEEALSO:: :func:`Poset`, :func:`MeetSemilattice`, :func:`LatticePoset`
 
     EXAMPLES:
 
@@ -375,7 +375,7 @@ def JoinSemilattice(data=None, *args, **options):
         ....:                  'c': ['d', 'e'], 'd': ['f'], 'e': ['f']})
         Traceback (most recent call last):
         ...
-        ValueError: not a join semilattice: no join for b and c
+        LatticeError: no join for b and c
     """
     if isinstance(data,FiniteJoinSemilattice) and len(args) == 0 and len(options) == 0:
         return data
@@ -383,9 +383,10 @@ def JoinSemilattice(data=None, *args, **options):
     try:
         P._hasse_diagram.join_matrix()
     except LatticeError as error:
-        raise ValueError("not a join semilattice: no join for %s and %s" %
-                         (P._vertex_to_element(error.x),
-                         P._vertex_to_element(error.y)))
+        error.x = P._vertex_to_element(error.x)
+        error.y = P._vertex_to_element(error.y)
+        raise
+
     return FiniteJoinSemilattice(P)
 
 class FiniteJoinSemilattice(FinitePoset):
@@ -516,9 +517,12 @@ def LatticePoset(data=None, *args, **options):
 
     OUTPUT:
 
-        FiniteLatticePoset -- an instance of :class:`FiniteLatticePoset`
+    An instance of :class:`FiniteLatticePoset`.
 
-    .. seealso:: :class:`Posets`, :class:`FiniteLatticePosets`, :func:`JoinSemiLattice`, :func:`MeetSemiLattice`
+    .. SEEALSO::
+
+        :class:`Posets`, :class:`FiniteLatticePosets`,
+        :func:`JoinSemiLattice`, :func:`MeetSemiLattice`
 
     EXAMPLES:
 
@@ -545,7 +549,7 @@ def LatticePoset(data=None, *args, **options):
         sage: LatticePoset((elms, rels))
         Traceback (most recent call last):
         ...
-        ValueError: Not a lattice.
+        ValueError: not a meet-semilattice: no bottom element
 
     Creating a facade lattice::
 
@@ -562,13 +566,13 @@ def LatticePoset(data=None, *args, **options):
     P = Poset(data, *args, **options)
     if P.cardinality() != 0:
         if not P.has_bottom():
-            raise ValueError("Not a lattice.")
+            raise ValueError("not a meet-semilattice: no bottom element")
         try:
             P._hasse_diagram.join_matrix()
         except LatticeError as error:
-            raise ValueError("not a lattice: no join for %s and %s." %
-                         (P._vertex_to_element(error.x),
-                         P._vertex_to_element(error.y)))
+            error.x = P._vertex_to_element(error.x)
+            error.y = P._vertex_to_element(error.y)
+            raise
     return FiniteLatticePoset(P, category = FiniteLatticePosets(), facade = P._is_facade)
 
 class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):

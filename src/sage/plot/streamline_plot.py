@@ -139,11 +139,11 @@ class StreamlinePlot(GraphicPrimitive):
             sage: P=plot_vector_field((sin(x),cos(y)), (x,-3,3), (y,-3,3))
         """
         options = self.options()
-        quiver_options = options.copy()
-        quiver_options.pop('plot_points')
+        streamplot_options = options.copy()
+        streamplot_options.pop('plot_points')
         subplot.streamplot(self.xpos_array, self.ypos_array,
-                       self.xvec_array, self.yvec_array )#,
-                       #**quiver_options)
+                       self.xvec_array, self.yvec_array,
+                       **streamplot_options)
 
 
 @options(plot_points=20, frame=True)
@@ -255,17 +255,23 @@ def streamline_plot(f_g, xrange, yrange, **options):
 
     xpos_array, ypos_array, xvec_array, yvec_array = [], [], [], []
     for x in xsrange(*ranges[0], include_endpoint=True):
-        for y in xsrange(*ranges[1], include_endpoint=True):
-            xpos_array.append(x)
-            ypos_array.append(y)
-            xvec_array.append(f(x, y))
-            yvec_array.append(g(x, y))
+        xpos_array.append(x)
+    for y in xsrange(*ranges[1], include_endpoint=True):
+        ypos_array.append(y)
+        xvec_row, yvec_row = [], []
+        for x in xsrange(*ranges[0], include_endpoint=True):
+            xvec_row.append(f(x, y))
+            yvec_row.append(g(x, y))
+        xvec_array.append(xvec_row)
+        yvec_array.append(yvec_row)
 
     import numpy
+    xpos_array = numpy.ma.masked_invalid(numpy.array(xpos_array, dtype=float))
+    ypos_array = numpy.ma.masked_invalid(numpy.array(ypos_array, dtype=float))
     xvec_array = numpy.ma.masked_invalid(numpy.array(xvec_array, dtype=float))
     yvec_array = numpy.ma.masked_invalid(numpy.array(yvec_array, dtype=float))
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
-    g.add_primitive(StreamlinePlot(xpos_array, ypos_array,))
+    g.add_primitive(StreamlinePlot(xpos_array, ypos_array,
                                    xvec_array, yvec_array, options))
     return g

@@ -83,6 +83,23 @@ if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shel
     extra_compile_args.append('-fno-tree-copyrename')
 
 #########################################################
+### Check build-base
+#########################################################
+
+build_base = 'build' # the distutils default
+cmd = None
+for i, arg in enumerate(sys.argv[1:]):
+    if not arg or not arg.startswith("-"):
+        cmd = arg
+    elif cmd == 'build' and (arg.startswith("--build-base") or arg == '-b'):
+        if arg.startswith("--build-base="):
+            build_base = arg[len("--build-base="):]
+        else:
+            build_base = arg[i+1]
+
+SAGE_CYTHONIZED = os.path.abspath(os.path.join(build_base, 'cythonized'))
+
+#########################################################
 ### Generate some Python/Cython sources
 #########################################################
 
@@ -562,7 +579,7 @@ def run_cythonize():
         print('Enabling Cython debugging support')
         debug = True
         Cython.Compiler.Main.default_options['gdb_debug'] = True
-        Cython.Compiler.Main.default_options['output_dir'] = 'build'
+        Cython.Compiler.Main.default_options['output_dir'] = build_base
 
     profile = False
     if os.environ.get('SAGE_PROFILE', None) == 'yes':
@@ -632,7 +649,7 @@ print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t
 print('Cleaning up stale installed files....')
 t = time.time()
 from sage_setup.clean import clean_install_dir
-output_dirs = SITE_PACKAGES + glob.glob(os.path.join(SAGE_SRC, 'build', 'lib*'))
+output_dirs = SITE_PACKAGES + glob.glob(os.path.join(build_base, 'lib*'))
 for output_dir in output_dirs:
     print('- cleaning {0}'.format(output_dir))
     clean_install_dir(output_dir, python_packages, python_modules,

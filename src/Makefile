@@ -6,8 +6,6 @@ all: sage
 ifndef SAGE_BUILD_DIR
 $(error SAGE_BUILD_DIR not set. Use top-level Makefile!)
 endif
-# setup.py also depends on SAGE_CYTHONIZED, defined in src/sage/env.py
-# TODO: It would be better if it inferred the location from the build-base instead of using SAGE_CYTHONIZED.
 sage:
 	python -u setup.py build --build-base=$(SAGE_BUILD_DIR)/sagelib install
 

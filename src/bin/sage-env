@@ -267,10 +267,6 @@ export SAGE_SRC="$SAGE_ROOT/src"
 export SAGE_DOC_SRC="$SAGE_SRC/doc"
 export SAGE_DOC="$SAGE_SHARE/doc/sage"
 
-if [ -z "$SAGE_BUILD_DIR" ]; then
-    export SAGE_BUILD_DIR="$SAGE_LOCAL/var/tmp/sage/build"
-fi
-
 if [ -z "${SAGE_ORIG_PATH_SET}" ]; then 
     SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH 
     SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET 

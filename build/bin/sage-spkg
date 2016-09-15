@@ -131,6 +131,10 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+if [ -z "$SAGE_BUILD_DIR" ]; then
+    export SAGE_BUILD_DIR="$SAGE_LOCAL/var/tmp/sage/build"
+fi
+
 mkdir -p "$SAGE_SPKG_INST"
 if [ $? -ne 0 ]; then
     echo >&2 "Error creating directory $SAGE_SPKG_INST."

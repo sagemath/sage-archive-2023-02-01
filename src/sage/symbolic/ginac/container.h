@@ -34,7 +34,7 @@
 #include <vector>
 #include <list>
 #include <memory>
-#include <bits/algorithmfwd.h>
+#include <algorithm>
 
 namespace GiNaC {
 

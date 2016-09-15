@@ -185,13 +185,17 @@ export SAGE_ENV_SOURCED=$SAGE_ENV_VERSION
 
 export SAGE_ROOT="$NEW_SAGE_ROOT"
 
+# SAGE_LOCAL is the installation prefix and can be customized
+if [ -z "$SAGE_LOCAL" ]; then
+    export SAGE_LOCAL="$SAGE_ROOT/local"
+fi
 
 # sage-env must know where the Sage's script files are
 if [ -z "$SAGE_SCRIPTS_DIR" ]; then
     if [ -f "`dirname $0`/sage-env" ]; then
         SAGE_SCRIPTS_DIR=`dirname $0`
-    elif [ -f "$SAGE_ROOT/local/bin/sage-env" ]; then
-        SAGE_SCRIPTS_DIR="$SAGE_ROOT/local/bin"
+    elif [ -f "$SAGE_LOCAL/bin/sage-env" ]; then
+        SAGE_SCRIPTS_DIR="$SAGE_LOCAL/bin"
     elif [ -f "$SAGE_ROOT/src/bin/sage-env" ]; then
         SAGE_SCRIPTS_DIR="$SAGE_ROOT/src/bin"
     else
@@ -256,8 +260,8 @@ if [ 1 = 2 ]; then
     echo "if you use sh, bash or a similar shell"
 fi
 
-# Setting Sage-related location environment variables.
-export SAGE_LOCAL="$SAGE_ROOT/local"
+# Setting Sage-related location environment variables,
+# depending on SAGE_ROOT and SAGE_LOCAL which are already defined.
 export SAGE_ETC="$SAGE_LOCAL/etc"
 export SAGE_SHARE="$SAGE_LOCAL/share"
 export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
@@ -411,9 +415,9 @@ export LDFLAGS
 # variable MPLCONFIGDIR. Note that we can't find the version number by
 # importing matplotlib, because that could create matplotlib's standard
 # config directory. So we use pkg_resources.
-"$SAGE_ROOT/local/bin/python" -c 'import pkg_resources; pkg_resources.get_distribution("matplotlib").version' 2>/dev/null
+"$SAGE_LOCAL/bin/python" -c 'import pkg_resources; pkg_resources.get_distribution("matplotlib").version' 2>/dev/null
 if [ $? -eq 0 ]; then
-    MPLVERSION=`"$SAGE_ROOT/local/bin/python" -c 'import pkg_resources; print (pkg_resources.get_distribution("matplotlib").version)'`
+    MPLVERSION=`"$SAGE_LOCAL/bin/python" -c 'import pkg_resources; print (pkg_resources.get_distribution("matplotlib").version)'`
     MPLCONFIGDIR="$DOT_SAGE/matplotlib-$MPLVERSION"
     export MPLCONFIGDIR
     # The directory is created when Sage starts (see sage.misc.misc).
@@ -451,7 +455,7 @@ if [ -d "$DOT_SAGE" ] ; then
 	fi
     fi
 fi
-MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
+export MAXIMA_PREFIX="$SAGE_LOCAL"
 
 PERL5LIB="$SAGE_LOCAL/lib/perl5:$PERL5LIB" && export PERL5LIB
 

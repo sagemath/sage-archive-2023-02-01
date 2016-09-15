@@ -286,7 +286,7 @@ class FriCAS(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: fricas._quit_string()                                         # optional - fricas
-            ')quit'
+            ')quit\r'
             sage: a = FriCAS()                                                  # optional - fricas
             sage: a.is_running()                                                # optional - fricas
             False
@@ -296,8 +296,29 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: a.quit()                                                      # optional - fricas
             sage: a.is_running()                                                # optional - fricas
             False
+
+        TESTS::
+
+            sage: import psutil
+            sage: p = fricas.pid(); pr = psutil.Process(p); pr                  # optional - fricas
+            <psutil.Process(pid=..., name='sman') at ...>
+            sage: pr.children()                                                 # optional - fricas
+            [<psutil.Process(pid=..., name='AXIOMsys') at ...>,
+             <psutil.Process(pid=..., name='session') at ...>,
+             <psutil.Process(pid=..., name='spadclient') at ...>,
+             <psutil.Process(pid=..., name='sman') at ...>]
+            sage: fricas.quit()                                                 # optional - fricas
+
+        It would be better if ``pr`` were dead, but it is OK if it has at least no children::
+
+            sage: pr.children()                                                 # optional - fricas
+            []
+
+            sage: pr                                                            # optional - fricas
+            <psutil.Process(pid=..., name='sman') at ...>
+
         """
-        return ')quit'
+        return ')quit\r'
 
     def _commands(self):
         """

@@ -800,7 +800,7 @@ cdef class gen(gen_auto):
             TypeError: PARI object of type 't_INT' cannot be indexed
             sage: m = pari("[[1,2;3,4],5]") ; m[0][1,0]
             3
-            sage: v = pari(six.moves.range(20))
+            sage: v = pari(range(20))
             sage: v[2:5]
             [2, 3, 4]
             sage: v[:]
@@ -962,7 +962,7 @@ cdef class gen(gen_auto):
 
         EXAMPLES::
 
-            sage: v = pari(six.moves.range(10))
+            sage: v = pari(range(10))
             sage: v
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             sage: v[0] = 10

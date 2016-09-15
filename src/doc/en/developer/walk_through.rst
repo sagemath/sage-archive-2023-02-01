@@ -240,7 +240,7 @@ to rebuild the Sage library and then start Sage. This should be quite fast.
     compiling them again. This saves considerable time rebuilding.
 
 If you made changes to :ref:`third-party packages <chapter-packaging>`,
-then you have to run ::
+then you have to run::
 
     [user@localhost sage]$ make
 

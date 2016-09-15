@@ -223,7 +223,6 @@ FRICAS_FIRST_PROMPT = "\(1\) -> "
 FRICAS_LINENUMBER_OFF_PROMPT = "\(NIL\) -> "
 
 class FriCAS(ExtraTabCompletion, Expect):
->>>>>>> 5b7e6ab... initial version of new fricas interface
     """
     Interface to a FriCAS interpreter.
     """

@@ -48,6 +48,23 @@ from module_list import ext_modules, library_order, aliases
 from sage.env import *
 
 #########################################################
+### Check build-base
+#########################################################
+
+build_base = 'build' # the distutils default
+cmd = None
+for i, arg in enumerate(sys.argv[1:]):
+    if not arg or not arg.startswith("-"):
+        cmd = arg
+    elif cmd == 'build' and (arg.startswith("--build-base") or arg == '-b'):
+        if arg.startswith("--build-base="):
+            build_base = arg[len("--build-base="):]
+        else:
+            build_base = arg[i+1]
+
+SAGE_CYTHONIZED = os.path.abspath(os.path.join(build_base, 'cythonized'))
+
+#########################################################
 ### Configuration
 #########################################################
 
@@ -64,6 +81,7 @@ except KeyError:
     keep_going = False
 
 # search for dependencies and add to gcc -I<path>
+# this depends on SAGE_CYTHONIZED
 include_dirs = sage_include_directories(use_sources=True)
 
 # Manually add -fno-strict-aliasing, which is needed to compile Cython
@@ -81,23 +99,6 @@ if DEVEL:
 # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56982
 if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shell=True) == 0:
     extra_compile_args.append('-fno-tree-copyrename')
-
-#########################################################
-### Check build-base
-#########################################################
-
-build_base = 'build' # the distutils default
-cmd = None
-for i, arg in enumerate(sys.argv[1:]):
-    if not arg or not arg.startswith("-"):
-        cmd = arg
-    elif cmd == 'build' and (arg.startswith("--build-base") or arg == '-b'):
-        if arg.startswith("--build-base="):
-            build_base = arg[len("--build-base="):]
-        else:
-            build_base = arg[i+1]
-
-SAGE_CYTHONIZED = os.path.abspath(os.path.join(build_base, 'cythonized'))
 
 #########################################################
 ### Generate some Python/Cython sources

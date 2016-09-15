@@ -231,7 +231,7 @@ to rebuild the Sage library and then start Sage. This should be quite fast.
     of modified files will change. This triggers recythonization and recompilation
     of modified files on subsequent builds, whether or not you have made any
     additional changes to files. To minimize the impact of switching between branches,
-    install ccache using the command::
+    install ccache using the command ::
 
         ./sage -i ccache
 
@@ -240,7 +240,7 @@ to rebuild the Sage library and then start Sage. This should be quite fast.
     compiling them again. This saves considerable time rebuilding.
 
 If you made changes to :ref:`third-party packages <chapter-packaging>`,
-then you have to run::
+then you have to run ::
 
     [user@localhost sage]$ make
 

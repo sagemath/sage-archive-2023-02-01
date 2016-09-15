@@ -2132,7 +2132,7 @@ class Graph(GenericGraph):
 
           - ``'bitset'`` -- encodes adjacencies into bitsets and uses fast
             bitset operations to test if the input graph contains a
-            triangle. This method is generaly faster than standard matrix
+            triangle. This method is generally faster than standard matrix
             multiplication.
 
         EXAMPLE:

@@ -19,9 +19,7 @@ AUTHORS:
   implement more complete translation from FriCAS to SageMath types.
 
 
-EXAMPLES:
-
-::
+EXAMPLES::
 
     sage: fricas('3 * 5')                                                       # optional - fricas
     15
@@ -659,7 +657,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
             sage: fricas._function_element_class()                              # optional - fricas
             <class 'sage.interfaces.fricas.FriCASFunctionElement'>
-            sage: type(fricas(2).gcd) #optional - fricas                        # optional - fricas
+            sage: type(fricas(2).gcd)                                           # optional - fricas
             <class 'sage.interfaces.fricas.FriCASFunctionElement'>
         """
         return FriCASFunctionElement
@@ -755,8 +753,8 @@ class FriCASElement(ExpectElement):
         """
         TEST::
 
-        sage: float(fricas(2))                                                  # optional - fricas
-        2.0
+            sage: float(fricas(2))                                              # optional - fricas
+            2.0
         """
         return float(self.sage())
 
@@ -1163,13 +1161,13 @@ class FriCASFunctionElement(FunctionElement):
 
         TESTS::
 
-        sage: a = fricas('"Hello"')                                             # optional - fricas
-        sage: a.upperCase_q                                                     # optional - fricas
-        upperCase?
-        sage: a.upperCase_e                                                     # optional - fricas
-        upperCase!
-        sage: a.upperCase_e()                                                   # optional - fricas
-        "HELLO"
+            sage: a = fricas('"Hello"')                                         # optional - fricas
+            sage: a.upperCase_q                                                 # optional - fricas
+            upperCase?
+            sage: a.upperCase_e                                                 # optional - fricas
+            upperCase!
+            sage: a.upperCase_e()                                               # optional - fricas
+            "HELLO"
 
         """
         if name.endswith("_q"):
@@ -1187,10 +1185,10 @@ class FriCASExpectFunction(ExpectFunction):
 
         TESTS::
 
-        sage: fricas.upperCase_q                                                # optional - fricas
-        upperCase?
-        sage: fricas.upperCase_e                                                # optional - fricas
-        upperCase!
+            sage: fricas.upperCase_q                                            # optional - fricas
+            upperCase?
+            sage: fricas.upperCase_e                                            # optional - fricas
+            upperCase!
 
         """
         if name.endswith("_q"):

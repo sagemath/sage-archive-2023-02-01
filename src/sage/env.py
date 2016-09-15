@@ -106,10 +106,8 @@ _add_variable_or_fallback('SITE_PACKAGES',   sitepackages_dirs)
 
 _add_variable_or_fallback('SAGE_LIB',        SITE_PACKAGES[0])
 
-# Keep in sync with --build-base set in src/Makefile.
-_add_variable_or_fallback('SAGE_BUILD_DIR',  opj('$SAGE_ROOT', 'var', 'tmp', 'sage', 'built'))
 # SAGE_CYTHONIZED is only (to be) used in doctests of sage_setup/
-_add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_BUILD_DIR', 'sagelib', 'cythonized'))
+_add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_ROOT', 'src', 'build-sagelib'))
 
 # Used by sage/misc/package.py.  Should be SAGE_SRC_ROOT in VPATH.
 _add_variable_or_fallback('SAGE_PKGS', opj('$SAGE_ROOT', 'build', 'pkgs'))

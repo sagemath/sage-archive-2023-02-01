@@ -54,6 +54,7 @@ for i, arg in enumerate(sys.argv[1:]):
 
 import sage.env
 sage.env.SAGE_CYTHONIZED = os.path.abspath(os.path.join(build_base, 'cythonized'))
+sage.env.SAGE_SRC = os.getcwd()
 
 
 #########################################################

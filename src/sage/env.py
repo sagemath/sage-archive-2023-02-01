@@ -111,6 +111,10 @@ _add_variable_or_fallback('SAGE_BUILD_DIR',  opj('$SAGE_ROOT', 'var', 'tmp', 'sa
 # SAGE_CYTHONIZED is only (to be) used in doctests of sage_setup/
 _add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_BUILD_DIR', 'sagelib', 'cythonized'))
 
+# Used by sage/misc/package.py.  Should be SAGE_SRC_ROOT in VPATH.
+_add_variable_or_fallback('SAGE_PKGS', opj('$SAGE_ROOT', 'build', 'pkgs'))
+
+
 _add_variable_or_fallback('SAGE_EXTCODE',    opj('$SAGE_SHARE', 'sage', 'ext'))
 _add_variable_or_fallback('SAGE_LOGS',       opj('$SAGE_ROOT', 'logs', 'pkgs'))
 _add_variable_or_fallback('SAGE_SPKG_INST',  opj('$SAGE_LOCAL', 'var', 'lib', 'sage', 'installed'))

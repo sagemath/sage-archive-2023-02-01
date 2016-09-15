@@ -224,7 +224,7 @@ have to run::
     [user@localhost sage]$ ./sage -br
 
 to rebuild the Sage library and then start Sage. This should be quite
-fast. If you made changes to 
+fast. If you made changes to
 :ref:`third-party packages <chapter-packaging>`, then you have to run ::
 
     [user@localhost sage]$ make

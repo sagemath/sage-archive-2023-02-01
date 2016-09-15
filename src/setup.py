@@ -38,16 +38,6 @@ sys.excepthook = excepthook
 
 
 #########################################################
-### List of Extensions
-###
-### The list of extensions resides in module_list.py in
-### the same directory as this file
-#########################################################
-
-from module_list import ext_modules, library_order, aliases
-from sage.env import *
-
-#########################################################
 ### Check build-base
 #########################################################
 
@@ -62,7 +52,19 @@ for i, arg in enumerate(sys.argv[1:]):
         else:
             build_base = arg[i+1]
 
-SAGE_CYTHONIZED = os.path.abspath(os.path.join(build_base, 'cythonized'))
+import sage.env
+sage.env.SAGE_CYTHONIZED = os.path.abspath(os.path.join(build_base, 'cythonized'))
+
+
+#########################################################
+### List of Extensions
+###
+### The list of extensions resides in module_list.py in
+### the same directory as this file
+#########################################################
+
+from module_list import ext_modules, library_order, aliases
+from sage.env import *
 
 #########################################################
 ### Configuration

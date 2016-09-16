@@ -40,21 +40,14 @@ sys.excepthook = excepthook
 ### Check build-base
 #########################################################
 
-build_base = 'build' # the distutils default
-cmd = None
-for i, arg in enumerate(sys.argv[1:]):
-    if not arg or not arg.startswith("-"):
-        cmd = arg
-    elif cmd == 'build' and (arg.startswith("--build-base") or arg == '-b'):
-        if arg.startswith("--build-base="):
-            build_base = arg[len("--build-base="):]
-        else:
-            build_base = arg[i+1]
+build_base = 'build' # the distutils default. Changing it is not supported by this setup.sh.
+
+#########################################################
+### Set source directory
+#########################################################
 
 import sage.env
-sage.env.SAGE_CYTHONIZED = os.path.abspath(os.path.join(build_base, 'cythonized'))
 sage.env.SAGE_SRC = os.getcwd()
-
 
 #########################################################
 ### List of Extensions

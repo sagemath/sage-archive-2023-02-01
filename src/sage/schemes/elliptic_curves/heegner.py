@@ -3208,10 +3208,6 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         E = self.curve()
         return E.modular_parametrization()(tau)
 
-    #This line is added to resolve ticket 9032, because both top-level function
-    #and method call _numerical_approx instead of numerical_approx
-    _numerical_approx=numerical_approx
-
     def tau(self):
         r"""
         Return `\tau` in the upper half plane that maps via the
@@ -6978,7 +6974,7 @@ def heegner_sha_an(self, D, prec=53):
     omega = 2 * abs(E.period_lattice().basis_matrix().det())
 
     #  - The regulator.
-    #    First we compute the regualtor of the subgroup E(QQ) + E^D(QQ)
+    #    First we compute the regulator of the subgroup E(QQ) + E^D(QQ)
     #    of E(K).   The factor of 2 in the regulator
     #    accounts for the fact that the height over K is twice the
     #    height over QQ, i.e., for P in E(QQ) we have h_K(P,P) =

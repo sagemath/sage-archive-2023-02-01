@@ -75,6 +75,8 @@ from sage.symbolic.ring import SR
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import minus_infinity, infinity
 
+from six import get_function_code
+
 
 class PiecewiseFunction(BuiltinFunction):
     def __init__(self):
@@ -145,7 +147,7 @@ class PiecewiseFunction(BuiltinFunction):
             if isinstance(function, FunctionType):
                 if var is None:
                     var = SR.var('x')
-                if function.func_code.co_argcount == 0:
+                if get_function_code(function).co_argcount == 0:
                     function = function()
                 else:
                     function = function(var)
@@ -777,7 +779,7 @@ class PiecewiseFunction(BuiltinFunction):
 
             TESTS:
 
-            Verify that piecewise integrals of zero work (trac #10841)::
+            Verify that piecewise integrals of zero work (:trac:`10841`)::
 
                 sage: f0(x) = 0
                 sage: f = piecewise([[[0,1],f0]])

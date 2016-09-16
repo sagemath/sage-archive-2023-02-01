@@ -16,6 +16,7 @@ quaternion algebras.
 # mm TODO longer docstring at the start.
 
 from __future__ import print_function
+from __future__ import absolute_import
 from sage.rings.integer import Integer
 from sage.matrix.constructor import Matrix
 from sage.matrix.matrix_space import MatrixSpace
@@ -413,7 +414,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         - ``normalized`` - boolean (default: false). If True
             then the input matrix is assumed to be normalized.
 
-        OUPUT:
+        OUTPUT:
 
         - ``e`` - 2x2 integer matrix representing the target of
           the input edge
@@ -726,7 +727,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
         - ``e`` - 2x2 integer matrix
 
-        OUPUT:
+        OUTPUT:
 
         2x2 integer matrix
 
@@ -823,7 +824,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         `P^1(\QQ_p)` into `p+1` open balls. Each of these balls may
         be further subdivided, to get a finer decomposition.
 
-        This function returns the decompostion of `P^1(\QQ_p)`
+        This function returns the decomposition of `P^1(\QQ_p)`
         corresponding to ``center`` into `(p+1)p^{\mbox{level}}` balls.
 
         EXAMPLES::
@@ -3296,7 +3297,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         OUTPUT:
 
           If the objects are equivalent, returns an element of
-          the arithemtic group Gamma that takes ``v1`` to ``v2``.
+          the arithmetic group Gamma that takes ``v1`` to ``v2``.
           Otherwise returns False.
 
         EXAMPLES::
@@ -3663,7 +3664,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             sage: T31(f) == E.ap(31) * f
             True
         """
-        from pautomorphicform import BruhatTitsHarmonicCocycles
+        from .pautomorphicform import BruhatTitsHarmonicCocycles
         M = BruhatTitsHarmonicCocycles(self, 2, prec=prec)
         q = ZZ.one()
         F = E.base_ring()
@@ -3692,7 +3693,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
 
     def harmonic_cocycles(self, k, prec=None, basis_matrix=None, base_field=None):
         r"""
-        Compute the space of harmonic coclyces of a given even weight ``k``.
+        Compute the space of harmonic cocycles of a given even weight ``k``.
 
         INPUT:
 
@@ -3716,7 +3717,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             sage: H.basis()[0]
             Harmonic cocycle with values in Sym^0 Q_31^2
         """
-        from pautomorphicform import BruhatTitsHarmonicCocycles
+        from .pautomorphicform import BruhatTitsHarmonicCocycles
         return BruhatTitsHarmonicCocycles(self, k, prec=prec, basis_matrix=basis_matrix, base_field=base_field)
 
     def padic_automorphic_forms(self, U, prec=None, t=None, R=None, overconvergent=False):
@@ -3746,5 +3747,5 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             sage: X.padic_automorphic_forms(2,prec=10)
             Space of automorphic forms on Quotient of the Bruhat Tits tree of GL_2(QQ_11) with discriminant 5 and level 1 with values in Sym^0 Q_11^2
         """
-        from pautomorphicform import pAdicAutomorphicForms
+        from .pautomorphicform import pAdicAutomorphicForms
         return pAdicAutomorphicForms(self, U, prec=prec, t=t, R=R, overconvergent=overconvergent)

@@ -161,7 +161,7 @@ if 'SAGE_ATLAS_LIB' in os.environ:
         print('- or liblapack and libblas;')
         print('you wish to use existing ATLAS libraries.')
         print('For more details, see:')
-        print('http://sagemath.org/doc/installation/source.html#environment-variables')
+        print('http://doc.sagemath.org/html/en/installation/source.html#environment-variables')
         print('Unset SAGE_ATLAS_LIB to build ATLAS from source.')
         print('Then type make.')
         sys.exit(2)
@@ -236,7 +236,7 @@ write_pc_file(['lapack', 'f77blas', 'cblas', 'atlas'], 'lapack')
 
 # apply all patches
 for fname in glob.glob(os.path.join(PATCH_DIR,'*.patch')):
-    rc = system_with_flush('patch -p1 -d src/ATLAS --input '+os.path.join(PATCH_DIR, fname))
+    rc = system_with_flush('patch -p1 -d src/ --input '+os.path.join(PATCH_DIR, fname))
     assert_success(rc, bad='Applying '+fname+' failed.', good='Applied '+fname+'.')
 
 # add extra architectural defaults

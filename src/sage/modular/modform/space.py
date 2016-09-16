@@ -1417,10 +1417,10 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: CuspForms(Gamma0(144), 3).sturm_bound()
             73
 
-        REFERENCE:
+        REFERENCES:
 
-        - [Sturm] J. Sturm, On the congruence of modular forms, Number theory
-          (New York, 1984-1985), Springer, Berlin, 1987, pp. 275-280.
+        .. [Sturm] \J. Sturm, On the congruence of modular forms, Number theory
+           (New York, 1984-1985), Springer, Berlin, 1987, pp. 275-280.
 
         NOTE:
 

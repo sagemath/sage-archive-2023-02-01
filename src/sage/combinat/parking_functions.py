@@ -666,7 +666,7 @@ class ParkingFunction_class(CombinatorialObject):
         out = {}
         for i in range(len(self)):
             j = 0
-            while self[i] + j in out.keys():
+            while self[i] + j in out:
                 j += 1
             out[self[i] + j] = i
         return Permutation([out[i + 1] + 1 for i in range(len(self))])

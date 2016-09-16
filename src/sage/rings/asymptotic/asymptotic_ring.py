@@ -957,11 +957,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         """
         if len(self.summands) != len(other.summands):
             return False
-        from itertools import izip
+        from builtins import zip
         return all(s == o for s, o in
-                   izip(self.summands.elements_topological(),
-                        other.summands.elements_topological()))
-
+                   zip(self.summands.elements_topological(),
+                       other.summands.elements_topological()))
 
     def _simplify_(self):
         r"""
@@ -1219,8 +1218,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                         term_other in other.summands.elements()),
                    self.parent().zero())
 
-
-    def _rmul_(self, other):
+    def _lmul_(self, other):
         r"""
         Multiply this asymptotic expansion by an element ``other`` of its
         coefficient ring.
@@ -1246,10 +1244,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         E = TermMonoid('exact', asymptotic_ring=self.parent())
         e = E(self.parent().growth_group.one(), coefficient=other)
         return self._mul_term_(e)
-
-
-    _lmul_ = _rmul_
-
 
     def _div_(self, other):
         r"""

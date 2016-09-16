@@ -1146,7 +1146,7 @@ class Polyhedron_base(Element):
 
     def Hrepresentation(self, index=None):
         """
-        Return the objects of the H-representaton. Each entry is
+        Return the objects of the H-representation. Each entry is
         either an inequality or a equation.
 
         INPUT:
@@ -1726,7 +1726,7 @@ class Polyhedron_base(Element):
             sage: simplex.ambient_dim()
             4
 
-        The empty set is a special case (Trac #12193)::
+        The empty set is a special case (:trac:`12193`)::
 
             sage: P1=Polyhedron(vertices=[[1,0,0],[0,1,0],[0,0,1]])
             sage: P2=Polyhedron(vertices=[[2,0,0],[0,2,0],[0,0,2]])
@@ -3033,7 +3033,7 @@ class Polyhedron_base(Element):
         INPUT:
 
         - ``Vindices`` -- a tuple of integers. The indices of the
-          V-represenation objects that span the face.
+          V-representation objects that span the face.
 
         - ``Hindices`` -- a tuple of integers. The indices of the
           H-representation objects that hold as equalities on the

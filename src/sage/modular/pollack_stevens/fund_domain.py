@@ -30,6 +30,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 from sage.matrix.matrix_space import MatrixSpace
 from sage.modular.modsym.all import P1List
 from sage.rings.integer import Integer
@@ -38,7 +39,7 @@ from sage.rings.rational_field import QQ
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 
-from sigma0 import Sigma0
+from .sigma0 import Sigma0
 
 M2ZSpace = MatrixSpace(ZZ,2)
 
@@ -1503,7 +1504,7 @@ class ManinRelations(PollackStevensModularDomain):
                 gamma = basic_hecke_matrix(a, l)
                 t = gamma * gen
                 #  In the notation above this is gam_a * D_m
-                from manin_map import unimod_matrices_to_infty, unimod_matrices_from_infty
+                from .manin_map import unimod_matrices_to_infty, unimod_matrices_from_infty
                 v = unimod_matrices_from_infty(t[0, 0], t[1, 0]) + unimod_matrices_to_infty(t[0, 1], t[1, 1])
                 #  This expresses t as a sum of unimodular divisors
 

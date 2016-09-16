@@ -515,25 +515,6 @@ cdef class Dist(ModuleElement):
                 pass
         return alpha
 
-    cpdef _rmul_(self, RingElement _left):
-        """
-        Scalar multiplication.
-
-        EXAMPLES::
-
-            sage: D = OverconvergentDistributions(5, 7, 15)
-            sage: v = D([1,2,3,4,5]); v
-            (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
-            sage: 3*v; 7*v
-            (3 + O(7^5), 6 + O(7^4), 2 + 7 + O(7^3), 5 + 7 + O(7^2), 1 + O(7))
-            7 * (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
-
-        """
-        return self._lmul_(_left)
-
-    # # def __richcmp__(left, right, int op):
-    # #     return (<Element>left)._richcmp(right, op)
-
     cpdef int _cmp_(_left, _right) except -2:
         r"""
         Comparison.
@@ -990,6 +971,9 @@ cdef class Dist_vector(Dist):
             sage: v = D([1,2,3,4,5]); v
             (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
             sage: 3*v; 7*v
+            (3 + O(7^5), 6 + O(7^4), 2 + 7 + O(7^3), 5 + 7 + O(7^2), 1 + O(7))
+            7 * (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
+            sage: v*3; v*7
             (3 + O(7^5), 6 + O(7^4), 2 + 7 + O(7^3), 5 + 7 + O(7^2), 1 + O(7))
             7 * (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
         """
@@ -1876,7 +1860,7 @@ cdef class WeightKAction_vector(WeightKAction):
 
 #     - ``pM`` -- an unsigned long
 
-#     OUPUT:
+#     OUTPUT:
 
 #     - ``a % pM`` as a positive integer.
 #     """

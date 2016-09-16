@@ -686,6 +686,74 @@ class Function_Order(GinacFunction):
 
 Function_Order()
 
+class Function_frac(BuiltinFunction):
+    def __init__(self):
+        r"""
+        The fractional part function `\{x\}`.
+
+        ``frac(x)`` is defined as `\{x\} = x - \lfloor x\rfloor`.
+
+        EXAMPLES::
+
+            sage: frac(5.4)
+            0.400000000000000
+            sage: type(frac(5.4))
+            <type 'sage.rings.real_mpfr.RealNumber'>
+            sage: frac(456/123)
+            29/41
+            sage: var('x')
+            x
+            sage: a = frac(5.4 + x); a
+            frac(x + 5.40000000000000)
+            sage: frac(cos(8)/cos(2))
+            cos(8)/cos(2)
+            sage: latex(frac(x))
+            \operatorname{frac}\left(x\right)
+
+        Test pickling::
+
+            sage: loads(dumps(floor))
+            floor
+        """
+        BuiltinFunction.__init__(self, "frac",
+                                 conversions=dict(sympy='frac'),
+                                 latex_name=r"\operatorname{frac}")
+
+    def _evalf_(self, x, **kwds):
+        """
+        EXAMPLES::
+
+            sage: frac(pi).n()
+            0.141592653589793
+            sage: frac(pi).n(200)
+            0.14159265358979323846264338327950288419716939937510582097494
+        """
+        return x - floor(x)
+
+    def _eval_(self, x):
+        """
+        EXAMPLES::
+
+            sage: frac(x).subs(x==7.5)
+            0.500000000000000
+            sage: frac(x)
+            frac(x)
+        """
+        try:
+            return x - x.floor()
+        except AttributeError:
+            if isinstance(x, (int, long)):
+                return Integer(0)
+            elif isinstance(x, (float, complex)):
+                return x - Integer(int(math.floor(x)))
+            elif isinstance(x, sage.symbolic.expression.Expression):
+                ret = floor(x)
+                if not hasattr(ret, "operator") or not ret.operator() == floor:
+                    return x - ret
+        return None
+
+frac = Function_frac()
+
 
 class Function_gamma(GinacFunction):
     def __init__(self):
@@ -776,7 +844,7 @@ class Function_gamma(GinacFunction):
             sage: latex(gamma1(z))
             \Gamma\left(z\right)
 
-        Test that Trac ticket 5556 is fixed::
+        Test that :trac:`5556` is fixed::
 
             sage: gamma1(3/4)
             gamma(3/4)
@@ -806,6 +874,15 @@ class Function_gamma(GinacFunction):
 
             sage: loads(dumps(gamma(x)))
             gamma(x)
+
+        Check that the implementations roughly agrees (note there might be
+        difference of several ulp on more complicated entries)::
+
+            sage: import mpmath
+            sage: float(gamma(10.)) == gamma(10.r) == float(gamma(mpmath.mpf(10)))
+            True
+            sage: float(gamma(8.5)) == gamma(8.5r) == float(gamma(mpmath.mpf(8.5)))
+            True
 
         .. SEEALSO::
 
@@ -958,9 +1035,18 @@ class Function_gamma_inc(BuiltinFunction):
             0.0404276819945128
             sage: x,y=var('x,y')
             sage: gamma_inc(x,y).diff(x)
-            D[0](gamma)(x, y)
+            diff(gamma(x, y), x)
             sage: (gamma_inc(x,x+1).diff(x)).simplify()
             -(x + 1)^(x - 1)*e^(-x - 1) + D[0](gamma)(x, x + 1)
+
+        TESTS:
+
+        Check that :trac:`21407` is fixed::
+
+            sage: gamma(-1,5)._sympy_()
+            expint(2, 5)/5
+            sage: gamma(-3/2,5)._sympy_()
+            -6*sqrt(5)*exp(-5)/25 + 4*sqrt(pi)*erfc(sqrt(5))/3
 
     .. SEEALSO::
 
@@ -968,7 +1054,7 @@ class Function_gamma_inc(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "gamma", nargs=2, latex_name=r"\Gamma",
                 conversions={'maxima':'gamma_incomplete', 'mathematica':'Gamma',
-                    'maple':'GAMMA'})
+                    'maple':'GAMMA', 'sympy':'uppergamma'})
 
     def _eval_(self, x, y):
         """
@@ -1032,7 +1118,7 @@ class Function_gamma_inc(BuiltinFunction):
             (-0.8231640121031085+3.141592653589793j)
             sage: gamma_inc(RR(-1), RR(-1))
             -0.823164012103109 + 3.14159265358979*I
-            sage: gamma_inc(-1, float(-log(3))) - gamma_inc(-1, float(-log(2)))
+            sage: gamma_inc(-1, float(-log(3))) - gamma_inc(-1, float(-log(2)))  # abs tol 1e-15
             (1.2730972164471142+0j)
 
         Check that :trac:`17130` is fixed::
@@ -1601,6 +1687,12 @@ class Function_factorial(GinacFunction):
             sage: (factorial(x) == y).solve(x)
             [factorial(x) == y]
 
+        Check that :trac:`16166` is fixed::
+
+            sage: RBF=RealBallField(53)
+            sage: factorial(RBF(4.2))
+            [32.5780960503313 +/- 6.71e-14]
+
         Test pickling::
 
             sage: loads(dumps(factorial))
@@ -1927,6 +2019,11 @@ class Function_beta(GinacFunction):
 
             sage: loads(dumps(beta))
             beta
+
+        Check that :trac:`15196` is fixed::
+
+            sage: beta(-1.3,-0.4)
+            -4.92909641669610
         """
         GinacFunction.__init__(self, "beta", nargs=2,
                 conversions=dict(maxima='beta',
@@ -2291,7 +2388,8 @@ class Function_real_part(GinacFunction):
         """
         GinacFunction.__init__(self, "real_part",
                                conversions=dict(maxima='realpart',
-                                                sympy='re'))
+                                                sympy='re'),
+                               alt_name="real")
 
     def __call__(self, x, **kwargs):
         r"""
@@ -2304,18 +2402,6 @@ class Function_real_part(GinacFunction):
             return x.real
         else:
             return GinacFunction.__call__(self, x, **kwargs)
-
-    def _eval_numpy_(self, x):
-        """
-        EXAMPLES::
-
-            sage: import numpy
-            sage: a = numpy.array([1+2*I, -2-3*I], dtype=numpy.complex)
-            sage: real_part(a)
-            array([ 1., -2.])
-        """
-        import numpy
-        return numpy.real(x)
 
 real = real_part = Function_real_part()
 
@@ -2361,7 +2447,8 @@ class Function_imag_part(GinacFunction):
         """
         GinacFunction.__init__(self, "imag_part",
                                conversions=dict(maxima='imagpart',
-                                                sympy='im'))
+                                                sympy='im'),
+                               alt_name="imag")
 
     def __call__(self, x, **kwargs):
         r"""
@@ -2374,18 +2461,6 @@ class Function_imag_part(GinacFunction):
             return x.imag
         else:
             return GinacFunction.__call__(self, x, **kwargs)
-
-    def _eval_numpy_(self, x):
-        """
-        EXAMPLES::
-
-            sage: import numpy
-            sage: a = numpy.array([1+2*I, -2-3*I], dtype=numpy.complex)
-            sage: imag_part(a)
-            array([ 2., -3.])
-        """
-        import numpy
-        return numpy.imag(x)
 
 imag = imag_part = imaginary = Function_imag_part()
 

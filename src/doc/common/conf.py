@@ -2,6 +2,7 @@ import sys, os, sphinx
 from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
 from datetime import date
 
+from six.moves import range
 
 # If your extensions are in another directory, add it here.
 sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
@@ -150,7 +151,7 @@ pythonversion = sys.version.split(' ')[0]
 # Sage trac ticket shortcuts. For example, :trac:`7549` .
 extlinks = {
     'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
-    'trac': ('http://trac.sagemath.org/%s', 'trac ticket #'),
+    'trac': ('https://trac.sagemath.org/%s', 'trac ticket #'),
     'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
     'arxiv': ('http://arxiv.org/abs/%s', 'Arxiv '),
     'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
@@ -596,7 +597,7 @@ def process_inherited(app, what, name, obj, options, docstringlines):
         if name in obj.__objclass__.__dict__.keys():
             return
 
-    for i in xrange(len(docstringlines)):
+    for i in range(len(docstringlines)):
         docstringlines.pop()
 
 dangling_debug = False

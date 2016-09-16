@@ -2,8 +2,8 @@ from sage.structure.element import Element, CommutativeAlgebraElement
 from sage.structure.element cimport Element, CommutativeAlgebraElement, ModuleElement
 from sage.structure.parent cimport Parent
 from sage.rings.integer cimport Integer
-from polynomial_compiled import CompiledPolynomialFunction
-from polynomial_compiled cimport CompiledPolynomialFunction
+from .polynomial_compiled cimport CompiledPolynomialFunction
+
 
 cdef class Polynomial(CommutativeAlgebraElement):
     cdef char _is_gen

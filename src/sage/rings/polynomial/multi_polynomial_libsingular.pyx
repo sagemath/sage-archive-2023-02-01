@@ -2242,7 +2242,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                                 _ring)
         return new_MP((<MPolynomial_libsingular>left)._parent, _p)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _lmul_(self, RingElement left):
         """
         Multiply self with a base ring element.
 
@@ -2251,6 +2251,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: P.<x,y,z>=PolynomialRing(QQ,3)
             sage: 3/2*x # indirect doctest
             3/2*x
+
+        ::
+
+            sage: P.<x,y,z>=PolynomialRing(QQ,3)
+            sage: (3/2*x - 1/2*y - 1) * (3/2) # indirect doctest
+            9/4*x - 3/4*y - 3/2
         """
 
         cdef ring *_ring = (<MPolynomial_libsingular>self)._parent_ring
@@ -2259,22 +2265,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef poly *_p
         singular_polynomial_rmul(&_p, self._poly, left, _ring)
         return new_MP((<MPolynomial_libsingular>self)._parent, _p)
-
-    cpdef _lmul_(self, RingElement right):
-        """
-        Multiply left and right.
-
-        EXAMPLES::
-
-            sage: P.<x,y,z>=PolynomialRing(QQ,3)
-            sage: (3/2*x - 1/2*y - 1) * (3/2) # indirect doctest
-            9/4*x - 3/4*y - 3/2
-        """
-        # Note that the argument to _rmul_ and _lmul_ is an
-        # element of the base ring.
-        # All currently implemented base rings are commutative,
-        # So, calling _rmul_ is the correct thing to do.
-        return self._rmul_(right)
 
     cpdef _mul_(left, right):
         """
@@ -5450,7 +5440,7 @@ cdef inline MPolynomial_libsingular new_MP(MPolynomialRing_libsingular parent, p
 
     The ownership of ``juice`` will be transferred to the Python
     object. You must not free it yourself. Singular will modify the
-    polynomial, so it is your repsonsiblity to make a copy if the
+    polynomial, so it is your responsibility to make a copy if the
     Singular data structure is used elsewhere.
     """
     cdef MPolynomial_libsingular p = MPolynomial_libsingular.__new__(MPolynomial_libsingular)

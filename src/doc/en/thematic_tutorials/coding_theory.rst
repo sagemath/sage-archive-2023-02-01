@@ -297,7 +297,7 @@ Let us see how one can explore this::
 
     sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12, GF(59).list()[1:41])
     sage: C.encoders_available()
-    ['EvaluationPolynomial', 'EvaluationVector']
+    ['EvaluationPolynomial', 'EvaluationVector', 'Systematic']
     sage: C.decoders_available()
     ['Syndrome',
      'NearestNeighbor',
@@ -544,7 +544,7 @@ with the errors added and erased positions set to 0.
 The second one is the erasure vector whose erased positions contain ones.
 This is reflected in :meth:`sage.coding.channel_constructions.output_space`::
 
-    sage: C = codes.RandomLinearCode(10, 5, GF(7))
+    sage: C = codes.random_linear_code(GF(7), 10, 5)
     sage: Chan.output_space()
     The Cartesian product of (Vector space of dimension 40 over Finite Field of size 59, Vector space of dimension 40 over Finite Field of size 2)
     sage: Chan(c) # random

@@ -548,7 +548,7 @@ class SubwordComplexFacet(Simplex, Element):
             if coefficients is not None:
                 coeff = {I[i]: coefficients[i]
                          for i in range(len(coefficients))}
-                Lambda = {li: coeff[li] * Lambda[li] for li in Lambda.keys()}
+                Lambda = {li: coeff[li] * Lambda[li] for li in Lambda}
             Q = self.parent().word()
             V_weights = []
             Phi = W.roots()
@@ -922,7 +922,7 @@ class SubwordComplexFacet(Simplex, Element):
 
         # transform list to real lines
         list_colors += ['red', 'blue', 'green', 'orange', 'yellow', 'purple']
-        list_colors += colors.keys()
+        list_colors += list(colors)
         thickness = max(thickness, 2)
         L = line([(1, 1)])
         for contact_point in contact_points:
@@ -1867,7 +1867,7 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
 
         - I, J -- two facets
 
-        OUTPUT
+        OUTPUT:
 
         a set of facets
 

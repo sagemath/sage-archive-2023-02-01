@@ -11,6 +11,7 @@ r"""
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 from sage.rings.padics.all import pAdicField
 from sage.rings.all import ZZ, QQ
 from sage.rings.power_series_ring import PowerSeriesRing
@@ -19,8 +20,8 @@ from sage.arith.all import binomial, gcd, kronecker
 from sage.rings.padics.precision_error import PrecisionError
 
 from sage.structure.sage_object import SageObject
-from sigma0 import Sigma0
-from fund_domain import M2Z
+from .sigma0 import Sigma0
+from .fund_domain import M2Z
 
 
 class pAdicLseries(SageObject):
@@ -362,7 +363,7 @@ class pAdicLseries(SageObject):
 def log_gamma_binomial(p, gamma, z, n, M):
     r"""
     Return the list of coefficients in the power series
-    expansion (up to precision `M`) of `{\log_p(z)/\log_p(\gamma) \choose n}`
+    expansion (up to precision `M`) of `\binom{\log_p(z)/\log_p(\gamma)}{n}`
 
     INPUT:
 
@@ -375,7 +376,7 @@ def log_gamma_binomial(p, gamma, z, n, M):
     OUTPUT:
 
     The list of coefficients in the power series expansion of
-    `{\log_p(z)/\log_p(\gamma) \choose n}`
+    `\binom{\log_p(z)/\log_p(\gamma)}{n}`
 
     EXAMPLES::
 

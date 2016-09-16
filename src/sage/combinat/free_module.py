@@ -1266,7 +1266,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         return x
 
     # What semantic do we want for containment?
-    # Accepting anything that can be coerced is not reasonnable, especially
+    # Accepting anything that can be coerced is not reasonable, especially
     # if we allow coercion from the enumerated set.
     # Accepting anything that can be converted is an option, but that would
     # be expensive. So far, x in self if x.parent() == self
@@ -1561,6 +1561,46 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         """
         return cmp( self._rank_basis(x), self._rank_basis(y) )
 
+    def get_order_key(self):
+        """
+        Return a comparison key on the basis indices that is
+        compatible with the current term order.
+
+        EXAMPLES::
+
+            sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example()
+            sage: A.set_order(['x', 'y', 'a', 'b'])
+            sage: Akey = A.get_order_key()
+            sage: sorted(A.basis().keys(), key=Akey)
+            ['x', 'y', 'a', 'b']
+            sage: A.set_order(list(reversed(A.basis().keys())))
+            sage: Akey = A.get_order_key()
+            sage: sorted(A.basis().keys(), key=Akey)
+            ['b', 'a', 'y', 'x']
+        """
+        self.get_order()
+        return self._order_key
+
+    def _order_key(self, x):
+        """
+        Return a key for `x` compatible with the term order.
+
+        INPUT:
+
+        - ``x`` -- indices of the basis of ``self``
+
+        EXAMPLES::
+
+            sage: A = CombinatorialFreeModule(QQ, ['x','y','a','b'])
+            sage: A.set_order(['x', 'y', 'a', 'b'])
+            sage: A._order_key('x')
+            0
+            sage: A._order_key('y')
+            1
+            sage: A._order_key('a')
+            2
+        """
+        return self._rank_basis(x)
 
     @cached_method
     def _dense_free_module(self, base_ring=None):
@@ -2155,7 +2195,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         def _tensor_of_elements(self, elements):
             """
             Returns the tensor product of the specified elements.
-            The result should be in self.
+            The result should be in ``self``.
 
             EXAMPLES::
 

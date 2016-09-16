@@ -228,6 +228,9 @@ Classes and methods
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
+from builtins import zip
+from six import itervalues
+
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -1774,10 +1777,8 @@ class Permutation(CombinatorialElement):
         """
         if k > len(self):
             return 0
-        incr_iterator = itertools.ifilter( lambda pos: all( pos[i] < pos[i+1]
-                                                            for i in range(k-1) ),
-                                           itertools.combinations(self, k) )
-        return sum(1 for _ in incr_iterator)
+        return sum(1 for pos in itertools.combinations(self, k)
+                   if all(pos[i] < pos[i + 1] for i in range(k - 1)))
 
     def length(self):
         r"""
@@ -4214,7 +4215,7 @@ class Permutation(CombinatorialElement):
             (6, 5)
             (7, 4)
         """
-        return itertools.izip(xrange(1, len(self)+1), self)
+        return zip(xrange(1, len(self)+1), self)
 
     @combinatorial_map(name='Robinson-Schensted insertion tableau')
     def left_tableau(self):
@@ -5482,7 +5483,7 @@ class Permutations_mset(Permutations):
             d[i] = d.get(i, 0) + 1
 
         c = factorial(len(lmset))
-        for i in d.itervalues():
+        for i in itervalues(d):
             if i != 1:
                 c //= factorial(i)
         return ZZ(c)

@@ -87,12 +87,12 @@ from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
 
 from .sage_object cimport SageObject, rich_to_bool
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
-from .element cimport arith_error_message, parent_c
+from .element cimport arith_error_message, parent_c, Element
 from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
 from .coerce_exceptions import CoercionException
 from sage.categories.map cimport Map
 from sage.categories.morphism import IdentityMorphism
-from sage.categories.action cimport InverseAction, PrecomposedAction
+from sage.categories.action cimport Action, InverseAction, PrecomposedAction
 
 from sage.misc.lazy_import import LazyImport
 parent = LazyImport('sage.structure.all', 'parent', deprecation=17533)
@@ -293,6 +293,26 @@ cpdef bint is_numpy_type(t):
         return True
     return False
 
+cpdef bint is_mpmath_type(t):
+    r"""
+    Check whether the type ``t`` is a type whose name starts with either
+    ``mpmath.`` or ``sage.libs.mpmath.``.
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce import is_mpmath_type
+        sage: is_mpmath_type(int)
+        False
+        sage: import mpmath
+        sage: is_mpmath_type(mpmath.mpc(2))
+        False
+        sage: is_mpmath_type(type(mpmath.mpc(2)))
+        True
+        sage: is_mpmath_type(type(mpmath.mpf(2)))
+        True
+    """
+    return isinstance(t, type) and \
+           strncmp((<PyTypeObject*>t).tp_name, "sage.libs.mpmath.", 17) == 0
 
 cdef object _Integer
 cdef bint is_Integer(x):
@@ -427,9 +447,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         EXAMPLES::
 
-            sage: 1 + 1/2
-            3/2
             sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.canonical_coercion(1,2/3)
+            (1, 2/3)
             sage: maps, actions = cm.get_cache()
 
         Now let us see what happens when we do a binary operations with
@@ -441,8 +461,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         reference to the coercion maps in this case::
 
             sage: left_morphism_ref
-            <weakref at ...; to 'sage.rings.rational.Z_to_Q' at ...
-            (RingHomset_generic_with_category._abstract_element_class)>
+            <weakref at ...; to 'sage.rings.rational.Z_to_Q' at ...>
 
         Moreover, the weakly referenced coercion map uses only a weak
         reference to the codomain::
@@ -1316,9 +1335,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         garbage collection after being involved in binary operations::
 
             sage: import gc
+            sage: T=type(GF(2))
             sage: gc.collect() #random
             852
-            sage: T=type(GF(2))
             sage: N0=len(list(o for o in gc.get_objects() if type(o) is T))
             sage: L=[ZZ(1)+GF(p)(1) for p in prime_range(2,50)]
             sage: N1=len(list(o for o in gc.get_objects() if type(o) is T))
@@ -1630,7 +1649,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
     cpdef discover_action(self, R, S, op, r=None, s=None):
         """
-        INPUT
+        INPUT:
 
         - ``R`` - the left Parent (or type)
         - ``S`` - the right Parent (or type)
@@ -1804,6 +1823,17 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             True
             sage: richcmp(x, y, op_LT if cmp(type(x), type(y)) == -1 else op_GT)
             True
+
+        We support non-Sage types with the usual Python convention::
+
+            sage: class AlwaysEqual(object):
+            ....:     def __eq__(self, other):
+            ....:         return True
+            sage: x = AlwaysEqual()
+            sage: x == 1
+            True
+            sage: 1 == x
+            True
         """
         # Some very special cases
         if x is None or x is Ellipsis:
@@ -1811,9 +1841,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         if y is None or y is Ellipsis:
             return rich_to_bool(op, 0 if x is y else 1)
 
+        cdef bint y_is_Element = isinstance(y, Element)
+
         # Check for manual __richcmp__ override (only on y since
-        # x.__richmp__ would already have been called)
-        if isinstance(y, Element):
+        # x.__richcmp__ would already have been called)
+        if y_is_Element:
             if (<Element>y)._parent.get_flag(Parent_richcmp_element_without_coercion):
                 return Py_TYPE(y).tp_richcompare(x, y, op)
 
@@ -1830,6 +1862,17 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             return PyObject_RichCompare(x, y, op)
 
         # Comparing with coercion didn't work, try something else.
+
+        # Try y.__richcmp__(x, revop) where revop is the reversed
+        # operation (<= becomes >=).
+        # This only makes sense when y is not a Sage Element, otherwise
+        # we would end up trying the same coercion again.
+        cdef int revop
+        if not y_is_Element and Py_TYPE(y).tp_richcompare:
+            revop = (5 - op) ^ 1
+            res = Py_TYPE(y).tp_richcompare(y, x, revop)
+            if res is not NotImplemented:
+                return res
 
         # If types are not equal: compare types
         cdef int c = cmp(type(x), type(y))

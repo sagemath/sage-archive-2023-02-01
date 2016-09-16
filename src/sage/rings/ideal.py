@@ -1249,7 +1249,7 @@ class Ideal_principal(Ideal_generic):
 
         EXAMPLE:
 
-        Comparision with non-principal ideal::
+        Comparison with non-principal ideal::
 
             sage: P.<x, y> = PolynomialRing(ZZ)
             sage: I = P.ideal(x^2)

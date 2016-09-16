@@ -12,6 +12,9 @@ Sage example in ./recequadiff.tex, line 110::
 
   sage: x = var('x')
   sage: y = function('y')(x)
+  sage: _C = SR.var("_C")
+  sage: _K1 = SR.var("_K1")
+  sage: _K2 = SR.var("_K2")
 
 Sage example in ./recequadiff.tex, line 179::
 
@@ -104,10 +107,8 @@ Sage example in ./recequadiff.tex, line 356::
 
 Sage example in ./recequadiff.tex, line 367::
 
-  sage: solve(ed, y)[0].subs(_C==5).rhs()
-  Traceback (most recent call last):
-  ...
-  NameError: name '_C' is not defined
+  sage: solve(ed, y)[0].subs(_C == 5).rhs()
+  e^(-sqrt(-2*cos(x) + 10))
 
 Sage example in ./recequadiff.tex, line 377::
 
@@ -129,16 +130,16 @@ Sage example in ./recequadiff.tex, line 408::
 
   sage: P = Graphics()
   sage: for k in range(1,20,2):
-  ...       P += plot(solve(ed, y)[0].subs(c==1+k/4).rhs(), x, -3, 3)
+  ...       P += plot(solve(ed, y)[0].subs(c == 1+k/4).rhs(), x, -3, 3)
   sage: P
-  Graphics object consisting of 11 graphics primitives
+  Graphics object consisting of 1... graphics primitives
 
 Sage example in ./recequadiff.tex, line 426::
 
   sage: P = Graphics()
   sage: for j in [0,1]:
   ...       for k in range(1,10,2):
-  ...           f = solve(ed,y)[j].subs(c==2+0.25*k).rhs()
+  ...           f = solve(ed,y)[j].subs(c == 2+0.25*k).rhs()
   ...           P += plot(f, x, -3, 3)
   sage: P
   Graphics object consisting of 10 graphics primitives
@@ -229,12 +230,12 @@ Sage example in ./recequadiff.tex, line 674::
   sage: x, t = var('x, t'); f = function('f')(x); g = function('g')(t)
   sage: z = f*g
   sage: eq(x,t) = diff(z,x,2) == diff(z,t); eq(x,t)
-  g(t)*D[0, 0](f)(x) == f(x)*D[0](g)(t)
+    g(t)*diff(f(x), x, x) == f(x)*diff(g(t), t)
 
 Sage example in ./recequadiff.tex, line 688::
 
   sage: eqn = eq/z; eqn(x,t)
-  D[0, 0](f)(x)/f(x) == D[0](g)(t)/g(t)
+    diff(f(x), x, x)/f(x) == diff(g(t), t)/g(t)
 
 Sage example in ./recequadiff.tex, line 702::
 

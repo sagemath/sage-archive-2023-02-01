@@ -43,12 +43,16 @@ from sage.categories.homset import Hom
 from sage.interfaces.all import singular
 from sage.misc.all import add, sage_eval
 from sage.rings.all import degree_lowest_rational_function
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.rational_field import is_RationalField
 from sage.schemes.affine.affine_space import AffineSpace
+from sage.schemes.projective.projective_space import ProjectiveSpace, is_ProjectiveSpace
 
 from . import point
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
-from sage.schemes.projective.projective_space import is_ProjectiveSpace
+from sage.schemes.projective.projective_space import (is_ProjectiveSpace,
+                                                      ProjectiveSpace)
 
 from .curve import Curve_generic
 
@@ -74,7 +78,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         r"""
         Initialization function.
 
-        EXMAPLES::
+        EXAMPLES::
 
             sage: P.<x,y,z,w,u> = ProjectiveSpace(GF(7), 4)
             sage: C = Curve([y*u^2 - x^3, z*u^2 - x^3, w*u^2 - x^3, y^3 - x^3], P); C
@@ -137,6 +141,305 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         from .constructor import Curve
         return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i, AA))
 
+    def projection(self, P=None, PS=None):
+        r"""
+        Return a projection of this curve into projective space of dimension one less than the dimension of
+        the ambient space of this curve.
+
+        This curve must not already be a plane curve. Over finite fields, if this curve contains all points
+        in its ambient space, then an error will be returned.
+
+        INPUT:
+
+        - ``P`` -- (default: None) a point not on this curve that will be used to define the projection map;
+          this is constructed if not specified.
+
+        - ``PS`` -- (default: None) the projective space the projected curve will be defined in. This space must
+          be defined over the same base ring as this curve, and must have dimension one less than that of the
+          ambient space of this curve. This space will be constructed if not specified.
+
+        OUTPUT:
+
+        - a tuple consisting of two elements: a scheme morphism from this curve into a projective space of
+          dimension one less than that of the ambient space of this curve, and the projective curve that
+          is the image of that morphism.
+
+        EXAMPLES::
+
+            sage: K.<a> = CyclotomicField(3)
+            sage: P.<x,y,z,w> = ProjectiveSpace(K, 3)
+            sage: C = Curve([y*w - x^2, z*w^2 - a*x^3], P)
+            sage: L.<a,b,c> = ProjectiveSpace(K, 2)
+            sage: proj1 = C.projection(PS=L)
+            sage: proj1
+            (Scheme morphism:
+               From: Projective Curve over Cyclotomic Field of order 3 and degree 2
+            defined by -x^2 + y*w, (-a)*x^3 + z*w^2
+               To:   Projective Space of dimension 2 over Cyclotomic Field of order
+            3 and degree 2
+               Defn: Defined on coordinates by sending (x : y : z : w) to
+                     (x : y : -z + w),
+             Projective Plane Curve over Cyclotomic Field of order 3 and degree 2
+            defined by a^6 + (-a)*a^3*b^3 - a^4*b*c)
+            sage: proj1[1].ambient_space() is L
+            True
+            sage: proj2 = C.projection()
+            sage: proj2[1].ambient_space() is L
+            False
+
+        ::
+
+            sage: P.<x,y,z,w,a,b,c> = ProjectiveSpace(QQ, 6)
+            sage: C = Curve([y - x, z - a - b, w^2 - c^2, z - x - a, x^2 - w*z], P)
+            sage: C.projection()
+            (Scheme morphism:
+               From: Projective Curve over Rational Field defined by -x + y, z - a -
+            b, w^2 - c^2, -x + z - a, x^2 - z*w
+               To:   Projective Space of dimension 5 over Rational Field
+               Defn: Defined on coordinates by sending (x : y : z : w : a : b : c)
+            to
+                     (x : y : -z + w : a : b : c),
+             Projective Curve over Rational Field defined by x1 - x4, x0 - x4, x2*x3
+            + x3^2 + x2*x4 + 2*x3*x4, x2^2 - x3^2 - 2*x3*x4 + x4^2 - x5^2, x2*x4^2 +
+            x3*x4^2 + x4^3 - x3*x5^2 - x4*x5^2, x4^4 - x3^2*x5^2 - 2*x3*x4*x5^2 -
+            x4^2*x5^2)
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(GF(2), 3)
+            sage: C = P.curve([(x - y)*(x - z)*(x - w)*(y - z)*(y - w), x*y*z*w*(x+y+z+w)])
+            sage: C.projection()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this curve contains all points of its ambient space
+
+        ::
+
+            sage: P.<x,y,z,w,u> = ProjectiveSpace(GF(7), 4)
+            sage: C = P.curve([x^3 - y*z*u, w^2 - u^2 + 2*x*z, 3*x*w - y^2])
+            sage: L.<a,b,c,d> = ProjectiveSpace(GF(7), 3)
+            sage: C.projection(PS=L)
+            (Scheme morphism:
+               From: Projective Curve over Finite Field of size 7 defined by x^3 -
+            y*z*u, 2*x*z + w^2 - u^2, -y^2 + 3*x*w
+               To:   Projective Space of dimension 3 over Finite Field of size 7
+               Defn: Defined on coordinates by sending (x : y : z : w : u) to
+                     (x : y : z : w),
+             Projective Curve over Finite Field of size 7 defined by b^2 - 3*a*d,
+            a^5*b + a*b*c^3*d - 3*b*c^2*d^3, a^6 + a^2*c^3*d - 3*a*c^2*d^3)
+            sage: Q.<a,b,c> = ProjectiveSpace(GF(7), 2)
+            sage: C.projection(PS=Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: (=Projective Space of dimension 2 over Finite Field of size
+            7) must have dimension (=3)
+            
+
+        ::
+
+            sage: PP.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = PP.curve([x^3 - z^2*y, w^2 - z*x])
+            sage: Q = PP([1,0,1,1])
+            sage: C.projection(P=Q)
+            (Scheme morphism:
+               From: Projective Curve over Rational Field defined by x^3 - y*z^2,
+            -x*z + w^2
+               To:   Projective Space of dimension 2 over Rational Field
+               Defn: Defined on coordinates by sending (x : y : z : w) to
+                     (y : -x + z : -x + w),
+             Projective Plane Curve over Rational Field defined by x0*x1^5 -
+            6*x0*x1^4*x2 + 14*x0*x1^3*x2^2 - 16*x0*x1^2*x2^3 + 9*x0*x1*x2^4 -
+            2*x0*x2^5 - x2^6)
+            sage: LL.<a,b,c> = ProjectiveSpace(QQ, 2)
+            sage: Q = PP([0,0,0,1])
+            sage: C.projection(PS=LL, P=Q)
+            (Scheme morphism:
+               From: Projective Curve over Rational Field defined by x^3 - y*z^2,
+            -x*z + w^2
+               To:   Projective Space of dimension 2 over Rational Field
+               Defn: Defined on coordinates by sending (x : y : z : w) to
+                     (x : y : z),
+             Projective Plane Curve over Rational Field defined by a^3 - b*c^2)
+            sage: Q = PP([0,0,1,0])
+            sage: C.projection(P=Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: (=(0 : 0 : 1 : 0)) must be a point not on this curve
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = P.curve(y^2 - x^2 + z^2)
+            sage: C.projection()
+            Traceback (most recent call last):
+            ...
+            TypeError: this curve is already a plane curve
+        """
+        PP = self.ambient_space()
+        n = PP.dimension_relative()
+        if n == 2:
+            raise TypeError("this curve is already a plane curve")
+        if self.base_ring() not in Fields():
+            raise TypeError("this curve must be defined over a field")
+        if not PS is None:
+            if not is_ProjectiveSpace(PS):
+                raise TypeError("(=%s) must be a projective space"%PS)
+            if PS.dimension_relative() != n - 1:
+                raise TypeError("(=%s) must have dimension (=%s)"%(PS,n - 1))
+            if PS.base_ring() != PP.base_ring():
+                raise TypeError("(=%s) must be defined over the same base field as this curve"%PS)
+        if P is None:
+            # find a point not on the curve if not given
+            if self.base_ring().characteristic() == 0:
+                # when working over a characteristic 0 field, we can construct a point not on the curve.
+                # we do this by constructing a point on which at least one nonzero element of the defining ideal of
+                # this curve does not vanish
+                F = 0
+                # find a nonzero element
+                for i in range(len(self.defining_polynomials())):
+                    if self.defining_polynomials()[i] != 0:
+                        F = self.defining_polynomials()[i]
+                # find a point on which it doesn't vanish
+                l = list(PP.gens())
+                for i in range(n + 1):
+                    l[i] = 0
+                    while(F(l) == 0):
+                        l[i] = l[i] + 1
+                Q = PP(l) # will be a point not on the curve
+            else:
+                # if the base ring is a finite field, iterate over all points in the ambient space and check which
+                # are on this curve
+                Q = None
+                for P in PP.rational_points():
+                    try:
+                        self(P)
+                    except TypeError:
+                        Q = P
+                        break
+                if Q is None:
+                    raise NotImplementedError("this curve contains all points of its ambient space")
+        else:
+            # make sure the given point is in the ambient space of the curve, but not on the curve
+            Q = None
+            try:
+                Q = self(P)
+            except TypeError:
+                pass
+            if not Q is None:
+                raise TypeError("(=%s) must be a point not on this curve"%P)
+            try:
+                Q = self.ambient_space()(P)
+            except TypeError:
+                raise TypeError("(=%s) must be a point in the ambient space of this curve"%P)
+        # in order to create the change of coordinates map, need to find a coordinate of Q that is nonzero
+        j = 0
+        while Q[j] == 0:
+            j = j + 1
+        # use this Q to project. Apply a change of coordinates to move Q to (0:...:0:1:0:...:0)
+        # where 1 is in the jth coordinate
+        if PS is None:
+            PP2 = ProjectiveSpace(self.base_ring(), n - 1)
+        else:
+            PP2 = PS
+        H = Hom(self, PP2)
+        coords = [PP.gens()[i] - Q[i]/Q[j]*PP.gens()[j] for i in range(n + 1)]
+        coords.pop(j)
+        psi = H(coords)
+        # compute image of psi via elimination
+        # first construct the image of this curve by the change of coordinates. This can be found by composing the
+        # defining polynomials of this curve with the polynomials defining the inverse of the change of coordinates
+        invcoords = [Q[i]*PP.gens()[j] + PP.gens()[i] for i in range(n + 1)]
+        invcoords[j] = Q[j]*PP.gens()[j]
+        I = PP.coordinate_ring().ideal([f(invcoords) for f in self.defining_polynomials()])
+        J = I.elimination_ideal(PP.gens()[j])
+        K = Hom(PP.coordinate_ring(), PP2.coordinate_ring())
+        l = list(PP2.gens())
+        l.insert(j, 0)
+        phi = K(l)
+        G = [phi(f) for f in J.gens()]
+        C = PP2.curve(G)
+        return tuple([psi, C])
+
+    def plane_projection(self, PP=None):
+        r"""
+        Return a projection of this curve into a projective plane.
+
+        INPUT:
+
+        - ``PP`` -- (default: None) the projective plane the projected curve will be defined in. This space must
+          be defined over the same base field as this curve, and must have dimension two. This space is constructed
+          if not specified.
+
+        OUTPUT:
+
+        - a tuple consisting of two elements: a scheme morphism from this curve into a projective plane,
+          and the projective curve that is the image of that morphism.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w,u,v> = ProjectiveSpace(QQ, 5)
+            sage: C = P.curve([x*u - z*v, w - y, w*y - x^2, y^3*u*2*z - w^4*w])
+            sage: L.<a,b,c> = ProjectiveSpace(QQ, 2)
+            sage: proj1 = C.plane_projection(PP=L)
+            sage: proj1
+            (Scheme morphism:
+               From: Projective Curve over Rational Field defined by x*u - z*v, -y +
+            w, -x^2 + y*w, -w^5 + 2*y^3*z*u
+               To:   Projective Space of dimension 2 over Rational Field
+               Defn: Defined on coordinates by sending (x : y : z : w : u : v) to
+                     (x : -z + u : -z + v),
+             Projective Plane Curve over Rational Field defined by a^8 + 6*a^7*b +
+            4*a^5*b^3 - 4*a^7*c - 2*a^6*b*c - 4*a^5*b^2*c + 2*a^6*c^2)
+            sage: proj1[1].ambient_space() is L
+            True
+            sage: proj2 = C.projection()
+            sage: proj2[1].ambient_space() is L
+            False
+
+        ::
+
+            sage: P.<x,y,z,w,u> = ProjectiveSpace(GF(7), 4)
+            sage: C = P.curve([x^2 - 6*y^2, w*z*u - y^3 + 4*y^2*z, u^2 - x^2])
+            sage: C.plane_projection()
+            (Scheme morphism:
+               From: Projective Curve over Finite Field of size 7 defined by x^2 +
+            y^2, -y^3 - 3*y^2*z + z*w*u, -x^2 + u^2
+               To:   Projective Space of dimension 2 over Finite Field of size 7
+               Defn: Defined on coordinates by sending (x : y : z : w : u) to
+                     (y : z : -x + w),
+             Projective Plane Curve over Finite Field of size 7 defined by x0^10 -
+            2*x0^9*x1 + 3*x0^8*x1^2 - 2*x0^7*x1^3 + x0^6*x1^4 + 2*x0^6*x1^2*x2^2 -
+            2*x0^5*x1^3*x2^2 - x0^4*x1^4*x2^2 + x0^2*x1^4*x2^4)
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(17), 2)
+            sage: C = P.curve(x^2 - y*z - z^2)
+            sage: C.plane_projection()
+            Traceback (most recent call last):
+            ...
+            TypeError: this curve is already a plane curve
+        """
+        PS = self.ambient_space()
+        n = PS.dimension_relative()
+        if n == 2:
+            raise TypeError("this curve is already a plane curve")
+        C = self
+        H = Hom(PS, PS)
+        phi = H([PS.gens()[i] for i in range(n + 1)])
+        for i in range(n - 2):
+            if i == n - 3:
+                L = C.projection(PS=PP)
+            else:
+                L = C.projection()
+            C = L[1]
+            # compose the scheme morphisms that are created
+            K = Hom(phi.codomain().coordinate_ring(), PS.coordinate_ring())
+            psi = K(phi.defining_polynomials())
+            H = Hom(self, L[1].ambient_space())
+            phi = H([psi(L[0].defining_polynomials()[i]) for i in range(len(L[0].defining_polynomials()))])
+        return tuple([phi, C])
+
     def arithmetic_genus(self):
         r"""
         Return the arithmetic genus of this projective curve.
@@ -164,82 +467,6 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         if not self.is_irreducible():
             raise TypeError("this curve must be irreducible")
         return 1 - self.defining_ideal().hilbert_polynomial()(0)
-
-    def multiplicity(self, P):
-        r"""
-        Return the multiplicity of this projective curve at the point ``P``.
-
-        This is computed as the corresponding multiplicity of an affine patch of this curve that
-        contains the point. This curve must be defined over a field. An error is returned if ``P``
-        not a point on this curve.
-
-        INPUT:
-
-        - ``P`` -- a point in the ambient space of this curve.
-
-        OUTPUT:
-
-        An integer.
-
-        EXAMPLES::
-
-            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
-            sage: C = Curve([y^4 - x^3*z - x^2*z^2], P)
-            sage: Q = P([0,0,1])
-            sage: C.multiplicity(Q)
-            2
-
-        ::
-
-            sage: P.<x,y,z,w> = ProjectiveSpace(RR, 3)
-            sage: C = Curve([y^8 - x^2*z*w^5, w^2 - 2*y^2 - x*z], P)
-            sage: Q1 = P([-1,-1,1,1])
-            sage: C.multiplicity(Q1)
-            1
-            sage: Q2 = P([1,0,0,0])
-            sage: C.multiplicity(Q2)
-            7
-            sage: Q3 = P([0,0,1,0])
-            sage: C.multiplicity(Q3)
-            8
-
-        ::
-
-            sage: P.<x,y,z,w> = ProjectiveSpace(GF(29), 3)
-            sage: C = Curve([y^17 - x^5*w^4*z^8, x*y - z^2], P)
-            sage: Q = P([3,0,0,1])
-            sage: C.multiplicity(Q)
-            8
-
-        ::
-
-            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
-            sage: C = P.curve([y^2*z^5 - x^7])
-            sage: Q = P([-1,-1,1])
-            sage: C.multiplicity(Q)
-            Traceback (most recent call last):
-            ...
-            TypeError: (=(-1 : -1 : 1)) is not a point on (=Projective Plane Curve
-            over Rational Field defined by -x^7 + y^2*z^5)
-        """
-        if not self.base_ring() in Fields():
-            raise TypeError("curve must be defined over a field")
-
-        # Check whether P is a point on this curve
-        try:
-            P = self(P)
-        except TypeError:
-            raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
-
-        # Find an affine chart of the ambient space of self that contains P
-        i = 0
-        while(P[i] == 0):
-            i = i + 1
-        C = self.affine_patch(i)
-        Q = list(P)
-        t = Q.pop(i)
-        Q = [1/t*Q[j] for j in range(self.ambient_space().dimension_relative())]
-        return C.multiplicity(C.ambient_space()(Q))
 
     def is_complete_intersection(self):
         r"""
@@ -594,7 +821,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: E.is_singular()
             False
 
-        Showing that ticket #12187 is fixed::
+        Showing that :trac:`12187` is fixed::
 
             sage: F.<X,Y,Z> = GF(2)[]
             sage: G = Curve(X^2+Y*Z)
@@ -745,7 +972,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         - ``P`` -- a point in the intersection of both curves.
 
-        OUPUT: Boolean.
+        OUTPUT: Boolean.
 
         EXAMPLES::
 
@@ -782,6 +1009,68 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         # there is only one tangent at a nonsingular point of a plane curve
         return not self.tangents(P)[0] == C.tangents(P)[0]
+
+    def rational_parameterization(self):
+        r"""
+        Return a rational parameterization of this curve.
+
+        This curve must have rational coefficients and be absolutely irreducible (i.e. irreducible
+        over the algebraic closure of the rational field). The curve must also be rational (have
+        geometric genus zero).
+
+        The rational parameterization may have coefficients in a quadratic extension of the rational
+        field.
+
+        OUTPUT:
+
+        - a birational map between `\mathbb{P}^{1}` and this curve, given as a scheme morphism.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([y^2*z - x^3], P)
+            sage: C.rational_parameterization()
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Rational Field
+              To:   Projective Plane Curve over Rational Field defined by -x^3 + y^2*z
+              Defn: Defined on coordinates by sending (s : t) to
+                    (s^2*t : s^3 : t^3)
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([x^3 - 4*y*z^2 + x*z^2 - x*y*z], P)
+            sage: C.rational_parameterization()
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Rational Field
+              To:   Projective Plane Curve over Rational Field defined by x^3 - x*y*z + x*z^2 - 4*y*z^2
+              Defn: Defined on coordinates by sending (s : t) to
+                    (4*s^2*t + s*t^2 : s^2*t + t^3 : 4*s^3 + s^2*t)
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([x^2 + y^2 + z^2], P)
+            sage: C.rational_parameterization()
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Number Field in a with defining polynomial a^2 + 1
+              To:   Projective Plane Curve over Number Field in a with defining
+              polynomial a^2 + 1 defined by x^2 + y^2 + z^2
+              Defn: Defined on coordinates by sending (s : t) to
+                    (s^2 - t^2 : (a)*s^2 + (a)*t^2 : -2*s*t)
+        """
+        if self.genus() != 0:
+            raise TypeError("this curve must have geometric genus zero")
+        if not is_RationalField(self.base_ring()):
+            raise TypeError("this curve must be defined over the rational field")
+        singular.lib("paraplanecurves.lib")
+        R = singular.paraPlaneCurve(self.defining_polynomial())
+        singular.setring(R)
+        param = singular('PARA').sage().gens()
+        R = R.sage()
+        C = self.change_ring(R.base_ring())
+        H = Hom(ProjectiveSpace(R.base_ring(), 1, R.gens()), C)
+        return H(param)
 
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
 

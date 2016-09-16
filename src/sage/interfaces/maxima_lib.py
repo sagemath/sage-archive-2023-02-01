@@ -55,16 +55,16 @@ Changed besselexpand to true in init_code -- automatically simplify bessel funct
 For some infinite sums, a closed expression can be found. By default, "maxima" is used for that::
 
     sage: x,n,k = var("x","n","k")
-    sage: sum(((-1)^n)*((x)^(2*n+1))/factorial(2*n+1),n,0,oo)
-    sin(x)
+    sage: sum((-x)^n/(factorial(n)*factorial(n+3/2)),n,0,oo)
+    -1/2*(2*x*cos(2*sqrt(x)) - sqrt(x)*sin(2*sqrt(x)))/(sqrt(pi)*x^2)
 
 Maxima has some flags that affect how the result gets simplified(By default, besselexpand was set to false in Maxima)::
 
     sage: maxima_calculus("besselexpand:false")
     false
     sage: x,n,k = var("x","n","k")
-    sage: sum(((-1)^n)*((x)^(2*n+1))/factorial(2*n+1),n,0,oo)
-    1/2*sqrt(2)*sqrt(pi)*sqrt(x)*bessel_J(1/2, x)
+    sage: sum((-x)^n/(factorial(n)*factorial(n+3/2)),n,0,oo)
+    bessel_J(3/2, 2*sqrt(x))/x^(3/4)
     sage: maxima_calculus("besselexpand:true")
     true
 
@@ -1255,6 +1255,7 @@ max_hyper = EclObject("$%F")
 max_array = EclObject("ARRAY")
 mdiff = EclObject("%DERIVATIVE")
 max_lambert_w = sage_op_dict[sage.functions.log.lambert_w]
+max_harmo = EclObject("$GEN_HARMONIC_NUMBER")
 
 def mrat_to_sage(expr):
     r"""
@@ -1341,7 +1342,7 @@ def mdiff_to_sage(expr):
         sage: f.ecl()
         <ECL: ((%DERIVATIVE SIMP) (($F SIMP) $X) $X 4)>
         sage: mdiff_to_sage(f.ecl())
-        D[0, 0, 0, 0](f)(x)
+        diff(f(x), x, x, x, x)
     """
     return max_to_sr(expr.cadr()).diff(*[max_to_sr(e) for e in expr.cddr()])
 
@@ -1436,6 +1437,20 @@ def dummy_integrate(expr):
         return sage.symbolic.integration.integral.indefinite_integral(*args,
                                                                   hold=True)
 
+def max_harmonic_to_sage(expr):
+    """
+    EXAMPLES::
+
+        sage: from sage.interfaces.maxima_lib import maxima_lib, max_to_sr
+        sage: c=maxima_lib(harmonic_number(x,2))
+        sage: c.ecl()
+        <ECL: (($GEN_HARMONIC_NUMBER SIMP) 2 |$_SAGE_VAR_x|)>
+        sage: max_to_sr(c.ecl())
+        harmonic_number(x, 2)
+    """
+    return sage.functions.log.harmonic_number(max_to_sr(caddr(expr)),
+                                              max_to_sr(cadr(expr)))
+
 ## The dictionaries
 special_max_to_sage={
     mrat : mrat_to_sage,
@@ -1443,7 +1458,8 @@ special_max_to_sage={
     mdiff : mdiff_to_sage,
     EclObject("%INTEGRATE") : dummy_integrate,
     max_at : max_at_to_sage,
-    mlist : mlist_to_sage
+    mlist : mlist_to_sage,
+    max_harmo : max_harmonic_to_sage
 }
 
 special_sage_to_max={
@@ -1451,6 +1467,7 @@ special_sage_to_max={
     sage.functions.other.psi1 : lambda X : [[mqapply],[[max_psi, max_array],0],X],
     sage.functions.other.psi2 : lambda N,X : [[mqapply],[[max_psi, max_array],N],X],
     sage.functions.log.lambert_w : lambda N,X : [[max_lambert_w], X] if N==EclObject(0) else [[mqapply],[[max_lambert_w, max_array],N],X],
+    sage.functions.log.harmonic_number : lambda N,X : [[max_harmo],X,N],
     sage.functions.hypergeometric.hypergeometric : lambda A, B, X : [[mqapply],[[max_hyper, max_array],lisp_length(A.cdr()),lisp_length(B.cdr())],A,B,X]
 }
 

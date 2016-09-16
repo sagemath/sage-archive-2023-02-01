@@ -1347,7 +1347,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             # (parent, x) with x the image of the distinguished
             # generator (previously, it was just given as x).  This
             # allows the UniqueFactory to distinguish embeddings into
-            # different fields with "the same" image of the generator.
+            # different fields with images of the generator that
+            # compare equal.
             # We allow both formats to support old pickles.
             if isinstance(embedding, tuple):
                 parent, x = embedding

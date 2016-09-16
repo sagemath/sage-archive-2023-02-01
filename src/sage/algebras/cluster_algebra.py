@@ -321,6 +321,7 @@ the initial seed::
 
 from copy import copy
 from functools import wraps
+from types import MethodType
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
 from sage.categories.rings import Rings
@@ -338,13 +339,13 @@ from sage.modules.free_module_element import vector
 from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing, LaurentPolynomialRing_generic
+from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_generic
+from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
-from types import MethodType
 
 ##############################################################################
 # Helper functions
@@ -401,10 +402,10 @@ def _mutation_parse(mutate):
 
         if direction == "sinks":
             B = self.b_matrix()
-            seq = [ i for i in range(B.ncols()) if all( x<=0 for x in B.column(i) ) ]
+            seq = [i for i in range(B.ncols()) if all(x <= 0 for x in B.column(i))]
         elif direction == "sources":
             B = self.b_matrix()
-            seq = [ i for i in range(B.ncols()) if all( x>=0 for x in B.column(i) ) ]
+            seq = [i for i in range(B.ncols()) if all(x >= 0 for x in B.column(i))]
         else:
             try:
                 seq = iter(direction)
@@ -616,7 +617,7 @@ def homogeneous_components(self):
         sage: x.homogeneous_components()
         {(0, 1): x1, (1, 0): x0}
     """
-    deg_matrix = block_matrix([[identity_matrix(self.parent().rk()),-self.parent().b_matrix()]])
+    deg_matrix = block_matrix([[identity_matrix(self.parent().rk()), -self.parent().b_matrix()]])
     components = dict()
     x = self.lift()
     monomials = x.monomials()
@@ -727,7 +728,7 @@ class ClusterAlgebraSeed(SageObject):
             sage: S == B.current_seed()
             True
         """
-        return type(self) == type(other) and self.parent() == other.parent() and frozenset(self.g_vectors()) == frozenset(other.g_vectors())
+        return isinstance(other, ClusterAlgebraSeed) and self.parent() == other.parent() and frozenset(self.g_vectors()) == frozenset(other.g_vectors())
 
     def __contains__(self, element):
         r"""
@@ -792,9 +793,9 @@ class ClusterAlgebraSeed(SageObject):
         if self._path == []:
             return "The initial seed of a %s"%str(self.parent())[2:]
         elif len(self._path) == 1:
-            return "The seed of a %s obtained from the initial by mutating in direction %s"%(str(self.parent())[2:],str(self._path[0]))
+            return "The seed of a %s obtained from the initial by mutating in direction %s"%(str(self.parent())[2:], str(self._path[0]))
         else:
-            return "The seed of a %s obtained from the initial by mutating along the sequence %s"%(str(self.parent())[2:],str(self._path))
+            return "The seed of a %s obtained from the initial by mutating along the sequence %s"%(str(self.parent())[2:], str(self._path))
 
     def parent(self):
         r"""
@@ -1140,7 +1141,7 @@ class ClusterAlgebraSeed(SageObject):
                 neg *= alg._U.gen(j)**(-self._C[j,k])
             if self._B[j,k] > 0:
                 pos *= self.F_polynomial(j)**self._B[j,k]
-            elif self._B[j,k] <0:
+            elif self._B[j,k] < 0:
                 neg *= self.F_polynomial(j)**(-self._B[j,k])
         return (pos+neg)/alg.F_polynomial(old_g_vector)
 
@@ -1227,26 +1228,26 @@ class ClusterAlgebra(Parent):
         self._U = PolynomialRing(QQ, ['u%s'%i for i in xrange(n)])
 
         # Storage for computed data
-        self._path_dict = dict([ (v, []) for v in map(tuple,I.columns()) ])
-        self._F_poly_dict = dict([ (v, self._U(1)) for v in self._path_dict ])
+        self._path_dict = dict([(v, []) for v in map(tuple, I.columns())])
+        self._F_poly_dict = dict([(v, self._U(1)) for v in self._path_dict])
 
         # Determine the names of the initial cluster variables
-        variables_prefix = kwargs.get('cluster_variable_prefix','x')
+        variables_prefix = kwargs.get('cluster_variable_prefix', 'x')
         variables = list(kwargs.get('cluster_variable_names', [variables_prefix+str(i) for i in xrange(n)]))
         if len(variables) != n:
-             raise ValueError("cluster_variable_names should be a list of %d valid variable names"%n)
+            raise ValueError("cluster_variable_names should be a list of %d valid variable names"%n)
 
         # Determine scalars
         scalars = kwargs.get('scalars', ZZ)
 
         # Determine coefficients and setup self._base
-        if m>0:
+        if m > 0:
             coefficient_prefix = kwargs.get('coefficient_prefix', 'y')
             if coefficient_prefix == variables_prefix:
                 offset = n
             else:
                 offset = 0
-            coefficients = list(kwargs.get('coefficient_names', [coefficient_prefix+str(i) for i in xrange(offset,m+offset)]))
+            coefficients = list(kwargs.get('coefficient_names', [coefficient_prefix+str(i) for i in xrange(offset, m+offset)]))
             if len(coefficients) != m:
                 raise ValueError("coefficient_names should be a list of %d valid variable names"%m)
             base = LaurentPolynomialRing(scalars, coefficients)
@@ -1259,8 +1260,8 @@ class ClusterAlgebra(Parent):
         Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(), names=variables+coefficients)
 
         # Data to compute cluster variables using separation of additions
-        self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
-        self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n+m)])) for j in xrange(n)])
+        self._y = dict([(self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
+        self._yhat = dict([(self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n+m)])) for j in xrange(n)])
 
         # Have we got principal coefficients?
         self._is_principal = (M0 == I)
@@ -1281,7 +1282,7 @@ class ClusterAlgebra(Parent):
             self._greedy_coefficient = MethodType(_greedy_coefficient, self, self.__class__)
 
         # Register embedding into self.ambient()
-        embedding = SetMorphism(Hom(self,self.ambient()), lambda x: x.lift())
+        embedding = SetMorphism(Hom(self, self.ambient()), lambda x: x.lift())
         self._populate_coercion_lists_(embedding=embedding)
 
     def __copy__(self):
@@ -1304,11 +1305,10 @@ class ClusterAlgebra(Parent):
             sage: S1 == S2
             False
         """
-        n = self.rk()
         cv_names = self.initial_cluster_variable_names()
         coeff_names = self.coefficient_names()
         other = ClusterAlgebra(self._B0, cluster_variable_names=cv_names,
-                coefficient_names=coeff_names, scalars=self.scalars())
+                               coefficient_names=coeff_names, scalars=self.scalars())
         other._F_poly_dict = copy(self._F_poly_dict)
         other._path_dict = copy(self._path_dict)
         S = copy(self.current_seed())
@@ -1349,7 +1349,7 @@ class ClusterAlgebra(Parent):
             sage: A1 == B
             False
         """
-        return type(self) == type(other) and self._B0 == other._B0 and self.ambient() == other.ambient()
+        return isinstance(other, ClusterAlgebra) and self._B0 == other._B0 and self.ambient() == other.ambient()
 
     def _repr_(self):
         r"""
@@ -1363,10 +1363,10 @@ class ClusterAlgebra(Parent):
             A Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Integer Ring
         """
         var_names = self.initial_cluster_variable_names()
-        var_names = (" " if len(var_names)==1 else "s ") + ", ".join(var_names)
+        var_names = (" " if len(var_names) == 1 else "s ") + ", ".join(var_names)
         coeff_names = self.coefficient_names()
-        coeff_prefix = " and" +(" " if len(coeff_names) >0 else " no ") + "coefficient"
-        coeff = coeff_prefix + (" " if len(coeff_names)==1 else "s ") + ", ".join(coeff_names) + (" " if len(coeff_names)>0 else "")
+        coeff_prefix = " and" +(" " if len(coeff_names) > 0 else " no ") + "coefficient"
+        coeff = coeff_prefix + (" " if len(coeff_names) == 1 else "s ") + ", ".join(coeff_names) + (" " if len(coeff_names) > 0 else "")
         return "A Cluster Algebra with cluster variable" + var_names + coeff + "over " + repr(self.scalars())
 
     def _an_element_(self):
@@ -1445,12 +1445,12 @@ class ClusterAlgebra(Parent):
             if len(gen_s) == len(gen_o):
                 f = self.ambient().coerce_map_from(other.ambient())
             if f is not None:
-                perm = Permutation([ gen_s.index(self(f(v)))+1 for v in gen_o ])
+                perm = Permutation([gen_s.index(self(f(v)))+1 for v in gen_o])
                 n = self.rk()
                 M = self._B0[n:,:]
                 m = M.nrows()
                 B = block_matrix([[self.b_matrix(),-M.transpose()],[M,matrix(m)]])
-                B.permute_rows_and_columns(perm,perm)
+                B.permute_rows_and_columns(perm, perm)
                 return B.matrix_from_columns(range(other.rk())) == other._B0
 
         # everything that is in the base can be coerced to self
@@ -1600,7 +1600,7 @@ class ClusterAlgebra(Parent):
         """
         return map(self.cluster_variable, self.g_vectors_so_far())
 
-    @cached_method(key=lambda a,b: tuple(b))
+    @cached_method(key=lambda a, b: tuple(b))
     def cluster_variable(self, g_vector):
         r"""
         Return the cluster variable with g-vector ``g_vector`` if it has been found.
@@ -1723,8 +1723,8 @@ class ClusterAlgebra(Parent):
                 # all the seeds of self and did not find g_vector.
                 # Do some house cleaning before failing
                 self.reset_exploring_iterator()
-                raise ValueError("%s is not the g-vector of any cluster variable of a %s."%(str(g_vector),str(self)[2:]))
-        return copy(self._path_dict.get(g_vector,None))
+                raise ValueError("%s is not the g-vector of any cluster variable of a %s."%(str(g_vector), str(self)[2:]))
+        return copy(self._path_dict.get(g_vector, None))
 
     def ambient(self):
         r"""
@@ -1941,20 +1941,19 @@ class ClusterAlgebra(Parent):
         # yield first seed
         yield seed
 
-        # some initialization
+        # keep track of depth
         depth_counter = 0
-        n = self.rk()
 
         # do we mutate F-polynomials?
         mutating_F = kwargs.get('mutating_F', True)
 
         # which directions are we allowed to mutate into
-        allowed_dirs = list(sorted(kwargs.get('allowed_directions', range(n))))
+        allowed_dirs = list(sorted(kwargs.get('allowed_directions', range(self.rk()))))
 
         # setup seeds storage
         cl = frozenset(seed.g_vectors())
         clusters = {}
-        clusters[cl] = [ seed, copy(allowed_dirs) ]
+        clusters[cl] = [seed, copy(allowed_dirs)]
 
         # ready, set, go!
         gets_bigger = True
@@ -1962,17 +1961,17 @@ class ClusterAlgebra(Parent):
             # remember if we got a new seed
             gets_bigger = False
 
-            for key in clusters.keys():
-                sd, directions = clusters[key]
+            for cl in clusters.keys():
+                sd, directions = clusters[cl]
                 while directions:
                     try:
                         # we can mutate in some direction
                         i = directions.pop()
-                        new_sd  = sd.mutate(i, inplace=False, mutating_F=mutating_F)
+                        new_sd = sd.mutate(i, inplace=False, mutating_F=mutating_F)
                         new_cl = frozenset(new_sd.g_vectors())
                         if new_cl in clusters:
                             # we already had new_sd, make sure it does not mutate to sd during next round
-                            j = map(tuple,clusters[new_cl][0].g_vectors()).index(new_sd.g_vector(i))
+                            j = map(tuple, clusters[new_cl][0].g_vectors()).index(new_sd.g_vector(i))
                             try:
                                 clusters[new_cl][1].remove(j)
                             except ValueError:
@@ -1981,8 +1980,8 @@ class ClusterAlgebra(Parent):
                             # we got a new seed
                             gets_bigger = True
                             # next round do not mutate back to sd and make sure we only walk three sides of squares
-                            new_directions = [ j for j in allowed_dirs if j > i or new_sd.b_matrix()[j,i] != 0 ]
-                            clusters[new_cl] = [ new_sd, new_directions ]
+                            new_directions = [j for j in allowed_dirs if j > i or new_sd.b_matrix()[j,i] != 0]
+                            clusters[new_cl] = [new_sd, new_directions]
                             yield new_sd
                     except KeyboardInterrupt as e:
                         if kwargs.get('catch_KeyboardInterrupt', False):
@@ -2059,7 +2058,7 @@ class ClusterAlgebra(Parent):
             Rational polyhedral fan in 2-d lattice N
         """
         seeds = self.seeds(depth=depth, mutating_F=False)
-        cones = map(lambda s: Cone(s.g_vectors()), seeds)
+        cones = [Cone(S.g_vectors()) for S in seeds]
         return Fan(cones)
 
     @_mutation_parse
@@ -2096,7 +2095,7 @@ class ClusterAlgebra(Parent):
         # save computed data
         old_F_poly_dict = copy(self._F_poly_dict)
         old_path_dict = copy(self._path_dict)
-        old_path_to_current =  copy(self.current_seed().path_from_initial_seed())
+        old_path_to_current = copy(self.current_seed().path_from_initial_seed())
 
         # mutate initial exchange matrix
         B0 = copy(self._B0)
@@ -2112,12 +2111,12 @@ class ClusterAlgebra(Parent):
         coeff_names = self.coefficient_names()
         scalars = self.scalars()
         self.__init__(B0, cluster_variable_names=cv_names,
-                coefficient_names=coeff_names, scalars=scalars)
+                      coefficient_names=coeff_names, scalars=scalars)
 
         # substitution data to compute new F-polynomials
         Ugen = self._U.gens()
         # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
-        F_subs = [Ugen[k]**(-1) if j==k else Ugen[j]*Ugen[k]**max(B0[k,j],0)*(1+Ugen[k])**(-B0[k,j]) for j in xrange(n)]
+        F_subs = [Ugen[k]**(-1) if j == k else Ugen[j]*Ugen[k]**max(B0[k,j], 0)*(1+Ugen[k])**(-B0[k,j]) for j in xrange(n)]
 
         # restore computed data
         for old_g_vect in old_path_dict:
@@ -2137,7 +2136,7 @@ class ClusterAlgebra(Parent):
 
             #compute new F-polynomial
             if old_F_poly_dict.has_key(old_g_vect):
-                h =  -min(0,old_g_vect[k])
+                h =  -min(0, old_g_vect[k])
                 new_F_poly = old_F_poly_dict[old_g_vect](F_subs)*Ugen[k]**h*(Ugen[k]+1)**old_g_vect[k]
                 self._F_poly_dict[new_g_vect] = new_F_poly
 
@@ -2244,7 +2243,7 @@ def greedy_element(self, d_vector):
             output += self._greedy_coefficient(d_vector, p, q) * x1**(b*p) * x2**(c*q)
     return self.retract(x1**(-a1) * x2**(-a2) * output)
 
-def _greedy_coefficient(self,d_vector,p,q):
+def _greedy_coefficient(self, d_vector, p, q):
     r"""
     Return the coefficient of the monomial ``x1**(b*p) * x2**(c*q)`` in the numerator of the greedy element with denominator vector ``d_vector``.
 
@@ -2266,7 +2265,7 @@ def _greedy_coefficient(self,d_vector,p,q):
     if p == 0 and q == 0:
         return Integer(1)
     sum1 = 0
-    for k in range(1,p+1):
+    for k in range(1, p+1):
         bino = 0
         if a2 - c*q + k - 1 >= k:
             bino = binomial(a2 - c*q + k - 1, k)

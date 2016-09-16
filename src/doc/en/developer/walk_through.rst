@@ -243,7 +243,7 @@ changed, in that case you do have to recompile everything using::
 Also, don't forget to run the tests (see :ref:`chapter-doctesting`)
 and build the documentation (see :ref:`chapter-sage_manuals`).
 
-.. WARNING::
+.. NOTE::
 
     If you switch between branches based on different releases, the timestamps
     of modified files will change. This triggers recythonization and recompilation
@@ -253,7 +253,7 @@ and build the documentation (see :ref:`chapter-sage_manuals`).
 
         ./sage -i ccache
 
-    Recynthonization will still occur when rebuilding, but the recompilation stage
+    Recythonization will still occur when rebuilding, but the recompilation stage
     first checks whether previously compiled files are cached for reuse before
     compiling them again. This saves considerable time rebuilding.
 

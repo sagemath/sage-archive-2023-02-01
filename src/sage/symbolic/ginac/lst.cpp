@@ -25,8 +25,8 @@
 namespace GiNaC {
 
         // 
-template <> registered_class_info lst::reg_info = registered_class_info(registered_class_options("lst", "basic", &lst::tinfo_static, &lst::unarchive).print_func<print_context>(&lst::do_print).print_func<print_tree>(&lst::do_print_tree));
 template<> const tinfo_static_t lst::tinfo_static = {};
+template <> registered_class_info lst::reg_info = registered_class_info(registered_class_options("lst", "basic", &lst::tinfo_static, &lst::unarchive).print_func<print_context>(&lst::do_print).print_func<print_tree>(&lst::do_print_tree));
 
 /** Specialization of container::get_tinfo() for lst. */
 template<> tinfo_t lst::get_tinfo() { return &lst::tinfo_static; }

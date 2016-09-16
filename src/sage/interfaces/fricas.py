@@ -409,7 +409,9 @@ class FriCAS(ExtraTabCompletion, Expect):
         return ')read %s )quiet'%filename
 
     def _local_tmpfile(self):
-        """Return a local tmpfile ending with ".input".
+        """Return a local tmpfile ending with ".input" used to buffer long
+        command lines sent to FriCAS.
+
         """
         try:
             return self.__local_tmpfile
@@ -418,7 +420,9 @@ class FriCAS(ExtraTabCompletion, Expect):
             return self.__local_tmpfile
 
     def _remote_tmpfile(self):
-        """Return a remote tmpfile ending with ".input".
+        """Return a remote tmpfile ending with ".input" used to buffer long
+        command lines sent to FriCAS.
+
         """
         try:
             return self.__remote_tmpfile

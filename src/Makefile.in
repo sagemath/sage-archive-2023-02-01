@@ -27,7 +27,16 @@ all: sage
 ## [sagelib-7.4.beta4] running install
 ## [sagelib-7.4.beta4] error: install-base or install-platbase supplied, but installation scheme is incomplete
 sage:
-	(cd $(srcdir) && export SAGE_ROOT=/doesnotexist SAGE_SRC=/doesnotexist SAGE_SRC_ROOT=/doesnotexist SAGE_DOC_SRC=/doesnotexist SAGE_SCRIPTS_DIR=/doesnotexist SAGE_BUILD_DIR=/doesnotexist SAGE_CYTHONIZED=/doesnotexist SAGE_PKGS=$(abs_top_srcdir)/build/pkgs && python -u setup.py build --build-base=$(abs_builddir)/build-sagelib install)
+	(cd $(srcdir)										\
+	 && export SAGE_ROOT=/doesnotexist							\
+		   SAGE_SRC=/doesnotexist							\
+		   SAGE_SRC_ROOT=/doesnotexist							\
+		   SAGE_DOC_SRC=/doesnotexist							\
+		   SAGE_SCRIPTS_DIR=/doesnotexist						\
+		   SAGE_BUILD_DIR=/doesnotexist							\
+		   SAGE_CYTHONIZED=/doesnotexist						\
+		   SAGE_PKGS=$(abs_top_srcdir)/build/pkgs					\
+	 && python -u setup.py build --build-base=$(abs_builddir)/build-sagelib install)
 
 clean:
 	@echo "Deleting Sage library build artifacts..."

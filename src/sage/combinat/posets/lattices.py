@@ -1201,7 +1201,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Return ``True`` if the lattice is pseudocomplemented, and ``False``
         otherwise.
 
-        A lattice is pseudocomplemented if every element `e` has a
+        A lattice is (meet-)pseudocomplemented if every element `e` has a
         pseudocomplement `e^\star`, i.e. the greatest element such that
         the meet of `e` and `e^\star` is the bottom element.
 
@@ -1215,7 +1215,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         OUTPUT:
 
         - If ``certificate=True`` return either ``(True, None)`` or
-          ``(False, e)``, where ``e`` is an element without the
+          ``(False, e)``, where ``e`` is an element without a
           pseudocomplement. If ``certificate=False`` return ``True``
           or ``False``.
 

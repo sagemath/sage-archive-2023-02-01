@@ -113,6 +113,7 @@ REFERENCES:
 #*****************************************************************************
 # python3
 from __future__ import division, print_function
+from six.moves import range
 
 from copy import copy
 from sage.misc.cachefunc import cached_method
@@ -1228,7 +1229,7 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
         """
         W = self.group()
         Q = self.word()
-        if not all(i in range(len(Q)) for i in F):
+        if not all(i in list(range(len(Q))) for i in F):
             return False
         return W.from_reduced_word(Qi for i, Qi in enumerate(Q) if i not in F) == self.pi()
 
@@ -1965,7 +1966,7 @@ def _greedy_facet(Q, w, side="negative", n=None, pos=0, l=None, elems=[]):
         l = w.length()
 
     if l == 0:
-        return elems + range(pos, n)
+        return elems + list(range(pos, n))
     elif n < l:
         return []
 

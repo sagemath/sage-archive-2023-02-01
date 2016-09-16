@@ -67,6 +67,7 @@ For display options, see :meth:`Tableaux.options`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
+from six.moves import range
 
 from builtins import zip
 
@@ -1685,8 +1686,8 @@ class Tableau(ClonableList):
             sage: Tableau([[5, 3], [2, 4]]).is_standard()
             False
         """
-        entries=sorted(self.entries())
-        return entries==range(1,self.size()+1) and self.is_row_strict() and self.is_column_strict()
+        entries = sorted(self.entries())
+        return entries == list(range(1, self.size() + 1)) and self.is_row_strict() and self.is_column_strict()
 
     def is_increasing(self):
         """
@@ -1862,8 +1863,8 @@ class Tableau(ClonableList):
         sh = self.shape()
         if sh != secondtab.shape():
             raise TypeError("the tableaux must be the same shape")
-        return all( self[a][b] <= secondtab[a][b] for a in xrange(len(self))
-                                                  for b in xrange(len(self[a])) )
+        return all( self[a][b] <= secondtab[a][b] for a in range(len(self))
+                                                  for b in range(len(self[a])) )
 
     def k_weight(self, k):
         r"""
@@ -2819,12 +2820,11 @@ class Tableau(ClonableList):
         # Ensure that the permutations involve all elements of the
         # tableau, by including the identity permutation on the set [1..k].
         k = self.size()
-        gens = [range(1, k+1)]
+        gens = [list(range(1, k + 1))]
         for row in self:
-            for j in range(len(row)-1):
-                gens.append( (row[j], row[j+1]) )
+            for j in range(len(row) - 1):
+                gens.append( (row[j], row[j + 1]) )
         return PermutationGroup( gens )
-
 
     def column_stabilizer(self):
         """
@@ -3987,8 +3987,8 @@ class Tableau(ClonableList):
             sage: Tableau([[1,2,3],[4]]).first_row_descent() is  None
             True
         """
-        for row in xrange(len(self)):
-            for col in xrange(len(self[row])-1):
+        for row in range(len(self)):
+            for col in range(len(self[row])-1):
                 if self[row][col]>self[row][col+1]:
                     return (row,col)
         return None
@@ -4015,7 +4015,7 @@ class Tableau(ClonableList):
             sage: Tableau([[1,2,3],[4]]).first_column_descent() is None
             True
         """
-        for row in xrange(len(self)-1):
+        for row in range(len(self)-1):
             col = 0
             while col < len(self[row+1]):
                 if self[row][col] > self[row+1][col]:
@@ -4208,13 +4208,13 @@ class SemistandardTableau(Tableau):
         for row in t:
             if any(c not in PI for c in row):
                 raise ValueError("the entries of a semistandard tableau must be non-negative integers")
-            if any(row[c] > row[c+1] for c in xrange(len(row)-1)):
+            if any(row[c] > row[c+1] for c in range(len(row)-1)):
                 raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
 
         # and strictly increasing down columns
         if t:
             for row, next in zip(t, t[1:]):
-                if not all(row[c] < next[c] for c in xrange(len(next))):
+                if not all(row[c] < next[c] for c in range(len(next))):
                     raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
 
 class StandardTableau(SemistandardTableau):
@@ -4314,7 +4314,7 @@ class StandardTableau(SemistandardTableau):
         # t is semistandard so we only need to check
         # that its entries are in bijection with {1, 2, ..., n}
         flattened_list = [i for row in self for i in row]
-        if sorted(flattened_list) != range(1, len(flattened_list)+1):
+        if sorted(flattened_list) != list(range(1, len(flattened_list) + 1)):
             raise ValueError("the entries in a standard tableau must be in bijection with 1,2,...,n")
 
     def dominates(self, t):
@@ -4348,7 +4348,7 @@ class StandardTableau(SemistandardTableau):
         """
         t=StandardTableau(t)
         return all(self.restrict(m).shape().dominates(t.restrict(m).shape())
-                        for m in xrange(1,1+self.size()))
+                        for m in range(1,1+self.size()))
 
     def is_standard(self):
         """
@@ -6093,8 +6093,8 @@ class SemistandardTableaux_shape(SemistandardTableaux):
                 content = j - i
                 t[i][j] = randint(1 - content, self.max_entry)
         conj = Partition(self.shape).conjugate()
-        for i in xrange(len(conj) - 1, -1, -1):
-            for j in xrange(conj[i] - 1, -1, -1):
+        for i in range(len(conj) - 1, -1, -1):
+            for j in range(conj[i] - 1, -1, -1):
                 row = j
                 col = i
                 s = t[row][col]
@@ -6517,7 +6517,7 @@ class StandardTableaux(SemistandardTableaux):
             return True
         elif Tableaux.__contains__(self, x):
             flatx = sorted(sum((list(row) for row in x),[]))
-            return flatx == range(1,len(flatx)+1) and (len(x)==0 or
+            return flatx == list(range(1,len(flatx)+1)) and (len(x)==0 or
                      (all(row[i]<row[i+1] for row in x for i in range(len(row)-1)) and
                        all(x[r][c]<x[r+1][c] for r in range(len(x)-1)
                                               for c in range(len(x[r+1])) )
@@ -6679,7 +6679,7 @@ class StandardTableaux_size(StandardTableaux):
             True
         """
         tableaux_number = self.size % 2  # identity involution
-        fixed_point_numbers = xrange(tableaux_number, self.size + 1 - tableaux_number, 2)
+        fixed_point_numbers = list(range(tableaux_number, self.size + 1 - tableaux_number, 2))
 
         # number of involutions of size "size" (number of ways to
         # choose "fixed_point_number" out of "size" elements *
@@ -6744,7 +6744,7 @@ class StandardTableaux_size(StandardTableaux):
             # We add the number of involutions with ``fixed_point_number``
             # fixed points.
             partial_sum += binomial(self.size, fixed_point_number) * \
-                           prod(xrange(1, self.size - fixed_point_number , 2))
+                           prod(range(1, self.size - fixed_point_number , 2))
             # If the partial sum is greater than the involution index,
             # then the random involution that we want to generate has
             # ``fixed_point_number`` fixed points.
@@ -6753,7 +6753,7 @@ class StandardTableaux_size(StandardTableaux):
             fixed_point_number += 2
         # We generate a subset of size "fixed_point_number" of the set {1,
         # ..., size}.
-        fixed_point_positions = set(sample(xrange(1, self.size + 1), fixed_point_number))
+        fixed_point_positions = set(sample(range(1, self.size + 1), fixed_point_number))
         # We generate a list of tuples which will form the cycle
         # decomposition of our random involution. This list contains
         # singletons (corresponding to the fixed points of the

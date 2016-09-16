@@ -336,7 +336,7 @@ class multiples:
         self.indexed = indexed
 
 
-    def next(self):
+    def __next__(self):
         """
         Returns the next item in this multiples iterator.
         """
@@ -350,6 +350,9 @@ class multiples:
             return (i,val)
         else:
             return val
+
+    next = __next__
+
     def __iter__(self):
         """
         Standard member function making this class an iterator.
@@ -720,7 +723,8 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         ...
         ValueError: No discrete log of 2 found to base 1
 
-        See trac\#2356:
+    See :trac:`2356`::
+
         sage: F.<w> = GF(121)
         sage: v = w^120
         sage: v.log(w)

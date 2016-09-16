@@ -52,6 +52,7 @@ from __future__ import division, print_function, absolute_import
 
 from builtins import zip
 from six import itervalues
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 
@@ -423,7 +424,7 @@ def df_q_6_1(K, existence=False, check=True):
     EXAMPLES::
 
         sage: from sage.combinat.designs.difference_family import is_difference_family, df_q_6_1
-        sage: prime_powers = [v for v in xrange(31,500,30) if is_prime_power(v)]
+        sage: prime_powers = [v for v in range(31,500,30) if is_prime_power(v)]
         sage: parameters = [v for v in prime_powers if df_q_6_1(GF(v,'a'), existence=True)]
         sage: parameters
         [31, 151, 181, 211, 241, 271, 331, 361, 421]
@@ -450,7 +451,7 @@ def df_q_6_1(K, existence=False, check=True):
 
     # we now compute the cosets of x**i
     xx = x**5
-    to_coset = {x**i * xx**j: i for i in xrange(5) for j in xrange((v-1)/5)}
+    to_coset = {x**i * xx**j: i for i in range(5) for j in range((v-1)/5)}
 
     for c in to_coset: # the loop runs through all nonzero elements of K
         if c == one or c == r or c == r2:
@@ -459,7 +460,7 @@ def df_q_6_1(K, existence=False, check=True):
             if existence:
                 return True
             B = [one,r,r2,c,c*r,c*r2]
-            D = [[xx**i * b for b in B] for i in xrange(t)]
+            D = [[xx**i * b for b in B] for i in range(t)]
             break
     else:
         if existence:
@@ -1373,10 +1374,10 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
 
     List available constructions::
 
-        sage: for v in xrange(2,100):
+        sage: for v in range(2,100):
         ....:     constructions = []
-        ....:     for k in xrange(2,10):
-        ....:         for l in xrange(1,10):
+        ....:     for k in range(2,10):
+        ....:         for l in range(1,10):
         ....:             if designs.difference_family(v,k,l,existence=True):
         ....:                 constructions.append((k,l))
         ....:                 _ = designs.difference_family(v,k,l)

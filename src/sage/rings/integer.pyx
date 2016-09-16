@@ -152,6 +152,7 @@ from libc.stdint cimport uint64_t
 cimport sage.structure.element
 from sage.structure.element cimport (Element, EuclideanDomainElement,
         parent_c, coercion_model)
+from sage.structure.parent cimport Parent
 include "sage/ext/python_debug.pxi"
 from sage.libs.pari.paridecl cimport *
 from sage.rings.rational cimport Rational
@@ -339,7 +340,7 @@ from sage.structure.element import  bin_op
 from sage.structure.coerce_exceptions import CoercionException
 
 import integer_ring
-the_integer_ring = integer_ring.ZZ
+cdef Parent the_integer_ring = integer_ring.ZZ
 
 # The documentation for the ispseudoprime() function in the PARI
 # manual states that its result is always prime up to this 2^64.
@@ -460,8 +461,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     """
 
     def __cinit__(self):
+        global the_integer_ring
         mpz_init(self.value)
-        self._parent = <SageObject>the_integer_ring
+        self._parent = the_integer_ring
 
     def __init__(self, x=None, base=0):
         """

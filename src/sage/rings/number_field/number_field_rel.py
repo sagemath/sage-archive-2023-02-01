@@ -1156,7 +1156,7 @@ class NumberField_relative(NumberField_generic):
 
         TESTS:
 
-        Check that #5828 is solved::
+        Check that :trac:`5828` is solved::
 
             sage: K.<w> = QuadraticField(-1)
             sage: KX.<X> = K[]

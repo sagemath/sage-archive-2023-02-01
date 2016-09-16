@@ -397,7 +397,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: E.period_lattice().basis()
             (2.99345864623196, 2.45138938198679*I)
 
-        This shows that the issue reported at trac \#3954 is fixed::
+        This shows that the issue reported at :trac:`3954` is fixed::
 
             sage: E = EllipticCurve('37a')
             sage: b1 = E.period_lattice().basis(prec=30)
@@ -405,7 +405,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: b1 == b2
             True
 
-        This shows that the issue reported at trac \#4064 is fixed::
+        This shows that the issue reported at :trac:`4064` is fixed::
 
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice().basis(prec=30)[0].parent()
@@ -901,7 +901,7 @@ class PeriodLattice_ell(PeriodLattice):
             [ 3.81452977217854509 0.000000000000000000]
             [ 1.90726488608927255  1.34047785962440202]
 
-        See \#4388::
+        See :trac:`4388`::
 
             sage: L = EllipticCurve('11a1').period_lattice()
             sage: L.basis_matrix()
@@ -1681,7 +1681,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: [embs[2](c) for c in Q]
             [0.259921049894873, -0.587401051968200, 1.00000000000000]
 
-        Test to show that #8820 is fixed::
+        Test to show that :trac:`8820` is fixed::
 
             sage: E = EllipticCurve('37a')
             sage: K.<a> = QuadraticField(-5)

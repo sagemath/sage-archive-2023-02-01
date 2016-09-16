@@ -32,7 +32,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-
+from six.moves import range
 from sage.categories.sets_cat import Sets
 
 from sage.sets.totally_ordered_finite_set import TotallyOrderedFiniteSet
@@ -224,7 +224,7 @@ def build_alphabet(data=None, names=None, name=None):
             from sage.sets.integer_range import IntegerRange
             return IntegerRange(Integer(data))
         if isinstance(names, str):
-            return TotallyOrderedFiniteSet([names + '%d'%i for i in xrange(data)])
+            return TotallyOrderedFiniteSet([names + '%d'%i for i in range(data)])
         if len(names) == data:
             return TotallyOrderedFiniteSet(names)
         raise ValueError("invalid value for names")

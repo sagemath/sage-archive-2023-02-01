@@ -10,6 +10,7 @@ AUTHOR:
 Functions and Methods
 ----------------------
 """
+from six.moves import range
 
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
@@ -315,7 +316,7 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
         fast_f=fast_callable(func, vars=var_names, domain=float)
         f=lambda p: fast_f(*p)
         gradient_list=func.gradient()
-        fast_gradient_functions=[fast_callable(gradient_list[i], vars=var_names, domain=float)  for i in xrange(len(gradient_list))]
+        fast_gradient_functions=[fast_callable(gradient_list[i], vars=var_names, domain=float)  for i in range(len(gradient_list))]
         gradient=lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
     else:
         f=func
@@ -431,7 +432,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         fast_f=func._fast_float_(*var_names)
         f=lambda p: fast_f(*p)
         gradient_list=func.gradient()
-        fast_gradient_functions=[gradient_list[i]._fast_float_(*var_names)  for i in xrange(len(gradient_list))]
+        fast_gradient_functions=[gradient_list[i]._fast_float_(*var_names)  for i in range(len(gradient_list))]
         gradient=lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
     else:
         f=func
@@ -616,7 +617,7 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
 
     We search for a formula for the `n`-th prime number::
 
-        sage: dataprime = [(i, nth_prime(i)) for i in xrange(1, 5000, 100)]
+        sage: dataprime = [(i, nth_prime(i)) for i in range(1, 5000, 100)]
         sage: find_fit(dataprime, a * x * log(b * x), parameters = [a, b], variables = [x])
         [a == 1.11..., b == 1.24...]
 
@@ -679,14 +680,14 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
 
     def function(x_data, params):
         result = numpy.zeros(len(x_data))
-        for row in xrange(len(x_data)):
+        for row in range(len(x_data)):
             fparams = numpy.hstack((x_data[row], params)).tolist()
             result[row] = func(*fparams)
         return result
 
     def error_function(params, x_data, y_data):
         result = numpy.zeros(len(x_data))
-        for row in xrange(len(x_data)):
+        for row in range(len(x_data)):
             fparams = x_data[row].tolist() + params.tolist()
             result[row] = func(*fparams)
         return result - y_data

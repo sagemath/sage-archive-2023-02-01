@@ -2,8 +2,7 @@
 from __future__ import print_function
 
 import os, sys, time, errno, platform, subprocess, glob
-from distutils.core import setup
-
+from distutils.core import setup, DistutilsSetupError
 
 def excepthook(*exc):
     """
@@ -107,9 +106,11 @@ if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shel
 ### Generate some Python/Cython sources
 #########################################################
 
-status = subprocess.call("make -f generate_py_source.mk", shell=True)
+make = os.environ.get("MAKE", 'make')
+make_cmdline = make + " -f generate_py_source.mk"
+status = subprocess.call(make_cmdline, shell=True)
 if status != 0:
-    raise DistutilsSetupError("make -f generate_py_source.mk failed")
+    raise DistutilsSetupError("{} failed".format(make_cmdline))
 
 #########################################################
 ### Testing related stuff

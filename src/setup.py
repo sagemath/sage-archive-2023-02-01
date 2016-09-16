@@ -100,7 +100,7 @@ if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shel
 #########################################################
 
 make = os.environ.get("MAKE", 'make')
-make_cmdline = make + " -f generate_py_source.mk"
+make_cmdline = "{} -f generate_py_source.mk SAGE_SRC={}".format(make, sage.env.SAGE_SRC)
 status = subprocess.call(make_cmdline, shell=True)
 if status != 0:
     raise DistutilsSetupError("{} failed".format(make_cmdline))

@@ -296,7 +296,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         TESTS::
 
-            sage: import psutil
+            sage: import psutil                                                 # optional - fricas
             sage: p = fricas.pid(); pr = psutil.Process(p); pr                  # optional - fricas
             <psutil.Process(pid=..., name='sman') at ...>
             sage: pr.children()                                                 # optional - fricas
@@ -305,15 +305,8 @@ class FriCAS(ExtraTabCompletion, Expect):
              <psutil.Process(pid=..., name='spadclient') at ...>,
              <psutil.Process(pid=..., name='sman') at ...>]
             sage: fricas.quit()                                                 # optional - fricas
-
-        It would be better if ``pr`` were dead, but it is OK if it has at least no children::
-
-            sage: pr.children()                                                 # optional - fricas
-            []
-
-            sage: pr                                                            # optional - fricas
-            <psutil.Process(pid=..., name='sman') at ...>
-
+            sage: pr.is_running()                                               # optional - fricas, random
+            False
         """
         return ')quit\r'
 
@@ -406,7 +399,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         Evaluate a rather long line::
 
-            sage: len(fricas([i for i in range(600)]))                          # optional - fricas
+            sage: len(fricas([i for i in range(600)]))                          # optional - fricas, indirect doctest
             600
 
         """
@@ -461,6 +454,37 @@ class FriCAS(ExtraTabCompletion, Expect):
         OUTPUT:
 
         None
+
+        TESTS::
+
+            sage: fricas.set("x", "[i fo83r i in 0..17]")                       # optional - fricas, indirect doctest
+            Traceback (most recent call last):
+            ...
+            RuntimeError: An error occurred when FriCAS evaluated '[i fo83r i in 0..17]':
+              Line   1: x:=[i fo83r i in 0..17];
+                       ...A..........B
+              Error  A: Missing mate.
+              Error  B: syntax error at top level
+              Error  B: Possibly missing a ]
+               3 error(s) parsing
+
+            sage: fricas.set("x", "something stupid")                           # optional - fricas, indirect doctest
+            Traceback (most recent call last):
+            ...
+            RuntimeError: An error occurred when FriCAS evaluated 'something stupid':
+               There are no library operations named something
+                  Use HyperDoc Browse or issue
+                                           )what op something
+                  to learn if there is any operation containing " something " in its
+                  name.
+            <BLANKLINE>
+               Cannot find a definition or applicable library operation named
+                  something with argument type(s)
+                                            Variable(stupid)
+            <BLANKLINE>
+                  Perhaps you should use "@" to indicate the required return type, or
+                  "$" to specify which version of the function you need.
+
         """
         # otherwise there might be a message
         m = re.search("\|startKeyedMsg\|\r\n(.*)\r\n\|endOfKeyedMsg\|\r", output, flags = re.DOTALL)
@@ -490,36 +514,6 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: fricas.set('xx', '2')                                         # optional - fricas
             sage: fricas.get('xx')                                              # optional - fricas
             '2'
-
-        TESTS::
-
-            sage: fricas.set("x", "[i fo83r i in 0..17]")                       # optional - fricas
-            Traceback (most recent call last):
-            ...
-            RuntimeError: An error occurred when FriCAS evaluated '[i fo83r i in 0..17]':
-              Line   1: x:=[i fo83r i in 0..17];
-                       ...A..........B
-              Error  A: Missing mate.
-              Error  B: syntax error at top level
-              Error  B: Possibly missing a ]
-               3 error(s) parsing
-
-            sage: fricas.set("x", "something stupid")                           # optional - fricas
-            Traceback (most recent call last):
-            ...
-            RuntimeError: An error occurred when FriCAS evaluated 'something stupid':
-               There are no library operations named something
-                  Use HyperDoc Browse or issue
-                                           )what op something
-                  to learn if there is any operation containing " something " in its
-                  name.
-            <BLANKLINE>
-               Cannot find a definition or applicable library operation named
-                  something with argument type(s)
-                                            Variable(stupid)
-            <BLANKLINE>
-                  Perhaps you should use "@" to indicate the required return type, or
-                  "$" to specify which version of the function you need.
 
         """
         cmd = '%s%s%s;'%(var,self._assign_symbol(), value)
@@ -552,29 +546,65 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         self._check_errors(var, output)
 
-
     def _assign_symbol(self):
-        """Returns the symbol used for setting a variable in FriCAS.
+        """Return the symbol used for setting a variable in FriCAS.
+
+        EXAMPLES::
+
+            sage: fricas.set("x", "1");                                         # optional - fricas, indirect doctest
+            sage: fricas.get("x")                                               # optional - fricas
+            '1'
+            sage: fricas.eval(")cl val x")                                      # optional - fricas
+            ''
         """
         return ":="
 
     def _equality_symbol(self):
-        """Returns the equality testing logical symbol in FriCAS.
+        """Return the equality testing logical symbol in FriCAS.
 
         EXAMPLES::
 
-            sage: a = fricas(x==6); a                                           # optional - fricas
+            sage: a = fricas(x==6); a                                           # optional - fricas, indirect doctest
             x= 6
+
+        A warning:
+
+            sage: fricas.set("x", 2);                                           # optional - fricas
+            sage: a = fricas(x==6); a                                           # optional - fricas
+            2= 6
+            sage: fricas.eval(")cl val x")                                      # optional - fricas
+            ''
         """
         return "="
 
     def _true_symbol(self):
+        """Return the string used for True in FriCAS.
+
+        EXAMPLES::
+
+            sage: str(fricas("(1=1)@Boolean")) == fricas._true_symbol()         # optional - fricas
+            True
+        """
         return "true"
 
     def _false_symbol(self):
+        """Return the string used for False in FriCAS.
+
+        EXAMPLES::
+
+            sage: str(fricas("(1~=1)@Boolean")) == fricas._false_symbol()       # optional - fricas
+            True
+        """
         return "false"
 
     def _inequality_symbol(self):
+        """Return the string used for False in FriCAS.
+
+        EXAMPLES::
+
+            sage: fricas(x!=0)                                                  # optional - fricas, indirect doctest
+            true
+        """
         return '~='
 
     def __repr__(self):
@@ -608,6 +638,17 @@ class FriCAS(ExtraTabCompletion, Expect):
         INPUT:
 
         - ``reformat`` -- bool; remove the output markers when True.
+
+        This can also be used to pass system commands to FriCAS.
+
+        EXAMPLES:
+
+            sage: fricas.set("x", "1783"); fricas("x")                               # optional - fricas
+            1783
+            sage: fricas.eval(")cl val x");                                          # optional - fricas
+            ''
+            sage: fricas("x")                                                        # optional - fricas
+            x
 
         """
         output = Expect.eval(self, code, strip=strip,
@@ -734,11 +775,29 @@ class FriCASElement(ExpectElement):
         return int(self.sage())
 
     def bool(self):
+        """
+        Coerce the expression into a boolean.
+
+        EXAMPLES::
+
+            sage: fricas("1=1").bool()                                          # optional - fricas
+            True
+            sage: fricas("1~=1").bool()                                         # optional - fricas
+            False
+        """
         P = self._check_valid()
         return P.new(self._name + "::Boolean").sage()
 
     def __nonzero__(self):
-        return self.zero_q().sage()
+        """
+        Check whether the expression is different from zero.
+
+        EXAMPLES::
+
+            sage: fricas(0).is_zero()                                           # optional - fricas, indirect doctest
+            True
+        """
+        return not self.zero_q().sage()
 
     def __long__(self):
         """
@@ -779,6 +838,9 @@ class FriCASElement(ExpectElement):
         return QQ(self.sage())
 
     def gen(self, n):
+        """
+        Return an error, since the n-th generator in FriCAS is not well defined.
+        """
         raise NotImplementedError
 
     def _latex_(self):
@@ -849,6 +911,12 @@ class FriCASElement(ExpectElement):
         OUTPUT:
 
         - a corresponding Sage type
+
+        EXAMPLES::
+
+            sage: m = fricas("dom(1/2)::Any")                                   # optional - fricas
+            sage: fricas(0)._get_sage_type(m)                                   # optional - fricas
+            Rational Field
         """
         from sage.rings.all import ZZ, QQ, QQbar, PolynomialRing, RDF
         from sage.rings.fraction_field import FractionField
@@ -898,6 +966,25 @@ class FriCASElement(ExpectElement):
         .. TODO::
 
              We really should walk through the InputForm here.
+
+        TESTS::
+
+            sage: f = fricas('integrate(sin(x^2), x)'); f                       # optional - fricas
+                       +---+
+                       | 2
+            fresnelS(x |--- )
+                      \|%pi
+            -----------------
+                   +---+
+                   | 2
+                   |---
+                  \|%pi
+            sage: f._unparsed_InputForm()
+            'fresnelS(x*(2/pi())^(1/2))/((2/pi())^(1/2))'
+            sage: f._sage_expression(f._unparsed_InputForm())                   # optional - fricas
+            1/2*sqrt(2)*sqrt(pi)*fresnelS(sqrt(2)*x/sqrt(pi))
+
+
         """
         from sage.symbolic.ring import SR
         s = unparsed_InputForm
@@ -991,9 +1078,13 @@ class FriCASElement(ExpectElement):
             sage: fricas("integrate(sin((x^2+1)/x),x)").sage()                  # optional - fricas
             integral(sin((x^2 + 1)/x), x)
 
-        Matrices::
+        .. TODO::
 
-            sage: fricas("matrix [[x^n/2^m for n in 0..5] for m in 0..3]").sage()         # optional - fricas
+            - Converting matrices and lists takes much too long.
+
+        Matrices:
+
+            sage: fricas("matrix [[x^n/2^m for n in 0..5] for m in 0..3]").sage()         # optional - fricas, long time
             [      1       x     x^2     x^3     x^4     x^5]
             [    1/2   1/2*x 1/2*x^2 1/2*x^3 1/2*x^4 1/2*x^5]
             [    1/4   1/4*x 1/4*x^2 1/4*x^3 1/4*x^4 1/4*x^5]
@@ -1001,10 +1092,10 @@ class FriCASElement(ExpectElement):
 
         Lists::
 
-            sage: fricas("[2^n/x^n for n in 0..5]").sage()                      # optional - fricas
+            sage: fricas("[2^n/x^n for n in 0..5]").sage()                      # optional - fricas, long time
             [1, 2/x, 4/x^2, 8/x^3, 16/x^4, 32/x^5]
 
-            sage: fricas("[matrix [[i for i in 1..n]] for n in 0..5]").sage()   # optional - fricas
+            sage: fricas("[matrix [[i for i in 1..n]] for n in 0..5]").sage()   # optional - fricas, long time
             [[], [1], [1 2], [1 2 3], [1 2 3 4], [1 2 3 4 5]]
 
         Error handling::

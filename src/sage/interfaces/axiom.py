@@ -789,18 +789,6 @@ class PanAxiomElement(ExpectElement):
             sage: gp(axiom(1/2))    #optional - axiom
             1/2
 
-<<<<<<< HEAD
-            sage: fricas(1).sage()          #optional - fricas
-            1
-            sage: fricas(-1).sage()         #optional - fricas
-            -1
-            sage: fricas(1/2).sage()        #optional - fricas
-            1/2
-            sage: fricas(x^2/(x-1)).sage()  #optional - fricas
-            x^2/(x - 1)
-
-=======
->>>>>>> 0ab0f92... further improve translation to sage objects, make restart work, fix doctests
         DoubleFloat's in Axiom are converted to be in RDF in Sage.
 
         ::

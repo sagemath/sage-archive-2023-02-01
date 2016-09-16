@@ -3553,8 +3553,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.reduced_form(prec=200)
             (
             Scheme endomorphism of Projective Space of dimension 1 over Rational Field
-              Defn: Defined on coordinates by sending (x : y) to
-                    (x^3 + x*y^2 : y^3)
+            Defn: Defined on coordinates by sending (x : y) to
+            (x^3 + x*y^2 : y^3)
             ,
             [  0  -1]
             [  1 221]
@@ -3595,7 +3595,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             )
 
          ::
-            # failing why?
             sage: PS.<x,y> = ProjectiveSpace(ZZ,1)
             sage: H = End(PS)
             sage: f = H([7*x^3 + 5*x*y^2 + y, 6*y^3])

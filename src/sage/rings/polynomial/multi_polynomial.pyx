@@ -1834,24 +1834,29 @@ cdef class MPolynomial(CommutativeRingElement):
 
             return ans
 
-    def reduced_form(self, prec=100, return_conjugation=True):
+    def reduced_form(self, prec=500, return_conjugation=True, error_limit=0.000001):
         r"""
         Returns reduced binary form of a polynomial.
 
-        Implimented algorithim from Stoll and Cremona's "On the Reduction Theory of Binary Forms" _[SC].
+        Implimented algorithim from Stoll and Cremona's "On the Reduction Theory of Binary Forms" [SC]_.
         This takes a two variable homogenous polynomial and finds a reduced form. This is a `SL(Z)`-equivalent
         binary form with smallest coefficients.
 
         If Newton's method fails to converge to a point in the upper half plane function will return
-        the matrix M found before that point.
+        the matrix M found before that point, and the reduced form corresponding to this matrix. This is called the Q0 reduced form. Or if this polynomial has a root with multiplicity at lease half the degree of the polynomial over 2, then we must use Q0 covariant. See [SC]_.
+
+        If we have a z within our error limit of the boundry but outsid ethe domain our function will erroneously move it to within the fundamental domain, hence our M will be off by 1. If you dont want this to happen decrease your error limit and increase your precision.
+
 
         Implimented by Rebecca Lauren Miller as part of GSOC 2016.
 
         INPUT:
 
-        -``prec`` --  sets the precision (default:100)
+        -``prec`` --  sets the precision (default:500)
 
-        - ``conjugation`` -- A booolean. Returns element of PGL(2, `ZZ`) (default:True)
+        - ``return_conjugation`` -- A booolean. Returns element of PGL(2, `ZZ`) (default:True)
+
+        - ``err_limit`` -- sets the error tolerence (default:0.000001)
 
         OUTPUT:
 
@@ -1869,26 +1874,72 @@ cdef class MPolynomial(CommutativeRingElement):
         EXAMPLES::
 
             sage: R.<x,h> = PolynomialRing(QQ)
-            sage: f = 19*x^8 - 262*x^7*h + 1507*x^6*h^2 - 4784*x^5*h^3 + 9202*x^4*h^4 -10962*x^3*h^5 + 7844*x^2*h^6 - 3040*x*h^7 + 475*h^8
-            sage: f.reduced_form(prec=500)
-            (-x^8 - 2*x^7*h + 7*x^6*h^2 + 16*x^5*h^3 + 2*x^4*h^4 - 2*x^3*h^5 + 4*x^2*h^6 - 5*h^8,
+            sage: f = 19*x^8 - 262*x^7*h + 1507*x^6*h^2 - 4784*x^5*h^3 + 9202*x^4*h^4 -10962*x^3*h^5 + 7844*x^2*h^6\
+            - 3040*x*h^7 + 475*h^8
+            sage: f.reduced_form(prec=200)
+            (
+            -x^8 - 2*x^7*h + 7*x^6*h^2 + 16*x^5*h^3 + 2*x^4*h^4 - 2*x^3*h^5 + 4*x^2*h^6 - 5*h^8,
+            <BLANKLINE>
+            [ 1 -2]
+            [ 1 -1]
+            )
 
-            [ -1 2]
-            [ -1 1])
+        An example were the multiplicity is too high::
+            sage: R.<x,y>= PolynomialRing(QQ)
+            sage: f=1*x^3+378666*x^2*y-12444444*x*y^2+ 1234567890*y^3
+            sage: j=f*(x-545*y)^9
+            sage: j.reduced_form(prec=200)
+            (
+            x^12 + 374553*x^11*y - 1587470292*x^10*y^2 + 2960311881270*x^9*y^3 - 3189673382015880*x^8*y^4 + 2180205736473134502*x^7*y^5 - 972679603186995463284*x^6*y^6 + 278555935048988817910176*x^5*y^7 - 47339497613591564056277355*x^4*y^8 + 3719790227462793441137663545*x^3*y^9 + 4017321423785434880978464176*x^2*y^10 + 1605293849731195593699202674738*x*y^11 - 2738526775493743375819069013598582*y^12,
+            <BLANKLINE>
+            [ 1 66]
+            [ 0  1]
+            )
 
-
-An example where Newton's Method doesnt find the right root::
+        An example where Newton's Method doesnt find the right root::
 
             sage: R.<x,h> = PolynomialRing(QQ)
-            sage: f=234*x^11*h + 104832*x^10*h^2 + 21346884*x^9*h^3 + 2608021728*x^8*h^4 + 212413000410*x^7*h^5\
+            sage: f = 234*x^11*h + 104832*x^10*h^2 + 21346884*x^9*h^3 + 2608021728*x^8*h^4 + 212413000410*x^7*h^5\
                 + 12109691106162*x^6*h^6 + 493106447396862*x^5*h^7 + 14341797993350646*x^4*h^8\
                 + 291976289803277118*x^3*h^9 +3962625618555930456*x^2*h^10 + 32266526239647689652*x*h^11 \
                 + 119421058057217196228*h^12
-            sage: f.reducedform(prec=300) # long test
-            (234*x^11*h - 702*x^10*h^2 + 234*x^9*h^3 - 1638*x^8*h^4 + 17550*x^7*h^5 - 35568*x^6*h^6 - 42120*x^5*h^7 - 248508*x^4*h^8 + 35802*x^3*h^9 + 23868*x^2*h^10 - 936*x*h^11 - 468*h^12,
-
+            sage: f.reduced_form(prec=600) # long time
+            (
+            234*x^11*h - 702*x^10*h^2 + 234*x^9*h^3 - 1638*x^8*h^4 + 17550*x^7*h^5 - 35568*x^6*h^6 - 42120*x^5*h^7 - 248508*x^4*h^8 + 35802*x^3*h^9 + 23868*x^2*h^10 - 936*x*h^11 - 468*h^12,
+            <BLANKLINE>
             [  1 -41]
-            [  0   1])
+            [  0   1]
+            )
+
+        An example with z on the boundary, therefore a non-unique form also a_0 is 0 ::
+
+            sage: R.<x,h> = PolynomialRing(QQ)
+            sage: g =  -1872*x^5*h - 1375452*x^4*h^2 - 404242956*x^3*h^3 - 59402802888*x^2*h^4 -4364544068352*x*h^5\
+            - 128270946360960*h^6
+            sage: g.reduced_form()
+            (
+            -1872*x^5*h + 468*x^4*h^2 + 2340*x^3*h^3 - 2340*x^2*h^4 - 468*x*h^5 + 1872*h^6,
+            <BLANKLINE>
+            [ -1 147]
+            [  0  -1]
+            )
+
+        An example where precision needs to be incresed ::
+
+            sage: R.<x,h> = PolynomialRing(QQ)
+            sage: f =  -1872*x^5*h - 1375452*x^4*h^2 - 404242956*x^3*h^3 - 59402802888*x^2*h^4 -4364544068352*x*h^5\
+            - 128270946360960*h^6
+            sage: f.reduced_form(prec=200)
+            Traceback (most recent call last):
+            ...
+            ValueError:  Accuracy of Newton's Root not within tolerence(1.5551623876686905873160660564410782587973928631765344695031 > 1e-06), increase precision
+            sage: f.reduced_form(prec=400)
+            (
+            -1872*x^5*h + 468*x^4*h^2 + 2340*x^3*h^3 - 2340*x^2*h^4 - 468*x*h^5 + 1872*h^6,
+            <BLANKLINE>
+            [ -1 147]
+            [  0  -1]
+            )
 
         ::
 
@@ -1897,7 +1948,7 @@ An example where Newton's Method doesnt find the right root::
             sage: F.reduced_form(return_conjugation=False)
             x^4 + 9*x^3*y - 3*x*y^3 - 8*y^4
 
-        ::
+        ::x
 
             sage: R.<x,y,z> = PolynomialRing(QQ)
             sage: F = x^4 + x^3*y*z + y^2*z
@@ -1926,7 +1977,7 @@ An example where Newton's Method doesnt find the right root::
 
         #getting a numerical approximation of the roots of our polynomial
         KK = ComplexIntervalField(prec=prec) # keeps trac of our precision error
-        JJ = RealField()
+        JJ = RealField(prec=prec)
         R = self.parent()
         S = PolynomialRing(R.base_ring(),'z')
         phi = R.hom([S.gen(0),1],S)# dehomogenization
@@ -1938,7 +1989,7 @@ An example where Newton's Method doesnt find the right root::
         n = FF.degree()
         R = PolynomialRing(KK,'x,y')
         x,y = R.gens()
-        Q  =[]
+        Q  = []
         # finds Stoll and Cremona's Q_0'
         for j in range(len(roots)):
             k = (1/(dF(roots[j]).abs()**(2/(n-2))))*((x-(roots[j]*y))*(x-(roots[j].conjugate()*y)))
@@ -1958,83 +2009,98 @@ An example where Newton's Method doesnt find the right root::
         # this moves z to our fundamental domain using the three steps laid out in the algorithim by [SC]
         # this is found in section 5 of their paper
         M = matrix(QQ, [[1,0], [0,1]]) # used to keep track of how our z is moved.
-        while z.real() < -0.5 or z.real() >= 0.5 or (z.real() <= 0 and z.abs() < 1)\
-         or (z.real() > 0 and z.abs() <= 1):
-            if z.real() < -0.5: # moves z into fundamental domain by m
-                m = z.real().abs().round() # finds amount to move z's real part by
-                Qm = QQ(m.center())
+        zc=z.center()
+        while zc.real() < JJ(-0.5) or zc.real() >= JJ(0.5) or (zc.real() <= JJ(0) and zc.abs() < JJ(1))\
+        or (zc.real() > JJ(0) and zc.abs() <= JJ(1)):
+            if zc.real() < JJ(-0.5): # moves z into fundamental domain by m
+                m = zc.real().abs().round() # finds amount to move z's real part by
+                Qm = QQ(m)
                 M = M * matrix(QQ, [[1,-Qm], [0,1]]) # move
                 z += m  # M.inverse()*z is supposed to move z by m
-            elif z.real()>=(0.5): #moves z into fundamnetal domain by m
-                m = z.real().round()
-                Qm = QQ(m.center())
+            elif zc.real()>=JJ(0.5): #moves z into fundamental domain by m
+                m = zc.real().round()
+                Qm = QQ(m)
                 M = M * matrix(QQ, [[1,Qm], [0,1]])  #move z
                 z -= m
-            elif (z.real() <= 0 and z.abs() < 1) or (z.real() > 0 and z.abs() <= 1): # flipsz
+            elif (zc.real() <= JJ(0) and zc.abs() < JJ(1)) or (zc.real() > JJ(0) and zc.abs() <= JJ(1)): # flips z
                 z = -1/z
-                M = M * matrix(QQ, [[0,1], [-1,0]])
+                M = M * matrix(QQ, [[0,-1], [1,0]])# multiply on left because we are taking inverse matrices
+            zc = z.center()
         z0=z
-
         # creates and solves equations 4.4 in [SC], gives us a new z
         x,y = self.parent().gens()
         FF = S(phi(self(tuple((M * vector([x, y])))))) # New self, S pushes it to polyomial ring
-        L = FF.roots(ring=KK, multiplicities=False)
-        a = 0
-        c = 0
-        RR = PolynomialRing(KK, 'u,t')
-        u,t = RR.gens()
-        for j in range(len(L)):
-            b= u**2/((t-(L[j]))*(t-(L[j].conjugate()))+ u**2)
-            a += b
-            d = (t-(L[j].real()))/((t-(L[j]))*(t-(L[j].conjugate()))+ u**2)
-            c += d
-        #Newton's Method, to to find solutions. Error bound is while less than diameter of our z
+        L1 = FF.roots(ring=KK, multiplicities=True)
+        L=[]
+        newton = True
         err = z.diameter()
-        zz = z.diameter()
-        n = FF.degree()
-        g1 = a.numerator() - n/2*a.denominator()
-        g2 = c.numerator()
-        G = vector([g1, g2])
-        J = jacobian(G, [u,t])
-        v0 = vector([z.imag(), z.real()]) #z0 as starting point
-        #finds our correct z
-        while err <= zz:
-            NJ = J.subs({u:v0[0], t:v0[1]})
-            NJinv = NJ.inverse()
-            if NJinv.base_ring()!= KK:
-                NJinv = matrix(KK,2,2,[KK(zw.numerator()/zw.denominator()) for zw in NJinv.list()])
-            w = z
-            v0 = v0 - NJinv*G.subs({u:v0[0],t:v0[1]})
-            z = v0[1].coefficients()[0] + v0[0].coefficients()[0]*KK.gen(0)
-            err = z.diameter() # precision
-            zz = (w - z).abs() #difference in w and z
-
-        # if z is not in the uper half plane uses z0
-        if  z.imag() > z.diameter() or z.imag() < 0:
-        # moves our z to fundamental domain as before
-            while z.real() < -0.5 or z.real() >= 0.5 or (z.real() <= 0 and z.abs() < 1)\
-            or (z.real() > 0 and z.abs() <= 1):
-                if z.real() < -0.5:
-                    m = z.real().abs().round()
-                    Qm = QQ(m.center())
-                    M = M*matrix(QQ, [[1,-Qm], [0,1]])
-                    z += m  # M.inverse()*Z is supposed to move z by m
-                elif z.real() >= (0.5): #else if
-                    m = z.real().round()
-                    Qm = QQ(m.center())
-                    M = M * matrix(QQ, [[1,Qm], [0,1]])
-                    z -= m
-                elif (z.real() <= 0 and z.abs() < 1) or (z.real() > 0 and z.abs() <= 1):
-                    z = -1/z
-                    M = M * matrix(QQ, [[0,1],[ -1,0]])
+        # making sure multiplicity isn't too large useing covergence conditions in paper
+        for p,e in L1:
+            if e > self.degree()/2:
+                newton = False
+                break
+            for l in range(e):
+                L.append(p)
+        if newton:
+            a = 0
+            c = 0
+            RR = PolynomialRing(KK, 'u,t')
+            u,t = RR.gens()
+            for j in range(len(L)):
+                b= u**2/((t-(L[j]))*(t-(L[j].conjugate()))+ u**2)
+                a += b
+                d = (t-(L[j].real()))/((t-(L[j]))*(t-(L[j].conjugate()))+ u**2)
+                c += d
+            #Newton's Method, to to find solutions. Error bound is while less than diameter of our z
+            err = z.diameter()
+            zz = z.diameter()
+            n = FF.degree()
+            g1 = a.numerator() - n/2*a.denominator()
+            g2 = c.numerator()
+            G = vector([g1, g2])
+            J = jacobian(G, [u,t])
+            v0 = vector([z.imag(), z.real()]) #z0 as starting point
+            #finds our correct z
+            while err <= zz:
+                NJ = J.subs({u:v0[0], t:v0[1]})
+                NJinv = NJ.inverse()
+                if NJinv.base_ring()!= KK:
+                    NJinv = matrix(KK,2,2,[KK(zw.numerator()/zw.denominator()) for zw in NJinv.list()])
+                w = z
+                v0 = v0 - NJinv*G.subs({u:v0[0],t:v0[1]})
+                z = v0[1].coefficients()[0] + v0[0].coefficients()[0]*KK.gen(0)
+                err = z.diameter() # precision
+                zz = (w - z).abs() #difference in w and z
+            else:
+                if err > error_limit:
+                    raise ValueError (" Accuracy of Newton's Root not within tolerence(%s > %s), increase precision"%(err, error_limit))
+            # if z is not in the uper half plane uses z0
+            zc=z.center()
+            # moves our z to fundamental domain as before
+            if  zc.imag()> z.diameter():
+                while zc.real() < JJ(-0.5) or zc.real() >= JJ(0.5) or (zc.real() <= JJ(0) and zc.abs() < JJ(1))\
+                or (zc.real() > JJ(0) and zc.abs() <= JJ(1)):
+                    if zc.real() < JJ(-0.5):
+                        m = zc.real().abs().round()
+                        Qm = QQ(m)
+                        M = M*matrix(QQ, [[1,-Qm], [0,1]])
+                        z += m  # M.inverse()*Z is supposed to move z by m
+                    elif zc.real() >= JJ(0.5): #else if
+                        m = zc.real().round()
+                        Qm = QQ(m)
+                        M = M * matrix(QQ, [[1,Qm], [0,1]])
+                        z -= m
+                    elif (zc.real() <= JJ(0) and zc.abs() < JJ(1)) or (zc.real() > JJ(0) and zc.abs() <= JJ(1)):
+                        z = -1/z
+                        M = M * matrix(QQ, [[0,-1],[ 1,0]])
+                    zc = z.center()
+            else:
+                #verbose("Warning: Newton's method converged to z not in the upper half plane.", level=1)
+                z = z0
         else:
-            #verbose("Warning: Newton's method converged to z not in the upper half plane.", level=1)
-            z = z0
+            # means multiplicity of roots is too high, need to use Q0 reduced form, z0
+            z=z0
         err = z.diameter()
-        zc = z.center()
-        zr = zc.real()
-        if (zr.abs() - JJ(0.5)).abs() <= err or (zc.abs() - 1).abs() <= err:
-            raise ValueError("not enough precision")
         x,y = self.parent().gens()
         if return_conjugation:
             return (self(tuple(M * vector([x,y]))), M)

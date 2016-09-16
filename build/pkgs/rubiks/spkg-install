@@ -141,7 +141,7 @@ fi
 if [ $UNAME = "SunOS" ]; then
     INSTALL=cp; export INSTALL
 else
-    INSTALL=`which install`; export INSTALL
+    INSTALL=install; export INSTALL
 fi
 
 

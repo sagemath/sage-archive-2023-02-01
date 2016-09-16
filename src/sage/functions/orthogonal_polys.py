@@ -613,10 +613,13 @@ class Func_chebyshev_T(ChebyshevFunction):
             sage: chebyshev_T2 = Func_chebyshev_T()
             sage: chebyshev_T2(1,x)
             x
+            sage: chebyshev_T(x, x)._sympy_()
+            chebyshevt(x, x)
         """
         ChebyshevFunction.__init__(self, 'chebyshev_T', nargs=2,
                                      conversions=dict(maxima='chebyshev_t',
-                                                      mathematica='ChebyshevT'))
+                                                      mathematica='ChebyshevT',
+                                                      sympy='chebyshevt'))
 
     def _latex_(self):
         r"""
@@ -929,10 +932,13 @@ class Func_chebyshev_U(ChebyshevFunction):
             sage: chebyshev_U2 = Func_chebyshev_U()
             sage: chebyshev_U2(1,x)
             2*x
+            sage: chebyshev_U(x, x)._sympy_()
+            chebyshevu(x, x)
         """
         ChebyshevFunction.__init__(self, 'chebyshev_U', nargs=2,
                                      conversions=dict(maxima='chebyshev_u',
-                                                      mathematica='ChebyshevU'))
+                                                      mathematica='ChebyshevU',
+                                                      sympy='chebyshevu'))
 
     def _latex_(self):
         r"""
@@ -1329,10 +1335,12 @@ class Func_hermite(GinacFunction):
 
             sage: loads(dumps(hermite))
             hermite
+            sage: hermite(x, x)._sympy_()
+            hermite(x, x)
         """
         GinacFunction.__init__(self, "hermite", nargs=2, latex_name=r"H",
                 conversions={'maxima':'hermite', 'mathematica':'HermiteH',
-                    'maple':'HermiteH'}, preserved_arg=2)
+                    'maple':'HermiteH', 'sympy':'hermite'}, preserved_arg=2)
 
 hermite = Func_hermite()
 
@@ -1489,10 +1497,12 @@ class Func_ultraspherical(GinacFunction):
 
             sage: loads(dumps(ultraspherical))
             gegenbauer
+            sage: ultraspherical(x, x, x)._sympy_()
+            gegenbauer(x, x, x)
         """
         GinacFunction.__init__(self, "gegenbauer", nargs=3, latex_name=r"C",
                 conversions={'maxima':'ultraspherical', 'mathematica':'GegenbauerC',
-                    'maple':'GegenbauerC'})
+                    'maple':'GegenbauerC', 'sympy':'gegenbauer'})
 
 ultraspherical = Func_ultraspherical()
 gegenbauer = Func_ultraspherical()
@@ -1512,10 +1522,12 @@ class Func_laguerre(OrthogonalFunction):
 
             sage: loads(dumps(laguerre))
             laguerre
+            sage: laguerre(x, x)._sympy_()
+            laguerre(x, x)
         """
         OrthogonalFunction.__init__(self, "laguerre", nargs=2, latex_name=r"L",
                 conversions={'maxima':'laguerre', 'mathematica':'LaguerreL',
-                    'maple':'LaguerreL'})
+                    'maple':'LaguerreL', 'sympy':'laguerre'})
 
     def _maxima_init_evaled_(self, n, x):
         """
@@ -1666,10 +1678,12 @@ class Func_gen_laguerre(OrthogonalFunction):
 
             sage: loads(dumps(gen_laguerre))
             gen_laguerre
+            sage: gen_laguerre(x, x, x)._sympy_()
+            assoc_laguerre(x, x, x)
         """
         OrthogonalFunction.__init__(self, "gen_laguerre", nargs=3, latex_name=r"L",
                 conversions={'maxima':'gen_laguerre', 'mathematica':'LaguerreL',
-                    'maple':'LaguerreL'})
+                    'maple':'LaguerreL', 'sympy':'assoc_laguerre'})
 
     def _maxima_init_evaled_(self, n, a, x):
         """

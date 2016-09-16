@@ -564,6 +564,8 @@ class Function_floor(BuiltinFunction):
             sage: a = numpy.linspace(0,2,6)
             sage: floor(a)
             array([ 0.,  0.,  0.,  1.,  1.,  2.])
+            sage: floor(x)._sympy_()
+            floor(x)
 
         Test pickling::
 
@@ -674,6 +676,8 @@ class Function_Order(GinacFunction):
             Order(x)
             sage: (x^2 + x).Order()
             Order(x^2 + x)
+            sage: x.Order()._sympy_()
+            O(x)
 
         TESTS:
 
@@ -682,7 +686,9 @@ class Function_Order(GinacFunction):
             sage: x.Order().operator()
             Order
         """
-        GinacFunction.__init__(self, "Order", latex_name=r"\mathcal{O}")
+        GinacFunction.__init__(self, "Order",
+                conversions=dict(sympy='O'),
+                latex_name=r"\mathcal{O}")
 
 Function_Order()
 
@@ -709,6 +715,8 @@ class Function_frac(BuiltinFunction):
             cos(8)/cos(2)
             sage: latex(frac(x))
             \operatorname{frac}\left(x\right)
+            sage: frac(x)._sympy_()
+            frac(x)
 
         Test pickling::
 
@@ -834,6 +842,9 @@ class Function_gamma(GinacFunction):
             sqrt(pi)
 
         TESTS:
+
+            sage: gamma(x)._sympy_()
+            gamma(x)
 
         We verify that we can convert this function to Maxima and
         convert back to Sage::
@@ -1652,6 +1663,8 @@ class Function_factorial(GinacFunction):
             factorial(_SAGE_VAR_z)
             sage: _.sage()
             factorial(z)
+            sage: _._sympy_()
+            factorial(z)
             sage: k = var('k')
             sage: factorial(k)
             factorial(k)
@@ -1812,6 +1825,8 @@ class Function_binomial(GinacFunction):
             sage: maxima(binomial(n,k))
             binomial(_SAGE_VAR_n,_SAGE_VAR_k)
             sage: _.sage()
+            binomial(n, k)
+            sage: _._sympy_()
             binomial(n, k)
             sage: binomial._maxima_init_()
             'binomial'
@@ -2015,6 +2030,9 @@ class Function_beta(GinacFunction):
             sage: beta(2., I)
             -0.500000000000000 - 0.500000000000000*I
 
+            sage: beta(x, x)._sympy_()
+            beta(x, x)
+
         Test pickling::
 
             sage: loads(dumps(beta))
@@ -2214,6 +2232,7 @@ class Function_arg(BuiltinFunction):
             0
             sage: arg(0)
             0
+
             sage: latex(arg(x))
             {\rm arg}\left(x\right)
             sage: maxima(arg(x))
@@ -2222,6 +2241,9 @@ class Function_arg(BuiltinFunction):
             atan(1/2)
             sage: maxima(arg(sqrt(2)+i))
             atan(1/sqrt(2))
+            sage: arg(x)._sympy_()
+            arg(x)
+
             sage: arg(2+i)
             arctan(1/2)
             sage: arg(sqrt(2)+i)
@@ -2489,6 +2511,8 @@ class Function_conjugate(GinacFunction):
 
             sage: x,y = var('x,y')
             sage: x.conjugate()
+            conjugate(x)
+            sage: _._sympy_()
             conjugate(x)
             sage: latex(conjugate(x))
             \overline{x}

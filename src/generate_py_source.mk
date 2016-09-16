@@ -1,4 +1,4 @@
-# This Makefile is called by setup.sh
+# This Makefile is called by setup.py
 # to build some generated Python/Cython sources.
 
 all: sage/libs/pari/auto_gen.pxi sage/ext/interpreters/__init__.py

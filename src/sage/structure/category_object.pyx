@@ -60,7 +60,7 @@ cimport sage.structure.generators as generators
 from sage.structure.misc import dir_with_other_class
 from sage.structure.misc cimport getattr_from_other_class
 from sage.categories.category import Category
-from sage.structure.debug_options import debug
+from sage.structure.debug_options cimport debug
 from sage.misc.cachefunc import cached_method
 
 

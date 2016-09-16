@@ -4115,5 +4115,6 @@ class CrystalDiagramAutomorphism(CrystalMorphism):
     is_surjective = is_isomorphism
     is_embedding = is_isomorphism
     is_strict = is_isomorphism
+    __bool__ = is_isomorphism
     __nonzero__ = is_isomorphism
 

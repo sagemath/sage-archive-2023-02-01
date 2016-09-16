@@ -1975,7 +1975,7 @@ class FSMState(sage.structure.sage_object.SageObject):
                 left.initial_probability == right.initial_probability)
 
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns True.
 
@@ -1990,10 +1990,13 @@ class FSMState(sage.structure.sage_object.SageObject):
         TESTS::
 
             sage: from sage.combinat.finite_state_machine import FSMState
-            sage: FSMState('A').__nonzero__()
+            sage: bool(FSMState('A'))
             True
         """
         return True  # A state cannot be zero (see __init__)
+
+
+    __nonzero__ = __bool__
 
 
     def _epsilon_successors_(self, fsm=None):
@@ -2502,7 +2505,7 @@ class FSMTransition(sage.structure.sage_object.SageObject):
         return (not (left == right))
 
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns True.
 
@@ -2517,10 +2520,12 @@ class FSMTransition(sage.structure.sage_object.SageObject):
         EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import FSMTransition
-            sage: FSMTransition('A', 'B', 0).__nonzero__()
+            sage: bool(FSMTransition('A', 'B', 0))
             True
         """
         return True  # A transition cannot be zero (see __init__)
+
+    __nonzero__ = __bool__
 
 
 #*****************************************************************************
@@ -3918,7 +3923,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
     #*************************************************************************
 
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns True if the finite state machine consists of at least
         one state.
@@ -3933,10 +3938,13 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         TESTS::
 
-            sage: FiniteStateMachine().__nonzero__()
+            sage: bool(FiniteStateMachine())
             False
         """
         return len(self._states_) > 0
+
+
+    __nonzero__ = __bool__
 
 
     def __eq__(left, right):

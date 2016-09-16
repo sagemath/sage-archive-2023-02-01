@@ -774,7 +774,7 @@ static ex cot_eval(const ex & x)
 
 	// cot(float) -> float
 	if (is_exactly_a<numeric>(x) && !x.info(info_flags::crational)) {
-		return tan_evalf(Pi.evalf()/2-ex_to<numeric>(x), nullptr);
+		return tan(ex_to<numeric>(x)).inverse();
 	}
 
         ex res = tan_eval(x);

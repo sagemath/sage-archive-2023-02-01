@@ -2,10 +2,12 @@
 Chromatic Polynomial
 
 AUTHORS:
-    -- Gordon Royle - original C implementation
-    -- Robert Miller - transplant
+
+- Gordon Royle - original C implementation
+- Robert Miller - transplant
 
 REFERENCE:
+
     Ronald C Read, An improved method for computing the chromatic polynomials of
     sparse graphs.
 """
@@ -16,7 +18,6 @@ REFERENCE:
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.ext.memory_allocator cimport MemoryAllocator
@@ -73,12 +74,12 @@ def chromatic_polynomial(G, return_tree_basis = False):
 
         sage: G = graphs.PetersenGraph()
         sage: P = G.chromatic_polynomial()
-        sage: min((i for i in xrange(11) if P(i) > 0)) == G.chromatic_number()
+        sage: min(i for i in range(11) if P(i) > 0) == G.chromatic_number()
         True
 
         sage: G = graphs.RandomGNP(10,0.7)
         sage: P = G.chromatic_polynomial()
-        sage: min((i for i in xrange(11) if P(i) > 0)) == G.chromatic_number()
+        sage: min(i for i in range(11) if P(i) > 0) == G.chromatic_number()
         True
     """
     if not G.is_connected():

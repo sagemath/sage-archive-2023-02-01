@@ -433,10 +433,10 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
 
         m = self.B.nrows()
 
-        for i in range(m)[::-1]:
+        for i in range(m - 1, -1, -1):
             b_ = self._G[i]
             c_ = c.dot_product(b_) / b_.dot_product(b_)
-            sigma_ = sigma/b_.norm()
+            sigma_ = sigma / b_.norm()
             assert(sigma_ > 0)
             z = DiscreteGaussianDistributionIntegerSampler(sigma=sigma_, c=c_, algorithm="uniform+online")()
             c = c - z*B[i]

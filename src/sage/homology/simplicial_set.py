@@ -1957,7 +1957,7 @@ class SimplicialSet_arbitrary(Parent):
 
         The only difference between chains and cochains is notation:
         the generator corresponding to the dual of a simplex
-        ``sigma`` is written as `"\chi_sigma"` in the group of
+        ``sigma`` is written as ``"\chi_sigma"`` in the group of
         cochains.
 
         EXAMPLES::

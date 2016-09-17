@@ -39,8 +39,7 @@ Authors:
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -58,8 +57,8 @@ from sage.misc.flatten import flatten
 from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.tableau import Tableaux
 from sage.combinat.composition import Composition
-from . import cartesian_product
 import copy
+
 
 def WeakTableau(t, k, inner_shape = [], representation = "core"):
     r"""

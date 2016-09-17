@@ -31,14 +31,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
+from six.moves import builtins
 
 from sage.arith.all import binomial
 from sage.rings.integer_ring import ZZ
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableArray
-from sage.misc.lazy_attribute import lazy_attribute
-from six.moves import builtins
 from sage.misc.stopgap import stopgap
 
 

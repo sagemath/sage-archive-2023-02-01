@@ -11209,7 +11209,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         indefinite factorization (see :meth:`indefinite_factorization`)
         which caches its result.  This algorithm is of an order `n^3/3`.
         If the matrix is positive definite, this computation always
-        succeeds, using just field operations.  The transistion to a
+        succeeds, using just field operations.  The transition to a
         Cholesky decomposition "only" requires computing square roots
         of the positive (real) entries of the diagonal matrix produced in
         the indefinite factorization.  Hence, there is no real penalty

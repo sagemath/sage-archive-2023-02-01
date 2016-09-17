@@ -25,9 +25,10 @@ from sage.misc.all import prod
 include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
 
-def chromatic_polynomial(G, return_tree_basis = False):
+
+def chromatic_polynomial(G, return_tree_basis=False):
     """
-    Computes the chromatic polynomial of the graph G.
+    Compute the chromatic polynomial of the graph G.
 
     The algorithm used is a recursive one, based on the following observations
     of Read:
@@ -51,7 +52,7 @@ def chromatic_polynomial(G, return_tree_basis = False):
         sage: graphs.CompleteBipartiteGraph(3,3).chromatic_polynomial()
         x^6 - 9*x^5 + 36*x^4 - 75*x^3 + 78*x^2 - 31*x
         sage: for i in range(2,7):
-        ...     graphs.CompleteGraph(i).chromatic_polynomial().factor()
+        ....:     graphs.CompleteGraph(i).chromatic_polynomial().factor()
         (x - 1) * x
         (x - 2) * (x - 1) * x
         (x - 3) * (x - 2) * (x - 1) * x
@@ -81,13 +82,23 @@ def chromatic_polynomial(G, return_tree_basis = False):
         sage: P = G.chromatic_polynomial()
         sage: min(i for i in range(11) if P(i) > 0) == G.chromatic_number()
         True
+
+    TESTS:
+
+    Check that :trac:`21502` is solved::
+
+        sage: graphs.EmptyGraph().chromatic_polynomial()
+        1
     """
+    if not G:
+        R = ZZ['x']
+        return R.one()
     if not G.is_connected():
         return prod([chromatic_polynomial(g) for g in G.connected_components_subgraphs()])
     R = ZZ['x']
     x = R.gen()
     if G.is_tree():
-        return x*(x-1)**(G.num_verts()-1)
+        return x * (x - 1) ** (G.num_verts() - 1)
 
     cdef int nverts, nedges, i, j, u, v, top, bot, num_chords, next_v
     cdef int *queue

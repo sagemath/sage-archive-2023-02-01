@@ -289,7 +289,7 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
             return True
         return False
 
-    # temporary woraround while an_element is overriden by Parent
+    # temporary workaround while an_element is overriden by Parent
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
 
 # Utility. Note: much of this class should be factored out at some point!

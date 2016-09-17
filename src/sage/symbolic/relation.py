@@ -1166,7 +1166,7 @@ def solve_ineq_univar(ineq):
 
 def solve_ineq_fourier(ineq,vars=None):
     """
-    Solves sytem of inequalities using Maxima and fourier elimination
+    Solves system of inequalities using Maxima and Fourier elimination
 
     Can be used for system of linear inequalities and for some types
     of nonlinear inequalities. For examples see the section EXAMPLES
@@ -1177,7 +1177,7 @@ def solve_ineq_fourier(ineq,vars=None):
 
     - ``ineq`` - list with system of inequalities
 
-    - ``vars`` - optionally list with variables for fourier elimination.
+    - ``vars`` - optionally list with variables for Fourier elimination.
 
     OUTPUT:
 
@@ -1242,7 +1242,7 @@ def solve_ineq(ineq, vars=None):
     Solves inequalities and systems of inequalities using Maxima.
     Switches between rational inequalities
     (sage.symbolic.relation.solve_ineq_rational)
-    and fourier elimination (sage.symbolic.relation.solve_ineq_fouried).
+    and Fourier elimination (sage.symbolic.relation.solve_ineq_fouried).
     See the documentation of these functions for more details.
 
     INPUT:
@@ -1262,7 +1262,7 @@ def solve_ineq(ineq, vars=None):
       for a big gallery of problems covered by this algorithm.
 
     - ``vars`` - optional parameter with list of variables. This list
-      is used only if fourier elimination is used. If omitted or if
+      is used only if Fourier elimination is used. If omitted or if
       rational inequality is solved, then variables are determined
       automatically.
 

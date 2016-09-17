@@ -1487,9 +1487,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: bt.left_children_node_number('right')
             4
 
-            sage: all([5 == 1 + bt.left_children_node_number()
-            ....:             + bt.left_children_node_number('right')
-            ....:     for bt in BinaryTrees(5)])
+            sage: all(5 == 1 + bt.left_children_node_number()
+            ....:            + bt.left_children_node_number('right')
+            ....:     for bt in BinaryTrees(5))
             True
 
         TESTS::
@@ -3598,7 +3598,7 @@ class BinaryTrees_size(BinaryTrees):
 
         TESTS::
 
-            sage: all([BinaryTrees(10).random_element() in BinaryTrees(10) for i in range(20)])
+            sage: all(BinaryTrees(10).random_element() in BinaryTrees(10) for i in range(20))
             True
         """
         from sage.combinat.dyck_word import CompleteDyckWords_size

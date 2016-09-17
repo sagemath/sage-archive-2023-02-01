@@ -335,11 +335,11 @@ def bell_number(n, algorithm='flint', **options):
 
     TESTS::
 
-        sage: all([bell_number(n) == bell_number(n,'dobinski') for n in range(200)])
+        sage: all(bell_number(n) == bell_number(n,'dobinski') for n in range(200))
         True
-        sage: all([bell_number(n) == bell_number(n,'gap') for n in range(200)])
+        sage: all(bell_number(n) == bell_number(n,'gap') for n in range(200))
         True
-        sage: all([bell_number(n) == bell_number(n,'mpmath', prec=500) for n in range(200, 220)])
+        sage: all(bell_number(n) == bell_number(n,'mpmath', prec=500) for n in range(200, 220))
         True
 
     AUTHORS:

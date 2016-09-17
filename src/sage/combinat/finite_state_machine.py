@@ -9111,7 +9111,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             if not first_letters:
                 return tuple()
             first_item = first_letters.pop()
-            if all([item == first_item for item in first_letters]):
+            if all(item == first_item for item in first_letters):
                 return (first_item,)
             return tuple()
 

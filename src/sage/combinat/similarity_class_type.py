@@ -855,7 +855,7 @@ class SimilarityClassType(CombinatorialElement):
             sage: tau.is_semisimple()
             False
         """
-        return all([PT.partition().get_part(0) == 1 for PT in self])
+        return all(PT.partition().get_part(0) == 1 for PT in self)
 
     def is_regular(self):
         """
@@ -871,7 +871,7 @@ class SimilarityClassType(CombinatorialElement):
             sage: tau.is_regular()
             False
         """
-        return all([len(PT.partition()) == 1 for PT in self])
+        return all(len(PT.partition()) == 1 for PT in self)
 
     def rcf(self):
         """
@@ -1085,9 +1085,9 @@ class SimilarityClassTypes(UniqueRepresentation, Parent):
             sage: def test(n):
             ....:     M = SimilarityClassTypes(n)
             ....:     return M.sum(lambda la:1) == q**(n**2) and M.sum(lambda la:1, invertible = True)== order_of_general_linear_group(n)
-            sage: all([test(n) for n in range(5)])
+            sage: all(test(n) for n in range(5))
             True
-            sage: all([test(n) for n in range(5, 15)]) # long time
+            sage: all(test(n) for n in range(5, 15)) # long time
             True
         """
         n = self._n

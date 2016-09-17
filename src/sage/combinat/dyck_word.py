@@ -3869,7 +3869,7 @@ class CompleteDyckWords_size(CompleteDyckWords, DyckWords_size):
             14
             sage: ns = range(9)
             sage: dws = [DyckWords(n) for n in ns]
-            sage: all([dw.cardinality() == len(dw.list()) for dw in dws])
+            sage: all(dw.cardinality() == len(dw.list()) for dw in dws)
             True
         """
         return catalan_number(self.k1)

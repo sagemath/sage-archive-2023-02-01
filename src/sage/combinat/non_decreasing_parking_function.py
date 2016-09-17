@@ -265,7 +265,7 @@ class NonDecreasingParkingFunctions_n(CombinatorialClass):
             True
             sage: [1,1,4] in PF3
             False
-            sage: all([p in PF3 for p in PF3])
+            sage: all(p in PF3 for p in PF3)
             True
         """
         if isinstance(x, NonDecreasingParkingFunction):

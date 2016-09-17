@@ -1310,6 +1310,55 @@ class SimplicialSet_arbitrary(Parent):
             # where there are none.
             return []
 
+    def all_n_simplices(self, n):
+        """
+        Return a list of all simplices, non-degenerate and degenerate, in dimension ``n``.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: w = AbstractSimplex(0, name='w')
+            sage: degen = v.apply_degeneracies(0)
+            sage: tau = AbstractSimplex(2, name='tau')
+            sage: Y = SimplicialSet({tau: (degen, degen, degen), w: None})
+
+        ``Y`` is the disjoint union of a 2-sphere, with vertex ``v``
+        and non-degenerate 2-simplex ``tau``, and a point ``w``. ::
+
+            sage: Y.all_n_simplices(0)
+            [v, w]
+            sage: Y.all_n_simplices(1)
+            [Simplex obtained by applying degeneracy s_0 to v,
+             Simplex obtained by applying degeneracy s_0 to w]
+            sage: Y.all_n_simplices(2)
+            [tau,
+             Simplex obtained by applying degeneracies s_1 s_0 to v,
+             Simplex obtained by applying degeneracies s_1 s_0 to w]
+
+        An example involving an infinite simplicial set::
+
+            sage: C3 = groups.misc.MultiplicativeAbelian([3])
+            sage: BC3 = simplicial_sets.ClassifyingSpace(C3)
+            sage: BC3.all_n_simplices(2)
+            [f * f,
+             f * f^2,
+             f^2 * f,
+             f^2 * f^2,
+             Simplex obtained by applying degeneracy s_0 to f,
+             Simplex obtained by applying degeneracy s_0 to f^2,
+             Simplex obtained by applying degeneracy s_1 to f,
+             Simplex obtained by applying degeneracy s_1 to f^2,
+             Simplex obtained by applying degeneracies s_1 s_0 to 1]
+        """
+        non_degen = [_ for _ in self.nondegenerate_simplices(max_dim=n)]
+        ans = set([_ for _ in non_degen if _.dimension() == n])
+        for sigma in non_degen:
+            d = sigma.dimension()
+            ans.update([sigma.apply_degeneracies(*_)
+                        for _ in all_degeneracies(d, n-d)])
+        return sorted(list(ans))
+
     def _map_from_empty_set(self):
         """
         Return the unique map from the empty set to this simplicial set.
@@ -3025,40 +3074,6 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
             0
         """
         return sum([(-1)**n * num for (n, num) in enumerate(self.f_vector())])
-
-    def all_n_simplices(self, n):
-        """
-        Return a list of all simplices, non-degenerate and degenerate, in dimension ``n``.
-
-        EXAMPLES::
-
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
-            sage: v = AbstractSimplex(0, name='v')
-            sage: w = AbstractSimplex(0, name='w')
-            sage: degen = v.apply_degeneracies(0)
-            sage: tau = AbstractSimplex(2, name='tau')
-            sage: Y = SimplicialSet({tau: (degen, degen, degen), w: None})
-
-        ``Y`` is the disjoint union of a 2-sphere, with vertex ``v``
-        and non-degenerate 2-simplex ``tau``, and a point ``w``. ::
-
-            sage: Y.all_n_simplices(0)
-            [v, w]
-            sage: Y.all_n_simplices(1)
-            [Simplex obtained by applying degeneracy s_0 to v,
-             Simplex obtained by applying degeneracy s_0 to w]
-            sage: Y.all_n_simplices(2)
-            [tau,
-             Simplex obtained by applying degeneracies s_1 s_0 to v,
-             Simplex obtained by applying degeneracies s_1 s_0 to w]
-        """
-        non_degen = [_ for _ in self.nondegenerate_simplices() if _.dimension() <= n]
-        ans = set([_ for _ in non_degen if _.dimension() == n])
-        for sigma in non_degen:
-            d = sigma.dimension()
-            ans.update([sigma.apply_degeneracies(*_)
-                        for _ in all_degeneracies(d, n-d)])
-        return sorted(list(ans))
 
     def chain_complex(self, dimensions=None, base_ring=ZZ, augmented=False,
                       cochain=False, verbose=False, subcomplex=None,

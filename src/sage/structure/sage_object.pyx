@@ -947,6 +947,17 @@ def load(*filename, compress=True, verbose=True):
         hello world
         [None, None, 2/3]
 
+    Files with a ``.sage`` extension are preparsed. Also note that we
+    can access global variables::
+
+        sage: t = tmp_filename(ext=".sage")
+        sage: with open(t, 'w') as f:
+        ....:     f.write("a += Mod(2/3, 11)")  # This evaluates to Mod(8, 11)
+        sage: a = -1
+        sage: load(t)
+        sage: a
+        7
+
     We can load Fortran files::
 
         sage: code = '      subroutine hello\n         print *, "Hello World!"\n      end subroutine hello\n'

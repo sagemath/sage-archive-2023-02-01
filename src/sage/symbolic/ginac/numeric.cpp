@@ -155,10 +155,9 @@ const GiNaC::numeric& to_numeric(GiNaC::ex& e)
 // Python Interface
 //////////////////////////////////////////////////////////////
 
-void py_error(const char* /*unused*/) {
-        if (PyErr_Occurred() != nullptr) {
-                throw std::runtime_error("");
-        }
+inline void py_error(const char* errmsg) {
+        throw std::runtime_error((PyErr_Occurred() != nullptr) ? errmsg:
+                        "pyerror() called but no error occured!");
 }
 
 #if PY_MAJOR_VERSION < 3
@@ -1548,10 +1547,6 @@ int numeric::csgn() const {
                 default:
                         stub("invalid type: csgn() type not handled");
         }
-}
-
-int numeric::compare(const numeric &other) const {
-        return (*this-other).csgn();
 }
 
 bool numeric::is_equal(const numeric &other) const {

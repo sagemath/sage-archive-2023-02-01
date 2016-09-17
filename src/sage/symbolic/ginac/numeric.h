@@ -184,7 +184,6 @@ public:
 	const numeric inverse() const;
 	const numeric step() const;
 	int csgn() const;
-	int compare(const numeric &other) const;
 	bool is_equal(const numeric &other) const;
 	bool is_zero() const;
 	bool is_positive() const;

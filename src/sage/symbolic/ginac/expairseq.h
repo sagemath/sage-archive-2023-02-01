@@ -68,7 +68,7 @@ class expairseq : public basic
 {
 	GINAC_DECLARE_REGISTERED_CLASS(expairseq, basic)
 
-	friend struct print_order;
+	friend class print_order;
         friend class ex;
 	// other constructors
 public:

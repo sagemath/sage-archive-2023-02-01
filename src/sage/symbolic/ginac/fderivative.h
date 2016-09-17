@@ -40,7 +40,7 @@ class fderivative : public function
 {
 	GINAC_DECLARE_REGISTERED_CLASS(fderivative, function)
 
-	friend struct print_order;
+	friend class print_order;
 	// other constructors
 public:
 	/** Construct derivative with respect to one parameter.

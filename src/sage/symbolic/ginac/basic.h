@@ -142,8 +142,8 @@ public:
 	};
 
 	friend class ex;
-	friend struct print_order;
-	friend struct print_order_pair;
+	friend class print_order;
+	friend class print_order_pair;
 	// default constructor, destructor, copy constructor and assignment operator
 protected:
 	basic() : tinfo_key(&tinfo_static), flags(0) {}

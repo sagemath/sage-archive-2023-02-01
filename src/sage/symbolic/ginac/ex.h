@@ -71,7 +71,7 @@ class const_iterator;
 class const_preorder_iterator;
 class const_postorder_iterator;
 class symbol;
-class symbolhasher;
+struct symbolhasher;
 using symbolset = std::unordered_set<symbol,symbolhasher>;
 using expairvec = std::vector<std::pair<ex,ex>>;
 
@@ -87,9 +87,9 @@ class ex {
 	template<class T> friend inline bool is_a(const ex &);
 	template<class T> friend inline bool is_exactly_a(const ex &);
 	
-	friend struct print_order;
-	friend struct print_order_mul;
-	friend struct print_order_pair;
+	friend class print_order;
+	friend class print_order_mul;
+	friend class print_order_pair;
 	// default constructor, copy constructor and assignment operator
 public:
 	ex() throw();

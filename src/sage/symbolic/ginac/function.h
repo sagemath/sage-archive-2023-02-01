@@ -324,7 +324,7 @@ class function : public exprseq
 {
 	GINAC_DECLARE_REGISTERED_CLASS(function, exprseq)
 
-	friend struct print_order;
+	friend class print_order;
 	// CINT has a linking problem
 #ifndef __MAKECINT__
 	friend void ginsh_get_ginac_functions();

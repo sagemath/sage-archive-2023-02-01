@@ -41,7 +41,7 @@ class symbol : public basic
 {
 	GINAC_DECLARE_REGISTERED_CLASS(symbol, basic)
 
-	friend struct print_order;
+	friend class print_order;
         friend struct symbolhasher;
 
 // types
@@ -62,7 +62,7 @@ public:
 	//int compare(const basic &other) const;
 	bool info(unsigned inf) const override;
 	ex eval(int level = 0) const override;
-	ex evalf(int level = 0) const { return *this; } // overwrites basic::evalf() for performance reasons
+	ex evalf(int level = 0, PyObject* parent = nullptr) const override { return *this; } // overwrites basic::evalf() for performance reasons
 	ex series(const relational & s, int order, unsigned options = 0) const override;
 	ex subs(const exmap & m, unsigned options = 0) const override { return subs_one_level(m, options); } // overwrites basic::subs() for performance reasons
 	ex normal(exmap & repl, exmap & rev_lookup, int level = 0, unsigned options = 0) const override;

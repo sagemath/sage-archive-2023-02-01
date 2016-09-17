@@ -94,9 +94,6 @@ from sage.categories.map cimport Map
 from sage.categories.morphism import IdentityMorphism
 from sage.categories.action cimport Action, InverseAction, PrecomposedAction
 
-from sage.misc.lazy_import import LazyImport
-parent = LazyImport('sage.structure.all', 'parent', deprecation=17533)
-
 import traceback
 
 

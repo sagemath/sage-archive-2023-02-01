@@ -48,7 +48,6 @@ Verify that the Airy functions are solutions to the differential equation::
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.symbolic.ring import SR
-from sage.structure.coerce import parent as sage_structure_coerce_parent
 from sage.functions.other import gamma
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_double import RDF

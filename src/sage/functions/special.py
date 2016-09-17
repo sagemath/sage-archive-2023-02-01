@@ -168,9 +168,7 @@ from sage.symbolic.constants import pi
 from sage.symbolic.function import BuiltinFunction, is_inexact
 from sage.symbolic.expression import Expression
 from sage.calculus.calculus import maxima
-from sage.structure.coerce import parent
-from sage.structure.element import get_coercion_model
-from sage.structure.parent import Parent
+from sage.structure.element import parent
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.functions.all import sqrt, sin, cot, exp
 from sage.symbolic.all import I

@@ -5,6 +5,8 @@ AUTHORS:
 
 - Chris Berg, Jeff Ferreira (2012-9): Initial version
 """
+from six.moves import range
+
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.family import Family
@@ -273,7 +275,7 @@ class CompositionTableau(CombinatorialElement):
             True
         """
         entries = sum(self,[])
-        return sorted(entries) == range(1, self.size() + 1)
+        return sorted(entries) == list(range(1, self.size() + 1))
 
 class CompositionTableaux(UniqueRepresentation, Parent):
     r"""

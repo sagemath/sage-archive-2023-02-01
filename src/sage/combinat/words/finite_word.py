@@ -4724,7 +4724,7 @@ class FiniteWord_class(Word_class):
 
         EXAMPLES::
 
-            sage: W = Words(list('abc')+range(6))
+            sage: W = Words(list('abc') + list(range(6)))
             sage: u = W('abc')
             sage: v = W(range(5))
             sage: u.overlap_partition(v)

@@ -944,7 +944,7 @@ class SubwordComplexFacet(Simplex, Element):
                       fontsize=fontsize, vertical_alignment="center",
                       horizontal_alignment="right")
         if len(labels) < last + 1:
-            labels = range(1, last + 2)
+            labels = list(range(1, last + 2))
         for pseudoline_label in pseudoline_labels:
             L += text(labels[pseudoline_label[0]], pseudoline_label[1],
                       color=list_colors[pseudoline_label[0]],

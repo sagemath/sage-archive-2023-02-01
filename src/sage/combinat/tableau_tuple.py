@@ -3245,7 +3245,8 @@ class StandardTableauTuples_level_size(StandardTableauTuples):
             return self.element_class(self, sum([[[[1],[2]]]],[[] for i in range(self.level()-1)]))
         else:
             return self.element_class(self, sum([[[[1]]],
-                      [[range(2,self.size()),[self.size()]]]],[[] for i in range(self.level()-2)]))
+                      [[list(range(2,self.size())),
+                        [self.size()]]]],[[] for i in range(self.level()-2)]))
 
 class StandardTableauTuples_shape(StandardTableauTuples):
     """

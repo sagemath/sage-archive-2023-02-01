@@ -29,7 +29,7 @@ AUTHORS:
 #*****************************************************************************
 # python3
 from __future__ import division
-
+from six.moves import range
 from builtins import zip
 from six import itervalues
 
@@ -1809,7 +1809,7 @@ class ContreTableaux_n(ContreTableaux):
         if i == 0:
             yield []
         elif i == 1:
-            yield [range(1, self.n+1)]
+            yield [list(range(1, self.n + 1))]
         else:
             for columns in self._iterator_rec(i-1):
                 previous_column = columns[-1]

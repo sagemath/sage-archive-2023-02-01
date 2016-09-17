@@ -52,7 +52,7 @@ REFERENCES:
 #*****************************************************************************
 # python3
 from __future__ import division, print_function
-
+from six.moves import range
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -193,7 +193,7 @@ class PerfectMatching(ElementWrapper):
             if not(p.cycle_type() == [2 for i in range(n//2)]):
                 raise ValueError("The permutation p (= %s) is not a "
                                  "fixed point free involution" % p)
-            objects = Set(range(1, n+1))
+            objects = Set(list(range(1, n + 1)))
             data = p.to_cycles()
         # Third case: p is already a perfect matching, we return p directly
         elif isinstance(p, PerfectMatching):
@@ -889,10 +889,10 @@ class PerfectMatchings(UniqueRepresentation, Parent):
         """
         # if the argument is a python int n, we replace it by the list [1 .. n]
         if isinstance(objects, int):
-            objects = range(1, objects+1)
+            objects = list(range(1, objects + 1))
         # same thing if the argument is a sage integer.
         elif isinstance(objects, Integer):
-            objects = range(1, objects+1)
+            objects = list(range(1, objects + 1))
         # Finally, if it is iterable, we return the corresponding set.
         # Note that it is important to return a hashable object here (in
         # particular, NOT A LIST), see comment below.

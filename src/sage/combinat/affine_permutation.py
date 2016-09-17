@@ -1059,7 +1059,7 @@ class AffinePermutationTypeC(AffinePermutation):
 
             sage: C=AffinePermutationGroup(['C',4,1])
             sage: x=C.one()
-            sage: [x.value(i) for i in range(-10,10)]==range(-10,10)
+            sage: [x.value(i) for i in range(-10,10)] == list(range(-10,10))
             True
         """
         N=(2*self.k+1)
@@ -1077,9 +1077,9 @@ class AffinePermutationTypeC(AffinePermutation):
 
         EXAMPLES::
 
-            sage: C=AffinePermutationGroup(['C',4,1])
-            sage: x=C.one()
-            sage: [x.position(i) for i in range(-10,10)]==range(-10,10)
+            sage: C = AffinePermutationGroup(['C',4,1])
+            sage: x = C.one()
+            sage: [x.position(i) for i in range(-10,10)] == list(range(-10,10))
             True
         """
         N=(2*self.k+1)

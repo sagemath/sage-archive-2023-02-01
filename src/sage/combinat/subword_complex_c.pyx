@@ -89,7 +89,7 @@ cpdef list _construct_facets_c(tuple Q, w, int n=-1, int pos=0, int l=-1):
         first = False
     
     if l == 0:
-        return [range(pos, n)]
+        return [list(xrange(pos, n))]
     elif n < l + pos:
         return []
     

@@ -278,6 +278,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.homology.algebraic_topological_model import algebraic_topological_model_delta_complex
 from sage.homology.cell_complex import GenericCellComplex
 from sage.homology.chain_complex import ChainComplex
+from sage.homology.chains import Chains, Cochains
 from sage.homology.delta_complex import DeltaComplex, delta_complexes
 from sage.homology.simplicial_complex import SimplicialComplex
 import sage.homology.simplicial_complexes_catalog as simplicial_complexes
@@ -1696,6 +1697,76 @@ class SimplicialSet_arbitrary(Parent):
             data[x] = None
         return SubSimplicialSet(data, self)
 
+    def chain_complex(self, dimensions=None, base_ring=ZZ, augmented=False,
+                      cochain=False, verbose=False, subcomplex=None,
+                      check=False):
+        r"""
+        Return the normalized chain complex.
+
+        INPUT:
+
+        - ``dimensions`` -- if ``None``, compute the chain complex in all
+          dimensions.  If a list or tuple of integers, compute the
+          chain complex in those dimensions, setting the chain groups
+          in all other dimensions to zero.
+
+        - ``base_ring`` (optional, default ``ZZ``) -- commutative ring
+
+        - ``augmented`` (optional, default ``False``) -- if ``True``,
+          return the augmented chain complex (that is, include a class
+          in dimension `-1` corresponding to the empty cell).
+
+        - ``cochain`` (optional, default ``False``) -- if ``True``,
+          return the cochain complex (that is, the dual of the chain
+          complex).
+
+        - ``verbose`` (optional, default ``False``) -- ignored.
+
+        - ``subcomplex`` (optional, default ``None``) -- if present,
+          compute the chain complex relative to this subcomplex.
+
+        - ``check`` (optional, default ``False``) -- If ``True``, make
+          sure that the chain complex is actually a chain complex:
+          the differentials are composable and their product is zero.
+
+        .. NOTE::
+
+            If this simplicial set is not finite, you must specify
+            dimensions in which to compute its chain complex via the
+            argument ``dimensions``.
+
+        EXAMPLES::
+
+            sage: simplicial_sets.Sphere(5).chain_complex()
+            Chain complex with at most 3 nonzero terms over Integer Ring
+
+            sage: C3 = groups.misc.MultiplicativeAbelian([3])
+            sage: BC3 = simplicial_sets.ClassifyingSpace(C3)
+            sage: BC3.chain_complex(range(4), base_ring=GF(3))
+            Chain complex with at most 4 nonzero terms over Finite Field of size 3
+
+        TESTS::
+
+            sage: BC3.chain_complex()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this simplicial set may be infinite, so specify dimensions when computing its chain complex
+        """
+        kwds = {'base_ring': base_ring, 'augmented': augmented, 'cochain': cochain,
+                'verbose': verbose, 'subcomplex': subcomplex, 'check': check}
+        if not self.is_finite():
+            if dimensions is None:
+                raise NotImplementedError('this simplicial set may be infinite, '
+                                          'so specify dimensions when computing '
+                                          'its chain complex')
+            else:
+                max_dim = max(dimensions)
+                return SimplicialSet_finite.chain_complex(self.n_skeleton(max_dim+1),
+                                                          dimensions=dimensions,
+                                                          **kwds)
+        return SimplicialSet_finite.chain_complex(self, dimensions=dimensions,
+                                                  **kwds)
+
     def homology(self, dim=None, **kwds):
         r"""
         Return the (reduced) homology of this simplicial set.
@@ -1740,12 +1811,20 @@ class SimplicialSet_arbitrary(Parent):
 
         TESTS::
 
+            sage: S3 = simplicial_sets.Sphere(3)
+            sage: S3.homology(0)
+            0
+            sage: S3.homology((0,))
+            {0: 0}
+            sage: S3.homology(0, reduced=False)
+            Z
+
             sage: BC3.homology()
             Traceback (most recent call last):
             ...
             NotImplementedError: this simplicial set may be infinite, so specify dimensions when computing homology
         """
-        if not isinstance(self, SimplicialSet_finite):
+        if not self.is_finite():
             if dim is None:
                 raise NotImplementedError('this simplicial set may be infinite, so '
                                           'specify dimensions when computing homology')
@@ -1753,9 +1832,9 @@ class SimplicialSet_arbitrary(Parent):
                 if isinstance(dim, (list, tuple)):
                     max_dim = max(dim)
                     space = self.n_skeleton(max_dim+1)
-                    if min(dim) == 0:
-                        H = GenericCellComplex.homology(space, **kwds)
-                        return {n: H[n] for n in H if n<=max_dim}
+                    min_dim = min(dim)
+                    H = GenericCellComplex.homology(space, **kwds)
+                    return {n: H[n] for n in H if n<=max_dim and n >= min_dim}
                 else:
                     max_dim = dim
             space = self.n_skeleton(max_dim+1)
@@ -1812,6 +1891,97 @@ class SimplicialSet_arbitrary(Parent):
             NotImplementedError: this simplicial set may be infinite, so specify dimensions when computing homology
         """
         return self.homology(dim=dim, cohomology=True, **kwds)
+
+    def betti(self, dim=None, subcomplex=None):
+        r"""
+        The Betti numbers of this simplicial complex as a dictionary
+        (or a single Betti number, if only one dimension is given):
+        the ith Betti number is the rank of the ith homology group.
+
+        INPUT:
+
+        - ``dim`` (optional, default ``None`` -- If ``None``, then
+          return the homology in every dimension.  If ``dim`` is an
+          integer or list, return the homology in the given
+          dimensions.  (Actually, if ``dim`` is a list, return the
+          homology in the range from ``min(dim)`` to ``max(dim)``.)
+
+        - ``subcomplex`` (optional, default ``None``) -- a subcomplex
+           of this cell complex.  Compute the Betti numbers of the
+           homology relative to this subcomplex.
+
+        .. NOTE::
+
+            If this simplicial set is not finite, you must specify
+            dimensions in which to compute Betti numbers via the
+            argument ``dim``.
+
+        EXAMPLES:
+
+        Build the two-sphere as a three-fold join of a
+        two-point space with itself::
+
+            sage: simplicial_sets.Sphere(5).betti()
+            {0: 1, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1}
+
+            sage: C3 = groups.misc.MultiplicativeAbelian([3])
+            sage: BC3 = simplicial_sets.ClassifyingSpace(C3)
+            sage: BC3.betti(range(4))
+            {0: 1, 1: 0, 2: 0, 3: 0}
+        """
+        dict = {}
+        H = self.homology(dim, base_ring=QQ, subcomplex=subcomplex)
+        try:
+            for n in H.keys():
+                dict[n] = H[n].dimension()
+                if n == 0:
+                    dict[n] += 1
+            return dict
+        except AttributeError:
+            return H.dimension()
+
+    def n_chains(self, n, base_ring=ZZ, cochains=False):
+        r"""
+        Return the free module of (normalized) chains in degree ``n``
+        over ``base_ring``.
+
+        This is the free module on the nondegenerate simplices in the
+        given dimension.
+
+        INPUT:
+
+        - ``n`` -- integer
+        - ``base_ring`` -- ring (optional, default `\ZZ`)
+        - ``cochains`` -- boolean (optional, default ``False``); if
+          ``True``, return cochains instead
+
+        The only difference between chains and cochains is notation:
+        the generator corresponding to the dual of a simplex
+        ``sigma`` is written as `"\chi_sigma"` in the group of
+        cochains.
+
+        EXAMPLES::
+
+            sage: S3 = simplicial_sets.Sphere(3)
+            sage: C = S3.n_chains(3, cochains=True)
+            sage: list(C.basis())
+            [\chi_sigma_3]
+            sage: Sigma3 = groups.permutation.Symmetric(3)
+            sage: BSigma3 = simplicial_sets.ClassifyingSpace(Sigma3)
+            sage: list(BSigma3.n_chains(1).basis())
+            [(1,2), (1,2,3), (1,3), (1,3,2), (2,3)]
+            sage: list(BSigma3.n_chains(1, cochains=True).basis())
+            [\chi_(1,2), \chi_(1,2,3), \chi_(1,3), \chi_(1,3,2), \chi_(2,3)]
+        """
+        if self.is_finite():
+            return GenericCellComplex.n_chains(self, n=n,
+                                               base_ring=base_ring,
+                                               cochains=cochains)
+        n_cells = tuple(self.n_cells(n))
+        if cochains:
+            return Cochains(self, n, n_cells, base_ring)
+        else:
+            return Chains(self, n, n_cells, base_ring)
 
     def quotient(self, subcomplex, vertex_name='*'):
         """
@@ -3156,6 +3326,14 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
         else:
             if not isinstance(dimensions, (list, tuple)):
                 dimensions = range(dimensions-1, dimensions+2)
+            else:
+                dimensions = [n for n in dimensions if n >= 0]
+            if not dimensions:
+                # Return the empty chain complex.
+                if cochain:
+                    return ChainComplex(base_ring=base_ring, degree=1)
+                else:
+                    return ChainComplex(base_ring=base_ring, degree=-1)
 
         differentials = {}
         # Convert the tuple self._data to a dictionary indexed by the
@@ -3182,7 +3360,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
         else:
             rank = 0
             current = []
-        if augmented:
+        if augmented and first == 0:
             differentials[first-1] = matrix(base_ring, 0, 1)
             differentials[first] = matrix(base_ring, 1, rank,
                                       [1] * rank)

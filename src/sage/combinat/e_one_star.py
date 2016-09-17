@@ -221,7 +221,6 @@ from sage.plot.polygon import polygon
 from sage.plot.line import line
 from sage.rings.integer_ring import ZZ
 from sage.misc.latex import LatexExpr
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 
 # matplotlib color maps, loaded on-demand

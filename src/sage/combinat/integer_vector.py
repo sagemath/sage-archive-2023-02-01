@@ -306,7 +306,6 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
         ..  [Gale57] \D. Gale, A theorem on flows in networks, Pacific J. Math.
             7(1957)1073-1082.
         """
-        from sage.combinat.partition import Partition
         from sage.matrix.constructor import matrix
 
         if not(is_gale_ryser(p1,p2)):

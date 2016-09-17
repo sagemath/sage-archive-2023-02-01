@@ -1477,7 +1477,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
 
     When run with no arguments :meth:`unpickle_all` tests that all of the
     "standard" pickles stored in the pickle_jar at
-    ``SAGE_ROOT/local/share/sage/ext/pickle_jar/pickle_jar.tar.bz2`` can be unpickled.
+    ``SAGE_SHARE/sage/ext/pickle_jar/pickle_jar.tar.bz2`` can be unpickled.
 
     ::
 

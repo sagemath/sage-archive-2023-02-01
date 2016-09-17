@@ -288,7 +288,7 @@ def edit_devel(self, filename, linenum):
 
     This hook calls the default implementation, but changes the filename for
     files that appear to be from the sage library: if the filename begins with
-    'SAGE_ROOT/local/lib/python.../site-packages', it replaces this by
+    'SAGE_LOCAL/lib/python.../site-packages', it replaces this by
     'SAGE_ROOT/src'.
 
     EXAMPLES::

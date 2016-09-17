@@ -329,6 +329,7 @@ AUTHORS:
 
 """
 from __future__ import print_function
+from six.moves import range
 
 import operator
 
@@ -1088,7 +1089,7 @@ def _solve_mod_prime_power(eqns, p, m, vars):
 
     TESTS:
 
-    Confirm we can reproduce the first few terms of OEIS A187719::
+    Confirm we can reproduce the first few terms of :oeis:`A187719`::
 
         sage: from sage.symbolic.relation import _solve_mod_prime_power
         sage: [sorted(_solve_mod_prime_power([x^2==41], 10, i, [x]))[0][0] for i in [1..13]]
@@ -1102,15 +1103,15 @@ def _solve_mod_prime_power(eqns, p, m, vars):
 
     mrunning = 1
     ans = []
-    for mi in xrange(m):
+    for mi in range(m):
         mrunning *= p
         R = Integers(mrunning)
         S = PolynomialRing(R, len(vars), vars)
         eqns_mod = [S(eq) for eq in eqns]
         if mi == 0:
-            possibles = cartesian_product_iterator([xrange(len(R)) for _ in xrange(len(vars))])
+            possibles = cartesian_product_iterator([range(len(R)) for _ in range(len(vars))])
         else:
-            shifts = cartesian_product_iterator([xrange(p) for _ in xrange(len(vars))])
+            shifts = cartesian_product_iterator([range(p) for _ in range(len(vars))])
             pairs = cartesian_product_iterator([shifts, ans])
             possibles = (tuple(vector(t)+vector(shift)*(mrunning//p)) for shift, t in pairs)
         ans = list(t for t in possibles if all(e(*t) == 0 for e in eqns_mod))

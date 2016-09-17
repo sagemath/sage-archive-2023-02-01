@@ -2,6 +2,7 @@
 Other functions
 """
 from __future__ import print_function
+from six.moves import range
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
@@ -1871,7 +1872,7 @@ class Function_binomial(GinacFunction):
             return n
 
         from sage.misc.all import prod
-        return prod([n - i for i in xrange(k)]) / factorial(k)
+        return prod(n - i for i in range(k)) / factorial(k)
 
     def _eval_(self, n, k):
         """

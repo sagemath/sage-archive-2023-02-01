@@ -949,7 +949,7 @@ def primes(start, stop=None, proof=None):
 
         sage: for a in range(-10, 50):
         ....:     for b in range(-10, 50):
-        ....:         assert list(primes(a,b)) == list(filter(is_prime, xrange(a,b)))
+        ....:         assert list(primes(a,b)) == list(filter(is_prime, range(a,b)))
         sage: sum(primes(-10, 9973, proof=False)) == sum(filter(is_prime, range(-10, 9973)))
         True
         sage: for p in primes(10, infinity):
@@ -4275,7 +4275,7 @@ def hilbert_conductor_inverse(d):
 
     TESTS::
 
-        sage: for i in xrange(100):
+        sage: for i in range(100):
         ....:     d = ZZ.random_element(2**32).squarefree_part()
         ....:     if hilbert_conductor(*hilbert_conductor_inverse(d)) != d:
         ....:         print("hilbert_conductor_inverse failed for d = {}".format(d))
@@ -4609,7 +4609,7 @@ def two_squares(n):
 
     TESTS::
 
-        sage: for _ in xrange(100):
+        sage: for _ in range(100):
         ....:     a = ZZ.random_element(2**16, 2**20)
         ....:     b = ZZ.random_element(2**16, 2**20)
         ....:     n = a**2 + b**2
@@ -4723,7 +4723,7 @@ def three_squares(n):
 
     TESTS::
 
-        sage: for _ in xrange(100):
+        sage: for _ in range(100):
         ....:     a = ZZ.random_element(2**16, 2**20)
         ....:     b = ZZ.random_element(2**16, 2**20)
         ....:     c = ZZ.random_element(2**16, 2**20)
@@ -4848,7 +4848,7 @@ def four_squares(n):
 
     TESTS::
 
-        sage: for _ in xrange(100):
+        sage: for _ in range(100):
         ....:     n = ZZ.random_element(2**32,2**34)
         ....:     aa,bb,cc,dd = four_squares(n)
         ....:     assert aa**2 + bb**2 + cc**2 + dd**2 == n

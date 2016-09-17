@@ -341,7 +341,7 @@ class Derangements(UniqueRepresentation, Parent):
             sage: D._fixed_point([5,4,3,2,1])
             True
         """
-        return any([x == y for (x, y) in zip(a, self._set)])
+        return any(x == y for (x, y) in zip(a, self._set))
 
     def _count_der(self, n):
         """

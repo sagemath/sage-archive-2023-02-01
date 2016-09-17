@@ -1336,7 +1336,7 @@ class TamariIntervalPoset(Element):
             True
             sage: ip.contains_binary_tree(ip.upper_binary_tree())
             True
-            sage: all([ip.contains_binary_tree(bt) for bt in ip.binary_trees()])
+            sage: all(ip.contains_binary_tree(bt) for bt in ip.binary_trees())
             True
 
         """
@@ -1364,7 +1364,7 @@ class TamariIntervalPoset(Element):
             True
             sage: ip.contains_dyck_word(ip.upper_dyck_word())
             True
-            sage: all([ip.contains_dyck_word(bt) for bt in ip.dyck_words()])
+            sage: all(ip.contains_dyck_word(bt) for bt in ip.dyck_words())
             True
         """
         return self.contains_binary_tree(dyck_word.to_binary_tree_tamari())
@@ -1452,7 +1452,7 @@ class TamariIntervalPoset(Element):
             False
             sage: ip.lower_dyck_word()
             [1, 0, 1, 1, 0, 0, 1, 0]
-            sage: all([ DyckWord([1,0,1,0,1,0]).tamari_interval(dw).is_initial_interval() for dw in DyckWords(3)])
+            sage: all(DyckWord([1,0,1,0,1,0]).tamari_interval(dw).is_initial_interval() for dw in DyckWords(3))
             True
         """
         return self.decreasing_cover_relations() == []
@@ -1476,7 +1476,7 @@ class TamariIntervalPoset(Element):
             False
             sage: ip.upper_dyck_word()
             [1, 1, 0, 1, 1, 0, 0, 0]
-            sage: all([ dw.tamari_interval(DyckWord([1, 1, 1, 0, 0, 0])).is_final_interval() for dw in DyckWords(3)])
+            sage: all(dw.tamari_interval(DyckWord([1, 1, 1, 0, 0, 0])).is_final_interval() for dw in DyckWords(3))
             True
         """
         return self.increasing_cover_relations() == []
@@ -1999,9 +1999,9 @@ class TamariIntervalPoset(Element):
             sage: ip = TamariIntervalPoset(4,[])
             sage: ip.tamari_inversions()
             [(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]
-            sage: all([len(TamariIntervalPosets.from_binary_trees(bt,bt).tamari_inversions())==0 for bt in BinaryTrees(3)])
+            sage: all(len(TamariIntervalPosets.from_binary_trees(bt,bt).tamari_inversions())==0 for bt in BinaryTrees(3))
             True
-            sage: all([len(TamariIntervalPosets.from_binary_trees(bt,bt).tamari_inversions())==0 for bt in BinaryTrees(4)])
+            sage: all(len(TamariIntervalPosets.from_binary_trees(bt,bt).tamari_inversions())==0 for bt in BinaryTrees(4))
             True
 
         """
@@ -3020,7 +3020,7 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
              The Tamari interval of size 3 induced by relations [(1, 2)],
              The Tamari interval of size 3 induced by relations [(1, 2), (3, 2)],
              The Tamari interval of size 3 induced by relations [(1, 2), (2, 3)]]
-            sage: all([len(list(TamariIntervalPosets(i)))==TamariIntervalPosets(i).cardinality() for i in range(6)])
+            sage: all(len(list(TamariIntervalPosets(i)))==TamariIntervalPosets(i).cardinality() for i in range(6))
             True
         """
         n = self._size

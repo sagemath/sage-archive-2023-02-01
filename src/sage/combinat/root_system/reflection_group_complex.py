@@ -1348,8 +1348,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 I[i] = I[i].replace('x%s'%j,'*x[%s]'%j)
             I[i] = I[i].replace("+*","+").replace("-*","-").replace("ER(5)","*(E(5)-E(5)**2-E(5)**3+E(5)**4)").lstrip("*")
         # sage_eval is used since eval kills the rational entries!
-        I = [ sage_eval(p, locals={'x':x}) for p in I ]
-        return tuple(sorted(I,lambda f,g: cmp(f.degree(),g.degree())))
+        I = [sage_eval(p, locals={'x': x}) for p in I]
+        return tuple(sorted(I, key=lambda f: f.degree()))
 
     def cartan_matrix(self):
         r"""

@@ -2300,7 +2300,13 @@ const numeric numeric::ratlog(const numeric &b, bool& israt) const {
                 }
         }
 
-        return numer().log(b.numer()) / denom().log(b.denom());
+        numeric d = denom().log(b.denom());
+        if (numer() == *_num1_p and b.numer() == *_num1_p)
+                return d;
+        numeric n = numer().log(b.numer());
+        if (n == d)
+                return n;
+        return log()/b.log();
 }
 
 const numeric numeric::tan() const {

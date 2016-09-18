@@ -1,0 +1,22 @@
+diff --git a/include/Lcomplex.h b/include/Lcomplex.h
+index aa513a6..a36088e 100644
+--- a/include/Lcomplex.h
++++ b/include/Lcomplex.h
+@@ -45,8 +45,6 @@
+ 
+ #pragma GCC system_header
+ 
+-#include <bits/c++config.h>
+-
+ //no longer include:
+ //#include <bits/cpp_type_traits.h>  only thing used was is_floating... 
+ //gcc 4.0 cpp_type_traits.h is not compatible with gcc 3.3. 
+@@ -135,7 +133,7 @@ namespace std
+       template<typename _Up>
+         complex<_Tp>& operator/=(const complex<_Up>&);
+ 
+-      friend reset(complex<_Tp>& C) {
++      friend void reset(complex<_Tp>& C) {
+ 	      reset(C._M_real);
+ 	      reset(C._M_imag);
+       }

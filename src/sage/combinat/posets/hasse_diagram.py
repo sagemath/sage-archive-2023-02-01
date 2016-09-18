@@ -2063,7 +2063,7 @@ class HasseDiagram(DiGraph):
                 all(e in ms for ms in max_sublats)]
 
     def is_convex_subset(self, S):
-        """
+        r"""
         Return ``True`` if `S` is a convex subset of the poset,
         and ``False`` otherwise.
 
@@ -2102,7 +2102,8 @@ class HasseDiagram(DiGraph):
                 if b >= s_max or b in S:
                     continue
                 # Now b not in S, b > a and a in S.
-                neighbors = lambda v_: [v for v in self.neighbor_out_iterator(v_) if v <= s_max and v not in ok]
+                neighbors = lambda v_: [v for v in self.neighbor_out_iterator(v_)
+                                        if v <= s_max and v not in ok]
                 for c in self.depth_first_search(b, neighbors=neighbors):
                     if c in S:  # Now c in S, b not in S, a in S, a < b < c.
                         return False

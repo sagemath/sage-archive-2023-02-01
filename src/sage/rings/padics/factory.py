@@ -68,7 +68,7 @@ def get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, pr
     """
     This implements create_key for Zp and Qp: moving it here prevents code duplication.
 
-    It fills in unspececified values and checks for contradictions in the input.  It also standardizes irrelevant options so that duplicate parents aren't created.
+    It fills in unspecified values and checks for contradictions in the input.  It also standardizes irrelevant options so that duplicate parents are not created.
 
     EXAMPLES::
 

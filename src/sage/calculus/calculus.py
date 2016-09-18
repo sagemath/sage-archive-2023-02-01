@@ -359,7 +359,7 @@ in :trac:`3779` is actually fixed::
 
     sage: f = function('F')(x)
     sage: diff(f*SR(1),x)
-    D[0](F)(x)
+    diff(F(x), x)
 
 Doubly ensure that :trac:`7479` is working::
 
@@ -379,7 +379,7 @@ Check that the problem with Taylor expansions of the gamma function
     + 4*euler_gamma*(sqrt(3)*pi + 9*log(3)) + 27*log(3)^2 + 12*psi(1,
     1/3))*x^2*gamma(1/3) - 1/6*(6*euler_gamma + sqrt(3)*pi +
     9*log(3))*x*gamma(1/3) + gamma(1/3)
-    sage: map(lambda f:f[0].n(), _.coefficients())  # numerical coefficients to make comparison easier; Maple 12 gives same answer
+    sage: [f[0].n() for f in _.coefficients()]  # numerical coefficients to make comparison easier; Maple 12 gives same answer
     [2.6789385347..., -8.3905259853..., 26.662447494..., -80.683148377...]
 
 Ensure that :trac:`8582` is fixed::
@@ -1269,7 +1269,7 @@ def laplace(ex, t, s):
 
         sage: f = function('f')(x)
         sage: g = f.diff(x); g
-        D[0](f)(x)
+        diff(f(x), x)
         sage: g.laplace(x, s)
         s*laplace(f(x), x, s) - f(0)
 
@@ -1414,7 +1414,7 @@ def at(ex, *args, **kwds):
         sage: diff(u(x+h), x)
         D[0](u)(h + x)
         sage: taylor(u(x+h),h,0,4)
-        1/24*h^4*D[0, 0, 0, 0](u)(x) + 1/6*h^3*D[0, 0, 0](u)(x) + 1/2*h^2*D[0, 0](u)(x) + h*D[0](u)(x) + u(x)
+        1/24*h^4*diff(u(x), x, x, x, x) + 1/6*h^3*diff(u(x), x, x, x) + 1/2*h^2*diff(u(x), x, x) + h*diff(u(x), x) + u(x)
 
     We compute a Laplace transform::
 
@@ -1422,7 +1422,7 @@ def at(ex, *args, **kwds):
         (s, t)
         sage: f=function('f')(t)
         sage: f.diff(t,2)
-        D[0, 0](f)(t)
+        diff(f(t), t, t)
         sage: f.diff(t,2).laplace(t,s)
         s^2*laplace(f(t), t, s) - s*f(0) - D[0](f)(0)
 
@@ -1519,7 +1519,7 @@ def dummy_diff(*args):
         sage: a = var('a')
         sage: f = function('cr')(a)
         sage: g = f.diff(a); g
-        D[0](cr)(a)
+        diff(cr(a), a)
     """
     f = args[0]
     args = list(args[1:])

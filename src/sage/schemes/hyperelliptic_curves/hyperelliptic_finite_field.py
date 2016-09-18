@@ -23,8 +23,6 @@ EXAMPLES::
     sage: C._points_fast_sqrt()
     [(0 : 1 : 0), (a + 1 : a : 1), (a + 1 : a + 1 : 1), (2 : a + 1 : 1), (2*a : 2*a + 2 : 1), (2*a : 2*a : 1), (1 : a + 1 : 1)]
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
 #  Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -46,6 +44,8 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six.moves import range
 
 from sage.rings.all import ZZ, RR, QQ, GF
 from sage.arith.all import binomial
@@ -350,12 +350,12 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         # computation of the reciprocal polynomial
         s = [ai - q**(i+1) - 1 for i, ai in enumerate(a)]
         coeffs = [1]
-        for i in xrange(1,g+1):
+        for i in range(1, g + 1):
             c = 0
-            for j in xrange(i):
+            for j in range(i):
                 c += s[i-1-j]*coeffs[j]
             coeffs.append(c/i)
-        coeffs = coeffs + [coeffs[g-i] * q**(i) for i in xrange(1,g+1)]
+        coeffs = coeffs + [coeffs[g-i] * q**(i) for i in range(1, g + 1)]
 
         return ZZ['x'](coeffs).reverse()
 
@@ -866,14 +866,14 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
         t = []
         Mpow = 1
-        for i in xrange(n):
+        for i in range(n):
             Mpow *= M
             t.append(Mpow.trace())
 
         t = [x.lift() for x in t]
         t = [x if 2*x < ppow else x - ppow for x in t]
 
-        return [q**(i+1) + 1 - t[i] for i in xrange(n)]
+        return [q**(i+1) + 1 - t[i] for i in range(n)]
 
     def count_points_frobenius_polynomial(self, n=1, f=None):
         r"""
@@ -926,7 +926,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         # non-zero coefficients so let us use the list() method but
         # this does not work for zero which gives the empty list
         flog = S(frev).log()
-        return [q**(i+1) + 1 + ZZ((i+1)*flog[i+1]) for i in xrange(n)]
+        return [q**(i+1) + 1 + ZZ((i+1)*flog[i+1]) for i in range(n)]
 
     def count_points_exhaustive(self, n=1, naive=False):
         r"""
@@ -973,14 +973,14 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         """
         g = self.genus()
         a = []
-        for i in xrange(1, min(n, g)+1):
+        for i in range(1, min(n, g) + 1):
             a.append(self.cardinality_exhaustive(extension_degree=i))
 
         if n <= g:
             return a
 
         if naive:
-            for i in xrange(g+1,n+1):
+            for i in range(g + 1, n + 1):
                 a.append(self.cardinality_exhaustive(extension_degree=i))
 
         # let's not be too naive and compute the frobenius polynomial
@@ -1512,10 +1512,10 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
         # compute each row of matrix as list and then M=list of lists(rows)
 
-        M=[];
+        M=[]
         for j in range(1,g+1):
             H=[Coeff[i] for i in range((p*j-1), (p*j-g-1),-1)]
-            M.append(H);
+            M.append(H)
         return matrix(Fq,M), Coeff, g, Fq,p, self
 
     #This is what is called from command line

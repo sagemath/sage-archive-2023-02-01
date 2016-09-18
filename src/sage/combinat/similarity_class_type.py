@@ -176,6 +176,8 @@ AUTHOR:
 #*****************************************************************************
 from __future__ import print_function
 
+from six.moves import range
+
 from operator import mul
 from itertools import chain, product
 from sage.misc.all import prod
@@ -802,9 +804,9 @@ class SimilarityClassType(CombinatorialElement):
             sage: tau.as_partition_dictionary()
             {[1]: [1, 1]}
         """
-        D = dict()
+        D = {}
         for PT in self:
-            if PT.partition() in D.keys():
+            if PT.partition() in D:
                 D[PT.partition()] = Partition(sorted(D[PT.partition()] + [PT.degree()]))
             else:
                 D[PT.partition()] = Partition([PT.degree()])
@@ -836,8 +838,8 @@ class SimilarityClassType(CombinatorialElement):
         numerator = prod([prod([primitives(d+1, invertible=invertible, q = q)-i for i in range(list_of_degrees.count(d+1))]) for d in range(maximum_degree)])
         tau_list = list(self)
         D = dict((i, tau_list.count(i)) for i in tau_list)
-        denominator = reduce(mul, [factorial(D[primary_type]) for primary_type in D.keys()])
-        return numerator/denominator
+        denominator = reduce(mul, [factorial(D[primary_type]) for primary_type in D])
+        return numerator / denominator
 
     def is_semisimple(self):
         """
@@ -1196,7 +1198,7 @@ def dictionary_from_generator(gen):
     EXAMPLES::
 
         sage: from sage.combinat.similarity_class_type import dictionary_from_generator
-        sage: dictionary_from_generator(((floor(x/2), x) for x in xrange(10)))
+        sage: dictionary_from_generator(((floor(x/2), x) for x in range(10)))
         {0: 1, 1: 5, 2: 9, 3: 13, 4: 17}
 
     It also works with lists::

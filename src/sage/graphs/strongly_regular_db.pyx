@@ -1610,9 +1610,10 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
         return None
 
     def switch_OA_srg(c,n):
-        from itertools import izip
+        from builtins import zip
         OA = map(tuple,orthogonal_array(c+1,n,resolvable=True))
-        g = Graph([OA,lambda x,y: any(xx==yy for xx,yy in izip(x,y))],loops=False)
+        g = Graph([OA, lambda x,y: any(xx==yy for xx,yy in zip(x,y))],
+                  loops=False)
         g.add_vertex(0)
         g.seidel_switching(OA[:c*n])
         return g
@@ -1788,9 +1789,9 @@ def _H_3_cayley_graph(L):
     G = FinitelyPresentedGroup(G,rels)
     x,y,z = G.gens()
     H = G.as_permutation_group()
-    L = map(lambda x:map(int,x),L)
-    x,y,z=(H.gen(0),H.gen(1),H.gen(2))
-    L = [H(x**xx*y**yy*z**zz) for xx,yy,zz in L]
+    L = [[int(u) for u in x] for x in L]
+    x, y, z = (H.gen(0), H.gen(1), H.gen(2))
+    L = [H(x**xx*y**yy*z**zz) for xx, yy, zz in L]
     return Graph(H.cayley_graph(generators=L, simple=True))
 
 def SRG_100_44_18_20():
@@ -2417,7 +2418,7 @@ def strongly_regular_from_two_intersection_set(M):
       Ars Comb. 109 (2013): 309-319.
       https://biblio.ugent.be/publication/4241842/file/4241845.pdf
     """
-    from itertools import product, izip
+    from itertools import product
     K = M.base_ring()
     k = M.ncols()
     g = Graph()

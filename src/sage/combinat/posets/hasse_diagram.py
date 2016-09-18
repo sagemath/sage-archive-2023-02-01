@@ -18,6 +18,8 @@ Hasse diagrams of posets
 #*****************************************************************************
 from __future__ import print_function
 
+from six.moves import range
+
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
@@ -69,7 +71,7 @@ class HasseDiagram(DiGraph):
             [0, 1, 2, 3]
         """
         # Recall: we assume range(n) is a linear extension.
-        return range(len(self))
+        return list(range(len(self)))
 
     def linear_extensions(self):
         r"""
@@ -97,7 +99,7 @@ class HasseDiagram(DiGraph):
             sage: H.is_linear_extension([3,2,1,0])
             False
         """
-        if lin_ext is None or lin_ext == range(len(self)):
+        if lin_ext is None or lin_ext == list(range(len(self))):
             for x,y in self.cover_relations_iterator():
                 if not x < y:
                     return False
@@ -399,7 +401,7 @@ class HasseDiagram(DiGraph):
             False
         """
         H = self.reverse()
-        H.relabel(perm=range(H.num_verts()-1,-1,-1), inplace=True)
+        H.relabel(perm=list(range(H.num_verts()-1, -1, -1)), inplace=True)
         return HasseDiagram(H)
 
     def interval(self, x, y):
@@ -1257,7 +1259,7 @@ class HasseDiagram(DiGraph):
         else:
             return True
 
-    def is_semidistributive(self, meet_or_join):
+    def find_nonsemidistributive_elements(self, meet_or_join):
         r"""
         Check if the lattice is semidistributive or not.
 
@@ -1281,9 +1283,9 @@ class HasseDiagram(DiGraph):
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1, 2], 1:[3, 4], 2:[4, 5], 3:[6],
             ....:                   4:[6], 5:[6]})
-            sage: H.is_semidistributive('join') is None
+            sage: H.find_nonsemidistributive_elements('join') is None
             False
-            sage: H.is_semidistributive('meet') is None
+            sage: H.find_nonsemidistributive_elements('meet') is None
             True
         """
         if meet_or_join == 'join':
@@ -1406,10 +1408,10 @@ class HasseDiagram(DiGraph):
         top = self.cardinality() - 1
         has_complement = [False] * top
 
-        for i in xrange(1, top):
+        for i in range(1, top):
             if has_complement[i]:
                 continue
-            for j in xrange(top, 0, -1):
+            for j in range(top, 0, -1):
                 if jn[i, j] == top and mt[i, j] == 0:
                     has_complement[j] = True
                     break
@@ -1593,9 +1595,9 @@ class HasseDiagram(DiGraph):
                 orbit_number[e] = ind
 
         comps = [None] * n
-        for e in xrange(n):
+        for e in range(n):
             # Fix following after ticket #20727
-            comps[e] = [x for x in xrange(n) if
+            comps[e] = [x for x in range(n) if
                         self._meet[e, x] == 0 and self._join[e, x] == n-1 and
                         x in orbits[orbit_number[dual_isomorphism[e]]]]
 
@@ -1627,7 +1629,7 @@ class HasseDiagram(DiGraph):
 
         start = [None] * n
         # A little optimization
-        for e in xrange(n):
+        for e in range(n):
             if len(comps[e]) == 0:  # Not any possible orthocomplement
                 raise(StopIteration)
             if len(comps[e]) == 1:  # Do not re-fit this every time
@@ -1641,10 +1643,60 @@ class HasseDiagram(DiGraph):
                 if start[e_] is None:
                     start[e] = e_
                     start[e_] = e
-        start_unbinded = [e for e in xrange(n) if start[e] is None]
+        start_unbinded = [e for e in range(n) if start[e] is None]
 
         for i_want_python3_yield_from in recursive_fit(start, start_unbinded):
             yield i_want_python3_yield_from
+
+    def find_nonsemimodular_pair(self, upper):
+        """
+        Return pair of elements showing the lattice is not modular.
+
+        INPUT:
+
+        - upper, a Boolean -- if ``True``, test wheter the lattice is
+          upper semimodular; otherwise test whether the lattice is
+          lower semimodular.
+
+        OUTPUT:
+
+        ``None``, if the lattice is semimodular. Pair `(a, b)` violating
+        semimodularity otherwise.
+
+        EXAMPLES::
+    
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[1, 2], 1:[3, 4], 2:[4, 5], 3:[6], 4:[6], 5:[6]})
+            sage: H.find_nonsemimodular_pair(upper=True) is None
+            True
+            sage: H.find_nonsemimodular_pair(upper=False)
+            (5, 3)
+
+            sage: H_ = HasseDiagram(H.reverse().relabel(lambda x: 6-x, inplace=False))
+            sage: H_.find_nonsemimodular_pair(upper=True)
+            (3, 1)
+            sage: H_.find_nonsemimodular_pair(upper=False) is None
+            True
+        """
+        if upper:
+            neighbors = self.neighbors_out
+        else:
+            neighbors = self.neighbors_in
+
+        n = self.order()
+        for e in range(n):
+            covers = neighbors(e)
+            covers_len = len(covers)
+            if covers_len < 2:
+                continue
+            for a_i in range(covers_len):
+                a = covers[a_i]
+                covers_a = neighbors(a)
+                for b_i in range(a_i):
+                    b = covers[b_i]
+                    if not any(j in covers_a for j in neighbors(b)):
+                        return (a, b)
+        return None
 
     def antichains_iterator(self):
         r"""
@@ -1688,7 +1740,7 @@ class HasseDiagram(DiGraph):
         # antichains_queues never grows longer than self.cardinality().
         # Indeed, if a appears before b in antichains_queues, then
         # the largest element of a is strictly smaller than that of b.
-        antichains_queues = [([], range(self.cardinality()-1,-1,-1))]
+        antichains_queues = [([], list(range(self.cardinality()-1, -1, -1)))]
         leq = self.lequal_matrix()
         while antichains_queues:
             (antichain, queue) = antichains_queues.pop()

@@ -2213,7 +2213,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         INPUT:
 
-        - ``aprec`` -- an integer, the precison to which to compute the
+        - ``aprec`` -- an integer, the precision to which to compute the
           exponential
 
         EXAMPLES::

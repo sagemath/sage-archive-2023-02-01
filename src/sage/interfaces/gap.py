@@ -1286,8 +1286,9 @@ class Gap(Gap_generic):
 
         TESTS:
 
-        We make sure that #9938 (GAP does not start if the path to the GAP
-        workspace file contains more than 82 characters) is fixed::
+        We make sure that :trac:`9938` (GAP does not start if the path
+        to the GAP workspace file contains more than 82 characters) is
+        fixed::
 
             sage: ORIGINAL_WORKSPACE = sage.interfaces.gap.WORKSPACE
             sage: sage.interfaces.gap.WORKSPACE = os.path.join(SAGE_TMP, "gap" + "0"*(80-len(SAGE_TMP)))

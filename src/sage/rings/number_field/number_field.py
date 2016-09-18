@@ -129,7 +129,8 @@ from sage.structure.proof.proof import get_flag
 from . import maps
 from . import structure
 from . import number_field_morphisms
-from itertools import count, izip
+from itertools import count
+from builtins import zip
 
 
 def is_NumberFieldHomsetCodomain(codomain):
@@ -3914,7 +3915,7 @@ class NumberField_generic(number_field_base.NumberField):
         proof = proof_flag(proof)
         if all(P.is_principal() for P in S):
             C = self.class_group(proof=proof)
-            Slist = zip([g.ideal() for g in C.gens()], C.invariants())
+            Slist = list(zip([g.ideal() for g in C.gens()], C.invariants()))
         else:
             Slist = self._S_class_group_and_units(tuple(S), proof=proof)[1]
         return SClassGroup(tuple(s[1] for s in Slist), names, self,
@@ -4273,7 +4274,7 @@ class NumberField_generic(number_field_base.NumberField):
         one = self.one()
         from sage.misc.all import cartesian_product_iterator
         for ev in cartesian_product_iterator([range(o) for o in ords]):
-            yield prod([p**e for p,e in zip(KSgens, ev)], one)
+            yield prod([p ** e for p, e in zip(KSgens, ev)], one)
 
     def composite_fields(self, other, names=None, both_maps=False, preserve_embedding=True):
         """
@@ -7529,7 +7530,7 @@ class NumberField_absolute(NumberField_generic):
         Test that caching works::
 
             sage: K.<a> = NumberField(x^3 - 2)
-            sage: K.order(a) is K.order(a)
+            sage: K.order(a) is K.order(a)      # indirect doctest
             True
 
         Keywords have no influence on the caching::
@@ -9042,6 +9043,23 @@ class NumberField_cyclotomic(NumberField_absolute):
         self._init_embedding_approx()
 
     def construction(self):
+        """
+        Return data defining a functorial construction of ``self``.
+
+        EXAMPLES::
+
+            sage: F, R = CyclotomicField(5).construction()
+            sage: R
+            Rational Field
+            sage: F.polys
+            [x^4 + x^3 + x^2 + x + 1]
+            sage: F.names
+            ['zeta5']
+            sage: F.embeddings
+            [0.309016994374948? + 0.951056516295154?*I]
+            sage: F.structures
+            [None]
+        """
         F,R = NumberField_generic.construction(self)
         F.cyclotomic = self.__n
         return F,R
@@ -10745,4 +10763,4 @@ def refine_embedding(e, prec=None):
     # relies on the fact that coercing a high-precision root into a
     # field with lower precision will equal the lower-precision root!
     diffs = [(RC(ee(K.gen()))-old_root).abs() for ee in elist]
-    return elist[min(izip(diffs,count()))[1]]
+    return elist[min(zip(diffs, count()))[1]]

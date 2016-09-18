@@ -559,19 +559,13 @@ cdef class CategoryObject(SageObject):
         for v, g in zip(vs, gs):
             scope[v] = g
 
-    def injvar(self, scope=None, verbose=True):
-        """
-        This is a deprecated synonym for :meth:`.inject_variables`.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(4143, 'injvar is deprecated; use inject_variables instead.')
-        return self.inject_variables(scope=scope, verbose=verbose)
-
     #################################################################################################
     # Bases
     #################################################################################################
 
     def has_base(self, category=None):
+        from sage.misc.superseded import deprecation
+        deprecation(21395, "The method has_base() is deprecated and will be removed")
         if category is None:
             return self._base is not None
         else:
@@ -704,9 +698,6 @@ cdef class CategoryObject(SageObject):
 
     def latex_name(self):
         return self.latex_variable_names()[0]
-
-    def _temporarily_change_names(self, names):
-        self._names = names
 
     #################################################################################
     # Give all objects with generators a dictionary, so that attribute setting
@@ -1111,55 +1102,3 @@ cpdef bint certify_names(names) except -1:
             raise ValueError("variable name {!r} appears more than once".format(N))
         s.add(N)
     return True
-
-
-class localvars:
-    r"""
-    Context manager for safely temporarily changing the variables
-    names of an object with generators.
-
-    Objects with named generators are globally unique in Sage.
-    Sometimes, though, it is very useful to be able to temporarily
-    display the generators differently.   The new Python ``with``
-    statement and the localvars context manager make this easy and
-    safe (and fun!)
-
-    Suppose X is any object with generators.  Write
-
-    ::
-
-        with localvars(X, names[, latex_names] [,normalize=False]):
-            some code
-            ...
-
-    and the indented code will be run as if the names in ``X`` are changed to
-    the new names. If you give ``normalize=True``, then the names are assumed
-    to be a tuple of the correct number of strings.
-
-    EXAMPLES::
-
-       sage: R.<x,y> = PolynomialRing(QQ,2)
-       sage: with localvars(R, 'z,w'):
-       ....:     print(x^3 + y^3 - x*y)
-       z^3 + w^3 - z*w
-
-    NOTES: I wrote this because it was needed to print elements of the quotient
-    of a ring `R` by an ideal `I` using the print function for elements of `R`.
-    See the code in :mod:`sage.rings.quotient_ring_element`.
-
-    AUTHOR: William Stein (2006-10-31)
-    """
-    # fix this so that it handles latex names with the printer framework.
-    def __init__(self, obj, names, latex_names=None, normalize=True):
-        self._obj = obj
-        if normalize:
-            self._names = normalize_names(obj.ngens(), names)
-        else:
-            self._names = names
-
-    def __enter__(self):
-        self._orig_names = (<CategoryObject?>self._obj)._names
-        self._obj._temporarily_change_names(self._names)
-
-    def __exit__(self, type, value, traceback):
-        self._obj._temporarily_change_names(self._orig_names)

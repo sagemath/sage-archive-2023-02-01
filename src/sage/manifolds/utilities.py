@@ -443,10 +443,9 @@ class ExpressionNice(Expression):
     The standard Pynac display of partial derivatives::
 
         sage: fun
-        y*(z - D[1](h)(y, z))^2 + x*D[0, 1](f)(x, y)
+        y*(z - diff(h(y, z), z))^2 + x*diff(f(x, y), x, y)
         sage: latex(fun)
-        y {\left(z - D[1]\left(h\right)\left(y, z\right)\right)}^{2}
-         + x D[0, 1]\left(f\right)\left(x, y\right)
+        y {\left(z - \frac{\partial}{\partial z}h\left(y, z\right)\right)}^{2} + x \frac{\partial^{2}}{\partial x\partial y}f\left(x, y\right)
 
     With :class:`ExpressionNice`, the Pynac notation ``D[...]`` is replaced
     by textbook-like notation::
@@ -464,7 +463,7 @@ class ExpressionNice(Expression):
         sage: g = function('g')(x, f)  # the second variable is the function f
         sage: fun = (g.diff(x))*x - x^2*f.diff(x,y)
         sage: fun
-        -x^2*D[0, 1](f)(x, y) + (D[0](f)(x, y)*D[1](g)(x, f(x, y)) + D[0](g)(x, f(x, y)))*x
+        -x^2*diff(f(x, y), x, y) + (diff(f(x, y), x)*D[1](g)(x, f(x, y)) + D[0](g)(x, f(x, y)))*x
         sage: ExpressionNice(fun)
         -x^2*d^2(f)/dxdy + (d(f)/dx*d(g)/d(f(x, y)) + d(g)/dx)*x
         sage: latex(ExpressionNice(fun))
@@ -479,7 +478,7 @@ class ExpressionNice(Expression):
 
         sage: fun = f.diff(x,x,y,y,x)*x
         sage: fun
-        x*D[0, 0, 0, 1, 1](f)(x, y)
+        x*diff(f(x, y), x, x, x, y, y)
         sage: ExpressionNice(fun)
         x*d^5(f)/dx^3dy^2
         sage: latex(ExpressionNice(fun))
@@ -490,7 +489,7 @@ class ExpressionNice(Expression):
 
         sage: fun = f.diff(y)^2
         sage: fun
-        D[1](f)(x, y)^2
+        diff(f(x, y), y)^2
         sage: ExpressionNice(fun)
         (d(f)/dy)^2
         sage: latex(ExpressionNice(fun))
@@ -523,7 +522,7 @@ class ExpressionNice(Expression):
             sage: f = function('f')(x)
             sage: df = f.diff(x)
             sage: df
-            D[0](f)(x)
+            diff(f(x), x)
             sage: from sage.manifolds.utilities import ExpressionNice
             sage: df_nice = ExpressionNice(df)
             sage: df_nice
@@ -548,7 +547,7 @@ class ExpressionNice(Expression):
             sage: k = h.diff(z)
             sage: fun = x*g + y*(k-z)^2
             sage: fun
-            y*(z - D[1](h)(y, z))^2 + x*D[0, 1](f)(x, y)
+            y*(z - diff(h(y, z), z))^2 + x*diff(f(x, y), x, y)
             sage: from sage.manifolds.utilities import ExpressionNice
             sage: ExpressionNice(fun)
             y*(z - d(h)/dz)^2 + x*d^2(f)/dxdy
@@ -625,7 +624,7 @@ class ExpressionNice(Expression):
             sage: k = h.diff(z)
             sage: fun = x*g + y*(k-z)^2
             sage: fun
-            y*(z - D[1](h)(y, z))^2 + x*D[0, 1](f)(x, y)
+            y*(z - diff(h(y, z), z))^2 + x*diff(f(x, y), x, y)
             sage: from sage.manifolds.utilities import ExpressionNice
             sage: ExpressionNice(fun)
             y*(z - d(h)/dz)^2 + x*d^2(f)/dxdy
@@ -743,7 +742,7 @@ def _list_derivatives(ex, list_d, exponent=0):
         sage: list_d = []
         sage: _list_derivatives(df, list_d)
         sage: list_d
-        [(D[0](f_x)(x), 'f_x', {\cal F}, [0], [x], 2)]
+        [(diff(f_x(x), x), 'f_x', {\cal F}, [0], [x], 2)]
 
     """
     op = ex.operator()

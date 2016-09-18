@@ -1022,7 +1022,7 @@ class FullyPackedLoop(Element):
         vertices_d = self._vertex_dictionary.copy()
 
         while len(boundary_d) > 2:
-            startpoint = boundary_d.keys()[0]
+            startpoint = list(boundary_d)[0]
             position = boundary_d[startpoint]
 
             boundary_d.pop(startpoint)
@@ -1043,7 +1043,7 @@ class FullyPackedLoop(Element):
             link_pattern.append((startpoint, endpoint))
             boundary_d.pop(endpoint)
 
-        link_pattern.append(tuple(boundary_d.keys()))
+        link_pattern.append(tuple(boundary_d))
 
         return link_pattern
 

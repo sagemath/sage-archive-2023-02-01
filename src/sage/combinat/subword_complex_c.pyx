@@ -42,7 +42,7 @@ cpdef int _flip_c(W, set positions, list extended_root_conf_indices,
     nr_ref = W.number_of_reflections()
     r_minus = (r + nr_ref) % (2 * nr_ref)  # get the negative root -r
     j = i
-    for k in xrange(len(extended_root_conf_indices)):
+    for k in range(len(extended_root_conf_indices)):
         if extended_root_conf_indices[k] == r_minus and k not in positions and side != "positive":
             j = k
             break

@@ -157,9 +157,6 @@ import weakref
 from category_object import CategoryObject
 from coerce_exceptions import CoercionException
 
-# TODO: Theses should probably go in the printer module (but lots of stuff imports them from parent)
-from category_object import localvars
-
 cdef object BuiltinMethodType = type(repr)
 
 from cpython.object cimport *

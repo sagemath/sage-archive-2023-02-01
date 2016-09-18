@@ -113,6 +113,7 @@ REFERENCES:
 #*****************************************************************************
 # python3
 from __future__ import division, print_function
+from six.moves import range
 
 from copy import copy
 from sage.misc.cachefunc import cached_method
@@ -548,7 +549,7 @@ class SubwordComplexFacet(Simplex, Element):
             if coefficients is not None:
                 coeff = {I[i]: coefficients[i]
                          for i in range(len(coefficients))}
-                Lambda = {li: coeff[li] * Lambda[li] for li in Lambda.keys()}
+                Lambda = {li: coeff[li] * Lambda[li] for li in Lambda}
             Q = self.parent().word()
             V_weights = []
             Phi = W.roots()
@@ -922,7 +923,7 @@ class SubwordComplexFacet(Simplex, Element):
 
         # transform list to real lines
         list_colors += ['red', 'blue', 'green', 'orange', 'yellow', 'purple']
-        list_colors += colors.keys()
+        list_colors += list(colors)
         thickness = max(thickness, 2)
         L = line([(1, 1)])
         for contact_point in contact_points:
@@ -1228,7 +1229,7 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
         """
         W = self.group()
         Q = self.word()
-        if not all(i in range(len(Q)) for i in F):
+        if not all(i in list(range(len(Q))) for i in F):
             return False
         return W.from_reduced_word(Qi for i, Qi in enumerate(Q) if i not in F) == self.pi()
 
@@ -1965,7 +1966,7 @@ def _greedy_facet(Q, w, side="negative", n=None, pos=0, l=None, elems=[]):
         l = w.length()
 
     if l == 0:
-        return elems + range(pos, n)
+        return elems + list(range(pos, n))
     elif n < l:
         return []
 

@@ -1035,9 +1035,18 @@ class Function_gamma_inc(BuiltinFunction):
             0.0404276819945128
             sage: x,y=var('x,y')
             sage: gamma_inc(x,y).diff(x)
-            D[0](gamma)(x, y)
+            diff(gamma(x, y), x)
             sage: (gamma_inc(x,x+1).diff(x)).simplify()
             -(x + 1)^(x - 1)*e^(-x - 1) + D[0](gamma)(x, x + 1)
+
+        TESTS:
+
+        Check that :trac:`21407` is fixed::
+
+            sage: gamma(-1,5)._sympy_()
+            expint(2, 5)/5
+            sage: gamma(-3/2,5)._sympy_()
+            -6*sqrt(5)*exp(-5)/25 + 4*sqrt(pi)*erfc(sqrt(5))/3
 
     .. SEEALSO::
 
@@ -1045,7 +1054,7 @@ class Function_gamma_inc(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "gamma", nargs=2, latex_name=r"\Gamma",
                 conversions={'maxima':'gamma_incomplete', 'mathematica':'Gamma',
-                    'maple':'GAMMA'})
+                    'maple':'GAMMA', 'sympy':'uppergamma'})
 
     def _eval_(self, x, y):
         """
@@ -1109,7 +1118,7 @@ class Function_gamma_inc(BuiltinFunction):
             (-0.8231640121031085+3.141592653589793j)
             sage: gamma_inc(RR(-1), RR(-1))
             -0.823164012103109 + 3.14159265358979*I
-            sage: gamma_inc(-1, float(-log(3))) - gamma_inc(-1, float(-log(2)))
+            sage: gamma_inc(-1, float(-log(3))) - gamma_inc(-1, float(-log(2)))  # abs tol 1e-15
             (1.2730972164471142+0j)
 
         Check that :trac:`17130` is fixed::

@@ -930,11 +930,15 @@ Methods
 #*****************************************************************************
 from __future__ import print_function
 
+from builtins import zip
+from six.moves import range
+
 from six import itervalues
+from six.moves import zip_longest
 
 import collections
 import itertools
-from six.moves import zip_longest
+
 import sage
 
 
@@ -4406,7 +4410,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: T.default_format_transition_label(iter([]))
             '\\varepsilon'
         """
-        result = " ".join(itertools.imap(self.format_letter, word))
+        result = " ".join(self.format_letter(u) for u in word)
         if result:
             return result
         else:
@@ -10929,7 +10933,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         relabeled = self.relabeled()
         n = len(relabeled.states())
-        assert [s.label() for s in relabeled.states()] == range(n)
+        assert [s.label() for s in relabeled.states()] == list(range(n))
         from sage.rings.integer_ring import ZZ
         entry_vector = vector(ZZ(s.is_initial)
                               for s in relabeled.states())
@@ -13323,7 +13327,7 @@ class _FSMTapeCache_(sage.structure.sage_object.SageObject):
         """
         if not len(tape) == len(position) == len(tape_ended):
             raise TypeError('The lengths of the inputs do not match')
-        if sorted(p[1] for p in position) != range(len(tape)):
+        if sorted(p[1] for p in position) != list(range(len(tape))):
             raise TypeError('Tape position %s wrong.' % (position,))
         self.position = position
         self.tape = tape
@@ -13769,12 +13773,12 @@ class _FSMTapeCache_(sage.structure.sage_object.SageObject):
 
         if self.is_multitape:
             increments = tuple(length(word) for word in
-                               itertools.izip(*transition.word_in))
+                               zip(*transition.word_in))
         else:
             increments = (length(transition.word_in),)
 
         for track_number, (track_cache, inc) in \
-                enumerate(itertools.izip(self.cache, increments)):
+                enumerate(zip(self.cache, increments)):
             for _ in range(inc):
                 if not track_cache:
                     if not self.read(track_number)[0]:
@@ -14108,7 +14112,7 @@ def wordoftuples_to_tupleofwords(wordoftuples):
     def remove_empty_letters(word):
         return [letter for letter in word if letter is not None]
     return tuple(remove_empty_letters(word)
-                 for word in itertools.izip(*wordoftuples))
+                 for word in zip(*wordoftuples))
 
 
 #*****************************************************************************
@@ -14879,7 +14883,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
                      for _ in range(len(next_transitions) - 1)])
 
             # process transitions
-            for transition, (tape, out) in itertools.izip(next_transitions, new_currents):
+            for transition, (tape, out) in zip(next_transitions, new_currents):
                 if hasattr(transition, 'hook'):
                     transition.hook(transition, self)
                 write_word(out, transition.word_out)
@@ -15441,7 +15445,7 @@ class _FSMProcessIteratorAll_(FSMProcessIterator):
         if max_length is None:
             kwargs['input_tape'] = itertools.count()
         else:
-            kwargs['input_tape'] = iter(0 for _ in xrange(max_length))
+            kwargs['input_tape'] = iter(0 for _ in range(max_length))
         self.TapeCache = _FSMTapeCacheDetectAll_
         self.visited_states = {}
         kwargs['check_epsilon_transitions'] = False

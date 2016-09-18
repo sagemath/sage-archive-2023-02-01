@@ -138,6 +138,7 @@ REFERENCE:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 import bz2
 import os
@@ -241,8 +242,10 @@ class SteinWatkinsAllData:
                 C.curves.append([eval(w[0]), w[1], w[2], w[3]])
         yield C
 
-    def next(self):
+    def __next__(self):
         return next(self._iter)
+
+    next = __next__
 
     def __getitem__(self, N):
         """
@@ -351,7 +354,7 @@ def ecdb_num_curves(max_level=200000):
     i = 0
     N = 1
     d = SteinWatkinsAllData(i)
-    v = [int(0) for _ in xrange(max_level+1)]
+    v = [int(0) for _ in range(max_level + 1)]
     while True:
         try:
             C = next(d)

@@ -16,6 +16,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #                         http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import absolute_import, division
+from six.moves import range
 
 from copy import copy
 from math import sin, cos, pi
@@ -637,8 +638,8 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
         Fq = FiniteField(q**2, 'a')
         PG = map(vector, ProjectiveSpace(m - 1, Fq))
         map(lambda x: x.set_immutable(), PG)
-        def P(x,y):
-            return sum(map(lambda j: x[j]*y[m-1-j]**q, xrange(m)))==0
+        def P(x, y):
+            return sum(x[j] * y[m - 1 - j] ** q for j in range(m)) == 0
 
         V = filter(lambda x: P(x,x), PG)
         G = Graph([V,lambda x,y:  # bottleneck is here, of course:
@@ -885,8 +886,9 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     from six.moves.builtins import sum
     Fq = FiniteField(q**2, 'a')
     PG = map(tuple,ProjectiveSpace(2, Fq))
-    def S(x,y):
-        return sum(map(lambda j: x[j]*y[2-j]**q, xrange(3)))
+
+    def S(x, y):
+        return sum(x[j] * y[2 - j] ** q for j in range(3))
 
     V = filter(lambda x: S(x,x)==0, PG) # the points of the unital
     v0 = V[0]
@@ -1189,7 +1191,7 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
         raise ValueError('q must be a power of 2')
 
     if hyperoval_matching is None:
-        hyperoval_matching = [(2 * k + 1, 2 * k) for k in xrange(1 + q // 2)]
+        hyperoval_matching = [(2 * k + 1, 2 * k) for k in range(1 + q // 2)]
     if field is None:
         F = GF(q, 'a')
     else:
@@ -1206,7 +1208,7 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
     P = map(lambda x: normalize(x[0]-x[1]), G.vertices())
     O = list(set(map(tuple,P)))
     I_ks = {x:[] for x in range(q+2)} # the partition into I_k's
-    for i in xrange(len(P)):
+    for i in range(len(P)):
         I_ks[O.index(tuple(P[i]))].append(i)
 
     # perform the adjustment of the edges, as described.

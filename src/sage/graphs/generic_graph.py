@@ -309,7 +309,7 @@ Methods
 -------
 """
 from __future__ import print_function, absolute_import, division
-
+from six.moves import range
 from six import itervalues
 
 from copy import copy
@@ -1111,7 +1111,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES:
 
             sage: g = Graph({0:[1,2,3], 2:[4]}, immutable=True)
-            sage: g.weighted(range(5))
+            sage: g.weighted(list(range(5)))
             Traceback (most recent call last):
             ...
             TypeError: This graph is immutable and can thus not be changed.
@@ -1950,8 +1950,8 @@ class GenericGraph(GenericGraph_pyx):
 
         dist = self.distance_all_pairs()
 
-        for i in xrange(n):
-            for j in xrange(i+1,n):
+        for i in range(n):
+            for j in range(i+1,n):
                 d = (dist[V[i]])[V[j]]
                 if d > n :
                     raise ValueError("Input (di)graph must be (strongly) connected.")
@@ -4659,10 +4659,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = K5.copy()
             sage: s = 4
             sage: for i in range(1,100):
-            ...       k = K5.relabel(range(s,s+5),inplace=False)
-            ...       G.add_edges(k.edges())
-            ...       s += 4
-            ...
+            ....:     k = K5.relabel(list(range(s,s+5)),inplace=False)
+            ....:     G.add_edges(k.edges())
+            ....:     s += 4
             sage: G.genus()
             100
 
@@ -5047,7 +5046,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.KrackhardtKiteGraph().blocks_and_cut_vertices()
             ([[8, 9], [7, 8], [0, 1, 2, 3, 4, 5, 6, 7]], [7, 8])
             sage: G=Graph()  # make a bowtie graph where 0 is a cut vertex
-            sage: G.add_vertices(range(5))
+            sage: G.add_vertices(list(range(5)))
             sage: G.add_edges([(0,1),(0,2),(0,3),(0,4),(1,2),(3,4)])
             sage: G.blocks_and_cut_vertices()
             ([[0, 1, 2], [0, 3, 4]], [0])
@@ -5683,7 +5682,7 @@ class GenericGraph(GenericGraph_pyx):
         p.set_objective(None)
 
         # The colors we can use
-        colors = range(0,k)
+        colors = list(range(k))
 
         # edges[j,e] is equal to one if and only if edge e belongs to color j
         edges = p.new_variable(binary=True)
@@ -6081,7 +6080,7 @@ class GenericGraph(GenericGraph_pyx):
            sage: [value, vertices] = g.vertex_cut(0, 1, value_only=False)
            sage: print(value)
            8
-           sage: vertices == range(2,10)
+           sage: vertices == list(range(2,10))
            True
 
         Clearly, in this case the two sides of the cut are singletons ::
@@ -9423,7 +9422,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.misc.prandom import randint
         it = self.vertex_iterator(**kwds)
-        for i in xrange(0, randint(0, self.order() - 1)):
+        for i in range(0, randint(0, self.order() - 1)):
             next(it)
         return next(it)
 
@@ -9495,7 +9494,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.misc.prandom import randint
         it = self.edge_iterator(**kwds)
-        for i in xrange(0, randint(0, self.size() - 1)):
+        for i in range(0, randint(0, self.size() - 1)):
             next(it)
         return next(it)
 
@@ -10199,7 +10198,7 @@ class GenericGraph(GenericGraph_pyx):
         if not self.has_edge(u, v, l):
             raise ValueError("The given edge does not exist.")
 
-        new_verts = [self.add_vertex() for i in xrange(k)]
+        new_verts = [self.add_vertex() for i in range(k)]
 
         self.delete_edge(u, v, l)
 
@@ -10417,7 +10416,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: SD.set_edge_label(17, 15, 'v_k finite')
             sage: SD.set_edge_label(14, 15, 'v_k m.c.r.')
             sage: posn = {1:[ 3,-3],  2:[0,2],  3:[0, 13],  4:[3,9],  5:[3,3],  6:[16, 13], 7:[6,1],  8:[6,6],  9:[6,11], 10:[9,1], 11:[10,6], 12:[13,6], 13:[16,2], 14:[10,-6], 15:[0,-10], 16:[14,-6], 17:[16,-10], 18:[6,-4]}
-            sage: SD.plot(pos=posn, vertex_size=400, vertex_colors={'#FFFFFF':range(1,19)}, edge_labels=True).show() # long time
+            sage: SD.plot(pos=posn, vertex_size=400, vertex_colors={'#FFFFFF':list(range(1,19))}, edge_labels=True).show() # long time
 
         ::
 
@@ -11396,7 +11395,7 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: g=graphs.PathGraph(1000)
-            sage: g.subgraph(range(10)) # uses the 'add' algorithm
+            sage: g.subgraph(list(range(10))) # uses the 'add' algorithm
             Subgraph of (Path graph): Graph on 10 vertices
 
 
@@ -11933,7 +11932,7 @@ class GenericGraph(GenericGraph_pyx):
         `T_5` ? The answer is of course `0` ::
 
              sage: T5 = DiGraph()
-             sage: T5.add_edges([(i,j) for i in xrange(5) for j in xrange(i+1, 5)])
+             sage: T5.add_edges([(i,j) for i in range(5) for j in range(i+1, 5)])
              sage: T5.subgraph_search_count(digraphs.Circuit(3))
              0
 
@@ -12800,7 +12799,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
-            sage: G = P.subgraph(range(6))
+            sage: G = P.subgraph(list(range(6)))
             sage: G.is_subgraph(P)
             True
 
@@ -14650,7 +14649,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Comparison on algorithms::
 
-            sage: for i in xrange(10): # long test
+            sage: for i in range(10): # long test
             ....:     G = graphs.RandomBarabasiAlbert(50,2)
             ....:     results = []
             ....:     results.append(G.triangles_count(algorithm='matrix'))
@@ -16457,18 +16456,18 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G = Graph()
-            sage: G.add_vertices(range(10)); G
+            sage: G.add_vertices(list(range(10))); G
             Graph on 10 vertices
             sage: show(G)
-            sage: G.add_cycle(range(20)[10:20])
+            sage: G.add_cycle(list(range(20))[10:20])
             sage: show(G)
-            sage: G.add_cycle(range(10))
+            sage: G.add_cycle(list(range(10)))
             sage: show(G)
 
         ::
 
             sage: D = DiGraph()
-            sage: D.add_cycle(range(4))
+            sage: D.add_cycle(list(range(4)))
             sage: D.edges()
             [(0, 1, None), (1, 2, None), (2, 3, None), (3, 0, None)]
         """
@@ -16494,18 +16493,18 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G = Graph()
-            sage: G.add_vertices(range(10)); G
+            sage: G.add_vertices(list(range(10))); G
             Graph on 10 vertices
             sage: show(G)
-            sage: G.add_path(range(20)[10:20])
+            sage: G.add_path(list(range(20))[10:20])
             sage: show(G)
-            sage: G.add_path(range(10))
+            sage: G.add_path(list(range(10)))
             sage: show(G)
 
         ::
 
             sage: D = DiGraph()
-            sage: D.add_path(range(4))
+            sage: D.add_path(list(range(4)))
             sage: D.edges()
             [(0, 1, None), (1, 2, None), (2, 3, None)]
         """
@@ -19858,7 +19857,7 @@ class GenericGraph(GenericGraph_pyx):
         elif isinstance(perm, PermutationGroupElement):
             n = self.order()
             ddict = {}
-            for i in xrange(1,n):
+            for i in range(1,n):
                 ddict[i] = perm(i)%n
             if n > 0:
                 ddict[0] = perm(n)%n
@@ -20000,8 +19999,8 @@ class GenericGraph(GenericGraph_pyx):
             from sage.rings.integer_ring import IntegerRing
             n = len(partition)
             M = Matrix(IntegerRing(), n)
-            for i in xrange(n):
-                for j in xrange(n):
+            for i in range(n):
+                for j in range(n):
                     cell_i = partition[i]
                     cell_j = partition[j]
                     degrees = [self.degree_to_cell(u, cell_j) for u in cell_i]
@@ -20044,7 +20043,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G = graphs.PetersenGraph()
-            sage: G.coarsest_equitable_refinement([[0],range(1,10)])
+            sage: G.coarsest_equitable_refinement([[0],list(range(1,10))])
             [[0], [2, 3, 6, 7, 8, 9], [1, 4, 5]]
             sage: G = graphs.CubeGraph(3)
             sage: verts = G.vertices()
@@ -20241,7 +20240,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.PetersenGraph()
             sage: G.automorphism_group(return_group=False, orbits=True,algorithm='sage')
             [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
-            sage: G.automorphism_group(partition=[[0],range(1,10)], return_group=False, orbits=True,algorithm='sage')
+            sage: G.automorphism_group(partition=[[0],list(range(1,10))], return_group=False, orbits=True,algorithm='sage')
             [[0], [2, 3, 6, 7, 8, 9], [1, 4, 5]]
             sage: C = graphs.CubeGraph(3)
             sage: C.automorphism_group(orbits=True, return_group=False,algorithm='sage')
@@ -20352,7 +20351,7 @@ class GenericGraph(GenericGraph_pyx):
             G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True, ignore_edge_labels=(not edge_labels))
             G_vertices = sum(partition, [])
             G_to = {}
-            for i in xrange(len(G_vertices)):
+            for i in range(len(G_vertices)):
                 G_to[G_vertices[i]] = i
             from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
@@ -20391,7 +20390,7 @@ class GenericGraph(GenericGraph_pyx):
                     gen_restr[acting_vertices[v]] = gen[acting_vertices[v]]
                 if gen_restr not in real_aut_gp:
                     real_aut_gp.append(gen_restr)
-            id = range(n)
+            id = list(range(n))
             if id in real_aut_gp:
                 real_aut_gp.remove(id)
             a = real_aut_gp
@@ -20399,7 +20398,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             G_vertices = sum(partition, [])
             G_to = {}
-            for i in xrange(len(G_vertices)):
+            for i in range(len(G_vertices)):
                 G_to[G_vertices[i]] = i
             from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
@@ -20814,7 +20813,7 @@ class GenericGraph(GenericGraph_pyx):
             G = self; partition = [self_vertices]
             G2 = other; partition2 = other_vertices
         G_to = {}
-        for i in xrange(len(self_vertices)):
+        for i in range(len(self_vertices)):
             G_to[self_vertices[i]] = i
         from sage.graphs.all import Graph, DiGraph
         DoDG = DiGraph if self._directed else Graph
@@ -20827,7 +20826,7 @@ class GenericGraph(GenericGraph_pyx):
         partition = [[G_to[v] for v in cell] for cell in partition]
         GC = G
         G2_to = {}
-        for i in xrange(len(other_vertices)):
+        for i in range(len(other_vertices)):
             G2_to[other_vertices[i]] = i
         H2 = DoDG(len(other_vertices), implementation='c_graph', loops=G2.allows_loops())
         H2B = H2._backend
@@ -21008,7 +21007,7 @@ class GenericGraph(GenericGraph_pyx):
             G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True)
             G_vertices = sum(partition, [])
             G_to = {}
-            for i in xrange(len(G_vertices)):
+            for i in range(len(G_vertices)):
                 G_to[G_vertices[i]] = i
             from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
@@ -21032,7 +21031,7 @@ class GenericGraph(GenericGraph_pyx):
                 return H
         G_vertices = sum(partition, [])
         G_to = {}
-        for i in xrange(len(G_vertices)):
+        for i in range(len(G_vertices)):
             G_to[G_vertices[i]] = i
         from sage.graphs.all import Graph, DiGraph
         DoDG = DiGraph if self._directed else Graph
@@ -21390,7 +21389,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
             else:
                 label_list = copy( G.edge_label(u,v) )
                 seen_label = False
-                for i in xrange(len(label_list)):
+                for i in range(len(label_list)):
                     if label_list[i][0] == l:
                         label_list[i][1] += 1
                         G.set_edge_label(u,v,label_list)
@@ -21410,11 +21409,11 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         G = g
 
     G_order = G.order()
-    V = range(G_order)
+    V = list(range(G_order))
     if G.vertices() != V:
         relabel_dict = G.relabel(return_map=True)
     else:
-        relabel_dict = dict( (i,i) for i in xrange(G_order) )
+        relabel_dict = dict( (i,i) for i in range(G_order) )
     if partition is None:
         partition = [V]
     else:

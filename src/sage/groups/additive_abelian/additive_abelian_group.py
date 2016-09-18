@@ -5,6 +5,7 @@ Additive abelian groups are just modules over `\ZZ`. Hence the classes in this
 module derive from those in the module :mod:`sage.modules.fg_pid`. The only
 major differences are in the way elements are printed.
 """
+from six.moves import range
 
 from sage.groups.old import AbelianGroup
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
@@ -136,7 +137,7 @@ def cover_and_relations_from_invariants(invs):
     """
     n = len(invs)
     A = ZZ**n
-    B = A.span([A.gen(i) * invs[i] for i in xrange(n)])
+    B = A.span([A.gen(i) * invs[i] for i in range(n)])
     return (A, B)
 
 
@@ -168,7 +169,7 @@ class AdditiveAbelianGroupElement(FGP_Element):
         pivot_rows = H.pivot_rows()
         pivots = H.pivots()
 
-        for i in xrange(H.nrows()):
+        for i in range(H.nrows()):
             if i in pivot_rows:
                 j = pivots[i]
                 N = H[i,j]

@@ -8,6 +8,8 @@ AUTHORS:
 - Tomas Kalvoda (2015-04-01): Add :meth:`exp_polar()` (:trac:`18085`)
 
 """
+from six.moves import range
+
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.constants import e as const_e
 from sage.symbolic.constants import pi as const_pi
@@ -1077,7 +1079,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             return harmonic_m1._eval_(z)
 
         if z in ZZ and z >= 0:
-            return sum(1/(k**m) for k in xrange(1,z+1))
+            return sum(1 / (k ** m) for k in range(1, z + 1))
 
     def _evalf_(self, z, m, parent=None, algorithm=None):
         """

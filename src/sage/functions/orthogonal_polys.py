@@ -303,6 +303,7 @@ Willis of the University of Nebraska at Kearney.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 import warnings
 
@@ -785,7 +786,7 @@ class Func_chebyshev_T(ChebyshevFunction):
             return parent(x).one()
 
         res = parent(x).zero()
-        for j in xrange(0, n//2+1):
+        for j in range(n // 2 + 1):
             f = factorial(n-1-j) / factorial(j) / factorial(n-2*j)
             res += (-1)**j * (2*x)**(n-2*j) * f
         res *= n/2
@@ -990,7 +991,7 @@ class Func_chebyshev_U(ChebyshevFunction):
             return -self.eval_formula(-n-2, x)
 
         res = parent(x).zero()
-        for j in xrange(0, n//2+1):
+        for j in range(n // 2 + 1):
             f = binomial(n-j, j)
             res += (-1)**j * (2*x)**(n-2*j) * f
         return res
@@ -1761,7 +1762,8 @@ class Func_gen_laguerre(OrthogonalFunction):
             sage: gen_laguerre(10, 1, 1+I)
             25189/2100*I + 11792/2835
         """
-        return sum([binomial(n+a,n-k)*(-1)**k/factorial(k)*x**k for k in xrange(n+1)])
+        return sum(binomial(n+a,n-k)*(-1)**k/factorial(k)*x**k
+                   for k in range(n + 1))
 
     def _evalf_(self, n, a, x, **kwds):
         """

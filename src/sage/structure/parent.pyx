@@ -155,7 +155,6 @@ import operator
 import weakref
 
 from category_object import CategoryObject
-from generators import Generators
 from coerce_exceptions import CoercionException
 
 cdef object BuiltinMethodType = type(repr)
@@ -1579,7 +1578,7 @@ cdef class Parent(category_object.CategoryObject):
        if codomain is None:
            im_gens = Sequence(im_gens)
            codomain = im_gens.universe()
-       if isinstance(im_gens, (Sequence_generic, Generators)):
+       if isinstance(im_gens, Sequence_generic):
             im_gens = list(im_gens)
        if check is None:
            return self.Hom(codomain)(im_gens)

@@ -56,7 +56,6 @@ This example illustrates generators for a free module over `\ZZ`.
 
 from __future__ import absolute_import, division, print_function
 
-cimport sage.structure.generators as generators
 from sage.structure.misc import dir_with_other_class
 from sage.structure.misc cimport getattr_from_other_class
 from sage.categories.category import Category
@@ -145,7 +144,6 @@ cdef class CategoryObject(SageObject):
 
     def __cinit__(self):
         self.__cached_methods = {}
-        self._generators = {}
         self._hash_value = -1
 
     def _init_category_(self, category):
@@ -261,19 +259,15 @@ cdef class CategoryObject(SageObject):
     ##############################################################################
 
     def _populate_generators_(self, gens, names=None, normalize=True):
-        category = self._category
         from sage.structure.sequence import Sequence
-        if isinstance(gens, Generators):
-            pass
-        elif isinstance(gens, (list, tuple, Sequence)):
+        if isinstance(gens, (list, tuple, Sequence)):
             if names is None:
                 names = tuple([str(x) for x in gens])
-            gens = generators.Generators_list(self, list(gens), category)
+            ngens = len(gens)
         else:
-            gens = generators.Generators_list(self, [gens], category)
+            ngens = 1
         if names is not None and self._names is None:
-            self._assign_names(names, ngens=gens.count(), normalize=normalize)
-        self._generators[category] = gens
+            self._assign_names(names, ngens=ngens, normalize=normalize)
 
     def gens_dict(self):
         r"""
@@ -441,14 +435,7 @@ cdef class CategoryObject(SageObject):
         if names is None: return
         if normalize:
             if ngens is None:
-                if self._generators is None or len(self._generators) == 0:
-                    # not defined yet
-                    if isinstance(names, (tuple, list)) and names is not None:
-                        ngens = len(names)
-                    else:
-                        ngens = 1
-                else:
-                    ngens = self.ngens()
+                ngens = -1  # unknown
             names = normalize_names(ngens, names)
         if self._names is not None and names != self._names:
             raise ValueError('variable names cannot be changed after object creation.')
@@ -724,7 +711,6 @@ cdef class CategoryObject(SageObject):
         except AttributeError:
             pass
         d = dict(d)
-        d['_generators'] = self._generators
         d['_category'] = self._category
         d['_base'] = self._base
         d['_names'] = self._names
@@ -734,10 +720,6 @@ cdef class CategoryObject(SageObject):
         # Update this integer if you change any of these attributes
         ###########
         d['_pickle_version'] = 1
-        try:
-            d['_generator_orders'] = self._generator_orders
-        except AttributeError:
-            pass
 
         return d
 
@@ -748,7 +730,6 @@ cdef class CategoryObject(SageObject):
             version = 0
         try:
             if version == 1:
-                self._generators = d['_generators']
                 if d['_category'] is not None:
                     # We must not erase the category information of
                     # self.  Otherwise, pickles break (e.g., QQ should
@@ -760,10 +741,6 @@ cdef class CategoryObject(SageObject):
                         self._category = self._category.join([self._category,d['_category']])
                 self._base = d['_base']
                 self._names = d['_names']
-                try:
-                    self._generator_orders = d['_generator_orders']
-                except (AttributeError, KeyError):
-                    pass
             elif version == 0:
                 # In the old code, this functionality was in parent_gens,
                 # but there were parents that didn't inherit from parent_gens.
@@ -771,14 +748,6 @@ cdef class CategoryObject(SageObject):
                 try:
                     self._base = d['_base']
                     self._names = d['_names']
-                    from sage.categories.all import Objects
-                    if d['_gens'] is None:
-                        from sage.structure.generators import Generators
-                        self._generators = Generators(self, None, Objects())
-                    else:
-                        from sage.structure.generators import Generators_list
-                        self._generators = Generators_list(self, d['_gens'], Objects())
-                    self._generator_orders = d['_generator_orders'] # this may raise a KeyError, but that's okay.
                     # We throw away d['_latex_names'] and d['_list']
                 except (AttributeError, KeyError):
                     pass

@@ -2340,7 +2340,7 @@ class CompletionFunctor(ConstructionFunctor):
 
         TESTS:
 
-        We check that #12353 has been resolved::
+        We check that :trac:`12353` has been resolved::
 
             sage: RealIntervalField(53)(-1) > RR(1)
             False

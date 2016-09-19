@@ -722,7 +722,7 @@ def hecke_insertion(obj1, obj2=None):
     """
     if obj2 is None:
         obj2 = obj1
-        obj1 = range(1,len(obj2)+1)
+        obj1 = list(range(1, len(obj2) + 1))
 
     from sage.combinat.tableau import SemistandardTableau, Tableau
     from bisect import bisect_right
@@ -836,7 +836,7 @@ def hecke_insertion_reverse(p, q, output='array'):
 
     if output == 'array':
         return [list(reversed(upper_row)), list(reversed(lower_row))]
-    is_standard = (upper_row == range(len(upper_row), 0, -1))
+    is_standard = (upper_row == list(range(len(upper_row), 0, -1)))
     if output == 'word':
         if not is_standard:
             raise TypeError("q must be standard to have a %s as valid output"%output)

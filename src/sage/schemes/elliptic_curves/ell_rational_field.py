@@ -49,8 +49,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
-from __future__ import print_function, division
-from __future__ import absolute_import
+from __future__ import print_function, division, absolute_import
+from six.moves import range
 
 from . import constructor
 from . import BSD
@@ -3450,9 +3450,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         a = self.anlist(prec)
         eps = self.root_number()
         sqrtN = float(N.sqrt())
+
         def _F(n, t):
             return gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
-        return sum([a[n]*(_F(n,s-1) + eps*_F(n,1-s)) for n in xrange(1,prec+1)])
+        return sum(a[n]*(_F(n,s-1) + eps*_F(n,1-s)) for n in range(1, prec+1))
 
     def is_local_integral_model(self,*p):
         r"""
@@ -5542,11 +5543,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.eval_modular_form([1.5+I,2.0+I,2.5+I],0.000001)
             [0, 0, 0]
         """
-        if not isinstance(points, (list,xrange)):
+        if not isinstance(points, list):
             try:
                 points = list(points)
             except TypeError:
-                return self.eval_modular_form([points],prec)
+                return self.eval_modular_form([points], prec)
         an = self.pari_mincurve().ellan(prec)
         s = 0
         c = pari('2 * Pi * I')
@@ -5555,7 +5556,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             s = pari(0)
             r0 = (c*z).exp()
             r = r0
-            for n in xrange(1,prec):
+            for n in range(1, prec):
                 s += an[n-1]*r
                 r *= r0
             ans.append(s.python())
@@ -6092,7 +6093,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         mw_base_log = [] #contains \Phi(Q_i)
         mod_h_list = []  #contains h_m(Q_i)
         c9_help_list = []
-        for i in range(0,r):
+        for i in range(r):
             mw_base_log.append(mw_base[i].elliptic_logarithm().abs())
             mod_h_list.append(max(mw_base[i].height(),h_E,c7*mw_base_log[i]**2))
             c9_help_list.append((mod_h_list[i]).sqrt()/mw_base_log[i])
@@ -6325,7 +6326,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.rank(), len(E.S_integral_points([3,5,7]))  # long time (5s on sage.math, 2011)
             (4, 72)
 
-        This is curve "7690e1" which failed until \#4805 was fixed::
+        This is curve "7690e1" which failed until :trac:`4805` was fixed::
 
             sage: EllipticCurve([1,1,1,-301,-1821]).S_integral_points([13,2])
             [(-13 : 16 : 1),
@@ -7058,10 +7059,10 @@ def elliptic_curve_congruence_graph(curves):
     G = Graph()
     G.add_vertices([curve.cremona_label() for curve in curves])
     n = len(curves)
-    for i in xrange(n):
+    for i in range(n):
         E = curves[i]
         M = E.conductor()
-        for j in xrange(i):
+        for j in range(i):
             F = curves[j]
             N = F.conductor()
             MN = lcm(M, N)

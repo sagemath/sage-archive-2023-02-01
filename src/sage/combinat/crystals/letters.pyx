@@ -14,6 +14,7 @@ Crystals of letters
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 from sage.misc.cachefunc import cached_method
@@ -163,12 +164,12 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
                               self._element_constructor_(-1)]
             else:
                 self._list = [self._element_constructor_(i)
-                                for i in xrange(1, cartan_type.rank()+1)]
+                                for i in range(1, cartan_type.rank()+1)]
                 if cartan_type.type() == 'B':
                     self._list.append(self._element_constructor_(0))
                 if cartan_type.type() != 'A':
                     self._list += [self._element_constructor_(-i)
-                                     for i in xrange(cartan_type.rank(), 0, -1)]
+                                     for i in range(cartan_type.rank(), 0, -1)]
                 else:
                     self._list.append(self._element_constructor_(cartan_type.rank()+1))
         self._element_print_style = element_print_style

@@ -208,6 +208,7 @@ which only work in dimension two or three)::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.misc.functional import det
 from sage.structure.sage_object import SageObject
@@ -1496,7 +1497,7 @@ class E1Star(SageObject):
             raise ValueError("iterations (=%s) must be >= 0." % iterations)
         else:
             old_faces = patch
-            for i in xrange(iterations):
+            for i in range(iterations):
                 new_faces = []
                 for f in old_faces:
                     new_faces.extend(self._call_on_face(f, color=f.color()))

@@ -1592,10 +1592,12 @@ class FiniteWord_class(Word_class):
                 for w in self.left_special_factors_iterator(i):
                     yield w
         else:
-            g = self.rauzy_graph(n)
-            in_d = g.in_degree
-            for v in g:
-                if in_d(v) > 1:
+            left = defaultdict(set)
+            for w in self.factor_iterator(n+1):
+                v = w[1:]
+                left[v].add(w[0])
+            for v,A in left.iteritems():
+                if len(A) > 1:
                     yield v
 
     def left_special_factors(self, n=None):
@@ -1658,10 +1660,12 @@ class FiniteWord_class(Word_class):
                 for w in self.right_special_factors_iterator(i):
                     yield w
         else:
-            g = self.rauzy_graph(n)
-            out_d = g.out_degree
-            for v in g:
-                if out_d(v) > 1:
+            right = defaultdict(set)
+            for w in self.factor_iterator(n+1):
+                v = w[:-1]
+                right[v].add(w[-1])
+            for v,A in right.iteritems():
+                if len(A) > 1:
                     yield v
 
     def right_special_factors(self, n=None):
@@ -1747,11 +1751,14 @@ class FiniteWord_class(Word_class):
                 for w in self.bispecial_factors_iterator(i):
                     yield w
         else:
-            g = self.rauzy_graph(n)
-            in_d = g.in_degree
-            out_d = g.out_degree
-            for v in g:
-                if out_d(v) > 1 and in_d(v) > 1:
+            left = defaultdict(set)
+            right = defaultdict(set)
+            for w in self.factor_iterator(n+2):
+                v = w[1:-1]
+                left[v].add(w[0])
+                right[v].add(w[-1])
+            for v,A in left.iteritems():
+                if len(A) > 1 and len(right[v]) > 1:
                     yield v
 
     def bispecial_factors(self, n=None):

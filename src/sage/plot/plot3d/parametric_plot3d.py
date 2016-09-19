@@ -381,6 +381,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
         sage: f_y = (4*(1+0.25*sin(3*v))+cos(u))*sin(2*v)
         sage: f_z = sin(u)+2*cos(3*v)
         sage: parametric_plot3d([f_x, f_y, f_z], (u,-pi,pi), (v,-pi,pi), frame=False, color="blue")
+        Graphics3d Object
 
     .. PLOT::
 

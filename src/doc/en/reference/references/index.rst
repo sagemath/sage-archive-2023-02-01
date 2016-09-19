@@ -978,6 +978,9 @@ REFERENCES:
              Mathematics. Springer-Verlag, New York, 1997. ISBN
              0-387-98254-X
 
+.. [Lin1999] J. van Lint, Introduction to coding theory, 3rd ed.,
+             Springer-Verlag GTM, 86, 1999.
+
 .. [LM2006] Vadim Lyubashevsky and Daniele Micciancio. Generalized
             compact knapsacks are collision resistant. ICALP,
             pp. 144--155, Springer, 2006.

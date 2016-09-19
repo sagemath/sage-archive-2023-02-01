@@ -951,13 +951,8 @@ class Func_chebyshev_U(ChebyshevFunction):
     def eval_formula(self, n, x):
         """
         Evaluate ``chebyshev_U`` using an explicit formula.
-<<<<<<< HEAD
-        See [ASHandbook]_ 227 (p. 782) for details on the recursions.
-        See also [EffCheby]_ for the recursion formulas.
-=======
         See [AS1964]_ 227 (p. 782) for details on the recurions.
         See also [Koe1999]_ for the recursion formulas.
->>>>>>> 631d85373734e3468e6ae277f03e95bade512f4a
 
         INPUT:
 

@@ -3,7 +3,7 @@ r"""
 Delsarte, a.k.a. Linear Programming (LP), upper bounds
 
 This module provides LP upper bounds for the parameters of codes,
-introduced in [De73]_.
+introduced in [De1973]_.
 
 The exact LP solver PPL is used by default, ensuring that no
 rounding/overflow problems occur.

@@ -1127,18 +1127,13 @@ class AbstractLinearCode(Module):
     def characteristic_polynomial(self):
         r"""
         Returns the characteristic polynomial of a linear code, as defined in
-        van Lint's text [vL]_.
+        [Lin1999]_.
 
         EXAMPLES::
 
             sage: C = codes.ExtendedBinaryGolayCode()
             sage: C.characteristic_polynomial()
             -4/3*x^3 + 64*x^2 - 2816/3*x + 4096
-
-        REFERENCES:
-
-        .. [vL] \J. van Lint, Introduction to coding theory, 3rd ed., Springer-Verlag
-           GTM, 86, 1999.
         """
         R = PolynomialRing(QQ,"x")
         x = R.gen()

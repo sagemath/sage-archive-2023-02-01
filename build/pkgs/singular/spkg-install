@@ -78,6 +78,7 @@ remove_old_version()
     rm -f "$SAGE_LOCAL"/lib/libsingcf*.a # 3.x only additional archives
     rm -f "$SAGE_LOCAL"/lib/libsingfac*.a # 3.x only additional archives
     rm -f "$SAGE_LOCAL"/lib/libSingular* # 4.x with upper case
+    rm -f "$SAGE_LOCAL"/lib/p_Procs_Field* # 3.x only
     # a bunch of additional libraries for 4.x
     rm -f "$SAGE_LOCAL"/lib/libpolys*
     rm -f "$SAGE_LOCAL"/lib/libfactory*

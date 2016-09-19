@@ -3427,10 +3427,10 @@ class Graph(GenericGraph):
 
             sage: G = Graph([[1,2,3], [(1, 2, 'a'), (1, 3, 'b')]], format='vertices_and_edges')
             sage: it = G.orientations()
-            sage: D = it.next()
+            sage: D = next(it)
             sage: D.edges()
             [(1, 2, 'a'), (1, 3, 'b')]
-            sage: D = it.next()
+            sage: D = next(it)
             sage: D.edges()
             [(1, 2, 'a'), (3, 1, 'b')]
 
@@ -3456,6 +3456,13 @@ class Graph(GenericGraph):
             sage: G = Graph([[1,2], [1,1]], loops=True)
             sage: len(list(G.orientations()))
             4
+
+            sage: G = Graph([[1,2],[2,3]])
+            sage: next(G.orientations())
+            Digraph on 3 vertices
+            sage: G = graphs.PetersenGraph()
+            sage: next(G.orientations())
+            An orientation of Petersen graph: Digraph on 10 vertices
         """
         if sparse is not None:
             if data_structure is not None:

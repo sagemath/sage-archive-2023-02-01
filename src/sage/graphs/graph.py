@@ -3407,7 +3407,7 @@ class Graph(GenericGraph):
     def orientations(self, implementation='c_graph', data_structure=None, sparse=None):
         r"""
         Return an iterator over orientations of ``self``.
-        
+
         An *orientation* of an undirected graph is a directed
         graph such that every edge is assigned a direction.
         Hence there are `2^s` oriented digraphs for a graph
@@ -3417,7 +3417,7 @@ class Graph(GenericGraph):
 
         - ``data_structure`` -- one of ``"sparse"``, ``"static_sparse"``, or
           ``"dense"``; see the documentation of :class:`Graph` or
-          :class:`DiGraph`
+          :class:`DiGraph`; default is the data structure of ``self``
 
         - ``sparse`` -- (optional) boolean; ``sparse=True`` is an alias for
           ``data_structure="sparse"``, and ``sparse=False`` is an alias for
@@ -3448,6 +3448,14 @@ class Graph(GenericGraph):
             sage: D = next(it)
             sage: D.size()
             0
+
+            sage: G = Graph([[1,2,'a'], [1,2,'b']], multiedges=True)
+            sage: len(list(G.orientations()))
+            4
+
+            sage: G = Graph([[1,2], [1,1]], loops=True)
+            sage: len(list(G.orientations()))
+            4
         """
         if sparse is not None:
             if data_structure is not None:
@@ -3463,8 +3471,12 @@ class Graph(GenericGraph):
             else:
                 data_structure = "static_sparse"
 
+        name = self.name()
+        if name != '':
+            name = 'An orientation of ' + name
+
         if self.num_edges() == 0:
-            D = DiGraph(name=self.name(),
+            D = DiGraph(name=name,
                         pos=self._pos,
                         multiedges=self.allows_multiple_edges(),
                         loops=self.allows_loops(),
@@ -3481,7 +3493,7 @@ class Graph(GenericGraph):
         for edges in product(*E):
             D = DiGraph(data=[verts, edges],
                         format='vertices_and_edges',
-                        name=self.name(),
+                        name=name,
                         pos=self._pos,
                         multiedges=self.allows_multiple_edges(),
                         loops=self.allows_loops(),

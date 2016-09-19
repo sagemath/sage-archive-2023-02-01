@@ -3410,8 +3410,8 @@ class Graph(GenericGraph):
 
         An *orientation* of an undirected graph is a directed
         graph such that every edge is assigned a direction.
-        Hence there are `2^s` oriented digraphs for a graph
-        with `s` edges.
+        Hence there are `2^s` oriented digraphs for a simple
+        graph with `s` edges.
 
         INPUT:
 
@@ -3422,6 +3422,11 @@ class Graph(GenericGraph):
         - ``sparse`` -- (optional) boolean; ``sparse=True`` is an alias for
           ``data_structure="sparse"``, and ``sparse=False`` is an alias for
           ``data_structure="dense"``
+
+        .. WARNING::
+
+            This always considers mutliple edges of graphs as
+            distinguishable, and hence, may have repeated digraphs.
 
         EXAMPLES::
 
@@ -3455,7 +3460,7 @@ class Graph(GenericGraph):
 
             sage: G = Graph([[1,2], [1,1]], loops=True)
             sage: len(list(G.orientations()))
-            4
+            2
 
             sage: G = Graph([[1,2],[2,3]])
             sage: next(G.orientations())
@@ -3495,7 +3500,8 @@ class Graph(GenericGraph):
             return
 
         from itertools import product
-        E = [[(u,v,label), (v,u,label)] for u,v,label in self.edges()]
+        E = [[(u,v,label), (v,u,label)] if u != v else [(u,v,label)]
+             for u,v,label in self.edges()]
         verts = self.vertices()
         for edges in product(*E):
             D = DiGraph(data=[verts, edges],

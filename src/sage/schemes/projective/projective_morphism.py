@@ -3516,22 +3516,26 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             polys.append(R(e([i+1]).expand(N)(multipliers)))
         return polys
 
-    def reduced_form(self, prec=100, return_conjugation=True):  # add bool for matrices, set prec? author ref?
+    def reduced_form(self, prec=300, return_conjugation=True):
         r"""
-        Returns reduced form of a projective morphism.
+        Returns reduced form of this projective morphism.
 
-        The reduced form is the `PGL(ZZ)` equivalent element in the conjugacy class with
-        the smallest coefficients. This is done by applying
-        the binary form reduction algorithm from Stoll and Cremona _[SC]
-        to the periodic points (the dynatomic polynomial).
+        The reduced form is the `SL(2, ZZ)` equivalent morphism obtained by applying
+        the binary form reduction algorithm from Stoll and Cremona [SC]_
+        to the homogeneous polynomial defining the periodic points (the dynatomic polynomial).
+        The smallest period `n` with enough periodic points is used.
+
+        This should also minimize the sum of the squares of the coefficients,
+        but this is not always the case. See :meth:`sage.rings.polynomials.reduced_form`
+        for details.
 
         Implimented by Rebecca Lauren Miller as part of GSOC 2016.
 
         INPUT::
 
-        - ``prec`` -- desired precision (default: 100)
+        - ``prec`` -- integer, desired precision (default: 300)
 
-        - ``return_conjuagtion`` -- A Boolean. Returns element of PGL(2). (default: True)
+        - ``return_conjuagtion`` -- A Boolean. Returns element of `SL(2, ZZ)`. (default: True)
 
         OUTPUT:
 
@@ -3539,18 +3543,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - a matrix
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PS.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(PS)
             sage: f = H([x^3 + x*y^2, y^3])
             sage: m = matrix(QQ, 2, 2,[-221, -1, 1, 0])
             sage: f = f.conjugate(m)
-            sage: f.reduced_form() #needs 2 periodic
+            sage: f.reduced_form(prec=100) #needs 2 periodic
             Traceback (most recent call last):
             ...
             ValueError: not enough precision
-            sage: f.reduced_form(prec=200)
+            sage: f.reduced_form()
             (
             Scheme endomorphism of Projective Space of dimension 1 over Rational Field
             Defn: Defined on coordinates by sending (x : y) to
@@ -3589,34 +3593,24 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Field
             Defn: Defined on coordinates by sending (X : Y) to
             (-7/2*X^4 - 6*X^3*Y - 21*X^2*Y^2 - 6*X*Y^3 - 7/2*Y^4 : -1/2*X^4
-            - 2*X^3*Y - 3*X^2*Y^2 - 2*X*Y^3 - 1/2*Y^4),
+            - 2*X^3*Y - 3*X^2*Y^2 - 2*X*Y^3 - 1/2*Y^4)
+            ,
             [-1  2]
             [ 2 -5]
             )
-
-         ::
-            sage: PS.<x,y> = ProjectiveSpace(ZZ,1)
-            sage: H = End(PS)
-            sage: f = H([7*x^3 + 5*x*y^2 + y, 6*y^3])
-            sage: m = matrix(QQ, 2, 2,[1 ,35, 0, 1])*matrix(QQ, 2, 2,[0, 1, -1, 0])*matrix(QQ,2 ,2, [1,0,131,1])
-            sage: f = f.conjugate(m)
-            sage: f.reduced_form(prec=200)
-            Traceback (most recent call last):
-            ...
-            ValueError: polys (=[7*x^3 + 5*x*y^2 + y, 6*y^3]) must be homogeneous
         """
         R = self.coordinate_ring()
         F = R(self.dynatomic_polynomial(1))
         x,y = R.gens()
-        F = R(F/gcd(F,F.derivative(x))) #removes multiple roots
+        F = R(F/gcd(F, F.derivative(x))) #removes multiple roots
         n = 2
         # Checks to make sure there are enough distinct, roots we need 3
-        # if there are not if finds the nth period fix points until there are enough
+        # if there are not if finds the nth periodic points until there are enough
         while F.degree() <= 2:
-            F = self.dynatomic_polynomial(n) # finds n period fix points
-            F = R(F/gcd(F,F.derivative(x)))#removes multiple roots
+            F = self.dynatomic_polynomial(n) # finds n periodic points
+            F = R(F/gcd(F, F.derivative(x))) #removes multiple roots
             n += 1
-        G,m = F.reduced_form( prec=prec, return_conjugation=return_conjugation)
+        G,m = F.reduced_form(prec=prec, return_conjugation=return_conjugation)
         if return_conjugation:
             return (self.conjugate(m), m)
         return self.conjugate(m)

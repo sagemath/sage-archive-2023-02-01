@@ -23,42 +23,45 @@ while [ $# -gt 1 ]; do
     shift
 done
 
-path=${1:-.}  # '.' by default
-
-pushd "$path"
-
-name="$(python setup.py --name 2>/dev/null)"
-
-if [ $(echo "$name" | wc -l) -gt 1 ]; then
-    name="$(echo "$name" | tail -n 1)"
-    2>&1 echo "Warning: This package has a badly-behaved setup.py which outputs"
-    2>&1 echo "more than the package name for 'setup.py --name'; using the last"
-    2>&1 echo "line as the package name: $name"
+# Last argument must be "." and will be ignored
+if [ "$1" != "." ]; then
+    echo >&2 "$0 requires . as final argument"
+    exit 1
 fi
 
-# Uninstall, if necessary
-uninstall="pip uninstall --disable-pip-version-check -y $name 2>&1"
-uninstall_out="$(eval $uninstall)"
-uninstall_err=$?
+# Find out the name of the package that we are installing
+name="$(python setup.py --name)"
 
-# Not ideal, but this is the easiest way to check if the package
-# was not installed to begin with.  If it wasn't, then we proceed
-# quietly; if it was installed show the uninstallation output and
-# repeat until definitely all copies have been uninstalled
-while [[ "$uninstall_out" != *"not installed" ]]; do
-    echo "$uninstall_out"
-    # If an error occurred (other than "not installed") don't keep
-    # trying
-    if [ $uninstall_err -ne 0 ]; then
-        popd
-        exit $uninstall_err
-    fi;
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: could not determine package name"
+    exit 1
+fi
 
-    uninstall_out="$(eval $uninstall)"
+if [ $(echo "$name" | wc -l) -gt 1 ]; then
+    name="$(echo "$name" | tail -1)"
+    echo >&2 "Warning: This package has a badly-behaved setup.py which outputs"
+    echo >&2 "more than the package name for 'setup.py --name'; using the last"
+    echo >&2 "line as the package name: $name"
+fi
+
+# Keep uninstalling as long as it succeeds
+while true; do
+    out=$(pip uninstall --disable-pip-version-check -y "$name" 2>&1)
+    if [ $? -ne 0 ]; then
+        break
+    fi
+    echo "$out"
 done
 
+# Not ideal, but this is the easiest way to check if the package
+# was not installed to begin with (which pip treats as an error).
+# If it wasn't, then we proceed quietly; if it was installed show the
+# uninstallation output and error out.
+if [[ "$out" != *"not installed" ]]; then
+    echo >&2 "$out"
+    exit 1
+fi
+
 # Finally actually do the installation
-pip install $pip_install_flags "$path"
-ret=$?
-popd
-exit $ret
+echo "Installing package $name using pip"
+exec pip install $pip_install_flags .

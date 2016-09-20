@@ -1741,7 +1741,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: def maple_leaf(t):
             ....:     return (100/(100+(t-pi/2)^8))*(2-sin(7*t)-cos(30*t)/2)
             sage: p = polar_plot(maple_leaf, -pi/4, 3*pi/2, color="red",plot_points=1000) # long time
-            sage: p.show(gridlines=( [-3,-2.75,..,3], xrange(-1,5,2) )) # long time
+            sage: p.show(gridlines=([-3,-2.75,..,3], range(-1,5,2))) # long time
 
         Add grid lines at specific positions (using functions).
 

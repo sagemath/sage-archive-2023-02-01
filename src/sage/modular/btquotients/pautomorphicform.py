@@ -104,7 +104,7 @@ def eval_dist_at_powseries(phi, f):
         sage: f = (1 - 7*X)^(-1)
 
         sage: D = OverconvergentDistributions(0,7,10)
-        sage: phi = D(range(1,11))
+        sage: phi = D(list(range(1,11)))
         sage: eval_dist_at_powseries(phi,f)
         1 + 2*7 + 3*7^2 + 4*7^3 + 5*7^4 + 6*7^5 + 2*7^7 + 3*7^8 + 4*7^9 + O(7^10)
     """

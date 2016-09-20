@@ -359,26 +359,30 @@ information. You can use the existing functions of Sage as templates.
 
 - A **REFERENCES** block to list related books or papers (optional)
 
-  It should cite the books/research papers relevant to the code, e.g. the source
-  of the algorithm that it implements. This may not be needed if there
-  are already enough citations in the docstring, but it can be useful to add
-  general references::
+  Almost all bibliographic information should be put in the master bibliography
+  file, see below. Citations will then link to the master bibliography where the
+  reader can find the bibliographic details (see below for citation syntax).
+  REFERENCE blocks in individual docstrings are therefore usually not necessary.
 
-      All references should be stored in the main Sage references file.
+  Nevertheless, a REFERENCE block can be useful if there are relevant sources
+  which are not explicitly mentioned in the docstring or if the docstring is
+  particularly long. In that case, add the bibliographic information to the
+  master bibliography file, if not already present, and add a reference block to
+  your docstring as follows::
 
       REFERENCES:
 
-      - [SC]_
+      For more information, see [Str1969]_, or one of the following references:
 
-  The master bibliography file should then include the citation ``[SC]``::
+      - [Sto2000]_
 
-      .. [SC] Conventions for coding in sage.
-         http://doc.sagemath.org/html/en/developer/conventions.html.
+      - [Voe2003]_
 
-  See below for more about the master bibliography file.
-  For more about citations, see the `Sphinx/ReST markup for citations
-  <http://sphinx.pocoo.org/rest.html#citations>`_. For links to
-  trac tickets or wikipedia, see :ref:`chapter-sage_manuals_links`.
+  Note the trailing underscores which makes the citations into hyperlinks. See
+  below for more about the master bibliography file. For more about citations,
+  see the `Sphinx/ReST markup for citations
+  <http://sphinx.pocoo.org/rest.html#citations>`_. For links to trac tickets or
+  wikipedia, see :ref:`chapter-sage_manuals_links`.
 
 - A **TESTS** block (optional)
 
@@ -422,17 +426,22 @@ Sage's master **BIBLIOGRAPHY** file
 
   The part in brackets is the citation key: given these examples, you
   could then use ``[Gau1801]_`` in a docstring to provide a link to the
-  first reference. When possible, the key should have this form: for a
-  single author, use the first three letters of the family name
-  followed by the year; for multiple authors, use the first letter of
-  each of the family names followed by the year. Note that the year
-  should be four digits, not just the last two -- Sage already has
-  references from both 1910 and 2010, for example.
+  first reference. Note the trailing underscore which makes the citation a
+  hyperlink.
+
+  When possible, the key should have this form: for a single author, use the
+  first three letters of the family name followed by the year; for multiple
+  authors, use the first letter of each of the family names followed by the
+  year. Note that the year should be four digits, not just the last two -- Sage
+  already has references from both 1910 and 2010, for example.
 
   When abbreviating the first name of an author in a bibliography
   listing, be sure to put a backslash in front of it. This ensures
   that the letter (``C.`` in the example above) will not be
   interpreted as a list enumerator.
+
+  For more about citations, see the `Sphinx/ReST markup for citations
+  <http://sphinx.pocoo.org/rest.html#citations>`_.
 
 Template
 ^^^^^^^^

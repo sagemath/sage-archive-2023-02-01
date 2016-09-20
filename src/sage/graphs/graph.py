@@ -3403,6 +3403,118 @@ class Graph(GenericGraph):
 
         return D
 
+    @doc_index("Connectivity, orientations, trees")
+    def orientations(self, implementation='c_graph', data_structure=None, sparse=None):
+        r"""
+        Return an iterator over orientations of ``self``.
+
+        An *orientation* of an undirected graph is a directed
+        graph such that every edge is assigned a direction.
+        Hence there are `2^s` oriented digraphs for a simple
+        graph with `s` edges.
+
+        INPUT:
+
+        - ``data_structure`` -- one of ``"sparse"``, ``"static_sparse"``, or
+          ``"dense"``; see the documentation of :class:`Graph` or
+          :class:`DiGraph`; default is the data structure of ``self``
+
+        - ``sparse`` -- (optional) boolean; ``sparse=True`` is an alias for
+          ``data_structure="sparse"``, and ``sparse=False`` is an alias for
+          ``data_structure="dense"``
+
+        .. WARNING::
+
+            This always considers mutliple edges of graphs as
+            distinguishable, and hence, may have repeated digraphs.
+
+        EXAMPLES::
+
+            sage: G = Graph([[1,2,3], [(1, 2, 'a'), (1, 3, 'b')]], format='vertices_and_edges')
+            sage: it = G.orientations()
+            sage: D = next(it)
+            sage: D.edges()
+            [(1, 2, 'a'), (1, 3, 'b')]
+            sage: D = next(it)
+            sage: D.edges()
+            [(1, 2, 'a'), (3, 1, 'b')]
+
+        TESTS::
+
+            sage: G = Graph()
+            sage: D = [g for g in G.orientations()]
+            sage: len(D)
+            1
+            sage: D[0]
+            Digraph on 0 vertices
+
+            sage: G = Graph(5)
+            sage: it = G.orientations()
+            sage: D = next(it)
+            sage: D.size()
+            0
+
+            sage: G = Graph([[1,2,'a'], [1,2,'b']], multiedges=True)
+            sage: len(list(G.orientations()))
+            4
+
+            sage: G = Graph([[1,2], [1,1]], loops=True)
+            sage: len(list(G.orientations()))
+            2
+
+            sage: G = Graph([[1,2],[2,3]])
+            sage: next(G.orientations())
+            Digraph on 3 vertices
+            sage: G = graphs.PetersenGraph()
+            sage: next(G.orientations())
+            An orientation of Petersen graph: Digraph on 10 vertices
+        """
+        if sparse is not None:
+            if data_structure is not None:
+                raise ValueError("cannot specify both 'sparse' and 'data_structure'")
+            data_structure = "sparse" if sparse else "dense"
+        if data_structure is None:
+            from sage.graphs.base.dense_graph import DenseGraphBackend
+            from sage.graphs.base.sparse_graph import SparseGraphBackend
+            if isinstance(self._backend, DenseGraphBackend):
+                data_structure = "dense"
+            elif isinstance(self._backend, SparseGraphBackend):
+                data_structure = "sparse"
+            else:
+                data_structure = "static_sparse"
+
+        name = self.name()
+        if name != '':
+            name = 'An orientation of ' + name
+
+        if self.num_edges() == 0:
+            D = DiGraph(name=name,
+                        pos=self._pos,
+                        multiedges=self.allows_multiple_edges(),
+                        loops=self.allows_loops(),
+                        implementation=implementation,
+                        data_structure=data_structure)
+            if hasattr(self, '_embedding'):
+                D._embedding = copy(self._embedding)
+            yield D
+            return
+
+        from itertools import product
+        E = [[(u,v,label), (v,u,label)] if u != v else [(u,v,label)]
+             for u,v,label in self.edges()]
+        verts = self.vertices()
+        for edges in product(*E):
+            D = DiGraph(data=[verts, edges],
+                        format='vertices_and_edges',
+                        name=name,
+                        pos=self._pos,
+                        multiedges=self.allows_multiple_edges(),
+                        loops=self.allows_loops(),
+                        implementation=implementation,
+                        data_structure=data_structure)
+            if hasattr(self, '_embedding'):
+                D._embedding = copy(self._embedding)
+            yield D
 
     ### Coloring
 

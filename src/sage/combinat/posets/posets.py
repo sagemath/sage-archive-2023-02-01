@@ -4571,7 +4571,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - ``labels`` -- A pair of elements to use as a bottom and top
           element of the poset. Default is strings ``'bottom'`` and
-          ``'top'``.
+          ``'top'``. One of them can be ``None``, and then only bottom or
+          only top element is added.
 
         EXAMPLES::
 
@@ -4584,6 +4585,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: trafficsign.cover_relations()
             [[-1, 0], [0, 1], [0, 2], [1, -2], [2, -2]]
 
+            sage: Y = V.with_bounds(labels=(-1, None))
+            sage: Y.cover_relations()
+            [[-1, 0], [0, 1], [0, 2]]
+
             sage: P = Posets.PentagonPoset()  # A lattice
             sage: P.with_bounds()
             Finite lattice containing 7 elements
@@ -4594,8 +4599,56 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.cover_relations()
             [['bottom', 'top']]
 
-            sage: LatticePoset({}).with_bounds()
+            sage: L = LatticePoset({}).with_bounds(); L
             Finite lattice containing 2 elements
+            sage: L.meet_irreducibles()  # Trac 21543
+            ['bottom']
+
+            sage: Poset().with_bounds((None, 1))
+            Finite poset containing 1 elements
+            sage: LatticePoset().with_bounds((None, 1))
+            Finite lattice containing 1 elements
+            sage: MeetSemilattice().with_bounds((None, 1))
+            Finite lattice containing 1 elements
+            sage: JoinSemilattice().with_bounds((None, 1))
+            Finite join-semilattice containing 1 elements
+            sage: Poset().with_bounds((1, None))
+            Finite poset containing 1 elements
+            sage: LatticePoset().with_bounds((1, None))
+            Finite lattice containing 1 elements
+            sage: MeetSemilattice().with_bounds((1, None))
+            Finite meet-semilattice containing 1 elements
+            sage: JoinSemilattice().with_bounds((1, None))
+            Finite lattice containing 1 elements
+
+            sage: P = Poset({0: []})
+            sage: L = LatticePoset({0: []})
+            sage: ML = MeetSemilattice({0: []})
+            sage: JL = JoinSemilattice({0: []})
+            sage: P.with_bounds((None, None))
+            Finite poset containing 1 elements
+            sage: L.with_bounds((None, None))
+            Finite lattice containing 1 elements
+            sage: ML.with_bounds((None, None))
+            Finite meet-semilattice containing 1 elements
+            sage: JL.with_bounds((None, None))
+            Finite join-semilattice containing 1 elements
+            sage: P.with_bounds((1, None))
+            Finite poset containing 2 elements
+            sage: L.with_bounds((1, None))
+            Finite lattice containing 2 elements
+            sage: ML.with_bounds((1, None))
+            Finite meet-semilattice containing 2 elements
+            sage: JL.with_bounds((1, None))
+            Finite lattice containing 2 elements
+            sage: P.with_bounds((None, 1))
+            Finite poset containing 2 elements
+            sage: L.with_bounds((None, 1))
+            Finite lattice containing 2 elements
+            sage: ML.with_bounds((None, 1))
+            Finite lattice containing 2 elements
+            sage: JL.with_bounds((None, 1))
+            Finite join-semilattice containing 2 elements
 
             sage: Posets.PentagonPoset().with_bounds(labels=(4, 5))
             Traceback (most recent call last):
@@ -4606,32 +4659,42 @@ class FinitePoset(UniqueRepresentation, Parent):
         if not self._is_facade:
             raise TypeError('the function is not defined on non-facade posets')
 
-        from sage.combinat.posets.lattices import LatticePoset, \
-             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
-             FiniteMeetSemilattice, FiniteJoinSemilattice
-        if ( isinstance(self, FiniteLatticePoset) or
-             isinstance(self, FiniteMeetSemilattice) or
-             isinstance(self, FiniteJoinSemilattice) ):
-            constructor = FiniteLatticePoset
-        else:
-            constructor = FinitePoset
-
         if len(labels) != 2:
             raise ValueError("labels must be a pair")
         new_min, new_max = labels
-
-        if self.cardinality() == 0:
-            return constructor(DiGraph({new_min: [new_max]},
-                                        format="dict_of_lists"))
-
         if new_min in self:
             raise ValueError("the poset already has element %s" % new_min)
         if new_max in self:
             raise ValueError("the poset already has element %s" % new_max)
 
+        from sage.combinat.posets.lattices import LatticePoset, \
+             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
+             FiniteMeetSemilattice, FiniteJoinSemilattice
+        if ( isinstance(self, FiniteLatticePoset) or
+             (isinstance(self, FiniteMeetSemilattice) and new_max is not None) or
+             (isinstance(self, FiniteJoinSemilattice) and new_min is not None) ):
+            constructor = LatticePoset
+        elif isinstance(self, FiniteMeetSemilattice):
+            constructor = MeetSemilattice
+        elif isinstance(self, FiniteJoinSemilattice):
+            constructor = JoinSemilattice
+        else:
+            constructor = Poset
+
+        if self.cardinality() == 0:
+            if new_min is None and new_max is None:
+                return constructor()
+            if new_min is None:
+                return constructor({new_min: []})
+            if new_max is None:
+                return constructor({new_max: []})
+            return constructor({new_min: [new_max]})
+
         D = self.hasse_diagram()
-        D.add_edges([(new_min, e) for e in D.sources()])
-        D.add_edges([(e, new_max) for e in D.sinks()])
+        if new_min is not None:
+            D.add_edges([(new_min, e) for e in D.sources()])
+        if new_max is not None:
+            D.add_edges([(e, new_max) for e in D.sinks()])
 
         return constructor(D)
 

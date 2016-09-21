@@ -44,6 +44,7 @@ interferes with doctests::
 
 #*****************************************************************************
 #       Copyright (C) 2015 David Lucas <david.lucas@inria.fr>
+#                     2016 Julien Lavauzelle <julien.lavauzelle@inria.fr>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -52,11 +53,11 @@ interferes with doctests::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from linear_code import (AbstractLinearCode,
+from .linear_code import (AbstractLinearCode,
                          LinearCodeSyndromeDecoder,
                          LinearCodeNearestNeighborDecoder)
-from encoder import Encoder
-from decoder import Decoder
+from .encoder import Encoder
+from .decoder import Decoder
 from sage.rings.integer import Integer
 from sage.arith.all import gcd
 from sage.modules.free_module_element import vector
@@ -68,7 +69,7 @@ from sage.rings.all import Zmod
 from sage.categories.homset import Hom
 from sage.groups.generic import discrete_log
 from sage.misc.functional import multiplicative_order
-from relative_finite_field_extension import RelativeFiniteFieldExtension
+from .relative_finite_field_extension import RelativeFiniteFieldExtension
 
 def find_generator_polynomial(code, check=True):
     r"""
@@ -354,6 +355,30 @@ class CyclicCode(AbstractLinearCode):
             Traceback (most recent call last):
             ...
             ValueError: The code is not cyclic.
+
+        If the `primitive_root` does not lie in an extension of `field`,
+        or is not a primitive `n`-th root of unity, then
+        an exception is raised::
+
+            sage: F = GF(2)
+            sage: n = 15
+            sage: Dset = [1, 2, 4, 8]
+            sage: alpha = GF(3).one()
+            sage: Cc = codes.CyclicCode(D = Dset, field = F, length = n, primitive_root = alpha)
+            Traceback (most recent call last):
+            ...
+            ValueError: primitive_root must belong to an extension of the base field.
+            sage: alpha = GF(16).one()
+            sage: Cc = codes.CyclicCode(D = Dset, field = F, length = n, primitive_root = alpha)
+            Traceback (most recent call last):
+            ...
+            ValueError: primitive_root must be a primitive n-th root of unity.
+            sage: alpha = GF(32).gen()
+            sage: Cc = codes.CyclicCode(D = Dset, field = F, length = n, primitive_root = alpha)
+            Traceback (most recent call last):
+            ...
+            ValueError: primitive_root must be a primitive n-th root of unity.
+
         """
         # Case (1) : generator polynomial and length are provided.
         if (generator_pol is not None and length is not None
@@ -417,9 +442,7 @@ class CyclicCode(AbstractLinearCode):
 
             R = F['x']
             x = R.gen()
-            s = 1
-            while not (q ** s - 1) % n == 0:
-                s += 1
+            s = Zmod(n)(q).multiplicative_order()
 
             if primitive_root is not None:
                 Fsplit = primitive_root.parent()
@@ -427,9 +450,12 @@ class CyclicCode(AbstractLinearCode):
                     FE = RelativeFiniteFieldExtension(Fsplit, F)
                     assert FE.extension_degree() == s
                     assert primitive_root.multiplicative_order() == n
-                except:
+                except AssertionError:
                     raise ValueError("primitive_root must be a primitive "
                                      "n-th root of unity.")
+                except:
+                    raise ValueError("primitive_root must belong to an "
+                                     "extension of the base field.")
                 alpha = primitive_root
             else:
                 Fsplit, F_to_Fsplit = F.extension(Integer(s), map = True)
@@ -607,9 +633,7 @@ class CyclicCode(AbstractLinearCode):
             q = F.cardinality()
             g = self.generator_polynomial()
 
-            s = 1
-            while not (q ** s - 1) % n == 0:
-                s += 1
+            s = Zmod(n)(q).multiplicative_order()
 
             if primitive_root is None:
                 Fsplit, F_to_Fsplit = F.extension(Integer(s), map = True)

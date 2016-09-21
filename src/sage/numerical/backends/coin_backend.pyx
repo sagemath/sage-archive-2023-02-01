@@ -36,7 +36,7 @@ cdef class CoinBackend(GenericBackend):
 
         sage: from sage.numerical.backends.generic_backend import get_solver
         sage: p = get_solver(solver="Coin")                             # optional - cbc
-        sage: TestSuite(p).run()                                        # known bug on 32 bit
+        sage: TestSuite(p).run()                                        # known bug on 32 bit (#21550)
         sage: TestSuite(p).run(skip=["_test_pickling", "_test_solve"])  # optional - cbc
     """
 

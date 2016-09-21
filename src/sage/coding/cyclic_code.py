@@ -357,19 +357,23 @@ class CyclicCode(AbstractLinearCode):
         """
         # Case (1) : generator polynomial and length are provided.
         if (generator_pol is not None and length is not None
-            and code is None and D is None and field is None):
+            and code is None and D is None and field is None
+            and primitive_root is None):
             F = generator_pol.base_ring()
             if not F.is_finite() or not F.is_field():
-                raise ValueError("Generator polynomial must be defined over a finite field")
+                raise ValueError("The generator polynomial must be defined "
+                                 "over a finite field.")
             q = F.cardinality()
             if not gcd(length, q) == 1:
-                raise ValueError("Only cyclic codes whose length and field order are coprimes are implemented.")
+                raise ValueError("Only cyclic codes whose length and field "
+                                 "order are coprimes are implemented.")
             R = generator_pol.parent()
             deg = generator_pol.degree()
             if not isinstance(length, Integer):
                 length = Integer(length)
             if not generator_pol.divides(R.gen() ** length - 1):
-                raise ValueError("Provided polynomial must divide x^n - 1, where n is the provided length")
+                raise ValueError("Provided polynomial must divide x^n - 1, "
+                                 "where n is the provided length.")
             self._polynomial_ring = R
             self._dimension = length - deg
             if not generator_pol.is_monic():
@@ -380,14 +384,16 @@ class CyclicCode(AbstractLinearCode):
 
         # Case (2) : a code is provided.
         elif (code is not None
-              and generator_pol is None and length is None and D is None and field is None):
+              and generator_pol is None and length is None and D is None
+              and field is None and primitive_root is None):
             if not isinstance(code, AbstractLinearCode):
                 raise ValueError("code must be an AbstractLinearCode")
             F = code.base_ring()
             q = F.cardinality()
             n = code.length()
             if not gcd(n, q) == 1:
-                raise ValueError("Only cyclic codes whose length and field order are coprimes are implemented.")
+                raise ValueError("Only cyclic codes whose length and field "
+                                 "order are coprimes are implemented.")
             try:
                 g = find_generator_polynomial(code, check)
             except ValueError, e:
@@ -402,47 +408,46 @@ class CyclicCode(AbstractLinearCode):
               and generator_pol is None and code is None):
             F = field
             if not F.is_finite() or not F.is_field():
-                raise ValueError("A finite field must be given in complement to defining set.")
+                raise ValueError("You must provide a finite field.")
             n = length
             q = F.cardinality()
             if not gcd(n, q) == 1:
-                raise ValueError("Only cyclic codes whose length and field order are coprimes are implemented.")
-            
+                raise ValueError("Only cyclic codes whose length and field "
+                                 "order are coprimes are implemented.")
+
             R = F['x']
             x = R.gen()
             s = 1
             while not (q ** s - 1) % n == 0:
                 s += 1
 
-            if s == 1: # splitting field is F
-                Fsplit = F
-            else: # must compute a splitting field
+            if primitive_root is not None:
+                Fsplit = primitive_root.parent()
+                try:
+                    FE = RelativeFiniteFieldExtension(Fsplit, F)
+                    print FE.extension_degree(), s
+                    assert primitive_root.multiplicative_order() == n
+                except:
+                    raise ValueError("primitive_root must be a primitive "
+                                     "n-th root of unity.")
+                alpha = primitive_root
+            else:
                 Fsplit, F_to_Fsplit = F.extension(Integer(s), map = True)
                 FE = RelativeFiniteFieldExtension(Fsplit, F, embedding = F_to_Fsplit)
-                Rsplit = Fsplit['xx']
-                xx = Rsplit.gen()
-
-            if primitive_root is not None:
-                if (primitive_root not in Fsplit or
-                    multiplicative_order(primitive_root) != n):
-                    raise ValueError("primitive_root has to be an element of multiplicative order n in the extension field used to compute the generator polynomial")
-                else:
-                    alpha = primitive_root
-            else:
                 alpha = Fsplit.zeta(n)
+
+            Rsplit = Fsplit['xx']
+            xx = Rsplit.gen()
 
             cosets = Zmod(n).cyclotomic_cosets(q, D)
             pows = [ item for l in cosets for item in l ]
 
             g = R.one()
             for J in cosets:
-                if s == 1:
-                    g *= x - alpha ** J[0]
-                else:
-                    pol = Rsplit.one()
-                    for j in J:
-                        pol *= xx - alpha**j
-                    g *= R([FE.cast_into_relative_field(coeff) for coeff in pol])
+                pol = Rsplit.one()
+                for j in J:
+                    pol *= xx - alpha**j
+                g *= R([FE.cast_into_relative_field(coeff) for coeff in pol])
             
             # we set class variables
             self._primitive_root = alpha

@@ -2131,45 +2131,29 @@ class TamariIntervalPoset(Element):
         t_low = self.lower_binary_tree().to_tilting()
         t_up = self.upper_binary_tree().to_tilting()
         common = [p for p in t_low if p in t_up]
-        n = self.size()
 
-        def son(xy, tilt, side="left"):
-            """
-            Return the position of the left (or right) son of vertex xy.
-            """
-            x, y = xy
-            if side == "right":
-                for k in range(x + 1, y):
-                    if (k, y) in tilt:
-                        return (k, y)
-            if side == "left":
-                for k in range(y - 1, x, -1):
-                    if (x, k) in tilt:
-                        return (x, k)
-            return None
-
-        def extract_tree(xy, tilt, common):
+        def extract_tree(x, y, tilt, common):
             """
             Extract a tree with root at position xy (recursive).
             """
-            left_son = son(xy, tilt, side="left")
-            if left_son is None or left_son in common:
-                left_tree = None
-            else:
-                left_tree = extract_tree(left_son, tilt, common)
-
-            right_son = son(xy, tilt, side="right")
-            if right_son is None or right_son in common:
-                right_tree = None
-            else:
-                right_tree = extract_tree(right_son, tilt, common)
-
+            left_tree = None
+            for k in range(y - 1, x, -1):
+                if (x, k) in tilt:
+                    if (x, k) not in common:
+                        left_tree = extract_tree(x, k, tilt, common)
+                    break
+            right_tree = None
+            for k in range(x + 1, y):
+                if (k, y) in tilt:
+                    if (k, y) not in common:
+                        right_tree = extract_tree(k, y, tilt, common)
+                    break
             return BinaryTree([left_tree, right_tree])
 
         TIP = self.parent()
-        return [TIP.from_binary_trees(extract_tree(c, t_low, common),
-                                      extract_tree(c, t_up, common))
-                for c in common]
+        return [TIP.from_binary_trees(extract_tree(cx, cy, t_low, common),
+                                      extract_tree(cx, cy, t_up, common))
+                for cx, cy in common]
 
     def is_new(self):
         """

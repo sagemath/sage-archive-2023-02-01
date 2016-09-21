@@ -98,58 +98,47 @@ def find_generator_polynomial(code, check=True):
         x^3 + (a^2 + 1)*x^2 + a*x + a^2 + 1
     """
     G = code.generator_matrix()
-    n = code.length()
-    k = code.dimension()
     F = code.base_ring()
     R = F['x']
-    x = R.gen()
-    g = R(G.row(0).list())
-
-    i = 1
-    while(g.degree() > n - k and i < k):
-        p = R(G.row(i).list())
-        g = gcd(g, p)
-        i += 1
+    x = R.gen()    
+    g = gcd(R(row.list()) for row in G)
 
     if check:
+        n = code.length()
+        k = code.dimension()
         if g.degree() != n - k :
             raise ValueError("The code is not cyclic.")
-        i = 0
-        c = g.coefficients(sparse = False)
-        c = _complete_list(c, n)
-        while (vector(c) in code and i < k):
-            c = [c[n-1]] + c[:n-1]
-            i += 1
-        if (i != k):
+        c = _to_complete_list(g, n)
+        if any(vector(c[i:] + c[:i]) not in code for i in range(n)):
             raise ValueError("The code is not cyclic.")
+
     return g.monic()
 
-def _complete_list(l, length):
+def _to_complete_list(poly, length):
     r"""
-    Returns ``l`` with as many zeros appened to it as necessary to make
-    it a list of size ``length``.
+    Returns the vector of length exactly ``length`` corresponding to the
+    coefficients of the provided polynomial. If needed, zeros are added.
 
     INPUT:
 
-    - ``l`` -- a list
+    - ``poly`` -- a polynomial
 
     - ``length`` -- an integer
 
     OUTPUT:
 
-    - a list formed by ``l`` and its completion to ``length``
+    - the list of coefficients
 
     EXAMPLES::
 
-        sage: l = [1, 2, 3, 4]
-        sage: sage.coding.cyclic_code._complete_list(l, 6)
-        [1, 2, 3, 4, 0, 0]
+        sage: R = PolynomialRing(GF(2), 'X')
+        sage: X = R.gen()
+        sage: poly = X**4 + X + 1
+        sage: sage.coding.cyclic_code._to_complete_list(poly, 7)
+        [1, 1, 0, 0, 1, 0, 0]
     """
-    F = l[0].base_ring()
-    l_len = len(l)
-    if(l_len != length):
-        l = l + ([F.zero()] * (length - l_len))
-    return l
+    L = poly.coefficients(sparse = False)
+    return L + [poly.base_ring().zero()] * (length - len(L))
 
 def bch_bound(n, D, arithmetic = False):
     r"""
@@ -653,7 +642,7 @@ class CyclicCode(AbstractLinearCode):
             Rsplit = Fsplit['xx']
             gsplit = Rsplit([F_to_Fsplit(coeff) for coeff in g])
             roots = gsplit.roots(multiplicities = False)
-            D = [discrete_log(root, alpha) for root in roots]
+            D = [root.log(alpha) for root in roots]
             self._defining_set = sorted(D)
             return self._defining_set
 
@@ -734,15 +723,9 @@ class CyclicCode(AbstractLinearCode):
         k = self.dimension()
         n = self.length()
         R = self._polynomial_ring
-        h = self.check_polynomial()
-        l = h.coefficients(sparse = False)
-        l.reverse()
-        l = _complete_list(l, n)
-        H = matrix(self.base_ring(), n - k, n)
-        for i in range(n - k):
-            H.set_row(i, l)
-            l = l[n-1:] + l[:n-1]
-        return H
+        h = self.check_polynomial().reverse()
+        l = _to_complete_list(h, n)
+        return matrix([l[-i:] + l[:-i] for i in range(n-k)])
 
     def bch_bound(self, arithmetic = False):
         r"""
@@ -909,8 +892,7 @@ class CyclicCodePolynomialEncoder(Encoder):
         n = C.length()
         if p.degree() >= k:
             raise ValueError("Degree of the message must be at most %s" % k-1)
-        res = (p * C.generator_polynomial()).coefficients(sparse = False)
-        res = _complete_list(res, n)
+        res = _to_complete_list(p * C.generator_polynomial(), n)
         return vector(C.base_field(), res)
 
     def unencode_nocheck(self, c):
@@ -1097,8 +1079,7 @@ class CyclicCodeVectorEncoder(Encoder):
         p = R(m.list())
         if p.degree() >= k:
             raise ValueError("Degree of the message must be at most %s" % k-1)
-        res = (p * self.code().generator_polynomial()).coefficients(sparse = False)
-        res = _complete_list(res, n)
+        res = _to_complete_list(p * self.code().generator_polynomial(), n)
         return vector(F, res)
 
     def unencode_nocheck(self, c):
@@ -1129,8 +1110,7 @@ class CyclicCodeVectorEncoder(Encoder):
         R = self._polynomial_ring
         g = self.code().generator_polynomial()
         p = R(c.list())
-        l = (p//g).coefficients(sparse = False)
-        l = _complete_list(l, self.message_space().dimension())
+        l = _to_complete_list(p//g, self.message_space().dimension())
         return vector(self.code().base_field(), l)
 
     @cached_method
@@ -1154,13 +1134,8 @@ class CyclicCodeVectorEncoder(Encoder):
         C = self.code()
         k = C.dimension()
         n = C.length()
-        l = C.generator_polynomial().coefficients(sparse = False)
-        l = _complete_list(l, n)
-        G = matrix(C.base_ring(), k, n)
-        for i in range(k):
-            G.set_row(i, l)
-            l = l[n-1:] + l[:n-1]
-        return G
+        l = _to_complete_list(C.generator_polynomial(), n)
+        return matrix([l[-i:] + l[:-i] for i in range(k)])
 
     def message_space(self):
         r"""

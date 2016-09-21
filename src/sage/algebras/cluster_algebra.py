@@ -1575,6 +1575,59 @@ class ClusterAlgebra(Parent):
         n = self.rk()
         return copy(self._B0[:n,:])
 
+    def g_vectors(self, mutating_F=True):
+        r"""
+        Return an itareator producing all the g-vectors of ``self``.
+
+        INPUT:
+
+        - ``mutating_F`` -- bool (default ``True``): whether to compute F-polynomials also;
+          for speed considerations you may want to disable this.
+
+        ALGORITHM:
+
+        This method does not usethe caching framework provided by ``self`` but
+        recomputes all the g-vectors from scratch. On the other hand it stores
+        the results so that other methods like :meth:`g_vectors_so_far` can
+        access them afterwards.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',3])
+            sage: len(list(A.g_vectors()))
+            9
+        """
+        seeds = self.seeds(mutating_F=mutating_F)
+        found_so_far = set()
+        for g in next(seeds).g_vectors():
+            found_so_far.add(g)
+            yield(g)
+        for S in seeds:
+            j = S.path_from_initial_seed()[-1]
+            g = S.g_vector(j)
+            if g not in found_so_far:
+                found_so_far.add(g)
+                yield(g)
+
+    def cluster_variables(self):
+        r"""
+        Return an itareator producing all the cluster variables of ``self``.
+
+        ALGORITHM:
+
+        This method does not usethe caching framework provided by ``self`` but
+        recomputes all the cluster variables from scratch. On the other hand it
+        stores the results so that other methods like :meth:`cluster_variables_so_far`
+        can access them afterwards.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',3])
+            sage: len(list(A.cluster_variables()))
+            9
+        """
+        return map(self.cluster_variable, self.g_vectors())
+
     def g_vectors_so_far(self):
         r"""
         Return a list of the g-vectors of cluster variables encountered so far.

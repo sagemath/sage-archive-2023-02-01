@@ -5,9 +5,12 @@ A simple way of detecting up to one error is to use the device of adding a
 parity check to ensure that the sum of the digits in a transmitted word is
 even. 
 
+A parity-check code of dimension `k` over `F_q` is the set:
+`\{(m_1, m_2, \dots, m_k, - \Sigma_{i=1}^k m_i) \mid (m_1, m_2, \dots, m_n) in F_q\}` 
+
 REFERENCE:
 
-    .. [W] Codes and Cryptography, Dominic Welsh, Oxford Sciences Publications,
+    .. [W88] Codes and Cryptography, Dominic Welsh, Oxford Sciences Publications,
            1988
 """
 
@@ -53,15 +56,12 @@ class ParityCheckCode(AbstractLinearCode):
         r"""
         Initialize mandatory parameters for a parity-check code object.
 
-        This method only exists for inheritance purposes as it initializes
-        parameters that need to be known by every linear code. An abstract
-        linear code object should never be created.
-
         INPUT:
 
-        - ``base_field`` -- the base field over which ``self`` is defined.
+        - ``base_field`` -- the base field over which ``self`` is defined
+                            or GF(2) if no base_field.
     
-        - ``dimension`` -- the dimension of ``self``.
+        - ``dimension`` -- the dimension of ``self`` or 7 if no dimension.
 
         EXAMPLES::
 
@@ -71,7 +71,7 @@ class ParityCheckCode(AbstractLinearCode):
         """
 
         if not base_field.is_finite():
-            raise ValueError("base_field has to be a finite field")
+            raise ValueError("base_field has to be a finite field or no base_field.is_finite()")
 
         if base_field == None:
             base_field = GF(2)        
@@ -80,7 +80,7 @@ class ParityCheckCode(AbstractLinearCode):
 
         self._dimension = dimension
         super(ParityCheckCode, self).__init__(base_field, dimension+1,
-            "ParityCheckGeneratorMatrixEncoder", "Syndrome")
+            "ParityCheckCodeGeneratorMatrixEncoder", "Syndrome")
 
     def __eq__(self, other):
         r"""
@@ -165,7 +165,7 @@ class ParityCheckCodeGeneratorMatrixEncoder(Encoder):
 
     Actually, we can construct the encoder from ``C`` directly::
 
-        sage: E = C.encoder("ParityCheckGeneratorMatrixEncoder")
+        sage: E = C.encoder("ParityCheckCodeGeneratorMatrixEncoder")
         sage: E
         Parity-check encoder for the [8, 7] parity-check code over Finite Field of size 5
     """
@@ -177,7 +177,7 @@ class ParityCheckCodeGeneratorMatrixEncoder(Encoder):
         If ``code`` is not a parity-check code, an error is raised::
 
             sage: C  = codes.RandomLinearCode(10, 4, GF(11))
-            sage: codes.encoders.ParityCheckCodeStraightforwardEncoder(C)
+            sage: codes.encoders.ParityCheckCodeGeneratorMatrixEncoder(C)
             Traceback (most recent call last):
             ...
             ValueError: code has to be a parity-check code
@@ -232,18 +232,18 @@ class ParityCheckCodeGeneratorMatrixEncoder(Encoder):
             sage: C = codes.ParityCheckCode(GF(5),7)
             sage: E = codes.encoders.ParityCheckCodeGeneratorMatrixEncoder(C)
             sage: E.generator_matrix()
-            [1 0 0 0 0 0 0 1]
-            [0 1 0 0 0 0 0 1]
-            [0 0 1 0 0 0 0 1]
-            [0 0 0 1 0 0 0 1]
-            [0 0 0 0 1 0 0 1]
-            [0 0 0 0 0 1 0 1]
-            [0 0 0 0 0 0 1 1]
+            [1 0 0 0 0 0 0 4]
+            [0 1 0 0 0 0 0 4]
+            [0 0 1 0 0 0 0 4]
+            [0 0 0 1 0 0 0 4]
+            [0 0 0 0 1 0 0 4]
+            [0 0 0 0 0 1 0 4]
+            [0 0 0 0 0 0 1 4]
         """
         k = self.code().dimension()
         field = self.code().base_field()
         G = identity_matrix(field,k)
-        G = G.augment(vector([field.one()] * k))
+        G = G.augment(vector(field,[- field.one()] * k))
         return G
 
 
@@ -273,7 +273,7 @@ class ParityCheckCodeStraightforwardEncoder(Encoder):
 
     Actually, we can construct the encoder from ``C`` directly::
 
-        sage: E = C.encoder("ParityCheckStraightforwardEncoder")
+        sage: E = C.encoder("ParityCheckCodeStraightforwardEncoder")
         sage: E
         Parity-check encoder for the [8, 7] parity-check code over Finite Field of size 5
     """
@@ -349,9 +349,9 @@ class ParityCheckCodeStraightforwardEncoder(Encoder):
         EXAMPLES::
 
             sage: C = codes.ParityCheckCode(GF(5),7)
-            sage: message = vector(C.base_field(),[1, 0, 2, 2, 2, 2, 0])
+            sage: message = vector(C.base_field(),[1,0,4,2,0,3,2])
             sage: C.encode(message)
-            (1, 0, 2, 2, 2, 2, 0, 4)
+            (1, 0, 4, 2, 0, 3, 2, 3)
         """
         parity=self.code().base_field().zero()
         for i in message.list():
@@ -378,9 +378,9 @@ class ParityCheckCodeStraightforwardEncoder(Encoder):
         EXAMPLES::
 
             sage: C = codes.ParityCheckCode(GF(5),7)
-            sage: word = vector(C.base_field(),[1, 0, 2, 2, 2, 2, 0, 4])
-            sage: C.unencode(word)
-            (1, 0, 2, 2, 2, 2, 0)
+            sage: word = vector(C.base_field(),[1, 0, 4, 2, 0, 3, 2, 3])
+            sage: C.unencode_nocheck(word)
+            (1, 0, 4, 2, 0, 3, 2)
         """        
         return word[0:len(word)-1]
 
@@ -400,5 +400,5 @@ class ParityCheckCodeStraightforwardEncoder(Encoder):
 
 ####################### registration ###############################
 
-ParityCheckCode._registered_encoders["ParityCheckGeneratorMatrixEncoder"] = ParityCheckCodeGeneratorMatrixEncoder
-ParityCheckCode._registered_encoders["ParityCheckStraightforwardEncoder"] = ParityCheckCodeStraightforwardEncoder
+ParityCheckCode._registered_encoders["ParityCheckCodeGeneratorMatrixEncoder"] = ParityCheckCodeGeneratorMatrixEncoder
+ParityCheckCode._registered_encoders["ParityCheckCodeStraightforwardEncoder"] = ParityCheckCodeStraightforwardEncoder

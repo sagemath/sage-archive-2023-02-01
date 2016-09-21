@@ -2979,18 +2979,6 @@ class AbstractLinearCode(module.Module):
         c.set_immutable()
         return c
 
-    def relative_distance(self):
-        r"""
-        Return the ratio of the minimum distance to the code length.
-
-        EXAMPLES::
-
-            sage: C = codes.HammingCode(GF(2),3)
-            sage: C.relative_distance()
-            3/7
-        """
-        return self.minimum_distance() / self.length()
-
     def redundancy_matrix(self):
         r"""
         Returns the non-identity columns of a systematic generator matrix for

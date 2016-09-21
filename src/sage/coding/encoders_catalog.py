@@ -27,6 +27,7 @@ The ``codes.encoders`` object may be used to access the encoders that Sage can b
 #*****************************************************************************
 #       Copyright (C) 2009 David Joyner <wdjoyner@gmail.com>
 #                     2015 David Lucas <david.lucas@inria.fr>
+#                     2016 Tania Richmond <tania.richmond@univ-tln.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or later (at your preference).

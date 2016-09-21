@@ -39,6 +39,7 @@ Linear codes and related constructions
    sage/coding/guava
    sage/coding/binary_code
    sage/coding/reed_muller_code
+   sage/coding/parity_check_code
 
 Bounds on codes
 ---------------

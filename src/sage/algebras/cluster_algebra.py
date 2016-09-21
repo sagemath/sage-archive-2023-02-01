@@ -1601,13 +1601,13 @@ class ClusterAlgebra(Parent):
         found_so_far = set()
         for g in next(seeds).g_vectors():
             found_so_far.add(g)
-            yield(g)
+            yield g
         for S in seeds:
             j = S.path_from_initial_seed()[-1]
             g = S.g_vector(j)
             if g not in found_so_far:
                 found_so_far.add(g)
-                yield(g)
+                yield g
 
     def cluster_variables(self):
         r"""
@@ -2190,7 +2190,7 @@ class ClusterAlgebra(Parent):
 
             #compute new F-polynomial
             if old_F_poly_dict.has_key(old_g_vect):
-                h =  -min(0, old_g_vect[k])
+                h = -min(0, old_g_vect[k])
                 new_F_poly = old_F_poly_dict[old_g_vect](F_subs)*Ugen[k]**h*(Ugen[k]+1)**old_g_vect[k]
                 self._F_poly_dict[new_g_vect] = new_F_poly
 

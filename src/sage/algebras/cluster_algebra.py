@@ -321,6 +321,7 @@ the initial seed::
 
 from copy import copy
 from functools import wraps
+from future_builtins import map
 from types import MethodType
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
@@ -923,7 +924,7 @@ class ClusterAlgebraSeed(SageObject):
             sage: S.c_vectors()
             [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
         """
-        return map(tuple, self._C.columns())
+        return list(map(tuple, self._C.columns()))
 
     def g_matrix(self):
         r"""
@@ -968,7 +969,7 @@ class ClusterAlgebraSeed(SageObject):
             sage: S.g_vectors()
             [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
         """
-        return map(tuple, self._G.columns())
+        return list(map(tuple, self._G.columns()))
 
     def F_polynomial(self, j):
         r"""
@@ -1598,7 +1599,7 @@ class ClusterAlgebra(Parent):
             sage: A.cluster_variables_so_far()
             [x1, x0, (x1 + 1)/x0]
         """
-        return map(self.cluster_variable, self.g_vectors_so_far())
+        return list(map(self.cluster_variable, self.g_vectors_so_far()))
 
     @cached_method(key=lambda a, b: tuple(b))
     def cluster_variable(self, g_vector):
@@ -1790,7 +1791,7 @@ class ClusterAlgebra(Parent):
             sage: A.gens()
             [x0, x1, x2, x3]
         """
-        return map(self.retract, self.ambient().gens())
+        return list(map(self.retract, self.ambient().gens()))
 
     def coefficient(self, j):
         r"""
@@ -1825,7 +1826,7 @@ class ClusterAlgebra(Parent):
             []
         """
         if isinstance(self.base(), LaurentPolynomialRing_generic):
-            return map(self.retract, self.base().gens())
+            return list(map(self.retract, self.base().gens()))
         else:
             return []
 
@@ -1873,7 +1874,7 @@ class ClusterAlgebra(Parent):
             sage: A.initial_cluster_variables()
             [x0, x1]
         """
-        return map(self.retract, self.ambient().gens()[:self.rk()])
+        return list(map(self.retract, self.ambient().gens()[:self.rk()]))
 
     def initial_cluster_variable_names(self):
         r"""
@@ -1971,7 +1972,7 @@ class ClusterAlgebra(Parent):
                         new_cl = frozenset(new_sd.g_vectors())
                         if new_cl in clusters:
                             # we already had new_sd, make sure it does not mutate to sd during next round
-                            j = map(tuple, clusters[new_cl][0].g_vectors()).index(new_sd.g_vector(i))
+                            j = clusters[new_cl][0].g_vectors().index(new_sd.g_vector(i))
                             try:
                                 clusters[new_cl][1].remove(j)
                             except ValueError:

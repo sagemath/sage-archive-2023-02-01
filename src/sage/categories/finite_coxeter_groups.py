@@ -85,7 +85,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             r"""
             Return the longest element of ``self``.
 
-            This attribute is deprecated.
+            This attribute is deprecated, use :meth:`long_element` instead.
 
             EXAMPLES::
 
@@ -753,7 +753,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: W = CoxeterGroup(['A',3], base_ring=ZZ)
-                sage: len(W.w0.cov_down_subgroup())
+                sage: len(W.long_element().cov_down_subgroup())
                 24
                 sage: s = W.simple_reflection(1)
                 sage: Gs = s.cov_down_subgroup()

@@ -332,7 +332,7 @@ class CyclicCode(AbstractLinearCode):
             sage: C = codes.CyclicCode(generator_pol = g, length = n)
             Traceback (most recent call last):
             ...
-            ValueError: Generator polynomial must be defined over a finite field
+            ValueError: The generator polynomial must be defined over a finite field.
 
         And we check that the generator polynomial divides `x^{n} - 1`,
         where `n` is provided length::
@@ -343,7 +343,7 @@ class CyclicCode(AbstractLinearCode):
             sage: C = codes.CyclicCode(generator_pol = g, length = n)
             Traceback (most recent call last):
             ...
-            ValueError: Provided polynomial must divide x^n - 1, where n is the provided length
+            ValueError: Provided polynomial must divide x^n - 1, where n is the provided length.
 
         In the case of a code is passed as argument, if it's not possible
         to extract a generator polynomial, an exception is raised::
@@ -425,7 +425,7 @@ class CyclicCode(AbstractLinearCode):
                 Fsplit = primitive_root.parent()
                 try:
                     FE = RelativeFiniteFieldExtension(Fsplit, F)
-                    print FE.extension_degree(), s
+                    assert FE.extension_degree() == s
                     assert primitive_root.multiplicative_order() == n
                 except:
                     raise ValueError("primitive_root must be a primitive "

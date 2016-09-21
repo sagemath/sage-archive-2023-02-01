@@ -246,7 +246,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                *Cataland: why the fuss?*, :arxiv:`1503.00710`
             """
             from sage.combinat.posets.lattices import LatticePoset
-            data = {w: (frozenset(w.covered_reflections_subgroup()),
+            data = {w: (frozenset(u.lift()
+                                  for u in w.covered_reflections_subgroup()),
                         frozenset((~w).inversions_as_reflections()))
                     for w in self}
 
@@ -759,7 +760,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 sage: Gs = s.covered_reflections_subgroup()
                 sage: len(Gs)
                 2
-                sage: s in Gs
+                sage: s in [u.lift() for u in Gs]
                 True
                 sage: len(W.one().covered_reflections_subgroup())
                 1
@@ -768,4 +769,4 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             winv = ~self
             cov_down = [self * W.simple_reflection(i) * winv
                         for i in self.descents(side='right')]
-            return [u.lift() for u in W.submonoid(cov_down)]
+            return W.submonoid(cov_down)

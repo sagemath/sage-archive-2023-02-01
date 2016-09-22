@@ -556,6 +556,74 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         self._check_errors(var, output)
 
+    def get_string(self, var):
+        """Return the value of a FriCAS string as a string, without checking
+        that it is a string.
+
+        TESTS::
+
+        We test that strings are returned properly::
+
+            sage: r = fricas.get_string('concat([concat(string(i)," ") for i in 0..299])')   # optional - fricas
+            sage: r == " ".join([str(i) for i in range(300)]) + ' '                          # optional - fricas
+            True
+
+            sage: fricas.get_string('concat([string(1) for i in 1..5])') == "1"*5            # optional - fricas
+            True
+
+            sage: fricas.get_string('concat([string(1) for i in 1..10000])') == "1"*10000    # optional - fricas
+            True
+
+        """
+        return self.get(str(var)).replace("\r\n", "")[1:-1]
+
+    def get_integer(self, var):
+        """Return the value of a FriCAS integer as an integer, without
+        checking that it is an integer.
+
+        TESTS::
+
+            sage: fricas.get_integer('factorial 1111') == factorial(1111)       # optional - fricas
+            True
+
+        """
+        return int(self.get_unparsed_InputForm(str(var)))
+
+    def get_boolean(self, var):
+        """Return the value of a FriCAS boolean as a boolean, without checking
+        that it is a boolean.
+
+        TESTS::
+
+            sage: fricas.get_boolean('(1=1)::Boolean') == True                  # optional - fricas
+            True
+
+            sage: fricas.get_boolean('(1=2)::Boolean') == False                 # optional - fricas
+            True
+        """
+        return self.get(str(var)).replace("\r\n", "") == "true"
+
+    def get_unparsed_InputForm(self, var):
+        """Return the unparsed InputForm as a string.
+
+        TODO::
+
+            - catch errors, especially when InputForm is not available:
+
+                -- for example when integration returns "failed"
+
+                -- UnivariatePolynomial
+
+            - should we provide workarounds, too?
+
+        TESTS:
+
+            sage: fricas.get_unparsed_InputForm('1..3')                         # optional - fricas
+            '1..3$Segment(Integer())'
+
+        """
+        return self.get_string('unparse((%s)::InputForm)' %str(var))
+
     def _assign_symbol(self):
         """Return the symbol used for setting a variable in FriCAS.
 
@@ -744,7 +812,7 @@ class FriCASElement(ExpectElement):
             6
         """
         P = self._check_valid()
-        l = P('# %s' %self._name)
+        l = P('#(%s)' %self._name)
         return l.sage()
 
     def __getitem__(self, n):
@@ -811,7 +879,7 @@ class FriCASElement(ExpectElement):
             True
         """
         P = self._check_valid()
-        return not P.new("zero? %s" %self._name).sage()
+        return not P.new("zero?(%s)" %self._name).sage()
 
     def __long__(self):
         """
@@ -862,53 +930,23 @@ class FriCASElement(ExpectElement):
         EXAMPLES::
 
             sage: latex(fricas("sin(x+y)/exp(z)*log(1+%e)"))                    # optional - fricas
-            {{\log \left( {{e+1}} \right)} \  {\sin \left( {{y+x}} \right)}} \over {{e} ^ {z}}
+            {{\log \left( {{e+1}} \right)} \  {\sin \left( {{y+x}} \right)}} \over {{e} ^{z}}
 
             sage: latex(fricas("matrix([[1,2],[3,4]])"))                        # optional - fricas
             \left[ \begin{array}{cc} 1 & 2 \\ 3 & 4 \end{array}  \right]
+
+            sage: latex(fricas("integrate(sin(x+1/x),x)"))                      # optional - fricas
+            \int ^{\displaystyle x} {{\sin \left( {{{{{ \%A} ^{2}}+1} \over  \%A}} \right)} \  {d \%A}}
         """
-        replacements = [('\r', ''),
-                        ('\n', ' '),
-                        ('\sp ', '^'),
+        replacements = [('\sp ', '^'),
                         ('\sp{', '^{'),
                         ('\sb ', '_'),
                         ('\sb{', '_{')]
         P = self._check_valid()
-        s = P.get("tex(%s).1" %self._name)[1:-1] # we want the string here
+        s = P.get_string("first tex(%s)" %self._name)
         for old, new in replacements:
             s = s.replace(old, new)
         return s
-
-    def _unparsed_InputForm(self):
-        """Return the output from FriCAS as a string without the quotes.
-
-        TODO::
-
-            - catch errors, especially when InputForm is not available:
-
-                -- for example when integration returns "failed"
-
-                -- UnivariatePolynomial
-
-            - should we provide workarounds, too?
-
-        TESTS:
-
-        We test that strings are returned properly::
-
-            sage: r = fricas('concat([concat(string(i)," ") for i in 0..299])')._unparsed_InputForm()   # optional - fricas
-            sage: r == " ".join([str(i) for i in range(300)]) + ' '                                     # optional - fricas
-            True
-
-            sage: fricas('concat([string(1) for i in 1..5])')._unparsed_InputForm() == "1"*5            # optional - fricas
-            True
-
-            sage: fricas('concat([string(1) for i in 1..10000])')._unparsed_InputForm() == "1"*10000    # optional - fricas
-            True
-        """
-        P = self._check_valid()
-        return P.get('unparse(%s::InputForm)' %self._name).replace("\r\n", "")[1:-1]
-
 
     def _get_sage_type(self, domain):
         """
@@ -941,7 +979,7 @@ class FriCASElement(ExpectElement):
             return str
         if head == "Float":
             P = self._check_valid()
-            prec = max(P.new("length mantissa %s" %self._name).sage(), 53)
+            prec = max(P.new("length mantissa(%s)" %self._name).sage(), 53)
             return RealField(prec)
         if head == "DoubleFloat":
             return RDF
@@ -969,8 +1007,11 @@ class FriCASElement(ExpectElement):
         raise NotImplementedError("The translation of FriCAS type %s to sage is not yet implemented." %domain)
 
     def _sage_expression(self, unparsed_InputForm):
-        """
-        Convert an expression to an element of the Symbolic Ring.
+        """Convert an expression to an element of the Symbolic Ring.
+
+        This does not depend on `self`.  Instead, for practical
+        reasons of the implementation of `self._sage_`, it takes the
+        unparsed InputForm as argument.
 
         .. TODO::
 
@@ -988,11 +1029,10 @@ class FriCASElement(ExpectElement):
                    | 2
                    |---
                   \|%pi
-            sage: f._unparsed_InputForm()                                       # optional - fricas
+            sage: s = fricas.get_unparsed_InputForm(f._name); s                 # optional - fricas
             'fresnelS(x*(2/pi())^(1/2))/((2/pi())^(1/2))'
-            sage: f._sage_expression(f._unparsed_InputForm())                   # optional - fricas
+            sage: f._sage_expression(s)                                         # optional - fricas
             1/2*sqrt(2)*sqrt(pi)*fresnelS(sqrt(2)*x/sqrt(pi))
-
 
         """
         from sage.symbolic.ring import SR
@@ -1158,33 +1198,31 @@ class FriCASElement(ExpectElement):
         # TODO: perhaps we should translate the type first?
         # TODO: perhaps we should get the InputForm as SExpression?
 
-        # remember: fricas.get gives a str and should only used if
-        # you know what you are doing, whereas fricas.new gives a
-        # FriCASElement
+        # remember: fricas.new gives a FriCASElement
 
         # the coercion to Any gets rid of the Union domain
         P = self._check_valid()
-        domain = P.new("dom(%s::Any)" % self._name) # domain is now a fricas SExpression
+        domain = P.new("dom((%s)::Any)" % self._name) # domain is now a fricas SExpression
 
         # first translate dummy domains such as "failed". we must not
         # recurse here!
-        if P.get("string?(%s)" % domain._name) == "true":
-            return P.get("string(%s)" % domain._name)[1:-1]
+        if P.get_boolean("string?(%s)" % domain._name):
+            return P.get_string("string(%s)" % domain._name)
 
         # now translate domains which cannot be coerced to InputForm,
         # or where we do not need it.
         head = str(domain.car())
         if head == "List":
-            n = int(P.get('# %s' %self._name))
-            return [P.new('%s.%s' %(self._name, k)).sage() for k in range(1, n+1)]
+            n = P.get_integer('#(%s)' %self._name)
+            return [P.new('elt(%s,%s)' %(self._name, k)).sage() for k in range(1, n+1)]
 
         if head == "Matrix":
             base_ring = self._get_sage_type(domain[1])
-            rows = P.new('listOfLists %s' %self._name).sage()
+            rows = P.new('listOfLists(%s)' %self._name).sage()
             return matrix(base_ring, rows)
 
         if head == "Fraction":
-            return P.new("numer %s" %self._name).sage()/P.new("denom %s" %self._name).sage()
+            return P.new("numer(%s)" %self._name).sage()/P.new("denom(%s)" %self._name).sage()
 
         if head == "Factored":
             l = P.new('[[f.factor, f.exponent] for f in factors(%s)]' %self._name).sage()
@@ -1192,7 +1230,7 @@ class FriCASElement(ExpectElement):
 
         # finally translate domains with InputForm
         try:
-            unparsed_InputForm = self._unparsed_InputForm()
+            unparsed_InputForm = P.get_unparsed_InputForm(self._name)
         except RuntimeError as error:
             raise NotImplementedError("The translation of the FriCAS object\n\n%s\n\nto sage is not yet implemented:\n%s" %(self, error))
 
@@ -1209,7 +1247,7 @@ class FriCASElement(ExpectElement):
             # Warning: precision$Float gives the current precision,
             # whereas length(mantissa(self)) gives the precision of
             # self.
-            prec = max(P.new("length mantissa %s" %self._name).sage(), 53)
+            prec = max(P.new("length mantissa(%s)" %self._name).sage(), 53)
             R = RealField(prec)
             x, e, b = unparsed_InputForm.lstrip('float(').rstrip(')').split(',')
             return R(ZZ(x)*ZZ(b)**ZZ(e))
@@ -1230,7 +1268,8 @@ class FriCASElement(ExpectElement):
 
         if head == "Polynomial":
             base_ring = self._get_sage_type(domain[1])
-            vars = P.new("variables %s" %self._name)._unparsed_InputForm()[1:-1]
+            # the following is a bad hack, we should be getting a list here
+            vars = P.get_unparsed_InputForm("variables(%s)" %self._name)[1:-1]
             if vars == "":
                 return base_ring(unparsed_InputForm)
             else:

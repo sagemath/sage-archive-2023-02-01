@@ -715,7 +715,7 @@ cdef class PolyDict:
             PolyDict with representation {(1, 2): -3, (1, 1): -10, (2, 1): -4}
         """
 
-        # TOOD: should refactor add, make abstract operator, so can do both +/-; or copy code.
+        # TODO: should refactor add, make abstract operator, so can do both +/-; or copy code.
         return self + other.scalar_lmult(-1)
 
     def __one(PolyDict self):

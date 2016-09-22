@@ -1979,7 +1979,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: H == G
             True
 
-        The following doctest verifies that \#4888 is fixed::
+        The following doctest verifies that :trac:`4888` is fixed::
 
             sage: G = DiGraph({0:{}, 1:{0:1}, 2:{0:1}}, weighted = True,sparse=True)
             sage: G.weighted_adjacency_matrix()
@@ -4937,7 +4937,7 @@ class GenericGraph(GenericGraph_pyx):
                 c = self.connected_component_containing_vertex(v)
                 seen.update(c)
                 components.append(c)
-        components.sort(lambda comp1, comp2: cmp(len(comp2), len(comp1)))
+        components.sort(key=lambda comp: -len(comp))
         return components
 
     def connected_components_number(self):
@@ -18064,16 +18064,16 @@ class GenericGraph(GenericGraph_pyx):
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: GP = g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed')
             sage: GP.plot()
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 26 graphics primitives
 
         We can modify the graphplot object.  Notice that the changes are cumulative::
 
             sage: GP.set_edges(edge_style='solid')
             sage: GP.plot()
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 26 graphics primitives
             sage: GP.set_vertices(talk=True)
             sage: GP.plot()
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 26 graphics primitives
         """
         from sage.graphs.graph_plot import GraphPlot
         return GraphPlot(graph=self, options=options)
@@ -18403,7 +18403,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: g.plot(edge_labels=True, color_by_label=True, edge_style='dashed')
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 26 graphics primitives
 
         ::
 
@@ -21357,7 +21357,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         sage: G.edges()
         [(0, 4, None), (1, 4, None), (1, 5, None), (2, 3, None), (2, 5, None)]
 
-    Ensure that #14108 is fixed::
+    Ensure that :trac:`14108` is fixed::
 
         sage: G=DiGraph({0:[0,0,0],1:[1,1,1]})
         sage: H=DiGraph({0:[0,0,0,0],1:[1,1]})

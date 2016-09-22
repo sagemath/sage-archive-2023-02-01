@@ -218,6 +218,7 @@ from __future__ import print_function, absolute_import
 
 from builtins import zip
 
+from six.moves import range
 from collections import defaultdict
 from itertools import islice, cycle
 from sage.combinat.words.abstract_word import Word_class
@@ -664,7 +665,8 @@ class FiniteWord_class(Word_class):
             word: 3113a1
         """
         s = self.standard_permutation()
-        ordered_alphabet = sorted(self.letters(), cmp=self.parent().cmp_letters)
+        ordered_alphabet = sorted(self.letters(),
+                                  key=self.parent().sortkey_letters)
         eval_dict = self.evaluation_dict()
         weight = [eval_dict[a] for a in ordered_alphabet]
         return (s.foata_bijection()).destandardize(weight, ordered_alphabet=ordered_alphabet)
@@ -778,8 +780,8 @@ class FiniteWord_class(Word_class):
             sage: w.to_integer_list()
             [1, 0, 0, 2]
         """
-        cmp_fcn = self._parent.cmp_letters
-        ordered_alphabet = sorted(self.letters(), cmp=cmp_fcn)
+        cmp_key = self._parent.sortkey_letters
+        ordered_alphabet = sorted(self.letters(), key=cmp_key)
         index = dict((b,a) for (a,b) in enumerate(ordered_alphabet))
         return [index[a] for a in self]
 
@@ -976,7 +978,7 @@ class FiniteWord_class(Word_class):
         """
         k = 0
         res = [0]*self.length()
-        for q in xrange(1, self.length()):
+        for q in range(1, self.length()):
             while k > 0 and self[k] != self[q]:
                 k = res[k-1]
             if self[k] == self[q]:
@@ -1007,7 +1009,7 @@ class FiniteWord_class(Word_class):
         l = self.length()
         p = self.reversal().prefix_function_table()
         res = [l - p[-1]]*(l+1)
-        for i in xrange(1, l+1):
+        for i in range(1, l+1):
             j = l - p[i - 1]
             if res[j] > (i - p[i-1]):
                 res[j] = i - p[i-1]
@@ -2102,9 +2104,9 @@ class FiniteWord_class(Word_class):
         try:
             it = iter(self)
             s = next(islice(it, seq[0], None))
-            for i in xrange(1, len(seq)):
+            for i in range(1, len(seq)):
                 steps = seq[i] - seq[i-1]
-                for n in xrange(steps-1): next(it)
+                for n in range(steps-1): next(it)
                 if next(it) != s:
                     return False
         except StopIteration:
@@ -2475,7 +2477,7 @@ class FiniteWord_class(Word_class):
         palindromes.add(pal)
 
         #For all the non-empty prefixes of self,
-        for i in xrange(self.length()):
+        for i in range(self.length()):
 
             #Compute its longest `f`-palindromic suffix using the preceding lps (pal)
             pal = self[:i+1].lps(l=pal.length(),f=f)
@@ -3543,9 +3545,9 @@ class FiniteWord_class(Word_class):
         """
         n = len(self)
         if divide_length:
-            possible = (i for i in xrange(1,n) if n % i == 0)
+            possible = (i for i in range(1,n) if n % i == 0)
         else:
-            possible = xrange(1, n)
+            possible = range(1, n)
         return [x for x in possible if self.has_period(x)]
 
     def longest_common_subword(self, other):
@@ -3705,16 +3707,17 @@ class FiniteWord_class(Word_class):
         """
         if self.is_empty():
             return False
-        cmp = self.parent().cmp_letters
+        key = self.parent().sortkey_letters
         n = self.length()
         i, j = 0, 1
         while j < n:
-            c = cmp(self[i], self[j])
-            if c == 0:
+            ki = key(self[i])
+            kj = key(self[j])
+            if ki == kj:
                 # increment i and j
                 i += 1
                 j += 1
-            elif c < 0:
+            elif ki < kj:
                 # reset i, increment j
                 i = 0
                 j += 1
@@ -3777,7 +3780,7 @@ class FiniteWord_class(Word_class):
             MapleTech journal, vol. 4, no. 1, 1997, pp. 34-42.
 
         """
-        cmp = self.parent().cmp_letters
+        key = self.parent().sortkey_letters
         # We compute the indexes of the factorization.
         n = self.length()
         k = -1
@@ -3786,11 +3789,12 @@ class FiniteWord_class(Word_class):
             i = k+1
             j = k+2
             while j < n:
-                c = cmp(self[i], self[j])
-                if c < 0:
+                ki = key(self[i])
+                kj = key(self[j])
+                if ki < kj:
                     i = k+1
                     j += 1
-                elif c == 0:
+                elif ki == kj:
                     i += 1
                     j += 1
                 else:
@@ -3817,11 +3821,13 @@ class FiniteWord_class(Word_class):
             [[0, 1], [0, 2], [0, 4], [3, 4]]
         """
         inversion_list = []
-        cmp_fcn = self._parent.cmp_letters
+        cmp_key = self._parent.sortkey_letters
         for (i1, letter1) in enumerate(self):
-            for (i2, letter2) in enumerate(self[i1+1:]):
-                if cmp_fcn(letter1, letter2) > 0:
-                    inversion_list.append([i1,i1+i2+1])
+            k1 = cmp_key(letter1)
+            for (i2, letter2) in enumerate(self[i1 + 1:]):
+                k2 = cmp_key(letter2)
+                if k1 > k2:
+                    inversion_list.append([i1, i1 + i2 + 1])
         return inversion_list
 
     # TODO: This function should be defined for words of integers, but it
@@ -4034,7 +4040,7 @@ class FiniteWord_class(Word_class):
         suff = self.good_suffix_table()
         s = p
         while s <= lm - lf:
-            for j in xrange(lf-1, -1, -1):
+            for j in range(lf-1, -1, -1):
                 a = other[s+j]
                 if self[j] != a :
                     s += max(suff[j + 1], j - occ.get(a,-1))
@@ -4884,7 +4890,7 @@ class FiniteWord_class(Word_class):
             raise TypeError("involution (=%s) must be callable"%involution)
         return p
 
-    # TODO: requires a parent with a cmp_letters method
+    # TODO: requires a parent with a sortkey_letters method
     def standard_permutation(self):
         r"""
         Return the standard permutation of the word
@@ -4943,7 +4949,7 @@ class FiniteWord_class(Word_class):
             word: bbbaaa
         """
         from sage.combinat.permutation import to_standard
-        return to_standard(self, cmp=self.parent().cmp_letters)
+        return to_standard(self, key=self.parent().sortkey_letters)
 
     def _s(self, i):
         r"""
@@ -5136,7 +5142,8 @@ class FiniteWord_class(Word_class):
         """
         if check:
             ev_dict = self.evaluation_dict()
-            ordered_alphabet = sorted(ev_dict, cmp=self.parent().cmp_letters)
+            ordered_alphabet = sorted(ev_dict,
+                                      key=self.parent().sortkey_letters)
             evaluation = [ev_dict[a] for a in ordered_alphabet]
             from sage.combinat.partition import Partitions
             if evaluation not in Partitions():
@@ -5397,7 +5404,7 @@ class FiniteWord_class(Word_class):
         if not isinstance(q, (int, Integer)) or q <= 0:
             raise TypeError("the balance level must be a positive integer")
         alphabet = self.letters()
-        for i in xrange(2, self.length()):
+        for i in range(2, self.length()):
             empty_sets = [set() for _ in range(len(alphabet))]
             tab = dict(zip(alphabet, empty_sets))
             for fact in self.factor_iterator(i):
@@ -5708,7 +5715,7 @@ class FiniteWord_class(Word_class):
             sage: s4 = WordMorphism('a->a,b->ab')
             sage: W = Words('ab')
             sage: w = W('ab')
-            sage: for i in xrange(8): w = choice([s1,s2,s3,s4])(w)
+            sage: for i in range(8): w = choice([s1,s2,s3,s4])(w)
             sage: w
             word: abaaabaaabaabaaabaaabaabaaabaabaaabaaaba...
             sage: w.is_sturmian_factor()
@@ -5860,7 +5867,8 @@ class FiniteWord_class(Word_class):
             sage: Words("ba")("abba").swap_increase(0)
             word: baba
         """
-        if self._parent.cmp_letters(self[i], self[i+1]) > 0:
+        key = self._parent.sortkey_letters
+        if key(self[i]) > key(self[i + 1]):
             return self.swap(i)
         else:
             return self
@@ -5884,7 +5892,8 @@ class FiniteWord_class(Word_class):
             sage: Words("ba")("abba").swap_decrease(0)
             word: abba
         """
-        if self._parent.cmp_letters(self[i], self[i+1]) < 0:
+        key = self._parent.sortkey_letters
+        if key(self[i]) < key(self[i + 1]):
             return self.swap(i)
         else:
             return self
@@ -5995,7 +6004,7 @@ class FiniteWord_class(Word_class):
             (6, 3)
             (7, 1)
         """
-        return zip(xrange(1, len(self) + 1), self)
+        return zip(range(1, len(self) + 1), self)
 
     def shuffle(self, other, overlap=0):
         r"""
@@ -6176,7 +6185,7 @@ class FiniteWord_class(Word_class):
                 ss = s
                 c = 1
         v.append(c)
-        return Words(range(1,1+max_c))(v)
+        return Words(list(range(1, 1 + max_c)))(v)
 
     # TODO. Decide whether delta_derivate* really need W.alphabet().last()....
     # RENAME: Should "derivate" be derivative?!
@@ -6341,7 +6350,7 @@ class FiniteWord_class(Word_class):
         if self.is_empty():
             return W()
         v = self.parent()((self[-1],), check=False)
-        for i in xrange(self.length()-2, -1, -1):
+        for i in range(self.length()-2, -1, -1):
             v = v.delta_inv(W, self[i])
         return v
 
@@ -6356,7 +6365,7 @@ class FiniteWord_class(Word_class):
         """
         res = self.delta_inv(s=tab[0])
         res = res[1:]
-        for i in xrange(1, len(tab)):
+        for i in range(1, len(tab)):
             res = res.delta_inv(s=tab[i])
         return res
 
@@ -6502,7 +6511,7 @@ class FiniteWord_class(Word_class):
         if selflen < 2:
             raise ValueError("Standard factorization not defined on"
                              " words of length less than 2")
-        for l in xrange(1, selflen):
+        for l in range(1, selflen):
             suff = self[l:]
             if suff.is_lyndon():
                 return self[:l], suff
@@ -6684,8 +6693,8 @@ class FiniteWord_class(Word_class):
         #A colored rectangle for each letter
         dim = self.parent().alphabet().cardinality()
         if dim is Infinity:
-            ordered_alphabet = sorted(self.letters(), \
-                    cmp=self.parent().cmp_letters)
+            ordered_alphabet = sorted(self.letters(),
+                                      key=self.parent().sortkey_letters)
             dim = float(len(ordered_alphabet))
         else:
             ordered_alphabet = self.parent().alphabet()
@@ -6754,8 +6763,8 @@ class FiniteWord_class(Word_class):
         L = self.length()
         if L < 2:
             return True
-        for start in xrange(0, L-1):
-            for end in xrange(start+2, L+1, 2):
+        for start in range(0, L-1):
+            for end in range(start+2, L+1, 2):
                 if self[start:end].is_square():
                     return False
         return True
@@ -6807,8 +6816,8 @@ class FiniteWord_class(Word_class):
         L = self.length()
         if L < 3:
             return True
-        for start in xrange(0, L - 2):
-            for end in xrange(start+3, L+1, 3):
+        for start in range(0, L - 2):
+            for end in range(start+3, L+1, 3):
                 if self[start:end].is_cube():
                     return False
         return True

@@ -679,16 +679,16 @@ fi
 # BLAS library
 AC_MSG_CHECKING([BLAS library])
 AC_ARG_WITH([blas],
-[AS_HELP_STRING([--with-blas=atlas],
-    [use ATLAS as BLAS library (default)])]
 [AS_HELP_STRING([--with-blas=openblas],
-    [use OpenBLAS as BLAS library])],,
-    [with_blas=atlas]  # default
+    [use OpenBLAS as BLAS library (default)])]
+[AS_HELP_STRING([--with-blas=atlas],
+    [use ATLAS as BLAS library])],,
+    [with_blas=openblas]  # default
 )
 
 case "$with_blas" in
-    atlas) true;;
-    openblas) need_to_install_atlas=no;;
+    openblas) true;;
+    atlas) need_to_install_openblas=no;;
     *) AC_MSG_ERROR([allowed values for --with-blas are 'atlas' and 'openblas']);;
 esac
 

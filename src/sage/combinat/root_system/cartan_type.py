@@ -464,6 +464,7 @@ this data.
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
+from six.moves import range
 from six.moves.builtins import sorted
 from six import class_types
 

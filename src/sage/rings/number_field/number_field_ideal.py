@@ -3081,7 +3081,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             sage: R(1/b)
             2*abar
 
-        We verify that #8721 is fixed::
+        We verify that :trac:`8721` is fixed::
 
             sage: L.<a, b> = NumberField([x^2 - 3, x^2 - 5])
             sage: L.ideal(a).residue_field()

@@ -525,8 +525,10 @@ class FriCAS(ExtraTabCompletion, Expect):
         self._check_errors(value, output)
 
     def get(self, var):
-        r"""
-        Get the string representation of the value of a variable in FriCAS.
+        r""" Get the string representation of the value (more precisely, the
+        OutputForm) of a variable or expression in FriCAS.
+
+        If FriCAS cannot evaluate `var` an error is raised.
 
         EXAMPLES::
 
@@ -536,8 +538,12 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: a = fricas('(1 + sqrt(2))^5')                                 # optional - fricas
             sage: fricas.get(a.name())                                          # optional - fricas
             '   +-+\r\n29\\|2  + 41'
+            sage: fricas.get('(1 + sqrt(2))^5')                                 # optional - fricas
+            '   +-+\r\n29\\|2  + 41'
+            sage: fricas.new('(1 + sqrt(2))^5')                                 # optional - fricas
+               +-+
+            29\|2  + 41
         """
-        # print("fricas.get %s" %var)
         output = self.eval(str(var), reformat=False)
         # if there is AlgebraOutput we ask no more
         m = re.search("\|startAlgebraOutput\|\r\n(.*)\r\n\|endOfAlgebraOutput\|\r", output, flags = re.DOTALL)
@@ -738,7 +744,7 @@ class FriCASElement(ExpectElement):
             6
         """
         P = self._check_valid()
-        l = P('# %s ' %self._name)
+        l = P('# %s' %self._name)
         return l.sage()
 
     def __getitem__(self, n):
@@ -767,7 +773,10 @@ class FriCASElement(ExpectElement):
         n = int(n)
         if n < 0:
             raise IndexError("index out of range")
-        return self.elt(n+1)
+        P = self._check_valid()
+        # use "elt" instead of "." here because then the error
+        # message is clearer
+        return P.new("elt(%s,%s)" %(self._name, n+1))
 
     def __int__(self):
         """
@@ -801,7 +810,8 @@ class FriCASElement(ExpectElement):
             sage: fricas(0).is_zero()                                           # optional - fricas, indirect doctest
             True
         """
-        return not self.zero_q().sage()
+        P = self._check_valid()
+        return not P.new("zero? %s" %self._name).sage()
 
     def __long__(self):
         """
@@ -852,25 +862,19 @@ class FriCASElement(ExpectElement):
         EXAMPLES::
 
             sage: latex(fricas("sin(x+y)/exp(z)*log(1+%e)"))                    # optional - fricas
-            {{\log  \left( {{e+1}}  \right)} \  {\sin  \left( {{y+x}}  \right)}} \over {{e} ^{z}}
-        """
-        # for some strange reason, outputAsTex does not generate
-        # |startAlgebraOutput| and |endOfAlgebraOutput| markers.
-        P = self._check_valid()
-        s = P.eval('outputAsTex(%s)'%self._name, reformat=False)
+            {{\log \left( {{e+1}} \right)} \  {\sin \left( {{y+x}} \right)}} \over {{e} ^ {z}}
 
-        if not '$$' in s:
-            raise RuntimeError("Error texing FriCAS object %s." %s)
-        i = s.find('$$')
-        j = s.rfind('$$')
-        s = s[i+2:j]
+            sage: latex(fricas("matrix([[1,2],[3,4]])"))                        # optional - fricas
+            \left[ \begin{array}{cc} 1 & 2 \\ 3 & 4 \end{array}  \right]
+        """
         replacements = [('\r', ''),
                         ('\n', ' '),
-                        ('\leqno(NIL)', ''), # no eq number!
                         ('\sp ', '^'),
                         ('\sp{', '^{'),
                         ('\sb ', '_'),
                         ('\sb{', '_{')]
+        P = self._check_valid()
+        s = P.get("tex(%s).1" %self._name)[1:-1] # we want the string here
         for old, new in replacements:
             s = s.replace(old, new)
         return s
@@ -936,7 +940,8 @@ class FriCASElement(ExpectElement):
         if head == "String":
             return str
         if head == "Float":
-            prec = max(self.mantissa().length()._sage_(), 53)
+            P = self._check_valid()
+            prec = max(P.new("length mantissa %s" %self._name).sage(), 53)
             return RealField(prec)
         if head == "DoubleFloat":
             return RDF
@@ -983,7 +988,7 @@ class FriCASElement(ExpectElement):
                    | 2
                    |---
                   \|%pi
-            sage: f._unparsed_InputForm()
+            sage: f._unparsed_InputForm()                                       # optional - fricas
             'fresnelS(x*(2/pi())^(1/2))/((2/pi())^(1/2))'
             sage: f._sage_expression(f._unparsed_InputForm())                   # optional - fricas
             1/2*sqrt(2)*sqrt(pi)*fresnelS(sqrt(2)*x/sqrt(pi))
@@ -1170,16 +1175,16 @@ class FriCASElement(ExpectElement):
         # or where we do not need it.
         head = str(domain.car())
         if head == "List":
-            n = int(P.get('# %s'%self._name))
-            return [P.new('%s(%s)'%(self._name, k)).sage() for k in range(1, n+1)]
+            n = int(P.get('# %s' %self._name))
+            return [P.new('%s.%s' %(self._name, k)).sage() for k in range(1, n+1)]
 
         if head == "Matrix":
             base_ring = self._get_sage_type(domain[1])
-            rows = P.new('listOfLists(%s)' %self._name).sage()
+            rows = P.new('listOfLists %s' %self._name).sage()
             return matrix(base_ring, rows)
 
         if head == "Fraction":
-            return self.numer().sage()/self.denom().sage()
+            return P.new("numer %s" %self._name).sage()/P.new("denom %s" %self._name).sage()
 
         if head == "Factored":
             l = P.new('[[f.factor, f.exponent] for f in factors(%s)]' %self._name).sage()
@@ -1204,7 +1209,7 @@ class FriCASElement(ExpectElement):
             # Warning: precision$Float gives the current precision,
             # whereas length(mantissa(self)) gives the precision of
             # self.
-            prec = max(self.mantissa().length().sage(), 53)
+            prec = max(P.new("length mantissa %s" %self._name).sage(), 53)
             R = RealField(prec)
             x, e, b = unparsed_InputForm.lstrip('float(').rstrip(')').split(',')
             return R(ZZ(x)*ZZ(b)**ZZ(e))
@@ -1225,7 +1230,7 @@ class FriCASElement(ExpectElement):
 
         if head == "Polynomial":
             base_ring = self._get_sage_type(domain[1])
-            vars = self.variables()._unparsed_InputForm()[1:-1]
+            vars = P.new("variables %s" %self._name)._unparsed_InputForm()[1:-1]
             if vars == "":
                 return base_ring(unparsed_InputForm)
             else:

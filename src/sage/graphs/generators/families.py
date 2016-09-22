@@ -1037,7 +1037,7 @@ def FibonacciTree(n):
         fib(level, node - diff, y)
         fib(level - 1, node + diff, y)
 
-    T.add_vertices(list(range(sum(F[:-1]))))
+    T.add_vertices(range(sum(F[:-1])))
     fib(n, F[n + 1] - 1, 0)
     T.set_pos(pos)
 
@@ -2577,7 +2577,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         G.relabel()
     if L is None:
         from sage.matrix.constructor import circulant
-        L = circulant(list(range(2*t+1))+[-2*t+i for i in range(2*t)])
+        L = circulant(list(range(2 * t + 1))+list(range(-2 * t, 0)))
     q = 4*t -1
     K = GF(q,prefix='x')
     K_pairs = set(frozenset([x,-x]) for x in K)

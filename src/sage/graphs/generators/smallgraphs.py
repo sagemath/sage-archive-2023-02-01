@@ -2862,7 +2862,7 @@ def GrotzschGraph():
         True
     """
     g = Graph()
-    g.add_vertices(list(range(11)))
+    g.add_vertices(range(11))
 
     edges = [];
     for u in range(1,6):

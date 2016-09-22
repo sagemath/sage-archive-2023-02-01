@@ -1197,7 +1197,7 @@ class Graph(GenericGraph):
                                  "To build an directed graph, call the DiGraph "+
                                  "constructor.")
 
-            self.add_vertices(list(range(data.vcount())))
+            self.add_vertices(range(data.vcount()))
             self.add_edges([(e.source, e.target, e.attributes()) for e in data.es()])
 
             if vertex_labels and 'name' in data.vertex_attributes():
@@ -1237,7 +1237,7 @@ class Graph(GenericGraph):
             if data<0:
                 raise ValueError("The number of vertices cannot be strictly negative!")
             if data:
-                self.add_vertices(list(range(data)))
+                self.add_vertices(range(data))
 
         elif format == 'list_of_edges':
             self.allow_multiple_edges(False if multiedges is False else True, check=False)

@@ -5046,7 +5046,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.KrackhardtKiteGraph().blocks_and_cut_vertices()
             ([[8, 9], [7, 8], [0, 1, 2, 3, 4, 5, 6, 7]], [7, 8])
             sage: G=Graph()  # make a bowtie graph where 0 is a cut vertex
-            sage: G.add_vertices(list(range(5)))
+            sage: G.add_vertices(range(5))
             sage: G.add_edges([(0,1),(0,2),(0,3),(0,4),(1,2),(3,4)])
             sage: G.blocks_and_cut_vertices()
             ([[0, 1, 2], [0, 3, 4]], [0])
@@ -16456,10 +16456,10 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G = Graph()
-            sage: G.add_vertices(list(range(10))); G
+            sage: G.add_vertices(range(10)); G
             Graph on 10 vertices
             sage: show(G)
-            sage: G.add_cycle(list(range(20))[10:20])
+            sage: G.add_cycle(list(range(10,20)))
             sage: show(G)
             sage: G.add_cycle(list(range(10)))
             sage: show(G)
@@ -16493,10 +16493,10 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G = Graph()
-            sage: G.add_vertices(list(range(10))); G
+            sage: G.add_vertices(range(10)); G
             Graph on 10 vertices
             sage: show(G)
-            sage: G.add_path(list(range(20))[10:20])
+            sage: G.add_path(list(range(10,20)))
             sage: show(G)
             sage: G.add_path(list(range(10)))
             sage: show(G)
@@ -17081,7 +17081,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: product_size = g.strong_product(h).size()
             sage: expected = gm*hn + hm*gn + 2*gm*hm
             sage: if product_size != expected:
-            ...       print("Something is really wrong here...", product_size, "!=", expected)
+            ....:     print("Something is really wrong here...", product_size, "!=", expected)
         """
         self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
@@ -18060,7 +18060,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = Graph({}, loops=True, multiedges=True, sparse=True)
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
-            ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
+            ....:     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: GP = g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed')
             sage: GP.plot()
             Graphics object consisting of 26 graphics primitives
@@ -18259,14 +18259,14 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.HeawoodGraph()
             sage: for u,v,l in G.edges():
-            ...    G.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
+            ....:     G.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: G.plot(edge_labels=True).show()
 
         ::
 
             sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} , sparse=True)
             sage: for u,v,l in D.edges():
-            ...    D.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
+            ....:     D.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: D.plot(edge_labels=True, layout='circular').show()
 
         ::
@@ -18580,7 +18580,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: R = rainbow(len(edges), 'rgbtuple')
             sage: edge_colors = {}
             sage: for i in range(len(edges)):
-            ...       edge_colors[R[i]] = [edges[i]]
+            ....:     edge_colors[R[i]] = [edges[i]]
             sage: P.plot3d(engine='tachyon', edge_colors=edge_colors).show() # long time
 
 
@@ -20157,8 +20157,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: L = graphs_query.get_graphs_list()
             sage: graphs_list.show_graphs(L)
             sage: for g in L:
-            ...    G = g.automorphism_group()
-            ...    G.order(), G.gens()
+            ....:     G = g.automorphism_group()
+            ....:     G.order(), G.gens()
             (24, [(2,3), (1,2), (0,1)])
             (4, [(2,3), (0,1)])
             (2, [(1,2)])

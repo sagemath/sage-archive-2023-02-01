@@ -4571,8 +4571,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - ``labels`` -- A pair of elements to use as a bottom and top
           element of the poset. Default is strings ``'bottom'`` and
-          ``'top'``. One of them can be ``None``, and then only bottom or
-          only top element is added.
+          ``'top'``. Either of them can be ``None``, and then a new
+          bottom or top element will not be added.
 
         EXAMPLES::
 

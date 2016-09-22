@@ -1246,7 +1246,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 if certificate:
                     return (False, self._vertex_to_element(e))
                 return False
-        return (True, None) if certificate else True
+        if certificate:
+            return (True, None)
+        return True
 
     def is_orthocomplemented(self, unique=False):
         """

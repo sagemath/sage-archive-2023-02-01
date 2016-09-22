@@ -4409,6 +4409,24 @@ cdef class gen(gen_auto):
         sig_off()
         return
 
+    def allocatemem(gen self, *args):
+        """
+        Deprecated. Use ``pari.allocatemem()`` instead.
+
+        TESTS::
+
+            sage: pari(2^10).allocatemem(2^20)
+            doctest:...: DeprecationWarning: The method allocatemem() is deprecated. Use ``pari.allocatemem()`` instead.
+            See http://trac.sagemath.org/21553 for details.
+            PARI stack size set to 1024 bytes, maximum size set to 1048576
+        """
+        deprecation(21553, "The method allocatemem() is deprecated. Use ``pari.allocatemem()`` instead.")
+        if self.type() == 't_INT':
+            return pari_instance.allocatemem(int(self), *args)
+        else:
+            raise TypeError("Incorrect PARI type in allocatemem (%s)" % self.type())
+
+
     ####################################################################
     # Functions deprecated by upstream PARI
     #

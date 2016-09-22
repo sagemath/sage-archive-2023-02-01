@@ -494,7 +494,7 @@ def is_difference_matrix(M,G,k,lmbda=1,verbose=False):
         ....:      [0, 2, 4, 1, 3, 3, 0, 2, 4, 1]]
         sage: G = GF(5)
         sage: B = [[G(b) for b in R] for R in B]
-        sage: is_difference_matrix(zip(*B),G,3,2)
+        sage: is_difference_matrix(list(zip(*B)),G,3,2)
         True
 
     Bad input::
@@ -567,7 +567,7 @@ def is_quasi_difference_matrix(M,G,int k,int lmbda,int mu,int u,verbose=False):
         ....:      [0, 2, 4, 1, 3, 3, 0, 2, 4, 1]]
         sage: G = GF(5)
         sage: B = [[G(b) for b in R] for R in B]
-        sage: is_quasi_difference_matrix(zip(*B),G,3,2,2,0)
+        sage: is_quasi_difference_matrix(list(zip(*B)),G,3,2,2,0)
         True
 
     A quasi-difference matrix from the database::

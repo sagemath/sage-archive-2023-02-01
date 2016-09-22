@@ -2577,8 +2577,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 return RealField(prec)(self).log()
             return RealField(prec)(self).log(m)
 
-        if (type(m) == type(1)):
-            m = Integer(m)
+        try:
+            if m:
+                m = Integer(m)
+            else:
+                from sage.functions.log import function_log
+                return function_log(self,dont_call_method_on_arg=True)
+        except (ValueError, TypeError):
+            pass
 
         if (type(m) == Integer and type(self) == Integer
                 and m**(self.exact_log(m)) == self):
@@ -2589,10 +2595,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 and m**(-self.exact_log(m.denom())) == self):
             return -self.exact_log(m.denom())
 
-        from sage.symbolic.all import SR
         from sage.functions.log import function_log
-        if m is None:
-            return function_log(self,dont_call_method_on_arg=True)
         return function_log(self,dont_call_method_on_arg=True)/\
                 function_log(m,dont_call_method_on_arg=True)
 

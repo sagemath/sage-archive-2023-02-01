@@ -89,11 +89,12 @@ class StreamlinePlot(GraphicPrimitive):
             sage: x, y = var('x y')
             sage: P = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3))
             sage: d = P[0]._allowed_options()
-            sage: d['pivot']
-            'Where the arrow should be placed in relation to the point (tail, middle, tip)'
+            sage: d['density']
+            'Controls the closeness of streamlines'
         """
         return {'plot_points': 'How many points to use for plotting precision',
                 'color': 'The color of the arrows',
+                'density': 'Controls the closeness of streamlines',
                 'zorder': 'The layer level in which to draw'}
 
     def _repr_(self):
@@ -116,6 +117,7 @@ class StreamlinePlot(GraphicPrimitive):
             verbose 0 (...: primitive.py, options)
             The allowed options for StreamlinePlot defined by a 20 x 20 vector grid are:
                 color          The color of the arrows
+                density        Controls the closeness of streamlines
                 plot_points    How many points to use for plotting precision
                 zorder         The layer level in which to draw
             <BLANKLINE>
@@ -140,7 +142,7 @@ class StreamlinePlot(GraphicPrimitive):
                        **streamplot_options)
 
 
-@options(plot_points=20, frame=True)
+@options(plot_points=20, density=1., frame=True)
 def streamline_plot(f_g, xrange, yrange, **options):
     r"""
     ``streamline_plot`` takes two functions of two variables ``xvar`` and ``yvar``

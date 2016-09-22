@@ -59,6 +59,7 @@ from __future__ import print_function, absolute_import
 
 from builtins import zip
 from six import itervalues
+from six.moves import range
 
 from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
@@ -248,7 +249,7 @@ def transversal_design(k,n,resolvable=False,check=True,existence=False):
     For small values of the parameter ``n`` we check the coherence of the
     function :func:`transversal_design`::
 
-        sage: for n in xrange(2,25):                               # long time -- 15 secs
+        sage: for n in range(2,25):                               # long time -- 15 secs
         ....:     i = 2
         ....:     while designs.transversal_design(i, n, existence=True) is True:
         ....:         i += 1
@@ -351,7 +352,7 @@ def transversal_design(k,n,resolvable=False,check=True,existence=False):
     if n == 1:
         if existence:
             return True
-        TD = [range(k)]
+        TD = [list(range(k))]
 
     elif k >= n+2:
         if existence:
@@ -430,7 +431,7 @@ class TransversalDesign(GroupDivisibleDesign):
 
         GroupDivisibleDesign.__init__(self,
                                       k*n,
-                                      [range(i*n,(i+1)*n) for i in range(k)],
+                                      [list(range(i*n,(i+1)*n)) for i in range(k)],
                                       blocks,
                                       check=False,
                                       **kwds)
@@ -612,10 +613,10 @@ def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
 
     if OA is None:
         master_design = orthogonal_array(k+n_trunc,r,check=False)
-        matrix = [range(r)]*k
+        matrix = [list(range(r))]*k
         for uu in u:
             uu = sum(x[1] for x in uu)
-            matrix.append(range(uu)+[None]*(r-uu))
+            matrix.append(list(range(uu))+[None]*(r-uu))
         master_design = OA_relabel(master_design, k+n_trunc, r, matrix=matrix)
     else:
         master_design = OA
@@ -637,7 +638,7 @@ def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
         for mij,h_size in partition:
             for _ in range(h_size):
                 column_i_point_to_mij.append(mij)
-                column_i_point_to_point_set.append(range(n,n+mij))
+                column_i_point_to_point_set.append(list(range(n,n+mij)))
                 n+=mij
         point_to_mij.append(column_i_point_to_mij)
         point_to_point_set.append(column_i_point_to_point_set)
@@ -665,7 +666,7 @@ def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
 
         # We replace the block of profile m_{ij(0)},...,m_{ij(s)} with a
         # OA(k,m+\sum_i m_ij(i)) properly relabelled
-        matrix = [range(i*m,(i+1)*m) for i in B[:k]]
+        matrix = [list(range(i*m,(i+1)*m)) for i in B[:k]]
         profile = []
         for i,j in block_to_ij(B):
             profile.append(point_to_mij[i][j])
@@ -918,7 +919,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
             return True
         if explain_construction:
             return "Cyclic latin square"
-        return [[i,j,(i+j)%n] for i in xrange(n) for j in xrange(n)]
+        return [[i,j,(i+j)%n] for i in range(n) for j in range(n)]
 
     # projective spaces are equivalent to OA(n+1,n,2)
     elif (projective_plane(n, existence=True) or
@@ -1130,7 +1131,7 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
 
     Affine planes and projective planes::
 
-        sage: for q in xrange(2,100):
+        sage: for q in range(2,100):
         ....:     if is_prime_power(q):
         ....:         assert designs.incomplete_orthogonal_array(q,q,[1]*q,existence=True)
         ....:         assert not designs.incomplete_orthogonal_array(q+1,q,[1]*2,existence=True)
@@ -1677,7 +1678,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
 
     # dictionary from integers to elments of GF(2^c): i -> w^i, None -> 0
     w = F.multiplicative_generator()
-    r = {i:w**i for i in xrange(2**c-1)}
+    r = {i:w**i for i in range(2**c-1)}
     r[None] = F.zero()
 
     # check that the first part of the matrix A is a (G,k-1,2)-difference matrix

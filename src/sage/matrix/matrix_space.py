@@ -1311,9 +1311,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [1 2]
             [3 4]
 
-        Note that the last "flip" cannot be performed if ``x`` is a matrix, no
-        matter what is ``rows`` (it used to be possible but was fixed by
-        Trac 10793)::
+        Note that the last "flip" cannot be performed if ``x`` is a
+        matrix, no matter what is ``rows`` (it used to be possible but
+        was fixed by :trac:`10793`)::
 
             sage: projection = matrix(ZZ,[[1,0,0],[0,1,0]])
             sage: projection

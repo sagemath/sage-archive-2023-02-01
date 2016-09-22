@@ -24,6 +24,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.sets.set import Set, is_Set
 
@@ -1419,7 +1420,7 @@ class SetPartitions_setparts(SetPartitions_set):
             True
         """
         if isinstance(s, (int, Integer)):
-            s = xrange(1, s+1)
+            s = list(range(1, s + 1))
         return super(SetPartitions_setparts, cls).__classcall__(cls, frozenset(s), Partition(parts))
 
     def __init__(self, s, parts):
@@ -1618,7 +1619,7 @@ def _listbloc(n, nbrepets, listint=None):
         True
     """
     if isinstance(listint, (int, Integer)) or listint is None:
-        listint = Set(range(1,n+1))
+        listint = Set(list(range(1,n+1)))
 
     if nbrepets == 1:
         yield Set([listint])

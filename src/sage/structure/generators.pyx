@@ -15,8 +15,10 @@ class GenIter(SageObject):
             self._index_iter = iter(gens._index_set)
         self._gens = gens
 
-    def next(self):
+    def __next__(self):
         return self._gens.get_from_index(next(self._index_iter))
+
+    next = __next__
 
     def __iter__(self):
         return self

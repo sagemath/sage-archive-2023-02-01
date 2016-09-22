@@ -2586,14 +2586,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         except (ValueError, TypeError):
             pass
 
-        if (type(m) == Integer and type(self) == Integer
-                and m**(self.exact_log(m)) == self):
-            return self.exact_log(m)
+        if type(m) == Integer and type(self) == Integer:
+            elog = self.exact_log(m)
+            if m**elog == self:
+                return elog
 
         if (type(m) == Rational and type(self) == Integer
-                and m.numer() == 1
-                and m**(-self.exact_log(m.denom())) == self):
-            return -self.exact_log(m.denom())
+                and m.numer() == 1):
+            elog = -self.exact_log(m.denom())
+            if m**elog == self:
+                return elog
 
         from sage.functions.log import function_log
         return function_log(self,dont_call_method_on_arg=True)/\

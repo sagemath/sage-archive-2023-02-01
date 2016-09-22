@@ -2490,7 +2490,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def log(self, m=None, prec=None):
         r"""
         Returns symbolic log by default, unless the logarithm is exact (for
-        an integer base). When precision is given, the RealField
+        an integer argument). When precision is given, the RealField
         approximation to that bit precision is used.
 
         This function is provided primarily so that Sage integers may be
@@ -2555,6 +2555,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: log(0)
             -Infinity
+
+        Some rational bases yield integer logarithms (:trac:`21517`)::
+
+            sage: ZZ(8).log(1/2)
+            -3
         """
         if mpz_sgn(self.value) <= 0:
             from sage.symbolic.all import SR
@@ -2566,8 +2571,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if m is None:
                 return RealField(prec)(self).log()
             return RealField(prec)(self).log(m)
-        if type(m)==Integer and type(self)==Integer and m**(self.exact_log(m))==self:
+
+        if (type(m) == Integer and type(self) == Integer
+                and m**(self.exact_log(m)) == self):
             return self.exact_log(m)
+
+        if (type(m) == Rational and type(self) == Integer
+                and m.numer() == 1
+                and m**(-self.exact_log(m.denom())) == self):
+            return -self.exact_log(m.denom())
 
         from sage.symbolic.all import SR
         from sage.functions.log import function_log

@@ -93,12 +93,8 @@ class StreamlinePlot(GraphicPrimitive):
             'Where the arrow should be placed in relation to the point (tail, middle, tip)'
         """
         return {'plot_points': 'How many points to use for plotting precision',
-                'pivot': 'Where the arrow should be placed in relation to the point (tail, middle, tip)',
-                'headwidth': 'Head width as multiple of shaft width, default is 3',
-                'headlength': 'head length as multiple of shaft width, default is 5',
-                'headaxislength': 'head length at shaft intersection, default is 4.5',
-                'zorder': 'The layer level in which to draw',
-                'color': 'The color of the arrows'}
+                'color': 'The color of the arrows',
+                'zorder': 'The layer level in which to draw'}
 
     def _repr_(self):
         """
@@ -120,10 +116,6 @@ class StreamlinePlot(GraphicPrimitive):
             verbose 0 (...: primitive.py, options)
             The allowed options for StreamlinePlot defined by a 20 x 20 vector grid are:
                 color          The color of the arrows
-                headaxislength head length at shaft intersection, default is 4.5
-                headlength     head length as multiple of shaft width, default is 5
-                headwidth      Head width as multiple of shaft width, default is 3
-                pivot          Where the arrow should be placed in relation to the point (tail, middle, tip)
                 plot_points    How many points to use for plotting precision
                 zorder         The layer level in which to draw
             <BLANKLINE>

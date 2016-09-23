@@ -226,14 +226,14 @@ def streamline_plot(f_g, xrange, yrange, **options):
 
     We can also construct streamlines in a slope field::
 
-        sage: x,y = var('x,y')
+        sage: x, y = var('x y')
         sage: streamline_plot((x + y) / sqrt(x^2 + y^2), (x,-3,3), (y,-3,3))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
-        x,y = var('x,y')
-        g = streamline_plot((x + y) / sqrt(x^2 + y^2), (x,-3,3), (y,-3,3))
+        x, y = var('x y')
+        g = streamline_plot((x + y) / sqrt(x**2 + y**2), (x,-3,3), (y,-3,3))
         sphinx_plot(g)
 
     We choose some particular points the streamlines must pass through::
@@ -244,8 +244,9 @@ def streamline_plot(f_g, xrange, yrange, **options):
 
     .. PLOT::
 
+        x, y = var('x y')
         pts = [[1, 1], [-2, 2], [1, -3/2]]
-        g = streamline_plot((x + y) / sqrt(x^2 + y^2), (x,-3,3), (y,-3,3), start_points=pts)
+        g = streamline_plot((x + y) / sqrt(x**2 + y**2), (x,-3,3), (y,-3,3), start_points=pts)
         sphinx_plot(g)
     """
     # Parse the function input

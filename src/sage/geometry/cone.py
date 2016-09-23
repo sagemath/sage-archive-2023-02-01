@@ -5631,6 +5631,329 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         M = MatrixSpace(F, m, n)
         return [ M(v.list()) for v in pi_cone ]
 
+    def cross_positive_operator_gens(self):
+        r"""
+        Compute generators of the cross-positive operators on this cone.
+
+        Any positive operator `P` on this cone will have `s(P(x)) \ge 0`
+        whenever `x` is an element of this cone and `s` is an element of
+        its dual. By contrast, the cross-positive operators need only
+        satisfy that property on the :meth:`discrete_complementarity_set`;
+        that is, when `x` and `s` are "cross" (orthogonal).
+
+        The cross-positive operators (on some fixed cone) themselves
+        form a closed convex cone. This method computes and returns
+        the generators of that cone as a list of matrices.
+
+        Cross-positive operators are also called exponentially-positive,
+        since they become positive operators when exponentiated. Other
+        equivalent names are resolvent-positive, essentially-positive,
+        and quasimonotone.
+
+        OUTPUT:
+
+        A list of `n`-by-`n` matrices where `n` is the ambient
+        dimension of this cone. Each matrix `L` in the list should
+        have the property that `s(L(x)) \ge 0` whenever `(x,s)` is an
+        element of this cone's :meth:`discrete_complementarity_set`.
+        Moreover, any nonnegative linear combination of these matrices
+        shares the same property.
+
+        .. SEEALSO::
+
+           :meth:`lyapunov_like_basis`,
+           :meth:`positive_operator_gens`,
+           :meth:`Z_operator_gens`
+
+        REFERENCES:
+
+        H. Schneider and M. Vidyasagar. Cross-positive matrices. SIAM
+        Journal on Numerical Analysis, 7:508-519, 1970.
+
+        EXAMPLES:
+
+        Cross-positive operators on the nonnegative orthant are
+        negations of Z-matrices; that is, matrices whose off-diagonal
+        elements are nonnegative::
+
+            sage: K = Cone([(1,0),(0,1)])
+            sage: K.cross_positive_operator_gens()
+            [
+            [0 1]  [0 0]  [1 0]  [-1  0]  [0 0]  [ 0  0]
+            [0 0], [1 0], [0 0], [ 0  0], [0 1], [ 0 -1]
+            ]
+            sage: K = Cone([(1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1)])
+            sage: all([ c[i][j] >= 0 for c in K.cross_positive_operator_gens()
+            ....:                    for i in range(c.nrows())
+            ....:                    for j in range(c.ncols())
+            ....:                    if i != j ])
+            True
+
+        The trivial cone in a trivial space has no cross-positive
+        operators::
+
+            sage: K = Cone([], ToricLattice(0))
+            sage: K.cross_positive_operator_gens()
+            []
+
+        Every operator is a cross-positive operator on the ambient
+        vector space::
+
+            sage: K = Cone([(1,),(-1,)])
+            sage: K.is_full_space()
+            True
+            sage: K.cross_positive_operator_gens()
+            [[1], [-1]]
+
+            sage: K = Cone([(1,0),(-1,0),(0,1),(0,-1)])
+            sage: K.is_full_space()
+            True
+            sage: K.cross_positive_operator_gens()
+            [
+            [1 0]  [-1  0]  [0 1]  [ 0 -1]  [0 0]  [ 0  0]  [0 0]  [ 0  0]
+            [0 0], [ 0  0], [0 0], [ 0  0], [1 0], [-1  0], [0 1], [ 0 -1]
+            ]
+
+        A non-obvious application is to find the cross-positive
+        operators on the right half-plane::
+
+            sage: K = Cone([(1,0),(0,1),(0,-1)])
+            sage: K.cross_positive_operator_gens()
+            [
+            [1 0]  [-1  0]  [0 0]  [ 0  0]  [0 0]  [ 0  0]
+            [0 0], [ 0  0], [1 0], [-1  0], [0 1], [ 0 -1]
+            ]
+
+        Cross-positive operators on a subspace are Lyapunov-like and
+        vice-versa::
+
+            sage: K = Cone([(1,0),(-1,0),(0,1),(0,-1)])
+            sage: K.is_full_space()
+            True
+            sage: lls = span([ vector(l.list())
+            ....:              for l in K.lyapunov_like_basis() ])
+            sage: cs  = span([ vector(c.list())
+            ....:               for c in K.cross_positive_operator_gens() ])
+            sage: cs == lls
+            True
+
+        TESTS:
+
+        The cross-positive property is possessed by every cross-positive
+        operator::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=3)
+            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: dcs = K.discrete_complementarity_set()
+            sage: all([ s*(g*x) >= 0 for g in cp_gens for (x,s) in dcs ])
+            True
+
+        The lineality space of the cone of cross-positive operators is
+        the space of Lyapunov-like operators::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=3)
+            sage: L = ToricLattice(K.lattice_dim()**2)
+            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: cp_cone = Cone([g.list() for g in cp_gens],
+            ....:                    lattice=L,
+            ....:                    check=False)
+            sage: ll_basis = [ vector(l.list())
+            ....:              for l in K.lyapunov_like_basis() ]
+            sage: lls = L.vector_space().span(ll_basis)
+            sage: cp_cone.linear_subspace() == lls
+            True
+
+        The lineality of the cross-positive operators on a cone is the
+        Lyapunov rank of that cone::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=3)
+            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: L = ToricLattice(K.lattice_dim()**2)
+            sage: cp_cone = Cone([g.list() for g in cp_gens],
+            ....:                lattice=L,
+            ....:                check=False)
+            sage: cp_cone.lineality() == K.lyapunov_rank()
+            True
+
+        The lineality spaces of the duals of the positive and cross-
+        positive operator cones are equal. From this it follows that
+        the dimensions of the cross-positive operator cone and positive
+        operator cone are equal::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=3)
+            sage: pi_gens = K.positive_operator_gens()
+            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: L = ToricLattice(K.lattice_dim()**2)
+            sage: pi_cone = Cone([g.list() for g in pi_gens],
+            ....:                lattice=L,
+            ....:                check=False)
+            sage: cp_cone = Cone([g.list() for g in cp_gens],
+            ....:                lattice=L,
+            ....:                check=False)
+            sage: pi_cone.dim() == cp_cone.dim()
+            True
+            sage: pi_star = pi_cone.dual()
+            sage: cp_star = cp_cone.dual()
+            sage: pi_star.linear_subspace() == cp_star.linear_subspace()
+            True
+
+        The trivial cone, full space, and half-plane all give rise to
+        the expected dimensions::
+
+            sage: n = ZZ.random_element().abs()
+            sage: K = Cone([[0] * n], ToricLattice(n))
+            sage: K.is_trivial()
+            True
+            sage: L = ToricLattice(n^2)
+            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: cp_cone = Cone([g.list() for g in cp_gens],
+            ....:                lattice=L,
+            ....:                check=False)
+            sage: cp_cone.dim() == n^2
+            True
+
+            sage: K = K.dual()
+            sage: K.is_full_space()
+            True
+            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: cp_cone = Cone([g.list() for g in cp_gens],
+            ....:                lattice=L,
+            ....:                check=False)
+            sage: cp_cone.dim() == n^2
+            True
+
+            sage: K = Cone([(1,0),(0,1),(0,-1)])
+            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: cp_cone = Cone([g.list() for g in cp_gens ], check=False)
+            sage: cp_cone.dim() == 3
+            True
+
+        The cross-positive operators of a permuted cone can be obtained by
+        conjugation::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=3)
+            sage: L = ToricLattice(K.lattice_dim()**2)
+            sage: p = SymmetricGroup(K.lattice_dim()).random_element().matrix()
+            sage: pK = Cone([ p*k for k in K ], K.lattice(), check=False)
+            sage: cp_gens = pK.cross_positive_operator_gens()
+            sage: actual = Cone([g.list() for g in cp_gens],
+            ....:               lattice=L,
+            ....:               check=False)
+            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: expected = Cone([(p*g*p.inverse()).list() for g in cp_gens],
+            ....:                 lattice=L,
+            ....:                 check=False)
+            sage: actual.is_equivalent(expected)
+            True
+
+        An operator is cross-positive on a cone if and only if its
+        adjoint is cross-positive on the dual of that cone::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=3)
+            sage: F = K.lattice().vector_space().base_field()
+            sage: n = K.lattice_dim()
+            sage: L = ToricLattice(n**2)
+            sage: W = VectorSpace(F, n**2)
+            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: cp_cone = Cone([g.list() for g in cp_gens],
+            ....:                lattice=L,
+            ....:                check=False)
+            sage: cp_gens = K.dual().cross_positive_operator_gens()
+            sage: cp_star = Cone([g.list() for g in cp_gens],
+            ....:                lattice=L,
+            ....:                check=False)
+            sage: M = MatrixSpace(F, n)
+            sage: L = M(cp_cone.random_element(ring=QQ).list())
+            sage: cp_star.contains(W(L.transpose().list()))
+            True
+            sage: L = M(cp_star.random_element(ring=QQ).list())
+            sage: cp_cone.contains(W(L.transpose().list()))
+            True
+        """
+        # Matrices are not vectors in Sage, so we have to convert them
+        # to vectors explicitly before we can find a basis. We need these
+        # two values to construct the appropriate "long vector" space.
+        F = self.lattice().base_field()
+        n = self.lattice_dim()
+
+        # These tensor products contain generators for the dual cone of
+        # the cross-positive operators.
+        tensor_products = [ s.tensor_product(x)
+                            for (x,s) in self.discrete_complementarity_set() ]
+
+        # Turn our matrices into long vectors...
+        W = VectorSpace(F, n**2)
+        vectors = [ W(m.list()) for m in tensor_products ]
+
+        check = True
+        if self.is_proper():
+            # All of the generators involved are extreme vectors and
+            # therefore minimal. If this cone is neither solid nor
+            # strictly convex, then the tensor product of ``s`` and
+            # ``x`` is the same as that of ``-s`` and ``-x``. However,
+            # as a /set/, ``tensor_products`` may still be minimal.
+            check = False
+
+        # Create the dual cone of the cross-positive operators,
+        # expressed as long vectors.
+        cp_dual = Cone(vectors,
+                       lattice=ToricLattice(W.dimension()),
+                       check=check)
+
+        # Now compute the desired cone from its dual...
+        cp_cone = cp_dual.dual()
+
+        # And finally convert its rays back to matrix representations.
+        M = MatrixSpace(F, n)
+        return [ M(v.list()) for v in cp_cone ]
+
+    def Z_operator_gens(self):
+        r"""
+        Compute generators of Z-operators on this cone.
+
+        The Z-operators on a cone generalize the Z-matrices over the
+        nonnegative orthant. They are simply negations of the
+        :meth:`cross_positive_operators`.
+
+        OUTPUT:
+
+        A list of `n`-by-`n` matrices where `n` is the ambient
+        dimension of this cone. Each matrix `L` in the list should
+        have the property that `s(L(x)) \le 0` whenever `(x,s)` is an
+        element of this cone's :meth:`discrete_complementarity_set`.
+        Moreover any nonnegative linear combination of these matrices
+        shares the same property.
+
+        .. SEEALSO::
+
+           :meth:`cross_positive_operator_gens`,
+           :meth:`lyapunov_like_basis`,
+           :meth:`positive_operator_gens`
+
+        REFERENCES:
+
+        A. Berman and R. J. Plemmons. Nonnegative Matrices in the
+        Mathematical Sciences. SIAM, Philadelphia, 1994.
+
+        TESTS:
+
+        The Z-property is possessed by every Z-operator::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=3)
+            sage: Z_gens = K.Z_operator_gens()
+            sage: dcs = K.discrete_complementarity_set()
+            sage: all([ s*(z*x) <= 0 for z in Z_gens for (x,s) in dcs ])
+            True
+        """
+        return [ -cp for cp in self.cross_positive_operator_gens() ]
+
 
 def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
                 min_rays=0, max_rays=None, strictly_convex=None, solid=None):

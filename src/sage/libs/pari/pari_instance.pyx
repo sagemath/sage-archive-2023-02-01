@@ -1274,7 +1274,7 @@ cdef class PariInstance(PariInstance_auto):
             sage: a = pari('2^100000000')
             Traceback (most recent call last):
             ...
-            PariError: _^s: the PARI stack overflows (current size: 1000000; maximum size: 4194304)
+            PariError: _^s: the PARI stack overflows (current size: 4194304; maximum size: 4194304)
             You can use pari.allocatemem() to change the stack size and try again
 
         TESTS:

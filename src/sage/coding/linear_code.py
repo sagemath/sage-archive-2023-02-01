@@ -3287,23 +3287,31 @@ class AbstractLinearCode(Module):
         E = self.encoder(encoder_name, **kwargs)
         return E.unencode(c, nocheck)
 
-    def weight_enumerator(self, names="xy", name2=None):
+    def weight_enumerator(self, names=None, name2=None, bivariate=True):
         """
-        Returns the weight enumerator of the code.
+        Return the weight enumerator polynomial of ``self``.
+
+        This is the bivariate, homogeneous polynomial in `x` and `y` whose
+        coefficient to `x^i y^{n-i}` is the number of codewords of `self` of
+        Hamming weight `i`. Here, `n` is the length of `self`.
 
         INPUT:
 
-        - ``names`` - String of length 2, containing two variable names
-          (default: ``"xy"``). Alternatively, it can be a variable name or
-          a string, or a tuple of variable names or strings.
+        - ``names`` - (default: ``"xy"``) The names of the variables in the
+          homogeneous polynomial. Can be given as a single string of length 2,
+          or a single string with a comma, or as a tuple or list of two strings.
 
-        - ``name2`` - string or symbolic variable (default: ``None``).
-          If ``name2`` is provided then it is assumed that ``names``
-          contains only one variable.
+        - ``name2`` - Deprecated, (default: ``None``) The string name of the
+          second variable.
+
+        - ``bivariate`` - (default: `True`) Whether to return a bivariate,
+          homogeneous polynomial or just a univariate polynomial. If set to
+          ``False``, then ``names`` will be interpreted as a single variable
+          name and default to ``"x"``.
 
         OUTPUT:
 
-        - Polynomial over `\QQ`
+        - The weight enumerator polynomial over `\ZZ`.
 
         EXAMPLES::
 
@@ -3312,24 +3320,34 @@ class AbstractLinearCode(Module):
             x^7 + 7*x^4*y^3 + 7*x^3*y^4 + y^7
             sage: C.weight_enumerator(names="st")
             s^7 + 7*s^4*t^3 + 7*s^3*t^4 + t^7
+            sage: C.weight_enumerator(names="var1, var2")
+            var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
             sage: (var1, var2) = var('var1, var2')
-            sage: C.weight_enumerator((var1, var2))
+            sage: C.weight_enumerator(names=(var1, var2))
             var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
-            sage: C.weight_enumerator(var1, var2)
-            var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
-
+            sage: C.weight_enumerator(bivariate=False)
+            x^7 + 7*x^4 + 7*x^3 + 1
         """
-        if name2 is not None:
-            # We assume that actual variable names or strings are provided
-            # for names if names2 is also provided. That is, names is not
-            # a tuple or a list. Otherwise, PolynomialRing will return error
-            names = (names, name2)
+        if names is None:
+            if bivariate:
+                names = "xy"
+            else:
+                names = "x"
+        else:
+            if name2 is not None:
+                from sage.misc.superseded import deprecation
+                deprecation(21576, "Optional argument name2 is deprecated. You should just give a tuple to `names`.")
+                names = (names, name2)
         spec = self.weight_distribution()
         n = self.length()
-        R = PolynomialRing(QQ,2,names)
-        x,y = R.gens()
-        we = sum([spec[i]*x**(n-i)*y**i for i in range(n+1)])
-        return we
+        if bivariate:
+            R = PolynomialRing(ZZ,2,names)
+            x,y = R.gens()
+            return sum(spec[i]*x**(n-i)*y**i for i in range(n+1))
+        else:
+            R = PolynomialRing(ZZ,names)
+            x, = R.gens()
+            return sum(spec[i]*x**(n-i) for i in range(n+1))
 
     @cached_method
     def zero(self):

@@ -95,6 +95,7 @@ class StreamlinePlot(GraphicPrimitive):
         return {'plot_points': 'How many points to use for plotting precision',
                 'color': 'The color of the arrows',
                 'density': 'Controls the closeness of streamlines',
+                'start_points': 'The points the streamlines must start at',
                 'zorder': 'The layer level in which to draw'}
 
     def _repr_(self):
@@ -119,6 +120,7 @@ class StreamlinePlot(GraphicPrimitive):
                 color          The color of the arrows
                 density        Controls the closeness of streamlines
                 plot_points    How many points to use for plotting precision
+                start_points   The points the streamlines must start at
                 zorder         The layer level in which to draw
             <BLANKLINE>
             20
@@ -145,13 +147,21 @@ class StreamlinePlot(GraphicPrimitive):
 @options(plot_points=20, density=1., frame=True)
 def streamline_plot(f_g, xrange, yrange, **options):
     r"""
-    ``streamline_plot`` takes two functions of two variables ``xvar`` and ``yvar``
-    (for instance, if the variables are `x` and `y`, take `(f(x,y), g(x,y))`)
-    and plots vector steamlines of the function over the specified ranges, with
-    ``xrange`` being of ``xvar`` between ``xmin`` and ``xmax``, and ``yrange`` similarly
-    (see below).
+    Return a streamline plot in a vector field.
+
+    ``streamline_plot`` can take either one or two functions. Consider
+    two variables `x` and `y`.
+
+    If given two functions `(f(x,y), g(x,y))`, then this function plots
+    steamlines in the vector field over the specified ranges with ``xrange``
+    being of `x`, denoted by ``xvar`` below, between ``xmin`` and ``xmax``,
+    and ``yrange`` similarly (see below).
 
     ``streamline_plot((f, g), (xvar,xmin,xmax), (yvar,ymin,ymax))``
+
+    Similarly, if given one function `f(x, y)`, then this function plots
+    streamlines in the slope field `dy/dx = f(x,y)` over the specified
+    ranges as given above.
 
     EXAMPLES:
 
@@ -178,6 +188,17 @@ def streamline_plot(f_g, xrange, yrange, **options):
         g = streamline_plot((y, (cos(x)-2) * sin(x)), (x,-pi,pi), (y,-pi,pi))
         sphinx_plot(g)
 
+    We increase the density of the plot::
+
+        sage: streamline_plot((y, (cos(x)-2) * sin(x)), (x,-pi,pi), (y,-pi,pi), density=2)
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        x, y = var('x y')
+        g = streamline_plot((y, (cos(x)-2) * sin(x)), (x,-pi,pi), (y,-pi,pi), density=2)
+        sphinx_plot(g)
+
     We ignore function values that are infinite or NaN::
 
         sage: x, y = var('x y')
@@ -190,7 +211,8 @@ def streamline_plot(f_g, xrange, yrange, **options):
         g = streamline_plot((-x/sqrt(x**2+y**2), -y/sqrt(x**2+y**2)), (x,-10,10), (y,-10,10))
         sphinx_plot(g)
 
-    Extra options will get passed on to show(), as long as they are valid::
+    Extra options will get passed on to :func:`show()`, as long as they
+    are valid::
 
         sage: streamline_plot((x, y), (x,-2,2), (y,-2,2), xmax=10)
         Graphics object consisting of 1 graphics primitive
@@ -202,12 +224,53 @@ def streamline_plot(f_g, xrange, yrange, **options):
         g = streamline_plot((x, y), (x,-2,2), (y,-2,2), xmax=10)
         sphinx_plot(g)
 
+    We can also construct streamlines in a slope field::
+
+        sage: x,y = var('x,y')
+        sage: streamline_plot((x + y) / sqrt(x^2 + y^2), (x,-3,3), (y,-3,3))
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        x,y = var('x,y')
+        g = streamline_plot((x + y) / sqrt(x^2 + y^2), (x,-3,3), (y,-3,3))
+        sphinx_plot(g)
+
+    We choose some particular points the streamlines must pass through::
+
+        sage: pts = [[1, 1], [-2, 2], [1, -3/2]]
+        sage: streamline_plot((x + y) / sqrt(x^2 + y^2), (x,-3,3), (y,-3,3), start_points=pts)
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        pts = [[1, 1], [-2, 2], [1, -3/2]]
+        g = streamline_plot((x + y) / sqrt(x^2 + y^2), (x,-3,3), (y,-3,3), start_points=pts)
+        sphinx_plot(g)
     """
-    (f,g) = f_g
+    # Parse the function input
+    if isinstance(f_g, (list, tuple)):
+        (f,g) = f_g
+    else:
+        from sage.functions.all import sqrt
+        from inspect import isfunction
+        if isfunction(f_g):
+            f = lambda x,y: 1 / sqrt(f_g(x, y)**2 + 1)
+            g = lambda x,y: f_g(x, y) * f(x, y)
+        else:
+            f = 1 / sqrt(f_g**2 + 1)
+            g = f_g * f
+
     from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid
     z, ranges = setup_for_eval_on_grid([f,g], [xrange,yrange], options['plot_points'])
     f, g = z
+
+    # The density values must be floats
+    if isinstance(options['density'], (list, tuple)):
+        options['density'] = [float(x) for x in options['density']]
+    else:
+        options['density'] = float(options['density'])
 
     xpos_array, ypos_array, xvec_array, yvec_array = [], [], [], []
     for x in xsrange(*ranges[0], include_endpoint=True):
@@ -231,3 +294,4 @@ def streamline_plot(f_g, xrange, yrange, **options):
     g.add_primitive(StreamlinePlot(xpos_array, ypos_array,
                                    xvec_array, yvec_array, options))
     return g
+

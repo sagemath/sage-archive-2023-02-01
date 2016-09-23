@@ -1,0 +1,16 @@
+diff -ruN a/fflas-ffpack/fflas/fflas_igemm/igemm_kernels.inl b/fflas-ffpack/fflas/fflas_igemm/igemm_kernels.inl
+--- a/fflas-ffpack/fflas/fflas_igemm/igemm_kernels.inl	2016-09-23 17:51:13.869766300 +0200
++++ b/fflas-ffpack/fflas/fflas_igemm/igemm_kernels.inl	2016-09-23 17:54:10.250687800 +0200
+@@ -48,6 +48,12 @@
+ #include "fflas-ffpack/utils/fflas_memory.h"
+ #include "igemm_tools.h"
+ 
++// in rare cases if termios.h has been included in the same translation unit
++// the macro 'B0' can be defined https://trac.sagemath.org/ticket/21578
++#ifdef B0
++#undef B0
++#endif
++
+ /********************************************************
+  * KERNEL FOR MATMUL USING SIMD OPERATION AND REGISTERS *
+  ********************************************************/

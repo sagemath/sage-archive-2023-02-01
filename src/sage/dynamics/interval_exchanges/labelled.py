@@ -1813,7 +1813,7 @@ class FlippedLabelledPermutationIET(
             sage: p.append(iet.Permutation('a b','b a',flips='a'))
             sage: p.append(iet.Permutation('a b','b a',flips='b'))
             sage: p.append(iet.Permutation('a b','b a',flips='ab'))
-            sage: h = map(hash, p)
+            sage: h = list(map(hash, p))
             sage: for i in range(len(h)-1):
             ....:     if h[i] == h[i+1]:
             ....:         print("You choose a bad hash!")

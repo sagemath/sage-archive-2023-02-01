@@ -77,10 +77,10 @@ cdef object exprseq_to_PyTuple(GEx seq):
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=0)
         ....:
         ....:     def _eval_(self, *args):
-        ....:         print("len(args): %s, types: %s"%(len(args), str(map(type, args))))
+        ....:         print("len(args): %s, types: %s"%(len(args), str(list(map(type, args)))))
         ....:         for i, a in enumerate(args):
         ....:             if isinstance(a, tuple):
-        ....:                 print("argument %s is a tuple, with types %s"%(str(i), str(map(type, a))))
+        ....:                 print("argument %s is a tuple, with types %s"%(str(i), str(list(map(type, a)))))
         ....:
         sage: tfunc = TFunc()
         sage: u = SR._force_pyobject((1, x+1, 2))
@@ -111,7 +111,7 @@ def unpack_operands(Expression ex):
         (1, 2, x, x + 1, x + 2)
         sage: type(unpack_operands(t))
         <type 'tuple'>
-        sage: map(type, unpack_operands(t))
+        sage: list(map(type, unpack_operands(t)))
         [<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>]
         sage: u = SR._force_pyobject((t, x^2))
         sage: unpack_operands(u)
@@ -139,7 +139,7 @@ cdef object exvector_to_PyTuple(GExVector seq):
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=0)
         ....:
         ....:     def _eval_(self, *args):
-        ....:         print("len(args): %s, types: %s"%(len(args), str(map(type, args))))
+        ....:         print("len(args): %s, types: %s"%(len(args), str(list(map(type, args)))))
         sage: tfunc = TFunc()
         sage: u = SR._force_pyobject((1, x+1, 2))
         sage: tfunc(u, x, 3.0, 5.0r)
@@ -281,7 +281,7 @@ cdef object subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExV
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=0)
         ....:
         ....:     def _subs_(self, *args):
-        ....:         print("len(args): %s, types: %s"%(len(args), str(map(type, args))))
+        ....:         print("len(args): %s, types: %s"%(len(args), str(list(map(type, args)))))
         ....:         return args[-1]
         sage: tfunc = TFunc()
         sage: tfunc(x).subs(x=1)

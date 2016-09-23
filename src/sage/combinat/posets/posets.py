@@ -6384,7 +6384,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         .. [BF1999] Thomas Britz, Sergey Fomin,
            *Finite posets and Ferrers shapes*,
            Advances in Mathematics 158, pp. 86-127 (2001),
-           :arxiv:`math/9912126` (the arXiv version has less errors).
+           :arxiv:`math/9912126` (the arXiv version has fewer errors).
 
         EXAMPLES::
 
@@ -6546,6 +6546,13 @@ class FinitePoset(UniqueRepresentation, Parent):
         `w(p)` is ``weights[p]``. The classical `P`-partition enumerator
         is the particular case obtained when all `p` satisfy `w(p) = 1`.
 
+        In the language of [Grinb2016a]_, the generalized `P`-partition
+        enumerator is the quasisymmetric function
+        `\Gamma\left(\mathbf{E}, w\right)`, where `\mathbf{E}` is the
+         special double poset `(P, <_P, \prec)`, and where
+        `w` is the dictionary ``weights`` (regarded as a function from
+        `P` to the positive integers).
+
         INPUT:
 
         - ``tup`` -- the tuple containing all elements of `P` (each of
@@ -6595,6 +6602,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             M[3, 5, 7] + M[3, 12] + M[5, 3, 7] + M[8, 7]
             sage: FP = P.p_partition_enumerator(('a','b','c'), QQ, weights={'a': 3, 'b': 5, 'c': 7}, check=True); FP
             M[3, 5, 7] + M[3, 12] + M[5, 3, 7] + M[5, 10] + M[8, 7] + M[15]
+
+        REFERENCES:
+
+        .. [Grinb2016a] Darij Grinberg
+           * Double posets and the antipode of QSym*,
+           :arxiv:`1509.08355v2`.
         """
         if check:
             if sorted(self.list()) != sorted(tup):

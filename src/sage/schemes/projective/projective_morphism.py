@@ -3516,7 +3516,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             polys.append(R(e([i+1]).expand(N)(multipliers)))
         return polys
 
-    def reduced_form(self, prec=300, return_conjugation=True):
+    def reduced_form(self, prec=300, return_conjugation=True, error_limit=0.000001):
         r"""
         Returns reduced form of this projective morphism.
 
@@ -3529,13 +3529,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         but this is not always the case. See :meth:`sage.rings.polynomials.reduced_form`
         for details.
 
+        See :meth:`sage.rings.polynomial.multi_polynomial.reduced_form` for the information
+        on binary form reduction.
+
         Implimented by Rebecca Lauren Miller as part of GSOC 2016.
 
-        INPUT::
+        INPUT:
 
         - ``prec`` -- integer, desired precision (default: 300)
 
         - ``return_conjuagtion`` -- A Boolean. Returns element of `SL(2, ZZ)`. (default: True)
+
+        - ``error_limit`` -- sets the error tolerence (default:0.000001)
 
         OUTPUT:
 
@@ -3585,16 +3590,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: PS.<X,Y> = ProjectiveSpace(QQ,1)
             sage: H = End(PS)
-            sage: f = H([7365/2*X^4 + 6282*X^3*Y + 4023*X^2*Y^2 + 1146*X*Y^3 + 245/2*Y^4,\
-            -12329/2*X^4 - 10506*X^3*Y - 6723*X^2*Y^2 - 1914*X*Y^3 - 409/2*Y^4])
+            sage: f = H([7365*X^4 + 12564*X^3*Y + 8046*X^2*Y^2 + 2292*X*Y^3 + 245*Y^4,\
+            -12329*X^4 - 21012*X^3*Y - 13446*X^2*Y^2 - 3828*X*Y^3 - 409*Y^4])
+            sage: f.reduced_form(prec=20)
+            Traceback (most recent call last):
+            ...
+            ValueError: accuracy of Newton's root not within tolerence(0.050134 > 1e-06), increase precision
             sage: f.reduced_form()
             (
-            Scheme endomorphism of Projective Space of dimension 1 over Rational
-            Field
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
             Defn: Defined on coordinates by sending (X : Y) to
-            (-7/2*X^4 - 6*X^3*Y - 21*X^2*Y^2 - 6*X*Y^3 - 7/2*Y^4 : -1/2*X^4
-            - 2*X^3*Y - 3*X^2*Y^2 - 2*X*Y^3 - 1/2*Y^4)
-            ,
+            (-7*X^4 - 12*X^3*Y - 42*X^2*Y^2 - 12*X*Y^3 - 7*Y^4 : -X^4 - 4*X^3*Y - 6*X^2*Y^2 - 4*X*Y^3 - Y^4),
+            <BLANKLINE>
             [-1  2]
             [ 2 -5]
             )
@@ -3602,13 +3609,13 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         R = self.coordinate_ring()
         F = R(self.dynatomic_polynomial(1))
         x,y = R.gens()
-        F = R(F/gcd(F, F.derivative(x))) #removes multiple roots
+        F2 = R(F/gcd(F, F.derivative(x))) #removes multiple roots
         n = 2
         # Checks to make sure there are enough distinct, roots we need 3
         # if there are not if finds the nth periodic points until there are enough
-        while F.degree() <= 2:
+        while F2.degree() <= 2:
             F = self.dynatomic_polynomial(n) # finds n periodic points
-            F = R(F/gcd(F, F.derivative(x))) #removes multiple roots
+            F2 = R(F/gcd(F, F.derivative(x))) #removes multiple roots
             n += 1
         G,m = F.reduced_form(prec=prec, return_conjugation=return_conjugation)
         if return_conjugation:

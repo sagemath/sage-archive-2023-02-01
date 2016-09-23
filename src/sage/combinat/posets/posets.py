@@ -6543,7 +6543,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         Then, the generalized `P`-partition enumerator corresponding to
         weights ``weights`` is `\sum_f \prod_{p \in P} x_{f(p)}^{w(p)}`,
         where the sum is again over all `P`-partitions `f`. Here,
-        `w(p)` is ``weights[p]``.
+        `w(p)` is ``weights[p]``. The classical `P`-partition enumerator
+        is the particular case obtained when all `p` satisfy `w(p) = 1`.
 
         INPUT:
 
@@ -6552,6 +6553,10 @@ class FinitePoset(UniqueRepresentation, Parent):
           `\prec`
 
         - ``R`` -- a commutative ring
+
+        - ``weights`` -- (optional) a dictionary of positive integers,
+          indexed by elements of `P`; any missing item will be understood
+          as `1`
 
         OUTPUT:
 
@@ -6577,6 +6582,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset([[1,2,3,4],[[1,4],[2,4],[4,3]]])
             sage: FP = P.p_partition_enumerator((3,1,2,4), QQ, weights={1: 1, 2: 2, 3: 1, 4: 1}, check=True); FP
+            M[1, 2, 1, 1] + M[1, 3, 1] + M[2, 1, 1, 1] + M[2, 2, 1] + M[3, 1, 1] + M[4, 1]
+            sage: FP = P.p_partition_enumerator((3,1,2,4), QQ, weights={2: 2}, check=True); FP
             M[1, 2, 1, 1] + M[1, 3, 1] + M[2, 1, 1, 1] + M[2, 2, 1] + M[3, 1, 1] + M[4, 1]
 
             sage: P = Poset([['a','b','c'], [['a','b'], ['a','c']]])
@@ -6607,7 +6614,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             return res
         for lin in self.linear_extensions(facade=True):
             M = QR.Monomial()
-            lin_weights = Composition([weights[lin[i]] for i in range(n)])
+            lin_weights = Composition([weights.get(lin[i], 1) for i in range(n)])
             descents = [i + 1 for i in range(n-1) if tupdict[lin[i]] > tupdict[lin[i+1]]]
             d_c = Composition(from_subset=(descents, n))
             for comp in d_c.finer():

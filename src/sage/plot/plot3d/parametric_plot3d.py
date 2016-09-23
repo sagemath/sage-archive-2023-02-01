@@ -345,10 +345,10 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
     Double heart::
 
         sage: u, v = var('u,v')
-        sage: f_x = (abs(v) - abs(u) - abs(sqrt(2)*tanh((u/sqrt(2))))
-        ....:       + abs(sqrt(2)*tanh((v/sqrt(2)))))*sin(v)
-        sage: f_y = (abs(v) - abs(u) - abs(sqrt(2)*tanh((u/sqrt(2))))
-        ....:       - abs(sqrt(2)*tanh((v/sqrt(2)))))*cos(v)
+        sage: G1 = abs(sqrt(2)*tanh((u/sqrt(2))))
+        sage: G2 = abs(sqrt(2)*tanh((v/sqrt(2))))
+        sage: f_x = (abs(v) - abs(u) - G1 + G2)*sin(v)
+        sage: f_y = (abs(v) - abs(u) - G1 - G2)*cos(v)
         sage: f_z = sin(u)*(abs(cos(u)) + abs(sin(u)))^(-1)
         sage: parametric_plot3d([f_x, f_y, f_z], (u,0,pi), (v,-pi,pi))
         Graphics3d Object
@@ -356,10 +356,10 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
     .. PLOT::
 
         u, v = var('u,v')
-        f_x = (abs(v) - abs(u) - abs(sqrt(2)*tanh((u/sqrt(2))))
-              + abs(sqrt(2)*tanh(v/sqrt(2))))*sin(v)
-        f_y = (abs(v) - abs(u) - abs(sqrt(2)*tanh((u/sqrt(2))))
-              - abs(sqrt(2)*tanh(v/sqrt(2))))*cos(v)
+        G1 = abs(sqrt(2)*tanh((u/sqrt(2))))
+        G2 = abs(sqrt(2)*tanh((v/sqrt(2))))
+        f_x = (abs(v) - abs(u) - G1 + G2)*sin(v)
+        f_y = (abs(v) - abs(u) - G1 - G2)*cos(v)
         f_z = sin(u)*(abs(cos(u)) + abs(sin(u)))**(-1)
         sphinx_plot(parametric_plot3d([f_x, f_y, f_z], (u,0,pi), (v,-pi,pi)))
 

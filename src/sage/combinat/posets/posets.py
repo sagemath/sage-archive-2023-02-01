@@ -6517,7 +6517,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         ps.reverse()
         return Partition(ps)
 
-    def p_partition_enumerator(self, tup, R, check=False):
+    def p_partition_enumerator(self, tup, R, weights=None, check=False):
         r"""
         Return a `P`-partition enumerator of ``self``.
 
@@ -6535,6 +6535,15 @@ class FinitePoset(UniqueRepresentation, Parent):
         - if `i \prec j` then `f(i) \leq f(j)`,
 
         - if `j \prec i` then `f(i) < f(j)`.
+
+        The optional argument ``weights`` allows constructing a
+        generalized ("weighted") version of the `P`-partition enumerator.
+        Namely, ``weights`` should be a dictionary whose keys are the
+        elements of ``P``.
+        Then, the generalized `P`-partition enumerator corresponding to
+        weights ``weights`` is `\sum_f \prod_{p \in P} x_{f(p)}^{w(p)}`,
+        where the sum is again over all `P`-partitions `f`. Here,
+        `w(p)` is ``weights[p]``.
 
         INPUT:
 
@@ -6563,6 +6572,22 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset([[],[]])
             sage: FP = P.p_partition_enumerator((), QQ, check=True); FP
             M[]
+
+        With the ``weights`` parameter::
+
+            sage: P = Poset([[1,2,3,4],[[1,4],[2,4],[4,3]]])
+            sage: FP = P.p_partition_enumerator((3,1,2,4), QQ, weights={1: 1, 2: 2, 3: 1, 4: 1}, check=True); FP
+            M[1, 2, 1, 1] + M[1, 3, 1] + M[2, 1, 1, 1] + M[2, 2, 1] + M[3, 1, 1] + M[4, 1]
+
+            sage: P = Poset([['a','b','c'], [['a','b'], ['a','c']]])
+            sage: FP = P.p_partition_enumerator(('b','c','a'), QQ, weights={'a': 3, 'b': 5, 'c': 7}, check=True); FP
+            M[3, 5, 7] + M[3, 7, 5] + M[3, 12]
+
+            sage: P = Poset([['a','b','c'], [['a','c'], ['b','c']]])
+            sage: FP = P.p_partition_enumerator(('b','c','a'), QQ, weights={'a': 3, 'b': 5, 'c': 7}, check=True); FP
+            M[3, 5, 7] + M[3, 12] + M[5, 3, 7] + M[8, 7]
+            sage: FP = P.p_partition_enumerator(('a','b','c'), QQ, weights={'a': 3, 'b': 5, 'c': 7}, check=True); FP
+            M[3, 5, 7] + M[3, 12] + M[5, 3, 7] + M[5, 10] + M[8, 7] + M[15]
         """
         if check:
             if sorted(self.list()) != sorted(tup):
@@ -6573,9 +6598,20 @@ class FinitePoset(UniqueRepresentation, Parent):
         n = len(tup)
         res = QR.zero()
         tupdict = dict(zip(tup, range(n)))
+        if weights is None:
+            # The simple case: ``weights == None``.
+            F = QR.Fundamental()
+            for lin in self.linear_extensions(facade=True):
+                descents = [i + 1 for i in range(n-1) if tupdict[lin[i]] > tupdict[lin[i+1]]]
+                res += F(Composition(from_subset=(descents, n)))
+            return res
         for lin in self.linear_extensions(facade=True):
+            M = QR.Monomial()
+            lin_weights = Composition([weights[lin[i]] for i in range(n)])
             descents = [i + 1 for i in range(n-1) if tupdict[lin[i]] > tupdict[lin[i+1]]]
-            res += QR.Fundamental()(Composition(from_subset=(descents, n)))
+            d_c = Composition(from_subset=(descents, n))
+            for comp in d_c.finer():
+                res += M[lin_weights.fatten(comp)]
         return res
 
     def cuts(self):

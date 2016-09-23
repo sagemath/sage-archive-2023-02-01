@@ -6606,7 +6606,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         REFERENCES:
 
         .. [Grinb2016a] Darij Grinberg
-           * Double posets and the antipode of QSym*,
+           *Double posets and the antipode of QSym*,
            :arxiv:`1509.08355v2`.
         """
         if check:

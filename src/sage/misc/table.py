@@ -471,7 +471,7 @@ class table(SageObject):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: t = table([1, 2, 3])
-            sage: t._rich_repr_(dm)    # the doctest backend does not suppot html
+            sage: t._rich_repr_(dm)    # the doctest backend does not support html
         """
         OutputHtml = display_manager.types.OutputHtml
         if OutputHtml in display_manager.supported_output():

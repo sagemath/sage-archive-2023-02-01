@@ -931,6 +931,8 @@ Methods
 from __future__ import print_function
 
 from builtins import zip
+from six.moves import range
+
 from six import itervalues
 from six.moves import zip_longest
 
@@ -1973,7 +1975,7 @@ class FSMState(sage.structure.sage_object.SageObject):
                 left.initial_probability == right.initial_probability)
 
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns True.
 
@@ -1988,10 +1990,13 @@ class FSMState(sage.structure.sage_object.SageObject):
         TESTS::
 
             sage: from sage.combinat.finite_state_machine import FSMState
-            sage: FSMState('A').__nonzero__()
+            sage: bool(FSMState('A'))
             True
         """
         return True  # A state cannot be zero (see __init__)
+
+
+    __nonzero__ = __bool__
 
 
     def _epsilon_successors_(self, fsm=None):
@@ -2500,7 +2505,7 @@ class FSMTransition(sage.structure.sage_object.SageObject):
         return (not (left == right))
 
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns True.
 
@@ -2515,10 +2520,12 @@ class FSMTransition(sage.structure.sage_object.SageObject):
         EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import FSMTransition
-            sage: FSMTransition('A', 'B', 0).__nonzero__()
+            sage: bool(FSMTransition('A', 'B', 0))
             True
         """
         return True  # A transition cannot be zero (see __init__)
+
+    __nonzero__ = __bool__
 
 
 #*****************************************************************************
@@ -3916,7 +3923,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
     #*************************************************************************
 
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns True if the finite state machine consists of at least
         one state.
@@ -3931,10 +3938,13 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         TESTS::
 
-            sage: FiniteStateMachine().__nonzero__()
+            sage: bool(FiniteStateMachine())
             False
         """
         return len(self._states_) > 0
+
+
+    __nonzero__ = __bool__
 
 
     def __eq__(left, right):
@@ -9101,7 +9111,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             if not first_letters:
                 return tuple()
             first_item = first_letters.pop()
-            if all([item == first_item for item in first_letters]):
+            if all(item == first_item for item in first_letters):
                 return (first_item,)
             return tuple()
 
@@ -10931,7 +10941,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         relabeled = self.relabeled()
         n = len(relabeled.states())
-        assert [s.label() for s in relabeled.states()] == range(n)
+        assert [s.label() for s in relabeled.states()] == list(range(n))
         from sage.rings.integer_ring import ZZ
         entry_vector = vector(ZZ(s.is_initial)
                               for s in relabeled.states())
@@ -13325,7 +13335,7 @@ class _FSMTapeCache_(sage.structure.sage_object.SageObject):
         """
         if not len(tape) == len(position) == len(tape_ended):
             raise TypeError('The lengths of the inputs do not match')
-        if sorted(p[1] for p in position) != range(len(tape)):
+        if sorted(p[1] for p in position) != list(range(len(tape))):
             raise TypeError('Tape position %s wrong.' % (position,))
         self.position = position
         self.tape = tape
@@ -15443,7 +15453,7 @@ class _FSMProcessIteratorAll_(FSMProcessIterator):
         if max_length is None:
             kwargs['input_tape'] = itertools.count()
         else:
-            kwargs['input_tape'] = iter(0 for _ in xrange(max_length))
+            kwargs['input_tape'] = iter(0 for _ in range(max_length))
         self.TapeCache = _FSMTapeCacheDetectAll_
         self.visited_states = {}
         kwargs['check_epsilon_transitions'] = False

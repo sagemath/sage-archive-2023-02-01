@@ -323,6 +323,7 @@ def q_binomial(n, k, q=None, algorithm='auto'):
     if algorithm == 'naive':
         denom = prod(one - q**i for i in range(1, k+1))
         if not denom: # q is a root of unity, use the cyclotomic algorithm
+            from sage.rings.polynomial.cyclotomic import cyclotomic_value
             return cyclotomic_value(n, k, q, algorithm='cyclotomic')
         else:
             num = prod(one - q**i for i in range(n-k+1, n+1))

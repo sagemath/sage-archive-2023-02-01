@@ -158,13 +158,14 @@ List of Poset methods
 
     :meth:`~FinitePoset.chain_polynomial` | Return the chain polynomial of the poset.
     :meth:`~FinitePoset.characteristic_polynomial` | Return the characteristic polynomial of the poset.
-    :meth:`~FinitePoset.f_polynomial` | Return the f-polynomial of a bounded poset.
-    :meth:`~FinitePoset.flag_f_polynomial` | Return the flag f-polynomial of a bounded and ranked poset.
-    :meth:`~FinitePoset.flag_h_polynomial` | Return the flag h-polynomial of a bounded and ranked poset.
-    :meth:`~FinitePoset.h_polynomial` | Return the h-polynomial of a bounded poset.
-    :meth:`~FinitePoset.kazhdan_lusztig_polynomial` | Return the Kazhdan-Lusztig polynomial `P_{x,y}(q)` of ``self``.
+    :meth:`~FinitePoset.f_polynomial` | Return the f-polynomial of the poset.
+    :meth:`~FinitePoset.flag_f_polynomial` | Return the flag f-polynomial of the poset.
+    :meth:`~FinitePoset.h_polynomial` | Return the h-polynomial of the poset.
+    :meth:`~FinitePoset.flag_h_polynomial` | Return the flag h-polynomial of the poset.
     :meth:`~FinitePoset.order_polynomial` | Return the order polynomial of the poset.
     :meth:`~FinitePoset.zeta_polynomial` | Return the zeta polynomial of the poset.
+    :meth:`~FinitePoset.kazhdan_lusztig_polynomial` | Return the Kazhdan-Lusztig polynomial of the poset.
+    :meth:`~FinitePoset.coxeter_polynomial` | Return the characteristic polynomial of the Coxeter transformation.
 
 **Polytopes**
 
@@ -217,7 +218,6 @@ List of Poset methods
     :meth:`~FinitePoset.moebius_function` | Return the value of Möbius function of given elements in the poset.
     :meth:`~FinitePoset.moebius_function_matrix` | Return a matrix whose ``(i,j)`` entry is the value of the Möbius function evaluated at ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
     :meth:`~FinitePoset.coxeter_transformation` | Return the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules.
-    :meth:`~FinitePoset.coxeter_polynomial` | Return the characteristic polynomial of the Coxeter transformation.
     :meth:`~FinitePoset.list` | List the elements of the poset.
     :meth:`~FinitePoset.cuts` | Return the cuts of the given poset.
     :meth:`~FinitePoset.dilworth_decomposition` | Return a partition of the points into the minimal number of chains.
@@ -253,6 +253,7 @@ Classes and functions
 # python3
 from __future__ import division, print_function, absolute_import
 
+from six.moves import range
 from six import itervalues
 
 import copy
@@ -5416,6 +5417,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - ``on_ints`` -- a boolean (default: False)
 
+        OUTPUT:
+
+        an order complex of type :class:`SimplicialComplex`
+
         EXAMPLES::
 
             sage: P = Posets.BooleanLattice(3)
@@ -5545,7 +5550,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def zeta_polynomial(self):
         r"""
-        Return the zeta polynomial of the poset ``self``.
+        Return the zeta polynomial of the poset.
 
         The zeta polynomial of a poset is the unique polynomial `Z(q)`
         such that for every integer `m > 1`, `Z(m)` is the number of
@@ -5573,9 +5578,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             q
             sage: Posets.ChainPoset(3).zeta_polynomial()
             1/2*q^2 + 1/2*q
+
             sage: P = posets.PentagonPoset()
             sage: P.zeta_polynomial()
             1/6*q^3 + q^2 - 1/6*q
+
             sage: P = Posets.DiamondPoset(5)
             sage: P.zeta_polynomial()
             3/2*q^2 - 1/2*q
@@ -5603,7 +5610,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def f_polynomial(self):
         r"""
-        Return the `f`-polynomial of a bounded poset ``self``.
+        Return the `f`-polynomial of the poset.
+
+        The poset is expected to be bounded.
 
         This is the `f`-polynomial of the order complex of the poset
         minus its bounds.
@@ -5616,7 +5625,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             :meth:`is_bounded`, :meth:`h_polynomial`, :meth:`order_complex`,
             :meth:`sage.homology.cell_complex.GenericCellComplex.f_vector`
 
-        .. WARNING::
+        .. note::
 
             This is slightly different from the ``fPolynomial``
             method in Macaulay2.
@@ -5626,9 +5635,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Posets.DiamondPoset(5)
             sage: P.f_polynomial()
             3*q^2 + q
-            sage: P = Poset({1:[2,3],2:[4],3:[5],4:[6],5:[7],6:[7]})
+
+            sage: P = Poset({1: [2, 3], 2: [4], 3: [5], 4: [6], 5: [7], 6: [7]})
             sage: P.f_polynomial()
             q^4 + 4*q^3 + 5*q^2 + q
+
+        TESTS::
 
             sage: P = Poset({2: []})
             sage: P.f_polynomial()
@@ -5700,8 +5712,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def flag_f_polynomial(self):
         r"""
-        Return the flag `f`-polynomial of a bounded and ranked poset
-        ``self``.
+        Return the flag `f`-polynomial of the poset.
+
+        The poset is expected to be bounded and ranked.
 
         This is the sum, over all chains containing both bounds,
         of a monomial encoding the ranks of the elements of the chain.
@@ -5736,16 +5749,18 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.flag_f_polynomial()
             3*x1*x2 + x2
 
-            sage: P = Poset({1:[2,3],2:[4],3:[5],4:[6],5:[6]})
+            sage: P = Poset({1: [2, 3], 2: [4], 3: [5], 4: [6], 5: [6]})
             sage: fl = P.flag_f_polynomial(); fl
             2*x1*x2*x3 + 2*x1*x3 + 2*x2*x3 + x3
             sage: q = polygen(ZZ,'q')
             sage: fl(q,q,q,q) == P.f_polynomial()
             True
 
-            sage: P = Poset({1:[2,3,4],2:[5],3:[5],4:[5],5:[6]})
+            sage: P = Poset({1: [2, 3, 4], 2: [5], 3: [5], 4: [5], 5: [6]})
             sage: P.flag_f_polynomial()
             3*x1*x2*x3 + 3*x1*x3 + x2*x3 + x3
+
+        TESTS::
 
             sage: P = Poset({2: [3]})
             sage: P.flag_f_polynomial()
@@ -5773,8 +5788,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def flag_h_polynomial(self):
         r"""
-        Return the flag `h`-polynomial of a bounded and ranked poset
-        ``self``.
+        Return the flag `h`-polynomial of the poset.
+
+        The poset is expected to be bounded and ranked.
 
         If `P` is a bounded ranked poset whose maximal element has
         rank `n` (where the minimal element is set to have rank `0`),
@@ -5804,20 +5820,22 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.flag_h_polynomial()
             2*x1*x2 + x2
 
-            sage: P = Poset({1:[2,3],2:[4],3:[5],4:[6],5:[6]})
+            sage: P = Poset({1: [2, 3], 2: [4], 3: [5], 4: [6], 5: [6]})
             sage: fl = P.flag_h_polynomial(); fl
             -x1*x2*x3 + x1*x3 + x2*x3 + x3
             sage: q = polygen(ZZ,'q')
             sage: fl(q,q,q,q) == P.h_polynomial()
             True
 
-            sage: P = Poset({1:[2,3,4],2:[5],3:[5],4:[5],5:[6]})
+            sage: P = Poset({1: [2, 3, 4], 2: [5], 3: [5], 4: [5], 5: [6]})
             sage: P.flag_h_polynomial()
             2*x1*x3 + x3
 
             sage: P = posets.ChainPoset(4)
             sage: P.flag_h_polynomial()
             x3
+
+        TESTS::
 
             sage: P = Poset({2: [3]})
             sage: P.flag_h_polynomial()
@@ -5870,9 +5888,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Posets.DiamondPoset(5)
             sage: P.characteristic_polynomial()
             q^2 - 3*q + 2
-            sage: P = Poset({1:[2,3],2:[4],3:[5],4:[6],5:[6],6:[7]})
+
+            sage: P = Poset({1: [2, 3], 2: [4], 3: [5], 4: [6], 5: [6], 6: [7]})
             sage: P.characteristic_polynomial()
             q^4 - 2*q^3 + q
+
+        TESTS::
+
             sage: P = Poset({1: []})
             sage: P.characteristic_polynomial()
             1
@@ -5890,16 +5912,17 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def chain_polynomial(self):
         """
-        Return the chain polynomial of ``self``.
+        Return the chain polynomial of the poset.
 
-        The coefficient of `q^k` is the number of chains of length `k`
-        in ``self``. The length of a chain is the number of elements.
+        The coefficient of `q^k` is the number of chains of `k`
+        elements in the poset. List of coefficients of this polynomial
+        is also called a *f-vector* of the poset.
 
-        .. WARNING::
+        .. note::
 
             This is not what has been called the chain polynomial
             in [St1986]_. The latter is identical with the order
-            polynomial (:meth:`order_polynomial`).
+            polynomial in SageMath (:meth:`order_polynomial`).
 
         EXAMPLES::
 
@@ -5917,7 +5940,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.chain_polynomial()
             5*q + 1
 
-            sage: P = Poset({})
+        TESTS::
+
+            sage: P = Poset()
             sage: P.chain_polynomial()
             1
             sage: parent(P.chain_polynomial())
@@ -5942,7 +5967,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def order_polynomial(self):
         """
-        Return the order polynomial of ``self``.
+        Return the order polynomial of the poset.
 
         The order polynomial `\Omega_P(q)` of a poset `P` is defined
         as the unique polynomial `S` such that for each integer
@@ -5966,7 +5991,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: [f(i) for i in range(4)]
             [0, 1, 4, 10]
         """
-        return self.order_ideals_lattice().zeta_polynomial()
+        return self.order_ideals_lattice(as_ideals=False).zeta_polynomial()
 
     def promotion(self, i=1):
         r"""
@@ -6573,7 +6598,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         res = QR.zero()
         tupdict = dict(zip(tup, range(n)))
         for lin in self.linear_extensions(facade=True):
-            descents = [i + 1 for i in xrange(n-1) if tupdict[lin[i]] > tupdict[lin[i+1]]]
+            descents = [i + 1 for i in range(n-1) if tupdict[lin[i]] > tupdict[lin[i+1]]]
             res += QR.Fundamental()(Composition(from_subset=(descents, n)))
         return res
 
@@ -6734,7 +6759,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def kazhdan_lusztig_polynomial(self, x=None, y=None, q=None, canonical_labels=None):
         r"""
-        Return the Kazhdan-Lusztig polynomial `P_{x,y}(q)` of ``self``.
+        Return the Kazhdan-Lusztig polynomial `P_{x,y}(q)` of the poset.
+
+        The poset is expected to be ranked.
 
         We follow the definition given in [EPW14]_. Let `G` denote a
         graded poset with unique minimal and maximal elements and `\chi_G`

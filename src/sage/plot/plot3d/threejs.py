@@ -18,11 +18,16 @@ def threejs(plot):
     if not isinstance(plot, Graphics3d):
         raise TypeError('input plot must be an instance of Graphics3d')
 
-    json = plot.json_repr(plot.default_render_params())
-    if len(json) == 0:
+    data = plot.json_repr(plot.default_render_params())
+    if len(data) == 0:
         raise ValueError('no json_repr for this plot')
 
-    html = threejs_template().format(json)
+    b = plot.bounding_box()
+    bounds = "[{{x:{},y:{},z:{}}},{{x:{},y:{},z:{}}}]".format(
+             b[0][0],b[0][1],b[0][2],b[1][0],b[1][1],b[1][2])
+    
+
+    html = threejs_template().format(bounds, data)
 
     from sage.misc.temporary_file import tmp_filename
     temp_filename = tmp_filename(ext='.html')
@@ -68,11 +73,18 @@ def threejs_template():
     renderer.setClearColor( 0xffffff, 1 );
     document.body.appendChild( renderer.domElement ); 
 
-    scene.add( new THREE.AxisHelper( 2 ) );
+    var bounds = {};
+    var box = new THREE.Geometry();
+    box.vertices.push( new THREE.Vector3( bounds[0].x, bounds[0].y, bounds[0].z ) );
+    box.vertices.push( new THREE.Vector3( bounds[1].x, bounds[1].y, bounds[1].z ) );
+    var boxMesh = new THREE.LineSegments( box );
+    scene.add( new THREE.BoxHelper( boxMesh, 'black' ) );
+
+    scene.add( new THREE.AxisHelper( bounds[1].z ) );
 
     var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 ); 
     camera.up.set( 0, 0, 1 );
-    camera.position.set( 2, 2, 2 ); 
+    camera.position.set( 1.5*bounds[1].x, 1.5*bounds[1].y, 1.5*bounds[1].z ); 
     var controls = new THREE.OrbitControls( camera, renderer.domElement );
 
     window.addEventListener( 'resize', function() {{

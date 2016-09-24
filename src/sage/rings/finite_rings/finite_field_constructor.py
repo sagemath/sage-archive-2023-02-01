@@ -476,11 +476,12 @@ class FiniteFieldFactory(UniqueFactory):
             sage: GF.create_key_and_extra_args(9, 'a', foo='value')
             ((9, ('a',), x^2 + 2*x + 2, 'givaro', "{'foo': 'value'}", 3, 2, True), {'foo': 'value'})
 
-        Named attributes whose value is None are removed from the key
-        (see :trac:`21433`)::
+        We ignore the ``structure = None`` attribute that gets added by
+        pushouts, see :trac:`21433`::
 
-            sage: GF.create_key_and_extra_args(9, 'a', foo=None)
-            ((9, ('a',), x^2 + 2*x + 2, 'givaro', '{}', 3, 2, True), {'foo': None})
+            sage: GF.create_key_and_extra_args(9, 'a', structure=None)
+            ((9, ('a',), x^2 + 2*x + 2, 'givaro', '{}', 3, 2, True), {}
+
         """
         import sage.arith.all
         from sage.structure.proof.all import WithProof, arithmetic
@@ -562,8 +563,16 @@ class FiniteFieldFactory(UniqueFactory):
                 if impl == 'modn' and modulus[0] == -1:
                     modulus = None
 
-            kwds_key = { key: value for (key,value) in kwds.iteritems() if value is not None }
-            return (order, name, modulus, impl, str(kwds_key), p, n, proof), kwds
+            if 'structure' in kwds and kwds['structure'] == None:
+                # Ignore default value for the structure argument
+                # See #21433
+                del(kwds['structure'])
+
+            # Putting the str(kwds) into the key is likely going to produce bugs at some point
+            # We should not rely on the string representation of a dict but rely on a hashable
+            # representation of kwds which implements the right notion of equality for all
+            # possible values
+            return (order, name, modulus, impl, str(kwds), p, n, proof), kwds
 
     def create_object(self, version, key, **kwds):
         """

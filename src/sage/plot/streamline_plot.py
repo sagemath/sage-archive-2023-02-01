@@ -95,7 +95,7 @@ class StreamlinePlot(GraphicPrimitive):
         return {'plot_points': 'How many points to use for plotting precision',
                 'color': 'The color of the arrows',
                 'density': 'Controls the closeness of streamlines',
-                'start_points': 'The points the streamlines must start at',
+                'start_points': 'Coordinates of starting points for the streamlines',
                 'zorder': 'The layer level in which to draw'}
 
     def _repr_(self):
@@ -120,7 +120,7 @@ class StreamlinePlot(GraphicPrimitive):
                 color          The color of the arrows
                 density        Controls the closeness of streamlines
                 plot_points    How many points to use for plotting precision
-                start_points   The points the streamlines must start at
+                start_points   Coordinates of starting points for the streamlines
                 zorder         The layer level in which to draw
             <BLANKLINE>
             20
@@ -144,7 +144,7 @@ class StreamlinePlot(GraphicPrimitive):
                        **streamplot_options)
 
 
-@options(plot_points=20, density=1., frame=True)
+@options(plot_points=20, density=1., start_points=None, frame=True)
 def streamline_plot(f_g, xrange, yrange, **options):
     r"""
     Return a streamline plot in a vector field.
@@ -162,6 +162,16 @@ def streamline_plot(f_g, xrange, yrange, **options):
     Similarly, if given one function `f(x, y)`, then this function plots
     streamlines in the slope field `dy/dx = f(x,y)` over the specified
     ranges as given above.
+
+    PLOT OPTIONS:
+
+    - ``plot_points`` - (default: 200) the minimal number of plot points.
+
+    - ``density`` - (default: 1.) float that controls the closeness of
+      streamlines.
+
+    - ``start_points`` - (default: None) list of coordinates of starting
+      points for the streamlines. Coordinate pairs can be tuples or lists.
 
     EXAMPLES:
 
@@ -236,18 +246,28 @@ def streamline_plot(f_g, xrange, yrange, **options):
         g = streamline_plot((x + y) / sqrt(x**2 + y**2), (x,-3,3), (y,-3,3))
         sphinx_plot(g)
 
-    We choose some particular points the streamlines must pass through::
+    We choose some particular points the streamlines pass through::
 
         sage: pts = [[1, 1], [-2, 2], [1, -3/2]]
-        sage: streamline_plot((x + y) / sqrt(x^2 + y^2), (x,-3,3), (y,-3,3), start_points=pts)
-        Graphics object consisting of 1 graphics primitive
+        sage: g = streamline_plot((x + y) / sqrt(x^2 + y^2), (x,-3,3), (y,-3,3), start_points=pts)
+        sage: g += point(pts, color='red')
+        sage: g
+        Graphics object consisting of 2 graphics primitives
 
     .. PLOT::
 
         x, y = var('x y')
         pts = [[1, 1], [-2, 2], [1, -3/2]]
         g = streamline_plot((x + y) / sqrt(x**2 + y**2), (x,-3,3), (y,-3,3), start_points=pts)
+        g += point(pts, color='red')
         sphinx_plot(g)
+
+    .. NOTE::
+
+        Streamlines currently pass close to ``start_points`` but do not necessarily pass
+        directly through them. That is part of the behavior of matplotlib, not an error
+        on your part.
+
     """
     # Parse the function input
     if isinstance(f_g, (list, tuple)):

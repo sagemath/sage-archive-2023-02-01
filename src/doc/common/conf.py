@@ -2,8 +2,6 @@ import sys, os, sphinx
 from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
 from datetime import date
 
-from six.moves import range
-
 # If your extensions are in another directory, add it here.
 sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 
@@ -568,9 +566,11 @@ def skip_member(app, what, name, obj, skip, options):
 def process_dollars(app, what, name, obj, options, docstringlines):
     r"""
     Replace dollar signs with backticks.
-    See sage.misc.sagedoc.process_dollars for more information
+
+    See sage.misc.sagedoc.process_dollars for more information.
     """
-    if len(docstringlines) > 0 and name.find("process_dollars") == -1:
+    if len(docstringlines) and name.find("process_dollars") == -1:
+        from six.moves import range
         from sage.misc.sagedoc import process_dollars as sagedoc_dollars
         s = sagedoc_dollars("\n".join(docstringlines))
         lines = s.split("\n")

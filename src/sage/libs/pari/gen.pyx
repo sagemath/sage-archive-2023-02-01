@@ -3651,7 +3651,7 @@ cdef class gen(gen_auto):
         - univariate polynomials, rational functions, power series and
           Laurent series (using a single unnamed argument or keyword
           arguments),
-        - any PARI object supporting the PARI function ``substvec``
+        - any PARI object supporting the PARI function :pari:`substvec`
           (in particular, multivariate polynomials) using keyword
           arguments,
         - objects of type ``t_CLOSURE`` (functions in GP bytecode form)

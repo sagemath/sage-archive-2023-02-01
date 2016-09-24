@@ -242,6 +242,30 @@ def raw_to_rest(doc):
     raise SyntaxError("@ found: " + doc[ilow:ihigh])
 
 
+
+def get_html_doc(function):
+    """
+    Get the correct html link for online PARI documentation of ``function``
+
+    INPUT:
+
+    - ``function`` -- name of a PARI function
+
+    EXAMPLES::
+
+        sage: from sage_setup.autogen.pari.doc import get_html_doc
+        sage: get_html_doc("factor")
+        'http://pari.math.u-bordeaux.fr/dochtml/html/4.html#factor'
+    """
+    # how to ask for the section of a function ?
+    doc = subprocess.check_output(["gphelp", "-raw", function]) # ?
+    if doc.endswith(b"""' not found !\n"""):
+        return "http://pari.math.u-bordeaux.fr/"
+    section = 0 # ?
+    bare = "http://pari.math.u-bordeaux.fr/dochtml/html/{}.html#{}"
+    return bare.format(section, function)
+
+
 def get_raw_doc(function):
     r"""
     Get the raw documentation of PARI function ``function``.

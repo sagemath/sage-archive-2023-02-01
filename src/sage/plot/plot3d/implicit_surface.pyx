@@ -1084,11 +1084,11 @@ cdef class ImplicitSurface(IndexFaceSet):
 
             sage: def points_equal(a, b, epsilon=(1e-5)):
             ....:     return all(abs(x0-x1) < epsilon for x0, x1 in zip(a, b))
-            sage: list = []
+            sage: checklist = []
             sage: assert len(vertices) >= 20 # I should hope so, we're rendering at the default resolution!
-            sage: for vertex, surf_vertex in zip(vertices, G.vertex_list())[0:20]:
-            ....:     list.append(points_equal(map(float, vertex.split(' ')[1:]), surf_vertex))
-            sage: all(list)
+            sage: for vertex, surf_vertex in list(zip(vertices, G.vertex_list()))[0:20]:
+            ....:     checklist.append(points_equal(map(float, vertex.split(' ')[1:]), surf_vertex))
+            sage: all(checklist)
             True
         """
         self.triangulate()

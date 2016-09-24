@@ -447,15 +447,15 @@ def symbolic_sum(expression, *args, **kwds):
         In particular, this does not work::
 
             sage: n = var('n')
-            sage: list=[1,2,3,4,5]
-            sage: sum(list[n],n,0,3)
+            sage: mylist = [1,2,3,4,5]
+            sage: sum(mylist[n], n, 0, 3)
             Traceback (most recent call last):
             ...
             TypeError: unable to convert n to an integer
             
         Use python ``sum()`` instead::
 
-            sage: sum(list[n] for n in range(4))
+            sage: sum(mylist[n] for n in range(4))
             10
             
         Also, only a limited number of functions are recognized in symbolic sums::

@@ -21,5 +21,4 @@ from .shapes            import arrow3d
 #from parametric_surface import ParametricSurface, MoebiusStrip
 #from plot3d import plot3d, axes as axes3d
 
-
-
+from .threejs import threejs

@@ -166,8 +166,8 @@ install it::
             echo >&2 "Error building PACKAGE_NAME docs."
             exit 1
         fi
-        mkdir -p "$SAGE_LOCAL/share/doc/PACKAGE_NAME"
-        cp -R doc/* "$SAGE_ROOT/local/share/doc/PACKAGE_NAME"
+        mkdir -p "$SAGE_SHARE/doc/PACKAGE_NAME"
+        cp -R doc/* "$SAGE_SHARE/doc/PACKAGE_NAME"
     fi
 
 

@@ -102,6 +102,8 @@ class Function_zeta(GinacFunction):
             sage: a = loads(dumps(zeta(x)))
             sage: a.operator() == zeta
             True
+            sage: zeta(x)._sympy_()
+            zeta(x)
 
             sage: zeta(1)
             Infinity
@@ -168,6 +170,8 @@ class Function_stieltjes(GinacFunction):
             sage: a = loads(dumps(stieltjes(n)))
             sage: a.operator() == stieltjes
             True
+            sage: stieltjes(x)._sympy_()
+            stieltjes(x)
 
             sage: stieltjes(x).subs(x==0)
             euler_gamma

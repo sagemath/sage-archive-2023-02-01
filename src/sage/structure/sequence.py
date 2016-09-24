@@ -77,6 +77,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 ##########################################################################
 from __future__ import print_function
+from six.moves import range
 
 from sage.misc.latex import list_function as list_latex_function
 import sage.structure.sage_object
@@ -451,7 +452,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         self.__universe = universe
         if check:
             x = list(x)
-            for i in xrange(len(x)):
+            for i in range(len(x)):
                 try:
                     x[i] = universe(x[i])
                 except TypeError:

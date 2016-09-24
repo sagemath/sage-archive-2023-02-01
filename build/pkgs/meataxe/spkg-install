@@ -84,12 +84,12 @@ fi
 
 # Are we supposed to install the documentation?
 if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
-    mkdir -p $SAGE_ROOT/local/share/doc/meataxe/
-    cp -r doc/* $SAGE_ROOT/local/share/doc/meataxe/
+    mkdir -p $SAGE_SHARE/doc/meataxe/
+    cp -r doc/* $SAGE_SHARE/doc/meataxe/
     if [ $? -ne 0 ]; then
         echo "Error copying documentation."
         exit 1
     else
-        echo "The documentation can be found in $SAGE_ROOT/local/share/doc/meataxe/"
+        echo "The documentation can be found in $SAGE_SHARE/doc/meataxe/"
     fi
 fi

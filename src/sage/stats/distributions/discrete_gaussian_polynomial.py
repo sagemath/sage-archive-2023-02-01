@@ -21,7 +21,6 @@ EXAMPLE::
     (23.83..., 24.0...)
 
 """
-from __future__ import absolute_import
 #******************************************************************************
 #
 #                        DGS - Discrete Gaussian Samplers
@@ -53,6 +52,7 @@ from __future__ import absolute_import
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of the FreeBSD Project.
 #*****************************************************************************/
+from __future__ import absolute_import
 
 from sage.rings.all import RealField, RR, ZZ
 from .discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
@@ -68,7 +68,7 @@ class DiscreteGaussianDistributionPolynomialSampler(SageObject):
         sage: DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], 8, 3.0)()
         3*x^7 + 3*x^6 - 3*x^5 - x^4 - 5*x^2 + 3
         sage: gs = DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], 8, 3.0)
-        sage: [gs() for _ in xrange(3)]
+        sage: [gs() for _ in range(3)]
         [4*x^7 + 4*x^6 - 4*x^5 + 2*x^4 + x^3 - 4*x + 7, -5*x^6 + 4*x^5 - 3*x^3 + 4*x^2 + x, 2*x^7 + 2*x^6 + 2*x^5 - x^4 - 2*x^2 + 3*x + 1]
 
     .. automethod:: __init__
@@ -95,7 +95,7 @@ class DiscreteGaussianDistributionPolynomialSampler(SageObject):
             sage: DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], 8, 3.0)()
             3*x^7 + 3*x^6 - 3*x^5 - x^4 - 5*x^2 + 3
             sage: gs = DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], 8, 3.0)
-            sage: [gs() for _ in xrange(3)]
+            sage: [gs() for _ in range(3)]
             [4*x^7 + 4*x^6 - 4*x^5 + 2*x^4 + x^3 - 4*x + 7, -5*x^6 + 4*x^5 - 3*x^3 + 4*x^2 + x, 2*x^7 + 2*x^6 + 2*x^5 - x^4 - 2*x^2 + 3*x + 1]
         """
         if isinstance(sigma, DiscreteGaussianDistributionIntegerSampler):

@@ -45,8 +45,8 @@ source version-list
 # Extract upstream autotools tarball
 cd "$SAGE_ROOT"
 PKG=autotools-`cat build/pkgs/autotools/package-version.txt`
-mkdir -p local/var/tmp/sage
-cd "$SAGE_ROOT/local/var/tmp/sage"
+mkdir -p "$SAGE_LOCAL/tmp/sage"
+cd "$SAGE_LOCAL/tmp/sage"
 tar xjf "$SAGE_ROOT/upstream/$PKG.tar.bz2"
 cd $PKG
 
@@ -223,5 +223,5 @@ write_make_rules autoconf $autoconf_versions
 write_make_rules automake $automake_versions
 write_make_rules libtool $libtool_versions
 
-cd "$SAGE_ROOT/local/var/tmp/sage"
+cd "$SAGE_LOCAL/tmp/sage"
 rm -rf $PKG

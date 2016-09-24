@@ -1017,7 +1017,7 @@ def OA_11_185():
     # Lines of the Fano subplane that are contained in blocks
     fano_lines = [B for B in BIBD if sum(x%39==0 for x in B) == 3]
 
-    # Points on a line of the Fano sublane
+    # Points on a line of the Fano subplane
     on_a_fano_line = set().union(*fano_lines)
 
     # Not on a line of the Fano plane

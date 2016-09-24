@@ -17,6 +17,11 @@ but can be easily converted from and to permutations::
     sage: Permutation(list(e0)) == p0
     True
 
+.. SEEALSO::
+
+    A general implementation for all finite Coxeter groups is available as
+    :meth:`~sage.categories.finite_coxeter_groups.FiniteCoxeterGroups.ParentMethods.shard_poset`
+
 REFERENCES:
 
 .. [Banc2011] \E. E. Bancroft, *Shard Intersections and Cambrian Congruence

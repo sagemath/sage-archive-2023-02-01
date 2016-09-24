@@ -64,6 +64,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from six import itervalues
+from six.moves import range
 
 from copy import copy
 
@@ -2478,7 +2479,7 @@ class EllipticCurveIsogeny(Morphism):
     #
     def __compute_omega_fast(self, E, psi, psi_pr, phi, phi_pr):
         r"""
-        Returns omega from phi, psi and their deriviates, used when
+        Return omega from phi, psi and their derivatives, used when
         the characteristic field is not 2.
 
         INPUT:
@@ -2530,7 +2531,7 @@ class EllipticCurveIsogeny(Morphism):
 
     def __compute_omega_general(self, E, psi, psi_pr, phi, phi_pr):
         r"""
-        Returns omega from phi, psi and their deriviates, in any
+        Return omega from phi, psi and their derivatives, in any
         characteristic.
 
         INPUT:
@@ -2606,7 +2607,7 @@ class EllipticCurveIsogeny(Morphism):
 
         from sage.arith.all import binomial
 
-        for j  in xrange(0,n-1):
+        for j  in range(n - 1):
             psi_prpr = psi_prpr + \
                 binomial(j+2,2)*psi_coeffs[(j+2)]*cur_x_pow
             cur_x_pow = x*cur_x_pow
@@ -2614,7 +2615,7 @@ class EllipticCurveIsogeny(Morphism):
         psi_prprpr = 0
         cur_x_pow = 1
 
-        for j in xrange(0,n-2):
+        for j in range(n - 2):
             psi_prprpr = psi_prprpr + \
                 (3*binomial(j+3,3))*psi_coeffs[(j+3)]*cur_x_pow
             cur_x_pow = x*cur_x_pow
@@ -3711,7 +3712,7 @@ def compute_isogeny_starks(E1, E2, ell):
     Z = S.gen()
     pe1 = 1/Z
     pe2 = 1/Z
-    for i in xrange(2*ell+1):
+    for i in range(2 * ell + 1):
         pe1 += wp1[2*i] * Z**i
         pe2 += wp2[2*i] * Z**i
     pe1 = pe1.add_bigoh(2*ell+2)

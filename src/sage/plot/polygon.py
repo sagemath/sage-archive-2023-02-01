@@ -17,6 +17,8 @@ Polygons
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
+
 from sage.plot.primitive import GraphicPrimitive_xydata
 from sage.misc.decorators import options, rename_keyword
 from sage.plot.colors import to_mpl_color
@@ -240,7 +242,8 @@ class Polygon(GraphicPrimitive_xydata):
         """
         import matplotlib.patches as patches
         options = self.options()
-        p = patches.Polygon([(self.xdata[i],self.ydata[i]) for i in xrange(len(self.xdata))])
+        p = patches.Polygon([(self.xdata[i],self.ydata[i])
+                             for i in range(len(self.xdata))])
         p.set_linewidth(float(options['thickness']))
         a = float(options['alpha'])
         z = int(options.pop('zorder', 1))

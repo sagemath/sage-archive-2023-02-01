@@ -186,7 +186,7 @@ for file in *.txt; do
     fi
 done
 
-# Create sympow script in $SAGE_ROOT/local/bin
+# Create sympow script in $SAGE_LOCAL/bin
 SCRIPT="$SAGE_LOCAL/bin/sympow"
 
 cat >"$SCRIPT" <<'EOF'

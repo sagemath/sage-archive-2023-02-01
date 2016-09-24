@@ -1485,7 +1485,7 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         map_index = lambda i_list: max(i_list[1]) + min(i_list[1]) - i_list[0]
         map_element = lambda x : tuple([ self.automorphism_on_affine_weight(dic[x][0]),
                                          map_index((dic[x][1], dic_weight[dic[x][0]])) ])
-        return dict( (x, dic_inv[map_element(x)]) for x in dic.keys() )
+        return {x: dic_inv[map_element(x)] for x in dic}
 
     @cached_method
     def promotion_on_highest_weight_vectors_function(self):
@@ -1668,7 +1668,7 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
             sage: K.to_ambient_crystal()(b).parent()
             Kirillov-Reshetikhin crystal of type ['B', 4, 1]^* with (r,s)=(2,2)
         """
-        keys = self.highest_weight_dict().keys()
+        keys = list(self.highest_weight_dict())
         pdict = dict( (self.highest_weight_dict()[key], self.ambient_highest_weight_dict()[key]) for key in keys )
         classical = self.cartan_type().classical()
         return self.crystal_morphism( pdict, index_set=classical.index_set(),
@@ -1691,7 +1691,7 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
             sage: K.from_ambient_crystal()(b)
             [[1, 1], [2, 2]]
         """
-        keys = self.highest_weight_dict().keys()
+        keys = list(self.highest_weight_dict())
         pdict_inv = dict( (self.ambient_highest_weight_dict()[key], self.highest_weight_dict()[key])
                           for key in keys )
         ind = [j+1 for j in self.cartan_type().classical().index_set()]
@@ -1929,7 +1929,7 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
             sage: K.to_ambient_crystal()(b).parent()
             Kirillov-Reshetikhin crystal of type ['B', 3, 1] with (r,s)=(2,2)
         """
-        keys = self.highest_weight_dict().keys()
+        keys = self.highest_weight_dict()
         pdict = dict( (self.highest_weight_dict()[key], self.ambient_highest_weight_dict()[key]) for key in keys )
         classical = self.cartan_type().classical()
         return self.crystal_morphism( pdict, index_set=classical.index_set(),
@@ -1953,7 +1953,7 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
             sage: K.from_ambient_crystal()(b)
             [[1, 1]]
         """
-        keys = self.highest_weight_dict().keys()
+        keys = self.highest_weight_dict()
         pdict_inv = dict( (self.ambient_highest_weight_dict()[key], self.highest_weight_dict()[key])
                           for key in keys )
         ind = [j+1 for j in self.cartan_type().classical().index_set()]
@@ -2186,7 +2186,7 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
             sage: [K.to_ambient_crystal()(b) for b in K]
             [[], [[1, 1]], [[2, 2]], [[-2, -2]], [[-1, -1]]]
         """
-        keys = self.highest_weight_dict().keys()
+        keys = self.highest_weight_dict()
         pdict = dict( (self.highest_weight_dict()[key], self.ambient_highest_weight_dict()[key])
                       for key in keys )
         classical = self.cartan_type().classical()
@@ -2215,7 +2215,7 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
             sage: K.from_ambient_crystal()(b)
             []
         """
-        keys = self.highest_weight_dict().keys()
+        keys = self.highest_weight_dict()
         pdict_inv = dict( (self.ambient_highest_weight_dict()[key], self.highest_weight_dict()[key]) for key in keys )
         return AmbientRetractMap( self, self.ambient_crystal(), pdict_inv,
                                   index_set=self.cartan_type().classical().index_set(),
@@ -2459,7 +2459,7 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
             [[[1], [2], [3]], [[1], [2], [-3]], [[1], [3], [-2]], [[2], [3], [-1]], [[1], [-3], [-2]],
             [[2], [-3], [-1]], [[3], [-2], [-1]], [[-3], [-2], [-1]]]
         """
-        keys = self.highest_weight_dict().keys()
+        keys = self.highest_weight_dict()
         pdict = dict( (self.highest_weight_dict()[key], self.ambient_highest_weight_dict()[key])
                       for key in keys )
         classical = self.cartan_type().classical()
@@ -2486,7 +2486,7 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
             sage: K.from_ambient_crystal()(b)
             [++-, []]
         """
-        keys = self.highest_weight_dict().keys()
+        keys = self.highest_weight_dict()
         pdict_inv = dict( (self.ambient_highest_weight_dict()[key], self.highest_weight_dict()[key]) for key in keys )
         return AmbientRetractMap( self, self.ambient_crystal(), pdict_inv,
                                   index_set=self.cartan_type().classical().index_set(),
@@ -3259,7 +3259,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             y = [i for i in x]
             y[0] = -y[0]
             return tuple(y)
-        return dict( (dic_weight[w], dic_weight_dual[neg(w)]) for w in dic_weight.keys() )
+        return dict( (dic_weight[w], dic_weight_dual[neg(w)]) for w in dic_weight)
 
     @cached_method
     def promotion_on_highest_weight_vectors_inverse(self):
@@ -3279,7 +3279,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             True
         """
         D = self.promotion_on_highest_weight_vectors()
-        return dict( (D[t],t) for t in D.keys() )
+        return {Dt: t for t, Dt in D.items()}
 
     @cached_method
     def promotion(self):
@@ -3331,7 +3331,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             True
         """
         D = self.promotion_on_highest_weight_vectors_inverse()
-        T = D.keys()[0].parent()
+        T = list(D)[0].parent()
         ind = list(T.index_set())
         ind.remove(1)
         C = T.cartan_type()
@@ -4115,5 +4115,6 @@ class CrystalDiagramAutomorphism(CrystalMorphism):
     is_surjective = is_isomorphism
     is_embedding = is_isomorphism
     is_strict = is_isomorphism
+    __bool__ = is_isomorphism
     __nonzero__ = is_isomorphism
 

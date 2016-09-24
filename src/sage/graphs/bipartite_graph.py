@@ -795,6 +795,23 @@ class BipartiteGraph(Graph):
         Graph.add_edge(self, u, v, label)
         return
 
+    def complement(self):
+        """
+        Return a complement of this graph.
+
+        EXAMPLES::
+
+            sage: B = BipartiteGraph({1: [2, 4], 3: [4, 5]})
+            sage: G = B.complement(); G
+            Graph on 5 vertices
+            sage: G.edges(labels=False)
+            [(1, 3), (1, 5), (2, 3), (2, 4), (2, 5), (4, 5)]
+        """
+        # This is needed because complement() of generic graph
+        # would return a graph of class BipartiteGraph that is
+        # not bipartite. See ticket #12376.
+        return Graph(self).complement()
+
     def to_undirected(self):
         """
         Return an undirected Graph (without bipartite constraint) of the given

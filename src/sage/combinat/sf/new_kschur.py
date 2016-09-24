@@ -1315,9 +1315,10 @@ class K_kSchur(CombinatorialFreeModule):
 
     def _homogeneous_generators_noncommutative_variables_zero_Hecke(self, r):
         r"""
-        Returns the ``r^{th}`` homogeneous generator, viewed as an element inside the
-        affine zero Hecke algebra. This is the sum of all cyclicly decreasing elements
-        of order ``r``.
+        Return the ``r^{th}`` homogeneous generator, viewed as an element inside the
+        affine zero Hecke algebra.
+
+        This is the sum of all cyclically decreasing elements of order ``r``.
 
         INPUT:
 

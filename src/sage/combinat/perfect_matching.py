@@ -173,11 +173,11 @@ class PerfectMatching(ElementWrapper):
         # matching and the list of pairs.
         # First case: p is a list (resp tuple) of lists (resp tuple).
         if (isinstance(p, list) or isinstance(p, tuple)) and (
-                all([isinstance(x, list) or isinstance(x, tuple) for x in p])):
+                all(isinstance(x, list) or isinstance(x, tuple) for x in p)):
             objects = Set(flatten(p))
             data = [tuple(_) for _ in p]
             #check if the data are correct
-            if not all([len(t) == 2 for t in data]):
+            if not all(len(t) == 2 for t in data):
                 raise ValueError("%s is not a valid perfect matching:\n"
                                  "all elements of the list must be pairs" % p)
             if len(objects) < 2*len(data):
@@ -861,8 +861,8 @@ class PerfectMatchings(UniqueRepresentation, Parent):
         sage: M = PerfectMatchings(('a', 'e', 'b', 'f', 'c', 'd'))
         sage: M.an_element()
         [('a', 'b'), ('f', 'e'), ('c', 'd')]
-        sage: all([PerfectMatchings(i).an_element() in PerfectMatchings(i)
-        ...        for i in range(2,11,2)])
+        sage: all(PerfectMatchings(i).an_element() in PerfectMatchings(i)
+        ....:      for i in range(2,11,2))
         True
 
     TESTS::
@@ -984,7 +984,7 @@ class PerfectMatchings(UniqueRepresentation, Parent):
             True
             sage: m in PerfectMatchings((0, 1, 2, 3))
             False
-            sage: all([m in PerfectMatchings(6) for m in PerfectMatchings(6)])
+            sage: all(m in PerfectMatchings(6) for m in PerfectMatchings(6))
             True
 
         Note that the class of ``x`` does not need to be ``PerfectMatching``:
@@ -1032,8 +1032,8 @@ class PerfectMatchings(UniqueRepresentation, Parent):
             sage: M = PerfectMatchings(('a', 'e', 'b', 'f', 'c', 'd'))
             sage: M.an_element()
             [('a', 'b'), ('f', 'e'), ('c', 'd')]
-            sage: all([PerfectMatchings(2*i).an_element() in PerfectMatchings(2*i)
-            ...        for i in range(2,11,2)])
+            sage: all(PerfectMatchings(2*i).an_element() in PerfectMatchings(2*i)
+            ....:      for i in range(2,11,2))
             True
 
         TESTS::

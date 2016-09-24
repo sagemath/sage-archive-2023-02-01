@@ -1148,12 +1148,14 @@ If this all works, you can then make calls like:
 
         EXAMPLES: We illustrate this function using the R interface::
 
+            sage: r._synchronize()
             sage: r._sendstr('a <- 10;\n')
             sage: r.eval('a')
             '[1] 10'
 
         We illustrate using the singular interface::
 
+            sage: singular._synchronize()
             sage: singular._sendstr('int i = 5;')
             sage: singular('i')
             5

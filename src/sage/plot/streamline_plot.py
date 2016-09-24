@@ -310,6 +310,18 @@ def streamline_plot(f_g, xrange, yrange, **options):
     ypos_array = numpy.array(ypos_array, dtype=float)
     xvec_array = numpy.ma.masked_invalid(numpy.array(xvec_array, dtype=float))
     yvec_array = numpy.ma.masked_invalid(numpy.array(yvec_array, dtype=float))
+
+    # The official way to handle start_points, but apparently unnecessary
+    # http://matplotlib.org/examples/images_contours_and_fields/streamplot_demo_start_points.html
+    # 
+    #if 'start_points' in options:
+    #    points = options.pop('start_points')
+    #    xstart_array, ystart_array = [], []
+    #    for point in points:
+    #        xstart_array.append(point[0])
+    #        ystart_array.append(point[1])
+    #    options['start_points'] = numpy.array([xstart_array, ystart_array]).T
+
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     g.add_primitive(StreamlinePlot(xpos_array, ypos_array,

@@ -27,7 +27,7 @@ Disjoint set of integers from ``0`` to ``n - 1``::
     1
     sage: s.find(5)
     1
-    sage: map(s.find, range(6))
+    sage: list(map(s.find, range(6)))
     [0, 1, 2, 1, 2, 1]
 
 Disjoint set of hashables objects::

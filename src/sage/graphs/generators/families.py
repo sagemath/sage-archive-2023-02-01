@@ -481,8 +481,8 @@ def chang_graphs():
         sage: s=[K8.subgraph_search(c8).edges(),
         ....:    [(0,1,None),(2,3,None),(4,5,None),(6,7,None)],
         ....:    K8.subgraph_search(c3c5).edges()]
-        sage: map(lambda x,G: T8.seidel_switching(x, inplace=False).is_isomorphic(G),
-        ....:                  s, chang_graphs)
+        sage: list(map(lambda x,G: T8.seidel_switching(x, inplace=False).is_isomorphic(G),
+        ....:                  s, chang_graphs))
         [True, True, True]
 
     """
@@ -2464,13 +2464,13 @@ def MathonPseudocyclicMergingGraph(M, t):
     """
     from sage.graphs.graph import Graph
     from sage.matrix.constructor import identity_matrix
-    assert (len(M) == 4)
-    assert (M[0]==identity_matrix(M[0].nrows()))
-    A = sum(map(lambda x: x.tensor_product(x), M[1:]))
+    assert len(M) == 4
+    assert M[0] == identity_matrix(M[0].nrows())
+    A = sum(x.tensor_product(x) for x in M[1:])
     if t > 0:
-        A += sum(map(lambda x: x.tensor_product(M[0]), M[1:]))
+        A += sum(x.tensor_product(M[0]) for x in M[1:])
     if t > 1:
-        A += sum(map(lambda x: M[0].tensor_product(x), M[1:]))
+        A += sum(M[0].tensor_product(x) for x in M[1:])
     return Graph(A)
 
 def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
@@ -2515,10 +2515,10 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
 
         sage: G=graphs.PaleyGraph(9)
         sage: a=G.automorphism_group()
-        sage: r=map(lambda z: matrix(libgap.PermutationMat(libgap(z),9).sage()),
-        ....:                   filter(lambda x: x.order()==9, a.normal_subgroups())[0])
-        sage: ff=map(lambda y: (y[0]-1,y[1]-1),
-        ....:          Permutation(map(lambda x: 1+r.index(x^-1), r)).cycle_tuples()[1:])
+        sage: r=list(map(lambda z: matrix(libgap.PermutationMat(libgap(z),9).sage()),
+        ....:                   filter(lambda x: x.order()==9, a.normal_subgroups())[0]))
+        sage: ff=list(map(lambda y: (y[0]-1,y[1]-1),
+        ....:          Permutation(map(lambda x: 1+r.index(x^-1), r)).cycle_tuples()[1:]))
         sage: L = sum(i*(r[a]-r[b]) for i,(a,b) in zip(range(1,len(ff)+1), ff)); L
         [ 0  1 -1  2  3 -4 -2  4 -3]
         [-1  0  1 -4  2  3 -3 -2  4]

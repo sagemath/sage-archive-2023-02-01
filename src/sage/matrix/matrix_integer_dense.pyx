@@ -2935,15 +2935,15 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: n = len(Q)
             sage: S = 100
             sage: X = Matrix(ZZ, n, n + 1)
-            sage: for i in xrange(n):
-            ...       X[i,i + 1] = 1
-            sage: for i in xrange(n):
-            ...       X[i,0] = S*Q[i]
+            sage: for i in range(n):
+            ....:     X[i, i + 1] = 1
+            sage: for i in range(n):
+            ....:     X[i, 0] = S * Q[i]
             sage: L = X.LLL()
             sage: M = L.row(n-1).list()[1:]
             sage: M
             [-3, -1, 13, -1, -4, 2, 3, 4, 5, -1]
-            sage: add([Q[i]*M[i] for i in range(n)])
+            sage: add(Q[i]*M[i] for i in range(n))
             -1
 
         The case `\delta = 1` is not always supported::
@@ -5278,7 +5278,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         ::
 
-            sage: A = matrix(ZZ,2,3,xrange(6))
+            sage: A = matrix(ZZ, 2, 3, range(6))
             sage: type(A)
             <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: B = A.transpose()

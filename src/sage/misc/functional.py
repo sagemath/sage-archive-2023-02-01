@@ -22,11 +22,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
+from six.moves import range
+from six.moves import builtins
 
 import sage.misc.latex
 import sage.interfaces.expect
 import sage.interfaces.mathematica
-
 
 from sage.rings.complex_double import CDF
 from sage.rings.real_double import RDF, RealDoubleElement
@@ -34,8 +35,6 @@ from sage.rings.real_double import RDF, RealDoubleElement
 import sage.rings.real_mpfr
 import sage.rings.complex_field
 import sage.rings.integer
-
-from six.moves import builtins
 
 ##############################################################################
 # There are many functions on elements of a ring, which mathematicians
@@ -698,7 +697,7 @@ def interval(a, b):
         sage: 4 in I
         False
     """
-    return range(a,b+1)
+    return list(range(a, b + 1))
 
 def xinterval(a, b):
     r"""
@@ -713,7 +712,7 @@ def xinterval(a, b):
         sage: 6 in I
         False
     """
-    return xrange(a, b+1)
+    return range(a, b + 1)
 
 def is_commutative(x):
     """

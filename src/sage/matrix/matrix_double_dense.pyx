@@ -665,7 +665,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         an identity matrix can hit the minimum with the right norm.  ::
 
             sage: A = matrix(RDF, 10, [1/(i+j+1) for i in range(10) for j in range(10)])
-            sage: A.condition()  # tol 1e-4
+            sage: A.condition()  # tol 2e-4
             16332197709146.014
             sage: id = identity_matrix(CDF, 10)
             sage: id.condition(p=1)
@@ -1006,7 +1006,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: B.rank()
             12
             sage: A = B.change_ring(RDF)
-            sage: A.condition() > 1.6e16 or A.condition()
+            sage: A.condition() > 1.59e16 or A.condition()
             True
 
             sage: A.singular_values(eps=None)  # abs tol 7e-16

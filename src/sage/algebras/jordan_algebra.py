@@ -402,7 +402,7 @@ class SpecialJordanAlgebra(JordanAlgebra):
             from sage.misc.latex import latex
             return latex(self._x)
 
-        def __nonzero__(self):
+        def __bool__(self):
             """
             Return if ``self`` is non-zero.
 
@@ -411,10 +411,12 @@ class SpecialJordanAlgebra(JordanAlgebra):
                 sage: F.<x,y,z> = FreeAlgebra(QQ)
                 sage: J = JordanAlgebra(F)
                 sage: a,b,c = map(J, F.gens())
-                sage: (a + 2*b - c).__nonzero__()
+                sage: bool(a + 2*b - c)
                 True
             """
-            return self._x.__nonzero__()
+            return bool(self._x)
+
+        __nonzero__ = __bool__
 
         def __eq__(self, other):
             """
@@ -802,7 +804,7 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
             from sage.misc.latex import latex
             return "{} + {}".format(latex(self._s), latex(self._v))
 
-        def __nonzero__(self):
+        def __bool__(self):
             """
             Return if ``self`` is non-zero.
 
@@ -810,14 +812,16 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
 
                 sage: m = matrix([[0,1],[1,1]])
                 sage: J.<a,b,c> = JordanAlgebra(m)
-                sage: 1.__nonzero__()
+                sage: bool(1)
                 True
-                sage: b.__nonzero__()
+                sage: bool(b)
                 True
-                sage: (a + 2*b - c).__nonzero__()
+                sage: bool(a + 2*b - c)
                 True
             """
-            return self._s.__nonzero__() or self._v.__nonzero__()
+            return bool(self._s) or bool(self._v)
+
+        __nonzero__ = __bool__
 
         def __eq__(self, other):
             """

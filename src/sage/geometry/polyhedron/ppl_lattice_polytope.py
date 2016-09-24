@@ -10,7 +10,7 @@ polytopes in 4 dimensions.
 .. NOTE::
 
     For general lattice polyhedra you should use
-    :func:`~sage.geometry.polyhedon.constructor.Polyhedron` with
+    :func:`~sage.geometry.polyhedron.constructor.Polyhedron` with
     ``base_ring=ZZ``.
 
 The class derives from the PPL :class:`sage.libs.ppl.C_Polyhedron`

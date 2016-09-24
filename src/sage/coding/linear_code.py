@@ -205,6 +205,7 @@ TESTS::
 # python3
 from __future__ import division, print_function
 from __future__ import absolute_import
+from six.moves import range
 
 from sage.modules.module import Module
 from sage.categories.modules import Modules
@@ -1864,7 +1865,7 @@ class AbstractLinearCode(Module):
             sage: C = random_matrix(GF(25,'a'), 2, 7).row_space()
             sage: C = LinearCode(C.basis_matrix())
             sage: Clist = C.list()
-            sage: all([C[i]==Clist[i] for i in xrange(len(C))])
+            sage: all([C[i]==Clist[i] for i in range(len(C))])
             True
 
         Check that only the indices less than the size of the code are
@@ -1899,7 +1900,7 @@ class AbstractLinearCode(Module):
         a = F.primitive_element()
         m = F.degree()
         p = F.prime_subfield().order()
-        A = [a**k for k in xrange(m)]
+        A = [a ** k for k in range(m)]
         G = self.generator_matrix()
         N = self.dimension()*F.degree() # the total length of p-adic vector
         Z = Zp(p, N)
@@ -1908,7 +1909,7 @@ class AbstractLinearCode(Module):
         codeword = 0
         row = 0
         for g in G:
-            codeword += sum([ivec[j+row*m]*A[j] for j in xrange(m)])*g
+            codeword += sum(ivec[j+row*m]*A[j] for j in range(m)) * g
             row += 1
 
         # The codewords for a specific code can not change. So, we set them
@@ -2343,6 +2344,12 @@ class AbstractLinearCode(Module):
         distance is found, then the stored value will be returned without
         recomputing the minimum distance again.
 
+        .. NOTE::
+
+            When using GAP, this raises a ``NotImplementedError`` if
+            the base field of the code has size greater than 256 due
+            to limitations in GAP.
+
         INPUT:
 
         - ``algorithm`` - Method to be used, ``None``, ``"gap"``, or
@@ -2389,6 +2396,15 @@ class AbstractLinearCode(Module):
             Traceback (most recent call last):
             ...
             ValueError: The algorithm argument must be one of None, 'gap' or 'guava'; got 'something'
+
+        The field must be size at most 256::
+
+            sage: C = codes.random_linear_code(GF(257,"a"), 5, 2)
+            sage: C.minimum_distance()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the GAP algorithm that Sage is using
+             is limited to computing with fields of size at most 256
         """
         # If the minimum distance has already been computed or provided by
         # the user then simply return the stored value.
@@ -2399,6 +2415,11 @@ class AbstractLinearCode(Module):
 
         F = self.base_ring()
         q = F.order()
+        if q > 256:
+            raise NotImplementedError("the GAP algorithm that Sage is using "
+                                      "is limited to computing with fields "
+                                      "of size at most 256")
+
         G = self.generator_matrix()
         n = self.length()
         k = self.dimension()

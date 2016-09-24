@@ -37,7 +37,6 @@ The code was tested afterwards by Liz Beazley and Ed Richmond.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.combinat.free_module import CombinatorialFreeModule
 from sage.plot.graphics import Graphics
 from sage.plot.polygon import polygon
 from sage.plot.line import line
@@ -45,11 +44,9 @@ from sage.plot.text import text
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.plot.plot import graphics_array
-from sage.combinat.words.word import Word
 from sage.misc.cachefunc import cached_method
-from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.combinat.skew_tableau import SkewTableau
+
 
 class PuzzlePiece(object):
     r"""

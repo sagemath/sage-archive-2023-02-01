@@ -86,6 +86,7 @@ REFERENCES:
 
 - [CGW2013]_
 """
+from six.moves import range
 
 from sage.functions.log import exp, log
 from sage.functions.other import sqrt, floor, ceil
@@ -748,7 +749,7 @@ def samples(m, n, lwe, seed=None, balanced=False, **kwds):
         f = lambda a_c: a_c
     else:
         f = balance_sample
-    return [f(lwe()) for _ in xrange(m)]
+    return [f(lwe()) for _ in range(m)]
 
 def balance_sample(s, q=None):
     r"""

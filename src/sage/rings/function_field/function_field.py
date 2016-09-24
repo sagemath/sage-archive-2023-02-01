@@ -60,7 +60,7 @@ TESTS::
     sage: TestSuite(M).run()  # long time (52s on sage.math, 2012)
 
 The following two test suites do not pass ``_test_elements`` yet since
-``R.an_element()`` has a ``_test_category`` method wich it should not have.
+``R.an_element()`` has a ``_test_category`` method which it should not have.
 It is not the fault of the function field code so this will
 be fixed in another ticket::
 

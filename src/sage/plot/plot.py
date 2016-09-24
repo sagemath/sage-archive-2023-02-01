@@ -332,10 +332,9 @@ Here is a pretty graph::
 
     sage: g = Graphics()
     sage: for i in range(60):
-    ...    p = polygon([(i*cos(i),i*sin(i)), (0,i), (i,0)],\
-    ...                color=hue(i/40+0.4), alpha=0.2)
-    ...    g = g + p
-    ...
+    ....:    p = polygon([(i*cos(i),i*sin(i)), (0,i), (i,0)],\
+    ....:                color=hue(i/40+0.4), alpha=0.2)
+    ....:    g = g + p
     sage: g.show(dpi=200, axes=False)
 
 .. PLOT::
@@ -549,6 +548,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six.moves import range
 
 import os
 from functools import reduce
@@ -1708,7 +1708,7 @@ def plot(funcs, *args, **kwds):
 
     .. PLOT::
 
-        g = plot(floor(x), (x, 1, 10), exclude=range(1,11))
+        g = plot(floor(x), (x, 1, 10), exclude=list(range(1,11)))
         sphinx_plot(g)
 
     We exclude all points where :class:`~sage.functions.prime_pi.PrimePi`
@@ -1750,7 +1750,7 @@ def plot(funcs, *args, **kwds):
     .. PLOT::
 
         def f(x): return (floor(x)+0.5) / (1-(x-0.5)**2)
-        g = plot(f, (x, -3.5, 3.5), detect_poles='show', exclude=range(-3,4), ymin=-5, ymax=5)
+        g = plot(f, (x, -3.5, 3.5), detect_poles='show', exclude=list(range(-3,4)), ymin=-5, ymax=5)
         sphinx_plot(g)
 
     Regions in which the plot has no values are automatically excluded. The
@@ -2717,7 +2717,7 @@ def polar_plot(funcs, *args, **kwds):
 
     .. PLOT::
 
-        g = polar_plot(log(floor(x)), (x, 1, 4*pi), exclude=range(1,13))
+        g = polar_plot(log(floor(x)), (x, 1, 4*pi), exclude=list(range(1,13)))
         sphinx_plot(g)
 
     """
@@ -3376,7 +3376,7 @@ def reshape(v, n, m):
     # Now v should be a single list.
     # First, make it have the right length.
     v = list(v)   # do not mutate the argument
-    for i in xrange(n*m - len(v)):
+    for i in range(n * m - len(v)):
         v.append(G)
 
     # Next, create a list of lists out of it.
@@ -3554,7 +3554,7 @@ def var_and_list_of_values(v, plot_points):
         return var, [a, b]
     else:
         step = (b-a)/float(plot_points-1)
-        values = [a + step*i for i in xrange(plot_points)]
+        values = [a + step * i for i in range(plot_points)]
         return var, values
 
 

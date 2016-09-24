@@ -276,7 +276,7 @@ class PollackStevensModularDomain(SageObject):
 
     def indices(self, n=None):
         r"""
-        Return the ``n``-th index of the coset representatives which were
+        Return the `n`-th index of the coset representatives which were
         chosen as our generators.
 
         In particular, the divisors associated to these coset representatives
@@ -1148,13 +1148,6 @@ class ManinRelations(PollackStevensModularDomain):
         ## Get the level
         N = self.level()
 
-        ## Checks that the level N is > 1
-        # TODO: I'm commenting this out; I see no reason not to allow
-        # level 1, except possibly the bug here that I fixed:
-        # http://trac.sagemath.org/sage_trac/ticket/12772
-        #if not (N > 1):
-        #    raise TypeError("Error in form_list_of_cusps: level should be > 1")
-
         ## Some convenient shortcuts
         P = self.P1()
         sP = len(P.list())   # Size of P^1(Z/NZ)
@@ -1430,7 +1423,7 @@ class ManinRelations(PollackStevensModularDomain):
         r"""
         This function does some precomputations needed to compute `T_l`.
 
-        In particular, if `phi` is a modular symbol and `D_m` is the divisor
+        In particular, if `\phi` is a modular symbol and `D_m` is the divisor
         associated to the generator ``gen``, to compute `(\phi|T_{l})(D_m)` one
         needs to compute `\phi(\gamma_a D_m)|\gamma_a` where `\gamma_a` runs
         through the `l+1` matrices defining `T_l`.  One

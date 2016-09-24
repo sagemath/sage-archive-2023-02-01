@@ -662,7 +662,7 @@ class RewritingSystem(object):
         system into a confluent one.
 
         Note that this method does not return any object, just changes the
-        rewriting sytem internally.
+        rewriting system internally.
 
         .. WARNING:
 

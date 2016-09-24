@@ -488,7 +488,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         .. NOTE::
 
-            This is realised by calling
+            This is realized by calling
             :func:`sage.modules.free_module_integer.FreeModule_submodule_with_basis_integer.BKZ` with
             ``block_size == self.rank()``.
 

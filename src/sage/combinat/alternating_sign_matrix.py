@@ -33,7 +33,6 @@ from __future__ import division
 from builtins import zip
 from six import itervalues
 
-import itertools
 import copy
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass

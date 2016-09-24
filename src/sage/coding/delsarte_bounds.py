@@ -22,6 +22,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, division
+from six.moves import range
 
 
 
@@ -135,12 +136,12 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
 
     p = MixedIntegerLinearProgram(maximization=True, solver=solver)
     A = p.new_variable(integer=isinteger, nonnegative=True)
-    p.set_objective(sum([A[r] for r in xrange(n+1)]))
+    p.set_objective(sum([A[r] for r in range(n+1)]))
     p.add_constraint(A[0]==1)
-    for i in xrange(1,d):
+    for i in range(1,d):
         p.add_constraint(A[i]==0)
-    for j in xrange(1,n+1):
-        rhs = sum([Krawtchouk(n,q,j,r,check=False)*A[r] for r in xrange(n+1)])
+    for j in range(1,n+1):
+        rhs = sum([Krawtchouk(n,q,j,r,check=False)*A[r] for r in range(n+1)])
         p.add_constraint(0*A[0] <= rhs)
         if j >= d_star:
           p.add_constraint(0*A[0] <= rhs)
@@ -148,7 +149,7 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
           p.add_constraint(0*A[0] == rhs)
 
     if maxc > 0:
-        p.add_constraint(sum([A[r] for r in xrange(n+1)]), max=maxc)
+        p.add_constraint(sum([A[r] for r in range(n+1)]), max=maxc)
     return A, p
 
 def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isinteger=False):

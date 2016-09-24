@@ -113,11 +113,11 @@ REFERENCES:
 #*****************************************************************************
 # python3
 from __future__ import division, print_function
+from six.moves import range
 
 from copy import copy
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import Element
-from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.homology.simplicial_complex import SimplicialComplex, Simplex
 from sage.geometry.polyhedron.constructor import Polyhedron
@@ -393,8 +393,9 @@ class SubwordComplexFacet(Simplex, Element):
         W = self.parent().group()
         N = len(W.long_element(as_word=True))
         root_conf = self._root_configuration_indices()
-        return [~w for w in W if all(w.action_on_root_indices(i,side="left") < N
-                                     for i in root_conf)]
+        return [~w for w in W
+                if all(w.action_on_root_indices(i, side="left") < N
+                       for i in root_conf)]
 
     def is_vertex(self):
         r"""
@@ -551,7 +552,6 @@ class SubwordComplexFacet(Simplex, Element):
                 Lambda = {li: coeff[li] * Lambda[li] for li in Lambda}
             Q = self.parent().word()
             V_weights = []
-            Phi = W.roots()
             pi = W.one()
             for i, wi in enumerate(Q):
                 fund_weight = Lambda[wi]
@@ -1228,7 +1228,7 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
         """
         W = self.group()
         Q = self.word()
-        if not all(i in range(len(Q)) for i in F):
+        if not all(i in list(range(len(Q))) for i in F):
             return False
         return W.from_reduced_word(Qi for i, Qi in enumerate(Q) if i not in F) == self.pi()
 
@@ -1965,7 +1965,7 @@ def _greedy_facet(Q, w, side="negative", n=None, pos=0, l=None, elems=[]):
         l = w.length()
 
     if l == 0:
-        return elems + range(pos, n)
+        return elems + list(range(pos, n))
     elif n < l:
         return []
 

@@ -1278,7 +1278,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             ...
             ArithmeticError: vector is not in free module
 
-        We check that #10450 is fixed::
+        We check that :trac:`10450` is fixed::
 
             sage: M = CuspForms(Gamma1(22), 2).new_submodule()  # long time (3s on sage.math, 2011)
             sage: M.hecke_matrix(3)  # long time

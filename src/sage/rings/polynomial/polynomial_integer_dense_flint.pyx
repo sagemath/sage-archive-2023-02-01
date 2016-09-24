@@ -34,6 +34,7 @@ include "sage/ext/stdsage.pxi"
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 
+from cpython.int cimport PyInt_AS_LONG
 from sage.libs.gmp.mpz cimport *
 from sage.misc.long cimport pyobject_to_long
 
@@ -377,6 +378,11 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
             sage: f(2)          # indirect doctest
             3
+
+        TESTS:
+
+            sage: t(-sys.maxint-1r) == t(-sys.maxint-1)
+            True
         """
         cdef Polynomial_integer_dense_flint f
         cdef Integer a, z
@@ -394,7 +400,19 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                     (<Polynomial_integer_dense_flint> x0).__poly)
                 sig_off()
                 return f
-            if isinstance(x0, (int, long)):
+            if isinstance(x0, int):
+                z = PY_NEW(Integer)
+                sig_on()
+                fmpz_init(a_fmpz)
+                fmpz_init(z_fmpz)
+                fmpz_set_si(a_fmpz, PyInt_AS_LONG(x0))
+                fmpz_poly_evaluate_fmpz(z_fmpz, self.__poly, a_fmpz)
+                fmpz_get_mpz(z.value, z_fmpz)
+                fmpz_clear(a_fmpz)
+                fmpz_clear(z_fmpz)
+                sig_off()
+                return z
+            if isinstance(x0, long):
                 x0 = Integer(x0)
             if isinstance(x0, Integer):
                 a = <Integer> x0

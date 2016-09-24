@@ -130,7 +130,8 @@ cdef class PrimePi(BuiltinFunction):
         - \R. Andrew Ohana (2011)
         """
         super(PrimePi, self).__init__('prime_pi', latex_name=r"\pi",
-                conversions={'mathematica':'PrimePi', 'pari':'primepi'})
+                conversions={'mathematica':'PrimePi', 'pari':'primepi',
+                    'sympy':'primepi'})
 
     cdef uint32_t *__primes
     cdef uint32_t __numPrimes, __maxSieve, __primeBound

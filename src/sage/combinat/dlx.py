@@ -356,7 +356,7 @@ class DLXMatrix:
         nodetable[nodetable[c][RIGHT]][LEFT] = c
         nodetable[nodetable[c][LEFT]][RIGHT] = c
 
-    def next(self):
+    def __next__(self):
         """
         Search for the first solution we can find, and return it.
 
@@ -463,6 +463,7 @@ class DLXMatrix:
 
         raise StopIteration
 
+    next = __next__
 
 
 def AllExactCovers(M):

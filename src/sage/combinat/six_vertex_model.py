@@ -162,7 +162,6 @@ class SixVertexConfiguration(ClonableArray):
             Arrow from (2.0,1.0) to (1.0,1.0)
         """
         from sage.plot.graphics import Graphics
-        from sage.plot.circle import circle
         from sage.plot.arrow import arrow
 
         if color == 4:

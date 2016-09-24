@@ -1313,7 +1313,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def _bnfisnorm(self, K, proof=True, extra_primes=0):
         r"""
-        This gives the output of the PARI function :pari:`bnfisnorm`.
+        This gives the output of the PARI function :pari:`bnfisnorm <B>`.
 
         Tries to tell whether the rational number ``self`` is the norm of some
         element `y` in ``K``. Returns a pair `(a, b)` where

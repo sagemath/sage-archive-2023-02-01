@@ -4650,6 +4650,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         A list of matrices forming a basis for the space of all
         Lyapunov-like transformations on this cone.
 
+        .. SEEALSO::
+
+            :meth:`cross_positive_operator_gens`,
+            :meth:`positive_operator_gens`,
+            :meth:`Z_operator_gens`
+
         REFERENCES:
 
         M. Orlitzky. The Lyapunov rank of an improper cone.

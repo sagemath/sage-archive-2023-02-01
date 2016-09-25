@@ -48,7 +48,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         r"""
         Return a (cached) instance with canonical parameters.
 
-        .. NOTE:
+        .. NOTE::
 
             For each choice of group and precision the constructor is
             cached (only) once. Further calculations with different
@@ -187,7 +187,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         This is the main function used to determine all Fourier expansions!
 
-        .. NOTE:
+        .. NOTE::
 
         The Fourier expansion of ``J_inv`` for ``d!=1``
         is given by ``J_inv_ZZ(q/d)``.
@@ -251,7 +251,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``f_rho``,
         where the parameter ``d`` is replaced by ``1``.
 
-        .. NOTE:
+        .. NOTE::
 
         The Fourier expansion of ``f_rho`` for ``d!=1``
         is given by ``f_rho_ZZ(q/d)``.
@@ -285,7 +285,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``f_i``,
         where the parameter ``d`` is replaced by ``1``.
 
-        .. NOTE:
+        .. NOTE::
 
         The Fourier expansion of ``f_i`` for ``d!=1``
         is given by ``f_i_ZZ(q/d)``.
@@ -319,7 +319,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``f_inf``,
         where the parameter ``d`` is replaced by ``1``.
 
-        .. NOTE:
+        .. NOTE::
 
         The Fourier expansion of ``f_inf`` for ``d!=1``
         is given by ``d*f_inf_ZZ(q/d)``.
@@ -353,7 +353,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``G_inv``,
         where the parameter ``d`` is replaced by ``1``.
 
-        .. NOTE:
+        .. NOTE::
 
         The Fourier expansion of ``G_inv`` for ``d!=1``
         is given by ``d*G_inv_ZZ(q/d)``.
@@ -390,7 +390,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``E_4``,
         where the parameter ``d`` is replaced by ``1``.
 
-        .. NOTE:
+        .. NOTE::
 
         The Fourier expansion of ``E4`` for ``d!=1``
         is given by ``E4_ZZ(q/d)``.
@@ -419,7 +419,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``E_6``,
         where the parameter ``d`` is replaced by ``1``.
 
-        .. NOTE:
+        .. NOTE::
 
         The Fourier expansion of ``E6`` for ``d!=1``
         is given by ``E6_ZZ(q/d)``.
@@ -448,7 +448,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``Delta``,
         where the parameter ``d`` is replaced by ``1``.
 
-        .. NOTE:
+        .. NOTE::
 
         The Fourier expansion of ``Delta`` for ``d!=1``
         is given by ``d*Delta_ZZ(q/d)``.
@@ -475,7 +475,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``E2``,
         where the parameter ``d`` is replaced by ``1``.
 
-        .. NOTE:
+        .. NOTE::
 
         The Fourier expansion of ``E2`` for ``d!=1``
         is given by ``E2_ZZ(q/d)``.
@@ -506,7 +506,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         Only arithmetic groups with ``n < infinity`` are supported!
 
-        .. NOTE:
+        .. NOTE::
 
         THe Fourier expansion of the series is given by ``EisensteinSeries_ZZ(q/d)``.
 

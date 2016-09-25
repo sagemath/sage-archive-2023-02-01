@@ -920,7 +920,7 @@ def WittDesign(n):
     `W_{12}`, the unique (up to isomorphism) `5-(12,6,1)` design.  The other
     values of `n` return a block design derived from these.
 
-    .. NOTE:
+    .. NOTE::
 
         Requires GAP's Design package (included in the gap_packages Sage spkg).
 

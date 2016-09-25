@@ -5016,7 +5016,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         curve, where the vertices are isogenous curves over
         `\QQ` and the edges are prime degree isogenies.
 
-        .. note:
+        .. note::
 
             The vertices are labeled 1 to n rather than 0 to n-1 to
             correspond to LMFDB and Cremona labels.

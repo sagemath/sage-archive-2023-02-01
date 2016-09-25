@@ -3078,7 +3078,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         It is possible to act on points of ``HyperbolicPlane()``.
 
-        .. NOTE:
+        .. NOTE::
 
         There is a 1-1 correspondence between hyperbolic
         fixed points and the corresponding primitive element

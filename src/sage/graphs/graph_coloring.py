@@ -585,7 +585,7 @@ def grundy_coloring(g, k, value_only = True, solver = None, verbose = 0):
     colored with `j`. This can define a Linear Program, which is used
     here to compute the Grundy number of a graph.
 
-    .. NOTE:
+    .. NOTE::
 
        This method computes a grundy coloring using at *MOST* `k`
        colors. If this method returns a value equal to `k`, it can not

@@ -176,7 +176,7 @@ def Psi(l, use_stored=True):
     - ``use_stored`` (boolean, default True) -- If True, use
       precomputed values, otherwise compute them on the fly.
 
-    .. note:
+    .. note::
 
        This computation takes a negligible time for `l=2,3,5,7`
        but more than 100s for `l=13`.  The reason

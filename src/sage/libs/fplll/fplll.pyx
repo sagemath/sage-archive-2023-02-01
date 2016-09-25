@@ -100,7 +100,7 @@ cdef class FP_LLL:
     A basic wrapper class to support conversion to/from Sage integer matrices
     and executing LLL/BKZ computations.
 
-    .. note:
+    .. note::
 
       Usually you don't want to create this object yourself but use the LLL
       method of the integer matrices/lattices.

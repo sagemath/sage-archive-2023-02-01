@@ -237,7 +237,7 @@ def find_objects_from_name(name, module_name=None):
         sage: dt.find_objects_from_name is dt.find_objects_from_name
         True
 
-    .. NOTE:
+    .. NOTE::
 
         It might be a good idea to move this function into
         :mod:`sage.misc.sageinspect`.

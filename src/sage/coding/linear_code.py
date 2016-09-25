@@ -4289,7 +4289,7 @@ class LinearCodeSyndromeDecoder(Decoder):
     the covering radius of the code, this decoder is complete, i.e. it decodes
     every vector in the ambient space.
 
-    .. NOTE:
+    .. NOTE::
 
     Constructing the lookup table takes time exponential in the length of the
     code and the size of the code's base field. Afterwards, the individual

@@ -205,7 +205,7 @@ cdef class Dist(ModuleElement):
         r"""
         Return power of `p` by which the moments are shifted.
 
-        .. NOTE:
+        .. NOTE::
 
             This is not necessarily the same as the valuation,
             since the moments could all be divisible by `p`.

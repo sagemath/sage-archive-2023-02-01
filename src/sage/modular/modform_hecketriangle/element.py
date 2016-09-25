@@ -121,7 +121,7 @@ class FormsElement(FormsRingElement):
         Return the coordinate vector of ``self`` with
         respect to ``self.parent().gens()``.
 
-        .. NOTE:
+        .. NOTE::
 
         This uses the corresponding function of the
         parent. If the parent has not defined a coordinate

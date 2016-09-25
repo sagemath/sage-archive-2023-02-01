@@ -25,9 +25,10 @@ def threejs(plot):
     b = plot.bounding_box()
     bounds = "[{{x:{},y:{},z:{}}},{{x:{},y:{},z:{}}}]".format(
              b[0][0],b[0][1],b[0][2],b[1][0],b[1][1],b[1][2])
-    
 
-    html = threejs_template().format(bounds, data)
+    lights = "[{x:0,y:0,z:10},{x:0,y:0,z:-10}]"
+
+    html = threejs_template().format(bounds, lights, data)
 
     from sage.misc.temporary_file import tmp_filename
     temp_filename = tmp_filename(ext='.html')
@@ -87,6 +88,15 @@ def threejs_template():
     camera.position.set( 1.5*bounds[1].x, 1.5*bounds[1].y, 1.5*bounds[1].z ); 
     var controls = new THREE.OrbitControls( camera, renderer.domElement );
 
+    var lights = {};
+    for ( var i=0 ; i < lights.length ; i++ ) {{
+        var light = new THREE.DirectionalLight( 0xdddddd, 1 );
+        light.position.set( lights[i].x, lights[i].y, lights[i].z );
+        scene.add( light );
+    }}
+
+    scene.add( new THREE.AmbientLight( 0x404040, 1 ) );
+
     window.addEventListener( 'resize', function() {{
         
         renderer.setSize( window.innerWidth, window.innerHeight );
@@ -120,7 +130,9 @@ def threejs_template():
                 geometry.faces.push( new THREE.Face3( f[0], f[j+1], f[j+2] ) );
             }}
         }}
-        var material = new THREE.MeshBasicMaterial( {{ color: json.color , side: THREE.DoubleSide }} );
+        geometry.computeVertexNormals();
+        var material = new THREE.MeshPhongMaterial( {{ color: json.color , side: THREE.DoubleSide,
+                                                       shininess: 20}} );
         scene.add( new THREE.Mesh( geometry, material ) );
     }}
 

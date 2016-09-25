@@ -4557,7 +4557,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         A tuple of pairs `(x,s)` such that,
 
           * `x` and `s` are nonzero.
-          * `x` and `s` are orthogonal.
+          * `s(x)` is zero.
           * `x` is one of this cone's :meth:`~IntegralRayCollection.rays`.
           * `s` is one of the :meth:`~IntegralRayCollection.rays` of this
             cone's :meth:`dual`.
@@ -4626,14 +4626,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=6)
             sage: dcs = K.discrete_complementarity_set()
-            sage: sum([ x.inner_product(s).abs() for (x,s) in dcs ])
+            sage: sum([ (s*x).abs() for (x,s) in dcs ])
             0
         """
         # Return an immutable tuple instead of a mutable list because
         # the result will be cached.
         return tuple( (x,s) for x in self
                             for s in self.dual()
-                            if x.inner_product(s) == 0 )
+                            if s*x == 0 )
 
     def lyapunov_like_basis(self):
         r"""
@@ -4736,8 +4736,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K = random_cone(max_ambient_dim=8)
             sage: dcs = K.discrete_complementarity_set()
             sage: LL = K.lyapunov_like_basis()
-            sage: ips = [ (L*x).inner_product(s) for (x,s) in dcs
-            ....:                                for L     in LL ]
+            sage: ips = [ s*(L*x) for (x,s) in dcs for L in LL ]
             sage: sum(map(abs, ips))
             0
 

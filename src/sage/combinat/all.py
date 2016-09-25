@@ -196,3 +196,6 @@ lazy_import("sage.combinat.cluster_complex", "ClusterComplex")
 
 # Constellations
 lazy_import('sage.combinat.constellation', ['Constellation', 'Constellations'])
+
+# Growth diagrams
+lazy_import('sage.combinat.growth', ['GrowthDiagram', 'GrowthDiagramRSK', 'GrowthDiagramBinWord'])

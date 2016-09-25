@@ -363,6 +363,27 @@ class DevelopingValuation(DiscreteValuation):
             sage: v.residue_field()
             Univariate Quotient Polynomial Ring in u2 over Univariate Quotient Polynomial Ring in u1 over Finite Field in u0 of size 2^2 with modulus u1^2 + u1 + u0 with modulus u2^2 + u1*u2 + u1
 
+        TESTS:
+
+        Make sure that we do not make the assumption that the degrees of the
+        key polynomials are strictly increasing::
+            
+            sage: v_K = pAdicValuation(QQ,3)
+            sage: A.<t> = QQ[]
+            sage: v0 = GaussValuation(A,v_K)
+            sage: f2 = 9*t+30*t^3+27*t^6+15*t^8
+            sage: f3 = 3+30*t^2+18*t^3+198*t^5+180*t^7+189*t^8+342*t^10+145*t^12
+            sage: F = f2*f3
+
+            sage: v1 = v0.extension(t,1/12)
+            sage: v2 = v1.extension(t^12+3,7/6)
+            sage: v3 = v2.extension(t^12+3*t^2+3,9/4)
+            sage: v4 = v1.extension(t^12+3*t^2+3,9/4)
+            sage: v3 == v4 # rather: check for equivalence
+            True
+            sage: v4.equivalence_decomposition(F)
+            sage: v3.equivalence_decomposition(F)
+
         .. SEEALSO::
 
             :class:`AugmentedValuation`
@@ -485,6 +506,9 @@ class DevelopingValuation(DiscreteValuation):
             sage: v2.is_minimal(f)
             False
 
+        TODO: Add examples for polynomials which have the same degree as the
+        key polynomial (See Stefan's mail Sep 8 2016).
+
         """
         if f.parent() is not self.domain():
             raise ValueError("f must be in the domain of the valuation")
@@ -500,7 +524,11 @@ class DevelopingValuation(DiscreteValuation):
             from gauss_valuation import GaussValuation
             if isinstance(self,GaussValuation):
                 return f.is_monic() and self.reduce(f).is_irreducible()
-            return list(self.valuations(f))[-1] == self(f) and list(self.coefficients(f))[-1].is_constant() and list(self.valuations(f))[0] == self(f) and self.tau().divides(len(list(self.coefficients(f)))-1)
+            if self.is_equivalent(self.phi(), f):
+                # TODO: reference new Lemma
+                return f.degree() == self.phi().degree()
+            else:
+                return list(self.valuations(f))[-1] == self(f) and list(self.coefficients(f))[-1].is_constant() and list(self.valuations(f))[0] == self(f) and self.tau().divides(len(list(self.coefficients(f)))-1)
 
         raise NotImplementedError("is_minimal() only implemented for commensurable inductive values")
 

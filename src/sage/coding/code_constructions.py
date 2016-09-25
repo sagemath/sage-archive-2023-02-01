@@ -507,15 +507,18 @@ def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
         sage: P.<x> = PolynomialRing(GF(3),"x")
         sage: g = x-1
         sage: C = codes.CyclicCodeFromGeneratingPolynomial(4,g); C
-        Linear code of length 4, dimension 3 over Finite Field of size 3
+        doctest:...
+        DeprecationWarning: codes.CyclicCodeFromGeneratingPolynomial is now deprecated. Please use codes.CyclicCode instead.
+        See http://trac.sagemath.org/20100 for details.
+        [4, 3] Cyclic Code over Finite Field of size 3 with x + 2 as generator polynomial
         sage: P.<x> = PolynomialRing(GF(4,"a"),"x")
         sage: g = x^3+1
         sage: C = codes.CyclicCodeFromGeneratingPolynomial(9,g); C
-        Linear code of length 9, dimension 6 over Finite Field in a of size 2^2
+        [9, 6] Cyclic Code over Finite Field in a of size 2^2 with x^3 + 1 as generator polynomial
         sage: P.<x> = PolynomialRing(GF(2),"x")
         sage: g = x^3+x+1
         sage: C = codes.CyclicCodeFromGeneratingPolynomial(7,g); C
-        Linear code of length 7, dimension 4 over Finite Field of size 2
+        [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
         sage: C.generator_matrix()
         [1 1 0 1 0 0 0]
         [0 1 1 0 1 0 0]
@@ -523,11 +526,9 @@ def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
         [0 0 0 1 1 0 1]
         sage: g = x+1
         sage: C = codes.CyclicCodeFromGeneratingPolynomial(4,g); C
-        Linear code of length 4, dimension 3 over Finite Field of size 2
-        sage: C.generator_matrix()
-        [1 1 0 0]
-        [0 1 1 0]
-        [0 0 1 1]
+        Traceback (most recent call last):
+        ...
+        ValueError: Only cyclic codes whose length and field order are coprimes are implemented.
     """
     from sage.misc.superseded import deprecation
     from sage.coding.cyclic_code import CyclicCode
@@ -549,9 +550,12 @@ def CyclicCodeFromCheckPolynomial(n,h,ignore=True):
 
         sage: P.<x> = PolynomialRing(GF(3),"x")
         sage: C = codes.CyclicCodeFromCheckPolynomial(4,x + 1); C
-        Linear code of length 4, dimension 1 over Finite Field of size 3
+        doctest:...
+        DeprecationWarning: codes.CyclicCodeFromCheckPolynomial is now deprecated. Please use codes.CyclicCode instead.
+        See http://trac.sagemath.org/20100 for details.
+        [4, 1] Cyclic Code over Finite Field of size 3 with x^3 + 2*x^2 + x + 2 as generator polynomial
         sage: C = codes.CyclicCodeFromCheckPolynomial(4,x^3 + x^2 + x + 1); C
-        Linear code of length 4, dimension 3 over Finite Field of size 3
+        [4, 3] Cyclic Code over Finite Field of size 3 with x + 2 as generator polynomial
         sage: C.generator_matrix()
         [2 1 0 0]
         [0 2 1 0]

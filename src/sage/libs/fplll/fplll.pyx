@@ -102,8 +102,8 @@ cdef class FP_LLL:
 
     .. note::
 
-      Usually you don't want to create this object yourself but use the LLL
-      method of the integer matrices/lattices.
+        Usually you don't want to create this object yourself but use the LLL
+        method of the integer matrices/lattices.
 
     """
 

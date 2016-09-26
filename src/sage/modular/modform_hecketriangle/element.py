@@ -123,11 +123,11 @@ class FormsElement(FormsRingElement):
 
         .. NOTE::
 
-        This uses the corresponding function of the
-        parent. If the parent has not defined a coordinate
-        vector function or a module for coordinate vectors
-        then an exception is raised by the parent
-        (default implementation).
+            This uses the corresponding function of the
+            parent. If the parent has not defined a coordinate
+            vector function or a module for coordinate vectors
+            then an exception is raised by the parent
+            (default implementation).
 
         EXAMPLES::
 

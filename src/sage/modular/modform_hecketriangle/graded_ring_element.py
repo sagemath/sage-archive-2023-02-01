@@ -80,8 +80,8 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         .. NOTE::
 
-        If ``n=Infinity`` then the variable ``x`` refers to ``E4`` instead
-        of ``f_rho=1``.
+            If ``n=Infinity`` then the variable ``x`` refers to ``E4`` instead
+            of ``f_rho=1``.
 
         INPUT:
 
@@ -1271,9 +1271,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         .. NOTE::
 
-        For quasi forms one cannot deduce the analytic type from
-        this order at ``infinity`` since the analytic order is defined by the
-        behavior on each quasi part and not by their linear combination.
+            For quasi forms one cannot deduce the analytic type from
+            this order at ``infinity`` since the analytic order is defined by the
+            behavior on each quasi part and not by their linear combination.
 
         EXAMPLES::
 

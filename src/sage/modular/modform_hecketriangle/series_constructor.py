@@ -189,8 +189,8 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         .. NOTE::
 
-        The Fourier expansion of ``J_inv`` for ``d!=1``
-        is given by ``J_inv_ZZ(q/d)``.
+            The Fourier expansion of ``J_inv`` for ``d!=1``
+            is given by ``J_inv_ZZ(q/d)``.
 
         .. TODO:
 
@@ -253,8 +253,8 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         .. NOTE::
 
-        The Fourier expansion of ``f_rho`` for ``d!=1``
-        is given by ``f_rho_ZZ(q/d)``.
+            The Fourier expansion of ``f_rho`` for ``d!=1``
+            is given by ``f_rho_ZZ(q/d)``.
 
         EXAMPLES::
 
@@ -287,8 +287,8 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         .. NOTE::
 
-        The Fourier expansion of ``f_i`` for ``d!=1``
-        is given by ``f_i_ZZ(q/d)``.
+            The Fourier expansion of ``f_i`` for ``d!=1``
+            is given by ``f_i_ZZ(q/d)``.
 
         EXAMPLES::
 
@@ -321,8 +321,8 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         .. NOTE::
 
-        The Fourier expansion of ``f_inf`` for ``d!=1``
-        is given by ``d*f_inf_ZZ(q/d)``.
+            The Fourier expansion of ``f_inf`` for ``d!=1``
+            is given by ``d*f_inf_ZZ(q/d)``.
 
         EXAMPLES::
 
@@ -355,8 +355,8 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         .. NOTE::
 
-        The Fourier expansion of ``G_inv`` for ``d!=1``
-        is given by ``d*G_inv_ZZ(q/d)``.
+            The Fourier expansion of ``G_inv`` for ``d!=1``
+            is given by ``d*G_inv_ZZ(q/d)``.
 
         EXAMPLES::
 
@@ -392,8 +392,8 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         .. NOTE::
 
-        The Fourier expansion of ``E4`` for ``d!=1``
-        is given by ``E4_ZZ(q/d)``.
+            The Fourier expansion of ``E4`` for ``d!=1``
+            is given by ``E4_ZZ(q/d)``.
 
         EXAMPLES::
 
@@ -421,8 +421,8 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         .. NOTE::
 
-        The Fourier expansion of ``E6`` for ``d!=1``
-        is given by ``E6_ZZ(q/d)``.
+            The Fourier expansion of ``E6`` for ``d!=1``
+            is given by ``E6_ZZ(q/d)``.
 
         EXAMPLES::
 
@@ -450,8 +450,8 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         .. NOTE::
 
-        The Fourier expansion of ``Delta`` for ``d!=1``
-        is given by ``d*Delta_ZZ(q/d)``.
+            The Fourier expansion of ``Delta`` for ``d!=1``
+            is given by ``d*Delta_ZZ(q/d)``.
 
         EXAMPLES::
 
@@ -477,8 +477,8 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         .. NOTE::
 
-        The Fourier expansion of ``E2`` for ``d!=1``
-        is given by ``E2_ZZ(q/d)``.
+            The Fourier expansion of ``E2`` for ``d!=1``
+            is given by ``E2_ZZ(q/d)``.
 
         EXAMPLES::
 
@@ -508,7 +508,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         .. NOTE::
 
-        THe Fourier expansion of the series is given by ``EisensteinSeries_ZZ(q/d)``.
+            THe Fourier expansion of the series is given by ``EisensteinSeries_ZZ(q/d)``.
 
         INPUT:
 

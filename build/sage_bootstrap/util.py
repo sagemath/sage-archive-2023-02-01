@@ -17,23 +17,27 @@ def is_url(url):
     )
 
 
-def retry(func, exc=Exception, retries=2, delay=1):
+def retry(func, exc=Exception, tries=3, delay=1):
     """
-    Call ``func()``, and if an exception is raised retry it up to ``retries``
-    times, with a ``delay`` in seconds between each retry.
-
-    To be clear, the function is called up to ``retries + 1`` times.
+    Call ``func()`` up to ``tries`` times, exiting only if the function
+    returns without an exception.  If the function raises an exception on
+    the final try that exception is raised.
 
     If given, ``exc`` can be either an `Exception` or a tuple of `Exception`s
     in which only those exceptions result in a retry, and all other exceptions
-    are raised.
+    are raised.  ``delay`` is the time in seconds between each retry, and
+    doubles after each retry.
     """
 
-    while retries >= 0:
+    while tries > 0:
         try:
             func()
         except exc:
-            retries -= 1
+            tries -= 1
+            if tries == 0:
+                raise
+
             time.sleep(delay)
+            delay *= 2
         else:
             break

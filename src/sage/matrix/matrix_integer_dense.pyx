@@ -1195,18 +1195,15 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         -  ``algorithm`` - 'generic' (default), 'flint' or 'linbox'
 
-
-        .. note::
-
-           Linbox charpoly disabled on 64-bit machines, since it hangs
-           in many cases.
-
         EXAMPLES::
 
             sage: A = matrix(ZZ,6, range(36))
             sage: f = A.charpoly(); f
             x^6 - 105*x^5 - 630*x^4
             sage: f(A) == 0
+            True
+            sage: g = A.charpoly(algorithm='flint')
+            sage: f == g
             True
             sage: n=20; A = Mat(ZZ,n)(range(n^2))
             sage: A.charpoly()
@@ -1244,7 +1241,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             return g.change_variable_name(var)
 
         if algorithm == 'flint' or (algorithm == 'linbox' and not USE_LINBOX_POLY):
-            g = PolynomialRing(ZZ,names = var).gen()
+            g = (<Polynomial_integer_dense_flint>(PolynomialRing(ZZ,names = var).gen()))._new()
             sig_on()
             fmpz_mat_charpoly(g.__poly,self._matrix)
             sig_off()

@@ -787,7 +787,7 @@ class R(ExtraTabCompletion, Expect):
 
             .. note::
 
-            This is similar to typing r.command?.
+                This is similar to typing r.command?.
         """
         s = self.eval('help("%s")'%command).strip()     # ?cmd is only an unsafe shortcut
         import sage.plot.plot

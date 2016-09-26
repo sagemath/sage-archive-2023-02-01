@@ -510,7 +510,7 @@ cdef class Map(Element):
 
         .. NOTE::
 
-        By default, the empty string is returned. Subclasses may overload this method.
+            By default, the empty string is returned. Subclasses may overload this method.
 
         EXAMPLE::
 

@@ -21,8 +21,8 @@ def threejs(plot):
     data = plot.json_repr(plot.default_render_params())
     if len(data) == 0:
         raise ValueError('no json_repr for this plot')
-    from sage.misc.flatten import flatten
-    data = flatten(data)
+    from sage.plot.plot3d.base import flatten_list
+    data = flatten_list(data)
 
     b = plot.bounding_box()
     bounds = "[{{x:{},y:{},z:{}}},{{x:{},y:{},z:{}}}]".format(

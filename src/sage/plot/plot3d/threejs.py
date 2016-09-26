@@ -29,13 +29,13 @@ def threejs(plot):
         plot += Graphics3d()
     for p in plot.all:
         if hasattr(p, 'points'):
-            color = p._extra_kwds.get('color', 'black')
-            lines.append("{{points:{},color:'{}'}}".format(json.dumps(p.points), color))
+            color = p._extra_kwds.get('color', 'blue')
+            lines.append("{{points:{}, color:'{}'}}".format(json.dumps(p.points), color))
         if hasattr(p, 'loc'):
-            color = p._extra_kwds.get('color', 'black')
-            points.append("{{point:{},color:'{}'}}".format(json.dumps(p.loc), color))
+            color = p._extra_kwds.get('color', 'blue')
+            points.append("{{point:{}, size:{}, color:'{}'}}".format(json.dumps(p.loc), p.size, color))
 
-    if len(geometries) == 0 and len(lines) == 0:
+    if len(geometries) == 0 and len(lines) == 0 and len(points) == 0:
         raise ValueError('no data for this plot')
 
     b = plot.bounding_box()
@@ -44,7 +44,7 @@ def threejs(plot):
 
     lights = "[{x:0,y:0,z:10},{x:0,y:0,z:-10}]"
 
-    html = threejs_template().format(bounds, lights, geometries, lines)
+    html = threejs_template().format(bounds, lights, geometries, lines, points)
 
     from sage.misc.temporary_file import tmp_filename
     temp_filename = tmp_filename(ext='.html')
@@ -163,6 +163,30 @@ def threejs_template():
         }}
         var material = new THREE.LineBasicMaterial( {{ color: json.color }} );
         scene.add( new THREE.LineSegments( geometry, material ) );
+    }}
+
+    var points = {};
+    for ( var i=0 ; i < points.length ; i++ ) {{
+        eval( 'var json = ' + points[i] );
+        addPoints( json );
+    }}
+
+    function addPoints( json ) {{
+        var geometry = new THREE.Geometry();
+        var v = json.point;
+        geometry.vertices.push( new THREE.Vector3( v[0], v[1], v[2] ) );
+        var canvas = document.createElement( 'canvas' );
+        canvas.width = 128;
+        canvas.height = 128;
+        var context = canvas.getContext( '2d' );
+        context.arc( 64, 64, 64, 0, 2 * Math.PI );
+        context.fillStyle = json.color;
+        context.fill();
+        var texture = new THREE.Texture( canvas );
+        texture.needsUpdate = true;
+        var material = new THREE.PointsMaterial( {{ size: json.size/100, map: texture,
+                                                    transparent: true, alphaTest: .1 }} );
+        scene.add( new THREE.Points( geometry, material ) );
     }}
 
     function render() {{

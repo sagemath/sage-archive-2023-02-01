@@ -560,7 +560,7 @@ class FriCAS(ExtraTabCompletion, Expect):
         """Return the value of a FriCAS string as a string, without checking
         that it is a string.
 
-        TESTS::
+        TESTS:
 
         We test that strings are returned properly::
 
@@ -606,7 +606,7 @@ class FriCAS(ExtraTabCompletion, Expect):
     def get_unparsed_InputForm(self, var):
         """Return the unparsed InputForm as a string.
 
-        TODO::
+        .. TODO::
 
             - catch errors, especially when InputForm is not available:
 
@@ -616,7 +616,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
             - should we provide workarounds, too?
 
-        TESTS:
+        TESTS::
 
             sage: fricas.get_unparsed_InputForm('1..3')                         # optional - fricas
             '1..3$Segment(Integer())'

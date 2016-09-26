@@ -78,6 +78,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.maximal_sublattices` | Return maximal sublattices of the lattice.
     :meth:`~FiniteLatticePoset.frattini_sublattice` | Return the intersection of maximal sublattices of the lattice.
     :meth:`~FiniteLatticePoset.vertical_decomposition` | Return the vertical decomposition of the lattice.
+    :meth:`~FiniteLatticePoset.canonical_joinands` | Return the canonical joinands of an element.
 
 **Miscellaneous**
 
@@ -2267,6 +2268,65 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if not certificate:
             return True
         return (True, [self[e] for e in cert])
+
+    def canonical_joinands(self, e):
+        r"""
+        Return the canonical joinands of `e`.
+
+        The canonical joinands of an element `e` in the lattice `L` is the
+        subset `S \subseteq L` such that 1) the join of `S` is `e`, and
+        2) if the join of some other subset `S'` of is also `e`, then for
+        every element `s \in S` there is an element `s' \in S'` such that
+        `s \le s'`.
+
+        Informally said this is the set of lowest possible elements
+        with given join. It exists for every element if and only if
+        the lattice is join-semidistributive. Canonical joinands are
+        always join-irreducibles.
+
+        INPUT:
+
+        - ``e`` -- an element of the lattice
+
+        OUTPUT:
+
+        - canonical joinands as a list, if it exists; if not, ``None``
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5], 3: [5], 4: [6],
+            ....:                   5: [7], 6: [7]})
+            sage: L.canonical_joinands(7)
+            [3, 4]
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5], 3: [6], 4: [6],
+            ....: 5: [6]})
+            sage: L.canonical_joinands(6) is None
+            True
+
+        TESTS::
+
+            LatticePoset({1: []}).canonical_joinands(1)
+            [1]
+        """
+        # Algorithm: Make dual of interval from the bottom element to e.
+        # Now compute kappa function for every atom of that lattice, i.e.
+        # kind of "restricted" dual kappa for elements covered by e.
+        # This is done implicitly here.
+        H = self._hasse_diagram
+        e = self._element_to_vertex(e)
+        joinands = []
+        for a in H.neighbors_in(e):
+            below_a = list(H.depth_first_search(a, neighbors=H.neighbors_in))
+            go_down = lambda v: [v_ for v_ in H.neighbors_in(v) if v_ not in below_a]
+            result = None
+            for v in H.depth_first_search(e, neighbors=go_down):
+                if H.in_degree(v) == 1 and H.neighbor_in_iterator(v).next() in below_a:
+                    if result is not None:
+                        return None
+                    result = v
+            joinands.append(result)
+        return [self._vertex_to_element(v) for v in joinands]
 
 def _log_2(n):
     """

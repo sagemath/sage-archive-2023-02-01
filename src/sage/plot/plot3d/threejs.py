@@ -18,11 +18,25 @@ def threejs(plot):
     if not isinstance(plot, Graphics3d):
         raise TypeError('input plot must be an instance of Graphics3d')
 
-    data = plot.json_repr(plot.default_render_params())
-    if len(data) == 0:
-        raise ValueError('no json_repr for this plot')
     from sage.plot.plot3d.base import flatten_list
-    data = flatten_list(data)
+
+    geometries = plot.json_repr(plot.default_render_params())
+    geometries = flatten_list(geometries)
+
+    import json
+    lines, points = [], []
+    if not hasattr(plot, 'all'):
+        plot += Graphics3d()
+    for p in plot.all:
+        if hasattr(p, 'points'):
+            color = p._extra_kwds.get('color', 'black')
+            lines.append("{{points:{},color:'{}'}}".format(json.dumps(p.points), color))
+        if hasattr(p, 'loc'):
+            color = p._extra_kwds.get('color', 'black')
+            points.append("{{point:{},color:'{}'}}".format(json.dumps(p.loc), color))
+
+    if len(geometries) == 0 and len(lines) == 0:
+        raise ValueError('no data for this plot')
 
     b = plot.bounding_box()
     bounds = "[{{x:{},y:{},z:{}}},{{x:{},y:{},z:{}}}]".format(
@@ -30,7 +44,7 @@ def threejs(plot):
 
     lights = "[{x:0,y:0,z:10},{x:0,y:0,z:-10}]"
 
-    html = threejs_template().format(bounds, lights, data)
+    html = threejs_template().format(bounds, lights, geometries, lines)
 
     from sage.misc.temporary_file import tmp_filename
     temp_filename = tmp_filename(ext='.html')
@@ -83,7 +97,7 @@ def threejs_template():
     var boxMesh = new THREE.LineSegments( box );
     scene.add( new THREE.BoxHelper( boxMesh, 'black' ) );
 
-    scene.add( new THREE.AxisHelper( bounds[1].z ) );
+    scene.add( new THREE.AxisHelper( Math.min( [ bounds[1].x, bounds[1].y, bounds[1].z ] ) ) );
 
     var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 ); 
     camera.up.set( 0, 0, 1 );
@@ -109,9 +123,9 @@ def threejs_template():
     
     // initialize geometry and material
 
-    var data = {};
-    for ( var i=0 ; i < data.length ; i++ ) {{
-        eval( 'var json = ' + data[i] );
+    var geometries = {};
+    for ( var i=0 ; i < geometries.length ; i++ ) {{
+        eval( 'var json = ' + geometries[i] );
         addGeometry( json );
     }}
 
@@ -129,8 +143,26 @@ def threejs_template():
         }}
         geometry.computeVertexNormals();
         var material = new THREE.MeshPhongMaterial( {{ color: json.color , side: THREE.DoubleSide,
-                                                       shininess: 20}} );
+                                                       shininess: 20 }} );
         scene.add( new THREE.Mesh( geometry, material ) );
+    }}
+
+    var lines = {};
+    for ( var i=0 ; i < lines.length ; i++ ) {{
+        eval( 'var json = ' + lines[i] );
+        addLines( json );
+    }}
+
+    function addLines( json ) {{
+        var geometry = new THREE.Geometry();
+        for ( var i=0 ; i < json.points.length - 1 ; i++ ) {{
+            var v = json.points[i];
+            geometry.vertices.push( new THREE.Vector3( v[0], v[1], v[2] ) );
+            var v = json.points[i+1];
+            geometry.vertices.push( new THREE.Vector3( v[0], v[1], v[2] ) );
+        }}
+        var material = new THREE.LineBasicMaterial( {{ color: json.color }} );
+        scene.add( new THREE.LineSegments( geometry, material ) );
     }}
 
     function render() {{

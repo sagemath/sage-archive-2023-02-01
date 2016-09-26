@@ -1901,8 +1901,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         .. NOTE::
 
-        For ``n=infinity`` only the holomorphic case (``min_exp >= 0``)
-        is supported (in particular a non-negative order at ``-1`` is assumed).
+            For ``n=infinity`` only the holomorphic case (``min_exp >= 0``)
+            is supported (in particular a non-negative order at ``-1`` is assumed).
 
         INPUT:
 
@@ -2422,7 +2422,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         .. NOTE::
 
-        This method should be overloaded by subclasses.
+            This method should be overloaded by subclasses.
 
         EXAMPLES::
 

@@ -42,6 +42,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is modular.
     :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
     :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
+    :meth:`~FiniteLatticePoset.is_semidistributive` | Return ``True`` if the lattice is both join- and meet-semidistributive.
     :meth:`~FiniteLatticePoset.is_join_semidistributive` | Return ``True`` if the lattice is join-semidistributive.
     :meth:`~FiniteLatticePoset.is_meet_semidistributive` | Return ``True`` if the lattice is meet-semidistributive.
     :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if every element of the lattice can be written as a join of atoms.
@@ -728,6 +729,49 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return (self.is_graded() and
          self.rank() == len(self.join_irreducibles()) ==
          len(self.meet_irreducibles()))
+
+    def is_semidistributive(self):
+        """
+        Return ``True`` if the lattice is both join- and meet-semidistributive,
+        and ``False`` otherwise.
+
+        .. SEEALSO::
+
+            :meth:`is_join_semidistributive`, :meth:`is_meet_semidistributive`
+
+        EXAMPLES:
+
+        Tamari lattices are typical examples of semidistributive but not distributive
+        (and hence not modular) lattices::
+
+            sage: T4 = Posets.TamariLattice(4)
+            sage: T4.is_semidistributive(), T4.is_distributive()
+            (True, False)
+
+        Smallest non-selfdual example::
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5], 3: [5], 4: [6], 5: [7], 6: [7]})
+            sage: L.is_semidistributive()
+            True
+
+        The diamond is not semidistributive::
+
+            sage: L = Posets.DiamondPoset(5)
+            sage: L.is_semidistributive()
+            False
+
+        TESTS::
+
+            sage: LatticePoset().is_semidistributive()
+            True
+            sage: LatticePoset({1: []}).is_semidistributive()
+            True
+        """
+        H = self._hasse_diagram
+
+        return ( (H.in_degree_sequence().count(1) ==
+                 H.out_degree_sequence().count(1)) and
+                 self.is_meet_semidistributive() )
 
     def is_meet_semidistributive(self):
         r"""

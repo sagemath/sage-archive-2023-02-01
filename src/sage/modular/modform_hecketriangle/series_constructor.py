@@ -6,7 +6,7 @@ AUTHORS:
 - Based on the thesis of John Garrett Leo (2008)
 - Jonas Jermann (2013): initial version
 
-.. NOTE:
+.. NOTE::
 
    ``J_inv_ZZ`` is the main function used to determine all Fourier expansions.
 """

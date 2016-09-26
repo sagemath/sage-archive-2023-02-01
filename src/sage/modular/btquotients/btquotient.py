@@ -2308,7 +2308,9 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         r"""
         Return a list of  matrices representing the different embeddings.
 
-        .. NOTE: The precision is very low (currently set to 5 digits),
+        .. NOTE::
+
+           The precision is very low (currently set to 5 digits),
            since these embeddings are only used to apply a character.
 
         EXAMPLES:

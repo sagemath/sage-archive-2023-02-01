@@ -715,7 +715,9 @@ class pAdicLseries(SageObject):
           On `p`-adic analogues of the conjectures of Birch and
           Swinnerton-Dyer, Invertiones mathematicae 84, (1986), 1-48.
 
-        .. note: No check on precision is made, so this may fail for huge `D`.
+        .. note::
+
+            No check on precision is made, so this may fail for huge `D`.
 
         EXAMPLES::
 
@@ -1473,7 +1475,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
         The algorithm used here is described in bernardi-perrin-riou on page 232.
 
-        .. note: Warning. This function has not been sufficiently tested. It is very slow.
+        .. note::
+
+            Warning. This function has not been sufficiently tested. It is very slow.
 
         EXAMPLES::
 

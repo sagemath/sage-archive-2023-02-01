@@ -18,8 +18,13 @@ def threejs(plot):
     if not isinstance(plot, Graphics3d):
         raise TypeError('input plot must be an instance of Graphics3d')
 
-    from sage.plot.plot3d.base import flatten_list
+    b = plot.bounding_box()
+    bounds = "[{{x:{},y:{},z:{}}},{{x:{},y:{},z:{}}}]".format(
+             b[0][0],b[0][1],b[0][2],b[1][0],b[1][1],b[1][2])
 
+    lights = "[{x:0,y:0,z:10},{x:0,y:0,z:-10}]"
+
+    from sage.plot.plot3d.base import flatten_list
     geometries = plot.json_repr(plot.default_render_params())
     geometries = flatten_list(geometries)
 
@@ -37,12 +42,6 @@ def threejs(plot):
 
     if len(geometries) == 0 and len(lines) == 0 and len(points) == 0:
         raise ValueError('no data for this plot')
-
-    b = plot.bounding_box()
-    bounds = "[{{x:{},y:{},z:{}}},{{x:{},y:{},z:{}}}]".format(
-             b[0][0],b[0][1],b[0][2],b[1][0],b[1][1],b[1][2])
-
-    lights = "[{x:0,y:0,z:10},{x:0,y:0,z:-10}]"
 
     html = threejs_template().format(bounds, lights, geometries, lines, points)
 
@@ -85,6 +84,7 @@ def threejs_template():
     // initialize common variables
 
     var scene = new THREE.Scene();
+
     var renderer = new THREE.WebGLRenderer( {{ antialias: true }} );
     renderer.setSize( window.innerWidth, window.innerHeight );
     renderer.setClearColor( 0xffffff, 1 );
@@ -97,11 +97,18 @@ def threejs_template():
     var boxMesh = new THREE.LineSegments( box );
     scene.add( new THREE.BoxHelper( boxMesh, 'black' ) );
 
+    scene.position.set( -( bounds[0].x + bounds[1].x ) / 2,
+                        -( bounds[0].y + bounds[1].y ) / 2,
+                        -( bounds[0].z + bounds[1].z ) / 2 )
+
     scene.add( new THREE.AxisHelper( Math.min( [ bounds[1].x, bounds[1].y, bounds[1].z ] ) ) );
 
     var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 ); 
     camera.up.set( 0, 0, 1 );
-    camera.position.set( 1.5*bounds[1].x, 1.5*bounds[1].y, 1.5*bounds[1].z ); 
+    var zoomOut = bounds[1].z - bounds[0].z;
+    camera.position.set( zoomOut, 1.3*zoomOut, .7*zoomOut );
+    camera.lookAt( scene.position );
+
     var controls = new THREE.OrbitControls( camera, renderer.domElement );
 
     var lights = {};

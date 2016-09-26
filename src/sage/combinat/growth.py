@@ -34,7 +34,7 @@ def Robinson_Schensted_Knuth_forward(shape3, shape2, shape1, content):
     EXAMPLES:
 
     sage: pi = Permutation([2,3,6,1,4,5])
-    sage: G = GrowthDiagramRSK(pi.to_matrix())
+    sage: G = GrowthDiagramRSK(pi)
     sage: G._out_labels
     [[],
      [1],
@@ -496,7 +496,7 @@ class GrowthDiagram(SageObject):
         [[None, 1], [1]]
 
         sage: pi = Permutation([2,3,1,6,4,5])
-        sage: G = GrowthDiagramRSK(pi.to_matrix())
+        sage: G = GrowthDiagramRSK(pi)
         sage: list(G)
         [[0, 0, 1, 0, 0, 0],
          [1, 0, 0, 0, 0, 0],
@@ -595,13 +595,6 @@ class GrowthDiagram(SageObject):
         sage: G = GrowthDiagramRSK(filling, shape)
         sage: G._lambda, G._mu
         ([3, 2, 1, 1], [0, 0, 0, 0])
-
-        `shape` is a list:
-
-        sage: pi = Permutation([2,3,1,6,4,5])
-        sage: G = GrowthDiagramRSK(pi.to_matrix(), [len(pi)]*6)
-        sage: G._lambda, G._mu
-        ([6, 6, 6, 6, 6, 6], [0, 0, 0, 0, 0, 0])
 
         `shape` is None:
 
@@ -705,17 +698,17 @@ class GrowthDiagram(SageObject):
         TESTS:
 
         sage: pi = Permutation([1])
-        sage: G = GrowthDiagramRSK(pi.to_matrix())
+        sage: G = GrowthDiagramRSK(pi)
         sage: G._out_labels
         [[], [1], []]
 
         sage: pi = Permutation([1,2])
-        sage: G = GrowthDiagramRSK(pi.to_matrix())
+        sage: G = GrowthDiagramRSK(pi)
         sage: G._out_labels
         [[], [1], [2], [1], []]
 
         sage: pi = Permutation([2,1])
-        sage: G = GrowthDiagramRSK(pi.to_matrix())
+        sage: G = GrowthDiagramRSK(pi)
         sage: G._out_labels
         [[], [1], [1, 1], [1], []]
 
@@ -858,64 +851,189 @@ class GrowthDiagramRSK(GrowthDiagram):
                 raise ValueError("Can only determine the shape of the growth diagram if sizes of successive partitions differ.")
         return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
 
-#        Domino(shape1, shape2, shape3, content) ==
-#
-#            if not  member?(content,[0,1,2]$List(NonNegativeInteger)) then
-#                error "Domino: The content of the filling must be in {0,1,2}"
-#
-#            (content = 1) =>
-#                l1 := copy(shape1::List(Integer))
-#                if empty?(l1) then return partition([2])$Partition
-#                else
-#                    l1.1:=l1.1 + 2
-#                    return partition(l1)$Partition
-#
-#            (content = 2) =>
-#                  l1 := copy(shape1::List(Integer))
-#                  if empty?(l1) then return partition([1,1])$Partition
-#                  else if #l1=1 then
-#                      l1.1:=l1.1 + 1
-#                      return partition(append(l1, [1]))$Partition
-#                  else
-#                    l1.1:=l1.1 + 1
-#                    l1.2:=l1.2 + 1
-#                    return partition(l1)$Partition
-#
-#            (content=0 and (shape2=shape1 or shape2=shape3)) =>
-#                return union(shape1,shape3)
-#
-#            (content=0 and shape2~=shape1 and shape1=shape3) =>
-#                l1 := copy(shape1::List(Integer))
-#                l2 := shape2::List(Integer)
-#                i := 1
-#                j :=#l2
-#                while i<=j  and l1.i = l2.i repeat
-#                    i := i+1
-#                if j<i then
-#                    if l1.i=2 then return partition(append(l1, [2]))$Partition
-#                    else
-#                        l1.i     :=  l1.i + 1
-#                        l1.(i+1) := l1.(i+1) + 1
-#                        return partition(l1)$Partition
-#                else
-#                    if  l1.i=l2.i + 2 then return partition(append(l1, [2]))$Partition
-#                    else
-#                        l1.i:= l1.i + 1
-#                        l1.(i+1) := l1.(i+1) + 1
-#                        return partition(l1)$Partition
-#
-#
-#            (content=0 and shape2~=shape1 and shape1~=shape3) =>
-#                l1 := copy(shape1::List(Integer))
-#                l2 := shape2::List(Integer)
-#                l3 := copy(shape3::List(Integer))
-#                i := 1
-#                j :=#l2
-#                shape := union(union(shape2,shape1),shape3)
-#                while i<=j  and l1.i = l2.i repeat
-#                    i := i+1
-#                if  intersect(shape1,shape3) ~= shape2 then
-#                    list  := shape::List(Integer)
-#                    list.(i+1) := list.(i+1)+1
-#                    return (partition(list)$Partition)
-#                else return shape
+class GrowthDiagramDomino(GrowthDiagram):
+    """
+    EXAMPLES:
+
+    sage: G = GrowthDiagramDomino([[1]]); G
+    1
+    sage: G._out_labels
+    [[], [2], []]
+
+    sage: G = GrowthDiagramDomino([[-1]]); G
+    -1
+    sage: G._out_labels
+    [[], [1, 1], []]
+
+
+    sage: G = GrowthDiagramDomino([[0,0,0,-1],[0,0,1,0],[-1,0,0,0],[0,1,0,0]]); G
+     0  0  0 -1
+     0  0  1  0
+    -1  0  0  0
+     0  1  0  0
+    sage: G._out_labels
+    [[], [1, 1], [3, 1], [3, 3], [3, 3, 2], [2, 2, 2], [2, 2], [1, 1], []]
+
+    """
+    def __init__(self,
+                 filling = None,
+                 shape = None,
+                 labels = None):
+        if labels is not None:
+            labels = [Partition(la) for la in labels]
+        super(GrowthDiagramDomino, self).__init__(filling = filling,
+                                                  shape = shape,
+                                                  labels = labels,
+                                                  zero = Partition([]),
+                                                  forward_rule = Domino_forward,
+                                                  backward_rule = None)
+
+    def _shape_from_labels(self, labels):
+        def right_left(la, mu):
+            if la.size() < mu.size():
+                return 1
+            elif la.size() > mu.size():
+                return 0
+            else:
+                raise ValueError("Can only determine the shape of the growth diagram if sizes of successive partitions differ.")
+        return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
+
+
+def Domino_forward(shape3, shape2, shape1, content):
+    """see Thomas Lam, "Growth diagrams, domino insertion and sign-imbalance"
+    Section 3.1
+
+    INPUT:
+
+    - three partitions from a cell in a growth diagram, labelled as
+
+      shape2 shape1
+      shape3
+
+    and the content of the cell.
+
+    OUTPUT:
+
+    - the fourth partition shape4 according to
+      Domino insertion.
+
+    EXAMPLES:
+
+    sage: from sage.combinat.growth import Domino_forward
+
+    Rule 1:
+    sage: Domino_forward([], [], [], 1)
+    [2]
+
+    sage: Domino_forward([1,1], [1,1], [1,1], 1)
+    [3, 1]
+
+    Rule 2:
+    sage: Domino_forward([1,1], [1,1], [1,1], -1)
+    [2, 2]
+
+    Rule 3:
+    sage: Domino_forward([1,1], [1,1], [2,2], 0)
+    [2, 2]
+
+    Rule 4:
+    sage: Domino_forward([2,2,2], [2,2], [3,3], 0)
+    [3, 3, 2]
+
+    sage: Domino_forward([2], [], [1,1], 0)
+    [2, 2]
+
+    sage: Domino_forward([1,1], [], [2], 0)
+    [2, 2]
+
+    sage: Domino_forward([2], [], [2], 0)
+    [2, 2]
+
+    sage: Domino_forward([4], [2], [4], 0)
+    [4, 2]
+
+    sage: Domino_forward([1,1,1,1], [1,1], [1,1,1,1], 0)
+    [2, 2, 1, 1]
+    """
+    if content not in [0,1,-1]:
+        raise ValueError("Domino: The content of the filling must be in {-1,0,1}")
+
+    if content == 1:
+        if shape2 == []:
+            shape4 = [2]
+        else:
+            shape4 = [shape2[0] + 2] + shape2[1:]
+
+    elif content == -1:
+        if shape2 == []:
+            shape4 = [1,1]
+        elif len(shape2) == 1:
+            shape4 = [shape2[0] + 1] + [1]
+        else:
+            shape4 = [shape2[0] + 1, shape2[1] + 1] + shape2[2:]
+
+    elif content == 0 and (shape2 == shape1 or shape2 == shape3):
+        if len(shape1) > len(shape3):
+            shape4 = shape1
+        elif len(shape1) < len(shape3):
+            shape4 = shape3
+        else:
+            shape4 = [max(p,q) for (p,q) in zip(shape1, shape3)]
+
+    else:
+        # content == 0 and shape2 differs from shape1 and shape3 by
+        # dominos gamma1 and gamma3
+
+        # the following is certainly very slow
+        gamma3 = set(SkewPartition([shape3, shape2]).cells())
+        gamma1 = set(SkewPartition([shape1, shape2]).cells())
+
+        diff = gamma1.intersection(gamma3)
+        cell1, cell2 = gamma3
+        shape4 = copy(shape1)
+
+        if len(diff) == 0:
+            # add gamma3 to shape1
+            if len(shape4) <= cell1[0]:
+                shape4 += [1]
+            else:
+                shape4[cell1[0]] += 1
+            if len(shape4) <= cell2[0]:
+                shape4 += [1]
+            else:
+                shape4[cell2[0]] += 1
+
+        elif len(diff) == 1:
+            # diff is a single cell
+            (k,l) = diff.pop()
+            # add (k+1, l+1) to shape1
+            # either (k, l+1) or (k+1, l) must also be added
+            if shape4[k] <= l+1:
+                shape4[k] += 1
+                shape4[k+1] += 1
+            else:
+                if len(shape4) <= k+1:
+                    shape4 += [2]
+                else:
+                    shape4[k+1] += 2
+
+        # diff has size 2, that is shape1 == shape3
+
+        elif cell1[0] == cell2[0]:
+            # a horizontal domino
+            if len(shape4) <= cell1[0]+1:
+                shape4 += [2]
+            else:
+                shape4[cell1[0]+1] += 2
+        else:
+            # a vertical domino
+            # find first row shorter than cell1[1]
+            for r, p in enumerate(shape4):
+                if p <= cell1[1]:
+                    shape4[r] += 1
+                    shape4[r+1] += 1
+            else:
+                shape4[0] += 1
+                shape4[1] += 1
+
+    return shape4

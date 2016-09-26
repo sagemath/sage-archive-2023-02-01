@@ -21,6 +21,8 @@ def threejs(plot):
     data = plot.json_repr(plot.default_render_params())
     if len(data) == 0:
         raise ValueError('no json_repr for this plot')
+    from sage.misc.flatten import flatten
+    data = flatten(data)
 
     b = plot.bounding_box()
     bounds = "[{{x:{},y:{},z:{}}},{{x:{},y:{},z:{}}}]".format(
@@ -108,13 +110,8 @@ def threejs_template():
     // initialize geometry and material
 
     var data = {};
-    if ( data.length > 1 ) {{
-        for ( var i=0 ; i < data.length ; i++ ) {{
-            eval( 'var json = ' + data[i][0] );
-            addGeometry( json );
-        }}
-    }} else {{
-        eval( 'var json = ' + data[0] );
+    for ( var i=0 ; i < data.length ; i++ ) {{
+        eval( 'var json = ' + data[i] );
         addGeometry( json );
     }}
 

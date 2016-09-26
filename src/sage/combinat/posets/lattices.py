@@ -768,7 +768,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             True
         """
         H = self._hasse_diagram
-
+        # See trac #21528 for explanation.
         return ( (H.in_degree_sequence().count(1) ==
                  H.out_degree_sequence().count(1)) and
                  self.is_meet_semidistributive() )

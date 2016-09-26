@@ -2321,7 +2321,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             go_down = lambda v: [v_ for v_ in H.neighbors_in(v) if v_ not in below_a]
             result = None
             for v in H.depth_first_search(e, neighbors=go_down):
-                if H.in_degree(v) == 1 and H.neighbor_in_iterator(v).next() in below_a:
+                if H.in_degree(v) == 1 and next(H.neighbor_in_iterator(v)) in below_a:
                     if result is not None:
                         return None
                     result = v

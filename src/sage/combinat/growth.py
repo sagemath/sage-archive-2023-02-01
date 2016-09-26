@@ -476,9 +476,11 @@ class GrowthDiagram(SageObject):
             w1 = []
             w2 = []
             for ((i,j), v) in sorted(self._filling.iteritems()):
-                if v != 0:
+                if v >= 0:
                     w1.extend([i+1]*v)
                     w2.extend([j+1]*v)
+                else:
+                    raise ValueError("Can only convert fillings with nonnegative entries to words.")
             return (w1, w2)
         else:
             raise ValueError("Can only convert fillings of rectangular shapes to words.")

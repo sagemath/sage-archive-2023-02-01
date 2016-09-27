@@ -334,37 +334,35 @@ class GrowthDiagram(SageObject):
         """
         return self._in_labels
 
-    def P_symbol(self):
+    def P_chain(self):
         r"""
         Return the labels along the vertical boundary of a rectangular
-        growth diagram as a skew tableau.
+        growth diagram.
 
         EXAMPLES::
 
-            sage: G = GrowthDiagramRSK([[0,1,0], [1,0,2]])
-            sage: G.P_symbol().pp()
-            1  2  2
-            2
+            sage: G = GrowthDiagramBinWord([[0,1,0,0], [0,0,1,0], [0,0,0,1], [1,0,0,0]])
+            sage: G.P_chain()
+            [word: , word: 1, word: 11, word: 111, word: 1000]
         """
         if self.is_rectangular():
-            return SkewTableau(chain = self._out_labels[self._lambda[0]:][::-1])
+            return self._out_labels[self._lambda[0]:][::-1]
         else:
             raise ValueError("The P symbol is only defined for rectangular shapes.")
 
-    def Q_symbol(self):
+    def Q_chain(self):
         r"""
         Return the labels along the horizontal boundary of a rectangular
-        growth diagram as a skew tableau.
+        growth diagram.
 
         EXAMPLES::
 
-            sage: G = GrowthDiagramRSK([[0,1,0], [1,0,2]])
-            sage: G.Q_symbol().pp()
-            1  3  3
-            2
+            sage: G = GrowthDiagramBinWord([[0,1,0,0], [0,0,1,0], [0,0,0,1], [1,0,0,0]])
+            sage: G.Q_chain()
+            [word: , word: 1, word: 10, word: 100, word: 1000]
         """
         if self.is_rectangular():
-            return SkewTableau(chain = self._out_labels[:self._lambda[0]+1])
+            return self._out_labels[:self._lambda[0]+1]
         else:
             raise ValueError("The Q symbol is only defined for rectangular shapes.")
 
@@ -966,6 +964,33 @@ class GrowthDiagramOnPartitions(GrowthDiagram):
                 raise ValueError("Can only determine the shape of the growth diagram if sizes of successive partitions differ.")
         return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
 
+    def P_symbol(self):
+        r"""
+        Return the labels along the vertical boundary of a rectangular
+        growth diagram as a skew tableau.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramRSK([[0,1,0], [1,0,2]])
+            sage: G.P_symbol().pp()
+            1  2  2
+            2
+        """
+        return SkewTableau(chain = self.P_chain())
+
+    def Q_symbol(self):
+        r"""
+        Return the labels along the horizontal boundary of a rectangular
+        growth diagram as a skew tableau.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramRSK([[0,1,0], [1,0,2]])
+            sage: G.Q_symbol().pp()
+            1  3  3
+            2
+        """
+        return SkewTableau(chain = self.Q_chain())
 
 class GrowthDiagramRSK(GrowthDiagramOnPartitions):
     r"""

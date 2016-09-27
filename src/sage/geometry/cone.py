@@ -5414,7 +5414,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         The trivial cone, full space, and half-plane all give rise to the
         expected dimensions::
 
-            sage: n = ZZ.random_element().abs()
+            sage: n = ZZ.random_element(5)
             sage: K = Cone([[0] * n], ToricLattice(n))
             sage: K.is_trivial()
             True
@@ -5462,7 +5462,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         The trivial cone, full space, and half-plane all give rise to
         the expected linealities::
 
-            sage: n = ZZ.random_element().abs()
+            sage: n = ZZ.random_element(5)
             sage: K = Cone([[0] * n], ToricLattice(n))
             sage: K.is_trivial()
             True
@@ -5810,7 +5810,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         The trivial cone, full space, and half-plane all give rise to
         the expected dimensions::
 
-            sage: n = ZZ.random_element().abs()
+            sage: n = ZZ.random_element(5)
             sage: K = Cone([[0] * n], ToricLattice(n))
             sage: K.is_trivial()
             True

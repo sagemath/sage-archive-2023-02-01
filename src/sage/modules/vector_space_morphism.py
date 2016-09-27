@@ -385,7 +385,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
       ``images`` is a list, or tuple, of codomain elements, equal in number
       to the size of the basis of the domain.  Each basis element of the domain
       is mapped to the corresponding element of the ``images`` list, and the
-      linear transformation returned is the unique linear transfromation that
+      linear transformation returned is the unique linear transformation that
       extends this mapping.
 
     OUTPUT:

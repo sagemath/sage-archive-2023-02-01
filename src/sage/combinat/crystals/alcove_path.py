@@ -26,6 +26,7 @@ from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.sage_object import richcmp
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.graphs.all import DiGraph
@@ -40,6 +41,7 @@ from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from copy import copy
 from sage.misc.latex import latex
+
 
 class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
     r"""
@@ -1527,7 +1529,7 @@ class RootsWithHeightElement(Element):
         except (NameError, AttributeError):
             return False
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Define a total order on :class:`RootsWithHeightElement`. This defines
         the initial `\lambda`-chain.
@@ -1551,7 +1553,7 @@ class RootsWithHeightElement(Element):
         # code should still work.
         #todo: check if self and other have the same parent ?
         #assert self.parent() is other.parent(), "elements have different parents"
-        return cmp(self._cmp_v, other._cmp_v)
+        return richcmp(self._cmp_v, other._cmp_v, op)
 
 RootsWithHeight.Element = RootsWithHeightElement
 

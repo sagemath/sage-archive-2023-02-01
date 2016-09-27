@@ -22,7 +22,6 @@ Development supported by NSF award No. 0702939.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 import numpy as np
 cimport numpy as np
@@ -226,21 +225,21 @@ cdef class CCSpline:
         cdef int N, i, k
         N = len(pts)
         yvec = np.zeros(N, dtype=np.complex128)
-        for i in range(N):
+        for i in xrange(N):
             yvec[i] = 3 * (pts[(i - 1) % N] - 2*pts[i] + pts[(i + 1) % N])
         bmat = np.zeros([N, N], dtype=np.complex128)
-        for i in range(N):
+        for i in xrange(N):
             bmat[i, i] = 4
             bmat[(i - 1) % N, i] = 1
             bmat[(i + 1) % N, i] = 1
         bvec = (np.linalg.solve(bmat, yvec))
         cvec = np.zeros(N, dtype=np.complex128)
-        for i in range(N):
+        for i in xrange(N):
             cvec[i] = (pts[(i + 1) % N] - pts[i] - 1.0/3.0 *
                        bvec[(i + 1) % N] - 2./3. * bvec[i])
         dvec = np.array(pts, dtype=np.complex128)
         avec = np.zeros(N, dtype=np.complex128)
-        for i in range(N):
+        for i in xrange(N):
             avec[i] = 1.0/3.0 * (bvec[(i + 1) % N] - bvec[i])
         self.avec = avec
         self.bvec = bvec

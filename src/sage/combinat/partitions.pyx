@@ -26,8 +26,6 @@ AUTHOR:
 #*****************************************************************************
 from __future__ import print_function
 
-from six.moves import range
-
 import sys
 
 from sage.libs.gmp.types cimport mpz_t

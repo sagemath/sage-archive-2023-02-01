@@ -198,7 +198,7 @@ class WeightSpace(CombinatorialFreeModule):
         """
         Returns whether this is an extended weight lattice
 
-        .. seealso: :meth:`~sage.combinat.root_sytem.weight_lattice_realization.ParentMethods.is_extended`
+        .. seealso: :meth:`~sage.combinat.root_system.weight_lattice_realization.ParentMethods.is_extended`
 
         EXAMPLES::
 
@@ -249,7 +249,7 @@ class WeightSpace(CombinatorialFreeModule):
         also accepts ``"delta"`` as input, and returns the image of
         `\delta` of the extended weight lattice in this realization.
 
-        .. seealso: :meth:`~sage.combinat.root_sytem.weight_lattice_realization.ParentMethods.fundamental_weight`
+        .. seealso: :meth:`~sage.combinat.root_system.weight_lattice_realization.ParentMethods.fundamental_weight`
 
         EXAMPLES::
 

@@ -20,6 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from sage.monoids.string_monoid import BinaryStrings
 from sage.arith.all import is_prime, lcm, primes, random_prime
@@ -250,7 +251,7 @@ def bin_to_ascii(B):
     A = []
     # the number of 8-bit blocks
     k = n // 8
-    for i in xrange(k):
+    for i in range(k):
         # Convert from 8-bit string to ASCII integer. Then convert the
         # ASCII integer to the corresponding ASCII character.
         A.append(chr(ascii_integer(b[8*i: 8*(i+1)])))
@@ -330,17 +331,17 @@ def carmichael_lambda(n):
         sage: n = randint(1, 500)
         sage: c = carmichael_lambda(n)
         sage: def coprime(n):
-        ...       return [i for i in xrange(n) if gcd(i, n) == 1]
+        ...       return [i for i in range(n) if gcd(i, n) == 1]
         ...
         sage: def znpower(n, k):
         ...       L = coprime(n)
         ...       return map(power_mod, L, [k]*len(L), [n]*len(L))
         ...
         sage: def my_carmichael(n):
-        ...       for k in xrange(1, n):
+        ...       for k in range(1, n):
         ...           L = znpower(n, k)
         ...           ones = [1] * len(L)
-        ...           T = [L[i] == ones[i] for i in xrange(len(L))]
+        ...           T = [L[i] == ones[i] for i in range(len(L))]
         ...           if all(T):
         ...               return k
         ...
@@ -448,7 +449,7 @@ def has_blum_prime(lbound, ubound):
         sage: from sage.crypto.util import is_blum_prime
         sage: has_blum_prime(4, 100)
         True
-        sage: for n in xrange(4, 100):
+        sage: for n in range(4, 100):
         ....:     if is_blum_prime(n):
         ....:         print(n)
         ....:         break

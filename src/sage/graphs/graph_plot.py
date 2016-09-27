@@ -145,9 +145,7 @@ graphplot_options.update(
                     'edge_labels': 'Whether or not to draw edge labels.',
                     'edge_style': 'The linestyle of the edges. It should be '
                         'one of "solid", "dashed", "dotted", dashdot", or '
-                        '"-", "--", ":", "-.", respectively. '
-                        'This currently only works for directed graphs, '
-                        'since we pass off the undirected graph to networkx.',
+                        '"-", "--", ":", "-.", respectively. ',
                     'edge_thickness': 'The thickness of the edges.',
                     'edge_color': 'The default color for edges not listed in edge_colors.',
                     'edge_colors': 'a dictionary specifying edge colors: each '

@@ -1688,9 +1688,10 @@ class SkewTableaux(UniqueRepresentation, Parent):
         return self.element_class(self, skp)
 
     def from_chain(self, chain):
-        """Return the tableau corresponding to the chain of partitions.
+        """
+        Return the tableau corresponding to the chain of partitions.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: SkewTableaux().from_chain([[1,1],[2,1],[3,1],[3,2],[3,3],[3,3,1]])
             [[None, 1, 2], [None, 3, 4], [5]]

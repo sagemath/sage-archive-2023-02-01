@@ -1,10 +1,9 @@
 r"""
-Growth diagrams and dual graded graphs.
+Growth diagrams and dual graded graphs
 
 AUTHORS:
 
 - Martin Rubey (2016-09): Initial version
-
 
 .. TODO::
 
@@ -12,21 +11,149 @@ AUTHORS:
     - implement domino insertion
     - implement Young-Fibonacci
 
+Growth diagrams, invented by Sergey Fomin [Fom1995]_, provide a vast
+generalisation of the Robinson-Schensted-Knuth correspondence between
+matrices with non-negative integer entries and pairs of semistandard
+Young tableau of the same shape.
+
+The main fact is that many correspondences similar to RSK can be
+defined by providing a so-called 'forward' rule that assigns to a
+three given vertices x,y and t of a certain directed graph (in the
+case of Robinson-Schensted: the directed graph corresponding to
+Young's lattice) and an integer (in the case of Robinson-Schensted:
+zero or one) a fourth vertex z.  This rule should be invertible in
+the following sense: there is a so-called 'backward' rule that
+recovers the integer and t given z,x and y.
+
+The classical Robinson-Schensted-Knuth correspondence is provided by
+:class:`GrowthDiagramRSK`.  Note that a growth diagram is printed
+with matrix coordinates, the origin is in the top-left corner::
+
+    sage: w = [2,3,6,1,4,5]; G = GrowthDiagramRSK(w); G
+    0  0  0  1  0  0
+    1  0  0  0  0  0
+    0  1  0  0  0  0
+    0  0  0  0  1  0
+    0  0  0  0  0  1
+    0  0  1  0  0  0
+
+The 'forward' rule just mentioned assigns partitions to the corners
+of each of the 36 cells of this matrix - with the exception of the
+corners on the left and top boundary, which are initialized with the
+empty partition.  The partitions along the boundary opposite of the
+origin are obtained by using the method
+:meth:`GrowthDiagramRSK.out_labels()`::
+
+    sage: G.out_labels()
+    [[],
+     [1],
+     [2],
+     [3],
+     [3, 1],
+     [3, 2],
+     [4, 2],
+     [4, 1],
+     [3, 1],
+     [2, 1],
+     [1, 1],
+     [1],
+     []]
+
+However, in the case of a rectangular filling, it is more practical
+to split this sequence of labels in two.  We then obtain the `P` and
+`Q` symbol::
+
+    sage: [G.P_symbol(), G.Q_symbol()]
+    [[[1, 3, 4, 5], [2, 6]], [[1, 2, 3, 6], [4, 5]]]
+    sage: RSK(w)
+    [[[1, 3, 4, 5], [2, 6]], [[1, 2, 3, 6], [4, 5]]]
+
+A great advantage of growth diagrams is that we immediately have
+access also to the skew version of the RSK-correspondence, by
+providing different initialisation for the labels near the origin.
+We reproduce the original example of Bruce Sagan and Richard Stanley,
+see also Tom Roby's thesis [Rob1991]_.  We can represent the
+generalised permutation::
+
+    1 2 4
+    4 2 3
+
+as a dictionary of coordinates, subtracting one from all entries
+because lists in SageMath are zero-based::
+
+    sage: w = {(1-1,4-1):1, (2-1,2-1):1, (4-1,3-1):1}
+    sage: T = SkewTableau([[None, None],[None,5],[1]])
+    sage: U = SkewTableau([[None, None],[None,3],[5]])
+    sage: G = GrowthDiagramRSK(filling = w, shape = [5]*5, labels = T.to_chain()[::-1]+U.to_chain()[1:]); G
+    0  0  0  0  0
+    0  1  0  0  0
+    0  0  0  1  0
+    1  0  0  0  0
+    0  0  0  0  0
+    sage: G.P_symbol(), G.Q_symbol()
+    ([[None, None, 2, 3], [None, None], [None, 4], [1], [5]],
+     [[None, None, 1, 4], [None, None], [None, 2], [3], [5]])
+
+Moreover, we are not forced to use rectangular fillings.  For
+example, the Stanley-Sundaram correspondence between (skew)
+oscillating tableaux and (partial) perfect matchings.  Again, from
+Tom Roby's thesis::
+
+    sage: o = [[2,1],[2,2],[3,2],[4,2],[4,1],[4,1,1],[3,1,1],[3,1],[3,2],[3,1],[2,1]]
+    sage: l = [None]*(2*len(o)-1)
+    sage: l[::2] = [Partition(la) for la in o]
+    sage: l[1::2] = [l[2*i] if l[2*i].size() < l[2*i+2].size() else l[2*i+2] for i in range(len(o)-1)]
+    sage: G = GrowthDiagramRSK(labels=l[1:-1], shape=[i for i in range(len(o)-2,0,-1)]); G
+    0  0  0  0  0  0  0  1  0
+    0  1  0  0  0  0  0  0
+    0  0  0  0  0  0  0
+    0  0  0  0  0  0
+    0  0  1  0  0
+    0  0  0  0
+    0  0  0
+    0  0
+    0
+    sage: ascii_art(SkewTableau(chain=G.in_labels()[len(o)-2:]), SkewTableau(chain=G.in_labels()[:len(o)-1][::-1]))
+    .  1  .  7
+    5     4
+
+As mentioned at the beginning, the Robinson-Schensted-Knuth
+correspondence is just a special case of growth diagrams.  In
+particular, we have implemented local rules for the variation of RSK
+originally due to Burge (:class:`GrowthDiagramBurge`), a
+correspondence producing binary words originally due to Viennot
+(:class:`GrowthDiagramBinWord`), and a correspondence producing
+domino tableau (:class:`GrowthDiagramDomino`) originally due to
+Barbasch and Vogan.
+
 REFERENCES:
 
-.. [Fom1995] Sergey V. Fomin
+.. [Fom1995] Sergey V. Fomin.
    *Schensted algorithms for dual graded graphs*.
    Journal of Algebraic Combinatorics Volume 4, Number 1 (1995), pp. 5-45
 
-.. [Kra2006] Christian Krattenthaler
+.. [Rob1991] Tom Roby.
+   *Applications and extensions of Fomin's generalization of the Robinson-Schensted correspondence to differential posets*.
+   M.I.T., Cambridge, Massachusetts
+
+.. [Kra2006] Christian Krattenthaler.
    *Growth diagrams, and increasing and decreasing chains in fillings of Ferrers shapes*.
    Advances in Applied Mathematics Volume 37, Number 3 (2006), pp. 404-431
 
-.. [Lam2004] Thomas Lam
+.. [Lam2004] Thomas Lam.
    *Growth diagrams, domino insertion and sign-imbalance*.
    Journal of Combinatorial Theory, Series A Volume 107, Number 1 (2004), pp. 87-115
+
+.. [LamShi2007] Thomas Lam and Mark Shimozono.
+   *Dual graded graphs for Kac-Moody algebras*.
+   Algebra & Number Theory 1.4 (2007): pp. 451-488
+
+.. [HivNzeu] Florent Hivert and Janvier Nzeutchap
+   *Dual Graded Graphs in Combinatorial Hopf Algebras*.
+   https://www.lri.fr/~hivert/PAPER/commCombHopfAlg.pdf
 """
 from sage.structure.sage_object import SageObject
+from sage.misc.abstract_method import abstract_method
 from sage.combinat.words.word import Word
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.skew_partition import SkewPartition
@@ -38,7 +165,8 @@ class GrowthDiagram(SageObject):
                  filling = None,
                  shape = None,
                  labels = None):
-        r"""Initialise a generalized Schensted growth diagram in the sense of
+        r"""
+        Initialise a generalized Schensted growth diagram in the sense of
         Fomin.
 
         An instance of the class is a growth diagram consisting of a
@@ -104,8 +232,10 @@ class GrowthDiagram(SageObject):
             self._check_labels(self._in_labels)
             self._grow()
 
+    @abstract_method
     def _shape_from_labels(self, labels):
-        r"""Determine the shape of the growth diagram given a list of labels
+        r"""
+        Determine the shape of the growth diagram given a list of labels
         during initialisation.
 
         This has to be implemented in the subclass, because it
@@ -115,12 +245,12 @@ class GrowthDiagram(SageObject):
         each label differs from the size of its successor.
 
         Otherwise raise an error.
-
         """
-        raise NotImplementedError
+        pass
 
     def conjugate(self):
-        r"""Return the growth diagram with the filling reflected on the main
+        r"""
+        Return the growth diagram with the filling reflected on the main
         diagonal.
 
         When the filling is a permutation, the conjugate filling corresponds to its inverse.
@@ -136,7 +266,8 @@ class GrowthDiagram(SageObject):
         return self.parent()(filling = F)
 
     def rotate(self):
-        r"""Return the growth diagram with the filling rotated by 180 degrees.
+        r"""
+        Return the growth diagram with the filling rotated by 180 degrees.
 
         For RSK-growth diagrams and rectangular fillings, this
         corresponds to evacutation of the P- and the Q-symbol.
@@ -160,7 +291,8 @@ class GrowthDiagram(SageObject):
         return self.parent()(filling = F)
 
     def shape(self):
-        r"""Return the shape of the growth diagram as a skew partition.
+        r"""
+        Return the shape of the growth diagram as a skew partition.
 
         .. WARNING::
 
@@ -178,15 +310,33 @@ class GrowthDiagram(SageObject):
         return SkewPartition([self._lambda, self._mu])
 
     def out_labels(self):
-        r"""Return the labels along the boundary opposite of the origin."""
+        r"""
+        Return the labels along the boundary opposite of the origin.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramRSK([[0,1,0], [1,0,2]])
+            sage: G.out_labels()
+            [[], [1], [1, 1], [3, 1], [1], []]
+        """
         return self._out_labels
 
     def in_labels(self):
-        r"""Return the labels along the boundary on the side of the origin."""
+        r"""
+        Return the labels along the boundary on the side of the origin.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramRSK(labels=[[2,2],[3,2],[3,3],[3,2]]); G
+            1 0
+            sage: G.in_labels()
+            [[2, 2], [2, 2], [2, 2], [3, 2]]
+        """
         return self._in_labels
 
     def P_symbol(self):
-        r"""Return the labels along the vertical boundary of a rectangular
+        r"""
+        Return the labels along the vertical boundary of a rectangular
         growth diagram as a skew tableau.
 
         EXAMPLES::
@@ -202,7 +352,8 @@ class GrowthDiagram(SageObject):
             raise ValueError("The P symbol is only defined for rectangular shapes.")
 
     def Q_symbol(self):
-        r"""Return the labels along the horizontal boundary of a rectangular
+        r"""
+        Return the labels along the horizontal boundary of a rectangular
         growth diagram as a skew tableau.
 
         EXAMPLES::
@@ -218,7 +369,8 @@ class GrowthDiagram(SageObject):
             raise ValueError("The Q symbol is only defined for rectangular shapes.")
 
     def is_rectangular(self):
-        r"""Return ``True`` if the shape of the growth diagram is rectangular.
+        r"""
+        Return ``True`` if the shape of the growth diagram is rectangular.
 
         EXAMPLES::
 
@@ -230,7 +382,8 @@ class GrowthDiagram(SageObject):
         return all(x == 0 for x in self._mu) and all(x == self._lambda[0] for x in self._lambda)
 
     def to_word(self):
-        r"""Return the filling as a word, if the shape is rectangular and
+        r"""
+        Return the filling as a word, if the shape is rectangular and
         there is at most one nonzero entry in each column, which must
         be 1.
 
@@ -262,7 +415,8 @@ class GrowthDiagram(SageObject):
             raise ValueError("Can only convert fillings of rectangular shapes to words.")
 
     def to_biword(self):
-        r"""Return the filling as a biword, if the shape is rectangular.
+        r"""
+        Return the filling as a biword, if the shape is rectangular.
 
         EXAMPLES::
 
@@ -298,7 +452,8 @@ class GrowthDiagram(SageObject):
             raise ValueError("Can only convert fillings of rectangular shapes to words.")
 
     def __iter__(self):
-        r"""Return the rows of the filling.
+        r"""
+        Return the rows of the filling.
 
         TESTS::
 
@@ -321,7 +476,8 @@ class GrowthDiagram(SageObject):
                 for r in range(len(self._lambda)))
 
     def __repr__(self):
-        r"""Print the filling of the growth diagram as a skew tableau.
+        r"""
+        Print the filling of the growth diagram as a skew tableau.
 
         TESTS::
 
@@ -339,7 +495,8 @@ class GrowthDiagram(SageObject):
                                   for r in range(len(self._lambda))][::-1]])._repr_diagram()
 
     def _check_labels(self, labels):
-        r"""Check sanity of the parameter ``labels``.
+        r"""
+        Check sanity of the parameter ``labels``.
 
         Assumes that ``self._lambda`` is already set.
 
@@ -361,7 +518,8 @@ class GrowthDiagram(SageObject):
 
 
     def _init_labels_forward_from_various_input(self, labels):
-        r"""Return a list of labels decorating the boundary near the origin.
+        r"""
+        Return a list of labels decorating the boundary near the origin.
 
         Assumes that ``self._lambda`` is already set.
 
@@ -396,7 +554,8 @@ class GrowthDiagram(SageObject):
             return labels
 
     def _init_shape_from_various_input(self, shape):
-        r"""Return a pair of partitions describing the region of the growth
+        r"""
+        Return a pair of partitions describing the region of the growth
         diagram.
 
         Assumes that ``self._filling`` is already set.
@@ -433,7 +592,8 @@ class GrowthDiagram(SageObject):
 
 
     def _init_filling_and_shape_from_various_input(self, filling, shape):
-        r"""Return a dict ``F``, such that ``F[(i,j)]`` is the element in row ``i``
+        r"""
+        Return a dict ``F``, such that ``F[(i,j)]`` is the element in row ``i``
         and column ``j``, and a pair of partitions describing the
         region of the growth diagram.
 
@@ -529,7 +689,8 @@ class GrowthDiagram(SageObject):
         return (F, self._init_shape_from_various_input(shape))
 
     def _grow(self):
-        r"""Compute the labels on the boundary opposite of the origin, given
+        r"""
+        Compute the labels on the boundary opposite of the origin, given
         the filling.
 
         TESTS::
@@ -571,7 +732,8 @@ class GrowthDiagram(SageObject):
         self._out_labels = labels
 
     def _shrink(self):
-        r"""Compute the labels on the boundary near the origin, and the filling.
+        r"""
+        Compute the labels on the boundary near the origin, and the filling.
 
         TESTS::
 
@@ -642,7 +804,8 @@ class GrowthDiagram(SageObject):
         self._filling = F
 
 class GrowthDiagramBinWord(GrowthDiagram):
-    r"""A class modelling a Schensted-like correspondence for binary
+    r"""
+    A class modelling a Schensted-like correspondence for binary
     words.
     """
     def __init__(self,
@@ -667,7 +830,8 @@ class GrowthDiagramBinWord(GrowthDiagram):
 
 
     def _forward_rule(self, shape3, shape2, shape1, content):
-        r"""Return the output shape given three shapes and the content.
+        r"""
+        Return the output shape given three shapes and the content.
 
         See [Fom1995]_ Lemma 4.6.1, page 40.
 
@@ -722,7 +886,8 @@ class GrowthDiagramBinWord(GrowthDiagram):
         return r
 
     def _backward_rule(self, y, z, x):
-        r"""Return the content and the input shape.
+        r"""
+        Return the content and the input shape.
 
         See [Fom1995]_ Lemma 4.6.1, page 40.
 
@@ -777,7 +942,8 @@ class GrowthDiagramBinWord(GrowthDiagram):
                 return (x, 1)
 
 class GrowthDiagramOnPartitions(GrowthDiagram):
-    r"""A class for growth diagrams on partition lattices graded by
+    r"""
+    A class for growth diagrams on partition lattices graded by
     size."""
     def __init__(self,
                  filling = None,
@@ -802,7 +968,8 @@ class GrowthDiagramOnPartitions(GrowthDiagram):
 
 
 class GrowthDiagramRSK(GrowthDiagramOnPartitions):
-    r"""A class modelling Robinson-Schensted-Knuth insertion.
+    r"""
+    A class modelling Robinson-Schensted-Knuth insertion.
 
     EXAMPLES::
 
@@ -814,16 +981,9 @@ class GrowthDiagramRSK(GrowthDiagramOnPartitions):
         [[[1, 3, 4, 5], [2, 6]], [[1, 2, 3, 6], [4, 5]]]
 
     """
-    def __init__(self,
-                 filling = None,
-                 shape = None,
-                 labels = None):
-        super(GrowthDiagramRSK, self).__init__(filling = filling,
-                                               shape = shape,
-                                               labels = labels)
-
     def _forward_rule(self, shape3, shape2, shape1, content):
-        r"""Return the output shape given three shapes and the content.
+        r"""
+        Return the output shape given three shapes and the content.
 
         See [Kra2006]_ `(F^1 0)-(F^1 2)`.
 
@@ -868,7 +1028,8 @@ class GrowthDiagramRSK(GrowthDiagramOnPartitions):
                 shape3 = shape3[1:]
 
     def _backward_rule(self, shape3, shape4, shape1):
-        r"""Return the content and the input shape.
+        r"""
+        Return the content and the input shape.
 
         See [Kra2006]_ `(B^1 0)-(B^1 2)`.
 
@@ -931,17 +1092,11 @@ class GrowthDiagramRSK(GrowthDiagramOnPartitions):
         return (Partition(shape2), carry)
 
 class GrowthDiagramBurge(GrowthDiagramOnPartitions):
-    r"""A class modelling Burge insertion."""
-    def __init__(self,
-                 filling = None,
-                 shape = None,
-                 labels = None):
-        super(GrowthDiagramBurge, self).__init__(filling = filling,
-                                                 shape = shape,
-                                                 labels = labels)
-
+    r"""
+    A class modelling Burge insertion."""
     def _forward_rule(self, shape3, shape2, shape1, content):
-        r"""Return the output shape given three shapes and the content.
+        r"""
+        Return the output shape given three shapes and the content.
 
         See [Kra2006]_ `(F^4 0)-(F^4 2)`.
 
@@ -986,7 +1141,8 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
                 shape3 = shape3[1:]
 
     def _backward_rule(self, shape3, shape4, shape1):
-        r"""Return the content and the input shape.
+        r"""
+        Return the content and the input shape.
 
         See [Kra2006]_ `(B^4 0)-(B^4 2)`.  There is a typo in the
         computation of carry in `(B^4 2)`, `\rho` must be replaced by
@@ -1029,7 +1185,8 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
         return (Partition(shape2), carry)
 
 class GrowthDiagramDomino(GrowthDiagramOnPartitions):
-    r"""A class modelling domino insertion.
+    r"""
+    A class modelling domino insertion.
 
     EXAMPLES::
 
@@ -1064,7 +1221,8 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
                                                   labels = labels)
 
     def _forward_rule(self, shape3, shape2, shape1, content):
-        r"""Return the output shape given three shapes and the content.
+        r"""
+        Return the output shape given three shapes and the content.
 
         See [Lam2004]_ Section 3.1.
 

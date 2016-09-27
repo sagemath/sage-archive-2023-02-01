@@ -78,8 +78,8 @@ from sage.structure.parent import Parent
 from sage.sets.set import Set
 from sage.homology.simplicial_set import AbstractSimplex, \
     SimplicialSet_arbitrary, SimplicialSet_finite, \
-    standardize_degeneracies, face_degeneracies, \
-    Empty
+    standardize_degeneracies, face_degeneracies
+from sage.homology.simplicial_set_examples import Empty
 from sage.graphs.graph import Graph
 from sage.structure.unique_representation import UniqueRepresentation
 

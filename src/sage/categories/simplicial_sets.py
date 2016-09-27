@@ -251,7 +251,7 @@ class SimplicialSets(Category_singleton):
                       To:   Classifying space of Multiplicative Abelian group isomorphic to C5
                       Defn: Constant map at 1
                 """
-                from sage.homology.simplicial_set import Point
+                from sage.homology.simplicial_set_examples import Point
                 if domain is None:
                     domain = Point()
                 else:
@@ -531,7 +531,7 @@ class SimplicialSets(Category_singleton):
                         sage: S1.fat_wedge(4).homology()
                         {0: 0, 1: Z x Z x Z x Z, 2: Z^6, 3: Z x Z x Z x Z}
                     """
-                    from sage.homology.simplicial_set import Point
+                    from sage.homology.simplicial_set_examples import Point
                     if n == 0:
                         return Point()
                     if n == 1:

@@ -5225,12 +5225,16 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         REFERENCES:
 
-        - A. Berman and P. Gaiha. A generalization of irreducible
-          monotonicity. Linear Algebra and its Applications, 5:29-38,
-          1972.
+        A. Berman and P. Gaiha. A generalization of irreducible
+        monotonicity. Linear Algebra and its Applications, 5:29-38,
+        1972.
 
-        - A. Berman and R. J. Plemmons. Nonnegative Matrices in the
-          Mathematical Sciences. SIAM, Philadelphia, 1994.
+        A. Berman and R. J. Plemmons. Nonnegative Matrices in the
+        Mathematical Sciences. SIAM, Philadelphia, 1994.
+
+        .. [OrlitzkyPosZ] \M. Orlitzky.
+           Positive and Z-operators on closed convex cones.
+           http://www.optimization-online.org/DB_HTML/2016/09/5650.html
 
         EXAMPLES:
 
@@ -5287,7 +5291,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             ]
 
         A non-obvious application is to find the positive operators on the
-        right half-plane::
+        right half-plane [OrlitzkyPosZ]_::
 
             sage: K = Cone([(1,0),(0,1),(0,-1)])
             sage: K.positive_operator_gens()
@@ -5355,7 +5359,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         The lineality space of the dual of the positive operators
         can be computed from the lineality spaces of the cone and
-        its dual::
+        its dual [OrlitzkyPosZ]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
@@ -5376,7 +5380,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         The lineality of the dual of the positive operators is known
-        from its lineality space::
+        from its lineality space [OrlitzkyPosZ]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
@@ -5394,7 +5398,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         The dimension of the positive operators on a cone depends on the
-        dimension and lineality of that cone::
+        dimension and lineality of that cone [OrlitzkyPosZ]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
@@ -5412,7 +5416,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         The trivial cone, full space, and half-plane all give rise to the
-        expected dimensions::
+        expected dimensions [OrlitzkyPosZ]_::
 
             sage: n = ZZ.random_element(5)
             sage: K = Cone([[0] * n], ToricLattice(n))
@@ -5444,7 +5448,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         The lineality of the positive operators follows from the
-        description of its generators::
+        description of its generators [OrlitzkyPosZ]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
@@ -5460,7 +5464,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         The trivial cone, full space, and half-plane all give rise to
-        the expected linealities::
+        the expected linealities [OrlitzkyPosZ]_::
 
             sage: n = ZZ.random_element(5)
             sage: K = Cone([[0] * n], ToricLattice(n))
@@ -5490,7 +5494,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: pi_cone.lineality() == 2
             True
 
-        A cone is proper if and only if its positive operators are proper::
+        A cone is proper if and only if its positive operators form a
+        proper cone [OrlitzkyPosZ]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
@@ -5676,6 +5681,10 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         H. Schneider and M. Vidyasagar. Cross-positive matrices. SIAM
         Journal on Numerical Analysis, 7:508-519, 1970.
 
+        M. Orlitzky.
+        Positive and Z-operators on closed convex cones.
+        http://www.optimization-online.org/DB_HTML/2016/09/5650.html
+
         EXAMPLES:
 
         Cross-positive operators on the nonnegative orthant are
@@ -5721,7 +5730,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             ]
 
         A non-obvious application is to find the cross-positive
-        operators on the right half-plane::
+        operators on the right half-plane [OrlitzkyPosZ]_::
 
             sage: K = Cone([(1,0),(0,1),(0,-1)])
             sage: K.cross_positive_operator_gens()
@@ -5756,7 +5765,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         The lineality space of the cone of cross-positive operators is
-        the space of Lyapunov-like operators::
+        the space of Lyapunov-like operators [OrlitzkyPosZ]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
@@ -5787,7 +5796,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         The lineality spaces of the duals of the positive and cross-
         positive operator cones are equal. From this it follows that
         the dimensions of the cross-positive operator cone and positive
-        operator cone are equal::
+        operator cone are equal [OrlitzkyPosZ]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
@@ -5808,7 +5817,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         The trivial cone, full space, and half-plane all give rise to
-        the expected dimensions::
+        the expected dimensions [OrlitzkyPosZ]_::
 
             sage: n = ZZ.random_element(5)
             sage: K = Cone([[0] * n], ToricLattice(n))
@@ -5858,7 +5867,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         An operator is cross-positive on a cone if and only if its
-        adjoint is cross-positive on the dual of that cone::
+        adjoint is cross-positive on the dual of that cone [OrlitzkyPosZ]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
@@ -5946,6 +5955,10 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         A. Berman and R. J. Plemmons. Nonnegative Matrices in the
         Mathematical Sciences. SIAM, Philadelphia, 1994.
+
+        M. Orlitzky.
+        Positive and Z-operators on closed convex cones.
+        http://www.optimization-online.org/DB_HTML/2016/09/5650.html
 
         TESTS:
 

@@ -1,6 +1,7 @@
 """
 TODO:
 
+* when shape is given, check that it is compatible with filling or labels
 * implement domino insertion
 * implement Young-Fibonacci
 
@@ -12,6 +13,12 @@ from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.skew_tableau import SkewTableau
 from copy import copy
 
+"""
+local rules
+-----------
+RSK
+^^^
+"""
 def Robinson_Schensted_Knuth_forward(shape3, shape2, shape1, content):
     """see Krattenthaler, "Growth diagrams, and increasing and
     decreasing chains in fillings of Ferrers shapes", page 15,
@@ -139,6 +146,10 @@ def Robinson_Schensted_Knuth_backward(shape3, shape4, shape1):
         i = i-1
     return (Partition(shape2), carry)
 
+"""
+Burge
+^^^^^
+"""
 def Burge_forward(shape3, shape2, shape1, content):
     """
     see Krattenthaler, "Growth diagrams, and increasing and
@@ -222,6 +233,10 @@ def Burge_backward(shape3, shape4, shape1):
         i = i-1
     return (Partition(shape2), carry)
 
+"""
+BinWord - BinTree
+^^^^^^^^^^^^^^^^^
+"""
 def BinWord_forward(shape3, shape2, shape1, content):
     """See Fomin, "Schensted algorithms for dual graded graphs", Lemma
     4.6.1, page 40.
@@ -325,582 +340,10 @@ def BinWord_backward(y, z, x):
         elif x == y and len(z) > 0 and z[-1] == 1:
             return (x, 1)
 
-class GrowthDiagram(SageObject):
-    def __init__(self,
-                 filling = None,
-                 shape = None,
-                 labels = None,
-                 zero = None,
-                 forward_rule = None,
-                 backward_rule = None):
-        """Initialise a generalized Schensted growth diagram in the sense of
-        Fomin.
-
-        An instance of the class is a growth diagram consisting of a
-        filling and labels on the boundary.  To initialise it, it is
-        necessary to provide either a filling and labels for the
-        border on the side of the origin (forward growth), or labels
-        for the boundary opposite of the origin (backward growth).
-
-        Currently, this class only provides methods for dual graded
-        graphs without multiple edges.
-
-        Coordinates are of the form (col, row) where the origin is in
-        the upper left, to be consistent with permutation matrices
-        and skew tableaux.  This is different from Fomin's
-        convention, who uses a Cartesian coordinate system.
-
-        INPUT::
-
-        - `filling` is `None`, if the growth diagram should be
-          determined by applying the backward rules to the `labels`
-          decorating the boundary opposite of the origin of the
-          `shape`.  Otherwise it can be a dictionary with keys being
-          coordinates and integer values, a sequence of sequences of
-          integers (including matrices), or a word with integer
-          letters (including permutations).
-
-        - `shape` is a (possibly skew) partition or `None`.  In the
-          latter case it is determined as the bounding rectangle
-          (including the origin) of `filling`, or, if possible,
-          inferred from `labels`.
-
-        - `labels` is `None` or a list.  If it is a list, its length
-          should be the half-perimeter of `shape`.  If `filling` is
-          `None`, its elements are the labels of the boundary
-          opposite of the origin.  Otherwise its elements are the
-          labels on the boundary on the side of the origin.  If
-          `labels` is `None` (in which case `filling` must not be
-          `None`) the value of the parameter `zero` is used to
-          initialise `labels`.
-
-        EXAMPLES:
-
-        sage: w = [3,3,2,4,1]; G = GrowthDiagramRSK(w)
-        sage: [SkewTableau(chain=G._out_labels[len(w):][::-1]), SkewTableau(chain=G._out_labels[:len(w)+1])]
-        [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
-        sage: RSK(w)
-        [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
-
-        """
-        self._forward_rule = forward_rule
-        self._backward_rule = backward_rule
-
-        if filling is None:
-            if shape is None:
-                shape = self._shape_from_labels(labels)
-
-            self._lambda, self._mu = self._init_shape_from_various_input(shape)
-            self._out_labels = labels
-            self._check_labels(self._out_labels)
-            self._shrink()
-        else:
-            self._filling = self._init_filling_from_various_input(filling)
-            self._lambda, self._mu = self._init_shape_from_various_input(shape)
-            self._in_labels = self._init_labels_forward_from_various_input(labels, zero)
-            self._check_labels(self._in_labels)
-            self._grow()
-
-    def _shape_from_labels(self, labels):
-        """Determine the shape of the growth diagram given a list of labels
-        during initialisation.
-
-        This has to be implemented in the subclass, because it
-        depends on the underlying graded graphs.
-
-        The shape can be determined from the labels if the size of
-        each label differs from the size of its successor.
-
-        Otherwise raise an error.
-
-        """
-        raise NotImplementedError
-
-    def to_word(self):
-        """Return the filling as a word, if the shape is rectangular and
-        there is at most one nonzero entry in each column, which must be 1.
-
-        EXAMPLES:
-
-        sage: w = [3,3,2,4,1]; G = GrowthDiagramRSK(w)
-        sage: G
-        0  0  0  0  1
-        0  0  1  0  0
-        1  1  0  0  0
-        0  0  0  1  0
-        sage: G.to_word()
-        [3, 3, 2, 4, 1]
-
-        """
-        if (all(x == 0 for x in self._mu) and
-            all(x == self._lambda[0] for x in self._lambda)):
-            w = [0]*self._lambda[0]
-            for ((i,j), v) in self._filling.iteritems():
-                if v != 0:
-                    if v == 1:
-                        if w[i] == 0:
-                            w[i] = j+1
-                        else:
-                            raise ValueError("Can only convert fillings with at most one entry per column to words.")
-                    else:
-                        raise ValueError("Can only convert 0-1 fillings to words.  Try `to_biword`.")
-            return w
-        else:
-            raise ValueError("Can only convert fillings of rectangular shapes to words.")
-
-    def to_biword(self):
-        """Return the filling as a biword, if the shape is rectangular.
-
-        EXAMPLES:
-
-        sage: P = Tableau([[1,2,2],[2]]); Q = Tableau([[1,3,3],[2]])
-        sage: bw = RSK_inverse(P, Q); bw
-        [[1, 2, 3, 3], [2, 1, 2, 2]]
-        sage: G = GrowthDiagramRSK(labels = Q.to_chain()[:-1] + P.to_chain()[::-1]); G
-        0  1  0
-        1  0  2
-
-        sage: P = SemistandardTableau([[1, 1, 2], [2]])
-        sage: Q = SemistandardTableau([[1, 2, 2], [2]])
-        sage: G = GrowthDiagramRSK(labels = Q.to_chain()[:-1] + P.to_chain()[::-1]); G
-        0  2
-        1  1
-        sage: G.to_biword()
-        ([1, 2, 2, 2], [2, 1, 1, 2])
-        sage: RSK([1, 2, 2, 2], [2, 1, 1, 2])
-        [[[1, 1, 2], [2]], [[1, 2, 2], [2]]]
-
-        """
-        if (all(x == 0 for x in self._mu) and
-            all(x == self._lambda[0] for x in self._lambda)):
-            w1 = []
-            w2 = []
-            for ((i,j), v) in sorted(self._filling.iteritems()):
-                if v >= 0:
-                    w1.extend([i+1]*v)
-                    w2.extend([j+1]*v)
-                else:
-                    raise ValueError("Can only convert fillings with nonnegative entries to words.")
-            return (w1, w2)
-        else:
-            raise ValueError("Can only convert fillings of rectangular shapes to words.")
-
-
-    def __iter__(self):
-        """
-        Return the rows of the filling.
-
-        TESTS:
-
-
-        sage: G = GrowthDiagramRSK({(0,1):1, (1,0):1}, SkewPartition([[2,1],[1]]))
-        sage: list(G)
-        [[None, 1], [1]]
-
-        sage: pi = Permutation([2,3,1,6,4,5])
-        sage: G = GrowthDiagramRSK(pi)
-        sage: list(G)
-        [[0, 0, 1, 0, 0, 0],
-         [1, 0, 0, 0, 0, 0],
-         [0, 1, 0, 0, 0, 0],
-         [0, 0, 0, 0, 1, 0],
-         [0, 0, 0, 0, 0, 1],
-         [0, 0, 0, 1, 0, 0]]
-        """
-        return ([None]*self._mu[r] + [self._filling.get((self._mu[r]+j,r), 0)
-                                      for j in range(self._lambda[r]-self._mu[r])]
-                for r in range(len(self._lambda)))
-
-    def __repr__(self):
-        """
-
-        TESTS:
-
-        sage: GrowthDiagramRSK({(0,1):1, (1,0):1}, SkewPartition([[2,1],[1]]))
-        .  1
-        1
-
-        sage: GrowthDiagramRSK({(0,1):1, (2,0):1}, SkewPartition([[3,1],[1]]))
-        .  0  1
-        1
-        """
-        return SkewTableau(expr=[self._mu,
-                                 [[self._filling.get((self._mu[r]+j,r), 0)
-                                   for j in range(self._lambda[r]-self._mu[r])]
-                                  for r in range(len(self._lambda))][::-1]])._repr_diagram()
-
-    def _check_labels(self, labels):
-        """Check sanity of the parameter `labels`.
-
-        Assumes that `self._lambda` is already set.
-
-        sage: GrowthDiagramRSK(shape=[1], labels=[[], [1]])
-        Traceback (most recent call last):
-        ...
-        ValueError: the number of labels is 2, but for this shape we need 3.
-        """
-        if len(labels) != self._lambda[0]+len(self._lambda)+1:
-            raise ValueError("the number of labels is %s, but for this shape we need %s."
-                             %(len(labels), self._lambda[0]+len(self._lambda)+1))
-
-
-    def _init_labels_forward_from_various_input(self, labels, zero):
-        """Return a list of labels decorating the boundary near the origin.
-
-        Assumes that `self._lambda` is already set.
-
-        TESTS:
-
-        `labels` is None:
-
-        sage: filling = []
-        sage: shape = SkewPartition([[4,2,1,1],[2,1,1]])
-        sage: G = GrowthDiagramRSK(filling, shape)
-        sage: G._in_labels
-        [[], [], [], [], [], [], [], [], []]
-
-        `labels` is a list of partitions:
-
-        sage: filling = []
-        sage: labels = [[],[1],[],[1],[]]
-        sage: shape = SkewPartition([[2,1],[1]])
-        sage: G = GrowthDiagramRSK(filling=filling, shape=shape, labels=labels)
-        sage: G._in_labels
-        [[], [1], [], [1], []]
-
-        """
-        if labels is None:
-            return [zero for i in range(self._lambda[0]+len(self._lambda)+1)]
-        else:
-            return labels
-
-    def _init_shape_from_various_input(self, shape):
-        """Return a pair of partitions describing the region of the growth
-        diagram.
-
-        Assumes that `self._filling` is already set.
-
-        TESTS:
-
-        `shape` is a skew partition:
-
-        sage: filling = []
-        sage: shape = SkewPartition([[4,2,1,1],[2,1,1]])
-        sage: G = GrowthDiagramRSK(filling, shape)
-        sage: G._lambda, G._mu
-        ([4, 2, 1, 1], [2, 1, 1, 0])
-
-        `shape` is a partition:
-
-        sage: filling = []
-        sage: shape = Partition([3,2,1,1])
-        sage: G = GrowthDiagramRSK(filling, shape)
-        sage: G._lambda, G._mu
-        ([3, 2, 1, 1], [0, 0, 0, 0])
-
-        `shape` is None:
-
-        sage: filling = {(1,3):1, (2,1):1, (1,1):1}
-        sage: G = GrowthDiagramRSK(filling)
-        sage: G._lambda, G._mu
-        ([3, 3, 3, 3], [0, 0, 0, 0])
-
-        """
-        if shape is None:
-            assert self._filling is not None, "The shape of the diagram must be given."
-            # find bounding rectangle of `filling`
-            max_row = max(i for i, _ in self._filling)+1
-            max_col = max(j for _, j in self._filling)+1
-            return ([max_row]*max_col, [0]*max_col)
-        else:
-            try:
-                shape = Partition(shape)
-                return (list(shape), [0]*len(shape))
-            except ValueError:
-                try:
-                    shape = SkewPartition(shape)
-                    return (list(shape[0]),
-                            list(shape[1]) + [0]*(len(shape[0])-len(shape[1])))
-                except ValueError:
-                    raise ValueError("Cannot make sense of shape %s" %shape)
-
-
-    def _init_filling_from_various_input(self, filling):
-        """Return a dict `F`, such that `F[(i,j)]` is the element in row `i`
-        and column `j`.
-
-        TESTS:
-
-        `filling` is a dict of coordinates:
-
-        sage: pi = Permutation([2,3,1,6,4,5])
-        sage: G = GrowthDiagramRSK({(i,pi[i]-1):1 for i in range(len(pi))})
-        sage: G._filling
-        {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
-
-        `filling` is a dict of dicts:
-
-        sage: G = GrowthDiagramRSK({i:{pi[i]-1:1} for i in range(len(pi))})
-        sage: G._filling
-        {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
-
-        `filling` is a matrix:
-
-        sage: G = GrowthDiagramRSK(pi.to_matrix())
-        sage: G._filling
-        {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
-
-        `filling` is a permutation:
-
-        sage: G = GrowthDiagramRSK(pi)
-        sage: G._filling
-        {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
-
-        `filling` is a word:
-
-        sage: G = GrowthDiagramRSK([3,1,4,1,5])
-        sage: G._filling
-        {(0, 2): 1, (1, 0): 1, (2, 3): 1, (3, 0): 1, (4, 4): 1}
-
-        """
-        if isinstance(filling, dict):
-            v = filling.itervalues().next()
-            if isinstance(v, dict):
-                # it is a dict of dicts
-                F = dict()
-                for (i, row) in filling.iteritems():
-                    for (j, v) in row.iteritems():
-                        if v != 0:
-                            F[(i,j)] = int(v)
-                return F
-            else:
-                # it is dict of coordinates
-                return filling
-
-        else:
-            # it is a sequence
-            F = dict()
-            try:
-                # it is a sequence of sequences
-                for i, row in enumerate(filling):
-                    for j, v in enumerate(row):
-                        if v != 0:
-                            F[(j,i)] = int(v)
-            except TypeError:
-                # it is a word
-                for i, l in enumerate(filling):
-                    F[(i, l-1)] = 1
-
-            return F
-
-    def _grow(self):
-        """Compute the labels on the boundary opposite of the origin, given
-        the filling.
-
-        TESTS:
-
-        sage: pi = Permutation([1])
-        sage: G = GrowthDiagramRSK(pi)
-        sage: G._out_labels
-        [[], [1], []]
-
-        sage: pi = Permutation([1,2])
-        sage: G = GrowthDiagramRSK(pi)
-        sage: G._out_labels
-        [[], [1], [2], [1], []]
-
-        sage: pi = Permutation([2,1])
-        sage: G = GrowthDiagramRSK(pi)
-        sage: G._out_labels
-        [[], [1], [1, 1], [1], []]
-
-        sage: G = GrowthDiagramRSK({(0,1):1, (1,0):1}, SkewPartition([[2,1],[1]]))
-        sage: G._out_labels
-        [[], [1], [], [1], []]
-
-        sage: G = GrowthDiagramRSK({(1,1):1}, SkewPartition([[2,2],[1]]), labels=[[],[],[1],[],[]])
-        sage: G._out_labels
-        [[], [1], [2], [1], []]
-        """
-        assert self._forward_rule is not None, "For computing a growth diagram, a forward rule has to be specified."
-        labels = copy(self._in_labels)
-        l = len(self._lambda)
-        for r in range(l):
-            for c in range(self._mu[r]+l-r, self._lambda[r]+l-r):
-                j = r
-                i = c-l+r
-                labels[c] = self._forward_rule(labels[c-1],
-                                               labels[c],
-                                               labels[c+1],
-                                               self._filling.get((i,j), 0))
-
-        self._out_labels = labels
-
-    def _shrink(self):
-        """TESTS:
-
-        sage: filling = [[0,0,1,0,0,0,0], [0,1,0,0,0,0,0], [1,0,0,0,0,0,0], [0,0,0,1,0,0,0], [0,0,0,0,0,0,1], [0,0,0,0,0,1,0], [0,0,0,0,1,0,0]]
-        sage: G = GrowthDiagramRSK(filling)
-        sage: list(GrowthDiagramRSK(labels=G._out_labels)) == filling
-        True
-
-        sage: labels = [[], [1], []]
-        sage: G = GrowthDiagramRSK(labels=labels)
-        sage: G._filling
-        {(0, 0): 1}
-        sage: G._in_labels
-        [[], [], []]
-
-        sage: labels = [[], [1], [2], [2,1], [1,1], [1], []]
-        sage: G = GrowthDiagramRSK(labels=labels)
-        sage: G._filling
-        {(0, 1): 1, (1, 2): 1, (2, 0): 1}
-        sage: G._in_labels
-        [[], [], [], [], [], [], []]
-
-        sage: labels = [[], [1], [2], [3], [3, 1], [3, 2], [4, 2], [4, 1], [3, 1], [2, 1], [1, 1], [1], []]
-        sage: G = GrowthDiagramRSK(labels=labels)
-        sage: G._filling
-        {(0, 1): 1, (1, 2): 1, (2, 5): 1, (3, 0): 1, (4, 3): 1, (5, 4): 1}
-
-        sage: labels = [[],[1],[1],[2],[2],[2,1],[2]]
-        sage: G = GrowthDiagramRSK(labels=labels)
-        Traceback (most recent call last):
-        ...
-        ValueError: Can only determine the shape of the growth diagram if sizes of successive partitions differ.
-        sage: G = GrowthDiagramRSK(shape=[3,2,1], labels=labels)
-        sage: G._filling
-        {(1, 0): 1}
-        sage: G._in_labels
-        [[], [], [], [], [1], [1], [2]]
-
-        sage: labels = [[], [1],[1],[2],[2],[2,1],[2],[2,1],[1,1],[2,1],[1,1]]
-        sage: G = GrowthDiagramRSK(shape=[5,4,3,2,1], labels=labels)
-        sage: G._filling
-        {(1, 2): 1, (2, 1): 1, (4, 0): 1}
-        sage: G._in_labels
-        [[], [], [], [], [], [], [1], [1], [1], [1, 1], [1, 1]]
-
-        sage: labels = [[], [1],[1],[2],[2],[2,1],[2],[2,1],[1,1],[2,1],[1,1]]
-        sage: G = GrowthDiagramRSK(shape=SkewPartition([[5,4,3,2,1],[3,2,1]]), labels=labels)
-        sage: G._filling
-        {(1, 2): 1, (2, 1): 1, (4, 0): 1}
-        sage: G._in_labels
-        [[], [], [], [1], [1], [1], [1], [1], [1], [1, 1], [1, 1]]
-        """
-        assert self._backward_rule is not None, "For computing a filling, a backward rule has to be specified."
-        F = dict()
-        labels = copy(self._out_labels)
-        l = len(self._lambda)
-        for r in range(l):
-            for c in range(self._lambda[l-r-1]+r, self._mu[l-r-1]+r, -1):
-                j = l-r-1
-                i = c-r-1
-                labels[c], v = self._backward_rule(labels[c-1],
-                                                   labels[c],
-                                                   labels[c+1])
-                if v != 0:
-                    F[(i,j)] = v
-
-        self._in_labels = labels
-        self._filling = F
-
-
-class GrowthDiagramBinWord(GrowthDiagram):
-    def __init__(self,
-                 filling = None,
-                 shape = None,
-                 labels = None):
-        super(GrowthDiagramBinWord, self).__init__(filling = filling,
-                                                   shape = shape,
-                                                   labels = labels,
-                                                   zero = Word([], alphabet=[0,1]),
-                                                   forward_rule=BinWord_forward,
-                                                   backward_rule=BinWord_backward)
-
-    def _shape_from_labels(self, labels):
-        def right_left(la, mu):
-            if len(la) < len(mu):
-                return 1
-            elif len(la) > len(mu):
-                return 0
-            else:
-                raise ValueError("Can only determine the shape of the growth diagram if sizes of successive words differ.")
-        return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
-
-
-class GrowthDiagramRSK(GrowthDiagram):
-    def __init__(self,
-                 filling = None,
-                 shape = None,
-                 labels = None):
-        if labels is not None:
-            labels = [Partition(la) for la in labels]
-        super(GrowthDiagramRSK, self).__init__(filling = filling,
-                                               shape = shape,
-                                               labels = labels,
-                                               zero = Partition([]),
-                                               forward_rule = Robinson_Schensted_Knuth_forward,
-                                               backward_rule = Robinson_Schensted_Knuth_backward)
-
-    def _shape_from_labels(self, labels):
-        def right_left(la, mu):
-            if la.size() < mu.size():
-                return 1
-            elif la.size() > mu.size():
-                return 0
-            else:
-                raise ValueError("Can only determine the shape of the growth diagram if sizes of successive partitions differ.")
-        return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
-
-class GrowthDiagramDomino(GrowthDiagram):
-    """
-    EXAMPLES:
-
-    sage: G = GrowthDiagramDomino([[1]]); G
-    1
-    sage: G._out_labels
-    [[], [2], []]
-
-    sage: G = GrowthDiagramDomino([[-1]]); G
-    -1
-    sage: G._out_labels
-    [[], [1, 1], []]
-
-
-    sage: G = GrowthDiagramDomino([[0,0,0,-1],[0,0,1,0],[-1,0,0,0],[0,1,0,0]]); G
-     0  0  0 -1
-     0  0  1  0
-    -1  0  0  0
-     0  1  0  0
-    sage: G._out_labels
-    [[], [1, 1], [3, 1], [3, 3], [3, 3, 2], [2, 2, 2], [2, 2], [1, 1], []]
-
-    """
-    def __init__(self,
-                 filling = None,
-                 shape = None,
-                 labels = None):
-        if labels is not None:
-            labels = [Partition(la) for la in labels]
-        super(GrowthDiagramDomino, self).__init__(filling = filling,
-                                                  shape = shape,
-                                                  labels = labels,
-                                                  zero = Partition([]),
-                                                  forward_rule = Domino_forward,
-                                                  backward_rule = None)
-
-    def _shape_from_labels(self, labels):
-        def right_left(la, mu):
-            if la.size() < mu.size():
-                return 1
-            elif la.size() > mu.size():
-                return 0
-            else:
-                raise ValueError("Can only determine the shape of the growth diagram if sizes of successive partitions differ.")
-        return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
-
-
+"""
+Domino Robinson-Schensted
+^^^^^^^^^^^^^^^^^^^^^^^^^
+"""
 def Domino_forward(shape3, shape2, shape1, content):
     """see Thomas Lam, "Growth diagrams, domino insertion and sign-imbalance"
     Section 3.1
@@ -1039,3 +482,682 @@ def Domino_forward(shape3, shape2, shape1, content):
                 shape4[1] += 1
 
     return shape4
+
+class GrowthDiagram(SageObject):
+    def __init__(self,
+                 filling = None,
+                 shape = None,
+                 labels = None,
+                 zero = None,
+                 forward_rule = None,
+                 backward_rule = None):
+        """Initialise a generalized Schensted growth diagram in the sense of
+        Fomin.
+
+        An instance of the class is a growth diagram consisting of a
+        filling and labels on the boundary.  To initialise it, it is
+        necessary to provide either a filling and labels for the
+        border on the side of the origin (forward growth), or labels
+        for the boundary opposite of the origin (backward growth).
+
+        Currently, this class only provides methods for dual graded
+        graphs without multiple edges.
+
+        Coordinates are of the form (col, row) where the origin is in
+        the upper left, to be consistent with permutation matrices
+        and skew tableaux.  This is different from Fomin's
+        convention, who uses a Cartesian coordinate system.
+
+        INPUT::
+
+        - `filling` is `None`, if the growth diagram should be
+          determined by applying the backward rules to the `labels`
+          decorating the boundary opposite of the origin of the
+          `shape`.  Otherwise it can be a dictionary with keys being
+          coordinates and integer values, a sequence of sequences of
+          integers (including matrices), or a word with integer
+          letters (including permutations).
+
+        - `shape` is a (possibly skew) partition or `None`.  In the
+          latter case it is determined as the Ferrers shape given by
+          `filling`, if that is a sequence of sequences, the bounding
+          rectangle (including the origin) of `filling`, or, if
+          possible, inferred from `labels`, if `filling` is `None`.
+
+        - `labels` is `None` or a list.  If it is a list, its length
+          should be the half-perimeter of `shape`.  If `filling` is
+          `None`, its elements are the labels of the boundary
+          opposite of the origin.  Otherwise its elements are the
+          labels on the boundary on the side of the origin.  If
+          `labels` is `None` (in which case `filling` must not be
+          `None`) the value of the parameter `zero` is used to
+          initialise `labels`.
+
+        EXAMPLES:
+
+        sage: w = [3,3,2,4,1]; G = GrowthDiagramRSK(w)
+        sage: [SkewTableau(chain=G._out_labels[len(w):][::-1]), SkewTableau(chain=G._out_labels[:len(w)+1])]
+        [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
+        sage: RSK(w)
+        [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
+
+        """
+        self._forward_rule = forward_rule
+        self._backward_rule = backward_rule
+
+        if filling is None:
+            if shape is None:
+                shape = self._shape_from_labels(labels)
+
+            self._lambda, self._mu = self._init_shape_from_various_input(shape)
+            self._out_labels = labels
+            self._check_labels(self._out_labels)
+            self._shrink()
+        else:
+            self._filling, (self._lambda, self._mu) = self._init_filling_and_shape_from_various_input(filling, shape)
+            self._in_labels = self._init_labels_forward_from_various_input(labels, zero)
+            self._check_labels(self._in_labels)
+            self._grow()
+
+    def _shape_from_labels(self, labels):
+        """Determine the shape of the growth diagram given a list of labels
+        during initialisation.
+
+        This has to be implemented in the subclass, because it
+        depends on the underlying graded graphs.
+
+        The shape can be determined from the labels if the size of
+        each label differs from the size of its successor.
+
+        Otherwise raise an error.
+
+        """
+        raise NotImplementedError
+
+    def conjugate(self):
+        """Return the growth diagram with the filling reflected on the main
+        diagonal.
+
+        When the filling is a permutation, the conjugate filling corresponds to its inverse.
+
+        EXAMPLES:
+
+        sage: G = GrowthDiagramRSK([[0,1,0], [1,0,2]])
+        sage: Gc = G.conjugate()
+        sage: (Gc.P_symbol(), Gc.Q_symbol()) == (G.Q_symbol(), G.P_symbol())
+        True
+        """
+        F = {(j,i): v for (i,j),v in self._filling.iteritems()}
+        return self.parent()(filling = F)
+
+    def rotate(self):
+        """Return the growth diagram with the filling rotated by 180 degrees.
+
+        For RSK-growth diagrams and rectangular fillings, this
+        corresponds to evacutation of the P- and the Q-symbol.
+
+        EXAMPLES:
+
+        sage: G = GrowthDiagramRSK([[0,1,0], [1,0,2]])
+        sage: Gc = G.rotate()
+        sage: ascii_art(Gc.P_symbol(), Gc.Q_symbol())
+        1  1  1  1  1  2
+        2        3
+
+        sage: ascii_art(SemistandardTableau(Tableau(G.P_symbol())).evacuation(), SemistandardTableau(Tableau(G.Q_symbol())).evacuation())
+        1  1  1  1  1  2
+        2        3
+
+        """
+        max_row = max(i for i, _ in self._filling)
+        max_col = max(j for _, j in self._filling)
+        F = {(max_row-i,max_col-j): v for (i,j),v in self._filling.iteritems()}
+        return self.parent()(filling = F)
+
+    def shape(self):
+        """
+        Return the shape of the growth diagram as a skew partition.
+
+        EXAMPLES:
+
+        sage: GrowthDiagramRSK([1]).shape()
+        [1] / []
+
+        """
+        return SkewPartition([self._lambda, self._mu])
+
+    def P_symbol(self):
+        """Return the labels along the vertical boundary of a rectangular
+        growth diagram as a skew tableau.
+
+        EXAMPLES:
+
+        sage: G = GrowthDiagramRSK([[0,1,0], [1,0,2]])
+        sage: G.P_symbol().pp()
+        1  2  2
+        2
+        """
+        if self.is_rectangular():
+            return SkewTableau(chain = self._out_labels[self._lambda[0]:][::-1])
+        else:
+            raise ValueError("The P symbol is only defined for rectangular shapes.")
+
+    def Q_symbol(self):
+        """ Return the labels along the horizontal boundary of a rectangular
+        growth diagram as a skew tableau.
+
+        sage: G = GrowthDiagramRSK([[0,1,0], [1,0,2]])
+        sage: G.Q_symbol().pp()
+        1  3  3
+        2
+        """
+        if self.is_rectangular():
+            return SkewTableau(chain = self._out_labels[:self._lambda[0]+1])
+        else:
+            raise ValueError("The Q symbol is only defined for rectangular shapes.")
+
+    def is_rectangular(self):
+        """
+        Return ``True`` if the shape of the growth diagram is rectangular.
+
+        EXAMPLES::
+
+            sage: GrowthDiagramRSK([2,3,1]).is_rectangular()
+            True
+            sage: GrowthDiagramRSK([[1,0,1],[0,1]]).is_rectangular()
+            False
+        """
+        return all(x == 0 for x in self._mu) and all(x == self._lambda[0] for x in self._lambda)
+
+    def to_word(self):
+        """Return the filling as a word, if the shape is rectangular and
+        there is at most one nonzero entry in each column, which must be 1.
+
+        EXAMPLES:
+
+        sage: w = [3,3,2,4,1]; G = GrowthDiagramRSK(w)
+        sage: G
+        0  0  0  0  1
+        0  0  1  0  0
+        1  1  0  0  0
+        0  0  0  1  0
+        sage: G.to_word()
+        [3, 3, 2, 4, 1]
+
+        """
+        if self.is_rectangular():
+            w = [0]*self._lambda[0]
+            for ((i,j), v) in self._filling.iteritems():
+                if v != 0:
+                    if v == 1:
+                        if w[i] == 0:
+                            w[i] = j+1
+                        else:
+                            raise ValueError("Can only convert fillings with at most one entry per column to words.")
+                    else:
+                        raise ValueError("Can only convert 0-1 fillings to words.  Try `to_biword`.")
+            return w
+        else:
+            raise ValueError("Can only convert fillings of rectangular shapes to words.")
+
+    def to_biword(self):
+        """Return the filling as a biword, if the shape is rectangular.
+
+        EXAMPLES:
+
+        sage: P = Tableau([[1,2,2],[2]]); Q = Tableau([[1,3,3],[2]])
+        sage: bw = RSK_inverse(P, Q); bw
+        [[1, 2, 3, 3], [2, 1, 2, 2]]
+        sage: G = GrowthDiagramRSK(labels = Q.to_chain()[:-1] + P.to_chain()[::-1]); G
+        0  1  0
+        1  0  2
+
+        sage: P = SemistandardTableau([[1, 1, 2], [2]])
+        sage: Q = SemistandardTableau([[1, 2, 2], [2]])
+        sage: G = GrowthDiagramRSK(labels = Q.to_chain()[:-1] + P.to_chain()[::-1]); G
+        0  2
+        1  1
+        sage: G.to_biword()
+        ([1, 2, 2, 2], [2, 1, 1, 2])
+        sage: RSK([1, 2, 2, 2], [2, 1, 1, 2])
+        [[[1, 1, 2], [2]], [[1, 2, 2], [2]]]
+
+        """
+        if self.is_rectangular():
+            w1 = []
+            w2 = []
+            for ((i,j), v) in sorted(self._filling.iteritems()):
+                if v >= 0:
+                    w1.extend([i+1]*v)
+                    w2.extend([j+1]*v)
+                else:
+                    raise ValueError("Can only convert fillings with nonnegative entries to words.")
+            return (w1, w2)
+        else:
+            raise ValueError("Can only convert fillings of rectangular shapes to words.")
+
+    def __iter__(self):
+        """
+        Return the rows of the filling.
+
+        TESTS:
+
+
+        sage: G = GrowthDiagramRSK({(0,1):1, (1,0):1}, SkewPartition([[2,1],[1]]))
+        sage: list(G)
+        [[None, 1], [1]]
+
+        sage: pi = Permutation([2,3,1,6,4,5])
+        sage: G = GrowthDiagramRSK(pi)
+        sage: list(G)
+        [[0, 0, 1, 0, 0, 0],
+         [1, 0, 0, 0, 0, 0],
+         [0, 1, 0, 0, 0, 0],
+         [0, 0, 0, 0, 1, 0],
+         [0, 0, 0, 0, 0, 1],
+         [0, 0, 0, 1, 0, 0]]
+        """
+        return ([None]*self._mu[r] + [self._filling.get((self._mu[r]+j,r), 0)
+                                      for j in range(self._lambda[r]-self._mu[r])]
+                for r in range(len(self._lambda)))
+
+    def __repr__(self):
+        """
+
+        TESTS:
+
+        sage: GrowthDiagramRSK({(0,1):1, (1,0):1}, SkewPartition([[2,1],[1]]))
+        .  1
+        1
+
+        sage: GrowthDiagramRSK({(0,1):1, (2,0):1}, SkewPartition([[3,1],[1]]))
+        .  0  1
+        1
+        """
+        return SkewTableau(expr=[self._mu,
+                                 [[self._filling.get((self._mu[r]+j,r), 0)
+                                   for j in range(self._lambda[r]-self._mu[r])]
+                                  for r in range(len(self._lambda))][::-1]])._repr_diagram()
+
+    def _check_labels(self, labels):
+        """Check sanity of the parameter `labels`.
+
+        Assumes that `self._lambda` is already set.
+
+        sage: GrowthDiagramRSK(shape=[1], labels=[[], [1]])
+        Traceback (most recent call last):
+        ...
+        ValueError: the number of labels is 2, but for this shape we need 3.
+        """
+        if len(labels) != self._lambda[0]+len(self._lambda)+1:
+            raise ValueError("the number of labels is %s, but for this shape we need %s."
+                             %(len(labels), self._lambda[0]+len(self._lambda)+1))
+
+
+    def _init_labels_forward_from_various_input(self, labels, zero):
+        """Return a list of labels decorating the boundary near the origin.
+
+        Assumes that `self._lambda` is already set.
+
+        TESTS:
+
+        `labels` is None:
+
+        sage: filling = []
+        sage: shape = SkewPartition([[4,2,1,1],[2,1,1]])
+        sage: G = GrowthDiagramRSK(filling, shape)
+        sage: G._in_labels
+        [[], [], [], [], [], [], [], [], []]
+
+        `labels` is a list of partitions:
+
+        sage: filling = []
+        sage: labels = [[],[1],[],[1],[]]
+        sage: shape = SkewPartition([[2,1],[1]])
+        sage: G = GrowthDiagramRSK(filling=filling, shape=shape, labels=labels)
+        sage: G._in_labels
+        [[], [1], [], [1], []]
+
+        """
+        if labels is None:
+            return [zero for i in range(self._lambda[0]+len(self._lambda)+1)]
+        else:
+            return labels
+
+    def _init_shape_from_various_input(self, shape):
+        """Return a pair of partitions describing the region of the growth
+        diagram.
+
+        Assumes that `self._filling` is already set.
+
+        TESTS:
+
+        `shape` is a skew partition:
+
+        sage: filling = []
+        sage: shape = SkewPartition([[4,2,1,1],[2,1,1]])
+        sage: G = GrowthDiagramRSK(filling, shape)
+        sage: G._lambda, G._mu
+        ([4, 2, 1, 1], [2, 1, 1, 0])
+
+        `shape` is a partition:
+
+        sage: filling = []
+        sage: shape = Partition([3,2,1,1])
+        sage: G = GrowthDiagramRSK(filling, shape)
+        sage: G._lambda, G._mu
+        ([3, 2, 1, 1], [0, 0, 0, 0])
+
+        """
+        try:
+            shape = Partition(shape)
+            return (list(shape), [0]*len(shape))
+        except ValueError:
+            try:
+                shape = SkewPartition(shape)
+                return (list(shape[0]),
+                        list(shape[1]) + [0]*(len(shape[0])-len(shape[1])))
+            except ValueError:
+                raise ValueError("Cannot make sense of shape %s" %shape)
+
+
+    def _init_filling_and_shape_from_various_input(self, filling, shape):
+        """Return a dict `F`, such that `F[(i,j)]` is the element in row `i`
+        and column `j`, and a pair of partitions describing the
+        region of the growth diagram.
+
+        TESTS:
+
+        `filling` is a dict of coordinates:
+
+        sage: pi = Permutation([2,3,1,6,4,5])
+        sage: G = GrowthDiagramRSK({(i,pi[i]-1):1 for i in range(len(pi))})
+        sage: G._filling
+        {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
+        sage: G.shape()
+        [6, 6, 6, 6, 6, 6] / []
+
+        `filling` is a dict of dicts:
+
+        sage: G = GrowthDiagramRSK({i:{pi[i]-1:1} for i in range(len(pi))})
+        sage: G._filling
+        {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
+        sage: G.shape()
+        [6, 6, 6, 6, 6, 6] / []
+
+        `filling` is a matrix:
+
+        sage: G = GrowthDiagramRSK(pi.to_matrix())
+        sage: G._filling
+        {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
+        sage: G.shape()
+        [6, 6, 6, 6, 6, 6] / []
+
+        `filling` is a permutation:
+
+        sage: G = GrowthDiagramRSK(pi)
+        sage: G._filling
+        {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
+        sage: G.shape()
+        [6, 6, 6, 6, 6, 6] / []
+
+        `filling` is a list:
+
+        sage: G = GrowthDiagramRSK([3,1,4,1,5])
+        sage: G._filling
+        {(0, 2): 1, (1, 0): 1, (2, 3): 1, (3, 0): 1, (4, 4): 1}
+        sage: G.shape()
+        [5, 5, 5, 5, 5] / []
+
+        `filling` is a list of lists:
+        sage: G = GrowthDiagramRSK([[1,0,1],[0,1]])
+        sage: G._filling
+        {(0, 0): 1, (1, 1): 1, (2, 0): 1}
+        sage: G.shape()
+        [3, 2] / []
+
+        """
+        if isinstance(filling, dict):
+            v = filling.itervalues().next()
+            if isinstance(v, dict):
+                # it is a dict of dicts
+                F = dict()
+                for (i, row) in filling.iteritems():
+                    for (j, v) in row.iteritems():
+                        if v != 0:
+                            F[(i,j)] = int(v)
+            else:
+                # it is dict of coordinates
+                F = filling
+
+        else:
+            # it is a sequence
+            F = dict()
+            try:
+                # it is a sequence of sequences
+                for i, row in enumerate(filling):
+                    for j, v in enumerate(row):
+                        if v != 0:
+                            F[(j,i)] = int(v)
+                if shape is None:
+                    shape = [len(row) for row in filling]
+
+            except TypeError:
+                # it is a word
+                for i, l in enumerate(filling):
+                    F[(i, l-1)] = 1
+
+        if shape is None:
+            # find bounding rectangle of `filling`
+            max_row = max(i for i, _ in F)+1
+            max_col = max(j for _, j in F)+1
+            shape = [max_row]*max_col
+
+
+        return (F, self._init_shape_from_various_input(shape))
+
+    def _grow(self):
+        """Compute the labels on the boundary opposite of the origin, given
+        the filling.
+
+        TESTS:
+
+        sage: pi = Permutation([1])
+        sage: G = GrowthDiagramRSK(pi)
+        sage: G._out_labels
+        [[], [1], []]
+
+        sage: pi = Permutation([1,2])
+        sage: G = GrowthDiagramRSK(pi)
+        sage: G._out_labels
+        [[], [1], [2], [1], []]
+
+        sage: pi = Permutation([2,1])
+        sage: G = GrowthDiagramRSK(pi)
+        sage: G._out_labels
+        [[], [1], [1, 1], [1], []]
+
+        sage: G = GrowthDiagramRSK({(0,1):1, (1,0):1}, SkewPartition([[2,1],[1]]))
+        sage: G._out_labels
+        [[], [1], [], [1], []]
+
+        sage: G = GrowthDiagramRSK({(1,1):1}, SkewPartition([[2,2],[1]]), labels=[[],[],[1],[],[]])
+        sage: G._out_labels
+        [[], [1], [2], [1], []]
+        """
+        assert self._forward_rule is not None, "For computing a growth diagram, a forward rule has to be specified."
+        labels = copy(self._in_labels)
+        l = len(self._lambda)
+        for r in range(l):
+            for c in range(self._mu[r]+l-r, self._lambda[r]+l-r):
+                j = r
+                i = c-l+r
+                labels[c] = self._forward_rule(labels[c-1],
+                                               labels[c],
+                                               labels[c+1],
+                                               self._filling.get((i,j), 0))
+
+        self._out_labels = labels
+
+    def _shrink(self):
+        """TESTS:
+
+        sage: filling = [[0,0,1,0,0,0,0], [0,1,0,0,0,0,0], [1,0,0,0,0,0,0], [0,0,0,1,0,0,0], [0,0,0,0,0,0,1], [0,0,0,0,0,1,0], [0,0,0,0,1,0,0]]
+        sage: G = GrowthDiagramRSK(filling)
+        sage: list(GrowthDiagramRSK(labels=G._out_labels)) == filling
+        True
+
+        sage: labels = [[], [1], []]
+        sage: G = GrowthDiagramRSK(labels=labels)
+        sage: G._filling
+        {(0, 0): 1}
+        sage: G._in_labels
+        [[], [], []]
+
+        sage: labels = [[], [1], [2], [2,1], [1,1], [1], []]
+        sage: G = GrowthDiagramRSK(labels=labels)
+        sage: G._filling
+        {(0, 1): 1, (1, 2): 1, (2, 0): 1}
+        sage: G._in_labels
+        [[], [], [], [], [], [], []]
+
+        sage: labels = [[], [1], [2], [3], [3, 1], [3, 2], [4, 2], [4, 1], [3, 1], [2, 1], [1, 1], [1], []]
+        sage: G = GrowthDiagramRSK(labels=labels)
+        sage: G._filling
+        {(0, 1): 1, (1, 2): 1, (2, 5): 1, (3, 0): 1, (4, 3): 1, (5, 4): 1}
+
+        sage: labels = [[],[1],[1],[2],[2],[2,1],[2]]
+        sage: G = GrowthDiagramRSK(labels=labels)
+        Traceback (most recent call last):
+        ...
+        ValueError: Can only determine the shape of the growth diagram if sizes of successive partitions differ.
+        sage: G = GrowthDiagramRSK(shape=[3,2,1], labels=labels)
+        sage: G._filling
+        {(1, 0): 1}
+        sage: G._in_labels
+        [[], [], [], [], [1], [1], [2]]
+
+        sage: labels = [[], [1],[1],[2],[2],[2,1],[2],[2,1],[1,1],[2,1],[1,1]]
+        sage: G = GrowthDiagramRSK(shape=[5,4,3,2,1], labels=labels)
+        sage: G._filling
+        {(1, 2): 1, (2, 1): 1, (4, 0): 1}
+        sage: G._in_labels
+        [[], [], [], [], [], [], [1], [1], [1], [1, 1], [1, 1]]
+
+        sage: labels = [[], [1],[1],[2],[2],[2,1],[2],[2,1],[1,1],[2,1],[1,1]]
+        sage: G = GrowthDiagramRSK(shape=SkewPartition([[5,4,3,2,1],[3,2,1]]), labels=labels)
+        sage: G._filling
+        {(1, 2): 1, (2, 1): 1, (4, 0): 1}
+        sage: G._in_labels
+        [[], [], [], [1], [1], [1], [1], [1], [1], [1, 1], [1, 1]]
+        """
+        assert self._backward_rule is not None, "For computing a filling, a backward rule has to be specified."
+        F = dict()
+        labels = copy(self._out_labels)
+        l = len(self._lambda)
+        for r in range(l):
+            for c in range(self._lambda[l-r-1]+r, self._mu[l-r-1]+r, -1):
+                j = l-r-1
+                i = c-r-1
+                labels[c], v = self._backward_rule(labels[c-1],
+                                                   labels[c],
+                                                   labels[c+1])
+                if v != 0:
+                    F[(i,j)] = v
+
+        self._in_labels = labels
+        self._filling = F
+
+class GrowthDiagramBinWord(GrowthDiagram):
+    def __init__(self,
+                 filling = None,
+                 shape = None,
+                 labels = None):
+        # TODO: should check that the filling is standard
+        super(GrowthDiagramBinWord, self).__init__(filling = filling,
+                                                   shape = shape,
+                                                   labels = labels,
+                                                   zero = Word([], alphabet=[0,1]),
+                                                   forward_rule=BinWord_forward,
+                                                   backward_rule=BinWord_backward)
+
+    def _shape_from_labels(self, labels):
+        def right_left(la, mu):
+            if len(la) < len(mu):
+                return 1
+            elif len(la) > len(mu):
+                return 0
+            else:
+                raise ValueError("Can only determine the shape of the growth diagram if sizes of successive words differ.")
+        return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
+
+class GrowthDiagramRSK(GrowthDiagram):
+    def __init__(self,
+                 filling = None,
+                 shape = None,
+                 labels = None):
+        if labels is not None:
+            labels = [Partition(la) for la in labels]
+        super(GrowthDiagramRSK, self).__init__(filling = filling,
+                                               shape = shape,
+                                               labels = labels,
+                                               zero = Partition([]),
+                                               forward_rule = Robinson_Schensted_Knuth_forward,
+                                               backward_rule = Robinson_Schensted_Knuth_backward)
+
+    def _shape_from_labels(self, labels):
+        def right_left(la, mu):
+            if la.size() < mu.size():
+                return 1
+            elif la.size() > mu.size():
+                return 0
+            else:
+                raise ValueError("Can only determine the shape of the growth diagram if sizes of successive partitions differ.")
+        return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
+
+class GrowthDiagramDomino(GrowthDiagram):
+    """
+    EXAMPLES:
+
+    sage: G = GrowthDiagramDomino([[1]]); G
+    1
+    sage: G._out_labels
+    [[], [2], []]
+
+    sage: G = GrowthDiagramDomino([[-1]]); G
+    -1
+    sage: G._out_labels
+    [[], [1, 1], []]
+
+
+    sage: G = GrowthDiagramDomino([[0,0,0,-1],[0,0,1,0],[-1,0,0,0],[0,1,0,0]]); G
+     0  0  0 -1
+     0  0  1  0
+    -1  0  0  0
+     0  1  0  0
+    sage: G._out_labels
+    [[], [1, 1], [3, 1], [3, 3], [3, 3, 2], [2, 2, 2], [2, 2], [1, 1], []]
+
+    """
+    def __init__(self,
+                 filling = None,
+                 shape = None,
+                 labels = None):
+        if labels is not None:
+            labels = [Partition(la) for la in labels]
+        super(GrowthDiagramDomino, self).__init__(filling = filling,
+                                                  shape = shape,
+                                                  labels = labels,
+                                                  zero = Partition([]),
+                                                  forward_rule = Domino_forward,
+                                                  backward_rule = None)
+
+    def _shape_from_labels(self, labels):
+        def right_left(la, mu):
+            if la.size() < mu.size():
+                return 1
+            elif la.size() > mu.size():
+                return 0
+            else:
+                raise ValueError("Can only determine the shape of the growth diagram if sizes of successive partitions differ.")
+        return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])

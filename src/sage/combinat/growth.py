@@ -111,10 +111,6 @@ def Robinson_Schensted_Knuth_backward(shape3, shape4, shape1):
 
     See [Kra2006]_ ``(B^1 0)-(B^1 2)``.
 
-
-
-
-
     INPUT:
 
     - ``shape3, shape4, shape1`` -- three partitions from a cell in a
@@ -228,6 +224,8 @@ def Burge_backward(shape3, shape4, shape1):
     See [Kra2006]_ ``(B^4 0)-(B^4 2)``.  There is a typo in the
     computation of carry in ``(B^4 2)``, `\rho` must be replaced by
     `\lambda`.
+
+    INPUT:
 
     - ``shape3, shape4, shape1`` -- three partitions from a cell in a
       growth diagram, labelled as::
@@ -547,7 +545,7 @@ class GrowthDiagram(SageObject):
         and skew tableaux.  This is different from Fomin's
         convention, who uses a Cartesian coordinate system.
 
-        INPUT::
+        INPUT:
 
         - `filling` is `None`, if the growth diagram should be
           determined by applying the backward rules to the `labels`

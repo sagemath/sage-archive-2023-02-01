@@ -25,8 +25,8 @@ def threejs(plot):
     lights = "[{x:0,y:0,z:10},{x:0,y:0,z:-10}]"
 
     from sage.plot.plot3d.base import flatten_list
-    geometries = plot.json_repr(plot.default_render_params())
-    geometries = flatten_list(geometries)
+    surfaces = plot.json_repr(plot.default_render_params())
+    surfaces = flatten_list(surfaces)
 
     import json
     lines, points = [], []
@@ -40,10 +40,10 @@ def threejs(plot):
             color = p._extra_kwds.get('color', 'blue')
             points.append("{{point:{}, size:{}, color:'{}'}}".format(json.dumps(p.loc), p.size, color))
 
-    if len(geometries) == 0 and len(lines) == 0 and len(points) == 0:
+    if len(surfaces) == 0 and len(lines) == 0 and len(points) == 0:
         raise ValueError('no data for this plot')
 
-    html = threejs_template().format(bounds, lights, geometries, lines, points)
+    html = threejs_template().format(lights, bounds, points, lines, surfaces)
 
     from sage.misc.temporary_file import tmp_filename
     temp_filename = tmp_filename(ext='.html')
@@ -81,8 +81,6 @@ def threejs_template():
 
 <script>
 
-    // initialize common variables
-
     var scene = new THREE.Scene();
 
     var renderer = new THREE.WebGLRenderer( {{ antialias: true }} );
@@ -90,7 +88,33 @@ def threejs_template():
     renderer.setClearColor( 0xffffff, 1 );
     document.body.appendChild( renderer.domElement ); 
 
+    var lights = {};
+    for ( var i=0 ; i < lights.length ; i++ ) {{
+        var light = new THREE.DirectionalLight( 0xdddddd, 1 );
+        light.position.set( lights[i].x, lights[i].y, lights[i].z );
+        scene.add( light );
+    }}
+
+    scene.add( new THREE.AmbientLight( 0x404040, 1 ) );
+
     var bounds = {};
+
+    var points = {};
+    for ( var i=0 ; i < points.length ; i++ ) {{
+        eval( 'var json = ' + points[i] );
+        moveBoundsOffPoint( json );
+    }}
+
+    function moveBoundsOffPoint() {{
+        var v = json.point;
+        if ( v[0] == bounds[0].x ) bounds[0].x -= 1;
+        if ( v[1] == bounds[0].y ) bounds[0].y -= 1;
+        if ( v[2] == bounds[0].z ) bounds[0].z -= 1;
+        if ( v[0] == bounds[1].x ) bounds[1].x += 1;
+        if ( v[1] == bounds[1].y ) bounds[1].y += 1;
+        if ( v[2] == bounds[1].z ) bounds[1].z += 1;
+    }}
+
     var box = new THREE.Geometry();
     box.vertices.push( new THREE.Vector3( bounds[0].x, bounds[0].y, bounds[0].z ) );
     box.vertices.push( new THREE.Vector3( bounds[1].x, bounds[1].y, bounds[1].z ) );
@@ -105,20 +129,11 @@ def threejs_template():
 
     var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 ); 
     camera.up.set( 0, 0, 1 );
-    var zoomOut = bounds[1].z - bounds[0].z;
-    camera.position.set( zoomOut, 1.3*zoomOut, .7*zoomOut );
+    var zRange = bounds[1].z - bounds[0].z;
+    camera.position.set( zRange, 1.3*zRange, .7*zRange );
     camera.lookAt( scene.position );
 
     var controls = new THREE.OrbitControls( camera, renderer.domElement );
-
-    var lights = {};
-    for ( var i=0 ; i < lights.length ; i++ ) {{
-        var light = new THREE.DirectionalLight( 0xdddddd, 1 );
-        light.position.set( lights[i].x, lights[i].y, lights[i].z );
-        scene.add( light );
-    }}
-
-    scene.add( new THREE.AmbientLight( 0x404040, 1 ) );
 
     window.addEventListener( 'resize', function() {{
         
@@ -128,57 +143,12 @@ def threejs_template():
         
     }} );
     
-    // initialize geometry and material
-
-    var geometries = {};
-    for ( var i=0 ; i < geometries.length ; i++ ) {{
-        eval( 'var json = ' + geometries[i] );
-        addGeometry( json );
-    }}
-
-    function addGeometry( json ) {{
-        var geometry = new THREE.Geometry();
-        for ( var i=0 ; i < json.vertices.length ; i++ ) {{
-            var v = json.vertices[i];
-            geometry.vertices.push( new THREE.Vector3( v.x, v.y, v.z ) );
-        }}
-        for ( var i=0 ; i < json.faces.length ; i++ ) {{
-            var f = json.faces[i]
-            for ( var j=0 ; j < f.length - 2 ; j++ ) {{
-                geometry.faces.push( new THREE.Face3( f[0], f[j+1], f[j+2] ) );
-            }}
-        }}
-        geometry.computeVertexNormals();
-        var material = new THREE.MeshPhongMaterial( {{ color: json.color , side: THREE.DoubleSide,
-                                                       shininess: 20 }} );
-        scene.add( new THREE.Mesh( geometry, material ) );
-    }}
-
-    var lines = {};
-    for ( var i=0 ; i < lines.length ; i++ ) {{
-        eval( 'var json = ' + lines[i] );
-        addLines( json );
-    }}
-
-    function addLines( json ) {{
-        var geometry = new THREE.Geometry();
-        for ( var i=0 ; i < json.points.length - 1 ; i++ ) {{
-            var v = json.points[i];
-            geometry.vertices.push( new THREE.Vector3( v[0], v[1], v[2] ) );
-            var v = json.points[i+1];
-            geometry.vertices.push( new THREE.Vector3( v[0], v[1], v[2] ) );
-        }}
-        var material = new THREE.LineBasicMaterial( {{ color: json.color }} );
-        scene.add( new THREE.LineSegments( geometry, material ) );
-    }}
-
-    var points = {};
     for ( var i=0 ; i < points.length ; i++ ) {{
         eval( 'var json = ' + points[i] );
-        addPoints( json );
+        addPoint( json );
     }}
 
-    function addPoints( json ) {{
+    function addPoint( json ) {{
         var geometry = new THREE.Geometry();
         var v = json.point;
         geometry.vertices.push( new THREE.Vector3( v[0], v[1], v[2] ) );
@@ -196,6 +166,48 @@ def threejs_template():
         scene.add( new THREE.Points( geometry, material ) );
     }}
 
+    var lines = {};
+    for ( var i=0 ; i < lines.length ; i++ ) {{
+        eval( 'var json = ' + lines[i] );
+        addLine( json );
+    }}
+
+    function addLine( json ) {{
+        var geometry = new THREE.Geometry();
+        for ( var i=0 ; i < json.points.length - 1 ; i++ ) {{
+            var v = json.points[i];
+            geometry.vertices.push( new THREE.Vector3( v[0], v[1], v[2] ) );
+            var v = json.points[i+1];
+            geometry.vertices.push( new THREE.Vector3( v[0], v[1], v[2] ) );
+        }}
+        var material = new THREE.LineBasicMaterial( {{ color: json.color }} );
+        scene.add( new THREE.LineSegments( geometry, material ) );
+    }}
+
+    var surfaces = {};
+    for ( var i=0 ; i < surfaces.length ; i++ ) {{
+        eval( 'var json = ' + surfaces[i] );
+        addSurface( json );
+    }}
+
+    function addSurface( json ) {{
+        var geometry = new THREE.Geometry();
+        for ( var i=0 ; i < json.vertices.length ; i++ ) {{
+            var v = json.vertices[i];
+            geometry.vertices.push( new THREE.Vector3( v.x, v.y, v.z ) );
+        }}
+        for ( var i=0 ; i < json.faces.length ; i++ ) {{
+            var f = json.faces[i]
+            for ( var j=0 ; j < f.length - 2 ; j++ ) {{
+                geometry.faces.push( new THREE.Face3( f[0], f[j+1], f[j+2] ) );
+            }}
+        }}
+        geometry.computeVertexNormals();
+        var material = new THREE.MeshPhongMaterial( {{ color: json.color , side: THREE.DoubleSide,
+                                                       shininess: 20 }} );
+        scene.add( new THREE.Mesh( geometry, material ) );
+    }}
+
     function render() {{
 
         requestAnimationFrame( render ); 
@@ -204,7 +216,6 @@ def threejs_template():
 
     }}
     
-    // initialize render
     render();
 
 </script>

@@ -67,7 +67,7 @@ from __future__ import division
 from six.moves import range
 
 from sage.structure.sage_object import SageObject
-from sage.matrix.constructor import matrix, vector
+from sage.matrix.constructor import matrix
 from sage.rings.number_field.number_field import QuadraticField
 from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.finite_rings.finite_field_constructor import GF
@@ -75,6 +75,7 @@ from sage.rings.integer import Integer
 from sage.arith.all import gcd, lcm, next_prime, is_prime, next_prime_power, legendre_symbol
 from sage.functions.log import log
 from sage.functions.other import sqrt
+
 
 class BinaryRecurrenceSequence(SageObject):
 

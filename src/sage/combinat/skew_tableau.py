@@ -28,7 +28,7 @@ from __future__ import print_function, absolute_import
 from builtins import zip
 
 from six.moves import range
-import copy
+
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -40,7 +40,6 @@ from sage.rings.all import Integer, QQ, ZZ
 from sage.arith.all import factorial
 from sage.rings.infinity import PlusInfinity
 from sage.matrix.all import zero_matrix
-import itertools
 
 from sage.structure.list_clone import ClonableList
 from sage.combinat.partition import Partition

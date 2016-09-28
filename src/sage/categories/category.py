@@ -1179,7 +1179,7 @@ class Category(UniqueRepresentation, SageObject):
             full subcategory of some other category (see
             :meth:`is_full_subcategory`). For example, the category of
             Coxeter groups is not full subcategory of the category of
-            groups since morphisms need to perserve the distinguished
+            groups since morphisms need to preserve the distinguished
             generators::
 
                 sage: CoxeterGroups().is_full_subcategory(Groups())

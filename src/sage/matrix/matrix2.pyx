@@ -7768,10 +7768,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
 
         -  ``row_lines`` - None, an integer, or a list of
-           integers
+           integers (lines at which self must be split).
 
         -  ``col_lines`` - None, an integer, or a list of
-           integers
+           integers (columns at which self must be split).
 
 
         OUTPUT: changes self
@@ -7809,9 +7809,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [53|59 61|67 71]
             [73|79 83|89 97]
 
-        Degenerate cases work too.
-
-        ::
+        Degenerate cases work too::
 
             sage: M.subdivide([2,5], [0,1,3]); M
             [| 2| 3  5| 7 11]
@@ -7839,6 +7837,18 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             []
             sage: M.subdivision(2,4)
             [37 41 43 47]
+        
+        Indices do not need to be in the right order (:trac:`14064`)::
+
+            sage: M.subdivide([4, 2], [3, 1]); M
+            [ 2| 3  5| 7 11]
+            [13|17 19|23 29]
+            [--+-----+-----]
+            [31|37 41|43 47]
+            [53|59 61|67 71]
+            [--+-----+-----]
+            [73|79 83|89 97]
+
 
         AUTHORS:
 
@@ -7857,11 +7867,13 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             col_lines = []
         elif not isinstance(col_lines, list):
             col_lines = [col_lines]
-        row_lines = [0] + [int(ZZ(x)) for x in row_lines] + [self._nrows]
-        col_lines = [0] + [int(ZZ(x)) for x in col_lines] + [self._ncols]
+        l_row = sorted(row_lines)
+        l_col = sorted(col_lines)
+        l_row = [0] + [int(ZZ(x)) for x in l_row] + [self._nrows]
+        l_col = [0] + [int(ZZ(x)) for x in l_col] + [self._ncols]
         if self._subdivisions is not None:
             self.clear_cache()
-        self._subdivisions = (row_lines, col_lines)
+        self._subdivisions = (l_row, l_col)
 
     def subdivision(self, i, j):
         """
@@ -11209,7 +11221,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         indefinite factorization (see :meth:`indefinite_factorization`)
         which caches its result.  This algorithm is of an order `n^3/3`.
         If the matrix is positive definite, this computation always
-        succeeds, using just field operations.  The transistion to a
+        succeeds, using just field operations.  The transition to a
         Cholesky decomposition "only" requires computing square roots
         of the positive (real) entries of the diagonal matrix produced in
         the indefinite factorization.  Hence, there is no real penalty

@@ -27,6 +27,42 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
 
+class LatticeError(ValueError):
+    """
+    Helper exception class to forward elements without meet or
+    join to upper level, so that the user will see "No meet for
+    a and b" instead of "No meet for 1 and 2".
+    """
+
+    def __init__(self, fail, x, y):
+        """
+        Initialize the exception.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import LatticeError
+            sage: error = LatticeError('join', 3, 8)
+            sage: error.x
+            3
+        """
+        ValueError.__init__(self, None)
+        self.fail = fail
+        self.x = x
+        self.y = y
+
+    def __str__(self):
+        """
+        Return string representation of the exception.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import LatticeError
+            sage: error = LatticeError('meet', 15, 18)
+            sage: error.__str__()
+            'no meet for 15 and 18'
+        """
+        return "no {} for {} and {}".format(self.fail, self.x, self.y)
+
 class HasseDiagram(DiGraph):
     """
     The Hasse diagram of a poset. This is just a transitively-reduced,
@@ -1008,13 +1044,13 @@ class HasseDiagram(DiGraph):
             sage: H.meet_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Not a meet-semilattice: no bottom element.
+            ValueError: not a meet-semilattice: no bottom element
 
             sage: H = HasseDiagram({0:[1,2],1:[3,4],2:[3,4]})
             sage: H.meet_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: No meet for x=...
+            LatticeError: no meet for ...
 
             sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
             sage: P = L.dual()
@@ -1025,7 +1061,7 @@ class HasseDiagram(DiGraph):
         if n == 0:
             return matrix(0)
         if not self.has_bottom():
-            raise ValueError("Not a meet-semilattice: no bottom element.")
+            raise ValueError("not a meet-semilattice: no bottom element")
         meet = [[0 for x in range(n)] for x in range(n)]
         lc = [self.neighbors_in(x) for x in range(n)]  # Lc = lower covers
 
@@ -1037,7 +1073,7 @@ class HasseDiagram(DiGraph):
                 q = max(T)
                 for z in T:
                     if meet[z][q] != z:
-                        raise ValueError("No meet for x=%s y=%s" % (x,y))
+                        raise LatticeError('meet', x, y)
                 meet[x][y] = q
                 meet[y][x] = q
 
@@ -1086,13 +1122,13 @@ class HasseDiagram(DiGraph):
             sage: H.meet_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Not a meet-semilattice: no bottom element.
+            ValueError: not a meet-semilattice: no bottom element
 
             sage: H = HasseDiagram({0:[1,2],1:[3,4],2:[3,4]})
             sage: H.meet_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: No meet for x=...
+            LatticeError: no meet for ...
         """
         return self._meet
 
@@ -1150,13 +1186,13 @@ class HasseDiagram(DiGraph):
             sage: H.join_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Not a join-semilattice: no top element.
+            ValueError: not a join-semilattice: no top element
 
             sage: H = HasseDiagram({0:[2,3],1:[2,3],2:[4],3:[4]})
             sage: H.join_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: No join for x=...
+            LatticeError: no join for ...
 
             sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
             sage: P = L.dual()
@@ -1167,7 +1203,7 @@ class HasseDiagram(DiGraph):
         if n == 0:
             return matrix(0)
         if not self.has_top():
-            raise ValueError("Not a join-semilattice: no top element.")
+            raise ValueError("not a join-semilattice: no top element")
         join = [[0 for x in range(n)] for x in range(n)]
         le = self.lequal_matrix()
         uc = [sorted([n-1-y for y in self.neighbors_out(x)]) for
@@ -1182,7 +1218,7 @@ class HasseDiagram(DiGraph):
                 q = max(T)
                 for z in T:
                     if not le[n-1-q, n-1-z]:
-                        raise ValueError("No join for x=%s y=%s"%(x,y))
+                        raise LatticeError('join', n-1-x, n-1-y)
                 join[x][y] = q
                 join[y][x] = q
 
@@ -1224,13 +1260,13 @@ class HasseDiagram(DiGraph):
             sage: H.join_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Not a join-semilattice: no top element.
+            ValueError: not a join-semilattice: no top element
 
             sage: H = HasseDiagram({0:[2,3],1:[2,3],2:[4],3:[4]})
             sage: H.join_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: No join for x=...
+            LatticeError: no join for ...
         """
         return self._join
 
@@ -2063,6 +2099,55 @@ class HasseDiagram(DiGraph):
         max_sublats = self.maximal_sublattices()
         return [e for e in range(self.cardinality()) if
                 all(e in ms for ms in max_sublats)]
+
+    def is_convex_subset(self, S):
+        r"""
+        Return ``True`` if `S` is a convex subset of the poset,
+        and ``False`` otherwise.
+
+        A subset `S` is *convex* in the poset if `b \in S` whenever
+        `a, c \in S` and `a \le b \le c`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: B3 = HasseDiagram({0: [1, 2, 4], 1: [3, 5], 2: [3, 6],
+            ....:                    3: [7], 4: [5, 6], 5: [7], 6: [7]})
+            sage: B3.is_convex_subset([1, 3, 5, 4])  # Also connected
+            True
+            sage: B3.is_convex_subset([1, 3, 4])  # Not connected
+            True
+
+            sage: B3.is_convex_subset([0, 1, 2, 3, 6])  # No, 0 < 4 < 6
+            False
+            sage: B3.is_convex_subset([0, 1, 2, 7])  # No, 1 < 3 < 7.
+            False
+
+        TESTS::
+
+            sage: B3.is_convex_subset([])
+            True
+            sage: B3.is_convex_subset([6])
+            True
+        """
+        if not S:  # S is empty set
+            return True
+        s_max = max(S)
+        ok = set()  # Already checked elements not less than any element is S.
+
+        for a in S:
+            for b in self.neighbor_out_iterator(a):
+                if b >= s_max or b in S:
+                    continue
+                # Now b not in S, b > a and a in S.
+                neighbors = lambda v_: [v for v in self.neighbor_out_iterator(v_)
+                                        if v <= s_max and v not in ok]
+                for c in self.depth_first_search(b, neighbors=neighbors):
+                    if c in S:  # Now c in S, b not in S, a in S, a < b < c.
+                        return False
+                    ok.add(c)  # Do not re-check this for being our b.
+
+        return True
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))

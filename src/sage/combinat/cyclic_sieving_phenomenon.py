@@ -17,12 +17,11 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from copy import copy
 from sage.rings.all import ZZ, QQ
 from sage.arith.all import lcm
 
-def CyclicSievingPolynomial( L, cyc_act=None, order=None, get_order=False):
+
+def CyclicSievingPolynomial(L, cyc_act=None, order=None, get_order=False):
     """
     Returns the unique polynomial p of degree smaller than order such that the triple
     ( L, cyc_act, p ) exhibits the CSP. If ``cyc_act`` is None, ``L`` is expected to contain the orbit lengths.

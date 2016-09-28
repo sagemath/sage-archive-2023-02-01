@@ -89,6 +89,7 @@ List of (semi)lattice methods
 
     :meth:`~FiniteLatticePoset.moebius_algebra` | Return the Möbius algebra of the lattice.
     :meth:`~FiniteLatticePoset.quantum_moebius_algebra` | Return the quantum Möbius algebra of the lattice.
+    :meth:`~FiniteLatticePoset.day_doubling` | Return the lattice with Alan Day's doubling construction of a subset.
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
@@ -2199,6 +2200,88 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         from sage.combinat.posets.moebius_algebra import QuantumMoebiusAlgebra
         return QuantumMoebiusAlgebra(self, q)
+
+    def day_doubling(self, S):
+        r"""
+        Return the lattice with Alan Day's doubling construction of subset `S`.
+
+        The subset `S` is assumed to be convex and connected.
+
+        .. image:: ../../../media/day-doubling.png
+
+        Alan Day's doubling construction is a specific extension of
+        the lattice. Here we formulate it in a format more suitable
+        for computation.
+
+        Let `L` be a lattice and `S` a convex subset of it. Resulting lattice
+        `L[S]` has elements `(e, 1)` and `(e, 2)` for each `e \in S`, and
+        `(e, 0)` for each `e \in L \setminus S`. If `x \le y` in `L`, then in
+        the new lattice we have
+
+        * `(x, 0) \le (y, 0), (y, 1), (y, 2)`
+        * `(x, 1) \le (y, 1)` and `(x, 2) \le (y, 2)`
+        * `(x, 1) \le (x, 2)`
+        * `(x, 1), (x, 2) \le (y, 0)`
+
+        INPUT:
+
+        - ``S`` -- a subset of the lattice
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: ['a', 'b', 2], 'a': ['c'], 'b': ['c', 'd'],
+            ....:                   2: [3], 'c': [4], 'd': [4], 3: [4]})
+            sage: L2 = L.day_doubling(['a', 'b', 'c', 'd']); L2
+            Finite lattice containing 12 elements
+            sage: L2.upper_covers((1, 0))
+            [(2, 0), ('a', 1), ('b', 1)]
+            sage: L2.upper_covers(('b', 1))
+            [('d', 1), ('b', 2), ('c', 1)]
+
+        TESTS::
+
+            sage: L2._hasse_diagram.is_isomorphic(DiGraph('KSCH??_BO?g?_?@?G?@?A?@??'))
+            True
+
+            sage: L = LatticePoset({'a': ['b']})
+            sage: L.day_doubling([]).list()
+            [('a', 0), ('b', 0)]
+            sage: L.day_doubling(['a', 'b']).list()
+            [('a', 1), ('a', 2), ('b', 1), ('b', 2)]
+        """
+        # Rationale for naming of elements: a lattice can have
+        # elements 1, (1, 1), (1, (1, 1)) and so on. We can't just
+        # make a copy of S with elements (s, 1).
+
+        # The construction could be defined for any convex
+        # subset S, but we assume that the user made an error
+        # if S is not also connected.
+
+        from sage.misc.misc import uniq
+        S = uniq(S)
+        S_ = [self._element_to_vertex(e) for e in S]
+        if not self._hasse_diagram.is_convex_subset(S_):
+            raise ValueError("subset S is not convex")
+        if not self._hasse_diagram.subgraph(S_).is_connected():
+            raise ValueError("subset S is not connected")
+
+        g = self.hasse_diagram()
+        g.relabel(lambda e: (e, 0))
+
+        for e in S:
+            g.delete_vertex((e, 0))
+            g.add_edge((e, 1), (e, 2))
+            for e_up in self.upper_covers(e):
+                if e_up in S:
+                    g.add_edge((e, 1), (e_up, 1))
+                    g.add_edge((e, 2), (e_up, 2))
+                else:
+                    g.add_edge((e, 2), (e_up, 0))
+            for e_down in self.lower_covers(e):
+                if e_down not in S:
+                    g.add_edge((e_down, 0), (e, 1))
+
+        return LatticePoset(g)
 
     def is_dismantlable(self, certificate=False):
         r"""

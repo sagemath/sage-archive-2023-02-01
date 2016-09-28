@@ -18,29 +18,29 @@ def threejs(plot):
     if not isinstance(plot, Graphics3d):
         raise TypeError('input plot must be an instance of Graphics3d')
 
+    lights = "[{x:0,y:0,z:10},{x:0,y:0,z:-10}]"
+
     b = plot.bounding_box()
     bounds = "[{{x:{},y:{},z:{}}},{{x:{},y:{},z:{}}}]".format(
              b[0][0],b[0][1],b[0][2],b[1][0],b[1][1],b[1][2])
 
-    lights = "[{x:0,y:0,z:10},{x:0,y:0,z:-10}]"
+    import json
+    points, lines = [], []
+    if not hasattr(plot, 'all'):
+        plot += Graphics3d()
+    for p in plot.all:
+        if hasattr(p, 'loc'):
+            color = p._extra_kwds.get('color', 'blue')
+            points.append("{{point:{}, size:{}, color:'{}'}}".format(json.dumps(p.loc), p.size, color))
+        if hasattr(p, 'points'):
+            color = p._extra_kwds.get('color', 'blue')
+            lines.append("{{points:{}, color:'{}'}}".format(json.dumps(p.points), color))
 
     from sage.plot.plot3d.base import flatten_list
     surfaces = plot.json_repr(plot.default_render_params())
     surfaces = flatten_list(surfaces)
 
-    import json
-    lines, points = [], []
-    if not hasattr(plot, 'all'):
-        plot += Graphics3d()
-    for p in plot.all:
-        if hasattr(p, 'points'):
-            color = p._extra_kwds.get('color', 'blue')
-            lines.append("{{points:{}, color:'{}'}}".format(json.dumps(p.points), color))
-        if hasattr(p, 'loc'):
-            color = p._extra_kwds.get('color', 'blue')
-            points.append("{{point:{}, size:{}, color:'{}'}}".format(json.dumps(p.loc), p.size, color))
-
-    if len(surfaces) == 0 and len(lines) == 0 and len(points) == 0:
+    if len(points) == 0 and len(lines) == 0 and len(surfaces) == 0:
         raise ValueError('no data for this plot')
 
     html = threejs_template().format(lights, bounds, points, lines, surfaces)

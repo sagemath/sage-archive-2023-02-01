@@ -57,15 +57,15 @@ mkdir -p "$logdir"
 if [[ "$V" = 0 && $use_prefix = true ]]; then
     # Silent build.
     # Similar to https://www.gnu.org/software/automake/manual/html_node/Automake-Silent-Rules.html#Automake-Silent-Rules
-    echo "Running '$cmd', output appears in $logfile..."
+    echo "[$logname] installing. Log file: $logfile"
     # Use verbose mode for output to logfiles.
     export V=1
     ( exec> $logfile 2>&1 ; eval "$cmd" )
     status=$?
     if [[ $status != 0 ]]; then
-	echo "Running '$cmd', output appears in $logfile... exit status $status"
+	echo "  [$logname] error installing, exit status $status. Log file: $logfile"
     else
-	echo "Running '$cmd', output appears in $logfile... done"
+	echo "  [$logname] successfully installed."
     fi
     exit $status
 else

@@ -1852,22 +1852,29 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def level_sets(self):
         """
-        Return a list ``l`` such that ``l[i]`` is the set of minimal
-        elements of the poset obtained from ``self`` by removing the
+        Return elements grouped by maximal number of cover relations
+        from a minimal element.
+
+        This returns a list of lists ``l`` such that ``l[i]`` is the
+        set of minimal elements of the poset obtained by removing the
         elements in ``l[0], l[1], ..., l[i-1]``. (In particular,
         ``l[0]`` is the set of minimal elements of ``self``.)
+
+        Every level is an antichain of the poset.
+
+        .. SEEALSO::
+
+            :meth:`dilworth_decomposition` -- Return elements grouped to chains.
 
         EXAMPLES::
 
             sage: P = Poset({0:[1,2],1:[3],2:[3],3:[]})
-            sage: [len(x) for x in P.level_sets()]
-            [1, 2, 1]
-
-        ::
+            sage: P.level_sets()
+            [[0], [1, 2], [3]]
 
             sage: Q = Poset({0:[1,2], 1:[3], 2:[4], 3:[4]})
-            sage: [len(x) for x in Q.level_sets()]
-            [1, 2, 1, 1]
+            sage: Q.level_sets()
+            [[0], [1, 2], [3], [4]]
         """
         return [[self._vertex_to_element(_) for _ in level] for level in
                 self._hasse_diagram.level_sets()]
@@ -3850,7 +3857,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            :meth:`width` -- return the width of the poset.
+            :meth:`level_sets` -- Return elements grouped to antichains.
 
         ALGORITHM:
 
@@ -4821,7 +4828,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def with_linear_extension(self, linear_extension):
         """
-        Return a copy of ``self`` with a different default linear extension.
+        Return a copy of the poset` with a different default linear extension.
 
         EXAMPLES::
 
@@ -4865,10 +4872,35 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         new_vertices = [self._element_to_vertex(element) for element in linear_extension]
         vertex_relabeling = dict(zip(new_vertices, linear_extension))
-        return FinitePoset(self._hasse_diagram.relabel(vertex_relabeling, inplace=False),
+        constructor = self._self_constructor()
+        return constructor(self._hasse_diagram.relabel(vertex_relabeling, inplace=False),
                            elements=linear_extension,
                            category=self.category(),
                            facade=self._is_facade)
+
+    def _self_constructor(self):
+        """
+        Return a constructor for this subtype of poset.
+
+        EXAMPLES::
+
+            sage: P = Poset(); Pmaker = P._self_constructor()
+            sage: L = LatticePoset(); Lmaker = L._self_constructor()
+            sage: D = DiGraph({0: [1]})
+            sage: Pmaker(D, category=P.category())
+            Finite poset containing 2 elements
+            sage: Lmaker(D, category=L.category())
+            Finite lattice containing 2 elements
+        """
+        from sage.combinat.posets.lattices import FiniteLatticePoset, \
+             FiniteMeetSemilattice, FiniteJoinSemilattice
+        if isinstance(self, FiniteLatticePoset):
+            return FiniteLatticePoset
+        if isinstance(self, FiniteMeetSemilattice):
+            return FiniteMeetSemilattice
+        if isinstance(self, FiniteJoinSemilattice):
+            return FiniteJoinSemilattice
+        return FinitePoset
 
     def graphviz_string(self,graph_string="graph",edge_string="--"):
         r"""

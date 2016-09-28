@@ -2304,7 +2304,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         ::
 
-            sage: A = matrix(QQ, 2, 3, range(6))
+            sage: A = matrix(QQ, 2, 3, xrange(6))
             sage: type(A)
             <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
             sage: B = A.transpose()

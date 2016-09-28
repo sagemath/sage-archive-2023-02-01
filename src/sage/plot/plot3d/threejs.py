@@ -115,22 +115,31 @@ def threejs_template():
         if ( v[2] == bounds[1].z ) bounds[1].z += 1;
     }}
 
+    var rRange = Math.sqrt( Math.pow( bounds[1].x - bounds[0].x, 2 )
+                            + Math.pow( bounds[1].x - bounds[0].x, 2 ) );
+    var zRange = bounds[1].z - bounds[0].z;
+
+    var a = [ 1, 1, 1 ]; // aspect multipliers
+    var autoAspect = 2.5;
+    if ( zRange > autoAspect * rRange ) a[2] = autoAspect * rRange / zRange; 
+
     var box = new THREE.Geometry();
-    box.vertices.push( new THREE.Vector3( bounds[0].x, bounds[0].y, bounds[0].z ) );
-    box.vertices.push( new THREE.Vector3( bounds[1].x, bounds[1].y, bounds[1].z ) );
+    box.vertices.push( new THREE.Vector3( bounds[0].x, bounds[0].y, a[2]*bounds[0].z ) );
+    box.vertices.push( new THREE.Vector3( bounds[1].x, bounds[1].y, a[2]*bounds[1].z ) );
     var boxMesh = new THREE.LineSegments( box );
     scene.add( new THREE.BoxHelper( boxMesh, 'black' ) );
 
     scene.position.set( -( bounds[0].x + bounds[1].x ) / 2,
                         -( bounds[0].y + bounds[1].y ) / 2,
-                        -( bounds[0].z + bounds[1].z ) / 2 )
+                        -a[2]*( bounds[0].z + bounds[1].z ) / 2 )
 
-    scene.add( new THREE.AxisHelper( Math.min( [ bounds[1].x, bounds[1].y, bounds[1].z ] ) ) );
+    // optional axis helper 
+    //scene.add( new THREE.AxisHelper( Math.min( [ bounds[1].x, bounds[1].y, a[2]*bounds[1].z ] ) ) );
 
     var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 ); 
     camera.up.set( 0, 0, 1 );
-    var zRange = bounds[1].z - bounds[0].z;
-    camera.position.set( zRange, 1.3*zRange, .7*zRange );
+    var cameraOut = a[2]*zRange;
+    camera.position.set( cameraOut, 1.3*cameraOut, .7*cameraOut );
     camera.lookAt( scene.position );
 
     var controls = new THREE.OrbitControls( camera, renderer.domElement );
@@ -151,7 +160,7 @@ def threejs_template():
     function addPoint( json ) {{
         var geometry = new THREE.Geometry();
         var v = json.point;
-        geometry.vertices.push( new THREE.Vector3( v[0], v[1], v[2] ) );
+        geometry.vertices.push( new THREE.Vector3( v[0], v[1], a[2]*v[2] ) );
         var canvas = document.createElement( 'canvas' );
         canvas.width = 128;
         canvas.height = 128;
@@ -176,9 +185,9 @@ def threejs_template():
         var geometry = new THREE.Geometry();
         for ( var i=0 ; i < json.points.length - 1 ; i++ ) {{
             var v = json.points[i];
-            geometry.vertices.push( new THREE.Vector3( v[0], v[1], v[2] ) );
+            geometry.vertices.push( new THREE.Vector3( v[0], v[1], a[2]*v[2] ) );
             var v = json.points[i+1];
-            geometry.vertices.push( new THREE.Vector3( v[0], v[1], v[2] ) );
+            geometry.vertices.push( new THREE.Vector3( v[0], v[1], a[2]*v[2] ) );
         }}
         var material = new THREE.LineBasicMaterial( {{ color: json.color }} );
         scene.add( new THREE.LineSegments( geometry, material ) );
@@ -194,7 +203,7 @@ def threejs_template():
         var geometry = new THREE.Geometry();
         for ( var i=0 ; i < json.vertices.length ; i++ ) {{
             var v = json.vertices[i];
-            geometry.vertices.push( new THREE.Vector3( v.x, v.y, v.z ) );
+            geometry.vertices.push( new THREE.Vector3( v.x, v.y, a[2]*v.z ) );
         }}
         for ( var i=0 ; i < json.faces.length ; i++ ) {{
             var f = json.faces[i]

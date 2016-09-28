@@ -10,6 +10,7 @@ AUTHORS:
     - when shape is given, check that it is compatible with filling or labels
     - implement domino insertion
     - implement Young-Fibonacci
+    - make semistandard extension generic
 
 Growth diagrams, invented by Sergey Fomin [Fom1995]_, provide a vast
 generalisation of the Robinson-Schensted-Knuth correspondence between
@@ -153,7 +154,6 @@ REFERENCES:
    https://www.lri.fr/~hivert/PAPER/commCombHopfAlg.pdf
 """
 from sage.structure.sage_object import SageObject
-from sage.misc.abstract_method import abstract_method
 from sage.combinat.words.word import Word
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.skew_partition import SkewPartition
@@ -232,21 +232,26 @@ class GrowthDiagram(SageObject):
             self._check_labels(self._in_labels)
             self._grow()
 
-    @abstract_method
     def _shape_from_labels(self, labels):
         r"""
         Determine the shape of the growth diagram given a list of labels
         during initialisation.
 
-        This has to be implemented in the subclass, because it
-        depends on the underlying graded graphs.
-
         The shape can be determined from the labels if the size of
         each label differs from the size of its successor.
 
+        Assumes that ``self._rank_function`` is set.
+
         Otherwise raise an error.
         """
-        pass
+        def right_left(la, mu):
+            if self._rank_function(la) < self._rank_function(mu):
+                return 1
+            elif self._rank_function(la) > self._rank_function(mu):
+                return 0
+            else:
+                raise ValueError("Can only determine the shape of the growth diagram if sizes of successive partitions differ.")
+        return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
 
     def conjugate(self):
         r"""
@@ -812,20 +817,10 @@ class GrowthDiagramBinWord(GrowthDiagram):
                  labels = None):
         # TODO: should check that the filling is standard
         self._zero = Word([], alphabet=[0,1])
+        self._rank_function = lambda w: len(w)
         super(GrowthDiagramBinWord, self).__init__(filling = filling,
                                                    shape = shape,
                                                    labels = labels)
-
-    def _shape_from_labels(self, labels):
-        def right_left(la, mu):
-            if len(la) < len(mu):
-                return 1
-            elif len(la) > len(mu):
-                return 0
-            else:
-                raise ValueError("Can only determine the shape of the growth diagram if sizes of successive words differ.")
-        return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
-
 
     def _forward_rule(self, shape3, shape2, shape1, content):
         r"""
@@ -950,19 +945,10 @@ class GrowthDiagramOnPartitions(GrowthDiagram):
         if labels is not None:
             labels = [Partition(la) for la in labels]
         self._zero = Partition([])
+        self._rank_function = lambda p: p.size()
         super(GrowthDiagramOnPartitions, self).__init__(filling = filling,
                                                         shape = shape,
                                                         labels = labels)
-
-    def _shape_from_labels(self, labels):
-        def right_left(la, mu):
-            if la.size() < mu.size():
-                return 1
-            elif la.size() > mu.size():
-                return 0
-            else:
-                raise ValueError("Can only determine the shape of the growth diagram if sizes of successive partitions differ.")
-        return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
 
     def P_symbol(self):
         r"""

@@ -29,9 +29,9 @@ def retry(func, exc=Exception, tries=3, delay=1):
     doubles after each retry.
     """
 
-    while tries > 0:
+    while True:
         try:
-            func()
+            return func()
         except exc:
             tries -= 1
             if tries == 0:
@@ -39,5 +39,3 @@ def retry(func, exc=Exception, tries=3, delay=1):
 
             time.sleep(delay)
             delay *= 2
-        else:
-            break

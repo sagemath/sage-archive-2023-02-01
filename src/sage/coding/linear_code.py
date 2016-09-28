@@ -2780,9 +2780,9 @@ class AbstractLinearCode(Module):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(10, 5, GF(3))
+            sage: C = codes.HammingCode(GF(2), 3)
             sage: C.rate()
-            1/2
+            4/7
         """
         return self.dimension() / self.length()
 

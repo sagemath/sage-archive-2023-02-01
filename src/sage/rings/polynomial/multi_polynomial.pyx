@@ -1840,7 +1840,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
         The algorithm is from Stoll and Cremona's "On the Reduction Theory of Binary Forms" [SC]_.
         This takes a two variable homogenous polynomial and finds a reduced form. This is a
-        `SL(Z)`-equivalent binary form whose covariant in the upper half plane is in the fundamental
+        `SL(2,\ZZ)`-equivalent binary form whose covariant in the upper half plane is in the fundamental
         domain. This should also minimize the sum of the squares of the coefficients,
         but this is not always the case.
 
@@ -1859,9 +1859,9 @@ cdef class MPolynomial(CommutativeRingElement):
 
         INPUT:
 
-        -``prec`` --  integer, sets the precision (default:300)
+        - ``prec`` --  integer, sets the precision (default:300)
 
-        - ``return_conjugation`` -- boolean. Returns element of `SL(2, ZZ)` (default:True)
+        - ``return_conjugation`` -- boolean. Returns element of `SL(2, \ZZ)` (default:True)
 
         - ``error_limit`` -- sets the error tolerence (default:0.000001)
 
@@ -1869,7 +1869,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
             - a polynomial (reduced binary form)
 
-            - a matrix (element of `SL(2, ZZ)`)
+            - a matrix (element of `SL(2, \ZZ)`)
 
         TODO: When Newton's Method doesn't converge to a root in the upper half plane.
             Now we just return z0. It would be better to modify and find the unique root
@@ -1997,7 +1997,7 @@ cdef class MPolynomial(CommutativeRingElement):
         R = self.parent()
         S = PolynomialRing(R.base_ring(),'z')
         phi = R.hom([S.gen(0), 1], S)# dehomogenization
-        F = S(phi(self)/gcd(phi(self), phi(self).derivative())) # removes multiple roots
+        F = phi(self).quo_rem(gcd(phi(self), phi(self).derivative()))[0] # removes multiple roots
         roots = F.roots(ring=CF, multiplicities=False)
 
         #finding quadratic Q_0, gives us our convariant, z_0
@@ -2086,7 +2086,7 @@ cdef class MPolynomial(CommutativeRingElement):
                     NJinv = matrix(CF,2,2,[CF(zw.numerator()/zw.denominator()) for zw in NJinv.list()])
                 w = z
                 v0 = v0 - NJinv*G.subs({u:v0[0], t:v0[1]})
-                z = v0[1].coefficients()[0] + v0[0].coefficients()[0]*CF.gen(0)
+                z = v0[1].constant_coefficient() + v0[0].constant_coefficient()*CF.gen(0)
                 err = z.diameter() # precision
                 zz = (w - z).abs() #difference in w and z
             else:

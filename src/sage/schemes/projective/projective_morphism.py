@@ -3520,14 +3520,13 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         r"""
         Returns reduced form of this projective morphism.
 
-        The reduced form is the `SL(2, ZZ)` equivalent morphism obtained by applying
+        The reduced form is the `SL(2, \ZZ)` equivalent morphism obtained by applying
         the binary form reduction algorithm from Stoll and Cremona [SC]_
         to the homogeneous polynomial defining the periodic points (the dynatomic polynomial).
         The smallest period `n` with enough periodic points is used.
 
         This should also minimize the sum of the squares of the coefficients,
-        but this is not always the case. See :meth:`sage.rings.polynomials.reduced_form`
-        for details.
+        but this is not always the case.
 
         See :meth:`sage.rings.polynomial.multi_polynomial.reduced_form` for the information
         on binary form reduction.
@@ -3538,7 +3537,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``prec`` -- integer, desired precision (default: 300)
 
-        - ``return_conjuagtion`` -- A Boolean. Returns element of `SL(2, ZZ)`. (default: True)
+        - ``return_conjuagtion`` -- A Boolean. Returns element of `SL(2, \ZZ)`. (default: True)
 
         - ``error_limit`` -- sets the error tolerence (default:0.000001)
 
@@ -3588,6 +3587,21 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         ::
 
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: H=End(P)
+            sage: f=H([x^3,y^3])
+            sage: f.reduced_form()
+            (
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+            Defn: Defined on coordinates by sending (x : y) to
+            (x^3 : y^3)                                                       ,
+            <BLANKLINE>
+            [-1  0]
+            [ 0 -1]
+            )
+
+        ::
+
             sage: PS.<X,Y> = ProjectiveSpace(QQ,1)
             sage: H = End(PS)
             sage: f = H([7365*X^4 + 12564*X^3*Y + 8046*X^2*Y^2 + 2292*X*Y^3 + 245*Y^4,\
@@ -3609,13 +3623,13 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         R = self.coordinate_ring()
         F = R(self.dynatomic_polynomial(1))
         x,y = R.gens()
-        F2 = R(F/gcd(F, F.derivative(x))) #removes multiple roots
+        F2 = F.quo_rem(gcd(F, F.derivative(x)))[0] #removes multiple roots
         n = 2
         # Checks to make sure there are enough distinct, roots we need 3
         # if there are not if finds the nth periodic points until there are enough
         while F2.degree() <= 2:
             F = self.dynatomic_polynomial(n) # finds n periodic points
-            F2 = R(F/gcd(F, F.derivative(x))) #removes multiple roots
+            F2 = F.quo_rem(gcd(F, F.derivative(x)))[0] #removes multiple roots
             n += 1
         G,m = F.reduced_form(prec=prec, return_conjugation=return_conjugation)
         if return_conjugation:

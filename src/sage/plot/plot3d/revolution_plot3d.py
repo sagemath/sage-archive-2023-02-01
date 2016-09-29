@@ -69,7 +69,7 @@ def revolution_plot3d(curve,trange,phirange=None,parallel_axis='z',axis=(0,0),pr
     .. PLOT::
 
         u = var('u')
-        f = u ** 2
+        f = u**2
         P = revolution_plot3d(f, (u,0,2), show_curve=True, opacity=0.7).plot()
         sphinx_plot(P)
 
@@ -80,7 +80,7 @@ def revolution_plot3d(curve,trange,phirange=None,parallel_axis='z',axis=(0,0),pr
     .. PLOT::
 
         u = var('u')
-        f = u ** 2
+        f = u**2
         P = revolution_plot3d(f, (u,0,2), axis=(1,0.2), show_curve=True, opacity=0.5).plot()
         sphinx_plot(P)
 
@@ -88,15 +88,15 @@ def revolution_plot3d(curve,trange,phirange=None,parallel_axis='z',axis=(0,0),pr
 
         sage: line = u
         sage: parabola = u^2
-        sage: sur1=revolution_plot3d(line, (u,0,1), opacity=0.5, rgbcolor=(1,0.5,0), show_curve=True, parallel_axis='x')
-        sage: sur2=revolution_plot3d(parabola, (u,0,1), opacity=0.5, rgbcolor=(0,1,0), show_curve=True, parallel_axis='x')
+        sage: sur1 = revolution_plot3d(line, (u,0,1), opacity=0.5, rgbcolor=(1,0.5,0), show_curve=True, parallel_axis='x')
+        sage: sur2 = revolution_plot3d(parabola, (u,0,1), opacity=0.5, rgbcolor=(0,1,0), show_curve=True, parallel_axis='x')
         sage: (sur1+sur2).show()
 
     .. PLOT::
 
         u = var('u')
         line = u
-        parabola=u ** 2
+        parabola = u**2
         sur1 = revolution_plot3d(line, (u,0,1), opacity=0.5, rgbcolor=(1,0.5,0), show_curve=True, parallel_axis='x')
         sur2 = revolution_plot3d(parabola, (u,0,1), opacity=0.5, rgbcolor=(0,1,0), show_curve=True, parallel_axis='x')
         P = sur1 + sur2
@@ -155,13 +155,13 @@ def revolution_plot3d(curve,trange,phirange=None,parallel_axis='z',axis=(0,0),pr
     A curvy curve with only a quarter turn::
 
         sage: u = var('u')
-        sage: curve=(sin(3*u),.8*cos(4*u), cos(u))
+        sage: curve = (sin(3*u), .8*cos(4*u), cos(u))
         sage: revolution_plot3d(curve, (u,0,pi), (0,pi/2), show_curve=True, parallel_axis='z', opacity=0.5).show(aspect_ratio=(1,1,1),frame=False)
 
     .. PLOT::
 
         u = var('u')
-        curve = (sin(3*u),.8*cos(4*u), cos(u))
+        curve = (sin(3*u), .8*cos(4*u), cos(u))
         P = revolution_plot3d(curve, (u,0,pi), (0,pi/2), show_curve=True, parallel_axis='z', opacity=0.5)
         sphinx_plot(P)
 

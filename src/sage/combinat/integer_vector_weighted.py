@@ -212,7 +212,7 @@ class WeightedIntegerVectors(Parent, UniqueRepresentation):
 
             sage: ivw = [ WeightedIntegerVectors(k, [1,1,1]) for k in range(11) ]
             sage: iv  = [ IntegerVectors(k, 3) for k in range(11) ]
-            sage: all(sorted(iv[k].list()) == sorted(ivw[k].list()) for k in range(11))
+            sage: all(sorted(map(list, iv[k])) == sorted(map(list, ivw[k])) for k in range(11))
             True
 
         ::

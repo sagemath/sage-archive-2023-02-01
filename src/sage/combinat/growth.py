@@ -500,6 +500,17 @@ class GrowthDiagram(SageObject):
                                    for j in range(self._lambda[r]-self._mu[r])]
                                   for r in range(len(self._lambda))][::-1]])._repr_diagram()
 
+    def _half_perimeter(self):
+        r"""
+        Return half the perimeter of the shape of the growth diagram.
+
+        Assumes that ``self._lambda`` is already set.
+        """
+        if len(self._lambda) == 0:
+            return 1
+        else:
+            return self._lambda[0]+len(self._lambda)+1
+
     def _check_labels(self, labels):
         r"""
         Check sanity of the parameter ``labels``.
@@ -512,16 +523,20 @@ class GrowthDiagram(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: the number of labels is 2, but for this shape we need 3.
+
+            sage: GrowthDiagramRSK(labels=[[], [1], [2], [2,1]])                # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of labels is 4, but for this shape we need 1.
+
+        .. TODO::
+
+            Can we do something more sensible when the chain of labels is strictly increasing?
         """
-        if len(self._lambda) == 0:
-            len_labels = 1
-        else:
-            len_labels = self._lambda[0]+len(self._lambda)+1
-
-        if len(labels) != len_labels:
+        half_perimeter = self._half_perimeter()
+        if len(labels) != half_perimeter:
             raise ValueError("the number of labels is %s, but for this shape we need %s."
-                             %(len(labels), self._lambda[0]+len(self._lambda)+1))
-
+                             %(len(labels), half_perimeter))
 
     def _init_labels_forward_from_various_input(self, labels):
         r"""
@@ -550,12 +565,7 @@ class GrowthDiagram(SageObject):
 
         """
         if labels is None:
-            if len(self._lambda) == 0:
-                len_labels = 1
-            else:
-                len_labels = self._lambda[0]+len(self._lambda)+1
-
-            return [self._zero for i in range(len_labels)]
+            return [self._zero for i in range(self._half_perimeter())]
         else:
             return labels
 
@@ -1406,7 +1416,6 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
         3  3     4  4
 
     .. automethod:: _forward_rule
-    .. automethod:: _backward_rule
     """
     @staticmethod
     def _forward_rule(shape3, shape2, shape1, content):
@@ -1447,6 +1456,7 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
             [2, 2]
 
         Rule 3::
+
             sage: G._forward_rule([1,1], [1,1], [2,2], 0)
             [2, 2]
 

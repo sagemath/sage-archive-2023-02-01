@@ -418,7 +418,6 @@ class RationalTorsionSubgroup(FiniteSubgroup):
 
         EXAMPLES::
 
-            sage: from sage_modabvar import J0, J1
             sage: J = J1(11); J
             Abelian variety J1(11) of dimension 1
             sage: J.rational_torsion_subgroup().multiple_of_order()
@@ -556,7 +555,6 @@ class RationalTorsionSubgroup(FiniteSubgroup):
         This function is not implemented for general congruence subgroups
         unless the dimension is zero. ::
 
-            sage: from sage_modabvar import JH
             sage: A = JH(13,[2]); A
             Abelian variety J0(13) of dimension 0
             sage: A.rational_torsion_subgroup().multiple_of_order_using_frobp()

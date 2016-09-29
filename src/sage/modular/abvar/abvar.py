@@ -2223,7 +2223,6 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         EXAMPLES::
 
-            sage: from sage_modabvar import J0, J1
             sage: J0(23).number_of_rational_points()
             11
             sage: J0(29).number_of_rational_points()

@@ -99,6 +99,19 @@ def threejs_template():
 
     var b = {}; // bounds
 
+    if ( b[0].x == b[1].x ) {{
+        b[0].x -= 1;
+        b[1].x += 1;
+    }}
+    if ( b[0].y == b[1].y ) {{
+        b[0].y -= 1;
+        b[1].y += 1;
+    }}
+    if ( b[0].z == b[1].z ) {{
+        b[0].z -= 1;
+        b[1].z += 1;
+    }}
+
     var points = {};
     for ( var i=0 ; i < points.length ; i++ ) {{
         eval( 'var json = ' + points[i] );

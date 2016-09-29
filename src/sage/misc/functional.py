@@ -1321,26 +1321,6 @@ def objgen(x):
     """
     return x.objgen()
 
-def one(R):
-    """
-    Returns the one element of the ring R.
-
-    EXAMPLES::
-
-        sage: one(RR)
-        doctest:...: DeprecationWarning: one(R) is deprecated, use R.one() or R(1) instead
-        See http://trac.sagemath.org/17158 for details.
-        1.00000000000000
-        sage: R.<x> = PolynomialRing(QQ)
-        sage: one(R)*x == x
-        True
-        sage: one(R) in R
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(17158, 'one(R) is deprecated, use R.one() or R(1) instead')
-    return R(1)
-
 def order(x):
     """
     Returns the order of x. If x is a ring or module element, this is
@@ -1554,24 +1534,3 @@ def transpose(x):
         [3 6 9]
     """
     return x.transpose()
-
-
-def zero(R):
-    """
-    Returns the zero element of the ring R.
-
-    EXAMPLES::
-
-        sage: zero(RR)
-        doctest:...: DeprecationWarning: zero(R) is deprecated, use R.zero() or R(0) instead
-        See http://trac.sagemath.org/17158 for details.
-        0.000000000000000
-        sage: R.<x> = PolynomialRing(QQ)
-        sage: zero(R) in R
-        True
-        sage: zero(R)*x == zero(R)
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(17158, 'zero(R) is deprecated, use R.zero() or R(0) instead')
-    return R(0)

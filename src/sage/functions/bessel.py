@@ -336,6 +336,8 @@ class Function_Bessel_J(BuiltinFunction):
 
             sage: sage.functions.bessel.Function_Bessel_J()
             bessel_J
+            sage: bessel_J(x, x)._sympy_()
+            besselj(x, x)
         """
         BuiltinFunction.__init__(self, "bessel_J", nargs=2,
                                  conversions=dict(mathematica='BesselJ',
@@ -549,6 +551,8 @@ class Function_Bessel_Y(BuiltinFunction):
 
             sage: sage.functions.bessel.Function_Bessel_Y()(0, x)
             bessel_Y(0, x)
+            sage: bessel_Y(x, x)._sympy_()
+            bessely(x, x)
         """
         BuiltinFunction.__init__(self, "bessel_Y", nargs=2,
                                  conversions=dict(mathematica='BesselY',
@@ -746,6 +750,8 @@ class Function_Bessel_I(BuiltinFunction):
 
             sage: bessel_I(1,x)
             bessel_I(1, x)
+            sage: bessel_I(x, x)._sympy_()
+            besseli(x, x)
         """
         BuiltinFunction.__init__(self, "bessel_I", nargs=2,
                                  conversions=dict(mathematica='BesselI',
@@ -943,6 +949,8 @@ class Function_Bessel_K(BuiltinFunction):
 
             sage: sage.functions.bessel.Function_Bessel_K()
             bessel_K
+            sage: bessel_K(x, x)._sympy_()
+            besselk(x, x)
         """
         BuiltinFunction.__init__(self, "bessel_K", nargs=2,
                                  conversions=dict(mathematica='BesselK',
@@ -1234,8 +1242,7 @@ class Function_Struve_H(BuiltinFunction):
         BuiltinFunction.__init__(self, 'struve_H', nargs=2,
                                  conversions=dict(maple='StruveH',
                                                   mathematica='StruveH',
-                                                  maxima='struve_h',
-                                                  sympy='struveh'))
+                                                  maxima='struve_h'))
 
     def _eval_(self, a, z):
         """
@@ -1348,8 +1355,7 @@ class Function_Struve_L(BuiltinFunction):
         BuiltinFunction.__init__(self, 'struve_L', nargs=2,
                                  conversions=dict(maple='StruveL',
                                                   mathematica='StruveL',
-                                                  maxima='struve_l',
-                                                  sympy='struvel'))
+                                                  maxima='struve_l'))
 
     def _eval_(self, a, z):
         """

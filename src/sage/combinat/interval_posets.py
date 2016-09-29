@@ -1336,7 +1336,7 @@ class TamariIntervalPoset(Element):
             True
             sage: ip.contains_binary_tree(ip.upper_binary_tree())
             True
-            sage: all([ip.contains_binary_tree(bt) for bt in ip.binary_trees()])
+            sage: all(ip.contains_binary_tree(bt) for bt in ip.binary_trees())
             True
 
         """
@@ -1364,7 +1364,7 @@ class TamariIntervalPoset(Element):
             True
             sage: ip.contains_dyck_word(ip.upper_dyck_word())
             True
-            sage: all([ip.contains_dyck_word(bt) for bt in ip.dyck_words()])
+            sage: all(ip.contains_dyck_word(bt) for bt in ip.dyck_words())
             True
         """
         return self.contains_binary_tree(dyck_word.to_binary_tree_tamari())
@@ -1452,7 +1452,7 @@ class TamariIntervalPoset(Element):
             False
             sage: ip.lower_dyck_word()
             [1, 0, 1, 1, 0, 0, 1, 0]
-            sage: all([ DyckWord([1,0,1,0,1,0]).tamari_interval(dw).is_initial_interval() for dw in DyckWords(3)])
+            sage: all(DyckWord([1,0,1,0,1,0]).tamari_interval(dw).is_initial_interval() for dw in DyckWords(3))
             True
         """
         return self.decreasing_cover_relations() == []
@@ -1476,7 +1476,7 @@ class TamariIntervalPoset(Element):
             False
             sage: ip.upper_dyck_word()
             [1, 1, 0, 1, 1, 0, 0, 0]
-            sage: all([ dw.tamari_interval(DyckWord([1, 1, 1, 0, 0, 0])).is_final_interval() for dw in DyckWords(3)])
+            sage: all(dw.tamari_interval(DyckWord([1, 1, 1, 0, 0, 0])).is_final_interval() for dw in DyckWords(3))
             True
         """
         return self.increasing_cover_relations() == []
@@ -1999,9 +1999,9 @@ class TamariIntervalPoset(Element):
             sage: ip = TamariIntervalPoset(4,[])
             sage: ip.tamari_inversions()
             [(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]
-            sage: all([len(TamariIntervalPosets.from_binary_trees(bt,bt).tamari_inversions())==0 for bt in BinaryTrees(3)])
+            sage: all(len(TamariIntervalPosets.from_binary_trees(bt,bt).tamari_inversions())==0 for bt in BinaryTrees(3))
             True
-            sage: all([len(TamariIntervalPosets.from_binary_trees(bt,bt).tamari_inversions())==0 for bt in BinaryTrees(4)])
+            sage: all(len(TamariIntervalPosets.from_binary_trees(bt,bt).tamari_inversions())==0 for bt in BinaryTrees(4))
             True
 
         """
@@ -2074,7 +2074,7 @@ class TamariIntervalPoset(Element):
         just computes the number of terms, not the planar tree nor
         the terms themselves.
 
-        .. SEEALSO:: :meth:`is_new`
+        .. SEEALSO:: :meth:`is_new`, :meth:`new_decomposition`
 
         EXAMPLES::
 
@@ -2086,7 +2086,75 @@ class TamariIntervalPoset(Element):
         t_low = self.lower_binary_tree().to_tilting()
         t_up = self.upper_binary_tree().to_tilting()
         return len([p for p in t_low if p in t_up])
-    
+
+    def new_decomposition(self):
+        """
+        Return the decomposition of the interval-poset into
+        new interval-posets.
+
+        Every interval-poset has a unique decomposition as a planar
+        tree of new interval-posets, as explained in
+        [ChapTamari08]_. This function computes the terms of this
+        decomposition, but not the planar tree.
+
+        For the number of terms, you can use instead the method
+        :meth:`number_of_new_components`.
+
+        OUTPUT:
+
+        a list of new interval-posets.
+
+        .. SEEALSO::
+
+            :meth:`number_of_new_components`, :meth:`is_new`
+
+        EXAMPLES::
+
+            sage: ex = TamariIntervalPosets(4)[11]
+            sage: ex.number_of_new_components()
+            3
+            sage: ex.new_decomposition()
+            [The Tamari interval of size 1 induced by relations [],
+             The Tamari interval of size 2 induced by relations [],
+             The Tamari interval of size 1 induced by relations []]
+
+        TESTS::
+
+            sage: ex = TamariIntervalPosets(4).random_element()
+            sage: dec = ex.new_decomposition()
+            sage: len(dec) == ex.number_of_new_components()
+            True
+            sage: all(u.is_new() for u in dec)
+            True
+        """
+        from sage.combinat.binary_tree import BinaryTree
+        t_low = self.lower_binary_tree().to_tilting()
+        t_up = self.upper_binary_tree().to_tilting()
+        common = [p for p in t_low if p in t_up]
+
+        def extract_tree(x, y, tilt, common):
+            """
+            Extract a tree with root at position xy (recursive).
+            """
+            left_tree = None
+            for k in range(y - 1, x, -1):
+                if (x, k) in tilt:
+                    if (x, k) not in common:
+                        left_tree = extract_tree(x, k, tilt, common)
+                    break
+            right_tree = None
+            for k in range(x + 1, y):
+                if (k, y) in tilt:
+                    if (k, y) not in common:
+                        right_tree = extract_tree(k, y, tilt, common)
+                    break
+            return BinaryTree([left_tree, right_tree])
+
+        TIP = self.parent()
+        return [TIP.from_binary_trees(extract_tree(cx, cy, t_low, common),
+                                      extract_tree(cx, cy, t_up, common))
+                for cx, cy in common]
+
     def is_new(self):
         """
         Return ``True`` if ``self`` is a new Tamari interval.
@@ -3020,7 +3088,7 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
              The Tamari interval of size 3 induced by relations [(1, 2)],
              The Tamari interval of size 3 induced by relations [(1, 2), (3, 2)],
              The Tamari interval of size 3 induced by relations [(1, 2), (2, 3)]]
-            sage: all([len(list(TamariIntervalPosets(i)))==TamariIntervalPosets(i).cardinality() for i in range(6)])
+            sage: all(len(list(TamariIntervalPosets(i)))==TamariIntervalPosets(i).cardinality() for i in range(6))
             True
         """
         n = self._size

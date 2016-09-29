@@ -1135,7 +1135,7 @@ class ToricDivisor_generic(Divisor_generic):
         .. NOTE::
 
             * For a QQ-Cartier divisor, some positive integral
-              multiple is Cartier. We return wheher this associtated
+              multiple is Cartier. We return whether this associated
               divisor is ample, i.e. corresponds to an ample line bundle.
 
             * In the orbifold case, the ample cone is an open
@@ -1220,7 +1220,7 @@ class ToricDivisor_generic(Divisor_generic):
         .. NOTE::
 
             * For a `\QQ`-Cartier divisor, some positive integral multiple is
-              Cartier. We return wheher this associtated divisor is nef.
+              Cartier. We return whether this associated divisor is nef.
 
             * The nef cone is the closure of the ample cone.
 

@@ -631,7 +631,7 @@ class FreeModuleTensor(ModuleElement):
             sage: latex(v.display())
             v = 0.333333333333333 e_1 -2.00000000000000 e_2
 
-        The output format is then controled by the argument ``format_spec`` of
+        The output format is then controlled by the argument ``format_spec`` of
         the method :meth:`display`::
 
             sage: v.display(format_spec=10)  # 10 bits of precision

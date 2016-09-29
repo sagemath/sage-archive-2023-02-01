@@ -216,10 +216,6 @@ cdef class ParentWithGens(ParentWithBase):
         d['_list'] = self._list
         d['_names'] = self._names
         d['_latex_names'] = self._latex_names
-        try:
-            d['_generator_orders'] = self._generator_orders
-        except AttributeError:
-            pass
 
         return d
 
@@ -228,7 +224,6 @@ cdef class ParentWithGens(ParentWithBase):
             return parent.Parent.__setstate__(self, d)
         try:
             self.__dict__.update(d)
-            self._generator_orders = d['_generator_orders']
         except (AttributeError,KeyError):
             pass
         self._base = d['_base']

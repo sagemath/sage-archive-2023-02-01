@@ -30,6 +30,7 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.matrix.constructor import matrix, diagonal_matrix
 from sage.rings.finite_rings.finite_field_constructor import GF
@@ -1069,8 +1070,8 @@ class GRSBerlekampWelchDecoder(Decoder):
         S  = S.basis_matrix().row(0)
         R = C.base_field()['x']
 
-        Q0 = R(S.list_from_positions(xrange(0, l0+1)))
-        Q1 = R(S.list_from_positions(xrange(l0+1, l0+l1+2)))
+        Q0 = R(S.list_from_positions(range(l0 + 1)))
+        Q1 = R(S.list_from_positions(range(l0 + 1, l0 + l1 + 2)))
 
         f, rem = (-Q0).quo_rem(Q1)
         if not rem.is_zero():

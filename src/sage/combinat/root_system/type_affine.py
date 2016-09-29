@@ -219,7 +219,7 @@ class AmbientSpace(CombinatorialFreeModule):
         .. SEEALSO::
 
             - :class:`sage.combinat.root_system.weight_space.WeightSpace`
-            - :meth:`sage.combinat.root_sytem.weight_lattice_realizations.WeightLatticeRealizations.ParentMethods.is_extended`
+            - :meth:`sage.combinat.root_system.weight_lattice_realizations.WeightLatticeRealizations.ParentMethods.is_extended`
 
         EXAMPLES::
 

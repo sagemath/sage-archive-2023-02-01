@@ -966,7 +966,7 @@ class IntegerVectors_nk(UniqueRepresentation, IntegerVectors):
         TESTS::
 
             sage: IV = IntegerVectors(2, 3)
-            sage: all([i in IV for i in IV])
+            sage: all(i in IV for i in IV)
             True
             sage: [0,1,2] in IV
             False

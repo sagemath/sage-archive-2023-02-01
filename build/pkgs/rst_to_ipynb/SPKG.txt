@@ -1,0 +1,35 @@
+= rst_to_ipynb =
+
+== Description ==
+
+This project converts between a standalone reStructuredText file and a
+Jupyter Notebook file.
+
+This is currently achieved by converting to markdown with pandoc and then
+to Jupyter notebook using notedown, plus some configuration and tweaks.
+
+We use a fork that is adapted for Sage.
+
+== License ==
+
+BSD 3-Clause License
+
+== Upstream Contact ==
+
+Authors: Scott Sievert
+Home page: https://github.com/stsievert/rst-to-ipynb
+Home page of the fork used: https://github.com/nthiery/rst-to-ipynb
+
+== Dependencies ==
+
+ * notedown
+ * pandoc
+
+== Special Update/Build Instructions ==
+
+There are no release numbers, hence find the latest commit, download
+https://github.com/nthiery/rst-to-ipynb/archive/${COMMIT}.zip and rename
+it rst_to_ipynb-${COMMIT:0:8}.zip
+
+As it is written in Haskell, pandoc must be installed from the distro.
+

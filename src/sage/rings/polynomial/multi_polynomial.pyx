@@ -1927,7 +1927,7 @@ cdef class MPolynomial(CommutativeRingElement):
             [  0   1]
             )
 
-        An example with covariant on the boundary, therefore a non-unique form also a_0 is 0 ::
+        An example with covariant on the boundary, therefore a non-unique form also a_0 is 0::
 
             sage: R.<x,h> = PolynomialRing(QQ)
             sage: g = -1872*x^5*h - 1375452*x^4*h^2 - 404242956*x^3*h^3 - 59402802888*x^2*h^4\
@@ -1940,7 +1940,7 @@ cdef class MPolynomial(CommutativeRingElement):
             [  0  -1]
             )
 
-        An example where precision needs to be incresed ::
+        An example where precision needs to be incresed::
 
             sage: R.<x,h> = PolynomialRing(QQ)
             sage: f = -1872*x^5*h - 1375452*x^4*h^2 - 404242956*x^3*h^3 - 59402802888*x^2*h^4\
@@ -1982,6 +1982,33 @@ cdef class MPolynomial(CommutativeRingElement):
             ...
             ValueError: (=-8*x^6 - 99*y^6 - 3933*x^3*y - 725085*x^2*y^2 -
             59411592*x*y^3) must be homogenous
+
+        ::
+
+            sage: R.<x,y> = PolynomialRing(RR)
+            sage: F = 217.992172373276*x^3 + 96023.1505442490*x^2*y + 1.40987971253579e7*x*y^2\
+            + 6.90016027113216e8*y^3
+            sage: F.reduced_form()
+            (
+            -39.5673942565918*x^3 + 111.874026298523*x^2*y + 231.052762985229*x*y^2 - 138.380829811096*y^3,
+            <BLANKLINE>
+            [-147 -148]
+            [   1    1]
+            )
+
+        ::
+
+            sage: R.<x,y> = PolynomialRing(CC)
+            sage: F = (0.759099196558145 + 0.845425869641446*CC.0)*x^3 + (84.8317207268542 + 93.8840848648033*CC.0)*x^2*y\
+            + (3159.07040755858 + 3475.33037377779*CC.0)*x*y^2 + (39202.5965389079 + 42882.5139724962*CC.0)*y^3
+            sage: F.reduced_form()
+            (
+            (-0.759099196558145 - 0.845425869641446*I)*x^3 + (-0.571709908900118 - 0.0418133346027929*I)*x^2*y
+            + (0.856525964330103 - 0.0721403997649759*I)*x*y^2 + (-0.965531044130330 + 0.754252314465703*I)*y^3,
+            <BLANKLINE>
+            [-1 37]
+            [ 0 -1]
+            )
         """
         from sage.matrix.constructor import matrix
         from sage.calculus.functions import jacobian
@@ -1998,10 +2025,12 @@ cdef class MPolynomial(CommutativeRingElement):
         S = PolynomialRing(R.base_ring(),'z')
         phi = R.hom([S.gen(0), 1], S)# dehomogenization
         F = phi(self).quo_rem(gcd(phi(self), phi(self).derivative()))[0] # removes multiple roots
-        roots = F.roots(ring=CF, multiplicities=False)
+        from sage.rings.polynomial.complex_roots import complex_roots
+        roots = [p for p,e in complex_roots(F, min_prec=prec)]
+        #roots = F.roots(ring=CF, multiplicities=False)
 
         #finding quadratic Q_0, gives us our convariant, z_0
-        dF = F.derivative()
+        dF = F.change_ring(CF).derivative()
         n = F.degree()
         R = PolynomialRing(CF,'x,y')
         x,y = R.gens()
@@ -2047,7 +2076,8 @@ cdef class MPolynomial(CommutativeRingElement):
         # creates and solves equations 4.4 in [SC], gives us a new z
         x,y = self.parent().gens()
         F = S(phi(self(tuple((M * vector([x, y])))))) # New self, S pushes it to polyomial ring
-        L1 = F.roots(ring=CF, multiplicities=True)
+        #L1 = F.roots(ring=CF, multiplicities=True)
+        L1 = complex_roots(F, min_prec=prec)
         L=[]
         newton = True
         err = z.diameter()

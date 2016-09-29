@@ -3549,10 +3549,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            sage: PS.<x,y> = ProjectiveSpace(QQ,1)
+            sage: PS.<x,y> = ProjectiveSpace(QQ, 1)
             sage: H = End(PS)
             sage: f = H([x^3 + x*y^2, y^3])
-            sage: m = matrix(QQ, 2, 2,[-221, -1, 1, 0])
+            sage: m = matrix(QQ, 2, 2, [-221, -1, 1, 0])
             sage: f = f.conjugate(m)
             sage: f.reduced_form(prec=100) #needs 2 periodic
             Traceback (most recent call last):
@@ -3569,11 +3569,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             )
 
         ::
-        
-            sage: PS.<x,y> = ProjectiveSpace(ZZ,1)
+
+            sage: PS.<x,y> = ProjectiveSpace(ZZ, 1)
             sage: H = End(PS)
-            sage: f = H([x^2+ x*y,y^2]) #needs 3 periodic
-            sage: m = matrix(QQ, 2, 2,[-221, -1, 1, 0])
+            sage: f = H([x^2+ x*y, y^2]) #needs 3 periodic
+            sage: m = matrix(QQ, 2, 2, [-221, -1, 1, 0])
             sage: f = f.conjugate(m)
             sage: f.reduced_form(prec=200)
             (
@@ -3587,15 +3587,15 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         ::
 
-            sage: P.<x,y>=ProjectiveSpace(QQ,1)
-            sage: H=End(P)
-            sage: f=H([x^3,y^3])
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([x^3, y^3])
             sage: f.reduced_form()
             (
             Scheme endomorphism of Projective Space of dimension 1 over Rational Field
             Defn: Defined on coordinates by sending (x : y) to
-            (x^3 : y^3)                                                       ,
-            <BLANKLINE>
+            (x^3 : y^3)
+            ,
             [-1  0]
             [ 0 -1]
             )
@@ -3606,10 +3606,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(PS)
             sage: f = H([7365*X^4 + 12564*X^3*Y + 8046*X^2*Y^2 + 2292*X*Y^3 + 245*Y^4,\
             -12329*X^4 - 21012*X^3*Y - 13446*X^2*Y^2 - 3828*X*Y^3 - 409*Y^4])
-            sage: f.reduced_form(prec=20)
+            sage: f.reduced_form(prec=30)
             Traceback (most recent call last):
             ...
-            ValueError: accuracy of Newton's root not within tolerence(0.050134 > 1e-06), increase precision
+            ValueError: accuracy of Newton's root not within tolerence(1.2519607 > 1e-06), increase precision
             sage: f.reduced_form()
             (
             Scheme endomorphism of Projective Space of dimension 1 over Rational Field
@@ -3619,17 +3619,96 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [-1  2]
             [ 2 -5]
             )
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(RR, 1)
+            sage: H = End(P)
+            sage: f = H([x^4, RR(sqrt(2))*y^4])
+            sage: m = matrix(RR, 2, 2, [1,12,0,1])
+            sage: f = f.conjugate(m)
+            sage: f.reduced_form()
+            (
+            Scheme endomorphism of Projective Space of dimension 1 over Real Field with 53 bits of precision
+              Defn: Defined on coordinates by sending (x : y) to
+                    (-x^4 + 2.86348722511320e-12*y^4 : -1.41421356237310*y^4)
+            ,
+            [-1 12]
+            [ 0 -1]
+            )
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(CC, 1)
+            sage: H = End(P)
+            sage: f = H([x^4, CC(sqrt(-2))*y^4])
+            sage: m = matrix(CC, 2, 2, [1,12,0,1])
+            sage: f = f.conjugate(m)
+            sage: f.reduced_form()
+            (
+            Scheme endomorphism of Projective Space of dimension 1 over Complex Field with 53 bits of precision
+              Defn: Defined on coordinates by sending (x : y) to
+                    (-x^4 + (-1.03914726748259e-15)*y^4 : (-8.65956056235493e-17 - 1.41421356237309*I)*y^4)
+            ,
+            [-1 12]
+            [ 0 -1]
+            )
+
+        ::
+
+            sage: K.<w> = QuadraticField(2)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: H = End(P)
+            sage: f = H([x^3, w*y^3])
+            sage: m = matrix(K, 2, 2, [1,12,0,1])
+            sage: f = f.conjugate(m)
+            sage: f.reduced_form()
+            (
+             Scheme endomorphism of Projective Space of dimension 1 over Number Field in w
+             with defining polynomial x^2 - 2
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^3 : (w)*y^3)
+            ,
+            [-1 12]
+            [ 0 -1]
+            )
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = NumberField(x^5+x-3, embedding=(x^5+x-3).roots(ring=CC)[0][0])
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: H = End(P)
+            sage: f = H([12*x^3, 2334*w*y^3])
+            sage: m = matrix(K, 2, 2, [-12,1,1,0])
+            sage: f = f.conjugate(m)
+            sage: f.reduced_form()
+            (
+            Scheme endomorphism of Projective Space of dimension 1 over Number Field
+            in w with defining polynomial x^5 + x - 3
+              Defn: Defined on coordinates by sending (x : y) to
+                    (12*x^3 : (2334*w)*y^3)
+            ,
+            [  0  -1]
+            [  1 -12]
+            )
         """
         R = self.coordinate_ring()
         F = R(self.dynatomic_polynomial(1))
         x,y = R.gens()
-        F2 = F.quo_rem(gcd(F, F.derivative(x)))[0] #removes multiple roots
+        try:
+            F2 = F.quo_rem(gcd(F, F.derivative(x)))[0] #removes multiple roots
+        except (TypeError, NotImplementedError): # something Singular can't handle
+            F2 = R(F._maxima_().divide(gcd(F, F.derivative(x)))[0].sage())
         n = 2
         # Checks to make sure there are enough distinct, roots we need 3
-        # if there are not if finds the nth periodic points until there are enough
+        # if there are not it finds the nth periodic points until there are enough
         while F2.degree() <= 2:
             F = self.dynatomic_polynomial(n) # finds n periodic points
-            F2 = F.quo_rem(gcd(F, F.derivative(x)))[0] #removes multiple roots
+            try:
+                F2 = F.quo_rem(gcd(F, F.derivative(x)))[0] #removes multiple roots
+            except (TypeError, NotImplementedError): # something Singular can't handle
+                F2 = R(F._maxima_().divide(gcd(F, F.derivative(x)))[0].sage())
             n += 1
         G,m = F.reduced_form(prec=prec, return_conjugation=return_conjugation)
         if return_conjugation:

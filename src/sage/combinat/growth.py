@@ -9,7 +9,6 @@ AUTHORS:
 
     - when shape is given, check that it is compatible with filling or labels
     - implement domino insertion
-    - implement Young-Fibonacci
     - make semistandard extension generic
 
 Growth diagrams, invented by Sergey Fomin [Fom1995]_, provide a vast
@@ -149,9 +148,13 @@ REFERENCES:
    *Dual graded graphs for Kac-Moody algebras*.
    Algebra & Number Theory 1.4 (2007): pp. 451-488
 
-.. [HivNzeu] Florent Hivert and Janvier Nzeutchap
+.. [HivNzeu] Florent Hivert and Janvier Nzeutchap.
    *Dual Graded Graphs in Combinatorial Hopf Algebras*.
    https://www.lri.fr/~hivert/PAPER/commCombHopfAlg.pdf
+
+.. [Vie1983] Xavier G. Viennot.
+   *Maximal chains of subwords and up-down sequences of permutations*.
+   Journal of Combinatorial Theory, Series A Volume 34, (1983), pp. 1-14
 """
 from sage.structure.sage_object import SageObject
 from sage.combinat.words.word import Word
@@ -346,9 +349,9 @@ class GrowthDiagram(SageObject):
 
         EXAMPLES::
 
-            sage: G = GrowthDiagramBinWord([[0,1,0,0], [0,0,1,0], [0,0,0,1], [1,0,0,0]])
+            sage: G = GrowthDiagramBinWord([4, 1, 2, 3])
             sage: G.P_chain()
-            [word: , word: 1, word: 11, word: 111, word: 1000]
+            [word: , word: 1, word: 11, word: 111, word: 1011]
         """
         if self.is_rectangular():
             return self._out_labels[self._lambda[0]:][::-1]
@@ -364,7 +367,7 @@ class GrowthDiagram(SageObject):
 
             sage: G = GrowthDiagramBinWord([[0,1,0,0], [0,0,1,0], [0,0,0,1], [1,0,0,0]])
             sage: G.Q_chain()
-            [word: , word: 1, word: 10, word: 100, word: 1000]
+            [word: , word: 1, word: 10, word: 101, word: 1011]
         """
         if self.is_rectangular():
             return self._out_labels[:self._lambda[0]+1]
@@ -505,7 +508,7 @@ class GrowthDiagram(SageObject):
 
         TEST::
 
-            sage: GrowthDiagramRSK(shape=[1], labels=[[], [1]])
+            sage: GrowthDiagramRSK(shape=[1], labels=[[], [1]])                 # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: the number of labels is 2, but for this shape we need 3.
@@ -533,7 +536,7 @@ class GrowthDiagram(SageObject):
             sage: filling = []
             sage: shape = SkewPartition([[4,2,1,1],[2,1,1]])
             sage: G = GrowthDiagramRSK(filling, shape)
-            sage: G._in_labels
+            sage: G.in_labels()                                                 # indirect doctest
             [[], [], [], [], [], [], [], [], []]
 
         ``labels`` is a list of partitions::
@@ -542,7 +545,7 @@ class GrowthDiagram(SageObject):
             sage: labels = [[],[1],[],[1],[]]
             sage: shape = SkewPartition([[2,1],[1]])
             sage: G = GrowthDiagramRSK(filling=filling, shape=shape, labels=labels)
-            sage: G._in_labels
+            sage: G.in_labels()                                                 # indirect doctest
             [[], [1], [], [1], []]
 
         """
@@ -570,7 +573,7 @@ class GrowthDiagram(SageObject):
             sage: filling = []
             sage: shape = SkewPartition([[4,2,1,1],[2,1,1]])
             sage: G = GrowthDiagramRSK(filling, shape)
-            sage: G._lambda, G._mu
+            sage: G._lambda, G._mu                                              # indirect doctest
             ([4, 2, 1, 1], [2, 1, 1, 0])
 
         ``shape`` is a partition::
@@ -578,7 +581,7 @@ class GrowthDiagram(SageObject):
             sage: filling = []
             sage: shape = Partition([3,2,1,1])
             sage: G = GrowthDiagramRSK(filling, shape)
-            sage: G._lambda, G._mu
+            sage: G._lambda, G._mu                                              # indirect doctest
             ([3, 2, 1, 1], [0, 0, 0, 0])
 
         """
@@ -606,7 +609,7 @@ class GrowthDiagram(SageObject):
 
             sage: pi = Permutation([2,3,1,6,4,5])
             sage: G = GrowthDiagramRSK({(i,pi[i]-1):1 for i in range(len(pi))})
-            sage: G._filling
+            sage: G._filling                                                    # indirect doctest
             {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
             sage: G.shape()
             [6, 6, 6, 6, 6, 6] / []
@@ -614,7 +617,7 @@ class GrowthDiagram(SageObject):
         ``filling`` is a dict of dicts::
 
             sage: G = GrowthDiagramRSK({i:{pi[i]-1:1} for i in range(len(pi))})
-            sage: G._filling
+            sage: G._filling                                                    # indirect doctest
             {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
             sage: G.shape()
             [6, 6, 6, 6, 6, 6] / []
@@ -622,7 +625,7 @@ class GrowthDiagram(SageObject):
         ``filling`` is a matrix::
 
             sage: G = GrowthDiagramRSK(pi.to_matrix())
-            sage: G._filling
+            sage: G._filling                                                    # indirect doctest
             {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
             sage: G.shape()
             [6, 6, 6, 6, 6, 6] / []
@@ -630,7 +633,7 @@ class GrowthDiagram(SageObject):
         ``filling`` is a permutation::
 
             sage: G = GrowthDiagramRSK(pi)
-            sage: G._filling
+            sage: G._filling                                                    # indirect doctest
             {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
             sage: G.shape()
             [6, 6, 6, 6, 6, 6] / []
@@ -638,7 +641,7 @@ class GrowthDiagram(SageObject):
         ``filling`` is a list::
 
             sage: G = GrowthDiagramRSK([3,1,4,1,5])
-            sage: G._filling
+            sage: G._filling                                                    # indirect doctest
             {(0, 2): 1, (1, 0): 1, (2, 3): 1, (3, 0): 1, (4, 4): 1}
             sage: G.shape()
             [5, 5, 5, 5, 5] / []
@@ -646,10 +649,18 @@ class GrowthDiagram(SageObject):
         ``filling`` is a list of lists::
 
             sage: G = GrowthDiagramRSK([[1,0,1],[0,1]])
-            sage: G._filling
+            sage: G._filling                                                    # indirect doctest
             {(0, 0): 1, (1, 1): 1, (2, 0): 1}
             sage: G.shape()
             [3, 2] / []
+
+        ``filling`` is a list of lists and shape is given::
+
+            sage: G = GrowthDiagramRSK([[1,0,1],[0,1]], shape=SkewPartition([[3,2],[1]]))
+            sage: G._filling                                                    # indirect doctest
+            {(0, 0): 1, (1, 1): 1, (2, 0): 1}
+            sage: G.shape()
+            [3, 2] / [1]
 
         """
         if isinstance(filling, dict):
@@ -700,26 +711,30 @@ class GrowthDiagram(SageObject):
 
             sage: pi = Permutation([1])
             sage: G = GrowthDiagramRSK(pi)
-            sage: G._out_labels
+            sage: G._out_labels                                                 # indirect doctest
             [[], [1], []]
 
             sage: pi = Permutation([1,2])
             sage: G = GrowthDiagramRSK(pi)
-            sage: G._out_labels
+            sage: G._out_labels                                                 # indirect doctest
             [[], [1], [2], [1], []]
 
             sage: pi = Permutation([2,1])
             sage: G = GrowthDiagramRSK(pi)
-            sage: G._out_labels
+            sage: G._out_labels                                                 # indirect doctest
             [[], [1], [1, 1], [1], []]
 
             sage: G = GrowthDiagramRSK({(0,1):1, (1,0):1}, SkewPartition([[2,1],[1]]))
-            sage: G._out_labels
+            sage: G._out_labels                                                 # indirect doctest
             [[], [1], [], [1], []]
 
             sage: G = GrowthDiagramRSK({(1,1):1}, SkewPartition([[2,2],[1]]), labels=[[],[],[1],[],[]])
-            sage: G._out_labels
+            sage: G._out_labels                                                 # indirect doctest
             [[], [1], [2], [1], []]
+
+            sage: G = GrowthDiagramBinWord({(1,1):1}, SkewPartition([[2,2],[1]]), labels=[[],[],[1],[],[]])
+            sage: G._out_labels                                                 # indirect doctest
+            [word: , word: 1, word: 11, word: 1, word: ]
         """
         labels = copy(self._in_labels)
         l = len(self._lambda)
@@ -749,19 +764,19 @@ class GrowthDiagram(SageObject):
             sage: G = GrowthDiagramRSK(labels=labels)
             sage: G._filling
             {(0, 0): 1}
-            sage: G._in_labels
+            sage: G._in_labels                                                  # indirect doctest
             [[], [], []]
 
             sage: labels = [[], [1], [2], [2,1], [1,1], [1], []]
             sage: G = GrowthDiagramRSK(labels=labels)
             sage: G._filling
             {(0, 1): 1, (1, 2): 1, (2, 0): 1}
-            sage: G._in_labels
+            sage: G._in_labels                                                  # indirect doctest
             [[], [], [], [], [], [], []]
 
             sage: labels = [[], [1], [2], [3], [3, 1], [3, 2], [4, 2], [4, 1], [3, 1], [2, 1], [1, 1], [1], []]
             sage: G = GrowthDiagramRSK(labels=labels)
-            sage: G._filling
+            sage: G._filling                                                    # indirect doctest
             {(0, 1): 1, (1, 2): 1, (2, 5): 1, (3, 0): 1, (4, 3): 1, (5, 4): 1}
 
             sage: labels = [[],[1],[1],[2],[2],[2,1],[2]]
@@ -770,7 +785,7 @@ class GrowthDiagram(SageObject):
             ...
             ValueError: Can only determine the shape of the growth diagram if sizes of successive partitions differ.
             sage: G = GrowthDiagramRSK(shape=[3,2,1], labels=labels)
-            sage: G._filling
+            sage: G._filling                                                    # indirect doctest
             {(1, 0): 1}
             sage: G._in_labels
             [[], [], [], [], [1], [1], [2]]
@@ -779,14 +794,14 @@ class GrowthDiagram(SageObject):
             sage: G = GrowthDiagramRSK(shape=[5,4,3,2,1], labels=labels)
             sage: G._filling
             {(1, 2): 1, (2, 1): 1, (4, 0): 1}
-            sage: G._in_labels
+            sage: G._in_labels                                                  # indirect doctest
             [[], [], [], [], [], [], [1], [1], [1], [1, 1], [1, 1]]
 
             sage: labels = [[], [1],[1],[2],[2],[2,1],[2],[2,1],[1,1],[2,1],[1,1]]
             sage: G = GrowthDiagramRSK(shape=SkewPartition([[5,4,3,2,1],[3,2,1]]), labels=labels)
             sage: G._filling
             {(1, 2): 1, (2, 1): 1, (4, 0): 1}
-            sage: G._in_labels
+            sage: G._in_labels                                                  # indirect doctest
             [[], [], [], [1], [1], [1], [1], [1], [1], [1, 1], [1, 1]]
 
         """
@@ -810,19 +825,59 @@ class GrowthDiagramBinWord(GrowthDiagram):
     r"""
     A class modelling a Schensted-like correspondence for binary
     words.
+
+    EXAMPLES::
+
+        sage: pi = Permutation([4,1,8,3,6,5,2,7,9]); G = GrowthDiagramBinWord(pi); G
+        0  1  0  0  0  0  0  0  0
+        0  0  0  0  0  0  1  0  0
+        0  0  0  1  0  0  0  0  0
+        1  0  0  0  0  0  0  0  0
+        0  0  0  0  0  1  0  0  0
+        0  0  0  0  1  0  0  0  0
+        0  0  0  0  0  0  0  1  0
+        0  0  1  0  0  0  0  0  0
+        0  0  0  0  0  0  0  0  1
+        sage: G.out_labels()[9]
+        word: 101010011
+
+    The Kleitman Greene invariant is the descent word::
+
+        sage: pi.descents()
+        doctest:...: DeprecationWarning: default behavior of descents may change in the near future to have indices starting from 1
+        See http://trac.sagemath.org/20555 for details.
+        [0, 2, 4, 5]
+
+    .. automethod:: _forward_rule
+    .. automethod:: _backward_rule
+
+    TESTS:
+
+    Test that the Kleitman Greene invariant is indeed the descent word::
+
+        sage: r=4; all(Word([0 if i in w.descents() else 1 for i in range(r-1)]) == GrowthDiagramBinWord(w).out_labels()[r][1:] for w in Permutations(r))
+        True
     """
     def __init__(self,
                  filling = None,
                  shape = None,
                  labels = None):
+        r"""
+        Initialize the zero element and the rank function of the dual
+        graded graphs on binary words.  Make sure that ``labels`` are
+        binary words.
+        """
         # TODO: should check that the filling is standard
+        if labels is not None:
+            labels = [Word(la, alphabet=[0,1]) for la in labels]
         self._zero = Word([], alphabet=[0,1])
         self._rank_function = lambda w: len(w)
         super(GrowthDiagramBinWord, self).__init__(filling = filling,
                                                    shape = shape,
                                                    labels = labels)
 
-    def _forward_rule(self, shape3, shape2, shape1, content):
+    @staticmethod
+    def _forward_rule(y, t, x, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -830,55 +885,63 @@ class GrowthDiagramBinWord(GrowthDiagram):
 
         INPUT:
 
-        - ``shape3, shape2, shape1`` -- three binary words from a cell in a growth diagram,
-          labelled as::
+        - ``y, t, x`` -- three binary words from a cell in a growth
+          diagram, labelled as::
 
-              shape2 shape1
-              shape3
+              t x
+              y
 
         - ``content`` -- 0 or 1, the content of the cell.
 
         OUTPUT:
 
-        The fourth binary word shape4 according to Viennot's bijection.
+        The fourth binary word z according to Viennot's bijection [Vie1983]_.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: G = GrowthDiagramBinWord([4,1,8,3,6,5,2,7,9]); G
-            0  1  0  0  0  0  0  0  0
-            0  0  0  0  0  0  1  0  0
-            0  0  0  1  0  0  0  0  0
-            1  0  0  0  0  0  0  0  0
-            0  0  0  0  0  1  0  0  0
-            0  0  0  0  1  0  0  0  0
-            0  0  0  0  0  0  0  1  0
-            0  0  1  0  0  0  0  0  0
-            0  0  0  0  0  0  0  0  1
-            sage: G.out_labels()[9]
-            word: 101010011
+            sage: G = GrowthDiagramBinWord
+
+            sage: G._forward_rule([], [], [], 1)
+            word: 1
+
+            sage: G._forward_rule([1], [1], [1], 1)
+            word: 11
+
+        if ``x != y`` append last letter of ``x`` to ``y``::
+
+            sage: G._forward_rule([1,0], [1], [1,1], 0)
+            word: 101
+
+        if ``x == y != t`` append ``0`` to ``y``::
+
+            sage: G._forward_rule([1,1], [1], [1,1], 0)
+            word: 110
 
         """
-        if shape1 == shape2 == shape3:
+        if x == t == y:
             if content == 0:
-                r = shape1
+                z = x
             elif content == 1:
-                r = Word(list(shape3) + [1], alphabet=[0,1])
+                z = Word(list(y) + [1], alphabet=[0,1])
             else:
                 raise NotImplementedError
-        elif shape1 == shape2:
-            r = shape3
-        elif shape3 == shape2:
-            r = shape1
+        elif content != 0:
+            raise ValueError("For y=%s, t=%s, x=%s, the content should be 0 but is %s" %(y, t, x, content))
+        elif x != t == y:
+            z = x
+        elif x == t != y:
+            z = y
         else:
-            if shape1 != shape3:
-                r = Word(list(shape3) + [shape1[-1]], alphabet=[0,1])
-            elif shape3 != shape2:
-                r = Word(list(shape3) + [0], alphabet=[0,1])
+            if x != y:
+                z = Word(list(y) + [x[-1]], alphabet=[0,1])
+            elif x == y != t:
+                z = Word(list(y) + [0], alphabet=[0,1])
             else:
                 raise NotImplementedError
-        return r
+        return z
 
-    def _backward_rule(self, y, z, x):
+    @staticmethod
+    def _backward_rule(y, z, x):
         r"""
         Return the content and the input shape.
 
@@ -893,32 +956,13 @@ class GrowthDiagramBinWord(GrowthDiagram):
         OUTPUT:
 
         A pair ``(t, content)`` consisting of the shape of the fourth
-        word acording to Viennot's bijection and the content of the cell.
+        word and the content of the cell acording to Viennot's
+        bijection [Vie1983]_.
 
         TEST::
 
             sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagramBinWord(w);
-            sage: G._out_labels
-            [word: ,
-              word: 1,
-              word: 10,
-              word: 101,
-              word: 1010,
-              word: 10101,
-              word: 101010,
-              word: 1010100,
-              word: 10101001,
-              word: 101010011,
-              word: 10101001,
-              word: 1001001,
-              word: 100100,
-              word: 10010,
-              word: 1000,
-              word: 110,
-              word: 11,
-              word: 1,
-              word: ]
-            sage: GrowthDiagramBinWord(labels=G._out_labels).to_word() == w
+            sage: GrowthDiagramBinWord(labels=G.out_labels()).to_word() == w    # indirect doctest
             True
 
         """
@@ -934,14 +978,172 @@ class GrowthDiagramBinWord(GrowthDiagram):
             elif x == y and len(z) > 0 and z[-1] == 1:
                 return (x, 1)
 
-class GrowthDiagramOnPartitions(GrowthDiagram):
+class GrowthDiagramYoungFibonacci(GrowthDiagram):
     r"""
-    A class for growth diagrams on partition lattices graded by
-    size."""
+
+    A class modelling a Schensted-like correspondence for
+    Young-Fibonacci-tableaux.
+
+    EXAMPLES::
+
+        sage: G = GrowthDiagramYoungFibonacci([4,1,8,3,6,5,2,7,9]); G
+        0  1  0  0  0  0  0  0  0
+        0  0  0  0  0  0  1  0  0
+        0  0  0  1  0  0  0  0  0
+        1  0  0  0  0  0  0  0  0
+        0  0  0  0  0  1  0  0  0
+        0  0  0  0  1  0  0  0  0
+        0  0  0  0  0  0  0  1  0
+        0  0  1  0  0  0  0  0  0
+        0  0  0  0  0  0  0  0  1
+        sage: G.out_labels()[9]
+        word: 122121
+
+    The Kleitman Greene invariant is: take the last letter and the
+    largest letter of the permutation and remove them.  If they
+    coincide write 1, otherwise write 2.
+
+    .. automethod:: _forward_rule
+    .. automethod:: _backward_rule
+    """
     def __init__(self,
                  filling = None,
                  shape = None,
                  labels = None):
+        r"""
+        Initialize the zero element and the rank function of the dual
+        graded graphs on binary words.  Make sure that ``labels`` are
+        binary words.
+        """
+        # TODO: should check that the filling is standard
+        if labels is not None:
+            labels = [Word(la, alphabet=[1,2]) for la in labels]
+        self._zero = Word([], alphabet=[1,2])
+        self._rank_function = lambda w: sum(w)
+        super(GrowthDiagramYoungFibonacci, self).__init__(filling = filling,
+                                                          shape = shape,
+                                                          labels = labels)
+
+    @staticmethod
+    def _forward_rule(shape3, shape2, shape1, content):
+        r"""
+        Return the output shape given three shapes and the content.
+
+        See [Fom1995]_ Lemma 4.4.1, page 35.
+
+        INPUT:
+
+        - ``shape3, shape2, shape1`` -- three Fibonacci words from a
+          cell in a growth diagram, labelled as::
+
+              shape2 shape1
+              shape3
+
+        - ``content`` -- 0 or 1, the content of the cell.
+
+        OUTPUT:
+
+        The fourth Fibonacci word.
+
+        TESTS::
+
+            sage: G = GrowthDiagramYoungFibonacci
+
+            sage: G._forward_rule([], [], [], 1)
+            word: 1
+
+            sage: G._forward_rule([1], [1], [1], 1)
+            word: 11
+
+            sage: G._forward_rule([1,2], [1], [1,1], 0)
+            word: 21
+
+            sage: G._forward_rule([1,1], [1], [1,1], 0)
+            word: 21
+
+        """
+        if shape1 == shape2 == shape3:
+            if content == 0:
+                r = shape1
+            elif content == 1:
+                r = Word([1]+list(shape3), alphabet=[1,2])
+            else:
+                raise NotImplementedError
+        elif content != 0:
+            raise ValueError("For shape3=%s, shape2=%s, shape1=%s, the content should be 0 but is %s" %(shape3, shape2, shape1, content))
+        elif shape1 == shape2:
+            r = shape3
+        elif shape3 == shape2:
+            r = shape1
+        else:
+            if shape1 != shape2 != shape3:
+                r = Word([2] + list(shape2), alphabet=[1,2])
+            else:
+                print shape1, shape2, shape3
+                print shape1.parent(), shape2.parent(), shape3.parent()
+                print (shape1 != shape2) and (shape2 != shape3)
+                print shape1 == shape2
+                print shape2 == shape3
+                print (shape1 != shape2)
+                print (shape2 != shape3)
+                raise NotImplementedError("For shape3=%s, shape2=%s, shape1=%s, content %s we have no rule." %(shape3, shape2, shape1, content))
+        return r
+
+    @staticmethod
+    def _backward_rule(y, z, x):
+        r"""
+        Return the content and the input shape.
+
+        See [Fom1995]_ Lemma 4.4.1, page 35.
+
+        - ``y, z, x`` -- three Fibonacci words from a cell in a
+          growth diagram, labelled as::
+
+                x
+              y z
+
+        OUTPUT:
+
+        A pair ``(t, content)`` consisting of the shape of the fourth
+        word and the content of the cell.
+
+        TEST::
+
+            sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagramYoungFibonacci(w);
+            sage: GrowthDiagramYoungFibonacci(labels=G.out_labels()).to_word() == w    # indirect doctest
+            True
+
+        """
+        if x == y == z:
+            return (x, 0)
+        elif x == z != y:
+            return (y, 0)
+        elif x != z == y:
+            return (x, 0)
+        else:
+            if z[0] == 1:
+                return (z[1:], 1)
+            elif z[0] == 2:
+                return (z[1:], 0)
+
+
+class GrowthDiagramOnPartitions(GrowthDiagram):
+    r"""
+    A class for growth diagrams on Young's lattice on integer
+    partitions graded by size.  Since we do not use the covering
+    relation, but only check partition containment, this class can
+    also be used as a base class for growth diagrams modelling domino
+    insertion, :class:`GrowthDiagramDomino`.
+    """
+    def __init__(self,
+                 filling = None,
+                 shape = None,
+                 labels = None):
+        r"""
+        Initialize the zero element and the rank function of the dual
+        graded graphs on integer partitions.  Make sure that
+        ``labels`` are integer partitions.
+        """
         if labels is not None:
             labels = [Partition(la) for la in labels]
         self._zero = Partition([])
@@ -991,8 +1193,12 @@ class GrowthDiagramRSK(GrowthDiagramOnPartitions):
         sage: RSK(pi)
         [[[1, 3, 4, 5], [2, 6]], [[1, 2, 3, 6], [4, 5]]]
 
+    .. automethod:: _forward_rule
+    .. automethod:: _backward_rule
+
     """
-    def _forward_rule(self, shape3, shape2, shape1, content):
+    @staticmethod
+    def _forward_rule(shape3, shape2, shape1, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -1038,7 +1244,8 @@ class GrowthDiagramRSK(GrowthDiagramOnPartitions):
                 shape2 = shape2[1:]
                 shape3 = shape3[1:]
 
-    def _backward_rule(self, shape3, shape4, shape1):
+    @staticmethod
+    def _backward_rule(shape3, shape4, shape1):
         r"""
         Return the content and the input shape.
 
@@ -1061,27 +1268,7 @@ class GrowthDiagramRSK(GrowthDiagramOnPartitions):
         TEST::
 
             sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagramRSK(w);
-            sage: G._out_labels
-            [[],
-             [1],
-             [1, 1],
-             [2, 1],
-             [2, 2],
-             [3, 2],
-             [3, 2, 1],
-             [3, 2, 1, 1],
-             [4, 2, 1, 1],
-             [5, 2, 1, 1],
-             [4, 2, 1, 1],
-             [4, 2, 1],
-             [3, 2, 1],
-             [3, 1, 1],
-             [2, 1, 1],
-             [2, 1],
-             [2],
-             [1],
-             []]
-            sage: GrowthDiagramRSK(labels=G._out_labels).to_word() == w
+            sage: GrowthDiagramRSK(labels=G._out_labels).to_word() == w         # indirect doctest
             True
 
         """
@@ -1104,8 +1291,13 @@ class GrowthDiagramRSK(GrowthDiagramOnPartitions):
 
 class GrowthDiagramBurge(GrowthDiagramOnPartitions):
     r"""
-    A class modelling Burge insertion."""
-    def _forward_rule(self, shape3, shape2, shape1, content):
+    A class modelling Burge insertion.
+
+    .. automethod:: _forward_rule
+    .. automethod:: _backward_rule
+    """
+    @staticmethod
+    def _forward_rule(shape3, shape2, shape1, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -1151,7 +1343,8 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
                 shape2 = shape2[1:]
                 shape3 = shape3[1:]
 
-    def _backward_rule(self, shape3, shape4, shape1):
+    @staticmethod
+    def _backward_rule(shape3, shape4, shape1):
         r"""
         Return the content and the input shape.
 
@@ -1199,39 +1392,26 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
     r"""
     A class modelling domino insertion.
 
-    EXAMPLES::
+    EXAMPLES:
 
-        sage: G = GrowthDiagramDomino([[1]]); G
-        1
-        sage: G.out_labels()
-        [[], [2], []]
-
-        sage: G = GrowthDiagramDomino([[-1]]); G
-        -1
-        sage: G.out_labels()
-        [[], [1, 1], []]
-
+    Figure 3 in [Lam2004]_::
 
         sage: G = GrowthDiagramDomino([[0,0,0,-1],[0,0,1,0],[-1,0,0,0],[0,1,0,0]]); G
          0  0  0 -1
          0  0  1  0
         -1  0  0  0
          0  1  0  0
-        sage: G.out_labels()
-        [[], [1, 1], [3, 1], [3, 3], [3, 3, 2], [2, 2, 2], [2, 2], [1, 1], []]
 
+        sage: ascii_art(G.P_symbol(), G.Q_symbol())
+        1  2  4  1  2  2
+        1  2  4  1  3  3
+        3  3     4  4
+
+    .. automethod:: _forward_rule
+    .. automethod:: _backward_rule
     """
-    def __init__(self,
-                 filling = None,
-                 shape = None,
-                 labels = None):
-        # TODO: should check that the filling is standard or
-        # generalize to the semistandard case
-        super(GrowthDiagramDomino, self).__init__(filling = filling,
-                                                  shape = shape,
-                                                  labels = labels)
-
-    def _forward_rule(self, shape3, shape2, shape1, content):
+    @staticmethod
+    def _forward_rule(shape3, shape2, shape1, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -1249,28 +1429,31 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
 
         OUTPUT:
 
-        The fourth partition according to Domino insertion.
+        The fourth partition according to domino insertion.
 
         TESTS::
 
-            sage: G = GrowthDiagramDomino(filling=[])
+            sage: G = GrowthDiagramDomino
 
-            Rule 1:
+        Rule 1::
+
             sage: G._forward_rule([], [], [], 1)
             [2]
 
             sage: G._forward_rule([1,1], [1,1], [1,1], 1)
             [3, 1]
 
-            Rule 2:
+        Rule 2::
+
             sage: G._forward_rule([1,1], [1,1], [1,1], -1)
             [2, 2]
 
-            Rule 3:
+        Rule 3::
             sage: G._forward_rule([1,1], [1,1], [2,2], 0)
             [2, 2]
 
-            Rule 4:
+        Rule 4::
+
             sage: G._forward_rule([2,2,2], [2,2], [3,3], 0)
             [3, 3, 2]
 
@@ -1288,7 +1471,6 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
 
             sage: G._forward_rule([1,1,1,1], [1,1], [1,1,1,1], 0)
             [2, 2, 1, 1]
-
         """
         if content not in [0,1,-1]:
             raise ValueError("Domino: The content of the filling must be in {-1,0,1}")

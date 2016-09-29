@@ -2578,8 +2578,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return RealField(prec)(self).log(m)
 
         if m is None:
-                from sage.functions.log import function_log
-                return function_log(self,dont_call_method_on_arg=True)
+            from sage.functions.log import function_log
+            return function_log(self,dont_call_method_on_arg=True)
         try:
             m = Integer(m)
         except (ValueError, TypeError):

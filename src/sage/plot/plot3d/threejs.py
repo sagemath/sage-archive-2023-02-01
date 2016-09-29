@@ -97,7 +97,7 @@ def threejs_template():
 
     scene.add( new THREE.AmbientLight( 0x404040, 1 ) );
 
-    var bounds = {};
+    var b = {}; // bounds
 
     var points = {};
     for ( var i=0 ; i < points.length ; i++ ) {{
@@ -107,34 +107,75 @@ def threejs_template():
 
     function moveBoundsOffPoint() {{
         var v = json.point;
-        if ( v[0] == bounds[0].x ) bounds[0].x -= 1;
-        if ( v[1] == bounds[0].y ) bounds[0].y -= 1;
-        if ( v[2] == bounds[0].z ) bounds[0].z -= 1;
-        if ( v[0] == bounds[1].x ) bounds[1].x += 1;
-        if ( v[1] == bounds[1].y ) bounds[1].y += 1;
-        if ( v[2] == bounds[1].z ) bounds[1].z += 1;
+        if ( v[0] == b[0].x ) b[0].x -= 1;
+        if ( v[1] == b[0].y ) b[0].y -= 1;
+        if ( v[2] == b[0].z ) b[0].z -= 1;
+        if ( v[0] == b[1].x ) b[1].x += 1;
+        if ( v[1] == b[1].y ) b[1].y += 1;
+        if ( v[2] == b[1].z ) b[1].z += 1;
     }}
 
-    var rRange = Math.sqrt( Math.pow( bounds[1].x - bounds[0].x, 2 )
-                            + Math.pow( bounds[1].x - bounds[0].x, 2 ) );
-    var zRange = bounds[1].z - bounds[0].z;
+    var rRange = Math.sqrt( Math.pow( b[1].x - b[0].x, 2 )
+                            + Math.pow( b[1].x - b[0].x, 2 ) );
+    var zRange = b[1].z - b[0].z;
 
     var a = [ 1, 1, 1 ]; // aspect multipliers
     var autoAspect = 2.5;
-    if ( zRange > autoAspect * rRange ) a[2] = autoAspect * rRange / zRange; 
+    if ( zRange > autoAspect * rRange ) a[2] = autoAspect * rRange / zRange;
+
+    var xMid = ( b[0].x + b[1].x ) / 2;
+    var yMid = ( b[0].y + b[1].y ) / 2;
+    var zMid = a[2] * ( b[0].z + b[1].z ) / 2;
+
+    scene.position.set( -xMid, -yMid, -zMid );
 
     var box = new THREE.Geometry();
-    box.vertices.push( new THREE.Vector3( bounds[0].x, bounds[0].y, a[2]*bounds[0].z ) );
-    box.vertices.push( new THREE.Vector3( bounds[1].x, bounds[1].y, a[2]*bounds[1].z ) );
+    box.vertices.push( new THREE.Vector3( b[0].x, b[0].y, a[2]*b[0].z ) );
+    box.vertices.push( new THREE.Vector3( b[1].x, b[1].y, a[2]*b[1].z ) );
     var boxMesh = new THREE.LineSegments( box );
     scene.add( new THREE.BoxHelper( boxMesh, 'black' ) );
 
-    scene.position.set( -( bounds[0].x + bounds[1].x ) / 2,
-                        -( bounds[0].y + bounds[1].y ) / 2,
-                        -a[2]*( bounds[0].z + bounds[1].z ) / 2 )
+    var d = 0; // decimals
+    var offsetRatio = 0.1;
 
-    // optional axis helper 
-    //scene.add( new THREE.AxisHelper( Math.min( [ bounds[1].x, bounds[1].y, a[2]*bounds[1].z ] ) ) );
+    var offset = offsetRatio * ( b[1].y - b[0].y );
+    addLabel( 'x=' + ( xMid ).toFixed(d).toString(), xMid, b[1].y+offset, a[2]*b[0].z );
+    addLabel( ( b[0].x ).toFixed(d).toString(), b[0].x, b[1].y+offset, a[2]*b[0].z );
+    addLabel( ( b[1].x ).toFixed(d).toString(), b[1].x, b[1].y+offset, a[2]*b[0].z );
+
+    var offset = offsetRatio * ( b[1].x - b[0].x );
+    addLabel( 'y=' + ( yMid ).toFixed(d).toString(), b[1].x+offset, yMid, a[2]*b[0].z );
+    addLabel( ( b[0].y ).toFixed(d).toString(), b[1].x+offset, b[0].y, a[2]*b[0].z );
+    addLabel( ( b[1].y ).toFixed(d).toString(), b[1].x+offset, b[1].y, a[2]*b[0].z );
+
+    var offset = offsetRatio * ( b[1].y - b[0].y );
+    addLabel( 'z=' + ( zMid ).toFixed(d).toString(), b[1].x, b[0].y-offset, zMid );
+    addLabel( ( b[0].z ).toFixed(d).toString(), b[1].x, b[0].y-offset, a[2]*b[0].z );
+    addLabel( ( b[1].z ).toFixed(d).toString(), b[1].x, b[0].y-offset, a[2]*b[1].z );
+
+    function addLabel( text, x, y, z ) {{
+        var size = 128;
+
+        var canvas = document.createElement( 'canvas' );
+        canvas.width = 4*size;
+        canvas.height = size;
+
+        var context = canvas.getContext( '2d' );
+        context.fillStyle = 'black';
+        context.font = '24px monospace';
+        context.textAlign = 'center';
+        context.fillText( text, 2*size, .7*size );
+
+        var texture = new THREE.Texture( canvas );
+        texture.needsUpdate = true;
+
+        var sprite = new THREE.Sprite( new THREE.SpriteMaterial( {{ map: texture }} ) );
+        sprite.position.set( x, y, z );
+        sprite.scale.set( 4, 1 );
+        scene.add( sprite );
+    }}
+
+    // scene.add( new THREE.AxisHelper( Math.min( [ b[1].x, b[1].y, a[2]*b[1].z ] ) ) );
 
     var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 ); 
     camera.up.set( 0, 0, 1 );
@@ -161,13 +202,16 @@ def threejs_template():
         var geometry = new THREE.Geometry();
         var v = json.point;
         geometry.vertices.push( new THREE.Vector3( v[0], v[1], a[2]*v[2] ) );
+
         var canvas = document.createElement( 'canvas' );
         canvas.width = 128;
         canvas.height = 128;
+
         var context = canvas.getContext( '2d' );
         context.arc( 64, 64, 64, 0, 2 * Math.PI );
         context.fillStyle = json.color;
         context.fill();
+
         var texture = new THREE.Texture( canvas );
         texture.needsUpdate = true;
         var material = new THREE.PointsMaterial( {{ size: json.size/100, map: texture,
@@ -217,12 +261,22 @@ def threejs_template():
         scene.add( new THREE.Mesh( geometry, material ) );
     }}
 
+    var scratch = new THREE.Vector3();
+
     function render() {{
 
         requestAnimationFrame( render ); 
         renderer.render( scene, camera );
         controls.update();
 
+        for ( var i=0 ; i < scene.children.length ; i++ ) {{
+            if ( scene.children[i].type === 'Sprite' ) {{
+                var sprite = scene.children[i];
+                var adjust = scratch.subVectors( sprite.position, camera.position ).length() / 10;
+                sprite.scale.x = 4 * adjust;
+                sprite.scale.y = adjust;
+            }}
+        }}
     }}
     
     render();

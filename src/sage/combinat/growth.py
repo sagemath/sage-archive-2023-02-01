@@ -843,10 +843,8 @@ class GrowthDiagramBinWord(GrowthDiagram):
 
     The Kleitman Greene invariant is the descent word::
 
-        sage: pi.descents()
-        doctest:...: DeprecationWarning: default behavior of descents may change in the near future to have indices starting from 1
-        See http://trac.sagemath.org/20555 for details.
-        [0, 2, 4, 5]
+        sage: pi.descents(from_zero=False)
+        [1, 3, 5, 6]
 
     .. automethod:: _forward_rule
     .. automethod:: _backward_rule
@@ -855,7 +853,7 @@ class GrowthDiagramBinWord(GrowthDiagram):
 
     Test that the Kleitman Greene invariant is indeed the descent word::
 
-        sage: r=4; all(Word([0 if i in w.descents() else 1 for i in range(r-1)]) == GrowthDiagramBinWord(w).out_labels()[r][1:] for w in Permutations(r))
+        sage: r=4; all(Word([0 if i in w.descents(from_zero=False) else 1 for i in range(r)]) == GrowthDiagramBinWord(w).out_labels()[r] for w in Permutations(r))
         True
     """
     def __init__(self,

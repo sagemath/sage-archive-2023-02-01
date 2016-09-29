@@ -148,16 +148,22 @@ REFERENCES:
    *Dual graded graphs for Kac-Moody algebras*.
    Algebra & Number Theory 1.4 (2007): pp. 451-488
 
-.. [HivNzeu] Florent Hivert and Janvier Nzeutchap.
+.. [HivNze] Florent Hivert and Janvier Nzeutchap.
    *Dual Graded Graphs in Combinatorial Hopf Algebras*.
    https://www.lri.fr/~hivert/PAPER/commCombHopfAlg.pdf
 
 .. [Vie1983] Xavier G. Viennot.
    *Maximal chains of subwords and up-down sequences of permutations*.
    Journal of Combinatorial Theory, Series A Volume 34, (1983), pp. 1-14
+
+.. [Nze2007] Janvier Nzeutchap.
+   *Binary Search Tree insertion, the Hypoplactic insertion, and Dual Graded Graphs*.
+   arXiv:0705.2689 (2007)
+
 """
 from sage.structure.sage_object import SageObject
 from sage.combinat.words.word import Word
+from sage.combinat.binary_tree import BinaryTree
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.skew_tableau import SkewTableau
@@ -986,6 +992,228 @@ class GrowthDiagramBinWord(GrowthDiagram):
             elif x == y and len(z) > 0 and z[-1] == 1:
                 return (x, 1)
 
+class GrowthDiagramSylvester(GrowthDiagram):
+    r"""
+    A class modelling a Schensted-like correspondence for binary
+    trees.
+
+    EXAMPLES:
+
+    From [Nze2007]_::
+
+        sage: pi = Permutation([3,5,1,4,2,6]); G = GrowthDiagramSylvester(pi); G
+        0  0  1  0  0  0
+        0  0  0  0  1  0
+        1  0  0  0  0  0
+        0  0  0  1  0  0
+        0  1  0  0  0  0
+        0  0  0  0  0  1
+        sage: ascii_art(G.out_labels()[len(pi)])
+          __o__
+         /     \
+        o       o
+         \     / \
+          o   o   o
+
+    .. automethod:: _forward_rule
+
+    """
+    def __init__(self,
+                 filling = None,
+                 shape = None,
+                 labels = None):
+        r"""
+        Initialize the zero element and the rank function of the dual
+        graded graphs on binary words.  Make sure that ``labels`` are
+        binary words.
+        """
+        # TODO: should check that the filling is standard
+        if labels is not None:
+            labels = [BinaryTree(la) for la in labels]
+        self._zero = BinaryTree()
+        self._rank_function = lambda w: w.node_number()
+        super(GrowthDiagramSylvester, self).__init__(filling = filling,
+                                                     shape = shape,
+                                                     labels = labels)
+
+    @staticmethod
+    def _forward_rule(y, t, x, content):
+        r"""
+        Return the output shape given three shapes and the content.
+
+        See [Nze2007]_, page 9.
+
+        INPUT:
+
+        - ``y, t, x`` -- three binary trees from a cell in a growth
+          diagram, labelled as::
+
+              t x
+              y
+
+        - ``content`` -- 0 or 1, the content of the cell.
+
+        OUTPUT:
+
+        The fourth binary tree z.
+
+        TESTS::
+
+            sage: G = GrowthDiagramSylvester
+            sage: B = BinaryTree; E = B(); N = B([]); L = B([[],None]); R = B([None,[]]); T = B([[],[]])
+
+            sage: ascii_art(G._forward_rule(E, E, E, 1))
+            o
+            sage: ascii_art(G._forward_rule(N, N, N, 1))
+            o
+             \
+              o
+            sage: ascii_art(G._forward_rule(L, L, L, 1))
+              o
+             / \
+            o   o
+            sage: ascii_art(G._forward_rule(R, R, R, 1))
+            o
+             \
+              o
+               \
+                o
+
+        if ``x != y``, obtain ``z`` from ``x`` adding a node such
+        that deleting the right most gives ``y``::
+
+            sage: ascii_art(G._forward_rule(R, N, L, 0))
+              o
+             /
+            o
+             \
+              o
+
+            sage: ascii_art(G._forward_rule(L, N, R, 0))
+              o
+             / \
+            o   o
+
+        if ``x == y != t``, obtain ``z`` from ``y`` by adding a node
+        as left child to the right most node::
+
+            sage: ascii_art(G._forward_rule(N, E, N, 0))
+              o
+             /
+            o
+            sage: ascii_art(G._forward_rule(T, L, T, 0))
+              _o_
+             /   \
+            o     o
+                 /
+                o
+
+        """
+        def successors(b):
+            """
+            Return all trees obtained from ``b`` by adding a node.
+            """
+            if b.is_empty():
+                yield BinaryTree([])
+            else:
+                for t in successors(b[0]):
+                    yield BinaryTree([t, b[1]])
+                for t in successors(b[1]):
+                    yield BinaryTree([b[0], t])
+
+        def delete_right_most_node(b):
+            """
+            Return the tree obtained by deleting the right most node from ``b``.
+            """
+            if b.is_empty():
+                raise ValueError("Cannot delete right most node from empty tree")
+            elif b[1].is_empty():
+                return b[0]
+            else:
+                return BinaryTree([b[0], delete_right_most_node(b[1])])
+
+        def union(x, y):
+            """
+            Return the unique tree obtained by adding a node to ``x`` such
+            that deleting the right most node gives ``y``.
+            """
+            for t in successors(x):
+                if delete_right_most_node(t) == y:
+                    return t
+            raise ValueError("Couldn't find union of %s and %s" %(x,y))
+
+        def add_left_child_to_right_most_node(b):
+            """
+            Return the tree obtained from ``b`` by adding a node as left
+            child to the right most node.
+            """
+            if b.is_empty():
+                raise ValueError("Cannot add left child to empty tree")
+            elif b == BinaryTree([]):
+                return BinaryTree([[], None])
+            else:
+                return BinaryTree([b[0], add_left_child_to_right_most_node(b[1])])
+
+        if x == t == y:
+            if content == 0:
+                z = x
+            elif content == 1:
+                z = t.over(BinaryTree([]))
+            else:
+                raise NotImplementedError
+        elif content != 0:
+            raise ValueError("For y=%s, t=%s, x=%s, the content should be 0 but is %s" %(y, t, x, content))
+        elif x != t == y:
+            z = x
+        elif x == t != y:
+            z = y
+        else:
+            if x != y:
+                return union(x, y)
+            elif x == y != t:
+                z = add_left_child_to_right_most_node(y)
+            else:
+                raise NotImplementedError
+        return z
+
+    @staticmethod
+    def _backward_rule(y, z, x):
+        r"""
+        Return the content and the input shape.
+
+        See [Fom1995]_ Lemma 4.6.1, page 40.
+
+        - ``y, z, x`` -- three binary words from a cell in a growth diagram,
+          labelled as::
+
+                x
+              y z
+
+        OUTPUT:
+
+        A pair ``(t, content)`` consisting of the shape of the fourth
+        word and the content of the cell acording to Viennot's
+        bijection [Vie1983]_.
+
+        TEST::
+
+            sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagramBinWord(w);
+            sage: GrowthDiagramBinWord(labels=G.out_labels()).to_word() == w    # indirect doctest
+            True
+
+        """
+        if x == y == z:
+            return (x, 0)
+        elif x == z != y:
+            return (y, 0)
+        elif x != z == y:
+            return (x, 0)
+        else:
+            if x != y or (len(z) > 0 and z[-1] == 0):
+                return (x[:-1], 0)
+            elif x == y and len(z) > 0 and z[-1] == 1:
+                return (x, 1)
+
 class GrowthDiagramYoungFibonacci(GrowthDiagram):
     r"""
 
@@ -1010,6 +1238,11 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
     The Kleitman Greene invariant is: take the last letter and the
     largest letter of the permutation and remove them.  If they
     coincide write 1, otherwise write 2.
+
+    .. TODO::
+
+        sage: G = GrowthDiagramYoungFibonacci(labels=[[1, 1, 2], [1, 1, 1, 2], [1, 2, 1, 2], [2, 2, 1, 2], [1,2,1,2]]); G
+        1  1  0
 
     .. automethod:: _forward_rule
     .. automethod:: _backward_rule

@@ -50,7 +50,8 @@ from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.words.words import Words
 
 class SkewTableau(ClonableList):
-    """A skew tableau.
+    """
+    A skew tableau.
 
     Note that Sage by default uses the English convention for partitions and
     tableaux. To change this, see :meth:`Tableaux.options`.

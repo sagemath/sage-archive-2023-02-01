@@ -1,4 +1,6 @@
-sagelib numpy fplll
+numpy fplll | $(SAGERUNTIME)
+
+fpylll depends on SAGERUNTIME because it runs Sage to check if Sage is present.
 
 ----------
 All lines of this file are ignored except the first.

@@ -4856,13 +4856,20 @@ class FinitePoset(UniqueRepresentation, Parent):
         We check that this works for facade posets too::
 
             sage: P = Poset((divisors(12), attrcall("divides")), facade=True)
-            sage: Q = P.with_linear_extension([1,3,2,6,4,12])
+            sage: Q = P.with_linear_extension([1,3,2,6,4,12]); Q
+            Finite poset containing 6 elements with distinguished linear extension
             sage: list(Q)
             [1, 3, 2, 6, 4, 12]
             sage: Q.cover_relations()
             [[1, 3], [1, 2], [3, 6], [2, 6], [2, 4], [6, 12], [4, 12]]
             sage: sorted(Q.cover_relations()) == sorted(P.cover_relations())
             True
+
+        (Semi)lattice remains (semi)lattice with new linear extension::
+
+            sage: L = LatticePoset(P)
+            sage: Q = L.with_linear_extension([1,3,2,6,4,12]); Q
+            Finite lattice containing 6 elements with distinguished linear extension
 
         .. NOTE::
 
@@ -4872,35 +4879,11 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         new_vertices = [self._element_to_vertex(element) for element in linear_extension]
         vertex_relabeling = dict(zip(new_vertices, linear_extension))
-        constructor = self._self_constructor()
+        constructor = self.__class__
         return constructor(self._hasse_diagram.relabel(vertex_relabeling, inplace=False),
                            elements=linear_extension,
                            category=self.category(),
                            facade=self._is_facade)
-
-    def _self_constructor(self):
-        """
-        Return a constructor for this subtype of poset.
-
-        EXAMPLES::
-
-            sage: P = Poset(); Pmaker = P._self_constructor()
-            sage: L = LatticePoset(); Lmaker = L._self_constructor()
-            sage: D = DiGraph({0: [1]})
-            sage: Pmaker(D, category=P.category())
-            Finite poset containing 2 elements
-            sage: Lmaker(D, category=L.category())
-            Finite lattice containing 2 elements
-        """
-        from sage.combinat.posets.lattices import FiniteLatticePoset, \
-             FiniteMeetSemilattice, FiniteJoinSemilattice
-        if isinstance(self, FiniteLatticePoset):
-            return FiniteLatticePoset
-        if isinstance(self, FiniteMeetSemilattice):
-            return FiniteMeetSemilattice
-        if isinstance(self, FiniteJoinSemilattice):
-            return FiniteJoinSemilattice
-        return FinitePoset
 
     def graphviz_string(self,graph_string="graph",edge_string="--"):
         r"""

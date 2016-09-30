@@ -4360,8 +4360,8 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
 
         EXAMPLES::
 
-            sage: J0(33).new_subvariety()
-            Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
+            sage: J0(34).new_subvariety()
+            Abelian subvariety of dimension 1 of J0(34)
             sage: J0(100).new_subvariety()
             Abelian subvariety of dimension 1 of J0(100)
             sage: J1(13).new_subvariety()

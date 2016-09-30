@@ -227,6 +227,11 @@ class GrowthDiagram(SageObject):
             [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
 
         """
+        try:
+            self._covers((self._zero, self._zero))
+        except AttributeError:
+            self._covers = lambda (a,b): True
+
         if filling is None:
             if shape is None:
                 shape = self._shape_from_labels(labels)
@@ -240,27 +245,6 @@ class GrowthDiagram(SageObject):
             self._in_labels = self._init_labels_forward_from_various_input(labels)
             self._check_labels(self._in_labels)
             self._grow()
-
-    def _shape_from_labels(self, labels):
-        r"""
-        Determine the shape of the growth diagram given a list of labels
-        during initialisation.
-
-        The shape can be determined from the labels if the size of
-        each label differs from the size of its successor.
-
-        Assumes that ``self._rank_function`` is set.
-
-        Otherwise raise an error.
-        """
-        def right_left(la, mu):
-            if self._rank_function(la) < self._rank_function(mu):
-                return 1
-            elif self._rank_function(la) > self._rank_function(mu):
-                return 0
-            else:
-                raise ValueError("Can only determine the shape of the growth diagram if sizes of successive partitions differ.")
-        return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
 
     def conjugate(self):
         r"""
@@ -517,6 +501,29 @@ class GrowthDiagram(SageObject):
         else:
             return self._lambda[0]+len(self._lambda)+1
 
+    def _shape_from_labels(self, labels):
+        r"""
+        Determine the shape of the growth diagram given a list of labels
+        during initialisation.
+
+        The shape can be determined from the labels if the size of
+        each label differs from the size of its successor.
+
+        Assumes that ``self._rank_function`` is set.
+
+        Otherwise raise an error.
+        """
+        def right_left(la, mu):
+            if self._rank_function(la) < self._rank_function(mu):
+                assert self._covers((mu, la)), "%s has smaller rank than %s but isn't covered by it!" %(la, mu)
+                return 1
+            elif self._rank_function(la) > self._rank_function(mu):
+                assert self._covers((la, mu)), "%s has smaller rank than %s but isn't covered by it!" %(mu, la)
+                return 0
+            else:
+                raise ValueError("Can only determine the shape of the growth diagram if sizes of successive partitions differ.")
+        return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
+
     def _check_labels(self, labels):
         r"""
         Check sanity of the parameter ``labels``.
@@ -714,7 +721,6 @@ class GrowthDiagram(SageObject):
             max_row = max(i for i, _ in F)+1
             max_col = max(j for _, j in F)+1
             shape = [max_row]*max_col
-
 
         return (F, self._init_shape_from_various_input(shape))
 
@@ -1239,11 +1245,6 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
     largest letter of the permutation and remove them.  If they
     coincide write 1, otherwise write 2.
 
-    .. TODO::
-
-        sage: G = GrowthDiagramYoungFibonacci(labels=[[1, 1, 2], [1, 1, 1, 2], [1, 2, 1, 2], [2, 2, 1, 2], [1,2,1,2]]); G
-        1  1  0
-
     .. automethod:: _forward_rule
     .. automethod:: _backward_rule
     """
@@ -1261,6 +1262,23 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
             labels = [Word(la, alphabet=[1,2]) for la in labels]
         self._zero = Word([], alphabet=[1,2])
         self._rank_function = lambda w: sum(w)
+
+        def covers(c):
+            if len(c) == 0:
+                yield Word([1], alphabet=[1,2])
+            else:
+                for i in range(len(c)):
+                    d = list(c)
+                    d.insert(i, 1)
+                    yield Word(d, alphabet=[1,2])
+                    if c[i] == 1:
+                        d = list(c)
+                        d[i] = 2
+                        yield Word(d, alphabet=[1,2])
+                        break
+
+        self._covers = lambda (w, v): w in covers(v)
+
         super(GrowthDiagramYoungFibonacci, self).__init__(filling = filling,
                                                           shape = shape,
                                                           labels = labels)

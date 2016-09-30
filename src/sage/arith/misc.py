@@ -5066,65 +5066,6 @@ def differences(lis, n=1):
         return lis
     return differences(lis, n - 1)
 
-def _cmp_complex_for_display(a, b):
-    r"""
-    Compare two complex numbers in a "pretty" (but mathematically
-    meaningless) fashion, for display only.
-
-    Real numbers (with a zero imaginary part) come before complex numbers,
-    and are sorted.  Complex numbers are sorted by their real part
-    unless their real parts are quite close, in which case they are
-    sorted by their imaginary part.
-
-    EXAMPLES::
-
-        sage: import sage.arith.misc
-        sage: cmp_c = sage.arith.misc._cmp_complex_for_display
-        sage: teeny = 3e-11
-        sage: cmp_c(CC(5), CC(3, 3))
-        -1
-        sage: cmp_c(CC(3), CC(5, 5))
-        -1
-        sage: cmp_c(CC(5), CC(3))
-        1
-        sage: cmp_c(CC(teeny, -1), CC(-teeny, 1))
-        -1
-        sage: cmp_c(CC(teeny, 1), CC(-teeny, -1))
-        1
-        sage: cmp_c(CC(0, 1), CC(1, 0.5))
-        -1
-        sage: cmp_c(CC(3+teeny, -1), CC(3-teeny, 1))
-        -1
-        sage: CIF200 = ComplexIntervalField(200)
-        sage: cmp_c(CIF200(teeny, -1), CIF200(-teeny, 1))
-        -1
-        sage: cmp_c(CIF200(teeny, 1), CIF200(-teeny, -1))
-        1
-        sage: cmp_c(CIF200(0, 1), CIF200(1, 0.5))
-        -1
-        sage: cmp_c(CIF200(3+teeny, -1), CIF200(3-teeny, 1))
-        -1
-    """
-    ar = a.real(); br = b.real()
-    ai = a.imag(); bi = b.imag()
-    epsilon = ar.parent()(1e-10)
-    if ai:
-        if bi:
-            if abs(br) < epsilon:
-                if abs(ar) < epsilon:
-                    return cmp(ai, bi)
-                return cmp(ar, 0)
-            if abs((ar - br) / br) < epsilon:
-                return cmp(ai, bi)
-            return cmp(ar, br)
-        else:
-            return 1
-    else:
-        if bi:
-            return -1
-        else:
-            return cmp(ar, br)
-
 
 def _key_complex_for_display(a):
     """
@@ -5132,7 +5073,7 @@ def _key_complex_for_display(a):
 
     Real numbers (with a zero imaginary part) come before complex numbers,
     and are sorted. Complex numbers are sorted by their real part
-    unless their real parts are equal, in which case they are
+    unless their real parts are quite close, in which case they are
     sorted by their imaginary part.
 
     EXAMPLES::
@@ -5170,7 +5111,7 @@ def sort_complex_numbers_for_display(nums):
     imaginary part.
 
     This is not a useful function mathematically (not least because
-    there's no principled way to determine whether the real components
+    there is no principled way to determine whether the real components
     should be treated as equal or not).  It is called by various
     polynomial root-finders; its purpose is to make doctest printing
     more reproducible.

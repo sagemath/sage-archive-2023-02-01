@@ -423,7 +423,7 @@ equation with respect to `z`::
     sage: C = function('C')(z)
     sage: equation =  P(x=z, y=C) == 0
     sage: diff(equation, z)
-    D[0](C)(z)*D[1](P)(z, C(z)) + D[0](P)(z, C(z)) == 0
+    diff(C(z), z)*D[1](P)(z, C(z)) + D[0](P)(z, C(z)) == 0
 
 or, in a more readable format,
 
@@ -489,12 +489,12 @@ linear differential equation with coefficients in `\QQ[z]`::
 
     sage: equadiff = diff(C,z) == fraction(x=z, y=C)
     sage: equadiff
-    D[0](C)(z) == 2*C(z)/(4*z - 1) - 1/(4*z - 1)
+    diff(C(z), z) == 2*C(z)/(4*z - 1) - 1/(4*z - 1)
     sage: equadiff = equadiff.simplify_rational()
     sage: equadiff = equadiff * equadiff.rhs().denominator()
     sage: equadiff = equadiff - equadiff.rhs()
     sage: equadiff
-    (4*z - 1)*D[0](C)(z) - 2*C(z) + 1 == 0
+    (4*z - 1)*diff(C(z), z) - 2*C(z) + 1 == 0
 
 or, more legibly,
 
@@ -1041,7 +1041,7 @@ then it is passed as an argument to ``sum`` to add them up. If, on the
 other hand, the iterator is passed directly to ``sum`` (note the absence
 of square brackets)::
 
-    sage: sum( binomial(8, i) for i in xrange(9) )
+    sage: sum( binomial(8, i) for i in range(9) )
     256
 
 the function ``sum`` receives the iterator directly, and can
@@ -1053,9 +1053,9 @@ Most functions that take a list of elements as input will also accept
 an iterator (or an iterable) instead. To begin with, one can obtain the
 list (or the tuple) of elements of an iterator as follows::
 
-    sage: list(binomial(8, i) for i in xrange(9))
+    sage: list(binomial(8, i) for i in range(9))
     [1, 8, 28, 56, 70, 56, 28, 8, 1]
-    sage: tuple(binomial(8, i) for i in xrange(9))
+    sage: tuple(binomial(8, i) for i in range(9))
     (1, 8, 28, 56, 70, 56, 28, 8, 1)
 
 We now consider the functions ``all`` and ``any`` which denote
@@ -1242,6 +1242,9 @@ are in the ``itertools`` library, which can be imported by::
 
     sage: import itertools
 
+The behaviour of this library has changed a lot between Python 2 and
+Python 3. What follows is mostly written for Python 2.
+
 We will demonstrate some applications, taking as a starting point the
 permutations of `3`::
 
@@ -1255,33 +1258,37 @@ We can list the elements of a set by numbering them::
     [(0, [1, 2, 3]), (1, [1, 3, 2]), (2, [2, 1, 3]),
      (3, [2, 3, 1]), (4, [3, 1, 2]), (5, [3, 2, 1])]
 
-select only the elements in positions 2, 3, and 4 (analogue of
+or select only the elements in positions 2, 3, and 4 (analogue of
 ``l[1:4]``)::
 
     sage: import itertools
     sage: list(itertools.islice(Permutations(3), 1, 4))
     [[1, 3, 2], [2, 1, 3], [2, 3, 1]]
 
-apply a function to all the elements::
+The itertools methods ``imap`` and ``ifilter`` have been renamed to
+``map`` and ``filter`` in Python 3. You can get them also in Python 2 using::
 
-    sage: list(itertools.imap(lambda z: z.cycle_type(),
-    ....:                     Permutations(3)))
+    sage: from builtins import map, filter
+
+To apply a function to all the elements, one can do::
+
+    sage: from builtins import map
+    sage: list(map(lambda z: z.cycle_type(), Permutations(3)))
     [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
 
-or select the elements satisfying a certain condition::
+and similarly to select the elements satisfying a certain condition::
 
-    sage: list(itertools.ifilter(lambda z: z.has_pattern([1,2]),
-    ....:                        Permutations(3)))
+    sage: from builtins import filter
+    sage: list(filter(lambda z: z.has_pattern([1,2]), Permutations(3)))
     [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
 
 In all these situations, ``attrcall`` can be an advantageous alternative
 to creating an anonymous function::
 
-    sage: list(itertools.imap(lambda z: z.cycle_type(),
-    ....:                     Permutations(3)))
+    sage: from builtins import map
+    sage: list(map(lambda z: z.cycle_type(), Permutations(3)))
     [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
-    sage: list(itertools.imap(attrcall("cycle_type"),
-    ....:                     Permutations(3)))
+    sage: list(map(attrcall("cycle_type"), Permutations(3)))
     [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
 
 Implementation of new iterators
@@ -1858,10 +1865,10 @@ REFERENCES:
    clean up.
 
 .. [2]
-   Technical detail: ``xrange`` returns an iterator on
+   Technical detail: ``range`` returns an iterator on
    `\{0,\dots,8\}` while ``range`` returns the corresponding
-   list. Starting in ``Python`` 3.0, ``range`` will behave like ``xrange``, and
-   ``xrange`` will no longer be needed.
+   list. Starting in ``Python`` 3.0, ``range`` will behave like ``range``, and
+   ``range`` will no longer be needed.
 
 .. [3]
    In practice, an efficient implementation would exploit the symmetries

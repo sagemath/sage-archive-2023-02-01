@@ -571,7 +571,7 @@ class RewritingSystem(object):
 
     def rules(self):
         """
-        Return the rules that form the rewritig system.
+        Return the rules that form the rewriting system.
 
         OUTPUT:
 
@@ -662,7 +662,7 @@ class RewritingSystem(object):
         system into a confluent one.
 
         Note that this method does not return any object, just changes the
-        rewriting sytem internally.
+        rewriting system internally.
 
         .. WARNING:
 

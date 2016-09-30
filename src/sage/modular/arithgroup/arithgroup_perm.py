@@ -442,7 +442,7 @@ def ArithmeticSubgroup_Permutation(
                 L = ~S3 * ~R * S3
             if S2 is None:
                 S2 = ~S3 * R
-    else: # intialize from S2, S3
+    else: # initialize from S2, S3
         if L is None:
             L = ~S3 * ~S2
         if R is None:
@@ -726,7 +726,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
 
         The implementation of modular subgroup by action of generators on cosets
         depends on the choice of a numbering. This function provides
-        canonical labels in the sense that two equal subgroups whith different
+        canonical labels in the sense that two equal subgroups with different
         labels are relabeled the same way. The default implementation relabels
         the group itself. If you want to get a relabeled copy of your modular
         subgroup, put to ``False`` the option ``inplace``.
@@ -740,7 +740,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         construct a canonical representative of a transitive subgroup in its
         conjugacy class in the full symmetric group.
 
-        1. The identity is still numbered `0` and set the curent vertex to be
+        1. The identity is still numbered `0` and set the current vertex to be
         the identity.
 
         2. Number the cycle of `S3` the current vertex belongs to: if the
@@ -953,7 +953,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         waiting = []
 
         while True:
-            # intialize at j0
+            # initialize at j0
             mapping[j0] = k
             waiting.append(j0)
             k += 1
@@ -1391,7 +1391,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             sage: a.is_congruence()
             True
 
-        This example is congruence -- it is `\Gamma_0(3)` in disguise: ::
+        This example is congruence -- it is `\Gamma_0(3)` in disguise::
 
             sage: S2 = SymmetricGroup(4)
             sage: l = S2((2,3,4))

@@ -2,18 +2,16 @@
 r"""
 Abstract base class for Sage objects
 """
-from __future__ import print_function
 
-import cPickle
+from __future__ import absolute_import, print_function
+
+from six.moves import cPickle
 import os
 import sys
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 from sage.misc.sage_unittest import TestSuite
 
 sys_modules = sys.modules
-
-from sage.misc.lazy_import import LazyImport
-have_same_parent = LazyImport('sage.structure.element', 'have_same_parent', deprecation=17533)
 
 # change to import zlib to use zlib instead; but this
 # slows down loading any data stored in the other format
@@ -27,35 +25,10 @@ op_NE = Py_NE   # operator !=
 op_GT = Py_GT   # operator >
 op_GE = Py_GE   # operator >=
 
-def py_rich_to_bool(op, c):
-    r"""
-    Return ``True`` or ``False`` for a rich comparison, given the result of an
-    ordinary comparison.
 
-    Do not use this function from Cython. Instead, call ``rich_to_bool`` or
-    ``rich_to_bool_sgn`` defined in ``sage_object.pxd``.
+from sage.misc.superseded import deprecated_function_alias
+py_rich_to_bool = deprecated_function_alias(21128, rich_to_bool)
 
-    INPUT:
-
-    - ``op`` -- a rich comparison operation (e.g. ``op_EQ``)
-
-    - ``c`` -- the result of an ordinary comparison, i.e. an integer.
-
-    EXAMPLES::
-
-        sage: from sage.structure.sage_object import (py_rich_to_bool,
-        ....:    op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE)
-        sage: for op in (op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE):
-        ....:     for c in (-1,0,1):
-        ....:         print(py_rich_to_bool(op, c))
-        True False False
-        True True False
-        False True False
-        True False True
-        False False True
-        False True True
-    """
-    return rich_to_bool_sgn(op, c)
 
 cdef process(s):
     if s[-5:] != '.sobj':
@@ -603,14 +576,21 @@ cdef class SageObject:
 
         """
         tester = self._tester(**options)
-        for name in dir(self):
-            try:
-                getattr(self, name)
-            except NotImplementedError:
-                # It would be best to make sure that this NotImplementedError was triggered by AbstractMethod
-                tester.fail("Not implemented method: %s"%name)
-            except Exception:
-                pass
+        try:
+            # Disable warnings for the duration of the test
+            import warnings
+            warnings.filterwarnings('ignore')
+            for name in dir(self):
+                try:
+                    getattr(self, name)
+                except NotImplementedError:
+                    # It would be best to make sure that this NotImplementedError was triggered by AbstractMethod
+                    tester.fail("Not implemented method: %s"%name)
+                except Exception:
+                    pass
+        finally: 
+            # Restore warnings
+            warnings.filters.pop(0)
 
     def _test_pickling(self, **options):
         """
@@ -966,6 +946,17 @@ def load(*filename, compress=True, verbose=True):
         hello world
         hello world
         [None, None, 2/3]
+
+    Files with a ``.sage`` extension are preparsed. Also note that we
+    can access global variables::
+
+        sage: t = tmp_filename(ext=".sage")
+        sage: with open(t, 'w') as f:
+        ....:     f.write("a += Mod(2/3, 11)")  # This evaluates to Mod(8, 11)
+        sage: a = -1
+        sage: load(t)
+        sage: a
+        7
 
     We can load Fortran files::
 
@@ -1486,7 +1477,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
 
     When run with no arguments :meth:`unpickle_all` tests that all of the
     "standard" pickles stored in the pickle_jar at
-    ``SAGE_ROOT/local/share/sage/ext/pickle_jar/pickle_jar.tar.bz2`` can be unpickled.
+    ``SAGE_SHARE/sage/ext/pickle_jar/pickle_jar.tar.bz2`` can be unpickled.
 
     ::
 
@@ -1613,3 +1604,21 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
     print("Failed to unpickle %s objects." % j)
     if debug:
         return tracebacks
+
+
+def make_None(*args, **kwds):
+    """
+    Do nothing and return ``None``. Used for overriding pickles when
+    that pickle is no longer needed.
+
+    EXAMPLES::
+
+        sage: from sage.structure.sage_object import make_None
+        sage: print(make_None(42, pi, foo='bar'))
+        None
+    """
+    return None
+
+
+# Generators is no longer used (#21382)
+register_unpickle_override('sage.structure.generators', 'make_list_gens', make_None)

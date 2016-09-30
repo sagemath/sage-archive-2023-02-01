@@ -480,7 +480,13 @@ cdef class NumberFieldElement(FieldElement):
 
         EXAMPLES::
 
-            sage: F=CyclotomicField(8)
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: (a**2 - a + 1)._gap_init_()
+            '\\$sage4^2 - \\$sage4 + 1'
+            sage: gap(_)
+            a^2-a+1
+
+            sage: F = CyclotomicField(8)
             sage: F.gen()
             zeta8
             sage: F._gap_init_()
@@ -488,16 +494,40 @@ cdef class NumberFieldElement(FieldElement):
             sage: f = gap(F)
             sage: f.GeneratorsOfDivisionRing()
             [ E(8) ]
-            sage: p=F.gen()^2+2*F.gen()-3
+            sage: p = F.gen()^2+2*F.gen()-3
             sage: p
             zeta8^2 + 2*zeta8 - 3
             sage: p._gap_init_() # The variable name $sage2 belongs to the gap(F) and is somehow random
             'GeneratorsOfField($sage2)[1]^2 + 2*GeneratorsOfField($sage2)[1] - 3'
             sage: gap(p._gap_init_())
             -3+2*E(8)+E(8)^2
+
+        Check that :trac:`15276` is fixed::
+
+            sage: for n in range(2,20):
+            ....:     K = CyclotomicField(n)
+            ....:     assert K(gap(K.gen())) == K.gen(), "n = {}".format(n)
+            ....:     assert K(gap(K.one())) == K.one(), "n = {}".format(n)
+            ....:     for _ in range(10):
+            ....:         t = K.random_element()
+            ....:         assert K(gap(t)) == t, "n = {}  t = {}".format(n,t)
         """
-        s = self._repr_()
-        return s.replace(str(self.parent().gen()), 'GeneratorsOfField(%s)[1]'%sage.interfaces.gap.gap(self.parent()).name())
+        if self.is_rational():
+            return str(self)
+        p = self.polynomial()
+        P = self.parent()
+        from .number_field import NumberField_cyclotomic
+        if isinstance(P, NumberField_cyclotomic):
+            n = P._n()
+            if n != 2 and n%4 == 2:
+                x = p.variables()[0]
+                p = p(-x**((n//2+1)//2))
+                E = 'E(%d)'%(n//2)
+            else:
+                E = 'E(%d)'%n
+        else:
+            E = self.parent()._gap_().GeneratorsOfField()[1].name()
+        return str(p).replace(p.variable_name(), E)
 
     def _libgap_(self):
         """
@@ -515,11 +545,28 @@ cdef class NumberFieldElement(FieldElement):
             E(8)+3/2*E(8)^2-100*E(8)^3
             sage: type(_)
             <type 'sage.libs.gap.element.GapElement_Cyclotomic'>
+
+        Check that :trac:`15276` is fixed::
+
+            sage: for n in range(2,20):
+            ....:     K = CyclotomicField(n)
+            ....:     assert K(libgap(K.gen())) == K.gen(), "n = {}".format(n)
+            ....:     assert K(libgap(K.one())) == K.one(), "n = {}".format(n)
+            ....:     for _ in range(10):
+            ....:         t = K.random_element()
+            ....:         assert K(libgap(t)) == t, "n = {}  t = {}".format(n,t)
         """
-        n = self.parent()._n()
+        from .number_field import NumberField_cyclotomic
+        P = self.parent()
+        if not isinstance(P, NumberField_cyclotomic):
+            raise NotImplementedError("libgap conversion is only implemented for cyclotomic fields")
+
         from sage.libs.gap.libgap import libgap
-        En = libgap(self.parent()).GeneratorsOfField()[0]
-        return self.polynomial()(En)
+        E = libgap(P).GeneratorsOfField()[0]
+        n = P._n()
+        if n%4 == 2:
+            E = -E**((n//2+1)//2)
+        return self.polynomial()(E)
 
     def _pari_polynomial(self, name='y'):
         """
@@ -908,12 +955,15 @@ cdef class NumberFieldElement(FieldElement):
         return 0  # No error
 
 
-    # TODO: this is wrong if there is a real embedding specified
     def __abs__(self):
         r"""
-        Return the numerical absolute value of this number field element
-        with respect to the first archimedean embedding, to double
-        precision.
+        Return the absolute value of this number field element.
+
+        If a real-valued coercion embedding is defined, the
+        returned absolute value is an element of the same field.
+
+        Otherwise, it is the numerical absolute value with respect to
+        the first archimedean embedding, to double precision.
 
         This is the ``abs( )`` Python function. If you want a
         different embedding or precision, use
@@ -924,12 +974,27 @@ cdef class NumberFieldElement(FieldElement):
             sage: k.<a> = NumberField(x^3 - 2)
             sage: abs(a)
             1.25992104989487
+            sage: a.abs()
+            1.25992104989487
             sage: abs(a)^3
+            2.00000000000000
+            sage: a.abs()^3
             2.00000000000000
             sage: a.abs(prec=128)
             1.2599210498948731647672106072782283506
+
+        Number field with a real-valued coercion embedding
+        (:trac:`21105`)::
+
+            sage: k.<cbrt2> = NumberField(x^3 - 2, embedding=1.26)
+            sage: abs(cbrt2)
+            cbrt2
+            sage: cbrt2.abs()
+            cbrt2
+            sage: abs(cbrt2)^3
+            2
         """
-        return self.abs(prec=53, i=None)
+        return self.abs()
 
     def sign(self):
         r"""
@@ -1095,25 +1160,30 @@ cdef class NumberFieldElement(FieldElement):
             upp = a.upper().ceil()
         return low
 
-    def abs(self, prec=53, i=None):
-        r"""
-        Return the absolute value of this element.
+    def abs(self, prec=None, i=None):
+        r"""Return the absolute value of this element.
 
-        If ``i`` is provided, then the absolute of the `i`-th embedding is
-        given. Otherwise, if the number field as a defined embedding into `\CC`
-        then the corresponding absolute value is returned and if there is none,
-        it corresponds to the choice ``i=0``.
+        If ``i`` is provided, then the absolute value of the `i`-th
+        embedding is given.
 
-        If prec is 53 (the default), then the complex double field is
-        used; otherwise the arbitrary precision (but slow) complex
-        field is used.
+        Otherwise, if the number field has a coercion embedding into
+        `\RR`, the corresponding absolute value is returned as an
+        element of the same field (unless ``prec`` is given).
+        Otherwise, if it has a coercion embedding into
+        `\CC`, then the corresponding absolute value is returned.
+        Finally, if there is no coercion embedding, `i` defaults to 0.
+
+        For the computation, the complex field with ``prec`` bits of
+        precision is used, defaulting to 53 bits of precision if
+        ``prec`` is not provided. The result is in the corresponding
+        real field.
 
         INPUT:
 
 
-        -  ``prec`` - (default: 53) integer bits of precision
+        -  ``prec`` - (default: None) integer bits of precision
 
-        -  ``i`` - (default: ) integer, which embedding to
+        -  ``i`` - (default: None) integer, which embedding to
            use
 
 
@@ -1134,9 +1204,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: a.abs(100, 2)
             2.5712815906582353554531872087
 
-        Here's one where the absolute value depends on the embedding.
-
-        ::
+        Here's one where the absolute value depends on the embedding::
 
             sage: K.<b> = NumberField(x^2-2)
             sage: a = 1 + b
@@ -1154,14 +1222,42 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<b> = NumberField(f, embedding=beta)
             sage: b.abs()
             1.32471795724475
+
+        Check that for fields with real coercion embeddings, absolute
+        values are in the same field (:trac:`21105`)::
+
+            sage: x = polygen(ZZ)
+            sage: f = x^3 - x - 1
+            sage: K.<b> = NumberField(f, embedding=1.3)
+            sage: b.abs()
+            b
+
+        However, if a specific embedding is requested, the behavior reverts
+        to that of number fields without a coercion embedding into `\RR`::
+
+            sage: b.abs(i=2)
+            1.32471795724475
+
+        Also, if a precision is requested explicitly, the behavior reverts
+        to that of number fields without a coercion embedding into `\RR`::
+
+            sage: b.abs(prec=53)
+            1.32471795724475
+
         """
-        CCprec = ComplexField(prec)
-        if i is None and CCprec.has_coerce_map_from(self.parent()):
-            return CCprec(self).abs()
+        if (i is None and prec is None
+            and (<number_field_base.NumberField> self._parent)._embedded_real):
+            return self.sign() * self
         else:
-            i = 0 if i is None else i
-            P = self.number_field().complex_embeddings(prec)[i]
-            return P(self).abs()
+            if prec is None:
+                prec = 53
+            CCprec = ComplexField(prec)
+            if i is None and CCprec.has_coerce_map_from(self.parent()):
+                return CCprec(self).abs()
+            else:
+                i = 0 if i is None else i
+                P = self.number_field().complex_embeddings(prec)[i]
+                return P(self).abs()
 
     def abs_non_arch(self, P, prec=None):
         r"""

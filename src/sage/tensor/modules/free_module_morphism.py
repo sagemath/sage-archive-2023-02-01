@@ -681,9 +681,9 @@ class FiniteRankFreeModuleMorphism(Morphism):
         return self.__class__(self.parent(), resu_mat, bases=bases,
                               name=resu_name, latex_name=resu_latex_name)
 
-    def _rmul_(self, scalar):
+    def _lmul_(self, scalar):
         r"""
-        Multiplication on the left by ``scalar``.
+        Multiplication by ``scalar``.
 
         INPUT:
 
@@ -702,16 +702,15 @@ class FiniteRankFreeModuleMorphism(Morphism):
             sage: e = M.basis('e') ; f = N.basis('f')
             sage: phi = M.hom(N, [[-1,2,0], [5,1,2]], name='phi',
             ....:             latex_name=r'\phi')
-            sage: s = phi._rmul_(7) ; s
+            sage: s = phi._lmul_(7) ; s
             Generic morphism:
               From: Rank-3 free module M over the Integer Ring
               To:   Rank-2 free module N over the Integer Ring
             sage: s.matrix(e,f)
             [-7 14  0]
             [35  7 14]
-            sage: s == 7*phi  # indirect doctest
+            sage: s == 7 * phi
             True
-
         """
         resu = self.__class__(self.parent(), 0)  # 0 = provisory value
         for bases, mat in self._matrices.iteritems():
@@ -1039,7 +1038,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         # Some basis in which ``self`` has a representation is picked at
         # random and the test is performed on the images of the basis
         # elements:
-        basis = self._matrices.keys()[0][0]
+        basis = list(self._matrices)[0][0]
         for i in fmodule.irange():
             if self(basis[i]) != basis[i]:
                 return False

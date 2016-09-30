@@ -14,6 +14,7 @@ Miscellaneous arithmetic functions
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
+from six.moves import range
 
 import math
 
@@ -135,7 +136,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         sage: algdep(pi.n(), 5, height_bound=10, proof=True) is None
         True
 
-    For stronger results, we need more precicion::
+    For stronger results, we need more precision::
 
         sage: algdep(pi.n(), 5, height_bound=100, proof=True) is None
         Traceback (most recent call last):
@@ -208,7 +209,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         r = ZZ.one() << prec
         M[0, 0] = 1
         M[0, -1] = r
-        for k in range(1, degree+1):
+        for k in range(1, degree + 1):
             M[k, k] = 1
             r *= z
             if is_complex:
@@ -878,7 +879,7 @@ def eratosthenes(n):
     elif n == 2:
         return [ZZ(2)]
 
-    s = range(3, n+3, 2)
+    s = list(range(3, n + 3, 2))
     mroot = int(n ** 0.5)
     half = (n+1) // 2
     i = 0
@@ -903,7 +904,7 @@ def primes(start, stop=None, proof=None):
     argument proof controls whether the numbers returned are
     guaranteed to be prime or not.
 
-    This command is like the xrange command, except it only iterates
+    This command is like the Python 2 ``xrange`` command, except it only iterates
     over primes. In some cases it is better to use primes than
     ``prime_range``, because primes does not build a list of all primes in
     the range in memory all at once. However, it is potentially much
@@ -948,7 +949,7 @@ def primes(start, stop=None, proof=None):
 
         sage: for a in range(-10, 50):
         ....:     for b in range(-10, 50):
-        ....:         assert list(primes(a,b)) == list(filter(is_prime, xrange(a,b)))
+        ....:         assert list(primes(a,b)) == list(filter(is_prime, range(a,b)))
         sage: sum(primes(-10, 9973, proof=False)) == sum(filter(is_prime, range(-10, 9973)))
         True
         sage: for p in primes(10, infinity):
@@ -2835,7 +2836,7 @@ class Euler_Phi:
             sage: p.ymax()
             46.0
         """
-        v = [(n,euler_phi(n)) for n in range(xmin,xmax + 1)]
+        v = [(n, euler_phi(n)) for n in range(xmin, xmax + 1)]
         from sage.plot.all import list_plot
         P = list_plot(v, pointsize=pointsize, rgbcolor=rgbcolor, **kwds)
         if join:
@@ -3030,7 +3031,7 @@ def CRT_list(v, moduli):
         return moduli[0].parent()(v[0])
     x = v[0]
     m = moduli[0]
-    for i in range(1,len(v)):
+    for i in range(1, len(v)):
         x = CRT(x,v[i],m,moduli[i])
         m = lcm(m,moduli[i])
     return x%m
@@ -3344,7 +3345,7 @@ def binomial(x, m, **kwds):
     # case 4: naive method
     if m < ZZ.zero():
         return P(0)
-    return P(prod(x-i for i in xrange(m))) / m.factorial()
+    return P(prod(x - i for i in range(m))) / m.factorial()
 
 def multinomial(*ks):
     r"""
@@ -3424,7 +3425,7 @@ def binomial_coefficients(n):
     """
     d = {(0, n):1, (n, 0):1}
     a = 1
-    for k in xrange(1, n//2+1):
+    for k in range(1, n // 2 + 1):
         a = (a * (n-k+1))//k
         d[k, n-k] = d[n-k, k] = a
     return d
@@ -3520,7 +3521,7 @@ def multinomial_coefficients(m, n):
             t[j] += 1
         # compute the value
         # NB: the initialization of v was done above
-        for k in xrange(start, m):
+        for k in range(start, m):
             if t[k]:
                 t[k] -= 1
                 v += r[tuple(t)]
@@ -3824,7 +3825,7 @@ def quadratic_residues(n):
         159
     """
     n = abs(int(n))
-    X = sorted(set(ZZ((a*a)%n) for a in range(n//2+1)))
+    X = sorted(set(ZZ((a*a)%n) for a in range(n // 2 + 1)))
     return X
 
 class Moebius:
@@ -4274,7 +4275,7 @@ def hilbert_conductor_inverse(d):
 
     TESTS::
 
-        sage: for i in xrange(100):
+        sage: for i in range(100):
         ....:     d = ZZ.random_element(2**32).squarefree_part()
         ....:     if hilbert_conductor(*hilbert_conductor_inverse(d)) != d:
         ....:         print("hilbert_conductor_inverse failed for d = {}".format(d))
@@ -4608,7 +4609,7 @@ def two_squares(n):
 
     TESTS::
 
-        sage: for _ in xrange(100):
+        sage: for _ in range(100):
         ....:     a = ZZ.random_element(2**16, 2**20)
         ....:     b = ZZ.random_element(2**16, 2**20)
         ....:     n = a**2 + b**2
@@ -4722,7 +4723,7 @@ def three_squares(n):
 
     TESTS::
 
-        sage: for _ in xrange(100):
+        sage: for _ in range(100):
         ....:     a = ZZ.random_element(2**16, 2**20)
         ....:     b = ZZ.random_element(2**16, 2**20)
         ....:     c = ZZ.random_element(2**16, 2**20)
@@ -4847,7 +4848,7 @@ def four_squares(n):
 
     TESTS::
 
-        sage: for _ in xrange(100):
+        sage: for _ in range(100):
         ....:     n = ZZ.random_element(2**32,2**34)
         ....:     aa,bb,cc,dd = four_squares(n)
         ....:     assert aa**2 + bb**2 + cc**2 + dd**2 == n

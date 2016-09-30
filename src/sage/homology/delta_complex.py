@@ -58,7 +58,8 @@ REFERENCES:
 from __future__ import absolute_import
 
 from copy import copy
-from sage.homology.cell_complex import GenericCellComplex, Chains
+from sage.homology.cell_complex import GenericCellComplex
+from sage.homology.chains import Chains, Cochains
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.matrix.constructor import matrix
@@ -1532,7 +1533,11 @@ class DeltaComplex(GenericCellComplex):
             sage: list(T.n_chains(1, QQ, cochains=True).basis())
             [\chi_(0, (0, 0)), \chi_(1, (0, 0)), \chi_(2, (0, 0))]
         """
-        return Chains(tuple(enumerate(self.n_cells(n))), base_ring, cochains)
+        n_cells = tuple(enumerate(self.n_cells(n)))
+        if cochains:
+            return Cochains(self, n, n_cells, base_ring)
+        else:
+            return Chains(self, n, n_cells, base_ring)
 
     # the second barycentric subdivision is a simplicial complex.  implement this somehow?
 #     def simplicial_complex(self):

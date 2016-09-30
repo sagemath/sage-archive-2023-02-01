@@ -8,10 +8,7 @@ AUTHORS:
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.family import Family
-from sage.misc.misc_c import prod
 from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.functions.other import factorial
-from sage.misc.cachefunc import cached_function
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -21,6 +18,7 @@ from sage.combinat.combinat import CombinatorialElement
 from sage.rings.integer import Integer
 from sage.combinat.backtrack import GenericBacktracker
 import copy
+
 
 class CompositionTableau(CombinatorialElement):
     r"""
@@ -575,7 +573,7 @@ class CompositionTableaux_size(CompositionTableaux):
     - ``n`` -- a nonnegative integer.
     - ``max_entry`` -- a nonnegative integer. This keyword argument defaults to ``n``.
 
-    OUTUT:
+    OUTPUT:
 
     - The class of composition tableaux of size ``n``.
     """

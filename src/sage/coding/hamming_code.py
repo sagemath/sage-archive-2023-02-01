@@ -8,7 +8,7 @@ dimension `k=\frac{q^{r}-1}{q-1} - r` and minimum distance
 
 REFERENCES:
 
-    .. [R] Introduction to Coding Theory, Ron Roth, Cambridge University Press, 2006
+.. [R06] Ron Roth, Introduction to Coding Theory, Cambridge University Press, 2006
 """
 from __future__ import absolute_import
 
@@ -80,7 +80,7 @@ class HammingCode(AbstractLinearCode):
 
         q = base_field.order()
         length = Integer((q ** order - 1) / (q - 1))
-        super(HammingCode, self).__init__(base_field, length, "ParityCheck", "Syndrome")
+        super(HammingCode, self).__init__(base_field, length, "Systematic", "Syndrome")
         self._dimension = length - order
 
     def __eq__(self, other):
@@ -133,7 +133,7 @@ class HammingCode(AbstractLinearCode):
         is not a binary code is not really well documented.
         Regarding the choice of projective geometry, one might check:
 
-        - the note over section 2.3 in [R]_, pages 47-48
+        - the note over section 2.3 in [R06]_, pages 47-48
         - the dedicated paragraph in [HP]_, page 30
 
         EXAMPLES::

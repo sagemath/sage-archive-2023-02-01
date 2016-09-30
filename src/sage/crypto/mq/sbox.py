@@ -1,7 +1,8 @@
 r"""
 S-Boxes and Their Algebraic Representations
 """
-from __future__ import print_function
+from __future__ import print_function, division
+from six.moves import range
 
 from sage.combinat.integer_vector import IntegerVectors
 from sage.crypto.boolean_function import BooleanFunction
@@ -393,7 +394,7 @@ class SBox(SageObject):
             sage: [e for e in S]
             [7, 6, 0, 4, 2, 5, 1, 3]
         """
-        for i in xrange(2**self.m):
+        for i in range(2**self.m):
             yield self(i)
 
     def difference_distribution_matrix(self):
@@ -521,8 +522,8 @@ class SBox(SageObject):
 
         B = BooleanFunction(self.m)
         L = []
-        for j in xrange(ncols):
-            for i in xrange(nrows):
+        for j in range(ncols):
+            for i in range(nrows):
                 B[i] = ZZ(self(i)&j).popcount()
             L.append(B.walsh_hadamard_transform())
 
@@ -702,7 +703,7 @@ class SBox(SageObject):
             divisor = 1
             var_choices = 1
 
-            for d in xrange(1, deg+1):
+            for d in range(1, deg+1):
                 var_choices *= (nvars - d + 1)
                 divisor *= d
                 total += var_choices/divisor
@@ -798,7 +799,7 @@ class SBox(SageObject):
         if k is None:
             k = GF(2**self.m,'a')
         l = []
-        for i in xrange(2**self.m):
+        for i in range(2**self.m):
             i = self.to_bits(i, self.m)
             o = self(i)
             if self._big_endian:
@@ -971,7 +972,7 @@ class SBox(SageObject):
             output_bits = list(reversed(output_bits))
 
         C = [] # the set of clauses
-        for e in xrange(2**m):
+        for e in range(2**m):
             x = self.to_bits(e, m)
             y = self(x) # evaluate at x
             for output_bit in output_bits: # consider each bit
@@ -1034,7 +1035,7 @@ class SBox(SageObject):
         else:
             raise TypeError("cannot compute component function using parameter %s"%(b,))
 
-        for x in xrange(1<<m):
+        for x in range(1<<m):
             ret[x] = bool(b.dot_product(vector(GF(2), self.to_bits(self(x), n))))
         return ret
 
@@ -1111,8 +1112,8 @@ class SBox(SageObject):
         n = self.n
         ret = (1<<m) + (1<<n)
 
-        for a in xrange(1<<m):
-            for b in xrange(1<<n):
+        for a in range(1<<m):
+            for b in range(1<<n):
                 if (a != b):
                     x = a ^ b
                     y = self(a) ^ self(b)
@@ -1147,8 +1148,8 @@ class SBox(SageObject):
         ret = (1<<m) + (1<<n)
         lat = self.linear_approximation_matrix()
 
-        for a in xrange(1, 1<<m):
-            for b in xrange(1<<n):
+        for a in range(1, 1<<m):
+            for b in range(1<<n):
                 if lat[a,b] != 0:
                     w = ZZ(a).popcount() + ZZ(b).popcount()
                     if w < ret:
@@ -1220,8 +1221,8 @@ class SBox(SageObject):
         act = self.autocorrelation_matrix()
         ret = []
 
-        for j in xrange(1, 1<<n):
-            for i in xrange(1, 1<<m):
+        for j in range(1, 1<<n):
+            for i in range(1, 1<<m):
                 if (abs(act[i,j]) == (1<<m)):
                     c = ((1 - (act[i][j] >> self.m)) >> 1)
                     ret.append((j, i, c))
@@ -1240,7 +1241,7 @@ class SBox(SageObject):
         n = self.n
         ret = 0
 
-        for i in xrange(n):
+        for i in range(n):
             deg_Si = self.component_function(1<<i).algebraic_normal_form().degree()
             if deg_Si > ret:
                 ret = deg_Si
@@ -1259,7 +1260,7 @@ class SBox(SageObject):
         n = self.n
         ret = self.m
 
-        for b in xrange(1, 1<<n):
+        for b in range(1, 1<<n):
             deg_bS = self.component_function(b).algebraic_normal_form().degree()
             if deg_bS < ret:
                 ret = deg_bS
@@ -1279,7 +1280,7 @@ class SBox(SageObject):
         """
         n = self.n
 
-        for b in xrange(1, 1<<n):
+        for b in range(1, 1<<n):
             bS = self.component_function(b)
             if not bS.is_balanced():
                 return False
@@ -1306,7 +1307,7 @@ class SBox(SageObject):
         if is_even(m):
             return False
 
-        return self.nonlinearity() == 2**(m-1) - 2**((m-1)/2)
+        return self.nonlinearity() == 2**(m-1) - 2**((m-1)//2)
 
     def fixed_points(self):
         """
@@ -1319,7 +1320,7 @@ class SBox(SageObject):
             [0, 1]
         """
         m = self.m
-        return [i for i in xrange(1<<m) if i == self(i)]
+        return [i for i in range(1<<m) if i == self(i)]
 
     def inverse(self):
         """
@@ -1332,15 +1333,15 @@ class SBox(SageObject):
 
             sage: S = mq.SBox([0, 1, 3, 6, 7, 4, 5, 2])
             sage: Sinv = S.inverse()
-            sage: [Sinv(S(i)) for i in xrange(8)]
+            sage: [Sinv(S(i)) for i in range(8)]
             [0, 1, 2, 3, 4, 5, 6, 7]
         """
         if not self.is_permutation():
             raise TypeError("S-Box must be a permutation")
 
         m = self.m
-        L = [self(i) for i in xrange(1<<m)]
-        return SBox([L.index(i) for i in xrange(1<<m)], big_endian=self._big_endian)
+        L = [self(i) for i in range(1<<m)]
+        return SBox([L.index(i) for i in range(1<<m)], big_endian=self._big_endian)
 
     def is_monomial_function(self):
         r"""
@@ -1376,7 +1377,7 @@ class SBox(SageObject):
         """
         n = self.n
 
-        for b in xrange(1, 1<<n):
+        for b in range(1, 1<<n):
             bS = self.component_function(b)
             if not bS.is_plateaued():
                 return False
@@ -1420,10 +1421,10 @@ class SBox(SageObject):
         m = self.m
         n = self.n
 
-        if not is_even(m) or n > m/2:
+        if not is_even(m) or n > m//2:
             return False
 
-        return self.nonlinearity() == 2**(m-1) - 2**(m/2 - 1)
+        return self.nonlinearity() == 2**(m-1) - 2**(m//2 - 1)
 
     def is_involution(self):
         r"""
@@ -1493,7 +1494,7 @@ def feistel_construction(*args):
             xl, xr = sb(xl) ^ xr, xl
         return (xl<<b) | xr
 
-    return SBox([substitute(i) for i in xrange(1<<m)])
+    return SBox([substitute(i) for i in range(1<<m)])
 
 def misty_construction(*args):
     r"""
@@ -1546,4 +1547,4 @@ def misty_construction(*args):
             xl, xr = sb(xr) ^ xl, xl
         return (xl<<b) | xr
 
-    return SBox([substitute(i) for i in xrange(1<<m)])
+    return SBox([substitute(i) for i in range(1<<m)])

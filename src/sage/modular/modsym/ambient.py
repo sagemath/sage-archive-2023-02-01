@@ -1781,10 +1781,10 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             D.append((E,1))
 
         r = self.dimension()
-        s = sum([A.rank()*mult for A, mult in D])
+        s = sum(A.rank() * mult for A, mult in D)
         D = sage.structure.all.Factorization(D, cr=True, sort=False)
-        D.sort(_cmp = cmp)
-        assert r == s, "bug in factorization --  self has dimension %s, but sum of dimensions of factors is %s\n%s"%(r, s, D)
+        D.sort()
+        assert r == s, "bug in factorization --  self has dimension %s, but sum of dimensions of factors is %s\n%s" % (r, s, D)
         self._factorization = D
         return self._factorization
 

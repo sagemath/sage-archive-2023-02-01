@@ -10,7 +10,7 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #       Copyright (C) 2012,2013 Travis Scrimshaw <tscrim at ucdavis.edu>,
-#       Copyright (C) 2013 Chrisitan Stump,
+#       Copyright (C) 2013 Christian Stump,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -282,7 +282,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             raise ValueError("the given index set is not valid")
 
         # We can do the Cartan type initialization later as this is not
-        #   a unqiue representation
+        #   a unique representation
         mat = typecall(cls, MatrixSpace(ZZ, n, sparse=True), data, False, False)
         # FIXME: We have to initialize the CartanMatrix part separately because
         #   of the __cinit__ of the matrix. We should get rid of this workaround
@@ -904,10 +904,10 @@ def is_generalized_cartan_matrix(M):
     if not M.is_square():
         return False
     n = M.ncols()
-    for i in xrange(n):
+    for i in range(n):
         if M[i,i] != 2:
             return False
-        for j in xrange(i+1, n):
+        for j in range(i+1, n):
             if M[i,j] > 0 or M[j,i] > 0:
                 return False
             elif M[i,j] == 0 and M[j,i] != 0:
@@ -977,7 +977,7 @@ def find_cartan_type_from_matrix(CM):
         for x in test:
             ct = CartanType(x)
             T = DiGraph(ct.dynkin_diagram()) # We need a simple digraph here
-            iso, match = T.is_isomorphic(S, certify=True, edge_labels=True)
+            iso, match = T.is_isomorphic(S, certificate=True, edge_labels=True)
             if iso:
                 types.append(ct.relabel(match))
                 found = True
@@ -988,7 +988,7 @@ def find_cartan_type_from_matrix(CM):
 
             ct = ct.dual()
             T = DiGraph(ct.dynkin_diagram()) # We need a simple digraph here
-            iso, match = T.is_isomorphic(S, certify=True, edge_labels=True)
+            iso, match = T.is_isomorphic(S, certificate=True, edge_labels=True)
             if iso:
                 types.append(ct.relabel(match))
                 found = True

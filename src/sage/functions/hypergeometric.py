@@ -157,6 +157,7 @@ Series expansions of confluent hypergeometric functions::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -703,7 +704,7 @@ class Hypergeometric(BuiltinFunction):
                         aaaa = aa[:i] + aa[i + 1:]
                         bbbb = bb[:j] + bb[j + 1:]
                         terms = []
-                        for k in xrange(m + 1):
+                        for k in range(m + 1):
                             # TODO: could rewrite prefactors as recurrence
                             term = binomial(m, k)
                             for c in aaaa:
@@ -837,14 +838,14 @@ def closed_form(hyp):
                 if m <= n:
                     return (exp(z) * sum(rf(m - n, k) * (-z) ** k /
                             factorial(k) / rf(m, k) for k in
-                            xrange(n - m + 1)))
+                            range(n - m + 1)))
                 else:
                     T = sum(rf(n - m + 1, k) * z ** k /
                             (factorial(k) * rf(2 - m, k)) for k in
-                            xrange(m - n))
+                            range(m - n))
                     U = sum(rf(1 - n, k) * (-z) ** k /
                             (factorial(k) * rf(2 - m, k)) for k in
-                            xrange(n))
+                            range(n))
                     return (factorial(m - 2) * rf(1 - m, n) *
                             z ** (1 - m) / factorial(n - 1) *
                             (T - exp(z) * U))
@@ -998,7 +999,7 @@ class Hypergeometric_M(BuiltinFunction):
         raise NotImplementedError('derivative of hypergeometric function '
                                   'with respect to parameters')
 
-    class EvaluationMethods:
+    class EvaluationMethods(object):
         def generalized(cls, self, a, b, z):
             """
             Return as a generalized hypergeometric function
@@ -1098,7 +1099,7 @@ class Hypergeometric_U(BuiltinFunction):
         raise NotImplementedError('derivative of hypergeometric function '
                                   'with respect to parameters')
 
-    class EvaluationMethods:
+    class EvaluationMethods(object):
         def generalized(cls, self, a, b, z):
             """
             Return in terms of the generalized hypergeometric function

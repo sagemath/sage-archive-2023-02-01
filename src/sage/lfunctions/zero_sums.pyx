@@ -209,9 +209,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         """
         if not python_floats:
-            return [self.cn(i) for i in xrange(n+1)]
+            return [self.cn(i) for i in xrange(n + 1)]
         else:
-            return [float(self.cn(i)) for i in xrange(n+1)]
+            return [float(self.cn(i)) for i in xrange(n + 1)]
 
     def digamma(self, s, include_constant_term=True):
         r"""
@@ -764,7 +764,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         n = int(1)
 
         # TO DO: Error analysis to make sure this bound is good enough to
-        # avoid non-negligible trucation error
+        # avoid non-negligible truncation error
         while n < expt:
             cn  = self.cn(n)
             if cn != 0:

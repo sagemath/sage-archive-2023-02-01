@@ -25,8 +25,7 @@ from __future__ import print_function
 
 
 from sage.symbolic.ring import SR
-from sage.structure.element import RingElement
-from sage.algebras.algebra_element import AlgebraElement
+from sage.structure.element import RingElement, AlgebraElement
 from sage.rings.integer import Integer
 from sage.combinat.permutation import Permutation
 
@@ -313,9 +312,9 @@ class DifferentialForm(AlgebraElement):
         sage: form2
         1/log(y)*dz + dx + e^cos(x)*dy
         sage: d(form2)
-        -(1/y)/log(y)^2*dy/\dz + -e^cos(x)*sin(x)*dx/\dy
+        -1/(y*log(y)^2)*dy/\dz + -e^cos(x)*sin(x)*dx/\dy
         sage: form2.diff()
-        -(1/y)/log(y)^2*dy/\dz + -e^cos(x)*sin(x)*dx/\dy
+        -1/(y*log(y)^2)*dy/\dz + -e^cos(x)*sin(x)*dx/\dy
         sage: d(form1) == form1.diff()
         True
 
@@ -1040,7 +1039,7 @@ class DifferentialForm(AlgebraElement):
         raise NotImplementedError("Absolute value not defined for differential forms.")
 
 
-    def leading_coefficient(self, cmp=None):
+    def leading_coefficient(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1057,7 +1056,7 @@ class DifferentialForm(AlgebraElement):
         raise NotImplementedError("leading_coefficient not defined for differential forms.")
 
 
-    def leading_item(self, cmp=None):
+    def leading_item(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1074,7 +1073,7 @@ class DifferentialForm(AlgebraElement):
         raise NotImplementedError("leading_item not defined for differential forms.")
 
 
-    def leading_monomial(self, cmp=None):
+    def leading_monomial(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1091,7 +1090,7 @@ class DifferentialForm(AlgebraElement):
         raise NotImplementedError("leading_monomial not defined for differential forms.")
 
 
-    def leading_support(self, cmp=None):
+    def leading_support(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1108,7 +1107,7 @@ class DifferentialForm(AlgebraElement):
         raise NotImplementedError("leading_support not defined for differential forms.")
 
 
-    def leading_term(self, cmp=None):
+    def leading_term(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1125,7 +1124,7 @@ class DifferentialForm(AlgebraElement):
         raise NotImplementedError("leading_term not defined for differential forms.")
 
 
-    def trailing_coefficient(self, cmp=None):
+    def trailing_coefficient(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1142,7 +1141,7 @@ class DifferentialForm(AlgebraElement):
         raise NotImplementedError("trailing_coefficient not defined for differential forms.")
 
 
-    def trailing_item(self, cmp=None):
+    def trailing_item(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1159,7 +1158,7 @@ class DifferentialForm(AlgebraElement):
         raise NotImplementedError("leading_coefficient not defined for differential forms.")
 
 
-    def trailing_monomial(self, cmp=None):
+    def trailing_monomial(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1176,7 +1175,7 @@ class DifferentialForm(AlgebraElement):
         raise NotImplementedError("trailing_monomial not defined for differential forms.")
 
 
-    def trailing_support(self, cmp=None):
+    def trailing_support(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1193,7 +1192,7 @@ class DifferentialForm(AlgebraElement):
         raise NotImplementedError("trailing_support not defined for differential forms.")
 
 
-    def trailing_term(self, cmp=None):
+    def trailing_term(self, key=None):
         """
         Method not defined for differential forms.
 

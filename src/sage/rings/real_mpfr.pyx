@@ -157,6 +157,7 @@ import sage.rings.rational_field
 import sage.rings.infinity
 
 from sage.structure.parent_gens cimport ParentWithGens
+from sage.arith.numerical_approx cimport digits_to_bits
 
 #*****************************************************************************
 #
@@ -1466,15 +1467,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: rt2
             1.41421356237310
             sage: rt2.python()
-            1.414213562373095048801688724              # 32-bit
-            1.4142135623730950488016887242096980786    # 64-bit
+            1.41421356237309505
             sage: rt2.python().prec()
-            96                                         # 32-bit
-            128                                        # 64-bit
+            64
             sage: pari(rt2.python()) == rt2
             True
             sage: for i in xrange(1, 1000):
-            ...       assert(sqrt(pari(i)) == pari(sqrt(pari(i)).python()))
+            ....:     assert(sqrt(pari(i)) == pari(sqrt(pari(i)).python()))
             sage: (-3.1415)._pari_().python()
             -3.14150000000000000
         """
@@ -3031,7 +3030,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: axiom(R(pi))  # optional - axiom # indirect doctest
             3.1415926535 8979323846 26433833
             sage: fricas(R(pi)) # optional - fricas
-            3.1415926535 8979323846 26433833
+            3.1415926535_8979323846_26433833
 
         """
         prec = self.parent().prec()
@@ -5390,24 +5389,30 @@ cdef class RealLiteral(RealNumber):
         else:
             return RealLiteral(self._parent, '-'+self.literal, self.base)
 
-    def _numerical_approx(self, prec=53, algorithm=None):
+    def numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
-        Convert ``self`` to a ``RealField`` with ``prec`` bits of
-        precision.
+        Change the precision of ``self`` to ``prec`` bits
+        or ``digits`` decimal digits.
 
         INPUT:
 
-        - ``prec`` -- (default: 53) a precision in bits
+        - ``prec`` -- precision in bits
 
-        - ``algorithm`` -- ignored
+        - ``digits`` -- precision in decimal digits (only used if
+          ``prec`` is not given)
+
+        - ``algorithm`` -- ignored for real numbers
+
+        If neither ``prec`` nor ``digits`` is given, the default
+        precision is 53 bits (roughly 16 digits).
 
         OUTPUT:
 
-        A ``RealNumber`` with ``prec`` bits of precision.
+        A ``RealNumber`` with the given precision.
 
         EXAMPLES::
 
-            sage: (1.3)._numerical_approx()
+            sage: (1.3).numerical_approx()
             1.30000000000000
             sage: n(1.3, 120)
             1.3000000000000000000000000000000000
@@ -5428,6 +5433,8 @@ cdef class RealLiteral(RealNumber):
             sage: type(n(1.3))
             <type 'sage.rings.real_mpfr.RealNumber'>
         """
+        if prec is None:
+            prec = digits_to_bits(digits)
         return RealField(prec)(self.literal)
 
 

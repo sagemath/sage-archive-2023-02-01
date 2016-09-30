@@ -19,6 +19,7 @@ AUTHOR:
 include "sage/ext/stdsage.pxi"
 include "cysignals/signals.pxi"
 
+from cpython.int cimport PyInt_AS_LONG
 from sage.misc.long cimport pyobject_to_long
 
 from sage.libs.gmp.mpz cimport *
@@ -467,9 +468,15 @@ cdef class Polynomial_rational_flint(Polynomial):
 
             sage: f(-2/3)       # indirect doctest
             -5/9
+
+        TESTS:
+
+            sage: t(-sys.maxint-1r) == t(-sys.maxint-1)
+            True
         """
         cdef Polynomial_rational_flint f
         cdef Rational r
+        cdef mpz_t tmpz
 
         if len(x) == 1:
             a = x[0]
@@ -480,16 +487,25 @@ cdef class Polynomial_rational_flint(Polynomial):
                     (<Polynomial_rational_flint> a).__poly)
                 sig_off()
                 return f
-            if isinstance(a, Rational):
+            elif isinstance(a, Rational):
                 r = Rational.__new__(Rational)
                 sig_str("FLINT exception")
                 fmpq_poly_evaluate_mpq(r.value, self.__poly, (<Rational> a).value)
                 sig_off()
                 return r
-            if isinstance(a, Integer):
+            elif isinstance(a, Integer):
                 r = Rational.__new__(Rational)
                 sig_str("FLINT exception")
                 fmpq_poly_evaluate_mpz(r.value, self.__poly, (<Integer> a).value)
+                sig_off()
+                return r
+            elif isinstance(a, int):
+                r = Rational.__new__(Rational)
+                sig_str("FLINT exception")
+                mpz_init(tmpz)
+                mpz_set_si(tmpz, PyInt_AS_LONG(a))
+                fmpq_poly_evaluate_mpz(r.value, self.__poly, tmpz)
+                mpz_clear(tmpz)
                 sig_off()
                 return r
 
@@ -526,23 +542,16 @@ cdef class Polynomial_rational_flint(Polynomial):
                 if do_sig: sig_off()
             return res
 
-    def reverse(self, n = None):
+    def reverse(self, degree=None):
         """
-        Reverses the coefficients of self - thought of as a polynomial of
-        length `n`.
-
-        Assumes that whenever `n` is not ``None`` it is an integral value
-        that fits into an unsigned long.  Otherwise, a ValueError is raised.
+        Reverse the coefficients of this polynomial (thought of as a polynomial
+        of degree ``degree``).
 
         INPUT:
 
-        - ``n`` - Integral value that fits in an unsigned long:  the power
-          of `t` modulo which we consider self before reversing it
-          (default:  ``None``, interpreted as the length of self)
-
-        OUTPUT:
-
-        - The reversed polynomial as a Polynomial_rational_flint
+        - ``degree`` (``None`` or integral value that fits in an ``unsigned
+          long``, default: degree of ``self``) - if specified, truncate or zero
+          pad the list of coefficients to this degree before reversing it.
 
         EXAMPLES:
 
@@ -562,33 +571,33 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f.reverse()
             3/4*t^5 + 6
 
-        The next example illustrates the passing of a value for `n` less than
-        the length of self, notationally resulting in truncation prior to
+        The next example illustrates the passing of a value for ``degree`` less
+        than the length of self, notationally resulting in truncation prior to
         reversing::
 
             sage: R.<t> = QQ[]
             sage: f = 1 + t + t^2 / 2 + t^3 / 3 + t^4 / 4
-            sage: f.reverse(3)
+            sage: f.reverse(2)
             t^2 + t + 1/2
 
-        Now we illustrate the passing of a value for `n` greater than the
-        length of self, notationally resulting in zero padding at the top
+        Now we illustrate the passing of a value for ``degree`` greater than
+        the length of self, notationally resulting in zero padding at the top
         end prior to reversing::
 
             sage: R.<t> = QQ[]
             sage: f = 1 + t + t^2 / 2 + t^3 / 3
-            sage: f.reverse(5)
+            sage: f.reverse(4)
             t^4 + t^3 + 1/2*t^2 + 1/3*t
 
         TESTS:
 
-        We illustrate two ways in which the interpretation of `n` as an
+        We illustrate two ways in which the interpretation of ``degree`` as an
         unsigned long int may fail.  Firstly, an integral value which is
-        too large, yielding an OverflowError::
+        too large, yielding an ``OverflowError``::
 
             sage: R.<t> = QQ[]
             sage: f = 1 + t/2
-            sage: f.reverse(2**64)
+            sage: f.reverse(2**64 - 1)
             Traceback (most recent call last):
             ...
             OverflowError: long int too large to convert
@@ -601,16 +610,24 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f.reverse(I)
             Traceback (most recent call last):
             ...
-            ValueError: cannot convert I to int
+            ValueError: cannot convert I + 1 to int
+
+        We check that this specialized implementation is compatible with the
+        generic one::
+
+            sage: all((t + 2*t^2).reverse(degree=d)
+            ....:     == Polynomial.reverse(t + 2*t^2, degree=d)
+            ....:     for d in [None, 0, 1, 2, 3, 4, 5])
+            True
         """
         cdef unsigned long len
         cdef Polynomial_rational_flint res
         cdef bint do_sig
 
-        if n is None:
+        if degree is None:
             len = fmpq_poly_length(self.__poly)
         else:
-            len = <unsigned long> n
+            len = <unsigned long> (degree + 1)
 
         res = self._new()
         do_sig = _do_sig(self.__poly)

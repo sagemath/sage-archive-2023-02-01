@@ -104,6 +104,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import itervalues
 
 cimport cython
 from cpython.slice cimport PySlice_GetIndicesEx
@@ -121,6 +122,7 @@ from sage.misc.derivative import multi_derivative
 
 from sage.rings.ring cimport Ring
 from sage.rings.integer cimport Integer, smallInteger
+from sage.arith.numerical_approx cimport digits_to_bits
 
 # For the norm function, we cache Sage integers 1 and 2
 __one__ = smallInteger(1)
@@ -1133,15 +1135,30 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             return sib.name('vector')(self.base_ring(),
                                       [sib(e, 2) for e in self])
 
-    def _numerical_approx(self, prec=None, digits=None, algorithm=None):
+    def numerical_approx(self, prec=None, digits=None, algorithm=None):
         r"""
-        Implements numerical approximation of a free module element
-        by calling the ``n()`` method on all of its entries.
+        Return a numerical approximation of ``self`` with ``prec`` bits
+        (or decimal ``digits``) of precision, by approximating all
+        entries.
+
+        INPUT:
+
+        - ``prec`` -- precision in bits
+
+        - ``digits`` -- precision in decimal digits (only used if
+          ``prec`` is not given)
+
+        - ``algorithm`` -- which algorithm to use to compute the
+          approximation of the entries (the accepted algorithms depend
+          on the object)
+
+        If neither ``prec`` nor ``digits`` is given, the default
+        precision is 53 bits (roughly 16 digits).
 
         EXAMPLES::
 
             sage: v = vector(RealField(212), [1,2,3])
-            sage: v.N()
+            sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()
             Vector space of dimension 3 over Real Field with 53 bits of precision
@@ -1162,8 +1179,6 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
             sage: u = vector(QQ, [1/2, 1/3, 1/4])
             sage: u.n()
-            (0.500000000000000, 0.333333333333333, 0.250000000000000)
-            sage: u.N()
             (0.500000000000000, 0.333333333333333, 0.250000000000000)
             sage: u.numerical_approx()
             (0.500000000000000, 0.333333333333333, 0.250000000000000)
@@ -1230,6 +1245,18 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: _.parent()
             Vector space of dimension 3 over Real Field with 75 bits of precision
 
+        ::
+
+            sage: v = vector(GF(2), [1,2,3])
+            sage: v.n()
+            (1.00000000000000, 0.000000000000000, 1.00000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: v.n(prec=75)
+            (1.000000000000000000000, 0.0000000000000000000000, 1.000000000000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 75 bits of precision
+
         TESTS:
 
         Sparse vectors have a similar method that works efficiently for
@@ -1242,7 +1269,9 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: u
             (0.5000, 0.0000, 0.0000, 0.3333, 0.0000, 0.0000, 0.0000, 0.2500)
         """
-        return vector([e.n(prec, digits, algorithm) for e in self])
+        if prec is None:
+            prec = digits_to_bits(digits)
+        return vector([e.numerical_approx(prec, algorithm=algorithm) for e in self])
 
     def row(self):
         r"""
@@ -4891,7 +4920,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             d = d.denominator()
         except AttributeError:
             return d
-        for y in self._entries.itervalues():
+        for y in itervalues(self._entries):
             d = d.lcm(y.denominator())
         return d
 
@@ -4990,10 +5019,25 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         return len(self._entries)
 
-    def _numerical_approx(self, prec=None, digits=None, algorithm=None):
+    def numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
-        Returns a numerical approximation of self by calling the n() method
-        on all of its entries.
+        Return a numerical approximation of ``self`` with ``prec`` bits
+        (or decimal ``digits``) of precision, by approximating all
+        entries.
+
+        INPUT:
+
+        - ``prec`` -- precision in bits
+
+        - ``digits`` -- precision in decimal digits (only used if
+          ``prec`` is not given)
+
+        - ``algorithm`` -- which algorithm to use to compute the
+          approximation of the entries (the accepted algorithms depend
+          on the object)
+
+        If neither ``prec`` nor ``digits`` is given, the default
+        precision is 53 bits (roughly 16 digits).
 
         EXAMPLES::
 
@@ -5007,6 +5051,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: _.parent()
             Sparse vector space of dimension 3 over Real Field with 75 bits of precision
         """
-        return vector(dict([(e[0], e[1].n(prec, digits, algorithm)) for e in
-                            self._entries.iteritems()]), sparse=True)
-
+        if prec is None:
+            prec = digits_to_bits(digits)
+        return vector({k: v.numerical_approx(prec, algorithm=algorithm)
+                for k, v in self._entries.iteritems()}, sparse=True)

@@ -1251,7 +1251,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             True
 
         Computed result is the negative of the pivot basis, which
-        is just slighltly more efficient to compute. ::
+        is just slightly more efficient to compute. ::
 
             sage: A.right_kernel_matrix(basis='pivot') == -A.right_kernel_matrix(basis='computed')
             True

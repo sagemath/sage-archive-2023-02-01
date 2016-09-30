@@ -11,7 +11,7 @@ AUTHORS:
 """
 from __future__ import absolute_import
 
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 
@@ -471,7 +471,7 @@ class table(SageObject):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: t = table([1, 2, 3])
-            sage: t._rich_repr_(dm)    # the doctest backend does not suppot html
+            sage: t._rich_repr_(dm)    # the doctest backend does not support html
         """
         OutputHtml = display_manager.types.OutputHtml
         if OutputHtml in display_manager.supported_output():
@@ -776,8 +776,8 @@ class table(SageObject):
         EXAMPLES::
 
             sage: T = table([['a', 'bb', 'ccccc'], [10, -12, 0], [1, 2, 3]])
-            sage: import StringIO
-            sage: s = StringIO.StringIO()
+            sage: from six import StringIO
+            sage: s = StringIO()
             sage: T._html_table_row(s, ['a', 2, '$x$'])
             sage: print(s.getvalue())
             <td>a</td>

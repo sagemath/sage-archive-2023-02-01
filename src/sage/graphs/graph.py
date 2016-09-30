@@ -1281,22 +1281,33 @@ class Graph(GenericGraph):
     @doc_index("Basic methods")
     def graph6_string(self):
         """
-        Returns the graph6 representation of the graph as an ASCII string.
-        Only valid for simple (no loops, multiple edges) graphs on 0 to
-        262143 vertices.
+        Return the graph6 representation of the graph as an ASCII string.
+
+        This is only valid for simple (no loops, no multiple edges) graphs
+        on at most `2^{18}-1=262143` vertices.
 
         .. NOTE::
 
-            As the graph6 format only handles graphs whose vertex set is
+            As the graph6 format only handles graphs with vertex set
             `\{0,...,n-1\}`, a :meth:`relabelled copy
-            <sage.graphs.generic_graph.GenericGraph.relabel>` of your graph will
-            be encoded if necessary.
+            <sage.graphs.generic_graph.GenericGraph.relabel>` will
+            be encoded, if necessary.
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.digraph.DiGraph.dig6_string` --
+              a similar string format for directed graphs
 
         EXAMPLES::
 
             sage: G = graphs.KrackhardtKiteGraph()
             sage: G.graph6_string()
             'IvUqwK@?G'
+
+        TESTS::
+
+            sage: Graph().graph6_string()
+            '?'
         """
         n = self.order()
         if n > 262143:
@@ -2121,7 +2132,7 @@ class Graph(GenericGraph):
 
           - ``'bitset'`` -- encodes adjacencies into bitsets and uses fast
             bitset operations to test if the input graph contains a
-            triangle. This method is generaly faster than stantard matrix
+            triangle. This method is generally faster than standard matrix
             multiplication.
 
         EXAMPLE:
@@ -3392,6 +3403,118 @@ class Graph(GenericGraph):
 
         return D
 
+    @doc_index("Connectivity, orientations, trees")
+    def orientations(self, implementation='c_graph', data_structure=None, sparse=None):
+        r"""
+        Return an iterator over orientations of ``self``.
+
+        An *orientation* of an undirected graph is a directed
+        graph such that every edge is assigned a direction.
+        Hence there are `2^s` oriented digraphs for a simple
+        graph with `s` edges.
+
+        INPUT:
+
+        - ``data_structure`` -- one of ``"sparse"``, ``"static_sparse"``, or
+          ``"dense"``; see the documentation of :class:`Graph` or
+          :class:`DiGraph`; default is the data structure of ``self``
+
+        - ``sparse`` -- (optional) boolean; ``sparse=True`` is an alias for
+          ``data_structure="sparse"``, and ``sparse=False`` is an alias for
+          ``data_structure="dense"``
+
+        .. WARNING::
+
+            This always considers mutliple edges of graphs as
+            distinguishable, and hence, may have repeated digraphs.
+
+        EXAMPLES::
+
+            sage: G = Graph([[1,2,3], [(1, 2, 'a'), (1, 3, 'b')]], format='vertices_and_edges')
+            sage: it = G.orientations()
+            sage: D = next(it)
+            sage: D.edges()
+            [(1, 2, 'a'), (1, 3, 'b')]
+            sage: D = next(it)
+            sage: D.edges()
+            [(1, 2, 'a'), (3, 1, 'b')]
+
+        TESTS::
+
+            sage: G = Graph()
+            sage: D = [g for g in G.orientations()]
+            sage: len(D)
+            1
+            sage: D[0]
+            Digraph on 0 vertices
+
+            sage: G = Graph(5)
+            sage: it = G.orientations()
+            sage: D = next(it)
+            sage: D.size()
+            0
+
+            sage: G = Graph([[1,2,'a'], [1,2,'b']], multiedges=True)
+            sage: len(list(G.orientations()))
+            4
+
+            sage: G = Graph([[1,2], [1,1]], loops=True)
+            sage: len(list(G.orientations()))
+            2
+
+            sage: G = Graph([[1,2],[2,3]])
+            sage: next(G.orientations())
+            Digraph on 3 vertices
+            sage: G = graphs.PetersenGraph()
+            sage: next(G.orientations())
+            An orientation of Petersen graph: Digraph on 10 vertices
+        """
+        if sparse is not None:
+            if data_structure is not None:
+                raise ValueError("cannot specify both 'sparse' and 'data_structure'")
+            data_structure = "sparse" if sparse else "dense"
+        if data_structure is None:
+            from sage.graphs.base.dense_graph import DenseGraphBackend
+            from sage.graphs.base.sparse_graph import SparseGraphBackend
+            if isinstance(self._backend, DenseGraphBackend):
+                data_structure = "dense"
+            elif isinstance(self._backend, SparseGraphBackend):
+                data_structure = "sparse"
+            else:
+                data_structure = "static_sparse"
+
+        name = self.name()
+        if name != '':
+            name = 'An orientation of ' + name
+
+        if self.num_edges() == 0:
+            D = DiGraph(name=name,
+                        pos=self._pos,
+                        multiedges=self.allows_multiple_edges(),
+                        loops=self.allows_loops(),
+                        implementation=implementation,
+                        data_structure=data_structure)
+            if hasattr(self, '_embedding'):
+                D._embedding = copy(self._embedding)
+            yield D
+            return
+
+        from itertools import product
+        E = [[(u,v,label), (v,u,label)] if u != v else [(u,v,label)]
+             for u,v,label in self.edges()]
+        verts = self.vertices()
+        for edges in product(*E):
+            D = DiGraph(data=[verts, edges],
+                        format='vertices_and_edges',
+                        name=name,
+                        pos=self._pos,
+                        multiedges=self.allows_multiple_edges(),
+                        loops=self.allows_loops(),
+                        implementation=implementation,
+                        data_structure=data_structure)
+            if hasattr(self, '_embedding'):
+                D._embedding = copy(self._embedding)
+            yield D
 
     ### Coloring
 
@@ -5499,7 +5622,7 @@ class Graph(GenericGraph):
             {0: 1, 1: 1, 2: 1, 3: 1, 4: 2}
             sage: F = graphs.Grid2dGraph(2,3)
             sage: X = F.cliques_number_of()
-            sage: for v in sorted(X.iterkeys()):
+            sage: for v in sorted(X):
             ....:     print("{} {}".format(v, X[v]))
             (0, 0) 2
             (0, 1) 3
@@ -5992,7 +6115,7 @@ class Graph(GenericGraph):
             {0: 2, 1: 4, 2: 4, 3: 4, 4: 4}
             sage: F = graphs.Grid2dGraph(2,3)
             sage: X = F.cliques_vertex_clique_number(algorithm="networkx")
-            sage: for v in sorted(X.iterkeys()):
+            sage: for v in sorted(X):
             ....:     print("{} {}".format(v, X[v]))
             (0, 0) 2
             (0, 1) 2
@@ -6056,7 +6179,7 @@ class Graph(GenericGraph):
             {0: [[0, 4]], 1: [[1, 2, 3, 4]], 2: [[1, 2, 3, 4]], 3: [[1, 2, 3, 4]], 4: [[0, 4], [1, 2, 3, 4]]}
             sage: F = graphs.Grid2dGraph(2,3)
             sage: X = F.cliques_containing_vertex()
-            sage: for v in sorted(X.iterkeys()):
+            sage: for v in sorted(X):
             ....:     print("{} {}".format(v, X[v]))
             (0, 0) [[(0, 1), (0, 0)], [(1, 0), (0, 0)]]
             (0, 1) [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]]
@@ -6735,7 +6858,7 @@ class Graph(GenericGraph):
 
         .. MATH::
 
-            \Psi_G(t) = \sum_{T\subseteq V\\atop{\\text{a spanning tree}}} \prod_{e \\not\in E(T)} t_e
+            \Psi_G(t) = \sum_{\substack{T\subseteq V \\ \text{a spanning tree}}} \prod_{e \\not\in E(T)} t_e
 
         This is also called the first Symanzik polynomial or the Kirchhoff
         polynomial.
@@ -6824,6 +6947,96 @@ class Graph(GenericGraph):
 
         D = matrix.diagonal(PolynomialRing(ZZ, name, self.size()).gens())
         return (circuit_mtrx.transpose() * D * circuit_mtrx).determinant()
+
+    @doc_index("Leftovers")
+    def magnitude_function(self):
+        """
+        Return the magnitude function of the graph as a rational function.
+
+        This is defined as the sum of all coefficients in the inverse
+        of the matrix `Z` whose coefficient `Z_{i,j}` indexed by a
+        pair of vertices `(i,j)` is `q^d(i,j)` where `d` is the distance
+        function in the graph.
+
+        By convention, if the distance from `i` to `j` is infinite
+        (for two vertices not path connected) then `Z_{i,j}=0`.
+
+        The value of the magnitude function at `q=0` is the
+        cardinality of the graph. The magnitude function of a disjoint
+        union is the sum of the magnitudes functions of the connected
+        components. The magnitude function of a Cartesian product is
+        the product of the magnitudes functions of the factors.
+
+        EXAMPLES::
+
+            sage: g = Graph({1:[], 2:[]})
+            sage: g.magnitude_function()
+            2
+
+            sage: g = graphs.CycleGraph(4)
+            sage: g.magnitude_function()
+            4/(q^2 + 2*q + 1)
+
+            sage: g = graphs.CycleGraph(5)
+            sage: m = g.magnitude_function(); m
+            5/(2*q^2 + 2*q + 1)
+
+        One can expand the magnitude as a power series in `q` as follows::
+
+            sage: q = QQ[['q']].gen()
+            sage: m(q)
+            5 - 10*q + 10*q^2 - 20*q^4 + 40*q^5 - 40*q^6 + ...
+
+        One can also use the substitution `q = exp(-t)` to obtain
+        the magnitude function as a function of `t`::
+
+            sage: g = graphs.CycleGraph(6)
+            sage: m = g.magnitude_function()
+            sage: t = var('t')
+            sage: m(exp(-t))
+            6/(2*e^(-t) + 2*e^(-2*t) + e^(-3*t) + 1)
+
+        TESTS::
+
+            sage: g = Graph()
+            sage: g.magnitude_function()
+            0
+
+            sage: g = Graph({1:[]})
+            sage: g.magnitude_function()
+            1
+
+            sage: g = graphs.PathGraph(4)
+            sage: g.magnitude_function()
+            (-2*q + 4)/(q + 1)
+
+        REFERENCES:
+
+        .. [Lein] Tom Leinster, *The magnitude of metric spaces*.
+           Doc. Math. 18 (2013), 857-905.
+        """
+        from sage.matrix.constructor import matrix
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.graphs.distances_all_pairs import distances_all_pairs
+
+        ring = PolynomialRing(ZZ, 'q')
+        q = ring.gen()
+        N = self.order()
+        if not N:
+            return ring.zero()
+        dist = distances_all_pairs(self)
+        vertices = list(self)
+        Z = matrix(ring, N, N, ring.zero())
+        for i in range(N):
+            Z[i, i] = ring.one()
+        for i in range(N):
+            for j in range(i):
+                dij = dist[vertices[i]][vertices[j]]
+                if dij in ZZ:
+                    Z[i, j] = Z[j, i] = q ** dij
+                else:
+                    Z[i, j] = Z[j, i] = ring.zero()
+        return sum(sum(u) for u in ~Z)
 
     @doc_index("Leftovers")
     def ihara_zeta_function_inverse(self):

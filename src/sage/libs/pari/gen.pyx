@@ -574,7 +574,7 @@ cdef class gen(gen_auto):
             sage: K.<a> = QuadraticField(-65)
             sage: G = K.pari_bnf().bnf_get_gen(); G
             [[3, 2; 0, 1], [2, 1; 0, 1]]
-            sage: map(lambda J: K.ideal(J), G)
+            sage: [K.ideal(J) for J in G]
             [Fractional ideal (3, a + 2), Fractional ideal (2, a + 1)]
         """
         sig_on()
@@ -800,7 +800,7 @@ cdef class gen(gen_auto):
             TypeError: PARI object of type 't_INT' cannot be indexed
             sage: m = pari("[[1,2;3,4],5]") ; m[0][1,0]
             3
-            sage: v = pari(xrange(20))
+            sage: v = pari(range(20))
             sage: v[2:5]
             [2, 3, 4]
             sage: v[:]
@@ -857,8 +857,8 @@ cdef class gen(gen_auto):
 
         elif isinstance(n, slice):
             l = glength(self.g)
-            start,stop,step = n.indices(l)
-            inds = xrange(start,stop,step)
+            start, stop, step = n.indices(l)
+            inds = xrange(start, stop, step)
             k = len(inds)
             # fast exit
             if k==0:
@@ -1019,7 +1019,7 @@ cdef class gen(gen_auto):
 
         TESTS::
 
-            sage: v = pari(xrange(10)) ; v
+            sage: v = pari(range(10)) ; v
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             sage: v[:] = [20..29]
             sage: v

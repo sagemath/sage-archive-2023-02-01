@@ -19,7 +19,7 @@ AUTHORS:
 
 - Martin Albrecht (2007-09): initial version
 
-- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+- Niles Johnson (2010-08): (:trac:`3893`) ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
 EXAMPLES:
 
@@ -313,6 +313,7 @@ REFERENCES:
 # python3
 from __future__ import division, print_function
 from __future__ import absolute_import
+from six.moves import range
 
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.rings.integer_ring import ZZ
@@ -1809,7 +1810,7 @@ class SR_generic(MPolynomialSystemGenerator):
             names = self.varstrs("k", 0, r*c, e)
 
 
-        for _n in process(xrange(n)):
+        for _n in process(list(range(n))):
             names += self.varstrs("k", _n+1, r*c, e)
             names += self.varstrs("x", _n+1, r*c, e)
             names += self.varstrs("w", _n+1, r*c, e)
@@ -1988,7 +1989,7 @@ class SR_generic(MPolynomialSystemGenerator):
             lin = []
             if c > 1:
                 for q in range(c):
-                    t = range(r*e*(q) , r*e*(q+1) )
+                    t = list(range(r*e*(q) , r*e*(q+1)))
                     Sum += kj.matrix_from_rows(t)
                     lin += (ki.matrix_from_rows(t) + si + Sum).list()
 

@@ -34,7 +34,7 @@ All the code here was first available on Mathematica [ZS]_.
 REFERENCES:
 
 .. [KonZor03] \M. Kontsevich, A. Zorich "Connected components of the moduli space
-   of Abelian differentials with prescripebd singularities" Invent. math. 153,
+   of Abelian differentials with prescribed singularities" Invent. math. 153,
    631-678 (2003)
 
 .. [Lan08] \E. Lanneau "Connected components of the strata of the moduli spaces
@@ -204,7 +204,7 @@ Rauzy diagrams from the classification of strata::
 
     sage: a = AbelianStrata(nintervals=4)
     sage: l = sum([stratum.connected_components() for stratum in a], [])
-    sage: n = map(lambda x: x.rauzy_diagram().cardinality(), l)
+    sage: n = [x.rauzy_diagram().cardinality() for x in l]
     sage: for c,i in zip(l,n):
     ....:     print("{} : {}".format(c, i))
     H_hyp^out(2) : 7
@@ -216,7 +216,7 @@ Rauzy diagrams from the classification of strata::
 
     sage: a = AbelianStrata(nintervals=5)
     sage: l = sum([stratum.connected_components() for stratum in a], [])
-    sage: n = map(lambda x: x.rauzy_diagram().cardinality(), l)
+    sage: n = [x.rauzy_diagram().cardinality() for x in l]
     sage: for c,i in zip(l,n):
     ....:     print("{} : {}".format(c, i))
     H_hyp^out(0, 2) : 11
@@ -230,7 +230,7 @@ Rauzy diagrams from the classification of strata::
 
     sage: a = AbelianStrata(nintervals=6)
     sage: l = sum([stratum.connected_components() for stratum in a], [])
-    sage: n = map(lambda x: x.rauzy_diagram().cardinality(), l)
+    sage: n = [x.rauzy_diagram().cardinality() for x in l]
     sage: for c,i in zip(l,n):
     ....:     print("{} : {}".format(c, i))
     H_hyp^out(4) : 31

@@ -69,7 +69,7 @@ A parent ``P`` is in a category ``C`` if ``P.category()`` is a subcategory of
     Any object of a category should be an instance of
     :class:`~sage.structure.category_object.CategoryObject`.
 
-    For backward compatibilty this is not yet enforced::
+    For backward compatibility this is not yet enforced::
 
         sage: class A:
         ....:   def category(self):
@@ -1179,7 +1179,7 @@ class Category(UniqueRepresentation, SageObject):
             full subcategory of some other category (see
             :meth:`is_full_subcategory`). For example, the category of
             Coxeter groups is not full subcategory of the category of
-            groups since morphisms need to perserve the distinguished
+            groups since morphisms need to preserve the distinguished
             generators::
 
                 sage: CoxeterGroups().is_full_subcategory(Groups())

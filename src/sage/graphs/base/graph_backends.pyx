@@ -54,8 +54,13 @@ Classes and methods
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*******************************************************************************
-from c_graph cimport CGraphBackend
-from c_graph cimport CGraph
+from __future__ import absolute_import
+
+from .c_graph cimport CGraphBackend
+from .c_graph cimport CGraph
+
+from six import itervalues
+
 
 cdef class GenericGraphBackend(SageObject):
     """
@@ -670,9 +675,9 @@ cdef class GenericGraphBackend(SageObject):
             sage: loads(dumps(gi)) == gi
             True
         """
-        from static_sparse_backend import StaticSparseBackend
-        from sparse_graph import SparseGraphBackend
-        from dense_graph import DenseGraphBackend
+        from .static_sparse_backend import StaticSparseBackend
+        from .sparse_graph import SparseGraphBackend
+        from .dense_graph import DenseGraphBackend
 
         # implementation, data_structure, multiedges, directed, loops
         if isinstance(self, CGraphBackend):
@@ -1230,7 +1235,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
             raise NetworkXError("Edge (%s,%s) requested via get_edge_label does not exist."%(u,v))
 
         if self._nxg.is_multigraph():
-            return [ e.get('weight',None) for e in E.itervalues() ]
+            return [ e.get('weight',None) for e in itervalues(E) ]
         else:
             return E.get('weight',None)
 
@@ -1257,9 +1262,10 @@ class NetworkXGraphBackend(GenericGraphBackend):
         if l is None:
             return True
         if self._nxg.is_multigraph():
-            return any( e.get('weight',None) == l for e in self._nxg.adj[u][v].itervalues() )
+            return any(e.get('weight', None) == l
+                       for e in itervalues(self._nxg.adj[u][v]))
         else:
-            return any( e == l for e in self._nxg.adj[u][v].itervalues() )
+            return any(e == l for e in itervalues(self._nxg.adj[u][v]))
 
     def has_vertex(self, v):
         """

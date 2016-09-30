@@ -676,7 +676,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         """
         return self.elementary_divisors() == ()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns True if this group is nontrivial.
 
@@ -691,6 +691,8 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             False
         """
         return not self.is_trivial()
+
+    __nonzero__ = __bool__
 
     @cached_method
     def dual_group(self, names="X", base_ring=None):

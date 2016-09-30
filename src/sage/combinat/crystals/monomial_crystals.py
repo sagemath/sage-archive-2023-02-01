@@ -930,7 +930,7 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
                     c = self._c[j_index,k[0]-shift]
                     if cm[j_index,k[0]-shift] != 0:
                         Y[(j,k[1]+c)] = Y.get((j,k[1]+c), 0) + v*cm[j_index,k[0]-shift]
-            for k in Y.keys():
+            for k in list(Y):
                 if Y[k] == 0:
                     del Y[k]
         return self.element_class(self, Y, A)

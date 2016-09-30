@@ -821,7 +821,7 @@ cdef class lazy_list_generic(object):
 
         We check commutation::
 
-            sage: l = lazy_list(iter(range(10000)))
+            sage: l = lazy_list(iter(xrange(10000)))
             sage: l1 = l[::2][:3001]
             sage: l2 = l[:6002][::2]
             sage: l1._info()

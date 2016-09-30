@@ -1863,7 +1863,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
         - ``return_conjugation`` -- boolean. Returns element of `SL(2, \ZZ)` (default:True)
 
-        - ``error_limit`` -- sets the error tolerence (default:0.000001)
+        - ``error_limit`` -- sets the error tolerance (default:0.000001)
 
         OUTPUT:
 
@@ -1940,7 +1940,7 @@ cdef class MPolynomial(CommutativeRingElement):
             [  0  -1]
             )
 
-        An example where precision needs to be incresed::
+        An example where precision needs to be increased::
 
             sage: R.<x,h> = PolynomialRing(QQ)
             sage: f = -1872*x^5*h - 1375452*x^4*h^2 - 404242956*x^3*h^3 - 59402802888*x^2*h^4\
@@ -2081,7 +2081,7 @@ cdef class MPolynomial(CommutativeRingElement):
         L=[]
         newton = True
         err = z.diameter()
-        # making sure multiplicity isn't too large useing covergence conditions in paper
+        # making sure multiplicity isn't too large using covergence conditions in paper
         for p,e in L1:
             if e > self.degree()/2:
                 newton = False

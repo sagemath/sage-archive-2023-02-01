@@ -5125,14 +5125,47 @@ def _cmp_complex_for_display(a, b):
         else:
             return cmp(ar, br)
 
+
+def _key_complex_for_display(a):
+    """
+    Key function to sort complex numbers for display only.
+
+    Real numbers (with a zero imaginary part) come before complex numbers,
+    and are sorted. Complex numbers are sorted by their real part
+    unless their real parts are equal, in which case they are
+    sorted by their imaginary part.
+
+    EXAMPLES::
+
+        sage: import sage.arith.misc
+        sage: key_c = sage.arith.misc._key_complex_for_display
+
+        sage: key_c(CC(5))
+        (0, 5.00000000000000)
+        sage: key_c(CC(5, 5))
+        (1, 5.00000000000000, 5.00000000000000)
+
+        sage: CIF200 = ComplexIntervalField(200)
+        sage: key_c(CIF200(5))
+        (0, 5)
+        sage: key_c(CIF200(5, 5))
+        (1, 5, 5)
+    """
+    ar = a.real()
+    ai = a.imag()
+    if not ai:
+        return (0, ar)
+    return (1, ar, ai)
+
+
 def sort_complex_numbers_for_display(nums):
     r"""
     Given a list of complex numbers (or a list of tuples, where the
     first element of each tuple is a complex number), we sort the list
     in a "pretty" order.  First come the real numbers (with zero
     imaginary part), then the complex numbers sorted according to
-    their real part.  If two complex numbers have a real part which is
-    sufficiently close, then they are sorted according to their
+    their real part.  If two complex numbers have the same real part,
+    then they are sorted according to their
     imaginary part.
 
     This is not a useful function mathematically (not least because
@@ -5158,13 +5191,13 @@ def sort_complex_numbers_for_display(nums):
         sage: sort_c(nums)
         [0.0, 1.0, 2.0, -2.862406201002009e-11 - 0.7088740263015161*I, 2.2108362706985576e-11 - 0.43681052967509904*I, 1.0000000000138833 - 0.7587654737635712*I, 0.9999999999760288 - 0.7238965893336062*I, 1.9999999999874383 - 0.4560801012073723*I, 1.9999999999869107 + 0.6090836283134269*I]
     """
-    if len(nums) == 0:
+    if not nums:
         return nums
 
     if isinstance(nums[0], tuple):
-        return sorted(nums, cmp=_cmp_complex_for_display, key=lambda t: t[0])
+        return sorted(nums, key=lambda t: _key_complex_for_display(t[0]))
     else:
-        return sorted(nums, cmp=_cmp_complex_for_display)
+        return sorted(nums, key=lambda t: _key_complex_for_display(t))
 
 def fundamental_discriminant(D):
     r"""

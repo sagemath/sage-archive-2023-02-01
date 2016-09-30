@@ -2081,7 +2081,7 @@ cdef class MPolynomial(CommutativeRingElement):
         L=[]
         newton = True
         err = z.diameter()
-        # making sure multiplicity isn't too large using covergence conditions in paper
+        # making sure multiplicity isn't too large using convergence conditions in paper
         for p,e in L1:
             if e > self.degree()/2:
                 newton = False

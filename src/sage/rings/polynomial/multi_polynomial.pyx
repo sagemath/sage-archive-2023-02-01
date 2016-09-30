@@ -1855,7 +1855,7 @@ cdef class MPolynomial(CommutativeRingElement):
         fundamental domain, hence our conjugation will be off by 1. If you don't want
         this to happen, decrease your ``error_limit`` and increase your precision.
 
-        Implimented by Rebecca Lauren Miller as part of GSOC 2016.
+        Implemented by Rebecca Lauren Miller as part of GSOC 2016.
 
         INPUT:
 

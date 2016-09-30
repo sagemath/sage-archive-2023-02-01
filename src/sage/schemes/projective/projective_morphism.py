@@ -3531,7 +3531,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         See :meth:`sage.rings.polynomial.multi_polynomial.reduced_form` for the information
         on binary form reduction.
 
-        Implimented by Rebecca Lauren Miller as part of GSOC 2016.
+        Implemented by Rebecca Lauren Miller as part of GSOC 2016.
 
         INPUT:
 
@@ -3696,19 +3696,13 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         R = self.coordinate_ring()
         F = R(self.dynatomic_polynomial(1))
         x,y = R.gens()
-        try:
-            F2 = F.quo_rem(gcd(F, F.derivative(x)))[0] #removes multiple roots
-        except (TypeError, NotImplementedError): # something Singular can't handle
-            F2 = R(F._maxima_().divide(gcd(F, F.derivative(x)))[0].sage())
+        d = gcd(F, F.derivative(x)).degree() #counts multiple roots
         n = 2
         # Checks to make sure there are enough distinct, roots we need 3
         # if there are not it finds the nth periodic points until there are enough
-        while F2.degree() <= 2:
+        while F.degree()-d <= 2:
             F = self.dynatomic_polynomial(n) # finds n periodic points
-            try:
-                F2 = F.quo_rem(gcd(F, F.derivative(x)))[0] #removes multiple roots
-            except (TypeError, NotImplementedError): # something Singular can't handle
-                F2 = R(F._maxima_().divide(gcd(F, F.derivative(x)))[0].sage())
+            d = gcd(F, F.derivative(x)).degree() #counts multiple roots
             n += 1
         G,m = F.reduced_form(prec=prec, return_conjugation=return_conjugation)
         if return_conjugation:

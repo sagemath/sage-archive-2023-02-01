@@ -25,6 +25,7 @@ cell complexes.
    sage/homology/simplicial_set
    sage/homology/simplicial_set_constructions
    sage/homology/simplicial_set_examples
+   sage/homology/simplicial_set_catalog
    sage/homology/simplicial_set_morphism
    sage/homology/cell_complex
    sage/homology/koszul_complex

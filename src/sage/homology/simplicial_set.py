@@ -300,6 +300,9 @@ class AbstractSimplex(SageObject):
 
     - ``name`` (optional) -- string, a name for this simplex.
 
+    - ``latex_name`` (optional) -- string, a name for this simplex to
+      use in the LaTeX representation.
+
     So to define a simplex formed by applying the degeneracy maps `s_2
     s_1` to a 1-simplex, call ``AbstractSimplex(1, (2, 1))``.
 
@@ -328,6 +331,10 @@ class AbstractSimplex(SageObject):
         sage: v.rename('w_0')
         sage: v
         w_0
+        sage: latex(v)
+        w_0
+        sage: latex(AbstractSimplex(0, latex_name='\\sigma'))
+        \sigma
 
     The simplicial identities are used to put the degeneracies in
     standard decreasing form::
@@ -378,7 +385,8 @@ class AbstractSimplex(SageObject):
 
     then the faces are three different degenerate vertices.
     """
-    def __init__(self, dim, degeneracies=(), underlying=None, name=None):
+    def __init__(self, dim, degeneracies=(), underlying=None, name=None,
+                 latex_name=None):
         """
         A simplex of dimension ``dim``.
 
@@ -388,6 +396,7 @@ class AbstractSimplex(SageObject):
         - ``degeneracies`` (optional) -- iterable, the indices of the degeneracy maps
         - ``underlying`` (optional) -- a non-degenerate simplex
         - ``name`` (optional) -- string
+        - ``latex_name`` (optional) -- string
 
         TESTS::
 
@@ -443,6 +452,7 @@ class AbstractSimplex(SageObject):
                 self._underlying = underlying
         if name is not None:
             self.rename(name)
+        self._latex_name = latex_name
         # _faces: a dictionary storing the faces of this simplex in any
         # given simplicial set. Each key: a simplicial set. The
         # corresponding value: the tuple of faces of this simplex, or
@@ -900,8 +910,25 @@ class AbstractSimplex(SageObject):
             \Delta^{18}
             sage: latex(AbstractSimplex(3, (0, 0,)))
             s_{1} s_{0} \Delta^{3}
+            sage: latex(AbstractSimplex(3, (0, 0,), name='x'))
+            x
+            sage: latex(AbstractSimplex(3, name='x').apply_degeneracies(0, 0))
+            s_{1} s_{0} x
+            sage: latex(AbstractSimplex(3, (0, 0,), name='x', latex_name='y'))
+            y
+            sage: latex(AbstractSimplex(3, name='x', latex_name='y').apply_degeneracies(0, 0))
+            s_{1} s_{0} y
         """
-        simplex = "\\Delta^{{{}}}".format(self._dim)
+        if self._latex_name is not None:
+            return self._latex_name
+        if hasattr(self, '__custom_name'):
+            return str(self)
+        if self.nondegenerate()._latex_name is not None:
+            simplex = self.nondegenerate()._latex_name
+        elif hasattr(self.nondegenerate(), '__custom_name'):
+            simplex = str(self.nondegenerate())
+        else:
+            simplex = "\\Delta^{{{}}}".format(self._dim)
         if self.degeneracies():
             degens = ' '.join(['s_{{{}}}'.format(i) for i in self.degeneracies()])
             return degens + ' ' + simplex
@@ -1303,6 +1330,28 @@ class SimplicialSet_arbitrary(Parent):
             # Don't barf if someone asks for n_cells in a dimension
             # where there are none.
             return []
+
+    def _an_element_(self):
+        """
+        Return an element: a vertex of this simplicial set.
+
+        Return ``None`` if the simplicial set is empty.
+
+        EXAMPLES::
+
+            sage: S4 = simplicial_sets.Sphere(4)
+            sage: S4._an_element_()
+            v_0
+            sage: S4._an_element_() in S4
+            True
+            sage: from sage.homology.simplicial_set_examples import Empty
+            sage: Empty()._an_element_() is None
+            True
+        """
+        vertices = self.n_cells(0)
+        if vertices:
+            return vertices[0]
+        return None
 
     def all_n_simplices(self, n):
         """
@@ -2716,6 +2765,29 @@ class SimplicialSet_arbitrary(Parent):
             return Sigma
         return Sigma.suspension(n-1)
 
+    def join(self, *others):
+        """
+        The join of this simplicial set with ``others``.
+
+        Not implemented. See
+        https://ncatlab.org/nlab/show/join+of+simplicial+sets for a
+        few descriptions, for anyone interested in implementing
+        this. See also P. J. Ehlers and Tim Porter, Joins for
+        (Augmented) Simplicial Sets, Jour. Pure Applied Algebra, 145
+        (2000) 37-44 :arxiv:`9904039`.
+
+        - ``others`` -- one or several simplicial sets
+
+        EXAMPLES::
+
+            sage: K = simplicial_sets.Simplex(2)
+            sage: K.join(K)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: joins are not implemented for simplicial sets
+        """
+        raise NotImplementedError('joins are not implemented for simplicial sets')
+
     def reduce(self):
         """
         Reduce this simplicial set.
@@ -3496,221 +3568,6 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
 # TODO: possibly turn SimplicialSet into a function, for example
 # allowing for the construction of infinite simplicial sets.
 SimplicialSet = SimplicialSet_finite
-
-
-class Nerve(SimplicialSet_arbitrary):
-    def __init__(self, monoid):
-        """
-        The nerve of a multiplicative monoid.
-
-        INPUT:
-
-        - ``monoid`` -- a multiplicative monoid
-
-        See
-        :meth:`sage.categories.finite_monoids.FiniteMonoids.ParentMethods.nerve`
-        for full documentation.
-
-        EXAMPLES::
-
-            sage: M = FiniteMonoids().example()
-            sage: M
-            An example of a finite multiplicative monoid: the integers modulo 12
-            sage: X = M.nerve()
-            sage: list(M)
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-            sage: X.n_cells(0)
-            [1]
-            sage: X.n_cells(1)
-            [0, 10, 11, 2, 3, 4, 5, 6, 7, 8, 9]
-        """
-        category = SimplicialSets().Pointed()
-        Parent.__init__(self, category=category)
-
-        e = AbstractSimplex(0, name=str(monoid.one()))
-        self._basepoint = e
-        vertex = SimplicialSet_finite({e: None}, base_point=e)
-        # self._n_skeleton: cache the highest dimensional skeleton
-        # calculated so far for this simplicial set, along with its
-        # dimension.
-        self._n_skeleton = (0, vertex)
-        self._monoid = monoid
-        # self._simplex_data: a tuple whose elements are pairs (simplex, list
-        # of monoid elements). Omit the base point.
-        self._simplex_data = ()
-
-    def __eq__(self, other):
-        """
-        Return ``True`` if ``self`` and ``other`` are equal.
-
-        This checks that the underlying monoids and the underlying
-        base points are the same. Because the base points will be
-        different each time the nerve is constructed, different
-        instances will not be equal.
-
-        EXAMPLES::
-
-            sage: C3 = groups.misc.MultiplicativeAbelian([3])
-            sage: C3.nerve() == C3.nerve()
-            False
-            sage: BC3 = C3.nerve()
-            sage: BC3 == BC3
-            True
-        """
-        return (isinstance(other, Nerve)
-                and self._monoid == other._monoid
-                and self.base_point() == other.base_point())
-
-    def __ne__(self, other):
-        """
-        Return the negation of `__eq__`.
-
-        EXAMPLES::
-
-            sage: C3 = groups.misc.MultiplicativeAbelian([3])
-            sage: G3 = groups.permutation.Cyclic(3)
-            sage: C3.nerve() != G3.nerve()
-            True
-            sage: C3.nerve() != C3.nerve()
-            True
-        """
-        return not self == other
-
-    @cached_method
-    def __hash__(self):
-        """
-        The hash is formed from the monoid and the base point.
-
-        EXAMPLES::
-
-            sage: G3 = groups.permutation.Cyclic(3)
-            sage: hash(G3.nerve()) # random
-            17
-
-        Different instances yield different base points, hence different hashes::
-
-            sage: X = G3.nerve()
-            sage: Y = G3.nerve()
-            sage: X.base_point() != Y.base_point()
-            True
-            sage: hash(X) != hash(Y)
-            True
-        """
-        return hash(self._monoid) ^ hash(self.base_point())
-
-    def n_skeleton(self, n):
-        """
-        Return the `n`-skeleton of this simplicial set.
-
-        That is, the simplicial set generated by all nondegenerate
-        simplices of dimension at most `n`.
-
-        INPUT:
-
-        - ``n`` -- the dimension
-
-        EXAMPLES::
-
-            sage: K4 = groups.misc.MultiplicativeAbelian([2,2])
-            sage: BK4 = simplicial_sets.ClassifyingSpace(K4)
-            sage: BK4.n_skeleton(3)
-            Simplicial set with 40 non-degenerate simplices
-            sage: BK4.n_cells(1) == BK4.n_skeleton(3).n_cells(1)
-            True
-            sage: BK4.n_cells(3) == BK4.n_skeleton(1).n_cells(3)
-            False
-        """
-        from .simplicial_set_constructions import SubSimplicialSet
-        monoid = self._monoid
-        one = monoid.one()
-        # Build up chains of elements inductively, from dimension d-1
-        # to dimension d. We start with the cached
-        # self._n_skeleton. If only the 0-skeleton has been
-        # constructed, we construct the 1-cells by hand.
-        start, skel = self._n_skeleton
-        if start == n:
-            return skel
-        elif start > n:
-            return skel.n_skeleton(n)
-
-        # There is a single vertex. Name it after the identity
-        # element of the monoid.
-        e = skel.n_cells(0)[0]
-        # Build the dictionary simplices, to be used for
-        # constructing the simplicial set.
-        simplices = skel.face_data()
-
-        # face_dict: dictionary of simplices: keys are
-        # composites of monoid elements (as tuples), values are
-        # the corresponding simplices.
-        face_dict = dict(self._simplex_data)
-
-        if start == 0:
-            for g in monoid:
-                if g != one:
-                    x = AbstractSimplex(1, name=str(g))
-                    simplices[x] = (e, e)
-                    face_dict[(g,)] = x
-            start = 1
-
-        for d in range(start+1, n+1):
-            for g in monoid:
-                if g == one:
-                    continue
-                new_faces = {}
-                for t in face_dict.keys():
-                    if len(t) != d-1:
-                        continue
-                    # chain: chain of group elements to multiply,
-                    # as a tuple.
-                    chain = t + (g,)
-                    # bdries: the face maps applied to chain, in a
-                    # format suitable for passing to the DeltaComplex
-                    # constructor.
-                    x = AbstractSimplex(d,
-                              name=' * '.join(str(_) for _ in chain))
-                    new_faces[chain] = x
-
-                    # Compute faces of x.
-                    faces = [face_dict[chain[1:]]]
-                    for i in range(d-1):
-                        product = chain[i] * chain[i+1]
-                        if product == one:
-                            # Degenerate.
-                            if d == 2:
-                                face = e.apply_degeneracies(i)
-                            else:
-                                face = (face_dict[chain[:i]
-                                         + chain[i+2:]].apply_degeneracies(i))
-                        else:
-                            # Non-degenerate.
-                            face = (face_dict[chain[:i]
-                                              + (product,) + chain[i+2:]])
-                        faces.append(face)
-                    faces.append(face_dict[chain[:-1]])
-                    simplices[x] = faces
-                face_dict.update(new_faces)
-
-        K = SubSimplicialSet(simplices, self)
-        self._n_skeleton = (n, K)
-        self._simplex_data = face_dict.items()
-        return K
-
-    def _repr_(self):
-        """
-        Print representation
-
-        EXAMPLES::
-
-            sage: M = FiniteMonoids().example()
-            sage: M.nerve()
-            Nerve of An example of a finite multiplicative monoid: the integers modulo 12
-
-            sage: M.rename('Z12')
-            sage: M.nerve()
-            Nerve of Z12
-        """
-        return "Nerve of {}".format(str(self._monoid))
 
 
 ########################################################################

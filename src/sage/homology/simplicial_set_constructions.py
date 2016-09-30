@@ -74,6 +74,7 @@ AUTHORS:
 
 import itertools
 
+from sage.misc.latex import latex
 from sage.structure.parent import Parent
 from sage.sets.set import Set
 from sage.homology.simplicial_set import AbstractSimplex, \
@@ -470,7 +471,9 @@ class PullbackOfSimplicialSets_finite(PullbackOfSimplicialSets, SimplicialSet_fi
                     simplex_factors = tuple(zip(simplices, tuple(degens)))
                     s = '(' + ', '.join(['{}'.format(_[0].apply_degeneracies(*_[1]))
                                          for _ in simplex_factors]) + ')'
-                    simplex = AbstractSimplex(d, name=s)
+                    ls = '(' + ', '.join(['{}'.format(latex(_[0].apply_degeneracies(*_[1])))
+                                          for _ in simplex_factors]) + ')'
+                    simplex = AbstractSimplex(d, name=s, latex_name=ls)
                     translate[simplex_factors] = simplex
                     # Now compute the faces of simplex.
                     if d == 0:
@@ -1443,13 +1446,16 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
                 else: # nondegenerate
                     if len(s) == 1:
                         name = str(list(s)[0][0])
+                        latex_name = latex(list(s)[0][0])
                     else:
                         # Choose a name from a simplex in domain.
                         for (sigma,j) in s:
                             if j == -1:
                                 name = str(sigma)
+                                latex_name = latex(sigma)
                                 break
-                    new = AbstractSimplex(dim, name=name)
+                    new = AbstractSimplex(dim, name=name,
+                                          latex_name=latex_name)
                     if dim == 0:
                         faces = None
                     for (sigma,j) in s:
@@ -2293,7 +2299,8 @@ class ConeOfSimplicialSet_finite(ConeOfSimplicialSet, SimplicialSet_finite):
         new_simplices = {'cone': star}
         for sigma in X.nondegenerate_simplices():
             new = AbstractSimplex(sigma.dimension()+1,
-                                       name='({},*)'.format(sigma))
+                                  name='({},*)'.format(sigma),
+                                  latex_name='({},*)'.format(latex(sigma)))
             if sigma.dimension() == 0:
                 data[sigma] = None
                 data[new] = (star, sigma)

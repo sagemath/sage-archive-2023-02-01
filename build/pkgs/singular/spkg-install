@@ -4,27 +4,28 @@
 ## Singular
 ###########################################
 
-SRC=`pwd`/src/latest
-SHARED=`pwd`/src/shared
-PATCHES=`pwd`/patches
-
 if [ -z "$SAGE_LOCAL" ]; then
     echo >&2 "Error: SAGE_LOCAL undefined -- exiting..."
     echo >&2 "Maybe run 'sage -sh'?"
     exit 1
 fi
 
+cd src
+
 # Apply all patches
-cd "$SRC"
-for patch in "$PATCHES"/*.patch; do
+for patch in ../patches/*.patch; do
     [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    echo "Applying $patch"
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'"
         exit 1
     fi
 done
+
+SRC=`pwd`/latest
+SHARED=`pwd`/shared
+
+cd "$SRC"
 
 if [ "x$SAGE_DEBUG" = "xyes" ]; then
     SINGULAR_CONFIGURE="$SINGULAR_CONFIGURE --enable-debug --disable-optimizationflags"

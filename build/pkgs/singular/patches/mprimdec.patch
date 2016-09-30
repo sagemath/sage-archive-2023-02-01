@@ -1,7 +1,7 @@
 Fix ring creation in mprimdec.lib.
-diff -druN oldest/Singular/LIB/mprimdec.lib latest/Singular/LIB/mprimdec.lib
---- oldest/Singular/LIB/mprimdec.lib	2016-08-26 11:03:15.816296318 +0000
-+++ latest/Singular/LIB/mprimdec.lib	2016-08-26 11:10:38.037077357 +0000
+
+--- a/latest/Singular/LIB/mprimdec.lib	2016-08-26 11:03:15.816296318 +0000
++++ b/latest/Singular/LIB/mprimdec.lib	2016-08-26 11:10:38.037077357 +0000
 @@ -222,7 +222,7 @@
    if(size(ann)==0)
    {

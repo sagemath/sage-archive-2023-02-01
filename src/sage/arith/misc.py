@@ -5143,19 +5143,20 @@ def _key_complex_for_display(a):
         sage: key_c(CC(5))
         (0, 5.00000000000000)
         sage: key_c(CC(5, 5))
-        (1, 5.00000000000000, 5.00000000000000)
+        (1, 5.00000000, 5.00000000000000)
 
         sage: CIF200 = ComplexIntervalField(200)
         sage: key_c(CIF200(5))
         (0, 5)
         sage: key_c(CIF200(5, 5))
-        (1, 5, 5)
+        (1, 5.00000000, 5)
     """
     ar = a.real()
     ai = a.imag()
     if not ai:
         return (0, ar)
-    return (1, ar, ai)
+    ar_truncated = ar.n(digits=9)
+    return (1, ar_truncated, ai)
 
 
 def sort_complex_numbers_for_display(nums):

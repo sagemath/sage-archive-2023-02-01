@@ -3539,7 +3539,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``return_conjuagtion`` -- A Boolean. Returns element of `SL(2, \ZZ)`. (default: True)
 
-        - ``error_limit`` -- sets the error tolerence (default:0.000001)
+        - ``error_limit`` -- sets the error tolerance (default:0.000001)
 
         OUTPUT:
 
@@ -3609,7 +3609,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.reduced_form(prec=30)
             Traceback (most recent call last):
             ...
-            ValueError: accuracy of Newton's root not within tolerence(1.2519607 > 1e-06), increase precision
+            ValueError: accuracy of Newton's root not within tolerance(1.2519607 > 1e-06), increase precision
             sage: f.reduced_form()
             (
             Scheme endomorphism of Projective Space of dimension 1 over Rational Field

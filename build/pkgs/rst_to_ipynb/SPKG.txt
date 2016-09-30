@@ -1,9 +1,9 @@
-= rst_to_ipynb =
+= rst-to-ipynb =
 
 == Description ==
 
-This project converts between a standalone reStructuredText file and a
-Jupyter Notebook file.
+The rst-to-ipynb program converts a standalone reStructuredText file to a
+Jupyter notebook file.
 
 This is currently achieved by converting to markdown with pandoc and then
 to Jupyter notebook using notedown, plus some configuration and tweaks.

@@ -112,7 +112,7 @@ defined Cython code, and with rather tricky argument lines::
     ArgSpec(args=['x', 'a', 'b'], varargs='args', keywords='kwds', defaults=(1, ')"', {False: 'bar'}))
 
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 from six.moves import range
 
 import ast
@@ -160,7 +160,7 @@ def isclassinstance(obj):
         False
         sage: class mymetaclass(type): pass
         sage: class myclass2:
-        ...       __metaclass__ = mymetaclass
+        ....:     __metaclass__ = mymetaclass
         sage: isclassinstance(myclass2)
         False
     """
@@ -1346,10 +1346,10 @@ def sage_getargspec(obj):
     Here is a more difficult one::
 
         sage: cython_code = [
-        ... 'cdef class MyClass:',
-        ... '    def _sage_src_(self):',
-        ... '        return "def foo(x, a=\\\')\\\"\\\', b={(2+1):\\\'bar\\\', not 1:3, 3<<4:5}): return\\n"',
-        ... '    def __call__(self, m,n): return "something"']
+        ....: 'cdef class MyClass:',
+        ....: '    def _sage_src_(self):',
+        ....: '        return "def foo(x, a=\\\')\\\"\\\', b={(2+1):\\\'bar\\\', not 1:3, 3<<4:5}): return\\n"',
+        ....: '    def __call__(self, m,n): return "something"']
         sage: cython('\n'.join(cython_code))
         sage: O = MyClass()
         sage: print(sage.misc.sageinspect.sage_getsource(O))

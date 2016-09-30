@@ -19,9 +19,9 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-
+from __future__ import print_function, absolute_import
 from sage.misc.all import prod
+
 
 def _len(L):
     """
@@ -236,12 +236,8 @@ class xmrange_iter:
     OUTPUT: a generator
 
     EXAMPLES: We create multi-range iterators, print them and also
-    iterate through a tuple version.
+    iterate through a tuple version. ::
 
-    ::
-
-        sage: z = xmrange_iter([range(3),range(2)]);z
-        xmrange_iter([range(3), range(2)])
         sage: z = xmrange_iter([range(3),range(2)], tuple);z
         xmrange_iter([[0, 1, 2], [0, 1]], <type 'tuple'>)
         sage: for a in z:

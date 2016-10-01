@@ -5096,7 +5096,13 @@ def _key_complex_for_display(a):
     ai = a.imag()
     if not ai:
         return (0, ar)
-    ar_truncated = ar.n(digits=9)
+    epsilon = 1e-10
+    if ar.abs() < epsilon:
+        ar_truncated = 0
+    elif ar.prec() < 34:
+        ar_truncated = ar
+    else:
+        ar_truncated = ar.n(digits=9)
     return (1, ar_truncated, ai)
 
 

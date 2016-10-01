@@ -2408,6 +2408,12 @@ class Function_real_part(GinacFunction):
             sage: f(x) = function('f')(x)
             sage: latex( f(x).real())
             \Re \left( f\left(x\right) \right)
+
+        Check that some real part expansions evaluate correctly
+        (:trac:`21614`)::
+
+            sage: real(sqrt(sin(x))).subs(x==0)
+            0
         """
         GinacFunction.__init__(self, "real_part",
                                conversions=dict(maxima='realpart',

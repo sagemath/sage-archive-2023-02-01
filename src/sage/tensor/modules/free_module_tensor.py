@@ -716,8 +716,8 @@ class FreeModuleTensor(ModuleElement):
                      index_latex_labels=None, only_nonzero=True,
                      only_nonredundant=False):
         r"""
-        Display the tensor components w.r.t. a given module basis, one per
-        line.
+        Display the tensor components with respect to a given module
+        basis, one per line.
 
         The output is either text-formatted (console mode) or LaTeX-formatted
         (notebook mode).
@@ -757,7 +757,8 @@ class FreeModuleTensor(ModuleElement):
             sage: t = M.tensor((2,1), name='T', sym=(0,1))
             sage: t[1,2,1], t[1,2,2], t[2,2,2] = 2/3, -1/4, 3
             sage: t.display()
-            T = 2/3 e_1*e_2*e^1 - 1/4 e_1*e_2*e^2 + 2/3 e_2*e_1*e^1 - 1/4 e_2*e_1*e^2 + 3 e_2*e_2*e^2
+            T = 2/3 e_1*e_2*e^1 - 1/4 e_1*e_2*e^2 + 2/3 e_2*e_1*e^1
+                - 1/4 e_2*e_1*e^2 + 3 e_2*e_2*e^2
             sage: t.display_comp()
             T^12_1 = 2/3
             T^12_2 = -1/4
@@ -832,10 +833,14 @@ class FreeModuleTensor(ModuleElement):
         else:
             latex_symbol = 'X'
         index_positions = self._tensor_type[0]*'u' + self._tensor_type[1]*'d'
-        return self.comp(basis).display(symbol, latex_symbol=latex_symbol,
-            index_positions=index_positions, index_labels=index_labels,
-            index_latex_labels=index_latex_labels, format_spec=format_spec,
-            only_nonzero=only_nonzero, only_nonredundant=only_nonredundant)
+        return self.comp(basis).display(symbol,
+                                        latex_symbol=latex_symbol,
+                                        index_positions=index_positions,
+                                        index_labels=index_labels,
+                                        index_latex_labels=index_latex_labels,
+                                        format_spec=format_spec,
+                                        only_nonzero=only_nonzero,
+                                        only_nonredundant=only_nonredundant)
 
     def view(self, basis=None, format_spec=None):
         r"""

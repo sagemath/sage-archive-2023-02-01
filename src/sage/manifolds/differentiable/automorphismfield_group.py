@@ -6,8 +6,7 @@ Given a differentiable manifold `U` and a differentiable map
 and `\Phi=\mathrm{Id}_M`), the *group of tangent-space automorphism fields*
 associated with `U` and `\Phi` is the general linear group
 `\mathrm{GL}(\mathcal{X}(U,\Phi))` of the module `\mathcal{X}(U,\Phi)` of
-vector fields along `U` with values on `M\supset \Phi(U)`
-(see
+vector fields along `U` with values on `M\supset \Phi(U)` (see
 :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`).
 Note that `\mathcal{X}(U, \Phi)` is a module over
 `C^k(U)`, the algebra of differentiable scalar fields on `U`.
@@ -65,11 +64,10 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
     Elements of `\mathrm{GL}(\mathcal{X}(U,\Phi))` are fields along `U` of
     automorphisms of tangent spaces to `M`.
 
-    If `M` is parallelizable, the class
-    :class:`AutomorphismFieldParalGroup` must be used instead.
+    .. NOTE::
 
-    This is a Sage *parent* class, the corresponding *element* class being
-    :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`.
+        If `M` is parallelizable, then :class:`AutomorphismFieldParalGroup`
+        *must* be used instead.
 
     INPUT:
 
@@ -113,10 +111,9 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
         sage: G in CommutativeAdditiveGroups()
         False
 
-    ``G`` is a *parent* object, whose elements are tangent-space
-    automorphisms::
+    The element of ``G`` are tangent-space automorphisms::
 
-        sage: a = G.an_element() ; a
+        sage: a = G.an_element(); a
         Field of tangent-space automorphisms on the 2-dimensional
          differentiable manifold M
         sage: a.parent() is G
@@ -165,8 +162,9 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
              2-dimensional differentiable manifold M
             sage: TestSuite(G).run(skip='_test_elements')
 
-        ``_test_elements`` does not pass due to the failure of ``_test_pickling``
-        in :class:`sage.manifolds.differentiable.tensorfield.TensorField`
+        ``_test_elements`` does not pass due to the failure
+        of ``_test_pickling`` in
+        :class:`sage.manifolds.differentiable.tensorfield.TensorField`.
 
         """
         if not isinstance(vector_field_module, VectorFieldModule):
@@ -190,9 +188,9 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
         TESTS::
 
             sage: M = Manifold(2, 'M')
-            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
-            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
             sage: transf = c_xy.transition_map(c_uv, (x+y, x-y),
             ....:  intersection_name='W', restrictions1= x>0,
             ....:  restrictions2= u+v>0)
@@ -201,8 +199,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
             sage: a = G(1); a
             Field of tangent-space identity maps on the 2-dimensional
              differentiable manifold M
-            sage: a = G([[1+x^2, 0], [0, 1+y^2]], frame=c_xy.frame(),
-            ....:       name='a'); a
+            sage: a = G([[1+x^2, 0], [0, 1+y^2]], frame=c_xy.frame(), name='a'); a
             Field of tangent-space automorphisms a on the 2-dimensional
              differentiable manifold M
             sage: a.display(c_xy.frame())
@@ -255,7 +252,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
                 idm = fmodule.identity_map()
                 rst = fmodule.automorphism()
                 for frame, comp in idm._components.iteritems():
-                    rst._components[frame] = 2*comp
+                    rst._components[frame] = 2 * comp
                 resu._restrictions[dom] = rst
         return resu
 
@@ -273,8 +270,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        - a
-          :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
+        - :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
           representing the identity element
 
         EXAMPLES:
@@ -394,21 +390,20 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
     `\mathrm{GL}(\mathcal{X}(U, \Phi))` of the module `\mathcal{X}(U, \Phi)`
     of vector fields along `U` with values on `M \supset \Phi(U)` (see
     :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`).
-    Note that `\mathcal{X}(U, \Phi)` is a free module over
-    `C^k(U)`, the algebra of differentiable scalar fields on `U`.
+    Note that `\mathcal{X}(U, \Phi)` is a free module over `C^k(U)`,
+    the algebra of differentiable scalar fields on `U`.
     Elements of `\mathrm{GL}(\mathcal{X}(U, \Phi))` are fields along `U` of
     automorphisms of tangent spaces to `M`.
 
-    If `M` is not parallelizable, the class
-    :class:`AutomorphismFieldGroup` must be used instead.
+    .. NOTE::
 
-    This is a Sage *parent* class, the corresponding *element* class being
-    :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismFieldParal`.
+        If `M` is not parallelizable, the class
+        :class:`AutomorphismFieldGroup` must be used instead.
 
     INPUT:
 
     - ``vector_field_module`` --
-      :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`
+      :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`;
       free module `\mathcal{X}(U,\Phi)` of vector fields along `U`
       with values on `M`
 
@@ -446,8 +441,7 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
         sage: G in CommutativeAdditiveGroups()
         False
 
-    ``G`` is a *parent* object, whose elements are tangent-space
-    automorphisms::
+    The elements of ``G`` are tangent-space automorphisms::
 
         sage: G.Element
         <class 'sage.manifolds.differentiable.automorphismfield.AutomorphismFieldParal'>
@@ -470,14 +464,14 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
         2 d/dx - 2 d/dy
 
     Indeed the matrix of ``a`` with respect to the frame
-    `(\partial_x,\partial_y)` is::
+    `(\partial_x, \partial_y)` is::
 
         sage: a[X.frame(),:]
         [ 1  0]
         [ 0 -1]
 
     The elements of ``G`` can also be considered as tensor fields of
-    type (1,1)::
+    type `(1,1)`::
 
         sage: a.tensor_type()
         (1, 1)
@@ -502,8 +496,9 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
         sage: a^(-1)*a == id
         True
 
-    Construction of an element by providing its components w.r.t. to the
-    manifold's default frame (frame associated to the coordinates `(x,y)`)::
+    Construction of an element by providing its components with
+    respect to the manifold's default frame (frame associated to
+    the coordinates `(x,y)`)::
 
         sage: b = G([[1+x^2,0], [0,1+y^2]]) ; b
         Field of tangent-space automorphisms on the 2-dimensional

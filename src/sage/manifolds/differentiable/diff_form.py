@@ -19,18 +19,18 @@ Two classes implement differential forms, depending whether the manifold
 
 .. NOTE::
 
-    A difference with the preceding Sage class
+    A difference with the class
     :class:`~sage.tensor.differential_form_element.DifferentialForm`
     is that the present classes lie at the tensor field level. Accordingly, an
     instance of :class:`DiffForm` or :class:`DiffFormParal` can have various
     sets of components, each in a different coordinate system (or more
     generally in a different coframe), while the class
-    :class:`~sage.tensor.differential_form_element.DifferentialForm` considers
-    differential forms at the component level in a fixed chart. In this
-    respect, the class
-    :class:`~sage.tensor.differential_form_element.DifferentialForm` is closer
-    to the class :class:`~sage.tensor.modules.comp.CompFullyAntiSym` than
-    to :class:`DiffForm`.
+    :class:`~sage.tensor.differential_form_element.DifferentialForm`
+    considers differential forms at the component level in a fixed chart.
+    In this respect, the class
+    :class:`~sage.tensor.differential_form_element.DifferentialForm` is
+    closer to the class :class:`~sage.tensor.modules.comp.CompFullyAntiSym`
+    than to :class:`DiffForm`.
 
 AUTHORS:
 
@@ -60,6 +60,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.misc.cachefunc import cached_method
 from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
@@ -69,7 +70,7 @@ class DiffForm(TensorField):
     Differential form with values on a generic (i.e. a priori not
     parallelizable) differentiable manifold.
 
-    Given a differentiable manifold `U`,  a differentiable map
+    Given a differentiable manifold `U`, a differentiable map
     `\Phi: U \rightarrow M` to a differentiable manifold `M` and a positive
     integer `p`, a *differential form of degree* `p` (or *p-form*)
     *along* `U` *with values on* `M\supset\Phi(U)` is a differentiable map
@@ -83,21 +84,20 @@ class DiffForm(TensorField):
 
     .. MATH::
 
-        \forall x \in U,\ a(x) \in \Lambda^p(T_{\Phi(x)} M)
+        a(x) \in \Lambda^p(T_{\Phi(x)} M)
 
-    i.e. `a(x)` is an alternating multilinear form of degree `p` of the
-    tangent space to `M` at the point `\Phi(x)`.
+    for all `x \in U`, i.e. `a(x)` is an alternating multilinear form
+    of degree `p` of the tangent space to `M` at the point `\Phi(x)`.
 
     The standard case of a differential form *on* a
-    manifold `M` corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other
+    manifold `M` corresponds to `U = M` and `\Phi = \mathrm{Id}_M`. Other
     common cases are `\Phi` being an immersion and `\Phi` being a curve in `M`
     (`U` is then an open interval of `\RR`).
 
-    If `M` is parallelizable, the class :class:`DiffFormParal`
-    must be used instead.
+    .. NOTE::
 
-    This is a Sage *element* class, the corresponding *parent* class being
-    :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormModule`.
+        If `M` is parallelizable, the class :class:`DiffFormParal`
+        must be used instead.
 
     INPUT:
 
@@ -131,7 +131,7 @@ class DiffForm(TensorField):
         sage: a.degree()
         2
 
-    Setting the components of a::
+    Setting the components of ``a``::
 
         sage: a[eU,0,1] = x*y^2 + 2*x
         sage: a.add_comp_by_continuation(eV, W, c_uv)
@@ -141,7 +141,7 @@ class DiffForm(TensorField):
         a = (-1/16*u^3 + 1/16*u*v^2 - 1/16*v^3
          + 1/16*(u^2 - 8)*v - 1/2*u) du/\dv
 
-    A 1-form on M::
+    A 1-form on ``M``::
 
         sage: a = M.one_form('a') ; a
         1-form a on the 2-dimensional differentiable manifold M
@@ -209,7 +209,7 @@ class DiffForm(TensorField):
         r"""
         Construct a differential form.
 
-        TEST:
+        TESTS:
 
         Construction via ``parent.element_class``, and not via a direct call
         to ``DiffForm`, to fit with the category framework::
@@ -243,17 +243,17 @@ class DiffForm(TensorField):
 
         .. TODO::
 
-            fix _test_pickling (in the superclass TensorField)
+            Fix ``_test_pickling`` (in the superclass :class:`TensorField`).
 
         """
         TensorField.__init__(self, vector_field_module, (0,degree), name=name,
                              latex_name=latex_name, antisym=range(degree),
-                        parent=vector_field_module.dual_exterior_power(degree))
+                             parent=vector_field_module.dual_exterior_power(degree))
         self._init_derived() # initialization of derived quantities
 
     def _repr_(self):
         r"""
-        String representation of the object.
+        String representation of ``self``.
 
         TESTS::
 
@@ -294,25 +294,11 @@ class DiffForm(TensorField):
         """
         return type(self)(self._vmodule, self._tensor_rank)
 
-    def _init_derived(self):
-        r"""
-        Initialize the derived quantities.
-
-        TEST::
-
-            sage: M = Manifold(3, 'M')
-            sage: a = M.diff_form(2, name='a')
-            sage: a._init_derived()
-
-        """
-        TensorField._init_derived(self)
-        self._exterior_derivative = None
-
     def _del_derived(self):
         r"""
         Delete the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: a = M.diff_form(2, name='a')
@@ -320,18 +306,19 @@ class DiffForm(TensorField):
 
         """
         TensorField._del_derived(self)
-        self._exterior_derivative = None
+        self.exterior_derivative.clear_cache()
 
+    @cached_method
     def exterior_derivative(self):
         r"""
-        Compute the exterior derivative of the differential form.
+        Compute the exterior derivative of ``self``.
 
         OUTPUT:
 
         - instance of :class:`DiffForm` representing the exterior derivative
           of the differential form
 
-        EXAMPLE:
+        EXAMPLES:
 
         Exterior derivative of a 1-form on the 2-sphere::
 
@@ -387,18 +374,16 @@ class DiffForm(TensorField):
             True
 
         """
-        from sage.tensor.modules.format_utilities import format_unop_txt, \
-                                                         format_unop_latex
-        if self._exterior_derivative is None:
-            vmodule = self._vmodule # shortcut
-            rname = format_unop_txt('d', self._name)
-            rlname = format_unop_latex(r'\mathrm{d}', self._latex_name)
-            resu = vmodule.alternating_form(self._tensor_rank+1, name=rname,
-                                            latex_name=rlname)
-            for dom, rst in self._restrictions.iteritems():
-                resu._restrictions[dom] = rst.exterior_derivative()
-            self._exterior_derivative = resu
-        return self._exterior_derivative
+        from sage.tensor.modules.format_utilities import (format_unop_txt,
+                                                          format_unop_latex)
+        vmodule = self._vmodule # shortcut
+        rname = format_unop_txt('d', self._name)
+        rlname = format_unop_latex(r'\mathrm{d}', self._latex_name)
+        resu = vmodule.alternating_form(self._tensor_rank+1, name=rname,
+                                        latex_name=rlname)
+        for dom, rst in self._restrictions.iteritems():
+            resu._restrictions[dom] = rst.exterior_derivative()
+        return resu
 
     def wedge(self, other):
         r"""
@@ -445,15 +430,12 @@ class DiffForm(TensorField):
         from sage.tensor.modules.format_utilities import is_atomic
         if self._domain.is_subset(other._domain):
             if not self._ambient_domain.is_subset(other._ambient_domain):
-                raise ValueError("incompatible ambient domains for exterior " +
-                                 "product")
+                raise ValueError("incompatible ambient domains for exterior product")
         elif other._domain.is_subset(self._domain):
             if not other._ambient_domain.is_subset(self._ambient_domain):
-                raise ValueError("incompatible ambient domains for exterior " +
-                                 "product")
+                raise ValueError("incompatible ambient domains for exterior product")
         dom_resu = self._domain.intersection(other._domain)
-        ambient_dom_resu = self._ambient_domain.intersection(
-                                                         other._ambient_domain)
+        ambient_dom_resu = self._ambient_domain.intersection(other._ambient_domain)
         self_r = self.restrict(dom_resu)
         other_r = other.restrict(dom_resu)
         if ambient_dom_resu.is_manifestly_parallelizable():
@@ -491,11 +473,11 @@ class DiffForm(TensorField):
 
     def degree(self):
         r"""
-        Return the degree of the differential form.
+        Return the degree of ``self``.
 
         OUTPUT:
 
-        - integer p such that the differential form is a p-form.
+        - integer `p` such that the differential form is a `p`-form
 
         EXAMPLES::
 
@@ -532,21 +514,20 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
     .. MATH::
 
-        \forall x \in U,\ a(x) \in \Lambda^p(T_{\Phi(x)} M)
+        a(x) \in \Lambda^p(T_{\Phi(x)} M)
 
-    i.e. `a(x)` is an alternating multilinear form of degree `p` of the
-    tangent space to `M` at the point `\Phi(x)`.
+    for all `x \in U`, i.e. `a(x)` is an alternating multilinear form
+    of degree `p` of the tangent space to `M` at the point `\Phi(x)`.
 
     The standard case of a differential form *on* a manifold `M` corresponds
-    to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi` being an
-    immersion and `\Phi` being a curve in `M` (`U` is then an open interval of
-    `\RR`).
+    to `U = M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi`
+    being an immersion and `\Phi` being a curve in `M` (`U` is then an
+    open interval of `\RR`).
 
-    If `M` is not parallelizable, the class :class:`DiffForm` must
-    be used instead.
+    .. NOTE::
 
-    This is a Sage *element* class, the corresponding *parent* class being
-    :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormFreeModule`.
+        If `M` is not parallelizable, the class :class:`DiffForm` must
+        be used instead.
 
     INPUT:
 
@@ -575,7 +556,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: a.tensor_type()
         (0, 2)
 
-    It is antisymmetric, its components being instances of class
+    It is antisymmetric, its components being
     :class:`~sage.tensor.modules.comp.CompFullyAntiSym`::
 
         sage: a.symmetries()
@@ -588,8 +569,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: type(a.comp())
         <class 'sage.tensor.modules.comp.CompFullyAntiSym'>
 
-    Setting a component with repeated indices to a non-zero value results in an
-    error::
+    Setting a component with repeated indices to a non-zero value
+    results in an error::
 
         sage: a[1,1] = 3
         Traceback (most recent call last):
@@ -679,7 +660,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
          - (x*cos(y) + y*sin(x))*z dy/\dz
 
     The tensor product of a 1-form and a 2-form is not a 3-form but a tensor
-    field of type (0,3) with less symmetries::
+    field of type `(0,3)` with less symmetries::
 
         sage: c = a*ab ; c
         Tensor field A*(A/\B) of type (0,3) on the 3-dimensional differentiable
@@ -692,8 +673,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: d.symmetries()  #  the antisymmetry is only w.r.t. the first two arguments:
         no symmetry;  antisymmetry: (0, 1)
 
-    The exterior derivative of a differential form is obtained by means of the
-    method :meth:`exterior_der`::
+    The exterior derivative of a differential form is obtained by means
+    of the :meth:`exterior_derivative`::
 
         sage: da = a.exterior_derivative() ; da
         2-form dA on the 3-dimensional differentiable manifold R3
@@ -706,7 +687,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: dab = ab.exterior_derivative() ; dab
         3-form d(A/\B) on the 3-dimensional differentiable manifold R3
 
-    As a 3-form over a 3-dimensional manifold, d(A/\\B) is necessarily
+    As a 3-form over a 3-dimensional manifold, ``d(A/\B)`` is necessarily
     proportional to the volume 3-form::
 
         sage: dab == dab[[1,2,3]]/eps[[1,2,3]]*eps
@@ -746,7 +727,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: om.tensor_type()
         (0, 1)
 
-    Setting the components w.r.t. the manifold's default frame::
+    Setting the components with respect to the manifold's default frame::
 
         sage: om[:] = (2*z, x, x-y)
         sage: om[:]
@@ -768,7 +749,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: latex(om(v))
         \omega\left(V\right)
 
-    The tensor product of two 1-forms is a tensor field of type (0,2)::
+    The tensor product of two 1-forms is a tensor field of type `(0,2)`::
 
         sage: a = M.one_form('A')
         sage: a[:] = (1, 2, 3)
@@ -807,7 +788,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         r"""
         Construct a differential form.
 
-        TEST:
+        TESTS:
 
         Construction via ``parent.element_class``, and not via a direct call
         to ``DiffFormParal``, to fit with the category framework::
@@ -842,7 +823,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
     def _repr_(self):
         r"""
-        String representation of the object.
+        String representation of ``self``.
 
         TESTS::
 
@@ -885,11 +866,12 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         """
         return type(self)(self._fmodule, self._tensor_rank)
 
+    # This method is needed to redirect to the correct class (TensorFieldParal)
     def _init_derived(self):
         r"""
-        Initialize the derived quantities
+        Initialize the derived quantities of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
@@ -898,16 +880,15 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         """
         TensorFieldParal._init_derived(self)
-        self._exterior_derivative = None
 
     def _del_derived(self, del_restrictions=True):
         r"""
-        Delete the derived quantities
+        Delete the derived quantities.
 
         INPUT:
 
         - ``del_restrictions`` -- (default: ``True``) determines whether the
-          restrictions of ``self`` to subdomains are deleted.
+          restrictions of ``self`` to subdomains are deleted
 
         TEST::
 
@@ -918,15 +899,15 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         """
         TensorFieldParal._del_derived(self, del_restrictions=del_restrictions)
-        self._exterior_derivative = None
+        self.exterior_derivative.clear_cache()
 
     def __call__(self, *args):
         r"""
         Redefinition of
         :meth:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor.__call__`
-        to allow for domain treatment
+        to allow for domain treatment.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -951,9 +932,10 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         """
         return TensorFieldParal.__call__(self, *args)
 
+    @cached_method
     def exterior_derivative(self):
         r"""
-        Compute the exterior derivative of ``self``..
+        Compute the exterior derivative of ``self``.
 
         OUTPUT:
 
@@ -1010,77 +992,75 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
                                                           format_unop_latex)
         from sage.tensor.modules.comp import CompFullyAntiSym
         from sage.manifolds.differentiable.vectorframe import CoordFrame
-        if self._exterior_derivative is None:
-            # A new computation is necessary:
-            fmodule = self._fmodule # shortcut
-            rname = format_unop_txt('d', self._name)
-            rlname = format_unop_latex(r'\mathrm{d}', self._latex_name)
-            self._exterior_derivative = fmodule.alternating_form(
-                                                           self._tensor_rank+1,
-                                                           name=rname,
-                                                           latex_name=rlname)
-            # 1/ List of all coordinate frames in which the components of self
-            # are known
-            coord_frames = []
+        fmodule = self._fmodule # shortcut
+        rname = format_unop_txt('d', self._name)
+        rlname = format_unop_latex(r'\mathrm{d}', self._latex_name)
+        resu = fmodule.alternating_form(self._tensor_rank + 1,
+                                        name=rname,
+                                        latex_name=rlname)
+        # 1/ List of all coordinate frames in which the components of self
+        # are known
+        coord_frames = []
+        for frame in self._components:
+            if isinstance(frame, CoordFrame):
+                coord_frames.append(frame)
+        if not coord_frames:
+            # A coordinate frame is searched, at the price of a change of
+            # frame, privileging the frame of the domain's default chart
+            dom = self._domain
+            def_coordf = dom._def_chart._frame
             for frame in self._components:
-                if isinstance(frame, CoordFrame):
-                    coord_frames.append(frame)
+                if (frame, def_coordf) in dom._frame_changes:
+                    self.comp(def_coordf, from_basis=frame)
+                    coord_frames = [def_coordf]
+                    break
             if not coord_frames:
-                # A coordinate frame is searched, at the price of a change of
-                # frame, privileging the frame of the domain's default chart
-                dom = self._domain
-                def_coordf = dom._def_chart._frame
-                for frame in self._components:
-                    if (frame, def_coordf) in dom._frame_changes:
-                        self.comp(def_coordf, from_basis=frame)
-                        coord_frames = [def_coordf]
-                        break
-                if not coord_frames:
-                    for chart in dom._atlas:
-                        if chart != dom._def_chart: # the case def_chart is
-                                                    # treated above
-                            coordf = chart._frame
-                            for frame in self._components:
-                                if (frame, coordf) in dom._frame_changes:
-                                    self.comp(coordf, from_basis=frame)
-                                    coord_frames[coordf]
-                                    break
-                            if coord_frames:
+                for chart in dom._atlas:
+                    if chart != dom._def_chart: # the case def_chart is
+                                                # treated above
+                        coordf = chart._frame
+                        for frame in self._components:
+                            if (frame, coordf) in dom._frame_changes:
+                                self.comp(coordf, from_basis=frame)
+                                coord_frames[coordf]
                                 break
-            # 2/ The computation:
-            for frame in coord_frames:
-                chart = frame._chart
-                sc = self._components[frame]
-                dc = CompFullyAntiSym(fmodule._ring, frame,
-                                      self._tensor_rank+1,
-                                      start_index=fmodule._sindex,
-                                    output_formatter=fmodule._output_formatter)
-                for ind, val in sc._comp.iteritems():
-                    for i in fmodule.irange():
-                        ind_d = (i,) + ind
-                        if len(ind_d) == len(set(ind_d)):
-                            # all indices are different
-                            dc[[ind_d]] += \
-                               val.coord_function(chart).diff(i).scalar_field()
-                self._exterior_derivative._components[frame] = dc
-        return self._exterior_derivative
+                        if coord_frames:
+                            break
+        # 2/ The computation:
+        for frame in coord_frames:
+            chart = frame._chart
+            sc = self._components[frame]
+            dc = CompFullyAntiSym(fmodule._ring, frame,
+                                  self._tensor_rank+1,
+                                  start_index=fmodule._sindex,
+                                output_formatter=fmodule._output_formatter)
+            for ind, val in sc._comp.iteritems():
+                for i in fmodule.irange():
+                    ind_d = (i,) + ind
+                    if len(ind_d) == len(set(ind_d)):
+                        # all indices are different
+                        dc[[ind_d]] += \
+                           val.coord_function(chart).diff(i).scalar_field()
+            resu._components[frame] = dc
+        return resu
 
     def wedge(self, other):
         r"""
-        Exterior product with another differential form.
+        Exterior product of ``self`` with another differential form.
 
         INPUT:
 
-        - ``other``: another differential form
+        - ``other`` -- another differential form
 
         OUTPUT:
 
         - instance of :class:`DiffFormParal` representing the exterior
-          product self/\\other.
+          product ``self/\other``
 
-        EXAMPLE:
+        EXAMPLES:
 
-        Exterior product of a 1-form and a 2-form on a 3-dimensional manifold::
+        Exterior product of a 1-form and a 2-form on a 3-dimensional
+        manifold::
 
             sage: M = Manifold(3, 'M', start_index=1)
             sage: X.<x,y,z> = M.chart()
@@ -1106,13 +1086,12 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
         if self._domain.is_subset(other._domain):
             if not self._ambient_domain.is_subset(other._ambient_domain):
-                raise ValueError("incompatible ambient domains for exterior " +
-                                 "product")
+                raise ValueError("incompatible ambient domains for exterior product")
         elif other._domain.is_subset(self._domain):
             if not other._ambient_domain.is_subset(self._ambient_domain):
-                raise ValueError("incompatible ambient domains for exterior " +
-                                 "product")
+                raise ValueError("incompatible ambient domains for exterior product")
         dom_resu = self._domain.intersection(other._domain)
         self_r = self.restrict(dom_resu)
         other_r = other.restrict(dom_resu)
         return FreeModuleAltForm.wedge(self_r, other_r)
+

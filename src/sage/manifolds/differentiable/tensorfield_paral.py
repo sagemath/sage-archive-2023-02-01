@@ -33,7 +33,7 @@ REFERENCES:
 
 EXAMPLES:
 
-A tensor field of type (1,1) on a 2-dimensional differentiable manifold::
+A tensor field of type `(1,1)` on a 2-dimensional differentiable manifold::
 
     sage: M = Manifold(2, 'M', start_index=1)
     sage: c_xy.<x,y> = M.chart()
@@ -44,8 +44,8 @@ A tensor field of type (1,1) on a 2-dimensional differentiable manifold::
     sage: t.tensor_rank()
     2
 
-Components w.r.t. the manifold's default frame are created by providing the
-relevant indices inside square brackets::
+Components with respect to the manifold's default frame are created
+by providing the relevant indices inside square brackets::
 
     sage: t[1,1] = x^2
 
@@ -55,29 +55,26 @@ Unset components are initialized to zero::
     [x^2   0]
     [  0   0]
 
-The full set of components w.r.t. a given vector frame is returned by the
-method
-:meth:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal.comp`; it is
-an instance of the class :class:`~sage.tensor.modules.comp.Components`::
+The full set of components with respect to a given vector frame is
+returned by the method
+:meth:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal.comp`::
 
     sage: t.comp(c_xy.frame())
     2-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
-    sage: type(t.comp(c_xy.frame()))
-    <class 'sage.tensor.modules.comp.Components'>
 
-If no vector frame is mentionned in the argument of
-:meth:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal.comp`, it is
-assumed to be the manifold's default frame::
+If no vector frame is mentioned in the argument of
+:meth:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal.comp`,
+it is assumed to be the manifold's default frame::
 
     sage: M.default_frame()
     Coordinate frame (M, (d/dx,d/dy))
     sage: t.comp() is t.comp(c_xy.frame())
     True
 
-Individual components w.r.t. the manifold's default frame are accessed by
-listing their indices inside double square brackets; they are scalar
-fields on the manifold, and therefore instances of the class
-:class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`::
+Individual components with respect to the manifold's default frame are
+accessed by listing their indices inside double square brackets. They
+are :class:`scalar fields
+<sage.manifolds.differentiable.scalarfield.DiffScalarField>` on the manifold::
 
     sage: t[[1,1]]
     Scalar field on the 2-dimensional differentiable manifold M
@@ -102,16 +99,6 @@ via the single square brackets::
     sage: t[1,1].expr() is t[[1,1]].expr() # the symbolic expression
     True
 
-In other words, the single square brackets return an instance of
-:class:`~sage.manifolds.coord_func.CoordFunction` that is the
-coordinate function representing the component in some chart (by default,
-the manifold's default chart)::
-
-    sage: type(t[1,1])    # single bracket --> coordinate function
-    <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
-    sage: type(t[[1,1]])  # double bracket --> scalar field
-    <class 'sage.manifolds.differentiable.scalarfield.DiffScalarFieldAlgebra_with_category.element_class'>
-
 Expressions in a chart different from the manifold's default one are
 obtained by specifying the chart as the last argument inside the
 single square brackets::
@@ -122,9 +109,9 @@ single square brackets::
     sage: t[1,1, c_uv]
     1/4*u^2 + 1/2*u*v + 1/4*v^2
 
-Note that ``t[1,1, c_uv]`` is the component of the tensor t w.r.t. to
-the coordinate frame associated to the chart (x,y) expressed in terms of
-the coordinates (u,v). Indeed, ``t[1,1, c_uv]`` is a shortcut for
+Note that ``t[1,1, c_uv]`` is the component of the tensor ``t`` with respect
+to the coordinate frame associated to the chart `(x,y)` expressed in terms of
+the coordinates `(u,v)`. Indeed, ``t[1,1, c_uv]`` is a shortcut for
 ``t.comp(c_xy.frame())[[1,1]].coord_function(c_uv)``::
 
     sage: t[1,1, c_uv] is t.comp(c_xy.frame())[[1,1]].coord_function(c_uv)
@@ -138,16 +125,7 @@ Similarly, ``t[1,1]`` is a shortcut for
     sage: t[1,1] is t.comp()[[1,1]].coord_function()  # since c_xy.frame() and c_xy are the manifold's default values
     True
 
-Internally, the components are stored as a dictionary (attribute
-:attr:`_comp` of the class
-:class:`~sage.tensor.modules.comp.Components`) whose
-keys are the indices. Only the non-zero components and non-redundant
-components (in case of symmetries) are stored::
-
-    sage: t.comp()._comp
-    {(1, 1): Scalar field on the 2-dimensional differentiable manifold M}
-
-All the components can be set at once via [:]::
+All the components can be set at once via ``[:]``::
 
     sage: t[:] = [[1, -x], [x*y, 2]]
     sage: t[:]
@@ -177,8 +155,8 @@ of the square brackets::
     [x + y     0]
     [    y  -3*x]
 
-All the components in some frame can be set at once, via the operator
-[:]::
+All the components in some frame can be set at once, via
+the operator ``[:]``::
 
     sage: t[e,:] = [[x+y, 0], [y, -3*x]]
     sage: t[e,:]  # same as above:
@@ -198,8 +176,8 @@ To keep the other components, one must use the method
 
 The expansion of the tensor field in a given frame is obtained via the
 method
-:meth:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor.display` (the
-symbol * stands for tensor product)::
+:meth:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor.display`
+(the symbol ``*`` stands for tensor product)::
 
     sage: t.display()  # expansion in the manifold's default frame
     T = d/dx*dx - x d/dx*dy + x*y d/dy*dx + 2 d/dy*dy
@@ -207,7 +185,7 @@ symbol * stands for tensor product)::
     T = (x + y) e_1*e^1 + y e_2*e^1 - 3*x e_2*e^2
 
 By definition, a tensor field acts as a multilinear map on 1-forms and vector
-fields; in the present case, T being of type (1,1), it acts on pairs
+fields; in the present case, ``T`` being of type `(1,1)`, it acts on pairs
 (1-form, vector field)::
 
     sage: a = M.one_form('a')
@@ -223,7 +201,7 @@ fields; in the present case, T being of type (1,1), it acts on pairs
     sage: latex(t(a,v))
     T\left(a,V\right)
 
-Check by means of the component expression of t(a,v)::
+Check by means of the component expression of ``t(a,v)``::
 
     sage: t(a,v).expr() - t[1,1]*a[1]*v[1] - t[1,2]*a[1]*v[2] \
     ....: - t[2,1]*a[2]*v[1] - t[2,2]*a[2]*v[2]
@@ -276,18 +254,6 @@ account the symmetry between the two indices::
     [-x  y]
     sage: q.display()
     Q = -x dx*dy - x dy*dx + y dy*dy
-
-Internally (dictionary :attr:`_comp` of the class
-:class:`~sage.tensor.modules.comp.Components`), only
-the non-zero and non-redundant components are stored::
-
-    sage: q.comp()._comp  # random (dictionary output)
-    {(1, 2): Scalar field on the 2-dimensional differentiable manifold M,
-     (2, 2): Scalar field on the 2-dimensional differentiable manifold M}
-    sage: q.comp()._comp[(1,2)].expr()
-    -x
-    sage: q.comp()._comp[(2,2)].expr()
-    y
 
 More generally, tensor symmetries or antisymmetries can be specified via
 the keywords ``sym`` and ``antisym``. For instance a rank-4 covariant
@@ -345,33 +311,32 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
     .. MATH::
 
-        \forall p \in U,\ t(p) \in T^{(k,l)}(T_q M)
+        t(p) \in T^{(k,l)}(T_q M)
 
-    i.e. `t(p)` is a tensor of type `(k,l)` on the tangent space `T_q M` at
-    the point `q=\Phi(p)`, that is to say a multilinear map
+    for all `p \in U`, i.e. `t(p)` is a tensor of type `(k,l)` on the
+    tangent space `T_q M` at the point `q=\Phi(p)`. That is to say
+    a multilinear map
 
     .. MATH::
 
         t(p):\ \underbrace{T_q^*M\times\cdots\times T_q^*M}_{k\ \; \mbox{times}}
         \times \underbrace{T_q M\times\cdots\times T_q M}_{l\ \; \mbox{times}}
-        \longrightarrow K
+        \longrightarrow K,
 
     where `T_q^* M` is the dual vector space to `T_q M` and `K` is the
-    topological field over which the manifold `M` is defined. The integer `k+l`
-    is called the *tensor rank*.
+    topological field over which the manifold `M` is defined.
+    The integer `k+l` is called the *tensor rank*.
 
-    The standard case of a tensor
-    field *on* a differentiable manifold corresponds to `U=M` and
-    `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi` being an
-    immersion and `\Phi` being a curve in `M` (`U` is then an open interval
-    of `\RR`).
+    The standard case of a tensor field *on* a differentiable manifold
+    corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases
+    are `\Phi` being an immersion and `\Phi` being a curve in `M`
+    (`U` is then an open interval of `\RR`).
 
-    If `M` is not parallelizable, the class
-    :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
-    should be used instead.
+    .. NOTE::
 
-    This is a Sage *element* class, the corresponding *parent* class being
-    :class:`~sage.manifolds.differentiable.tensorfield_module.TensorFieldFreeModule`.
+        If `M` is not parallelizable, the class
+        :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+        should be used instead.
 
     INPUT:
 
@@ -386,19 +351,20 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
     - ``sym`` -- (default: ``None``) a symmetry or a list of symmetries among
       the tensor arguments: each symmetry is described by a tuple containing
       the positions of the involved arguments, with the convention position=0
-      for the first argument. For instance:
+      for the first argument; for instance:
 
       * ``sym=(0,1)`` for a symmetry between the 1st and 2nd arguments
       * ``sym=[(0,2),(1,3,4)]`` for a symmetry between the 1st and 3rd
-        arguments and a symmetry between the 2nd, 4th and 5th arguments.
+        arguments and a symmetry between the 2nd, 4th and 5th arguments
 
-    - ``antisym`` -- (default: ``None``) antisymmetry or list of antisymmetries
-      among the arguments, with the same convention as for ``sym``.
-
+    - ``antisym`` -- (default: ``None``) antisymmetry or list of
+      antisymmetries among the arguments, with the same convention
+      as for ``sym``
 
     EXAMPLES:
 
-    A tensor field of type (2,0) on a 3-dimensional parallelizable manifold::
+    A tensor field of type `(2,0)` on a 3-dimensional parallelizable
+    manifold::
 
         sage: M = Manifold(3, 'M')
         sage: c_xyz.<x,y,z> = M.chart()  # makes M parallelizable
@@ -416,8 +382,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         Algebra of differentiable scalar fields on the 3-dimensional
          differentiable manifold M
 
-    The components with respect to the manifold's default frame are set or read
-    by means of square brackets::
+    The components with respect to the manifold's default frame are
+    set or read by means of square brackets::
 
         sage: e = M.vector_frame('e') ; M.set_default_frame(e)
         sage: for i in M.irange():
@@ -427,7 +393,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         sage: [[ t[i,j] for j in M.irange()] for i in M.irange()]
         [[1, 1, 1], [2, 4, 8], [3, 9, 27]]
 
-    A shortcut for the above is using [:]::
+    A shortcut for the above is using ``[:]``::
 
         sage: t[:]
         [ 1  1  1]
@@ -451,7 +417,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
     To avoid any insconstency between the various components, the method
     :meth:`set_comp` deletes the components in other frames.
-    Accordingly, the components in the frame e have been deleted::
+    Accordingly, the components in the frame ``e`` have been deleted::
 
         sage: t._components
         {Vector frame (M, (f_0,f_1,f_2)): 2-indices components w.r.t. Vector
@@ -475,17 +441,10 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         sage: t.tensor_type()
         (2, 0)
 
-    Internally, the components w.r.t. various vector frames are stored in the
-    dictionary :attr:`_components`::
-
-        sage: t._components  # random (dictionary output)
-        {Vector frame (M, (e_0,e_1,e_2)): 2-indices components w.r.t. Vector frame (M, (e_0,e_1,e_2)),
-         Vector frame (M, (f_0,f_1,f_2)): 2-indices components w.r.t. Vector frame (M, (f_0,f_1,f_2))}
-
     Symmetries and antisymmetries are declared via the keywords ``sym`` and
-    ``antisym``. For instance, a rank-6 covariant tensor that is symmetric with
-    respect to its 1st and 3rd arguments and antisymmetric with respect to the
-    2nd, 5th and 6th arguments is set up as follows::
+    ``antisym``. For instance, a rank-6 covariant tensor that is symmetric
+    with respect to its 1st and 3rd arguments and antisymmetric with respect
+    to the 2nd, 5th and 6th arguments is set up as follows::
 
         sage: a = M.tensor_field(0, 6, 'T', sym=(0,2), antisym=(1,4,5))
         sage: a[0,0,1,0,1,2] = 3
@@ -496,8 +455,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
     Multiple symmetries or antisymmetries are allowed; they must then be
     declared as a list. For instance, a rank-4 covariant tensor that is
-    antisymmetric with respect to its 1st and 2nd arguments and with respect to
-    its 3rd and 4th argument must be declared as::
+    antisymmetric with respect to its 1st and 2nd arguments and with
+    respect to its 3rd and 4th argument must be declared as::
 
         sage: r = M.tensor_field(0, 4, 'T', antisym=[(0,1), (2,3)])
         sage: r[0,1,2,0] = 3
@@ -563,7 +522,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         sage: s.symmetries()  # s is symmetric because both a and b are
         symmetry: (0, 1);  no antisymmetry
 
-    The tensor product is taken with the operator \*::
+    The tensor product is taken with the operator ``*``::
 
         sage: c = a*b ; c
         Tensor field of type (4,0) on the 3-dimensional differentiable
@@ -571,14 +530,14 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         sage: c.symmetries()  # since a and b are both symmetric, a*b has two symmetries:
         symmetries: [(0, 1), (2, 3)];  no antisymmetry
 
-    The tensor product of two fully contravariant tensors is not symmetric in
-    general::
+    The tensor product of two fully contravariant tensors is not
+    symmetric in general::
 
         sage: a*b == b*a
         False
 
-    The tensor product of a fully contravariant tensor by a fully covariant one
-    is symmetric::
+    The tensor product of a fully contravariant tensor by a fully
+    covariant one is symmetric::
 
         sage: d = M.diff_form(2)  # a fully covariant tensor field
         sage: d[0,1], d[0,2], d[1,2] = (3, 2, 1)
@@ -658,7 +617,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
     def _repr_(self):
         r"""
-        String representation of the object.
+        String representation of ``self``.
 
         TESTS::
 
@@ -715,12 +674,12 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
     def _del_derived(self, del_restrictions=True):
         r"""
-        Delete the derived quantities
+        Delete the derived quantities.
 
         INPUT:
 
         - ``del_restrictions`` -- (default: ``True``) determines whether the
-          restrictions of ``self`` to subdomains are deleted.
+          restrictions of ``self`` to subdomains are deleted
 
         TEST::
 
@@ -746,15 +705,15 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         INPUT:
 
-        - ``basis`` -- (default: ``None``) vector frame in which the components
-          are defined; if none is provided, the components are assumed to refer
-          to the tensor field domain's default frame.
+        - ``basis`` -- (default: ``None``) vector frame in which the
+          components are defined; if none is provided, the components are
+          assumed to refer to the tensor field domain's default frame
 
         OUTPUT:
 
         - components in the given frame, as an instance of the
           class :class:`~sage.tensor.modules.comp.Components`; if such
-          components did not exist previously, they are created.
+          components did not exist previously, they are created
 
         EXAMPLES::
 
@@ -777,7 +736,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: t.display(e)
             t = x e_0*e^1
 
-        The components w.r.t. the frame ``e_xy`` have be erased::
+        The components with respect to the frame ``e_xy`` have be erased::
 
             sage: t.display(e_xy)
             Traceback (most recent call last):
@@ -785,8 +744,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             ValueError: no basis could be found for computing the components
              in the Coordinate frame (M, (d/dx,d/dy))
 
-        Setting components in a frame defined on a subdomain deletes previously
-        defined components as well::
+        Setting components in a frame defined on a subdomain deletes
+        previously defined components as well::
 
             sage: U = M.open_subset('U', coord_def={X: x>0})
             sage: f = U.vector_frame('f')
@@ -804,23 +763,24 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         """
         if basis is None:
             basis = self._fmodule._def_basis
+
         if basis._domain == self._domain:
             # Setting components on the tensor field domain:
             return FreeModuleTensor.set_comp(self, basis=basis)
-        else:
-            # Setting components on a subdomain:
-            #
-            # Creating or saving the restriction to the subdomain:
-            rst = self.restrict(basis._domain, dest_map=basis._dest_map)
-            # Deleting all the components on self._domain and the derived
-            # quantities:
-            self._components.clear()
-            self._del_derived()
-            # Restoring the restriction to the subdomain (which has been
-            # deleted by _del_derived):
-            self._restrictions[basis._domain] = rst
-            # The set_comp operation is performed on the subdomain:
-            return rst.set_comp(basis=basis)
+
+        # Setting components on a subdomain:
+        #
+        # Creating or saving the restriction to the subdomain:
+        rst = self.restrict(basis._domain, dest_map=basis._dest_map)
+        # Deleting all the components on self._domain and the derived
+        # quantities:
+        self._components.clear()
+        self._del_derived()
+        # Restoring the restriction to the subdomain (which has been
+        # deleted by _del_derived):
+        self._restrictions[basis._domain] = rst
+        # The set_comp operation is performed on the subdomain:
+        return rst.set_comp(basis=basis)
 
     def add_comp(self, basis=None):
         r"""
@@ -832,15 +792,15 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         INPUT:
 
-        - ``basis`` -- (default: ``None``) vector frame in which the components
-          are defined; if none is provided, the components are assumed to refer
-          to the tensor field domain's default frame.
+        - ``basis`` -- (default: ``None``) vector frame in which the
+          components are defined; if none is provided, the components are
+          assumed to refer to the tensor field domain's default frame
 
         OUTPUT:
 
         - components in the given frame, as an instance of the
           class :class:`~sage.tensor.modules.comp.Components`; if such
-          components did not exist previously, they are created.
+          components did not exist previously, they are created
 
         EXAMPLES::
 
@@ -854,7 +814,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: t.display(e_xy)
             t = 2 d/dy*dx
 
-        Adding components w.r.t. a new frame (``e``)::
+        Adding components with respect to a new frame (``e``)::
 
             sage: e = M.vector_frame('e')
             sage: t.add_comp(e)
@@ -863,7 +823,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: t.display(e)
             t = x e_0*e^1
 
-        The components w.r.t. frame ``e_xy`` are kept::
+        The components with respect to the frame ``e_xy`` are kept::
 
             sage: t.display(e_xy)
             t = 2 d/dy*dx
@@ -888,19 +848,20 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         """
         if basis is None:
             basis = self._fmodule._def_basis
+
         if basis._domain == self._domain:
             # Adding components on the tensor field domain:
             return FreeModuleTensor.add_comp(self, basis=basis)
-        else:
-            # Adding components on a subdomain:
-            #
-            # Creating or saving the restriction to the subdomain:
-            rst = self.restrict(basis._domain, dest_map=basis._dest_map)
-            # Deleting the derived quantities except for the restrictions to
-            # subdomains:
-            self._del_derived(del_restrictions=False)
-            # The add_comp operation is performed on the subdomain:
-            return rst.add_comp(basis=basis)
+
+        # Adding components on a subdomain:
+        #
+        # Creating or saving the restriction to the subdomain:
+        rst = self.restrict(basis._domain, dest_map=basis._dest_map)
+        # Deleting the derived quantities except for the restrictions to
+        # subdomains:
+        self._del_derived(del_restrictions=False)
+        # The add_comp operation is performed on the subdomain:
+        return rst.add_comp(basis=basis)
 
     def comp(self, basis=None, from_basis=None):
         r"""
@@ -945,20 +906,21 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         """
         if basis is None:
             basis = self._fmodule._def_basis
+
         if basis._domain == self._domain:
             # components on the tensor field domain:
             return FreeModuleTensor.comp(self, basis=basis,
                                          from_basis=from_basis)
-        else:
-            # components on a subdomain:
-            rst = self.restrict(basis._domain, dest_map=basis._dest_map)
-            return rst.comp(basis=basis, from_basis=from_basis)
+
+        # components on a subdomain:
+        rst = self.restrict(basis._domain, dest_map=basis._dest_map)
+        return rst.comp(basis=basis, from_basis=from_basis)
 
 
     def _common_coord_frame(self, other):
         r"""
-        Find a common coordinate frame for the components of ``self`` and
-        ``other``.
+        Find a common coordinate frame for the components of ``self``
+        and ``other``.
 
         In case of multiple common bases, the domain's default coordinate
         basis is privileged.
@@ -974,8 +936,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         OUPUT:
 
-        - common coordinate frame; if no common basis is found, None is
-          returned.
+        - common coordinate frame; if no common basis is found, ``None``
+          is returned
 
         EXAMPLES::
 
@@ -1007,8 +969,9 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: a._common_coord_frame(c)
             Coordinate frame (M, (d/dx,d/dy))
 
-        Indeed, the components of ``c`` w.r.t. the frame ``(M, (d/dx,d/dy))``
-        have been computed via the change-of-coordinate formulas::
+        Indeed, the components of ``c`` with respect to the
+        frame ``(M, (d/dx,d/dy))`` have been computed via the
+        change-of-coordinate formulas::
 
             sage: c.display(a._common_coord_frame(c))
             c = (1/2*x^2 - 1/2*y^2 + 1/2*x + 1/2*y + 1/2) d/dx
@@ -1026,13 +989,12 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         #    without performing any component transformation.
         #    -------------------------------------------------------------
         # 1a/ Direct search
-        if def_frame in self._components and \
-           def_frame in other._components and \
-           isinstance(dom._def_frame, CoordFrame):
+        if (def_frame in self._components
+                and def_frame in other._components
+                and isinstance(dom._def_frame, CoordFrame)):
             return def_frame # the domain's default frame is privileged
         for frame1 in self._components:
-            if frame1 in other._components and \
-               isinstance(frame1, CoordFrame):
+            if frame1 in other._components and isinstance(frame1, CoordFrame):
                 return frame1
         # 1b/ Search involving subframes
         dom2 = other._domain
@@ -1085,16 +1047,16 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         # two component transformations to get a common frame
         for sframe in self._components:
             for oframe in other._components:
-                if (sframe, def_frame) in dom._frame_changes and \
-                   (oframe, def_frame) in dom._frame_changes and \
-                   isinstance(def_frame, CoordFrame):
+                if ((sframe, def_frame) in dom._frame_changes
+                        and (oframe, def_frame) in dom._frame_changes
+                        and isinstance(def_frame, CoordFrame)):
                     self.comp(def_frame, from_basis=sframe)
                     other.comp(def_frame, from_basis=oframe)
                     return def_frame
                 for frame in dom._frames:
-                    if (sframe, frame) in dom._frame_changes and \
-                       (oframe, frame) in dom._frame_changes and \
-                       isinstance(frame, CoordFrame):
+                    if ((sframe, frame) in dom._frame_changes
+                            and (oframe, frame) in dom._frame_changes
+                            and isinstance(frame, CoordFrame)):
                         self.comp(frame, from_basis=sframe)
                         other.comp(frame, from_basis=oframe)
                         return frame
@@ -1103,25 +1065,19 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         # the price of component transformations:
         return None
 
-
-    def lie_der(self, vector):
+    def lie_derivative(self, vector):
         r"""
         Compute the Lie derivative with respect to a vector field.
 
-        The Lie derivative is stored in the dictionary
-        :attr:`_lie_derivatives`, so that there is no need to
-        recompute it at the next call if neither ``self`` nor ``vector``
-        have been modified meanwhile.
-
         INPUT:
 
-        - ``vector`` -- vector field with respect to which the Lie derivative
-          is to be taken
+        - ``vector`` -- vector field with respect to which the
+          Lie derivative is to be taken
 
         OUTPUT:
 
-        - the tensor field that is the Lie derivative of ``self`` with respect
-          to ``vector``
+        - the tensor field that is the Lie derivative of ``self``
+          with respect to ``vector``
 
         EXAMPLES:
 
@@ -1171,6 +1127,12 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         """
         if vector._tensor_type != (1,0):
             raise TypeError("the argument must be a vector field")
+
+        # The Lie derivative is stored in the dictionary
+        # ``_lie_derivatives``, so that there is no need to
+        # recompute it at the next call if neither ``self``
+        # nor ``vector`` have been modified meanwhile.
+
         if id(vector) not in self._lie_derivatives:
             # A new computation must be performed
             #
@@ -1214,29 +1176,31 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             vector._lie_der_along_self[id(self)] = self
         return self._lie_derivatives[id(vector)][1]
 
+    lie_der = lie_derivative
+
     def restrict(self, subdomain, dest_map=None):
         r"""
-        Return the restriction of the tensor field to some subdomain.
+        Return the restriction of ``self`` to some subdomain.
 
         If the restriction has not been defined yet, it is constructed here.
 
         INPUT:
 
-        - ``subdomain`` -- open subset `U` of the tensor field domain `S`
-          (must be an instance of
-          :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
-        - ``dest_map`` -- (default: ``None``) destination map
-          `\Psi:\ U \rightarrow V`, where `V` is an open subset of the manifold
-          `M` where the tensor field takes it values
-          (must be an instance of
-          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`).
-          If ``None``, the restriction of `\Phi` to `U` is used, `\Phi` being
-          the differentiable map `S\rightarrow M` associated with the tensor
-          field.
+        - ``subdomain`` --
+          :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`;
+          open subset `U` of the tensor field domain `S`
+        - ``dest_map`` --
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          (default: ``None``); destination map
+          `\Psi:\ U \rightarrow V`, where `V` is an open subset
+          of the manifold `M` where the tensor field takes it values;
+          if ``None``, the restriction of `\Phi` to `U` is used, `\Phi`
+          being the differentiable map `S \rightarrow M` associated
+          with the tensor field
 
         OUTPUT:
 
-        - instance of :class:`TensorFieldParal` representing the restriction.
+        - instance of :class:`TensorFieldParal` representing the restriction
 
         EXAMPLES:
 
@@ -1254,8 +1218,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: v_D.display()
             v = (x + y) d/dx + (x^2 - 1) d/dy
 
-        The symbolic expressions of the components w.r.t. Cartesian coordinates
-        are equal::
+        The symbolic expressions of the components with respect to
+        Cartesian coordinates are equal::
 
             sage: bool( v_D[1].expr() == v[1].expr() )
             True
@@ -1272,20 +1236,20 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: v_D[[1]] == v[[1]]
             False
 
-        The restriction of the vector field to its own domain is of course
-        itself::
+        The restriction of the vector field to its own domain is of
+        course itself::
 
             sage: v.restrict(M) is v
             True
 
         """
-        if subdomain == self._domain and \
-                    (dest_map is None or dest_map == self._vmodule._dest_map) :
+        if (subdomain == self._domain
+                and (dest_map is None or dest_map == self._vmodule._dest_map)):
             return self
         if subdomain not in self._restrictions:
             if not subdomain.is_subset(self._domain):
                 raise ValueError("the provided domain is not a subset of " +
-                                 "the field's domain.")
+                                 "the field's domain")
             if dest_map is None:
                 dest_map = self._fmodule._dest_map.restrict(subdomain)
             elif not dest_map._codomain.is_subset(self._ambient_domain):
@@ -1320,29 +1284,29 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
     def __call__(self, *args):
         r"""
-        The tensor field acting on 1-forms and vector fields as a multilinear
-        map.
+        The tensor field acting on 1-forms and vector fields as
+        a multilinear map.
 
-        In the particular case of tensor field of type (1,1), the action can
-        be on a single vector field, the tensor field being identified to a
-        field of tangent-space endomorphisms. The output is then a vector
-        field.
+        In the particular case of tensor field of type `(1,1)`, the action
+        can be on a single vector field, the tensor field being identified
+        to a field of tangent-space endomorphisms. The output is then a
+        vector field.
 
         INPUT:
 
-        - ``*args`` -- list of k 1-forms and l vector fields, ``self``
-          being a tensor of type (k,l).
+        - ``*args`` -- list of `k` 1-forms and `l` vector fields, ``self``
+          being a tensor of type `(k,l)`
 
         OUTPUT:
 
         - either the scalar field resulting from the action of ``self`` on
           the 1-forms and vector fields passed as arguments or the vector
           field resulting from the action of ``self`` as a field of
-          tangent-space endomorphisms (case of a type-(1,1) tensor field)
+          tangent-space endomorphisms (case of a type-`(1,1)` tensor field)
 
         TESTS:
 
-        Action of a tensor field of type (1,1)::
+        Action of a tensor field of type-`(1,1)`::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -1428,8 +1392,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         EXAMPLES:
 
-        Contraction of a tensor field of type (2,0) with a tensor field of
-        type (1,1)::
+        Contraction of a tensor field of type `(2,0)` with a tensor
+        field of type `(1,1)`::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -1473,9 +1437,10 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: s == a['^ik']*b['^j_k']
             True
 
-        See
-        :meth:`sage.manifolds.differentiable.tensorfield.TensorField.contract`
-        for more examples.
+        .. SEEALSO::
+
+            :meth:`sage.manifolds.differentiable.tensorfield.TensorField.contract`
+            for more examples.
 
         """
         # This is to ensure the call to the TensorField version instead of
@@ -1494,9 +1459,9 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         OUPUT:
 
-        - the tensor field resulting from the tensor product of ``self`` with
-          ``other`` (or from the product ``other * self`` if ``other`` is a
-          scalar)
+        - the tensor field resulting from the tensor product of ``self``
+          with ``other`` (or from the product ``other * self`` if ``other``
+          is a scalar)
 
         TESTS::
 
@@ -1537,12 +1502,11 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         # the FreeModuleTensor one
         return TensorField.__mul__(self, other)
 
-
     def display_comp(self, frame=None, chart=None, coordinate_labels=True,
                      only_nonzero=True, only_nonredundant=False):
         r"""
-        Display the tensor components w.r.t. a given frame, one per
-        line.
+        Display the tensor components with repect tp a given frame,
+        one per line.
 
         The output is either text-formatted (console mode) or LaTeX-formatted
         (notebook mode).
@@ -1552,9 +1516,9 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         - ``frame`` -- (default: ``None``) vector frame with respect to which
           the tensor field components are defined; if ``None``, then
 
-          - if ``chart`` is not ``None``, the coordinate frame associated to
+          * if ``chart`` is not ``None``, the coordinate frame associated to
             ``chart`` is used
-          - otherwise, the default basis of the vector field module on which
+          * otherwise, the default basis of the vector field module on which
             the tensor field is defined is used
 
         - ``chart`` -- (default: ``None``) chart specifying the coordinate
@@ -1570,7 +1534,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         EXAMPLES:
 
-        Display of the components of a type-(2,1) tensor field on a
+        Display of the components of a type-`(2,1)` tensor field on a
         2-dimensional manifold::
 
             sage: M = Manifold(2, 'M')
@@ -1583,9 +1547,9 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             t^yx_x = x*y
             t^yy_y = -3
 
-        By default, only the non-vanishing components are displayed; to see
-        all the components, the argument ``only_nonzero`` must be set to
-        ``False``::
+        By default, only the non-vanishing components are displayed;
+        to see all the components, the argument ``only_nonzero`` must
+        be set to ``False``::
 
             sage: t.display_comp(only_nonzero=False)
             t^xx_x = x + y
@@ -1597,8 +1561,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             t^yy_x = 0
             t^yy_y = -3
 
-        ``t`` being symmetric w.r.t. to its first two indices, one may ask to
-        skip the components that can be deduced by symmetry::
+        ``t`` being symmetric with respect to its first two indices, one
+        may ask to skip the components that can be deduced by symmetry::
 
             sage: t.display_comp(only_nonredundant=True)
             t^xx_x = x + y
@@ -1613,9 +1577,9 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             t^10_0 = x*y
             t^11_1 = -3
 
-        Display in a frame different from the default one (note that since
-        ``f`` is not a coordinate frame, integer are used to label the
-        indices)::
+        Display in a frame different from the default one (note that
+        since ``f`` is not a coordinate frame, integer are used to
+        label the indices)::
 
             sage: a = M.automorphism_field()
             sage: a[:] = [[1+y^2, 0], [0, 2+x^2]]
@@ -1677,3 +1641,4 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                                   index_latex_labels=index_latex_labels,
                                   only_nonzero=only_nonzero,
                                   only_nonredundant=only_nonredundant)
+

@@ -486,7 +486,7 @@ class DiffMap(ContinuousMap):
     def differential_functions(self, chart1=None, chart2=None):
         r"""
         Return the coordinate expression of the differential of the
-        differentiable map w.r.t. a pair of charts.
+        differentiable map with respect to a pair of charts.
 
         If the differentiable map is
 
@@ -494,8 +494,8 @@ class DiffMap(ContinuousMap):
 
             \Phi: M \longrightarrow  N,
 
-        where `M` and `N` are differentiable manifolds, the *differential* of
-        `\Phi` at a point `p \in M` is the tangent space linear map:
+        where `M` and `N` are differentiable manifolds, the *differential*
+        of `\Phi` at a point `p \in M` is the tangent space linear map:
 
         .. MATH::
 
@@ -507,8 +507,8 @@ class DiffMap(ContinuousMap):
 
             \begin{array}{rccc}
             \forall v\in T_p M,\quad \mathrm{d}\Phi_p(v) : & C^k(N) &
-                                                \longrightarrow & \mathbb{R} \\
-                                & f & \longmapsto & v(f\circ \Phi)
+                                              \longrightarrow & \mathbb{R}, \\
+                                & f & \longmapsto & v(f\circ \Phi).
             \end{array}
 
         If the coordinate expression of `\Phi` is
@@ -519,12 +519,13 @@ class DiffMap(ContinuousMap):
 
         where `(x^1, \ldots, x^n)` are coordinates of a chart on `M` and
         `(y^1, \ldots, y^m)` are coordinates of a chart on `\Phi(M)`, the
-        expression of the differential of `\Phi` w.r.t to these coordinates is
+        expression of the differential of `\Phi` with respect to these
+        coordinates is
 
         .. MATH::
 
             J_{ij} = \frac{\partial Y^i}{\partial x^j} \quad 1\leq i \leq m,
-                            \qquad 1 \leq j \leq n
+                            \qquad 1 \leq j \leq n.
 
         `\left. J_{ij} \right|_p` is then the matrix of the linear map
         `\mathrm{d}\Phi_p` with respect to the bases of `T_p M` and
@@ -534,7 +535,7 @@ class DiffMap(ContinuousMap):
 
             \mathrm{d}\Phi_p\left( \left. \frac{\partial}{\partial x^j}
                \right|_p \right) = \left. J_{ij} \right|_p \;
-             \left. \frac{\partial}{\partial y^i} \right| _{\Phi(p)}
+             \left. \frac{\partial}{\partial y^i} \right| _{\Phi(p)}.
 
         INPUT:
 
@@ -547,8 +548,8 @@ class DiffMap(ContinuousMap):
 
         OUTPUT:
 
-        - the functions `J_{ij}` as a double array, `J_{ij}` being the element
-          ``[i][j]`` represented by an instance of
+        - the functions `J_{ij}` as a double array, `J_{ij}` being
+          the element ``[i][j]`` represented by a
           :class:`~sage.manifolds.coord_func.CoordFunction`
 
         To get symbolic expressions, use the method
@@ -613,7 +614,7 @@ class DiffMap(ContinuousMap):
     def jacobian_matrix(self, chart1=None, chart2=None):
         r"""
         Return the Jacobian matrix resulting from the coordinate expression
-        of the differentiable map w.r.t. a pair of charts.
+        of the differentiable map with respect to a pair of charts.
 
         If `\Phi` is the current differentiable map and its coordinate
         expression is
@@ -685,8 +686,8 @@ class DiffMap(ContinuousMap):
         INPUT:
 
         - ``tensor`` --
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
-          representing a fully covariant tensor field `T` on `N`, i.e. a tensor
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`;
+          a fully covariant tensor field `T` on `N`, i.e. a tensor
           field of type `(0, p)`, with `p` a positive or zero integer; the
           case `p = 0` corresponds to a scalar field
 
@@ -888,9 +889,9 @@ class DiffMap(ContinuousMap):
         INPUT:
 
         - ``tensor`` --
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
-          representing a fully contrariant tensor field `T` on `M`, i.e. a
-          tensor field of type `(p, 0)`, with `p` a positive integer
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`;
+          a fully contrariant tensor field `T` on `M`, i.e. a tensor
+          field of type `(p, 0)`, with `p` a positive integer
 
         OUTPUT:
 

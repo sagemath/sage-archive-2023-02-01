@@ -805,7 +805,7 @@ class DiffScalarField(ScalarField):
 
     exterior_derivative = differential
 
-    def lie_der(self, vector):
+    def lie_derivative(self, vector):
         r"""
         Compute the Lie derivative with respect to a vector field.
 
@@ -861,5 +861,5 @@ class DiffScalarField(ScalarField):
             vector._lie_der_along_self[id(self)] = self
         return self._lie_derivatives[id(vector)][1]
 
-    lie_derivative = lie_der
+    lie_der = lie_derivative
 

@@ -2,7 +2,7 @@ r"""
 Tangent-Space Automorphism Fields
 
 The class :class:`AutomorphismField` implements fields of automorphisms of
-tangent spaces to a generic (i.e. a priori not parallelizable) differentiable
+tangent spaces to a generic (a priori not parallelizable) differentiable
 manifold, while the class :class:`AutomorphismFieldParal`
 is devoted to fields of automorphisms of tangent spaces to a parallelizable
 manifold. The latter play the important role of transitions between vector
@@ -30,13 +30,13 @@ from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
 
 class AutomorphismField(TensorField):
     r"""
-    Field of automorphisms of tangent spaces to a generic (i.e. a priori
+    Field of automorphisms of tangent spaces to a generic (a priori
     not parallelizable) differentiable manifold.
 
     Given a differentiable manifold `U` and a differentiable map
     `\Phi: U \rightarrow M` to a differentiable manifold `M`,
     a *field of tangent-space automorphisms along* `U` *with values on*
-    `M\supset\Phi(U)` is a differentiable map
+    `M \supset\Phi(U)` is a differentiable map
 
     .. MATH::
 
@@ -49,16 +49,18 @@ class AutomorphismField(TensorField):
 
         \forall p \in U,\ a(p) \in \mathrm{Aut}(T_{\Phi(p)} M),
 
-    i.e. `a(p)` is an automorphism of the tangent space to `M` at the point
-    `\Phi(p)`.
+    i.e. `a(p)` is an automorphism of the tangent space to `M` at the
+    point `\Phi(p)`.
 
     The standard case of a field of tangent-space automorphisms *on* a
     manifold corresponds to `U = M` and `\Phi = \mathrm{Id}_M`. Other
     common cases are `\Phi` being an immersion and `\Phi` being a curve
     in `M` (`U` is then an open interval of `\RR`).
 
-    If `M` is parallelizable, the class :class:`AutomorphismFieldParal`
-    must be used instead.
+    .. NOTE::
+
+        If `M` is parallelizable, then :class:`AutomorphismFieldParal`
+        *must* be used instead.
 
     INPUT:
 
@@ -70,10 +72,10 @@ class AutomorphismField(TensorField):
     - ``is_identity`` -- (default: ``False``) determines whether the
       constructed object is a field of identity automorphisms
 
-    EXAMPLE:
+    EXAMPLES:
 
-    Field of tangent-space automorphisms on a non-parallelizable 2-dimensional
-    manifold::
+    Field of tangent-space automorphisms on a non-parallelizable
+    2-dimensional manifold::
 
         sage: M = Manifold(2, 'M')
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
@@ -89,14 +91,15 @@ class AutomorphismField(TensorField):
         General linear group of the Module X(M) of vector fields on the
          2-dimensional differentiable manifold M
 
-    We first define the components of `a` w.r.t the coordinate frame on `U`::
+    We first define the components of `a` with respect to the
+    coordinate frame on `U`::
 
         sage: eU = c_xy.frame() ; eV = c_uv.frame()
         sage: a[eU,:] = [[1,x], [0,2]]
 
-    We then set the components w.r.t. the coordinate frame on `V` by extending
-    the expressions of the components in the corresponding subframe on
-    `W = U\cap V`::
+    We then set the components with respect to the coordinate frame
+    on `V` by extending the expressions of the components in the
+    corresponding subframe on `W = U \cap V`::
 
         sage: W = U.intersection(V)
         sage: a.add_comp_by_continuation(eV, W, c_uv)
@@ -175,7 +178,7 @@ class AutomorphismField(TensorField):
 
         .. TODO::
 
-            fix _test_pickling (in the superclass TensorField)
+            Fix ``_test_pickling`` (in the superclass :class:`TensorField`).
 
         """
         if is_identity:
@@ -199,7 +202,7 @@ class AutomorphismField(TensorField):
 
     def _repr_(self):
         r"""
-        Return a string representation of the object.
+        Return a string representation of ``self``.
 
         TESTS::
 
@@ -225,9 +228,9 @@ class AutomorphismField(TensorField):
 
     def _init_derived(self):
         r"""
-        Initialize the derived quantities
+        Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: a = M.automorphism_field(name='a')
@@ -241,7 +244,7 @@ class AutomorphismField(TensorField):
         r"""
         Delete the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: a = M.automorphism_field(name='a')
@@ -395,9 +398,9 @@ class AutomorphismField(TensorField):
 
     def __invert__(self):
         r"""
-        Return the inverse automorphism.
+        Return the inverse automorphism of ``self``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Inverse of a field of tangent-space automorphisms on a
         non-parallelizable 2-dimensional manifold::
@@ -474,7 +477,7 @@ class AutomorphismField(TensorField):
             else:
                 inv_latex_name = self._latex_name + r'^{-1}'
             self._inverse = self._vmodule.automorphism(name=inv_name,
-                                                     latex_name=inv_latex_name)
+                                                       latex_name=inv_latex_name)
             for dom, rst in self._restrictions.iteritems():
                 self._inverse._restrictions[dom] = rst.inverse()
         return self._inverse
@@ -550,8 +553,8 @@ class AutomorphismField(TensorField):
         # General case:
         resu = type(self)(self._vmodule)
         for dom in self._common_subdomains(other):
-            resu._restrictions[dom] = self._restrictions[dom] * \
-                                      other._restrictions[dom]
+            resu._restrictions[dom] = (self._restrictions[dom]
+                                       * other._restrictions[dom])
         return resu
 
     #### End of MultiplicativeGroupElement methods ####
@@ -560,8 +563,8 @@ class AutomorphismField(TensorField):
         r"""
         Redefinition of
         :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.__mul__`
-        so that * dispatches either to automorphism composition or to the
-        tensor product.
+        so that ``*`` dispatches either to automorphism composition or
+        to the tensor product.
 
         TESTS::
 
@@ -642,19 +645,18 @@ class AutomorphismField(TensorField):
 
         INPUT:
 
-        - ``subdomain`` -- open subset `V` of ``self._domain`` (must be an
-          instance of
-          :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
-        - ``dest_map`` -- (default: ``None``) destination map
-          `\Phi:\ V \rightarrow N`, where `N` is a subdomain of
-          ``self._codomain``
-          (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`)
-          If None, the restriction of ``self._vmodule._dest_map`` to `V` is
-          used.
+        - ``subdomain`` --
+          :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
+          open subset `V` of ``self._domain``
+        - ``dest_map`` -- (default: ``None``)
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`;
+          destination map `\Phi:\ V \rightarrow N`, where `N` is a
+          subdomain of ``self._codomain``; if ``None``, the restriction
+          of ``self.base_module().destination_map()`` to `V` is used
 
         OUTPUT:
 
-        - instance of :class:`AutomorphismField` representing the restriction.
+        - a :class:`AutomorphismField` representing the restriction
 
         EXAMPLES:
 
@@ -731,7 +733,7 @@ class AutomorphismField(TensorField):
             # Special case of the identity map:
             if not subdomain.is_subset(self._domain):
                 raise ValueError("the provided domain is not a subset of " +
-                                 "the field's domain.")
+                                 "the field's domain")
             if dest_map is None:
                 dest_map = self._vmodule._dest_map.restrict(subdomain)
             elif not dest_map._codomain.is_subset(self._ambient_domain):
@@ -774,11 +776,10 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
     common cases are `\Phi` being an immersion and `\Phi` being a curve in `M`
     (`U` is then an open interval of `\RR`).
 
-    If `M` is not parallelizable, the class :class:`AutomorphismField`
-    must be used instead.
+    .. NOTE::
 
-    This is a Sage *element* class, the corresponding *parent* class being
-    :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldParalGroup`.
+        If `M` is not parallelizable, the class :class:`AutomorphismField`
+        *must* be used instead.
 
     INPUT:
 
@@ -792,7 +793,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
     EXAMPLES:
 
-    A pi/3-rotation in the Euclidean 2-plane::
+    A `\pi/3`-rotation in the Euclidean 2-plane::
 
         sage: M = Manifold(2,'R^2')
         sage: c_xy.<x,y> = M.chart()
@@ -880,7 +881,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
     def _repr_(self):
         r"""
-        Return a string representation of the object.
+        Return a string representation of ``self``.
 
         TESTS::
 
@@ -987,9 +988,9 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
     def __invert__(self):
         r"""
-        Return the inverse automorphism.
+        Return the inverse automorphism of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -1026,8 +1027,8 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         from sage.matrix.constructor import matrix
         from sage.tensor.modules.comp import Components
         from sage.manifolds.differentiable.vectorframe import CoordFrame
-        from sage.manifolds.utilities import simplify_chain_real, \
-                                             simplify_chain_generic
+        from sage.manifolds.utilities import (simplify_chain_real,
+                                              simplify_chain_generic)
         if self._is_identity:
             return self
         if self._inverse is None:
@@ -1081,20 +1082,18 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
         INPUT:
 
-        - ``subdomain`` -- open subset `V` of ``self._domain`` (must be an
-          instance of
-          :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
-        - ``dest_map`` -- (default: ``None``) destination map
-          `\Phi:\ V \rightarrow N`, where `N` is a subset of
-          ``self._codomain``
-          (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`)
-          If None, the restriction of ``self._vmodule._dest_map`` to `V` is
-          used.
+        - ``subdomain`` --
+          :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`;
+          open subset `V` of ``self._domain``
+        - ``dest_map`` -- (default: ``None``)
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          destination map `\Phi:\ V \rightarrow N`, where `N` is a subset of
+          ``self._codomain``; if ``None``, the restriction of
+          ``self.base_module().destination_map()`` to `V` is used
 
         OUTPUT:
 
-        - instance of :class:`AutomorphismFieldParal` representing the
-          restriction.
+        - a :class:`AutomorphismFieldParal` representing the restriction
 
         EXAMPLES:
 
@@ -1149,3 +1148,4 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             smodule = subdomain.vector_field_module(dest_map=dest_map)
             self._restrictions[subdomain] = smodule.identity_map()
         return self._restrictions[subdomain]
+

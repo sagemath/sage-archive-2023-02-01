@@ -3,13 +3,13 @@ Tensor Field Modules
 
 The set of tensor fields along a differentiable manifold `U` with values on
 a differentiable manifold `M` via a differentiable map `\Phi: U \rightarrow M`
-(possibly `U = M` and `\Phi=\mathrm{Id}_M`) is a module over the algebra
+(possibly `U = M` and `\Phi = \mathrm{Id}_M`) is a module over the algebra
 `C^k(U)` of differentiable scalar fields on `U`. It is a free module if
 and only if `M` is parallelizable. Accordingly, two classes are devoted
 to tensor field modules:
 
 - :class:`TensorFieldModule` for tensor fields with values on a generic (in
-  practice, not parallelizable) differentiable manifold `M`
+  practice, not parallelizable) differentiable manifold `M`,
 - :class:`TensorFieldFreeModule` for tensor fields with values on a
   parallelizable manifold `M`.
 
@@ -37,6 +37,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
@@ -71,31 +72,31 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
     .. MATH::
 
-        \forall p \in U,\ t(p) \in T^{(k,l)}(T_{\Phi(p)}M)
+        t(p) \in T^{(k,l)}(T_{\Phi(p)}M)
 
-    i.e. `t(p)` is a tensor of type `(k,l)` on the tangent vector space
-    `T_{\Phi(p)} M`. The set `T^{(k,l)}(U,\Phi)` is a module over `C^k(U)`,
-    the ring (algebra) of differentiable scalar fields on `U` (see
+    for all `p \in U`, i.e. `t(p)` is a tensor of type `(k,l)` on the
+    tangent vector space `T_{\Phi(p)} M`. The set `T^{(k,l)}(U,\Phi)`
+    is a module over `C^k(U)`, the ring (algebra) of differentiable
+    scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
 
     The standard case of tensor fields *on* a differentiable manifold
     corresponds to `U = M` and `\Phi = \mathrm{Id}_M`; we then denote
-    `T^{(k,l)}(M,\mathrm{Id}_M)` by merely `T^{(k,l)}(M)`. Other common cases
-    are `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then
-    an open interval of `\RR`).
+    `T^{(k,l)}(M,\mathrm{Id}_M)` by merely `T^{(k,l)}(M)`. Other common
+    cases are `\Phi` being an immersion and `\Phi` being a curve in `M`
+    (`U` is then an open interval of `\RR`).
 
-    If `M` is parallelizable, the class :class:`TensorFieldFreeModule` should
-    be used instead.
+    .. NOTE::
 
-    This is a Sage *parent* class, the corresponding *element* class being
-    :class:`~sage.manifolds.differentiable.tensorfield.TensorField`.
+        If `M` is parallelizable, the class :class:`TensorFieldFreeModule`
+        should be used instead.
 
     INPUT:
 
     - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
       fields along `U` associated with the map `\Phi: U \rightarrow M`
-    - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant rank and
-      `l` the covariant rank
+    - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant
+      rank and `l` the covariant rank
 
     EXAMPLES:
 
@@ -112,7 +113,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         ....:                 restrictions2= u^2+v^2!=0)
         sage: uv_to_xy = xy_to_uv.inverse()
         sage: W = U.intersection(V)
-        sage: T20 = M.tensor_field_module((2,0)) ; T20
+        sage: T20 = M.tensor_field_module((2,0)); T20
         Module T^(2,0)(M) of type-(2,0) tensors fields on the 2-dimensional
          differentiable manifold M
 
@@ -222,7 +223,6 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         [0 1]
 
     """
-
     Element = TensorField
 
     def __init__(self, vector_field_module, tensor_type):
@@ -259,9 +259,8 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         dest_map = vector_field_module._dest_map
         kcon = tensor_type[0]
         lcov = tensor_type[1]
-        name = "T^(" + str(kcon) + "," + str(lcov) + ")(" + domain._name
-        latex_name = r"\mathcal{T}^{(" + str(kcon) + "," + str(lcov) + \
-                                               r")}\left(" + domain._latex_name
+        name = "T^({},{})({}".format(kcon, lcov, domain._name)
+        latex_name = r"\mathcal{{T}}^{{({},{})}}\left({}".format(kcon, lcov, domain._latex_name)
         if dest_map is domain.identity_map():
             name += ")"
             latex_name += r"\right)"
@@ -279,8 +278,6 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         self._domain = domain
         self._dest_map = dest_map
         self._ambient_domain = vector_field_module._ambient_domain
-        # NB: self._zero_element is not constructed here, since no element
-        # can be constructed here, to avoid some infinite recursion.
 
     #### Parent methods
 
@@ -307,14 +304,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         """
         if comp == 0:
-            if not hasattr(self, '_zero_element'):
-                self._zero_element = self._element_constructor_(name='zero',
-                                                                latex_name='0')
-                for frame in self._domain._frames:
-                    if self._dest_map.restrict(frame._domain) == frame._dest_map:
-                        self._zero_element.add_comp(frame)
-                        # (since new components are initialized to zero)
-            return self._zero_element
+            return self.zero()
         if isinstance(comp, DiffForm):
             # coercion of a p-form to a type-(0,p) tensor:
             form = comp # for readability
@@ -351,7 +341,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
                 return comp.restrict(self._domain)
             else:
                raise TypeError("cannot convert the {}".format(comp) +
-                                " to an element of {}".format(self))
+                               " to an element of {}".format(self))
 
         # standard construction
         resu = self.element_class(self._vmodule, self._tensor_type, name=name,
@@ -479,8 +469,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
     def base_module(self):
         r"""
-        Return the vector field module on which ``self`` is
-        constructed.
+        Return the vector field module on which ``self`` is constructed.
 
         OUTPUT:
 
@@ -523,8 +512,33 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             sage: T20.tensor_type()
             (2, 0)
 
-            """
+        """
         return self._tensor_type
+
+    @cached_method
+    def zero(self):
+        """
+        Return the zero of ``self``.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: M.declare_union(U,V)
+            sage: T20 = M.tensor_field_module((2,0))
+            sage: T20.zero()
+            Tensor field zero of type (2,0) on the
+             2-dimensional differentiable manifold M
+        """
+        resu = self.element_class(self._vmodule, self._tensor_type,
+                                  name='zero', latex_name='0',
+                                  sym=None, antisym=None)
+        for frame in self._domain._frames:
+            if self._dest_map.restrict(frame._domain) == frame._dest_map:
+                resu.add_comp(frame)
+                # (since new components are initialized to zero)
+        return resu
 
 #******************************************************************************
 
@@ -547,17 +561,17 @@ class TensorFieldFreeModule(TensorFreeModule):
 
         t:\ U \longrightarrow T^{(k,l)} M
 
-    (where `T^{(k,l)}M` is the tensor bundle of type `(k,l)` over `M`) such
-    that
+    (where `T^{(k,l)}M` is the tensor bundle of type `(k,l)` over `M`)
+    such that
 
     .. MATH::
 
-        \forall p \in U,\ t(p) \in T^{(k,l)}(T_{\Phi(p)}M)
+        t(p) \in T^{(k,l)}(T_{\Phi(p)}M)
 
-    i.e. `t(p)` is a tensor of type `(k,l)` on the tangent vector space
-    `T_{\Phi(p)}M`. Since `M` is parallelizable, the set `T^{(k,l)}(U,\Phi)`
-    is a free module over `C^k(U)`, the ring (algebra) of differentiable
-    scalar fields on `U` (see
+    for all `p \in U`, i.e. `t(p)` is a tensor of type `(k,l)` on the
+    tangent vector space `T_{\Phi(p)}M`. Since `M` is parallelizable,
+    the set `T^{(k,l)}(U,\Phi)` is a free module over `C^k(U)`, the
+    ring (algebra) of differentiable scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
 
     The standard case of tensor fields *on* a differentiable manifold
@@ -566,18 +580,18 @@ class TensorFieldFreeModule(TensorFreeModule):
     are `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then
     an open interval of `\RR`).
 
-    If `M` is not parallelizable, the class :class:`TensorFieldModule` should
-    be used instead, for `T^{(k,l)}(U,\Phi)` is no longer a free module.
+    .. NOTE::
 
-    This is a Sage *parent* class, the corresponding *element* class being
-    :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`.
+        If `M` is not parallelizable, the class :class:`TensorFieldModule`
+        shouldbe used instead, for `T^{(k,l)}(U,\Phi)` is no longer a
+        free module.
 
     INPUT:
 
     - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
       fields along `U` associated with the map `\Phi: U \rightarrow M`
-    - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant rank and
-      `l` the covariant rank
+    - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant rank
+      and `l` the covariant rank
 
     EXAMPLES:
 
@@ -645,7 +659,7 @@ class TensorFieldFreeModule(TensorFreeModule):
     on `\RR^3` to `U`.
 
     There is also a coercion map from fields of tangent-space automorphisms to
-    tensor fields of type (1,1)::
+    tensor fields of type `(1,1)`::
 
         sage: T11 = M.tensor_field_module((1,1)) ; T11
         Free module T^(1,1)(R^3) of type-(1,1) tensors fields on the
@@ -670,7 +684,6 @@ class TensorFieldFreeModule(TensorFreeModule):
         [0 0 1]
 
     """
-
     Element = TensorFieldParal
 
     def __init__(self, vector_field_module, tensor_type):
@@ -696,9 +709,8 @@ class TensorFieldFreeModule(TensorFreeModule):
         dest_map = vector_field_module._dest_map
         kcon = tensor_type[0]
         lcov = tensor_type[1]
-        name = "T^(" + str(kcon) + "," + str(lcov) + ")(" + domain._name
-        latex_name = r"\mathcal{T}^{(" + str(kcon) + "," + str(lcov) + \
-                                               r")}\left(" + domain._latex_name
+        name = "T^({},{})({}".format(kcon, lcov, domain._name)
+        latex_name = r"\mathcal{{T}}^{{({}, {})}}\left(".format(kcon, lcov, domain._latex_name)
         if dest_map is domain.identity_map():
             name += ")"
             latex_name += r"\right)"
@@ -736,7 +748,7 @@ class TensorFieldFreeModule(TensorFreeModule):
 
         """
         if comp == 0:
-            return self._zero_element
+            return self.zero()
         if isinstance(comp, DiffFormParal):
             # coercion of a p-form to a type-(0,p) tensor field:
             form = comp # for readability

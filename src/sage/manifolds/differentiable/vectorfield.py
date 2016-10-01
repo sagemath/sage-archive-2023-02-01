@@ -6,7 +6,7 @@ Given two differentiable manifolds `U` and `M` over the same topological field
 
 .. MATH::
 
-    \Phi:\ U \longrightarrow  M
+    \Phi:\ U \longrightarrow  M,
 
 we define a *vector field along* `U` *with values on* `M` to be a
 differentiable map
@@ -19,10 +19,10 @@ differentiable map
 
 .. MATH::
 
-    \forall p \in U,\ v(p) \in T_{\Phi(p)}M
+    \forall p \in U,\ v(p) \in T_{\Phi(p)}M.
 
 The standard case of vector fields *on* a differentiable manifold corresponds
-to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi`
+to `U = M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi`
 being an immersion and `\Phi` being a curve in `M` (`U` is then an open
 interval of `\RR`).
 
@@ -84,19 +84,18 @@ class VectorField(TensorField):
 
     .. MATH::
 
-        \forall p \in U,\ v(p) \in T_{\Phi(p)}M
+        \forall p \in U,\ v(p) \in T_{\Phi(p)}M.
 
     The standard case of vector fields *on* a differentiable manifold
-    corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are
+    corresponds to `U = M` and `\Phi = \mathrm{Id}_M`. Other common cases are
     `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then an
     open interval of `\RR`).
 
-    If `M` is parallelizable, the class
-    :class:`~sage.manifolds.differentiable.vectorfield.VectorFieldParal`
-    must be used instead.
+    .. NOTE::
 
-    This is a Sage *element* class, the corresponding *parent* class being
-    :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`.
+        If `M` is parallelizable, then
+        :class:`~sage.manifolds.differentiable.vectorfield.VectorFieldParal`
+        *must* be used instead.
 
     INPUT:
 
@@ -127,13 +126,14 @@ class VectorField(TensorField):
          manifold M
 
     The vector field is first defined on the domain `U` by means of its
-    components w.r.t. the frame eU::
+    components with respect to the frame ``eU``::
 
         sage: v[eU,:] = [-y, 1+x]
 
-    The components w.r.t the frame eV are then deduced by continuation of the
-    components w.r.t. the frame eVW on the domain `W=U\cap V`, expressed in
-    terms on the coordinates covering `V`::
+    The components with respect to the frame ``eV`` are then deduced
+    by continuation of the components with respect to the frame ``eVW``
+    on the domain `W = U \cap V`, expressed in terms on the coordinates
+    covering `V`::
 
         sage: v[eV,0] = v[eVW,0,c_tuW].expr()
         sage: v[eV,1] = v[eVW,1,c_tuW].expr()
@@ -162,8 +162,8 @@ class VectorField(TensorField):
         sage: v(f) == f.lie_der(v)
         True
 
-    The result is defined on the intersection of the vector field's domain and
-    the scalar field's one::
+    The result is defined on the intersection of the vector field's
+    domain and the scalar field's one::
 
         sage: s = v(f.restrict(U)) ; s
         Scalar field v(f) on the Open subset U of the 2-dimensional
@@ -224,7 +224,7 @@ class VectorField(TensorField):
 
         .. TODO::
 
-            fix _test_pickling (in the superclass TensorField)
+            Fix ``_test_pickling`` (in the superclass :class:`TensorField`).
 
         """
         TensorField.__init__(self, vector_field_module, (1,0), name=name,
@@ -236,7 +236,7 @@ class VectorField(TensorField):
 
     def _repr_(self) :
         r"""
-        String representation of the object.
+        Return a string representation of ``self``.
 
         TESTS::
 
@@ -259,7 +259,7 @@ class VectorField(TensorField):
         r"""
         Create an instance of the same class as ``self`` on the same module.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: v = M.vector_field(name='v')
@@ -273,9 +273,9 @@ class VectorField(TensorField):
 
     def _init_dependencies(self):
         r"""
-        Initialize list of quantities that depend on ``self``
+        Initialize list of quantities that depend on ``self``.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: v = M.vector_field(name='v')
@@ -286,9 +286,9 @@ class VectorField(TensorField):
 
     def _del_dependencies(self):
         r"""
-        Clear list of quantities that depend on ``self``
+        Clear list of quantities that depend on ``self``.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: v = M.vector_field(name='v')
@@ -302,7 +302,7 @@ class VectorField(TensorField):
 
     def __call__(self, scalar):
         r"""
-        Action on a scalar field (or on a 1-form)
+        Action on a scalar field (or on a 1-form).
 
         INPUT:
 
@@ -354,12 +354,11 @@ class VectorField(TensorField):
             return self_r(scalar_r)
         # Creation of the result:
         if self._name is not None and scalar._name is not None:
-            resu_name = self._name + "(" + scalar._name + ")"
+            resu_name = "{}({})".format(self._name, scalar._name)
         else:
             resu_name = None
         if self._latex_name is not None and scalar._latex_name is not None:
-            resu_latex = self._latex_name + r"\left(" + scalar._latex_name + \
-                        r"\right)"
+            resu_latex = r"{}\left({}\right)".format(self._latex_name , scalar._latex_name)
         else:
             resu_latex = None
         resu = dom_resu.scalar_field(name=resu_name, latex_name=resu_latex)
@@ -371,17 +370,15 @@ class VectorField(TensorField):
 
 #******************************************************************************
 
-class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
-                       VectorField):
-
+class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal, VectorField):
     r"""
     Vector field along a differentiable manifold, with values on a
     parallelizable manifold.
 
     An instance of this class is a vector field along a differentiable
     manifold `U` with values on a parallelizable manifold `M`, via a
-    differentiable map `U \rightarrow M`. More precisely, given a
-    differentiable map
+    differentiable map `\Phi: U \rightarrow M`. More precisely, given
+    a differentiable map
 
     .. MATH::
 
@@ -397,19 +394,18 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
 
     .. MATH::
 
-        \forall p \in U,\ v(p) \in T_{\Phi(p)}M
+        \forall p \in U,\ v(p) \in T_{\Phi(p)}M.
 
     The standard case of vector fields *on* a differentiable manifold
-    corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are
-    `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then an
-    open interval of `\RR`).
+    corresponds to `U = M` and `\Phi = \mathrm{Id}_M`. Other common cases
+    are `\Phi` being an immersion and `\Phi` being a curve in `M` (`U`
+    is then an open interval of `\RR`).
 
-    If `M` is not parallelizable, the class
-    :class:`~sage.manifolds.differentiable.vectorfield.VectorField`
-    must be used instead.
+    .. NOTE::
 
-    This is a Sage *element* class, the corresponding *parent* class being
-    :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`.
+        If `M` is not parallelizable, then
+        :class:`~sage.manifolds.differentiable.vectorfield.VectorField`
+        *must* be used instead.
 
     INPUT:
 
@@ -442,7 +438,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
         sage: v.parent() is M.vector_field_module()
         True
 
-    A vector field is a tensor field of rank 1 and of type (1,0)::
+    A vector field is a tensor field of rank 1 and of type `(1,0)`::
 
         sage: v.tensor_rank()
         1
@@ -456,33 +452,26 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
         sage: v.comp()
         1-index components w.r.t. Vector frame (M, (e_0,e_1,e_2))
 
-    The totality of the components are accessed via the operator [:]::
+    The totality of the components are accessed via the operator ``[:]``::
 
         sage: v[:] = (1, 4, 9)  # equivalent to v[0], v[1], v[2] = (1, 4, 9)
         sage: v[:]
         [1, 4, 9]
 
-    The components are also read on the expansion on the frame 'e', as provided
-    by the method
+    The components are also read on the expansion on the frame ``e``,
+    as provided by the method
     :meth:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor.display`::
 
-        sage: v.display()  # displays the expansion on the manifold's default frame (e)
+        sage: v.display()  # displays the expansion in the default frame
         V = e_0 + 4 e_1 + 9 e_2
 
-    A subset of the components can be accessed by means of Python's slice
-    notation::
+    A subset of the components can be accessed by using slice notation::
 
         sage: v[1:] = (-2, -3)
         sage: v[:]
         [1, -2, -3]
         sage: v[:2]
         [1, -2]
-
-    The components are instances of class
-    :class:`~sage.tensor.modules.comp.Components`::
-
-        sage: type(v.comp())
-        <class 'sage.tensor.modules.comp.Components'>
 
     Components in another frame::
 
@@ -525,10 +514,10 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
         sage: latex(v(f))
         v\left(f\right)
 
-    Example of a vector field associated with a non-trivial map `\Phi`:
-    vector field along a curve in `M`::
+    Example of a vector field associated with a non-trivial map `\Phi`;
+    a vector field along a curve in `M`::
 
-        sage: R = Manifold(1, 'R')  # R as a 1-dimensional manifold
+        sage: R = Manifold(1, 'R')
         sage: T.<t> = R.chart()  # canonical chart on R
         sage: Phi = R.diff_map(M, [cos(t), sin(t)], name='Phi') ; Phi
         Differentiable map Phi from the 1-dimensional differentiable manifold R
@@ -594,7 +583,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
 
     def _repr_(self) :
         r"""
-        String representation of the object.
+        String representation of ``self``.
 
         TESTS::
 
@@ -615,7 +604,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
         r"""
         Create an instance of the same class as ``self`` on the same module.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
@@ -630,12 +619,12 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
 
     def _del_derived(self, del_restrictions=True):
         r"""
-        Delete the derived quantities
+        Delete the derived quantities.
 
         INPUT:
 
-        - ``del_restrictions`` -- (default: True) determines whether the
-          restrictions of ``self`` to subdomains are deleted.
+        - ``del_restrictions`` -- (default: ``True``) determines whether
+          the restrictions of ``self`` to subdomains are deleted
 
         TEST::
 
@@ -700,8 +689,8 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
         else:
             resu_name = None
         if self._latex_name is not None and scalar._latex_name is not None:
-            resu_latex = self._latex_name + r"\left(" + scalar._latex_name + \
-                        r"\right)"
+            resu_latex = (self._latex_name + r"\left(" + scalar._latex_name
+                          + r"\right)")
         else:
             resu_latex = None
         resu = dom_resu.scalar_field(name=resu_name, latex_name=resu_latex)
@@ -733,3 +722,4 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
                 res += v[i, chart] * f.diff(i)
             resu._express[chart] = res
         return resu
+

@@ -394,7 +394,7 @@ class DiffChart(Chart):
 
         OUTPUT:
 
-        - instance of :class:`~sage.manifolds.differentiable.vectorframe.CoordFrame`
+        - a :class:`~sage.manifolds.differentiable.vectorframe.CoordFrame`
           representing the coordinate frame
 
         EXAMPLES:
@@ -439,7 +439,7 @@ class DiffChart(Chart):
 
         OUTPUT:
 
-        - instance of :class:`~sage.manifolds.differentiable.vectorframe.CoordCoFrame`
+        - a :class:`~sage.manifolds.differentiable.vectorframe.CoordCoFrame`
           representing the coframe
 
         EXAMPLES:
@@ -491,8 +491,8 @@ class DiffChart(Chart):
 
         If such subchart has not been defined yet, it is constructed here.
 
-        The coordinates of the subchart bare the same names as the coordinates
-        of the mother chart.
+        The coordinates of the subchart bare the same names as the
+        coordinates of the original chart.
 
         INPUT:
 
@@ -825,8 +825,8 @@ class RealDiffChart(DiffChart, RealChart):
 
         If such subchart has not been defined yet, it is constructed here.
 
-        The coordinates of the subchart bare the same names as the coordinates
-        of the parent chart.
+        The coordinates of the subchart bare the same names as the
+        coordinates of the original chart.
 
         INPUT:
 

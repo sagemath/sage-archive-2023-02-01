@@ -42,22 +42,22 @@ from sage.structure.parent import Parent
 from sage.categories.modules import Modules
 from sage.misc.cachefunc import cached_method
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
-from sage.manifolds.differentiable.vectorfield import VectorField, \
-                                                               VectorFieldParal
+from sage.manifolds.differentiable.vectorfield import (VectorField, VectorFieldParal)
 
 class VectorFieldModule(UniqueRepresentation, Parent):
     r"""
-    Module of vector fields along a differentiable manifold `U` with values on
-    a differentiable manifold `M`, via a differentiable map `U\rightarrow M`.
+    Module of vector fields along a differentiable manifold `U`
+    with values on a differentiable manifold `M`, via a differentiable
+    map `U \rightarrow M`.
 
     Given a differentiable map
 
     .. MATH::
 
-        \Phi:\  U \longrightarrow M
+        \Phi:\  U \longrightarrow M,
 
-    the *vector field module* `\mathcal{X}(U,\Phi)` is the set of all vector
-    fields of the type
+    the *vector field module* `\mathcal{X}(U,\Phi)` is the set of
+    all vector fields of the type
 
     .. MATH::
 
@@ -78,26 +78,23 @@ class VectorFieldModule(UniqueRepresentation, Parent):
     The standard case of vector fields *on* a differentiable manifold
     corresponds to `U = M` and `\Phi = \mathrm{Id}_M`; we then denote
     `\mathcal{X}(M,\mathrm{Id}_M)` by merely `\mathcal{X}(M)`. Other common
-    cases are `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is
-    then an open interval of `\RR`).
+    cases are `\Phi` being an immersion and `\Phi` being a curve in `M`
+    (`U` is then an open interval of `\RR`).
 
-    If `M` is parallelizable, the class :class:`VectorFieldFreeModule` should
-    be used instead.
-
-    This is a Sage *parent* class, the corresponding *element* class being
-    :class:`~sage.manifolds.differentiable.vectorfield.VectorField`.
+    If `M` is parallelizable, the class :class:`VectorFieldFreeModule`
+    should be used instead.
 
     INPUT:
 
-    - ``domain`` -- differentiable manifold `U` along which the vector fields
-      are defined
+    - ``domain`` -- differentiable manifold `U` along which the
+      vector fields are defined
     - ``dest_map`` -- (default: ``None``) destination map
       `\Phi:\ U \rightarrow M`
-      (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`); if
-      ``None``, it is assumed that `U=M` and `\Phi` is the identity map of
-      `M` (case of vector fields *on* `M`)
+      (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`);
+      if ``None``, it is assumed that `U = M` and `\Phi` is the identity
+      map of `M` (case of vector fields *on* `M`)
 
-    EXAMPLE:
+    EXAMPLES:
 
     Module of vector fields on the 2-sphere::
 
@@ -165,7 +162,6 @@ class VectorFieldModule(UniqueRepresentation, Parent):
     on `M` to `U`.
 
     """
-
     Element = VectorField
 
     def __init__(self, domain, dest_map=None):
@@ -223,14 +219,6 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         # Dictionary of exterior powers of the dual of self
         #   (keys = p --the power degree) :
         self._dual_exterior_powers = {}
-        # Zero element:
-        if not hasattr(self, '_zero_element'):
-            self._zero_element = self._element_constructor_(name='zero',
-                                                            latex_name='0')
-            for frame in self._domain._frames:
-                if self._dest_map.restrict(frame._domain) == frame._dest_map:
-                    self._zero_element.add_comp(frame)
-                    # (since new components are initialized to zero)
 
     #### Parent methods
 
@@ -255,10 +243,10 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         """
         if comp == 0:
-            return self._zero_element
+            return self.zero()
         if isinstance(comp, VectorField):
-            if self._domain.is_subset(comp._domain) and \
-                       self._ambient_domain.is_subset(comp._ambient_domain):
+            if (self._domain.is_subset(comp._domain)
+                   and self._ambient_domain.is_subset(comp._ambient_domain)):
                 return comp.restrict(self._domain)
             else:
                 raise ValueError("cannot convert the {} ".format(comp) +
@@ -343,8 +331,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         if self._dest_map is self._domain.identity_map():
             description += "on the {}".format(self._domain)
         else:
-            description += "along the {}".format(self._domain) + \
-                           " mapped into the {}".format(self._ambient_domain)
+            description += ("along the {}".format(self._domain)
+                            + " mapped into the {}".format(self._ambient_domain))
         return description
 
     def _latex_(self):
@@ -435,8 +423,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
             \Phi:\  U \longrightarrow M
 
-        such that this module is the set `\mathcal{X}(U,\Phi)` of all vector
-        fields of the type
+        such that this module is the set `\mathcal{X}(U,\Phi)` of all
+        vector fields of the type
 
         .. MATH::
 
@@ -448,7 +436,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
             \forall p \in U,\ v(p) \in T_{\Phi(p)}M,
 
-        where `T_{\Phi(p)}M` is the tangent space to `M` at the point `\Phi(p)`.
+        where `T_{\Phi(p)}M` is the tangent space to `M` at the
+        point `\Phi(p)`.
 
         OUTPUT:
 
@@ -474,22 +463,21 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
     def tensor_module(self, k, l):
         r"""
-        Return the module of type-`(k,l)` tensors on the vector field module.
+        Return the module of type-`(k,l)` tensors on ``self``.
 
         INPUT:
 
-        - ``k`` -- (non-negative integer) the contravariant rank, the tensor
-          type being (k,l)
-        - ``l`` -- (non-negative integer) the covariant rank, the tensor type
-          being (k,l)
+        - ``k`` -- non-negative integer; the contravariant rank,
+          the tensor type being `(k,l)`
+        - ``l`` -- non-negative integer; the covariant rank,
+          the tensor type being `(k,l)`
 
         OUTPUT:
 
         - instance of
           :class:`~sage.manifolds.differentiable.tensorfield_module.TensorFieldModule`
-          representing the module
-          `T^{(k,l)}(U,\Phi)` of type-`(k,l)` tensors on the vector field
-          module.
+          representing the module `T^{(k,l)}(U,\Phi)` of type-`(k,l)`
+          tensors on the vector field module
 
         EXAMPLES:
 
@@ -519,8 +507,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.tensorfield_module import \
-                                                              TensorFieldModule
+        from sage.manifolds.differentiable.tensorfield_module import TensorFieldModule
         if (k,l) not in self._tensor_modules:
             self._tensor_modules[(k,l)] = TensorFieldModule(self, (k,l))
         return self._tensor_modules[(k,l)]
@@ -531,10 +518,10 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         module.
 
         If the vector field module is `\mathcal{X}(U,\Phi)`, the
-        `p`-th exterior power of its dual is the set `\Lambda^p(U,\Phi)` of
-        `p`-forms along `U` with values on `\Phi(U)`. It is a module over
-        `C^k(U)`, the ring (algebra) of differentiable scalar fields on
-        `U`.
+        `p`-th exterior power of its dual is the set `\Lambda^p(U, \Phi)`
+        of `p`-forms along `U` with values on `\Phi(U)`. It is a module
+        over `C^k(U)`, the ring (algebra) of differentiable scalar
+        fields on `U`.
 
         INPUT:
 
@@ -542,7 +529,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        - for `p\geq 1`, instance of
+        - for `p \geq 1`, instance of
           :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormModule`
           representing the module `\Lambda^p(U,\Phi)`; for `p=0`, the
           base ring, i.e. `C^k(U)`, is returned instead
@@ -565,13 +552,13 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             sage: XM.dual_exterior_power(0) is M.scalar_field_algebra()
             True
 
-        See
-        :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormModule`
-        for more examples and documentation.
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormModule`
+            for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.diff_form_module import \
-                                                                 DiffFormModule
+        from sage.manifolds.differentiable.diff_form_module import DiffFormModule
         if p == 0:
             return self._ring
         if p not in self._dual_exterior_powers:
@@ -593,16 +580,15 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         """
         return self.dual_exterior_power(1)
 
-    @cached_method
     def general_linear_group(self):
         r"""
-        Return the general linear group of the vector field module.
+        Return the general linear group of ``self``.
 
         If the vector field module is `\mathcal{X}(U,\Phi)`, the *general
         linear group* is the group `\mathrm{GL}(\mathcal{X}(U,\Phi))` of
-        automorphisms of `\mathcal{X}(U,\Phi)`. Note that an automorphism of
-        `\mathcal{X}(U,\Phi)` can also be viewed as a *field* along `U` of
-        automorphisms of the tangent spaces of `M\supset\Phi(U)`.
+        automorphisms of `\mathcal{X}(U, \Phi)`. Note that an automorphism
+        of `\mathcal{X}(U,\Phi)` can also be viewed as a *field* along `U`
+        of automorphisms of the tangent spaces of `M \supset \Phi(U)`.
 
         OUTPUT:
 
@@ -618,22 +604,22 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             General linear group of the Module X(M) of vector fields on the
              2-dimensional differentiable manifold M
 
-        See
-        :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldGroup`
-        for more examples and documentation.
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldGroup`
+            for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.automorphismfield_group import \
-                                                         AutomorphismFieldGroup
+        from sage.manifolds.differentiable.automorphismfield_group import AutomorphismFieldGroup
         return AutomorphismFieldGroup(self)
 
     def tensor(self, tensor_type, name=None, latex_name=None, sym=None,
                antisym=None, specific_type=None):
         r"""
-        Construct a tensor on the vector field module.
+        Construct a tensor on ``self``.
 
-        The tensor is actually a tensor field on the domain of the vector field
-        module.
+        The tensor is actually a tensor field on the domain of
+        the vector field module.
 
         INPUT:
 
@@ -645,15 +631,15 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         - ``sym`` -- (default: ``None``) a symmetry or a list of symmetries
           among the tensor arguments: each symmetry is described by a tuple
           containing the positions of the involved arguments, with the
-          convention position=0 for the first argument. For instance:
+          convention position=0 for the first argument; for instance:
 
-          * sym=(0,1) for a symmetry between the 1st and 2nd arguments
-          * sym=[(0,2),(1,3,4)] for a symmetry between the 1st and 3rd
-            arguments and a symmetry between the 2nd, 4th and 5th arguments.
+          * ``sym=(0,1)`` for a symmetry between the 1st and 2nd arguments
+          * ``sym=[(0,2),(1,3,4)]`` for a symmetry between the 1st and 3rd
+            arguments and a symmetry between the 2nd, 4th and 5th arguments
 
         - ``antisym`` -- (default: ``None``) antisymmetry or list of
-          antisymmetries among the arguments, with the same convention as for
-          ``sym``.
+          antisymmetries among the arguments, with the same convention
+          as for ``sym``
         - ``specific_type`` -- (default: ``None``) specific subclass of
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField` for
           the output
@@ -663,7 +649,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         - instance of
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
           representing the tensor defined on the vector field module with the
-          provided characteristics.
+          provided characteristics
 
         EXAMPLES::
 
@@ -677,27 +663,27 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             sage: XM.tensor((0,2), name='a', antisym=(0,1))
             2-form a on the 2-dimensional differentiable manifold M
 
-        See
-        :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
-        for more examples and documentation.
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+            for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.automorphismfield import \
-                                                              AutomorphismField
-        if tensor_type==(1,0):
+        from sage.manifolds.differentiable.automorphismfield import AutomorphismField
+        if tensor_type == (1,0):
             return self.element_class(self, name=name, latex_name=latex_name)
-        elif tensor_type==(0,1):
+        elif tensor_type == (0,1):
             return self.linear_form(name=name, latex_name=latex_name)
-        elif tensor_type==(1,1) and specific_type is not None:
+        elif tensor_type == (1,1) and specific_type is not None:
             if issubclass(specific_type, AutomorphismField):
                 return self.automorphism(name=name, latex_name=latex_name)
-        elif tensor_type[0]==0 and tensor_type[1]>1 and antisym is not None \
-                                                              and antisym !=[]:
+        elif (tensor_type[0] == 0 and tensor_type[1] > 1
+              and antisym is not None and antisym != []):
             if isinstance(antisym, list):
                 antisym0 = antisym[0]
             else:
                 antisym0 = antisym
-            if len(antisym0)==tensor_type[1]:
+            if len(antisym0) == tensor_type[1]:
                 return self.alternating_form(tensor_type[1], name=name,
                                              latex_name=latex_name)
             else:
@@ -718,13 +704,12 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``degree`` -- the degree of the alternating form (i.e. its tensor
-          rank)
-        - ``name`` -- (string; default: ``None``) name given to the alternating
-          form
-        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
-          the alternating form; if none is provided, the LaTeX symbol is set to
-          ``name``
+        - ``degree`` -- the degree of the alternating form
+          (i.e. its tensor rank)
+        - ``name`` -- (string; optional) name given to the alternating form
+        - ``latex_name`` -- (string; optional) LaTeX symbol to denote
+          the alternating form; if none is provided, the
+          LaTeX symbol is set to ``name``
 
         OUTPUT:
 
@@ -740,9 +725,10 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             sage: XM.alternating_form(1, name='a')
             1-form a on the 2-dimensional differentiable manifold M
 
-        See
-        :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
-        for more examples and documentation.
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
+            for more examples and documentation.
 
         """
         return self.dual_exterior_power(degree).element_class(self, degree,
@@ -758,11 +744,10 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``name`` -- (string; default: ``None``) name given to the linear
-          form
-        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
-          the linear form; if none is provided, the LaTeX symbol is set to
-          ``name``
+        - ``name`` -- (string; optional) name given to the linear form
+        - ``latex_name`` -- (string; optional) LaTeX symbol to denote
+          the linear form; if none is provided, the LaTeX symbol is
+          set to ``name``
 
         OUTPUT:
 
@@ -778,9 +763,10 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             sage: XM.linear_form(name='a')
             1-form a on the 2-dimensional differentiable manifold M
 
-        See
-        :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
-        for more examples and documentation.
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
+            for more examples and documentation.
 
         """
         return self.dual_exterior_power(1).element_class(self, 1, name=name,
@@ -796,11 +782,10 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``name`` -- (string; default: ``None``) name given to the
-          automorphism
-        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
-          the automorphism; if none is provided, the LaTeX symbol is set to
-          ``name``
+        - ``name`` -- (string; optional) name given to the automorphism
+        - ``latex_name`` -- (string; optional) LaTeX symbol to denote
+          the automorphism; if none is provided, the LaTeX symbol is
+          set to ``name``
 
         OUTPUT:
 
@@ -818,9 +803,10 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             Field of tangent-space automorphisms a on the 2-dimensional
              differentiable manifold M
 
-        See
-        :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
-        for more examples and documentation.
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
+            for more examples and documentation.
 
         """
         return self.general_linear_group().element_class(self, name=name,
@@ -837,17 +823,19 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``name`` -- (string; default: 'Id') name given to the identity map
-        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
-          the identity map;  if none is provided, the LaTeX symbol is set to
-          '\mathrm{Id}' if ``name`` is 'Id' and to ``name`` otherwise
+        - ``name`` -- (string; default: ``'Id'``) name given to the
+          identity map
+        - ``latex_name`` -- (string; optional) LaTeX symbol to denote
+          the identity map;  if none is provided, the LaTeX symbol is
+          set to ``'\mathrm{Id}'`` if ``name`` is ``'Id'`` and
+          to ``name`` otherwise
 
         OUTPUT:
 
         - instance of
           :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
@@ -862,19 +850,39 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         resu.set_name(name=name, latex_name=latex_name)
         return resu
 
+    @cached_method
+    def zero(self):
+        """
+        Return the zero of ``self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: XM = M.vector_field_module()
+            sage: XM.zero()
+            Vector field zero on the 2-dimensional differentiable manifold M
+        """
+        elt = self.element_class(self, name='zero', latex_name='0')
+        for frame in self._domain._frames:
+            if self._dest_map.restrict(frame._domain) == frame._dest_map:
+                elt.add_comp(frame)
+                # (since new components are initialized to zero)
+        return elt
+
 #******************************************************************************
 
 class VectorFieldFreeModule(FiniteRankFreeModule):
     r"""
     Free module of vector fields along a differentiable manifold `U` with
     values on a parallelizable manifold `M`, via a differentiable map
-    `U\rightarrow M`.
+    `U \rightarrow M`.
 
     Given a differentiable map
 
     .. MATH::
 
-        \Phi:\  U \longrightarrow M
+        \Phi:\ U \longrightarrow M
 
     the *vector field module* `\mathcal{X}(U,\Phi)` is the set of all vector
     fields of the type
@@ -891,9 +899,9 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
     where `T_{\Phi(p)} M` is the tangent space to `M` at the point `\Phi(p)`.
 
-    Since `M` is parallelizable, the set `\mathcal{X}(U,\Phi)` is a free module
-    over `C^k(U)`, the ring (algebra) of differentiable scalar fields on `U`
-    (see
+    Since `M` is parallelizable, the set `\mathcal{X}(U,\Phi)` is a
+    free module over `C^k(U)`, the ring (algebra) of differentiable
+    scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
 
     The standard case of vector fields *on* a differentiable manifold
@@ -1134,17 +1142,18 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                 self._induced_bases[frame] = basis
 
         # Initialization of the components of the zero element:
+        zero = self.zero()
         for frame in self._domain._frames:
             if frame._dest_map == self._dest_map:
-                self._zero_element.add_comp(frame) # since new components are
-                                                   # initialized to zero
+                zero.add_comp(frame) # since new components are
+                                     # initialized to zero
 
     #### Parent methods
 
     def _element_constructor_(self, comp=[], basis=None, name=None,
                               latex_name=None):
         r"""
-        Construct an element of the vector field module.
+        Construct an element of ``self``.
 
         TESTS::
 
@@ -1160,7 +1169,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         """
         if comp == 0:
-            return self._zero_element
+            return self.zero()
         if isinstance(comp, VectorField):
             if (self._domain.is_subset(comp._domain)
                    and self._ambient_domain.is_subset(comp._ambient_domain)):
@@ -1177,9 +1186,9 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
     def _coerce_map_from_(self, other):
         r"""
-        Determine whether coercion to self exists from other parent.
+        Determine whether coercion to ``self`` exists from parent ``other``.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
@@ -1350,10 +1359,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         INPUT:
 
-        - ``k`` -- (non-negative integer) the contravariant rank, the tensor
-          type being `(k, l)`
-        - ``l`` -- (non-negative integer) the covariant rank, the tensor type
-          being `(k, l)`
+        - ``k`` -- non-negative integer; the contravariant rank,
+          the tensor type being `(k, l)`
+        - ``l`` -- non-negative integer; the covariant rank,
+          the tensor type being `(k, l)`
 
         OUTPUT:
 
@@ -1386,9 +1395,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             sage: XM.tensor_module(1,0) is XM
             True
 
-        See
-        :class:`~sage.manifolds.differentiable.tensorfield_module.TensorFieldFreeModule`
-        for more examples and documentation.
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.tensorfield_module.TensorFieldFreeModule`
+            for more examples and documentation.
 
         """
         from sage.manifolds.differentiable.tensorfield_module import TensorFieldFreeModule
@@ -1401,10 +1411,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         Return the `p`-th exterior power of the dual of ``self``.
 
         If the vector field module is `\mathcal{X}(U,\Phi)`, the
-        `p`-th exterior power of its dual is the set `\Lambda^p(U, \Phi)` of
-        `p`-forms along `U` with values on `\Phi(U)`. It is a module over
-        `C^k(U)`, the ring (algebra) of differentiable scalar fields on
-        `U`.
+        `p`-th exterior power of its dual is the set `\Lambda^p(U, \Phi)`
+        of `p`-forms along `U` with values on `\Phi(U)`. It is a module
+        over `C^k(U)`, the ring (algebra) of differentiable scalar
+        fields on `U`.
 
         INPUT:
 
@@ -1436,9 +1446,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             sage: XM.dual_exterior_power(0) is M.scalar_field_algebra()
             True
 
-        See
-        :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormFreeModule`
-        for more examples and documentation.
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormFreeModule`
+            for more examples and documentation.
 
         """
         from sage.manifolds.differentiable.diff_form_module import DiffFormFreeModule
@@ -1473,9 +1484,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             General linear group of the Free module X(M) of vector fields on
              the 2-dimensional differentiable manifold M
 
-        See
-        :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldParalGroup`
-        for more examples and documentation.
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldParalGroup`
+            for more examples and documentation.
 
         """
         from sage.manifolds.differentiable.automorphismfield_group import AutomorphismFieldParalGroup
@@ -1663,7 +1675,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             sage: t.display()
             t = (x + 1) d/dx*dx - y d/dx*dy + x*y d/dy*dx + (-y^2 + 2) d/dy*dy
 
-        The same set of components transformed into a type-(0,2) tensor field::
+        The same set of components transformed into a type-`(0,2)`
+        tensor field::
 
             sage: t = XM.tensor_from_comp((0,2), comp, name='t'); t
             Tensor field t of type (0,2) on the 2-dimensional differentiable
@@ -1709,12 +1722,12 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
     def sym_bilinear_form(self, name=None, latex_name=None):
         r"""
-        Construct a symmetric bilinear form on the vector field module.
+        Construct a symmetric bilinear form on ``self``.
 
         A symmetric bilinear form on the vector field module is
-        actually a field of tangent-space symmetric bilinear forms along
-        the differentiable manifold `U` over which the vector field module is
-        defined.
+        actually a field of tangent-space symmetric bilinear forms
+        along the differentiable manifold `U` over which the vector
+        field module is defined.
 
         INPUT:
 
@@ -1738,9 +1751,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             Field of symmetric bilinear forms a on the 2-dimensional
              differentiable manifold M
 
-        See
-        :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
-        for more examples and documentation.
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
+            for more examples and documentation.
 
         """
         return self.tensor((0,2), name=name, latex_name=latex_name, sym=(0,1))

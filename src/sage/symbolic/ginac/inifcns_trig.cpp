@@ -730,8 +730,11 @@ REGISTER_FUNCTION(tan, eval_func(tan_eval).
 
 static ex cot_evalf(const ex & x, PyObject* parent)
 {
-	if (is_exactly_a<numeric>(x))
+	if (is_exactly_a<numeric>(x)) {
+                if (ex_to<numeric>(x).is_zero())
+                        return UnsignedInfinity;
 		return tan(ex_to<numeric>(x)).inverse();
+        }
 
 	return cot(x).hold();
 }
@@ -774,6 +777,8 @@ static ex cot_eval(const ex & x)
 
 	// cot(float) -> float
 	if (is_exactly_a<numeric>(x) && !x.info(info_flags::crational)) {
+                if (ex_to<numeric>(x).is_zero())
+                        return UnsignedInfinity;
 		return tan(ex_to<numeric>(x)).inverse();
 	}
 
@@ -990,8 +995,11 @@ REGISTER_FUNCTION(sec, eval_func(sec_eval).
 
 static ex csc_evalf(const ex & x, PyObject* parent)
 {
-	if (is_exactly_a<numeric>(x))
+	if (is_exactly_a<numeric>(x)) {
+                if (ex_to<numeric>(x).is_zero())
+                        return UnsignedInfinity;
 		return sin(ex_to<numeric>(x)).inverse();
+        }
 
 	return csc(x).hold();
 }
@@ -1036,6 +1044,8 @@ static ex csc_eval(const ex & x)
 
 	// csc(float) -> float
 	if (is_exactly_a<numeric>(x) && !x.info(info_flags::crational)) {
+                if (ex_to<numeric>(x).is_zero())
+                        return UnsignedInfinity;
 		return sin(ex_to<numeric>(x)).inverse();
 	}
 

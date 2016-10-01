@@ -83,6 +83,7 @@ private:
 extern const constant Pi;
 extern const constant Catalan;
 extern const constant Euler;
+extern const constant NaN;
 
 } // namespace GiNaC
 

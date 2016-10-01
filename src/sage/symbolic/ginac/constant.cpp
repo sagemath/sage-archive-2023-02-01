@@ -273,4 +273,8 @@ const constant Euler("euler_gamma", ConstantEvalf, "\\gamma_E", domain::positive
  *  Calls python function py_eval_constant for evalf(). */
 const constant Catalan("catalan", ConstantEvalf, "G", domain::positive);
 
+/** Not a number
+ *  Calls python function py_eval_constant for evalf(). */
+const constant NaN("NaN", ConstantEvalf, "NaN", domain::complex);
+
 } // namespace GiNaC

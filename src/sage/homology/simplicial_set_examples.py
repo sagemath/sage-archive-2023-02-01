@@ -301,10 +301,9 @@ def Sphere(n):
     degen_v = v_0.apply_degeneracies(*degens)
     sigma = AbstractSimplex(n, name='sigma_{}'.format(n),
                             latex_name='\\sigma_{}'.format(n))
-    S = SimplicialSet_finite({sigma: [degen_v] * (n+1)}, base_point=v_0,
-                      name='S^{}'.format(n))
-    S._latex_ = lambda: 'S^{{{}}}'.format(n)
-    return S
+    return SimplicialSet_finite({sigma: [degen_v] * (n+1)}, base_point=v_0,
+                                name='S^{}'.format(n),
+                                latex_name='S^{{{}}}'.format(n))
 
 
 def ClassifyingSpace(group):
@@ -365,7 +364,7 @@ def RealProjectiveSpace(n):
     """
     X = AbelianGroup([2]).nerve().n_skeleton(n)
     X.rename('RP^{}'.format(n))
-    X._latex_ = lambda: 'RP^{{{}}}'.format(n)
+    X.rename_latex('RP^{{{}}}'.format(n))
     return X
 
 
@@ -433,10 +432,9 @@ def Simplex(n):
         sage: K.n_cells(2)
         [(0, 1, 2)]
     """
-    K = SimplicialSet_finite(simplicial_complexes.Simplex(n),
-                      name='{}-simplex'.format(n))
-    K._latex_ = lambda: '\\Delta^{{{}}}'.format(n)
-    return K
+    return SimplicialSet_finite(simplicial_complexes.Simplex(n),
+                                name='{}-simplex'.format(n),
+                                latex_name='\\Delta^{{{}}}'.format(n))
 
 
 @cached_function
@@ -482,9 +480,9 @@ def Point():
         True
     """
     star = AbstractSimplex(0, name='*')
-    K = SimplicialSet_finite({star: None}, base_point=star, name='Point')
-    K._latex_ = lambda: '*'
-    return K
+    return SimplicialSet_finite({star: None}, base_point=star,
+                                name='Point',
+                                latex_name='*')
 
 
 def Horn(n, k):
@@ -517,7 +515,7 @@ def Horn(n, k):
     sigma = K.n_cells(n)[0]
     L = K.subsimplicial_set(K.faces(sigma)[:k] + K.faces(sigma)[k+1:])
     L.rename('({}, {})-Horn'.format(n, k))
-    L._latex_ = lambda: '\\Lambda^{{{}}}_{{{}}}'.format(n, k)
+    L.rename_latex('\\Lambda^{{{}}}_{{{}}}'.format(n, k))
     return L
 
 
@@ -612,21 +610,21 @@ def ComplexProjectiveSpace(n):
                                        f3_110,
                                        f2_1.apply_degeneracies(0))},
                           name='CP^2', base_point=v)
-        K._latex_ = lambda: 'CP^{2}'
+        K.rename_latex('CP^{2}')
         return K
     if n == 3:
         file = os.path.join(SAGE_ENV['SAGE_SRC'], 'ext', 'kenzo', 'CP3.txt')
         data = simplicial_data_from_kenzo_output(file)
         v = [_ for _ in data.keys() if _.dimension() == 0][0]
         K = SimplicialSet_finite(data, name='CP^3', base_point=v)
-        K._latex_ = lambda: 'CP^{3}'
+        K.rename_latex('CP^{3}')
         return K
     if n == 4:
         file = os.path.join(SAGE_ENV['SAGE_SRC'], 'ext', 'kenzo', 'CP4.txt')
         data = simplicial_data_from_kenzo_output(file)
         v = [_ for _ in data.keys() if _.dimension() == 0][0]
         K = SimplicialSet_finite(data, name='CP^4', base_point=v)
-        K._latex_ = lambda: 'CP^{4}'
+        K.rename_latex('CP^{4}')
         return K
 
 

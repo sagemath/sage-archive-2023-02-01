@@ -2914,9 +2914,64 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
     set is *finite* if there are only finitely many non-degenerate
     simplices.
 
-    See :mod:`.simplicial_set` for more information and examples.
+    INPUT:
+
+    - ``data`` -- the data defining the simplicial set. See below for
+      details.
+
+    - ``base_point`` (optional, default ``None``) -- 0-simplex in this
+      simplicial set, its base point
+
+    - ``name`` (optional, defaul ``None``) -- string, the name of the
+      simplicial set
+
+    - ``check`` (optional, default ``True``) -- boolean. If ``True``,
+      check the simplicial identity on the face maps when defining the
+      simplicial set.
+
+    - ``category`` (optional, default ``None``) -- the category in
+      which to define this simplicial set. The default is either
+      finite simplicial sets or finite pointed simplicial sets,
+      depending on whether a base point is defined.
+
+    - ``latex_name`` (optional, default ``None``) -- string, the LaTeX
+      representation of the simplicial set.
+
+    ``data`` should have one of the following forms: it could be a
+    simplicial complex or `\Delta`-complex, in case it is converted to
+    a simplicial set. Alternatively, it could be a dictionary. The
+    keys are the nondegenerate simplices of the simplicial set, and
+    the value corresponding to a simplex `\sigma` is a tuple listing
+    the faces of `\sigma`. The 0-dimensional simplices may be omitted
+    from ``data`` if they (or their degeneracies) are faces of other
+    simplices; otherwise they must be included with value ``None``.
+
+    See :mod:`.simplicial_set` and the methods for simplicial sets for
+    more information and examples.
+
+    EXAMPLES::
+
+        sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+        sage: u = AbstractSimplex(0, name='u')
+        sage: v = AbstractSimplex(0, name='v')
+        sage: w = AbstractSimplex(0, name='w')
+        sage: e = AbstractSimplex(1, name='e')
+        sage: f = AbstractSimplex(1, name='f')
+
+    In the following simplicial set, ``u`` is an isolated vertex::
+
+        sage: X = SimplicialSet({e: (v,w), f: (w,w), u: None})
+        sage: X
+        Simplicial set with 5 non-degenerate simplices
+        sage: X.rename('X')
+        sage: X
+        X
+        sage: X = SimplicialSet({e: (v,w), f: (w,w), u: None}, name='Y')
+        sage: X
+        Y
     """
-    def __init__(self, data, base_point=None, name=None, check=True, category=None):
+    def __init__(self, data, base_point=None, name=None, check=True,
+                 category=None, latex_name=None):
         r"""
         TESTS::
 
@@ -3082,6 +3137,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
         Parent.__init__(self, category=category)
         if name:
             self.rename(name)
+        self._latex_name = latex_name
         # Finally, store the faces of each nondegenerate simplex as an
         # attribute of the simplex itself.
         for x in simplices:
@@ -3563,6 +3619,57 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
         if num == 1:
             return "Simplicial set with 1 non-degenerate simplex"
         return "Simplicial set with {} non-degenerate simplices".format(num)
+
+    def rename_latex(self, s):
+        """
+        Rename or set the LaTeX name for this simplicial set.
+
+        INPUT:
+
+        - ``s`` -- string, the LaTeX representation. Or ``s`` can be
+          ``None``, in which case the LaTeX name is unset.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0)
+            sage: X = SimplicialSet({v: None}, latex_name='*')
+            sage: latex(X)
+            *
+            sage: X.rename_latex('x_0')
+            sage: latex(X)
+            x_0
+        """
+        self._latex_name = s
+
+    def _latex_(self):
+        r"""
+        LaTeX representation.
+
+        If ``latex_name`` is set when the simplicial set is defined,
+        or if :meth:`rename_latex` is used to set the LaTeX name, use
+        that. Otherwise, use its string representation.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0)
+            sage: X = SimplicialSet({v: None}, latex_name='*')
+            sage: latex(X)
+            *
+            sage: X.rename_latex('y_0')
+            sage: latex(X)
+            y_0
+            sage: X.rename_latex(None)
+            sage: latex(X)
+            Simplicial set with 1 non-degenerate simplex
+            sage: X.rename('v')
+            sage: latex(X)
+            v
+        """
+        if self._latex_name is not None:
+            return self._latex_name
+        return str(self)
 
 
 # TODO: possibly turn SimplicialSet into a function, for example

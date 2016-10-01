@@ -2,10 +2,10 @@ r"""
 Differentiable Manifolds
 
 Given a non-discrete topological field `K` (in most applications, `K = \RR` or
-`K = \CC`; see however [4]_ for `K = \QQ_p` and [5]_ for other fields),
-a *differentiable manifold over* `K` is a topological manifold `M` over `K`
-equipped with an atlas whose transitions maps are of class `C^k` (i.e.
-`k`-times  continuously differentiable) for a fixed positive integer `k`
+`K = \CC`; see however [Serre92]_ for `K = \QQ_p` and [Bertram08]_ for other
+fields), a *differentiable manifold over* `K` is a topological manifold `M`
+over `K` equipped with an atlas whose transitions maps are of class `C^k`
+(i.e. `k`-times  continuously differentiable) for a fixed positive integer `k`
 (possibly `k=\infty`). `M` is then called a `C^k`-*manifold over* `K`.
 
 Note that
@@ -428,11 +428,11 @@ class DifferentiableManifold(TopologicalManifold):
     Differentiable manifold over a topological field `K`.
 
     Given a non-discrete topological field `K` (in most applications,
-    `K = \RR` or `K = \CC`; see however [4]_ for `K = \QQ_p` and [5]_ for
-    other fields), a *differentiable manifold over* `K` is a topological
-    manifold `M` over `K` equipped with an atlas whose transitions maps are of
-    class `C^k` (i.e. `k`-times  continuously differentiable) for a fixed
-    positive integer `k` (possibly `k=\infty`). `M` is then called a
+    `K = \RR` or `K = \CC`; see however [Serre92]_ for `K = \QQ_p` and
+    [Bertram08]_ for other fields), a *differentiable manifold over* `K` is a
+    topological manifold `M` over `K` equipped with an atlas whose transitions
+    maps are of class `C^k` (i.e. `k`-times  continuously differentiable) for
+    a fixed positive integer `k` (possibly `k=\infty`). `M` is then called a
     `C^k`-*manifold over* `K`.
 
     Note that

@@ -914,6 +914,7 @@ def exterior_derivative(form):
 
     Exterior derivative of a scalar field (0-form)::
 
+        sage: from sage.manifolds.utilities import exterior_derivative
         sage: M = Manifold(3, 'M')
         sage: X.<x,y,z> = M.chart()
         sage: f = M.scalar_field({X: x+y^2+z^3}, name='f')
@@ -921,6 +922,12 @@ def exterior_derivative(form):
         1-form df on the 3-dimensional differentiable manifold M
         sage: df.display()
         df = dx + 2*y dy + 3*z^2 dz
+
+    An alias is ``xder``::
+
+        sage: from sage.manifolds.utilities import xder
+        sage: df == xder(f)
+        True
 
     Exterior derivative of a 1-form::
 
@@ -937,12 +944,11 @@ def exterior_derivative(form):
 
     .. SEEALSO::
 
-        :class:`sage.manifolds.differentiable.diff_form.DiffFormParal.exterior_der`
-        or :class:`sage.manifolds.differentiable.diff_form.DiffForm.exterior_der`
+        :class:`sage.manifolds.differentiable.diff_form.DiffFormParal.exterior_derivative`
+        or :class:`sage.manifolds.differentiable.diff_form.DiffForm.exterior_derivative`
         for more examples.
 
     """
     return form.exterior_derivative()
 
 xder = exterior_derivative
-

@@ -37,13 +37,14 @@ AUTHORS:
 
 REFERENCES:
 
-- \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
-  Interscience Publishers (New York) (1963)
-- \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013); :doi:`10.1007/978-1-4419-9982-5`
-- \B. O'Neill : *Semi-Riemannian Geometry*, Academic Press (San Diego) (1983)
-- \M. Berger & B. Gostiaux : *Differential Geometry: Manifolds, Curves and
-  Surfaces*, Springer (New York) (1988); :doi:`10.1007/978-1-4612-1033-7`
+- [KN63]_ \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
+  vol. 1, Interscience Publishers (New York) (1963)
+- [Lee13]_ \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
+  (New York) (2013); :doi:`10.1007/978-1-4419-9982-5`
+- [ONeill83]_ \B. O'Neill : *Semi-Riemannian Geometry*, Academic Press
+  (San Diego) (1983)
+- [BG88]_ \M. Berger & B. Gostiaux : *Differential Geometry: Manifolds, Curves
+  and Surfaces*, Springer (New York) (1988); :doi:`10.1007/978-1-4612-1033-7`
 
 """
 

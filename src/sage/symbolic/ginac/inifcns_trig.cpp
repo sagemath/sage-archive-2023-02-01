@@ -1412,7 +1412,7 @@ static ex atan2_eval(const ex & y, const ex & x)
 
 		// atan2(0, 0) -> undefined
 		if (x.is_zero())
-			throw (std::runtime_error("arctan2_eval(): arctan2(0,0) encountered"));
+			return NaN;
 
 		// atan2(0, x), x real and positive -> 0
 		if (x.info(info_flags::positive))

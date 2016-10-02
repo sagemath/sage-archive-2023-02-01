@@ -24,6 +24,7 @@ coframes deriving from a chart.
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015): initial version
+- Travis Scrimshaw (2016): review tweaks
 
 REFERENCES:
 
@@ -165,6 +166,7 @@ The change-of-frame automorphisms and their matrices::
 #******************************************************************************
 #       Copyright (C) 2013, 2014 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2013, 2014 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -348,7 +350,7 @@ class VectorFrame(FreeModuleBasis):
                 if dest_map in sd._vector_field_modules:
                     xsd = sd._vector_field_modules[dest_map]
                     if not isinstance(xsd, FiniteRankFreeModule):
-                        for t in xsd._tensor_modules.itervalues():
+                        for t in xsd._tensor_modules.values():
                             t(0).add_comp(self)
                             # (since new components are initialized to zero)
         if dest_map is self._domain.identity_map():
@@ -370,7 +372,7 @@ class VectorFrame(FreeModuleBasis):
         self._restrictions = {} # dict. of the restrictions of self to
                                # subdomains of self._domain, with the
                                # subdomains as keys
-        # NB: set(self._restrictions.itervalues()) is identical to
+        # NB: set(self._restrictions.values()) is identical to
         #     self._subframes
 
 
@@ -841,7 +843,7 @@ class VectorFrame(FreeModuleBasis):
             rmapping = mapping
         else:
             rmapping = None
-            for doms, rest in mapping._restrictions.iteritems():
+            for doms, rest in mapping._restrictions.items():
                 if doms[1].is_subset(dom):
                     rmapping = rest
                     break

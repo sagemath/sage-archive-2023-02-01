@@ -382,6 +382,7 @@ Since `f` is constant, `v(f)` is vanishing::
 AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
+- Travis Scrimshaw (2016): review tweaks
 
 REFERENCES:
 
@@ -405,6 +406,7 @@ REFERENCES:
 #*****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -800,7 +802,7 @@ class DifferentiableManifold(TopologicalManifold):
             sd._subsets.add(resu)
         self._top_subsets.add(resu)
         # Charts on the result from the coordinate definition:
-        for chart, restrictions in coord_def.iteritems():
+        for chart, restrictions in coord_def.items():
             if chart not in self._atlas:
                 raise ValueError("the {} does not belong to ".format(chart) +
                                  "the atlas of {}".format(self))

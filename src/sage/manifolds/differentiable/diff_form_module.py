@@ -16,6 +16,7 @@ two classesimplement `\Lambda^p(U, \Phi)`:
 AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
+- Travis Scrimshaw (2016): review tweaks
 
 REFERENCES:
 
@@ -27,6 +28,7 @@ REFERENCES:
 """
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -336,7 +338,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
                      and tensor._vmodule is self._vmodule):
                 resu = self.element_class(self._vmodule, 1, name=tensor._name,
                                           latex_name=tensor._latex_name)
-                for dom, rst in tensor._restrictions.iteritems():
+                for dom, rst in tensor._restrictions.items():
                     resu._restrictions[dom] = dom.diff_form_module(1)(rst)
                 return resu
             else:
@@ -785,7 +787,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
                      and tensor._fmodule is self._fmodule):
                 resu = self.element_class(self._fmodule, 1, name=tensor._name,
                                           latex_name=tensor._latex_name)
-                for frame, comp in tensor._components.iteritems():
+                for frame, comp in tensor._components.items():
                     resu._components[frame] = comp.copy()
                 return resu
             else:

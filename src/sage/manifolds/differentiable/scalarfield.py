@@ -677,7 +677,7 @@ class DiffScalarField(ScalarField):
         ScalarField._del_derived(self) # derived quantities of the mother class
         self._differential = None  # reset of the differential
         # First deletes any reference to self in the vectors' dictionaries:
-        for vid, val in self._lie_derivatives.iteritems():
+        for vid, val in self._lie_derivatives.items():
             del val[0]._lie_der_along_self[id(self)]
         # Then clears the dictionary of Lie derivatives
         self._lie_derivatives.clear()
@@ -799,7 +799,7 @@ class DiffScalarField(ScalarField):
                     self._differential.add_comp(chart._frame) # since a newly
                                             # created set of components is zero
             else:
-                for chart, func in self._express.iteritems():
+                for chart, func in self._express.items():
                     diff_func = self._differential.add_comp(chart._frame)
                     for i in self._manifold.irange():
                         diff_func[i, chart] = func.diff(i)

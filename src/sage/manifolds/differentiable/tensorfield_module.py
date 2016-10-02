@@ -16,6 +16,7 @@ to tensor field modules:
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
+- Travis Scrimshaw (2016): review tweaks
 
 REFERENCES:
 
@@ -31,6 +32,7 @@ REFERENCES:
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -320,7 +322,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             resu = self.element_class(self._vmodule, (0,p), name=form._name,
                                       latex_name=form._latex_name,
                                       antisym=asym)
-            for dom, rst in form._restrictions.iteritems():
+            for dom, rst in form._restrictions.items():
                 resu._restrictions[dom] = dom.tensor_field_module((0,p))(rst)
             return resu
         if isinstance(comp, AutomorphismField):
@@ -331,7 +333,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
                                 " to an element of {}".format(self))
             resu = self.element_class(self._vmodule, (1,1), name=autom._name,
                                       latex_name=autom._latex_name)
-            for dom, rest in autom._restrictions.iteritems():
+            for dom, rest in autom._restrictions.items():
                 resu._restrictions[dom] = dom.tensor_field_module((1,1))(rest)
             return resu
         if isinstance(comp, TensorField):
@@ -764,7 +766,7 @@ class TensorFieldFreeModule(TensorFreeModule):
             resu = self.element_class(self._fmodule, (0,p), name=form._name,
                                       latex_name=form._latex_name,
                                       antisym=asym)
-            for frame, cp in form._components.iteritems():
+            for frame, cp in form._components.items():
                 resu._components[frame] = cp.copy()
             return resu
         if isinstance(comp, AutomorphismFieldParal):
@@ -775,7 +777,7 @@ class TensorFieldFreeModule(TensorFreeModule):
                                 " to an element of {}".format(self))
             resu = self.element_class(self._fmodule, (1,1), name=autom._name,
                                       latex_name=autom._latex_name)
-            for basis, comp in autom._components.iteritems():
+            for basis, comp in autom._components.items():
                 resu._components[basis] = comp.copy()
             return resu
         if isinstance(comp, TensorField):

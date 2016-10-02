@@ -20,6 +20,7 @@ whether `M` is parallelizable or not:
 AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
+- Travis Scrimshaw (2016): review tweaks
 
 REFERENCES:
 
@@ -30,6 +31,7 @@ REFERENCES:
 
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -251,7 +253,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
                 fmodule = dom.vector_field_module()
                 idm = fmodule.identity_map()
                 rst = fmodule.automorphism()
-                for frame, comp in idm._components.iteritems():
+                for frame, comp in idm._components.items():
                     rst._components[frame] = 2 * comp
                 resu._restrictions[dom] = rst
         return resu

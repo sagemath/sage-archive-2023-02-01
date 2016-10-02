@@ -21,6 +21,7 @@ fields:
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
+- Travis Scrimshaw (2016): review tweaks
 
 REFERENCES:
 
@@ -36,12 +37,15 @@ REFERENCES:
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+
+from __future__ import print_function
 
 from sage.rings.integer import Integer
 from sage.structure.element import ModuleElement
@@ -401,7 +405,7 @@ class TensorField(ModuleElement):
 
         """
         resu = False
-        for rst in self._restrictions.itervalues():
+        for rst in self._restrictions.values():
             resu = resu or rst.__nonzero__()
         return resu
 
@@ -496,7 +500,7 @@ class TensorField(ModuleElement):
                 self._latex_name = self._name
         if latex_name is not None:
             self._latex_name = latex_name
-        for rst in self._restrictions.itervalues():
+        for rst in self._restrictions.values():
             rst.set_name(name=name, latex_name=latex_name)
 
     def _new_instance(self):
@@ -565,7 +569,7 @@ class TensorField(ModuleElement):
 
         """
         # First deletes any reference to self in the vectors' dictionaries:
-        for vid, val in self._lie_derivatives.iteritems():
+        for vid, val in self._lie_derivatives.items():
             del val[0]._lie_der_along_self[id(self)]
         # Then clears the dictionary of Lie derivatives
         self._lie_derivatives.clear()
@@ -855,7 +859,7 @@ class TensorField(ModuleElement):
                                  "with the ambient domain of " +
                                  "the {}".format(self))
             # First one tries to get the restriction from a tighter domain:
-            for dom, rst in self._restrictions.iteritems():
+            for dom, rst in self._restrictions.items():
                 if subdomain.is_subset(dom):
                     self._restrictions[subdomain] = rst.restrict(subdomain)
                     break
@@ -1475,7 +1479,7 @@ class TensorField(ModuleElement):
 
         """
         resu = self._new_instance()
-        for dom, rst in self._restrictions.iteritems():
+        for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst.copy()
         return resu
 
@@ -1600,7 +1604,7 @@ class TensorField(ModuleElement):
             if len(self._restrictions) != len(other._restrictions):
                 return False  # the restrictions are not on the same subdomains
             resu = True
-            for dom, rst in self._restrictions.iteritems():
+            for dom, rst in self._restrictions.items():
                 if dom in other._restrictions:
                     resu = resu and bool(rst == other._restrictions[dom])
                 else:
@@ -1675,7 +1679,7 @@ class TensorField(ModuleElement):
 
         """
         resu = self._new_instance()
-        for dom, rst in self._restrictions.iteritems():
+        for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = + rst
         if self._name is not None:
             resu._name = '+' + self._name
@@ -1721,7 +1725,7 @@ class TensorField(ModuleElement):
 
         """
         resu = self._new_instance()
-        for dom, rst in self._restrictions.iteritems():
+        for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = - rst
         if self._name is not None:
             resu._name = '-' + self._name
@@ -1922,7 +1926,7 @@ class TensorField(ModuleElement):
 
         """
         resu = self._new_instance()
-        for dom, rst in self._restrictions.iteritems():
+        for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = scalar.restrict(dom) * rst
         return resu
 
@@ -2044,7 +2048,7 @@ class TensorField(ModuleElement):
             resu._restrictions[rst._domain] = rst
         return resu
 
-    def __div__(self, scalar):
+    def __truediv__(self, scalar):
         r"""
         Division by a scalar field.
 
@@ -2103,9 +2107,11 @@ class TensorField(ModuleElement):
 
         """
         resu = self._new_instance()
-        for dom, rst in self._restrictions.iteritems():
+        for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst / scalar
         return resu
+
+    __div__ = __truediv__
 
     def __call__(self, *args):
         r"""
@@ -2245,7 +2251,7 @@ class TensorField(ModuleElement):
                     for chart in resu_rr._domain._atlas:
                         resu._express[chart] = chart._zero_function
                 else:
-                    for chart, expr in resu_rr._express.iteritems():
+                    for chart, expr in resu_rr._express.items():
                         resu._express[chart] = expr
             if resu == 0:
                 return dom_resu._zero_scalar_field
@@ -2402,7 +2408,7 @@ class TensorField(ModuleElement):
             raise IndexError("contraction on two covariant indices is " +
                              "not allowed")
         resu_rst = []
-        for rst in self._restrictions.itervalues():
+        for rst in self._restrictions.values():
             resu_rst.append(rst.trace(pos1, pos2))
         if (k_con, l_cov) == (1,1):
             # scalar field result
@@ -2414,7 +2420,7 @@ class TensorField(ModuleElement):
                         resu._express[chart] = 0
                 else:
                     all_zero = False
-                    for chart, funct in rst._express.iteritems():
+                    for chart, funct in rst._express.items():
                         resu._express[chart] = funct
             if all_zero:
                 resu = self._domain._zero_scalar_field
@@ -2655,7 +2661,7 @@ class TensorField(ModuleElement):
                         resu._express[chart] = 0
                 else:
                     all_zero = False
-                    for chart, funct in rst._express.iteritems():
+                    for chart, funct in rst._express.items():
                         resu._express[chart] = funct
             if all_zero:
                 resu = dom_resu._zero_scalar_field
@@ -2726,7 +2732,7 @@ class TensorField(ModuleElement):
 
         """
         resu_rst = []
-        for rst in self._restrictions.itervalues():
+        for rst in self._restrictions.values():
             resu_rst.append(rst.symmetrize(*pos))
         resu = self._vmodule.tensor(self._tensor_type, sym=resu_rst[0]._sym,
                                     antisym=resu_rst[0]._antisym)
@@ -2789,7 +2795,7 @@ class TensorField(ModuleElement):
 
         """
         resu_rst = []
-        for rst in self._restrictions.itervalues():
+        for rst in self._restrictions.values():
             resu_rst.append(rst.antisymmetrize(*pos))
         resu = self._vmodule.tensor(self._tensor_type, sym=resu_rst[0]._sym,
                                     antisym=resu_rst[0]._antisym)
@@ -2881,7 +2887,7 @@ class TensorField(ModuleElement):
         if id(vector) not in self._lie_derivatives:
             # the computation must be performed:
             resu_rst = []
-            for dom, rst in self._restrictions.iteritems():
+            for dom, rst in self._restrictions.items():
                 resu_rst.append(rst.lie_der(vector.restrict(dom)))
             resu = self._vmodule.tensor(self._tensor_type,
                                         sym=resu_rst[0]._sym,

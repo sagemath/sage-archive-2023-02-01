@@ -11,11 +11,13 @@ frames sharing the same domain on a differentiable manifold.
 AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
+- Travis Scrimshaw (2016): review tweaks
 
 """
 
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -478,7 +480,7 @@ class AutomorphismField(TensorField):
                 inv_latex_name = self._latex_name + r'^{-1}'
             self._inverse = self._vmodule.automorphism(name=inv_name,
                                                        latex_name=inv_latex_name)
-            for dom, rst in self._restrictions.iteritems():
+            for dom, rst in self._restrictions.items():
                 self._inverse._restrictions[dom] = rst.inverse()
         return self._inverse
 

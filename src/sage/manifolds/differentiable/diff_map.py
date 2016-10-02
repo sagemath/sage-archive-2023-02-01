@@ -874,7 +874,7 @@ class DiffMap(ContinuousMap):
                     resu._restrictions[rst._domain] = rst
             if isinstance(resu, TensorFieldParal):
                 for rst in resu_rst:
-                    for frame, comp in rst._components.iteritems():
+                    for frame, comp in rst._components.items():
                         resu._components[frame] = comp
         return resu
 

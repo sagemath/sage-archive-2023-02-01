@@ -22,6 +22,7 @@ tensor fields:
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
+- Travis Scrimshaw (2016): review tweaks
 
 REFERENCES:
 
@@ -274,6 +275,7 @@ as follows::
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -1268,7 +1270,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                                  "with the ambient domain of " +
                                  "the {}".format(self))
             #!# First one tries to derive the restriction from a tighter domain:
-            #for dom, rst in self._restrictions.iteritems():
+            #for dom, rst in self._restrictions.items():
             #    if subdomain.is_subset(dom):
             #        self._restrictions[subdomain] = rst.restrict(subdomain)
             #        break
@@ -1287,7 +1289,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                         scomp_store = scomp._comp
                         # the components of the restriction are evaluated
                         # index by index:
-                        for ind, value in comp_store.iteritems():
+                        for ind, value in comp_store.items():
                             scomp_store[ind] = value.restrict(subdomain)
                         resu._components[sframe] = scomp
             self._restrictions[subdomain] = resu

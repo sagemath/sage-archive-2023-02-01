@@ -34,6 +34,7 @@ is parallelizable or not, i.e. whether the bundle `TM` is trivial or not.
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
+- Travis Scrimshaw (2016): review tweaks
 
 REFERENCES:
 
@@ -51,6 +52,7 @@ REFERENCES:
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -297,7 +299,7 @@ class VectorField(TensorField):
 
         """
         if self._lie_der_along_self != {}:
-            for idtens, tens in self._lie_der_along_self.iteritems():
+            for idtens, tens in self._lie_der_along_self.items():
                 del tens._lie_derivatives[id(self)]
             self._lie_der_along_self.clear()
 
@@ -363,9 +365,9 @@ class VectorField(TensorField):
         else:
             resu_latex = None
         resu = dom_resu.scalar_field(name=resu_name, latex_name=resu_latex)
-        for dom, rst in self_r._restrictions.iteritems():
+        for dom, rst in self_r._restrictions.items():
             resu_rst = rst(scalar_r.restrict(dom))
-            for chart, funct in resu_rst._express.iteritems():
+            for chart, funct in resu_rst._express.items():
                 resu._express[chart] = funct
         return resu
 

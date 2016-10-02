@@ -39,6 +39,7 @@ AUTHORS:
   :class:`~sage.tensor.differential_form_element.DifferentialForm` (cf. the
   above note), which inspired the storage of the non-zero components as a
   dictionary whose keys are the indices.
+- Travis Scrimshaw (2016): review tweaks
 
 REFERENCES:
 
@@ -53,6 +54,7 @@ REFERENCES:
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2010 Joris Vankerschaver <joris.vankerschaver@gmail.com>
+#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -384,7 +386,7 @@ class DiffForm(TensorField):
         rlname = format_unop_latex(r'\mathrm{d}', self._latex_name)
         resu = vmodule.alternating_form(self._tensor_rank+1, name=rname,
                                         latex_name=rlname)
-        for dom, rst in self._restrictions.iteritems():
+        for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst.exterior_derivative()
         return resu
 
@@ -1040,7 +1042,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
                                   self._tensor_rank+1,
                                   start_index=fmodule._sindex,
                                 output_formatter=fmodule._output_formatter)
-            for ind, val in sc._comp.iteritems():
+            for ind, val in sc._comp.items():
                 for i in fmodule.irange():
                     ind_d = (i,) + ind
                     if len(ind_d) == len(set(ind_d)):

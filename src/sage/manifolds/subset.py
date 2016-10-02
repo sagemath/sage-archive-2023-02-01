@@ -341,7 +341,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             if point in self:
                 resu = self.element_class(self, name=point._name,
                                           latex_name=point._latex_name)
-                for chart, coords in point._coordinates.iteritems():
+                for chart, coords in point._coordinates.items():
                     resu._coordinates[chart] = coords
                 return resu
             else:

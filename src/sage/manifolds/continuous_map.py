@@ -411,7 +411,7 @@ class ContinuousMap(Morphism):
                                      " have the same dimension")
             if coord_functions is not None:
                 n2 = self._codomain.dim()
-                for chart_pair, expression in coord_functions.iteritems():
+                for chart_pair, expression in coord_functions.items():
                     if chart_pair[0] not in self._domain.atlas():
                         raise ValueError("{} is not a chart ".format(
                                                               chart_pair[0]) +
@@ -546,7 +546,7 @@ class ContinuousMap(Morphism):
             return other.is_identity()
         if other._is_identity:
             return self.is_identity()
-        for charts, coord_functions in self._coord_expression.iteritems():
+        for charts, coord_functions in self._coord_expression.items():
             try:
                 if coord_functions.expr() != other.expr(*charts):
                     return False

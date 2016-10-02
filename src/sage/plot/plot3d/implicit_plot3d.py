@@ -51,14 +51,14 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
 
     A nested set of spheres with a hole cut out::
 
-        sage: implicit_plot3d((x^2 + y^2 + z^2), (x,-2,2), (y,-2,2), (z,-2,2), plot_points=60, contour=[1,3,5],\
+        sage: implicit_plot3d((x^2 + y^2 + z^2), (x,-2,2), (y,-2,2), (z,-2,2), plot_points=60, contour=[1,3,5], \
         ....:                 region=lambda x,y,z: x<=0.2 or y>=0.2 or z<=0.2, color='aquamarine').show(viewer='tachyon')
 
     .. PLOT::
 
         var('x,y,z')
         F = x**2 + y**2 + z**2
-        P = implicit_plot3d(F, (x,-2,2), (y,-2,2), (z,-2,2), plot_points=60, contour=[1,3,5],\
+        P = implicit_plot3d(F, (x,-2,2), (y,-2,2), (z,-2,2), plot_points=60, contour=[1,3,5], \
                             region=lambda x,y,z: x<=0.2 or y>=0.2 or z<=0.2, color='aquamarine')
         sphinx_plot(P)
 
@@ -314,7 +314,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
     Duplin cycloid::
 
         sage: K = (2^2-0^2-(2+2.1)^2)*(2^2-0^2-(2-2.1)^2)
-        sage: F = K*(x^4+y^4+z^4) +\
+        sage: F = K*(x^4+y^4+z^4) \
                   + 2*K*(x^2*y^2+x^2*z^2+y^2*z^2) \
                   + 2*2^2*((-0^2-2^2+2^2+2.1^2)*(2*x*2+2*y*0-2^2)-4*0*2.1^2 *y)*(x^2+y^2+z^2) \
                   + 4*2^4*(2*x+0*y)*(-2^2+0*y+2*x)+4*2^4 *2.1^2 *y^2 + 2^8

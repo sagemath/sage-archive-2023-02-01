@@ -51,14 +51,14 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
 
     A nested set of spheres with a hole cut out::
 
-        sage: implicit_plot3d((x^2 + y^2 + z^2), (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=60, contour=[1,3,5],\
+        sage: implicit_plot3d((x^2 + y^2 + z^2), (x,-2,2), (y,-2,2), (z,-2,2), plot_points=60, contour=[1,3,5],\
         ....:                 region=lambda x,y,z: x<=0.2 or y>=0.2 or z<=0.2, color='aquamarine').show(viewer='tachyon')
 
     .. PLOT::
 
         var('x,y,z')
         F = x**2 + y**2 + z**2
-        P = implicit_plot3d(F, (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=60, contour=[1,3,5],\
+        P = implicit_plot3d(F, (x,-2,2), (y,-2,2), (z,-2,2), plot_points=60, contour=[1,3,5],\
                             region=lambda x,y,z: x<=0.2 or y>=0.2 or z<=0.2, color='aquamarine')
         sphinx_plot(P)
 
@@ -68,7 +68,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         sage: T = RDF(golden_ratio)
         sage: p = 2 - (cos(x+T*y) + cos(x-T*y) + cos(y+T*z) + cos(y-T*z) + cos(z-T*x) + cos(z+T*x))
         sage: r = 4.77
-        sage: implicit_plot3d(p, (x, -r, r), (y, -r, r), (z, -r, r), plot_points=40, color='darkkhaki').show(viewer='tachyon')
+        sage: implicit_plot3d(p, (x,-r,r), (y,-r,r), (z,-r,r), plot_points=40, color='darkkhaki').show(viewer='tachyon')
 
     .. PLOT::
 
@@ -84,9 +84,9 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
 
     ::
 
-        sage: p = (x^2+9/4*y^2+z^2-1)^3-x^2*z^3-9/(80)*y^2*z^3
+        sage: p = (x^2+9/4*y^2+z^2-1)^3 - x^2*z^3-9/(80)*y^2*z^3
         sage: r = 1.5
-        sage: implicit_plot3d(p, (x, -r,r), (y, -r,r), (z, -r,r), plot_points=80, color='red', smooth=False).show(viewer='tachyon')
+        sage: implicit_plot3d(p, (x,-r,r), (y,-r,r), (z,-r,r), plot_points=80, color='red', smooth=False).show(viewer='tachyon')
 
     .. PLOT::
 
@@ -101,11 +101,11 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         sage: T = RDF(golden_ratio)
         sage: p = 2 - (cos(x + T*y) + cos(x - T*y) + cos(y + T*z) + cos(y - T*z) + cos(z - T*x) + cos(z + T*x))
         sage: r = 4.77
-        sage: implicit_plot3d(p, (x, -r, r), (y, -r, r), (z, -r, r), plot_points=40, color='deepskyblue').show()
+        sage: implicit_plot3d(p, (x,-r,r), (y,-r,r), (z,-r,r), plot_points=40, color='deepskyblue').show()
 
     Here we use smooth=True with a Tachyon graph::
 
-        sage: implicit_plot3d(x^2 + y^2 + z^2, (x, -2, 2), (y, -2, 2), (z, -2, 2), contour=4, color='deepskyblue', smooth=True)
+        sage: implicit_plot3d(x^2 + y^2 + z^2, (x,-2,2), (y,-2,2), (z,-2,2), contour=4, color='deepskyblue', smooth=True)
         Graphics3d Object
 
     .. PLOT::
@@ -121,7 +121,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         sage: gx = lambda x, y, z: -(2*x + y^2 + z^2)
         sage: gy = lambda x, y, z: -(x^2 + 2*y + z^2)
         sage: gz = lambda x, y, z: -(x^2 + y^2 + 2*z)
-        sage: implicit_plot3d(x^2+y^2+z^2, (x,-2,2), (y,-2,2), (z,-2,2), contour=4, \
+        sage: implicit_plot3d(x^2+y^2+z^2, (x,-2,2), (y,-2,2), (z,-2,2), contour=4,
         ....:     plot_points=40, smooth=True, gradient=(gx, gy, gz)).show(viewer='tachyon')
 
     .. PLOT::
@@ -130,7 +130,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         gx = lambda x, y, z: -(2*x + y**2 + z**2)
         gy = lambda x, y, z: -(x**2 + 2*y + z**2)
         gz = lambda x, y, z: -(x**2 + y**2 + 2*z)
-        P = implicit_plot3d(x**2+y**2+z**2, (x,-2,2), (y,-2,2), (z,-2,2), contour=4, \
+        P = implicit_plot3d(x**2+y**2+z**2, (x,-2,2), (y,-2,2), (z,-2,2), contour=4,
                            plot_points=40, smooth=True, gradient=(gx, gy, gz))
         sphinx_plot(P)
 
@@ -170,7 +170,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         sage: t = (x).function(x,y,z)
         sage: cm = colormaps.PiYG
         sage: G = implicit_plot3d(x^4 + y^2 + z^2, (x,-2,2),
-        ....:   (y,-2, 2),(z,-2, 2), contour=4, color=(t,cm), plot_points=40)
+        ....:   (y,-2,2),(z,-2,2), contour=4, color=(t,cm), plot_points=40)
         sage: G
         Graphics3d Object
 
@@ -180,7 +180,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         t = (x).function(x,y,z)
         cm = colormaps.PiYG
         G = implicit_plot3d(x**4 + y**2 + z**2, (x,-2,2),
-                           (y,-2, 2),(z,-2, 2), contour=4, color=(t,cm), plot_points=40)
+                           (y,-2,2),(z,-2,2), contour=4, color=(t,cm), plot_points=40)
         sphinx_plot(G)
 
     .. WARNING::
@@ -228,9 +228,8 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
 
     A variation of the blob cube featuring heterogeneously sized blobs::
 
-        
         sage: F = x^2 + y^2 + z^2 +sin(4*x) + sin(4*y) + sin(4*z) -1
-        sage: implicit_plot3d(x^2 + y ^2 + z^2 +sin(4*x) + sin(4*y) + sin(4*z) -1, (x, -2, 2), (y, -2, 2), (z, -2, 2), color='lavenderblush')
+        sage: implicit_plot3d(x^2 + y ^2 + z^2 +sin(4*x) + sin(4*y) + sin(4*z) -1, (x,-2,2), (y,-2,2), (z,-2,2), color='lavenderblush')
         Graphics3d Object
 
     .. PLOT::
@@ -280,14 +279,14 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
     A cube with a circular aperture on each face::
 
         sage: F = ((1/2.3)^2 * (x^2 + y^2 + z^2))^(-6) + ((1/2)^8 * (x^8 + y^8 + z^8))^6 - 1
-        sage: implicit_plot3d(F, (x, -2, 2), (y, -2, 2), (z, -2, 2), color='palevioletred')
+        sage: implicit_plot3d(F, (x,-2,2), (y,-2,2), (z,-2,2), color='palevioletred')
         Graphics3d Object
 
     .. PLOT::
 
         x, y, z = var('x,y,z')
         F = ((1/2.3)**2 * (x**2 + y**2 + z**2))**(-6) + ((1/2)**8 * (x**8 + y**8 + z**8))**6 - 1
-        G = implicit_plot3d(F, (x, -2, 2), (y, -2, 2), (z, -2, 2), color='palevioletred')
+        G = implicit_plot3d(F, (x,-2,2), (y,-2,2), (z,-2,2), color='palevioletred')
         sphinx_plot(G)
 
     A simple hyperbolic surface::
@@ -316,9 +315,9 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
 
         sage: K = (2^2-0^2-(2+2.1)^2)*(2^2-0^2-(2-2.1)^2)
         sage: F = K*(x^4+y^4+z^4) +\
-                  2*K*(x^2*y^2+x^2*z^2+y^2*z^2)+\
-                  2*2^2*((-0^2-2^2+2^2+2.1^2)*(2*x*2+2*y*0-2^2)-4*0*2.1^2 *y)*(x^2+y^2+z^2)+\
-                  4*2^4*(2*x+0*y)*(-2^2+0*y+2*x)+4*2^4 *2.1^2 *y^2 + 2^8
+                  + 2*K*(x^2*y^2+x^2*z^2+y^2*z^2) \
+                  + 2*2^2*((-0^2-2^2+2^2+2.1^2)*(2*x*2+2*y*0-2^2)-4*0*2.1^2 *y)*(x^2+y^2+z^2) \
+                  + 4*2^4*(2*x+0*y)*(-2^2+0*y+2*x)+4*2^4 *2.1^2 *y^2 + 2^8
         sage: implicit_plot3d(F, (x,-2,2.2), (y,-2,2), (z,-1.3,1.3), color='seashell')
         Graphics3d Object
 
@@ -326,10 +325,10 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
 
         x, y, z = var('x,y,z')
         K = (2**2-0**2-(2+2.1)**2)*(2**2-0**2-(2-2.1)**2)
-        F = K*(x**4+y**4+z**4) +\
-            2*K*(x**2*y**2+x**2*z**2+y**2*z**2)+\
-            2*2**2*((-0**2-2**2+2**2+2.1**2)*(2*x*2+2*y*0-2**2)-4*0*2.1**2 *y)*(x**2+y**2+z**2)+\
-            4*2**4*(2*x+0*y)*(-2**2+0*y+2*x)+4*2**4 *2.1**2 *y**2 + 2**8
+        F = K*(x**4+y**4+z**4) \
+            + 2*K*(x**2*y**2+x**2*z**2+y**2*z**2) \
+            + 2*2**2*((-0**2-2**2+2**2+2.1**2)*(2*x*2+2*y*0-2**2)-4*0*2.1**2 *y)*(x**2+y**2+z**2) \
+            + 4*2**4*(2*x+0*y)*(-2**2+0*y+2*x)+4*2**4 *2.1**2 *y**2 + 2**8
         G = implicit_plot3d(F, (x,-2,2.2), (y,-2,2), (z,-1.3,1.3), color='seashell')
         sphinx_plot(G)
 
@@ -391,14 +390,14 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
     A cube with rounded edges::
 
         sage: F = x^4 + y^4 + z^4 - (x^2 + y^2 + z^2)
-        sage: implicit_plot3d(F, (x, -2, 2), (y, -2, 2), (z, -2, 2), color='mediumvioletred')
+        sage: implicit_plot3d(F, (x,-2,2), (y,-2,2), (z,-2,2), color='mediumvioletred')
         Graphics3d Object
 
     .. PLOT::
 
         x, y, z = var('x,y,z')
         F = x**4 + y**4 + z**4 - (x**2 + y**2 + z**2)
-        G = implicit_plot3d(F, (x, -2, 2), (y, -2, 2), (z, -2, 2), color='mediumvioletred')
+        G = implicit_plot3d(F, (x,-2,2), (y,-2,2), (z,-2,2), color='mediumvioletred')
         sphinx_plot(G)
 
     Chmutov::
@@ -467,14 +466,14 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
     Ortho circle::
 
         sage: F = ((x^2+y^2-1)^2+z^2) * ((y^2+z^2-1)^2+x^2) * ((z^2+x^2-1)^2+y^2)-0.075^2 * (1+3*(x^2+y^2+z^2))
-        sage: implicit_plot3d(F, (x, -1.5, 1.5), (y, -1.5, 1.5), (z, -1.5, 1.5), color='lemonchiffon')
+        sage: implicit_plot3d(F, (x,-1.5,1.5), (y,-1.5,1.5), (z,-1.5,1.5), color='lemonchiffon')
         Graphics3d Object
 
     .. PLOT::
 
         x, y, z = var('x,y,z')
         F = ((x**2+y**2-1)**2+z**2) * ((y**2+z**2-1)**2+x**2) * ((z**2+x**2-1)**2+y**2)-0.075**2 * (1+3*(x**2+y**2+z**2))
-        G = implicit_plot3d(F, (x, -1.5, 1.5), (y, -1.5, 1.5), (z, -1.5, 1.5), color='lemonchiffon')
+        G = implicit_plot3d(F, (x,-1.5,1.5), (y,-1.5,1.5), (z,-1.5,1.5), color='lemonchiffon')
         sphinx_plot(G)
 
     Cube sphere::
@@ -550,7 +549,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
     Test a separate resolution in the X direction; this should look like a
     regular sphere::
 
-        sage: implicit_plot3d(x^2 + y^2 + z^2, (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=(10, 40, 40), contour=4)
+        sage: implicit_plot3d(x^2 + y^2 + z^2, (x,-2,2), (y,-2,2), (z,-2,2), plot_points=(10,40,40), contour=4)
         Graphics3d Object
 
     Test using different plot ranges in the different directions; each
@@ -558,30 +557,30 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
     the ``aspect_ratio`` keyword to make it look right with the unequal
     plot ranges::
 
-        sage: implicit_plot3d(x^2 + y^2 + z^2, (x, 0, 2), (y, -2, 2), (z, -2, 2), contour=4, aspect_ratio=1)
+        sage: implicit_plot3d(x^2 + y^2 + z^2, (x,0,2), (y,-2,2), (z,-2,2), contour=4, aspect_ratio=1)
         Graphics3d Object
 
-        sage: implicit_plot3d(x^2 + y^2 + z^2, (x, -2, 2), (y, 0, 2), (z, -2, 2), contour=4, aspect_ratio=1)
+        sage: implicit_plot3d(x^2 + y^2 + z^2, (x,-2,2), (y,0,2), (z,-2,2), contour=4, aspect_ratio=1)
         Graphics3d Object
 
-        sage: implicit_plot3d(x^2 + y^2 + z^2, (x, -2, 2), (y, -2, 2), (z, 0, 2), contour=4, aspect_ratio=1)
+        sage: implicit_plot3d(x^2 + y^2 + z^2, (x,-2,2), (y,-2,2), (z,0,2), contour=4, aspect_ratio=1)
         Graphics3d Object
 
     Extra keyword arguments will be passed to show()::
 
-        sage: implicit_plot3d(x^2 + y^2 + z^2, (x, -2, 2), (y, -2, 2), (z, -2, 2), contour=4, viewer='tachyon')
+        sage: implicit_plot3d(x^2 + y^2 + z^2, (x,-2,2), (y,-2,2), (z,-2,2), contour=4, viewer='tachyon')
         Graphics3d Object
 
     An implicit plot that doesn't include any surface in the view volume
     produces an empty plot::
 
-        sage: implicit_plot3d(x^2 + y^2 + z^2 - 5000, (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=6)
+        sage: implicit_plot3d(x^2 + y^2 + z^2 - 5000, (x,-2,2), (y,-2,2), (z,-2,2), plot_points=6)
         Graphics3d Object
 
     Make sure that implicit_plot3d doesn't error if the function cannot
     be symbolically differentiated::
 
-        sage: implicit_plot3d(max_symbolic(x, y^2) - z, (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=6)
+        sage: implicit_plot3d(max_symbolic(x, y^2) - z, (x,-2,2), (y,-2,2), (z,-2,2), plot_points=6)
         Graphics3d Object
     """
     # These options, related to rendering with smooth shading, are irrelevant
@@ -600,4 +599,3 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
     G = ImplicitSurface(f, xrange, yrange, zrange, **kwds)
     G._set_extra_kwds(kwds)
     return G
-

@@ -1894,9 +1894,7 @@ class HoldRemover(ExpressionTreeWalker):
             arctan2(0, 0) + 1
             sage: h = HoldRemover(ex, [hypergeometric])
             sage: h()
-            Traceback (most recent call last):
-            ...
-            RuntimeError: arctan2_eval(): arctan2(0,0) encountered
+            NaN + hypergeometric((1, 2), (3, 4), 0)
         """
         self.ex = ex
         if exclude is None:

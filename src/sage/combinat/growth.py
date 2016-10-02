@@ -8,7 +8,8 @@ AUTHORS:
 .. TODO::
 
     - when shape is given, check that it is compatible with filling or labels
-    - implement domino insertion
+    - implement backward rules for :class:`GrowthDiagramDomino` and :class:`GrowthDiagramSylvester`
+    - optimise rules, mainly for :class:`GrowthDiagramRSK` and :class:`GrowthDiagramBurge`
     - make semistandard extension generic
 
 Growth diagrams, invented by Sergey Fomin [Fom1995]_, provide a vast
@@ -228,9 +229,13 @@ class GrowthDiagram(SageObject):
 
         """
         try:
-            self._covers((self._zero, self._zero))
+            self._covers_1((self._zero, self._zero))
         except AttributeError:
-            self._covers = lambda (a,b): True
+            self._covers_1 = lambda (a,b): True
+        try:
+            self._covers_2((self._zero, self._zero))
+        except AttributeError:
+            self._covers_2 = lambda (a,b): True
 
         if filling is None:
             if shape is None:
@@ -245,6 +250,18 @@ class GrowthDiagram(SageObject):
             self._in_labels = self._init_labels_forward_from_various_input(labels)
             self._check_labels(self._in_labels)
             self._grow()
+
+    def filling(self):
+        r"""
+        Return the filling of the diagram as a dictionary.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramRSK([[0,1,0], [1,0,2]])
+            sage: G.filling()
+            {(0, 1): 1, (1, 0): 1, (2, 1): 2}
+        """
+        return self._filling
 
     def conjugate(self):
         r"""
@@ -495,6 +512,15 @@ class GrowthDiagram(SageObject):
         Return half the perimeter of the shape of the growth diagram.
 
         Assumes that ``self._lambda`` is already set.
+
+        TESTS::
+
+            sage: G = GrowthDiagramRSK({(0,1):1, (2,0):1}, SkewPartition([[3,1],[1]])); G
+            .  0  1
+            1
+            sage: G._half_perimeter()
+            6
+
         """
         if len(self._lambda) == 0:
             return 1
@@ -512,16 +538,26 @@ class GrowthDiagram(SageObject):
         Assumes that ``self._rank_function`` is set.
 
         Otherwise raise an error.
+
+        TESTS::
+
+            sage: labels = [[],[1],[],[1],[]]
+            sage: G = GrowthDiagramRSK(labels=labels); G
+            0 1
+            1
+            sage: G._shape_from_labels(G.out_labels())
+            [2, 1]
+
         """
         def right_left(la, mu):
             if self._rank_function(la) < self._rank_function(mu):
-                assert self._covers((mu, la)), "%s has smaller rank than %s but isn't covered by it!" %(la, mu)
+                assert self._covers_1((mu, la)), "%s has smaller rank than %s but isn't covered by it!" %(la, mu)
                 return 1
             elif self._rank_function(la) > self._rank_function(mu):
-                assert self._covers((la, mu)), "%s has smaller rank than %s but isn't covered by it!" %(mu, la)
+                assert self._covers_2((la, mu)), "%s has smaller rank than %s but isn't covered by it!" %(mu, la)
                 return 0
             else:
-                raise ValueError("Can only determine the shape of the growth diagram if sizes of successive partitions differ.")
+                raise ValueError("Can only determine the shape of the growth diagram if ranks of successive labels differ.")
         return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
 
     def _check_labels(self, labels):
@@ -805,7 +841,7 @@ class GrowthDiagram(SageObject):
             sage: G = GrowthDiagramRSK(labels=labels)
             Traceback (most recent call last):
             ...
-            ValueError: Can only determine the shape of the growth diagram if sizes of successive partitions differ.
+            ValueError: Can only determine the shape of the growth diagram if ranks of successive labels differ.
             sage: G = GrowthDiagramRSK(shape=[3,2,1], labels=labels)
             sage: G._filling                                                    # indirect doctest
             {(1, 0): 1}
@@ -886,12 +922,34 @@ class GrowthDiagramBinWord(GrowthDiagram):
         Initialize the zero element and the rank function of the dual
         graded graphs on binary words.  Make sure that ``labels`` are
         binary words.
+
+        TESTS::
+
+            sage: G = GrowthDiagramBinWord([1,3,2])
+            sage: G._zero
+            word:
+            sage: G = GrowthDiagramBinWord(labels = [[1,1],[1,1,0],[0,1]])
+            Traceback (most recent call last):
+            ...
+            AssertionError: 01 has smaller rank than 110 but isn't covered by it!
+
+            sage: G = GrowthDiagramBinWord(labels = [[1,1],[1,0,1],[0,1]])
+            Traceback (most recent call last):
+            ...
+            AssertionError: 11 has smaller rank than 101 but isn't covered by it!
+
+            sage: pi = Permutations(10).random_element()
+            sage: G = GrowthDiagramBinWord(pi)
+            sage: list(GrowthDiagramBinWord(labels=G.out_labels())) == list(G)
+            True
         """
         # TODO: should check that the filling is standard
         if labels is not None:
             labels = [Word(la, alphabet=[0,1]) for la in labels]
         self._zero = Word([], alphabet=[0,1])
         self._rank_function = lambda w: len(w)
+        self._covers_1 = lambda (w, v): w[:-1] == v
+        self._covers_2 = lambda (w, v): v.is_subword_of(w)
         super(GrowthDiagramBinWord, self).__init__(filling = filling,
                                                    shape = shape,
                                                    labels = labels)
@@ -1032,6 +1090,13 @@ class GrowthDiagramSylvester(GrowthDiagram):
         Initialize the zero element and the rank function of the dual
         graded graphs on binary words.  Make sure that ``labels`` are
         binary words.
+
+        TESTS::
+
+            sage: G = GrowthDiagramSylvester([1,3,2])
+            sage: G._zero
+            .
+
         """
         # TODO: should check that the filling is standard
         if labels is not None:
@@ -1253,9 +1318,35 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
                  shape = None,
                  labels = None):
         r"""
-        Initialize the zero element and the rank function of the dual
-        graded graphs on binary words.  Make sure that ``labels`` are
-        binary words.
+        Initialize the zero element and the rank function of the Young
+        Fibonacci lattice.  Make sure that ``labels`` are words in
+        the alphabet 1,2.
+
+        TESTS::
+
+            sage: G = GrowthDiagramYoungFibonacci([1,3,2])
+            sage: G._zero
+            word:
+            sage: G = GrowthDiagramYoungFibonacci(labels = [[1],[1,0],[1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: 0 not in alphabet!
+
+            sage: G = GrowthDiagramYoungFibonacci(labels = [[1,1],[1,2]])
+            Traceback (most recent call last):
+            ...
+            AssertionError: 11 has smaller rank than 12 but isn't covered by it!
+
+            sage: G = GrowthDiagramYoungFibonacci(labels = [[1,2],[1,1]])
+            Traceback (most recent call last):
+            ...
+            AssertionError: 11 has smaller rank than 12 but isn't covered by it!
+
+            sage: pi = Permutations(10).random_element()
+            sage: G = GrowthDiagramYoungFibonacci(pi)
+            sage: list(GrowthDiagramYoungFibonacci(labels=G.out_labels())) == list(G)
+            True
+
         """
         # TODO: should check that the filling is standard
         if labels is not None:
@@ -1264,20 +1355,17 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
         self._rank_function = lambda w: sum(w)
 
         def covers(c):
-            if len(c) == 0:
-                yield Word([1], alphabet=[1,2])
-            else:
-                for i in range(len(c)):
+            for i in range(len(c)+1):
+                d = list(c)
+                d.insert(i, 1)
+                yield Word(d, alphabet=[1,2])
+                if i < len(c) and c[i] == 1:
                     d = list(c)
-                    d.insert(i, 1)
+                    d[i] = 2
                     yield Word(d, alphabet=[1,2])
-                    if c[i] == 1:
-                        d = list(c)
-                        d[i] = 2
-                        yield Word(d, alphabet=[1,2])
-                        break
+                    break
 
-        self._covers = lambda (w, v): w in covers(v)
+        self._covers_1 = self._covers_2 = lambda (w, v): w in covers(v)
 
         super(GrowthDiagramYoungFibonacci, self).__init__(filling = filling,
                                                           shape = shape,
@@ -1402,6 +1490,17 @@ class GrowthDiagramOnPartitions(GrowthDiagram):
         Initialize the zero element and the rank function of the dual
         graded graphs on integer partitions.  Make sure that
         ``labels`` are integer partitions.
+
+        TESTS::
+
+            sage: G = GrowthDiagramBurge([])                                    # indirect doctest
+            sage: G._zero
+            []
+            sage: G = GrowthDiagramBurge(labels = [[1],[1]])                    # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: Can only determine the shape of the growth diagram if ranks of successive labels differ.
+
         """
         if labels is not None:
             labels = [Partition(la) for la in labels]
@@ -1477,6 +1576,16 @@ class GrowthDiagramRSK(GrowthDiagramOnPartitions):
 
         The fourth partition according to the Robinson-Schensted-Knuth
         correspondence.
+
+
+        TESTS::
+
+            sage: G = GrowthDiagramRSK
+            sage: G._forward_rule([2,1],[2,1],[2,1],1)
+            [3, 1]
+
+            sage: G._forward_rule([1],[],[2],2)
+            [4, 1]
         """
         carry = content
         shape4 = []
@@ -1526,7 +1635,7 @@ class GrowthDiagramRSK(GrowthDiagramOnPartitions):
 
         TEST::
 
-            sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagramRSK(w);
+            sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagramRSK(w)
             sage: GrowthDiagramRSK(labels=G._out_labels).to_word() == w         # indirect doctest
             True
 
@@ -1552,6 +1661,14 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
     r"""
     A class modelling Burge insertion.
 
+    EXAMPLES::
+
+        sage: GrowthDiagramBurge(labels=[[],[1,1,1],[2,1,1,1],[2,1,1],[2,1],[1,1],[]])
+        1  1
+        0  1
+        1  0
+        1  0
+
     .. automethod:: _forward_rule
     .. automethod:: _backward_rule
     """
@@ -1576,6 +1693,15 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
 
         The fourth partition according to the Burge correspondence.
 
+        TESTS::
+
+            sage: G = GrowthDiagramBurge
+            sage: G._forward_rule([2,1],[2,1],[2,1],1)
+            [3, 1]
+
+            sage: G._forward_rule([1],[],[2],2)
+            [2, 1, 1, 1]
+
         """
         carry = content
         shape4 = []
@@ -1592,12 +1718,12 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
                 row3 = 0
             else:
                 row3 = shape3[0]
-            newPart = max(row1, row3) + min(ZZ(row1 == row2 == row3), carry)
+            newPart = max(row1, row3) + min(int(row1 == row2 == row3), carry)
             if newPart == 0:
                 return Partition(shape4[::-1])
             else:
                 shape4 = [newPart] + shape4
-                carry = carry - min(ZZ(row1 == row2 == row3), carry) + min(row1, row3) - row2
+                carry = carry - min(int(row1 == row2 == row3), carry) + min(row1, row3) - row2
                 shape1 = shape1[1:]
                 shape2 = shape2[1:]
                 shape3 = shape3[1:]
@@ -1608,16 +1734,16 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
         Return the content and the input shape.
 
         See [Kra2006]_ `(B^4 0)-(B^4 2)`.  There is a typo in the
-        computation of carry in `(B^4 2)`, `\rho` must be replaced by
-        `\lambda`.
+        computation of carry in `(B^4 2)` in the arXiv version of the
+        article, `\rho` must be replaced by `\lambda`.
 
         INPUT:
 
         - ``shape3, shape4, shape1`` -- three partitions from a cell in a
           growth diagram, labelled as::
 
-                   shape1
-            shape3 shape4
+                   shape1         mu
+            shape3 shape4      nu lambda
 
         OUTPUT:
 
@@ -1625,25 +1751,27 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
         partition acording to the Burge correspondence and the content of
         the cell.
 
+        TEST::
+
+            sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagramBurge(w)
+            sage: GrowthDiagramBurge(labels=G._out_labels).to_word() == w       # indirect doctest
+            True
+
+            sage: G = GrowthDiagramBurge
+            sage: G._backward_rule([1,1,1],[2,1,1,1],[2,1,1])
+            ([1, 1], 0)
+
         """
         carry = 0
-        i = len(shape4)
         shape2 = []
+        i = len(shape4)
         while i > 0:
-            if len(shape1) < i:
-                row1 = 0
-            else:
-                row1 = shape1[i-1]
-            if len(shape2) < i:
-                row2 = 0
-            else:
-                row2 = shape2[i-1]
-            if len(shape3) < i:
-                row3 = 0
-            else:
-                row3 = shape3[i-1]
-            shape2 = [min(row1, row3) - min(ZZ(row1 == row2 == row3), carry)] + shape2
-            carry = carry - min(ZZ(row1 == row2 == row3), carry) + row4 - max(row1, row2)
+            mu_i = 0 if len(shape1) < i else shape1[i-1]
+            la_i = 0 if len(shape4) < i else shape4[i-1]
+            nu_i = 0 if len(shape3) < i else shape3[i-1]
+
+            shape2 = [min(mu_i, nu_i) - min(int(mu_i == nu_i == la_i), carry)] + shape2
+            carry = carry - min(int(mu_i == nu_i == la_i), carry) + la_i - max(mu_i, nu_i)
             i = i-1
         return (Partition(shape2), carry)
 

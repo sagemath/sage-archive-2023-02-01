@@ -1570,7 +1570,7 @@ class TensorField(ModuleElement):
         """
         if other is self:
             return True
-        if isinstance(other, (int, Integer)): # meaningful only if other is 0
+        if other in ZZ: # to compare with 0
             if other == 0:
                 return self.is_zero()
             return False

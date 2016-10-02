@@ -1172,6 +1172,7 @@ class DifferentiableManifold(TopologicalManifold):
           identity map (case of tensor fields *on* `M`), otherwise
           ``dest_map`` must be a
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+
         OUTPUT:
 
         - a

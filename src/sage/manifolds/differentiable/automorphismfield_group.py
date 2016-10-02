@@ -111,7 +111,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
         sage: G in CommutativeAdditiveGroups()
         False
 
-    The element of ``G`` are tangent-space automorphisms::
+    The elements of ``G`` are tangent-space automorphisms::
 
         sage: a = G.an_element(); a
         Field of tangent-space automorphisms on the 2-dimensional

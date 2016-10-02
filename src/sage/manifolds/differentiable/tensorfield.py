@@ -765,7 +765,7 @@ class TensorField(ModuleElement):
 
         INPUT:
 
-        - ``subdomain`` -- 
+        - ``subdomain`` --
           :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`;
           open subset `U` of the tensor field domain `S`
         - ``dest_map`` --
@@ -1566,9 +1566,9 @@ class TensorField(ModuleElement):
         """
         if other is self:
             return True
-        if other == 0:
-            return self.is_zero()
-        elif other in ZZ:
+        if isinstance(other, (int, Integer)): # meaningful only if other is 0
+            if other == 0:
+                return self.is_zero()
             return False
         elif not isinstance(other, TensorField):
             return False

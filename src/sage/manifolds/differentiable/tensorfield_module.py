@@ -584,7 +584,7 @@ class TensorFieldFreeModule(TensorFreeModule):
     .. NOTE::
 
         If `M` is not parallelizable, the class :class:`TensorFieldModule`
-        shouldbe used instead, for `T^{(k,l)}(U,\Phi)` is no longer a
+        should be used instead, for `T^{(k,l)}(U,\Phi)` is no longer a
         free module.
 
     INPUT:

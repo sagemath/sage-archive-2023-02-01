@@ -82,8 +82,10 @@ class VectorFieldModule(UniqueRepresentation, Parent):
     cases are `\Phi` being an immersion and `\Phi` being a curve in `M`
     (`U` is then an open interval of `\RR`).
 
-    If `M` is parallelizable, the class :class:`VectorFieldFreeModule`
-    should be used instead.
+    .. NOTE::
+
+        If `M` is parallelizable, the class :class:`VectorFieldFreeModule`
+        should be used instead.
 
     INPUT:
 
@@ -911,11 +913,11 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     cases are `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is
     then an open interval of `\RR`).
 
-    If `M` is not parallelizable, the class :class:`VectorFieldModule` should
-    be used instead, for `\mathcal{X}(U,\Phi)` is no longer a free module.
+    .. NOTE::
 
-    This is a Sage *parent* class, the corresponding *element* class being
-    :class:`~sage.manifolds.differentiable.vectorfield.VectorFieldParal`.
+        If `M` is not parallelizable, the class :class:`VectorFieldModule`
+        should be used instead, for `\mathcal{X}(U,\Phi)` is no longer a
+        free module.
 
     INPUT:
 

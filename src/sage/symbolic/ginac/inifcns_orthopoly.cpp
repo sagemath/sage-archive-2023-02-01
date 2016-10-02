@@ -116,23 +116,28 @@ static ex gegenb_eval(const ex& n, const ex &a, const ex& x)
                         return gegenb_evalf(n, a, x, nullptr);
         }
 
-        if (not is_exactly_a<numeric>(n)
-		or not is_exactly_a<numeric>(a))
+        if (not is_exactly_a<numeric>(n))
                 return gegenbauer(n, a, x).hold();
 
         numeric numn = ex_to<numeric>(n);
-	numeric numa = ex_to<numeric>(a);
         if (not numn.info(info_flags::integer) or numn < 0)
                 throw std::runtime_error("gegenb_eval: The index n must be a nonnegative integer");
-        if (not numa.info(info_flags::rational) or numa < 0)
-                throw std::runtime_error("gegenb_eval: The parameter a must be a nonnegative rational");
 
-	// from here on see flint2/fmpq_poly/gegenbauer_c.c
         if (numn.is_zero())
                 return _ex1;
 	if (numn.is_equal(*_num1_p))
 		return _ex2 * a * x;
 
+	if (not is_exactly_a<numeric>(a)) {
+                return _ex1 * 1/numn*(2*x*(numn + a - 1)*gegenb_eval(numn-1,a,x)
+                       - (numn + 2*a - 2)*gegenb_eval(numn-2,a,x));
+        }
+
+        numeric numa = ex_to<numeric>(a);
+        if (not numa.info(info_flags::rational) or numa < 0)
+                throw std::runtime_error("gegenb_eval: The parameter a must be a nonnegative rational");
+
+	// from here on see flint2/fmpq_poly/gegenbauer_c.c
 	numeric numer = numa.numer();
 	numeric denom = numa.denom();
 	numeric t = numn.factorial();

@@ -2772,6 +2772,21 @@ class AbstractLinearCode(Module):
         """
         return self.minimum_distance() / self.length()
 
+
+    def rate(self):
+        r"""
+        Return the ratio of the number of information symbols to
+        the code length.
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(GF(2), 3)
+            sage: C.rate()
+            4/7
+        """
+        return self.dimension() / self.length()
+
+
     def redundancy_matrix(self):
         r"""
         Returns the non-identity columns of a systematic generator matrix for

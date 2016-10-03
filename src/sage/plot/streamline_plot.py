@@ -144,7 +144,7 @@ class StreamlinePlot(GraphicPrimitive):
                        **streamplot_options)
 
 
-@options(plot_points=20, density=1., start_points=None, frame=True)
+@options(plot_points=20, density=1., frame=True)
 def streamline_plot(f_g, xrange, yrange, **options):
     r"""
     Return a streamline plot in a vector field.
@@ -155,9 +155,9 @@ def streamline_plot(f_g, xrange, yrange, **options):
     If given two functions `(f(x,y), g(x,y))`, then this function plots
     steamlines in the vector field over the specified ranges with ``xrange``
     being of `x`, denoted by ``xvar`` below, between ``xmin`` and ``xmax``,
-    and ``yrange`` similarly (see below).
+    and ``yrange`` similarly (see below). ::
 
-    ``streamline_plot((f, g), (xvar,xmin,xmax), (yvar,ymin,ymax))``
+        streamline_plot((f, g), (xvar, xmin, xmax), (yvar, ymin, ymax))
 
     Similarly, if given one function `f(x, y)`, then this function plots
     streamlines in the slope field `dy/dx = f(x,y)` over the specified
@@ -165,17 +165,17 @@ def streamline_plot(f_g, xrange, yrange, **options):
 
     PLOT OPTIONS:
 
-    - ``plot_points`` - (default: 200) the minimal number of plot points.
+    - ``plot_points`` -- (default: 200) the minimal number of plot points
 
-    - ``density`` - (default: 1.) float that controls the closeness of
-      streamlines.
+    - ``density`` -- float (default: 1.); controls the closeness of
+      streamlines
 
-    - ``start_points`` - (default: None) list of coordinates of starting
-      points for the streamlines. Coordinate pairs can be tuples or lists.
+    - ``start_points`` -- (optional) list of coordinates of starting
+      points for the streamlines; coordinate pairs can be tuples or lists
 
     EXAMPLES:
 
-    Plot some vector fields involving sin and cos::
+    Plot some vector fields involving `\sin` and `\cos`::
 
         sage: x, y = var('x y')
         sage: streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3))
@@ -264,9 +264,9 @@ def streamline_plot(f_g, xrange, yrange, **options):
 
     .. NOTE::
 
-        Streamlines currently pass close to ``start_points`` but do not necessarily pass
-        directly through them. That is part of the behavior of matplotlib, not an error
-        on your part.
+        Streamlines currently pass close to ``start_points`` but do
+        not necessarily pass directly through them. That is part of
+        the behavior of matplotlib, not an error on your part.
 
     """
     # Parse the function input

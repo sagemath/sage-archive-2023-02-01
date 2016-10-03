@@ -5182,7 +5182,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
     def positive_operator_gens(self, K2=None):
         r"""
-        Compute generators of the positive operators on this cone.
+        Compute minimal generators of the positive operators on this cone.
 
         A linear operator on a cone is positive if the image of
         the cone under the operator is a subset of the cone. This
@@ -5613,7 +5613,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
     def cross_positive_operator_gens(self):
         r"""
-        Compute generators of the cross-positive operators on this cone.
+        Compute minimal generators of the cross-positive operators on this
+        cone.
 
         Any positive operator `P` on this cone will have `s(P(x)) \ge 0`
         whenever `x` is an element of this cone and `s` is an element of
@@ -5893,7 +5894,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
     def Z_operator_gens(self):
         r"""
-        Compute generators of Z-operators on this cone.
+        Compute minimal generators of the Z-operators on this cone.
 
         The Z-operators on a cone generalize the Z-matrices over the
         nonnegative orthant. They are simply negations of the

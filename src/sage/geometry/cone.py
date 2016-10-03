@@ -5302,44 +5302,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         TESTS:
 
-        Each positive operator should send the generators of one cone
-        into the other cone::
-
-            sage: set_random_seed()
-            sage: K1 = random_cone(max_ambient_dim=3)
-            sage: K2 = random_cone(max_ambient_dim=3)
-            sage: pi_K1_K2 = K1.positive_operator_gens(K2)
-            sage: all([ K2.contains(P*x) for P in pi_K1_K2 for x in K1 ])
-            True
-
-        Each positive operator should send a random element of one cone
-        into the other cone::
-
-            sage: set_random_seed()
-            sage: K1 = random_cone(max_ambient_dim=3)
-            sage: K2 = random_cone(max_ambient_dim=3)
-            sage: pi_gens = K1.positive_operator_gens(K2)
-            sage: all([ K2.contains(g*K1.random_element(QQ))
-            ....:       for g in pi_gens ])
-            True
-
-        A random positive operator should send the generators of one
-        cone into the other cone::
-
-            sage: set_random_seed()
-            sage: K1 = random_cone(max_ambient_dim=3)
-            sage: K2 = random_cone(max_ambient_dim=3)
-            sage: pi_gens = K1.positive_operator_gens(K2)
-            sage: L = ToricLattice(K1.lattice_dim() * K2.lattice_dim())
-            sage: pi_cone = Cone([ g.list() for g in pi_gens ],
-            ....:                lattice=L,
-            ....:                check=False)
-            sage: P = matrix(K2.lattice_dim(),
-            ....:            K1.lattice_dim(),
-            ....:            pi_cone.random_element(QQ).list())
-            sage: all([ K2.contains(P*x) for x in K1 ])
-            True
-
         A random positive operator should send a random element of one
         cone into the other cone::
 

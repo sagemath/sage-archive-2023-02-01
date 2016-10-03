@@ -5201,12 +5201,19 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        A list of `m`-by-`n` matrices where `m` is the ambient
-        dimension of ``K2`` and `n` is the ambient dimension of this
-        cone. Each matrix `P` in the list should have the property
-        that `P(x)` is an element of ``K2`` whenever `x` is an
-        element of this cone. Moreover, any nonnegative linear
-        combination of these matrices shares the same property.
+        A list of `m`-by-`n` matrices where `m` is the ambient dimension
+        of ``K2`` and `n` is the ambient dimension of this cone. Each
+        matrix `P` in the list has the property that `P(x)` is an
+        element of ``K2`` whenever `x` is an element of this cone.
+
+        The returned matrices generate the cone of positive operators
+        from this cone to ``K2``; that is,
+
+        - Any nonnegative linear combination of the returned matrices
+          sends elements of this cone to ``K2``.
+
+        - Every positive operator on this cone (with respect to ``K2``)
+          is some nonnegative linear combination of the returned matrices.
 
         ALGORITHM:
 
@@ -5625,12 +5632,19 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        A list of `n`-by-`n` matrices where `n` is the ambient
-        dimension of this cone. Each matrix `L` in the list should
-        have the property that `s(L(x)) \ge 0` whenever `(x,s)` is an
-        element of this cone's :meth:`discrete_complementarity_set`.
-        Moreover, any nonnegative linear combination of these matrices
-        shares the same property.
+        A list of `n`-by-`n` matrices where `n` is the ambient dimension
+        of this cone. Each matrix `L` in the list has the property that
+        `s(L(x)) \ge 0` whenever `(x,s)` is an element of this cone's
+        :meth:`discrete_complementarity_set`.
+
+        The returned matrices generate the cone of cross-positive operators
+        on this cone; that is,
+
+        - Any nonnegative linear combination of the returned matrices
+          is cross-positive on this cone.
+
+        - Every cross-positive operator on this cone is some nonnegative
+          linear combination of the returned matrices.
 
         .. SEEALSO::
 
@@ -5887,12 +5901,19 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        A list of `n`-by-`n` matrices where `n` is the ambient
-        dimension of this cone. Each matrix `L` in the list should
-        have the property that `s(L(x)) \le 0` whenever `(x,s)` is an
-        element of this cone's :meth:`discrete_complementarity_set`.
-        Moreover any nonnegative linear combination of these matrices
-        shares the same property.
+        A list of `n`-by-`n` matrices where `n` is the ambient dimension
+        of this cone. Each matrix `L` in the list has the property that
+        `s(L(x)) \le 0` whenever `(x,s)` is an element of this cone's
+        :meth:`discrete_complementarity_set`.
+
+        The returned matrices generate the cone of Z-operators on this
+        cone; that is,
+
+        - Any nonnegative linear combination of the returned matrices
+          is a Z-operator on this cone.
+
+        - Every Z-operator on this cone is some nonnegative linear
+          combination of the returned matrices.
 
         .. SEEALSO::
 

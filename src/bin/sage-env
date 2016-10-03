@@ -374,9 +374,22 @@ if [ "$SAGE_STARTUP_FILE" = "" ]; then
     export SAGE_STARTUP_FILE
 fi
 
-IPYTHONDIR=`find "$SAGE_SPKG_INST" -name "ipython*"`
-if [ -n "$IPYTHONDIR" ]; then
-    export IPYTHONDIR="$DOT_SAGE/${IPYTHONDIR##*/}"
+if [ -z "$IPYTHONDIR" ]; then
+    # We hardcode a version number in the directory name. The idea is
+    # that we keep using the same version number as long as that is
+    # possible. Only when some future IPython version really requires
+    # a new structure for the $IPYTHONDIR should this version number be
+    # changed to the new IPython version.
+    export IPYTHONDIR="$DOT_SAGE/ipython-5.0.0"
+fi
+
+if [ -z "$JUPYTER_CONFIG_DIR" ]; then
+    # We hardcode a version number in the directory name. The idea is
+    # that we keep using the same version number as long as that is
+    # possible. Only when some future Jupyter version really requires
+    # a new structure for the $JUPYTER_CONFIG_DIR should this version
+    # number be changed to the new jupyter_core version.
+    export JUPYTER_CONFIG_DIR="$DOT_SAGE/jupyter-4.1"
 fi
 
 if [ "$PYTHON_EGG_CACHE" = "" ]; then

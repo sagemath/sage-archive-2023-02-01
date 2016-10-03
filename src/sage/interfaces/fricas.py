@@ -409,7 +409,8 @@ class FriCAS(ExtraTabCompletion, Expect):
         return ')read %s )quiet'%filename
 
     def _local_tmpfile(self):
-        """Return a local tmpfile ending with ".input" used to buffer long
+        """
+        Return a local tmpfile ending with ".input" used to buffer long
         command lines sent to FriCAS.
 
         """
@@ -420,7 +421,8 @@ class FriCAS(ExtraTabCompletion, Expect):
             return self.__local_tmpfile
 
     def _remote_tmpfile(self):
-        """Return a remote tmpfile ending with ".input" used to buffer long
+        """
+        Return a remote tmpfile ending with ".input" used to buffer long
         command lines sent to FriCAS.
 
         """
@@ -504,7 +506,8 @@ class FriCAS(ExtraTabCompletion, Expect):
             raise RuntimeError("An error occurred when FriCAS evaluated '%s':\n%s" % (line, output))
 
     def set(self, var, value):
-        """Set a variable to a value in FriCAS.
+        """
+        Set a variable to a value in FriCAS.
 
         INPUT:
 
@@ -525,7 +528,8 @@ class FriCAS(ExtraTabCompletion, Expect):
         self._check_errors(value, output)
 
     def get(self, var):
-        r""" Get the string representation of the value (more precisely, the
+        r"""
+ Get the string representation of the value (more precisely, the
         OutputForm) of a variable or expression in FriCAS.
 
         If FriCAS cannot evaluate `var` an error is raised.
@@ -557,7 +561,8 @@ class FriCAS(ExtraTabCompletion, Expect):
         self._check_errors(var, output)
 
     def get_string(self, var):
-        """Return the value of a FriCAS string as a string, without checking
+        """
+        Return the value of a FriCAS string as a string, without checking
         that it is a string.
 
         TESTS:
@@ -578,7 +583,8 @@ class FriCAS(ExtraTabCompletion, Expect):
         return self.get(str(var)).replace("\r\n", "")[1:-1]
 
     def get_integer(self, var):
-        """Return the value of a FriCAS integer as an integer, without
+        """
+        Return the value of a FriCAS integer as an integer, without
         checking that it is an integer.
 
         TESTS::
@@ -590,7 +596,8 @@ class FriCAS(ExtraTabCompletion, Expect):
         return int(self.get_unparsed_InputForm(str(var)))
 
     def get_boolean(self, var):
-        """Return the value of a FriCAS boolean as a boolean, without checking
+        """
+        Return the value of a FriCAS boolean as a boolean, without checking
         that it is a boolean.
 
         TESTS::
@@ -604,15 +611,16 @@ class FriCAS(ExtraTabCompletion, Expect):
         return self.get(str(var)).replace("\r\n", "") == "true"
 
     def get_unparsed_InputForm(self, var):
-        """Return the unparsed InputForm as a string.
+        """
+        Return the unparsed ``InputForm`` as a string.
 
         .. TODO::
 
             - catch errors, especially when InputForm is not available:
 
-                -- for example when integration returns "failed"
+                - for example when integration returns ``"failed"``
 
-                -- UnivariatePolynomial
+                - ``UnivariatePolynomial``
 
             - should we provide workarounds, too?
 
@@ -625,7 +633,8 @@ class FriCAS(ExtraTabCompletion, Expect):
         return self.get_string('unparse((%s)::InputForm)' %str(var))
 
     def _assign_symbol(self):
-        """Return the symbol used for setting a variable in FriCAS.
+        """
+        Return the symbol used for setting a variable in FriCAS.
 
         EXAMPLES::
 
@@ -638,7 +647,8 @@ class FriCAS(ExtraTabCompletion, Expect):
         return ":="
 
     def _equality_symbol(self):
-        """Return the equality testing logical symbol in FriCAS.
+        """
+        Return the equality testing logical symbol in FriCAS.
 
         EXAMPLES::
 
@@ -656,7 +666,8 @@ class FriCAS(ExtraTabCompletion, Expect):
         return "="
 
     def _true_symbol(self):
-        """Return the string used for True in FriCAS.
+        """
+        Return the string used for True in FriCAS.
 
         EXAMPLES::
 
@@ -666,7 +677,8 @@ class FriCAS(ExtraTabCompletion, Expect):
         return "true"
 
     def _false_symbol(self):
-        """Return the string used for False in FriCAS.
+        """
+        Return the string used for False in FriCAS.
 
         EXAMPLES::
 
@@ -676,7 +688,8 @@ class FriCAS(ExtraTabCompletion, Expect):
         return "false"
 
     def _inequality_symbol(self):
-        """Return the string used for False in FriCAS.
+        """
+        Return the string used for False in FriCAS.
 
         EXAMPLES::
 
@@ -708,7 +721,8 @@ class FriCAS(ExtraTabCompletion, Expect):
 
     def eval(self, code, strip=True, synchronize=False, locals=None, allow_use_file=True,
              split_lines="nofile", reformat=True, **kwds):
-        """Evaluate ``code`` using FriCAS.
+        """
+        Evaluate ``code`` using FriCAS.
 
         Except ``reformat``, all arguments are passed to
         :meth:`sage.interfaces.expect.Expect.eval`.
@@ -719,7 +733,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         This can also be used to pass system commands to FriCAS.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: fricas.set("x", "1783"); fricas("x")                               # optional - fricas
             1783
@@ -800,7 +814,14 @@ class FriCAS(ExtraTabCompletion, Expect):
         fricas_console()
 
 class FriCASElement(ExpectElement):
+    """
+    Instances of this class represent objects in FriCAS.
 
+    Using the method :meth:`sage` we can translate some of them to
+    SageMath objects:
+
+    .. automethod:: _sage_
+    """
     def __len__(self):
         """
         Return the length of a list.
@@ -816,7 +837,8 @@ class FriCASElement(ExpectElement):
         return l.sage()
 
     def __getitem__(self, n):
-        """We implement the sage conventions here, translating to 0-based iterables.
+        """
+        We implement the sage conventions here, translating to 0-based iterables.
 
         We do not check validity, since many objects in FriCAS are
         iterable, in particular Streams
@@ -1007,7 +1029,8 @@ class FriCASElement(ExpectElement):
         raise NotImplementedError("The translation of FriCAS type %s to sage is not yet implemented." %domain)
 
     def _sage_expression(self, unparsed_InputForm):
-        """Convert an expression to an element of the Symbolic Ring.
+        """
+        Convert an expression to an element of the Symbolic Ring.
 
         This does not depend on `self`.  Instead, for practical
         reasons of the implementation of `self._sage_`, it takes the
@@ -1051,7 +1074,7 @@ class FriCASElement(ExpectElement):
         """
         Convert self to a Sage object.
 
-        TESTS:
+        EXAMPLES:
 
         Floats::
 
@@ -1131,7 +1154,7 @@ class FriCASElement(ExpectElement):
 
             - Converting matrices and lists takes much too long.
 
-        Matrices:
+        Matrices::
 
             sage: fricas("matrix [[x^n/2^m for n in 0..5] for m in 0..3]").sage()         # optional - fricas, long time
             [      1       x     x^2     x^3     x^4     x^5]
@@ -1296,7 +1319,8 @@ class FriCASElement(ExpectElement):
 
 class FriCASFunctionElement(FunctionElement):
     def __init__(self, object, name):
-        """Make FriCAS operation names valid python function identifiers.
+        """
+        Make FriCAS operation names valid python function identifiers.
 
         TESTS::
 
@@ -1319,7 +1343,8 @@ class FriCASFunctionElement(FunctionElement):
 
 class FriCASExpectFunction(ExpectFunction):
     def __init__(self, parent, name):
-        """Translate the pythonized function identifier back to a FriCAS
+        """
+        Translate the pythonized function identifier back to a FriCAS
         operation name.
 
         TESTS::

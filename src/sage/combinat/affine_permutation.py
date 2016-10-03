@@ -1770,7 +1770,7 @@ def AffinePermutationGroup(cartan_type):
     """
     Wrapper function for specific affine permutation groups.
 
-    These are combinatorial implmentations of the affine Weyl groups of
+    These are combinatorial implementations of the affine Weyl groups of
     types `A`, `B`, `C`, `D`, and `G` as permutations of the set of all integers.
     the basic algorithms are derived from [BjBr]_ and [Erik]_.
 

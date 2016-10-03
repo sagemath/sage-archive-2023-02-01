@@ -145,7 +145,7 @@ You can work with subcones that form faces of other cones::
 If you need to know inclusion relations between faces, you can use ::
 
     sage: L = four_rays.face_lattice()
-    sage: map(len, L.level_sets())
+    sage: list(map(len, L.level_sets()))
     [1, 4, 4, 1]
     sage: face = L.level_sets()[2][0]
     sage: face.rays()

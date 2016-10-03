@@ -866,7 +866,7 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     TESTS::
 
         sage: g,l,_=graphs.TaylorTwographDescendantSRG(3,clique_partition=True)
-        sage: all(map(lambda x: g.is_clique(x), l))
+        sage: all(g.is_clique(x) for x in l)
         True
         sage: graphs.TaylorTwographDescendantSRG(4)
         Traceback (most recent call last):
@@ -1048,7 +1048,7 @@ def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, 
     supplying your own hyperoval::
 
         sage: F=GF(4,'b')
-        sage: O=[vector(F,(0,0,0,1)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: O=[vector(F,(0,0,0,1)),vector(F,(0,0,1,0))]+[vector(F, (0,1,x^2,x)) for x in F]
         sage: g=graphs.T2starGeneralizedQuadrangleGraph(4, hyperoval=O, field=F); g
         T2*(O,4); GQ(3, 5): Graph on 64 vertices
         sage: g.is_strongly_regular(parameters=True)
@@ -1057,12 +1057,12 @@ def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, 
     TESTS::
 
         sage: F=GF(4,'b') # repeating a point...
-        sage: O=[vector(F,(0,1,0,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: O=[vector(F,(0,1,0,0)),vector(F,(0,0,1,0))]+[vector(F, (0,1,x^2,x)) for x in F]
         sage: graphs.T2starGeneralizedQuadrangleGraph(4, hyperoval=O, field=F)
         Traceback (most recent call last):
         ...
         RuntimeError: incorrect hyperoval size
-        sage: O=[vector(F,(0,1,1,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: O=[vector(F,(0,1,1,0)),vector(F,(0,0,1,0))]+[vector(F, (0,1,x^2,x)) for x in F]
         sage: graphs.T2starGeneralizedQuadrangleGraph(4, hyperoval=O, field=F)
         Traceback (most recent call last):
         ...
@@ -1165,12 +1165,12 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
     TESTS::
 
         sage: F=GF(4,'b') # repeating a point...
-        sage: O=[vector(F,(0,1,0,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: O=[vector(F,(0,1,0,0)),vector(F,(0,0,1,0))]+[vector(F, (0,1,x^2,x)) for x in F]
         sage: graphs.HaemersGraph(4, hyperoval=O, field=F)
         Traceback (most recent call last):
         ...
         RuntimeError: incorrect hyperoval size
-        sage: O=[vector(F,(0,1,1,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: O=[vector(F,(0,1,1,0)),vector(F,(0,0,1,0))]+[vector(F, (0,1,x^2,x)) for x in F]
         sage: graphs.HaemersGraph(4, hyperoval=O, field=F)
         Traceback (most recent call last):
         ...

@@ -342,7 +342,7 @@ def tropical_plucker_relation(a, lusztig_datum):
     elif a == (-1, -1): # A2
         p = min(n[0], n[2])
         return (n[1]+n[2]-p, p, n[0]+n[1]-p)
-    elif a == (-1, -2): # B2
+    elif a == (-1, -2): # B2  
         p1 = min(n[0]+n[1], n[0]+n[3], n[2]+n[3])
         p2 = min(2*n[0]+n[1], 2*n[0]+n[3], 2*n[2]+n[3])
         return (n[1]+2*n[2]+n[3]-p2,
@@ -359,7 +359,33 @@ def tropical_plucker_relation(a, lusztig_datum):
                 p2-p1,
                 n[0]+2*n[1]+n[2]-p2)
     elif a == (-3, -1): # G2
-        raise NotImplementedError("type G2 not implemented")
+        t1,t2,t3,t4,t5,t6 = tuple(n)
+        pi1 = min(t1+t2+3*t3+t4,
+                  t1+t2+2*min(t3,t5)+t6,
+                  min(t1,t3)+t4+2*t5+t6)
+        pi2 = min(2*t1+2*t2+3*t3+t4,
+                  2*t1+2*t2+3*min(t3,t5)+t6,
+                  2*min(t1,t3)+2*t4+3*t5+t6,
+                  t1+t2+t4+2*t5+t6+min(t1+t3,2*t3,t3+t5,t1+t5))
+        pi3 = min(3*t1+2*t2+3*t3+t4,
+                  3*t1+2*t2+3*min(t3,t5)+t6,
+                  3*min(t1,t3)+2*t4+3*t5+t6,
+                  2*t1+t2+t4+2*t5+t6+min(t1+t3,2*t3,t3+t5,t1+t5))
+        pi4 = min(2*t1+2*t2+3*t3+t4+min(t1+t2+3*t3+t4,
+                                        t1+t2+3*min(t3,t5)+t6,
+                                        min(t1+t3,2*t2,t3+t5,t1+t5)+t4+2*t5+t6),
+                  2*t6+3*min(t1+t2+2*min(t3,t5),min(t1,t3)+t4+2*t5))
+        return (t2+3*t3+2*t4+3*t5+t6-pi3,
+                pi3-pi2,
+                3*pi2-pi2-pi4,
+                pi4-pi1-pi2,
+                3*pi1-pi4,
+                t1+t2+2*t3+t4+t5-pi1)
+    elif a == (-1,-3): #G2 
+        reversed_lusztig_datum = tuple(reversed(lusztig_datum))
+        return tuple(reversed(
+            tropical_plucker_relation(tuple(reversed(a)),
+                                           reversed_lusztig_datum)))
 
 # Maybe we need to be more specific, and pass not the Cartan type, but the root lattice?
 # TODO: Move to PBW_data?

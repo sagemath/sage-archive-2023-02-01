@@ -2184,7 +2184,7 @@ class HasseDiagram(DiGraph):
             0
         """
         gt_a = list(self.depth_first_search(a))
-        lc = self.neighbor_in_iterator(a).next()
+        lc = next(self.neighbor_in_iterator(a))
         if self.out_degree(lc) == 1:
             return lc
         tmp = list(self.depth_first_search(lc, neighbors=lambda v: [v_ for v_ in self.neighbors_out(v) if v_ not in gt_a]))

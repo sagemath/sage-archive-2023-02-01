@@ -564,7 +564,7 @@ class Magmas(Category_singleton):
                     sage: c1._div_.__module__
                     'sage.categories.magmas'
                 """
-                return left._mul_(~right)
+                return left * ~right
 
         class SubcategoryMethods:
 
@@ -785,7 +785,7 @@ class Magmas(Category_singleton):
                 From: (S x S)
                 To:   S
             """
-            return x._mul_(y)
+            return x * y
 
         product_from_element_class_mul = product
 

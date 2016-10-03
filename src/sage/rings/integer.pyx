@@ -2560,6 +2560,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: ZZ(8).log(1/2)
             -3
+
+        Check that Python ints are accepted (:trac:`21518`)::
+
+            sage: ZZ(8).log(int(2))
+            3
         """
         if mpz_sgn(self.value) <= 0:
             from sage.symbolic.all import SR
@@ -2572,6 +2577,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 return RealField(prec)(self).log()
             return RealField(prec)(self).log(m)
 
+        if m is None:
+            from sage.functions.log import function_log
+            return function_log(self,dont_call_method_on_arg=True)
+        try:
+            m = Integer(m)
+        except (ValueError, TypeError):
+            pass
+
         if type(m) == Integer and type(self) == Integer:
             elog = self.exact_log(m)
             if m**elog == self:
@@ -2583,10 +2596,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if m**elog == self:
                 return elog
 
-        from sage.symbolic.all import SR
         from sage.functions.log import function_log
-        if m is None:
-            return function_log(self,dont_call_method_on_arg=True)
         return function_log(self,dont_call_method_on_arg=True)/\
                 function_log(m,dont_call_method_on_arg=True)
 

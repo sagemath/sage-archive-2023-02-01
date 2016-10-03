@@ -320,9 +320,6 @@ def _gap_minimal_weight_vector(Gmat, n, k, F, algorithm=None):
     - The code in the default case allows one (for free) to also compute the
       message vector `m` such that `m\*G = v`, and the (minimum) distance, as
       a triple.  however, this output is not implemented.
-    - The binary case can presumably be done much faster using Robert Miller's
-      code (see the docstring for the spectrum method). This is also not (yet)
-      implemented.
 
     EXAMPLES::
 
@@ -882,7 +879,7 @@ class AbstractLinearCode(Module):
         G = C.generator_matrix()
         n = len(G.columns())
         Cp = C.dual_code()
-        wts = C.spectrum()
+        wts = C.weight_distribution()
         d = min([i for i in range(1,len(wts)) if wts[i]!=0])
         if t>=d:
             return 0
@@ -892,7 +889,7 @@ class AbstractLinearCode(Module):
                 print("The weight w={} codewords of C* form a t-(v,k,lambda) design, where\n \
                         t={}, v={}, k={}, lambda={}. \nThere are {} block of this design.".format(\
                         w,t,n,w,wts[w]*binomial(w,t)//binomial(n,t),wts[w]))
-        wtsp = Cp.spectrum()
+        wtsp = Cp.weight_distribution()
         dp = min([i for i in range(1,len(wtsp)) if wtsp[i]!=0])
         nonzerowtsp = [i for i in range(len(wtsp)) if wtsp[i]!=0 and i<=n-t and i>=dp]
         s = len([i for i in range(1,n) if wtsp[i]!=0 and i<=n-t and i>0])
@@ -1465,7 +1462,7 @@ class AbstractLinearCode(Module):
             2
         """
         C = self
-        A = C.spectrum()
+        A = C.weight_distribution()
         n = C.length()
         V = VectorSpace(QQ,n+1)
         S = V(A).nonzero_positions()
@@ -2581,7 +2578,7 @@ class AbstractLinearCode(Module):
         k = len(G.rows())
         if "gap" in algorithm:
             gap.load_package('guava')
-            wts = self.spectrum()                                            # bottleneck 1
+            wts = self.weight_distribution()                          # bottleneck 1
             nonzerowts = [i for i in range(len(wts)) if wts[i]!=0]
             Sn = SymmetricGroup(n)
             Gp = gap("SymmetricGroup(%s)"%n)               # initializing G in gap
@@ -2920,14 +2917,14 @@ class AbstractLinearCode(Module):
         d0 = self.divisor()
         if i==1 or i==2:
             if d>d0:
-                c0 = QQ((n-d)*rising_factorial(d-d0,d0+1)*self.spectrum()[d])/rising_factorial(n-d0-1,d0+2)
+                c0 = QQ((n-d)*rising_factorial(d-d0,d0+1)*self.weight_distribution()[d])/rising_factorial(n-d0-1,d0+2)
             else:
-                c0 = QQ((n-d)*self.spectrum()[d])/rising_factorial(n-d0-1,d0+2)
+                c0 = QQ((n-d)*self.weight_distribution()[d])/rising_factorial(n-d0-1,d0+2)
         if i==3 or i==4:
             if d>d0:
-                c0 = rising_factorial(d-d0,d0+1)*self.spectrum()[d]/((q-1)*rising_factorial(n-d0,d0+1))
+                c0 = rising_factorial(d-d0,d0+1)*self.weight_distribution()[d]/((q-1)*rising_factorial(n-d0,d0+1))
             else:
-                c0 = self.spectrum()[d]/((q-1)*rising_factorial(n-d0,d0+1))
+                c0 = self.weight_distribution()[d]/((q-1)*rising_factorial(n-d0,d0+1))
         v, m = self.sd_duursma_data(i, warn=False)
         if m<0 or v<0:
             raise NotImplementedError("This combination of length and minimum distance is not supported.")
@@ -3042,7 +3039,7 @@ class AbstractLinearCode(Module):
     @cached_method
     def weight_distribution(self, algorithm=None):
         r"""
-        Returns the weight distribution, or spectrum of ``self`` as a list.
+        Returns the weight distribution, or spectrum, of ``self`` as a list.
 
         The weight distribution a code of length `n` is the sequence `A_0,
         A_1,..., A_n` where `A_i` is the number of codewords of weight `i`.
@@ -3206,7 +3203,7 @@ class AbstractLinearCode(Module):
     def support(self):
         r"""
         Returns the set of indices `j` where `A_j` is nonzero, where
-        spectrum(self) = `[A_0,A_1,...,A_n]`.
+        `A_j` is the number of codewords in `self` of Hamming weight `j`.
 
         OUTPUT:
 
@@ -3215,7 +3212,7 @@ class AbstractLinearCode(Module):
         EXAMPLES::
 
             sage: C = codes.HammingCode(GF(2), 3)
-            sage: C.spectrum()
+            sage: C.weight_distribution()
             [1, 0, 0, 7, 7, 0, 0, 1]
             sage: C.support()
             [0, 3, 4, 7]
@@ -3223,7 +3220,7 @@ class AbstractLinearCode(Module):
         n = self.length()
         F = self.base_ring()
         V = VectorSpace(F,n+1)
-        return V(self.spectrum()).support()
+        return V(self.weight_distribution()).support()
 
     def syndrome(self, r):
         r"""
@@ -3306,23 +3303,31 @@ class AbstractLinearCode(Module):
         E = self.encoder(encoder_name, **kwargs)
         return E.unencode(c, nocheck)
 
-    def weight_enumerator(self, names="xy", name2=None):
+    def weight_enumerator(self, names=None, name2=None, bivariate=True):
         """
-        Returns the weight enumerator of the code.
+        Return the weight enumerator polynomial of ``self``.
+
+        This is the bivariate, homogeneous polynomial in `x` and `y` whose
+        coefficient to `x^i y^{n-i}` is the number of codewords of `self` of
+        Hamming weight `i`. Here, `n` is the length of `self`.
 
         INPUT:
 
-        - ``names`` - String of length 2, containing two variable names
-          (default: ``"xy"``). Alternatively, it can be a variable name or
-          a string, or a tuple of variable names or strings.
+        - ``names`` - (default: ``"xy"``) The names of the variables in the
+          homogeneous polynomial. Can be given as a single string of length 2,
+          or a single string with a comma, or as a tuple or list of two strings.
 
-        - ``name2`` - string or symbolic variable (default: ``None``).
-          If ``name2`` is provided then it is assumed that ``names``
-          contains only one variable.
+        - ``name2`` - Deprecated, (default: ``None``) The string name of the
+          second variable.
+
+        - ``bivariate`` - (default: `True`) Whether to return a bivariate,
+          homogeneous polynomial or just a univariate polynomial. If set to
+          ``False``, then ``names`` will be interpreted as a single variable
+          name and default to ``"x"``.
 
         OUTPUT:
 
-        - Polynomial over `\QQ`
+        - The weight enumerator polynomial over `\ZZ`.
 
         EXAMPLES::
 
@@ -3331,24 +3336,34 @@ class AbstractLinearCode(Module):
             x^7 + 7*x^4*y^3 + 7*x^3*y^4 + y^7
             sage: C.weight_enumerator(names="st")
             s^7 + 7*s^4*t^3 + 7*s^3*t^4 + t^7
+            sage: C.weight_enumerator(names="var1, var2")
+            var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
             sage: (var1, var2) = var('var1, var2')
-            sage: C.weight_enumerator((var1, var2))
+            sage: C.weight_enumerator(names=(var1, var2))
             var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
-            sage: C.weight_enumerator(var1, var2)
-            var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
-
+            sage: C.weight_enumerator(bivariate=False)
+            x^7 + 7*x^4 + 7*x^3 + 1
         """
-        if name2 is not None:
-            # We assume that actual variable names or strings are provided
-            # for names if names2 is also provided. That is, names is not
-            # a tuple or a list. Otherwise, PolynomialRing will return error
-            names = (names, name2)
-        spec = self.spectrum()
+        if names is None:
+            if bivariate:
+                names = "xy"
+            else:
+                names = "x"
+        else:
+            if name2 is not None:
+                from sage.misc.superseded import deprecation
+                deprecation(21576, "Optional argument name2 is deprecated. You should just give a tuple to `names`.")
+                names = (names, name2)
+        spec = self.weight_distribution()
         n = self.length()
-        R = PolynomialRing(QQ,2,names)
-        x,y = R.gens()
-        we = sum([spec[i]*x**(n-i)*y**i for i in range(n+1)])
-        return we
+        if bivariate:
+            R = PolynomialRing(ZZ,2,names)
+            x,y = R.gens()
+            return sum(spec[i]*x**(n-i)*y**i for i in range(n+1))
+        else:
+            R = PolynomialRing(ZZ,names)
+            x, = R.gens()
+            return sum(spec[i]*x**(n-i) for i in range(n+1))
 
     @cached_method
     def zero(self):
@@ -3457,8 +3472,6 @@ class AbstractLinearCode(Module):
         RT = PolynomialRing(QQ,"%s"%name)
         T = RT.gen()
         return P/((1-T)*(1-q*T))
-
-    weight_distribution = spectrum
 
 def LinearCodeFromVectorSpace(V, d=None):
     """

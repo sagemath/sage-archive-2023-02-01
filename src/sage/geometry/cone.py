@@ -5934,7 +5934,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         The Z-operators on a cone generalize the Z-matrices over the
         nonnegative orthant. They are simply negations of the
-        :meth:`cross_positive_operators`.
+        :meth:`cross_positive_operator_gens`.
 
         OUTPUT:
 

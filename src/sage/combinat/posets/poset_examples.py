@@ -592,6 +592,7 @@ class Posets(object):
           * ``None``, no restrictions for lattices to create
           * ``'planar'``, the lattice has an upward planar drawing
           * ``'dismantlable'`` (implicated by ``'planar'``)
+          * ``'distributive'``
 
         OUTPUT:
 
@@ -649,6 +650,7 @@ class Posets(object):
             sage: Posets.RandomLattice(0, 0.5)
             Finite lattice containing 0 elements
         """
+        from copy import copy
         from sage.misc.prandom import randint
 
         try:
@@ -679,7 +681,7 @@ class Posets(object):
         else:
             properties = set(properties)
 
-        known_properties = set(['planar', 'dismantlable'])
+        known_properties = set(['planar', 'dismantlable', 'distributive'])
         errors = properties.difference(known_properties)
         if errors:
             raise ValueError("unknown value %s for 'properties'" % errors.pop())
@@ -692,7 +694,9 @@ class Posets(object):
         if 'planar' in properties:
             properties.discard('dismantlable')
 
-        # Add here tests for property combinations that are not implemented.
+        # Test property combinations that are not implemented.
+        if 'distributive' in properties and len(properties) > 1:
+            raise NotImplementedError("combing 'distributive' with other properties is not implemented")
 
         if properties == set(['planar']):
             D = _random_planar_lattice(n)
@@ -701,6 +705,12 @@ class Posets(object):
 
         if properties == set(['dismantlable']):
             D = _random_dismantlable_lattice(n)
+            D.relabel(list(Permutations(n).random_element()))
+            return LatticePoset(D)
+
+        if properties == set(['distributive']):
+            tmp = Poset(_random_distributive_lattice(n)).order_ideals_lattice(as_ideals=False)
+            D = copy(tmp._hasse_diagram)
             D.relabel(list(Permutations(n).random_element()))
             return LatticePoset(D)
 
@@ -1452,5 +1462,57 @@ def _random_planar_lattice(n):
         if not G2.is_planar():
             G = G1.copy()
     return G
+
+def _random_distributive_lattice(n):
+    """
+    Return a random poset that has `n` antichains.
+
+    INPUT:
+
+    - ``n`` -- number of elements, a non-negative integer
+
+    OUTPUT:
+
+    A random poset (as DiGraph) that has `n` antichains; i.e. a poset
+    that's order ideals lattice has `n` elements.
+
+    EXAMPLES::
+
+        sage: g = sage.combinat.posets.poset_examples._random_distributive_lattice(10)
+        sage: Poset(g).order_ideals_lattice(as_ideals=False).cardinality()
+        10
+
+    ALGORITHM:
+
+    Add elements until there are at least `n` antichains.
+    Remove elements until there are at most `n` antichains.
+    Repeat.
+    """
+    from sage.combinat.posets.hasse_diagram import HasseDiagram
+    from copy import copy
+    from sage.combinat.subset import Subsets
+
+    H = HasseDiagram({0: []})
+    while sum(1 for _ in H.antichains_iterator()) < n:
+        D = copy(H)
+        newcover = Subsets(H).random_element()
+        new_element = H.order()
+        D.add_vertex(new_element)
+        for e in newcover:
+            D.add_edge(e, new_element)
+
+        D = D.transitive_reduction()
+        H = HasseDiagram(D)
+
+        while sum(1 for _ in H.antichains_iterator()) > n:
+            D = copy(H)
+            to_delete = H.random_vertex()
+            for a in D.neighbors_in(to_delete):
+                for b in D.neighbors_out(to_delete):
+                    D.add_edge(a, b)
+            D.delete_vertex(to_delete)
+            D.relabel({z:z-1 for z in range(to_delete+1, D.order()+1)})
+            H = HasseDiagram(D)
+    return D
 
 posets = Posets

@@ -453,14 +453,6 @@ class AbstractSimplex(SageObject):
         if name is not None:
             self.rename(name)
         self._latex_name = latex_name
-        # _faces: a dictionary storing the faces of this simplex in any
-        # given simplicial set. Each key: a simplicial set. The
-        # corresponding value: the tuple of faces of this simplex, or
-        # None if it is a vertex. Thus you can tell whether a simplex
-        # sigma is in a simplicial set X by testing
-        # 'X in sigma._faces'. This dictionary is not copied when
-        # copying a simplex.
-        self._faces = {}
 
     def __hash__(self):
         """
@@ -484,7 +476,7 @@ class AbstractSimplex(SageObject):
         """
         if self.is_nondegenerate():
             return id(self)
-        return hash(self.nondegenerate()) ^ hash(self._degens)
+        return id(self.nondegenerate()) ^ hash(self._degens)
 
     def __eq__(self, other):
         """
@@ -512,8 +504,6 @@ class AbstractSimplex(SageObject):
         """
         if not isinstance(other, AbstractSimplex):
             return False
-        if self.is_nondegenerate() and other.is_nondegenerate():
-            return self is other
         return (self._degens == other._degens
                 and self.nondegenerate() is other.nondegenerate())
 
@@ -1026,16 +1016,15 @@ class SimplicialSet_arbitrary(Parent):
             ...
             ValueError: this simplex is not in this simplicial set
         """
-        underlying = simplex.nondegenerate()
-        dim_underlying = underlying.dimension()
         dim = simplex.dimension()
-        if underlying not in self.n_cells(dim_underlying):
+        if simplex not in self:
             raise ValueError('this simplex is not in this simplicial set')
-        if simplex in self.n_cells(dim):
-            try:
-                return simplex._faces[self]
-            except KeyError:
-                return self.n_skeleton(dim).faces(simplex)
+        if simplex.is_nondegenerate():
+            if self.is_finite():
+                return self.face_data()[simplex]
+            else:
+                return self.n_skeleton(dim).face_data()[simplex]
+        underlying = simplex.nondegenerate()
         faces = []
         for J, t in [face_degeneracies(m, simplex.degeneracies())
                      for m in range(dim+1)]:
@@ -3138,10 +3127,6 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
         if name:
             self.rename(name)
         self._latex_name = latex_name
-        # Finally, store the faces of each nondegenerate simplex as an
-        # attribute of the simplex itself.
-        for x in simplices:
-            x._faces[self] = data[x]
 
     def __eq__(self, other):
         """
@@ -3320,7 +3305,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
         """
         faces = set()
         for dim in range(self.dimension(), 0, -1):
-            for sigma in set(self.n_cells(dim)):
+            for sigma in self.n_cells(dim):
                 faces.update([tau.nondegenerate() for tau in self.faces(sigma)])
         return sorted(list(set(self.nondegenerate_simplices()).difference(faces)))
 

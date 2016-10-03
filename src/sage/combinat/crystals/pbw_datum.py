@@ -342,14 +342,14 @@ def tropical_plucker_relation(a, lusztig_datum):
     elif a == (-1, -1): # A2
         p = min(n[0], n[2])
         return (n[1]+n[2]-p, p, n[0]+n[1]-p)
-    elif a == (-1, -2): # B2  
+    elif a == (-2, -1): # B2  
         p1 = min(n[0]+n[1], n[0]+n[3], n[2]+n[3])
         p2 = min(2*n[0]+n[1], 2*n[0]+n[3], 2*n[2]+n[3])
         return (n[1]+2*n[2]+n[3]-p2,
                 p2-p1,
                 2*p1-p2,
                 n[0]+n[1]+n[2]-p1)
-    elif a == (-2, -1): # C2
+    elif a == (-1, -2): # C2
         # I believe this is condition (iii) in Proposition 5.2 of Joel's thesis.
         # (I'm pretty sure this is correct).
         p1 = min(n[0]+n[1], n[0]+n[3], n[2]+n[3])

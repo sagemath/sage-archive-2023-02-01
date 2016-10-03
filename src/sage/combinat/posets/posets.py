@@ -506,7 +506,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         sage: a + b
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand type(s) for +: 'FinitePoset_with_category.element_class' and 'FinitePoset_with_category.element_class'
+        TypeError: unsupported operand parent(s) for '+': 'Finite poset containing 4 elements' and 'Finite poset containing 4 elements'
         sage: a.element + b.element
         'ab'
 

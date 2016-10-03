@@ -10,7 +10,7 @@ index a898b76..154de0f 100644
        va_end(arg);
        xprintf("Error detected in file %s at line %d\n",
           env->err_file, env->err_line);
-+      env->err_file = NULL;
++      env->err_st = 0;
        if (env->err_hook != NULL)
           env->err_hook(env->err_info);
        abort();

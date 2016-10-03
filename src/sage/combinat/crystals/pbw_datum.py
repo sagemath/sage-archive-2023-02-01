@@ -332,9 +332,9 @@ def tropical_plucker_relation(a, lusztig_datum):
         sage: tropical_plucker_relation((-1,-1), (1,2,3))
         (4, 1, 2)
         sage: tropical_plucker_relation((-1,-2), (1,2,3,4))
-        (8, 1, 2, 3)
-        sage: tropical_plucker_relation((-2,-1), (1,2,3,4))
         (6, 1, 2, 3)
+        sage: tropical_plucker_relation((-2,-1), (1,2,3,4))
+        (8, 1, 2, 3)
     """
     n = lusztig_datum
     if a == (0, 0): # A1xA1

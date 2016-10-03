@@ -69,12 +69,11 @@ class MVPolytope(PBWCrystalElement):
             sage: b = MV.module_generators[0].f_string([1,2,1,2])
             sage: latex(b)
             \begin{tikzpicture}
-            \draw (0, 0) -- (-1, 1) -- (-1, 1) -- (-2, 0) -- (-2, -2);
-            \draw (0, 0) -- (0, -2) -- (-1, -3) -- (-1, -3) -- (-2, -2);
+            \draw (0, 0) -- (-2, 2) -- (-2, 2) -- (-2, 2) -- (-2, -2);
+            \draw (0, 0) -- (0, 0) -- (0, 0) -- (-4, 0) -- (-4, 0);
             \draw[fill=black] (0, 0) circle (0.1);
-            \draw[fill=black] (-2, -2) circle (0.1);
+            \draw[fill=black] (-4, 0) circle (0.1);
             \end{tikzpicture}
-
             sage: MV = crystals.infinity.MVPolytopes(['D',4])
             sage: b = MV.module_generators[0].f_string([1,2,1,2])
             sage: latex(b)
@@ -186,14 +185,19 @@ class MVPolytope(PBWCrystalElement):
             sage: MV = crystals.infinity.MVPolytopes(['C', 3])
             sage: b = MV.module_generators[0].f_string([3,2,3,2,1])
             sage: P = b.polytope(); P
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 6 vertices
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 11 vertices
             sage: P.vertices()
             (A vertex at (0, 0, 0),
-             A vertex at (0, 1, -1),
-             A vertex at (0, 1, 1),
-             A vertex at (1, -1, 0),
-             A vertex at (1, 1, -2),
-             A vertex at (1, 1, 2))
+            A vertex at (0, 0, 2),
+            A vertex at (2, 2, 0),
+            A vertex at (0, 2, 0),
+            A vertex at (1, -1, 0),
+            A vertex at (1, -1, 2),
+            A vertex at (1, 0, -1),
+            A vertex at (1, 1, 2),
+            A vertex at (1, 2, -1),
+            A vertex at (1, 2, 1),
+            A vertex at (2, 0, 2))
         """
         if P is None:
             P = self.parent().weight_lattice_realization()
@@ -219,7 +223,7 @@ class MVPolytope(PBWCrystalElement):
             sage: MV = crystals.infinity.MVPolytopes(['C', 2])
             sage: b = MV.highest_weight_vector().f_string([1,2,1,2,2,2,1,1,1,1,2,1])
             sage: b.plot()
-            Graphics object consisting of 12 graphics primitives
+            Graphics object consisting of 10 graphics primitives
 
         Here is the above example placed inside the ambient space
         of type `C_2`:
@@ -294,24 +298,24 @@ class MVPolytopes(PBWCrystal):
             sage: b = MV.highest_weight_vector().f_string([1,2,1,2])
             sage: latex(b)
             \begin{tikzpicture}
-            \draw (0, 0) -- (-1, 1) -- (-1, 1) -- (-2, 0) -- (-2, -2);
-            \draw (0, 0) -- (0, -2) -- (-1, -3) -- (-1, -3) -- (-2, -2);
+            \draw (0, 0) -- (-2, 2) -- (-2, 2) -- (-2, 2) -- (-2, -2);
+            \draw (0, 0) -- (0, 0) -- (0, 0) -- (-4, 0) -- (-4, 0);
             \draw[fill=black] (0, 0) circle (0.1);
-            \draw[fill=black] (-2, -2) circle (0.1);
+            \draw[fill=black] (-4, 0) circle (0.1);
             \end{tikzpicture}
             sage: MV.set_latex_options(P=P, circle_size=float(0.2))
             sage: latex(b)
             \begin{tikzpicture}
-            \draw (0, 0) -- (-2, 1) -- (-2, 1) -- (-2, 0) -- (0, -2);
-            \draw (0, 0) -- (2, -2) -- (2, -3) -- (2, -3) -- (0, -2);
+            \draw (0, 0) -- (-4, 2) -- (-4, 2) -- (-4, 2) -- (0, -2);
+            \draw (0, 0) -- (0, 0) -- (0, 0) -- (-4, 0) -- (-4, 0);
             \draw[fill=black] (0, 0) circle (0.2);
-            \draw[fill=black] (0, -2) circle (0.2);
+            \draw[fill=black] (-4, 0) circle (0.2);
             \end{tikzpicture}
             sage: MV.set_latex_options(mark_endpoints=False)
             sage: latex(b)
             \begin{tikzpicture}
-            \draw (0, 0) -- (-2, 1) -- (-2, 1) -- (-2, 0) -- (0, -2);
-            \draw (0, 0) -- (2, -2) -- (2, -3) -- (2, -3) -- (0, -2);
+            \draw (0, 0) -- (-4, 2) -- (-4, 2) -- (-4, 2) -- (0, -2);
+            \draw (0, 0) -- (0, 0) -- (0, 0) -- (-4, 0) -- (-4, 0);
             \end{tikzpicture}
             sage: MV.set_latex_options(P=MV.weight_lattice_realization(),
             ....:                      circle_size=0.2,

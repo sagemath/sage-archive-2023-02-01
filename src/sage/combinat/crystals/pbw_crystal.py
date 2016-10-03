@@ -52,8 +52,8 @@ class PBWCrystalElement(Element):
             sage: B = crystals.infinity.PBW(['B', 4])
             sage: u = B.highest_weight_vector()
             sage: u.f_string([1,2,3,4,2,3,2,3,4,1,2])
-            PBW monomial with Lusztig datum
-            (0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 1, 2)
+            PBW monomial with Lusztig datum 
+            (0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 2)
         """
         pbw_datum = self._pbw_datum.convert_to_new_long_word(self.parent()._default_word)
         return "PBW monomial with Lusztig datum {}".format(pbw_datum.lusztig_datum)
@@ -68,11 +68,11 @@ class PBWCrystalElement(Element):
             sage: u = B.highest_weight_vector()
             sage: b = u.f_string([1,2,3,4,2,3,2,3,4,1,2])
             sage: latex(b)
-            f_{\alpha_{4}}^{2}
-             f_{\alpha_{3}}
-             f_{\alpha_{1} + \alpha_{2} + 2\alpha_{3}}
-             f_{\alpha_{1} + \alpha_{2}}
-             f_{\alpha_{2}}^{2}
+            f_{\alpha_{1}} 
+            f_{\alpha_{4}} 
+            f_{\alpha_{2} + 2\alpha_{3} + 2\alpha_{4}} 
+            f_{\alpha_{2} + 2\alpha_{3}}^{2} 
+            f_{\alpha_{1} + \alpha_{2}}
         """
         pbw_datum = self._pbw_datum.convert_to_new_long_word(self.parent()._default_word)
         lusztig_datum = list(pbw_datum.lusztig_datum)
@@ -191,9 +191,9 @@ class PBWCrystalElement(Element):
             sage: B = crystals.infinity.PBW(['B', 3])
             sage: b = B.highest_weight_vector()
             sage: c = b.f_string([2,1,3,2,1,3,2,2]); c
-            PBW monomial with Lusztig datum (0, 1, 0, 1, 0, 0, 0, 1, 2)
+            PBW monomial with Lusztig datum (0, 0, 0, 1, 1, 0, 0, 0, 1)
             sage: c.e(2)
-            PBW monomial with Lusztig datum (0, 1, 0, 1, 0, 0, 0, 1, 1)
+            PBW monomial with Lusztig datum (0, 0, 2, 0, 0, 0, 0, 0, 1)
             sage: c.e_string([2,2,1,3,2,1,3,2]) == b
             True
         """
@@ -403,12 +403,12 @@ class PBWCrystal(Parent, UniqueRepresentation):
             [1, 3, 2, 3, 1, 2, 3, 1, 2]
             sage: x = B.highest_weight_vector().f_string([2,1,3,2,3,1,2,3,3,1])
             sage: x
-            PBW monomial with Lusztig datum (1, 2, 2, 0, 0, 0, 0, 0, 1)
+            PBW monomial with Lusztig datum (1, 3, 0, 1, 0, 0, 0, 1, 1)
             sage: B.set_default_long_word([2,1,3,2,1,3,2,3,1])
             sage: B.default_long_word()
             [2, 1, 3, 2, 1, 3, 2, 3, 1]
             sage: x
-            PBW monomial with Lusztig datum (2, 0, 0, 0, 0, 0, 1, 3, 2)
+            PBW monomial with Lusztig datum (0, 0, 1, 0, 1, 1, 0, 0, 2)
 
         TESTS::
 

@@ -300,14 +300,14 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                                           canonicalize=False,
                                           category=category)
 
-        l_set = range(1, len(self.gens())+1)
+        l_set = list(range(1, len(self.gens()) + 1))
         if self._index_set is None:
             self._index_set = tuple(l_set)
         else:
             if len(self._index_set) != len(l_set):
                 raise ValueError("the given index set (= %s) does not have the right size"%self._index_set.values())
         self._index_set_inverse = {i: ii for ii,i in enumerate(self._index_set)}
-        Nstar_set = range(1,self.number_of_reflection_hyperplanes()+1)
+        Nstar_set = list(range(1, self.number_of_reflection_hyperplanes() + 1))
         if self._hyperplane_index_set is None:
             self._hyperplane_index_set = tuple(Nstar_set)
         else:
@@ -315,7 +315,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 raise ValueError("the given hyperplane index set (= %s) does not have the right size"%self._index_set.values())
         self._hyperplane_index_set_inverse = {i: ii for ii,i in enumerate(self._hyperplane_index_set)}
 
-        N_set = range(1, self.number_of_reflections()+1)
+        N_set = list(range(1, self.number_of_reflections() + 1))
         if self._reflection_index_set is None:
             self._reflection_index_set = tuple(N_set)
         else:
@@ -2055,7 +2055,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
                 sage: W = ReflectionGroup(4)                 # optional - gap3
                 sage: N = len(W.roots())                     # optional - gap3
-                sage: all(sorted([w.action_on_root_indices(i) for i in range(N)]) == range(N) for w in W)   # optional - gap3
+                sage: all(sorted([w.action_on_root_indices(i) for i in range(N)]) == list(range(N)) for w in W)   # optional - gap3
                 True
             """
             return self(i + 1) - 1
@@ -2548,7 +2548,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             try:
                 chain = next(iter)
             except StopIteration:
-                chain = range(m + 1)
+                chain = list(range(m + 1))
         return NCm
 
     # TODO: lift to ComplexReflectionGroups.Finite

@@ -356,7 +356,7 @@ def iterator_tracking_words(W):
         ((1,24,12,2)(3,20,19,6)(4,5,22,17)(7,13,23,11)(8,10,9,21)(14,15,18,16), [0, 0, 1, 1, 0, 0])
     """
     cdef tuple I = tuple(W.simple_reflections())
-    cdef list index_list = range(len(I))
+    cdef list index_list = list(xrange(len(I)))
 
     cdef list level_set_cur = [(W.one(), [])]
     cdef set level_set_old = set([ W.one() ])

@@ -5742,19 +5742,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: cp_cone.linear_subspace() == lls
             True
 
-        The lineality of the cross-positive operators on a cone is the
-        Lyapunov rank of that cone::
-
-            sage: set_random_seed()
-            sage: K = random_cone(max_ambient_dim=3)
-            sage: cp_gens = K.cross_positive_operator_gens()
-            sage: L = ToricLattice(K.lattice_dim()**2)
-            sage: cp_cone = Cone([g.list() for g in cp_gens],
-            ....:                lattice=L,
-            ....:                check=False)
-            sage: cp_cone.lineality() == K.lyapunov_rank()
-            True
-
         The lineality spaces of the duals of the positive and cross-
         positive operator cones are equal. From this it follows that
         the dimensions of the cross-positive operator cone and positive

@@ -317,7 +317,9 @@ def compute_new_lusztig_datum(enhanced_braid_chain, initial_lusztig_datum):
 # The tropical plucker relations
 def tropical_plucker_relation(a, lusztig_datum):
     r"""
-    Apply the tropical Plucker relation of type ``a`` to ``lusztig_datum``.
+    Apply the tropical Plucker relation of type ``a`` to ``lusztig_datum``. The
+    relations are obtained by tropicalizing the relations in Proposition 7.1 
+    of the paper of Berenstein and Zelevinsky cited below.
 
     INPUT:
 
@@ -335,31 +337,31 @@ def tropical_plucker_relation(a, lusztig_datum):
         (6, 1, 2, 3)
         sage: tropical_plucker_relation((-2,-1), (1,2,3,4))
         (8, 1, 2, 3)
+
+    REFERENCES:
+    .. [Berenstein-Zelevinsky01] \A. Berenstein, A. Zelevinsky
+       *Tensor product multiplicities, canonical bases and 
+        totally positive varieties*
+       Invent. Math. **143** (2002). no. 1. 77-128.
     """
-    n = lusztig_datum
     if a == (0, 0): # A1xA1
-        return (n[1], n[0])
+        t1,t2 = lusztig_datum
+        return (t2,t1)
     elif a == (-1, -1): # A2
-        p = min(n[0], n[2])
-        return (n[1]+n[2]-p, p, n[0]+n[1]-p)
+        t1,t2,t3 = lusztig_datum
+        return (t2+t3-min(t1,t3),
+                min(t1,t3),
+                t1+t2-min(t1,t3))
     elif a == (-2, -1): # B2  
-        p1 = min(n[0]+n[1], n[0]+n[3], n[2]+n[3])
-        p2 = min(2*n[0]+n[1], 2*n[0]+n[3], 2*n[2]+n[3])
-        return (n[1]+2*n[2]+n[3]-p2,
-                p2-p1,
-                2*p1-p2,
-                n[0]+n[1]+n[2]-p1)
-    elif a == (-1, -2): # C2
-        # I believe this is condition (iii) in Proposition 5.2 of Joel's thesis.
-        # (I'm pretty sure this is correct).
-        p1 = min(n[0]+n[1], n[0]+n[3], n[2]+n[3])
-        p2 = min(n[0]+2*n[1], n[0]+2*n[3], n[2]+2*n[3])
-        return (n[1]+n[2]+n[3]-p1,
-                2*p1-p2,
-                p2-p1,
-                n[0]+2*n[1]+n[2]-p2)
+        t1,t2,t3,t4 = lusztig_datum
+        pi1 = min(t1+t2,min(t1,t3)+t4)
+        pi2 = min(2*t1+t2,2*min(t1,t3)+t4)
+        return (t2+2*t3+t4-pi2,
+                pi2-pi1,
+                2*pi1-pi2,
+                t1+t2+t3-pi1)
     elif a == (-3, -1): # G2
-        t1,t2,t3,t4,t5,t6 = tuple(n)
+        t1,t2,t3,t4,t5,t6 = lusztig_datum
         pi1 = min(t1+t2+3*t3+t4,
                   t1+t2+2*min(t3,t5)+t6,
                   min(t1,t3)+t4+2*t5+t6)
@@ -381,7 +383,7 @@ def tropical_plucker_relation(a, lusztig_datum):
                 pi4-pi1-pi2,
                 3*pi1-pi4,
                 t1+t2+2*t3+t4+t5-pi1)
-    elif a == (-1,-3): #G2 
+    else: # (-1,-2) and (-1,-3)
         reversed_lusztig_datum = tuple(reversed(lusztig_datum))
         return tuple(reversed(
             tropical_plucker_relation(tuple(reversed(a)),

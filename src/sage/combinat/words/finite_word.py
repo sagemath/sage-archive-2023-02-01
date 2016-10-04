@@ -1617,12 +1617,12 @@ class FiniteWord_class(Word_class):
                 for w in self.left_special_factors_iterator(i):
                     yield w
         else:
-            left = defaultdict(set)
+            left_extensions = defaultdict(set)
             for w in self.factor_iterator(n+1):
                 v = w[1:]
-                left[v].add(w[0])
-            for v,A in left.iteritems():
-                if len(A) > 1:
+                left_extensions[v].add(w[0])
+            for v in left_extensions:
+                if len(left_extensions[v]) > 1:
                     yield v
 
     def left_special_factors(self, n=None):
@@ -1685,12 +1685,12 @@ class FiniteWord_class(Word_class):
                 for w in self.right_special_factors_iterator(i):
                     yield w
         else:
-            right = defaultdict(set)
+            right_extensions = defaultdict(set)
             for w in self.factor_iterator(n+1):
                 v = w[:-1]
-                right[v].add(w[-1])
-            for v,A in right.iteritems():
-                if len(A) > 1:
+                right_extensions[v].add(w[-1])
+            for v in right_extensions:
+                if len(right_extensions[v]) > 1:
                     yield v
 
     def right_special_factors(self, n=None):
@@ -1776,14 +1776,15 @@ class FiniteWord_class(Word_class):
                 for w in self.bispecial_factors_iterator(i):
                     yield w
         else:
-            left = defaultdict(set)
-            right = defaultdict(set)
+            left_extensions = defaultdict(set)
+            right_extensions = defaultdict(set)
             for w in self.factor_iterator(n+2):
                 v = w[1:-1]
-                left[v].add(w[0])
-                right[v].add(w[-1])
-            for v,A in left.iteritems():
-                if len(A) > 1 and len(right[v]) > 1:
+                left_extensions[v].add(w[0])
+                right_extensions[v].add(w[-1])
+            for v in left_extensions:
+                if (len(left_extensions[v]) > 1 and
+                    len(right_extensions[v]) > 1):
                     yield v
 
     def bispecial_factors(self, n=None):

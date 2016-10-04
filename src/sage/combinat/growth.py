@@ -227,6 +227,13 @@ class GrowthDiagram(SageObject):
             sage: RSK(w)
             [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
 
+        TESTS::
+
+            sage: G = GrowthDiagramRSK()
+            Traceback (most recent call last):
+            ...
+            ValueError: please provide a filling or a sequence of labels.
+
         """
         try:
             self._covers_1((self._zero, self._zero))
@@ -238,6 +245,9 @@ class GrowthDiagram(SageObject):
             self._covers_2 = lambda (a,b): True
 
         if filling is None:
+            if labels is None:
+                raise ValueError("please provide a filling or a sequence of labels.")
+
             if shape is None:
                 shape = self._shape_from_labels(labels)
 
@@ -721,19 +731,30 @@ class GrowthDiagram(SageObject):
             sage: G.shape()
             [3, 2] / [1]
 
+        ``filling`` is empty and shape is ``None``::
+
+            sage: G = GrowthDiagramRSK({})
+            sage: (G.filling(), G.shape())
+            ({}, [] / [])
+
         """
         if isinstance(filling, dict):
-            v = next(filling.itervalues())
-            if isinstance(v, dict):
-                # it is a dict of dicts
-                F = dict()
-                for (i, row) in filling.iteritems():
-                    for (j, v) in row.iteritems():
-                        if v != 0:
-                            F[(i,j)] = int(v)
-            else:
-                # it is dict of coordinates
+            try:
+                v = next(filling.itervalues())
+                if isinstance(v, dict):
+                    # it is a dict of dicts
+                    F = dict()
+                    for (i, row) in filling.iteritems():
+                        for (j, v) in row.iteritems():
+                            if v != 0:
+                                F[(i,j)] = int(v)
+                else:
+                    # it is dict of coordinates
+                    F = filling
+            except StopIteration:
+                # it is an empty dict of coordinates
                 F = filling
+
 
         else:
             # it is a sequence
@@ -753,10 +774,13 @@ class GrowthDiagram(SageObject):
                     F[(i, l-1)] = 1
 
         if shape is None:
-            # find bounding rectangle of ``filling``
-            max_row = max(i for i, _ in F)+1
-            max_col = max(j for _, j in F)+1
-            shape = [max_row]*max_col
+            if F == {}:
+                shape = []
+            else:
+                # find bounding rectangle of ``filling``
+                max_row = max(i for i, _ in F)+1
+                max_col = max(j for _, j in F)+1
+                shape = [max_row]*max_col
 
         return (F, self._init_shape_from_various_input(shape))
 

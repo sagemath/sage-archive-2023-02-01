@@ -258,7 +258,6 @@ REFERENCES:
 #*****************************************************************************
 
 import copy
-from functools import total_ordering
 from time import time
 
 from sage.graphs.graph import Graph
@@ -286,8 +285,36 @@ lazy_import('sage.categories.simplicial_sets', 'SimplicialSets')
 ########################################################################
 # The classes for simplices.
 
-@total_ordering
-class AbstractSimplex_class(SageObject):
+class AbstractSimplex_class(UniqueRepresentation, SageObject):
+    @staticmethod
+    def __classcall_private__(self, dim, degeneracies=(), underlying=None, name=None,
+                              latex_name=None, unique_tag=None):
+        """
+        Normalize input to ensure a unique representation.
+
+        Standardize ``degeneracies`` using the simplicial identities,
+        and also convert it to a tuple.  Ignore ``unique_tag`` -- this
+        argument is present for compatibility with the subclass
+        :class:`NonDegenerateSimplex`.
+
+        TESTS::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex_class
+            sage: v = AbstractSimplex_class(0, degeneracies=[0,0])
+            sage: v._degens
+            (1, 0)
+
+            sage: v == AbstractSimplex_class(0, degeneracies=[0,0], unique_tag=10)
+            True
+        """
+        if degeneracies:
+            degeneracies = standardize_degeneracies(*degeneracies)
+        return super(AbstractSimplex_class, self).__classcall__(self,
+                                                                dim, degeneracies=degeneracies,
+                                                                underlying=underlying,
+                                                                name=name,
+                                                                latex_name=latex_name)
+
     def __init__(self, dim, degeneracies=(), underlying=None, name=None,
                  latex_name=None):
         """
@@ -333,6 +360,31 @@ class AbstractSimplex_class(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: invalid list of degeneracy maps on 0-simplex
+
+        Hashing::
+
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
+            sage: hash(v) == hash(w)
+            False
+            sage: x = v.apply_degeneracies(2,1,0)
+            sage: id(x) == id(v.apply_degeneracies(2,1,0))
+            True
+            sage: hash(x) == hash(v.apply_degeneracies(2,1,0))
+            True
+
+        Equality::
+
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
+            sage: v == w
+            False
+            sage: v.apply_degeneracies(2,1,0) is v.apply_degeneracies(2,1,0)
+            True
+            sage: v.apply_degeneracies(2,1,0) == v.apply_degeneracies(2,1,0)
+            True
+            sage: v == None
+            False
         """
         try:
             Integer(dim)
@@ -360,57 +412,6 @@ class AbstractSimplex_class(SageObject):
         if name is not None:
             self.rename(name)
         self._latex_name = latex_name
-
-    def __hash__(self):
-        """
-        If nondegenerate: return the id of this simplex.
-
-        Otherwise, combine the id of its underlying nondegenerate
-        simplex with the tuple of indeterminacies.
-
-        EXAMPLES::
-
-            sage: from sage.homology.simplicial_set import AbstractSimplex
-            sage: v = AbstractSimplex(0)
-            sage: w = AbstractSimplex(0)
-            sage: hash(v) == hash(w)
-            False
-            sage: x = v.apply_degeneracies(2,1,0)
-            sage: id(x) == id(v.apply_degeneracies(2,1,0))
-            False
-            sage: hash(x) == hash(v.apply_degeneracies(2,1,0))
-            True
-        """
-        return hash(self.nondegenerate()) ^ hash(self._degens)
-
-    def __eq__(self, other):
-        """
-        Two nondegenerate simplices are equal if they are identical.
-        Two degenerate simplices are equal if their underlying
-        nondegenerate simplices are identical and their tuples of
-        degeneracies are equal.
-
-        EXAMPLES::
-
-            sage: from sage.homology.simplicial_set import AbstractSimplex
-            sage: v = AbstractSimplex(0)
-            sage: w = AbstractSimplex(0)
-            sage: v == w
-            False
-            sage: v.apply_degeneracies(2,1,0) is v.apply_degeneracies(2,1,0)
-            False
-            sage: v.apply_degeneracies(2,1,0) == v.apply_degeneracies(2,1,0)
-            True
-
-        TESTS::
-
-            sage: v == None
-            False
-        """
-        if not isinstance(other, AbstractSimplex_class):
-            return False
-        return (self._degens == other._degens
-                and self.nondegenerate() == other.nondegenerate())
 
     def __ne__(self, other):
         """
@@ -539,6 +540,48 @@ class AbstractSimplex_class(SageObject):
                 or hasattr(other.nondegenerate(), '__custom_name')):
                 return False
         return id(self) < id(other)
+
+    def __gt__(self, other):
+        """
+        See :meth:`__lt__` for more doctests.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: e = AbstractSimplex(1, (1,0), name='e')
+            sage: f = AbstractSimplex(1, (2,1), name='f')
+            sage: e > f
+            False
+        """
+        return not (self < other or self == other)
+
+    def __le__(self, other):
+        """
+        See :meth:`__lt__` for more doctests.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: e = AbstractSimplex(1, (1,0), name='e')
+            sage: f = AbstractSimplex(1, (2,1), name='f')
+            sage: e <= f
+            True
+        """
+        return self < other or self == other
+
+    def __ge__(self, other):
+        """
+        See :meth:`__lt__` for more doctests.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: e = AbstractSimplex(1, (1,0), name='e')
+            sage: f = AbstractSimplex(1, (2,1), name='f')
+            sage: e >= f
+            False
+        """
+        return not self < other
 
     def nondegenerate(self):
         """
@@ -831,7 +874,7 @@ class AbstractSimplex_class(SageObject):
         return simplex
 
 
-class NonDegenerateSimplex(AbstractSimplex_class, UniqueRepresentation):
+class NonDegenerateSimplex(AbstractSimplex_class):
     def __init__(self, dim, name=None, latex_name=None,
                  unique_tag=None):
         """
@@ -881,17 +924,6 @@ class NonDegenerateSimplex(AbstractSimplex_class, UniqueRepresentation):
         """
         AbstractSimplex_class.__init__(self, dim, name=name, latex_name=latex_name)
 
-    __hash__ = UniqueRepresentation.__hash__
-    __eq__ = UniqueRepresentation.__eq__
-
-    # __lt__ = AbstractSimplex_class.__lt__
-    # __le__ = AbstractSimplex_class.__le__
-    # __gt__ = AbstractSimplex_class.__gt__
-    # __ge__ = AbstractSimplex_class.__ge__
-    # __copy__ = AbstractSimplex_class.__copy__
-    # __deepcopy__ = AbstractSimplex_class.__deepcopy__
-
-
 # The following function returns an instance of either
 # AbstractSimplex_class or NonDegenerateSimplex.
 
@@ -908,7 +940,7 @@ def AbstractSimplex(dim, degeneracies=(), underlying=None,
     - ``dim`` -- a non-negative integer, the dimension of the
       underlying non-degenerate simplex.
 
-    - ``degeneracies`` (optional, default `()`) -- a list or tuple of
+    - ``degeneracies`` (optional, default ``None``) -- a list or tuple of
       non-negative integers, the degeneracies to be applied.
 
     - ``underlying`` (optional) -- a non-degenerate simplex to which
@@ -1002,6 +1034,9 @@ def AbstractSimplex(dim, degeneracies=(), underlying=None,
     then the faces are three different degenerate vertices.
     """
     if degeneracies:
+        if not underlying:
+            underlying = NonDegenerateSimplex(dim,
+                                              unique_tag=getrandbits(128)*time())
         return AbstractSimplex_class(dim, degeneracies=degeneracies,
                                      underlying=underlying,
                                      name=name,

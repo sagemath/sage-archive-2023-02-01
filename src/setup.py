@@ -351,6 +351,7 @@ class sage_build_ext(build_ext):
         t = time.time()
         self.run_cython()
         log.warn("Finished Cythonizing, time: %.2f seconds." % (time.time() - t))
+        self.copy_extra_files()
 
     def run_cython(self):
         """
@@ -634,6 +635,21 @@ class sage_build_ext(build_ext):
             build_temp=self.build_temp,
             target_lang=language)
 
+    def copy_extra_files(self):
+        """
+        Copy extra Cython files to the build directory. These will then
+        be installed in site-packages/sage.
+        """
+        dist = self.distribution
+        from sage_setup.find import find_extra_files
+        dist.extra_files = find_extra_files(dist.packages,
+            ".", SAGE_CYTHONIZED, ["ntlwrap.cpp"])
+
+        for (dst_dir, src_files) in dist.extra_files:
+            dst = os.path.join(self.build_lib, dst_dir)
+            for src in src_files:
+                self.copy_file(src, dst, preserve_mode=False)
+
 
 #########################################################
 ### Discovering Sources
@@ -641,15 +657,11 @@ class sage_build_ext(build_ext):
 
 print("Discovering Python/Cython source code....")
 t = time.time()
-from sage_setup.find import find_python_sources, find_extra_files
+from sage_setup.find import find_python_sources
 python_packages, python_modules = find_python_sources(
     SAGE_SRC, ['sage', 'sage_setup'])
-python_data_files = find_extra_files(python_packages,
-    ".", SAGE_CYTHONIZED, SAGE_LIB, ["ntlwrap.cpp"])
 
 log.info('python_packages = {0}'.format(python_packages))
-log.info('python_modules = {0}'.format(python_modules))
-log.info('python_data_files = {0}'.format(python_data_files))
 
 print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
 
@@ -710,7 +722,7 @@ class sage_install(install):
                     dist.packages,
                     py_modules,
                     dist.ext_modules,
-                    dist.data_files)
+                    dist.extra_files)
 
 
 #########################################################
@@ -725,7 +737,5 @@ code = setup(name = 'sage',
       author_email= 'http://groups.google.com/group/sage-support',
       url         = 'http://www.sagemath.org',
       packages    = python_packages,
-      data_files  = python_data_files,
-      scripts = [],
       cmdclass = dict(build_ext=sage_build_ext, install=sage_install),
       ext_modules = ext_modules)

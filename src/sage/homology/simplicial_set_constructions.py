@@ -1449,7 +1449,7 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
                         latex_name = latex(list(s)[0][0])
                     else:
                         # Choose a name from a simplex in domain.
-                        for (sigma,j) in s:
+                        for (sigma,j) in sorted(s):
                             if j == -1:
                                 name = str(sigma)
                                 latex_name = latex(sigma)

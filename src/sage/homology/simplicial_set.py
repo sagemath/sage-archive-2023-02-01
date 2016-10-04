@@ -259,132 +259,35 @@ REFERENCES:
 
 import copy
 from functools import total_ordering
+from time import time
 
-from sage.structure.parent import Parent
-from sage.structure.sage_object import SageObject
+from sage.graphs.graph import Graph
+from sage.matrix.constructor import matrix
+from sage.misc.cachefunc import cached_method
+from sage.misc.latex import latex
+from sage.misc.prandom import getrandbits
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.matrix.constructor import matrix
-from sage.misc.cachefunc import cached_method
-from sage.graphs.graph import Graph
-from sage.misc.latex import latex
-from sage.homology.algebraic_topological_model import algebraic_topological_model_delta_complex
-from sage.homology.cell_complex import GenericCellComplex
-from sage.homology.chain_complex import ChainComplex
-from sage.homology.chains import Chains, Cochains
-from sage.homology.delta_complex import DeltaComplex
-from sage.homology.simplicial_complex import SimplicialComplex
+from sage.structure.parent import Parent
+from sage.structure.sage_object import SageObject
+from sage.structure.unique_representation import UniqueRepresentation
+
+from .algebraic_topological_model import algebraic_topological_model_delta_complex
+from .cell_complex import GenericCellComplex
+from .chain_complex import ChainComplex
+from .chains import Chains, Cochains
+from .delta_complex import DeltaComplex
+from .simplicial_complex import SimplicialComplex
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.categories.simplicial_sets', 'SimplicialSets')
 
+########################################################################
+# The classes for simplices.
+
 @total_ordering
-class AbstractSimplex(SageObject):
-    """
-    An abstract simplex, a building block of a simplicial set.
-
-    In a simplicial set, a simplex either is non-degenerate or is
-    obtained by applying degeneracy maps to a non-degenerate simplex.
-
-    INPUT:
-
-    - ``dim`` -- a non-negative integer, the dimension of the
-      underlying non-degenerate simplex.
-
-    - ``degeneracies`` (optional, default `()`) -- a list or tuple of
-      non-negative integers, the degeneracies to be applied.
-
-    - ``underlying`` (optional) -- a non-degenerate simplex to which
-      the degeneracies are being applied.
-
-    - ``name`` (optional) -- string, a name for this simplex.
-
-    - ``latex_name`` (optional) -- string, a name for this simplex to
-      use in the LaTeX representation.
-
-    So to define a simplex formed by applying the degeneracy maps `s_2
-    s_1` to a 1-simplex, call ``AbstractSimplex(1, (2, 1))``.
-
-    Specify ``underlying`` if you need to keep explicit track of the
-    underlying non-degenerate simplex, for example when computing
-    faces of another simplex. This is mainly for use by the method
-    :meth:`apply_degeneracies`.
-
-    EXAMPLES::
-
-        sage: from sage.homology.simplicial_set import AbstractSimplex
-        sage: AbstractSimplex(3, (3, 1))
-        Simplex obtained by applying degeneracies s_3 s_1 to Non-degenerate simplex of dimension 3
-        sage: AbstractSimplex(3, None)
-        Non-degenerate simplex of dimension 3
-        sage: AbstractSimplex(3)
-        Non-degenerate simplex of dimension 3
-
-    Simplices may be named (or renamed), affecting how they are printed::
-
-        sage: AbstractSimplex(0)
-        Non-degenerate simplex of dimension 0
-        sage: v = AbstractSimplex(0, name='v')
-        sage: v
-        v
-        sage: v.rename('w_0')
-        sage: v
-        w_0
-        sage: latex(v)
-        w_0
-        sage: latex(AbstractSimplex(0, latex_name='\\sigma'))
-        \sigma
-
-    The simplicial identities are used to put the degeneracies in
-    standard decreasing form::
-
-        sage: x = AbstractSimplex(0, (0, 0, 0))
-        sage: x
-        Simplex obtained by applying degeneracies s_2 s_1 s_0 to Non-degenerate simplex of dimension 0
-        sage: x.degeneracies()
-        [2, 1, 0]
-
-    Use of the ``underlying`` argument::
-
-        sage: v = AbstractSimplex(0, name='v')
-        sage: e = AbstractSimplex(0, (0,), underlying=v)
-        sage: e
-        Simplex obtained by applying degeneracy s_0 to v
-        sage: e.nondegenerate() is v
-        True
-
-        sage: e.dimension()
-        1
-        sage: e.is_degenerate()
-        True
-
-    Distinct simplices are never equal::
-
-        sage: AbstractSimplex(0, None) == AbstractSimplex(0, None)
-        False
-        sage: AbstractSimplex(0, (2,1,0)) == AbstractSimplex(0, (2,1,0))
-        False
-
-        sage: e = AbstractSimplex(0, ((0,)))
-        sage: f = AbstractSimplex(0, ((0,)))
-        sage: e == f
-        False
-        sage: e.nondegenerate() == f.nondegenerate()
-        False
-
-    This means that if, when defining a simplicial set, you specify
-    the faces of a 2-simplex as::
-
-        (e, e, e)
-
-    then the faces are the same degenerate vertex, but if you specify
-    the faces as::
-
-        (AbstractSimplex(0, ((0,))), AbstractSimplex(0, ((0,))), AbstractSimplex(0, ((0,))))
-
-    then the faces are three different degenerate vertices.
-    """
+class AbstractSimplex_class(SageObject):
     def __init__(self, dim, degeneracies=(), underlying=None, name=None,
                  latex_name=None):
         """
@@ -397,6 +300,10 @@ class AbstractSimplex(SageObject):
         - ``underlying`` (optional) -- a non-degenerate simplex
         - ``name`` (optional) -- string
         - ``latex_name`` (optional) -- string
+
+        Users should not call this directly, but instead use
+        :func:`AbstractSimplex`. See that function for more
+        documentation.
 
         TESTS::
 
@@ -474,9 +381,7 @@ class AbstractSimplex(SageObject):
             sage: hash(x) == hash(v.apply_degeneracies(2,1,0))
             True
         """
-        if self.is_nondegenerate():
-            return id(self)
-        return id(self.nondegenerate()) ^ hash(self._degens)
+        return hash(self.nondegenerate()) ^ hash(self._degens)
 
     def __eq__(self, other):
         """
@@ -502,10 +407,10 @@ class AbstractSimplex(SageObject):
             sage: v == None
             False
         """
-        if not isinstance(other, AbstractSimplex):
+        if not isinstance(other, AbstractSimplex_class):
             return False
         return (self._degens == other._degens
-                and self.nondegenerate() is other.nondegenerate())
+                and self.nondegenerate() == other.nondegenerate())
 
     def __ne__(self, other):
         """
@@ -630,7 +535,8 @@ class AbstractSimplex(SageObject):
                 return str(self) < str(other)
             return True
         else:
-            if hasattr(other, '__custom_name'):
+            if (hasattr(other, '__custom_name')
+                or hasattr(other.nondegenerate(), '__custom_name')):
                 return False
         return id(self) < id(other)
 
@@ -925,8 +831,189 @@ class AbstractSimplex(SageObject):
         return simplex
 
 
+class NonDegenerateSimplex(AbstractSimplex_class, UniqueRepresentation):
+    def __init__(self, dim, name=None, latex_name=None,
+                 unique_tag=None):
+        """
+        A nondegenerate simplex.
+
+        INPUT:
+
+        - ``dim`` -- non-negative integer, the dimension
+
+        - ``name`` (optional) -- string, a name for this simplex.
+
+        - ``latex_name`` (optional) -- string, a name for this simplex to
+          use in the LaTeX representation.
+
+        - ``unique_tag`` (optional, default ``None``) -- for internal use:
+          to distinguish simplices defined with the same input.
+
+        Users should not call this directly but instead use
+        :func:`AbstractSimplex`, which then sets an appropriate value for
+        ``unique_tag``.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(0, name='v')
+            sage: v
+            v
+            sage: type(v)
+            <class 'sage.homology.simplicial_set.NonDegenerateSimplex'>
+
+        Distinct simplices should never be equal, even if they have
+        the same starting data. :func:`AbstractSimplex` takes care of
+        this automatically. :class:`NonDegenerateSimplex` requires use
+        of the ``unique_tag`` argument::
+
+            sage: v == AbstractSimplex(0, name='v')
+            False
+            sage: AbstractSimplex(3) == AbstractSimplex(3)
+            False
+
+            sage: from sage.homology.simplicial_set import NonDegenerateSimplex
+            sage: x = NonDegenerateSimplex(0, name='x')
+            sage: x == NonDegenerateSimplex(0, name='x')
+            True
+            sage: x == NonDegenerateSimplex(0, name='x', unique_tag=17)
+            False
+        """
+        AbstractSimplex_class.__init__(self, dim, name=name, latex_name=latex_name)
+
+    __hash__ = UniqueRepresentation.__hash__
+    __eq__ = UniqueRepresentation.__eq__
+
+    # __lt__ = AbstractSimplex_class.__lt__
+    # __le__ = AbstractSimplex_class.__le__
+    # __gt__ = AbstractSimplex_class.__gt__
+    # __ge__ = AbstractSimplex_class.__ge__
+    # __copy__ = AbstractSimplex_class.__copy__
+    # __deepcopy__ = AbstractSimplex_class.__deepcopy__
+
+
+# The following function returns an instance of either
+# AbstractSimplex_class or NonDegenerateSimplex.
+
+def AbstractSimplex(dim, degeneracies=(), underlying=None,
+                    name=None, latex_name=None):
+    """
+    An abstract simplex, a building block of a simplicial set.
+
+    In a simplicial set, a simplex either is non-degenerate or is
+    obtained by applying degeneracy maps to a non-degenerate simplex.
+
+    INPUT:
+
+    - ``dim`` -- a non-negative integer, the dimension of the
+      underlying non-degenerate simplex.
+
+    - ``degeneracies`` (optional, default `()`) -- a list or tuple of
+      non-negative integers, the degeneracies to be applied.
+
+    - ``underlying`` (optional) -- a non-degenerate simplex to which
+      the degeneracies are being applied.
+
+    - ``name`` (optional) -- string, a name for this simplex.
+
+    - ``latex_name`` (optional) -- string, a name for this simplex to
+      use in the LaTeX representation.
+
+    So to define a simplex formed by applying the degeneracy maps `s_2
+    s_1` to a 1-simplex, call ``AbstractSimplex(1, (2, 1))``.
+
+    Specify ``underlying`` if you need to keep explicit track of the
+    underlying non-degenerate simplex, for example when computing
+    faces of another simplex. This is mainly for use by the method
+    :meth:`AbstractSimplex_class.apply_degeneracies`.
+
+    EXAMPLES::
+
+        sage: from sage.homology.simplicial_set import AbstractSimplex
+        sage: AbstractSimplex(3, (3, 1))
+        Simplex obtained by applying degeneracies s_3 s_1 to Non-degenerate simplex of dimension 3
+        sage: AbstractSimplex(3, None)
+        Non-degenerate simplex of dimension 3
+        sage: AbstractSimplex(3)
+        Non-degenerate simplex of dimension 3
+
+    Simplices may be named (or renamed), affecting how they are printed::
+
+        sage: AbstractSimplex(0)
+        Non-degenerate simplex of dimension 0
+        sage: v = AbstractSimplex(0, name='v')
+        sage: v
+        v
+        sage: v.rename('w_0')
+        sage: v
+        w_0
+        sage: latex(v)
+        w_0
+        sage: latex(AbstractSimplex(0, latex_name='\\sigma'))
+        \sigma
+
+    The simplicial identities are used to put the degeneracies in
+    standard decreasing form::
+
+        sage: x = AbstractSimplex(0, (0, 0, 0))
+        sage: x
+        Simplex obtained by applying degeneracies s_2 s_1 s_0 to Non-degenerate simplex of dimension 0
+        sage: x.degeneracies()
+        [2, 1, 0]
+
+    Use of the ``underlying`` argument::
+
+        sage: v = AbstractSimplex(0, name='v')
+        sage: e = AbstractSimplex(0, (0,), underlying=v)
+        sage: e
+        Simplex obtained by applying degeneracy s_0 to v
+        sage: e.nondegenerate() is v
+        True
+
+        sage: e.dimension()
+        1
+        sage: e.is_degenerate()
+        True
+
+    Distinct simplices are never equal::
+
+        sage: AbstractSimplex(0, None) == AbstractSimplex(0, None)
+        False
+        sage: AbstractSimplex(0, (2,1,0)) == AbstractSimplex(0, (2,1,0))
+        False
+
+        sage: e = AbstractSimplex(0, ((0,)))
+        sage: f = AbstractSimplex(0, ((0,)))
+        sage: e == f
+        False
+        sage: e.nondegenerate() == f.nondegenerate()
+        False
+
+    This means that if, when defining a simplicial set, you specify
+    the faces of a 2-simplex as::
+
+        (e, e, e)
+
+    then the faces are the same degenerate vertex, but if you specify
+    the faces as::
+
+        (AbstractSimplex(0, ((0,))), AbstractSimplex(0, ((0,))), AbstractSimplex(0, ((0,))))
+
+    then the faces are three different degenerate vertices.
+    """
+    if degeneracies:
+        return AbstractSimplex_class(dim, degeneracies=degeneracies,
+                                     underlying=underlying,
+                                     name=name,
+                                     latex_name=latex_name)
+    else:
+        return NonDegenerateSimplex(dim, name=name,
+                                    latex_name=latex_name,
+                                    unique_tag=getrandbits(128)*time())
+
+
 ########################################################################
-# The main classes
+# The main classes for simplicial sets.
 
 class SimplicialSet_arbitrary(Parent):
     r"""
@@ -2599,16 +2686,16 @@ class SimplicialSet_arbitrary(Parent):
 
             sage: S3 = simplicial_sets.Sphere(3)
             sage: W = S2.wedge(S3, S2)
-            sage: W.inclusion_map(1)
+            sage: W.inclusion_map(2)
             Simplicial set morphism:
-              From: S^3
+              From: S^2
               To:   Wedge: (S^2 v S^3 v S^2)
-              Defn: [v_0, sigma_3] --> [*, sigma_3]
-            sage: W.projection_map(2)
+              Defn: [v_0, sigma_2] --> [*, sigma_2]
+            sage: W.projection_map(1)
             Simplicial set morphism:
               From: Wedge: (S^2 v S^3 v S^2)
               To:   Quotient: (Wedge: (S^2 v S^3 v S^2)/Simplicial set with 3 non-degenerate simplices)
-              Defn: [*, sigma_2, sigma_2, sigma_3] --> [*, Simplex obtained by applying degeneracies s_1 s_0 to *, sigma_2, Simplex obtained by applying degeneracies s_2 s_1 s_0 to *]
+              Defn: [*, sigma_2, sigma_2, sigma_3] --> [*, Simplex obtained by applying degeneracies s_1 s_0 to *, Simplex obtained by applying degeneracies s_1 s_0 to *, sigma_3]
 
         Note that the codomain of the projection map is not identical
         to the original ``S2``, but is instead a quotient of the wedge
@@ -3008,6 +3095,12 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
             sage: S1 = SimplicialSet({e: (v, v)})
             sage: SimplicialSet(S1) == S1
             False
+
+        Test suites::
+
+            sage: TestSuite(S1).run()
+            sage: TestSuite(simplicial_sets.Sphere(5)).run()
+            sage: TestSuite(simplicial_sets.RealProjectiveSpace(6)).run()
         """
         def face(sigma, i):
             """

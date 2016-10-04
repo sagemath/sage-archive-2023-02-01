@@ -3635,6 +3635,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - ``other`` -- a finite poset
 
+        .. SEEALSO::
+
+            :meth:`sage.combinat.posets.lattices.FiniteLatticePoset.isomorphic_sublattices_iterator`.
+
         EXAMPLES::
 
             sage: D = Poset({1:[2,3], 2:[4], 3:[4]})

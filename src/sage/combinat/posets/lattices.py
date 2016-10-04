@@ -2089,6 +2089,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         - other --  a finite lattice
 
+        .. SEEALSO::
+
+            :meth:`sage.combinat.posets.posets.FinitePoset.isomorphic_subposets_iterator`.
+
         EXAMPLES:
 
         A non-modular lattice contains a pentagon sublattice::

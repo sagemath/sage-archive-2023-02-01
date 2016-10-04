@@ -711,7 +711,7 @@ class Posets(object):
         if properties == set(['distributive']):
             tmp = Poset(_random_distributive_lattice(n)).order_ideals_lattice(as_ideals=False)
             D = copy(tmp._hasse_diagram)
-            D.relabel(list(Permutations(n).random_element()))
+            D.relabel([i-1 for i in Permutations(n).random_element()])
             return LatticePoset(D)
 
         raise AssertionError("Bug in RandomLattice().")

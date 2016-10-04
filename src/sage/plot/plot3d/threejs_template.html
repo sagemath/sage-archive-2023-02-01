@@ -224,9 +224,9 @@
         for ( var i=0 ; i < scene.children.length ; i++ ) {
             if ( scene.children[i].type === 'Sprite' ) {
                 var sprite = scene.children[i];
-                var adjust = scratch.subVectors( sprite.position, camera.position ).length() / 10;
-                sprite.scale.x = 4 * adjust;
-                sprite.scale.y = adjust;
+                var adjust = scratch.addVectors( sprite.position, scene.position )
+                               .sub( camera.position ).length() / 10;
+                sprite.scale.set( 4 * adjust, adjust );
             }
         }
     }

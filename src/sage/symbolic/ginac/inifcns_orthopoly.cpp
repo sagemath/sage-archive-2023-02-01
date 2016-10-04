@@ -129,9 +129,30 @@ static ex gegenb_eval(const ex& n, const ex &a, const ex& x)
 		return _ex2 * a * x;
 
 	if (not is_exactly_a<numeric>(a)) {
-                return _ex1 * 1/numn*(2*x*(numn + a - 1)*gegenb_eval(numn-1,a,x)
-                       - (numn + 2*a - 2)*gegenb_eval(numn-2,a,x));
-        }
+		ex p = _ex1;
+		ex sum = _ex0;
+		ex sign = _ex1;
+		ex aa = _ex1;
+		unsigned long nn = numn.to_long();
+
+		sign = - 1;
+		for (unsigned long k=0; k<=nn/2; k++) {
+			sign *= - 1;
+			aa = a;
+			p = 1;
+
+			// rising factorial (a)_{n-k}
+			for (unsigned long i=0; i<nn-k; i++) {
+				p *= aa;
+				aa = aa + 1;
+			}
+
+			p /= numeric(k).factorial();
+			p /= numeric(nn-2*k).factorial();
+			sum += pow(2*x, nn-2*k) * p * sign;
+		}
+		return sum;
+	}
 
         numeric numa = ex_to<numeric>(a);
         if (not numa.info(info_flags::rational) or numa < 0)

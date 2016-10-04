@@ -6573,7 +6573,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         In the language of [Grinb2016a]_, the generalized `P`-partition
         enumerator is the quasisymmetric function
         `\Gamma\left(\mathbf{E}, w\right)`, where `\mathbf{E}` is the
-         special double poset `(P, <_P, \prec)`, and where
+        special double poset `(P, <_P, \prec)`, and where
         `w` is the dictionary ``weights`` (regarded as a function from
         `P` to the positive integers).
 
@@ -6629,7 +6629,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         REFERENCES:
 
-        .. [Grinb2016a] Darij Grinberg
+        .. [Grinb2016a] Darij Grinberg,
            *Double posets and the antipode of QSym*,
            :arxiv:`1509.08355v2`.
         """

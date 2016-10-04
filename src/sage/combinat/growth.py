@@ -1088,8 +1088,8 @@ class GrowthDiagramSylvester(GrowthDiagram):
                  labels = None):
         r"""
         Initialize the zero element and the rank function of the dual
-        graded graphs on binary words.  Make sure that ``labels`` are
-        binary words.
+        graded graphs on binary trees.  Make sure that ``labels`` are
+        binary trees.
 
         TESTS::
 

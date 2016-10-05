@@ -534,7 +534,7 @@ class FiniteWord_class(Word_class):
             sage: w.length()
             4
             sage: def f(n):
-            ...     return range(2,12,2)[n]
+            ....:   return range(2,12,2)[n]
             sage: w = Word(f, length=5)
             sage: w.length()
             5
@@ -2344,8 +2344,8 @@ class FiniteWord_class(Word_class):
             sage: v = Word('abbabaab')
             sage: pal = v[:0]
             sage: for i in range(1, v.length()+1):
-            ...     pal = v[:i].lps(l=pal.length())
-            ...     pal
+            ....:   pal = v[:i].lps(l=pal.length())
+            ....:   pal
             ...
             word: a
             word: b
@@ -2359,8 +2359,8 @@ class FiniteWord_class(Word_class):
             sage: v = Word('abbabaab')
             sage: pal = v[:0]
             sage: for i in range(1, v.length()+1):
-            ...     pal = v[:i].lps(f=f, l=pal.length())
-            ...     pal
+            ....:   pal = v[:i].lps(f=f, l=pal.length())
+            ....:   pal
             ...
             word:
             word: ab

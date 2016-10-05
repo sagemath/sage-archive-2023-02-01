@@ -1121,10 +1121,10 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         turn triggers ``self._repr_()``::
 
             sage: class MyAlgebra(CombinatorialFreeModule):
-            ...       def _repr_(self):
-            ...           return "MyAlgebra on %s"%(self.basis().keys())
-            ...       def product_on_basis(self,i,j):
-            ...           pass
+            ....:     def _repr_(self):
+            ....:         return "MyAlgebra on %s"%(self.basis().keys())
+            ....:     def product_on_basis(self,i,j):
+            ....:         pass
             sage: MyAlgebra(ZZ, ZZ, category = AlgebrasWithBasis(QQ))
             MyAlgebra on Integer Ring
 

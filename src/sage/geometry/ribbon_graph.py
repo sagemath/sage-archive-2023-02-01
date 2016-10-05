@@ -2,14 +2,93 @@ r"""
 Ribbon Graphs
 
 This file implements the object 'ribbon graph'.These are graphs 
-together with a cyclic ordering of the half edges adjacent to each 
+together with a cyclic ordering of the darts adjacent to each 
 vertex. This data allows us to unambiguosly "thicken" the ribbon 
-graph to an orientable surface with boundary. 
+graph to an orientable surface with boundary. Also, every orientable
+surface with non-empty boundary is the thickening of a ribbon graph.
+
+Let $\Gamma$ be the topological realization of a graph. Let $v(\Gamma)$
+be the set of vertices of $\Gamma$ and let $e(\Gamma):= \Gamma - v(\Gamma)$ 
+be the set of edges of $\Gamma$. Now remove a point from each edge. This
+gives two ''darts'' (sometimes called half-edges) for each edge.
+
+Given a vertex $v \in v(\Gamma)$, let $d(v)$ be the set of darts adjacent
+to $v$. A \textit{ribbon structure} on $\Gamma$ is a cyclic ordering of $d(v)$ for
+each $v\in V(\Gamma)$. Let $D(\Gamma)$ be the set of all the darts of
+$\Gamma$ and suppose that we enumerate the set $D(\Gamma)$ and that it
+has $n$ elements.
+
+We can now encode the data of a ribbon structure in two permutations of
+the symmetric group $S_n$:
+
+    - A permutation that we will call ``sigma``. This permutation is a
+      product of $|v(\Gamma)|$ disjoint cycles. That is, a cycle per 
+      vertex in $\Gamma$. After enumerating $D(\Gamma)$, the cycle is
+      defined by the ribbon structure.
+
+    - A permutation that we will call ``rho``. This permutation is a
+      product of as many $2$-cycles as edges has $\Gamma$. It just tells
+      which two darts belong to the same edge.
+
+The thickening can be pictured as follows
+
+EXAMPLES::
+
+Consider a graph that has $2$ vertices of valency $3$ )and hence $3$
+edges). That is represented by  the  following two permutations::
+
+    sage: s1 = PermutationGroupElement('(1,3,5)(2,4,6)')
+    sage: r1 = PermutationGroupElement('(1,2)(3,4)(5,6)')
+    sage: R1 = RibbonGraph(s1,r1);R1
+    Sigma: [[1, 3, 5], [2, 4, 6]] 
+    Rho: [[1, 2], [3, 4], [5, 6]]
+
+By drawing the picture in a piece of paper as explained in the 
+introduction, one can see that its thickening has only $1$ boundary 
+component. Since the the thickening is homotopically equivalent to the
+graph and the graph has euler characteristic $-1$, we find that the
+thickening has genus $1$::
+
+    sage: R1.n_boundary()
+    1
+    sage: R1.genus()
+    1
+
+    sage: s2=PermutationGroupElement('(1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18,19)')
+    sage: r2=PermutationGroupElement('(1,16)(2,13)(3,10)(4,17)(5,14)(6,11)(7,18)(8,15)(9,12)(19,20)')
+    sage: R2 = RibbonGraph(s2,r2);R2
+    Sigma: [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15], [16, 17, 18, 19], [20]] 
+    Rho: [[1, 16], [2, 13], [3, 10], [4, 17], [5, 14], [6, 11], [7, 18], [8, 15], [9, 12], [19, 20]]
+    sage: R2.contract_edge(9)
+    Sigma: [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15], [16, 17, 18]] 
+    Rho: [[1, 16], [2, 13], [3, 10], [4, 17], [5, 14], [6, 11], [7, 18], [8, 15], [9, 12]]
+    sage: S2=R2.reduced();S2
+    Sigma: [[5, 6, 8, 9, 14, 15, 11, 12]] 
+    Rho: [[5, 14], [6, 11], [8, 15], [9, 12]]
+    sage: R2.genus(); S2.genus()
+    1
+    1
+    sage: R2.boundary()
+    [[1, 16, 17, 4, 5, 14, 15, 8, 9, 12, 10, 3],
+    [2, 13, 14, 5, 6, 11, 12, 9, 7, 18, 19, 20, 20, 19, 16, 1],
+    [3, 10, 11, 6, 4, 17, 18, 7, 8, 15, 13, 2]]
+    sage: S2.boundary()
+    [[5, 14, 15, 8, 9, 12], [6, 11, 12, 9, 14, 5], [8, 15, 11, 6]]
+    sage: R2.homology_basis()
+    [[[5, 14], [13, 2], [1, 16], [17, 4]],
+    [[6, 11], [10, 3], [1, 16], [17, 4]],
+    [[8, 15], [13, 2], [1, 16], [18, 7]],
+    [[9, 12], [10, 3], [1, 16], [18, 7]]]
+    sage: S2.homology_basis()
+    [[[5, 14]], [[6, 11]], [[8, 15]], [[9, 12]]]
 
 AUTHORS:
 
 - Pablo Portilla (2016): initial version
 
+REFERENCES:
+
+    [GIR] Introduction to compact Riemann surfaces and dessin's d'enfant.
 """
 
 #*****************************************************************************
@@ -24,17 +103,18 @@ AUTHORS:
 
 from sage.structure.sage_object import SageObject
 from sage.groups.perm_gps.permgroup_element import *
+from sage.functions.other import floor
 import copy
 
 #Auxiliary functions that will be used in the classes.
 
-def find(l, k):
+def _find(l, k):
     r"""
     Return the two coordinates of the element k in the list of lists l.
 
     INPUT:
 
-    - ''l'' a list of lists.
+    - ``l`` a list of lists.
 
     - ``k`` a candidate to be in a list in l.
 
@@ -43,15 +123,15 @@ def find(l, k):
     A list with two integers describing the position of the first
     instance of k in l.
 
-    EXAMPLES::
+    TESTS::
 
-        sage: from sage.combinat.ribbon_graph import find
+        sage: from sage.geometry.ribbon_graph import _find
         sage: A = [[2,3,4],[4,5,2],[8,7]]
-        sage: find(A,2)
+        sage: _find(A,2)
         [0, 0]
-        sage: find(A,7)
+        sage: _find(A,7)
         [2, 1]
-        sage: find(A,5)
+        sage: _find(A,5)
         [1, 1]
     """
     pos=[]
@@ -73,19 +153,23 @@ def find(l, k):
 
 class RibbonGraph(SageObject):
     r"""
-    A ribbon graph as two elements of a symmetric group.
+    A ribbon graph codified as two elements of a certaing permutation 
+    group.
 
     INPUT:
 
-    - ''sigma'' a permutation in G which is a product of disjoint
+    - ``sigma`` -- a permutation in G which is a product of disjoint.
 
-    - ''rho'' a permutation in G which is a product of disjoint
-     2-cycles and singletons (1-cycles)
+    - ``rho`` -- a permutation in G which is a product of disjoint
+      2-cycles and singletons (1-cycles).
 
-    -''sing'' a boolean variable that tells if we consider vertices of
-     valency 1 or not in our ribbon graph
+    - ``sing`` -- a boolean variable that tells if we consider vertices of
+      valency 1 or not in our ribbon graph.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    Consider the ribbon graph consisting of just $1$ edge and $2$
+    vertices of valency $1$::
 
         sage: s0 = PermutationGroupElement('(1)(2)')
         sage: r0 = PermutationGroupElement('(1,2)')
@@ -93,11 +177,19 @@ class RibbonGraph(SageObject):
         Sigma: [[1], [2]] 
         Rho: [[1, 2]]
 
+    The following example corresponds to the  complete bipartite graph
+    of type $(2,3)$, where we have added one more edge $(8,15)$ that
+    ends at a vertex of valency $1$. Observe that it is not necessary
+    to specify the  vertex $(15)$ of valency $1$ when we define sigma::
+
         sage: s1 = PermutationGroupElement('(1,3,5,8)(2,4,6)')
         sage: r1 = PermutationGroupElement('(1,2)(3,4)(5,6)(8,15)')
         sage: R1 = RibbonGraph(s1,r1); R1
         Sigma: [[1, 3, 5, 8], [2, 4, 6], [15]] 
         Rho: [[1, 2], [3, 4], [5, 6], [8, 15]]
+
+    This example is constructed by taking the bipartite graph of 
+    type '(3,3)'::
 
         sage: s2=PermutationGroupElement('(1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18)')
         sage: r2=PermutationGroupElement('(1,16)(2,13)(3,10)(4,17)(5,14)(6,11)(7,18)(8,15)(9,12)')
@@ -123,15 +215,15 @@ class RibbonGraph(SageObject):
         #things that are not ribbon graphs, etc.
 
     def _repr_(self):
-        r'''
+        r"""
         Return string representation of the two permutations that define
         the ribbon graph.
 
-        '''
+        """
 
         #On the first lines, we compute the vertices of valency 1 to add
         #them to the list repr_sigma.
-        
+
         repr_sigma = [list(x) for 
                      x in self.sigma.cycle_tuples()]
         repr_rho = [list(x) for 
@@ -143,16 +235,16 @@ class RibbonGraph(SageObject):
         val_one = [x for x in darts_rho if x not in darts_sigma]
         for i in range(len(val_one)):
             repr_sigma += [[val_one[i]]]
-            
+
         return ('Sigma: %r \n' \
                 'Rho: %r'% (repr_sigma, 
-                                repr_rho
+                            repr_rho
                             )
                 )
 
 
     def n_boundary(self):
-        r'''
+        r"""
         Return number of boundary components of the thickening of the
         ribbon graph.
 
@@ -175,7 +267,7 @@ class RibbonGraph(SageObject):
             sage: R2 = RibbonGraph(s2,r2)
             sage: R2.n_boundary()
             3
-        '''
+        """
         return len((self.rho*self.sigma).cycle_tuples())
 
 
@@ -188,12 +280,12 @@ class RibbonGraph(SageObject):
 
         INPUT:
 
-        - ''k''-- non-negative integer. The position in rho of the
-        transposition that is going to be contracted.
+        - ``k`` -- non-negative integer. The position in rho of the 
+          transposition that is going to be contracted.
 
         OUTPUT:
 
-        -A ribbon graph resulting from the contraction of that edge.
+        - A ribbon graph resulting from the contraction of that edge.
 
         EXAMPLES::
 
@@ -229,7 +321,7 @@ class RibbonGraph(SageObject):
             sage: R2.contract_edge(9)
             Sigma: [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15], [16, 17, 18]] 
             Rho: [[1, 16], [2, 13], [3, 10], [4, 17], [5, 14], [6, 11], [7, 18], [8, 15], [9, 12]]
-            """
+        """
 
         #the following two lines convert the list of tuples to list of lists
         aux_sigma = [list(x) for 
@@ -239,8 +331,8 @@ class RibbonGraph(SageObject):
         #The following if rules out the cases when we would be 
         #contracting a loop (which is not admissible since we would 
         #lose the topological type of the graph).
-        if (find(aux_sigma, aux_rho[k][0])[0] == 
-                find(aux_sigma, aux_rho[k][1])[0]):
+        if (_find(aux_sigma, aux_rho[k][0])[0] == 
+                _find(aux_sigma, aux_rho[k][1])[0]):
             raise ValueError("The edge is a loop and " \
                               "cannot be contracted")
         #We store in auxiliary variables the positions of the vertices
@@ -248,8 +340,8 @@ class RibbonGraph(SageObject):
         #from them the darts corresponding to the edge that is going
         #to be contracted. We also delete the contracted edge 
         #from aux_rho
-        pos1 = find(aux_sigma, aux_rho[k][0])
-        pos2 = find(aux_sigma, aux_rho[k][1])
+        pos1 = _find(aux_sigma, aux_rho[k][0])
+        pos2 = _find(aux_sigma, aux_rho[k][1])
         del aux_sigma[pos1[0]][pos1[1]]
         del aux_sigma[pos2[0]][pos2[1]]
         del aux_rho[k]
@@ -274,51 +366,64 @@ class RibbonGraph(SageObject):
                            PermutationGroupElement([tuple(x) for x in aux_rho])
                            )
 
-        
+
 
     def genus(self):
-        r'''
+        r"""
         Return the genus of the thickening of the ribbon graph.
-        
-        '''
-        
-        vertices = len(self.sigma.cycle_tuples(singletons = 1))
+
+        OUTPUT:
+
+        - ``g`` -- non-negative integer representing the genus of the
+          thickening of the ribbon graph.
+        """
+
+        repr_sigma = [list(x) for 
+                     x in self.sigma.cycle_tuples()]
+        repr_rho = [list(x) for 
+                   x in self.rho.cycle_tuples()]
+        darts_rho = [j for i in range(len(repr_rho)) 
+                        for j in repr_rho[i]]
+        darts_sigma = [j for i in range(len(repr_sigma)) 
+                        for j in repr_sigma[i]]
+        val_one = [x for x in darts_rho if x not in darts_sigma]
+
+        vertices = len(self.sigma.cycle_tuples()) + len(val_one)
         edges = len(self.rho.cycle_tuples())
-        
         #formula for the genus using that the thickening is homotopically 
         #equivalent to the graph
         g = (vertices - edges + self.n_boundary()-2)/(-2)
-        
+
         return g
-    
+
     def mu(self):
-        r'''
+        r"""
         Return the rank of the first homology group of the thickening
         of the ribbon graph.
 
-        '''
+        """
         return 2*self.genus() + self.n_boundary() - 1
 
 
     def boundary(self):
-        r'''
+        r"""
         Return the labeled boundaries of the ribbon graph.
 
-        '''
+        """
 
         #initialize and empty list to hold the labels of the boundaries
         bound = []
-        
+
         #since lists of tuples are not modifiable, we change the data to a
         #list of lists 
         aux_perm = (self.rho*self.sigma).cycle_tuples()
-        
+
         #the cycles of the permutation rho*sigma are in 1:1 correspondence with 
         #the boundary components of the thickening (see function n_boundary())
         #but they are not the labeled boundary components.
         #With the next for, we convert the cycles of rho*sigma to actually 
         #the labelling of the edges. Each edge, therefore, should appear twice
-        
+
         for i in range(len(aux_perm)):
             bound = bound + [[]]
             for j in range(len(aux_perm[i])):
@@ -336,17 +441,17 @@ class RibbonGraph(SageObject):
 
 
     def reduced(self):
-        r'''
-        Return a ribbon graph with 1 vertex and mu edges (where $\mu$ is
-        the first betti number of the graph).
+        r"""
+        Return a ribbon graph with 1 vertex and $\mu$ edges (where $\mu$
+        is the first betti number of the graph).
 
         OUTPUT:
-        
-        -A ribbon graph whose sigma permutation has only 1 non-trivial
-        cycle and whose rho permutation is a product of $\mu$ disjoint
-        2-cycles.
-        '''
-        
+
+        - A ribbon graph whose sigma permutation has only 1 non-trivial
+          cycle and whose rho permutation is a product of $\mu$ disjoint
+          2-cycles.
+        """
+
         #the following two lines convert the list of tuples to list of lists
         #we have to contract exactly n edges
         aux_ribbon = copy.deepcopy(self)
@@ -359,8 +464,8 @@ class RibbonGraph(SageObject):
             aux_rho = [list(x) for 
                     x in aux_ribbon.rho.cycle_tuples()]
             for j in range(len(aux_rho)):
-                if (find(aux_sigma, aux_rho[j][0])[0] != 
-                        find(aux_sigma, aux_rho[j][1])[0]):
+                if (_find(aux_sigma, aux_rho[j][0])[0] != 
+                        _find(aux_sigma, aux_rho[j][1])[0]):
                     aux_ribbon = aux_ribbon.contract_edge(j)
                     break
                 else:
@@ -373,50 +478,50 @@ class RibbonGraph(SageObject):
     #the previous function.
     
     def homology_basis(self):
-        r'''
+        r"""
         Return an oriented basis of the firs homology group of the graph.
-        
+
         OUTPUT:
-        
-        -A LIST of Lists of lists. Each List corresponds to an element 
-        of the basis and each list in a List is just a 2-tuple which 
-        corresponds to an 'ordered' edge of rho.
-        '''
-        
+
+        - A LIST of Lists of lists. Each List corresponds to an element 
+          of the basis and each list in a List is just a 2-tuple which 
+          corresponds to an 'ordered' edge of rho.
+        """
+
         aux_sigma = [list(x) for 
                      x in self.sigma.cycle_tuples(singletons = 1)]
-        
+
         basis = [[list(x)] for 
                  x in self.reduced().rho.cycle_tuples()]
-        
+
         #Now we define center as the set of edges that were contracted 
         #in reduced() this set is contractible and can be define as the 
         #complement of reduced_rho in rho
-        
+
         center = [list(x) for x 
-                  in self.rho.cycle_tuples(singletons = 1) 
+                  in self.rho.cycle_tuples() 
                   if (x not in self.reduced().rho.cycle_tuples())]
-        
+
         #We define an auxiliary list 'vertices' that will contain the
         #vertices (cycles of sigma) corresponding to each half edge. 
-        
+
         vertices=[]
-        
+
         for i in range(len(basis)):
-            
+
             vertices = vertices + [[]]
             basis[i].extend(copy.deepcopy(center))
-            
+
             for j in range (len(basis[i])):
-                
-                vertices[i].append(find(aux_sigma,basis[i][j][0])[0])
-                vertices[i].append(find(aux_sigma,basis[i][j][1])[0])
+
+                vertices[i].append(_find(aux_sigma,basis[i][j][0])[0])
+                vertices[i].append(_find(aux_sigma,basis[i][j][1])[0])
             k = 0
-            
+
             while k < (len(vertices[i])):
-                
+
                 if (vertices[i].count(vertices[i][k]) == 1):
-                    
+
                     m = int(floor(k/2))
                     del basis[i][m]
                     del vertices[i][2*m:2*m+2]

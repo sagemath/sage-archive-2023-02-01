@@ -486,11 +486,10 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         r"""
         Initialization. See :meth:`__init__`.
 
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.coding.codecan.codecan import PartitionRefinementLinearCode
-            sage: mat = codes.HammingCode(GF(3), 3).dual_code().generator_matrix()
-            sage: P = PartitionRefinementLinearCode(mat.ncols(), mat)
+            sage: C = PartitionRefinementLinearCode.__new__(PartitionRefinementLinearCode, 0)
         """
         self._hyp2points = NULL
         self._points2hyp = NULL
@@ -523,6 +522,12 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
             i.e. `G = GL(k,q)`
 
         EXAMPLES::
+
+            sage: from sage.coding.codecan.codecan import PartitionRefinementLinearCode
+            sage: mat = codes.HammingCode(GF(3), 3).dual_code().generator_matrix()
+            sage: P = PartitionRefinementLinearCode(mat.ncols(), mat)
+
+        ::
 
             sage: from sage.coding.codecan.codecan import PartitionRefinementLinearCode
             sage: mat = codes.HammingCode(GF(3), 3).dual_code().generator_matrix()

@@ -2311,7 +2311,7 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
 
         sage: p = L.__iter__()            # optional - database_gap
         sage: (next(p), next(p), next(p), next(p), # optional - database_gap
-        ...    next(p), next(p), next(p), next(p))
+        ....:  next(p), next(p), next(p), next(p))
         (Trivial group, Trivial group, S(2), A(3), S(3), A(4), S(4), C(5))
 
     TESTS::

@@ -130,9 +130,9 @@ cdef class Graphics3d(SageObject):
         opts = self._process_viewing_options(kwds)
         viewer = opts.get('viewer', None)
         # make sure viewer is one of the supported options
-        if viewer not in [None, 'jmol', 'tachyon', 'canvas3d', 'wavefront']:
+        if viewer not in [None, 'jmol', 'tachyon', 'canvas3d', 'wavefront', 'threejs']:
             import warnings
-            warnings.warn('viewer={0} is not supported'.format(viewer))
+            warnings.warn('viewer={} is not supported'.format(viewer))
             viewer = None
         # select suitable default
         if viewer is None:
@@ -157,6 +157,8 @@ cdef class Graphics3d(SageObject):
             return self._rich_repr_canvas3d(**opts)
         elif viewer == 'wavefront':
             return self._rich_repr_wavefront(**opts)
+        elif viewer == 'threejs':
+            return self._rich_repr_threejs(**opts)
         else:
             assert False   # unreachable
 
@@ -336,6 +338,56 @@ cdef class Graphics3d(SageObject):
         canvas3d = '[' + ','.join(data) + ']'
         from sage.repl.rich_output.output_catalog import OutputSceneCanvas3d
         return OutputSceneCanvas3d(canvas3d)
+
+    def _rich_repr_threejs(self, **kwds):
+        r"""
+        Rich Representation as Three.js Scene
+
+        INPUT:
+
+        Optional keyword arguments.
+
+        OUTPUT:
+
+        Instance of
+        :class:`sage.repl.rich_output.output_graphics3d.OutputSceneThreejs`.
+        """
+        lights = "[{x:0,y:0,z:10},{x:0,y:0,z:-10}]"
+
+        b = self.bounding_box()
+        bounds = "[{{x:{},y:{},z:{}}},{{x:{},y:{},z:{}}}]".format(
+                 b[0][0],b[0][1],b[0][2],b[1][0],b[1][1],b[1][2])
+
+        import json
+        points, lines = [], []
+        if not hasattr(self, 'all'):
+            self += Graphics3d()
+        for p in self.all:
+            if hasattr(p, 'loc'):
+                color = p._extra_kwds.get('color', 'blue')
+                points.append("{{point:{}, size:{}, color:'{}'}}".format(json.dumps(p.loc), p.size, color))
+            if hasattr(p, 'points'):
+                color = p._extra_kwds.get('color', 'blue')
+                lines.append("{{points:{}, color:'{}'}}".format(json.dumps(p.points), color))
+
+        surfaces = self.json_repr(self.default_render_params())
+        surfaces = flatten_list(surfaces)
+
+        from sage.env import SAGE_SRC
+        filename = os.path.join(SAGE_SRC, 'sage',
+                                'plot', 'plot3d', 'threejs_template.html')
+        f = open(filename, 'r')
+        html = f.read()
+        f.close()
+
+        html = html.replace('SAGE_LIGHTS', lights)
+        html = html.replace('SAGE_BOUNDS', bounds)
+        html = html.replace('SAGE_POINTS', str(points))
+        html = html.replace('SAGE_LINES', str(lines))
+        html = html.replace('SAGE_SURFACES', str(surfaces))
+
+        from sage.repl.rich_output.output_catalog import OutputSceneThreejs
+        return OutputSceneThreejs(html);
 
     def __str__(self):
         """

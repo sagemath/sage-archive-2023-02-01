@@ -190,7 +190,7 @@ class BackendIPythonCommandline(BackendIPython):
             OutputPlainText, OutputAsciiArt, OutputUnicodeArt, OutputLatex,
             OutputImagePng, OutputImageGif,
             OutputImagePdf, OutputImageDvi,
-            OutputSceneJmol, OutputSceneWavefront,
+            OutputSceneJmol, OutputSceneWavefront, OutputSceneThreejs,
         ])
 
     def displayhook(self, plain_text, rich_output):
@@ -267,6 +267,10 @@ class BackendIPythonCommandline(BackendIPython):
             return ({u'text/plain': msg}, {})
         elif isinstance(rich_output, OutputSceneWavefront):
             msg = self.launch_sage3d(rich_output, plain_text.text.get_unicode())
+            return ({u'text/plain': msg}, {})
+        elif isinstance(rich_output, OutputSceneThreejs):
+            msg = self.launch_viewer(
+                rich_output.html.filename(ext='html'), 'Graphics3d Object')
             return ({u'text/plain': msg}, {})
         else:
             raise TypeError('rich_output type not supported')

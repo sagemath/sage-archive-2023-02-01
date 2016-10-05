@@ -283,7 +283,7 @@ information. You can use the existing functions of Sage as templates.
    They should have good coverage of the functionality in question.
 
 -  A **SEEALSO** block (highly recommended) with links to related parts of
-   Sage. This helps users find the features that interest them and discover
+   Sage. This helps users find the features that interests them and discover
    the new ones. ::
 
        .. SEEALSO::
@@ -406,7 +406,6 @@ information. You can use the existing functions of Sage as templates.
   should usually go to this block. This is also right place for most
   tests of input validation; for example if the function accepts
   ``direction='up'`` and ``direction='down'``, you can use this block to check
-  that ``direction='junk'`` raises an exception.
 
   For the purposes of removal, A "TESTS" block is a block starting
   with "TEST:" or "TESTS:" (or the same with two colons), on a line on
@@ -524,8 +523,18 @@ indentation:
 
         TESTS::
 
+<<<<<<< 819a98910a4f8dcb80c41a3a2f300edfc57cb01d
             sage: A.point(42, 0)  # Check for corner case y=0
             xxx
+=======
+        .. [BCDT] Breuil, Conrad, Diamond, Taylor,
+           "Modularity ...."
+
+	TESTS::
+
+	    sage: A.point(42, 0)  # Check for corner case y=0
+	    xxx
+>>>>>>> Devel manual: docstring writing
         """
         <body of the function>
 

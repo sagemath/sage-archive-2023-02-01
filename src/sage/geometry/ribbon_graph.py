@@ -7,13 +7,22 @@ vertex. This data allows us to unambiguosly "thicken" the ribbon
 graph to an orientable surface with boundary. Also, every orientable
 surface with non-empty boundary is the thickening of a ribbon graph.
 
+A comprenhensive introduction on the topic can be found in the beginning
+of [GIR]_ Chapter $4$. More concretely, we will use a variation of what
+is called in the reference ''The permutation representation pair of a
+dessin''. Note that in that book, ribbon graphs are called ''dessins
+d'enfant''. For the sake on completeness we reproduce an adapted version
+of that introduction here.
+
+*Brief introduction
+
 Let $\Gamma$ be the topological realization of a graph. Let $v(\Gamma)$
 be the set of vertices of $\Gamma$ and let $e(\Gamma):= \Gamma - v(\Gamma)$ 
 be the set of edges of $\Gamma$. Now remove a point from each edge. This
 gives two ''darts'' (sometimes called half-edges) for each edge.
 
 Given a vertex $v \in v(\Gamma)$, let $d(v)$ be the set of darts adjacent
-to $v$. A \textit{ribbon structure} on $\Gamma$ is a cyclic ordering of $d(v)$ for
+to $v$. A ribbon structure on $\Gamma$ is a cyclic ordering of $d(v)$ for
 each $v\in V(\Gamma)$. Let $D(\Gamma)$ be the set of all the darts of
 $\Gamma$ and suppose that we enumerate the set $D(\Gamma)$ and that it
 has $n$ elements.
@@ -22,7 +31,7 @@ We can now encode the data of a ribbon structure in two permutations of
 the symmetric group $S_n$:
 
     - A permutation that we will call ``sigma``. This permutation is a
-      product of $|v(\Gamma)|$ disjoint cycles. That is, a cycle per 
+      product of $|v(\Gamma )|$ disjoint cycles. That is, a cycle per 
       vertex in $\Gamma$. After enumerating $D(\Gamma)$, the cycle is
       defined by the ribbon structure.
 
@@ -30,11 +39,15 @@ the symmetric group $S_n$:
       product of as many $2$-cycles as edges has $\Gamma$. It just tells
       which two darts belong to the same edge.
 
-The thickening can be pictured as follows
+The thickening can be pictured as follows:
 
-EXAMPLES::
+    - Take $v \in V(\Gamma)$. And consider the set of darts adjacent
+       to v, that is, $d(v)$. Let $k_v$ be the number of connected 
+       components of $d(v)$. That is the number of darts.
 
-Consider a graph that has $2$ vertices of valency $3$ )and hence $3$
+EXAMPLES:
+
+Consider a graph that has $2$ vertices of valency $3$ (and hence $3$
 edges). That is represented by  the  following two permutations::
 
     sage: s1 = PermutationGroupElement('(1,3,5)(2,4,6)')
@@ -88,7 +101,10 @@ AUTHORS:
 
 REFERENCES:
 
-    [GIR] Introduction to compact Riemann surfaces and dessin's d'enfant.
+.. [GIR] E. Girondo, G. Gonz\´alez-Diez, Introduction to Compact 
+   Riemann surfaces and Dessins d'enfant, London Mathematical Society,
+   SStudent Text 79.
+
 """
 
 #*****************************************************************************
@@ -133,6 +149,7 @@ def _find(l, k):
         [2, 1]
         sage: _find(A,5)
         [1, 1]
+    
     """
     pos=[]
     found = False
@@ -222,12 +239,15 @@ class RibbonGraph(SageObject):
         """
 
         #On the first lines, we compute the vertices of valency 1 to add
-        #them to the list repr_sigma.
-
-        repr_sigma = [list(x) for 
-                     x in self.sigma.cycle_tuples()]
-        repr_rho = [list(x) for 
-                   x in self.rho.cycle_tuples()]
+        #them to the list repr_sigma.This is was implemented in order
+        #to avoid having the user to input more data. For example, if 
+        #the order of the permutation group where sigma lies is bigger
+        #than the number of darts, it could be interpreted that sigma
+        #has more vertices of valency 1 that it really has. These lines
+        #compute which of the singletons of sigma are actually vertices
+        #of valency 1.
+        repr_sigma = [list(x) for x in self.sigma.cycle_tuples()]
+        repr_rho = [list(x) for x in self.rho.cycle_tuples()]
         darts_rho = [j for i in range(len(repr_rho)) 
                         for j in repr_rho[i]]
         darts_sigma = [j for i in range(len(repr_sigma)) 
@@ -287,7 +307,9 @@ class RibbonGraph(SageObject):
 
         - A ribbon graph resulting from the contraction of that edge.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We start again with the  one-holed torus::
 
             sage: s1 = PermutationGroupElement('(1,3,5)(2,4,6)')
             sage: r1 = PermutationGroupElement('(1,2)(3,4)(5,6)')
@@ -377,17 +399,20 @@ class RibbonGraph(SageObject):
         - ``g`` -- non-negative integer representing the genus of the
           thickening of the ribbon graph.
         """
-
-        repr_sigma = [list(x) for 
-                     x in self.sigma.cycle_tuples()]
-        repr_rho = [list(x) for 
-                   x in self.rho.cycle_tuples()]
+        #We now use the same procedure as in _repr_ to get the vertices
+        #of valency 1. 
+        repr_sigma = [list(x) for x in self.sigma.cycle_tuples()]
+        repr_rho = [list(x) for x in self.rho.cycle_tuples()]
         darts_rho = [j for i in range(len(repr_rho)) 
-                        for j in repr_rho[i]]
+                     for j in repr_rho[i]]
         darts_sigma = [j for i in range(len(repr_sigma)) 
                         for j in repr_sigma[i]]
         val_one = [x for x in darts_rho if x not in darts_sigma]
 
+        #the total number of vertices of sigma is its number of cycles
+        #of length >1 plus the number of singletons that are actually
+        #vertices of valency 1
+        
         vertices = len(self.sigma.cycle_tuples()) + len(val_one)
         edges = len(self.rho.cycle_tuples())
         #formula for the genus using that the thickening is homotopically 

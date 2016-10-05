@@ -59,8 +59,8 @@ Test deprecation::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "generic_cmp", "to_gmp_hex", "todo",
@@ -68,7 +68,13 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "assert_attribute", "LOGFILE"]
 
 from warnings import warn
-import os, stat, sys, signal, time, resource, math
+import os
+import stat
+import sys
+import signal
+import time
+import resource
+import math
 import sage.misc.prandom as random
 from .lazy_string import lazy_string
 
@@ -1020,7 +1026,7 @@ def nest(f, n, x):
     if n < 0:
         raise ValueError("n must be a nonnegative integer, not {}.".format(n))
 
-    for i in xrange(n):
+    for i in range(n):
         x = f(x)
     return x
 
@@ -1255,7 +1261,7 @@ def powerset(X):
     pairs = []
     for x in X:
         pairs.append((2**len(pairs),x))
-        for w in xrange(2**(len(pairs)-1), 2**(len(pairs))):
+        for w in range(2**(len(pairs)-1), 2**(len(pairs))):
             yield [x for m, x in pairs if m & w]
 
 subsets = powerset

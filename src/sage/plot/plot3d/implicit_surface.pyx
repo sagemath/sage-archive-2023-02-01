@@ -344,9 +344,9 @@ cdef class MarchingCubesTriangles(MarchingCubes):
             sage: cube_marcher = MarchingCubesTriangles((-2, 2), (-2, 2), (-2, 2), 4, (10,)*3, smooth=False)
             sage: f = lambda x, y, z: x^2 + y^2 + z^2
             sage: slices = np.zeros((10, 10, 10), dtype=np.double)
-            sage: for x in reversed(xrange(0, 10)):
-            ....:     for y in xrange(0, 10):
-            ....:         for z in xrange(0, 10):
+            sage: for x in reversed(range(0, 10)):
+            ....:     for y in range(0, 10):
+            ....:         for z in range(0, 10):
             ....:             slices[x, y, z] = f(*[a * (4 / 9) -2 for a in (x, y, z)])
             ....:     cube_marcher.process_slice(x, slices[x, :, :])
             sage: faces = cube_marcher.finish()
@@ -687,7 +687,7 @@ cdef class MarchingCubesTriangles(MarchingCubes):
             sage: from sage.plot.plot3d.implicit_surface import MarchingCubesTriangles
             sage: import numpy as np
             sage: cube_marcher = MarchingCubesTriangles((0, 1), (0, 1), (0, 1), 0, (3, 2, 2), smooth=False)
-            sage: slices = [np.ones((2, 2), dtype=np.double) for i in xrange(0, 3)]
+            sage: slices = [np.ones((2, 2), dtype=np.double) for i in range(3)]
             sage: slices[0][1, 1] = -1
             sage: cube_marcher._update_yz_vertices(0, None, slices[0], slices[1])
             sage: cube_marcher._update_x_vertices(0, None, slices[0], slices[1], slices[2])

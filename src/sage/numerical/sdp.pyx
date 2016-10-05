@@ -1107,11 +1107,11 @@ cdef class SemidefiniteProgram(SageObject):
 
         The following command::
 
-            sage: s = p.sum([v[i] for i in xrange(90)])
+            sage: s = p.sum(v[i] for i in range(90))
 
         is much more efficient than::
 
-            sage: s = sum([v[i] for i in xrange(90)])
+            sage: s = sum(v[i] for i in range(90))
         """
         d = {}
         for v in L:

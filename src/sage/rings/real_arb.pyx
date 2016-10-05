@@ -919,7 +919,7 @@ class RealBallField(UniqueRepresentation, Field):
 
         EXAMPLES::
 
-            sage: [RBF.fibonacci(n) for n in xrange(7)]
+            sage: [RBF.fibonacci(n) for n in range(7)]
             [0,
             1.000000000000000,
             1.000000000000000,
@@ -951,7 +951,7 @@ class RealBallField(UniqueRepresentation, Field):
 
         EXAMPLES::
 
-            sage: [RBF.bell_number(n) for n in xrange(7)]
+            sage: [RBF.bell_number(n) for n in range(7)]
             [1.000000000000000,
              1.000000000000000,
              2.000000000000000,

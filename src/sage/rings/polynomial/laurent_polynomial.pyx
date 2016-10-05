@@ -2421,7 +2421,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         documentation for the global derivative() function for more
         details.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`_derivative`
 
@@ -2449,7 +2449,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         is with respect to the generator. Otherwise, _derivative(var) is called
         recursively for each coefficient of this polynomial.
 
-        .. seealso:: :meth:`derivative`
+        .. SEEALSO:: :meth:`derivative`
 
         EXAMPLES::
 

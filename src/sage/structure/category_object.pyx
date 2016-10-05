@@ -190,7 +190,7 @@ cdef class CategoryObject(SageObject):
         The new category is obtained by adjoining ``category`` to the
         current one.
 
-        .. seealso:: :function:`Category.join`
+        .. SEEALSO:: :function:`Category.join`
 
         EXAMPLES::
 

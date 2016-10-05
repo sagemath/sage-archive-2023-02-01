@@ -353,7 +353,7 @@ cdef class MPolynomial(CommutativeRingElement):
         Multiple variables and iteration counts may be supplied; see
         documentation for the global derivative() function for more details.
 
-        .. seealso:: :meth:`._derivative`
+        .. SEEALSO:: :meth:`._derivative`
 
         EXAMPLES:
 

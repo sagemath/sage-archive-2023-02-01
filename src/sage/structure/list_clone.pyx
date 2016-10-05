@@ -30,7 +30,7 @@ and its subclasses:
 - :class:`NormalizedClonableList` for lists of objects with a normalization method;
 - :class:`ClonableIntArray` for arrays of int.
 
-.. seealso:: The following parents from :mod:`sage.structure.list_clone_demo`
+.. SEEALSO:: The following parents from :mod:`sage.structure.list_clone_demo`
     demonstrate how to use them:
 
     - ``IncreasingArrays()`` (see
@@ -505,7 +505,7 @@ cdef class ClonableArray(ClonableElement):
     - ``immutable`` -- a boolean telling wether the created element is
       immutable (defaults to ``True``)
 
-    .. seealso:: :class:`~sage.structure.list_clone_demo.IncreasingArray` for
+    .. SEEALSO:: :class:`~sage.structure.list_clone_demo.IncreasingArray` for
                  an example of usage.
 
     EXAMPLES::
@@ -1000,7 +1000,7 @@ cdef class ClonableList(ClonableArray):
     implement the clone protocol. See :class:`ClonableElement` for details
     about clone protocol.
 
-    .. seealso:: :class:`~sage.structure.list_clone_demo.IncreasingList` for
+    .. SEEALSO:: :class:`~sage.structure.list_clone_demo.IncreasingList` for
                  an example of usage.
     """
     cpdef append(self, el):
@@ -1229,7 +1229,7 @@ cdef class ClonableIntArray(ClonableElement):
     - ``immutable`` -- a boolean telling wether the created element is
       immutable (defaults to ``True``)
 
-    .. seealso:: :class:`~sage.structure.list_clone_demo.IncreasingIntArray`
+    .. SEEALSO:: :class:`~sage.structure.list_clone_demo.IncreasingIntArray`
                  for an example of usage.
     """
     def __cinit__(self):
@@ -1774,7 +1774,7 @@ cdef class NormalizedClonableList(ClonableList):
     This is a subclass of :class:`ClonableList` which call a method
     :meth:`normalize` at creation and after any modification of its instance.
 
-    .. seealso:: :class:`~sage.structure.list_clone_demo.SortedList` for an
+    .. SEEALSO:: :class:`~sage.structure.list_clone_demo.SortedList` for an
                  example of usage.
 
     EXAMPLES:

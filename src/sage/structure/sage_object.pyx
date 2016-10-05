@@ -1078,7 +1078,7 @@ def dumps(obj, compress=True):
     """
     Dump obj to a string s.  To recover obj, use ``loads(s)``.
 
-    .. seealso:: :func:`dumps`
+    .. SEEALSO:: :func:`dumps`
 
     EXAMPLES::
 
@@ -1328,7 +1328,7 @@ def loads(s, compress=True):
     Recover an object x that has been dumped to a string s
     using ``s = dumps(x)``.
 
-    .. seealso:: :func:`dumps`
+    .. SEEALSO:: :func:`dumps`
 
     EXAMPLES::
 

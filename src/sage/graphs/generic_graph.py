@@ -3525,7 +3525,7 @@ class GenericGraph(GenericGraph_pyx):
         The edges of a minimum spanning tree of ``G``, if one exists, otherwise
         returns the empty list.
 
-        .. seealso::
+        .. SEEALSO::
 
             - :func:`sage.graphs.spanning_tree.kruskal`
             - :func:`sage.graphs.base.boost_graph.min_spanning_tree`

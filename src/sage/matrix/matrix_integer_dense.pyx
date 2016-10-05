@@ -2209,7 +2209,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: M.elementary_divisors()
             [1, 1, 6]
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`smith_form`
         """
@@ -2304,7 +2304,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: m = MatrixSpace(ZZ, 0,0)(0); d,u,v = m.smith_form(); u*m*v == d
             True
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`elementary_divisors`
         """

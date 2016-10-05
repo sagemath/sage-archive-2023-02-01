@@ -129,7 +129,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     The edges of a minimum spanning tree of ``G``, if one exists, otherwise
     returns the empty list.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
 

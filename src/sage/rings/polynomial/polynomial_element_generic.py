@@ -201,7 +201,7 @@ class Polynomial_generic_sparse(Polynomial):
         _derivative(var) is called recursively for each coefficient of
         this polynomial.
 
-        .. seealso:: :meth:`.derivative`
+        .. SEEALSO:: :meth:`.derivative`
 
         EXAMPLES::
 

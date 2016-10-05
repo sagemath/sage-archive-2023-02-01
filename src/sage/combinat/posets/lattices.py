@@ -124,7 +124,7 @@ def MeetSemilattice(data=None, *args, **options):
       be passed down to :func:`Poset` to construct a poset that is
       also a meet semilattice.
 
-    .. seealso:: :func:`Poset`, :func:`JoinSemilattice`, :func:`LatticePoset`
+    .. SEEALSO:: :func:`Poset`, :func:`JoinSemilattice`, :func:`LatticePoset`
 
     EXAMPLES:
 

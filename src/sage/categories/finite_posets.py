@@ -33,7 +33,7 @@ class FinitePosets(CategoryWithAxiom):
         sage: FinitePosets().example()
         NotImplemented
 
-    .. seealso:: :class:`~sage.categories.posets.Posets`, :func:`Poset`
+    .. SEEALSO:: :class:`~sage.categories.posets.Posets`, :func:`Poset`
 
     TESTS::
 
@@ -152,7 +152,7 @@ class FinitePosets(CategoryWithAxiom):
                responsible for the conversions between integers and subsets to
                elements of ``D`` and ``B`` and back.
 
-            .. seealso:: :meth:`FiniteLatticePosets.ParentMethods.is_lattice_morphism`
+            .. SEEALSO:: :meth:`FiniteLatticePosets.ParentMethods.is_lattice_morphism`
             """
             image = set(f(x) for x in self)
             if len(image) != self.cardinality():
@@ -209,7 +209,7 @@ class FinitePosets(CategoryWithAxiom):
 
             FIXME: should this be ``is_order_preserving_morphism``?
 
-            .. seealso:: :meth:`is_poset_isomorphism`
+            .. SEEALSO:: :meth:`is_poset_isomorphism`
 
             TESTS:
 
@@ -312,7 +312,7 @@ class FinitePosets(CategoryWithAxiom):
                 sage: P.order_filter_generators(I)
                 {{2, 3}, {1}}
 
-            .. seealso:: :meth:`order_ideal_generators`
+            .. SEEALSO:: :meth:`order_ideal_generators`
             """
             return self.order_ideal_generators(filter, direction='up')
 

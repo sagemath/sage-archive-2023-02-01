@@ -201,7 +201,7 @@ cdef class Matrix(matrix1.Matrix):
 
         OUTPUT: a matrix or vector
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`solve_left`
 
@@ -416,7 +416,7 @@ cdef class Matrix(matrix1.Matrix):
         If self is a matrix `A` of full rank, then this function
         returns a matrix `X` such that `A X = B`.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`solve_right` and :meth:`solve_left`
 
@@ -5093,7 +5093,7 @@ cdef class Matrix(matrix1.Matrix):
            which self acts)
 
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`restrict`
 
@@ -5129,7 +5129,7 @@ cdef class Matrix(matrix1.Matrix):
            ``self.ncols()``) that contains the image of self.
 
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`restrict`, :meth:`restrict_domain`
 
@@ -13152,7 +13152,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: m.elementary_divisors()
             [1, -w + 9]
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`smith_form`
         """
@@ -13183,7 +13183,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         ALGORITHM: Lifted wholesale from
         http://en.wikipedia.org/wiki/Smith_normal_form
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`elementary_divisors`
 

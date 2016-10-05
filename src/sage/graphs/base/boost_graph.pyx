@@ -579,7 +579,7 @@ cpdef min_spanning_tree(g,
     The edges of a minimum spanning tree of ``g``, if one exists, otherwise
     the empty list.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
 

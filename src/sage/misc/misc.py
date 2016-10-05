@@ -323,7 +323,7 @@ class GlobalCputime:
         sage: float(t) #output somewhat random
         2.1088339999999999
 
-    .. seealso::
+    .. SEEALSO::
 
       :func:`cputime`
     """

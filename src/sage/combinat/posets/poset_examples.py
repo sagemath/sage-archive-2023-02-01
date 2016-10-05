@@ -696,7 +696,7 @@ class Posets(object):
 
         # Test property combinations that are not implemented.
         if 'distributive' in properties and len(properties) > 1:
-            raise NotImplementedError("combing 'distributive' with other properties is not implemented")
+            raise NotImplementedError("combining 'distributive' with other properties is not implemented")
 
         if properties == set(['planar']):
             D = _random_planar_lattice(n)

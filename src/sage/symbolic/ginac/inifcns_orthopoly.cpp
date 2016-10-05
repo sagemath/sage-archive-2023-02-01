@@ -197,8 +197,19 @@ static ex gegenb_eval(const ex& n, const ex &a, const ex& x)
         return sum / overall_denom;
 }
 
+static ex gegenb_deriv(const ex& n, const ex & a, const ex & x, unsigned deriv_param)
+{
+	    if (deriv_param == 0)
+                    throw std::runtime_error("derivative w.r.t. to the index is not supported yet");
+	    if (deriv_param == 1)
+                    throw std::runtime_error("derivative w.r.t. to the second index is not supported yet");
+
+	    return _ex2 * a * gegenbauer(n-1, a+1, x).hold();
+}
+
 REGISTER_FUNCTION(gegenbauer, eval_func(gegenb_eval).
                         evalf_func(gegenb_evalf).
+                        derivative_func(gegenb_deriv).
 		        latex_name("C"));
 
 } // namespace GiNaC

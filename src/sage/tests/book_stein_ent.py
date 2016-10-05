@@ -579,7 +579,7 @@ sage: def ecm(N, B=10^3, trials=10):
 ...               if gcd(4*a.lift()^3 + 27, N) == 1: break
 ...           try:
 ...               m * EllipticCurve([a, 1])([0,1])
-...           except ZeroDivisionError, msg:
+...           except ZeroDivisionError as msg:
 ...               # msg: "Inverse of <int> does not exist"
 ...               return gcd(Integer(str(msg).split()[2]), N)
 ...       return 1

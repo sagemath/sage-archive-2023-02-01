@@ -227,6 +227,19 @@ information. You can use the existing functions of Sage as templates.
    describes the function or method's effect as a command ("Do this",
    "Return that"), not as a description like "Returns the pathname ...".
 
+-  A **longer description**.
+
+   This is optional if the one-sentence description does not need
+   more explanations. (Like "Return the number of vertices.")
+
+   Start with assumptions of the object, if there are any. ("The poset is
+   expected to be ranked.", if the function raises an exception when
+   called on non-ranked poset.)
+
+   Define your terms ("The lexicographic product of G and H is the graph
+   with vertex set ...") and mention possible aliases ("The tensor product
+   is also known as the categorical product and...").
+
 -  An **INPUT** and an **OUTPUT** block describing the input/output of
    the function. This is not optional.
 
@@ -264,16 +277,14 @@ information. You can use the existing functions of Sage as templates.
 
 -  An **EXAMPLES** block for examples. This is not optional.
 
-   These examples are used both for:
-
-   1. Documentation
-   2. Automatic testing before each release.
+   These examples are used for documentation, but they are also
+   tested before each release just like TESTS block.
 
    They should have good coverage of the functionality in question.
 
 -  A **SEEALSO** block (highly recommended) with links to related parts of
-   Sage. This helps users find the features that interests them and discover the
-   new ones. ::
+   Sage. This helps users find the features that interests them and discover
+   the new ones. ::
 
        .. SEEALSO::
 
@@ -357,7 +368,7 @@ information. You can use the existing functions of Sage as templates.
           g = graphs.PetersenGraph()
           sphinx_plot(g)
 
-- A **REFERENCES** block to list related books or papers (optional)
+- A **REFERENCES** block to list related books or papers (optional).
 
   Almost all bibliographic information should be put in the master bibliography
   file, see below. Citations will then link to the master bibliography where the
@@ -384,12 +395,18 @@ information. You can use the existing functions of Sage as templates.
   <http://sphinx.pocoo.org/rest.html#citations>`_. For links to trac tickets or
   wikipedia, see :ref:`chapter-sage_manuals_links`.
 
-- A **TESTS** block (optional)
+- A **TESTS** block (highly recommended).
 
   Formatted just like EXAMPLES, containing tests that are not relevant
   to users.  In particular, these blocks are not shown when users ask
-  for help via `foo?`: they are stripped by the function
+  for help via ``foo?``: they are stripped by the function
   :func:`sage.misc.sagedoc.skip_TESTS_block`.
+
+  Special and corner cases, something like number zero, graph without any
+  edges, empty poset, one-element group etc. should usually go to this block.
+  This is also right place for most tests of input validation; for example
+  if the function accepts ``direction='up'`` and ``direction='down'``,
+  use this block to check that ``direction='junk'`` raises an exception.
 
   For the purposes of removal, A "TESTS" block is a block starting
   with "TEST:" or "TESTS:" (or the same with two colons), on a line on
@@ -505,6 +522,10 @@ indentation:
 
         ...
 
+	TESTS::
+
+	    sage: A.point(42, 0)  # Check for corner case y=0
+	    xxx
         """
         <body of the function>
 

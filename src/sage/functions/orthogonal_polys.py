@@ -1660,8 +1660,10 @@ class Func_laguerre(OrthogonalFunction):
         diff_param = kwds['diff_param']
         if diff_param == 0:
             raise NotImplementedError("Derivative w.r.t. to the index is not supported.")
-        else:
+        if diff_param == 1:
             return -gen_laguerre(n-1,1,x)
+        else:
+            raise ValueError("illegal differentiation parameter {}".format(diff_param))
 
 laguerre = Func_laguerre()
 
@@ -1781,7 +1783,7 @@ class Func_gen_laguerre(OrthogonalFunction):
         from sage.libs.mpmath.all import call as mpcall
         return mpcall(mpmath.laguerre, n, a, x, parent=the_parent)
 
-    def _derivative_(self, n, a, x, *args,**kwds):
+    def _derivative_(self, n, a, x, diff_param):
         """
         Return the derivative of `gen_laguerre(n,a,x)`.
 
@@ -1798,10 +1800,14 @@ class Func_gen_laguerre(OrthogonalFunction):
             ...
             NotImplementedError: Derivative w.r.t. to the index is not supported.
         """
-        diff_param = kwds['diff_param']
         if diff_param == 0:
             raise NotImplementedError("Derivative w.r.t. to the index is not supported.")
-        else:
+        elif diff_param == 1:
+            raise NotImplementedError("Derivative w.r.t. to the second index is not supported.")
+        elif diff_param == 2:
             return -gen_laguerre(n - 1, a + 1, x)
+        else:
+            raise ValueError("illegal differentiation parameter {}".format(diff_param))
+
 
 gen_laguerre = Func_gen_laguerre()

@@ -379,12 +379,12 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 return self._list[start:stop:step]
             except AttributeError:
                 pass
-            if start is None and stop is not None and stop > 0 and step is None:
-                card = self.cardinality() # This may set the list
-                try:
-                    return self._list[start:stop:step]
-                except AttributeError:
-                    pass
+            card = self.cardinality() # This may set the list
+            try:
+                return self._list[start:stop:step]
+            except AttributeError:
+                pass
+            if start is None and stop is not None and stop >= 0 and step is None:
                 if stop < card:
                     it = self.__iter__()
                     return [next(it) for j in range(stop)]

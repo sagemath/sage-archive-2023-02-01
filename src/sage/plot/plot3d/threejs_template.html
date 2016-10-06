@@ -23,7 +23,9 @@
     var renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.setSize( window.innerWidth, window.innerHeight );
     renderer.setClearColor( 0xffffff, 1 );
-    document.body.appendChild( renderer.domElement ); 
+    document.body.appendChild( renderer.domElement );
+
+    var options = SAGE_OPTIONS;
 
     var lights = SAGE_LIGHTS;
     for ( var i=0 ; i < lights.length ; i++ ) {
@@ -71,39 +73,43 @@
     var yRange = b[1].y - b[0].y;
     var zRange = b[1].z - b[0].z;
 
-    var a = [ 1, 1, 1 ]; // aspect multipliers
+    var ar = options.aspect_ratio;
+    var a = [ ar[0], ar[1], ar[2] ]; // aspect multipliers
     var autoAspect = 2.5;
-    if ( zRange > autoAspect * rRange ) a[2] = autoAspect * rRange / zRange;
+    if ( zRange > autoAspect * rRange && a[2] === 1 ) a[2] = autoAspect * rRange / zRange;
 
     var xMid = ( b[0].x + b[1].x ) / 2;
     var yMid = ( b[0].y + b[1].y ) / 2;
-    var zMid = a[2] * ( b[0].z + b[1].z ) / 2;
+    var zMid = ( b[0].z + b[1].z ) / 2;
 
-    scene.position.set( -xMid, -yMid, -zMid );
+    scene.position.set( -a[0]*xMid, -a[1]*yMid, -a[2]*zMid );
 
     var box = new THREE.Geometry();
-    box.vertices.push( new THREE.Vector3( b[0].x, b[0].y, a[2]*b[0].z ) );
-    box.vertices.push( new THREE.Vector3( b[1].x, b[1].y, a[2]*b[1].z ) );
+    box.vertices.push( new THREE.Vector3( a[0]*b[0].x, a[1]*b[0].y, a[2]*b[0].z ) );
+    box.vertices.push( new THREE.Vector3( a[0]*b[1].x, a[1]*b[1].y, a[2]*b[1].z ) );
     var boxMesh = new THREE.LineSegments( box );
-    scene.add( new THREE.BoxHelper( boxMesh, 'black' ) );
+    if ( options.frame ) scene.add( new THREE.BoxHelper( boxMesh, 'black' ) );
 
-    var d = 0; // decimals
-    var offsetRatio = 0.1;
+    if ( options.axes_labels ) {
+      var d = options.decimals; // decimals
+      var offsetRatio = 0.1;
+      var al = options.axes_labels;
 
-    var offset = offsetRatio * ( b[1].y - b[0].y );
-    addLabel( 'x=' + ( xMid ).toFixed(d).toString(), xMid, b[1].y+offset, a[2]*b[0].z );
-    addLabel( ( b[0].x ).toFixed(d).toString(), b[0].x, b[1].y+offset, a[2]*b[0].z );
-    addLabel( ( b[1].x ).toFixed(d).toString(), b[1].x, b[1].y+offset, a[2]*b[0].z );
+      var offset = offsetRatio * ( b[1].y - b[0].y );
+      addLabel( al[0] + '=' + ( xMid ).toFixed(d).toString(), a[0]*xMid, a[1]*b[1].y+offset, a[2]*b[0].z );
+      addLabel( ( b[0].x ).toFixed(d).toString(), a[0]*b[0].x, a[1]*b[1].y+offset, a[2]*b[0].z );
+      addLabel( ( b[1].x ).toFixed(d).toString(), a[0]*b[1].x, a[1]*b[1].y+offset, a[2]*b[0].z );
 
-    var offset = offsetRatio * ( b[1].x - b[0].x );
-    addLabel( 'y=' + ( yMid ).toFixed(d).toString(), b[1].x+offset, yMid, a[2]*b[0].z );
-    addLabel( ( b[0].y ).toFixed(d).toString(), b[1].x+offset, b[0].y, a[2]*b[0].z );
-    addLabel( ( b[1].y ).toFixed(d).toString(), b[1].x+offset, b[1].y, a[2]*b[0].z );
+      var offset = offsetRatio * ( b[1].x - b[0].x );
+      addLabel( al[1] + '=' + ( yMid ).toFixed(d).toString(), a[0]*b[1].x+offset, a[1]*yMid, a[2]*b[0].z );
+      addLabel( ( b[0].y ).toFixed(d).toString(), a[0]*b[1].x+offset, a[1]*b[0].y, a[2]*b[0].z );
+      addLabel( ( b[1].y ).toFixed(d).toString(), a[0]*b[1].x+offset, a[1]*b[1].y, a[2]*b[0].z );
 
-    var offset = offsetRatio * ( b[1].y - b[0].y );
-    addLabel( 'z=' + ( zMid ).toFixed(d).toString(), b[1].x, b[0].y-offset, zMid );
-    addLabel( ( b[0].z ).toFixed(d).toString(), b[1].x, b[0].y-offset, a[2]*b[0].z );
-    addLabel( ( b[1].z ).toFixed(d).toString(), b[1].x, b[0].y-offset, a[2]*b[1].z );
+      var offset = offsetRatio * ( b[1].y - b[0].y );
+      addLabel( al[2] + '=' + ( zMid ).toFixed(d).toString(), a[0]*b[1].x, a[1]*b[0].y-offset, a[2]*zMid );
+      addLabel( ( b[0].z ).toFixed(d).toString(), a[0]*b[1].x, a[1]*b[0].y-offset, a[2]*b[0].z );
+      addLabel( ( b[1].z ).toFixed(d).toString(), a[0]*b[1].x, a[1]*b[0].y-offset, a[2]*b[1].z );
+    }
 
     function addLabel( text, x, y, z ) {
         var size = 128;
@@ -127,11 +133,11 @@
         scene.add( sprite );
     }
 
-    // scene.add( new THREE.AxisHelper( Math.min( b[1].x, b[1].y, a[2]*b[1].z ) ) );
+    // scene.add( new THREE.AxisHelper( Math.min( a[0]*b[1].x, a[1]*b[1].y, a[2]*b[1].z ) ) );
 
-    var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 ); 
+    var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
     camera.up.set( 0, 0, 1 );
-    var cameraOut = Math.max( xRange, yRange, a[2]*zRange );
+    var cameraOut = Math.max( a[0]*xRange, a[1]*yRange, a[2]*zRange );
     camera.position.set( cameraOut, cameraOut, cameraOut );
     camera.lookAt( scene.position );
 
@@ -153,7 +159,7 @@
     function addPoint( json ) {
         var geometry = new THREE.Geometry();
         var v = json.point;
-        geometry.vertices.push( new THREE.Vector3( v[0], v[1], a[2]*v[2] ) );
+        geometry.vertices.push( new THREE.Vector3( a[0]*v[0], a[1]*v[1], a[2]*v[2] ) );
 
         var canvas = document.createElement( 'canvas' );
         canvas.width = 128;
@@ -166,8 +172,7 @@
 
         var texture = new THREE.Texture( canvas );
         texture.needsUpdate = true;
-        var material = new THREE.PointsMaterial( { size: json.size/100, map: texture,
-                                                    transparent: true, alphaTest: .1 } );
+        var material = new THREE.PointsMaterial( { size: json.size/100, map: texture } );
         scene.add( new THREE.Points( geometry, material ) );
     }
 
@@ -181,9 +186,9 @@
         var geometry = new THREE.Geometry();
         for ( var i=0 ; i < json.points.length - 1 ; i++ ) {
             var v = json.points[i];
-            geometry.vertices.push( new THREE.Vector3( v[0], v[1], a[2]*v[2] ) );
+            geometry.vertices.push( new THREE.Vector3( a[0]*v[0], a[1]*v[1], a[2]*v[2] ) );
             var v = json.points[i+1];
-            geometry.vertices.push( new THREE.Vector3( v[0], v[1], a[2]*v[2] ) );
+            geometry.vertices.push( new THREE.Vector3( a[0]*v[0], a[1]*v[1], a[2]*v[2] ) );
         }
         var material = new THREE.LineBasicMaterial( { color: json.color } );
         scene.add( new THREE.LineSegments( geometry, material ) );
@@ -199,7 +204,7 @@
         var geometry = new THREE.Geometry();
         for ( var i=0 ; i < json.vertices.length ; i++ ) {
             var v = json.vertices[i];
-            geometry.vertices.push( new THREE.Vector3( v.x, v.y, a[2]*v.z ) );
+            geometry.vertices.push( new THREE.Vector3( a[0]*v.x, a[1]*v.y, a[2]*v.z ) );
         }
         for ( var i=0 ; i < json.faces.length ; i++ ) {
             var f = json.faces[i]
@@ -208,8 +213,10 @@
             }
         }
         geometry.computeVertexNormals();
-        var material = new THREE.MeshPhongMaterial( { color: json.color , side: THREE.DoubleSide,
-                                                       shininess: 20 } );
+        var material = new THREE.MeshPhongMaterial( {
+                                     color: json.color , side: THREE.DoubleSide,
+                                     transparent: true, opacity: options.opacity,
+                                     shininess: 20 } );
         scene.add( new THREE.Mesh( geometry, material ) );
     }
 
@@ -217,7 +224,7 @@
 
     function render() {
 
-        requestAnimationFrame( render ); 
+        requestAnimationFrame( render );
         renderer.render( scene, camera );
         controls.update();
 

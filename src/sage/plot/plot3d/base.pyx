@@ -352,6 +352,14 @@ cdef class Graphics3d(SageObject):
         Instance of
         :class:`sage.repl.rich_output.output_graphics3d.OutputSceneThreejs`.
         """
+        options = {}
+        options['frame'] = kwds['frame']
+        options['aspect_ratio'] = kwds['aspect_ratio']
+        options['axes_labels'] = kwds.get('axes_labels', ['x','y','z'])
+        options['decimals'] = int(kwds.get('decimals', 0))
+        options['opacity'] = float(kwds.get('opacity', 1))
+        options['thickness'] = float(kwds.get('thickness', 1))
+
         lights = "[{x:0,y:0,z:10},{x:0,y:0,z:-10}]"
 
         b = self.bounding_box()
@@ -380,6 +388,7 @@ cdef class Graphics3d(SageObject):
         html = f.read()
         f.close()
 
+        html = html.replace('SAGE_OPTIONS', json.dumps(options))
         html = html.replace('SAGE_LIGHTS', lights)
         html = html.replace('SAGE_BOUNDS', bounds)
         html = html.replace('SAGE_POINTS', str(points))

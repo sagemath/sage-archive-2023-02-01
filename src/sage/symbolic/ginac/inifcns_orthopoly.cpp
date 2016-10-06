@@ -77,7 +77,8 @@ static ex hermite_eval(const ex& n, const ex& x)
 
 static ex hermite_deriv(const ex& n, const ex & x, unsigned deriv_param)
 {
-	    GINAC_ASSERT(deriv_param==0);
+	    if (deriv_param == 0)
+                    throw std::runtime_error("derivative w.r.t. to the index is not supported yet");
 	    return _ex2 * n * hermite(n-1, x).hold();
 }
 

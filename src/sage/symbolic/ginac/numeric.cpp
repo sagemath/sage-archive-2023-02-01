@@ -157,7 +157,7 @@ const GiNaC::numeric& to_numeric(GiNaC::ex& e)
 
 inline void py_error(const char* errmsg) {
         throw std::runtime_error((PyErr_Occurred() != nullptr) ? errmsg:
-                        "pyerror() called but no error occured!");
+                        "pyerror() called but no error occurred!");
 }
 
 #if PY_MAJOR_VERSION < 3

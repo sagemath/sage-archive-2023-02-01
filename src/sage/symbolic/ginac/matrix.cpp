@@ -1491,7 +1491,7 @@ int matrix::fraction_free_elimination(const bool det)
  *  @param co is the column to be inspected
  *  @param symbolic signal if we want the first non-zero element to be pivoted
  *  (true) or the one with the largest absolute value (false).
- *  @return 0 if no interchange occured, -1 if all are zero (usually signaling
+ *  @return 0 if no interchange occurred, -1 if all are zero (usually signaling
  *  a degeneracy) and positive integer k means that rows ro and k were swapped.
  */
 int matrix::pivot(unsigned ro, unsigned co, bool symbolic)

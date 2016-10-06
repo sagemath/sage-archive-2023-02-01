@@ -411,10 +411,18 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 [1]
                 sage: list(F.iterator_range(start=1, step=2))
                 [2]
+                sage: list(F.iterator_range(start=1, stop=2))
+                [2, 3]
+                sage: list(F.iterator_range(start=0, stop=1))
+                [1, 2]
+                sage: list(F.iterator_range(start=0, stop=2, step=2))
+                [1, 3]
                 sage: list(F.iterator_range(stop=-1))
                 [1, 2]
 
                 sage: F = FiniteEnumeratedSet([1,2,3,4])
+                sage: list(F.iterator_range(start=1, stop=2))
+                [2, 3]
                 sage: list(F.iterator_range(stop=10))
                 [1, 2, 3, 4]
             """
@@ -423,12 +431,12 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 L = self._list
             except AttributeError:
                 pass
+            card = self.cardinality() # This may set the list
+            try:
+                L = self._list
+            except AttributeError:
+                pass
             if L is None and start is None and stop is not None and stop > 0 and step is None:
-                card = self.cardinality() # This may set the list
-                try:
-                    L = self._list
-                except AttributeError:
-                    pass
                 if L is None:
                     if stop < card:
                         it = self.__iter__()

@@ -697,7 +697,10 @@ class SimplicialSetMorphism(Morphism):
             return self.codomain()
         if self.is_constant():
             return self.codomain().subsimplicial_set([self._constant])
-        return self.codomain().subsimplicial_set(self._dictionary.values())
+        simplices = self._dictionary.values()
+        if set(simplices) == set(self.codomain().nondegenerate_simplices()):
+            return self.codomain()
+        return self.codomain().subsimplicial_set(simplices)
 
     def is_identity(self):
         """

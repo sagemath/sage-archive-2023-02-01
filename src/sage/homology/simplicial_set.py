@@ -286,6 +286,22 @@ lazy_import('sage.categories.simplicial_sets', 'SimplicialSets')
 # The classes for simplices.
 
 class AbstractSimplex_class(UniqueRepresentation, SageObject):
+    """
+    A simplex of dimension ``dim``.
+
+    INPUT:
+
+    - ``dim`` -- integer, the dimension
+    - ``degeneracies`` (optional) -- iterable, the indices of the
+      degeneracy maps
+    - ``underlying`` (optional) -- a non-degenerate simplex
+    - ``name`` (optional) -- string
+    - ``latex_name`` (optional) -- string
+
+    Users should not call this directly, but instead use
+    :func:`AbstractSimplex`. See that function for more documentation.
+    """
+
     @staticmethod
     def __classcall_private__(self, dim, degeneracies=(), underlying=None, name=None,
                               latex_name=None, unique_tag=None):
@@ -360,6 +376,17 @@ class AbstractSimplex_class(UniqueRepresentation, SageObject):
             Traceback (most recent call last):
             ...
             ValueError: invalid list of degeneracy maps on 0-simplex
+
+        Distinct non-degenerate simplices should never be equal, even
+        if they have the same starting data. :func:`AbstractSimplex`
+        takes care of this automatically, while
+        :class:`AbstractSimplex_class` does not::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex_class
+            sage: AbstractSimplex_class(3) == AbstractSimplex_class(3)
+            True
+            sage: AbstractSimplex(3) == AbstractSimplex(3)
+            False
 
         Hashing::
 
@@ -905,10 +932,11 @@ class NonDegenerateSimplex(AbstractSimplex_class):
             sage: type(v)
             <class 'sage.homology.simplicial_set.NonDegenerateSimplex'>
 
-        Distinct simplices should never be equal, even if they have
-        the same starting data. :func:`AbstractSimplex` takes care of
-        this automatically. :class:`NonDegenerateSimplex` requires use
-        of the ``unique_tag`` argument::
+        Distinct non-degenerate simplices should never be equal, even
+        if they have the same starting data. :func:`AbstractSimplex`
+        takes care of this automatically.
+        :class:`NonDegenerateSimplex` requires use of the
+        ``unique_tag`` argument::
 
             sage: v == AbstractSimplex(0, name='v')
             False
@@ -1007,7 +1035,7 @@ def AbstractSimplex(dim, degeneracies=(), underlying=None,
         sage: e.is_degenerate()
         True
 
-    Distinct simplices are never equal::
+    Distinct non-degenerate simplices are never equal::
 
         sage: AbstractSimplex(0, None) == AbstractSimplex(0, None)
         False
@@ -1032,6 +1060,19 @@ def AbstractSimplex(dim, degeneracies=(), underlying=None,
         (AbstractSimplex(0, ((0,))), AbstractSimplex(0, ((0,))), AbstractSimplex(0, ((0,))))
 
     then the faces are three different degenerate vertices.
+
+    View a command like ``AbstractSimplex(0, (2,1,0))`` as first
+    constructing ``AbstractSimplex(0)`` and then applying degeneracies
+    to it, and you always get distinct simplices from different calls
+    to ``AbstractSimplex(0)``. On the other hand, if you apply
+    degeneracies to the same non-degenerate simplex, the resulting
+    simplices are equal::
+
+        sage: v = AbstractSimplex(0)
+        sage: v.apply_degeneracies(1, 0) == v.apply_degeneracies(1, 0)
+        True
+        sage: AbstractSimplex(1, (0,), underlying=v) == AbstractSimplex(1, (0,), underlying=v)
+        True
     """
     if degeneracies:
         if not underlying:

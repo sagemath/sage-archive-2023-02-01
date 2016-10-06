@@ -5071,6 +5071,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return bool(self._is_gen)
 
+    def lc(self):
+        """
+        Return the leading coefficient of this polynomial.
+
+        OUTPUT: element of the base ring
+        This method is same as :meth:`leading_coefficient`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = (-2/5)*x^3 + 2*x - 1/3
+            sage: f.lc()
+            -2/5
+        """
+        return self[self.degree()]
+
     def leading_coefficient(self):
         """
         Return the leading coefficient of this polynomial.
@@ -5085,6 +5101,47 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -2/5
         """
         return self[self.degree()]
+
+    def lm(self):
+        """
+        Return the leading term of this polynomial.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = (-2/5)*x^3 + 2*x - 1/3
+            sage: f.lm()
+            x^3
+            sage: R(5).lm()
+            1
+            sage: R(0).lm()
+            0
+            sage: R(0).lm().parent() is R
+            True
+        """
+        if self.degree() < 0:
+            return self
+        output = [self.base_ring().zero()] * self.degree() + [self.base_ring().one()]
+        return self._parent(output, check=False)
+
+    def lt(self):
+        """
+        Return the leading term of this polynomial.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = (-2/5)*x^3 + 2*x - 1/3
+            sage: f.lt()
+            -2/5*x^3
+            sage: R(5).lt()
+            5
+            sage: R(0).lt()
+            0
+            sage: R(0).lt().parent() is R
+            True
+        """
+        return self.lc() * self.lm()
 
     def monic(self):
         """

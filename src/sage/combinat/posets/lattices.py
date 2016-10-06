@@ -688,7 +688,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def is_join_distributive(self, certificate=False):
         """
-        Return ``True`` if the lattice is join-distributive, and ``False``
+        Return ``True`` if the lattice is join-distributive and ``False``
         otherwise.
 
         A lattice is *join-distributive* if every interval from an element
@@ -767,7 +767,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return (False, self.meet(result[1]))
 
         M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
-        diamond = self._hasse_diagram.subgraph_search_iterator(M3).next()
+        diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
         return (False, diamond[0])
 
     def is_distributive(self):

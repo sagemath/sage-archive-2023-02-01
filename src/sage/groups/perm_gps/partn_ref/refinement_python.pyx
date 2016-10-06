@@ -359,11 +359,11 @@ class PythonObjectWrapper:
 
             sage: from sage.groups.perm_gps.partn_ref.refinement_python import PythonObjectWrapper
             sage: def acae(a,b):
-            ...    return 0
+            ....:  return 0
             sage: def rari(a,b,c):
-            ...    return 0
+            ....:  return 0
             sage: def cs(a,b,c,d,e):
-            ...    return 0
+            ....:  return 0
             sage: from sage.groups.perm_gps.partn_ref.refinement_python import PythonObjectWrapper
             sage: P = PythonObjectWrapper(None, acae, rari, cs, 7) # implicit doctest
             sage: P.obj
@@ -447,11 +447,11 @@ def aut_gp_and_can_lab_python(S, partition, n,
 
         sage: from sage.groups.perm_gps.partn_ref.refinement_python import aut_gp_and_can_lab_python
         sage: def acae(a,b):
-        ...    return 0
+        ....:  return 0
         sage: def rari(a,b,c):
-        ...    return 0
+        ....:  return 0
         sage: def cs(a,b,c,d,e):
-        ...    return 0
+        ....:  return 0
         sage: aut_gp_and_can_lab_python(None, [[0,1,2,3],[4,5]], 6, acae, rari, cs, True, True, True)
         ([[0, 1, 3, 2, 4, 5],
           [0, 2, 1, 3, 4, 5],

@@ -1223,7 +1223,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         Action of `S_4` (on a very nonstandard domain) on tuples of sets::
 
             sage: S4 = PermutationGroup([ [((11,(12,13)),'d')],
-            ...           [((12,(12,11)),(11,(12,13)))], [((12,(12,11)),'b')] ])
+            ....:         [((12,(12,11)),(11,(12,13)))], [((12,(12,11)),'b')] ])
             sage: S4.orbit((( (11,(12,13)), (12,(12,11))),('b','d')),"OnTuplesSets")
             (({(11, (12, 13)), (12, (12, 11))}, {'b', 'd'}),
              ({'d', (12, (12, 11))}, {(11, (12, 13)), 'b'}),

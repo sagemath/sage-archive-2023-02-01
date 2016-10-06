@@ -8,42 +8,53 @@ graph to an orientable surface with boundary. Also, every orientable
 surface with non-empty boundary is the thickening of a ribbon graph.
 
 A comprenhensive introduction on the topic can be found in the beginning
-of [GIR]_ Chapter $4$. More concretely, we will use a variation of what
+of [GIR]_ Chapter 4. More concretely, we will use a variation of what
 is called in the reference ''The permutation representation pair of a
 dessin''. Note that in that book, ribbon graphs are called ''dessins
 d'enfant''. For the sake on completeness we reproduce an adapted version
 of that introduction here.
 
-*Brief introduction
+**Brief introduction**
 
-Let $\Gamma$ be the topological realization of a graph. Let $v(\Gamma)$
-be the set of vertices of $\Gamma$ and let $e(\Gamma):= \Gamma - v(\Gamma)$ 
-be the set of edges of $\Gamma$. Now remove a point from each edge. This
-gives two ''darts'' (sometimes called half-edges) for each edge.
+Let $\Sigma$ be an orientable surface with non-emmpty boundary and let 
+$\Gamma$ be the topological realization of a graph that is embedded in 
+$\Sigma$ in such a way that the graph is a strong deformation retract of
+the surface. 
 
-Given a vertex $v \in v(\Gamma)$, let $d(v)$ be the set of darts adjacent
-to $v$. A ribbon structure on $\Gamma$ is a cyclic ordering of $d(v)$ for
-each $v\in V(\Gamma)$. Let $D(\Gamma)$ be the set of all the darts of
+Let $v(\Gamma)$ be the set of vertices of $\Gamma$, suppose that these
+are ''white'' vertices. Now we mark a ''black'' vertices in an interior 
+point of each edge. In this way we get a bipartite graph where all the
+black vertices have valency 2 and there is no restriction on the valency
+of the white vertices. We call the edges of this new graph ''darts''
+(sometimes they are also called ''half eldges''  of the original graph).
+Observe that each edge of the original graph is formed by two darts.
+
+Given a white vertex $v \in v(\Gamma)$, let $d(v)$ be the set of darts adjacent
+to $v$. Let $D(\Gamma)$ be the set of all the darts of
 $\Gamma$ and suppose that we enumerate the set $D(\Gamma)$ and that it
 has $n$ elements.
 
-We can now encode the data of a ribbon structure in two permutations of
-the symmetric group $S_n$:
+With the orientation of the surface and the embedding of the graph in 
+the surface we can produce two permutations:
 
-    - A permutation that we will call ``sigma``. This permutation is a
-      product of $|v(\Gamma )|$ disjoint cycles. That is, a cycle per 
-      vertex in $\Gamma$. After enumerating $D(\Gamma)$, the cycle is
-      defined by the ribbon structure.
+    - A permutation that we will call ''sigma'' and denote by `\sigma`. 
+      This permutation is a product of as many cycles as white vertices 
+      (that is vertices in `\Gamma`). For each vertex consider a small 
+      topological circle around it in `\Sigma`. This circle intersects 
+      each adjacent dart once. The circle has an orientation induced by
+      the orientation on `\Sigma` and so defines a cycle that sends the
+      number associated to one dart to the number associated to the next
+      dart in the positive orientation of the circle.
 
-    - A permutation that we will call ``rho``. This permutation is a
-      product of as many $2$-cycles as edges has $\Gamma$. It just tells
-      which two darts belong to the same edge.
+    - A permutation that we will call ''rho'' and denote by `\rho`. 
+      This permutation is a product of as many $2$-cycles as edges has 
+      `\Gamma`. It just tells which two darts belong to the same edge.
 
-The thickening can be pictured as follows:
+One can define a ribbon graph abstractly. Consider a graph $\Gamma$ (not 
+embedded in any surface). Now we can again consider one vertex in the 
+interior of each edge. We say that a ribbon structure on $\Gamma$ is 
+a set of two permutations `(\sigma, \rho)`.
 
-    - Take $v \in V(\Gamma)$. And consider the set of darts adjacent
-       to v, that is, $d(v)$. Let $k_v$ be the number of connected 
-       components of $d(v)$. That is the number of darts.
 
 EXAMPLES:
 
@@ -66,6 +77,9 @@ thickening has genus $1$::
     1
     sage: R1.genus()
     1
+
+The next example is the complete bipartite graph of type (3,3) where we
+have added an edge that ends at a vertex of valency 1::
 
     sage: s2=PermutationGroupElement('(1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18,19)')
     sage: r2=PermutationGroupElement('(1,16)(2,13)(3,10)(4,17)(5,14)(6,11)(7,18)(8,15)(9,12)(19,20)')
@@ -101,7 +115,7 @@ AUTHORS:
 
 REFERENCES:
 
-.. [GIR] E. Girondo, G. Gonz\´alez-Diez, Introduction to Compact 
+.. [GIR] E. Girondo, G. Gonzalez-Diez, Introduction to Compact 
    Riemann surfaces and Dessins d'enfant, London Mathematical Society,
    SStudent Text 79.
 
@@ -175,13 +189,12 @@ class RibbonGraph(SageObject):
 
     INPUT:
 
-    - ``sigma`` -- a permutation in G which is a product of disjoint.
+    - ``sigma`` -- a permutation a product of disjoint cycles of any
+    length. Singletons (vertices of valency 1) need not be specified.
 
-    - ``rho`` -- a permutation in G which is a product of disjoint
-      2-cycles and singletons (1-cycles).
+    - ``rho`` -- a permutation which is a product of disjoint
+      2-cycles.
 
-    - ``sing`` -- a boolean variable that tells if we consider vertices of
-      valency 1 or not in our ribbon graph.
 
     EXAMPLES:
 
@@ -398,9 +411,24 @@ class RibbonGraph(SageObject):
 
         - ``g`` -- non-negative integer representing the genus of the
           thickening of the ribbon graph.
+
+        EXAMPLES::
+
+            sage: s1 = PermutationGroupElement('(1,3,5)(2,4,6)')
+            sage: r1 = PermutationGroupElement('(1,2)(3,4)(5,6)')
+            sage: R1 = RibbonGraph(s1,r1);R1
+            Sigma: [[1, 3, 5], [2, 4, 6]] 
+            Rho: [[1, 2], [3, 4], [5, 6]]
+            sage: R1.genus()
+            1
+
+            sage: s3=PermutationGroupElement('(1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15,16)(17,18,19,20)(21,22,23,24)')
+            sage: r3=PermutationGroupElement('(1,21)(2,17)(3,13)(4,22)(7,23)(5,18)(6,14)(8,19)(9,15)(10,24)(11,20)(12,16)')
+            sage: R3 = RibbonGraph(s3,r3);R3.genus()
+            3
         """
         #We now use the same procedure as in _repr_ to get the vertices
-        #of valency 1. 
+        #of valency 1 and distinguish them from the singletons. 
         repr_sigma = [list(x) for x in self.sigma.cycle_tuples()]
         repr_rho = [list(x) for x in self.rho.cycle_tuples()]
         darts_rho = [j for i in range(len(repr_rho)) 
@@ -426,6 +454,15 @@ class RibbonGraph(SageObject):
         Return the rank of the first homology group of the thickening
         of the ribbon graph.
 
+        EXAMPLES::
+
+            sage: s1 = PermutationGroupElement('(1,3,5)(2,4,6)')
+            sage: r1 = PermutationGroupElement('(1,2)(3,4)(5,6)')
+            sage: R1 = RibbonGraph(s1,r1);R1
+            Sigma: [[1, 3, 5], [2, 4, 6]] 
+            Rho: [[1, 2], [3, 4], [5, 6]]
+            sage: R1.mu()
+            2
         """
         return 2*self.genus() + self.n_boundary() - 1
 
@@ -434,6 +471,19 @@ class RibbonGraph(SageObject):
         r"""
         Return the labeled boundaries of the ribbon graph.
 
+        If you cut the thickening of the graph along the graph. you
+        get a collection of cylinders (recall that the graph was a
+        strong deformation retract of the thickening). In each cylinder
+        one of the boundary components has a labelling induced by the
+        enumeration of the darts.
+
+        OUTPUT:
+
+        - A List of lists -- the length of the List is the number of 
+          boundary components of the surface. And each list in the List
+          consists of an ordered tuple of numbers, each number comes
+          from the number assigned to the corresponding dart before
+          cutting.
         """
 
         #initialize and empty list to hold the labels of the boundaries
@@ -511,6 +561,7 @@ class RibbonGraph(SageObject):
         - A LIST of Lists of lists. Each List corresponds to an element 
           of the basis and each list in a List is just a 2-tuple which 
           corresponds to an 'ordered' edge of rho.
+          
         """
 
         aux_sigma = [list(x) for 

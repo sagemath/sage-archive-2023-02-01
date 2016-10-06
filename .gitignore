@@ -46,7 +46,6 @@ xcuserdata/
 .metadata
 *.tmp
 *.bak
-*.swp
 *~.nib
 .classpath
 .settings/
@@ -81,3 +80,4 @@ $RECYCLE.BIN/
 ###########
 .ipynb_checkpoints
 Untitled*.ipynb
+*.directory

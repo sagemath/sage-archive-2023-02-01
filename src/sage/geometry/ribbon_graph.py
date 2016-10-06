@@ -180,7 +180,29 @@ def _find(l, k):
         i+=1
     return pos
 
+def _clean(l):
+    r"""
+    Return a list where empty sublists of l have been removed.
 
+    INPUT:
+
+    - ``l`` -- A List of lists.
+
+    OUTPUT:
+
+    - A list which is a copy of l with all empty sublists removed.
+    """
+    cl = False
+    k=0
+    aux_l = copy.deepcopy(l)
+    while k < len(aux_l):
+        if len(aux_l[k])==0:
+            del aux_l[k]
+            k=0
+        else:
+            k += 1
+
+    return aux_l
 
 class RibbonGraph(SageObject):
     r"""
@@ -302,7 +324,7 @@ class RibbonGraph(SageObject):
             3
 
         """
-        return len((self.rho*self.sigma).cycle_tuples())
+        return len(self.boundary())
 
 
     def contract_edge(self, k):
@@ -323,7 +345,7 @@ class RibbonGraph(SageObject):
 
         EXAMPLES:
 
-        We start again with the  one-holed torus::
+        We start again with the  one-holed torus ribbon graph::
 
             sage: s1 = PermutationGroupElement('(1,3,5)(2,4,6)')
             sage: r1 = PermutationGroupElement('(1,2)(3,4)(5,6)')
@@ -615,7 +637,7 @@ class RibbonGraph(SageObject):
 
         #since lists of tuples are not modifiable, we change the data to a
         #list of lists 
-        aux_perm = (self.rho*self.sigma).cycle_tuples()
+        aux_perm = (self.rho*self.sigma).cycle_tuples(singletons = 1)
 
         #the cycles of the permutation rho*sigma are in 1:1 correspondence with 
         #the boundary components of the thickening (see function n_boundary())
@@ -626,12 +648,16 @@ class RibbonGraph(SageObject):
         for i in range(len(aux_perm)):
             bound = bound + [[]]
             for j in range(len(aux_perm[i])):
-                bound[i].append(aux_perm[i][j])
-                bound[i].append(self.rho(aux_perm[i][j]))
+                if self.rho(aux_perm[i][j]) != aux_perm[i][j]:
+                    bound[i].append(aux_perm[i][j])
+                    bound[i].append(self.rho(aux_perm[i][j]))
+                else:
+                    continue
 
+        cl_bound = _clean(bound)
         #finally the function returns a List of lists. Each list contains
         #a sequence of  numbers and each number corresponds to a half-edge.
-        return bound
+        return cl_bound
 
     #The following function takes the ribbon graph and returns another ribbon 
     #graph where the permutation sigma has just one cycle, (so the graph has 
@@ -680,10 +706,12 @@ class RibbonGraph(SageObject):
         #the following two lines convert the list of tuples to list of lists
         #we have to contract exactly n edges
         aux_ribbon = copy.deepcopy(self)
-        rho_self = [list(x) for 
+        aux_rho = [list(x) for 
                     x in aux_ribbon.rho.cycle_tuples()]
-        n = len(rho_self)- self.mu()
-        for i in range(n):
+
+        #Observe that in the end we will have $\mu$ edges, so we
+        #know exactly how many steps we will iterate
+        while len(aux_rho) > self.mu():
             aux_sigma = [list(x) for 
                      x in aux_ribbon.sigma.cycle_tuples(singletons = 1)]
             aux_rho = [list(x) for 
@@ -692,6 +720,8 @@ class RibbonGraph(SageObject):
                 if (_find(aux_sigma, aux_rho[j][0])[0] != 
                         _find(aux_sigma, aux_rho[j][1])[0]):
                     aux_ribbon = aux_ribbon.contract_edge(j)
+                    aux_rho = [list(x) for 
+                    x in aux_ribbon.rho.cycle_tuples()]
                     break
                 else:
                     continue
@@ -701,7 +731,46 @@ class RibbonGraph(SageObject):
     
     #the next function computes a basis of homology, it uses
     #the previous function.
-    
+
+    def make_generic(self, normalize = False):
+        r"""
+        Return a ribbon graph equivalent to ''self'' but where every
+        vertex has valency 3.
+
+        INPUT:
+
+        - ``normalize`` -- default = false. Boolean variable in case 
+          the user want to minimize the numbering of the darts, in case
+          that by methods of the reduction, the numbers appearing are
+          too high.
+
+        OUTPUT:
+
+        - A ribbon graph that is equivalent to ''self'' but is generic
+          in the sense that all vertices have valency 3.
+
+        EXAMPLES::
+
+            sage: R = make_ribbon(1,3); R;
+            Sigma: [[1, 2, 3, 9, 7], [4, 8, 10, 5, 6]] 
+            Rho: [[1, 4], [2, 5], [3, 6], [7, 8], [9, 10]]
+            sage: G = R.make_generic(); G
+            Sigma: [[2, 3, 11], [5, 6, 13], [7, 8, 15], [9, 16, 17], [10, 14, 19], [12, 18, 21], [20, 22]] 
+            Rho: [[2, 5], [3, 6], [7, 8], [9, 10], [11, 12], [13, 14], [15, 16], [17, 18], [19, 20], [21, 22]]
+            sage: S.genus() == G.genus(); S.n_boundary() == G.n_boundary()
+            True
+            True
+
+        """
+        aux_ribbon = self.reduced()
+
+        for i in range(2*aux_ribbon.mu() - 2):
+            aux_ribbon = aux_ribbon.extrude_edge(i,0,2)
+
+        return aux_ribbon
+
+
+
     def homology_basis(self):
         r"""
         Return an oriented basis of the firs homology group of the graph.

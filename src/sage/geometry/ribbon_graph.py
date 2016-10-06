@@ -1,9 +1,9 @@
 r"""
 Ribbon Graphs
 
-This file implements the object 'ribbon graph'.These are graphs 
+This file implements the object ''ribbon graph''.These are graphs 
 together with a cyclic ordering of the darts adjacent to each 
-vertex. This data allows us to unambiguosly "thicken" the ribbon 
+vertex. This data allows us to unambiguosly ''thicken'' the ribbon 
 graph to an orientable surface with boundary. Also, every orientable
 surface with non-empty boundary is the thickening of a ribbon graph.
 
@@ -163,7 +163,7 @@ def _find(l, k):
         [2, 1]
         sage: _find(A,5)
         [1, 1]
-    
+
     """
     pos=[]
     found = False
@@ -190,7 +190,7 @@ class RibbonGraph(SageObject):
     INPUT:
 
     - ``sigma`` -- a permutation a product of disjoint cycles of any
-    length. Singletons (vertices of valency 1) need not be specified.
+      length. Singletons (vertices of valency 1) need not be specified.
 
     - ``rho`` -- a permutation which is a product of disjoint
       2-cycles.
@@ -229,7 +229,7 @@ class RibbonGraph(SageObject):
     """
 
     def __init__(self, sigma, rho):
-        """
+        r"""
         Initialize ``self``.
 
         """
@@ -262,9 +262,9 @@ class RibbonGraph(SageObject):
         repr_sigma = [list(x) for x in self.sigma.cycle_tuples()]
         repr_rho = [list(x) for x in self.rho.cycle_tuples()]
         darts_rho = [j for i in range(len(repr_rho)) 
-                        for j in repr_rho[i]]
+                     for j in repr_rho[i]]
         darts_sigma = [j for i in range(len(repr_sigma)) 
-                        for j in repr_sigma[i]]
+                       for j in repr_sigma[i]]
         val_one = [x for x in darts_rho if x not in darts_sigma]
         for i in range(len(val_one)):
             repr_sigma += [[val_one[i]]]
@@ -300,6 +300,7 @@ class RibbonGraph(SageObject):
             sage: R2 = RibbonGraph(s2,r2)
             sage: R2.n_boundary()
             3
+
         """
         return len((self.rho*self.sigma).cycle_tuples())
 
@@ -401,6 +402,91 @@ class RibbonGraph(SageObject):
                            PermutationGroupElement([tuple(x) for x in aux_rho])
                            )
 
+    def extrude_edge(self, vertex, dart1, dart2):
+        r"""
+        Return a ribbon graph resulting from extruding an edge from a
+        vertex, pulling from it, all darts from dart1 to dart2 including
+        both.
+
+        INPUT:
+
+        - ``vertex`` -- the position of the vertex in the permutation
+          sigma when represented by the method _repr_. It has to be
+          a vertex of valency at least 2.
+
+        - ``dart1`` -- the position of the first in the
+          cycle corresponding to ``vertex``.
+
+        - ``dart2`` -- the position of the second dart inn the cycle
+          corresponding to ``vertex``.
+
+        OUTPUT:
+
+        - A ribbon graph resulting from extruding a new edge that 
+          ''pulls'' from ``vertex`` a new vertex that is, now, adjacent
+          to all the darts from ``dart1``to ``dart2`` (not including
+          dart2) in the cyclic ordering given by the cycle corresponding
+          to ``vertex``. Note that ``dart1`` may be equal to ``dart2``
+          allowing thus to extrude a contractible edge from a vertex.
+
+        EXAMPLES:
+
+        We try several possibilities in the same graph::
+
+            sage: s1 = PermutationGroupElement('(1,3,5)(2,4,6)')
+            sage: r1 = PermutationGroupElement('(1,2)(3,4)(5,6)')
+            sage: R1 = RibbonGraph(s1,r1);R1
+            Sigma: [[1, 3, 5], [2, 4, 6]] 
+            Rho: [[1, 2], [3, 4], [5, 6]]
+            sage: R1.extrude_edge(1,1,2)
+            Sigma: [[1, 3, 5], [2, 8, 6], [4, 7]] 
+            Rho: [[1, 2], [3, 4], [5, 6], [7, 8]]
+            sage: R1.extrude_edge(1,1,3)
+            Sigma: [[1, 3, 5], [2, 8], [4, 6, 7]] 
+            Rho: [[1, 2], [3, 4], [5, 6], [7, 8]]
+
+        We can also extrude a contractible edge from a vertex. This
+        new edge will end at a vertex of valency 1::
+
+            sage: R1.extrude_edge(0,0,0)
+            Sigma: [[1, 3, 5, 8], [2, 4, 6], [7]] 
+            Rho: [[1, 2], [3, 4], [5, 6], [7, 8]]
+
+        """
+
+        #We first compute the vertices of valency 1 as in _repr_
+        repr_sigma = [list(x) for x in self.sigma.cycle_tuples()]
+        repr_rho = [list(x) for x in self.rho.cycle_tuples()]
+        darts_rho = [j for i in range(len(repr_rho)) 
+                        for j in repr_rho[i]]
+        darts_sigma = [j for i in range(len(repr_sigma)) 
+                        for j in repr_sigma[i]]
+        val_one = [x for x in darts_rho if x not in darts_sigma]
+        for i in range(len(val_one)):
+            repr_sigma += [[val_one[i]]]
+
+        #we find which is the highes value a dart has, in order to 
+        #add new darts that do not conflict with previous ones.
+        k = max(darts_rho)
+
+        #We create the new vertex and append it to sigma.
+        new_vertex = [repr_sigma[vertex][j] 
+                     for j in range(dart1,dart2)]
+        new_vertex.insert(0,k+1)
+        repr_sigma.append(new_vertex)
+
+        #We add the  new dart at the vertex from which we are extruding
+        #an edge. Also we delete the darts that have been extruded.
+        repr_sigma[vertex].insert(dart1,k+2)
+        del repr_sigma[vertex][dart1+1:dart2+1]
+
+        #We update rho
+        repr_rho.append([k+1,k+2])
+
+        return RibbonGraph(
+                           PermutationGroupElement([tuple(x) for x in repr_sigma]), 
+                           PermutationGroupElement([tuple(x) for x in repr_rho])
+                           )
 
 
     def genus(self):
@@ -428,7 +514,8 @@ class RibbonGraph(SageObject):
             3
         """
         #We now use the same procedure as in _repr_ to get the vertices
-        #of valency 1 and distinguish them from the singletons. 
+        #of valency 1 and distinguish them from the extra singletons of
+        #the permutation sigma. 
         repr_sigma = [list(x) for x in self.sigma.cycle_tuples()]
         repr_rho = [list(x) for x in self.rho.cycle_tuples()]
         darts_rho = [j for i in range(len(repr_rho)) 
@@ -463,6 +550,7 @@ class RibbonGraph(SageObject):
             Rho: [[1, 2], [3, 4], [5, 6]]
             sage: R1.mu()
             2
+
         """
         return 2*self.genus() + self.n_boundary() - 1
 
@@ -474,8 +562,8 @@ class RibbonGraph(SageObject):
         If you cut the thickening of the graph along the graph. you
         get a collection of cylinders (recall that the graph was a
         strong deformation retract of the thickening). In each cylinder
-        one of the boundary components has a labelling induced by the
-        enumeration of the darts.
+        one of the boundary components has a labelling of its edges
+        induced by the labelling of the darts.
 
         OUTPUT:
 
@@ -484,6 +572,42 @@ class RibbonGraph(SageObject):
           consists of an ordered tuple of numbers, each number comes
           from the number assigned to the corresponding dart before
           cutting.
+
+        EXAMPLES:
+
+        We start with a ribbon graph whose thickening has one boundary
+        component. We compute its labeled boundary, then
+        reduce it and compute the labeled boundary of the reduced 
+        ribbon graph::
+
+            sage: s1 = PermutationGroupElement('(1,3,5)(2,4,6)')
+            sage: r1 = PermutationGroupElement('(1,2)(3,4)(5,6)')
+            sage: R1 = RibbonGraph(s1,r1);R1
+            Sigma: [[1, 3, 5], [2, 4, 6]] 
+            Rho: [[1, 2], [3, 4], [5, 6]]
+            sage: R1.boundary()
+            [[1, 2, 4, 3, 5, 6, 2, 1, 3, 4, 6, 5]]
+            sage: H1 = R1.reduced(); H1
+            Sigma: [[3, 5, 4, 6]] 
+            Rho: [[3, 4], [5, 6]]
+            sage: H1.boundary()
+            [[3, 4, 6, 5, 4, 3, 5, 6]]
+
+        We now consider a ribbon graph whose thickening has 3 boundary
+        components. Also observe that in one of the labeled boundary
+        components, a numbers appears twice in a row. That is because
+        the ribbon graph has a vertex of valency 1::
+
+            sage: s2=PermutationGroupElement('(1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18,19)')
+            sage: r2=PermutationGroupElement('(1,16)(2,13)(3,10)(4,17)(5,14)(6,11)(7,18)(8,15)(9,12)(19,20)')
+            sage: R2 = RibbonGraph(s2,r2)
+            sage: R2.n_boundary()
+            3
+            sage: R2.boundary()
+            [[1, 16, 17, 4, 5, 14, 15, 8, 9, 12, 10, 3],
+            [2, 13, 14, 5, 6, 11, 12, 9, 7, 18, 19, 20, 20, 19, 16, 1],
+            [3, 10, 11, 6, 4, 17, 18, 7, 8, 15, 13, 2]]
+
         """
 
         #initialize and empty list to hold the labels of the boundaries
@@ -522,9 +646,35 @@ class RibbonGraph(SageObject):
 
         OUTPUT:
 
-        - A ribbon graph whose sigma permutation has only 1 non-trivial
+        - A ribbon graph whose sigma permutation has only 1 non-singleton
           cycle and whose rho permutation is a product of $\mu$ disjoint
           2-cycles.
+
+        EXAMPLES::
+
+            sage: s1 = PermutationGroupElement('(1,3,5)(2,4,6)')
+            sage: r1 = PermutationGroupElement('(1,2)(3,4)(5,6)')
+            sage: R1 = RibbonGraph(s1,r1)
+            sage: R1.reduced()
+            Sigma: [[3, 5, 4, 6]]
+            Rho: [[3, 4], [5, 6]]
+
+            sage: s2=PermutationGroupElement('(1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18,19)')
+            sage: r2=PermutationGroupElement('(1,16)(2,13)(3,10)(4,17)(5,14)(6,11)(7,18)(8,15)(9,12)(19,20)')
+            sage: R2 = RibbonGraph(s2,r2)
+            sage: R2.reduced()
+            Sigma: [[5, 6, 8, 9, 14, 15, 11, 12]] 
+            Rho: [[5, 14], [6, 11], [8, 15], [9, 12]]
+
+            sage: s3=PermutationGroupElement('(1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15,16)(17,18,19,20)(21,22,23,24)')
+            sage: r3=PermutationGroupElement('(1,21)(2,17)(3,13)(4,22)(7,23)(5,18)(6,14)(8,19)(9,15)(10,24)(11,20)(12,16)')
+            sage: R3 = RibbonGraph(s3,r3);R3
+            Sigma: [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15, 16], [17, 18, 19, 20], [21, 22, 23, 24]] 
+            Rho: [[1, 21], [2, 17], [3, 13], [4, 22], [5, 18], [6, 14], [7, 23], [8, 19], [9, 15], [10, 24], [11, 20], [12, 16]]
+            sage: R3.reduced()
+            Sigma: [[5, 6, 8, 9, 11, 12, 18, 19, 20, 14, 15, 16]] 
+            Rho: [[5, 18], [6, 14], [8, 19], [9, 15], [11, 20], [12, 16]]
+
         """
 
         #the following two lines convert the list of tuples to list of lists
@@ -561,7 +711,7 @@ class RibbonGraph(SageObject):
         - A LIST of Lists of lists. Each List corresponds to an element 
           of the basis and each list in a List is just a 2-tuple which 
           corresponds to an 'ordered' edge of rho.
-          
+
         """
 
         aux_sigma = [list(x) for 
@@ -640,3 +790,73 @@ class RibbonGraph(SageObject):
         return basis
 
 
+def make_ribbon(g, r):
+    r"""
+    Return a ribbon graph whose thickening has genus g and r boundary
+    components
+
+    INPUT:
+
+        - ``g`` -- non-negative integer representing the genus of the
+          thickening.
+
+        - ``r`` -- positive integer representing the number of boundary
+          components of the thickening.
+
+    OUTPUT:
+
+        - A ribbon graph that has 2 vertices (two non-trivial cycles 
+          in its sigma permutation) of valency `2g + r` and it has 
+          `2*g + r` edges (and hence `4*g + 2*r` darts).
+
+    EXAMPLES::
+
+        sage: R = make_ribbon(0,1); R; R.genus(); R.n_boundary();
+        Sigma: [[1], [2]] 
+        Rho: [[1, 2]]
+        0
+        1
+
+        sage: R = make_ribbon(0,5); R; R.genus(); R.n_boundary();
+        Sigma: [[1, 9, 7, 5, 3], [2, 4, 6, 8, 10]] 
+        Rho: [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+        0
+        5
+
+        sage: R = make_ribbon(1,1); R; R.genus(); R.n_boundary();
+        Sigma: [[1, 2, 3], [4, 5, 6]] 
+        Rho: [[1, 4], [2, 5], [3, 6]]
+        1
+        1
+
+        sage: R = make_ribbon(7,3); R; R.genus(); R.n_boundary();
+        Sigma: [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 33, 31], [16, 32, 34, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]] 
+        Rho: [[1, 16], [2, 17], [3, 18], [4, 19], [5, 20], [6, 21], [7, 22], [8, 23], [9, 24], [10, 25], [11, 26], [12, 27], [13, 28], [14, 29], [15, 30], [31, 32], [33, 34]]
+        7
+        3
+
+    """
+    #Initialize the two vertices of sigma and the edge joining them
+    repr_sigma= [[1],[2*g+2]]
+    repr_rho = [[1,2*g+2]]
+
+    #We first generate the surface of genus g and boundary component.
+    #This is done by considering the usual planar representation of
+    #a surface as a poligon of 4*g+2 edges with identifications. (see
+    #any topology  book on the classification of surfaces)
+    for i in range(2*g):
+        repr_sigma[0].append(i+2)
+        repr_sigma[1].append(i+(2*g+2)+1)
+        repr_rho +=[[i+2,i+(2*g+2)+1]]
+
+    #finally we add an edge for each aditional boundary component. 
+    max_dart = 4*g+2
+    for j in range(r-1):
+        repr_sigma[0].insert(0,max_dart+2*(j+1)-1)
+        repr_sigma[1].insert(j+1,max_dart+2*(j+1))
+        repr_rho +=[[max_dart+2*(j+1)-1,max_dart+2*(j+1)]]
+
+    return RibbonGraph(
+                       PermutationGroupElement([tuple(x) for x in repr_sigma]), 
+                       PermutationGroupElement([tuple(x) for x in repr_rho])
+                      )

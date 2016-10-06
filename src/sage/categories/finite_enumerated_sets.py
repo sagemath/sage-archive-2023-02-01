@@ -437,15 +437,14 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             except AttributeError:
                 pass
             if L is None and start is None and stop is not None and stop >= 0 and step is None:
-                if L is None:
-                    if stop < card:
-                        it = self.__iter__()
-                        for j in range(stop):
-                            yield next(it)
-                        return
-                    for x in self:
-                        yield x
+                if stop < card:
+                    it = self.__iter__()
+                    for j in range(stop):
+                        yield next(it)
                     return
+                for x in self:
+                    yield x
+                return
             if L is None:
                 L = self.list()
             for x in L[start:stop:step]:

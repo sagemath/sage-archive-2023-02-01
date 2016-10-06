@@ -3360,6 +3360,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
         coeffs = self.list()
         return self._parent([n*coeffs[n] for n from 1 <= n <= degree])
 
+    def gradient(self):
+        """
+        Return a list of partial derivative of ``self``,
+        with respect to the variable of this univariate polynomial.
+
+        EXAMPLES::
+
+           sage: P.<x> = QQ[]
+           sage: f = x^2 + (2/3)*x + 1
+           sage: f.gradient()
+           [2*x + 2/3]
+           sage: f = P(1)
+           sage: f.gradient()
+           [0]
+        """
+        return [self.diff()]
+
     def integral(self,var=None):
         """
         Return the integral of this polynomial.

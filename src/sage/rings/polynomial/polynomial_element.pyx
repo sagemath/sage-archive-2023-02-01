@@ -5357,6 +5357,51 @@ cdef class Polynomial(CommutativeAlgebraElement):
         deprecation(17518, 'The use of coeffs() is now deprecated in favor of coefficients(sparse=False).')
         return self.list()
 
+    def monomial_coefficient(self, m):
+        """
+        Return the coefficient in the base ring of the monomial ``m`` in
+        ``self``, where ``m`` must have the same parent as ``self``.
+
+        INPUT:
+
+        - ``m`` - a monomial
+
+        OUTPUT:
+            coefficient in base ring
+
+        EXAMPLES::
+
+            sage: P.<x> = QQ[]
+
+            The parent of the return is a member of the base ring.
+            sage: f = 2 * x
+            sage: c = f.monomial_coefficient(x); c
+            2
+            sage: c.parent()
+            Rational Field
+
+            sage: f = x^9 - 1/2*x^2 + 7*x + 5/11
+            sage: f.monomial_coefficient(x^9)
+            1
+            sage: f.monomial_coefficient(x^2)
+            -1/2
+            sage: f.monomial_coefficient(x)
+            7
+            sage: f.monomial_coefficient(x^0)
+            5/11
+            sage: f.monomial_coefficient(x^3)
+            0
+        """
+        if not m.parent() is self.parent():
+            raise TypeError("monomial must have same parent as self.")
+
+        d = m.degree()
+        coeffs = self.list()
+        if 0 <= d < len(coeffs):
+            return coeffs[d]
+        else:
+            return self.parent().base_ring().zero()
+
     def newton_raphson(self, n, x0):
         """
         Return a list of n iterative approximations to a root of this

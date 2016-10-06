@@ -263,7 +263,7 @@ class Function_cot(GinacFunction):
             sage: diff(cot(x), x)
             -cot(x)^2 - 1
 
-        TESTS:
+        TESTS::
 
             sage: cot(float(0))
             Infinity

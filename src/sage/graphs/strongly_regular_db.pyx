@@ -137,6 +137,43 @@ def is_mathon_PC_srg(int v,int k,int l,int mu):
                 return (MathonPseudocyclicStronglyRegularGraph,t)
 
 @cached_function
+def is_muzychuk_S6(int v, int k, int l, int mu):
+    r"""
+    Test whether there is a Muzychuk S6 graph which is (v, k, l, mu)-strongly
+    regular.
+
+    INPUT:
+
+        v, k, l, mu: integers
+
+    OUTPUT:
+
+        A tuple t such that t[0](*t[1:]) builds the required graph if it exists,
+        and None otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_muzychuk_S6
+        sage: t = is_muzychuk_S6(378, 116, 34, 36)
+        sage: G = t[0](*t[1:]); G
+        Muzychuk S6 graph with parameters (3,3): Graph on 378 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (378, 116, 34, 36)
+        sage: t = is_muzychuk_S6(5, 5, 5, 5); t
+    """
+    cdef int n, d
+    from sage.rings.integer_ring import ZZ
+    n_list = [n for n in range(l-1) if ZZ(n).is_prime_power()]
+    for n in n_list:
+        d = 2
+        while n**d * ((n**d-1)/(n-1)+1) <= v:
+            if v == n**d * ((n**d-1)/(n-1)+1) and k == n**(d-1)*(n**d-1)/(n-1) - 1\
+            and l == mu - 2 and mu == n**(d-1) * (n**(d-1)-1) / (n-1):
+                from sage.graphs.generators.families import MuzychukS6Graph
+                return (MuzychukS6Graph, n, d)
+            d += 1
+
+@cached_function
 def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
     r"""
     Test whether some (pseudo)Orthogonal Array graph is `(v,k,\lambda,\mu)`-strongly regular.
@@ -2850,6 +2887,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
                       is_haemers,
                       is_cossidente_penttila,
                       is_mathon_PC_srg,
+                      is_muzychuk_S6,
                       is_switch_skewhad]
 
     # Going through all test functions, for the set of parameters and its

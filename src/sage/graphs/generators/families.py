@@ -2679,3 +2679,243 @@ def TuranGraph(n,r):
     g.name('Turan Graph with n: {}, r: {}'.format(n,r))
 
     return g
+
+def MuzychukS6Graph(n, d, phi='fixed', sigma='fixed', verbose=False):
+    r"""
+    Return a strongly regular graph of S6 type from [Mu07]_ on `n^d((n^d-1)/(n-1)+1)` vertices
+
+    The conststrution depends upon a number of parameters, two of then, `n` and `d`, mandatory,
+    and the other two, `\phi` and `\sigma`, are mappings defined in [Mu07]_.
+
+    INPUT:
+
+    - ``n`` (integer)-- a prime power
+
+    - ``d`` (integer)-- must be odd if `n` is odd
+
+    - ``phi`` is an optional parameter of the construction; it must be either
+
+        - 'fixed'-- this will generate a fixed default `\phi_i`, or
+
+        - 'random'-- `\phi_i` are generated at random, or
+
+        - A dictionary describing the `\phi_i` functions;
+          phi[(i, T)] should  be in `{0,..., (n^d-1)/(n-1) - 1}`, and T
+          a tuple in ascending order. Also, each `\phi_i` must be injective.
+
+    - ``sigma`` is an optional parameter of the construction; it must be either
+
+        - 'fixed'-- this will generate a fixed default `\sigma_{ij}`, or
+
+        - 'random'-- `\sigma_{ij}` are generated at random (from `\phi` if `\phi` is given), or
+
+        - A dictionary describing the `\sigma_{ij}`: sigma[(i, j, n)] = m where i, j
+          in some T in L, n in phi[(i, T)], m in phi[(j, T)]. A
+          value must be given for all keys of this form. Also, `\sigma_{ij}`
+          must be equal to `\sigma_{ji}^{-1}`.
+
+    - ``verbose`` (Boolean)-- default is False. If True, print progress information
+
+    EXAMPLES::
+
+        sage: graphs.MuzychukS6Graph(3, 3).is_strongly_regular(parameters=True)
+        (378, 116, 34, 36)
+
+    REFERENCE:
+
+    .. [Mu07] M. Muzychuk.
+       A generalization of Wallis-Fon-Der-Flaass construction of strongly regular graphs.
+       J. Algebraic Combin., 25(2):169–187, 2007.
+    """
+    ### TO DO: optimise
+    ###        add option to return phi, sigma? generate phi, sigma from seed? (int say?)
+
+    from sage.combinat.designs.block_design import ProjectiveGeometryDesign
+    from sage.misc.prandom import randrange
+    from sage.misc.functional import is_even
+    from sage.arith.misc import is_prime_power
+    from sage.graphs.generators.basic import CompleteGraph
+    from sage.rings.finite_rings.finite_field_constructor import GF
+    from sage.matrix.special import ones_matrix
+    from sage.matrix.constructor import matrix
+    from sage.rings.rational_field import QQ
+    from sage.rings.integer_ring import ZZ
+    from time import time
+
+    assert is_even(n * (d-1)), 'n must be even or d must be odd'
+    assert is_prime_power(n), 'n must be a prime power'
+    assert phi or not sigma, 'sigma may only be given if phi is'
+    t = time()
+
+    #build L, L_i and the design
+    m = int((n**d-1)/(n-1) + 1) #from m = p + 1, p = (n^d-1) / (n-1)
+    L = CompleteGraph(m)
+    L.delete_edges([(2*x, 2*x + 1) for x in range(m/2)])
+    L_i = [0]*m
+    for x in range(m):
+        L_i[x] = [edge for edge in L.edges(labels=False) if x in edge]
+    Design = ProjectiveGeometryDesign(d, d-1, GF(n, 'a'), point_coordinates=False)
+    projBlocks = Design.blocks()
+    atInf = projBlocks[-1]
+    Blocks = [[x for x in block if x not in atInf] for block in projBlocks[:-1]]
+    if verbose:
+        print('finished preamble at %f (+%f)' % (time() - t, time() - t))
+    t1 = time()
+
+    #sort the hyperplanes into parallel classes
+    ParClasses = [Blocks]
+    while ParClasses[0]:
+        nextHyp = ParClasses[0].pop()
+        for C in ParClasses[1:]:
+            listC = sum(C,[])
+            for x in nextHyp:
+                if x in listC:
+                    break
+            else:
+                C.append(nextHyp)
+                break
+        else:
+            ParClasses.append([nextHyp])
+    del ParClasses[0]
+    if verbose:
+        print('finished ParClasses at %f (+%f)' % (time() - t, time() - t1))
+    t1 = time()
+
+    #build E^C_j
+    E = {}
+    v = ZZ(n**d)
+    k = ZZ(n**(d-1))
+    ones = ones_matrix(v)
+    for C in ParClasses:
+        EC = matrix(QQ, v)
+        for i in range(v):
+            for j in range(v):
+                for line in C:
+                    if i in line and j in line:
+                        EC[i, j] = 1/k
+        EC -= ones/v
+        E[tuple(C[0])] = EC
+    if verbose:
+        print('finished E at %f (+%f)' % (time() - t, time() - t1))
+    t1 = time()
+
+    #handle phi
+    if phi == 'random':
+        phi = {}
+        for x in range(m):
+            temp = range(len(ParClasses))
+            for line in L_i[x]:
+                rand = randrange(0, len(temp))
+                phi[(x, line)] = temp.pop(rand)
+    elif phi == 'fixed':
+        phi = {}
+        for x in range(m):
+            val = 0
+            for line in L_i[x]:
+                phi[(x, line)] = val
+                val+=1
+    else:
+        assert type(phi) == dict, 'phi must be a dictionary or\
+        \'fixed\': alternatively, remove this argument and it will be\
+        generated randomly'
+        assert set(phi.keys()) == \
+        set([(x, line) for x in range(m) for line in L_i[x]]), \
+        'each phi_i must have domain L_i'
+        for x in range(m):
+            assert m - 2 == len(set([val
+                for (key, val) in phi.items() if key[0] == x])), \
+            'each phi_i must be injective'
+        for val in phi.values():
+            assert val in range(m-1), \
+            'codomain should be {0,..., (n^d - 1)/(n - 1) - 1}'
+    for x in range(m):
+        for line in L_i[x]:
+            phi[(x, line)] = ParClasses[phi[(x, line)]]
+    if verbose:
+        print('finished phi at %f (+%f)' % (time() - t, time() - t1))
+    t1 = time()
+
+    #handle sigma
+    if sigma == 'random':
+        sigma = {}
+        for x in range(m):
+            for line in L_i[x]:
+                [i, j] = line
+                temp = phi[(j, line)][:]
+                for hyp in phi[(i, line)]:
+                    rand = randrange(0, len(temp))
+                    sigma[(i, j, tuple(hyp))] = temp[rand]
+                    sigma[(j, i, tuple(temp[rand]))] = hyp
+                    del temp[rand]
+    elif sigma == 'fixed':
+        sigma = {}
+        for x in range(m):
+            for line in L_i[x]:
+                [i, j] = line
+                temp = phi[(j, line)][:]
+                for hyp in phi[(i, line)]:
+                    val = temp.pop()
+                    sigma[(i, j, tuple(hyp))] = val
+                    sigma[(j, i, tuple(val))] = hyp
+    else:
+        assert type(sigma) == dict, \
+        'sigma must be a dictionary or \'fixed\': alternatively, \
+        remove this argument and it will be generated randomly'
+        correctKeys =      [(line[0], line[1], n) for line in L.edges()
+                            for n in range(len(ParClasses)) if
+                            ParClasses[n] in phi[(line[1], line)]]
+        correctKeys.extend([(line[1], line[0], n) for line in L.edges()
+                            for n in range(len(ParClasses)) if
+                            ParClasses[n] in phi[(line[0], line)]])
+        assert set(sigma.keys()) == set(correct(Keys)), \
+        'the keys in sigma must be \
+        {(i, j, n) | i, j in line in L, and n in phi[i, line]}'
+        for key in sigma.keys():
+            assert key == sigma[(key[1], key[0], sigma[key])], \
+            'sigma_ij must be (sigma_ji)^(-1)'
+        sigma = dict(((i, j, tuple(ParClasses[x])), ParClasses[y])
+                             for ((i, j, x), y) in sigma.items())
+    if verbose:
+        print('finished sigma at %f (+%f)' % (time() - t, time() - t1))
+    t1 = time()
+
+    #build V
+    edges = [] ###how many? *m^2*n^2
+    for (i, j) in L.edges(labels=False):
+        for hyp in phi[(i, (i, j))]:
+            for x in hyp:
+                newEdges = [((i, x), (j, y))
+                            for y in sigma[(i, j, tuple(hyp))]]
+                edges.extend(newEdges)
+    if verbose:
+        print('finished edges at %f (+%f)' % (time() - t, time() - t1))
+    t1 = time()
+    V = Graph(edges)
+    if verbose:
+        print('finished V at %f (+%f)' % (time() - t, time() - t1))
+    t1 = time()
+
+    #build D_i, F_i and A_i
+    D_i = [0]*m
+    for x in range(m):
+        D_i[x] = sum([E[tuple(phi[x, line][0])] for line in L_i[x]])
+    F_i = [1 - D_i[x] - ones/v for x in range(m)]
+    #as the sum of (1/v)*J_\Omega_i, D_i, F_i is identity
+    A_i = [0]*m
+    for x in range(m):
+        A_i[x] = ((v-k)/v)*ones - k*F_i[x]
+        #we know A_i = k''*(1/v)*J_\Omega_i + r''*D_i + s''*F_i,
+        #and (k'', s'', r'') = (v - k, 0, -k)
+    if verbose:
+        print('finished D, F and A at %f (+%f)' % (time() - t, time() - t1))
+    t1 = time()
+
+    #add the edges of the graph of B to V
+    for i in range(m):
+        V.add_edges([((i, x), (i, y)) for x in range(v)
+                     for y in range(v) if not A_i[i][(x, y)]])
+
+    if verbose:
+        print('finished at %f (+%f)' % ((time() - t), time() - t1))
+    V.name('Muzychuk S6 graph with parameters ('+str(n)+','+str(d)+')')
+    return V

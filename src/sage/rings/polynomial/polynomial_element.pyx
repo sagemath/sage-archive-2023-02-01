@@ -5419,6 +5419,42 @@ cdef class Polynomial(CommutativeAlgebraElement):
         else:
             return self.parent().base_ring().zero()
 
+    def monomials(self):
+        """
+        Return the list of the monomials in ``self`` in a decreasing order of their degrees.
+
+        EXAMPLES::
+
+            sage: P.<x> = QQ[]
+            sage: f = x^2 + (2/3)*x + 1
+            sage: f.monomials()
+            [x^2, x, 1]
+            sage: f = P(3/2)
+            sage: f.monomials()
+            [1]
+            sage: f = P(0)
+            sage: f.monomials()
+            []
+            sage: f = x
+            sage: f.monomials()
+            [x]
+            sage: f = - 1/2*x^2 + x^9 + 7*x + 5/11
+            sage: f.monomials()
+            [x^9, x^2, x, 1]
+            sage: x = var('x')
+            sage: K.<rho> = NumberField(x**2 + 1)
+            sage: R.<y> = QQ[]
+            sage: p = rho*y
+            sage: p.monomials()
+            [y]
+        """
+        if self.is_zero():
+            return []
+        v = self.parent().gen()
+        zero = self.parent().base_ring().zero()
+        coeffs = self.list()
+        return [v**i for i in range(self.degree(), -1, -1) if coeffs[i] != zero]
+
     def newton_raphson(self, n, x0):
         """
         Return a list of n iterative approximations to a root of this

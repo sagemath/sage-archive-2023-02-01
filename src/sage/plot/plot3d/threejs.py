@@ -12,11 +12,19 @@ Three.js Support for 3D Plots
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-def threejs(plot):
+def threejs(plot, **kwds):
 
     from sage.plot.plot3d.base import Graphics3d
     if not isinstance(plot, Graphics3d):
         raise TypeError('input plot must be an instance of Graphics3d')
+
+    options = {}
+    options['frame'] = kwds.get('frame', True)
+    options['aspect_ratio'] = kwds.get('aspect_ratio', [1,1,1])
+    options['axes_labels'] = kwds.get('axes_labels', ['x','y','z'])
+    options['decimals'] = int(kwds.get('decimals', 0))
+    options['opacity'] = float(kwds.get('opacity', 1))
+    options['thickness'] = float(kwds.get('thickness', 1))
 
     lights = "[{x:0,y:0,z:10},{x:0,y:0,z:-10}]"
 
@@ -51,6 +59,7 @@ def threejs(plot):
     html = f.read()
     f.close()
 
+    html = html.replace('SAGE_OPTIONS', json.dumps(options))
     html = html.replace('SAGE_LIGHTS', lights)
     html = html.replace('SAGE_BOUNDS', bounds)
     html = html.replace('SAGE_POINTS', str(points))
@@ -68,3 +77,4 @@ def threejs(plot):
     f.close()
 
     backend.launch_viewer(temp_filename, 'Template')
+

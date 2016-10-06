@@ -353,8 +353,8 @@ cdef class Graphics3d(SageObject):
         :class:`sage.repl.rich_output.output_graphics3d.OutputSceneThreejs`.
         """
         options = {}
-        options['frame'] = kwds['frame']
-        options['aspect_ratio'] = kwds['aspect_ratio']
+        options['frame'] = kwds.get('frame', True)
+        options['aspect_ratio'] = kwds.get('aspect_ratio', [1,1,1])
         options['axes_labels'] = kwds.get('axes_labels', ['x','y','z'])
         options['decimals'] = int(kwds.get('decimals', 0))
         options['opacity'] = float(kwds.get('opacity', 1))
@@ -380,6 +380,9 @@ cdef class Graphics3d(SageObject):
 
         surfaces = self.json_repr(self.default_render_params())
         surfaces = flatten_list(surfaces)
+
+        if len(points) == 0 and len(lines) == 0 and len(surfaces) == 0:
+            raise ValueError('no data for this plot')
 
         from sage.env import SAGE_SRC
         filename = os.path.join(SAGE_SRC, 'sage',

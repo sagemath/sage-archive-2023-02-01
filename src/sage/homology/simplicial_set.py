@@ -303,15 +303,13 @@ class AbstractSimplex_class(UniqueRepresentation, SageObject):
     """
 
     @staticmethod
-    def __classcall_private__(self, dim, degeneracies=(), underlying=None, name=None,
-                              latex_name=None, unique_tag=None):
+    def __classcall_private__(self, dim, degeneracies=(), underlying=None,
+                              name=None, latex_name=None):
         """
         Normalize input to ensure a unique representation.
 
         Standardize ``degeneracies`` using the simplicial identities,
-        and also convert it to a tuple.  Ignore ``unique_tag`` -- this
-        argument is present for compatibility with the subclass
-        :class:`NonDegenerateSimplex`.
+        and also convert it to a tuple.
 
         TESTS::
 
@@ -319,9 +317,6 @@ class AbstractSimplex_class(UniqueRepresentation, SageObject):
             sage: v = AbstractSimplex_class(0, degeneracies=[0,0])
             sage: v._degens
             (1, 0)
-
-            sage: v == AbstractSimplex_class(0, degeneracies=[0,0], unique_tag=10)
-            True
         """
         if degeneracies:
             degeneracies = standardize_degeneracies(*degeneracies)

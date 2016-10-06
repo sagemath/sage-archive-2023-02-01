@@ -1792,6 +1792,10 @@ class Func_gen_laguerre(OrthogonalFunction):
             sage: (a,n)=var('a,n')
             sage: diff(gen_laguerre(n,a,x), x)
             -gen_laguerre(n - 1, a + 1, x)
+            sage: gen_laguerre(n,a,x).diff(a)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Derivative w.r.t. to the second index is not supported.
 
         TESTS::
 

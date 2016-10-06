@@ -412,16 +412,16 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 sage: list(F.iterator_range(start=1, step=2))
                 [2]
                 sage: list(F.iterator_range(start=1, stop=2))
-                [2, 3]
+                [2]
                 sage: list(F.iterator_range(start=0, stop=1))
-                [1, 2]
-                sage: list(F.iterator_range(start=0, stop=2, step=2))
+                [1]
+                sage: list(F.iterator_range(start=0, stop=3, step=2))
                 [1, 3]
                 sage: list(F.iterator_range(stop=-1))
                 [1, 2]
 
                 sage: F = FiniteEnumeratedSet([1,2,3,4])
-                sage: list(F.iterator_range(start=1, stop=2))
+                sage: list(F.iterator_range(start=1, stop=3))
                 [2, 3]
                 sage: list(F.iterator_range(stop=10))
                 [1, 2, 3, 4]

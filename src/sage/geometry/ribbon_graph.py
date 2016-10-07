@@ -16,7 +16,7 @@ of that introduction here.
 
 **Brief introduction**
 
-Let $\Sigma$ be an orientable surface with non-emmpty boundary and let 
+Let $\Sigma$ be an orientable surface with non-empty boundary and let 
 $\Gamma$ be the topological realization of a graph that is embedded in 
 $\Sigma$ in such a way that the graph is a strong deformation retract of
 the surface. 
@@ -50,10 +50,23 @@ the surface we can produce two permutations:
       This permutation is a product of as many $2$-cycles as edges has 
       `\Gamma`. It just tells which two darts belong to the same edge.
 
-One can define a ribbon graph abstractly. Consider a graph $\Gamma$ (not 
-embedded in any surface). Now we can again consider one vertex in the 
-interior of each edge. We say that a ribbon structure on $\Gamma$ is 
-a set of two permutations `(\sigma, \rho)`.
+One can also define a ribbon graph abstractly:
+
+    Consider a graph $\Gamma$ (not a priori embedded in any surface). 
+    Now we can again consider one vertex in the interior of each edge 
+    splitting each edge in two darts. We label the darts with numbers.
+
+    We say that a ribbon structure on $\Gamma$ is a set of two 
+    permutations `(\sigma, \rho)`. Where `\sigma` is formed by as many
+    disjoint cycles as vertices had `\Gamma`. And each cycle is a 
+    cyclic ordering of the darts adjacent to a vertex. The permutation
+    `\rho` just tell us which two darts belong to the same edge.
+
+    For any two such permutations there is a way of ''thickening'' the
+    graph to a surface with boundary in such a way that the surface
+    retracts (by a strong deformation retract) to the graph and hence
+    the graph is embedded in the surface in a such a way that we could
+    recover `\sigma` and `\rho`.
 
 
 EXAMPLES:
@@ -111,7 +124,7 @@ have added an edge that ends at a vertex of valency 1::
 
 AUTHORS:
 
-- Pablo Portilla (2016): initial version
+- Pablo Portilla (2016)
 
 REFERENCES:
 
@@ -191,6 +204,14 @@ def _clean(l):
     OUTPUT:
 
     - A list which is a copy of l with all empty sublists removed.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.ribbon_graph import _clean
+        sage: A = [[1,2],[], [2,1,7],[],[],[1]]
+        sage: _clean(A)
+        [[1, 2], [2, 1, 7], [1]]
+
     """
     cl = False
     k=0
@@ -248,6 +269,15 @@ class RibbonGraph(SageObject):
         sage: R2 = RibbonGraph(s2,r2); R2
         Sigma: [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15], [16, 17, 18]] 
         Rho: [[1, 16], [2, 13], [3, 10], [4, 17], [5, 14], [6, 11], [7, 18], [8, 15], [9, 12]]
+
+    The labeling of the darts can omit some numbers::
+
+        sage: s3 = PermutationGroupElement('(3,5,10,12)')
+        sage: r3 = PermutationGroupElement('(3,10)(5,12)')
+        sage: R3= RibbonGraph(s3,r3);R3
+        Sigma: [[3, 5, 10, 12]] 
+        Rho: [[3, 10], [5, 12]]
+
     """
 
     def __init__(self, sigma, rho):
@@ -260,11 +290,10 @@ class RibbonGraph(SageObject):
         #bigger permutation group than sigma, then automatically 
         #self.sigma lies in this bigger group. This avoids some
         #patologies. Note that the reverse thing cannot happen since
-        #in the permutation rho all darts appear always.
+        #in the permutation rho all darts of the graph appear.
         self.sigma=(sigma*rho)*rho**(-1)
         self.rho=rho
-        #have to add lines to control error such as not admissible sigma, rho
-        #things that are not ribbon graphs, etc.
+
 
     def _repr_(self):
         r"""
@@ -324,6 +353,10 @@ class RibbonGraph(SageObject):
             3
 
         """
+        #it might seem a bit overkill to call boundary() here but it is
+        #necessary to either call it or do similar computations here.
+        #The function boundary() avoids some patologies with boundaries
+        #formed by just one loop.
         return len(self.boundary())
 
 
@@ -386,7 +419,7 @@ class RibbonGraph(SageObject):
                      x in self.sigma.cycle_tuples(singletons = 1)]
         aux_rho = [list(x) for 
                    x in self.rho.cycle_tuples()]
-        #The following if rules out the cases when we would be 
+        #The following ''if'' rules out the cases when we would be 
         #contracting a loop (which is not admissible since we would 
         #lose the topological type of the graph).
         if (_find(aux_sigma, aux_rho[k][0])[0] == 
@@ -474,6 +507,22 @@ class RibbonGraph(SageObject):
             Sigma: [[1, 3, 5, 8], [2, 4, 6], [7]] 
             Rho: [[1, 2], [3, 4], [5, 6], [7, 8]]
 
+        In the following example we first extrude one edge from a vertex
+        of valency 3 generating a new vertex of valency 2. Then we 
+        extrude a new edge from this vertex of valency 2::
+
+            sage: s1 = PermutationGroupElement('(1,3,5)(2,4,6)')
+            sage: r1 = PermutationGroupElement('(1,2)(3,4)(5,6)')
+            sage: R1 = RibbonGraph(s1,r1); R1
+            Sigma: [[1, 3, 5], [2, 4, 6]] 
+            Rho: [[1, 2], [3, 4], [5, 6]]
+            sage: E1 = R1.extrude_edge(0,0,1); E1
+            Sigma: [[1, 7], [2, 4, 6], [3, 5, 8]] 
+            Rho: [[1, 2], [3, 4], [5, 6], [7, 8]]
+            sage: F1 = E1.extrude_edge(0,0,1); F1 
+            Sigma: [[1, 9], [2, 4, 6], [3, 5, 8], [7, 10]] 
+            Rho: [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+
         """
 
         #We first compute the vertices of valency 1 as in _repr_
@@ -534,6 +583,7 @@ class RibbonGraph(SageObject):
             sage: r3=PermutationGroupElement('(1,21)(2,17)(3,13)(4,22)(7,23)(5,18)(6,14)(8,19)(9,15)(10,24)(11,20)(12,16)')
             sage: R3 = RibbonGraph(s3,r3);R3.genus()
             3
+
         """
         #We now use the same procedure as in _repr_ to get the vertices
         #of valency 1 and distinguish them from the extra singletons of
@@ -659,11 +709,6 @@ class RibbonGraph(SageObject):
         #a sequence of  numbers and each number corresponds to a half-edge.
         return cl_bound
 
-    #The following function takes the ribbon graph and returns another ribbon 
-    #graph where the permutation sigma has just one cycle, (so the graph has 
-    #1 vertex) and the permutation rho is therefore formed by mu 2-cycles,
-    #where mu is the first betti number of the surface
-
 
     def reduced(self):
         r"""
@@ -732,17 +777,10 @@ class RibbonGraph(SageObject):
     #the next function computes a basis of homology, it uses
     #the previous function.
 
-    def make_generic(self, normalize = False):
+    def make_generic(self):
         r"""
         Return a ribbon graph equivalent to ''self'' but where every
         vertex has valency 3.
-
-        INPUT:
-
-        - ``normalize`` -- default = false. Boolean variable in case 
-          the user want to minimize the numbering of the darts, in case
-          that by methods of the reduction, the numbers appearing are
-          too high.
 
         OUTPUT:
 
@@ -751,13 +789,39 @@ class RibbonGraph(SageObject):
 
         EXAMPLES::
 
-            sage: R = make_ribbon(1,3); R;
+            sage: R = make_ribbon(1,3); R; R.genus(); R.n_boundary()
             Sigma: [[1, 2, 3, 9, 7], [4, 8, 10, 5, 6]] 
             Rho: [[1, 4], [2, 5], [3, 6], [7, 8], [9, 10]]
+            1
+            3
             sage: G = R.make_generic(); G
             Sigma: [[2, 3, 11], [5, 6, 13], [7, 8, 15], [9, 16, 17], [10, 14, 19], [12, 18, 21], [20, 22]] 
             Rho: [[2, 5], [3, 6], [7, 8], [9, 10], [11, 12], [13, 14], [15, 16], [17, 18], [19, 20], [21, 22]]
-            sage: S.genus() == G.genus(); S.n_boundary() == G.n_boundary()
+            sage: R.genus() == G.genus(); R.n_boundary() == G.n_boundary()
+            True
+            True
+
+            sage: R = make_ribbon(5,4); R; R.genus(); R.n_boundary()
+            Sigma: [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 27, 25, 23], [12, 24, 26, 28, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]] 
+            Rho: [[1, 12], [2, 13], [3, 14], [4, 15], [5, 16], [6, 17], [7, 18], [8, 19], [9, 20], [10, 21], [11, 22], [23, 24], [25, 26], [27, 28]]
+            5
+            4
+            sage: G = R.reduced(); G
+            Sigma: [[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 27, 25, 23, 24, 26, 28, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]] 
+            Rho: [[2, 13], [3, 14], [4, 15], [5, 16], [6, 17], [7, 18], [8, 19], [9, 20], [10, 21], [11, 22], [23, 24], [25, 26], [27, 28]]
+            sage: G.genus()==R.genus(); G.n_boundary() == R.n_boundary()
+            True
+            True
+
+            sage: R = make_ribbon(0,6); R; R.genus(); R.n_boundary()
+            Sigma: [[1, 11, 9, 7, 5, 3], [2, 4, 6, 8, 10, 12]] 
+            Rho: [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
+            0
+            6
+            sage: G = R.reduced(); G
+            Sigma: [[3, 4, 6, 8, 10, 12, 11, 9, 7, 5]] 
+            Rho: [[3, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
+            sage: G.genus()==R.genus(); G.n_boundary() == R.n_boundary()
             True
             True
 
@@ -773,13 +837,80 @@ class RibbonGraph(SageObject):
 
     def homology_basis(self):
         r"""
-        Return an oriented basis of the firs homology group of the graph.
+        Return an oriented basis of the first homology group of the 
+        graph.
 
         OUTPUT:
 
-        - A LIST of Lists of lists. Each List corresponds to an element 
-          of the basis and each list in a List is just a 2-tuple which 
-          corresponds to an 'ordered' edge of rho.
+        - A LIST of Lists of lists. The length of the LIST is `\mu` .
+          Each List in the LIST corresponds to an element 
+          of the basis. Each list in a List is just a 2-tuple which 
+          corresponds to an ordered edge of the graph, that is a 
+          2-cycle as an oriented tuple. The union of all the lists in
+          a List is a circle contained in the graph.
+
+        EXAMPLES::
+
+            sage: R = make_ribbon(0,6); R; R.mu()
+            Sigma: [[1, 11, 9, 7, 5, 3], [2, 4, 6, 8, 10, 12]] 
+            Rho: [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
+            5
+            sage: R.homology_basis()
+            [[[3, 4], [2, 1]],
+            [[5, 6], [2, 1]],
+            [[7, 8], [2, 1]],
+            [[9, 10], [2, 1]],
+            [[11, 12], [2, 1]]]
+
+            sage: R = make_ribbon(1,1); R; R.mu()
+            Sigma: [[1, 2, 3], [4, 5, 6]] 
+            Rho: [[1, 4], [2, 5], [3, 6]]
+            2
+            sage: R.homology_basis()
+            [[[2, 5], [4, 1]], [[3, 6], [4, 1]]]
+            sage: H = R.reduced(); H
+            Sigma: [[2, 3, 5, 6]] 
+            Rho: [[2, 5], [3, 6]]
+            sage: H.homology_basis()
+            [[[2, 5]], [[3, 6]]]
+
+            sage: s3 = PermutationGroupElement('(1,2,3,4,5,6,7,8,9,10,11,27,25,23)(12,24,26,28,13,14,15,16,17,18,19,20,21,22)')
+            sage: r3 = PermutationGroupElement('(1,12)(2,13)(3,14)(4,15)(5,16)(6,17)(7,18)(8,19)(9,20)(10,21)(11,22)(23,24)(25,26)(27,28)')
+            sage: R3 = RibbonGraph(s3,r3); R3; R3.mu()
+            Sigma: [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 27, 25, 23], [12, 24, 26, 28, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]] 
+            Rho: [[1, 12], [2, 13], [3, 14], [4, 15], [5, 16], [6, 17], [7, 18], [8, 19], [9, 20], [10, 21], [11, 22], [23, 24], [25, 26], [27, 28]]
+            13
+            sage: R3.homology_basis()
+            [[[2, 13], [12, 1]],
+            [[3, 14], [12, 1]],
+            [[4, 15], [12, 1]],
+            [[5, 16], [12, 1]],
+            [[6, 17], [12, 1]],
+            [[7, 18], [12, 1]],
+            [[8, 19], [12, 1]],
+            [[9, 20], [12, 1]],
+            [[10, 21], [12, 1]],
+            [[11, 22], [12, 1]],
+            [[23, 24], [12, 1]],
+            [[25, 26], [12, 1]],
+            [[27, 28], [12, 1]]]
+            sage: H3 = R3.reduced();H3
+            Sigma: [[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 27, 25, 23, 24, 26, 28, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]] 
+            Rho: [[2, 13], [3, 14], [4, 15], [5, 16], [6, 17], [7, 18], [8, 19], [9, 20], [10, 21], [11, 22], [23, 24], [25, 26], [27, 28]]
+            sage: H3.homology_basis()
+            [[[2, 13]],
+            [[3, 14]],
+            [[4, 15]],
+            [[5, 16]],
+            [[6, 17]],
+            [[7, 18]],
+            [[8, 19]],
+            [[9, 20]],
+            [[10, 21]],
+            [[11, 22]],
+            [[23, 24]],
+            [[25, 26]],
+            [[27, 28]]]
 
         """
 
@@ -854,7 +985,7 @@ class RibbonGraph(SageObject):
                     
         #the variable basis is a LIST of Lists of lists. Each List 
         #corresponds to an element of the basis and each list in a List
-        #is just a 2-tuple which corresponds to an 'ordered' edge of rho.
+        #is just a 2-tuple which corresponds to an ''ordered'' edge of rho.
         
         return basis
 

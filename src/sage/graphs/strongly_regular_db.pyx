@@ -139,17 +139,16 @@ def is_mathon_PC_srg(int v,int k,int l,int mu):
 @cached_function
 def is_muzychuk_S6(int v, int k, int l, int mu):
     r"""
-    Test whether there is a Muzychuk S6 graph which is (v, k, l, mu)-strongly
-    regular.
+    Test whether some Muzychuk S6 graph is (v, k, l, mu)-strongly regular.
 
     INPUT:
 
-        v, k, l, mu: integers
+    - ``v, k, l, mu`` (integers)
 
     OUTPUT:
 
-        A tuple t such that t[0](*t[1:]) builds the required graph if it exists,
-        and None otherwise.
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the required graph if it exists,
+    and ``None`` otherwise.
 
     EXAMPLES::
 

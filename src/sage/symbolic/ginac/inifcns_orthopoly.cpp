@@ -109,6 +109,8 @@ static ex gegenb_evalf(const ex& n, const ex &a, const ex& x, PyObject* parent)
 
 static ex gegenb_eval(const ex& n, const ex &a, const ex& x)
 {
+	numeric numa = 1;
+
 	if (is_exactly_a<numeric>(x)) {
                 numeric numx = ex_to<numeric>(x);
                 if (is_exactly_a<numeric>(n)
@@ -129,7 +131,13 @@ static ex gegenb_eval(const ex& n, const ex &a, const ex& x)
 	if (numn.is_equal(*_num1_p))
 		return _ex2 * a * x;
 
-	if (not is_exactly_a<numeric>(a)) {
+	if (is_exactly_a<numeric>(a)) {
+		numa = ex_to<numeric>(a);
+		if (numa.is_zero())
+			return _ex0; // C_n^0(x) = 0
+	}
+
+	if (not is_exactly_a<numeric>(a) or numa < 0) {
 		ex p = _ex1;
 		ex sum = _ex0;
 		ex sign = _ex1;
@@ -154,10 +162,6 @@ static ex gegenb_eval(const ex& n, const ex &a, const ex& x)
 		}
 		return sum;
 	}
-
-        numeric numa = ex_to<numeric>(a);
-        if (not numa.info(info_flags::rational) or numa < 0)
-                throw std::runtime_error("gegenb_eval: The parameter a must be a nonnegative rational");
 
 	// from here on see flint2/fmpq_poly/gegenbauer_c.c
 	numeric numer = numa.numer();

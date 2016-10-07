@@ -2634,7 +2634,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         cdef Vector_rational_dense v = Vector_rational_dense.__new__(Vector_rational_dense)
         v._init(self._ncols, parent)
         for j in range(self._ncols):
-            mpq_init(v._entries[j]); mpq_set(v._entries[j], self._matrix[i][j])
+            mpq_set(v._entries[j], self._matrix[i][j])
         return v
 
     def column(self, Py_ssize_t i, from_list=False):
@@ -2668,7 +2668,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         cdef Vector_rational_dense v = Vector_rational_dense.__new__(Vector_rational_dense)
         v._init(self._nrows, parent)
         for j in range(self._nrows):
-            mpq_init(v._entries[j]); mpq_set(v._entries[j], self._matrix[j][i])
+            mpq_set(v._entries[j], self._matrix[j][i])
         return v
 
     ################################################

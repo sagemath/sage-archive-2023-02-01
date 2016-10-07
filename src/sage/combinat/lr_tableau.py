@@ -5,7 +5,7 @@ A semistandard tableau is Littlewood-Richardson with respect to
 the sequence of partitions `(\mu^{(1)},\ldots,\mu^{(k)})` if,
 when restricted to each alphabet `\{|\mu^{(1)}|+\cdots+|\mu^{(i-1)}|+1,\ldots,
 |\mu^{(1)}|+\cdots+|\mu^{(i)}|-1\}`, is Yamanouchi.
-s
+
 Authors:
 
 - Maria Gillespie and Anne Schilling (2016): initial version
@@ -33,6 +33,24 @@ from sage.combinat.tableau import SemistandardTableau, SemistandardTableaux
 from sage.combinat.partition import Partition
 
 class LittlewoodRichardsonTableau(SemistandardTableau):
+    r"""
+    A semistandard tableau is Littlewood-Richardson with respect to
+    the sequence of partitions `(\mu^{(1)},\ldots,\mu^{(k)})` if,
+    when restricted to each alphabet `\{|\mu^{(1)}|+\cdots+|\mu^{(i-1)}|+1,\ldots,
+    |\mu^{(1)}|+\cdots+|\mu^{(i)}|-1\}`, is Yamanouchi.
+
+    INPUT:
+
+    - ``t`` -- Littlewood-Richardson tableau; the input is supposed to be a list
+      of lists specifying the rows of the tableau
+
+    EXAMPLES::
+
+        sage: from sage.combinat.lr_tableau import LittlewoodRichardsonTableau
+        sage: LittlewoodRichardsonTableau([[1,1,3],[2,3],[4]], [[2,1],[2,1]])
+        [[1, 1, 3], [2, 3], [4]]
+
+    """
 
     @staticmethod
     def __classcall_private__(cls, t, weight):
@@ -67,7 +85,7 @@ class LittlewoodRichardsonTableau(SemistandardTableau):
         INPUT:
 
         - ``t`` -- Littlewood-Richardson tableau; the input is supposed to be a list
-          of lists specifying the rows of the tableau.
+          of lists specifying the rows of the tableau
 
         TESTS::
 
@@ -102,32 +120,48 @@ class LittlewoodRichardsonTableau(SemistandardTableau):
 
             sage: from sage.combinat.lr_tableau import LittlewoodRichardsonTableaux
             sage: LR = LittlewoodRichardsonTableaux([3,2,1],[[2,1],[2,1]])
-            sage: t = LR([[1, 1, 2], [3, 3], [4]])
+            sage: LR([[1, 1, 2], [3, 3], [4]])
             Traceback (most recent call last):
             ...
-            ValueError: This is not a proper Littlewood-Richardson tableau of the correct weight
-            sage: t = LR([[1, 1, 3, 3], [2, 3], [4]])
+            ValueError: not a proper Littlewood-Richardson tableau of the correct weight
+            sage: LR([[1, 1, 2, 3], [3], [4]])
             Traceback (most recent call last):
             ...
-            ValueError: The weight of the parent does not agree with the weight of the tableau!
-            sage: t = LR([[1, 1, 3], [3, 3], [4]])
+            ValueError: shape of the parent does not agree with the shape of the tableau
+            sage: LR([[1, 1, 3], [3, 3], [4]])
             Traceback (most recent call last):
             ...
-            ValueError: The weight of the parent does not agree with the weight of the tableau!
+            ValueError: weight of the parent does not agree with the weight of the tableau
         """
         t = SemistandardTableau(list(self))
         if not [i for a in self.parent()._weight for i in a] == t.weight():
-            raise ValueError("The weight of the parent does not agree "
-                             "with the weight of the tableau!")
+            raise ValueError("weight of the parent does not agree "
+                             "with the weight of the tableau")
         if not t.shape() == self.parent()._shape:
-            raise ValueError("The shape of the parent does not agree "
-                             "with the shape of the tableau!")
+            raise ValueError("shape of the parent does not agree "
+                             "with the shape of the tableau")
         heights = [a.length() for a in self._weight]
         if not is_littlewood_richardson(self,heights):
-            raise ValueError("This is not a proper Littlewood-Richardson tableau of the correct weight")
+            raise ValueError("not a proper Littlewood-Richardson tableau of the correct weight")
 
 class LittlewoodRichardsonTableaux(SemistandardTableaux):
+    r"""
+    A semistandard tableau is Littlewood-Richardson with respect to
+    the sequence of partitions `(\mu^{(1)},\ldots,\mu^{(k)})` (called weight) if,
+    when restricted to each alphabet `\{|\mu^{(1)}|+\cdots+|\mu^{(i-1)}|+1,\ldots,
+    |\mu^{(1)}|+\cdots+|\mu^{(i)}|-1\}`, is Yamanouchi.
 
+    INPUT:
+
+    - ``shape`` -- the shape of the Littlewood-Richardson tableaux
+    - ``weight`` -- the weight is a sequence of partitions
+
+    EXAMPLES::
+
+        sage: from sage.combinat.lr_tableau import LittlewoodRichardsonTableaux
+        sage: LittlewoodRichardsonTableaux([3,2,1],[[2,1],[2,1]])
+        Littlewood-Richardson Tableaux of shape [3, 2, 1] and weight ([2, 1], [2, 1])
+    """
     @staticmethod
     def __classcall_private__(cls, shape, weight):
         r"""
@@ -138,6 +172,10 @@ class LittlewoodRichardsonTableaux(SemistandardTableaux):
             sage: from sage.combinat.lr_tableau import LittlewoodRichardsonTableaux
             sage: LR = LittlewoodRichardsonTableaux([3,2,1],[[2,1],[2,1]])
             sage: TestSuite(LR).run()
+            sage: LittlewoodRichardsonTableaux([3,2,1],[[2,1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: The sizes of shapes and sequence of weights do not match
         """
         shape = Partition(shape)
         weight = tuple(Partition(a) for a in weight)
@@ -189,7 +227,7 @@ class LittlewoodRichardsonTableaux(SemistandardTableaux):
         heights = [a.length() for a in self._weight]
         for t in T:
             if is_littlewood_richardson(t,heights):
-                yield t
+                yield self(t)
 
     Element = LittlewoodRichardsonTableau
 
@@ -197,7 +235,7 @@ class LittlewoodRichardsonTableaux(SemistandardTableaux):
 
 def is_littlewood_richardson(t, heights):
     """
-    Return whether semistandard tableau `t` is Littleword-Richardson with respect to `heights`.
+    Return whether semistandard tableau ``t`` is Littleword-Richardson with respect to ``heights``.
 
     A tableau is Littlewood-Richardson with respect to `heights = (h_1,h_2,\ldots)`
     if each subtableau with respect to the alphabets `\{1,2,\ldots,h_1\}`,`\{h_1+1,\ldots, h_1+h_2\}`,

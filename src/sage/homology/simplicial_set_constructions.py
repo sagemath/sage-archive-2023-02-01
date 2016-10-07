@@ -568,13 +568,13 @@ class PullbackOfSimplicialSets_finite(PullbackOfSimplicialSets, SimplicialSet_fi
               Simplicial set morphism:
                 From: RP^5
                 To:   Quotient: (RP^5/Simplicial set with 3 non-degenerate simplices)
-                Defn: [1, f, f * f, f * f * f, f * f * f * f, f * f * f * f * f] --> [*, Simplex obtained by applying degeneracy s_0 to *, Simplex obtained by applying degeneracies s_1 s_0 to *, f * f * f, f * f * f * f, f * f * f * f * f]
+                Defn: [1, f, f * f, f * f * f, f * f * f * f, f * f * f * f * f] --> [*, s_0 *, s_1 s_0 *, f * f * f, f * f * f * f, f * f * f * f * f]
               Simplicial set morphism:
                 From: Point
                 To:   Quotient: (RP^5/Simplicial set with 3 non-degenerate simplices)
                 Defn: Constant map at *
               To:   RP^5
-              Defn: [(1, *), (f, Simplex obtained by applying degeneracy s_0 to *), (f * f, Simplex obtained by applying degeneracies s_1 s_0 to *)] --> [1, f, f * f]
+              Defn: [(1, *), (f, s_0 *), (f * f, s_1 s_0 *)] --> [1, f, f * f]
             sage: Y.structure_map(1).codomain()
             Point
 
@@ -618,7 +618,7 @@ class PullbackOfSimplicialSets_finite(PullbackOfSimplicialSets, SimplicialSet_fi
             Simplicial set morphism:
               From: S^1
               To:   S^1 x S^1 x S^1
-              Defn: [v_0, sigma_1] --> [(v_0, (v_0, v_0)), (sigma_1, (sigma_1, Simplex obtained by applying degeneracy s_0 to v_0))]
+              Defn: [v_0, sigma_1] --> [(v_0, (v_0, v_0)), (sigma_1, (sigma_1, s_0 v_0))]
         """
         if len(self._maps) != len(maps):
             raise ValueError('wrong number of maps specified')
@@ -788,9 +788,7 @@ class ProductOfSimplicialSets(PullbackOfSimplicialSets, Factors):
             sage: X
             RP^oo x RP^oo
             sage: X.n_cells(1)
-            [(Simplex obtained by applying degeneracy s_0 to 1, f),
-             (f, Simplex obtained by applying degeneracy s_0 to 1),
-             (f, f)]
+            [(f, f), (f, s_0 1), (s_0 1, f)]
             sage: X.homology(range(3), base_ring=GF(2))
             {0: Vector space of dimension 0 over Finite Field of size 2,
              1: Vector space of dimension 2 over Finite Field of size 2,
@@ -1000,9 +998,7 @@ class ProductOfSimplicialSets_finite(ProductOfSimplicialSets, PullbackOfSimplici
             sage: P = X.product(Y)
             sage: W = P.wedge_as_subset()
             sage: W.nondegenerate_simplices()
-            [(v, w),
-             (Simplex obtained by applying degeneracy s_0 to v, f),
-             (e, Simplex obtained by applying degeneracy s_0 to w)]
+            [(v, w), (e, s_0 w), (s_0 v, f)]
             sage: W.homology()
             {0: 0, 1: Z x Z}
         """
@@ -1574,7 +1570,7 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
               Simplicial set morphism:
                 From: Simplicial set with 5 non-degenerate simplices
                 To:   Simplicial set with 3 non-degenerate simplices
-                Defn: [v, w, x, vw, vx] --> [v, v, x, Simplex obtained by applying degeneracy s_0 to v, vx]
+                Defn: [v, w, x, vw, vx] --> [v, v, x, s_0 v, vx]
               To:   Simplicial set with 3 non-degenerate simplices
               Defn: [v, x, vx, wx] --> [v, x, vx, vx]
         """
@@ -1626,7 +1622,7 @@ class QuotientOfSimplicialSet(PushoutOfSimplicialSets):
             Simplicial set morphism:
               From: RP^5
               To:   Quotient: (RP^5/Simplicial set with 3 non-degenerate simplices)
-              Defn: [1, f, f * f, f * f * f, f * f * f * f, f * f * f * f * f] --> [*, Simplex obtained by applying degeneracy s_0 to *, Simplex obtained by applying degeneracies s_1 s_0 to *, f * f * f, f * f * f * f, f * f * f * f * f]
+              Defn: [1, f, f * f, f * f * f, f * f * f * f, f * f * f * f * f] --> [*, s_0 *, s_1 s_0 *, f * f * f, f * f * f * f, f * f * f * f * f]
         """
         subcomplex = inclusion.domain()
         PushoutOfSimplicialSets.__init__(self, [inclusion,
@@ -1762,7 +1758,7 @@ class QuotientOfSimplicialSet_finite(QuotientOfSimplicialSet,
             Simplicial set morphism:
               From: RP^5
               To:   Quotient: (RP^5/Simplicial set with 3 non-degenerate simplices)
-              Defn: [1, f, f * f, f * f * f, f * f * f * f, f * f * f * f * f] --> [*, Simplex obtained by applying degeneracy s_0 to *, Simplex obtained by applying degeneracies s_1 s_0 to *, f * f * f, f * f * f * f, f * f * f * f * f]
+              Defn: [1, f, f * f, f * f * f, f * f * f * f, f * f * f * f * f] --> [*, s_0 *, s_1 s_0 *, f * f * f, f * f * f * f, f * f * f * f * f]
         """
         subcomplex = inclusion.domain()
         PushoutOfSimplicialSets_finite.__init__(self, [inclusion,
@@ -2016,7 +2012,7 @@ class WedgeOfSimplicialSets_finite(WedgeOfSimplicialSets, PushoutOfSimplicialSet
             Simplicial set morphism:
               From: Wedge: (S^1 v S^2 v S^1)
               To:   Quotient: (Wedge: (S^1 v S^2 v S^1)/Simplicial set with 3 non-degenerate simplices)
-              Defn: [*, sigma_1, sigma_1, sigma_2] --> [*, Simplex obtained by applying degeneracy s_0 to *, Simplex obtained by applying degeneracy s_0 to *, sigma_2]
+              Defn: [*, sigma_1, sigma_1, sigma_2] --> [*, s_0 *, s_0 *, sigma_2]
             sage: W.projection_map(1).image().homology(1)
             0
             sage: W.projection_map(1).image().homology(2)
@@ -2547,7 +2543,7 @@ class SuspensionOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
             Simplicial set morphism:
               From: Reduced cone of S^3
               To:   Sigma(S^3)
-              Defn: [*, sigma_3, (sigma_3,*)] --> [*, Simplex obtained by applying degeneracies s_2 s_1 s_0 to *, (sigma_3,*)]
+              Defn: [*, sigma_3, (sigma_3,*)] --> [*, s_2 s_1 s_0 *, (sigma_3,*)]
 
         TESTS::
 

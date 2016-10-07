@@ -347,14 +347,14 @@ class AbstractSimplex_class(UniqueRepresentation, SageObject):
 
             sage: from sage.homology.simplicial_set import AbstractSimplex
             sage: AbstractSimplex(3, (1,2))
-            Simplex obtained by applying degeneracies s_3 s_1 to Non-degenerate simplex of dimension 3
+            s_3 s_1 Delta^3
             sage: AbstractSimplex(3, None)
-            Non-degenerate simplex of dimension 3
+            Delta^3
 
             sage: v = AbstractSimplex(0, name='v')
             sage: e = AbstractSimplex(0, (0,), underlying=v)
             sage: e
-            Simplex obtained by applying degeneracy s_0 to v
+            s_0 v
             sage: e.nondegenerate() is v
             True
 
@@ -620,12 +620,12 @@ class AbstractSimplex_class(UniqueRepresentation, SageObject):
             v
             sage: tau = AbstractSimplex(1, (3,2,1))
             sage: x = tau.nondegenerate(); x
-            Non-degenerate simplex of dimension 1
+            Delta^1
             sage: x == tau.nondegenerate()
             True
 
             sage: AbstractSimplex(1, None)
-            Non-degenerate simplex of dimension 1
+            Delta^1
             sage: AbstractSimplex(1, None) == x
             False
             sage: AbstractSimplex(1, None) == tau.nondegenerate()
@@ -711,13 +711,13 @@ class AbstractSimplex_class(UniqueRepresentation, SageObject):
             True
             sage: f = e.apply_degeneracies(0)
             sage: f
-            Simplex obtained by applying degeneracies s_1 s_0 to Non-degenerate simplex of dimension 0
+            s_1 s_0 Delta^0
             sage: f.degeneracies()
             [1, 0]
             sage: f.nondegenerate() == v
             True
             sage: v.apply_degeneracies(1, 0)
-            Simplex obtained by applying degeneracies s_1 s_0 to Non-degenerate simplex of dimension 0
+            s_1 s_0 Delta^0
 
         TESTS::
 
@@ -834,31 +834,27 @@ class AbstractSimplex_class(UniqueRepresentation, SageObject):
 
             sage: from sage.homology.simplicial_set import AbstractSimplex
             sage: AbstractSimplex(3, None)
-            Non-degenerate simplex of dimension 3
+            Delta^3
             sage: AbstractSimplex(3, (0,))
-            Simplex obtained by applying degeneracy s_0 to Non-degenerate simplex of dimension 3
+            s_0 Delta^3
             sage: AbstractSimplex(3, (0, 0))
-            Simplex obtained by applying degeneracies s_1 s_0 to Non-degenerate simplex of dimension 3
+            s_1 s_0 Delta^3
 
         Test renaming::
 
             sage: v = AbstractSimplex(0)
             sage: v
-            Non-degenerate simplex of dimension 0
+            Delta^0
             sage: v.rename('v')
             sage: v
             v
             sage: v.apply_degeneracies(1, 0)
-            Simplex obtained by applying degeneracies s_1 s_0 to v
+            s_1 s_0 v
         """
         if self.degeneracies():
             degens = ' '.join(['s_{}'.format(i) for i in self.degeneracies()])
-            if len(self.degeneracies()) == 1:
-                return 'Simplex obtained by applying degeneracy {} to {!r}'.format(degens,
-                                        self.nondegenerate())
-            return 'Simplex obtained by applying degeneracies {} to {!r}'.format(degens,
-                                        self.nondegenerate())
-        return 'Non-degenerate simplex of dimension {}'.format(self._dim)
+            return degens + ' {}'.format(self.nondegenerate())
+        return 'Delta^{}'.format(self._dim)
 
     def _latex_(self):
         r"""
@@ -986,16 +982,16 @@ def AbstractSimplex(dim, degeneracies=(), underlying=None,
 
         sage: from sage.homology.simplicial_set import AbstractSimplex
         sage: AbstractSimplex(3, (3, 1))
-        Simplex obtained by applying degeneracies s_3 s_1 to Non-degenerate simplex of dimension 3
+        s_3 s_1 Delta^3
         sage: AbstractSimplex(3, None)
-        Non-degenerate simplex of dimension 3
+        Delta^3
         sage: AbstractSimplex(3)
-        Non-degenerate simplex of dimension 3
+        Delta^3
 
     Simplices may be named (or renamed), affecting how they are printed::
 
         sage: AbstractSimplex(0)
-        Non-degenerate simplex of dimension 0
+        Delta^0
         sage: v = AbstractSimplex(0, name='v')
         sage: v
         v
@@ -1012,7 +1008,7 @@ def AbstractSimplex(dim, degeneracies=(), underlying=None,
 
         sage: x = AbstractSimplex(0, (0, 0, 0))
         sage: x
-        Simplex obtained by applying degeneracies s_2 s_1 s_0 to Non-degenerate simplex of dimension 0
+        s_2 s_1 s_0 Delta^0
         sage: x.degeneracies()
         [2, 1, 0]
 
@@ -1021,7 +1017,7 @@ def AbstractSimplex(dim, degeneracies=(), underlying=None,
         sage: v = AbstractSimplex(0, name='v')
         sage: e = AbstractSimplex(0, (0,), underlying=v)
         sage: e
-        Simplex obtained by applying degeneracy s_0 to v
+        s_0 v
         sage: e.nondegenerate() is v
         True
 
@@ -1145,14 +1141,9 @@ class SimplicialSet_arbitrary(Parent):
             sage: S2 = simplicial_sets.Sphere(2)
             sage: sigma = S2.n_cells(2)[0]
             sage: S2.faces(sigma)
-            (Simplex obtained by applying degeneracy s_0 to v_0,
-             Simplex obtained by applying degeneracy s_0 to v_0,
-             Simplex obtained by applying degeneracy s_0 to v_0)
+            (s_0 v_0, s_0 v_0, s_0 v_0)
             sage: S2.faces(sigma.apply_degeneracies(0))
-            [sigma_2,
-             sigma_2,
-             Simplex obtained by applying degeneracies s_1 s_0 to v_0,
-             Simplex obtained by applying degeneracies s_1 s_0 to v_0]
+            [sigma_2, sigma_2, s_1 s_0 v_0, s_1 s_0 v_0]
 
             sage: C3 = groups.misc.MultiplicativeAbelian([3])
             sage: BC3 = simplicial_sets.ClassifyingSpace(C3)
@@ -1207,7 +1198,7 @@ class SimplicialSet_arbitrary(Parent):
             sage: sigma = S2.n_cells(2)[0]
             sage: v_0 = S2.n_cells(0)[0]
             sage: S2.face(sigma, 0)
-            Simplex obtained by applying degeneracy s_0 to v_0
+            s_0 v_0
             sage: S2.face(sigma, 0) == v_0.apply_degeneracies(0)
             True
             sage: S2.face(S2.face(sigma, 0), 0) == v_0
@@ -1280,9 +1271,7 @@ class SimplicialSet_arbitrary(Parent):
             sage: S2.alexander_whitney(sigma, 0)
             [(1, v_0, sigma_2)]
             sage: S2.alexander_whitney(sigma, 1)
-            [(0,
-             Simplex obtained by applying degeneracy s_0 to v_0,
-             Simplex obtained by applying degeneracy s_0 to v_0)]
+            [(0, s_0 v_0, s_0 v_0)]
         """
         dim = simplex.dimension()
         if dim_left < 0 or dim_left > dim:
@@ -1327,7 +1316,7 @@ class SimplicialSet_arbitrary(Parent):
             sage: w = AbstractSimplex(0)
             sage: S0 = SimplicialSet({v: None, w: None})
             sage: S0.nondegenerate_simplices()
-            [Non-degenerate simplex of dimension 0, Non-degenerate simplex of dimension 0]
+            [Delta^0, Delta^0]
 
         Name the vertices and reconstruct the simplicial set: they
         should be ordered alphabetically::
@@ -1394,7 +1383,7 @@ class SimplicialSet_arbitrary(Parent):
             sage: w = AbstractSimplex(0)
             sage: S0 = SimplicialSet({v: None, w: None})
             sage: S0.cells()
-            {0: [Non-degenerate simplex of dimension 0, Non-degenerate simplex of dimension 0]}
+            {0: [Delta^0, Delta^0]}
 
             sage: v.rename('v')
             sage: w.rename('w')
@@ -1519,12 +1508,9 @@ class SimplicialSet_arbitrary(Parent):
             sage: Y.all_n_simplices(0)
             [v, w]
             sage: Y.all_n_simplices(1)
-            [Simplex obtained by applying degeneracy s_0 to v,
-             Simplex obtained by applying degeneracy s_0 to w]
+            [s_0 v, s_0 w]
             sage: Y.all_n_simplices(2)
-            [tau,
-             Simplex obtained by applying degeneracies s_1 s_0 to v,
-             Simplex obtained by applying degeneracies s_1 s_0 to w]
+            [tau, s_1 s_0 v, s_1 s_0 w]
 
         An example involving an infinite simplicial set::
 
@@ -1534,12 +1520,7 @@ class SimplicialSet_arbitrary(Parent):
             [f * f,
              f * f^2,
              f^2 * f,
-             f^2 * f^2,
-             Simplex obtained by applying degeneracy s_0 to f,
-             Simplex obtained by applying degeneracy s_0 to f^2,
-             Simplex obtained by applying degeneracy s_1 to f,
-             Simplex obtained by applying degeneracy s_1 to f^2,
-             Simplex obtained by applying degeneracies s_1 s_0 to 1]
+             f^2 * f^2, s_0 f, s_0 f^2, s_1 f, s_1 f^2, s_1 s_0 1]
         """
         non_degen = [_ for _ in self.nondegenerate_simplices(max_dim=n)]
         ans = set([_ for _ in non_degen if _.dimension() == n])
@@ -1789,10 +1770,7 @@ class SimplicialSet_arbitrary(Parent):
             sage: B = simplicial_sets.ClassifyingSpace(groups.misc.MultiplicativeAbelian([2]))
             sage: BxB = B.product(B)
             sage: BxB.n_cells(2)[5:]
-            [(f * f, Simplex obtained by applying degeneracies s_1 s_0 to 1),
-             (f * f, Simplex obtained by applying degeneracy s_0 to f),
-             (f * f, Simplex obtained by applying degeneracy s_1 to f),
-             (f * f, f * f)]
+            [(s_0 f, s_1 f), (s_1 f, f * f), (s_1 f, s_0 f), (s_1 s_0 1, f * f)]
             sage: BxB.subsimplicial_set(BxB.n_cells(2)[5:])
             Simplicial set with 8 non-degenerate simplices
 
@@ -2244,7 +2222,7 @@ class SimplicialSet_arbitrary(Parent):
             Simplicial set morphism:
               From: RP^5
               To:   Quotient: (RP^5/Simplicial set with 3 non-degenerate simplices)
-              Defn: [1, f, f * f, f * f * f, f * f * f * f, f * f * f * f * f] --> [*, Simplex obtained by applying degeneracy s_0 to *, Simplex obtained by applying degeneracies s_1 s_0 to *, f * f * f, f * f * f * f, f * f * f * f * f]
+              Defn: [1, f, f * f, f * f * f, f * f * f * f, f * f * f * f * f] --> [*, s_0 *, s_1 s_0 *, f * f * f, f * f * f * f, f * f * f * f * f]
 
         Behavior of base points::
 
@@ -2502,7 +2480,7 @@ class SimplicialSet_arbitrary(Parent):
             Simplicial set morphism:
               From: S^2
               To:   S^2 x S^3
-              Defn: [v_0, sigma_2] --> [(v_0, v_0), (sigma_2, Simplex obtained by applying degeneracies s_1 s_0 to v_0)]
+              Defn: [v_0, sigma_2] --> [(v_0, v_0), (sigma_2, s_1 s_0 v_0)]
         """
         from .simplicial_set_constructions import ProductOfSimplicialSets, \
             ProductOfSimplicialSets_finite
@@ -2766,7 +2744,7 @@ class SimplicialSet_arbitrary(Parent):
             Simplicial set morphism:
               From: Wedge: (S^2 v S^3 v S^2)
               To:   Quotient: (Wedge: (S^2 v S^3 v S^2)/Simplicial set with 3 non-degenerate simplices)
-              Defn: [*, sigma_2, sigma_2, sigma_3] --> [*, Simplex obtained by applying degeneracies s_1 s_0 to *, Simplex obtained by applying degeneracies s_1 s_0 to *, sigma_3]
+              Defn: [*, sigma_2, sigma_2, sigma_3] --> [*, s_1 s_0 *, s_1 s_0 *, sigma_3]
 
         Note that the codomain of the projection map is not identical
         to the original ``S2``, but is instead a quotient of the wedge
@@ -3459,8 +3437,8 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
 
             sage: T = simplicial_sets.Torus()
             sage: T._facets_()
-            [(Simplex obtained by applying degeneracy s_0 to sigma_1, Simplex obtained by applying degeneracy s_1 to sigma_1),
-             (Simplex obtained by applying degeneracy s_1 to sigma_1, Simplex obtained by applying degeneracy s_0 to sigma_1)]
+            [(s_0 sigma_1, s_1 sigma_1),
+             (s_1 sigma_1, s_0 sigma_1)]
             sage: S5 = simplicial_sets.Sphere(5)
             sage: S5._facets_()
             [sigma_5]

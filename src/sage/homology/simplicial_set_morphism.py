@@ -257,11 +257,11 @@ class SimplicialSetHomset(Homset):
             [Simplicial set morphism:
                From: S^1
                To:   Torus
-               Defn: [v_0, sigma_1] --> [(v_0, v_0), (Simplex obtained by applying degeneracy s_0 to v_0, sigma_1)],
+               Defn: [v_0, sigma_1] --> [(v_0, v_0), (s_0 v_0, sigma_1)],
              Simplicial set morphism:
                From: S^1
                To:   Torus
-               Defn: [v_0, sigma_1] --> [(v_0, v_0), (sigma_1, Simplex obtained by applying degeneracy s_0 to v_0)],
+               Defn: [v_0, sigma_1] --> [(v_0, v_0), (sigma_1, s_0 v_0)],
              Simplicial set morphism:
                From: S^1
                To:   Torus
@@ -610,7 +610,7 @@ class SimplicialSetMorphism(Morphism):
             sage: B = AbelianGroup([2]).nerve()
             sage: c = B.constant_map()
             sage: c(B.n_cells(2)[0])
-            Simplex obtained by applying degeneracies s_1 s_0 to *
+            s_1 s_0 *
         """
         if x not in self.domain():
             raise ValueError('element is not a simplex in the domain')
@@ -651,7 +651,7 @@ class SimplicialSetMorphism(Morphism):
             Simplicial set morphism:
               From: S^1
               To:   S^1 x S^1
-              Defn: [v_0, sigma_1] --> [(v_0, v_0), (sigma_1, Simplex obtained by applying degeneracy s_0 to v_0)]
+              Defn: [v_0, sigma_1] --> [(v_0, v_0), (sigma_1, s_0 v_0)]
             sage: (g*f).image()
             Simplicial set with 2 non-degenerate simplices
             sage: f.image().homology()
@@ -681,7 +681,7 @@ class SimplicialSetMorphism(Morphism):
             Simplicial set morphism:
               From: S^1
               To:   S^1 x S^1
-              Defn: [v_0, sigma_1] --> [(v_0, v_0), (sigma_1, Simplex obtained by applying degeneracy s_0 to v_0)]
+              Defn: [v_0, sigma_1] --> [(v_0, v_0), (sigma_1, s_0 v_0)]
             sage: f.image()
             Simplicial set with 2 non-degenerate simplices
             sage: f.image().homology()
@@ -1089,7 +1089,7 @@ class SimplicialSetMorphism(Morphism):
             Simplicial set morphism:
               From: Simplicial set with 6 non-degenerate simplices
               To:   S^1
-              Defn: [(0,), (1,), (2,), (0, 1), (0, 2), (1, 2)] --> [v_0, v_0, v_0, sigma_1, Simplex obtained by applying degeneracy s_0 to v_0, sigma_1]
+              Defn: [(0,), (1,), (2,), (0, 1), (0, 2), (1, 2)] --> [v_0, v_0, v_0, sigma_1, s_0 v_0, sigma_1]
             sage: h.induced_homology_morphism().to_matrix()
             [1|0]
             [-+-]

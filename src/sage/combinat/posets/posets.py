@@ -1864,7 +1864,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            :meth:`dilworth_decomposition` -- Return elements grouped to chains.
+            :meth:`dilworth_decomposition` to return elements grouped
+            to chains.
 
         EXAMPLES::
 
@@ -3857,7 +3858,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            :meth:`level_sets` -- Return elements grouped to antichains.
+            :meth:`level_sets` to return elements grouped to antichains.
 
         ALGORITHM:
 
@@ -4769,7 +4770,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``algorithm``, a string or ``None`` -- a parameter forwarded
+        - ``algorithm`` -- string (optional); a parameter forwarded
           to underlying graph function to select the algorithm to use
 
         .. SEEALSO::
@@ -4828,7 +4829,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def with_linear_extension(self, linear_extension):
         """
-        Return a copy of the poset` with a different default linear extension.
+        Return a copy of ``self`` with a different default linear extension.
 
         EXAMPLES::
 
@@ -4879,7 +4880,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         new_vertices = [self._element_to_vertex(element) for element in linear_extension]
         vertex_relabeling = dict(zip(new_vertices, linear_extension))
-        constructor = self.__class__
+        # Hack to get the actual class, not the categorified class
+        constructor = self.__class__.__mro__[1]
         return constructor(self._hasse_diagram.relabel(vertex_relabeling, inplace=False),
                            elements=linear_extension,
                            category=self.category(),

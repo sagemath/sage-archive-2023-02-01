@@ -2091,7 +2091,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            :meth:`sage.combinat.posets.posets.FinitePoset.isomorphic_subposets_iterator`.
+            :meth:`sage.combinat.posets.posets.FinitePoset.isomorphic_subposets_iterator`
 
         EXAMPLES:
 
@@ -2133,8 +2133,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             5
         """
         from itertools import combinations
-        if not hasattr(other, 'hasse_diagram'):
-            raise TypeError('the input is not a finite poset')
+        if not isinstance(other, FiniteLatticePoset):
+            raise TypeError('the input is not a finite lattice')
         H = self._hasse_diagram
         self_closure = H.transitive_closure()
         other_closure = other._hasse_diagram.transitive_closure()

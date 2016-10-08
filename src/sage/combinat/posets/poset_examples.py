@@ -354,7 +354,7 @@ class Posets(object):
             sage: Posets.DivisorLattice(1)
             Finite lattice containing 1 elements with distinguished linear extension
         """
-        from sage.arith.misc import (divisors, is_prime)
+        from sage.arith.misc import divisors, is_prime
         try:
             n = Integer(n)
         except TypeError:

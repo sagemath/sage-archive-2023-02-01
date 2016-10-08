@@ -1,4 +1,4 @@
-r"""
+"""
 A catalog of posets and lattices.
 
 Some common posets can be accessed through the ``posets.<tab>`` object::
@@ -70,7 +70,8 @@ import sage.categories.posets
 from sage.combinat.permutation import Permutations, Permutation
 from sage.combinat.posets.posets import Poset, FinitePosets_n
 from sage.combinat.posets.lattices import (LatticePoset, MeetSemilattice,
-                                           JoinSemilattice)
+                                           JoinSemilattice, FiniteLatticePoset)
+from sage.categories.finite_lattice_posets import FiniteLatticePosets
 from sage.graphs.digraph import DiGraph
 from sage.rings.integer import Integer
 
@@ -327,8 +328,8 @@ class Posets(object):
         """
         Return the divisor lattice of an integer.
 
-        Elements of the lattice are divisors of `n` and
-        `x < y` in the lattice if `x` divides `y`.
+        Elements of the lattice are divisors of `n` and `x < y` in the
+        lattice if `x` divides `y`.
 
         INPUT:
 
@@ -351,17 +352,19 @@ class Posets(object):
         TESTS::
 
             sage: Posets.DivisorLattice(1)
-            Finite lattice containing 1 elements
+            Finite lattice containing 1 elements with distinguished linear extension
         """
-        from sage.arith.misc import divisors
+        from sage.arith.misc import (divisors, is_prime)
         try:
             n = Integer(n)
         except TypeError:
             raise TypeError("number of elements must be an integer, not {0}".format(n))
         if n <= 0:
             raise ValueError("n must be a positive integer")
-        return LatticePoset( (divisors(n), lambda x, y: y % x == 0),
-                             facade=facade, linear_extension=True)
+        Div_n = divisors(n)
+        hasse = DiGraph([Div_n, lambda a, b: b%a==0 and is_prime(b//a)])
+        return FiniteLatticePoset(hasse, elements=Div_n, facade=facade,
+                                  category=FiniteLatticePosets())
 
     @staticmethod
     def IntegerCompositions(n):

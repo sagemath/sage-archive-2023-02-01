@@ -172,6 +172,16 @@ large, scientific notation (the `e` notation for powers of ten) is used::
 But you can fix your own tick labels, if you know what to expect and
 have a preference::
 
+    sage: plot(x^2,(x,300,500),ticks=[100,50000])
+    Graphics object consisting of 1 graphics primitive
+
+.. PLOT::
+
+    g = plot(x**2,(x,300,500),ticks=[100,50000])
+    sphinx_plot(g)
+
+To change the tick positions on one axis only, use the following notation::
+
     sage: plot(x^2,(x,300,500),ticks=[None,50000])
     Graphics object consisting of 1 graphics primitive
 

@@ -2120,6 +2120,40 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return self.parent().variable_name()
 
+    def multi_point_evaluation(self, eval_pts):
+        """
+        Evaluate ``self`` at list of evaluation points.
+
+        INPUT:
+
+        - ``eval_pts`` -- list of points at which ``self`` is to be evaluated
+
+        OUTPUT:
+
+        List of values of ``self`` at the `eval_pts`.
+
+        .. TODO::
+
+            This method currently trivially calls the evaluation function
+            repeatedly. If fast skew polynomial multiplication is available, an
+            asymptotically faster method is possible using standard divide and
+            conquer techniques and
+            :meth:`SkewPolynomialRing.minimal_vanishing_polynomial`.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = x + t
+            sage: eval_pts = [1, t, t^2]
+            sage: c = a.multi_point_evaluation(eval_pts); c
+            [t + 1, 3*t^2 + 4*t + 4, 4*t]
+            sage: c == [ a(e) for e in eval_pts ]
+            True
+        """
+        return [ self(e) for e in eval_pts ]
+
 
 cdef class SkewPolynomial_generic_dense(SkewPolynomial):
     r"""

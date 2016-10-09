@@ -1375,7 +1375,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
             sage: G.<e0, e1, e2, e3, e4, e5, e6, e7, e8, e9> = FreeGroup()
             sage: rels = [e6, e5, e3, e9, e4*e7^-1*e6, e9*e7^-1*e0,
-            ...           e0*e1^-1*e2, e5*e1^-1*e8, e4*e3^-1*e8, e2]
+            ....:         e0*e1^-1*e2, e5*e1^-1*e8, e4*e3^-1*e8, e2]
             sage: H = G.quotient(rels);  H
             Finitely presented group < e0, e1, e2, e3, e4, e5, e6, e7, e8, e9 |
             e6, e5, e3, e9, e4*e7^-1*e6, e9*e7^-1*e0, e0*e1^-1*e2, e5*e1^-1*e8, e4*e3^-1*e8, e2 >

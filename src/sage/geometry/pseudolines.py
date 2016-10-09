@@ -129,10 +129,9 @@ them are parallel by making sure all of the `a` chosen are different, and we
 avoid a common crossing of three lines by adding a random noise to `b`::
 
     sage: n = 20
-    sage: l = zip(Subsets(20*n,n).random_element(), [randint(0,20*n)+random() for i in range(n)])
+    sage: l = sorted(zip(Subsets(20*n,n).random_element(), [randint(0,20*n)+random() for i in range(n)]))
     sage: print(l[:5])                            # not tested
     [(96, 278.0130613051349), (74, 332.92512282478714), (13, 155.65820951249867), (209, 34.753946221755307), (147, 193.51376457741441)]
-    sage: l.sort()
 
 We can now compute for each `i` the order in which line `i` meets the other lines::
 

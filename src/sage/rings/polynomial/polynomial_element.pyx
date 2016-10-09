@@ -8085,7 +8085,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Test first 100 cyclotomic polynomials::
 
-            sage: all(cyclotomic_polynomial(i).is_cyclotomic() for i in xrange(1,101))
+            sage: all(cyclotomic_polynomial(i).is_cyclotomic() for i in range(1,101))
             True
 
         Some more tests::

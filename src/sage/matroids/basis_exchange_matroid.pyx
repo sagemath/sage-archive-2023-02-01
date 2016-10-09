@@ -2068,7 +2068,7 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: PM = M._heuristic_partition()
             sage: PN = N._heuristic_partition()
             sage: morphism = {}
-            sage: for i in xrange(len(M)): morphism[min(PM[i])]=min(PN[i])
+            sage: for i in range(len(M)): morphism[min(PM[i])] = min(PN[i])
             sage: M._is_isomorphism(N, morphism)
             True
         """

@@ -38,9 +38,8 @@ positioning vs. the Petersen graph constructed by this database::
     petersen_database = graphs.PetersenGraph()
     sphinx_plot(petersen_database)
 
-For all the constructors in this database (except the octahedral, dodecahedral,
-random and empty graphs), the position dictionary is filled in, instead of using
-the spring-layout algorithm.
+For all the constructors in this database (except some random graphs), the
+position dictionary is filled in, instead of using the spring-layout algorithm.
 
 **Plot options**
 

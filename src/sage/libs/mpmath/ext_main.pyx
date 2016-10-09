@@ -861,7 +861,7 @@ cdef class Context:
             sage: B = [1, -1, 2]
             sage: fdot(A, B)
             mpf('6.5')
-            sage: zip(A, B)
+            sage: list(zip(A, B))
             [(2, 1), (1.5, -1), (3, 2)]
             sage: fdot(_)
             mpf('6.5')

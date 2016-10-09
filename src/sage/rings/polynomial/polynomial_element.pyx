@@ -3362,8 +3362,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def gradient(self):
         """
-        Return a list of partial derivative of ``self``,
+        Return a list of the partial derivative of ``self``
         with respect to the variable of this univariate polynomial.
+
+        There is only one partial derivative.
 
         EXAMPLES::
 
@@ -5121,7 +5123,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def lm(self):
         """
-        Return the leading term of this polynomial.
+        Return the leading monomial of this polynomial.
 
         EXAMPLES::
 

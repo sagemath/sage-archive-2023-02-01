@@ -62,6 +62,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.rings.integer import Integer
 from sage.rings.all import QQ
@@ -494,7 +495,7 @@ def ParkingFunction(pf=None, labelling=None, area_sequence=None,
         return from_labelled_dyck_word(labelled_dyck_word)
     elif area_sequence is not None:
         DW = DyckWord(area_sequence)
-        return ParkingFunction(labelling=range(1, DW.size() + 1),
+        return ParkingFunction(labelling=list(range(1, DW.size() + 1)),
                                area_sequence=DW)
 
     raise ValueError("did not manage to make this into a parking function")

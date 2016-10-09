@@ -298,15 +298,16 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         INPUT:
 
-            - `right` -- a ring element which must already be in the basering of self (no coercion done here).
+        - `right` -- a ring element which must already be in the basering
+          of self (no coercion done here).
 
         OUTPUT:
 
-            - the matrix self*right
+        - the matrix self * right
 
         EXAMPLES::
 
-            sage: M=Matrix(QQ,3,6,xrange(18),sparse=true); M
+            sage: M = Matrix(QQ, 3, 6, xrange(18), sparse=true); M
             [ 0  1  2  3  4  5]
             [ 6  7  8  9 10 11]
             [12 13 14 15 16 17]

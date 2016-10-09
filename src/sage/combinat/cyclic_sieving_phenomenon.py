@@ -17,6 +17,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 from sage.rings.all import ZZ, QQ
 from sage.arith.all import lcm
 
@@ -66,7 +67,7 @@ def CyclicSievingPolynomial(L, cyc_act=None, order=None, get_order=False):
     if cyc_act:
         orbits = orbit_decomposition( L, cyc_act )
     else:
-        orbits = [ range(k) for k in L ]
+        orbits = [list(range(k)) for k in L]
 
     R = QQ['q']
     q = R.gen()

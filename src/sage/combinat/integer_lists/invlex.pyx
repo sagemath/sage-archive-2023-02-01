@@ -266,7 +266,7 @@ class IntegerListsLex(IntegerLists):
     below the diagonal::
 
         sage: def dyck_words(n):
-        ....:     return IntegerListsLex(length=n, ceiling=range(n+1), min_slope=0)
+        ....:     return IntegerListsLex(length=n, ceiling=list(range(n+1)), min_slope=0)
         sage: [dyck_words(n).cardinality() for n in range(8)]
         [1, 1, 2, 5, 14, 42, 132, 429]
         sage: dyck_words(3).list()

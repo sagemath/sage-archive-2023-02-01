@@ -959,7 +959,7 @@ done from the right side.""")
                 return
             try:
                 yield self(L)
-            except TypeError, ValueError:
+            except (TypeError, ValueError):
                 pass
 
     def _element_constructor_(self, x, coerce=True, copy=True, check=True):

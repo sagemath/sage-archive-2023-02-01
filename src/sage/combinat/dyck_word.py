@@ -751,7 +751,7 @@ class DyckWord(CombinatorialElement):
             | x  . . . . . . . . . . . . . . .
             |  . . . . . . . . . . . . . . . .
 
-            sage: DyckWord(area_sequence=[0,1,1,2,3,2,3,3,2,0,1,1,2,3,4,2,3]).pretty_print(labelling=range(17),underpath=False)
+            sage: DyckWord(area_sequence=[0,1,1,2,3,2,3,3,2,0,1,1,2,3,4,2,3]).pretty_print(labelling=list(range(17)),underpath=False)
                                        _______
                                       | x x x  16
                                  _____| x x  . 15
@@ -1844,7 +1844,8 @@ class DyckWord_complete(DyckWord):
         if n == 0:
             return (Tableau([]), Tableau([]))
         elif self.height() == n:
-            return (Tableau([range(1, n + 1)]), Tableau([range(1, n + 1)]))
+            T = Tableau([list(range(1, n + 1))])
+            return (T, T)
         else:
             left = [[], []]
             right = [[], []]
@@ -3867,7 +3868,7 @@ class CompleteDyckWords_size(CompleteDyckWords, DyckWords_size):
 
             sage: DyckWords(4).cardinality()
             14
-            sage: ns = range(9)
+            sage: ns = list(range(9))
             sage: dws = [DyckWords(n) for n in ns]
             sage: all(dw.cardinality() == len(dw.list()) for dw in dws)
             True

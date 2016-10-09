@@ -1590,7 +1590,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
     if k == (v-1) and l == (v-2):
         from sage.rings.finite_rings.integer_mod_ring import Zmod
         G = Zmod(v)
-        return G, [range(1,v)]
+        return G, [list(range(1, v))]
 
     factorization = arith.factor(v)
     if len(factorization) == 1:

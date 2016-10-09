@@ -333,7 +333,7 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
         [    1  -1/4     0     0]
 
         sage: A = random_matrix(QQ, 3, 10, num_bound = 99, den_bound = 99)
-        sage: positives = map(abs, A.list())
+        sage: positives = list(map(abs, A.list()))
         sage: matrix(QQ, 3, 10, positives)
         [61/18 47/41  1/22   1/2 75/68   6/7     1   1/2 72/41   7/3]
         [33/13   9/2 40/21 45/46 17/22     1 70/79 97/71  7/24  12/5]

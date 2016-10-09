@@ -57,6 +57,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 import sage.categories.all                  as cat
 from sage.misc.all import prod
@@ -1083,9 +1084,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
             ...
             NotImplementedError: Characters must be from the same Dirichlet Group.
 
-            sage: all_jacobi_sums = [(DP[i].values_on_gens(),DP[j].values_on_gens(),DP[i].jacobi_sum(DP[j])) \
-            ...                       for i in range(p-1) for j in range(p-1)[i:]]
-            ...
+            sage: all_jacobi_sums = [(DP[i].values_on_gens(),DP[j].values_on_gens(),DP[i].jacobi_sum(DP[j]))
+            ....:                   for i in range(p-1) for j in range(i, p-1)]
             sage: for s in all_jacobi_sums:
             ....:     print(s)
             ((1,), (1,), 5)
@@ -2528,7 +2528,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
         R = self.base_ring()
         p = R.characteristic()
         if p == 0:
-            Auts = [e for e in xrange(1,n) if gcd(e,n) == 1]
+            Auts = [e for e in range(1,n) if gcd(e,n) == 1]
         else:
             if not rings.ZZ(p).is_prime():
                 raise NotImplementedError("Automorphisms for finite non-field base rings not implemented")
@@ -2537,7 +2537,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
             #         k = 1, p, p^2, ..., p^(r-1),
             # where p^r = 1 (mod n), so r is the mult order of p modulo n.
             r = rings.IntegerModRing(n)(p).multiplicative_order()
-            Auts = [p**m for m in xrange(0,r)]
+            Auts = [p**m for m in range(0,r)]
         return Auts
 
     def galois_orbits(self, v=None, reps_only=False, sort=True, check=True):

@@ -527,10 +527,6 @@ class Magmas(Category_singleton):
                 return False
 
         class ElementMethods:
-
-            __truediv__ = sage.categories.coercion_methods.__truediv__
-            __div__ = __truediv__ # For Python2/3 compatibility; see e.g. #18578
-
             def _div_(left, right):
                 r"""
                 Default implementation of division, multiplying (on the right) by the inverse.
@@ -568,7 +564,7 @@ class Magmas(Category_singleton):
                     sage: c1._div_.__module__
                     'sage.categories.magmas'
                 """
-                return left._mul_(~right)
+                return left * ~right
 
         class SubcategoryMethods:
 
@@ -789,7 +785,7 @@ class Magmas(Category_singleton):
                 From: (S x S)
                 To:   S
             """
-            return x._mul_(y)
+            return x * y
 
         product_from_element_class_mul = product
 
@@ -977,9 +973,6 @@ class Magmas(Category_singleton):
             return OperationTable(self, operation=operator.mul, names=names, elements=elements)
 
     class ElementMethods:
-
-        __mul__ = sage.categories.coercion_methods.__mul__
-
         @abstract_method(optional = True)
         def _mul_(self, right):
             """

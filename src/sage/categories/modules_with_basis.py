@@ -617,7 +617,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: x = X.basis()
                 sage: V = X.echelon_form([x[0]-x[1], x[0]-x[2],x[1]-x[2]]); V
                 [x[0] - x[2], x[1] - x[2]]
-                sage: matrix(map(vector, V))
+                sage: matrix(list(map(vector, V)))
                 [ 1  0 -1]
                 [ 0  1 -1]
 

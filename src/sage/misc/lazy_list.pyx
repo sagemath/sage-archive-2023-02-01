@@ -18,7 +18,7 @@ EXAMPLES::
     sage: P[12:23].list()
     [41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83]
 
-    sage: f = lazy_list((i**2-3*i for i in xrange(10)))
+    sage: f = lazy_list((i**2 - 3*i for i in range(10)))
     sage: print(" ".join(str(i) for i in f))
     0 -2 -2 0 4 10 18 28 40 54
     sage: i1 = iter(f)
@@ -737,7 +737,7 @@ cdef class lazy_list_generic(object):
 
         ::
 
-            sage: l = lazy_list(i^2 for i in xrange(5))
+            sage: l = lazy_list(i ** 2 for i in range(5))
             sage: list(l)
             [0, 1, 4, 9, 16]
             sage: l._info()

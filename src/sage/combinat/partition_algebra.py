@@ -16,6 +16,7 @@ Partition/Diagram Algebras
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
+from six.moves import range
 
 from .combinat import catalan_number
 from .combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
@@ -318,7 +319,7 @@ class SetPartitionsSk_k(SetPartitionsAk_k):
              {{1, -2}, {2, -3}, {3, -1}},
              {{1, -3}, {2, -1}, {3, -2}},
              {{1, -3}, {2, -2}, {3, -1}}]
-            sage: ks = range(1, 6)
+            sage: ks = list(range(1, 6))
             sage: sks = map(SetPartitionsSk, ks)
             sage: all(sk.cardinality() == len(sk.list()) for sk in sks)
             True
@@ -1626,7 +1627,7 @@ def is_planar(sp):
                         #No gap, continue on
                         continue
                     else:
-                        rng = range(row[s] + 1, row[s+1])
+                        rng = list(range(row[s] + 1, row[s + 1]))
 
                         #Go through and make sure any parts that
                         #contain numbers in this range are completely

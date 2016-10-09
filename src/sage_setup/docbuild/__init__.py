@@ -1569,6 +1569,32 @@ class IntersphinxCache:
             return i
 
 
+def patch_domain_init():
+    """
+    Applies a monkey-patch to the __init__ method of the Domain class in
+    Sphinx, in order to work around a bug.
+
+    See https://trac.sagemath.org/ticket/21044 as well as
+    https://github.com/sphinx-doc/sphinx/pull/2816 for details about that
+    bug.
+    """
+
+    from sphinx.domains import Domain
+    import copy
+
+    orig_init = Domain.__init__
+
+    def __init__(self, *args, **kwargs):
+        orig_init(self, *args, **kwargs)
+
+        # Replace the original initial_data class attribute with a new
+        # deep-copy of itself, since the bug will cause the original
+        # initial_data to be modified in-place
+        self.__class__.initial_data = copy.deepcopy(self.initial_data)
+
+    Domain.__init__ = __init__
+
+
 def main():
     # Parse the command-line.
     parser = setup_parser()
@@ -1617,6 +1643,8 @@ def main():
         os.environ['SAGE_SKIP_TESTS_BLOCKS'] = 'True'
 
     ABORT_ON_ERROR = not options.keep_going
+
+    patch_domain_init()
 
     # Delete empty directories. This is needed in particular for empty
     # directories due to "git checkout" which never deletes empty

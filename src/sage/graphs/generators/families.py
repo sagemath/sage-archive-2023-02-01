@@ -2686,9 +2686,11 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     r"""
     Return a strongly regular graph of S6 type from [Mu07]_ on `n^d((n^d-1)/(n-1)+1)` vertices
 
-    The conststrution depends upon a number of parameters, two of then, `n` and `d`, mandatory,
+    The construction depends upon a number of parameters, two of then, `n` and `d`, mandatory,
     and the other two, `\Phi` and `\Sigma`, are mappings defined in [Mu07]_.
-    The latter are also retuned if ``verbose=True``.
+    These graphs have parameters
+    `(n^d(\frac{n^d-1}{n-1}+1), \frac{n^d-1}{n-1}n^{d-1} - 1,\mui - 2,\mu)`, with
+    `\mu=\frac{n^{d-1}-1}{n-1}n^{d-1}`.
 
     INPUT:
 
@@ -2793,7 +2795,7 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     L.delete_edges([(2*x, 2*x + 1) for x in range(m/2)])
     L_i = [0]*m
     for x in range(m):
-        L_i[x] = [edge for edge in L.edges(labels=False) if x in edge]
+        L_i[x] = L.edges_incident(x, labels=False)
     Design = ProjectiveGeometryDesign(d, d-1, GF(n, 'a'), point_coordinates=False)
     projBlocks = Design.blocks()
     atInf = projBlocks[-1]
@@ -2828,11 +2830,10 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     ones = ones_matrix(v)
     for C in ParClasses:
         EC = matrix(QQ, v)
-        for i in range(v):
-            for j in range(v):
-                for line in C:
-                    if i in line and j in line:
-                        EC[i, j] = 1/k
+        for line in C:
+            for i in line:
+                for j in line:
+                    EC[i, j] = 1/k
         EC -= ones/v
         E[tuple(C[0])] = EC
     if verbose:

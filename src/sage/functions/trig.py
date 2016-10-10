@@ -20,6 +20,8 @@ class Function_sin(GinacFunction):
             0.90929742682568169539601986591
             sage: loads(dumps(sin))
             sin
+            sage: sin(x)._sympy_()
+            sin(x)
 
         We can prevent evaluation using the ``hold`` parameter::
 
@@ -125,6 +127,8 @@ class Function_cos(GinacFunction):
             -0.41614683654714238699756822950
             sage: loads(dumps(cos))
             cos
+            sage: cos(x)._sympy_()
+            cos(x)
 
         We can prevent evaluation using the ``hold`` parameter::
 
@@ -191,6 +195,8 @@ class Function_tan(GinacFunction):
 
         TESTS::
 
+            sage: tan(x)._sympy_()
+            tan(x)
             sage: conjugate(tan(x))
             tan(conjugate(x))
             sage: tan(complex(1,1))     # rel tol 1e-15
@@ -223,6 +229,8 @@ class Function_cot(GinacFunction):
 
             sage: latex(cot(x))
             \cot\left(x\right)
+            sage: cot(x)._sympy_()
+            cot(x)
 
         We can prevent evaluation using the ``hold`` parameter::
 
@@ -312,6 +320,8 @@ class Function_sec(GinacFunction):
             sec(x)*tan(x)
             sage: latex(sec(x))
             \sec\left(x\right)
+            sage: sec(x)._sympy_()
+            sec(x)
 
         We can prevent evaluation using the ``hold`` parameter::
 
@@ -378,6 +388,8 @@ class Function_csc(GinacFunction):
             -cot(x)*csc(x)
             sage: latex(csc(x))
             \csc\left(x\right)
+            sage: csc(x)._sympy_()
+            csc(x)
 
         We can prevent evaluation using the ``hold`` parameter::
 
@@ -461,6 +473,8 @@ class Function_arcsin(GinacFunction):
 
         TESTS::
 
+            sage: arcsin(x)._sympy_()
+            asin(x)
             sage: arcsin(x).operator()
             arcsin
             sage: asin(complex(1,1))
@@ -518,6 +532,8 @@ class Function_arccos(GinacFunction):
 
         TESTS::
 
+            sage: arccos(x)._sympy_()
+            acos(x)
             sage: arccos(x).operator()
             arccos
             sage: acos(complex(1,1))
@@ -577,6 +593,8 @@ class Function_arctan(GinacFunction):
 
         TESTS::
 
+            sage: arctan(x)._sympy_()
+            atan(x)
             sage: arctan(x).operator()
             arctan
             sage: atan(complex(1,1))
@@ -631,6 +649,8 @@ class Function_arccot(GinacFunction):
 
         Test complex input::
 
+            sage: arccot(x)._sympy_()
+            acot(x)
             sage: arccot(complex(1,1))  # rel tol 1e-15
             (0.5535743588970452-0.4023594781085251j)
             sage: arccot(1.+I)
@@ -672,6 +692,8 @@ class Function_arccsc(GinacFunction):
             arccsc(I + 1)
             sage: diff(acsc(x), x)
             -1/(sqrt(x^2 - 1)*x)
+            sage: arccsc(x)._sympy_()
+            acsc(x)
 
         We can delay evaluation using the ``hold`` parameter::
 
@@ -692,7 +714,7 @@ class Function_arccsc(GinacFunction):
             (0.45227844715119064-0.5306375309525178j)
         """
         GinacFunction.__init__(self, 'arccsc', latex_name=r"\operatorname{arccsc}",
-                                   conversions=dict(maxima='acsc'))
+                                   conversions=dict(maxima='acsc', sympy='acsc'))
 
     def _eval_numpy_(self, x):
         """
@@ -728,6 +750,8 @@ class Function_arcsec(GinacFunction):
             arcsec(I + 1)
             sage: diff(asec(x), x)
             1/(sqrt(x^2 - 1)*x)
+            sage: arcsec(x)._sympy_()
+            asec(x)
 
         We can delay evaluation using the ``hold`` parameter::
 
@@ -748,7 +772,7 @@ class Function_arcsec(GinacFunction):
             (1.118517879643706+0.5306375309525178j)
         """
         GinacFunction.__init__(self, 'arcsec', latex_name=r"\operatorname{arcsec}",
-                                   conversions=dict(maxima='asec'))
+                                   conversions=dict(maxima='asec', sympy='asec'))
 
     def _eval_numpy_(self, x):
         """

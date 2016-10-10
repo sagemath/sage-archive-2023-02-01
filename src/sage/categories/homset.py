@@ -698,7 +698,7 @@ class Homset(Set_generic):
         """
         return hash((self._domain, self._codomain, self.base()))
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         TESTS::
 
@@ -706,6 +706,8 @@ class Homset(Set_generic):
             True
         """
         return True
+
+    __nonzero__ = __bool__
 
     def _generic_convert_map(self, S):
         """

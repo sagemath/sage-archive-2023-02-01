@@ -11,7 +11,7 @@ Tornaria Methods for Computing with Quadratic Forms
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 
 from sage.rings.integer_ring import ZZ
 from sage.misc.functional import is_odd
@@ -574,7 +574,7 @@ def representation_vector_list(self, B, maxvectors = 10**8):
     n, m, vs = self._pari_().qfminim(2*(B-1), maxvectors)
     if n != 2 * len(vs):
         raise RuntimeError("insufficient number of vectors")
-    ms = [[] for _ in xrange(B)]
+    ms = [[] for _ in range(B)]
     ms[0] = [vector([0] * self.dim())]
     for v in vs.sage().columns():
         ms[int(self(v))] += [v, -v]

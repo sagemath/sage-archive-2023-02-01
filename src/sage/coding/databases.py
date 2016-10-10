@@ -2,6 +2,7 @@
 r"""
 Databases and accessors of online databases for coding theory
 """
+from six.moves import range
 
 #Don't put any global imports here since this module is accessible as sage.codes.databases.<tab>
 
@@ -40,6 +41,7 @@ def best_linear_code_in_guava(n, k, F):
     for further details.
     """
     from sage.interfaces.all import gap
+    gap.load_package("guava")
     q = F.order()
     C = gap("BestKnownLinearCode(%s,%s,GF(%s))"%(n,k,q))
     from .linear_code import LinearCode
@@ -106,6 +108,7 @@ def bounds_on_minimum_distance_in_guava(n, k, F):
           upperBoundExplanation := ... )
     """
     from sage.interfaces.all import gap
+    gap.load_package("guava")
     q = F.order()
     gap.eval("data := BoundsMinimumDistance(%s,%s,GF(%s))"%(n,k,q))
     Ldata = gap.eval("Display(data)")
@@ -295,7 +298,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     if BC is None:
         BC = BinaryCodeClassifier()
     if parent is None:
-        for j in xrange(d, n+1, d):
+        for j in range(d, n+1, d):
             M = Matrix(FiniteField(2), [[1]*j])
             if in_test(M):
                 for N in self_orthogonal_binary_codes(n, k, d, M, BC, in_test=in_test):
@@ -305,7 +308,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
         if out_test(C): yield C
         if k == parent.nrows():
             return
-        for nn in xrange(parent.ncols()+1, n+1):
+        for nn in range(parent.ncols()+1, n+1):
             if in_test(parent):
                 for child in BC.generate_children(BinaryCode(parent), nn, d):
                     for N in self_orthogonal_binary_codes(n, k, d, child, BC, in_test=in_test):

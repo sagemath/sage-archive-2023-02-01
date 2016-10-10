@@ -108,7 +108,7 @@ from types import MethodType
 from sage.structure.element cimport parent_c, coercion_model
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
-from sage.structure.debug_options import debug
+from sage.structure.debug_options cimport debug
 from sage.structure.sage_object cimport SageObject, rich_to_bool
 from sage.structure.misc import is_extension_type
 from sage.misc.lazy_attribute import lazy_attribute
@@ -155,11 +155,7 @@ import operator
 import weakref
 
 from category_object import CategoryObject
-from generators import Generators
 from coerce_exceptions import CoercionException
-
-# TODO: Theses should probably go in the printer module (but lots of stuff imports them from parent)
-from category_object import localvars
 
 cdef object BuiltinMethodType = type(repr)
 
@@ -227,7 +223,7 @@ cdef inline bint good_as_convert_domain(S):
 
 cdef class Parent(category_object.CategoryObject):
     def __init__(self, base=None, *, category=None, element_constructor=None,
-                 gens=None, names=None, normalize=True, facade=None, **kwds):
+                 names=None, normalize=True, facade=None, **kwds):
         """
         Base class for all parents.
 
@@ -254,9 +250,6 @@ cdef class Parent(category_object.CategoryObject):
         - ``element_constructor`` -- A class or function that creates
           elements of this Parent given appropriate input (can also be
           filled in later with :meth:`_populate_coercion_lists_`)
-
-        - ``gens`` -- Generators for this object (can also be filled in
-          later with :meth:`_populate_generators_`)
 
         - ``names`` -- Names of generators.
 
@@ -336,9 +329,7 @@ cdef class Parent(category_object.CategoryObject):
         if debug.bad_parent_warnings:
             if element_constructor is not None and not callable(element_constructor):
                 print("coerce BUG: Bad element_constructor provided", type(self), type(element_constructor), element_constructor)
-        if gens is not None:
-            self._populate_generators_(gens, names, normalize)
-        elif names is not None:
+        if names is not None:
             self._assign_names(names, normalize)
         if element_constructor is None:
             self._set_element_constructor()
@@ -1582,7 +1573,7 @@ cdef class Parent(category_object.CategoryObject):
        if codomain is None:
            im_gens = Sequence(im_gens)
            codomain = im_gens.universe()
-       if isinstance(im_gens, (Sequence_generic, Generators)):
+       if isinstance(im_gens, Sequence_generic):
             im_gens = list(im_gens)
        if check is None:
            return self.Hom(codomain)(im_gens)

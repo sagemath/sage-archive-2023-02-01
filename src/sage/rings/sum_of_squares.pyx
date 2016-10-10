@@ -168,7 +168,7 @@ def two_squares_pyx(uint32_t n):
         ....:     if s(two_squares_pyx(s(ij))) != s(ij):
         ....:         print("hey")
 
-        sage: for n in xrange(1,65536):
+        sage: for n in range(1,65536):
         ....:     if two_squares_pyx(n^2) != (0, n):
         ....:         print("hey")
         ....:     if two_squares_pyx(n^2 + 1) != (1, n):
@@ -302,7 +302,7 @@ def four_squares_pyx(uint32_t n):
         (0, 0, 0, 0)
 
         sage: s = lambda t: sum(i^2 for i in t)
-        sage: all(s(four_squares_pyx(n)) == n for n in xrange(5000,10000))
+        sage: all(s(four_squares_pyx(n)) == n for n in range(5000,10000))
         True
     """
     cdef uint_fast32_t fac, j, nn

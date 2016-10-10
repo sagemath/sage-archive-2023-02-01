@@ -525,7 +525,7 @@ class GenDictWithBasering:
                 break
             else:
                 self._D.append(D)
-    def next(self):
+    def __next__(self):
         """
         Return a dictionary that can be used to interprete strings in the base ring of ``self``.
 
@@ -544,6 +544,8 @@ class GenDictWithBasering:
         if len(self._D)<=1:
             raise ValueError("No next term for %s available"%self)
         return GenDictWithBasering(self._P.base_ring(), self._D[1:])
+
+    next = __next__
 
     def __repr__(self):
         """

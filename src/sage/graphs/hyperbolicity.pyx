@@ -238,9 +238,9 @@ def _my_subgraph(G, vertices, relabel=False, return_map=False):
         return (H,{}) if (relabel and return_map) else H
 
     if relabel:
-        map = dict(zip(iter(vertices),xrange(len(vertices))))
+        map = dict(zip(iter(vertices), xrange(len(vertices))))
     else:
-        map = dict(zip(iter(vertices),iter(vertices)))
+        map = dict(zip(iter(vertices), iter(vertices)))
 
     B = {}
     for v in G.vertex_iterator():
@@ -1210,7 +1210,7 @@ def hyperbolicity(G,
     Comparison of results::
 
         sage: from sage.graphs.hyperbolicity import hyperbolicity
-        sage: for i in xrange(10): # long time
+        sage: for i in range(10): # long time
         ....:     G = graphs.RandomBarabasiAlbert(100,2)
         ....:     d1,_,_ = hyperbolicity(G,algorithm='basic')
         ....:     d2,_,_ = hyperbolicity(G,algorithm='CCL')

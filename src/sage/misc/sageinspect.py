@@ -112,7 +112,8 @@ defined Cython code, and with rather tricky argument lines::
     ArgSpec(args=['x', 'a', 'b'], varargs='args', keywords='kwds', defaults=(1, ')"', {False: 'bar'}))
 
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 import ast
 import inspect
@@ -159,7 +160,7 @@ def isclassinstance(obj):
         False
         sage: class mymetaclass(type): pass
         sage: class myclass2:
-        ...       __metaclass__ = mymetaclass
+        ....:     __metaclass__ = mymetaclass
         sage: isclassinstance(myclass2)
         False
     """
@@ -1345,10 +1346,10 @@ def sage_getargspec(obj):
     Here is a more difficult one::
 
         sage: cython_code = [
-        ... 'cdef class MyClass:',
-        ... '    def _sage_src_(self):',
-        ... '        return "def foo(x, a=\\\')\\\"\\\', b={(2+1):\\\'bar\\\', not 1:3, 3<<4:5}): return\\n"',
-        ... '    def __call__(self, m,n): return "something"']
+        ....: 'cdef class MyClass:',
+        ....: '    def _sage_src_(self):',
+        ....: '        return "def foo(x, a=\\\')\\\"\\\', b={(2+1):\\\'bar\\\', not 1:3, 3<<4:5}): return\\n"',
+        ....: '    def __call__(self, m,n): return "something"']
         sage: cython('\n'.join(cython_code))
         sage: O = MyClass()
         sage: print(sage.misc.sageinspect.sage_getsource(O))
@@ -2009,7 +2010,7 @@ def sage_getsourcelines(obj):
         sage: sage_getsourcelines(obj)
         (['def create_set_partition_function(letter, k):\n',
         ...
-        '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 35)
+        '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 36)
 
     Here are some cases that were covered in :trac:`11298`;
     note that line numbers may easily change, and therefore we do
@@ -2164,7 +2165,7 @@ def sage_getsourcelines(obj):
     if first_line.lstrip().startswith('def ') and "__init__" in first_line and obj.__name__!='__init__':
         ignore = False
         double_quote = None
-        for lnb in xrange(lineno,0,-1):
+        for lnb in range(lineno, 0, -1):
             new_first_line = source_lines[lnb-1]
             nfl_strip = new_first_line.lstrip()
             if nfl_strip.startswith('"""'):

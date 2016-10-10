@@ -90,7 +90,7 @@ _add_variable_or_fallback('LOCAL_IDENTIFIER','$HOSTNAME.%s'%os.getpid())
 
 # bunch of sage directories and files
 _add_variable_or_fallback('SAGE_ROOT',       None)
-_add_variable_or_fallback('SAGE_LOCAL',      opj('$SAGE_ROOT', 'local'))
+_add_variable_or_fallback('SAGE_LOCAL',      None)
 _add_variable_or_fallback('SAGE_ETC',        opj('$SAGE_LOCAL', 'etc'))
 _add_variable_or_fallback('SAGE_INC',        opj('$SAGE_LOCAL', 'include'))
 _add_variable_or_fallback('SAGE_SHARE',      opj('$SAGE_LOCAL', 'share'))
@@ -143,6 +143,19 @@ if ' ' in DOT_SAGE:
         print("is to set the environment variable HOME to a")
         print("directory with no spaces that you have write")
         print("permissions to before you start sage.")
+
+
+CYGWIN_VERSION = None
+if UNAME[:6] == 'CYGWIN':
+    import re
+    _uname = os.uname()
+    if len(_uname) >= 2:
+        m = re.match(r'(\d+\.\d+\.\d+)\(.+\)', _uname[2])
+        if m:
+            CYGWIN_VERSION = tuple(map(int, m.group(1).split('.')))
+
+        del m
+    del _uname, re
 
 # things that need DOT_SAGE
 _add_variable_or_fallback('PYTHON_EGG_CACHE',   opj('$DOT_SAGE', '.python-eggs'))

@@ -23,7 +23,7 @@ AUTHORS:
   :class:`Element`, see :trac:`20767`
 
 The Abstract Element Class Hierarchy
-------------------------------------
+====================================
 
 This is the abstract class hierarchy, i.e., these are all
 abstract base classes.
@@ -53,11 +53,11 @@ abstract base classes.
 
 
 How to Define a New Element Class
----------------------------------
+=================================
 
 Elements typically define a method ``_new_c``, e.g.,
 
-::
+.. code-block:: cython
 
     cdef _new_c(self, defining data):
         cdef FreeModuleElement_generic_dense x
@@ -68,63 +68,197 @@ Elements typically define a method ``_new_c``, e.g.,
 that creates a new sibling very quickly from defining data
 with assumed properties.
 
-Sage has a special system in place for handling arithmetic operations
-for all Element subclasses. There are various rules that must be
-followed by both arithmetic implementers and callers.
+.. _element_arithmetic:
 
-A quick summary for the impatient:
+Arithmetic for Elements
+-----------------------
 
-- To implement addition for any Element class, override
-  ``def _add_(self, other)`` in Python or ``cpdef _add_(self, other)``
-  in Cython.
+Sage has a special system for handling arithmetic operations on Sage
+elements (that is instances of :class:`Element`), in particular to
+manage uniformly mixed arithmetic operations using the :mod:`coercion
+model <sage.structure.coerce>`. We describe here the rules that must
+be followed by both arithmetic implementers and callers.
 
-- If you want to add ``x`` and ``y``, whose parents you know are
-  **identical**, you may call ``x._add_(y)`` in Cython. This will be the
-  fastest way to guarantee that the correct implementation gets called.
-  Of course you can still always use ``x + y``.
+A quick summary for the impatient
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Now in more detail. The aims of this system are to provide (1) an efficient
-calling protocol from both Python and Cython, (2) uniform coercion semantics
-across Sage, (3) ease of use, (4) readability of code.
+To implement addition for any :class:`Element` subclass, override the
+``def _add_(self, other)`` method instead of the usual Python
+``__add__`` :python:`special method <reference/datamodel.html#special-method-names>`.
+Within ``_add_(self, other)``, you may assume that ``self`` and
+``other`` have the same parent.
+
+If the implementation is generic across all elements in a given
+category `C`, then this method can be put in ``C.ElementMethods``.
+
+When writing *Cython* code, ``_add_`` should be a cpdef method:
+``cpdef _add_(self, other)``.
+
+When doing arithmetic with two elements having different parents,
+the :mod:`coercion model <sage.structure.coerce>` is responsible for
+"coercing" them to a common parent and performing arithmetic on the
+coerced elements.
+
+Arithmetic in more detail
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The aims of this system are to provide (1) an efficient calling protocol
+from both Python and Cython, (2) uniform coercion semantics across Sage,
+(3) ease of use, (4) readability of code.
 
 We will take addition as an example; all other operators are similar.
 There are two relevant functions, with differing names
 (single vs. double underscores).
 
--  **def Element.__add__**
+-  **def Element.__add__(left, right)**
 
    This function is called by Python or Cython when the binary "+"
-   operator is encountered. It **assumes** that at least one of its
+   operator is encountered. It assumes that at least one of its
    arguments is an :class:`Element`.
 
    It has a fast pathway to deal with the most common case where both
    arguments have the same parent. Otherwise, it uses the coercion
-   framework to work out how to make them have the same parent. After
-   any necessary coercions have been performed, it calls ``_add_`` to
-   dispatch to the correct underlying addition implementation.
+   model to work out how to make them have the same parent. The
+   coercion model then adds the coerced elements (technically, it calls
+   ``operator.add``). Note that the result of coercion is not required
+   to be a Sage :class:`Element`, it could be a plain Python type.
 
-   Note that although this function is declared as ``def``, it doesn't
+   Note that, although this function is declared as ``def``, it doesn't
    have the usual overheads associated with Python functions (either
    for the caller or for ``__add__`` itself). This is because Python
    has optimised calling protocols for such special functions.
 
--  **def Element._add_**
+-  **def Element._add_(self, other)**
 
-   This is the function you should override to implement addition in a
-   subclass of ``Element``.
+   This is the function that you should override to implement addition
+   in a subclass of :class:`Element`.
 
    The two arguments to this function are guaranteed to have the **same
-   parent**. Its return value **must** have the **same parent** as its
-   arguments.
-
-   In Cython code, if you want to add two objects and you know that
-   their parents are the same object, you are encouraged to call this
-   function directly, instead of using ``x + y``. This only works if
-   Cython knows that the left argument is an ``Element``. You can
-   always cast explicitly: ``(<Element>x)._add_(y)`` to force this.
+   parent**, but not necessarily the same Python type.
 
    When implementing ``_add_`` in a Cython extension type, use
    ``cpdef _add_`` instead of ``def _add_``.
+
+   In Cython code, if you want to add two elements and you know that
+   their parents are identical, you are encouraged to call this
+   function directly, instead of using ``x + y``. This only works if
+   Cython knows that the left argument is an ``Element``. You can
+   always cast explicitly: ``(<Element>x)._add_(y)`` to force this.
+   In plain Python, ``x + y`` is always the fastest way to add two
+   elements because the special method ``__add__`` is optimized
+   unlike the normal method ``_add_``.
+
+The difference in the names of the arguments (``left, right``
+versus ``self, other``) is intentional: ``self`` is guaranteed to be an
+instance of the class in which the method is defined. In Cython, we know
+that at least one of ``left`` or ``right`` is an instance of the class
+but we do not know a priori which one.
+
+For addition and multiplication (not for other operators), there is a
+fast path for operations with a Python ``int`` (which corresponds
+to a C ``long``). Implement ``cdef _add_long(self, long n)`` or
+``cdef _mul_long(self, long n)`` with optimized code for ``self + n``
+or ``self * n``. These are assumed to be commutative, so they are also
+called for ``n + self`` or ``n * self``.
+From Cython code, you can also call ``_add_long`` or ``_mul_long``
+directly.
+
+Examples
+^^^^^^^^
+
+We need some :class:`Parent` to work with::
+
+    sage: from sage.structure.parent import Parent
+    sage: class ExampleParent(Parent):
+    ....:     def __init__(self, name, **kwds):
+    ....:         Parent.__init__(self, **kwds)
+    ....:         self.rename(name)
+
+We start with a very basic example of a Python class implementing
+``_add_``::
+
+    sage: from sage.structure.element import Element
+    sage: class MyElement(Element):
+    ....:     def _add_(self, other):
+    ....:         return 42
+    sage: p = ExampleParent("Some parent")
+    sage: x = MyElement(p)
+    sage: x + x
+    42
+
+When two different parents are involved, this no longer works since
+there is no coercion::
+
+    sage: q = ExampleParent("Other parent")
+    sage: y = MyElement(q)
+    sage: x + y
+    Traceback (most recent call last):
+    ...
+    TypeError: unsupported operand parent(s) for '+': 'Some parent' and 'Other parent'
+
+If ``_add_`` is not defined, an error message is raised, referring to
+the parents::
+
+    sage: x = Element(p)
+    sage: x._add_(x)
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'sage.structure.element.Element' object has no attribute '_add_'
+    sage: x + x
+    Traceback (most recent call last):
+    ...
+    TypeError: unsupported operand parent(s) for '+': 'Some parent' and 'Some parent'
+    sage: y = Element(q)
+    sage: x + y
+    Traceback (most recent call last):
+    ...
+    TypeError: unsupported operand parent(s) for '+': 'Some parent' and 'Other parent'
+
+We can also implement arithmetic generically in categories::
+
+    sage: class MyCategory(Category):
+    ....:     def super_categories(self):
+    ....:         return [Sets()]
+    ....:     class ElementMethods:
+    ....:         def _add_(self, other):
+    ....:             return 42
+    sage: p = ExampleParent("Parent in my category", category=MyCategory())
+    sage: x = Element(p)
+    sage: x + x
+    42
+
+Implementation details
+^^^^^^^^^^^^^^^^^^^^^^
+
+Implementing the above features actually takes a bit of magic. Casual
+callers and implementers can safely ignore it, but here are the
+details for the curious.
+
+To achieve fast arithmetic, it is critical to have a fast path in Cython
+to call the ``_add_`` method of a Cython object. So we would like
+to declare ``_add_`` as a ``cpdef`` method of class :class:`Element`.
+Remember however that the abstract classes coming
+from categories come after :class:`Element` in the method resolution
+order (or fake method resolution order in case of a Cython
+class). Hence any generic implementation of ``_add_`` in such an
+abstract class would in principle be shadowed by ``Element._add_``.
+This is worked around by defining ``Element._add_`` as a ``cdef``
+instead of a ``cpdef`` method. Concrete implementations in subclasses
+should be ``cpdef`` or ``def`` methods.
+
+Let us now see what happens upon evaluating ``x + y`` when ``x`` and ``y``
+are instances of a class that does not implement ``_add_`` but where
+``_add_`` is implemented in the category.
+First, ``x.__add__(y)`` is called, where ``__add__`` is implemented
+in :class:`Element`.
+Assuming that ``x`` and ``y`` have the same parent, a Cython call to
+``x._add_(y)`` will be done.
+The latter is implemented to trigger a Python level call to ``x._add_(y)``
+which will succeed as desired.
+
+In case that Python code calls ``x._add_(y)`` directly,
+``Element._add_`` will be invisible, and the method lookup will
+continue down the MRO and find the ``_add_`` method in the category.
 """
 
 #*****************************************************************************
@@ -183,17 +317,17 @@ def make_element(_class, _dict, parent):
     return make_element_old(_class, _dict, parent)
 
 
-cdef un_op_error_message(op, x):
+cdef unary_op_exception(op, x):
     try:
         op = op.__name__
         op = _coerce_op_symbols[op]
     except (AttributeError, KeyError):
         pass
     px = parent(x)
-    return f"unsupported operand parent for {op}: '{px}'"
+    return TypeError(f"unsupported operand parent for {op}: '{px}'")
 
 
-cdef bin_op_error_message(op, x, y):
+cdef bin_op_exception(op, x, y):
     try:
         op = op.__name__
         op = _coerce_op_symbols[op]
@@ -201,7 +335,7 @@ cdef bin_op_error_message(op, x, y):
         pass
     px = parent(x)
     py = parent(y)
-    return f"unsupported operand parent(s) for {op!r}: '{px}' and '{py}'"
+    return TypeError(f"unsupported operand parent(s) for {op!r}: '{px}' and '{py}'")
 
 
 def is_Element(x):
@@ -222,13 +356,22 @@ def is_Element(x):
 cdef class Element(SageObject):
     """
     Generic element of a structure. All other types of elements
-    (RingElement, ModuleElement, etc) derive from this type.
+    (:class:`RingElement`, :class:`ModuleElement`, etc)
+    derive from this type.
 
     Subtypes must either call ``__init__()`` to set ``_parent``, or may
     set ``_parent`` themselves if that would be more efficient.
 
     .. automethod:: _cmp_
     .. automethod:: _richcmp_
+    .. automethod:: __add__
+    .. automethod:: __sub__
+    .. automethod:: __neg__
+    .. automethod:: __mul__
+    .. automethod:: __div__
+    .. automethod:: __truediv__
+    .. automethod:: __floordiv__
+    .. automethod:: __mod__
     """
     def __getmetaclass__(_):
         from sage.misc.inherit_comparison import InheritComparisonMetaclass
@@ -1016,12 +1159,21 @@ cdef class Element(SageObject):
         Top-level addition operator for :class:`Element` invoking
         the coercion model.
 
-        See extensive documentation at the top of element.pyx.
+        See :ref:`element_arithmetic`.
 
         EXAMPLES::
 
-            sage: from sage.structure.element import RingElement
-            sage: e = RingElement(Parent())
+            sage: from sage.structure.element import Element
+            sage: class MyElement(Element):
+            ....:     def _add_(self, other):
+            ....:         return 42
+            sage: e = MyElement(Parent())
+            sage: e + e
+            42
+
+        TESTS::
+
+            sage: e = Element(Parent())
             sage: e + e
             Traceback (most recent call last):
             ...
@@ -1037,19 +1189,19 @@ cdef class Element(SageObject):
             sage: int(1) + e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand type(s) for +: 'int' and 'sage.structure.element.RingElement'
+            TypeError: unsupported operand type(s) for +: 'int' and 'sage.structure.element.Element'
             sage: e + int(1)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand type(s) for +: 'sage.structure.element.RingElement' and 'int'
+            TypeError: unsupported operand type(s) for +: 'sage.structure.element.Element' and 'int'
             sage: None + e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand type(s) for +: 'NoneType' and 'sage.structure.element.RingElement'
+            TypeError: unsupported operand type(s) for +: 'NoneType' and 'sage.structure.element.Element'
             sage: e + None
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand type(s) for +: 'sage.structure.element.RingElement' and 'NoneType'
+            TypeError: unsupported operand type(s) for +: 'sage.structure.element.Element' and 'NoneType'
         """
         cdef int cl = classify_elements(left, right)
         if HAVE_SAME_PARENT(cl):
@@ -1077,18 +1229,17 @@ cdef class Element(SageObject):
         """
         Virtual addition method for elements with identical parents.
 
-        This is meant to implement the fact that there is no ``_add_``
-        method: it looks up a Python ``_add_`` method and calls that.
-        This indirectly also looks up ``_add_`` in the category.
-        If there is no Python ``_add_`` method, an exception is raised
-        saying that addition is not implemented.
+        This default Cython implementation of ``_add_`` calls the
+        Python method ``self._add_`` if it exists. This method may be
+        defined in the ``ElementMethods`` of the category of the parent.
+        If the method is not found, a ``TypeError`` is raised
+        indicating that the operation is not supported.
 
-        EXAMPLES::
+        See :ref:`element_arithmetic`.
 
-            sage: 23._add_(5)
-            28
+        EXAMPLES:
 
-        ::
+        This method is not visible from Python::
 
             sage: from sage.structure.element import Element
             sage: e = Element(Parent())
@@ -1100,13 +1251,27 @@ cdef class Element(SageObject):
         try:
             python_op = (<object>self)._add_
         except AttributeError:
-            raise TypeError(bin_op_error_message('+', self, other))
+            raise bin_op_exception('+', self, other)
         else:
             return python_op(other)
 
     cdef _add_long(self, long n):
         """
         Generic path for adding a C long, assumed to commute.
+
+        EXAMPLES::
+
+            sage: cython(  # long time
+            ....: '''
+            ....: from sage.structure.element cimport Element
+            ....: cdef class MyElement(Element):
+            ....:     cdef _add_long(self, long n):
+            ....:         return n
+            ....: ''')
+            sage: e = MyElement(Parent())  # long time
+            sage: i = int(42)
+            sage: i + e, e + i  # long time
+            (42, 42)
         """
         return coercion_model.bin_op(self, n, add)
 
@@ -1115,16 +1280,49 @@ cdef class Element(SageObject):
         Top-level subtraction operator for :class:`Element` invoking
         the coercion model.
 
-        See extensive documentation at the top of element.pyx.
+        See :ref:`element_arithmetic`.
 
         EXAMPLES::
 
             sage: from sage.structure.element import Element
+            sage: class MyElement(Element):
+            ....:     def _sub_(self, other):
+            ....:         return 42
+            sage: e = MyElement(Parent())
+            sage: e - e
+            42
+
+        TESTS::
+
             sage: e = Element(Parent())
             sage: e - e
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s) for '-': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+            sage: 1 - e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '-': 'Integer Ring' and '<type 'sage.structure.parent.Parent'>'
+            sage: e - 1
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '-': '<type 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            sage: int(1) - e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for -: 'int' and 'sage.structure.element.Element'
+            sage: e - int(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for -: 'sage.structure.element.Element' and 'int'
+            sage: None - e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for -: 'NoneType' and 'sage.structure.element.Element'
+            sage: e - None
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for -: 'sage.structure.element.Element' and 'NoneType'
         """
         # See __add__ for comments
         cdef int cl = classify_elements(left, right)
@@ -1139,11 +1337,32 @@ cdef class Element(SageObject):
             return NotImplemented
 
     cdef _sub_(self, other):
-        # See _add_ for documentation
+        """
+        Virtual subtraction method for elements with identical parents.
+
+        This default Cython implementation of ``_sub_`` calls the
+        Python method ``self._sub_`` if it exists. This method may be
+        defined in the ``ElementMethods`` of the category of the parent.
+        If the method is not found, a ``TypeError`` is raised
+        indicating that the operation is not supported.
+
+        See :ref:`element_arithmetic`.
+
+        EXAMPLES:
+
+        This method is not visible from Python::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e._sub_(e)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.structure.element.Element' object has no attribute '_sub_'
+        """
         try:
             python_op = (<object>self)._sub_
         except AttributeError:
-            raise TypeError(bin_op_error_message('-', self, other))
+            raise bin_op_exception('-', self, other)
         else:
             return python_op(other)
 
@@ -1154,6 +1373,15 @@ cdef class Element(SageObject):
         EXAMPLES::
 
             sage: from sage.structure.element import Element
+            sage: class MyElement(Element):
+            ....:     def _neg_(self):
+            ....:         return 42
+            sage: e = MyElement(Parent())
+            sage: -e
+            42
+
+        TESTS::
+
             sage: e = Element(Parent())
             sage: -e
             Traceback (most recent call last):
@@ -1163,11 +1391,32 @@ cdef class Element(SageObject):
         return self._neg_()
 
     cdef _neg_(self):
-        # See _add_ for documentation
+        """
+        Virtual unary negation method for elements.
+
+        This default Cython implementation of ``_neg_`` calls the
+        Python method ``self._neg_`` if it exists. This method may be
+        defined in the ``ElementMethods`` of the category of the parent.
+        If the method is not found, a ``TypeError`` is raised
+        indicating that the operation is not supported.
+
+        See :ref:`element_arithmetic`.
+
+        EXAMPLES:
+
+        This method is not visible from Python::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e._neg_()
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.structure.element.Element' object has no attribute '_neg_'
+        """
         try:
             python_op = (<object>self)._neg_
         except AttributeError:
-            raise TypeError(un_op_error_message('unary -', self))
+            raise unary_op_exception('unary -', self)
         else:
             return python_op()
 
@@ -1176,16 +1425,63 @@ cdef class Element(SageObject):
         Top-level multiplication operator for :class:`Element` invoking
         the coercion model.
 
-        See extensive documentation at the top of element.pyx.
+        See :ref:`element_arithmetic`.
 
         EXAMPLES::
 
             sage: from sage.structure.element import Element
+            sage: class MyElement(Element):
+            ....:     def _mul_(self, other):
+            ....:         return 42
+            sage: e = MyElement(Parent())
+            sage: e * e
+            42
+
+        TESTS::
+
             sage: e = Element(Parent())
             sage: e * e
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s) for '*': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+            sage: 1 * e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Integer Ring' and '<type 'sage.structure.parent.Parent'>'
+            sage: e * 1
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': '<type 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            sage: int(1) * e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for *: 'int' and 'sage.structure.element.Element'
+            sage: e * int(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for *: 'sage.structure.element.Element' and 'int'
+            sage: None * e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for *: 'NoneType' and 'sage.structure.element.Element'
+            sage: e * None
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for *: 'sage.structure.element.Element' and 'NoneType'
+
+        ::
+
+            sage: A = AlgebrasWithBasis(QQ).example(); A
+            An example of an algebra with basis: the free algebra
+            on the generators ('a', 'b', 'c') over Rational Field
+            sage: x = A.an_element()
+            sage: x
+            B[word: ] + 2*B[word: a] + 3*B[word: b] + B[word: bab]
+            sage: x.__mul__(x)
+            B[word: ] + 4*B[word: a] + 4*B[word: aa] + 6*B[word: ab]
+            + 2*B[word: abab] + 6*B[word: b] + 6*B[word: ba]
+            + 2*B[word: bab] + 2*B[word: baba] + 3*B[word: babb]
+            + B[word: babbab] + 9*B[word: bb] + 3*B[word: bbab]
         """
         cdef int cl = classify_elements(left, right)
         if HAVE_SAME_PARENT(cl):
@@ -1204,21 +1500,51 @@ cdef class Element(SageObject):
 
     cdef _mul_(self, other):
         """
-        Multiplication method for elements with identical parents.
+        Virtual multiplication method for elements with identical parents.
 
-        See extensive documentation at the top of element.pyx.
+        This default Cython implementation of ``_mul_`` calls the
+        Python method ``self._mul_`` if it exists. This method may be
+        defined in the ``ElementMethods`` of the category of the parent.
+        If the method is not found, a ``TypeError`` is raised
+        indicating that the operation is not supported.
+
+        See :ref:`element_arithmetic`.
+
+        EXAMPLES:
+
+        This method is not visible from Python::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e._mul_(e)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.structure.element.Element' object has no attribute '_mul_'
         """
-        # See _add_ for documentation
         try:
             python_op = (<object>self)._mul_
         except AttributeError:
-            raise TypeError(bin_op_error_message('*', self, other))
+            raise bin_op_exception('*', self, other)
         else:
             return python_op(other)
 
     cdef _mul_long(self, long n):
         """
         Generic path for multiplying by a C long, assumed to commute.
+
+        EXAMPLES::
+
+            sage: cython(  # long time
+            ....: '''
+            ....: from sage.structure.element cimport Element
+            ....: cdef class MyElement(Element):
+            ....:     cdef _mul_long(self, long n):
+            ....:         return n
+            ....: ''')
+            sage: e = MyElement(Parent())  # long time
+            sage: i = int(42)
+            sage: i * e, e * i  # long time
+            (42, 42)
         """
         return coercion_model.bin_op(self, n, mul)
 
@@ -1227,7 +1553,7 @@ cdef class Element(SageObject):
         Top-level division operator for :class:`Element` invoking
         the coercion model.
 
-        See extensive documentation at the top of element.pyx.
+        See :ref:`element_arithmetic`.
 
         EXAMPLES::
 
@@ -1242,11 +1568,44 @@ cdef class Element(SageObject):
         ::
 
             sage: from sage.structure.element import Element
+            sage: class MyElement(Element):
+            ....:     def _div_(self, other):
+            ....:         return 42
+            sage: e = MyElement(Parent())
+            sage: e / e
+            42
+
+        TESTS::
+
             sage: e = Element(Parent())
             sage: e / e
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s) for '/': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+            sage: 1 / e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '/': 'Integer Ring' and '<type 'sage.structure.parent.Parent'>'
+            sage: e / 1
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '/': '<type 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            sage: int(1) / e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for /: 'int' and 'sage.structure.element.Element'
+            sage: e / int(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for /: 'sage.structure.element.Element' and 'int'
+            sage: None / e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for /: 'NoneType' and 'sage.structure.element.Element'
+            sage: e / None
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for /: 'sage.structure.element.Element' and 'NoneType'
         """
         # See __add__ for comments
         cdef int cl = classify_elements(left, right)
@@ -1265,7 +1624,7 @@ cdef class Element(SageObject):
         Top-level true division operator for :class:`Element` invoking
         the coercion model.
 
-        See extensive documentation at the top of element.pyx.
+        See :ref:`element_arithmetic`.
 
         EXAMPLES::
 
@@ -1280,11 +1639,44 @@ cdef class Element(SageObject):
         ::
 
             sage: from sage.structure.element import Element
+            sage: class MyElement(Element):
+            ....:     def _div_(self, other):
+            ....:         return 42
+            sage: e = MyElement(Parent())
+            sage: operator.truediv(e, e)
+            42
+
+        TESTS::
+
             sage: e = Element(Parent())
             sage: operator.truediv(e, e)
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s) for '/': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+            sage: operator.truediv(1, e)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '/': 'Integer Ring' and '<type 'sage.structure.parent.Parent'>'
+            sage: operator.truediv(e, 1)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '/': '<type 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            sage: operator.truediv(int(1), e)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for /: 'int' and 'sage.structure.element.Element'
+            sage: operator.truediv(e, int(1))
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for /: 'sage.structure.element.Element' and 'int'
+            sage: operator.truediv(None, e)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for /: 'NoneType' and 'sage.structure.element.Element'
+            sage: operator.truediv(e, None)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for /: 'sage.structure.element.Element' and 'NoneType'
         """
         # See __add__ for comments
         cdef int cl = classify_elements(left, right)
@@ -1299,11 +1691,33 @@ cdef class Element(SageObject):
             return NotImplemented
 
     cdef _div_(self, other):
-        # See _add_ for documentation
+        """
+        Virtual division method for elements with identical parents.
+        This is called for Python 2 division as well as true division.
+
+        This default Cython implementation of ``_div_`` calls the
+        Python method ``self._div_`` if it exists. This method may be
+        defined in the ``ElementMethods`` of the category of the parent.
+        If the method is not found, a ``TypeError`` is raised
+        indicating that the operation is not supported.
+
+        See :ref:`element_arithmetic`.
+
+        EXAMPLES:
+
+        This method is not visible from Python::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e._div_(e)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.structure.element.Element' object has no attribute '_div_'
+        """
         try:
             python_op = (<object>self)._div_
         except AttributeError:
-            raise TypeError(bin_op_error_message('/', self, other))
+            raise bin_op_exception('/', self, other)
         else:
             return python_op(other)
 
@@ -1312,7 +1726,7 @@ cdef class Element(SageObject):
         Top-level floor division operator for :class:`Element` invoking
         the coercion model.
 
-        See extensive documentation at the top of element.pyx.
+        See :ref:`element_arithmetic`.
 
         EXAMPLES::
 
@@ -1326,11 +1740,44 @@ cdef class Element(SageObject):
         ::
 
             sage: from sage.structure.element import Element
+            sage: class MyElement(Element):
+            ....:     def _floordiv_(self, other):
+            ....:         return 42
+            sage: e = MyElement(Parent())
+            sage: e // e
+            42
+
+        TESTS::
+
             sage: e = Element(Parent())
             sage: e // e
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s) for '//': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+            sage: 1 // e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '//': 'Integer Ring' and '<type 'sage.structure.parent.Parent'>'
+            sage: e // 1
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '//': '<type 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            sage: int(1) // e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for //: 'int' and 'sage.structure.element.Element'
+            sage: e // int(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for //: 'sage.structure.element.Element' and 'int'
+            sage: None // e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for //: 'NoneType' and 'sage.structure.element.Element'
+            sage: e // None
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for //: 'sage.structure.element.Element' and 'NoneType'
         """
         # See __add__ for comments
         cdef int cl = classify_elements(left, right)
@@ -1345,11 +1792,32 @@ cdef class Element(SageObject):
             return NotImplemented
 
     cdef _floordiv_(self, other):
-        # See _add_ for documentation
+        """
+        Virtual floor division method for elements with identical parents.
+
+        This default Cython implementation of ``_floordiv_`` calls the
+        Python method ``self._floordiv_`` if it exists. This method may be
+        defined in the ``ElementMethods`` of the category of the parent.
+        If the method is not found, a ``TypeError`` is raised
+        indicating that the operation is not supported.
+
+        See :ref:`element_arithmetic`.
+
+        EXAMPLES:
+
+        This method is not visible from Python::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e._floordiv_(e)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.structure.element.Element' object has no attribute '_floordiv_'
+        """
         try:
             python_op = (<object>self)._floordiv_
         except AttributeError:
-            raise TypeError(bin_op_error_message('//', self, other))
+            raise bin_op_exception('//', self, other)
         else:
             return python_op(other)
 
@@ -1358,7 +1826,7 @@ cdef class Element(SageObject):
         Top-level modulo operator for :class:`Element` invoking
         the coercion model.
 
-        See extensive documentation at the top of element.pyx.
+        See :ref:`element_arithmetic`.
 
         EXAMPLES::
 
@@ -1372,11 +1840,44 @@ cdef class Element(SageObject):
         ::
 
             sage: from sage.structure.element import Element
+            sage: class MyElement(Element):
+            ....:     def _mod_(self, other):
+            ....:         return 42
+            sage: e = MyElement(Parent())
+            sage: e % e
+            42
+
+        TESTS::
+
             sage: e = Element(Parent())
             sage: e % e
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s) for '%': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+            sage: 1 % e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '%': 'Integer Ring' and '<type 'sage.structure.parent.Parent'>'
+            sage: e % 1
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '%': '<type 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            sage: int(1) % e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for %: 'int' and 'sage.structure.element.Element'
+            sage: e % int(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for %: 'sage.structure.element.Element' and 'int'
+            sage: None % e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for %: 'NoneType' and 'sage.structure.element.Element'
+            sage: e % None
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for %: 'sage.structure.element.Element' and 'NoneType'
         """
         # See __add__ for comments
         cdef int cl = classify_elements(left, right)
@@ -1392,15 +1893,31 @@ cdef class Element(SageObject):
 
     cdef _mod_(self, other):
         """
-        Modulo method for elements with identical parents.
+        Virtual modulo method for elements with identical parents.
 
-        See extensive documentation at the top of element.pyx.
+        This default Cython implementation of ``_mod_`` calls the
+        Python method ``self._mod_`` if it exists. This method may be
+        defined in the ``ElementMethods`` of the category of the parent.
+        If the method is not found, a ``TypeError`` is raised
+        indicating that the operation is not supported.
+
+        See :ref:`element_arithmetic`.
+
+        EXAMPLES:
+
+        This method is not visible from Python::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e._mod_(e)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.structure.element.Element' object has no attribute '_mod_'
         """
-        # See _add_ for documentation
         try:
             python_op = (<object>self)._mod_
         except AttributeError:
-            raise TypeError(bin_op_error_message('%', self, other))
+            raise bin_op_exception('%', self, other)
         else:
             return python_op(other)
 
@@ -1916,7 +2433,7 @@ cdef class RingElement(ModuleElement):
         try:
             frac = self._parent.fraction_field()
         except AttributeError:
-            raise TypeError(bin_op_error_message('/', self, other))
+            raise bin_op_exception('/', self, other)
         return frac(self, other)
 
     def __invert__(self):
@@ -2632,7 +3149,7 @@ cdef class Vector(ModuleElement):
         return left._dot_product_coerce_(right)
 
     cpdef _dot_product_coerce_(Vector left, Vector right):
-        raise TypeError(bin_op_error_message('*', left, right))
+        raise bin_op_exception('*', left, right)
 
     cpdef _pairwise_product_(Vector left, Vector right):
         raise TypeError("unsupported operation for '%s' and '%s'"%(parent(left), parent(right)))
@@ -2654,7 +3171,7 @@ cdef class Vector(ModuleElement):
                     raise ZeroDivisionError("division by zero vector")
                 else:
                     raise ArithmeticError("vector is not in free module")
-        raise TypeError(bin_op_error_message('/', self, right))
+        raise bin_op_exception('/', self, right)
 
     def _magma_init_(self, magma):
         """
@@ -3360,7 +3877,7 @@ cdef class CoercionModel:
     cpdef bin_op(self, x, y, op):
         if parent(x) is parent(y):
             return op(x,y)
-        raise TypeError(bin_op_error_message(op, x, y))
+        raise bin_op_exception(op, x, y)
 
     cpdef richcmp(self, x, y, int op):
         x, y = self.canonical_coercion(x, y)
@@ -3448,11 +3965,11 @@ def coerce_binop(method):
         sage: S.<x> = PolynomialRing(ZZ,sparse=True)
         sage: f = x^2
         sage: g = x
-        sage: f.gcd(g)  #indirect doctest 
+        sage: f.gcd(g)  #indirect doctest
         x
         sage: T = PolynomialRing(QQ, name='x', sparse=True)
         sage: h = 1/2*T(x)
-        sage: u = f.gcd(h); u  #indirect doctest 
+        sage: u = f.gcd(h); u  #indirect doctest
         x
         sage: u.parent() == T
         True
@@ -3510,8 +4027,8 @@ def coerce_binop(method):
 
     TESTS:
 
-    Test that additional arguments given to the method does not override the
-    `self` argument, see #21322::
+    Test that additional arguments given to the method do not override
+    the ``self`` argument, see :trac:`21322`::
 
         sage: f.gcd(g, 1)
         Traceback (most recent call last):

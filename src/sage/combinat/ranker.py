@@ -17,6 +17,7 @@ Rankers
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from collections import Iterable, Sequence
 from sage.misc.cachefunc import cached_function
@@ -202,7 +203,7 @@ def unrank(L, i):
         'c'
         sage: unrank(('a','b','c'), 1)
         'b'
-        sage: unrank(xrange(3,13,2), 1)
+        sage: unrank(range(3,13,2), 1)
         5
 
     Enumerated sets::

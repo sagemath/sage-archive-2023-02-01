@@ -1370,7 +1370,7 @@ class Function_exp_integral(BuiltinFunction):
             2*e^(x^2)/x
             sage: f = function('f')
             sage: Ei(f(x)).diff(x)
-            e^f(x)*D[0](f)(x)/f(x)
+            e^f(x)*diff(f(x), x)/f(x)
         """
         return exp(x)/x
 

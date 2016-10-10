@@ -3400,10 +3400,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
                 break
         X1 = self.affine_patch(i)
         X2 = X.affine_patch(i)
-        Q = list(P)
-        t = Q.pop(i)
-        Q = [1/t*Q[j] for j in range(n)]
-        return X1.intersection_multiplicity(X2, X1.ambient_space()(Q))
+        return X1.intersection_multiplicity(X2, X1(P.dehomogenize(i)))
 
     def multiplicity(self, P):
         r"""
@@ -3465,10 +3462,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         while(P[i] == 0):
             i = i + 1
         X = self.affine_patch(i)
-        Q = list(P)
-        t = Q.pop(i)
-        Q = [1/t*Q[j] for j in range(self.ambient_space().dimension_relative())]
-        return X.multiplicity(X.ambient_space()(Q))
+        return X.multiplicity(X(P.dehomogenize(i)))
 
 class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_projective):
 
@@ -3754,7 +3748,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
         from sage.schemes.affine.affine_space import AffineSpace
         AA = AffineSpace(PP.base_ring(),sum(N),'x')
         v = list(AA.gens())
-        #create the proejctive embedding
+        # create the projective embedding
         index = 0
         for i in range(len(I)):
             v.insert(index+I[i],1)

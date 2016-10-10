@@ -38,9 +38,8 @@ positioning vs. the Petersen graph constructed by this database::
     petersen_database = graphs.PetersenGraph()
     sphinx_plot(petersen_database)
 
-For all the constructors in this database (except the octahedral, dodecahedral,
-random and empty graphs), the position dictionary is filled in, instead of using
-the spring-layout algorithm.
+For all the constructors in this database (except some random graphs), the
+position dictionary is filled in, instead of using the spring-layout algorithm.
 
 **Plot options**
 
@@ -145,9 +144,7 @@ graphplot_options.update(
                     'edge_labels': 'Whether or not to draw edge labels.',
                     'edge_style': 'The linestyle of the edges. It should be '
                         'one of "solid", "dashed", "dotted", dashdot", or '
-                        '"-", "--", ":", "-.", respectively. '
-                        'This currently only works for directed graphs, '
-                        'since we pass off the undirected graph to networkx.',
+                        '"-", "--", ":", "-.", respectively. ',
                     'edge_thickness': 'The thickness of the edges.',
                     'edge_color': 'The default color for edges not listed in edge_colors.',
                     'edge_colors': 'a dictionary specifying edge colors: each '
@@ -363,10 +360,10 @@ class GraphPlot(SageObject):
             ...                    edge_style='dashed')
             sage: GP.set_vertices(talk=True)
             sage: GP.plot()
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 26 graphics primitives
             sage: GP.set_vertices(vertex_color='green', vertex_shape='^')
             sage: GP.plot()
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 26 graphics primitives
 
         .. PLOT::
 
@@ -505,7 +502,7 @@ class GraphPlot(SageObject):
             ...    edge_style='dashed')
             sage: GP.set_edges(edge_style='solid')
             sage: GP.plot()
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 26 graphics primitives
 
         .. PLOT::
 
@@ -521,7 +518,7 @@ class GraphPlot(SageObject):
 
             sage: GP.set_edges(edge_color='black')
             sage: GP.plot()
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 26 graphics primitives
 
         .. PLOT::
 
@@ -543,7 +540,7 @@ class GraphPlot(SageObject):
             ...    edge_style='dashed')
             sage: GP.set_edges(edge_style='solid')
             sage: GP.plot()
-            Graphics object consisting of 24 graphics primitives
+            Graphics object consisting of 28 graphics primitives
 
         .. PLOT::
 
@@ -559,7 +556,7 @@ class GraphPlot(SageObject):
 
             sage: GP.set_edges(edge_color='black')
             sage: GP.plot()
-            Graphics object consisting of 24 graphics primitives
+            Graphics object consisting of 28 graphics primitives
 
         .. PLOT::
 
@@ -619,10 +616,18 @@ class GraphPlot(SageObject):
 
         # Make dict collection of all edges (keep label and edge color)
         edges_to_draw = {}
+
+        def append_or_set(key, label, color, head):
+            if key in edges_to_draw:
+                edges_to_draw[key].append((label, color, head))
+            else:
+                edges_to_draw[key] = [(label, color, head)]
+
         if self._options['color_by_label'] or isinstance(self._options['edge_colors'], dict):
             if self._options['color_by_label']:
                 edge_colors = self._graph._color_by_label(format=self._options['color_by_label'])
             else: edge_colors = self._options['edge_colors']
+            edges_drawn = []
             for color in edge_colors:
                 for edge in edge_colors[color]:
                     key = tuple(sorted([edge[0],edge[1]]))
@@ -632,46 +637,41 @@ class GraphPlot(SageObject):
                     if len(edge) < 3:
                         label = self._graph.edge_label(edge[0],edge[1])
                         if isinstance(label, list):
-                            if key in edges_to_draw:
-                                edges_to_draw[key].append((label[-1], color, head))
-                            else:
-                                edges_to_draw[key] = [(label[-1], color, head)]
+                            append_or_set(key, label[-1], color, head)
+                            edges_drawn.append((edge[0],edge[1],label[-1]))
                             for i in range(len(label)-1):
-                                edges_to_draw[key].append((label[-1], color, head))
+                                edges_to_draw[key].append((label[i], color, head))
+                                edges_drawn.append((edge[0],edge[1],label[i]))
+                        else:
+                            append_or_set(key, label, color, head)
+                            edges_drawn.append((edge[0],edge[1],label))
                     else:
                         label = edge[2]
+                        labelList = self._graph.edge_label(edge[0],edge[1])
+                        if isinstance(labelList, list):
+                            for i in range(len(labelList)):
+                                if labelList[i] == label:
+                                    append_or_set(key, label, color, head)
+                                    edges_drawn.append((edge[0],edge[1],label))
+                        else:
+                            if labelList == label:
+                                append_or_set(key, label, color, head)
+                                edges_drawn.append((edge[0],edge[1],label))
 
-                    if key in edges_to_draw:
-                        edges_to_draw[key].append((label, color, head))
-                    else:
-                        edges_to_draw[key] = [(label, color, head)]
-            # add unspecified edges in (default color black)
-            if 'edge_color' in self._options:
-                default_edge_color = self._options['edge_color']
-            else:
-                default_edge_color = 'black'
+            # Add unspecified edges (default color black set in DEFAULT_PLOT_OPTIONS)
             for edge in self._graph.edge_iterator():
-                key = tuple(sorted([edge[0],edge[1]]))
-                label = edge[2]
-                specified = False
-                if key in edges_to_draw:
-                    for old_label, old_color, old_head in edges_to_draw[key]:
-                        if label == old_label:
-                            specified = True
-                            break
-                if not specified:
+                if (edge[0],edge[1],edge[2]) not in edges_drawn:
+                    key = tuple(sorted([edge[0],edge[1]]))
                     if key == (edge[0],edge[1]): head = 1
                     else: head = 0
-                    edges_to_draw[key] = [(label, default_edge_color, head)]
+                    append_or_set(key, edge[2], self._options['edge_color'], head)
+
         else:
             for edge in self._graph.edges(sort=True):
                 key = tuple(sorted([edge[0],edge[1]]))
                 if key == (edge[0],edge[1]): head = 1
                 else: head = 0
-                if key in edges_to_draw:
-                    edges_to_draw[key].append((edge[2], self._options['edge_color'], head))
-                else:
-                    edges_to_draw[key] = [(edge[2], self._options['edge_color'], head)]
+                append_or_set(key, edge[2], self._options['edge_color'], head)
 
         if edges_to_draw:
             self._plot_components['edges'] = []
@@ -1174,7 +1174,7 @@ class GraphPlot(SageObject):
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed').plot()
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 26 graphics primitives
 
         .. PLOT::
 
@@ -1186,7 +1186,7 @@ class GraphPlot(SageObject):
         The ``edge_style`` option may be provided in the short format too::
 
             sage: g.graphplot(edge_labels=True, color_by_label=True, edge_style='--').plot()
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 26 graphics primitives
 
         TESTS:
 

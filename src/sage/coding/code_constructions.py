@@ -15,11 +15,6 @@ All codes available here can be accessed through the ``codes`` object::
     sage: codes.BinaryGolayCode()
     Linear code of length 23, dimension 12 over Finite Field of size 2
 
-REFERENCES:
-
-.. [HP] \W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
-   Codes, Cambridge Univ. Press, 2003.
-
 AUTHOR:
 
 - David Joyner (2007-05): initial version

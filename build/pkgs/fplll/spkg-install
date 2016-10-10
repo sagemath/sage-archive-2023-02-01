@@ -76,3 +76,6 @@ if [ $? -ne 0 ]; then
     echo "Error installing fplll"
     exit 1
 fi
+
+echo "Now removing old libfplll files..."
+rm -rf "$SAGE_SPKG_INST/"libfplll-*

@@ -32,6 +32,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 # System imports
 import sys
@@ -39,22 +40,22 @@ import types
 import operator
 
 # Sage matrix imports
-import matrix
-import matrix_generic_dense
-import matrix_generic_sparse
+from . import matrix
+from . import matrix_generic_dense
+from . import matrix_generic_sparse
 
-import matrix_modn_sparse
+from . import matrix_modn_sparse
 
-import matrix_mod2_dense
-import matrix_gf2e_dense
+from . import matrix_mod2_dense
+from . import matrix_gf2e_dense
 
-import matrix_integer_dense
-import matrix_integer_sparse
+from . import matrix_integer_dense
+from . import matrix_integer_sparse
 
-import matrix_rational_dense
-import matrix_rational_sparse
+from . import matrix_rational_dense
+from . import matrix_rational_sparse
 
-import matrix_mpolynomial_dense
+from . import matrix_mpolynomial_dense
 
 # Sage imports
 from sage.misc.superseded import deprecation
@@ -592,7 +593,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
     def get_action_impl(self, S, op, self_on_left):
         try:
             if op is operator.mul:
-                import action as matrix_action
+                from . import action as matrix_action
                 if self_on_left:
                     if is_MatrixSpace(S):
                         return matrix_action.MatrixMatrixAction(self, S)
@@ -1005,16 +1006,16 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             elif sage.rings.rational_field.is_RationalField(R):
                 return matrix_rational_dense.Matrix_rational_dense
             elif sage.rings.number_field.number_field.is_CyclotomicField(R):
-                import matrix_cyclo_dense
+                from . import matrix_cyclo_dense
                 return matrix_cyclo_dense.Matrix_cyclo_dense
             elif R==sage.rings.real_double.RDF:
-                import matrix_real_double_dense
+                from . import matrix_real_double_dense
                 return matrix_real_double_dense.Matrix_real_double_dense
             elif R==sage.rings.complex_double.CDF:
-                import matrix_complex_double_dense
+                from . import matrix_complex_double_dense
                 return matrix_complex_double_dense.Matrix_complex_double_dense
             elif sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R):
-                import matrix_modn_dense_double, matrix_modn_dense_float
+                from . import matrix_modn_dense_double, matrix_modn_dense_float
                 if R.order() == 2:
                     return matrix_mod2_dense.Matrix_mod2_dense
                 elif R.order() < matrix_modn_dense_float.MAX_MODULUS:
@@ -1028,7 +1029,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                         return matrix_gf2e_dense.Matrix_gf2e_dense
                 elif R.order() <= 255:
                     try:
-                        import matrix_gfpn_dense
+                        from . import matrix_gfpn_dense
                         return matrix_gfpn_dense.Matrix_gfpn_dense
                     except ImportError:
                         pass
@@ -1039,14 +1040,14 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
             from sage.symbolic.ring import SR   # causes circular imports
             if R is SR:
-                import matrix_symbolic_dense
+                from . import matrix_symbolic_dense
                 return matrix_symbolic_dense.Matrix_symbolic_dense
 
             # ComplexBallField might become a lazy import,
             # thus do not import it here too early.
             from sage.rings.complex_arb import ComplexBallField
             if isinstance(R, ComplexBallField):
-                import matrix_complex_ball_dense
+                from . import matrix_complex_ball_dense
                 return matrix_complex_ball_dense.Matrix_complex_ball_dense
             return matrix_generic_dense.Matrix_generic_dense
 
@@ -1310,9 +1311,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [1 2]
             [3 4]
 
-        Note that the last "flip" cannot be performed if ``x`` is a matrix, no
-        matter what is ``rows`` (it used to be possible but was fixed by
-        Trac 10793)::
+        Note that the last "flip" cannot be performed if ``x`` is a
+        matrix, no matter what is ``rows`` (it used to be possible but
+        was fixed by :trac:`10793`)::
 
             sage: projection = matrix(ZZ,[[1,0,0],[0,1,0]])
             sage: projection
@@ -1627,6 +1628,83 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             Z.randomize(density=density, nonzero=kwds.pop('nonzero', True), \
                 *args, **kwds)
         return Z
+
+    def some_elements(self):
+        r"""
+        Return some elements of this matrix space.
+
+        See :class:`TestSuite` for a typical use case.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: M = MatrixSpace(ZZ, 2, 2)
+            sage: tuple(M.some_elements())
+            (
+            [1 0]  [1 1]  [ 0  1]  [-2  3]  [-4  5]  [-6  7]  [-8  9]  [-10  11]
+            [0 0], [1 1], [-1  2], [-3  4], [-5  6], [-7  8], [-9 10], [-11  12],
+            <BLANKLINE>
+            [-12  13]  [-14  15]  [-16  17]  [-18  19]  [-20  21]  [-22  23]
+            [-13  14], [-15  16], [-17  18], [-19  20], [-21  22], [-23  24],
+            <BLANKLINE>
+            [-24  25]  [-26  27]  [-28  29]  [-30  31]  [-32  33]  [-34  35]
+            [-25  26], [-27  28], [-29  30], [-31  32], [-33  34], [-35  36],
+            <BLANKLINE>
+            [-36  37]  [-38  39]  [-40  41]  [-42  43]  [-44  45]  [-46  47]
+            [-37  38], [-39  40], [-41  42], [-43  44], [-45  46], [-47  48],
+            <BLANKLINE>
+            [-48  49]
+            [-49  50]
+            )
+
+            sage: M = MatrixSpace(QQ, 2, 3)
+            sage: tuple(M.some_elements())
+            (
+            [1 0 0]  [1/2 1/2 1/2]  [ 1/2 -1/2    2]  [  -1   42  2/3]
+            [0 0 0], [1/2 1/2 1/2], [  -2    0    1], [-2/3  3/2 -3/2],
+            <BLANKLINE>
+            [ 4/5 -4/5  5/4]  [ 7/6 -7/6  8/9]  [ 10/11 -10/11  11/10]
+            [-5/4  6/7 -6/7], [-8/9  9/8 -9/8], [-11/10  12/13 -12/13],
+            <BLANKLINE>
+            [ 13/12 -13/12  14/15]  [ 16/17 -16/17  17/16]
+            [-14/15  15/14 -15/14], [-17/16  18/19 -18/19],
+            <BLANKLINE>
+            [  19/18  -19/18  20/441]  [ 22/529 -22/529  529/22]
+            [-20/441  441/20 -441/20], [-529/22  24/625 -24/625],
+            <BLANKLINE>
+            [ 625/24 -625/24  26/729]  [ 28/841 -28/841  841/28]
+            [-26/729  729/26 -729/26], [-841/28  30/961 -30/961],
+            <BLANKLINE>
+            [  961/30  -961/30  32/1089]  [ 34/1225 -34/1225  1225/34]
+            [-32/1089  1089/32 -1089/32], [-1225/34  36/1369 -36/1369],
+            <BLANKLINE>
+            [ 1369/36 -1369/36  38/1521]  [ 40/68921 -40/68921  68921/40]
+            [-38/1521  1521/38 -1521/38], [-68921/40  42/79507 -42/79507],
+            <BLANKLINE>
+            [ 79507/42 -79507/42  44/91125]
+            [-44/91125  91125/44 -91125/44]
+            )
+
+            sage: M = MatrixSpace(SR, 2, 2)
+            sage: tuple(M.some_elements())
+            (
+            [1 0]  [some_variable some_variable]
+            [0 0], [some_variable some_variable]
+            )
+        """
+        from itertools import islice
+        yield self.an_element()
+        yield self.base().an_element() * sum(self.gens())
+        some_elements_base = iter(self.base().some_elements())
+        n = self.dimension()
+        while True:
+            L = list(islice(some_elements_base, n))
+            if len(L) != n:
+                return
+            yield self(L)
 
     def _magma_init_(self, magma):
         r"""

@@ -161,7 +161,7 @@ user too::
 
 ::
 
-    sage: [Variable(i, r) for i in xrange(r.ngens())]
+    sage: [Variable(i, r) for i in range(r.ngens())]
     [x(0), x(1), y(0), y(1), y(2)]
 
 For details on this interface see:
@@ -204,10 +204,8 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 
 from sage.rings.ideal import FieldIdeal
 
-from sage.structure.element cimport Element
-from sage.structure.element cimport RingElement
-from sage.structure.element cimport ModuleElement
-from sage.structure.element cimport have_same_parent_c, coercion_model
+from sage.structure.element cimport (Element, RingElement,
+        have_same_parent, coercion_model)
 
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
@@ -2996,7 +2994,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return left._add_(right)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _lmul_(self, RingElement left):
         """
         EXAMPLE::
 
@@ -3005,15 +3003,8 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f = a*z + b + 1
             sage: f*k(1)  # indirect doctest
             a*z + b + 1
-        """
-        if left:
-            return new_BP_from_PBPoly(self._parent, self._pbpoly)
-        else:
-            return self._parent.zero()
 
-    cpdef _lmul_(self, RingElement right):
-        """
-        EXAMPLE::
+        ::
 
             sage: B.<a,b,z> = BooleanPolynomialRing(3)
             sage: k = B.base_ring()
@@ -3021,7 +3012,10 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: k(0)*f # indirect doctest
             0
         """
-        return self._rmul_(right)
+        if left:
+            return new_BP_from_PBPoly(self._parent, self._pbpoly)
+        else:
+            return self._parent.zero()
 
     cpdef _mul_(left, right):
         """
@@ -3110,7 +3104,7 @@ cdef class BooleanPolynomial(MPolynomial):
                 return (br or bl) == (op == Py_NE)
 
         # Copy from Element.__richcmp__
-        if have_same_parent_c(left, right):
+        if have_same_parent(left, right):
             return (<Element>left)._richcmp_(<Element>right, op)
         else:
             return coercion_model.richcmp(left, right, op)
@@ -3145,8 +3139,8 @@ cdef class BooleanPolynomial(MPolynomial):
             0
         """
         cdef int res
-        from itertools import izip
-        for lm, rm in izip(left, right):
+        from builtins import zip
+        for lm, rm in zip(left, right):
             res = cmp(lm, rm)
             if res != 0:
                 return res
@@ -4175,7 +4169,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         M = self.set()
         try: # 0
-            d = iter(M).next().degree()
+            d = next(iter(M)).degree()
         except StopIteration:
             return True
         for m in M:
@@ -4617,7 +4611,7 @@ cdef class BooleanPolynomial(MPolynomial):
             r =  new_BS_from_PBSet(pb_zeros(self._pbpoly, (<BooleSet>s)._pbset), self._parent)
             L= []
             for e in r:
-                l = [0 for _ in xrange(n)]
+                l = [0] * n
                 for i in e.iterindex():
                     l[i] = 1
                 L.append(tuple(l))

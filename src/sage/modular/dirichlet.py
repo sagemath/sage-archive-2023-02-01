@@ -57,6 +57,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 import sage.categories.all                  as cat
 from sage.misc.all import prod
@@ -259,12 +260,12 @@ class DirichletCharacter(MultiplicativeGroupElement):
                 if R.is_exact() and any(map(lambda u, v: u**v != 1, x, orders)):
                     raise ValueError("values (= {}) must have multiplicative orders dividing {}, respectively"
                                      .format(x, orders))
-                self.__values_on_gens = x
+                self.values_on_gens.set_cache(x)
         else:
             if free_module_element.is_FreeModuleElement(x):
                 self.element.set_cache(x)
             else:
-                self.__values_on_gens = x
+                self.values_on_gens.set_cache(x)
 
     @cached_method
     def __eval_at_minus_one(self):
@@ -1083,9 +1084,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
             ...
             NotImplementedError: Characters must be from the same Dirichlet Group.
 
-            sage: all_jacobi_sums = [(DP[i].values_on_gens(),DP[j].values_on_gens(),DP[i].jacobi_sum(DP[j])) \
-            ...                       for i in range(p-1) for j in range(p-1)[i:]]
-            ...
+            sage: all_jacobi_sums = [(DP[i].values_on_gens(),DP[j].values_on_gens(),DP[i].jacobi_sum(DP[j]))
+            ....:                   for i in range(p-1) for j in range(i, p-1)]
             sage: for s in all_jacobi_sums:
             ....:     print(s)
             ((1,), (1,), 5)
@@ -1687,6 +1687,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
                 exponents[i] = 0
                 i += 1
 
+    @cached_method(do_pickle=True)
     def values_on_gens(self):
         r"""
         Return a tuple of the values of ``self`` on the standard
@@ -1697,16 +1698,19 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e = DirichletGroup(16)([-1, 1])
             sage: e.values_on_gens ()
             (-1, 1)
-        """
-        try:
-            return self.__values_on_gens
-        except AttributeError:
-            pows = self.parent()._zeta_powers
-            v = tuple([pows[i] for i in self.element()])
-            self.__values_on_gens = v
-            return v
 
-    @cached_method
+        .. NOTE::
+
+            The constructor of :class:`DirichletCharacter` sets the
+            cache of :meth:`element` or of :meth:`values_on_gens`. The cache of
+            one of these methods needs to be set for the other method to work properly,
+            these caches have to be stored when pickling an instance of
+            :class:`DirichletCharacter`.
+        """
+        pows = self.parent()._zeta_powers
+        return tuple([pows[i] for i in self.element()])
+
+    @cached_method(do_pickle=True)
     def element(self):
         r"""
         Return the underlying `\ZZ/n\ZZ`-module
@@ -1716,7 +1720,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
            Please do not change the entries of the returned vector;
            this vector is mutable *only* because immutable vectors are
-           implemented yet.
+           not implemented yet.
 
         EXAMPLES::
 
@@ -1725,6 +1729,14 @@ class DirichletCharacter(MultiplicativeGroupElement):
             (2, 0)
             sage: b.element()
             (0, 1)
+
+        .. NOTE::
+
+            The constructor of :class:`DirichletCharacter` sets the
+            cache of :meth:`element` or of :meth:`values_on_gens`. The cache of
+            one of these methods needs to be set for the other method to work properly,
+            these caches have to be stored when pickling an instance of
+            :class:`DirichletCharacter`.
         """
         P = self.parent()
         M = P._module
@@ -1738,6 +1750,40 @@ class DirichletCharacter(MultiplicativeGroupElement):
             v = M([dlog[x] for x in self.values_on_gens()])
         return v
 
+    def __setstate__(self, state):
+        r"""
+        Restore a pickled element from ``state``.
+
+        TESTS::
+
+            sage: e = DirichletGroup(16)([-1, 1])
+            sage: loads(dumps(e)) == e
+            True
+
+        """
+        # values_on_gens() used an explicit cache __values_on_gens in the past
+        # we need to set the cache of values_on_gens() from that if we encounter it in a pickle
+        values_on_gens_key = '_DirichletCharacter__values_on_gens'
+        values_on_gens = None
+        state_dict = state[1]
+        if values_on_gens_key in state_dict:
+            values_on_gens = state_dict[values_on_gens_key]
+            del state_dict[values_on_gens_key]
+
+        # element() used an explicit cache __element in the past
+        # we need to set the cache of element() from that if we encounter it in a pickle
+        element_key = '_DirichletCharacter__element'
+        element = None
+        if element_key in state_dict:
+            element = state_dict[element_key]
+            del state_dict[element_key]
+
+        super(DirichletCharacter, self).__setstate__(state)
+
+        if values_on_gens is not None:
+            self.values_on_gens.set_cache(values_on_gens)
+        if element is not None:
+            self.element.set_cache(element)
 
 class DirichletGroupFactory(UniqueFactory):
     r"""
@@ -2121,6 +2167,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
         self._set_element_constructor()
         if '_zeta_order' in state:
             state['_zeta_order'] = rings.Integer(state['_zeta_order'])
+
         super(DirichletGroup_class, self).__setstate__(state)
 
     @property
@@ -2481,7 +2528,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
         R = self.base_ring()
         p = R.characteristic()
         if p == 0:
-            Auts = [e for e in xrange(1,n) if gcd(e,n) == 1]
+            Auts = [e for e in range(1,n) if gcd(e,n) == 1]
         else:
             if not rings.ZZ(p).is_prime():
                 raise NotImplementedError("Automorphisms for finite non-field base rings not implemented")
@@ -2490,7 +2537,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
             #         k = 1, p, p^2, ..., p^(r-1),
             # where p^r = 1 (mod n), so r is the mult order of p modulo n.
             r = rings.IntegerModRing(n)(p).multiplicative_order()
-            Auts = [p**m for m in xrange(0,r)]
+            Auts = [p**m for m in range(0,r)]
         return Auts
 
     def galois_orbits(self, v=None, reps_only=False, sort=True, check=True):

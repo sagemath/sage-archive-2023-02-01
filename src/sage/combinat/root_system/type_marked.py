@@ -177,21 +177,21 @@ class CartanType(cartan_type.CartanType_decorator):
         A more compact, but potentially confusing, representation can
         be obtained using the ``latex_marked`` global option::
 
-            sage: CartanType.global_options['latex_marked'] = False
+            sage: CartanType.options['latex_marked'] = False
             sage: latex(ct)
             A_{4}
-            sage: CartanType.global_options['latex_marked'] = True
+            sage: CartanType.options['latex_marked'] = True
 
         Kac's notations are implemented::
 
-            sage: CartanType.global_options['notation'] = 'Kac'
+            sage: CartanType.options['notation'] = 'Kac'
             sage: latex(CartanType(['D',4,3]).marked_nodes([0]))
             D_4^{(3)} \text{ with node $0$ marked}
-            sage: CartanType.global_options.reset()
+            sage: CartanType.options._reset()
         """
         from sage.misc.latex import latex
         ret = self._type._latex_()
-        if self.global_options('latex_marked'):
+        if self.options('latex_marked'):
             if len(self._marked_nodes) == 1:
                 ret += " \\text{{ with node ${}$ marked}} ".format(latex(self._marked_nodes[0]))
             else:
@@ -209,10 +209,10 @@ class CartanType(cartan_type.CartanType_decorator):
             'X'
             sage: ct._ascii_art_node(3)
             'O'
-            sage: CartanType.global_options.reset()
+            sage: CartanType.options._reset()
         """
         if label in self._marked_nodes:
-            return self.global_options('marked_node_str')
+            return self.options('marked_node_str')
         return 'O'
 
     def _latex_draw_node(self, x, y, label, position="below=4pt", fill='white'):
@@ -225,10 +225,10 @@ class CartanType(cartan_type.CartanType_decorator):
 
         EXAMPLES::
 
-            sage: CartanType.global_options(mark_special_node='both')
+            sage: CartanType.options(mark_special_node='both')
             sage: CartanType(['A',3,1]).marked_nodes([1,3])._latex_draw_node(0, 0, 0)
             '\\draw[fill=black] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$0$};\n'
-            sage: CartanType.global_options.reset()
+            sage: CartanType.options._reset()
         """
         ret = cartan_type.CartanType_abstract._latex_draw_node(self, x, y, label, position, fill)
         if label in self._marked_nodes:
@@ -598,16 +598,16 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
 
         EXAMPLES::
 
-            sage: CartanType.global_options(mark_special_node='both')
+            sage: CartanType.options(mark_special_node='both')
             sage: print(CartanType(['A',3,1]).marked_nodes([0,1,3])._latex_draw_node(0, 0, 0))
             \draw[fill=black] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$0$};
             \draw[shift={(0, 0)}, lightgray, very thick] (0.25cm, 0.25cm) -- (-0.25cm, -0.25cm);
             \draw[shift={(0, 0)}, lightgray, very thick] (0.25cm, -0.25cm) -- (-0.25cm, 0.25cm);
             <BLANKLINE>
-            sage: CartanType.global_options.reset()
+            sage: CartanType.options._reset()
         """
         mark_special = (label == self.special_node()
-                        and self.global_options('mark_special_node') in ['latex', 'both'])
+                        and self.options('mark_special_node') in ['latex', 'both'])
         if mark_special:
             fill = 'black'
         else:
@@ -629,16 +629,16 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         EXAMPLES::
 
             sage: ct = CartanType(['A',4, 1]).marked_nodes([0, 2])
-            sage: CartanType.global_options(mark_special_node='both')
+            sage: CartanType.options(mark_special_node='both')
             sage: ct._ascii_art_node(0)
             '#'
-            sage: CartanType.global_options.reset()
+            sage: CartanType.options._reset()
         """
         if label in self._marked_nodes:
             if (label == self.special_node()
-                    and self.global_options('mark_special_node') in ['printing', 'both']):
+                    and self.options('mark_special_node') in ['printing', 'both']):
                 return '#'
-            return self.global_options('marked_node_str')
+            return self.options('marked_node_str')
         return 'O'
 
     def classical(self):

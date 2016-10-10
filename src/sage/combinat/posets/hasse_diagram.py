@@ -18,12 +18,50 @@ Hasse diagrams of posets
 #*****************************************************************************
 from __future__ import print_function
 
+from six.moves import range
+
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
+
+class LatticeError(ValueError):
+    """
+    Helper exception class to forward elements without meet or
+    join to upper level, so that the user will see "No meet for
+    a and b" instead of "No meet for 1 and 2".
+    """
+
+    def __init__(self, fail, x, y):
+        """
+        Initialize the exception.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import LatticeError
+            sage: error = LatticeError('join', 3, 8)
+            sage: error.x
+            3
+        """
+        ValueError.__init__(self, None)
+        self.fail = fail
+        self.x = x
+        self.y = y
+
+    def __str__(self):
+        """
+        Return string representation of the exception.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import LatticeError
+            sage: error = LatticeError('meet', 15, 18)
+            sage: error.__str__()
+            'no meet for 15 and 18'
+        """
+        return "no {} for {} and {}".format(self.fail, self.x, self.y)
 
 class HasseDiagram(DiGraph):
     """
@@ -69,7 +107,7 @@ class HasseDiagram(DiGraph):
             [0, 1, 2, 3]
         """
         # Recall: we assume range(n) is a linear extension.
-        return range(len(self))
+        return list(range(len(self)))
 
     def linear_extensions(self):
         r"""
@@ -97,7 +135,7 @@ class HasseDiagram(DiGraph):
             sage: H.is_linear_extension([3,2,1,0])
             False
         """
-        if lin_ext is None or lin_ext == range(len(self)):
+        if lin_ext is None or lin_ext == list(range(len(self))):
             for x,y in self.cover_relations_iterator():
                 if not x < y:
                     return False
@@ -399,7 +437,7 @@ class HasseDiagram(DiGraph):
             False
         """
         H = self.reverse()
-        H.relabel(perm=range(H.num_verts()-1,-1,-1), inplace=True)
+        H.relabel(perm=list(range(H.num_verts()-1, -1, -1)), inplace=True)
         return HasseDiagram(H)
 
     def interval(self, x, y):
@@ -982,7 +1020,7 @@ class HasseDiagram(DiGraph):
     @lazy_attribute
     def _meet(self):
         r"""
-        Computes the matrix of meets of ``self``. The ``(x,y)``-entry of
+        Return the matrix of meets of ``self``. The ``(x,y)``-entry of
         this matrix is the meet of ``x`` and ``y`` in ``self``.
 
         EXAMPLES::
@@ -1006,13 +1044,13 @@ class HasseDiagram(DiGraph):
             sage: H.meet_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Not a meet-semilattice: no bottom element.
+            ValueError: not a meet-semilattice: no bottom element
 
             sage: H = HasseDiagram({0:[1,2],1:[3,4],2:[3,4]})
             sage: H.meet_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: No meet for x=...
+            LatticeError: no meet for ...
 
             sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
             sage: P = L.dual()
@@ -1023,20 +1061,19 @@ class HasseDiagram(DiGraph):
         if n == 0:
             return matrix(0)
         if not self.has_bottom():
-            raise ValueError("Not a meet-semilattice: no bottom element.")
-        le = self._leq_matrix
+            raise ValueError("not a meet-semilattice: no bottom element")
         meet = [[0 for x in range(n)] for x in range(n)]
-        lc = [self.neighbors_in(x) for x in range(n)]
+        lc = [self.neighbors_in(x) for x in range(n)]  # Lc = lower covers
 
-        for x in range(n): # x=x_k
+        for x in range(n):
             meet[x][x] = x
             for y in range(x):
-                T = [meet[y][z] for z in lc[x]] # T = {x_i \wedge z : z>-x_k}
+                T = [meet[y][z] for z in lc[x]]
 
                 q = max(T)
                 for z in T:
-                    if not le[z,q]:
-                        raise ValueError("No meet for x=%s y=%s"%(x,y))
+                    if meet[z][q] != z:
+                        raise LatticeError('meet', x, y)
                 meet[x][y] = q
                 meet[y][x] = q
 
@@ -1085,13 +1122,13 @@ class HasseDiagram(DiGraph):
             sage: H.meet_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Not a meet-semilattice: no bottom element.
+            ValueError: not a meet-semilattice: no bottom element
 
             sage: H = HasseDiagram({0:[1,2],1:[3,4],2:[3,4]})
             sage: H.meet_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: No meet for x=...
+            LatticeError: no meet for ...
         """
         return self._meet
 
@@ -1149,13 +1186,13 @@ class HasseDiagram(DiGraph):
             sage: H.join_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Not a join-semilattice: no top element.
+            ValueError: not a join-semilattice: no top element
 
             sage: H = HasseDiagram({0:[2,3],1:[2,3],2:[4],3:[4]})
             sage: H.join_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: No join for x=...
+            LatticeError: no join for ...
 
             sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
             sage: P = L.dual()
@@ -1166,7 +1203,7 @@ class HasseDiagram(DiGraph):
         if n == 0:
             return matrix(0)
         if not self.has_top():
-            raise ValueError("Not a join-semilattice: no top element.")
+            raise ValueError("not a join-semilattice: no top element")
         join = [[0 for x in range(n)] for x in range(n)]
         le = self.lequal_matrix()
         uc = [sorted([n-1-y for y in self.neighbors_out(x)]) for
@@ -1181,7 +1218,7 @@ class HasseDiagram(DiGraph):
                 q = max(T)
                 for z in T:
                     if not le[n-1-q, n-1-z]:
-                        raise ValueError("No join for x=%s y=%s"%(x,y))
+                        raise LatticeError('join', n-1-x, n-1-y)
                 join[x][y] = q
                 join[y][x] = q
 
@@ -1223,13 +1260,13 @@ class HasseDiagram(DiGraph):
             sage: H.join_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Not a join-semilattice: no top element.
+            ValueError: not a join-semilattice: no top element
 
             sage: H = HasseDiagram({0:[2,3],1:[2,3],2:[4],3:[4]})
             sage: H.join_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: No join for x=...
+            LatticeError: no join for ...
         """
         return self._join
 
@@ -1258,7 +1295,7 @@ class HasseDiagram(DiGraph):
         else:
             return True
 
-    def is_semidistributive(self, meet_or_join):
+    def find_nonsemidistributive_elements(self, meet_or_join):
         r"""
         Check if the lattice is semidistributive or not.
 
@@ -1282,9 +1319,9 @@ class HasseDiagram(DiGraph):
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1, 2], 1:[3, 4], 2:[4, 5], 3:[6],
             ....:                   4:[6], 5:[6]})
-            sage: H.is_semidistributive('join') is None
+            sage: H.find_nonsemidistributive_elements('join') is None
             False
-            sage: H.is_semidistributive('meet') is None
+            sage: H.find_nonsemidistributive_elements('meet') is None
             True
         """
         if meet_or_join == 'join':
@@ -1384,36 +1421,40 @@ class HasseDiagram(DiGraph):
         result.pop() # Remove the top element.
         return result
 
-    def is_complemented_lattice(self):
-        r"""
-        Return ``True`` if ``self`` is the Hasse diagram of a
-        complemented lattice, and ``False`` otherwise.
+    def is_complemented(self):
+        """
+        Return an element of the lattice that has no complement.
+
+        If the lattice is complemented, return ``None``.
 
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0:[1, 2, 3], 1:[4], 2:[4], 3:[4]})
-            sage: H.is_complemented_lattice()
-            True
 
             sage: H = HasseDiagram({0:[1, 2], 1:[3], 2:[3], 3:[4]})
-            sage: H.is_complemented_lattice()
-            False
+            sage: H.is_complemented()
+            1
+
+            sage: H = HasseDiagram({0:[1, 2, 3], 1:[4], 2:[4], 3:[4]})
+            sage: H.is_complemented() is None
+            True
         """
-        from itertools import izip
-        try:
-            mt = self.meet_matrix()
-            jn = self.join_matrix()
-        except ValueError:
-            return False
-        n = self.cardinality() - 1
-        for row1, row2 in izip(mt, jn):
-            for c1, c2 in izip(row1, row2):
-                if c1 == 0 and c2 == n:
+        mt = self.meet_matrix()
+        jn = self.join_matrix()
+        top = self.cardinality() - 1
+        has_complement = [False] * top
+
+        for i in range(1, top):
+            if has_complement[i]:
+                continue
+            for j in range(top, 0, -1):
+                if jn[i, j] == top and mt[i, j] == 0:
+                    has_complement[j] = True
                     break
             else:
-                return False
-        return True
+                return i
+
+        return None
 
     def complements(self):
         r"""
@@ -1470,6 +1511,229 @@ class HasseDiagram(DiGraph):
             e1 -= 1
         return e
 
+    def orthocomplementations_iterator(self):
+        r"""
+        Return an iterator over orthocomplementations of the lattice.
+
+        OUTPUT:
+
+        An iterator that gives plain list of integers.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[1,2], 1:[3,4], 3:[5], 4:[5], 2:[6,7],
+            ....:                   6:[8], 7:[8], 5:[9], 8:[9]})
+            sage: list(H.orthocomplementations_iterator())
+            [[9, 8, 5, 6, 7, 2, 3, 4, 1, 0], [9, 8, 5, 7, 6, 2, 4, 3, 1, 0]]
+
+        ALGORITHM:
+
+        As ``DiamondPoset(2*n+2)`` has `(2n)!/(n!2^n)` different
+        orthocomplementations, the complexity of listing all of
+        them is necessarily `O(n!)`.
+
+        An orthocomplemented lattice is self-dual, so that for example
+        orthocomplement of an atom is a coatom. This function
+        basically just computes list of possible orthocomplementations
+        for every element (i.e. they must be complements and "duals"),
+        and then tries to fit them all.
+
+        TESTS:
+
+        Special and corner cases::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram()  # Empty
+            sage: list(H.orthocomplementations_iterator())
+            [[]]
+            sage: H = HasseDiagram({0:[]})  # One element
+            sage: list(H.orthocomplementations_iterator())
+            [[0]]
+            sage: H = HasseDiagram({0:[1]})  # Two elements
+            sage: list(H.orthocomplementations_iterator())
+            [[1, 0]]
+
+        Trivial cases: odd number of elements, not self-dual, not complemented::
+
+            sage: H = Posets.DiamondPoset(5)._hasse_diagram
+            sage: list(H.orthocomplementations_iterator())
+            []
+            sage: H = Posets.ChainPoset(4)._hasse_diagram
+            sage: list(H.orthocomplementations_iterator())
+            []
+            sage: H = HasseDiagram( ([[0, 1], [0, 2], [0, 3], [1, 4], [1, 8], [4, 6], [4, 7], [6, 9], [7, 9], [2, 5], [3, 5], [5, 8], [8, 9]]) )
+            sage: list(H.orthocomplementations_iterator())
+            []
+            sage: H = HasseDiagram({0:[1, 2, 3], 1: [4], 2:[4], 3: [5], 4:[5]})
+            sage: list(H.orthocomplementations_iterator())
+            []
+
+        Complemented, self-dual and even number of elements, but
+        not orthocomplemented::
+
+            sage: H = HasseDiagram( ([[0, 1], [1, 2], [2, 3], [0, 4], [4, 5], [0, 6], [3, 7], [5, 7], [6, 7]]) )
+            sage: list(H.orthocomplementations_iterator())
+            []
+
+        Unique orthocomplementations; second is not uniquely complemented,
+        but has only one orthocomplementation.
+
+            sage: H = Posets.BooleanLattice(4)._hasse_diagram  # Uniquely complemented
+            sage: len(list(H.orthocomplementations_iterator()))
+            1
+            sage: H = HasseDiagram({0:[1, 2], 1:[3], 2:[4], 3:[5], 4:[5]})
+            sage: len([_ for _ in H.orthocomplementations_iterator()])
+            1
+
+        "Lengthening diamond" must keep the number of orthocomplementations::
+
+            sage: H = HasseDiagram( ([[0, 1], [0, 2], [0, 3], [0, 4], [1, 5], [2, 5], [3, 5], [4, 5]]) )
+            sage: n = len([_ for _ in H.orthocomplementations_iterator()]); n
+            3
+            sage: H = HasseDiagram('M]??O?@??C??OA???OA??@?A??C?A??O??')
+            sage: len([_ for _ in H.orthocomplementations_iterator()]) == n
+            True
+
+        This lattice has an unique "possible orthocomplement" for every
+        element, but they can not be fit together; orthocomplement pairs
+        would be 0-11, 1-7, 2-4, 3-10, 5-9 and 6-8, and then orthocomplements
+        for chain 0-1-6-11 would be 11-7-8-0, which is not a chain::
+
+            sage: H = HasseDiagram('KTGG_?AAC?O?o?@?@?E?@?@??')
+            sage: list([_ for _ in H.orthocomplementations_iterator()])
+            []
+        """
+        n = self.order()
+
+        # Special cases first
+        if n == 0:
+            yield []
+            raise(StopIteration)
+        if n == 1:
+            yield [0]
+            raise(StopIteration)
+        if n % 2 == 1:
+            raise(StopIteration)
+
+        dual_isomorphism = self.is_isomorphic(self.reverse(), certificate=True)[1]
+        if dual_isomorphism is None:  # i.e. if the lattice is not self-dual.
+            raise(StopIteration)
+
+        # We compute possible orthocomplements, i.e. elements
+        # with "dual position" and complement to each other.
+
+        orbits = self.automorphism_group(return_group=False, orbits=True)
+
+        orbit_number = [None] * n
+        for ind, orbit in enumerate(orbits):
+            for e in orbit:
+                orbit_number[e] = ind
+
+        comps = [None] * n
+        for e in range(n):
+            # Fix following after ticket #20727
+            comps[e] = [x for x in range(n) if
+                        self._meet[e, x] == 0 and self._join[e, x] == n-1 and
+                        x in orbits[orbit_number[dual_isomorphism[e]]]]
+
+        # Fitting is done by this recursive function:
+        def recursive_fit(orthocomplements, unbinded):
+            if not unbinded:
+                yield orthocomplements
+            else:
+                next_to_fit = unbinded[0]
+                possible_values = [x for x in comps[next_to_fit] if not x in orthocomplements]
+                for x in self.lower_covers_iterator(next_to_fit):
+                    if orthocomplements[x] is not None:
+                        possible_values = [y for y in possible_values if self.has_edge(y, orthocomplements[x])]
+                for x in self.upper_covers_iterator(next_to_fit):
+                    if orthocomplements[x] is not None:
+                        possible_values = [y for y in possible_values if self.has_edge(orthocomplements[x], y)]
+
+                for e in possible_values:
+
+                    new_binded = orthocomplements[:]
+                    new_binded[next_to_fit] = e
+                    new_binded[e] = next_to_fit
+
+                    new_unbinded = unbinded[1:]  # Remove next_to_fit
+                    new_unbinded.remove(e)
+
+                    for i_want_python3_yield_from in recursive_fit(new_binded, new_unbinded):
+                        yield i_want_python3_yield_from
+
+        start = [None] * n
+        # A little optimization
+        for e in range(n):
+            if len(comps[e]) == 0:  # Not any possible orthocomplement
+                raise(StopIteration)
+            if len(comps[e]) == 1:  # Do not re-fit this every time
+                e_ = comps[e][0]
+                # Every element might have one possible orthocomplement,
+                # but so that they don't fit together. Must check that.
+                for lc in self.lower_covers_iterator(e):
+                    if start[lc] is not None:
+                        if not self.has_edge(e_, start[lc]):
+                            raise(StopIteration)
+                if start[e_] is None:
+                    start[e] = e_
+                    start[e_] = e
+        start_unbinded = [e for e in range(n) if start[e] is None]
+
+        for i_want_python3_yield_from in recursive_fit(start, start_unbinded):
+            yield i_want_python3_yield_from
+
+    def find_nonsemimodular_pair(self, upper):
+        """
+        Return pair of elements showing the lattice is not modular.
+
+        INPUT:
+
+        - upper, a Boolean -- if ``True``, test wheter the lattice is
+          upper semimodular; otherwise test whether the lattice is
+          lower semimodular.
+
+        OUTPUT:
+
+        ``None``, if the lattice is semimodular. Pair `(a, b)` violating
+        semimodularity otherwise.
+
+        EXAMPLES::
+    
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[1, 2], 1:[3, 4], 2:[4, 5], 3:[6], 4:[6], 5:[6]})
+            sage: H.find_nonsemimodular_pair(upper=True) is None
+            True
+            sage: H.find_nonsemimodular_pair(upper=False)
+            (5, 3)
+
+            sage: H_ = HasseDiagram(H.reverse().relabel(lambda x: 6-x, inplace=False))
+            sage: H_.find_nonsemimodular_pair(upper=True)
+            (3, 1)
+            sage: H_.find_nonsemimodular_pair(upper=False) is None
+            True
+        """
+        if upper:
+            neighbors = self.neighbors_out
+        else:
+            neighbors = self.neighbors_in
+
+        n = self.order()
+        for e in range(n):
+            covers = neighbors(e)
+            covers_len = len(covers)
+            if covers_len < 2:
+                continue
+            for a_i in range(covers_len):
+                a = covers[a_i]
+                covers_a = neighbors(a)
+                for b_i in range(a_i):
+                    b = covers[b_i]
+                    if not any(j in covers_a for j in neighbors(b)):
+                        return (a, b)
+        return None
+
     def antichains_iterator(self):
         r"""
         Return an iterator over the antichains of the poset.
@@ -1512,7 +1776,7 @@ class HasseDiagram(DiGraph):
         # antichains_queues never grows longer than self.cardinality().
         # Indeed, if a appears before b in antichains_queues, then
         # the largest element of a is strictly smaller than that of b.
-        antichains_queues = [([], range(self.cardinality()-1,-1,-1))]
+        antichains_queues = [([], list(range(self.cardinality()-1, -1, -1)))]
         leq = self.lequal_matrix()
         while antichains_queues:
             (antichain, queue) = antichains_queues.pop()
@@ -1669,6 +1933,51 @@ class HasseDiagram(DiGraph):
                                          self.are_comparable,
                                          element_class = element_class)
 
+    def sublattices_iterator(self, elms, min_e):
+        """
+        Return an iterator over sublattices of the Hasse diagram.
+
+        INPUT:
+
+        - ``elms`` -- elements already in sublattice; use set() at start
+        - ``min_e`` -- smallest new element to add for new sublattices
+
+        OUTPUT:
+
+        List of sublattices as sets of integers.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1:[3], 2:[3]})
+            sage: it = H.sublattices_iterator(set(), 0); it
+            <generator object sublattices_iterator at ...>
+            sage: next(it)
+            set()
+            sage: next(it)
+            {0}
+        """
+        # Python3-note: "yield from" would be simpler.
+        yield elms
+        for e in range(min_e, self.cardinality()):
+            if e in elms:
+                continue
+            current_set = set(elms)
+            gens = set([e])
+            while gens:
+                g = gens.pop()
+                if g < e and g not in elms:
+                    break
+                if g in current_set:
+                    continue
+                for x in current_set:
+                    gens.add(self._meet[x, g])
+                    gens.add(self._join[x, g])
+                current_set.add(g)
+            else:
+                for x in self.sublattices_iterator(current_set, e+1):
+                    yield x
+
     def maximal_sublattices(self):
         """
         Return maximal sublattices of the lattice.
@@ -1790,6 +2099,55 @@ class HasseDiagram(DiGraph):
         max_sublats = self.maximal_sublattices()
         return [e for e in range(self.cardinality()) if
                 all(e in ms for ms in max_sublats)]
+
+    def is_convex_subset(self, S):
+        r"""
+        Return ``True`` if `S` is a convex subset of the poset,
+        and ``False`` otherwise.
+
+        A subset `S` is *convex* in the poset if `b \in S` whenever
+        `a, c \in S` and `a \le b \le c`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: B3 = HasseDiagram({0: [1, 2, 4], 1: [3, 5], 2: [3, 6],
+            ....:                    3: [7], 4: [5, 6], 5: [7], 6: [7]})
+            sage: B3.is_convex_subset([1, 3, 5, 4])  # Also connected
+            True
+            sage: B3.is_convex_subset([1, 3, 4])  # Not connected
+            True
+
+            sage: B3.is_convex_subset([0, 1, 2, 3, 6])  # No, 0 < 4 < 6
+            False
+            sage: B3.is_convex_subset([0, 1, 2, 7])  # No, 1 < 3 < 7.
+            False
+
+        TESTS::
+
+            sage: B3.is_convex_subset([])
+            True
+            sage: B3.is_convex_subset([6])
+            True
+        """
+        if not S:  # S is empty set
+            return True
+        s_max = max(S)
+        ok = set()  # Already checked elements not less than any element is S.
+
+        for a in S:
+            for b in self.neighbor_out_iterator(a):
+                if b >= s_max or b in S:
+                    continue
+                # Now b not in S, b > a and a in S.
+                neighbors = lambda v_: [v for v in self.neighbor_out_iterator(v_)
+                                        if v <= s_max and v not in ok]
+                for c in self.depth_first_search(b, neighbors=neighbors):
+                    if c in S:  # Now c in S, b not in S, a in S, a < b < c.
+                        return False
+                    ok.add(c)  # Do not re-check this for being our b.
+
+        return True
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))

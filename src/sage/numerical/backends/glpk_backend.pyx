@@ -373,7 +373,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.add_variables(5)
             4
             sage: p.set_objective([1, 1, 2, 1, 3])
-            sage: map(lambda x :p.objective_coefficient(x), range(5))
+            sage: [p.objective_coefficient(x) for x in range(5)]
             [1.0, 1.0, 2.0, 1.0, 3.0]
         """
         cdef int i
@@ -526,12 +526,12 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = get_solver(solver = "GLPK")
             sage: p.add_variables(5)
             4
-            sage: p.add_linear_constraint( zip(range(5), range(5)), 2.0, 2.0)
+            sage: p.add_linear_constraint(list(zip(range(5), range(5))), 2.0, 2.0)
             sage: p.row(0)
             ([4, 3, 2, 1], [4.0, 3.0, 2.0, 1.0])
             sage: p.row_bounds(0)
             (2.0, 2.0)
-            sage: p.add_linear_constraint( zip(range(5), range(5)), 1.0, 1.0, name='foo')
+            sage: p.add_linear_constraint(list(zip(range(5), range(5))), 1.0, 1.0, name='foo')
             sage: p.row_name(1)
             'foo'
 
@@ -651,7 +651,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = get_solver(solver = "GLPK")
             sage: p.add_variables(5)
             4
-            sage: p.add_linear_constraint(zip(range(5), range(5)), 2, 2)
+            sage: p.add_linear_constraint(list(zip(range(5), range(5))), 2, 2)
             sage: p.row(0)
             ([4, 3, 2, 1], [4.0, 3.0, 2.0, 1.0])
             sage: p.row_bounds(0)
@@ -692,7 +692,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = get_solver(solver = "GLPK")
             sage: p.add_variables(5)
             4
-            sage: p.add_linear_constraint(zip(range(5), range(5)), 2, 2)
+            sage: p.add_linear_constraint(list(zip(range(5), range(5))), 2, 2)
             sage: p.row(0)
             ([4, 3, 2, 1], [4.0, 3.0, 2.0, 1.0])
             sage: p.row_bounds(0)
@@ -1193,9 +1193,9 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp = get_solver(solver = "GLPK")
             sage: lp.add_variables(3)
             2
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [8, 6, 1])), None, 48)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [4, 2, 1.5])), None, 20)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [2, 1.5, 0.5])), None, 8)
             sage: lp.set_objective([60, 30, 20])
             sage: import sage.numerical.backends.glpk_backend as backend
             sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
@@ -2233,7 +2233,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = get_solver(solver = "GLPK")
             sage: p.add_variables(2)
             1
-            sage: p.add_linear_constraint(zip([0, 1], [1, 2]), None, 3)
+            sage: p.add_linear_constraint(list(zip([0, 1], [1, 2])), None, 3)
             sage: p.set_objective([2, 5])
             sage: import sage.numerical.backends.glpk_backend as backend
             sage: p.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
@@ -2320,9 +2320,9 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp = get_solver(solver = "GLPK")
             sage: lp.add_variables(3)
             2
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [8, 6, 1])), None, 48)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [4, 2, 1.5])), None, 20)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [2, 1.5, 0.5])), None, 8)
             sage: lp.set_objective([60, 30, 20])
             sage: import sage.numerical.backends.glpk_backend as backend
             sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
@@ -2366,9 +2366,9 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = get_solver(solver = "GLPK")
             sage: p.add_variables(3)
             2
-            sage: p.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
-            sage: p.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
-            sage: p.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: p.add_linear_constraint(list(zip([0, 1, 2], [8, 6, 1])), None, 48)
+            sage: p.add_linear_constraint(list(zip([0, 1, 2], [4, 2, 1.5])), None, 20)
+            sage: p.add_linear_constraint(list(zip([0, 1, 2], [2, 1.5, 0.5])), None, 8)
             sage: p.set_objective([60, 30, 20])
             sage: import sage.numerical.backends.glpk_backend as backend
             sage: p.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
@@ -2407,9 +2407,9 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp = get_solver(solver = "GLPK")
             sage: lp.add_variables(3)
             2
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [8, 6, 1])), None, 48)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [4, 2, 1.5])), None, 20)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [2, 1.5, 0.5])), None, 8)
             sage: lp.set_objective([60, 30, 20])
             sage: import sage.numerical.backends.glpk_backend as backend
             sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
@@ -2451,9 +2451,9 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp = get_solver(solver = "GLPK")
             sage: lp.add_variables(3)
             2
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [8, 6, 1])), None, 48)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [4, 2, 1.5])), None, 20)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [2, 1.5, 0.5])), None, 8)
             sage: lp.set_objective([60, 30, 20])
             sage: import sage.numerical.backends.glpk_backend as backend
             sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
@@ -2488,9 +2488,9 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp = get_solver(solver = "GLPK")
             sage: lp.add_variables(3)
             2
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [8, 6, 1])), None, 48)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [4, 2, 1.5])), None, 20)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [2, 1.5, 0.5])), None, 8)
             sage: lp.set_objective([60, 30, 20])
             sage: import sage.numerical.backends.glpk_backend as backend
             sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
@@ -2523,9 +2523,9 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp = get_solver(solver = "GLPK")
             sage: lp.add_variables(3)
             2
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [8, 6, 1])), None, 48)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [4, 2, 1.5])), None, 20)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [2, 1.5, 0.5])), None, 8)
             sage: lp.set_objective([60, 30, 20])
             sage: import sage.numerical.backends.glpk_backend as backend
             sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
@@ -2561,9 +2561,9 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp = get_solver(solver = "GLPK")
             sage: lp.add_variables(3)
             2
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [8, 6, 1])), None, 48)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [4, 2, 1.5])), None, 20)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [2, 1.5, 0.5])), None, 8)
             sage: lp.set_objective([60, 30, 20])
             sage: import sage.numerical.backends.glpk_backend as backend
             sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
@@ -2621,9 +2621,9 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp = get_solver(solver = "GLPK")
             sage: lp.add_variables(3)
             2
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [8, 6, 1])), None, 48)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [4, 2, 1.5])), None, 20)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [2, 1.5, 0.5])), None, 8)
             sage: lp.set_objective([60, 30, 20])
             sage: import sage.numerical.backends.glpk_backend as backend
             sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
@@ -2713,9 +2713,9 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp = get_solver(solver = "GLPK")
             sage: lp.add_variables(3)
             2
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [8, 6, 1])), None, 48)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [4, 2, 1.5])), None, 20)
+            sage: lp.add_linear_constraint(list(zip([0, 1, 2], [2, 1.5, 0.5])), None, 8)
             sage: lp.set_objective([60, 30, 20])
             sage: import sage.numerical.backends.glpk_backend as backend
             sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)

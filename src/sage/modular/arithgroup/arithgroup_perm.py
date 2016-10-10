@@ -125,10 +125,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ################################################################################
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+from six.moves import range
 
-from all import SL2Z
-from arithgroup_generic import ArithmeticSubgroup
+from .all import SL2Z
+from .arithgroup_generic import ArithmeticSubgroup
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import verbose
@@ -305,7 +306,7 @@ def _equalize_perms(l):
     if n == 0:
         n = 1
     for p in l:
-        p.extend(xrange(len(p),n))
+        p.extend(list(range(len(p), n)))
 
 # Tedious point: in order to unpickle pickled objects from prior to patch
 # #11422, this function needs to accept two non-keyword arguments, to be
@@ -441,7 +442,7 @@ def ArithmeticSubgroup_Permutation(
                 L = ~S3 * ~R * S3
             if S2 is None:
                 S2 = ~S3 * R
-    else: # intialize from S2, S3
+    else: # initialize from S2, S3
         if L is None:
             L = ~S3 * ~S2
         if R is None:
@@ -725,7 +726,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
 
         The implementation of modular subgroup by action of generators on cosets
         depends on the choice of a numbering. This function provides
-        canonical labels in the sense that two equal subgroups whith different
+        canonical labels in the sense that two equal subgroups with different
         labels are relabeled the same way. The default implementation relabels
         the group itself. If you want to get a relabeled copy of your modular
         subgroup, put to ``False`` the option ``inplace``.
@@ -739,7 +740,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         construct a canonical representative of a transitive subgroup in its
         conjugacy class in the full symmetric group.
 
-        1. The identity is still numbered `0` and set the curent vertex to be
+        1. The identity is still numbered `0` and set the current vertex to be
         the identity.
 
         2. Number the cycle of `S3` the current vertex belongs to: if the
@@ -844,7 +845,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         G._L = [None]*n
         G._R = [None]*n
 
-        for i in xrange(n):
+        for i in range(n):
             G._S2[mapping[i]] = mapping[S2[i]]
             G._S3[mapping[i]] = mapping[S3[i]]
             G._L[mapping[i]] = mapping[L[i]]
@@ -874,9 +875,9 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             sage: G = ArithmeticSubgroup_Permutation(S2=S2,S3=S3)
             sage: s2,s3 = G._S2,G._S3
             sage: m,ss2,ss3 = G._canonical_unrooted_labels()
-            sage: all(ss2[m[i]] == m[s2[i]] for i in xrange(6))
+            sage: all(ss2[m[i]] == m[s2[i]] for i in range(6))
             True
-            sage: all(ss3[m[i]] == m[s3[i]] for i in xrange(6))
+            sage: all(ss3[m[i]] == m[s3[i]] for i in range(6))
             True
 
             sage: S2 = "(1,2)(3,4)(5,6)"
@@ -884,9 +885,9 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             sage: G = ArithmeticSubgroup_Permutation(S2=S2,S3=S3)
             sage: s2,s3 = G._S2,G._S3
             sage: m,ss2,ss3 = G._canonical_unrooted_labels()
-            sage: all(ss2[m[i]] == m[s2[i]] for i in xrange(6))
+            sage: all(ss2[m[i]] == m[s2[i]] for i in range(6))
             True
-            sage: all(ss3[m[i]] == m[s3[i]] for i in xrange(6))
+            sage: all(ss3[m[i]] == m[s3[i]] for i in range(6))
             True
 
             sage: S2 = "(1,2)(3,4)(5,6)"
@@ -894,9 +895,9 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             sage: G = ArithmeticSubgroup_Permutation(S2=S2,S3=S3)
             sage: s2,s3 = G._S2,G._S3
             sage: m,ss2,ss3 = G._canonical_unrooted_labels()
-            sage: all(ss2[m[i]] == m[s2[i]] for i in xrange(6))
+            sage: all(ss2[m[i]] == m[s2[i]] for i in range(6))
             True
-            sage: all(ss3[m[i]] == m[s3[i]] for i in xrange(6))
+            sage: all(ss3[m[i]] == m[s3[i]] for i in range(6))
             True
         """
         n = self.index()
@@ -904,17 +905,17 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         S2_test = [None]*n; S3_test = [None]*n
 
         m_win = self._canonical_rooted_labels(0)
-        for i in xrange(n): # conjugation
+        for i in range(n): # conjugation
             S2_win[m_win[i]] = m_win[self._S2[i]]
             S3_win[m_win[i]] = m_win[self._S3[i]]
 
-        for j0 in xrange(1,self.index()):
+        for j0 in range(1,self.index()):
             m_test = self._canonical_rooted_labels(j0)
-            for i in xrange(n):
+            for i in range(n):
                 S2_test[m_test[i]] = m_test[self._S2[i]]
                 S3_test[m_test[i]] = m_test[self._S3[i]]
 
-            for i in xrange(n-1):
+            for i in range(n-1):
                 if (S2_test[i] < S2_win[i] or
                     (S2_test[i] == S2_win[i] and S3_test[i] < S3_win[i])):
                     S2_win,S2_test = S2_test,S2_win
@@ -952,7 +953,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         waiting = []
 
         while True:
-            # intialize at j0
+            # initialize at j0
             mapping[j0] = k
             waiting.append(j0)
             k += 1
@@ -1048,7 +1049,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
 
         k = 0
         for (i,j) in w:
-            for _ in xrange(j % widths[i][k]):
+            for _ in range(j % widths[i][k]):
                 k = perms[i][k]
 
         return not k
@@ -1068,14 +1069,14 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         EXAMPLES::
 
             sage: G = ArithmeticSubgroup_Permutation(S2='(1,3)(4,5)',S3='(1,2,5)(3,4,6)')
-            sage: all(G.random_element() in G for _ in xrange(10))
+            sage: all(G.random_element() in G for _ in range(10))
             True
         """
         from sage.misc.prandom import randint
 
         i = 0
         m = SL2Z(1)
-        for _ in xrange(initial_steps):
+        for _ in range(initial_steps):
             j = randint(0,1)
             if j == 0:
                 i = self._S2[i]
@@ -1134,7 +1135,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         ss3 = [None]*N
         for j in [s2[0],s3[0]]:
             m = G._canonical_rooted_labels(j)
-            for i in xrange(N):
+            for i in range(N):
                 ss2[m[i]] = m[s2[i]]
                 ss3[m[i]] = m[s3[i]]
             if s2 != ss2 or s3 != ss3:
@@ -1174,7 +1175,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         rr = [None]*N
 
         m = self._canonical_rooted_labels(j0)
-        for i in xrange(N):
+        for i in range(N):
             ss2[m[i]] = m[s2[i]]
             ss3[m[i]] = m[s3[i]]
             ll[m[i]] = m[l[i]]
@@ -1220,7 +1221,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         """
         from sage.graphs.digraph import DiGraph
         res = DiGraph(multiedges=True,loops=True)
-        res.add_vertices(range(self.index()))
+        res.add_vertices(list(range(self.index())))
 
 
         if right_cosets: # invert the permutations
@@ -1228,7 +1229,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             S3 = [None]*self.index()
             L = [None]*self.index()
             R = [None]*self.index()
-            for i in xrange(self.index()):
+            for i in range(self.index()):
                 S2[self._S2[i]] = i
                 S3[self._S3[i]] = i
                 L[self._L[i]] = i
@@ -1242,27 +1243,27 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
 
         if s2_edges:
             if s2_label is not None:
-               res.add_edges((i,S2[i],s2_label) for i in xrange(self.index()))
+               res.add_edges((i,S2[i],s2_label) for i in range(self.index()))
             else:
-                res.add_edges((i,S2[i]) for i in xrange(self.index()))
+                res.add_edges((i,S2[i]) for i in range(self.index()))
 
         if s3_edges:
             if s3_label is not None:
-                res.add_edges((i,S3[i],s3_label) for i in xrange(self.index()))
+                res.add_edges((i,S3[i],s3_label) for i in range(self.index()))
             else:
-                res.add_edges((i,S3) for i in xrange(self.index()))
+                res.add_edges((i,S3) for i in range(self.index()))
 
         if l_edges:
             if l_label is not None:
-                res.add_edges((i,L[i],l_label) for i in xrange(self.index()))
+                res.add_edges((i,L[i],l_label) for i in range(self.index()))
             else:
-                res.add_edges((i,L[i]) for i in xrange(self.index()))
+                res.add_edges((i,L[i]) for i in range(self.index()))
 
         if r_edges:
             if r_label is not None:
-                res.add_edges((i,R[i],r_label) for i in xrange(self.index()))
+                res.add_edges((i,R[i],r_label) for i in range(self.index()))
             else:
-                res.add_edges((i,R[i]) for i in xrange(self.index()))
+                res.add_edges((i,R[i]) for i in range(self.index()))
 
         res.plot.options['color_by_label'] = True
 
@@ -1326,7 +1327,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         else:
             N = 2*self.generalised_level()
 
-        from congroup_generic import CongruenceSubgroup_constructor as CS
+        from .congroup_generic import CongruenceSubgroup_constructor as CS
         return CS(N, [x.matrix() for x in self.gens()])
 
     def is_congruence(self):
@@ -1390,7 +1391,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             sage: a.is_congruence()
             True
 
-        This example is congruence -- it is `\Gamma_0(3)` in disguise: ::
+        This example is congruence -- it is `\Gamma_0(3)` in disguise::
 
             sage: S2 = SymmetricGroup(4)
             sage: l = S2((2,3,4))
@@ -1679,7 +1680,7 @@ class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
         s2 = self._S2
         e = []
         e2i = [None]*N
-        for i in xrange(N):
+        for i in range(N):
             j = s2[s2[i]]
             if i < j:
                 e2i[i] = e2i[j] = len(e)
@@ -1976,7 +1977,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             sage: G.nu2()
             2
         """
-        return sum(1 for i in xrange(self.index()) if self._S2[i] == i)
+        return sum(1 for i in range(self.index()) if self._S2[i] == i)
 
     def nu3(self):
         r"""
@@ -1989,7 +1990,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             sage: G.nu3()
             1
         """
-        return sum(1 for i in xrange(self.index()) if self._S3[i] == i)
+        return sum(1 for i in range(self.index()) if self._S3[i] == i)
 
     def ncusps(self):
         r"""
@@ -2072,7 +2073,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
         else:
             s2 = [None] * N
             s3 = [None] * N
-            for i in xrange(N):
+            for i in range(N):
                 s2[self._S2[i]] = i
                 s3[self._S3[i]] = i
 
@@ -2195,7 +2196,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
         else:
             s = [None]*self.index()
             l = [None]*self.index()
-            for i in xrange(self.index()):
+            for i in range(self.index()):
                 s[self._S2[i]] = i
                 l[self._L[i]] = i
 
@@ -2290,9 +2291,9 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             sage: S3 = SL2Z([0,1,-1,1])
             sage: reps[0] == SL2Z([1,0,0,1])
             True
-            sage: all(reps[i]*S2*~reps[s2[i]] in G for i in xrange(4))
+            sage: all(reps[i]*S2*~reps[s2[i]] in G for i in range(4))
             True
-            sage: all(reps[i]*S3*~reps[s3[i]] in G for i in xrange(4))
+            sage: all(reps[i]*S3*~reps[s3[i]] in G for i in range(4))
             True
         """
         tree,reps,wreps,edges = self._spanning_tree_kulkarni()
@@ -2337,9 +2338,9 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             sage: L = SL2Z([1,1,0,1])
             sage: reps[0] == SL2Z([1,0,0,1])
             True
-            sage: all(reps[i]*S2*~reps[s[i]] in G for i in xrange(4))
+            sage: all(reps[i]*S2*~reps[s[i]] in G for i in range(4))
             True
-            sage: all(reps[i]*L*~reps[l[i]] in G for i in xrange(4))
+            sage: all(reps[i]*L*~reps[l[i]] in G for i in range(4))
             True
         """
         tree,reps,wreps,edges = self._spanning_tree_verrill()
@@ -2406,7 +2407,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             widths = {}
         else:
             widths = []
-        for i in xrange(self.index()):
+        for i in range(self.index()):
             if seen[i]:
                 seen[i] = False
                 j = self._L[i]
@@ -2511,7 +2512,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
         from sage.misc.prandom import randint
 
         t = []
-        for i in xrange(1,n+1):
+        for i in range(1,n+1):
             if randint(0,1):
                 t.append((i,n+i))
         t = PermutationGroupElement(t)
@@ -2596,9 +2597,9 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
         # We use a set *and* a list since checking whether an element is in a
         # set is very fast, but on the other hand we want the order the results
         # are returned to be at least somewhat canonical.
-        ts = [PermutationGroupElement(range(1,1+2*n))]
+        ts = [PermutationGroupElement(list(range(1,1+2*n)))]
 
-        for i in xrange(1,n+1):
+        for i in range(1,n+1):
 
             t = PermutationGroupElement([(i, n+i)],check=False)
 

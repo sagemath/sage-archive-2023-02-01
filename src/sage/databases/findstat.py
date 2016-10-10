@@ -167,6 +167,7 @@ Classes and methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
@@ -182,7 +183,6 @@ from sage.misc.misc import verbose
 from sage.rings.integer import Integer
 from sage.databases.oeis import FancyTuple
 
-from string import join
 from ast import literal_eval
 from collections import OrderedDict
 import re
@@ -1031,7 +1031,7 @@ class FindStatStatistic(SageObject):
 
         stat = [(elements_str, str(values)[1:-1]) for (elements, elements_str, values) in data]
 
-        stat_str = join([join(keys, "\n") + "\n====> " + values for (keys, values) in stat], "\n")
+        stat_str = "\n".join(["\n".join(keys) + "\n====> " + values for (keys, values) in stat])
         _ = verbose("Sending the following data to FindStat\r\n %s" %stat_str, caller_name='FindStat')
 
         values = urlencode({"freedata": stat_str, "depth": str(self._depth), "caller": "Sage"})
@@ -1289,12 +1289,11 @@ class FindStatStatistic(SageObject):
             '[1] => 1\r\n'
 
         """
-        if self._first_terms != None:
+        if self._first_terms is not None:
             to_str = self._collection.to_string()
-            return join([to_str(key) + " => " + str(val)
-                         for (key, val) in self._first_terms], "\r\n")
-        else:
-            return ""
+            return "\r\n".join([to_str(key) + " => " + str(val)
+                                for (key, val) in self._first_terms])
+        return ""
 
     # apart from efficiency considerations, it is important to make
     # this lazy because the method _get_level is not available for
@@ -2058,7 +2057,7 @@ class FindStatCollection(Element):
         else:
             g = self._sageconstructor_overridden
 
-        return [(x, statistic(x)) for (x,_) in zip(g, xrange(max_values))]
+        return [(x, statistic(x)) for (x,_) in zip(g, range(max_values))]
 
     def id(self):
         r"""
@@ -2299,7 +2298,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
              lambda x: x.num_verts(),
              lambda x, l: x.num_verts() in l,
              lambda X: str((sorted(X.canonical_label().edges(False)), X.num_verts())),
-             lambda x: (lambda E, V: Graph([range(V), lambda i,j: (i,j) in E or (j,i) in E], immutable=True))(*literal_eval(x))],
+             lambda x: (lambda E, V: Graph([list(range(V)), lambda i,j: (i,j) in E or (j,i) in E], immutable=True))(*literal_eval(x))],
         6:  [None, None, None, Composition,           Compositions,            None,
              lambda x: x.size(),
              lambda x, l: x.size() in l,
@@ -2334,7 +2333,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
              lambda x: x.cardinality(),
              lambda x, l: x.cardinality() in l,
              lambda X: str((sorted(X._hasse_diagram.canonical_label().cover_relations()), len(X._hasse_diagram.vertices()))),
-             lambda x: (lambda R, E: Poset((range(E), R)))(*literal_eval(x))],
+             lambda x: (lambda R, E: Poset((list(range(E)), R)))(*literal_eval(x))],
         19: [None, None, None, SemistandardTableau,   lambda x: SemistandardTableaux(x),
              None,
              lambda x: x.size(),

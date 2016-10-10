@@ -387,7 +387,7 @@ cdef class SymmetricReductionStrategy:
         # now we really need to work...
         R = self._R
         VarList = list(set(list(R.variable_names()) + list(p.parent().variable_names())))
-        VarList.sort(cmp=self._parent.varname_cmp,reverse=True)
+        VarList.sort(key=self._parent.varname_key, reverse=True)
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         self._R = PolynomialRing(self._parent.base_ring(), VarList, order = self._parent._order)
         if hasattr(self._parent,'_P'):

@@ -39,10 +39,9 @@ from sage.misc.misc import repr_lincomb, is_iterator
 from sage.misc.superseded import deprecated_function_alias
 
 from sage.algebras.algebra import Algebra
-from sage.algebras.algebra_element import AlgebraElement
 import sage.structure.parent_base
 from sage.categories.all import Rings
-from sage.structure.element import Element, parent
+from sage.structure.element import Element, parent, AlgebraElement
 
 class LazyPowerSeriesRing(Algebra):
     def __init__(self, R, element_class = None, names=None):
@@ -394,10 +393,10 @@ class LazyPowerSeriesRing(Algebra):
         """
         EXAMPLES::
 
-            sage: from itertools import imap
+            sage: from builtins import map
             sage: from sage.combinat.species.stream import _integers_from
             sage: L = LazyPowerSeriesRing(QQ)
-            sage: g = imap(lambda i: L([1]+[0]*i+[1]), _integers_from(0))
+            sage: g = map(lambda i: L([1]+[0]*i+[1]), _integers_from(0))
             sage: g2 = L._product_generator_gen(g)
             sage: [next(g2) for i in range(10)]
             [1, 1, 2, 4, 7, 12, 20, 33, 53, 84]

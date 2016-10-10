@@ -99,7 +99,7 @@ def is_mathon_PC_srg(int v,int k,int l,int mu):
         The current implementation only gives a subset of all possible graphs that can be
         obtained using this construction. A  full implementation should rely on a database
         of conference matrices (or, equivalently, on a database of s.r.g.'s with parameters
-        `(4t+1,2t,t-1,t)`. Currently we make an extra assumtion that `4t+1` is a prime power.
+        `(4t+1,2t,t-1,t)`. Currently we make an extra assumption that `4t+1` is a prime power.
         The first case where we miss a construction is `t=11`, where we could (recursively)
         use the graph for `t=1` to construct a graph on 83205 vertices.
 
@@ -1457,8 +1457,9 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
                 def la(vv):
                     from sage.combinat.designs.twographs import twograph_descendant
                     g = strongly_regular_graph(vv, k, l - 2*mu + k)
-                    return twograph_descendant(g, g.vertex_iterator().next(), name=True)
-                return(la, v+1)
+                    return twograph_descendant(g, next(g.vertex_iterator()),
+                                               name=True)
+                return(la, v + 1)
     return
 
 @cached_function
@@ -1609,9 +1610,10 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
         return None
 
     def switch_OA_srg(c,n):
-        from itertools import izip
+        from builtins import zip
         OA = map(tuple,orthogonal_array(c+1,n,resolvable=True))
-        g = Graph([OA,lambda x,y: any(xx==yy for xx,yy in izip(x,y))],loops=False)
+        g = Graph([OA, lambda x,y: any(xx==yy for xx,yy in zip(x,y))],
+                  loops=False)
         g.add_vertex(0)
         g.seidel_switching(OA[:c*n])
         return g
@@ -1787,9 +1789,9 @@ def _H_3_cayley_graph(L):
     G = FinitelyPresentedGroup(G,rels)
     x,y,z = G.gens()
     H = G.as_permutation_group()
-    L = map(lambda x:map(int,x),L)
-    x,y,z=(H.gen(0),H.gen(1),H.gen(2))
-    L = [H(x**xx*y**yy*z**zz) for xx,yy,zz in L]
+    L = [[int(u) for u in x] for x in L]
+    x, y, z = (H.gen(0), H.gen(1), H.gen(2))
+    L = [H(x**xx*y**yy*z**zz) for xx, yy, zz in L]
     return Graph(H.cayley_graph(generators=L, simple=True))
 
 def SRG_100_44_18_20():
@@ -2416,7 +2418,7 @@ def strongly_regular_from_two_intersection_set(M):
       Ars Comb. 109 (2013): 309-319.
       https://biblio.ugent.be/publication/4241842/file/4241845.pdf
     """
-    from itertools import product, izip
+    from itertools import product
     K = M.base_ring()
     k = M.ncols()
     g = Graph()

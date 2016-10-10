@@ -11,6 +11,7 @@ Functions for plotting polyhedra
 #                  http://www.gnu.org/licenses/
 ########################################################################
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.rings.all import RDF
 from sage.structure.sage_object import SageObject
@@ -25,7 +26,7 @@ from sage.plot.all import Graphics, point2d, line2d, arrow, polygon2d
 from sage.plot.plot3d.all import point3d, line3d, arrow3d, polygon3d
 from sage.plot.plot3d.transform import rotate_arbitrary
 
-from base import is_Polyhedron
+from .base import is_Polyhedron
 
 
 
@@ -124,7 +125,7 @@ def render_4d(polyhedron, point_opts={}, line_opts={}, polygon_opts={}, projecti
       of plot keywords or ``False`` to disable.
 
     - ``projection_direction`` -- list/tuple/iterable of coordinates
-      or ``None`` (default). Sets the projetion direction of the
+      or ``None`` (default). Sets the projection direction of the
       Schlegel projection. If it is not given, the center of a facet
       is used.
 

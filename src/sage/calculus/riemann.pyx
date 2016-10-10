@@ -761,7 +761,7 @@ cdef class Riemann_Map:
             sage: m.plot_boundaries(plotjoined=False, rgbcolor=[0,0,1], thickness=6)
             Graphics object consisting of 1 graphics primitive
         """
-        plots = range(self.B)
+        plots = list(range(self.B))
         for k in xrange(self.B):
             # This conditional should be eliminated when the thickness/pointsize
             # issue is resolved later. Same for the others in plot_spiderweb().
@@ -954,13 +954,13 @@ cdef class Riemann_Map:
         if self.B == 1: #The efficient simply connected
             edge = self.plot_boundaries(plotjoined=plotjoined,
                 rgbcolor=rgbcolor, thickness=thickness)
-            circle_list = range(circles)
+            circle_list = list(range(circles))
             theta_array = self.theta_array[0]
             s = spline(np.column_stack([self.theta_array[0], self.tk2]).tolist())
             tmax = self.theta_array[0, self.N]
             tmin = self.theta_array[0, 0]
             for k in xrange(circles):
-                temp = range(pts*2)
+                temp = list(range(pts*2))
                 for i in xrange(2*pts):
                     temp[i] = self.inverse_riemann_map(
                         (k + 1) / (circles + 1.0) * exp(I*i * TWOPI / (2*pts)))
@@ -970,9 +970,9 @@ cdef class Riemann_Map:
                 else:
                     circle_list[k] = list_plot(comp_pt(temp, 1),
                         rgbcolor=rgbcolor, pointsize=thickness)
-            line_list = range(spokes)
+            line_list = list(range(spokes))
             for k in xrange(spokes):
-                temp = range(pts)
+                temp = list(range(pts))
                 angle = (k*1.0) / spokes * TWOPI
                 if angle >= tmax:
                     angle -= TWOPI
@@ -1089,11 +1089,9 @@ cdef comp_pt(clist, loop=True):
         sage: m.plot_spiderweb()
         Graphics object consisting of 21 graphics primitives
     """
-    list2 = range(len(clist) + 1) if loop else range(len(clist))
-    for i in xrange(len(clist)):
-        list2[i] = (clist[i].real, clist[i].imag)
+    list2 = [(c.real, c.imag) for c in clist]
     if loop:
-        list2[len(clist)] = list2[0]
+        list2.append(list2[0])
     return list2
 
 cpdef get_derivatives(np.ndarray[COMPLEX_T, ndim=2] z_values, FLOAT_T xstep,
@@ -1102,7 +1100,7 @@ cpdef get_derivatives(np.ndarray[COMPLEX_T, ndim=2] z_values, FLOAT_T xstep,
     Computes the r*e^(I*theta) form of derivatives from the grid of points. The
     derivatives are computed using quick-and-dirty taylor expansion and
     assuming analyticity. As such ``get_derivatives`` is primarily intended
-    to be used for comparisions in ``plot_spiderweb`` and not for
+    to be used for comparisons in ``plot_spiderweb`` and not for
     applications that require great precision.
 
     INPUT:
@@ -1319,9 +1317,9 @@ cpdef complex_to_rgb(np.ndarray[COMPLEX_T, ndim = 2] z_values):
         dtype=FLOAT, shape=(imax, jmax, 3))
 
     sig_on()
-    for i from 0 <= i < imax: #replace with xrange?
+    for i in xrange(imax):
         row = z_values[i]
-        for j from 0 <= j < jmax: #replace with xrange?
+        for j in xrange(jmax):
             z = row[j]
             mag = abs(z)
             arg = phase(z)
@@ -1470,7 +1468,7 @@ cpdef cauchy_kernel(t, args):
 
 cpdef analytic_interior(COMPLEX_T z, int n, FLOAT_T epsilon):
     """
-    Provides a nearly exact compuation of the Riemann Map of an interior
+    Provides a nearly exact computation of the Riemann Map of an interior
     point of the ellipse with axes 1 + epsilon and 1 - epsilon. It is
     primarily useful for testing the accuracy of the numerical Riemann Map.
 

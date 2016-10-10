@@ -1,6 +1,7 @@
 r"""
 Magmas
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2010 Nicolas M. Thiery <nthiery at users.sf.net>
 #
@@ -307,10 +308,10 @@ class Magmas(Category_singleton):
                 sage: Rings().Distributive.__module__
                 'sage.categories.magmas_and_additive_magmas'
             """
-            from additive_magmas import AdditiveMagmas
+            from .additive_magmas import AdditiveMagmas
             if not self.is_subcategory(AdditiveMagmas()):
                 raise ValueError("The distributive axiom only makes sense on a magma which is simultaneously an additive magma")
-            from magmas_and_additive_magmas import MagmasAndAdditiveMagmas
+            from .magmas_and_additive_magmas import MagmasAndAdditiveMagmas
             return (self & MagmasAndAdditiveMagmas()).Distributive()
 
         def JTrivial(self):
@@ -526,10 +527,6 @@ class Magmas(Category_singleton):
                 return False
 
         class ElementMethods:
-
-            __truediv__ = sage.categories.coercion_methods.__truediv__
-            __div__ = __truediv__ # For Python2/3 compatibility; see e.g. #18578
-
             def _div_(left, right):
                 r"""
                 Default implementation of division, multiplying (on the right) by the inverse.
@@ -567,7 +564,7 @@ class Magmas(Category_singleton):
                     sage: c1._div_.__module__
                     'sage.categories.magmas'
                 """
-                return left._mul_(~right)
+                return left * ~right
 
         class SubcategoryMethods:
 
@@ -788,7 +785,7 @@ class Magmas(Category_singleton):
                 From: (S x S)
                 To:   S
             """
-            return x._mul_(y)
+            return x * y
 
         product_from_element_class_mul = product
 
@@ -976,9 +973,6 @@ class Magmas(Category_singleton):
             return OperationTable(self, operation=operator.mul, names=names, elements=elements)
 
     class ElementMethods:
-
-        __mul__ = sage.categories.coercion_methods.__mul__
-
         @abstract_method(optional = True)
         def _mul_(self, right):
             """
@@ -1062,7 +1056,7 @@ class Magmas(Category_singleton):
 
                 sage: TestSuite(C).run()
             """
-            from cartesian_product import cartesian_product
+            from .cartesian_product import cartesian_product
             from sage.rings.integer_ring import ZZ
             from sage.rings.rational_field import QQ
             return cartesian_product([QQ, ZZ, ZZ])

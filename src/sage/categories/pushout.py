@@ -1,11 +1,12 @@
 """
 Coercion via Construction Functors
 """
-from __future__ import print_function
-
+from __future__ import print_function, absolute_import
+from six.moves import range
 import six
+
 from sage.misc.lazy_import import lazy_import
-from functor import Functor, IdentityFunctor_generic
+from .functor import Functor, IdentityFunctor_generic
 
 lazy_import('sage.categories.commutative_additive_groups', 'CommutativeAdditiveGroups')
 lazy_import('sage.categories.commutative_rings', 'CommutativeRings')
@@ -773,7 +774,7 @@ class PolynomialFunctor(ConstructionFunctor):
             True
 
         """
-        from rings import Rings
+        from .rings import Rings
         Functor.__init__(self, Rings(), Rings())
         self.var = var
         self.multi_variate = multi_variate
@@ -2339,7 +2340,7 @@ class CompletionFunctor(ConstructionFunctor):
 
         TESTS:
 
-        We check that #12353 has been resolved::
+        We check that :trac:`12353` has been resolved::
 
             sage: RealIntervalField(53)(-1) > RR(1)
             False
@@ -3033,7 +3034,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             return [self]
         return [AlgebraicExtensionFunctor([self.polys[i]], [self.names[i]], [self.embeddings[i]],
                                           [self.structures[i]], **self.kwds)
-                for i in xrange(n)]
+                for i in range(n)]
+
 
 class AlgebraicClosureFunctor(ConstructionFunctor):
     """

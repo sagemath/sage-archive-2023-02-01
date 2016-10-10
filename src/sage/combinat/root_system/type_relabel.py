@@ -8,6 +8,7 @@ Root system data for relabelled Cartan types
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -201,7 +202,7 @@ class CartanType(cartan_type.CartanType_decorator):
         """
         # Special case for type D_4^3
         if self._type.dual().type() == 'G' and self._type.is_affine() \
-                and self.global_options("notation") == "Kac":
+                and self.options("notation") == "Kac":
             if compact:
                 return 'D4^3'
             return "['D', 4, 3]"
@@ -220,25 +221,25 @@ class CartanType(cartan_type.CartanType_decorator):
         A more compact, but potentially confusing, representation can
         be obtained using the ``latex_relabel`` global option::
 
-            sage: CartanType.global_options['latex_relabel'] = False
+            sage: CartanType.options['latex_relabel'] = False
             sage: latex(ct)
             A_{4}
-            sage: CartanType.global_options['latex_relabel'] = True
+            sage: CartanType.options['latex_relabel'] = True
 
         Kac's notations are implemented::
 
-            sage: CartanType.global_options['notation'] = 'Kac'
+            sage: CartanType.options['notation'] = 'Kac'
             sage: latex(CartanType(['D',4,3]))
             D_4^{(3)}
-            sage: CartanType.global_options.reset()
+            sage: CartanType.options._reset()
         """
         from sage.misc.latex import latex
         # Special case for type D_4^{(3)}
         if self._type.dual().type() == 'G' and self._type.is_affine() \
-                and self.global_options("notation") == "Kac":
+                and self.options("notation") == "Kac":
             return 'D_4^{(3)}'
         ret = self._type._latex_()
-        if self.global_options('latex_relabel'):
+        if self.options('latex_relabel'):
             ret += " \\text{ relabelled by } " + latex(self._relabelling)
         return ret
 
@@ -569,7 +570,7 @@ class CartanType_finite(CartanType, cartan_type.CartanType_finite):
         """
         affine = self._type.affine()
         relabelling = self._relabelling.copy()
-        for special_node in [affine.special_node()] + range(affine.rank()):
+        for special_node in [affine.special_node()] + list(range(affine.rank())):
             if special_node not in self._relabelling_inverse:
                 relabelling[affine.special_node()] = special_node
                 break

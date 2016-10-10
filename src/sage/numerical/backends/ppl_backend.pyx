@@ -24,6 +24,7 @@ from sage.numerical.mip import MIPSolverException
 from sage.libs.ppl import MIP_Problem, Variable, Variables_Set, Linear_Expression, Constraint, Generator
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
+from .generic_backend cimport GenericBackend
 from copy import copy
 
 cdef class PPLBackend(GenericBackend):
@@ -481,7 +482,7 @@ cdef class PPLBackend(GenericBackend):
             sage: p.add_variables(5)
             4
             sage: p.set_objective([1, 1, 2, 1, 3])
-            sage: map(lambda x :p.objective_coefficient(x), range(5))
+            sage: [p.objective_coefficient(x) for x in range(5)]
             [1, 1, 2, 1, 3]
         """
         for i in range(len(coeff)):

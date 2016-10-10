@@ -83,6 +83,7 @@ NOTE:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from sage.rings.all      import Integer
 from sage.interfaces.all import gap
@@ -195,7 +196,7 @@ class PermutationGroup_symalt(PermutationGroup_unique):
 
                 if domain < 0:
                     raise ValueError("domain (={}) must be an integer >= 0 or a list".format(domain))
-                domain = range(1, domain+1)
+                domain = list(range(1, domain+1))
             v = FiniteEnumeratedSet(domain)
         else:
             v = domain
@@ -614,7 +615,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
         domain = self.domain()
-        if list(domain) == range(1, len(domain)+1):
+        if list(domain) == list(range(1, len(domain) + 1)):
             return SymmetricGroupAlgebra(base_ring, self, category=category)
         else:
             return super(SymmetricGroup, self).algebra(base_ring)
@@ -1445,7 +1446,7 @@ class DihedralGroup(PermutationGroup_unique):
 
         # the first generator generates the cyclic subgroup of D_n, <(1...n)> in
         # cycle notation
-        gen0 = range(1,n+1)
+        gen0 = range(1, n + 1)
 
         if n < 1:
             raise ValueError("n (=%s) must be >= 1" % n)
@@ -1456,8 +1457,8 @@ class DihedralGroup(PermutationGroup_unique):
         elif n == 2:
             gens = ((1,2),(3,4))
         else:
-            gen1 = [(i, n-i+1) for i in range(1, n//2 +1)]
-            gens = tuple([tuple(gen0),tuple(gen1)])
+            gen1 = tuple((i, n-i+1) for i in range(1, n//2 +1))
+            gens = tuple([tuple(gen0), gen1])
 
         PermutationGroup_generic.__init__(self, gens)
 
@@ -1596,7 +1597,7 @@ class SplitMetacyclicGroup(PermutationGroup_unique):
         self.m = m
 
         # x is created with list, rather than cycle, notation
-        x = range(2, p**(m-1)+1)
+        x = list(range(2, p ** (m - 1) + 1))
         x.append(1)
         # y is also created with list notation, where the list
         # used is equivalent to the cycle notation representation of
@@ -1705,7 +1706,7 @@ class SemidihedralGroup(PermutationGroup_unique):
         self.m = m
 
         # x is created with list, rather than cycle, notation
-        x = range(2, 2**(m-1)+1)
+        x = list(range(2, 2 ** (m - 1) + 1))
         x.append(1)
         # y is also created with list notation, where the list
         # used is equivalent to the cycle notation representation of
@@ -1862,7 +1863,7 @@ class TransitiveGroup(PermutationGroup_unique):
 
         self._d = d
         self._n = n
-        self._domain = range(1, d+1)
+        self._domain = list(range(1, d + 1))
 
     def _repr_(self):
         """
@@ -2066,7 +2067,7 @@ class TransitiveGroupsOfDegree(CachedRepresentation, Parent):
             sage: list(TransitiveGroups(5)) # indirect doctest # optional - database_gap
             [Transitive group number 1 of degree 5, Transitive group number 2 of degree 5, Transitive group number 3 of degree 5, Transitive group number 4 of degree 5, Transitive group number 5 of degree 5]
         """
-        for n in xrange(1, self.cardinality() + 1):
+        for n in range(1, self.cardinality() + 1):
             yield self[n]
 
     @cached_method
@@ -2207,7 +2208,7 @@ class PrimitiveGroup(PermutationGroup_unique):
 
         self._d = d
         self._n = n
-        self._domain = range(1, d+1)
+        self._domain = list(range(1, d + 1))
 
     def _repr_(self):
         """
@@ -2311,7 +2312,7 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
 
         sage: p = L.__iter__()            # optional - database_gap
         sage: (next(p), next(p), next(p), next(p), # optional - database_gap
-        ...    next(p), next(p), next(p), next(p))
+        ....:  next(p), next(p), next(p), next(p))
         (Trivial group, Trivial group, S(2), A(3), S(3), A(4), S(4), C(5))
 
     TESTS::
@@ -2477,7 +2478,7 @@ class PrimitiveGroupsOfDegree(CachedRepresentation, Parent):
             sage: list(PrimitiveGroups(5)) # indirect doctest # optional - database_gap
             [C(5), D(2*5), AGL(1, 5), A(5), S(5)]
         """
-        for n in xrange(1, self.cardinality() + 1):
+        for n in range(1, self.cardinality() + 1):
             yield self[n]
 
     @cached_method

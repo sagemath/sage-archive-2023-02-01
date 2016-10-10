@@ -1,6 +1,7 @@
 """
 Matrix Plots
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
@@ -190,7 +191,7 @@ class MatrixPlot(GraphicPrimitive):
                 colstyle=dict()
 
             # Make line objects for subdivisions
-            from line import line2d
+            from .line import line2d
             lim=self.get_minmax_data()
             # First draw horizontal lines representing row subdivisions
             for y in rowsub:
@@ -407,7 +408,7 @@ def matrix_plot(mat, **options):
 
     Here we plot a random sparse matrix::
 
-        sage: sparse = matrix(dict([((randint(0, 10), randint(0, 10)), 1) for i in xrange(100)]))
+        sage: sparse = matrix(dict([((randint(0, 10), randint(0, 10)), 1) for i in range(100)]))
         sage: matrix_plot(sparse)
         Graphics object consisting of 1 graphics primitive
 

@@ -58,6 +58,7 @@ REFERENCES:
     "A Polyhedron Full of Surprises",
     Mathematics Magazine 85 (2012), no. 5, 334-342.
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
@@ -76,7 +77,7 @@ from sage.combinat.permutation import Permutations
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 from sage.misc.decorators import rename_keyword
 from sage.misc.superseded import deprecated_function_alias
-from constructor import Polyhedron
+from .constructor import Polyhedron
 from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.associahedron import Associahedron
 
@@ -142,7 +143,7 @@ def project_points(*points):
 
     Check that it is (almost) an isometry::
 
-        sage: V = map(vector, IntegerVectors(n=5,length=3))
+        sage: V = list(map(vector, IntegerVectors(n=5,length=3)))
         sage: P = project_points(*V)
         sage: for i in range(21):
         ....:     for j in range(21):

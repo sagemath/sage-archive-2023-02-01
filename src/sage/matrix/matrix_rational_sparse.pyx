@@ -21,12 +21,10 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include 'sage/modules/binary_search.pxi'
+from sage.data_structures.binary_search cimport *
+from sage.modules.vector_integer_sparse cimport *
+from sage.modules.vector_rational_sparse cimport *
 
-include 'sage/modules/vector_integer_sparse_h.pxi'
-include 'sage/modules/vector_integer_sparse_c.pxi'
-include 'sage/modules/vector_rational_sparse_h.pxi'
-include 'sage/modules/vector_rational_sparse_c.pxi'
 include 'sage/ext/stdsage.pxi'
 include "cysignals/signals.pxi"
 from cpython.sequence cimport *
@@ -34,6 +32,9 @@ from cpython.sequence cimport *
 from sage.rings.rational cimport Rational
 from sage.rings.integer  cimport Integer
 from matrix cimport Matrix
+
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -47,7 +48,7 @@ from matrix_rational_dense cimport Matrix_rational_dense
 
 from sage.misc.misc import verbose
 
-cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
+cdef class Matrix_rational_sparse(Matrix_sparse):
 
     ########################################################################
     # LEVEL 1 functionality
@@ -60,7 +61,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
         # set the parent, nrows, ncols, etc.
-        matrix_sparse.Matrix_sparse.__init__(self, parent)
+        Matrix_sparse.__init__(self, parent)
 
         self._matrix = <mpq_vector*> sig_malloc(parent.nrows()*sizeof(mpq_vector))
         if self._matrix == NULL:
@@ -331,7 +332,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE:::
+        EXAMPLE::
 
             sage: M = Matrix(QQ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
@@ -792,7 +793,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             True
 
         Computed result is the negative of the pivot basis, which
-        is just slighltly more efficient to compute. ::
+        is just slightly more efficient to compute. ::
 
             sage: A.right_kernel_matrix(basis='pivot') == -A.right_kernel_matrix(basis='computed')
             True

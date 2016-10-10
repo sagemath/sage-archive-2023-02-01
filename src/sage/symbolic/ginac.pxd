@@ -31,6 +31,8 @@ Check that we can externally cimport this (:trac:`18825`)::
 # in the actual pyx code to catch control-c for long running functions.
 
 from cpython cimport PyObject
+from libcpp.vector cimport vector
+from libcpp.pair cimport pair
 from sage.libs.gmp.types cimport mpz_t, mpq_t, mpz_ptr, mpq_ptr
 
 cdef extern from "sage/symbolic/ginac_wrap.h":
@@ -103,7 +105,9 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
         GEx coeff(GEx expr, int n)    except +
         GEx lcoeff(GEx expr)          except +
         GEx tcoeff(GEx expr)          except +
-        GEx normal()                  except +
+        void coefficients(GEx s, vector[pair[GEx,GEx]]) except +
+        GEx combine_fractions(bint deep) except +
+        GEx normal(int level, bint noexpand_combined, bint noexpand_frac) except +
         GEx numer()                   except +
         GEx denom()                   except +
         GEx numer_denom()             except +

@@ -2,6 +2,7 @@
 r"""
 R-trivial semigroups
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2016 Nicolas M. Thiéry <nthiery at users.sf.net>
 #
@@ -13,7 +14,7 @@ R-trivial semigroups
 #*****************************************************************************
 
 from sage.categories.category_with_axiom import CategoryWithAxiom
-from semigroups import Semigroups
+from .semigroups import Semigroups
 
 class RTrivialSemigroups(CategoryWithAxiom):
     def extra_super_categories(self):

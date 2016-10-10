@@ -13,7 +13,7 @@ To obtain the dual group of a finite Abelian group, use the
     Dual of Abelian Group isomorphic to Z/2Z x Z/3Z x Z/5Z x Z/7Z x Z/8Z
     over Cyclotomic Field of order 840 and degree 192
 
-The elements of the dual group can be evaluated on elements of the orignial group::
+The elements of the dual group can be evaluated on elements of the original group::
 
     sage: a,b,c,d,e = F.gens()
     sage: A,B,C,D,E = Fd.gens()

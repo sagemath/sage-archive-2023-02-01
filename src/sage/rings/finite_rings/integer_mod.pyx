@@ -67,7 +67,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, division
 
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
@@ -360,6 +360,40 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             2
         """
         return codomain._coerce_(self)
+
+    def __mod__(self, modulus):
+        """
+        Coerce this element to the ring `Z/(modulus)`.
+
+        If the new ``modulus`` does not divide the current modulus,
+        an ``ArithmeticError`` is raised.
+
+        EXAMPLES::
+
+            sage: a = Mod(14, 35)
+            sage: a % 5
+            4
+            sage: parent(a % 5)
+            Ring of integers modulo 5
+            sage: a % 350
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: reduction modulo 350 not defined
+            sage: a % 35
+            14
+            sage: int(1) % a
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for %: 'int' and 'sage.rings.finite_rings.integer_mod.IntegerMod_int'
+        """
+        if not isinstance(self, IntegerMod_abstract):
+            # something % Mod(x,y) makes no sense
+            return NotImplemented
+        from integer_mod_ring import IntegerModRing
+        R = IntegerModRing(modulus)
+        if (<Element>self)._parent._IntegerModRing_generic__order % R.order():
+            raise ArithmeticError(f"reduction modulo {modulus!r} not defined")
+        return R(self)
 
     def is_nilpotent(self):
         r"""
@@ -1188,7 +1222,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ...           if (y^41).nth_root(41*r)**(41*r) != y^41: raise RuntimeError
             ...           if (y^307).nth_root(307*r)**(307*r) != y^307: raise RuntimeError
 
-            sage: for t in xrange(200):
+            sage: for t in range(200):
             ....:     n = randint(1,2^63)
             ....:     K = Integers(n)
             ....:     b = K.random_element()
@@ -1371,7 +1405,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         positive representative in `-n/2 < x \leq n/2`.
 
         This is used so that the same square root is always returned,
-        despite the possibly probabalistic nature of the underlying
+        despite the possibly probabilistic nature of the underlying
         algorithm.
         """
         if self.lift() > self.__modulus.sageInteger >> 1:
@@ -1794,7 +1828,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
         - ``k`` - Integer of type ``long``
 
-        OUTPUT
+        OUTPUT:
 
         - Result of type ``IntegerMod_gmp``
 
@@ -1996,12 +2030,6 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     def __long__(self):
         return long(self.lift())
-
-    def __mod__(self, right):
-        if self.modulus() % right != 0:
-            raise ZeroDivisionError("reduction modulo right not defined.")
-        import integer_mod_ring
-        return IntegerMod(integer_mod_ring.IntegerModRing(right), self)
 
     def __pow__(IntegerMod_gmp self, exp, m): # NOTE: m ignored, always use modulus of parent ring
         """
@@ -2412,13 +2440,6 @@ cdef class IntegerMod_int(IntegerMod_abstract):
     def __long__(IntegerMod_int self):
         return self.ivalue
 
-    def __mod__(IntegerMod_int self, right):
-        right = int(right)
-        if self.__modulus.int32 % right != 0:
-            raise ZeroDivisionError("reduction modulo right not defined.")
-        import integer_mod_ring
-        return integer_mod_ring.IntegerModRing(right)(self)
-
     def __lshift__(IntegerMod_int self, k):
         r"""
         Performs a left shift by ``k`` bits.
@@ -2486,7 +2507,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: e = Mod(8, 2^5 - 1)
             sage: e >> 3
             1
-            sage: int(e)/int(2^3)
+            sage: int(e)/int(2^3)  # optional - python2
             1
         """
         if k == 0:
@@ -3232,13 +3253,6 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
     def __long__(IntegerMod_int64 self):
         return self.ivalue
-
-    def __mod__(IntegerMod_int64 self, right):
-        right = int(right)
-        if self.__modulus.int64 % right != 0:
-            raise ZeroDivisionError("reduction modulo right not defined.")
-        import integer_mod_ring
-        return integer_mod_ring.IntegerModRing(right)(self)
 
     def __lshift__(IntegerMod_int64 self, k):
         r"""

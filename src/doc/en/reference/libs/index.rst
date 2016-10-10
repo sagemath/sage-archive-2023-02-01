@@ -55,7 +55,6 @@ to be aware of the modules described in this chapter.
    sage/libs/pari/convert
    sage/libs/pari/handle_error
    sage/rings/pari_ring
-   sage/libs/fplll/fplll
    sage/libs/readline
    sage/libs/gap/context_managers
    sage/libs/gap/gap_functions
@@ -73,6 +72,6 @@ to be aware of the modules described in this chapter.
 
 .. Cannot be imported independently of mpmath: sage/libs/mpmath/ext_main sage/libs/mpmath/ext_impl sage/libs/mpmath/ext_libmp
 
-.. Modules depending on optional packages: sage/libs/coxeter3/coxeter sage/libs/coxeter3/coxeter_group sage/libs/fes sage/libs/homfly
+.. Modules depending on optional packages: sage/libs/coxeter3/coxeter sage/libs/coxeter3/coxeter_group sage/libs/fes sage/libs/homfly sage/libs/braiding
 
 .. include:: ../footer.txt

@@ -22,7 +22,7 @@ from cpython.object cimport *
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object cimport SageObject
 from sage.structure.parent import Parent
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, QQ
 
 decode_type_number = {
     libGAP_T_INT: 'T_INT (integer)',
@@ -111,7 +111,7 @@ cdef libGAP_Obj make_gap_integer(sage_int) except NULL:
 
     - ``sage_int`` -- a Sage integer.
 
-    OUTPUT
+    OUTPUT:
 
     The integer as a GAP ``Obj``.
 
@@ -134,7 +134,7 @@ cdef libGAP_Obj make_gap_string(sage_string) except NULL:
 
     - ``sage_string`` -- a Sage integer.
 
-    OUTPUT
+    OUTPUT:
 
     The string as a GAP ``Obj``.
 
@@ -826,8 +826,7 @@ cdef class GapElement(RingElement):
             libgap_exit()
         return make_any_gap_element(self.parent(), result)
 
-
-    def __mod__(GapElement self, GapElement right):
+    cpdef _mod_(self, right):
         r"""
         Modulus of two GapElement objects.
 
@@ -848,7 +847,7 @@ cdef class GapElement(RingElement):
         try:
             libgap_enter()
             sig_on()
-            result = libGAP_MOD(self.value, right.value)
+            result = libGAP_MOD(self.value, (<GapElement>right).value)
             sig_off()
         except RuntimeError as msg:
             libGAP_ClearError()
@@ -1092,6 +1091,8 @@ cdef class GapElement_Integer(GapElement):
         sage: i = libgap(123)
         sage: type(i)
         <type 'sage.libs.gap.element.GapElement_Integer'>
+        sage: ZZ(i)
+        123
     """
 
     def is_C_int(self):
@@ -1125,6 +1126,17 @@ cdef class GapElement_Integer(GapElement):
             true
         """
         return libGAP_IS_INTOBJ(self.value)
+
+    def _rational_(self):
+        r"""
+        EXAMPLES::
+
+            sage: QQ(libgap(1))  # indirect doctest
+            1
+            sage: QQ(libgap(-2**200)) == -2**200
+            True
+        """
+        return self.sage(ring=QQ)
 
     def sage(self, ring=None):
         r"""
@@ -1168,6 +1180,8 @@ cdef class GapElement_Integer(GapElement):
         else:
             string = self.String().sage()
             return ring(string)
+
+    _integer_ = sage
 
     def __int__(self):
         r"""
@@ -1493,6 +1507,17 @@ cdef class GapElement_Rational(GapElement):
         sage: type(r)
         <type 'sage.libs.gap.element.GapElement_Rational'>
     """
+    def _rational_(self):
+        r"""
+        EXAMPLES::
+
+            sage: r = libgap(-1/3)
+            sage: QQ(r)  # indirect doctest
+            -1/3
+            sage: QQ(libgap(2**300 / 3**300)) == 2**300 / 3**300
+            True
+        """
+        return self.sage(ring=QQ)
 
     def sage(self, ring=None):
         r"""
@@ -1968,7 +1993,8 @@ cdef class GapElement_Function(GapElement):
             ....:         pass
 
             sage: libgap_exec = libgap.eval("Exec")
-            sage: libgap_exec('echo hello from the shell > /dev/null')
+            sage: libgap_exec('echo hello from the shell')
+            hello from the shell
         """
         cdef libGAP_Obj result = NULL
         cdef libGAP_Obj arg_list

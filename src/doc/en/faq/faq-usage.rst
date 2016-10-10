@@ -360,9 +360,9 @@ As a third alternative, use the raw suffix::
     array([  7.5,  10.5])
 
 You can also disable the preprocessor in your code via
-``preparse(False)``. You can may start IPython alone from the command
+``preparser(False)``. You can start IPython alone from the command
 line ``sage -ipython`` which does not pre-load anything
-Sage-specific. Or switching the Notebook language to "Python".
+Sage-specific. Or switch the Notebook language to "Python".
 
 
 How do I save an object so I don't have to compute it each time I open a worksheet?
@@ -387,9 +387,9 @@ You might want to convert ASCII characters such as "Big Mac" to ASCII
 numerals for further processing. In Sage and Python, you can use ``ord``,
 e.g. ::
 
-    sage: map(ord, "abcde")
+    sage: list(map(ord, "abcde"))
     [97, 98, 99, 100, 101]
-    sage: map(ord, "Big Mac")
+    sage: list(map(ord, "Big Mac"))
     [66, 105, 103, 32, 77, 97, 99]
 
 
@@ -588,22 +588,22 @@ libraries. Here is a small example::
     # Construct a finite field of order 11.
     cdef sage.rings.finite_field_givaro.FiniteField_givaro K
     K = sage.rings.finite_field_givaro.FiniteField_givaro(11)
-    print "K is a", type(K)
-    print "K cardinality =", K.cardinality()
+    print("K is a {}".format(type(K)))
+    print("K cardinality = {}".format(K.cardinality()))
     # Construct two values in the field:
     cdef sage.rings.finite_field_givaro.FiniteField_givaroElement x
     cdef sage.rings.finite_field_givaro.FiniteField_givaroElement y
     x = K(3)
     y = K(6)
-    print "x is a", type(x)
-    print "x =", x
-    print "y =", y
-    print "x has multiplicative order =", x.multiplicative_order()
-    print "y has multiplicative order =", y.multiplicative_order()
-    print "x*y =", x*y
+    print("x is a {}".format(type(x)))
+    print("x = {}".format(x))
+    print("y = {}".format(y))
+    print("x has multiplicative order = {}".format(x.multiplicative_order()))
+    print("y has multiplicative order = {}".format(y.multiplicative_order()))
+    print("x*y = {}".format(x * y))
     # Show that x behaves like a finite field element:
     for i in range(1, x.multiplicative_order() + 1):
-        print i, x**i
+        print("{} {}".format(i, x**i))
     assert x*(1/x) == K.one()
 
 To find out more, type ::

@@ -15,6 +15,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #                         http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function
+from six.moves import range
 
 from copy import copy
 from math import sin, cos, pi
@@ -429,14 +430,14 @@ def BubbleSortGraph(n):
         return Graph(CompleteGraph(n), name="Bubble sort")
     from sage.combinat.permutation import Permutations
     #create set from which to permute
-    label_set = [str(i) for i in xrange(1, n + 1)]
+    label_set = [str(i) for i in range(1, n + 1)]
     d = {}
     #iterate through all vertices
     for v in Permutations(label_set):
         v = list(v) # So we can easily mutate it
         tmp_dict = {}
         #add all adjacencies
-        for i in xrange(n - 1):
+        for i in range(n - 1):
             #swap entries
             v[i], v[i + 1] = v[i + 1], v[i]
             #add new vertex
@@ -481,8 +482,8 @@ def chang_graphs():
         sage: s=[K8.subgraph_search(c8).edges(),
         ....:    [(0,1,None),(2,3,None),(4,5,None),(6,7,None)],
         ....:    K8.subgraph_search(c3c5).edges()]
-        sage: map(lambda x,G: T8.seidel_switching(x, inplace=False).is_isomorphic(G),
-        ....:                  s, chang_graphs)
+        sage: list(map(lambda x,G: T8.seidel_switching(x, inplace=False).is_isomorphic(G),
+        ....:                  s, chang_graphs))
         [True, True, True]
 
     """
@@ -598,7 +599,7 @@ def CirculantGraph(n, adjacency):
         adjacency=[adjacency]
 
     G = Graph(n, name="Circulant graph ("+str(adjacency)+")")
-    _circle_embedding(G, range(n))
+    _circle_embedding(G, list(range(n)))
 
     for v in G:
         G.add_edges([(v,(v+j)%n) for j in adjacency])
@@ -660,7 +661,7 @@ def CubeGraph(n):
     pn={}
 
     # construct recursively the adjacency dict and the positions
-    for i in xrange(n):
+    for i in range(n):
         ci = float(cos(i*theta))
         si = float(sin(i*theta))
         for v,e in d.iteritems():
@@ -1036,7 +1037,7 @@ def FibonacciTree(n):
         fib(level, node - diff, y)
         fib(level - 1, node + diff, y)
 
-    T.add_vertices(xrange(sum(F[:-1])))
+    T.add_vertices(range(sum(F[:-1])))
     fib(n, F[n + 1] - 1, 0)
     T.set_pos(pos)
 
@@ -1151,10 +1152,10 @@ def HararyGraph( k, n ):
         raise ValueError("Number of vertices n should be greater than k.")
 
     if k%2 == 0:
-        G = CirculantGraph( n, range(1,k//2+1) )
+        G = CirculantGraph( n, list(range(1,k//2+1)) )
     else:
         if n%2 == 0:
-            G = CirculantGraph( n, range(1,(k-1)//2+1) )
+            G = CirculantGraph( n, list(range(1,(k-1)//2+1)) )
             for i in range(n):
                 G.add_edge( i, (i + n//2)%n )
         else:
@@ -1210,11 +1211,11 @@ def HyperStarGraph(n,k):
     g = Graph(name="HS(%d,%d)"%(n,k))
     g.add_vertices(comb_to_str.values())
 
-    for c in Combinations(range(1,n),k): # 0 is not in c
+    for c in Combinations(list(range(1, n)), k):  # 0 is not in c
         L = []
         u = comb_to_str[tuple(c)]
         # switch 0 with the 1s
-        for i in xrange(len(c)):
+        for i in range(len(c)):
             v = tuple([0]+c[:i]+c[i+1:])
             g.add_edge( u , comb_to_str[v] )
 
@@ -1452,14 +1453,14 @@ def NKStarGraph(n,k):
     """
     from sage.combinat.permutation import Arrangements
     #set from which to permute
-    set = [str(i) for i in xrange(1,n+1)]
+    set = [str(i) for i in range(1,n+1)]
     #create dict
     d = {}
     for v in Arrangements(set,k):
         v = list(v) # So we can easily mutate it
         tmp_dict = {}
         #add edges of dimension i
-        for i in xrange(1,k):
+        for i in range(1,k):
             #swap 0th and ith element
             v[0], v[i] = v[i], v[0]
             #convert to str and add to list
@@ -1510,7 +1511,7 @@ def NStarGraph(n):
     """
     from sage.combinat.permutation import Permutations
     #set from which to permute
-    set = [str(i) for i in xrange(1,n+1)]
+    set = [str(i) for i in range(1,n+1)]
     #create dictionary of lists
     #vertices are adjacent if the first element
     #is swapped with the ith element
@@ -1518,7 +1519,7 @@ def NStarGraph(n):
     for v in Permutations(set):
         v = list(v) # So we can easily mutate it
         tmp_dict = {}
-        for i in xrange(1,n):
+        for i in range(1,n):
             if v[0] != v[i]:
                 #swap 0th and ith element
                 v[0], v[i] = v[i], v[0]
@@ -1680,7 +1681,7 @@ def SwitchedSquaredSkewHadamardMatrixGraph(n):
     from sage.graphs.generators.families import SquaredSkewHadamardMatrixGraph
     G = SquaredSkewHadamardMatrixGraph(n).complement()
     G.add_vertex((4*n-1)**2)
-    G.seidel_switching(range((4*n-1)*(2*n-1)))
+    G.seidel_switching(list(range((4 * n - 1) * (2 * n - 1))))
     G.name("switch skewhad^2+*_" + str((n)))
     return G
 
@@ -1870,7 +1871,7 @@ def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
         # We construct all such pairs of new states and add as edges
         from sage.combinat.subset import Subsets
         for state in range(nverts):
-            emptypegs = range(pegs)
+            emptypegs = list(range(pegs))
             reduced_state = state
             for i in range(d-1):
                 apeg = reduced_state % pegs
@@ -2395,7 +2396,7 @@ def RingedTree(k, vertex_labels = True):
 
     # We consider edges layer by layer
     for i in range(1,k):
-        vertices = range(2**(i)-1,2**(i+1)-1)
+        vertices = list(range(2**(i)-1,2**(i+1)-1))
 
         # Add the missing edges
         g.add_cycle(vertices)
@@ -2464,13 +2465,13 @@ def MathonPseudocyclicMergingGraph(M, t):
     """
     from sage.graphs.graph import Graph
     from sage.matrix.constructor import identity_matrix
-    assert (len(M) == 4)
-    assert (M[0]==identity_matrix(M[0].nrows()))
-    A = sum(map(lambda x: x.tensor_product(x), M[1:]))
+    assert len(M) == 4
+    assert M[0] == identity_matrix(M[0].nrows())
+    A = sum(x.tensor_product(x) for x in M[1:])
     if t > 0:
-        A += sum(map(lambda x: x.tensor_product(M[0]), M[1:]))
+        A += sum(x.tensor_product(M[0]) for x in M[1:])
     if t > 1:
-        A += sum(map(lambda x: M[0].tensor_product(x), M[1:]))
+        A += sum(M[0].tensor_product(x) for x in M[1:])
     return Graph(A)
 
 def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
@@ -2515,10 +2516,10 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
 
         sage: G=graphs.PaleyGraph(9)
         sage: a=G.automorphism_group()
-        sage: r=map(lambda z: matrix(libgap.PermutationMat(libgap(z),9).sage()),
-        ....:                   filter(lambda x: x.order()==9, a.normal_subgroups())[0])
-        sage: ff=map(lambda y: (y[0]-1,y[1]-1),
-        ....:          Permutation(map(lambda x: 1+r.index(x^-1), r)).cycle_tuples()[1:])
+        sage: r=list(map(lambda z: matrix(libgap.PermutationMat(libgap(z),9).sage()),
+        ....:                   filter(lambda x: x.order()==9, a.normal_subgroups())[0]))
+        sage: ff=list(map(lambda y: (y[0]-1,y[1]-1),
+        ....:          Permutation(map(lambda x: 1+r.index(x^-1), r)).cycle_tuples()[1:]))
         sage: L = sum(i*(r[a]-r[b]) for i,(a,b) in zip(range(1,len(ff)+1), ff)); L
         [ 0  1 -1  2  3 -4 -2  4 -3]
         [-1  0  1 -4  2  3 -3 -2  4]
@@ -2576,7 +2577,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         G.relabel()
     if L is None:
         from sage.matrix.constructor import circulant
-        L = circulant(range(2*t+1)+map(lambda i: -2*t+i, range(2*t)))
+        L = circulant(list(range(2 * t + 1))+list(range(-2 * t, 0)))
     q = 4*t -1
     K = GF(q,prefix='x')
     K_pairs = set(frozenset([x,-x]) for x in K)
@@ -2588,7 +2589,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
     a.append(K(0))      # and append the 0 of K at the end
     P = map(lambda b: matrix(ZZ,q,q,lambda i,j: 1 if a[j]==a[i]+b else 0), a)
     g = K.primitive_element()
-    F = sum(P[a.index(g**(2*i))] for i in xrange(1, 2*t))
+    F = sum(P[a.index(g**(2*i))] for i in range(1, 2*t))
     E = matrix(ZZ,q,q, lambda i,j: 0 if (a[j]-a[0]).is_square() else 1)
     def B(m):
         I = identity_matrix(q)
@@ -2607,7 +2608,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         elif m == 2*t:
             def f(i, j):
                 return E * P[i]
-        return block_matrix(q,q, [f(i, j) for i in xrange(q) for j in xrange(q)])
+        return block_matrix(q,q, [f(i, j) for i in range(q) for j in range(q)])
 
     def Acon(i, j):
         J = ones_matrix(q**2)
@@ -2621,7 +2622,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
             return              B(-L[i,j]).T
         return                  J-B(-L[i,j]).T
 
-    A = Graph(block_matrix(p, p, [Acon(i,j) for i in xrange(p) for j in xrange(p)]))
+    A = Graph(block_matrix(p, p, [Acon(i,j) for i in range(p) for j in range(p)]))
     A.name("Mathon's PC SRG on "+str(p*q**2)+" vertices")
     A.relabel()
     return A

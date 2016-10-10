@@ -21,11 +21,10 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include 'sage/modules/binary_search.pxi'
-include 'sage/modules/vector_integer_sparse_h.pxi'
-include 'sage/modules/vector_integer_sparse_c.pxi'
-include 'sage/modules/vector_modn_sparse_h.pxi'
-include 'sage/modules/vector_modn_sparse_c.pxi'
+from sage.data_structures.binary_search cimport *
+from sage.modules.vector_integer_sparse cimport *
+from sage.modules.vector_modn_sparse cimport *
+
 from cpython.sequence cimport *
 
 include "cysignals/memory.pxi"
@@ -43,7 +42,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
 
-cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
+cdef class Matrix_integer_sparse(Matrix_sparse):
 
     ########################################################################
     # LEVEL 1 functionality
@@ -57,7 +56,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     def __cinit__(self, parent, entries, copy, coerce):
         self._initialized = False
         # set the parent, nrows, ncols, etc.
-        matrix_sparse.Matrix_sparse.__init__(self, parent)
+        Matrix_sparse.__init__(self, parent)
 
         self._matrix = <mpz_vector*> sig_malloc(parent.nrows()*sizeof(mpz_vector))
         if self._matrix == NULL:

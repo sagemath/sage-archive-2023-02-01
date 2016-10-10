@@ -44,6 +44,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import math
 
@@ -65,11 +66,11 @@ from sage.misc.fast_methods import WithEqualityById
 import sage.schemes.projective.projective_space as projective_space
 from sage.schemes.projective.projective_homset import SchemeHomset_points_abelian_variety_field
 
-import ell_point
-import ell_torsion
-import constructor
-import formal_group
-import weierstrass_morphism as wm
+from . import ell_point
+from . import ell_torsion
+from . import constructor
+from . import formal_group
+from . import weierstrass_morphism as wm
 
 
 sqrt = math.sqrt
@@ -384,7 +385,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             0
 
             sage: 2*w
-            (-2*pi + (2*pi - 3*pi^2 + 10)^2/(-40*pi + 4*pi^3 - 4*pi^2 - 79) + 1 : (3*pi - (2*pi - 3*pi^2 + 10)^2/(-40*pi + 4*pi^3 - 4*pi^2 - 79) - 1)*(2*pi - 3*pi^2 + 10)/sqrt(-40*pi + 4*pi^3 - 4*pi^2 - 79) + 1/2*sqrt(-40*pi + 4*pi^3 - 4*pi^2 - 79) - 1/2 : 1)
+            (-2*pi - (2*pi - 3*pi^2 + 10)^2/(40*pi - 4*pi^3 + 4*pi^2 + 79) + 1 : (3*pi + (2*pi - 3*pi^2 + 10)^2/(40*pi - 4*pi^3 + 4*pi^2 + 79) - 1)*(2*pi - 3*pi^2 + 10)/sqrt(-40*pi + 4*pi^3 - 4*pi^2 - 79) + 1/2*sqrt(-40*pi + 4*pi^3 - 4*pi^2 - 79) - 1/2 : 1)
 
             sage: x, y, z = 2*w; temp = ((y^2 + y) - (x^3 - x^2 - 10*x - 20))
 
@@ -2428,7 +2429,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E.short_weierstrass_model(complete_cube=False).is_isomorphic(E)
             True
         """
-        import constructor
+        from . import constructor
         K = self.base_ring()
 
         # any curve of the form y^2 = x^3 +.. is singular in characteristic 2
@@ -2728,7 +2729,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
         TESTS:
 
-        This shows that the bug at trac #4937 is fixed::
+        This shows that the bug at :trac:`4937` is fixed::
 
             sage: a=804515977734860566494239770982282063895480484302363715494873
             sage: b=584772221603632866665682322899297141793188252000674256662071

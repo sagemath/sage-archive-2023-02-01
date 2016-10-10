@@ -93,7 +93,7 @@ cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 from sage.libs.pari.paridecl cimport *
 #########################################################
 
-cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
+cdef class Matrix_rational_dense(Matrix_dense):
 
     ########################################################################
     # LEVEL 1 functionality
@@ -131,7 +131,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
            This is for internal use only, or if you really know what
            you're doing.
         """
-        matrix_dense.Matrix_dense.__init__(self, parent)
+        Matrix_dense.__init__(self, parent)
 
         cdef Py_ssize_t i, k
 
@@ -784,7 +784,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         if self._nrows <= 2:
             # use generic special cased code.
-            return matrix_dense.Matrix_dense.determinant(self)
+            return Matrix_dense.determinant(self)
 
         if algorithm == "default":
             if self._nrows <= 7:
@@ -945,7 +945,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             x = f.parent().gen()
             g = f(x * denom) * (1 / (denom**f.degree()))
         elif algorithm == 'generic':
-            g = matrix_dense.Matrix_dense.charpoly(self, var)
+            g = Matrix_dense.charpoly(self, var)
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
 
@@ -1004,7 +1004,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             x = f.parent().gen()
             g = f(x * denom) * (1 / (denom**f.degree()))
         elif algorithm == 'generic':
-            g = matrix_dense.Matrix_dense.minpoly(self, var)
+            g = Matrix_dense.minpoly(self, var)
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
 
@@ -1027,7 +1027,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [ -53/5   55/3   61/3]
             [   5/3 -37/45 -73/45]
             [   -27   76/3   67/3]
-            sage: (pari(a)*pari(a))._sage_() == a*a
+            sage: (pari(a)*pari(a)).sage() == a*a
             True
         """
         if self._nrows <= 6 and self._ncols <= 6 and right._nrows <= 6 and right._ncols <= 6 and \
@@ -1251,7 +1251,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             True
 
         Computed result is the negative of the pivot basis, which
-        is just slighltly more efficient to compute. ::
+        is just slightly more efficient to compute. ::
 
             sage: A.right_kernel_matrix(basis='pivot') == -A.right_kernel_matrix(basis='computed')
             True
@@ -1352,7 +1352,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             C.subdivide(self.subdivisions())
             return C
         else:
-            D = matrix_dense.Matrix_dense.change_ring(self, R)
+            D = Matrix_dense.change_ring(self, R)
             D.subdivide(self.subdivisions())
             return D
 
@@ -2304,7 +2304,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         ::
 
-            sage: A = matrix(QQ,2,3,xrange(6))
+            sage: A = matrix(QQ, 2, 3, xrange(6))
             sage: type(A)
             <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
             sage: B = A.transpose()

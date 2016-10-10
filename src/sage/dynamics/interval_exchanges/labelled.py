@@ -97,6 +97,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
 from sage.misc.lazy_attribute import lazy_attribute
@@ -109,11 +110,11 @@ from sage.combinat.words.morphism import WordMorphism
 from sage.matrix.constructor import identity_matrix
 from sage.rings.integer import Integer
 
-from template import PermutationIET, PermutationLI
-from template import FlippedPermutationIET, FlippedPermutationLI
-from template import twin_list_iet, twin_list_li
-from template import RauzyDiagram, FlippedRauzyDiagram
-from template import interval_conversion, side_conversion
+from .template import PermutationIET, PermutationLI
+from .template import FlippedPermutationIET, FlippedPermutationLI
+from .template import twin_list_iet, twin_list_li
+from .template import RauzyDiagram, FlippedRauzyDiagram
+from .template import interval_conversion, side_conversion
 
 class LabelledPermutation(SageObject):
     r"""
@@ -710,7 +711,9 @@ def LabelledPermutationsIET_iterator(nintervals=None,
         b a c
         *****
     """
-    from itertools import imap, ifilter, product
+    from builtins import map
+    from itertools import product
+    from six.moves import filter
     from sage.combinat.permutation import Permutations
 
     if not irreducible:
@@ -727,9 +730,9 @@ def LabelledPermutationsIET_iterator(nintervals=None,
         alphabet = Alphabet(alphabet)
         g = lambda x: [alphabet.unrank(k-1) for k in x]
         P = [g(_) for _ in Permutations(nintervals)]
-        return imap(f,product(P,P))
+        return map(f, product(P, P))
     else:
-        return ifilter(
+        return filter(
             lambda x: x.is_irreducible(),
             LabelledPermutationsIET_iterator(nintervals,False,alphabet))
 
@@ -836,7 +839,7 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
             sage: p.reduced() == q
             True
         """
-        from reduced import ReducedPermutationIET
+        from .reduced import ReducedPermutationIET
 
         return ReducedPermutationIET(self.list(), alphabet=self._alphabet)
 
@@ -1416,7 +1419,7 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
             sage: p.rauzy_move(0).reduced() == q.rauzy_move(0)
             True
         """
-        from reduced import ReducedPermutationLI
+        from .reduced import ReducedPermutationLI
 
         return ReducedPermutationLI(self.list(),alphabet=self._alphabet)
 
@@ -1810,7 +1813,7 @@ class FlippedLabelledPermutationIET(
             sage: p.append(iet.Permutation('a b','b a',flips='a'))
             sage: p.append(iet.Permutation('a b','b a',flips='b'))
             sage: p.append(iet.Permutation('a b','b a',flips='ab'))
-            sage: h = map(hash, p)
+            sage: h = list(map(hash, p))
             sage: for i in range(len(h)-1):
             ....:     if h[i] == h[i+1]:
             ....:         print("You choose a bad hash!")
@@ -2320,15 +2323,16 @@ class LabelledRauzyDiagram(RauzyDiagram):
             [1 1]
             *****
         """
-        from itertools import ifilter, imap
+        from builtins import map
+        from six.moves import filter
 
         g = self.path(start)
 
-        ifull = ifilter(
+        ifull = filter(
             lambda x: x.is_loop() and x.is_full(),
             self._all_path_extension(g,max_length))
 
-        return imap(copy,ifull)
+        return map(copy, ifull)
 
     def full_nloop_iterator(self, start=None, length=1):
         r"""
@@ -2358,15 +2362,16 @@ class LabelledRauzyDiagram(RauzyDiagram):
             [1 1]
             *****
         """
-        from itertools import ifilter, imap
+        from builtins import map
+        from six.moves import filter
 
         g = self.path(start)
 
-        ifull = ifilter(
+        ifull = filter(
             lambda x: x.is_loop() and x.is_full(),
             self._all_npath_extension(g,length))
 
-        return imap(copy, ifull)
+        return map(copy, ifull)
 
     def _permutation_to_vertex(self, p):
         r"""

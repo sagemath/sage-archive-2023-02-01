@@ -2,15 +2,16 @@
 The cdd backend for polyhedral computations
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 from subprocess import Popen, PIPE
 from sage.rings.all import ZZ, QQ, RDF
 from sage.misc.all import SAGE_TMP, tmp_filename, union, cached_method, prod
 from sage.matrix.constructor import matrix
 
-from base import Polyhedron_base
-from base_QQ import Polyhedron_QQ
-from base_RDF import Polyhedron_RDF
+from .base import Polyhedron_base
+from .base_QQ import Polyhedron_QQ
+from .base_RDF import Polyhedron_RDF
 
 
 
@@ -48,7 +49,7 @@ class Polyhedron_cdd(Polyhedron_base):
             A 2-dimensional polyhedron in QQ^2 defined as the
             convex hull of 1 vertex, 1 ray, 1 line
         """
-        from cdd_file_format import cdd_Vrepresentation
+        from .cdd_file_format import cdd_Vrepresentation
         s = cdd_Vrepresentation(self._cdd_type, vertices, rays, lines)
         self._init_from_cdd_input(s, '--reps', verbose)
 
@@ -77,7 +78,7 @@ class Polyhedron_cdd(Polyhedron_base):
             A 1-dimensional polyhedron in QQ^2 defined as the
             convex hull of 1 vertex and 1 ray
         """
-        from cdd_file_format import cdd_Hrepresentation
+        from .cdd_file_format import cdd_Hrepresentation
         s = cdd_Hrepresentation(self._cdd_type, ieqs, eqns)
         self._init_from_cdd_input(s, '--reps', verbose)
 

@@ -1124,7 +1124,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: S.krull_dimension()
             2
             sage: for n in range(10):
-            ...    S = PolynomialRing(S,'w')
+            ....:  S = PolynomialRing(S,'w')
             sage: S.krull_dimension()
             12
         """

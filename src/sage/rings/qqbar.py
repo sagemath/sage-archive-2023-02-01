@@ -77,9 +77,9 @@ For a monic cubic polynomial `x^3 + bx^2 + cx + d` with roots `s1`,
 same result::
 
     sage: def disc1(b, c, d):
-    ...       return b^2*c^2 - 4*b^3*d - 4*c^3 + 18*b*c*d - 27*d^2
+    ....:     return b^2*c^2 - 4*b^3*d - 4*c^3 + 18*b*c*d - 27*d^2
     sage: def disc2(s1, s2, s3):
-    ...       return ((s1-s2)*(s1-s3)*(s2-s3))^2
+    ....:     return ((s1-s2)*(s1-s3)*(s2-s3))^2
     sage: x = polygen(AA)
     sage: p = x*(x-2)*(x-4)
     sage: cp = AA.common_polynomial(p)
@@ -1421,9 +1421,9 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
             sage: r = []
             sage: while len(r) < 3:
-            ...     x = QQbar.random_element(poly_degree=3)
-            ...     if x in AA:
-            ...       r.append(x)
+            ....:   x = QQbar.random_element(poly_degree=3)
+            ....:   if x in AA:
+            ....:     r.append(x)
             sage: (len(r) == 3) and all([z in AA for z in r])
             True
 

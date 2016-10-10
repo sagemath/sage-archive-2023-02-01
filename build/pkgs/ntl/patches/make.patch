@@ -21,8 +21,8 @@ WizardAux and the shell script TestScript.
  
 @@ -338,7 +338,7 @@
  setup1:
- 	$(COMPILE) MakeDescAux.c
- 	$(LINK) -o MakeDesc MakeDesc.c MakeDescAux.o $(LDLIBS)
+ 	$(COMPILE) MakeDescAux.cpp
+ 	$(LINK) -o MakeDesc MakeDesc.cpp MakeDescAux.o $(LDLIBS)
 -	./MakeDesc
 +	./MakeDesc # generates mach_desc.h
  	mv mach_desc.h ../include/NTL/mach_desc.h
@@ -80,5 +80,5 @@ WizardAux and the shell script TestScript.
 -system("make DispSettings");
 +system("\$MAKE DispSettings");
  system("./DispSettings");
- 
+ system("./DispSettings > wizard_log.h");
  

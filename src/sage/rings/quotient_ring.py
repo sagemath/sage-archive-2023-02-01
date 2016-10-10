@@ -98,8 +98,6 @@ easily::
     True
 
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -109,7 +107,8 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
+from six.moves import range
 
 import sage.misc.latex as latex
 from . import ring, ideal, quotient_ring_element
@@ -570,11 +569,11 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         from sage.all import Infinity
         if self.ngens() == Infinity:
             raise NotImplementedError("This quotient ring has an infinite number of generators.")
-        for i in xrange(self.ngens()):
+        for i in range(self.ngens()):
             gi = self.gen(i)
-            for j in xrange(i+1,self.ngens()):
+            for j in range(i + 1, self.ngens()):
                 gj = self.gen(j)
-                if gi*gj!=gj*gi:
+                if gi * gj != gj * gi:
                     return False
         return True
 

@@ -36,6 +36,7 @@ We test that pickling works::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
+from six.moves import range
 
 SMALL_DISC = 1000000
 
@@ -1190,7 +1191,7 @@ class NumberFieldIdeal(Ideal_generic):
             L = (v * M).list()
             D = self.number_field()._S_class_group_and_units(tuple(S))[1]
             invs = [x[1] for x in D]
-        return [Zmod(invs[i])(L[i]) for i in xrange(len(L))]
+        return [Zmod(invs[i])(L[i]) for i in range(len(L))]
 
     def is_zero(self):
         """
@@ -2690,7 +2691,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         if check:
             from sage.rings.all import Zmod
             t = 1
-            for i in xrange(len(ans)):
+            for i in range(len(ans)):
                 t = self.reduce(t * gens[i]**ans[i])
             assert t == self.reduce(x * x.denominator() * (~Zmod(self.norm())(x.denominator())).lift())
 
@@ -3262,7 +3263,7 @@ class LiftMap:
         w = v.lift()
         # Write back in terms of K
         z = (w * self.__M_OK_map).list()
-        return self.__OK(sum([z[i] * self.__Kgen**i for i in xrange(len(z))]))
+        return self.__OK(sum(z[i] * self.__Kgen ** i for i in range(len(z))))
 
     def __repr__(self):
         """

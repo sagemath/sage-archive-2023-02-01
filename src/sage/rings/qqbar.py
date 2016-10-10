@@ -501,6 +501,7 @@ Verify that :trac:`10981` is fixed::
 """
 
 from __future__ import absolute_import, print_function
+from six.moves import range
 
 import itertools
 import operator
@@ -5692,11 +5693,11 @@ class ANRoot(ANDescr):
 
         p = self._poly.poly()
         dp = p.derivative()
-        for i in xrange(0, self._multiplicity - 1):
+        for i in range(self._multiplicity - 1):
             p = dp
             dp = p.derivative()
 
-        zero = field(0)
+        zero = field.zero()
 
         poly_ring = field['x']
 
@@ -5870,11 +5871,11 @@ class ANRoot(ANDescr):
 
         p = self._poly.poly()
         dp = p.derivative()
-        for i in xrange(0, self._multiplicity - 1):
+        for i in range(self._multiplicity - 1):
             p = dp
             dp = p.derivative()
 
-        zero = field(0)
+        zero = field.zero()
 
         poly_ring = field['x']
 

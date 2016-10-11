@@ -150,6 +150,15 @@ for module in ctypes math hashlib crypt readline socket ; do
     fi
 done
 
+if [ "$UNAME" = "Darwin" ]; then
+    if python -c "import _scproxy"; then
+        echo "_scproxy module imported OK"
+    else
+        echo >&2 "_scproxy module failed to import"
+        import_errors=true
+    fi
+fi
+
 if $import_errors; then
     echo >&2 "Error: One or more modules failed to import."
     exit 1

@@ -92,7 +92,7 @@ We do some arithmetic in a tower of relative number fields::
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
-from six.moves importy range
+from six.moves import range
 
 from sage.structure.parent_gens import localvars
 from sage.misc.cachefunc import cached_method
